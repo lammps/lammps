@@ -47,15 +47,13 @@ versus make.
 
 **CMake build**\ :
 
-
-.. code-block:: bash
+.. code-block:: csh
 
    -D PKG_NAME=value          # yes or no (default)
 
 Examples:
 
-
-.. code-block:: bash
+.. code-block:: csh
 
    -D PKG_MANYBODY=yes
    -D PKG_USER-INTEL=yes
@@ -76,7 +74,6 @@ once with CMake.
 
 **Traditional make**\ :
 
-
 .. code-block:: bash
 
    cd lammps/src
@@ -86,7 +83,6 @@ once with CMake.
    make mpi                   # build LAMMPS with whatever packages are now installed
 
 Examples:
-
 
 .. code-block:: bash
 
@@ -132,9 +128,9 @@ src directory.
    That is no longer the case, so that CMake will build as-is without the
    need to un-install those packages.
 
-
 ----------
 
+.. _cmake_presets:
 
 **CMake shortcuts for installing many packages**\ :
 
@@ -152,13 +148,14 @@ one of them as a starting point and customize it to your needs.
 
 .. code-block:: bash
 
-    cmake -C ../cmake/presets/all_on.cmake  [OPTIONS] ../cmake  # enable all packages
-    cmake -C ../cmake/presets/all_off.cmake [OPTIONS] ../cmake  # disable all packages
     cmake -C ../cmake/presets/minimal.cmake [OPTIONS] ../cmake  # enable just a few core packages
-    cmake -C ../cmake/presets/most.cmake    [OPTIONS] ../cmake  # enable most common packages
+    cmake -C ../cmake/presets/most.cmake    [OPTIONS] ../cmake  # enable most packages
     cmake -C ../cmake/presets/nolib.cmake   [OPTIONS] ../cmake  # disable packages that do require extra libraries or tools
     cmake -C ../cmake/presets/clang.cmake   [OPTIONS] ../cmake  # change settings to use the Clang compilers by default
-    cmake -C ../cmake/presets/mingw.cmake   [OPTIONS] ../cmake  # enable all packages compatible with MinGW compilers
+    cmake -C ../cmake/presets/intel.cmake   [OPTIONS] ../cmake  # change settings to use the Intel compilers by default
+    cmake -C ../cmake/presets/all_on.cmake  [OPTIONS] ../cmake  # enable all packages
+    cmake -C ../cmake/presets/all_off.cmake [OPTIONS] ../cmake  # disable all packages
+    mingw64-cmake -C ../cmake/presets/mingw-cross.cmake [OPTIONS] ../cmake  #  compile with MinGW cross compilers
 
 .. note::
 
@@ -168,7 +165,6 @@ one of them as a starting point and customize it to your needs.
    cmake with new flags.
 
 **Example:**
-
 
 .. code-block:: bash
 
@@ -186,15 +182,13 @@ one of them as a starting point and customize it to your needs.
    # but leaving all other settings untouched. You can run:
    cmake -C ../cmake/presets/no_all.cmake .
 
-
 ----------
-
 
 **Make shortcuts for installing many packages**\ :
 
 The following commands are useful for managing package source files
 and their installation when building LAMMPS via traditional make.
-Just type "make" in lammps/src to see a one-line summary.
+Just type ``make`` in lammps/src to see a one-line summary.
 
 These commands install/un-install sets of packages:
 
@@ -211,8 +205,8 @@ These commands install/un-install sets of packages:
     make yes-ext                        # install packages that require external libraries
     make no-ext                         # uninstall packages that require external libraries
 
-which install/un-install various sets of packages.  Typing "make
-package" will list all the these commands.
+which install/un-install various sets of packages.  Typing ``make
+package`` will list all the these commands.
 
 .. note::
 
@@ -221,7 +215,7 @@ package" will list all the these commands.
    directory src and the sub-directories with the package name (e.g.
    src/KSPACE, src/USER-ATC), so that the files are included or excluded
    when LAMMPS is built.  Only source files in the src folder will be
-   compiled. 
+   compiled.
 
 The following make commands help manage files that exist in both the
 src directory and in package sub-directories.  You do not normally
@@ -229,23 +223,23 @@ need to use these commands unless you are editing LAMMPS files or are
 :doc:`installing a patch <Install_patch>` downloaded from the LAMMPS web
 site.
 
-Type "make package-status" or "make ps" to show which packages are
+Type ``make package-status`` or ``make ps`` to show which packages are
 currently installed.  For those that are installed, it will list any
 files that are different in the src directory and package
 sub-directory.
 
-Type "make package-installed" or "make pi" to show which packages are
+Type ``make package-installed`` or ``make pi`` to show which packages are
 currently installed, without listing the status of packages that are
 not installed.
 
-Type "make package-update" or "make pu" to overwrite src files with
+Type ``make package-update`` or ``make pu`` to overwrite src files with
 files from the package sub-directories if the package is installed.
 It should be used after a :doc:`patch has been applied <Install_patch>`,
 since patches only update the files in the package sub-directory, but
 not the src files.
 
-Type "make package-overwrite" to overwrite files in the package
+Type ``make package-overwrite`` to overwrite files in the package
 sub-directories with src files.
 
-Type "make package-diff" to list all differences between pairs of
+Type ``make package-diff`` to list all differences between pairs of
 files in both the source directory and the package directory.

@@ -30,8 +30,6 @@ particles according to the Smoothed Dissipative Particle Dynamics model
 described in this paper by :ref:`(Espanol and Revenga) <Espanol_Revenga>` under
 the following assumptions:
 
-
-
 #. The temperature is constant and uniform.
 #. The shear viscosity is constant and uniform.
 #. The volume viscosity is negligible before the shear viscosity.
@@ -81,7 +79,6 @@ above.
 
 ----------
 
-
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 This style does not support mixing.  Thus, coefficients for all
@@ -90,15 +87,14 @@ I,J pairs must be specified explicitly.
 This style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
-This style does not write information to :doc:`binary restart files <restart>`.  Thus, you need to re-specify the pair\_style and
-pair\_coeff commands in an input script that reads a restart file.
+This style does not write information to :doc:`binary restart files <restart>`.  Thus, you need to re-specify the pair_style and
+pair_coeff commands in an input script that reads a restart file.
 
 This style can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  It does not support the *inner*\ ,
 *middle*\ , *outer* keywords.
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the USER-SDPD package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -114,12 +110,8 @@ Default
 
 The default seed is 0 (before mixing).
 
-
 ----------
 
-
-.. _Espanol\_Revenga:
-
-
+.. _Espanol_Revenga:
 
 **(Espanol and Revenga)** Espanol, Revenga, Physical Review E, 67, 026705 (2003).

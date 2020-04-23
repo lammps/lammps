@@ -6,20 +6,19 @@ min_modify command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    min_modify keyword values ...
 
 * one or more keyword/value pairs may be listed
-  
+
   .. parsed-literal::
-  
+
      keyword = *dmax* or *line* or *norm* or *alpha_damp* or *discrete_factor* or *integrator* or *tmax*
        *dmax* value = max
          max = maximum distance for line search to move (distance units)
        *line* value = *backtrack* or *quadratic* or *forcezero* or *spin_cubic* or *spin_none*
-         backtrack,quadratic,forcezero,spin_cubic,spin_none = style of linesearch to use 
+         backtrack,quadratic,forcezero,spin_cubic,spin_none = style of linesearch to use
        *norm* value = *two* or *max*
          two = Euclidean two-norm (length of 3N vector)
          inf = max force component across all 3-vectors
@@ -33,11 +32,8 @@ Syntax
        *tmax* value = factor
          factor = maximum adaptive timestep for fire minimization (adim)
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -86,16 +82,15 @@ even if atoms could move in the gradient direction to reduce forces
 further.
 
 The choice of a norm can be modified for the min styles *cg*\ , *sd*\
-, *quickmin*\ , *fire*\ , *fire/old*\ , *spin*\ , *spin/cg* and 
-*spin/lbfgs* using the *norm* keyword.  The default *two* norm computes 
+, *quickmin*\ , *fire*\ , *fire/old*\ , *spin*\ , *spin/cg* and
+*spin/lbfgs* using the *norm* keyword.  The default *two* norm computes
 the 2-norm (Euclidean length) of the global force vector:
 
 .. math::
+    || \vec{F} ||_{2} = \sqrt{\vec{F}_1^2+ \cdots + \vec{F}_N^2}
 
-   || \vec{F} ||_{2} = \sqrt{\vec{F}_1+ \cdots + \vec{F}_N}
-
-The *max* norm computes the length of the 3-vector force 
-for each atom  (2-norm), and takes the maximum value of those across 
+The *max* norm computes the length of the 3-vector force
+for each atom  (2-norm), and takes the maximum value of those across
 all atoms
 
 .. math::
@@ -112,25 +107,25 @@ all atoms in the system:
 For the min styles *spin*\ , *spin/cg* and *spin/lbfgs*\ , the force
 norm is replaced by the spin-torque norm.
 
-Keywords *alpha\_damp* and *discrete\_factor* only make sense when
+Keywords *alpha_damp* and *discrete_factor* only make sense when
 a :doc:`min_spin <min_spin>` command is declared.
-Keyword *alpha\_damp* defines an analog of a magnetic Gilbert
+Keyword *alpha_damp* defines an analog of a magnetic Gilbert
 damping. It defines a relaxation rate toward an equilibrium for
 a given magnetic system.
-Keyword *discrete\_factor* defines a discretization factor for the
+Keyword *discrete_factor* defines a discretization factor for the
 adaptive timestep used in the *spin* minimization.
 See :doc:`min_spin <min_spin>` for more information about those
 quantities.
 
 The choice of a line search algorithm for the *spin/cg* and
 *spin/lbfgs* styles can be specified via the *line* keyword.  The
-*spin\_cubic* and *spin\_none* keywords only make sense when one of those two
-minimization styles is declared.  The *spin\_cubic* performs the line
+*spin_cubic* and *spin_none* keywords only make sense when one of those two
+minimization styles is declared.  The *spin_cubic* performs the line
 search based on a cubic interpolation of the energy along the search
-direction. The *spin\_none* keyword deactivates the line search
-procedure.  The *spin\_none* is a default value for *line* keyword for
+direction. The *spin_none* keyword deactivates the line search
+procedure.  The *spin_none* is a default value for *line* keyword for
 both *spin/lbfgs* and *spin/cg*\ . Convergence of *spin/lbfgs* can be
-more robust if *spin\_cubic* line search is used.
+more robust if *spin_cubic* line search is used.
 
 The Newton *integrator* used for *fire* minimization can be selected
 to be either the symplectic Euler (\ *eulerimplicit*\ ) or velocity
@@ -139,8 +134,8 @@ adaptive timestep during a *fire* minimization. It is a multiplication
 factor applied to the current :doc:`timestep <timestep>` (not in time
 unit). For example, *tmax* = 4.0 with a :doc:`timestep <timestep>` of
 2fs, means that the maximum value the timestep can reach during a *fire*
-minimization is 4fs. 
-Note that parameter defaults has been chosen to be reliable in most cases, 
+minimization is 4fs.
+Note that parameter defaults has been chosen to be reliable in most cases,
 but one should consider adjusting :doc:`timestep <timestep>` and *tmax* to
 optimize the minimization for large or complex systems.  Other
 parameters of the *fire* minimization can be tuned (\ *tmin*\ ,
@@ -150,12 +145,12 @@ parameters of the *fire* minimization can be tuned (\ *tmin*\ ,
 An additional stopping criteria *vdfmax* is used by *fire* in order to avoid
 unnecessary looping when it is reasonable to think the system will not
 be relaxed further.  Note that in this case the system will NOT have
-reached your minimization criteria. This could happen when the system 
-comes to be stuck in a local basin of the phase space.  *vdfmax* is 
+reached your minimization criteria. This could happen when the system
+comes to be stuck in a local basin of the phase space.  *vdfmax* is
 the maximum number of consecutive iterations with P(t) < 0.
 
 The :doc:`min_style <min_style>` *fire* is an optimized implementation of
-:doc:`min_style <min_style>` *fire/old*. It can however behave similarly 
+:doc:`min_style <min_style>` *fire/old*. It can however behave similarly
 to the *fire/old* style by using the following set of parameters:
 
 .. code-block:: LAMMPS
@@ -167,8 +162,7 @@ to the *fire/old* style by using the following set of parameters:
 Restrictions
 """"""""""""
 
-
-For magnetic GNEB calculations, only *spin\_none* value for *line*
+For magnetic GNEB calculations, only *spin_none* value for *line*
 keyword can be used when minimization styles *spin/cg* and *spin/lbfgs* are
 employed.  See :doc:`neb/spin <neb_spin>` for more explanation.
 
@@ -183,8 +177,8 @@ Default
 The option defaults are dmax = 0.1, line = quadratic and norm = two.
 
 For the *spin*\ , *spin/cg* and *spin/lbfgs* styles, the option
-defaults are alpha\_damp = 1.0, discrete\_factor = 10.0, line =
-spin\_none, and norm = euclidean.
+defaults are alpha_damp = 1.0, discrete_factor = 10.0, line =
+spin_none, and norm = euclidean.
 
 For the *fire* style, the option defaults are integrator =
 eulerimplicit, tmax = 10.0, tmin = 0.02, delaystep = 20, dtgrow = 1.1,

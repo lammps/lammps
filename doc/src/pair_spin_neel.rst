@@ -6,17 +6,14 @@ pair_style spin/neel command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style spin/neel cutoff
 
 * cutoff = global cutoff pair (distance in metal units)
 
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -59,7 +56,7 @@ the same Bethe-Slater function used to fit the exchange interaction:
    {J}\left( r_{ij} \right) = 4 a \left( \frac{r_{ij}}{d}  \right)^2 \left( 1 - b \left( \frac{r_{ij}}{d}  \right)^2 \right) e^{-\left( \frac{r_{ij}}{d} \right)^2 }\Theta (R_c - r_{ij})
 
 where :math:`a`, :math:`b` and :math:`d` are the three constant coefficients defined in the
-associated "pair\_coeff" command.
+associated "pair_coeff" command.
 
 The coefficients :math:`a`, :math:`b`, and :math:`d` need to be fitted so that the function
 above matches with the values of the magneto-elastic constant of the
@@ -76,17 +73,14 @@ calculations only).
 More details about the derivation of these torques/forces are reported
 in :ref:`(Tranchida) <Tranchida6>`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
 
-
 All the *pair/spin* styles are part of the SPIN package.  These styles
 are only enabled if LAMMPS was built with this package, and if the
-atom\_style "spin" was declared.  See the :doc:`Build package <Build_package>` doc page for more info.
+atom_style "spin" was declared.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""
@@ -98,13 +92,9 @@ Related commands
 
 none
 
-
 ----------
 
-
 .. _Tranchida6:
-
-
 
 **(Tranchida)** Tranchida, Plimpton, Thibaudeau and Thompson,
 Journal of Computational Physics, 372, 406-425, (2018).

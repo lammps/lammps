@@ -32,24 +32,21 @@ by the other three atoms.  If the 4 atoms in an improper quadruplet
 (listed in the data file read by the :doc:`read_data <read_data>`
 command) are ordered I,J,K,L then the L-atom is assumed to be the
 central atom. Note that this is different from the convention used
-in the improper\_style distance.
+in the improper_style distance.
 
 The following coefficients must be defined for each improper type via
-the improper\_coeff command as in the example above, or in the data
-file or restart files read by the read\_data or read\_restart commands:
+the improper_coeff command as in the example above, or in the data
+file or restart files read by the read_data or read_restart commands:
 
 * :math:`K` (energy/distance\^4)
 * :math:`{d_0}^2` (distance\^2)
 
 Note that :math:`{d_0}^2` (in units distance\^2) has be provided and not :math:`d_0`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This improper style can only be used if LAMMPS was built with the
 USER-MISC package.  See the :doc:`Build package <Build_package>` doc

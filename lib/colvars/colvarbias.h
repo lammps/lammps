@@ -23,8 +23,11 @@ public:
   /// Name of this bias
   std::string name;
 
-  /// Type of this bias
+  /// Keyword indicating the type of this bias
   std::string bias_type;
+
+  /// Keyword used in state files (== bias_type most of the time)
+  std::string state_keyword;
 
   /// If there is more than one bias of this type, record its rank
   int rank;
@@ -65,7 +68,7 @@ public:
   virtual int calc_forces(std::vector<colvarvalue> const *values);
 
   /// Send forces to the collective variables
-  virtual void communicate_forces();
+  void communicate_forces();
 
   /// Carry out operations needed before next step is run
   virtual int end_of_step();
@@ -144,10 +147,10 @@ public:
   std::istream & read_state_data_key(std::istream &is, char const *key);
 
   /// Write the bias configuration to a restart file or other stream
-  virtual std::ostream & write_state(std::ostream &os);
+  std::ostream & write_state(std::ostream &os);
 
   /// Read the bias configuration from a restart file or other stream
-  virtual std::istream & read_state(std::istream &is);
+  std::istream & read_state(std::istream &is);
 
   /// Write a label to the trajectory file (comment line)
   virtual std::ostream & write_traj_label(std::ostream &os);
@@ -207,6 +210,9 @@ protected:
   /// through each colvar object
   std::vector<colvar *>    colvars;
 
+  /// \brief Up to date value of each colvar
+  std::vector<colvarvalue> colvar_values;
+
   /// \brief Current forces from this bias to the variables
   std::vector<colvarvalue> colvar_forces;
 
@@ -225,6 +231,9 @@ protected:
 
   /// \brief Step number read from the last state file
   cvm::step_number         state_file_step;
+
+  /// Flag used to tell if the state string being read is for this bias
+  bool matching_state;
 
 };
 

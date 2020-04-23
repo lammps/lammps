@@ -9,7 +9,6 @@ angle_style sdk/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    angle_style sdk
@@ -18,7 +17,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -32,15 +30,14 @@ The *sdk* angle style is a combination of the harmonic angle potential,
 
 .. math::
 
-   E = K (\theta - \theta_0)^2 
-
+   E = K (\theta - \theta_0)^2
 
 where :math:`\theta_0` is the equilibrium value of the angle and
 :math:`K` a prefactor, with the *repulsive* part of the non-bonded
 *lj/sdk* pair style between the atoms 1 and 3.  This angle potential is
 intended for coarse grained MD simulations with the CMM parameterization
 using the :doc:`pair_style lj/sdk <pair_sdk>`.  Relative to the
-pair\_style *lj/sdk*\ , however, the energy is shifted by
+pair_style *lj/sdk*\ , however, the energy is shifted by
 :math:`\epsilon`, to avoid sudden jumps.  Note that the usual 1/2 factor
 is included in :math:`K`.
 
@@ -53,11 +50,9 @@ The following coefficients must be defined for each angle type via the
 :math:`\theta_0` is specified in degrees, but LAMMPS converts it to radians
 internally; hence the units of :math:`K` are in energy/radian\^2.
 The also required *lj/sdk* parameters will be extracted automatically
-from the pair\_style.
-
+from the pair_style.
 
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -77,13 +72,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This angle style can only be used if LAMMPS was built with the
 USER-CGSDK package.  See the :doc:`Build package <Build_package>` doc

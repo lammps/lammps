@@ -24,14 +24,12 @@ pair_style lj/gromacs/coul/gromacs/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *lj/gromacs* or *lj/gromacs/coul/gromacs*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -43,7 +41,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -66,7 +63,7 @@ the coarse-grained models of :ref:`(Marrink) <Marrink>`.
 
 .. math::
 
-   E_{LJ} = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+   E_{LJ} = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
             \left(\frac{\sigma}{r}\right)^6 \right] + S_{LJ}(r)
                        \qquad r < r_c \\
    E_C  = & \frac{C q_i q_j}{\epsilon  r} + S_C(r) \qquad r < r_c \\
@@ -76,12 +73,11 @@ the coarse-grained models of :ref:`(Marrink) <Marrink>`.
    B = & (2 E'(r_c) - (r_c - r_1) E''(r_c))/(r_c - r_1)^3 \\
    C = & -E(r_c) + \frac{1}{2} (r_c - r_1) E'(r_c) - \frac{1}{12} (r_c - r_1)^2 E''(r_c)
 
-
 :math:`r_1` is the inner cutoff; :math:`r_c` is the outer cutoff.  The
 coefficients A, B, and C are computed by LAMMPS to perform the shifting
 and smoothing.  The function S(r) is actually applied once to each term
 of the LJ formula and once to the Coulombic formula, so there are 2 or 3
-sets of A,B,C coefficients depending on which pair\_style is used.  The
+sets of A,B,C coefficients depending on which pair_style is used.  The
 boundary conditions applied to the smoothing function are as follows:
 :math:`S'(r_1) = S''(r_1) = 0, S(r_c) = -E(r_c), S'(r_c) = -E'(r_c)`,
 and :math:`S''(r_c) = -E''(r_c)`, where E(r) is the corresponding term
@@ -91,7 +87,7 @@ respectively.
 
 The inner and outer cutoff for the LJ and Coulombic terms can be the
 same or different depending on whether 2 or 4 arguments are used in
-the pair\_style command.  The inner LJ cutoff must be > 0, but the
+the pair_style command.  The inner LJ cutoff must be > 0, but the
 inner Coulombic cutoff can be >= 0.
 
 The following coefficients must be defined for each pair of atoms
@@ -115,11 +111,9 @@ are used.
 The last 2 coefficients cannot be used with style
 *lj/gromacs/coul/gromacs* because this force field does not allow
 varying cutoffs for individual atom pairs; all pairs use the global
-cutoff(s) specified in the pair\_style command.
-
+cutoff(s) specified in the pair_style command.
 
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -139,15 +133,13 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/cut pair styles can be mixed.
-The default mix value is *geometric*\ .  See the "pair\_modify" command
+The default mix value is *geometric*\ .  See the "pair_modify" command
 for details.
 
 None of the GROMACS pair styles support the
@@ -163,16 +155,14 @@ None of the GROMACS pair styles support the
 corrections to energy and pressure, since there are no corrections for
 a potential that goes to 0.0 at the cutoff.
 
-All of the GROMACS pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do
+All of the GROMACS pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do
 not need to be specified in an input script that reads a restart file.
 
 All of the GROMACS pair styles can only be used via the *pair*
 keyword of the :doc:`run_style respa <run_style>` command.  They do not
 support the *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
@@ -185,12 +175,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Marrink:
-
-
 
 **(Marrink)** Marrink, de Vries, Mark, J Phys Chem B, 108, 750-760 (2004).

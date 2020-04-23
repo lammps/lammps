@@ -87,7 +87,7 @@ namespace ATC {
             break;
           }
           default:
-            throw ATC_Error("Uknown time integration type in ThermalTimeIntegrator::Initialize()");
+            throw ATC_Error("Unknown time integration type in ThermalTimeIntegrator::Initialize()");
         }
       }
       
@@ -102,7 +102,7 @@ namespace ATC {
             break;
           }
         default:
-          throw ATC_Error("Uknown time integration type in ThermalTimeIntegrator::Initialize()");
+          throw ATC_Error("Unknown time integration type in ThermalTimeIntegrator::Initialize()");
         }
       }
       else {
@@ -116,7 +116,7 @@ namespace ATC {
             break;
           }
         default:
-          throw ATC_Error("Uknown time integration type in ThermalTimeIntegrator::Initialize()");
+          throw ATC_Error("Unknown time integration type in ThermalTimeIntegrator::Initialize()");
         }
       }
     }

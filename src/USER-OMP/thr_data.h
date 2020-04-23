@@ -146,7 +146,7 @@ class ThrData {
 ////////////////////////////////////////////////////////////////////////
 //  helper functions operating on data replicated for thread support  //
 ////////////////////////////////////////////////////////////////////////
-// generic per thread data reduction for continous arrays of nthreads*nmax size
+// generic per thread data reduction for continuous arrays of nthreads*nmax size
 void data_reduce_thr(double *, int, int, int, int);
 }
 #endif

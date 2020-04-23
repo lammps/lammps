@@ -12,16 +12,14 @@ min_style spin/lbfgs command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
-   min_style spin 
-   min_style spin/cg 
+   min_style spin
+   min_style spin/cg
    min_style spin/lbfgs
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -43,7 +41,7 @@ timestep, according to:
 
 with :math:`\lambda` a damping coefficient (similar to a Gilbert
 damping). :math:`\lambda` can be defined by setting the
-*alpha\_damp* keyword with the :doc:`min_modify <min_modify>` command.
+*alpha_damp* keyword with the :doc:`min_modify <min_modify>` command.
 
 The minimization procedure solves this equation using an
 adaptive timestep. The value of this timestep is defined
@@ -58,16 +56,16 @@ with :math:`\left|\vec{\omega}_{\rm max}\right|` the norm of the largest precess
 frequency in the system (across all processes, and across all replicas if a
 spin/neb calculation is performed).
 
-:math:`\kappa` defines a discretization factor *discrete\_factor* for
-the definition of this timestep.  *discrete\_factor* can be defined with
+:math:`\kappa` defines a discretization factor *discrete_factor* for
+the definition of this timestep.  *discrete_factor* can be defined with
 the :doc:`min_modify <min_modify>` command.
 
 Style *spin/cg* defines an orthogonal spin optimization
-(OSO) combined to a conjugate gradient (CG) algorithm. 
+(OSO) combined to a conjugate gradient (CG) algorithm.
 The :doc:`min_modify <min_modify>` command can be used to
-couple the *spin/cg* to a line search procedure, and to modify the 
-discretization factor *discrete\_factor*.
-By default, style *spin/cg* does not employ the line search procedure 
+couple the *spin/cg* to a line search procedure, and to modify the
+discretization factor *discrete_factor*.
+By default, style *spin/cg* does not employ the line search procedure
 and uses the adaptive time-step technique in the same way as style *spin*\ .
 
 Style *spin/lbfgs* defines an orthogonal spin optimization (OSO)
@@ -76,14 +74,14 @@ algorithm.  By default, style *spin/lbfgs* does not employ line search
 procedure.  If the line search procedure is not used then the discrete
 factor defines the maximum root mean squared rotation angle of spins by
 equation *pi/(5\*Kappa)*.  The default value for Kappa is 10.  The
-*spin\_cubic* line search option can improve the convergence of the
+*spin_cubic* line search option can improve the convergence of the
 *spin/lbfgs* algorithm.
 
 The :doc:`min_modify <min_modify>` command can be used to
 activate the line search procedure, and to modify the
-discretization factor *discrete\_factor*.
+discretization factor *discrete_factor*.
 
-For more information about styles *spin/cg* and *spin/lbfgs*\ , 
+For more information about styles *spin/cg* and *spin/lbfgs*\ ,
 see their implementation reported in :ref:`(Ivanov) <Ivanov1>`.
 
 .. note::
@@ -100,7 +98,6 @@ see their implementation reported in :ref:`(Ivanov) <Ivanov1>`.
 Restrictions
 """"""""""""
 
-
 This minimization procedure is only applied to spin degrees of
 freedom for a frozen lattice configuration.
 
@@ -113,15 +110,11 @@ Related commands
 Default
 """""""
 
-The option defaults are *alpha\_damp* = 1.0, *discrete\_factor* =
-10.0, *line* = spin\_none and *norm* = euclidean.
-
+The option defaults are *alpha_damp* = 1.0, *discrete_factor* =
+10.0, *line* = spin_none and *norm* = euclidean.
 
 ----------
 
-
 .. _Ivanov1:
-
-
 
 **(Ivanov)** Ivanov, Uzdin, Jonsson. arXiv preprint arXiv:1904.02669, (2019).

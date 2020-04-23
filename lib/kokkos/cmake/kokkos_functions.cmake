@@ -1,345 +1,700 @@
 ################################### FUNCTIONS ##################################
 # List of functions
-#   set_kokkos_cxx_compiler
-#   set_kokkos_cxx_standard
-#   set_kokkos_srcs
+#   kokkos_option
 
-#-------------------------------------------------------------------------------
-# function(set_kokkos_cxx_compiler)
-# Sets the following compiler variables that are analogous to the CMAKE_*
-# versions.  We add the ability to detect NVCC (really nvcc_wrapper).
-#   KOKKOS_CXX_COMPILER
-#   KOKKOS_CXX_COMPILER_ID
-#   KOKKOS_CXX_COMPILER_VERSION
-#
-# Inputs:
-#   KOKKOS_ENABLE_CUDA
-#   CMAKE_CXX_COMPILER
-#   CMAKE_CXX_COMPILER_ID
-#   CMAKE_CXX_COMPILER_VERSION
-#
-# Also verifies the compiler version meets the minimum required by Kokkos.
-function(set_kokkos_cxx_compiler)
-  # Since CMake doesn't recognize the nvcc compiler until 3.8, we use our own
-  # version of the CMake variables and detect nvcc ourselves.  Initially set to
-  # the CMake variable values.
-  set(INTERNAL_CXX_COMPILER ${CMAKE_CXX_COMPILER})
-  set(INTERNAL_CXX_COMPILER_ID ${CMAKE_CXX_COMPILER_ID})
-  set(INTERNAL_CXX_COMPILER_VERSION ${CMAKE_CXX_COMPILER_VERSION})
+# Validate options are given with correct case and define an internal
+# upper-case version for use within 
 
-  # Check if the compiler is nvcc (which really means nvcc_wrapper).
-  execute_process(COMMAND ${INTERNAL_CXX_COMPILER} --version
-                  COMMAND grep nvcc
-                  COMMAND wc -l
-                  OUTPUT_VARIABLE INTERNAL_HAVE_COMPILER_NVCC
-                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-  string(REGEX REPLACE "^ +" ""
-         INTERNAL_HAVE_COMPILER_NVCC ${INTERNAL_HAVE_COMPILER_NVCC})
-
-  if(INTERNAL_HAVE_COMPILER_NVCC)
-    # Set the compiler id to nvcc.  We use the value used by CMake 3.8.
-    set(INTERNAL_CXX_COMPILER_ID NVIDIA)
-
-    # Set nvcc's compiler version.
-    execute_process(COMMAND ${INTERNAL_CXX_COMPILER} --version
-                    COMMAND grep release
-                    OUTPUT_VARIABLE INTERNAL_CXX_COMPILER_VERSION
-                    OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-    string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+$"
-           INTERNAL_CXX_COMPILER_VERSION ${INTERNAL_CXX_COMPILER_VERSION})
-  endif()
-
-  # Enforce the minimum compilers supported by Kokkos.
-  set(KOKKOS_MESSAGE_TEXT "Compiler not supported by Kokkos.  Required compiler versions:")
-  set(KOKKOS_MESSAGE_TEXT "${KOKKOS_MESSAGE_TEXT}\n    Clang      3.5.2 or higher")
-  set(KOKKOS_MESSAGE_TEXT "${KOKKOS_MESSAGE_TEXT}\n    GCC        4.8.4 or higher")
-  set(KOKKOS_MESSAGE_TEXT "${KOKKOS_MESSAGE_TEXT}\n    Intel     15.0.2 or higher")
-  set(KOKKOS_MESSAGE_TEXT "${KOKKOS_MESSAGE_TEXT}\n    NVCC      7.0.28 or higher")
-  set(KOKKOS_MESSAGE_TEXT "${KOKKOS_MESSAGE_TEXT}\n    PGI         17.1 or higher\n")
-
-  if(INTERNAL_CXX_COMPILER_ID STREQUAL Clang)
-    if(INTERNAL_CXX_COMPILER_VERSION VERSION_LESS 3.5.2)
-      message(FATAL_ERROR "${KOKKOS_MESSAGE_TEXT}")
-    endif()
-  elseif(INTERNAL_CXX_COMPILER_ID STREQUAL GNU)
-    if(INTERNAL_CXX_COMPILER_VERSION VERSION_LESS 4.8.4)
-      message(FATAL_ERROR "${KOKKOS_MESSAGE_TEXT}")
-    endif()
-  elseif(INTERNAL_CXX_COMPILER_ID STREQUAL Intel)
-    if(INTERNAL_CXX_COMPILER_VERSION VERSION_LESS 15.0.2)
-      message(FATAL_ERROR "${KOKKOS_MESSAGE_TEXT}")
-    endif()
-  elseif(INTERNAL_CXX_COMPILER_ID STREQUAL NVIDIA)
-    if(INTERNAL_CXX_COMPILER_VERSION VERSION_LESS 7.0.28)
-      message(FATAL_ERROR "${KOKKOS_MESSAGE_TEXT}")
-    endif()
-  elseif(INTERNAL_CXX_COMPILER_ID STREQUAL PGI)
-    if(INTERNAL_CXX_COMPILER_VERSION VERSION_LESS 17.1)
-      message(FATAL_ERROR "${KOKKOS_MESSAGE_TEXT}")
-    endif()
-  endif()
-
-  # Enforce that extensions are turned off for nvcc_wrapper.
-  if(INTERNAL_CXX_COMPILER_ID STREQUAL NVIDIA)
-    if(DEFINED CMAKE_CXX_EXTENSIONS AND CMAKE_CXX_EXTENSIONS STREQUAL ON)
-      message(FATAL_ERROR "NVCC doesn't support C++ extensions.  Set CMAKE_CXX_EXTENSIONS to OFF in your CMakeLists.txt.")
-    endif()
-  endif()
-
-  if(KOKKOS_ENABLE_CUDA)
-    # Enforce that the compiler can compile CUDA code.
-    if(INTERNAL_CXX_COMPILER_ID STREQUAL Clang)
-      if(INTERNAL_CXX_COMPILER_VERSION VERSION_LESS 4.0.0)
-        message(FATAL_ERROR "Compiling CUDA code directly with Clang requires version 4.0.0 or higher.")
-      endif()
-    elseif(NOT INTERNAL_CXX_COMPILER_ID STREQUAL NVIDIA)
-      message(FATAL_ERROR "Invalid compiler for CUDA.  The compiler must be nvcc_wrapper or Clang, but compiler ID was ${INTERNAL_CXX_COMPILER_ID}")
-    endif()
-  endif()
-
-  set(KOKKOS_CXX_COMPILER ${INTERNAL_CXX_COMPILER} PARENT_SCOPE)
-  set(KOKKOS_CXX_COMPILER_ID ${INTERNAL_CXX_COMPILER_ID} PARENT_SCOPE)
-  set(KOKKOS_CXX_COMPILER_VERSION ${INTERNAL_CXX_COMPILER_VERSION} PARENT_SCOPE)
-endfunction()
-
-#-------------------------------------------------------------------------------
-# function(set_kokkos_cxx_standard)
-#  Transitively enforces that the appropriate CXX standard compile flags (C++11
-#  or above) are added to targets that use the Kokkos library.  Compile features
-#  are used if possible.  Otherwise, the appropriate flags are added to
-#  KOKKOS_CXX_FLAGS.  Values set by the user to CMAKE_CXX_STANDARD and
-#  CMAKE_CXX_EXTENSIONS are honored.
-#
-# Outputs:
-#   KOKKOS_CXX11_FEATURES
-#   KOKKOS_CXX_FLAGS
-#
-# Inputs:
-#  KOKKOS_CXX_COMPILER
-#  KOKKOS_CXX_COMPILER_ID
-#  KOKKOS_CXX_COMPILER_VERSION
-#
-function(set_kokkos_cxx_standard)
-  # The following table lists the versions of CMake that supports CXX_STANDARD
-  # and the CXX compile features for different compilers.  The versions are
-  # based on CMake documentation, looking at CMake code, and verifying by
-  # testing with specific CMake versions.
-  #
-  #   COMPILER                      CXX_STANDARD     Compile Features
-  #   ---------------------------------------------------------------
-  #   Clang                             3.1                3.1
-  #   GNU                               3.1                3.2
-  #   AppleClang                        3.2                3.2
-  #   Intel                             3.6                3.6
-  #   Cray                              No                 No
-  #   PGI                               No                 No
-  #   XL                                No                 No
-  #
-  # For compiling CUDA code using nvcc_wrapper, we will use the host compiler's
-  # flags for turning on C++11.  Since for compiler ID and versioning purposes
-  # CMake recognizes the host compiler when calling nvcc_wrapper, this just
-  # works.  Both NVCC and nvcc_wrapper only recognize '-std=c++11' which means
-  # that we can only use host compilers for CUDA builds that use those flags.
-  # It also means that extensions (gnu++11) can't be turned on for CUDA builds.
-
-  # Check if we can use compile features.
-  if(NOT KOKKOS_CXX_COMPILER_ID STREQUAL NVIDIA)
-    if(CMAKE_CXX_COMPILER_ID STREQUAL Clang)
-      if(NOT CMAKE_VERSION VERSION_LESS 3.1)
-        set(INTERNAL_USE_COMPILE_FEATURES ON)
-      endif()
-    elseif(CMAKE_CXX_COMPILER_ID STREQUAL AppleClang OR CMAKE_CXX_COMPILER_ID STREQUAL GNU)
-      if(NOT CMAKE_VERSION VERSION_LESS 3.2)
-        set(INTERNAL_USE_COMPILE_FEATURES ON)
-      endif()
-    elseif(CMAKE_CXX_COMPILER_ID STREQUAL Intel)
-      if(NOT CMAKE_VERSION VERSION_LESS 3.6)
-        set(INTERNAL_USE_COMPILE_FEATURES ON)
-      endif()
-    endif()
-  endif()
-
-  if(INTERNAL_USE_COMPILE_FEATURES)
-    # Use the compile features aspect of CMake to transitively cause C++ flags
-    # to populate to user code.
-
-    # I'm using a hack by requiring features that I know force the lowest version
-    # of the compilers we want to support.  Clang 3.3 and later support all of
-    # the C++11 standard.  With CMake 3.8 and higher, we could switch to using
-    # cxx_std_11.
-    set(KOKKOS_CXX11_FEATURES
-        cxx_nonstatic_member_init # Forces GCC 4.7 or later and Intel 14.0 or later.
-        PARENT_SCOPE
-       )
-  else()
-    # CXX compile features are not yet implemented for this combination of
-    # compiler and version of CMake.
-
-    if(CMAKE_CXX_COMPILER_ID STREQUAL AppleClang)
-      # Versions of CMAKE before 3.2 don't support CXX_STANDARD or C++ compile
-      # features for the AppleClang compiler.  Set compiler flags transitively
-      # here such that they trickle down to a call to target_compile_options().
-
-      # The following two blocks of code were copied from
-      # /Modules/Compiler/AppleClang-CXX.cmake from CMake 3.7.2 and then
-      # modified.
-      if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.0)
-        set(INTERNAL_CXX11_STANDARD_COMPILE_OPTION "-std=c++11")
-        set(INTERNAL_CXX11_EXTENSION_COMPILE_OPTION "-std=gnu++11")
-      endif()
-
-      if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.1)
-        set(INTERNAL_CXX14_STANDARD_COMPILE_OPTION "-std=c++14")
-        set(INTERNAL_CXX14_EXTENSION_COMPILE_OPTION "-std=gnu++14")
-      elseif(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.1)
-        # AppleClang 5.0 knows this flag, but does not set a __cplusplus macro
-        # greater than 201103L.
-        set(INTERNAL_CXX14_STANDARD_COMPILE_OPTION "-std=c++1y")
-        set(INTERNAL_CXX14_EXTENSION_COMPILE_OPTION "-std=gnu++1y")
-      endif()
-    elseif(CMAKE_CXX_COMPILER_ID STREQUAL Intel)
-      # Versions of CMAKE before 3.6 don't support CXX_STANDARD or C++ compile
-      # features for the Intel compiler.  Set compiler flags transitively here
-      # such that they trickle down to a call to target_compile_options().
-
-      # The following three blocks of code were copied from
-      # /Modules/Compiler/Intel-CXX.cmake from CMake 3.7.2 and then modified.
-      if("x${CMAKE_CXX_SIMULATE_ID}" STREQUAL "xMSVC")
-        set(_std -Qstd)
-        set(_ext c++)
-      else()
-        set(_std -std)
-        set(_ext gnu++)
-      endif()
-
-      if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 15.0.2)
-        set(INTERNAL_CXX14_STANDARD_COMPILE_OPTION "${_std}=c++14")
-        # TODO: There is no gnu++14 value supported; figure out what to do.
-        set(INTERNAL_CXX14_EXTENSION_COMPILE_OPTION "${_std}=c++14")
-      elseif(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 15.0.0)
-        set(INTERNAL_CXX14_STANDARD_COMPILE_OPTION "${_std}=c++1y")
-        # TODO: There is no gnu++14 value supported; figure out what to do.
-        set(INTERNAL_CXX14_EXTENSION_COMPILE_OPTION "${_std}=c++1y")
-      endif()
-
-      if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 13.0)
-        set(INTERNAL_CXX11_STANDARD_COMPILE_OPTION "${_std}=c++11")
-        set(INTERNAL_CXX11_EXTENSION_COMPILE_OPTION "${_std}=${_ext}11")
-      elseif(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 12.1)
-        set(INTERNAL_CXX11_STANDARD_COMPILE_OPTION "${_std}=c++0x")
-        set(INTERNAL_CXX11_EXTENSION_COMPILE_OPTION "${_std}=${_ext}0x")
-      endif()
-    elseif(CMAKE_CXX_COMPILER_ID STREQUAL Cray)
-      # CMAKE doesn't support CXX_STANDARD or C++ compile features for the Cray
-      # compiler.  Set compiler options transitively here such that they trickle
-      # down to a call to target_compile_options().
-      set(INTERNAL_CXX11_STANDARD_COMPILE_OPTION "-hstd=c++11")
-      set(INTERNAL_CXX11_EXTENSION_COMPILE_OPTION "-hstd=c++11")
-      set(INTERNAL_CXX14_STANDARD_COMPILE_OPTION "-hstd=c++11")
-      set(INTERNAL_CXX14_EXTENSION_COMPILE_OPTION "-hstd=c++11")
-    elseif(CMAKE_CXX_COMPILER_ID STREQUAL PGI)
-      # CMAKE doesn't support CXX_STANDARD or C++ compile features for the PGI
-      # compiler.  Set compiler options transitively here such that they trickle
-      # down to a call to target_compile_options().
-      set(INTERNAL_CXX11_STANDARD_COMPILE_OPTION "--c++11")
-      set(INTERNAL_CXX11_EXTENSION_COMPILE_OPTION "--c++11")
-      set(INTERNAL_CXX14_STANDARD_COMPILE_OPTION "--c++11")
-      set(INTERNAL_CXX14_EXTENSION_COMPILE_OPTION "--c++11")
-    elseif(CMAKE_CXX_COMPILER_ID STREQUAL XL)
-      # CMAKE doesn't support CXX_STANDARD or C++ compile features for the XL
-      # compiler.  Set compiler options transitively here such that they trickle
-      # down to a call to target_compile_options().
-      set(INTERNAL_CXX11_STANDARD_COMPILE_OPTION "-std=c++11")
-      set(INTERNAL_CXX11_EXTENSION_COMPILE_OPTION "-std=c++11")
-      set(INTERNAL_CXX14_STANDARD_COMPILE_OPTION "-std=c++11")
-      set(INTERNAL_CXX14_EXTENSION_COMPILE_OPTION "-std=c++11")
-    else()
-      # Assume GNU.  CMAKE_CXX_STANDARD is handled correctly by CMake 3.1 and
-      # above for this compiler.  If the user explicitly requests a C++
-      # standard, CMake takes care of it.  If not, transitively require C++11.
-      if(NOT CMAKE_CXX_STANDARD)
-        set(INTERNAL_CXX11_STANDARD_COMPILE_OPTION ${CMAKE_CXX11_STANDARD_COMPILE_OPTION})
-        set(INTERNAL_CXX11_EXTENSION_COMPILE_OPTION ${CMAKE_CXX11_EXTENSION_COMPILE_OPTION})
-      endif()
-    endif()
-
-    # Set the C++ standard info for Kokkos respecting user set values for
-    # CMAKE_CXX_STANDARD and CMAKE_CXX_EXTENSIONS.
-    # Only use cxx extension if explicitly requested
-    if(CMAKE_CXX_STANDARD EQUAL 14)
-      if(DEFINED CMAKE_CXX_EXTENSIONS AND CMAKE_CXX_EXTENSIONS STREQUAL ON)
-        set(INTERNAL_CXX_FLAGS ${INTERNAL_CXX14_EXTENSION_COMPILE_OPTION})
-      else()
-        set(INTERNAL_CXX_FLAGS ${INTERNAL_CXX14_STANDARD_COMPILE_OPTION})
-      endif()
-    elseif(CMAKE_CXX_STANDARD EQUAL 11)
-      if(DEFINED CMAKE_CXX_EXTENSIONS AND CMAKE_CXX_EXTENSIONS STREQUAL ON)
-        set(INTERNAL_CXX_FLAGS ${INTERNAL_CXX11_EXTENSION_COMPILE_OPTION})
-      else()
-        set(INTERNAL_CXX_FLAGS ${INTERNAL_CXX11_STANDARD_COMPILE_OPTION})
-      endif()
-    else()
-      # The user didn't explicitly request a standard, transitively require
-      # C++11 respecting CMAKE_CXX_EXTENSIONS.
-      if(DEFINED CMAKE_CXX_EXTENSIONS AND CMAKE_CXX_EXTENSIONS STREQUAL ON)
-        set(INTERNAL_CXX_FLAGS ${INTERNAL_CXX11_EXTENSION_COMPILE_OPTION})
-      else()
-        set(INTERNAL_CXX_FLAGS ${INTERNAL_CXX11_STANDARD_COMPILE_OPTION})
-      endif()
-    endif()
-
-    set(KOKKOS_CXX_FLAGS ${INTERNAL_CXX_FLAGS} PARENT_SCOPE)
-  endif()
-endfunction()
-
-
-#-------------------------------------------------------------------------------
-# function(set_kokkos_sources)
-# Takes a list of sources for kokkos (e.g., KOKKOS_SRC from Makefile.kokkos and
-# put it into kokkos_generated_settings.cmake) and sorts the files into the subpackages or
-# separate_libraries.  This is core and containers (algorithms is pure header
-# files).
-#
-# Inputs:
-#   KOKKOS_SRC
 # 
-# Outputs:
-#   KOKKOS_CORE_SRCS
-#   KOKKOS_CONTAINERS_SRCS
 #
-function(set_kokkos_srcs)
-  set(opts ) # no-value args
-  set(oneValArgs )
-  set(multValArgs KOKKOS_SRC) # e.g., lists
-  cmake_parse_arguments(IN "${opts}" "${oneValArgs}" "${multValArgs}" ${ARGN})
+# @FUNCTION: kokkos_deprecated_list
+#
+# Function that checks if a deprecated list option like Kokkos_ARCH was given.
+# This prints an error and prevents configure from completing.
+# It attempts to print a helpful message about updating the options for the new CMake.
+# Kokkos_${SUFFIX} is the name of the option (like Kokkos_ARCH) being checked.
+# Kokkos_${PREFIX}_X is the name of new option to be defined from a list X,Y,Z,...
+FUNCTION(kokkos_deprecated_list SUFFIX PREFIX)
+  SET(CAMEL_NAME Kokkos_${SUFFIX})
+  STRING(TOUPPER ${CAMEL_NAME} UC_NAME)
 
-  foreach(sfile ${IN_KOKKOS_SRC})
-     string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/" "" stripfile "${sfile}")
-     string(REPLACE "/" ";" striplist "${stripfile}")
-     list(GET striplist 0 firstdir)
-     if(${firstdir} STREQUAL "core")
-       list(APPEND KOKKOS_CORE_SRCS ${sfile})
-     else()
-       list(APPEND KOKKOS_CONTAINERS_SRCS ${sfile})
-     endif()
-  endforeach()
-  set(KOKKOS_CORE_SRCS ${KOKKOS_CORE_SRCS} PARENT_SCOPE)
-  set(KOKKOS_CONTAINERS_SRCS ${KOKKOS_CONTAINERS_SRCS} PARENT_SCOPE)
-  return()
-endfunction()
+  #I don't love doing it this way but better to be safe
+  FOREACH(opt ${KOKKOS_GIVEN_VARIABLES})
+    STRING(TOUPPER ${opt} OPT_UC)
+    IF ("${OPT_UC}" STREQUAL "${UC_NAME}")
+      STRING(REPLACE "," ";" optlist "${${opt}}")
+      SET(ERROR_MSG "Given deprecated option list ${opt}. This must now be given as separate -D options, which assuming you spelled options correctly would be:")
+      FOREACH(entry ${optlist})
+        STRING(TOUPPER ${entry} ENTRY_UC)
+        STRING(APPEND ERROR_MSG "\n  -DKokkos_${PREFIX}_${ENTRY_UC}=ON")
+      ENDFOREACH()
+      STRING(APPEND ERROR_MSG "\nRemove CMakeCache.txt and re-run. For a list of valid options, refer to BUILD.md or even look at CMakeCache.txt (before deleting it).")
+      IF (KOKKOS_HAS_TRILINOS)
+        MESSAGE(WARNING ${ERROR_MSG})
+        FOREACH(entry ${optlist})
+          STRING(TOUPPER ${entry} ENTRY_UC)
+          SET(${CAMEL_NAME}_${ENTRY_UC} ON CACHE BOOL "Deprecated Trilinos translation")
+        ENDFOREACH()
+        UNSET(${opt} CACHE)
+      ELSE()
+        MESSAGE(SEND_ERROR ${ERROR_MSG})
+      ENDIF()
+    ENDIF()
+  ENDFOREACH()
+ENDFUNCTION()
 
-# Setting a default value if it is not already set
-macro(set_kokkos_default_default VARIABLE DEFAULT)
-  IF( "${KOKKOS_INTERNAL_ENABLE_${VARIABLE}_DEFAULT}" STREQUAL "" )
-    IF( "${KOKKOS_ENABLE_${VARIABLE}}" STREQUAL "" )
-      set(KOKKOS_INTERNAL_ENABLE_${VARIABLE}_DEFAULT ${DEFAULT})
-  #    MESSAGE(WARNING "Set: KOKKOS_INTERNAL_ENABLE_${VARIABLE}_DEFAULT to ${KOKKOS_INTERNAL_ENABLE_${VARIABLE}_DEFAULT}")
+FUNCTION(kokkos_option CAMEL_SUFFIX DEFAULT TYPE DOCSTRING)
+  SET(CAMEL_NAME Kokkos_${CAMEL_SUFFIX})
+  STRING(TOUPPER ${CAMEL_NAME} UC_NAME)
+
+  # Make sure this appears in the cache with the appropriate DOCSTRING
+  SET(${CAMEL_NAME} ${DEFAULT} CACHE ${TYPE} ${DOCSTRING})
+
+  #I don't love doing it this way because it's N^2 in number options, but cest la vie
+  FOREACH(opt ${KOKKOS_GIVEN_VARIABLES})
+    STRING(TOUPPER ${opt} OPT_UC)
+    IF ("${OPT_UC}" STREQUAL "${UC_NAME}")
+      IF (NOT "${opt}" STREQUAL "${CAMEL_NAME}")
+        IF (KOKKOS_HAS_TRILINOS)
+          #Allow this for now if Trilinos... we need to bootstrap our way to integration
+          MESSAGE(WARNING "Deprecated option ${opt} found - please change spelling to ${CAMEL_NAME}")
+          SET(${CAMEL_NAME} "${${opt}}" CACHE ${TYPE} ${DOCSTRING} FORCE)
+          UNSET(${opt} CACHE)
+        ELSE()
+          MESSAGE(FATAL_ERROR "Matching option found for ${CAMEL_NAME} with the wrong case ${opt}. Please delete your CMakeCache.txt and change option to -D${CAMEL_NAME}=${${opt}}. This is now enforced to avoid hard-to-debug CMake cache inconsistencies.")
+	ENDIF()
+      ENDIF()
+    ENDIF()
+  ENDFOREACH()
+
+  #okay, great, we passed the validation test - use the default
+  IF (DEFINED ${CAMEL_NAME})
+    SET(${UC_NAME} ${${CAMEL_NAME}} PARENT_SCOPE)
+  ELSE()
+    SET(${UC_NAME} ${DEFAULT} PARENT_SCOPE)
+  ENDIF()
+
+ENDFUNCTION()
+
+FUNCTION(kokkos_append_config_line LINE)
+  GLOBAL_APPEND(KOKKOS_TPL_EXPORTS "${LINE}")
+ENDFUNCTION()
+
+MACRO(kokkos_export_cmake_tpl NAME)
+  #CMake TPLs are located with a call to find_package
+  #find_package locates XConfig.cmake files through
+  #X_DIR or X_ROOT variables set prior to calling find_package
+
+  #If Kokkos was configured to find the TPL through a _DIR variable
+  #make sure thar DIR variable is available to downstream packages
+  IF (DEFINED ${NAME}_DIR)
+    #The downstream project may override the TPL location that Kokkos used
+    #Check if the downstream project chose its own TPL location
+    #If not, make the Kokkos found location available
+    KOKKOS_APPEND_CONFIG_LINE("IF(NOT DEFINED ${NAME}_DIR)")
+    KOKKOS_APPEND_CONFIG_LINE("  SET(${NAME}_DIR  ${${NAME}_DIR})")
+    KOKKOS_APPEND_CONFIG_LINE("ENDIF()")
+  ENDIF()
+
+  IF (DEFINED ${NAME}_ROOT)
+    #The downstream project may override the TPL location that Kokkos used
+    #Check if the downstream project chose its own TPL location
+    #If not, make the Kokkos found location available
+    KOKKOS_APPEND_CONFIG_LINE("IF(NOT DEFINED ${NAME}_ROOT)")
+    KOKKOS_APPEND_CONFIG_LINE("  SET(${NAME}_ROOT  ${${NAME}_ROOT})")
+    KOKKOS_APPEND_CONFIG_LINE("ENDIF()")
+  ENDIF()
+  KOKKOS_APPEND_CONFIG_LINE("FIND_DEPENDENCY(${NAME})")
+ENDMACRO()
+
+MACRO(kokkos_export_imported_tpl NAME)
+  IF (NOT KOKKOS_HAS_TRILINOS)
+    GET_TARGET_PROPERTY(LIB_TYPE ${NAME} TYPE)
+    IF (${LIB_TYPE} STREQUAL "INTERFACE_LIBRARY")
+      # This is not an imported target
+      # This an interface library that we created
+      INSTALL(
+        TARGETS ${NAME}
+        EXPORT KokkosTargets
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      )
     ELSE()
-      set(KOKKOS_INTERNAL_ENABLE_${VARIABLE}_DEFAULT ${KOKKOS_ENABLE_${VARIABLE}})
-   #   MESSAGE(WARNING "Set: KOKKOS_INTERNAL_ENABLE_${VARIABLE}_DEFAULT to ${KOKKOS_INTERNAL_ENABLE_${VARIABLE}_DEFAULT}")
+      #make sure this also gets "exported" in the config file
+      KOKKOS_APPEND_CONFIG_LINE("IF(NOT TARGET ${NAME})")
+      KOKKOS_APPEND_CONFIG_LINE("ADD_LIBRARY(${NAME} UNKNOWN IMPORTED)")
+      KOKKOS_APPEND_CONFIG_LINE("SET_TARGET_PROPERTIES(${NAME} PROPERTIES")
+      
+      GET_TARGET_PROPERTY(TPL_LIBRARY ${NAME} IMPORTED_LOCATION)
+      IF(TPL_LIBRARY)
+        KOKKOS_APPEND_CONFIG_LINE("IMPORTED_LOCATION ${TPL_LIBRARY}")
+      ENDIF()
+
+      GET_TARGET_PROPERTY(TPL_INCLUDES ${NAME} INTERFACE_INCLUDE_DIRECTORIES)
+      IF(TPL_INCLUDES)
+        KOKKOS_APPEND_CONFIG_LINE("INTERFACE_INCLUDE_DIRECTORIES ${TPL_INCLUDES}")
+      ENDIF()
+
+      GET_TARGET_PROPERTY(TPL_COMPILE_OPTIONS ${NAME} INTERFACE_COMPILE_OPTIONS)
+      IF(TPL_COMPILE_OPTIONS)
+        KOKKOS_APPEND_CONFIG_LINE("INTERFACE_COMPILE_OPTIONS ${TPL_COMPILE_OPTIONS}")
+      ENDIF()
+
+      SET(TPL_LINK_OPTIONS)
+      IF(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0")
+        GET_TARGET_PROPERTY(TPL_LINK_OPTIONS ${NAME} INTERFACE_LINK_OPTIONS)
+      ENDIF()
+      IF(TPL_LINK_OPTIONS)
+        KOKKOS_APPEND_CONFIG_LINE("INTERFACE_LINK_OPTIONS ${TPL_LINK_OPTIONS}")
+      ENDIF()
+
+      GET_TARGET_PROPERTY(TPL_LINK_LIBRARIES  ${NAME} INTERFACE_LINK_LIBRARIES)
+      IF(TPL_LINK_LIBRARIES)
+        KOKKOS_APPEND_CONFIG_LINE("INTERFACE_LINK_LIBRARIES ${TPL_LINK_LIBRARIES}")
+      ENDIF()
+      KOKKOS_APPEND_CONFIG_LINE(")")
+      KOKKOS_APPEND_CONFIG_LINE("ENDIF()")
     ENDIF()
   ENDIF()
-  UNSET(KOKKOS_ENABLE_${VARIABLE} CACHE)
-endmacro()
+ENDMACRO()
+
+
+#
+# @MACRO: KOKKOS_IMPORT_TPL()
+#
+# Function that checks if a third-party library (TPL) has been enabled and calls `find_package`
+# to create an imported target encapsulating all the flags and libraries
+# needed to use the TPL
+#
+# Usage::
+#
+#   KOKKOS_IMPORT_TPL(
+#     <NAME>
+#     NO_EXPORT
+#     INTERFACE
+#
+#   ``NO_EXPORT``
+#
+#     If specified, this TPL will not be added to KokkosConfig.cmake as an export
+#
+#   ``INTERFACE``
+#
+#     If specified, this TPL will build an INTERFACE library rather than an
+#     IMPORTED target
+MACRO(kokkos_import_tpl NAME)
+  CMAKE_PARSE_ARGUMENTS(TPL
+   "NO_EXPORT;INTERFACE"
+   ""
+   ""
+   ${ARGN})
+  IF (TPL_INTERFACE)
+    SET(TPL_IMPORTED_NAME ${NAME})
+  ELSE()
+    SET(TPL_IMPORTED_NAME Kokkos::${NAME})
+  ENDIF()
+
+  # Even though this policy gets set in the top-level CMakeLists.txt,
+  # I have still been getting errors about ROOT variables being ignored
+  # I'm not sure if this is a scope issue - but make sure
+  # the policy is set before we do any find_package calls
+  IF(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.12.0") 
+    CMAKE_POLICY(SET CMP0074 NEW)
+  ENDIF()
+
+  IF (KOKKOS_ENABLE_${NAME})
+    #Tack on a TPL here to make sure we avoid using anyone else's find
+    FIND_PACKAGE(TPL${NAME} REQUIRED MODULE)
+    IF(NOT TARGET ${TPL_IMPORTED_NAME})
+      MESSAGE(FATAL_ERROR "Find module succeeded for ${NAME}, but did not produce valid target ${TPL_IMPORTED_NAME}")
+    ENDIF()
+    IF(NOT TPL_NO_EXPORT)
+      KOKKOS_EXPORT_IMPORTED_TPL(${TPL_IMPORTED_NAME})
+    ENDIF()
+    LIST(APPEND KOKKOS_ENABLED_TPLS ${NAME})
+  ENDIF()
+ENDMACRO(kokkos_import_tpl)
+
+MACRO(kokkos_import_cmake_tpl MODULE_NAME)
+  kokkos_import_tpl(${MODULE_NAME} ${ARGN} NO_EXPORT)
+  CMAKE_PARSE_ARGUMENTS(TPL
+   "NO_EXPORT"
+   "OPTION_NAME"
+   ""
+   ${ARGN})
+
+  IF (NOT TPL_OPTION_NAME)
+    SET(TPL_OPTION_NAME ${MODULE_NAME})
+  ENDIF()
+
+  IF (NOT TPL_NO_EXPORT)
+    KOKKOS_EXPORT_CMAKE_TPL(${MODULE_NAME})
+  ENDIF()
+ENDMACRO()
+
+#
+# @MACRO: KOKKOS_CREATE_IMPORTED_TPL()
+#
+# Function that creates an imported target encapsulating all the flags
+# and libraries needed to use the TPL
+#
+# Usage::
+#
+#   KOKKOS_CREATE_IMPORTED_TPL(
+#     <NAME>
+#     INTERFACE
+#     LIBRARY <path_to_librarY>
+#     LINK_LIBRARIES <lib1> <lib2> ...
+#     COMPILE_OPTIONS <opt1> <opt2> ...
+#     LINK_OPTIONS <opt1> <opt2> ...
+#
+#   ``INTERFACE``
+#
+#     If specified, this TPL will build an INTERFACE library rather than an
+#     IMPORTED target
+#
+#   ``LIBRARY <path_to_library>``
+#
+#     If specified, this gives the IMPORTED_LOCATION of the library.
+#
+#   ``LINK_LIBRARIES <lib1> <lib2> ...``
+#
+#     If specified, this gives a list of dependent libraries that also
+#     need to be linked against. Each entry can be a library path or
+#     the name of a valid CMake target.
+#
+#   ``INCLUDES <path1> <path2> ...``
+#
+#     If specified, this gives a list of directories that must be added
+#     to the include path for using this library.
+#
+#   ``COMPILE_OPTIONS <opt1> <opt2> ...``
+#
+#     If specified, this gives a list of compiler flags that must be used
+#     for using this library.
+#
+#   ``LINK_OPTIONS <opt1> <opt2> ...``
+#
+#     If specified, this gives a list of linker flags that must be used
+#     for using this library.
+MACRO(kokkos_create_imported_tpl NAME)
+  CMAKE_PARSE_ARGUMENTS(TPL
+   "INTERFACE"
+   "LIBRARY"
+   "LINK_LIBRARIES;INCLUDES;COMPILE_OPTIONS;LINK_OPTIONS"
+   ${ARGN})
+
+
+  IF (KOKKOS_HAS_TRILINOS)
+    #TODO: we need to set a bunch of cache variables here
+  ELSEIF (TPL_INTERFACE)
+    ADD_LIBRARY(${NAME} INTERFACE)
+    #Give this an importy-looking name
+    ADD_LIBRARY(Kokkos::${NAME} ALIAS ${NAME})
+    IF (TPL_LIBRARY)
+      MESSAGE(SEND_ERROR "TPL Interface library ${NAME} should not have an IMPORTED_LOCATION")
+    ENDIF()
+    #Things have to go in quoted in case we have multiple list entries
+    IF(TPL_LINK_LIBRARIES)
+      TARGET_LINK_LIBRARIES(${NAME} INTERFACE ${TPL_LINK_LIBRARIES})
+    ENDIF()
+    IF(TPL_INCLUDES)
+      TARGET_INCLUDE_DIRECTORIES(${NAME} INTERFACE ${TPL_INCLUDES})
+    ENDIF()
+    IF(TPL_COMPILE_OPTIONS)
+      TARGET_COMPILE_OPTIONS(${NAME} INTERFACE ${TPL_COMPILE_OPTIONS})
+    ENDIF()
+    IF(TPL_LINK_OPTIONS)
+      TARGET_LINK_LIBRARIES(${NAME} INTERFACE ${TPL_LINK_OPTIONS})
+    ENDIF()
+  ELSE()
+    ADD_LIBRARY(${NAME} UNKNOWN IMPORTED)
+    IF(TPL_LIBRARY)
+      SET_TARGET_PROPERTIES(${NAME} PROPERTIES
+        IMPORTED_LOCATION ${TPL_LIBRARY})
+    ENDIF()
+    #Things have to go in quoted in case we have multiple list entries
+    IF(TPL_LINK_LIBRARIES)
+      SET_TARGET_PROPERTIES(${NAME} PROPERTIES
+        INTERFACE_LINK_LIBRARIES "${TPL_LINK_LIBRARIES}")
+    ENDIF()
+    IF(TPL_INCLUDES)
+      SET_TARGET_PROPERTIES(${NAME} PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${TPL_INCLUDES}")
+    ENDIF()
+    IF(TPL_COMPILE_OPTIONS)
+      SET_TARGET_PROPERTIES(${NAME} PROPERTIES
+        INTERFACE_COMPILE_OPTIONS "${TPL_COMPILE_OPTIONS}")
+    ENDIF()
+    IF(TPL_LINK_OPTIONS)
+      SET_TARGET_PROPERTIES(${NAME} PROPERTIES
+        INTERFACE_LINK_LIBRARIES "${TPL_LINK_OPTIONS}")
+    ENDIF()
+  ENDIF()
+ENDMACRO()
+
+#
+# @MACRO: KOKKOS_FIND_HEADER
+#
+# Function that finds a particular header. This searches custom paths
+# or default system paths depending on options. In constrast to CMake
+# default, custom paths are prioritized over system paths. The searched
+# order is:
+# 1. <NAME>_ROOT variable
+# 2. Kokkos_<NAME>_DIR variable
+# 3. Locations in the PATHS option
+# 4. Default system paths, if allowed.
+#
+# Default system paths are allowed if none of options (1)-(3) are specified
+# or if default paths are specifically allowed via ALLOW_SYSTEM_PATH_FALLBACK
+#
+# Usage::
+#
+#   KOKKOS_FIND_HEADER(
+#     <VAR_NAME>
+#     <HEADER>
+#     <TPL_NAME>
+#    [ALLOW_SYSTEM_PATH_FALLBACK]
+#    [PATHS path1 [path2 ...]]
+#   )
+#
+#   ``<VAR_NAME>``
+#
+#   The variable to define with the success or failure of the find
+#
+#   ``<HEADER>``
+#
+#   The name of the header to find
+#
+#   ``<TPL_NAME>``
+#
+#   The name of the TPL the header corresponds to
+#
+#   ``[ALLOW_SYSTEM_PATH_FALLBACK]``
+#
+#   If custom paths are given and the header is not found
+#   should we be allowed to search default system paths
+#   or error out if not found in given paths
+#
+#   ``[PATHS path1 [path2 ...]]``
+#
+#   Custom paths to search for the header
+#
+MACRO(kokkos_find_header VAR_NAME HEADER TPL_NAME)
+  CMAKE_PARSE_ARGUMENTS(TPL
+   "ALLOW_SYSTEM_PATH_FALLBACK"
+   ""
+   "PATHS"
+   ${ARGN})
+
+  SET(${HEADER}_FOUND FALSE)
+  SET(HAVE_CUSTOM_PATHS FALSE)
+  IF(NOT ${HEADER}_FOUND AND DEFINED ${TPL_NAME}_ROOT)
+    #ONLY look in the root directory
+    FIND_PATH(${VAR_NAME} ${HEADER} PATHS ${${TPL_NAME}_ROOT}/include NO_DEFAULT_PATH)
+    SET(HAVE_CUSTOM_PATHS TRUE)
+  ENDIF()
+
+  IF(NOT ${HEADER}_FOUND AND DEFINED KOKKOS_${TPL_NAME}_DIR)
+    #ONLY look in the root directory
+    FIND_PATH(${VAR_NAME} ${HEADER} PATHS ${KOKKOS_${TPL_NAME}_DIR}/include NO_DEFAULT_PATH)
+    SET(HAVE_CUSTOM_PATHS TRUE)
+  ENDIF()
+
+  IF (NOT ${HEADER}_FOUND AND TPL_PATHS)
+    #we got custom paths
+    #ONLY look in these paths and nowhere else
+    FIND_PATH(${VAR_NAME} ${HEADER} PATHS ${TPL_PATHS} NO_DEFAULT_PATH)
+    SET(HAVE_CUSTOM_PATHS TRUE)
+  ENDIF()
+
+  IF (NOT HAVE_CUSTOM_PATHS OR TPL_ALLOW_SYSTEM_PATH_FALLBACK)
+    #Now go ahead and look in system paths
+    IF (NOT ${HEADER}_FOUND)
+      FIND_PATH(${VAR_NAME} ${HEADER})
+    ENDIF()
+  ENDIF()
+ENDMACRO()
+
+#
+# @MACRO: KOKKOS_FIND_LIBRARY
+#
+# Function that find a particular library. This searches custom paths
+# or default system paths depending on options. In constrast to CMake
+# default, custom paths are prioritized over system paths. The search
+# order is:
+# 1. <NAME>_ROOT variable
+# 2. Kokkos_<NAME>_DIR variable
+# 3. Locations in the PATHS option
+# 4. Default system paths, if allowed.
+#
+# Default system paths are allowed if none of options (1)-(3) are specified
+# or if default paths are specifically allowed via ALLOW_SYSTEM_PATH_FALLBACK
+#
+# Usage::
+#
+#   KOKKOS_FIND_LIBRARY(
+#     <VAR_NAME>
+#     <HEADER>
+#     <TPL_NAME>
+#    [ALLOW_SYSTEM_PATH_FALLBACK]
+#    [PATHS path1 [path2 ...]]
+#   )
+#
+#   ``<VAR_NAME>``
+#
+#   The variable to define with the success or failure of the find
+#
+#   ``<LIBRARY>``
+#
+#   The name of the library to find (NOT prefixed with -l)
+#
+#   ``<TPL_NAME>``
+#
+#   The name of the TPL the library corresponds to
+#
+#   ``ALLOW_SYSTEM_PATH_FALLBACK``
+#
+#   If custom paths are given and the library is not found
+#   should we be allowed to search default system paths
+#   or error out if not found in given paths
+#
+#   ``PATHS``
+#
+#   Custom paths to search for the library
+#
+MACRO(kokkos_find_library VAR_NAME LIB TPL_NAME)
+  CMAKE_PARSE_ARGUMENTS(TPL
+   "ALLOW_SYSTEM_PATH_FALLBACK"
+   ""
+   "PATHS"
+   ${ARGN})
+
+  SET(${LIB}_FOUND FALSE)
+  SET(HAVE_CUSTOM_PATHS FALSE)
+  IF(NOT ${LIB}_FOUND AND DEFINED ${TPL_NAME}_ROOT)
+    FIND_LIBRARY(${VAR_NAME} ${LIB} PATHS ${${TPL_NAME}_ROOT}/lib ${${TPL_NAME}_ROOT}/lib64 NO_DEFAULT_PATH)
+    SET(HAVE_CUSTOM_PATHS TRUE)
+  ENDIF()
+
+  IF(NOT ${LIB}_FOUND AND DEFINED KOKKOS_${TPL_NAME}_DIR)
+    #we got root paths, only look in these paths and nowhere else
+    FIND_LIBRARY(${VAR_NAME} ${LIB} PATHS ${KOKKOS_${TPL_NAME}_DIR}/lib ${KOKKOS_${TPL_NAME}_DIR}/lib64 NO_DEFAULT_PATH)
+    SET(HAVE_CUSTOM_PATHS TRUE)
+  ENDIF()
+
+  IF (NOT ${LIB}_FOUND AND TPL_PATHS)
+    #we got custom paths, only look in these paths and nowhere else
+    FIND_LIBRARY(${VAR_NAME} ${LIB} PATHS ${TPL_PATHS} NO_DEFAULT_PATH)
+    SET(HAVE_CUSTOM_PATHS TRUE)
+  ENDIF()
+
+
+  IF (NOT HAVE_CUSTOM_PATHS OR TPL_ALLOW_SYSTEM_PATH_FALLBACK)
+    IF (NOT ${LIB}_FOUND)
+      #Now go ahead and look in system paths
+      FIND_LIBRARY(${VAR_NAME} ${LIB})
+    ENDIF()
+  ENDIF()
+ENDMACRO()
+
+#
+# @MACRO: KOKKOS_FIND_IMPORTED
+#
+# Function that finds all libraries and headers needed for the tpl
+# and creates an imported target encapsulating all the flags and libraries
+#
+# Usage::
+#
+#   KOKKOS_FIND_IMPORTED(
+#     <NAME>
+#     INTERFACE
+#     ALLOW_SYSTEM_PATH_FALLBACK
+#     LIBRARY <path_to_librarY>
+#     LINK_LIBRARIES <lib1> <lib2> ...
+#     COMPILE_OPTIONS <opt1> <opt2> ...
+#     LINK_OPTIONS <opt1> <opt2> ...
+#
+#   ``INTERFACE``
+#
+#     If specified, this TPL will build an INTERFACE library rather than an
+#     IMPORTED target
+#
+#   ``ALLOW_SYSTEM_PATH_FALLBACK"
+#
+#     If custom paths are given and the library is not found
+#     should we be allowed to search default system paths
+#     or error out if not found in given paths.
+#
+#   ``LIBRARY <name>``
+#
+#     If specified, this gives the name of the library to look for
+#
+#   ``MODULE_NAME <name>``
+#
+#     If specified, the name of the enclosing module passed to
+#     FIND_PACKAGE(<MODULE_NAME>). Defaults to TPL${NAME} if not
+#     given.
+#
+#   ``IMPORTED_NAME <name>``
+#
+#     If specified, this gives the name of the target to build.
+#     Defaults to Kokkos::<NAME>
+#
+#   ``LIBRARY_PATHS <path1> <path2> ...``
+#
+#     If specified, this gives a list of paths to search for the library
+#     If not given, <NAME>_ROOT/lib and <NAME>_ROOT/lib64 will be searched.
+#
+#   ``HEADER_PATHS <path1> <path2> ...``
+#
+#     If specified, this gives a list of paths to search for the headers
+#     If not given, <NAME>_ROOT/include and <NAME>_ROOT/include will be searched.
+#
+#   ``HEADERS <name1> <name2> ...``
+#
+#     If specified, this gives a list of headers to find for the package
+#
+#   ``LIBRARIES <name1> <name2> ...``
+#
+#     If specified, this gives a list of libraries to find for the package
+#
+MACRO(kokkos_find_imported NAME)
+  CMAKE_PARSE_ARGUMENTS(TPL
+   "INTERFACE;ALLOW_SYSTEM_PATH_FALLBACK"
+   "HEADER;LIBRARY;IMPORTED_NAME;MODULE_NAME"
+   "HEADER_PATHS;LIBRARY_PATHS;HEADERS;LIBRARIES"
+   ${ARGN})
+
+  IF(NOT TPL_MODULE_NAME)
+    SET(TPL_MODULE_NAME TPL${NAME})
+  ENDIF()
+
+  IF (TPL_ALLOW_SYSTEM_PATH_FALLBACK)
+    SET(ALLOW_PATH_FALLBACK_OPT ALLOW_SYSTEM_PATH_FALLBACK)
+  ELSE()
+    SET(ALLOW_PATH_FALLBACK_OPT)
+  ENDIF()
+
+  IF (NOT TPL_IMPORTED_NAME)
+    IF (TPL_INTERFACE)
+      SET(TPL_IMPORTED_NAME ${NAME})
+    ELSE()
+      SET(TPL_IMPORTED_NAME Kokkos::${NAME})
+    ENDIF()
+  ENDIF()
+
+  SET(${NAME}_INCLUDE_DIRS)
+  IF (TPL_HEADER)
+    KOKKOS_FIND_HEADER(${NAME}_INCLUDE_DIRS ${TPL_HEADER} ${NAME} ${ALLOW_PATH_FALLBACK_OPT} PATHS ${TPL_HEADER_PATHS})
+  ENDIF()
+
+  FOREACH(HEADER ${TPL_HEADERS})
+    KOKKOS_FIND_HEADER(HEADER_FIND_TEMP ${HEADER} ${NAME} ${ALLOW_PATH_FALLBACK_OPT} PATHS ${TPL_HEADER_PATHS})
+    IF(HEADER_FIND_TEMP)
+      LIST(APPEND ${NAME}_INCLUDE_DIRS ${HEADER_FIND_TEMP})
+    ENDIF()
+  ENDFOREACH()
+
+  SET(${NAME}_LIBRARY)
+  IF(TPL_LIBRARY)
+    KOKKOS_FIND_LIBRARY(${NAME}_LIBRARY ${TPL_LIBRARY} ${NAME} ${ALLOW_PATH_FALLBACK_OPT} PATHS ${TPL_LIBRARY_PATHS})
+  ENDIF()
+
+  SET(${NAME}_FOUND_LIBRARIES)
+  FOREACH(LIB ${TPL_LIBRARIES})
+    KOKKOS_FIND_LIBRARY(${LIB}_LOCATION ${LIB} ${NAME} ${ALLOW_PATH_FALLBACK_OPT} PATHS ${TPL_LIBRARY_PATHS})
+    IF(${LIB}_LOCATION)
+      LIST(APPEND ${NAME}_FOUND_LIBRARIES ${${LIB}_LOCATION})
+    ELSE()
+      SET(${NAME}_FOUND_LIBRARIES ${${LIB}_LOCATION}) 
+      BREAK()
+    ENDIF()
+  ENDFOREACH()
+
+  INCLUDE(FindPackageHandleStandardArgs)
+  #Collect all the variables we need to be valid for
+  #find_package to have succeeded
+  SET(TPL_VARS_NEEDED)
+  IF (TPL_LIBRARY)
+    LIST(APPEND TPL_VARS_NEEDED ${NAME}_LIBRARY)
+  ENDIF()
+  IF(TPL_HEADER)
+    LIST(APPEND TPL_VARS_NEEDED ${NAME}_INCLUDE_DIRS)
+  ENDIF()
+  IF(TPL_LIBRARIES)
+    LIST(APPEND TPL_VARS_NEEDED ${NAME}_FOUND_LIBRARIES)
+  ENDIF()
+  FIND_PACKAGE_HANDLE_STANDARD_ARGS(${TPL_MODULE_NAME} REQUIRED_VARS ${TPL_VARS_NEEDED})
+
+  MARK_AS_ADVANCED(${NAME}_INCLUDE_DIRS ${NAME}_FOUND_LIBRARIES ${NAME}_LIBRARY)
+
+  IF (${TPL_MODULE_NAME}_FOUND)
+    SET(IMPORT_TYPE)
+    IF (TPL_INTERFACE)
+      SET(IMPORT_TYPE "INTERFACE")
+    ENDIF()
+    KOKKOS_CREATE_IMPORTED_TPL(${TPL_IMPORTED_NAME}
+      ${IMPORT_TYPE}
+      INCLUDES "${${NAME}_INCLUDE_DIRS}"
+      LIBRARY  "${${NAME}_LIBRARY}"
+      LINK_LIBRARIES "${${NAME}_FOUND_LIBRARIES}")
+  ENDIF()
+ENDMACRO(kokkos_find_imported)
+
+#
+# @MACRO: KOKKOS_LINK_TPL()
+#
+# Function that checks if a third-party library (TPL) has been enabled and
+# calls target_link_libraries on the given target
+#
+# Usage::
+#
+#   KOKKOS_LINK_TPL(
+#     <TARGET>
+#     PUBLIC
+#     PRIVATE
+#     INTERFACE
+#     IMPORTED_NAME  <name>
+#     <TPL_NAME>
+#
+#   Checks if Kokkos_ENABLE_<TPL_NAME>=ON and if so links the library
+#
+#   ``PUBLIC/PRIVATE/INTERFACE``
+#
+#     Specifies the linkage mode. One of these arguments should be given.
+#     This will then invoke target_link_libraries(<TARGET> PUBLIC/PRIVATE/INTERFACE <TPL_NAME>)
+#
+#   ``IMPORTED_NAME <name>``
+#
+#     If specified, this gives the exact name of the target to link against
+#     target_link_libraries(<TARGET> <IMPORTED_NAME>)
+#
+FUNCTION(kokkos_link_tpl TARGET)
+  CMAKE_PARSE_ARGUMENTS(TPL
+   "PUBLIC;PRIVATE;INTERFACE"
+   "IMPORTED_NAME"
+   ""
+   ${ARGN})
+  #the name of the TPL
+  SET(TPL ${TPL_UNPARSED_ARGUMENTS})
+  IF (KOKKOS_HAS_TRILINOS)
+    #Do nothing, they will have already been linked
+  ELSE()
+    IF (NOT TPL_IMPORTED_NAME)
+      SET(TPL_IMPORTED_NAME Kokkos::${TPL})
+    ENDIF()
+    IF (KOKKOS_ENABLE_${TPL})
+      IF (TPL_PUBLIC)
+        TARGET_LINK_LIBRARIES(${TARGET} PUBLIC ${TPL_IMPORTED_NAME})
+      ELSEIF (TPL_PRIVATE)
+        TARGET_LINK_LIBRARIES(${TARGET} PRIVATE ${TPL_IMPORTED_NAME})
+      ELSEIF (TPL_INTERFACE)
+        TARGET_LINK_LIBRARIES(${TARGET} INTERFACE ${TPL_IMPORTED_NAME})
+      ELSE()
+        TARGET_LINK_LIBRARIES(${TARGET} ${TPL_IMPORTED_NAME})
+      ENDIF()
+    ENDIF()
+  ENDIF()
+ENDFUNCTION()
+

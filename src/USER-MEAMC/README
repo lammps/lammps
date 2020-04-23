@@ -19,7 +19,7 @@ The original Fortran implementation was created by
 
 Use "make yes-user-meamc" to enable this package when building LAMMPS.
 
-In your LAMMPS input script, specifiy
+In your LAMMPS input script, specify
   pair_style meam/c
 to enable the use of this implementation. All parameters, input files and
 outputs are exactly identical to these used with pair_style meam.

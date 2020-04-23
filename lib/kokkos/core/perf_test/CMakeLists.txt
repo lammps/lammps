@@ -1,59 +1,71 @@
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
-INCLUDE_DIRECTORIES(REQUIRED_DURING_INSTALLATION_TESTING ${CMAKE_CURRENT_SOURCE_DIR})
+#INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+#INCLUDE_DIRECTORIES(REQUIRED_DURING_INSTALLATION_TESTING ${CMAKE_CURRENT_SOURCE_DIR})
 
-IF(NOT KOKKOS_HAS_TRILINOS)
-  IF(KOKKOS_SEPARATE_LIBS)
-    set(TEST_LINK_TARGETS kokkoscore)
-  ELSE()
-    set(TEST_LINK_TARGETS kokkos)
-  ENDIF()
-ENDIF()
 
 # warning: PerfTest_CustomReduction.cpp uses
 # ../../algorithms/src/Kokkos_Random.hpp
 # we'll just allow it to be included, but note
 # that in TriBITS KokkosAlgorithms can be disabled...
-INCLUDE_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/../../algorithms/src")
+#INCLUDE_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/../../algorithms/src")
 
 SET(SOURCES
   PerfTestMain.cpp
   PerfTestGramSchmidt.cpp
   PerfTestHexGrad.cpp
   PerfTest_CustomReduction.cpp
+  PerfTest_ExecSpacePartitioning.cpp
+  PerfTest_ViewCopy_a123.cpp
+  PerfTest_ViewCopy_b123.cpp
+  PerfTest_ViewCopy_c123.cpp
+  PerfTest_ViewCopy_d123.cpp
+  PerfTest_ViewCopy_a45.cpp
+  PerfTest_ViewCopy_b45.cpp
+  PerfTest_ViewCopy_c45.cpp
+  PerfTest_ViewCopy_d45.cpp
+  PerfTest_ViewCopy_a6.cpp
+  PerfTest_ViewCopy_b6.cpp
+  PerfTest_ViewCopy_c6.cpp
+  PerfTest_ViewCopy_d6.cpp
+  PerfTest_ViewCopy_a7.cpp
+  PerfTest_ViewCopy_b7.cpp
+  PerfTest_ViewCopy_c7.cpp
+  PerfTest_ViewCopy_d7.cpp
+  PerfTest_ViewCopy_a8.cpp
+  PerfTest_ViewCopy_b8.cpp
+  PerfTest_ViewCopy_c8.cpp
+  PerfTest_ViewCopy_d8.cpp
+  PerfTest_ViewAllocate.cpp
+  PerfTest_ViewFill_123.cpp
+  PerfTest_ViewFill_45.cpp
+  PerfTest_ViewFill_6.cpp
+  PerfTest_ViewFill_7.cpp
+  PerfTest_ViewFill_8.cpp
+  PerfTest_ViewResize_123.cpp
+  PerfTest_ViewResize_45.cpp
+  PerfTest_ViewResize_6.cpp
+  PerfTest_ViewResize_7.cpp
+  PerfTest_ViewResize_8.cpp
   )
 
 # Per #374, we always want to build this test, but we only want to run
 # it as a PERFORMANCE test.  That's why we separate building the test
 # from running the test.
 
-TRIBITS_ADD_EXECUTABLE(
+#leave these as basic includes for now
+#I don't need anything transitive
+KOKKOS_INCLUDE_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/../../algorithms/src")
+KOKKOS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+KOKKOS_INCLUDE_DIRECTORIES(REQUIRED_DURING_INSTALLATION_TESTING ${CMAKE_CURRENT_SOURCE_DIR})
+
+KOKKOS_ADD_EXECUTABLE_AND_TEST(
   PerfTestExec
   SOURCES ${SOURCES}
-  COMM serial mpi
-  TESTONLYLIBS kokkos_gtest ${TEST_LINK_TARGETS}
-  )
-
-TRIBITS_ADD_TEST(
-  PerfTest
-  NAME PerfTestExec
-  COMM serial mpi
-  NUM_MPI_PROCS 1
   CATEGORIES PERFORMANCE
-  FAIL_REGULAR_EXPRESSION "  FAILED  "
-  )
+)
 
-TRIBITS_ADD_EXECUTABLE(
-  PerformanceTest_TaskDAG
+KOKKOS_ADD_EXECUTABLE_AND_TEST(
+  PerformanceTest_TaskDag
   SOURCES test_taskdag.cpp
-  COMM serial mpi
-  TESTONLYLIBS kokkos_gtest ${TEST_LINK_TARGETS}
-  )
-
-TRIBITS_ADD_TEST(
-  PerformanceTest_TaskDAG
-  NAME PerformanceTest_TaskDAG
-  COMM serial mpi
-  NUM_MPI_PROCS 1
   CATEGORIES PERFORMANCE
-  )
+)

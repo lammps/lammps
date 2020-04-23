@@ -1,13 +1,14 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
-// 
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+//
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
+//
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -36,7 +37,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -51,16 +52,17 @@
 // to identify a thread uniquely and some team related function calls such as a
 // barrier (which will be used in a subsequent example).
 // A ThreadTeam consists of 1 to n threads where the maxmimum value of n is
-// determined by the hardware. On a dual socket CPU machine with 8 cores per socket
-// the maximum size of a team is 8. The number of teams (i.e. the league_size) is
-// not limited by physical constraints. Its a pure logical number.
+// determined by the hardware. On a dual socket CPU machine with 8 cores per
+// socket the maximum size of a team is 8. The number of teams (i.e. the
+// league_size) is not limited by physical constraints. Its a pure logical
+// number.
 
-typedef Kokkos::TeamPolicy<>              team_policy ;
-typedef team_policy::member_type team_member ;
+typedef Kokkos::TeamPolicy<> team_policy;
+typedef team_policy::member_type team_member;
 
 // Define a functor which can be launched using the TeamPolicy
 struct hello_world {
-  typedef int value_type; //Specify value type for reduction target, sum
+  typedef int value_type;  // Specify value type for reduction target, sum
 
   // This is a reduction operator which now takes as first argument the
   // TeamPolicy member_type. Every member of the team contributes to the
@@ -68,36 +70,39 @@ struct hello_world {
   // It is helpful to think of this operator as a parallel region for a team
   // (i.e. every team member is active and will execute the code).
   KOKKOS_INLINE_FUNCTION
-  void operator() ( const team_member & thread, int& sum) const {
-    sum+=1;
+  void operator()(const team_member& thread, int& sum) const {
+    sum += 1;
     // The TeamPolicy<>::member_type provides functions to query the multi
-    // dimensional index of a thread as well as the number of thread-teams and the size
-    // of each team.
-    printf("Hello World: %i %i // %i %i\n",thread.league_rank(),thread.team_rank(),thread.league_size(),thread.team_size());
+    // dimensional index of a thread as well as the number of thread-teams and
+    // the size of each team.
+    printf("Hello World: %i %i // %i %i\n", thread.league_rank(),
+           thread.team_rank(), thread.league_size(), thread.team_size());
   }
 };
 
 int main(int narg, char* args[]) {
-  Kokkos::initialize(narg,args);
+  Kokkos::initialize(narg, args);
 
   // Launch 12 teams of the maximum number of threads per team
-  const int team_size_max = team_policy(1,1).team_size_max(hello_world(), Kokkos::ParallelReduceTag());
-  const team_policy policy_a( 12 , team_size_max );
+  const int team_size_max = team_policy(1, 1).team_size_max(
+      hello_world(), Kokkos::ParallelReduceTag());
+  const team_policy policy_a(12, team_size_max);
 
   int sum = 0;
-  Kokkos::parallel_reduce( policy_a , hello_world() , sum );
+  Kokkos::parallel_reduce(policy_a, hello_world(), sum);
 
   // The result will be 12*team_size_max
-  printf("Result A: %i == %i\n",sum, team_size_max*12);
+  printf("Result A: %i == %i\n", sum, team_size_max * 12);
 
   // In practice it is often better to let Kokkos decide on the team_size
-  const team_policy policy_b( 12 , Kokkos::AUTO );
+  const team_policy policy_b(12, Kokkos::AUTO);
 
-  Kokkos::parallel_reduce( policy_b , hello_world() , sum );
-  // The result will be 12*policy_b.team_size_recommended( hello_world(),  Kokkos::ParallelReduceTag())
-  const int team_size_recommended = policy_b.team_size_recommended( hello_world(),  Kokkos::ParallelReduceTag());
-  printf("Result B: %i %i\n",sum, team_size_recommended*12);
+  Kokkos::parallel_reduce(policy_b, hello_world(), sum);
+  // The result will be 12*policy_b.team_size_recommended( hello_world(),
+  // Kokkos::ParallelReduceTag())
+  const int team_size_recommended = policy_b.team_size_recommended(
+      hello_world(), Kokkos::ParallelReduceTag());
+  printf("Result B: %i %i\n", sum, team_size_recommended * 12);
 
   Kokkos::finalize();
 }
-

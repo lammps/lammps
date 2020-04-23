@@ -24,7 +24,6 @@ pair_style dpd/tstat/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style dpd T cutoff seed
@@ -37,7 +36,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -75,7 +73,6 @@ of 3 terms
    F^R      = & \sigma w(r) \alpha (\Delta t)^{-1/2} \\
    w(r)     = & 1 - r/r_c
 
-
 where :math:`F^C` is a conservative force, :math:`F^D` is a dissipative
 force, and :math:`F^R` is a random force.  :math:`r_{ij}` is a unit
 vector in the direction :math:`r_i - r_j`, :math:`V_{ij} is the vector
@@ -84,7 +81,7 @@ difference in velocities of the two atoms :math:`= \vec{v}_i -
 unit variance, dt is the timestep size, and w(r) is a weighting factor
 that varies between 0 and 1.  :math:`r_c` is the cutoff.  :math:`\sigma`
 is set equal to :math:`\sqrt{2 k_B T \gamma}`, where :math:`k_B` is the
-Boltzmann constant and T is the temperature parameter in the pair\_style
+Boltzmann constant and T is the temperature parameter in the pair_style
 command.
 
 For style *dpd/tstat*\ , the force on atom I due to atom J is the same
@@ -129,12 +126,16 @@ the work of :ref:`(Afshar) <Afshar>` and :ref:`(Phillips) <Phillips>`.
 
 .. note::
 
-   The virial calculation for pressure when using this pair style
+   The virial calculation for pressure when using these pair styles
    includes all the components of force listed above, including the
-   random force.
+   random force.  Since the random force depends on random numbers,
+   everything that changes the order of atoms in the neighbor list
+   (e.g. different number of MPI ranks or a different neighbor list
+   skin distance) will also change the sequence in which the random
+   numbers are applied and thus the individual forces and therefore
+   also the virial/pressure.
 
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -154,9 +155,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -175,7 +174,7 @@ These pair style do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-These pair styles writes their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+These pair styles writes their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.  Note
 that the user-specified random number seed is stored in the restart
 file, so when a simulation is restarted, each processor will
@@ -193,13 +192,10 @@ runs, using the *start* and *stop* keywords of the :doc:`run <run>`
 command.  See the :doc:`run <run>` command for details of how to do
 this.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The default frequency for rebuilding neighbor lists is every 10 steps
 (see the :doc:`neigh_modify <neigh_modify>` command). This may be too
@@ -225,26 +221,18 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Groot1:
-
-
 
 **(Groot)** Groot and Warren, J Chem Phys, 107, 4423-35 (1997).
 
 .. _Afshar:
 
-
-
 **(Afshar)** Afshar, F. Schmid, A. Pishevar, S. Worley, Comput Phys
 Comm, 184, 1119-1128 (2013).
 
 .. _Phillips:
-
-
 
 **(Phillips)** C. L. Phillips, J. A. Anderson, S. C. Glotzer, Comput
 Phys Comm, 230, 7191-7201 (2011).

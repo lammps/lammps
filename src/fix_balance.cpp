@@ -39,7 +39,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 6) error->all(FLERR,"Illegal fix balance command");
 
-  box_change_domain = 1;
+  box_change = BOX_CHANGE_DOMAIN;
   scalar_flag = 1;
   extscalar = 0;
   vector_flag = 1;
@@ -239,7 +239,7 @@ void FixBalance::pre_exchange()
 
 /* ----------------------------------------------------------------------
    compute final imbalance factor based on nlocal after comm->exchange()
-   only do this if rebalancing just occured
+   only do this if rebalancing just occurred
 ------------------------------------------------------------------------- */
 
 void FixBalance::pre_neighbor()

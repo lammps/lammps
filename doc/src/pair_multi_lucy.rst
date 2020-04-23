@@ -6,7 +6,6 @@ pair_style multi/lucy command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style multi/lucy style N keyword ...
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -32,9 +30,8 @@ the many-body form described in :ref:`(Moore) <Moore1>` and
 
 .. math::
 
-   F_{i}^{DD}(\rho_i,\rho_j,r_{ij}) = \frac{1}{2} \omega_{DD}\left(r_{ij}\right) 
-   \left[A\left(\rho_i\right) + A\left(\rho_j\right)\right]e_{ij} 
-
+   F_{i}^{DD}(\rho_i,\rho_j,r_{ij}) = \frac{1}{2} \omega_{DD}\left(r_{ij}\right)
+   \left[A\left(\rho_i\right) + A\left(\rho_j\right)\right]e_{ij}
 
 which consists of a density-dependent function, :math:`A(\rho)`, and a
 radial-dependent weight function, :math:`\omega_{DD}(r_{ij})`.  The
@@ -45,13 +42,11 @@ as the Lucy function:
 
    \omega_{DD}\left(r_{ij}\right) = \left(1+\frac{3r_{ij}}{r_{cut}}\right)\left(1+\frac{r_{ij}}{r_{cut}}\right)^3
 
-
 The density-dependent energy for a given particle is given by:
 
 .. math::
 
    u_{i}^{DD}\left(\rho_{i}\right) = \frac{\pi r_{cut}^4}{84} \int_{\rho_0}^{\rho_i} A\left(\rho'\right) d\rho'
-
 
 See the supporting information of :ref:`(Brennan) <Brennan1>` or the
 publication by :ref:`(Moore) <Moore1>` for more details on the functional
@@ -94,13 +89,10 @@ tabulated distance.  If specified, only file values up to the cutoff
 are used to create the interpolation table.  The format of this file
 is described below.
 
-
 ----------
-
 
 The format of a tabulated file is a series of one or more sections,
 defined as follows (without the parenthesized comments):
-
 
 .. parsed-literal::
 
@@ -118,7 +110,7 @@ A section begins with a non-blank line whose 1st character is not a
 "#"; blank lines or lines starting with "#" can be used as comments
 between sections.  The first line begins with a keyword which
 identifies the section.  The line can contain additional text, but the
-initial text must match the argument specified in the pair\_coeff
+initial text must match the argument specified in the pair_coeff
 command.  The next line lists (in any order) one or more parameters
 for the table.  Each parameter is a keyword followed by one or more
 numeric values.
@@ -126,7 +118,7 @@ numeric values.
 The parameter "N" is required and its value is the number of table
 entries that follow.  Note that this may be different than the *N*
 specified in the :doc:`pair_style multi/lucy <pair_multi_lucy>` command.
-Let Ntable = *N* in the pair\_style command, and Nfile = "N" in the
+Let Ntable = *N* in the pair_style command, and Nfile = "N" in the
 tabulated file.  What LAMMPS does is a preliminary interpolation by
 creating splines using the Nfile tabulated values as nodal points.  It
 uses these to interpolate the density-dependent energy and force at
@@ -174,9 +166,7 @@ Note that one file can contain many sections, each with a tabulated
 potential.  LAMMPS reads the file section by section until it finds
 one that matches the specified keyword.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -186,24 +176,21 @@ I,J pairs must be specified explicitly.
 The :doc:`pair_modify <pair_modify>` shift, table, and tail options are
 not relevant for this pair style.
 
-This pair style writes the settings for the "pair\_style multi/lucy" command
-to :doc:`binary restart files <restart>`, so a pair\_style command does
+This pair style writes the settings for the "pair_style multi/lucy" command
+to :doc:`binary restart files <restart>`, so a pair_style command does
 not need to specified in an input script that reads a restart file.
 However, the coefficient information is not stored in the restart
-file, since it is tabulated in the potential files.  Thus, pair\_coeff
+file, since it is tabulated in the potential files.  Thus, pair_coeff
 commands do need to be specified in the restart input script.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command is part of the USER-DPD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -215,24 +202,16 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Warren1:
-
-
 
 **(Warren)** Warren, Phys Rev E, 68, 066702 (2003).
 
 .. _Brennan1:
 
-
-
 **(Brennan)** Brennan, J Chem Phys Lett, 5, 2144-2149 (2014).
 
 .. _Moore1:
-
-
 
 **(Moore)** Moore, J Chem Phys, 144, 104501 (2016).

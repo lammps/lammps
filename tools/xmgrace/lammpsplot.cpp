@@ -29,7 +29,7 @@ public:
 };
 
 
-/* This function splits the sentence into array of strings seperated by " "*/
+/* This function splits the sentence into array of strings separated by " "*/
 sentence split(const string& s) {
   sentence a;
   s_type i=0;

@@ -13,27 +13,27 @@
 //    email                : brownw@ornl.gov nguyentd@ornl.gov
 // ***************************************************************************/
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_aux_fun1.h"
 
 #ifndef _DOUBLE_DOUBLE
-texture<float4> pos_tex;
-texture<float> fp_tex;
-texture<float4> rhor_sp1_tex;
-texture<float4> rhor_sp2_tex;
-texture<float4> frho_sp1_tex;
-texture<float4> frho_sp2_tex;
-texture<float4> z2r_sp1_tex;
-texture<float4> z2r_sp2_tex;
+_texture( pos_tex,float4);
+_texture( fp_tex,float);
+_texture( rhor_sp1_tex,float4);
+_texture( rhor_sp2_tex,float4);
+_texture( frho_sp1_tex,float4);
+_texture( frho_sp2_tex,float4);
+_texture( z2r_sp1_tex,float4);
+_texture( z2r_sp2_tex,float4);
 #else
-texture<int4> pos_tex;
-texture<int2> fp_tex;
-texture<int4> rhor_sp1_tex;
-texture<int4> rhor_sp2_tex;
-texture<int4> frho_sp1_tex;
-texture<int4> frho_sp2_tex;
-texture<int4> z2r_sp1_tex;
-texture<int4> z2r_sp2_tex;
+_texture( pos_tex,int4);
+_texture( fp_tex,int2);
+_texture( rhor_sp1_tex,int4);
+_texture( rhor_sp2_tex,int4);
+_texture( frho_sp1_tex,int4);
+_texture( frho_sp2_tex,int4);
+_texture( z2r_sp1_tex,int4);
+_texture( z2r_sp2_tex,int4);
 #endif
 
 #else

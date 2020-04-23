@@ -227,7 +227,7 @@ void ReadCarFile(void)
   /* Search coordinates to find lowest and highest for x, y, and z */
 
   if (periodic == 0) {
-    /* Added if/else statment STLM Oct 5 2010 */
+    /* Added if/else statement STLM Oct 5 2010 */
     if (TriclinicFlag == 0) {
       /* no need to re-center the box, if we use min/max values */
       center[0] = center[1] = center[2] = 0.0;

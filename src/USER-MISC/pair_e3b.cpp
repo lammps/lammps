@@ -31,7 +31,7 @@
 #include "domain.h"
 #include "citeme.h"
 
-//these are defined here to avoid confusing hardcoded indicies, but
+//these are defined here to avoid confusing hardcoded indices, but
 //they do not allow flexibility. If they are changed the code will break
 #define DIM 3
 #define NUMH 2  //number of hydrogen atoms per water molecule

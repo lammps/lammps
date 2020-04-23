@@ -31,6 +31,7 @@ neighbor 	0.1 bin
 neigh_modify 	every 10 check yes delay 20
 
 fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
+fix_modify 	1 energy yes
 fix 		2 all langevin/spin 0.0 0.0 21
 
 fix 		3 all nve/spin lattice moving

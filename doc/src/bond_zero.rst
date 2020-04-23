@@ -6,14 +6,12 @@ bond_style zero command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    bond_style zero [nocoeff]
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -35,7 +33,7 @@ atoms listed in the data file read by the :doc:`read_data <read_data>`
 command.  If no bond style is defined, this command cannot be used.
 
 The optional *nocoeff* flag allows to read data files with a BondCoeff
-section for any bond style. Similarly, any bond\_coeff commands
+section for any bond style. Similarly, any bond_coeff commands
 will only be checked for the bond type number and the rest ignored.
 
 Note that the :doc:`bond_coeff <bond_coeff>` command must be used for

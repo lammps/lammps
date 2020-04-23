@@ -6,23 +6,22 @@ prd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    prd N t_event n_dephase t_dephase t_correlate compute-ID seed keyword value ...
 
 * N = # of timesteps to run (not including dephasing/quenching)
-* t\_event = timestep interval between event checks
-* n\_dephase = number of velocity randomizations to perform in each dephase run
-* t\_dephase = number of timesteps to run dynamics after each velocity randomization during dephase
-* t\_correlate = number of timesteps within which 2 consecutive events are considered to be correlated
+* t_event = timestep interval between event checks
+* n_dephase = number of velocity randomizations to perform in each dephase run
+* t_dephase = number of timesteps to run dynamics after each velocity randomization during dephase
+* t_correlate = number of timesteps within which 2 consecutive events are considered to be correlated
 * compute-ID = ID of the compute used for event detection
-* random\_seed = random # seed (positive integer)
+* random_seed = random # seed (positive integer)
 * zero or more keyword/value pairs may be appended
 * keyword = *min* or *temp* or *vel*
-  
+
   .. parsed-literal::
-  
+
        *min* values = etol ftol maxiter maxeval
          etol = stopping tolerance for energy, used in quenching
          ftol = stopping tolerance for force, used in quenching
@@ -37,13 +36,10 @@ Syntax
          *steps* = simulation runs for N timesteps on each replica (default)
          *clock* = simulation runs for N timesteps across all replicas
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    prd 5000 100 10 10 100 1 54982
    prd 5000 100 10 10 100 1 54982 min 0.1 0.1 100 200
@@ -100,7 +96,6 @@ A PRD run has several stages, which are repeated each time an "event"
 occurs in one of the replicas, as explained below.  The logic for a
 PRD run is as follows:
 
-
 .. parsed-literal::
 
    while (time remains):
@@ -124,9 +119,9 @@ storing the resulting coordinates for reference.
 In the first stage, dephasing is performed by each replica
 independently to eliminate correlations between replicas.  This is
 done by choosing a random set of velocities, based on the
-*random\_seed* that is specified, and running *t\_dephase* timesteps of
-dynamics.  This is repeated *n\_dephase* times.  At each of the
-*n\_dephase* stages, if an event occurs during the *t\_dephase* steps of
+*random_seed* that is specified, and running *t_dephase* timesteps of
+dynamics.  This is repeated *n_dephase* times.  At each of the
+*n_dephase* stages, if an event occurs during the *t_dephase* steps of
 dynamics for a particular replica, the replica repeats the stage until
 no event occurs.
 
@@ -138,7 +133,7 @@ The style of velocity randomization is controlled using the keyword
 in the :doc:`velocity <velocity>` command.
 
 In the second stage, each replica runs dynamics continuously, stopping
-every *t\_event* steps to check if a transition event has occurred.
+every *t_event* steps to check if a transition event has occurred.
 This check is performed by quenching the system and comparing the
 resulting atom coordinates to the coordinates from the previous basin.
 The first time through the PRD loop, the "previous basin" is the set
@@ -163,8 +158,8 @@ distance.  If so, an "event" has occurred.
 
 In the third stage, the replica on which the event occurred (event
 replica) continues to run dynamics to search for correlated events.
-This is done by running dynamics for *t\_correlate* steps, quenching
-every *t\_event* steps, and checking if another event has occurred.
+This is done by running dynamics for *t_correlate* steps, quenching
+every *t_event* steps, and checking if another event has occurred.
 
 The first time no correlated event occurs, the final state of the
 event replica is shared with all replicas, the new basin reference
@@ -186,9 +181,7 @@ elapsed.  This aggregate time is the "clock" time defined below, which
 typically advances nearly M times faster than the timestepping on a
 single replica, where M is the number of replicas.
 
-
 ----------
-
 
 Four kinds of output can be generated during a PRD run: event
 statistics, thermodynamic output by each replica, dump files, and
@@ -237,18 +230,16 @@ when a correlated event occurs during the third stage of the loop
 listed above, i.e. when only one replica is running dynamics.
 
 When more than one replica detects an event at the end of the same
-event check (every *t\_event* steps) during the second stage, then
+event check (every *t_event* steps) during the second stage, then
 one of them is chosen at random.  The number of coincident events is
 the number of replicas that detected an event.  Normally, this value
 should be 1.  If it is often greater than 1, then either the number of
-replicas is too large, or *t\_event* is too large.
+replicas is too large, or *t_event* is too large.
 
 The replica number is the ID of the replica (from 0 to M-1) in which
 the event occurred.
 
-
 ----------
-
 
 When running on multiple partitions, LAMMPS produces additional log
 files for each partition, e.g. log.lammps.0, log.lammps.1, etc.  For
@@ -262,9 +253,7 @@ After the PRD command completes, timing statistics for the PRD run are
 printed in each replica's log file, giving a breakdown of how much CPU
 time was spent in each stage (dephasing, dynamics, quenching, etc).
 
-
 ----------
-
 
 Any :doc:`dump files <dump>` defined in the input script, will be
 written to during a PRD run at timesteps corresponding to both
@@ -280,9 +269,7 @@ snapshot corresponding to the initial minimum state used for event
 detection is written to the dump file at the beginning of each PRD
 run.
 
-
 ----------
-
 
 If the :doc:`restart <restart>` command is used, a single restart file
 for all the partitions is generated, which allows a PRD run to be
@@ -290,9 +277,9 @@ continued by a new input script in the usual manner.
 
 The restart file is generated at the end of the loop listed above.  If
 no correlated events are found, this means it contains a snapshot of
-the system at time T + *t\_correlate*, where T is the time at which the
+the system at time T + *t_correlate*, where T is the time at which the
 uncorrelated event occurred.  If correlated events were found, then it
-contains a snapshot of the system at time T + *t\_correlate*, where T
+contains a snapshot of the system at time T + *t_correlate*, where T
 is the time of the last correlated event.
 
 The restart frequency specified in the :doc:`restart <restart>` command
@@ -305,24 +292,21 @@ event.
 
 When an input script reads a restart file from a previous PRD run, the
 new script can be run on a different number of replicas or processors.
-However, it is assumed that *t\_correlate* in the new PRD command is
+However, it is assumed that *t_correlate* in the new PRD command is
 the same as it was previously.  If not, the calculation of the "clock"
 value for the first event in the new run will be slightly off.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command can only be used if LAMMPS was built with the REPLICA
 package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
-The *N* and *t\_correlate* settings must be integer multiples of
-*t\_event*.
+The *N* and *t_correlate* settings must be integer multiples of
+*t_event*.
 
 Runs restarted from restart file written during a PRD run will not
 produce identical results due to changes in the random numbers used
@@ -348,19 +332,13 @@ Default
 The option defaults are min = 0.1 0.1 40 50, no temp setting, vel =
 geom gaussian, and time = steps.
 
-
 ----------
 
-
 .. _Voter1998:
-
-
 
 **(Voter1998)** Voter, Phys Rev B, 57, 13985 (1998).
 
 .. _Voter2002prd:
-
-
 
 **(Voter2002)** Voter, Montalenti, Germann, Annual Review of Materials
 Research 32, 321 (2002).

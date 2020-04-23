@@ -27,7 +27,7 @@ and in the reference article:
 Using collective variables to drive molecular dynamics simulations,
 G. Fiorin, M. L. Klein, and J. Henin,
 Molecular Physics 111, 3345 (2013)
-http://dx.doi.org/10.1080/00268976.2013.813594
+https://doi.org/10.1080/00268976.2013.813594
 
 A reference manual for the package and library is included with the
 LAMMPS doc pages:

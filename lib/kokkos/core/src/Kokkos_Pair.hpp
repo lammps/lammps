@@ -1,10 +1,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -22,10 +23,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -61,15 +62,14 @@ namespace Kokkos {
 /// implements the same interface as std::pair, but can be used on a
 /// CUDA device as well as on the host.
 template <class T1, class T2>
-struct pair
-{
+struct pair {
   //! The first template parameter of this class.
   typedef T1 first_type;
   //! The second template parameter of this class.
   typedef T2 second_type;
 
   //! The first element of the pair.
-  first_type  first;
+  first_type first;
   //! The second element of the pair.
   second_type second;
 
@@ -80,53 +80,47 @@ struct pair
   /// public.
   KOKKOS_FORCEINLINE_FUNCTION constexpr
 #ifdef KOKKOS_CUDA_9_DEFAULTED_BUG_WORKAROUND
-  pair() : first(), second() {}
+      pair()
+      : first(), second() {
+  }
 #else
-  pair() = default;
+      pair() = default;
 #endif
 
   /// \brief Constructor that takes both elements of the pair.
   ///
   /// This calls the copy constructors of T1 and T2.  It won't compile
   /// if those copy constructors are not defined and public.
-  KOKKOS_FORCEINLINE_FUNCTION constexpr
-  pair(first_type const& f, second_type const& s)
-    : first(f), second(s)
-  {}
+  KOKKOS_FORCEINLINE_FUNCTION constexpr pair(first_type const& f,
+                                             second_type const& s)
+      : first(f), second(s) {}
 
   /// \brief Copy constructor.
   ///
   /// This calls the copy constructors of T1 and T2.  It won't compile
   /// if those copy constructors are not defined and public.
   template <class U, class V>
-  KOKKOS_FORCEINLINE_FUNCTION constexpr
-  pair( const pair<U,V> &p)
-    : first(p.first), second(p.second)
-  {}
+  KOKKOS_FORCEINLINE_FUNCTION constexpr pair(const pair<U, V>& p)
+      : first(p.first), second(p.second) {}
 
   /// \brief Copy constructor.
   ///
   /// This calls the copy constructors of T1 and T2.  It won't compile
   /// if those copy constructors are not defined and public.
   template <class U, class V>
-  KOKKOS_FORCEINLINE_FUNCTION constexpr
-  pair( const volatile pair<U,V> &p)
-    : first(p.first), second(p.second)
-  {}
+  KOKKOS_FORCEINLINE_FUNCTION constexpr pair(const volatile pair<U, V>& p)
+      : first(p.first), second(p.second) {}
 
   /// \brief Assignment operator.
   ///
   /// This calls the assignment operators of T1 and T2.  It won't
   /// compile if the assignment operators are not defined and public.
   template <class U, class V>
-  KOKKOS_FORCEINLINE_FUNCTION
-  pair<T1, T2> & operator=(const pair<U,V> &p)
-  {
-    first = p.first;
+  KOKKOS_FORCEINLINE_FUNCTION pair<T1, T2>& operator=(const pair<U, V>& p) {
+    first  = p.first;
     second = p.second;
     return *this;
   }
-
 
   /// \brief Assignment operator, for volatile <tt>*this</tt>.
   ///
@@ -140,10 +134,9 @@ struct pair
   /// practice, this means that you should not chain assignments with
   /// volatile lvalues.
   template <class U, class V>
-  KOKKOS_FORCEINLINE_FUNCTION
-  void operator=(const volatile pair<U,V> &p) volatile
-  {
-    first = p.first;
+  KOKKOS_FORCEINLINE_FUNCTION void operator=(
+      const volatile pair<U, V>& p) volatile {
+    first  = p.first;
     second = p.second;
     // We deliberately do not return anything here.  See explanation
     // in public documentation above.
@@ -151,9 +144,7 @@ struct pair
 
   // from std::pair<U,V>
   template <class U, class V>
-  pair( const std::pair<U,V> &p)
-    : first(p.first), second(p.second)
-  {}
+  pair(const std::pair<U, V>& p) : first(p.first), second(p.second) {}
 
   /// \brief Return the std::pair version of this object.
   ///
@@ -164,20 +155,20 @@ struct pair
   /// \note This is not a conversion operator, since defining a
   ///   conversion operator made the relational operators have
   ///   ambiguous definitions.
-  std::pair<T1,T2> to_std_pair() const
-  { return std::make_pair(first,second); }
+  std::pair<T1, T2> to_std_pair() const {
+    return std::make_pair(first, second);
+  }
 };
 
 template <class T1, class T2>
-struct pair<T1&, T2&>
-{
+struct pair<T1&, T2&> {
   //! The first template parameter of this class.
   typedef T1& first_type;
   //! The second template parameter of this class.
   typedef T2& second_type;
 
   //! The first element of the pair.
-  first_type  first;
+  first_type first;
   //! The second element of the pair.
   second_type second;
 
@@ -185,36 +176,29 @@ struct pair<T1&, T2&>
   ///
   /// This calls the copy constructors of T1 and T2.  It won't compile
   /// if those copy constructors are not defined and public.
-  KOKKOS_FORCEINLINE_FUNCTION constexpr
-  pair(first_type f, second_type s)
-    : first(f), second(s)
-  {}
+  KOKKOS_FORCEINLINE_FUNCTION constexpr pair(first_type f, second_type s)
+      : first(f), second(s) {}
 
   /// \brief Copy constructor.
   ///
   /// This calls the copy constructors of T1 and T2.  It won't compile
   /// if those copy constructors are not defined and public.
   template <class U, class V>
-  KOKKOS_FORCEINLINE_FUNCTION constexpr
-  pair( const pair<U,V> &p)
-    : first(p.first), second(p.second)
-  {}
+  KOKKOS_FORCEINLINE_FUNCTION constexpr pair(const pair<U, V>& p)
+      : first(p.first), second(p.second) {}
 
   // from std::pair<U,V>
   template <class U, class V>
-  pair( const std::pair<U,V> &p)
-    : first(p.first), second(p.second)
-  {}
+  pair(const std::pair<U, V>& p) : first(p.first), second(p.second) {}
 
   /// \brief Assignment operator.
   ///
   /// This calls the assignment operators of T1 and T2.  It won't
   /// compile if the assignment operators are not defined and public.
   template <class U, class V>
-  KOKKOS_FORCEINLINE_FUNCTION
-  pair<first_type, second_type> & operator=(const pair<U,V> &p)
-  {
-    first = p.first;
+  KOKKOS_FORCEINLINE_FUNCTION pair<first_type, second_type>& operator=(
+      const pair<U, V>& p) {
+    first  = p.first;
     second = p.second;
     return *this;
   }
@@ -228,20 +212,20 @@ struct pair<T1&, T2&>
   /// \note This is not a conversion operator, since defining a
   ///   conversion operator made the relational operators have
   ///   ambiguous definitions.
-  std::pair<T1,T2> to_std_pair() const
-  { return std::make_pair(first,second); }
+  std::pair<T1, T2> to_std_pair() const {
+    return std::make_pair(first, second);
+  }
 };
 
 template <class T1, class T2>
-struct pair<T1, T2&>
-{
+struct pair<T1, T2&> {
   //! The first template parameter of this class.
-  typedef T1  first_type;
+  typedef T1 first_type;
   //! The second template parameter of this class.
   typedef T2& second_type;
 
   //! The first element of the pair.
-  first_type  first;
+  first_type first;
   //! The second element of the pair.
   second_type second;
 
@@ -249,36 +233,29 @@ struct pair<T1, T2&>
   ///
   /// This calls the copy constructors of T1 and T2.  It won't compile
   /// if those copy constructors are not defined and public.
-  KOKKOS_FORCEINLINE_FUNCTION constexpr
-  pair(first_type const& f, second_type s)
-    : first(f), second(s)
-  {}
+  KOKKOS_FORCEINLINE_FUNCTION constexpr pair(first_type const& f, second_type s)
+      : first(f), second(s) {}
 
   /// \brief Copy constructor.
   ///
   /// This calls the copy constructors of T1 and T2.  It won't compile
   /// if those copy constructors are not defined and public.
   template <class U, class V>
-  KOKKOS_FORCEINLINE_FUNCTION constexpr
-  pair( const pair<U,V> &p)
-    : first(p.first), second(p.second)
-  {}
+  KOKKOS_FORCEINLINE_FUNCTION constexpr pair(const pair<U, V>& p)
+      : first(p.first), second(p.second) {}
 
   // from std::pair<U,V>
   template <class U, class V>
-  pair( const std::pair<U,V> &p)
-    : first(p.first), second(p.second)
-  {}
+  pair(const std::pair<U, V>& p) : first(p.first), second(p.second) {}
 
   /// \brief Assignment operator.
   ///
   /// This calls the assignment operators of T1 and T2.  It won't
   /// compile if the assignment operators are not defined and public.
   template <class U, class V>
-  KOKKOS_FORCEINLINE_FUNCTION
-  pair<first_type, second_type> & operator=(const pair<U,V> &p)
-  {
-    first = p.first;
+  KOKKOS_FORCEINLINE_FUNCTION pair<first_type, second_type>& operator=(
+      const pair<U, V>& p) {
+    first  = p.first;
     second = p.second;
     return *this;
   }
@@ -292,20 +269,20 @@ struct pair<T1, T2&>
   /// \note This is not a conversion operator, since defining a
   ///   conversion operator made the relational operators have
   ///   ambiguous definitions.
-  std::pair<T1,T2> to_std_pair() const
-  { return std::make_pair(first,second); }
+  std::pair<T1, T2> to_std_pair() const {
+    return std::make_pair(first, second);
+  }
 };
 
 template <class T1, class T2>
-struct pair<T1&, T2>
-{
+struct pair<T1&, T2> {
   //! The first template parameter of this class.
-  typedef T1&  first_type;
+  typedef T1& first_type;
   //! The second template parameter of this class.
   typedef T2 second_type;
 
   //! The first element of the pair.
-  first_type  first;
+  first_type first;
   //! The second element of the pair.
   second_type second;
 
@@ -313,36 +290,29 @@ struct pair<T1&, T2>
   ///
   /// This calls the copy constructors of T1 and T2.  It won't compile
   /// if those copy constructors are not defined and public.
-  KOKKOS_FORCEINLINE_FUNCTION constexpr
-  pair(first_type f, second_type const& s)
-    : first(f), second(s)
-  {}
+  KOKKOS_FORCEINLINE_FUNCTION constexpr pair(first_type f, second_type const& s)
+      : first(f), second(s) {}
 
   /// \brief Copy constructor.
   ///
   /// This calls the copy constructors of T1 and T2.  It won't compile
   /// if those copy constructors are not defined and public.
   template <class U, class V>
-  KOKKOS_FORCEINLINE_FUNCTION constexpr
-  pair( const pair<U,V> &p)
-    : first(p.first), second(p.second)
-  {}
+  KOKKOS_FORCEINLINE_FUNCTION constexpr pair(const pair<U, V>& p)
+      : first(p.first), second(p.second) {}
 
   // from std::pair<U,V>
   template <class U, class V>
-  pair( const std::pair<U,V> &p)
-    : first(p.first), second(p.second)
-  {}
+  pair(const std::pair<U, V>& p) : first(p.first), second(p.second) {}
 
   /// \brief Assignment operator.
   ///
   /// This calls the assignment operators of T1 and T2.  It won't
   /// compile if the assignment operators are not defined and public.
   template <class U, class V>
-  KOKKOS_FORCEINLINE_FUNCTION
-  pair<first_type, second_type> & operator=(const pair<U,V> &p)
-  {
-    first = p.first;
+  KOKKOS_FORCEINLINE_FUNCTION pair<first_type, second_type>& operator=(
+      const pair<U, V>& p) {
+    first  = p.first;
     second = p.second;
     return *this;
   }
@@ -356,54 +326,62 @@ struct pair<T1&, T2>
   /// \note This is not a conversion operator, since defining a
   ///   conversion operator made the relational operators have
   ///   ambiguous definitions.
-  std::pair<T1,T2> to_std_pair() const
-  { return std::make_pair(first,second); }
+  std::pair<T1, T2> to_std_pair() const {
+    return std::make_pair(first, second);
+  }
 };
 
 //! Equality operator for Kokkos::pair.
 template <class T1, class T2>
-KOKKOS_FORCEINLINE_FUNCTION
-bool operator== (const pair<T1,T2>& lhs, const pair<T1,T2>& rhs)
-{ return lhs.first==rhs.first && lhs.second==rhs.second; }
+KOKKOS_FORCEINLINE_FUNCTION bool operator==(const pair<T1, T2>& lhs,
+                                            const pair<T1, T2>& rhs) {
+  return lhs.first == rhs.first && lhs.second == rhs.second;
+}
 
 //! Inequality operator for Kokkos::pair.
 template <class T1, class T2>
-KOKKOS_FORCEINLINE_FUNCTION constexpr
-bool operator!= (const pair<T1,T2>& lhs, const pair<T1,T2>& rhs)
-{ return !(lhs==rhs); }
+KOKKOS_FORCEINLINE_FUNCTION constexpr bool operator!=(const pair<T1, T2>& lhs,
+                                                      const pair<T1, T2>& rhs) {
+  return !(lhs == rhs);
+}
 
 //! Less-than operator for Kokkos::pair.
 template <class T1, class T2>
-KOKKOS_FORCEINLINE_FUNCTION constexpr
-bool operator<  (const pair<T1,T2>& lhs, const pair<T1,T2>& rhs)
-{ return lhs.first<rhs.first || (!(rhs.first<lhs.first) && lhs.second<rhs.second); }
+KOKKOS_FORCEINLINE_FUNCTION constexpr bool operator<(const pair<T1, T2>& lhs,
+                                                     const pair<T1, T2>& rhs) {
+  return lhs.first < rhs.first ||
+         (!(rhs.first < lhs.first) && lhs.second < rhs.second);
+}
 
 //! Less-than-or-equal-to operator for Kokkos::pair.
 template <class T1, class T2>
-KOKKOS_FORCEINLINE_FUNCTION constexpr
-bool operator<= (const pair<T1,T2>& lhs, const pair<T1,T2>& rhs)
-{ return !(rhs<lhs); }
+KOKKOS_FORCEINLINE_FUNCTION constexpr bool operator<=(const pair<T1, T2>& lhs,
+                                                      const pair<T1, T2>& rhs) {
+  return !(rhs < lhs);
+}
 
 //! Greater-than operator for Kokkos::pair.
 template <class T1, class T2>
-KOKKOS_FORCEINLINE_FUNCTION constexpr
-bool operator>  (const pair<T1,T2>& lhs, const pair<T1,T2>& rhs)
-{ return rhs<lhs; }
+KOKKOS_FORCEINLINE_FUNCTION constexpr bool operator>(const pair<T1, T2>& lhs,
+                                                     const pair<T1, T2>& rhs) {
+  return rhs < lhs;
+}
 
 //! Greater-than-or-equal-to operator for Kokkos::pair.
 template <class T1, class T2>
-KOKKOS_FORCEINLINE_FUNCTION constexpr
-bool operator>= (const pair<T1,T2>& lhs, const pair<T1,T2>& rhs)
-{ return !(lhs<rhs); }
+KOKKOS_FORCEINLINE_FUNCTION constexpr bool operator>=(const pair<T1, T2>& lhs,
+                                                      const pair<T1, T2>& rhs) {
+  return !(lhs < rhs);
+}
 
 /// \brief Return a new pair.
 ///
 /// This is a "nonmember constructor" for Kokkos::pair.  It works just
 /// like std::make_pair.
-template <class T1,class T2>
-KOKKOS_FORCEINLINE_FUNCTION constexpr
-pair<T1,T2> make_pair (T1 x, T2 y)
-{ return ( pair<T1,T2>(x,y) ); }
+template <class T1, class T2>
+KOKKOS_FORCEINLINE_FUNCTION constexpr pair<T1, T2> make_pair(T1 x, T2 y) {
+  return (pair<T1, T2>(x, y));
+}
 
 /// \brief Return a pair of references to the input arguments.
 ///
@@ -444,51 +422,44 @@ pair<T1,T2> make_pair (T1 x, T2 y)
 /// element of the pair.  The latter could be significant if one or
 /// both elements of the pair are more substantial objects than \c int
 /// or \c bool.
-template <class T1,class T2>
-KOKKOS_FORCEINLINE_FUNCTION
-pair<T1 &,T2 &> tie (T1 & x, T2 & y)
-{ return ( pair<T1 &,T2 &>(x,y) ); }
+template <class T1, class T2>
+KOKKOS_FORCEINLINE_FUNCTION pair<T1&, T2&> tie(T1& x, T2& y) {
+  return (pair<T1&, T2&>(x, y));
+}
 
 //
 // Specialization of Kokkos::pair for a \c void second argument.  This
 // is not actually a "pair"; it only contains one element, the first.
 //
 template <class T1>
-struct pair<T1,void>
-{
+struct pair<T1, void> {
   typedef T1 first_type;
   typedef void second_type;
 
-  first_type  first;
+  first_type first;
   enum { second = 0 };
 
   KOKKOS_FORCEINLINE_FUNCTION constexpr
 #ifdef KOKKOS_CUDA_9_DEFAULTED_BUG_WORKAROUND
-  pair() : first() {}
+      pair()
+      : first() {
+  }
 #else
-  pair() = default;
+      pair() = default;
 #endif
 
-  KOKKOS_FORCEINLINE_FUNCTION constexpr
-  pair(const first_type & f)
-    : first(f)
-  {}
+  KOKKOS_FORCEINLINE_FUNCTION constexpr pair(const first_type& f) : first(f) {}
 
-  KOKKOS_FORCEINLINE_FUNCTION constexpr
-  pair(const first_type & f, int)
-    : first(f)
-  {}
+  KOKKOS_FORCEINLINE_FUNCTION constexpr pair(const first_type& f, int)
+      : first(f) {}
 
   template <class U>
-  KOKKOS_FORCEINLINE_FUNCTION constexpr
-  pair( const pair<U,void> &p)
-    : first(p.first)
-  {}
+  KOKKOS_FORCEINLINE_FUNCTION constexpr pair(const pair<U, void>& p)
+      : first(p.first) {}
 
   template <class U>
-  KOKKOS_FORCEINLINE_FUNCTION
-  pair<T1, void> & operator=(const pair<U,void> &p)
-  {
+  KOKKOS_FORCEINLINE_FUNCTION pair<T1, void>& operator=(
+      const pair<U, void>& p) {
     first = p.first;
     return *this;
   }
@@ -499,46 +470,52 @@ struct pair<T1,void>
 //
 
 template <class T1>
-KOKKOS_FORCEINLINE_FUNCTION constexpr
-bool operator== (const pair<T1,void>& lhs, const pair<T1,void>& rhs)
-{ return lhs.first==rhs.first; }
+KOKKOS_FORCEINLINE_FUNCTION constexpr bool operator==(
+    const pair<T1, void>& lhs, const pair<T1, void>& rhs) {
+  return lhs.first == rhs.first;
+}
 
 template <class T1>
-KOKKOS_FORCEINLINE_FUNCTION constexpr
-bool operator!= (const pair<T1,void>& lhs, const pair<T1,void>& rhs)
-{ return !(lhs==rhs); }
+KOKKOS_FORCEINLINE_FUNCTION constexpr bool operator!=(
+    const pair<T1, void>& lhs, const pair<T1, void>& rhs) {
+  return !(lhs == rhs);
+}
 
 template <class T1>
-KOKKOS_FORCEINLINE_FUNCTION constexpr
-bool operator<  (const pair<T1,void>& lhs, const pair<T1,void>& rhs)
-{ return lhs.first<rhs.first; }
+KOKKOS_FORCEINLINE_FUNCTION constexpr bool operator<(
+    const pair<T1, void>& lhs, const pair<T1, void>& rhs) {
+  return lhs.first < rhs.first;
+}
 
 template <class T1>
-KOKKOS_FORCEINLINE_FUNCTION constexpr
-bool operator<= (const pair<T1,void>& lhs, const pair<T1,void>& rhs)
-{ return !(rhs<lhs); }
+KOKKOS_FORCEINLINE_FUNCTION constexpr bool operator<=(
+    const pair<T1, void>& lhs, const pair<T1, void>& rhs) {
+  return !(rhs < lhs);
+}
 
 template <class T1>
-KOKKOS_FORCEINLINE_FUNCTION constexpr
-bool operator>  (const pair<T1,void>& lhs, const pair<T1,void>& rhs)
-{ return rhs<lhs; }
+KOKKOS_FORCEINLINE_FUNCTION constexpr bool operator>(
+    const pair<T1, void>& lhs, const pair<T1, void>& rhs) {
+  return rhs < lhs;
+}
 
 template <class T1>
-KOKKOS_FORCEINLINE_FUNCTION constexpr
-bool operator>= (const pair<T1,void>& lhs, const pair<T1,void>& rhs)
-{ return !(lhs<rhs); }
-
+KOKKOS_FORCEINLINE_FUNCTION constexpr bool operator>=(
+    const pair<T1, void>& lhs, const pair<T1, void>& rhs) {
+  return !(lhs < rhs);
+}
 
 namespace Impl {
 
-template <class T> struct is_pair_like : std::false_type { };
-template <class T, class U> struct is_pair_like<Kokkos::pair<T, U>> : std::true_type { };
-template <class T, class U> struct is_pair_like<std::pair<T, U>> : std::true_type { };
+template <class T>
+struct is_pair_like : std::false_type {};
+template <class T, class U>
+struct is_pair_like<Kokkos::pair<T, U>> : std::true_type {};
+template <class T, class U>
+struct is_pair_like<std::pair<T, U>> : std::true_type {};
 
-} // end namespace Impl
+}  // end namespace Impl
 
-} // namespace Kokkos
+}  // namespace Kokkos
 
-
-#endif //KOKKOS_PAIR_HPP
-
+#endif  // KOKKOS_PAIR_HPP

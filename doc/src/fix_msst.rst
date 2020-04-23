@@ -6,7 +6,6 @@ fix msst command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID msst dir shockvel keyword value ...
@@ -17,9 +16,9 @@ Syntax
 * shockvel = shock velocity (strictly positive, distance/time units)
 * zero or more keyword value pairs may be appended
 * keyword = *q* or *mu* or *p0* or *v0* or *e0* or *tscale* or *beta* or *dftb*
-  
+
   .. parsed-literal::
-  
+
        *q* value = cell mass-like parameter (mass\^2/distance\^4 units)
        *mu* value = artificial viscosity (mass/length/time units)
        *p0* value = initial pressure in the shock equations (pressure units)
@@ -29,11 +28,8 @@ Syntax
        *dftb* value = *yes* or *no* for whether using MSST in conjunction with DFTB+
        *beta* value = scale factor for improved energy conservation
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -100,7 +96,6 @@ This fix computes a temperature and pressure and potential energy each
 timestep. To do this, the fix creates its own computes of style "temp"
 "pressure", and "pe", as if these commands had been issued:
 
-
 .. code-block:: LAMMPS
 
    compute fix-ID_MSST_temp all temp
@@ -110,12 +105,10 @@ timestep. To do this, the fix creates its own computes of style "temp"
 
 See the :doc:`compute temp <compute_temp>` and :doc:`compute pressure
 <compute_pressure>` commands for details.  Note that the IDs of the
-new computes are the fix-ID + "_MSST\_temp" or "MSST\_press" or
-"_MSST\_pe".  The group for the new computes is "all".
-
+new computes are the fix-ID + "_MSST_temp" or "MSST_press" or
+"_MSST_pe".  The group for the new computes is "all".
 
 ----------
-
 
 The *dftb* keyword is to allow this fix to be used when LAMMPS is
 being driven by DFTB+, a density-functional tight-binding code. If the
@@ -127,11 +120,9 @@ you must define a :doc:`fix external <fix_external>` command in your
 input script, which is used to callback to DFTB+ during the LAMMPS
 timestepping.  DFTB+ will communicate its info to LAMMPS via that fix.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the state of all internal variables to :doc:`binary
 restart files <restart>`.  See the :doc:`read_restart <read_restart>`
@@ -152,16 +143,15 @@ equations. See also :doc:`thermo_style <thermo_style>` command.
 
 The global vector contains four values in this order:
 
-[\ *dhugoniot*\ , *drayleigh*\ , *lagrangian\_speed*, *lagrangian\_position*]
+[\ *dhugoniot*\ , *drayleigh*\ , *lagrangian_speed*, *lagrangian_position*]
 
 1. *dhugoniot* is the departure from the Hugoniot (temperature units).
 2. *drayleigh* is the departure from the Rayleigh line (pressure units).
-3. *lagrangian\_speed* is the laboratory-frame Lagrangian speed (particle velocity) of the computational cell (velocity units).
-4. *lagrangian\_position* is the computational cell position in the reference frame moving at the shock speed. This is usually a good estimate of distance of the computational cell behind the shock front.
+3. *lagrangian_speed* is the laboratory-frame Lagrangian speed (particle velocity) of the computational cell (velocity units).
+4. *lagrangian_position* is the computational cell position in the reference frame moving at the shock speed. This is usually a good estimate of distance of the computational cell behind the shock front.
 
 To print these quantities to the log file with descriptive column
 headers, the following LAMMPS commands are suggested:
-
 
 .. code-block:: LAMMPS
 
@@ -180,7 +170,6 @@ quantities, which can be accessed by various :doc:`output commands
 
 Restrictions
 """"""""""""
-
 
 This fix style is part of the SHOCK package.  It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package
@@ -202,26 +191,18 @@ The keyword defaults are q = 10, mu = 0, tscale = 0.01, dftb = no,
 beta = 0.0.  Note that p0, v0, and e0 are calculated on the first
 timestep.
 
-
 ----------
 
-
 .. _Reed:
-
-
 
 **(Reed)** Reed, Fried, and Joannopoulos, Phys. Rev. Lett., 90, 235503
 (2003).
 
 .. _Reed2:
 
-
-
 **(Reed2)** Reed, J. Phys. Chem. C, 116, 2205 (2012).
 
 .. _Goldman2:
-
-
 
 **(Goldman)** Goldman, Srinivasan, Hamel, Fried, Gaus, and Elstner,
 J. Phys. Chem. C, 117, 7885 (2013).

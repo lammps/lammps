@@ -7,7 +7,7 @@ developed by Chris H. Rycroft while at UC Berkeley / Lawrence Berkeley
 Laboratory.
 
 That library can be downloaded and built in lib/voronoi or elsewhere
-on your system, which must be done before bulding LAMMPS with this
+on your system, which must be done before building LAMMPS with this
 package.  Details of the download, build, and install process for
 Voro++ are given in the lib/voronoi/README file, and scripts are
 provided to help automate the process.  Also see the LAMMPS manual for

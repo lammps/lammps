@@ -6,7 +6,6 @@ units command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    units style
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -51,9 +49,7 @@ new units.  And you must correctly convert all output from the new
 units to the old units when comparing to the original results.  That
 is often not simple to do.
 
-
 ----------
-
 
 For style *lj*\ , all quantities are unitless.  Without loss of
 generality, LAMMPS sets the fundamental quantities mass, :math:`\sigma`,
@@ -219,7 +215,6 @@ distance to default values for each style:
 Restrictions
 """"""""""""
 
-
 This command cannot be used after the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.
 
@@ -227,7 +222,6 @@ This command cannot be used after the simulation box is defined by a
 
 Default
 """""""
-
 
 .. code-block:: LAMMPS
 

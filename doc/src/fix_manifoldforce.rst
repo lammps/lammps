@@ -6,7 +6,6 @@ fix manifoldforce command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID manifoldforce manifold manifold-args ...
@@ -15,11 +14,12 @@ Syntax
 * manifold = name of the manifold
 * manifold-args = parameters for the manifold
 
-
 Examples
 """"""""
 
-fix constrain all manifoldforce sphere 5.0
+.. code-block:: LAMMPS
+
+   fix constrain all manifoldforce sphere 5.0
 
 Description
 """""""""""
@@ -32,11 +32,9 @@ given manifold, e.g. to set up a run with :doc:`fix nve/manifold/rattle <fix_nve
 only *hftn* and *quickmin* with a very small time step perform
 adequately though.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -44,24 +42,19 @@ by this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is invoked during :doc:`energy minimization <minimize>`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-MANIFOLD package. It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
-Only use this with *min\_style hftn* or *min\_style quickmin*. If not,
+Only use this with *min_style hftn* or *min_style quickmin*. If not,
 the constraints will not be satisfied very well at all. A warning is
-generated if the *min\_style* is incompatible but no error.
-
+generated if the *min_style* is incompatible but no error.
 
 ----------
-
 
 Related commands
 """"""""""""""""

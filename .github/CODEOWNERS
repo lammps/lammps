@@ -22,7 +22,6 @@ src/SPIN/*            @julient31
 src/USER-CGDNA/*      @ohenrich
 src/USER-CGSDK/*      @akohlmey
 src/USER-COLVARS/*    @giacomofiorin
-src/USER-DPD/*        @timattox
 src/USER-INTEL/*      @wmbrownintel
 src/USER-MANIFOLD/*   @Pakketeretet2
 src/USER-MEAMC/*      @martok
@@ -119,6 +118,7 @@ tools/emacs/*         @HaoZeke
 
 # cmake
 cmake/*               @junghans @rbberger
+cmake/Modules/Packages/USER-COLVARS.cmake @junghans @rbberger @giacomofiorin
 
 # python
 python/*              @rbberger

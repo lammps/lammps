@@ -15,6 +15,7 @@
    Contributing author: Eric Simon (Cray)
 ------------------------------------------------------------------------- */
 
+#include <cstring>
 #include "bond_class2.h"
 #include <mpi.h>
 #include <cmath>
@@ -219,4 +220,13 @@ double BondClass2::single(int type, double rsq, int /*i*/, int /*j*/, double &ff
   if (r > 0.0) fforce = -de_bond/r;
   else fforce = 0.0;
   return (k2[type]*dr2 + k3[type]*dr3 + k4[type]*dr4);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *BondClass2::extract( char *str, int &dim )
+{
+  dim = 1;
+  if (strcmp(str,"r0")==0) return (void*) r0;
+  return NULL;
 }

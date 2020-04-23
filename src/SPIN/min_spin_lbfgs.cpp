@@ -217,7 +217,7 @@ int MinSpinLBFGS::iterate(int maxiter)
     ntimestep = ++update->ntimestep;
     niter++;
 
-    // optimize timestep accross processes / replicas
+    // optimize timestep across processes / replicas
     // need a force calculation for timestep optimization
 
     if (use_line_search) {

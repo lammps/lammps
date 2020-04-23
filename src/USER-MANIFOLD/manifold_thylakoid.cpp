@@ -142,7 +142,7 @@ void manifold_thylakoid::init_domains()
 {
   if (wB + 2*lB > LT) {
     char msg[2048];
-    sprintf(msg,"LT = %f not large enough to accomodate bridge with "
+    sprintf(msg,"LT = %f not large enough to accommodate bridge with "
             "wB = %f and lB = %f! %f > %f\n", LT, wB, lB, wB + 2*lB, LT);
     error->one(FLERR,msg);
   }

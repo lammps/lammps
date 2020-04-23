@@ -5,7 +5,7 @@ The LAMMPS "version" is the date when it was released, such as 1 May
 2014. LAMMPS is updated continuously.  Whenever we fix a bug or add a
 feature, we release it in the next *patch* release, which are
 typically made every couple of weeks.  Info on patch releases are on
-`this website page <http://lammps.sandia.gov/bug.html>`_. Every few
+`this website page <https://lammps.sandia.gov/bug.html>`_. Every few
 months, the latest patch release is subjected to more thorough testing
 and labeled as a *stable* version.
 

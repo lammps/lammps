@@ -107,7 +107,7 @@ static void open_socket(int &sockfd, int inet, int port, char* host,
   } else {  // creates a unix socket
     struct sockaddr_un serv_addr;
 
-    // fills up details of the socket addres
+    // fills up details of the socket address
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sun_family = AF_UNIX;
     strcpy(serv_addr.sun_path, "/tmp/ipi_");

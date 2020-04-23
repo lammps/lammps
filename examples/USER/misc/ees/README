@@ -5,7 +5,7 @@ Here one may find simple examples showing how "fix wall/ess" and "fix wall/regio
 	
 	This input uses "Data_region" to setup a system of three particles colliding with a
 	cubic region which its walls interact with particle with EES potential. To find out details
-	of how to set parameters of "fix wall/region/ees" see documentaion. 
+	of how to set parameters of "fix wall/region/ees" see documentation.
 
 --in.fix_wall
 	

@@ -6,7 +6,6 @@ compute xrd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID xrd lambda type1 type2 ... typeN keyword value ...
@@ -17,9 +16,9 @@ Syntax
 * type1 type2 ... typeN = chemical symbol of each atom type (see valid options below)
 * zero or more keyword/value pairs may be appended
 * keyword = *2Theta* or *c* or *LP* or *manual* or *echo*
-  
+
   .. parsed-literal::
-  
+
        *2Theta* values = Min2Theta Max2Theta
          Min2Theta,Max2Theta = minimum and maximum 2 theta range to explore
          (radians or degrees)
@@ -32,13 +31,10 @@ Syntax
                   based on the values of the *c* parameters
        *echo* = flag to provide extra output for debugging purposes
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all xrd 1.541838 Al O 2Theta 0.087 0.87 c 1 1 1 LP 1 echo
    compute 2 all xrd 1.541838 Al O 2Theta 10 100 c 0.05 0.05 0.05 LP 1 manual
@@ -111,7 +107,7 @@ The analytic approximation is computed using the formula
 
 .. math::
 
-   f_j\left ( \frac{sin(\theta)}{\lambda} \right )=\sum_{i}^{4} 
+   f_j\left ( \frac{sin(\theta)}{\lambda} \right )=\sum_{i}^{4}
    a_i exp\left ( -b_i \frac{sin^{2}(\theta)}{\lambda^{2}} \right )+c
 
 Coefficients parameterized by :ref:`(Peng) <Peng>` are assigned for each
@@ -226,11 +222,10 @@ All array values calculated by this compute are "intensive".
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-DIFFRACTION package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
-The compute\_xrd command does not work for triclinic cells.
+The compute_xrd command does not work for triclinic cells.
 
 Related commands
 """"""""""""""""
@@ -244,27 +239,19 @@ Default
 The option defaults are 2Theta = 1 179 (degrees), c = 1 1 1, LP = 1,
 no manual flag, no echo flag.
 
-
 ----------
 
-
 .. _xrd-Coleman:
-
-
 
 **(Coleman)** Coleman, Spearot, Capolungo, MSMSE, 21, 055020
 (2013).
 
 .. _Colliex:
 
-
-
 **(Colliex)** Colliex et al. International Tables for Crystallography
 Volume C: Mathematical and Chemical Tables, 249-429 (2004).
 
 .. _Peng:
-
-
 
 **(Peng)** Peng, Ren, Dudarev, Whelan, Acta Crystallogr. A, 52, 257-76
 (1996).

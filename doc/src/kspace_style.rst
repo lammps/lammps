@@ -6,7 +6,6 @@ kspace_style command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    kspace_style style value
@@ -76,11 +75,8 @@ Syntax
          method = fmm or p2nfft or p3m or ewald or direct
          accuracy = desired relative error in forces
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -120,9 +116,7 @@ matching keyword to the name of the KSpace style, as in this table:
 | tip4p/long           | tip4p                 |
 +----------------------+-----------------------+
 
-
 ----------
-
 
 The *ewald* style performs a standard Ewald summation as described in
 any solid-state physics text.
@@ -143,9 +137,7 @@ The *ewald/dipole/spin* style adds long-range standard Ewald
 summations for magnetic dipole-dipole interactions between
 magnetic spins.
 
-
 ----------
-
 
 The *pppm* style invokes a particle-particle particle-mesh solver
 :ref:`(Hockney) <Hockney>` which maps atom charge to a 3d mesh, uses 3d FFTs
@@ -201,9 +193,7 @@ page.
    must be used if energy and/or pressure are quantities of interest,
    such as when using a barostat.
 
-
 ----------
-
 
 The *pppm/disp* and *pppm/disp/tip4p* styles add a mesh-based long-range
 dispersion sum option for 1/r\^6 potentials :ref:`(Isele-Holder) <Isele-Holder2012>`,
@@ -221,24 +211,20 @@ parameters and how to choose them is described in
 :ref:`(Isele-Holder) <Isele-Holder2012>`,
 :ref:`(Isele-Holder2) <Isele-Holder2013>` and the :doc:`Howto dispersion <Howto_dispersion>` doc page.
 
-
 ----------
-
 
 .. note::
 
    All of the PPPM styles can be used with single-precision FFTs by
-   using the compiler switch -DFFT\_SINGLE for the FFT\_INC setting in your
+   using the compiler switch -DFFT_SINGLE for the FFT_INC setting in your
    low-level Makefile.  This setting also changes some of the PPPM
    operations (e.g. mapping charge to mesh and interpolating electric
    fields to particles) to be performed in single precision.  This option
    can speed-up long-range calculations, particularly in parallel or on
-   GPUs.  The use of the -DFFT\_SINGLE flag is discussed on the :doc:`Build settings <Build_settings>` doc page. MSM does not currently support
-   the -DFFT\_SINGLE compiler switch.
-
+   GPUs.  The use of the -DFFT_SINGLE flag is discussed on the :doc:`Build settings <Build_settings>` doc page. MSM does not currently support
+   the -DFFT_SINGLE compiler switch.
 
 ----------
-
 
 The *msm* style invokes a multi-level summation method MSM solver,
 :ref:`(Hardy) <Hardy2006>` or :ref:`(Hardy2) <Hardy2009>`, which maps atom charge
@@ -263,9 +249,7 @@ to run an isotropic barostat. If the full pressure tensor is needed,
 then calculating the pressure at every timestep or using a fixed
 pressure simulation with MSM will cause the code to run slower.
 
-
 ----------
-
 
 The *scafacos* style is a wrapper on the `ScaFaCoS Coulomb solver library <http://www.scafacos.de>`_ which provides a variety of solver
 methods which can be used with LAMMPS.  The paper by :ref:`(Who) <Who2012>`
@@ -290,7 +274,7 @@ See details on :ref:`this page <USER-SCAFACOS>`.
 
    Unlike other KSpace solvers in LAMMPS, ScaFaCoS computes all
    Coulombic interactions, both short- and long-range.  Thus you should
-   NOT use a Coulombic pair style when using kspace\_style scafacos.  This
+   NOT use a Coulombic pair style when using kspace_style scafacos.  This
    also means the total Coulombic energy (short- and long-range) will be
    tallied for :doc:`thermodynamic output <thermo_style>` command as part
    of the *elong* keyword; the *ecoul* keyword will be zero.
@@ -325,9 +309,7 @@ the :doc:`kspace_modify scafacos accuracy <kspace_modify>` doc page.
 The :doc:`kspace_modify scafacos <kspace_modify>` command also explains
 other ScaFaCoS options currently exposed to LAMMPS.
 
-
 ----------
-
 
 The specified *accuracy* determines the relative RMS error in per-atom
 forces calculated by the long-range solver.  It is set as a
@@ -383,9 +365,7 @@ options of the K-space solvers that can be set, including a *force*
 option for setting an absolute RMS error in forces, as opposed to a
 relative RMS error.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -397,7 +377,7 @@ produce the same results, except for round-off and precision issues.
 More specifically, the *pppm/gpu* style performs charge assignment and
 force interpolation calculations on the GPU.  These processes are
 performed either in single or double precision, depending on whether
-the -DFFT\_SINGLE setting was specified in your low-level Makefile, as
+the -DFFT_SINGLE setting was specified in your low-level Makefile, as
 discussed above.  The FFTs themselves are still calculated on the CPU.
 If *pppm/gpu* is used with a GPU-enabled pair style, part of the PPPM
 calculation can be performed concurrently on the GPU while other
@@ -415,13 +395,10 @@ LAMMPS was built with those packages.  See the :doc:`Build package <Build_packag
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 Note that the long-range electrostatic solvers in LAMMPS assume conducting
 metal (tinfoil) boundary conditions for both charge and dipole
@@ -429,8 +406,8 @@ interactions. Vacuum boundary conditions are not currently supported.
 
 The *ewald/disp*\ , *ewald*\ , *pppm*\ , and *msm* styles support
 non-orthogonal (triclinic symmetry) simulation boxes. However,
-triclinic simulation cells may not yet be supported by suffix versions
-of these styles.
+triclinic simulation cells may not yet be supported by all suffix
+versions of these styles.
 
 All of the kspace styles are part of the KSPACE package.  They are
 only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -465,101 +442,70 @@ Related commands
 Default
 """""""
 
-
 .. code-block:: LAMMPS
 
    kspace_style none
 
-
 ----------
 
-
 .. _Darden:
-
-
 
 **(Darden)** Darden, York, Pedersen, J Chem Phys, 98, 10089 (1993).
 
 .. _Deserno:
 
-
-
 **(Deserno)** Deserno and Holm, J Chem Phys, 109, 7694 (1998).
 
 .. _Hockney:
-
-
 
 **(Hockney)** Hockney and Eastwood, Computer Simulation Using Particles,
 Adam Hilger, NY (1989).
 
 .. _Kolafa:
 
-
-
 **(Kolafa)** Kolafa and Perram, Molecular Simulation, 9, 351 (1992).
 
 .. _Petersen:
-
-
 
 **(Petersen)** Petersen, J Chem Phys, 103, 3668 (1995).
 
 .. _Wang:
 
-
-
 **(Wang)** Wang and Holm, J Chem Phys, 115, 6277 (2001).
 
 .. _Pollock:
 
-
-
 **(Pollock)** Pollock and Glosli, Comp Phys Comm, 95, 93 (1996).
 
 .. _Cerutti:
-
-
 
 **(Cerutti)** Cerutti, Duke, Darden, Lybrand, Journal of Chemical Theory
 and Computation 5, 2322 (2009)
 
 .. _Neelov:
 
-
-
 **(Neelov)** Neelov, Holm, J Chem Phys 132, 234103 (2010)
 
 .. _Veld:
 
-
-
 **(Veld)** In 't Veld, Ismail, Grest, J Chem Phys, 127, 144711 (2007).
 
 .. _Toukmaji:
-
-
 
 **(Toukmaji)** Toukmaji, Sagui, Board, and Darden, J Chem Phys, 113,
 10913 (2000).
 
 .. _Isele-Holder2012:
 
-
-
 **(Isele-Holder)** Isele-Holder, Mitchell, Ismail, J Chem Phys, 137,
 174107 (2012).
 
 .. _Isele-Holder2013:
 
-
-
 **(Isele-Holder2)** Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail,
 J Chem Theory Comput 9, 5412 (2013).
 
 .. _Hardy2006:
-
-
 
 **(Hardy)** David Hardy thesis: Multilevel Summation for the Fast
 Evaluation of Forces for the Simulation of Biomolecules, University of
@@ -567,26 +513,18 @@ Illinois at Urbana-Champaign, (2006).
 
 .. _Hardy2009:
 
-
-
 **(Hardy2)** Hardy, Stone, Schulten, Parallel Computing, 35, 164-177
 (2009).
 
 .. _Sutmann2013:
 
-
-
 **(Sutmann)** Sutmann, Arnold, Fahrenberger, et. al., Physical review / E 88(6), 063308 (2013)
 
 .. _Cerda2008:
 
-
-
 **(Cerda)** Cerda, Ballenegger, Lenz, Holm, J Chem Phys 129, 234104 (2008)
 
 .. _Who2012:
-
-
 
 **(Who)** Who, Author2, Author3, J of Long Range Solvers, 35, 164-177
 (2012).

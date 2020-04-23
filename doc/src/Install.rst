@@ -8,7 +8,6 @@ have more flexibility as to what features to include or exclude in the
 build.  If you plan to :doc:`modify or extend LAMMPS <Modify>`, then you
 need the source code.
 
-
 .. toctree::
    :maxdepth: 1
 

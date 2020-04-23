@@ -30,9 +30,14 @@ class Fix : protected Pointers {
   int restart_file;              // 1 if Fix writes own restart file, 0 if not
   int force_reneighbor;          // 1 if Fix forces reneighboring, 0 if not
 
-  int box_change_size;           // 1 if Fix changes box size, 0 if not
-  int box_change_shape;          // 1 if Fix changes box shape, 0 if not
-  int box_change_domain;         // 1 if Fix changes proc sub-domains, 0 if not
+  int box_change;                // >0 if Fix changes box size, shape, or sub-domains, 0 if not
+  enum {
+    NO_BOX_CHANGE = 0,    BOX_CHANGE_ANY = 1<<0, BOX_CHANGE_DOMAIN = 1<<1,
+    BOX_CHANGE_X  = 1<<2, BOX_CHANGE_Y   = 1<<3, BOX_CHANGE_Z      = 1<<4,
+    BOX_CHANGE_YZ = 1<<5, BOX_CHANGE_XZ  = 1<<6, BOX_CHANGE_XY     = 1<<7,
+    BOX_CHANGE_SIZE  = BOX_CHANGE_X  | BOX_CHANGE_Y  | BOX_CHANGE_Z,
+    BOX_CHANGE_SHAPE = BOX_CHANGE_YZ | BOX_CHANGE_XZ | BOX_CHANGE_XY
+  };
 
   bigint next_reneighbor;        // next timestep to force a reneighboring
   int thermo_energy;             // 1 if fix_modify enabled ThEng, 0 if not

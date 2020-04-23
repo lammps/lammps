@@ -405,7 +405,7 @@ void PairDRIP::compute(int eflag, int vflag)
       Param& p = params[iparam_ij];
       double rcutsq = p.rcutsq;
 
-      // only include the interation between different layers
+      // only include the interaction between different layers
       if (rsq < rcutsq && atom->molecule[i] != atom->molecule[j]) {
 
         double fj[DIM] = {0., 0., 0.};

@@ -12,11 +12,9 @@ explain how to do this for building both with CMake and make.
 * :ref:`Output of movie files <graphics>` via the :doc:`dump_movie <dump_image>` command
 * :ref:`Memory allocation alignment <align>`
 * :ref:`Workaround for long long integers <longlong>`
-* :ref:`Error handling exceptions <exceptions>` when using LAMMPS as a library  
-
+* :ref:`Error handling exceptions <exceptions>` when using LAMMPS as a library
 
 ----------
-
 
 .. _cxx11:
 
@@ -35,7 +33,6 @@ flags to enable C++11 compliance.  Example for GNU c++ 4.8.x:
 
 ----------
 
-
 .. _fft:
 
 FFT library
@@ -48,7 +45,6 @@ library is included with LAMMPS but other libraries can be faster.
 LAMMPS can use them if they are available on your system.
 
 **CMake variables**\ :
-
 
 .. code-block:: bash
 
@@ -69,7 +65,6 @@ OpenMP threads are enabled and a packages like KOKKOS or USER-OMP is
 used.  If CMake cannot detect the FFT library, you can set these variables
 to assist:
 
-
 .. code-block:: bash
 
    -D FFTW3_INCLUDE_DIRS=path  # path to FFTW3 include files
@@ -81,7 +76,6 @@ to assist:
 
 **Makefile.machine settings**\ :
 
-
 .. code-block:: make
 
    FFT_INC = -DFFT_FFTW3         # -DFFT_FFTW3, -DFFT_FFTW (same as -DFFT_FFTW3), -DFFT_MKL, or -DFFT_KISS
@@ -91,8 +85,7 @@ to assist:
    FFT_INC = -DFFT_MKL_THREADS   # enable using threaded FFTs with MKL libraries
    FFT_INC = -DFFT_PACK_ARRAY    # or -DFFT_PACK_POINTER or -DFFT_PACK_MEMCPY
 
-# default is FFT\_PACK\_ARRAY if not specified
-
+# default is FFT_PACK_ARRAY if not specified
 
 .. code-block:: make
 
@@ -102,14 +95,14 @@ to assist:
    FFT_LIB =       -lfftw3 -lfftw3_omp # FFTW3 double precision with threads (needs -DFFT_FFTW_THREADS)
    FFT_LIB =       -lfftw3 -lfftw3f    # FFTW3 single precision
    FFT_LIB =       -lmkl_intel_lp64 -lmkl_sequential -lmkl_core   # MKL with Intel compiler, serial interface
-   FFT_LIB =       -lmkl_gf_lp64 -lmkl_sequential -lmkl_core      # MKL with GNU compier, serial interface
+   FFT_LIB =       -lmkl_gf_lp64 -lmkl_sequential -lmkl_core      # MKL with GNU compiler, serial interface
    FFT_LIB =       -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core # MKL with Intel compiler, threaded interface
    FFT_LIB =       -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core      # MKL with GNU compiler, threaded interface
    FFT_LIB =       -lmkl_rt            # MKL with automatic runtime selection of interface libs
 
-As with CMake, you do not need to set paths in FFT\_INC or FFT\_PATH, if
+As with CMake, you do not need to set paths in ``FFT_INC`` or ``FFT_PATH``, if
 the compiler can find the FFT header and library files in its default search path.
-You must specify FFT\_LIB with the appropriate FFT libraries to include in the link.
+You must specify ``FFT_LIB`` with the appropriate FFT libraries to include in the link.
 
 **CMake and make info**\ :
 
@@ -133,14 +126,15 @@ platform and can be faster than the KISS FFT library.  You can
 download it from `www.fftw.org <http://www.fftw.org>`_.  LAMMPS requires
 version 3.X; the legacy version 2.1.X is no longer supported.
 
-Building FFTW for your box should be as simple as ./configure; make;
-make install.  The install command typically requires root privileges
+Building FFTW for your box should be as simple as ``./configure; make;
+make install``\ .  The install command typically requires root privileges
 (e.g. invoke it via sudo), unless you specify a local directory with
-the "--prefix" option of configure.  Type "./configure --help" to see
+the "--prefix" option of configure.  Type ``./configure --help`` to see
 various options.
 
 The Intel MKL math library is part of the Intel compiler suite.  It
-can be used with the Intel or GNU compiler (see FFT\_LIB setting above).
+can be used with the Intel or GNU compiler (see the ``FFT_LIB`` setting
+above).
 
 Performing 3d FFTs in parallel can be time consuming due to data
 access and required communication.  This cost can be reduced by
@@ -149,16 +143,15 @@ precision means the real and imaginary parts of a complex datum are
 4-byte floats.  Double precision means they are 8-byte doubles.  Note
 that Fourier transform and related PPPM operations are somewhat less
 sensitive to floating point truncation errors and thus the resulting
-error is less than the difference in precision. Using the -DFFT\_SINGLE
+error is less than the difference in precision. Using the ``-DFFT_SINGLE``
 setting trades off a little accuracy for reduced memory use and
 parallel communication costs for transposing 3d FFT data.
 
-When using -DFFT\_SINGLE with FFTW3 you may need to build the FFTW
+When using ``-DFFT_SINGLE`` with FFTW3 you may need to build the FFTW
 library a second time with support for single-precision.
 
 For FFTW3, do the following, which should produce the additional
-library libfftw3f.a or libfftw3f.so.
-
+library ``libfftw3f.a`` or ``libfftw3f.so``\ .
 
 .. code-block:: bash
 
@@ -167,14 +160,12 @@ library libfftw3f.a or libfftw3f.so.
 
 Performing 3d FFTs requires communication to transpose the 3d FFT
 grid.  The data packing/unpacking for this can be done in one of 3
-modes (ARRAY, POINTER, MEMCPY) as set by the FFT\_PACK syntax above.
+modes (ARRAY, POINTER, MEMCPY) as set by the FFT_PACK syntax above.
 Depending on the machine, the size of the FFT grid, the number of
 processors used, one option may be slightly faster.  The default is
 ARRAY mode.
 
-
 ----------
-
 
 .. _size:
 
@@ -187,19 +178,18 @@ adequate.
 
 **CMake variable**\ :
 
-
 .. code-block:: bash
 
    -D LAMMPS_SIZES=value   # smallbig (default) or bigbig or smallsmall
 
 **Makefile.machine setting**\ :
 
-
 .. code-block:: make
 
    LMP_INC = -DLAMMPS_SMALLBIG    # or -DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL
 
-# default is LAMMPS\_SMALLBIG if not specified
+The default setting is ``-DLAMMPS_SMALLBIG`` if nothing is specified
+
 **CMake and make info**\ :
 
 The default "smallbig" setting allows for simulations with:
@@ -247,11 +237,9 @@ than crashing randomly or corrupting data.
 Also note that the GPU package requires its lib/gpu library to be
 compiled with the same size setting, or the link will fail.  A CMake
 build does this automatically.  When building with make, the setting
-in whichever lib/gpu/Makefile is used must be the same as above.
-
+in whichever ``lib/gpu/Makefile`` is used must be the same as above.
 
 ----------
-
 
 .. _graphics:
 
@@ -264,7 +252,6 @@ outputs movie files in MPEG format.  Using these options requires the
 following settings:
 
 **CMake variables**\ :
-
 
 .. code-block:: bash
 
@@ -279,7 +266,6 @@ Usually these settings are all that is needed.  If CMake cannot find
 the graphics header, library, executable files, you can set these
 variables:
 
-
 .. code-block:: bash
 
    -D JPEG_INCLUDE_DIR=path    # path to jpeglib.h header file
@@ -292,7 +278,6 @@ variables:
 
 **Makefile.machine settings**\ :
 
-
 .. code-block:: make
 
    LMP_INC = -DLAMMPS_JPEG
@@ -303,15 +288,16 @@ variables:
    JPG_PATH = -L/usr/lib            # paths to libjpeg.a, libpng.a, libz.a (.so) files if make cannot find them
    JPG_LIB = -ljpeg -lpng -lz       # library names
 
-As with CMake, you do not need to set JPG\_INC or JPG\_PATH, if make can
-find the graphics header and library files.  You must specify JPG\_LIB
+As with CMake, you do not need to set ``JPG_INC`` or ``JPG_PATH``,
+if make can find the graphics header and library files.  You must
+specify ``JPG_LIB``
 with a list of graphics libraries to include in the link.  You must
 insure ffmpeg is in a directory where LAMMPS can find it at runtime,
 that is a directory in your PATH environment variable.
 
 **CMake and make info**\ :
 
-Using ffmpeg to output movie files requires that your machine
+Using ``ffmpeg`` to output movie files requires that your machine
 supports the "popen" function in the standard runtime library.
 
 .. note::
@@ -321,9 +307,7 @@ supports the "popen" function in the standard runtime library.
    communication library and lead to simulations using ffmpeg to hang or
    crash.
 
-
 ----------
-
 
 .. _gzip:
 
@@ -336,7 +320,6 @@ gzip compression by several LAMMPS commands, including
 
 **CMake variables**\ :
 
-
 .. code-block:: bash
 
    -D WITH_GZIP=value       # yes or no
@@ -344,7 +327,6 @@ gzip compression by several LAMMPS commands, including
    -D GZIP_EXECUTABLE=path  # path to gzip executable if CMake cannot find it
 
 **Makefile.machine setting**\ :
-
 
 .. code-block:: make
 
@@ -365,16 +347,14 @@ found by LAMMPS during a run.
    I/O is also available using a compression library instead, which is
    what the :ref:`COMPRESS package <PKG-COMPRESS>` enables.
 
-
 ----------
-
 
 .. _align:
 
 Memory allocation alignment
 ---------------------------------------
 
-This setting enables the use of the posix\_memalign() call instead of
+This setting enables the use of the posix_memalign() call instead of
 malloc() when LAMMPS allocates large chunks or memory.  This can make
 vector instructions on CPUs more efficient, if dynamically allocated
 memory is aligned on larger-than-default byte boundaries.
@@ -385,32 +365,28 @@ aligned on 64-byte boundaries.
 
 **CMake variable**\ :
 
-
 .. code-block:: bash
 
    -D LAMMPS_MEMALIGN=value            # 0, 8, 16, 32, 64 (default)
 
-Use a LAMMPS\_MEMALIGN value of 0 to disable using posix\_memalign()
+Use a ``LAMMPS_MEMALIGN`` value of 0 to disable using posix_memalign()
 and revert to using the malloc() C-library function instead.  When
 compiling LAMMPS for Windows systems, malloc() will always be used
 and this setting ignored.
 
 **Makefile.machine setting**\ :
 
-
 .. code-block:: make
 
    LMP_INC = -DLAMMPS_MEMALIGN=value   # 8, 16, 32, 64
 
-Do not set -DLAMMPS\_MEMALIGN, if you want to have memory allocated
-with the malloc() function call instead. -DLAMMPS\_MEMALIGN **cannot**
+Do not set ``-DLAMMPS_MEMALIGN``, if you want to have memory allocated
+with the malloc() function call instead. ``-DLAMMPS_MEMALIGN`` **cannot**
 be used on Windows, as it does use different function calls for
 allocating aligned memory, that are not compatible with how LAMMPS
 manages its dynamical memory.
 
-
 ----------
-
 
 .. _longlong:
 
@@ -424,21 +400,17 @@ those systems:
 
 **CMake variable**\ :
 
-
 .. code-block:: bash
 
    -D LAMMPS_LONGLONG_TO_LONG=value     # yes or no (default)
 
 **Makefile.machine setting**\ :
 
-
 .. code-block:: make
 
    LMP_INC = -DLAMMPS_LONGLONG_TO_LONG
 
-
 ----------
-
 
 .. _exceptions:
 
@@ -453,13 +425,11 @@ e.g. to Python. Of course the calling code has to be set up to
 
 **CMake variable**\ :
 
-
 .. code-block:: bash
 
    -D LAMMPS_EXCEPTIONS=value        # yes or no (default)
 
 **Makefile.machine setting**\ :
-
 
 .. code-block:: make
 

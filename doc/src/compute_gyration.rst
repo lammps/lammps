@@ -6,7 +6,6 @@ compute gyration command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID gyration
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 molecule gyration
 
@@ -35,7 +33,6 @@ the square root of the Rg\^2 value in this formula
 .. math::
 
  {R_g}^2 = \frac{1}{M} \sum_i m_i (r_i - r_{cm})^2
-
 
 where :math:`M` is the total mass of the group, :math:`r_{cm}` is the
 center-of-mass position of the group, and the sum is over all atoms in

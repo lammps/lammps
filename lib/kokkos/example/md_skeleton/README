@@ -1,3 +1,0 @@
-To build this example on a 2012-model Macbook Pro with NVIDIA Kepler GPU:
-
-./build.cuda_std g++_osx cuda_osx 30 opt

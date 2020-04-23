@@ -2,7 +2,7 @@
 # Testing
 ###############################################################################
 option(ENABLE_TESTING "Enable testing" OFF)
-if(ENABLE_TESTING AND BUILD_EXE)
+if(ENABLE_TESTING)
   enable_testing()
   option(LAMMPS_TESTING_SOURCE_DIR "Location of lammps-testing source directory" "")
   option(LAMMPS_TESTING_GIT_TAG    "Git tag of lammps-testing" "master")
@@ -28,7 +28,7 @@ if(ENABLE_TESTING AND BUILD_EXE)
                     "https://github.com/lammps/lammps-testing in LAMMPS_TESTING_SOURCE_DIR")
   endif()
 
-  add_test(ShowHelp ${CMAKE_BINARY_DIR}/${LAMMPS_BINARY} -help)
+  add_test(NAME ShowHelp COMMAND $<TARGET_FILE:lmp> -help)
 
   if(EXISTS ${LAMMPS_TESTING_SOURCE_DIR})
     message(STATUS "Running test discovery...")
@@ -42,8 +42,7 @@ if(ENABLE_TESTING AND BUILD_EXE)
       string(REPLACE "-" "_" TEST_NAME ${TEST_NAME})
       string(REPLACE "+" "_" TEST_NAME ${TEST_NAME})
       set(TEST_NAME "test_core_${TEST_NAME}_serial")
-      add_test(${TEST_NAME} ${CMAKE_BINARY_DIR}/${LAMMPS_BINARY} -in ${SCRIPT_NAME})
-      set_tests_properties(${TEST_NAME} PROPERTIES WORKING_DIRECTORY ${PARENT_DIR})
+      add_test(NAME ${TEST_NAME} COMMAND $<TARGET_FILE:lmp> -in ${SCRIPT_NAME} WORKING_DIRECTORY ${PARENT_DIR})
     endforeach()
     list(LENGTH TEST_SCRIPTS NUM_TESTS)
 

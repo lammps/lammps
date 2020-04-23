@@ -524,7 +524,7 @@ void GridCommKokkos<DeviceType>::forward_comm(KSpace *kspace, int which)
       kspaceKKBase->pack_forward_kspace_kokkos(which,k_buf2,swap[m].npack,k_packlist,m);
     else
       kspaceKKBase->pack_forward_kspace_kokkos(which,k_buf1,swap[m].npack,k_packlist,m);
-    DeviceType::fence();
+    DeviceType().fence();
 
     if (swap[m].sendproc != me) {
       FFT_SCALAR* buf1;
@@ -552,7 +552,7 @@ void GridCommKokkos<DeviceType>::forward_comm(KSpace *kspace, int which)
     }
 
     kspaceKKBase->unpack_forward_kspace_kokkos(which,k_buf2,swap[m].nunpack,k_unpacklist,m);
-    DeviceType::fence();
+    DeviceType().fence();
   }
 }
 
@@ -574,7 +574,7 @@ void GridCommKokkos<DeviceType>::reverse_comm(KSpace *kspace, int which)
       kspaceKKBase->pack_reverse_kspace_kokkos(which,k_buf2,swap[m].nunpack,k_unpacklist,m);
     else
       kspaceKKBase->pack_reverse_kspace_kokkos(which,k_buf1,swap[m].nunpack,k_unpacklist,m);
-    DeviceType::fence();
+    DeviceType().fence();
 
     if (swap[m].recvproc != me) {
       FFT_SCALAR* buf1;
@@ -602,7 +602,7 @@ void GridCommKokkos<DeviceType>::reverse_comm(KSpace *kspace, int which)
     }
 
     kspaceKKBase->unpack_reverse_kspace_kokkos(which,k_buf2,swap[m].npack,k_packlist,m);
-    DeviceType::fence();
+    DeviceType().fence();
   }
 }
 

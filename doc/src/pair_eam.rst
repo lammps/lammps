@@ -69,7 +69,6 @@ pair_style eam/fs/opt command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style
@@ -78,7 +77,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -104,9 +102,8 @@ energy Ei of an atom I is given by
 
 .. math::
 
-   E_i = F_\alpha \left(\sum_{j \neq i}\ \rho_\beta (r_{ij})\right) + 
+   E_i = F_\alpha \left(\sum_{j \neq i}\ \rho_\beta (r_{ij})\right) +
          \frac{1}{2} \sum_{j \neq i} \phi_{\alpha\beta} (r_{ij})
-
 
 where F is the embedding energy which is a function of the atomic
 electron density rho, phi is a pair potential interaction, and alpha
@@ -139,7 +136,7 @@ are parameterized in terms of LAMMPS :doc:`metal units <units>`.
 .. note::
 
    Note that unlike for other potentials, cutoffs for EAM
-   potentials are not set in the pair\_style or pair\_coeff command; they
+   potentials are not set in the pair_style or pair_coeff command; they
    are specified in the EAM potential files themselves.  Likewise, the
    EAM potential files list atomic masses; thus you do not need to use
    the :doc:`mass <mass>` command to specify them.
@@ -147,12 +144,12 @@ are parameterized in terms of LAMMPS :doc:`metal units <units>`.
 There are several WWW sites that distribute and document EAM
 potentials stored in DYNAMO or other formats:
 
-
 .. parsed-literal::
 
    http://www.ctcms.nist.gov/potentials
    http://cst-www.nrl.navy.mil/ccm6/ap
    http://enpub.fulton.asu.edu/cms/potentials/main/main.htm
+   https://openkim.org
 
 These potentials should be usable with LAMMPS, though the alternate
 formats would need to be converted to the DYNAMO format used by LAMMPS
@@ -160,9 +157,12 @@ and described on this page.  The NIST site is maintained by Chandler
 Becker (cbecker at nist.gov) who is good resource for info on
 interatomic potentials and file formats.
 
+The OpenKIM Project at
+`https://openkim.org/browse/models/by-type <https://openkim.org/browse/models/by-type>`_
+provides EAM potentials that can be used directly in LAMMPS with the
+:doc:`kim_commands <kim_commands>` interface.
 
 ----------
-
 
 For style *eam*\ , potential values are read from a file that is in the
 DYNAMO single-element *funcfl* format.  If the DYNAMO file was created
@@ -170,17 +170,16 @@ by a Fortran program, it cannot have "D" values in it for exponents.
 C only recognizes "e" or "E" for scientific notation.
 
 Note that unlike for other potentials, cutoffs for EAM potentials are
-not set in the pair\_style or pair\_coeff command; they are specified in
+not set in the pair_style or pair_coeff command; they are specified in
 the EAM potential files themselves.
 
 For style *eam* a potential file must be assigned to each I,I pair of
-atom types by using one or more pair\_coeff commands, each with a
+atom types by using one or more pair_coeff commands, each with a
 single argument:
 
 * filename
 
 Thus the following command
-
 
 .. code-block:: LAMMPS
 
@@ -232,16 +231,13 @@ sqrt(Hartree \* Bohr-radii).  For two interacting atoms i,j this is used
 by LAMMPS to compute the pair potential term in the EAM energy
 expression as r\*phi, in units of eV-Angstroms, via the formula
 
-
 .. math::
 
    r \cdot \phi = 27.2 \cdot 0.529 \cdot Z_i \cdot Z_j
 
 where 1 Hartree = 27.2 eV and 1 Bohr = 0.529 Angstroms.
 
-
 ----------
-
 
 Style *eam/alloy* computes pairwise interactions using the same
 formula as style *eam*\ .  However the associated
@@ -259,23 +255,22 @@ DYNAMO file was created by a Fortran program, it cannot have "D"
 values in it for exponents.  C only recognizes "e" or "E" for
 scientific notation.
 
-Only a single pair\_coeff command is used with the *eam/alloy* style
+Only a single pair_coeff command is used with the *eam/alloy* style
 which specifies a DYNAMO *setfl* file, which contains information for
 M elements.  These are mapped to LAMMPS atom types by specifying N
-additional arguments after the filename in the pair\_coeff command,
+additional arguments after the filename in the pair_coeff command,
 where N is the number of LAMMPS atom types:
 
 * filename
 * N element names = mapping of *setfl* elements to atom types
 
-As an example, the potentials/NiAlH\_jea.eam.alloy file is a *setfl*
+As an example, the potentials/NiAlH_jea.eam.alloy file is a *setfl*
 file which has tabulated EAM values for 3 elements and their alloy
 interactions: Ni, Al, and H.  See the :doc:`pair_coeff <pair_coeff>` doc
 page for alternate ways to specify the path for the potential file.
 If your LAMMPS simulation has 4 atoms types and you want the 1st 3 to
-be Ni, and the 4th to be Al, you would use the following pair\_coeff
+be Ni, and the 4th to be Al, you would use the following pair_coeff
 command:
-
 
 .. code-block:: LAMMPS
 
@@ -334,9 +329,7 @@ the tabulated values for each phi function are listed in *setfl* files
 directly as r\*phi (in units of eV-Angstroms), since they are for atom
 pairs.
 
-
 ----------
-
 
 Style *eam/cd* is similar to the *eam/alloy* style, except that it
 computes alloy pairwise interactions using the concentration-dependent
@@ -345,7 +338,7 @@ of mixing of alloys over the full composition range, as described in
 :ref:`(Stukowski) <Stukowski>`. Style *eam/cd/old* is an older, slightly
 different and slower two-site formulation of the model :ref:`(Caro) <Caro>`.
 
-The pair\_coeff command is specified the same as for the *eam/alloy*
+The pair_coeff command is specified the same as for the *eam/alloy*
 style.  However the DYNAMO *setfl* file must has two
 lines added to it, at the end of the file:
 
@@ -365,9 +358,7 @@ the input EAM file are always taken as the *A* and *B* species.
 *CD-EAM* files in the *potentials* directory of the LAMMPS
 distribution have a ".cdeam" suffix.
 
-
 ----------
-
 
 Style *eam/fs* computes pairwise interactions for metals and metal
 alloys using a generalized form of EAM potentials due to Finnis and
@@ -376,10 +367,9 @@ given by
 
 .. math::
 
-   E_i = F_\alpha \left(\sum_{j \neq i}\ 
-   \rho_{\alpha\beta} (r_{ij})\right) + 
+   E_i = F_\alpha \left(\sum_{j \neq i}\
+   \rho_{\alpha\beta} (r_{ij})\right) +
    \frac{1}{2} \sum_{j \neq i} \phi_{\alpha\beta} (r_{ij})
-
 
 This has the same form as the EAM formula above, except that rho is
 now a functional specific to the atomic types of both atoms I and J,
@@ -389,7 +379,7 @@ element at that atomic site.
 
 The associated :doc:`pair_coeff <pair_coeff>` command for style *eam/fs*
 reads a DYNAMO *setfl* file that has been extended to include
-additional rho\_alpha\_beta arrays of tabulated values.  A discussion of
+additional rho_alpha_beta arrays of tabulated values.  A discussion of
 how FS EAM differs from conventional EAM alloy potentials is given in
 :ref:`(Ackland1) <Ackland1>`.  An example of such a potential is the same
 author's Fe-P FS potential :ref:`(Ackland2) <Ackland2>`.  Note that while FS
@@ -398,9 +388,8 @@ dependence on the total density, the implementation in LAMMPS does not
 require that; the user can tabulate any functional form desired in the
 FS potential files.
 
-For style *eam/fs*\ , the form of the pair\_coeff command is exactly the
+For style *eam/fs*\ , the form of the pair_coeff command is exactly the
 same as for style *eam/alloy*\ , e.g.
-
 
 .. code-block:: LAMMPS
 
@@ -451,9 +440,7 @@ eV-Angstroms) as in EAM *setfl* files.  Note that in Finnis/Sinclair,
 the phi(r) arrays are still symmetric, so only phi arrays for i >= j
 are listed.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -473,35 +460,30 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS as
 described above with the individual styles.  You never need to specify
-a pair\_coeff command with I != J arguments for the eam styles.
+a pair_coeff command with I != J arguments for the eam styles.
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 The eam pair styles do not write their information to :doc:`binary restart files <restart>`, since it is stored in tabulated potential files.
-Thus, you need to re-specify the pair\_style and pair\_coeff commands in
+Thus, you need to re-specify the pair_style and pair_coeff commands in
 an input script that reads a restart file.
 
 The eam pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 All of these styles are part of the MANYBODY package.  They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -513,45 +495,31 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Ackland1:
-
-
 
 **(Ackland1)** Ackland, Condensed Matter (2005).
 
 .. _Ackland2:
-
-
 
 **(Ackland2)** Ackland, Mendelev, Srolovitz, Han and Barashev, Journal
 of Physics: Condensed Matter, 16, S2629 (2004).
 
 .. _Daw:
 
-
-
 **(Daw)** Daw, Baskes, Phys Rev Lett, 50, 1285 (1983).
 Daw, Baskes, Phys Rev B, 29, 6443 (1984).
 
 .. _Finnis1:
 
-
-
 **(Finnis)** Finnis, Sinclair, Philosophical Magazine A, 50, 45 (1984).
 
 .. _Stukowski:
-
-
 
 **(Stukowski)** Stukowski, Sadigh, Erhart, Caro; Modeling Simulation
 Materials Science & Engineering, 7, 075005 (2009).
 
 .. _Caro:
-
-
 
 **(Caro)** A Caro, DA Crowson, M Caro; Phys Rev Lett, 95, 075702 (2005)

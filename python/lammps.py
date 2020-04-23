@@ -1012,8 +1012,8 @@ class lammps(object):
       self.lib.lammps_encode_image_flags.restype = c_int32
     else:
       self.lib.lammps_encode_image_flags.restype = c_int64
-    return self.lib.lammps_encode_image_flags(ix,iy,iz)  
-      
+    return self.lib.lammps_encode_image_flags(ix,iy,iz)
+
   def decode_image_flags(self,image):
     """ Convert encoded image flag integer into list of three regular integers.
 
@@ -1026,13 +1026,13 @@ class lammps(object):
     :rtype: list of 3 int
     """
     
-    flags = (c_int * 3)()
+    flags = (c_int*3)()
     if self.extract_global('imageint',LAMMPS_INT) == 4:
-      self.lib.lammps_decode_image_flags.args = [c_int32, POINTER(c_int)]
+      self.lib.lammps_decode_image_flags.argtypes = [c_int32, POINTER(c_int*3)]
     else:
-      self.lib.lammps_decode_image_flags.args = [c_int64, POINTER(c_int)]
-
+      self.lib.lammps_decode_image_flags.argtypes = [c_int64, POINTER(c_int*3)]
     self.lib.lammps_decode_image_flags(image,byref(flags))
+
     return [int(i) for i in flags]
       
   # create N atoms on all procs

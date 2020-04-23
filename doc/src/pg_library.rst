@@ -53,6 +53,7 @@ compiled to instead :ref:`throw a C++ exception <exceptions>`.
    pg_lib_properties
    pg_lib_objects
    pg_lib_neighbor
+   pg_lib_config
    pg_lib_utility
 
 -------------------

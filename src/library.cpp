@@ -2408,10 +2408,29 @@ void lammps_set_fix_external_callback(void *handle, char *id, FixExternalFnPtr c
 // library API functions for accessing LAMMPS configuration
 // ----------------------------------------------------------------------
 
-int lammps_config_has_package(char * package_name) {
-  return Info::has_package(package_name);
+/** \brief Check if a specific package has been included in LAMMPS
+ *
+\verbatim embed:rst
+This function checks if the LAMMPS library in use includes the
+specific :doc:`LAMMPS package <Packages>` provided as argument.
+\endverbatim
+ *
+ * \param name string with the name of the package
+ * \return 1 if included, 0 if not.
+ */
+int lammps_config_has_package(char * name) {
+  return Info::has_package(name) ? 1 : 0;
 }
 
+/** \brief Count the number of installed packages in the LAMMPS library.
+ *
+\verbatim embed:rst
+This function counts how many :doc:`LAMMPS packages <Packages>` are
+included in the LAMMPS library in use.
+\endverbatim
+ *
+ * \return number of packages included
+ */
 int lammps_config_package_count() {
   int i = 0;
   while(LAMMPS::installed_packages[i] != NULL) {
@@ -2420,63 +2439,179 @@ int lammps_config_package_count() {
   return i;
 }
 
-int lammps_config_package_name(int index, char * buffer, int max_size) {
-  int i = 0;
-  while(LAMMPS::installed_packages[i] != NULL && i < index) {
-    ++i;
+/** \brief Get the name of a package in the list of installed packages in the LAMMPS library.
+ *
+\verbatim embed:rst
+This function copies the name of the package with the index *idx* into the
+provided C-style string buffer.  The length of the buffer must be provided
+as *buf_size* argument.  If the name of the package exceeds the length of the
+buffer, it will be truncated accordingly.  If the index is out of range,
+the function returns 0 and *buffer* is set to an empty string, otherwise 1;
+\endverbatim
+ *
+ * \param idx index of the package in the list of included packages (0 <= idx < package count)
+ * \param buffer string buffer to copy the name of the package to
+ * \param buf_size size of the provided string buffer
+ * \return 1 if successful, otherwise 0
+ */
+int lammps_config_package_name(int idx, char * buffer, int buf_size) {
+  int maxidx = lammps_config_package_count();
+  if ((idx < 0) || (idx >= maxidx)) {
+      buffer[0] = '\0';
+      return 0;
   }
 
-  if(LAMMPS::installed_packages[i] != NULL) {
-    strncpy(buffer, LAMMPS::installed_packages[i], max_size);
-    return true;
-  }
-
-  return false;
+  strncpy(buffer, LAMMPS::installed_packages[idx], buf_size);
+  return 1;
 }
 
+/** \brief Check if a specific style has been included in LAMMPS
+ *
+\verbatim embed:rst
+This function checks if the LAMMPS library in use includes the
+specific *style* of a specific *category* provided as an argument.
+Valid categories are: *atom*\ , *integrate*\ , *minimize*\ ,
+*pair*\ , *bond*\ , *angle*\ , *dihedral*\ , *improper*\ , *kspace*\ ,
+*compute*\ , *fix*\ , *region*\ , *dump*\ , and *command*\ .
+\endverbatim
+ *
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param category category of the style
+ * \param name     name of the style
+ * \return 1 if included, 0 if not.
+ */
 int lammps_has_style(void * handle, char * category, char * name) {
   LAMMPS *lmp = (LAMMPS *) handle;
   Info info(lmp);
-  return info.has_style(category, name);
+  return info.has_style(category, name) ? 0 : 1;
 }
 
+/** \brief Count the number of styles of category in the LAMMPS library.
+ *
+\verbatim embed:rst
+This function counts how many styles in the provided *category*
+are included in the LAMMPS library in use.
+Please see :cpp:func:`lammps_has_style` for a list of valid
+categories.
+\endverbatim
+ *
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param category category of styles
+ * \return number of styles in category
+ */
 int lammps_style_count(void * handle, char * category) {
   LAMMPS *lmp = (LAMMPS *) handle;
   Info info(lmp);
   return info.get_available_styles(category).size();
 }
 
-int lammps_style_name(void* handle, char * category, int index, char * buffer, int max_size) {
+/** \brief Look up the name of a style by index in the list of style of a given category in the LAMMPS library.
+ *
+\verbatim embed:rst
+This function copies the name of the package with the index *idx* into the
+provided C-style string buffer.  The length of the buffer must be provided
+as *buf_size* argument.  If the name of the package exceeds the length of the
+buffer, it will be truncated accordingly.  If the index is out of range,
+the function returns 0 and *buffer* is set to an empty string, otherwise 1.
+Please see :cpp:func:`lammps_has_style` for a list of valid categories.
+\endverbatim
+ *
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param category category of styles
+ * \param idx      index of the package in the list of included packages (0 <= idx < style count)
+ * \param buffer   string buffer to copy the name of the style to
+ * \param buf_size size of the provided string buffer
+ * \return 1 if successful, otherwise 0
+ */
+int lammps_style_name(void* handle, char * category, int idx, char * buffer, int buf_size) {
   LAMMPS *lmp = (LAMMPS *) handle;
   Info info(lmp);
   auto styles = info.get_available_styles(category);
 
-  if (index < styles.size()) {
-    strncpy(buffer, styles[index].c_str(), max_size);
-    return true;
+  if ((idx >=0) && (idx < styles.size())) {
+    strncpy(buffer, styles[idx].c_str(), buf_size);
+    return 1;
   }
 
-  return false;
+  buffer[0] = '\0';
+  return 0;
 }
 
+/** \brief Check if the LAMMPS library supports compressed files via a pipe to gzip
+ 
+\verbatim embed:rst
+Several LAMMPS commands (e.g. :doc:`read_data`, :doc:`write_data`,
+:doc:`dump styles atom, custom, and xyz <dump>`) support reading and
+writing compressed files via creating a pipe to the ``gzip`` program.
+This function checks whether this feature was enabled at compile time.
+It does **not** check whether the ``gizp`` itself is installed and
+usable.
+\endverbatim
+ *
+ * \return 1 if yes, otherwise 0
+ */
 int lammps_config_has_gzip_support() {
-  return Info::has_gzip_support();
+  return Info::has_gzip_support() ? 1 : 0;
 }
 
+/** \brief Check if the LAMMPS library supports writing PNG format images
+ 
+\verbatim embed:rst
+The LAMMPS :doc:`dump style image <dump_image>` supports writing multiple
+image file formats.  Most of them need, however, support from an external
+library and using that has to be enabled at compiled time.  This function
+checks whether support for the PNG image file format is available in the
+current LAMMPS library.
+\endverbatim
+ *
+ * \return 1 if yes, otherwise 0
+ */
 int lammps_config_has_png_support() {
-  return Info::has_png_support();
+  return Info::has_png_support() ? 1 : 0;
 }
 
+/** \brief Check if the LAMMPS library supports writing JPEG format images
+ 
+\verbatim embed:rst
+The LAMMPS :doc:`dump style image <dump_image>` supports writing multiple
+image file formats.  Most of them need, however, support from an external
+library and using that has to be enabled at compiled time.  This function
+checks whether support for the JPEG image file format is available in the
+current LAMMPS library.
+\endverbatim
+ *
+ * \return 1 if yes, otherwise 0
+ */
 int lammps_config_has_jpeg_support() {
-  return Info::has_jpeg_support();
+  return Info::has_jpeg_support() ? 1 : 0;
 }
 
+/** \brief Check if the LAMMPS library supports creating movie files via a pipe to ffmpeg
+ 
+\verbatim embed:rst
+The LAMMPS :doc:`dump style movie <dump_image>` supports generating movies
+from images on-the-fly  via creating a pipe to the ``ffmpeg`` program.
+This function checks whether this feature was enabled at compile time.
+It does **not** check whether the ``ffmpeg`` itself is installed and usable.
+\endverbatim
+ *
+ * \return 1 if yes, otherwise 0
+ */
 int lammps_config_has_ffmpeg_support() {
-  return Info::has_ffmpeg_support();
+  return Info::has_ffmpeg_support() ? 1 : 0;
 }
 
+/** \brief Check whether LAMMPS errors will throw a C++ exception
+ *
+\verbatim embed:rst
+In case of errors LAMMPS will either abort or throw a C++ exception.
+The latter has to be :ref:`enabled at compile time <exceptions>`.
+This function checks if exceptions were enabled.
+\endverbatim
+ * \return 1 if yes, otherwise 0
+ */
 int lammps_config_has_exceptions() {
-  return Info::has_exceptions();
+  return Info::has_exceptions() ? 1 : 0;
 }
 
 // ----------------------------------------------------------------------
@@ -2495,7 +2630,8 @@ has thrown a :ref:`C++ exception <exceptions>`.
 
    This function is only available when the LAMMPS library has been
    compiled with ``-DLAMMPS_EXCEPTIONS`` which turns errors aborting
-   LAMMPS into a C++ exceptions.
+   LAMMPS into a C++ exceptions. You can use the library function
+   :cpp:func:`lammps_config_has_exceptions` to check if this is the case.
 \endverbatim
  *
  * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
@@ -2506,13 +2642,6 @@ int lammps_has_error(void *handle) {
   Error * error = lmp->error;
   return error->get_last_error() ? 1 : 0;
 }
-
-/* ----------------------------------------------------------------------
-   copy the last error message of LAMMPS into a character buffer
-   return value encodes which type of error:
-   1 = normal error (recoverable)
-   2 = abort error (non-recoverable)
-------------------------------------------------------------------------- */
 
 /** \brief Copy the last error message into the provided buffer
 
@@ -2532,19 +2661,22 @@ the failing MPI ranks to send messages.
 
    This function is only available when the LAMMPS library has been
    compiled with ``-DLAMMPS_EXCEPTIONS`` which turns errors aborting
-   LAMMPS into a C++ exceptions.
+   LAMMPS into a C++ exceptions.  You can use the library function
+   :cpp:func:`lammps_config_has_exceptions` to check if this is the case.
 \endverbatim
  *
  * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param buffer   string buffer to copy the error message to
+ * \param buf_size size of the provided string buffer
  * \return 1 when all ranks had the error, 1 on a single rank error.
  */
-int lammps_get_last_error_message(void *handle, char * buffer, int buffer_size) {
+int lammps_get_last_error_message(void *handle, char * buffer, int buf_size) {
   LAMMPS *  lmp = (LAMMPS *) handle;
   Error * error = lmp->error;
 
   if(error->get_last_error()) {
     int error_type = error->get_last_error_type();
-    strncpy(buffer, error->get_last_error(), buffer_size-1);
+    strncpy(buffer, error->get_last_error(), buf_size-1);
     error->set_last_error(NULL, ERROR_NONE);
     return error_type;
   }

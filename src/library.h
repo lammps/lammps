@@ -119,18 +119,18 @@ typedef void (*FixExternalFnPtr)(void *, int, int, int *, double **, double **);
 void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
 #endif
 
-int lammps_config_has_package(char * package_name);
+int lammps_config_has_package(char *);
 int lammps_config_package_count();
-int lammps_config_package_name(int index, char * buffer, int max_size);
+int lammps_config_package_name(int, char *, int);
 int lammps_config_has_gzip_support();
 int lammps_config_has_png_support();
 int lammps_config_has_jpeg_support();
 int lammps_config_has_ffmpeg_support();
 int lammps_config_has_exceptions();
 
-int lammps_has_style(void* ptr, char * category, char * name);
-int lammps_style_count(void* ptr, char * category);
-int lammps_style_name(void*ptr, char * category, int index, char * buffer, int max_size);
+int lammps_has_style(void *, char *, char *);
+int lammps_style_count(void *, char *);
+int lammps_style_name(void *, char *, int, char *, int);
 
 int lammps_find_pair_neighlist(void*, char *, int, int, int);
 int lammps_find_fix_neighlist(void*, char *, int);
@@ -197,9 +197,7 @@ int lammps_create_atoms(void *handle, int n, int *id, int *type,
                         double *x, double *v, int *image, int shrinkexceed);
 #endif
 
-#ifdef LAMMPS_BIGBIG
-int64_t lammps_encode_imageflags(int, int, int);
-#else
+#if !defined(LAMMPS_BIGBIG)
 /** \brief Encode three integer image flags into a single imageint
  *
  * This function performs the bit-shift, addition, and bit-wise OR
@@ -215,9 +213,11 @@ int64_t lammps_encode_imageflags(int, int, int);
  * \param ix  image flag value in x
  * \param iy  image flag value in y
  * \param iz  image flag value in z
- * \return encoded image flags 
+ * \return encoded image flags
  */
 int lammps_encode_imageflags(int ix, int iy, int iz);
+#else
+int64_t lammps_encode_imageflags(int, int, int);
 #endif
 
 #ifdef LAMMPS_EXCEPTIONS

@@ -1138,6 +1138,9 @@ class lammps(object):
   def installed_packages(self):
     """ List of the names of enabled packages in the LAMMPS shared library
 
+    This is a wrapper around the functions :cpp:func:`lammps_config_package_count`
+    and :cpp:func`lammps_config_package_name` of the library interface.
+
     :return
     """
     if self._installed_packages is None:
@@ -1152,6 +1155,9 @@ class lammps(object):
   def has_style(self, category, name):
     """Returns whether a given style name is available in a given category
 
+    This is a wrapper around the function :cpp:func:`lammps_has_style`
+    of the library interface.
+
     :param category: name of category
     :type  category: string
     :param name: name of the style
@@ -1164,6 +1170,9 @@ class lammps(object):
 
   def available_styles(self, category):
     """Returns a list of styles available for a given category
+
+    This is a wrapper around the functions :cpp:func:`lammps_style_count`
+    and :cpp:func`lammps_style_name` of the library interface.
 
     :param category: name of category
     :type  category: string

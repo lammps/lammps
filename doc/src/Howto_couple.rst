@@ -12,9 +12,7 @@ LAMMPS can be coupled to other codes in at least 4 ways.  Each has
 advantages and disadvantages, which you will have to think about in the
 context of your application.
 
-
 ----------
-
 
 (1) Define a new :doc:`fix <fix>` command that calls the other code.  In
 this scenario, LAMMPS is the driver code.  During its timestepping,
@@ -27,11 +25,7 @@ LAMMPS.
 
 .. _poems: http://www.rpi.edu/~anderk5/lab
 
-
-
-
 ----------
-
 
 (2) Define a new LAMMPS command that calls the other code.  This is
 conceptually similar to method (1), but in this case LAMMPS and the
@@ -53,9 +47,7 @@ command writes and reads.
 See the :doc:`Modify command <Modify_command>` doc page for info on how
 to add a new command to LAMMPS.
 
-
 ----------
-
 
 (3) Use LAMMPS as a library called by another code.  In this case the
 other code is the driver and calls LAMMPS as needed.  Or a wrapper
@@ -72,20 +64,15 @@ examples/COUPLE/README for more details:
   library
 * plugin: simple driver program in C which invokes LAMMPS as a plugin
   from a shared library.
-* lammps\_quest: coupling of LAMMPS and `Quest <quest_>`_, to run classical
+* lammps_quest: coupling of LAMMPS and `Quest <quest_>`_, to run classical
   MD with quantum forces calculated by a density functional code
-* lammps\_spparks: coupling of LAMMPS and `SPPARKS <spparks_>`_, to couple
+* lammps_spparks: coupling of LAMMPS and `SPPARKS <spparks_>`_, to couple
   a kinetic Monte Carlo model for grain growth using MD to calculate
   strain induced across grain boundaries
 
-
 .. _quest: http://dft.sandia.gov/Quest
 
-
-
 .. _spparks: http://www.sandia.gov/~sjplimp/spparks.html
-
-
 
 The :doc:`Build basics <Build_basics>` doc page describes how to build
 LAMMPS as a library.  Once this is done, you can interface with LAMMPS
@@ -102,7 +89,7 @@ The files src/library.cpp and library.h contain the C-style interface
 to LAMMPS.  See the :doc:`Howto library <Howto_library>` doc page for a
 description of the interface and how to extend it for your needs.
 
-Note that the lammps\_open() function that creates an instance of
+Note that the lammps_open() function that creates an instance of
 LAMMPS takes an MPI communicator as an argument.  This means that
 instance of LAMMPS will run on the set of processors in the
 communicator.  Thus the calling code can run LAMMPS on all or a subset
@@ -113,9 +100,7 @@ LAMMPS and half to the other code and run both codes simultaneously
 before syncing them up periodically.  Or it might instantiate multiple
 instances of LAMMPS to perform different calculations.
 
-
 ----------
-
 
 (4) Couple LAMMPS with another code in a client/server mode.  This is
 described on the :doc:`Howto client/server <Howto_client_server>` doc

@@ -15,14 +15,12 @@ dihedral_style harmonic/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    dihedral_style harmonic
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -37,7 +35,6 @@ The *harmonic* dihedral style uses the potential
 .. math::
 
    E = K [ 1 + d  \cos (n \phi) ]
-
 
 The following coefficients must be defined for each dihedral type via the
 :doc:`dihedral_coeff <dihedral_coeff>` command as in the example above, or in
@@ -61,10 +58,7 @@ or :doc:`read_restart <read_restart>` commands:
 * Some force fields let :math:`n` be positive or negative which corresponds to
   :math:`d = 1` or :math:`d = -1` for the harmonic style.
 
-
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -84,13 +78,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This dihedral style can only be used if LAMMPS was built with the
 MOLECULE package.  See the :doc:`Build package <Build_package>` doc page

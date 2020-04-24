@@ -15,6 +15,7 @@
    Contributing authors: William McDoniel (RWTH Aachen University)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include <mpi.h>
 #include <cstdlib>
 #include <cmath>
@@ -62,6 +63,7 @@ enum{FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM,
 PPPMDispIntel::PPPMDispIntel(LAMMPS *lmp) : PPPMDisp(lmp)
 {
   suffix_flag |= Suffix::INTEL;
+  triclinic_support = 0;
 
   order = 7;
   order_6 = 7; //sets default stencil sizes to 7
@@ -348,7 +350,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
   }
 
   if (function[1]) {
-    //perfrom calculations for geometric mixing
+    //perform calculations for geometric mixing
 
     if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
       particle_map<float,double>(delxinv_6, delyinv_6, delzinv_6, shift_6,
@@ -728,7 +730,7 @@ void PPPMDispIntel::particle_map(double delx, double dely, double delz,
   int flag = 0;
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nlocal, nthr, delx, dely, delz, sft, p2g, nup, nlow, nxlo,\
            nylo, nzlo, nxhi, nyhi, nzhi) reduction(+:flag) if(!_use_lrt)
   #endif
@@ -802,7 +804,7 @@ void PPPMDispIntel::make_rho_c(IntelBuffers<flt_t,acc_t> * /*buffers*/)
   int nthr = comm->nthreads;
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nthr, nlocal, global_density) if(!_use_lrt)
   #endif
   {
@@ -908,7 +910,7 @@ void PPPMDispIntel::make_rho_c(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 
   // reduce all the perthread_densities into global_density
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nthr, global_density) if(!_use_lrt)
   #endif
   {
@@ -950,7 +952,7 @@ void PPPMDispIntel::make_rho_g(IntelBuffers<flt_t,acc_t> * /*buffers*/)
   int nthr = comm->nthreads;
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nthr, nlocal, global_density) if(!_use_lrt)
   #endif
   {
@@ -1058,7 +1060,7 @@ void PPPMDispIntel::make_rho_g(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 
   // reduce all the perthread_densities into global_density
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nthr, global_density) if(!_use_lrt)
   #endif
   {
@@ -1233,7 +1235,7 @@ void PPPMDispIntel::make_rho_none(IntelBuffers<flt_t,acc_t> * /*buffers*/)
   int nthr = comm->nthreads;
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nthr, nlocal, global_density) if(!_use_lrt)
   #endif
   {
@@ -1342,7 +1344,7 @@ void PPPMDispIntel::make_rho_none(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 
   // reduce all the perthread_densities into global_density
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nthr, global_density) if(!_use_lrt)
   #endif
   {
@@ -1385,7 +1387,7 @@ void PPPMDispIntel::fieldforce_c_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nlocal, nthr) if(!_use_lrt)
   #endif
   {
@@ -1535,7 +1537,7 @@ void PPPMDispIntel::fieldforce_c_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
   FFT_SCALAR * _noalias const particle_ekz = this->particle_ekz;
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nlocal, nthr) if(!_use_lrt)
   #endif
   {
@@ -1733,7 +1735,7 @@ void PPPMDispIntel::fieldforce_g_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nlocal, nthr) if(!_use_lrt)
   #endif
   {
@@ -1880,7 +1882,7 @@ void PPPMDispIntel::fieldforce_g_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
   FFT_SCALAR * _noalias const particle_ekz = this->particle_ekz;
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nlocal, nthr) if(!_use_lrt)
   #endif
   {
@@ -2077,7 +2079,7 @@ void PPPMDispIntel::fieldforce_a_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nlocal, nthr) if(!_use_lrt)
   #endif
   {
@@ -2311,7 +2313,7 @@ void PPPMDispIntel::fieldforce_a_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
   FFT_SCALAR * _noalias const particle_ekz6 = this->particle_ekz6;
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nlocal, nthr) if(!_use_lrt)
   #endif
   {
@@ -2602,7 +2604,7 @@ void PPPMDispIntel::fieldforce_none_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nlocal, nthr) if(!_use_lrt)
   #endif
   {
@@ -2761,7 +2763,7 @@ void PPPMDispIntel::fieldforce_none_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
   int nthr = comm->nthreads;
 
    #if defined(_OPENMP)
-   #pragma omp parallel default(none)           \
+   #pragma omp parallel LMP_DEFAULT_NONE           \
      shared(nlocal, nthr) if(!_use_lrt)
    #endif
   {

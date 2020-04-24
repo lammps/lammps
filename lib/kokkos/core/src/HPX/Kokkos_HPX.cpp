@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -40,7 +41,6 @@
 // ************************************************************************
 //@HEADER
 */
-
 
 #include <Kokkos_Macros.hpp>
 
@@ -80,8 +80,8 @@ void HPX::impl_initialize(int thread_count) {
         "--hpx:attach-debugger=exception",
 #endif
     };
-    int argc_hpx = 1;
-    char name[] = "kokkos_hpx";
+    int argc_hpx     = 1;
+    char name[]      = "kokkos_hpx";
     char *argv_hpx[] = {name, nullptr};
     hpx::start(nullptr, argc_hpx, argv_hpx, config);
 
@@ -107,8 +107,8 @@ void HPX::impl_initialize() {
         "--hpx:attach-debugger=exception",
 #endif
     };
-    int argc_hpx = 1;
-    char name[] = "kokkos_hpx";
+    int argc_hpx     = 1;
+    char name[]      = "kokkos_hpx";
     char *argv_hpx[] = {name, nullptr};
     hpx::start(nullptr, argc_hpx, argv_hpx, config);
 
@@ -138,15 +138,16 @@ void HPX::impl_finalize() {
       hpx::apply([]() { hpx::finalize(); });
       hpx::stop();
     } else {
-      Kokkos::abort("Kokkos::Experimental::HPX::impl_finalize: Kokkos started "
-                    "HPX but something else already stopped HPX\n");
+      Kokkos::abort(
+          "Kokkos::Experimental::HPX::impl_finalize: Kokkos started "
+          "HPX but something else already stopped HPX\n");
     }
   }
 }
 
-} // namespace Experimental
-} // namespace Kokkos
+}  // namespace Experimental
+}  // namespace Kokkos
 
 #else
 void KOKKOS_CORE_SRC_IMPL_HPX_PREVENT_LINK_ERROR() {}
-#endif //#ifdef KOKKOS_ENABLE_HPX
+#endif  //#ifdef KOKKOS_ENABLE_HPX

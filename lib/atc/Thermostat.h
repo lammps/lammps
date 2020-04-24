@@ -581,7 +581,7 @@ namespace ATC {
     /** change in restricted atomic FE energy over a timestep */
     DENS_MAT deltaNodalAtomicEnergy_;
 
-    /** intial restricted atomic FE energy used to compute change */
+    /** initial restricted atomic FE energy used to compute change */
     DENS_MAT initialNodalAtomicEnergy_;
 
     /** filtered nodal atomic energy */

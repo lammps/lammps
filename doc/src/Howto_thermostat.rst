@@ -82,13 +82,9 @@ specify them explicitly via the :doc:`thermo_style custom <thermo_style>` comman
 :doc:`thermo_modify <thermo_modify>` command to re-define what
 temperature compute is used for default thermodynamic output.
 
-
 ----------
 
-
 .. _Daivis-thermostat:
-
-
 
 **(Daivis and Todd)** Daivis and Todd, Nonequilibrium Molecular Dynamics (book),
 Cambridge University Press, https://doi.org/10.1017/9781139017848, (2017).

@@ -1,13 +1,14 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
-// 
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+//
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
+//
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -36,7 +37,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -75,7 +76,7 @@
 #if defined(_WIN32)
 #define KOKKOS_ENABLE_WINDOWS_ATOMICS
 #else
-#if defined( KOKKOS_ENABLE_CUDA )
+#if defined(KOKKOS_ENABLE_CUDA)
 
 // Compiling NVIDIA device code, must use Cuda atomics:
 
@@ -87,32 +88,30 @@
 
 #endif
 
-#if ! defined( KOKKOS_ENABLE_GNU_ATOMICS ) && \
-    ! defined( KOKKOS_ENABLE_INTEL_ATOMICS ) && \
-    ! defined( KOKKOS_ENABLE_OPENMP_ATOMICS ) && \
-    ! defined( KOKKOS_ENABLE_STD_ATOMICS ) && \
-    ! defined( KOKKOS_ENABLE_SERIAL_ATOMICS )
+#if !defined(KOKKOS_ENABLE_GNU_ATOMICS) &&    \
+    !defined(KOKKOS_ENABLE_INTEL_ATOMICS) &&  \
+    !defined(KOKKOS_ENABLE_OPENMP_ATOMICS) && \
+    !defined(KOKKOS_ENABLE_STD_ATOMICS) &&    \
+    !defined(KOKKOS_ENABLE_SERIAL_ATOMICS)
 
 // Compiling for non-Cuda atomic implementation has not been pre-selected.
 // Choose the best implementation for the detected compiler.
 // Preference: GCC, INTEL, OMP31
 
-#if defined( KOKKOS_INTERNAL_NOT_PARALLEL )
+#if defined(KOKKOS_INTERNAL_NOT_PARALLEL)
 
 #define KOKKOS_ENABLE_SERIAL_ATOMICS
 
-#elif defined( KOKKOS_COMPILER_GNU ) || \
-    defined( KOKKOS_COMPILER_CLANG ) || \
-    ( defined ( KOKKOS_COMPILER_NVCC ) )
+#elif defined(KOKKOS_COMPILER_GNU) || defined(KOKKOS_COMPILER_CLANG) || \
+    (defined(KOKKOS_COMPILER_NVCC))
 
 #define KOKKOS_ENABLE_GNU_ATOMICS
 
-#elif defined( KOKKOS_COMPILER_INTEL ) || \
-      defined( KOKKOS_COMPILER_CRAYC )
+#elif defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_CRAYC)
 
 #define KOKKOS_ENABLE_INTEL_ATOMICS
 
-#elif defined( _OPENMP ) && ( 201107 <= _OPENMP )
+#elif defined(_OPENMP) && (201107 <= _OPENMP)
 
 #define KOKKOS_ENABLE_OPENMP_ATOMICS
 
@@ -131,43 +130,37 @@
 
 namespace Kokkos {
 template <typename T>
-KOKKOS_INLINE_FUNCTION
-void atomic_add(volatile T * const dest, const T src);
+KOKKOS_INLINE_FUNCTION void atomic_add(volatile T* const dest, const T src);
 
 // Atomic increment
-template<typename T>
-KOKKOS_INLINE_FUNCTION
-void atomic_increment(volatile T* a);
+template <typename T>
+KOKKOS_INLINE_FUNCTION void atomic_increment(volatile T* a);
 
-template<typename T>
-KOKKOS_INLINE_FUNCTION
-void atomic_decrement(volatile T* a);
-}
+template <typename T>
+KOKKOS_INLINE_FUNCTION void atomic_decrement(volatile T* a);
+}  // namespace Kokkos
 
 namespace Kokkos {
 
-
-inline
-const char * atomic_query_version()
-{
-#if defined( KOKKOS_ENABLE_CUDA_ATOMICS )
-  return "KOKKOS_ENABLE_CUDA_ATOMICS" ;
-#elif defined( KOKKOS_ENABLE_GNU_ATOMICS )
-  return "KOKKOS_ENABLE_GNU_ATOMICS" ;
-#elif defined( KOKKOS_ENABLE_INTEL_ATOMICS )
-  return "KOKKOS_ENABLE_INTEL_ATOMICS" ;
-#elif defined( KOKKOS_ENABLE_OPENMP_ATOMICS )
-  return "KOKKOS_ENABLE_OPENMP_ATOMICS" ;
-#elif defined( KOKKOS_ENABLE_WINDOWS_ATOMICS )
+inline const char* atomic_query_version() {
+#if defined(KOKKOS_ENABLE_CUDA_ATOMICS)
+  return "KOKKOS_ENABLE_CUDA_ATOMICS";
+#elif defined(KOKKOS_ENABLE_GNU_ATOMICS)
+  return "KOKKOS_ENABLE_GNU_ATOMICS";
+#elif defined(KOKKOS_ENABLE_INTEL_ATOMICS)
+  return "KOKKOS_ENABLE_INTEL_ATOMICS";
+#elif defined(KOKKOS_ENABLE_OPENMP_ATOMICS)
+  return "KOKKOS_ENABLE_OPENMP_ATOMICS";
+#elif defined(KOKKOS_ENABLE_WINDOWS_ATOMICS)
   return "KOKKOS_ENABLE_WINDOWS_ATOMICS";
-#elif defined( KOKKOS_ENABLE_SERIAL_ATOMICS )
+#elif defined(KOKKOS_ENABLE_SERIAL_ATOMICS)
   return "KOKKOS_ENABLE_SERIAL_ATOMICS";
 #else
 #error "No valid response for atomic_query_version!"
 #endif
 }
 
-} // namespace Kokkos
+}  // namespace Kokkos
 
 //----------------------------------------------------------------------------
 // Atomic Memory Orders
@@ -175,16 +168,14 @@ const char * atomic_query_version()
 // Implements Strongly-typed analogs of C++ standard memory orders
 #include "impl/Kokkos_Atomic_Memory_Order.hpp"
 
-#if defined( KOKKOS_ENABLE_ROCM )
+#if defined(KOKKOS_ENABLE_ROCM)
 namespace Kokkos {
 namespace Impl {
-extern KOKKOS_INLINE_FUNCTION
-bool lock_address_rocm_space(void* ptr);
+extern KOKKOS_INLINE_FUNCTION bool lock_address_rocm_space(void* ptr);
 
-extern KOKKOS_INLINE_FUNCTION
-void unlock_address_rocm_space(void* ptr);
-}
-}
+extern KOKKOS_INLINE_FUNCTION void unlock_address_rocm_space(void* ptr);
+}  // namespace Impl
+}  // namespace Kokkos
 #include <ROCm/Kokkos_ROCm_Atomic.hpp>
 #endif
 
@@ -212,8 +203,9 @@ void unlock_address_rocm_space(void* ptr);
 // Atomic compare-and-exchange
 //
 // template<class T>
-// bool atomic_compare_exchange_strong(volatile T* const dest, const T compare, const T val)
-// { bool equal = compare == *dest ; if ( equal ) { *dest = val ; } return equal ; }
+// bool atomic_compare_exchange_strong(volatile T* const dest, const T compare,
+// const T val) { bool equal = compare == *dest ; if ( equal ) { *dest = val ; }
+// return equal ; }
 
 #include "impl/Kokkos_Atomic_Compare_Exchange_Strong.hpp"
 
@@ -275,7 +267,8 @@ void unlock_address_rocm_space(void* ptr);
 //----------------------------------------------------------------------------
 // Memory fence
 //
-// All loads and stores from this thread will be globally consistent before continuing
+// All loads and stores from this thread will be globally consistent before
+// continuing
 //
 // void memory_fence() {...};
 #include "impl/Kokkos_Memory_Fence.hpp"
@@ -301,23 +294,22 @@ void unlock_address_rocm_space(void* ptr);
 #include "impl/Kokkos_Atomic_Load.hpp"
 #include "impl/Kokkos_Atomic_Store.hpp"
 
-
 //----------------------------------------------------------------------------
 // This atomic-style macro should be an inlined function, not a macro
 
-#if defined( KOKKOS_COMPILER_GNU ) && !defined(__PGIC__) && !defined(__CUDA_ARCH__)
+#if defined(KOKKOS_COMPILER_GNU) && !defined(__PGIC__) && \
+    !defined(__CUDA_ARCH__)
 
-  #define KOKKOS_NONTEMPORAL_PREFETCH_LOAD(addr) __builtin_prefetch(addr,0,0)
-  #define KOKKOS_NONTEMPORAL_PREFETCH_STORE(addr) __builtin_prefetch(addr,1,0)
+#define KOKKOS_NONTEMPORAL_PREFETCH_LOAD(addr) __builtin_prefetch(addr, 0, 0)
+#define KOKKOS_NONTEMPORAL_PREFETCH_STORE(addr) __builtin_prefetch(addr, 1, 0)
 
 #else
 
-  #define KOKKOS_NONTEMPORAL_PREFETCH_LOAD(addr) ((void)0)
-  #define KOKKOS_NONTEMPORAL_PREFETCH_STORE(addr) ((void)0)
+#define KOKKOS_NONTEMPORAL_PREFETCH_LOAD(addr) ((void)0)
+#define KOKKOS_NONTEMPORAL_PREFETCH_STORE(addr) ((void)0)
 
 #endif
 
 //----------------------------------------------------------------------------
 
 #endif /* KOKKOS_ATOMIC_HPP */
-

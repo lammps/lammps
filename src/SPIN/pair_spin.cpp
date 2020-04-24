@@ -29,6 +29,7 @@
 #include "fix.h"
 #include "force.h"
 #include "math_const.h"
+#include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "neigh_request.h"
@@ -41,7 +42,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpin::PairSpin(LAMMPS *lmp) : Pair(lmp)
+PairSpin::PairSpin(LAMMPS *lmp) : Pair(lmp), emag(NULL)
 {
   hbar = force->hplanck/MY_2PI;
   single_enable = 0;
@@ -86,6 +87,11 @@ void PairSpin::init_style()
   if (!have_fix && (comm->me == 0))
     error->warning(FLERR,"Using spin pair style without nve/spin or neb/spin");
 
+  // check if newton pair is on
+
+  if ((force->newton_pair == 0) && (comm->me == 0))
+    error->all(FLERR,"Pair style spin requires newton pair on");
+
   // need a full neighbor list
 
   int irequest = neighbor->request(this,instance_me);
@@ -98,4 +104,8 @@ void PairSpin::init_style()
   if (ifix >=0)
     lattice_flag = ((FixNVESpin *) modify->fix[ifix])->lattice_flag;
 
+  // init. size of energy stacking lists
+
+  nlocal_max = atom->nlocal;
+  memory->grow(emag,nlocal_max,"pair/spin:emag");
 }

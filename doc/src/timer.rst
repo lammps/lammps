@@ -6,7 +6,6 @@ timer command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    timer args
@@ -27,8 +26,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    timer full sync
    timer timeout 2:00:00 every 100
@@ -127,8 +125,7 @@ Related commands
 Default
 """""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    timer normal nosync
    timer timeout off

@@ -1,42 +1,36 @@
-if(PKG_USER-COLVARS)
+set(COLVARS_SOURCE_DIR ${LAMMPS_LIB_SOURCE_DIR}/colvars)
 
-  set(COLVARS_SOURCE_DIR ${LAMMPS_LIB_SOURCE_DIR}/colvars)
+file(GLOB COLVARS_SOURCES ${COLVARS_SOURCE_DIR}/[^.]*.cpp)
 
-  file(GLOB COLVARS_SOURCES ${COLVARS_SOURCE_DIR}/[^.]*.cpp)
+# Build Lepton by default
+option(COLVARS_LEPTON "Build and link the Lepton library" ON)
 
-  # Build Lepton by default
-  set(COLVARS_LEPTON_DEFAULT ON)
-  # but not if C++11 is disabled per user request
-  if(DEFINED DISABLE_CXX11_REQUIREMENT)
-    if(DISABLE_CXX11_REQUIREMENT)
-      set(COLVARS_LEPTON_DEFAULT OFF)
-    endif()
+if(COLVARS_LEPTON)
+  set(LEPTON_DIR ${LAMMPS_LIB_SOURCE_DIR}/colvars/lepton)
+  file(GLOB LEPTON_SOURCES ${LEPTON_DIR}/src/[^.]*.cpp)
+  add_library(lepton STATIC ${LEPTON_SOURCES})
+  if(NOT BUILD_SHARED_LIBS)
+    install(TARGETS lepton EXPORT LAMMPS_Targets LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
   endif()
+  # Change the define below to LEPTON_BUILDING_SHARED_LIBRARY when linking Lepton as a DLL with MSVC
+  target_compile_definitions(lepton PRIVATE -DLEPTON_BUILDING_STATIC_LIBRARY)
+  set_target_properties(lepton PROPERTIES OUTPUT_NAME lammps_lepton${LAMMPS_MACHINE})
+  target_include_directories(lepton PRIVATE ${LEPTON_DIR}/include)
+endif()
 
-  option(COLVARS_LEPTON "Build and link the Lepton library" ${COLVARS_LEPTON_DEFAULT})
+add_library(colvars STATIC ${COLVARS_SOURCES})
+if(NOT BUILD_SHARED_LIBS)
+  install(TARGETS colvars EXPORT LAMMPS_Targets LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif()
+target_compile_definitions(colvars PRIVATE -DLAMMPS_${LAMMPS_SIZES})
+set_target_properties(colvars PROPERTIES OUTPUT_NAME lammps_colvars${LAMMPS_MACHINE})
+target_include_directories(colvars PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/colvars)
+target_link_libraries(lammps PRIVATE colvars)
 
-  # Verify that the user's choice is consistent
-  if(DEFINED DISABLE_CXX11_REQUIREMENT)
-    if((DISABLE_CXX11_REQUIREMENT) AND (COLVARS_LEPTON))
-      message(FATAL_ERROR "Building the Lepton library requires C++11 or later.")
-    endif()
-  endif()
-
-  if(COLVARS_LEPTON)
-    set(LEPTON_DIR ${LAMMPS_LIB_SOURCE_DIR}/colvars/lepton)
-    file(GLOB LEPTON_SOURCES ${LEPTON_DIR}/src/[^.]*.cpp)
-    add_library(lepton STATIC ${LEPTON_SOURCES})
-    target_include_directories(lepton PRIVATE ${LEPTON_DIR}/include)
-  endif()
-
-  add_library(colvars STATIC ${COLVARS_SOURCES})
-  target_include_directories(colvars PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/colvars)
-  list(APPEND LAMMPS_LINK_LIBS colvars)
-
-  if(COLVARS_LEPTON)
-    list(APPEND LAMMPS_LINK_LIBS lepton)
-    target_compile_options(colvars PRIVATE -DLEPTON)
-    target_include_directories(colvars PUBLIC ${LEPTON_DIR}/include)
-  endif()
-
+if(COLVARS_LEPTON)
+  target_link_libraries(lammps PRIVATE lepton)
+  target_compile_definitions(colvars PRIVATE -DLEPTON)
+  # Disable the line below when linking Lepton as a DLL with MSVC
+  target_compile_definitions(colvars PRIVATE -DLEPTON_USE_STATIC_LIBRARIES)
+  target_include_directories(colvars PUBLIC ${LEPTON_DIR}/include)
 endif()

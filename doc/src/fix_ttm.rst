@@ -9,19 +9,18 @@ fix ttm/mod command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID ttm seed C_e rho_e kappa_e gamma_p gamma_s v_0 Nx Ny Nz T_infile N T_outfile
    fix ID group-ID ttm/mod seed init_file Nx Ny Nz T_infile N T_outfile
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* style = *ttm* or *ttm\_mod*
+* style = *ttm* or *ttm_mod*
 * seed = random number seed to use for white noise (positive integer)
 * remaining arguments for fix ttm:
-  
+
   .. parsed-literal::
-  
+
        C_e  = electronic specific heat (energy/(electron\*temperature) units)
        rho_e = electronic density (electrons/volume units)
        kappa_e = electronic thermal conductivity (energy/(time\*distance\*temperature) units)
@@ -36,9 +35,9 @@ Syntax
        T_outfile = filename to write TTM temperatures to (only needed if N > 0)
 
 * remaining arguments for fix ttm/mod:
-  
+
   .. parsed-literal::
-  
+
        init_file = file with the parameters to TTM
        Nx = number of thermal solve grid points in the x-direction (positive integer)
        Ny = number of thermal solve grid points in the y-direction (positive integer)
@@ -47,13 +46,10 @@ Syntax
        N = dump TTM temperatures every this many timesteps, 0 = no dump
        T_outfile = filename to write TTM temperatures to (only needed if N > 0)
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 2 all ttm 699489 1.0 1.0 10 0.1 0.0 2.0 1 12 1 initialTs 1000 T.out
    fix 2 all ttm 123456 1.0 1.0 1.0 1.0 1.0 5.0 5 5 5 Te.in 1 Te.out
@@ -97,11 +93,11 @@ reservoir, whereas the heat reservoir for fix TTM is finite and
 represents the local electrons.  Third, the TTM fix allows users to
 specify not just one friction coefficient, but rather two independent
 friction coefficients: one for the electron-ion interactions
-(*gamma\_p*), and one for electron stopping (*gamma\_s*).
+(*gamma_p*), and one for electron stopping (*gamma_s*).
 
-When the friction coefficient due to electron stopping, *gamma\_s*, is
+When the friction coefficient due to electron stopping, *gamma_s*, is
 non-zero, electron stopping effects are included for atoms moving
-faster than the electron stopping critical velocity, *v\_0*.  For
+faster than the electron stopping critical velocity, *v_0*.  For
 further details about this algorithm, see :ref:`(Duffy) <Duffy>` and
 :ref:`(Rutherford) <Rutherford>`.
 
@@ -111,16 +107,15 @@ transfer between the subsystems:
 
 .. math::
 
-  C_e \rho_e \frac{\partial T_e}{\partial t} = 
-  \bigtriangledown (\kappa_e \bigtriangledown T_e) - 
+  C_e \rho_e \frac{\partial T_e}{\partial t} =
+  \bigtriangledown (\kappa_e \bigtriangledown T_e) -
   g_p (T_e - T_a) + g_s T_a'
 
-
-where C\_e is the specific heat, rho\_e is the density, kappa\_e is the
+where C_e is the specific heat, rho_e is the density, kappa_e is the
 thermal conductivity, T is temperature, the "e" and "a" subscripts
-represent electronic and atomic subsystems respectively, g\_p is the
-coupling constant for the electron-ion interaction, and g\_s is the
-electron stopping coupling parameter.  C\_e, rho\_e, and kappa\_e are
+represent electronic and atomic subsystems respectively, g_p is the
+coupling constant for the electron-ion interaction, and g_s is the
+electron stopping coupling parameter.  C_e, rho_e, and kappa_e are
 specified as parameters to the fix.  The other quantities are derived.
 The form of the heat diffusion equation used here is almost the same
 as that in equation 6 of :ref:`(Duffy) <Duffy>`, with the exception that the
@@ -140,14 +135,13 @@ approach of :ref:`(Rutherford) <Rutherford>` where the atomic subsystem was
 embedded within a larger continuum representation of the electronic
 subsystem.
 
-The initial electronic temperature input file, *T\_infile*, is a text
+The initial electronic temperature input file, *T_infile*, is a text
 file LAMMPS reads in with no header and with four numeric columns
 (ix,iy,iz,Temp) and with a number of rows equal to the number of
 user-specified grid points (Nx by Ny by Nz).  The ix,iy,iz are node
 indices from 0 to nxnodes-1, etc.  For example, the initial electronic
-temperatures on a 1 by 2 by 3 grid could be specified in a *T\_infile*
+temperatures on a 1 by 2 by 3 grid could be specified in a *T_infile*
 as follows:
-
 
 .. parsed-literal::
 
@@ -163,7 +157,7 @@ where the electronic temperatures along the y=0 plane have been set to
 to 2.0.  The order of lines in this file is no important.  If all the
 nodal values are not specified, LAMMPS will generate an error.
 
-The temperature output file, *T\_oufile*, is created and written by
+The temperature output file, *T_oufile*, is created and written by
 this fix.  Temperatures for both the electronic and atomic subsystems
 at every node and every N timesteps are output.  If N is specified as
 zero, no output is generated, and no output filename is needed.  The
@@ -189,9 +183,7 @@ temperature controlled by another fix - e.g. :doc:`fix nvt <fix_nh>` or
    you should insure that this grid is not too large, else your
    simulation could incur high memory and communication costs.
 
-
 ----------
-
 
 **Additional details for fix ttm/mod**
 
@@ -200,28 +192,26 @@ heat sources (e.g. laser heating in ablation simulations):
 
 .. math::
 
-  C_e \rho_e \frac{\partial T_e}{\partial t} = 
-  \bigtriangledown (\kappa_e \bigtriangledown T_e) - 
+  C_e \rho_e \frac{\partial T_e}{\partial t} =
+  \bigtriangledown (\kappa_e \bigtriangledown T_e) -
   g_p (T_e - T_a) + g_s T_a' + \theta (x-x_{surface})I_0 \exp(-x/l_{skin})
 
-
-where theta is the Heaviside step function, I\_0 is the (absorbed)
-laser pulse intensity for ablation simulations, l\_skin is the depth
+where theta is the Heaviside step function, I_0 is the (absorbed)
+laser pulse intensity for ablation simulations, l_skin is the depth
 of skin-layer, and all other designations have the same meaning as in
 the former equation. The duration of the pulse is set by the parameter
-*tau* in the *init\_file*.
+*tau* in the *init_file*.
 
-Fix ttm/mod also allows users to specify the dependencies of C\_e and
-kappa\_e on the electronic temperature. The specific heat is expressed
+Fix ttm/mod also allows users to specify the dependencies of C_e and
+kappa_e on the electronic temperature. The specific heat is expressed
 as
 
 .. math::
 
   C_e = C_0 + (a_0 + a_1 X + a_2 X^2 + a_3 X^3 + a_4 X^4) \exp (-(AX)^2)
 
-
-where *X* = T\_e/1000, and the thermal conductivity is defined as
-kappa\_e = D\_e\*rho\_e\*C\_e, where D\_e is the thermal diffusion
+where *X* = T_e/1000, and the thermal conductivity is defined as
+kappa_e = D_e\*rho_e\*C_e, where D_e is the thermal diffusion
 coefficient.
 
 Electronic pressure effects are included in the TTM model to account
@@ -233,24 +223,23 @@ acting on an ion is:
 
   {\vec F}_i = - \partial U / \partial {\vec r}_i + {\vec F}_{langevin} - \nabla P_e/n_{ion}
 
-
-where F\_langevin is a force from Langevin thermostat simulating
-electron-phonon coupling, and nabla P\_e/n\_ion is the electron blast
+where F_langevin is a force from Langevin thermostat simulating
+electron-phonon coupling, and nabla P_e/n_ion is the electron blast
 force.
 
-The electronic pressure is taken to be P\_e = B\*rho\_e\*C\_e\*T\_e
+The electronic pressure is taken to be P_e = B\*rho_e\*C_e\*T_e
 
 The current fix ttm/mod implementation allows TTM simulations with a
 vacuum. The vacuum region is defined as the grid cells with zero
 electronic temperature. The numerical scheme does not allow energy
 exchange with such cells. Since the material can expand to previously
 unoccupied region in some simulations, the vacuum border can be
-allowed to move. It is controlled by the *surface\_movement* parameter
-in the *init\_file*. If it is set to 1, then "vacuum" cells can be
-changed to "electron-filled" cells with the temperature *T\_e_min* if
+allowed to move. It is controlled by the *surface_movement* parameter
+in the *init_file*. If it is set to 1, then "vacuum" cells can be
+changed to "electron-filled" cells with the temperature *T_e_min* if
 atoms move into them (currently only implemented for the case of
 1-dimensional motion of flat surface normal to the X axis). The
-initial borders of vacuum can be set in the *init\_file* via *lsurface*
+initial borders of vacuum can be set in the *init_file* via *lsurface*
 and *rsurface* parameters. In this case, electronic pressure gradient
 is calculated as
 
@@ -258,14 +247,12 @@ is calculated as
 
   \nabla_x P_e = \left[\frac{C_e{}T_e(x)\lambda}{(x+\lambda)^2} + \frac{x}{x+\lambda}\frac{(C_e{}T_e)_{x+\Delta x}-(C_e{}T_e)_{x}}{\Delta x} \right]
 
-
 where lambda is the electron mean free path (see :ref:`(Norman) <Norman>`,
 :ref:`(Pisarev) <Pisarev>`)
 
-The fix ttm/mod parameter file *init\_file* has the following syntax/
+The fix ttm/mod parameter file *init_file* has the following syntax/
 Every line with the odd number is considered as a comment and
 ignored. The lines with the even numbers are treated as follows:
-
 
 .. parsed-literal::
 
@@ -292,11 +279,9 @@ ignored. The lines with the even numbers are treated as follows:
    surface_movement: 0 to disable tracking of surface motion, 1 to enable
    T_e_min, temperature units
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 These fixes write the state of the electronic subsystem and the energy
 exchange between the subsystems to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>` command
@@ -335,7 +320,6 @@ of the :doc:`run <run>` command.  The fixes are not invoked during
 Restrictions
 """"""""""""
 
-
 Fix *ttm* is part of the MISC package. It is only enabled if LAMMPS
 was built with that package.  Fix *ttm/mod* is part of the USER-MISC
 package. It is only enabled if LAMMPS was built with that package.
@@ -352,41 +336,29 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Duffy:
-
-
 
 **(Duffy)** D M Duffy and A M Rutherford, J. Phys.: Condens. Matter, 19,
 016207-016218 (2007).
 
 .. _Rutherford:
 
-
-
 **(Rutherford)** A M Rutherford and D M Duffy, J. Phys.:
 Condens. Matter, 19, 496201-496210 (2007).
 
 .. _Chen:
-
-
 
 **(Chen)** J Chen, D Tzou and J Beraun, Int. J. Heat
 Mass Transfer, 49, 307-316 (2006).
 
 .. _Norman:
 
-
-
 **(Norman)** G E Norman, S V Starikov, V V Stegailov et al., Contrib.
 Plasma Phys., 53, 129-139 (2013).
 
 .. _Pisarev:
-
-
 
 **(Pisarev)** V V Pisarev and S V Starikov, J. Phys.: Condens. Matter, 26,
 475401 (2014).

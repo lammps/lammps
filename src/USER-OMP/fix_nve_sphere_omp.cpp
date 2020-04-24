@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "fix_nve_sphere_omp.h"
 #include <cmath>
 #include "atom.h"
@@ -49,7 +50,7 @@ void FixNVESphereOMP::initial_integrate(int /* vflag */)
   // update v,x,omega for all particles
   // d_omega/dt = torque / inertia
 #if defined(_OPENMP)
-#pragma omp parallel for default(none)
+#pragma omp parallel for LMP_DEFAULT_NONE
 #endif
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -76,7 +77,7 @@ void FixNVESphereOMP::initial_integrate(int /* vflag */)
     double * const * const mu = atom->mu;
     if (dlm == NODLM) {
 #if defined(_OPENMP)
-#pragma omp parallel for default(none)
+#pragma omp parallel for LMP_DEFAULT_NONE
 #endif
       for (int i = 0; i < nlocal; i++) {
         double g0,g1,g2,msq,scale;
@@ -95,7 +96,7 @@ void FixNVESphereOMP::initial_integrate(int /* vflag */)
       }
     } else {
 #if defined(_OPENMP)
-#pragma omp parallel for default(none)
+#pragma omp parallel for LMP_DEFAULT_NONE
 #endif
       // Integrate orientation following Dullweber-Leimkuhler-Maclachlan scheme
       for (int i = 0; i < nlocal; i++) {
@@ -223,7 +224,7 @@ void FixNVESphereOMP::final_integrate()
   // d_omega/dt = torque / inertia
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none)
+#pragma omp parallel for LMP_DEFAULT_NONE
 #endif
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {

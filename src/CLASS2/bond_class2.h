@@ -35,6 +35,7 @@ class BondClass2 : public Bond {
   virtual void read_restart(FILE *);
   void write_data(FILE *);
   double single(int, double, int, int, double &);
+  virtual void *extract(char *, int &);
 
  protected:
   double *r0,*k2,*k3,*k4;

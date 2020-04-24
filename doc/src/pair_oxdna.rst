@@ -18,7 +18,6 @@ pair_style oxdna/coaxstk command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style1
@@ -29,7 +28,6 @@ Syntax
 
 * style2 = *oxdna/excv* or *oxdna/stk* or *oxdna/hbond* or *oxdna/xstk* or *oxdna/coaxstk*
 * args = list of arguments for these particular styles
-
 
 .. parsed-literal::
 
@@ -44,7 +42,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -66,9 +63,9 @@ excluded volume interaction *oxdna/excv*\ , the stacking *oxdna/stk*\ , cross-st
 and coaxial stacking interaction *oxdna/coaxstk* as well
 as the hydrogen-bonding interaction *oxdna/hbond* between complementary pairs of nucleotides on
 opposite strands. Average sequence or sequence-dependent stacking and base-pairing strengths
-are supported :ref:`(Sulc) <Sulc1>`. Quasi-unique base-pairing between nucleotides can be achieved by using 
-more complementary pairs of atom types like 5-8 and 6-7, 9-12 and 10-11, 13-16 and 14-15, etc. 
-This prevents the hybridization of in principle complementary bases within Ntypes/4 bases 
+are supported :ref:`(Sulc) <Sulc1>`. Quasi-unique base-pairing between nucleotides can be achieved by using
+more complementary pairs of atom types like 5-8 and 6-7, 9-12 and 10-11, 13-16 and 14-15, etc.
+This prevents the hybridization of in principle complementary bases within Ntypes/4 bases
 up and down along the backbone.
 
 The exact functional form of the pair styles is rather complex.
@@ -100,16 +97,14 @@ on the model, its implementation and performance as well as the structure of
 the data and input file. The preprint version of the article can be found
 `here <PDF/USER-CGDNA.pdf>`_.
 Please cite also the relevant oxDNA publications
-:ref:`(Ouldridge) <Ouldridge1>`, 
+:ref:`(Ouldridge) <Ouldridge1>`,
 :ref:`(Ouldridge-DPhil) <Ouldridge-DPhil1>`
 and :ref:`(Sulc) <Sulc1>`.
 
 ----------
 
-
 Restrictions
 """"""""""""
-
 
 These pair styles can only be used if LAMMPS was built with the
 USER-CGDNA package and the MOLECULE and ASPHERE package.  See the
@@ -122,9 +117,8 @@ Related commands
 :doc:`bond_style oxdna2/fene <bond_oxdna>`, :doc:`pair_style oxdna2/excv <pair_oxdna2>`,
 :doc:`bond_style oxrna2/fene <bond_oxdna>`, :doc:`pair_style oxrna2/excv <pair_oxrna2>`,
 :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
- 
-**Default:** none
 
+**Default:** none
 
 ----------
 

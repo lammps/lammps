@@ -57,6 +57,8 @@ ComputeOrientOrderAtomKokkos<DeviceType>::ComputeOrientOrderAtomKokkos(LAMMPS *l
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
+
+  host_flag = (execution_space == Host);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -151,7 +153,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::compute_peratom()
   // insure distsq and nearest arrays are long enough
 
   maxneigh = 0;
-  Kokkos::parallel_reduce("ComputeOrientOrderAtomKokkos::find_max_neighs",inum, FindMaxNumNeighs<DeviceType>(k_list), Kokkos::Experimental::Max<int>(maxneigh));
+  Kokkos::parallel_reduce("ComputeOrientOrderAtomKokkos::find_max_neighs",inum, FindMaxNumNeighs<DeviceType>(k_list), Kokkos::Max<int>(maxneigh));
 
   if (chunk_size > d_distsq.extent(0) || maxneigh > d_distsq.extent(1)) {
     d_distsq = t_sna_2d_lr("orientorder/atom:distsq",chunk_size,maxneigh);
@@ -172,16 +174,10 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::compute_peratom()
 
   Kokkos::deep_copy(d_qnm,{0.0,0.0});
 
-  int vector_length = 1;
-  int team_size = 1;
-  int team_size_max = Kokkos::TeamPolicy<DeviceType>::team_size_max(*this);
-#ifdef KOKKOS_ENABLE_CUDA
-  team_size = 32;//maxneigh;
-  if (team_size*vector_length > team_size_max)
-    team_size = team_size_max/vector_length;
-#endif
-
-  copymode = 1;
+  int vector_length_default = 1;
+  int team_size_default = 1;
+  if (!host_flag)
+    team_size_default = 32;//max_neighs;
 
   while (chunk_offset < inum) { // chunk up loop to prevent running out of memory
 
@@ -189,16 +185,26 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::compute_peratom()
       chunk_size = inum - chunk_offset;
 
     //Neigh
-    typename Kokkos::TeamPolicy<DeviceType, TagComputeOrientOrderAtomNeigh> policy_neigh(chunk_size,team_size,vector_length);
-    Kokkos::parallel_for("ComputeOrientOrderAtomNeigh",policy_neigh,*this);
+    {
+      int vector_length = vector_length_default;
+      int team_size = team_size_default;
+      check_team_size_for<TagComputeOrientOrderAtomNeigh>(chunk_size,team_size,vector_length);
+      typename Kokkos::TeamPolicy<DeviceType, TagComputeOrientOrderAtomNeigh> policy_neigh(chunk_size,team_size,vector_length);
+      Kokkos::parallel_for("ComputeOrientOrderAtomNeigh",policy_neigh,*this);
+    }
     
     //Select3
     typename Kokkos::RangePolicy<DeviceType, TagComputeOrientOrderAtomSelect3> policy_select3(0,chunk_size);
     Kokkos::parallel_for("ComputeOrientOrderAtomSelect3",policy_select3,*this);
     
     //BOOP1
-    typename Kokkos::TeamPolicy<DeviceType, TagComputeOrientOrderAtomBOOP1> policy_boop1(((chunk_size+team_size-1)/team_size)*maxneigh,team_size,vector_length);
-    Kokkos::parallel_for("ComputeOrientOrderAtomBOOP1",policy_boop1,*this);
+    {
+      int vector_length = vector_length_default;
+      int team_size = team_size_default;
+      check_team_size_for<TagComputeOrientOrderAtomBOOP1>(chunk_size,team_size,vector_length);
+      typename Kokkos::TeamPolicy<DeviceType, TagComputeOrientOrderAtomBOOP1> policy_boop1(((chunk_size+team_size-1)/team_size)*maxneigh,team_size,vector_length);
+      Kokkos::parallel_for("ComputeOrientOrderAtomBOOP1",policy_boop1,*this);
+    }
     
     //BOOP2
     typename Kokkos::RangePolicy<DeviceType, TagComputeOrientOrderAtomBOOP2> policy_boop2(0,chunk_size);
@@ -706,6 +712,21 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::init_clebsch_gordan()
       }
   }
   Kokkos::deep_copy(d_cglist,h_cglist);
+}
+
+/* ----------------------------------------------------------------------
+   check max team size
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+template<class TagStyle>
+void ComputeOrientOrderAtomKokkos<DeviceType>::check_team_size_for(int inum, int &team_size, int vector_length) {
+  int team_size_max;
+
+  team_size_max = Kokkos::TeamPolicy<DeviceType,TagStyle>(inum,Kokkos::AUTO).team_size_max(*this,Kokkos::ParallelForTag());
+
+  if(team_size*vector_length > team_size_max)
+    team_size = team_size_max/vector_length;
 }
 
 namespace LAMMPS_NS {

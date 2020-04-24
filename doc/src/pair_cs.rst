@@ -30,17 +30,18 @@ pair_style coul/wolf/cs command
 pair_style lj/cut/coul/long/cs command
 =======================================
 
+pair_style lj/class2/coul/long/cs command
+==========================================
+
 Syntax
 """"""
-
 
 .. code-block:: LAMMPS
 
    pair_style style args
 
-* style = *born/coul/dsf/cs* or *born/coul/long/cs* or *born/coul/wolf/cs* or *buck/coul/long/cs* or *coul/long/cs* or *coul/wolf/cs* or *lj/cut/coul/long/cs*
+* style = *born/coul/dsf/cs* or *born/coul/long/cs* or *born/coul/wolf/cs* or *buck/coul/long/cs* or *coul/long/cs* or *coul/wolf/cs* or *lj/cut/coul/long/cs* or *lj/class2/coul/long/cs*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -66,10 +67,12 @@ Syntax
      *lj/cut/coul/long/cs* args = cutoff (cutoff2)
        cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
        cutoff2 = global cutoff for Coulombic (optional) (distance units)
+     *lj/class2/coul/long/cs* args = cutoff (cutoff2)
+       cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+       cutoff2 = global cutoff for Coulombic (optional) (distance units)
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -118,6 +121,7 @@ the "/cs" in the name:
 * :doc:`pair_style coul/long <pair_coul>`
 * :doc:`pair_style coul/wolf <pair_coul>`
 * :doc:`pair_style lj/cut/coul/long <pair_lj>`
+* :doc:`pair_style lj/class2/coul/long <pair_class2>`
 
 except that they correctly treat the special case where the distance
 between two charged core and shell atoms in the same core/shell pair
@@ -135,13 +139,12 @@ to 0.0, which works because the core and shell atoms are bonded to
 each other.  This induces a long-range correction approximation which
 fails at small distances (~< 10e-8). Therefore, the Coulomb term which
 is used to calculate the correction factor is extended by a minimal
-distance (r\_min = 1.0-6) when the interaction between a core/shell
+distance (r_min = 1.0-6) when the interaction between a core/shell
 pair is treated, as follows
 
 .. math::
 
    E = \frac{C q_i q_j}{\epsilon (r + r_{min})} \qquad r \rightarrow 0
-
 
 where C is an energy-conversion constant, :math:`q_i` and :math:`q_j`
 are the charges on the core and shell, epsilon is the dielectric
@@ -152,9 +155,7 @@ For styles that are not used with a long-range solver, i.e. those with
 a minimal distance to avoid the possible r = 0.0 case for a core/shell
 pair.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -174,9 +175,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -184,13 +183,10 @@ See the corresponding doc pages for pair styles without the "cs"
 suffix to see how mixing, shifting, tabulation, tail correction,
 restarting, and rRESPA are handled by theses pair styles.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 These pair styles are part of the CORESHELL package.  They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -203,13 +199,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _MitchellFinchham2:
-
-
 
 **(Mitchell and Finchham)** Mitchell, Finchham, J Phys Condensed Matter,
 5, 1031-1038 (1993).

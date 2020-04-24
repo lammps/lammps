@@ -71,6 +71,9 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
   void compute_peratom();
   t_sna_1i d_qlist;
 
+  template<class TagStyle>
+  void check_team_size_for(int, int&, int);
+
   KOKKOS_INLINE_FUNCTION
   void operator() (TagComputeOrientOrderAtomNeigh, const typename Kokkos::TeamPolicy<DeviceType, TagComputeOrientOrderAtomNeigh>::member_type& team) const;
 
@@ -88,6 +91,7 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
 
  private:
   int inum,chunk_size,chunk_offset;
+  int host_flag;
 
   typename AT::t_x_array_randomread x;
   typename ArrayTypes<DeviceType>::t_int_1d mask;

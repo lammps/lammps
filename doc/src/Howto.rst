@@ -3,7 +3,7 @@ Howto discussions
 
 These doc pages describe how to perform various tasks with LAMMPS,
 both for users and developers.  The
-`glossary <http://lammps.sandia.gov>`_ website page also lists MD
+`glossary <https://lammps.sandia.gov>`_ website page also lists MD
 terminology with links to corresponding LAMMPS manual pages.  The
 example input scripts included in the examples directory of the LAMMPS
 distribution and highlighted on the :doc:`Examples <Examples>` doc page
@@ -12,18 +12,17 @@ also show how to setup and run various kinds of simulations.
 Tutorials howto
 ===============
 
-
 .. toctree::
    :name: tutorials
    :maxdepth: 1
 
+   Howto_cmake
    Howto_github
    Howto_pylammps
    Howto_bash
 
 General howto
 =============
-
 
 .. toctree::
    :name: general_howto
@@ -40,7 +39,6 @@ General howto
 Settings howto
 ==============
 
-
 .. toctree::
    :name: settings_howto
    :maxdepth: 1
@@ -55,7 +53,6 @@ Settings howto
 
 Analysis howto
 ==============
-
 
 .. toctree::
    :name: analysis_howto
@@ -72,7 +69,6 @@ Analysis howto
 Force fields howto
 ==================
 
-
 .. toctree::
    :name: force_howto
    :maxdepth: 1
@@ -84,7 +80,6 @@ Force fields howto
 
 Packages howto
 ==============
-
 
 .. toctree::
    :name: packages_howto

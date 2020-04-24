@@ -1,13 +1,14 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
-// 
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+//
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
+//
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -36,7 +37,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -68,16 +69,16 @@
 typedef Kokkos::DualView<double*> view_type;
 typedef Kokkos::DualView<int**> idx_type;
 
-
-template<class ExecutionSpace>
+template <class ExecutionSpace>
 struct localsum {
   // If the functor has a public 'execution_space' typedef, that defines
   // the functor's execution space (where it runs in parallel).  This
   // overrides Kokkos' default execution space.
   typedef ExecutionSpace execution_space;
 
-  typedef typename Kokkos::Impl::if_c<std::is_same<ExecutionSpace,Kokkos::DefaultExecutionSpace>::value ,
-     idx_type::memory_space, idx_type::host_mirror_space>::type memory_space;
+  typedef typename Kokkos::Impl::if_c<
+      std::is_same<ExecutionSpace, Kokkos::DefaultExecutionSpace>::value,
+      idx_type::memory_space, idx_type::host_mirror_space>::type memory_space;
 
   // Get the view types on the particular device for which the functor
   // is instantiated.
@@ -86,25 +87,28 @@ struct localsum {
   // the const version of the first template parameter of the View.
   // For example, the const_data_type version of double** is const
   // double**.
-  Kokkos::View<idx_type::const_data_type, idx_type::array_layout, memory_space> idx;
+  Kokkos::View<idx_type::const_data_type, idx_type::array_layout, memory_space>
+      idx;
   // "scalar_array_type" is a typedef in ViewTraits (and DualView) which is the
   // array version of the value(s) stored in the View.
-  Kokkos::View<view_type::scalar_array_type, view_type::array_layout, memory_space> dest;
+  Kokkos::View<view_type::scalar_array_type, view_type::array_layout,
+               memory_space>
+      dest;
   Kokkos::View<view_type::const_data_type, view_type::array_layout,
-               memory_space, Kokkos::MemoryRandomAccess> src;
+               memory_space, Kokkos::MemoryRandomAccess>
+      src;
 
   // Constructor takes DualViews, synchronizes them to the device,
   // then marks them as modified on the device.
-  localsum (idx_type dv_idx, view_type dv_dest, view_type dv_src)
-  {
+  localsum(idx_type dv_idx, view_type dv_dest, view_type dv_src) {
     // Extract the view on the correct Device (i.e., the correct
     // memory space) from the DualView.  DualView has a template
     // method, view(), which is templated on the memory space.  If the
     // DualView has a View from that memory space, view() returns the
     // View in that space.
-    idx = dv_idx.view<memory_space> ();
-    dest = dv_dest.template view<memory_space> ();
-    src = dv_src.template view<memory_space> ();
+    idx  = dv_idx.view<memory_space>();
+    dest = dv_dest.template view<memory_space>();
+    src  = dv_src.template view<memory_space>();
 
     // Synchronize the DualView to the correct Device.
     //
@@ -116,103 +120,106 @@ struct localsum {
     // determines this by the user manually marking one side or the
     // other as modified; see the modify() call below.
 
-    dv_idx.sync<memory_space> ();
-    dv_dest.template sync<memory_space> ();
-    dv_src.template sync<memory_space> ();
+    dv_idx.sync<memory_space>();
+    dv_dest.template sync<memory_space>();
+    dv_src.template sync<memory_space>();
 
     // Mark dest as modified on Device.
-    dv_dest.template modify<memory_space> ();
+    dv_dest.template modify<memory_space>();
   }
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (const int i) const {
+  void operator()(const int i) const {
     double tmp = 0.0;
-    for (int j = 0; j < (int) idx.extent(1); ++j) {
-      const double val = src(idx(i,j));
-      tmp += val*val + 0.5*(idx.extent(0)*val -idx.extent(1)*val);
+    for (int j = 0; j < (int)idx.extent(1); ++j) {
+      const double val = src(idx(i, j));
+      tmp += val * val + 0.5 * (idx.extent(0) * val - idx.extent(1) * val);
     }
     dest(i) += tmp;
   }
 };
 
 class ParticleType {
-  public:
-    double q;
-    double m;
-    double q_over_m;
-    KOKKOS_INLINE_FUNCTION
-    ParticleType(double q_ = -1, double m_ = 1):
-     q(q_), m(m_), q_over_m(q/m) {}
-protected:
+ public:
+  double q;
+  double m;
+  double q_over_m;
+  KOKKOS_INLINE_FUNCTION
+  ParticleType(double q_ = -1, double m_ = 1) : q(q_), m(m_), q_over_m(q / m) {}
+
+ protected:
 };
 
-  typedef Kokkos::DualView<ParticleType[10]> ParticleTypes;
-int main (int narg, char* arg[]) {
-  Kokkos::initialize (narg, arg);
+typedef Kokkos::DualView<ParticleType[10]> ParticleTypes;
+int main(int narg, char* arg[]) {
+  Kokkos::initialize(narg, arg);
 
-// If View is non-trivial constructible type then add braces so it is out of scope
-// before Kokkos::finalize() call
-{
-  ParticleTypes test("Test");
-  Kokkos::fence();
-  test.h_view(0) = ParticleType(-1e4,1);
-  Kokkos::fence();
+  // If View is non-trivial constructible type then add braces so it is out of
+  // scope before Kokkos::finalize() call
+  {
+    ParticleTypes test("Test");
+    Kokkos::fence();
+    test.h_view(0) = ParticleType(-1e4, 1);
+    Kokkos::fence();
 
-  int size = 1000000;
+    int size = 1000000;
 
-  // Create DualViews. This will allocate on both the device and its
-  // host_mirror_device.
-  idx_type idx ("Idx",size,64);
-  view_type dest ("Dest",size);
-  view_type src ("Src",size);
+    // Create DualViews. This will allocate on both the device and its
+    // host_mirror_device.
+    idx_type idx("Idx", size, 64);
+    view_type dest("Dest", size);
+    view_type src("Src", size);
 
+    srand(134231);
 
-  srand (134231);
-
-  // Get a reference to the host view of idx directly (equivalent to
-  // idx.view<idx_type::host_mirror_space>() )
-  idx_type::t_host h_idx = idx.h_view;
-  for (int i = 0; i < size; ++i) {
-    for (view_type::size_type j = 0; j < h_idx.extent(1); ++j) {
-      h_idx(i,j) = (size + i + (rand () % 500 - 250)) % size;
+    // Get a reference to the host view of idx directly (equivalent to
+    // idx.view<idx_type::host_mirror_space>() )
+    idx_type::t_host h_idx = idx.h_view;
+    for (int i = 0; i < size; ++i) {
+      for (view_type::size_type j = 0; j < h_idx.extent(1); ++j) {
+        h_idx(i, j) = (size + i + (rand() % 500 - 250)) % size;
+      }
     }
+
+    // Mark idx as modified on the host_mirror_space so that a
+    // sync to the device will actually move data.  The sync happens in
+    // the functor's constructor.
+    idx.modify<idx_type::host_mirror_space>();
+
+    // Run on the device.  This will cause a sync of idx to the device,
+    // since it was marked as modified on the host.
+    Kokkos::Timer timer;
+    Kokkos::parallel_for(size,
+                         localsum<view_type::execution_space>(idx, dest, src));
+    Kokkos::fence();
+    double sec1_dev = timer.seconds();
+
+    timer.reset();
+    Kokkos::parallel_for(size,
+                         localsum<view_type::execution_space>(idx, dest, src));
+    Kokkos::fence();
+    double sec2_dev = timer.seconds();
+
+    // Run on the host's default execution space (could be the same as device).
+    // This will cause a sync back to the host of dest.  Note that if the Device
+    // is CUDA, the data layout will not be optimal on host, so performance is
+    // lower than what it would be for a pure host compilation.
+    timer.reset();
+    Kokkos::parallel_for(
+        size, localsum<Kokkos::HostSpace::execution_space>(idx, dest, src));
+    Kokkos::fence();
+    double sec1_host = timer.seconds();
+
+    timer.reset();
+    Kokkos::parallel_for(
+        size, localsum<Kokkos::HostSpace::execution_space>(idx, dest, src));
+    Kokkos::fence();
+    double sec2_host = timer.seconds();
+
+    printf("Device Time with Sync: %f without Sync: %f \n", sec1_dev, sec2_dev);
+    printf("Host   Time with Sync: %f without Sync: %f \n", sec1_host,
+           sec2_host);
   }
-
-  // Mark idx as modified on the host_mirror_space so that a
-  // sync to the device will actually move data.  The sync happens in
-  // the functor's constructor.
-  idx.modify<idx_type::host_mirror_space> ();
-
-  // Run on the device.  This will cause a sync of idx to the device,
-  // since it was marked as modified on the host.
-  Kokkos::Timer timer;
-  Kokkos::parallel_for(size,localsum<view_type::execution_space>(idx,dest,src));
-  Kokkos::fence();
-  double sec1_dev = timer.seconds();
-
-  timer.reset();
-  Kokkos::parallel_for(size,localsum<view_type::execution_space>(idx,dest,src));
-  Kokkos::fence();
-  double sec2_dev = timer.seconds();
-
-  // Run on the host's default execution space (could be the same as device).
-  // This will cause a sync back to the host of dest.  Note that if the Device is CUDA,
-  // the data layout will not be optimal on host, so performance is
-  // lower than what it would be for a pure host compilation.
-  timer.reset();
-  Kokkos::parallel_for(size,localsum<Kokkos::HostSpace::execution_space>(idx,dest,src));
-  Kokkos::fence();
-  double sec1_host = timer.seconds();
-
-  timer.reset();
-  Kokkos::parallel_for(size,localsum<Kokkos::HostSpace::execution_space>(idx,dest,src));
-  Kokkos::fence();
-  double sec2_host = timer.seconds();
-
-  printf("Device Time with Sync: %f without Sync: %f \n",sec1_dev,sec2_dev);
-  printf("Host   Time with Sync: %f without Sync: %f \n",sec1_host,sec2_host);
-}
 
   Kokkos::finalize();
 }
-

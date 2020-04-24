@@ -429,8 +429,15 @@ public:
   /// (Re)initialize the output trajectory and state file (does not write it yet)
   int setup_output();
 
-  /// Read the input restart file
+  /// Read a restart file
   std::istream & read_restart(std::istream &is);
+
+  /// Read the states of individual objects; allows for changes
+  std::istream & read_objects_state(std::istream &is);
+
+  /// If needed (old restart file), print the warning that cannot be ignored
+  int print_total_forces_errning(bool warn_total_forces);
+
   /// Write the output restart file
   std::ostream & write_restart(std::ostream &os);
 

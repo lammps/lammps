@@ -6,7 +6,6 @@ info command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    info args
@@ -18,8 +17,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    info system
    info groups computes variables

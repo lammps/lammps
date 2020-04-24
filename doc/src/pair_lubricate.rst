@@ -15,7 +15,6 @@ pair_style lubricate/poly/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style mu flaglog flagfld cutinner cutoff flagHI flagVF
@@ -30,7 +29,6 @@ Syntax
 * flagVF (optional) = 0/1 to exclude/include volume fraction corrections in the long-range isotropic terms
 
 **Examples:** (all assume radius = 1)
-
 
 .. code-block:: LAMMPS
 
@@ -53,14 +51,13 @@ Ball-Melrose lubrication terms via the formulas in :ref:`(Ball and Melrose) <Bal
 
 .. math::
 
-   W & =  - a_{sq} | (v_1 - v_2) \bullet \mathbf{nn} |^2 - 
-   a_{sh} | (\omega_1 + \omega_2) \bullet 
+   W & =  - a_{sq} | (v_1 - v_2) \bullet \mathbf{nn} |^2 -
+   a_{sh} | (\omega_1 + \omega_2) \bullet
    (\mathbf{I} - \mathbf{nn}) - 2 \Omega_N |^2 - \\
    &  a_{pu} | (\omega_1 - \omega_2) \bullet (\mathbf{I} - \mathbf{nn}) |^2 -
    a_{tw} | (\omega_1 - \omega_2) \bullet \mathbf{nn} |^2  \qquad r < r_c \\
    & \\
    \Omega_N & = \mathbf{n} \times (v_1 - v_2) / r
-
 
 which represents the dissipation W between two nearby particles due to
 their relative velocities in the presence of a background solvent with
@@ -94,13 +91,12 @@ represented by the following equation
 
    F^{H} = -R_{FU}(U-U^{\infty}) + R_{FE}E^{\infty}
 
-
 where U represents the velocities and angular velocities of the
 particles, :math:`U^{\infty}` represents the velocity and the angular velocity
 of the undisturbed fluid, and :math:`E^{\infty}` represents the rate of strain
 tensor of the undisturbed fluid with viscosity *mu*\ . Again, note that
 this is dynamic viscosity which has units of mass/distance/time, not
-kinematic viscosity. Volume fraction corrections to R\_FU are included
+kinematic viscosity. Volume fraction corrections to R_FU are included
 as long as *flagVF* is set to 1 (default).
 
 .. note::
@@ -114,7 +110,7 @@ Style *lubricate* requires monodisperse spherical particles; style
 *lubricate/poly* allows for polydisperse spherical particles.
 
 The viscosity *mu* can be varied in a time-dependent manner over the
-course of a simulation, in which case in which case the pair\_style
+course of a simulation, in which case in which case the pair_style
 setting for *mu* will be overridden.  See the :doc:`fix adapt <fix_adapt>`
 command for details.
 
@@ -122,9 +118,9 @@ If the suspension is sheared via the :doc:`fix deform <fix_deform>`
 command then the pair style uses the shear rate to adjust the
 hydrodynamic interactions accordingly. Volume changes due to fix
 deform are accounted for when computing the volume fraction
-corrections to R\_FU.
+corrections to R_FU.
 
-When computing the volume fraction corrections to R\_FU, the presence
+When computing the volume fraction corrections to R_FU, the presence
 of walls (whether moving or stationary) will affect the volume
 fraction available to colloidal particles. This is currently accounted
 for with the following types of walls: :doc:`wall/lj93 <fix_wall>`,
@@ -143,9 +139,7 @@ thermostat the system at a constant temperature. If Brownian motion
 and the brownian style should use consistent parameters for *mu*\ ,
 *flaglog*\ , *flagfld*\ , *cutinner*\ , *cutoff*\ , *flagHI* and *flagVF*\ .
 
-
 ----------
-
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
@@ -157,12 +151,10 @@ commands, or by mixing as described below:
 * cutoff (distance units)
 
 The two coefficients are optional.  If neither is specified, the two
-cutoffs specified in the pair\_style command are used.  Otherwise both
+cutoffs specified in the pair_style command are used.  Otherwise both
 must be specified.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -182,15 +174,13 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See :doc:`this section <Speed>` of the manual for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 For atom type pairs I,J and I != J, the two cutoff distances for this
 pair style can be mixed.  The default mix value is *geometric*\ .  See
-the "pair\_modify" command for details.
+the "pair_modify" command for details.
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the pair interaction.
@@ -202,28 +192,25 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
 
-
 These styles are part of the COLLOID package.  They are only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
-Only spherical monodisperse particles are allowed for pair\_style
+Only spherical monodisperse particles are allowed for pair_style
 lubricate.
 
-Only spherical particles are allowed for pair\_style lubricate/poly.
+Only spherical particles are allowed for pair_style lubricate/poly.
 
 These pair styles will not restart exactly when using the
 :doc:`read_restart <read_restart>` command, though they should provide
@@ -242,19 +229,13 @@ Default
 The default settings for the optional args are flagHI = 1 and flagVF =
 1.
 
-
 ----------
 
-
 .. _Ball1:
-
-
 
 **(Ball)** Ball and Melrose, Physica A, 247, 444-472 (1997).
 
 .. _Kumar1:
-
-
 
 **(Kumar)** Kumar and Higdon, Phys Rev E, 82, 051401 (2010).  See also
 his thesis for more details: A. Kumar, "Microscale Dynamics in

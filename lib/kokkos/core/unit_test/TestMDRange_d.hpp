@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -41,25 +42,26 @@
 //@HEADER
 */
 
-#include<TestMDRange.hpp>
+#include <TestMDRange.hpp>
 
 namespace Test {
 
-TEST_F( TEST_CATEGORY , mdrange_3d) {
-  TestMDRange_3D< TEST_EXECSPACE >::test_for3( 1, 10, 100 );
-  TestMDRange_3D< TEST_EXECSPACE >::test_for3( 100, 10, 100 );
-#if !defined( KOKKOS_ENABLE_ROCM ) // MDRange Reduced explicitly handled in its own cpp file
-  TestMDRange_3D< TEST_EXECSPACE >::test_reduce3( 1, 10, 100 );
-  TestMDRange_3D< TEST_EXECSPACE >::test_reduce3( 100, 10, 100 );
+TEST(TEST_CATEGORY, mdrange_3d) {
+  TestMDRange_3D<TEST_EXECSPACE>::test_for3(1, 10, 100);
+  TestMDRange_3D<TEST_EXECSPACE>::test_for3(100, 10, 100);
+#if !defined(KOKKOS_ENABLE_ROCM)  // MDRange Reduced explicitly handled in its
+                                  // own cpp file
+  TestMDRange_3D<TEST_EXECSPACE>::test_reduce3(1, 10, 100);
+  TestMDRange_3D<TEST_EXECSPACE>::test_reduce3(100, 10, 100);
 #endif
 }
 
-TEST_F( TEST_CATEGORY , mdrange_neg_idx ) {
-  TestMDRange_2D_NegIdx< TEST_EXECSPACE >::test_2D_negidx( 128, 32 );
-  TestMDRange_3D_NegIdx< TEST_EXECSPACE >::test_3D_negidx( 128, 32, 8 );
-  TestMDRange_4D_NegIdx< TEST_EXECSPACE >::test_4D_negidx( 128, 32, 8, 8 );
-  TestMDRange_5D_NegIdx< TEST_EXECSPACE >::test_5D_negidx( 128, 32, 8, 8, 4 );
-  TestMDRange_6D_NegIdx< TEST_EXECSPACE >::test_6D_negidx( 128, 32, 8, 8, 4, 2 );
+TEST(TEST_CATEGORY, mdrange_neg_idx) {
+  TestMDRange_2D_NegIdx<TEST_EXECSPACE>::test_2D_negidx(128, 32);
+  TestMDRange_3D_NegIdx<TEST_EXECSPACE>::test_3D_negidx(128, 32, 8);
+  TestMDRange_4D_NegIdx<TEST_EXECSPACE>::test_4D_negidx(128, 32, 8, 8);
+  TestMDRange_5D_NegIdx<TEST_EXECSPACE>::test_5D_negidx(128, 32, 8, 8, 4);
+  TestMDRange_6D_NegIdx<TEST_EXECSPACE>::test_6D_negidx(128, 32, 8, 8, 4, 2);
 }
 
-}
+}  // namespace Test

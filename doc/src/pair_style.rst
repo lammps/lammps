@@ -6,7 +6,6 @@ pair_style command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style args
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -65,29 +63,27 @@ pairwise interaction between two atoms separated by a distance *r*\ .
 The force between the atoms is the negative derivative of this
 expression.
 
-If the pair\_style command has a cutoff argument, it sets global
+If the pair_style command has a cutoff argument, it sets global
 cutoffs for all pairs of atom types.  The distance(s) can be smaller
 or larger than the dimensions of the simulation box.
 
 Typically, the global cutoff value can be overridden for a specific
 pair of atom types by the :doc:`pair_coeff <pair_coeff>` command.  The
 pair style settings (including global cutoffs) can be changed by a
-subsequent pair\_style command using the same style.  This will reset
+subsequent pair_style command using the same style.  This will reset
 the cutoffs for all atom type pairs, including those previously set
 explicitly by a :doc:`pair_coeff <pair_coeff>` command.  The exceptions
-to this are that pair\_style *table* and *hybrid* settings cannot be
-reset.  A new pair\_style command for these styles will wipe out all
-previously specified pair\_coeff values.
-
+to this are that pair_style *table* and *hybrid* settings cannot be
+reset.  A new pair_style command for these styles will wipe out all
+previously specified pair_coeff values.
 
 ----------
-
 
 Here is an alphabetic list of pair styles defined in LAMMPS.  They are
 also listed in more compact form on the :doc:`Commands pair <Commands_pair>` doc page.
 
 Click on the style to display the formula it computes, any additional
-arguments specified in the pair\_style command, and coefficients
+arguments specified in the pair_style command, and coefficients
 specified by the associated :doc:`pair_coeff <pair_coeff>` command.
 
 There are also additional accelerated pair styles included in the
@@ -115,39 +111,41 @@ accelerated styles exist.
 * :doc:`born <pair_born>` - Born-Mayer-Huggins potential
 * :doc:`born/coul/dsf <pair_born>` - Born with damped-shifted-force model
 * :doc:`born/coul/dsf/cs <pair_cs>` - Born with damped-shifted-force and core/shell model
-* :doc:`born/coul/long <pair_born>` - Born with long-range Coulombics
-* :doc:`born/coul/long/cs <pair_cs>` - Born with long-range Coulombics and core/shell
-* :doc:`born/coul/msm <pair_born>` - Born with long-range MSM Coulombics
-* :doc:`born/coul/wolf <pair_born>` - Born with Wolf potential for Coulombics
-* :doc:`born/coul/wolf/cs <pair_cs>` - Born with Wolf potential for Coulombics and core/shell model
+* :doc:`born/coul/long <pair_born>` - Born with long-range Coulomb
+* :doc:`born/coul/long/cs <pair_cs>` - Born with long-range Coulomb and core/shell
+* :doc:`born/coul/msm <pair_born>` - Born with long-range MSM Coulomb
+* :doc:`born/coul/wolf <pair_born>` - Born with Wolf potential for Coulomb
+* :doc:`born/coul/wolf/cs <pair_cs>` - Born with Wolf potential for Coulomb and core/shell model
 * :doc:`brownian <pair_brownian>` - Brownian potential for Fast Lubrication Dynamics
 * :doc:`brownian/poly <pair_brownian>` - Brownian potential for Fast Lubrication Dynamics with polydispersity
 * :doc:`buck <pair_buck>` - Buckingham potential
 * :doc:`buck/coul/cut <pair_buck>` - Buckingham with cutoff Coulomb
-* :doc:`buck/coul/long <pair_buck>` - Buckingham with long-range Coulombics
-* :doc:`buck/coul/long/cs <pair_cs>` - Buckingham with long-range Coulombics and core/shell
-* :doc:`buck/coul/msm <pair_buck>` - Buckingham with long-range MSM Coulombics
-* :doc:`buck/long/coul/long <pair_buck_long>` - long-range Buckingham with long-range Coulombics
+* :doc:`buck/coul/long <pair_buck>` - Buckingham with long-range Coulomb
+* :doc:`buck/coul/long/cs <pair_cs>` - Buckingham with long-range Coulomb and core/shell
+* :doc:`buck/coul/msm <pair_buck>` - Buckingham with long-range MSM Coulomb
+* :doc:`buck/long/coul/long <pair_buck_long>` - long-range Buckingham with long-range Coulomb
 * :doc:`buck/mdf <pair_mdf>` - Buckingham with a taper function
 * :doc:`buck6d/coul/gauss/dsf <pair_buck6d_coul_gauss>` - dispersion-damped Buckingham with damped-shift-force model
-* :doc:`buck6d/coul/gauss/long <pair_buck6d_coul_gauss>` - dispersion-damped Buckingham with long-range Coulombics
+* :doc:`buck6d/coul/gauss/long <pair_buck6d_coul_gauss>` - dispersion-damped Buckingham with long-range Coulomb
 * :doc:`colloid <pair_colloid>` - integrated colloidal potential
 * :doc:`comb <pair_comb>` - charge-optimized many-body (COMB) potential
 * :doc:`comb3 <pair_comb>` - charge-optimized many-body (COMB3) potential
 * :doc:`cosine/squared <pair_cosine_squared>` - Cooke-Kremer-Deserno membrane model potential
-* :doc:`coul/cut <pair_coul>` - cutoff Coulombic potential
-* :doc:`coul/cut/soft <pair_fep_soft>` - Coulombic potential with a soft core
-* :doc:`coul/debye <pair_coul>` - cutoff Coulombic potential with Debye screening
+* :doc:`coul/cut <pair_coul>` - cutoff Coulomb potential
+* :doc:`coul/cut/soft <pair_fep_soft>` - Coulomb potential with a soft core
+* :doc:`coul/debye <pair_coul>` - cutoff Coulomb potential with Debye screening
 * :doc:`coul/diel <pair_coul_diel>` - Coulomb potential with dielectric permittivity
-* :doc:`coul/dsf <pair_coul>` - Coulombics with damped-shifted-force model
-* :doc:`coul/long <pair_coul>` - long-range Coulombic potential
-* :doc:`coul/long/cs <pair_cs>` - long-range Coulombic potential and core/shell
-* :doc:`coul/long/soft <pair_fep_soft>` - long-range Coulombic potential with a soft core
-* :doc:`coul/msm <pair_coul>` - long-range MSM Coulombics
-* :doc:`coul/shield <pair_coul_shield>` - Coulombics for boron nitride for use with :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>` potential
-* :doc:`coul/streitz <pair_coul>` - Coulombics via Streitz/Mintmire Slater orbitals
-* :doc:`coul/wolf <pair_coul>` - Coulombics via Wolf potential
-* :doc:`coul/wolf/cs <pair_cs>` - ditto with core/shell adjustments
+* :doc:`coul/dsf <pair_coul>` - Coulomb with damped-shifted-force model
+* :doc:`coul/long <pair_coul>` - long-range Coulomb potential
+* :doc:`coul/long/cs <pair_cs>` - long-range Coulomb potential and core/shell
+* :doc:`coul/long/soft <pair_fep_soft>` - long-range Coulomb potential with a soft core
+* :doc:`coul/msm <pair_coul>` - long-range MSM Coulomb
+* :doc:`coul/slater/cut <pair_coul>` - smeared out Coulomb
+* :doc:`coul/slater/long <pair_coul>` - long-range smeared out Coulomb
+* :doc:`coul/shield <pair_coul_shield>` - Coulomb for boron nitride for use with :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>` potential
+* :doc:`coul/streitz <pair_coul>` - Coulomb via Streitz/Mintmire Slater orbitals
+* :doc:`coul/wolf <pair_coul>` - Coulomb via Wolf potential
+* :doc:`coul/wolf/cs <pair_cs>` - Coulomb via Wolf potential with core/shell adjustments
 * :doc:`dpd <pair_dpd>` - dissipative particle dynamics (DPD)
 * :doc:`dpd/fdt <pair_dpd_fdt>` - DPD for constant temperature and pressure
 * :doc:`dpd/fdt/energy <pair_dpd_fdt>` - DPD for constant energy and enthalpy
@@ -162,7 +160,7 @@ accelerated styles exist.
 * :doc:`eam/fs <pair_eam>` - Finnis-Sinclair EAM
 * :doc:`edip <pair_edip>` - three-body EDIP potential
 * :doc:`edip/multi <pair_edip>` - multi-element EDIP potential
-* :doc:`edpd <pair_meso>` - eDPD particle interactions
+* :doc:`edpd <pair_mesodpd>` - eDPD particle interactions
 * :doc:`eff/cut <pair_eff>` - electron force field with a cutoff
 * :doc:`eim <pair_eim>` - embedded ion method (EIM)
 * :doc:`exp6/rx <pair_exp6_rx>` - reactive DPD potential
@@ -191,44 +189,45 @@ accelerated styles exist.
 * :doc:`lj/charmm/coul/charmm/implicit <pair_charmm>` - CHARMM for implicit solvent
 * :doc:`lj/charmm/coul/long <pair_charmm>` - CHARMM with long-range Coulomb
 * :doc:`lj/charmm/coul/long/soft <pair_fep_soft>` - CHARMM with long-range Coulomb and a soft core
-* :doc:`lj/charmm/coul/msm <pair_charmm>` - CHARMM with long-range MSM Coulombics
+* :doc:`lj/charmm/coul/msm <pair_charmm>` - CHARMM with long-range MSM Coulomb
 * :doc:`lj/charmmfsw/coul/charmmfsh <pair_charmm>` - CHARMM with force switching and shifting
-* :doc:`lj/charmmfsw/coul/long <pair_charmm>` - CHARMM with force switching and long-rnage Coulombics
-* :doc:`lj/class2 <pair_class2>` - COMPASS (class 2) force field with no Coulomb
+* :doc:`lj/charmmfsw/coul/long <pair_charmm>` - CHARMM with force switching and long-rnage Coulomb
+* :doc:`lj/class2 <pair_class2>` - COMPASS (class 2) force field without Coulomb
 * :doc:`lj/class2/coul/cut <pair_class2>` - COMPASS with cutoff Coulomb
 * :doc:`lj/class2/coul/cut/soft <pair_fep_soft>` - COMPASS with cutoff Coulomb with a soft core
 * :doc:`lj/class2/coul/long <pair_class2>` - COMPASS with long-range Coulomb
+* :doc:`lj/class2/coul/long/cs <pair_cs>` - COMPASS with long-range Coulomb with core/shell adjustments
 * :doc:`lj/class2/coul/long/soft <pair_fep_soft>` - COMPASS with long-range Coulomb with a soft core
 * :doc:`lj/class2/soft <pair_fep_soft>` - COMPASS (class 2) force field with no Coulomb with a soft core
 * :doc:`lj/cubic <pair_lj_cubic>` - LJ with cubic after inflection point
-* :doc:`lj/cut <pair_lj>` - cutoff Lennard-Jones potential with no Coulomb
+* :doc:`lj/cut <pair_lj>` - cutoff Lennard-Jones potential without Coulomb
 * :doc:`lj/cut/coul/cut <pair_lj>` - LJ with cutoff Coulomb
 * :doc:`lj/cut/coul/cut/soft <pair_fep_soft>` - LJ with cutoff Coulomb with a soft core
 * :doc:`lj/cut/coul/debye <pair_lj>` - LJ with Debye screening added to Coulomb
-* :doc:`lj/cut/coul/dsf <pair_lj>` - LJ with Coulombics via damped shifted forces
-* :doc:`lj/cut/coul/long <pair_lj>` - LJ with long-range Coulombics
-* :doc:`lj/cut/coul/long/cs <pair_cs>` - ditto with core/shell adjustments
-* :doc:`lj/cut/coul/long/soft <pair_fep_soft>` - LJ with long-range Coulombics with a soft core
-* :doc:`lj/cut/coul/msm <pair_lj>` - LJ with long-range MSM Coulombics
-* :doc:`lj/cut/coul/wolf <pair_lj>` - LJ with Coulombics via Wolf potential
+* :doc:`lj/cut/coul/dsf <pair_lj>` - LJ with Coulomb via damped shifted forces
+* :doc:`lj/cut/coul/long <pair_lj>` - LJ with long-range Coulomb
+* :doc:`lj/cut/coul/long/cs <pair_cs>` - LJ with long-range Coulomb with core/shell adjustments
+* :doc:`lj/cut/coul/long/soft <pair_fep_soft>` - LJ with long-range Coulomb with a soft core
+* :doc:`lj/cut/coul/msm <pair_lj>` - LJ with long-range MSM Coulomb
+* :doc:`lj/cut/coul/wolf <pair_lj>` - LJ with Coulomb via Wolf potential
 * :doc:`lj/cut/dipole/cut <pair_dipole>` - point dipoles with cutoff
 * :doc:`lj/cut/dipole/long <pair_dipole>` - point dipoles with long-range Ewald
 * :doc:`lj/cut/soft <pair_fep_soft>` - LJ with a soft core
-* :doc:`lj/cut/thole/long <pair_thole>` - LJ with Coulombics with thole damping
+* :doc:`lj/cut/thole/long <pair_thole>` - LJ with Coulomb with thole damping
 * :doc:`lj/cut/tip4p/cut <pair_lj>` - LJ with cutoff Coulomb for TIP4P water
 * :doc:`lj/cut/tip4p/long <pair_lj>` - LJ with long-range Coulomb for TIP4P water
 * :doc:`lj/cut/tip4p/long/soft <pair_fep_soft>` - LJ with cutoff Coulomb for TIP4P water with a soft core
 * :doc:`lj/expand <pair_lj_expand>` - Lennard-Jones for variable size particles
-* :doc:`lj/expand/coul/long <pair_lj_expand>` - Lennard-Jones for variable size particles with long-range Coulombics
+* :doc:`lj/expand/coul/long <pair_lj_expand>` - Lennard-Jones for variable size particles with long-range Coulomb
 * :doc:`lj/gromacs <pair_gromacs>` - GROMACS-style Lennard-Jones potential
-* :doc:`lj/gromacs/coul/gromacs <pair_gromacs>` - GROMACS-style LJ and Coulombic potential
-* :doc:`lj/long/coul/long <pair_lj_long>` - long-range LJ and long-range Coulombics
+* :doc:`lj/gromacs/coul/gromacs <pair_gromacs>` - GROMACS-style LJ and Coulomb potential
+* :doc:`lj/long/coul/long <pair_lj_long>` - long-range LJ and long-range Coulomb
 * :doc:`lj/long/dipole/long <pair_dipole>` - long-range LJ and long-range point dipoles
-* :doc:`lj/long/tip4p/long <pair_lj_long>` - long-range LJ and long-range Coulombics for TIP4P water
+* :doc:`lj/long/tip4p/long <pair_lj_long>` - long-range LJ and long-range Coulomb for TIP4P water
 * :doc:`lj/mdf <pair_mdf>` - LJ potential with a taper function
 * :doc:`lj/sdk <pair_sdk>` - LJ for SDK coarse-graining
-* :doc:`lj/sdk/coul/long <pair_sdk>` - LJ for SDK coarse-graining with long-range Coulombics
-* :doc:`lj/sdk/coul/msm <pair_sdk>` - LJ for SDK coarse-graining with long-range Coulombics via MSM
+* :doc:`lj/sdk/coul/long <pair_sdk>` - LJ for SDK coarse-graining with long-range Coulomb
+* :doc:`lj/sdk/coul/msm <pair_sdk>` - LJ for SDK coarse-graining with long-range Coulomb via MSM
 * :doc:`lj/sf/dipole/sf <pair_dipole>` - LJ with dipole interaction with shifted forces
 * :doc:`lj/smooth <pair_lj_smooth>` - smoothed Lennard-Jones potential
 * :doc:`lj/smooth/linear <pair_lj_smooth_linear>` - linear smoothed LJ potential
@@ -239,8 +238,8 @@ accelerated styles exist.
 * :doc:`lubricate/poly <pair_lubricate>` - hydrodynamic lubrication forces with polydispersity
 * :doc:`lubricateU <pair_lubricateU>` - hydrodynamic lubrication forces for Fast Lubrication Dynamics
 * :doc:`lubricateU/poly <pair_lubricateU>` - hydrodynamic lubrication forces for Fast Lubrication with polydispersity
-* :doc:`mdpd <pair_meso>` - mDPD particle interactions
-* :doc:`mdpd/rhosum <pair_meso>` - mDPD particle interactions for mass density
+* :doc:`mdpd <pair_mesodpd>` - mDPD particle interactions
+* :doc:`mdpd/rhosum <pair_mesodpd>` - mDPD particle interactions for mass density
 * :doc:`meam/c <pair_meamc>` - modified embedded atom method (MEAM) in C
 * :doc:`meam/spline <pair_meam_spline>` - splined version of MEAM
 * :doc:`meam/sw/spline <pair_meam_sw_spline>` - splined version of MEAM with a Stillinger-Weber term
@@ -257,7 +256,7 @@ accelerated styles exist.
 * :doc:`nb3b/harmonic <pair_nb3b_harmonic>` - non-bonded 3-body harmonic potential
 * :doc:`nm/cut <pair_nm>` - N-M potential
 * :doc:`nm/cut/coul/cut <pair_nm>` - N-M potential with cutoff Coulomb
-* :doc:`nm/cut/coul/long <pair_nm>` - N-M potential with long-range Coulombics
+* :doc:`nm/cut/coul/long <pair_nm>` - N-M potential with long-range Coulomb
 * :doc:`oxdna/coaxstk <pair_oxdna>` -
 * :doc:`oxdna/excv <pair_oxdna>` -
 * :doc:`oxdna/hbond <pair_oxdna>` -
@@ -309,7 +308,7 @@ accelerated styles exist.
 * :doc:`sw <pair_sw>` - Stillinger-Weber 3-body potential
 * :doc:`table <pair_table>` - tabulated pair potential
 * :doc:`table/rx <pair_table_rx>` -
-* :doc:`tdpd <pair_meso>` - tDPD particle interactions
+* :doc:`tdpd <pair_mesodpd>` - tDPD particle interactions
 * :doc:`tersoff <pair_tersoff>` - Tersoff 3-body potential
 * :doc:`tersoff/mod <pair_tersoff_mod>` - modified Tersoff 3-body potential
 * :doc:`tersoff/mod/c <pair_tersoff_mod>` -
@@ -317,7 +316,7 @@ accelerated styles exist.
 * :doc:`tersoff/zbl <pair_tersoff_zbl>` - Tersoff/ZBL 3-body potential
 * :doc:`thole <pair_thole>` - Coulomb interactions with thole damping
 * :doc:`tip4p/cut <pair_coul>` - Coulomb for TIP4P water w/out LJ
-* :doc:`tip4p/long <pair_coul>` - long-range Coulombics for TIP4P water w/out LJ
+* :doc:`tip4p/long <pair_coul>` - long-range Coulomb for TIP4P water w/out LJ
 * :doc:`tip4p/long/soft <pair_fep_soft>` -
 * :doc:`tri/lj <pair_tri_lj>` - LJ potential between triangles
 * :doc:`ufm <pair_ufm>` -
@@ -327,13 +326,10 @@ accelerated styles exist.
 * :doc:`yukawa/colloid <pair_yukawa_colloid>` - screened Yukawa potential for finite-size particles
 * :doc:`zbl <pair_zbl>` - Ziegler-Biersack-Littmark potential
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command must be used before any coefficients are set by the
 :doc:`pair_coeff <pair_coeff>`, :doc:`read_data <read_data>`, or
@@ -352,7 +348,6 @@ Related commands
 
 Default
 """""""
-
 
 .. code-block:: LAMMPS
 

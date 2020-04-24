@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 
-#Program fitting the exchange interaction
-#Model curve: Bethe-Slater function
 import numpy as np, pylab, tkinter
 import matplotlib.pyplot as plt
 import mpmath as mp
-# from scipy.optimize import curve_fit
-# from decimal import *
 
 mub=5.78901e-5          # Bohr magneton (eV/T)
 kb=8.617333262145e-5    # Boltzman constant (eV/K)
@@ -24,4 +20,3 @@ tf=20.0
 for i in range (0,npoints): 
     temp=ti+i*(tf-ti)/npoints
     print('%lf %lf %lf' % (temp,func(temp),-g*mub*Hz*func(temp)))
-

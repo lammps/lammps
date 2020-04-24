@@ -6,7 +6,6 @@ pair_style sph/rhosum command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style sph/rhosum Nstep
@@ -15,7 +14,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -37,9 +35,7 @@ above.
 
 * h (distance units)
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -49,8 +45,8 @@ I,J pairs must be specified explicitly.
 This style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
-This style does not write information to :doc:`binary restart files <restart>`.  Thus, you need to re-specify the pair\_style and
-pair\_coeff commands in an input script that reads a restart file.
+This style does not write information to :doc:`binary restart files <restart>`.  Thus, you need to re-specify the pair_style and
+pair_coeff commands in an input script that reads a restart file.
 
 This style can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  It does not support the *inner*\ ,
 *middle*\ , *outer* keywords.
@@ -58,13 +54,12 @@ This style can only be used via the *pair* keyword of the :doc:`run_style respa 
 Restrictions
 """"""""""""
 
-
 This pair style is part of the USER-SPH package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`, pair\_sph/taitwater
+:doc:`pair_coeff <pair_coeff>`, pair_sph/taitwater
 
 **Default:** none

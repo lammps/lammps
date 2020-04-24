@@ -6,7 +6,6 @@ print command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    print string keyword value
@@ -14,21 +13,18 @@ Syntax
 * string = text string to print, which may contain variables
 * zero or more keyword/value pairs may be appended
 * keyword = *file* or *append* or *screen* or *universe*
-  
+
   .. parsed-literal::
-  
+
        *file* value = filename
        *append* value = filename
        *screen* value = *yes* or *no*
        *universe* value = *yes* or *no*
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    print "Done with equilibration" file info.dat
    print Vol=$v append info.dat screen no

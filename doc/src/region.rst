@@ -6,16 +6,15 @@ region command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    region ID style args keyword arg ...
 
 * ID = user-assigned name for the region
 * style = *delete* or *block* or *cone* or *cylinder* or *plane* or *prism* or *sphere* or *union* or *intersect*
-  
+
   .. parsed-literal::
-  
+
        *delete* = no args
        *block* args = xlo xhi ylo yhi zlo zhi
          xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all dimensions (distance units)
@@ -51,9 +50,9 @@ Syntax
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *side* or *units* or *move* or *rotate* or *open*
-  
+
   .. parsed-literal::
-  
+
        *side* value = *in* or *out*
          *in* = the region is inside the specified geometry
          *out* = the region is outside the specified geometry
@@ -70,12 +69,10 @@ Syntax
 
 * accelerated styles (with same args) = *block/kk*
 
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    region 1 block -3.0 5.0 INF 10.0 INF INF
    region 2 sphere 0.0 0.0 0.0 5 side out
@@ -189,7 +186,7 @@ geometrically equivalent.
 
 The *radius* value for style *sphere* and *cylinder* can be specified
 as an equal-style :doc:`variable <variable>`.  If the value is a
-variable, it should be specified as v\_name, where name is the variable
+variable, it should be specified as v_name, where name is the variable
 name.  In this case, the variable will be evaluated each timestep, and
 its value used to determine the radius of the region. For style *sphere*
 also the x-, y-, and z- coordinate of the center of the sphere and for
@@ -218,9 +215,7 @@ consisting of the volume that is common to all the listed regions.
    from their list of sub-regions.  Thus you cannot delete the
    sub-regions after defining a *union* or *intersection* region.
 
-
 ----------
-
 
 The *side* keyword determines whether the region is considered to be
 inside or outside of the specified geometry.  Using this keyword in
@@ -266,9 +261,7 @@ define the lattice spacings which are used as follows:
   applied to the sphere center x,y,z.  The spacing in dimension x is
   applied to the sphere radius.
 
-
 ----------
-
 
 If the *move* or *rotate* keywords are used, the region is "dynamic",
 meaning its location or orientation changes with time.  These keywords
@@ -280,7 +273,7 @@ point), though this is not a requirement.
 
 The *move* keyword allows one or more :doc:`equal-style variables <variable>` to be used to specify the x,y,z displacement
 of the region, typically as a function of time.  A variable is
-specified as v\_name, where name is the variable name.  Any of the
+specified as v_name, where name is the variable name.  Any of the
 three variables can be specified as NULL, in which case no
 displacement is calculated in that dimension.
 
@@ -296,8 +289,7 @@ For example, these commands would displace a region from its initial
 position, in the positive x direction, effectively at a constant
 velocity:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable dx equal ramp(0,10)
    region 2 sphere 10.0 10.0 0.0 5 move v_dx NULL NULL
@@ -307,17 +299,16 @@ Note that the initial displacement is 0.0, though that is not required.
 Either of these variables would "wiggle" the region back and forth in
 the y direction:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable dy equal swiggle(0,5,100)
-   variable dysame equal 5\*sin(2\*PI\*elaplong\*dt/100)
+   variable dysame equal 5*sin(2*PI*elaplong*dt/100)
    region 2 sphere 10.0 10.0 0.0 5 move NULL v_dy NULL
 
 The *rotate* keyword rotates the region around a rotation axis *R* =
 (Rx,Ry,Rz) that goes through a point *P* = (Px,Py,Pz).  The rotation
 angle is calculated, presumably as a function of time, by a variable
-specified as v\_theta, where theta is the variable name.  The variable
+specified as v_theta, where theta is the variable name.  The variable
 should generate its result in radians.  The direction of rotation for
 the region around the rotation axis is consistent with the right-hand
 rule: if your right-hand thumb points along *R*\ , then your fingers
@@ -327,9 +318,7 @@ The *move* and *rotate* keywords can be used together.  In this case,
 the displacement specified by the *move* keyword is applied to the *P*
 point of the *rotate* keyword.
 
-
 ----------
-
 
 The *open* keyword can be used (multiple times) to indicate that one
 or more faces of the region are ignored for purposes of particle/wall
@@ -380,9 +369,7 @@ For all other styles, the *open* keyword is ignored.  As indicated
 above, this includes the *intersect* and *union* regions, though their
 sub-regions can be defined with the *open* keyword.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -405,13 +392,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 A prism cannot be of 0.0 thickness in any dimension; use a small z
 thickness for 2d simulations.  For 2d simulations, the xz and yz

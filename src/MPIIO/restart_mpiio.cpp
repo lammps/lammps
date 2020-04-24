@@ -120,7 +120,7 @@ void RestartMPIIO::write(MPI_Offset headerOffset, int send_size, double *buf)
    if the consolidated chunksize is greater than INT_MAX
      can only happen in extreme situation of reading restart file on
      much fewer ranks than written and with relatively large data sizes
-   follow the collective IO call with rank independant IO to read remaining data
+   follow the collective IO call with rank independent IO to read remaining data
 ------------------------------------------------------------------------- */
 
 void RestartMPIIO::read(MPI_Offset chunkOffset, bigint chunkSize, double *buf)

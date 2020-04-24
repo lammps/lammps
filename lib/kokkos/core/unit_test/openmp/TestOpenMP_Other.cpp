@@ -3,10 +3,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -24,10 +25,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -42,22 +43,21 @@
 //@HEADER
 */
 
-#include<openmp/TestOpenMP_Category.hpp>
-#include<TestTemplateMetaFunctions.hpp>
-#include<TestAggregate.hpp>
-#include<TestMemoryPool.hpp>
-#include<TestCXX11.hpp>
-#include<TestTile.hpp>
+#include <openmp/TestOpenMP_Category.hpp>
+#include <TestTemplateMetaFunctions.hpp>
+#include <TestAggregate.hpp>
+#include <TestMemoryPool.hpp>
+#include <TestCXX11.hpp>
+#include <TestTile.hpp>
 
-#include<TestViewCtorPropEmbeddedDim.hpp>
-#include<TestViewLayoutTiled.hpp>
+#include <TestViewCtorPropEmbeddedDim.hpp>
+#include <TestViewLayoutTiled.hpp>
 
 #include <mutex>
 
 namespace Test {
 
-TEST_F( openmp, partition_master )
-{
+TEST(openmp, partition_master) {
   using Mutex = Kokkos::Experimental::MasterLock<Kokkos::OpenMP>;
 
   Mutex mtx;
@@ -73,13 +73,13 @@ TEST_F( openmp, partition_master )
 
     {
       std::unique_lock<Mutex> lock(mtx);
-      if ( Kokkos::OpenMP::in_parallel() ) {
+      if (Kokkos::OpenMP::in_parallel()) {
         ++errors;
       }
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-      if ( Kokkos::OpenMP::thread_pool_rank() != 0 )
+      if (Kokkos::OpenMP::thread_pool_rank() != 0)
 #else
-      if ( Kokkos::OpenMP::impl_thread_pool_rank() != 0 )
+      if (Kokkos::OpenMP::impl_thread_pool_rank() != 0)
 #endif
       {
         ++errors;
@@ -88,68 +88,67 @@ TEST_F( openmp, partition_master )
 
     {
       int local_errors = 0;
-      Kokkos::parallel_reduce( Kokkos::RangePolicy<Kokkos::OpenMP>(0,1000)
-                           , [pool_size]( const int , int & errs ) {
+      Kokkos::parallel_reduce(
+          Kokkos::RangePolicy<Kokkos::OpenMP>(0, 1000),
+          [pool_size](const int, int& errs) {
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-          if ( Kokkos::OpenMP::thread_pool_size() != pool_size )
+            if (Kokkos::OpenMP::thread_pool_size() != pool_size)
 #else
-          if ( Kokkos::OpenMP::impl_thread_pool_size() != pool_size )
+            if (Kokkos::OpenMP::impl_thread_pool_size() != pool_size)
 #endif
-          {
-            ++errs;
-          }
-        }
-        , local_errors
-      );
-      Kokkos::atomic_add( &errors, local_errors );
+            {
+              ++errs;
+            }
+          },
+          local_errors);
+      Kokkos::atomic_add(&errors, local_errors);
     }
 
-    Kokkos::Experimental::UniqueToken< Kokkos::OpenMP > token;
+    Kokkos::Experimental::UniqueToken<Kokkos::OpenMP> token;
 
-    Kokkos::View<int*, Kokkos::OpenMP> count( "",  token.size() );
+    Kokkos::View<int*, Kokkos::OpenMP> count("", token.size());
 
-    Kokkos::parallel_for( Kokkos::RangePolicy<Kokkos::OpenMP>(0,1000),
-        [=] ( const int ) {
-      int i = token.acquire();
-      ++count[i];
-      token.release(i);
-    });
+    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::OpenMP>(0, 1000),
+                         [=](const int) {
+                           int i = token.acquire();
+                           ++count[i];
+                           token.release(i);
+                         });
 
-    Kokkos::View<int,Kokkos::OpenMP> sum ("");
-    Kokkos::parallel_for( Kokkos::RangePolicy<Kokkos::OpenMP>(0,token.size()),
-        [=] ( const int i ) {
-      Kokkos::atomic_add( sum.data(), count[i] );
-    });
+    Kokkos::View<int, Kokkos::OpenMP> sum("");
+    Kokkos::parallel_for(
+        Kokkos::RangePolicy<Kokkos::OpenMP>(0, token.size()),
+        [=](const int i) { Kokkos::atomic_add(sum.data(), count[i]); });
 
     if (sum() != 1000) {
-      Kokkos::atomic_add( &errors, 1 );
+      Kokkos::atomic_add(&errors, 1);
     }
   };
 
-  master(0,1);
+  master(0, 1);
 
-  ASSERT_EQ( errors, 0 );
+  ASSERT_EQ(errors, 0);
 
-  Kokkos::OpenMP::partition_master( master );
-  ASSERT_EQ( errors, 0 );
+  Kokkos::OpenMP::partition_master(master);
+  ASSERT_EQ(errors, 0);
 
-  Kokkos::OpenMP::partition_master( master, 4, 0 );
-  ASSERT_EQ( errors, 0 );
+  Kokkos::OpenMP::partition_master(master, 4, 0);
+  ASSERT_EQ(errors, 0);
 
-  Kokkos::OpenMP::partition_master( master, 0, 4 );
-  ASSERT_EQ( errors, 0 );
+  Kokkos::OpenMP::partition_master(master, 0, 4);
+  ASSERT_EQ(errors, 0);
 
-  Kokkos::OpenMP::partition_master( master, 2, 2 );
-  ASSERT_EQ( errors, 0 );
+  Kokkos::OpenMP::partition_master(master, 2, 2);
+  ASSERT_EQ(errors, 0);
 
-  Kokkos::OpenMP::partition_master( master, 8, 0 );
-  ASSERT_EQ( errors, 0 );
+  Kokkos::OpenMP::partition_master(master, 8, 0);
+  ASSERT_EQ(errors, 0);
 
-  Kokkos::OpenMP::partition_master( master, 0, 8 );
-  ASSERT_EQ( errors, 0 );
+  Kokkos::OpenMP::partition_master(master, 0, 8);
+  ASSERT_EQ(errors, 0);
 
-  Kokkos::OpenMP::partition_master( master, 8, 8 );
-  ASSERT_EQ( errors, 0 );
+  Kokkos::OpenMP::partition_master(master, 8, 8);
+  ASSERT_EQ(errors, 0);
 }
 
-} // namespace Test
+}  // namespace Test

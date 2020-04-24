@@ -14,7 +14,10 @@ get_filename_component(LAMMPS_TOOLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../tools ABS
 get_filename_component(LAMMPS_PYTHON_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../python ABSOLUTE)
 get_filename_component(LAMMPS_POTENTIALS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../potentials ABSOLUTE)
 
+include(FeatureSummary)
+
 find_package(Git)
+set_package_properties(Git PROPERTIES TYPE OPTIONAL PURPOSE "Generates version for development version")
 
 # by default, install into $HOME/.local (not /usr/local), so that no root access (and sudo!!) is needed
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -119,6 +122,7 @@ set(STANDARD_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE
 set(SUFFIX_PACKAGES CORESHELL USER-OMP KOKKOS OPT USER-INTEL GPU)
 foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
   option(PKG_${PKG} "Build ${PKG} Package" OFF)
+  add_feature_info(PKG_${PKG} PKG_${PKG} "Enable ${PKG} package")
 endforeach()
 
 ######################################################
@@ -144,6 +148,7 @@ else()
   find_package(MPI QUIET)
   option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
 endif()
+add_feature_info(BUILD_MPI BUILD_MPI "Build MPI version")
 
 if(BUILD_MPI)
   # We use a non-standard procedure to compile with MPI on windows
@@ -153,6 +158,7 @@ if(BUILD_MPI)
   else()
     set(MPI_CXX_SKIP_MPICXX ON)
     find_package(MPI REQUIRED)
+    set_package_properties(MPI PROPERTIES TYPE RECOMMENDED PURPOSE "Used for MPI parallel version")
     target_link_libraries(lammps PUBLIC MPI::MPI_CXX)
     option(LAMMPS_LONGLONG_TO_LONG "Workaround if your system or MPI version does not recognize 'long long' data types" OFF)
     if(LAMMPS_LONGLONG_TO_LONG)
@@ -211,6 +217,7 @@ pkg_depends(USER-SCAFACOS MPI)
 # detect if we may enable OpenMP support by default
 set(BUILD_OMP_DEFAULT OFF)
 find_package(OpenMP QUIET)
+set_package_properties(OpenMP PROPERTIES TYPE RECOMMENDED PURPOSE "Used for thread parallelization")
 if(OpenMP_FOUND)
   check_include_file_cxx(omp.h HAVE_OMP_H_INCLUDE)
   if(HAVE_OMP_H_INCLUDE)
@@ -219,6 +226,7 @@ if(OpenMP_FOUND)
 endif()
 
 option(BUILD_OMP "Build with OpenMP support" ${BUILD_OMP_DEFAULT})
+add_feature_info(BUILD_OMP BUILD_OMP "OpenMP-enabled version")
 
 if(BUILD_OMP)
   find_package(OpenMP REQUIRED)
@@ -655,15 +663,8 @@ include(CodeCoverage)
 ###############################################################################
 # Print package summary
 ###############################################################################
-foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
-  if(PKG_${PKG})
-    message(STATUS "Building package: ${PKG}")
-  endif()
-endforeach()
-
 get_target_property(DEFINES lammps COMPILE_DEFINITIONS)
-include(FeatureSummary)
-feature_summary(DESCRIPTION "The following tools and libraries have been found and configured:" WHAT PACKAGES_FOUND)
+feature_summary(DESCRIPTION "The following tools and libraries have been found and configured:" WHAT PACKAGES_FOUND ENABLED_FEATURES)
 message(STATUS "<<< Build configuration >>>
    Build type:       ${CMAKE_BUILD_TYPE}
    Install path:     ${CMAKE_INSTALL_PREFIX}

@@ -1006,7 +1006,7 @@ class lammps(object):
     :param iz: z-direction image flag
     :type  iz: int
     :return: encoded image flags
-    :rtype: c_int32 or c_int64
+    :rtype: lammps.c_imageint
     """
     self.lib.lammps_encode_image_flags.restype = self.c_imageint
     return self.lib.lammps_encode_image_flags(ix,iy,iz)
@@ -1018,7 +1018,7 @@ class lammps(object):
     function of library interface.
 
     :param image: encoded image flags
-    :type image:  c_int32 or c_int64
+    :type image:  lammps.c_imageint
     :return: list of three image flags in x-, y-, and z- direction
     :rtype: list of 3 int
     """
@@ -1040,30 +1040,77 @@ class lammps(object):
   #   ditto for gather_atoms() above
 
   def create_atoms(self,n,id,type,x,v=None,image=None,shrinkexceed=False):
+    """
+    Create N atoms from list of coordinates and properties
 
+    This function is a wrapper around the :cpp:func:`lammps_create_atoms`
+    function of the C-library interface, and the behavior is similar except
+    that the *v*, *image*, and *shrinkexceed* arguments are optional and
+    default to *None*, *None*, and *False*, respectively. With none being
+    equivalent to a ``NULL`` pointer in C.
+
+    The lists of coordinates, types, atom IDs, velocities, imageflags can
+    be provided in any format that may be converted into the required
+    internal data types.  Also the list may contain more than *N* entries,
+    but not fewer.  In the latter case, the function will return without
+    attempting to create atoms.  You may use the :py:func:`encode_image_flags
+    <lammps.encode_image_flags>` method to properly combine three integers
+    with image flags into a single integer.
+
+    :param n: number of atoms for which data is provided
+    :type n: int
+    :param id: list of atom IDs with at least n elements or None
+    :type id: list of lammps.tagint
+    :param type: list of atom types
+    :type type: list of int
+    :param x: list of coordinates for x-, y-, and z (flat list of 3n entries)
+    :type x: list of float
+    :param v: list of velocities fo x-, y-, and z (flat list of 3n entries) or None (optional)
+    :type v: list of float
+    :param image: list of encoded image flags (optional)
+    :type image: list of lammps.imageint
+    :param shrinkexceed: whether to expand shrinkwrap boundaries if atoms are outside the box (optional)
+    :type shrinkexceed: bool
+    :return: number of atoms created. 0 if insufficient or invalid data
+    :rtype: int
+    """
     if id:
       id_lmp = (self.c_tagint*n)()
-      id_lmp[:] = id[0:n]
-      print([i for i in id_lmp],id_lmp)
+      try:
+        id_lmp[:] = id[0:n]
+      except:
+        return 0
     else:
       id_lmp = None
 
     type_lmp = (c_int*n)()
-    type_lmp[:] = type[0:n]
+    try:
+      type_lmp[:] = type[0:n]
+    except:
+      return 0
 
     three_n = 3*n
     x_lmp = (c_double*three_n)()
-    x_lmp[:] = x[0:three_n]
+    try:
+      x_lmp[:] = x[0:three_n]
+    except:
+      return 0
 
     if v:
       v_lmp = (c_double*(three_n))()
-      v_lmp[:] = v[0:three_n]
+      try:
+        v_lmp[:] = v[0:three_n]
+      except:
+        return 0
     else:
       v_lmp = None
 
     if image:
       img_lmp = (self.c_imageint*n)()
-      img_lmp[:] = image[0:n]
+      try:
+        img_lmp[:] = image[0:n]
+      except:
+        return 0
     else:
       img_lmp = None
 
@@ -1219,7 +1266,6 @@ class lammps(object):
     cCaller = caller
 
     self.callback[fix_name] = { 'function': cFunc, 'caller': caller }
-
     self.lib.lammps_set_fix_external_callback(self.lmp, fix_name.encode(), cFunc, cCaller)
 
   def get_neighlist(self, idx):

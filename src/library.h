@@ -74,9 +74,9 @@ extern "C" {
 
 #if !defined(LAMMPS_LIB_NO_MPI)
 void lammps_open(int, char **, MPI_Comm, void **);
-void lammps_open_fortran(int, char **, MPI_Fint, void **);
 #endif
 void lammps_open_no_mpi(int, char **, void **);
+void lammps_open_fortran(int, char **, int, void **);
 void lammps_close(void *);
 void lammps_finalize();
 int  lammps_version(void *);

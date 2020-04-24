@@ -210,9 +210,9 @@ communicator and then calls :cpp:func:`lammps_open`.
  * \param f_comm Fortran style MPI communicator for this LAMMPS instance.
  * \param handle pointer to a void pointer variable which serves as a handle
  */
-void lammps_open_fortran(int argc, char **argv, MPI_Fint f_comm, void **handle)
+void lammps_open_fortran(int argc, char **argv, int f_comm, void **handle)
 {
-  MPI_Comm c_comm = MPI_Comm_f2c(f_comm);
+  MPI_Comm c_comm = MPI_Comm_f2c((MPI_Fint)f_comm);
   lammps_open(argc, argv, c_comm, handle);
 }
 

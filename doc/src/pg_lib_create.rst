@@ -80,6 +80,11 @@ of the individual commands where such memory buffers were allocated.
 
 -----------------------
 
+.. doxygenfunction:: lammps_open_fortran
+   :project: progguide
+
+-----------------------
+
 .. doxygenfunction:: lammps_close
    :project: progguide
 

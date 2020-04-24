@@ -139,15 +139,15 @@ the ``ptr`` handle is set to a ``NULL`` pointer.
  *
  * \param argc number of command line arguments
  * \param argv list of command line argument strings
- * \param communicator MPI communicator for this LAMMPS instance.
- * \param ptr pointer to a void pointer variable which serves as a handle
+ * \param comm MPI communicator for this LAMMPS instance.
+ * \param ptr  pointer to a void pointer variable which serves as a handle
  */
-void lammps_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
+void lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
 {
 #ifdef LAMMPS_EXCEPTIONS
   try
   {
-    LAMMPS *lmp = new LAMMPS(argc,argv,communicator);
+    LAMMPS *lmp = new LAMMPS(argc,argv,comm);
     *ptr = (void *) lmp;
   }
   catch(LAMMPSException & e) {
@@ -155,7 +155,7 @@ void lammps_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
     *ptr = (void *) NULL;
   }
 #else
-  LAMMPS *lmp = new LAMMPS(argc,argv,communicator);
+  LAMMPS *lmp = new LAMMPS(argc,argv,comm);
   *ptr = (void *) lmp;
 #endif
 }
@@ -163,10 +163,11 @@ void lammps_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
 /** \brief Variant of lammps_open() that implicitly uses ``MPI_COMM_WORLD``
  *
 \verbatim embed:rst
-This function works like :cpp:func:`lammps_open`, but
-does not require to pass an MPI communicator.  Instead it uses
-``MPI_COMM_WORLD`` when creating a LAMMPS instance.  It first calls
-``MPI_Init()`` if the MPI environment is not yet initialized.
+This function is a wrapper around :cpp:func:`lammps_open`, that
+does not require to pass an MPI communicator.  It first calls
+``MPI_Init()`` in case the MPI environment is not yet initialized
+and then passes ``MPI_COMM_WORLD`` as communicator when creating
+the LAMMPS instance with :cpp:func:`lammps_open`.
 
 Outside of the convenience, this function is useful, when the LAMMPS
 library was compiled in serial mode with the MPI ``STUBS`` library,
@@ -183,27 +184,35 @@ void lammps_open_no_mpi(int argc, char **argv, void **handle)
   MPI_Initialized(&flag);
 
   if (!flag) {
-    int argc = 0;
-    char **argv = NULL;
+    // Reset argc and argv for MPI_Init() only.
+    // We may be using a different MPI library in the calling code.
+    int argc = 1;
+    char **argv = { (char *)"liblammps" };
     MPI_Init(&argc,&argv);
   }
 
-  MPI_Comm communicator = MPI_COMM_WORLD;
+  lammps_open(argc,argv,MPI_COMM_WORLD,handle);
+}
 
-#ifdef LAMMPS_EXCEPTIONS
-  try
-  {
-    LAMMPS *lmp = new LAMMPS(argc,argv,communicator);
-    *handle = (void *) lmp;
-  }
-  catch(LAMMPSException & e) {
-    fprintf(stderr, "LAMMPS Exception: %s", e.message.c_str());
-    *handle = (void*) NULL;
-  }
-#else
-  LAMMPS *lmp = new LAMMPS(argc,argv,communicator);
-  *handle = (void *) lmp;
-#endif
+/** \brief Variant of lammps_open() that uses a Fortran style MPI communicator
+ *
+\verbatim embed:rst
+This function is a wrapper around :cpp:func:`lammps_open`, that uses an
+integer representation of the MPI communicator.  This is for example what
+is used when calling :cpp:func:`lammps_open` from Fortran.  It uses the
+``MPI_Comm_f2c()`` function to convert the integer into a C-style MPI
+communicator and then calls :cpp:func:`lammps_open`.
+\endverbatim
+ *
+ * \param argc number of command line arguments
+ * \param argv list of command line argument strings
+ * \param f_comm Fortran style MPI communicator for this LAMMPS instance.
+ * \param handle pointer to a void pointer variable which serves as a handle
+ */
+void lammps_open_fortran(int argc, char **argv, int f_comm, void **handle)
+{
+  MPI_Comm c_comm = MPI_Comm_f2c(c_comm);
+  lammps_open(argc, argv, c_comm, handle);
 }
 
 /** \brief Delete a LAMMPS instance created by lammps_open() or

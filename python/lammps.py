@@ -1049,7 +1049,7 @@ class lammps(object):
     default to *None*, *None*, and *False*, respectively. With none being
     equivalent to a ``NULL`` pointer in C.
 
-    The lists of coordinates, types, atom IDs, velocities, imageflags can
+    The lists of coordinates, types, atom IDs, velocities, image flags can
     be provided in any format that may be converted into the required
     internal data types.  Also the list may contain more than *N* entries,
     but not fewer.  In the latter case, the function will return without
@@ -1065,11 +1065,11 @@ class lammps(object):
     :type type: list of int
     :param x: list of coordinates for x-, y-, and z (flat list of 3n entries)
     :type x: list of float
-    :param v: list of velocities fo x-, y-, and z (flat list of 3n entries) or None (optional)
+    :param v: list of velocities for x-, y-, and z (flat list of 3n entries) or None (optional)
     :type v: list of float
     :param image: list of encoded image flags (optional)
     :type image: list of lammps.imageint
-    :param shrinkexceed: whether to expand shrinkwrap boundaries if atoms are outside the box (optional)
+    :param shrinkexceed: whether to expand shrink-wrap boundaries if atoms are outside the box (optional)
     :type shrinkexceed: bool
     :return: number of atoms created. 0 if insufficient or invalid data
     :rtype: int

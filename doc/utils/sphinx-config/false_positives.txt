@@ -441,6 +441,7 @@ Colvars
 COLVARS
 comID
 Commun
+compositing
 compressibility
 compressive
 Comput
@@ -606,6 +607,7 @@ Derjaguin
 Derlet
 Deserno
 Destree
+destructor
 detils
 Devanathan
 devel

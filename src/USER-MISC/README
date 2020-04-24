@@ -38,6 +38,7 @@ compute momentum, Rupert Nash (University of Edinburgh), r.nash at epcc.ed.ac.uk
 compute stress/mop, Romain Vermorel (U Pau) & Laurent Joly (U Lyon), romain.vermorel at univ-pau.fr & ljoly.ulyon at gmail.com, 5 Sep 18
 compute stress/mop/profile, Romain Vermorel (U Pau) & Laurent Joly (U Lyon), romain.vermorel at univ-pau.fr & ljoly.ulyon at gmail.com, 5 Sep 18
 compute temp/rotate, Laurent Joly (U Lyon), ljoly.ulyon at gmail.com, 8 Aug 11
+compute viscosity/cos, Zheng Gong (ENS de Lyon), z.gong@outlook.com, 24 Aug 20
 compute PRESSURE/GREM, David Stelter, dstelter@bu.edu, 22 Nov 16
 dihedral_style cosine/shift/exp, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
 dihedral_style fourier, Loukas Peristeras, loukas.peristeras at scienomics.com, 27 Oct 12
@@ -46,6 +47,7 @@ dihedral_style quadratic, Loukas Peristeras, loukas.peristeras at scienomics.com
 dihedral_style spherical, Andrew Jewett, jewett.aij@gmail.com, 15 Jul 16
 dihedral_style table, Andrew Jewett, jewett.aij@gmail.com, 10 Jan 12
 dihedral_style table/cut, Mike Salerno, ksalerno@pha.jhu.edu, 11 May 18
+fix accelerate/cos, Zheng Gong (ENS de Lyon), z.gong@outlook.com, 24 Aug 20
 fix addtorque, Laurent Joly (U Lyon), ljoly.ulyon at gmail.com, 8 Aug 11
 fix ave/correlate/long, Jorge Ramirez (UPM Madrid), jorge.ramirez at upm.es, 21 Oct 2015
 fix electron/stopping, Konstantin Avchaciov, k.avchachov at gmail.com, 26 Feb 2019

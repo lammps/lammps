@@ -1,8 +1,0 @@
-This package provides fix and compute styles for calculating viscosity
-with the periodic perturbation method, as described in the following paper:
-    Hess, B. The Journal of Chemical Physics 2002, 116 (1), 209–217.
-
-There is an example script for using this package in examples/USER/viscosity
-
-The person who created this package is Zheng GONG (z.gong@outlook.com)
-at ENS de Lyon.

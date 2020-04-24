@@ -87,7 +87,7 @@ This fix is not invoked during energy minimization.
 Restrictions
 """"""""""""
 
-This command is only available when LAMMPS was built with the USER-VISCOSITY package.
+This command is only available when LAMMPS was built with the USER-MISC package.
 
 Related commands
 """"""""""""""""

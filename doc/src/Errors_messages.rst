@@ -7,7 +7,6 @@ documentation for the offending command may help.  Error messages also
 list the source file and line number where the error was generated.
 For example, a message like this:
 
-
 .. parsed-literal::
 
    ERROR: Illegal velocity command (velocity.cpp:78)
@@ -16,16 +15,12 @@ means that line #78 in the file src/velocity.cpp generated the error.
 Looking in the source code may help you figure out what went wrong.
 
 Note that error messages from :doc:`user-contributed packages <Packages_user>` are not listed here.  If such an error
-occurs and is not self-explanatory, you'll need to look in the source
+occurs and is not self-explanatory, you will need to look in the source
 code or contact the author of the package.
 
 Doc page with :doc:`WARNING messages <Errors_warnings>`
 
-
 ----------
-
-
-
 
 *1-3 bond count is inconsistent*
    An inconsistency was detected when computing the number of 1-3
@@ -44,9 +39,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *All angle coeffs are not set*
    All angle coefficients must be set in the data file or by the
-   angle\_coeff command before running a simulation.
+   angle_coeff command before running a simulation.
 
-*All atom IDs = 0 but atom\_modify id = yes*
+*All atom IDs = 0 but atom_modify id = yes*
    Self-explanatory.
 
 *All atoms of a swapped type must have same charge.*
@@ -57,15 +52,15 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *All bond coeffs are not set*
    All bond coefficients must be set in the data file or by the
-   bond\_coeff command before running a simulation.
+   bond_coeff command before running a simulation.
 
 *All dihedral coeffs are not set*
    All dihedral coefficients must be set in the data file or by the
-   dihedral\_coeff command before running a simulation.
+   dihedral_coeff command before running a simulation.
 
 *All improper coeffs are not set*
    All improper coefficients must be set in the data file or by the
-   improper\_coeff command before running a simulation.
+   improper_coeff command before running a simulation.
 
 *All masses are not set*
    For atom styles that define masses for each atom type, all masses must
@@ -81,9 +76,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *All pair coeffs are not set*
    All pair coefficients must be set in the data file or by the
-   pair\_coeff command before running a simulation.
+   pair_coeff command before running a simulation.
 
-*All read\_dump x,y,z fields must be specified for scaled, triclinic coords*
+*All read_dump x,y,z fields must be specified for scaled, triclinic coords*
    For triclinic boxes and scaled coordinates you must specify all 3 of
    the x,y,z fields, else LAMMPS cannot reconstruct the unscaled
    coordinates.
@@ -94,8 +89,8 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *All variables in next command must be same style*
    Self-explanatory.
 
-*Angle atom missing in delete\_bonds*
-   The delete\_bonds command cannot find one or more atoms in a particular
+*Angle atom missing in delete_bonds*
+   The delete_bonds command cannot find one or more atoms in a particular
    angle on a particular processor.  The pairwise cutoff is too short or
    the atoms are too far apart to make a valid angle.
 
@@ -118,20 +113,20 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Angle coeff for hybrid has invalid style*
    Angle style hybrid uses another angle style as one of its
-   coefficients.  The angle style used in the angle\_coeff command or read
+   coefficients.  The angle style used in the angle_coeff command or read
    from a restart file is not recognized.
 
 *Angle coeffs are not set*
    No angle coefficients have been assigned in the data file or via the
-   angle\_coeff command.
+   angle_coeff command.
 
 *Angle extent > half of periodic box length*
-   This error was detected by the neigh\_modify check yes setting.  It is
+   This error was detected by the neigh_modify check yes setting.  It is
    an error because the angle atoms are so far apart it is ambiguous how
    it should be defined.
 
 *Angle potential must be defined for SHAKE*
-   When shaking angles, an angle\_style potential must be used.
+   When shaking angles, an angle_style potential must be used.
 
 *Angle style hybrid cannot have hybrid as an argument*
    Self-explanatory.
@@ -148,18 +143,18 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Angle table parameters did not set N*
    List of angle table parameters must include N setting.
 
-*Angle\_coeff command before angle\_style is defined*
-   Coefficients cannot be set in the data file or via the angle\_coeff
-   command until an angle\_style has been assigned.
+*Angle_coeff command before angle_style is defined*
+   Coefficients cannot be set in the data file or via the angle_coeff
+   command until an angle_style has been assigned.
 
-*Angle\_coeff command before simulation box is defined*
-   The angle\_coeff command cannot be used before a read\_data,
-   read\_restart, or create\_box command.
+*Angle_coeff command before simulation box is defined*
+   The angle_coeff command cannot be used before a read_data,
+   read_restart, or create_box command.
 
-*Angle\_coeff command when no angles allowed*
+*Angle_coeff command when no angles allowed*
    The chosen atom style does not allow for angles to be defined.
 
-*Angle\_style command when no angles allowed*
+*Angle_style command when no angles allowed*
    The chosen atom style does not allow for angles to be defined.
 
 *Angles assigned incorrectly*
@@ -216,7 +211,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    This is probably because you have lost some atoms.
 
 *Atom in too many rigid bodies - boost MAXBODY*
-   Fix poems has a parameter MAXBODY (in fix\_poems.cpp) which determines
+   Fix poems has a parameter MAXBODY (in fix_poems.cpp) which determines
    the maximum number of rigid bodies a single atom can belong to (i.e. a
    multibody joint).  The bodies you have defined exceed this limit.
 
@@ -247,25 +242,25 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Atom-style variables generate one value per atom which is not allowed
    in an equal-style variable.
 
-*Atom\_modify id command after simulation box is defined*
-   The atom\_modify id command cannot be used after a read\_data,
-   read\_restart, or create\_box command.
+*Atom_modify id command after simulation box is defined*
+   The atom_modify id command cannot be used after a read_data,
+   read_restart, or create_box command.
 
-*Atom\_modify map command after simulation box is defined*
-   The atom\_modify map command cannot be used after a read\_data,
-   read\_restart, or create\_box command.
+*Atom_modify map command after simulation box is defined*
+   The atom_modify map command cannot be used after a read_data,
+   read_restart, or create_box command.
 
-*Atom\_modify sort and first options cannot be used together*
+*Atom_modify sort and first options cannot be used together*
    Self-explanatory.
 
-*Atom\_style command after simulation box is defined*
-   The atom\_style command cannot be used after a read\_data,
-   read\_restart, or create\_box command.
+*Atom_style command after simulation box is defined*
+   The atom_style command cannot be used after a read_data,
+   read_restart, or create_box command.
 
-*Atom\_style line can only be used in 2d simulations*
+*Atom_style line can only be used in 2d simulations*
    Self-explanatory.
 
-*Atom\_style tri can only be used in 3d simulations*
+*Atom_style tri can only be used in 3d simulations*
    Self-explanatory.
 
 *Atomfile variable could not read values*
@@ -306,17 +301,17 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Specified bond type is not valid.
 
 *Bad fix ID in fix append/atoms command*
-   The value of the fix\_id for keyword spatial must start with 'f\_'.
+   The value of the fix_id for keyword spatial must start with "f\_".
 
 *Bad grid of processors*
    The 3d grid of processors defined by the processors command does not
    match the number of processors LAMMPS is being run on.
 
-*Bad kspace\_modify kmax/ewald parameter*
-   Kspace\_modify values for the kmax/ewald keyword must be integers > 0
+*Bad kspace_modify kmax/ewald parameter*
+   Kspace_modify values for the kmax/ewald keyword must be integers > 0
 
-*Bad kspace\_modify slab parameter*
-   Kspace\_modify value for the slab/volume keyword must be >= 2.0.
+*Bad kspace_modify slab parameter*
+   Kspace_modify value for the slab/volume keyword must be >= 2.0.
 
 *Bad matrix inversion in mldivide3*
    This error should not occur unless the matrix is badly formed.
@@ -336,16 +331,16 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    the Newton-Rhaphson method, but found a non-positive or NaN cutoff
 
 *Balance command before simulation box is defined*
-   The balance command cannot be used before a read\_data, read\_restart,
-   or create\_box command.
+   The balance command cannot be used before a read_data, read_restart,
+   or create_box command.
 
 *Balance produced bad splits*
    This should not occur.  It means two or more cutting plane locations
    are on top of each other or out of order.  Report the problem to the
    developers.
 
-*Balance rcb cannot be used with comm\_style brick*
-   Comm\_style tiled must be used instead.
+*Balance rcb cannot be used with comm_style brick*
+   Comm_style tiled must be used instead.
 
 *Balance shift string is invalid*
    The string can only contain the characters "x", "y", or "z".
@@ -372,10 +367,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Bitmapped lookup tables require int/float be same size*
    Cannot use pair tables on this machine, because of word sizes.  Use
-   the pair\_modify command with table 0 instead.
+   the pair_modify command with table 0 instead.
 
 *Bitmapped table in file does not match requested table*
-   Setting for bitmapped table in pair\_coeff command must match table
+   Setting for bitmapped table in pair_coeff command must match table
    in file exactly.
 
 *Bitmapped table is incorrect length in table file*
@@ -390,8 +385,8 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    processor.  Typically this is because the pairwise cutoff is set too
    short or the bond has blown apart and an atom is too far away.
 
-*Bond atom missing in delete\_bonds*
-   The delete\_bonds command cannot find one or more atoms in a particular
+*Bond atom missing in delete_bonds*
+   The delete_bonds command cannot find one or more atoms in a particular
    bond on a particular processor.  The pairwise cutoff is too short or
    the atoms are too far apart to make a valid bond.
 
@@ -417,15 +412,15 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Bond coeff for hybrid has invalid style*
    Bond style hybrid uses another bond style as one of its coefficients.
-   The bond style used in the bond\_coeff command or read from a restart
+   The bond style used in the bond_coeff command or read from a restart
    file is not recognized.
 
 *Bond coeffs are not set*
    No bond coefficients have been assigned in the data file or via the
-   bond\_coeff command.
+   bond_coeff command.
 
 *Bond extent > half of periodic box length*
-   This error was detected by the neigh\_modify check yes setting.  It is
+   This error was detected by the neigh_modify check yes setting.  It is
    an error because the bond atoms are so far apart it is ambiguous how
    it should be defined.
 
@@ -449,7 +444,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    This bond style can change the bond topology which is not
    allowed with this atom style.
 
-*Bond style quartic requires special\_bonds = 1,1,1*
+*Bond style quartic requires special_bonds = 1,1,1*
    This is a restriction of the current bond quartic implementation.
 
 *Bond table parameters did not set N*
@@ -464,18 +459,18 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *BondBond coeff for hybrid angle has invalid format*
    No "bb" field should appear in data file entry.
 
-*Bond\_coeff command before bond\_style is defined*
-   Coefficients cannot be set in the data file or via the bond\_coeff
-   command until an bond\_style has been assigned.
+*Bond_coeff command before bond_style is defined*
+   Coefficients cannot be set in the data file or via the bond_coeff
+   command until an bond_style has been assigned.
 
-*Bond\_coeff command before simulation box is defined*
-   The bond\_coeff command cannot be used before a read\_data,
-   read\_restart, or create\_box command.
+*Bond_coeff command before simulation box is defined*
+   The bond_coeff command cannot be used before a read_data,
+   read_restart, or create_box command.
 
-*Bond\_coeff command when no bonds allowed*
+*Bond_coeff command when no bonds allowed*
    The chosen atom style does not allow for bonds to be defined.
 
-*Bond\_style command when no bonds allowed*
+*Bond_style command when no bonds allowed*
    The chosen atom style does not allow for bonds to be defined.
 
 *Bonds assigned incorrectly*
@@ -486,7 +481,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    The data file header lists bonds but no bond types.
 
 *Bond/react: Cannot use fix bond/react with non-molecular systems*
-   Only systems with bonds that can be changed can be used. Atom\_style
+   Only systems with bonds that can be changed can be used. Atom_style
    template does not qualify.
 
 *Bond/react: Invalid template atom ID in map file*
@@ -509,16 +504,16 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Bond/react: Atom affected by reaction too close to template edge*
    This means an atom which changes type or connectivity during the
-   reaction is too close to an 'edge' atom defined in the superimpose
+   reaction is too close to an 'edge' atom defined in the map
    file. This could cause incorrect assignment of bonds, angle, etc.
    Generally, this means you must include more atoms in your templates,
    such that there are at least two atoms between each atom involved in
    the reaction and an edge atom.
 
 *Bond/react: Fix bond/react needs ghost atoms from farther away*
-   This is because a processor needs to superimpose the entire unreacted
+   This is because a processor needs to map the entire unreacted
    molecule template onto simulation atoms it knows about. The
-   comm\_modify cutoff command can be used to extend the communication
+   comm_modify cutoff command can be used to extend the communication
    range.
 
 *Bond/react: A deleted atom cannot remain bonded to an atom that is not deleted*
@@ -536,12 +531,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Bond/react special bond generation overflow*
    The number of special bonds per-atom created by a reaction exceeds the
-   system setting. See the read\_data or create\_box command for how to
+   system setting. See the read_data or create_box command for how to
    specify this value.
 
 *Bond/react topology/atom exceed system topology/atom*
    The number of bonds, angles etc per-atom created by a reaction exceeds
-   the system setting. See the read\_data or create\_box command for how to
+   the system setting. See the read_data or create_box command for how to
    specify this value.
 
 *Both restart files must use % or neither*
@@ -555,16 +550,16 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    be periodic on both sides.
 
 *Boundary command after simulation box is defined*
-   The boundary command cannot be used after a read\_data, read\_restart,
-   or create\_box command.
+   The boundary command cannot be used after a read_data, read_restart,
+   or create_box command.
 
 *Box bounds are invalid*
-   The box boundaries specified in the read\_data file are invalid.  The
+   The box boundaries specified in the read_data file are invalid.  The
    lo value must be less than the hi value for all 3 dimensions.
 
 *Box command after simulation box is defined*
-   The box command cannot be used after a read\_data, read\_restart, or
-   create\_box command.
+   The box command cannot be used after a read_data, read_restart, or
+   create_box command.
 
 *CPU neighbor lists must be used for ellipsoid/sphere mix.*
    When using Gay-Berne or RE-squared pair styles with both ellipsoidal and
@@ -614,7 +609,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot (yet) use PPPM with triclinic box and TIP4P*
    This feature is not yet supported.
 
-*Cannot (yet) use PPPM with triclinic box and kspace\_modify diff ad*
+*Cannot (yet) use PPPM with triclinic box and kspace_modify diff ad*
    This feature is not yet supported.
 
 *Cannot (yet) use PPPM with triclinic box and slab correction*
@@ -623,10 +618,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot (yet) use kspace slab correction with long-range dipoles and non-neutral systems or per-atom energy*
    This feature is not yet supported.
 
-*Cannot (yet) use kspace\_modify diff ad with compute group/group*
+*Cannot (yet) use kspace_modify diff ad with compute group/group*
    This option is not yet supported.
 
-*Cannot (yet) use kspace\_style pppm/stagger with triclinic systems*
+*Cannot (yet) use kspace_style pppm/stagger with triclinic systems*
    This feature is not yet supported.
 
 *Cannot (yet) use molecular templates with Kokkos*
@@ -641,7 +636,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot (yet) use rigid bodies with fix nh and Kokkos*
    Self-explanatory.
 
-*Cannot (yet) use single precision with MSM (remove -DFFT\_SINGLE from Makefile and re-compile)*
+*Cannot (yet) use single precision with MSM (remove -DFFT_SINGLE from Makefile and re-compile)*
    Single precision cannot be used with MSM.
 
 *Cannot add atoms to fix move variable*
@@ -673,10 +668,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot change box z boundary to non-periodic for a 2d simulation*
    Self-explanatory.
 
-*Cannot change dump\_modify every for dump dcd*
+*Cannot change dump_modify every for dump dcd*
    The frequency of writing dump dcd snapshots cannot be changed.
 
-*Cannot change dump\_modify every for dump xtc*
+*Cannot change dump_modify every for dump xtc*
    The frequency of writing dump xtc snapshots cannot be changed.
 
 *Cannot change timestep once fix srd is setup*
@@ -687,18 +682,18 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    This is because fix pour pre-computes the time delay for particles to
    fall out of the insertion volume due to gravity.
 
-*Cannot change to comm\_style brick from tiled layout*
+*Cannot change to comm_style brick from tiled layout*
    Self-explanatory.
 
-*Cannot change\_box after reading restart file with per-atom info*
+*Cannot change_box after reading restart file with per-atom info*
    This is because the restart file info cannot be migrated with the
    atoms.  You can get around this by performing a 0-timestep run which
    will assign the restart file info to actual atoms.
 
-*Cannot change\_box in xz or yz for 2d simulation*
+*Cannot change_box in xz or yz for 2d simulation*
    Self-explanatory.
 
-*Cannot change\_box in z dimension for 2d simulation*
+*Cannot change_box in z dimension for 2d simulation*
    Self-explanatory.
 
 *Cannot clear group all*
@@ -708,8 +703,8 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    This error was generated by MPI when reading/writing an MPI-IO restart
    file.
 
-*Cannot compute initial g\_ewald\_disp*
-   LAMMPS failed to compute an initial guess for the PPPM\_disp g\_ewald\_6
+*Cannot compute initial g_ewald_disp*
+   LAMMPS failed to compute an initial guess for the PPPM_disp g_ewald_6
    factor that partitions the computation between real space and k-space
    for Dispersion interactions.
 
@@ -718,19 +713,19 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    but the atoms that have been defined have no IDs.
 
 *Cannot create atoms with undefined lattice*
-   Must use the lattice command before using the create\_atoms
+   Must use the lattice command before using the create_atoms
    command.
 
 *Cannot create/grow a vector/array of pointers for %s*
    LAMMPS code is making an illegal call to the templated memory
    allocaters, to create a vector or array of pointers.
 
-*Cannot create\_atoms after reading restart file with per-atom info*
+*Cannot create_atoms after reading restart file with per-atom info*
    The per-atom info was stored to be used when by a fix that you may
    re-define.  If you add atoms before re-defining the fix, then there
    will not be a correct amount of per-atom info.
 
-*Cannot create\_box after simulation box is defined*
+*Cannot create_box after simulation box is defined*
    A simulation box can only be defined once.
 
 *Cannot currently use pair reax with pair hybrid*
@@ -751,24 +746,24 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot delete group currently used by a fix*
    Self-explanatory.
 
-*Cannot delete group currently used by atom\_modify first*
+*Cannot delete group currently used by atom_modify first*
    Self-explanatory.
 
-*Cannot delete\_atoms bond yes for non-molecular systems*
+*Cannot delete_atoms bond yes for non-molecular systems*
    Self-explanatory.
 
-*Cannot displace\_atoms after reading restart file with per-atom info*
+*Cannot displace_atoms after reading restart file with per-atom info*
    This is because the restart file info cannot be migrated with the
    atoms.  You can get around this by performing a 0-timestep run which
    will assign the restart file info to actual atoms.
 
-*Cannot do GCMC on atoms in atom\_modify first group*
+*Cannot do GCMC on atoms in atom_modify first group*
    This is a restriction due to the way atoms are organized in a list to
-   enable the atom\_modify first command.
+   enable the atom_modify first command.
 
-*Cannot do atom/swap on atoms in atom\_modify first group*
+*Cannot do atom/swap on atoms in atom_modify first group*
    This is a restriction due to the way atoms are organized in a list to
-   enable the atom\_modify first command.
+   enable the atom_modify first command.
 
 *Cannot dump sort on atom IDs with no atom IDs defined*
    Self-explanatory.
@@ -781,15 +776,15 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    When running LAMMPS via Python through the LAMMPS library interface
    you cannot also user the input script python command.
 
-*Cannot evaporate atoms in atom\_modify first group*
+*Cannot evaporate atoms in atom_modify first group*
    This is a restriction due to the way atoms are organized in
-   a list to enable the atom\_modify first command.
+   a list to enable the atom_modify first command.
 
-*Cannot find create\_bonds group ID*
+*Cannot find create_bonds group ID*
    Self-explanatory.
 
-*Cannot find delete\_bonds group ID*
-   Group ID used in the delete\_bonds command does not exist.
+*Cannot find delete_bonds group ID*
+   Group ID used in the delete_bonds command does not exist.
 
 *Cannot find specified group ID for core particles*
    Self-explanatory.
@@ -797,7 +792,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot find specified group ID for shell particles*
    Self-explanatory.
 
-*Cannot have both pair\_modify shift and tail set to yes*
+*Cannot have both pair_modify shift and tail set to yes*
    These 2 options are contradictory.
 
 *Cannot intersect groups using a dynamic group*
@@ -963,7 +958,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Cannot open gzipped file*
    LAMMPS was compiled without support for reading and writing gzipped
-   files through a pipeline to the gzip program with -DLAMMPS\_GZIP.
+   files through a pipeline to the gzip program with -DLAMMPS_GZIP.
 
 *Cannot open input script %s*
    Self-explanatory.
@@ -994,7 +989,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    The specified potential file cannot be opened.  Check that the path
    and name are correct.
 
-*Cannot open pair\_write file*
+*Cannot open pair_write file*
    The specified output file for pair energies and forces cannot be
    opened.  Check that the path and name are correct.
 
@@ -1041,12 +1036,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    This error was generated by MPI when reading/writing an MPI-IO restart
    file.
 
-*Cannot read\_data without add keyword after simulation box is defined*
+*Cannot read_data without add keyword after simulation box is defined*
    Self-explanatory.
 
-*Cannot read\_restart after simulation box is defined*
-   The read\_restart command cannot be used after a read\_data,
-   read\_restart, or create\_box command.
+*Cannot read_restart after simulation box is defined*
+   The read_restart command cannot be used after a read_data,
+   read_restart, or create_box command.
 
 *Cannot redefine variable as a different style*
    An equal-style variable can be re-defined but only if it was
@@ -1091,7 +1086,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot set dpd/theta for this atom style*
    Self-explanatory.
 
-*Cannot set dump\_modify flush for dump xtc*
+*Cannot set dump_modify flush for dump xtc*
    Self-explanatory.
 
 *Cannot set mass for this atom style*
@@ -1167,7 +1162,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Cannot use Ewald with 2d simulation*
    The kspace style ewald cannot be used in 2d simulations.  You can use
-   2d Ewald in a 3d simulation; see the kspace\_modify command.
+   2d Ewald in a 3d simulation; see the kspace_modify command.
 
 *Cannot use Ewald/disp solver on system with no charge, dipole, or LJ particles*
    No atoms in system have a non-zero charge or dipole, or are LJ
@@ -1181,21 +1176,21 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Cannot use NEB unless atom map exists*
-   Use the atom\_modify command to create an atom map.
+   Use the atom_modify command to create an atom map.
 
 *Cannot use NEB with a single replica*
    Self-explanatory.
 
-*Cannot use NEB with atom\_modify sort enabled*
+*Cannot use NEB with atom_modify sort enabled*
    This is current restriction for NEB implemented in LAMMPS.
 
 *Cannot use PPPM with 2d simulation*
    The kspace style pppm cannot be used in 2d simulations.  You can use
-   2d PPPM in a 3d simulation; see the kspace\_modify command.
+   2d PPPM in a 3d simulation; see the kspace_modify command.
 
 *Cannot use PPPMDisp with 2d simulation*
    The kspace style pppm/disp cannot be used in 2d simulations.  You can
-   use 2d pppm/disp in a 3d simulation; see the kspace\_modify command.
+   use 2d pppm/disp in a 3d simulation; see the kspace_modify command.
 
 *Cannot use PRD with a changing box*
    The current box dimensions are not copied between replicas
@@ -1206,20 +1201,20 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot use PRD with a time-dependent region defined*
    PRD alters the timestep in ways that will mess up these regions.
 
-*Cannot use PRD with atom\_modify sort enabled*
+*Cannot use PRD with atom_modify sort enabled*
    This is a current restriction of PRD.  You must turn off sorting,
-   which is enabled by default, via the atom\_modify command.
+   which is enabled by default, via the atom_modify command.
 
 *Cannot use PRD with multi-processor replicas unless atom map exists*
-   Use the atom\_modify command to create an atom map.
+   Use the atom_modify command to create an atom map.
 
 *Cannot use TAD unless atom map exists for NEB*
-   See atom\_modify map command to set this.
+   See atom_modify map command to set this.
 
 *Cannot use TAD with a single replica for NEB*
    NEB requires multiple replicas.
 
-*Cannot use TAD with atom\_modify sort enabled for NEB*
+*Cannot use TAD with atom_modify sort enabled for NEB*
    This is a current restriction of NEB.
 
 *Cannot use a damped dynamics min style with fix box/relax*
@@ -1235,7 +1230,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    type p (periodic).
 
 *Cannot use atomfile-style variable unless atom map exists*
-   Self-explanatory.  See the atom\_modify command to create a map.
+   Self-explanatory.  See the atom_modify command to create a map.
 
 *Cannot use both com and bias with compute temp/chunk*
    Self-explanatory.
@@ -1327,34 +1322,34 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot use compute cluster/atom unless atoms have IDs*
    Atom IDs are used to identify clusters.
 
-*Cannot use create\_atoms rotate unless single style*
+*Cannot use create_atoms rotate unless single style*
    Self-explanatory.
 
-*Cannot use create\_bonds unless atoms have IDs*
+*Cannot use create_bonds unless atoms have IDs*
    This command requires a mapping from global atom IDs to local atoms,
    but the atoms that have been defined have no IDs.
 
-*Cannot use create\_bonds with non-molecular system*
+*Cannot use create_bonds with non-molecular system*
    Self-explanatory.
 
 *Cannot use cwiggle in variable formula between runs*
    This is a function of elapsed time.
 
-*Cannot use delete\_atoms bond yes with atom\_style template*
+*Cannot use delete_atoms bond yes with atom_style template*
    This is because the bonds for that atom style are hardwired in the
    molecule template.
 
-*Cannot use delete\_atoms unless atoms have IDs*
-   Your atoms do not have IDs, so the delete\_atoms command cannot be
+*Cannot use delete_atoms unless atoms have IDs*
+   Your atoms do not have IDs, so the delete_atoms command cannot be
    used.
 
-*Cannot use delete\_bonds with non-molecular system*
+*Cannot use delete_bonds with non-molecular system*
    Your choice of atom style does not have bonds.
 
-*Cannot use dump\_modify fileper without % in dump file name*
+*Cannot use dump_modify fileper without % in dump file name*
    Self-explanatory.
 
-*Cannot use dump\_modify nfile without % in dump file name*
+*Cannot use dump_modify nfile without % in dump file name*
    Self-explanatory.
 
 *Cannot use dynamic group with fix adapt atom*
@@ -1363,19 +1358,19 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot use fix TMD unless atom map exists*
    Using this fix requires the ability to lookup an atom index, which is
    provided by an atom map.  An atom map does not exist (by default) for
-   non-molecular problems.  Using the atom\_modify map command will force
+   non-molecular problems.  Using the atom_modify map command will force
    an atom map to be created.
 
 *Cannot use fix bond/break with non-molecular systems*
-   Only systems with bonds that can be changed can be used.  Atom\_style
+   Only systems with bonds that can be changed can be used.  Atom_style
    template does not qualify.
 
 *Cannot use fix bond/create with non-molecular systems*
-   Only systems with bonds that can be changed can be used.  Atom\_style
+   Only systems with bonds that can be changed can be used.  Atom_style
    template does not qualify.
 
 *Cannot use fix bond/swap with non-molecular systems*
-   Only systems with bonds that can be changed can be used.  Atom\_style
+   Only systems with bonds that can be changed can be used.  Atom_style
    template does not qualify.
 
 *Cannot use fix box/relax on a 2nd non-periodic dimension*
@@ -1482,7 +1477,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot use fix press/berendsen with triclinic box*
    Self-explanatory.
 
-*Cannot use fix reax/bonds without pair\_style reax*
+*Cannot use fix reax/bonds without pair_style reax*
    Self-explanatory.
 
 *Cannot use fix rigid npt/nph and fix deform on same component of stress tensor*
@@ -1536,10 +1531,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot use fix wall/srd zlo/zhi for a 2d simulation*
    Self-explanatory.
 
-*Cannot use fix\_deposit unless atoms have IDs*
+*Cannot use fix_deposit unless atoms have IDs*
    Self-explanatory.
 
-*Cannot use fix\_pour unless atoms have IDs*
+*Cannot use fix_pour unless atoms have IDs*
    Self-explanatory.
 
 *Cannot use include command within an if command*
@@ -1560,7 +1555,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot use multiple fix wall commands with pair lubricateU*
    Self-explanatory.
 
-*Cannot use neigh\_modify exclude with GPU neighbor builds*
+*Cannot use neigh_modify exclude with GPU neighbor builds*
    This is a current limitation of the GPU implementation
    in LAMMPS.
 
@@ -1710,22 +1705,22 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Cannot use non-periodic boundaries with Ewald*
    For kspace style ewald, all 3 dimensions must have periodic boundaries
-   unless you use the kspace\_modify command to define a 2d slab with a
+   unless you use the kspace_modify command to define a 2d slab with a
    non-periodic z dimension.
 
 *Cannot use non-periodic boundaries with EwaldDisp*
    For kspace style ewald/disp, all 3 dimensions must have periodic
-   boundaries unless you use the kspace\_modify command to define a 2d
+   boundaries unless you use the kspace_modify command to define a 2d
    slab with a non-periodic z dimension.
 
 *Cannot use non-periodic boundaries with PPPM*
    For kspace style pppm, all 3 dimensions must have periodic boundaries
-   unless you use the kspace\_modify command to define a 2d slab with a
+   unless you use the kspace_modify command to define a 2d slab with a
    non-periodic z dimension.
 
 *Cannot use non-periodic boundaries with PPPMDisp*
    For kspace style pppm/disp, all 3 dimensions must have periodic
-   boundaries unless you use the kspace\_modify command to define a 2d
+   boundaries unless you use the kspace_modify command to define a 2d
    slab with a non-periodic z dimension.
 
 *Cannot use order greater than 8 with pppm/gpu.*
@@ -1743,21 +1738,21 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot use ramp in variable formula between runs*
    This is because the ramp() function is time dependent.
 
-*Cannot use read\_data add before simulation box is defined*
+*Cannot use read_data add before simulation box is defined*
    Self-explanatory.
 
-*Cannot use read\_data extra with add flag*
+*Cannot use read_data extra with add flag*
    Self-explanatory.
 
-*Cannot use read\_data offset without add flag*
+*Cannot use read_data offset without add flag*
    Self-explanatory.
 
-*Cannot use read\_data shift without add flag*
+*Cannot use read_data shift without add flag*
    Self-explanatory.
 
 *Cannot use region INF or EDGE when box does not exist*
    Regions that extend to the box boundaries can only be used after the
-   create\_box command has been used.
+   create_box command has been used.
 
 *Cannot use set atom with no atom IDs defined*
    Atom IDs are not defined, so they cannot be used to identify an atom.
@@ -1798,10 +1793,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot use wall in periodic dimension*
    Self-explanatory.
 
-*Cannot use write\_restart fileper without % in restart file name*
+*Cannot use write_restart fileper without % in restart file name*
    Self-explanatory.
 
-*Cannot use write\_restart nfile without % in restart file name*
+*Cannot use write_restart nfile without % in restart file name*
    Self-explanatory.
 
 *Cannot wiggle and shear fix wall/gran*
@@ -1814,10 +1809,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot yet use KSpace solver with grid with comm style tiled*
    This is current restriction in LAMMPS.
 
-*Cannot yet use comm\_style tiled with multi-mode comm*
+*Cannot yet use comm_style tiled with multi-mode comm*
    Self-explanatory.
 
-*Cannot yet use comm\_style tiled with triclinic box*
+*Cannot yet use comm_style tiled with triclinic box*
    Self-explanatory.
 
 *Cannot yet use compute tally with Kokkos*
@@ -1845,10 +1840,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot zero momentum of no atoms*
    Self-explanatory.
 
-*Change\_box command before simulation box is defined*
+*Change_box command before simulation box is defined*
    Self-explanatory.
 
-*Change\_box volume used incorrectly*
+*Change_box volume used incorrectly*
    The "dim volume" option must be used immediately following one or two
    settings for "dim1 ..." (and optionally "dim2 ...") and must be for a
    different dimension, i.e. dim != dim1 and dim != dim2.
@@ -1887,23 +1882,23 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Comm tiled invalid index in box drop brick*
-   Internal error check in comm\_style tiled which should not occur.
+   Internal error check in comm_style tiled which should not occur.
    Contact the developers.
 
 *Comm tiled mis-match in box drop brick*
-   Internal error check in comm\_style tiled which should not occur.
+   Internal error check in comm_style tiled which should not occur.
    Contact the developers.
 
-*Comm\_modify group != atom\_modify first group*
+*Comm_modify group != atom_modify first group*
    Self-explanatory.
 
-*Communication cutoff for comm\_style tiled cannot exceed periodic box length*
+*Communication cutoff for comm_style tiled cannot exceed periodic box length*
    Self-explanatory.
 
 *Communication cutoff too small for SNAP micro load balancing*
-   This can happen if you change the neighbor skin after your pair\_style
+   This can happen if you change the neighbor skin after your pair_style
    command or if your box dimensions grow during a run. You can set the
-   cutoff explicitly via the comm\_modify cutoff command.
+   cutoff explicitly via the comm_modify cutoff command.
 
 *Compute %s does not allow use of dynamic group*
    Dynamic groups have not yet been enabled for this compute.
@@ -1939,6 +1934,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Compute ID for fix ave/time does not exist*
+   Self-explanatory.
+
+*Compute ID for fix numdiff does not exist*
    Self-explanatory.
 
 *Compute ID for fix store/state does not exist*
@@ -2179,7 +2177,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    The command is accessing a vector added by the fix property/atom
    command, that does not exist.
 
-*Compute property/atom for atom property that isn't allocated*
+*Compute property/atom for atom property that is not allocated*
    Self-explanatory.
 
 *Compute property/atom integer vector does not exist*
@@ -2193,10 +2191,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Only inputs that generate the same number of datums can be used
    together.  E.g. bond and angle quantities cannot be mixed.
 
-*Compute property/local does not (yet) work with atom\_style template*
+*Compute property/local does not (yet) work with atom_style template*
    Self-explanatory.
 
-*Compute property/local for property that isn't allocated*
+*Compute property/local for property that is not allocated*
    Self-explanatory.
 
 *Compute rdf requires a pair style be defined*
@@ -2311,7 +2309,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    The style of the specified compute is not chunk/atom.
 
 *Compute temp/cs requires ghost atoms store velocity*
-   Use the comm\_modify vel yes command to enable this.
+   Use the comm_modify vel yes command to enable this.
 
 *Compute temp/cs used when bonds are not allowed*
    This compute only works on pairs of bonded particles.
@@ -2373,14 +2371,14 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Core/shell partners were not all found*
    Could not find or more atoms in the bond pairs.
 
-*Could not adjust g\_ewald\_6*
+*Could not adjust g_ewald_6*
    The Newton-Raphson solver failed to converge to a good value for
-   g\_ewald.  This error should not occur for typical problems.  Please
+   g_ewald.  This error should not occur for typical problems.  Please
    send an email to the developers.
 
-*Could not compute g\_ewald*
+*Could not compute g_ewald*
    The Newton-Raphson solver failed to converge to a good value for
-   g\_ewald.  This error should not occur for typical problems.  Please
+   g_ewald.  This error should not occur for typical problems.  Please
    send an email to the developers.
 
 *Could not compute grid size*
@@ -2431,11 +2429,11 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    The provided Python code was run successfully, but it not
    define a callable function with the required name.
 
-*Could not find atom\_modify first group ID*
+*Could not find atom_modify first group ID*
    Self-explanatory.
 
-*Could not find change\_box group ID*
-   Group ID used in the change\_box command does not exist.
+*Could not find change_box group ID*
+   Group ID used in the change_box command does not exist.
 
 *Could not find compute ID for PRD*
    Self-explanatory.
@@ -2479,20 +2477,20 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Could not find compute/voronoi surface group ID*
    Self-explanatory.
 
-*Could not find compute\_modify ID*
+*Could not find compute_modify ID*
    Self-explanatory.
 
 *Could not find custom per-atom property ID*
    Self-explanatory.
 
-*Could not find delete\_atoms group ID*
-   Group ID used in the delete\_atoms command does not exist.
+*Could not find delete_atoms group ID*
+   Group ID used in the delete_atoms command does not exist.
 
-*Could not find delete\_atoms region ID*
-   Region ID used in the delete\_atoms command does not exist.
+*Could not find delete_atoms region ID*
+   Region ID used in the delete_atoms command does not exist.
 
-*Could not find displace\_atoms group ID*
-   Group ID used in the displace\_atoms command does not exist.
+*Could not find displace_atoms group ID*
+   Group ID used in the displace_atoms command does not exist.
 
 *Could not find dump custom compute ID*
    Self-explanatory.
@@ -2534,6 +2532,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    This should not happen unless you explicitly deleted
    a secondary fix that fix adapt created internally.
 
+*Could not find fix halt variable name*
+   Self-explanatory.
+
 *Could not find fix gcmc exclusion group ID*
    Self-explanatory.
 
@@ -2558,13 +2559,13 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Could not find fix srd group ID*
    Self-explanatory.
 
-*Could not find fix\_modify ID*
-   A fix ID used in the fix\_modify command does not exist.
+*Could not find fix_modify ID*
+   A fix ID used in the fix_modify command does not exist.
 
-*Could not find fix\_modify pressure ID*
+*Could not find fix_modify pressure ID*
    The compute ID for computing pressure does not exist.
 
-*Could not find fix\_modify temperature ID*
+*Could not find fix_modify temperature ID*
    The compute ID for computing temperature does not exist.
 
 *Could not find group clear group ID*
@@ -2584,7 +2585,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Could not find thermo compute ID*
-   Compute ID specified in thermo\_style command does not exist.
+   Compute ID specified in thermo_style command does not exist.
 
 *Could not find thermo custom compute ID*
    The compute ID needed by thermo style custom to compute a requested
@@ -2598,16 +2599,16 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Could not find thermo fix ID*
-   Fix ID specified in thermo\_style command does not exist.
+   Fix ID specified in thermo_style command does not exist.
 
 *Could not find thermo variable name*
    Self-explanatory.
 
-*Could not find thermo\_modify pressure ID*
+*Could not find thermo_modify pressure ID*
    The compute ID needed by thermo style custom to compute pressure does
    not exist.
 
-*Could not find thermo\_modify temperature ID*
+*Could not find thermo_modify temperature ID*
    The compute ID needed by thermo style custom to compute temperature does
    not exist.
 
@@ -2651,66 +2652,66 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Coulomb PPPMDisp order has been reduced below minorder*
    The default minimum order is 2.  This can be reset by the
-   kspace\_modify minorder command.
+   kspace_modify minorder command.
 
-*Coulombic cutoff not supported in pair\_style buck/long/coul/coul*
+*Coulombic cutoff not supported in pair_style buck/long/coul/coul*
    Must use long-range Coulombic interactions.
 
-*Coulombic cutoff not supported in pair\_style lj/long/coul/long*
+*Coulombic cutoff not supported in pair_style lj/long/coul/long*
    Must use long-range Coulombic interactions.
 
-*Coulombic cutoff not supported in pair\_style lj/long/tip4p/long*
+*Coulombic cutoff not supported in pair_style lj/long/tip4p/long*
    Must use long-range Coulombic interactions.
 
 *Coulombic cutoffs of pair hybrid sub-styles do not match*
    If using a Kspace solver, all Coulombic cutoffs of long pair styles must
    be the same.
 
-*Coulombic cut not supported in pair\_style lj/long/dipole/long*
+*Coulombic cut not supported in pair_style lj/long/dipole/long*
    Must use long-range Coulombic interactions.
 
-*Cound not find dump\_modify ID*
+*Cound not find dump_modify ID*
    Self-explanatory.
 
-*Create\_atoms command before simulation box is defined*
-   The create\_atoms command cannot be used before a read\_data,
-   read\_restart, or create\_box command.
+*Create_atoms command before simulation box is defined*
+   The create_atoms command cannot be used before a read_data,
+   read_restart, or create_box command.
 
-*Create\_atoms molecule has atom IDs, but system does not*
-   The atom\_style id command can be used to force atom IDs to be stored.
+*Create_atoms molecule has atom IDs, but system does not*
+   The atom_style id command can be used to force atom IDs to be stored.
 
-*Create\_atoms molecule must have atom types*
+*Create_atoms molecule must have atom types*
    The defined molecule does not specify atom types.
 
-*Create\_atoms molecule must have coordinates*
+*Create_atoms molecule must have coordinates*
    The defined molecule does not specify coordinates.
 
-*Create\_atoms region ID does not exist*
-   A region ID used in the create\_atoms command does not exist.
+*Create_atoms region ID does not exist*
+   A region ID used in the create_atoms command does not exist.
 
-*Create\_bonds command before simulation box is defined*
+*Create_bonds command before simulation box is defined*
    Self-explanatory.
 
-*Create\_bonds command requires no kspace\_style be defined*
+*Create_bonds command requires no kspace_style be defined*
    This is so that atom pairs that are already bonded to not appear
    in the neighbor list.
 
-*Create\_bonds command requires special\_bonds 1-2 weights be 0.0*
+*Create_bonds command requires special_bonds 1-2 weights be 0.0*
    This is so that atom pairs that are already bonded to not appear in
    the neighbor list.
 
-*Create\_bonds max distance > neighbor cutoff*
+*Create_bonds max distance > neighbor cutoff*
    Can only create bonds for atom pairs that will be in neighbor list.
 
-*Create\_bonds requires a pair style be defined*
+*Create_bonds requires a pair style be defined*
    Self-explanatory.
 
-*Create\_box region ID does not exist*
+*Create_box region ID does not exist*
    Self-explanatory.
 
-*Create\_box region does not support a bounding box*
+*Create_box region does not support a bounding box*
    Not all regions represent bounded volumes.  You cannot use
-   such a region with the create\_box command.
+   such a region with the create_box command.
 
 *Custom floating point vector for fix store/state does not exist*
    The command is accessing a vector added by the fix property/atom
@@ -2726,13 +2727,13 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Custom per-atom property ID is not integer*
    Self-explanatory.
 
-*Cut-offs missing in pair\_style lj/long/dipole/long*
+*Cut-offs missing in pair_style lj/long/dipole/long*
    Self-explanatory.
 
-*Cutoffs missing in pair\_style buck/long/coul/long*
+*Cutoffs missing in pair_style buck/long/coul/long*
    Self-explanatory.
 
-*Cutoffs missing in pair\_style lj/long/coul/long*
+*Cutoffs missing in pair_style lj/long/coul/long*
    Self-explanatory.
 
 *Cyclic loop in joint connections*
@@ -2745,26 +2746,26 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Delete region ID does not exist*
    Self-explanatory.
 
-*Delete\_atoms command before simulation box is defined*
-   The delete\_atoms command cannot be used before a read\_data,
-   read\_restart, or create\_box command.
+*Delete_atoms command before simulation box is defined*
+   The delete_atoms command cannot be used before a read_data,
+   read_restart, or create_box command.
 
-*Delete\_atoms cutoff > max neighbor cutoff*
+*Delete_atoms cutoff > max neighbor cutoff*
    Can only delete atoms in atom pairs that will be in neighbor list.
 
-*Delete\_atoms mol yes requires atom attribute molecule*
+*Delete_atoms mol yes requires atom attribute molecule*
    Cannot use this option with a non-molecular system.
 
-*Delete\_atoms requires a pair style be defined*
+*Delete_atoms requires a pair style be defined*
    This is because atom deletion within a cutoff uses a pairwise
    neighbor list.
 
-*Delete\_bonds command before simulation box is defined*
-   The delete\_bonds command cannot be used before a read\_data,
-   read\_restart, or create\_box command.
+*Delete_bonds command before simulation box is defined*
+   The delete_bonds command cannot be used before a read_data,
+   read_restart, or create_box command.
 
-*Delete\_bonds command with no atoms existing*
-   No atoms are yet defined so the delete\_bonds command cannot be used.
+*Delete_bonds command with no atoms existing*
+   No atoms are yet defined so the delete_bonds command cannot be used.
 
 *Deposition region extends outside simulation box*
    Self-explanatory.
@@ -2778,20 +2779,20 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Atoms read in from the restart file were not assigned correctly to
    processors.  This is likely due to some atom coordinates being outside
    a non-periodic simulation box.  Normally this should not happen.  You
-   may wish to use the "remap" option on the read\_restart command to see
+   may wish to use the "remap" option on the read_restart command to see
    if this helps.
 
 *Did not find all elements in MEAM library file*
-   The requested elements were not found in the MEAM file.
+   Some requested elements were not found in the MEAM file. Check spelling etc.
 
 *Did not find fix shake partner info*
    Could not find bond partners implied by fix shake command.  This error
-   can be triggered if the delete\_bonds command was used before fix
+   can be triggered if the delete_bonds command was used before fix
    shake, and it removed bonds without resetting the 1-2, 1-3, 1-4
    weighting list via the special keyword.
 
 *Did not find keyword in table file*
-   Keyword used in pair\_coeff command was not found in table file.
+   Keyword used in pair_coeff command was not found in table file.
 
 *Did not set pressure for fix rigid/nph*
    The press keyword must be specified.
@@ -2808,8 +2809,8 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Did not set temperature or pressure for fix rigid/npt*
    The temp and press keywords must be specified.
 
-*Dihedral atom missing in delete\_bonds*
-   The delete\_bonds command cannot find one or more atoms in a particular
+*Dihedral atom missing in delete_bonds*
+   The delete_bonds command cannot find one or more atoms in a particular
    dihedral on a particular processor.  The pairwise cutoff is too short
    or the atoms are too far apart to make a valid dihedral.
 
@@ -2836,12 +2837,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Dihedral coeff for hybrid has invalid style*
    Dihedral style hybrid uses another dihedral style as one of its
-   coefficients.  The dihedral style used in the dihedral\_coeff command
+   coefficients.  The dihedral style used in the dihedral_coeff command
    or read from a restart file is not recognized.
 
 *Dihedral coeffs are not set*
    No dihedral coefficients have been assigned in the data file or via
-   the dihedral\_coeff command.
+   the dihedral_coeff command.
 
 *Dihedral style hybrid cannot have hybrid as an argument*
    Self-explanatory.
@@ -2853,22 +2854,22 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Dihedral/improper extent > half of periodic box length*
-   This error was detected by the neigh\_modify check yes setting.  It is
+   This error was detected by the neigh_modify check yes setting.  It is
    an error because the dihedral atoms are so far apart it is ambiguous
    how it should be defined.
 
-*Dihedral\_coeff command before dihedral\_style is defined*
-   Coefficients cannot be set in the data file or via the dihedral\_coeff
-   command until an dihedral\_style has been assigned.
+*Dihedral_coeff command before dihedral_style is defined*
+   Coefficients cannot be set in the data file or via the dihedral_coeff
+   command until an dihedral_style has been assigned.
 
-*Dihedral\_coeff command before simulation box is defined*
-   The dihedral\_coeff command cannot be used before a read\_data,
-   read\_restart, or create\_box command.
+*Dihedral_coeff command before simulation box is defined*
+   The dihedral_coeff command cannot be used before a read_data,
+   read_restart, or create_box command.
 
-*Dihedral\_coeff command when no dihedrals allowed*
+*Dihedral_coeff command when no dihedrals allowed*
    The chosen atom style does not allow for dihedrals to be defined.
 
-*Dihedral\_style command when no dihedrals allowed*
+*Dihedral_style command when no dihedrals allowed*
    The chosen atom style does not allow for dihedrals to be defined.
 
 *Dihedrals assigned incorrectly*
@@ -2880,16 +2881,19 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    The data file header lists dihedrals but no dihedral types.
 
 *Dimension command after simulation box is defined*
-   The dimension command cannot be used after a read\_data,
-   read\_restart, or create\_box command.
+   The dimension command cannot be used after a read_data,
+   read_restart, or create_box command.
+
+*Disk limit not supported by OS or illegal path*
+   Self-explanatory.
 
 *Dispersion PPPMDisp order has been reduced below minorder*
    The default minimum order is 2.  This can be reset by the
-   kspace\_modify minorder command.
+   kspace_modify minorder command.
 
-*Displace\_atoms command before simulation box is defined*
-   The displace\_atoms command cannot be used before a read\_data,
-   read\_restart, or create\_box command.
+*Displace_atoms command before simulation box is defined*
+   The displace_atoms command cannot be used before a read_data,
+   read_restart, or create_box command.
 
 *Distance must be > 0 for compute event/displace*
    Self-explanatory.
@@ -2968,7 +2972,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Every snapshot written by dump dcd must contain the same # of atoms.
 
 *Dump dcd requires sorting by atom ID*
-   Use the dump\_modify sort command to enable this.
+   Use the dump_modify sort command to enable this.
 
 *Dump every variable returned a bad timestep*
    The variable must return a timestep greater than the current timestep.
@@ -3081,29 +3085,29 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Dump xtc requires sorting by atom ID*
-   Use the dump\_modify sort command to enable this.
+   Use the dump_modify sort command to enable this.
 
 *Dump xyz/gz only writes compressed files*
    The dump xyz/gz output file name must have a .gz suffix.
 
-*Dump\_modify buffer yes not allowed for this style*
+*Dump_modify buffer yes not allowed for this style*
    Self-explanatory.
 
-*Dump\_modify format string is too short*
+*Dump_modify format string is too short*
    There are more fields to be dumped in a line of output than your
    format string specifies.
 
-*Dump\_modify region ID does not exist*
+*Dump_modify region ID does not exist*
    Self-explanatory.
 
-*Dumping an atom property that isn't allocated*
+*Dumping an atom property that is not allocated*
    The chosen atom style does not define the per-atom quantity being
    dumped.
 
 *Duplicate atom IDs exist*
    Self-explanatory.
 
-*Duplicate fields in read\_dump command*
+*Duplicate fields in read_dump command*
    Self-explanatory.
 
 *Duplicate particle in PeriDynamic bond - simulation box is too small*
@@ -3122,7 +3126,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Energy was not tallied on needed timestep*
    You are using a thermo keyword that requires potentials to
-   have tallied energy, but they didn't on this timestep.  See the
+   have tallied energy, but they did not on this timestep.  See the
    variable doc page for ideas on how to make this work.
 
 *Epsilon or sigma reference not set by pair style in PPPMDisp*
@@ -3130,6 +3134,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Epsilon or sigma reference not set by pair style in ewald/n*
    The pair style is not providing the needed epsilon or sigma values.
+
+*Error in MEAM parameter file: keyword %s (further information)*
+   Self-explanatory. Check the parameter file.
 
 *Error in vdw spline: inner radius > outer radius*
    A pre-tabulated spline is invalid.  Likely a problem with the
@@ -3210,7 +3217,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Fix ID for fix vector does not exist*
    Self-explanatory.
 
-*Fix ID for read\_data does not exist*
+*Fix ID for read_data does not exist*
    Self-explanatory.
 
 *Fix ID for velocity does not exist*
@@ -3232,7 +3239,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    conservative settings.
 
 *Fix SRD: too many big particles in bin*
-   Reset the ATOMPERBIN parameter at the top of fix\_srd.cpp
+   Reset the ATOMPERBIN parameter at the top of fix_srd.cpp
    to a larger value, and re-compile the code.
 
 *Fix SRD: too many walls in bin*
@@ -3478,15 +3485,15 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Fix ave/time variable is not equal-style variable*
    Self-explanatory.
 
-*Fix balance rcb cannot be used with comm\_style brick*
-   Comm\_style tiled must be used instead.
+*Fix balance rcb cannot be used with comm_style brick*
+   Comm_style tiled must be used instead.
 
 *Fix balance shift string is invalid*
    The string can only contain the characters "x", "y", or "z".
 
 *Fix bond/break needs ghost atoms from further away*
    This is because the fix needs to walk bonds to a certain distance to
-   acquire needed info, The comm\_modify cutoff command can be used to
+   acquire needed info, The comm_modify cutoff command can be used to
    extend the communication range.
 
 *Fix bond/create angle type is invalid*
@@ -3503,13 +3510,13 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Fix bond/create induced too many angles/dihedrals/impropers per atom*
-   See the read\_data command for info on using the "extra/angle/per/atom",
+   See the read_data command for info on using the "extra/angle/per/atom",
    (or dihedral, improper) keywords to allow for additional
    angles, dihedrals, and impropers to be formed.
 
 *Fix bond/create needs ghost atoms from further away*
    This is because the fix needs to walk bonds to a certain distance to
-   acquire needed info, The comm\_modify cutoff command can be used to
+   acquire needed info, The comm_modify cutoff command can be used to
    extend the communication range.
 
 *Fix bond/swap cannot use dihedral or improper styles*
@@ -3518,7 +3525,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Fix bond/swap requires pair and bond styles*
    Self-explanatory.
 
-*Fix bond/swap requires special\_bonds = 0,1,1*
+*Fix bond/swap requires special_bonds = 0,1,1*
    Self-explanatory.
 
 *Fix box/relax generated negative box length*
@@ -3526,8 +3533,8 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    it incrementally, to build to the high pressure.
 
 *Fix command before simulation box is defined*
-   The fix command cannot be used before a read\_data, read\_restart, or
-   create\_box command.
+   The fix command cannot be used before a read_data, read_restart, or
+   create_box command.
 
 *Fix deform cannot use yz variable with xy*
    The yz setting cannot be a variable if xy deformation is also
@@ -3558,8 +3565,8 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Fix deposit molecule must have coordinates*
    The defined molecule does not specify coordinates.
 
-*Fix deposit molecule template ID must be same as atom\_style template ID*
-   When using atom\_style template, you cannot deposit molecules that are
+*Fix deposit molecule template ID must be same as atom_style template ID*
+   When using atom_style template, you cannot deposit molecules that are
    not in that template.
 
 *Fix deposit region cannot be dynamic*
@@ -3630,7 +3637,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    molecule.  The user has specified atomic (non-molecular) gas
    exchanges, but an atom belonging to a molecule could be deleted.
 
-*Fix gcmc does not (yet) work with atom\_style template*
+*Fix gcmc does not (yet) work with atom_style template*
    Self-explanatory.
 
 *Fix gcmc molecule command requires that atoms have molecule attributes*
@@ -3647,8 +3654,8 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Fix gcmc molecule must have coordinates*
    The defined molecule does not specify coordinates.
 
-*Fix gcmc molecule template ID must be same as atom\_style template ID*
-   When using atom\_style template, you cannot insert molecules that are
+*Fix gcmc molecule template ID must be same as atom_style template ID*
+   When using atom_style template, you cannot insert molecules that are
    not in that template.
 
 *Fix gcmc put atom outside box*
@@ -3692,6 +3699,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Fix gld tau coefficients must be > 0*
+   Self-explanatory.
+
+*Fix halt variable is not equal-style variable*
    Self-explanatory.
 
 *Fix heat group has no atoms*
@@ -3779,6 +3789,14 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.  The change in the box tilt is too extreme
    on a short timescale.
 
+*Fix numdiff requires an atom map, see atom_modify*
+   Self-explanatory. Efficient loop over all atoms for numerical
+   difference requires an atom map.
+
+*Fix numdiff requires consecutive atom IDs*
+   Self-explanatory. Efficient loop over all atoms for numerical
+   difference requires consecutive atom IDs.
+
 *Fix nve/asphere requires extended particles*
    This fix can only be used for particles with a shape setting.
 
@@ -3850,7 +3868,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Fix orient/fcc found self twice*
    The neighbor lists used by fix orient/fcc are messed up.  If this
    error occurs, it is likely a bug, so send an email to the
-   `developers <http://lammps.sandia.gov/authors.html>`_.
+   `developers <https://lammps.sandia.gov/authors.html>`_.
 
 *Fix peri neigh does not exist*
    Somehow a fix that the pair style defines has been deleted.
@@ -3871,7 +3889,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    The defined molecule does not specify coordinates.
 
 *Fix pour molecule template ID must be same as atom style template ID*
-   When using atom\_style template, you cannot pour molecules that are
+   When using atom_style template, you cannot pour molecules that are
    not in that template.
 
 *Fix pour polydisperse fractions do not sum to 1.0*
@@ -3905,10 +3923,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Fix property/atom cannot specify q twice*
    Self-explanatory.
 
-*Fix property/atom mol when atom\_style already has molecule attribute*
+*Fix property/atom mol when atom_style already has molecule attribute*
    Self-explanatory.
 
-*Fix property/atom q when atom\_style already has charge attribute*
+*Fix property/atom q when atom_style already has charge attribute*
    Self-explanatory.
 
 *Fix property/atom vector name already exists*
@@ -3940,7 +3958,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Fix qeq/point has insufficient QEq matrix size*
    Occurs when number of neighbor atoms for an atom increased too much
-   during a run.  Increase SAFE\_ZONE and MIN\_CAP in fix\_qeq.h and
+   during a run.  Increase SAFE_ZONE and MIN_CAP in fix_qeq.h and
    re-compile.
 
 *Fix qeq/point requires atom attribute q*
@@ -3951,7 +3969,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Fix qeq/shielded has insufficient QEq matrix size*
    Occurs when number of neighbor atoms for an atom increased too much
-   during a run.  Increase SAFE\_ZONE and MIN\_CAP in fix\_qeq.h and
+   during a run.  Increase SAFE_ZONE and MIN_CAP in fix_qeq.h and
    re-compile.
 
 *Fix qeq/shielded requires atom attribute q*
@@ -3965,20 +3983,20 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Fix qeq/slater has insufficient QEq matrix size*
    Occurs when number of neighbor atoms for an atom increased too much
-   during a run.  Increase SAFE\_ZONE and MIN\_CAP in fix\_qeq.h and
+   during a run.  Increase SAFE_ZONE and MIN_CAP in fix_qeq.h and
    re-compile.
 
 *Fix qeq/slater requires atom attribute q*
    Self-explanatory.
 
-*Fix reax/bonds numbonds > nsbmax\_most*
+*Fix reax/bonds numbonds > nsbmax_most*
    The limit of the number of bonds expected by the ReaxFF force field
    was exceeded.
 
 *Fix recenter group has no atoms*
    Self-explanatory.
 
-*Fix restrain requires an atom map, see atom\_modify*
+*Fix restrain requires an atom map, see atom_modify*
    Self-explanatory.
 
 *Fix rigid atom has non-zero image flag in a non-periodic dimension*
@@ -4002,22 +4020,22 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Fix rigid npt/nph period must be > 0.0*
    Self-explanatory.
 
-*Fix rigid npt/small t\_chain should not be less than 1*
+*Fix rigid npt/small t_chain should not be less than 1*
    Self-explanatory.
 
-*Fix rigid npt/small t\_order must be 3 or 5*
+*Fix rigid npt/small t_order must be 3 or 5*
    Self-explanatory.
 
 *Fix rigid nvt/npt/nph damping parameters must be > 0.0*
    Self-explanatory.
 
-*Fix rigid nvt/small t\_chain should not be less than 1*
+*Fix rigid nvt/small t_chain should not be less than 1*
    Self-explanatory.
 
-*Fix rigid nvt/small t\_iter should not be less than 1*
+*Fix rigid nvt/small t_iter should not be less than 1*
    Self-explanatory.
 
-*Fix rigid nvt/small t\_order must be 3 or 5*
+*Fix rigid nvt/small t_order must be 3 or 5*
    Self-explanatory.
 
 *Fix rigid xy torque cannot be on for 2d simulation*
@@ -4065,7 +4083,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Fix rigid/small nvt/npt/nph dilate group ID does not exist*
    Self-explanatory.
 
-*Fix rigid/small requires an atom map, see atom\_modify*
+*Fix rigid/small requires an atom map, see atom_modify*
    Self-explanatory.
 
 *Fix rigid/small requires atom attribute molecule*
@@ -4085,7 +4103,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Fix spring couple group ID does not exist*
    Self-explanatory.
 
-*Fix srd can only currently be used with comm\_style brick*
+*Fix srd can only currently be used with comm_style brick*
    This is a current restriction in LAMMPS.
 
 *Fix srd lamda must be >= 0.6 of SRD grid size*
@@ -4099,7 +4117,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Fix srd requires ghost atoms store velocity*
-   Use the comm\_modify vel yes command to enable this.
+   Use the comm_modify vel yes command to enable this.
 
 *Fix srd requires newton pair on*
    Self-explanatory.
@@ -4130,7 +4148,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Fixes that calculate global or local quantities cannot be used with
    fix store/state.
 
-*Fix store/state for atom property that isn't allocated*
+*Fix store/state for atom property that is not allocated*
    Self-explanatory.
 
 *Fix store/state variable is not atom-style variable*
@@ -4174,25 +4192,25 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Fix ttm electron temperatures must be > 0.0*
    Self-explanatory.
 
-*Fix ttm electronic\_density must be > 0.0*
+*Fix ttm electronic_density must be > 0.0*
    Self-explanatory.
 
-*Fix ttm electronic\_specific\_heat must be > 0.0*
+*Fix ttm electronic_specific_heat must be > 0.0*
    Self-explanatory.
 
-*Fix ttm electronic\_thermal\_conductivity must be >= 0.0*
+*Fix ttm electronic_thermal_conductivity must be >= 0.0*
    Self-explanatory.
 
-*Fix ttm gamma\_p must be > 0.0*
+*Fix ttm gamma_p must be > 0.0*
    Self-explanatory.
 
-*Fix ttm gamma\_s must be >= 0.0*
+*Fix ttm gamma_s must be >= 0.0*
    Self-explanatory.
 
 *Fix ttm number of nodes must be > 0*
    Self-explanatory.
 
-*Fix ttm v\_0 must be >= 0.0*
+*Fix ttm v_0 must be >= 0.0*
    Self-explanatory.
 
 *Fix used in compute chunk/atom not computed at compatible time*
@@ -4266,10 +4284,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Fix wall/region cutoff <= 0.0*
    Self-explanatory.
 
-*Fix\_modify pressure ID does not compute pressure*
+*Fix_modify pressure ID does not compute pressure*
    The compute ID assigned to the fix must compute pressure.
 
-*Fix\_modify temperature ID does not compute temperature*
+*Fix_modify temperature ID does not compute temperature*
    The compute ID assigned to the fix must compute temperature.
 
 *For triclinic deformation, specified target stress must be hydrostatic*
@@ -4282,7 +4300,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *GPU library not compiled for this accelerator*
    Self-explanatory.
 
-*GPU package does not (yet) work with atom\_style template*
+*GPU package does not (yet) work with atom_style template*
    Self-explanatory.
 
 *GPU particle split must be set to 1 for this pair style.*
@@ -4320,8 +4338,8 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    This operation is not allowed.
 
 *Group command before simulation box is defined*
-   The group command cannot be used before a read\_data, read\_restart, or
-   create\_box command.
+   The group command cannot be used before a read_data, read_restart, or
+   create_box command.
 
 *Group dynamic cannot reference itself*
    Self-explanatory.
@@ -4335,8 +4353,8 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Group region ID does not exist*
    A region ID used in the group command does not exist.
 
-*If read\_dump purges it cannot replace or trim*
-   These operations are not compatible.  See the read\_dump doc
+*If read_dump purges it cannot replace or trim*
+   These operations are not compatible.  See the read_dump doc
    page for details.
 
 *Illegal ... command*
@@ -4371,10 +4389,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    One or more of the coefficients defined in the potential file is
    invalid.
 
-*Illegal dump\_modify sfactor value (must be > 0.0)*
+*Illegal dump_modify sfactor value (must be > 0.0)*
    Self-explanatory.
 
-*Illegal dump\_modify tfactor value (must be > 0.0)*
+*Illegal dump_modify tfactor value (must be > 0.0)*
    Self-explanatory.
 
 *Illegal fix gcmc gas mass <= 0*
@@ -4428,8 +4446,8 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Format of imageint stored in restart file is not consistent with
    LAMMPS version you are running.  See the settings in src/lmptype.h
 
-*Improper atom missing in delete\_bonds*
-   The delete\_bonds command cannot find one or more atoms in a particular
+*Improper atom missing in delete_bonds*
+   The delete_bonds command cannot find one or more atoms in a particular
    improper on a particular processor.  The pairwise cutoff is too short
    or the atoms are too far apart to make a valid improper.
 
@@ -4452,12 +4470,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Improper coeff for hybrid has invalid style*
    Improper style hybrid uses another improper style as one of its
-   coefficients.  The improper style used in the improper\_coeff command
+   coefficients.  The improper style used in the improper_coeff command
    or read from a restart file is not recognized.
 
 *Improper coeffs are not set*
    No improper coefficients have been assigned in the data file or via
-   the improper\_coeff command.
+   the improper_coeff command.
 
 *Improper style hybrid cannot have hybrid as an argument*
    Self-explanatory.
@@ -4468,18 +4486,18 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Improper style hybrid cannot use same improper style twice*
    Self-explanatory.
 
-*Improper\_coeff command before improper\_style is defined*
-   Coefficients cannot be set in the data file or via the improper\_coeff
-   command until an improper\_style has been assigned.
+*Improper_coeff command before improper_style is defined*
+   Coefficients cannot be set in the data file or via the improper_coeff
+   command until an improper_style has been assigned.
 
-*Improper\_coeff command before simulation box is defined*
-   The improper\_coeff command cannot be used before a read\_data,
-   read\_restart, or create\_box command.
+*Improper_coeff command before simulation box is defined*
+   The improper_coeff command cannot be used before a read_data,
+   read_restart, or create_box command.
 
-*Improper\_coeff command when no impropers allowed*
+*Improper_coeff command when no impropers allowed*
    The chosen atom style does not allow for impropers to be defined.
 
-*Improper\_style command when no impropers allowed*
+*Improper_style command when no impropers allowed*
    The chosen atom style does not allow for impropers to be defined.
 
 *Impropers assigned incorrectly*
@@ -4498,7 +4516,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    The selected unit style is not compatible with the requested KIM
    Simulator Model.
 
-*Incomplete use of variables in create\_atoms command*
+*Incomplete use of variables in create_atoms command*
    The var and set options must be used together.
 
 *Inconsistent iparam/jparam values in fix bond/create command*
@@ -4545,7 +4563,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Incorrect args for pair coefficients*
    Self-explanatory.  Check the input script or data file.
 
-*Incorrect args in pair\_style command*
+*Incorrect args in pair_style command*
    Self-explanatory.
 
 *Incorrect atom format in data file*
@@ -4556,7 +4574,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    The number of fields per line is not what expected.
 
 *Incorrect bonus data format in data file*
-   See the read\_data doc page for a description of how various kinds of
+   See the read_data doc page for a description of how various kinds of
    bonus data must be formatted for certain atom styles.
 
 *Incorrect boundaries with slab Ewald*
@@ -4596,7 +4614,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Incorrect format in COMB3 potential file*
    Incorrect number of words per line in the potential file.
 
-*Incorrect format in MEAM potential file*
+*Incorrect format in MEAM library file*
    Incorrect number of words per line in the potential file.
 
 *Incorrect format in SNAP coefficient file*
@@ -4657,7 +4675,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Indexed per-atom vector in variable formula without atom map*
    Accessing a value from an atom vector requires the ability to lookup
    an atom index, which is provided by an atom map.  An atom map does not
-   exist (by default) for non-molecular problems.  Using the atom\_modify
+   exist (by default) for non-molecular problems.  Using the atom_modify
    map command will force an atom map to be created.
 
 *Initial temperatures not all set in fix ttm*
@@ -4689,7 +4707,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    There is insufficient memory on one of the devices specified for the gpu
    package
 
-*Internal error in atom\_style body*
+*Internal error in atom_style body*
    This error should not occur.  Contact the developers.
 
 *Invalid -reorder N value*
@@ -4724,9 +4742,15 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Invalid LAMMPS restart file*
    The file does not appear to be a LAMMPS restart file since
-   it doesn't contain the correct magic string at the beginning.
+   it does not contain the correct magic string at the beginning.
 
 *Invalid Masses section in molecule file*
+   Self-explanatory.
+
+*Invalid molecule ID in molecule file*
+   Molecule ID must be a non-zero positive integer.
+
+*Invalid Molecules section in molecule file*
    Self-explanatory.
 
 *Invalid REAX atom type*
@@ -4756,7 +4780,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Invalid args for non-hybrid pair coefficients*
-   "NULL" is only supported in pair\_coeff calls when using pair hybrid
+   "NULL" is only supported in pair_coeff calls when using pair hybrid
 
 *Invalid argument to factorial %d*
    N must be >= 0 and <= 167, otherwise the factorial result is too
@@ -4795,6 +4819,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Atom IDs must be positive integers and within range of defined
    atoms.
 
+*Invalid atom ID in Fragments section of molecule file*
+   Self-explanatory.
+
 *Invalid atom ID in Impropers section of data file*
    Atom IDs must be positive integers and within range of defined
    atoms.
@@ -4827,13 +4854,13 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid atom type in Atoms section of data file*
    Atom types must range from 1 to specified # of types.
 
-*Invalid atom type in create\_atoms command*
-   The create\_box command specified the range of valid atom types.
+*Invalid atom type in create_atoms command*
+   The create_box command specified the range of valid atom types.
    An invalid type is being requested.
 
-*Invalid atom type in create\_atoms mol command*
+*Invalid atom type in create_atoms mol command*
    The atom types in the defined molecule are added to the value
-   specified in the create\_atoms command, as an offset.  The final value
+   specified in the create_atoms command, as an offset.  The final value
    for each atom must be between 1 to N, where N is the number of atom
    types.
 
@@ -4848,7 +4875,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Invalid atom type in fix deposit mol command*
    The atom types in the defined molecule are added to the value
-   specified in the create\_atoms command, as an offset.  The final value
+   specified in the create_atoms command, as an offset.  The final value
    for each atom must be between 1 to N, where N is the number of atom
    types.
 
@@ -4860,7 +4887,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Invalid atom type in fix pour mol command*
    The atom types in the defined molecule are added to the value
-   specified in the create\_atoms command, as an offset.  The final value
+   specified in the create_atoms command, as an offset.  The final value
    for each atom must be between 1 to N, where N is the number of atom
    types.
 
@@ -4873,16 +4900,16 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid atom type index for fix shake*
    Atom types must range from 1 to Ntypes inclusive.
 
-*Invalid atom types in pair\_write command*
+*Invalid atom types in pair_write command*
    Atom types must range from 1 to Ntypes inclusive.
 
 *Invalid atom vector in variable formula*
    The atom vector is not recognized.
 
-*Invalid atom\_style body command*
+*Invalid atom_style body command*
    No body style argument was provided.
 
-*Invalid atom\_style command*
+*Invalid atom_style command*
    Self-explanatory.
 
 *Invalid attribute in dump custom command*
@@ -4894,7 +4921,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid attribute in dump modify command*
    Self-explanatory.
 
-*Invalid basis setting in create\_atoms command*
+*Invalid basis setting in create_atoms command*
    The basis index must be between 1 to N where N is the number of basis
    atoms in the lattice.  The type index must be between 1 to N where N
    is the number of atom types.
@@ -4926,7 +4953,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid bond type in Bonds section of molecule file*
    Self-explanatory.
 
-*Invalid bond type in create\_bonds command*
+*Invalid bond type in create_bonds command*
    Self-explanatory.
 
 *Invalid bond type in fix bond/break command*
@@ -4941,9 +4968,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid coeffs for this dihedral style*
    Cannot set class 2 coeffs in data file for this dihedral style.
 
-*Invalid color in dump\_modify command*
+*Invalid color in dump_modify command*
    The specified color name was not in the list of recognized colors.
-   See the dump\_modify doc page.
+   See the dump_modify doc page.
 
 *Invalid color map min/max values*
    The min/max values are not consistent with either each other or
@@ -4956,17 +4983,17 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid compute ID in variable formula*
    The compute is not recognized.
 
-*Invalid create\_atoms rotation vector for 2d model*
+*Invalid create_atoms rotation vector for 2d model*
    The rotation vector can only have a z component.
 
 *Invalid custom OpenCL parameter string.*
    There are not enough or too many parameters in the custom string for package
    GPU.
 
-*Invalid cutoff in comm\_modify command*
+*Invalid cutoff in comm_modify command*
    Specified cutoff must be >= 0.0.
 
-*Invalid cutoffs in pair\_write command*
+*Invalid cutoffs in pair_write command*
    Inner cutoff must be larger than 0.0 and less than outer cutoff.
 
 *Invalid d1 or d2 value for pair colloid coeff*
@@ -5032,7 +5059,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid data file section: Triangles*
    Atom style does not allow triangles.
 
-*Invalid delta\_conf in tad command*
+*Invalid delta_conf in tad command*
    The value must be between 0 and 1 inclusive.
 
 *Invalid density in Atoms section of data file*
@@ -5057,7 +5084,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid dipole length in set command*
    Self-explanatory.
 
-*Invalid displace\_atoms rotate axis for 2d*
+*Invalid displace_atoms rotate axis for 2d*
    Axis must be in z direction.
 
 *Invalid dump dcd filename*
@@ -5069,7 +5096,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Invalid dump image element name*
    The specified element name was not in the standard list of elements.
-   See the dump\_modify doc page.
+   See the dump_modify doc page.
 
 *Invalid dump image filename*
    The file produced by dump image cannot be binary and must
@@ -5096,7 +5123,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Filenames used with the dump xyz style cannot be binary or cause files
    to be written by each processor.
 
-*Invalid dump\_modify threshold operator*
+*Invalid dump_modify threshold operator*
    Operator keyword used for threshold specification in not recognized.
 
 *Invalid entry in -reorder file*
@@ -5117,6 +5144,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Invalid fix box/relax pressure settings*
    Settings for coupled dimensions must be the same.
+
+*Invalid fix halt attribute*
+   Self-explanatory.
+
+*Invalid fix halt operator*
+   Self-explanatory.
 
 *Invalid fix nvt/npt/nph command for a 2d simulation*
    Cannot control z dimension in a 2d model.
@@ -5166,13 +5199,13 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid frequency in temper command*
    Nevery must be > 0.
 
-*Invalid group ID in neigh\_modify command*
-   A group ID used in the neigh\_modify command does not exist.
+*Invalid group ID in neigh_modify command*
+   A group ID used in the neigh_modify command does not exist.
 
 *Invalid group function in variable formula*
    Group function is not recognized.
 
-*Invalid group in comm\_modify command*
+*Invalid group in comm_modify command*
    Self-explanatory.
 
 *Invalid image up vector*
@@ -5197,13 +5230,13 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid index in compute body/local command*
    Self-explanatory.
 
-*Invalid is\_active() function in variable formula*
+*Invalid is_active() function in variable formula*
    Self-explanatory.
 
-*Invalid is\_available() function in variable formula*
+*Invalid is_available() function in variable formula*
    Self-explanatory.
 
-*Invalid is\_defined() function in variable formula*
+*Invalid is_defined() function in variable formula*
    Self-explanatory.
 
 *Invalid keyword in angle table parameters*
@@ -5271,7 +5304,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    kspace, etc.
 
 *Invalid pair table cutoff*
-   Cutoffs in pair\_coeff command are not valid with read-in pair table.
+   Cutoffs in pair_coeff command are not valid with read-in pair table.
 
 *Invalid pair table length*
    Length of read-in pair table is invalid
@@ -5359,16 +5392,16 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid special function in variable formula*
    Self-explanatory.
 
-*Invalid style in pair\_write command*
+*Invalid style in pair_write command*
    Self-explanatory.  Check the input script.
 
 *Invalid syntax in variable formula*
    Self-explanatory.
 
-*Invalid t\_event in prd command*
+*Invalid t_event in prd command*
    Self-explanatory.
 
-*Invalid t\_event in tad command*
+*Invalid t_event in tad command*
    The value must be greater than 0.
 
 *Invalid template atom in Atoms section of data file*
@@ -5382,8 +5415,8 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid thermo keyword in variable formula*
    The keyword is not recognized.
 
-*Invalid threads\_per\_atom specified.*
-   For 3-body potentials on the GPU, the threads\_per\_atom setting cannot be
+*Invalid threads_per_atom specified.*
+   For 3-body potentials on the GPU, the threads_per_atom setting cannot be
    greater than 4 for NVIDIA GPUs.
 
 *Invalid timestep reset for fix ave/atom*
@@ -5478,10 +5511,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Model.  Please contact the OpenKIM database maintainers to verify
    and potentially correct this.
 
-*KOKKOS package does not yet support comm\_style tiled*
+*KOKKOS package does not yet support comm_style tiled*
    Self-explanatory.
 
-*KOKKOS package requires a kokkos enabled atom\_style*
+*KOKKOS package requires a kokkos enabled atom_style*
    Self-explanatory.
 
 *KSpace accuracy must be > 0*
@@ -5489,7 +5522,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *KSpace accuracy too large to estimate G vector*
    Reduce the accuracy request or specify gewald explicitly
-   via the kspace\_modify command.
+   via the kspace_modify command.
 
 *KSpace accuracy too low*
    Requested accuracy must be less than 1.0.
@@ -5502,7 +5535,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    simulation boxes.
 
 *KSpace style has not yet been set*
-   Cannot use kspace\_modify command until a kspace style is set.
+   Cannot use kspace_modify command until a kspace style is set.
 
 *KSpace style is incompatible with Pair style*
    Setting a kspace style requires that a pair style with matching
@@ -5514,11 +5547,11 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Kokkos has been compiled for CUDA but no GPUs are requested*
    One or more GPUs must be used when Kokkos is compiled for CUDA.
 
-*Kspace\_modify mesh parameter must be all zero or all positive*
+*Kspace_modify mesh parameter must be all zero or all positive*
    Valid kspace mesh parameters are >0. The code will try to auto-detect
    suitable values when all three mesh sizes are set to zero (the default).
 
-*Kspace\_modify mesh/disp parameter must be all zero or all positive*
+*Kspace_modify mesh/disp parameter must be all zero or all positive*
    Valid kspace mesh/disp parameters are >0. The code will try to auto-detect
    suitable values when all three mesh sizes are set to zero **and**
    the required accuracy via *force/disp/real* as well as
@@ -5536,17 +5569,17 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Kspace style requires atom attribute q*
    The atom style defined does not have these attributes.
 
-*Kspace\_modify eigtol must be smaller than one*
+*Kspace_modify eigtol must be smaller than one*
    Self-explanatory.
 
 *LAMMPS is not built with Python embedded*
    This is done by including the PYTHON package before LAMMPS is built.
    This is required to use python-style variables.
 
-*LAMMPS unit\_style lj not supported by KIM models*
+*LAMMPS unit_style lj not supported by KIM models*
    Self-explanatory. Check the input script or data file.
 
-*LJ6 off not supported in pair\_style buck/long/coul/long*
+*LJ6 off not supported in pair_style buck/long/coul/long*
    Self-explanatory.
 
 *Label wasn't found in input script*
@@ -5583,7 +5616,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Lost atoms: original %ld current %ld*
    Lost atoms are checked for each time thermo output is done.  See the
-   thermo\_modify lost command for options.  Lost atoms usually indicate
+   thermo_modify lost command for options.  Lost atoms usually indicate
    bad dynamics, e.g. atoms have been blown far out of the simulation
    box, or moved further than one processor's sub-domain away before
    reneighboring.
@@ -5591,13 +5624,13 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *MEAM library error %d*
    A call to the MEAM Fortran library returned an error.
 
-*MPI\_LMP\_BIGINT and bigint in lmptype.h are not compatible*
+*MPI_LMP_BIGINT and bigint in lmptype.h are not compatible*
    The size of the MPI datatype does not match the size of a bigint.
 
-*MPI\_LMP\_TAGINT and tagint in lmptype.h are not compatible*
+*MPI_LMP_TAGINT and tagint in lmptype.h are not compatible*
    The size of the MPI datatype does not match the size of a tagint.
 
-*MSM can only currently be used with comm\_style brick*
+*MSM can only currently be used with comm_style brick*
    This is a current restriction in LAMMPS.
 
 *MSM grid is too large*
@@ -5610,23 +5643,23 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    the MSM order can only be 4, 6, 8, or 10.
 
 *Mass command before simulation box is defined*
-   The mass command cannot be used before a read\_data, read\_restart, or
-   create\_box command.
+   The mass command cannot be used before a read_data, read_restart, or
+   create_box command.
 
 *Matrix factorization to split dispersion coefficients failed*
    This should not normally happen.  Contact the developers.
 
-*Min\_style command before simulation box is defined*
-   The min\_style command cannot be used before a read\_data, read\_restart,
-   or create\_box command.
+*Min_style command before simulation box is defined*
+   The min_style command cannot be used before a read_data, read_restart,
+   or create_box command.
 
-*Minimization could not find thermo\_pe compute*
+*Minimization could not find thermo_pe compute*
    This compute is created by the thermo command.  It must have been
    explicitly deleted by a uncompute command.
 
 *Minimize command before simulation box is defined*
-   The minimize command cannot be used before a read\_data, read\_restart,
-   or create\_box command.
+   The minimize command cannot be used before a read_data, read_restart,
+   or create_box command.
 
 *Mismatched brackets in variable*
    Self-explanatory.
@@ -5638,6 +5671,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Mismatched fix in variable formula*
    A fix is referenced incorrectly or a fix that produces per-atom
    values is used in an equal-style variable formula.
+
+*Mismatched parameter in MEAM library file: z!=lat*
+   The coordination number and lattice do not match, check that consistent values are given.
 
 *Mismatched variable in variable formula*
    A variable is referenced incorrectly or an atom-style variable that
@@ -5708,10 +5744,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Molecule sizescale must be 1.0 for body particle*
    Self-explanatory.
 
-*Molecule template ID for atom\_style template does not exist*
+*Molecule template ID for atom_style template does not exist*
    Self-explanatory.
 
-*Molecule template ID for create\_atoms does not exist*
+*Molecule template ID for create_atoms does not exist*
    Self-explanatory.
 
 *Molecule template ID for fix deposit does not exist*
@@ -5734,12 +5770,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Molecule topology/atom exceeds system topology/atom*
    The number of bonds, angles, etc per-atom in the molecule exceeds the
-   system setting.  See the create\_box command for how to specify these
+   system setting.  See the create_box command for how to specify these
    values.
 
 *Molecule topology type exceeds system topology type*
    The number of bond, angle, etc types in the molecule exceeds the
-   system setting.  See the create\_box command for how to specify these
+   system setting.  See the create_box command for how to specify these
    values.
 
 *More than one fix deform*
@@ -5755,65 +5791,68 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Mu not allowed when not using semi-grand in fix atom/swap command*
    Self-explanatory.
 
-*Must define angle\_style before Angle Coeffs*
-   Must use an angle\_style command before reading a data file that
+*Must define angle_style before Angle Coeffs*
+   Must use an angle_style command before reading a data file that
    defines Angle Coeffs.
 
-*Must define angle\_style before BondAngle Coeffs*
-   Must use an angle\_style command before reading a data file that
+*Must define angle_style before BondAngle Coeffs*
+   Must use an angle_style command before reading a data file that
    defines Angle Coeffs.
 
-*Must define angle\_style before BondBond Coeffs*
-   Must use an angle\_style command before reading a data file that
+*Must define angle_style before BondBond Coeffs*
+   Must use an angle_style command before reading a data file that
    defines Angle Coeffs.
 
-*Must define bond\_style before Bond Coeffs*
-   Must use a bond\_style command before reading a data file that
+*Must define bond_style before Bond Coeffs*
+   Must use a bond_style command before reading a data file that
    defines Bond Coeffs.
 
-*Must define dihedral\_style before AngleAngleTorsion Coeffs*
-   Must use a dihedral\_style command before reading a data file that
+*Must define dihedral_style before AngleAngleTorsion Coeffs*
+   Must use a dihedral_style command before reading a data file that
    defines AngleAngleTorsion Coeffs.
 
-*Must define dihedral\_style before AngleTorsion Coeffs*
-   Must use a dihedral\_style command before reading a data file that
+*Must define dihedral_style before AngleTorsion Coeffs*
+   Must use a dihedral_style command before reading a data file that
    defines AngleTorsion Coeffs.
 
-*Must define dihedral\_style before BondBond13 Coeffs*
-   Must use a dihedral\_style command before reading a data file that
+*Must define dihedral_style before BondBond13 Coeffs*
+   Must use a dihedral_style command before reading a data file that
    defines BondBond13 Coeffs.
 
-*Must define dihedral\_style before Dihedral Coeffs*
-   Must use a dihedral\_style command before reading a data file that
+*Must define dihedral_style before Dihedral Coeffs*
+   Must use a dihedral_style command before reading a data file that
    defines Dihedral Coeffs.
 
-*Must define dihedral\_style before EndBondTorsion Coeffs*
-   Must use a dihedral\_style command before reading a data file that
+*Must define dihedral_style before EndBondTorsion Coeffs*
+   Must use a dihedral_style command before reading a data file that
    defines EndBondTorsion Coeffs.
 
-*Must define dihedral\_style before MiddleBondTorsion Coeffs*
-   Must use a dihedral\_style command before reading a data file that
+*Must define dihedral_style before MiddleBondTorsion Coeffs*
+   Must use a dihedral_style command before reading a data file that
    defines MiddleBondTorsion Coeffs.
 
-*Must define improper\_style before AngleAngle Coeffs*
-   Must use an improper\_style command before reading a data file that
+*Must define improper_style before AngleAngle Coeffs*
+   Must use an improper_style command before reading a data file that
    defines AngleAngle Coeffs.
 
-*Must define improper\_style before Improper Coeffs*
-   Must use an improper\_style command before reading a data file that
+*Must define improper_style before Improper Coeffs*
+   Must use an improper_style command before reading a data file that
    defines Improper Coeffs.
 
-*Must define pair\_style before Pair Coeffs*
-   Must use a pair\_style command before reading a data file that defines
+*Must define pair_style before Pair Coeffs*
+   Must use a pair_style command before reading a data file that defines
    Pair Coeffs.
 
-*Must define pair\_style before PairIJ Coeffs*
-   Must use a pair\_style command before reading a data file that defines
+*Must define pair_style before PairIJ Coeffs*
+   Must use a pair_style command before reading a data file that defines
    PairIJ Coeffs.
 
 *Must have more than one processor partition to temper*
    Cannot use the temper command with only one processor partition.  Use
    the -partition command-line option.
+
+*Must not have multiple fixes change box parameter ...*
+   Self-explanatory.
 
 *Must read Atoms before Angles*
    The Atoms section of a data file must come before an Angles section.
@@ -5845,9 +5884,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    The Atoms section of a data file must come before a Velocities
    section.
 
-*Must re-specify non-restarted pair style (xxx) after read\_restart*
+*Must re-specify non-restarted pair style (xxx) after read_restart*
    For pair styles, that do not store their settings in a restart file,
-   it must be defined with a new 'pair\_style' command after read\_restart.
+   it must be defined with a new 'pair_style' command after read_restart.
 
 *Must set both respa inner and outer*
    Cannot use just the inner or outer option with respa without using the
@@ -5855,7 +5894,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Must set number of threads via package omp command*
    Because you are using the USER-OMP package, set the number of threads
-   via its settings, not by the pair\_style snap nthreads setting.
+   via its settings, not by the pair_style snap nthreads setting.
 
 *Must shrink-wrap piston boundary*
    The boundary style of the face where the piston is applied must be of
@@ -5870,30 +5909,30 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Must specify at least 2 types in fix atom/swap command*
    Self-explanatory.
 
-*Must use 'kim\_style init' command before simulation box is defined*
+*Must use 'kim_style init' command before simulation box is defined*
    Self-explanatory.
 
-*Must use 'kim\_style define' command after simulation box is defined*
+*Must use 'kim_style define' command after simulation box is defined*
    Self-explanatory.
 
-*Must use 'kim\_style init' command before 'kim\_style define'*
+*Must use 'kim_style init' command before 'kim_style define'*
    Self-explanatory.
 
-*Must use 'kspace\_modify pressure/scalar no' for rRESPA with kspace\_style MSM*
+*Must use 'kspace_modify pressure/scalar no' for rRESPA with kspace_style MSM*
    The kspace scalar pressure option cannot (yet) be used with rRESPA.
 
-*Must use 'kspace\_modify pressure/scalar no' for tensor components with kspace\_style msm*
-   Otherwise MSM will compute only a scalar pressure.  See the kspace\_modify
+*Must use 'kspace_modify pressure/scalar no' for tensor components with kspace_style msm*
+   Otherwise MSM will compute only a scalar pressure.  See the kspace_modify
    command for details on this setting.
 
-*Must use 'kspace\_modify pressure/scalar no' to obtain per-atom virial with kspace\_style MSM*
+*Must use 'kspace_modify pressure/scalar no' to obtain per-atom virial with kspace_style MSM*
    The kspace scalar pressure option cannot be used to obtain per-atom virial.
 
-*Must use 'kspace\_modify pressure/scalar no' with GPU MSM Pair styles*
+*Must use 'kspace_modify pressure/scalar no' with GPU MSM Pair styles*
    The kspace scalar pressure option is not (yet) compatible with GPU MSM Pair styles.
 
-*Must use 'kspace\_modify pressure/scalar no' with kspace\_style msm/cg*
-   The kspace scalar pressure option is not compatible with kspace\_style msm/cg.
+*Must use 'kspace_modify pressure/scalar no' with kspace_style msm/cg*
+   The kspace scalar pressure option is not compatible with kspace_style msm/cg.
 
 *Must use -in switch with multiple partitions*
    A multi-partition simulation cannot read the input script from stdin.
@@ -5923,12 +5962,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    command.
 
 *Must use atom map style array with Kokkos*
-   See the atom\_modify map command.
+   See the atom_modify map command.
 
 *Must use atom style with molecule IDs with fix bond/swap*
    Self-explanatory.
 
-*Must use pair\_style comb or comb3 with fix qeq/comb*
+*Must use pair_style comb or comb3 with fix qeq/comb*
    Self-explanatory.
 
 *Must use variable energy with fix addforce*
@@ -5955,29 +5994,29 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Needed bonus data not in data file*
-   Some atom styles require bonus data.  See the read\_data doc page for
+   Some atom styles require bonus data.  See the read_data doc page for
    details.
 
 *Needed molecular topology not in data file*
    The header of the data file indicated bonds, angles, etc would be
    included, but they are not present.
 
-*Neigh\_modify exclude molecule requires atom attribute molecule*
+*Neigh_modify exclude molecule requires atom attribute molecule*
    Self-explanatory.
 
-*Neigh\_modify include group != atom\_modify first group*
+*Neigh_modify include group != atom_modify first group*
    Self-explanatory.
 
 *Neighbor delay must be 0 or multiple of every setting*
-   The delay and every parameters set via the neigh\_modify command are
+   The delay and every parameters set via the neigh_modify command are
    inconsistent.  If the delay setting is non-zero, then it must be a
    multiple of the every setting.
 
 *Neighbor include group not allowed with ghost neighbors*
    This is a current restriction within LAMMPS.
 
-*Neighbor list overflow, boost neigh\_modify one*
-   There are too many neighbors of a single atom.  Use the neigh\_modify
+*Neighbor list overflow, boost neigh_modify one*
+   There are too many neighbors of a single atom.  Use the neigh_modify
    command to increase the max number of neighbors allowed for one atom.
    You may also want to boost the page size.
 
@@ -5996,23 +6035,23 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *New atom IDs exceed maximum allowed ID*
    See the setting for tagint in the src/lmptype.h file.
 
-*New bond exceeded bonds per atom in create\_bonds*
-See the read\_data command for info on using the "extra/bond/per/atom"
+*New bond exceeded bonds per atom in create_bonds*
+See the read_data command for info on using the "extra/bond/per/atom"
 keyword to allow for additional bonds to be formed
 
 *New bond exceeded bonds per atom in fix bond/create*
-   See the read\_data command for info on using the "extra/bond/per/atom"
+   See the read_data command for info on using the "extra/bond/per/atom"
    keyword to allow for additional bonds to be formed
 
 *New bond exceeded special list size in fix bond/create*
-   See the "read\_data extra/special/per/atom" command
-   (or the "create\_box extra/special/per/atom" command)
+   See the "read_data extra/special/per/atom" command
+   (or the "create_box extra/special/per/atom" command)
    for info on how to leave space in the special bonds
    list to allow for additional bonds to be formed.
 
 *Newton bond change after simulation box is defined*
    The newton command cannot be used to change the newton bond value
-   after a read\_data, read\_restart, or create\_box command.
+   after a read_data, read_restart, or create_box command.
 
 *Next command must list all universe and uloop variables*
    This is to insure they stay in sync.
@@ -6095,7 +6134,7 @@ keyword to allow for additional bonds to be formed
    The data file cannot specify the number of bonds, angles, etc,
    because this info if inferred from the molecule templates.
 
-*No overlap of box and region for create\_atoms*
+*No overlap of box and region for create_atoms*
    Self-explanatory.
 
 *No pair coul/streitz for fix qeq/slater*
@@ -6135,10 +6174,10 @@ keyword to allow for additional bonds to be formed
 *Non-numeric box dimensions - simulation unstable*
    The box size has apparently blown up.
 
-*Non-zero atom IDs with atom\_modify id = no*
+*Non-zero atom IDs with atom_modify id = no*
    Self-explanatory.
 
-*Non-zero read\_data shift z value for 2d simulation*
+*Non-zero read_data shift z value for 2d simulation*
    Self-explanatory.
 
 *Nprocs not a multiple of N for -reorder*
@@ -6244,7 +6283,7 @@ keyword to allow for additional bonds to be formed
    NPT/NPH fix must be defined in input script after all poems fixes,
    else the fix contribution to the pressure virial is incorrect.
 
-*PPPM can only currently be used with comm\_style brick*
+*PPPM can only currently be used with comm_style brick*
    This is a current restriction in LAMMPS.
 
 *PPPM grid is too large*
@@ -6253,11 +6292,11 @@ keyword to allow for additional bonds to be formed
    requested accuracy.
 
 *PPPM grid stencil extends beyond nearest neighbor processor*
-   This is not allowed if the kspace\_modify overlap setting is no.
+   This is not allowed if the kspace_modify overlap setting is no.
 
 *PPPM order < minimum allowed order*
    The default minimum order is 2.  This can be reset by the
-   kspace\_modify minorder command.
+   kspace_modify minorder command.
 
 *PPPM order cannot be < 2 or > than %d*
    This is a limitation of the PPPM implementation in LAMMPS.
@@ -6272,28 +6311,28 @@ keyword to allow for additional bonds to be formed
    OFFSET is currently set to 4096.  You likely need to decrease the
    requested accuracy.
 
-*PPPMDisp can only currently be used with comm\_style brick*
+*PPPMDisp can only currently be used with comm_style brick*
    This is a current restriction in LAMMPS.
 
 *PPPMDisp coulomb order cannot be greater than %d*
    This is a limitation of the PPPM implementation in LAMMPS.
 
 *PPPMDisp used but no parameters set, for further information please see the pppm/disp documentation*
-   An efficient and accurate usage of the pppm/disp requires settings via the kspace\_modify command. Please see the pppm/disp documentation for further instructions.
+   An efficient and accurate usage of the pppm/disp requires settings via the kspace_modify command. Please see the pppm/disp documentation for further instructions.
 
 *PRD command before simulation box is defined*
-   The prd command cannot be used before a read\_data,
-   read\_restart, or create\_box command.
+   The prd command cannot be used before a read_data,
+   read_restart, or create_box command.
 
-*PRD nsteps must be multiple of t\_event*
+*PRD nsteps must be multiple of t_event*
    Self-explanatory.
 
-*PRD t\_corr must be multiple of t\_event*
+*PRD t_corr must be multiple of t_event*
    Self-explanatory.
 
 *Package command after simulation box is defined*
-   The package command cannot be used after a read\_data, read\_restart, or
-   create\_box command.
+   The package command cannot be used after a read_data, read_restart, or
+   create_box command.
 
 *Package gpu command without GPU package installed*
    The GPU package must be installed via "make yes-gpu" before LAMMPS is
@@ -6336,7 +6375,7 @@ keyword to allow for additional bonds to be formed
    Self-explanatory.
 
 *Pair coeff for hybrid has invalid style*
-   Style in pair coeff must have been listed in pair\_style command.
+   Style in pair coeff must have been listed in pair_style command.
 
 *Pair coul/wolf requires atom attribute q*
    The atom style defined does not have this attribute.
@@ -6364,10 +6403,10 @@ keyword to allow for additional bonds to be formed
    Two atoms are further apart than the pairwise table allows.
 
 *Pair dpd requires ghost atoms store velocity*
-   Use the comm\_modify vel yes command to enable this.
+   Use the comm_modify vel yes command to enable this.
 
 *Pair gayberne epsilon a,b,c coeffs are not all set*
-   Each atom type involved in pair\_style gayberne must
+   Each atom type involved in pair_style gayberne must
    have these 3 coefficients set at least once.
 
 *Pair gayberne requires atom style ellipsoid*
@@ -6386,7 +6425,7 @@ keyword to allow for additional bonds to be formed
    The atom style defined does not have these attributes.
 
 *Pair granular requires ghost atoms store velocity*
-   Use the comm\_modify vel yes command to enable this.
+   Use the comm_modify vel yes command to enable this.
 
 *Pair granular with shear history requires newton pair off*
    This is a current restriction of the implementation of pair
@@ -6397,10 +6436,10 @@ keyword to allow for additional bonds to be formed
 
 *Pair hybrid sub-style does not support single call*
    You are attempting to invoke a single() call on a pair style
-   that doesn't support it.
+   that does not support it.
 
 *Pair hybrid sub-style is not used*
-   No pair\_coeff command used a sub-style specified in the pair\_style
+   No pair_coeff command used a sub-style specified in the pair_style
    command.
 
 *Pair inner cutoff < Respa interior cutoff*
@@ -6420,7 +6459,7 @@ keyword to allow for additional bonds to be formed
    Self-explanatory.
 
 *Pair lubricate requires ghost atoms store velocity*
-   Use the comm\_modify vel yes command to enable this.
+   Use the comm_modify vel yes command to enable this.
 
 *Pair lubricate requires monodisperse particles*
    All particles must be the same finite size.
@@ -6432,7 +6471,7 @@ keyword to allow for additional bonds to be formed
    One of the particles has radius 0.0.
 
 *Pair lubricate/poly requires ghost atoms store velocity*
-   Use the comm\_modify vel yes command to enable this.
+   Use the comm_modify vel yes command to enable this.
 
 *Pair lubricate/poly requires newton pair off*
    Self-explanatory.
@@ -6441,13 +6480,13 @@ keyword to allow for additional bonds to be formed
    Self-explanatory.
 
 *Pair lubricateU requires ghost atoms store velocity*
-   Use the comm\_modify vel yes command to enable this.
+   Use the comm_modify vel yes command to enable this.
 
 *Pair lubricateU requires monodisperse particles*
    All particles must be the same finite size.
 
 *Pair lubricateU/poly requires ghost atoms store velocity*
-   Use the comm\_modify vel yes command to enable this.
+   Use the comm_modify vel yes command to enable this.
 
 *Pair lubricateU/poly requires newton pair off*
    Self-explanatory.
@@ -6458,9 +6497,9 @@ keyword to allow for additional bonds to be formed
 *Pair peri requires a lattice be defined*
    Use the lattice command for this purpose.
 
-*Pair peri requires an atom map, see atom\_modify*
+*Pair peri requires an atom map, see atom_modify*
    Even for atomic systems, an atom map is required to find Peridynamic
-   bonds.  Use the atom\_modify command to define one.
+   bonds.  Use the atom_modify command to define one.
 
 *Pair resquared epsilon a,b,c coeffs are not all set*
    Self-explanatory.
@@ -6600,12 +6639,12 @@ keyword to allow for additional bonds to be formed
    The pair style does not support the pN value requested by the compute
    pair/local command.
 
-*Pair style does not support bond\_style quartic*
+*Pair style does not support bond_style quartic*
    The pair style does not have a single() function, so it can
-   not be invoked by bond\_style quartic.
+   not be invoked by bond_style quartic.
 
 *Pair style does not support compute group/group*
-   The pair\_style does not have a single() function, so it cannot be
+   The pair_style does not have a single() function, so it cannot be
    invoked by the compute group/group command.
 
 *Pair style does not support compute pair/local*
@@ -6620,7 +6659,7 @@ keyword to allow for additional bonds to be formed
    The pair style does not have a single() function, so it can
    not be invoked by fix bond/swap.
 
-*Pair style does not support pair\_write*
+*Pair style does not support pair_write*
    The pair style does not have a single() function, so it can
    not be invoked by pair write.
 
@@ -6632,7 +6671,7 @@ keyword to allow for additional bonds to be formed
    Atoms in the simulation do not have IDs, so history effects
    cannot be tracked by the granular pair potential.
 
-*Pair style hbond/dreiding requires an atom map, see atom\_modify*
+*Pair style hbond/dreiding requires an atom map, see atom_modify*
    Self-explanatory.
 
 *Pair style hbond/dreiding requires atom IDs*
@@ -6718,7 +6757,7 @@ keyword to allow for additional bonds to be formed
    molecule adds forces to atoms owned by other processors.
 
 *Pair style lj/gromacs/coul/gromacs requires atom attribute q*
-   An atom\_style with this attribute is needed.
+   An atom_style with this attribute is needed.
 
 *Pair style lj/long/dipole/long does not currently support respa*
    This feature is not yet supported.
@@ -6771,7 +6810,7 @@ keyword to allow for additional bonds to be formed
 *Pair style requires a KSpace style*
    No kspace style is defined.
 
-*Pair style requires use of kspace\_style ewald/disp*
+*Pair style requires use of kspace_style ewald/disp*
    Self-explanatory.
 
 *Pair style sw/gpu requires atom IDs*
@@ -6841,21 +6880,21 @@ keyword to allow for additional bonds to be formed
 *PairKIM only works with 3D problems*
    This is a current limitation.
 
-*Pair\_coeff command before pair\_style is defined*
+*Pair_coeff command before pair_style is defined*
    Self-explanatory.
 
-*Pair\_coeff command before simulation box is defined*
-   The pair\_coeff command cannot be used before a read\_data,
-   read\_restart, or create\_box command.
+*Pair_coeff command before simulation box is defined*
+   The pair_coeff command cannot be used before a read_data,
+   read_restart, or create_box command.
 
-*Pair\_modify command before pair\_style is defined*
+*Pair_modify command before pair_style is defined*
    Self-explanatory.
 
-*Pair\_modify special setting for pair hybrid incompatible with global special\_bonds setting*
+*Pair_modify special setting for pair hybrid incompatible with global special_bonds setting*
    Cannot override a setting of 0.0 or 1.0 or change a setting between
    0.0 and 1.0.
 
-*Pair\_write command before pair\_style is defined*
+*Pair_write command before pair_style is defined*
    Self-explanatory.
 
 *Particle on or inside fix wall surface*
@@ -6871,7 +6910,7 @@ keyword to allow for additional bonds to be formed
 
 *Per-atom energy was not tallied on needed timestep*
    You are using a thermo keyword that requires potentials to
-   have tallied energy, but they didn't on this timestep.  See the
+   have tallied energy, but they did not on this timestep.  See the
    variable doc page for ideas on how to make this work.
 
 *Per-atom fix in equal-style variable formula*
@@ -6879,7 +6918,7 @@ keyword to allow for additional bonds to be formed
 
 *Per-atom virial was not tallied on needed timestep*
    You are using a thermo keyword that requires potentials to have
-   tallied the virial, but they didn't on this timestep.  See the
+   tallied the virial, but they did not on this timestep.  See the
    variable doc page for ideas on how to make this work.
 
 *Per-processor system is too big*
@@ -6976,8 +7015,8 @@ keyword to allow for additional bonds to be formed
    of processors LAMMPS is running on.
 
 *Processors command after simulation box is defined*
-   The processors command cannot be used after a read\_data, read\_restart,
-   or create\_box command.
+   The processors command cannot be used after a read_data, read_restart,
+   or create_box command.
 
 *Processors custom grid file is inconsistent*
    The vales in the custom file are not consistent with the number of
@@ -7040,7 +7079,7 @@ keyword to allow for additional bonds to be formed
    It cannot be larger than the size of atom IDs, e.g. the maximum 32-bit
    integer.
 
-*Read dump of atom property that isn't allocated*
+*Read dump of atom property that is not allocated*
    Self-explanatory.
 
 *Read rerun dump file timestep > specified stop*
@@ -7050,35 +7089,35 @@ keyword to allow for additional bonds to be formed
    This is because a % signifies one file per processor and MPI-IO
    creates one large file for all processors.
 
-*Read\_data shrink wrap did not assign all atoms correctly*
+*Read_data shrink wrap did not assign all atoms correctly*
    This is typically because the box-size specified in the data file is
    large compared to the actual extent of atoms in a shrink-wrapped
    dimension.  When LAMMPS shrink-wraps the box atoms will be lost if the
    processor they are re-assigned to is too far away.  Choose a box
    size closer to the actual extent of the atoms.
 
-*Read\_dump command before simulation box is defined*
-   The read\_dump command cannot be used before a read\_data, read\_restart,
-   or create\_box command.
+*Read_dump command before simulation box is defined*
+   The read_dump command cannot be used before a read_data, read_restart,
+   or create_box command.
 
-*Read\_dump field not found in dump file*
+*Read_dump field not found in dump file*
    Self-explanatory.
 
-*Read\_dump triclinic status does not match simulation*
+*Read_dump triclinic status does not match simulation*
    Both the dump snapshot and the current LAMMPS simulation must
    be using either an orthogonal or triclinic box.
 
-*Read\_dump xyz fields do not have consistent scaling/wrapping*
+*Read_dump xyz fields do not have consistent scaling/wrapping*
    Self-explanatory.
 
 *Reading from MPI-IO filename when MPIIO package is not installed*
    Self-explanatory.
 
-*Reax\_defs.h setting for NATDEF is too small*
+*Reax_defs.h setting for NATDEF is too small*
    Edit the setting in the ReaxFF library and re-compile the
    library and re-build LAMMPS.
 
-*Reax\_defs.h setting for NNEIGHMAXDEF is too small*
+*Reax_defs.h setting for NNEIGHMAXDEF is too small*
    Edit the setting in the ReaxFF library and re-compile the
    library and re-build LAMMPS.
 
@@ -7159,8 +7198,8 @@ keyword to allow for additional bonds to be formed
    when you do not intend to.
 
 *Replicate command before simulation box is defined*
-   The replicate command cannot be used before a read\_data, read\_restart,
-   or create\_box command.
+   The replicate command cannot be used before a read_data, read_restart,
+   or create_box command.
 
 *Replicate did not assign all atoms correctly*
    Atoms replicated by the replicate command were not assigned correctly
@@ -7178,8 +7217,8 @@ keyword to allow for additional bonds to be formed
    by Kokkos.
 
 *Rerun command before simulation box is defined*
-   The rerun command cannot be used before a read\_data, read\_restart, or
-   create\_box command.
+   The rerun command cannot be used before a read_data, read_restart, or
+   create_box command.
 
 *Rerun dump file does not contain requested snapshot*
    Self-explanatory.
@@ -7201,7 +7240,7 @@ keyword to allow for additional bonds to be formed
    creates one large file for all processors.
 
 *Restart file byte ordering is not recognized*
-   The file does not appear to be a LAMMPS restart file since it doesn't
+   The file does not appear to be a LAMMPS restart file since it does not
    contain a recognized byte-ordering flag at the beginning.
 
 *Restart file byte ordering is swapped*
@@ -7278,8 +7317,8 @@ keyword to allow for additional bonds to be formed
    Rmask is per-atom operation.
 
 *Run command before simulation box is defined*
-   The run command cannot be used before a read\_data, read\_restart, or
-   create\_box command.
+   The run command cannot be used before a read_data, read_restart, or
+   create_box command.
 
 *Run command start value is after start of run*
    Self-explanatory.
@@ -7287,9 +7326,9 @@ keyword to allow for additional bonds to be formed
 *Run command stop value is before end of run*
    Self-explanatory.
 
-*Run\_style command before simulation box is defined*
-   The run\_style command cannot be used before a read\_data,
-   read\_restart, or create\_box command.
+*Run_style command before simulation box is defined*
+   The run_style command cannot be used before a read_data,
+   read_restart, or create_box command.
 
 *SRD bin size for fix srd differs from user request*
    Fix SRD had to adjust the bin size to fit the simulation box.  See the
@@ -7314,8 +7353,8 @@ keyword to allow for additional bonds to be formed
    Cannot specify a partition to be a sender twice.
 
 *Set command before simulation box is defined*
-   The set command cannot be used before a read\_data, read\_restart,
-   or create\_box command.
+   The set command cannot be used before a read_data, read_restart,
+   or create_box command.
 
 *Set command floating point vector does not exist*
    Self-explanatory.
@@ -7365,8 +7404,8 @@ keyword to allow for additional bonds to be formed
    NPT fix must be defined in input script after SHAKE fix, else the
    SHAKE fix contribution to the pressure virial is incorrect.
 
-*Shear history overflow, boost neigh\_modify one*
-   There are too many neighbors of a single atom.  Use the neigh\_modify
+*Shear history overflow, boost neigh_modify one*
+   There are too many neighbors of a single atom.  Use the neigh_modify
    command to increase the max number of neighbors allowed for one atom.
    You may also want to boost the page size.
 
@@ -7383,13 +7422,13 @@ keyword to allow for additional bonds to be formed
    you are running.
 
 *Special list size exceeded in fix bond/create*
-   See the "read\_data extra/special/per/atom" command
-   (or the "create\_box extra/special/per/atom" command)
+   See the "read_data extra/special/per/atom" command
+   (or the "create_box extra/special/per/atom" command)
    for info on how to leave space in the special bonds
    list to allow for additional bonds to be formed.
 
 *Species XXX is not supported by this KIM Simulator Model*
-   The kim\_style define command was referencing a species that is not
+   The kim_style define command was referencing a species that is not
    present in the requested KIM Simulator Model.
 
 *Specified processors != physical processors*
@@ -7403,33 +7442,33 @@ keyword to allow for additional bonds to be formed
    Self-explanatory.
 
 *Subsequent read data induced too many angles per atom*
-   See the extra/angle/per/atom keyword for the create\_box
-   or the read\_data command to set this limit larger
+   See the extra/angle/per/atom keyword for the create_box
+   or the read_data command to set this limit larger
 
 *Subsequent read data induced too many bonds per atom*
-   See the extra/bond/per/atom keyword for the create\_box
-   or the read\_data command to set this limit larger
+   See the extra/bond/per/atom keyword for the create_box
+   or the read_data command to set this limit larger
 
 *Subsequent read data induced too many dihedrals per atom*
-   See the extra/dihedral/per/atom keyword for the create\_box
-   or the read\_data command to set this limit larger
+   See the extra/dihedral/per/atom keyword for the create_box
+   or the read_data command to set this limit larger
 
 *Subsequent read data induced too many impropers per atom*
-   See the extra/improper/per/atom keyword for the create\_box
-   or the read\_data command to set this limit larger
+   See the extra/improper/per/atom keyword for the create_box
+   or the read_data command to set this limit larger
 
 *Substitution for illegal variable*
    Input script line contained a variable that could not be substituted
    for.
 
 *Support for writing images in JPEG format not included*
-   LAMMPS was not built with the -DLAMMPS\_JPEG switch in the Makefile.
+   LAMMPS was not built with the -DLAMMPS_JPEG switch in the Makefile.
 
 *Support for writing images in PNG format not included*
-   LAMMPS was not built with the -DLAMMPS\_PNG switch in the Makefile.
+   LAMMPS was not built with the -DLAMMPS_PNG switch in the Makefile.
 
 *Support for writing movies not included*
-   LAMMPS was not built with the -DLAMMPS\_FFMPEG switch in the Makefile
+   LAMMPS was not built with the -DLAMMPS_FFMPEG switch in the Makefile
 
 *System in data file is too big*
    See the setting for bigint in the src/lmptype.h file.
@@ -7438,7 +7477,7 @@ keyword to allow for additional bonds to be formed
    The total charge on all atoms on the system is not 0.0.
    For some KSpace solvers this is an error.
 
-*TAD nsteps must be multiple of t\_event*
+*TAD nsteps must be multiple of t_event*
    Self-explanatory.
 
 *TIP4P hydrogen has incorrect atom type*
@@ -7485,8 +7524,8 @@ keyword to allow for additional bonds to be formed
    Self-explanatory.
 
 *Temper command before simulation box is defined*
-   The temper command cannot be used before a read\_data, read\_restart, or
-   create\_box command.
+   The temper command cannot be used before a read_data, read_restart, or
+   create_box command.
 
 *Temperature ID for fix bond/swap does not exist*
    Self-explanatory.
@@ -7567,7 +7606,7 @@ keyword to allow for additional bonds to be formed
 *Temperature for fix nvt/sllod does not have a bias*
    The specified compute must compute temperature with a bias.
 
-*Tempering could not find thermo\_pe compute*
+*Tempering could not find thermo_pe compute*
    This compute is created by the thermo command.  It must have been
    explicitly deleted by a uncompute command.
 
@@ -7578,7 +7617,7 @@ keyword to allow for additional bonds to be formed
    The fix specified by the temper command is not one that controls
    temperature (nvt or langevin).
 
-*Test\_descriptor\_string already allocated*
+*Test_descriptor_string already allocated*
    This is an internal error.  Contact the developers.
 
 *The package gpu command is required for gpu styles*
@@ -7644,34 +7683,34 @@ keyword to allow for additional bonds to be formed
    your thermo output.
 
 *Thermo style does not use press*
-   Cannot use thermo\_modify to set this parameter since the thermo\_style
+   Cannot use thermo_modify to set this parameter since the thermo_style
    is not computing this quantity.
 
 *Thermo style does not use temp*
-   Cannot use thermo\_modify to set this parameter since the thermo\_style
+   Cannot use thermo_modify to set this parameter since the thermo_style
    is not computing this quantity.
 
-*Thermo\_modify every variable returned a bad timestep*
+*Thermo_modify every variable returned a bad timestep*
    The returned timestep is less than or equal to the current timestep.
 
-*Thermo\_modify int format does not contain d character*
+*Thermo_modify int format does not contain d character*
    Self-explanatory.
 
-*Thermo\_modify pressure ID does not compute pressure*
+*Thermo_modify pressure ID does not compute pressure*
    The specified compute ID does not compute pressure.
 
-*Thermo\_modify temperature ID does not compute temperature*
+*Thermo_modify temperature ID does not compute temperature*
    The specified compute ID does not compute temperature.
 
-*Thermo\_style command before simulation box is defined*
-   The thermo\_style command cannot be used before a read\_data,
-   read\_restart, or create\_box command.
+*Thermo_style command before simulation box is defined*
+   The thermo_style command cannot be used before a read_data,
+   read_restart, or create_box command.
 
 *This variable thermo keyword cannot be used between runs*
    Keywords that refer to time (such as cpu, elapsed) do not
    make sense in between runs.
 
-*Threshhold for an atom property that isn't allocated*
+*Threshold for an atom property that is not allocated*
    A dump threshold has been requested on a quantity that is
    not defined by the atom style used in this simulation.
 
@@ -7688,7 +7727,7 @@ keyword to allow for additional bonds to be formed
    The timestep must fit in a 32-bit integer to use this dump style.
 
 *Too few bits for lookup table*
-   Table size specified via pair\_modify command does not work with your
+   Table size specified via pair_modify command does not work with your
    machine's floating point representation.
 
 *Too few lines in %s section of data file*
@@ -7734,20 +7773,23 @@ keyword to allow for additional bonds to be formed
 *Too many atoms to dump sort*
    Cannot sort when running with more than 2\^31 atoms.
 
+*Too many elements extracted from MEAM library.*
+   Increase 'maxelt' in meam.h and recompile.
+
 *Too many exponent bits for lookup table*
-   Table size specified via pair\_modify command does not work with your
+   Table size specified via pair_modify command does not work with your
    machine's floating point representation.
 
 *Too many groups*
    The maximum number of atom groups (including the "all" group) is
-   given by MAX\_GROUP in group.cpp and is 32.
+   given by MAX_GROUP in group.cpp and is 32.
 
 *Too many iterations*
    You must use a number of iterations that fit in a 32-bit integer
    for minimization.
 
 *Too many lines in one body in data file - boost MAXBODY*
-   MAXBODY is a setting at the top of the src/read\_data.cpp file.
+   MAXBODY is a setting at the top of the src/read_data.cpp file.
    Set it larger and re-compile the code.
 
 *Too many local+ghost atoms for neighbor list*
@@ -7756,7 +7798,7 @@ keyword to allow for additional bonds to be formed
    removed for masking 1-2, 1-3, 1-4 neighbors.
 
 *Too many mantissa bits for lookup table*
-   Table size specified via pair\_modify command does not work with your
+   Table size specified via pair_modify command does not work with your
    machine's floating point representation.
 
 *Too many masses for fix shake*
@@ -7784,7 +7826,7 @@ keyword to allow for additional bonds to be formed
    See the setting for bigint in the src/lmptype.h file.
 
 *Too many total bits for bitmapped lookup table*
-   Table size specified via pair\_modify command is too large.  Note that
+   Table size specified via pair_modify command is too large.  Note that
    a value of N generates a 2\^N size table.
 
 *Too many values in body lines in data file*
@@ -7811,7 +7853,7 @@ keyword to allow for additional bonds to be formed
    +half of the x box length.  This constraint can be relaxed by using
    the box tilt command.
 
-*Tried to convert a double to int, but input\_double > INT\_MAX*
+*Tried to convert a double to int, but input_double > INT_MAX*
    Self-explanatory.
 
 *Trying to build an occasional neighbor list before initialization completed*
@@ -7873,8 +7915,8 @@ keyword to allow for additional bonds to be formed
    A read operation from the file failed.
 
 *Units command after simulation box is defined*
-   The units command cannot be used after a read\_data, read\_restart, or
-   create\_box command.
+   The units command cannot be used after a read_data, read_restart, or
+   create_box command.
 
 *Universe/uloop variable count < # of partitions*
    A universe or uloop style variable must specify a number of values >= to the
@@ -7892,13 +7934,13 @@ keyword to allow for additional bonds to be formed
 *Unrecognized bond style*
    The choice of bond style is unknown.
 
-*Unknown category for info is\_active()*
+*Unknown category for info is_active()*
    Self-explanatory.
 
-*Unknown category for info is\_available()*
+*Unknown category for info is_available()*
    Self-explanatory.
 
-*Unknown category for info is\_defined()*
+*Unknown category for info is_defined()*
    Self-explanatory.
 
 *Unrecognized command: %s*
@@ -7928,7 +7970,7 @@ keyword to allow for additional bonds to be formed
 *Unrecognized improper style*
    The choice of improper style is unknown.
 
-*Unknown keyword in thermo\_style custom command*
+*Unknown keyword in thermo_style custom command*
    One or more specified keywords are not recognized.
 
 *Unrecognized kspace style*
@@ -7946,7 +7988,7 @@ keyword to allow for additional bonds to be formed
 *Unrecognized pair style*
    The choice of pair style is unknown.
 
-*Unknown pair\_modify hybrid sub-style*
+*Unknown pair_modify hybrid sub-style*
    The choice of sub-style is unknown.
 
 *Unrecognized region style*
@@ -7961,31 +8003,34 @@ keyword to allow for additional bonds to be formed
 *Unknown table style in bond style table*
    Self-explanatory.
 
-*Unknown table style in pair\_style command*
-   Style of table is invalid for use with pair\_style table command.
+*Unknown table style in pair_style command*
+   Style of table is invalid for use with pair_style table command.
 
-*Unknown unit\_style*
+*Unknown unit_style*
    Self-explanatory. Check the input script or data file.
 
-*Unrecognized lattice type in MEAM file 1*
+*Unrecognized lattice type in MEAM library file*
    The lattice type in an entry of the MEAM library file is not
    valid.
 
-*Unrecognized lattice type in MEAM file 2*
+*Unrecognized lattice type in MEAM parameter file*
    The lattice type in an entry of the MEAM parameter file is not
    valid.
 
 *Unrecognized pair style in compute pair command*
    Self-explanatory.
 
-*Unsupported mixing rule in kspace\_style ewald/disp*
+*Unsupported mixing rule in kspace_style ewald/disp*
    Only geometric mixing is supported.
 
-*Unsupported order in kspace\_style ewald/disp*
+*Unsupported order in kspace_style ewald/disp*
    Only 1/r\^6 dispersion or dipole terms are supported.
 
-*Unsupported order in kspace\_style pppm/disp, pair\_style %s*
+*Unsupported order in kspace_style pppm/disp, pair_style %s*
    Only pair styles with 1/r and 1/r\^6 dependence are currently supported.
+
+*Unsupported parameter in MEAM library file*
+   Self-explanatory.
 
 *Use cutoff keyword to set cutoff in single mode*
    Mode is single so cutoff/multi keyword cannot be used.
@@ -8047,10 +8092,10 @@ keyword to allow for additional bonds to be formed
 *Variable for compute ti is invalid style*
    Self-explanatory.
 
-*Variable for create\_atoms is invalid style*
+*Variable for create_atoms is invalid style*
    The variables must be equal-style variables.
 
-*Variable for displace\_atoms is invalid style*
+*Variable for displace_atoms is invalid style*
    It must be an equal-style or atom-style variable.
 
 *Variable for dump every is invalid style*
@@ -8190,10 +8235,10 @@ keyword to allow for additional bonds to be formed
 *Variable name for compute ti does not exist*
    Self-explanatory.
 
-*Variable name for create\_atoms does not exist*
+*Variable name for create_atoms does not exist*
    Self-explanatory.
 
-*Variable name for displace\_atoms does not exist*
+*Variable name for displace_atoms does not exist*
    Self-explanatory.
 
 *Variable name for dump every does not exist*
@@ -8325,12 +8370,12 @@ keyword to allow for additional bonds to be formed
 *Variable name must be alphanumeric or underscore characters*
    Self-explanatory.
 
-*Variable uses atom property that isn't allocated*
+*Variable uses atom property that is not allocated*
    Self-explanatory.
 
 *Velocity command before simulation box is defined*
-   The velocity command cannot be used before a read\_data, read\_restart,
-   or create\_box command.
+   The velocity command cannot be used before a read_data, read_restart,
+   or create_box command.
 
 *Velocity command with no atoms existing*
    A velocity command has been used, but no atoms yet exist.
@@ -8348,7 +8393,7 @@ keyword to allow for additional bonds to be formed
    The compute ID given to the velocity command must compute
    temperature.
 
-*Verlet/split can only currently be used with comm\_style brick*
+*Verlet/split can only currently be used with comm_style brick*
    This is a current restriction in LAMMPS.
 
 *Verlet/split does not yet support TIP4P*
@@ -8366,7 +8411,7 @@ keyword to allow for additional bonds to be formed
 
 *Virial was not tallied on needed timestep*
    You are using a thermo keyword that requires potentials to
-   have tallied the virial, but they didn't on this timestep.  See the
+   have tallied the virial, but they did not on this timestep.  See the
    variable doc page for ideas on how to make this work.
 
 *Voro++ error: narea and neigh have a different size*
@@ -8393,21 +8438,21 @@ keyword to allow for additional bonds to be formed
    This is because LAMMPS does not compute the Lennard-Jones interactions
    with these particles for efficiency reasons.
 
-*World variable count doesn't match # of partitions*
+*World variable count does not match # of partitions*
    A world-style variable must specify a number of values equal to the
    number of processor partitions.
 
-*Write\_data command before simulation box is defined*
+*Write_data command before simulation box is defined*
    Self-explanatory.
 
-*Write\_restart command before simulation box is defined*
-   The write\_restart command cannot be used before a read\_data,
-   read\_restart, or create\_box command.
+*Write_restart command before simulation box is defined*
+   The write_restart command cannot be used before a read_data,
+   read_restart, or create_box command.
 
 *Writing to MPI-IO filename when MPIIO package is not installed*
    Self-explanatory.
 
-*Zero length rotation vector with displace\_atoms*
+*Zero length rotation vector with displace_atoms*
    Self-explanatory.
 
 *Zero length rotation vector with fix move*

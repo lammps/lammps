@@ -41,7 +41,7 @@ class Device {
   /** Sets up a per-device MPI communicator for load balancing and initializes
     * the device (>=first_gpu and <=last_gpu) that this proc will be using
     * Returns:
-    * -  0 if successfull
+    * -  0 if successful
     * - -2 if GPU not found
     * - -4 if GPU library not compiled for GPU
     * - -6 if GPU could not be initialized for use
@@ -62,7 +62,7 @@ class Device {
     * \param vel True if velocities need to be stored
     *
     * Returns:
-    * -  0 if successfull
+    * -  0 if successful
     * - -1 if fix gpu not found
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
@@ -76,7 +76,7 @@ class Device {
     * \param nall Total number of local+ghost particles
     *
     * Returns:
-    * -  0 if successfull
+    * -  0 if successful
     * - -1 if fix gpu not found
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
@@ -100,7 +100,7 @@ class Device {
     * \param threads_per_atom value to be used by the neighbor list only
     *
     * Returns:
-    * -  0 if successfull
+    * -  0 if successful
     * - -1 if fix gpu not found
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU

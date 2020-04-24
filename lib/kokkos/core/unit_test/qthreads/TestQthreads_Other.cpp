@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -45,29 +46,23 @@
 
 namespace Test {
 
-TEST_F( qthreads, init )
-{
-  ;
-}
+TEST_F(qthreads, init) { ; }
 
-TEST_F( qthreads, md_range )
-{
+TEST_F(qthreads, md_range) {
 #if 0
   TestMDRange_2D< Kokkos::Qthreads >::test_for2( 100, 100 );
   TestMDRange_3D< Kokkos::Qthreads >::test_for3( 100, 100, 100 );
 #endif
 }
 
-TEST_F( qthreads, policy_construction )
-{
+TEST_F(qthreads, policy_construction) {
 #if 0
   TestRangePolicyConstruction< Kokkos::Qthreads >();
   TestTeamPolicyConstruction< Kokkos::Qthreads >();
 #endif
 }
 
-TEST_F( qthreads, range_tag )
-{
+TEST_F(qthreads, range_tag) {
 #if 0
   TestRange< Kokkos::Qthreads, Kokkos::Schedule<Kokkos::Static> >::test_for( 0 );
   TestRange< Kokkos::Qthreads, Kokkos::Schedule<Kokkos::Static> >::test_reduce( 0 );
@@ -99,8 +94,7 @@ TEST_F( qthreads, range_tag )
 
 //----------------------------------------------------------------------------
 
-TEST_F( qthreads, compiler_macros )
-{
+TEST_F(qthreads, compiler_macros) {
 #if 0
   ASSERT_TRUE( ( TestCompilerMacros::Test< Kokkos::Qthreads >() ) );
 #endif
@@ -108,8 +102,7 @@ TEST_F( qthreads, compiler_macros )
 
 //----------------------------------------------------------------------------
 
-TEST_F( qthreads, memory_pool )
-{
+TEST_F(qthreads, memory_pool) {
 #if 0
 
 #endif
@@ -117,10 +110,9 @@ TEST_F( qthreads, memory_pool )
 
 //----------------------------------------------------------------------------
 
-#if defined( KOKKOS_ENABLE_TASKDAG )
+#if defined(KOKKOS_ENABLE_TASKDAG)
 
-TEST_F( qthreads, task_fib )
-{
+TEST_F(qthreads, task_fib) {
 #if 0
   const int N = 24 ; // 25 triggers tbd bug on Cuda/Pascal
   for ( int i = 0; i < N; ++i ) {
@@ -129,8 +121,7 @@ TEST_F( qthreads, task_fib )
 #endif
 }
 
-TEST_F( qthreads, task_depend )
-{
+TEST_F(qthreads, task_depend) {
 #if 0
   for ( int i = 0; i < 25; ++i ) {
     TestTaskScheduler::TestTaskDependence< Kokkos::Qthreads >::run( i );
@@ -138,22 +129,20 @@ TEST_F( qthreads, task_depend )
 #endif
 }
 
-TEST_F( qthreads, task_team )
-{
+TEST_F(qthreads, task_team) {
 #if 0
   TestTaskScheduler::TestTaskTeam< Kokkos::Qthreads >::run( 1000 );
   //TestTaskScheduler::TestTaskTeamValue< Kokkos::Qthreads >::run( 1000 ); // Put back after testing.
 #endif
 }
 
-#endif // #if defined( KOKKOS_ENABLE_TASKDAG )
+#endif  // #if defined( KOKKOS_ENABLE_TASKDAG )
 
 //----------------------------------------------------------------------------
 
-#if defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_QTHREADS )
+#if defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_QTHREADS)
 
-TEST_F( qthreads, cxx11 )
-{
+TEST_F(qthreads, cxx11) {
 #if 0
   if ( std::is_same< Kokkos::DefaultExecutionSpace, Kokkos::Qthreads >::value ) {
     ASSERT_TRUE( ( TestCXX11::Test< Kokkos::Qthreads >( 1 ) ) );
@@ -166,8 +155,7 @@ TEST_F( qthreads, cxx11 )
 
 #endif
 
-TEST_F( qthreads, tile_layout )
-{
+TEST_F(qthreads, tile_layout) {
 #if 0
   TestTile::test< Kokkos::Qthreads, 1, 1 >( 1, 1 );
   TestTile::test< Kokkos::Qthreads, 1, 1 >( 2, 3 );
@@ -193,8 +181,7 @@ TEST_F( qthreads, tile_layout )
 #endif
 }
 
-TEST_F( qthreads, dispatch )
-{
+TEST_F(qthreads, dispatch) {
 #if 0
   const int repeat = 100;
   for ( int i = 0; i < repeat; ++i ) {
@@ -206,4 +193,4 @@ TEST_F( qthreads, dispatch )
 #endif
 }
 
-} // namespace Test
+}  // namespace Test

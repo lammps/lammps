@@ -20,7 +20,7 @@ geodesic dist to next replica
 All those information can be provided by the verbose output of
 a neb/spin calculation
 
-The progam outputs the interpolation result, and the
+The program outputs the interpolation result, and the
 interpolated MEP in "interpolation_result.dat". 
 
 This code is a courtesy of Aleksei Ivanov, University of

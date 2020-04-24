@@ -6,24 +6,23 @@ compute ptm/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
-   compute ID group-ID ptm/atom structures threshold
+   compute ID group-ID ptm/atom structures threshold group2-ID
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * ptm/atom = style name of this compute command
 * structures = structure types to search for
 * threshold = lattice distortion threshold (RMSD)
+* group2-ID determines which group is used for neighbor selection (optional, default "all")
 
 Examples
 """"""""
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   compute 1 all ptm/atom default 0.1
-   compute 1 all ptm/atom fcc-hcp-dcub-dhex 0.15
+   compute 1 all ptm/atom default 0.1 all
+   compute 1 all ptm/atom fcc-hcp-dcub-dhex 0.15 all
    compute 1 all ptm/atom all 0
 
 Description
@@ -67,7 +66,6 @@ The deviation is calculated as:
    \text{RMSD}(\mathbf{u}, \mathbf{v}) = \min_{s, \mathbf{Q}} \sqrt{\frac{1}{N} \sum\limits_{i=1}^{N}
    {\left|\left| s[\vec{u_i} - \overline{\mathbf{u}}] - \mathbf{Q} \vec{v_i} \right|\right|}^2}
 
-
 Here, u and v contain the coordinates of the local and ideal structures respectively,
 s is a scale factor, and Q is a rotation.  The best match is identified by the
 lowest RMSD value, using the optimal scaling, rotation, and correspondence between the
@@ -82,7 +80,9 @@ The neighbor list needed to compute this quantity is constructed each
 time the calculation is performed (e.g. each time a snapshot of atoms
 is dumped).  Thus it can be inefficient to compute/dump this quantity
 too frequently or to have multiple compute/dump commands, each with a
-*ptm/atom* style.
+*ptm/atom* style. By default the compute processes **all** neighbors
+unless the optional *group2-ID* argument is given, then only members
+of that group are considered as neighbors.
 
 **Output info:**
 
@@ -105,11 +105,11 @@ The type is a number from -1 to 8.  The rmsd is a positive real number.
 The interatomic distance is computed from the scale factor in the RMSD equation.
 The (qw,qx,qy,qz) parameters represent the orientation of the local structure
 in quaternion form.  The reference coordinates for each template (from which the
-orientation is determined) can be found in the *ptm\_constants.h* file in the PTM source directory.
+orientation is determined) can be found in the *ptm_constants.h* file in the PTM source directory.
+For atoms that are not within the compute group-ID, all values are set to zero.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-PTM package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -122,12 +122,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Larsen:
-
-
 
 **(Larsen)** Larsen, Schmidt, Schiotz, Modelling Simul Mater Sci Eng, 24, 055007 (2016).

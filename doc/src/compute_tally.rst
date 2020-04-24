@@ -18,7 +18,6 @@ compute stress/tally command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID style group2-ID
@@ -30,8 +29,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 lower force/tally upper
    compute 1 left pe/tally right
@@ -53,9 +51,7 @@ and intramolecular energies. Something that would otherwise be
 impossible without integrating this as a core functionality into
 the based classes of LAMMPS.
 
-
 ----------
-
 
 The pairwise contributions are computing via a callback that the
 compute registers with the non-bonded pairwise force computation.
@@ -65,9 +61,7 @@ have to compute forces or energies a second time and thus can be much
 more efficient. The callback mechanism allows to write more complex
 pairwise property computations.
 
-
 ----------
-
 
 **Output info:**
 
@@ -92,7 +86,6 @@ Both the scalar and vector values calculated by this compute are
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-TALLY package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -109,7 +102,7 @@ The computes in this package are not compatible with dynamic groups.
 Related commands
 """"""""""""""""
 
-*compute group/group*\ \_compute\_group\_group.html, *compute
-heat/flux*\ \_compute\_heat\_flux.html
+*compute group/group*\ _compute_group_group.html, *compute
+heat/flux*\ _compute_heat_flux.html
 
 **Default:** none

@@ -20,7 +20,7 @@ parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
 OPT.
 
 .. table_from_list::
-   :columns: 6
+   :columns: 5
 
    * :doc:`adapt <fix_adapt>`
    * :doc:`adapt/fep <fix_adapt_fep>`
@@ -119,6 +119,7 @@ OPT.
    * :doc:`npt/eff <fix_nh_eff>`
    * :doc:`npt/sphere (o) <fix_npt_sphere>`
    * :doc:`npt/uef <fix_nh_uef>`
+   * :doc:`numdiff <fix_numdiff>`
    * :doc:`nve (iko) <fix_nve>`
    * :doc:`nve/asphere (i) <fix_nve_asphere>`
    * :doc:`nve/asphere/noforce <fix_nve_asphere_noforce>`

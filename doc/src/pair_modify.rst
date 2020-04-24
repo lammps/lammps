@@ -1,23 +1,22 @@
-.. index:: pair\_modify
+.. index:: pair_modify
 
-pair\_modify command
-====================
+pair_modify command
+===================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_modify keyword values ...
 
 * one or more keyword/value pairs may be listed
 * keyword = *pair* or *shift* or *mix* or *table* or *table/disp* or *tabinner*
-  or *tabinner/disp* or *tail* or *compute* or *nofdotr* or *special* or 
+  or *tabinner/disp* or *tail* or *compute* or *nofdotr* or *special* or
   *compute/tally*
-  
+
   .. parsed-literal::
-  
+
        *pair* value = sub-style N
          sub-style = sub-style of :doc:`pair hybrid <pair_hybrid>`
          N = which instance of sub-style (1 to M), only specify if sub-style is used multiple times
@@ -39,12 +38,10 @@ Syntax
           w1,w2,w3 = 1-2, 1-3, 1-4 weights from 0.0 to 1.0 inclusive
        *compute/tally* value = *yes* or *no*
 
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_modify shift yes mix geometric
    pair_modify tail yes
@@ -63,12 +60,12 @@ specified parameters are by default modified for all the hybrid sub-styles.
 
 .. note::
 
-  The behavior for hybrid pair styles can be changed by using the *pair*
-  keyword, which allows selection of a specific sub-style to apply all
-  remaining keywords to.
-  The *special* and *compute/tally* keywords can **only** be
-  used in conjunction with the *pair* keyword.  See further details about
-  these 3 keywords below.
+   The behavior for hybrid pair styles can be changed by using the *pair*
+   keyword, which allows selection of a specific sub-style to apply all
+   remaining keywords to.
+   The *special* and *compute/tally* keywords can **only** be
+   used in conjunction with the *pair* keyword.  See further details about
+   these 3 keywords below.
 
 The *mix* keyword affects pair coefficients for interactions between
 atoms of type I and J, when I != J and the coefficients are not
@@ -77,7 +74,7 @@ must be set explicitly, either in the input script via the
 :doc:`pair_coeff <pair_coeff>` command or in the "Pair Coeffs" section of the
 :doc:`data file <read_data>`.  For some pair styles it is not
 necessary to specify coefficients when I != J, since a "mixing" rule
-will create them from the I,I and J,J settings.  The pair\_modify
+will create them from the I,I and J,J settings.  The pair_modify
 *mix* value determines what formulas are used to compute the mixed
 coefficients.  In each case, the cutoff distance is mixed the same way
 as sigma.
@@ -90,30 +87,26 @@ See the doc page for individual pair styles for those restrictions.  Note also t
 coefficients for a specific I != J pairing, in which case no mixing is
 performed.
 
-mix *geometric*
+- mix *geometric*
 
+  .. math::
 
-.. parsed-literal::
+     \epsilon_{ij} = & \sqrt{\epsilon_i  \epsilon_j} \\
+     \sigma_{ij}   = & \sqrt{\sigma_i  \sigma_j}
 
-   epsilon_ij = sqrt(epsilon_i \* epsilon_j)
-   sigma_ij = sqrt(sigma_i \* sigma_j)
+- mix *arithmetic*
 
-mix *arithmetic*
+  .. math::
 
+    \epsilon_{ij} = & \sqrt{\epsilon_i  \epsilon_j} \\
+    \sigma_{ij}   = & \frac{1}{2} (\sigma_i + \sigma_j)
 
-.. parsed-literal::
+- mix *sixthpower*
 
-   epsilon_ij = sqrt(epsilon_i \* epsilon_j)
-   sigma_ij = (sigma_i + sigma_j) / 2
+  .. math::
 
-mix *sixthpower*
-
-
-.. parsed-literal::
-
-   epsilon_ij = (2 \* sqrt(epsilon_i\*epsilon_j) \* sigma_i\^3 \* sigma_j\^3) /
-                (sigma_i\^6 + sigma_j\^6)
-   sigma_ij = ((sigma_i\*\*6 + sigma_j\*\*6) / 2) \^ (1/6)
+    \epsilon_{ij} = & \frac{2 \sqrt{\epsilon_i \epsilon_j} \sigma_i^3 \sigma_j^3}{\sigma_i^6 + \sigma_j^6} \\
+    \sigma_{ij} =   & \left(\frac{1}{2} (\sigma_i^6 + \sigma_j^6) \right)^{\frac{1}{6}}
 
 The *shift* keyword determines whether a Lennard-Jones potential is
 shifted at its cutoff to 0.0.  If so, this adds an energy term to each
@@ -208,7 +201,6 @@ including the following:
   pressure reported by the simulation include an estimated
   contribution from those interactions.
 
-
 The *compute* keyword allows pairwise computations to be turned off,
 even though a :doc:`pair_style <pair_style>` is defined.  This is not
 useful for running a real simulation, but can be useful for debugging
@@ -228,7 +220,6 @@ defined.
 The *nofdotr* keyword allows to disable an optimization that computes
 the global stress tensor from the total forces and atom positions
 rather than from summing forces between individual pairs of atoms.
-
 
 ----------
 
@@ -290,9 +281,7 @@ the *pair* keyword.  Use *no* to disable, or *yes* to enable.
    The "pair_modify pair compute/tally" command must be issued
    **before** the corresponding compute style is defined.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
@@ -318,18 +307,12 @@ tabinner = sqrt(2.0), tail = no, and compute = yes.
 Note that some pair styles perform mixing, but only a certain style of
 mixing.  See the doc pages for individual pair styles for details.
 
-
 ----------
 
-
 .. _Wolff1:
-
-
 
 **(Wolff)** Wolff and Rudd, Comp Phys Comm, 120, 200-32 (1999).
 
 .. _Sun:
-
-
 
 **(Sun)** Sun, J Phys Chem B, 102, 7338-7364 (1998).

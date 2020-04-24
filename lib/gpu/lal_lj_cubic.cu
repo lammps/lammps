@@ -13,12 +13,12 @@
 //    email                : ndactrung@gmail.com
 // ***************************************************************************/
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_aux_fun1.h"
 #ifndef _DOUBLE_DOUBLE
-texture<float4> pos_tex;
+_texture( pos_tex,float4);
 #else
-texture<int4,1> pos_tex;
+_texture_2d( pos_tex,int4);
 #endif
 #else
 #define pos_tex x_

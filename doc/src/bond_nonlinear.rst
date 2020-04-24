@@ -9,14 +9,12 @@ bond_style nonlinear/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    bond_style nonlinear
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -32,7 +30,6 @@ The *nonlinear* bond style uses the potential
 
    E = \frac{\epsilon (r - r_0)^2}{ [ \lambda^2 - (r - r_0)^2 ]}
 
-
 to define an anharmonic spring :ref:`(Rector) <Rector>` of equilibrium
 length :math:`r_0` and maximum extension lamda.
 
@@ -45,9 +42,7 @@ or :doc:`read_restart <read_restart>` commands:
 * :math:`r_0` (distance)
 * :math:`\lambda` (distance)
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -67,13 +62,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This bond style can only be used if LAMMPS was built with the MOLECULE
 package.  See the :doc:`Build package <Build_package>` doc page for more
@@ -86,12 +78,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Rector:
-
-
 
 **(Rector)** Rector, Van Swol, Henderson, Molecular Physics, 82, 1009 (1994).

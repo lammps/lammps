@@ -44,14 +44,16 @@ class FixRestrain : public Fix {
   int *rstyle;
   int *mult;
   int **ids;
-  double *kstart,*kstop,*target;
+  double *kstart,*kstop,*deqstart,*deqstop,*target;
   double *cos_target,*sin_target;
   double energy,energy_all;
   double ebond,ebond_all;
+  double elbound,elbound_all;
   double eangle,eangle_all;
   double edihed,edihed_all;
 
   void restrain_bond(int);
+  void restrain_lbound(int);
   void restrain_angle(int);
   void restrain_dihedral(int);
 };

@@ -1,25 +1,23 @@
-.. index:: pair\_style meam/sw/spline
+.. index:: pair_style meam/sw/spline
 
-pair\_style meam/sw/spline command
-==================================
+pair_style meam/sw/spline command
+=================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style meam/sw/spline
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style meam/sw/spline
-   pair_coeff \* \* Ti.meam.sw.spline Ti
-   pair_coeff \* \* Ti.meam.sw.spline Ti Ti Ti
+   pair_coeff * * Ti.meam.sw.spline Ti
+   pair_coeff * * Ti.meam.sw.spline Ti Ti Ti
 
 Description
 """""""""""
@@ -32,12 +30,17 @@ was first proposed by Nicklas, Fellinger, and Park
 :ref:`(Nicklas) <Nicklas>`.  We refer to it as MEAM+SW.  The total energy E
 is given by
 
-.. image:: Eqs/pair_meam_sw_spline.jpg
-   :align: center
+.. math::
 
-where rho\_I is the density at atom I, theta\_JIK is the angle between
-atoms J, I, and K centered on atom I. The seven functions
-Phi, F, G, U, rho, f, and g are represented by cubic splines.
+   E & = E_{MEAM} + E_{SW} \\
+   E_{MEAM} & =  \sum _{IJ} \phi (r_{IJ}) + \sum _{I} U(\rho _I) \\
+   E_{SW} & =  \sum _{I} \sum _{JK} F(r_{IJ}) \, F(r_{IK}) \, G(\cos(\theta _{JIK})) \\
+   \rho _I & = \sum _J \rho(r_{IJ}) + \sum _{JK} f(r_{IJ}) \, f(r_{IK}) \, g(\cos(\theta _{JIK}))
+
+where :math:`\rho_I` is the density at atom I, :math:`\theta_{JIK}` is
+the angle between atoms J, I, and K centered on atom I. The seven
+functions :math:`\phi, F, G, U, \rho, f,` and *g* are represented by
+cubic splines.
 
 The cutoffs and the coefficients for these spline functions are listed
 in a parameter file which is specified by the
@@ -47,7 +50,7 @@ distribution and have a ".meam.sw.spline" file suffix.  All of these
 files are parameterized in terms of LAMMPS :doc:`metal units <units>`.
 
 Note that unlike for other potentials, cutoffs for spline-based
-MEAM+SW potentials are not set in the pair\_style or pair\_coeff
+MEAM+SW potentials are not set in the pair_style or pair_coeff
 command; they are specified in the potential files themselves.
 
 Unlike the EAM pair style, which retrieves the atomic mass from the
@@ -55,10 +58,10 @@ potential file, the spline-based MEAM+SW potentials do not include
 mass information; thus you need to use the :doc:`mass <mass>` command to
 specify it.
 
-Only a single pair\_coeff command is used with the meam/sw/spline style
+Only a single pair_coeff command is used with the meam/sw/spline style
 which specifies a potential file with parameters for all needed
 elements.  These are mapped to LAMMPS atom types by specifying N
-additional arguments after the filename in the pair\_coeff command,
+additional arguments after the filename in the pair_coeff command,
 where N is the number of LAMMPS atom types:
 
 * filename
@@ -69,10 +72,12 @@ to specify the path for the potential file.
 
 As an example, imagine the Ti.meam.sw.spline file has values for Ti.
 If your LAMMPS simulation has 3 atoms types and they are all to be
-treated with this potential, you would use the following pair\_coeff
+treated with this potential, you would use the following pair_coeff
 command:
 
-pair\_coeff \* \* Ti.meam.sw.spline Ti Ti Ti
+.. code-block:: LAMMPS
+
+   pair_coeff * * Ti.meam.sw.spline Ti Ti Ti
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The three Ti arguments map LAMMPS atom types 1,2,3 to the Ti element
@@ -89,11 +94,9 @@ potentials.
    systems in the future.
 
 Example input scripts that use this pair style are provided
-in the examples/USER/misc/meam\_sw\_spline directory.
-
+in the examples/USER/misc/meam_sw_spline directory.
 
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -105,20 +108,17 @@ shift, table, and tail options.
 
 The *meam/sw/spline* pair style does not write its information to
 :doc:`binary restart files <restart>`, since it is stored in an external
-potential parameter file.  Thus, you need to re-specify the pair\_style
-and pair\_coeff commands in an input script that reads a restart file.
+potential parameter file.  Thus, you need to re-specify the pair_style
+and pair_coeff commands in an input script that reads a restart file.
 
 The *meam/sw/spline* pair style can only be used via the *pair*
 keyword of the :doc:`run_style respa <run_style>` command.  They do not
 support the *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
@@ -135,26 +135,18 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Lenosky2:
-
-
 
 **(Lenosky)** Lenosky, Sadigh, Alonso, Bulatov, de la Rubia, Kim, Voter,
 Kress, Modell. Simul. Mater. Sci. Eng. 8, 825 (2000).
 
 .. _Stillinger1:
 
-
-
 **(Stillinger)** Stillinger, Weber, Phys. Rev. B 31, 5262 (1985).
 
 .. _Nicklas:
-
-
 
 **(Nicklas)**
 The spline-based MEAM+SW format was first devised and used to develop

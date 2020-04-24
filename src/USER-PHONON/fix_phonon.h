@@ -73,7 +73,7 @@ class FixPhonon : public Fix {
 
   double *M_inv_sqrt;
 
-  class FFT3d *fft;                             // to do fft via the fft3d wraper
+  class FFT3d *fft;                             // to do fft via the fft3d wrapper
   int nxlo,nxhi,mysize;                         // size info for local MPI_FFTW
   int mynpt,mynq,fft_nsend;
   int *fft_cnts, *fft_disp;

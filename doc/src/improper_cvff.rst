@@ -1,27 +1,25 @@
-.. index:: improper\_style cvff
+.. index:: improper_style cvff
 
-improper\_style cvff command
-============================
+improper_style cvff command
+===========================
 
-improper\_style cvff/intel command
-==================================
+improper_style cvff/intel command
+=================================
 
-improper\_style cvff/omp command
-================================
+improper_style cvff/omp command
+===============================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style cvff
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style cvff
    improper_coeff 1 80.0 -1 4
@@ -33,8 +31,7 @@ The *cvff* improper style uses the potential
 
 .. math::
 
-   E = K [1 + d  \cos (n \phi) ] 
-
+   E = K [1 + d  \cos (n \phi) ]
 
 where phi is the improper dihedral angle.
 
@@ -60,9 +57,7 @@ commands:
 * :math:`d` (+1 or -1)
 * :math:`n` (0,1,2,3,4,6)
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -82,13 +77,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This improper style can only be used if LAMMPS was built with the
 MOLECULE package.  See the :doc:`Build package <Build_package>` doc page

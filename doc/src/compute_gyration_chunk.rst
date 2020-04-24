@@ -6,7 +6,6 @@ compute gyration/chunk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID gyration/chunk chunkID keyword value ...
@@ -16,18 +15,15 @@ Syntax
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 * zero or more keyword/value pairs may be appended
 * keyword = *tensor*
-  
+
   .. parsed-literal::
-  
+
        *tensor* value = none
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 molecule gyration/chunk molchunk
    compute 2 molecule gyration/chunk molchunk tensor
@@ -55,7 +51,6 @@ formula
 .. math::
 
  {R_g}^2 = \frac{1}{M} \sum_i m_i (r_i - r_{cm})^2
-
 
 where :math:`M` is the total mass of the chunk, :math:`r_{cm}` is
 the center-of-mass position of the chunk, and the sum is over all atoms in the
@@ -91,8 +86,7 @@ The simplest way to output the results of the compute gyration/chunk
 calculation to a file is to use the :doc:`fix ave/time <fix_ave_time>`
 command, for example:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cc1 all chunk/atom molecule
    compute myChunk all gyration/chunk cc1

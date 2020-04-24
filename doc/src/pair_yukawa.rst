@@ -1,22 +1,21 @@
-.. index:: pair\_style yukawa
+.. index:: pair_style yukawa
 
-pair\_style yukawa command
-==========================
+pair_style yukawa command
+=========================
 
-pair\_style yukawa/gpu command
-==============================
-
-pair\_style yukawa/omp command
-==============================
-
-pair\_style yukawa/kk command
+pair_style yukawa/gpu command
 =============================
+
+pair_style yukawa/omp command
+=============================
+
+pair_style yukawa/kk command
+============================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style yukawa kappa cutoff
 
@@ -26,12 +25,11 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style yukawa 2.0 2.5
    pair_coeff 1 1 100.0 2.3
-   pair_coeff \* \* 100.0
+   pair_coeff * * 100.0
 
 Description
 """""""""""
@@ -41,7 +39,6 @@ Style *yukawa* computes pairwise interactions with the formula
 .. math::
 
    E = A \frac{e^{- \kappa r}}{r} \qquad r < r_c
-
 
 :math:`r_c` is the cutoff.
 
@@ -57,9 +54,7 @@ commands, or by mixing as described below:
 The last coefficient is optional.  If not specified, the global yukawa
 cutoff is used.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -79,16 +74,14 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 For atom type pairs I,J and I != J, the A coefficient and cutoff
 distance for this pair style can be mixed.  A is an energy value mixed
 like a LJ epsilon.  The default mix value is *geometric*\ .  See the
-"pair\_modify" command for details.
+"pair_modify" command for details.
 
 This pair style supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the pair interaction.
@@ -100,16 +93,14 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""

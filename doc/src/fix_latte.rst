@@ -6,7 +6,6 @@ fix latte command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID latte peID
@@ -18,8 +17,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix dftb all latte NULL
 
@@ -55,9 +53,7 @@ specified as NULL.  Eventually it will be used to enable LAMMPS to
 calculate a Coulomb potential as an alternative to LATTE performing
 the calculation.
 
-
 ----------
-
 
 LATTE is a code for performing self-consistent charge transfer
 tight-binding (SC-TB) calculations of total energies and the forces
@@ -106,11 +102,9 @@ areas of chemistry and materials science, as we now can simulate
 larger system sizes and longer time scales
 (:ref:`Cawkwell2012 <Cawkwell2012>`), (:ref:`Negre2016 <Negre2016>`).
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -144,7 +138,6 @@ energy minimization, invoked by the :doc:`minimize <minimize>` command.
 Restrictions
 """"""""""""
 
-
 This fix is part of the LATTE package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -170,13 +163,9 @@ doing 99% or more of the work to compute quantum-accurate forces.
 
 **Default:** none
 
-
 ----------
 
-
 .. _Elstner:
-
-
 
 **(Elstner)** M. Elstner, D. Poresag, G. Jungnickel, J. Elsner,
 M. Haugk, T. Frauenheim, S. Suhai, and G. Seifert, Phys. Rev. B, 58,
@@ -184,22 +173,16 @@ M. Haugk, T. Frauenheim, S. Suhai, and G. Seifert, Phys. Rev. B, 58,
 
 .. _Elstner1:
 
-
-
 **(Elstner)** M. Elstner, D. Poresag, G. Jungnickel, J. Elsner,
 M. Haugk, T. Frauenheim, S. Suhai, and G. Seifert, Phys. Rev. B, 58,
 7260 (1998).
 
 .. _Finnis2:
 
-
-
 **(Finnis)** M. W. Finnis, A. T. Paxton, M. Methfessel, and M. van
 Schilfgarde, Phys. Rev. Lett., 81, 5149 (1998).
 
 .. _Mniszewski:
-
-
 
 **(Mniszewski)** S. M. Mniszewski, M. J. Cawkwell, M. E. Wall,
 J. Mohd-Yusof, N. Bock, T. C.  Germann, and A. M. N. Niklasson,
@@ -207,47 +190,33 @@ J. Chem. Theory Comput., 11, 4644 (2015).
 
 .. _Niklasson2002:
 
-
-
 **(Niklasson2002)** A. M. N. Niklasson, Phys. Rev. B, 66, 155115 (2002).
 
 .. _Rubensson:
-
-
 
 **(Rubensson)** E. H. Rubensson, A. M. N. Niklasson, SIAM
 J. Sci. Comput. 36 (2), 147-170, (2014).
 
 .. _Niklasson2008:
 
-
-
 **(Niklasson2008)** A. M. N. Niklasson, Phys. Rev. Lett., 100, 123004
 (2008).
 
 .. _Niklasson2014:
-
-
 
 **(Niklasson2014)** A. M. N. Niklasson and M. Cawkwell, J. Chem. Phys.,
 141, 164123, (2014).
 
 .. _Niklasson2017:
 
-
-
 **(Niklasson2017)** A. M. N. Niklasson, J. Chem. Phys., 147, 054103 (2017).
 
 .. _Cawkwell2012:
-
-
 
 **(Cawkwell2012)** A. M. N. Niklasson, M. J. Cawkwell, Phys. Rev. B, 86
 (17), 174308 (2012).
 
 .. _Negre2016:
-
-
 
 **(Negre2016)** C. F. A. Negre, S. M. Mniszewski, M. J. Cawkwell,
 N. Bock, M. E. Wall, and A. M. N. Niklasson, J. Chem. Theory Comp.,

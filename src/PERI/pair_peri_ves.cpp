@@ -317,7 +317,7 @@ void PairPeriVES::compute(int eflag, int vflag)
         dr - (theta[i]* r0[i][jj] / 3.0);
       deltaed = deviatoric_extension-deviatorextention[i][jj];
 
-      // back extention at current step
+      // back extension at current step
 
       edbNp1 = deviatorextention[i][jj]*(1-decay) +
         deviatorBackextention[i][jj]*decay+betai*deltaed;
@@ -357,7 +357,7 @@ void PairPeriVES::compute(int eflag, int vflag)
       // find stretch in bond I-J and break if necessary
       // use s0 from previous timestep
 
-      // store current deviatoric extention
+      // store current deviatoric extension
 
       deviatorextention[i][jj]=deviatoric_extension;
       deviatorBackextention[i][jj]=edbNp1;

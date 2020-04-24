@@ -6,7 +6,6 @@ fix vector command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID vector Nevery value1 value2 ...
@@ -15,10 +14,10 @@ Syntax
 * vector = style name of this fix command
 * Nevery = use input values every this many timesteps
 * one or more input values can be listed
-* value = c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
-  
+* value = c_ID, c_ID[N], f_ID, f_ID[N], v_name
+
   .. parsed-literal::
-  
+
        c_ID = global scalar calculated by a compute with ID
        c_ID[I] = Ith component of global vector calculated by a compute with ID
        f_ID = global scalar calculated by a fix with ID
@@ -26,13 +25,10 @@ Syntax
        v_name = value calculated by an equal-style variable with name
        v_name[I] = Ith component of vector-style variable with name
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all vector 100 c_myTemp
    fix 1 all vector 5 c_myTemp v_integral
@@ -52,12 +48,11 @@ time-integrated using the :doc:`variable trap() <variable>` function.
 For example the velocity auto-correlation function (VACF) can be
 time-integrated, to yield a diffusion coefficient, as follows:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute         2 all vacf
    fix             5 all vector 1 c_2[4]
-   variable        diff equal dt\*trap(f_5)
+   variable        diff equal dt*trap(f_5)
    thermo_style    custom step v_diff
 
 The group specified with this command is ignored.  However, note that
@@ -89,9 +84,7 @@ command with a timestep value that encompasses all the runs.  This is
 so that the vector or array stored by this fix can be allocated to a
 sufficient size.
 
-
 ----------
-
 
 If a value begins with "c\_", a compute ID must follow which has been
 previously defined in the input script.  If no bracketed term is
@@ -128,11 +121,9 @@ keywords, or they can invoke other computes, fixes, or variables when
 they are evaluated, so this is a very general means of specifying
 quantities to be stored by fix vector.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.

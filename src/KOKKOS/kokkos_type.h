@@ -163,6 +163,20 @@ t_scalar3<Scalar> operator *
 typedef Kokkos::DefaultExecutionSpace LMPDeviceType;
 typedef Kokkos::HostSpace::execution_space LMPHostType;
 
+
+// Need to use Cuda UVM memory space for Host execution space
+
+template<class DeviceType>
+class KKDevice {
+public:
+#if defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_CUDA_UVM)
+  typedef Kokkos::Device<DeviceType,LMPDeviceType::memory_space> value;
+#else
+  typedef Kokkos::Device<DeviceType,typename DeviceType::memory_space> value;
+#endif
+};
+
+
 // set ExecutionSpace stuct with variable "space"
 
 template<class Device>
@@ -980,17 +994,9 @@ typedef struct ArrayTypes<LMPHostType> HAT;
 template<class DeviceType, class BufferView, class DualView>
 void buffer_view(BufferView &buf, DualView &view,
                  const size_t n0,
-                 const size_t n1 = 0,
-                 const size_t n2 = 0,
-                 const size_t n3 = 0,
-                 const size_t n4 = 0,
-                 const size_t n5 = 0,
-                 const size_t n6 = 0,
-                 const size_t n7 = 0) {
+                 const size_t n1) {
 
-  buf = BufferView(
-          view.template view<DeviceType>().data(),
-          n0,n1,n2,n3,n4,n5,n6,n7);
+  buf = BufferView(view.template view<DeviceType>().data(),n0,n1);
 
 }
 
@@ -1012,7 +1018,7 @@ void memset_kokkos (ViewType &view) {
   #else
   Kokkos::parallel_for(view.span()*sizeof(typename ViewType::value_type)/4, f);
   #endif
-  ViewType::execution_space::fence();
+  ViewType::execution_space().fence();
 }
 
 struct params_lj_coul {
@@ -1028,18 +1034,53 @@ struct params_lj_coul {
 typedef double SNAreal;
 
 //typedef struct { SNAreal re, im; } SNAcomplex;
-struct alignas(2*sizeof(SNAreal)) SNAcomplex{
-  SNAreal re, im;
+template <typename real>
+struct alignas(2*sizeof(real)) SNAComplex
+{
+  real re,im;
 
-  KOKKOS_INLINE_FUNCTION
-  SNAcomplex() : re(0),im(0)
-  {}
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex() = default;
 
-  KOKKOS_INLINE_FUNCTION
-  SNAcomplex(SNAreal real_in, SNAreal imag_in)
-      :re(real_in),im(imag_in)
-  {}
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real re)
+   : re(re), im(static_cast<real>(0.)) { ; }
+
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real re, real im)
+   : re(re), im(im) { ; }
+
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(const SNAComplex& other)
+   : re(other.re), im(other.im) { ; }
+
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex& operator=(const SNAComplex& other) {
+    re = other.re; im = other.im;
+    return *this;
+  }
+
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(SNAComplex&& other)
+   : re(other.re), im(other.im) { ; }
+
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex& operator=(SNAComplex&& other) {
+    re = other.re; im = other.im;
+    return *this;
+  }
+
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex operator+(SNAComplex const& other) {
+    return SNAComplex(re + other.re, im + other.im);
+  }
+
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex& operator+=(SNAComplex const& other) {
+    re += other.re; im += other.im;
+    return *this;
+  }
+
 };
+
+template <typename real>
+KOKKOS_FORCEINLINE_FUNCTION SNAComplex<real> operator*(const real& r, const SNAComplex<real>& self) {
+  return SNAComplex<real>(r*self.re, r*self.im);
+}
+
+typedef SNAComplex<SNAreal> SNAcomplex;
+
 
 #if defined(KOKKOS_ENABLE_CXX11)
 #undef ISFINITE

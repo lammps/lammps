@@ -175,6 +175,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   spin_flag = eradius_flag = ervel_flag = erforce_flag = ervelforce_flag = 0;
   cs_flag = csforce_flag = vforce_flag = etag_flag = 0;
 
+  // USER-SPH, USER-MESO, and USER-DPD flags
+
   rho_flag = e_flag = cv_flag = vest_flag = 0;
   dpd_flag = edpd_flag = tdpd_flag = 0;
 
@@ -971,16 +973,23 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
         error->all(FLERR,"Incorrect atom format in data file");
     }
 
-    if (imageflag)
-      imagedata = ((imageint) (atoi(values[iptr]) + IMGMAX) & IMGMASK) |
-        (((imageint) (atoi(values[iptr+1]) + IMGMAX) & IMGMASK) << IMGBITS) |
-        (((imageint) (atoi(values[iptr+2]) + IMGMAX) & IMGMASK) << IMG2BITS);
-    else imagedata = ((imageint) IMGMAX << IMG2BITS) |
-           ((imageint) IMGMAX << IMGBITS) | IMGMAX;
+    int imx = 0;
+    int imy = 0;
+    int imz = 0;
+    if (imageflag) {
+      imx = utils::inumeric(FLERR,values[iptr],false,lmp);
+      imy = utils::inumeric(FLERR,values[iptr+1],false,lmp);
+      imz = utils::inumeric(FLERR,values[iptr+2],false,lmp);
+      if ((domain->dimension == 2) && (imz != 0))
+        error->all(FLERR,"Z-direction image flag must be 0 for 2d-systems");
+    }
+    imagedata = ((imageint) (imx + IMGMAX) & IMGMASK) |
+        (((imageint) (imy + IMGMAX) & IMGMASK) << IMGBITS) |
+        (((imageint) (imz + IMGMAX) & IMGMASK) << IMG2BITS);
 
-    xdata[0] = atof(values[xptr]);
-    xdata[1] = atof(values[xptr+1]);
-    xdata[2] = atof(values[xptr+2]);
+    xdata[0] = utils::numeric(FLERR,values[xptr],false,lmp);
+    xdata[1] = utils::numeric(FLERR,values[xptr+1],false,lmp);
+    xdata[2] = utils::numeric(FLERR,values[xptr+2],false,lmp);
     if (shiftflag) {
       xdata[0] += shift[0];
       xdata[1] += shift[1];

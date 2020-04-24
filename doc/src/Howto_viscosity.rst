@@ -62,8 +62,7 @@ simulation box.
 Here is an example input script that calculates the viscosity of
 liquid Ar via the GK formalism:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    # Sample LAMMPS input script for viscosity of liquid Ar
 
@@ -73,7 +72,7 @@ liquid Ar via the GK formalism:
    variable    dt equal 4.0
    variable    p equal 400     # correlation length
    variable    s equal 5       # sample interval
-   variable    d equal $p\*$s   # dump interval
+   variable    d equal $p*$s   # dump interval
 
    # convert from LAMMPS real units to SI
 
@@ -81,7 +80,7 @@ liquid Ar via the GK formalism:
    variable    atm2Pa equal 101325.0
    variable    A2m equal 1.0e-10
    variable    fs2s equal 1.0e-15
-   variable    convert equal ${atm2Pa}\*${atm2Pa}\*${fs2s}\*${A2m}\*${A2m}\*${A2m}
+   variable    convert equal ${atm2Pa}*${atm2Pa}*${fs2s}*${A2m}*${A2m}*${A2m}
 
    # setup problem
 
@@ -93,7 +92,7 @@ liquid Ar via the GK formalism:
    create_atoms 1 box
    mass         1 39.948
    pair_style   lj/cut 13.0
-   pair_coeff   \* \* 0.2381 3.405
+   pair_coeff   * * 0.2381 3.405
    timestep     ${dt}
    thermo       $d
 
@@ -114,15 +113,15 @@ liquid Ar via the GK formalism:
    variable     pyz equal pyz
    fix          SS all ave/correlate $s $p $d &
                 v_pxy v_pxz v_pyz type auto file S0St.dat ave running
-   variable     scale equal ${convert}/(${kB}\*$T)\*$V\*$s\*${dt}
-   variable     v11 equal trap(f_SS[3])\*${scale}
-   variable     v22 equal trap(f_SS[4])\*${scale}
-   variable     v33 equal trap(f_SS[5])\*${scale}
+   variable     scale equal ${convert}/(${kB}*$T)*$V*$s*${dt}
+   variable     v11 equal trap(f_SS[3])*${scale}
+   variable     v22 equal trap(f_SS[4])*${scale}
+   variable     v33 equal trap(f_SS[5])*${scale}
    thermo_style custom step temp press v_pxy v_pxz v_pyz v_v11 v_v22 v_v33
    run          100000
    variable     v equal (v_v11+v_v22+v_v33)/3.0
    variable     ndens equal count(all)/vol
-   print        "average viscosity: $v [Pa.s] @ $T K, ${ndens} /A\^3"
+   print        "average viscosity: $v [Pa.s] @ $T K, ${ndens} /A^3"
 
 The fifth method is related to the above Green-Kubo method,
 but uses the Einstein formulation, analogous to the Einstein
@@ -131,13 +130,9 @@ time-integrated momentum fluxes play the role of Cartesian
 coordinates, whose mean-square displacement increases linearly
 with time at sufficiently long times.
 
-
 ----------
 
-
 .. _Daivis-viscosity:
-
-
 
 **(Daivis and Todd)** Daivis and Todd, Nonequilibrium Molecular Dynamics (book),
 Cambridge University Press, https://doi.org/10.1017/9781139017848, (2017).

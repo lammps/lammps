@@ -620,7 +620,7 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
     d_vatom = k_vatom.view<DeviceType>();
   }
 
@@ -836,7 +836,7 @@ void PPPMKokkos<DeviceType>::allocate()
   h_rho_coeff = k_rho_coeff.h_view;
 
   // create 2 FFTs and a Remap
-  // 1st FFT keeps data in FFT decompostion
+  // 1st FFT keeps data in FFT decomposition
   // 2nd FFT returns data in 3d brick decomposition
   // remap takes data from 3d brick to FFT decomposition
 
@@ -1670,7 +1670,7 @@ KOKKOS_INLINE_FUNCTION
 void PPPMKokkos<DeviceType>::operator()(TagPPPM_make_rho_atomic, const int &i) const
 {
   // The density_brick array is atomic for Half/Thread neighbor style
-  Kokkos::View<FFT_SCALAR***,Kokkos::LayoutRight,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_density_brick = d_density_brick;
+  Kokkos::View<FFT_SCALAR***,Kokkos::LayoutRight,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_density_brick = d_density_brick;
 
   int nx = d_part2grid(i,0);
   int ny = d_part2grid(i,1);

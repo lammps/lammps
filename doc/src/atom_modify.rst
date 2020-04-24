@@ -6,16 +6,15 @@ atom_modify command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    atom_modify keyword values ...
 
 * one or more keyword/value pairs may be appended
 * keyword = *id* or *map* or *first* or *sort*
-  
+
   .. parsed-literal::
-  
+
         *id* value = *yes* or *no*
         *map* value = *yes* or *array* or *hash*
         *first* value = group-ID = group whose atoms will appear first in internal atom lists
@@ -23,11 +22,8 @@ Syntax
           Nfreq = sort atoms spatially every this many time steps
           binsize = bin size for spatial sorting (distance units)
 
-
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -64,8 +60,8 @@ The only reason not to use atom IDs is if you are running an atomic
 simulation so large that IDs cannot be uniquely assigned.  For a
 default LAMMPS build this limit is 2\^31 or about 2 billion atoms.
 However, even in this case, you can use 64-bit atom IDs, allowing 2\^63
-or about 9e18 atoms, if you build LAMMPS with the - DLAMMPS\_BIGBIG
-switch.  This is described on the :doc:`Build\_settings <Build_settings>`
+or about 9e18 atoms, if you build LAMMPS with the - DLAMMPS_BIGBIG
+switch.  This is described on the :doc:`Build_settings <Build_settings>`
 doc page.  If atom IDs are not used, they must be specified as 0 for
 all atoms, e.g. in a data or restart file.
 
@@ -112,7 +108,7 @@ this command.  Note that specifying "all" as the group-ID effectively
 turns off the *first* option.
 
 It is OK to use the *first* keyword with a group that has not yet been
-defined, e.g. to use the atom\_modify first command at the beginning of
+defined, e.g. to use the atom_modify first command at the beginning of
 your input script.  LAMMPS does not use the group until a simulation
 is run.
 
@@ -160,7 +156,6 @@ cache locality will be undermined.
 Restrictions
 """"""""""""
 
-
 The *first* and *sort* options cannot be used together.  Since sorting
 is on by default, it will be turned off if the *first* keyword is
 used with a group-ID that is not "all".
@@ -179,12 +174,8 @@ frequency of 1000 and a binsize of 0.0, which means the neighbor
 cutoff will be used to set the bin size. If no neighbor cutoff is
 defined, sorting will be turned off.
 
-
 ----------
 
-
 .. _Meloni:
-
-
 
 **(Meloni)** Meloni, Rosati and Colombo, J Chem Phys, 126, 121102 (2007).

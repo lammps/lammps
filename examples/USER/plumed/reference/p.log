@@ -48,7 +48,7 @@ PLUMED:   [1] The PLUMED consortium, Nat. Methods 16, 670 (2019)
 PLUMED:   [2] Tribello, Bonomi, Branduardi, Camilloni, and Bussi, Comput. Phys. Commun. 185, 604 (2014)
 PLUMED: Please read and cite where appropriate!
 PLUMED: Finished setup
-PLUMED:                                               Cycles        Total      Average      Minumum      Maximum
+PLUMED:                                               Cycles        Total      Average      Minimum      Maximum
 PLUMED:                                                    1     0.010018     0.010018     0.010018     0.010018
 PLUMED: 1 Prepare dependencies                           102     0.000241     0.000002     0.000001     0.000003
 PLUMED: 2 Sharing data                                   102     0.002132     0.000021     0.000006     0.000151

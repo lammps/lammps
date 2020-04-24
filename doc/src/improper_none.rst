@@ -1,21 +1,19 @@
-.. index:: improper\_style none
+.. index:: improper_style none
 
-improper\_style none command
-============================
+improper_style none command
+===========================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style none
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style none
 

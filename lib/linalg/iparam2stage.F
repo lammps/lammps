@@ -87,14 +87,14 @@
 *>
 *> \param[in] NBI
 *> \verbatim
-*>          NBI is INTEGER which is the used in the reduciton, 
+*>          NBI is INTEGER which is the used in the reduction,
 *           (e.g., the size of the band), needed to compute workspace
 *           and LHOUS2.
 *> \endverbatim
 *>
 *> \param[in] IBI
 *> \verbatim
-*>          IBI is INTEGER which represent the IB of the reduciton,
+*>          IBI is INTEGER which represent the IB of the reduction,
 *           needed to compute workspace and LHOUS2.
 *> \endverbatim
 *>
@@ -130,7 +130,7 @@
 *>  of 2011 International Conference for High Performance Computing,
 *>  Networking, Storage and Analysis (SC '11), New York, NY, USA,
 *>  Article 8 , 11 pages.
-*>  http://doi.acm.org/10.1145/2063384.2063394
+*>  https://doi.acm.org/10.1145/2063384.2063394
 *>
 *>  A. Haidar, J. Kurzak, P. Luszczek, 2013.
 *>  An improved parallel singular value algorithm and its implementation 
@@ -138,7 +138,7 @@
 *>  for High Performance Computing, Networking, Storage and Analysis (SC '13).
 *>  Denver, Colorado, USA, 2013.
 *>  Article 90, 12 pages.
-*>  http://doi.acm.org/10.1145/2503210.2503292
+*>  https://doi.acm.org/10.1145/2503210.2503292
 *>
 *>  A. Haidar, R. Solca, S. Tomov, T. Schulthess and J. Dongarra.
 *>  A novel hybrid CPU-GPU generalized eigensolver for electronic structure 

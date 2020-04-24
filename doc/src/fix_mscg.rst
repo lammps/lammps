@@ -6,7 +6,6 @@ fix mscg command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID mscg N keyword args ...
@@ -16,9 +15,9 @@ Syntax
 * N = envoke this fix every this many timesteps
 * zero or more keyword/value pairs may be appended
 * keyword = *range* or *name* or *max*
-  
+
   .. parsed-literal::
-  
+
        *range* arg = *on* or *off*
          *on* = range finding functionality is performed
          *off* = force matching functionality is performed
@@ -27,13 +26,10 @@ Syntax
        *max* args = maxb maxa maxd
          maxb,maxa,maxd = maximum bonds/angles/dihedrals per atom
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all mscg 1
    fix 1 all mscg 1 range name A B
@@ -94,9 +90,7 @@ also be output depending on the parameters in the MS-CG library input
 script.  Again, see the documentation provided with the MS-CG library
 for more info.
 
-
 ----------
-
 
 The *range* keyword specifies which MS-CG library functionality should
 be invoked. If *on*\ , the step 4 range finder functionality is invoked.
@@ -111,7 +105,6 @@ dihedrals a bead can have in the coarse-grained model.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the MSCG package. It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
@@ -132,19 +125,13 @@ Default
 
 The default keyword settings are range off, max 4 12 36.
 
-
 ----------
 
-
 .. _Izvekov:
-
-
 
 **(Izvekov)** Izvekov, Voth, J Chem Phys 123, 134105 (2005).
 
 .. _Noid:
-
-
 
 **(Noid)** Noid, Chu, Ayton, Krishna, Izvekov, Voth, Das, Andersen, J
 Chem Phys 128, 134105 (2008).

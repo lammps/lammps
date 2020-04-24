@@ -187,7 +187,8 @@ void lammps_open_no_mpi(int argc, char **argv, void **handle)
     // Reset argc and argv for MPI_Init() only.
     // We may be using a different MPI library in the calling code.
     int argc = 1;
-    char **argv = { (char *)"liblammps" };
+    char *args[] = { (char *)"liblammps" , NULL  };
+    char **argv = args;
     MPI_Init(&argc,&argv);
   }
 
@@ -209,9 +210,9 @@ communicator and then calls :cpp:func:`lammps_open`.
  * \param f_comm Fortran style MPI communicator for this LAMMPS instance.
  * \param handle pointer to a void pointer variable which serves as a handle
  */
-void lammps_open_fortran(int argc, char **argv, int f_comm, void **handle)
+void lammps_open_fortran(int argc, char **argv, MPI_Fint f_comm, void **handle)
 {
-  MPI_Comm c_comm = MPI_Comm_f2c(c_comm);
+  MPI_Comm c_comm = MPI_Comm_f2c(f_comm);
   lammps_open(argc, argv, c_comm, handle);
 }
 

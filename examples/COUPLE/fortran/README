@@ -1,8 +1,0 @@
-libfwrapper.c is a C file that wraps the LAMMPS library API
-in src/library.h so that it can be called from Fortran.
-
-See the couple/simple/simple.f90 program for an example of a Fortran
-code that does this.
-
-See the README file in that dir for instructions on how to build a
-Fortran code that uses this wrapper and links to the LAMMPS library.

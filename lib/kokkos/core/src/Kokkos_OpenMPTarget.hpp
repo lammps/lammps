@@ -65,6 +65,10 @@
 
 namespace Kokkos {
 namespace Experimental {
+namespace Impl {
+class OpenMPTargetInternal;
+}
+
 /// \class OpenMPTarget
 /// \brief Kokkos device for multicore processors in the host memory space.
 class OpenMPTarget {
@@ -84,76 +88,47 @@ class OpenMPTarget {
 
   typedef ScratchMemorySpace<OpenMPTarget> scratch_memory_space;
 
-  //@}
-  //------------------------------------
-  //! \name Functions that all Kokkos execution spaces must implement.
-  //@{
-
   inline static bool in_parallel() { return omp_in_parallel(); }
 
-  /** \brief  Set the device in a "sleep" state. A noop for OpenMPTarget.  */
-  static bool sleep();
-
-  /** \brief Wake the device from the 'sleep' state. A noop for OpenMPTarget. */
-  static bool wake();
-
-  /** \brief Wait until all dispatched functors complete. A noop for
-   * OpenMPTarget. */
-  static void fence() {}
-
-  /// \brief Print configuration information to the given output stream.
-  static void print_configuration(std::ostream&, const bool detail = false);
-
-  /// \brief Free any resources being consumed by the device.
-  static void finalize();
-
-  /** \brief  Initialize the device.
-   *
-   *  1) If the hardware locality library is enabled and OpenMPTarget has not
-   *     already bound threads then bind OpenMPTarget threads to maximize
-   *     core utilization and group for memory hierarchy locality.
-   *
-   *  2) Allocate a HostThread for each OpenMPTarget thread to hold its
-   *     topology and fan in/out data.
-   */
-  static void initialize(unsigned thread_count = 0, unsigned use_numa_count = 0,
-                         unsigned use_cores_per_numa = 0);
-
-  static int is_initialized();
+  static void fence();
 
   /** \brief  Return the maximum amount of concurrency.  */
   static int concurrency();
 
-  //@}
-  //------------------------------------
-  /** \brief  This execution space has a topological thread pool which can be
-   * queried.
-   *
-   *  All threads within a pool have a common memory space for which they are
-   * cache coherent. depth = 0  gives the number of threads in the whole pool.
-   *    depth = 1  gives the number of threads in a NUMA region, typically
-   * sharing L3 cache. depth = 2  gives the number of threads at the finest
-   * granularity, typically sharing L1 cache.
-   */
-  inline static int thread_pool_size(int depth = 0);
-
-  /** \brief  The rank of the executing thread in this thread pool */
-  KOKKOS_INLINE_FUNCTION static int thread_pool_rank();
-
-  //------------------------------------
-
-  inline static unsigned max_hardware_threads() { return thread_pool_size(0); }
-
-  KOKKOS_INLINE_FUNCTION static unsigned hardware_thread_id() {
-    return thread_pool_rank();
-  }
+  //! Print configuration information to the given output stream.
+  void print_configuration(std::ostream&, const bool detail = false);
 
   static const char* name();
 
+  //! Free any resources being consumed by the device.
+  void impl_finalize();
+
+  //! Has been initialized
+  static int impl_is_initialized();
+
+  //! Initialize, telling the CUDA run-time library which device to use.
+  void impl_initialize();
+
+  inline Impl::OpenMPTargetInternal* impl_internal_space_instance() const {
+    return m_space_instance;
+  }
+
+  OpenMPTarget();
+  uint32_t impl_instance_id() const noexcept { return 0; }
+
  private:
-  static bool m_is_initialized;
+  Impl::OpenMPTargetInternal* m_space_instance;
 };
 }  // namespace Experimental
+
+namespace Profiling {
+namespace Experimental {
+template <>
+struct DeviceTypeTraits<Experimental::OpenMPTarget> {
+  static constexpr DeviceType id = DeviceType::OpenMPTarget;
+};
+}  // namespace Experimental
+}  // namespace Profiling
 }  // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
@@ -179,6 +154,7 @@ struct VerifyExecutionCanAccessMemorySpace<
 
 #include <OpenMPTarget/Kokkos_OpenMPTarget_Exec.hpp>
 #include <OpenMPTarget/Kokkos_OpenMPTarget_Parallel.hpp>
+#include <OpenMPTarget/Kokkos_OpenMPTarget_Parallel_MDRange.hpp>
 #include <OpenMPTarget/Kokkos_OpenMPTarget_Task.hpp>
 
 /*--------------------------------------------------------------------------*/

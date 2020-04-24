@@ -192,7 +192,7 @@ void Serial::impl_finalize()
     space.deallocate(Impl::g_serial_thread_team_data.scratch_buffer(),
                      Impl::g_serial_thread_team_data.scratch_bytes());
 
-    Impl::g_serial_thread_team_data.scratch_assign((void*)0, 0, 0, 0, 0, 0);
+    Impl::g_serial_thread_team_data.scratch_assign(nullptr, 0, 0, 0, 0, 0);
   }
 
 #if defined(KOKKOS_ENABLE_PROFILING)

@@ -514,6 +514,7 @@ cuda
 Cuda
 CUDA
 CuH
+cuFFT
 Cummins
 Curk
 customIDs
@@ -1569,6 +1570,7 @@ libmeam
 libmessage
 libmpi
 libmpich
+libnuma
 libplumed
 libplumedKernel
 libpng

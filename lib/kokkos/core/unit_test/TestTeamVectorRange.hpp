@@ -233,7 +233,7 @@ struct functor_teamvector_for {
   typedef typename ExecutionSpace::scratch_memory_space shmem_space;
   typedef Kokkos::View<Scalar*, shmem_space, Kokkos::MemoryUnmanaged>
       shared_int;
-  unsigned team_shmem_size(int team_size) const {
+  unsigned team_shmem_size(int /*team_size*/) const {
     return shared_int::shmem_size(131);
   }
 

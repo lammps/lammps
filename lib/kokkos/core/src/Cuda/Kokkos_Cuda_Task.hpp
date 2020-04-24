@@ -128,7 +128,7 @@ class TaskQueueSpecialization<SimpleTaskScheduler<Kokkos::Cuda, QueueType>> {
     auto current_task = OptionalRef<task_base_type>();
 
     // Loop until all queues are empty and no tasks in flight
-    while (not queue.is_done()) {
+    while (!queue.is_done()) {
       if (warp_lane == 0) {  // should be (?) same as team_exec.team_rank() == 0
         // pop off a task
         current_task =

@@ -92,7 +92,7 @@ void HostBarrier::impl_backoff_wait_until_equal(
 #endif
   }
 #else  // _WIN32
-  while (!try_wait()) {
+  while (!test_equal(ptr, v)) {
 #if defined(KOKKOS_ENABLE_ASM)
     for (int j = 0; j < num_nops; ++j) {
       __asm__ __volatile__("nop\n");

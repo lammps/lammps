@@ -117,21 +117,21 @@ struct EBOBaseImpl<T, true, CtorNotOnDevice> {
       : EBOBaseImpl(_constexpr_14_workaround_no_device_tag{},
                     T(std::forward<Args>(args)...)) {}
 
-  KOKKOS_FORCEINLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   constexpr EBOBaseImpl(EBOBaseImpl const&) = default;
 
-  KOKKOS_FORCEINLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   constexpr EBOBaseImpl(EBOBaseImpl&&) = default;
 
-  KOKKOS_FORCEINLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   KOKKOS_CONSTEXPR_14
   EBOBaseImpl& operator=(EBOBaseImpl const&) = default;
 
-  KOKKOS_FORCEINLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   KOKKOS_CONSTEXPR_14
   EBOBaseImpl& operator=(EBOBaseImpl&&) = default;
 
-  KOKKOS_FORCEINLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   ~EBOBaseImpl() = default;
 
   KOKKOS_INLINE_FUNCTION
@@ -184,21 +184,21 @@ struct EBOBaseImpl<T, false, CTorsNotOnDevice> {
 
   // TODO @tasking @minor DSH noexcept in the right places?
 
-  KOKKOS_FORCEINLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   constexpr EBOBaseImpl(EBOBaseImpl const&) = default;
 
-  KOKKOS_FORCEINLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   constexpr EBOBaseImpl(EBOBaseImpl&&) noexcept = default;
 
-  KOKKOS_FORCEINLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   KOKKOS_CONSTEXPR_14
   EBOBaseImpl& operator=(EBOBaseImpl const&) = default;
 
-  KOKKOS_FORCEINLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   KOKKOS_CONSTEXPR_14
   EBOBaseImpl& operator=(EBOBaseImpl&&) = default;
 
-  KOKKOS_FORCEINLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   ~EBOBaseImpl() = default;
 
   KOKKOS_INLINE_FUNCTION

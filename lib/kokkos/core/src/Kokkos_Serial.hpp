@@ -181,11 +181,20 @@ class Serial {
     return impl_thread_pool_size(0);
   }
 #endif
+  uint32_t impl_instance_id() const noexcept { return 0; }
 
   static const char* name();
   //--------------------------------------------------------------------------
 };
 
+namespace Profiling {
+namespace Experimental {
+template <>
+struct DeviceTypeTraits<Serial> {
+  static constexpr DeviceType id = DeviceType::Serial;
+};
+}  // namespace Experimental
+}  // namespace Profiling
 }  // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
@@ -256,6 +265,11 @@ class TeamPolicyInternal<Kokkos::Serial, Properties...>
 
   //! Execution space of this execution policy:
   typedef Kokkos::Serial execution_space;
+
+  const typename traits::execution_space& space() const {
+    static typename traits::execution_space m_space;
+    return m_space;
+  }
 
   TeamPolicyInternal& operator=(const TeamPolicyInternal& p) {
     m_league_size            = p.m_league_size;
@@ -641,7 +655,7 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
       const HostViewType& arg_result_view,
       typename std::enable_if<Kokkos::is_view<HostViewType>::value &&
                                   !Kokkos::is_reducer_type<ReducerType>::value,
-                              void*>::type = NULL)
+                              void*>::type = nullptr)
       : m_functor(arg_functor),
         m_policy(arg_policy),
         m_reducer(InvalidType()),
@@ -912,7 +926,7 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
       const HostViewType& arg_result_view,
       typename std::enable_if<Kokkos::is_view<HostViewType>::value &&
                                   !Kokkos::is_reducer_type<ReducerType>::value,
-                              void*>::type = NULL)
+                              void*>::type = nullptr)
       : m_functor(arg_functor),
         m_mdr_policy(arg_policy),
         m_policy(Policy(0, m_mdr_policy.m_num_tiles).set_chunk_size(1)),
@@ -1087,7 +1101,7 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
       const ViewType& arg_result,
       typename std::enable_if<Kokkos::is_view<ViewType>::value &&
                                   !Kokkos::is_reducer_type<ReducerType>::value,
-                              void*>::type = NULL)
+                              void*>::type = nullptr)
       : m_functor(arg_functor),
         m_league(arg_policy.league_size()),
         m_reducer(InvalidType()),

@@ -75,20 +75,20 @@ struct TaskPolicyWithPredecessor {
 
   TaskPolicyWithPredecessor() = delete;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   TaskPolicyWithPredecessor(TaskPolicyWithPredecessor const&) = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   TaskPolicyWithPredecessor(TaskPolicyWithPredecessor&&) = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   TaskPolicyWithPredecessor& operator=(TaskPolicyWithPredecessor const&) =
       default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   TaskPolicyWithPredecessor& operator=(TaskPolicyWithPredecessor&&) = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   ~TaskPolicyWithPredecessor() = default;
 
   KOKKOS_INLINE_FUNCTION
@@ -129,19 +129,19 @@ struct TaskPolicyWithScheduler {
 
   TaskPolicyWithScheduler() = delete;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   TaskPolicyWithScheduler(TaskPolicyWithScheduler const&) = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   TaskPolicyWithScheduler(TaskPolicyWithScheduler&&) = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   TaskPolicyWithScheduler& operator=(TaskPolicyWithScheduler const&) = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   TaskPolicyWithScheduler& operator=(TaskPolicyWithScheduler&&) = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   ~TaskPolicyWithScheduler() = default;
 
   KOKKOS_INLINE_FUNCTION
@@ -155,7 +155,7 @@ struct TaskPolicyWithScheduler {
 
   KOKKOS_INLINE_FUNCTION
   static constexpr bool has_predecessor() noexcept {
-    return not std::is_same<PredecessorFuture, std::nullptr_t>::value;
+    return !std::is_same<PredecessorFuture, std::nullptr_t>::value;
   }
 
   KOKKOS_INLINE_FUNCTION

@@ -201,7 +201,7 @@ class BinSort {
   bool sort_within_bins;
 
  public:
-  BinSort() {}
+  BinSort() = default;
 
   //----------------------------------------
   // Constructor: takes the keys, the binning_operator and optionally whether to
@@ -327,7 +327,7 @@ class BinSort {
                    Kokkos::RangePolicy<execution_space>(0, len), functor);
     }
 
-    Kokkos::fence();
+    execution_space().fence();
   }
 
   template <class ValuesViewType>
@@ -349,14 +349,14 @@ class BinSort {
 
  public:
   KOKKOS_INLINE_FUNCTION
-  void operator()(const bin_count_tag& tag, const int& i) const {
+  void operator()(const bin_count_tag& /*tag*/, const int i) const {
     const int j = range_begin + i;
     bin_count_atomic(bin_op.bin(keys, j))++;
   }
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const bin_offset_tag& tag, const int& i, value_type& offset,
-                  const bool& final) const {
+  void operator()(const bin_offset_tag& /*tag*/, const int i,
+                  value_type& offset, const bool& final) const {
     if (final) {
       bin_offsets(i) = offset;
     }
@@ -364,7 +364,7 @@ class BinSort {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const bin_binning_tag& tag, const int& i) const {
+  void operator()(const bin_binning_tag& /*tag*/, const int i) const {
     const int j     = range_begin + i;
     const int bin   = bin_op.bin(keys, j);
     const int count = bin_count_atomic(bin)++;
@@ -373,7 +373,7 @@ class BinSort {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const bin_sort_bins_tag& tag, const int& i) const {
+  void operator()(const bin_sort_bins_tag& /*tag*/, const int i) const {
     auto bin_size = bin_count_const(i);
     if (bin_size <= 1) return;
     int upper_bound = bin_offsets(i) + bin_size;
@@ -381,7 +381,7 @@ class BinSort {
     while (!sorted) {
       sorted      = true;
       int old_idx = sort_order(bin_offsets(i));
-      int new_idx;
+      int new_idx = 0;
       for (int k = bin_offsets(i) + 1; k < upper_bound; k++) {
         new_idx = sort_order(k);
 
@@ -446,7 +446,7 @@ struct BinOp3D {
   typename KeyViewType::non_const_value_type range_[3];
   typename KeyViewType::non_const_value_type min_[3];
 
-  BinOp3D() {}
+  BinOp3D() = default;
 
   BinOp3D(int max_bins__[], typename KeyViewType::const_value_type min[],
           typename KeyViewType::const_value_type max[]) {

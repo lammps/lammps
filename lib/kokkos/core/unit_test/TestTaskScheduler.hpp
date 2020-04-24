@@ -843,11 +843,14 @@ struct TestMultipleDependence {
 #undef TEST_SCHEDULER
 #undef TEST_SCHEDULER_SUFFIX
 
+// KOKKOS WORKAROUND WIN32: Theses tests hang with msvc
+#ifndef _WIN32
 #define TEST_SCHEDULER_SUFFIX _chase_lev
 #define TEST_SCHEDULER Kokkos::ChaseLevTaskScheduler<TEST_EXECSPACE>
 #include "TestTaskScheduler_single.hpp"
 #undef TEST_SCHEDULER
 #undef TEST_SCHEDULER_SUFFIX
+#endif
 
 #if 0
 #define TEST_SCHEDULER_SUFFIX _fixed_mempool

@@ -105,12 +105,12 @@ class Crs {
   /*
    * Default Constructors, operators and destructor
    */
-  KOKKOS_FUNCTION Crs()           = default;
-  KOKKOS_FUNCTION Crs(Crs const&) = default;
-  KOKKOS_FUNCTION Crs(Crs&&)      = default;
-  KOKKOS_FUNCTION Crs& operator=(Crs const&) = default;
-  KOKKOS_FUNCTION Crs& operator=(Crs&&) = default;
-  KOKKOS_FUNCTION ~Crs()                = default;
+  KOKKOS_DEFAULTED_FUNCTION Crs()           = default;
+  KOKKOS_DEFAULTED_FUNCTION Crs(Crs const&) = default;
+  KOKKOS_DEFAULTED_FUNCTION Crs(Crs&&)      = default;
+  KOKKOS_DEFAULTED_FUNCTION Crs& operator=(Crs const&) = default;
+  KOKKOS_DEFAULTED_FUNCTION Crs& operator=(Crs&&) = default;
+  KOKKOS_DEFAULTED_FUNCTION ~Crs()                = default;
 
   /** \brief Assign to a view of the rhs array.
    *         If the old view is the last view
@@ -313,7 +313,7 @@ struct CountAndFillBase;
 
 template <class CrsType, class Functor, class ExecutionSpace>
 struct CountAndFillBase {
-  using data_type    = typename CrsType::size_type;
+  using data_type    = typename CrsType::data_type;
   using size_type    = typename CrsType::size_type;
   using row_map_type = typename CrsType::row_map_type;
   using counts_type  = row_map_type;
@@ -343,7 +343,7 @@ struct CountAndFillBase {
 #if defined(KOKKOS_ENABLE_CUDA)
 template <class CrsType, class Functor>
 struct CountAndFillBase<CrsType, Functor, Kokkos::Cuda> {
-  using data_type    = typename CrsType::size_type;
+  using data_type    = typename CrsType::data_type;
   using size_type    = typename CrsType::size_type;
   using row_map_type = typename CrsType::row_map_type;
   using counts_type  = row_map_type;

@@ -87,9 +87,10 @@ class ParallelFor<FunctorType, Kokkos::WorkGraphPolicy<Traits...>,
     }
   }
 
-  static inline void thread_main(ThreadsExec&, const void* arg) noexcept {
+  static inline void thread_main(ThreadsExec& exec, const void* arg) noexcept {
     const Self& self = *(static_cast<const Self*>(arg));
     self.exec_one_thread();
+    exec.fan_in();
   }
 
  public:

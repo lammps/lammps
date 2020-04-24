@@ -293,8 +293,9 @@ struct tile_buffer<T[]> {
   }
 
   template <class Action, class Q = T>
-  typename Impl::enable_if<(sizeof(Q) <= 8), void>::type action_at(
-      std::size_t i, Action a) [[hc]] {
+  typename std::enable_if<(sizeof(Q) <= 8), void>::type action_at(std::size_t i,
+                                                                  Action a)
+      [[hc]] {
     element_type* value = (*this)[i];
 #if defined(ROCM15)
     a(value);
@@ -316,7 +317,7 @@ struct tile_buffer<T[]> {
   }
 
   template <class Action, class Q = T>
-  typename Impl::enable_if<!(sizeof(Q) <= 8), void>::type action_at(
+  typename std::enable_if<!(sizeof(Q) <= 8), void>::type action_at(
       std::size_t i, Action a) [[hc]] {
     element_type* value = (*this)[i];
 #if defined(ROCM15)

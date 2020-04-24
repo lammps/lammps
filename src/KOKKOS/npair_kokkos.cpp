@@ -219,7 +219,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
 #endif
 
     if (GHOST) {
-      NPairKokkosBuildFunctorGhost<DeviceType,HALF_NEIGH> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
+      NPairKokkosBuildFunctorGhost<DeviceType,HALF_NEIGH> f(data);
       Kokkos::parallel_for(nall, f);
     } else {
       if (newton_pair) {
@@ -232,7 +232,10 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
             if (team_size <= team_size_max) {
               Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
               Kokkos::parallel_for(config, f);
-            } else Kokkos::parallel_for(nall, f); // fall back to flat method
+            } else { // fall back to flat method
+              f.sharedsize = 0;
+              Kokkos::parallel_for(nall, f);
+            }
           } else
             Kokkos::parallel_for(nall, f);
 #else
@@ -247,7 +250,10 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
             if (team_size <= team_size_max) {
               Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
               Kokkos::parallel_for(config, f);
-            } else Kokkos::parallel_for(nall, f); // fall back to flat method
+            } else { // fall back to flat method
+              f.sharedsize = 0;
+              Kokkos::parallel_for(nall, f);
+            }
           } else
             Kokkos::parallel_for(nall, f);
 #else
@@ -264,7 +270,10 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
             if (team_size <= team_size_max) {
               Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
               Kokkos::parallel_for(config, f);
-            } else Kokkos::parallel_for(nall, f); // fall back to flat method
+            } else { // fall back to flat method
+              f.sharedsize = 0;
+              Kokkos::parallel_for(nall, f);
+            }
           } else
             Kokkos::parallel_for(nall, f);
 #else

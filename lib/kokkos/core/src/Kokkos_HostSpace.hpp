@@ -118,21 +118,17 @@ class HostSpace {
   typedef Kokkos::Threads execution_space;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_HPX)
   typedef Kokkos::Experimental::HPX execution_space;
-//#elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_QTHREADS )
-//  typedef Kokkos::Qthreads  execution_space;
 #elif defined(KOKKOS_ENABLE_OPENMP)
   typedef Kokkos::OpenMP execution_space;
 #elif defined(KOKKOS_ENABLE_THREADS)
   typedef Kokkos::Threads execution_space;
-//#elif defined( KOKKOS_ENABLE_QTHREADS )
-//  typedef Kokkos::Qthreads  execution_space;
 #elif defined(KOKKOS_ENABLE_HPX)
   typedef Kokkos::Experimental::HPX execution_space;
 #elif defined(KOKKOS_ENABLE_SERIAL)
   typedef Kokkos::Serial execution_space;
 #else
 #error \
-    "At least one of the following host execution spaces must be defined: Kokkos::OpenMP, Kokkos::Threads, Kokkos::Qthreads, or Kokkos::Serial.  You might be seeing this message if you disabled the Kokkos::Serial device explicitly using the Kokkos_ENABLE_Serial:BOOL=OFF CMake option, but did not enable any of the other host execution space devices."
+    "At least one of the following host execution spaces must be defined: Kokkos::OpenMP, Kokkos::Threads, or Kokkos::Serial.  You might be seeing this message if you disabled the Kokkos::Serial device explicitly using the Kokkos_ENABLE_Serial:BOOL=OFF CMake option, but did not enable any of the other host execution space devices."
 #endif
 
   //! This memory space preferred device_type
@@ -248,7 +244,12 @@ class SharedAllocationRecord<Kokkos::HostSpace, void>
   const Kokkos::HostSpace m_space;
 
  protected:
-  ~SharedAllocationRecord();
+  ~SharedAllocationRecord()
+#if defined( \
+    KOKKOS_IMPL_INTEL_WORKAROUND_NOEXCEPT_SPECIFICATION_VIRTUAL_FUNCTION)
+      noexcept
+#endif
+      ;
   SharedAllocationRecord() = default;
 
   SharedAllocationRecord(
@@ -267,6 +268,9 @@ class SharedAllocationRecord<Kokkos::HostSpace, void>
 #if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
     return new SharedAllocationRecord(arg_space, arg_label, arg_alloc_size);
 #else
+    (void)arg_space;
+    (void)arg_label;
+    (void)arg_alloc_size;
     return (SharedAllocationRecord*)0;
 #endif
   }

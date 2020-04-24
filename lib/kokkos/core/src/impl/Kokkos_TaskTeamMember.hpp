@@ -90,22 +90,22 @@ class TaskTeamMemberAdapter : public TeamMember {
 
   // (rule of 6 constructors)
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   TaskTeamMemberAdapter() = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   TaskTeamMemberAdapter(TaskTeamMemberAdapter const&) = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   TaskTeamMemberAdapter(TaskTeamMemberAdapter&&) = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   TaskTeamMemberAdapter& operator=(TaskTeamMemberAdapter const&) = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   TaskTeamMemberAdapter& operator=(TaskTeamMemberAdapter&&) = default;
 
-  KOKKOS_INLINE_FUNCTION ~TaskTeamMemberAdapter() = default;
+  KOKKOS_DEFAULTED_FUNCTION ~TaskTeamMemberAdapter() = default;
 
   //----------------------------------------
 

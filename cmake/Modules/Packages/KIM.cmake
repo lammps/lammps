@@ -1,3 +1,4 @@
+# CMake configuration for KIM package
 set(KIM-API_MIN_VERSION 2.1.3)
 find_package(CURL)
 if(CURL_FOUND)

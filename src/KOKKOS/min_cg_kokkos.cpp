@@ -19,6 +19,7 @@
 #include "timer.h"
 #include "atom_kokkos.h"
 #include "atom_masks.h"
+#include "error.h"
 #include "fix_minimize_kokkos.h"
 
 using namespace LAMMPS_NS;
@@ -42,7 +43,7 @@ MinCGKokkos::MinCGKokkos(LAMMPS *lmp) : MinLineSearchKokkos(lmp)
 int MinCGKokkos::iterate(int maxiter)
 {
   int fail,ntimestep;
-  double beta,gg,dot[2],dotall[2];
+  double beta,gg,dot[2],dotall[2],fdotf;
 
   fix_minimize_kk->k_vectors.sync<LMPDeviceType>();
   fix_minimize_kk->k_vectors.modify<LMPDeviceType>();
@@ -111,7 +112,14 @@ int MinCGKokkos::iterate(int maxiter)
     dot[1] = sdot.d1;
     MPI_Allreduce(dot,dotall,2,MPI_DOUBLE,MPI_SUM,world);
 
-    if (dotall[0] < update->ftol*update->ftol) return FTOL;
+    fdotf = 0.0;
+    if (update->ftol > 0.0) {
+      if (normstyle == MAX) fdotf = fnorm_max();        // max force norm
+      else if (normstyle == INF) fdotf = fnorm_inf();   // infinite force norm
+      else if (normstyle == TWO) fdotf = dotall[0];     // same as fnorm_sqr(), Euclidean force 2-norm
+      else error->all(FLERR,"Illegal min_modify command");
+      if (fdotf < update->ftol*update->ftol) return FTOL;
+    }
 
     // update new search direction h from new f = -Grad(x) and old g
     // this is Polak-Ribieri formulation

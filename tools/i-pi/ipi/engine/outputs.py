@@ -85,7 +85,7 @@ class PropertyOutput(dobject):
       self.simul = simul
 
       # Checks as soon as possible if some asked-for properties are
-      # missing or mispelled
+      # missing or misspelled
       for what in self.outlist:
          key = getkey(what)
          if not key in self.simul.properties.property_dict.keys():
@@ -218,7 +218,7 @@ class TrajectoryOutput(dobject):
 
       self.simul = simul
 
-      # Checks as soon as possible if some asked-for trajs are missing or mispelled
+      # Checks as soon as possible if some asked-for trajs are missing or misspelled
       key = getkey(self.what)
       if not key in self.simul.trajs.traj_dict.keys():
          print "Computable trajectories list: ", self.simul.trajs.traj_dict.keys()
@@ -349,7 +349,7 @@ class CheckpointOutput(dobject):
       """Writes out the required trajectories.
 
       Used for both the checkpoint files and the soft-exit restart file.
-      We have slightly different behaviour for these two different types of
+      We have slightly different behavior for these two different types of
       checkpoint file, as the soft-exit files have their store() function
       called automatically, and we do not want this to be updated as the
       status of the simulation after a soft-exit call is unlikely to be in

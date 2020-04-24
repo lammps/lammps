@@ -1,21 +1,20 @@
-.. index:: thermo\_style
+.. index:: thermo_style
 
-thermo\_style command
-=====================
+thermo_style command
+====================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    thermo_style style args
 
 * style = *one* or *multi* or *custom*
 * args = list of arguments for a particular style
-  
+
   .. parsed-literal::
-  
+
        *one* args = none
        *multi* args = none
        *custom* args = list of keywords
@@ -51,7 +50,7 @@ Syntax
            ke = kinetic energy
            etotal = total energy (pe + ke)
            enthalpy = enthalpy (etotal + press\*vol)
-           evdwl = VanderWaal pairwise energy (includes etail)
+           evdwl = van der Waals pairwise energy (includes etail)
            ecoul = Coulombic pairwise energy
            epair = pairwise energy (evdwl + ecoul + elong)
            ebond = bond energy
@@ -60,7 +59,7 @@ Syntax
            eimp = improper energy
            emol = molecular energy (ebond + eangle + edihed + eimp)
            elong = long-range kspace energy
-           etail = VanderWaal energy long-range tail correction
+           etail = van der Waals energy long-range tail correction
            vol = volume
            density = mass density of system
            lx,ly,lz = box lengths in x,y,z
@@ -84,18 +83,15 @@ Syntax
            v_name = value calculated by an equal-style variable with name
            v_name[I] = value calculated by a vector-style variable with name
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    thermo_style multi
    thermo_style custom step temp pe etotal press vol
    thermo_style custom step temp etotal c_myTemp v_abc
-   thermo_style custom step temp etotal c_myTemp[\*] v_abc
+   thermo_style custom step temp etotal c_myTemp[*] v_abc
 
 Description
 """""""""""
@@ -104,17 +100,17 @@ Set the style and content for printing thermodynamic data to the
 screen and log file.
 
 Style *one* prints a one-line summary of thermodynamic info that is
-the equivalent of "thermo\_style custom step temp epair emol etotal
+the equivalent of "thermo_style custom step temp epair emol etotal
 press".  The line contains only numeric values.
 
 Style *multi* prints a multiple-line listing of thermodynamic info
-that is the equivalent of "thermo\_style custom etotal ke temp pe ebond
+that is the equivalent of "thermo_style custom etotal ke temp pe ebond
 eangle edihed eimp evdwl ecoul elong press".  The listing contains
 numeric values and a string ID for each quantity.
 
 Style *custom* is the most general setting and allows you to specify
 which of the keywords listed above you want printed on each
-thermodynamic timestep.  Note that the keywords c\_ID, f\_ID, v\_name are
+thermodynamic timestep.  Note that the keywords c_ID, f_ID, v_name are
 references to :doc:`computes <compute>`, :doc:`fixes <fix>`, and
 equal-style :doc:`variables <variable>` that have been defined elsewhere
 in the input script or can even be new styles which users have added
@@ -128,7 +124,7 @@ outputs if the simulation box volume changes during the simulation.
 The values printed by the various keywords are instantaneous values,
 calculated on the current timestep.  Time-averaged quantities, which
 include values from previous timesteps, can be output by using the
-f\_ID keyword and accessing a fix that does time-averaging such as the
+f_ID keyword and accessing a fix that does time-averaging such as the
 :doc:`fix ave/time <fix_ave_time>` command.
 
 Options invoked by the :doc:`thermo_modify <thermo_modify>` command can
@@ -139,28 +135,25 @@ atoms in the system), and the numeric precision of each printed value.
 
 .. note::
 
-   When you use a "thermo\_style" command, all thermodynamic
+   When you use a "thermo_style" command, all thermodynamic
    settings are restored to their default values, including those
    previously set by a :doc:`thermo_modify <thermo_modify>` command.  Thus
-   if your input script specifies a thermo\_style command, you should use
-   the thermo\_modify command after it.
-
+   if your input script specifies a thermo_style command, you should use
+   the thermo_modify command after it.
 
 ----------
-
 
 Several of the thermodynamic quantities require a temperature to be
 computed: "temp", "press", "ke", "etotal", "enthalpy", "pxx", etc.  By
 default this is done by using a *temperature* compute which is created
 when LAMMPS starts up, as if this command had been issued:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute thermo_temp all temp
 
 See the :doc:`compute temp <compute_temp>` command for details.  Note
-that the ID of this compute is *thermo\_temp* and the group is *all*\ .
+that the ID of this compute is *thermo_temp* and the group is *all*\ .
 You can change the attributes of this temperature (e.g. its
 degrees-of-freedom) via the :doc:`compute_modify <compute_modify>`
 command.  Alternatively, you can directly assign a new compute (that
@@ -173,13 +166,12 @@ computed: "press", "enthalpy", "pxx", etc.  By default this is done by
 using a *pressure* compute which is created when LAMMPS starts up, as
 if this command had been issued:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute thermo_press all pressure thermo_temp
 
 See the :doc:`compute pressure <compute_pressure>` command for details.
-Note that the ID of this compute is *thermo\_press* and the group is
+Note that the ID of this compute is *thermo_press* and the group is
 *all*\ .  You can change the attributes of this pressure via the
 :doc:`compute_modify <compute_modify>` command.  Alternatively, you can
 directly assign a new compute (that calculates pressure) which you
@@ -192,28 +184,25 @@ be computed: "pe", "etotal", "ebond", etc.  This is done by using a
 *pe* compute which is created when LAMMPS starts up, as if this
 command had been issued:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute thermo_pe all pe
 
 See the :doc:`compute pe <compute_pe>` command for details.  Note that
-the ID of this compute is *thermo\_pe* and the group is *all*\ .  You can
+the ID of this compute is *thermo_pe* and the group is *all*\ .  You can
 change the attributes of this potential energy via the
 :doc:`compute_modify <compute_modify>` command.
 
-
 ----------
 
-
 The kinetic energy of the system *ke* is inferred from the temperature
-of the system with 1/2 Kb T of energy for each degree of freedom.
-Thus, using different :doc:`compute commands <compute>` for calculating
-temperature, via the :doc:`thermo_modify temp <thermo_modify>` command,
-may yield different kinetic energies, since different computes that
-calculate temperature can subtract out different non-thermal
-components of velocity and/or include different degrees of freedom
-(translational, rotational, etc).
+of the system with :math:`\frac{1}{2} k_B T` of energy for each degree
+of freedom.  Thus, using different :doc:`compute commands <compute>` for
+calculating temperature, via the :doc:`thermo_modify temp
+<thermo_modify>` command, may yield different kinetic energies, since
+different computes that calculate temperature can subtract out different
+non-thermal components of velocity and/or include different degrees of
+freedom (translational, rotational, etc).
 
 The potential energy of the system *pe* will include contributions
 from fixes if the :doc:`fix_modify thermo <fix_modify>` option is set
@@ -221,15 +210,13 @@ for a fix that calculates such a contribution.  For example, the :doc:`fix wall/
 interacting with the wall.  See the doc pages for "individual fixes"
 to see which ones contribute.
 
-A long-range tail correction *etail* for the VanderWaal pairwise
+A long-range tail correction *etail* for the van der Waals pairwise
 energy will be non-zero only if the :doc:`pair_modify tail <pair_modify>` option is turned on.  The *etail* contribution
 is included in *evdwl*\ , *epair*\ , *pe*\ , and *etotal*\ , and the
 corresponding tail correction to the pressure is included in *press*
 and *pxx*\ , *pyy*\ , etc.
 
-
 ----------
-
 
 The *step*\ , *elapsed*\ , and *elaplong* keywords refer to timestep
 count.  *Step* is the current timestep, or iteration count when a
@@ -246,7 +233,7 @@ The *dt* keyword is the current timestep size in time
 simulation time, also in time :doc:`units <units>`, which is simply
 (step\*dt) if the timestep size has not changed and the timestep has
 not been reset.  If the timestep has changed (e.g. via :doc:`fix dt/reset <fix_dt_reset>`) or the timestep has been reset (e.g. via
-the "reset\_timestep" command), then the simulation time is effectively
+the "reset_timestep" command), then the simulation time is effectively
 a cumulative value up to the current point.
 
 The *cpu* keyword is elapsed CPU seconds since the beginning of this
@@ -285,8 +272,7 @@ If the timeout timer is inactive, the value of this keyword is 0.0 and
 if the timer is expired, it is negative. This allows for example to exit
 loops cleanly, if the timeout is expired with:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    if "$(timeremain) < 0.0" then "quit 0"
 
@@ -316,12 +302,10 @@ of triclinic periodic cells, including a precise definition of these
 quantities in terms of the internal LAMMPS cell dimensions *lx*\ , *ly*\ ,
 *lz*\ , *yz*\ , *xz*\ , *xy*\ .
 
-
 ----------
 
-
 For output values from a compute or fix, the bracketed index I used to
-index a vector, as in *c\_ID[I]* or *f\_ID[I]*, can be specified
+index a vector, as in *c_ID[I]* or *f_ID[I]*, can be specified
 using a wildcard asterisk with the index to effectively specify
 multiple values.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".
 If N = the size of the vector (for *mode* = scalar) or the number of
@@ -332,31 +316,28 @@ all indices from n to N (inclusive).  A middle asterisk means all
 indices from m to n (inclusive).
 
 Using a wildcard is the same as if the individual elements of the
-vector had been listed one by one.  E.g. these 2 thermo\_style commands
+vector had been listed one by one.  E.g. these 2 thermo_style commands
 are equivalent, since the :doc:`compute temp <compute_temp>` command
 creates a global vector with 6 values.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myTemp all temp
-   thermo_style custom step temp etotal c_myTemp[\*]
+   thermo_style custom step temp etotal c_myTemp[*]
    thermo_style custom step temp etotal &
                 c_myTemp[1] c_myTemp[2] c_myTemp[3] &
                 c_myTemp[4] c_myTemp[5] c_myTemp[6]
 
-
 ----------
 
-
-The *c\_ID* and *c\_ID[I]* and *c\_ID[I][J]* keywords allow global
+The *c_ID* and *c_ID[I]* and *c_ID[I][J]* keywords allow global
 values calculated by a compute to be output.  As discussed on the
 :doc:`compute <compute>` doc page, computes can calculate global,
 per-atom, or local values.  Only global values can be referenced by
 this command.  However, per-atom compute values for an individual atom
 can be referenced in a :doc:`variable <variable>` and the variable
-referenced by thermo\_style custom, as discussed below.  See the
-discussion above for how the I in *c\_ID[I]* can be specified with a
+referenced by thermo_style custom, as discussed below.  See the
+discussion above for how the I in *c_ID[I]* can be specified with a
 wildcard asterisk to effectively specify multiple values from a global
 compute vector.
 
@@ -370,18 +351,18 @@ Note that some computes calculate "intensive" global quantities like
 temperature; others calculate "extensive" global quantities like
 kinetic energy that are summed over all atoms in the compute group.
 Intensive quantities are printed directly without normalization by
-thermo\_style custom.  Extensive quantities may be normalized by the
+thermo_style custom.  Extensive quantities may be normalized by the
 total number of atoms in the simulation (NOT the number of atoms in
 the compute group) when output, depending on the :doc:`thermo_modify norm <thermo_modify>` option being used.
 
-The *f\_ID* and *f\_ID[I]* and *f\_ID[I][J]* keywords allow global
+The *f_ID* and *f_ID[I]* and *f_ID[I][J]* keywords allow global
 values calculated by a fix to be output.  As discussed on the
 :doc:`fix <fix>` doc page, fixes can calculate global, per-atom, or
 local values.  Only global values can be referenced by this command.
 However, per-atom fix values can be referenced for an individual atom
 in a :doc:`variable <variable>` and the variable referenced by
-thermo\_style custom, as discussed below.  See the discussion above for
-how the I in *f\_ID[I]* can be specified with a wildcard asterisk to
+thermo_style custom, as discussed below.  See the discussion above for
+how the I in *f_ID[I]* can be specified with a wildcard asterisk to
 effectively specify multiple values from a global fix vector.
 
 The ID in the keyword should be replaced by the actual ID of a fix
@@ -393,13 +374,13 @@ brackets will reference a scalar value from the fix.
 Note that some fixes calculate "intensive" global quantities like
 timestep size; others calculate "extensive" global quantities like
 energy that are summed over all atoms in the fix group.  Intensive
-quantities are printed directly without normalization by thermo\_style
+quantities are printed directly without normalization by thermo_style
 custom.  Extensive quantities may be normalized by the total number of
 atoms in the simulation (NOT the number of atoms in the fix group)
 when output, depending on the :doc:`thermo_modify norm <thermo_modify>`
 option being used.
 
-The *v\_name* keyword allow the current value of a variable to be
+The *v_name* keyword allow the current value of a variable to be
 output.  The name in the keyword should be replaced by the variable
 name that has been defined elsewhere in the input script.  Only
 equal-style and vector-style variables can be referenced; the latter
@@ -415,16 +396,13 @@ output.
 
 Note that equal-style and vector-style variables are assumed to
 produce "intensive" global quantities, which are thus printed as-is,
-without normalization by thermo\_style custom.  You can include a
+without normalization by thermo_style custom.  You can include a
 division by "natoms" in the variable formula if this is not the case.
-
 
 ----------
 
-
 Restrictions
 """"""""""""
-
 
 This command must come after the simulation box is defined by a
 :doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or
@@ -440,7 +418,6 @@ Related commands
 Default
 """""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    thermo_style one

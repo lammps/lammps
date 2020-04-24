@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -47,39 +48,38 @@
 namespace Test {
 
 __global__ void offset(int* p) {
-  int idx = blockIdx.x*blockDim.x + threadIdx.x;
-  if(idx<100) {
-    p[idx]+=idx;
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  if (idx < 100) {
+    p[idx] += idx;
   }
 }
 
-// Test whether allocations survive Kokkos initialize/finalize if done via Raw Cuda.
-TEST_F( cuda, raw_cuda_interop )
-{
+// Test whether allocations survive Kokkos initialize/finalize if done via Raw
+// Cuda.
+TEST(cuda, raw_cuda_interop) {
   int* p;
-  cudaMalloc(&p,sizeof(int)*100);
-  Kokkos::InitArguments arguments{-1,-1,-1, false};
+  cudaMalloc(&p, sizeof(int) * 100);
+  Kokkos::InitArguments arguments{-1, -1, -1, false};
   Kokkos::initialize(arguments);
 
-  Kokkos::View<int*,Kokkos::MemoryTraits<Kokkos::Unmanaged>>
-    v(p,100);
-  Kokkos::deep_copy(v,5);
+  Kokkos::View<int*, Kokkos::MemoryTraits<Kokkos::Unmanaged>> v(p, 100);
+  Kokkos::deep_copy(v, 5);
 
   Kokkos::finalize();
 
-  offset<<<100,64>>>(p);
-  CUDA_SAFE_CALL( cudaDeviceSynchronize());
+  offset<<<100, 64>>>(p);
+  CUDA_SAFE_CALL(cudaDeviceSynchronize());
 
   int* h_p = new int[100];
-  cudaMemcpy( h_p , p , sizeof(int)*100 , cudaMemcpyDefault );
-  CUDA_SAFE_CALL( cudaDeviceSynchronize());
-  int64_t sum = 0;
+  cudaMemcpy(h_p, p, sizeof(int) * 100, cudaMemcpyDefault);
+  CUDA_SAFE_CALL(cudaDeviceSynchronize());
+  int64_t sum        = 0;
   int64_t sum_expect = 0;
-  for(int i=0; i<100; i++) {
+  for (int i = 0; i < 100; i++) {
     sum += h_p[i];
-    sum_expect += 5+i;
+    sum_expect += 5 + i;
   }
 
-  ASSERT_EQ(sum,sum_expect);
+  ASSERT_EQ(sum, sum_expect);
 }
-}
+}  // namespace Test

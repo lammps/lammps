@@ -4,21 +4,19 @@ LAMMPS features
 LAMMPS is a classical molecular dynamics (MD) code with these general
 classes of functionality:
 
-* :ref:`General features <general>`
-* :ref:`Particle and model types <particle>`
-* :ref:`Interatomic potentials (force fields) <ff>`
-* :ref:`Atom creation <create>`
-* :ref:`Ensembles, constraints, and boundary conditions <ensemble>`
-* :ref:`Integrators <integrate>`
-* :ref:`Diagnostics <diag>`
-* :ref:`Output <output>`
-* :ref:`Multi-replica models <replica1>`
-* :ref:`Pre- and post-processing <prepost>`
-* :ref:`Specialized features (beyond MD itself) <special>`
-
+1. :ref:`General features <general>`
+2. :ref:`Particle and model types <particle>`
+3. :ref:`Interatomic potentials (force fields) <ff>`
+4. :ref:`Atom creation <create>`
+5. :ref:`Ensembles, constraints, and boundary conditions <ensemble>`
+6. :ref:`Integrators <integrate>`
+7. :ref:`Diagnostics <diag>`
+8. :ref:`Output <output>`
+9. :ref:`Multi-replica models <replica1>`
+10. :ref:`Pre- and post-processing <prepost>`
+11. :ref:`Specialized features (beyond MD itself) <special>`
 
 ----------
-
 
 .. _general:
 
@@ -189,13 +187,9 @@ Pre- and post-processing
   plotting, and visualization for LAMMPS simulations.  Pizza.py is
   written in `Python <python_>`_ and is available for download from `the Pizza.py WWW site <pizza_>`_.
 
-.. _pizza: http://www.sandia.gov/~sjplimp/pizza.html
-
-
+.. _pizza: https://pizza.sandia.gov
 
 .. _python: http://www.python.org
-
-
 
 .. _special:
 

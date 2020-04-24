@@ -16,10 +16,10 @@ shared-memory boxes and distributed-memory clusters and
 supercomputers.
 
 .. _mpi: http://www-unix.mcs.anl.gov/mpi
-.. _lws: http://lammps.sandia.gov
+.. _lws: https://lammps.sandia.gov
 
 LAMMPS is written in C++.  Earlier versions were written in F77 and
-F90.  See the `History page <http://lammps.sandia.gov/history.html>`_ of
+F90.  See the `History page <https://lammps.sandia.gov/history.html>`_ of
 the website for details.  All versions can be downloaded from the
 `LAMMPS website <lws_>`_.
 

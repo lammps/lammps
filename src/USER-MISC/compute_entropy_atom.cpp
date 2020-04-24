@@ -141,12 +141,14 @@ void ComputeEntropyAtom::init()
   neighbor->requests[irequest]->compute = 1;
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
   if (avg_flag) {
     // need a full neighbor list with neighbors of the ghost atoms
+    neighbor->requests[irequest]->occasional = 0;
     neighbor->requests[irequest]->ghost = 1;
   } else {
-    // need a full neighbor list
+    // need a regular full neighbor list
+    // can build it occasionally
+    neighbor->requests[irequest]->occasional = 1;
     neighbor->requests[irequest]->ghost = 0;
   }
 
@@ -196,9 +198,9 @@ void ComputeEntropyAtom::compute_peratom()
     }
   }
 
-  // invoke full neighbor list (will copy or build if necessary)
+  // invoke occasional neighbor list build (if not perpetual)
 
-  neighbor->build_one(list);
+  if (!avg_flag) neighbor->build_one(list);
 
   inum = list->inum + list->gnum;
   ilist = list->ilist;

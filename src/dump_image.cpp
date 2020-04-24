@@ -403,7 +403,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
   image->buffers();
 
-  // communication neede for bonds colored by atoms
+  // communication needed for bonds colored by atoms
 
   if (bondflag) {
     if (bcolor == ATOM || bdiam == ATOM) comm_forward = 3;

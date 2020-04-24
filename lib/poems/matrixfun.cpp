@@ -209,7 +209,7 @@ Matrix operator+ (const VirtualMatrix &A, const VirtualMatrix &B){      // addit
 	Bcols = B.GetNumCols();
 
 	if( !((Arows == Brows) && (Acols == Bcols)) ){
-		cerr << "Dimesion mismatch in matrix addition" << endl;
+		cerr << "Dimension mismatch in matrix addition" << endl;
 		exit(1);
 	}
 
@@ -234,7 +234,7 @@ Matrix operator- (const VirtualMatrix &A, const VirtualMatrix &B){      // subtr
 	Bcols = B.GetNumCols();
 
 	if( !((Arows == Brows) && (Acols == Bcols)) ){
-		cerr << "Dimesion mismatch in matrix addition" << endl;
+		cerr << "Dimension mismatch in matrix addition" << endl;
 		exit(1);
 	}
 
@@ -259,7 +259,7 @@ Matrix operator* (const VirtualMatrix &A, const VirtualMatrix &B){      // multi
 	Bcols = B.GetNumCols();
 
 	if(Acols != Brows){
-		cerr << "Dimesion mismatch in matrix multiplication" << endl;
+		cerr << "Dimension mismatch in matrix multiplication" << endl;
 		exit(1);
 	}
 

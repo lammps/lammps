@@ -6,14 +6,12 @@ bond_style mm3 command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    bond_style mm3
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -29,7 +27,6 @@ as defined in :ref:`(Allinger) <mm3-allinger1989>`
 .. math::
 
    E = K (r - r_0)^2 \left[ 1 - 2.55(r-r_0) + (7/12) 2.55^2(r-r_0)^2 \right]
-
 
 where :math:`r_0` is the equilibrium value of the bond, and :math:`K` is a
 prefactor. The anharmonic prefactors have units angstrom\^(-n):
@@ -49,9 +46,8 @@ or :doc:`read_restart <read_restart>` commands:
 Restrictions
 """"""""""""
 
-
 This bond style can only be used if LAMMPS was built with the
-USER\_YAFF package.  See the :doc:`Build package <Build_package>` doc
+USER_YAFF package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 Related commands
@@ -61,13 +57,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _mm3-allinger1989:
-
-
 
 **(Allinger)** Allinger, Yuh, Lii, JACS, 111(23), 8551-8566
 (1989),

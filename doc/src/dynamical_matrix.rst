@@ -1,13 +1,12 @@
-.. index:: dynamical\_matrix
+.. index:: dynamical_matrix
 
-dynamical\_matrix command
-=========================
+dynamical_matrix command
+========================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dynamical_matrix group-ID style gamma args keyword value ...
 
@@ -15,20 +14,17 @@ Syntax
 * style = *regular* or *eskm*
 * gamma = finite different displacement length (distance units)
 * one or more keyword/arg pairs may be appended
-  
+
   .. parsed-literal::
-  
+
        keyword = *file* or *binary*
          *file* name = name of output file for the dynamical matrix
          *binary* arg = *yes* or *no* or *gzip*
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dynamical_matrix 1 regular 0.000001
    dynamical_matrix 1 eskm 0.000001
@@ -51,7 +47,6 @@ matrix defined by
 
    \Phi_{ij}^{\alpha\beta} = \frac{\partial^2 U}{\partial x_{i,\alpha} \partial x_{j,\beta}}
 
-   
 The output for the dynamical matrix is printed three elements at a time.
 The three elements are the three :math:`\beta` elements for a respective
 i/:math:`\alpha`/j combination.  Each line is printed in order of j
@@ -75,10 +70,10 @@ See the :doc:`Build package <Build_package>` doc page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`fix phonon <fix_phonon>`
+:doc:`fix phonon <fix_phonon>`, :doc:`fix numdiff <fix_numdiff>`, 
 
 :doc:`compute hma <compute_hma>` uses an analytic formulation of the
-Hessian provided by a pair_style's Pair::single\_hessian() function,
+Hessian provided by a pair_style's Pair::single_hessian() function,
 if implemented.
 
 Default

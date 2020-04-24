@@ -1,39 +1,37 @@
-.. index:: pair\_style tersoff/zbl
+.. index:: pair_style tersoff/zbl
 
-pair\_style tersoff/zbl command
-===============================
+pair_style tersoff/zbl command
+==============================
 
-pair\_style tersoff/zbl/gpu command
-===================================
-
-pair\_style tersoff/zbl/kk command
+pair_style tersoff/zbl/gpu command
 ==================================
 
-pair\_style tersoff/zbl/omp command
-===================================
+pair_style tersoff/zbl/kk command
+=================================
+
+pair_style tersoff/zbl/omp command
+==================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style tersoff/zbl
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style tersoff/zbl
-   pair_coeff \* \* SiC.tersoff.zbl Si C Si
+   pair_coeff * * SiC.tersoff.zbl Si C Si
 
 Description
 """""""""""
 
 The *tersoff/zbl* style computes a 3-body Tersoff potential
-:ref:`(Tersoff\_1) <zbl-Tersoff_1>` with a close-separation pairwise modification
+:ref:`(Tersoff_1) <zbl-Tersoff_1>` with a close-separation pairwise modification
 based on a Coulomb potential and the Ziegler-Biersack-Littmark
 universal screening function :ref:`(ZBL) <zbl-ZBL>`, giving the energy E of a
 system of atoms as
@@ -62,9 +60,8 @@ system of atoms as
   b_{ij} & = \left( 1 + \beta^n {\zeta_{ij}}^n \right)^{-\frac{1}{2n}} \\
   \zeta_{ij} & = \sum_{k \neq i,j} f_C(r_{ik}) g(\theta_{ijk})
                    \exp \left[ {\lambda_3}^m (r_{ij} - r_{ik})^m \right] \\
-  g(\theta) & =  \gamma_{ijk} \left( 1 + \frac{c^2}{d^2} - 
+  g(\theta) & =  \gamma_{ijk} \left( 1 + \frac{c^2}{d^2} -
                   \frac{c^2}{\left[ d^2 + (\cos \theta - \cos \theta_0)^2\right]} \right)
-
 
 The :math:`f_F` term is a fermi-like function used to smoothly connect the ZBL
 repulsive potential with the Tersoff potential.  There are 2
@@ -88,10 +85,10 @@ includes
 three-body interactions. The summations in the formula are over all
 neighbors J and K of atom I within a cutoff distance = R + D.
 
-Only a single pair\_coeff command is used with the *tersoff/zbl* style
+Only a single pair_coeff command is used with the *tersoff/zbl* style
 which specifies a Tersoff/ZBL potential file with parameters for all
 needed elements.  These are mapped to LAMMPS atom types by specifying
-N additional arguments after the filename in the pair\_coeff command,
+N additional arguments after the filename in the pair_coeff command,
 where N is the number of LAMMPS atom types:
 
 * filename
@@ -103,12 +100,11 @@ to specify the path for the potential file.
 As an example, imagine the SiC.tersoff.zbl file has Tersoff/ZBL values
 for Si and C.  If your LAMMPS simulation has 4 atoms types and you
 want the 1st 3 to be Si, and the 4th to be C, you would use the
-following pair\_coeff command:
+following pair_coeff command:
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   pair_coeff \* \* SiC.tersoff Si Si Si C
+   pair_coeff * * SiC.tersoff Si Si Si C
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si
@@ -159,7 +155,7 @@ portion of the potential and in the Fermi-like function.  The
 non-annotated parameters are unitless.  The value of m must be 3 or 1.
 
 The Tersoff/ZBL potential file must contain entries for all the
-elements listed in the pair\_coeff command.  It can also contain
+elements listed in the pair_coeff command.  It can also contain
 entries for additional elements not being used in a particular
 simulation; LAMMPS ignores those entries.
 
@@ -191,7 +187,7 @@ be set to 0.0 if desired.
 Note that the twobody parameters in entries such as SiCC and CSiSi
 are often the same, due to the common use of symmetric mixing rules,
 but this is not always the case. For example, the beta and n parameters in
-Tersoff\_2 :ref:`(Tersoff\_2) <zbl-Tersoff_2>` are not symmetric.
+Tersoff_2 :ref:`(Tersoff_2) <zbl-Tersoff_2>` are not symmetric.
 
 We chose the above form so as to enable users to define all commonly
 used variants of the Tersoff portion of the potential.  In particular,
@@ -200,12 +196,12 @@ our form reduces to the original Tersoff form when m = 3 and gamma =
 and m = 1.  Note that in the current Tersoff implementation in LAMMPS,
 m must be specified as either 3 or 1.  Tersoff used a slightly
 different but equivalent form for alloys, which we will refer to as
-Tersoff\_2 potential :ref:`(Tersoff\_2) <zbl-Tersoff_2>`.
+Tersoff_2 potential :ref:`(Tersoff_2) <zbl-Tersoff_2>`.
 
-LAMMPS parameter values for Tersoff\_2 can be obtained as follows:
+LAMMPS parameter values for Tersoff_2 can be obtained as follows:
 :math:`\gamma = \omega_{ijk}`, :math:`\lambda_3 = 0` and the value of
 m has no effect.  The parameters for species i and j can be calculated
-using the Tersoff\_2 mixing rules:
+using the Tersoff_2 mixing rules:
 
 .. math::
 
@@ -216,11 +212,10 @@ using the Tersoff\_2 mixing rules:
    R_{i,j} & = (R_{i}R_{j})^{1/2}\\
    S_{i,j} & = (S_{i}S_{j})^{1/2}\\
 
-
-Tersoff\_2 parameters R and S must be converted to the LAMMPS
+Tersoff_2 parameters R and S must be converted to the LAMMPS
 parameters R and D (R is different in both forms), using the following
 relations: R=(R'+S')/2 and D=(S'-R')/2, where the primes indicate the
-Tersoff\_2 parameters.
+Tersoff_2 parameters.
 
 In the potentials directory, the file SiCGe.tersoff provides the
 LAMMPS parameters for Tersoff's various versions of Si, as well as his
@@ -237,9 +232,7 @@ for helping clarify how Tersoff parameters for alloys have been
 defined in various papers.  Also thanks to Ram Devanathan for
 providing the base ZBL implementation.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -259,9 +252,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -273,20 +264,17 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-need to re-specify the pair\_style and pair\_coeff commands in an input
+need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the MANYBODY package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -298,7 +286,7 @@ The Tersoff/ZBL potential files provided with LAMMPS (see the
 potentials directory) are parameterized for metal :doc:`units <units>`.
 You can use the Tersoff potential with any LAMMPS units, but you would
 need to create your own Tersoff potential file with coefficients
-listed in the appropriate units if your simulation doesn't use "metal"
+listed in the appropriate units if your simulation does not use "metal"
 units.
 
 Related commands
@@ -308,32 +296,22 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
+.. _zbl-Tersoff_1:
 
-.. _zbl-Tersoff\_1:
-
-
-
-**(Tersoff\_1)** J. Tersoff, Phys Rev B, 37, 6991 (1988).
+**(Tersoff_1)** J. Tersoff, Phys Rev B, 37, 6991 (1988).
 
 .. _zbl-ZBL:
-
-
 
 **(ZBL)** J.F. Ziegler, J.P. Biersack, U. Littmark, 'Stopping and Ranges
 of Ions in Matter' Vol 1, 1985, Pergamon Press.
 
 .. _zbl-Albe:
 
-
-
 **(Albe)** J. Nord, K. Albe, P. Erhart and K. Nordlund, J. Phys.:
 Condens. Matter, 15, 5649(2003).
 
-.. _zbl-Tersoff\_2:
+.. _zbl-Tersoff_2:
 
-
-
-**(Tersoff\_2)** J. Tersoff, Phys Rev B, 39, 5566 (1989); errata (PRB 41, 3248)
+**(Tersoff_2)** J. Tersoff, Phys Rev B, 39, 5566 (1989); errata (PRB 41, 3248)

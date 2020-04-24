@@ -6,7 +6,6 @@ compute smd/tlsph/dt command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID smd/tlsph/dt
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all smd/tlsph/dt
 
@@ -48,7 +46,6 @@ The per-particle values will be given in :doc:`units <units>` of time.
 
 Restrictions
 """"""""""""
-
 
 This compute is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

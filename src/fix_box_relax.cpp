@@ -218,8 +218,13 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal fix box/relax command");
   }
 
-  if (p_flag[0] || p_flag[1] || p_flag[2]) box_change_size = 1;
-  if (p_flag[3] || p_flag[4] || p_flag[5]) box_change_shape = 1;
+  if (p_flag[0]) box_change |= BOX_CHANGE_X;
+  if (p_flag[1]) box_change |= BOX_CHANGE_Y;
+  if (p_flag[2]) box_change |= BOX_CHANGE_Z;
+  if (p_flag[3]) box_change |= BOX_CHANGE_YZ;
+  if (p_flag[4]) box_change |= BOX_CHANGE_XZ;
+  if (p_flag[5]) box_change |= BOX_CHANGE_XY;
+
   if (allremap == 0) restart_pbc = 1;
 
   // error checks

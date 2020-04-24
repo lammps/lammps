@@ -1,27 +1,25 @@
-.. index:: dihedral\_style nharmonic
+.. index:: dihedral_style nharmonic
 
-dihedral\_style nharmonic command
+dihedral_style nharmonic command
 =================================
 
-dihedral\_style nharmonic/omp command
+dihedral_style nharmonic/omp command
 =====================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style nharmonic
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style nharmonic
-   dihedral_coeff \* 3 10.0 20.0 30.0
+   dihedral_coeff * 3 10.0 20.0 30.0
 
 Description
 """""""""""
@@ -30,8 +28,7 @@ The *nharmonic* dihedral style uses the potential:
 
 .. math::
 
-  E = \sum_{n=1,n} A_n  \cos^{n-1}(\phi)
-
+   E = \sum_{n=1,n} A_n  \cos^{n-1}(\phi)
 
 The following coefficients must be defined for each dihedral type via the
 :doc:`dihedral_coeff <dihedral_coeff>` command as in the example above, or in
@@ -44,9 +41,7 @@ or :doc:`read_restart <read_restart>` commands:
 * ...
 * :math:`A_n` (energy)
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -66,16 +61,13 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
 
-
 This angle style can only be used if LAMMPS was built with the
-USER\_MISC package.  See the :doc:`Build package <Build_package>` doc
+USER_MISC package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 Related commands

@@ -1,16 +1,15 @@
-.. index:: pair\_style coul/diel
+.. index:: pair_style coul/diel
 
-pair\_style coul/diel command
-=============================
+pair_style coul/diel command
+============================
 
-pair\_style coul/diel/omp command
-=================================
+pair_style coul/diel/omp command
+================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style coul/diel cutoff
 
@@ -19,8 +18,7 @@ cutoff = global cutoff (distance units)
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style coul/diel 3.5
    pair_coeff 1 4 78. 1.375 0.112
@@ -30,7 +28,7 @@ Description
 
 Style *coul/diel* computes a Coulomb correction for implicit solvent
 ion interactions in which the dielectric permittivity is distance dependent.
-The dielectric permittivity epsilon\_D(r) connects to limiting regimes:
+The dielectric permittivity epsilon_D(r) connects to limiting regimes:
 One limit is defined by a small dielectric permittivity (close to vacuum)
 at or close to contact separation between the ions. At larger separations
 the dielectric permittivity reaches a bulk value used in the regular Coulomb
@@ -38,16 +36,18 @@ interaction coul/long or coul/cut.
 The transition is modeled by a hyperbolic function which is incorporated
 in the Coulomb correction term for small ion separations as follows
 
-.. image:: Eqs/pair_coul_diel.jpg
-   :align: center
+.. math::
 
-where r\_me is the inflection point of epsilon\_D(r) and sigma\_e is a slope
+   E  = & \frac{Cq_iq_j}{\epsilon r} \left( \frac{\epsilon}{\epsilon_D(r)}-1\right)                       \qquad r < r_c \\
+   \epsilon_D(r)  = & \frac{5.2+\epsilon}{2} +  \frac{\epsilon-5.2}{2}\tanh\left(\frac{r-r_{me}}{\sigma_e}\right)
+
+where :math:`r_{me}` is the inflection point of :math:`\epsilon_D(r)` and :math:`\sigma_e` is a slope
 defining length scale. C is the same Coulomb conversion factor as in the
-pair\_styles coul/cut, coul/long, and coul/debye. In this way the Coulomb
+pair_styles coul/cut, coul/long, and coul/debye. In this way the Coulomb
 interaction between ions is corrected at small distances r. The lower
-limit of epsilon\_D(r->0)=5.2 due to dielectric saturation :ref:`(Stiles) <Stiles>`
+limit of epsilon_D(r->0)=5.2 due to dielectric saturation :ref:`(Stiles) <Stiles>`
 while the Coulomb interaction reaches its bulk limit by setting
-epsilon\_D(r->\infty)=epsilon, the bulk value of the solvent which is 78
+:math:`\epsilon_D(r \to \infty) = \epsilon`, the bulk value of the solvent which is 78
 for water at 298K.
 
 Examples of the use of this type of Coulomb interaction include implicit
@@ -63,15 +63,13 @@ above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
-* epsilon (no units)
-* r\_me (distance units)
-* sigma\_e (distance units)
+* :math:`\epsilon` (no units)
+* :math:`r_{me}` (distance units)
+* :math:`\sigma_e` (distance units)
 
-The global cutoff (r\_c) specified in the pair\_style command is used.
-
+The global cutoff (:math:`r_c`) specified in the pair_style command is used.
 
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -96,7 +94,6 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-
 This style is part of the "USER-MISC" package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -108,27 +105,19 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Stiles:
-
-
 
 **(Stiles)** Stiles , Hubbard, and Kayser, J Chem Phys, 77,
 6189 (1982).
 
 .. _Lenart1:
 
-
-
 **(Lenart)** Lenart , Jusufi, and Panagiotopoulos, J Chem Phys, 126,
 044509 (2007).
 
 .. _Jusufi1:
-
-
 
 **(Jusufi)** Jusufi, Hynninen, and Panagiotopoulos, J Phys Chem B, 112,
 13783 (2008).

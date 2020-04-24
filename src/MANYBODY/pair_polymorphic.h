@@ -104,32 +104,59 @@ class PairPolymorphic : public Pair {
     }
     void set_values(int n, double x1, double x2, double * values, double epsilon)
     {
-      int i0;
-      i0 = n-1;
-//    shrink (remove near zero points) reduces cutoff radius, and therefore computational cost
-//    do not shrink when x2 < 1.1 (angular function) or x2 > 20.0 (non-radial function)
-      if (x2 >= 1.1 && x2 <= 20.0) {
-        for (int i = n-1; i >= 0; i--) {
-          if (fabs(values[i]) > epsilon) {
-            i0 = i;
-            break;
-          }
+      int shrink = 1;
+      int ilo,ihi;
+      double vlo,vhi;
+      ilo = 0;
+      ihi = n-1;
+      for (int i = 0; i < n; i++) {
+        if (fabs(values[i]) <= epsilon) {
+          ilo = i;
+        } else {
+          break;
         }
       }
-//    do not shrink when when list is abnormally small
-      if (i0 < 10/n) {
-        i0 = n-1;
-      } else if (i0 < n-1) {
-        values[i0] = 0.0;
-        i0 = i0 + 1;
-        values[i0] = 0.0;
+      for (int i = n-1; i >= 0; i--) {
+        if (fabs(values[i]) <= epsilon) {
+          ihi = i;
+        } else {
+          break;
+        }
       }
-      xmin = x1;
-      xmax = x1 + (x2-x1)/(n -1)*i0;
+      if (ihi < ilo) ihi = ilo;
+      vlo = values[ilo];
+      vhi = values[ilo];
+      for (int i = ilo; i <= ihi; i++) {
+        if (vlo > values[i]) vlo = values[i];
+        if (vhi < values[i]) vhi = values[i];
+      }
+
+//    shrink (remove near zero points) reduces cutoff radius, and therefore computational cost
+//    do not shrink when x2 < 1.1 (angular function) or x2 > 20.0 (non-radial function)
+      if (x2 < 1.1 || x2 > 20.0) {
+        shrink = 0;
+      }
+//    do not shrink when when list is abnormally small
+      if (ihi - ilo < 50) {
+        shrink = 0;
+      }
+//    shrink if it is a constant
+      if (vhi - vlo <= epsilon) {
+//        shrink = 1;
+      }
+
+      if (shrink == 0) {
+        ilo = 0;
+        ihi = n-1;
+      }
+      xmin = x1 + (x2-x1)/(n -1)*ilo;
+      xmax = xmin + (x2-x1)/(n -1)*(ihi-ilo);
       xmaxsq = xmax*xmax;
-      n = i0+1;
+      n = ihi - ilo + 1;
       resize(n);
-      memcpy(ys,values,n*sizeof(double));
+      for (int i = ilo; i <= ihi; i++) {
+        ys[i-ilo] = values[i];
+      }
       initialize();
     }
     void value(double x, double &y, int ny, double &y1, int ny1)
@@ -228,32 +255,32 @@ class PairPolymorphic : public Pair {
   struct PairParameters {
     double cut;
     double cutsq;
-    bool xi; // "indicator"
+    double xi;
     class tabularFunction * U;
     class tabularFunction * V;
     class tabularFunction * W;
-    class tabularFunction * P;
     class tabularFunction * F;
     PairParameters() {
       cut = 0.0;
       cutsq = 0.0;
-      xi =  true;
+      xi =  1.0;
       U = NULL;
       V = NULL;
       W = NULL;
-      P = NULL;
       F = NULL;
     };
   };
   struct TripletParameters {
+    class tabularFunction * P;
     class tabularFunction * G;
     TripletParameters() {
+      P = NULL;
       G = NULL;
     };
   };
 
   double epsilon;
-  bool eta; // global indicator
+  int eta;
   int nx,nr,ng; // table sizes
   double maxX;
 
@@ -283,11 +310,13 @@ class PairPolymorphic : public Pair {
   void setup_params();
   void write_tables(int);
 
-  void attractive(PairParameters *, TripletParameters *, double, double,
-                  double, double *, double *, double *, double *, double *);
+  void attractive(PairParameters *, PairParameters *, TripletParameters *,
+                  double, double, double, double *, double *, double *,
+                  double *, double *);
 
   void ters_zetaterm_d(double, double *, double, double *, double, double *,
-                       double *, double *, PairParameters *, TripletParameters *);
+                       double *, double *, PairParameters *, PairParameters *,
+                       TripletParameters *);
   void costheta_d(double *, double, double *, double,
                   double *, double *, double *);
 

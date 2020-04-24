@@ -29,6 +29,7 @@ class MinKokkos : public Min {
   void run(int);
   double fnorm_sqr();
   double fnorm_inf();
+  double fnorm_max();
 
   virtual void init_style() {}
   virtual void setup_style() = 0;

@@ -124,7 +124,7 @@ varargout{1}.x_bound = x_bound;
 varargout{1}.y_bound = y_bound;
 varargout{1}.z_bound = z_bound;
 varargout{1}.atom_data = atom_data;
-varargout{1}.position = p; %gives postion of ITEM: TIMESTEP line
+varargout{1}.position = p; %gives position of ITEM: TIMESTEP line
 %------------------------------
 
 fclose(dump);

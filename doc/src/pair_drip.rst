@@ -1,13 +1,12 @@
-.. index:: pair\_style drip
+.. index:: pair_style drip
 
-pair\_style drip command
-========================
+pair_style drip command
+=======================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay drip [styles ...]
 
@@ -16,20 +15,19 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay drip
-   pair_coeff \* \* none
-   pair_coeff \* \* drip  C.drip  C
+   pair_coeff * * none
+   pair_coeff * * drip  C.drip  C
 
    pair_style hybrid/overlay drip rebo
-   pair_coeff \* \* drip  C.drip     C
-   pair_coeff \* \* rebo  CH.airebo  C
+   pair_coeff * * drip  C.drip     C
+   pair_coeff * * rebo  CH.airebo  C
 
    pair_style hybrid/overlay drip rebo
-   pair_coeff \* \* drip  C.drip     C NULL
-   pair_coeff \* \* rebo  CH.airebo  C H
+   pair_coeff * * drip  C.drip     C NULL
+   pair_coeff * * rebo  CH.airebo  C H
 
 Description
 """""""""""
@@ -40,10 +38,12 @@ in :ref:`(Wen) <Wen2018>`, which is based on the :ref:`(Kolmogorov) <Kolmogorov2
 potential and provides an improved prediction for forces.
 The total potential energy of a system is
 
-.. image:: Eqs/pair_drip.jpg
-   :align: center
+.. math::
 
-where the *r\^-6* term models the attractive London dispersion,
+   E = & \frac{1}{2} \sum_{i} \sum_{j\notin\text{layer}\,i} \phi_{ij} \\
+   \phi_{ij} = &f_\text{c}(x_r) \left[ e^{-\lambda(r_{ij} - z_0 )} \left[C+f(\rho_{ij})+  g(\rho_{ij}, \{\alpha_{ij}^{(m)}\}) \right]- A\left (\frac{z_0}{r_{ij}} \right)^6 \right]
+
+where the :math:`r^{-6}` term models the attractive London dispersion,
 the exponential term is designed to capture the registry effect due to
 overlapping *pi* bonds, and *fc* is a cutoff function.
 
@@ -69,22 +69,19 @@ If you want, you can enforce this by assigning different atom types to atoms in
 different layers, and apply an intralayer potential to one atom type.
 See :doc:`pair_hybrid <pair_hybrid>` for details.
 
-
 ----------
-
 
 The :doc:`pair_coeff <pair_coeff>` command for DRIP takes *4+N* arguments, where
 *N* is the number of LAMMPS atom types. The fist three arguments must be fixed
 to be *\* \* drip*, the fourth argument is the path to the DRIP parameter file,
 and the remaining N arguments specifying the mapping between element in the
 parameter file and atom types. For example, if your LAMMPS simulation has 3 atom
-types and you want all of them to be C, you would use the following pair\_coeff
+types and you want all of them to be C, you would use the following pair_coeff
 command:
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   pair_coeff \* \* drip  C.drip  C C C
+   pair_coeff * * drip  C.drip  C C C
 
 If a mapping value is specified as NULL, the mapping is not performed. This
 could be useful when DRIP is used to model part of the system where other
@@ -92,36 +89,32 @@ element exists. Suppose you have a hydrocarbon system, with C of atom type 1
 and H of atom type 2, you can use the following command to inform DRIP not to
 model H atoms:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay drip rebo
-   pair_coeff \* \* drip  C.drip     C NULL
-   pair_coeff \* \* rebo  CH.airebo  C H
+   pair_coeff * * drip  C.drip     C NULL
+   pair_coeff * * rebo  CH.airebo  C H
 
 .. note::
 
    The potential parameters developed in :ref:`(Wen) <Wen2018>` are provided with
    LAMMPS (see the "potentials" directory). Besides those in :ref:`Wen <Wen2018>`, an
-   additional parameter "normal\_cutoff", specific to the LAMMPS implementation, is
+   additional parameter "normal_cutoff", specific to the LAMMPS implementation, is
    used to find the three nearest neighbors of an atom to construct the normal.
-
 
 ----------
 
-
 **Mixing, shift, table, tail correction, and restart info**\ :
 
-This pair style does not support the pair\_modify mix, shift, table,
+This pair style does not support the pair_modify mix, shift, table,
 and tail options.
 
 This pair style does not write their information to binary restart files, since
-it is stored in potential files. Thus, you need to re-specify the pair\_style and
-pair\_coeff commands in an input script that reads a restart file.
+it is stored in potential files. Thus, you need to re-specify the pair_style and
+pair_coeff commands in an input script that reads a restart file.
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the USER-MISC package. It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc
@@ -134,29 +127,23 @@ The *C.drip* parameter file provided with LAMMPS (see the "potentials"
 directory) is parameterized for metal :doc:`units <units>`. You can use the DRIP
 potential with any LAMMPS units, but you would need to create your own custom
 parameter file with coefficients listed in the appropriate units, if your
-simulation doesn't use "metal" units.
+simulation does not use "metal" units.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair_style lebedeva\_z <pair_lebedeva_z>`,
+:doc:`pair_style lebedeva_z <pair_lebedeva_z>`,
 :doc:`pair_style kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`,
 :doc:`pair_style kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`,
 :doc:`pair_style ilp/graphene/hbn <pair_ilp_graphene_hbn>`.
 
-
 ----------
 
-
 .. _Wen2018:
-
-
 
 **(Wen)** M. Wen, S. Carr, S. Fang, E. Kaxiras, and E. B. Tadmor, Phys. Rev. B,
 98, 235404 (2018)
 
 .. _Kolmogorov2005:
-
-
 
 **(Kolmogorov)** A. N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005)

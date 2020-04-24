@@ -53,6 +53,7 @@ PairSpinDmi::~PairSpinDmi()
     memory->destroy(vmech_dmy);
     memory->destroy(vmech_dmz);
     memory->destroy(cutsq);
+    memory->destroy(emag);
   }
 }
 
@@ -191,6 +192,13 @@ void PairSpinDmi::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  // checking size of emag
+
+  if (nlocal_max < nlocal) {                    // grow emag lists if necessary
+    nlocal_max = nlocal;
+    memory->grow(emag,nlocal_max,"pair/spin:emag");
+  }
+
   // dmi computation
   // loop over all atoms
 
@@ -206,7 +214,7 @@ void PairSpinDmi::compute(int eflag, int vflag)
     spi[0] = sp[i][0];
     spi[1] = sp[i][1];
     spi[2] = sp[i][2];
-
+    emag[i] = 0.0;
 
     // loop on neighbors
 
@@ -251,15 +259,10 @@ void PairSpinDmi::compute(int eflag, int vflag)
       fm[i][1] += fmi[1];
       fm[i][2] += fmi[2];
 
-      if (newton_pair || j < nlocal) {
-        f[j][0] -= fi[0];
-        f[j][1] -= fi[1];
-        f[j][2] -= fi[2];
-      }
-
       if (eflag) {
         evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
         evdwl *= 0.5*hbar;
+        emag[i] += evdwl;
       } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,

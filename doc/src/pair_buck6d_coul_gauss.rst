@@ -1,22 +1,20 @@
-.. index:: pair\_style buck6d/coul/gauss/dsf
+.. index:: pair_style buck6d/coul/gauss/dsf
 
-pair\_style buck6d/coul/gauss/dsf command
+pair_style buck6d/coul/gauss/dsf command
+========================================
+
+pair_style buck6d/coul/gauss/long command
 =========================================
-
-pair\_style buck6d/coul/gauss/long command
-==========================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *buck6d/coul/gauss/dsf* or *buck6d/coul/gauss/long*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -33,8 +31,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style buck6d/coul/gauss/dsf    0.9000    12.0000
    pair_coeff 1  1  1030.  3.061  457.179  4.521  0.608
@@ -50,12 +47,13 @@ interactions following the MOF-FF force field after
 :ref:`(Schmid) <Schmid>`. The vdW term of the *buck6d* styles
 computes a dispersion damped Buckingham potential:
 
-.. image:: Eqs/pair_buck6d.jpg
-   :align: center
+.. math::
 
-where A and C are a force constant, kappa is an ionic-pair dependent
+   E = A e^{-\kappa r} - \frac{C}{r^6} \cdot \frac{1}{1 + D r^{14}} \qquad r < r_c \\
+
+where A and C are a force constant, :math:`\kappa` is an ionic-pair dependent
 reciprocal length parameter, D is a dispersion correction parameter,
-and the cutoff Rc truncates the interaction distance.
+and the cutoff :math:`r_c` truncates the interaction distance.
 The first term in the potential corresponds to the Buckingham
 repulsion term and the second term to the dispersion attraction with
 a damping correction analog to the Grimme correction used in DFT.
@@ -78,14 +76,15 @@ distributions which effectively dampen electrostatic interactions
 for high charges at close distances.  The electrostatic potential
 is thus evaluated as:
 
-.. image:: Eqs/pair_coul_gauss.jpg
-   :align: center
+.. math::
 
-where C is an energy-conversion constant, Qi and Qj are the
-charges on the 2 atoms, epsilon is the dielectric constant which
-can be set by the :doc:`dielectric <dielectric>` command, alpha is
-ion pair dependent damping parameter and erf() is the error-function.
-The cutoff Rc truncates the interaction distance.
+   E = \frac{C_{q_i q_j}}{\epsilon r_{ij}}\,\, \textrm{erf}\left(\alpha_{ij} r_{ij}\right)\quad\quad\quad r < r_c
+
+where C is an energy-conversion constant, :math:`q_i` and :math:`q_j`
+are the charges on the 2 atoms, epsilon is the dielectric constant which
+can be set by the :doc:`dielectric <dielectric>` command, :math:`\alpha`
+is the ion pair dependent damping parameter and erf() is the
+error-function.  The cutoff :math:`r_c` truncates the interaction distance.
 
 The style *buck6d/coul/gauss/dsf* computes the Coulomb interaction
 via the damped shifted force model described in :ref:`(Fennell) <Fennell>`
@@ -107,19 +106,17 @@ above, or in the data file or restart files read by the
 commands:
 
 * A (energy units)
-* rho (distance\^-1 units)
+* :math:`\rho` (distance\^-1 units)
 * C (energy-distance\^6 units)
 * D (distance\^14 units)
-* alpha (distance\^-1 units)
+* :math:`\alpha` (distance\^-1 units)
 * cutoff (distance units)
 
-The second coefficient, rho, must be greater than zero. The latter
-coefficient is optional.  If not specified, the global vdW cutoff
+The second coefficient, :math:`\rho`, must be greater than zero. The
+latter coefficient is optional.  If not specified, the global vdW cutoff
 is used.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -130,12 +127,11 @@ These styles do not support the :doc:`pair_modify <pair_modify>` shift
 option for the energy. Instead the smoothing function should be applied
 by setting the global smoothing parameter to a value < 1.0.
 
-These styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+These styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 Restrictions
 """"""""""""
-
 
 These styles are part of the USER-MOFFF package.  They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -149,11 +145,8 @@ Related commands
 
 .. _Schmid:
 
-
-
 .. _Fennell:
 
 **(Schmid)** S. Bureekaew, S. Amirjalayer, M. Tafipolsky, C. Spickermann, T.K. Roy and R. Schmid, Phys. Status Solidi B, 6, 1128 (2013).
-
 
 **(Fennell)** C. J. Fennell, J. D. Gezelter, J Chem Phys, 124, 234104 (2006).

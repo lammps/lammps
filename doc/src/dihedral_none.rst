@@ -1,21 +1,19 @@
-.. index:: dihedral\_style none
+.. index:: dihedral_style none
 
-dihedral\_style none command
-============================
+dihedral_style none command
+===========================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style none
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style none
 

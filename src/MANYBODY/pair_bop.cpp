@@ -5017,7 +5017,7 @@ double PairBOP::PiBo(int itmp, int jtmp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairBOP::read_table(char *filename)
+void _noopt PairBOP::read_table(char *filename)
 {
   int i,j,k,n,m;
   int buf1,pass;

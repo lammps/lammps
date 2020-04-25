@@ -1,10 +1,11 @@
 LAMMPS Fortran Module
 *********************
 
-The LAMMPS module provides an interface to call LAMMPS from a Fortran code.
-It is based on the C-library interface and requires a Fortran 2003 compatible
-compiler to be compiled.  Similar to the LAMMPS Python wrapper it provides an
-object oriented interface.  Below is a minimal example:
+The LAMMPS module provides an interface to call LAMMPS from a Fortran
+code.  It is based on the C-library interface and requires a Fortran
+2003 compatible compiler to be compiled.  Similar to the LAMMPS Python
+wrapper it provides an object oriented interface through using type
+bound procedures.  Below is a minimal example:
 
 .. code-block:: fortran
 
@@ -26,15 +27,20 @@ object oriented interface.  Below is a minimal example:
 
    END PROGRAM testlib
 
-To compile and link Fortran code with the LAMMPS library, you need to compile
-the Fortran library module (located in ``examples/COUPLE/fortran/lammps.f90``)
-and link it with your code and also :doc:`link to the LAMMPS library <Build_link>`.
-A typical command line would be:
+To compile and link Fortran code with the LAMMPS library, you need to
+compile the Fortran library module (source code is located in
+``examples/COUPLE/fortran/lammps.f90``) alongside your own Fortran code
+and then link it with your code and also :doc:`link to the LAMMPS
+library <Build_link>`.  A typical command line would be:
 
 .. code-block:: bash
 
-   gfortran -o testlib.x  lammps.f90 testlib.f90 -L. -llammps
- 
+   mpifort -o testlib.x  lammps.f90 testlib.f90 -L. -llammps
+
+Please note, that the MPI compiler wrapper is only required when the
+calling the library from an MPI parallel code or when the LAMMPS library
+was compiled with MPI support.
+
 --------------------
 
 .. f:type:: lammps

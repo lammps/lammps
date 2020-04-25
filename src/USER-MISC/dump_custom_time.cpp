@@ -47,12 +47,16 @@ DumpCustom_Time::DumpCustom_Time(LAMMPS *lmp, int narg, char **arg) :
   next_time  = 0;
   tol = 1e-3;
   write_time = 1;
+  nvarcompute = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 DumpCustom_Time::~DumpCustom_Time()
 {
+    if (nvarcompute > 0) {
+        delete [] varcompute;
+    }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -71,6 +75,8 @@ void DumpCustom_Time::write_data(int n, double *mybuf)
     (this->*write_choice)(n,mybuf);
 }
 
+/* ---------------------------------------------------------------------- */
+
 int DumpCustom_Time::count()
 {
   if (write_time >= 0) { 
@@ -87,6 +93,8 @@ int DumpCustom_Time::count()
         for (int i = 0; i < ncompute; i++)
           compute[i]->addstep(update->ntimestep+1);
         }
+      for (int i = 0; i < nvarcompute; i++)
+        varcompute[i]->addstep(update->ntimestep+1);
       return 0;
     }
     else {
@@ -99,4 +107,23 @@ int DumpCustom_Time::count()
     return DumpCustom::count();
   }
 
+}
+
+/* ---------------------------------------------------------------------- */
+
+int DumpCustom_Time::modify_param(int narg, char **arg)
+{
+    int n;
+    if (strcmp(arg[0],"computes") == 0) {
+        nvarcompute = force->inumeric(FLERR, arg[1]);
+        if (nvarcompute <= 0) error->all(FLERR, "Number of computes has to be higher than zero");
+        varcompute = new Compute*[nvarcompute];
+        for (int i = 2; i < 2+nvarcompute; i++) {
+            n = modify->find_compute(arg[i]);
+            if (n < 0) error->all(FLERR, "Could not find variable compute ID");
+            varcompute[i-2]=modify->compute[n];
+        }
+        return nvarcompute+2;
+    }
+    else DumpCustom::modify_param(narg, arg);
 }

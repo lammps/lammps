@@ -30,16 +30,19 @@ class DumpCustom_Time : public DumpCustom {
   virtual ~DumpCustom_Time();
 
  protected:
-  double time_every; //time frequency of a dump
-  double next_time;  //next time for a dump
+  double time_every;           //time frequency of a dump
+  double next_time;            //next time for a dump
   double tol;        
-  int write_time; // -1-write in the next timestep, 0-write now, >0 check if it's time for a write
+  int write_time;              // -1-write in the next timestep, 0-write now, 1-check if it's time for a write
+  int nvarcompute;             //number of computes used by variables in dump
+  class Compute ** varcompute; //list of ptrs to the Compute objects used in variables in dump
 
   // private methods
 
   virtual void write_header(bigint);
   virtual void write_data(int, double *);
   int count();
+  virtual int modify_param(int, char **);
 };
 
 }

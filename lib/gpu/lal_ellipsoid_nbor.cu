@@ -53,8 +53,8 @@ __kernel void kernel_nbor(const __global numtyp4 *restrict x_,
     int itype=fast_mul(iw,ntypes);
     int newj=0;
     for ( ; nbor<nbor_end; nbor+=nbor_pitch) {
-      int j=dev_ij[nbor];
-      j &= NEIGHMASK;
+      int sj=dev_ij[nbor];
+      int j = sj & NEIGHMASK;
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
       int mtype=itype+jtype;
@@ -69,7 +69,7 @@ __kernel void kernel_nbor(const __global numtyp4 *restrict x_,
         rsq+=t*t;
 
         if (rsq<cf.x) {
-          dev_nbor[packed]=j;
+          dev_nbor[packed]=sj;
           packed+=nbor_pitch;
           newj++;
         }
@@ -117,8 +117,8 @@ __kernel void kernel_nbor_fast(const __global numtyp4 *restrict x_,
 
     int newj=0;
     for ( ; nbor<nbor_end; nbor+=nbor_pitch) {
-      int j=dev_ij[nbor];
-      j &= NEIGHMASK;
+      int sj=dev_ij[nbor];
+      int j = sj & NEIGHMASK;
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
       int mtype=itype+jtype;
@@ -133,7 +133,7 @@ __kernel void kernel_nbor_fast(const __global numtyp4 *restrict x_,
         rsq+=t*t;
 
         if (rsq<cutsq[mtype]) {
-          dev_nbor[packed]=j;
+          dev_nbor[packed]=sj;
           packed+=nbor_pitch;
           newj++;
         }

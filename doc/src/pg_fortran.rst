@@ -7,7 +7,7 @@ wrapper provides an object oriented interface. Below is a minimal example:
 
 .. code-block:: fortran
 
-   PROGRAM testlammpslib
+   PROGRAM testlib
      USE LIBLAMMPS
      TYPE(lammps)     :: lmp
      INTEGER          :: argc,ierr
@@ -26,22 +26,18 @@ wrapper provides an object oriented interface. Below is a minimal example:
      call lmp%close(.true.)
      deallocate(argv)
 
-   END PROGRAM testlammpslib
+   END PROGRAM testlib
 
 --------------------
 
-.. f:module:: LIBLAMMPS
-   :synopsis: Fortran module for LAMMPS
-
-.. f:currentmodule:: LIBLAMMPS
-
 .. f:type:: lammps
 
-   Derived type that is the general class of the fortran interface.
+   Derived type that is the general class of the Fortran interface.
    It holds a reference to the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class instance
    that any of the included calls are forwarded to.
 
    :f c_ptr handle: reference to the LAMMPS class
+   :f close: :f:func:`~LIBLAMMPS/close`
 
 .. f:function:: lammps(argc,argv[,comm])
 
@@ -51,6 +47,7 @@ wrapper provides an object oriented interface. Below is a minimal example:
    :p integer argc: number of arguments
    :p character(len=*) argv(): arguments as list of strings
    :o integer comm [optional]: MPI communicator
+   :r lammps: an instance of the :f:type:`lammps` derived type
 
 .. f:subroutine:: close([finalize])
 
@@ -58,4 +55,4 @@ wrapper provides an object oriented interface. Below is a minimal example:
    If the *finalize* argument is present and has a value of ``.true.``, then this subroutine
    also called ``MPI_Finalize()``.
 
-   :param finalize: call ``MPI_Finalize()`` after deleting the LAMMPS instance
+   :o logical finalize [optional]: call ``MPI_Finalize()`` after deleting the LAMMPS instance

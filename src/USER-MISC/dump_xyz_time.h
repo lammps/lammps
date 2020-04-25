@@ -25,8 +25,6 @@ DumpStyle(xyz/time,DumpXYZ_Time)
 #include <cstring>
 #include <cstdio>
 
-char** RemoveTimeIncrement(int narg, char**  arg);
-
 namespace LAMMPS_NS {
 
 class DumpXYZ_Time : public DumpXYZ {
@@ -51,19 +49,10 @@ class DumpXYZ_Time : public DumpXYZ {
 
 /* ERROR/WARNING messages:
 
-E: Illegal ... command
+E: Wrong number of parameters for dump xyz/time command
 
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
+Self-explanatory.  
 
-E: Invalid dump xyz filename
-
-Filenames used with the dump xyz style cannot be binary or cause files
-to be written by each processor.
-
-E: Dump modify element names do not match atom types
-
-Number of element names must equal number of atom types.
+The rest is the same as in dump_xyz.h
 
 */

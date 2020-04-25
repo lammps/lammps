@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 DumpXYZ_Time::DumpXYZ_Time(LAMMPS *lmp, int narg, char **arg) : 
-    DumpXYZ(lmp, narg-1, RemoveTimeIncrement(narg, arg))
+    DumpXYZ(lmp, narg-1, arg)
 {
   if (narg != 6) error->all(FLERR,"Wrong number of parameters for dump xyz/time command");
   time_every = force->numeric(FLERR,arg[5]);

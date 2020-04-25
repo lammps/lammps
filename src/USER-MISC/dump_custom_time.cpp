@@ -32,20 +32,21 @@
 
 using namespace LAMMPS_NS;
 
-#define INVOKED_PERATOM 8
-#define ONEFIELD 32
-#define DELTA 1048576
+//#define INVOKED_PERATOM 8
+//#define ONEFIELD 32
+//#define DELTA 1048576
 
 /* ---------------------------------------------------------------------- */
 
 DumpCustom_Time::DumpCustom_Time(LAMMPS *lmp, int narg, char **arg) :
-  DumpCustom(lmp, narg-1, RemoveTimeIncrement(narg, arg))
+  DumpCustom(lmp, narg-1, arg)
 {
   if (narg == 6) error->all(FLERR,"No dump custom arguments specified");
-  time_every = force->numeric(FLERR,arg[5]);
+  time_every = force->numeric(FLERR,arg[narg-1]);
+  if (time_every <= 0) error->all(FLERR, "Time frequency needs to be higher than zero");
   next_time  = 0;
   tol = 1e-3;
-  write_time = 10;
+  write_time = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -72,14 +73,14 @@ void DumpCustom_Time::write_data(int n, double *mybuf)
 
 int DumpCustom_Time::count()
 {
-  if (write_time >= 0) { //if we are far from write
+  if (write_time >= 0) { 
     update->update_time();
     if (update->atime == 0.0) {
       write_time = 0;
       next_time += time_every;
       return DumpCustom::count();
     }
-    else if (next_time-(update->atime+update->dt) < time_every*tol) { //check if it is in next step
+    else if (next_time-(update->atime+update->dt) < time_every*tol) { 
       write_time=-1;
       next_time += time_every;
       if (ncompute) {
@@ -94,7 +95,7 @@ int DumpCustom_Time::count()
     }
   }
   else if (write_time == -1) {
-    write_time++;
+    write_time = 0;
     return DumpCustom::count();
   }
 

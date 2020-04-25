@@ -29,17 +29,19 @@
 !! for strings, which are not '\0' terminated as required by C/C++.
 MODULE LIBLAMMPS
 
-  USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_ptr, c_int, c_loc
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_ptr, c_loc, c_int, &
+      c_char, c_null_char
 
   IMPLICIT NONE
   PRIVATE
   PUBLIC :: lammps
 
   TYPE lammps
-      PRIVATE
       TYPE(c_ptr) :: handle
     CONTAINS
-      PROCEDURE :: close
+      PROCEDURE :: close => lmp_close
+      PROCEDURE :: file  => lmp_file
+      PROCEDURE :: command => lmp_command
   END TYPE lammps
 
   INTERFACE lammps
@@ -48,7 +50,6 @@ MODULE LIBLAMMPS
 
   ! interface definitions for calling functions in library.cpp
   INTERFACE
-      ! Interface for calling lammps_open_fortran()
       SUBROUTINE lammps_open(argc,argv,comm,handle) &
           BIND(C, name='lammps_open_fortran')
         IMPORT :: c_ptr, c_int
@@ -56,7 +57,6 @@ MODULE LIBLAMMPS
         TYPE(c_ptr), DIMENSION(*), INTENT(in) :: argv
         TYPE(c_ptr), INTENT(out)              :: handle
       END SUBROUTINE lammps_open
-      ! Interface for calling lammps_open_no_mpi()
       SUBROUTINE lammps_open_no_mpi(argc,argv,handle) &
           BIND(C, name='lammps_open_no_mpi')
         IMPORT :: c_ptr, c_int
@@ -64,66 +64,116 @@ MODULE LIBLAMMPS
         TYPE(c_ptr), DIMENSION(*), INTENT(in) :: argv
         TYPE(c_ptr), INTENT(out)              :: handle
       END SUBROUTINE lammps_open_no_mpi
-      ! Interface for calling :cpp:func:`lammps_close`
       SUBROUTINE lammps_close(handle) BIND(C, name='lammps_close')
         IMPORT :: c_ptr
         TYPE(c_ptr), VALUE :: handle
       END SUBROUTINE lammps_close
+      SUBROUTINE lammps_finalize(handle) BIND(C, name='lammps_finalize')
+        IMPORT :: c_ptr
+        TYPE(c_ptr), VALUE :: handle
+      END SUBROUTINE lammps_finalize
+      SUBROUTINE lammps_file(handle,filename) BIND(C, name='lammps_file')
+        IMPORT :: c_ptr
+        TYPE(c_ptr), VALUE :: handle
+        TYPE(c_ptr), VALUE :: filename
+      END SUBROUTINE lammps_file
+      SUBROUTINE lammps_command(handle,cmd) BIND(C, name='lammps_command')
+        IMPORT :: c_ptr
+        TYPE(c_ptr), VALUE :: handle
+        TYPE(c_ptr), VALUE :: cmd
+      END SUBROUTINE lammps_command
+      SUBROUTINE lammps_free(ptr) BIND(C, name='lammps_free')
+        IMPORT :: c_ptr
+        TYPE(c_ptr), VALUE :: ptr
+      END SUBROUTINE lammps_free
   END INTERFACE
 
 CONTAINS
 
   ! constructor for the LAMMPS class
-  TYPE(lammps) FUNCTION lmp_open(argc,args,comm)
+  TYPE(lammps) FUNCTION lmp_open(args,comm)
     IMPLICIT NONE
-    INTEGER,INTENT(in)           :: argc
-    INTEGER,INTENT(in), optional :: comm
+    INTEGER,INTENT(in), OPTIONAL :: comm
     CHARACTER(len=*), INTENT(in) :: args(:)
     TYPE(c_ptr), ALLOCATABLE     :: argv(:)
-    INTEGER :: i
+    INTEGER :: i,argc
 
+    ! convert argument list to c style
+    argc = SIZE(args)
     ALLOCATE(argv(argc))
-    ! TODO: convert args to argv
-    i=0
+    DO i=1,argc
+        argv(i) = f2c_string(args(i))
+    END DO
+    
     IF (PRESENT(comm)) THEN
-        CALL lammps_open(i,argv,comm,lmp_open%handle)
+        CALL lammps_open(argc,argv,comm,lmp_open%handle)
     ELSE
-        CALL lammps_open_no_mpi(i,argv,lmp_open%handle)
+        CALL lammps_open_no_mpi(argc,argv,lmp_open%handle)
     END IF
+
+    ! clean up
+    DO i=1,argc
+        CALL lammps_free(argv(i))
+    END DO
+    DEALLOCATE(argv)
   END FUNCTION lmp_open
 
   ! equivalent function to lammps_close() and lammps_finalize()
   ! optional argument finalize is a logical which, if .true.
   ! causes calling MPI_Finalize after the LAMMPS object is destroyed.
-  SUBROUTINE close(self,finalize)
-    USE MPI, ONLY: mpi_finalize
+  SUBROUTINE lmp_close(self,finalize)
     IMPLICIT NONE
     CLASS(lammps) :: self
     LOGICAL,INTENT(in),OPTIONAL :: finalize
-    INTEGER :: ierr
 
     CALL lammps_close(self%handle)
 
     IF (PRESENT(finalize)) THEN
         IF (finalize) THEN
-            CALL mpi_finalize(ierr)
+            CALL lammps_finalize(self%handle)
         END IF
     END IF
-  END SUBROUTINE close
+  END SUBROUTINE lmp_close
+
+  ! equivalent function to lammps_file()
+  SUBROUTINE lmp_file(self,filename)
+    IMPLICIT NONE
+    CLASS(lammps) :: self
+    CHARACTER(len=*) :: filename
+    TYPE(c_ptr) :: str
+
+    str = f2c_string(filename)
+    CALL lammps_file(self%handle,str)
+    CALL lammps_free(str)
+  END SUBROUTINE lmp_file
+
+  ! equivalent function to lammps_command()
+  SUBROUTINE lmp_command(self,cmd)
+    IMPLICIT NONE
+    CLASS(lammps) :: self
+    CHARACTER(len=*) :: cmd
+    TYPE(c_ptr) :: str
+
+    str = f2c_string(cmd)
+    CALL lammps_command(self%handle,str)
+    CALL lammps_free(str)
+  END SUBROUTINE lmp_command
 
   ! ----------------------------------------------------------------------
   ! local helper functions
-  ! convert fortran string to c string
-  PURE FUNCTION fstring2cstring(f_string) RESULT(c_string)
-    USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_char, c_null_char
-    CHARACTER (len=*), INTENT(in) :: f_string
-    CHARACTER (len=1, kind=c_char) :: c_string(LEN_TRIM(f_string)+1)
+  ! copy fortran string to zero terminated c string
+  FUNCTION f2c_string(f_string) RESULT(ptr)
+    CHARACTER (len=*), INTENT(in)           :: f_string
+    CHARACTER (len=1, kind=c_char), POINTER :: c_string(:)
+    TYPE(c_ptr) :: ptr
     INTEGER :: i, n
 
     n = LEN_TRIM(f_string)
-    FORALL (i = 1:n)
+    ALLOCATE(c_string(n+1))
+    DO i=1,n
         c_string(i) = f_string(i:i)
-    END FORALL
+    END DO
     c_string(n+1) = c_null_char
-  END FUNCTION fstring2cstring
+    ptr = c_loc(c_string(1))
+  END FUNCTION f2c_string
 END MODULE LIBLAMMPS

@@ -91,10 +91,10 @@ int DumpCustom_Time::count()
       next_time += time_every;
       if (ncompute) {
         for (int i = 0; i < ncompute; i++)
-          compute[i]->addstep(update->ntimestep+1);
+          compute[i]->addstep(update->ntimestep+nevery);
         }
       for (int i = 0; i < nvarcompute; i++)
-        varcompute[i]->addstep(update->ntimestep+1);
+        varcompute[i]->addstep(update->ntimestep+nevery);
       return 0;
     }
     else {

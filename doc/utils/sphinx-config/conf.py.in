@@ -34,6 +34,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.imgmath',
     'sphinx.ext.autodoc',
+    'sphinxfortran.fortran_domain',
     'table_from_list',
     'breathe',
 ]

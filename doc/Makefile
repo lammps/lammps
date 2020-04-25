@@ -231,6 +231,7 @@ $(VENV):
 		pip install --upgrade pip; \
 		pip install Sphinx; \
 		pip install sphinxcontrib-spelling ;\
+		pip install sphinx-fortran ;\
 		pip install breathe; \
 		deactivate;\
 	)

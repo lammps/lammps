@@ -212,6 +212,19 @@ communicator and then calls :cpp:func:`lammps_open`.
  */
 void lammps_open_fortran(int argc, char **argv, int f_comm, void **handle)
 {
+  // we must initialize MPI before calling MPI_Comm_f2c()
+  // if not already initialized
+  int flag;
+  MPI_Initialized(&flag);
+
+  if (!flag) {
+    // Reset argc and argv for MPI_Init() only.
+    // We may be using a different MPI library in the calling code.
+    int argc = 1;
+    char *args[] = { (char *)"liblammps" , NULL  };
+    char **argv = args;
+    MPI_Init(&argc,&argv);
+  }
   MPI_Comm c_comm = MPI_Comm_f2c((MPI_Fint)f_comm);
   lammps_open(argc, argv, c_comm, handle);
 }

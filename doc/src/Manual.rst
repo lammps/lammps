@@ -70,6 +70,7 @@ every LAMMPS command.
 
    pg_library
    pg_python
+   pg_fortran
    pg_developer
    pg_base
    pg_utils

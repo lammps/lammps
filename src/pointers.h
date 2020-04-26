@@ -42,13 +42,10 @@ template <class T> class MyPage;
 /** \brief Base class for most fundamental and top-level LAMMPS classes
  *
  * The Pointers class contains references to the pointers of
- * the constituent class instances in the LAMMPS class.
- * Since most classes in LAMMPS are either directly or indirectly
- * derived from the Pointers class, they have access to
- * all pointers in the LAMMPS class.  These references
- * are initialized by the Pointers constructor and thus
- * all operations and data that are exported as public in those
- * base classes can be accessed and executed by all derived classes.
+ * the constituent class instances in the LAMMPS class but no
+ * other functionality outside of initializing those references.
+ * This way it is possible to provide access to members of
+ * the LAMMPS class without having to re-run its constructor.
  */
 class Pointers {
  public:

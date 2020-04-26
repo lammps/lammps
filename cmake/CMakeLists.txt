@@ -135,23 +135,20 @@ if(PKG_USER-ADIOS)
   target_link_libraries(lammps PRIVATE adios2::adios2)
 endif()
 
-if (CMAKE_SYSTEM_NAME STREQUAL Windows)
-  option(BUILD_MPI "Build MPI version" OFF)
-else()
-  # do MPI detection after language activation,
-  # in case MPI for these languages is required
+if(NOT CMAKE_CROSSCOMPILING)
   set(MPI_CXX_SKIP_MPICXX TRUE)
   find_package(MPI QUIET)
   option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
+else()
+  option(BUILD_MPI "Build MPI version" OFF)
 endif()
 
 if(BUILD_MPI)
-  # We use a non-standard procedure to compile with MPI on windows
-  if (CMAKE_SYSTEM_NAME STREQUAL Windows)
+  # We use a non-standard procedure to cross-compile with MPI on Windows
+  if((CMAKE_SYSTEM_NAME STREQUAL Windows) AND CMAKE_CROSSCOMPILING)
     include(MPI4WIN)
     target_link_libraries(lammps PUBLIC MPI::MPI_CXX)
   else()
-    set(MPI_CXX_SKIP_MPICXX ON)
     find_package(MPI REQUIRED)
     target_link_libraries(lammps PUBLIC MPI::MPI_CXX)
     option(LAMMPS_LONGLONG_TO_LONG "Workaround if your system or MPI version does not recognize 'long long' data types" OFF)
@@ -704,7 +701,14 @@ else()
   message(STATUS "Static library flags:    ${CMAKE_STATIC_LINKER_FLAGS}")
 endif()
 if(BUILD_MPI)
+  # get MPI compile settings from MPI4WIN imported target when cross-compiling
+  if((CMAKE_SYSTEM_NAME STREQUAL Windows) AND CMAKE_CROSSCOMPILING)
+    get_target_property(MPI_CXX_INCLUDE_PATH MPI::MPI_CXX INTERFACE_INCLUDE_DIRECTORIES)
+    get_target_property(MPI_CXX_COMPILE_DEFINITIONS MPI::MPI_CXX INTERFACE_COMPILE_DEFINITIONS)
+    get_target_property(MPI_CXX_LIBRARIES MPI::MPI_CXX IMPORTED_LOCATION)
+  endif()
   message(STATUS "<<< MPI flags >>>
+-- MPI_defines:      ${MPI_CXX_COMPILE_DEFINITIONS}
 -- MPI includes:     ${MPI_CXX_INCLUDE_PATH}
 -- MPI libraries:    ${MPI_CXX_LIBRARIES};${MPI_Fortran_LIBRARIES}")
 endif()

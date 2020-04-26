@@ -113,6 +113,7 @@ Archlinux
 arcsin
 arg
 args
+argv
 arrhenius
 Arun
 arXiv
@@ -972,6 +973,7 @@ Fock
 Fogarty
 Foiles
 fopenmp
+forceclear
 forestgreen
 formatarg
 formulae

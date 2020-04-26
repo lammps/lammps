@@ -31,7 +31,7 @@ class Atom : protected Pointers {
                                 ///  natoms may not be current if atoms were "lost"
   int nlocal;                   //!< number of owned atoms on this MPI rank
   int nghost;                   //!< number of ghost atoms on this this MPI rank
-  int nmax;                     //!< max numer of owned+ghost in arrays on this MPI rank
+  int nmax;                     //!< max number of owned+ghost in arrays on this MPI rank
   int tag_enable;               //!< 0/1 if atom ID tags are defined
   int molecular;                //!< 0 = atomic, 1 = standard molecular system,
                                 /// 2 = molecule template system
@@ -68,7 +68,7 @@ class Atom : protected Pointers {
 
   tagint *tag;                  //!< atom-IDs array
   int *type;                    //!< atom types array
-  int *mask;                    //!< bitpatterns representing the groups an atom belongs to
+  int *mask;                    //!< bitmap representing the groups an atom belongs to
   imageint *image;              //!< image flags (3 flags encoded into a single integer)
   double **x;                   //!< positions array (indexed by local atom index and x,y,z)
   double **v;                   //!< velocities array  (indexed by local atom index and x,y,z)

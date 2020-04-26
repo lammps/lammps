@@ -84,7 +84,7 @@ class Pointers {
   LAMMPS *lmp;                  //!< pointer to LAMMPS class
   Memory *&memory;              //!< reference to Memory class instance in LAMMPS class
   Error *&error;                //!< reference to Error class instance in LAMMPS class
-  Universe *&universe;          //!< reference to Univers class instance in LAMMPS class
+  Universe *&universe;          //!< reference to Universe class instance in LAMMPS class
   Input *&input;                //!< reference to Input class instance in LAMMPS class
 
   Atom *&atom;                  //!< reference to Atom class instance in LAMMPS class

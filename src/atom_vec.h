@@ -27,7 +27,7 @@ class AtomVec : protected Pointers {
   int impropers_allow;          //!< 1 if impropers are used
   int mass_type;                //!< 1 if per-type masses
   int dipole_type;              //!< 1 if per-type dipole moments
-  int forceclearflag;           //!< 1 if class has forceclear() method
+  int forceclearflag;           //!< 1 if class has a "forceclear()" method
 
   int comm_x_only;              //!< 1 if only exchange x in forward communication
   int comm_f_only;              //!< 1 if only exchange f in reverse communication
@@ -50,7 +50,7 @@ class AtomVec : protected Pointers {
 
   int nargcopy;                 //!< number of arguments in atom_style command
   char **argcopy;               //!< copy of command-line args for atom_style command
-                                /// used when AtomVec is realloced (restart,replicate)
+                                /// used when AtomVec is reallocated (restart,replicate)
 
   AtomVec(class LAMMPS *);
   virtual ~AtomVec();

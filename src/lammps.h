@@ -54,7 +54,7 @@ class LAMMPS {
   FILE *screen;                 //!< File pointer for screen output (may be ``NULL``)
   FILE *logfile;                //!< File pointer to log file (may be ``NULL``)
 
-  double initclock;             //!< State of wall clock at instantiation
+  double initclock;             //!< State of wall clock when class is created
 
   int suffix_enable;            //!< 1 if suffixes are enabled, 0 if disabled
   char *suffix;                 //!< Primary suffix to add to input script style names

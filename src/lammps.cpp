@@ -81,15 +81,6 @@ struct LAMMPS_NS::package_styles_lists {
 
 using namespace LAMMPS_NS;
 
-/** \class LAMMPS_NS::LAMMPS
- * \brief Composite class of a LAMMPS simulation instance
- *
- * The LAMMPS class contains pointers of all constituent
- * class instances and global variables that are used by
- * a LAMMPS simulation instance and thus represent the
- * state of the simulation.
- */
-
 /** \brief LAMMPS constructor
  *
  * The LAMMPS constructor starts up a simulation by allocating all
@@ -657,14 +648,13 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   }
 }
 
-/* ----------------------------------------------------------------------
-   shutdown LAMMPS
-   delete top-level classes
-   close screen and log files in world and universe
-   output files were already closed in destroy()
-   delete fundamental classes
-------------------------------------------------------------------------- */
-
+/** \brief LAMMPS destructor
+ *
+ * The LAMMPS shuts down the simulation by deleting top-level class instances,
+ * closing screen and log files for the global instance (aka "world") and files
+ * and MPI communicators in sub-partitions ("universes"). Then it deletes the
+ * fundamental class instances and copies of data inside the class.
+ */
 LAMMPS::~LAMMPS()
 {
   const int me = comm->me;
@@ -740,6 +730,16 @@ LAMMPS::~LAMMPS()
    some classes have package variants
 ------------------------------------------------------------------------- */
 
+/** \brief Instantiate top-level classes
+ *
+ * This method will create all top-level class instances. The need to be
+ * create in a particular order and make use of the fundamental class
+ * instances which have already been created in the constructor.
+ *
+ * For accelerator packages like KOKKOS or USER-OMP derived variants of
+ * the base classes may be instantiated instead. The choice can be a
+ * compile time or run time choice.
+ */
 void LAMMPS::create()
 {
   force = NULL;         // Domain->Lattice checks if Force exists
@@ -782,15 +782,16 @@ void LAMMPS::create()
   python = new Python(this);
 }
 
-/* ----------------------------------------------------------------------
-   check suffix consistency with installed packages
-   invoke package-specific default package commands
-     only invoke if suffix is set and enabled
-     also check if suffix2 is set
-   called from LAMMPS constructor and after clear() command
-     so that package-specific core classes have been instantiated
-------------------------------------------------------------------------- */
-
+/** \brief Operations to run after all top-level classes are available
+ *
+\verbatim embed:rst
+This function invokes :doc:`package` commands and checks suffix flags
+for consistency with active package command settings. It is called from
+the :cpp:class:`LAMMPS constructor <LAMMPS_NS::LAMMPS>` and
+after the :doc:`clear` command to re-initialize the handling of
+accelerator packages and suffixes.
+\endverbatim
+ */
 void LAMMPS::post_create()
 {
   // default package command triggered by "-k on"
@@ -862,11 +863,16 @@ void LAMMPS::init()
   output->init();        // output must come after domain, force, modify
 }
 
-/* ----------------------------------------------------------------------
-   delete single instance of top-level classes
-   fundamental classes are deleted in destructor
-------------------------------------------------------------------------- */
-
+/** \brief Delete top-level class instance and set their pointers to NULL.
+ *
+\verbatim embed:rst
+Called from the :cpp:func:`LAMMPS class destructor <LAMMPS_NS::LAMMPS::~LAMMPS>`.
+This affects only top-level class instances as the fundamental class instances
+are deleted in the destructor directly. The pointers must be set to ``NULL`` so
+that there is an immediate segmentation if a class is used after it has been
+deleted instead of operating on (possibly corrupted) data.
+\endverbatim
+ */
 void LAMMPS::destroy()
 {
   delete update;
@@ -906,10 +912,12 @@ void LAMMPS::destroy()
   python = NULL;
 }
 
-/* ----------------------------------------------------------------------
-   initialize lists of styles in packages
-------------------------------------------------------------------------- */
-
+/** \brief Initialize list of styles in packages
+ *
+ * This list is used to be able to suggest which LAMMPS package to enable
+ * if a style from a package is requested but not available because
+ * the package was not enabled.
+ */
 void _noopt LAMMPS::init_pkg_lists()
 {
   pkg_lists = new package_styles_lists;
@@ -1012,6 +1020,11 @@ void _noopt LAMMPS::init_pkg_lists()
 #undef REGION_CLASS
 }
 
+/** \brief true if a LAMMPS package is enabled in this binary
+ *
+ * \param pkg name of package
+ * \return true if yes, else false
+ */
 bool LAMMPS::is_installed_pkg(const char *pkg)
 {
   for (int i=0; installed_packages[i] != NULL; ++i)
@@ -1028,6 +1041,12 @@ bool LAMMPS::is_installed_pkg(const char *pkg)
     }                                                                   \
   }
 
+/** \brief Return name of package that a specific style belongs to
+ *
+ * \param style type of style (atom, pair, fix, etc.)
+ * \param name  name of style
+ * \return name of package this style is part of
+ */
 const char *LAMMPS::match_style(const char *style, const char *name)
 {
   check_for_match(angle,style,name);
@@ -1049,10 +1068,16 @@ const char *LAMMPS::match_style(const char *style, const char *name)
   return NULL;
 }
 
-/* ----------------------------------------------------------------------
-   help message for command line options and styles present in executable
-------------------------------------------------------------------------- */
-
+/** \brief Print help message to the screen
+ *
+ * This function prints a summary of command line flags, compilation settings
+ * and toolchain/library versions, enabled features and packages, and 
+ * detailed tables of includes styles.
+ *
+ * If writing to the screen, the output will be sent to a pager (determined
+ * by the environment variable ${PAGER} if set with a default of "more")
+ * via a pipe.
+ */
 void _noopt LAMMPS::help()
 {
   FILE *fp = screen;
@@ -1232,11 +1257,12 @@ void _noopt LAMMPS::help()
   if (pager != NULL) pclose(fp);
 }
 
-/* ----------------------------------------------------------------------
-   print style names in columns
-   skip any style that starts with upper-case letter, since internal
-------------------------------------------------------------------------- */
-
+/** Write table of styles in columns, skipping over internal styles with upper case names 
+ *
+ * \param fp file pointer for output
+ * \param str name of style
+ * \param pos [out] position of the text cursor on screen
+ */
 void print_style(FILE *fp, const char *str, int &pos)
 {
   if (isupper(str[0])) return;
@@ -1265,6 +1291,10 @@ void print_style(FILE *fp, const char *str, int &pos)
   }
 }
 
+/** Write out various compile time settings of this LAMMPS binary
+ *
+ * \param fp file pointer for output
+ */
 void LAMMPS::print_config(FILE *fp)
 {
   const char *pkg;

@@ -19,59 +19,71 @@
 
 namespace LAMMPS_NS {
 
+/** \brief LAMMPS simulation instance
+ *
+ * The LAMMPS class contains pointers of all constituent class instances
+ * and global variables that are used by a LAMMPS simulation instance
+ * and thus represents the state of the simulation.
+ *
+ * The LAMMPS class contains mostly functionality to setup an MD simulation
+ * by creating, deleting, and initializing instances of the classes it is
+ * composed of, processing command line flags, and providing access to
+ * some global properties.
+ */
 class LAMMPS {
  public:
-                                 // ptrs to fundamental LAMMPS classes
-  class Memory *memory;          // memory allocation functions
-  class Error *error;            // error handling
-  class Universe *universe;      // universe of processors
-  class Input *input;            // input script processing
-                                 // ptrs to top-level LAMMPS-specific classes
-  class Atom *atom;              // atom-based quantities
-  class Update *update;          // integrators/minimizers
-  class Neighbor *neighbor;      // neighbor lists
-  class Comm *comm;              // inter-processor communication
-  class Domain *domain;          // simulation box
-  class Force *force;            // inter-particle forces
-  class Modify *modify;          // fixes and computes
-  class Group *group;            // groups of atoms
-  class Output *output;          // thermo/dump/restart
-  class Timer *timer;            // CPU timing info
+                                // instances of fundamental LAMMPS classes
+  class Memory *memory;         //!< Memory management functions
+  class Error *error;           //!< Error handling
+  class Universe *universe;     //!< Handling of multi-partition calculations
+  class Input *input;           //!< Input command processing
+                                // top-level LAMMPS-specific classes
+  class Atom *atom;             //!< Management of per-atom data
+  class Update *update;         //!< Update status via integrators/minimizers
+  class Neighbor *neighbor;     //!< Management of neighbor lists
+  class Comm *comm;             //!< Inter-processor communication using MPI
+  class Domain *domain;         //!< Management of the simulation box
+  class Force *force;           //!< Computing inter-particle forces
+  class Modify *modify;         //!< Management of fix and compute styles
+  class Group *group;           //!< Management of groups of atoms
+  class Output *output;         //!< Output handling: thermo/dump/restart
+  class Timer *timer;           //!< CPU timing info
 
-  MPI_Comm world;                // MPI communicator
-  FILE *infile;                  // infile
-  FILE *screen;                  // screen output
-  FILE *logfile;                 // logfile
+  MPI_Comm world;               //!< MPI communicator
+  FILE *infile;                 //!< File pointer for input (may be ``stdin``)
+  FILE *screen;                 //!< File pointer for screen output (may be ``NULL``)
+  FILE *logfile;                //!< File pointer to log file (may be ``NULL``)
 
-  double initclock;              // wall clock at instantiation
+  double initclock;             //!< State of wall clock at instantiation
 
-  char *suffix,*suffix2;         // suffixes to add to input script style names
-  int suffix_enable;             // 1 if suffixes are enabled, 0 if disabled
-  char *exename;                 // pointer to argv[0]
-  char ***packargs;              // arguments for cmdline package commands
-  int num_package;               // number of cmdline package commands
-  int cite_enable;               // 1 if generating log.cite, 0 if disabled
+  int suffix_enable;            //!< 1 if suffixes are enabled, 0 if disabled
+  char *suffix;                 //!< Primary suffix to add to input script style names
+  char *suffix2;                //!< Secondary suffix to add to input script style names
+  char *exename;                //!< Name of the executable (=pointer to argv[0])
+  char ***packargs;             //!< Arguments for command line package commands
+  int num_package;              //!< Number of command line package commands
+  int cite_enable;              //!< 1 if generating log.cite is enabled, 0 if disabled
 
-  int clientserver;              // 0 = neither, 1 = client, 2 = server
-  void *cslib;                   // client/server messaging via CSlib
-  MPI_Comm cscomm;               // MPI comm for client+server in mpi/one mode
+  int clientserver;             //!< Client/server status: 0 = neither, 1 = client, 2 = server
+  void *cslib;                  //!< Pointer to client/server messaging class instance via CSlib
+  MPI_Comm cscomm;              //!< MPI communicator for client/server in mpi/one mode
 
-  class KokkosLMP *kokkos;       // KOKKOS accelerator class
-  class AtomKokkos *atomKK;      // KOKKOS version of Atom class
-  class MemoryKokkos *memoryKK;  // KOKKOS version of Memory class
+  class KokkosLMP *kokkos;      //!< KOKKOS accelerator management class
+  class AtomKokkos *atomKK;     //!< KOKKOS version of Atom class
+  class MemoryKokkos *memoryKK; //!< KOKKOS version of Memory class
 
-  class Python * python;         // Python interface
+  class Python * python;        //!< Instance of embedded Python interface
 
-  class CiteMe *citeme;          // citation info
+  class CiteMe *citeme;         //!< Management of citation info
 
   const char *match_style(const char *style, const char *name);
   static const char * installed_packages[];
   static bool is_installed_pkg(const char *pkg);
 
-  static const bool has_git_info;
-  static const char git_commit[];
-  static const char git_branch[];
-  static const char git_descriptor[];
+  static const bool has_git_info;     //!< true if git status information exists
+  static const char git_commit[];     //!< SHA256 hash of git commit the source is based on
+  static const char git_branch[];     //!< name of git branch the source is based on
+  static const char git_descriptor[]; //!< output of git describe (latest tag, commits since tag, hash)
 
   LAMMPS(int, char **, MPI_Comm);
   ~LAMMPS();

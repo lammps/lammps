@@ -797,7 +797,7 @@ void FixBondReact::post_integrate()
   int nevery_check = 1;
   for (int i = 0; i < nreacts; i++) {
     if (var_flag[NEVERY][i])
-      nevery[i] = input->variable->compute_equal(var_id[NEVERY][i]);
+      nevery[i] = ceil(input->variable->compute_equal(var_id[NEVERY][i]));
     if (nevery[i] <= 0)
       error->all(FLERR,"Illegal fix bond/react command: "
                        "'Nevery' must be a positive integer");

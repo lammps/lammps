@@ -20,34 +20,37 @@ namespace LAMMPS_NS {
 
 class AtomVec : protected Pointers {
  public:
-  int molecular;                       // 0 = atomic, 1 = molecular system
-  int bonds_allow,angles_allow;        // 1 if bonds, angles are used
-  int dihedrals_allow,impropers_allow; // 1 if dihedrals, impropers used
-  int mass_type;                       // 1 if per-type masses
-  int dipole_type;                     // 1 if per-type dipole moments
-  int forceclearflag;                  // 1 if has forceclear() method
+  int molecular;                //!< 0 = atomic, 1 = molecular system
+  int bonds_allow;              //!< 1 if bonds are used
+  int angles_allow;             //!< 1 if angles are used
+  int dihedrals_allow;          //!< 1 if dihedrals are used
+  int impropers_allow;          //!< 1 if impropers are used
+  int mass_type;                //!< 1 if per-type masses
+  int dipole_type;              //!< 1 if per-type dipole moments
+  int forceclearflag;           //!< 1 if class has forceclear() method
 
-  int comm_x_only;                     // 1 if only exchange x in forward comm
-  int comm_f_only;                     // 1 if only exchange f in reverse comm
+  int comm_x_only;              //!< 1 if only exchange x in forward communication
+  int comm_f_only;              //!< 1 if only exchange f in reverse communication
 
-  int size_forward;                    // # of values per atom in comm
-  int size_reverse;                    // # in reverse comm
-  int size_border;                     // # in border comm
-  int size_velocity;                   // # of velocity based quantities
-  int size_data_atom;                  // number of values in Atom line
-  int size_data_vel;                   // number of values in Velocity line
-  int size_data_bonus;                 // number of values in Bonus line
-  int xcol_data;                       // column (1-N) where x is in Atom line
-  int maxexchange;                     // max size of exchanged atom
-                                       // only needs to be set if size > BUFEXTRA
+  int size_forward;             //!< number of values per atom in forward communication
+  int size_reverse;             //!< number of values per atom in reverse communication
+  int size_border;              //!< number of values per atom in border communication
+  int size_velocity;            //!< number of velocity based quantities
+  int size_data_atom;           //!< number of values in Atom line of data file
+  int size_data_vel;            //!< number of values in Velocity line of data file
+  int size_data_bonus;          //!< number of values in Bonus line of data
+  int xcol_data;                //!< column index (1-N) where x coordinate is in Atom line of data file
+  int maxexchange;              //!< max size of exchanged atoms
+                                /// only needs to be set if size > BUFEXTRA
 
-  class Molecule **onemols;            // list of molecules for style template
-  int nset;                            // # of molecules in list
+  class Molecule **onemols;     //!< list of molecules for style template
+  int nset;                     //!< number of of molecules in list
 
-  int kokkosable;                      // 1 if atom style is KOKKOS-enabled
+  int kokkosable;               //!< 1 if atom style is KOKKOS-enabled, or 0
 
-  int nargcopy;          // copy of command-line args for atom_style command
-  char **argcopy;        // used when AtomVec is realloced (restart,replicate)
+  int nargcopy;                 //!< number of arguments in atom_style command
+  char **argcopy;               //!< copy of command-line args for atom_style command
+                                /// used when AtomVec is realloced (restart,replicate)
 
   AtomVec(class LAMMPS *);
   virtual ~AtomVec();

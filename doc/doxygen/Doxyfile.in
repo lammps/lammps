@@ -426,6 +426,8 @@ INPUT                  = @LAMMPS_SOURCE_DIR@/utils.cpp      \
                          @LAMMPS_SOURCE_DIR@/write_data.h   \
                          @LAMMPS_SOURCE_DIR@/region.cpp     \
                          @LAMMPS_SOURCE_DIR@/region.h       \
+                         @LAMMPS_SOURCE_DIR@/atom_vec.cpp   \
+                         @LAMMPS_SOURCE_DIR@/atom_vec.h     \
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded

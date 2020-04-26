@@ -45,7 +45,9 @@ template <class T> class MyPage;
  * the constituent class instances in the LAMMPS class but no
  * other functionality outside of initializing those references.
  * This way it is possible to provide access to members of
- * the LAMMPS class without having to re-run its constructor.
+ * the LAMMPS class without having to derive from it and thus
+ * avoid that the LAMMPS constructor is re-run when the derived
+ * class is instantiated.
  */
 class Pointers {
  public:

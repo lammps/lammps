@@ -22,48 +22,73 @@ namespace LAMMPS_NS {
 
 class Atom : protected Pointers {
  public:
-  char *atom_style;
-  class AtomVec *avec;
+  char *atom_style;             //!< name of the current atom style, "atomic" by default
+  class AtomVec *avec;          //!< class instance managing the current atom style
 
   // atom counts
 
-  bigint natoms;                // total # of atoms in system, could be 0
-                                // natoms may not be current if atoms lost
-  int nlocal,nghost;            // # of owned and ghost atoms on this proc
-  int nmax;                     // max # of owned+ghost in arrays on this proc
-  int tag_enable;               // 0/1 if atom ID tags are defined
-  int molecular;                // 0 = atomic, 1 = standard molecular system,
-                                // 2 = molecule template system
-  bigint nellipsoids;           // number of ellipsoids
-  bigint nlines;                // number of lines
-  bigint ntris;                 // number of triangles
-  bigint nbodies;               // number of bodies
+  bigint natoms;                //!< total number of atoms in system, could be 0
+                                ///  natoms may not be current if atoms were "lost"
+  int nlocal;                   //!< number of owned atoms on this MPI rank
+  int nghost;                   //!< number of ghost atoms on this this MPI rank
+  int nmax;                     //!< max numer of owned+ghost in arrays on this MPI rank
+  int tag_enable;               //!< 0/1 if atom ID tags are defined
+  int molecular;                //!< 0 = atomic, 1 = standard molecular system,
+                                /// 2 = molecule template system
+  bigint nellipsoids;           //!< number of ellipsoids
+  bigint nlines;                //!< number of lines
+  bigint ntris;                 //!< number of triangles
+  bigint nbodies;               //!< number of bodies
 
-  bigint nbonds,nangles,ndihedrals,nimpropers;
-  int ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
-  int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;
-  int extra_bond_per_atom,extra_angle_per_atom;
-  int extra_dihedral_per_atom,extra_improper_per_atom;
+  bigint nbonds;                //!< number of bonds
+  bigint nangles;               //!< number of angles
+  bigint ndihedrals;            //!< number of dihedrals
+  bigint nimpropers;            //!< number of impropers
 
-  int firstgroup;               // store atoms in this group first, -1 if unset
-  int nfirst;                   // # of atoms in first group on this proc
-  char *firstgroupname;         // group-ID to store first, NULL if unset
+  int ntypes;                   //!< number of atom types
+  int nbondtypes;               //!< number of bond types
+  int nangletypes;              //!< number of angle types
+  int ndihedraltypes;           //!< number of dihedral types
+  int nimpropertypes;           //!< number of improper types
+  int bond_per_atom;            //!< size of per-atom bond storage
+  int angle_per_atom;           //!< size of per-atom angle storage
+  int dihedral_per_atom;        //!< size of per-atom dihedral storage
+  int improper_per_atom;        //!< size of per-atom improper storage
+  int extra_bond_per_atom;      //!< extra bond per-atom storage requested when creating box
+  int extra_angle_per_atom;     //!< extra angle per-atom storage requested when creating box
+  int extra_dihedral_per_atom;  //!< extra dihedral per-atom storage requested when creating box
+  int extra_improper_per_atom;  //!< extra improper per-atom storage requested when creating box
+
+  int firstgroup;               //!< store atoms in group with this index first, -1 if unset
+  int nfirst;                   //!< number of atoms in first group on this proc
+  char *firstgroupname;         //!< group-ID of atoms to store first, NULL if unset
 
   // per-atom arrays
   // customize by adding new array
 
-  tagint *tag;
-  int *type,*mask;
-  imageint *image;
-  double **x,**v,**f;
+  tagint *tag;                  //!< atom-IDs array
+  int *type;                    //!< atom types array
+  int *mask;                    //!< bitpatterns representing the groups an atom belongs to
+  imageint *image;              //!< image flags (3 flags encoded into a single integer)
+  double **x;                   //!< positions array (indexed by local atom index and x,y,z)
+  double **v;                   //!< velocities array  (indexed by local atom index and x,y,z)
+  double **f;                   //!< forces array  (indexed by local atom index and x,y,z)
 
-  tagint *molecule;
-  int *molindex,*molatom;
+  tagint *molecule;             //!< molecule-IDs array
+  int *molindex;                //!<
+  int *molatom;                 //!<
 
-  double *q,**mu;
-  double **omega,**angmom,**torque;
-  double *radius,*rmass;
-  int *ellipsoid,*line,*tri,*body;
+  double *q;                    //!< per-atom charge (may be NULL)
+  double **mu;                  //!< per-atom dipole (may be NULL)
+  double **omega;               //!<
+  double **angmom;              //!<
+  double **torque;              //!<
+  double *radius;               //!<
+  double *rmass;                //!<
+  int *ellipsoid;               //!<
+  int *line;                    //!<
+  int *tri;                     //!<
+  int *body;                    //!<
 
   // SPIN package
 
@@ -207,13 +232,13 @@ class Atom : protected Pointers {
 
   // spatial sorting of atoms
 
-  int sortfreq;             // sort atoms every this many steps, 0 = off
-  bigint nextsort;          // next timestep to sort on
-  double userbinsize;       // requested sort bin size
+  int sortfreq;                 //!< frequency of spatial sorting of local atoms; 0 = off
+  bigint nextsort;              //!< next timestep to perform spatial sorting on
+  double userbinsize;           //!< explicitly requested sort bin size (instead heuristic one)
 
   // indices of atoms with same ID
 
-  int *sametag;      // sametag[I] = next atom with same ID, -1 if no more
+  int *sametag;                 //!< local index of atom with the same atom-ID; -1 if last
 
   // AtomVec factory types and map
 
@@ -352,6 +377,10 @@ class Atom : protected Pointers {
 
  private:
   template <typename T> static AtomVec *avec_creator(LAMMPS *);
+  /// Default constructor; declared private to prohibit accidental use
+  Atom() : Pointers(NULL) {};
+  /// Copy constructor; declared private to prohibit accidental use
+  Atom(const Atom &) : Pointers(NULL) {};
 };
 
 }

@@ -701,12 +701,6 @@ else()
   message(STATUS "Static library flags:    ${CMAKE_STATIC_LINKER_FLAGS}")
 endif()
 if(BUILD_MPI)
-  # get MPI compile settings from MPI4WIN imported target when cross-compiling
-  if((CMAKE_SYSTEM_NAME STREQUAL Windows) AND CMAKE_CROSSCOMPILING)
-    get_target_property(MPI_CXX_INCLUDE_PATH MPI::MPI_CXX INTERFACE_INCLUDE_DIRECTORIES)
-    get_target_property(MPI_CXX_COMPILE_DEFINITIONS MPI::MPI_CXX INTERFACE_COMPILE_DEFINITIONS)
-    get_target_property(MPI_CXX_LIBRARIES MPI::MPI_CXX IMPORTED_LOCATION)
-  endif()
   message(STATUS "<<< MPI flags >>>
 -- MPI_defines:      ${MPI_CXX_COMPILE_DEFINITIONS}
 -- MPI includes:     ${MPI_CXX_INCLUDE_PATH}

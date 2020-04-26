@@ -1071,7 +1071,7 @@ const char *LAMMPS::match_style(const char *style, const char *name)
 /** \brief Print help message to the screen
  *
  * This function prints a summary of command line flags, compilation settings
- * and toolchain/library versions, enabled features and packages, and 
+ * and toolchain/library versions, enabled features and packages, and
  * detailed tables of includes styles.
  *
  * If writing to the screen, the output will be sent to a pager (determined
@@ -1257,7 +1257,8 @@ void _noopt LAMMPS::help()
   if (pager != NULL) pclose(fp);
 }
 
-/** Write table of styles in columns, skipping over internal styles with upper case names 
+/** Write to table of styles in columns while
+ * skipping over internal styles with upper case names
  *
  * \param fp file pointer for output
  * \param str name of style

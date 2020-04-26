@@ -159,7 +159,8 @@ words, can be customized for each reaction, or reaction step):
 
 A check for possible new reaction sites is performed every *Nevery*
 timesteps. *Nevery* can be specified with an equal-style
-:doc:`variable <variable>`.
+:doc:`variable <variable>`, whose value is rounded up to the nearest
+integer.
 
 Three physical conditions must be met for a reaction to occur. First,
 a bonding atom pair must be identified within the reaction distance

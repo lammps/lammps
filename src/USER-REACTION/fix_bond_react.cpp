@@ -63,6 +63,7 @@ static const char cite_fix_bond_react[] =
 #define DELTA 16
 #define MAXGUESS 20 // max # of guesses allowed by superimpose algorithm
 #define MAXCONARGS 10 // max # of arguments for any type of constraint + rxnID
+#define NUMVARVALS 4 // max # of keyword values that have variables as input
 
 // various statuses of superimpose algorithm:
 // ACCEPT: site successfully matched to pre-reacted template
@@ -75,6 +76,9 @@ enum{ACCEPT,REJECT,PROCEED,CONTINUE,GUESSFAIL,RESTORE};
 
 // types of available reaction constraints
 enum{DISTANCE,ANGLE,DIHEDRAL,ARRHENIUS};
+
+// keyword values that accept variables as input
+enum{NEVERY,RMIN,RMAX,PROB};
 
 /* ---------------------------------------------------------------------- */
 
@@ -177,11 +181,11 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(nghostlyskips,nreacts,"bond/react:nghostlyskips");
   memory->create(seed,nreacts,"bond/react:seed");
   memory->create(limit_duration,nreacts,"bond/react:limit_duration");
-  memory->create(var_fraction_flag,nreacts,"bond/react:var_fraction_flag");
-  memory->create(var_fraction_id,nreacts,"bond/react:var_fraction_id");
   memory->create(stabilize_steps_flag,nreacts,"bond/react:stabilize_steps_flag");
   memory->create(update_edges_flag,nreacts,"bond/react:update_edges_flag");
   memory->create(constraints,1,MAXCONARGS,"bond/react:constraints");
+  memory->create(var_flag,NUMVARVALS,nreacts,"bond/react:var_flag");
+  memory->create(var_id,NUMVARVALS,nreacts,"bond/react:var_id");
   memory->create(iatomtype,nreacts,"bond/react:iatomtype");
   memory->create(jatomtype,nreacts,"bond/react:jatomtype");
   memory->create(ibonding,nreacts,"bond/react:ibonding");
@@ -197,8 +201,6 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     fraction[i] = 1;
     seed[i] = 12345;
     max_rxn[i] = INT_MAX;
-    var_fraction_flag[i] = 0;
-    var_fraction_id[i] = 0;
     stabilize_steps_flag[i] = 0;
     update_edges_flag[i] = 0;
     // set default limit duration to 60 timesteps
@@ -207,6 +209,10 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     local_rxn_count[i] = 0;
     ghostly_rxn_count[i] = 0;
     reaction_count_total[i] = 0;
+    for (int j = 0; j < NUMVARVALS; j++) {
+      var_flag[j][i] = 0;
+      var_id[j][i] = 0;
+    }
   }
 
   char **files;
@@ -227,19 +233,65 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     if (igroup == -1) error->all(FLERR,"Could not find fix group ID");
     groupbits[rxn] = group->bitmask[igroup];
 
-    nevery[rxn] = force->inumeric(FLERR,arg[iarg++]);
-    if (nevery[rxn] <= 0) error->all(FLERR,"Illegal fix bond/react command: "
-                                     "'Nevery' must be a positive integer");
+    if (strncmp(arg[iarg],"v_",2) == 0) {
+      n = strlen(&arg[iarg][2]) + 1;
+      char *str = new char[n];
+      strcpy(str,&arg[iarg][2]);
+      var_id[NEVERY][rxn] = input->variable->find(str);
+      if (var_id[NEVERY][rxn] < 0)
+        error->all(FLERR,"Bond/react: Variable name does not exist");
+      if (!input->variable->equalstyle(var_id[NEVERY][rxn]))
+        error->all(FLERR,"Bond/react: Variable is not equal-style");
+      var_flag[NEVERY][rxn] = 1;
+      delete [] str;
+    } else {
+      nevery[rxn] = force->inumeric(FLERR,arg[iarg]);
+      if (nevery[rxn] <= 0) error->all(FLERR,"Illegal fix bond/react command: "
+                                       "'Nevery' must be a positive integer");
+    }
+    iarg++;
 
-    double cutoff = force->numeric(FLERR,arg[iarg++]);
-    if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/react command: "
-                                 "'Rmin' cannot be negative");
-    cutsq[rxn][0] = cutoff*cutoff;
+    if (strncmp(arg[iarg],"v_",2) == 0) {
+      n = strlen(&arg[iarg][2]) + 1;
+      char *str = new char[n];
+      strcpy(str,&arg[iarg][2]);
+      var_id[RMIN][rxn] = input->variable->find(str);
+      if (var_id[RMIN][rxn] < 0)
+        error->all(FLERR,"Bond/react: Variable name does not exist");
+      if (!input->variable->equalstyle(var_id[RMIN][rxn]))
+        error->all(FLERR,"Bond/react: Variable is not equal-style");
+      double cutoff = input->variable->compute_equal(var_id[RMIN][rxn]);
+      cutsq[rxn][0] = cutoff*cutoff;
+      var_flag[RMIN][rxn] = 1;
+      delete [] str;
+    } else {
+      double cutoff = force->numeric(FLERR,arg[iarg]);
+      if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/react command: "
+                                     "'Rmin' cannot be negative");
+      cutsq[rxn][0] = cutoff*cutoff;
+    }
+    iarg++;
 
-    cutoff = force->numeric(FLERR,arg[iarg++]);
-    if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/react command:"
-                                 "'Rmax' cannot be negative");
-    cutsq[rxn][1] = cutoff*cutoff;
+    if (strncmp(arg[iarg],"v_",2) == 0) {
+      n = strlen(&arg[iarg][2]) + 1;
+      char *str = new char[n];
+      strcpy(str,&arg[iarg][2]);
+      var_id[RMAX][rxn] = input->variable->find(str);
+      if (var_id[RMAX][rxn] < 0)
+        error->all(FLERR,"Bond/react: Variable name does not exist");
+      if (!input->variable->equalstyle(var_id[RMAX][rxn]))
+        error->all(FLERR,"Bond/react: Variable is not equal-style");
+      double cutoff = input->variable->compute_equal(var_id[RMAX][rxn]);
+      cutsq[rxn][1] = cutoff*cutoff;
+      var_flag[RMAX][rxn] = 1;
+      delete [] str;
+    } else {
+      double cutoff = force->numeric(FLERR,arg[iarg]);
+      if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/react command:"
+                                   "'Rmax' cannot be negative");
+      cutsq[rxn][1] = cutoff*cutoff;
+    }
+    iarg++;
 
     unreacted_mol[rxn] = atom->find_molecule(arg[iarg++]);
     if (unreacted_mol[rxn] == -1) error->all(FLERR,"Unreacted molecule template ID for "
@@ -257,23 +309,23 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg],"prob") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                       "'prob' keyword has too few arguments");
-	// check if probability is a variable
-        if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
- 	   int n = strlen(&arg[iarg+1][2]) + 1;
- 	   char *fracstr = new char[n];
- 	   strcpy(fracstr,&arg[iarg+1][2]);
- 	   var_fraction_id[rxn] = input->variable->find(fracstr);
- 	   if (var_fraction_id[rxn] < 0)
-	     error->all(FLERR,"variable name for fix bond/react does not exist");
- 	   if (! input->variable->equalstyle(var_fraction_id[rxn]))
- 	     error->all(FLERR,"variable in bond/react is not equal style");
- 	   fraction[rxn] = input->variable->compute_equal(var_fraction_id[rxnID]);
-	   var_fraction_flag[rxn] = 1.0;
- 	   delete [] fracstr;
- 	} else {
-	  // otherwise probability should be a number
-	  fraction[rxn] = force->numeric(FLERR,arg[iarg+1]);
-	}
+        // check if probability is a variable
+        if (strncmp(arg[iarg+1],"v_",2) == 0) {
+          int n = strlen(&arg[iarg+1][2]) + 1;
+          char *str = new char[n];
+          strcpy(str,&arg[iarg+1][2]);
+          var_id[PROB][rxn] = input->variable->find(str);
+          if (var_id[PROB][rxn] < 0)
+            error->all(FLERR,"Bond/react: Variable name does not exist");
+          if (!input->variable->equalstyle(var_id[PROB][rxn]))
+            error->all(FLERR,"Bond/react: Variable is not equal-style");
+          fraction[rxn] = input->variable->compute_equal(var_id[PROB][rxn]);
+          var_flag[PROB][rxn] = 1;
+          delete [] str;
+        } else {
+          // otherwise probability should be a number
+          fraction[rxn] = force->numeric(FLERR,arg[iarg+1]);
+        }
         seed[rxn] = force->inumeric(FLERR,arg[iarg+2]);
         if (fraction[rxn] < 0.0 || fraction[rxn] > 1.0)
           error->all(FLERR,"Illegal fix bond/react command: "
@@ -282,12 +334,12 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
                                        "probability seed must be positive");
         iarg += 3;
       } else if (strcmp(arg[iarg],"max_rxn") == 0) {
-              if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
-                                                        "'max_rxn' has too few arguments");
-              max_rxn[rxn] = force->inumeric(FLERR,arg[iarg+1]);
-              if (max_rxn[rxn] < 0) error->all(FLERR,"Illegal fix bond/react command: "
-                                                                 "'max_rxn' cannot be negative");
-              iarg += 2;
+        if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+                                                  "'max_rxn' has too few arguments");
+        max_rxn[rxn] = force->inumeric(FLERR,arg[iarg+1]);
+        if (max_rxn[rxn] < 0) error->all(FLERR,"Illegal fix bond/react command: "
+                                                           "'max_rxn' cannot be negative");
+        iarg += 2;
       } else if (strcmp(arg[iarg],"stabilize_steps") == 0) {
         if (stabilization_flag == 0) error->all(FLERR,"Stabilize_steps keyword "
                                                 "used without stabilization keyword");
@@ -469,8 +521,8 @@ FixBondReact::~FixBondReact()
   memory->destroy(nlocalskips);
   memory->destroy(nghostlyskips);
   memory->destroy(limit_duration);
-  memory->destroy(var_fraction_flag);
-  memory->destroy(var_fraction_id);
+  memory->destroy(var_flag);
+  memory->destroy(var_id);
   memory->destroy(stabilize_steps_flag);
   memory->destroy(update_edges_flag);
 
@@ -744,6 +796,11 @@ void FixBondReact::post_integrate()
   // check if any reactions could occur on this timestep
   int nevery_check = 1;
   for (int i = 0; i < nreacts; i++) {
+    if (var_flag[NEVERY][i])
+      nevery[i] = input->variable->compute_equal(var_id[NEVERY][i]);
+    if (nevery[i] <= 0)
+      error->all(FLERR,"Illegal fix bond/react command: "
+                       "'Nevery' must be a positive integer");
     if (!(update->ntimestep % nevery[i])) {
       nevery_check = 0;
       break;
@@ -849,16 +906,13 @@ void FixBondReact::post_integrate()
     }
 
     // update reaction probability
-    if (var_fraction_flag[rxnID]) {
-      fraction[rxnID] = input->variable->compute_equal(var_fraction_id[rxnID]);
-      if (fraction[rxnID] < 0.0) fraction[rxnID] = 0.0;
-      if (fraction[rxnID] > 1.0) fraction[rxnID] = 1.0;
-    }
+    if (var_flag[PROB][rxnID])
+      fraction[rxnID] = input->variable->compute_equal(var_id[PROB][rxnID]);
 
     // each atom now knows its winning partner
     // for prob check, generate random value for each atom with a bond partner
     // forward comm of partner and random value, so ghosts have it
-    
+
     if (fraction[rxnID] < 1.0) {
       for (int i = 0; i < nlocal; i++)
       if (partner[i]) probability[i] = random[rxnID]->uniform();
@@ -1034,6 +1088,14 @@ void FixBondReact::far_partner()
       domain->minimum_image(delx,dely,delz); // ghost location fix
       rsq = delx*delx + dely*dely + delz*delz;
 
+      if (var_flag[RMIN][rxnID]) {
+        double cutoff = input->variable->compute_equal(var_id[RMIN][rxnID]);
+        cutsq[rxnID][0] = cutoff*cutoff;
+      }
+      if (var_flag[RMAX][rxnID]) {
+        double cutoff = input->variable->compute_equal(var_id[RMAX][rxnID]);
+        cutsq[rxnID][1] = cutoff*cutoff;
+      }
       if (rsq >= cutsq[rxnID][1] || rsq <= cutsq[rxnID][0]) {
         continue;
       }
@@ -1089,6 +1151,15 @@ void FixBondReact::close_partner()
       delz = x[i1][2] - x[i2][2];
       domain->minimum_image(delx,dely,delz); // ghost location fix
       rsq = delx*delx + dely*dely + delz*delz;
+
+      if (var_flag[RMIN][rxnID]) {
+        double cutoff = input->variable->compute_equal(var_id[RMIN][rxnID]);
+        cutsq[rxnID][0] = cutoff*cutoff;
+      }
+      if (var_flag[RMAX][rxnID]) {
+        double cutoff = input->variable->compute_equal(var_id[RMAX][rxnID]);
+        cutsq[rxnID][1] = cutoff*cutoff;
+      }
       if (rsq >= cutsq[rxnID][1] || rsq <= cutsq[rxnID][0]) continue;
 
       if (closeneigh[rxnID] == 0) {

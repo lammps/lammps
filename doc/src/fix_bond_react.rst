@@ -158,7 +158,8 @@ The following comments pertain to each *react* argument (in other
 words, can be customized for each reaction, or reaction step):
 
 A check for possible new reaction sites is performed every *Nevery*
-timesteps.
+timesteps. *Nevery* can be specified with an equal-style
+:doc:`variable <variable>`.
 
 Three physical conditions must be met for a reaction to occur. First,
 a bonding atom pair must be identified within the reaction distance
@@ -171,19 +172,29 @@ modified to match the post-reaction template.
 A bonding atom pair will be identified if several conditions are met.
 First, a pair of atoms I,J within the specified react-group-ID of type
 itype and jtype must be separated by a distance between *Rmin* and
-*Rmax*\ . It is possible that multiple bonding atom pairs are
-identified: if the bonding atoms in the pre-reacted template are  1-2
-neighbors, i.e. directly bonded, the farthest bonding atom partner is
-set as its bonding partner; otherwise, the closest potential partner
-is chosen. Then, if both an atom I and atom J have each other as their
-bonding partners, these two atoms are identified as the bonding atom
-pair of the reaction site. Once this unique bonding atom pair is
-identified for each reaction, there could two or more reactions that
-involve a given atom on the same timestep. If this is the case, only
-one such reaction is permitted to occur. This reaction is chosen
-randomly from all potential reactions. This capability allows e.g. for
-different reaction pathways to proceed from identical reaction sites
-with user-specified probabilities.
+*Rmax*\ . *Rmin* and *Rmax* can be specified with equal-style
+:doc:`variables <variable>`. For example, these reaction cutoffs can
+be a function of the reaction conversion using the following commands:
+
+.. code-block:: LAMMPS
+
+   variable rmax equal 0 # initialize variable before bond/react
+   fix myrxn all bond/react react myrxn1 all 1 0 v_rmax mol1 mol2 map_file.txt
+   variable rmax equal 3+f_myrxn[1]/100 # arbitrary function of reaction count
+
+It is possible that multiple bonding atom pairs are identified: if the
+bonding atoms in the pre-reacted template are  1-2 neighbors, i.e.
+directly bonded, the farthest bonding atom partner is set as its
+bonding partner; otherwise, the closest potential partner is chosen.
+Then, if both an atom I and atom J have each other as their bonding
+partners, these two atoms are identified as the bonding atom pair of
+the reaction site. Once this unique bonding atom pair is identified
+for each reaction, there could two or more reactions that involve a
+given atom on the same timestep. If this is the case, only one such
+reaction is permitted to occur. This reaction is chosen randomly from
+all potential reactions. This capability allows e.g. for different
+reaction pathways to proceed from identical reaction sites with
+user-specified probabilities.
 
 The pre-reacted molecule template is specified by a molecule command.
 This molecule template file contains a sample reaction site and its
@@ -419,10 +430,9 @@ it occurs:
 
 The *prob* keyword can affect whether or not an eligible reaction
 actually occurs. The fraction setting must be a value between 0.0 and
-1.0 or can be an equal style variable. In the later case the variable
-is evaluated during runtime and adjusted to be between 0.0 and 1.0 if 
-necessary. A uniform random number between 0.0 and 1.0 is generated and
-the eligible reaction only occurs if the random number is less than the
+1.0, and can be specified with an equal-style :doc:`variable <variable>`.
+A uniform random number between 0.0 and 1.0 is generated and the
+eligible reaction only occurs if the random number is less than the
 fraction. Up to N reactions are permitted to occur, as optionally
 specified by the *max_rxn* keyword.
 
@@ -491,10 +501,11 @@ local command.
 
 **Restart, fix_modify, output, run start/stop, minimize info:**
 
-Cumulative reaction counts for each reaction are written to :doc:`binary restart files <restart>`. These values are associated with the
-reaction name (react-ID). Additionally, internally-created per-atom
-properties are stored to allow for smooth restarts. None of the
-:doc:`fix_modify <fix_modify>` options are relevant to this fix.
+Cumulative reaction counts for each reaction are written to :doc:`binary restart files <restart>`.
+These values are associated with the reaction name (react-ID).
+Additionally, internally-created per-atom properties are stored to
+allow for smooth restarts. None of the :doc:`fix_modify <fix_modify>`
+options are relevant to this fix.
 
 This fix computes one statistic for each *react* argument that it
 stores in a global vector, of length 'number of react arguments', that

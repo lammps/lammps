@@ -11,18 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/** \class LAMMPS_NS::Pointers
- * \brief Base class for most fundamental LAMMPS classes
- *
- * The Pointers class contains references to the pointers of
- * the constituent class instances in the LAMMPS class.
- * Since most classes in LAMMPS are either directly or indirectly
- * derived from the Pointers class, they have access to
- * all pointers in the LAMMPS class.  These references
- * are initialized by the Pointers constructor and thus
- * all operations and data that are exported as public in those
- * base classes can be accessed and executed by all derived classes.
- */
 
 #ifndef LMP_POINTERS_H
 #define LMP_POINTERS_H
@@ -51,8 +39,23 @@ enum ExecutionSpace{Host,Device};
 template <class T> class MyPoolChunk;
 template <class T> class MyPage;
 
+/** \brief Base class for most fundamental and top-level LAMMPS classes
+ *
+ * The Pointers class contains references to the pointers of
+ * the constituent class instances in the LAMMPS class.
+ * Since most classes in LAMMPS are either directly or indirectly
+ * derived from the Pointers class, they have access to
+ * all pointers in the LAMMPS class.  These references
+ * are initialized by the Pointers constructor and thus
+ * all operations and data that are exported as public in those
+ * base classes can be accessed and executed by all derived classes.
+ */
 class Pointers {
  public:
+  /** Constructor. Get references to class members of the LAMMPS class.
+   *
+   * \param ptr pointer to the LAMMPS class instance
+   */
   Pointers(LAMMPS *ptr) :
     lmp(ptr),
     memory(ptr->memory),
@@ -79,31 +82,31 @@ class Pointers {
   virtual ~Pointers() {}
 
  protected:
-  LAMMPS *lmp;
-  Memory *&memory;
-  Error *&error;
-  Universe *&universe;
-  Input *&input;
+  LAMMPS *lmp;                  //!< pointer to LAMMPS class
+  Memory *&memory;              //!< reference to Memory class instance in LAMMPS class
+  Error *&error;                //!< reference to Error class instance in LAMMPS class
+  Universe *&universe;          //!< reference to Univers class instance in LAMMPS class
+  Input *&input;                //!< reference to Input class instance in LAMMPS class
 
-  Atom *&atom;
-  Update *&update;
-  Neighbor *&neighbor;
-  Comm *&comm;
-  Domain *&domain;
-  Force *&force;
-  Modify *&modify;
-  Group *&group;
-  Output *&output;
-  Timer *&timer;
+  Atom *&atom;                  //!< reference to Atom class instance in LAMMPS class
+  Update *&update;              //!< reference to Update class instance in LAMMPS class
+  Neighbor *&neighbor;          //!< reference to Neighbor class instance in LAMMPS class
+  Comm *&comm;                  //!< reference to Comm class instance in LAMMPS class
+  Domain *&domain;              //!< reference to Domain class instance in LAMMPS class
+  Force *&force;                //!< reference to Force class instance in LAMMPS class
+  Modify *&modify;              //!< reference to Modify class instance in LAMMPS class
+  Group *&group;                //!< reference to Group class instance in LAMMPS class
+  Output *&output;              //!< reference to Output class instance in LAMMPS class
+  Timer *&timer;                //!< reference to Timer class instance in LAMMPS class
 
-  MPI_Comm &world;
-  FILE *&infile;
-  FILE *&screen;
-  FILE *&logfile;
+  MPI_Comm &world;              //!< reference to MPI "world" communicator in LAMMPS class
+  FILE *&infile;                //!< reference to input file pointer in LAMMPS class
+  FILE *&screen;                //!< reference to screen output file pointer in LAMMPS class
+  FILE *&logfile;               //!< reference to log file output file pointer in LAMMPS class
 
-  class AtomKokkos *&atomKK;
-  class MemoryKokkos *&memoryKK;
-  class Python *&python;
+  class AtomKokkos *&atomKK;    //!< reference to AtomKokkos class instance in LAMMPS class
+  class MemoryKokkos *&memoryKK; //!< reference to AemoryKokkos class instance in LAMMPS class
+  class Python *&python;         //!< reference to Python class instance in LAMMPS class
 };
 
 }

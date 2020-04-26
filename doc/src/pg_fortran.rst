@@ -51,6 +51,7 @@ was compiled with MPI support.
 
    :f c_ptr handle: reference to the LAMMPS class
    :f close: :f:func:`close`
+   :f version: :f:func:`version`
    :f file: :f:func:`file`
    :f command: :f:func:`command`
 
@@ -78,6 +79,12 @@ was compiled with MPI support.
    :cpp:func:`lammps_finalize`.
 
    :o logical finalize [optional]: shut down the MPI environment of the LAMMPS library if true.
+
+.. f:function:: version()
+
+   This method returns the numeric LAMMPS version like :cpp:func:`lammps_version`
+
+   :r integer: LAMMPS version
 
 .. f:subroutine:: file(filename)
 

@@ -10,27 +10,27 @@
 !
 !   See the README file in the top-level LAMMPS directory.
 ! -------------------------------------------------------------------------
-
-! LAMMPS Fortran library interface implemented as a Fortran 03 style
-! module that wraps the C-style library interface in library.cpp
-! and library.h using the ISO_C_BINDING module of the fortran compilers.
-
-! Based on the LAMMPS module by Karl D. Hammond <karlh@ugcs.caltech.edu>
-! University of Tennessee, Knoxville (USA), 2012
-
-!> LAMMPS module providing the Fortran library interface of LAMMPS.
-!!
-!! The Fortran module tries to follow the API of the C-library interface
-!! as closely as possible. However, since there are some differences in
-!! the conventions and specifically how strings are passed, most public
-!! functions exported by this module are Fortran code wrappers around
-!! the C-library functions that first convert the data as needed to fully
-!! comply with the requirements of C/C++.  This is most important
-!! for strings, which are not '\0' terminated as required by C/C++.
+!
+! Fortran interface to the LAMMPS library implemented as a Fortran 2003
+! style module that wraps the C-style library interface in library.cpp
+! and library.h using the ISO_C_BINDING module of the Fortran compiler.
+!
+! Based on the LAMMPS Fortran 2003 module contributed by:
+!   Karl D. Hammond <karlh@ugcs.caltech.edu>
+!   University of Tennessee, Knoxville (USA), 2012
+!
+! The Fortran module tries to follow the API of the C-library interface
+! closely, but like the Python wrapper it employs an object oriented
+! approach.  To accommodate the object oriented approach, all exported
+! subroutine and functions have to be implemented in Fortran to then
+! call the interfaced C style functions with adapted calling conventions
+! as needed.  The C-library interfaced functions retain their names
+! starting with "lammps_" while the Fortran versions start with "lmp_".
+!
 MODULE LIBLAMMPS
 
-  USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_ptr, c_loc, c_int, &
-      c_char, c_null_char
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_ptr, c_loc, &
+      c_int, c_char, c_null_char
 
   IMPLICIT NONE
   PRIVATE
@@ -42,6 +42,7 @@ MODULE LIBLAMMPS
       PROCEDURE :: close => lmp_close
       PROCEDURE :: file  => lmp_file
       PROCEDURE :: command => lmp_command
+      PROCEDURE :: version => lmp_version
   END TYPE lammps
 
   INTERFACE lammps
@@ -72,6 +73,11 @@ MODULE LIBLAMMPS
         IMPORT :: c_ptr
         TYPE(c_ptr), VALUE :: handle
       END SUBROUTINE lammps_finalize
+      FUNCTION lammps_version(handle) BIND(C, name='lammps_version')
+        IMPORT :: c_ptr, c_int
+        TYPE(c_ptr), VALUE :: handle
+        INTEGER(c_int) :: lammps_version
+      END FUNCTION lammps_version
       SUBROUTINE lammps_file(handle,filename) BIND(C, name='lammps_file')
         IMPORT :: c_ptr
         TYPE(c_ptr), VALUE :: handle
@@ -90,7 +96,10 @@ MODULE LIBLAMMPS
 
 CONTAINS
 
-  ! constructor for the LAMMPS class
+  ! Fortran wrappers and helper functions.
+
+  ! Constructor for the LAMMPS class.
+  ! Combined wrapper around lammps_open_fortran() and lammps_open_no_mpi()
   TYPE(lammps) FUNCTION lmp_open(args,comm)
     IMPLICIT NONE
     INTEGER,INTENT(in), OPTIONAL :: comm
@@ -111,16 +120,14 @@ CONTAINS
         CALL lammps_open_no_mpi(argc,argv,lmp_open%handle)
     END IF
 
-    ! clean up
+    ! Clean up allocated memory
     DO i=1,argc
         CALL lammps_free(argv(i))
     END DO
     DEALLOCATE(argv)
   END FUNCTION lmp_open
 
-  ! equivalent function to lammps_close() and lammps_finalize()
-  ! optional argument finalize is a logical which, if .true.
-  ! causes calling MPI_Finalize after the LAMMPS object is destroyed.
+  ! Combined Fortran wrapper around lammps_close() and lammps_finalize()
   SUBROUTINE lmp_close(self,finalize)
     IMPLICIT NONE
     CLASS(lammps) :: self
@@ -135,7 +142,13 @@ CONTAINS
     END IF
   END SUBROUTINE lmp_close
 
-  ! equivalent function to lammps_file()
+  INTEGER FUNCTION lmp_version(self)
+    IMPLICIT NONE
+    CLASS(lammps) :: self
+
+    lmp_version = lammps_version(self%handle)
+  END FUNCTION lmp_version
+
   SUBROUTINE lmp_file(self,filename)
     IMPLICIT NONE
     CLASS(lammps) :: self

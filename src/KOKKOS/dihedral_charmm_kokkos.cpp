@@ -28,6 +28,7 @@
 #include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
+#include "kokkos.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -69,6 +70,9 @@ void DihedralCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   eflag = eflag_in;
   vflag = vflag_in;
 
+  if (lmp->kokkos->neighflag == FULL)
+    error->all(FLERR,"Dihedral_style charmm/kk requires half neighbor list");
+
   ev_init(eflag,vflag,0);
 
   // insure pair->ev_tally() will use 1-4 virial contribution
@@ -84,7 +88,7 @@ void DihedralCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"dihedral:eatom");
       d_eatom = k_eatom.template view<DeviceType>();
       k_eatom_pair = Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,DeviceType>("dihedral:eatom_pair",maxeatom);
-      d_eatom_pair = k_eatom.template view<DeviceType>();
+      d_eatom_pair = k_eatom_pair.template view<DeviceType>();
     //}
   }
   if (vflag_atom) {
@@ -93,7 +97,7 @@ void DihedralCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"dihedral:vatom");
       d_vatom = k_vatom.template view<DeviceType>();
       k_vatom_pair = Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,DeviceType>("dihedral:vatom_pair",maxvatom);
-      d_vatom_pair = k_vatom.template view<DeviceType>();
+      d_vatom_pair = k_vatom_pair.template view<DeviceType>();
     //}
   }
 

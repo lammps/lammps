@@ -1905,7 +1905,7 @@ void Domain::set_boundary(int narg, char **arg, int flag)
         (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
     }
     int flag_all;
-    MPI_Allreduce(&flag,&flag_all, MPI_INT, 1, MPI_SUM, world);
+    MPI_Allreduce(&flag,&flag_all, 1, MPI_INT, MPI_SUM, world);
     if ((flag_all > 0) && (comm->me == 0))
       error->warning(FLERR,"Reset image flags for non-periodic boundary");
   }

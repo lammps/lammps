@@ -9,10 +9,6 @@ From: rocm/dev-ubuntu-18.04
     export LIBRARY_PATH=/usr/local/cuda/lib64/stubs
 %post
     export DEBIAN_FRONTEND=noninteractive
-    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
-    mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
-    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
-    add-apt-repository "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/ /"
     apt-get update
     apt-get upgrade --no-install-recommends -y
     apt-get install --no-install-recommends -y software-properties-common
@@ -23,8 +19,6 @@ From: rocm/dev-ubuntu-18.04
         clang \
         cmake \
         cmake-curses-gui \
-        cuda \
-        cuda-compiler-10-2 \
         curl \
         doxygen \
         enchant \
@@ -71,6 +65,14 @@ From: rocm/dev-ubuntu-18.04
         voro++-dev \
         wget \
         xxd
+    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
+    mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
+    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
+    add-apt-repository "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/ /"
+    apt-get update
+    apt-get install --no-install-recommends -y \
+        cuda \
+        cuda-compiler-10-2 \
 
     export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
     git clone -b master-rocm-3.3 https://github.com/ROCmSoftwarePlatform/hipCUB.git

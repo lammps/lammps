@@ -1874,6 +1874,12 @@ void Domain::set_boundary(int narg, char **arg, int flag)
   if (boundary[2][0] == 0) zperiodic = 1;
   else zperiodic = 0;
 
+  // record if we changed a periodic boundary to a non-periodic one
+  int pflag=0;
+  if ((periodicity[0] && !xperiodic)
+      || (periodicity[1] && !yperiodic)
+      || (periodicity[2] && !zperiodic)) pflag = 1;
+
   periodicity[0] = xperiodic;
   periodicity[1] = yperiodic;
   periodicity[2] = zperiodic;
@@ -1884,6 +1890,24 @@ void Domain::set_boundary(int narg, char **arg, int flag)
     if (boundary[0][0] >= 2 || boundary[0][1] >= 2 ||
         boundary[1][0] >= 2 || boundary[1][1] >= 2 ||
         boundary[2][0] >= 2 || boundary[2][1] >= 2) nonperiodic = 2;
+  }
+  if (pflag) {
+    pflag = 0;
+    for (int i=0; i < atom->nlocal; ++i) {
+      int xbox = (atom->image[i] & IMGMASK) - IMGMAX;
+      int ybox = (atom->image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      int zbox = (atom->image[i] >> IMG2BITS) - IMGMAX;
+      if (!xperiodic) { xbox = 0; pflag = 1; }
+      if (!yperiodic) { ybox = 0; pflag = 1; }
+      if (!zperiodic) { zbox = 0; pflag = 1; }
+      atom->image[i] = ((imageint) (xbox + IMGMAX) & IMGMASK) |
+        (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
+        (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
+    }
+    int flag_all;
+    MPI_Allreduce(&flag,&flag_all, MPI_INT, 1, MPI_SUM, world);
+    if ((flag_all > 0) && (comm->me == 0))
+      error->warning(FLERR,"Reset image flags for non-periodic boundary");
   }
 }
 

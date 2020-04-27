@@ -161,7 +161,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::compute_peratom()
     d_distsq = t_sna_2d_lr("orientorder/atom:distsq",chunk_size,maxneigh);
     d_nearest = t_sna_2i_lr("orientorder/atom:nearest",chunk_size,maxneigh);
     d_rlist = t_sna_3d_lr("orientorder/atom:rlist",chunk_size,maxneigh,3);
-  
+
     d_distsq_um = d_distsq;
     d_rlist_um = d_rlist;
     d_nearest_um = d_nearest;
@@ -194,11 +194,11 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::compute_peratom()
       typename Kokkos::TeamPolicy<DeviceType, TagComputeOrientOrderAtomNeigh> policy_neigh(chunk_size,team_size,vector_length);
       Kokkos::parallel_for("ComputeOrientOrderAtomNeigh",policy_neigh,*this);
     }
-    
+
     //Select3
     typename Kokkos::RangePolicy<DeviceType, TagComputeOrientOrderAtomSelect3> policy_select3(0,chunk_size);
     Kokkos::parallel_for("ComputeOrientOrderAtomSelect3",policy_select3,*this);
-    
+
     //BOOP1
     {
       int vector_length = vector_length_default;
@@ -207,7 +207,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::compute_peratom()
       typename Kokkos::TeamPolicy<DeviceType, TagComputeOrientOrderAtomBOOP1> policy_boop1(((chunk_size+team_size-1)/team_size)*maxneigh,team_size,vector_length);
       Kokkos::parallel_for("ComputeOrientOrderAtomBOOP1",policy_boop1,*this);
     }
-    
+
     //BOOP2
     typename Kokkos::RangePolicy<DeviceType, TagComputeOrientOrderAtomBOOP2> policy_boop2(0,chunk_size);
     Kokkos::parallel_for("ComputeOrientOrderAtomBOOP2",policy_boop2,*this);

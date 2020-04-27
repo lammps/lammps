@@ -57,12 +57,6 @@ From: rocm/dev-ubuntu-18.04
         rocm-libs \
         rsync \
         ssh \
-        texlive \
-        texlive-latex-recommended \
-        texlive-pictures \
-        texlive-publishers \
-        texlive-science \
-        dvipng \
         vim-nox \
         virtualenv \
         voro++-dev \

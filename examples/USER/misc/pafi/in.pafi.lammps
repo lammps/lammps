@@ -68,3 +68,16 @@ else &
 print """
 ----- END PAFI ----
 """
+
+
+
+#unfix hp
+#unfix pa
+#unfix af
+
+#minimize 0 0 1000 1000
+#print """
+#Full minimization post-run:
+#energy = ${pe} eV
+#"""
+

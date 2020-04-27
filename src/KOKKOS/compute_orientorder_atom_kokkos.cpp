@@ -150,6 +150,8 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::compute_peratom()
     d_ncount = t_sna_1i("orientorder/atom:ncount",chunk_size);
   }
 
+  copymode = 1;
+
   // insure distsq and nearest arrays are long enough
 
   maxneigh = 0;

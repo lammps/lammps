@@ -92,7 +92,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::init()
 
   neighbor->requests[irequest]->
     kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    std::is_same<DeviceType,LMPDeviceType>::value;
+    !std::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
     kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
 }

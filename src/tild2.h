@@ -51,47 +51,59 @@ class TILD : public KSpace{
   void field_gradient(FFT_SCALAR*, FFT_SCALAR**, int);
   // void get_k_alias(int, double *);
 
+  void write_restart(FILE *);
+  void read_restart(FILE *);
+  void write_restart_settings(FILE *);
+  void read_restart_settings(FILE *);
+  void write_data(FILE *);
+  void write_data_all(FILE *);
+
  protected:
+  // For future kspace_hybrid
+  int nstyles;                  // # of sub-styles For future kspace_hybrid
+  int **setflag;                 // 0/1 = whether each i,j has been set
+
   FFT_SCALAR **grad_uG, **grad_uG_hat, *temp;
   FFT_SCALAR ***grad_potent, ***grad_potent_hat, **potent, **potent_hat;
   int **potent_map;
-  FFT_SCALAR *****gradWgroup;
+  FFT_SCALAR *****gradWtype;
   FFT_SCALAR *****gradWpotential;
   int kxmax,kymax,kzmax;
   int kcount,kmax,kmax3d,kmax_created;
   double gsqmx,volume;
   int nmax;
-  FFT_SCALAR **vg_hat;
   void complex_multiply(FFT_SCALAR*,FFT_SCALAR*,FFT_SCALAR*, int);
   void complex_multiply(double*,double*, int);
   double **potent_param;
   int npot, *pot_map;
+  int ***potent_type_map;
   double rho0;
+  double set_rho0, old_volume;
 
   double unitk[3];
   int *kxvecs,*kyvecs,*kzvecs;
   int kxmax_orig,kymax_orig,kzmax_orig;
   double *ug;
   int dim;
-  double **eg,**vg;
+  double **eg;
+  double ***vg;
+  FFT_SCALAR ***vg_hat;
+  //double **eg,**vg;
   double **ek;
   double *sfacrl,*sfacim,*sfacrl_all,*sfacim_all;
   double ***cs,***sn;
   int *assigned_pot, *potent_to_compressed;
   int **group_with_potential;
   int factorable(int);
-  double **chi_values;
-  std::vector<std::tuple<int,int,double,int,int>> expanded_chi_interactions;
-  std::vector<std::pair<int, int> > types_and_potentials;
+  double **chi;
+  double **a2;
+  double **rp;
+  double **xi;
   double grid_res;
   virtual int modify_param(int, char**);
   int num_potent;
-  std::vector <std::tuple<int, int, double> > chi_value;
-  std::vector <std::vector<int > > potentials;
-  std::vector<std::tuple<int,int,std::vector<double>>> potent_with_params;
-  int identify_potential_for_type(int);
-  int identify_potential_for_type(int, bool);
   double calculate_rho0();
+  int get_style(const int, const int);
 
   // group-group interactions
 
@@ -107,7 +119,8 @@ class TILD : public KSpace{
   void slabcorr();
   void init_gauss();
   void init_potential(FFT_SCALAR*, const int, const double*);
-  void init_potential(FFT_SCALAR*, std::tuple<int,int,std::vector<double>> &tup);
+  void calc_work(double*, double*, const int, const int, const int);
+  //void init_potential(FFT_SCALAR*, std::tuple<int,int,std::vector<double>> &tup);
   void init_cross_potentials();
   double get_k_alias(int, double*);
   void get_k_alias(FFT_SCALAR *, FFT_SCALAR **);
@@ -131,7 +144,7 @@ class TILD : public KSpace{
   int nxlo_fft,nylo_fft,nzlo_fft,nxhi_fft,nyhi_fft,nzhi_fft;
   int nlower,nupper;
   int ngrid,nfft,nfft_both;
-  int subtract_rho0, normalize_by_rho0, sub_flag, norm_flag;
+  int set_rho0_flag, subtract_rho0, normalize_by_rho0, mix_flag, sub_flag, norm_flag;
   int *total_counter, specified_all_group, start_group_ind, total_groups; 
 
   FFT_SCALAR ***density_brick;
@@ -141,8 +154,10 @@ class TILD : public KSpace{
   FFT_SCALAR ***v3_brick,***v4_brick,***v5_brick;
   double *greensfn;
   double *fkx,*fky,*fkz;
+  double *fkx2, *fky2, *fkz2;
   FFT_SCALAR *density_fft;
   FFT_SCALAR *work1,*work2;
+  FFT_SCALAR *worki,*workj;
 
   double *gf_b;
   FFT_SCALAR **rho1d,**rho_coeff,**drho1d,**drho_coeff;
@@ -166,6 +181,10 @@ class TILD : public KSpace{
 
   void set_grid_global();
   void set_grid();
+  void set_grid_6();
+  void set_init_g6();
+  void set_n_pppm_6();
+  void calc_csum();
 //   void set_grid_local();
   void adjust_gewald();
   double newton_raphson_f();
@@ -194,7 +213,8 @@ class TILD : public KSpace{
                          LAMMPS_NS::Remap *);
   virtual void brick2fft();
   virtual void brick2fft_none();
-  void ev_calculation(int);
+  void ev_calculation(double*, double*, double*, int, int);
+  //void ev_calculation();
 
 
   // virtual void poisson();
@@ -256,12 +276,32 @@ class TILD : public KSpace{
   FFT_SCALAR **density_of_types_fft_ed;
   FFT_SCALAR **density_of_potentials_fft_ed;
   FFT_SCALAR *ktmp;
+  FFT_SCALAR *ktmpi;
+  FFT_SCALAR *ktmpj;
   FFT_SCALAR *ktmp2;
+  FFT_SCALAR *ktmp2i;
+  FFT_SCALAR *ktmp2j;
   FFT_SCALAR *tmp;
   void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &,
                      const FFT_SCALAR &, int, FFT_SCALAR **, FFT_SCALAR **);
   void compute_rho_coeff(FFT_SCALAR **,FFT_SCALAR **, int);
 
+  double csumij;
+  double csum;
+  double *B;
+  double *csumi;  //needed as correction term for per atom calculations!
+  double *cii;
+  int csumflag;
+  int nsplit;
+  int nsplit_alloc;
+  int nxlo_in_6,nylo_in_6,nzlo_in_6,nxhi_in_6,nyhi_in_6,nzhi_in_6;
+  int nxlo_out_6,nylo_out_6,nzlo_out_6,nxhi_out_6,nyhi_out_6,nzhi_out_6;
+  int nxlo_fft_6,nylo_fft_6,nzlo_fft_6,nxhi_fft_6,nyhi_fft_6,nzhi_fft_6;
+  int nlower_6,nupper_6;
+  int ngrid_6,nfft_6,nfft_both_6;
+  double compute_qopt_6();
+  double compute_qopt_6_ik();
+  double compute_qopt_6_ad();
 
 };
 

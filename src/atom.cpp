@@ -2200,12 +2200,17 @@ int Atom::find_custom(const char *name, int &flag)
   return -1;
 }
 
-/* ----------------------------------------------------------------------
-   add a custom variable with name of type flag = 0/1 for int/double
-   assumes name does not already exist
-   return index in ivector or dvector of its location
-------------------------------------------------------------------------- */
+/** \brief Add a custom per-atom property with the given name and type
+\verbatim embed:rst
 
+This function will add a custom per-atom property with the name "name"
+as either list of int or double to the list of custom properties.  This
+function is called, e.g. from :doc:`fix property/atom <fix_property_atom>`.
+\endverbatim
+ * \param name Name of the property (w/o a "d_" or "i_" prefix)
+ * \param flag Data type of property: 0 for int, 1 for double
+ * \return Index of property in the respective list of properties
+ */
 int Atom::add_custom(const char *name, int flag)
 {
   int index;
@@ -2237,12 +2242,19 @@ int Atom::add_custom(const char *name, int flag)
   return index;
 }
 
-/* ----------------------------------------------------------------------
-   remove a custom variable of type flag = 0/1 for int/double at index
-   free memory for vector and name and set ptrs to NULL
-   ivector/dvector and iname/dname lists never shrink
-------------------------------------------------------------------------- */
-
+/*! \brief Remove a custom per-atom property of a given type
+ *
+\verbatim embed:rst
+This will remove a property that was requested e.g. by the
+:doc:`fix property/atom <fix_property_atom>` command.  It frees the
+allocated memory and sets the pointer to ``NULL`` to the entry in
+the list can be reused. The lists of those pointers will never be
+compacted or never shrink, so that index to name mappings remain valid.
+\endverbatim
+ *
+ * \param flag whether the property is integer (=0) or double (=1)
+ * \param index of that property in the respective list.
+ */
 void Atom::remove_custom(int flag, int index)
 {
   if (flag == 0) {

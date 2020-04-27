@@ -22,22 +22,23 @@ namespace LAMMPS_NS {
 /** \brief LAMMPS simulation instance
  *
  * The LAMMPS class contains pointers of all constituent class instances
- * and global variables that are used by a LAMMPS simulation instance
- * and thus represents the state of the simulation.
+ * and global variables that are used by a LAMMPS simulation. Its contents
+ * represent the entire state of the simulation.
  *
- * The LAMMPS class contains mostly functionality to setup an MD simulation
- * by creating, deleting, and initializing instances of the classes it is
- * composed of, processing command line flags, and providing access to
- * some global properties.
+ * The LAMMPS class manages the components of an MD simulation by creating,
+ * deleting, and initializing instances of the classes it is composed of,
+ * processing command line flags, and providing access to some global properties.
+ * The specifics of setting up and running a simulation are handled by the
+ * individual component class instances.
  */
 class LAMMPS {
  public:
-                                // instances of fundamental LAMMPS classes
+  // instances of fundamental LAMMPS classes
   class Memory *memory;         //!< Memory management functions
   class Error *error;           //!< Error handling
   class Universe *universe;     //!< Handling of multi-partition calculations
   class Input *input;           //!< Input command processing
-                                // top-level LAMMPS-specific classes
+  // instances of top-level LAMMPS-specific classes
   class Atom *atom;             //!< Management of per-atom data
   class Update *update;         //!< Update status via integrators/minimizers
   class Neighbor *neighbor;     //!< Management of neighbor lists
@@ -76,10 +77,6 @@ class LAMMPS {
 
   class CiteMe *citeme;         //!< Management of citation info
 
-  const char *match_style(const char *style, const char *name);
-  static const char * installed_packages[];
-  static bool is_installed_pkg(const char *pkg);
-
   static const bool has_git_info;     //!< true if git status information exists
   static const char git_commit[];     //!< SHA256 hash of git commit the source is based on
   static const char git_branch[];     //!< name of git branch the source is based on
@@ -92,6 +89,10 @@ class LAMMPS {
   void init();
   void destroy();
   void print_config(FILE *);    // print compile time settings
+
+  const char *match_style(const char *, const char *);
+  static const char * installed_packages[];
+  static bool is_installed_pkg(const char *);
 
  private:
   struct package_styles_lists *pkg_lists;

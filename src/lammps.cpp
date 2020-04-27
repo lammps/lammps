@@ -60,6 +60,11 @@
 
 static void print_style(FILE *fp, const char *str, int &pos);
 
+/*! Maps of styles to packages for all types of styles.
+\verbatim embed:rst
+Used by :cpp:func:`LAMMPS_NS::LAMMPS::match_style`.
+\endverbatim
+ */
 struct LAMMPS_NS::package_styles_lists {
   std::map<std::string,std::string> angle_styles;
   std::map<std::string,std::string> atom_styles;
@@ -1043,9 +1048,13 @@ bool LAMMPS::is_installed_pkg(const char *pkg)
 
 /** \brief Return name of package that a specific style belongs to
  *
- * \param style type of style (atom, pair, fix, etc.)
- * \param name  name of style
- * \return name of package this style is part of
+ * This function checks the given name against all list of styles
+ * for all type of styles and if the name and the style match, it
+ * returns which package this style belongs to.
+ *
+ * \param style Type of style (e.g. atom, pair, fix, etc.)
+ * \param name Name of style
+ * \return Name of the package this style is part of
  */
 const char *LAMMPS::match_style(const char *style, const char *name)
 {
@@ -1257,7 +1266,8 @@ void _noopt LAMMPS::help()
   if (pager != NULL) pclose(fp);
 }
 
-/** Write to table of styles in columns while
+/** \brief
+ * Write to table of styles in columns while
  * skipping over internal styles with upper case names
  *
  * \param fp file pointer for output

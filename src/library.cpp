@@ -1042,7 +1042,7 @@ This table lists a large part of the supported names, their data types,
 length of the data area, and a short description.  You can look up
 additional supported keywords and their data types in
 :ref:`Atom::extract() <cpp_atom_extract>` and the ``src/atom.h`` header file.
-The ``bigint``, ``tagint`, or ``imageint`` types may be defined to be
+The ``bigint``, ``tagint``, or ``imageint`` types may be defined to be
 either an ``int`` or an ``int64_t``.  This is selected at
 :ref:`compile time <size>`.
 

@@ -22,19 +22,19 @@ namespace LAMMPS_NS {
 
 class Atom : protected Pointers {
  public:
-  char *atom_style;             //!< name of the current atom style, "atomic" by default
-  class AtomVec *avec;          //!< class instance managing the current atom style
+  char *atom_style;             //!< Name of the current atom style, "atomic" by default
+  class AtomVec *avec;          //!< Class instance managing the current atom style
 
   // atom counts
 
-  bigint natoms;                //!< total number of atoms in system, could be 0
-                                ///  natoms may not be current if atoms were "lost"
+  bigint natoms;                //!< Total number of atoms in system, could be 0. The value
+                                //!  of natoms may not be up-to-date, if atoms were "lost".
   int nlocal;                   //!< number of owned atoms on this MPI rank
   int nghost;                   //!< number of ghost atoms on this this MPI rank
   int nmax;                     //!< max number of owned+ghost in arrays on this MPI rank
   int tag_enable;               //!< 0/1 if atom ID tags are defined
   int molecular;                //!< 0 = atomic, 1 = standard molecular system,
-                                /// 2 = molecule template system
+                                //! 2 = molecule template system
   bigint nellipsoids;           //!< number of ellipsoids
   bigint nlines;                //!< number of lines
   bigint ntris;                 //!< number of triangles

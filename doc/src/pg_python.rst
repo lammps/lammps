@@ -11,7 +11,7 @@ dynamically import the compiled LAMMPS code via the :doc:`C-library API
 
 There are multiple Python interface classes implemented:
 
-- the :py:class:`lammps <lammps.lammps> class`. This is a wrapper around
+- the :py:class:`lammps class <lammps>`. This is a wrapper around
   the C-library interface and its member functions try to replicate the
   :doc:`C-library API <pg_library>` closely.  This is the most
   feature-complete python API.

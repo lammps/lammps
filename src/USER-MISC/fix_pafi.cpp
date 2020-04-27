@@ -19,10 +19,10 @@
 
 
 #include "fix_pafi.h"
-#include "mpi.h"
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <cstring>
+#include <cstdlib>
 #include "math_extra.h"
 #include "atom.h"
 #include "force.h"
@@ -44,18 +44,20 @@
 
 using namespace LAMMPS_NS;
 
-static const char cite_user_pafi_package[] =
+static const char cite_fix_pafi_package[] =
   "citation for fix pafi:\n\n"
   "@article{SwinburneMarinica2018,\n"
   "author={T. D. Swinburne and M. C. Marinica},\n"
-  "title={Unsupervised calculation of free energy barriers in large crystalline systems},\n"
+  "title={Unsupervised calculation of free energy barriers in large "
+  "crystalline systems},\n"
   "journal={Physical Review Letters},\n"
   "volume={276},\n"
   "number={1},\n"
   "pages={154--165},\n"
   "year={2018},\n"
-  "publisher={APS}\n"
-  "}\n\n";
+  "publisher={APS}\n}\n"
+  "Recommended to be coupled with PAFI++ code:\n"
+  "https://github.com/tomswinburne/pafi\n";
 
 using namespace FixConst;
 
@@ -65,7 +67,7 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), idregion(NULL), random(NULL), computename(NULL),
       h(NULL), step_respa(NULL)
 {
-  if (lmp->citeme) lmp->citeme->add(cite_user_pafi_package);
+  if (lmp->citeme) lmp->citeme->add(cite_fix_pafi_package);
 
   if (narg < 11) error->all(FLERR,"Illegal fix pafi command");
 
@@ -87,16 +89,16 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
   char buffer[128];
 
   if (icompute < 0) {
-    sprintf(buffer,"Compute %s for fix pafi does not exist",computename);
+    snprintf(buffer,128,"Compute %s for fix pafi does not exist",computename);
     error->all(FLERR,buffer);
   }
   PathCompute = modify->compute[icompute];
   if (PathCompute->peratom_flag==0) {
-    sprintf(buffer,"Compute %s for fix pafi does not calculate a local array",computename);
+    snprintf(buffer,128,"Compute %s for fix pafi does not calculate a local array",computename);
     error->all(FLERR,buffer);
   }
   if (PathCompute->size_peratom_cols < domain->dimension*3) {
-    sprintf(buffer,"Compute %s for fix pafi has %d < %d fields per atom",computename,PathCompute->size_peratom_cols,domain->dimension*3);
+    snprintf(buffer,128,"Compute %s for fix pafi has %d < %d fields per atom",computename,PathCompute->size_peratom_cols,domain->dimension*3);
     error->all(FLERR,buffer);
   }
   if (comm->me==0) {
@@ -236,7 +238,7 @@ void FixPAFI::min_setup(int vflag)
 {
   if( utils::strmatch(update->minimize_style,"^fire")==0 &&
           utils::strmatch(update->minimize_style,"^quickmin")==0 )
-    error->all(FLERR,"fix pafi requires damped dynamics minimizer");
+    error->all(FLERR,"fix pafi requires a damped dynamics minimizer");
   min_post_force(vflag);
 }
 
@@ -536,14 +538,10 @@ void FixPAFI::min_post_force(int vflag)
   MPI_Allreduce(proj,proj_all,5,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(c_v,c_v_all,10,MPI_DOUBLE,MPI_SUM,world);
 
-
-  // results - f.n*(1-psi), (f.n)^2*(1-psi)^2, 1-psi, dX.n
-  if(comm->me ==0) {
-    results_all[0] = proj_all[0] * (1.-proj_all[3]);
-    results_all[1] = results_all[0] * results_all[0];
-    results_all[2] = 1.-proj_all[3];
-    results_all[3] = proj_all[4];
-  }
+  results_all[0] = proj_all[0] * (1.-proj_all[3]); // f.n * psi
+  results_all[1] = results_all[0] * results_all[0]; // (f.n * psi)^2
+  results_all[2] = 1.-proj_all[3]; // psi
+  results_all[3] = proj_all[4]; // dX.n
 
   MPI_Bcast(results_all,4,MPI_DOUBLE,0,world);
   force_flag = 1;

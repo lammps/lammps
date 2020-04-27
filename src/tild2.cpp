@@ -105,6 +105,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   density_fft = NULL;
   density_brick_types = NULL;
   density_fft_types = NULL;
+  kappa_density = NULL;
   density_of_types_fft_ed = NULL;
   density_of_potentials_fft_ed = NULL;
   gradWtype = NULL;
@@ -743,6 +744,7 @@ void TILD::allocate()
   memory->create(grad_uG,domain->dimension,nfft,"pppm:grad_uG");
   memory->create(grad_uG_hat,domain->dimension,2*nfft_both,"pppm:grad_uG_hat");
   memory->create(density_fft_types,ntypes+1, nfft_both, "pppm:density_fft_types");
+  memory->create(kappa_density, nfft_both, "pppm:kappa_density");
   memory->create(density_of_types_fft_ed,ntypes+1, nfft_both, "pppm:density_of_types_fft_ed");
   memory->create(potent,ntypecross+1,nfft_both,"pppm:potent"); // Voignot 
   memory->create(potent_hat,ntypecross+1,2*nfft_both,"pppm:potent_hat");
@@ -855,6 +857,7 @@ void TILD::deallocate()
 
   memory->destroy3d_offset(density_brick,nzlo_out,nylo_out,nxlo_out);
   memory->destroy4d_offset(density_brick_types,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy(kappa_density);
   memory->destroy(density_fft_types);
   memory->destroy(density_of_potentials_fft_ed);
   memory->destroy(density_of_types_fft_ed);
@@ -1620,22 +1623,11 @@ void TILD::init_cross_potentials(){
 
         int j = 0;
         for (int i = 0; i < nfft; i++) {
-          work1[j++] = potent[loc][i];
-          work1[j++] = ZEROF;
+          ktmp[j++] = potent[loc][i];
+          ktmp[j++] = ZEROF;
           fileU<<i << '\t' << potent[loc][i] <<std::endl;
         }
-
-        fft1->compute(work1, work1, 1);
-
-        for (int i = 0; i < 2 * nfft; i++) {
-          work1[i] *= scale_inv;
-          work2[i] = work1[i];
-        }
-        get_k_alias(work1, grad_potent[loc]);
-        for (int i=0; i < Dim; i ++){
-          fft1->compute(grad_potent[loc][i], grad_potent[loc][i], -1);
-        }
-        
+  
       } 
       // Computational Convolution
       else {
@@ -1653,48 +1645,48 @@ void TILD::init_cross_potentials(){
           calc_work(work2, tmp, style, itype, jtype);
         }
 
-      }
-      //// Convolution of potentials
-      //int j = 0;
-      //for (int i = 0; i < nfft; i++) {
-      //  complex_multiply(work1, work2, ktmp, j);
-      //  j += 2;
-      //}
-      //fft1->compute(ktmp, work1, -1);
-      //  
-      //get_k_alias(ktmp, grad_potent[loc]);
-      if (potent_type_map[1][itype][jtype] != 1 ){
+        // Convolution of potentials
         int j = 0;
         for (int i = 0; i < nfft; i++) {
-          potent[loc][i] = work1[j];
+          complex_multiply(work1, work2, ktmp, j);
+          j += 2;
+        }
+
+        j = 0;
+        for (int i = 0; i < nfft; i++) {
+          potent[loc][i] = ktmp[j];
           j += 2;
         }
       }
-      //field_gradient(potent[loc], grad_potent_hat[loc], 0);
+      fft1->compute(ktmp, potent_hat[loc], 1);
 
-      // grad_* goes k_th interaction, direction, values
-      for (int i = 0; i < Dim; i++) {
-        //fft1->compute(grad_potent_hat[loc][i], work2, -1);
-        fft1->compute(grad_potent[loc][i],grad_potent_hat[loc][i] , 1);
-        //fft1->compute(grad_potent[loc][i], work2, -1);
-/*
-        n = 0;
-        for (int j = 0; j < nfft; j++) {
-
-          grad_potent_hat[loc][i][j] = work2[n];
-          //grad_potent[loc][i][j] = work2[n];
-          n += 2;
-        }
-*/
+      for (int i = 0; i < 2 * nfft; i++) {
+        potent_hat[loc][i] *= scale_inv;
       }
-        for (int j = 0; j < nfft; j++) {
-            filegradU << j << '\t' << grad_potent[loc][0][j] << '\t' << grad_potent[loc][1][j] << '\t' << grad_potent[loc][2][j] << std::endl;
-            filegradUhat << j << '\t' << grad_potent_hat[loc][0][j] << '\t' << grad_potent_hat[loc][1][j] << '\t' << grad_potent_hat[loc][2][j] << std::endl;
-        }
 
-    fileU.close();
-    filegradU.close();
-    filegradUhat.close();
+      get_k_alias(potent_hat[loc], grad_potent_hat[loc]);
+      for (int i=0; i < Dim; i ++){
+        fft1->compute(grad_potent_hat[loc][i], work2, -1);
+        n = 0;
+        for (int j = 0; j < nfft; j++){
+          grad_potent[loc][i][j] = -work2[n];
+          n+=2;
+        }
+      } 
+
+      // output
+      n=0;
+      for (int j = 0; j < nfft; j++) {
+          filegradU << j << '\t' << grad_potent[loc][0][j] << '\t' << grad_potent[loc][1][j] << '\t' << grad_potent[loc][2][j] << std::endl;
+          filegradUhat << n << '\t' << grad_potent_hat[loc][0][n] << '\t' << grad_potent_hat[loc][1][n] << '\t' << grad_potent_hat[loc][2][n] << std::endl;
+          n++;
+          filegradUhat << n << '\t' << grad_potent_hat[loc][0][n] << '\t' << grad_potent_hat[loc][1][n] << '\t' << grad_potent_hat[loc][2][n] << std::endl;
+          n++;
+      }
+
+      fileU.close();
+      filegradU.close();
+      filegradUhat.close();
     }
   }
 
@@ -2090,10 +2082,6 @@ void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
   int x, y, z;
   int n=0;
   double *prd;
-  // neighbor z
-  int nz = (ny_pppm * nx_pppm);
-  // neighbor y
-  int ny = nx_pppm;
 
   if (triclinic == 0) prd = domain->prd;
   else prd = domain->prd_lamda;
@@ -2142,8 +2130,6 @@ void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
         out[1][n + 1] = wk1[n] * k[1];
         out[2][n] = -wk1[n + 1] * k[2];
         out[2][n + 1] = wk1[n] * k[2];
-        ny += 2;
-        nz += 2;
         n += 2;
           
       }
@@ -2773,18 +2759,20 @@ void TILD::accumulate_gradient() {
   if (normalize_by_rho0 == 1)
     tmp_kappa /= rho0;
 
-  double tmp_sub = 0.0;
+  FFT_SCALAR tmp_sub = 0.0;
   if (subtract_rho0 == 1)
     tmp_sub = rho0;
 
   if ( tmp_kappa != 0 ) {
+    n = 0;
     for (int k = 0; k < nfft; k++) {
-      work1[n++] = density_fft_types[0][k]- tmp_sub;
+      kappa_density[k] = density_fft_types[0][k] - tmp_sub;
+      work1[n++] = kappa_density[k];
       work1[n++] = ZEROF;
     }
     fft1->compute(work1, work1, 1);
-    for (int k = 0; k < nfft; k++) {
-      work1[n++] *= scale_inv;
+    for (int k = 0; k < 2*nfft; k++) {
+      work1[k] *= scale_inv;
     }
   }
   for (int itype = 1; itype <= ntypes; itype++) {
@@ -2801,6 +2789,7 @@ void TILD::accumulate_gradient() {
         tmp_chi /= rho0;
 
       if ( tmp_chi != 0) {
+        n = 0;
         for (int k = 0; k < nfft; k++) {
           worki[n] = density_fft_types[itype][k];
           workj[n] = density_fft_types[jtype][k];
@@ -2811,25 +2800,20 @@ void TILD::accumulate_gradient() {
         }
         fft1->compute(worki, worki, 1);
         fft1->compute(workj, workj, 1);
-        for (int k = 0; k < nfft; k++) {
-          worki[n] *= scale_inv;
-          workj[n] *= scale_inv;
-          n++;
-          worki[n] *= scale_inv;
-          workj[n] *= scale_inv;
-          n++;
+        for (int k = 0; k < 2*nfft; k++) {
+          worki[k] *= scale_inv;
+          workj[k] *= scale_inv;
         }
       }
 
       //fprintf(screen,"pre ev_calculation\n");
-/*
       if (eflag_global || vflag_global) {
-        ev_calculation(work1, worki, workj, itype, jtype);
+        ev_calculation(kappa_density, work1, worki, itype, jtype);
       }
-*/
       //fprintf(screen,"post ev_calculation\n");
 
       for (int i = 0; i < Dim; i++) {
+/*
         n = 0;
         for (int k = 0; k < nfft; k++) {
           work2[n] = grad_potent[loc][i][n];
@@ -2840,15 +2824,19 @@ void TILD::accumulate_gradient() {
           n++;
         }
       //fprintf(screen,"complex mult\n");
+*/
 
         n = 0;
         for (int k = 0; k < nfft; k++) {
           if ( tmp_kappa != 0 ) {
-            complex_multiply(work1, work2, ktmp2, n);
+            complex_multiply(grad_potent_hat[loc][i], work1, ktmp2, n);
+            //complex_multiply(work1, work2, ktmp2, n);
           }
           if ( tmp_chi != 0) {
-            complex_multiply(worki, work2, ktmp2i, n);
-            complex_multiply(workj, work2, ktmp2j, n);
+            //complex_multiply(worki, work2, ktmp2i, n);
+            //complex_multiply(workj, work2, ktmp2j, n);
+            complex_multiply(grad_potent_hat[loc][i], worki, ktmp2i, n);
+            complex_multiply(grad_potent_hat[loc][i], workj, ktmp2j, n);
           }
           n += 2;
         }
@@ -3013,9 +3001,9 @@ void TILD::fieldforce_param(){
           mx = l+nx;
           x0 = y0*rho1d[0][l];
           // gradWpotential 0 to 1 ?????
-          ekx += x0 * gradWtype[temp_type][0][mz][my][mx];
-          eky += x0 * gradWtype[temp_type][1][mz][my][mx];
-          ekz += x0 * gradWtype[temp_type][2][mz][my][mx];
+          ekx -= x0 * gradWtype[temp_type][0][mz][my][mx];
+          eky -= x0 * gradWtype[temp_type][1][mz][my][mx];
+          ekz -= x0 * gradWtype[temp_type][2][mz][my][mx];
         }
       }
     }
@@ -3028,7 +3016,8 @@ void TILD::fieldforce_param(){
     // f[i][0] += grid_vol * ekx;
     // f[i][1] += grid_vol * eky;
     // f[i][2] += grid_vol * ekz;
-    delvolinv_forces << i <<'\t'<<  ekx <<'\t'<< eky <<'\t'<<  ekz << endl;
+    delvolinv_forces << i <<'\t'<<  f[i][0] <<'\t'<< f[i][1] <<'\t'<<  f[i][2] << endl;
+    //delvolinv_forces << i <<'\t'<<  ekx <<'\t'<< eky <<'\t'<<  ekz << endl;
     // grid_vol_forces<<i<<'\t'<< "0 " <<'\t'<<  grid_vol*ekx << endl;
     // grid_vol_forces<<i<<'\t'<< "1 " <<'\t'<<  grid_vol*eky << endl;
     // grid_vol_forces<<i<<'\t'<< "2 " <<'\t'<<  grid_vol*ekz << endl;
@@ -3115,7 +3104,7 @@ inline void TILD::complex_multiply(double *in1,double  *in2, int n){
 }
 
 //void TILD::ev_calculation() {
-void TILD::ev_calculation(double *wk1, double *wki, double *wkj, const int itype, const int jtype) {
+void TILD::ev_calculation(FFT_SCALAR *rho1, double *wk1, double *wki, const int itype, const int jtype) {
   int n = 0;
   double eng;
   double scale_inv = 1.0/(nx_pppm *ny_pppm * nz_pppm);
@@ -3127,26 +3116,27 @@ void TILD::ev_calculation(double *wk1, double *wki, double *wkj, const int itype
   if (normalize_by_rho0 == 1) tmp_rho_div = rho0;
   // Convolve kspace-potential with fft(den_group)
   double tmp_chi = chi[itype][jtype];
+/*
   if ( tmp_chi != 0) {
     fft1->compute(wki,wki,1);
     
-    n=0;
-    for (int k = 0; k < nfft; k++) {
-      wki[n++] *= scale_inv;
+    for (int k = 0; k < 2*nfft; k++) {
       wki[n++] *= scale_inv;
     }
   }
+*/
   // take jtype density into k-space
   
   // convolve itype-jtype interaction potential and itype density
   int loc = itype*(jtype+1)/2;
   n = 0;
+  //fft1->compute(potent[loc], ktmp, 1);
   for (int k = 0; k < nfft; k++) {
     if ( tmp_chi != 0) {
-      complex_multiply(potent[loc], wki, ktmp2i, n);
+      complex_multiply(potent_hat[loc], wki, ktmp2i, n);
     }
     if ( kappa != 0 ) {
-      complex_multiply(potent[loc], wk1, ktmp2, n);
+      complex_multiply(potent_hat[loc], wk1, ktmp2, n);
     }
     n += 2;
   }
@@ -3157,17 +3147,7 @@ void TILD::ev_calculation(double *wk1, double *wki, double *wkj, const int itype
   
   if ( tmp_chi != 0) {
     fft1->compute(ktmp2i, ktmp2i, -1);
-    if (itype == jtype) {
-      wkj = wki;
-    } else {
-      fft1->compute(wkj,wkj,1);
-    
-      n=0;
-      for (int k = 0; k < nfft; k++) {
-        wkj[n++] *= scale_inv;
-        wkj[n++] *= scale_inv;
-      }
-    }
+    // not sure about this
   }
 
   double same_group_factor = 1.0;
@@ -3183,9 +3163,9 @@ void TILD::ev_calculation(double *wk1, double *wki, double *wkj, const int itype
     n = 0;
     for (int k = 0; k < nfft; k++) {
       // rho_i * u_ij * rho_j * chi * prefactor
-      if ( tmp_chi != 0) energy += tmp_chi * ktmp2i[n] * wkj[k] * factor;
+      if ( tmp_chi != 0) energy += tmp_chi * ktmp2i[n] * density_fft_types[jtype][k] * factor;
       // rho_i * u_ij * rho_j * prefactor * kappa
-      if ( kappa != 0 ) energy += kappa * ktmp2[n] * wk1[k] * factor;
+      if ( kappa != 0 ) energy += kappa * ktmp2[n] * rho1[k] * factor;
       n += 2;
     }
   }
@@ -3207,10 +3187,10 @@ void TILD::ev_calculation(double *wk1, double *wki, double *wkj, const int itype
       n=0;
       for (int k = 0; k < nfft; k++) {
         // rho_i * u_ij * rho_j * chi * prefactor
-        if ( tmp_chi != 0) virial[i] += tmp_chi * ktmpi[n] * wkj[k] * factor2;
+        if ( tmp_chi != 0) virial[i] += tmp_chi * ktmpi[n] * density_fft_types[jtype][k] * factor2;
        //fprintf(screen,"factor2 %f %f %f %f %f\n", kappa, vg_hat[loc][i], ktmp[n], wk1[k], factor2);
         // rho_i * u_ij * rho_j * prefactor * kappa
-        if ( kappa != 0 ) virial[i] += kappa * ktmp[n] * wk1[k] * factor2;
+        if ( kappa != 0 ) virial[i] += kappa * ktmp[n] * rho1[k] * factor2;
         n+=2;
       }
     }

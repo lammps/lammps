@@ -272,6 +272,7 @@ class TILD : public KSpace{
   void vir_func_init();
 
   FFT_SCALAR ****density_brick_types;
+  FFT_SCALAR *kappa_density;
   FFT_SCALAR **density_fft_types;
   FFT_SCALAR **density_of_types_fft_ed;
   FFT_SCALAR **density_of_potentials_fft_ed;

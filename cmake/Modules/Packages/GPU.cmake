@@ -278,7 +278,7 @@ elseif(GPU_API STREQUAL "HIP")
 
   set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LAMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h ${LAMMPS_LIB_BINARY_DIR}/gpu/*.cu.cpp")
 
-  add_library(gpu STATIC ${GPU_LIB_SOURCES})
+  hip_add_library(gpu STATIC ${GPU_LIB_SOURCES})
   target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu)
   target_compile_definitions(gpu PRIVATE -D_${GPU_PREC_SETTING} -DMPI_GERYON -DUCL_NO_EXIT)
   target_compile_definitions(gpu PRIVATE -DUSE_HIP)

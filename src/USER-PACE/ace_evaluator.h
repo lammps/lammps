@@ -12,6 +12,7 @@
 #include "ace_complex.h"
 #include "ace_timing.h"
 #include "ace_types.h"
+#include "ace_abstract_basis.h"
 
 class ACEEvaluator {
 protected:

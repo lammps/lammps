@@ -85,7 +85,6 @@ void PairLJCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   ev_init(eflag,vflag,0);
 
   // reallocate per-atom arrays if necessary
-  //
 
   if (eflag_atom) {
     memoryKK->destroy_kokkos(k_eatom,eatom);

@@ -47,7 +47,7 @@
 
 namespace Test {
 
-TEST_F(TEST_CATEGORY, view_subview_3d_from_5d_right) {
+TEST(TEST_CATEGORY, view_subview_3d_from_5d_right) {
   TestViewSubview::test_3d_subview_5d_right<TEST_EXECSPACE>();
 }
 

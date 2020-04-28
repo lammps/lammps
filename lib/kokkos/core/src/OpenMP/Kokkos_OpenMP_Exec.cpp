@@ -149,12 +149,12 @@ void OpenMPExec::clear_thread_data() {
   {
     const int rank = omp_get_thread_num();
 
-    if (0 != m_pool[rank]) {
+    if (nullptr != m_pool[rank]) {
       m_pool[rank]->disband_pool();
 
       space.deallocate(m_pool[rank], old_alloc_bytes);
 
-      m_pool[rank] = 0;
+      m_pool[rank] = nullptr;
     }
   }
   /* END #pragma omp parallel */
@@ -211,7 +211,7 @@ void OpenMPExec::resize_thread_data(size_t pool_reduce_bytes,
     {
       const int rank = omp_get_thread_num();
 
-      if (0 != m_pool[rank]) {
+      if (nullptr != m_pool[rank]) {
         m_pool[rank]->disband_pool();
 
         space.deallocate(m_pool[rank], old_alloc_bytes);
@@ -447,7 +447,7 @@ void OpenMP::impl_finalize()
 
 //----------------------------------------------------------------------------
 
-void OpenMP::print_configuration(std::ostream &s, const bool verbose) {
+void OpenMP::print_configuration(std::ostream &s, const bool /*verbose*/) {
   s << "Kokkos::OpenMP";
 
   const bool is_initialized = Impl::t_openmp_instance != nullptr;

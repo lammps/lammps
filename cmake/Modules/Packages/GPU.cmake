@@ -330,7 +330,7 @@ elseif(GPU_API STREQUAL "HIP")
 
   if(HIP_PLATFORM STREQUAL "nvcc")
     target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_NVCC__)
-    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/include)
+    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
     target_include_directories(gpu PRIVATE ${CUDA_INCLUDE_DIRS})
     target_link_libraries(gpu PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
 
@@ -338,6 +338,12 @@ elseif(GPU_API STREQUAL "HIP")
     target_include_directories(hip_get_devices PRIVATE ${HIP_ROOT_DIR}/include)
     target_include_directories(hip_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
     target_link_libraries(hip_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
+  elseif(HIP_PLATFORM STREQUAL "hcc")
+    target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_HCC__)
+    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
+
+    target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_HCC__)
+    target_include_directories(hip_get_devices PRIVATE ${HIP_ROOT_DIR}/../include)
   endif()
 
   target_link_libraries(lammps PRIVATE gpu)
@@ -353,7 +359,12 @@ RegisterStylesExt(${GPU_SOURCES_DIR} gpu GPU_SOURCES)
 
 get_property(GPU_SOURCES GLOBAL PROPERTY GPU_SOURCES)
 
-target_link_libraries(gpu PRIVATE MPI::MPI_CXX)
+if(NOT BUILD_MPI)
+  # mpistubs is aliased to MPI::MPI_CXX, but older versions of cmake won't work forward the include path
+  target_link_libraries(gpu PRIVATE mpi_stubs)
+else()
+  target_link_libraries(gpu PRIVATE MPI::MPI_CXX)
+endif()
 if(NOT BUILD_SHARED_LIBS)
   install(TARGETS gpu EXPORT LAMMPS_Targets LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()

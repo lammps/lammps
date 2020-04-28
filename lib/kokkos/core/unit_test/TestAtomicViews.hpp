@@ -97,8 +97,8 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 1> {
   right_view right;
   stride_view left_stride;
   stride_view right_stride;
-  long left_alloc;
-  long right_alloc;
+  int64_t left_alloc;
+  int64_t right_alloc;
 
   TestViewOperator_LeftAndRight()
       : left("left"),
@@ -255,11 +255,11 @@ class TestAtomicViewAPI {
     ASSERT_EQ(ax.use_count(), size_t(4));
     ASSERT_EQ(const_ax.use_count(), ax.use_count());
 
-    ASSERT_FALSE(ax.data() == 0);
-    ASSERT_FALSE(const_ax.data() == 0);  // referenceable ptr
-    ASSERT_FALSE(unmanaged_ax.data() == 0);
-    ASSERT_FALSE(unmanaged_ax_from_ptr_dx.data() == 0);
-    ASSERT_FALSE(ay.data() == 0);
+    ASSERT_FALSE(ax.data() == nullptr);
+    ASSERT_FALSE(const_ax.data() == nullptr);  // referenceable ptr
+    ASSERT_FALSE(unmanaged_ax.data() == nullptr);
+    ASSERT_FALSE(unmanaged_ax_from_ptr_dx.data() == nullptr);
+    ASSERT_FALSE(ay.data() == nullptr);
     //    ASSERT_NE( ax, ay );
     //    Above test results in following runtime error from gtest:
     //    Expected: (ax) != (ay), actual: 32-byte object <30-01 D0-A0 D8-7F
@@ -318,13 +318,13 @@ struct InitFunctor_Seq {
   typedef Kokkos::View<T*, execution_space> view_type;
 
   view_type input;
-  const long length;
+  const int64_t length;
 
-  InitFunctor_Seq(view_type& input_, const long length_)
+  InitFunctor_Seq(view_type& input_, const int64_t length_)
       : input(input_), length(length_) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const long i) const {
+  void operator()(const int64_t i) const {
     if (i < length) {
       input(i) = (T)i;
     }
@@ -336,15 +336,15 @@ struct InitFunctor_ModTimes {
   typedef Kokkos::View<T*, execution_space> view_type;
 
   view_type input;
-  const long length;
-  const long remainder;
+  const int64_t length;
+  const int64_t remainder;
 
-  InitFunctor_ModTimes(view_type& input_, const long length_,
-                       const long remainder_)
+  InitFunctor_ModTimes(view_type& input_, const int64_t length_,
+                       const int64_t remainder_)
       : input(input_), length(length_), remainder(remainder_) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const long i) const {
+  void operator()(const int64_t i) const {
     if (i < length) {
       if (i % (remainder + 1) == remainder) {
         input(i) = (T)2;
@@ -360,15 +360,15 @@ struct InitFunctor_ModShift {
   typedef Kokkos::View<T*, execution_space> view_type;
 
   view_type input;
-  const long length;
-  const long remainder;
+  const int64_t length;
+  const int64_t remainder;
 
-  InitFunctor_ModShift(view_type& input_, const long length_,
-                       const long remainder_)
+  InitFunctor_ModShift(view_type& input_, const int64_t length_,
+                       const int64_t remainder_)
       : input(input_), length(length_), remainder(remainder_) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const long i) const {
+  void operator()(const int64_t i) const {
     if (i < length) {
       if (i % (remainder + 1) == remainder) {
         input(i) = 1;
@@ -390,15 +390,15 @@ struct PlusEqualAtomicViewFunctor {
 
   view_type input;
   atomic_view_type even_odd_result;
-  const long length;
+  const int64_t length;
 
   // Wrap the result view in an atomic view, use this for operator
   PlusEqualAtomicViewFunctor(const view_type& input_,
-                             view_type& even_odd_result_, const long length_)
+                             view_type& even_odd_result_, const int64_t length_)
       : input(input_), even_odd_result(even_odd_result_), length(length_) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const long i) const {
+  void operator()(const int64_t i) const {
     if (i < length) {
       if (i % 2 == 0) {
         even_odd_result(0) += input(i);
@@ -410,11 +410,11 @@ struct PlusEqualAtomicViewFunctor {
 };
 
 template <class T, class execution_space>
-T PlusEqualAtomicView(const long input_length) {
+T PlusEqualAtomicView(const int64_t input_length) {
   typedef Kokkos::View<T*, execution_space> view_type;
   typedef typename view_type::HostMirror host_view_type;
 
-  const long length = input_length;
+  const int64_t length = input_length;
 
   view_type input("input_view", length);
   view_type result_view("result_view", 2);
@@ -435,19 +435,19 @@ T PlusEqualAtomicView(const long input_length) {
 }
 
 template <class T>
-T PlusEqualAtomicViewCheck(const long input_length) {
-  const long N = input_length;
+T PlusEqualAtomicViewCheck(const int64_t input_length) {
+  const int64_t N = input_length;
   T result[2];
 
   if (N % 2 == 0) {
-    const long half_sum_end = (N / 2) - 1;
-    const long full_sum_end = N - 1;
+    const int64_t half_sum_end = (N / 2) - 1;
+    const int64_t full_sum_end = N - 1;
     result[0] = half_sum_end * (half_sum_end + 1) / 2;  // Even sum.
     result[1] =
         (full_sum_end * (full_sum_end + 1) / 2) - result[0];  // Odd sum.
   } else {
-    const long half_sum_end = (T)(N / 2);
-    const long full_sum_end = N - 2;
+    const int64_t half_sum_end = (T)(N / 2);
+    const int64_t full_sum_end = N - 2;
     result[0] = half_sum_end * (half_sum_end - 1) / 2;  // Even sum.
     result[1] =
         (full_sum_end * (full_sum_end - 1) / 2) - result[0];  // Odd sum.
@@ -457,7 +457,7 @@ T PlusEqualAtomicViewCheck(const long input_length) {
 }
 
 template <class T, class DeviceType>
-bool PlusEqualAtomicViewTest(long input_length) {
+bool PlusEqualAtomicViewTest(int64_t input_length) {
   T res       = PlusEqualAtomicView<T, DeviceType>(input_length);
   T resSerial = PlusEqualAtomicViewCheck<T>(input_length);
 
@@ -487,15 +487,16 @@ struct MinusEqualAtomicViewFunctor {
 
   view_type input;
   atomic_view_type even_odd_result;
-  const long length;
+  const int64_t length;
 
   // Wrap the result view in an atomic view, use this for operator.
   MinusEqualAtomicViewFunctor(const view_type& input_,
-                              view_type& even_odd_result_, const long length_)
+                              view_type& even_odd_result_,
+                              const int64_t length_)
       : input(input_), even_odd_result(even_odd_result_), length(length_) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const long i) const {
+  void operator()(const int64_t i) const {
     if (i < length) {
       if (i % 2 == 0) {
         even_odd_result(0) -= input(i);
@@ -507,11 +508,11 @@ struct MinusEqualAtomicViewFunctor {
 };
 
 template <class T, class execution_space>
-T MinusEqualAtomicView(const long input_length) {
+T MinusEqualAtomicView(const int64_t input_length) {
   typedef Kokkos::View<T*, execution_space> view_type;
   typedef typename view_type::HostMirror host_view_type;
 
-  const long length = input_length;
+  const int64_t length = input_length;
 
   view_type input("input_view", length);
   view_type result_view("result_view", 2);
@@ -532,19 +533,19 @@ T MinusEqualAtomicView(const long input_length) {
 }
 
 template <class T>
-T MinusEqualAtomicViewCheck(const long input_length) {
-  const long N = input_length;
+T MinusEqualAtomicViewCheck(const int64_t input_length) {
+  const int64_t N = input_length;
   T result[2];
 
   if (N % 2 == 0) {
-    const long half_sum_end = (N / 2) - 1;
-    const long full_sum_end = N - 1;
+    const int64_t half_sum_end = (N / 2) - 1;
+    const int64_t full_sum_end = N - 1;
     result[0] = -1 * (half_sum_end * (half_sum_end + 1) / 2);  // Even sum.
     result[1] =
         -1 * ((full_sum_end * (full_sum_end + 1) / 2) + result[0]);  // Odd sum.
   } else {
-    const long half_sum_end = (long)(N / 2);
-    const long full_sum_end = N - 2;
+    const int64_t half_sum_end = (int64_t)(N / 2);
+    const int64_t full_sum_end = N - 2;
     result[0] = -1 * (half_sum_end * (half_sum_end - 1) / 2);  // Even sum.
     result[1] =
         -1 * ((full_sum_end * (full_sum_end - 1) / 2) + result[0]);  // Odd sum.
@@ -554,7 +555,7 @@ T MinusEqualAtomicViewCheck(const long input_length) {
 }
 
 template <class T, class DeviceType>
-bool MinusEqualAtomicViewTest(long input_length) {
+bool MinusEqualAtomicViewTest(int64_t input_length) {
   T res       = MinusEqualAtomicView<T, DeviceType>(input_length);
   T resSerial = MinusEqualAtomicViewCheck<T>(input_length);
 
@@ -584,15 +585,15 @@ struct TimesEqualAtomicViewFunctor {
 
   view_type input;
   atomic_view_type result;
-  const long length;
+  const int64_t length;
 
   // Wrap the result view in an atomic view, use this for operator
   TimesEqualAtomicViewFunctor(const view_type& input_, view_type& result_,
-                              const long length_)
+                              const int64_t length_)
       : input(input_), result(result_), length(length_) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const long i) const {
+  void operator()(const int64_t i) const {
     if (i < length && i > 0) {
       result(0) *= (double)input(i);
     }
@@ -600,11 +601,11 @@ struct TimesEqualAtomicViewFunctor {
 };
 
 template <class T, class execution_space>
-T TimesEqualAtomicView(const long input_length, const long remainder) {
+T TimesEqualAtomicView(const int64_t input_length, const int64_t remainder) {
   typedef Kokkos::View<T*, execution_space> view_type;
   typedef typename view_type::HostMirror host_view_type;
 
-  const long length = input_length;
+  const int64_t length = input_length;
 
   view_type input("input_view", length);
   view_type result_view("result_view", 1);
@@ -626,12 +627,13 @@ T TimesEqualAtomicView(const long input_length, const long remainder) {
 }
 
 template <class T>
-T TimesEqualAtomicViewCheck(const long input_length, const long remainder) {
+T TimesEqualAtomicViewCheck(const int64_t input_length,
+                            const int64_t remainder) {
   // Analytical result.
-  const long N = input_length;
-  T result     = 1.0;
+  const int64_t N = input_length;
+  T result        = 1.0;
 
-  for (long i = 2; i < N; ++i) {
+  for (int64_t i = 2; i < N; ++i) {
     if (i % (remainder + 1) == remainder) {
       result *= 2.0;
     } else {
@@ -643,8 +645,8 @@ T TimesEqualAtomicViewCheck(const long input_length, const long remainder) {
 }
 
 template <class T, class DeviceType>
-bool TimesEqualAtomicViewTest(const long input_length) {
-  const long remainder = 23;
+bool TimesEqualAtomicViewTest(const int64_t input_length) {
+  const int64_t remainder = 23;
   T res       = TimesEqualAtomicView<T, DeviceType>(input_length, remainder);
   T resSerial = TimesEqualAtomicViewCheck<T>(input_length, remainder);
 
@@ -675,15 +677,15 @@ struct DivEqualAtomicViewFunctor {
 
   view_type input;
   atomic_view_type result;
-  const long length;
+  const int64_t length;
 
   // Wrap the result view in an atomic view, use this for operator.
   DivEqualAtomicViewFunctor(const view_type& input_, scalar_view_type& result_,
-                            const long length_)
+                            const int64_t length_)
       : input(input_), result(result_), length(length_) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const long i) const {
+  void operator()(const int64_t i) const {
     if (i < length && i > 0) {
       result() /= (double)(input(i));
     }
@@ -691,12 +693,12 @@ struct DivEqualAtomicViewFunctor {
 };
 
 template <class T, class execution_space>
-T DivEqualAtomicView(const long input_length, const long remainder) {
+T DivEqualAtomicView(const int64_t input_length, const int64_t remainder) {
   typedef Kokkos::View<T*, execution_space> view_type;
   typedef Kokkos::View<T, execution_space> scalar_view_type;
   typedef typename scalar_view_type::HostMirror host_scalar_view_type;
 
-  const long length = input_length;
+  const int64_t length = input_length;
 
   view_type input("input_view", length);
   scalar_view_type result_view("result_view");
@@ -718,10 +720,10 @@ T DivEqualAtomicView(const long input_length, const long remainder) {
 }
 
 template <class T>
-T DivEqualAtomicViewCheck(const long input_length, const long remainder) {
-  const long N = input_length;
-  T result     = 12121212121.0;
-  for (long i = 2; i < N; ++i) {
+T DivEqualAtomicViewCheck(const int64_t input_length, const int64_t remainder) {
+  const int64_t N = input_length;
+  T result        = 12121212121.0;
+  for (int64_t i = 2; i < N; ++i) {
     if (i % (remainder + 1) == remainder) {
       result /= 1.0;
     } else {
@@ -733,8 +735,8 @@ T DivEqualAtomicViewCheck(const long input_length, const long remainder) {
 }
 
 template <class T, class DeviceType>
-bool DivEqualAtomicViewTest(const long input_length) {
-  const long remainder = 23;
+bool DivEqualAtomicViewTest(const int64_t input_length) {
+  const int64_t remainder = 23;
 
   T res       = DivEqualAtomicView<T, DeviceType>(input_length, remainder);
   T resSerial = DivEqualAtomicViewCheck<T>(input_length, remainder);
@@ -766,15 +768,15 @@ struct ModEqualAtomicViewFunctor {
 
   view_type input;
   atomic_view_type result;
-  const long length;
+  const int64_t length;
 
   // Wrap the result view in an atomic view, use this for operator.
   ModEqualAtomicViewFunctor(const view_type& input_, scalar_view_type& result_,
-                            const long length_)
+                            const int64_t length_)
       : input(input_), result(result_), length(length_) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const long i) const {
+  void operator()(const int64_t i) const {
     if (i < length && i > 0) {
       result() %= (double)(input(i));
     }
@@ -782,12 +784,12 @@ struct ModEqualAtomicViewFunctor {
 };
 
 template <class T, class execution_space>
-T ModEqualAtomicView(const long input_length, const long remainder) {
+T ModEqualAtomicView(const int64_t input_length, const int64_t remainder) {
   typedef Kokkos::View<T*, execution_space> view_type;
   typedef Kokkos::View<T, execution_space> scalar_view_type;
   typedef typename scalar_view_type::HostMirror host_scalar_view_type;
 
-  const long length = input_length;
+  const int64_t length = input_length;
 
   view_type input("input_view", length);
   scalar_view_type result_view("result_view");
@@ -809,10 +811,10 @@ T ModEqualAtomicView(const long input_length, const long remainder) {
 }
 
 template <class T>
-T ModEqualAtomicViewCheck(const long input_length, const long remainder) {
-  const long N = input_length;
-  T result     = 12121212121;
-  for (long i = 2; i < N; ++i) {
+T ModEqualAtomicViewCheck(const int64_t input_length, const int64_t remainder) {
+  const int64_t N = input_length;
+  T result        = 12121212121;
+  for (int64_t i = 2; i < N; ++i) {
     if (i % (remainder + 1) == remainder) {
       result %= 1;
     } else {
@@ -824,12 +826,12 @@ T ModEqualAtomicViewCheck(const long input_length, const long remainder) {
 }
 
 template <class T, class DeviceType>
-bool ModEqualAtomicViewTest(const long input_length) {
+bool ModEqualAtomicViewTest(const int64_t input_length) {
   static_assert(std::is_integral<T>::value,
                 "ModEqualAtomicView Error: Type must be integral type for this "
                 "unit test");
 
-  const long remainder = 23;
+  const int64_t remainder = 23;
 
   T res       = ModEqualAtomicView<T, DeviceType>(input_length, remainder);
   T resSerial = ModEqualAtomicViewCheck<T>(input_length, remainder);
@@ -861,16 +863,16 @@ struct RSEqualAtomicViewFunctor {
 
   const view_type input;
   atomic_view_type result;
-  const long length;
-  const long value;
+  const int64_t length;
+  const int64_t value;
 
   // Wrap the result view in an atomic view, use this for operator.
   RSEqualAtomicViewFunctor(const view_type& input_, result_view_type& result_,
-                           const long& length_, const long& value_)
+                           const int64_t& length_, const int64_t& value_)
       : input(input_), result(result_), length(length_), value(value_) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const long i) const {
+  void operator()(const int64_t i) const {
     if (i < length) {
       if (i % 4 == 0) {
         result(1, 0, 0, 0) >>= input(i);
@@ -886,13 +888,13 @@ struct RSEqualAtomicViewFunctor {
 };
 
 template <class T, class execution_space>
-T RSEqualAtomicView(const long input_length, const long value,
-                    const long remainder) {
+T RSEqualAtomicView(const int64_t input_length, const int64_t value,
+                    const int64_t remainder) {
   typedef Kokkos::View<T*, execution_space> view_type;
   typedef Kokkos::View<T****, execution_space> result_view_type;
   typedef typename result_view_type::HostMirror host_scalar_view_type;
 
-  const long length = input_length;
+  const int64_t length = input_length;
 
   view_type input("input_view", length);
   result_view_type result_view("result_view", 2, 2, 2, 2);
@@ -918,8 +920,8 @@ T RSEqualAtomicView(const long input_length, const long value,
 }
 
 template <class T>
-T RSEqualAtomicViewCheck(const long input_length, const long value,
-                         const long remainder) {
+T RSEqualAtomicViewCheck(const int64_t input_length, const int64_t value,
+                         const int64_t remainder) {
   T result[4];
   result[0] = value;
   result[1] = value;
@@ -927,7 +929,7 @@ T RSEqualAtomicViewCheck(const long input_length, const long value,
   result[3] = value;
 
   T* input = new T[input_length];
-  for (long i = 0; i < input_length; ++i) {
+  for (int64_t i = 0; i < input_length; ++i) {
     if (i % (remainder + 1) == remainder) {
       input[i] = 1;
     } else {
@@ -935,7 +937,7 @@ T RSEqualAtomicViewCheck(const long input_length, const long value,
     }
   }
 
-  for (long i = 0; i < input_length; ++i) {
+  for (int64_t i = 0; i < input_length; ++i) {
     if (i % 4 == 0) {
       result[0] >>= input[i];
     } else if (i % 4 == 1) {
@@ -953,12 +955,12 @@ T RSEqualAtomicViewCheck(const long input_length, const long value,
 }
 
 template <class T, class DeviceType>
-bool RSEqualAtomicViewTest(const long input_length) {
+bool RSEqualAtomicViewTest(const int64_t input_length) {
   static_assert(std::is_integral<T>::value,
                 "RSEqualAtomicViewTest: Must be integral type for test");
 
-  const long remainder = 61042;       // prime - 1
-  const long value     = 1073741825;  //  2^30+1
+  const int64_t remainder = 61042;       // prime - 1
+  const int64_t value     = 1073741825;  //  2^30+1
   T res = RSEqualAtomicView<T, DeviceType>(input_length, value, remainder);
   T resSerial = RSEqualAtomicViewCheck<T>(input_length, value, remainder);
 
@@ -989,16 +991,16 @@ struct LSEqualAtomicViewFunctor {
 
   view_type input;
   atomic_view_type result;
-  const long length;
-  const long value;
+  const int64_t length;
+  const int64_t value;
 
   // Wrap the result view in an atomic view, use this for operator.
   LSEqualAtomicViewFunctor(const view_type& input_, result_view_type& result_,
-                           const long& length_, const long& value_)
+                           const int64_t& length_, const int64_t& value_)
       : input(input_), result(result_), length(length_), value(value_) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const long i) const {
+  void operator()(const int64_t i) const {
     if (i < length) {
       if (i % 4 == 0) {
         result(1, 0, 0, 0) <<= input(i);
@@ -1014,13 +1016,13 @@ struct LSEqualAtomicViewFunctor {
 };
 
 template <class T, class execution_space>
-T LSEqualAtomicView(const long input_length, const long value,
-                    const long remainder) {
+T LSEqualAtomicView(const int64_t input_length, const int64_t value,
+                    const int64_t remainder) {
   typedef Kokkos::View<T*, execution_space> view_type;
   typedef Kokkos::View<T****, execution_space> result_view_type;
   typedef typename result_view_type::HostMirror host_scalar_view_type;
 
-  const long length = input_length;
+  const int64_t length = input_length;
 
   view_type input("input_view", length);
   result_view_type result_view("result_view", 2, 2, 2, 2);
@@ -1046,8 +1048,8 @@ T LSEqualAtomicView(const long input_length, const long value,
 }
 
 template <class T>
-T LSEqualAtomicViewCheck(const long input_length, const long value,
-                         const long remainder) {
+T LSEqualAtomicViewCheck(const int64_t input_length, const int64_t value,
+                         const int64_t remainder) {
   T result[4];
   result[0] = value;
   result[1] = value;
@@ -1055,7 +1057,7 @@ T LSEqualAtomicViewCheck(const long input_length, const long value,
   result[3] = value;
 
   T* input = new T[input_length];
-  for (long i = 0; i < input_length; ++i) {
+  for (int64_t i = 0; i < input_length; ++i) {
     if (i % (remainder + 1) == remainder) {
       input[i] = 1;
     } else {
@@ -1063,7 +1065,7 @@ T LSEqualAtomicViewCheck(const long input_length, const long value,
     }
   }
 
-  for (long i = 0; i < input_length; ++i) {
+  for (int64_t i = 0; i < input_length; ++i) {
     if (i % 4 == 0) {
       result[0] <<= input[i];
     } else if (i % 4 == 1) {
@@ -1081,12 +1083,12 @@ T LSEqualAtomicViewCheck(const long input_length, const long value,
 }
 
 template <class T, class DeviceType>
-bool LSEqualAtomicViewTest(const long input_length) {
+bool LSEqualAtomicViewTest(const int64_t input_length) {
   static_assert(std::is_integral<T>::value,
                 "LSEqualAtomicViewTest: Must be integral type for test");
 
-  const long remainder = 61042;  // prime - 1
-  const long value     = 1;      //  2^30+1
+  const int64_t remainder = 61042;  // prime - 1
+  const int64_t value     = 1;      //  2^30+1
   T res = LSEqualAtomicView<T, DeviceType>(input_length, value, remainder);
   T resSerial = LSEqualAtomicViewCheck<T>(input_length, value, remainder);
 
@@ -1116,15 +1118,15 @@ struct AndEqualAtomicViewFunctor {
 
   view_type input;
   atomic_view_type even_odd_result;
-  const long length;
+  const int64_t length;
 
   // Wrap the result view in an atomic view, use this for operator.
   AndEqualAtomicViewFunctor(const view_type& input_,
-                            view_type& even_odd_result_, const long length_)
+                            view_type& even_odd_result_, const int64_t length_)
       : input(input_), even_odd_result(even_odd_result_), length(length_) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const long i) const {
+  void operator()(const int64_t i) const {
     if (i < length) {
       if (i % 2 == 0) {
         even_odd_result(0) &= input(i);
@@ -1136,11 +1138,11 @@ struct AndEqualAtomicViewFunctor {
 };
 
 template <class T, class execution_space>
-T AndEqualAtomicView(const long input_length) {
+T AndEqualAtomicView(const int64_t input_length) {
   typedef Kokkos::View<T*, execution_space> view_type;
   typedef typename view_type::HostMirror host_view_type;
 
-  const long length = input_length;
+  const int64_t length = input_length;
 
   view_type input("input_view", length);
   view_type result_view("result_view", 2);
@@ -1162,10 +1164,10 @@ T AndEqualAtomicView(const long input_length) {
 }
 
 template <class T>
-T AndEqualAtomicViewCheck(const long input_length) {
-  const long N = input_length;
-  T result[2]  = {1};
-  for (long i = 0; i < N; ++i) {
+T AndEqualAtomicViewCheck(const int64_t input_length) {
+  const int64_t N = input_length;
+  T result[2]     = {1};
+  for (int64_t i = 0; i < N; ++i) {
     if (N % 2 == 0) {
       result[0] &= (T)i;
     } else {
@@ -1177,7 +1179,7 @@ T AndEqualAtomicViewCheck(const long input_length) {
 }
 
 template <class T, class DeviceType>
-bool AndEqualAtomicViewTest(long input_length) {
+bool AndEqualAtomicViewTest(int64_t input_length) {
   static_assert(std::is_integral<T>::value,
                 "AndEqualAtomicViewTest: Must be integral type for test");
 
@@ -1210,15 +1212,15 @@ struct OrEqualAtomicViewFunctor {
 
   view_type input;
   atomic_view_type even_odd_result;
-  const long length;
+  const int64_t length;
 
   // Wrap the result view in an atomic view, use this for operator.
   OrEqualAtomicViewFunctor(const view_type& input_, view_type& even_odd_result_,
-                           const long length_)
+                           const int64_t length_)
       : input(input_), even_odd_result(even_odd_result_), length(length_) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const long i) const {
+  void operator()(const int64_t i) const {
     if (i < length) {
       if (i % 2 == 0) {
         even_odd_result(0) |= input(i);
@@ -1230,11 +1232,11 @@ struct OrEqualAtomicViewFunctor {
 };
 
 template <class T, class execution_space>
-T OrEqualAtomicView(const long input_length) {
+T OrEqualAtomicView(const int64_t input_length) {
   typedef Kokkos::View<T*, execution_space> view_type;
   typedef typename view_type::HostMirror host_view_type;
 
-  const long length = input_length;
+  const int64_t length = input_length;
 
   view_type input("input_view", length);
   view_type result_view("result_view", 2);
@@ -1255,10 +1257,10 @@ T OrEqualAtomicView(const long input_length) {
 }
 
 template <class T>
-T OrEqualAtomicViewCheck(const long input_length) {
-  const long N = input_length;
-  T result[2]  = {0};
-  for (long i = 0; i < N; ++i) {
+T OrEqualAtomicViewCheck(const int64_t input_length) {
+  const int64_t N = input_length;
+  T result[2]     = {0};
+  for (int64_t i = 0; i < N; ++i) {
     if (i % 2 == 0) {
       result[0] |= (T)i;
     } else {
@@ -1270,7 +1272,7 @@ T OrEqualAtomicViewCheck(const long input_length) {
 }
 
 template <class T, class DeviceType>
-bool OrEqualAtomicViewTest(long input_length) {
+bool OrEqualAtomicViewTest(int64_t input_length) {
   static_assert(std::is_integral<T>::value,
                 "OrEqualAtomicViewTest: Must be integral type for test");
 
@@ -1303,15 +1305,15 @@ struct XOrEqualAtomicViewFunctor {
 
   view_type input;
   atomic_view_type even_odd_result;
-  const long length;
+  const int64_t length;
 
   // Wrap the result view in an atomic view, use this for operator.
   XOrEqualAtomicViewFunctor(const view_type& input_,
-                            view_type& even_odd_result_, const long length_)
+                            view_type& even_odd_result_, const int64_t length_)
       : input(input_), even_odd_result(even_odd_result_), length(length_) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const long i) const {
+  void operator()(const int64_t i) const {
     if (i < length) {
       if (i % 2 == 0) {
         even_odd_result(0) ^= input(i);
@@ -1323,11 +1325,11 @@ struct XOrEqualAtomicViewFunctor {
 };
 
 template <class T, class execution_space>
-T XOrEqualAtomicView(const long input_length) {
+T XOrEqualAtomicView(const int64_t input_length) {
   typedef Kokkos::View<T*, execution_space> view_type;
   typedef typename view_type::HostMirror host_view_type;
 
-  const long length = input_length;
+  const int64_t length = input_length;
 
   view_type input("input_view", length);
   view_type result_view("result_view", 2);
@@ -1348,10 +1350,10 @@ T XOrEqualAtomicView(const long input_length) {
 }
 
 template <class T>
-T XOrEqualAtomicViewCheck(const long input_length) {
-  const long N = input_length;
-  T result[2]  = {0};
-  for (long i = 0; i < N; ++i) {
+T XOrEqualAtomicViewCheck(const int64_t input_length) {
+  const int64_t N = input_length;
+  T result[2]     = {0};
+  for (int64_t i = 0; i < N; ++i) {
     if (i % 2 == 0) {
       result[0] ^= (T)i;
     } else {
@@ -1363,7 +1365,7 @@ T XOrEqualAtomicViewCheck(const long input_length) {
 }
 
 template <class T, class DeviceType>
-bool XOrEqualAtomicViewTest(long input_length) {
+bool XOrEqualAtomicViewTest(int64_t input_length) {
   static_assert(std::is_integral<T>::value,
                 "XOrEqualAtomicViewTest: Must be integral type for test");
 
@@ -1426,38 +1428,38 @@ bool AtomicViewsTestNonIntegralType(const int length, int test) {
 namespace Test {
 
 TEST(TEST_CATEGORY, atomic_views_integral) {
-  const long length = 1000000;
+  const int64_t length = 1000000;
   {
     // Integral Types.
     ASSERT_TRUE(
-        (TestAtomicViews::AtomicViewsTestIntegralType<long, TEST_EXECSPACE>(
+        (TestAtomicViews::AtomicViewsTestIntegralType<int64_t, TEST_EXECSPACE>(
             length, 1)));
     ASSERT_TRUE(
-        (TestAtomicViews::AtomicViewsTestIntegralType<long, TEST_EXECSPACE>(
+        (TestAtomicViews::AtomicViewsTestIntegralType<int64_t, TEST_EXECSPACE>(
             length, 2)));
     ASSERT_TRUE(
-        (TestAtomicViews::AtomicViewsTestIntegralType<long, TEST_EXECSPACE>(
+        (TestAtomicViews::AtomicViewsTestIntegralType<int64_t, TEST_EXECSPACE>(
             length, 3)));
     ASSERT_TRUE(
-        (TestAtomicViews::AtomicViewsTestIntegralType<long, TEST_EXECSPACE>(
+        (TestAtomicViews::AtomicViewsTestIntegralType<int64_t, TEST_EXECSPACE>(
             length, 4)));
     ASSERT_TRUE(
-        (TestAtomicViews::AtomicViewsTestIntegralType<long, TEST_EXECSPACE>(
+        (TestAtomicViews::AtomicViewsTestIntegralType<int64_t, TEST_EXECSPACE>(
             length, 5)));
     ASSERT_TRUE(
-        (TestAtomicViews::AtomicViewsTestIntegralType<long, TEST_EXECSPACE>(
+        (TestAtomicViews::AtomicViewsTestIntegralType<int64_t, TEST_EXECSPACE>(
             length, 6)));
     ASSERT_TRUE(
-        (TestAtomicViews::AtomicViewsTestIntegralType<long, TEST_EXECSPACE>(
+        (TestAtomicViews::AtomicViewsTestIntegralType<int64_t, TEST_EXECSPACE>(
             length, 7)));
     ASSERT_TRUE(
-        (TestAtomicViews::AtomicViewsTestIntegralType<long, TEST_EXECSPACE>(
+        (TestAtomicViews::AtomicViewsTestIntegralType<int64_t, TEST_EXECSPACE>(
             length, 8)));
   }
 }
 
 TEST(TEST_CATEGORY, atomic_views_nonintegral) {
-  const long length = 1000000;
+  const int64_t length = 1000000;
   {
     // Non-Integral Types.
     ASSERT_TRUE((

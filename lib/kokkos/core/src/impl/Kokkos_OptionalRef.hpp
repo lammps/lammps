@@ -69,17 +69,22 @@ struct OptionalRef {
  public:
   using value_type = T;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   OptionalRef() = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   OptionalRef(OptionalRef const&) = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   OptionalRef(OptionalRef&&) = default;
 
   KOKKOS_INLINE_FUNCTION
-  OptionalRef& operator=(OptionalRef const&) = default;
+  // MSVC requires that this copy constructor is not defaulted
+  // if there exists a (non-defaulted) volatile one.
+  OptionalRef& operator=(OptionalRef const& other) noexcept {
+    m_value = other.m_value;
+    return *this;
+  }
 
   KOKKOS_INLINE_FUNCTION
   // Can't return a reference to volatile OptionalRef, since GCC issues a
@@ -88,10 +93,10 @@ struct OptionalRef {
     m_value = other.m_value;
   }
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   OptionalRef& operator=(OptionalRef&&) = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   ~OptionalRef() = default;
 
   KOKKOS_INLINE_FUNCTION

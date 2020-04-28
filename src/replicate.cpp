@@ -196,6 +196,12 @@ void Replicate::command(int narg, char **arg)
   atom->dihedral_per_atom = old->dihedral_per_atom;
   atom->improper_per_atom = old->improper_per_atom;
 
+  atom->extra_bond_per_atom = old->extra_bond_per_atom;
+  atom->extra_angle_per_atom = old->extra_angle_per_atom;
+  atom->extra_dihedral_per_atom = old->extra_dihedral_per_atom;
+  atom->extra_improper_per_atom = old->extra_improper_per_atom;
+  atom->maxspecial = old->maxspecial;
+
   // store old simulation box
 
   int triclinic = domain->triclinic;

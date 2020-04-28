@@ -112,7 +112,7 @@ struct StaticCrsGraphBalancerFunctor {
         }
       } else {
         if ((count >= (current_block + 1) * cost_per_workset) ||
-            (iRow + 2 == row_offsets.extent(0))) {
+            (iRow + 2 == int_type(row_offsets.extent(0)))) {
           if (end_block > current_block + 1) {
             int_type num_block                   = end_block - current_block;
             row_block_offsets(current_block + 1) = iRow;
@@ -358,8 +358,8 @@ class StaticCrsGraph {
   /**  \brief  Destroy this view of the array.
    *           If the last view then allocated memory is deallocated.
    */
-  KOKKOS_INLINE_FUNCTION
-  ~StaticCrsGraph() {}
+  KOKKOS_DEFAULTED_FUNCTION
+  ~StaticCrsGraph() = default;
 
   /**  \brief  Return number of rows in the graph
    */
@@ -396,7 +396,7 @@ class StaticCrsGraph {
     const data_type count = static_cast<data_type>(row_map(i + 1) - start);
 
     if (count == 0) {
-      return GraphRowViewConst<StaticCrsGraph>(NULL, 1, 0);
+      return GraphRowViewConst<StaticCrsGraph>(nullptr, 1, 0);
     } else {
       return GraphRowViewConst<StaticCrsGraph>(entries, 1, count, start);
     }
@@ -414,9 +414,10 @@ class StaticCrsGraph {
         row_map_type, View<size_type*, array_layout, device_type> >
         partitioner(row_map, block_offsets, fix_cost_per_row, num_blocks);
 
-    Kokkos::parallel_for(Kokkos::RangePolicy<execution_space>(0, numRows()),
+    Kokkos::parallel_for("Kokkos::StaticCrsGraph::create_block_partitioning",
+                         Kokkos::RangePolicy<execution_space>(0, numRows()),
                          partitioner);
-    Kokkos::fence();
+    typename device_type::execution_space().fence();
 
     row_block_offsets = block_offsets;
   }
@@ -522,7 +523,8 @@ DataType maximum_entry(const StaticCrsGraph<DataType, Arg1Type, Arg2Type,
   typedef Impl::StaticCrsGraphMaximumEntry<GraphType> FunctorType;
 
   DataType result = 0;
-  Kokkos::parallel_reduce(graph.entries.extent(0), FunctorType(graph), result);
+  Kokkos::parallel_reduce("Kokkos::maximum_entry", graph.entries.extent(0),
+                          FunctorType(graph), result);
   return result;
 }
 

@@ -58,7 +58,7 @@ struct SumPlain {
   SumPlain(type view_) : view(view_) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(int i, Scalar& val) { val += Scalar(); }
+  void operator()(int /*i*/, Scalar& val) { val += Scalar(); }
 };
 
 template <class Scalar, class ExecutionSpace>
@@ -80,7 +80,7 @@ struct SumInitJoinFinalValueType {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(int i, value_type& val) const { val += value_type(); }
+  void operator()(int /*i*/, value_type& val) const { val += value_type(); }
 };
 
 template <class Scalar, class ExecutionSpace>
@@ -102,7 +102,7 @@ struct SumInitJoinFinalValueType2 {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(int i, value_type& val) const { val += value_type(); }
+  void operator()(int /*i*/, value_type& val) const { val += value_type(); }
 };
 
 template <class Scalar, class ExecutionSpace>
@@ -157,7 +157,7 @@ struct SumWrongInitJoinFinalValueType {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(int i, value_type& val) const { val += value_type(); }
+  void operator()(int /*i*/, value_type& val) const { val += value_type(); }
 };
 
 template <class Scalar, class ExecutionSpace>

@@ -129,8 +129,6 @@ class OpenMPExec {
 
 namespace Kokkos {
 
-inline OpenMP::OpenMP() noexcept {}
-
 inline
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
     bool
@@ -176,20 +174,24 @@ int OpenMP::impl_thread_pool_rank() noexcept
 #endif
 }
 
-inline void OpenMP::impl_static_fence(OpenMP const& instance) noexcept {}
+inline void OpenMP::impl_static_fence(OpenMP const& /*instance*/) noexcept {}
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
 inline void OpenMP::fence(OpenMP const& instance) noexcept {}
 #endif
 
-inline bool OpenMP::is_asynchronous(OpenMP const& instance) noexcept {
+inline bool OpenMP::is_asynchronous(OpenMP const& /*instance*/) noexcept {
   return false;
 }
 
 template <typename F>
 void OpenMP::partition_master(F const& f, int num_partitions,
                               int partition_size) {
-  if (omp_get_nested()) {
+#if _OPENMP >= 201811
+  if (omp_get_max_active_levels() > 1) {
+#else
+  if (omp_get_nested() > 1) {
+#endif
     using Exec = Impl::OpenMPExec;
 
     Exec* prev_instance = Impl::t_openmp_instance;

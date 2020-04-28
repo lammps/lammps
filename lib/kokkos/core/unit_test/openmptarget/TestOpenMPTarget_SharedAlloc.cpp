@@ -47,7 +47,7 @@
 
 namespace Test {
 
-TEST_F(TEST_CATEGORY, impl_shared_alloc) {
+TEST(TEST_CATEGORY, impl_shared_alloc) {
   test_shared_alloc<Kokkos::Experimental::OpenMPTargetSpace,
                     Kokkos::DefaultHostExecutionSpace>();
 }

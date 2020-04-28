@@ -361,6 +361,7 @@ bool Test(int test) {
 
   return passed;
 #else
+  (void)test;
   return true;
 #endif
 }

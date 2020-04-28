@@ -51,6 +51,9 @@
 #ifdef KOKKOS_ENABLE_CUDA
 #include <Cuda/Kokkos_Cuda_abort.hpp>
 #endif
+#ifdef KOKKOS_ENABLE_HIP
+#include <HIP/Kokkos_HIP_Abort.hpp>
+#endif
 
 #ifndef KOKKOS_ABORT_MESSAGE_BUFFER_SIZE
 #define KOKKOS_ABORT_MESSAGE_BUFFER_SIZE 2048
@@ -87,7 +90,9 @@ class RawMemoryAllocationFailure : public std::bad_alloc {
     IntelMMAlloc,
     CudaMalloc,
     CudaMallocManaged,
-    CudaHostAlloc
+    CudaHostAlloc,
+    HIPMalloc,
+    HIPHostMalloc
   };
 
  private:
@@ -124,7 +129,7 @@ class RawMemoryAllocationFailure : public std::bad_alloc {
   const char *what() const noexcept override {
     if (m_failure_mode == FailureMode::OutOfMemoryError) {
       return "Memory allocation error: out of memory";
-    } else if (m_failure_mode == FailureMode::OutOfMemoryError) {
+    } else if (m_failure_mode == FailureMode::AllocationNotAligned) {
       return "Memory allocation error: allocation result was under-aligned";
     }
 
@@ -164,10 +169,10 @@ KOKKOS_INLINE_FUNCTION
 void abort(const char *const message) {
 #if defined(KOKKOS_ENABLE_CUDA) && defined(__CUDA_ARCH__)
   Kokkos::Impl::cuda_abort(message);
-#else
-#if !defined(KOKKOS_ENABLE_OPENMPTARGET) && !defined(__HCC_ACCELERATOR__)
+#elif defined(KOKKOS_ENABLE_HIP) && defined(__HIP_DEVICE_COMPILE__)
+  Kokkos::Impl::hip_abort(message);
+#elif !defined(KOKKOS_ENABLE_OPENMPTARGET) && !defined(__HCC_ACCELERATOR__)
   Kokkos::Impl::host_abort(message);
-#endif
 #endif
 }
 

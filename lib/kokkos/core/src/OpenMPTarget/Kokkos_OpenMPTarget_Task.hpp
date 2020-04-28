@@ -113,7 +113,7 @@ class TaskExec<Kokkos::Experimental::OpenMPTarget> {
  public:
 #if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
   void* team_shared() const {
-    return m_team_exec ? m_team_exec->scratch_thread() : (void*)0;
+    return m_team_exec ? m_team_exec->scratch_thread() : nullptr;
   }
 
   int team_shared_size() const {

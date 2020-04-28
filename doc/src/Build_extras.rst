@@ -320,11 +320,12 @@ to have an executable that will run on this and newer architectures.
 
 .. note::
 
-   NVIDIA GPUs with CC 5.0 (Maxwell) and newer are not compatible with
-   CC 3.x (Kepler).  If you run Kokkos on a newer architecture than what
-   LAMMPS was compiled with, there will be a significant delay during
-   device initialization since the just-in-time compiler has to
-   recompile the GPU kernel code for the new hardware.
+   If you run Kokkos on a newer GPU architecture than what LAMMPS was
+   compiled with, there will be a delay during device initialization
+   since the just-in-time compiler has to recompile all GPU kernels
+   for the new hardware.  This is, however, not possible when compiled
+   for NVIDIA GPUs with CC 3.x (Kepler) for GPUs with CC 5.0 (Maxwell)
+   and newer as they are not compatible.
 
 The settings discussed below have been tested with LAMMPS and are
 confirmed to work.  Kokkos is an active project with ongoing improvements
@@ -343,73 +344,109 @@ be specified in uppercase.
    :widths: auto
 
    *  - **Arch-ID**
+      - **HOST or GPU**
       - **Description**
    *  - AMDAVX
+      - HOST
       - AMD 64-bit x86 CPU (AVX 1)
    *  - EPYC
+      - HOST
       - AMD EPYC Zen class CPU (AVX 2)
    *  - ARMV80
+      - HOST
       - ARMv8.0 Compatible CPU
    *  - ARMV81
+      - HOST
       - ARMv8.1 Compatible CPU
    *  - ARMV8_THUNDERX
+      - HOST
       - ARMv8 Cavium ThunderX CPU
    *  - ARMV8_THUNDERX2
+      - HOST
       - ARMv8 Cavium ThunderX2 CPU
    *  - WSM
+      - HOST
       - Intel Westmere CPU (SSE 4.2)
    *  - SNB
+      - HOST
       - Intel Sandy/Ivy Bridge CPU (AVX 1)
    *  - HSW
+      - HOST
       - Intel Haswell CPU (AVX 2)
    *  - BDW
+      - HOST
       - Intel Broadwell Xeon E-class CPU (AVX 2 + transactional mem)
    *  - SKX
+      - HOST
       - Intel Sky Lake Xeon E-class HPC CPU (AVX512 + transactional mem)
    *  - KNC
+      - HOST
       - Intel Knights Corner Xeon Phi
    *  - KNL
+      - HOST
       - Intel Knights Landing Xeon Phi
    *  - BGQ
+      - HOST
       - IBM Blue Gene/Q CPU
    *  - POWER7
-      - IBM POWER8 CPU
+      - HOST
+      - IBM POWER7 CPU
    *  - POWER8
+      - HOST
       - IBM POWER8 CPU
    *  - POWER9
+      - HOST
       - IBM POWER9 CPU
    *  - KEPLER30
+      - GPU
       - NVIDIA Kepler generation CC 3.0 GPU
    *  - KEPLER32
+      - GPU
       - NVIDIA Kepler generation CC 3.2 GPU
    *  - KEPLER35
+      - GPU
       - NVIDIA Kepler generation CC 3.5 GPU
    *  - KEPLER37
+      - GPU
       - NVIDIA Kepler generation CC 3.7 GPU
    *  - MAXWELL50
+      - GPU
       - NVIDIA Maxwell generation CC 5.0 GPU
    *  - MAXWELL52
+      - GPU
       - NVIDIA Maxwell generation CC 5.2 GPU
    *  - MAXWELL53
+      - GPU
       - NVIDIA Maxwell generation CC 5.3 GPU
    *  - PASCAL60
+      - GPU
       - NVIDIA Pascal generation CC 6.0 GPU
    *  - PASCAL61
+      - GPU
       - NVIDIA Pascal generation CC 6.1 GPU
    *  - VOLTA70
+      - GPU
       - NVIDIA Volta generation CC 7.0 GPU
    *  - VOLTA72
+      - GPU
       - NVIDIA Volta generation CC 7.2 GPU
    *  - TURING75
+      - GPU
       - NVIDIA Turing generation CC 7.5 GPU
+   *  - VEGA900
+      - GPU
+      - AMD GPU MI25 GFX900
+   *  - VEGA906
+      - GPU
+      - AMD GPU MI50/MI60 GFX906
 
-CMake build settings:
-^^^^^^^^^^^^^^^^^^^^^
+Basic CMake build settings:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 For multicore CPUs using OpenMP, set these 2 variables.
 
 .. code-block:: bash
 
-   -D Kokkos_ARCH_CPUARCH=yes  # CPUARCH = CPU from list above
+   -D Kokkos_ARCH_HOSTARCH=yes  # HOSTARCH = HOST from list above
    -D Kokkos_ENABLE_OPENMP=yes
    -D BUILD_OMP=yes
 
@@ -427,15 +464,19 @@ For NVIDIA GPUs using CUDA, set these variables:
 
 .. code-block:: bash
 
-   -D Kokkos_ARCH_CPUARCH=yes    # CPUARCH = CPU from list above
+   -D Kokkos_ARCH_HOSTARCH=yes   # HOSTARCH = HOST from list above
    -D Kokkos_ARCH_GPUARCH=yes    # GPUARCH = GPU from list above
    -D Kokkos_ENABLE_CUDA=yes
    -D Kokkos_ENABLE_OPENMP=yes
    -D CMAKE_CXX_COMPILER=wrapper # wrapper = full path to Cuda nvcc wrapper
 
-The wrapper value is the Cuda nvcc compiler wrapper provided in the
-Kokkos library: ``lib/kokkos/bin/nvcc_wrapper``\ .  The setting should
-include the full path name to the wrapper, e.g.
+This will also enable executing FFTs on the GPU, either via the internal
+KISSFFT library, or - by preference - with the cuFFT library bundled
+with the CUDA toolkit, depending on whether CMake can identify its
+location.  The *wrapper* value for ``CMAKE_CXX_COMPILER`` variable is
+the path to the CUDA nvcc compiler wrapper provided in the Kokkos
+library: ``lib/kokkos/bin/nvcc_wrapper``\ .  The setting should include
+the full path name to the wrapper, e.g.
 
 .. code-block:: bash
 
@@ -455,8 +496,8 @@ common packages enabled, you can do the following:
    cmake -C ../cmake/presets/minimal.cmake -C ../cmake/presets/kokkos-cuda.cmake ../cmake
    cmake --build .
 
-Traditional make settings:
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Basic traditional make settings:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Choose which hardware to support in ``Makefile.machine`` via
 ``KOKKOS_DEVICES`` and ``KOKKOS_ARCH`` settings.  See the
@@ -467,7 +508,7 @@ For multicore CPUs using OpenMP:
 .. code-block:: make
 
    KOKKOS_DEVICES = OpenMP
-   KOKKOS_ARCH = CPUARCH          # CPUARCH = CPU from list above
+   KOKKOS_ARCH = HOSTARCH          # HOSTARCH = HOST from list above
 
 For Intel KNLs using OpenMP:
 
@@ -481,7 +522,8 @@ For NVIDIA GPUs using CUDA:
 .. code-block:: make
 
    KOKKOS_DEVICES = Cuda
-   KOKKOS_ARCH = CPUARCH,GPUARCH  # CPUARCH = CPU from list above that is hosting the GPU
+   KOKKOS_ARCH = HOSTARCH,GPUARCH  # HOSTARCH = HOST from list above that is hosting the GPU
+   KOKKOS_CUDA_OPTIONS = "enable_lambda"
                                   # GPUARCH = GPU from list above
    FFT_INC = -DFFT_CUFFT          # enable use of cuFFT (optional)
    FFT_LIB = -lcufft              # link to cuFFT library
@@ -503,6 +545,44 @@ C++ compiler for non-Kokkos, non-CUDA files.
    # For MPICH and derivatives
    KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
    CC = mpicxx -cxx=$(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
+
+
+Advanced KOKKOS compilation settings
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+There are other allowed options when building with the KOKKOS package
+that can improve performance or assist in debugging or profiling. Below
+are some examples that may be useful in combination with LAMMPS.  For
+the full list (which keeps changing as the Kokkos package itself evolves),
+please consult the Kokkos library documentation.
+
+As alternative to using multi-threading via OpenMP
+(``-DKokkos_ENABLE_OPENMP=on`` or ``KOKKOS_DEVICES=OpenMP``) it is also
+possible to use Posix threads directly (``-DKokkos_ENABLE_PTHREAD=on``
+or ``KOKKOS_DEVICES=Pthread``).  While binding of threads to individual
+or groups of CPU cores is managed in OpenMP with environment variables,
+you need assistance from either the "hwloc" or "libnuma" library for the
+Pthread thread parallelization option. To enable use with CMake:
+``-DKokkos_ENABLE_HWLOC=on`` or ``-DKokkos_ENABLE_LIBNUMA=on``; and with
+conventional make: ``KOKKOS_USE_TPLS=hwloc`` or
+``KOKKOS_USE_TPLS=libnuma``.
+
+The CMake option ``-DKokkos_ENABLE_LIBRT=on`` or the makefile setting
+``KOKKOS_USE_TPLS=librt`` enables the use of a more accurate timer
+mechanism on many Unix-like platforms for internal profiling.
+
+The CMake option ``-DKokkos_ENABLE_DEBUG=on`` or the makefile setting
+``KOKKOS_DEBUG=yes`` enables printing of run-time
+debugging information that can be useful. It also enables runtime
+bounds checking on Kokkos data structures.  As to be expected, enabling
+this option will negatively impact the performance and thus is only
+recommended when developing a Kokkos-enabled style in LAMMPS.
+
+The CMake option ``-DKokkos_ENABLE_CUDA_UVM=on`` or the makefile
+setting ``KOKKOS_CUDA_OPTIONS=enable_lambda,force_uvm`` enables the
+use of CUDA "Unified Virtual Memory" in Kokkos.  Please note, that
+the LAMMPS KOKKOS package must **always** be compiled with the
+*enable_lambda* option when using GPUs.
 
 ----------
 

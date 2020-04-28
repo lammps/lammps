@@ -152,14 +152,12 @@ void PairReaxCKokkos<DeviceType>::init_style()
   neighbor->requests[irequest]->
     kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
 
-  if (neighflag == FULL) {
-    error->all(FLERR,"Must use half neighbor list with pair style reax/c/kk");
-  } else if (neighflag == HALF || neighflag == HALFTHREAD) {
+  if (neighflag == HALF || neighflag == HALFTHREAD) {
     neighbor->requests[irequest]->full = 0;
     neighbor->requests[irequest]->half = 1;
     neighbor->requests[irequest]->ghost = 1;
   } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with reax/c/kk");
+    error->all(FLERR,"Must use half neighbor list with pair style reax/c/kk");
   }
 
   allocate();

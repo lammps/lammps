@@ -3190,9 +3190,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond1<NEIGHFLAG,EVFL
     const F_FLOAT eng_tmp = ebond + estriph;
     if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,j,eng_tmp);
   }
-  printf("Start BOND1\n");
   a_CdDelta[i] += CdDelta_i;
-  printf("DONE BOND1\n");
 }
 
 template<class DeviceType>

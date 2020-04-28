@@ -378,9 +378,9 @@ change some variables later with additional *-D* flags.  A few examples:
 
 .. code-block:: bash
 
-   cmake -C ../cmake/preset/minimal.cmake -D PKG_MISC=on ../cmake
-   cmake -C ../cmake/preset/clang.cmake -C ../cmake/preset/most.cmake ../cmake
-   cmake -C ../cmake/preset/minimal.cmake -D BUILD_MPI=off ../cmake
+   cmake -C ../cmake/presets/minimal.cmake -D PKG_MISC=on ../cmake
+   cmake -C ../cmake/presets/clang.cmake -C ../cmake/presets/most.cmake ../cmake
+   cmake -C ../cmake/presets/minimal.cmake -D BUILD_MPI=off ../cmake
 
 The first command will install the packages ``KSPACE``, ``MANYBODY``,
 ``MOLECULE``, ``RIGID`` and ``MISC``; the first four from the preset
@@ -396,7 +396,7 @@ It is also possible to do this incrementally.
 
 .. code-block:: bash
 
-   cmake -C ../cmake/preset/minimal.cmake ../cmake
+   cmake -C ../cmake/presets/minimal.cmake ../cmake
    cmake -D PKG_MISC=on .
 
 will achieve the same configuration like in the first example above.  In

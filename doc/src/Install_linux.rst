@@ -71,9 +71,12 @@ To get a copy of the current potentials files:
    $ sudo apt-get install lammps-daily-data
 
 which will download the potentials files to
-``/usr/share/lammps-daily/potentials``
+``/usr/share/lammps-daily/potentials``.  The ``lmp_daily`` binary is
+hard-coded to look for potential files in this directory (it does not
+use the `LAMMPS_POTENTIALS` environment variable, as described
+in :doc:`pair_coeff <pair_coeff>` command).
 
-The LAMMPS binary is built with the :ref:`KIM package <kim>` which
+The ``lmp_daily`` binary is built with the :ref:`KIM package <kim>` which
 results in the above command also installing the `kim-api` binaries when LAMMPS
 is installed.  In order to use potentials from `openkim.org <openkim_>`_, you
 can install the `openkim-models` package

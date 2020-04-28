@@ -39,7 +39,7 @@ To install LAMMPS do the following once:
 
    $ sudo apt-get install lammps-daily
 
-This downloads an executable named "lmp_daily" to your box, which
+This downloads an executable named ``lmp_daily`` to your box, which
 can then be used in the usual way to run input scripts:
 
 .. code-block:: bash
@@ -61,18 +61,17 @@ To get a copy of the current documentation and examples:
    $ sudo apt-get install lammps-daily-doc
 
 which will download the doc files in
-/usr/share/doc/lammps-daily-doc/doc and example problems in
-/usr/share/doc/lammps-doc/examples.
+``/usr/share/doc/lammps-daily-doc/doc`` and example problems in
+``/usr/share/doc/lammps-doc/examples``.
 
-To get a copy of the current potentials files
-To un-install LAMMPS, do the following:
+To get a copy of the current potentials files:
 
 .. code-block:: bash
 
    $ sudo apt-get install lammps-daily-data
 
-which will download the potentials files in
-/usr/share/lammps-daily/potentials.
+which will download the potentials files to
+``/usr/share/lammps-daily/potentials``
 
 The LAMMPS binary is built with the :ref:`KIM package <kim>` which
 results in the above command also installing the `kim-api` binaries when LAMMPS
@@ -89,7 +88,7 @@ To un-install LAMMPS, do the following:
 
    $ sudo apt-get remove lammps-daily
 
-Please use "lmp_daily -help" to see which compilation options, packages,
+Please use ``lmp_daily -help`` to see which compilation options, packages,
 and styles are included in the binary.
 
 Thanks to Anton Gladky (gladky.anton at gmail.com) for setting up this
@@ -111,14 +110,14 @@ linking to the C library interface (lammps-devel, lammps-mpich-devel,
 lammps-openmpi-devel), the header for compiling programs using
 the C library interface (lammps-headers), and the LAMMPS python
 module for Python 3. All packages can be installed at the same
-time and the name of the LAMMPS executable is *lmp* and *lmp_openmpi*
-or *lmp_mpich* respectively.  By default, *lmp* will refer to the
+time and the name of the LAMMPS executable is ``lmp`` and ``lmp_openmpi``
+or ``lmp_mpich`` respectively.  By default, ``lmp`` will refer to the
 serial executable, unless one of the MPI environment modules is loaded
-("module load mpi/mpich-x86_64" or "module load mpi/openmpi-x86_64").
+(``module load mpi/mpich-x86_64`` or ``module load mpi/openmpi-x86_64``).
 Then the corresponding parallel LAMMPS executable can be used.
 The same mechanism applies when loading the LAMMPS python module.
 
-To install LAMMPS with OpenMPI and run an input in.lj with 2 CPUs do:
+To install LAMMPS with OpenMPI and run an input ``in.lj`` with 2 CPUs do:
 
 .. code-block:: bash
 
@@ -126,10 +125,10 @@ To install LAMMPS with OpenMPI and run an input in.lj with 2 CPUs do:
    $ module load mpi/openmpi-x86_64
    $ mpirun -np 2 lmp -in in.lj
 
-The "dnf install" command is needed only once. In case of a new LAMMPS
-stable release, "dnf update" will automatically update to the newer
+The ``dnf install`` command is needed only once. In case of a new LAMMPS
+stable release, ``dnf update`` will automatically update to the newer
 version as soon at the RPM files are built and uploaded to the download
-mirrors. The "module load" command is needed once per (shell) session
+mirrors. The ``module load`` command is needed once per (shell) session
 or shell terminal instance, unless it is automatically loaded from the
 shell profile.
 
@@ -142,7 +141,7 @@ can install the `openkim-models` package
 
    $ dnf install openkim-models
 
-Please use "lmp -help" to see which compilation options, packages,
+Please use ``lmp -help`` to see which compilation options, packages,
 and styles are included in the binary.
 
 Thanks to Christoph Junghans (LANL) for making LAMMPS available in Fedora.
@@ -161,10 +160,10 @@ in the `Extra Packages for Enterprise Linux (EPEL) repository <https://fedorapro
 for use with Red Hat Enterprise Linux (RHEL) or CentOS version 7.x
 and compatible Linux distributions. Names of packages, executable,
 and content are the same as described above for Fedora Linux.
-But RHEL/CentOS 7.x uses the "yum" package manager instead of "dnf"
+But RHEL/CentOS 7.x uses the ``yum`` package manager instead of ``dnf``
 in Fedora 28.
 
-Please use "lmp -help" to see which compilation options, packages,
+Please use ``lmp -help`` to see which compilation options, packages,
 and styles are included in the binary.
 
 Thanks to Christoph Junghans (LANL) for making LAMMPS available in EPEL.
@@ -184,13 +183,13 @@ in OpenSuse as of Leap 15.0. You can install the package with:
    $ zypper install lammps
 
 This includes support for OpenMPI. The name of the LAMMPS executable
-is *lmp*\ . Thus to run an input in parallel on 2 CPUs you would do:
+is ``lmp``. Thus to run an input in parallel on 2 CPUs you would do:
 
 .. code-block:: bash
 
    $ mpirun -np 2 lmp -in in.lj
 
-Please use "lmp -help" to see which compilation options, packages,
+Please use ``lmp -help`` to see which compilation options, packages,
 and styles are included in the binary.
 
 The LAMMPS binary is built with the :ref:`KIM package <kim>` which

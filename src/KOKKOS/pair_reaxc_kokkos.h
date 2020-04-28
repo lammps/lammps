@@ -64,9 +64,6 @@ struct PairReaxBuildListsFull{};
 template<int NEIGHFLAG>
 struct PairReaxBuildListsHalf{};
 
-template<int NEIGHFLAG>
-struct PairReaxBuildListsHalf_LessAtomics{};
-
 struct PairReaxZero{};
 
 struct PairReaxZeroEAtom{};
@@ -74,8 +71,6 @@ struct PairReaxZeroEAtom{};
 struct PairReaxZeroVAtom{};
 
 struct PairReaxBondOrder1{};
-
-struct PairReaxBondOrder1_LessAtomics{};
 
 struct PairReaxBondOrder2{};
 
@@ -164,10 +159,6 @@ class PairReaxCKokkos : public PairReaxC {
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxBuildListsHalf<NEIGHFLAG>, const int&) const;
 
-  template<int NEIGHFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxBuildListsHalf_LessAtomics<NEIGHFLAG>, const int&) const;
-
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxZero, const int&) const;
 
@@ -179,9 +170,6 @@ class PairReaxCKokkos : public PairReaxC {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxBondOrder1, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxBondOrder1_LessAtomics, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxBondOrder2, const int&) const;

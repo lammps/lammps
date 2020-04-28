@@ -20,14 +20,14 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   fix 1 all accelerate/cos 0.02E-5
+   fix 1 all accelerate/cos 0.02e-5
 
 Description
 """""""""""
 
-Give each atom a acceleration in x-direciton based on its z coordinate.
+Give each atom a acceleration in x-direction based on its z coordinate.
 The acceleration is a periodic function along the z-direction:
 
 .. math::
@@ -61,7 +61,7 @@ x-component velocity and z coordinate of a particle.
 
 The velocity amplitude :math:`V` can be calculated with :doc:`compute viscosity/cos <compute_viscosity_cos>`,
 which enables viscosity calculation with periodic perturbation method,
-as described by :ref:`Hess<Hess>`.
+as described by :ref:`Hess<Hess2>`.
 Because the applied acceleration drives the system away from equilibration,
 the calculated shear viscosity is lower than the intrinsic viscosity
 due to the shear-thinning effect.
@@ -72,11 +72,9 @@ the simulation time must be extended accordingly to get converged result.
 
 In order to get meaningful result, the group ID of this fix should be all.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to binary restart files.
 None of the fix_modify options are relevant to this fix.
@@ -98,9 +96,8 @@ Default
 """""""
  none
 
-
 ----------
 
-.. _Hess:
+.. _Hess2:
 
-**(Hess)** Hess, B. The Journal of Chemical Physics 2002, 116 (1), 209–217.
+**(Hess)** Hess, B. The Journal of Chemical Physics 2002, 116 (1), 209-217.

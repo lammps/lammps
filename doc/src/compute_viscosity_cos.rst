@@ -19,7 +19,7 @@ Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute  cos all viscosity/cos
    variable V equal c_cos[7]
@@ -39,7 +39,7 @@ e.g. :doc:`thermo_modify <thermo_modify>`, :doc:`fix npt <fix_nh>`, etc.
 
 This command together with :doc:`fix_accelerate/cos<fix_accelerate_cos>`
 enables viscosity calculation with periodic perturbation method,
-as described by :ref:`Hess<Hess>`.
+as described by :ref:`Hess<Hess1>`.
 An acceleration along the x-direction is applied to the simulation system
 by using :doc:`fix_accelerate/cos<fix_accelerate_cos>` command.
 The acceleration is a periodic function along the z-direction:
@@ -112,9 +112,7 @@ See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
-
 ----------
-
 
 **Output info:**
 
@@ -149,9 +147,8 @@ Default
 """""""
  none
 
-
 ----------
 
-.. _Hess:
+.. _Hess1:
 
-**(Hess)** Hess, B. The Journal of Chemical Physics 2002, 116 (1), 209–217.
+**(Hess)** Hess, B. The Journal of Chemical Physics 2002, 116 (1), 209-217.

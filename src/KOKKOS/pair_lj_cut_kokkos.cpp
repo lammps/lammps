@@ -85,6 +85,7 @@ void PairLJCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   ev_init(eflag,vflag,0);
 
   // reallocate per-atom arrays if necessary
+  //
 
   if (eflag_atom) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
@@ -241,9 +242,6 @@ void PairLJCutKokkos<DeviceType>::init_style()
   } else if (neighflag == HALF || neighflag == HALFTHREAD) {
     neighbor->requests[irequest]->full = 0;
     neighbor->requests[irequest]->half = 1;
-  } else if (neighflag == N2) {
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 0;
   } else {
     error->all(FLERR,"Cannot use chosen neighbor list style with lj/cut/kk");
   }

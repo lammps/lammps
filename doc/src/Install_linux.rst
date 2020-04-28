@@ -24,12 +24,13 @@ allows you to install LAMMPS with a single command, and stay
 up-to-date with the current version of LAMMPS by simply updating your
 operating system.
 
-To install the appropriate personal-package archive (PPA), do the
+To install the appropriate personal-package archives (PPAs), do the
 following once:
 
 .. code-block:: bash
 
    $ sudo add-apt-repository ppa:gladky-anton/lammps
+   $ sudo add-apt-repository ppa:openkim/latest
    $ sudo apt-get update
 
 To install LAMMPS do the following once:
@@ -63,8 +64,24 @@ which will download the doc files in
 /usr/share/doc/lammps-daily-doc/doc and example problems in
 /usr/share/doc/lammps-doc/examples.
 
-Note that you may still wish to download the tarball to get potential
-files and auxiliary tools.
+To get a copy of the current potentials files
+To un-install LAMMPS, do the following:
+
+.. code-block:: bash
+
+   $ sudo apt-get install lammps-daily-data
+
+which will download the potentials files in
+/usr/share/lammps-daily/potentials.
+
+The LAMMPS binary is built with the :ref:`KIM package <kim>` which
+results in the above command also installing the `kim-api` binaries when LAMMPS
+is installed.  In order to use potentials from `openkim.org <openkim_>`_, you
+can install the `openkim-models` package
+
+.. code-block:: bash
+
+   $ sudo apt-get install openkim-models
 
 To un-install LAMMPS, do the following:
 
@@ -72,17 +89,8 @@ To un-install LAMMPS, do the following:
 
    $ sudo apt-get remove lammps-daily
 
-Note that the lammps-daily executable is built with the following
-sequence of make commands, as if you had done the same with the
-unpacked tarball files in the src directory:
-
-.. code-block:: bash
-
-    $ make yes-all
-    $ make no-lib
-    $ make mpi
-
-Thus it builds with FFTW3 and OpenMPI.
+Please use "lmp_daily -help" to see which compilation options, packages,
+and styles are included in the binary.
 
 Thanks to Anton Gladky (gladky.anton at gmail.com) for setting up this
 Ubuntu package capability.

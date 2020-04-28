@@ -97,7 +97,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_stencil_info()
   NPair::copy_stencil_info();
   nstencil = ns->nstencil;
 
-  if (neighbor->last_setup_bins == update->ntimestep) {
+  if (ns->last_stencil == update->ntimestep) {
     // copy stencil to device as it may have changed
 
     int maxstencil = ns->get_maxstencil();

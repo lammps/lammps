@@ -55,12 +55,6 @@ From: nvidia/cuda:10.2-devel-ubuntu18.04
         python3-virtualenv \
         rsync \
         ssh \
-        texlive \
-        texlive-latex-recommended \
-        texlive-pictures \
-        texlive-publishers \
-        texlive-science \
-        dvipng \
         vim-nox \
         virtualenv \
         voro++-dev \

@@ -201,9 +201,9 @@ class UnorderedMapInsertResult {
 ///
 template <typename Key, typename Value,
           typename Device = Kokkos::DefaultExecutionSpace,
-          typename Hasher = pod_hash<typename Impl::remove_const<Key>::type>,
+          typename Hasher = pod_hash<typename std::remove_const<Key>::type>,
           typename EqualTo =
-              pod_equal_to<typename Impl::remove_const<Key>::type> >
+              pod_equal_to<typename std::remove_const<Key>::type> >
 class UnorderedMap {
  private:
   typedef typename ViewTraits<Key, Device, void, void>::host_mirror_space
@@ -215,13 +215,13 @@ class UnorderedMap {
 
   // key_types
   typedef Key declared_key_type;
-  typedef typename Impl::remove_const<declared_key_type>::type key_type;
-  typedef typename Impl::add_const<key_type>::type const_key_type;
+  typedef typename std::remove_const<declared_key_type>::type key_type;
+  typedef typename std::add_const<key_type>::type const_key_type;
 
   // value_types
   typedef Value declared_value_type;
-  typedef typename Impl::remove_const<declared_value_type>::type value_type;
-  typedef typename Impl::add_const<value_type>::type const_value_type;
+  typedef typename std::remove_const<declared_value_type>::type value_type;
+  typedef typename std::add_const<value_type>::type const_value_type;
 
   typedef Device device_type;
   typedef typename Device::execution_space execution_space;
@@ -296,25 +296,13 @@ class UnorderedMap {
   //! \name Public member functions
   //@{
 
-  UnorderedMap()
-      : m_bounded_insert(),
-        m_hasher(),
-        m_equal_to(),
-        m_size(),
-        m_available_indexes(),
-        m_hash_lists(),
-        m_next_index(),
-        m_keys(),
-        m_values(),
-        m_scalars() {}
-
   /// \brief Constructor
   ///
   /// \param capacity_hint [in] Initial guess of how many unique keys will be
   /// inserted into the map \param hash [in] Hasher function for \c Key
   /// instances.  The
   ///   default value usually suffices.
-  UnorderedMap(size_type capacity_hint, hasher_type hasher = hasher_type(),
+  UnorderedMap(size_type capacity_hint = 0, hasher_type hasher = hasher_type(),
                equal_to_type equal_to = equal_to_type())
       : m_bounded_insert(true),
         m_hasher(hasher),
@@ -689,7 +677,7 @@ class UnorderedMap {
   template <typename SKey, typename SValue>
   UnorderedMap(
       UnorderedMap<SKey, SValue, Device, Hasher, EqualTo> const &src,
-      typename Impl::enable_if<
+      typename std::enable_if<
           Impl::UnorderedMapCanAssign<declared_key_type, declared_value_type,
                                       SKey, SValue>::value,
           int>::type = 0)
@@ -705,7 +693,7 @@ class UnorderedMap {
         m_scalars(src.m_scalars) {}
 
   template <typename SKey, typename SValue>
-  typename Impl::enable_if<
+  typename std::enable_if<
       Impl::UnorderedMapCanAssign<declared_key_type, declared_value_type, SKey,
                                   SValue>::value,
       declared_map_type &>::type
@@ -724,9 +712,9 @@ class UnorderedMap {
   }
 
   template <typename SKey, typename SValue, typename SDevice>
-  typename Impl::enable_if<
-      std::is_same<typename Impl::remove_const<SKey>::type, key_type>::value &&
-      std::is_same<typename Impl::remove_const<SValue>::type,
+  typename std::enable_if<
+      std::is_same<typename std::remove_const<SKey>::type, key_type>::value &&
+      std::is_same<typename std::remove_const<SValue>::type,
                    value_type>::value>::type
   create_copy_view(
       UnorderedMap<SKey, SValue, SDevice, Hasher, EqualTo> const &src) {

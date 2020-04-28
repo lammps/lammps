@@ -69,7 +69,10 @@ struct InvNorm2 : public Kokkos::DotSingle<VectorView> {
 
   KOKKOS_INLINE_FUNCTION
   void final(value_type& result) const {
-    result = std::sqrt(result);
+#ifndef KOKKOS_ENABLE_HIP  // FIXME_HIP
+    using std::sqrt;
+#endif
+    result = sqrt(result);
     Rjj()  = result;
     inv()  = (0 < result) ? 1.0 / result : 0;
   }

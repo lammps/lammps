@@ -256,7 +256,6 @@ struct TestMDRange_2D {
 
   static void test_reduce2(const int N0, const int N1) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
     {
       typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
                                              Kokkos::IndexType<int> >
@@ -269,13 +268,12 @@ struct TestMDRange_2D {
       double sum = 0.0;
       parallel_reduce(
           range,
-          KOKKOS_LAMBDA(const int i, const int j, double &lsum) {
+          KOKKOS_LAMBDA(const int /*i*/, const int /*j*/, double &lsum) {
             lsum += 1.0;
           },
           sum);
       ASSERT_EQ(sum, N0 * N1);
     }
-#endif
 #endif
 
     {
@@ -361,7 +359,6 @@ struct TestMDRange_2D {
     }
     // Test Min reducer with lambda
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
     {
       typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
                                              Kokkos::IndexType<int> >
@@ -387,7 +384,6 @@ struct TestMDRange_2D {
 
       ASSERT_EQ(min, 4.0);
     }
-#endif
 #endif
     // Tagged operator test
     {
@@ -532,7 +528,6 @@ struct TestMDRange_2D {
 
   static void test_for2(const int N0, const int N1) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
     {
       typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
                                              Kokkos::IndexType<int> >
@@ -571,7 +566,6 @@ struct TestMDRange_2D {
 
       ASSERT_EQ(counter, 0);
     }
-#endif
 #endif
 
     {
@@ -909,7 +903,6 @@ struct TestMDRange_3D {
 
   static void test_reduce3(const int N0, const int N1, const int N2) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
     {
       typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
                                              Kokkos::IndexType<int> >
@@ -922,13 +915,11 @@ struct TestMDRange_3D {
       double sum = 0.0;
       parallel_reduce(
           range,
-          KOKKOS_LAMBDA(const int i, const int j, const int k, double &lsum) {
-            lsum += 1.0;
-          },
+          KOKKOS_LAMBDA(const int /*i*/, const int /*j*/, const int /*k*/,
+                        double &lsum) { lsum += 1.0; },
           sum);
       ASSERT_EQ(sum, N0 * N1 * N2);
     }
-#endif
 #endif
 
     {
@@ -1013,7 +1004,6 @@ struct TestMDRange_3D {
     }
     // Test Min reducer with lambda
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
     {
       typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
                                              Kokkos::IndexType<int> >
@@ -1046,7 +1036,6 @@ struct TestMDRange_3D {
         ASSERT_EQ(min, min_identity);
       }
     }
-#endif
 #endif
 
     // Tagged operator test
@@ -1193,7 +1182,6 @@ struct TestMDRange_3D {
 
   static void test_for3(const int N0, const int N1, const int N2) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
     {
       typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
                                              Kokkos::IndexType<int> >
@@ -1236,7 +1224,6 @@ struct TestMDRange_3D {
 
       ASSERT_EQ(counter, 0);
     }
-#endif
 #endif
 
     {
@@ -1549,7 +1536,6 @@ struct TestMDRange_4D {
   static void test_reduce4(const int N0, const int N1, const int N2,
                            const int N3) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
     {
       typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
                                              Kokkos::IndexType<int> >
@@ -1562,12 +1548,11 @@ struct TestMDRange_4D {
       double sum = 0.0;
       parallel_reduce(
           range,
-          KOKKOS_LAMBDA(const int i, const int j, const int k, const int l,
-                        double &lsum) { lsum += 1.0; },
+          KOKKOS_LAMBDA(const int /*i*/, const int /*j*/, const int /*k*/,
+                        const int /*l*/, double &lsum) { lsum += 1.0; },
           sum);
       ASSERT_EQ(sum, N0 * N1 * N2 * N3);
     }
-#endif
 #endif
 
     {
@@ -1656,7 +1641,6 @@ struct TestMDRange_4D {
 
     // Test Min reducer with lambda
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
     {
       typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
                                              Kokkos::IndexType<int> >
@@ -1684,7 +1668,6 @@ struct TestMDRange_4D {
 
       ASSERT_EQ(min, 16.0);
     }
-#endif
 #endif
 
     // Tagged operator test
@@ -1834,7 +1817,6 @@ struct TestMDRange_4D {
   static void test_for4(const int N0, const int N1, const int N2,
                         const int N3) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
     {
       typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
                                              Kokkos::IndexType<int> >
@@ -1878,7 +1860,6 @@ struct TestMDRange_4D {
 
       ASSERT_EQ(counter, 0);
     }
-#endif
 #endif
 
     {
@@ -2206,7 +2187,6 @@ struct TestMDRange_5D {
   static void test_reduce5(const int N0, const int N1, const int N2,
                            const int N3, const int N4) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
     {
       typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
                                              Kokkos::IndexType<int> >
@@ -2220,12 +2200,12 @@ struct TestMDRange_5D {
       double sum = 0.0;
       parallel_reduce(
           range,
-          KOKKOS_LAMBDA(const int i, const int j, const int k, const int l,
-                        const int m, double &lsum) { lsum += 1.0; },
+          KOKKOS_LAMBDA(const int /*i*/, const int /*j*/, const int /*k*/,
+                        const int /*l*/, const int /*m*/,
+                        double &lsum) { lsum += 1.0; },
           sum);
       ASSERT_EQ(sum, N0 * N1 * N2 * N3 * N4);
     }
-#endif
 #endif
 
     {
@@ -2320,7 +2300,6 @@ struct TestMDRange_5D {
 
     // Test Min reducer with lambda
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
     {
       typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
                                              Kokkos::IndexType<int> >
@@ -2352,7 +2331,6 @@ struct TestMDRange_5D {
 
       ASSERT_EQ(min, 32.0);
     }
-#endif
 #endif
 
     // Tagged operator test
@@ -2404,7 +2382,6 @@ struct TestMDRange_5D {
   static void test_for5(const int N0, const int N1, const int N2, const int N3,
                         const int N4) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
     {
       typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
                                              Kokkos::IndexType<int> >
@@ -2452,7 +2429,6 @@ struct TestMDRange_5D {
 
       ASSERT_EQ(counter, 0);
     }
-#endif
 #endif
 
     {
@@ -2798,7 +2774,6 @@ struct TestMDRange_6D {
   static void test_reduce6(const int N0, const int N1, const int N2,
                            const int N3, const int N4, const int N5) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
     {
       typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
                                              Kokkos::IndexType<int> >
@@ -2812,13 +2787,12 @@ struct TestMDRange_6D {
       double sum = 0.0;
       parallel_reduce(
           range,
-          KOKKOS_LAMBDA(const int i, const int j, const int k, const int l,
-                        const int m, const int n,
+          KOKKOS_LAMBDA(const int /*i*/, const int /*j*/, const int /*k*/,
+                        const int /*l*/, const int /*m*/, const int /*n*/,
                         double &lsum) { lsum += 1.0; },
           sum);
       ASSERT_EQ(sum, N0 * N1 * N2 * N3 * N4 * N5);
     }
-#endif
 #endif
 
     {
@@ -2914,7 +2888,6 @@ struct TestMDRange_6D {
 
     // Test Min reducer with lambda
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
     {
       typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
                                              Kokkos::IndexType<int> >
@@ -2948,7 +2921,6 @@ struct TestMDRange_6D {
 
       ASSERT_EQ(min, 64.0);
     }
-#endif
 #endif
 
     // Tagged operator test
@@ -3001,7 +2973,6 @@ struct TestMDRange_6D {
   static void test_for6(const int N0, const int N1, const int N2, const int N3,
                         const int N4, const int N5) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
     {
       typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
                                              Kokkos::IndexType<int> >
@@ -3051,7 +3022,6 @@ struct TestMDRange_6D {
 
       ASSERT_EQ(counter, 0);
     }
-#endif
 #endif
 
     {

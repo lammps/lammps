@@ -58,10 +58,10 @@ namespace Impl {
 void cuda_device_synchronize();
 
 void cuda_internal_error_throw(cudaError e, const char* name,
-                               const char* file = NULL, const int line = 0);
+                               const char* file = nullptr, const int line = 0);
 
 inline void cuda_internal_safe_call(cudaError e, const char* name,
-                                    const char* file = NULL,
+                                    const char* file = nullptr,
                                     const int line   = 0) {
   if (cudaSuccess != e) {
     cuda_internal_error_throw(e, name, file, line);

@@ -115,7 +115,7 @@ class SharedAllocationRecord<void, void> {
       SharedAllocationHeader* arg_alloc_ptr, size_t arg_alloc_size,
       function_type arg_dealloc);
  private:
-  static __thread int t_tracking_enabled;
+  static KOKKOS_THREAD_LOCAL int t_tracking_enabled;
 
  public:
   virtual std::string get_label() const { return std::string("Unmanaged"); }
@@ -132,7 +132,7 @@ class SharedAllocationRecord<void, void> {
    */
   static void tracking_enable() { t_tracking_enabled = 1; }
 
-  virtual ~SharedAllocationRecord() {}
+  virtual ~SharedAllocationRecord() = default;
 
   SharedAllocationRecord()
       : m_alloc_ptr(nullptr),
@@ -245,6 +245,9 @@ class SharedAllocationRecord
 #if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
     return new SharedAllocationRecord(arg_space, arg_label, arg_alloc);
 #else
+    (void)arg_space;
+    (void)arg_label;
+    (void)arg_alloc;
     return (SharedAllocationRecord*)0;
 #endif
   }

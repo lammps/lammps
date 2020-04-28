@@ -79,7 +79,6 @@ struct TestDynamicView {
       ASSERT_EQ(da.size(), da_size);
 
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
       Kokkos::parallel_for(
           Kokkos::RangePolicy<execution_space>(0, da_size),
           KOKKOS_LAMBDA(const int i) { da(i) = Scalar(i); });
@@ -94,7 +93,6 @@ struct TestDynamicView {
 
       ASSERT_EQ(result_sum, (value_type)(da_size * (da_size - 1) / 2));
 #endif
-#endif
 
       // add 3x more entries i.e. 4x larger than previous size
       // the first 1/4 should remain the same
@@ -103,7 +101,6 @@ struct TestDynamicView {
       ASSERT_EQ(da.size(), da_resize);
 
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
       Kokkos::parallel_for(
           Kokkos::RangePolicy<execution_space>(da_size, da_resize),
           KOKKOS_LAMBDA(const int i) { da(i) = Scalar(i); });
@@ -118,7 +115,6 @@ struct TestDynamicView {
 
       ASSERT_EQ(new_result_sum + result_sum,
                 (value_type)(da_resize * (da_resize - 1) / 2));
-#endif
 #endif
     }  // end scope
 
@@ -135,7 +131,6 @@ struct TestDynamicView {
       ASSERT_EQ(da.size(), da_size);
 
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
       Kokkos::parallel_for(
           Kokkos::RangePolicy<execution_space>(0, da_size),
           KOKKOS_LAMBDA(const int i) { da(i) = Scalar(i); });
@@ -150,7 +145,6 @@ struct TestDynamicView {
 
       ASSERT_EQ(result_sum, (value_type)(da_size * (da_size - 1) / 2));
 #endif
-#endif
 
       // add 3x more entries i.e. 4x larger than previous size
       // the first 1/4 should remain the same
@@ -159,7 +153,6 @@ struct TestDynamicView {
       ASSERT_EQ(da.size(), da_resize);
 
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
       Kokkos::parallel_for(
           Kokkos::RangePolicy<execution_space>(da_size, da_resize),
           KOKKOS_LAMBDA(const int i) { da(i) = Scalar(i); });
@@ -174,7 +167,6 @@ struct TestDynamicView {
 
       ASSERT_EQ(new_result_sum + result_sum,
                 (value_type)(da_resize * (da_resize - 1) / 2));
-#endif
 #endif
     }  // end scope
 
@@ -191,7 +183,6 @@ struct TestDynamicView {
       ASSERT_EQ(da.size(), da_size);
 
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
       Kokkos::parallel_for(
           Kokkos::RangePolicy<execution_space>(0, da_size),
           KOKKOS_LAMBDA(const int i) { da(i) = Scalar(i); });
@@ -206,7 +197,6 @@ struct TestDynamicView {
 
       ASSERT_EQ(result_sum, (value_type)(da_size * (da_size - 1) / 2));
 #endif
-#endif
 
       // remove the final 3/4 entries i.e. first 1/4 remain
       unsigned da_resize = arg_total_size / 8;
@@ -214,7 +204,6 @@ struct TestDynamicView {
       ASSERT_EQ(da.size(), da_resize);
 
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
       Kokkos::parallel_for(
           Kokkos::RangePolicy<execution_space>(0, da_resize),
           KOKKOS_LAMBDA(const int i) { da(i) = Scalar(i); });
@@ -228,7 +217,6 @@ struct TestDynamicView {
           new_result_sum);
 
       ASSERT_EQ(new_result_sum, (value_type)(da_resize * (da_resize - 1) / 2));
-#endif
 #endif
     }  // end scope
   }

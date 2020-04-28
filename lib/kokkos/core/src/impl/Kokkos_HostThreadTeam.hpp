@@ -53,7 +53,8 @@
 #include <impl/Kokkos_FunctorAnalysis.hpp>
 #include <impl/Kokkos_HostBarrier.hpp>
 
-#include <limits>  // std::numeric_limits
+#include <limits>     // std::numeric_limits
+#include <algorithm>  // std::max
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -188,9 +189,9 @@ class HostThreadTeamData {
   constexpr HostThreadTeamData() noexcept
       : m_work_range(-1, -1),
         m_work_end(0),
-        m_scratch(0),
-        m_pool_scratch(0),
-        m_team_scratch(0),
+        m_scratch(nullptr),
+        m_pool_scratch(nullptr),
+        m_team_scratch(nullptr),
         m_pool_rank(0),
         m_pool_size(1),
         m_team_reduce(0),
@@ -538,6 +539,8 @@ class HostThreadTeamMember {
   }
 #else
   {
+    (void)value;
+    (void)source_team_rank;
     Kokkos::abort("HostThreadTeamMember team_broadcast\n");
   }
 #endif
@@ -574,6 +577,9 @@ class HostThreadTeamMember {
   }
 #else
   {
+    (void)f;
+    (void)value;
+    (void)source_team_rank;
     Kokkos::abort("HostThreadTeamMember team_broadcast\n");
   }
 #endif
@@ -640,6 +646,8 @@ class HostThreadTeamMember {
   }
 #else
   {
+    (void)reducer;
+    (void)contribution;
     Kokkos::abort("HostThreadTeamMember team_reduce\n");
   }
 #endif
@@ -693,8 +701,8 @@ class HostThreadTeamMember {
 #endif*/
 
   template <typename T>
-  KOKKOS_INLINE_FUNCTION T team_scan(T const& value, T* const global = 0) const
-      noexcept
+  KOKKOS_INLINE_FUNCTION T team_scan(T const& value,
+                                     T* const global = nullptr) const noexcept
 #if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
   {
     if (0 != m_data.m_team_rank) {
@@ -751,6 +759,8 @@ class HostThreadTeamMember {
   }
 #else
   {
+    (void)value;
+    (void)global;
     Kokkos::abort("HostThreadTeamMember team_scan\n");
     return T();
   }

@@ -2,7 +2,7 @@
 # We want to determine if options are given with the wrong case
 # In order to detect which arguments are given to compare against
 # the list of valid arguments, at the beginning here we need to
-# form a list of all the given variables. If it begins with any 
+# form a list of all the given variables. If it begins with any
 # case of KoKkOS, we add it to the list.
 
 
@@ -25,6 +25,8 @@ SET(KOKKOS_TOP_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
 # Needed to simplify syntax of if statements
 CMAKE_POLICY(SET CMP0054 NEW)
+# Needed to make IN_LIST a valid operator
+CMAKE_POLICY(SET CMP0057 NEW)
 
 # Is this a build as part of Trilinos?
 IF(COMMAND TRIBITS_PACKAGE_DECL)
@@ -65,7 +67,7 @@ IF(NOT KOKKOS_HAS_TRILINOS)
   cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
   set(CMAKE_DISABLE_SOURCE_CHANGES ON)
   set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
-  IF (Spack_WORKAROUND) 
+  IF (Spack_WORKAROUND)
     #if we are explicitly using Spack for development,
     #nuke the Spack compiler
     SET(SPACK_CXX $ENV{SPACK_CXX})
@@ -75,7 +77,15 @@ IF(NOT KOKKOS_HAS_TRILINOS)
     ENDIF()
   ENDif()
   IF(NOT DEFINED ${PROJECT_NAME})
+    # WORKAROUND FOR HIPCC
+    IF(Kokkos_ENABLE_HIP)
+      SET(KOKKOS_INTERNAL_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --amdgpu-target=gfx906")
+    ENDIF()
     PROJECT(Kokkos CXX)
+    IF(Kokkos_ENABLE_HIP)
+      SET(CMAKE_CXX_FLAGS ${KOKKOS_INTERNAL_CMAKE_CXX_FLAGS})
+    ENDIF()
   ENDIF()
 ENDIF()
 
@@ -92,16 +102,17 @@ ENDIF()
 
 
 set(Kokkos_VERSION_MAJOR 3)
-set(Kokkos_VERSION_MINOR 0)
+set(Kokkos_VERSION_MINOR 1)
 set(Kokkos_VERSION_PATCH 0)
 set(Kokkos_VERSION "${Kokkos_VERSION_MAJOR}.${Kokkos_VERSION_MINOR}.${Kokkos_VERSION_PATCH}")
+math(EXPR KOKKOS_VERSION "${Kokkos_VERSION_MAJOR} * 10000 + ${Kokkos_VERSION_MINOR} * 100 + ${Kokkos_VERSION_PATCH}")
 
-IF(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.12.0") 
+IF(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.12.0")
   MESSAGE(STATUS "Setting policy CMP0074 to use <Package>_ROOT variables")
   CMAKE_POLICY(SET CMP0074 NEW)
 ENDIF()
 
-# Load either the real TriBITS or a TriBITS wrapper 
+# Load either the real TriBITS or a TriBITS wrapper
 # for certain utility functions that are universal (like GLOBAL_SET)
 INCLUDE(${KOKKOS_SRC_PATH}/cmake/fake_tribits.cmake)
 
@@ -118,18 +129,14 @@ ENDIF()
 # These are the variables we will append to as we go
 # I really wish these were regular variables
 # but scoping issues can make it difficult
-GLOBAL_RESET(KOKKOS_COMPILE_OPTIONS)
-GLOBAL_RESET(KOKKOS_LINK_OPTIONS)
-GLOBAL_RESET(KOKKOS_CUDA_OPTIONS)
-GLOBAL_RESET(KOKKOS_CUDAFE_OPTIONS)
-GLOBAL_RESET(KOKKOS_XCOMPILER_OPTIONS)
+GLOBAL_SET(KOKKOS_COMPILE_OPTIONS)
+GLOBAL_SET(KOKKOS_LINK_OPTIONS)
+GLOBAL_SET(KOKKOS_CUDA_OPTIONS)
+GLOBAL_SET(KOKKOS_CUDAFE_OPTIONS)
+GLOBAL_SET(KOKKOS_XCOMPILER_OPTIONS)
 # We need to append text here for making sure TPLs
 # we import are available for an installed Kokkos
-GLOBAL_RESET(KOKKOS_TPL_EXPORTS)
-# We need these for controlling the exact -std flag
-GLOBAL_RESET(KOKKOS_DONT_ALLOW_EXTENSIONS)
-GLOBAL_RESET(KOKKOS_USE_CXX_EXTENSIONS)
-GLOBAL_RESET(KOKKOS_CXX_STANDARD_FEATURE)
+GLOBAL_SET(KOKKOS_TPL_EXPORTS)
 
 # Include a set of Kokkos-specific wrapper functions that
 # will either call raw CMake or TriBITS
@@ -137,6 +144,9 @@ GLOBAL_RESET(KOKKOS_CXX_STANDARD_FEATURE)
 INCLUDE(${KOKKOS_SRC_PATH}/cmake/kokkos_tribits.cmake)
 
 
+# Check the environment and set certain variables
+# to allow platform-specific checks
+INCLUDE(${KOKKOS_SRC_PATH}/cmake/kokkos_check_env.cmake)
 # The build environment setup goes in the following steps
 # 1) Check all the enable options. This includes checking Kokkos_DEVICES
 # 2) Check the compiler ID (type and version)
@@ -187,14 +197,21 @@ IF (KOKKOS_HAS_TRILINOS)
   # Because Tribits doesn't use lists, it uses spaces for the list of CXX flags
   # we have to match the annoying behavior
   STRING(REPLACE ";" " " KOKKOSCORE_COMPILE_OPTIONS "${KOKKOS_COMPILE_OPTIONS}")
-  STRING(REPLACE ";" " " KOKKOSCORE_CUDA_OPTIONS    "${KOKKOS_CUDA_OPTIONS}")
-  FOREACH(CUDAFE_FLAG ${KOKKOS_CUDAFE_OPTIONS})
-    SET(KOKKOSCORE_CUDAFE_OPTIONS "${KOKKOSCORE_CUDAFE_OPTIONS} -Xcudafe ${CUDAFE_FLAG}")
-  ENDFOREACH()
+  LIST(APPEND KOKKOS_ALL_COMPILE_OPTIONS ${KOKKOS_COMPILE_OPTIONS})
+  LIST(APPEND KOKKOS_ALL_COMPILE_OPTIONS ${KOKKOS_CUDA_OPTIONS})
   FOREACH(XCOMP_FLAG ${KOKKOS_XCOMPILER_OPTIONS})
     SET(KOKKOSCORE_XCOMPILER_OPTIONS "${KOKKOSCORE_XCOMPILER_OPTIONS} -Xcompiler ${XCOMP_FLAG}")
+    LIST(APPEND KOKKOS_ALL_COMPILE_OPTIONS -Xcompiler ${XCOMP_FLAG})
   ENDFOREACH()
-  SET(KOKKOSCORE_CXX_FLAGS "${KOKKOSCORE_COMPILE_OPTIONS} ${CMAKE_CXX${KOKKOS_CXX_STANDARD}_STANDARD_COMPILE_OPTION} ${KOKKOSCORE_CUDA_OPTIONS} ${KOKKOSCORE_CUDAFE_OPTIONS} ${KOKKOSCORE_XCOMPILER_OPTIONS}")
+  SET(KOKKOSCORE_CXX_FLAGS "${KOKKOSCORE_COMPILE_OPTIONS} ${CMAKE_CXX${KOKKOS_CXX_STANDARD}_STANDARD_COMPILE_OPTION} ${KOKKOSCORE_XCOMPILER_OPTIONS}")
+  IF (KOKKOS_ENABLE_CUDA)
+    STRING(REPLACE ";" " " KOKKOSCORE_CUDA_OPTIONS    "${KOKKOS_CUDA_OPTIONS}")
+    FOREACH(CUDAFE_FLAG ${KOKKOS_CUDAFE_OPTIONS})
+      SET(KOKKOSCORE_CUDAFE_OPTIONS "${KOKKOSCORE_CUDAFE_OPTIONS} -Xcudafe ${CUDAFE_FLAG}")
+      LIST(APPEND KOKKOS_ALL_COMPILE_OPTIONS -Xcudafe ${CUDAFE_FLAG})
+    ENDFOREACH()
+    SET(KOKKOSCORE_CXX_FLAGS "${KOKKOSCORE_CXX_FLAGS} ${KOKKOSCORE_CUDA_OPTIONS} ${KOKKOSCORE_CUDAFE_OPTIONS}")
+  ENDIF()
   # Both parent scope and this package
   # In ProjectCompilerPostConfig.cmake, we capture the "global" flags Trilinos wants in
   # TRILINOS_TOPLEVEL_CXX_FLAGS
@@ -203,6 +220,8 @@ IF (KOKKOS_HAS_TRILINOS)
   #CMAKE_CXX_FLAGS will get added to Kokkos and Kokkos dependencies automatically here
   #These flags get set up in KOKKOS_PACKAGE_DECL, which means they
   #must be configured before KOKKOS_PACKAGE_DECL
+  SET(KOKKOS_ALL_COMPILE_OPTIONS
+    $<$<COMPILE_LANGUAGE:CXX>:${KOKKOS_ALL_COMPILE_OPTIONS}>)
 ENDIF()
 
 KOKKOS_PACKAGE_DECL()
@@ -250,7 +269,7 @@ INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/KokkosCore_config.h" DESTINATION ${CM
 IF (HAS_PARENT)
   FOREACH(DEV Kokkos_ENABLED_DEVICES)
     #I would much rather not make these cache variables or global properties, but I can't
-    #make any guarantees on whether PARENT_SCOPE is good enough to make 
+    #make any guarantees on whether PARENT_SCOPE is good enough to make
     #these variables visible where I need them
     SET(Kokkos_ENABLE_${DEV} ON PARENT_SCOPE)
     SET_PROPERTY(GLOBAL PROPERTY Kokkos_ENABLE_${DEV} ON)

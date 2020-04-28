@@ -47,7 +47,7 @@
 
 namespace Test {
 
-TEST_F(TEST_CATEGORY, view_subview_1d_assign) {
+TEST(TEST_CATEGORY, view_subview_1d_assign) {
   TestViewSubview::test_1d_assign<TEST_EXECSPACE>();
 }
 

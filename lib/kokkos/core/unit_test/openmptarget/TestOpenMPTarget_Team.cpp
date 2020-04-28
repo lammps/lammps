@@ -47,7 +47,7 @@
 
 namespace Test {
 
-TEST_F(TEST_CATEGORY, team_for) {
+TEST(TEST_CATEGORY, team_for) {
   TestTeamPolicy<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >::test_for(
       0);
   TestTeamPolicy<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >::test_for(
@@ -64,7 +64,7 @@ TEST_F(TEST_CATEGORY, team_for) {
       1000);
 }
 
-TEST_F(TEST_CATEGORY, team_reduce) {
+TEST(TEST_CATEGORY, team_reduce) {
   TestTeamPolicy<TEST_EXECSPACE,
                  Kokkos::Schedule<Kokkos::Static> >::test_reduce(0);
   TestTeamPolicy<TEST_EXECSPACE,

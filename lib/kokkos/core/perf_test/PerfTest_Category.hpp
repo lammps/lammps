@@ -50,7 +50,7 @@
 namespace Test {
 
 extern int command_line_num_args(int n = 0);
-extern const char* command_line_arg(int k, char** input_args = NULL);
+extern const char* command_line_arg(int k, char** input_args = nullptr);
 
 }  // namespace Test
 

@@ -2,8 +2,11 @@ BootStrap: docker
 From: rocm/dev-ubuntu-18.04
 
 %environment
-    export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
-
+    export PATH=/usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
+    export CUDADIR=/usr/local/cuda
+    export CUDA_PATH=/usr/local/cuda
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
+    export LIBRARY_PATH=/usr/local/cuda/lib64/stubs
 %post
     export DEBIAN_FRONTEND=noninteractive
     apt-get update
@@ -62,6 +65,14 @@ From: rocm/dev-ubuntu-18.04
         voro++-dev \
         wget \
         xxd
+    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
+    mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
+    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
+    add-apt-repository "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/ /"
+    apt-get update
+    apt-get install --no-install-recommends -y \
+        cuda \
+        cuda-compiler-10-2 \
 
     export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
     git clone -b master-rocm-3.3 https://github.com/ROCmSoftwarePlatform/hipCUB.git
@@ -71,6 +82,9 @@ From: rocm/dev-ubuntu-18.04
     make -j4
     make package
     make install
+
+    echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf
+    echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf
 
 %environment
     LC_ALL=C

@@ -132,14 +132,14 @@ class TaskQueueSpecialization<SimpleTaskScheduler<Kokkos::OpenMP, QueueType> > {
 
         auto current_task = OptionalRef<task_base_type>(nullptr);
 
-        while (not queue.is_done()) {
+        while (!queue.is_done()) {
           // Each team lead attempts to acquire either a thread team task
           // or a single thread task for the team.
           if (team_exec.team_rank() == 0) {
             // loop while both:
             //   - the queue is not done
             //   - the most recently popped task is a single task or empty
-            while (not queue.is_done()) {
+            while (!queue.is_done()) {
               current_task =
                   queue.pop_ready_task(team_scheduler.team_scheduler_info());
 

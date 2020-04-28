@@ -44,7 +44,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
-	OBJ_OPENMP = TestOpenMP.o UnitTestMain.o gtest-all.o
+	OBJ_OPENMP = TestOpenMP.o TestOpenMP_Random.o TestOpenMP_Sort1D.o TestOpenMP_Sort3D.o TestOpenMP_SortDynamicView.o UnitTestMain.o gtest-all.o
 	TARGETS += KokkosAlgorithms_UnitTest_OpenMP
 	TEST_TARGETS += test-openmp
 endif

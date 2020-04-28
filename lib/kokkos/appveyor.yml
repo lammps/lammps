@@ -1,0 +1,10 @@
+image:
+  - Visual Studio 2019
+clone_folder: c:\projects\source
+build_script:
+- cmd: >-
+    mkdir build &&
+    cd build &&
+    cmake c:\projects\source -DKokkos_ENABLE_TESTS=ON -DKokkos_ENABLE_LIBDL=OFF -DKokkos_ENABLE_PROFILING=OFF &&
+    cmake --build . --target install &&
+    ctest -C Debug -V

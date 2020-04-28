@@ -44,7 +44,10 @@
 
 #include <TestDynViewAPI.hpp>
 namespace Test {
+// FIXME_HIP attempt to access inaccessible memory space
+#ifndef KOKKOS_ENABLE_HIP
 TEST(TEST_CATEGORY, dyn_rank_view_api_generic) {
   TestDynViewAPI<double, TEST_EXECSPACE>::run_tests();
 }
+#endif
 }  // namespace Test

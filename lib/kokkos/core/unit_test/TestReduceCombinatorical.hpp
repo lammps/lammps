@@ -467,10 +467,10 @@ struct TestReduceCombinatoricalInstantiation {
   }
 
   template <class... Args>
-  static void AddLambdaRange(Kokkos::InvalidType, Args... args) {}
+  static void AddLambdaRange(Kokkos::InvalidType, Args... /*args*/) {}
 
   template <class... Args>
-  static void AddLambdaTeam(Kokkos::InvalidType, Args... args) {}
+  static void AddLambdaTeam(Kokkos::InvalidType, Args... /*args*/) {}
 
   template <int ISTEAM, class... Args>
   static void AddFunctor(Args... args) {

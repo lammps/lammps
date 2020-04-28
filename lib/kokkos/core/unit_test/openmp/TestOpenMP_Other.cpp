@@ -63,7 +63,7 @@ TEST(openmp, partition_master) {
   Mutex mtx;
   int errors = 0;
 
-  auto master = [&errors, &mtx](int partition_id, int num_partitions) {
+  auto master = [&errors, &mtx](int /*partition_id*/, int /*num_partitions*/) {
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
     const int pool_size = Kokkos::OpenMP::thread_pool_size();

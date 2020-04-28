@@ -65,17 +65,17 @@ class MemoryPoolAllocator {
   memory_pool m_pool;
 
  public:
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   MemoryPoolAllocator() = default;
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   MemoryPoolAllocator(MemoryPoolAllocator const&) = default;
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   MemoryPoolAllocator(MemoryPoolAllocator&&) = default;
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   MemoryPoolAllocator& operator=(MemoryPoolAllocator const&) = default;
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   MemoryPoolAllocator& operator=(MemoryPoolAllocator&&) = default;
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   ~MemoryPoolAllocator() = default;
 
   KOKKOS_INLINE_FUNCTION

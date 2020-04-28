@@ -12,8 +12,38 @@ KOKKOS_ADD_TEST_LIBRARY(
   HEADERS ${GTEST_SOURCE_DIR}/gtest/gtest.h
   SOURCES ${GTEST_SOURCE_DIR}/gtest/gtest-all.cc
 )
-KOKKOS_TARGET_COMPILE_DEFINITIONS(kokkos_gtest PUBLIC "-DGTEST_HAS_PTHREAD=0")
-KOKKOS_TARGET_INCLUDE_DIRECTORIES(kokkos_gtest PUBLIC ${GTEST_SOURCE_DIR})
+#These can be direct, no need for Tribits or Kokkos wrappers
+
+# WORKAROUND FOR HIPCC
+IF(Kokkos_ENABLE_HIP)
+  TARGET_COMPILE_DEFINITIONS(kokkos_gtest PUBLIC "-DGTEST_HAS_PTHREAD=0 --amdgpu-target=gfx906")
+ELSE()
+  TARGET_COMPILE_DEFINITIONS(kokkos_gtest PUBLIC "-DGTEST_HAS_PTHREAD=0")
+ENDIF()
+
+TARGET_INCLUDE_DIRECTORIES(kokkos_gtest PUBLIC ${GTEST_SOURCE_DIR})
+#Gtest minimally requires C++11
+TARGET_COMPILE_FEATURES(kokkos_gtest PUBLIC cxx_std_11)
+
+#
+# Define Incremental Testing Feature Levels
+# Define Device name mappings (i.e. what comes after Kokkos:: for the ExecSpace)
+#
+
+SET(KOKKOS_CUDA_FEATURE_LEVEL 999)
+SET(KOKKOS_CUDA_NAME Cuda)
+SET(KOKKOS_HIP_FEATURE_LEVEL 12)
+SET(KOKKOS_HIP_NAME Experimental::HIP)
+SET(KOKKOS_HPX_FEATURE_LEVEL 999)
+SET(KOKKOS_HPX_NAME Experimental::HPX)
+SET(KOKKOS_OPENMP_FEATURE_LEVEL 999)
+SET(KOKKOS_OPENMP_NAME OpenMP)
+SET(KOKKOS_OPENMPTARGET_FEATURE_LEVEL 10)
+SET(KOKKOS_OPENMPTARGET_NAME Experimental::OpenMPTarget)
+SET(KOKKOS_SERIAL_FEATURE_LEVEL 999)
+SET(KOKKOS_SERIAL_NAME Serial)
+SET(KOKKOS_THREADS_FEATURE_LEVEL 999)
+SET(KOKKOS_THREADS_NAME Threads)
 
 
 #
@@ -24,7 +54,7 @@ KOKKOS_TARGET_INCLUDE_DIRECTORIES(kokkos_gtest PUBLIC ${GTEST_SOURCE_DIR})
 KOKKOS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 KOKKOS_INCLUDE_DIRECTORIES(REQUIRED_DURING_INSTALLATION_TESTING ${CMAKE_CURRENT_SOURCE_DIR})
 
-foreach(Tag Threads;Serial;OpenMP;Cuda;HPX)
+foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;HIP)
   # Because there is always an exception to the rule
   if(Tag STREQUAL "Threads")
     set(DEVICE "PTHREAD")
@@ -46,6 +76,7 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX)
       ${dir}/Test${Tag}_AtomicOperations_complexfloat.cpp
       ${dir}/Test${Tag}_AtomicViews.cpp
       ${dir}/Test${Tag}_Atomics.cpp
+      ${dir}/Test${Tag}_Concepts.cpp
       ${dir}/Test${Tag}_Complex.cpp
       ${dir}/Test${Tag}_Crs.cpp
       ${dir}/Test${Tag}_DeepCopyAlignment.cpp
@@ -59,6 +90,7 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX)
       ${dir}/Test${Tag}_MDRange_e.cpp
       ${dir}/Test${Tag}_Other.cpp
       ${dir}/Test${Tag}_RangePolicy.cpp
+      ${dir}/Test${Tag}_RangePolicyRequire.cpp
       ${dir}/Test${Tag}_Reductions.cpp
       ${dir}/Test${Tag}_Reducers_a.cpp
       ${dir}/Test${Tag}_Reducers_b.cpp
@@ -103,6 +135,30 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX)
       ${dir}/Test${Tag}_ViewResize.cpp
   )
 endforeach()
+
+if(Kokkos_ENABLE_OPENMPTARGET)
+  list(REMOVE_ITEM OpenMPTarget_SOURCES
+    openmptarget/TestOpenMPTarget_AtomicOperations_complexdouble.cpp
+    openmptarget/TestOpenMPTarget_MDRange_a.cpp
+    openmptarget/TestOpenMPTarget_MDRange_b.cpp
+    openmptarget/TestOpenMPTarget_MDRange_c.cpp
+    openmptarget/TestOpenMPTarget_MDRange_d.cpp
+    openmptarget/TestOpenMPTarget_MDRange_e.cpp
+    openmptarget/TestOpenMPTarget_Other.cpp
+    openmptarget/TestOpenMPTarget_Scan.cpp
+    openmptarget/TestOpenMPTarget_Team.cpp
+    openmptarget/TestOpenMPTarget_TeamScratch.cpp
+    openmptarget/TestOpenMPTarget_ViewAPI_e.cpp
+    openmptarget/TestOpenMPTarget_ViewMapping_subview.cpp
+    openmptarget/TestOpenMPTarget_ViewOfClass.cpp
+  )
+endif()
+
+if(Kokkos_ENABLE_HIP)
+  # FIXME Linktime error: undefined reference to
+  # Kokkos::Impl::ViewDimensin<0ul, ...>(unsigned int, ...)
+  list(REMOVE_ITEM Serial_SOURCES serial/TestSerial_ViewLayoutStrideAssignment.cpp)
+endif()
 
 if(Kokkos_ENABLE_SERIAL)
   KOKKOS_ADD_EXECUTABLE_AND_TEST(
@@ -150,42 +206,11 @@ if(Kokkos_ENABLE_HPX)
   )
 endif()
 
-if(Kokkos_ENABLE_QTHREADS)
+if(Kokkos_ENABLE_OPENMPTARGET)
   KOKKOS_ADD_EXECUTABLE_AND_TEST(
-    UnitTest_Qthreads
+    UnitTest_OpenMPTarget
     SOURCES
-      UnitTestMainInit.cpp
-      qthreads/TestQthreads_Atomics.cpp
-      qthreads/TestQthreads_Complex.cpp
-      qthreads/TestQthreads_DeepCopyAlignment.cpp
-      qthreads/TestQthreads_Other.cpp
-      qthreads/TestQthreads_Reductions.cpp
-      qthreads/TestQthreads_Reducers_a.cpp
-      qthreads/TestQthreads_Reducers_b.cpp
-      qthreads/TestQthreads_Reducers_c.cpp
-      qthreads/TestQthreads_Reducers_d.cpp
-      qthreads/TestQthreads_SubView_a.cpp
-      qthreads/TestQthreads_SubView_b.cpp
-      qthreads/TestQthreads_SubView_c01.cpp
-      qthreads/TestQthreads_SubView_c02.cpp
-      qthreads/TestQthreads_SubView_c03.cpp
-      qthreads/TestQthreads_SubView_c04.cpp
-      qthreads/TestQthreads_SubView_c05.cpp
-      qthreads/TestQthreads_SubView_c06.cpp
-      qthreads/TestQthreads_SubView_c07.cpp
-      qthreads/TestQthreads_SubView_c08.cpp
-      qthreads/TestQthreads_SubView_c09.cpp
-      qthreads/TestQthreads_SubView_c10.cpp
-      qthreads/TestQthreads_SubView_c11.cpp
-      qthreads/TestQthreads_SubView_c12.cpp
-      qthreads/TestQthreads_SubView_c13.cpp
-      qthreads/TestQthreads_Team.cpp
-      qthreads/TestQthreads_View_64bit.cpp
-      qthreads/TestQthreads_ViewAPI_a.cpp
-      qthreads/TestQthreads_ViewAPI_b.cpp
-      qthreads/TestQthreads_ViewAPI_c.cpp
-      qthreads/TestQthreads_ViewAPI_d.cpp
-      qthreads/TestQthreads_ViewAPI_e.cpp
+    ${OpenMPTarget_SOURCES}
   )
 endif()
 
@@ -233,22 +258,66 @@ if(Kokkos_ENABLE_CUDA)
   )
 endif()
 
+if(Kokkos_ENABLE_HIP)
+  # FIXME_HIP
+  LIST(REMOVE_ITEM HIP_SOURCES
+    hip/TestHIP_AtomicOperations_complexdouble.cpp
+    hip/TestHIP_Other.cpp
+    hip/TestHIP_Reductions_DeviceView.cpp
+    hip/TestHIP_Team.cpp
+    hip/TestHIP_TeamReductionScan.cpp
+    hip/TestHIP_TeamScratch.cpp
+    hip/TestHIP_TeamTeamSize.cpp
+    hip/TestHIP_TeamVectorRange.cpp
+    hip/TestHIP_UniqueToken.cpp
+    hip/TestHIP_ViewAPI_a.cpp
+    hip/TestHIP_ViewAPI_b.cpp
+    hip/TestHIP_ViewAPI_e.cpp
+    hip/TestHIP_ViewLayoutStrideAssignment.cpp
+    hip/TestHIP_WorkGraph.cpp
+  )
+
+  KOKKOS_ADD_EXECUTABLE_AND_TEST(
+    UnitTest_HIP
+    SOURCES
+      ${HIP_SOURCES}
+      hip/TestHIPHostPinned_ViewAPI_a.cpp
+      hip/TestHIPHostPinned_ViewAPI_b.cpp
+      hip/TestHIPHostPinned_ViewAPI_c.cpp
+      hip/TestHIPHostPinned_ViewAPI_d.cpp
+      hip/TestHIPHostPinned_ViewAPI_e.cpp
+      hip/TestHIPHostPinned_ViewCopy.cpp
+      hip/TestHIPHostPinned_ViewMapping_a.cpp
+      hip/TestHIPHostPinned_ViewMapping_b.cpp
+      hip/TestHIPHostPinned_ViewMapping_subview.cpp
+  )
+  KOKKOS_ADD_EXECUTABLE_AND_TEST(
+    UnitTest_HIPInterOpInit
+    SOURCES
+      UnitTestMain.cpp
+      hip/TestHIP_InterOp_Init.cpp
+  )
+endif()
+
+SET(DEFAULT_DEVICE_SOURCES
+  UnitTestMainInit.cpp
+  default/TestDefaultDeviceType.cpp
+  default/TestDefaultDeviceType_a1.cpp
+  default/TestDefaultDeviceType_b1.cpp
+  default/TestDefaultDeviceType_c1.cpp
+  default/TestDefaultDeviceType_a2.cpp
+  default/TestDefaultDeviceType_b2.cpp
+  default/TestDefaultDeviceType_c2.cpp
+  default/TestDefaultDeviceType_a3.cpp
+  default/TestDefaultDeviceType_b3.cpp
+  default/TestDefaultDeviceType_c3.cpp
+  default/TestDefaultDeviceType_d.cpp
+  default/TestDefaultDeviceTypeResize.cpp
+)
+
 KOKKOS_ADD_EXECUTABLE_AND_TEST(
   UnitTest_Default
-  SOURCES
-    UnitTestMainInit.cpp
-    default/TestDefaultDeviceType.cpp
-    default/TestDefaultDeviceType_a1.cpp
-    default/TestDefaultDeviceType_b1.cpp
-    default/TestDefaultDeviceType_c1.cpp
-    default/TestDefaultDeviceType_a2.cpp
-    default/TestDefaultDeviceType_b2.cpp
-    default/TestDefaultDeviceType_c2.cpp
-    default/TestDefaultDeviceType_a3.cpp
-    default/TestDefaultDeviceType_b3.cpp
-    default/TestDefaultDeviceType_c3.cpp
-    default/TestDefaultDeviceType_d.cpp
-    default/TestDefaultDeviceTypeResize.cpp
+  SOURCES ${DEFAULT_DEVICE_SOURCES}
 )
 
 KOKKOS_ADD_EXECUTABLE_AND_TEST(
@@ -275,6 +344,7 @@ KOKKOS_ADD_ADVANCED_TEST( UnitTest_PushFinalizeHook_terminate
     ALWAYS_FAIL_ON_ZERO_RETURN
 )
 
+if(NOT KOKKOS_HAS_TRILINOS)
 KOKKOS_ADD_TEST_EXECUTABLE(
   StackTraceTestExec
   SOURCES
@@ -287,20 +357,9 @@ KOKKOS_ADD_TEST_EXECUTABLE(
 )
 # We need -rdynamic on GNU platforms for the stacktrace functionality
 # to work correctly with shared libraries
-if(NOT KOKKOS_HAS_TRILINOS)
-SET_PROPERTY(TARGET StackTraceTestExec PROPERTY ENABLE_EXPORTS 1)
+KOKKOS_SET_EXE_PROPERTY(StackTraceTestExec ENABLE_EXPORTS ON)
 
-KOKKOS_ADD_TEST( NAME UnitTest_StackTraceTest_normal
-                 EXE  StackTraceTestExec 
-                 FAIL_REGULAR_EXPRESSION "FAILED"
-               )
-
-KOKKOS_ADD_TEST( NAME UnitTest_StackTraceTest_terminate
-                 EXE  StackTraceTestExec
-                 FAIL_REGULAR_EXPRESSION "FAILED"
-               )
-
-KOKKOS_ADD_TEST( NAME UnitTest_StackTraceTest_generic_term
+KOKKOS_ADD_TEST( NAME UnitTest_StackTraceTest
                  EXE  StackTraceTestExec
                  FAIL_REGULAR_EXPRESSION "FAILED"
                )
@@ -325,5 +384,52 @@ KOKKOS_ADD_EXECUTABLE_AND_TEST(
   SOURCES UnitTestMain.cpp  TestHostBarrier.cpp
 )
 
+FUNCTION (KOKKOS_ADD_INCREMENTAL_TEST DEVICE)
+  KOKKOS_OPTION( ${DEVICE}_EXCLUDE_TESTS "" STRING "Incremental test exclude list" )
+  # Add unit test main
+  SET(${DEVICE}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/UnitTestMainInit.cpp)
 
+  # Iterate over incremental tests in directory
 
+  APPEND_GLOB(INCREMENTAL_FILE_LIST ${CMAKE_CURRENT_SOURCE_DIR}/incremental/*.hpp)
+
+  SET(DEVICE_NAME ${KOKKOS_${DEVICE}_NAME})
+  FOREACH (CURRENT_FILE_PATH ${INCREMENTAL_FILE_LIST})
+    GET_FILENAME_COMPONENT( CURRENT_FILE_NAME ${CURRENT_FILE_PATH} NAME )
+    STRING (REPLACE ".hpp" "" CURRENT_TEST_NAME ${CURRENT_FILE_NAME})
+    IF (NOT CURRENT_TEST_NAME IN_LIST Kokkos_${DEVICE}_EXCLUDE_TESTS)
+       SET (CURRENT_TEST_OUTPUT_FILENAME ${CURRENT_TEST_NAME}_${DEVICE})
+       FILE( STRINGS ${CURRENT_FILE_PATH} CURRENT_REQUIRED_FEATURE_LINE REGEX "Kokkos_Feature_Level_Required" )
+       # From each test get level implementation required
+       STRING( REGEX REPLACE ".*Kokkos_Feature_Level_Required:" "" CURRENT_REQUIRED_FEATURE_LEVEL ${CURRENT_REQUIRED_FEATURE_LINE} )
+       # Cross-reference list of dependencies with selected feature list > matching feature test files are added to test applications
+       IF (KOKKOS_${DEVICE}_FEATURE_LEVEL GREATER_EQUAL CURRENT_REQUIRED_FEATURE_LEVEL)
+          CONFIGURE_FILE (IncrementalTest.cpp.in ${CMAKE_BINARY_DIR}/core/unit_test/generated/${CURRENT_TEST_OUTPUT_FILENAME}.cpp )
+          SET(${DEVICE}_SOURCES ${${DEVICE}_SOURCES}; ${CMAKE_BINARY_DIR}/core/unit_test/generated/${CURRENT_TEST_OUTPUT_FILENAME}.cpp)
+       ENDIF()
+     ENDIF()
+  ENDFOREACH()
+
+  STRING(TOUPPER ${DEVICE} UC_DEVICE)
+
+  KOKKOS_OPTION (
+    ENABLE_${UC_DEVICE} ON BOOL "ENABLE ${UC_DEVICE}"
+  )
+
+  KOKKOS_ADD_EXECUTABLE_AND_TEST(
+    IncrementalTest_${DEVICE}
+    SOURCES ${${DEVICE}_SOURCES}
+  )
+
+  TARGET_INCLUDE_DIRECTORIES( ${PACKAGE_NAME}_IncrementalTest_${DEVICE} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/incremental )
+
+ENDFUNCTION()
+
+FOREACH (DEVICE ${KOKKOS_ENABLED_DEVICES})
+  KOKKOS_ADD_INCREMENTAL_TEST(${DEVICE})
+ENDFOREACH()
+
+KOKKOS_ADD_EXECUTABLE_AND_TEST(
+  UnitTest_CTestDevice
+  SOURCES UnitTestMain.cpp  TestCTestDevice.cpp
+)

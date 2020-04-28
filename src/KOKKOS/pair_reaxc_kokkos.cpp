@@ -153,9 +153,7 @@ void PairReaxCKokkos<DeviceType>::init_style()
     kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
 
   if (neighflag == FULL) {
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-    neighbor->requests[irequest]->ghost = 1;
+    error->all(FLERR,"Must use half neighbor list with pair style reax/c/kk");
   } else if (neighflag == HALF || neighflag == HALFTHREAD) {
     neighbor->requests[irequest]->full = 0;
     neighbor->requests[irequest]->half = 1;
@@ -665,8 +663,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   eflag = eflag_in;
   vflag = vflag_in;
 
-  if (neighflag == FULL) no_virial_fdotr_compute = 1;
-
   ev_init(eflag,vflag);
 
   atomKK->sync(execution_space,datamask_read);
@@ -743,11 +739,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeTabulatedLJCoulomb<HALFTHREAD,1> >(0,inum),*this,ev);
       else
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTabulatedLJCoulomb<HALFTHREAD,0> >(0,inum),*this);
-    } else if (neighflag == FULL) {
-      if (evflag)
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeTabulatedLJCoulomb<FULL,1> >(0,inum),*this,ev);
-      else
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTabulatedLJCoulomb<FULL,0> >(0,inum),*this);
     }
   } else {
     if (neighflag == HALF) {
@@ -760,11 +751,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<HALFTHREAD,1> >(0,inum),*this,ev);
       else
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<HALFTHREAD,0> >(0,inum),*this);
-    } else if (neighflag == FULL) {
-      if (evflag)
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<FULL,1> >(0,inum),*this,ev);
-      else
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<FULL,0> >(0,inum),*this);
     }
   }
   ev_all += ev;
@@ -809,8 +795,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf<HALF> >(0,ignum),*this);
     else if (neighflag == HALFTHREAD)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf<HALFTHREAD> >(0,ignum),*this);
-    else //(neighflag == FULL)
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsFull>(0,ignum),*this);
 
     k_resize_bo.modify<DeviceType>();
     k_resize_bo.sync<LMPHostType>();
@@ -853,11 +837,7 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::Experimental::contribute(d_total_bo, dup_total_bo); // needed in BondOrder1
 
   // Bond order
-  if (neighflag == HALF) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder1>(0,ignum),*this);
-  } else if (neighflag == HALFTHREAD) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder1>(0,ignum),*this);
-  }
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder1>(0,ignum),*this);
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder2>(0,ignum),*this);
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder3>(0,ignum),*this);
 
@@ -1044,14 +1024,14 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // free duplicated memory
   if (need_dup) {
     dup_f            = decltype(dup_f)();
+    dup_eatom        = decltype(dup_eatom)();
+    dup_vatom        = decltype(dup_vatom)();
     dup_dDeltap_self = decltype(dup_dDeltap_self)();
     dup_total_bo     = decltype(dup_total_bo)();
     dup_CdDelta      = decltype(dup_CdDelta)();
     //dup_Cdbo         = decltype(dup_Cdbo)();
     //dup_Cdbopi       = decltype(dup_Cdbopi)();
     //dup_Cdbopi2      = decltype(dup_Cdbopi2)();
-    dup_eatom        = decltype(dup_eatom)();
-    dup_vatom        = decltype(dup_vatom)();
   }
 }
 
@@ -1119,18 +1099,16 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeLJCoulomb<NEIGHFLAG,
     const tagint jtag = tag(j);
     const F_FLOAT qj = q(j);
 
-    if (NEIGHFLAG != FULL) {
-      // skip half of the interactions
-      if (j >= nlocal) {
-        if (itag > jtag) {
-          if ((itag+jtag) % 2 == 0) continue;
-        } else if (itag < jtag) {
-          if ((itag+jtag) % 2 == 1) continue;
-        } else {
-          if (x(j,2) < ztmp) continue;
-          if (x(j,2) == ztmp && x(j,1)  < ytmp) continue;
-          if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) continue;
-        }
+    // skip half of the interactions
+    if (j >= nlocal) {
+      if (itag > jtag) {
+        if ((itag+jtag) % 2 == 0) continue;
+      } else if (itag < jtag) {
+        if ((itag+jtag) % 2 == 1) continue;
+      } else {
+        if (x(j,2) < ztmp) continue;
+        if (x(j,2) == ztmp && x(j,1)  < ytmp) continue;
+        if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) continue;
       }
     }
 
@@ -1215,19 +1193,12 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeLJCoulomb<NEIGHFLAG,
     fxtmp += delx*ftotal;
     fytmp += dely*ftotal;
     fztmp += delz*ftotal;
-    if (NEIGHFLAG != FULL) {
-      a_f(j,0) -= delx*ftotal;
-      a_f(j,1) -= dely*ftotal;
-      a_f(j,2) -= delz*ftotal;
-    }
+    a_f(j,0) -= delx*ftotal;
+    a_f(j,1) -= dely*ftotal;
+    a_f(j,2) -= delz*ftotal;
 
-    if (NEIGHFLAG == FULL) {
-      if (eflag) ev.evdwl += 0.5*evdwl;
-      if (eflag) ev.ecoul += 0.5*ecoul;
-    } else {
-      if (eflag) ev.evdwl += evdwl;
-      if (eflag) ev.ecoul += ecoul;
-    }
+    if (eflag) ev.evdwl += evdwl;
+    if (eflag) ev.ecoul += ecoul;
 
     if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,evdwl+ecoul,-ftotal,delx,dely,delz);
   }
@@ -1276,18 +1247,16 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTabulatedLJCoulomb<N
     const tagint jtag = tag(j);
     const F_FLOAT qj = q(j);
 
-    if (NEIGHFLAG != FULL) {
-      // skip half of the interactions
-      if (j >= nlocal) {
-        if (itag > jtag) {
-          if ((itag+jtag) % 2 == 0) continue;
-        } else if (itag < jtag) {
-          if ((itag+jtag) % 2 == 1) continue;
-        } else {
-          if (x(j,2) < ztmp) continue;
-          if (x(j,2) == ztmp && x(j,1)  < ytmp) continue;
-          if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) continue;
-        }
+    // skip half of the interactions
+    if (j >= nlocal) {
+      if (itag > jtag) {
+        if ((itag+jtag) % 2 == 0) continue;
+      } else if (itag < jtag) {
+        if ((itag+jtag) % 2 == 1) continue;
+      } else {
+        if (x(j,2) < ztmp) continue;
+        if (x(j,2) == ztmp && x(j,1)  < ytmp) continue;
+        if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) continue;
       }
     }
 
@@ -1331,19 +1300,12 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTabulatedLJCoulomb<N
     fxtmp += delx*ftotal;
     fytmp += dely*ftotal;
     fztmp += delz*ftotal;
-    if (NEIGHFLAG != FULL) {
-      a_f(j,0) -= delx*ftotal;
-      a_f(j,1) -= dely*ftotal;
-      a_f(j,2) -= delz*ftotal;
-    }
+    a_f(j,0) -= delx*ftotal;
+    a_f(j,1) -= dely*ftotal;
+    a_f(j,2) -= delz*ftotal;
 
-    if (NEIGHFLAG == FULL) {
-      if (eflag) ev.evdwl += 0.5*evdwl;
-      if (eflag) ev.ecoul += 0.5*ecoul;
-    } else {
-      if (eflag) ev.evdwl += evdwl;
-      if (eflag) ev.ecoul += ecoul;
-    }
+    if (eflag) ev.evdwl += evdwl;
+    if (eflag) ev.ecoul += ecoul;
 
     if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,evdwl+ecoul,-ftotal,delx,dely,delz);
   }
@@ -1436,10 +1398,8 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxZero, const int &n) const {
   d_total_bo(n) = 0.0;
   d_CdDelta(n) = 0.0;
-  if (neighflag != FULL) {
-    d_bo_num(n) = 0.0;
-    d_hb_num(n) = 0.0;
-  }
+  d_bo_num(n) = 0.0;
+  d_hb_num(n) = 0.0;
   for (int j = 0; j < 3; j++)
     d_dDeltap_self(n,j) = 0.0;
 }
@@ -1842,261 +1802,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBondOrder1, const int &ii) 
 
   const int i = d_ilist[ii];
   const int itype = type(i);
-
-  const F_FLOAT val_i = paramssing(itype).valency;
-  d_Deltap[i] = d_total_bo[i] - val_i;
-  d_Deltap_boc[i] = d_total_bo[i] - paramssing(itype).valency_val;
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-template<int NEIGHFLAG>
-KOKKOS_INLINE_FUNCTION
-void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf_LessAtomics<NEIGHFLAG>, const int &ii) const {
-
-  if (d_resize_bo() || d_resize_hb())
-    return;
-
-  const int i = d_ilist[ii];
-  const X_FLOAT xtmp = x(i,0);
-  const X_FLOAT ytmp = x(i,1);
-  const X_FLOAT ztmp = x(i,2);
-  const int itype = type(i);
-  const tagint itag = tag(i);
-  const int jnum = d_numneigh[i];
-
-  F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3];
-
-  int j_index,i_index;
-  d_bo_first[i] = i*maxbo;
-  const int bo_first_i = d_bo_first[i];
-
-  int ihb = -1;
-  int jhb = -1;
-
-  int hb_first_i;
-  if (cut_hbsq > 0.0) {
-    ihb = paramssing(itype).p_hbond;
-    if (ihb == 1) {
-      d_hb_first[i] = i*maxhb;
-      hb_first_i = d_hb_first[i];
-    }
-  }
-
-  for (int jj = 0; jj < jnum; jj++) {
-    int j = d_neighbors(i,jj);
-    j &= NEIGHMASK;
-    const tagint jtag = tag(j);
-
-    d_bo_first[j] = j*maxbo;
-    d_hb_first[j] = j*maxhb;
-    const int jtype = type(j);
-
-    delij[0] = x(j,0) - xtmp;
-    delij[1] = x(j,1) - ytmp;
-    delij[2] = x(j,2) - ztmp;
-    const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
-
-    double cutoffsq;
-    if(i < nlocal) cutoffsq = MAX(cut_bosq,cut_hbsq);
-    else cutoffsq = cut_bosq;
-    if (rsq > cutoffsq) continue;
-
-    // hbond list
-    if (i < nlocal && cut_hbsq > 0.0 && (ihb == 1 || ihb == 2) && rsq <= cut_hbsq) {
-      jhb = paramssing(jtype).p_hbond;
-      if (ihb == 1 && jhb == 2) {
-        if (NEIGHFLAG == HALF) {
-          j_index = hb_first_i + d_hb_num[i];
-          d_hb_num[i]++;
-        } else {
-          j_index = hb_first_i + Kokkos::atomic_fetch_add(&d_hb_num[i],1);
-        }
-
-        const int jj_index = j_index - hb_first_i;
-
-        if (jj_index >= maxhb) {
-          d_resize_hb() = 1;
-          return;
-        }
-
-        d_hb_list[j_index] = j;
-      } else if ( j < nlocal && ihb == 2 && jhb == 1) {
-        if (NEIGHFLAG == HALF) {
-          i_index = d_hb_first[j] + d_hb_num[j];
-          d_hb_num[j]++;
-        } else {
-          i_index = d_hb_first[j] + Kokkos::atomic_fetch_add(&d_hb_num[j],1);
-        }
-
-        const int ii_index = i_index - d_hb_first[j];
-
-        if (ii_index >= maxhb) {
-          d_resize_hb() = 1;
-          return;
-        }
-
-        d_hb_list[i_index] = i;
-      }
-    }
-
-    if (rsq > cut_bosq) continue;
-
-    // bond_list
-    const F_FLOAT rij = sqrt(rsq);
-    const F_FLOAT p_bo1 = paramstwbp(itype,jtype).p_bo1;
-    const F_FLOAT p_bo2 = paramstwbp(itype,jtype).p_bo2;
-    const F_FLOAT p_bo3 = paramstwbp(itype,jtype).p_bo3;
-    const F_FLOAT p_bo4 = paramstwbp(itype,jtype).p_bo4;
-    const F_FLOAT p_bo5 = paramstwbp(itype,jtype).p_bo5;
-    const F_FLOAT p_bo6 = paramstwbp(itype,jtype).p_bo6;
-    const F_FLOAT r_s = paramstwbp(itype,jtype).r_s;
-    const F_FLOAT r_pi = paramstwbp(itype,jtype).r_pi;
-    const F_FLOAT r_pi2 = paramstwbp(itype,jtype).r_pi2;
-
-    if (paramssing(itype).r_s > 0.0  && paramssing(jtype).r_s > 0.0) {
-      C12 = p_bo1*pow(rij/r_s,p_bo2);
-      BO_s = (1.0+bo_cut)*exp(C12);
-    }
-    else BO_s = C12 = 0.0;
-
-    if (paramssing(itype).r_pi > 0.0  && paramssing(jtype).r_pi > 0.0) {
-      C34 = p_bo3*pow(rij/r_pi,p_bo4);
-      BO_pi = exp(C34);
-    }
-    else BO_pi = C34 = 0.0;
-
-    if (paramssing(itype).r_pi2 > 0.0  && paramssing(jtype).r_pi2 > 0.0) {
-      C56 = p_bo5*pow(rij/r_pi2,p_bo6);
-      BO_pi2 = exp(C56);
-    }
-    else BO_pi2 = C56 = 0.0;
-
-    BO = BO_s + BO_pi + BO_pi2;
-    if (BO < bo_cut) continue;
-
-    if (NEIGHFLAG == HALF) {
-      j_index = bo_first_i + d_bo_num[i];
-      i_index = d_bo_first[j] + d_bo_num[j];
-      d_bo_num[i]++;
-      d_bo_num[j]++;
-    } else {
-      j_index = bo_first_i + Kokkos::atomic_fetch_add(&d_bo_num[i],1);
-      i_index = d_bo_first[j] + Kokkos::atomic_fetch_add(&d_bo_num[j],1);
-    }
-
-    const int jj_index = j_index - bo_first_i;
-    const int ii_index = i_index - d_bo_first[j];
-
-    if (jj_index >= maxbo || ii_index >= maxbo) {
-      d_resize_bo() = 1;
-      return;
-    }
-
-    d_bo_list[j_index] = j;
-    d_bo_list[i_index] = i;
-  }
-
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void PairReaxCKokkos<DeviceType>::operator()(PairReaxBondOrder1_LessAtomics, const int &ii) const {
-
-  F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3], dBOp_i[3], dln_BOp_pi_i[3], dln_BOp_pi2_i[3];
-
-  const int i = d_ilist[ii];
-  const X_FLOAT xtmp = x(i,0);
-  const X_FLOAT ytmp = x(i,1);
-  const X_FLOAT ztmp = x(i,2);
-  const int itype = type(i);
-
-  const int j_start = d_bo_first[i];
-  const int j_end = j_start + d_bo_num[i];
-
-  F_FLOAT total_bo = 0.0;
-
-  for (int jj = j_start; jj < j_end; jj++) {
-    int j = d_bo_list[jj];
-    j &= NEIGHMASK;
-    delij[0] = x(j,0) - xtmp;
-    delij[1] = x(j,1) - ytmp;
-    delij[2] = x(j,2) - ztmp;
-    const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
-    const F_FLOAT rij = sqrt(rsq);
-    const int jtype = type(j);
-    const int j_index = jj - j_start;
-
-    // calculate uncorrected BO and total bond order
-
-    const F_FLOAT p_bo1 = paramstwbp(itype,jtype).p_bo1;
-    const F_FLOAT p_bo2 = paramstwbp(itype,jtype).p_bo2;
-    const F_FLOAT p_bo3 = paramstwbp(itype,jtype).p_bo3;
-    const F_FLOAT p_bo4 = paramstwbp(itype,jtype).p_bo4;
-    const F_FLOAT p_bo5 = paramstwbp(itype,jtype).p_bo5;
-    const F_FLOAT p_bo6 = paramstwbp(itype,jtype).p_bo6;
-    const F_FLOAT r_s = paramstwbp(itype,jtype).r_s;
-    const F_FLOAT r_pi = paramstwbp(itype,jtype).r_pi;
-    const F_FLOAT r_pi2 = paramstwbp(itype,jtype).r_pi2;
-
-    if (paramssing(itype).r_s > 0.0  && paramssing(jtype).r_s > 0.0) {
-      C12 = p_bo1*pow(rij/r_s,p_bo2);
-      BO_s = (1.0+bo_cut)*exp(C12);
-    }
-    else BO_s = C12 = 0.0;
-
-    if (paramssing(itype).r_pi > 0.0  && paramssing(jtype).r_pi > 0.0) {
-      C34 = p_bo3*pow(rij/r_pi,p_bo4);
-      BO_pi = exp(C34);
-    }
-    else BO_pi = C34 = 0.0;
-
-    if (paramssing(itype).r_pi2 > 0.0  && paramssing(jtype).r_pi2 > 0.0) {
-      C56 = p_bo5*pow(rij/r_pi2,p_bo6);
-      BO_pi2 = exp(C56);
-    }
-    else BO_pi2 = C56 = 0.0;
-
-    BO = BO_s + BO_pi + BO_pi2;
-    if (BO < bo_cut) continue;
-
-    d_BO(i,j_index) = BO;
-    d_BO_s(i,j_index) = BO;
-    d_BO_pi(i,j_index) = BO_pi;
-    d_BO_pi2(i,j_index) = BO_pi2;
-
-    F_FLOAT Cln_BOp_s = p_bo2 * C12 / rij / rij;
-    F_FLOAT Cln_BOp_pi = p_bo4 * C34 / rij / rij;
-    F_FLOAT Cln_BOp_pi2 = p_bo6 * C56 / rij / rij;
-
-    if (nlocal == 0)
-      Cln_BOp_s = Cln_BOp_pi = Cln_BOp_pi2 = 0.0;
-
-    for (int d = 0; d < 3; d++) dln_BOp_pi_i[d] = -(BO_pi*Cln_BOp_pi)*delij[d];
-    for (int d = 0; d < 3; d++) dln_BOp_pi2_i[d] = -(BO_pi2*Cln_BOp_pi2)*delij[d];
-    for (int d = 0; d < 3; d++) dBOp_i[d] = -(BO_s*Cln_BOp_s+BO_pi*Cln_BOp_pi+BO_pi2*Cln_BOp_pi2)*delij[d];
-    for (int d = 0; d < 3; d++) d_dDeltap_self(i,d) += dBOp_i[d];
-
-    d_dln_BOp_pix(i,j_index) = dln_BOp_pi_i[0];
-    d_dln_BOp_piy(i,j_index) = dln_BOp_pi_i[1];
-    d_dln_BOp_piz(i,j_index) = dln_BOp_pi_i[2];
-
-    d_dln_BOp_pi2x(i,j_index) = dln_BOp_pi2_i[0];
-    d_dln_BOp_pi2y(i,j_index) = dln_BOp_pi2_i[1];
-    d_dln_BOp_pi2z(i,j_index) = dln_BOp_pi2_i[2];
-
-    d_dBOpx(i,j_index) = dBOp_i[0];
-    d_dBOpy(i,j_index) = dBOp_i[1];
-    d_dBOpz(i,j_index) = dBOp_i[2];
-
-    d_BO(i,j_index) -= bo_cut;
-    d_BO_s(i,j_index) -= bo_cut;
-    total_bo += d_BO(i,j_index);
-  }
-  d_total_bo[i] += total_bo;
 
   const F_FLOAT val_i = paramssing(itype).valency;
   d_Deltap[i] = d_total_bo[i] - val_i;
@@ -3485,7 +3190,9 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond1<NEIGHFLAG,EVFL
     const F_FLOAT eng_tmp = ebond + estriph;
     if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,j,eng_tmp);
   }
+  printf("Start BOND1\n");
   a_CdDelta[i] += CdDelta_i;
+  printf("DONE BOND1\n");
 }
 
 template<class DeviceType>
@@ -3728,7 +3435,7 @@ void PairReaxCKokkos<DeviceType>::ev_tally(EV_FLOAT_REAX &ev, const int &i, cons
   if (eflag_atom) {
     const E_FLOAT epairhalf = 0.5 * epair;
     a_eatom[i] += epairhalf;
-    if (NEIGHFLAG != FULL) a_eatom[j] += epairhalf;
+    a_eatom[j] += epairhalf;
   }
 
   if (VFLAG) {
@@ -3740,21 +3447,12 @@ void PairReaxCKokkos<DeviceType>::ev_tally(EV_FLOAT_REAX &ev, const int &i, cons
     const E_FLOAT v5 = dely*delz*fpair;
 
     if (vflag_global) {
-      if (NEIGHFLAG != FULL) {
-        ev.v[0] += v0;
-        ev.v[1] += v1;
-        ev.v[2] += v2;
-        ev.v[3] += v3;
-        ev.v[4] += v4;
-        ev.v[5] += v5;
-      } else {
-        ev.v[0] += 0.5*v0;
-        ev.v[1] += 0.5*v1;
-        ev.v[2] += 0.5*v2;
-        ev.v[3] += 0.5*v3;
-        ev.v[4] += 0.5*v4;
-        ev.v[5] += 0.5*v5;
-      }
+      ev.v[0] += v0;
+      ev.v[1] += v1;
+      ev.v[2] += v2;
+      ev.v[3] += v3;
+      ev.v[4] += v4;
+      ev.v[5] += v5;
     }
 
     if (vflag_atom) {
@@ -3764,15 +3462,12 @@ void PairReaxCKokkos<DeviceType>::ev_tally(EV_FLOAT_REAX &ev, const int &i, cons
       a_vatom(i,3) += 0.5*v3;
       a_vatom(i,4) += 0.5*v4;
       a_vatom(i,5) += 0.5*v5;
-
-      if (NEIGHFLAG != FULL) {
-        a_vatom(j,0) += 0.5*v0;
-        a_vatom(j,1) += 0.5*v1;
-        a_vatom(j,2) += 0.5*v2;
-        a_vatom(j,3) += 0.5*v3;
-        a_vatom(j,4) += 0.5*v4;
-        a_vatom(j,5) += 0.5*v5;
-      }
+      a_vatom(j,0) += 0.5*v0;
+      a_vatom(j,1) += 0.5*v1;
+      a_vatom(j,2) += 0.5*v2;
+      a_vatom(j,3) += 0.5*v3;
+      a_vatom(j,4) += 0.5*v4;
+      a_vatom(j,5) += 0.5*v5;
     }
   }
 }

@@ -437,7 +437,7 @@ class PairReaxCKokkos : public PairReaxC {
   typename AT::t_ffloat_2d_dl d_sum_ovun;
   typename AT::t_ffloat_2d_dl d_dBOpx, d_dBOpy, d_dBOpz;
 
-  int neighflag,newton_pair, maxnumneigh, maxhb, maxbo;
+  int neighflag, newton_pair, maxnumneigh, maxhb, maxbo;
   int nlocal,nall,eflag,vflag;
   F_FLOAT cut_nbsq, cut_hbsq, cut_bosq, bo_cut, thb_cut, thb_cutsq;
   F_FLOAT bo_cut_bond;

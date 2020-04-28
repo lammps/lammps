@@ -278,7 +278,7 @@ elseif(GPU_API STREQUAL "HIP")
 
   set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LAMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h ${LAMMPS_LIB_BINARY_DIR}/gpu/*.cu.cpp")
 
-  hip_add_library(gpu STATIC ${GPU_LIB_SOURCES})
+  add_library(gpu STATIC ${GPU_LIB_SOURCES})
   target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu)
   target_compile_definitions(gpu PRIVATE -D_${GPU_PREC_SETTING} -DMPI_GERYON -DUCL_NO_EXIT)
   target_compile_definitions(gpu PRIVATE -DUSE_HIP)
@@ -330,7 +330,7 @@ elseif(GPU_API STREQUAL "HIP")
 
   if(HIP_PLATFORM STREQUAL "nvcc")
     target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_NVCC__)
-    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/include)
+    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
     target_include_directories(gpu PRIVATE ${CUDA_INCLUDE_DIRS})
     target_link_libraries(gpu PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
 
@@ -339,9 +339,11 @@ elseif(GPU_API STREQUAL "HIP")
     target_include_directories(hip_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
     target_link_libraries(hip_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
   elseif(HIP_PLATFORM STREQUAL "hcc")
+    target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_HCC__)
+    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
+
     target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_HCC__)
-    target_include_directories(hip_get_devices PRIVATE ${HIP_ROOT_DIR}/include)
-    target_include_directories(hip_get_devices PRIVATE ${HIP_ROOT_DIR}/../hsa/include)
+    target_include_directories(hip_get_devices PRIVATE ${HIP_ROOT_DIR}/../include)
   endif()
 
   target_link_libraries(lammps PRIVATE gpu)

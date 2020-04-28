@@ -326,17 +326,17 @@ foreach(PKG_WITH_INCL KSPACE PYTHON VORONOI USER-COLVARS USER-MOLFILE USER-NETCD
 endforeach()
 
 set(CMAKE_TUNE_FLAGS "${CMAKE_TUNE_DEFAULT}" CACHE STRING "Compiler specific optimization or instrumentation")
-# this is broken for many flags and compilers
-#separate_arguments(CMAKE_TUNE_FLAGS)
-#include(CheckCXXCompilerFlag)
-#foreach(_FLAG ${CMAKE_TUNE_FLAGS})
-#  check_cxx_compiler_flag("${_FLAG}" COMPILER_SUPPORTS${_FLAG})
-#  if(COMPILER_SUPPORTS${_FLAG})
-#    target_compile_options(lammps PRIVATE ${_FLAG})
-#  else()
-#    message(WARNING "${_FLAG} found in CMAKE_TUNE_FLAGS, but not supported by the compiler, skipping")
-#  endif()
-#endforeach()
+separate_arguments(CMAKE_TUNE_FLAGS)
+include(CheckCXXCompilerFlag)
+foreach(_FLAG ${CMAKE_TUNE_FLAGS})
+  string(REGEX REPLACE "[=\"]" "" _FLAGX ${_FLAG})
+  check_cxx_compiler_flag("${_FLAG}" COMPILER_SUPPORTS${_FLAGX})
+  if(COMPILER_SUPPORTS${_FLAGX})
+    target_compile_options(lammps PRIVATE ${_FLAG})
+  else()
+    message(WARNING "${_FLAG} found in CMAKE_TUNE_FLAGS, but not supported by the compiler, skipping")
+  endif()
+endforeach()
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################

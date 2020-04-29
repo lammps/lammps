@@ -1526,8 +1526,10 @@ void lammps_gather_fix(void *ptr, char * /*id*/, int /*type*/,
   LAMMPS *lmp = (LAMMPS *) ptr;
 
   BEGIN_CAPTURE
+  {
   lmp->error->all(FLERR,"Library function lammps_gather_peratom_fix()"
                                       " not compatible with -DLAMMPS_BIGBIG");
+  }
   END_CAPTURE
 }
 #else
@@ -1642,8 +1644,10 @@ void lammps_gather_fix_subset(void *ptr, char * /*id */, int /*type*/,
   LAMMPS *lmp = (LAMMPS *) ptr;
 
   BEGIN_CAPTURE
+  {
   lmp->error->all(FLERR,"Library function lammps_gather_peratom_fix_subset() "
                                           "not compatible with -DLAMMPS_BIGBIG");
+  }
   END_CAPTURE
 }
 #else

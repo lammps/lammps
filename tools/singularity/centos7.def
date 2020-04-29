@@ -7,7 +7,8 @@ From: centos:7
         yum -y install vim-enhanced \
             ccache gcc-c++ gcc-gfortran clang gdb valgrind-openmpi \
             make cmake cmake3 ninja-build patch which file git Lmod \
-            libpng-devel libjpeg-devel openmpi-devel mpich-devel python-devel \
+            libpng-devel libjpeg-devel openmpi-devel mpich-devel python-devel python36-devel \
+            hdf5-devel python36-virtualenv python36-pip python-pip \
             python-virtualenv fftw-devel voro++-devel eigen3-devel gsl-devel openblas-devel enchant
 
 %environment
@@ -19,4 +20,4 @@ From: centos:7
         module load mpi
 
 %labels
-        Author akohlmey
+        Author akohlmey, rbberger

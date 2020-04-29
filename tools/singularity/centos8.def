@@ -8,7 +8,7 @@ From: centos:8
         dnf -y install vim-enhanced git file make cmake patch which file ninja-build \
                ccache gcc-c++ gcc-gfortran clang gdb valgrind libubsan libasan libtsan \
                eigen3-devel openblas-devel libpng-devel libjpeg-devel platform-python-devel \
-               openmpi-devel mpich-devel fftw-devel voro++-devel gsl-devel \
+               openmpi-devel mpich-devel fftw-devel voro++-devel gsl-devel hdf5-devel \
                enchant python3-virtualenv doxygen \
                texlive-latex-fonts texlive-pslatex texlive-collection-latexrecommended \
                texlive-latex texlive-latexconfig doxygen-latex texlive-collection-latex \
@@ -25,4 +25,4 @@ From: centos:8
         module load mpi
 
 %labels
-        Author akohlmey
+        Author akohlmey, rbberger

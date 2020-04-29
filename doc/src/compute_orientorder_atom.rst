@@ -4,7 +4,7 @@ compute orientorder/atom command
 ================================
 
 compute orientorder/atom/kk command
-=======================
+===================================
 
 Syntax
 """"""

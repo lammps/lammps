@@ -77,7 +77,7 @@ class KimInteractions : protected Pointers {
  private:
   void do_setup(int, char **);
   int species_to_atomic_no(std::string const species) const;
-  void KIM_MATCH_PAIRS(char const *const input_line) const;
+  void KIM_SET_TYPE_PARAMETERS(char const *const input_line) const;
   void kim_interactions_log_delimiter(std::string const begin_end) const;
 };
 

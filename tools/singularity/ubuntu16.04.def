@@ -8,7 +8,7 @@ From: ubuntu:16.04
     apt-get install --no-install-recommends -y \
         bc build-essential curl doxygen vim-nox wget \
         make cmake cmake-curses-gui ninja-build git \
-        rsync ssh \
+        rsync ssh less \
         ccache gcc g++ gfortran \
         mpi-default-bin mpi-default-dev \
         libfftw3-dev libjpeg-dev libpng12-dev libblas-dev liblapack-dev \

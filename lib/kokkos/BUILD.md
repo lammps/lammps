@@ -40,6 +40,13 @@ cmake ${srcdir} \
 ````
 which activates the OpenMP backend. All of the options controlling device backends, options, architectures, and third-party libraries (TPLs) are given below.
 
+## Platform-specific Problems
+
+### Cray
+
+* The Cray compiler wrappers do static linking by default. This seems to break the Kokkos build. You will likely need to set the environment variable `CRAYPE_LINK_TYPE=dynamic` in order to link correctly. Kokkos warns during configure if this is missing.
+* The Cray compiler identifies to CMake as Clang, but it sometimes has its own flags that differ from Clang. We try to include all exceptions, but flag errors may occur in which a Clang-specific flag is passed that the Cray compiler does not recognize.
+
 ## Spack
 An alternative to manually building with the CMake is to use the Spack package manager.
 To do so, download the `kokkos-spack` git repo and add to the package list:
@@ -63,6 +70,7 @@ For a complete list of Kokkos options, run:
 ````
 spack info kokkos
 ````
+More details can be found in the kokkos-spack repository [README](https://github.com/kokkos/kokkos-spack/blob/master/README.md).
 
 #### Spack Development
 Spack currently installs packages to a location determined by a unique hash. This hash name is not really "human readable".
@@ -73,32 +81,8 @@ spack find -p kokkos ...
 ````
 where `...` is the unique spec identifying the particular Kokkos configuration and version.
 
-A better way to use Spack for doing Kokkos development is the DIY feature of Spack.
-If you wish to develop Kokkos itself, go to the Kokkos source folder:
-````
-spack diy -u cmake kokkos@diy ...
-````
-where `...` is a Spack spec identifying the exact Kokkos configuration.
-This then creates a `spack-build` directory where you can run `make`.
-
-If doing development on a downstream project, you can do almost exactly the same thing.
-````
-spack diy -u cmake ${myproject}@${myversion} ... ^kokkos...
-````
-where the `...` are the specs for your project and the desired Kokkos configuration.
-Again, a `spack-build` directory will be created where you can run `make`.
-
-Spack has a few idiosyncracies that make building outside of Spack annoying related to Spack forcing use of a compiler wrapper. This can be worked around by having a `-DSpack_WORKAROUND=On` given your CMake. Then add the block of code to your CMakeLists.txt:
-
-````
-if (Spack_WORKAROUND)
- set(SPACK_CXX $ENV{SPACK_CXX})
- if(SPACK_CXX)
-   set(CMAKE_CXX_COMPILER ${SPACK_CXX} CACHE STRING "the C++ compiler" FORCE)
-   set(ENV{CXX} ${SPACK_CXX})
- endif()
-endif()
-````
+A better way to use Spack for doing Kokkos development is the dev-build feature of Spack.
+For dev-build details, consult the kokkos-spack repository [README](https://github.com/kokkos/kokkos-spack/blob/master/README.md).
 
 # Kokkos Keyword Listing
 
@@ -156,6 +140,9 @@ Options can be enabled by specifying `-DKokkos_ENABLE_X`.
     * BOOL Default: OFF
 * Kokkos_ENABLE_DEPRECATED_CODE
     * Whether to enable deprecated code
+    * BOOL Default: OFF
+* Kokkos_ENABLE_EXAMPLES
+    * Whether to enable building examples
     * BOOL Default: OFF
 * Kokkos_ENABLE_HPX_ASYNC_DISPATCH
     * Whether HPX supports asynchronous dispatch

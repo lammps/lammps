@@ -22,15 +22,19 @@ From: ubuntu:18.04
         gfortran \
         git \
         hdf5-tools \
+        less \
         libblas-dev \
         libeigen3-dev \
         libenchant-dev \
         libfftw3-dev \
         libgsl-dev \
         libhdf5-serial-dev \
+        libhwloc-dev \
         libjpeg-dev \
         liblapack-dev \
+        libomp-dev \
         libopenblas-dev \
+        libnuma-dev \
         libpng-dev \
         libproj-dev \
         libvtk6-dev \

@@ -22,7 +22,7 @@
 #include <Kokkos_Vectorization.hpp>
 #include <Kokkos_ScatterView.hpp>
 
-enum{FULL=1u,HALFTHREAD=2u,HALF=4u,N2=8u};
+enum{FULL=1u,HALFTHREAD=2u,HALF=4u};
 
 #if defined(KOKKOS_ENABLE_CXX11)
 #undef ISFINITE

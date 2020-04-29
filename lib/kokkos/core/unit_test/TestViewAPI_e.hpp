@@ -204,13 +204,13 @@ TEST(TEST_CATEGORY, anonymous_space) { test_anonymous_space(); }
 template <class ExecSpace>
 struct TestViewOverloadResolution {
   // Overload based on value_type and rank
-  static int foo(Kokkos::View<const double**, ExecSpace> a) { return 1; }
-  static int foo(Kokkos::View<const int**, ExecSpace> a) { return 2; }
-  static int foo(Kokkos::View<const double***, ExecSpace> a) { return 3; }
+  static int foo(Kokkos::View<const double**, ExecSpace> /*a*/) { return 1; }
+  static int foo(Kokkos::View<const int**, ExecSpace> /*a*/) { return 2; }
+  static int foo(Kokkos::View<const double***, ExecSpace> /*a*/) { return 3; }
 
   // Overload based on compile time dimensions
-  static int bar(Kokkos::View<double * [3], ExecSpace> a) { return 4; }
-  static int bar(Kokkos::View<double * [4], ExecSpace> a) { return 5; }
+  static int bar(Kokkos::View<double * [3], ExecSpace> /*a*/) { return 4; }
+  static int bar(Kokkos::View<double * [4], ExecSpace> /*a*/) { return 5; }
 
   static void test_function_overload() {
     Kokkos::View<double**, typename ExecSpace::execution_space::array_layout,
@@ -240,3 +240,5 @@ TEST(TEST_CATEGORY, view_overload_resolution) {
   TestViewOverloadResolution<TEST_EXECSPACE>::test_function_overload();
 }
 }  // namespace Test
+
+#include <TestViewIsAssignable.hpp>

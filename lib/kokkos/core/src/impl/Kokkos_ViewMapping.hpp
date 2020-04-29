@@ -252,7 +252,7 @@ template <class A, class B>
 struct ViewDimensionJoin;
 
 template <size_t... A, size_t... B>
-struct ViewDimensionJoin<ViewDimension<A...>, ViewDimension<B...> > {
+struct ViewDimensionJoin<ViewDimension<A...>, ViewDimension<B...>> {
   typedef ViewDimension<A..., B...> type;
 };
 
@@ -263,7 +263,7 @@ struct ViewDimensionAssignable;
 
 template <size_t... DstArgs, size_t... SrcArgs>
 struct ViewDimensionAssignable<ViewDimension<DstArgs...>,
-                               ViewDimension<SrcArgs...> > {
+                               ViewDimension<SrcArgs...>> {
   typedef ViewDimension<DstArgs...> dst;
   typedef ViewDimension<SrcArgs...> src;
 
@@ -327,18 +327,18 @@ struct is_integral_extent_type {
 };
 
 template <class iType>
-struct is_integral_extent_type<std::pair<iType, iType> > {
+struct is_integral_extent_type<std::pair<iType, iType>> {
   enum { value = std::is_integral<iType>::value ? 1 : 0 };
 };
 
 template <class iType>
-struct is_integral_extent_type<Kokkos::pair<iType, iType> > {
+struct is_integral_extent_type<Kokkos::pair<iType, iType>> {
   enum { value = std::is_integral<iType>::value ? 1 : 0 };
 };
 
 // Assuming '2 == initializer_list<iType>::size()'
 template <class iType>
-struct is_integral_extent_type<std::initializer_list<iType> > {
+struct is_integral_extent_type<std::initializer_list<iType>> {
   enum { value = std::is_integral<iType>::value ? 1 : 0 };
 };
 
@@ -641,10 +641,10 @@ struct SubviewExtents {
     error(buf + n, buf_len - n, domain_rank + 1, range_rank + 1, dim, args...);
   }
 
+#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
   template <size_t... DimArgs, class... Args>
   KOKKOS_FORCEINLINE_FUNCTION void error(const ViewDimension<DimArgs...>& dim,
                                          Args... args) const {
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
     enum { LEN = 1024 };
     char buffer[LEN];
 
@@ -652,10 +652,14 @@ struct SubviewExtents {
     error(buffer + n, LEN - n, 0, 0, dim, args...);
 
     Kokkos::Impl::throw_runtime_exception(std::string(buffer));
-#else
-    Kokkos::abort("Kokkos::subview bounds error");
-#endif
   }
+#else
+  template <size_t... DimArgs, class... Args>
+  KOKKOS_FORCEINLINE_FUNCTION void error(const ViewDimension<DimArgs...>&,
+                                         Args...) const {
+    Kokkos::abort("Kokkos::subview bounds error");
+  }
+#endif
 
 #else
 
@@ -726,18 +730,18 @@ template <class T, class Dim>
 struct ViewDataType;
 
 template <class T>
-struct ViewDataType<T, ViewDimension<> > {
+struct ViewDataType<T, ViewDimension<>> {
   typedef T type;
 };
 
 template <class T, size_t... Args>
-struct ViewDataType<T, ViewDimension<0, Args...> > {
-  typedef typename ViewDataType<T*, ViewDimension<Args...> >::type type;
+struct ViewDataType<T, ViewDimension<0, Args...>> {
+  typedef typename ViewDataType<T*, ViewDimension<Args...>>::type type;
 };
 
 template <class T, size_t N, size_t... Args>
-struct ViewDataType<T, ViewDimension<N, Args...> > {
-  typedef typename ViewDataType<T, ViewDimension<Args...> >::type type[N];
+struct ViewDataType<T, ViewDimension<N, Args...>> {
+  typedef typename ViewDataType<T, ViewDimension<Args...>>::type type[N];
 };
 
 /**\brief  Analysis of View data type.
@@ -2740,7 +2744,7 @@ struct ViewValueFunctor;
 
 template <class ExecSpace, class ValueType>
 struct ViewValueFunctor<ExecSpace, ValueType, false /* is_scalar */> {
-  typedef Kokkos::RangePolicy<ExecSpace> PolicyType;
+  typedef Kokkos::RangePolicy<ExecSpace, Kokkos::IndexType<int64_t>> PolicyType;
   typedef typename ExecSpace::execution_space Exec;
 
   Exec space;
@@ -2779,6 +2783,12 @@ struct ViewValueFunctor<ExecSpace, ValueType, false /* is_scalar */> {
             0, &kpID);
       }
 #endif
+#ifdef KOKKOS_ENABLE_CUDA
+      if (std::is_same<ExecSpace, Kokkos::Cuda>::value) {
+        Kokkos::Impl::cuda_prefetch_pointer(space, ptr, sizeof(ValueType) * n,
+                                            true);
+      }
+#endif
       const Kokkos::Impl::ParallelFor<ViewValueFunctor, PolicyType> closure(
           *this, PolicyType(0, n));
       closure.execute();
@@ -2800,7 +2810,7 @@ struct ViewValueFunctor<ExecSpace, ValueType, false /* is_scalar */> {
 
 template <class ExecSpace, class ValueType>
 struct ViewValueFunctor<ExecSpace, ValueType, true /* is_scalar */> {
-  typedef Kokkos::RangePolicy<ExecSpace> PolicyType;
+  typedef Kokkos::RangePolicy<ExecSpace, Kokkos::IndexType<int64_t>> PolicyType;
 
   ExecSpace space;
   ValueType* ptr;
@@ -2824,6 +2834,12 @@ struct ViewValueFunctor<ExecSpace, ValueType, true /* is_scalar */> {
       if (Kokkos::Profiling::profileLibraryLoaded()) {
         Kokkos::Profiling::beginParallelFor("Kokkos::View::initialization", 0,
                                             &kpID);
+      }
+#endif
+#ifdef KOKKOS_ENABLE_CUDA
+      if (std::is_same<ExecSpace, Kokkos::Cuda>::value) {
+        Kokkos::Impl::cuda_prefetch_pointer(space, ptr, sizeof(ValueType) * n,
+                                            true);
       }
 #endif
       const Kokkos::Impl::ParallelFor<ViewValueFunctor, PolicyType> closure(
@@ -3069,7 +3085,7 @@ class ViewMapping<
 
   //----------------------------------------
 
-  KOKKOS_INLINE_FUNCTION ~ViewMapping() {}
+  KOKKOS_DEFAULTED_FUNCTION ~ViewMapping() = default;
   KOKKOS_INLINE_FUNCTION ViewMapping() : m_impl_handle(), m_impl_offset() {}
   KOKKOS_INLINE_FUNCTION ViewMapping(const ViewMapping& rhs)
       : m_impl_handle(rhs.m_impl_handle), m_impl_offset(rhs.m_impl_offset) {}
@@ -3493,7 +3509,7 @@ struct SubViewDataTypeImpl;
 
 /* base case */
 template <class ValueType>
-struct SubViewDataTypeImpl<void, ValueType, Experimental::Extents<> > {
+struct SubViewDataTypeImpl<void, ValueType, Kokkos::Experimental::Extents<>> {
   using type = ValueType;
 };
 
@@ -3503,16 +3519,17 @@ template <class ValueType, ptrdiff_t Ext, ptrdiff_t... Exts, class Integral,
 struct SubViewDataTypeImpl<
     typename std::enable_if<
         std::is_integral<typename std::decay<Integral>::type>::value>::type,
-    ValueType, Experimental::Extents<Ext, Exts...>, Integral, Args...>
-    : SubViewDataTypeImpl<void, ValueType, Experimental::Extents<Exts...>,
-                          Args...> {};
+    ValueType, Kokkos::Experimental::Extents<Ext, Exts...>, Integral, Args...>
+    : SubViewDataTypeImpl<void, ValueType,
+                          Kokkos::Experimental::Extents<Exts...>, Args...> {};
 
 /* for ALL slice, subview has the same dimension */
 template <class ValueType, ptrdiff_t Ext, ptrdiff_t... Exts, class... Args>
-struct SubViewDataTypeImpl<void, ValueType, Experimental::Extents<Ext, Exts...>,
-                           ALL_t, Args...>
+struct SubViewDataTypeImpl<void, ValueType,
+                           Kokkos::Experimental::Extents<Ext, Exts...>, ALL_t,
+                           Args...>
     : SubViewDataTypeImpl<void, typename ApplyExtent<ValueType, Ext>::type,
-                          Experimental::Extents<Exts...>, Args...> {};
+                          Kokkos::Experimental::Extents<Exts...>, Args...> {};
 
 /* for pair-style slice, subview has dynamic dimension, since pair doesn't give
  * static sizes */
@@ -3522,10 +3539,10 @@ template <class ValueType, ptrdiff_t Ext, ptrdiff_t... Exts, class PairLike,
           class... Args>
 struct SubViewDataTypeImpl<
     typename std::enable_if<is_pair_like<PairLike>::value>::type, ValueType,
-    Experimental::Extents<Ext, Exts...>, PairLike, Args...>
+    Kokkos::Experimental::Extents<Ext, Exts...>, PairLike, Args...>
     : SubViewDataTypeImpl<
           void, typename make_all_extents_into_pointers<ValueType>::type*,
-          Experimental::Extents<Exts...>, Args...> {};
+          Kokkos::Experimental::Extents<Exts...>, Args...> {};
 
 template <class ValueType, class Exts, class... Args>
 struct SubViewDataType : SubViewDataTypeImpl<void, ValueType, Exts, Args...> {};

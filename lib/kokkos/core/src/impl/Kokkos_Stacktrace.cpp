@@ -18,7 +18,7 @@ namespace Kokkos {
 namespace Impl {
 #ifndef KOKKOS_IMPL_ENABLE_STACKTRACE
 int backtrace(void**, int) { return 0; }
-char** backtrace_symbols(void* const*, int) { return NULL; }
+char** backtrace_symbols(void* const*, int) { return nullptr; }
 #endif
 
 std::string demangle(const std::string& name) {

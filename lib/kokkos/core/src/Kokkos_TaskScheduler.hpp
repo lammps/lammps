@@ -143,7 +143,7 @@ class BasicTaskScheduler : public Impl::TaskSchedulerBase {
       Kokkos::BasicFuture<typename FunctorType::value_type, scheduler_type>
       _spawn_impl(DepTaskType* arg_predecessor_task, TaskPriority arg_priority,
                   typename task_base::function_type arg_function,
-                  typename task_base::destroy_type arg_destroy,
+                  typename task_base::destroy_type /*arg_destroy*/,
                   FunctorType&& arg_functor) {
     using functor_future_type =
         future_type_for_functor<typename std::decay<FunctorType>::type>;
@@ -203,7 +203,7 @@ class BasicTaskScheduler : public Impl::TaskSchedulerBase {
 
  public:
   KOKKOS_INLINE_FUNCTION
-  BasicTaskScheduler() : m_track(), m_queue(0) {}
+  BasicTaskScheduler() : m_track(), m_queue(nullptr) {}
 
   KOKKOS_INLINE_FUNCTION
   BasicTaskScheduler(BasicTaskScheduler&& rhs) noexcept
@@ -231,7 +231,7 @@ class BasicTaskScheduler : public Impl::TaskSchedulerBase {
   }
 
   explicit BasicTaskScheduler(memory_pool const& arg_memory_pool) noexcept
-      : m_track(), m_queue(0) {
+      : m_track(), m_queue(nullptr) {
     typedef Kokkos::Impl::SharedAllocationRecord<memory_space,
                                                  typename queue_type::Destroy>
         record_type;
@@ -349,7 +349,7 @@ class BasicTaskScheduler : public Impl::TaskSchedulerBase {
 
     task->m_priority = static_cast<int>(arg_priority);
 
-    task->add_dependence((task_base*)0);
+    task->add_dependence(nullptr);
 
     // Postcondition: task is in Executing-Respawn state
   }
@@ -380,8 +380,8 @@ class BasicTaskScheduler : public Impl::TaskSchedulerBase {
         }
       }
 
-      if (q != 0) {  // this should probably handle the queue == 0 case, but
-                     // this is deprecated code anyway
+      if (q != nullptr) {  // this should probably handle the queue == 0 case,
+                           // but this is deprecated code anyway
 
         size_t const alloc_size = q->when_all_allocation_size(narg);
 
@@ -459,7 +459,7 @@ class BasicTaskScheduler : public Impl::TaskSchedulerBase {
 
       for (int i = 0; i < narg; ++i) {
         const input_type arg_f = func(i);
-        if (0 != arg_f.m_task) {
+        if (nullptr != arg_f.m_task) {
           // Not scheduled, so task scheduler is not yet set
           // if ( m_queue != static_cast< BasicTaskScheduler const * >(
           // arg_f.m_task->m_scheduler )->m_queue ) {

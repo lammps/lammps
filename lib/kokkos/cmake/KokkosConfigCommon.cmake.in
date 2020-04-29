@@ -73,6 +73,9 @@ function(kokkos_check)
     # use it to check that there are variables defined for all required
     # arguments. Success or failure messages will be displayed but we are
     # responsible for signaling failure and skip the build system generation.
+    if (KOKKOS_CHECK_RETURN_VALUE)
+      set(Kokkos_${arg}_FIND_QUIETLY ON)
+    endif()
     find_package_handle_standard_args("Kokkos_${arg}" DEFAULT_MSG
             ${KOKKOS_CHECK_${arg}})
     if(NOT Kokkos_${arg}_FOUND)

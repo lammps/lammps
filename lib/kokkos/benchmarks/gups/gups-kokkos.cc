@@ -61,7 +61,7 @@ typedef int GUPSIndex;
 
 double now() {
 	struct timeval now;
-	gettimeofday(&now, NULL);
+	gettimeofday(&now, nullptr);
 
 	return (double) now.tv_sec + ((double) now.tv_usec * 1.0e-6);
 }

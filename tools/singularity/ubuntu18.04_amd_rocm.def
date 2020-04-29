@@ -61,7 +61,9 @@ From: rocm/dev-ubuntu-18.04
         virtualenv \
         voro++-dev \
         wget \
-        xxd
+        xxd \
+        valgrind \
+        gdb
 
     export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
     git clone -b master-rocm-3.3 https://github.com/ROCmSoftwarePlatform/hipCUB.git
@@ -71,6 +73,9 @@ From: rocm/dev-ubuntu-18.04
     make -j4
     make package
     make install
+
+    # clean cache
+    rm -rf /var/lib/apt/lists/*
 
 %environment
     LC_ALL=C

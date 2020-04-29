@@ -34,6 +34,7 @@ From: fedora:30
                texlive-latex-bin texlive-lualatex-math texlive-fncychap texlive-tabulary \
                texlive-framed texlive-wrapfig texlive-upquote texlive-capt-of \
                texlive-needspace texlive-titlesec texlive-anysize texlive-dvipng
+        dnf clean all
 
 %environment
         LC_ALL=C

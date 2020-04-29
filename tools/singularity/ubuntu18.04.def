@@ -61,11 +61,16 @@ From: ubuntu:18.04
         virtualenv \
         voro++-dev \
         wget \
-        xxd
+        xxd \
+        valgrind \
+        gdb
+
+    # clean cache
+    rm -rf /var/lib/apt/lists/*
 
 %environment
-        LC_ALL=C
-        export LC_ALL
+    LC_ALL=C
+    export LC_ALL
 
 %labels
     Author akohlmey, rbberger

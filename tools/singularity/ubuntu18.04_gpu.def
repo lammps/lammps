@@ -64,7 +64,10 @@ From: rocm/dev-ubuntu-18.04
         virtualenv \
         voro++-dev \
         wget \
-        xxd
+        xxd \
+        valgrind \
+        gdb
+
     wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
     mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
     apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
@@ -73,6 +76,7 @@ From: rocm/dev-ubuntu-18.04
     apt-get install --no-install-recommends -y \
         cuda \
         cuda-compiler-10-2 \
+        cuda-compat-10-2
 
     export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
     git clone -b master-rocm-3.3 https://github.com/ROCmSoftwarePlatform/hipCUB.git
@@ -85,6 +89,9 @@ From: rocm/dev-ubuntu-18.04
 
     echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf
     echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf
+
+    # clean cache
+    rm -rf /var/lib/apt/lists/*
 
 %environment
     LC_ALL=C

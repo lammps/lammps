@@ -15,11 +15,14 @@ From: lammps/default/lammps_development:ubuntu18.04_amd_rocm
     apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
     add-apt-repository "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/ /"
     apt-get update
-    apt-get -y install cuda cuda-compiler-10-2
+    apt-get -y install --no-install-recommends cuda cuda-compiler-10-2 cuda-compat-10-2
 
 
     echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf
     echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf
+
+    # clean cache
+    rm -rf /var/lib/apt/lists/*
 
 %labels
     Author rbberger

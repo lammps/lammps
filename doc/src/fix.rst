@@ -291,7 +291,7 @@ accelerated styles exist.
 * :doc:`oneway <fix_oneway>` - constrain particles on move in one direction
 * :doc:`orient/bcc <fix_orient>` - add grain boundary migration force for BCC
 * :doc:`orient/fcc <fix_orient>` - add grain boundary migration force for FCC
-* :doc:`pafi` - constrained force averages on hyperplanes to compute free energies (PAFI)
+* :doc:`pafi <fix_pafi>` - constrained force averages on hyper-planes to compute free energies (PAFI)
 * :doc:`phonon <fix_phonon>` - calculate dynamical matrix from MD simulations
 * :doc:`pimd <fix_pimd>` - Feynman path integral molecular dynamics
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane

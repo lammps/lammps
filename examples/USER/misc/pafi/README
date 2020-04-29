@@ -25,7 +25,7 @@ make machine # for binary (machine= e.g. mpi)
 
 To run the example from this folder:
 ```
-mpirun -np NPROCS /path/to/lammps/src/lmp_machine -in in.pafi.lammps
+mpirun -np NPROCS /path/to/lammps/src/lmp_machine -in in.pafi
 ```
 
 To generate your own path, please see the PAFI++ documentation for more details

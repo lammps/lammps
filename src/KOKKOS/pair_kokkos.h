@@ -424,15 +424,15 @@ struct PairComputeFunctor  {
           F_FLOAT evdwl = 0.0;
           if (c.eflag) {
             evdwl = factor_lj * c.template compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
-            fev.evdwl += 0.5*evdwl;
+            fev_tmp.evdwl += 0.5*evdwl;
           }
           if (c.vflag_either) {
-            fev.v[0] += 0.5*delx*delx*fpair;
-            fev.v[1] += 0.5*dely*dely*fpair;
-            fev.v[2] += 0.5*delz*delz*fpair;
-            fev.v[3] += 0.5*delx*dely*fpair;
-            fev.v[4] += 0.5*delx*delz*fpair;
-            fev.v[5] += 0.5*dely*delz*fpair;
+            fev_tmp.v[0] += 0.5*delx*delx*fpair;
+            fev_tmp.v[1] += 0.5*dely*dely*fpair;
+            fev_tmp.v[2] += 0.5*delz*delz*fpair;
+            fev_tmp.v[3] += 0.5*delx*dely*fpair;
+            fev_tmp.v[4] += 0.5*delx*delz*fpair;
+            fev_tmp.v[5] += 0.5*dely*delz*fpair;
           }
         }
       },fev);
@@ -481,8 +481,8 @@ struct PairComputeFunctor  {
 
     const int inum = team.league_size();
     const int atoms_per_team = team.team_size();
-    int firstatom = team.league_rank()*atoms_per_team;
-    int lastatom = firstatom + atoms_per_team < inum ? firstatom + atoms_per_team : inum;
+    const int firstatom = team.league_rank()*atoms_per_team;
+    const int lastatom = firstatom + atoms_per_team < inum ? firstatom + atoms_per_team : inum;
     Kokkos::parallel_for(Kokkos::TeamThreadRange(team, firstatom, lastatom), [&] (const int &ii) {
 
       const int i = list.d_ilist[ii];
@@ -499,6 +499,7 @@ struct PairComputeFunctor  {
 
       Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team,jnum),
         [&] (const int jj, FEV_FLOAT& fev_tmp) {
+
         int j = neighbors_i(jj);
         const F_FLOAT factor_lj = c.special_lj[sbmask(j)];
         const F_FLOAT factor_coul = c.special_coul[sbmask(j)];
@@ -518,29 +519,29 @@ struct PairComputeFunctor  {
           if(rsq < (STACKPARAMS?c.m_cut_coulsq[itype][jtype]:c.d_cut_coulsq(itype,jtype)))
             fpair+=c.template compute_fcoul<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype,factor_coul,qtmp);
 
-          fev.f[0] += delx*fpair;
-          fev.f[1] += dely*fpair;
-          fev.f[2] += delz*fpair;
+          fev_tmp.f[0] += delx*fpair;
+          fev_tmp.f[1] += dely*fpair;
+          fev_tmp.f[2] += delz*fpair;
 
           F_FLOAT evdwl = 0.0;
           F_FLOAT ecoul = 0.0;
           if (c.eflag) {
             if(rsq < (STACKPARAMS?c.m_cut_ljsq[itype][jtype]:c.d_cut_ljsq(itype,jtype))) {
               evdwl = factor_lj * c.template compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
-              ev.evdwl += 0.5*evdwl;
+              fev_tmp.evdwl += 0.5*evdwl;
             }
             if(rsq < (STACKPARAMS?c.m_cut_coulsq[itype][jtype]:c.d_cut_coulsq(itype,jtype))) {
               ecoul = c.template compute_ecoul<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype,factor_coul,qtmp);
-              ev.ecoul += 0.5*ecoul;
+              fev_tmp.ecoul += 0.5*ecoul;
             }
           }
-          if (c.vflag) {
-            fev.v[0] += 0.5*delx*delx*fpair;
-            fev.v[1] += 0.5*dely*dely*fpair;
-            fev.v[2] += 0.5*delz*delz*fpair;
-            fev.v[3] += 0.5*delx*dely*fpair;
-            fev.v[4] += 0.5*delx*delz*fpair;
-            fev.v[5] += 0.5*dely*delz*fpair;
+          if (c.vflag_either) {
+            fev_tmp.v[0] += 0.5*delx*delx*fpair;
+            fev_tmp.v[1] += 0.5*dely*dely*fpair;
+            fev_tmp.v[2] += 0.5*delz*delz*fpair;
+            fev_tmp.v[3] += 0.5*delx*dely*fpair;
+            fev_tmp.v[4] += 0.5*delx*delz*fpair;
+            fev_tmp.v[5] += 0.5*dely*delz*fpair;
           }
         }
       },fev);

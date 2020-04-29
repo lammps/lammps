@@ -41,7 +41,7 @@ template<class DeviceType>
 class PairTableKokkos : public PairTable {
  public:
 
-  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2};
+  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -139,38 +139,30 @@ class PairTableKokkos : public PairTable {
   friend class PairComputeFunctor<PairTableKokkos,FULL,true,S_TableCompute<DeviceType,LOOKUP> >;
   friend class PairComputeFunctor<PairTableKokkos,HALF,true,S_TableCompute<DeviceType,LOOKUP> >;
   friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableKokkos,N2,true,S_TableCompute<DeviceType,LOOKUP> >;
   friend class PairComputeFunctor<PairTableKokkos,FULL,false,S_TableCompute<DeviceType,LOOKUP> >;
   friend class PairComputeFunctor<PairTableKokkos,HALF,false,S_TableCompute<DeviceType,LOOKUP> >;
   friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableKokkos,N2,false,S_TableCompute<DeviceType,LOOKUP> >;
 
   friend class PairComputeFunctor<PairTableKokkos,FULL,true,S_TableCompute<DeviceType,LINEAR> >;
   friend class PairComputeFunctor<PairTableKokkos,HALF,true,S_TableCompute<DeviceType,LINEAR> >;
   friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableKokkos,N2,true,S_TableCompute<DeviceType,LINEAR> >;
   friend class PairComputeFunctor<PairTableKokkos,FULL,false,S_TableCompute<DeviceType,LINEAR> >;
   friend class PairComputeFunctor<PairTableKokkos,HALF,false,S_TableCompute<DeviceType,LINEAR> >;
   friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableKokkos,N2,false,S_TableCompute<DeviceType,LINEAR> >;
 
   friend class PairComputeFunctor<PairTableKokkos,FULL,true,S_TableCompute<DeviceType,SPLINE> >;
   friend class PairComputeFunctor<PairTableKokkos,HALF,true,S_TableCompute<DeviceType,SPLINE> >;
   friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableKokkos,N2,true,S_TableCompute<DeviceType,SPLINE> >;
   friend class PairComputeFunctor<PairTableKokkos,FULL,false,S_TableCompute<DeviceType,SPLINE> >;
   friend class PairComputeFunctor<PairTableKokkos,HALF,false,S_TableCompute<DeviceType,SPLINE> >;
   friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableKokkos,N2,false,S_TableCompute<DeviceType,SPLINE> >;
 
   friend class PairComputeFunctor<PairTableKokkos,FULL,true,S_TableCompute<DeviceType,BITMAP> >;
   friend class PairComputeFunctor<PairTableKokkos,HALF,true,S_TableCompute<DeviceType,BITMAP> >;
   friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableKokkos,N2,true,S_TableCompute<DeviceType,BITMAP> >;
   friend class PairComputeFunctor<PairTableKokkos,FULL,false,S_TableCompute<DeviceType,BITMAP> >;
   friend class PairComputeFunctor<PairTableKokkos,HALF,false,S_TableCompute<DeviceType,BITMAP> >;
   friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableKokkos,N2,false,S_TableCompute<DeviceType,BITMAP> >;
 
   friend void pair_virial_fdotr_compute<PairTableKokkos>(PairTableKokkos*);
 };

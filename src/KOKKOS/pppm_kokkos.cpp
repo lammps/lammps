@@ -106,7 +106,7 @@ PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp) : PPPM(lmp)
   // see JCP 109, pg 7698 for derivation of coefficients
   // higher order coefficients may be computed if needed
 
-  acons = typename Kokkos::DualView<F_FLOAT[8][7],Kokkos::LayoutRight,LMPDeviceType>::t_host("pppm:acons");
+  acons = typename Kokkos::DualView<F_FLOAT[8][7],Kokkos::LayoutRight,DeviceType>::t_host("pppm:acons");
   acons(1,0) = 2.0 / 3.0;
   acons(2,0) = 1.0 / 50.0;
   acons(2,1) = 5.0 / 294.0;
@@ -2581,7 +2581,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_fieldforce_peratom, const int &i
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PPPMKokkos<DeviceType>::pack_forward_kspace_kokkos(int flag, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &k_buf, int nlist, DAT::tdual_int_2d &k_list, int index)
+void PPPMKokkos<DeviceType>::pack_forward_kspace_kokkos(int flag, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf, int nlist, DAT::tdual_int_2d &k_list, int index)
 {
   typename AT::t_int_2d_um d_list = k_list.view<DeviceType>();
   d_list_index = Kokkos::subview(d_list,index,Kokkos::ALL());
@@ -2637,7 +2637,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_pack_forward2, const int &i) con
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PPPMKokkos<DeviceType>::unpack_forward_kspace_kokkos(int flag, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &k_buf, int nlist, DAT::tdual_int_2d &k_list, int index)
+void PPPMKokkos<DeviceType>::unpack_forward_kspace_kokkos(int flag, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf, int nlist, DAT::tdual_int_2d &k_list, int index)
 {
   typename AT::t_int_2d_um d_list = k_list.view<DeviceType>();
   d_list_index = Kokkos::subview(d_list,index,Kokkos::ALL());
@@ -2694,7 +2694,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_unpack_forward2, const int &i) c
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PPPMKokkos<DeviceType>::pack_reverse_kspace_kokkos(int flag, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &k_buf, int nlist, DAT::tdual_int_2d &k_list, int index)
+void PPPMKokkos<DeviceType>::pack_reverse_kspace_kokkos(int flag, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf, int nlist, DAT::tdual_int_2d &k_list, int index)
 {
   typename AT::t_int_2d_um d_list = k_list.view<DeviceType>();
   d_list_index = Kokkos::subview(d_list,index,Kokkos::ALL());
@@ -2724,7 +2724,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_pack_reverse, const int &i) cons
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PPPMKokkos<DeviceType>::unpack_reverse_kspace_kokkos(int flag, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &k_buf, int nlist, DAT::tdual_int_2d &k_list, int index)
+void PPPMKokkos<DeviceType>::unpack_reverse_kspace_kokkos(int flag, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf, int nlist, DAT::tdual_int_2d &k_list, int index)
 {
   typename AT::t_int_2d_um d_list = k_list.view<DeviceType>();
   d_list_index = Kokkos::subview(d_list,index,Kokkos::ALL());

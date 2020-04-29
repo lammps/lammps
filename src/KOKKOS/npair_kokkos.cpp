@@ -97,7 +97,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_stencil_info()
   NPair::copy_stencil_info();
   nstencil = ns->nstencil;
 
-  if (neighbor->last_setup_bins == update->ntimestep) {
+  if (ns->last_stencil == update->ntimestep) {
     // copy stencil to device as it may have changed
 
     int maxstencil = ns->get_maxstencil();
@@ -301,7 +301,8 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
 
     if(data.h_resize()) {
       list->maxneighs = data.h_new_maxneighs() * 1.2;
-      list->d_neighbors = typename ArrayTypes<DeviceType>::t_neighbors_2d("neighbors", list->d_neighbors.extent(0), list->maxneighs);
+      list->k_neighbors = DAT::tdual_neighbors_2d("neighbors", list->d_neighbors.extent(0), list->maxneighs);
+      list->d_neighbors = list->k_neighbors.template view<DeviceType>();
       data.neigh_list.d_neighbors = list->d_neighbors;
       data.neigh_list.maxneighs = list->maxneighs;
     }
@@ -316,6 +317,8 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
   }
 
   list->k_ilist.template modify<DeviceType>();
+  list->k_numneigh.template modify<DeviceType>();
+  list->k_neighbors.template modify<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */

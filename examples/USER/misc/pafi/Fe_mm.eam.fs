@@ -1,0 +1,1 @@
+/home/akohlmey/compile/lammps/potentials/Fe_mm.eam.fs

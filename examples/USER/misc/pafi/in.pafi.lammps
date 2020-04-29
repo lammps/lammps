@@ -5,11 +5,11 @@ neigh_modify every 2 delay 10 check yes page 1000000 one 100000
 
 ## read in path data using fix property/atom- here 4th image of a NEB
 fix pa all property/atom d_nx d_ny d_nz d_dnx d_dny d_dnz d_ddnx d_ddny d_ddnz
-read_data Fe_SIA_NEB/pafipath.4.data fix pa NULL PafiPath
+read_data pafipath.4.data fix pa NULL PafiPath
 
 ## EAM potential
 pair_style    eam/fs
-pair_coeff * * Fe_M07.eam.fs Fe
+pair_coeff * * Fe_mm.eam.fs Fe
 
 mass * 55.85
 thermo 100

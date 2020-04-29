@@ -168,6 +168,7 @@ FixPAFI::~FixPAFI()
   if (copymode) return;
   delete random;
   delete [] idregion;
+  delete [] computename;
   memory->destroy(h);
 }
 

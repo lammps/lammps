@@ -20,7 +20,7 @@
 
 #include "fix_pafi.h"
 #include <mpi.h>
-#include <math.h>
+#include <cmath>
 #include <cstring>
 #include <cstdlib>
 #include "math_extra.h"
@@ -32,14 +32,11 @@
 #include "region.h"
 #include "respa.h"
 #include "comm.h"
-#include "input.h"
-#include "variable.h"
 #include "compute.h"
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
-#include "group.h"
 #include "citeme.h"
 
 using namespace LAMMPS_NS;

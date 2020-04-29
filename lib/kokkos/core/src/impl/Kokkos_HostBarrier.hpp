@@ -235,6 +235,7 @@ class HostBarrier {
       impl_backoff_wait_until_equal(ptr, v, active_wait);
     }
 #else
+    (void)active_wait;
     while (!test_equal(ptr, v)) {
     }
 #endif

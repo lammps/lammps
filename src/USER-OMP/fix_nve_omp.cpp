@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "fix_nve_omp.h"
 #include "atom.h"
 
@@ -41,7 +42,7 @@ void FixNVEOMP::initial_integrate(int /* vflag */)
   if (atom->rmass) {
     const double * const rmass = atom->rmass;
 #if defined (_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
@@ -58,7 +59,7 @@ void FixNVEOMP::initial_integrate(int /* vflag */)
     const double * const mass = atom->mass;
     const int * const type = atom->type;
 #if defined (_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
@@ -87,7 +88,7 @@ void FixNVEOMP::final_integrate()
   if (atom->rmass) {
     const double * const rmass = atom->rmass;
 #if defined (_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
@@ -101,7 +102,7 @@ void FixNVEOMP::final_integrate()
     const double * const mass = atom->mass;
     const int * const type = atom->type;
 #if defined (_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {

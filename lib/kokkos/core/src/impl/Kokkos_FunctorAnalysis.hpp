@@ -797,7 +797,7 @@ struct FunctorAnalysis {
     using rebind = Reducer<S>;
 
     KOKKOS_INLINE_FUNCTION explicit constexpr Reducer(
-        Functor const* arg_functor = 0, ValueType* arg_value = 0) noexcept
+        Functor const* arg_functor = 0, ValueType* arg_value = nullptr) noexcept
         : m_functor(arg_functor), m_result(arg_value) {}
   };
 };

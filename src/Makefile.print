@@ -6,6 +6,7 @@ include Makefile
 
 # get location of the LAMMPS tree
 LMPDIR=$(shell echo $${PWD} | sed -e 's,/src/Obj_[+0-9a-z_-]\+$$,,')
+LMPLIB=$(shell echo $(EXE)  | sed -e 's,\.\./lib\([+0-9a-z_-]\+\)\.a$$,-L${LMPDIR}/src -l\1,')
 
 do-print:
 	@echo '# LAMMPS source tree is in:' $(LMPDIR)
@@ -18,5 +19,5 @@ do-print:
 	@echo '# Linking: '
 	@echo LDFLAGS=$(LINKFLAGS)
 	@echo '# Libraries: '
-	@echo LDLIBS=$(EXTRA_PATH) $(EXTRA_LIB) $(LIB) | sed -e s,-L\\.\\./\\.\\./,-L${LMPDIR}/,g -e s,-L\\.\\./,-L${LMPDIR}/src/,g -e s,$(HOME),\\$$\\{HOME\\},g
+	@echo LDLIBS=$(LMPLIB) $(EXTRA_PATH) $(EXTRA_LIB) $(LIB) | sed -e s,-L\\.\\./\\.\\./,-L${LMPDIR}/,g -e s,-L\\.\\./,-L${LMPDIR}/src/,g -e s,$(HOME),\\$$\\{HOME\\},g
 

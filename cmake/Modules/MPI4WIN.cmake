@@ -23,3 +23,8 @@ set_target_properties(MPI::MPI_CXX PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${SOURCE_DIR}/include"
   INTERFACE_COMPILE_DEFINITIONS "MPICH_SKIP_MPICXX")
 add_dependencies(MPI::MPI_CXX mpi4win_build)
+
+# set variables for status reporting at the end of CMake run
+set(MPI_CXX_INCLUDE_PATH "${SOURCE_DIR}/include")
+set(MPI_CXX_COMPILE_DEFINITIONS "MPICH_SKIP_MPICXX")
+set(MPI_CXX_LIBRARIES "${SOURCE_DIR}/lib/libmpi.a")

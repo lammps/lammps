@@ -60,7 +60,7 @@ using std::endl;
 namespace Test {
 
 template <typename Scalar, typename Device>
-void test_offsetview_construction(unsigned int size) {
+void test_offsetview_construction() {
   typedef Kokkos::Experimental::OffsetView<Scalar**, Device> offset_view_type;
   typedef Kokkos::View<Scalar**, Device> view_type;
 
@@ -185,14 +185,16 @@ void test_offsetview_construction(unsigned int size) {
 
     Kokkos::deep_copy(view3D, 1);
 
-    Kokkos::Array<int64_t, 3> begins = {{-10, -20, -30}};
-    Kokkos::Experimental::OffsetView<Scalar***, Device> offsetView3D(view3D,
-                                                                     begins);
-
     typedef Kokkos::MDRangePolicy<Device, Kokkos::Rank<3>,
                                   Kokkos::IndexType<int64_t> >
         range3_type;
     typedef typename range3_type::point_type point3_type;
+
+    typename point3_type::value_type begins0 = -10, begins1 = -20,
+                                     begins2 = -30;
+    Kokkos::Array<int64_t, 3> begins         = {{begins0, begins1, begins2}};
+    Kokkos::Experimental::OffsetView<Scalar***, Device> offsetView3D(view3D,
+                                                                     begins);
 
     range3_type rangePolicy3DZero(point3_type{{0, 0, 0}},
                                   point3_type{{extent0, extent1, extent2}});
@@ -207,9 +209,8 @@ void test_offsetview_construction(unsigned int size) {
         view3DSum);
 
     range3_type rangePolicy3D(
-        point3_type{{begins[0], begins[1], begins[2]}},
-        point3_type{
-            {begins[0] + extent0, begins[1] + extent1, begins[2] + extent2}});
+        point3_type{{begins0, begins1, begins2}},
+        point3_type{{begins0 + extent0, begins1 + extent1, begins2 + extent2}});
     int offsetView3DSum = 0;
 
     Kokkos::parallel_reduce(
@@ -388,7 +389,7 @@ void test_offsetview_unmanaged_construction() {
 }
 
 template <typename Scalar, typename Device>
-void test_offsetview_subview(unsigned int size) {
+void test_offsetview_subview() {
   {  // test subview 1
     Kokkos::Experimental::OffsetView<Scalar*, Device> sliceMe("offsetToSlice",
                                                               {-10, 20});
@@ -675,7 +676,7 @@ void test_offsetview_offsets_rank3() {
 #endif
 
 TEST(TEST_CATEGORY, offsetview_construction) {
-  test_offsetview_construction<int, TEST_EXECSPACE>(10);
+  test_offsetview_construction<int, TEST_EXECSPACE>();
 }
 
 TEST(TEST_CATEGORY, offsetview_unmanaged_construction) {
@@ -683,7 +684,7 @@ TEST(TEST_CATEGORY, offsetview_unmanaged_construction) {
 }
 
 TEST(TEST_CATEGORY, offsetview_subview) {
-  test_offsetview_subview<int, TEST_EXECSPACE>(10);
+  test_offsetview_subview<int, TEST_EXECSPACE>();
 }
 
 #if defined(KOKKOS_ENABLE_CUDA_LAMBDA) || !defined(KOKKOS_ENABLE_CUDA)

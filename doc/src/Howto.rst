@@ -16,6 +16,7 @@ Tutorials howto
    :name: tutorials
    :maxdepth: 1
 
+   Howto_cmake
    Howto_github
    Howto_pylammps
    Howto_bash

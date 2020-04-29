@@ -56,6 +56,7 @@
 #include <Kokkos_ScratchSpace.hpp>
 #include <Kokkos_Layout.hpp>
 #include <Kokkos_MemoryTraits.hpp>
+#include <impl/Kokkos_Profiling_Interface.hpp>
 #include <impl/Kokkos_Tags.hpp>
 
 /*--------------------------------------------------------------------------*/
@@ -200,11 +201,21 @@ class Threads {
   }
 #endif
 
+  uint32_t impl_instance_id() const noexcept { return 0; }
+
   static const char* name();
   //@}
   //----------------------------------------
 };
 
+namespace Profiling {
+namespace Experimental {
+template <>
+struct DeviceTypeTraits<Threads> {
+  static constexpr DeviceType id = DeviceType::Threads;
+};
+}  // namespace Experimental
+}  // namespace Profiling
 }  // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/

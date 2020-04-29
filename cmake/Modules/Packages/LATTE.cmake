@@ -1,4 +1,11 @@
 enable_language(Fortran)
+
+# using lammps in a super-build setting
+if(TARGET LATTE::latte)
+  target_link_libraries(lammps PRIVATE LATTE::latte)
+  return()
+endif()
+
 find_package(LATTE)
 if(LATTE_FOUND)
   set(DOWNLOAD_LATTE_DEFAULT OFF)
@@ -27,10 +34,14 @@ if(DOWNLOAD_LATTE)
     INTERFACE_LINK_LIBRARIES "${LAPACK_LIBRARIES}")
   target_link_libraries(lammps PRIVATE LAMMPS::LATTE)
   add_dependencies(LAMMPS::LATTE latte_build)
+  if(NOT BUILD_SHARED_LIBS)
+    install(CODE "MESSAGE(FATAL_ERROR \"Installing liblammps with downloaded libraries is currently not supported.\")")
+  endif()
 else()
   find_package(LATTE)
   if(NOT LATTE_FOUND)
     message(FATAL_ERROR "LATTE library not found, help CMake to find it by setting LATTE_LIBRARY, or set DOWNLOAD_LATTE=ON to download it")
   endif()
-  target_link_libraries(lammps PRIVATE LATTE::latte)
+  # latte needs lapack
+  target_link_libraries(lammps PRIVATE LATTE::latte ${LAPACK_LIBRARIES})
 endif()

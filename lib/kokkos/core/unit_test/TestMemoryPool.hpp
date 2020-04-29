@@ -162,10 +162,10 @@ void test_host_memory_pool_stats() {
   // Aborts because exceeds max block size:
   // void * p2048 = pool.allocate(2048);
 
-  ASSERT_NE(p0064, (void*)0);
-  ASSERT_NE(p0128, (void*)0);
-  ASSERT_NE(p0256, (void*)0);
-  ASSERT_NE(p1024, (void*)0);
+  ASSERT_NE(p0064, nullptr);
+  ASSERT_NE(p0128, nullptr);
+  ASSERT_NE(p0256, nullptr);
+  ASSERT_NE(p1024, nullptr);
 
   pool.deallocate(p0064, 64);
   pool.deallocate(p0128, 128);
@@ -475,17 +475,15 @@ void test_memory_pool_corners(const bool print_statistics,
 
 template <class DeviceType, class Enable = void>
 struct TestMemoryPoolHuge {
-  TestMemoryPoolHuge() {}
-
   enum : size_t { num_superblock = 0 };
 
   using value_type = long;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(int i, long& err) const noexcept {}
+  void operator()(int /*i*/, long& /*err*/) const noexcept {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(int i) const noexcept {}
+  void operator()(int /*i*/) const noexcept {}
 };
 
 template <class DeviceType>

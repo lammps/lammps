@@ -57,7 +57,7 @@ help:
 # ------------------------------------------
 
 clean-all: clean
-	rm -rf $(BUILDDIR)/docenv $(BUILDDIR)/doctrees $(BUILDDIR)/mathjax
+	rm -rf $(BUILDDIR)/docenv $(BUILDDIR)/doctrees $(BUILDDIR)/mathjax Manual.pdf Developer.pdf
 
 clean: clean-spelling
 	rm -rf html epub latex
@@ -83,7 +83,7 @@ html: $(ANCHORCHECK) $(MATHJAX)
 	@rm -rf html/JPG
 	@cp -r src/PDF html/PDF
 	@mkdir -p html/JPG
-	@cp `grep -A2 '\.\. .*image::' src/*.rst | grep ':target:' | sed -e 's,.*:target: JPG/,src/JPG/,' | sort | uniq` html/JPG/
+	@cp `grep -A2 '\.\. .*\(image\|figure\)::' src/*.rst | grep ':target:' | sed -e 's,.*:target: JPG/,src/JPG/,' | sort | uniq` html/JPG/
 	@rm -rf html/PDF/.[sg]*
 	@mkdir -p html/_static/mathjax
 	@cp -r $(MATHJAX)/es5 html/_static/mathjax/
@@ -194,7 +194,7 @@ $(VENV):
 		$(VIRTUALENV) -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
 		pip install --upgrade pip; \
-		pip install Sphinx==2.4.4; \
+		pip install Sphinx; \
 		pip install sphinxcontrib-spelling ;\
 		pip install breathe; \
 		deactivate;\

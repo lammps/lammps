@@ -76,6 +76,7 @@ function for the same parameters.
 
 .. image:: JPG/zeeman_langevin.jpg
    :align: center
+   :width: 600
 
 The temperature effects are accounted for by connecting the spin
 :math:`i` to a thermal bath using a Langevin thermostat (see
@@ -153,6 +154,11 @@ Restrictions
 The *precession/spin* style is part of the SPIN package.  This style
 is only enabled if LAMMPS was built with this package, and if the
 atom_style "spin" was declared.  See the :doc:`Build package <Build_package>` doc page for more info.
+
+The *precession/spin* style can only be declared once. If more
+than one precession type (for example combining an anisotropy and a Zeeman interactions)
+has to be declared, they have to be chained in the same command
+line (as shown in the examples above). 
 
 Related commands
 """"""""""""""""

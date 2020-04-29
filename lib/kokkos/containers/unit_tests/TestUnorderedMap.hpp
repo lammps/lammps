@@ -174,6 +174,9 @@ struct TestFind {
 
 }  // namespace Impl
 
+// MSVC reports a syntax error for this test.
+// WORKAROUND MSVC
+#ifndef _WIN32
 template <typename Device>
 void test_insert(uint32_t num_nodes, uint32_t num_inserts,
                  uint32_t num_duplicates, bool near) {
@@ -225,6 +228,7 @@ void test_insert(uint32_t num_nodes, uint32_t num_inserts,
     EXPECT_EQ(0u, map.size());
   }
 }
+#endif
 
 template <typename Device>
 void test_failed_insert(uint32_t num_nodes) {
@@ -291,12 +295,17 @@ void test_deep_copy(uint32_t num_nodes) {
   }
 }
 
+// FIXME_HIP deadlock
+#ifndef KOKKOS_ENABLE_HIP
+// WORKAROUND MSVC
+#ifndef _WIN32
 TEST(TEST_CATEGORY, UnorderedMap_insert) {
   for (int i = 0; i < 500; ++i) {
     test_insert<TEST_EXECSPACE>(100000, 90000, 100, true);
     test_insert<TEST_EXECSPACE>(100000, 90000, 100, false);
   }
 }
+#endif
 
 TEST(TEST_CATEGORY, UnorderedMap_failed_insert) {
   for (int i = 0; i < 1000; ++i) test_failed_insert<TEST_EXECSPACE>(10000);
@@ -304,6 +313,19 @@ TEST(TEST_CATEGORY, UnorderedMap_failed_insert) {
 
 TEST(TEST_CATEGORY, UnorderedMap_deep_copy) {
   for (int i = 0; i < 2; ++i) test_deep_copy<TEST_EXECSPACE>(10000);
+}
+#endif
+
+TEST(TEST_CATEGORY, UnorderedMap_valid_empty) {
+  using Key   = int;
+  using Value = int;
+  using Map   = Kokkos::UnorderedMap<Key, Value, TEST_EXECSPACE>;
+
+  Map m{};
+  Map n{};
+  n = Map{m.capacity()};
+  n.rehash(m.capacity());
+  Kokkos::deep_copy(n, m);
 }
 
 }  // namespace Test

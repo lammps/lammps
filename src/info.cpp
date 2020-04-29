@@ -53,7 +53,7 @@
 #ifdef _WIN32
 #define PSAPI_VERSION 1
 #include <windows.h>
-#include <stdint.h> // <cstdint> requires C++-11
+#include <cstdint>
 #include <psapi.h>
 #else
 #include <sys/resource.h>
@@ -1203,7 +1203,8 @@ char *Info::get_compiler_info()
 #if __clang__
   snprintf(buf,_INFOBUF_SIZE,"Clang C++ %s", __VERSION__);
 #elif __INTEL_COMPILER
-  snprintf(buf,_INFOBUF_SIZE,"Intel C++ %s", __VERSION__);
+  double version = static_cast<double>(__INTEL_COMPILER)*0.01;
+  snprintf(buf,_INFOBUF_SIZE,"Intel C++ %5.2f.%d / %s", version, __INTEL_COMPILER_UPDATE, __VERSION__);
 #elif __GNUC__
   snprintf(buf,_INFOBUF_SIZE,"GNU C++ %s",   __VERSION__);
 #else

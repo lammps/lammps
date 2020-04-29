@@ -168,13 +168,13 @@ class TaskQueue : public TaskQueueBase {
   int allocation_count() const noexcept { return m_count_alloc; }
 
   KOKKOS_INLINE_FUNCTION
-  void initialize_team_queues(int pool_size) const noexcept {}
+  void initialize_team_queues(int /*pool_size*/) const noexcept {}
 
   KOKKOS_INLINE_FUNCTION
   task_root_type* attempt_to_steal_task() const noexcept { return nullptr; }
 
   KOKKOS_INLINE_FUNCTION
-  team_queue_type& get_team_queue(int team_rank) { return *this; }
+  team_queue_type& get_team_queue(int /*team_rank*/) { return *this; }
 
   // void execute() { specialization::execute( this ); }
 

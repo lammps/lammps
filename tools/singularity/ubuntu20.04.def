@@ -20,15 +20,19 @@ From: ubuntu:20.04
         gfortran \
         git \
         hdf5-tools \
+        less \
         libblas-dev \
         libeigen3-dev \
         libenchant-dev \
         libfftw3-dev \
         libgsl-dev \
         libhdf5-serial-dev \
+        libhwloc-dev \
         libjpeg-dev \
         liblapack-dev \
+        libomp-dev \
         libopenblas-dev \
+        libnuma-dev \
         libpng-dev \
         libproj-dev \
         libvtk6-dev \
@@ -45,7 +49,6 @@ From: ubuntu:20.04
         ssh \
         texlive \
         texlive-latex-recommended \
-        texlive-latex-extra \
         texlive-pictures \
         texlive-publishers \
         texlive-science \

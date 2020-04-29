@@ -49,8 +49,11 @@ make
 | centos7.def                    | CentOS 7.x with EPEL enabled, no LaTeX         |
 | centos8.def                    | CentOS 8.x with EPEL enabled                   |
 | fedora30_mingw.def             | Fedora 30 with MinGW cross-compiler toolchain  |
+| fedora32_mingw.def             | Fedora 32 with MinGW cross-compiler toolchain  |
 | ubuntu16.04.def                | Ubuntu 16.04LTS with MPI == OpenMPI, no LaTeX  |
 | ubuntu18.04.def                | Ubuntu 18.04LTS with MPI == OpenMPI            |
 | ubuntu18.04_amd_rocm.def       | Ubuntu 18.04LTS with AMD ROCm toolkit          |
+| ubuntu18.04_gpu.def            | Ubuntu 18.04LTS with -"- plus Nvidia CUDA 10.2 |
 | ubuntu18.04_nvidia.def         | Ubuntu 18.04LTS with Nvidia CUDA 10.2 toolkit  |
 | ubuntu18.04_intel_opencl.def   | Ubuntu 18.04LTS with Intel OpenCL runtime      |
+| ubuntu20.04.def                | Ubuntu 20.04LTS with MPI == OpenMPI            |

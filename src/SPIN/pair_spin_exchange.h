@@ -39,6 +39,8 @@ class PairSpinExchange : public PairSpin {
   void compute_exchange(int, int, double, double *, double *);
   void compute_exchange_mech(int, int, double, double *, double *, double *, double *);
 
+  // double compute_energy(int , int , double , double *, double *);
+
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);

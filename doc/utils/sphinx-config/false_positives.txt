@@ -492,12 +492,14 @@ cstdlib
 cstring
 cstyle
 csvr
+ctrl
 Ctypes
 ctypes
 cuda
 Cuda
 CUDA
 CuH
+cuFFT
 Cummins
 Curk
 customIDs
@@ -584,6 +586,7 @@ dephasing
 dequidt
 Dequidt
 der
+dereference
 derekt
 Derjagin
 Derjaguin
@@ -1542,6 +1545,7 @@ libmeam
 libmessage
 libmpi
 libmpich
+libnuma
 libplumed
 libplumedKernel
 libpng
@@ -1661,6 +1665,7 @@ manybody
 MANYBODY
 Maras
 Marchetti
+Marchi
 Mariella
 Marrink
 Marroquin
@@ -1735,6 +1740,7 @@ Melchor
 Meloni
 Melrose
 Mem
+mem
 memalign
 MEMALIGN
 membered
@@ -2105,7 +2111,6 @@ nvc
 nvcc
 nve
 nvidia
-Nvidia
 nvk
 nvt
 Nwait
@@ -2440,6 +2445,7 @@ Ravelo
 rc
 Rc
 Rcm
+rcmax
 Rcmx
 Rcmy
 Rcut
@@ -2558,6 +2564,7 @@ Rockett
 Rodrigues
 Rohart
 Ronchetti
+Ronevich
 Rosati
 Rosenberger
 Rossky
@@ -2839,6 +2846,7 @@ Synechococcus
 sys
 sysdim
 Syst
+systemd
 Sz
 Tabbernor
 tabinner
@@ -2960,6 +2968,7 @@ traceless
 tradeoff
 traj
 Tranchida
+transactional
 transferability
 translational
 Translational

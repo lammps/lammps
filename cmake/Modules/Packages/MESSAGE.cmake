@@ -7,11 +7,11 @@ file(GLOB_RECURSE cslib_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/[^.]*.F
     ${LAMMPS_LIB_SOURCE_DIR}/message/cslib/[^.]*.cpp)
 
 add_library(cslib STATIC ${cslib_SOURCES})
-if(BUILD_LIB AND NOT BUILD_SHARED_LIBS)
+if(NOT BUILD_SHARED_LIBS)
   install(TARGETS cslib EXPORT LAMMPS_Targets LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
 target_compile_definitions(cslib PRIVATE -DLAMMPS_${LAMMPS_SIZES})
-set_target_properties(cslib PROPERTIES OUTPUT_NAME lammps_cslib${LAMMPS_LIB_SUFFIX})
+set_target_properties(cslib PROPERTIES OUTPUT_NAME lammps_cslib${LAMMPS_MACHINE})
 if(BUILD_MPI)
   target_compile_definitions(cslib PRIVATE -DMPI_YES)
   set_target_properties(cslib PROPERTIES OUTPUT_NAME "csmpi")

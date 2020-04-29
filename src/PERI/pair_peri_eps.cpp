@@ -30,10 +30,12 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "memory.h"
+#include "math_const.h"
 #include "error.h"
 #include "utils.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -272,7 +274,7 @@ void PairPeriEPS::compute(int eflag, int vflag)
     double horizon = cut[itype][itype];
     double tdnorm = compute_DeviatoricForceStateNorm(i);
     double pointwiseYieldvalue = 25.0 * yieldStress *
-                            yieldStress / 8 / M_PI / pow(horizon,5);
+                            yieldStress / 8 / MY_PI / pow(horizon,5);
 
 
     double fsurf = (tdnorm * tdnorm)/2 - pointwiseYieldvalue;

@@ -38,7 +38,7 @@ if(GPU_API STREQUAL "CUDA")
     set(GPU_CUDA_MPS_FLAGS "-DCUDA_PROXY")
   endif()
 
-  set(GPU_ARCH "sm_30" CACHE STRING "LAMMPS GPU CUDA SM primary architecture (e.g. sm_60)")
+  set(GPU_ARCH "sm_50" CACHE STRING "LAMMPS GPU CUDA SM primary architecture (e.g. sm_60)")
 
   file(GLOB GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cu ${CMAKE_CURRENT_SOURCE_DIR}/gpu/[^.]*.cu)
   list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
@@ -96,7 +96,6 @@ if(GPU_API STREQUAL "CUDA")
   endforeach()
   set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LAMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h")
 
-
   add_library(gpu STATIC ${GPU_LIB_SOURCES} ${GPU_LIB_CUDPP_SOURCES} ${GPU_OBJS})
   target_link_libraries(gpu PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
   target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu ${CUDA_INCLUDE_DIRS})
@@ -112,7 +111,6 @@ if(GPU_API STREQUAL "CUDA")
   target_compile_definitions(nvc_get_devices PRIVATE -DUCL_CUDADR)
   target_link_libraries(nvc_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
   target_include_directories(nvc_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
-
 
 elseif(GPU_API STREQUAL "OPENCL")
   if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
@@ -213,7 +211,7 @@ elseif(GPU_API STREQUAL "HIP")
     set(HIP_ARCH "gfx906" CACHE STRING "HIP target architecture")
   elseif(HIP_PLATFORM STREQUAL "nvcc")
     find_package(CUDA REQUIRED)
-    set(HIP_ARCH "sm_30" CACHE STRING "HIP primary CUDA architecture (e.g. sm_60)")
+    set(HIP_ARCH "sm_50" CACHE STRING "HIP primary CUDA architecture (e.g. sm_60)")
 
     # build arch/gencode commands for nvcc based on CUDA toolkit version and use choice
     # --arch translates directly instead of JIT, so this should be for the preferred or most common architecture
@@ -332,7 +330,7 @@ elseif(GPU_API STREQUAL "HIP")
 
   if(HIP_PLATFORM STREQUAL "nvcc")
     target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_NVCC__)
-    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/include)
+    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
     target_include_directories(gpu PRIVATE ${CUDA_INCLUDE_DIRS})
     target_link_libraries(gpu PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
 
@@ -340,6 +338,12 @@ elseif(GPU_API STREQUAL "HIP")
     target_include_directories(hip_get_devices PRIVATE ${HIP_ROOT_DIR}/include)
     target_include_directories(hip_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
     target_link_libraries(hip_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
+  elseif(HIP_PLATFORM STREQUAL "hcc")
+    target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_HCC__)
+    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
+
+    target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_HCC__)
+    target_include_directories(hip_get_devices PRIVATE ${HIP_ROOT_DIR}/../include)
   endif()
 
   target_link_libraries(lammps PRIVATE gpu)
@@ -355,11 +359,16 @@ RegisterStylesExt(${GPU_SOURCES_DIR} gpu GPU_SOURCES)
 
 get_property(GPU_SOURCES GLOBAL PROPERTY GPU_SOURCES)
 
-target_link_libraries(gpu PRIVATE MPI::MPI_CXX)
-if(BUILD_LIB AND NOT BUILD_SHARED_LIBS)
+if(NOT BUILD_MPI)
+  # mpistubs is aliased to MPI::MPI_CXX, but older versions of cmake won't work forward the include path
+  target_link_libraries(gpu PRIVATE mpi_stubs)
+else()
+  target_link_libraries(gpu PRIVATE MPI::MPI_CXX)
+endif()
+if(NOT BUILD_SHARED_LIBS)
   install(TARGETS gpu EXPORT LAMMPS_Targets LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
 target_compile_definitions(gpu PRIVATE -DLAMMPS_${LAMMPS_SIZES})
-set_target_properties(gpu PROPERTIES OUTPUT_NAME lammps_gpu${LAMMPS_LIB_SUFFIX})
+set_target_properties(gpu PROPERTIES OUTPUT_NAME lammps_gpu${LAMMPS_MACHINE})
 target_sources(lammps PRIVATE ${GPU_SOURCES})
 target_include_directories(lammps PRIVATE ${GPU_SOURCES_DIR})

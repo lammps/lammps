@@ -1,5 +1,6 @@
-This directory has 5 scripts that compute the viscosity (eta) of a
-Lennard-Jones fluid using 5 different methods.  See the discussion in
+This directory has 6 scripts that compute the viscosity (eta) of fluid
+using 6 different methods. 5 of them are for a Lennard-Jones fluid
+and the last one is for SPC/E water model. See the discussion in
 Section 6.21 of the manual for an overview of the methods and pointers
 to doc pages for the commands which implement them.  Citations for the
 various methods can also be found in the manual.
@@ -10,7 +11,7 @@ enough to generate good statistics and highly accurate results.
 
 -------------
 
-These are the 5 methods for computing viscosity.  The first 3 are
+These are the 5 methods for computing viscosity of a LJ fluid.  The first 3 are
 non-equilibrium methods; the last 2 are equilibrium methods.
 
 in.wall = move a wall to shear the fluid between two walls
@@ -89,3 +90,18 @@ heat/flux doc page - the resulting value prints at the end of the run
 and is in the log file
 
 eta = 1.07
+
+-------------
+
+in.cos.1000SPCE is an example script of using cosine periodic perturbation method
+to calculate the viscosity of SPC/E water model.
+
+The reciprocal of eta is computed within the script, and printed out as v_invVis
+in thermo_style command. The result will converge after hundreds of picoseconds.
+Then eta is obtained from the reciprocal of time average of v_invVis.
+
+eta = 0.75 mPa*s
+
+Note that the calculated viscosity by this method decreases with increased acceleration.
+It is therefore generally necessary to perform calculation at different accelerations
+and extrapolate the viscosity to zero shear.

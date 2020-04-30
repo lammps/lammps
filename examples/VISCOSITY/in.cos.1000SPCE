@@ -15,7 +15,7 @@ angle_style    harmonic
 dihedral_style none
 improper_style none
 
-read_data      data.1000SPCE.lmp
+read_data      data.cos.1000SPCE
 
 variable T equal 300
 variable P equal 1.0
@@ -29,7 +29,7 @@ fix com        all momentum 100 linear 1 1 1
 fix rigid      all shake 1e-4 20 0 b 1 a 1
 
 # Viscosity  ##################################
-variable       A equal 0.02e-5 # angstrom/fs^2
+variable       A equal 0.05e-5 # angstrom/fs^2
 
 fix            cos all accelerate/cos ${A}
 compute        cos all viscosity/cos

@@ -167,7 +167,16 @@ void PairPACE::compute(int eflag, int vflag) {
         // checking if neighbours are actually within cutoff range is done inside compute_atom
         // mapping from LAMMPS atom types ('type' array) to ACE species is done inside compute_atom
         //      by using 'ace->element_type_mapping' array
-        ace->compute_atom(i, x, type, jnum, jlist);
+        // x: [r0 ,r1, r2, ..., r100]
+        // i = 0 ,1
+        // jnum(0) = 50
+        // jlist(neigh ind of 0-atom) = [1,2,10,7,99,25, .. 50 element in total]
+        try {
+            ace->compute_atom(i, x, type, jnum, jlist);
+        } catch (exception &e) {
+            error->all(FLERR, e.what());
+            exit(EXIT_FAILURE);
+        }
         // 'compute_atom' will update the `ace->e_atom` and `ace->neighbours_forces(jj, alpha)` arrays
 
         for (jj = 0; jj < jnum; jj++) {

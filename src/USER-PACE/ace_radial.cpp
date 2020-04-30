@@ -1,4 +1,5 @@
 #include <cmath>
+#include <stdexcept>
 
 #include "ace_radial.h"
 
@@ -86,8 +87,9 @@ Function that computes Chebyshev polynomials of first and second kind
 */
 void ACERadialFunctions::calcCheb(NS_TYPE n, DOUBLE_TYPE x) {
     if (n < 0) {
-        fprintf(stderr, "The order n of the polynomials should be positive %d\n", n);
-        exit(EXIT_FAILURE);
+        char s[1024];
+        sprintf(s, "The order n of the polynomials should be positive %d\n", n);
+        throw std::invalid_argument(s);
     }
     DOUBLE_TYPE twox = 2.0 * x;
     cheb(0) = 1.;
@@ -323,8 +325,9 @@ ACERadialFunctions::lookupRadspline(DOUBLE_TYPE r, NS_TYPE nradbase_c, NS_TYPE n
     x = r * rscalelookup;
     nl = static_cast<int>(floor(x));
     if (nl <= 0) {
-        fprintf(stderr, "Encountered very small distance.\n Stopping.");
-        exit(EXIT_FAILURE);
+        char s[1024];
+        sprintf(s, "Encountered very small distance.\n Stopping.");
+        throw std::invalid_argument(s);
     }
     if (nl < nlut) {
         wl = x - DOUBLE_TYPE(nl);

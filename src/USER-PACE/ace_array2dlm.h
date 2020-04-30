@@ -9,7 +9,7 @@
 #include "ace_types.h"
 #include "ace_contigous_array.h"
 #include "ace_arraynd.h"
-
+#include <stdexcept>
 using namespace std;
 
 template<typename T>
@@ -51,8 +51,9 @@ public:
     //initialize array
     void init(LS_TYPE lmax, string array_name = "Array2DLM") {
         if (is_proxy) {
-            fprintf(stderr, "Could not re-initialize proxy-array %s\n", this->array_name.c_str());
-            exit(EXIT_FAILURE);
+            char s[1024];
+            sprintf(s, "Could not re-initialize proxy-array %s\n", this->array_name.c_str());
+            throw logic_error(s);
         }
         this->lmax = lmax;
         this->array_name = array_name;

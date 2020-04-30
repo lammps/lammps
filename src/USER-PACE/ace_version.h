@@ -7,7 +7,7 @@
 
 #define VERSION_YEAR 2020
 #define VERSION_MONTH 4
-#define VERSION_DAY 28
+#define VERSION_DAY 30
 
 #endif //ACE_VERSION_Hls
 

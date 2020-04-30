@@ -18,6 +18,7 @@
 #include "neigh_list_kokkos.h"
 #include "pair_kokkos.h"
 #include "comm.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 
@@ -69,6 +70,17 @@ void FixNeighHistoryKokkos<DeviceType>::init()
 {
   if (atomKK->tag_enable == 0)
     error->all(FLERR,"Neighbor history requires atoms have IDs");
+
+  // this fix must come before any fix which migrates atoms in its pre_exchange()
+  // b/c this fix's pre_exchange() creates per-atom data structure
+  // that data must be current for atom migration to carry it along
+
+  for (int i = 0; i < modify->nfix; i++) {
+    if (modify->fix[i] == this) break;
+    if (modify->fix[i]->pre_exchange_migrate)
+      error->all(FLERR,"Fix neigh_history comes after a fix which "
+                 "migrates atoms in pre_exchange");
+  }
 }
 
 /* ---------------------------------------------------------------------- */

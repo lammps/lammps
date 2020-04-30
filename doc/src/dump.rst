@@ -681,7 +681,7 @@ instead of *N* timesteps. A check, whether a dump should be written, is
 performed every *N* timesteps.
 
 The *custom/time* style supports the same atom attributes as the *custom*
-style described above with one restriction - if an atom variable specifed 
+style described above with one restriction - if an atom variable specified 
 in the dump uses any computes, they have to be specified through 
 :doc:`dump_modify <dump_modify>` *varcomputes* keyword.
 

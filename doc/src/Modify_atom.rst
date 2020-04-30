@@ -38,31 +38,32 @@ but the last 2 strings you do not need to specify any of
 (id,type,x,v,f).  Those are included automatically as needed in the
 other strings.
 
-+-------------------------+--------------------------------------------------------------------------------+
-| fields_grow  | full list of properties which is allocated and stored |
-+-------------------------+--------------------------------------------------------------------------------+
-| fields_copy | list of properties to copy atoms are rearranged on-processor |
-+-------------------------+--------------------------------------------------------------------------------+
-| fields_comm | list of properties communicated to ghost atoms every step |
-+-------------------------+--------------------------------------------------------------------------------+
-| fields_comm_vel | additional properties communicated if :doc:`comm_modify vel <atom_style>` is used |
-+-------------------------+--------------------------------------------------------------------------------+
-| fields_reverse | list of properties summed from ghost atoms every step |
-+-------------------------+--------------------------------------------------------------------------------+
-| fields_border | list of properties communicated with ghost atoms every reneighboring step |
-+-------------------------+--------------------------------------------------------------------------------+
-| fields_border_vel | additional properties communicated if :doc:`comm_modify vel <atom_style>` is used |
-+-------------------------+--------------------------------------------------------------------------------+
-| fields_exchange | list of properties communicated when an atom migrates to another processor |
-+-------------------------+--------------------------------------------------------------------------------+
-| fields_restart | list of properties written/read to/from a restart file |
-+-------------------------+--------------------------------------------------------------------------------+
-| fields_create | list of properties defined when an atom is created by :doc:`create_atoms <create_atoms>` |
-+-------------------------+--------------------------------------------------------------------------------+
-| fields_data_atom | list of properties (in order) in the Atoms section of a data file, as read by :doc:`read_data <read_data>` |
-+-------------------------+--------------------------------------------------------------------------------+
-| fields_data_vel | list of properties (in order) in the Velocities section of a data file, as read by :doc:`read_data <read_data>` |
-+-------------------------+--------------------------------------------------------------------------------+
+.. list-table::
+
+   * - fields_grow
+     - full list of properties which is allocated and stored
+   * - fields_copy
+     - list of properties to copy atoms are rearranged on-processor
+   * - fields_comm
+     - list of properties communicated to ghost atoms every step
+   * - fields_comm_vel
+     - additional properties communicated if :doc:`comm_modify vel <atom_style>` is used
+   * - fields_reverse
+     - list of properties summed from ghost atoms every step
+   * - fields_border
+     - list of properties communicated with ghost atoms every reneighboring step
+   * - fields_border_vel
+     - additional properties communicated if :doc:`comm_modify vel <atom_style>` is used
+   * - fields_exchange
+     - list of properties communicated when an atom migrates to another processor
+   * - fields_restart
+     - list of properties written/read to/from a restart file
+   * - fields_create
+     - list of properties defined when an atom is created by :doc:`create_atoms <create_atoms>`
+   * - fields_data_atom
+     - list of properties (in order) in the Atoms section of a data file, as read by :doc:`read_data <read_data>`
+   * - fields_data_vel
+     - list of properties (in order) in the Velocities section of a data file, as read by :doc:`read_data <read_data>`
 
 In these strings you can list variable names which LAMMPS already
 defines (in some other atom style), or you can create new variable

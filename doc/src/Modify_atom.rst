@@ -113,7 +113,7 @@ a copy of peratom data pointers, as explained in the code.
 
 There are a number of other optional methods which your atom style can
 implement.  These are only needed if you need to do something
-out-of-the-oridinary which the default operation of the AtomVec parent
+out-of-the-ordinary which the default operation of the AtomVec parent
 class does not take care of.  The best way to figure out why they are
 sometimes useful is to look at how other atom styles use them.
 
@@ -140,7 +140,7 @@ their particles, such as :doc:`atom_style ellipsoid or tri
 * memory_usage_bonus
 
 The :doc:`atom_style body <atom_style>` command can define a particle
-geomerty with an arbitrary number of values.  This method reads it
+geometry with an arbitrary number of values.  This method reads it
 from a data file:
 
 * data_body

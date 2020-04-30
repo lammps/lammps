@@ -31,9 +31,9 @@ namespace LAMMPS_NS {
 class FixAccelerateCos: public Fix {
  public:
   FixAccelerateCos(class LAMMPS *, int, char **);
-  virtual ~FixAccelerateCos();
+  virtual ~FixAccelerateCos() {};
   int setmask();
-  virtual void init();
+  virtual void init() {};
   void setup(int);
   virtual void post_force(int);
 
@@ -53,5 +53,9 @@ E: Illegal ... command
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
+
+E: Fix accelerate/cos cannot be used with 2d systems
+
+Self-explanatory.
 
 */

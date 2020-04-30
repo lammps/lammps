@@ -38,11 +38,8 @@ FixAccelerateCos::FixAccelerateCos(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg) {
   if (narg < 4) error->all(FLERR, "Illegal fix accelerate/cos command");
   acceleration = force->numeric(FLERR, arg[3]);
-}
-
-/* ---------------------------------------------------------------------- */
-
-FixAccelerateCos::~FixAccelerateCos() {
+  if (domain->dimension == 2)
+    error->all(FLERR,"Fix accelerate/cos cannot be used with 2d systems");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -51,11 +48,6 @@ int FixAccelerateCos::setmask() {
   int mask = 0;
   mask |= POST_FORCE;
   return mask;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixAccelerateCos::init() {
 }
 
 /* ---------------------------------------------------------------------- */

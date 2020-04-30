@@ -137,6 +137,8 @@ Restrictions
 """"""""""""
 
 This command is only available when LAMMPS was built with the USER-MISC package.
+This this depends on :doc:`fix accelerate/cos <fix_accelerate_cos>` which can
+only work for 3d systems, this compute cannot be used for 2d systems.
 
 Related commands
 """"""""""""""""

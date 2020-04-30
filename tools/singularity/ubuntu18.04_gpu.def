@@ -100,6 +100,10 @@ From: rocm/dev-ubuntu-18.04
     # clean cache
     rm -rf /var/lib/apt/lists/*
 
+    # add missing symlink
+    ln -s /usr/local/cuda-10.2 /usr/local/cuda
+    ln -s /usr/local/cuda-10.2/lib64/stubs/libcuda.so /usr/local/cuda-10.2/lib64/stubs/libcuda.so.1
+
 %environment
     LC_ALL=C
     export LC_ALL

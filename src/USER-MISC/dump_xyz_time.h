@@ -35,8 +35,8 @@ class DumpXYZ_Time : public DumpXYZ {
  protected:
   double time_every; //time frequency of a dump
   double next_time;  //next time for a dump
-  double tol;    
-  bool write_time;
+  double tol;        //tolerance for the time check
+  bool write_time;   //1-write now, 0-do not write dump
 
   void write_header(bigint);
   void write_data(int, double *);
@@ -51,7 +51,7 @@ class DumpXYZ_Time : public DumpXYZ {
 
 E: Wrong number of parameters for dump xyz/time command
 
-Self-explanatory.  
+Self-explanatory.
 
 The rest is the same as in dump_xyz.h
 

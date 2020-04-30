@@ -71,7 +71,7 @@ void DumpCustom_Time::write_header(bigint ndump)
 
 void DumpCustom_Time::write_data(int n, double *mybuf)
 {
-  if (write_time == 0) 
+  if (write_time == 0)
     (this->*write_choice)(n,mybuf);
 }
 
@@ -79,14 +79,14 @@ void DumpCustom_Time::write_data(int n, double *mybuf)
 
 int DumpCustom_Time::count()
 {
-  if (write_time >= 0) { 
+  if (write_time >= 0) {
     update->update_time();
     if (update->atime == 0.0) {
       write_time = 0;
       next_time += time_every;
       return DumpCustom::count();
     }
-    else if (next_time-(update->atime+update->dt) < time_every*tol) { 
+    else if (next_time-(update->atime+update->dt) < time_every*tol) {
       write_time=-1;
       next_time += time_every;
       if (ncompute) {

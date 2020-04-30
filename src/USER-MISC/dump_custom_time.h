@@ -32,7 +32,7 @@ class DumpCustom_Time : public DumpCustom {
  protected:
   double time_every;           //time frequency of a dump
   double next_time;            //next time for a dump
-  double tol;        
+  double tol;                  //tolerance for the time check
   int write_time;              // -1-write in the next timestep, 0-write now, 1-check if it's time for a write
   int nvarcompute;             //number of computes used by variables in dump
   class Compute ** varcompute; //list of ptrs to the Compute objects used in variables in dump

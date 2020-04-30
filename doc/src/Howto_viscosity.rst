@@ -137,7 +137,7 @@ it measures the velocity profile in response of applied stress.
 A cosine-shaped periodic acceleration is added to the system via the
 :doc:`fix accelerate/cos <fix_accelerate_cos>` command,
 and the :doc:`compute viscosity/cos<compute_viscosity_cos>` command is used to monitor the
-generated velocity profile and remove the velocity bias before thermostating.
+generated velocity profile and remove the velocity bias before thermostatting.
 
 .. note::
 
@@ -151,4 +151,5 @@ generated velocity profile and remove the velocity bias before thermostating.
 Cambridge University Press, https://doi.org/10.1017/9781139017848, (2017).
 
 .. _Hess3:
+
 **(Hess)** Hess, B. The Journal of Chemical Physics 2002, 116 (1), 209-217.

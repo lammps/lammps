@@ -6,7 +6,6 @@ compute property/local command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID property/local attribute1 attribute2 ... keyword args ...
@@ -14,9 +13,9 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * property/local = style name of this compute command
 * one or more attributes may be appended
-  
+
   .. parsed-literal::
-  
+
        possible attributes = natom1 natom2 ntype1 ntype2
                              patom1 patom2 ptype1 ptype2
                              batom1 batom2 btype
@@ -24,9 +23,8 @@ Syntax
                              datom1 datom2 datom3 datom4 dtype
                              iatom1 iatom2 iatom3 iatom4 itype
 
-  
   .. parsed-literal::
-  
+
           natom1, natom2 = IDs of 2 atoms in each pair (within neighbor cutoff)
           ntype1, ntype2 = type of 2 atoms in each pair (within neighbor cutoff)
           patom1, patom2 = IDs of 2 atoms in each pair (within force cutoff)
@@ -42,18 +40,15 @@ Syntax
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *cutoff*
-  
+
   .. parsed-literal::
-  
+
        *cutoff* arg = *type* or *radius*
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all property/local btype batom1 batom2
    compute 1 all property/local atype aatom2
@@ -82,13 +77,13 @@ atom pairs in the neighbor list are considered (out to the neighbor
 cutoff = force cutoff + :doc:`neighbor skin <neighbor>`).  For *patom1*
 and *patom2*\ , the distance between the atoms must be less than the
 force cutoff distance for that pair to be included, as defined by the
-:doc:`pair\_style <pair_style>` and :doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_style <pair_style>` and :doc:`pair_coeff <pair_coeff>`
 commands.
 
 The optional *cutoff* keyword determines how the force cutoff distance
 for an interaction is determined for the *patom1* and *patom2*
 attributes.  For the default setting of *type*\ , the pairwise cutoff
-defined by the :doc:`pair\_style <pair_style>` command for the types of
+defined by the :doc:`pair_style <pair_style>` command for the types of
 the two atoms is used.  For the *radius* setting, the sum of the radii
 of the two particles is used as a cutoff.  For example, this is
 appropriate for granular particles which only interact when they are
@@ -106,7 +101,7 @@ specified compute group.  Likewise for angles, dihedrals, etc.
 For bonds and angles, a bonds/angles that have been broken by setting
 their bond/angle type to 0 will not be included.  Bonds/angles that
 have been turned off (see the :doc:`fix shake <fix_shake>` or
-:doc:`delete\_bonds <delete_bonds>` commands) by setting their bond/angle
+:doc:`delete_bonds <delete_bonds>` commands) by setting their bond/angle
 type negative are written into the file.  This is consistent with the
 :doc:`compute bond/local <compute_bond_local>` and :doc:`compute angle/local <compute_angle_local>` commands
 
@@ -120,7 +115,7 @@ atom indices from this command and output by the :doc:`dump local <dump>` comman
 
 The *natom1* and *natom2*\ , or *patom1* and *patom2* attributes refer
 to the atom IDs of the 2 atoms in each pairwise interaction computed
-by the :doc:`pair\_style <pair_style>` command.  The *ntype1* and
+by the :doc:`pair_style <pair_style>` command.  The *ntype1* and
 *ntype2*\ , or *ptype1* and *ptype2* attributes refer to the atom types
 of the 2 atoms in each pairwise interaction.
 
@@ -133,13 +128,13 @@ of the 2 atoms in each pairwise interaction.
    specifically, this may be true of I,J pairs with a weighting factor of
    0.0; pairs with a non-zero weighting factor are included.  The
    weighting factors for 1-2, 1-3, and 1-4 pairwise interactions are set
-   by the :doc:`special\_bonds <special_bonds>` command.
+   by the :doc:`special_bonds <special_bonds>` command.
 
 The *batom1* and *batom2* attributes refer to the atom IDs of the 2
 atoms in each :doc:`bond <bond_style>`.  The *btype* attribute refers to
 the type of the bond, from 1 to Nbtypes = # of bond types.  The number
 of bond types is defined in the data file read by the
-:doc:`read\_data <read_data>` command.
+:doc:`read_data <read_data>` command.
 
 The attributes that start with "a", "d", "i", refer to similar values
 for :doc:`angles <angle_style>`, :doc:`dihedrals <dihedral_style>`, and
@@ -172,8 +167,3 @@ Default
 """""""
 
 The keyword default is cutoff = type.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

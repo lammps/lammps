@@ -74,7 +74,7 @@ void BondClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (vflag_atom) {
     //if(k_vatom.extent(0)<maxvatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_vatom,vatom);
-      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
+      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"improper:vatom");
       d_vatom = k_vatom.template view<DeviceType>();
     //}
   }

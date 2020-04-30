@@ -6,7 +6,6 @@ dielectric command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    dielectric value
@@ -16,8 +15,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dielectric 2.0
 
@@ -29,7 +27,7 @@ long-range) to this value.  The constant is unitless, since it is used
 to reduce the strength of the interactions.  The value is used in the
 denominator of the formulas for Coulombic interactions - e.g. a value
 of 4.0 reduces the Coulombic interactions to 25% of their default
-strength.  See the :doc:`pair\_style <pair_style>` command for more
+strength.  See the :doc:`pair_style <pair_style>` command for more
 details.
 
 Restrictions
@@ -39,17 +37,11 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style <pair_style>`
+:doc:`pair_style <pair_style>`
 
 Default
 """""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dielectric 1.0
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

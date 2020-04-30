@@ -14,7 +14,7 @@ timings; you can simply extrapolate from short runs.
 
 For the set of runs, look at the timing data printed to the screen and
 log file at the end of each LAMMPS run.  The
-:doc:`Run\_output <Run_output>` doc page gives an overview.
+:doc:`Run_output <Run_output>` doc page gives an overview.
 
 Running on one (or a few processors) should give a good estimate of
 the serial performance and what portions of the timestep are taking
@@ -42,10 +42,5 @@ inaccurate relative timing data, because processors have to wait when
 communication occurs for other processors to catch up.  Thus the
 reported times for "Communication" or "Other" may be higher than they
 really are, due to load-imbalance.  If this is an issue, you can
-uncomment the MPI\_Barrier() lines in src/timer.cpp, and re-compile
+uncomment the MPI_Barrier() lines in src/timer.cpp, and re-compile
 LAMMPS, to obtain synchronized timings.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

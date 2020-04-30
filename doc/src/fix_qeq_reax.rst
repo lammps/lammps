@@ -12,7 +12,6 @@ fix qeq/reax/omp command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID qeq/reax Nevery cutlo cuthi tolerance params args
@@ -28,8 +27,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 reax/c
    fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq
@@ -39,7 +37,7 @@ Description
 
 Perform the charge equilibration (QEq) method as described in :ref:`(Rappe and Goddard) <Rappe2>` and formulated in :ref:`(Nakano) <Nakano2>`.  It is
 typically used in conjunction with the ReaxFF force field model as
-implemented in the :doc:`pair\_style reax/c <pair_reaxc>` command, but
+implemented in the :doc:`pair_style reax/c <pair_reaxc>` command, but
 it can be used with any potential in LAMMPS, so long as it defines and
 uses charges on each atom.  The :doc:`fix qeq/comb <fix_qeq_comb>`
 command should be used to perform charge equilibration with the :doc:`COMB potential <pair_comb>`.  For more technical details about the
@@ -50,13 +48,12 @@ The QEq method minimizes the electrostatic energy of the system by
 adjusting the partial charge on individual atoms based on interactions
 with their neighbors.  It requires some parameters for each atom type.
 If the *params* setting above is the word "reax/c", then these are
-extracted from the :doc:`pair\_style reax/c <pair_reaxc>` command and
+extracted from the :doc:`pair_style reax/c <pair_reaxc>` command and
 the ReaxFF force field file it reads in.  If a file name is specified
 for *params*\ , then the parameters are taken from the specified file
 and the file must contain one line for each atom type.  The latter
 form must be used when performing QeQ with a non-ReaxFF potential.
 Each line should be formatted as follows:
-
 
 .. parsed-literal::
 
@@ -74,7 +71,7 @@ The optional *dual* keyword allows to perform the optimization
 of the S and T matrices in parallel. This is only supported for
 the *qeq/reax/omp* style. Otherwise they are processed separately.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  No global scalar or vector or per-atom
 quantities are stored by this fix for access by various :doc:`output commands <Howto_output>`.  No parameter of this fix can be used
@@ -82,9 +79,7 @@ with the *start/stop* keywords of the :doc:`run <run>` command.
 
 This fix is invoked during :doc:`energy minimization <minimize>`.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -104,13 +99,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-REAXC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -122,35 +114,22 @@ be used for periodic cell dimensions less than 10 angstroms.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_style reax/c <pair_reaxc>`
+:doc:`pair_style reax/c <pair_reaxc>`
 
 **Default:** none
 
-
 ----------
 
-
 .. _Rappe2:
-
-
 
 **(Rappe)** Rappe and Goddard III, Journal of Physical Chemistry, 95,
 3358-3363 (1991).
 
 .. _Nakano2:
 
-
-
 **(Nakano)** Nakano, Computer Physics Communications, 104, 59-69 (1997).
 
 .. _qeq-Aktulga:
 
-
-
 **(Aktulga)** Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
 245-259 (2012).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -99,7 +99,6 @@ have accelerated versions.  This is indicated by additional letters in
 parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
 OPT.
 
-
 .. table_from_list::
    :columns: 4
 
@@ -131,7 +130,7 @@ OPT.
 Improper_style potentials
 =========================
 
-All LAMMPS :doc:`improper\_style <improper_style>` commands.  Some styles
+All LAMMPS :doc:`improper_style <improper_style>` commands.  Some styles
 have accelerated versions.  This is indicated by additional letters in
 parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
 OPT.

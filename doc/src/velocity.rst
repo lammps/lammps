@@ -6,16 +6,15 @@ velocity command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    velocity group-ID style args keyword value ...
 
 * group-ID = ID of group of atoms whose velocity will be changed
 * style = *create* or *set* or *scale* or *ramp* or *zero*
-  
+
   .. parsed-literal::
-  
+
        *create* args = temp seed
          temp = temperature value (temperature units)
          seed = random # seed (positive integer)
@@ -35,9 +34,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *dist* or *sum* or *mom* or *rot* or *temp* or *bias* or *loop* or *units*
-  
+
   .. parsed-literal::
-  
+
        *dist* value = *uniform* or *gaussian*
        *sum* value = *no* or *yes*
        *mom* value = *no* or *yes*
@@ -49,13 +48,10 @@ Syntax
          fix-ID = ID of rigid body fix
        *units* value = *box* or *lattice*
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    velocity all create 300.0 4928459 rot yes dist gaussian
    velocity border set NULL 4.0 v_vz sum yes units box
@@ -78,14 +74,14 @@ The *set* style sets the velocities of all atoms in the group to the
 specified values.  If any component is specified as NULL, then it is
 not set.  Any of the vx,vy,vz velocity components can be specified as
 an equal-style or atom-style :doc:`variable <variable>`.  If the value
-is a variable, it should be specified as v\_name, where name is the
+is a variable, it should be specified as v_name, where name is the
 variable name.  In this case, the variable will be evaluated, and its
 value used to determine the velocity component.  Note that if a
 variable is used, the velocity it calculates must be in box units, not
 lattice units; see the discussion of the *units* keyword below.
 
 Equal-style variables can specify formulas with various mathematical
-functions, and include :doc:`thermo\_style <thermo_style>` command
+functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters or other parameters.
 
 Atom-style variables can specify the same formulas as equal-style
@@ -124,9 +120,7 @@ coordinates depend on whether the *units* keyword is set to *box* or
 For all styles, no atoms are assigned z-component velocities if the
 simulation is 2d; see the :doc:`dimension <dimension>` command.
 
-
 ----------
-
 
 The keyword/value options are used in the following ways by the
 various styles.
@@ -145,9 +139,7 @@ The *mom* and *rot* keywords are used by *create*\ .  If mom = yes, the
 linear momentum of the newly created ensemble of velocities is zeroed;
 if rot = yes, the angular momentum is zeroed.
 
-
 ----------
-
 
 If specified, the *temp* keyword is used by *create* and *scale* to
 specify a :doc:`compute <compute>` that calculates temperature in a
@@ -156,8 +148,7 @@ discussed on the :doc:`Howto thermostat <Howto_thermostat>` doc page.
 If this keyword is not specified, *create* and *scale* calculate
 temperature using a compute that is defined internally as follows:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute velocity_temp group-ID temp
 
@@ -190,9 +181,7 @@ specifying the ID of a :doc:`compute temp/ramp <compute_temp_ramp>` or
 :doc:`compute temp/profile <compute_temp_profile>` command, and the
 *bias* keyword set to a *yes* value.
 
-
 ----------
-
 
 The *loop* keyword is used by *create* in the following ways.
 
@@ -202,7 +191,7 @@ it owns.  This can be a slow loop for a large simulation.  If atoms
 were read from a data file, the velocity assigned to a particular atom
 will be the same, independent of how many processors are being used.
 This will not be the case if atoms were created using the
-:doc:`create\_atoms <create_atoms>` command, since atom IDs will likely
+:doc:`create_atoms <create_atoms>` command, since atom IDs will likely
 be assigned to atoms differently.
 
 If loop = local, then each processor loops over only its atoms to
@@ -226,9 +215,7 @@ This is because the computations based on xyz coordinates are
 sensitive to tiny differences in the double-precision value for a
 coordinate as stored on a particular machine.
 
-
 ----------
-
 
 The *rigid* keyword only has meaning when used with the *zero* style.
 It allows specification of a fix-ID for one of the :doc:`rigid-body fix <fix_rigid>` variants which defines a set of rigid bodies.  The
@@ -243,13 +230,10 @@ are in units of lattice spacings per time (e.g. spacings/fmsec) and
 coordinates are in lattice spacings.  The :doc:`lattice <lattice>`
 command must have been previously used to define the lattice spacing.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 Assigning a temperature via the *create* style to a system with :doc:`rigid bodies <fix_rigid>` or :doc:`SHAKE constraints <fix_shake>` may not
 have the desired outcome for two reasons.  First, the velocity command
@@ -262,8 +246,7 @@ temperature than desired.  A workaround for this is to perform a :doc:`run 0 <ru
 properly, and then rescale the temperature to the desired value before
 performing a simulation.  For example:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    velocity all create 300.0 12345
    run 0                             # temperature may not be 300K
@@ -281,8 +264,3 @@ Default
 The keyword defaults are dist = uniform, sum = no, mom = yes, rot =
 no, bias = no, loop = all, and units = lattice.  The temp and rigid
 keywords are not defined by default.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

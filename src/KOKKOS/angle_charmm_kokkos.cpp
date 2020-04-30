@@ -72,21 +72,21 @@ void AngleCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     //if(k_eatom.extent(0)<maxeatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_eatom,eatom);
       memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
-      d_eatom = k_eatom.template view<DeviceType>();
+      d_eatom = k_eatom.template view<KKDeviceType>();
     //}
   }
   if (vflag_atom) {
     //if(k_vatom.extent(0)<maxvatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_vatom,vatom);
-      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
-      d_vatom = k_vatom.template view<DeviceType>();
+      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"improper:vatom");
+      d_vatom = k_vatom.template view<KKDeviceType>();
     //}
   }
 
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   neighborKK->k_anglelist.template sync<DeviceType>();
-  anglelist = neighborKK->k_anglelist.view<DeviceType>();
+  anglelist = neighborKK->k_anglelist.view<KKDeviceType>();
   int nanglelist = neighborKK->nanglelist;
   nlocal = atom->nlocal;
   newton_bond = force->newton_bond;
@@ -265,10 +265,10 @@ void AngleCharmmKokkos<DeviceType>::coeff(int narg, char **arg)
   AngleCharmm::coeff(narg, arg);
 
   int n = atom->nangletypes;
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_k("AngleCharmm::k",n+1);
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_theta0("AngleCharmm::theta0",n+1);
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_k_ub("AngleCharmm::k_ub",n+1);
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_r_ub("AngleCharmm::r_ub",n+1);
+  typename AT::tdual_ffloat_1d k_k("AngleCharmm::k",n+1);
+  typename AT::tdual_ffloat_1d k_theta0("AngleCharmm::theta0",n+1);
+  typename AT::tdual_ffloat_1d k_k_ub("AngleCharmm::k_ub",n+1);
+  typename AT::tdual_ffloat_1d k_r_ub("AngleCharmm::r_ub",n+1);
 
   d_k = k_k.template view<DeviceType>();
   d_theta0 = k_theta0.template view<DeviceType>();
@@ -303,10 +303,10 @@ void AngleCharmmKokkos<DeviceType>::read_restart(FILE *fp)
   AngleCharmm::read_restart(fp);
 
   int n = atom->nangletypes;
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_k("AngleCharmm::k",n+1);
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_theta0("AngleCharmm::theta0",n+1);
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_k_ub("AngleCharmm::k_ub",n+1);
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_r_ub("AngleCharmm::r_ub",n+1);
+  typename AT::tdual_ffloat_1d k_k("AngleCharmm::k",n+1);
+  typename AT::tdual_ffloat_1d k_theta0("AngleCharmm::theta0",n+1);
+  typename AT::tdual_ffloat_1d k_k_ub("AngleCharmm::k_ub",n+1);
+  typename AT::tdual_ffloat_1d k_r_ub("AngleCharmm::r_ub",n+1);
 
   d_k = k_k.template view<DeviceType>();
   d_theta0 = k_theta0.template view<DeviceType>();

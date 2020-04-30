@@ -6,7 +6,6 @@ compute temp/eff command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/eff
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all temp/eff
    compute myTemp mobile temp/eff
@@ -29,14 +27,14 @@ Description
 Define a computation that calculates the temperature of a group of
 nuclei and electrons in the :doc:`electron force field <pair_eff>`
 model.  A compute of this style can be used by commands that compute a
-temperature, e.g. :doc:`thermo\_modify <thermo_modify>`, :doc:`fix npt/eff <fix_nh_eff>`, etc.
+temperature, e.g. :doc:`thermo_modify <thermo_modify>`, :doc:`fix npt/eff <fix_nh_eff>`, etc.
 
 The temperature is calculated by the formula KE = dim/2 N k T, where
 KE = total kinetic energy of the group of atoms (sum of 1/2 m v\^2 for
 nuclei and sum of 1/2 (m v\^2 + 3/4 m s\^2) for electrons, where s
 includes the radial electron velocity contributions), dim = 2 or 3 =
 dimensionality of the simulation, N = number of atoms (only total
-number of nuclei in the eFF (see the :doc:`pair\_eff <pair_style>`
+number of nuclei in the eFF (see the :doc:`pair_eff <pair_style>`
 command) in the group, k = Boltzmann constant, and T = temperature.
 This expression is summed over all nuclear and electronic degrees of
 freedom, essentially by setting the kinetic contribution to the heat
@@ -50,11 +48,10 @@ densities two to five times the density of liquid H2 ranges from
    For eFF models, in order to override the default temperature
    reported by LAMMPS in the thermodynamic quantities reported via the
    :doc:`thermo <thermo>` command, the user should apply a
-   :doc:`thermo\_modify <thermo_modify>` command, as shown in the following
+   :doc:`thermo_modify <thermo_modify>` command, as shown in the following
    example:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute         effTemp all temp/eff
    thermo_style    custom step etotal pe ke temp press
@@ -68,14 +65,14 @@ again, the radial electronic velocities are also considered.
 
 The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the *dynamic* option of the
-:doc:`compute\_modify <compute_modify>` command if this is not the case.
+:doc:`compute_modify <compute_modify>` command if this is not the case.
 
 This compute subtracts out degrees-of-freedom due to fixes that
 constrain molecular motion, such as :doc:`fix shake <fix_shake>` and
 :doc:`fix rigid <fix_rigid>`.  This means the temperature of groups of
 atoms that include these constraints will be computed correctly.  If
 needed, the subtracted degrees-of-freedom can be altered using the
-*extra* option of the :doc:`compute\_modify <compute_modify>` command.
+*extra* option of the :doc:`compute_modify <compute_modify>` command.
 
 See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform
@@ -91,7 +88,6 @@ the simulation.
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -101,8 +97,3 @@ Related commands
 :doc:`compute temp/partial <compute_temp_partial>`, :doc:`compute temp/region <compute_temp_region>`, :doc:`compute pressure <compute_pressure>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

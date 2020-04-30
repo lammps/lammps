@@ -15,7 +15,6 @@ fix nve/omp command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nve
@@ -26,8 +25,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nve
 
@@ -39,9 +37,7 @@ atoms in the group each timestep.  V is volume; E is energy.  This
 creates a system trajectory consistent with the microcanonical
 ensemble.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -61,13 +57,11 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
 
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
-
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
@@ -83,8 +77,3 @@ Related commands
 :doc:`fix nvt <fix_nh>`, :doc:`fix npt <fix_nh>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

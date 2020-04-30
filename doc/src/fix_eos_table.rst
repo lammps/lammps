@@ -6,7 +6,6 @@ fix eos/table command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID eos/table style file N keyword
@@ -21,8 +20,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all eos/table linear eos.table 100000 KEYWORD
 
@@ -30,8 +28,8 @@ Description
 """""""""""
 
 Fix *eos/table* applies a tabulated mesoparticle equation of state to
-relate the particle internal energy (u\_i) to the particle internal
-temperature (dpdTheta\_i).
+relate the particle internal energy (u_i) to the particle internal
+temperature (dpdTheta_i).
 
 Fix *eos/table* creates interpolation tables of length *N* from
 internal energy values listed in a file as a function of internal
@@ -51,13 +49,10 @@ The filename specifies a file containing tabulated internal
 temperature and internal energy values.  The keyword specifies a
 section of the file.  The format of this file is described below.
 
-
 ----------
-
 
 The format of a tabulated file is as follows (without the
 parenthesized comments):
-
 
 .. parsed-literal::
 
@@ -102,18 +97,15 @@ Note that one file can contain many sections, each with a tabulated
 potential.  LAMMPS reads the file section by section until it finds
 one that matches the specified keyword.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
 
-
 This command is part of the USER-DPD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
-This command also requires use of the :doc:`atom\_style dpd <atom_style>`
+This command also requires use of the :doc:`atom_style dpd <atom_style>`
 command.
 
 The equation of state must be a monotonically increasing function.
@@ -127,8 +119,3 @@ Related commands
 :doc:`fix shardlow <fix_shardlow>`, :doc:`pair dpd/fdt <pair_dpd_fdt>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

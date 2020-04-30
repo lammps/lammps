@@ -6,7 +6,6 @@ compute temp/cs command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/cs group1 group2
@@ -19,8 +18,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute oxygen_c-s all temp/cs O_core O_shell
    compute core_shells all temp/cs cores shells
@@ -38,7 +36,7 @@ enables correct temperature calculation and thermostatting of
 core/shell pairs where it is desirable for the internal degrees of
 freedom of the core/shell pairs to not be influenced by a thermostat.
 A compute of this style can be used by any command that computes a
-temperature via :doc:`fix\_modify <fix_modify>` e.g. :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix npt <fix_nh>`, etc.
+temperature via :doc:`fix_modify <fix_modify>` e.g. :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix npt <fix_nh>`, etc.
 
 Note that this compute does not require all ions to be polarized,
 hence defined as core/shell pairs.  One can mix core/shell pairs and
@@ -102,7 +100,6 @@ vector values will be in energy :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-
 The number of core/shell pairs contributing to the temperature is
 assumed to be constant for the duration of the run.  No fixes should
 be used which generate new molecules or atoms during a simulation.
@@ -114,18 +111,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
-
 
 .. _MitchellFinchham1:
 
-
-
 **(Mitchell and Finchham)** Mitchell, Finchham, J Phys Condensed Matter,
 5, 1031-1038 (1993).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -1,10 +1,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -22,10 +23,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -50,123 +51,107 @@ namespace Kokkos {
 // These should work for most types
 
 template <typename T>
-struct pod_hash
-{
+struct pod_hash {
   typedef T argument_type;
   typedef T first_argument_type;
   typedef uint32_t second_argument_type;
   typedef uint32_t result_type;
 
   KOKKOS_FORCEINLINE_FUNCTION
-  uint32_t operator()(T const & t) const
-  { return Impl::MurmurHash3_x86_32( &t, sizeof(T), 0); }
+  uint32_t operator()(T const& t) const {
+    return Impl::MurmurHash3_x86_32(&t, sizeof(T), 0);
+  }
 
   KOKKOS_FORCEINLINE_FUNCTION
-  uint32_t operator()(T const & t, uint32_t seed) const
-  { return Impl::MurmurHash3_x86_32( &t, sizeof(T), seed); }
+  uint32_t operator()(T const& t, uint32_t seed) const {
+    return Impl::MurmurHash3_x86_32(&t, sizeof(T), seed);
+  }
 };
 
 template <typename T>
-struct pod_equal_to
-{
+struct pod_equal_to {
   typedef T first_argument_type;
   typedef T second_argument_type;
   typedef bool result_type;
 
   KOKKOS_FORCEINLINE_FUNCTION
-  bool operator()(T const & a, T const & b) const
-  { return Impl::bitwise_equal(&a,&b); }
+  bool operator()(T const& a, T const& b) const {
+    return Impl::bitwise_equal(&a, &b);
+  }
 };
 
 template <typename T>
-struct pod_not_equal_to
-{
+struct pod_not_equal_to {
   typedef T first_argument_type;
   typedef T second_argument_type;
   typedef bool result_type;
 
   KOKKOS_FORCEINLINE_FUNCTION
-  bool operator()(T const & a, T const & b) const
-  { return !Impl::bitwise_equal(&a,&b); }
+  bool operator()(T const& a, T const& b) const {
+    return !Impl::bitwise_equal(&a, &b);
+  }
 };
 
 template <typename T>
-struct equal_to
-{
+struct equal_to {
   typedef T first_argument_type;
   typedef T second_argument_type;
   typedef bool result_type;
 
   KOKKOS_FORCEINLINE_FUNCTION
-  bool operator()(T const & a, T const & b) const
-  { return a == b; }
+  bool operator()(T const& a, T const& b) const { return a == b; }
 };
 
 template <typename T>
-struct not_equal_to
-{
+struct not_equal_to {
   typedef T first_argument_type;
   typedef T second_argument_type;
   typedef bool result_type;
 
   KOKKOS_FORCEINLINE_FUNCTION
-  bool operator()(T const & a, T const & b) const
-  { return a != b; }
+  bool operator()(T const& a, T const& b) const { return a != b; }
 };
 
-
 template <typename T>
-struct greater
-{
+struct greater {
   typedef T first_argument_type;
   typedef T second_argument_type;
   typedef bool result_type;
 
   KOKKOS_FORCEINLINE_FUNCTION
-  bool operator()(T const & a, T const & b) const
-  { return a > b; }
+  bool operator()(T const& a, T const& b) const { return a > b; }
 };
 
-
 template <typename T>
-struct less
-{
+struct less {
   typedef T first_argument_type;
   typedef T second_argument_type;
   typedef bool result_type;
 
   KOKKOS_FORCEINLINE_FUNCTION
-  bool operator()(T const & a, T const & b) const
-  { return a < b; }
+  bool operator()(T const& a, T const& b) const { return a < b; }
 };
 
 template <typename T>
-struct greater_equal
-{
+struct greater_equal {
   typedef T first_argument_type;
   typedef T second_argument_type;
   typedef bool result_type;
 
   KOKKOS_FORCEINLINE_FUNCTION
-  bool operator()(T const & a, T const & b) const
-  { return a >= b; }
+  bool operator()(T const& a, T const& b) const { return a >= b; }
 };
 
-
 template <typename T>
-struct less_equal
-{
+struct less_equal {
   typedef T first_argument_type;
   typedef T second_argument_type;
   typedef bool result_type;
 
   KOKKOS_FORCEINLINE_FUNCTION
-  bool operator()(T const & a, T const & b) const
-  { return a <= b; }
+  bool operator()(T const& a, T const& b) const { return a <= b; }
 };
 
-} // namespace Kokkos
+}  // namespace Kokkos
 
-
-#endif //KOKKOS_FUNCTIONAL_HPP
-
+#endif  // KOKKOS_FUNCTIONAL_HPP

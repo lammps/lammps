@@ -1,13 +1,12 @@
-.. index:: improper\_style hybrid
+.. index:: improper_style hybrid
 
-improper\_style hybrid command
-==============================
+improper_style hybrid command
+=============================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style hybrid style1 style2 ...
 
@@ -16,8 +15,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style hybrid harmonic helix
    improper_coeff 1 harmonic 120.0 30
@@ -32,15 +30,15 @@ example, impropers in a polymer flow (of improper type 1) could be
 computed with a *harmonic* potential and impropers in the wall
 boundary (of improper type 2) could be computed with a *cvff*
 potential.  The assignment of improper type to style is made via the
-:doc:`improper\_coeff <improper_coeff>` command or in the data file.
+:doc:`improper_coeff <improper_coeff>` command or in the data file.
 
-In the improper\_coeff command, the first coefficient sets the improper
+In the improper_coeff command, the first coefficient sets the improper
 style and the remaining coefficients are those appropriate to that
-style.  In the example above, the 2 improper\_coeff commands would set
+style.  In the example above, the 2 improper_coeff commands would set
 impropers of improper type 1 to be computed with a *harmonic*
-potential with coefficients 120.0, 30 for K, X0.  Improper type 2
-would be computed with a *cvff* potential with coefficients 20.0, -1,
-2 for K, d, n.
+potential with coefficients 120.0, 30 for :math:`K`, :math:`\chi_0`.
+Improper type 2 would be computed with a *cvff* potential with coefficients
+20.0, -1, 2 for K, d, and n, respectively.
 
 If the improper *class2* potential is one of the hybrid styles, it
 requires additional AngleAngle coefficients be specified in the data
@@ -51,33 +49,26 @@ appropriate to that style.  The AngleAngle coeffs for that improper
 type will then be ignored.
 
 An improper style of *none* can be specified as the 2nd argument to
-the improper\_coeff command, if you desire to turn off certain improper
+the improper_coeff command, if you desire to turn off certain improper
 types.
-
 
 ----------
 
-
 Restrictions
 """"""""""""
-
 
 This improper style can only be used if LAMMPS was built with the
 MOLECULE package.  See the :doc:`Build package <Build_package>` doc page
 for more info.
 
 Unlike other improper styles, the hybrid improper style does not store
-improper coefficient info for individual sub-styles in a :doc:`binary restart files <restart>`.  Thus when restarting a simulation from a
-restart file, you need to re-specify improper\_coeff commands.
+improper coefficient info for individual sub-styles in a :doc:`binary restart files <restart>`.
+Thus when restarting a simulation from a
+restart file, you need to re-specify improper_coeff commands.
 
 Related commands
 """"""""""""""""
 
-:doc:`improper\_coeff <improper_coeff>`
+:doc:`improper_coeff <improper_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

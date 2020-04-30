@@ -31,6 +31,7 @@ template<class DeviceType>
 ComputeTempKokkos<DeviceType>::ComputeTempKokkos(LAMMPS *lmp, int narg, char **arg) :
   ComputeTemp(lmp, narg, arg)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 

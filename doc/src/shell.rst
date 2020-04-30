@@ -6,15 +6,14 @@ shell command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
-   shell cmd args
+   shell command args
 
-* cmd = *cd* or *mkdir* or *mv* or *rm* or *rmdir* or *putenv* or arbitrary command
-  
+* command = *cd* or *mkdir* or *mv* or *rm* or *rmdir* or *putenv* or arbitrary command
+
   .. parsed-literal::
-  
+
        *cd* arg = dir
          dir = directory to change to
        *mkdir* args = dir1 dir2 ...
@@ -30,13 +29,10 @@ Syntax
          var=value = one of more definitions of environment variables
        anything else is passed as a command to the shell for direct execution
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    shell cd sub1
    shell cd ..
@@ -66,35 +62,34 @@ With the exception of *cd*\ , all commands, including ones invoked via a
 system() call, are executed by only a single processor, so that
 files/directories are not being manipulated by multiple processors.
 
-The *cd* cmd executes the Unix "cd" command to change the working
+The *cd* command executes the Unix "cd" command to change the working
 directory.  All subsequent LAMMPS commands that read/write files will
 use the new directory.  All processors execute this command.
 
-The *mkdir* cmd executes the Unix "mkdir" command to create one or
+The *mkdir* command executes the Unix "mkdir" command to create one or
 more directories.
 
-The *mv* cmd executes the Unix "mv" command to rename a file and/or
+The *mv* command executes the Unix "mv" command to rename a file and/or
 move it to a new directory.
 
-The *rm* cmd executes the Unix "rm" command to remove one or more
+The *rm* command executes the Unix "rm" command to remove one or more
 files.
 
-The *rmdir* cmd executes the Unix "rmdir" command to remove one or
+The *rmdir* command executes the Unix "rmdir" command to remove one or
 more directories.  A directory must be empty to be successfully
 removed.
 
-The *putenv* cmd defines or updates an environment variable directly.
+The *putenv* command defines or updates an environment variable directly.
 Since this command does not pass through the shell, no shell variable
 expansion or globbing is performed, only the usual substitution for
 LAMMPS variables defined with the :doc:`variable <variable>` command is
 performed.  The resulting string is then used literally.
 
-Any other cmd is passed as-is to the shell along with its arguments as
+Any other command is passed as-is to the shell along with its arguments as
 one string, invoked by the C-library system() call.  For example,
 these lines in your input script:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable n equal 10
    variable foo string file2
@@ -102,17 +97,15 @@ these lines in your input script:
 
 would be the same as invoking
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    % my_setup file1 10 file2
 
-from a command-line prompt.  The executable program "my\_setup" is run
+from a command-line prompt.  The executable program "my_setup" is run
 with 3 arguments: file1 10 file2.
 
 Restrictions
 """"""""""""
-
 
 LAMMPS does not detect errors or print warnings when any of these
 commands execute.  E.g. if the specified directory does not exist,
@@ -121,8 +114,3 @@ executing the *cd* command will silently do nothing.
 **Related commands:** none
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

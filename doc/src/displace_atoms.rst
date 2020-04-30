@@ -1,21 +1,20 @@
-.. index:: displace\_atoms
+.. index:: displace_atoms
 
-displace\_atoms command
-=======================
+displace_atoms command
+======================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    displace_atoms group-ID style args keyword value ...
 
 * group-ID = ID of group of atoms to displace
 * style = *move* or *ramp* or *random* or *rotate*
-  
+
   .. parsed-literal::
-  
+
        *move* args = delx dely delz
          delx,dely,delz = distance to displace in each dimension (distance units)
          any of delx,dely,delz can be a variable (see below)
@@ -33,19 +32,16 @@ Syntax
          theta = angle of rotation (degrees)
 
 * zero or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
        keyword = *units*
          value = *box* or *lattice*
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    displace_atoms top move 0 -5 0 units box
    displace_atoms flow ramp x 0.0 5.0 y 2.0 20.5
@@ -63,13 +59,13 @@ The *move* style displaces the group of atoms by the specified 3d
 displacement vector.  Any of the 3 quantities defining the vector
 components can be specified as an equal-style or atom-style
 :doc:`variable <variable>`.  If the value is a variable, it should be
-specified as v\_name, where name is the variable name.  In this case,
+specified as v_name, where name is the variable name.  In this case,
 the variable will be evaluated, and its value(s) used for the
 displacement(s).  The scale factor implied by the *units* keyword will
 also be applied to the variable result.
 
 Equal-style variables can specify formulas with various mathematical
-functions, and include :doc:`thermo\_style <thermo_style>` command
+functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Atom-style variables can specify the same formulas as
 equal-style variables but can also include per-atom values, such as
@@ -100,7 +96,7 @@ rotation axis is consistent with the right-hand rule: if your
 right-hand thumb points along *R*\ , then your fingers wrap around the
 axis in the direction of positive theta.
 
-If the defined :doc:`atom\_style <atom_style>` assigns an orientation to
+If the defined :doc:`atom_style <atom_style>` assigns an orientation to
 each atom (:doc:`atom styles <atom_style>` ellipsoid, line, tri, body),
 then that property is also updated appropriately to correspond to the
 atom's rotation.
@@ -113,9 +109,7 @@ style are determined by the setting of *box* or *lattice* for the
 :doc:`lattice <lattice>` command must have been previously used to
 define the lattice spacing.
 
-
 ----------
-
 
 .. note::
 
@@ -125,7 +119,7 @@ define the lattice spacing.
    :doc:`boundary <boundary>` command) are enforced which may change the
    box size.  Other than this effect, this command does not change the
    size or shape of the simulation box.  See the
-   :doc:`change\_box <change_box>` command if that effect is desired.
+   :doc:`change_box <change_box>` command if that effect is desired.
 
 .. note::
 
@@ -139,13 +133,10 @@ define the lattice spacing.
    the simulation box may not end up as optimal as the initial mapping
    attempted to be.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 For a 2d simulation, only rotations around the a vector parallel to
 the z-axis are allowed.
@@ -153,15 +144,10 @@ the z-axis are allowed.
 Related commands
 """"""""""""""""
 
-:doc:`lattice <lattice>`, :doc:`change\_box <change_box>`,
+:doc:`lattice <lattice>`, :doc:`change_box <change_box>`,
 :doc:`fix move <fix_move>`
 
 Default
 """""""
 
 The option defaults are units = lattice.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

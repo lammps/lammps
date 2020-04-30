@@ -1,0 +1,80 @@
+BootStrap: docker
+From: rocm/dev-ubuntu-18.04
+
+%environment
+    export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get upgrade --no-install-recommends -y
+    apt-get install --no-install-recommends -y software-properties-common
+    apt-get install --no-install-recommends -y \
+        bc \
+        build-essential \
+        ccache \
+        clang \
+        cmake \
+        cmake-curses-gui \
+        curl \
+        doxygen \
+        enchant \
+        g++ \
+        gcc \
+        gfortran \
+        git \
+        hdf5-tools \
+        kmod \
+        less \
+        libblas-dev \
+        libeigen3-dev \
+        libenchant-dev \
+        libfftw3-dev \
+        libgsl-dev \
+        libhdf5-serial-dev \
+        libhwloc-dev \
+        libjpeg-dev \
+        liblapack-dev \
+        libomp-dev \
+        libopenblas-dev \
+        libnuma-dev \
+        libpng-dev \
+        libproj-dev \
+        libvtk6-dev \
+        make \
+        mpi-default-bin \
+        mpi-default-dev \
+        ninja-build \
+        python-dev \
+        python-pip \
+        python-pygments \
+        python-virtualenv \
+        python3-dev \
+        python3-pip \
+        python3-pkg-resources \
+        python3-setuptools \
+        python3-virtualenv \
+        rocm-libs \
+        rsync \
+        ssh \
+        vim-nox \
+        virtualenv \
+        voro++-dev \
+        wget \
+        xxd
+
+    export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
+    git clone -b master-rocm-3.3 https://github.com/ROCmSoftwarePlatform/hipCUB.git
+    mkdir hipCUB/build
+    cd hipCUB/build
+    CXX=hcc cmake -D BUILD_TEST=off ..
+    make -j4
+    make package
+    make install
+
+%environment
+    LC_ALL=C
+    export LC_ALL
+
+%labels
+    Author rbberger

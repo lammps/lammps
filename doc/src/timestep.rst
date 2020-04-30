@@ -6,7 +6,6 @@ timestep command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    timestep dt
@@ -16,8 +15,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    timestep 2.0
    timestep 0.003
@@ -43,7 +41,7 @@ Related commands
 """"""""""""""""
 
 :doc:`fix dt/reset <fix_dt_reset>`, :doc:`run <run>`,
-:doc:`run\_style <run_style>` respa, :doc:`units <units>`
+:doc:`run_style <run_style>` respa, :doc:`units <units>`
 
 Default
 """""""
@@ -67,8 +65,3 @@ Default
 +--------------------------------+------------+-----------------------+
 | nano                           | nsec       | 0.00045 nsec          |
 +--------------------------------+------------+-----------------------+
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

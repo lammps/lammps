@@ -6,7 +6,6 @@ fix temp/rescale/eff command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID temp/rescale/eff N Tstart Tstop window fraction
@@ -21,8 +20,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 flow temp/rescale/eff 10 1.0 100.0 0.02 1.0
 
@@ -37,17 +35,17 @@ The operation of this fix is exactly like that described by the :doc:`fix temp/r
 is also applied to the radial electron velocity for electron
 particles.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *temp* option is supported by this
+The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
 fix.  You can use it to assign a temperature :doc:`compute <compute>`
 you have defined to this fix which will be used in its thermostatting
 procedure, as described above.  For consistency, the group used by
 this fix and by the compute should be the same.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy change implied by a velocity rescaling to the
 system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
@@ -65,19 +63,13 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""
 
-:doc:`fix langevin/eff <fix_langevin_eff>`, :doc:`fix nvt/eff <fix_nh_eff>`, :doc:`fix\_modify <fix_modify>`,
+:doc:`fix langevin/eff <fix_langevin_eff>`, :doc:`fix nvt/eff <fix_nh_eff>`, :doc:`fix_modify <fix_modify>`,
 :doc:`fix temp rescale <fix_temp_rescale>`,
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

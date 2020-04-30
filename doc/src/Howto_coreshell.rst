@@ -17,13 +17,12 @@ alpha = q(shell)\^2 / k. In a
 similar fashion the mass of the ion is distributed on the core and the
 shell with the core having the larger mass.
 
-To run this model in LAMMPS, :doc:`atom\_style <atom_style>` *full* can
+To run this model in LAMMPS, :doc:`atom_style <atom_style>` *full* can
 be used since atom charge and bonds are needed.  Each kind of
 core/shell pair requires two atom types and a bond type.  The core and
 shell of a core/shell pair should be bonded to each other with a
 harmonic bond that provides the spring force. For example, a data file
 for NaCl, as found in examples/coreshell, has this format:
-
 
 .. parsed-literal::
 
@@ -63,12 +62,12 @@ defined between the shells.  Coulombic interactions are defined
 between all cores and shells.  If desired, additional bonds can be
 specified between cores.
 
-The :doc:`special\_bonds <special_bonds>` command should be used to
+The :doc:`special_bonds <special_bonds>` command should be used to
 turn-off the Coulombic interaction within core/shell pairs, since that
 interaction is set by the bond spring.  This is done using the
-:doc:`special\_bonds <special_bonds>` command with a 1-2 weight = 0.0,
+:doc:`special_bonds <special_bonds>` command with a 1-2 weight = 0.0,
 which is the default value.  It needs to be considered whether one has
-to adjust the :doc:`special\_bonds <special_bonds>` weighting according
+to adjust the :doc:`special_bonds <special_bonds>` weighting according
 to the molecular topology since the interactions of the shells are
 bypassed over an extra bond.
 
@@ -81,17 +80,16 @@ core and shell, a pair style with a "cs" suffix needs to be used to
 implement a valid long-range Coulombic correction.  Several such pair
 styles are provided in the CORESHELL package.  See :doc:`this doc page <pair_cs>` for details.  All of the core/shell enabled pair
 styles require the use of a long-range Coulombic solver, as specified
-by the :doc:`kspace\_style <kspace_style>` command.  Either the PPPM or
+by the :doc:`kspace_style <kspace_style>` command.  Either the PPPM or
 Ewald solvers can be used.
 
 For the NaCL example problem, these pair style and bond style settings
 are used:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style      born/coul/long/cs 20.0 20.0
-   pair_coeff      \* \*      0.0 1.000   0.00  0.00   0.00
+   pair_coeff      * *      0.0 1.000   0.00  0.00   0.00
    pair_coeff      3 3    487.0 0.23768 0.00  1.05   0.50 #Na-Na
    pair_coeff      3 4 145134.0 0.23768 0.00  6.99   8.70 #Na-Cl
    pair_coeff      4 4 405774.0 0.23768 0.00 72.40 145.40 #Cl-Cl
@@ -126,13 +124,12 @@ groups can be defined using the :doc:`group *type*\ <group>` command.
 Note that to perform thermostatting using this definition of
 temperature, the :doc:`fix modify temp <fix_modify>` command should be
 used to assign the compute to the thermostat fix.  Likewise the
-:doc:`thermo\_modify temp <thermo_modify>` command can be used to make
+:doc:`thermo_modify temp <thermo_modify>` command can be used to make
 this temperature be output for the overall system.
 
 For the NaCl example, this can be done as follows:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    group cores type 1 2
    group shells type 3 4
@@ -148,10 +145,9 @@ as well as for the application of a barostat, it is necessary to
 use an additional :doc:`pressure <compute_pressure>` compute based on
 the default :doc:`temperature <compute_temp>` and specifying it as a
 second argument in :doc:`fix modify <fix_modify>` and
-:doc:`thermo\_modify <thermo_modify>` resulting in:
+:doc:`thermo_modify <thermo_modify>` resulting in:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    (...)
    compute CSequ all temp/cs cores shells
@@ -174,8 +170,7 @@ the pairs.  This can be done by using the *bias* keyword of the
 :doc:`velocity create <velocity>` command and assigning the :doc:`compute temp/cs <compute_temp_cs>` command to the *temp* keyword of the
 :doc:`velocity <velocity>` command, e.g.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    velocity all create 1427 134 bias yes temp CSequ
    velocity all scale 1427 temp CSequ
@@ -204,15 +199,14 @@ the molecule ID can be used to define the chunks.  If cores are bonded
 to each other to form larger molecules, the chunks can be identified
 by the :doc:`fix property/atom <fix_property_atom>` via assigning a
 core/shell ID to each atom using a special field in the data file read
-by the :doc:`read\_data <read_data>` command.  This field can then be
+by the :doc:`read_data <read_data>` command.  This field can then be
 accessed by the :doc:`compute property/atom <compute_property_atom>`
 command, to use as input to the :doc:`compute chunk/atom <compute_chunk_atom>` command to define the core/shell
 pairs as chunks.
 
 For example if core/shell pairs are the only molecules:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    read_data NaCl_CS_x0.1_prop.data
    compute prop all property/atom molecule
@@ -222,8 +216,7 @@ For example if core/shell pairs are the only molecules:
 
 For example if core/shell pairs and other molecules are present:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix csinfo all property/atom i_CSID                       # property/atom command
    read_data NaCl_CS_x0.1_prop.data fix csinfo NULL CS-Info  # atom property added in the data-file
@@ -231,7 +224,6 @@ For example if core/shell pairs and other molecules are present:
    (...)
 
 The additional section in the date file would be formatted like this:
-
 
 .. parsed-literal::
 
@@ -247,25 +239,14 @@ The additional section in the date file would be formatted like this:
    8   4
    (...)
 
-
 ----------
 
-
 .. _MitchellFincham:
-
-
 
 **(Mitchell and Fincham)** Mitchell, Fincham, J Phys Condensed Matter,
 5, 1031-1038 (1993).
 
 .. _MitchellFincham2:
 
-
-
 **(Fincham)** Fincham, Mackrodt and Mitchell, J Phys Condensed Matter,
 6, 393-404 (1994).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

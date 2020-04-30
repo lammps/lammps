@@ -9,14 +9,12 @@ bond_style fene/expand/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    bond_style fene/expand
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -32,7 +30,6 @@ The *fene/expand* bond style uses the potential
 
    E = -0.5 K R_0^2 \ln \left[1 -\left( \frac{\left(r - \Delta\right)}{R_0}\right)^2 \right] + 4 \epsilon \left[ \left(\frac{\sigma}{\left(r - \Delta\right)}\right)^{12} - \left(\frac{\sigma}{\left(r - \Delta\right)}\right)^6 \right] + \epsilon
 
-
 to define a finite extensible nonlinear elastic (FENE) potential
 :ref:`(Kremer) <feneexpand-Kremer>`, used for bead-spring polymer models.  The first
 term is attractive, the 2nd Lennard-Jones term is repulsive.
@@ -43,9 +40,9 @@ effectively change the bead size of the bonded atoms.  The first term
 now extends to :math:`R_0 + \Delta` and the 2nd term is cutoff at :math:`2^\frac{1}{6} \sigma + \Delta`.
 
 The following coefficients must be defined for each bond type via the
-:doc:`bond\_coeff <bond_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`bond_coeff <bond_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
 * :math:`K` (energy/distance\^2)
 * :math:`R_0` (distance)
@@ -53,9 +50,7 @@ or :doc:`read\_restart <read_restart>` commands:
 * :math:`\sigma` (distance)
 * :math:`\Delta` (distance)
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -75,35 +70,28 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This bond style can only be used if LAMMPS was built with the MOLECULE
 package.  See the :doc:`Build package <Build_package>` doc page for more
 info.
 
-You typically should specify :doc:`special\_bonds fene <special_bonds>`
-or :doc:`special\_bonds lj/coul 0 1 1 <special_bonds>` to use this bond
+You typically should specify :doc:`special_bonds fene <special_bonds>`
+or :doc:`special_bonds lj/coul 0 1 1 <special_bonds>` to use this bond
 style.  LAMMPS will issue a warning it that's not the case.
 
 Related commands
 """"""""""""""""
 
-:doc:`bond\_coeff <bond_coeff>`, :doc:`delete\_bonds <delete_bonds>`
+:doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
 
 **Default:** none
 
-
 ----------
 
-
 .. _feneexpand-Kremer:
-
-
 
 **(Kremer)** Kremer, Grest, J Chem Phys, 92, 5057 (1990).

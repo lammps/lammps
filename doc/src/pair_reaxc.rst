@@ -1,27 +1,26 @@
-.. index:: pair\_style reax/c
+.. index:: pair_style reax/c
 
-pair\_style reax/c command
-==========================
+pair_style reax/c command
+=========================
 
-pair\_style reax/c/kk command
+pair_style reax/c/kk command
+============================
+
+pair_style reax/c/omp command
 =============================
-
-pair\_style reax/c/omp command
-==============================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style reax/c cfile keyword value
 
 * cfile = NULL or name of a control file
 * zero or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      keyword = *checkqeq* or *lgvdw* or *safezone* or *mincap*
        *checkqeq* value = *yes* or *no* = whether or not to require qeq/reax fix
        *enobonds* value = *yes* or *no* = whether or not to tally energy of atoms with no bonds
@@ -29,19 +28,16 @@ Syntax
        *safezone* = factor used for array allocation
        *mincap* = minimum size for array allocation
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style reax/c NULL
    pair_style reax/c controlfile checkqeq no
    pair_style reax/c NULL lgvdw yes
    pair_style reax/c NULL safezone 1.6 mincap 100
-   pair_coeff \* \* ffield.reax C H O N
+   pair_coeff * * ffield.reax C H O N
 
 Description
 """""""""""
@@ -67,7 +63,7 @@ consideration when using the *reax/c/kk* style is the choice of either
 half or full neighbor lists. This setting can be changed using the
 Kokkos :doc:`package <package>` command.
 
-The *reax/c* style differs from the (obsolete) "pair\_style reax"
+The *reax/c* style differs from the (obsolete) "pair_style reax"
 command in the implementation details.  The *reax* style was a
 Fortran library, linked to LAMMPS.  The *reax* style has been removed
 from LAMMPS after the 12 December 2018 version.
@@ -78,7 +74,7 @@ documented in potentials/README.reax.  The default ffield.reax
 contains parameterizations for the following elements: C, H, O, N.
 
 The format of these files is identical to that used originally by van
-Duin.  We have tested the accuracy of *pair\_style reax/c* potential
+Duin.  We have tested the accuracy of *pair_style reax/c* potential
 against the original ReaxFF code for the systems mentioned above.  You
 can use other ffield files for specific chemical systems that may be
 available elsewhere (but note that their accuracy may not have been
@@ -112,17 +108,17 @@ below.
    code. If these are changed by setting control variables in the control
    file, the results from LAMMPS and the serial code will not agree.
 
-Examples using *pair\_style reax/c* are provided in the examples/reax
+Examples using *pair_style reax/c* are provided in the examples/reax
 sub-directory.
 
 Use of this pair style requires that a charge be defined for every
-atom.  See the :doc:`atom\_style <atom_style>` and
-:doc:`read\_data <read_data>` commands for details on how to specify
+atom.  See the :doc:`atom_style <atom_style>` and
+:doc:`read_data <read_data>` commands for details on how to specify
 charges.
 
 The ReaxFF parameter files provided were created using a charge
 equilibration (QEq) model for handling the electrostatic interactions.
-Therefore, by default, LAMMPS requires that the :doc:`fix qeq/reax <fix_qeq_reax>` command be used with *pair\_style reax/c*
+Therefore, by default, LAMMPS requires that the :doc:`fix qeq/reax <fix_qeq_reax>` command be used with *pair_style reax/c*
 when simulating a ReaxFF model, to equilibrate charge each timestep.
 Using the keyword *checkqeq* with the value *no*
 turns off the check for *fix qeq/reax*\ ,
@@ -153,7 +149,7 @@ drops to zero.
 Optional keywords *safezone* and *mincap* are used for allocating
 reax/c arrays.  Increasing these values can avoid memory problems,
 such as segmentation faults and bondchk failed errors, that could
-occur under certain conditions. These keywords aren't used by the
+occur under certain conditions. These keywords are not used by the
 Kokkos version, which instead uses a more robust memory allocation
 scheme that checks if the sizes of the arrays have been exceeded and
 automatically allocates more memory.
@@ -188,8 +184,7 @@ code):
 To print these quantities to the log file (with descriptive column
 headings) the following commands could be included in an input script:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute reax all pair reax/c
    variable eb      equal c_reax[1]
@@ -198,10 +193,10 @@ headings) the following commands could be included in an input script:
    variable eqeq    equal c_reax[14]
    thermo_style custom step temp epair v_eb v_ea [...] v_eqeq
 
-Only a single pair\_coeff command is used with the *reax/c* style which
+Only a single pair_coeff command is used with the *reax/c* style which
 specifies a ReaxFF potential file with parameters for all needed
 elements.  These are mapped to LAMMPS atom types by specifying N
-additional arguments after the filename in the pair\_coeff command,
+additional arguments after the filename in the pair_coeff command,
 where N is the number of LAMMPS atom types:
 
 * filename
@@ -224,19 +219,15 @@ types that will be used with other potentials.
 As an example, say your LAMMPS simulation has 4 atom types and the
 elements are ordered as C, H, O, N in the *ffield* file.  If you want
 the LAMMPS atom type 1 and 2 to be C, type 3 to be N, and type 4 to be
-H, you would use the following pair\_coeff command:
+H, you would use the following pair_coeff command:
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   pair_coeff \* \* ffield.reax C C N H
-
+   pair_coeff * * ffield.reax C C N H
 
 ----------
 
-
 The format of a line in the control file is as follows:
-
 
 .. parsed-literal::
 
@@ -248,16 +239,16 @@ If the value of a control variable is not specified, then default
 values are used.  What follows is the list of variables along with a
 brief description of their use and default values.
 
-simulation\_name: Output files produced by *pair\_style reax/c* carry
+simulation_name: Output files produced by *pair_style reax/c* carry
 this name + extensions specific to their contents.  Partial energies
 are reported with a ".pot" extension, while the trajectory file has
 ".trj" extension.
 
-tabulate\_long\_range: To improve performance, long range interactions
+tabulate_long_range: To improve performance, long range interactions
 can optionally be tabulated (0 means no tabulation). Value of this
 variable denotes the size of the long range interaction table.  The
 range from 0 to long range cutoff (defined in the *ffield* file) is
-divided into *tabulate\_long\_range* points.  Then at the start of
+divided into *tabulate_long_range* points.  Then at the start of
 simulation, we fill in the entries of the long range interaction table
 by computing the energies and forces resulting from van der Waals and
 Coulomb interactions between every possible atom type pairs present in
@@ -266,63 +257,59 @@ interaction table to estimate the energy and forces between a pair of
 atoms. Linear interpolation is used for estimation. (default value =
 0)
 
-energy\_update\_freq: Denotes the frequency (in number of steps) of
+energy_update_freq: Denotes the frequency (in number of steps) of
 writes into the partial energies file. (default value = 0)
 
-nbrhood\_cutoff: Denotes the near neighbors cutoff (in Angstroms)
+nbrhood_cutoff: Denotes the near neighbors cutoff (in Angstroms)
 regarding the bonded interactions. (default value = 5.0)
 
-hbond\_cutoff: Denotes the cutoff distance (in Angstroms) for hydrogen
+hbond_cutoff: Denotes the cutoff distance (in Angstroms) for hydrogen
 bond interactions.(default value = 7.5. A value of 0.0 turns off
 hydrogen bonds)
 
-bond\_graph\_cutoff: is the threshold used in determining what is a
+bond_graph_cutoff: is the threshold used in determining what is a
 physical bond, what is not. Bonds and angles reported in the
 trajectory file rely on this cutoff. (default value = 0.3)
 
-thb\_cutoff: cutoff value for the strength of bonds to be considered in
+thb_cutoff: cutoff value for the strength of bonds to be considered in
 three body interactions. (default value = 0.001)
 
-thb\_cutoff\_sq: cutoff value for the strength of bond order products
+thb_cutoff_sq: cutoff value for the strength of bond order products
 to be considered in three body interactions. (default value = 0.00001)
 
-write\_freq: Frequency of writes into the trajectory file. (default
+write_freq: Frequency of writes into the trajectory file. (default
 value = 0)
 
-traj\_title: Title of the trajectory - not the name of the trajectory
+traj_title: Title of the trajectory - not the name of the trajectory
 file.
 
-atom\_info: 1 means print only atomic positions + charge (default = 0)
+atom_info: 1 means print only atomic positions + charge (default = 0)
 
-atom\_forces: 1 adds net forces to atom lines in the trajectory file
+atom_forces: 1 adds net forces to atom lines in the trajectory file
 (default = 0)
 
-atom\_velocities: 1 adds atomic velocities to atoms line (default = 0)
+atom_velocities: 1 adds atomic velocities to atoms line (default = 0)
 
-bond\_info: 1 prints bonds in the trajectory file (default = 0)
+bond_info: 1 prints bonds in the trajectory file (default = 0)
 
-angle\_info: 1 prints angles in the trajectory file (default = 0)
-
+angle_info: 1 prints angles in the trajectory file (default = 0)
 
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-need to re-specify the pair\_style and pair\_coeff commands in an input
+need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -342,13 +329,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the USER-REAXC package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -357,12 +341,12 @@ The ReaxFF potential files provided with LAMMPS in the potentials
 directory are parameterized for real :doc:`units <units>`.  You can use
 the ReaxFF potential with any LAMMPS units, but you would need to
 create your own potential file with coefficients listed in the
-appropriate units if your simulation doesn't use "real" units.
+appropriate units if your simulation does not use "real" units.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`fix qeq/reax <fix_qeq_reax>`, :doc:`fix reax/c/bonds <fix_reaxc_bonds>`, :doc:`fix reax/c/species <fix_reaxc_species>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`fix qeq/reax <fix_qeq_reax>`, :doc:`fix reax/c/bonds <fix_reaxc_bonds>`, :doc:`fix reax/c/species <fix_reaxc_species>`
 
 Default
 """""""
@@ -370,32 +354,19 @@ Default
 The keyword defaults are checkqeq = yes, enobonds = yes, lgvdw = no,
 safezone = 1.2, mincap = 50.
 
-
 ----------
 
+.. _Chenoweth_20082:
 
-.. _Chenoweth\_20082:
-
-
-
-**(Chenoweth\_2008)** Chenoweth, van Duin and Goddard,
+**(Chenoweth_2008)** Chenoweth, van Duin and Goddard,
 Journal of Physical Chemistry A, 112, 1040-1053 (2008).
 
 .. _Aktulga:
 
-
-
 (Aktulga) Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
 245-259 (2012).
 
-.. _Liu\_2011:
-
-
+.. _Liu_2011:
 
 **(Liu)** L. Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal
 of Physical Chemistry A, 115, 11016-11022 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

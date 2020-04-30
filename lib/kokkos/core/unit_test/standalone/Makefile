@@ -1,4 +1,4 @@
-KOKKOS_DEVICES=Cuda
+KOKKOS_DEVICES=OpenMP
 KOKKOS_CUDA_OPTIONS=enable_lambda
 KOKKOS_ARCH = "SNB,Kepler35"
 
@@ -25,13 +25,13 @@ CXX = g++
 EXE = test.host
 endif
 
-CXXFLAGS ?= -O3 -g
+CXXFLAGS ?= -O0 -g -rdynamic
 override CXXFLAGS += -I$(MAKEFILE_PATH) -I$(KOKKOS_PATH)/core/unit_test -I$(KOKKOS_PATH)/tpls/gtest -DTESTFILE=$(TESTFILE)
 #SRC += $(KOKKOS_PATH)/tpls/gtest/gtest/gtest-all.cc
 
 DEPFLAGS = -M
 LINK = ${CXX}
-LINKFLAGS =
+LINKFLAGS = -rdynamic
 
 OBJ = $(notdir $(SRC:.cpp=.o))
 LIB =
@@ -41,7 +41,7 @@ include $(KOKKOS_PATH)/Makefile.kokkos
 build: $(EXE)
 
 $(EXE): $(OBJ) $(KOKKOS_LINK_DEPENDS) gtest-all.o
-	$(LINK) $(KOKKOS_LDFLAGS) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(KOKKOS_LIBS) $(LIB) gtest-all.o  -o $(EXE)
+	$(LINK) $(KOKKOS_LDFLAGS) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(KOKKOS_LIBS) $(LIB) gtest-all.o -lpthread -o $(EXE)
 
 clean: kokkos-clean
 	rm -f *.o *.cuda *.host

@@ -9,17 +9,16 @@ fix property/atom/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID property/atom vec1 vec2 ... keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * property/atom = style name of this fix command
-* vec1,vec2,... = *mol* or *q* or *rmass* or *i\_name* or *d\_name*
-  
+* vec1,vec2,... = *mol* or *q* or *rmass* or *i_name* or *d_name*
+
   .. parsed-literal::
-  
+
        *mol* = molecule IDs
        *q* = charge
        *rmass* = per-atom mass
@@ -28,18 +27,15 @@ Syntax
 
 * zero of more keyword/value pairs may be appended
 * keyword = *ghost*
-  
+
   .. parsed-literal::
-  
+
        *ghost* value = *no* or *yes* for whether ghost atom info in communicated
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all property/atom mol
    fix 1 all property/atom i_myflag1 i_myflag2
@@ -53,8 +49,8 @@ about atoms and to use during a simulation.  The specified *group-ID*
 is ignored by this fix.
 
 The atom style used for a simulation defines a set of per-atom
-properties, as explained on the :doc:`atom\_style <atom_style>` and
-:doc:`read\_data <read_data>` doc pages.  The latter command allows these
+properties, as explained on the :doc:`atom_style <atom_style>` and
+:doc:`read_data <read_data>` doc pages.  The latter command allows these
 properties to be defined for each atom in the system when a data file
 is read.  This fix will augment the set of properties with new custom
 ones. This can be useful in several scenarios.
@@ -88,7 +84,7 @@ In the future, we may add additional per-atom properties similar to
 by some atom styles, so they can be used by atom styles that do not
 define them.
 
-More generally, the *i\_name* and *d\_name* vectors allow one or more
+More generally, the *i_name* and *d_name* vectors allow one or more
 new custom per-atom properties to be defined.  Each name must be
 unique and can use alphanumeric or underscore characters.  These
 vectors can store whatever values you decide are useful in your
@@ -113,7 +109,7 @@ new properties are also defined for the ghost atoms.
 
    If you use this command with the *mol*\ , *q* or *rmass* vectors,
    then you most likely want to set *ghost* yes, since these properties
-   are stored with ghost atoms if you use an :doc:`atom\_style <atom_style>`
+   are stored with ghost atoms if you use an :doc:`atom_style <atom_style>`
    that defines them, and many LAMMPS operations that use molecule IDs or
    charge, such as neighbor lists and pair styles, will expect ghost
    atoms to have these values.  LAMMPS will issue a warning it you define
@@ -136,32 +132,28 @@ new properties are also defined for the ghost atoms.
    a 'run 0' command should be issued to properly initialize the storage
    created by this fix.
 
-
 ----------
-
 
 This fix is one of a small number that can be defined in an input
 script before the simulation box is created or atoms are defined.
-This is so it can be used with the :doc:`read\_data <read_data>` command
+This is so it can be used with the :doc:`read_data <read_data>` command
 as described below.
 
 Per-atom properties that are defined by the :doc:`atom style <atom_style>` are initialized when atoms are created, e.g. by
-the :doc:`read\_data <read_data>` or :doc:`create\_atoms <create_atoms>`
+the :doc:`read_data <read_data>` or :doc:`create_atoms <create_atoms>`
 commands.  The per-atom properties defined by this fix are not.  So
 you need to initialize them explicitly.  This can be done by the
-:doc:`read\_data <read_data>` command, using its *fix* keyword and
+:doc:`read_data <read_data>` command, using its *fix* keyword and
 passing it the fix-ID of this fix.
 
 Thus these commands:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix prop all property/atom mol d_flag
    read_data data.txt fix prop NULL Molecules
 
 would allow a data file to have a section like this:
-
 
 .. parsed-literal::
 
@@ -185,12 +177,11 @@ Another way of initializing the new properties is via the
 defined for every set of 10 atoms, based on their atom-IDs,
 these commands could be used:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix prop all property/atom mol
    variable cluster atom ((id-1)/10)+1
-   set atom \* mol v_cluster
+   set atom * mol v_cluster
 
 The :doc:`atom-style variable <variable>` will create values for atoms
 with IDs 31,32,33,...40 that are 4.0,4.1,4.2,...,4.9.  When the
@@ -204,27 +195,22 @@ molecule IDs could be read-in from a separate file and assigned by the
 :doc:`set <set>` command.  This allows you to initialize new per-atom
 properties in a completely general fashion.
 
-
 ----------
 
-
-For new atom properties specified as *i\_name* or *d\_name*, the
+For new atom properties specified as *i_name* or *d_name*, the
 :doc:`compute property/atom <compute_property_atom>` command can access
 their values.  This means that the values can be output via the :doc:`dump custom <dump>` command, accessed by fixes like :doc:`fix ave/atom <fix_ave_atom>`, accessed by other computes like :doc:`compute reduce <compute_reduce>`, or used in :doc:`atom-style variables <variable>`.
 
 For example, these commands will output two new properties to a custom
 dump file:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix prop all property/atom i_flag1 d_flag2
    compute 1 all property/atom i_flag1 d_flag2
    dump 1 all custom 100 tmp.dump id x y z c_1[1] c_1[2]
 
-
 ----------
-
 
 If you wish to add new :doc:`pair styles <pair_style>`,
 :doc:`fixes <fix>`, or :doc:`computes <compute>` that use the per-atom
@@ -232,13 +218,9 @@ properties defined by this fix, see the :doc:`Modify atom <Modify_atom>`
 doc page which has details on how the properties can be accessed from
 added classes.
 
-
 ----------
 
-
 .. _isotopes:
-
-
 
 Example for using per-atom masses with TIP4P water to
 study isotope effects. When setting up simulations with the :doc:`TIP4P pair styles <Howto_tip4p>` for water, you have to provide exactly
@@ -251,22 +233,20 @@ for regular TIP4P water, where water oxygen is atom type 1 and water
 hydrogen is atom type 2, the following lines of input script convert
 this to using per-atom masses:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix Isotopes all property/atom rmass ghost yes
    set type 1 mass 15.9994
    set type 2 mass 1.008
 
-When writing out the system data with the :doc:`write\_data <write_data>`
+When writing out the system data with the :doc:`write_data <write_data>`
 command, there will be a new section named with the fix-ID
 (i.e. *Isotopes* in this case). Alternatively, you can take an
 existing data file and just add this *Isotopes* section with
 one line per atom containing atom-ID and mass. Either way, the
 extended data file can be read back with:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix Isotopes all property/atom rmass ghost yes
    read_data tip4p-isotopes.data fix Isotopes NULL Isotopes
@@ -276,16 +256,13 @@ and the second to the name of the section. The following input
 script code will now change the first 100 water molecules in this
 example to heavy water:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    group hwat id 2:300:3
    group hwat id 3:300:3
    set group hwat mass 2.0141018
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -305,19 +282,17 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the per-atom values it stores to :doc:`binary restart files <restart>`, so that the values can be restored when a
-simulation is restarted.  See the :doc:`read\_restart <read_restart>`
+simulation is restarted.  See the :doc:`read_restart <read_restart>`
 command for info on how to re-specify a fix in an input script that
 reads a restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
 access by various :doc:`output commands <Howto_output>`.  No parameter
 of this fix can be used with the *start/stop* keywords of the
@@ -330,14 +305,9 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`read\_data <read_data>`, :doc:`set <set>`, :doc:`compute property/atom <compute_property_atom>`
+:doc:`read_data <read_data>`, :doc:`set <set>`, :doc:`compute property/atom <compute_property_atom>`
 
 Default
 """""""
 
 The default keyword values are ghost = no.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

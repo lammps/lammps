@@ -11,17 +11,18 @@
 //
 //    begin                : June 2018
 //    email                : ndactrung@gmail.com
-// ***************************************************************************/
+// ***************************************************************************
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 
 #include "lal_aux_fun1.h"
+
 #ifndef _DOUBLE_DOUBLE
-texture<float4> pos_tex;
-texture<float> q_tex;
+_texture( pos_tex,float4);
+_texture( q_tex,float);
 #else
-texture<int4,1> pos_tex;
-texture<int2> q_tex;
+_texture_2d( pos_tex,int4);
+_texture( q_tex,int2);
 #endif
 
 #else
@@ -108,7 +109,7 @@ __kernel void k_born_coul_long_cs(const __global numtyp4 *restrict x_,
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
       int mtype=itype*lj_types+jtype;
-      if (rsq<cutsq_sigma[mtype].x) { // cutsq 
+      if (rsq<cutsq_sigma[mtype].x) { // cutsq
         numtyp forcecoul,forceborn,force,r6inv,prefactor,_erfc,rexp;
 
         rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
@@ -249,7 +250,7 @@ __kernel void k_born_coul_long_cs_fast(const __global numtyp4 *restrict x_,
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
-      if (rsq<cutsq_sigma[mtype].x) { // cutsq 
+      if (rsq<cutsq_sigma[mtype].x) { // cutsq
         numtyp forcecoul,forceborn,force,r6inv,prefactor,_erfc,rexp;
 
         rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;

@@ -3,9 +3,11 @@
 compute orientorder/atom command
 ================================
 
+compute orientorder/atom/kk command
+===================================
+
 Syntax
 """"""
-
 
 .. parsed-literal::
 
@@ -14,9 +16,9 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * orientorder/atom = style name of this compute command
 * one or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      keyword = *cutoff* or *nnn* or *degrees* or *components*
        *cutoff* value = distance cutoff
        *nnn* value = number of nearest neighbors
@@ -25,13 +27,10 @@ Syntax
        *wl/hat* value = yes or no
        *components* value = ldegree
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all orientorder/atom
    compute 1 all orientorder/atom degrees 5 4 6 8 10 12 nnn NULL cutoff 1.5
@@ -42,23 +41,25 @@ Description
 """""""""""
 
 Define a computation that calculates a set of bond-orientational
-order parameters *Ql* for each atom in a group. These order parameters
+order parameters :math:`Q_l` for each atom in a group. These order parameters
 were introduced by :ref:`Steinhardt et al. <Steinhardt>` as a way to
 characterize the local orientational order in atomic structures.
-For each atom, *Ql* is a real number defined as follows:
+For each atom, :math:`Q_l` is a real number defined as follows:
 
-.. image:: Eqs/orientorder.jpg
-   :align: center
+.. math::
+
+   \bar{Y}_{lm} = & \frac{1}{nnn}\sum_{j = 1}^{nnn} Y_{lm}( \theta( {\bf r}_{ij} ), \phi( {\bf r}_{ij} ) ) \\
+   Q_l = & \sqrt{\frac{4 \pi}{2 l + 1} \sum_{m = -l}^{m = l} \bar{Y}_{lm} \bar{Y}^*_{lm}}
 
 The first equation defines the spherical harmonic order parameters.
 These are complex number components of the 3D analog of the 2D order
-parameter *qn*\ , which is implemented as LAMMPS compute
+parameter :math:`q_n`, which is implemented as LAMMPS compute
 :doc:`hexorder/atom <compute_hexorder_atom>`.
 The summation is over the *nnn* nearest
 neighbors of the central atom.
 The angles theta and phi are the standard spherical polar angles
-defining the direction of the bond vector *rij*\ .
-The second equation defines *Ql*\ , which is a
+defining the direction of the bond vector :math:`r_{ij}`.
+The second equation defines :math:`Q_l`, which is a
 rotationally invariant non-negative amplitude obtained by summing
 over all the components of degree *l*\ .
 
@@ -68,42 +69,45 @@ the maximum allowable value, is the cutoff specified
 by the pair style.
 
 The optional keyword *nnn* defines the number of nearest
-neighbors used to calculate *Ql*\ . The default value is 12.
+neighbors used to calculate :math:`Q_l`. The default value is 12.
 If the value is NULL, then all neighbors up to the
 specified distance cutoff are used.
 
 The optional keyword *degrees* defines the list of order parameters to
 be computed.  The first argument *nlvalues* is the number of order
 parameters. This is followed by that number of non-negative integers giving the
-degree of each order parameter. Because *Q*\ 2 and all odd-degree order
+degree of each order parameter. Because :math:`Q_2` and all odd-degree order
 parameters are zero for atoms in cubic crystals (see
-:ref:`Steinhardt <Steinhardt>`), the default order parameters are *Q*\ 4,
-*Q*\ 6, *Q*\ 8, *Q*\ 10, and *Q*\ 12. For the FCC crystal with *nnn* =12, *Q*\ 4
-= sqrt(7/3)/8 = 0.19094....  The numerical values of all order
-parameters up to *Q*\ 12 for a range of commonly encountered
-high-symmetry structures are given in Table I of :ref:`Mickel et al. <Mickel>`, and these can be reproduced with this compute
+:ref:`Steinhardt <Steinhardt>`), the default order parameters are :math:`Q_4`,
+:math:`Q_6`, :math:`Q_8`, :math:`Q_{10}`, and :math:`Q_{12}`. For the FCC
+crystal with *nnn* =12, :math:`Q_4 = \sqrt{\frac{7}{192}} = 0.19094...`.
+The numerical values of all order
+parameters up to :math:`Q_12` for a range of commonly encountered
+high-symmetry structures are given in Table I of :ref:`Mickel et al. <Mickel>`,
+and these can be reproduced with this compute.
 
-The optional keyword *wl* will output the third-order invariants *Wl*
+The optional keyword *wl* will output the third-order invariants :math:`W_l`
 (see Eq. 1.4 in :ref:`Steinhardt <Steinhardt>`) for the same degrees as
-for the *Ql* parameters. For the FCC crystal with *nnn* =12,
-*W*\ 4 = -sqrt(14/143).(49/4096)/Pi\^1.5 = -0.0006722136...
+for the :math:`Q_l` parameters. For the FCC crystal with *nnn* =12,
+:math:`W_4` = -sqrt(14/143).(49/4096)/Pi\^1.5 = -0.0006722136...
 
 The optional keyword *wl/hat* will output the normalized third-order
-invariants *Wlhat* (see Eq. 2.2 in :ref:`Steinhardt <Steinhardt>`)
-for the same degrees as for the *Ql* parameters. For the FCC crystal
-with *nnn* =12, *W*\ 4hat = -7/3\*sqrt(2/429) = -0.159317...The numerical
-values of *Wlhat* for a range of commonly encountered high-symmetry
+invariants :math:`\hat{W}_l` (see Eq. 2.2 in :ref:`Steinhardt <Steinhardt>`)
+for the same degrees as for the :math:`Q_l` parameters. For the FCC crystal
+with *nnn* =12, :math:`\hat{W}_4 = -\frac{7}{3} \sqrt{\frac{2}{429}} = -0.159317...`
+The numerical
+values of :math:`\hat{W}_l` for a range of commonly encountered high-symmetry
 structures are given in Table I of :ref:`Steinhardt <Steinhardt>`, and these
 can be reproduced with this keyword.
 
 The optional keyword *components* will output the components of the
-normalized complex vector *Ybar\_lm* of degree *ldegree*\ , which must be
+normalized complex vector :math:`\bar{Y}_{lm}` of degree *ldegree*\ , which must be
 explicitly included in the keyword *degrees*\ . This option can be used
-in conjunction with :doc:`compute coord\_atom <compute_coord_atom>` to
+in conjunction with :doc:`compute coord_atom <compute_coord_atom>` to
 calculate the ten Wolde's criterion to identify crystal-like
 particles, as discussed in :ref:`ten Wolde <tenWolde2>`.
 
-The value of *Ql* is set to zero for atoms not in the
+The value of :math:`Q_l` is set to zero for atoms not in the
 specified compute group, as well as for atoms that have less than
 *nnn* neighbors within the distance cutoff, unless *nnn* is NULL.
 
@@ -115,34 +119,58 @@ too frequently.
 .. note::
 
    If you have a bonded system, then the settings of
-   :doc:`special\_bonds <special_bonds>` command can remove pairwise
+   :doc:`special_bonds <special_bonds>` command can remove pairwise
    interactions between atoms in the same bond, angle, or dihedral.  This
-   is the default setting for the :doc:`special\_bonds <special_bonds>`
+   is the default setting for the :doc:`special_bonds <special_bonds>`
    command, and means those pairwise interactions do not appear in the
    neighbor list.  Because this fix uses the neighbor list, it also means
    those pairs will not be included in the order parameter.  This
    difficulty can be circumvented by writing a dump file, and using the
    :doc:`rerun <rerun>` command to compute the order parameter for
    snapshots in the dump file.  The rerun script can use a
-   :doc:`special\_bonds <special_bonds>` command that includes all pairs in
+   :doc:`special_bonds <special_bonds>` command that includes all pairs in
    the neighbor list.
+
+----------
+
+
+Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
+page.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.
+
+These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
+USER-OMP and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
+
+You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
+:doc:`suffix <suffix>` command in your input script.
+
+See the :doc:`Speed packages <Speed_packages>` doc page for more
+instructions on how to use the accelerated styles effectively.
+
+
+----------
 
 **Output info:**
 
 This compute calculates a per-atom array with *nlvalues* columns,
-giving the *Ql* values for each atom, which are real numbers on the
-range 0 <= *Ql* <= 1.
+giving the :math:`Q_l` values for each atom, which are real numbers on the
+range :math:`0 <= Q_l <= 1`.
 
-If the keyword *wl* is set to yes, then the *Wl* values for each
+If the keyword *wl* is set to yes, then the :math:`W_l` values for each
 atom will be added to the output array, which are real numbers.
 
-If the keyword *wl/hat* is set to yes, then the *Wl\_hat*
+If the keyword *wl/hat* is set to yes, then the :math:`\hat{W}_l`
 values for each atom will be added to the output array, which are real numbers.
 
 If the keyword *components* is set, then the real and imaginary parts
-of each component of (normalized) *Ybar\_lm* will be added to the
-output array in the following order: Re(*Ybar\_-m*) Im(*Ybar\_-m*)
-Re(*Ybar\_-m+1*) Im(*Ybar\_-m+1*) ... Re(*Ybar\_m*) Im(*Ybar\_m*).  This
+of each component of (normalized) :math:`\bar{Y}_{lm}` will be added to the
+output array in the following order: :math:`Re(\bar{Y}_{-m}) Im(\bar{Y}_{-m})
+Re(\bar{Y}_{-m+1}) Im(\bar{Y}_{-m+1}) ... Re(\bar{Y}_m) Im(\bar{Y}_m)`.  This
 way, the per-atom array will have a total of *nlvalues*\ +2\*(2\ *l*\ +1)
 columns.
 
@@ -163,35 +191,22 @@ Default
 """""""
 
 The option defaults are *cutoff* = pair style cutoff, *nnn* = 12,
-*degrees* = 5 4 6 8 10 12 i.e. *Q*\ 4, *Q*\ 6, *Q*\ 8, *Q*\ 10, and *Q*\ 12,
+*degrees* = 5 4 6 8 10 12 i.e. :math:`Q_4`, :math:`Q_6`, :math:`Q_8`, :math:`Q_{10}`, and :math:`Q_{12}`,
 *wl* = no, *wl/hat* = no, and *components* off
-
 
 ----------
 
-
 .. _Steinhardt:
-
-
 
 **(Steinhardt)** P. Steinhardt, D. Nelson, and M. Ronchetti,
 Phys. Rev. B 28, 784 (1983).
 
 .. _Mickel:
 
-
-
 **(Mickel)** W. Mickel, S. C. Kapfer, G. E. Schroeder-Turkand, K. Mecke,
 J. Chem. Phys. 138, 044501 (2013).
 
 .. _tenWolde2:
 
-
-
 **(tenWolde)** P. R. ten Wolde, M. J. Ruiz-Montero, D. Frenkel,
 J. Chem. Phys. 104, 9932 (1996).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

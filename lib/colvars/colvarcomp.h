@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -23,11 +23,13 @@
 #include "colvarmodule.h"
 #include "colvar.h"
 #include "colvaratoms.h"
+#include "colvar_arithmeticpath.h"
 
 #if (__cplusplus >= 201103L)
+// C++11-only functions
 #include "colvar_geometricpath.h"
 #include <functional>
-#endif // C++11 checking
+#endif
 
 #include <map>
 
@@ -97,10 +99,7 @@ public:
   /// \brief Exponent in the polynomial combination (default: 1)
   int       sup_np;
 
-  /// \brief Is this a periodic component?
-  bool b_periodic;
-
-  /// \brief Period of this cvc value, (default: 0.0, non periodic)
+  /// \brief Period of the values of this CVC (default: 0.0, non periodic)
   cvm::real period;
 
   /// \brief If the component is periodic, wrap around this value (default: 0.0)
@@ -261,10 +260,13 @@ public:
   std::vector<cvm::atom_group *> atom_groups;
 
   /// \brief Store a pointer to new atom group, and list as child for dependencies
-  inline void register_atom_group(cvm::atom_group *ag) {
-    atom_groups.push_back(ag);
-    add_child(ag);
-  }
+  void register_atom_group(cvm::atom_group *ag);
+
+  /// Pointer to the gradient of parameter param_name
+  virtual colvarvalue const *get_param_grad(std::string const &param_name);
+
+  /// Set the named parameter to the given value
+  virtual int set_param(std::string const &param_name, void const *new_value);
 
   /// \brief Whether or not this CVC will be computed in parallel whenever possible
   bool b_try_scalable;
@@ -286,6 +288,24 @@ protected:
   /// \brief Calculated Jacobian derivative (divergence of the inverse
   /// gradients): serves to calculate the phase space correction
   colvarvalue jd;
+
+  /// \brief Set data types for a scalar distance (convenience function)
+  void init_as_distance();
+
+  /// \brief Set data types for a bounded angle (convenience function)
+  void init_as_angle();
+
+  /// \brief Set two scalar boundaries (convenience function)
+  void init_scalar_boundaries(cvm::real lb, cvm::real ub);
+
+  /// \brief Location of the lower boundary (not defined by user choice)
+  colvarvalue lower_boundary;
+
+  /// \brief Location of the upper boundary (not defined by user choice)
+  colvarvalue upper_boundary;
+
+  /// \brief CVC-specific default colvar width
+  cvm::real width;
 };
 
 
@@ -538,7 +558,6 @@ protected:
   bool b_no_PBC;
 public:
   distance_inv(std::string const &conf);
-  distance_inv();
   virtual ~distance_inv() {}
   virtual void calc_value();
   virtual void calc_gradients();
@@ -614,9 +633,7 @@ protected:
   /// Atoms involved
   cvm::atom_group  *atoms;
 public:
-  /// Constructor
   gyration(std::string const &conf);
-  gyration();
   virtual ~gyration() {}
   virtual void calc_value();
   virtual void calc_gradients();
@@ -752,7 +769,6 @@ public:
   angle(std::string const &conf);
   /// \brief Initialize the three groups after three atoms
   angle(cvm::atom const &a1, cvm::atom const &a2, cvm::atom const &a3);
-  angle();
   virtual ~angle() {}
   virtual void calc_value();
   virtual void calc_gradients();
@@ -902,7 +918,6 @@ protected:
 public:
 
   coordnum(std::string const &conf);
-  coordnum();
   ~coordnum();
 
   virtual void calc_value();
@@ -972,7 +987,6 @@ protected:
 public:
 
   selfcoordnum(std::string const &conf);
-  selfcoordnum();
   ~selfcoordnum();
   virtual void calc_value();
   virtual void calc_gradients();
@@ -1011,7 +1025,6 @@ protected:
 public:
   /// Constructor
   groupcoordnum(std::string const &conf);
-  groupcoordnum();
   virtual ~groupcoordnum() {}
   virtual void calc_value();
   virtual void calc_gradients();
@@ -1232,7 +1245,6 @@ class colvar::orientation_angle
 public:
 
   orientation_angle(std::string const &conf);
-  orientation_angle();
   virtual int init(std::string const &conf);
   virtual ~orientation_angle() {}
   virtual void calc_value();
@@ -1285,7 +1297,6 @@ protected:
 public:
 
   tilt(std::string const &conf);
-  tilt();
   virtual int init(std::string const &conf);
   virtual ~tilt() {}
   virtual void calc_value();
@@ -1394,13 +1405,13 @@ class colvar::componentDisabled
   : public colvar::cvc
 {
 public:
-    componentDisabled(std::string const &conf) {
+    componentDisabled(std::string const & /* conf */) {
         cvm::error("Error: this component is not enabled in the current build; please see https://colvars.github.io/README-c++11.html");
     }
     virtual ~componentDisabled() {}
     virtual void calc_value() {}
     virtual void calc_gradients() {}
-    virtual void apply_force(colvarvalue const &force) {}
+    virtual void apply_force(colvarvalue const & /* force */) {}
 };
 
 
@@ -1410,7 +1421,7 @@ class colvar::CartesianBasedPath
   : public colvar::cvc
 {
 protected:
-    virtual void computeReferenceDistance(std::vector<cvm::real>& result);
+    virtual void computeDistanceToReferenceFrames(std::vector<cvm::real>& result);
     /// Selected atoms
     cvm::atom_group *atoms;
     /// Fitting options
@@ -1440,7 +1451,7 @@ private:
     cvm::rotation rot_v3;
 protected:
     virtual void prepareVectors();
-    virtual void updateReferenceDistances();
+    virtual void updateDistanceToReferenceFrames();
 public:
     gspath(std::string const &conf);
     virtual ~gspath() {}
@@ -1462,7 +1473,7 @@ private:
     cvm::rotation rot_v4;
 protected:
     virtual void prepareVectors();
-    virtual void updateReferenceDistances();
+    virtual void updateDistanceToReferenceFrames();
 public:
     gzpath(std::string const &conf);
     virtual ~gzpath() {}
@@ -1501,14 +1512,16 @@ protected:
     std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>> string_cv_map;
     /// Sub-colvar components
     std::vector<colvar::cvc*> cv;
-    /// Refernce colvar values from path
+    /// Reference colvar values from path
     std::vector<std::vector<colvarvalue>> ref_cv;
     /// If all sub-cvs use explicit gradients then we also use it
     bool use_explicit_gradients;
     /// Total number of reference frames
     size_t total_reference_frames;
 protected:
-    virtual void computeReferenceDistance(std::vector<cvm::real>& result);
+    virtual void computeDistanceToReferenceFrames(std::vector<cvm::real>& result);
+    /// Helper function to determine the distance between reference frames
+    virtual void computeDistanceBetweenReferenceFrames(std::vector<cvm::real>& result) const;
     cvm::real getPolynomialFactorOfCVGradient(size_t i_cv) const;
 public:
     CVBasedPath(std::string const &conf);
@@ -1526,7 +1539,7 @@ class colvar::gspathCV
   : public colvar::CVBasedPath, public GeometricPathCV::GeometricPathBase<colvarvalue, cvm::real, GeometricPathCV::path_sz::S>
 {
 protected:
-    virtual void updateReferenceDistances();
+    virtual void updateDistanceToReferenceFrames();
     virtual void prepareVectors();
 public:
     gspathCV(std::string const &conf);
@@ -1542,11 +1555,40 @@ class colvar::gzpathCV
   : public colvar::CVBasedPath, public GeometricPathCV::GeometricPathBase<colvarvalue, cvm::real, GeometricPathCV::path_sz::Z>
 {
 protected:
-    virtual void updateReferenceDistances();
+    virtual void updateDistanceToReferenceFrames();
     virtual void prepareVectors();
 public:
     gzpathCV(std::string const &conf);
     virtual ~gzpathCV();
+    virtual void calc_value();
+    virtual void calc_gradients();
+    virtual void apply_force(colvarvalue const &force);
+};
+
+
+
+class colvar::aspathCV
+  : public colvar::CVBasedPath, public ArithmeticPathCV::ArithmeticPathBase<colvarvalue, cvm::real, ArithmeticPathCV::path_sz::S>
+{
+protected:
+    virtual void updateDistanceToReferenceFrames();
+public:
+    aspathCV(std::string const &conf);
+    virtual ~aspathCV();
+    virtual void calc_value();
+    virtual void calc_gradients();
+    virtual void apply_force(colvarvalue const &force);
+};
+
+
+class colvar::azpathCV
+  : public colvar::CVBasedPath, public ArithmeticPathCV::ArithmeticPathBase<colvarvalue, cvm::real, ArithmeticPathCV::path_sz::Z>
+{
+protected:
+    virtual void updateDistanceToReferenceFrames();
+public:
+    azpathCV(std::string const &conf);
+    virtual ~azpathCV();
     virtual void calc_value();
     virtual void calc_gradients();
     virtual void apply_force(colvarvalue const &force);
@@ -1601,6 +1643,20 @@ class colvar::gzpathCV
 {
 public:
     gzpathCV(std::string const &conf) : componentDisabled(conf) {}
+};
+
+class colvar::aspathCV
+  : public colvar::componentDisabled
+{
+public:
+    aspathCV(std::string const &conf) : componentDisabled(conf) {}
+};
+
+class colvar::azpathCV
+  : public colvar::componentDisabled
+{
+public:
+    azpathCV(std::string const &conf) : componentDisabled(conf) {}
 };
 
 #endif // C++11 checking

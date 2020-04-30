@@ -6,7 +6,6 @@ fix atom/swap command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID atom/swap N X seed T keyword values ...
@@ -19,9 +18,9 @@ Syntax
 * T = scaling temperature of the MC swaps (temperature units)
 * one or more keyword/value pairs may be appended to args
 * keyword = *types* or *mu* or *ke* or *semi-grand* or *region*
-  
+
   .. parsed-literal::
-  
+
        *types* values = two or more atom types
        *mu* values = chemical potential of swap types (energy units)
        *ke* value = *no* or *yes*
@@ -33,13 +32,10 @@ Syntax
        *region* value = region-ID
          region-ID = ID of region to use as an exchange/move volume
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 2 all atom/swap 1 1 29494 300.0 ke no types 1 2
    fix myFix all atom/swap 100 1 12345 298.0 region my_swap_region types 5 6
@@ -112,7 +108,7 @@ non-zero molecule ID, but does not check for this at the time of
 swapping.
 
 If not using *semi-grand* this fix checks to ensure all atoms of the
-given types have the same atomic charge. LAMMPS doesn't enforce this
+given types have the same atomic charge. LAMMPS does not enforce this
 in general, but it is needed for this fix to simplify the
 swapping procedure. Successful swaps will swap the atom type and charge
 of the swapped atoms. Conversely, when using *semi-grand*\ , it is assumed that all the atom
@@ -141,26 +137,26 @@ include: :doc:`efield <fix_efield>`, :doc:`gravity <fix_gravity>`,
 :doc:`temp/rescale <fix_temp_rescale>`, and :doc:`wall fixes <fix_wall>`.
 For that energy to be included in the total potential energy of the
 system (the quantity used when performing GCMC moves),
-you MUST enable the :doc:`fix\_modify <fix_modify>` *energy* option for
+you MUST enable the :doc:`fix_modify <fix_modify>` *energy* option for
 that fix.  The doc pages for individual :doc:`fix <fix>` commands
 specify if this should be done.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the state of the fix to :doc:`binary restart files <restart>`.  This includes information about the random
 number generator seed, the next timestep for MC exchanges, the number
 of exchange attempts and successes etc.  See
-the :doc:`read\_restart <read_restart>` command for info on how to
+the :doc:`read_restart <read_restart>` command for info on how to
 re-specify a fix in an input script that reads a restart file, so that
 the operation of the fix continues in an uninterrupted fashion.
 
 .. note::
 
    For this to work correctly, the timestep must **not** be changed
-   after reading the restart with :doc:`reset\_timestep <reset_timestep>`.
+   after reading the restart with :doc:`reset_timestep <reset_timestep>`.
    The fix will try to detect it and stop with an error.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.
 
 This fix computes a global vector of length 2, which can be accessed
@@ -178,7 +174,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-
 This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
@@ -188,7 +183,7 @@ Related commands
 
 :doc:`fix nvt <fix_nh>`, :doc:`neighbor <neighbor>`,
 :doc:`fix deposit <fix_deposit>`, :doc:`fix evaporate <fix_evaporate>`,
-:doc:`delete\_atoms <delete_atoms>`, :doc:`fix gcmc <fix_gcmc>`
+:doc:`delete_atoms <delete_atoms>`, :doc:`fix gcmc <fix_gcmc>`
 
 Default
 """""""
@@ -196,18 +191,9 @@ Default
 The option defaults are ke = yes, semi-grand = no, mu = 0.0 for
 all atom types.
 
-
 ----------
-
 
 .. _Sadigh:
 
-
-
 **(Sadigh)** B Sadigh, P Erhart, A Stukowski, A Caro, E Martinez, and
 L Zepeda-Ruiz, Phys. Rev. B, 85, 184203 (2012).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -32,6 +32,7 @@ class PythonImpl : protected Pointers, public PythonInterface {
   char *long_string(int);
   int execute_string(char *);
   int execute_file(char *);
+  bool has_minimum_version(int major, int minor);
 
  private:
   int ninput,noutput,length_longstr;

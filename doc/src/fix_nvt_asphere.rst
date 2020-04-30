@@ -9,7 +9,6 @@ fix nvt/asphere/omp command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nvt/asphere keyword value ...
@@ -21,8 +20,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nvt/asphere temp 300.0 300.0 100.0
    fix 1 all nvt/asphere temp 300.0 300.0 100.0 drag 0.2
@@ -55,8 +53,7 @@ This fix computes a temperature each timestep.  To do this, the fix
 creates its own compute of style "temp/asphere", as if this command
 had been issued:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp group-ID temp/asphere
 
@@ -66,12 +63,12 @@ underscore + "temp", and the group for the new compute is the same as
 the fix group.
 
 Note that this is NOT the compute used by thermodynamic output (see
-the :doc:`thermo\_style <thermo_style>` command) with ID = *thermo\_temp*.
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo_temp*.
 This means you can change the attributes of this fix's temperature
 (e.g. its degrees-of-freedom) via the
-:doc:`compute\_modify <compute_modify>` command or print this temperature
-during thermodynamic output via the :doc:`thermo\_style custom <thermo_style>` command using the appropriate compute-ID.
-It also means that changing attributes of *thermo\_temp* will have no
+:doc:`compute_modify <compute_modify>` command or print this temperature
+during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` command using the appropriate compute-ID.
+It also means that changing attributes of *thermo_temp* will have no
 effect on this fix.
 
 Like other fixes that perform thermostatting, this fix can be used
@@ -80,7 +77,7 @@ after removing a "bias" from the atom velocities.  E.g. removing the
 center-of-mass velocity from a group of atoms or only calculating
 temperature on the x-component of velocity or only calculating
 temperature for atoms in a geometric region.  This is not done by
-default, but only if the :doc:`fix\_modify <fix_modify>` command is used
+default, but only if the :doc:`fix_modify <fix_modify>` command is used
 to assign a temperature compute to this fix that includes such a bias
 term.  See the doc pages for individual :doc:`compute commands <compute>` to determine which ones include a bias.  In
 this case, the thermostat works in the following manner: the current
@@ -88,9 +85,7 @@ temperature is calculated taking the bias into account, bias is
 removed from each atom, thermostatting is performed on the remaining
 thermal degrees of freedom, and the bias is added back in.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -110,19 +105,19 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
-This fix writes the state of the Nose/Hoover thermostat to :doc:`binary restart files <restart>`.  See the :doc:`read\_restart <read_restart>`
+This fix writes the state of the Nose/Hoover thermostat to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>`
 command for info on how to re-specify a fix in an input script that
 reads a restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
-The :doc:`fix\_modify <fix_modify>` *temp* option is supported by this
+The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
 fix.  You can use it to assign a :doc:`compute <compute>` you have
 defined to this fix which will be used in its thermostatting
 procedure.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy change induced by Nose/Hoover thermostatting to
 the system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
@@ -138,12 +133,11 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
 This fix is part of the ASPHERE package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 This fix requires that atoms store torque and angular momentum and a
-quaternion as defined by the :doc:`atom\_style ellipsoid <atom_style>`
+quaternion as defined by the :doc:`atom_style ellipsoid <atom_style>`
 command.
 
 All particles in the group must be finite-size.  They cannot be point
@@ -153,11 +147,6 @@ shape attribute.
 Related commands
 """"""""""""""""
 
-:doc:`fix nvt <fix_nh>`, :doc:`fix nve\_asphere <fix_nve_asphere>`, :doc:`fix npt\_asphere <fix_npt_asphere>`, :doc:`fix\_modify <fix_modify>`
+:doc:`fix nvt <fix_nh>`, :doc:`fix nve_asphere <fix_nve_asphere>`, :doc:`fix npt_asphere <fix_npt_asphere>`, :doc:`fix_modify <fix_modify>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

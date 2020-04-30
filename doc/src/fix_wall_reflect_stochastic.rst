@@ -6,7 +6,6 @@ fix wall/reflect/stochastic command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID wall/reflect/stochastic rstyle seed face args ... keyword value ...
@@ -17,9 +16,9 @@ Syntax
 * seed = random seed for stochasticity (positive integer)
 * one or more face/args pairs may be appended
 * face = *xlo* or *xhi* or *ylo* or *yhi* or *zlo* or *zhi*
-  
+
   .. parsed-literal::
-  
+
        args = pos temp velx vely velz accomx accomy accomz
          pos = EDGE or constant
            EDGE = current lo or hi edge of simulation box
@@ -33,20 +32,17 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *units*
-  
+
   .. parsed-literal::
-  
+
        *units* value = *lattice* or *box*
          *lattice* = the wall position is defined in lattice units
          *box* = the wall position is defined in simulation box units
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix zwalls all wall/reflect/stochastic diffusive 23424 zlo EDGE 300 0.1 0.1 0 zhi EDGE 200 0.1 0.1 0
    fix ywalls all wall/reflect/stochastic maxwell 345533 ylo 5.0 300 0.1 0.0 0.0 0.8 yhi 10.0 300 0.1 0.0 0.0 0.8
@@ -99,13 +95,10 @@ as defined by the :doc:`units <units>` command, e.g. Angstroms for units
 lattice spacings. The :doc:`lattice <lattice>` command must have been
 previously used to define the lattice spacings.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This fix has the same limitations as the :doc:`fix wall/reflect <fix_wall_reflect>` command.  Any dimension (xyz) that
 has a wall must be non-periodic.  It should not be used with rigid
@@ -126,32 +119,19 @@ Default
 
 The default for the units keyword is lattice.
 
-
 ----------
 
-
 .. _Maxwell:
-
-
 
 **(Maxwell)** J.C. Maxwell, Philos. Tans. Royal Soc. London, 157: 49-88
 (1867).
 
 .. _CL:
 
-
-
 **(Cercignani)** C. Cercignani and M. Lampis. Trans. Theory
 Stat. Phys. 1, 2, 101 (1971).
 
 .. _To:
 
-
-
 **(To)** Q.D. To, V.H. Vu, G. Lauriat, and
 C. Leonard. J. Math. Phys. 56, 103101 (2015).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

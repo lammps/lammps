@@ -19,6 +19,7 @@
 #include <mpi.h>
 #include <cstring>
 #include <cmath>
+#include <string>
 #include "style_region.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -133,12 +134,38 @@ void Domain::init()
 
   box_change_size = box_change_shape = box_change_domain = 0;
 
+  // flags for detecting, if multiple fixes try to change the
+  // same box size or shape parameter
+
+  int box_change_x=0, box_change_y=0, box_change_z=0;
+  int box_change_yz=0, box_change_xz=0, box_change_xy=0;
+  Fix **fixes = modify->fix;
+
   if (nonperiodic == 2) box_change_size = 1;
   for (int i = 0; i < modify->nfix; i++) {
-    if (modify->fix[i]->box_change_size) box_change_size = 1;
-    if (modify->fix[i]->box_change_shape) box_change_shape = 1;
-    if (modify->fix[i]->box_change_domain) box_change_domain = 1;
+    if (fixes[i]->box_change & Fix::BOX_CHANGE_SIZE)   box_change_size = 1;
+    if (fixes[i]->box_change & Fix::BOX_CHANGE_SHAPE)  box_change_shape = 1;
+    if (fixes[i]->box_change & Fix::BOX_CHANGE_DOMAIN) box_change_domain = 1;
+    if (fixes[i]->box_change & Fix::BOX_CHANGE_X)      box_change_x++;
+    if (fixes[i]->box_change & Fix::BOX_CHANGE_Y)      box_change_y++;
+    if (fixes[i]->box_change & Fix::BOX_CHANGE_Z)      box_change_z++;
+    if (fixes[i]->box_change & Fix::BOX_CHANGE_YZ)     box_change_yz++;
+    if (fixes[i]->box_change & Fix::BOX_CHANGE_XZ)     box_change_xz++;
+    if (fixes[i]->box_change & Fix::BOX_CHANGE_XY)     box_change_xy++;
   }
+
+  std::string mesg = "Must not have multiple fixes change box parameter ";
+
+#define CHECK_BOX_FIX_ERROR(par)                                        \
+  if (box_change_ ## par > 1) error->all(FLERR,(mesg + #par).c_str())
+
+  CHECK_BOX_FIX_ERROR(x);
+  CHECK_BOX_FIX_ERROR(y);
+  CHECK_BOX_FIX_ERROR(z);
+  CHECK_BOX_FIX_ERROR(yz);
+  CHECK_BOX_FIX_ERROR(xz);
+  CHECK_BOX_FIX_ERROR(xy);
+#undef CHECK_BOX_FIX_ERROR
 
   box_change = 0;
   if (box_change_size || box_change_shape || box_change_domain) box_change = 1;
@@ -1847,6 +1874,12 @@ void Domain::set_boundary(int narg, char **arg, int flag)
   if (boundary[2][0] == 0) zperiodic = 1;
   else zperiodic = 0;
 
+  // record if we changed a periodic boundary to a non-periodic one
+  int pflag=0;
+  if ((periodicity[0] && !xperiodic)
+      || (periodicity[1] && !yperiodic)
+      || (periodicity[2] && !zperiodic)) pflag = 1;
+
   periodicity[0] = xperiodic;
   periodicity[1] = yperiodic;
   periodicity[2] = zperiodic;
@@ -1857,6 +1890,24 @@ void Domain::set_boundary(int narg, char **arg, int flag)
     if (boundary[0][0] >= 2 || boundary[0][1] >= 2 ||
         boundary[1][0] >= 2 || boundary[1][1] >= 2 ||
         boundary[2][0] >= 2 || boundary[2][1] >= 2) nonperiodic = 2;
+  }
+  if (pflag) {
+    pflag = 0;
+    for (int i=0; i < atom->nlocal; ++i) {
+      int xbox = (atom->image[i] & IMGMASK) - IMGMAX;
+      int ybox = (atom->image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      int zbox = (atom->image[i] >> IMG2BITS) - IMGMAX;
+      if (!xperiodic) { xbox = 0; pflag = 1; }
+      if (!yperiodic) { ybox = 0; pflag = 1; }
+      if (!zperiodic) { zbox = 0; pflag = 1; }
+      atom->image[i] = ((imageint) (xbox + IMGMAX) & IMGMASK) |
+        (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
+        (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
+    }
+    int flag_all;
+    MPI_Allreduce(&flag,&flag_all, 1, MPI_INT, MPI_SUM, world);
+    if ((flag_all > 0) && (comm->me == 0))
+      error->warning(FLERR,"Reset image flags for non-periodic boundary");
   }
 }
 

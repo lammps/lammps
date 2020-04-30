@@ -20,7 +20,7 @@ additional letters in parenthesis: g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.
 
 .. table_from_list::
-   :columns: 6
+   :columns: 5
 
    * :doc:`ackland/atom <compute_ackland_atom>`
    * :doc:`adf <compute_adf>`
@@ -87,7 +87,7 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`msd/chunk <compute_msd_chunk>`
    * :doc:`msd/nongauss <compute_msd_nongauss>`
    * :doc:`omega/chunk <compute_omega_chunk>`
-   * :doc:`orientorder/atom <compute_orientorder_atom>`
+   * :doc:`orientorder/atom (k) <compute_orientorder_atom>`
    * :doc:`pair <compute_pair>`
    * :doc:`pair/local <compute_pair_local>`
    * :doc:`pe <compute_pe>`
@@ -163,4 +163,3 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`vcm/chunk <compute_vcm_chunk>`
    * :doc:`voronoi/atom <compute_voronoi_atom>`
    * :doc:`xrd <compute_xrd>`
-

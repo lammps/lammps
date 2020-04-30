@@ -195,7 +195,7 @@ protected:
 
 private:
         double **Lookup; // holds per-type material parameters for the quantities defined in enum statement above.
-        bool first; // if first is true, do not perform any computations, beacuse reference configuration is not ready yet.
+        bool first; // if first is true, do not perform any computations, because reference configuration is not ready yet.
 };
 
 }

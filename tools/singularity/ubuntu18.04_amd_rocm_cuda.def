@@ -2,11 +2,11 @@ BootStrap: library
 From: lammps/default/lammps_development:ubuntu18.04_amd_rocm
 
 %environment
-    export PATH=/usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
-    export CUDADIR=/usr/local/cuda
-    export CUDA_PATH=/usr/local/cuda
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
-    export LIBRARY_PATH=/usr/local/cuda/lib64/stubs
+    export PATH=/usr/local/cuda-10.2/bin:${PATH}:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
+    export CUDADIR=/usr/local/cuda-10.2
+    export CUDA_PATH=/usr/local/cuda-10.2
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-10.2/lib64
+    export LIBRARY_PATH=/usr/local/cuda-10.2/lib64/stubs
 
 %post
     export DEBIAN_FRONTEND=noninteractive
@@ -15,7 +15,17 @@ From: lammps/default/lammps_development:ubuntu18.04_amd_rocm
     apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
     add-apt-repository "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/ /"
     apt-get update
-    apt-get -y install --no-install-recommends cuda cuda-compiler-10-2 cuda-compat-10-2
+
+    export CUDA_PKG_VERSION=10.2
+
+    apt-get install -y --no-install-recommends \
+        cuda-libraries-$CUDA_PKG_VERSION \
+        cuda-command-line-tools-$CUDA_PKG_VERSION \
+        cuda-libraries-dev-$CUDA_PKG_VERSION \
+        cuda-minimal-build-$CUDA_PKG_VERSION \
+        cuda-compat-$CUDA_PKG_VERSION \
+        libcublas10 \
+        libcublas-dev
 
 
     echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf

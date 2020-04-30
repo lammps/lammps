@@ -73,7 +73,6 @@ every LAMMPS command.
    pg_fortran
    pg_developer
    pg_base
-   pg_utils
 
 .. toctree::
    :caption: Index

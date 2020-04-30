@@ -1,15 +1,15 @@
 LAMMPS internal utility functions
-*********************************
+=================================
 
 The ``utils`` sub-namespace inside the ``LAMMPS_NS`` namespace provides
 a collection of convenience functions and utilities that perform common
 tasks that are required repeatedly throughout the LAMMPS code like
 reading or writing to files with error checking or translation of
 strings into specific types of numbers with checking for validity.  This
-reduces redundant implementations and enhances consistent behavior.
+reduces redundant implementations and encourages consistent behavior.
 
 I/O functions with validity check
-=================================
+---------------------------------
 
 These are wrappers around the corresponding C library calls like
 ``fgets()`` or ``fread()``.  They will check if there were errors
@@ -24,7 +24,7 @@ indicating the name of the problematic file, if possible.
    :project: progguide
 
 String to number conversions with validity check
-================================================
+------------------------------------------------
 
 These are functions equivalent to those in the ``Force`` class that
 were implemented with the aim to replace and supersede those.  Unlike
@@ -54,7 +54,7 @@ typos or issues when processing input files.
 
 
 Convenience functions
-=====================
+---------------------
 
 .. doxygenfunction:: strmatch
    :project: progguide

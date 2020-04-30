@@ -21,12 +21,9 @@
 
 using namespace LAMMPS_NS;
 
-#define ONELINE 128
-#define DELTA 1048576
-
 /* ---------------------------------------------------------------------- */
 
-DumpXYZ_Time::DumpXYZ_Time(LAMMPS *lmp, int narg, char **arg) : 
+DumpXYZ_Time::DumpXYZ_Time(LAMMPS *lmp, int narg, char **arg) :
     DumpXYZ(lmp, narg-1, arg)
 {
   if (narg != 6) error->all(FLERR,"Wrong number of parameters for dump xyz/time command");
@@ -48,13 +45,14 @@ void DumpXYZ_Time::write_header(bigint n)
 {
   update->update_time();
   if (next_time-(update->atime) < time_every*tol) {
-      write_time = true;
-      next_time +=time_every;
+    write_time = true;
+    next_time += time_every;
   }
   else write_time = false;
   if (me == 0 && write_time) {
     fprintf(fp,BIGINT_FORMAT "\n",n);
-    fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT " Time: %f" "\n",update->ntimestep, update->atime);
+    fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT " Time: %f" "\n", 
+            update->ntimestep, update->atime);
   }
 }
 

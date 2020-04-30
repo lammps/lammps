@@ -34,9 +34,9 @@ class DumpXYZ_Time : public DumpXYZ {
 
  protected:
   double time_every; //time frequency of a dump
-  double next_time;  //next time for a dump
+  double next_time;  //next time for writing a dump
   double tol;        //tolerance for the time check
-  bool write_time;   //1-write now, 0-do not write dump
+  bool write_time;   //true-write now, false-do not write dump
 
   void write_header(bigint);
   void write_data(int, double *);

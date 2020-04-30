@@ -7,7 +7,8 @@ From: fedora:32
                ninja-build clang libomp-devel libubsan libasan libtsan \
                dos2unix findutils rsync python-devel libjpeg-devel libpng-devel \
                ccache gcc-c++ gcc-gfortran gdb valgrind eigen3-devel openblas-devel \
-               openmpi-devel mpich-devel fftw-devel voro++-devel gsl-devel \
+               openmpi-devel mpich-devel fftw-devel voro++-devel gsl-devel hdf5-devel \
+               netcdf-devel netcdf-cxx-devel netcdf-mpich-devel netcdf-openmpi-devel \
                mingw-filesystem-base mingw32-nsis mingw-binutils-generic \
                mingw32-filesystem mingw32-pkg-config \
                mingw64-filesystem mingw64-pkg-config \

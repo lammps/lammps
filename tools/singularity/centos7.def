@@ -9,6 +9,7 @@ From: centos:7
             make cmake cmake3 ninja-build patch which file git Lmod \
             libpng-devel libjpeg-devel openmpi-devel mpich-devel python-devel python36-devel \
             hdf5-devel python36-virtualenv python36-pip python-pip \
+            netcdf-devel netcdf-cxx-devel netcdf-mpich-devel netcdf-openmpi-devel \
             python-virtualenv fftw-devel voro++-devel eigen3-devel gsl-devel openblas-devel enchant
         yum clean all
 

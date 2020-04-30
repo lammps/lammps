@@ -30,6 +30,7 @@ From: ubuntu:18.04
         libhwloc-dev \
         libjpeg-dev \
         liblapack-dev \
+        libnetcdf-dev \
         libomp-dev \
         libopenblas-dev \
         libnuma-dev \

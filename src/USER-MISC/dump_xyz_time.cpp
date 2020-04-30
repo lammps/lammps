@@ -51,7 +51,7 @@ void DumpXYZ_Time::write_header(bigint n)
   else write_time = false;
   if (me == 0 && write_time) {
     fprintf(fp,BIGINT_FORMAT "\n",n);
-    fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT " Time: %f" "\n", 
+    fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT " Time: %f" "\n",
             update->ntimestep, update->atime);
   }
 }

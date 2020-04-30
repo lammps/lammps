@@ -225,9 +225,6 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` doc
 * :doc:`ke/atom/eff <compute_ke_atom_eff>` - per-atom translational and radial kinetic energy in the electron force field model
 * :doc:`ke/eff <compute_ke_eff>` - kinetic energy of a group of nuclei and electrons in the electron force field model
 * :doc:`ke/rigid <compute_ke_rigid>` - translational kinetic energy of rigid bodies
-* :doc:`meso/e/atom <compute_meso_e_atom>` - per-atom internal energy of Smooth-Particle Hydrodynamics atoms
-* :doc:`meso/rho/atom <compute_meso_rho_atom>` - per-atom mesoscopic density of Smooth-Particle Hydrodynamics atoms
-* :doc:`meso/t/atom <compute_meso_t_atom>` - per-atom internal temperature of Smooth-Particle Hydrodynamics atoms
 * :doc:`momentum <compute_momentum>` - translational momentum
 * :doc:`msd <compute_msd>` - mean-squared displacement of group of atoms
 * :doc:`msd/chunk <compute_msd_chunk>` - mean-squared displacement for each chunk
@@ -279,6 +276,9 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` doc
 * :doc:`sna/atom <compute_sna_atom>` - bispectrum components for each atom
 * :doc:`snad/atom <compute_sna_atom>` - derivative of bispectrum components for each atom
 * :doc:`snav/atom <compute_sna_atom>` - virial contribution from bispectrum components for each atom
+* :doc:`sph/e/atom <compute_sph_e_atom>` - per-atom internal energy of Smooth-Particle Hydrodynamics atoms
+* :doc:`sph/rho/atom <compute_sph_rho_atom>` - per-atom density of Smooth-Particle Hydrodynamics atoms
+* :doc:`sph/t/atom <compute_sph_t_atom>` - per-atom internal temperature of Smooth-Particle Hydrodynamics atoms
 * :doc:`spin <compute_spin>` - magnetic quantities for a system of atoms having spins
 * :doc:`stress/atom <compute_stress_atom>` - stress tensor for each atom
 * :doc:`stress/mop <compute_stress_mop>` - normal components of the local stress tensor using the method of planes

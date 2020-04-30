@@ -11,33 +11,30 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef ATOM_CLASS
+#ifdef COMPUTE_CLASS
 
-AtomStyle(meso,AtomVecMeso)
+ComputeStyle(sph/rho/atom,ComputeSPHRhoAtom)
 
 #else
 
-#ifndef LMP_ATOM_VEC_MESO_H
-#define LMP_ATOM_VEC_MESO_H
+#ifndef LMP_COMPUTE_MESO_SPH_ATOM_H
+#define LMP_COMPUTE_MESO_SPH_ATOM_H
 
-#include "atom_vec.h"
+#include "compute.h"
 
 namespace LAMMPS_NS {
 
-class AtomVecMeso : public AtomVec {
+class ComputeSPHRhoAtom : public Compute {
  public:
-  AtomVecMeso(class LAMMPS *);
-
-  void grow_pointers();
-  void force_clear(int, size_t);
-  void create_atom_post(int);
-  void data_atom_post(int);
-  int property_atom(char *);
-  void pack_property_atom(int, double *, int, int);
+  ComputeSPHRhoAtom(class LAMMPS *, int, char **);
+  ~ComputeSPHRhoAtom();
+  void init();
+  void compute_peratom();
+  double memory_usage();
 
  private:
-  double *rho,*drho,*e,*de,*cv;
-  double **vest;
+  int nmax;
+  double *rhoVector;
 };
 
 }

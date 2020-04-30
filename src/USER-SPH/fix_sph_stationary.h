@@ -11,30 +11,36 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef COMPUTE_CLASS
+#ifdef FIX_CLASS
 
-ComputeStyle(meso/rho/atom,ComputeMesoRhoAtom)
+FixStyle(sph/stationary,FixSPHStationary)
 
 #else
 
-#ifndef LMP_COMPUTE_MESO_RHO_ATOM_H
-#define LMP_COMPUTE_MESO_RHO_ATOM_H
+#ifndef LMP_FIX_SPH_STATIONARY_H
+#define LMP_FIX_SPH_STATIONARY_H
 
-#include "compute.h"
+#include "fix.h"
 
 namespace LAMMPS_NS {
 
-class ComputeMesoRhoAtom : public Compute {
+class FixSPHStationary : public Fix {
  public:
-  ComputeMesoRhoAtom(class LAMMPS *, int, char **);
-  ~ComputeMesoRhoAtom();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  FixSPHStationary(class LAMMPS *, int, char **);
+  int setmask();
+  virtual void init();
+  virtual void initial_integrate(int);
+  virtual void final_integrate();
+  void reset_dt();
 
  private:
-  int nmax;
-  double *rhoVector;
+  class NeighList *list;
+ protected:
+  double dtv,dtf;
+  double *step_respa;
+  int mass_require;
+
+  class Pair *pair;
 };
 
 }

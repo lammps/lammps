@@ -10,7 +10,7 @@ Syntax
 
    atom_style style args
 
-* style = *angle* or *atomic* or *body* or *bond* or *charge* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *meso* or *molecular* or *peri* or *smd* or *sphere* or *spin* or *tdpd* or *tri* or *template* or *hybrid*
+* style = *angle* or *atomic* or *body* or *bond* or *charge* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *molecular* or *peri* or *smd* or *sph* or *sphere* or *spin* or *tdpd* or *tri* or *template* or *hybrid*
 
   .. parsed-literal::
 
@@ -103,13 +103,13 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *mdpd*       | density                                             | mDPD particles                       |
 +--------------+-----------------------------------------------------+--------------------------------------+
-| *meso*       | rho, e, cv                                          | SPH particles                        |
-+--------------+-----------------------------------------------------+--------------------------------------+
 | *molecular*  | bonds, angles, dihedrals, impropers                 | uncharged molecules                  |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *peri*       | mass, volume                                        | mesoscopic Peridynamic models        |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *smd*        | volume, kernel diameter, contact radius, mass       | solid and fluid SPH particles        |
++--------------+-----------------------------------------------------+--------------------------------------+
+| *sph*       | rho, esph, cv                                          | SPH particles                        |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *sphere*     | diameter, mass, angular velocity                    | granular models                      |
 +--------------+-----------------------------------------------------+--------------------------------------+
@@ -198,8 +198,8 @@ particles which store a set of chemical concentration. An integer
 "cc_species" is required to specify the number of chemical species
 involved in a tDPD system.
 
-The *meso* style is for smoothed particle hydrodynamics (SPH)
-particles which store a density (rho), energy (e), and heat capacity
+The *sph* style is for smoothed particle hydrodynamics (SPH)
+particles which store a density (rho), energy (esph), and heat capacity
 (cv).
 
 The *smd* style is for a general formulation of Smooth Particle
@@ -344,7 +344,7 @@ for energy-conserving dissipative particle dynamics (eDPD), many-body
 dissipative particle dynamics (mDPD), and transport dissipative particle
 dynamics (tDPD), respectively.
 
-The *meso* style is part of the USER-SPH package for smoothed particle
+The *sph* style is part of the USER-SPH package for smoothed particle
 hydrodynamics (SPH).  See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
 
 The *spin* style is part of the SPIN package.

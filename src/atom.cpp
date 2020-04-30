@@ -73,8 +73,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   nperatom = maxperatom = 0;
   peratom = NULL;
 
-  // initialize atom arrays
-  // customize by adding new array
+  // --------------------------------------------------------------------
+  // 1st customization section: customize by adding new per-atom variables
 
   tag = NULL;
   type = mask = NULL;
@@ -159,8 +159,11 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   // USER-SPH package
   
-  rho = drho = e = de = cv = NULL;
+  rho = drho = esph = desph = cv = NULL;
   vest = NULL;
+
+  // end of customization section
+  // --------------------------------------------------------------------
 
   // user-defined molecules
 
@@ -240,8 +243,9 @@ Atom::~Atom()
     delete [] peratom[i].name;
   memory->sfree(peratom);
 
+  // --------------------------------------------------------------------
+  // 2nd customization section: customize by adding new per-atom variables
   // delete atom arrays
-  // customize by adding new array
 
   memory->destroy(tag);
   memory->destroy(type);
@@ -287,8 +291,8 @@ Atom::~Atom()
 
   memory->destroy(rho);
   memory->destroy(drho);
-  memory->destroy(e);
-  memory->destroy(de);
+  memory->destroy(esph);
+  memory->destroy(desph);
   memory->destroy(cv);
   memory->destroy(vest);
 
@@ -339,6 +343,9 @@ Atom::~Atom()
   memory->destroy(improper_atom2);
   memory->destroy(improper_atom3);
   memory->destroy(improper_atom4);
+
+  // end of customization section
+  // --------------------------------------------------------------------
 
   // delete custom atom arrays
 
@@ -411,7 +418,8 @@ void Atom::peratom_create()
   peratom = NULL;
   nperatom = maxperatom = 0;
 
-  // customize: add new peratom variables here, order does not matter
+  // --------------------------------------------------------------------
+  // 3rd customization section: add peratom variables here, order does not matter
   // register tagint & imageint variables as INT or BIGINT
 
   int tagintsize = INT;
@@ -541,8 +549,8 @@ void Atom::peratom_create()
 
   add_peratom("rho",&rho,DOUBLE,0);
   add_peratom("drho",&drho,DOUBLE,0,1);               // set per-thread flag
-  add_peratom("e",&e,DOUBLE,0);
-  add_peratom("de",&de,DOUBLE,0,1);                   // set per-thread flag
+  add_peratom("esph",&esph,DOUBLE,0);
+  add_peratom("desph",&desph,DOUBLE,0,1);             // set per-thread flag
   add_peratom("vest",&vest,DOUBLE,3);
   add_peratom("cv",&cv,DOUBLE,0);
 
@@ -554,6 +562,9 @@ void Atom::peratom_create()
   add_peratom("eff_plastic_strain",&eff_plastic_strain,DOUBLE,0);
   add_peratom("eff_plastic_strain_rate",&eff_plastic_strain_rate,DOUBLE,0);
   add_peratom("damage",&damage,DOUBLE,0);
+
+  // end of customization section
+  // --------------------------------------------------------------------
 }
 
 /* ----------------------------------------------------------------------
@@ -636,11 +647,14 @@ void Atom::add_peratom_vary(const char *name, void *address,
 
 /* ----------------------------------------------------------------------
    add info for a single per-atom array to PerAtom data struct
-   customize by adding new flag, identical list as atom.h 2nd customization
 ------------------------------------------------------------------------- */
 
 void Atom::set_atomflag_defaults()
 {
+  // --------------------------------------------------------------------
+  // 4th customization section: customize by adding new flag
+  // identical list as 2nd customization in atom.h
+
   sphere_flag = ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
   peri_flag = electron_flag = 0;
   wavepacket_flag = sph_flag = 0;
@@ -649,7 +663,7 @@ void Atom::set_atomflag_defaults()
   rmass_flag = radius_flag = omega_flag = torque_flag = angmom_flag = 0;
   vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
   cs_flag = csforce_flag = vforce_flag = ervelforce_flag = etag_flag = 0;
-  rho_flag = e_flag = cv_flag = vest_flag = 0;
+  rho_flag = esph_flag = cv_flag = vest_flag = 0;
   dpd_flag = edpd_flag = tdpd_flag = 0;
   sp_flag = 0;
   x0_flag = 0;
@@ -2472,11 +2486,13 @@ void Atom::remove_custom(int flag, int index)
 /* ----------------------------------------------------------------------
    return a pointer to a named internal variable
    if don't recognize name, return NULL
-   customize by adding names
 ------------------------------------------------------------------------- */
 
 void *Atom::extract(char *name)
 {
+  // --------------------------------------------------------------------
+  // 5th customization section: customize by adding new variable name
+
   if (strcmp(name,"mass") == 0) return (void *) mass;
 
   if (strcmp(name,"id") == 0) return (void *) tag;
@@ -2514,8 +2530,8 @@ void *Atom::extract(char *name)
 
   if (strcmp(name,"rho") == 0) return (void *) rho;
   if (strcmp(name,"drho") == 0) return (void *) drho;
-  if (strcmp(name,"e") == 0) return (void *) e;
-  if (strcmp(name,"de") == 0) return (void *) de;
+  if (strcmp(name,"esph") == 0) return (void *) esph;
+  if (strcmp(name,"desph") == 0) return (void *) desph;
   if (strcmp(name,"cv") == 0) return (void *) cv;
   if (strcmp(name,"vest") == 0) return (void *) vest;
 
@@ -2530,6 +2546,9 @@ void *Atom::extract(char *name)
 
   if (strcmp(name,"dpdTheta") == 0) return (void *) dpdTheta;
   if (strcmp(name,"edpd_temp") == 0) return (void *) edpd_temp;
+
+  // end of customization section
+  // --------------------------------------------------------------------
 
   return NULL;
 }

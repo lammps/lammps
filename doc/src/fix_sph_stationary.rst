@@ -1,6 +1,6 @@
-.. index:: fix meso/stationary
+.. index:: fix sph/stationary
 
-fix meso/stationary command
+fix sph/stationary command
 ===========================
 
 Syntax
@@ -8,17 +8,17 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID meso/stationary
+   fix ID group-ID sph/stationary
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* meso = style name of this fix command
+* sph = style name of this fix command
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   fix 1 boundary meso/stationary
+   fix 1 boundary sph/stationary
 
 Description
 """""""""""
@@ -27,7 +27,7 @@ Perform time integration to update internal energy and local density,
 but not position or velocity for atoms in the group each timestep.
 This fix is needed for SPH simulations to correctly time-integrate
 fixed boundary particles which constrain a fluid to a given region in
-space.
+space.  SPH stands for Smoothed Particle Hydrodynamics.
 
 See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
 LAMMPS.
@@ -49,6 +49,6 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-"fix meso"
+:doc:`fix sph <fix_sph>`
 
 **Default:** none

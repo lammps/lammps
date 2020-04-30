@@ -237,9 +237,7 @@ accelerated styles exist.
 * :doc:`lb/viscous <fix_lb_viscous>` -
 * :doc:`lineforce <fix_lineforce>` - constrain atoms to move in a line
 * :doc:`manifoldforce <fix_manifoldforce>` - restrain atoms to a manifold during minimization
-* :doc:`meso <fix_meso>` - time integration for SPH/DPDE particles
 * :doc:`meso/move <fix_meso_move>` - move mesoscopic SPH/SDPD particles in a prescribed fashion
-* :doc:`meso/stationary <fix_meso_stationary>` -
 * :doc:`momentum <fix_momentum>` - zero the linear and/or angular momentum of a group of atoms
 * :doc:`move <fix_move>` - move atoms in a prescribed fashion
 * :doc:`mscg <fix_mscg>` - apply MSCG method for force-matching to generate coarse grain models
@@ -344,6 +342,8 @@ accelerated styles exist.
 * :doc:`smd/move_tri_surf <fix_smd_move_triangulated_surface>` -
 * :doc:`smd/setvel <fix_smd_setvel>` -
 * :doc:`smd/wall_surface <fix_smd_wall_surface>` -
+* :doc:`sph <fix_sph>` - time integration for SPH/DPDE particles
+* :doc:`sph/stationary <fix_sph_stationary>` -
 * :doc:`spring <fix_spring>` - apply harmonic spring force to group of atoms
 * :doc:`spring/chunk <fix_spring_chunk>` - apply harmonic spring force to each chunk of atoms
 * :doc:`spring/rg <fix_spring_rg>` - spring on radius of gyration of group of atoms

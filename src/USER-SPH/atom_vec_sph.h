@@ -11,37 +11,33 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
+#ifdef ATOM_CLASS
 
-FixStyle(meso,FixMeso)
+AtomStyle(sph,AtomVecSPH)
 
 #else
 
-#ifndef LMP_FIX_MESO_H
-#define LMP_FIX_MESO_H
+#ifndef LMP_ATOM_VEC_SPH_H
+#define LMP_ATOM_VEC_SPH_H
 
-#include "fix.h"
+#include "atom_vec.h"
 
 namespace LAMMPS_NS {
 
-class FixMeso : public Fix {
+class AtomVecSPH : public AtomVec {
  public:
-  FixMeso(class LAMMPS *, int, char **);
-  int setmask();
-  virtual void init();
-  virtual void setup_pre_force(int);
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
-  void reset_dt();
+  AtomVecSPH(class LAMMPS *);
+
+  void grow_pointers();
+  void force_clear(int, size_t);
+  void create_atom_post(int);
+  void data_atom_post(int);
+  int property_atom(char *);
+  void pack_property_atom(int, double *, int, int);
 
  private:
-  class NeighList *list;
- protected:
-  double dtv,dtf;
-  double *step_respa;
-  int mass_require;
-
-  class Pair *pair;
+  double *rho,*drho,*esph,*desph,*cv;
+  double **vest;
 };
 
 }

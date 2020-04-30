@@ -1,6 +1,6 @@
-.. index:: compute meso/t/atom
+.. index:: compute sph/e/atom
 
-compute meso/t/atom command
+compute sph/e/atom command
 ===========================
 
 Syntax
@@ -8,31 +8,27 @@ Syntax
 
 .. parsed-literal::
 
-   compute ID group-ID meso/t/atom
+   compute ID group-ID sph/e/atom
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
-* meso/t/atom = style name of this compute command
+* sph/e/atom = style name of this compute command
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   compute 1 all meso/t/atom
+   compute 1 all sph/e/atom
 
 Description
 """""""""""
 
-Define a computation that calculates the per-atom internal temperature
+Define a computation that calculates the per-atom internal energy
 for each atom in a group.
 
-The internal temperature is the ratio of internal energy over the heat
-capacity associated with the internal degrees of freedom of a mesoscopic
-particles, e.g. a Smooth-Particle Hydrodynamics particle.
-
-.. math::
-
-    T_{int} = E_{int} / C_{V,int}
+The internal energy is the energy associated with the internal degrees
+of freedom of an SPH particle, i.e. a Smooth-Particle Hydrodynamics
+particle.
 
 See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
 LAMMPS.
@@ -47,7 +43,7 @@ any command that uses per-atom values from a compute as input.  See
 the :doc:`Howto output <Howto_output>` doc page for an overview of
 LAMMPS output options.
 
-The per-atom vector values will be in temperature :doc:`units <units>`.
+The per-atom vector values will be in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""

@@ -13,22 +13,23 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(meso/stationary,FixMesoStationary)
+FixStyle(sph,FixSPH)
 
 #else
 
-#ifndef LMP_FIX_MESO_STATIONARY_H
-#define LMP_FIX_MESO_STATIONARY_H
+#ifndef LMP_FIX_SPH_H
+#define LMP_FIX_SPH_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixMesoStationary : public Fix {
+class FixSPH : public Fix {
  public:
-  FixMesoStationary(class LAMMPS *, int, char **);
+  FixSPH(class LAMMPS *, int, char **);
   int setmask();
   virtual void init();
+  virtual void setup_pre_force(int);
   virtual void initial_integrate(int);
   virtual void final_integrate();
   void reset_dt();

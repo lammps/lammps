@@ -139,8 +139,11 @@ class Atom : protected Pointers {
 
   // USER-SPH package
 
-  double *rho,*drho,*e,*de,*cv;
+  double *rho,*drho,*esph,*desph,*cv;
   double **vest;
+
+  // end of customization section
+  // --------------------------------------------------------------------
 
   // --------------------------------------------------------------------
   // 2nd customization section: customize by adding new flags
@@ -157,7 +160,7 @@ class Atom : protected Pointers {
   int rmass_flag,radius_flag,omega_flag,torque_flag,angmom_flag;
   int vfrac_flag,spin_flag,eradius_flag,ervel_flag,erforce_flag;
   int cs_flag,csforce_flag,vforce_flag,ervelforce_flag,etag_flag;
-  int rho_flag,e_flag,cv_flag,vest_flag;
+  int rho_flag,esph_flag,cv_flag,vest_flag;
   int dpd_flag,edpd_flag,tdpd_flag;
 
   // SPIN package
@@ -175,7 +178,7 @@ class Atom : protected Pointers {
 
   double pdscale;
 
-  // end of 2 customization sections
+  // end of customization section
   // --------------------------------------------------------------------
 
   // per-atom data struct describing all per-atom vectors/arrays

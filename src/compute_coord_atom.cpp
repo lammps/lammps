@@ -27,6 +27,7 @@
 #include "group.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -93,7 +94,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
     int iorientorder = modify->find_compute(id_orientorder);
     if (iorientorder < 0)
       error->all(FLERR,"Could not find compute coord/atom compute ID");
-    if (strcmp(modify->compute[iorientorder]->style,"orientorder/atom") != 0)
+    if (!utils::strmatch(modify->compute[iorientorder]->style,"^orientorder/atom"))
       error->all(FLERR,"Compute coord/atom compute ID is not orientorder/atom");
 
     threshold = force->numeric(FLERR,arg[5]);

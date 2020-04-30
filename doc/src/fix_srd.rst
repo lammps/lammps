@@ -6,7 +6,6 @@ fix srd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID srd N groupbig-ID Tsrd hgrid seed keyword value ...
@@ -21,9 +20,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *lamda* or *collision* or *overlap* or *inside* or *exact* or *radius* or *bounce* or *search* or *cubic* or *shift* or *tstat* or *rescale*
-  
+
   .. parsed-literal::
-  
+
        *lamda* value = mean free path of SRD particles (distance units)
        *collision* value = *noslip* or *slip* = collision model
        *overlap* value = *yes* or *no* = whether big particles may overlap
@@ -48,13 +47,10 @@ Syntax
          *rotate* = rescale during velocity rotation, but not collisions
          *collide* = rescale during collisions, but not velocity rotation
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 srd srd 10 big 1.0 0.25 482984
    fix 1 srd srd 10 big 0.5 0.25 482984 collision slip search 0.5
@@ -84,36 +80,36 @@ the implementation and usage of mixture systems (solute particles in
 an SRD fluid).  See the examples/srd directory for sample input
 scripts using SRD particles in both settings.
 
-This fix does 2 things:
+This fix does two things:
 
-(1) It advects the SRD particles, performing collisions between SRD
-and big particles or walls every timestep, imparting force and torque
-to the big particles.  Collisions also change the position and
-velocity of SRD particles.
+  1. It advects the SRD particles, performing collisions between SRD
+     and big particles or walls every timestep, imparting force and torque
+     to the big particles.  Collisions also change the position and
+     velocity of SRD particles.
 
-(2) It resets the velocity distribution of SRD particles via random
-rotations every N timesteps.
+  2. It resets the velocity distribution of SRD particles via random
+     rotations every N timesteps.
 
 SRD particles have a mass, temperature, characteristic timestep
-dt\_SRD, and mean free path between collisions (lamda).  The
-fundamental equation relating these 4 quantities is
+:math:`dt_{SRD}`, and mean free path between collisions
+(:math:`\lambda`).  The fundamental equation relating these 4 quantities
+is
 
+.. math::
 
-.. parsed-literal::
+   \lambda = dt_{SRD} \sqrt{\frac{k_B T_{SRD}}{m}}
 
-   lamda = dt_SRD \* sqrt(Kboltz \* Tsrd / mass)
-
-The mass of SRD particles is set by the :doc:`mass <mass>` command
-elsewhere in the input script.  The SRD timestep dt\_SRD is N times the
-step dt defined by the :doc:`timestep <timestep>` command.  Big
-particles move in the normal way via a time integration :doc:`fix <fix>`
-with a short timestep dt.  SRD particles advect with a large timestep
-dt\_SRD >= dt.
+The mass *m* of SRD particles is set by the :doc:`mass <mass>` command
+elsewhere in the input script.  The SRD timestep :math:`dt_{SRD}` is N
+times the step *dt* defined by the :doc:`timestep <timestep>` command.
+Big particles move in the normal way via a time integration :doc:`fix
+<fix>` with a short timestep dt.  SRD particles advect with a large
+timestep :math:`dt_{SRD} \ge dt`.
 
 If the *lamda* keyword is not specified, the SRD temperature
-*Tsrd* is used in the above formula to compute lamda.  If the *lamda*
-keyword is specified, then the *Tsrd* setting is ignored and the above
-equation is used to compute the SRD temperature.
+:math:`T_{SRD}` is used in the above formula to compute :math:`\lambda`.
+If the *lamda* keyword is specified, then the *Tsrd* setting is ignored
+and the above equation is used to compute the SRD temperature.
 
 The characteristic length scale for the SRD fluid is set by *hgrid*
 which is used to bin SRD particles for purposes of resetting their
@@ -121,13 +117,14 @@ velocities.  Normally hgrid is set to be 1/4 of the big particle
 diameter or smaller, to adequately resolve fluid properties around the
 big particles.
 
-Lamda cannot be smaller than 0.6 \* hgrid, else an error is generated
-(unless the *shift* keyword is used, see below).  The velocities of
-SRD particles are bounded by Vmax, which is set so that an SRD
-particle will not advect further than Dmax = 4\*lamda in dt\_SRD.  This
-means that roughly speaking, Dmax should not be larger than a big
-particle diameter, else SRDs may pass through big particles without
-colliding.  A warning is generated if this is the case.
+:math:`\lambda` cannot be smaller than 0.6 \* hgrid, else an error is
+generated (unless the *shift* keyword is used, see below).  The
+velocities of SRD particles are bounded by Vmax, which is set so that an
+SRD particle will not advect further than :math:`D_{max} = 4 \lambda` in
+:math:`dt_{SRD}`.  This means that roughly speaking, :math:`D_{max}`
+should not be larger than a big particle diameter, else SRDs may pass
+through big particles without colliding.  A warning is generated if this
+is the case.
 
 Collisions between SRD particles and big particles or walls are
 modeled as a lightweight SRD point particle hitting a heavy big
@@ -153,18 +150,17 @@ SRD velocity is chosen randomly.  This collision style imparts torque
 to a big particle.  Thus a time integrator :doc:`fix <fix>` that rotates
 the big particles appropriately should be used.
 
-
 ----------
-
 
 The *overlap* keyword should be set to *yes* if two (or more) big
 particles can ever overlap.  This depends on the pair potential
 interaction used for big-big interactions, or could be the case if
-multiple big particles are held together as rigid bodies via the :doc:`fix rigid <fix_rigid>` command.  If the *overlap* keyword is *no* and
-big particles do in fact overlap, then SRD/big collisions can generate
-an error if an SRD ends up inside two (or more) big particles at once.
-How this error is treated is determined by the *inside* keyword.
-Running with *overlap* set to *no* allows for faster collision
+multiple big particles are held together as rigid bodies via the
+:doc:`fix rigid <fix_rigid>` command.  If the *overlap* keyword is *no*
+and big particles do in fact overlap, then SRD/big collisions can
+generate an error if an SRD ends up inside two (or more) big particles
+at once.  How this error is treated is determined by the *inside*
+keyword.  Running with *overlap* set to *no* allows for faster collision
 checking, so it should only be set to *yes* if needed.
 
 The *inside* keyword determines how a collision is treated if the
@@ -201,9 +197,7 @@ bounces between nearby big particles.  Note that if the limit is
 reached, the SRD can be left inside a big particle.  A setting of 0 is
 the same as no limit.
 
-
 ----------
-
 
 There are 2 kinds of bins created and maintained when running an SRD
 simulation.  The first are "SRD bins" which are used to bin SRD
@@ -258,30 +252,30 @@ warning is generated.
    reneighboring.  Note that changing the SRD bin size may alter the
    properties of the SRD fluid, such as its viscosity.
 
-The *shift* keyword determines whether the coordinates of SRD
-particles are randomly shifted when binned for purposes of rotating
-their velocities.  When no shifting is performed, SRD particles are
-binned and the velocity distribution of the set of SRD particles in
-each bin is adjusted via a rotation operator.  This is a statistically
-valid operation if SRD particles move sufficiently far between
-successive rotations.  This is determined by their mean-free path
-lamda.  If lamda is less than 0.6 of the SRD bin size, then shifting
-is required.  A shift means that all of the SRD particles are shifted
-by a vector whose coordinates are chosen randomly in the range [-1/2
-bin size, 1/2 bin size].  Note that all particles are shifted by the
-same vector.  The specified random number *shiftseed* is used to
-generate these vectors.  This operation sufficiently randomizes which
-SRD particles are in the same bin, even if lamda is small.
+The *shift* keyword determines whether the coordinates of SRD particles
+are randomly shifted when binned for purposes of rotating their
+velocities.  When no shifting is performed, SRD particles are binned and
+the velocity distribution of the set of SRD particles in each bin is
+adjusted via a rotation operator.  This is a statistically valid
+operation if SRD particles move sufficiently far between successive
+rotations.  This is determined by their mean-free path :math:`\lambda`.
+If :math:`\lambda` is less than 0.6 of the SRD bin size, then shifting
+is required.  A shift means that all of the SRD particles are shifted by
+a vector whose coordinates are chosen randomly in the range [-1/2 bin
+size, 1/2 bin size].  Note that all particles are shifted by the same
+vector.  The specified random number *shiftseed* is used to generate
+these vectors.  This operation sufficiently randomizes which SRD
+particles are in the same bin, even if :math:`lambda` is small.
 
 If the *shift* flag is set to *no*\ , then no shifting is performed, but
-bin data will be communicated if bins overlap processor boundaries.
-An error will be generated if lamda < 0.6 of the SRD bin size.  If the
-*shift* flag is set to *possible*\ , then shifting is performed only if
-lamda < 0.6 of the SRD bin size.  A warning is generated to let you
-know this is occurring.  If the *shift* flag is set to *yes* then
-shifting is performed regardless of the magnitude of lamda.  Note that
-the *shiftseed* is not used if the *shift* flag is set to *no*\ , but
-must still be specified.
+bin data will be communicated if bins overlap processor boundaries.  An
+error will be generated if :math:`\lambda < 0.6` of the SRD bin size.
+If the *shift* flag is set to *possible*\ , then shifting is performed
+only if :math:`\lambda < 0.6` of the SRD bin size.  A warning is
+generated to let you know this is occurring.  If the *shift* flag is set
+to *yes* then shifting is performed regardless of the magnitude of
+:math:`\lambda`.  Note that the *shiftseed* is not used if the *shift*
+flag is set to *no*\ , but must still be specified.
 
 Note that shifting of SRD coordinates requires extra communication,
 hence it should not normally be enabled unless required.
@@ -319,9 +313,7 @@ rescaling off during collisions and the per-bin velocity rotation
 operation.  The *collide* and *rotate* values turn it on for
 one of the operations and off for the other.
 
-
 ----------
-
 
 .. note::
 
@@ -333,26 +325,24 @@ one of the operations and off for the other.
 
 Three other input script commands will largely overcome this effect,
 speeding up an SRD simulation by a significant amount.  These are the
-:doc:`atom\_modify first <atom_modify>`, :doc:`neigh\_modify include <neigh_modify>`, and :doc:`comm\_modify group <comm_modify>`
+:doc:`atom_modify first <atom_modify>`, :doc:`neigh_modify include <neigh_modify>`, and :doc:`comm_modify group <comm_modify>`
 commands.  Each takes a group-ID as an argument, which in this case
 should be the group-ID of the big solute particles.
 
-Additionally, when a :doc:`pair\_style <pair_style>` for big/big particle
-interactions is specified, the :doc:`pair\_coeff <pair_coeff>` command
+Additionally, when a :doc:`pair_style <pair_style>` for big/big particle
+interactions is specified, the :doc:`pair_coeff <pair_coeff>` command
 should be used to turn off big/SRD interactions, e.g. by setting their
 epsilon or cutoff length to 0.0.
 
-The "delete\_atoms overlap" command may be useful in setting up an SRD
+The "delete_atoms overlap" command may be useful in setting up an SRD
 simulation to insure there are no initial overlaps between big and SRD
 particles.
 
-
 ----------
 
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
-
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix tabulates several SRD statistics which are stored in a vector
@@ -385,7 +375,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-
 This command can only be used if LAMMPS was built with the SRD
 package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
@@ -398,35 +387,22 @@ Related commands
 Default
 """""""
 
-The option defaults are lamda inferred from Tsrd, collision = noslip,
-overlap = no, inside = error, exact = yes, radius = 1.0, bounce = 0,
-search = hgrid, cubic = error 0.01, shift = no, tstat = no, and
-rescale = yes.
-
+The option defaults are: *lamda* (:math:`\lambda`) is inferred from *Tsrd*,
+collision = noslip, overlap = no, inside = error, exact = yes, radius =
+1.0, bounce = 0, search = hgrid, cubic = error 0.01, shift = no, tstat =
+no, and rescale = yes.
 
 ----------
 
-
 .. _Hecht:
-
-
 
 **(Hecht)** Hecht, Harting, Ihle, Herrmann, Phys Rev E, 72, 011408 (2005).
 
 .. _Petersen1:
-
-
 
 **(Petersen)** Petersen, Lechman, Plimpton, Grest, in' t Veld, Schunk, J
 Chem Phys, 132, 174106 (2010).
 
 .. _Lechman:
 
-
-
 **(Lechman)** Lechman, et al, in preparation (2010).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

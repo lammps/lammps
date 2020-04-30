@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -48,342 +49,183 @@
 
 #include <Kokkos_Cuda.hpp>
 #include <Cuda/Kokkos_Cuda_Version_9_8_Compatibility.hpp>
+
 namespace Kokkos {
 
-
-// Shuffle only makes sense on >= Kepler GPUs; it doesn't work on CPUs
-// or other GPUs.  We provide a generic definition (which is trivial
-// and doesn't do what it claims to do) because we don't actually use
-// this function unless we are on a suitable GPU, with a suitable
-// Scalar type.  (For example, in the mat-vec, the "ThreadsPerRow"
-// internal parameter depends both on the ExecutionSpace and the Scalar type,
-// and it controls whether shfl_down() gets called.)
 namespace Impl {
 
-  template< typename Scalar >
-  struct shfl_union {
-    enum {n = sizeof(Scalar)/4};
-    float fval[n];
-    KOKKOS_INLINE_FUNCTION
-    Scalar value() {
-      return *(Scalar*) fval;
-    }
-    KOKKOS_INLINE_FUNCTION
-    void operator= (Scalar& value_) {
-      float* const val_ptr = (float*) &value_;
-      for(int i=0; i<n ; i++) {
-        fval[i] = val_ptr[i];
-      }
-    }
-    KOKKOS_INLINE_FUNCTION
-    void operator= (const Scalar& value_) {
-      float* const val_ptr = (float*) &value_;
-      for(int i=0; i<n ; i++) {
-        fval[i] = val_ptr[i];
-      }
-    }
+// Include all lanes
+constexpr unsigned shfl_all_mask = 0xffffffffu;
 
-  };
+//----------------------------------------------------------------------------
+// Shuffle operations require input to be a register (stack) variable
+
+// Derived implements do_shfl_op(unsigned mask, T& in, int lane, int width),
+// which turns in to one of KOKKOS_IMPL_CUDA_SHFL(_UP_|_DOWN_|_)MASK
+// Since the logic with respect to value sizes, etc., is the same everywhere,
+// put it all in one place.
+template <class Derived>
+struct in_place_shfl_op {
+  // CRTP boilerplate
+  __device__ KOKKOS_IMPL_FORCEINLINE const Derived& self() const noexcept {
+    return *static_cast<Derived const*>(this);
+  }
+
+  // sizeof(Scalar) <= sizeof(int) case
+  template <class Scalar>
+  // requires _assignable_from_bits<Scalar>
+  __device__ inline typename std::enable_if<sizeof(Scalar) <= sizeof(int)>::type
+  operator()(Scalar& out, Scalar const& in, int lane_or_delta, int width,
+             unsigned mask = shfl_all_mask) const noexcept {
+    using shfl_type = int;
+    union conv_type {
+      Scalar orig;
+      shfl_type conv;
+    };
+    conv_type tmp_in;
+    tmp_in.orig = in;
+    conv_type tmp_out;
+    tmp_out.conv = tmp_in.conv;
+    conv_type res;
+    //------------------------------------------------
+    res.conv = self().do_shfl_op(
+        mask, reinterpret_cast<shfl_type const&>(tmp_out.conv), lane_or_delta,
+        width);
+    //------------------------------------------------
+    out = res.orig;
+  }
+
+// TODO: figure out why 64-bit shfl fails in Clang
+#if !defined(KOKKOS_COMPILER_CLANG)
+  // sizeof(Scalar) == sizeof(double) case
+  // requires _assignable_from_bits<Scalar>
+  template <class Scalar>
+  __device__ inline
+      typename std::enable_if<sizeof(Scalar) == sizeof(double)>::type
+      operator()(Scalar& out, Scalar const& in, int lane_or_delta, int width,
+                 unsigned mask = shfl_all_mask) const noexcept {
+    //------------------------------------------------
+    reinterpret_cast<double&>(out) = self().do_shfl_op(
+        mask, *reinterpret_cast<double const*>(&in), lane_or_delta, width);
+    //------------------------------------------------
+  }
+#else
+  // sizeof(Scalar) == sizeof(double) case
+  // requires _assignable_from_bits<Scalar>
+  template <typename Scalar>
+  __device__ inline
+      typename std::enable_if<sizeof(Scalar) == sizeof(double)>::type
+      operator()(Scalar& out, const Scalar& val, int lane_or_delta, int width,
+                 unsigned mask = shfl_all_mask) const noexcept {
+    //------------------------------------------------
+    int lo   = __double2loint(*reinterpret_cast<const double*>(&val));
+    int hi   = __double2hiint(*reinterpret_cast<const double*>(&val));
+    lo       = self().do_shfl_op(mask, lo, lane_or_delta, width);
+    hi       = self().do_shfl_op(mask, hi, lane_or_delta, width);
+    auto tmp = __hiloint2double(hi, lo);
+    out      = reinterpret_cast<Scalar&>(tmp);
+    //------------------------------------------------
+  }
+#endif
+
+  // sizeof(Scalar) > sizeof(double) case
+  template <typename Scalar>
+  __device__ inline
+      typename std::enable_if<(sizeof(Scalar) > sizeof(double))>::type
+      operator()(Scalar& out, const Scalar& val, int lane_or_delta, int width,
+                 unsigned mask = shfl_all_mask) const noexcept {
+    // TODO DSH shouldn't this be KOKKOS_IMPL_CUDA_MAX_SHFL_SIZEOF instead of
+    //      sizeof(int)? (Need benchmarks to decide which is faster)
+    using shuffle_as_t = int;
+    enum : int { N = sizeof(Scalar) / sizeof(shuffle_as_t) };
+
+    for (int i = 0; i < N; ++i) {
+      reinterpret_cast<shuffle_as_t*>(&out)[i] = self().do_shfl_op(
+          mask, reinterpret_cast<shuffle_as_t const*>(&val)[i], lane_or_delta,
+          width);
+    }
+  }
+};
+
+struct in_place_shfl_fn : in_place_shfl_op<in_place_shfl_fn> {
+  template <class T>
+  __device__ KOKKOS_IMPL_FORCEINLINE T do_shfl_op(unsigned mask, T& val,
+                                                  int lane, int width) const
+      noexcept {
+    (void)mask;
+    (void)val;
+    (void)lane;
+    (void)width;
+    return KOKKOS_IMPL_CUDA_SHFL_MASK(mask, val, lane, width);
+  }
+};
+template <class... Args>
+__device__ KOKKOS_IMPL_FORCEINLINE void in_place_shfl(Args&&... args) noexcept {
+  in_place_shfl_fn{}((Args &&) args...);
 }
 
-#ifdef __CUDA_ARCH__
-#if (__CUDA_ARCH__ >= 300)
+struct in_place_shfl_up_fn : in_place_shfl_op<in_place_shfl_up_fn> {
+  template <class T>
+  __device__ KOKKOS_IMPL_FORCEINLINE T do_shfl_op(unsigned mask, T& val,
+                                                  int lane, int width) const
+      noexcept {
+    return KOKKOS_IMPL_CUDA_SHFL_UP_MASK(mask, val, lane, width);
+  }
+};
+template <class... Args>
+__device__ KOKKOS_IMPL_FORCEINLINE void in_place_shfl_up(
+    Args&&... args) noexcept {
+  in_place_shfl_up_fn{}((Args &&) args...);
+}
 
-    KOKKOS_INLINE_FUNCTION
-    int shfl(const int &val, const int& srcLane, const int& width ) {
-      return KOKKOS_IMPL_CUDA_SHFL(val,srcLane,width);
-    }
+struct in_place_shfl_down_fn : in_place_shfl_op<in_place_shfl_down_fn> {
+  template <class T>
+  __device__ KOKKOS_IMPL_FORCEINLINE T do_shfl_op(unsigned mask, T& val,
+                                                  int lane, int width) const
+      noexcept {
+    (void)mask;
+    (void)val;
+    (void)lane;
+    (void)width;
+    return KOKKOS_IMPL_CUDA_SHFL_DOWN_MASK(mask, val, lane, width);
+  }
+};
+template <class... Args>
+__device__ KOKKOS_IMPL_FORCEINLINE void in_place_shfl_down(
+    Args&&... args) noexcept {
+  in_place_shfl_down_fn{}((Args &&) args...);
+}
 
-    KOKKOS_INLINE_FUNCTION
-    float shfl(const float &val, const int& srcLane, const int& width ) {
-      return KOKKOS_IMPL_CUDA_SHFL(val,srcLane,width);
-    }
+}  // namespace Impl
 
-// TODO: figure out why 64-bit shfl fails with Clang
-#if ( CUDA_VERSION >= 9000 ) && (!defined(KOKKOS_COMPILER_CLANG))
+template <class T>
+// requires default_constructible<T> && _assignable_from_bits<T>
+__device__ inline T shfl(const T& val, const int& srcLane, const int& width,
+                         unsigned mask = Impl::shfl_all_mask) {
+  T rv = {};
+  Impl::in_place_shfl(rv, val, srcLane, width, mask);
+  return rv;
+}
 
-    KOKKOS_INLINE_FUNCTION
-    long shfl(const long &val, const int& srcLane, const int& width ) {
-      return KOKKOS_IMPL_CUDA_SHFL(val,srcLane,width);
-    }
+template <class T>
+// requires default_constructible<T> && _assignable_from_bits<T>
+__device__ inline T shfl_down(const T& val, int delta, int width,
+                              unsigned mask = Impl::shfl_all_mask) {
+  T rv = {};
+  Impl::in_place_shfl_down(rv, val, delta, width, mask);
+  return rv;
+}
 
-    KOKKOS_INLINE_FUNCTION
-    long long shfl(const long long &val, const int& srcLane, const int& width ) {
-      return KOKKOS_IMPL_CUDA_SHFL(val,srcLane,width);
-    }
+template <class T>
+// requires default_constructible<T> && _assignable_from_bits<T>
+__device__ inline T shfl_up(const T& val, int delta, int width,
+                            unsigned mask = Impl::shfl_all_mask) {
+  T rv = {};
+  Impl::in_place_shfl_up(rv, val, delta, width, mask);
+  return rv;
+}
 
-    KOKKOS_INLINE_FUNCTION
-    double shfl(const double &val, const int& srcLane, const int& width ) {
-      return KOKKOS_IMPL_CUDA_SHFL(val,srcLane,width);
-    }
+}  // end namespace Kokkos
 
-    template<typename Scalar>
-    KOKKOS_INLINE_FUNCTION
-    Scalar shfl(const Scalar &val, const int& srcLane, const typename Impl::enable_if< (sizeof(Scalar) == 8) , int >::type& width
-        ) {
-      Scalar tmp1 = val;
-      double tmp = *reinterpret_cast<double*>(&tmp1);
-      tmp = KOKKOS_IMPL_CUDA_SHFL(tmp,srcLane,width);
-      return *reinterpret_cast<Scalar*>(&tmp);
-    }
-
-#else // ( CUDA_VERSION < 9000 )
-
-    KOKKOS_INLINE_FUNCTION
-    double shfl(const double &val, const int& srcLane, const int& width) {
-      int lo = __double2loint(val);
-      int hi = __double2hiint(val);
-      lo = KOKKOS_IMPL_CUDA_SHFL(lo,srcLane,width);
-      hi = KOKKOS_IMPL_CUDA_SHFL(hi,srcLane,width);
-      return __hiloint2double(hi,lo);
-    }
-
-    template<typename Scalar>
-    KOKKOS_INLINE_FUNCTION
-    Scalar shfl(const Scalar &val, const int& srcLane, const typename Impl::enable_if< (sizeof(Scalar) == 8) ,int>::type& width) {
-      int lo = __double2loint(*reinterpret_cast<const double*>(&val));
-      int hi = __double2hiint(*reinterpret_cast<const double*>(&val));
-      lo = KOKKOS_IMPL_CUDA_SHFL(lo,srcLane,width);
-      hi = KOKKOS_IMPL_CUDA_SHFL(hi,srcLane,width);
-      const double tmp = __hiloint2double(hi,lo);
-      return *(reinterpret_cast<const Scalar*>(&tmp));
-    }
-
-#endif // ( CUDA_VERSION < 9000 )
-
-    template<typename Scalar>
-    KOKKOS_INLINE_FUNCTION
-    Scalar shfl(const Scalar &val, const int& srcLane, const typename Impl::enable_if< (sizeof(Scalar) == 4) , int >::type& width
-        ) {
-      Scalar tmp1 = val;
-      float tmp = *reinterpret_cast<float*>(&tmp1);
-      tmp = KOKKOS_IMPL_CUDA_SHFL(tmp,srcLane,width);
-      return *reinterpret_cast<Scalar*>(&tmp);
-    }
-
-    template<typename Scalar>
-    KOKKOS_INLINE_FUNCTION
-    Scalar shfl(const Scalar &val, const int& srcLane, const typename Impl::enable_if< (sizeof(Scalar) > 8) ,int>::type& width) {
-      Impl::shfl_union<Scalar> s_val;
-      Impl::shfl_union<Scalar> r_val;
-      s_val = val;
-
-      for(int i = 0; i<s_val.n; i++)
-        r_val.fval[i] = KOKKOS_IMPL_CUDA_SHFL(s_val.fval[i],srcLane,width);
-      return r_val.value();
-    }
-
-    KOKKOS_INLINE_FUNCTION
-    int shfl_down(const int &val, const int& delta, const int& width) {
-      return KOKKOS_IMPL_CUDA_SHFL_DOWN(val,delta,width);
-    }
-
-    KOKKOS_INLINE_FUNCTION
-    float shfl_down(const float &val, const int& delta, const int& width) {
-      return KOKKOS_IMPL_CUDA_SHFL_DOWN(val,delta,width);
-    }
-
-// TODO: figure out why 64-bit shfl fails with Clang
-#if ( CUDA_VERSION >= 9000 ) && (!defined(KOKKOS_COMPILER_CLANG))
-
-    KOKKOS_INLINE_FUNCTION
-    long shfl_down(const long &val, const int& delta, const int& width) {
-      return KOKKOS_IMPL_CUDA_SHFL_DOWN(val,delta,width);
-    }
-
-    KOKKOS_INLINE_FUNCTION
-    long long shfl_down(const long long &val, const int& delta, const int& width) {
-      return KOKKOS_IMPL_CUDA_SHFL_DOWN(val,delta,width);
-    }
-
-    KOKKOS_INLINE_FUNCTION
-    double shfl_down(const double &val, const int& delta, const int& width) {
-      return KOKKOS_IMPL_CUDA_SHFL_DOWN(val,delta,width);
-    }
-
-    template<typename Scalar>
-    KOKKOS_INLINE_FUNCTION
-    Scalar shfl_down(const Scalar &val, const int& delta, const typename Impl::enable_if< (sizeof(Scalar) == 8) , int >::type & width) {
-      Scalar tmp1 = val;
-      double tmp = *reinterpret_cast<double*>(&tmp1);
-      tmp = KOKKOS_IMPL_CUDA_SHFL_DOWN(tmp,delta,width);
-      return *reinterpret_cast<Scalar*>(&tmp);
-    }
-
-#else // ( CUDA_VERSION < 9000 )
-
-    KOKKOS_INLINE_FUNCTION
-    double shfl_down(const double &val, const int& delta, const int& width) {
-      int lo = __double2loint(val);
-      int hi = __double2hiint(val);
-      lo = KOKKOS_IMPL_CUDA_SHFL_DOWN(lo,delta,width);
-      hi = KOKKOS_IMPL_CUDA_SHFL_DOWN(hi,delta,width);
-      return __hiloint2double(hi,lo);
-    }
-
-    template<typename Scalar>
-    KOKKOS_INLINE_FUNCTION
-    Scalar shfl_down(const Scalar &val, const int& delta, const typename Impl::enable_if< (sizeof(Scalar) == 8) , int >::type & width) {
-      int lo = __double2loint(*reinterpret_cast<const double*>(&val));
-      int hi = __double2hiint(*reinterpret_cast<const double*>(&val));
-      lo = KOKKOS_IMPL_CUDA_SHFL_DOWN(lo,delta,width);
-      hi = KOKKOS_IMPL_CUDA_SHFL_DOWN(hi,delta,width);
-      const double tmp = __hiloint2double(hi,lo);
-      return *(reinterpret_cast<const Scalar*>(&tmp));
-    }
-
-#endif // ( CUDA_VERSION < 9000 )
-
-    template<typename Scalar>
-    KOKKOS_INLINE_FUNCTION
-    Scalar shfl_down(const Scalar &val, const int& delta, const typename Impl::enable_if< (sizeof(Scalar) == 4) , int >::type & width) {
-      Scalar tmp1 = val;
-      float tmp = *reinterpret_cast<float*>(&tmp1);
-      tmp = KOKKOS_IMPL_CUDA_SHFL_DOWN(tmp,delta,width);
-      return *reinterpret_cast<Scalar*>(&tmp);
-    }
-
-    template<typename Scalar>
-    KOKKOS_INLINE_FUNCTION
-    Scalar shfl_down(const Scalar &val, const int& delta, const typename Impl::enable_if< (sizeof(Scalar) > 8) , int >::type & width) {
-      Impl::shfl_union<Scalar> s_val;
-      Impl::shfl_union<Scalar> r_val;
-      s_val = val;
-
-      for(int i = 0; i<s_val.n; i++)
-        r_val.fval[i] = KOKKOS_IMPL_CUDA_SHFL_DOWN(s_val.fval[i],delta,width);
-      return r_val.value();
-    }
-
-    KOKKOS_INLINE_FUNCTION
-    int shfl_up(const int &val, const int& delta, const int& width ) {
-      return KOKKOS_IMPL_CUDA_SHFL_UP(val,delta,width);
-    }
-
-    KOKKOS_INLINE_FUNCTION
-    float shfl_up(const float &val, const int& delta, const int& width ) {
-      return KOKKOS_IMPL_CUDA_SHFL_UP(val,delta,width);
-    }
-
-// TODO: figure out why 64-bit shfl fails with Clang
-#if ( CUDA_VERSION >= 9000 ) && (!defined(KOKKOS_COMPILER_CLANG))
-
-    KOKKOS_INLINE_FUNCTION
-    long shfl_up(const long &val, const int& delta, const int& width ) {
-      return KOKKOS_IMPL_CUDA_SHFL_UP(val,delta,width);
-    }
-
-    KOKKOS_INLINE_FUNCTION
-    long long shfl_up(const long long &val, const int& delta, const int& width ) {
-      return KOKKOS_IMPL_CUDA_SHFL_UP(val,delta,width);
-    }
-
-    KOKKOS_INLINE_FUNCTION
-    double shfl_up(const double &val, const int& delta, const int& width ) {
-      return KOKKOS_IMPL_CUDA_SHFL_UP(val,delta,width);
-    }
-
-    template<typename Scalar>
-    KOKKOS_INLINE_FUNCTION
-    Scalar shfl_up(const Scalar &val, const int& delta, const typename Impl::enable_if< (sizeof(Scalar) == 8) , int >::type & width) {
-      Scalar tmp1 = val;
-      double tmp = *reinterpret_cast<double*>(&tmp1);
-      tmp = KOKKOS_IMPL_CUDA_SHFL_UP(tmp,delta,width);
-      return *reinterpret_cast<Scalar*>(&tmp);
-    }
-
-#else // ( CUDA_VERSION < 9000 )
-
-    KOKKOS_INLINE_FUNCTION
-    double shfl_up(const double &val, const int& delta, const int& width ) {
-      int lo = __double2loint(val);
-      int hi = __double2hiint(val);
-      lo = KOKKOS_IMPL_CUDA_SHFL_UP(lo,delta,width);
-      hi = KOKKOS_IMPL_CUDA_SHFL_UP(hi,delta,width);
-      return __hiloint2double(hi,lo);
-    }
-
-    template<typename Scalar>
-    KOKKOS_INLINE_FUNCTION
-    Scalar shfl_up(const Scalar &val, const int& delta, const typename Impl::enable_if< (sizeof(Scalar) == 8) , int >::type & width) {
-      int lo = __double2loint(*reinterpret_cast<const double*>(&val));
-      int hi = __double2hiint(*reinterpret_cast<const double*>(&val));
-      lo = KOKKOS_IMPL_CUDA_SHFL_UP(lo,delta,width);
-      hi = KOKKOS_IMPL_CUDA_SHFL_UP(hi,delta,width);
-      const double tmp = __hiloint2double(hi,lo);
-      return *(reinterpret_cast<const Scalar*>(&tmp));
-    }
-
-#endif // ( CUDA_VERSION < 9000 )
-
-    template<typename Scalar>
-    KOKKOS_INLINE_FUNCTION
-    Scalar shfl_up(const Scalar &val, const int& delta, const typename Impl::enable_if< (sizeof(Scalar) == 4) , int >::type & width) {
-      Scalar tmp1 = val;
-      float tmp = *reinterpret_cast<float*>(&tmp1);
-      tmp = KOKKOS_IMPL_CUDA_SHFL_UP(tmp,delta,width);
-      return *reinterpret_cast<Scalar*>(&tmp);
-    }
-
-    template<typename Scalar>
-    KOKKOS_INLINE_FUNCTION
-    Scalar shfl_up(const Scalar &val, const int& delta, const typename Impl::enable_if< (sizeof(Scalar) > 8) , int >::type & width) {
-      Impl::shfl_union<Scalar> s_val;
-      Impl::shfl_union<Scalar> r_val;
-      s_val = val;
-
-      for(int i = 0; i<s_val.n; i++)
-        r_val.fval[i] = KOKKOS_IMPL_CUDA_SHFL_UP(s_val.fval[i],delta,width);
-      return r_val.value();
-    }
-
-#else // (__CUDA_ARCH__ < 300)
-    template<typename Scalar>
-    KOKKOS_INLINE_FUNCTION
-    Scalar shfl(const Scalar &val, const int& srcLane, const int& width) {
-      if(width > 1) Kokkos::abort("Error: calling shfl from a device with CC<3.0.");
-      return val;
-    }
-
-    template<typename Scalar>
-    KOKKOS_INLINE_FUNCTION
-    Scalar shfl_down(const Scalar &val, const int& delta, const int& width) {
-      if(width > 1) Kokkos::abort("Error: calling shfl_down from a device with CC<3.0.");
-      return val;
-    }
-
-    template<typename Scalar>
-    KOKKOS_INLINE_FUNCTION
-    Scalar shfl_up(const Scalar &val, const int& delta, const int& width) {
-      if(width > 1) Kokkos::abort("Error: calling shfl_down from a device with CC<3.0.");
-      return val;
-    }
-#endif // (__CUDA_ARCH__ < 300)
-#else // !defined( __CUDA_ARCH__ )
-    template<typename Scalar>
-    inline
-    Scalar shfl(const Scalar &val, const int& srcLane, const int& width) {
-      if(width > 1) Kokkos::abort("Error: calling shfl outside __CUDA_ARCH__.");
-      return val;
-    }
-
-    template<typename Scalar>
-    inline
-    Scalar shfl_down(const Scalar &val, const int& delta, const int& width) {
-      if(width > 1) Kokkos::abort("Error: calling shfl_down outside __CUDA_ARCH__.");
-      return val;
-    }
-
-    template<typename Scalar>
-    inline
-    Scalar shfl_up(const Scalar &val, const int& delta, const int& width) {
-      if(width > 1) Kokkos::abort("Error: calling shfl_down outside __CUDA_ARCH__.");
-      return val;
-    }
-#endif // !defined( __CUDA_ARCH__ )
-
-} // end namespace Kokkos
-
-#endif // defined( KOKKOS_ENABLE_CUDA )
-#endif // !defined( KOKKOS_CUDA_VECTORIZATION_HPP )
-
+#endif  // defined( KOKKOS_ENABLE_CUDA )
+#endif  // !defined( KOKKOS_CUDA_VECTORIZATION_HPP )

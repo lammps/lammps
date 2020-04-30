@@ -1,13 +1,12 @@
-.. index:: comm\_style
+.. index:: comm_style
 
-comm\_style command
-===================
+comm_style command
+==================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    comm_style style
 
@@ -16,8 +15,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    comm_style brick
    comm_style tiled
@@ -46,17 +44,16 @@ Note that this command does not actually define a partitioning of the
 simulation box (a domain decomposition), rather it determines what
 kinds of decompositions are allowed and the pattern of communication
 used to enable the decomposition.  A decomposition is created when the
-simulation box is first created, via the :doc:`create\_box <create_box>`
-or :doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+simulation box is first created, via the :doc:`create_box <create_box>`
+or :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands.  For both the *brick* and *tiled* styles, the initial
 decomposition will be the same, as described by
-:doc:`create\_box <create_box>` and :doc:`processors <processors>`
+:doc:`create_box <create_box>` and :doc:`processors <processors>`
 commands.  The decomposition can be changed via the
 :doc:`balance <balance>` or :doc:`fix balance <fix_balance>` commands.
 
 Restrictions
 """"""""""""
-
 
 Communication style *tiled* cannot be used with *triclinic* simulation
 cells.
@@ -64,15 +61,10 @@ cells.
 Related commands
 """"""""""""""""
 
-:doc:`comm\_modify <comm_modify>`, :doc:`processors <processors>`,
+:doc:`comm_modify <comm_modify>`, :doc:`processors <processors>`,
 :doc:`balance <balance>`, :doc:`fix balance <fix_balance>`
 
 Default
 """""""
 
 The default style is brick.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

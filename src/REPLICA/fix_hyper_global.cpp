@@ -17,6 +17,7 @@
 #include <cstring>
 #include "atom.h"
 #include "update.h"
+#include "group.h"
 #include "force.h"
 #include "domain.h"
 #include "comm.h"
@@ -130,6 +131,10 @@ void FixHyperGlobal::init()
 
   dt = update->dt;
 
+  // count of atoms in fix group
+
+  groupatoms = group->count(igroup);
+
   // need an occasional half neighbor list
 
   int irequest = neighbor->request(this,instance_me);
@@ -184,7 +189,7 @@ void FixHyperGlobal::pre_neighbor()
   //   closest current I or J atoms to old I may now be ghost atoms
   //   closest_image() returns the ghost atom index in that case
   // also compute max drift of any atom in a bond
-  //   drift = displacement from quenched coord while event has not yet occured
+  //   drift = displacement from quenched coord while event has not yet occurred
   // NOTE: drift calc is now done in bond_build(), between 2 quenched states
 
   for (i = 0; i < nall_old; i++) old2now[i] = -1;
@@ -491,7 +496,7 @@ double FixHyperGlobal::compute_vector(int i)
     bigint mybonds = nblocal;
     bigint allbonds;
     MPI_Allreduce(&mybonds,&allbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
-    return 2.0*allbonds/atom->natoms;
+    return 1.0*allbonds/groupatoms;
   }
 
   if (i == 5) {

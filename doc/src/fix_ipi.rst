@@ -6,7 +6,6 @@ fix ipi command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID ipi address port [unix] [reset]
@@ -21,8 +20,10 @@ Syntax
 Examples
 """"""""
 
-fix 1 all ipi my.server.com 12345
-fix 1 all ipi mysocket 666 unix reset
+.. code-block:: LAMMPS
+
+   fix 1 all ipi my.server.com 12345
+   fix 1 all ipi mysocket 666 unix reset
 
 Description
 """""""""""
@@ -68,14 +69,13 @@ If the cell varies too wildly, it may be advisable to re-initialize
 these interactions at each call. This behavior can be requested by
 setting the *reset* switch.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 There is no restart information associated with this fix, since all
 the dynamical parameters are dealt with by i-PI.
 
 Restrictions
 """"""""""""
-
 
 Using this fix on anything other than all atoms requires particular
 care, since i-PI will know nothing on atoms that are not those whose
@@ -93,25 +93,14 @@ Related commands
 
 :doc:`fix nve <fix_nve>`
 
-
 ----------
 
-
 .. _IPICPC:
-
-
 
 **(IPI-CPC)** Ceriotti, More and Manolopoulos, Comp Phys Comm, 185,
 1019-1026 (2014).
 
 .. _ipihome:
 
-
-
 **(IPI)**
 `http://epfl-cosmo.github.io/gle4md/index.html?page=ipi <http://epfl-cosmo.github.io/gle4md/index.html?page=ipi>`_
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

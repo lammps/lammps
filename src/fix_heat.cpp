@@ -300,6 +300,7 @@ double FixHeat::compute_scalar()
 {
   double average_scale = scale;
   if (hstyle == ATOM) {
+    if (!vscale) return 1.0;
     double scale_sum = 0.0;
     int ncount = 0;
     int *mask = atom->mask;

@@ -32,7 +32,7 @@ class LJCoulMSM : public BaseCharge<numtyp, acctyp> {
     * \param gpu_split fraction of particles handled by device
     *
     * Returns:
-    * -  0 if successfull
+    * -  0 if successful
     * - -1 if fix gpu not found
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU

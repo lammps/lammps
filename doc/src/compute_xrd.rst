@@ -6,7 +6,6 @@ compute xrd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID xrd lambda type1 type2 ... typeN keyword value ...
@@ -17,9 +16,9 @@ Syntax
 * type1 type2 ... typeN = chemical symbol of each atom type (see valid options below)
 * zero or more keyword/value pairs may be appended
 * keyword = *2Theta* or *c* or *LP* or *manual* or *echo*
-  
+
   .. parsed-literal::
-  
+
        *2Theta* values = Min2Theta Max2Theta
          Min2Theta,Max2Theta = minimum and maximum 2 theta range to explore
          (radians or degrees)
@@ -32,13 +31,10 @@ Syntax
                   based on the values of the *c* parameters
        *echo* = flag to provide extra output for debugging purposes
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all xrd 1.541838 Al O 2Theta 0.087 0.87 c 1 1 1 LP 1 echo
    compute 2 all xrd 1.541838 Al O 2Theta 10 100 c 0.05 0.05 0.05 LP 1 manual
@@ -57,21 +53,16 @@ of wavelength lambda.
 The x-ray diffraction intensity, I, at each reciprocal lattice point, k,
 is computed from the structure factor, F, using the equations:
 
-.. image:: Eqs/compute_xrd1.jpg
-   :align: center
+.. math::
 
-.. image:: Eqs/compute_xrd2.jpg
-   :align: center
+   I =             & Lp(\theta)\frac{F^{*}F}{N} \\
+   F(\mathbf{k}) = & \sum_{j=1}^{N}f_j(\theta)exp(2\pi i \mathbf{k}\cdot \mathbf{r}_j) \\
+   Lp(\theta)    = & \frac{1+cos^{2}(2\theta)}{cos(\theta)sin^{2}(\theta)} \\
+   \frac{sin(\theta)}{\lambda} = & \frac{\left | \mathbf{k} \right |}{2}
 
-.. image:: Eqs/compute_xrd3.jpg
-   :align: center
-
-.. image:: Eqs/compute_xrd4.jpg
-   :align: center
-
-Here, K is the location of the reciprocal lattice node, rj is the
-position of each atom, fj are atomic scattering factors, LP is the
-Lorentz-polarization factor, and theta is the scattering angle of
+Here, K is the location of the reciprocal lattice node, :math:`r_j` is the
+position of each atom, :math:`f_j` are atomic scattering factors, *Lp* is the
+Lorentz-polarization factor, and :math:`\theta` is the scattering angle of
 diffraction.  The Lorentz-polarization factor can be turned off using
 the optional *LP* keyword.
 
@@ -114,8 +105,10 @@ for each atom type (type1 type2 ... typeN) and angle of diffraction.
 The analytic approximation is computed using the formula
 :ref:`(Colliex) <Colliex>`:
 
-.. image:: Eqs/compute_xrd5.jpg
-   :align: center
+.. math::
+
+   f_j\left ( \frac{sin(\theta)}{\lambda} \right )=\sum_{i}^{4}
+   a_i exp\left ( -b_i \frac{sin^{2}(\theta)}{\lambda^{2}} \right )+c
 
 Coefficients parameterized by :ref:`(Peng) <Peng>` are assigned for each
 atom type designating the chemical symbol and charge of each atom
@@ -229,11 +222,10 @@ All array values calculated by this compute are "intensive".
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-DIFFRACTION package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
-The compute\_xrd command does not work for triclinic cells.
+The compute_xrd command does not work for triclinic cells.
 
 Related commands
 """"""""""""""""
@@ -247,32 +239,19 @@ Default
 The option defaults are 2Theta = 1 179 (degrees), c = 1 1 1, LP = 1,
 no manual flag, no echo flag.
 
-
 ----------
 
-
 .. _xrd-Coleman:
-
-
 
 **(Coleman)** Coleman, Spearot, Capolungo, MSMSE, 21, 055020
 (2013).
 
 .. _Colliex:
 
-
-
 **(Colliex)** Colliex et al. International Tables for Crystallography
 Volume C: Mathematical and Chemical Tables, 249-429 (2004).
 
 .. _Peng:
 
-
-
 **(Peng)** Peng, Ren, Dudarev, Whelan, Acta Crystallogr. A, 52, 257-76
 (1996).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

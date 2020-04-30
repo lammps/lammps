@@ -6,7 +6,6 @@ temper/npt command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    temper/npt  N M temp fix-ID seed1 seed2 pressure index
@@ -23,8 +22,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    temper/npt 100000 100 $t nptfix 0 58728 1
    temper/npt 2500000 1000 300 nptfix  0 32285 $p
@@ -48,13 +46,10 @@ of pressure, this command works much like the :doc:`temper <temper>`
 command. See the documentation on :doc:`temper <temper>` for information
 on how the parallel tempering is handled in general.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command can only be used if LAMMPS was built with the USER-MISC
 package.  See the :doc:`Build package <Build_package>` doc page for more
@@ -66,23 +61,14 @@ isothermal-isobaric (NPT) ensemble.
 Related commands
 """"""""""""""""
 
-:doc:`temper <temper>`, :doc:`variable <variable>`, :doc:`fix\_npt <fix_nh>`
+:doc:`temper <temper>`, :doc:`variable <variable>`, :doc:`fix_npt <fix_nh>`
 
 **Default:** none
 
 .. _Okabe2:
 
-
-
 **(Okabe)** T. Okabe, M. Kawata, Y. Okamoto, M. Masuhiro, Chem. Phys. Lett., 335, 435-439 (2001).
 
 .. _Mori2:
 
-
-
 **(Mori)** Y. Mori, Y. Okamoto, J. Phys. Soc. Jpn., 7, 074003 (2010).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

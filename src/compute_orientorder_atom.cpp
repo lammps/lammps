@@ -61,6 +61,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
   wlflag = 0;
   wlhatflag = 0;
   qlcompflag = 0;
+  chunksize = 16384;
 
   // specify which orders to request
 
@@ -143,6 +144,13 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
         error->all(FLERR,"Illegal compute orientorder/atom command");
       cutsq = cutoff*cutoff;
       iarg += 2;
+    } else if (strcmp(arg[iarg],"chunksize") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute orientorder/atom command");
+      chunksize = force->numeric(FLERR,arg[iarg+1]);
+      if (chunksize <= 0)
+        error->all(FLERR,"Illegal compute orientorder/atom command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal compute orientorder/atom command");
   }
 
@@ -162,6 +170,8 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
 
 ComputeOrientOrderAtom::~ComputeOrientOrderAtom()
 {
+  if (copymode) return;
+
   memory->destroy(qnarray);
   memory->destroy(distsq);
   memory->destroy(rlist);
@@ -508,7 +518,7 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
   // TODO:
   // 1. [done]Need to allocate extra memory in qnarray[] for this option
   // 2. [done]Need to add keyword option
-  // 3. [done]Need to caclulate Clebsch-Gordan/Wigner 3j coefficients
+  // 3. [done]Need to calculate Clebsch-Gordan/Wigner 3j coefficients
   //     (Can try getting them from boop.py first)
   // 5. [done]Compare to bcc values in /Users/athomps/netapp/codes/MatMiner/matminer/matminer/featurizers/boop.py
   // 6. [done]I get the right answer for W_l, but need to make sure that factor of 1/sqrt(l+1) is right for cglist

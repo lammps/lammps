@@ -33,6 +33,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -116,8 +117,8 @@ void PairDRIP::allocate()
 void PairDRIP::settings(int narg, char ** /* arg */)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
-  if (strcmp(force->pair_style,"hybrid/overlay")!=0)
-    error->all(FLERR,"ERROR: requires hybrid/overlay pair_style");
+  if (!utils::strmatch(force->pair_style,"^hybrid/overlay"))
+    error->all(FLERR,"Pair style drip must be used as sub-style with hybrid/overlay");
 }
 
 /* ----------------------------------------------------------------------
@@ -405,7 +406,7 @@ void PairDRIP::compute(int eflag, int vflag)
       Param& p = params[iparam_ij];
       double rcutsq = p.rcutsq;
 
-      // only include the interation between different layers
+      // only include the interaction between different layers
       if (rsq < rcutsq && atom->molecule[i] != atom->molecule[j]) {
 
         double fj[DIM] = {0., 0., 0.};

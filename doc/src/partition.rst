@@ -6,7 +6,6 @@ partition command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    partition style N command ...
@@ -18,13 +17,12 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    partition yes 1 processors 4 10 6
    partition no 5 print "Active partition"
-   partition yes \*5 fix all nve
-   partition yes 6\* fix all nvt temp 1.0 1.0 0.1
+   partition yes *5 fix all nve
+   partition yes 6* fix all nvt temp 1.0 1.0 0.1
 
 Description
 """""""""""
@@ -61,7 +59,7 @@ from 1 to n (inclusive).  A trailing asterisk means all partitions
 from n to Np (inclusive).  A middle asterisk means all partitions from
 m to n (inclusive).
 
-This command can be useful for the "run\_style verlet/split" command
+This command can be useful for the "run_style verlet/split" command
 which imposed requirements on how the :doc:`processors <processors>`
 command lays out a 3d grid of processors in each of 2 partitions.
 
@@ -72,11 +70,6 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`run\_style verlet/split <run_style>`
+:doc:`run_style verlet/split <run_style>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

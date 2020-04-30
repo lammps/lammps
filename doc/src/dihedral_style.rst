@@ -1,13 +1,12 @@
-.. index:: dihedral\_style
+.. index:: dihedral_style
 
-dihedral\_style command
-=======================
+dihedral_style command
+======================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style style
 
@@ -16,8 +15,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style harmonic
    dihedral_style multi/harmonic
@@ -29,29 +27,29 @@ Description
 Set the formula(s) LAMMPS uses to compute dihedral interactions
 between quadruplets of atoms, which remain in force for the duration
 of the simulation.  The list of dihedral quadruplets is read in by a
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>` command
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>` command
 from a data or restart file.
 
 Hybrid models where dihedrals are computed using different dihedral
 potentials can be setup using the *hybrid* dihedral style.
 
 The coefficients associated with a dihedral style can be specified in
-a data or restart file or via the :doc:`dihedral\_coeff <dihedral_coeff>`
+a data or restart file or via the :doc:`dihedral_coeff <dihedral_coeff>`
 command.
 
 All dihedral potentials store their coefficient data in binary restart
-files which means dihedral\_style and
-:doc:`dihedral\_coeff <dihedral_coeff>` commands do not need to be
+files which means dihedral_style and
+:doc:`dihedral_coeff <dihedral_coeff>` commands do not need to be
 re-specified in an input script that restarts a simulation.  See the
-:doc:`read\_restart <read_restart>` command for details on how to do
-this.  The one exception is that dihedral\_style *hybrid* only stores
+:doc:`read_restart <read_restart>` command for details on how to do
+this.  The one exception is that dihedral_style *hybrid* only stores
 the list of sub-styles in the restart file; dihedral coefficients need
 to be re-specified.
 
 .. note::
 
    When both a dihedral and pair style is defined, the
-   :doc:`special\_bonds <special_bonds>` command often needs to be used to
+   :doc:`special_bonds <special_bonds>` command often needs to be used to
    turn off (or weight) the pairwise interaction that would otherwise
    exist between 4 bonded atoms.
 
@@ -79,20 +77,18 @@ coefficients you specify.
    bond in an I-J-K-L torsion.  LAMMPS does not do this, i.e. the listed
    dihedral equation applies to each individual dihedral.  Thus you need
    to define *K* appropriately via the
-   :doc:`dihedral\_coeff <dihedral_coeff>` command to account for this
+   :doc:`dihedral_coeff <dihedral_coeff>` command to account for this
    difference if necessary.
-
 
 ----------
 
-
 Here is an alphabetic list of dihedral styles defined in LAMMPS.  Click on
 the style to display the formula it computes and coefficients
-specified by the associated :doc:`dihedral\_coeff <dihedral_coeff>` command.
+specified by the associated :doc:`dihedral_coeff <dihedral_coeff>` command.
 
 Click on the style to display the formula it computes, any additional
-arguments specified in the dihedral\_style command, and coefficients
-specified by the associated :doc:`dihedral\_coeff <dihedral_coeff>`
+arguments specified in the dihedral_style command, and coefficients
+specified by the associated :doc:`dihedral_coeff <dihedral_coeff>`
 command.
 
 There are also additional accelerated pair styles included in the
@@ -119,13 +115,10 @@ more of (g,i,k,o,t) to indicate which accelerated styles exist.
 * :doc:`table <dihedral_table>` - tabulated dihedral
 * :doc:`table/cut <dihedral_table_cut>` - tabulated dihedral with analytic cutoff
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 Dihedral styles can only be set for atom styles that allow dihedrals
 to be defined.
@@ -137,14 +130,9 @@ individual dihedral potentials tell if it is part of a package.
 Related commands
 """"""""""""""""
 
-:doc:`dihedral\_coeff <dihedral_coeff>`
+:doc:`dihedral_coeff <dihedral_coeff>`
 
 Default
 """""""
 
-dihedral\_style none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html
+dihedral_style none

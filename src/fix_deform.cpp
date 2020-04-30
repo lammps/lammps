@@ -211,8 +211,12 @@ rfix(NULL), irregular(NULL), set(NULL)
     if (set[i].style == NONE) dimflag[i] = 0;
     else dimflag[i] = 1;
 
-  if (dimflag[0] || dimflag[1] || dimflag[2]) box_change_size = 1;
-  if (dimflag[3] || dimflag[4] || dimflag[5]) box_change_shape = 1;
+  if (dimflag[0]) box_change |= BOX_CHANGE_X;
+  if (dimflag[1]) box_change |= BOX_CHANGE_Y;
+  if (dimflag[2]) box_change |= BOX_CHANGE_Z;
+  if (dimflag[3]) box_change |= BOX_CHANGE_YZ;
+  if (dimflag[4]) box_change |= BOX_CHANGE_XZ;
+  if (dimflag[5]) box_change |= BOX_CHANGE_XY;
 
   // no tensile deformation on shrink-wrapped dims
   // b/c shrink wrap will change box-length
@@ -971,7 +975,7 @@ void FixDeform::restart(char *buf)
     set[i].hi_initial = set_restart[i].hi_initial;
     set[i].vol_initial = set_restart[i].vol_initial;
     set[i].tilt_initial = set_restart[i].tilt_initial;
-    // check if style settings are consitent (should do the whole set?)
+    // check if style settings are consistent (should do the whole set?)
     if (set[i].style != set_restart[i].style)
       samestyle = 0;
     if (set[i].substyle != set_restart[i].substyle)

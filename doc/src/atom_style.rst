@@ -121,7 +121,7 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *tri*        | corner points, angular momentum                     | rigid bodies                         |
 +--------------+-----------------------------------------------------+--------------------------------------+
-| *wavepacket* | charge, spin, eradius, etag, cs\_re, cs\_im         | AWPMD                                |
+| *wavepacket* | charge, spin, eradius, etag, cs_re, cs_im           | AWPMD                                |
 +--------------+-----------------------------------------------------+--------------------------------------+
 
 .. note::
@@ -167,7 +167,7 @@ For the *dipole* style, a point dipole is defined for each point
 particle.  Note that if you wish the particles to be finite-size
 spheres as in a Stockmayer potential for a dipolar fluid, so that the
 particles can rotate due to dipole-dipole interactions, then you need
-to use atom\_style hybrid sphere dipole, which will assign both a
+to use atom_style hybrid sphere dipole, which will assign both a
 diameter and dipole moment to each particle.
 
 For the *electron* style, the particles representing electrons are 3d
@@ -180,14 +180,14 @@ per-particle mass and volume.
 The *dpd* style is for dissipative particle dynamics (DPD) particles.
 Note that it is part of the USER-DPD package, and is not for use with
 the :doc:`pair_style dpd or dpd/stat <pair_dpd>` commands, which can
-simply use atom\_style atomic.  Atom\_style dpd extends DPD particle
+simply use atom_style atomic.  Atom_style dpd extends DPD particle
 properties with internal temperature (dpdTheta), internal conductive
 energy (uCond), internal mechanical energy (uMech), and internal
 chemical energy (uChem).
 
 The *edpd* style is for energy-conserving dissipative particle
-dynamics (eDPD) particles which store a temperature (edpd\_temp), and
-heat capacity(edpd\_cv).
+dynamics (eDPD) particles which store a temperature (edpd_temp), and
+heat capacity(edpd_cv).
 
 The *mdpd* style is for many-body dissipative particle dynamics (mDPD)
 particles which store a density (rho) for considering
@@ -195,7 +195,7 @@ density-dependent many-body interactions.
 
 The *tdpd* style is for transport dissipative particle dynamics (tDPD)
 particles which store a set of chemical concentration. An integer
-"cc\_species" is required to specify the number of chemical species
+"cc_species" is required to specify the number of chemical species
 involved in a tDPD system.
 
 The *meso* style is for smoothed particle hydrodynamics (SPH)
@@ -214,7 +214,7 @@ Those spins have a norm (their magnetic moment) and a direction.
 
 The *wavepacket* style is similar to *electron*\ , but the electrons may
 consist of several Gaussian wave packets, summed up with coefficients
-cs= (cs\_re,cs\_im).  Each of the wave packets is treated as a separate
+cs= (cs_re,cs_im).  Each of the wave packets is treated as a separate
 particle in LAMMPS, wave packets belonging to the same electron must
 have identical *etag* values.
 
@@ -241,7 +241,7 @@ can be advantageous for large-scale coarse-grained systems.
 .. note::
 
    When using the *template* style with a :doc:`molecule template <molecule>` that contains multiple molecules, you should
-   insure the atom types, bond types, angle\_types, etc in all the
+   insure the atom types, bond types, angle_types, etc in all the
    molecules are consistent.  E.g. if one molecule represents H2O and
    another CO2, then you probably do not want each molecule file to
    define 2 atom types and a single bond type, because they will conflict
@@ -265,7 +265,7 @@ orientation and position can be time integrated due to forces and
 torques.
 
 Note that there may be additional arguments required along with the
-*bstyle* specification, in the atom\_style body command.  These
+*bstyle* specification, in the atom_style body command.  These
 arguments are described on the :doc:`Howto body <Howto_body>` doc page.
 
 ----------
@@ -280,7 +280,7 @@ If some atoms have bonds, but others do not, use the *bond* style.
 The only scenario where the *hybrid* style is needed is if there is no
 single style which defines all needed properties of all atoms.  For
 example, as mentioned above, if you want dipolar particles which will
-rotate due to torque, you need to use "atom\_style hybrid sphere
+rotate due to torque, you need to use "atom_style hybrid sphere
 dipole".  When a hybrid style is used, atoms store and communicate the
 union of all quantities implied by the individual styles.
 
@@ -360,7 +360,7 @@ Related commands
 Default
 """""""
 
-The default atom style is atomic.  If atom\_style sphere is used its
+The default atom style is atomic.  If atom_style sphere is used its
 default argument is 0.
 
 ----------

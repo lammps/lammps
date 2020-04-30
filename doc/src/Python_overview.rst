@@ -23,8 +23,3 @@ to query or change its attributes through the LAMMPS Python module
 mentioned above.  In Python lingo, this is "embedding" Python in
 LAMMPS.  When used in this mode, Python can perform script operations
 that the simple LAMMPS input script syntax can not.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

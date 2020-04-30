@@ -152,11 +152,11 @@ two atoms in the bond.  Thus a bond between atoms I,J may be tallied
 for either atom I or atom J.  If :doc:`newton bond off <newton>` is
 set, it will be tallied with both atom I and atom J.
 
-The *i\_name* and *d\_name* attributes refer to custom integer and
+The *i_name* and *d_name* attributes refer to custom integer and
 floating-point properties that have been added to each atom via the
 :doc:`fix property/atom <fix_property_atom>` command.  When that
 command is used specific names are given to each attribute which are
-what is specified as the "name" portion of *i\_name* or *d\_name*.
+what is specified as the "name" portion of *i_name* or *d_name*.
 
 **Output info:**
 

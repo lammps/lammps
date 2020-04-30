@@ -186,12 +186,12 @@ Mat3x3* Joint::Get_kCpk(){
 }
 
 Matrix Joint::GetForward_sP(){
-  cerr << "ERROR: Forward Spatial Partial Velocity is not suported for joint type " << GetType() << endl;
+  cerr << "ERROR: Forward Spatial Partial Velocity is not supported for joint type " << GetType() << endl;
   exit(0);
 }
 
 Matrix Joint::GetBackward_sP(){
-  cerr << "ERROR: Backward Spatial Partial Velocity is not suported for joint type " << GetType() << endl;
+  cerr << "ERROR: Backward Spatial Partial Velocity is not supported for joint type " << GetType() << endl;
   exit(0);
 }
 

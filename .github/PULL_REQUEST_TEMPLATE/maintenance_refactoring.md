@@ -9,15 +9,15 @@ assignees: ''
 
 **Summary**
 
-_Briefly describe the included changes._
+<!--Briefly describe the included changes.-->
 
 **Related Issue(s)**
 
-_If this request addresses or is related to an existing (open) GitHub issue, e.g. a bug report, mention the issue number number here following a pound sign (aka hashmark), e.g.`#222`.
+<!--If this request addresses or is related to an existing (open) GitHub issue, e.g. a bug report, mention the issue number number here following a pound sign (aka hashmark), e.g.`#222`.
 
 **Author(s)**
 
-_Please state name and affiliation of the author or authors that should be credited with the changes in this pull request_
+<!--Please state name and affiliation of the author or authors that should be credited with the changes in this pull request-->
 
 **Licensing**
 
@@ -25,11 +25,11 @@ By submitting this pull request I implicitly accept, that my submission is subje
 
 **Detailed Description**
 
-_Provide any relevant details about the included changes._
+<!--Provide any relevant details about the included changes.-->
 
 ## Post Submission Checklist
 
-_Please check the fields below as they are completed *after* the pull request is submitted_
+<!--Please check the fields below as they are completed *after* the pull request is submitted-->
 - [ ] The pull request is complete
 - [ ] The source code follows the LAMMPS formatting guidelines
 

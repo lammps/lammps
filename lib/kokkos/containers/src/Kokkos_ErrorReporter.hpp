@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -53,19 +54,16 @@ namespace Kokkos {
 namespace Experimental {
 
 template <typename ReportType, typename DeviceType>
-class ErrorReporter
-{
-public:
-
-  typedef ReportType                                      report_type;
-  typedef DeviceType                                      device_type;
-  typedef typename device_type::execution_space           execution_space;
+class ErrorReporter {
+ public:
+  typedef ReportType report_type;
+  typedef DeviceType device_type;
+  typedef typename device_type::execution_space execution_space;
 
   ErrorReporter(int max_results)
-    : m_numReportsAttempted(""),
-      m_reports("", max_results),
-      m_reporters("", max_results)
-  {
+      : m_numReportsAttempted(""),
+        m_reports("", max_results),
+        m_reporters("", max_results) {
     clear();
   }
 
@@ -75,49 +73,49 @@ public:
 
   int getNumReportAttempts();
 
-  void getReports(std::vector<int> &reporters_out, std::vector<report_type> &reports_out);
-  void getReports( typename Kokkos::View<int*, typename DeviceType::execution_space >::HostMirror &reporters_out,
-                   typename Kokkos::View<report_type*, typename DeviceType::execution_space >::HostMirror &reports_out);
+  void getReports(std::vector<int> &reporters_out,
+                  std::vector<report_type> &reports_out);
+  void getReports(
+      typename Kokkos::View<int *,
+                            typename DeviceType::execution_space>::HostMirror
+          &reporters_out,
+      typename Kokkos::View<report_type *,
+                            typename DeviceType::execution_space>::HostMirror
+          &reports_out);
 
   void clear();
 
   void resize(const size_t new_size);
 
-  bool full() {return (getNumReportAttempts() >= getCapacity()); }
+  bool full() { return (getNumReportAttempts() >= getCapacity()); }
 
   KOKKOS_INLINE_FUNCTION
-  bool add_report(int reporter_id, report_type report) const
-  {
+  bool add_report(int reporter_id, report_type report) const {
     int idx = Kokkos::atomic_fetch_add(&m_numReportsAttempted(), 1);
 
     if (idx >= 0 && (idx < static_cast<int>(m_reports.d_view.extent(0)))) {
       m_reporters.d_view(idx) = reporter_id;
       m_reports.d_view(idx)   = report;
       return true;
-    }
-    else {
+    } else {
       return false;
     }
   }
 
-private:
+ private:
+  typedef Kokkos::View<report_type *, execution_space> reports_view_t;
+  typedef Kokkos::DualView<report_type *, execution_space> reports_dualview_t;
 
-  typedef Kokkos::View<report_type *, execution_space>        reports_view_t;
-  typedef Kokkos::DualView<report_type *, execution_space>    reports_dualview_t;
-
-  typedef typename reports_dualview_t::host_mirror_space  host_mirror_space;
-  Kokkos::View<int, execution_space>   m_numReportsAttempted;
-  reports_dualview_t                   m_reports;
+  typedef typename reports_dualview_t::host_mirror_space host_mirror_space;
+  Kokkos::View<int, execution_space> m_numReportsAttempted;
+  reports_dualview_t m_reports;
   Kokkos::DualView<int *, execution_space> m_reporters;
-
 };
 
-
 template <typename ReportType, typename DeviceType>
-inline int ErrorReporter<ReportType, DeviceType>::getNumReports()
-{
+inline int ErrorReporter<ReportType, DeviceType>::getNumReports() {
   int num_reports = 0;
-  Kokkos::deep_copy(num_reports,m_numReportsAttempted);
+  Kokkos::deep_copy(num_reports, m_numReportsAttempted);
   if (num_reports > static_cast<int>(m_reports.h_view.extent(0))) {
     num_reports = m_reports.h_view.extent(0);
   }
@@ -125,16 +123,15 @@ inline int ErrorReporter<ReportType, DeviceType>::getNumReports()
 }
 
 template <typename ReportType, typename DeviceType>
-inline int ErrorReporter<ReportType, DeviceType>::getNumReportAttempts()
-{
+inline int ErrorReporter<ReportType, DeviceType>::getNumReportAttempts() {
   int num_reports = 0;
-  Kokkos::deep_copy(num_reports,m_numReportsAttempted);
+  Kokkos::deep_copy(num_reports, m_numReportsAttempted);
   return num_reports;
 }
 
 template <typename ReportType, typename DeviceType>
-void ErrorReporter<ReportType, DeviceType>::getReports(std::vector<int> &reporters_out, std::vector<report_type> &reports_out)
-{
+void ErrorReporter<ReportType, DeviceType>::getReports(
+    std::vector<int> &reporters_out, std::vector<report_type> &reports_out) {
   int num_reports = getNumReports();
   reporters_out.clear();
   reporters_out.reserve(num_reports);
@@ -154,12 +151,18 @@ void ErrorReporter<ReportType, DeviceType>::getReports(std::vector<int> &reporte
 
 template <typename ReportType, typename DeviceType>
 void ErrorReporter<ReportType, DeviceType>::getReports(
-    typename Kokkos::View<int*, typename DeviceType::execution_space >::HostMirror &reporters_out,
-    typename Kokkos::View<report_type*, typename DeviceType::execution_space >::HostMirror &reports_out)
-{
+    typename Kokkos::View<
+        int *, typename DeviceType::execution_space>::HostMirror &reporters_out,
+    typename Kokkos::View<report_type *,
+                          typename DeviceType::execution_space>::HostMirror
+        &reports_out) {
   int num_reports = getNumReports();
-  reporters_out = typename Kokkos::View<int*, typename DeviceType::execution_space >::HostMirror("ErrorReport::reporters_out",num_reports);
-  reports_out = typename Kokkos::View<report_type*, typename DeviceType::execution_space >::HostMirror("ErrorReport::reports_out",num_reports);
+  reporters_out =
+      typename Kokkos::View<int *, typename DeviceType::execution_space>::
+          HostMirror("ErrorReport::reporters_out", num_reports);
+  reports_out = typename Kokkos::
+      View<report_type *, typename DeviceType::execution_space>::HostMirror(
+          "ErrorReport::reports_out", num_reports);
 
   if (num_reports > 0) {
     m_reports.template sync<host_mirror_space>();
@@ -167,31 +170,27 @@ void ErrorReporter<ReportType, DeviceType>::getReports(
 
     for (int i = 0; i < num_reports; ++i) {
       reporters_out(i) = m_reporters.h_view(i);
-      reports_out(i) = m_reports.h_view(i);
+      reports_out(i)   = m_reports.h_view(i);
     }
   }
 }
 
 template <typename ReportType, typename DeviceType>
-void ErrorReporter<ReportType, DeviceType>::clear()
-{
-  int num_reports=0;
+void ErrorReporter<ReportType, DeviceType>::clear() {
+  int num_reports = 0;
   Kokkos::deep_copy(m_numReportsAttempted, num_reports);
   m_reports.template modify<execution_space>();
   m_reporters.template modify<execution_space>();
 }
 
 template <typename ReportType, typename DeviceType>
-void ErrorReporter<ReportType, DeviceType>::resize(const size_t new_size)
-{
+void ErrorReporter<ReportType, DeviceType>::resize(const size_t new_size) {
   m_reports.resize(new_size);
   m_reporters.resize(new_size);
-  Kokkos::fence();
+  typename DeviceType::execution_space().fence();
 }
 
-
-} // namespace Experimental
-} // namespace kokkos
+}  // namespace Experimental
+}  // namespace Kokkos
 
 #endif
-

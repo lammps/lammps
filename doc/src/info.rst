@@ -6,7 +6,6 @@ info command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    info args
@@ -18,8 +17,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    info system
    info groups computes variables
@@ -128,8 +126,3 @@ Default
 The *out* option has the default *screen*\ .
 
 The *styles* option has the default *all*\ .
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

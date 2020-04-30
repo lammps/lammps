@@ -24,8 +24,10 @@ struct _lgpu_int2 {
   int x; int y;
 };
 
+#ifndef USE_HIP
 #ifndef int2
 #define int2 _lgpu_int2
+#endif
 #endif
 
 struct _lgpu_float2 {

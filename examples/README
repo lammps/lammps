@@ -93,6 +93,7 @@ msst:     MSST shock dynamics
 nb3b:     use of nonbonded 3-body harmonic pair style
 neb:      nudged elastic band (NEB) calculation for barrier finding
 nemd:     non-equilibrium MD of 2d sheared system
+numdiff: numerical difference computation of forces
 obstacle: flow around two voids in a 2d channel
 peptide:  dynamics of a small solvated peptide chain (5-mer)
 peri:     Peridynamic model of cylinder impacted by indenter
@@ -101,6 +102,7 @@ prd:      parallel replica dynamics of vacancy diffusion in bulk Si
 python:   use of PYTHON package to invoke Python code from input script
 qeq:      use of QEQ package for charge equilibration
 reax:     RDX and TATB and several other models using ReaxFF
+rerun:    use of rerun and read_dump commands
 rigid:    rigid bodies modeled as independent or coupled
 shear:    sideways shear applied to 2d solid, with and without a void
 snap:     examples for using several bundled SNAP potentials
@@ -111,6 +113,7 @@ tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
 threebody: regression test input for a variety of manybody potentials
 vashishta: models using the Vashishta potential
 voronoi:  Voronoi tesselation via compute voronoi/atom command
+wall:     use of reflective walls with different stochastic models
 
 Here is how you might run and visualize one of the sample problems:
 
@@ -163,6 +166,9 @@ the KAPPA/README file for more info.
 The MC directory has an example script for using LAMMPS as an
 energy-evaluation engine in a iterative Monte Carlo energy-relaxation
 loop.
+
+The TIP4P directory has an example for testing forces computed on a
+GPU.
 
 The UNITS directory contains examples of input scripts modeling the
 same Lennard-Jones liquid model, written in 3 different unit systems:

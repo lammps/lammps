@@ -164,6 +164,9 @@ class FixRigidSmall : public Fix {
   int dilate_group_bit;      // mask for dilation group
   char *id_dilate;           // group name to dilate
 
+  char *id_gravity;         // ID of fix gravity command to add gravity forces
+  double *gvec;             // ptr to gravity vector inside the fix
+
   double p_current[3],p_target[3];
 
   // molecules added on-the-fly as rigid bodies

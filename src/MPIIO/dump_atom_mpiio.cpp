@@ -15,6 +15,7 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "dump_atom_mpiio.h"
 #include <cmath>
 #include <cstdlib>
@@ -587,7 +588,7 @@ int DumpAtomMPIIO::convert_image_omp(int n, double *mybuf)
     mpifh_buffer_line_per_thread[i] = (char *) malloc(DUMP_BUF_CHUNK_SIZE * sizeof(char));
     mpifh_buffer_line_per_thread[i][0] = '\0';
 
-#pragma omp parallel default(none) shared(bufOffset, bufRange, bufLength, mpifhStringCountPerThread, mpifh_buffer_line_per_thread, mybuf)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(bufOffset, bufRange, bufLength, mpifhStringCountPerThread, mpifh_buffer_line_per_thread, mybuf)
     {
       int tid = omp_get_thread_num();
       int m=0;
@@ -677,7 +678,7 @@ int DumpAtomMPIIO::convert_noimage_omp(int n, double *mybuf)
     mpifh_buffer_line_per_thread[i] = (char *) malloc(DUMP_BUF_CHUNK_SIZE * sizeof(char));
     mpifh_buffer_line_per_thread[i][0] = '\0';
 
-#pragma omp parallel default(none) shared(bufOffset, bufRange, bufLength, mpifhStringCountPerThread, mpifh_buffer_line_per_thread, mybuf)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(bufOffset, bufRange, bufLength, mpifhStringCountPerThread, mpifh_buffer_line_per_thread, mybuf)
     {
       int tid = omp_get_thread_num();
       int m=0;

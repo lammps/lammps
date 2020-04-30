@@ -27,6 +27,7 @@
 #include "error.h"
 #include "respa.h"
 #include "utils.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -173,11 +174,14 @@ void PairHybrid::compute(int eflag, int vflag)
             cvatom[i][j] += cvatom_substyle[i][j];
       } else {
         double **vatom_substyle = styles[m]->vatom;
-        for (i = 0; i < n; i++)
-          for (j = 0; j < 6; j++)
+        for (i = 0; i < n; i++) {
+          for (j = 0; j < 6; j++) {
             cvatom[i][j] += vatom_substyle[i][j];
-          for (j = 6; j < 9; j++)
+          }
+          for (j = 6; j < 9; j++) {
             cvatom[i][j] += vatom_substyle[i][j-3];
+          }
+        }
       }
     }
 
@@ -738,7 +742,7 @@ void PairHybrid::read_restart(FILE *fp)
     keywords[m] = new char[n];
     if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,NULL,error);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
-    styles[m] = force->new_pair(keywords[m],0,dummy);
+    styles[m] = force->new_pair(keywords[m],1,dummy);
     styles[m]->read_restart_settings(fp);
     // read back per style special settings, if present
     special_lj[m] = special_coul[m] = NULL;
@@ -855,14 +859,17 @@ void PairHybrid::modify_params(int narg, char **arg)
       iarg = 3;
     }
 
-    // if 2nd keyword (after pair) is special:
-    // invoke modify_special() for the sub-style
+    // keywords "special" and "compute/tally" have to be listed directly
+    // after "pair" but can be given multiple times
+
+again:
 
     if (iarg < narg && strcmp(arg[iarg],"special") == 0) {
       if (narg < iarg+5)
         error->all(FLERR,"Illegal pair_modify special command");
       modify_special(m,narg-iarg,&arg[iarg+1]);
       iarg += 5;
+      goto again;
     }
 
     // if 2nd keyword (after pair) is compute/tally:
@@ -877,11 +884,13 @@ void PairHybrid::modify_params(int narg, char **arg)
         compute_tally[m] = 0;
       } else error->all(FLERR,"Illegal pair_modify compute/tally command");
       iarg += 2;
+      goto again;
     }
 
-    // apply the remaining keywords to the base pair style itself and the
-    // sub-style except for "pair" and "special".
-    // the former is important for some keywords like "tail" or "compute"
+    // apply the remaining keywords to the base pair style itself and
+    // the sub-style except for "pair" and "special" or "compute/tally"
+    // and their arguments. the former is important for some keywords
+    // like "tail" or "compute"
 
     if (narg-iarg > 0) {
       Pair::modify_params(narg-iarg,&arg[iarg]);
@@ -915,6 +924,12 @@ void PairHybrid::modify_special(int m, int /*narg*/, char **arg)
   special[1] = force->numeric(FLERR,arg[1]);
   special[2] = force->numeric(FLERR,arg[2]);
   special[3] = force->numeric(FLERR,arg[3]);
+
+  // have to cast to PairHybrid to work around C++ access restriction
+
+  if (((PairHybrid *)styles[m])->suffix_flag & (Suffix::INTEL|Suffix::GPU))
+    error->all(FLERR,"Pair_modify special is not compatible with "
+                     "suffix version of hybrid substyle");
 
   if (strcmp(arg[0],"lj/coul") == 0) {
     if (!special_lj[m]) special_lj[m] = new double[4];
@@ -992,7 +1007,7 @@ void *PairHybrid::extract(const char *str, int &dim)
   for (int m = 0; m < nstyles; m++) {
     ptr = styles[m]->extract(str,dim);
     if (ptr && strcmp(str,"cut_coul") == 0) {
-      if (cutptr && dim != couldim)
+      if (couldim != -1 && dim != couldim)
         error->all(FLERR,
                    "Coulomb styles of pair hybrid sub-styles do not match");
       double *p_newvalue = (double *) ptr;

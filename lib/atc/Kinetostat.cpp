@@ -2233,7 +2233,7 @@ namespace ATC {
   //  initialize_delta_nodal_atomic_momentum:
   //    initializes storage for the variable tracking
   //    the change in the nodal atomic momentum
-  //    that has occured over the past timestep
+  //    that has occurred over the past timestep
   //--------------------------------------------------------
   void KinetostatFixed::initialize_delta_nodal_atomic_momentum(double dt)
   {
@@ -2248,7 +2248,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  compute_delta_nodal_atomic_momentum:
   //    computes the change in the nodal atomic momentum
-  //    that has occured over the past timestep
+  //    that has occurred over the past timestep
   //--------------------------------------------------------
   void KinetostatFixed::compute_delta_nodal_atomic_momentum(double dt)
   {

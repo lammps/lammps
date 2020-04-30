@@ -17,7 +17,7 @@ Questions: Mitchell Wood, mitwood@sandia.gov
   The type of simulation is set by the 'fix' commands, dynamic charges are controlled with 'fix qeq' and the integration style is given as 'fix nve' here.
   More information about each of the individual commands can be found online at lammps.sandia.gov in the user manual section.
 
-  *There are four free varaibles in this file, three of which control the size of the simulation and the last will dictate how many MD time steps are taken.
+  *There are four free variables in this file, three of which control the size of the simulation and the last will dictate how many MD time steps are taken.
   *The size of the system is controlled by the 'replicate' command given the values of $x, $y and $z.
   *The number of timesteps taken is controlled by the 'run' command given the value of $t
 

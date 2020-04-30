@@ -6,7 +6,6 @@ log command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    log file keyword
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    log log.equil
    log log.equil append
@@ -49,8 +47,3 @@ Default
 """""""
 
 The default LAMMPS log file is named log.lammps
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

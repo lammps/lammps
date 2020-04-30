@@ -1,118 +1,119 @@
-.. index:: pair\_style lj/cut
+.. index:: pair_style lj/cut
 
-pair\_style lj/cut command
-==========================
+pair_style lj/cut command
+=========================
 
-pair\_style lj/cut/gpu command
-==============================
-
-pair\_style lj/cut/intel command
-================================
-
-pair\_style lj/cut/kk command
+pair_style lj/cut/gpu command
 =============================
 
-pair\_style lj/cut/opt command
-==============================
+pair_style lj/cut/intel command
+===============================
 
-pair\_style lj/cut/omp command
-==============================
+pair_style lj/cut/kk command
+============================
 
-pair\_style lj/cut/coul/cut command
-===================================
+pair_style lj/cut/opt command
+=============================
 
-pair\_style lj/cut/coul/cut/gpu command
-=======================================
+pair_style lj/cut/omp command
+=============================
 
-pair\_style lj/cut/coul/cut/kk command
+pair_style lj/cut/coul/cut command
+==================================
+
+pair_style lj/cut/coul/cut/gpu command
 ======================================
 
-pair\_style lj/cut/coul/cut/omp command
-=======================================
-
-pair\_style lj/cut/coul/debye command
+pair_style lj/cut/coul/cut/kk command
 =====================================
 
-pair\_style lj/cut/coul/debye/gpu command
-=========================================
-
-pair\_style lj/cut/coul/debye/kk command
-========================================
-
-pair\_style lj/cut/coul/debye/omp command
-=========================================
-
-pair\_style lj/cut/coul/dsf command
-===================================
-
-pair\_style lj/cut/coul/dsf/gpu command
-=======================================
-
-pair\_style lj/cut/coul/dsf/kk command
+pair_style lj/cut/coul/cut/omp command
 ======================================
 
-pair\_style lj/cut/coul/dsf/omp command
-=======================================
-
-pair\_style lj/cut/coul/long command
+pair_style lj/cut/coul/debye command
 ====================================
 
-pair\_style lj/cut/coul/long/gpu command
+pair_style lj/cut/coul/debye/gpu command
 ========================================
 
-pair\_style lj/cut/coul/long/kk command
+pair_style lj/cut/coul/debye/kk command
 =======================================
 
-pair\_style lj/cut/coul/long/intel command
-==========================================
-
-pair\_style lj/cut/coul/long/opt command
+pair_style lj/cut/coul/debye/omp command
 ========================================
 
-pair\_style lj/cut/coul/long/omp command
-========================================
+pair_style lj/cut/coul/dsf command
+==================================
 
-pair\_style lj/cut/coul/msm command
-===================================
+pair_style lj/cut/coul/dsf/gpu command
+======================================
 
-pair\_style lj/cut/coul/msm/gpu command
-=======================================
-
-pair\_style lj/cut/coul/msm/omp command
-=======================================
-
-pair\_style lj/cut/coul/wolf command
-====================================
-
-pair\_style lj/cut/coul/wolf/omp command
-========================================
-
-pair\_style lj/cut/tip4p/cut command
-====================================
-
-pair\_style lj/cut/tip4p/cut/omp command
-========================================
-
-pair\_style lj/cut/tip4p/long command
+pair_style lj/cut/coul/dsf/kk command
 =====================================
 
-pair\_style lj/cut/tip4p/long/omp command
+pair_style lj/cut/coul/dsf/omp command
+======================================
+
+pair_style lj/cut/coul/long command
+===================================
+
+pair_style lj/cut/coul/long/gpu command
+=======================================
+
+pair_style lj/cut/coul/long/kk command
+======================================
+
+pair_style lj/cut/coul/long/intel command
 =========================================
 
-pair\_style lj/cut/tip4p/long/opt command
-=========================================
+pair_style lj/cut/coul/long/opt command
+=======================================
+
+pair_style lj/cut/coul/long/omp command
+=======================================
+
+pair_style lj/cut/coul/msm command
+==================================
+
+pair_style lj/cut/coul/msm/gpu command
+======================================
+
+pair_style lj/cut/coul/msm/omp command
+======================================
+
+pair_style lj/cut/coul/wolf command
+===================================
+
+pair_style lj/cut/coul/wolf/omp command
+=======================================
+
+pair_style lj/cut/tip4p/cut command
+===================================
+
+pair_style lj/cut/tip4p/cut/omp command
+=======================================
+
+pair_style lj/cut/tip4p/long command
+====================================
+
+pair_style lj/cut/tip4p/long/gpu command
+========================================
+
+pair_style lj/cut/tip4p/long/omp command
+========================================
+
+pair_style lj/cut/tip4p/long/opt command
+========================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *lj/cut* or *lj/cut/coul/cut* or *lj/cut/coul/debye* or *lj/cut/coul/dsf* or *lj/cut/coul/long* *lj/cut/coul/msm* or *lj/cut/tip4p/long*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -155,51 +156,50 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cut 2.5
-   pair_coeff \* \* 1 1
+   pair_coeff * * 1 1
    pair_coeff 1 1 1 1.1 2.8
 
    pair_style lj/cut/coul/cut 10.0
    pair_style lj/cut/coul/cut 10.0 8.0
-   pair_coeff \* \* 100.0 3.0
+   pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
    pair_coeff 1 1 100.0 3.5 9.0 9.0
 
    pair_style lj/cut/coul/debye 1.5 3.0
    pair_style lj/cut/coul/debye 1.5 2.5 5.0
-   pair_coeff \* \* 1.0 1.0
+   pair_coeff * * 1.0 1.0
    pair_coeff 1 1 1.0 1.5 2.5
    pair_coeff 1 1 1.0 1.5 2.5 5.0
 
    pair_style lj/cut/coul/dsf 0.05 2.5 10.0
-   pair_coeff \* \* 1.0 1.0
+   pair_coeff * * 1.0 1.0
    pair_coeff 1 1 1.0 1.0 2.5
 
    pair_style lj/cut/coul/long 10.0
    pair_style lj/cut/coul/long 10.0 8.0
-   pair_coeff \* \* 100.0 3.0
+   pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
 
    pair_style lj/cut/coul/msm 10.0
    pair_style lj/cut/coul/msm 10.0 8.0
-   pair_coeff \* \* 100.0 3.0
+   pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
 
    pair_style lj/cut/tip4p/cut 1 2 7 8 0.15 12.0
    pair_style lj/cut/tip4p/cut 1 2 7 8 0.15 12.0 10.0
-   pair_coeff \* \* 100.0 3.0
+   pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
 
    pair_style lj/cut/coul/wolf 0.2 5. 10.0
-   pair_coeff \* \* 1.0 1.0
+   pair_coeff * * 1.0 1.0
    pair_coeff 1 1 1.0 1.0 2.5
 
    pair_style lj/cut/tip4p/long 1 2 7 8 0.15 12.0
    pair_style lj/cut/tip4p/long 1 2 7 8 0.15 12.0 10.0
-   pair_coeff \* \* 100.0 3.0
+   pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
 
 Description
@@ -208,39 +208,47 @@ Description
 The *lj/cut* styles compute the standard 12/6 Lennard-Jones potential,
 given by
 
-.. image:: Eqs/pair_lj.jpg
-   :align: center
+.. math::
+
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
+       \left(\frac{\sigma}{r}\right)^6 \right]
+                       \qquad r < r_c
 
 Rc is the cutoff.
 
 Style *lj/cut/coul/cut* adds a Coulombic pairwise interaction given by
 
-.. image:: Eqs/pair_coulomb.jpg
-   :align: center
+.. math::
 
-where C is an energy-conversion constant, Qi and Qj are the charges on
-the 2 atoms, and epsilon is the dielectric constant which can be set
-by the :doc:`dielectric <dielectric>` command.  If one cutoff is
-specified in the pair\_style command, it is used for both the LJ and
-Coulombic terms.  If two cutoffs are specified, they are used as
-cutoffs for the LJ and Coulombic terms respectively.
+   E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
+
+where C is an energy-conversion constant, :math:`q_i` and :math:`q_j`
+are the charges on the 2 atoms, and :math:`\epsilon` is the dielectric
+constant which can be set by the :doc:`dielectric <dielectric>` command.
+If one cutoff is specified in the pair_style command, it is used for
+both the LJ and Coulombic terms.  If two cutoffs are specified, they are
+used as cutoffs for the LJ and Coulombic terms respectively.
 
 Style *lj/cut/coul/debye* adds an additional exp() damping factor
 to the Coulombic term, given by
 
-.. image:: Eqs/pair_debye.jpg
-   :align: center
+.. math::
 
-where kappa is the inverse of the Debye length.  This potential is
-another way to mimic the screening effect of a polar solvent.
+   E = \frac{C q_i q_j}{\epsilon  r} \exp(- \kappa r) \qquad r < r_c
+
+where :math:`\kappa` is the inverse of the Debye length.  This potential
+is another way to mimic the screening effect of a polar solvent.
 
 Style *lj/cut/coul/dsf* computes the Coulombic term via the damped
 shifted force model described in :ref:`Fennell <Fennell2>`, given by:
 
-.. image:: Eqs/pair_coul_dsf.jpg
-   :align: center
+.. math::
 
-where *alpha* is the damping parameter and erfc() is the complementary
+   E =
+    q_iq_j \left[ \frac{\mbox{erfc} (\alpha r)}{r} -  \frac{\mbox{erfc} (\alpha r_c)}{r_c} +
+   \left( \frac{\mbox{erfc} (\alpha r_c)}{r_c^2} +  \frac{2\alpha}{\sqrt{\pi}}\frac{\exp (-\alpha^2    r^2_c)}{r_c} \right)(r-r_c) \right] \qquad r < r_c
+
+where :math:`\alpha` is the damping parameter and erfc() is the complementary
 error-function. This potential is essentially a short-range,
 spherically-truncated, charge-neutralized, shifted, pairwise *1/r*
 summation.  The potential is based on Wolf summation, proposed as an
@@ -250,12 +258,12 @@ effectively short-ranged. In order for the electrostatic sum to be
 absolutely convergent, charge neutralization within the cutoff radius
 is enforced by shifting the potential through placement of image
 charges on the cutoff sphere. Convergence can often be improved by
-setting *alpha* to a small non-zero value.
+setting :math:`\alpha` to a small non-zero value.
 
 Styles *lj/cut/coul/long* and *lj/cut/coul/msm* compute the same
 Coulombic interactions as style *lj/cut/coul/cut* except that an
 additional damping factor is applied to the Coulombic term so it can
-be used in conjunction with the :doc:`kspace\_style <kspace_style>`
+be used in conjunction with the :doc:`kspace_style <kspace_style>`
 command and its *ewald* or *pppm* option.  The Coulombic cutoff
 specified for this style means that pairwise interactions within this
 distance are computed directly; interactions outside that distance are
@@ -264,21 +272,25 @@ computed in reciprocal space.
 Style *coul/wolf* adds a Coulombic pairwise interaction via the Wolf
 summation method, described in :ref:`Wolf <Wolf1>`, given by:
 
-.. image:: Eqs/pair_coul_wolf.jpg
-   :align: center
+.. math::
 
-where *alpha* is the damping parameter, and erfc() is the
-complementary error-function terms.  This potential
-is essentially a short-range, spherically-truncated,
-charge-neutralized, shifted, pairwise *1/r* summation.  With a
-manipulation of adding and subtracting a self term (for i = j) to the
-first and second term on the right-hand-side, respectively, and a
-small enough *alpha* damping parameter, the second term shrinks and
-the potential becomes a rapidly-converging real-space summation.  With
-a long enough cutoff and small enough alpha parameter, the energy and
-forces calculated by the Wolf summation method approach those of the
-Ewald sum.  So it is a means of getting effective long-range
-interactions with a short-range potential.
+   E_i = \frac{1}{2} \sum_{j \neq i}
+   \frac{q_i q_j {\rm erfc}(\alpha r_{ij})}{r_{ij}} +
+   \frac{1}{2} \sum_{j \neq i}
+   \frac{q_i q_j {\rm erf}(\alpha r_{ij})}{r_{ij}} \qquad r < r_c
+
+where :math:`\alpha` is the damping parameter, and erfc() is the
+complementary error-function terms.  This potential is essentially a
+short-range, spherically-truncated, charge-neutralized, shifted,
+pairwise *1/r* summation.  With a manipulation of adding and subtracting
+a self term (for i = j) to the first and second term on the
+right-hand-side, respectively, and a small enough :math:`\alpha` damping
+parameter, the second term shrinks and the potential becomes a
+rapidly-converging real-space summation.  With a long enough cutoff and
+small enough :math:`\alpha` parameter, the energy and forces calculated by the
+Wolf summation method approach those of the Ewald sum.  So it is a means
+of getting effective long-range interactions with a short-range
+potential.
 
 Styles *lj/cut/tip4p/cut* and *lj/cut/tip4p/long* implement the TIP4P
 water model of :ref:`(Jorgensen) <Jorgensen2>`, which introduces a massless
@@ -286,7 +298,7 @@ site located a short distance away from the oxygen atom along the
 bisector of the HOH angle.  The atomic types of the oxygen and
 hydrogen atoms, the bond and angle types for OH and HOH interactions,
 and the distance to the massless charge site are specified as
-pair\_style arguments.  Style *lj/cut/tip4p/cut* uses a cutoff for
+pair_style arguments.  Style *lj/cut/tip4p/cut* uses a cutoff for
 Coulomb interactions; style *lj/cut/tip4p/long* is for use with a
 long-range Coulombic solver (Ewald or PPPM).
 
@@ -311,22 +323,21 @@ your model.
 
 For all of the *lj/cut* pair styles, the following coefficients must
 be defined for each pair of atoms types via the
-:doc:`pair\_coeff <pair_coeff>` command as in the examples above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands, or by mixing as
+:doc:`pair_coeff <pair_coeff>` command as in the examples above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands, or by mixing as
 described below:
 
-* epsilon (energy units)
-* sigma (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
 * cutoff1 (distance units)
 * cutoff2 (distance units)
 
-Note that sigma is defined in the LJ formula as the zero-crossing
-distance for the potential, not as the energy minimum at 2\^(1/6)
-sigma.
+Note that :math:`\sigma` is defined in the LJ formula as the zero-crossing
+distance for the potential, not as the energy minimum at :math:`2^{\frac{1}{6}} \sigma`.
 
 The latter 2 coefficients are optional.  If not specified, the global
-LJ and Coulombic cutoffs specified in the pair\_style command are used.
+LJ and Coulombic cutoffs specified in the pair_style command are used.
 If only one cutoff is specified, it is used as the cutoff for both LJ
 and Coulombic interactions for this type pair.  If both coefficients
 are specified, they are used as the LJ and Coulombic cutoffs for this
@@ -337,20 +348,18 @@ For *lj/cut/coul/long* and *lj/cut/coul/msm* and *lj/cut/tip4p/cut*
 and *lj/cut/tip4p/long* only the LJ cutoff can be specified since a
 Coulombic cutoff cannot be specified for an individual I,J type pair.
 All type pairs use the same global Coulombic cutoff specified in the
-pair\_style command.
-
-
-----------
-
-
-A version of these styles with a soft core, *lj/cut/soft*\ , suitable for use in
-free energy calculations, is part of the USER-FEP package and is documented with
-the :doc:`pair\_fep\_soft <pair_fep_soft>` styles. The version with soft core is
-only available if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
-
+pair_style command.
 
 ----------
 
+A version of these styles with a soft core, *lj/cut/soft*\ , suitable
+for use in free energy calculations, is part of the USER-FEP package and
+is documented with the :doc:`pair_style */soft <pair_fep_soft>`
+styles. The version with soft core is only available if LAMMPS was built
+with that package. See the :doc:`Build package <Build_package>` doc page
+for more info.
+
+----------
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -370,46 +379,41 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/cut pair styles can be mixed.
-The default mix value is *geometric*\ .  See the "pair\_modify" command
+The default mix value is *geometric*\ .  See the "pair_modify" command
 for details.
 
 All of the *lj/cut* pair styles support the
-:doc:`pair\_modify <pair_modify>` shift option for the energy of the
+:doc:`pair_modify <pair_modify>` shift option for the energy of the
 Lennard-Jones portion of the pair interaction.
 
 The *lj/cut/coul/long* and *lj/cut/tip4p/long* pair styles support the
-:doc:`pair\_modify <pair_modify>` table option since they can tabulate
+:doc:`pair_modify <pair_modify>` table option since they can tabulate
 the short-range portion of the long-range Coulombic interaction.
 
 All of the *lj/cut* pair styles support the
-:doc:`pair\_modify <pair_modify>` tail option for adding a long-range
+:doc:`pair_modify <pair_modify>` tail option for adding a long-range
 tail correction to the energy and pressure for the Lennard-Jones
 portion of the pair interaction.
 
-All of the *lj/cut* pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do
+All of the *lj/cut* pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do
 not need to be specified in an input script that reads a restart file.
 
 The *lj/cut* and *lj/cut/coul/long* pair styles support the use of the
-*inner*\ , *middle*\ , and *outer* keywords of the :doc:`run\_style respa <run_style>` command, meaning the pairwise forces can be
+*inner*\ , *middle*\ , and *outer* keywords of the :doc:`run_style respa <run_style>` command, meaning the pairwise forces can be
 partitioned by distance at different levels of the rRESPA hierarchy.
-The other styles only support the *pair* keyword of run\_style respa.
-See the :doc:`run\_style <run_style>` command for details.
-
+The other styles only support the *pair* keyword of run_style respa.
+See the :doc:`run_style <run_style>` command for details.
 
 ----------
 
-
 Restrictions
 """"""""""""
-
 
 The *lj/cut/coul/long* and *lj/cut/tip4p/long* styles are part of the
 KSPACE package. The *lj/cut/tip4p/cut* style is part of the MOLECULE
@@ -420,29 +424,18 @@ more info.
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 **Default:** none
 
-
 ----------
 
-
 .. _Jorgensen2:
-
-
 
 **(Jorgensen)** Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
 Phys, 79, 926 (1983).
 
 .. _Fennell2:
 
-
-
 **(Fennell)** C. J. Fennell, J. D. Gezelter, J Chem Phys, 124,
 234104 (2006).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -6,7 +6,6 @@ fix electron/stopping command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID electron/stopping Ecut file keyword value ...
@@ -17,21 +16,18 @@ Syntax
 * file = name of the file containing the electronic stopping power table
 * zero or more keyword/value pairs may be appended to args
 * keyword = *region* or *minneigh*
-  
+
   .. parsed-literal::
-  
+
        *region* value = region-ID
          region-ID = region, whose atoms will be affected by this fix
        *minneigh* value = minneigh
          minneigh = minimum number of neighbors an atom to have stopping applied
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix el all electron/stopping 10.0 elstop-table.txt
    fix el all electron/stopping 10.0 elstop-table.txt minneigh 3
@@ -52,10 +48,9 @@ considered, the simulated range of the ions can be severely overestimated
 The electronic stopping is implemented by applying a friction force
 to each atom as:
 
-
 .. math::
 
-   \begin{equation}\vec{F}_i = \vec{F}^0_i - \frac{\vec{v}_i}{\|\vec{v}_i\|} \cdot S_e\end{equation}
+   \vec{F}_i = \vec{F}^0_i - \frac{\vec{v}_i}{\|\vec{v}_i\|} \cdot S_e
 
 where :math:`\vec{F}_i` is the resulting total force on the atom.
 :math:`\vec{F}^0_i` is the original force applied to the atom, :math:`\vec{v}_i` is
@@ -68,7 +63,7 @@ its velocity and :math:`S_e` is the stopping power of the ion.
    :doc:`fix dt/reset <fix_dt_reset>`) and the repulsive ZBL potential (see
    :doc:`ZBL <pair_zbl>` potential) or similar. Without these settings the
    interaction between the ion and the target atoms will be faulty. It is also
-   common to use in such simulations a thermostat (:doc:`fix\_nvt <fix_nh>`) in
+   common to use in such simulations a thermostat (:doc:`fix_nvt <fix_nh>`) in
    the borders of the simulation cell.
 
 .. note::
@@ -79,7 +74,7 @@ its velocity and :math:`S_e` is the stopping power of the ion.
    e.g. simulations of Swift Heavy Ions (energy per nucleon of 100 keV/amu or
    higher) or multiple projectiles. You could compensate energy loss by coupling
    bulk atoms with some thermostat or control heat transfer between electronic and
-   atomic subsystems with the two-temperature model (:doc:`fix\_ttm <fix_ttm>`).
+   atomic subsystems with the two-temperature model (:doc:`fix_ttm <fix_ttm>`).
 
 At low velocities the electronic stopping is negligible. The electronic
 friction is not applied to atoms whose kinetic energy is smaller than *Ecut*\ ,
@@ -97,9 +92,7 @@ geometric :doc:`region <region>` in order to have electronic stopping applied to
 it. This is useful if the position of the bulk material is fixed. By default
 the electronic stopping is applied everywhere in the simulation cell.
 
-
 ----------
-
 
 The energy ranges and stopping powers are read from the file *file*\ .
 Lines starting with *#* and empty lines are ignored. Otherwise each
@@ -114,7 +107,6 @@ intermediate energy values are calculated with linear interpolation between
 2 nearest points.
 
 For example:
-
 
 .. parsed-literal::
 
@@ -137,11 +129,11 @@ scientific publications, experimental databases or by using
 of the impact parameter of the ion; these results can be used
 to derive the stopping power.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` options are not supported.
+The :doc:`fix_modify <fix_modify>` options are not supported.
 
 This fix computes a global scalar, which can be accessed by various
 :doc:`output commands <Howto_output>`. The scalar is the total energy
@@ -154,7 +146,6 @@ on this fix.
 Restrictions
 """"""""""""
 
-
 This pair style is part of the USER-MISC package. It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>`
 doc page for more info.
@@ -164,47 +155,28 @@ Default
 
 The default is no limitation by region, and minneigh = 1.
 
-
 ----------
-
 
 .. _elstopping:
 
-
-
-**(electronic stopping)** Wikipedia - Electronic Stopping Power: https://en.wikipedia.org/wiki/Stopping\_power\_%28particle\_radiation%29
+**(electronic stopping)** Wikipedia - Electronic Stopping Power: https://en.wikipedia.org/wiki/Stopping_power_%28particle_radiation%29
 
 .. _Nordlund98:
-
-
 
 **(Nordlund98)** Nordlund, Kai, et al.  Physical Review B 57.13 (1998): 7556.
 
 .. _Nordlund95:
 
-
-
 **(Nordlund95)** Nordlund, Kai. Computational materials science 3.4 (1995): 448-456.
 
 .. _SRIM:
-
-
 
 **(SRIM)** SRIM webpage: http://www.srim.org/
 
 .. _CasP:
 
-
-
-**(CasP)** CasP webpage: https://www.helmholtz-berlin.de/people/gregor-schiwietz/casp\_en.html
+**(CasP)** CasP webpage: https://www.helmholtz-berlin.de/people/gregor-schiwietz/casp_en.html
 
 .. _PASS:
 
-
-
 **(PASS)** PASS webpage: https://www.sdu.dk/en/DPASS
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

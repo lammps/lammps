@@ -9,7 +9,7 @@ A new atom style can be created if one of the existing atom styles
 does not define all the attributes you need to store and communicate
 with atoms.
 
-Atom\_vec\_atomic.cpp is the simplest example of an atom style.
+Atom_vec_atomic.cpp is the simplest example of an atom style.
 Examining the code for others will make these instructions more clear.
 
 Note that the :doc:`atom style hybrid <atom_style>` command can be
@@ -39,29 +39,29 @@ but the last 2 strings you do not need to specify any of
 other strings.
 
 +-------------------------+--------------------------------------------------------------------------------+
-| fields\_grow  | full list of properties which is allocated and stored |
+| fields_grow  | full list of properties which is allocated and stored |
 +-------------------------+--------------------------------------------------------------------------------+
-| fields\_copy | list of properties to copy atoms are rearranged on-processor |
+| fields_copy | list of properties to copy atoms are rearranged on-processor |
 +-------------------------+--------------------------------------------------------------------------------+
-| fields\_comm | list of properties communicated to ghost atoms every step |
+| fields_comm | list of properties communicated to ghost atoms every step |
 +-------------------------+--------------------------------------------------------------------------------+
-| fields\_comm\_vel | additional properties communicated if :doc:`comm_modify vel <atom_style>` is used |
+| fields_comm_vel | additional properties communicated if :doc:`comm_modify vel <atom_style>` is used |
 +-------------------------+--------------------------------------------------------------------------------+
-| fields\_reverse | list of properties summed from ghost atoms every step |
+| fields_reverse | list of properties summed from ghost atoms every step |
 +-------------------------+--------------------------------------------------------------------------------+
-| fields\_border | list of properties communicated with ghost atoms every reneighboring step |
+| fields_border | list of properties communicated with ghost atoms every reneighboring step |
 +-------------------------+--------------------------------------------------------------------------------+
-| fields\_border\_vel | additional properties communicated if :doc:`comm_modify vel <atom_style>` is used |
+| fields_border_vel | additional properties communicated if :doc:`comm_modify vel <atom_style>` is used |
 +-------------------------+--------------------------------------------------------------------------------+
-| fields\_exchange | list of properties communicated when an atom migrates to another processor |
+| fields_exchange | list of properties communicated when an atom migrates to another processor |
 +-------------------------+--------------------------------------------------------------------------------+
-| fields\_restart | list of properties written/read to/from a restart file |
+| fields_restart | list of properties written/read to/from a restart file |
 +-------------------------+--------------------------------------------------------------------------------+
-| fields\_create | list of properties defined when an atom is created by :doc:`create_atoms <create_atoms>` |
+| fields_create | list of properties defined when an atom is created by :doc:`create_atoms <create_atoms>` |
 +-------------------------+--------------------------------------------------------------------------------+
-| fields\_data\_atom | list of properties (in order) in the Atoms section of a data file, as read by :doc:`read_data <read_data>` |
+| fields_data_atom | list of properties (in order) in the Atoms section of a data file, as read by :doc:`read_data <read_data>` |
 +-------------------------+--------------------------------------------------------------------------------+
-| fields\_data\_vel | list of properties (in order) in the Velocities section of a data file, as read by :doc:`read_data <read_data>` |
+| fields_data_vel | list of properties (in order) in the Velocities section of a data file, as read by :doc:`read_data <read_data>` |
 +-------------------------+--------------------------------------------------------------------------------+
 
 In these strings you can list variable names which LAMMPS already
@@ -77,7 +77,7 @@ no way of checking for this.
 
 If you are defining new variable names then make them descriptive and
 unique to your new atom style.  For example choosing "e" for energy is
-a bad choice; it is too generic.  A better choice would be "e\_foo",
+a bad choice; it is too generic.  A better choice would be "e_foo",
 where "foo" is specific to your style.
 
 If any of the variable names in your new atom style do not exist in
@@ -93,7 +93,7 @@ class.
 In atom.cpp, aside from the constructor and destructor, there are 3
 methods that a new variable name or flag needs to be added to.
 
-In Atom::peratom\_create() when using the add_peratom() method, a
+In Atom::peratom_create() when using the add_peratom() method, a
 final length argument of 0 is for per-atom vectors, a length > 1 is
 for per-atom arrays.  Note the use of an extra per-thread flag and the
 add_peratom_vary() method when last dimension of the array is
@@ -150,7 +150,7 @@ parent AtomVec class.  They allow an atom style to do customized
 operations on the per-atom values.  For example :doc:`atom_style
 sphere <atom_style>` reads a diameter and density of each particle
 from a data file.  But these need to be converted internally to a
-radius and mass.  That operation is done in the data_\atom\_post()
+radius and mass.  That operation is done in the data_atom_post()
 method.
 
 * pack_restart_pre

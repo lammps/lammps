@@ -6,7 +6,6 @@ compute temp/partial command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/partial xflag yflag zflag
@@ -18,8 +17,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute newT flow temp/partial 1 1 0
 
@@ -29,7 +27,7 @@ Description
 Define a computation that calculates the temperature of a group of
 atoms, after excluding one or more velocity components.  A compute of
 this style can be used by any command that computes a temperature,
-e.g. :doc:`thermo\_modify <thermo_modify>`, :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix npt <fix_nh>`, etc.
+e.g. :doc:`thermo_modify <thermo_modify>`, :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix npt <fix_nh>`, etc.
 
 The temperature is calculated by the formula KE = dim/2 N k T, where
 KE = total kinetic energy of the group of atoms (sum of 1/2 m v\^2),
@@ -48,7 +46,7 @@ zz, xy, xz, yz.
 
 The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the *dynamic* option of the
-:doc:`compute\_modify <compute_modify>` command if this is not the case.
+:doc:`compute_modify <compute_modify>` command if this is not the case.
 
 The removal of velocity components by this fix is essentially
 computing the temperature after a "bias" has been removed from the
@@ -63,15 +61,13 @@ constrain molecular motion, such as :doc:`fix shake <fix_shake>` and
 :doc:`fix rigid <fix_rigid>`.  This means the temperature of groups of
 atoms that include these constraints will be computed correctly.  If
 needed, the subtracted degrees-of-freedom can be altered using the
-*extra* option of the :doc:`compute\_modify <compute_modify>` command.
+*extra* option of the :doc:`compute_modify <compute_modify>` command.
 
 See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -91,9 +87,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Output info:**
 
@@ -119,8 +113,3 @@ Related commands
 :doc:`compute temp <compute_temp>`, :doc:`compute temp/region <compute_temp_region>`, :doc:`compute pressure <compute_pressure>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

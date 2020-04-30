@@ -72,6 +72,7 @@
 #if defined(LMP_KIM_CURL)
 #include <sys/types.h>
 #include <curl/curl.h>
+#include <cstdlib>
 #endif
 
 using namespace LAMMPS_NS;
@@ -257,11 +258,25 @@ char *do_query(char *qfunction, char * model_name, int narg, char **arg,
       curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
 #endif
 
-#if defined(LMP_NO_SSL_CHECK)
-      // disable verifying SSL certificate and host name
+#if LMP_NO_SSL_CHECK
+      // Certificate Verification
+      // by telling libcurl to not verify the peer.
+      // Disable verifying SSL certificate and host name. Insecure.
       curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(handle, CURLOPT_SSL_VERIFYHOST, 0L);
 #endif
+
+      {
+        char *env_c = std::getenv("CURL_CA_BUNDLE");
+        if (env_c)
+        {
+          // Certificate Verification
+          // by specifying your own CA cert path. Set the environment variable
+          // CURL_CA_BUNDLE to the path of your choice.
+          curl_easy_setopt(handle, CURLOPT_CAINFO, env_c);
+        }
+      }
+
       std::string user_agent = std::string("kim_query--LAMMPS/")
                                + LAMMPS_VERSION
                                + " (" + Info::get_os_info() + ")";

@@ -30,6 +30,7 @@
 #include "input.h"
 #include "variable.h"
 #include "random_park.h"
+#include "random_mars.h"
 #include "math_extra.h"
 #include "math_const.h"
 #include "memory.h"
@@ -41,7 +42,8 @@ using namespace MathConst;
 
 enum{ATOM_SELECT,MOL_SELECT,TYPE_SELECT,GROUP_SELECT,REGION_SELECT};
 
-enum{TYPE,TYPE_FRACTION,MOLECULE,X,Y,Z,CHARGE,MASS,SHAPE,LENGTH,TRI,
+enum{TYPE,TYPE_FRACTION,TYPE_RATIO,TYPE_SUBSET,
+     MOLECULE,X,Y,Z,CHARGE,MASS,SHAPE,LENGTH,TRI,
      DIPOLE,DIPOLE_RANDOM,SPIN,SPIN_RANDOM,QUAT,QUAT_RANDOM,
      THETA,THETA_RANDOM,ANGMOM,OMEGA,
      DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
@@ -107,6 +109,34 @@ void Set::command(int narg, char **arg)
       if (ivalue <= 0)
         error->all(FLERR,"Invalid random number seed in set command");
       setrandom(TYPE_FRACTION);
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"type/ratio") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal set command");
+      newtype = force->inumeric(FLERR,arg[iarg+1]);
+      fraction = force->numeric(FLERR,arg[iarg+2]);
+      ivalue = force->inumeric(FLERR,arg[iarg+3]);
+      if (newtype <= 0 || newtype > atom->ntypes)
+        error->all(FLERR,"Invalid value in set command");
+      if (fraction < 0.0 || fraction > 1.0)
+        error->all(FLERR,"Invalid value in set command");
+      if (ivalue <= 0)
+        error->all(FLERR,"Invalid random number seed in set command");
+      setrandom(TYPE_RATIO);
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"type/subset") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal set command");
+      newtype = force->inumeric(FLERR,arg[iarg+1]);
+      nsubset = force->bnumeric(FLERR,arg[iarg+2]);
+      ivalue = force->inumeric(FLERR,arg[iarg+3]);
+      if (newtype <= 0 || newtype > atom->ntypes)
+        error->all(FLERR,"Invalid value in set command");
+      if (nsubset < 0)
+        error->all(FLERR,"Invalid value in set command");
+      if (ivalue <= 0)
+        error->all(FLERR,"Invalid random number seed in set command");
+      setrandom(TYPE_SUBSET);
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"mol") == 0) {
@@ -1001,22 +1031,76 @@ void Set::setrandom(int keyword)
   AtomVecTri *avec_tri = (AtomVecTri *) atom->style_match("tri");
   AtomVecBody *avec_body = (AtomVecBody *) atom->style_match("body");
 
-  RanPark *random = new RanPark(lmp,1);
   double **x = atom->x;
   int seed = ivalue;
 
-  // set fraction of atom types to newtype
+  RanPark *ranpark = new RanPark(lmp,1);
+  RanMars *ranmars = new RanMars(lmp,seed + comm->me);
+
+  // set approx fraction of atom types to newtype
 
   if (keyword == TYPE_FRACTION) {
     int nlocal = atom->nlocal;
 
     for (i = 0; i < nlocal; i++)
       if (select[i]) {
-        random->reset(seed,x[i]);
-        if (random->uniform() > fraction) continue;
+        ranpark->reset(seed,x[i]);
+        if (ranpark->uniform() > fraction) continue;
         atom->type[i] = newtype;
         count++;
       }
+
+  // set exact count of atom types to newtype
+  // for TYPE_RATIO, exact = fraction out of total eligible
+  // for TYPE_SUBSET, exact = nsubset out of total eligible
+
+  } else if (keyword == TYPE_RATIO || keyword == TYPE_SUBSET) {
+    int nlocal = atom->nlocal;
+
+    // count = number of eligible atoms I own
+
+    count = 0;
+    for (i = 0; i < nlocal; i++)
+      if (select[i]) count++;
+
+    // convert specified fraction to nsubset
+
+    bigint bcount = count;
+    bigint allcount;
+    MPI_Allreduce(&bcount,&allcount,1,MPI_LMP_BIGINT,MPI_SUM,world);
+
+    if (keyword == TYPE_RATIO) {
+      nsubset = static_cast<bigint> (fraction * allcount);
+    } else if (keyword == TYPE_SUBSET) {
+      if (nsubset > allcount)
+        error->all(FLERR,"Set type/subset value exceeds eligible atoms");
+    }
+
+    // make selection
+
+    int *flag = memory->create(flag,count,"set:flag");
+    int *work = memory->create(work,count,"set:work");
+
+    ranmars->select_subset(nsubset,count,flag,work);
+
+    // change types of selected atoms
+    // flag vector from select_subset() is only for eligible atoms
+
+    count = 0;
+    int eligible = 0;
+    for (i = 0; i < nlocal; i++) {
+      if (!select[i]) continue;
+      if (flag[eligible]) {
+        atom->type[i] = newtype;
+        count++;
+      }
+      eligible++;
+    }
+
+    // clean up
+
+    memory->destroy(flag);
+    memory->destroy(work);
 
   // set dipole moments to random orientations in 3d or 2d
   // dipole length is determined by dipole type array
@@ -1030,10 +1114,10 @@ void Set::setrandom(int keyword)
     if (domain->dimension == 3) {
       for (i = 0; i < nlocal; i++)
         if (select[i]) {
-          random->reset(seed,x[i]);
-          mu[i][0] = random->uniform() - 0.5;
-          mu[i][1] = random->uniform() - 0.5;
-          mu[i][2] = random->uniform() - 0.5;
+          ranpark->reset(seed,x[i]);
+          mu[i][0] = ranpark->uniform() - 0.5;
+          mu[i][1] = ranpark->uniform() - 0.5;
+          mu[i][2] = ranpark->uniform() - 0.5;
           msq = mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2];
           scale = dvalue/sqrt(msq);
           mu[i][0] *= scale;
@@ -1046,9 +1130,9 @@ void Set::setrandom(int keyword)
     } else {
       for (i = 0; i < nlocal; i++)
         if (select[i]) {
-          random->reset(seed,x[i]);
-          mu[i][0] = random->uniform() - 0.5;
-          mu[i][1] = random->uniform() - 0.5;
+          ranpark->reset(seed,x[i]);
+          mu[i][0] = ranpark->uniform() - 0.5;
+          mu[i][1] = ranpark->uniform() - 0.5;
           mu[i][2] = 0.0;
           msq = mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1];
           scale = dvalue/sqrt(msq);
@@ -1072,10 +1156,10 @@ void Set::setrandom(int keyword)
     if (domain->dimension == 3) {
       for (i = 0; i < nlocal; i++)
         if (select[i]) {
-          random->reset(seed,x[i]);
-          sp[i][0] = random->uniform() - 0.5;
-          sp[i][1] = random->uniform() - 0.5;
-          sp[i][2] = random->uniform() - 0.5;
+          ranpark->reset(seed,x[i]);
+          sp[i][0] = ranpark->uniform() - 0.5;
+          sp[i][1] = ranpark->uniform() - 0.5;
+          sp[i][2] = ranpark->uniform() - 0.5;
           sp_sq = sp[i][0]*sp[i][0] + sp[i][1]*sp[i][1] + sp[i][2]*sp[i][2];
           scale = 1.0/sqrt(sp_sq);
           sp[i][0] *= scale;
@@ -1088,9 +1172,9 @@ void Set::setrandom(int keyword)
     } else {
       for (i = 0; i < nlocal; i++)
         if (select[i]) {
-          random->reset(seed,x[i]);
-          sp[i][0] = random->uniform() - 0.5;
-          sp[i][1] = random->uniform() - 0.5;
+          ranpark->reset(seed,x[i]);
+          sp[i][0] = ranpark->uniform() - 0.5;
+          sp[i][1] = ranpark->uniform() - 0.5;
           sp[i][2] = 0.0;
           sp_sq = sp[i][0]*sp[i][0] + sp[i][1]*sp[i][1];
           scale = 1.0/sqrt(sp_sq);
@@ -1120,12 +1204,12 @@ void Set::setrandom(int keyword)
           else
             error->one(FLERR,"Cannot set quaternion for atom that has none");
 
-          random->reset(seed,x[i]);
-          s = random->uniform();
+          ranpark->reset(seed,x[i]);
+          s = ranpark->uniform();
           t1 = sqrt(1.0-s);
           t2 = sqrt(s);
-          theta1 = 2.0*MY_PI*random->uniform();
-          theta2 = 2.0*MY_PI*random->uniform();
+          theta1 = 2.0*MY_PI*ranpark->uniform();
+          theta2 = 2.0*MY_PI*ranpark->uniform();
           quat[0] = cos(theta2)*t2;
           quat[1] = sin(theta1)*t1;
           quat[2] = cos(theta1)*t1;
@@ -1144,8 +1228,8 @@ void Set::setrandom(int keyword)
           else
             error->one(FLERR,"Cannot set quaternion for atom that has none");
 
-          random->reset(seed,x[i]);
-          theta2 = MY_PI*random->uniform();
+          ranpark->reset(seed,x[i]);
+          theta2 = MY_PI*ranpark->uniform();
           quat[0] = cos(theta2);
           quat[1] = 0.0;
           quat[2] = 0.0;
@@ -1162,14 +1246,15 @@ void Set::setrandom(int keyword)
       if (select[i]) {
         if (atom->line[i] < 0)
           error->one(FLERR,"Cannot set theta for atom that is not a line");
-        random->reset(seed,x[i]);
-        avec_line->bonus[atom->line[i]].theta = MY_2PI*random->uniform();
+        ranpark->reset(seed,x[i]);
+        avec_line->bonus[atom->line[i]].theta = MY_2PI*ranpark->uniform();
         count++;
       }
     }
   }
 
-  delete random;
+  delete ranpark;
+  delete ranmars;
 }
 
 /* ---------------------------------------------------------------------- */

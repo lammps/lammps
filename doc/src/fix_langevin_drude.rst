@@ -6,7 +6,6 @@ fix langevin/drude command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID langevin/drude Tcom damp_com seed_com Tdrude damp_drude seed_drude keyword values ...
@@ -14,27 +13,24 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * langevin/drude = style name of this fix command
 * Tcom = desired temperature of the centers of mass (temperature units)
-* damp\_com = damping parameter for the thermostat on centers of mass (time units)
-* seed\_com = random number seed to use for white noise of the thermostat on centers of mass (positive integer)
+* damp_com = damping parameter for the thermostat on centers of mass (time units)
+* seed_com = random number seed to use for white noise of the thermostat on centers of mass (positive integer)
 * Tdrude = desired temperature of the Drude oscillators (temperature units)
-* damp\_drude = damping parameter for the thermostat on Drude oscillators (time units)
-* seed\_drude = random number seed to use for white noise of the thermostat on Drude oscillators (positive integer)
+* damp_drude = damping parameter for the thermostat on Drude oscillators (time units)
+* seed_drude = random number seed to use for white noise of the thermostat on Drude oscillators (positive integer)
 * zero or more keyword/value pairs may be appended
 * keyword = *zero*
-  
+
   .. parsed-literal::
-  
+
        *zero* value = *no* or *yes*
          *no* = do not set total random force on centers of mass to zero
          *yes* = set total random force on centers of mass to zero
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 all langevin/drude 300.0 100.0 19377 1.0 20.0 83451
    fix 1 all langevin/drude 298.15 100.0 19377 5.0 10.0 83451 zero yes
@@ -60,50 +56,46 @@ Velocities:
 
 .. math::
 
-   \begin{equation} V' = \frac {M\, V + m\, v} {M'} \end{equation}
-
+    V' = \frac {M\, V + m\, v} {M'}
 
 .. math::
 
-   \begin{equation} v' = v - V \end{equation}
+    v' = v - V
 
 Masses:
 
 .. math::
 
-   \begin{equation} M' = M + m \end{equation}
-
+    M' = M + m
 
 .. math::
 
-   \begin{equation} m' = \frac {M\, m } {M'} \end{equation}
+    m' = \frac {M\, m } {M'}
 
 The Langevin forces are computed as
 
 .. math::
 
-   \begin{equation} F' = - \frac {M'} {\mathtt{damp\_com}}\, V' + F_r' \end{equation}
-
+    F' = - \frac {M'} {\mathtt{damp_com}}\, V' + F_r'
 
 .. math::
 
-   \begin{equation} f' = - \frac {m'} {\mathtt{damp\_drude}}\, v' + f_r' \end{equation}
+    f' = - \frac {m'} {\mathtt{damp_drude}}\, v' + f_r'
 
 :math:`F_r'` is a random force proportional to
-:math:`\sqrt { \frac {2\, k_B \mathtt{Tcom}\, m'}                  {\mathrm dt\, \mathtt{damp\_com} }         }`.
+:math:`\sqrt { \frac {2\, k_B \mathtt{Tcom}\, m'}                  {\mathrm dt\, \mathtt{damp_com} }         }`.
 :math:`f_r'` is a random force proportional to
-:math:`\sqrt { \frac {2\, k_B \mathtt{Tdrude}\, m'}                  {\mathrm dt\, \mathtt{damp\_drude} }         }`.
+:math:`\sqrt { \frac {2\, k_B \mathtt{Tdrude}\, m'}                  {\mathrm dt\, \mathtt{damp_drude} }         }`.
 Then the real forces acting on the particles are computed from the inverse
 transform:
 
 .. math::
 
-   \begin{equation} F = \frac M {M'}\, F' - f' \end{equation}
-
+    F = \frac M {M'}\, F' - f'
 
 .. math::
 
-   \begin{equation} f = \frac m {M'}\, F' + f' \end{equation}
+    f = \frac m {M'}\, F' + f'
 
 This fix also thermostats non-polarizable atoms in the group at
 temperature *Tcom*\ , as if they had a massless Drude partner.  The
@@ -132,9 +124,7 @@ See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
-
 ----------
-
 
 This fix requires each atom know whether it is a Drude particle or
 not.  You must therefore use the :doc:`fix drude <fix_drude>` command to
@@ -152,29 +142,26 @@ specify the Drude status of each atom type.
 .. note::
 
    Ghost atoms need to know their velocity for this fix to act
-   correctly.  You must use the :doc:`comm\_modify <comm_modify>` command to
+   correctly.  You must use the :doc:`comm_modify <comm_modify>` command to
    enable this, e.g.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    comm_modify vel yes
 
-
 ----------
-
 
 *Tcom* is the target temperature of the centers of mass, which would
 be used to thermostat the non-polarizable atoms.  *Tdrude* is the
 (normally low) target temperature of the core-Drude particle pairs
 (dipoles).  *Tcom* and *Tdrude* can be specified as an equal-style
 :doc:`variable <variable>`.  If the value is a variable, it should be
-specified as v\_name, where name is the variable name. In this case,
+specified as v_name, where name is the variable name. In this case,
 the variable will be evaluated each timestep, and its value used to
 determine the target temperature.
 
 Equal-style variables can specify formulas with various mathematical
-functions, and include :doc:`thermo\_style <thermo_style>` command
+functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent temperature.
 
@@ -182,7 +169,7 @@ Like other fixes that perform thermostatting, this fix can be used with
 :doc:`compute commands <compute>` that remove a "bias" from the atom
 velocities.  E.g. removing the center-of-mass velocity from a group of
 atoms.  This is not done by default, but only if the
-:doc:`fix\_modify <fix_modify>` command is used to assign a temperature
+:doc:`fix_modify <fix_modify>` command is used to assign a temperature
 compute to this fix that includes such a bias term.  See the doc pages
 for individual :doc:`compute commands <compute>` to determine which ones
 include a bias.  In this case, the thermostat works in the following
@@ -198,14 +185,14 @@ neighboring atoms. The optimal value probably depends on the
 temperature of the centers of mass and on the mass of the Drude
 particles.
 
-*damp\_com* is the characteristic time for reaching thermal equilibrium
+*damp_com* is the characteristic time for reaching thermal equilibrium
 of the centers of mass.  For example, a value of 100.0 means to relax
 the temperature of the centers of mass in a timespan of (roughly) 100
 time units (tau or fmsec or psec - see the :doc:`units <units>`
-command).  *damp\_drude* is the characteristic time for reaching
+command).  *damp_drude* is the characteristic time for reaching
 thermal equilibrium of the dipoles. It is typically a few timesteps.
 
-The number *seed\_com* and *seed\_drude* are positive integers. They set
+The number *seed_com* and *seed_drude* are positive integers. They set
 the seeds of the Marsaglia random number generators used for
 generating the random forces on centers of mass and on the
 dipoles. Each processor uses the input seed to generate its own unique
@@ -229,14 +216,11 @@ center-of-mass and relative coordinates, respectively, can be
 calculated using the :doc:`compute temp/drude <compute_temp_drude>`
 command.
 
-
 ----------
-
 
 Usage example for rigid bodies in the NPT ensemble:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    comm_modify vel yes
    fix TEMP all langevin/drude 300. 100. 1256 1. 20. 13977 zero yes
@@ -263,19 +247,16 @@ Comments:
   :doc:`compute temp/drude <compute_temp_drude>`
 * Contrary to the alternative thermostatting using Nose-Hoover thermostat
   fix *npt* and :doc:`fix drude/transform <fix_drude_transform>`, the
-  *fix\_modify* command is not required here, because the fix *nph*
+  *fix_modify* command is not required here, because the fix *nph*
   computes the global pressure even if its group is *ATOMS*\ . This is
   what we want. If we thermostatted *ATOMS* using *npt*\ , the pressure
   should be the global one, but the temperature should be only that of
-  the cores. That's why the command *fix\_modify* should be called in
+  the cores. That's why the command *fix_modify* should be called in
   that case.
-
-
 
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  Because the state of the random number generator
 is not saved in restart files, this means you cannot do "exact"
@@ -283,7 +264,7 @@ restarts with this fix, where the simulation continues on the same as
 if no restart had taken place.  However, in a statistical sense, a
 restarted simulation should produce the same behavior.
 
-The :doc:`fix\_modify <fix_modify>` *temp* option is supported by this
+The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
 fix.  You can use it to assign a temperature :doc:`compute <compute>`
 you have defined to this fix which will be used in its thermostatting
 procedure, as described above. For consistency, the group used by the
@@ -302,25 +283,16 @@ Related commands
 :doc:`fix drude <fix_drude>`,
 :doc:`fix drude/transform <fix_drude_transform>`,
 :doc:`compute temp/drude <compute_temp_drude>`,
-:doc:`pair\_style thole <pair_thole>`
+:doc:`pair_style thole <pair_thole>`
 
 Default
 """""""
 
 The option defaults are zero = no.
 
-
 ----------
-
 
 .. _Jiang1:
 
-
-
 **(Jiang)** Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, J
 Phys Chem Lett, 2, 87-92 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

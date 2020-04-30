@@ -402,13 +402,6 @@ void Neighbor::init()
     }
   }
 
-  // maxwt = max multiplicative factor on atom indices stored in neigh list
-
-  maxwt = 0;
-  if (special_flag[1] == 2) maxwt = 2;
-  if (special_flag[2] == 2) maxwt = 3;
-  if (special_flag[3] == 2) maxwt = 4;
-
   // ------------------------------------------------------------------
   // xhold array
 
@@ -725,6 +718,15 @@ int Neighbor::init_pair()
       create_kokkos_list(i);
     else lists[i] = new NeighList(lmp);
     lists[i]->index = i;
+    lists[i]->requestor = requests[i]->requestor;
+
+    if(requests[i]->pair) {
+        lists[i]->requestor_type = NeighList::PAIR;
+    } else if(requests[i]->fix) {
+        lists[i]->requestor_type = NeighList::FIX;
+    } else if(requests[i]->compute) {
+        lists[i]->requestor_type = NeighList::COMPUTE;
+    }
 
     if (requests[i]->pair && i < nrequest_original) {
       Pair *pair = (Pair *) requests[i]->requestor;
@@ -847,7 +849,8 @@ int Neighbor::init_pair()
   // allocate initial pages for each list, except if copy flag set
 
   for (i = 0; i < nlist; i++) {
-    if (lists[i]->copy) continue;
+    if (lists[i]->copy && !lists[i]->kk2cpu)
+        continue;
     lists[i]->setup_pages(pgsize,oneatom);
   }
 
@@ -858,8 +861,10 @@ int Neighbor::init_pair()
   // also Kokkos list initialization
 
   int maxatom = atom->nmax;
-  for (i = 0; i < nlist; i++)
-    if (neigh_pair[i] && !lists[i]->copy) lists[i]->grow(maxatom,maxatom);
+  for (i = 0; i < nlist; i++) {
+    if (neigh_pair[i] && (!lists[i]->copy || lists[i]->kk2cpu))
+      lists[i]->grow(maxatom,maxatom);
+  }
 
   // plist = indices of perpetual NPair classes
   //         perpetual = non-occasional, re-built at every reneighboring
@@ -1255,8 +1260,8 @@ void Neighbor::morph_copy()
       if (irq->history != jrq->history) continue;
       if (irq->bond != jrq->bond) continue;
       if (irq->intel != jrq->intel) continue;
-      if (irq->kokkos_host != jrq->kokkos_host) continue;
-      if (irq->kokkos_device != jrq->kokkos_device) continue;
+      if (irq->kokkos_host && !jrq->kokkos_host) continue;
+      if (irq->kokkos_device && !jrq->kokkos_device) continue;
       if (irq->ssa != jrq->ssa) continue;
       if (irq->cut != jrq->cut) continue;
       if (irq->cutoff != jrq->cutoff) continue;
@@ -1787,8 +1792,12 @@ int Neighbor::choose_pair(NeighRequest *rq)
 
     if (rq->copy) {
       if (!(mask & NP_COPY)) continue;
-      if (!rq->kokkos_device != !(mask & NP_KOKKOS_DEVICE)) continue;
-      if (!rq->kokkos_host != !(mask & NP_KOKKOS_HOST)) continue;
+      if (rq->kokkos_device || rq->kokkos_host) {
+        if (!rq->kokkos_device != !(mask & NP_KOKKOS_DEVICE)) continue;
+        if (!rq->kokkos_host != !(mask & NP_KOKKOS_HOST)) continue;
+      }
+      if (!requests[rq->copylist]->kokkos_device != !(mask & NP_KOKKOS_DEVICE)) continue;
+      if (!requests[rq->copylist]->kokkos_host != !(mask & NP_KOKKOS_HOST)) continue;
       return i+1;
     }
 
@@ -2100,7 +2109,8 @@ void Neighbor::build(int topoflag)
 
   for (i = 0; i < npair_perpetual; i++) {
     m = plist[i];
-    if (!lists[m]->copy) lists[m]->grow(nlocal,nall);
+    if (!lists[i]->copy || lists[i]->kk2cpu)
+      lists[m]->grow(nlocal,nall);
     neigh_pair[m]->build_setup();
     neigh_pair[m]->build(lists[m]);
   }
@@ -2189,7 +2199,8 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
 
   // build the list
 
-  if (!mylist->copy) mylist->grow(atom->nlocal,atom->nlocal+atom->nghost);
+  if (!mylist->copy || mylist->kk2cpu)
+    mylist->grow(atom->nlocal,atom->nlocal+atom->nghost);
   np->build_setup();
   np->build(mylist);
 }

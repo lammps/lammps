@@ -1,13 +1,12 @@
-.. index:: reset\_timestep
+.. index:: reset_timestep
 
-reset\_timestep command
-=======================
+reset_timestep command
+======================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    reset_timestep N
 
@@ -16,8 +15,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    reset_timestep 0
    reset_timestep 4000000
@@ -27,17 +25,17 @@ Description
 
 Set the timestep counter to the specified value.  This command
 normally comes after the timestep has been set by reading a restart
-file via the :doc:`read\_restart <read_restart>` command, or a previous
+file via the :doc:`read_restart <read_restart>` command, or a previous
 simulation advanced the timestep.
 
-The :doc:`read\_data <read_data>` and :doc:`create\_box <create_box>`
-commands set the timestep to 0; the :doc:`read\_restart <read_restart>`
+The :doc:`read_data <read_data>` and :doc:`create_box <create_box>`
+commands set the timestep to 0; the :doc:`read_restart <read_restart>`
 command sets the timestep to the value it had when the restart file
 was written.
 
 Restrictions
 """"""""""""
- none
+none
 
 This command cannot be used when any fixes are defined that keep track
 of elapsed time to perform certain kinds of time-dependent operations.
@@ -65,8 +63,3 @@ Related commands
 :doc:`rerun <rerun>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

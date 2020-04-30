@@ -35,6 +35,7 @@
 #include "domain.h"
 #include "kspace.h"
 #include "gpu_extra.h"
+#include "suffix.h"
 
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
@@ -81,6 +82,7 @@ PairBuckCoulLongGPU::PairBuckCoulLongGPU(LAMMPS *lmp) :
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
@@ -170,6 +172,10 @@ void PairBuckCoulLongGPU::init_style()
   if (force->kspace == NULL)
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
+
+  // setup force tables
+
+  if (ncoultablebits) init_tables(cut_coul,cut_respa);
 
   int maxspecial=0;
   if (atom->molecular)

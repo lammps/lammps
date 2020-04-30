@@ -2,8 +2,70 @@ BootStrap: docker
 From: ubuntu:18.04
 
 %post
-	apt-get update -y
-	env DEBIAN_FRONTEND=noninteractive apt-get install -y make cmake cmake-curses-gui ninja-build git ccache gcc g++ gfortran libfftw3-dev libjpeg-dev libpng-dev libblas-dev liblapack-dev mpi-default-bin mpi-default-dev libeigen3-dev libgsl-dev libopenblas-dev virtualenv python-dev enchant vim-nox voro++-dev
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get upgrade --no-install-recommends -y
+    apt-get install --no-install-recommends -y \
+        bc \
+        build-essential \
+        ccache \
+        clang \
+        cmake \
+        cmake-curses-gui \
+        curl \
+        doxygen \
+        enchant \
+        g++ \
+        gcc \
+        gfortran \
+        git \
+        hdf5-tools \
+        less \
+        libblas-dev \
+        libeigen3-dev \
+        libenchant-dev \
+        libfftw3-dev \
+        libgsl-dev \
+        libhdf5-serial-dev \
+        libhwloc-dev \
+        libjpeg-dev \
+        liblapack-dev \
+        libomp-dev \
+        libopenblas-dev \
+        libnuma-dev \
+        libpng-dev \
+        libproj-dev \
+        libvtk6-dev \
+        make \
+        mpi-default-bin \
+        mpi-default-dev \
+        ninja-build \
+        python-dev \
+        python-pip \
+        python-pygments \
+        python-virtualenv \
+        python3-dev \
+        python3-pip \
+        python3-pkg-resources \
+        python3-setuptools \
+        python3-virtualenv \
+        rsync \
+        ssh \
+        texlive \
+        texlive-latex-recommended \
+        texlive-pictures \
+        texlive-publishers \
+        texlive-science \
+        dvipng \
+        vim-nox \
+        virtualenv \
+        voro++-dev \
+        wget \
+        xxd
+
+%environment
+        LC_ALL=C
+        export LC_ALL
 
 %labels
-	Author akohlmey
+    Author akohlmey, rbberger

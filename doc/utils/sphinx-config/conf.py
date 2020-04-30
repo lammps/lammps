@@ -20,6 +20,7 @@ import os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../src/_ext'))
 
 # -- General configuration ------------------------------------------------
 
@@ -30,7 +31,10 @@ import os
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.mathjax', 'sphinx.ext.imgmath'
+    'sphinx.ext.mathjax',
+    'sphinx.ext.imgmath',
+    'sphinx.ext.autodoc',
+    'table_from_list',
 ]
 # 2017-12-07: commented out, since this package is broken with Sphinx 16.x
 #             yet we can no longer use Sphinx 15.x, since that breaks with
@@ -56,7 +60,7 @@ master_doc = 'Manual'
 
 # General information about the project.
 project = 'LAMMPS'
-copyright = '2013 Sandia Corporation'
+copyright = '2003-2020 Sandia Corporation'
 
 def get_lammps_version():
     import os
@@ -124,7 +128,9 @@ html_theme = 'lammps_theme'
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+html_theme_options = {
+   'logo_only' : True
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = ['_themes']
@@ -138,7 +144,7 @@ html_title = "LAMMPS documentation"
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = 'lammps-logo.png'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -206,6 +212,9 @@ if 'epub' in sys.argv:
 else:
   html_math_renderer = 'mathjax'
 
+# use relative path for mathjax, so it is looked for in the
+# html tree and the manual becomes readable when offline 
+mathjax_path = 'mathjax/es5/tex-mml-chtml.js'
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
@@ -323,3 +332,8 @@ import LAMMPSLexer
 from sphinx.highlighting import lexers
 
 lexers['LAMMPS'] = LAMMPSLexer.LAMMPSLexer(startinline=True)
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../../python'))
+
+# avoid syntax highlighting in blocks that don't specify language
+highlight_language = 'none'

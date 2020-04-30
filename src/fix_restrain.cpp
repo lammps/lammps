@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{BOND,ANGLE,DIHEDRAL};
+enum{BOND,LBOUND,ANGLE,DIHEDRAL};
 
 #define TOLERANCE 0.05
 #define SMALL 0.001
@@ -45,7 +45,7 @@ enum{BOND,ANGLE,DIHEDRAL};
 FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   rstyle(NULL), mult(NULL), ids(NULL), kstart(NULL), kstop(NULL), target(NULL),
-  cos_target(NULL), sin_target(NULL)
+  deqstart(NULL), deqstop(NULL), cos_target(NULL), sin_target(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix restrain command");
 
@@ -72,6 +72,8 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
       memory->grow(kstart,maxrestrain,"restrain:kstart");
       memory->grow(kstop,maxrestrain,"restrain:kstop");
       memory->grow(target,maxrestrain,"restrain:target");
+      memory->grow(deqstart,maxrestrain,"restrain:deqstart");
+      memory->grow(deqstop,maxrestrain,"restrain:deqstop");
       memory->grow(cos_target,maxrestrain,"restrain:cos_target");
       memory->grow(sin_target,maxrestrain,"restrain:sin_target");
     }
@@ -83,8 +85,29 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
       ids[nrestrain][1] = force->inumeric(FLERR,arg[iarg+2]);
       kstart[nrestrain] = force->numeric(FLERR,arg[iarg+3]);
       kstop[nrestrain] = force->numeric(FLERR,arg[iarg+4]);
-      target[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
-      iarg += 6;
+      deqstart[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
+      if (iarg+6 == narg) {
+        deqstop[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
+        iarg += 6;
+      } else {
+        deqstop[nrestrain] = force->numeric(FLERR,arg[iarg+6]);
+        iarg += 7;
+      }
+    } else if (strcmp(arg[iarg],"lbound") == 0) {
+      if (iarg+6 > narg) error->all(FLERR,"Illegal fix restrain command");
+      rstyle[nrestrain] = LBOUND;
+      ids[nrestrain][0] = force->inumeric(FLERR,arg[iarg+1]);
+      ids[nrestrain][1] = force->inumeric(FLERR,arg[iarg+2]);
+      kstart[nrestrain] = force->numeric(FLERR,arg[iarg+3]);
+      kstop[nrestrain] = force->numeric(FLERR,arg[iarg+4]);
+      deqstart[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
+      if (iarg+6 == narg) {
+        deqstop[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
+        iarg += 6;
+      } else {
+        deqstop[nrestrain] = force->numeric(FLERR,arg[iarg+6]);
+        iarg += 7;
+      }
     } else if (strcmp(arg[iarg],"angle") == 0) {
       if (iarg+7 > narg) error->all(FLERR,"Illegal fix restrain command");
       rstyle[nrestrain] = ANGLE;
@@ -139,6 +162,8 @@ FixRestrain::~FixRestrain()
   memory->destroy(kstart);
   memory->destroy(kstop);
   memory->destroy(target);
+  memory->destroy(deqstart);
+  memory->destroy(deqstop);
   memory->destroy(cos_target);
   memory->destroy(sin_target);
 }
@@ -192,11 +217,13 @@ void FixRestrain::post_force(int /*vflag*/)
   energy = 0.0;
 
   ebond = 0.0;
+  elbound = 0.0;
   eangle = 0.0;
   edihed = 0.0;
 
   for (int m = 0; m < nrestrain; m++)
     if (rstyle[m] == BOND) restrain_bond(m);
+    else if (rstyle[m] == LBOUND) restrain_lbound(m);
     else if (rstyle[m] == ANGLE) restrain_angle(m);
     else if (rstyle[m] == DIHEDRAL) restrain_dihedral(m);
 }
@@ -233,6 +260,7 @@ void FixRestrain::restrain_bond(int m)
   double delta = update->ntimestep - update->beginstep;
   if (delta != 0.0) delta /= update->endstep - update->beginstep;
   double k = kstart[m] + delta * (kstop[m] - kstart[m]);
+  double deq = deqstart[m] + delta * (deqstop[m] - deqstart[m]);
 
   i1 = atom->map(ids[m][0]);
   i2 = atom->map(ids[m][1]);
@@ -269,7 +297,7 @@ void FixRestrain::restrain_bond(int m)
 
   rsq = delx*delx + dely*dely + delz*delz;
   r = sqrt(rsq);
-  dr = r - target[m];
+  dr = r - deq;
   rk = k * dr;
 
   // force & energy
@@ -277,8 +305,96 @@ void FixRestrain::restrain_bond(int m)
   if (r > 0.0) fbond = -2.0*rk/r;
   else fbond = 0.0;
 
-  ebond += rk*dr;
+  ebond  += rk*dr;
   energy += rk*dr;
+
+  // apply force to each of 2 atoms
+
+  if (newton_bond || i1 < nlocal) {
+    f[i1][0] += delx*fbond;
+    f[i1][1] += dely*fbond;
+    f[i1][2] += delz*fbond;
+  }
+
+  if (newton_bond || i2 < nlocal) {
+    f[i2][0] -= delx*fbond;
+    f[i2][1] -= dely*fbond;
+    f[i2][2] -= delz*fbond;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   apply harmonic lower-bound bond restraints
+---------------------------------------------------------------------- */
+
+void FixRestrain::restrain_lbound(int m)
+{
+  int i1,i2;
+  double delx,dely,delz,fbond;
+  double rsq,r,dr,rk;
+
+  double **x = atom->x;
+  double **f = atom->f;
+  int nlocal = atom->nlocal;
+  int newton_bond = force->newton_bond;
+
+  double delta = update->ntimestep - update->beginstep;
+  if (delta != 0.0) delta /= update->endstep - update->beginstep;
+  double k = kstart[m] + delta * (kstop[m] - kstart[m]);
+  double deq = deqstart[m] + delta * (deqstop[m] - deqstart[m]);
+
+  i1 = atom->map(ids[m][0]);
+  i2 = atom->map(ids[m][1]);
+
+  // newton_bond on: only processor owning i2 computes restraint
+  // newton_bond off: only processors owning either of i1,i2 computes restraint
+
+  if (newton_bond) {
+    if (i2 == -1 || i2 >= nlocal) return;
+    if (i1 == -1) {
+      char str[128];
+      sprintf(str,
+              "Restrain atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
+              ids[m][0],ids[m][1],
+              comm->me,update->ntimestep);
+      error->one(FLERR,str);
+    }
+  } else {
+    if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal)) return;
+    if (i1 == -1 || i2 == -1)  {
+      char str[128];
+      sprintf(str,
+              "Restrain atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
+              ids[m][0],ids[m][1],
+              comm->me,update->ntimestep);
+      error->one(FLERR,str);
+    }
+  }
+
+  delx = x[i1][0] - x[i2][0];
+  dely = x[i1][1] - x[i2][1];
+  delz = x[i1][2] - x[i2][2];
+  domain->minimum_image(delx,dely,delz);
+
+  rsq = delx*delx + dely*dely + delz*delz;
+  r = sqrt(rsq);
+  dr = r - deq;
+  rk = k * dr;
+
+  // force & energy
+
+  if (dr < 0) {
+    if (r > 0.0) fbond = -2.0*rk/r;
+    else fbond = 0.0;
+
+    elbound  += rk*dr;
+    energy += rk*dr;
+  } else {
+    fbond = 0.0;
+
+    elbound  += 0.0;
+    energy += 0.0;
+  }
 
   // apply force to each of 2 atoms
 
@@ -655,9 +771,12 @@ double FixRestrain::compute_vector(int n)
     MPI_Allreduce(&ebond,&ebond_all,1,MPI_DOUBLE,MPI_SUM,world);
     return ebond_all;
   } else if (n == 1) {
+    MPI_Allreduce(&elbound,&elbound_all,1,MPI_DOUBLE,MPI_SUM,world);
+    return elbound_all;
+  } else if (n == 3) {
     MPI_Allreduce(&eangle,&eangle_all,1,MPI_DOUBLE,MPI_SUM,world);
     return eangle_all;
-  } else if (n == 2) {
+  } else if (n == 4) {
     MPI_Allreduce(&edihed,&edihed_all,1,MPI_DOUBLE,MPI_SUM,world);
     return edihed_all;
   } else {

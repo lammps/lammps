@@ -6,7 +6,6 @@ fix tune/kspace command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID tune/kspace N
@@ -15,12 +14,10 @@ Syntax
 * tune/kspace = style name of this fix command
 * N = invoke this fix every N steps
 
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 2 all tune/kspace 100
 
@@ -70,11 +67,11 @@ to use this fix only to discover the optimal parameter set for a given setup
 that can then be used on subsequent production runs.
 
 This fix starts with kspace parameters that are set by the user with the
-:doc:`kspace\_style <kspace_style>` and :doc:`kspace\_modify <kspace_modify>`
+:doc:`kspace_style <kspace_style>` and :doc:`kspace_modify <kspace_modify>`
 commands. The prescribed accuracy will be maintained by this fix throughout
 the simulation.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.
 
 No parameter of this fix can be used with the *start/stop* keywords of
@@ -83,11 +80,10 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-
 This fix is part of the KSPACE package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
-Do not set "neigh\_modify once yes" or else this fix will never be
+Do not set "neigh_modify once yes" or else this fix will never be
 called.  Reneighboring is required.
 
 This fix is not compatible with a hybrid pair style, long-range dispersion,
@@ -96,14 +92,9 @@ TIP4P water support, or long-range point dipole support.
 Related commands
 """"""""""""""""
 
-:doc:`kspace\_style <kspace_style>`, :doc:`boundary <boundary>`
-:doc:`kspace\_modify <kspace_modify>`, :doc:`pair\_style lj/cut/coul/long <pair_lj>`, :doc:`pair\_style lj/charmm/coul/long <pair_charmm>`, :doc:`pair\_style lj/long <pair_lj_long>`, :doc:`pair\_style lj/long/coul/long <pair_lj_long>`,
-:doc:`pair\_style buck/coul/long <pair_buck>`
+:doc:`kspace_style <kspace_style>`, :doc:`boundary <boundary>`
+:doc:`kspace_modify <kspace_modify>`, :doc:`pair_style lj/cut/coul/long <pair_lj>`, :doc:`pair_style lj/charmm/coul/long <pair_charmm>`, :doc:`pair_style lj/long <pair_lj_long>`, :doc:`pair_style lj/long/coul/long <pair_lj_long>`,
+:doc:`pair_style buck/coul/long <pair_buck>`
 
 Default
 """""""
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

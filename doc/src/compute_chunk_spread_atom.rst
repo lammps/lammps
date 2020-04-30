@@ -6,7 +6,6 @@ compute chunk/spread/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID chunk/spread/atom chunkID input1 input2 ...
@@ -15,24 +14,21 @@ Syntax
 * chunk/spread/atom = style name of this compute command
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 * one or more inputs can be listed
-* input = c\_ID, c\_ID[N], f\_ID, f\_ID[N]
-  
+* input = c_ID, c_ID[N], f_ID, f_ID[N]
+
   .. parsed-literal::
-  
+
        c_ID = global vector calculated by a compute with ID
        c_ID[I] = Ith column of global array calculated by a compute with ID, I can include wildcard (see below)
        f_ID = global vector calculated by a fix with ID
        f_ID[I] = Ith column of global array calculated by a fix with ID, I can include wildcard (see below)
 
-
-
 Examples
 """"""""
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   compute 1 all chunk/spread/atom mychunk c_com**\*** c_gyration
+   compute 1 all chunk/spread/atom mychunk c_com[*] c_gyration
 
 Description
 """""""""""
@@ -85,9 +81,7 @@ or fix.
    does not check that it is per-chunk data.  It only checks that the fix
    produces a global vector or array.
 
-
 ----------
-
 
 Each listed input is operated on independently.
 
@@ -105,28 +99,24 @@ had been listed one by one.  E.g. these 2 compute chunk/spread/atom
 commands are equivalent, since the :doc:`compute com/chunk <compute_com_chunk>` command creates a per-atom array
 with 3 columns:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute com all com/chunk mychunk
-   compute 10 all chunk/spread/atom mychunk c_com[\*]
+   compute 10 all chunk/spread/atom mychunk c_com[*]
    compute 10 all chunk/spread/atom mychunk c_com[1] c_com[2] c_com[3]
 
-
 ----------
-
 
 Here is an example of writing a dump file the with the center-of-mass
 (COM) for the chunk each atom is in.  The commands below can be added
 to the bench/in.chain script.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute         cmol all chunk/atom molecule
    compute         com all com/chunk cmol
-   compute         comchunk all chunk/spread/atom cmol c_com**\***
-   dump            1 all custom 50 tmp.dump id mol type x y z c_comchunk**\***
+   compute         comchunk all chunk/spread/atom cmol c_com[*]
+   dump            1 all custom 50 tmp.dump id mol type x y z c_comchunk[*]
    dump_modify     1 sort id
 
 The same per-chunk data for each atom could be used to define per-atom
@@ -134,14 +124,13 @@ forces for the :doc:`fix addforce <fix_addforce>` command.  In this
 example the forces act to pull atoms of an extended polymer chain
 towards its COM in an attractive manner.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute         prop all property/atom xu yu zu
    variable        k equal 0.1
-   variable        fx atom v_k\*(c_comchunk[1]-c_prop[1])
-   variable        fy atom v_k\*(c_comchunk[2]-c_prop[2])
-   variable        fz atom v_k\*(c_comchunk[3]-c_prop[3])
+   variable        fx atom v_k*(c_comchunk[1]-c_prop[1])
+   variable        fy atom v_k*(c_comchunk[2]-c_prop[2])
+   variable        fz atom v_k*(c_comchunk[3]-c_prop[3])
    fix             3 all addforce v_fx v_fy v_fz
 
 Note that :doc:`compute property/atom <compute_property_atom>` is used
@@ -154,7 +143,6 @@ of gyration in a polymer mixture simulation.  Here is output from the
 bench/in.chain script.  Thermo output is shown for 1000 steps, where
 the last column is the average radius of gyration over all 320 chains
 in the 32000 atom system:
-
 
 .. parsed-literal::
 
@@ -174,9 +162,7 @@ in the 32000 atom system:
         900     22.59128    5.0247538    4.5611513
        1000    22.586832      4.94697    4.5238362
 
-
 ----------
-
 
 Here is an example for using one set of chunks, defined for molecules,
 to compute the dipole moment vector for each chunk.  E.g. for water
@@ -185,14 +171,13 @@ Then defining a second set of chunks based on spatial bins.  And
 finally, using the :doc:`fix ave/chunk <fix_ave_chunk>` command to
 calculate an average dipole moment vector per spatial bin.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute       cmol all chunk/atom molecule
    compute       dipole all dipole/chunk cmol
    compute       spread all chunk/spread/atom cmol c_dipole[1] c_dipole[2] c_dipole[3]
    compute       cspatial all chunk/atom bin/1d z lower 0.1 units reduced
-   fix           ave all ave/chunk 100 10 1000 cspatial c_spread[\*]
+   fix           ave all ave/chunk 100 10 1000 cspatial c_spread[*]
 
 Note that the :doc:`fix ave/chunk <fix_ave_chunk>` command requires
 per-atom values as input.  That is why the compute chunk/spread/atom
@@ -201,9 +186,7 @@ If a molecule straddles bin boundaries, each of its atoms contributes
 in a weighted manner to the average dipole moment of the spatial bin
 it is in.
 
-
 ----------
-
 
 **Output info:**
 
@@ -230,8 +213,3 @@ Related commands
 :doc:`compute chunk/atom <compute_chunk_atom>`, :doc:`fix ave/chunk <fix_ave_chunk>`, :doc:`compute reduce/chunk <compute_reduce_chunk>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

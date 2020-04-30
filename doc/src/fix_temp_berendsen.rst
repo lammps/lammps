@@ -6,7 +6,6 @@ fix temp/berendsen command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID temp/berendsen Tstart Tstop Tdamp
@@ -14,19 +13,17 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * temp/berendsen = style name of this fix command
 * Tstart,Tstop = desired temperature at start/end of run
-  
+
   .. parsed-literal::
-  
+
        Tstart can be a variable (see below)
 
 * Tdamp = temperature damping parameter (time units)
 
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all temp/berendsen 300.0 300.0 100.0
 
@@ -53,7 +50,7 @@ of (roughly) 100 time units (tau or fmsec or psec - see the
 
 *Tstart* can be specified as an equal-style :doc:`variable <variable>`.
 In this case, the *Tstop* setting is ignored.  If the value is a
-variable, it should be specified as v\_name, where name is the variable
+variable, it should be specified as v_name, where name is the variable
 name.  In this case, the variable will be evaluated each timestep, and
 its value used to determine the target temperature.
 
@@ -64,7 +61,7 @@ its value used to determine the target temperature.
    zero temperature.
 
 Equal-style variables can specify formulas with various mathematical
-functions, and include :doc:`thermo\_style <thermo_style>` command
+functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent temperature.
 
@@ -87,8 +84,7 @@ This fix computes a temperature each timestep.  To do this, the fix
 creates its own compute of style "temp", as if this command had been
 issued:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp group-ID temp
 
@@ -97,12 +93,12 @@ that the ID of the new compute is the fix-ID + underscore + "temp",
 and the group for the new compute is the same as the fix group.
 
 Note that this is NOT the compute used by thermodynamic output (see
-the :doc:`thermo\_style <thermo_style>` command) with ID = *thermo\_temp*.
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo_temp*.
 This means you can change the attributes of this fix's temperature
 (e.g. its degrees-of-freedom) via the
-:doc:`compute\_modify <compute_modify>` command or print this temperature
-during thermodynamic output via the :doc:`thermo\_style custom <thermo_style>` command using the appropriate compute-ID.
-It also means that changing attributes of *thermo\_temp* will have no
+:doc:`compute_modify <compute_modify>` command or print this temperature
+during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` command using the appropriate compute-ID.
+It also means that changing attributes of *thermo_temp* will have no
 effect on this fix.
 
 Like other fixes that perform thermostatting, this fix can be used
@@ -111,7 +107,7 @@ after removing a "bias" from the atom velocities.  E.g. removing the
 center-of-mass velocity from a group of atoms or only calculating
 temperature on the x-component of velocity or only calculating
 temperature for atoms in a geometric region.  This is not done by
-default, but only if the :doc:`fix\_modify <fix_modify>` command is used
+default, but only if the :doc:`fix_modify <fix_modify>` command is used
 to assign a temperature compute to this fix that includes such a bias
 term.  See the doc pages for individual :doc:`compute commands <compute>` to determine which ones include a bias.  In
 this case, the thermostat works in the following manner: the current
@@ -119,21 +115,19 @@ temperature is calculated taking the bias into account, bias is
 removed from each atom, thermostatting is performed on the remaining
 thermal degrees of freedom, and the bias is added back in.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix\_modify <fix_modify>` *temp* option is supported by this
+The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
 fix.  You can use it to assign a temperature :doc:`compute <compute>`
 you have defined to this fix which will be used in its thermostatting
 procedure, as described above.  For consistency, the group used by
 this fix and by the compute should be the same.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is supported by this
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the energy change implied by a velocity rescaling to the
 system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
@@ -151,7 +145,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
 This fix can be used with dynamic groups as defined by the
 :doc:`group <group>` command.  Likewise it can be used with groups to
 which atoms are added or deleted over time, e.g. a deposition
@@ -164,23 +157,14 @@ Related commands
 """"""""""""""""
 
 :doc:`fix nve <fix_nve>`, :doc:`fix nvt <fix_nh>`, :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix langevin <fix_langevin>`,
-:doc:`fix\_modify <fix_modify>`, :doc:`compute temp <compute_temp>`,
+:doc:`fix_modify <fix_modify>`, :doc:`compute temp <compute_temp>`,
 :doc:`fix press/berendsen <fix_press_berendsen>`
 
 **Default:** none
 
-
 ----------
-
 
 .. _Berendsen2:
 
-
-
 **(Berendsen)** Berendsen, Postma, van Gunsteren, DiNola, Haak, J Chem
 Phys, 81, 3684 (1984).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -4,7 +4,6 @@ Use Python with LAMMPS
 These doc pages describe various ways that LAMMPS and Python can be
 used together.
 
-
 .. toctree::
    :maxdepth: 1
 
@@ -28,7 +27,7 @@ its library interface, or to hook multiple pieces of software
 together, such as a simulation code plus a visualization tool, or to
 run a coupled multiscale or multiphysics model.
 
-See the :doc:`Howto\_couple <Howto_couple>` doc page for more ideas about
+See the :doc:`Howto_couple <Howto_couple>` doc page for more ideas about
 coupling LAMMPS to other codes.  See the :doc:`Howto library <Howto_library>` doc page for a description of the LAMMPS
 library interface provided in src/library.h and src/library.h.  That
 interface is exposed to Python either when calling LAMMPS from Python
@@ -42,8 +41,3 @@ interesting Python functions that can be called from a LAMMPS input
 script, that you think would be generally useful, please post them as
 a pull request to our `GitHub site <https://github.com/lammps/lammps>`_,
 and they can be added to the LAMMPS distribution or webpage.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

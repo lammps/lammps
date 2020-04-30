@@ -178,6 +178,12 @@ void EwaldDisp::init()
   if (!function[1] && !function[2]) dispersionflag = 0;
   if (!function[3]) dipoleflag = 0;
 
+  // compute two charge force
+
+  two_charge();
+
+  // extract short-range Coulombic cutoff from pair style
+
   pair_check();
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute

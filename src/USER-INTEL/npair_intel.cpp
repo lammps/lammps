@@ -15,6 +15,7 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "comm.h"
 #include "domain.h"
 #include "timer.h"
@@ -263,7 +264,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
     }
 
     #if defined(_OPENMP)
-    #pragma omp parallel default(none) \
+    #pragma omp parallel LMP_DEFAULT_NONE \
       shared(overflow, nstencilp, binstart, binend)
     #endif
     {
@@ -360,7 +361,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
             if (THREE) ttag[u] = tag[j];
           }
 
-          if (FULL == 0 || TRI == 1) {
+          if (FULL == 0 && TRI != 1) {
             icount = 0;
             istart = ncount;
             IP_PRE_edge_align(istart, sizeof(int));
@@ -392,7 +393,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
         // ---------------------- Loop over i bin
 
         int n = 0;
-        if (FULL == 0 || TRI == 1) {
+        if (FULL == 0 && TRI != 1) {
           #if defined(LMP_SIMD_COMPILER)
           #pragma vector aligned
           #pragma ivdep

@@ -149,6 +149,19 @@ void AtomVec::init()
 }
 
 /* ----------------------------------------------------------------------
+   roundup N so it is a multiple of DELTA
+   error if N exceeds 32-bit int, since will be used as arg to grow()
+------------------------------------------------------------------------- */
+
+bigint AtomVec::roundup(bigint n)
+{
+  if (n % DELTA) n = n/DELTA * DELTA + DELTA;
+  if (n > MAXSMALLINT)
+    error->one(FLERR,"Too many atoms created on one or more procs");
+  return n;
+}
+
+/* ----------------------------------------------------------------------
    grow nmax so it is a multiple of DELTA
 ------------------------------------------------------------------------- */
 

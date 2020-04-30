@@ -30,6 +30,7 @@
 #include "force.h"
 #include "input.h"
 #include "math_const.h"
+#include "memory.h"
 #include "modify.h"
 #include "respa.h"
 #include "update.h"
@@ -43,7 +44,7 @@ enum{CONSTANT,EQUAL};
 
 /* ---------------------------------------------------------------------- */
 
-FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), emag(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal precession/spin command");
 
@@ -154,6 +155,7 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lm
 FixPrecessionSpin::~FixPrecessionSpin()
 {
   delete [] magstr;
+  memory->destroy(emag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -175,7 +177,7 @@ void FixPrecessionSpin::init()
 {
   const double hbar = force->hplanck/MY_2PI;    // eV/(rad.THz)
   const double mub = 5.78901e-5;                // in eV/T
-  const double gyro = mub/hbar;                 // in rad.THz/T
+  const double gyro = 2.0*mub/hbar;             // in rad.THz/T
 
   // convert field quantities to rad.THz
 
@@ -197,6 +199,15 @@ void FixPrecessionSpin::init()
         error->all(FLERR,"Illegal precession/spin command");
   }
 
+  // check that fix precession/spin is only declared once
+
+  int iprec = 0;
+  for (int iforce = 0; iforce < modify->nfix; iforce++)
+    if (strstr(modify->fix[iforce]->style,"precession/spin")) iprec++;
+  if (iprec > 1)
+    error->all(FLERR,"precession/spin command can only be declared once");
+
+
   varflag = CONSTANT;
   if (magfieldstyle != CONSTANT) varflag = EQUAL;
 
@@ -204,6 +215,10 @@ void FixPrecessionSpin::init()
 
   if (varflag == CONSTANT) set_magneticprecession();
 
+  // init. size of energy stacking lists
+
+  nlocal_max = atom->nlocal;
+  memory->grow(emag,nlocal_max,"pair/spin:emag");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -243,21 +258,30 @@ void FixPrecessionSpin::post_force(int /* vflag */)
   double **fm = atom->fm;
   double **sp = atom->sp;
   const int nlocal = atom->nlocal;
-  double spi[3], fmi[3], epreci;
+  double spi[4], fmi[3], epreci;
+
+  // checking size of emag
+
+  if (nlocal_max < nlocal) {                    // grow emag lists if necessary
+    nlocal_max = nlocal;
+    memory->grow(emag,nlocal_max,"pair/spin:emag");
+  }
 
   eflag = 0;
   eprec = 0.0;
   for (int i = 0; i < nlocal; i++) {
+    emag[i] = 0.0;
     if (mask[i] & groupbit) {
       epreci = 0.0;
       spi[0] = sp[i][0];
       spi[1] = sp[i][1];
       spi[2] = sp[i][2];
+      spi[3] = sp[i][3];
       fmi[0] = fmi[1] = fmi[2] = 0.0;
 
       if (zeeman_flag) {          // compute Zeeman interaction
         compute_zeeman(i,fmi);
-        epreci -= hbar*(spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+        epreci -= compute_zeeman_energy(spi);
       }
 
       if (aniso_flag) {           // compute magnetic anisotropy
@@ -270,6 +294,7 @@ void FixPrecessionSpin::post_force(int /* vflag */)
         epreci -= compute_cubic_energy(spi);
       }
 
+      emag[i] += epreci;
       eprec += epreci;
       fm[i][0] += fmi[0];
       fm[i][1] += fmi[1];
@@ -302,6 +327,16 @@ void FixPrecessionSpin::compute_zeeman(int i, double fmi[3])
 
 /* ---------------------------------------------------------------------- */
 
+double FixPrecessionSpin::compute_zeeman_energy(double spi[4])
+{
+  double energy = 0.0;
+  double scalar = nhx*spi[0]+nhy*spi[1]+nhz*spi[2];
+  energy = hbar*H_field*spi[3]*scalar;
+  return energy;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixPrecessionSpin::compute_anisotropy(double spi[3], double fmi[3])
 {
   double scalar = nax*spi[0] + nay*spi[1] + naz*spi[2];
@@ -317,48 +352,6 @@ double FixPrecessionSpin::compute_anisotropy_energy(double spi[3])
   double energy = 0.0;
   double scalar = nax*spi[0] + nay*spi[1] + naz*spi[2];
   energy = Ka*scalar*scalar;
-  return energy;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPrecessionSpin::post_force_respa(int vflag, int ilevel, int /*iloop*/)
-{
-  if (ilevel == ilevel_respa) post_force(vflag);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPrecessionSpin::set_magneticprecession()
-{
-  if (zeeman_flag) {
-    hx = H_field*nhx;
-    hy = H_field*nhy;
-    hz = H_field*nhz;
-  }
-  if (aniso_flag) {
-    Kax = 2.0*Kah*nax;
-    Kay = 2.0*Kah*nay;
-    Kaz = 2.0*Kah*naz;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   compute cubic aniso energy of spin i
-------------------------------------------------------------------------- */
-
-double FixPrecessionSpin::compute_cubic_energy(double spi[3])
-{
-  double energy = 0.0;
-  double skx,sky,skz;
-
-  skx = spi[0]*nc1x+spi[1]*nc1y+spi[2]*nc1z;
-  sky = spi[0]*nc2x+spi[1]*nc2y+spi[2]*nc2z;
-  skz = spi[0]*nc3x+spi[1]*nc3y+spi[2]*nc3z;
-
-  energy = k1c*(skx*skx*sky*sky + sky*sky*skz*skz + skx*skx*skz*skz);
-  energy += k2c*skx*skx*sky*sky*skz*skz;
-
   return energy;
 }
 
@@ -396,9 +389,44 @@ void FixPrecessionSpin::compute_cubic(double spi[3], double fmi[3])
   sixy = k2ch*(nc1y*six1 + nc2y*six2 + nc3y*six3);
   sixz = k2ch*(nc1z*six1 + nc2z*six2 + nc3z*six3);
 
-  fmi[0] += fourx + sixx;
-  fmi[1] += foury + sixy;
-  fmi[2] += fourz + sixz;
+  fmi[0] += (fourx + sixx);
+  fmi[1] += (foury + sixy);
+  fmi[2] += (fourz + sixz);
+}
+
+/* ----------------------------------------------------------------------
+   compute cubic aniso energy of spin i
+------------------------------------------------------------------------- */
+
+double FixPrecessionSpin::compute_cubic_energy(double spi[3])
+{
+  double energy = 0.0;
+  double skx,sky,skz;
+
+  skx = spi[0]*nc1x+spi[1]*nc1y+spi[2]*nc1z;
+  sky = spi[0]*nc2x+spi[1]*nc2y+spi[2]*nc2z;
+  skz = spi[0]*nc3x+spi[1]*nc3y+spi[2]*nc3z;
+
+  energy = k1c*(skx*skx*sky*sky + sky*sky*skz*skz + skx*skx*skz*skz);
+  energy += k2c*skx*skx*sky*sky*skz*skz;
+
+  return energy;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPrecessionSpin::set_magneticprecession()
+{
+  if (zeeman_flag) {
+    hx = H_field*nhx;
+    hy = H_field*nhy;
+    hz = H_field*nhz;
+  }
+  if (aniso_flag) {
+    Kax = 2.0*Kah*nax;
+    Kay = 2.0*Kah*nay;
+    Kaz = 2.0*Kah*naz;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -421,4 +449,11 @@ double FixPrecessionSpin::compute_scalar()
 void FixPrecessionSpin::min_post_force(int vflag)
 {
   post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPrecessionSpin::post_force_respa(int vflag, int ilevel, int /*iloop*/)
+{
+  if (ilevel == ilevel_respa) post_force(vflag);
 }

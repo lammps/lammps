@@ -6,7 +6,6 @@ newton command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    newton flag
@@ -19,8 +18,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    newton off
    newton on off
@@ -46,7 +44,7 @@ processor.
 LAMMPS should produce the same answers for any newton flag settings,
 except for round-off issues.
 
-With :doc:`run\_style <run_style>` *respa* and only bonded interactions
+With :doc:`run_style <run_style>` *respa* and only bonded interactions
 (bond, angle, etc) computed in the innermost timestep, it may be
 faster to turn newton *off* for bonded interactions, to avoid extra
 communication in the innermost loop.
@@ -54,25 +52,18 @@ communication in the innermost loop.
 Restrictions
 """"""""""""
 
-
 The newton bond setting cannot be changed after the simulation box is
-defined by a :doc:`read\_data <read_data>` or
-:doc:`create\_box <create_box>` command.
+defined by a :doc:`read_data <read_data>` or
+:doc:`create_box <create_box>` command.
 
 Related commands
 """"""""""""""""
 
-:doc:`run\_style <run_style>` respa
+:doc:`run_style <run_style>` respa
 
 Default
 """""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    newton on
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

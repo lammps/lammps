@@ -1,22 +1,21 @@
-.. index:: fix\_modify
+.. index:: fix_modify
 
-fix\_modify command
-===================
+fix_modify command
+==================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify fix-ID keyword value ...
 
 * fix-ID = ID of the fix to modify
 * one or more keyword/value pairs may be appended
 * keyword = *temp* or *press* or *energy* or *virial* or *respa* or *dynamic/dof* or *bodyforces*
-  
+
   .. parsed-literal::
-  
+
        *temp* value = compute ID that calculates a temperature
        *press* value = compute ID that calculates a pressure
        *energy* value = *yes* or *no*
@@ -27,13 +26,10 @@ Syntax
        *bodyforces* value = *early* or *late*
          early/late = compute rigid-body forces/torques early or late in the timestep
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify 3 temp myTemp press myPress
    fix_modify 1 energy yes
@@ -45,7 +41,7 @@ Description
 Modify one or more parameters of a previously defined fix.  Only
 specific fix styles support specific parameters.  See the doc pages
 for individual fix commands for info on which ones support which
-fix\_modify parameters.
+fix_modify parameters.
 
 The *temp* keyword is used to determine how a fix computes
 temperature.  The specified compute ID must have been previously
@@ -67,10 +63,10 @@ The *energy* keyword can be used with fixes that support it.
 *energy yes* adds a contribution to the potential energy of the
 system. The fix's global and per-atom
 energy is included in the calculation performed by the :doc:`compute pe <compute_pe>` or :doc:`compute pe/atom <compute_pe_atom>`
-commands.  See the :doc:`thermo\_style <thermo_style>` command for info
+commands.  See the :doc:`thermo_style <thermo_style>` command for info
 on how potential energy is output.  For fixes that tally a global
-energy, it can be printed by using the keyword f\_ID in the
-thermo\_style custom command, where ID is the fix-ID of the appropriate
+energy, it can be printed by using the keyword f_ID in the
+thermo_style custom command, where ID is the fix-ID of the appropriate
 fix.
 
 .. note::
@@ -85,7 +81,7 @@ The *virial* keyword can be used with fixes that support it.
 system. The fix's global and per-atom
 virial is included in the calculation performed by the :doc:`compute pressure <compute_pressure>` or
 :doc:`compute stress/atom <compute_stress_atom>`
-commands.  See the :doc:`thermo\_style <thermo_style>` command for info
+commands.  See the :doc:`thermo_style <thermo_style>` command for info
 on how pressure is output.
 
 .. note::
@@ -108,7 +104,7 @@ This is a number ranging from 1 to the number of levels. If the RESPA
 level is larger than the current maximum, the outermost level will be
 used, which is also the default setting. This default can be restored
 using a value of *0* for the RESPA level. The affected fix has to be
-enabled to support this feature; if not, *fix\_modify* will report an
+enabled to support this feature; if not, *fix_modify* will report an
 error. Active fixes with a custom RESPA level setting are reported
 with their specified level at the beginning of a r-RESPA run.
 
@@ -129,7 +125,7 @@ normalized.
 
    Other thermostatting fixes, such as :doc:`fix nvt <fix_nh>`, do
    not use the *dynamic/dof* keyword because they use a temperature
-   compute to calculate temperature.  See the :doc:`compute\_modify dynamic/dof <compute_modify>` command for a similar way to insure
+   compute to calculate temperature.  See the :doc:`compute_modify dynamic/dof <compute_modify>` command for a similar way to insure
    correct temperature normalization for those thermostats.
 
 The *bodyforces* keyword determines whether the forces and torques
@@ -154,12 +150,12 @@ will give a warning if that is the case.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""
 
-:doc:`fix <fix>`, :doc:`compute temp <compute_temp>`, :doc:`compute pressure <compute_pressure>`, :doc:`thermo\_style <thermo_style>`
+:doc:`fix <fix>`, :doc:`compute temp <compute_temp>`, :doc:`compute pressure <compute_pressure>`, :doc:`thermo_style <thermo_style>`
 
 Default
 """""""
@@ -167,8 +163,3 @@ Default
 The option defaults are temp = ID defined by fix, press = ID defined
 by fix, energy = no, virial = different for each fix style, respa = 0,
 bodyforce = late.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -23,8 +23,11 @@ public:
   /// Name of this bias
   std::string name;
 
-  /// Type of this bias
+  /// Keyword indicating the type of this bias
   std::string bias_type;
+
+  /// Keyword used in state files (== bias_type most of the time)
+  std::string state_keyword;
 
   /// If there is more than one bias of this type, record its rank
   int rank;
@@ -51,20 +54,21 @@ public:
   }
 
   /// Retrieve colvar values and calculate their biasing forces
-  /// Return bias energy
+  /// Some implementations may use calc_energy() and calc_forces()
   virtual int update();
 
-  /// \brief Compute the energy of the bias with alternative values of the
-  /// collective variables (suitable for bias exchange)
-  virtual int calc_energy(std::vector<colvarvalue> const &values =
-                          std::vector<colvarvalue>(0))
-  {
-    cvm::error("Error: calc_energy() not implemented.\n", COLVARS_NOT_IMPLEMENTED);
-    return COLVARS_NOT_IMPLEMENTED;
-  }
+  /// Compute the energy of the bias
+  /// Uses the vector of colvar values provided if not NULL, and the values
+  /// currently cached in the bias instance otherwise
+  virtual int calc_energy(std::vector<colvarvalue> const *values);
+
+  /// Compute the forces due to the bias
+  /// Uses the vector of colvar values provided if not NULL, and the values
+  /// currently cached in the bias instance otherwise
+  virtual int calc_forces(std::vector<colvarvalue> const *values);
 
   /// Send forces to the collective variables
-  virtual void communicate_forces();
+  void communicate_forces();
 
   /// Carry out operations needed before next step is run
   virtual int end_of_step();
@@ -143,10 +147,10 @@ public:
   std::istream & read_state_data_key(std::istream &is, char const *key);
 
   /// Write the bias configuration to a restart file or other stream
-  virtual std::ostream & write_state(std::ostream &os);
+  std::ostream & write_state(std::ostream &os);
 
   /// Read the bias configuration from a restart file or other stream
-  virtual std::istream & read_state(std::istream &is);
+  std::istream & read_state(std::istream &is);
 
   /// Write a label to the trajectory file (comment line)
   virtual std::ostream & write_traj_label(std::ostream &os);
@@ -206,6 +210,9 @@ protected:
   /// through each colvar object
   std::vector<colvar *>    colvars;
 
+  /// \brief Up to date value of each colvar
+  std::vector<colvarvalue> colvar_values;
+
   /// \brief Current forces from this bias to the variables
   std::vector<colvarvalue> colvar_forces;
 
@@ -224,6 +231,9 @@ protected:
 
   /// \brief Step number read from the last state file
   cvm::step_number         state_file_step;
+
+  /// Flag used to tell if the state string being read is for this bias
+  bool matching_state;
 
 };
 

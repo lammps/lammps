@@ -22,7 +22,6 @@ src/SPIN/*            @julient31
 src/USER-CGDNA/*      @ohenrich
 src/USER-CGSDK/*      @akohlmey
 src/USER-COLVARS/*    @giacomofiorin
-src/USER-DPD/*        @timattox
 src/USER-INTEL/*      @wmbrownintel
 src/USER-MANIFOLD/*   @Pakketeretet2
 src/USER-MEAMC/*      @martok
@@ -46,7 +45,7 @@ src/GPU/pair_vashishta_gpu.*        @andeplane
 src/KOKKOS/pair_vashishta_kokkos.*  @andeplane
 src/MANYBODY/pair_vashishta_table.* @andeplane
 src/MANYBODY/pair_atm.*             @sergeylishchuk
-src/USER-MISC/fix_bond_react.*      @jrgissing
+src/USER-REACTION/fix_bond_react.*  @jrgissing
 src/USER-MISC/*_grem.*              @dstelter92
 src/USER-MISC/compute_stress_mop*.* @RomainVermorel
 
@@ -111,6 +110,7 @@ src/exceptions.h          @rbberger
 src/fix_nh.*              @athomps
 src/info.*                @akohlmey @rbberger
 src/timer.*               @akohlmey
+src/min*                  @sjplimp @stanmoore1
 
 # tools
 tools/msi2lmp/*       @akohlmey
@@ -118,6 +118,7 @@ tools/emacs/*         @HaoZeke
 
 # cmake
 cmake/*               @junghans @rbberger
+cmake/Modules/Packages/USER-COLVARS.cmake @junghans @rbberger @giacomofiorin
 
 # python
 python/*              @rbberger

@@ -84,29 +84,6 @@ bool utils::strmatch(std::string text, std::string pattern)
   return (pos >= 0);
 }
 
-/* utility function to avoid code repetition when parsing args */
-int utils::cfvarg(std::string mode, const char *arg, char *&cfv_id)
-{
-  int rv = utils::NONE;
-  cfv_id = NULL;
-
-  if (!arg) return rv;
-
-  if (utils::strmatch(arg,std::string("^[") + mode + "]_")) {
-    if (*arg == 'c') rv = utils::COMPUTE;
-    else if (*arg == 'f') rv = utils::FIX;
-    else if (*arg == 'v') rv = utils::VARIABLE;
-    else return rv;             // should not happen
-
-    arg += 2;
-    int n = strlen(arg)+1;
-    cfv_id = new char[n];
-    strcpy(cfv_id,arg);
-  }
-
-  return rv;
-}
-
 /** \brief try to detect pathname from FILE pointer. Currently only supported on Linux, otherwise will report "(unknown)".
  *
  *  \param buf  storage buffer for pathname. output will be truncated if not large enough

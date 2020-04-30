@@ -38,6 +38,9 @@
 #include "force.h"
 #include "info.h"
 #include "fix_external.h"
+#include "neighbor.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
 
 #if defined(LAMMPS_EXCEPTIONS)
 #include "exceptions.h"
@@ -534,35 +537,19 @@ void *lammps_extract_compute(void *ptr, char *id, int style, int type)
 
     if (style == 1) {
       if (!compute->peratom_flag) return NULL;
-      if (type == 1) {
-        if (compute->invoked_peratom != lmp->update->ntimestep)
-          compute->compute_peratom();
-        return (void *) compute->vector_atom;
-      }
-      if (type == 2) {
-        if (compute->invoked_peratom != lmp->update->ntimestep)
-          compute->compute_peratom();
-        return (void *) compute->array_atom;
-      }
+      if (compute->invoked_peratom != lmp->update->ntimestep)
+        compute->compute_peratom();
+      if (type == 1) return (void *) compute->vector_atom;
+      if (type == 2) return (void *) compute->array_atom;
     }
 
     if (style == 2) {
       if (!compute->local_flag) return NULL;
-      if (type == 0) {
-        if (compute->invoked_local != lmp->update->ntimestep)
-          compute->compute_local();
-        return (void *) &compute->size_local_rows;
-      }
-      if (type == 1) {
-        if (compute->invoked_local != lmp->update->ntimestep)
-          compute->compute_local();
-        return (void *) compute->vector_local;
-      }
-      if (type == 2) {
-        if (compute->invoked_local != lmp->update->ntimestep)
-          compute->compute_local();
-        return (void *) compute->array_local;
-      }
+      if (compute->invoked_local != lmp->update->ntimestep)
+        compute->compute_local();
+      if (type == 0) return (void *) &compute->size_local_rows;
+      if (type == 1) return (void *) compute->vector_local;
+      if (type == 2) return (void *) compute->array_local;
     }
   }
   END_CAPTURE
@@ -634,6 +621,7 @@ void *lammps_extract_fix(void *ptr, char *id, int style, int type,
 
     if (style == 2) {
       if (!fix->local_flag) return NULL;
+      if (type == 0) return (void *) &fix->size_local_rows;
       if (type == 1) return (void *) fix->vector_local;
       if (type == 2) return (void *) fix->array_local;
     }
@@ -1670,6 +1658,31 @@ int lammps_config_package_name(int index, char * buffer, int max_size) {
   return false;
 }
 
+int lammps_has_style(void * ptr, char * category, char * name) {
+  LAMMPS *lmp = (LAMMPS *) ptr;
+  Info info(lmp);
+  return info.has_style(category, name);
+}
+
+int lammps_style_count(void * ptr, char * category) {
+  LAMMPS *lmp = (LAMMPS *) ptr;
+  Info info(lmp);
+  return info.get_available_styles(category).size();
+}
+
+int lammps_style_name(void* ptr, char * category, int index, char * buffer, int max_size) {
+  LAMMPS *lmp = (LAMMPS *) ptr;
+  Info info(lmp);
+  auto styles = info.get_available_styles(category);
+
+  if (index < styles.size()) {
+    strncpy(buffer, styles[index].c_str(), max_size);
+    return true;
+  }
+
+  return false;
+}
+
 int lammps_config_has_gzip_support() {
   return Info::has_gzip_support();
 }
@@ -1727,3 +1740,171 @@ int lammps_get_last_error_message(void *ptr, char * buffer, int buffer_size) {
 }
 
 #endif
+
+/*******************************************************************************
+ * Find neighbor list index of pair style neighbor list
+ *
+ * Try finding pair instance that matches style. If exact is set, the pair must
+ * match style exactly. If exact is 0, style must only be contained. If pair is
+ * of style pair/hybrid, style is instead matched the nsub-th hybrid sub-style.
+ *
+ * Once the pair instance has been identified, multiple neighbor list requests
+ * may be found. Every neighbor list is uniquely identified by its request
+ * index. Thus, providing this request index ensures that the correct neighbor
+ * list index is returned.
+ *
+ * @param ptr      Pointer to LAMMPS instance
+ * @param style    String used to search for pair style instance
+ * @param exact    Flag to control whether style should match exactly or only
+ *                 must be contained in pair style name
+ * @param nsub     match nsub-th hybrid sub-style
+ * @param request  request index that specifies which neighbor list should be
+ *                 returned, in case there are multiple neighbor lists requests
+ *                 for the found pair style
+ * @return         return neighbor list index if found, otherwise -1
+ ******************************************************************************/
+int lammps_find_pair_neighlist(void* ptr, char * style, int exact, int nsub, int request) {
+  LAMMPS *  lmp = (LAMMPS *) ptr;
+  Pair* pair = lmp->force->pair_match(style, exact, nsub);
+
+  if (pair != NULL) {
+    // find neigh list
+    for (int i = 0; i < lmp->neighbor->nlist; i++) {
+      NeighList * list = lmp->neighbor->lists[i];
+      if (list->requestor_type != NeighList::PAIR || pair != list->requestor) continue;
+
+      if (list->index == request) {
+          return i;
+      }
+    }
+  }
+  return -1;
+}
+
+/*******************************************************************************
+ * Find neighbor list index of fix neighbor list
+ *
+ * @param ptr      Pointer to LAMMPS instance
+ * @param id       Identifier of fix instance
+ * @param request  request index that specifies which request should be returned,
+ *                 in case there are multiple neighbor lists for this fix
+ * @return         return neighbor list index if found, otherwise -1
+ ******************************************************************************/
+int lammps_find_fix_neighlist(void* ptr, char * id, int request) {
+  LAMMPS *  lmp = (LAMMPS *) ptr;
+  Fix* fix = NULL;
+  const int nfix = lmp->modify->nfix;
+
+  // find fix with name
+  for (int ifix = 0; ifix < nfix; ifix++) {
+    if (strcmp(lmp->modify->fix[ifix]->id, id) == 0) {
+        fix = lmp->modify->fix[ifix];
+        break;
+    }
+  }
+
+  if (fix != NULL) {
+    // find neigh list
+    for (int i = 0; i < lmp->neighbor->nlist; i++) {
+      NeighList * list = lmp->neighbor->lists[i];
+      if (list->requestor_type != NeighList::FIX || fix != list->requestor) continue;
+
+      if (list->index == request) {
+          return i;
+      }
+    }
+  }
+  return -1;
+}
+
+/*******************************************************************************
+ * Find neighbor list index of compute neighbor list
+ *
+ * @param ptr      Pointer to LAMMPS instance
+ * @param id       Identifier of fix instance
+ * @param request  request index that specifies which request should be returned,
+ *                 in case there are multiple neighbor lists for this fix
+ * @return         return neighbor list index if found, otherwise -1
+ ******************************************************************************/
+int lammps_find_compute_neighlist(void* ptr, char * id, int request) {
+  LAMMPS *  lmp = (LAMMPS *) ptr;
+  Compute* compute = NULL;
+  const int ncompute = lmp->modify->ncompute;
+
+  // find compute with name
+  for (int icompute = 0; icompute < ncompute; icompute++) {
+    if (strcmp(lmp->modify->compute[icompute]->id, id) == 0) {
+        compute = lmp->modify->compute[icompute];
+        break;
+    }
+  }
+
+  if (compute == NULL) {
+    // find neigh list
+    for (int i = 0; i < lmp->neighbor->nlist; i++) {
+      NeighList * list = lmp->neighbor->lists[i];
+      if (list->requestor_type != NeighList::COMPUTE || compute != list->requestor) continue;
+
+      if (list->index == request) {
+          return i;
+      }
+    }
+  }
+  return -1;
+}
+
+/*******************************************************************************
+ * Return the number of entries in the neighbor list with given index
+ *
+ * @param ptr      Pointer to LAMMPS instance
+ * @param idx      neighbor list index
+ * @return         return number of entries in neighbor list, -1 if idx is
+ *                 not a valid index
+ ******************************************************************************/
+int lammps_neighlist_num_elements(void * ptr, int idx) {
+  LAMMPS *  lmp = (LAMMPS *) ptr;
+  Neighbor * neighbor = lmp->neighbor;
+
+  if(idx < 0 || idx >= neighbor->nlist) {
+    return -1;
+  }
+
+  NeighList * list = neighbor->lists[idx];
+  return list->inum;
+}
+
+/*******************************************************************************
+ * Return atom local index, number of neighbors, and array of neighbor local
+ * atom indices of neighbor list entry
+ *
+ * @param ptr             Pointer to LAMMPS instance
+ * @param idx             neighbor list index
+ * @param element         neighbor list element index
+ * @param[out] iatom      atom local index in range [0, nlocal + nghost), -1 if
+                          invalid idx or element index
+ * @param[out] numneigh   number of neighbors of atom i or 0
+ * @param[out] neighbors  pointer to array of neighbor atom local indices or
+ *                        NULL
+ ******************************************************************************/
+void lammps_neighlist_element_neighbors(void * ptr, int idx, int element, int * iatom, int * numneigh, int ** neighbors) {
+  LAMMPS *  lmp = (LAMMPS *) ptr;
+  Neighbor * neighbor = lmp->neighbor;
+  *iatom = -1;
+  *numneigh = 0;
+  *neighbors = NULL;
+
+  if(idx < 0 || idx >= neighbor->nlist) {
+    return;
+  }
+
+  NeighList * list = neighbor->lists[idx];
+
+  if(element < 0 || element >= list->inum) {
+    return;
+  }
+
+  int i = list->ilist[element];
+  *iatom     = i;
+  *numneigh  = list->numneigh[i];
+  *neighbors = list->firstneigh[i];
+}

@@ -56,31 +56,20 @@ two preceding non-equilibrium methods, where energy flows continuously
 between hot and cold regions of the simulation box.
 
 The :doc:`compute heat/flux <compute_heat_flux>` command can calculate
-the needed heat flux and describes how to implement the Green\_Kubo
+the needed heat flux and describes how to implement the Green_Kubo
 formalism using additional LAMMPS commands, such as the :doc:`fix ave/correlate <fix_ave_correlate>` command to calculate the needed
 auto-correlation.  See the doc page for the :doc:`compute heat/flux <compute_heat_flux>` command for an example input script
 that calculates the thermal conductivity of solid Ar via the GK
 formalism.
 
-
 ----------
 
-
 .. _howto-Ikeshoji:
-
-
 
 **(Ikeshoji)** Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261
 (1994).
 
 .. _howto-Wirnsberger:
 
-
-
 **(Wirnsberger)** Wirnsberger, Frenkel, and Dellago, J Chem Phys, 143, 124104
 (2015).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

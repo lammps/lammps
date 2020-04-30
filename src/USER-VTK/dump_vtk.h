@@ -185,7 +185,7 @@ E: Compute used in dump between runs is not current
 The compute was not invoked on the current timestep, therefore it
 cannot be used in a dump between runs.
 
-E: Threshhold for an atom property that isn't allocated
+E: Threshold for an atom property that isn't allocated
 
 A dump threshold has been requested on a quantity that is
 not defined by the atom style used in this simulation.

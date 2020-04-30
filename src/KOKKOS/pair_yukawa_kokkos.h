@@ -103,18 +103,14 @@ class PairYukawaKokkos : public PairYukawa {
   friend class PairComputeFunctor<PairYukawaKokkos,FULL,true>;
   friend class PairComputeFunctor<PairYukawaKokkos,HALF,true>;
   friend class PairComputeFunctor<PairYukawaKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairYukawaKokkos,N2,true>;
   friend class PairComputeFunctor<PairYukawaKokkos,FULL,false>;
   friend class PairComputeFunctor<PairYukawaKokkos,HALF,false>;
   friend class PairComputeFunctor<PairYukawaKokkos,HALFTHREAD,false>;
-  friend class PairComputeFunctor<PairYukawaKokkos,N2,false>;
   friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,FULL,void>(
     PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,HALF,void>(
     PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,HALFTHREAD,void>(
-    PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,N2,void>(
     PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairYukawaKokkos,void>(
     PairYukawaKokkos*,NeighListKokkos<DeviceType>*);

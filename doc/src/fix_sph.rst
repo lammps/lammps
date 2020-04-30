@@ -26,7 +26,8 @@ Description
 Perform time integration to update position, velocity, internal energy
 and local density for atoms in the group each timestep. This fix is
 needed to time-integrate SPH systems where particles carry internal
-variables such as internal energy.  SPH is Smoothed Particle Dynamics.
+variables such as internal energy.  SPH stands for Smoothed Particle
+Hydrodynamics.
 
 See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
 LAMMPS.

@@ -56,6 +56,7 @@ class PairGranHookeHistory : public Pair {
 
   int size_history;
 
+  class FixDummy *fix_dummy;
   class FixNeighHistory *fix_history;
 
   // storage of rigid body masses for use in granular interactions

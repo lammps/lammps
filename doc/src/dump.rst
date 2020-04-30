@@ -37,7 +37,7 @@ Syntax
 * ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be dumped
 * style = *atom* or *atom/gz* or *atom/mpiio* or *cfg* or *cfg/gz* or
-  *cfg/mpiio* or *custom* or *custom/gz* or *custom/mpiio* or *dcd* or *h5md* or *image* or *local* or *local/gz* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/mpiio*
+  *cfg/mpiio* or *custom* or *custom/gz* or *custom/mpiio* or *custom/time* or *dcd* or *h5md* or *image* or *local* or *local/gz* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/mpiio* or *xyz/time*
 * N = dump every this many timesteps
 * file = name of file to write dump info to
 * args = list of arguments for a particular style
@@ -52,6 +52,7 @@ Syntax
        *cfg/gz* args = same as *custom* args, see below
        *cfg/mpiio* args = same as *custom* args, see below
        *custom*\ , *custom/gz*\ , *custom/mpiio* args = see below
+       *custom/time* args M = args-see *custom*, *M*-time frequency of a dump
        *custom/adios* args = same as *custom* args, discussed on :doc:`dump custom/adios <dump_adios>` doc page
        *dcd* args = none
        *h5md* args = discussed on :doc:`dump h5md <dump_h5md>` doc page
@@ -65,6 +66,7 @@ Syntax
        *xtc* args = none
        *xyz* args = none
        *xyz/gz* args = none
+       *xyz/time* args = *M*-time frequency of a dump
        *xyz/mpiio* args = none
 
 * *custom* or *custom/gz* or *custom/mpiio* or *netcdf* or *netcdf/mpiio* args = list of atom attributes
@@ -138,6 +140,8 @@ Examples
    dump 2 inner cfg 10 dump.snap.*.cfg mass type xs ys zs vx vy vz
    dump snap all cfg 100 dump.config.*.cfg mass type xs ys zs id type c_Stress[2]
    dump 1 all xtc 1000 file.xtc
+   dump 1 all custom/time 1 dump.lammpstrj id type x y z 10.0
+   dump 1 all xyz/time 1 dump.xyz 0.1
 
 Description
 """""""""""
@@ -670,6 +674,22 @@ which could then be output into dump files.
 
 ----------
 
+This section explains the usage of *xyz/time* and *custom/time* styles.
+
+The *xyz/time* and *custom/time* styles are written every *M* time units 
+instead of *N* timesteps. A check, whether a dump should be written, is
+performed every *N* timesteps.
+
+The *custom/time* style supports the same atom attributes as the *custom*
+style described above with one restriction - if an atom variable specifed 
+in the dump uses any computes, they have to be specified through 
+:doc:`dump_modify <dump_modify>` *varcomputes* keyword.
+
+Additionally, the *xyz/time* style writes the simulation time to the 
+comment line of the dump.
+
+----------
+
 Restrictions
 """"""""""""
 
@@ -689,6 +709,10 @@ doc page for more info.
 
 The *xtc* style is part of the MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+
+The *xyz/time* and *custom/time* styles are a part of the USER-MISC package. 
+They are only enabled if LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""

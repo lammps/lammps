@@ -13,7 +13,7 @@ Syntax
 * dump-ID = ID of dump to modify
 * one or more keyword/value pairs may be appended
 * these keywords apply to various dump styles
-* keyword = *append* or *at* or *buffer* or *delay* or *element* or *every* or *fileper* or *first* or *flush* or *format* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
+* keyword = *append* or *at* or *buffer* or *delay* or *element* or *every* or *fileper* or *first* or *flush* or *format* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or varcomputes or *units* or *unwrap*
 
   .. parsed-literal::
 
@@ -62,6 +62,9 @@ Syntax
          operator = "<" or "<=" or ">" or ">=" or "==" or "!=" or "\|\^"
          value = numeric value to compare to, or LAST
          these 3 args can be replaced by the word "none" to turn off thresholding
+       *varcomputes* args = N compute_1 compute_2 ... compute_N
+           N = number of computes used in variables specified in *custom/time* style
+           compute_i = names of computes used in variables specified in *custom/time* style
        *units* arg = *yes* or *no*
        *unwrap* arg = *yes* or *no*
 
@@ -667,6 +670,12 @@ time units equivalent to the :doc:`thermo keyword <thermo_style>` *time*\ .
 This is to simplify post-processing of trajectories using a variable time
 step, e.g. when using :doc:`fix dt/reset <fix_dt_reset>`.
 The default setting is *no*\ .
+
+----------
+
+The *varcomputes* keyword only applies to the dump *custom/time* style. It
+contains a list of names of *N* computes which are invoked in atom variables
+used in the dump. This is required for a correct calculation of the variables.
 
 ----------
 

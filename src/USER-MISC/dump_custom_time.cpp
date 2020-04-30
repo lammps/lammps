@@ -114,7 +114,7 @@ int DumpCustom_Time::count()
 int DumpCustom_Time::modify_param(int narg, char **arg)
 {
     int n;
-    if (strcmp(arg[0],"computes") == 0) {
+    if (strcmp(arg[0],"varcomputes") == 0) {
         nvarcompute = force->inumeric(FLERR, arg[1]);
         if (nvarcompute <= 0) error->all(FLERR, "Number of computes has to be higher than zero");
         varcompute = new Compute*[nvarcompute];

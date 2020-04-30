@@ -55,6 +55,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_neighbor_info()
 
   newton_pair = force->newton_pair;
   k_cutneighsq = neighborKK->k_cutneighsq;
+  k_cutneighsq.modify<LMPHostType>();
 
   // exclusion info
 

@@ -45,7 +45,7 @@ class ComputeCOMChunk : public Compute {
 
  private:
   int nchunk,maxchunk;
-  int firstflag,massneed;
+  int firstflag,massneed,unwrap_flag;
   class ComputeChunkAtom *cchunk;
 
   double *massproc;

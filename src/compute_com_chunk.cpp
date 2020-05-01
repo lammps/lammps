@@ -32,19 +32,30 @@ ComputeCOMChunk::ComputeCOMChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   idchunk(NULL), masstotal(NULL), massproc(NULL), com(NULL), comall(NULL)
 {
-  if (narg != 4) error->all(FLERR,"Illegal compute com/chunk command");
+  if (narg < 4) error->all(FLERR,"Illegal compute com/chunk command");
 
   array_flag = 1;
   size_array_cols = 3;
   size_array_rows = 0;
   size_array_rows_variable = 1;
   extarray = 0;
+  unwrap_flag = 1;
 
   // ID of compute chunk/atom
 
   int n = strlen(arg[3]) + 1;
   idchunk = new char[n];
   strcpy(idchunk,arg[3]);
+
+  if (narg == 6) {
+    if (strcmp(arg[4],"unwrap") == 0) {
+       if (strcmp(arg[5],"yes") == 0) {
+         unwrap_flag = 1;
+       } else if (strcmp(arg[6],"no") == 0) {
+         unwrap_flag = 0;
+       } else error->all(FLERR,"Illegal compute com/chunk command");
+    } else error->all(FLERR,"Illegal compute com/chunk command");
+  } else error->all(FLERR,"Illegal compute com/chunk command");
 
   init();
 
@@ -137,7 +148,7 @@ void ComputeCOMChunk::compute_array()
       if (index < 0) continue;
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
-      domain->unmap(x[i],image[i],unwrap);
+      if (unwrap_flag) domain->unmap(x[i],image[i],unwrap);
       com[index][0] += unwrap[0] * massone;
       com[index][1] += unwrap[1] * massone;
       com[index][2] += unwrap[2] * massone;

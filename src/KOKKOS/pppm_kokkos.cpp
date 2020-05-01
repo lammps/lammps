@@ -840,21 +840,23 @@ void PPPMKokkos<DeviceType>::allocate()
   // 2nd FFT returns data in 3d brick decomposition
   // remap takes data from 3d brick to FFT decomposition
 
+  int collective_flag = 0; // not yet supported in Kokkos version
+  int cuda_aware_flag = lmp->kokkos->cuda_aware_flag;
   int tmp;
 
   fft1 = new FFT3dKokkos<DeviceType>(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                          nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                          nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                         0,0,&tmp,collective_flag);
+                         0,0,&tmp,collective_flag,cuda_aware_flag);
 
   fft2 = new FFT3dKokkos<DeviceType>(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                          nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                          nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                         0,0,&tmp,collective_flag);
+                         0,0,&tmp,collective_flag,cuda_aware_flag);
   remap = new RemapKokkos<DeviceType>(lmp,world,
                           nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                           nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                          1,0,0,FFT_PRECISION,collective_flag);
+                          1,0,0,FFT_PRECISION,collective_flag,cuda_aware_flag);
 
   // create ghost grid object for rho and electric field communication
 

@@ -717,6 +717,7 @@ void PairMEAMSpline::SplineFunction::prepareSpline(Error* error)
     Y2[i] /= h*6.0;
 #endif
   }
+  inv_h = (1/h);
   xmax_shifted = xmax - xmin;
 }
 
@@ -732,6 +733,7 @@ void PairMEAMSpline::SplineFunction::communicate(MPI_Comm& world, int me)
   MPI_Bcast(&isGridSpline, 1, MPI_INT, 0, world);
   MPI_Bcast(&h, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&hsq, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&inv_h, 1, MPI_DOUBLE, 0, world);
   if(me != 0) {
     X = new double[N];
     Xs = new double[N];

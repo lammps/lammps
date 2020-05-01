@@ -38,7 +38,8 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
              int in_klo, int in_khi,
              int out_ilo, int out_ihi, int out_jlo, int out_jhi,
              int out_klo, int out_khi,
-             int scaled, int permute, int *nbuf, int usecollective) :
+             int scaled, int permute, int *nbuf, int usecollective,
+             int usecuda_aware) :
   Pointers(lmp)
 {
   int nthreads = lmp->kokkos->nthreads;
@@ -70,7 +71,7 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
   plan = fft_3d_create_plan_kokkos(comm,nfast,nmid,nslow,
                             in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
                             out_ilo,out_ihi,out_jlo,out_jhi,out_klo,out_khi,
-                            scaled,permute,nbuf,usecollective,nthreads);
+                            scaled,permute,nbuf,usecollective,nthreads,usecuda_aware);
   if (plan == NULL) error->one(FLERR,"Could not create 3d FFT plan");
 }
 
@@ -368,6 +369,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d d_in,
                           2 = permute twice = slow->fast, fast->mid, mid->slow
    nbuf                 returns size of internal storage buffers used by FFT
    usecollective        use collective MPI operations for remapping data
+   usecuda_aware        use CUDA-Aware MPI or not
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -378,7 +380,7 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
        int out_ilo, int out_ihi, int out_jlo, int out_jhi,
        int out_klo, int out_khi,
        int scaled, int permute, int *nbuf, int usecollective,
-       int nthreads)
+       int nthreads, int usecuda_aware)
 {
   struct fft_plan_3d_kokkos<DeviceType> *plan;
   int me,nprocs;
@@ -435,7 +437,8 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
     plan->pre_plan =
       remapKK->remap_3d_create_plan_kokkos(comm,in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
                            first_ilo,first_ihi,first_jlo,first_jhi,
-                           first_klo,first_khi,2,0,0,FFT_PRECISION,0);
+                           first_klo,first_khi,2,0,0,FFT_PRECISION,
+                           usecollective,usecuda_aware);
     if (plan->pre_plan == NULL) return NULL;
   }
 
@@ -460,7 +463,7 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
                            first_klo,first_khi,
                            second_ilo,second_ihi,second_jlo,second_jhi,
                            second_klo,second_khi,2,1,0,FFT_PRECISION,
-                           usecollective);
+                           usecollective,usecuda_aware);
   if (plan->mid1_plan == NULL) return NULL;
 
   // 1d FFTs along mid axis
@@ -500,7 +503,8 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
                          second_jlo,second_jhi,second_klo,second_khi,
                          second_ilo,second_ihi,
                          third_jlo,third_jhi,third_klo,third_khi,
-                         third_ilo,third_ihi,2,1,0,FFT_PRECISION,usecollective);
+                         third_ilo,third_ihi,2,1,0,FFT_PRECISION,
+                         usecollective,usecuda_aware);
   if (plan->mid2_plan == NULL) return NULL;
 
   // 1d FFTs along slow axis
@@ -527,7 +531,8 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
                            third_klo,third_khi,third_ilo,third_ihi,
                            third_jlo,third_jhi,
                            out_klo,out_khi,out_ilo,out_ihi,
-                           out_jlo,out_jhi,2,(permute+1)%3,0,FFT_PRECISION,0);
+                           out_jlo,out_jhi,2,(permute+1)%3,0,FFT_PRECISION,
+                           usecollective,usecuda_aware);
     if (plan->post_plan == NULL) return NULL;
   }
 

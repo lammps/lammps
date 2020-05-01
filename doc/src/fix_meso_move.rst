@@ -60,17 +60,19 @@ internal energy and extrapolated velocity are also updated.
 
 .. note::
 
-   The particles affected by this fix should not be time integrated
-   by other fixes (e.g. :doc:`fix meso <fix_meso>`, :doc:`fix meso/stationary <fix_meso_stationary>`), since that will change their
+   The particles affected by this fix should not be time integrated by
+   other fixes (e.g. :doc:`fix sph <fix_sph>`, :doc:`fix
+   sph/stationary <fix_sph_stationary>`), since that will change their
    positions and velocities twice.
 
 .. note::
 
    As particles move due to this fix, they will pass through periodic
    boundaries and be remapped to the other side of the simulation box,
-   just as they would during normal time integration (e.g. via the :doc:`fix meso <fix_meso>` command).  It is up to you to decide whether periodic
-   boundaries are appropriate with the kind of particle motion you are
-   prescribing with this fix.
+   just as they would during normal time integration (e.g. via the
+   :doc:`fix sph <fix_sph>` command).  It is up to you to decide
+   whether periodic boundaries are appropriate with the kind of
+   particle motion you are prescribing with this fix.
 
 .. note::
 
@@ -100,7 +102,7 @@ specified, *V* is the specified velocity vector with components
 specified.  This style also sets the velocity of each particle to V =
 (Vx,Vy,Vz).  If any of the velocity components is specified as NULL,
 then the position and velocity of that component is time integrated
-the same as the :doc:`fix meso <fix_meso>` command would perform, using
+the same as the :doc:`fix sph <fix_sph>` command would perform, using
 the corresponding force component on the particle.
 
 Note that the *linear* style is identical to using the *variable*
@@ -128,7 +130,7 @@ elapsed since the fix was specified.  This style also sets the
 velocity of each particle to the time derivative of this expression.
 If any of the amplitude components is specified as NULL, then the
 position and velocity of that component is time integrated the same as
-the :doc:`fix meso <fix_meso>` command would perform, using the
+the :doc:`fix sph <fix_sph>` command would perform, using the
 corresponding force component on the particle.
 
 Note that the *wiggle* style is identical to using the *variable*
@@ -180,15 +182,15 @@ particle.
 Any of the 6 variables can be specified as NULL.  If both the
 displacement and velocity variables for a particular x,y,z component
 are specified as NULL, then the position and velocity of that
-component is time integrated the same as the :doc:`fix meso <fix_meso>`
+component is time integrated the same as the :doc:`fix sph <fix_sph>`
 command would perform, using the corresponding force component on the
-particle.  If only the velocity variable for a component is specified as
-NULL, then the displacement variable will be used to set the position
-of the particle, and its velocity component will not be changed. If only
-the displacement variable for a component is specified as NULL, then
-the velocity variable will be used to set the velocity of the particle,
-and the position of the particle will be time integrated using that
-velocity.
+particle.  If only the velocity variable for a component is specified
+as NULL, then the displacement variable will be used to set the
+position of the particle, and its velocity component will not be
+changed. If only the displacement variable for a component is
+specified as NULL, then the velocity variable will be used to set the
+velocity of the particle, and the position of the particle will be
+time integrated using that velocity.
 
 The *units* keyword determines the meaning of the distance units used
 to define the *linear* velocity and *wiggle* amplitude and *rotate*
@@ -236,17 +238,18 @@ Restrictions
 """"""""""""
 
 This fix is part of the USER-SDPD package.  It is only enabled if
-LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package. See the :doc:`Build package
+<Build_package>` doc page for more info.
 
 This fix requires that atoms store density and internal energy as
-defined by the :doc:`atom_style meso <atom_style>` command.
+defined by the :doc:`atom_style sph <atom_style>` command.
 
 All particles in the group must be mesoscopic SPH/SDPD particles.
 
 Related commands
 """"""""""""""""
 
-:doc:`fix move <fix_move>`, :doc:`fix meso <fix_meso>`,
+:doc:`fix move <fix_move>`, :doc:`fix sph <fix_sph>`,
 :doc:`displace_atoms <displace_atoms>`
 
 Default

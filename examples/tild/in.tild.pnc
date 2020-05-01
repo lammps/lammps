@@ -1,0 +1,60 @@
+units           lj
+atom_style      molecular
+processors      * 1 1
+boundary        p p p
+read_data       output.data
+
+velocity        all zero linear
+
+pair_style      none
+
+bond_style      harmonic
+bond_coeff      * 1.5 0
+
+group           poly type 1 2
+group           NP type 3
+group           GNP type 2 3 4
+
+fix             1 all nve
+fix             2 all langevin 1.0 1.0 100.0 12345 gjf yes
+
+dump            trj all custom 500 diblock-mpi.lammpstrj id type mol x y z
+
+kspace_style    tild 1.0e-4
+
+kspace_modify   mesh 25 25 320
+kspace_modify   order 1
+kspace_modify   order/disp 1
+kspace_modify   set_rho0 yes 2.276
+kspace_modify   subtract_rho0 yes
+kspace_modify   normalize_by_rho0 yes
+
+# 0.25 is a^2
+kspace_modify   tild/kappa 25
+kspace_modify   tild/coeff 1 1 gaussian 0.5 
+kspace_modify   tild/coeff 2 2 gaussian 0.5 
+kspace_modify   tild/coeff 3 3 erfc 3.5 0.25 
+kspace_modify   tild/coeff 4 4 none
+kspace_modify   mix convolution
+kspace_modify   tild/chi * * 0.0
+kspace_modify   tild/chi 1 2 0.0175
+kspace_modify   tild/chi 2 3 0.0175
+# kspace_modify   tild/create_potential 1 gaussian 0.5 
+# kspace_modify   tild/create_potential 2 gaussian 0.5 
+# # 3.5 is Rsphere, 0.5 is width
+# kspace_modify   tild/create_potential 3 erfc 3.5 0.25 
+# kspace_modify   tild/chi_values 1 1 0.0
+# kspace_modify   tild/chi_values 1 2 0.0175
+# kspace_modify   tild/chi_values 1 3 0.0
+# kspace_modify   tild/chi_values 2 2 0.0
+# kspace_modify   tild/chi_values 2 3 0.0
+# kspace_modify   tild/chi_values 3 3 0.0
+
+
+comm_modify     cutoff 5.6
+# neighbor        2.5 bin
+neigh_modify    every 01 delay 0 check yes exclude molecule/inter all one 120000 page 1200000
+
+thermo          1
+thermo_style    custom step ebond epair pe temp press
+run             0

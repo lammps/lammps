@@ -40,14 +40,16 @@ Description
 
 Perform Brownian or Langevin integration whilst constraining the system to lie
 in some hyperplane, which is expected to be the tangent plane to some reference
-pathway. The instantaneous value of a modified force projection is also
-calculated, whose time integral can be shown to be equal to a free energy gradient
-along the minimum free energy path local to the reference pathway.
+pathway in a solid state system. The instantaneous value of a modified force
+projection is also calculated, whose time integral can be shown to be equal to
+the true free energy gradient along the minimum free energy path local to the reference pathway.
 A detailed discussion of the projection technique can be found in :ref:`(Swinburne) <Swinburne>`.
 
 This fix can be used with LAMMPS as demonstrated in examples/USER/misc/pafi,
-though it is primarily intended to be coupled with the PAFI C++ code, which is developed
-at `https://github.com/tomswinburne/pafi <https://github.com/tomswinburne/pafi>`_.
+though it is primarily intended to be coupled with the PAFI C++ code, developed
+at `https://github.com/tomswinburne/pafi <https://github.com/tomswinburne/pafi>`_,
+which distributes multiple LAMMPS workers in parallel to compute and collate
+hyperplane-constrained averages, allowing the calculation of free energy barriers and pathways.
 
 A :doc:`compute property/atom <compute_property_atom>` must be provided with 9 fields per atom coordinate,
 which in order are the x,y,z coordinates of a configuration on the reference path,
@@ -94,4 +96,4 @@ The option defaults are com = *yes*, overdamped = *no*
 
 .. _Swinburne:
 
-**(Swinburne)** Swinburne and Marinica, Physical Review Letters, 276, 1 (2018).
+**(Swinburne)** Swinburne and Marinica, Physical Review Letters, 120, 1 (2018)

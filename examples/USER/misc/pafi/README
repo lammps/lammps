@@ -15,7 +15,7 @@ Unsupervised calculation of free energy barriers in large crystalline systems
 Physical Review Letters 276, 1 2018
 
 
-Also see https://github.com/tomswinburne/pafi/ for PAFI++ code which uses the USER-PAFI package when loading LAMMPS as a C++ library
+Also see https://github.com/tomswinburne/pafi/ for PAFI code which uses the USER-PAFI package when loading LAMMPS as a C++ library
 
 To compile:
 
@@ -28,4 +28,4 @@ To run the example from this folder:
 mpirun -np NPROCS /path/to/lammps/src/lmp_machine -in in.pafi
 ```
 
-To generate your own path, please see the PAFI++ documentation for more details
+To generate your own path, please see the LAMMPS documentation for more details

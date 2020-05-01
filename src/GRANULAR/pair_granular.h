@@ -51,6 +51,7 @@ class PairGranular : public Pair {
   double *maxrad_dynamic,*maxrad_frozen;
   double **cut;
 
+  class FixDummy *fix_dummy;
   class FixNeighHistory *fix_history;
 
   // storage of rigid body masses for use in granular interactions
@@ -111,4 +112,4 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
- */
+*/

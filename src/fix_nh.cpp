@@ -496,10 +496,10 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
     // pre_exchange only required if flips can occur due to shape changes
 
     if (flipflag && (p_flag[3] || p_flag[4] || p_flag[5]))
-      pre_exchange_flag = 1;
+      pre_exchange_flag = pre_exchange_migrate = 1;
     if (flipflag && (domain->yz != 0.0 || domain->xz != 0.0 ||
                      domain->xy != 0.0))
-      pre_exchange_flag = 1;
+      pre_exchange_flag = pre_exchange_migrate = 1;
   }
 
   // convert input periods to frequencies

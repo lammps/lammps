@@ -22,7 +22,7 @@ Syntax
        *overdamped* value = *yes* or *no* or 1 or 0
          *yes* or 1 = Brownian (overdamped) integration in hyperplane
          *no* or 0 = Langevin integration in hyperplane
-       *com* value = *yes" or *no* or 1 or 0
+       *com* value = *yes* or *no* or 1 or 0
          *yes* or 1 = zero linear momentum, fixing center or mass (recommended)
          *no* or 0 = do not zero linear momentum, allowing center of mass drift
 

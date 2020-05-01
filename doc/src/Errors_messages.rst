@@ -1906,7 +1906,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Compute for fix pafi does not calculate a local array*
    Self-explanatory.
 
-*Compute for fix pafi has < 3*DIM fields per atom*
+*Compute for fix pafi must have 9 fields per atom*
    Self-explanatory.
 
 *Compute gyration ID does not exist for compute gyration/shape*

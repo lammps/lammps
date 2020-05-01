@@ -88,8 +88,9 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
   PathCompute = modify->compute[icompute];
   if (PathCompute->peratom_flag==0)
     error->all(FLERR,"Compute for fix pafi does not calculate a local array");
-  if (PathCompute->size_peratom_cols < domain->dimension*3)
-    error->all(FLERR,"Compute for fix pafi has < DIM fields per atom");
+  if (PathCompute->size_peratom_cols < 9)
+    error->all(FLERR,"Compute for fix pafi must have 9 fields per atom");
+");
 
   if (comm->me==0) {
     if (screen) fprintf(screen,
@@ -199,8 +200,8 @@ void FixPAFI::init()
   PathCompute = modify->compute[icompute];
   if (PathCompute->peratom_flag==0)
     error->all(FLERR,"Compute for fix pafi does not calculate a local array");
-  if (PathCompute->size_peratom_cols < domain->dimension*3)
-    error->all(FLERR,"Compute for fix pafi has < 3*DIM fields per atom");
+  if (PathCompute->size_peratom_cols < 9)
+    error->all(FLERR,"Compute for fix pafi must have 9 fields per atom");
 
 
 

@@ -14,8 +14,8 @@ Examining the code for others will make these instructions more clear.
 
 Note that the :doc:`atom style hybrid <atom_style>` command can be
 used to define atoms or particles which have the union of properties
-of individual styles.  Also the :doc:`fix property/atom <fix
-property>` command can be used to add a single property (e.g. charge
+of individual styles.  Also the :doc:`fix property/atom <fix_property_atom>`
+command can be used to add a single property (e.g. charge
 or a molecule ID) to a style that does not have it.  It can also be
 used to add custom properties to an atom, with options to communicate
 them with ghost atoms or read them from a data file.  Other LAMMPS
@@ -162,8 +162,8 @@ method.
 * pack_data_pre
 * pack_data_post
 
-These methods enable the :doc:`compute property/atom <compute
-property/atom>` command to access per-atom variables it does not
+These methods enable the :doc:`compute property/atom <compute_property_atom>`
+command to access per-atom variables it does not
 already define as arguments, so that they can be written to a dump
 file or used by other LAMMPS commands.
 

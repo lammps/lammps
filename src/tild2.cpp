@@ -1903,17 +1903,22 @@ void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
       k[2] = 2 * PI * double(z - nz_pppm) / zprd;
 
     for (y = nylo_fft; y <= nyhi_fft; y++) {
-      if (ny_pppm % 2 == 0 && y == ny_pppm / 2)
+      // skip to kill off Nyquist modes
+      
+      if (k[2] == 0.0 || (ny_pppm % 2 == 0 && y == ny_pppm / 2)) {
         k[1] = 0.0;
-      else if (double(y) < double(ny_pppm) / 2.0)
+        k[2] = 0.0;
+      } else if (double(y) < double(ny_pppm) / 2.0)
         k[1] = 2 * PI * double(y) / yprd;
       else
         k[1] = 2 * PI * double(y - ny_pppm) / yprd;
 
       for (x = nxlo_fft; x <= nxhi_fft; x++) {
-        if (nx_pppm % 2 == 0 && x == nx_pppm / 2)
+        if (k[2] == 0.0 || k[1] == 0.0 || (nx_pppm % 2 == 0 && x == nx_pppm / 2)) {
+          k[2] = 0.0;
+          k[1] = 0.0;
           k[0] = 0.0;
-        else if (double(x) < double(nx_pppm) / 2.0)
+        } else if (double(x) < double(nx_pppm) / 2.0)
           k[0] = 2 * PI * double(x) / xprd;
         else
           k[0] = 2 * PI * double(x - nx_pppm) / xprd;

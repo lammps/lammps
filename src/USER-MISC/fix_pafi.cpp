@@ -66,7 +66,7 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_pafi_package);
 
-  if (narg < 7) error->all(FLERR,"Illegal fix pafi command");
+  if (narg < 11) error->all(FLERR,"Illegal fix pafi command");
 
   dynamic_group_allow = 0;
   vector_flag = 1;
@@ -114,20 +114,13 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
   idregion = NULL; // not used
   int iarg = 7;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"region") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix pafi command");
-      iregion = domain->find_region(arg[iarg+1]);
-      if (iregion == -1)
-        error->all(FLERR,"Region ID for fix pafi does not exist");
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"overdamped") == 0) {
-      od_flag = force->inumeric(FLERR,arg[iarg+1]);
+    if (strcmp(arg[iarg],"overdamped") == 0) {
+      if (strcmp(arg[iarg+1],"no") == 0) od_flag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) od_flag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"com") == 0) {
-      com_flag = force->inumeric(FLERR,arg[iarg+1]);
+      if (strcmp(arg[iarg+1],"no") == 0) com_flag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) com_flag = 1;
       iarg += 2;
     } else error->all(FLERR,"Illegal fix pafi command");
   }

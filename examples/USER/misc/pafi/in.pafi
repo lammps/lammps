@@ -26,7 +26,7 @@ compute pa all property/atom d_nx d_ny d_nz d_dnx d_dny d_dnz d_ddnx d_ddny d_dd
 run 0
 
 ## fix name group-id pafi compute-id temperature tdamp seed overdamped 0/1 com 0/1
-fix hp all pafi pa 500.0 0.01 434 overdamped 0 com 1
+fix hp all pafi pa 500.0 0.01 434 overdamped no com yes
 
 run 0
 minimize 0 0 1000 1000 # best if using NEB path

@@ -7177,9 +7177,6 @@ keyword to allow for additional bonds to be formed
 *Region ID for fix heat does not exist*
    Self-explanatory.
 
-*Region ID for fix pafi does not exist*
-   Self-explanatory.
-
 *Region ID for fix setforce does not exist*
    Self-explanatory.
 

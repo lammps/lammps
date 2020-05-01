@@ -31,7 +31,7 @@ AtomVecBond::AtomVecBond(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) 
+  fields_grow = (char *)
     "molecule num_bond bond_type bond_atom nspecial special";
   fields_copy = (char *)
     "molecule num_bond bond_type bond_atom nspecial special";

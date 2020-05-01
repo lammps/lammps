@@ -31,7 +31,7 @@ AtomVecAngle::AtomVecAngle(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) 
+  fields_grow = (char *)
     "molecule num_bond bond_type bond_atom "
     "num_angle angle_type angle_atom1 angle_atom2 angle_atom3 nspecial special";
   fields_copy = (char *)
@@ -45,7 +45,7 @@ AtomVecAngle::AtomVecAngle(LAMMPS *lmp) : AtomVec(lmp)
   fields_exchange = (char *)
     "molecule num_bond bond_type bond_atom "
     "num_angle angle_type angle_atom1 angle_atom2 angle_atom3 nspecial special";
-  fields_restart = (char *) 
+  fields_restart = (char *)
     "molecule num_bond bond_type bond_atom "
     "num_angle angle_type angle_atom1 angle_atom2 angle_atom3";
   fields_create = (char *) "molecule num_bond num_angle nspecial";

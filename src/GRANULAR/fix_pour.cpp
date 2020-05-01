@@ -320,7 +320,7 @@ void FixPour::init()
     error->all(FLERR,"No fix gravity defined for fix pour");
 
   int varflag = ((FixGravity *) modify->fix[ifix])->varflag;
-  if (varflag != CONSTANT) 
+  if (varflag != CONSTANT)
     error->all(FLERR,"Fix gravity for fix pour must be constant");
 
   double xgrav = ((FixGravity *) modify->fix[ifix])->xgrav;

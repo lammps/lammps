@@ -94,7 +94,7 @@ void AtomVecSpin::force_clear(int n, size_t nbytes)
 void AtomVecSpin::data_atom_post(int ilocal)
 {
   double *sp_one = sp[ilocal];
-  double norm = 
+  double norm =
     1.0/sqrt(sp_one[0]*sp_one[0] + sp_one[1]*sp_one[1] + sp_one[2]*sp_one[2]);
   sp_one[0] *= norm;
   sp_one[1] *= norm;

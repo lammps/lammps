@@ -452,7 +452,7 @@ void AtomVecEllipsoid::data_atom_post(int ilocal)
 ------------------------------------------------------------------------- */
 
 void AtomVecEllipsoid::pack_data_pre(int ilocal)
-{ 
+{
   double *shape;
 
   ellipsoid_flag = atom->ellipsoid[ilocal];
@@ -472,7 +472,7 @@ void AtomVecEllipsoid::pack_data_pre(int ilocal)
 ------------------------------------------------------------------------- */
 
 void AtomVecEllipsoid::pack_data_post(int ilocal)
-{ 
+{
   ellipsoid[ilocal] = ellipsoid_flag;
   rmass[ilocal] = rmass_one;
 }

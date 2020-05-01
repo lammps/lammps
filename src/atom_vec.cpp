@@ -280,7 +280,7 @@ void AtomVec::copy(int i, int j, int delflag)
           double **array = *((double ***) pdata);
           for (m = 0; m < cols; m++)
             array[j][m] = array[i][m];
-        } else { 
+        } else {
           double **array = *((double ***) pdata);
           collength = mcopy.collength[n];
           plength = mcopy.plength[n];
@@ -913,7 +913,7 @@ int AtomVec::pack_border(int n, int *list, double *buf, int pbc_flag, int *pbc)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVec::pack_border_vel(int n, int *list, double *buf, 
+int AtomVec::pack_border_vel(int n, int *list, double *buf,
                              int pbc_flag, int *pbc)
 {
   int i,j,m,mm,nn,datatype,cols;
@@ -1207,7 +1207,7 @@ int AtomVec::pack_exchange(int i, double *buf)
   buf[m++] = ubuf(type[i]).d;
   buf[m++] = ubuf(mask[i]).d;
   buf[m++] = ubuf(image[i]).d;
-  
+
   if (nexchange) {
     for (nn = 0; nn < nexchange; nn++) {
       pdata = mexchange.pdata[nn];
@@ -1252,7 +1252,7 @@ int AtomVec::pack_exchange(int i, double *buf)
           bigint *vec = *((bigint **) pdata);
           buf[m++] = ubuf(vec[i]).d;
         } else if (cols > 0) {
-          bigint **array = *((bigint ***) pdata); 
+          bigint **array = *((bigint ***) pdata);
           for (mm = 0; mm < cols; mm++)
             buf[m++] = ubuf(array[i][mm]).d;
         } else {
@@ -2438,7 +2438,7 @@ void AtomVec::setup_fields()
   size_data_atom = 0;
   for (n = 0; n < ndata_atom; n++) {
     cols = mdata_atom.cols[n];
-    if (strcmp(atom->peratom[mdata_atom.index[n]].name,"x") == 0) 
+    if (strcmp(atom->peratom[mdata_atom.index[n]].name,"x") == 0)
       xcol_data = size_data_atom + 1;
     if (cols == 0) size_data_atom++;
     else size_data_atom += cols;
@@ -2471,7 +2471,7 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
   int ndef = tokenize((char *) default_str,defwords,copy2);
 
   // process fields one by one, add to index vector
-  
+
   Atom::PerAtom *peratom = atom->peratom;
   int nperatom = atom->nperatom;
 
@@ -2479,7 +2479,7 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
   int match;
 
   for (int i = 0; i < nfield; i++) {
-    
+
     // find field in master Atom::peratom list
 
     for (match = 0; match < nperatom; match++)
@@ -2495,18 +2495,18 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
 
     for (match = 0; match < i; match++)
       if (index[i] == index[match]) {
-	char str[128];
-	sprintf(str,"Peratom field %s is repeated",words[i]);
-	error->all(FLERR,str);
+        char str[128];
+        sprintf(str,"Peratom field %s is repeated",words[i]);
+        error->all(FLERR,str);
       }
 
     // error if field is in default str
 
     for (match = 0; match < ndef; match++)
       if (strcmp(words[i],defwords[match]) == 0) {
-	char str[128];
-	sprintf(str,"Peratom field %s is a default",words[i]);
-	error->all(FLERR,str);
+        char str[128];
+        sprintf(str,"Peratom field %s is a default",words[i]);
+        error->all(FLERR,str);
       }
 
   }

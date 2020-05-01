@@ -24,7 +24,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp) : AtomVec(lmp) 
+AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp) : AtomVec(lmp)
 {
   nstyles = 0;
   styles = NULL;
@@ -325,7 +325,7 @@ void AtomVecHybrid::data_atom_post(int ilocal)
 ------------------------------------------------------------------------- */
 
 void AtomVecHybrid::pack_data_pre(int ilocal)
-{ 
+{
   for (int k = 0; k < nstyles; k++)
     styles[k]->pack_data_pre(ilocal);
 }
@@ -335,7 +335,7 @@ void AtomVecHybrid::pack_data_pre(int ilocal)
 ------------------------------------------------------------------------- */
 
 void AtomVecHybrid::pack_data_post(int ilocal)
-{ 
+{
   for (int k = 0; k < nstyles; k++)
     styles[k]->pack_data_post(ilocal);
 }
@@ -494,7 +494,7 @@ void AtomVecHybrid::pack_property_atom(int multiindex, double *buf,
      so caller can check for problematic fields, call will free it
 ------------------------------------------------------------------------- */
 
-char *AtomVecHybrid::merge_fields(int inum, char *root, 
+char *AtomVecHybrid::merge_fields(int inum, char *root,
                                   int concat_flag, char *&concat_str)
 {
   // create concatenated string of length size from root + all substyles
@@ -517,7 +517,7 @@ char *AtomVecHybrid::merge_fields(int inum, char *root,
   char **words;
   int nwords = tokenize(concat,words,copystr);
   int *unique = new int[nwords];
-  
+
   for (int i = 0; i < nwords; i++) {
     unique[i] = 1;
     for (int j = 0; j < i; j++)
@@ -528,7 +528,7 @@ char *AtomVecHybrid::merge_fields(int inum, char *root,
 
   char *dedup = new char[size];
   dedup[0] = '\0';
-  
+
   for (int i = 0; i < nwords; i++) {
     if (!unique[i]) continue;
     strcat(dedup,words[i]);
@@ -541,7 +541,7 @@ char *AtomVecHybrid::merge_fields(int inum, char *root,
   else delete [] concat;
 
   // clean up
-  
+
   delete [] copystr;
   delete [] words;
   delete [] unique;

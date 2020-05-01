@@ -35,7 +35,7 @@ AtomVecWavepacket::AtomVecWavepacket(LAMMPS *lmp) : AtomVec(lmp)
   atom->electron_flag = 1;    // compatible with eff
   atom->q_flag = atom->spin_flag = atom->eradius_flag =
     atom->ervel_flag = atom->erforce_flag = 1;
-  atom->cs_flag = atom->csforce_flag = 
+  atom->cs_flag = atom->csforce_flag =
     atom->vforce_flag = atom->ervelforce_flag = atom->etag_flag = 1;
 
   // strings with peratom variables to include in each AtomVec method
@@ -43,7 +43,7 @@ AtomVecWavepacket::AtomVecWavepacket(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) 
+  fields_grow = (char *)
     "q spin eradius ervel erforce cs csforce "
     "vforce ervelforce etag";
   fields_copy = (char *) "q spin eradius ervel cs etag";

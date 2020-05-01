@@ -74,7 +74,7 @@ class AtomVec : protected Pointers {
 
   virtual void force_clear(int, size_t) {}
   virtual bigint roundup(bigint);
-    
+
   virtual void grow(int);
   virtual void grow_pointers() {}
   virtual void copy(int, int, int);
@@ -115,7 +115,7 @@ class AtomVec : protected Pointers {
   virtual void pack_restart_post(int) {}
   virtual void unpack_restart_init(int) {}
 
-  virtual int size_restart_bonus() {}
+  virtual int size_restart_bonus() {return 0;}
   virtual int pack_restart_bonus(int, double *) {return 0;}
   virtual int unpack_restart_bonus(int, double *) {return 0;}
 
@@ -149,7 +149,7 @@ class AtomVec : protected Pointers {
   virtual void pack_property_atom(int, double *, int, int) {}
 
   virtual bigint memory_usage();
-  virtual bigint memory_usage_bonus() {}
+  virtual bigint memory_usage_bonus() {return 0;}
 
  protected:
   int nmax;                    // local copy of atom->nmax

@@ -351,7 +351,7 @@ void FixOMP::pre_force(int)
   double *drho = atom->drho;
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(f,torque,erforce,de,drho)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(f,torque,erforce,desph,drho)
 #endif
   {
     const int tid = get_tid();

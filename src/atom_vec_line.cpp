@@ -431,7 +431,7 @@ void AtomVecLine::data_atom_post(int ilocal)
 ------------------------------------------------------------------------- */
 
 void AtomVecLine::pack_data_pre(int ilocal)
-{ 
+{
   line_flag = line[ilocal];
   rmass_one = rmass[ilocal];
 
@@ -449,7 +449,7 @@ void AtomVecLine::pack_data_pre(int ilocal)
 ------------------------------------------------------------------------- */
 
 void AtomVecLine::pack_data_post(int ilocal)
-{ 
+{
   line[ilocal] = line_flag;
   rmass[ilocal] = rmass_one;
 }

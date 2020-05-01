@@ -282,7 +282,7 @@ int AtomVecBody::pack_border_bonus(int n, int *list, double *buf)
       buf[m++] = ubuf(bonus[body[j]].ndouble).d;
       m += bptr->pack_border_body(&bonus[body[j]],&buf[m]);
     }
-  } 
+  }
 
   return m;
 }
@@ -540,7 +540,7 @@ void AtomVecBody::data_atom_post(int ilocal)
 void AtomVecBody::data_body(int m, int ninteger, int ndouble,
                             int *ivalues, double *dvalues)
 {
-  if (body[m]) 
+  if (body[m])
     error->one(FLERR,"Assigning body parameters to non-body atom");
   if (nlocal_bonus == nmax_bonus) grow_bonus();
   bonus[nlocal_bonus].ilocal = m;
@@ -572,7 +572,7 @@ bigint AtomVecBody::memory_usage_bonus()
 ------------------------------------------------------------------------- */
 
 void AtomVecBody::pack_data_pre(int ilocal)
-{ 
+{
   body_flag = body[ilocal];
 
   if (body_flag < 0) body[ilocal] = 0;
@@ -584,7 +584,7 @@ void AtomVecBody::pack_data_pre(int ilocal)
 ------------------------------------------------------------------------- */
 
 void AtomVecBody::pack_data_post(int ilocal)
-{ 
+{
   body[ilocal] = body_flag;
 }
 

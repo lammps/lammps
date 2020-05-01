@@ -31,7 +31,7 @@ AtomVecFull::AtomVecFull(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) 
+  fields_grow = (char *)
     "q molecule num_bond bond_type bond_atom "
     "num_angle angle_type angle_atom1 angle_atom2 angle_atom3 "
     "num_dihedral dihedral_type dihedral_atom1 dihedral_atom2 "
@@ -60,14 +60,14 @@ AtomVecFull::AtomVecFull(LAMMPS *lmp) : AtomVec(lmp)
     "num_improper improper_type improper_atom1 improper_atom2 "
     "improper_atom3 improper_atom4 "
     "nspecial special";
-  fields_restart = (char *) 
+  fields_restart = (char *)
     "q molecule num_bond bond_type bond_atom "
     "num_angle angle_type angle_atom1 angle_atom2 angle_atom3 "
     "num_dihedral dihedral_type dihedral_atom1 dihedral_atom2 "
     "dihedral_atom3 dihedral_atom4 "
     "num_improper improper_type improper_atom1 improper_atom2 "
     "improper_atom3 improper_atom4";
-  fields_create = (char *) 
+  fields_create = (char *)
     "q molecule num_bond num_angle num_dihedral num_improper nspecial";
   fields_data_atom = (char *) "id molecule type q x";
   fields_data_vel = (char *) "id v";
@@ -194,13 +194,13 @@ void AtomVecFull::pack_restart_post(int ilocal)
 
   if (any_dihedral_negative) {
     for (int m = 0; m < num_dihedral[ilocal]; m++)
-      if (dihedral_negative[m]) 
+      if (dihedral_negative[m])
         dihedral_type[ilocal][m] = -dihedral_type[ilocal][m];
   }
 
   if (any_improper_negative) {
     for (int m = 0; m < num_improper[ilocal]; m++)
-      if (improper_negative[m]) 
+      if (improper_negative[m])
         improper_type[ilocal][m] = -improper_type[ilocal][m];
   }
 }

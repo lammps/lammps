@@ -655,7 +655,7 @@ void AtomVecTri::data_atom_post(int ilocal)
 ------------------------------------------------------------------------- */
 
 void AtomVecTri::pack_data_pre(int ilocal)
-{ 
+{
   tri_flag = tri[ilocal];
   rmass_one = rmass[ilocal];
 
@@ -680,7 +680,7 @@ void AtomVecTri::pack_data_pre(int ilocal)
 ------------------------------------------------------------------------- */
 
 void AtomVecTri::pack_data_post(int ilocal)
-{ 
+{
   tri[ilocal] = tri_flag;
   rmass[ilocal] = rmass_one;
 }

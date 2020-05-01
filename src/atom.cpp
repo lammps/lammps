@@ -139,7 +139,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   etag = NULL;
 
   // USER-DPD package
-  
+
   uCond = uMech = uChem = uCG = uCGnew = NULL;
   duChem = dpdTheta = NULL;
 
@@ -158,7 +158,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   damage = NULL;
 
   // USER-SPH package
-  
+
   rho = drho = esph = desph = cv = NULL;
   vest = NULL;
 
@@ -569,17 +569,17 @@ void Atom::peratom_create()
 
 /* ----------------------------------------------------------------------
    add info for a single per-atom vector/array to PerAtom data struct
-   cols = 0: per-atom vector 
+   cols = 0: per-atom vector
    cols = N: static per-atom array with N columns
    use add_peratom_vary() when column count varies per atom
 ------------------------------------------------------------------------- */
 
-void Atom::add_peratom(const char *name, void *address, 
+void Atom::add_peratom(const char *name, void *address,
                        int datatype, int cols, int threadflag)
 {
   if (nperatom == maxperatom) {
     maxperatom += DELTA_PERATOM;
-    peratom = (PerAtom *) 
+    peratom = (PerAtom *)
       memory->srealloc(peratom,maxperatom*sizeof(PerAtom),"atom:peratom");
   }
 
@@ -606,7 +606,7 @@ void Atom::add_peratom_change_columns(const char *name, int cols)
   int i;
   for (int i = 0; i < nperatom; i++)
     if (strcmp(name,peratom[i].name) == 0) peratom[i].cols = cols;
-  if (i == nperatom) 
+  if (i == nperatom)
     error->all(FLERR,"Could not find name of peratom array for column change");
 }
 
@@ -616,18 +616,18 @@ void Atom::add_peratom_change_columns(const char *name, int cols)
    for collength = 0:
      length = address of peratom vector with column count per atom
      e.g. num_bond
-   for collength = N: 
+   for collength = N:
      length = address of peratom array with column count per atom
      collength = index of column (1 to N) in peratom array with count
      e.g. nspecial
 ------------------------------------------------------------------------- */
 
-void Atom::add_peratom_vary(const char *name, void *address, 
+void Atom::add_peratom_vary(const char *name, void *address,
                             int datatype, int *cols, void *length, int collength)
 {
   if (nperatom == maxperatom) {
     maxperatom += DELTA_PERATOM;
-    peratom = (PerAtom *) 
+    peratom = (PerAtom *)
       memory->srealloc(peratom,maxperatom*sizeof(PerAtom),"atom:peratom");
   }
 

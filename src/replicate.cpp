@@ -355,7 +355,7 @@ void Replicate::command(int narg, char **arg)
     int *disp_buf_rnk;
     memory->create(disp_buf_rnk, nprocs, "replicate:disp_buf_rnk");
     disp_buf_rnk[0] = 0;
-    for (i = 1; i < nprocs; i++) 
+    for (i = 1; i < nprocs; i++)
       disp_buf_rnk[i] = disp_buf_rnk[i-1] + size_buf_rnk[i-1];
 
     // allgather buf_all
@@ -370,16 +370,16 @@ void Replicate::command(int narg, char **arg)
 
     double _orig_lo[3], _orig_hi[3];
     if (triclinic) {
-      _orig_lo[0] = domain->boxlo[0] + 
+      _orig_lo[0] = domain->boxlo[0] +
         _imagelo[0] * old_xprd + _imagelo[1] * old_xy + _imagelo[2] * old_xz;
-      _orig_lo[1] = domain->boxlo[1] + 
+      _orig_lo[1] = domain->boxlo[1] +
         _imagelo[1] * old_yprd + _imagelo[2] * old_yz;
       _orig_lo[2] = domain->boxlo[2] + _imagelo[2] * old_zprd;
 
-      _orig_hi[0] = domain->boxlo[0] + 
-        (_imagehi[0]+1) * old_xprd + 
+      _orig_hi[0] = domain->boxlo[0] +
+        (_imagehi[0]+1) * old_xprd +
         (_imagehi[1]+1) * old_xy + (_imagehi[2]+1) * old_xz;
-      _orig_hi[1] = domain->boxlo[1] + 
+      _orig_hi[1] = domain->boxlo[1] +
         (_imagehi[1]+1) * old_yprd + (_imagehi[2]+1) * old_yz;
       _orig_hi[2] = domain->boxlo[2] + (_imagehi[2]+1) * old_zprd;
     } else {

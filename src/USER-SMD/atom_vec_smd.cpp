@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecSMD::AtomVecSMD(LAMMPS *lmp) : AtomVec(lmp) 
+AtomVecSMD::AtomVecSMD(LAMMPS *lmp) : AtomVec(lmp)
 {
   molecular = 0;
   mass_type = 1;
@@ -61,35 +61,35 @@ AtomVecSMD::AtomVecSMD(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) 
+  fields_grow = (char *)
     "esph desph vfrac rmass x0 radius contact_radius molecule "
     "smd_data_9 vest smd_stress "
     "eff_plastic_strain eff_plastic_strain_rate damage";
-  fields_copy = (char *) 
+  fields_copy = (char *)
     "esph vfrac rmass x0 radius contact_radius molecule "
     "eff_plastic_strain eff_plastic_strain_rate vest "
     "smd_data_9 smd_stress damage";
   fields_comm = (char *) "radius vfrac vest esph";
   fields_comm_vel = (char *) "radius vfrac vest esph";
   fields_reverse = (char *) "desph";
-  fields_border = (char *) 
+  fields_border = (char *)
     "x0 molecule radius rmass vfrac contact_radius esph "
     "eff_plastic_strain smd_data_9 smd_stress";
-  fields_border_vel = (char *) 
+  fields_border_vel = (char *)
     "x0 molecule radius rmass vfrac contact_radius esph "
     "eff_plastic_strain smd_data_9 smd_stress vest";
-  fields_exchange = (char *) 
+  fields_exchange = (char *)
     "x0 molecule radius rmass vfrac contact_radius esph "
     "eff_plastic_strain eff_plastic_strain_rate smd_data_9 smd_stress "
     "vest damage";
-  fields_restart = (char *) 
+  fields_restart = (char *)
     "x0 molecule radius rmass vfrac contact_radius esph "
     "eff_plastic_strain eff_plastic_strain_rate smd_data_9 smd_stress "
     "vest damage";
-  fields_create = (char *) 
+  fields_create = (char *)
     "x0 vest vfrac rmass radius contact_radius molecule esph "
     "eff_plastic_strain eff_plastic_strain_rate smd_data_9 smd_stress damage";
-  fields_data_atom = (char *) 
+  fields_data_atom = (char *)
     "id type molecule vfrac rmass radius contact_radius x0 x";
   fields_data_vel = (char *) "id v";
 
@@ -130,7 +130,7 @@ void AtomVecSMD::grow_pointers()
    NOTE: does f need to be re-cleared?
 ------------------------------------------------------------------------- */
 
-void AtomVecSMD::force_clear(int n, size_t nbytes) 
+void AtomVecSMD::force_clear(int n, size_t nbytes)
 {
   memset(&desph[n],0,nbytes);
   memset(&f[n][0],0,3*nbytes);
@@ -151,7 +151,7 @@ void AtomVecSMD::create_atom_post(int ilocal)
   radius[ilocal] = 0.5;
   contact_radius[ilocal] = 0.5;
   molecule[ilocal] = 1;
-  
+
   smd_data_9[ilocal][0] = 1.0; // xx
   smd_data_9[ilocal][4] = 1.0; // yy
   smd_data_9[ilocal][8] = 1.0; // zz

@@ -108,7 +108,7 @@ void AtomVecPeri::data_atom_post(int ilocal)
   x0[ilocal][1] = x[ilocal][1];
   x0[ilocal][2] = x[ilocal][2];
 
-  if (rmass[ilocal] <= 0.0) 
+  if (rmass[ilocal] <= 0.0)
     error->one(FLERR,"Invalid mass in Atoms section of data file");
 }
 

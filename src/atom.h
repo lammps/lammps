@@ -38,7 +38,7 @@ class Atom : protected Pointers {
   bigint nlines;                // number of lines
   bigint ntris;                 // number of triangles
   bigint nbodies;               // number of bodies
-  
+
   // system properties
 
   bigint nbonds,nangles,ndihedrals,nimpropers;
@@ -260,7 +260,7 @@ class Atom : protected Pointers {
   void peratom_create();
   void add_peratom(const char *, void *, int, int, int threadflag=0);
   void add_peratom_change_columns(const char *, int);
-  void add_peratom_vary(const char *, void *, int, int *, 
+  void add_peratom_vary(const char *, void *, int, int *,
                         void *, int collength=0);
   void create_avec(const char *, int, char **, int);
   virtual class AtomVec *new_avec(const char *, int, int &);

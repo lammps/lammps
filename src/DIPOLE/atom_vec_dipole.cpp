@@ -72,6 +72,6 @@ void AtomVecDipole::grow_pointers()
 void AtomVecDipole::data_atom_post(int ilocal)
 {
   double *mu_one = mu[ilocal];
-  mu_one[3] = 
+  mu_one[3] =
     sqrt(mu_one[0]*mu_one[0] + mu_one[1]*mu_one[1] + mu_one[2]*mu_one[2]);
 }

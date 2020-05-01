@@ -19,8 +19,8 @@ Syntax
            bstyle = style of body particles
            bstyle-args = additional arguments specific to the bstyle
                          see the :doc:`Howto body <Howto_body>` doc
-			 page for details
-	 *sphere* arg = 0/1 (optional) for static/dynamic particle radii
+                         page for details
+         *sphere* arg = 0/1 (optional) for static/dynamic particle radii
          *tdpd* arg = Nspecies
            Nspecies = # of chemical species
          *template* arg = template-ID

@@ -8,7 +8,7 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID pafi compute-ID Temp Tdamp seed overdamped <arg> com <arg>
+   fix ID group-ID pafi compute-ID Temp Tdamp seed keyword values...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * pafi = style name of this fix command
@@ -17,19 +17,14 @@ Syntax
 * Tdamp = damping parameter (time units)
 * seed = random number seed to use for white noise (positive integer)
 * keyword = *overdamped* or *com*
-* overdamped <arg> = Brownian (*arg* = 1) or Langevin (*arg* = 0) dynamics
-* com <arg> =  enable (*arg* = 1) or disable (*arg* = 0) XXX
-
 
   .. parsed-literal::
-
-       *overdamped* value = *yes* or *no* or *1* or *0*
-         *yes* or *1* = Brownian (overdamped) integration in hyperplane
-         *no* or *0* = Langevin integration in hyperplane (see :doc:`fix langevin <fix_langevin>`)
-
-       *com* value = *yes" or *no* or *1* or *0*
-         *yes* or *1* = Zero linear momentum (see :doc: `fix momentum <fix_momentum>`)
-         *no* or *0* = Do not zero linear momentum, allowing center of mass drift
+       *overdamped* value = *yes* or *no* or 1 or 0
+         *yes* or 1 = Brownian (overdamped) integration in hyperplane
+         *no* or 0 = Langevin integration in hyperplane
+       *com* value = *yes" or *no* or 1 or 0
+         *yes* or 1 = zero linear momentum, fixing center or mass (recommended)
+         *no* or 0 = do not zero linear momentum, allowing center of mass drift
 
 Examples
 """"""""
@@ -52,13 +47,12 @@ A detailed discussion of the projection technique can be found in :ref:`(Swinbur
 
 This fix can be used with LAMMPS as demonstrated in examples/USER/misc/pafi,
 though it is primarily intended to be coupled with the PAFI C++ code, which is developed
-at `https://github.com/tomswinburne/pafi <https://github.com/tomswinburne/pafi>`.
+at `https://github.com/tomswinburne/pafi <https://github.com/tomswinburne/pafi>`_.
 
 A :doc:`compute property/atom <compute_property_atom>` must be provided with 9 fields per atom coordinate,
-which are the
-- x,y,z coordinates of a configuration on the reference path
-- x,y,z coordinates of the path tangent (derivative of path position with path coordinate)
-- x,y,z coordinates of the change in tangent (derivative of path tangent with path coordinate)
+which in order are the x,y,z coordinates of a configuration on the reference path,
+the x,y,z coordinates of the path tangent (derivative of path position with path coordinate)
+and the x,y,z coordinates of the change in tangent (derivative of path tangent with path coordinate).
 
 A 4-element vector is also calculated by this fix. The 4 components are the
 modified projected force, its square, the expected projection of the minimum
@@ -79,7 +73,7 @@ projected along the path tangent. This latter value should be essentially zero.
 
 
 Restart, fix_modify, output, run start/stop, minimize info
-"""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 No information about this fix is written to :doc:`binary restart files <restart>`.
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this fix.
 

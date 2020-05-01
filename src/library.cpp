@@ -474,18 +474,7 @@ void lammps_extract_box(void *ptr, double *boxlo, double *boxhi,
 void *lammps_extract_atom(void *ptr, char *name)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
-  void *vptr = lmp->atom->extract(name);
-  // check for property/atom
-  if (vptr == NULL) {
-    int vector_type;
-    int vector_index = lmp->atom->find_custom(name, vector_type);
-    if(vector_index>=0) {
-        if(vector_type==0) vptr = (void *) lmp->atom->ivector[vector_index];
-        else vptr = (void *) lmp->atom->dvector[vector_index];
-    }
-  }
-
-  return vptr;
+  return lmp->atom->extract(name);
 }
 
 /* ----------------------------------------------------------------------
@@ -821,7 +810,6 @@ void lammps_gather_atoms(void *ptr, char *name,
                          int type, int count, void *data)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
-
   BEGIN_CAPTURE
   {
     int i,j,offset;
@@ -1507,64 +1495,49 @@ void lammps_scatter_atoms_subset(void *ptr, char *name,
 
 /* ----------------------------------------------------------------------
   Contributing author: Thomas Swinburne (CNRS & CINaM, Marseille, France)
-   gather the named fix and return it in user-allocated data
-   gather_fix : extract_fix   ==    gather_atoms : extract_atoms
-   error raised if fix doesn't return peratom data
-   data will be ordered by atom ID
-     requirement for consecutive atom IDs (1 to N)
-   id = fix ID
-   count: number of entries per atom
-   method:
-     alloc and zero count*Natom length vector
-     loop over Nlocal to fill vector with my values
-     Allreduce to sum vector into data across all procs
+  gather the named atom-based entity for all atoms
+    return it in user-allocated data
+  data will be ordered by atom ID
+    requirement for consecutive atom IDs (1 to N)
+  see gather_concat() to return data for all atoms, unordered
+  see gather_subset() to return data for only a subset of atoms
+  name = "x" , "f" or other atom properties
+        "d_name" or "i_name" for fix property/atom quantities
+        "f_fix", "c_compute" for fixes / computes
+        will return error if fix/compute doesn't isn't atom-based
+  type = 0 for integer values, 1 for double values
+  count = # of per-atom values, e.g. 1 for type or charge, 3 for x or f
+    use count = 3 with "image" if want single image flag unpacked into xyz
+  return atom-based values in 1d data, ordered by count, then by atom ID
+    e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
+    data must be pre-allocated by caller to correct length
+    correct length = count*Natoms, as queried by get_natoms()
+  method:
+    alloc and zero count*Natom length vector
+    loop over Nlocal to fill vector with my values
+    Allreduce to sum vector into data across all procs
 ------------------------------------------------------------------------- */
 #if defined(LAMMPS_BIGBIG)
-void lammps_gather_fix(void *ptr, char * /*id*/, int /*type*/,
+void lammps_gather(void *ptr, char * /*name*/, int /*type*/,
                                 int /*count*/, void * /*data*/)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
   BEGIN_CAPTURE
   {
-  lmp->error->all(FLERR,"Library function lammps_gather_peratom_fix()"
+  lmp->error->all(FLERR,"Library function lammps_gather"
                                       " not compatible with -DLAMMPS_BIGBIG");
   }
   END_CAPTURE
 }
 #else
-void lammps_gather_fix(void *ptr, char *id, int type, int count, void *data)
+void lammps_gather(void *ptr, char *name, int type, int count, void *data)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
   BEGIN_CAPTURE
   {
-    int i,j,offset;
-    int ifix = lmp->modify->find_fix(id);
-    if (ifix < 0) {
-      lmp->error->warning(FLERR,"lammps_gather_fix: unknown fix id");
-      return;
-    }
-
-    Fix *fix = lmp->modify->fix[ifix];
-    int natoms = static_cast<int> (lmp->atom->natoms);
-    // if
-    if (fix->peratom_flag == 0) {
-      lmp->error->warning(FLERR,"lammps_gather_fix:"
-                                " fix does not return peratom data");
-      return;
-    }
-    if (fix->size_peratom_cols != count) {
-      lmp->error->warning(FLERR,"lammps_gather_fix:"
-                                " count != values peratom for fix");
-      return;
-    }
-
-    if (lmp->update->ntimestep % fix->peratom_freq) {
-      lmp->error->all(FLERR,"lammps_gather_fix:"
-                            " fix not computed at compatible time");
-      return;
-    }
+    int i,j,offset,fcid,ltype;
 
     // error if tags are not defined or not consecutive
     int flag = 0;
@@ -1573,7 +1546,96 @@ void lammps_gather_fix(void *ptr, char *id, int type, int count, void *data)
     if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
     if (flag) {
       if (lmp->comm->me == 0)
-        lmp->error->warning(FLERR,"Library error in lammps_gather_peratom_fix");
+        lmp->error->warning(FLERR,"Library error in lammps_gather");
+      return;
+    }
+
+    int natoms = static_cast<int> (lmp->atom->natoms);
+
+    void *vptr = lmp->atom->extract(name);
+
+    if (vptr==NULL && strstr(name,"f_") == name) { // fix
+
+      fcid = lmp->modify->find_fix(&name[2]);
+      if (fcid < 0) {
+        lmp->error->warning(FLERR,"lammps_gather: unknown fix id");
+        return;
+      }
+
+      if (lmp->modify->fix[fcid]->peratom_flag == 0) {
+        lmp->error->warning(FLERR,"lammps_gather:"
+                                  " fix does not return peratom data");
+        return;
+      }
+      if (lmp->modify->fix[fcid]->size_peratom_cols != count) {
+        lmp->error->warning(FLERR,"lammps_gather:"
+                                  " count != values peratom for fix");
+        return;
+      }
+
+      if (lmp->update->ntimestep % lmp->modify->fix[fcid]->peratom_freq) {
+        lmp->error->all(FLERR,"lammps_gather:"
+                              " fix not computed at compatible time");
+        return;
+      }
+
+      if(count==1) vptr = (void *) lmp->modify->fix[fcid]->vector_atom;
+      else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
+
+
+    }
+
+    if (vptr==NULL && strstr(name,"c_") == name) { // compute
+
+      fcid = lmp->modify->find_compute(&name[2]);
+      if (fcid < 0) {
+        lmp->error->warning(FLERR,"lammps_gather: unknown compute id");
+        return;
+      }
+
+      if (lmp->modify->compute[fcid]->peratom_flag == 0) {
+        lmp->error->warning(FLERR,"lammps_gather:"
+                                  " compute does not return peratom data");
+        return;
+      }
+      if (lmp->modify->compute[fcid]->size_peratom_cols != count) {
+        lmp->error->warning(FLERR,"lammps_gather:"
+                                  " count != values peratom for compute");
+        return;
+      }
+
+      if (lmp->modify->compute[fcid]->invoked_peratom != lmp->update->ntimestep)
+        lmp->modify->compute[fcid]->compute_peratom();
+
+      if(count==1) vptr = (void *) lmp->modify->compute[fcid]->vector_atom;
+      else vptr = (void *) lmp->modify->compute[fcid]->array_atom;
+
+
+    }
+
+    if (vptr==NULL && strstr(name,"d_") == name) { // property / atom
+
+      fcid = lmp->atom->find_custom(&name[2], ltype);
+      if (fcid < 0) {
+        lmp->error->warning(FLERR,"lammps_gather: unknown property/atom id");
+        return;
+      }
+      if (ltype != type) {
+        lmp->error->warning(FLERR,"lammps_gather: mismatch property/atom type");
+        return;
+      }
+      if (count != 1) {
+        lmp->error->warning(FLERR,"lammps_gather: property/atom has count=1");
+        return;
+      }
+      if(ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
+      else vptr = (void *) lmp->atom->dvector[fcid];
+
+    }
+
+
+    if (vptr == NULL) {
+      lmp->error->warning(FLERR,"lammps_gather: unknown property name");
       return;
     }
 
@@ -1583,8 +1645,11 @@ void lammps_gather_fix(void *ptr, char *id, int type, int count, void *data)
     if (type==0) {
       int *vector = NULL;
       int **array = NULL;
-      if (count == 1) vector = (int *) fix->vector_atom; //vptr;
-      else array = (int **) fix->array_atom; //vptr;
+
+      const int imgunpack = (count == 3) && (strcmp(name,"image") == 0);
+
+      if ((count == 1) || imgunpack) vector = (int *) vptr;
+      else array = (int **) vptr;
 
       int *copy;
       lmp->memory->create(copy,count*natoms,"lib/gather:copy");
@@ -1596,6 +1661,16 @@ void lammps_gather_fix(void *ptr, char *id, int type, int count, void *data)
       if (count == 1) {
         for (i = 0; i < nlocal; i++)
           copy[tag[i]-1] = vector[i];
+
+      } else if (imgunpack) {
+        for (i = 0; i < nlocal; i++) {
+          offset = count*(tag[i]-1);
+          const int image = vector[i];
+          copy[offset++] = (image & IMGMASK) - IMGMAX;
+          copy[offset++] = ((image >> IMGBITS) & IMGMASK) - IMGMAX;
+          copy[offset++] = ((image >> IMG2BITS) & IMGMASK) - IMGMAX;
+        }
+
       } else {
         for (i = 0; i < nlocal; i++) {
           offset = count*(tag[i]-1);
@@ -1603,13 +1678,16 @@ void lammps_gather_fix(void *ptr, char *id, int type, int count, void *data)
             copy[offset++] = array[i][j];
         }
       }
+
       MPI_Allreduce(copy,data,count*natoms,MPI_INT,MPI_SUM,lmp->world);
       lmp->memory->destroy(copy);
+
     } else {
+
       double *vector = NULL;
       double **array = NULL;
-      if (count == 1) vector = (double *) fix->vector_atom; //vptr;
-      else array = (double **) fix->array_atom; //vptr;
+      if (count == 1) vector = (double *) vptr;
+      else array = (double **) vptr;
 
       double *copy;
       lmp->memory->create(copy,count*natoms,"lib/gather:copy");
@@ -1636,131 +1714,480 @@ void lammps_gather_fix(void *ptr, char *id, int type, int count, void *data)
 }
 #endif
 
+/* ----------------------------------------------------------------------
+  Contributing author: Thomas Swinburne (CNRS & CINaM, Marseille, France)
+  gather the named atom-based entity for all atoms
+    return it in user-allocated data
+  data will be ordered by atom ID
+    requirement for consecutive atom IDs (1 to N)
+  see gather() to return data ordered by consecutive atom IDs
+  see gather_subset() to return data for only a subset of atoms
+  name = "x" , "f" or other atom properties
+        "d_name" or "i_name" for fix property/atom quantities
+        "f_fix", "c_compute" for fixes / computes
+        will return error if fix/compute doesn't isn't atom-based
+  type = 0 for integer values, 1 for double values
+  count = # of per-atom values, e.g. 1 for type or charge, 3 for x or f
+    use count = 3 with "image" if want single image flag unpacked into xyz
+  return atom-based values in 1d data, ordered by count, then by atom ID
+    e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
+    data must be pre-allocated by caller to correct length
+    correct length = count*Natoms, as queried by get_natoms()
+  method:
+    alloc and zero count*Natom length vector
+    loop over Nlocal to fill vector with my values
+    Allreduce to sum vector into data across all procs
+------------------------------------------------------------------------- */
 #if defined(LAMMPS_BIGBIG)
-void lammps_gather_fix_subset(void *ptr, char * /*id */, int /*type*/,
-                                      int /*count*/, int /*ndata*/,
-                                      int * /*ids*/, void * /*data*/)
+void lammps_gather_concat(void *ptr, char * /*name*/, int /*type*/,
+                                int /*count*/, void * /*data*/)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
+  BEGIN_CAPTURE
+  lmp->error->all(FLERR,"Library function lammps_gather_concat"
+                                      " not compatible with -DLAMMPS_BIGBIG");
+  END_CAPTURE
+}
+#else
+void lammps_gather_concat(void *ptr, char *name, int type, int count, void *data)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
   BEGIN_CAPTURE
   {
-  lmp->error->all(FLERR,"Library function lammps_gather_peratom_fix_subset() "
-                                          "not compatible with -DLAMMPS_BIGBIG");
+    int i,j,offset,fcid,ltype;
+
+    // error if tags are not defined or not consecutive
+    int flag = 0;
+    if (lmp->atom->tag_enable == 0) flag = 1;
+    if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
+    if (flag) {
+      if (lmp->comm->me == 0)
+        lmp->error->warning(FLERR,"Library error in lammps_gather_concat");
+      return;
+    }
+
+
+    int natoms = static_cast<int> (lmp->atom->natoms);
+
+    void *vptr = lmp->atom->extract(name);
+
+    if (vptr==NULL && strstr(name,"f_") == name) { // fix
+
+      fcid = lmp->modify->find_fix(&name[2]);
+      if (fcid < 0) {
+        lmp->error->warning(FLERR,"lammps_gather_concat: unknown fix id");
+        return;
+      }
+
+      if (lmp->modify->fix[fcid]->peratom_flag == 0) {
+        lmp->error->warning(FLERR,"lammps_gather_concat:"
+                                  " fix does not return peratom data");
+        return;
+      }
+      if (lmp->modify->fix[fcid]->size_peratom_cols != count) {
+        lmp->error->warning(FLERR,"lammps_gather_concat:"
+                                  " count != values peratom for fix");
+        return;
+      }
+
+
+      if (lmp->update->ntimestep % lmp->modify->fix[fcid]->peratom_freq) {
+        lmp->error->all(FLERR,"lammps_gather_concat:"
+                              " fix not computed at compatible time");
+        return;
+      }
+
+      if(count==1) vptr = (void *) lmp->modify->fix[fcid]->vector_atom;
+      else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
+
+
+    }
+
+    if (vptr==NULL && strstr(name,"c_") == name) { // compute
+
+      fcid = lmp->modify->find_compute(&name[2]);
+      if (fcid < 0) {
+        lmp->error->warning(FLERR,"lammps_gather_concat: unknown compute id");
+        return;
+      }
+
+      if (lmp->modify->compute[fcid]->peratom_flag == 0) {
+        lmp->error->warning(FLERR,"lammps_gather_concat:"
+                                  " compute does not return peratom data");
+        return;
+      }
+      if (lmp->modify->compute[fcid]->size_peratom_cols != count) {
+        lmp->error->warning(FLERR,"lammps_gather_concat:"
+                                  " count != values peratom for compute");
+        return;
+      }
+
+      if (lmp->modify->compute[fcid]->invoked_peratom != lmp->update->ntimestep)
+        lmp->modify->compute[fcid]->compute_peratom();
+
+      if(count==1) vptr = (void *) lmp->modify->compute[fcid]->vector_atom;
+      else vptr = (void *) lmp->modify->compute[fcid]->array_atom;
+
+
+    }
+
+    if (vptr==NULL && strstr(name,"d_") == name) { // property / atom
+
+      fcid = lmp->atom->find_custom(&name[2], ltype);
+      if (fcid < 0) {
+        lmp->error->warning(FLERR,"lammps_gather_concat: "
+                                  "unknown property/atom id");
+        return;
+      }
+      if (ltype != type) {
+        lmp->error->warning(FLERR,"lammps_gather_concat: "
+                                  "mismatch property/atom type");
+        return;
+      }
+      if (count != 1) {
+        lmp->error->warning(FLERR,"lammps_gather_concat: "
+                                  "property/atom has count=1");
+        return;
+      }
+      if(ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
+      else vptr = (void *) lmp->atom->dvector[fcid];
+
+    }
+
+    if (vptr == NULL) {
+      lmp->error->warning(FLERR,"lammps_gather_concat: unknown property name");
+      return;
+    }
+
+    // perform MPI_Allgatherv on each proc's chunk of Nlocal atoms
+
+    int nprocs = lmp->comm->nprocs;
+
+    int *recvcounts,*displs;
+    lmp->memory->create(recvcounts,nprocs,"lib/gather:recvcounts");
+    lmp->memory->create(displs,nprocs,"lib/gather:displs");
+
+    if (type == 0) {
+      int *vector = NULL;
+      int **array = NULL;
+      const int imgunpack = (count == 3) && (strcmp(name,"image") == 0);
+
+      if ((count == 1) || imgunpack) vector = (int *) vptr;
+      else array = (int **) vptr;
+
+      int *copy;
+      lmp->memory->create(copy,count*natoms,"lib/gather:copy");
+      for (i = 0; i < count*natoms; i++) copy[i] = 0;
+
+      int nlocal = lmp->atom->nlocal;
+
+      if (count == 1) {
+        MPI_Allgather(&nlocal,1,MPI_INT,recvcounts,1,MPI_INT,lmp->world);
+        displs[0] = 0;
+        for (i = 1; i < nprocs; i++)
+          displs[i] = displs[i-1] + recvcounts[i-1];
+        MPI_Allgatherv(vector,nlocal,MPI_INT,data,recvcounts,displs,
+                       MPI_INT,lmp->world);
+
+      } else if (imgunpack) {
+        int *copy;
+        lmp->memory->create(copy,count*nlocal,"lib/gather:copy");
+        offset = 0;
+        for (i = 0; i < nlocal; i++) {
+          const int image = vector[i];
+          copy[offset++] = (image & IMGMASK) - IMGMAX;
+          copy[offset++] = ((image >> IMGBITS) & IMGMASK) - IMGMAX;
+          copy[offset++] = ((image >> IMG2BITS) & IMGMASK) - IMGMAX;
+        }
+        int n = count*nlocal;
+        MPI_Allgather(&n,1,MPI_INT,recvcounts,1,MPI_INT,lmp->world);
+        displs[0] = 0;
+        for (i = 1; i < nprocs; i++)
+          displs[i] = displs[i-1] + recvcounts[i-1];
+        MPI_Allgatherv(copy,count*nlocal,MPI_INT,
+                       data,recvcounts,displs,MPI_INT,lmp->world);
+        lmp->memory->destroy(copy);
+
+      } else {
+        int n = count*nlocal;
+        MPI_Allgather(&n,1,MPI_INT,recvcounts,1,MPI_INT,lmp->world);
+        displs[0] = 0;
+        for (i = 1; i < nprocs; i++)
+          displs[i] = displs[i-1] + recvcounts[i-1];
+        MPI_Allgatherv(&array[0][0],count*nlocal,MPI_INT,
+                       data,recvcounts,displs,MPI_INT,lmp->world);
+      }
+
+    } else {
+      double *vector = NULL;
+      double **array = NULL;
+      if (count == 1) vector = (double *) vptr;
+      else array = (double **) vptr;
+
+      int nlocal = lmp->atom->nlocal;
+
+      if (count == 1) {
+        MPI_Allgather(&nlocal,1,MPI_INT,recvcounts,1,MPI_INT,lmp->world);
+        displs[0] = 0;
+        for (i = 1; i < nprocs; i++)
+          displs[i] = displs[i-1] + recvcounts[i-1];
+        MPI_Allgatherv(vector,nlocal,MPI_DOUBLE,data,recvcounts,displs,
+                       MPI_DOUBLE,lmp->world);
+
+      } else {
+        int n = count*nlocal;
+        MPI_Allgather(&n,1,MPI_INT,recvcounts,1,MPI_INT,lmp->world);
+        displs[0] = 0;
+        for (i = 1; i < nprocs; i++)
+          displs[i] = displs[i-1] + recvcounts[i-1];
+        MPI_Allgatherv(&array[0][0],count*nlocal,MPI_DOUBLE,
+                       data,recvcounts,displs,MPI_DOUBLE,lmp->world);
+      }
+    }
+
+    lmp->memory->destroy(recvcounts);
+    lmp->memory->destroy(displs);
+  }
+  END_CAPTURE
+}
+#endif
+
+/* ----------------------------------------------------------------------
+  Contributing author: Thomas Swinburne (CNRS & CINaM, Marseille, France)
+  gather the named atom-based entity for all atoms
+    return it in user-allocated data
+  data will be ordered by atom ID
+    requirement for consecutive atom IDs (1 to N)
+  see gather() to return data ordered by consecutive atom IDs
+  see gather_concat() to return data for all atoms, unordered
+  name = "x" , "f" or other atom properties
+        "d_name" or "i_name" for fix property/atom quantities
+        "f_fix", "c_compute" for fixes / computes
+        will return error if fix/compute doesn't isn't atom-based
+  type = 0 for integer values, 1 for double values
+  count = # of per-atom values, e.g. 1 for type or charge, 3 for x or f
+    use count = 3 with "image" if want single image flag unpacked into xyz
+  return atom-based values in 1d data, ordered by count, then by atom ID
+    e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
+    data must be pre-allocated by caller to correct length
+    correct length = count*Natoms, as queried by get_natoms()
+  method:
+    alloc and zero count*Natom length vector
+    loop over Nlocal to fill vector with my values
+    Allreduce to sum vector into data across all procs
+------------------------------------------------------------------------- */
+#if defined(LAMMPS_BIGBIG)
+void lammps_gather_subset(void *ptr, char * /*name */,
+                                int /*type*/, int /*count*/,
+                                int /*ndata*/, int * /*ids*/, void * /*data*/)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
+  BEGIN_CAPTURE
+  {
+    lmp->error->all(FLERR,"Library function lammps_gather_subset() "
+                    "is not compatible with -DLAMMPS_BIGBIG");
   }
   END_CAPTURE
 }
 #else
-void lammps_gather_fix_subset(void *ptr, char *id,
-                                 int type, int count,
-                                 int ndata, int *ids, void *data)
+void lammps_gather_subset(void *ptr, char *name,
+                                int type, int count,
+                                int ndata, int *ids, void *data)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
   BEGIN_CAPTURE
   {
-    int i,j,m,offset;
-    tagint aid;
-
-    int ifix = lmp->modify->find_fix(id);
-    if (ifix < 0) {
-      lmp->error->warning(FLERR,"lammps_gather_fix_subset: unknown fix id");
-      return;
-    }
-
-    Fix *fix = lmp->modify->fix[ifix];
-    int natoms = static_cast<int> (lmp->atom->natoms);
-    if (fix->peratom_flag == 0) {
-      lmp->error->warning(FLERR,"lammps_gather_fix_subset:"
-                                " fix does not return peratom data");
-      return;
-    }
-    if (fix->size_peratom_cols != count) {
-      lmp->error->warning(FLERR,"lammps_gather_fix_subset:"
-                                " count != values peratom for fix");
-      return;
-    }
-
-    if (lmp->update->ntimestep % fix->peratom_freq) {
-      lmp->error->all(FLERR,"lammps_gather_fix_subset:"
-                            " fix not computed at compatible time");
-      return;
-    }
+    int i,j,m,offset,fcid,ltype;
+    tagint id;
 
     // error if tags are not defined or not consecutive
     int flag = 0;
-    if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0)
-      flag = 1;
+    if (lmp->atom->tag_enable == 0) flag = 1;
     if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
     if (flag) {
       if (lmp->comm->me == 0)
-        lmp->error->warning(FLERR,"Library error in lammps_gather_fix_subset");
+        lmp->error->warning(FLERR,"Library error in lammps_gather_subset");
       return;
     }
 
-    // copy = Natom length vector of per-atom values
+    int natoms = static_cast<int> (lmp->atom->natoms);
+
+    void *vptr = lmp->atom->extract(name);
+
+    if (vptr==NULL && strstr(name,"f_") == name) { // fix
+
+      fcid = lmp->modify->find_fix(&name[2]);
+      if (fcid < 0) {
+        lmp->error->warning(FLERR,"lammps_gather_subset: unknown fix id");
+        return;
+      }
+
+      if (lmp->modify->fix[fcid]->peratom_flag == 0) {
+        lmp->error->warning(FLERR,"lammps_gather_subset:"
+                                  " fix does not return peratom data");
+        return;
+      }
+      if (lmp->modify->fix[fcid]->size_peratom_cols != count) {
+        lmp->error->warning(FLERR,"lammps_gather_subset:"
+                                  " count != values peratom for fix");
+        return;
+      }
+
+
+      if (lmp->update->ntimestep % lmp->modify->fix[fcid]->peratom_freq) {
+        lmp->error->all(FLERR,"lammps_gather_subset:"
+                              " fix not computed at compatible time");
+        return;
+      }
+
+      if(count==1) vptr = (void *) lmp->modify->fix[fcid]->vector_atom;
+      else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
+
+
+    }
+
+    if (vptr==NULL && strstr(name,"c_") == name) { // compute
+
+      fcid = lmp->modify->find_compute(&name[2]);
+      if (fcid < 0) {
+        lmp->error->warning(FLERR,"lammps_gather_subset: unknown compute id");
+        return;
+      }
+
+      if (lmp->modify->compute[fcid]->peratom_flag == 0) {
+        lmp->error->warning(FLERR,"lammps_gather_subset:"
+                                  " compute does not return peratom data");
+        return;
+      }
+      if (lmp->modify->compute[fcid]->size_peratom_cols != count) {
+        lmp->error->warning(FLERR,"lammps_gather_subset:"
+                                  " count != values peratom for compute");
+        return;
+      }
+
+      if (lmp->modify->compute[fcid]->invoked_peratom != lmp->update->ntimestep)
+        lmp->modify->compute[fcid]->compute_peratom();
+
+      if(count==1) vptr = (void *) lmp->modify->compute[fcid]->vector_atom;
+      else vptr = (void *) lmp->modify->compute[fcid]->array_atom;
+
+
+    }
+
+    if (vptr==NULL && strstr(name,"d_") == name) { // property / atom
+
+      fcid = lmp->atom->find_custom(&name[2], ltype);
+      if (fcid < 0) {
+        lmp->error->warning(FLERR,"lammps_gather_subset: "
+                                  "unknown property/atom id");
+        return;
+      }
+      if (ltype != type) {
+        lmp->error->warning(FLERR,"lammps_gather_subset: "
+                                  "mismatch property/atom type");
+        return;
+      }
+      if (count != 1) {
+        lmp->error->warning(FLERR,"lammps_gather_subset: "
+                                  "property/atom has count=1");
+        return;
+      }
+      if(ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
+      else vptr = (void *) lmp->atom->dvector[fcid];
+
+    }
+
+    if (vptr == NULL) {
+      lmp->error->warning(FLERR,"lammps_gather_subset: "
+                                "unknown property name");
+      return;
+    }
+
+    // copy = Ndata length vector of per-atom values
     // use atom ID to insert each atom's values into copy
-    // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
-    if (type==0) {
+    // MPI_Allreduce with MPI_SUM to merge into data
+
+    if (type == 0) {
       int *vector = NULL;
       int **array = NULL;
-      if (count == 1) vector = (int *) fix->vector_atom; //vptr;
-      else array = (int **) fix->array_atom; //vptr;
+      const int imgunpack = (count == 3) && (strcmp(name,"image") == 0);
+
+      if ((count == 1) || imgunpack) vector = (int *) vptr;
+      else array = (int **) vptr;
 
       int *copy;
       lmp->memory->create(copy,count*ndata,"lib/gather:copy");
       for (i = 0; i < count*ndata; i++) copy[i] = 0;
 
-      tagint *tag = lmp->atom->tag;
       int nlocal = lmp->atom->nlocal;
 
       if (count == 1) {
         for (i = 0; i < ndata; i++) {
-          aid = ids[i];
-          if ((m = lmp->atom->map(aid)) >= 0 && m < nlocal)
+          id = ids[i];
+          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal)
             copy[i] = vector[m];
         }
+
+      } else if (imgunpack) {
+        for (i = 0; i < ndata; i++) {
+          id = ids[i];
+          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal) {
+            offset = count*i;
+            const int image = vector[m];
+            copy[offset++] = (image & IMGMASK) - IMGMAX;
+            copy[offset++] = ((image >> IMGBITS) & IMGMASK) - IMGMAX;
+            copy[offset++] = ((image >> IMG2BITS) & IMGMASK) - IMGMAX;
+          }
+        }
+
       } else {
         for (i = 0; i < ndata; i++) {
-          aid = ids[i];
-          if ((m = lmp->atom->map(aid)) >= 0 && m < nlocal) {
+          id = ids[i];
+          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal) {
             offset = count*i;
             for (j = 0; j < count; j++)
               copy[offset++] = array[m][j];
           }
         }
       }
+
       MPI_Allreduce(copy,data,count*ndata,MPI_INT,MPI_SUM,lmp->world);
       lmp->memory->destroy(copy);
+
     } else {
       double *vector = NULL;
       double **array = NULL;
-      if (count == 1) vector = (double *) fix->vector_atom; //vptr;
-      else array = (double **) fix->array_atom; //vptr;
+      if (count == 1) vector = (double *) vptr;
+      else array = (double **) vptr;
 
       double *copy;
       lmp->memory->create(copy,count*ndata,"lib/gather:copy");
       for (i = 0; i < count*ndata; i++) copy[i] = 0.0;
 
-      tagint *tag = lmp->atom->tag;
       int nlocal = lmp->atom->nlocal;
 
       if (count == 1) {
         for (i = 0; i < ndata; i++) {
-          aid = ids[i];
-          if ((m = lmp->atom->map(aid)) >= 0 && m < nlocal)
+          id = ids[i];
+          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal)
             copy[i] = vector[m];
         }
+
       } else {
         for (i = 0; i < ndata; i++) {
-          aid = ids[i];
-          if ((m = lmp->atom->map(aid)) >= 0 && m < nlocal) {
+          id = ids[i];
+          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal) {
             offset = count*i;
             for (j = 0; j < count; j++)
               copy[offset++] = array[m][j];
           }
         }
       }
+
       MPI_Allreduce(copy,data,count*ndata,MPI_DOUBLE,MPI_SUM,lmp->world);
       lmp->memory->destroy(copy);
     }
@@ -1768,6 +2195,428 @@ void lammps_gather_fix_subset(void *ptr, char *id,
   END_CAPTURE
 }
 #endif
+
+/* ----------------------------------------------------------------------
+  Contributing author: Thomas Swinburne (CNRS & CINaM, Marseille, France)
+  scatter the named atom-based entity in data to all atoms
+  data will be ordered by atom ID
+    requirement for consecutive atom IDs (1 to N)
+  see scatter_subset() to scatter data for some (or all) atoms, unordered
+  name = "x" , "f" or other atom properties
+        "d_name" or "i_name" for fix property/atom quantities
+        "f_fix", "c_compute" for fixes / computes
+        will return error if fix/compute doesn't isn't atom-based
+  type = 0 for integer values, 1 for double values
+  count = # of per-atom values, e.g. 1 for type or charge, 3 for x or f
+    use count = 3 with "image" if want single image flag unpacked into xyz
+  return atom-based values in 1d data, ordered by count, then by atom ID
+    e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
+    data must be pre-allocated by caller to correct length
+    correct length = count*Natoms, as queried by get_natoms()
+  method:
+    alloc and zero count*Natom length vector
+    loop over Nlocal to fill vector with my values
+    Allreduce to sum vector into data across all procs
+------------------------------------------------------------------------- */
+
+#if defined(LAMMPS_BIGBIG)
+void lammps_scatter(void *ptr, char * /*name */,
+                          int /*type*/, int /*count*/, void * /*data*/)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
+  BEGIN_CAPTURE
+  {
+    lmp->error->all(FLERR,"Library function lammps_scatter() "
+                    "is not compatible with -DLAMMPS_BIGBIG");
+  }
+  END_CAPTURE
+}
+#else
+void lammps_scatter(void *ptr, char *name,
+                          int type, int count, void *data)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
+  BEGIN_CAPTURE
+  {
+    int i,j,m,offset,fcid,ltype;
+
+    // error if tags are not defined or not consecutive or no atom map
+    // NOTE: test that name = image or ids is not a 64-bit int in code?
+
+    int flag = 0;
+    if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0)
+      flag = 1;
+    if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
+    if (lmp->atom->map_style == 0) flag = 1;
+    if (flag) {
+      if (lmp->comm->me == 0)
+        lmp->error->warning(FLERR,"Library error in lammps_scatter");
+      return;
+    }
+
+    int natoms = static_cast<int> (lmp->atom->natoms);
+
+    void *vptr = lammps_extract_atom(lmp,name);
+
+    if (vptr==NULL && strstr(name,"f_") == name) { // fix
+
+      fcid = lmp->modify->find_fix(&name[2]);
+      if (fcid < 0) {
+        lmp->error->warning(FLERR,"lammps_scatter: unknown fix id");
+        return;
+      }
+
+      if (lmp->modify->fix[fcid]->peratom_flag == 0) {
+        lmp->error->warning(FLERR,"lammps_scatter:"
+                                  " fix does not return peratom data");
+        return;
+      }
+      if (lmp->modify->fix[fcid]->size_peratom_cols != count) {
+        lmp->error->warning(FLERR,"lammps_scatter:"
+                                  " count != values peratom for fix");
+        return;
+      }
+
+      if(count==1) vptr = (void *) lmp->modify->fix[fcid]->vector_atom;
+      else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
+
+
+    }
+
+    if (vptr==NULL && strstr(name,"c_") == name) { // compute
+
+      fcid = lmp->modify->find_compute(&name[2]);
+      if (fcid < 0) {
+        lmp->error->warning(FLERR,"lammps_scatter: unknown compute id");
+        return;
+      }
+
+      if (lmp->modify->compute[fcid]->peratom_flag == 0) {
+        lmp->error->warning(FLERR,"lammps_scatter:"
+                                  " compute does not return peratom data");
+        return;
+      }
+      if (lmp->modify->compute[fcid]->size_peratom_cols != count) {
+        lmp->error->warning(FLERR,"lammps_scatter:"
+                                  " count != values peratom for compute");
+        return;
+      }
+
+      if (lmp->modify->compute[fcid]->invoked_peratom != lmp->update->ntimestep)
+        lmp->modify->compute[fcid]->compute_peratom();
+
+      if(count==1) vptr = (void *) lmp->modify->compute[fcid]->vector_atom;
+      else vptr = (void *) lmp->modify->compute[fcid]->array_atom;
+
+
+    }
+
+    if (vptr==NULL && strstr(name,"d_") == name) { // property / atom
+
+      fcid = lmp->atom->find_custom(&name[2], ltype);
+      if (fcid < 0) {
+        lmp->error->warning(FLERR,"lammps_scatter: unknown property/atom id");
+        return;
+      }
+      if (ltype != type) {
+        lmp->error->warning(FLERR,"lammps_scatter: mismatch property/atom type");
+        return;
+      }
+      if (count != 1) {
+        lmp->error->warning(FLERR,"lammps_scatter: property/atom has count=1");
+        return;
+      }
+      if(ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
+      else vptr = (void *) lmp->atom->dvector[fcid];
+
+    }
+
+    if(vptr == NULL) {
+        lmp->error->warning(FLERR,"lammps_scatter: unknown property name");
+        return;
+    }
+
+    // copy = Natom length vector of per-atom values
+    // use atom ID to insert each atom's values into copy
+    // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
+
+    if (type == 0) {
+      int *vector = NULL;
+      int **array = NULL;
+      const int imgpack = (count == 3) && (strcmp(name,"image") == 0);
+
+      if ((count == 1) || imgpack) vector = (int *) vptr;
+      else array = (int **) vptr;
+      int *dptr = (int *) data;
+
+      if (count == 1) {
+        for (i = 0; i < natoms; i++)
+          if ((m = lmp->atom->map(i+1)) >= 0)
+            vector[m] = dptr[i];
+
+      } else if (imgpack) {
+        for (i = 0; i < natoms; i++)
+          if ((m = lmp->atom->map(i+1)) >= 0) {
+            offset = count*i;
+            int image = dptr[offset++] + IMGMAX;
+            image += (dptr[offset++] + IMGMAX) << IMGBITS;
+            image += (dptr[offset++] + IMGMAX) << IMG2BITS;
+            vector[m] = image;
+          }
+
+      } else {
+        for (i = 0; i < natoms; i++)
+          if ((m = lmp->atom->map(i+1)) >= 0) {
+            offset = count*i;
+            for (j = 0; j < count; j++)
+              array[m][j] = dptr[offset++];
+          }
+      }
+
+    } else {
+      double *vector = NULL;
+      double **array = NULL;
+      if (count == 1) vector = (double *) vptr;
+      else array = (double **) vptr;
+      double *dptr = (double *) data;
+
+      if (count == 1) {
+        for (i = 0; i < natoms; i++)
+          if ((m = lmp->atom->map(i+1)) >= 0)
+            vector[m] = dptr[i];
+
+      } else {
+        for (i = 0; i < natoms; i++) {
+          if ((m = lmp->atom->map(i+1)) >= 0) {
+            offset = count*i;
+            for (j = 0; j < count; j++)
+              array[m][j] = dptr[offset++];
+          }
+        }
+      }
+    }
+  }
+  END_CAPTURE
+}
+#endif
+
+/* ----------------------------------------------------------------------
+   scatter the named atom-based entity in data to a subset of atoms
+   data is ordered by provided atom IDs
+     no requirement for consecutive atom IDs (1 to N)
+   see scatter_atoms() to scatter data for all atoms, ordered by consecutive IDs
+   name = desired quantity, e.g. x or charge
+   type = 0 for integer values, 1 for double values
+   count = # of per-atom values, e.g. 1 for type or charge, 3 for x or f
+     use count = 3 with "image" for xyz to be packed into single image flag
+   ndata = # of atoms in ids and data (could be all atoms)
+   ids = list of Ndata atom IDs to scatter data to
+   data = atom-based values in 1d data, ordered by count, then by atom ID
+     e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
+     data must be correct length = count*Ndata
+   method:
+     loop over Ndata, if I own atom ID, set its values from data
+------------------------------------------------------------------------- */
+
+#if defined(LAMMPS_BIGBIG)
+void lammps_scatter_subset(void *ptr, char * /*name */,
+                                int /*type*/, int /*count*/,
+                                int /*ndata*/, int * /*ids*/, void * /*data*/)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
+  BEGIN_CAPTURE
+  {
+    lmp->error->all(FLERR,"Library function lammps_scatter_subset() "
+                    "is not compatible with -DLAMMPS_BIGBIG");
+  }
+  END_CAPTURE
+}
+#else
+void lammps_scatter_subset(void *ptr, char *name,
+                                 int type, int count,
+                                 int ndata, int *ids, void *data)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
+  BEGIN_CAPTURE
+  {
+    int i,j,m,offset,fcid,ltype;
+    tagint id;
+
+    // error if tags are not defined or no atom map
+    // NOTE: test that name = image or ids is not a 64-bit int in code?
+
+    int flag = 0;
+    if (lmp->atom->tag_enable == 0) flag = 1;
+    if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
+    if (lmp->atom->map_style == 0) flag = 1;
+    if (flag) {
+      if (lmp->comm->me == 0)
+        lmp->error->warning(FLERR,"Library error in lammps_scatter_atoms_subset");
+      return;
+    }
+
+    void *vptr = lammps_extract_atom(lmp,name);
+
+    if (vptr==NULL && strstr(name,"f_") == name) { // fix
+
+      fcid = lmp->modify->find_fix(&name[2]);
+      if (fcid < 0) {
+        lmp->error->warning(FLERR,"lammps_scatter_subset: unknown fix id");
+        return;
+      }
+
+      if (lmp->modify->fix[fcid]->peratom_flag == 0) {
+        lmp->error->warning(FLERR,"lammps_scatter_subset:"
+                                  " fix does not return peratom data");
+        return;
+      }
+      if (lmp->modify->fix[fcid]->size_peratom_cols != count) {
+        lmp->error->warning(FLERR,"lammps_scatter_subset:"
+                                  " count != values peratom for fix");
+        return;
+      }
+
+      if(count==1) vptr = (void *) lmp->modify->fix[fcid]->vector_atom;
+      else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
+
+
+    }
+
+    if (vptr==NULL && strstr(name,"c_") == name) { // compute
+
+      fcid = lmp->modify->find_compute(&name[2]);
+      if (fcid < 0) {
+        lmp->error->warning(FLERR,"lammps_scatter_subset: unknown compute id");
+        return;
+      }
+
+      if (lmp->modify->compute[fcid]->peratom_flag == 0) {
+        lmp->error->warning(FLERR,"lammps_scatter_subset:"
+                                  " compute does not return peratom data");
+        return;
+      }
+      if (lmp->modify->compute[fcid]->size_peratom_cols != count) {
+        lmp->error->warning(FLERR,"lammps_scatter_subset:"
+                                  " count != values peratom for compute");
+        return;
+      }
+
+      if (lmp->modify->compute[fcid]->invoked_peratom != lmp->update->ntimestep)
+        lmp->modify->compute[fcid]->compute_peratom();
+
+      if(count==1) vptr = (void *) lmp->modify->compute[fcid]->vector_atom;
+      else vptr = (void *) lmp->modify->compute[fcid]->array_atom;
+
+
+    }
+
+    if (vptr==NULL && strstr(name,"d_") == name) { // property / atom
+
+      fcid = lmp->atom->find_custom(&name[2], ltype);
+      if (fcid < 0) {
+        lmp->error->warning(FLERR,"lammps_scatter_subset: "
+                                  "unknown property/atom id");
+        return;
+      }
+      if (ltype != type) {
+        lmp->error->warning(FLERR,"lammps_scatter_subset: "
+                                  "mismatch property/atom type");
+        return;
+      }
+      if (count != 1) {
+        lmp->error->warning(FLERR,"lammps_scatter_subset: "
+                                  "property/atom has count=1");
+        return;
+      }
+      if(ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
+      else vptr = (void *) lmp->atom->dvector[fcid];
+
+    }
+
+    if(vptr == NULL) {
+        lmp->error->warning(FLERR,"lammps_scatter_atoms_subset: "
+                                  "unknown property name");
+        return;
+    }
+
+    // copy = Natom length vector of per-atom values
+    // use atom ID to insert each atom's values into copy
+    // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
+
+    if (type == 0) {
+      int *vector = NULL;
+      int **array = NULL;
+      const int imgpack = (count == 3) && (strcmp(name,"image") == 0);
+
+      if ((count == 1) || imgpack) vector = (int *) vptr;
+      else array = (int **) vptr;
+      int *dptr = (int *) data;
+
+      if (count == 1) {
+        for (i = 0; i < ndata; i++) {
+          id = ids[i];
+          if ((m = lmp->atom->map(id)) >= 0)
+            vector[m] = dptr[i];
+        }
+
+      } else if (imgpack) {
+        for (i = 0; i < ndata; i++) {
+          id = ids[i];
+          if ((m = lmp->atom->map(id)) >= 0) {
+            offset = count*i;
+            int image = dptr[offset++] + IMGMAX;
+            image += (dptr[offset++] + IMGMAX) << IMGBITS;
+            image += (dptr[offset++] + IMGMAX) << IMG2BITS;
+            vector[m] = image;
+          }
+        }
+
+      } else {
+        for (i = 0; i < ndata; i++) {
+          id = ids[i];
+          if ((m = lmp->atom->map(id)) >= 0) {
+            offset = count*i;
+            for (j = 0; j < count; j++)
+              array[m][j] = dptr[offset++];
+          }
+        }
+      }
+
+    } else {
+      double *vector = NULL;
+      double **array = NULL;
+      if (count == 1) vector = (double *) vptr;
+      else array = (double **) vptr;
+      double *dptr = (double *) data;
+
+      if (count == 1) {
+        for (i = 0; i < ndata; i++) {
+          id = ids[i];
+          if ((m = lmp->atom->map(id)) >= 0)
+            vector[m] = dptr[i];
+        }
+
+      } else {
+        for (i = 0; i < ndata; i++) {
+          id = ids[i];
+          if ((m = lmp->atom->map(id)) >= 0) {
+            offset = count*i;
+            for (j = 0; j < count; j++)
+              array[m][j] = dptr[offset++];
+          }
+        }
+      }
+    }
+  }
+  END_CAPTURE
+}
+#endif
+
+
 
 /* ----------------------------------------------------------------------
    create N atoms and assign them to procs based on coords

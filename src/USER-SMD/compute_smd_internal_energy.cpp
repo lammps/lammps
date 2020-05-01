@@ -40,7 +40,7 @@ ComputeSMDInternalEnergy::ComputeSMDInternalEnergy(LAMMPS *lmp, int narg, char *
   Compute(lmp, narg, arg)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute smd/internal_energy command");
-  if (atom->e_flag != 1) error->all(FLERR,"compute smd/internal_energy command requires atom_style with internal_energy (e.g. smd)");
+  if (atom->esph_flag != 1) error->all(FLERR,"compute smd/internal_energy command requires atom_style with internal_energy (e.g. smd)");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -83,13 +83,13 @@ void ComputeSMDInternalEnergy::compute_peratom()
     vector_atom = internal_energy_vector;
   }
 
-  double *e = atom->e;
+  double *esph = atom->esph;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-              internal_energy_vector[i] = e[i];
+              internal_energy_vector[i] = esph[i];
       }
       else {
               internal_energy_vector[i] = 0.0;

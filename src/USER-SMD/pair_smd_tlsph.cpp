@@ -418,7 +418,7 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
         double **x0 = atom->x0;
         double **f = atom->f;
         double *vfrac = atom->vfrac;
-        double *de = atom->de;
+        double *desph = atom->desph;
         double *rmass = atom->rmass;
         double *radius = atom->radius;
         double *damage = atom->damage;
@@ -592,7 +592,7 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
                         f[i][0] += sumForces(0);
                         f[i][1] += sumForces(1);
                         f[i][2] += sumForces(2);
-                        de[i] += deltaE;
+                        desph[i] += deltaE;
 
                         // tally atomistic stress tensor
                         if (evflag) {
@@ -703,7 +703,7 @@ void PairTlsph::AssembleStress() {
         double *damage = atom->damage;
         double *rmass = atom->rmass;
         double *vfrac = atom->vfrac;
-        double *e = atom->e;
+        double *esph = atom->esph;
         double pInitial, d_iso, pFinal, p_rate, plastic_strain_increment;
         int i, itype;
         int nlocal = atom->nlocal;
@@ -745,7 +745,7 @@ void PairTlsph::AssembleStress() {
                                 d_iso = D[i].trace(); // volumetric part of stretch rate
                                 d_dev = Deviator(D[i]); // deviatoric part of stretch rate
                                 strain = 0.5 * (Fincr[i].transpose() * Fincr[i] - eye);
-                                mass_specific_energy = e[i] / rmass[i]; // energy per unit mass
+                                mass_specific_energy = esph[i] / rmass[i]; // energy per unit mass
                                 rho = rmass[i] / (detF[i] * vfrac[i]);
                                 vol_specific_energy = mass_specific_energy * rho; // energy per current volume
 
@@ -2034,12 +2034,12 @@ void PairTlsph::ComputeStressDeviator(const int i, const Matrix3d sigmaInitial_d
         int *type = atom->type;
         double *rmass = atom->rmass;
 //double *vfrac = atom->vfrac;
-        double *e = atom->e;
+        double *esph = atom->esph;
         double dt = update->dt;
         double yieldStress;
         int itype;
 
-        double mass_specific_energy = e[i] / rmass[i]; // energy per unit mass
+        double mass_specific_energy = esph[i] / rmass[i]; // energy per unit mass
         plastic_strain_increment = 0.0;
         itype = type[i];
 

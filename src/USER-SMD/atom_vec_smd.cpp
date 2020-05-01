@@ -48,7 +48,7 @@ AtomVecSMD::AtomVecSMD(LAMMPS *lmp) : AtomVec(lmp)
   atom->contact_radius_flag = 1;
   atom->molecule_flag = 1;
   atom->smd_data_9_flag = 1;
-  atom->e_flag = 1;
+  atom->esph_flag = 1;
   atom->vest_flag = 1;
   atom->smd_stress_flag = 1;
   atom->eff_plastic_strain_flag = 1;
@@ -62,32 +62,32 @@ AtomVecSMD::AtomVecSMD(LAMMPS *lmp) : AtomVec(lmp)
   // except: fields_data_atom & fields_data_vel must match data file
 
   fields_grow = (char *) 
-    "e de vfrac rmass x0 radius contact_radius molecule "
+    "esph desph vfrac rmass x0 radius contact_radius molecule "
     "smd_data_9 vest smd_stress "
     "eff_plastic_strain eff_plastic_strain_rate damage";
   fields_copy = (char *) 
-    "e vfrac rmass x0 radius contact_radius molecule "
+    "esph vfrac rmass x0 radius contact_radius molecule "
     "eff_plastic_strain eff_plastic_strain_rate vest "
     "smd_data_9 smd_stress damage";
-  fields_comm = (char *) "radius vfrac vest e";
-  fields_comm_vel = (char *) "radius vfrac vest e";
-  fields_reverse = (char *) "de";
+  fields_comm = (char *) "radius vfrac vest esph";
+  fields_comm_vel = (char *) "radius vfrac vest esph";
+  fields_reverse = (char *) "desph";
   fields_border = (char *) 
-    "x0 molecule radius rmass vfrac contact_radius e "
+    "x0 molecule radius rmass vfrac contact_radius esph "
     "eff_plastic_strain smd_data_9 smd_stress";
   fields_border_vel = (char *) 
-    "x0 molecule radius rmass vfrac contact_radius e "
+    "x0 molecule radius rmass vfrac contact_radius esph "
     "eff_plastic_strain smd_data_9 smd_stress vest";
   fields_exchange = (char *) 
-    "x0 molecule radius rmass vfrac contact_radius e "
+    "x0 molecule radius rmass vfrac contact_radius esph "
     "eff_plastic_strain eff_plastic_strain_rate smd_data_9 smd_stress "
     "vest damage";
   fields_restart = (char *) 
-    "x0 molecule radius rmass vfrac contact_radius e "
+    "x0 molecule radius rmass vfrac contact_radius esph "
     "eff_plastic_strain eff_plastic_strain_rate smd_data_9 smd_stress "
     "vest damage";
   fields_create = (char *) 
-    "x0 vest vfrac rmass radius contact_radius molecule e "
+    "x0 vest vfrac rmass radius contact_radius molecule esph "
     "eff_plastic_strain eff_plastic_strain_rate smd_data_9 smd_stress damage";
   fields_data_atom = (char *) 
     "id type molecule vfrac rmass radius contact_radius x0 x";
@@ -108,8 +108,8 @@ AtomVecSMD::AtomVecSMD(LAMMPS *lmp) : AtomVec(lmp)
 
 void AtomVecSMD::grow_pointers()
 {
-  e = atom->e;
-  de = atom->de;
+  esph = atom->esph;
+  desph = atom->desph;
   vfrac = atom->vfrac;
   rmass = atom->rmass;
   x0 = atom->x0;
@@ -132,7 +132,7 @@ void AtomVecSMD::grow_pointers()
 
 void AtomVecSMD::force_clear(int n, size_t nbytes) 
 {
-  memset(&de[n],0,nbytes);
+  memset(&desph[n],0,nbytes);
   memset(&f[n][0],0,3*nbytes);
 }
 
@@ -164,7 +164,7 @@ void AtomVecSMD::create_atom_post(int ilocal)
 
 void AtomVecSMD::data_atom_post(int ilocal)
 {
-  e[ilocal] = 0.0;
+  esph[ilocal] = 0.0;
   x0[ilocal][0] = x[ilocal][0];
   x0[ilocal][1] = x[ilocal][1];
   x0[ilocal][2] = x[ilocal][2];

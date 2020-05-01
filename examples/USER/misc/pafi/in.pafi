@@ -9,7 +9,7 @@ read_data pafipath.4.data fix pa NULL PafiPath
 
 ## EAM potential
 pair_style    eam/fs
-pair_coeff * * Fe_mm.eam.fs Fe
+pair_coeff * * ../../../../potentials/Fe_mm.eam.fs Fe
 
 mass * 55.85
 thermo 100
@@ -71,13 +71,12 @@ print """
 
 
 
-#unfix hp
-#unfix pa
-#unfix af
-
-#minimize 0 0 1000 1000
-#print """
-#Full minimization post-run:
-#energy = ${pe} eV
-#"""
-
+#  disable fix and minimize full system
+# unfix hp
+# unfix pa
+# unfix af
+# minimize 0 0 1000 1000
+# print """
+#   Full minimization post-run:
+#   energy = ${pe} eV
+# """

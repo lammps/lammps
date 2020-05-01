@@ -74,7 +74,7 @@ class FixPAFI : public Fix {
 
 /* ERROR/WARNING messages:
 
-E: Illegal fix pafi command
+E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
@@ -96,8 +96,8 @@ E: Compute for fix pafi has < 3*DIM fields per atom
 
 Self-explanatory.
 
-E: fix pafi requires a damped dynamics minimizer
+E: Fix pafi requires a damped dynamics minimizer
 
-Self-explanatory.
+Use a different minimization style.
 
 */

@@ -1903,10 +1903,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Compute %s does not allow use of dynamic group*
    Dynamic groups have not yet been enabled for this compute.
 
-*Compute ID for compute chunk /atom does not exist*
+*Compute for fix pafi does not calculate a local array*
    Self-explanatory.
 
-*Compute ID for compute chunk/atom does not exist*
+*Compute for fix pafi has < 3*DIM fields per atom*
    Self-explanatory.
 
 *Compute gyration ID does not exist for compute gyration/shape*
@@ -1914,6 +1914,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Compute gyration/shape compute ID does not point to a gyration compute*
    Self-explanatory. Provide and ID of a compute gyration command.
+
+*Compute ID for compute chunk /atom does not exist*
+   Self-explanatory.
+
+*Compute ID for compute chunk/atom does not exist*
+   Self-explanatory.
 
 *Compute ID for compute reduce does not exist*
    Self-explanatory.
@@ -1937,6 +1943,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Compute ID for fix numdiff does not exist*
+   Self-explanatory.
+
+*Compute ID for fix pafi does not exist*
    Self-explanatory.
 
 *Compute ID for fix store/state does not exist*
@@ -2113,6 +2122,8 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Compute hexorder/atom requires a pair style be defined*
    Self-explanatory.
+
+
 
 *Compute improper/local used when impropers are not allowed*
    The atom style does not support impropers.
@@ -3869,6 +3880,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    The neighbor lists used by fix orient/fcc are messed up.  If this
    error occurs, it is likely a bug, so send an email to the
    `developers <https://lammps.sandia.gov/authors.html>`_.
+
+*Fix pafi requires a damped dynamics minimizer*
+   Use a different minimization style.
 
 *Fix peri neigh does not exist*
    Somehow a fix that the pair style defines has been deleted.
@@ -7161,6 +7175,9 @@ keyword to allow for additional bonds to be formed
    Self-explanatory.
 
 *Region ID for fix heat does not exist*
+   Self-explanatory.
+
+*Region ID for fix pafi does not exist*
    Self-explanatory.
 
 *Region ID for fix setforce does not exist*

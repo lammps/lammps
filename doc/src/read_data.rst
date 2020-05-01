@@ -571,56 +571,56 @@ appended to it, which indicate which image of a periodic simulation
 box the atom is in.  These may be important to include for some kinds
 of analysis.
 
-+------------+---------------------------------------------------------------------------+
-| angle      | atom-ID molecule-ID atom-type x y z                                       |
-+------------+---------------------------------------------------------------------------+
-| atomic     | atom-ID atom-type x y z                                                   |
-+------------+---------------------------------------------------------------------------+
-| body       | atom-ID atom-type bodyflag mass x y z                                     |
-+------------+---------------------------------------------------------------------------+
-| bond       | atom-ID molecule-ID atom-type x y z                                       |
-+------------+---------------------------------------------------------------------------+
-| charge     | atom-ID atom-type q x y z                                                 |
-+------------+---------------------------------------------------------------------------+
-| dipole     | atom-ID atom-type q x y z mux muy muz                                     |
-+------------+---------------------------------------------------------------------------+
-| dpd        | atom-ID atom-type theta x y z                                             |
-+------------+---------------------------------------------------------------------------+
-| edpd       | atom-ID atom-type edpd_temp edpd_cv x y z                                 |
-+------------+---------------------------------------------------------------------------+
-| electron   | atom-ID atom-type q spin eradius x y z                                    |
-+------------+---------------------------------------------------------------------------+
-| ellipsoid  | atom-ID atom-type ellipsoidflag density x y z                             |
-+------------+---------------------------------------------------------------------------+
-| full       | atom-ID molecule-ID atom-type q x y z                                     |
-+------------+---------------------------------------------------------------------------+
-| line       | atom-ID molecule-ID atom-type lineflag density x y z                      |
-+------------+---------------------------------------------------------------------------+
-| mdpd       | atom-ID atom-type rho x y z                                               |
-+------------+---------------------------------------------------------------------------+
-| meso       | atom-ID atom-type rho e cv x y z                                          |
-+------------+---------------------------------------------------------------------------+
-| molecular  | atom-ID molecule-ID atom-type x y z                                       |
-+------------+---------------------------------------------------------------------------+
-| peri       | atom-ID atom-type volume density x y z                                    |
-+------------+---------------------------------------------------------------------------+
-| smd        | atom-ID atom-type molecule volume mass kernel-radius
-contact-radius x0 y0 z0 x y z |
-+------------+---------------------------------------------------------------------------+
-| sphere     | atom-ID atom-type diameter density x y z                                  |
-+------------+---------------------------------------------------------------------------+
-| spin       | atom-ID atom-type x y z spx spy spz sp                                 |
-+------------+---------------------------------------------------------------------------+
-| tdpd       | atom-ID atom-type x y z cc1 cc2 ... ccNspecies                            |
-+------------+---------------------------------------------------------------------------+
-| template   | atom-ID molecule-ID template-index template-atom atom-type x y z          |
-+------------+---------------------------------------------------------------------------+
-| tri        | atom-ID molecule-ID atom-type triangleflag density x y z                  |
-+------------+---------------------------------------------------------------------------+
-| wavepacket | atom-ID atom-type charge spin eradius etag cs_re cs_im x y z              |
-+------------+---------------------------------------------------------------------------+
-| hybrid     | atom-ID atom-type x y z sub-style1 sub-style2 ...                         |
-+------------+---------------------------------------------------------------------------+
+.. list-table::
+
+   * - angle
+     - atom-ID molecule-ID atom-type x y z
+   * - atomic
+     - atom-ID atom-type x y z
+   * - body
+     - atom-ID atom-type bodyflag mass x y z
+   * - bond
+     - atom-ID molecule-ID atom-type x y z
+   * - charge
+     - atom-type q x y z
+   * - dipole
+     - atom-ID atom-type q x y z mux muy muz
+   * - dpd
+     - atom-ID atom-type theta x y z
+   * - edpd
+     - atom-ID atom-type edpd_temp edpd_cv x y z
+   * - electron
+     - atom-ID atom-type q spin eradius x y z
+   * - ellipsoid
+     - atom-ID atom-type ellipsoidflag density x y z
+   * - full
+     - atom-ID molecule-ID atom-type q x y z
+   * - line
+     - atom-ID molecule-ID atom-type lineflag density x y z
+   * - mdpd
+     - atom-ID atom-type rho x y z
+   * - molecular
+     - atom-ID molecule-ID atom-type x y z
+   * - peri
+     - atom-ID atom-type volume density x y z
+   * - smd
+     - atom-ID atom-type molecule volume mass kernel-radius contact-radius x0 y0 z0 x y z
+   * - sph
+     - atom-ID atom-type rho esph cv x y z
+   * - sphere
+     - atom-ID atom-type diameter density x y z
+   * - spin
+     - atom-ID atom-type x y z spx spy spz sp
+   * - tdpd
+     - atom-ID atom-type x y z cc1 cc2 ... ccNspecies
+   * - template
+     - atom-ID molecule-ID template-index template-atom atom-type x y z
+   * - tri
+     - atom-ID molecule-ID atom-type triangleflag density x y z
+   * - wavepacket
+     - atom-ID atom-type charge spin eradius etag cs_re cs_im x y z
+   * - hybrid
+     - atom-ID atom-type x y z sub-style1 sub-style2 ...
 
 The per-atom values have these meanings and units, listed alphabetically:
 
@@ -633,7 +633,7 @@ The per-atom values have these meanings and units, listed alphabetically:
 * cv = heat capacity (need units) for SPH particles
 * density = density of particle (mass/distance\^3 or mass/distance\^2 or mass/distance units, depending on dimensionality of particle)
 * diameter = diameter of spherical atom (distance units)
-* e = energy (need units) for SPH particles
+* esph = energy (need units) for SPH particles
 * edpd_temp = temperature for eDPD particles (temperature units)
 * edpd_cv = volumetric heat capacity for eDPD particles (energy/temperature/volume units)
 * ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles

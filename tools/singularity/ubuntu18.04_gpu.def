@@ -2,7 +2,7 @@ BootStrap: docker
 From: rocm/dev-ubuntu-18.04
 
 %environment
-    export PATH=/usr/local/cuda-10.2/bin:${PATH}:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
+    export PATH=/usr/lib/ccache:/usr/local/cuda-10.2/bin:${PATH}:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
     export CUDADIR=/usr/local/cuda-10.2
     export CUDA_PATH=/usr/local/cuda-10.2
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-10.2/lib64

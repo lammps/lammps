@@ -72,6 +72,7 @@ From: ubuntu:18.04
 %environment
     LC_ALL=C
     export LC_ALL
+    export PATH=/usr/lib/ccache:$PATH
 
 %labels
     Author akohlmey, rbberger

@@ -34,7 +34,8 @@ From: fedora:32
                texlive-latex texlive-latexconfig doxygen-latex texlive-collection-latex \
                texlive-latex-bin texlive-lualatex-math texlive-fncychap texlive-tabulary \
                texlive-framed texlive-wrapfig texlive-upquote texlive-capt-of \
-               texlive-needspace texlive-titlesec texlive-anysize texlive-dvipng
+               texlive-needspace texlive-titlesec texlive-anysize texlive-dvipng \
+               blas-devel lapack-devel diffutils
         dnf clean all
 
 %environment

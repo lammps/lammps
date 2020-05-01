@@ -10,7 +10,8 @@ From: centos:7
             libpng-devel libjpeg-devel openmpi-devel mpich-devel python-devel python36-devel \
             hdf5-devel python36-virtualenv python36-pip python-pip \
             netcdf-devel netcdf-cxx-devel netcdf-mpich-devel netcdf-openmpi-devel \
-            python-virtualenv fftw-devel voro++-devel eigen3-devel gsl-devel openblas-devel enchant
+            python-virtualenv fftw-devel voro++-devel eigen3-devel gsl-devel openblas-devel enchant \
+            blas-devel lapack-devel
         yum clean all
 
 %environment

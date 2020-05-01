@@ -48,8 +48,8 @@ class FixPAFI : public Fix {
   double memory_usage();
 
  protected:
-  int varflag,iregion,icompute;
-  char *idregion, *computename;
+  int varflag,icompute;
+  char *computename;
   class Compute *PathCompute;
   double proj[5], proj_all[5]; // f,v,h, psi
   double results[4], results_all[4]; // f.n, (f.n)**2, psi, dx.n

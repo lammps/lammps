@@ -29,7 +29,6 @@
 #include "update.h"
 #include "modify.h"
 #include "domain.h"
-#include "region.h"
 #include "respa.h"
 #include "comm.h"
 #include "compute.h"
@@ -61,7 +60,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), idregion(NULL), random(NULL), computename(NULL),
+  Fix(lmp, narg, arg), random(NULL), computename(NULL),
       h(NULL), step_respa(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_pafi_package);
@@ -80,8 +79,7 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
   int n = strlen(arg[3])+1;
   computename = new char[n];
   strcpy(computename,&arg[3][0]);
-
-
+  
   icompute = modify->find_compute(computename);
   if (icompute == -1)
     error->all(FLERR,"Compute ID for fix pafi does not exist");
@@ -110,8 +108,6 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
   sqrtD = sqrt(1.) * sqrt(24.0*force->boltz/t_period/update->dt/force->mvv2e*temperature) / force->ftm2v;
 
   // optional args
-  iregion = -1;
-  idregion = NULL; // not used
   int iarg = 7;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"overdamped") == 0) {
@@ -156,7 +152,6 @@ FixPAFI::~FixPAFI()
 {
   if (copymode) return;
   delete random;
-  delete [] idregion;
   delete [] computename;
   memory->destroy(h);
 }
@@ -181,17 +176,8 @@ int FixPAFI::setmask()
 
 void FixPAFI::init()
 {
-  // set index and check validity of region
-  // nve
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
-
-  if (iregion >= 0) {
-    iregion = domain->find_region(idregion);
-    if (iregion == -1)
-      error->all(FLERR,"Region ID for fix pafi does not exist");
-  }
-
 
   icompute = modify->find_compute(computename);
   if (icompute == -1)
@@ -201,7 +187,6 @@ void FixPAFI::init()
     error->all(FLERR,"Compute for fix pafi does not calculate a local array");
   if (PathCompute->size_peratom_cols < 9)
     error->all(FLERR,"Compute for fix pafi must have 9 fields per atom");
-
 
 
   if (strstr(update->integrate_style,"respa")) {
@@ -244,13 +229,7 @@ void FixPAFI::post_force(int vflag)
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  // update region if necessary
 
-  Region *region = NULL;
-  if (iregion >= 0) {
-    region = domain->regions[iregion];
-    region->prematch();
-  }
   // reallocate norm array if necessary
   if (atom->nmax > maxatom) {
     maxatom = atom->nmax;
@@ -282,8 +261,6 @@ void FixPAFI::post_force(int vflag)
   force_flag=0;
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
-
       h[i][0] = random->uniform() - 0.5;
       h[i][1] = random->uniform() - 0.5;
       h[i][2] = random->uniform() - 0.5;
@@ -321,7 +298,6 @@ void FixPAFI::post_force(int vflag)
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
 
         c_v[0] += f[i][0];
         c_v[1] += f[i][1];
@@ -340,8 +316,7 @@ void FixPAFI::post_force(int vflag)
   }
   MPI_Allreduce(proj,proj_all,5,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(c_v,c_v_all,10,MPI_DOUBLE,MPI_SUM,world);
-  
-  // results - f.n*(1-psi), (f.n)^2*(1-psi)^2, 1-psi, dX.n
+
   results_all[0] = proj_all[0] * (1.-proj_all[3]);
   results_all[1] = results_all[0] * results_all[0];
   results_all[2] = 1.-proj_all[3];
@@ -350,7 +325,6 @@ void FixPAFI::post_force(int vflag)
 
   for (int i = 0; i < nlocal; i++){
     if (mask[i] & groupbit) {
-      if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
 
       f[i][0] -= proj_all[0] * path[i][3] + c_v_all[0]/c_v_all[9];
       f[i][1] -= proj_all[0] * path[i][4] + c_v_all[1]/c_v_all[9];
@@ -369,7 +343,6 @@ void FixPAFI::post_force(int vflag)
   if (od_flag == 0) {
     for (int i = 0; i < nlocal; i++){
       if (mask[i] & groupbit) {
-        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
         if(rmass) mass_f = sqrt(rmass[i]);
         else mass_f = sqrt(mass[type[i]]);
 
@@ -385,7 +358,6 @@ void FixPAFI::post_force(int vflag)
   } else {
     for (int i = 0; i < nlocal; i++){
       if (mask[i] & groupbit) {
-        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
 
         if(rmass) mass_f = sqrt(rmass[i]);
         else mass_f = sqrt(mass[type[i]]);
@@ -410,11 +382,6 @@ void FixPAFI::post_force_respa(int vflag, int ilevel, int iloop)
 
   if (ilevel == ilevel_respa) post_force(vflag);
   else {
-    Region *region = NULL;
-    if (iregion >= 0) {
-      region = domain->regions[iregion];
-      region->prematch();
-    }
     double **x = atom->x;
     double **f = atom->f;
     int *mask = atom->mask;
@@ -422,7 +389,6 @@ void FixPAFI::post_force_respa(int vflag, int ilevel, int iloop)
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
         for (int k = 0; k < 3; k++) f[i][k] = 0.0;
       }
   }
@@ -438,13 +404,6 @@ void FixPAFI::min_post_force(int vflag)
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  // update region if necessary
-
-  Region *region = NULL;
-  if (iregion >= 0) {
-    region = domain->regions[iregion];
-    region->prematch();
-  }
 
   PathCompute->compute_peratom();
   double **path = PathCompute->array_atom;
@@ -470,7 +429,6 @@ void FixPAFI::min_post_force(int vflag)
   force_flag=0;
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
 
       proj[0] += f[i][0] * path[i][3]; // f.n
       proj[0] += f[i][1] * path[i][4]; // f.n
@@ -505,7 +463,6 @@ void FixPAFI::min_post_force(int vflag)
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
 
         c_v[0] += f[i][0];
         c_v[1] += f[i][1];
@@ -528,14 +485,13 @@ void FixPAFI::min_post_force(int vflag)
   results_all[0] = proj_all[0] * (1.-proj_all[3]); // f.n * psi
   results_all[1] = results_all[0] * results_all[0]; // (f.n * psi)^2
   results_all[2] = 1.-proj_all[3]; // psi
-  results_all[3] = fabs(proj_all[4]); // dX.n
+  results_all[3] = proj_all[4]; // dX.n
 
   MPI_Bcast(results_all,4,MPI_DOUBLE,0,world);
   force_flag = 1;
 
   for (int i = 0; i < nlocal; i++){
     if (mask[i] & groupbit) {
-      if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
 
       f[i][0] -= proj_all[0] * path[i][3] + c_v_all[0]/c_v_all[9];
       f[i][1] -= proj_all[0] * path[i][4] + c_v_all[1]/c_v_all[9];

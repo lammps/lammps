@@ -77,7 +77,7 @@ class FFT3dKokkos : protected Pointers {
 
   FFT3dKokkos(class LAMMPS *, MPI_Comm,
         int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,
-        int,int,int *,int);
+        int,int,int *,int,int);
   ~FFT3dKokkos();
   void compute(typename FFT_AT::t_FFT_SCALAR_1d, typename FFT_AT::t_FFT_SCALAR_1d, int);
   void timing1d(typename FFT_AT::t_FFT_SCALAR_1d, int, int);
@@ -95,7 +95,7 @@ class FFT3dKokkos : protected Pointers {
   struct fft_plan_3d_kokkos<DeviceType> *fft_3d_create_plan_kokkos(MPI_Comm, int, int, int,
                                          int, int, int, int, int,
                                          int, int, int, int, int, int, int,
-                                         int, int, int *, int, int);
+                                         int, int, int *, int, int, int);
 
   void fft_3d_destroy_plan_kokkos(struct fft_plan_3d_kokkos<DeviceType> *);
 

@@ -28,7 +28,9 @@ struct remap_plan_3d_kokkos {
   typedef DeviceType device_type;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
   typename FFT_AT::t_FFT_SCALAR_1d d_sendbuf;                  // buffer for MPI sends
+  FFT_HAT::t_FFT_SCALAR_1d h_sendbuf;                          // host buffer for MPI sends
   typename FFT_AT::t_FFT_SCALAR_1d d_scratch;                  // scratch buffer for MPI recvs
+  FFT_HAT::t_FFT_SCALAR_1d h_scratch;                          // host scratch buffer for MPI recvs
   void (*pack)(typename FFT_AT::t_FFT_SCALAR_1d_um, int, typename FFT_AT::t_FFT_SCALAR_1d_um, int, struct pack_plan_3d *);
                                     // which pack function to use
   void (*unpack)(typename FFT_AT::t_FFT_SCALAR_1d_um, int, typename FFT_AT::t_FFT_SCALAR_1d_um, int, struct pack_plan_3d *);
@@ -51,6 +53,7 @@ struct remap_plan_3d_kokkos {
   int usecollective;                // use collective or point-to-point MPI
   int commringlen;                  // length of commringlist
   int *commringlist;                // ranks on communication ring of this plan
+  int usecuda_aware;                // use CUDA-Aware MPI or not
 };
 
 template<class DeviceType>
@@ -60,7 +63,7 @@ class RemapKokkos : protected Pointers {
   typedef FFTArrayTypes<DeviceType> FFT_AT;
   RemapKokkos(class LAMMPS *);
   RemapKokkos(class LAMMPS *, MPI_Comm,int,int,int,int,int,int,
-        int,int,int,int,int,int,int,int,int,int,int);
+        int,int,int,int,int,int,int,int,int,int,int,int);
   ~RemapKokkos();
   void perform(typename FFT_AT::t_FFT_SCALAR_1d, typename FFT_AT::t_FFT_SCALAR_1d, typename FFT_AT::t_FFT_SCALAR_1d);
 
@@ -70,7 +73,7 @@ class RemapKokkos : protected Pointers {
   struct remap_plan_3d_kokkos<DeviceType> *remap_3d_create_plan_kokkos(MPI_Comm,
                                              int, int, int, int, int, int,
                                              int, int, int, int, int, int,
-                                             int, int, int, int, int);
+                                             int, int, int, int, int, int);
   void remap_3d_destroy_plan_kokkos(struct remap_plan_3d_kokkos<DeviceType> *);
 };
 

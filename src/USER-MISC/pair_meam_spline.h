@@ -142,7 +142,7 @@ protected:
           ((a*a*a - a) * Y2[klo] + (b*b*b - b) * Y2[khi])*(h*h)/6.0;
 #else
         // For a spline with regular grid, we directly calculate the interval X is in.
-        int klo = (int)(x / h);
+        int klo = (int)(x*inv_h);
         int khi = klo + 1;
         double a = Xs[khi] - x;
         double b = h - a;
@@ -186,7 +186,7 @@ protected:
            (b*b*b - b) * Y2[khi]) * (h*h) / 6.0;
 #else
         // For a spline with regular grid, we directly calculate the interval X is in.
-        int klo = (int)(x / h);
+        int klo = (int)(x*inv_h);
         int khi = klo + 1;
         double a = Xs[khi] - x;
         double b = h - a;
@@ -224,6 +224,7 @@ protected:
     int isGridSpline;// Indicates that all spline knots are on a regular grid.
     double h;        // The distance between knots if this is a grid spline with equidistant knots.
     double hsq;      // The squared distance between knots if this is a grid spline with equidistant knots.
+    double inv_h;    // (1/h), used to avoid numerical errors in binnning for grid spline with equidistant knots.
     double xmax_shifted; // The end of the spline interval after it has been shifted to begin at X=0.
   };
 

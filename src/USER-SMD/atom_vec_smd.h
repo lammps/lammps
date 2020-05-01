@@ -45,7 +45,7 @@ class AtomVecSMD : public AtomVec {
   void data_atom_post(int);
 
  private:
-  int *molecule;
+  tagint *molecule;
   double *esph,*desph,*vfrac,*rmass,*radius,*contact_radius;
   double *eff_plastic_strain,*eff_plastic_strain_rate,*damage;
   double **x0,**smd_data_9,**smd_stress,**vest;

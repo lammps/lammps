@@ -50,7 +50,7 @@ static const char cite_fix_pafi_package[] =
   "journal={Physical Review Letters},\n"
   "volume={276},\n"
   "number={1},\n"
-  "pages={154--165},\n"
+  "pages={154-165},\n"
   "year={2018},\n"
   "publisher={APS}\n}\n"
   "Recommended to be coupled with PAFI++ code:\n"
@@ -66,7 +66,7 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_pafi_package);
 
-  if (narg < 11) error->all(FLERR,"Illegal fix pafi command");
+  if (narg < 7) error->all(FLERR,"Illegal fix pafi command");
 
   dynamic_group_allow = 0;
   vector_flag = 1;
@@ -74,7 +74,7 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extvector = 0;
   od_flag = 0;
-  com_flag = 0;
+  com_flag = 1;
   time_integrate = 1;
 
   int n = strlen(arg[3])+1;

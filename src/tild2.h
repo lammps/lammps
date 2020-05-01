@@ -40,7 +40,6 @@ class TILD : public KSpace{
   class Remap *remap;
   class GridComm *cg;
   class GridComm *cg_peratom;
-  FFT_SCALAR *uG, *uG_hat;
   int *groupbits;
   double a_squared;
   void setup_grid();
@@ -63,11 +62,10 @@ class TILD : public KSpace{
   int nstyles;                  // # of sub-styles For future kspace_hybrid
   int **setflag;                 // 0/1 = whether each i,j has been set
 
-  FFT_SCALAR **grad_uG, **grad_uG_hat, *temp;
+  FFT_SCALAR *temp;
   FFT_SCALAR ***grad_potent, ***grad_potent_hat, **potent, **potent_hat;
   int **potent_map;
   FFT_SCALAR *****gradWtype;
-  FFT_SCALAR *****gradWpotential;
   int kxmax,kymax,kzmax;
   int kcount,kmax,kmax3d,kmax_created;
   double gsqmx,volume;
@@ -119,7 +117,8 @@ class TILD : public KSpace{
   void slabcorr();
   void init_gauss();
   void init_potential(FFT_SCALAR*, const int, const double*);
-  void calc_work(double*, double*, const int, const int, const int);
+  void init_potential_ft(FFT_SCALAR*, const int, const double*);
+  void calc_work(double*, const int, const int);
   //void init_potential(FFT_SCALAR*, std::tuple<int,int,std::vector<double>> &tup);
   void init_cross_potentials();
   double get_k_alias(int, double*);

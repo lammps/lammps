@@ -141,7 +141,7 @@ void ComputeCoordAtom::init()
     l = c_orientorder->qlcomp;
     //  communicate real and imaginary 2*l+1 components of the normalized vector
     comm_forward = 2*(2*l+1);
-    if (c_orientorder->iqlcomp < 0)
+    if (!(c_orientorder->qlcompflag))
       error->all(FLERR,"Compute coord/atom requires components "
                  "option in compute orientorder/atom");
   }

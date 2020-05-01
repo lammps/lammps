@@ -4,6 +4,7 @@
     previously known as Dynamical Mean Field Theory. 
     
     Copyright (2019) Christian Tabedzki and Zachariah Vicars.
+    Andrew Santos
     tabedzki@seas.upenn.edu zvicars@seas.upenn.edu
 -------------------------------------------------------------------- */
 
@@ -1753,25 +1754,29 @@ void TILD::init_potential_ft(FFT_SCALAR *wk1, const int type, const double* para
                                                                 // should be 3/2 right?
     for (int z = nzlo_fft; z <= nzhi_fft; z++) {
       zper = static_cast<double>(z) / zprd;
-      if (z >= zprd / 2.0) {
+      if (z >= nz_pppm / 2.0) {
         zper -= static_cast<double>(nz_pppm) / zprd;
       }
       double zper2 = factor * zper * zper; 
+      //cout << 'z' << '\t' << z << '\t' << zprd << '\t' << nz_pppm << '\t' << zper2 << endl;
 
       for (int y = nylo_fft; y <= nyhi_fft; y++) {
         yper = static_cast<double>(y) / yprd;
-        if (y >= yprd / 2.0) {
+        if (y >= ny_pppm / 2.0) {
           yper -= static_cast<double>(ny_pppm) / yprd;
         }
         double yper2 = factor * yper * yper; 
+      //cout << 'y' << '\t' << y << '\t' << yprd << '\t' << ny_pppm << '\t' << yper2 << endl;
 
         for (int x = nxlo_fft; x <= nxhi_fft; x++) {
           xper = static_cast<double>(x) / xprd;
-          if (x >= xprd / 2.0) {
+          if (x >= nx_pppm / 2.0) {
             xper -= static_cast<double>(nx_pppm) / xprd;
           }
+      //cout << 'x' << '\t' << x << '\t' << xprd << '\t' << nx_pppm << '\t' << (factor * xper * xper) << endl;
 
           k2 = (factor * xper * xper) + yper2 + zper2;
+          cout << n << '\t' << k2 << '\t' << exp( -k2 * 0.5 * parameters[0]) << endl;
           wk1[n++] = exp(-k2 * 0.5 * parameters[0]);
           wk1[n++] = ZEROF;
         

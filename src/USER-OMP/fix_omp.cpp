@@ -347,7 +347,7 @@ void FixOMP::pre_force(int)
   double **f = atom->f;
   double **torque = atom->torque;
   double *erforce = atom->erforce;
-  double *de = atom->de;
+  double *desph = atom->desph;
   double *drho = atom->drho;
 
 #if defined(_OPENMP)
@@ -356,7 +356,7 @@ void FixOMP::pre_force(int)
   {
     const int tid = get_tid();
     thr[tid]->check_tid(tid);
-    thr[tid]->init_force(nall,f,torque,erforce,de,drho);
+    thr[tid]->init_force(nall,f,torque,erforce,desph,drho);
   } // end of omp parallel region
 
   _reduced = false;

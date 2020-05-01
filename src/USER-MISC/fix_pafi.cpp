@@ -83,24 +83,19 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
 
 
   icompute = modify->find_compute(computename);
-  char buffer[128];
-
-  if (icompute < 0) {
-    snprintf(buffer,128,"Compute %s for fix pafi does not exist",computename);
-    error->all(FLERR,buffer);
-  }
+  if (icompute == -1)
+    error->all(FLERR,"Compute ID for fix pafi does not exist");
   PathCompute = modify->compute[icompute];
-  if (PathCompute->peratom_flag==0) {
-    snprintf(buffer,128,"Compute %s for fix pafi does not calculate a local array",computename);
-    error->all(FLERR,buffer);
-  }
-  if (PathCompute->size_peratom_cols < domain->dimension*3) {
-    snprintf(buffer,128,"Compute %s for fix pafi has %d < %d fields per atom",computename,PathCompute->size_peratom_cols,domain->dimension*3);
-    error->all(FLERR,buffer);
-  }
+  if (PathCompute->peratom_flag==0)
+    error->all(FLERR,"Compute for fix pafi does not calculate a local array");
+  if (PathCompute->size_peratom_cols < domain->dimension*3)
+    error->all(FLERR,"Compute for fix pafi has < DIM fields per atom");
+
   if (comm->me==0) {
-    if (screen) fprintf(screen,"fix pafi compute name,style: %s,%s\n",computename,PathCompute->style);
-    if (logfile) fprintf(logfile,"fix pafi compute name,style: %s,%s\n",computename,PathCompute->style);
+    if (screen) fprintf(screen,
+      "fix pafi compute name,style: %s,%s\n",computename,PathCompute->style);
+    if (logfile) fprintf(logfile,
+      "fix pafi compute name,style: %s,%s\n",computename,PathCompute->style);
   }
 
 
@@ -202,13 +197,14 @@ void FixPAFI::init()
 
 
   icompute = modify->find_compute(computename);
-  if (icompute==-1) error->all(FLERR,"Compute for fix pafi does not exist");
-
+  if (icompute == -1)
+    error->all(FLERR,"Compute ID for fix pafi does not exist");
   PathCompute = modify->compute[icompute];
   if (PathCompute->peratom_flag==0)
     error->all(FLERR,"Compute for fix pafi does not calculate a local array");
   if (PathCompute->size_peratom_cols < domain->dimension*3)
-    error->all(FLERR,"Compute for fix pafi has < DIM fields per atom");
+    error->all(FLERR,"Compute for fix pafi has < 3*DIM fields per atom");
+
 
 
   if (strstr(update->integrate_style,"respa")) {

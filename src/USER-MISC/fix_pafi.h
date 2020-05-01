@@ -74,27 +74,30 @@ class FixPAFI : public Fix {
 
 /* ERROR/WARNING messages:
 
-E: Illegal ... command
+E: Illegal fix pafi command
 
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Region ID for fix setforce does not exist
+E: Region ID for fix pafi does not exist
 
 Self-explanatory.
 
-E: Variable name for fix setforce does not exist
+E: Compute ID for fix pafi does not exist
 
 Self-explanatory.
 
-E: Variable for fix setforce is invalid style
+E: Compute for fix pafi does not calculate a local array
 
-Only equal-style variables can be used.
+Self-explanatory.
 
-E: Cannot use non-zero forces in an energy minimization
+E: Compute for fix pafi has < 3*DIM fields per atom
 
-Fix setforce cannot be used in this manner.  Use fix addforce
-instead.
+Self-explanatory.
+
+E: fix pafi requires a damped dynamics minimizer
+
+Self-explanatory.
 
 */

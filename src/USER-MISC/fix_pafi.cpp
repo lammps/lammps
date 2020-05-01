@@ -90,7 +90,6 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Compute for fix pafi does not calculate a local array");
   if (PathCompute->size_peratom_cols < 9)
     error->all(FLERR,"Compute for fix pafi must have 9 fields per atom");
-");
 
   if (comm->me==0) {
     if (screen) fprintf(screen,
@@ -116,16 +115,16 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 7;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"overdamped") == 0) {
-      if (strcmp(arg[iarg+1],"no") == 0 || strcmp(arg[iarg+1],"0") == 0)
-        od_flag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0 || strcmp(arg[iarg+1],"1") == 0)
-        od_flag = 1;
+      if (strcmp(arg[iarg+1],"no") == 0) od_flag = 0;
+      else if (strcmp(arg[iarg+1],"0") == 0) od_flag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) od_flag = 1;
+      else if (strcmp(arg[iarg+1],"1") == 0) od_flag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"com") == 0) {
-      if (strcmp(arg[iarg+1],"no") == 0 || strcmp(arg[iarg+1],"0")
-        com_flag = 0;
-      else if (strcmp(arg[iarg+1],"yes"  || strcmp(arg[iarg+1],"1") == 0)
-        com_flag = 1;
+      if (strcmp(arg[iarg+1],"no") == 0) com_flag = 0;
+      else if (strcmp(arg[iarg+1],"0") == 0) com_flag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) com_flag = 1;
+      else if (strcmp(arg[iarg+1],"1") == 0) com_flag = 1;
       iarg += 2;
     } else error->all(FLERR,"Illegal fix pafi command");
   }
@@ -341,16 +340,12 @@ void FixPAFI::post_force(int vflag)
   }
   MPI_Allreduce(proj,proj_all,5,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(c_v,c_v_all,10,MPI_DOUBLE,MPI_SUM,world);
-
-
+  
   // results - f.n*(1-psi), (f.n)^2*(1-psi)^2, 1-psi, dX.n
-  if(comm->me ==0) {
-    results_all[0] = proj_all[0] * (1.-proj_all[3]);
-    results_all[1] = results_all[0] * results_all[0];
-    results_all[2] = 1.-proj_all[3];
-    results_all[3] = proj_all[4];
-  }
-  MPI_Bcast(results_all,4,MPI_DOUBLE,0,world);
+  results_all[0] = proj_all[0] * (1.-proj_all[3]);
+  results_all[1] = results_all[0] * results_all[0];
+  results_all[2] = 1.-proj_all[3];
+  results_all[3] = fabs(proj_all[4]);
   force_flag = 1;
 
   for (int i = 0; i < nlocal; i++){
@@ -533,7 +528,7 @@ void FixPAFI::min_post_force(int vflag)
   results_all[0] = proj_all[0] * (1.-proj_all[3]); // f.n * psi
   results_all[1] = results_all[0] * results_all[0]; // (f.n * psi)^2
   results_all[2] = 1.-proj_all[3]; // psi
-  results_all[3] = proj_all[4]; // dX.n
+  results_all[3] = fabs(proj_all[4]); // dX.n
 
   MPI_Bcast(results_all,4,MPI_DOUBLE,0,world);
   force_flag = 1;

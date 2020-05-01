@@ -87,7 +87,7 @@ class AtomVec : protected Pointers {
   virtual void unpack_comm(int, int, double *);
   virtual void unpack_comm_vel(int, int, double *);
 
-  virtual int pack_comm_bonus(int, int *, double *) {}
+  virtual int pack_comm_bonus(int, int *, double *) {return 0;}
   virtual void unpack_comm_bonus(int, int, double *) {}
 
   virtual int pack_reverse(int, int, double *);
@@ -98,14 +98,14 @@ class AtomVec : protected Pointers {
   virtual void unpack_border(int, int, double *);
   virtual void unpack_border_vel(int, int, double *);
 
-  virtual int pack_border_bonus(int, int *, double *) {}
-  virtual int unpack_border_bonus(int, int, double *) {}
+  virtual int pack_border_bonus(int, int *, double *) {return 0;}
+  virtual int unpack_border_bonus(int, int, double *) {return 0;}
 
   virtual int pack_exchange(int, double *);
   virtual int unpack_exchange(double *);
 
-  virtual int pack_exchange_bonus(int, double *) {}
-  virtual int unpack_exchange_bonus(int, double *) {}
+  virtual int pack_exchange_bonus(int, double *) {return 0;}
+  virtual int unpack_exchange_bonus(int, double *) {return 0;}
 
   virtual int size_restart();
   virtual int pack_restart(int, double *);
@@ -116,8 +116,8 @@ class AtomVec : protected Pointers {
   virtual void unpack_restart_init(int) {}
 
   virtual int size_restart_bonus() {}
-  virtual int pack_restart_bonus(int, double *) {}
-  virtual int unpack_restart_bonus(int, double *) {}
+  virtual int pack_restart_bonus(int, double *) {return 0;}
+  virtual int unpack_restart_bonus(int, double *) {return 0;}
 
   virtual void create_atom(int, double *);
   virtual void create_atom_post(int) {}

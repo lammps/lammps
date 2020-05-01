@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class ComputeCoordAtom : public Compute {
  public:
   ComputeCoordAtom(class LAMMPS *, int, char **);
-  ~ComputeCoordAtom();
-  void init();
+  virtual ~ComputeCoordAtom();
+  virtual void init();
   void init_list(int, class NeighList *);
-  void compute_peratom();
+  virtual void compute_peratom();
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
   double memory_usage();
   enum {NONE,CUTOFF,ORIENT};
 
- private:
+ protected:
   int nmax,ncol;
   double cutsq;
   class NeighList *list;

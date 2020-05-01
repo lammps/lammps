@@ -42,7 +42,7 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`com <compute_com>`
    * :doc:`com/chunk <compute_com_chunk>`
    * :doc:`contact/atom <compute_contact_atom>`
-   * :doc:`coord/atom <compute_coord_atom>`
+   * :doc:`coord/atom (k) <compute_coord_atom>`
    * :doc:`damage/atom <compute_damage_atom>`
    * :doc:`dihedral <compute_dihedral>`
    * :doc:`dihedral/local <compute_dihedral_local>`

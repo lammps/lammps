@@ -118,7 +118,3 @@ There are a handful of virtual parent classes in LAMMPS that define
 what LAMMPS calls ``styles``.  They are shaded red in Fig
 \ref{fig:classes}.  Each of these are parents of a number of child
 classes that implement the interface defined by the parent class.
-
------------------
-
-.. include:: pg_utils.rst

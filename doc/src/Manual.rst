@@ -69,8 +69,7 @@ every LAMMPS command.
    :includehidden:
 
    pg_library
-   pg_python
-   pg_fortran
+   pg_modify
    pg_developer
    pg_base
 

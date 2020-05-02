@@ -27,7 +27,6 @@
 #include "reaxc_lookup.h"
 #include <mpi.h>
 #include <cstdlib>
-#include "reaxc_defs.h"
 #include "reaxc_nonbonded.h"
 #include "reaxc_tool_box.h"
 
@@ -153,7 +152,7 @@ int Init_Lookup_Tables( reax_system *system, control_params *control,
 {
   int i, j, r;
   int num_atom_types;
-  int existing_types[MAX_ATOM_TYPES], aggregated[MAX_ATOM_TYPES];
+  int existing_types[REAX_MAX_ATOM_TYPES], aggregated[REAX_MAX_ATOM_TYPES];
   double dr;
   double *h, *fh, *fvdw, *fele, *fCEvd, *fCEclmb;
   double v0_vdw, v0_ele, vlast_vdw, vlast_ele;
@@ -186,12 +185,12 @@ int Init_Lookup_Tables( reax_system *system, control_params *control,
     LR[i] = (LR_lookup_table*)
       scalloc(system->error_ptr,  num_atom_types, sizeof(LR_lookup_table), "lookup:LR[i]");
 
-  for( i = 0; i < MAX_ATOM_TYPES; ++i )
+  for( i = 0; i < REAX_MAX_ATOM_TYPES; ++i )
     existing_types[i] = 0;
   for( i = 0; i < system->n; ++i )
     existing_types[ system->my_atoms[i].type ] = 1;
 
-  MPI_Allreduce( existing_types, aggregated, MAX_ATOM_TYPES,
+  MPI_Allreduce( existing_types, aggregated, REAX_MAX_ATOM_TYPES,
                  MPI_INT, MPI_SUM, mpi_data->world );
 
   for( i = 0; i < num_atom_types; ++i ) {

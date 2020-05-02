@@ -508,7 +508,7 @@ int PairReaxCOMP::estimate_reax_lists()
     num_nbrs += numneigh[i];
   }
 
-  int new_estimate = MAX (num_nbrs, mincap*MIN_NBRS);
+  int new_estimate = MAX(num_nbrs, mincap*REAX_MIN_NBRS);
 
   return new_estimate;
 }

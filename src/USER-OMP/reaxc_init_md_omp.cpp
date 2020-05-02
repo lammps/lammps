@@ -68,7 +68,7 @@ int Init_ListsOMP(reax_system *system, control_params *control,
       system->my_atoms[i].num_hbonds = hb_top[i];
       total_hbonds += hb_top[i];
     }
-    total_hbonds = (int)(MAX( total_hbonds*saferzone, mincap*MIN_HBONDS ));
+    total_hbonds = (int)(MAX(total_hbonds*saferzone,mincap*system->minhbonds));
 
     if( !Make_List( system->Hcap, total_hbonds, TYP_HBOND,
                     *lists+HBONDS ) ) {

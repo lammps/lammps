@@ -59,7 +59,7 @@ extern "C" {
 
 typedef int bool_t;
 
-#if defined(__MINGW32__) || defined(__APPLE__)
+#if defined(__MINGW32__) || defined(__APPLE__) || defined(__FreeBSD__)
 typedef char * caddr_t;
 typedef unsigned int u_int;
 #endif

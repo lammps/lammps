@@ -552,7 +552,7 @@ if(BUILD_TOOLS)
   install(TARGETS binary2txt DESTINATION ${CMAKE_INSTALL_BINDIR})
 
   include(CheckGeneratorSupport)
-  if(CMAKE_GENERATOR_SUPPORT_FORTRAN)
+  if(CMAKE_GENERATOR_SUPPORT_FORTRAN AND CMAKE_Fortran_COMPILER)
     enable_language(Fortran)
     add_executable(chain.x ${LAMMPS_TOOLS_DIR}/chain.f)
     target_link_libraries(chain.x PRIVATE ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})

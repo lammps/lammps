@@ -54,7 +54,7 @@ using namespace LAMMPS_NS;
 // ----------------------------------------------------------------------
 
 /* doxygen documentation for this function has to be in the header
- * so we can generate two entries with for the two different
+ * so we can generate two entries for the two different function
  * signatures depending on the choice of integer sizes. */
 imageint lammps_encode_image_flags(int ix, int iy, int iz)
 {
@@ -118,163 +118,185 @@ void lammps_decode_image_flags(imageint image, int *flags)
 
 // ----------------------------------------------------------------------
 // library API functions to create/destroy an instance of LAMMPS
-//   and communicate commands to it
 // ----------------------------------------------------------------------
 
-/** \brief Create an instance of the LAMMPS class and store reference in ptr
+/** Create instance of the LAMMPS class and return pointer to it.
  *
 \verbatim embed:rst
-The :cpp:func:`lammps_open` function creates a new
-LAMMPS instance while passing in a list of strings as if they were
-:doc:`command-line arguments <Run_options>` when LAMMPS is run in
-stand-alone mode from the command line, and an MPI communicator for
-LAMMPS to run under.  Since the list of arguments is **exactly** as
-when called from the command line, the first argument would be the
-name of the executable and thus is ignored.  However ``argc`` may
-be set to 0 and then ``argv`` may be a ``NULL`` pointer.
 
-If for some reason the initialization of the LAMMPS instance fails,
-the ``ptr`` handle is set to a ``NULL`` pointer.
+The :cpp:func:`lammps_open` function creates a new :cpp:class:`LAMMPS
+<LAMMPS_NS::LAMMPS>` class instance while passing in a list of strings
+as if they were :doc:`command-line arguments <Run_options>` for the
+LAMMPS executable, and an MPI communicator for LAMMPS to run under.
+Since the list of arguments is **exactly** as when called from the
+command line, the first argument would be the name of the executable and
+thus is otherwise ignored.  However ``argc`` may be set to 0 and then
+``argv`` may be ``NULL``.  If MPI is not yet initialized, ``MPI_Init()``
+will be called during creation of the LAMMPS class instance.
+
+The function returns a pointer to the created LAMMPS class. If for some
+reason the initialization of the LAMMPS instance fails, the function
+returns ``NULL``.  For backward compatibility it is also possible to
+provide the address of a pointer variable as argument *ptr*\ . This
+argument may be ``NULL`` and is then ignored.
+
+.. note::
+
+   This function is not declared when the code linking to the LAMMPS
+   library interface is compiled with ``-DLAMMPS_LIB_NO_MPI``, or
+   contains a ``#define LAMMPS_LIB_NO_MPI 1`` statement before
+   ``#include "library.h"``.  In that case, you need to use the
+   :cpp:func:`lammps_open_no_mpi` function.
+
 \endverbatim
  *
- * \param argc number of command line arguments
- * \param argv list of command line argument strings
- * \param comm MPI communicator for this LAMMPS instance.
- * \param ptr  pointer to a void pointer variable which serves as a handle
- */
-void lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
+ * \param  argc  number of command line arguments
+ * \param  argv  list of command line argument strings
+ * \param  comm  MPI communicator for this LAMMPS instance.
+ * \param  ptr   pointer to a void pointer variable which serves
+ *               as a handle; may be ``NULL``
+ * \return       pointer to new LAMMPS instance cast to ``void *`` */
+
+void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
 {
+  lammps_mpi_init();
+
 #ifdef LAMMPS_EXCEPTIONS
   try
   {
-    LAMMPS *lmp = new LAMMPS(argc,argv,comm);
-    *ptr = (void *) lmp;
+    LAMMPS *lmp = new LAMMPS(argc, argv, comm);
+    if (ptr) *ptr = (void *) lmp;
   }
   catch(LAMMPSException & e) {
     fprintf(stderr, "LAMMPS Exception: %s", e.message.c_str());
     *ptr = (void *) NULL;
   }
 #else
-  LAMMPS *lmp = new LAMMPS(argc,argv,comm);
-  *ptr = (void *) lmp;
+  LAMMPS *lmp = new LAMMPS(argc, argv, comm);
+  if (ptr) *ptr = (void *) lmp;
 #endif
+  return (void *)lmp;
 }
 
-/** \brief Variant of lammps_open() that implicitly uses ``MPI_COMM_WORLD``
+/** Variant of ``lammps_open()`` that implicitly uses ``MPI_COMM_WORLD``.
  *
 \verbatim embed:rst
-This function is a wrapper around :cpp:func:`lammps_open`, that
-does not require to pass an MPI communicator.  It first calls
-``MPI_Init()`` in case the MPI environment is not yet initialized
-and then passes ``MPI_COMM_WORLD`` as communicator when creating
-the LAMMPS instance with :cpp:func:`lammps_open`.
+
+This function is a version of :cpp:func:`lammps_open`, that is missing
+the MPI communicator argument.  It will use ``MPI_COMM_WORLD`` instead.
+The type and purpose of arguments and return value are otherwise the
+same.
 
 Outside of the convenience, this function is useful, when the LAMMPS
-library was compiled in serial mode with the MPI ``STUBS`` library,
-but is called from a parallel MPI program.
+library was compiled in serial mode, but the calling code runs in
+parallel and the ``MPI_Comm`` data type of the STUBS library would not
+be compatible with that of the calling code.
+
 \endverbatim
  *
- * \param argc number of command line arguments
- * \param argv list of command line argument strings
- * \param handle pointer to a void pointer variable which serves as a handle
- */
-void lammps_open_no_mpi(int argc, char **argv, void **handle)
+ * \param  argc  number of command line arguments
+ * \param  argv  list of command line argument strings
+ * \param  ptr   pointer to a void pointer variable
+ *               which serves as a handle; may be ``NULL``
+ * \return       pointer to new LAMMPS instance cast to ``void *`` */
+
+void *lammps_open_no_mpi(int argc, char **argv, void **ptr)
 {
-  int flag;
-  MPI_Initialized(&flag);
-
-  if (!flag) {
-    // Reset argc and argv for MPI_Init() only.
-    // We may be using a different MPI library in the calling code.
-    int argc = 1;
-    char *args[] = { (char *)"liblammps" , NULL  };
-    char **argv = args;
-    MPI_Init(&argc,&argv);
-  }
-
-  lammps_open(argc,argv,MPI_COMM_WORLD,handle);
+  return lammps_open(argc,argv,MPI_COMM_WORLD,ptr);
 }
 
-/** \brief Variant of lammps_open() that uses a Fortran style MPI communicator
+/** Variant of ``lammps_open()`` using a Fortran MPI communicator
  *
 \verbatim embed:rst
-This function is a wrapper around :cpp:func:`lammps_open`, that uses an
-integer representation of the MPI communicator.  This is for example what
-is used when calling :cpp:func:`lammps_open` from Fortran.  It uses the
-``MPI_Comm_f2c()`` function to convert the integer into a C-style MPI
-communicator and then calls :cpp:func:`lammps_open`.
+
+This function is a version of :cpp:func:`lammps_open`, that uses an
+integer for the MPI communicator as the MPI Fortran interface does.  It
+is used in the :f:func:`lammps` constructor of the LAMMPS Fortran
+module.  Internally it converts the *f_comm* argument into a C-style MPI
+communicator with ``MPI_Comm_f2c()`` and then calls
+:cpp:func:`lammps_open`.
+
 \endverbatim
  *
- * \param argc number of command line arguments
- * \param argv list of command line argument strings
- * \param f_comm Fortran style MPI communicator for this LAMMPS instance.
- * \param handle pointer to a void pointer variable which serves as a handle
- */
-void lammps_open_fortran(int argc, char **argv, int f_comm, void **handle)
-{
-  // we must initialize MPI before calling MPI_Comm_f2c()
-  // if not already initialized
-  int flag;
-  MPI_Initialized(&flag);
+ * \param  argc   number of command line arguments
+ * \param  argv   list of command line argument strings
+ * \param  f_comm Fortran style MPI communicator for this LAMMPS instance.
+ * \param  ptr    pointer to a void pointer variable
+ *                which serves as a handle; may be ``NULL``
+ * \return        pointer to new LAMMPS instance cast to ``void *`` */
 
-  if (!flag) {
-    // Reset argc and argv for MPI_Init() only.
-    // We may be using a different MPI library in the calling code.
-    int argc = 1;
-    char *args[] = { (char *)"liblammps" , NULL  };
-    char **argv = args;
-    MPI_Init(&argc,&argv);
-  }
+void *lammps_open_fortran(int argc, char **argv, int f_comm, void **ptr)
+{
+  lammps_mpi_init();
   MPI_Comm c_comm = MPI_Comm_f2c((MPI_Fint)f_comm);
-  lammps_open(argc, argv, c_comm, handle);
+  return lammps_open(argc, argv, c_comm, ptr);
 }
 
-/** \brief Delete a LAMMPS instance created by lammps_open() or
- *   lammps_open_no_mpi()
- *
- * \param handle pointer to a previously created LAMMPS instance.
+/** Delete a LAMMPS instance created by lammps_open() or its variants
  *
 \verbatim embed:rst
-This function deletes a LAMMPS class instance pointed to by ``handle``.
-It does **not** call ``MPI_Finalize()`` to allow creating and deleting
-multiple LAMMPS instances.  See :cpp:func:`lammps_finalize` for a
-function to call at the end of the program in order to close down the
-MPI infrastructure in case the calling program is not using MPI and was
-creating the LAMMPS instance through :c:func:`lammps_open_no_mpi`.
+
+This function deletes the LAMMPS class instance pointed to by ``handle``
+that was created by one of the :cpp:func:`lammps_open` variants.  It
+does **not** call ``MPI_Finalize()`` to allow creating and deleting
+multiple LAMMPS instances concurrently or sequentially.  See
+:cpp:func:`lammps_finalize` for a function performing this operation.
+
 \endverbatim
-*/
+ *
+ * \param  handle  pointer to a previously created LAMMPS instance. */
+
 void lammps_close(void *handle)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
   delete lmp;
 }
 
-/** \brief Get the numerical representation of the current LAMMPS version.
+/** Get numerical representation of the LAMMPS version date.
  *
- * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
- * \return an integer representing the version data in the format YYYYMMDD
-
 \verbatim embed:rst
 
-The :cpp:func:`lammps_version` function can be used to
-determine the specific version of the underlying LAMMPS code. This is
-particularly useful when loading LAMMPS as a shared library via dlopen()
-so that the calling code can handle changes in the C API, or differences
-in behavior, or available features (exported functions).
+The :cpp:func:`lammps_version` function returns an integer representing
+the version of the LAMMPS code in the format YYYYMMDD.  This can be used
+to implement backward compatibility in software using the LAMMPS library
+interface.  The specific format guarantees, that this version number is
+growing with every new LAMMPS release.
 
-The returned LAMMPS version code is an integer in the format YYYYMMDD
-(e.g. a LAMMPS version string of 2 Sep 2015 results in 20150902) that
-will grow with every new LAMMPS release and thus is suitable for simple
-numerical comparisons, e. g. when a program calling the library interface
-is meant to be compatible with multiple LAMMPS versions with changes
-in the command syntax.
 \endverbatim
- */
+ *
+ * \param  handle  pointer to a previously created LAMMPS instance.
+ * \return         an integer representing the version data in the
+ *                 format YYYYMMDD */
 
 int lammps_version(void *handle)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
   return atoi(lmp->universe->num_ver);
+}
+
+/** Ensure the MPI environment is initialized
+ *
+\verbatim embed:rst
+
+The MPI standard requires that any MPI application must call
+``MPI_Init()`` exactly once before performing any other MPI function
+calls.  This function checks, whether MPI is already initialized and
+calls ``MPI_Init()`` in case it is not.
+
+\endverbatim */
+
+void lammps_mpi_init()
+{
+  int flag;
+  MPI_Initialized(&flag);
+
+  if (!flag) {
+    // provide a dummy argc and argv for MPI_Init().
+    int argc = 1;
+    char *args[] = { (char *)"liblammps" , NULL  };
+    char **argv = args;
+    MPI_Init(&argc,&argv);
+  }
 }
 
 /** \brief Shut down the MPI infrastructure
@@ -296,16 +318,19 @@ void lammps_finalize()
   MPI_Finalize();
 }
 
-/** \brief free memory buffer allocated by LAMMPS
-
+/** Free memory buffer allocated by LAMMPS
+ *
 \verbatim embed:rst
-Some of the library interface functions return data as pointer to a
-buffer that has been allocated by LAMMPS or the library interface.
-This function can be used to delete those in order to avoid memory leaks.
+
+Some of the LAMMPS C library interface functions return data as pointer
+to a buffer that has been allocated by LAMMPS or the library interface.
+This function can be used to delete those in order to avoid memory
+leaks.
+
 \endverbatim
  *
- * \param ptr pointer to data allocated by LAMMPS
-*/
+ * \param  ptr  pointer to data allocated by LAMMPS */
+
 void lammps_free(void *ptr)
 {
   free(ptr);
@@ -2882,3 +2907,7 @@ void lammps_neighlist_element_neighbors(void * handle, int idx, int element, int
   *numneigh  = list->numneigh[i];
   *neighbors = list->firstneigh[i];
 }
+
+// Local Variables:
+// fill-column: 72
+// End: 

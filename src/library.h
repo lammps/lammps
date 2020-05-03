@@ -73,20 +73,21 @@ extern "C" {
 #endif
 
 #if !defined(LAMMPS_LIB_NO_MPI)
-void lammps_open(int, char **, MPI_Comm, void **);
+void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr);
 #endif
-void lammps_open_no_mpi(int, char **, void **);
-void lammps_open_fortran(int, char **, int, void **);
-void lammps_close(void *);
+void *lammps_open_no_mpi(int argc, char **argv, void **ptr);
+void *lammps_open_fortran(int argc, char **argv, int f_comm, void **ptr);
+void lammps_close(void *handle);
+void lammps_mpi_init();
 void lammps_finalize();
-int  lammps_version(void *);
+void lammps_free(void *ptr);
+int  lammps_version(void *handle);
 
-void lammps_file(void *, char *);
+void lammps_file(void *handle, char *file);
 
 char *lammps_command(void *, char *);
 void lammps_commands_list(void *, int, char **);
 void lammps_commands_string(void *, char *);
-void lammps_free(void *);
 
 int lammps_extract_setting(void *, char *);
 void *lammps_extract_global(void *, char *);

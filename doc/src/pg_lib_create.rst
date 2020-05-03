@@ -22,14 +22,14 @@ Here is a simple example demonstrating its use:
      int lmpargc = sizeof(lmpargv)/sizeof(const char *);
 
      /* create LAMMPS instance */
-     lammps_open_no_mpi(lmpargc, lmpargv, &handle);
+     handle = lammps_open_no_mpi(lmpargc, lmpargv, NULL);
      if (handle == NULL) {
        printf("LAMMPS initialization failed");
        lammps_finalize();
        return 1;
      }
 
-     /* get and print numerical version */
+     /* get and print numerical version code */
      version = lammps_version(handle);
      printf("LAMMPS Version: %d\n",version);
 

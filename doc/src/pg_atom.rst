@@ -5,10 +5,5 @@ LAMMPS Atom and AtomVec Base Classes
    :project: progguide
    :members:
 
---------------------
-
-.. doxygenclass:: LAMMPS_NS::AtomVec
-   :project: progguide
-   :members:
 
 

@@ -121,10 +121,10 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
 
   // check if -mpi is first arg
   // if so, then 2 apps were launched with one mpirun command
-  //   this means passed communicator (e.g. MPI_COMM_WORLD) is bigger than LAMMPS
-  //     e.g. for client/server coupling with another code
-  //     in the future LAMMPS might leverage this in other ways
-  //   universe communicator needs to shrink to be just LAMMPS
+  // this means passed communicator (e.g. MPI_COMM_WORLD) is bigger than LAMMPS
+  // e.g. for client/server coupling with another code
+  // in the future LAMMPS might leverage this in other ways
+  // universe communicator needs to shrink to be just LAMMPS
   // syntax: -mpi color
   //   color = integer for this app, different than other app(s)
   // do the following:

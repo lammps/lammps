@@ -60,7 +60,7 @@ one specific atom or all atoms involved depending on the settings of
 the :doc:`newton command <newton>`.
 
 The actual per-atom data is allocated and managed by one of the various
-classes derived from the :cpp:class:`AtomVec` class as determined by
+classes derived from the AtomVec class as determined by
 the :doc:`atom_style command <atom_style>`.
 \endverbatim
  */

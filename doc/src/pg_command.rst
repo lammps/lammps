@@ -1,4 +1,4 @@
-LAMMPS Command Classes
+LAMMPS Command Styles
 **********************
 
 In LAMMPS most commands are implemented as classes
@@ -8,18 +8,4 @@ Creating the class instance corresponds to an
 input file command and its arguments are passed
 to the ``command()`` which will then execute the
 command.
-
-----------
-
-.. doxygenclass:: LAMMPS_NS::Run
-   :project: progguide
-   :members:
-   :protected-members:
-
-----------
-
-.. doxygenclass:: LAMMPS_NS::WriteData
-   :project: progguide
-   :members:
-   :protected-members:
 

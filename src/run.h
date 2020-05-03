@@ -13,7 +13,7 @@
 
 #ifdef COMMAND_CLASS
 
-CommandStyle(run,Run);
+CommandStyle(run,Run)
 
 #else
 

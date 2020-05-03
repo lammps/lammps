@@ -37,4 +37,3 @@ some selected examples for derived classes of specific models.
    pg_pointers
    pg_atom
    pg_command
-   pg_region

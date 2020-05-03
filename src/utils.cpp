@@ -17,7 +17,7 @@
 #include "lammps.h"
 #include "error.h"
 
-#if defined(__linux)
+#if defined(__linux__)
 #include <unistd.h>  // for readlink
 #endif
 
@@ -95,7 +95,7 @@ static const char *guesspath(char *buf, int len, FILE *fp)
 {
   memset(buf,0,len);
 
-#if defined(__linux)
+#if defined(__linux__)
   char procpath[32];
   int fd = fileno(fp);
   snprintf(procpath,32,"/proc/self/fd/%d",fd);

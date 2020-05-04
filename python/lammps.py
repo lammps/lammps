@@ -172,7 +172,7 @@ class lammps(object):
 
     modpath = dirname(abspath(getsourcefile(lambda:0)))
     self.lib = None
-    self.lmp = None
+    self.lmp = c_void_p()
 
     # if a pointer to a LAMMPS object is handed in,
     # all symbols should already be available
@@ -294,17 +294,16 @@ class lammps(object):
               cmdargs[i] = cmdargs[i].encode()
           cargs = (c_char_p*narg)(*cmdargs)
           self.lib.lammps_open.argtypes = [c_int, c_char_p*narg, \
-                                           MPI_Comm, c_void_p()]
+                                           MPI_Comm, c_void_p]
         else:
           self.lib.lammps_open.argtypes = [c_int, c_int, \
-                                           MPI_Comm, c_void_p()]
+                                           MPI_Comm, c_void_p]
 
-        self.lib.lammps_open.restype = None
+        self.lib.lammps_open.restype = c_void_p
         self.opened = 1
-        self.lmp = c_void_p()
         comm_ptr = lammps.MPI._addressof(comm)
         comm_val = MPI_Comm.from_address(comm_ptr)
-        self.lib.lammps_open(narg,cargs,comm_val,byref(self.lmp))
+        self.lmp = self.lib.lammps_open(narg,cargs,comm_val,None)
 
       else:
         if lammps.has_mpi4py:
@@ -318,13 +317,14 @@ class lammps(object):
             if type(cmdargs[i]) is str:
               cmdargs[i] = cmdargs[i].encode()
           cargs = (c_char_p*narg)(*cmdargs)
-          self.lmp = c_void_p()
-          self.lib.lammps_open_no_mpi(narg,cargs,byref(self.lmp))
+          self.lmp = lib.lammps_open_no_mpi(narg,cargs,None)
+          self.lib.lammps_open_no_mpi.argtypes = [c_int, c_char_p*narg, \
+                                                  c_void_p]
+          self.lib.lammps_open_no_mpi.restype = c_void_p
         else:
-          self.lmp = c_void_p()
-          self.lib.lammps_open_no_mpi(0,None,byref(self.lmp))
-          # could use just this if LAMMPS lib interface supported it
-          # self.lmp = self.lib.lammps_open_no_mpi(0,None)
+          self.lib.lammps_open.argtypes = [c_int, c_int, c_void_p]
+          self.lib.lammps_open_no_mpi.restype = c_void_p
+          self.lmp = self.lib.lammps_open_no_mpi(0,None,None)
 
     else:
       # magic to convert ptr to ctypes ptr

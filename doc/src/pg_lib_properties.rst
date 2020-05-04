@@ -44,9 +44,7 @@ that is coupled to LAMMPS via the library interface.
 
 -----------------------
 
-.. doxygenfunction:: lammps_create_atoms(void*, int, int*, int*, double*, double*, int*, int)
+.. doxygenfunction:: lammps_create_atoms(void *handle, int n, int *id, int *type, double *x, double *v, int *image, int bexpand)
    :project: progguide
 
-.. doxygenfunction:: lammps_create_atoms(void*, int, int64_t*, int*, double*, double*, int64_t*, int)
-   :project: progguide
 

@@ -53,7 +53,33 @@ using namespace LAMMPS_NS;
 // utility functions
 // ----------------------------------------------------------------------
 
-/* doxygen documentation for this function has to be in the header */
+/** Encode three integer image flags into a single imageint.
+ *
+\verbatim embed:rst
+
+The prototype for this function when compiling with ``-DLAMMPS_BIGBIG``
+is:
+
+.. code-block:: c
+
+   int64_t lammps_encode_image_flags(int ix, int iy, int iz);
+
+This function performs the bit-shift, addition, and bit-wise OR
+operations necessary to combine the values of three integers
+representing the image flags in x-, y-, and z-direction.  Unless
+LAMMPS is compiled with -DLAMMPS_BIGBIG, those integers are
+limited 10-bit signed integers [-512, 511].  Otherwise the return
+type changes from ``int`` to ``int64_t`` and the valid range for
+the individual image flags becomes [-1048576,1048575],
+i.e. that of a 21-bit signed integer.  There is no check on whether
+the arguments conform to these requirements.
+
+\endverbatim
+ *
+ * \param  ix  image flag value in x
+ * \param  iy  image flag value in y
+ * \param  iz  image flag value in z
+ * \return     encoded image flag integer */
 
 imageint lammps_encode_image_flags(int ix, int iy, int iz)
 {
@@ -63,7 +89,27 @@ imageint lammps_encode_image_flags(int ix, int iy, int iz)
   return image;
 }
 
-/* doxygen documentation for this function has to be in the header */
+/** Decode a single image flag integer into three regular integers
+ *
+\verbatim embed:rst
+
+The prototype for this function when compiling with ``-DLAMMPS_BIGBIG``
+is:
+
+.. code-block:: c
+
+   void lammps_decode_image_flags(int64_t image, int *flags);
+
+This function does the reverse operation of
+:cpp:func:`lammps_encode_image_flags` and takes an image flag integer
+does the bit-shift and bit-masking operations to decode it and stores
+the resulting three regular integers into the buffer pointed to by
+*flags*.
+
+\endverbatim
+ *
+ * \param  image  encoded image flag integer
+ * \param  flags  pointer to storage where the decoded image flags are stored. */
 
 void lammps_decode_image_flags(imageint image, int *flags)
 {
@@ -205,7 +251,7 @@ void *lammps_open_no_mpi(int argc, char **argv, void **ptr)
   return lammps_open(argc,argv,MPI_COMM_WORLD,ptr);
 }
 
-/** Variant of ``lammps_open()`` using a Fortran MPI communicator
+/** Variant of ``lammps_open()`` using a Fortran MPI communicator.
  *
 \verbatim embed:rst
 
@@ -232,7 +278,7 @@ void *lammps_open_fortran(int argc, char **argv, int f_comm, void **ptr)
   return lammps_open(argc, argv, c_comm, ptr);
 }
 
-/** Delete a LAMMPS instance created by lammps_open() or its variants
+/** Delete a LAMMPS instance created by lammps_open() or its variants.
  *
 \verbatim embed:rst
 
@@ -274,7 +320,7 @@ int lammps_version(void *handle)
   return atoi(lmp->universe->num_ver);
 }
 
-/** Ensure the MPI environment is initialized
+/** Ensure the MPI environment is initialized.
  *
 \verbatim embed:rst
 
@@ -299,7 +345,7 @@ void lammps_mpi_init()
   }
 }
 
-/** Shut down the MPI infrastructure
+/** Shut down the MPI infrastructure.
  *
 \verbatim embed:rst
 
@@ -319,7 +365,7 @@ void lammps_finalize()
   MPI_Finalize();
 }
 
-/** Free memory buffer allocated by LAMMPS
+/** Free memory buffer allocated by LAMMPS.
  *
 \verbatim embed:rst
 
@@ -374,7 +420,7 @@ void lammps_file(void *handle, char *filename)
   END_CAPTURE
 }
 
-/** Process a single LAMMPS input command from a string
+/** Process a single LAMMPS input command from a string.
  *
 \verbatim embed:rst
 
@@ -412,7 +458,7 @@ char *lammps_command(void *handle, char *cmd)
   return result;
 }
 
-/** Process multiple LAMMPS input commands from list of strings
+/** Process multiple LAMMPS input commands from list of strings.
  *
 \verbatim embed:rst
 
@@ -452,7 +498,7 @@ void lammps_commands_list(void *handle, int ncmd, char **cmds)
   lmp->memory->sfree(str);
 }
 
-/** \brief Process a block of LAMMPS input commands from a single string
+/** \brief Process a block of LAMMPS input commands from a single string.
  *
 \verbatim embed:rst
 
@@ -516,7 +562,7 @@ void lammps_commands_string(void *handle, char *str)
 // library API functions to extract info from LAMMPS or set data in LAMMPS
 // -----------------------------------------------------------------------
 
-/** Return the total number of atoms in the system
+/** Return the total number of atoms in the system.
  *
 \verbatim embed:rst
 
@@ -547,7 +593,7 @@ double lammps_get_natoms(void *handle)
   return natoms;
 }
 
-/** Extract simulation box parameters
+/** Extract simulation box parameters.
  *
 \verbatim embed:rst
 
@@ -607,7 +653,7 @@ void lammps_extract_box(void *handle, double *boxlo, double *boxhi,
   END_CAPTURE
 }
 
-/** Reset simulation box parameters
+/** Reset simulation box parameters.
  *
 \verbatim embed:rst
 
@@ -656,7 +702,7 @@ void lammps_reset_box(void *handle, double *boxlo, double *boxhi,
   END_CAPTURE
 }
 
-/** Get current value of a thermo keyword
+/** Get current value of a thermo keyword.
  *
 \verbatim embed:rst
 
@@ -685,7 +731,7 @@ double lammps_get_thermo(void *handle, char *keyword)
   return dval;
 }
 
-/** Query LAMMPS about global settings
+/** Query LAMMPS about global settings.
  *
 \verbatim embed:rst
 
@@ -783,7 +829,7 @@ out and recreates the contents of the :cpp:class:`LAMMPS
 <LAMMPS_NS::LAMMPS>` class.
 
 Please also see :cpp:func:`lammps_extract_setting`,
- :cpp:func:`lammps_get_thermo`, and :cpp:func:`lammps_extract_box`.
+:cpp:func:`lammps_get_thermo`, and :cpp:func:`lammps_extract_box`.
 
 .. warning::
 
@@ -1091,30 +1137,32 @@ of the :cpp:func:`Atom::extract() <LAMMPS_NS::Atom::extract>` function.
 
 \endverbatim
  *
- * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param name string with name of the entity
- * \return pointer cast to ``void *`` to the location of the requested data or NULL if not found
- */
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \param  name    string with the name of the extracted property
+ * \return         pointer (cast to ``void *``) to the location of the
+ *                 requested data or ``NULL`` if not found. */
+
 void *lammps_extract_atom(void *handle, char *name)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
   return lmp->atom->extract(name);
 }
 
-/** \brief Get pointer to data from a LAMMPS compute.
+/** Get pointer to data from a LAMMPS compute.
  *
 \verbatim embed:rst
-This function returns a pointer to the location of data provided
-by a :doc:`compute` instance identified by the compute-ID.  Computes
-may provide global, per-atom, or local data, and those may be a
-scalar, a vector, or an array or they may provide the information
-about the dimensions of the respective data.  Since computes may
-provide multiple kinds of data, it is required to set style and
-type flags representing what specific data is desired.  This also
-determines to what kind of pointer the returned pointer needs to
-be cast to access the data correctly.  The function returns ``NULL``
-if the compute ID is not found or the requested data is not available
-or current. The following table lists the available options.
+
+This function returns a pointer to the location of data provided by a
+:doc:`compute` instance identified by the compute-ID.  Computes may
+provide global, per-atom, or local data, and those may be a scalar, a
+vector, or an array or they may provide the information about the
+dimensions of the respective data.  Since computes may provide multiple
+kinds of data, it is required to set style and type flags representing
+what specific data is desired.  This also determines to what kind of
+pointer the returned pointer needs to be cast to access the data
+correctly.  The function returns ``NULL`` if the compute ID is not found
+or the requested data is not available or current. The following table
+lists the available options.
 
 .. list-table::
    :header-rows: 1
@@ -1180,25 +1228,28 @@ or current. The following table lists the available options.
 The pointers returned by this function are generally not persistent
 since the computed data may be re-distributed, re-allocated, and
 re-ordered at every invocation. It is advisable to re-invoke this
-function before the data is accessed, or make a copy if the data
-shall be used after other LAMMPS commands have been issued.
+function before the data is accessed, or make a copy if the data shall
+be used after other LAMMPS commands have been issued.
 
 .. note::
 
-   If the compute's data is not computed for the current step,
-   the compute will be invoked.  LAMMPS cannot easily check at
-   that time, if it is valid to invoke a compute, so it may fail
-   with an error.  The caller has to check to avoid such an error.
+   If the compute's data is not computed for the current step, the
+   compute will be invoked.  LAMMPS cannot easily check at that time, if
+   it is valid to invoke a compute, so it may fail with an error.  The
+   caller has to check to avoid such an error.
 
 
 \endverbatim
  *
- * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param id string with ID of the compute
- * \param style constant indicating the style of data requested (global, per-atom, or local)
- * \param type  constant indicating type of data (scalar, vector, or array) or size of rows or columns
- * \return pointer cast to ``void *`` to the location of the requested data or NULL
- */
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \param  id      string with ID of the compute
+ * \param  style   constant indicating the style of data requested
+                   (global, per-atom, or local)
+ * \param  type    constant indicating type of data (scalar, vector,
+                   or array) or size of rows or columns
+ * \return         pointer (cast to ``void *``) to the location of the
+ *                 requested data or ``NULL`` if not found. */
+
 void *lammps_extract_compute(void *handle, char *id, int style, int type)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
@@ -1263,28 +1314,29 @@ void *lammps_extract_compute(void *handle, char *id, int style, int type)
   return NULL;
 }
 
-/** \brief Get pointer to data from a LAMMPS fix.
+/** Get pointer to data from a LAMMPS fix.
  *
 \verbatim embed:rst
+
 This function returns a pointer to data provided by a :doc:`fix`
-instance identified by its fix-ID.  Fixes may provide global,
-per-atom, or local data, and those may be a scalar, a vector,
-or an array, or they may provide the information about the
-dimensions of the respective data.  Since individual fixes may
-provide multiple kinds of data, it is required to set style and
-type flags representing what specific data is desired.  This also
-determines to what kind of pointer the returned pointer needs to
-be cast to access the data correctly.  The function returns ``NULL``
-if the fix ID is not found or the requested data is not available.
+instance identified by its fix-ID.  Fixes may provide global, per-atom,
+or local data, and those may be a scalar, a vector, or an array, or they
+may provide the information about the dimensions of the respective data.
+Since individual fixes may provide multiple kinds of data, it is
+required to set style and type flags representing what specific data is
+desired.  This also determines to what kind of pointer the returned
+pointer needs to be cast to access the data correctly.  The function
+returns ``NULL`` if the fix ID is not found or the requested data is not
+available.
 
 .. note::
 
-   When requesting global data, the fix data can only be accessed
-   one item at a time without access to the pointer itself.  Thus
-   this function will allocate storage for a single double value,
-   copy the returned value to it, and returns a pointer to the
-   location of the copy.  Therefore the allocated storage needs
-   to be freed after its use to avoid a memory leak. Example:
+   When requesting global data, the fix data can only be accessed one
+   item at a time without access to the pointer itself.  Thus this
+   function will allocate storage for a single double value, copy the
+   returned value to it, and returns a pointer to the location of the
+   copy.  Therefore the allocated storage needs to be freed after its
+   use to avoid a memory leak. Example:
 
    .. code-block:: c
 
@@ -1355,29 +1407,31 @@ The following table lists the available options.
      - ``int *``
      - Number of local data columns
 
-The pointers returned by this function for per-atom or local data
-are generally not persistent, since the computed data may be
-re-distributed, re-allocated, and re-ordered at every invocation
-of the fix.  It is thus advisable to re-invoke this function before
-the data is accessed, or make a copy, if the data shall be used
-after other LAMMPS commands have been issued.
+The pointers returned by this function for per-atom or local data are
+generally not persistent, since the computed data may be re-distributed,
+re-allocated, and re-ordered at every invocation of the fix.  It is thus
+advisable to re-invoke this function before the data is accessed, or
+make a copy, if the data shall be used after other LAMMPS commands have
+been issued.
 
 .. note::
 
-   LAMMPS cannot easily check if it is valid to access the data,
-   so it may fail with an error.  The caller has avoid such an error.
-
+   LAMMPS cannot easily check if it is valid to access the data, so it
+   may fail with an error.  The caller has avoid such an error.
 
 \endverbatim
  *
- * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param id string with ID of the fix
- * \param style constant indicating the style of data requested (global, per-atom, or local)
- * \param type  constant indicating type of data (scalar, vector, or array) or size of rows or columns
- * \param nrow row index (only used for global vectors and arrays)
- * \param ncol column index (only used for global arrays)
- * \return pointer cast to ``void *`` to the location of the requested data or NULL if not found
- */
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \param  id      string with ID of the fix
+ * \param  style   constant indicating the style of data requested
+                   (global, per-atom, or local)
+ * \param  type    constant indicating type of data (scalar, vector,
+                   or array) or size of rows or columns
+ * \param  nrow    row index (only used for global vectors and arrays)
+ * \param  ncol    column index (only used for global arrays)
+ * \return         pointer (cast to ``void *``) to the location of the
+ *                 requested data or ``NULL`` if not found. */
+
 void *lammps_extract_fix(void *handle, char *id, int style, int type,
                          int nrow, int ncol)
 {
@@ -1442,26 +1496,28 @@ void *lammps_extract_fix(void *handle, char *id, int style, int type,
   return NULL;
 }
 
-/** \brief Get pointer to data from a LAMMPS variable.
+/** Get pointer to data from a LAMMPS variable.
  *
 \verbatim embed:rst
+
 This function returns a pointer to data from a LAMMPS :doc:`variable`
 identified by its name.  The variable must be either an *equal*\ -style
 compatible or an *atom*\ -style variable.  Variables of style *internal*
-are compatible with *equal*\ -style variables and so are *python*\ -style
-variables, if they return a numeric value.  The function returns ``NULL``
-when a variable of the provided *name* is not found or of an incompatible
-style.  The *group* argument is only used for *atom*\ -style variables
-and ignored otherwise.  If set to ``NULL`` when extracting data from and
-*atom*\ -style variable, the group is assumed to be "all".
+are compatible with *equal*\ -style variables and so are *python*\
+-style variables, if they return a numeric value.  The function returns
+``NULL`` when a variable of the provided *name* is not found or of an
+incompatible style.  The *group* argument is only used for *atom*\
+-style variables and ignored otherwise.  If set to ``NULL`` when
+extracting data from and *atom*\ -style variable, the group is assumed
+to be "all".
 
 .. note::
 
    When requesting data from an *equal*\ -style or compatible variable
    this function allocates storage for a single double value, copies the
-   returned value to it, and returns a pointer to the location of the copy.
-   Therefore the allocated storage needs to be freed after its use to
-   avoid a memory leak. Example:
+   returned value to it, and returns a pointer to the location of the
+   copy.  Therefore the allocated storage needs to be freed after its
+   use to avoid a memory leak. Example:
 
    .. code-block:: c
 
@@ -1478,18 +1534,20 @@ values will not be updated, in case the variable is re-evaluated.
 
 .. note::
 
-   LAMMPS cannot easily check if it is valid to access the data referenced
-   by the variables, e.g. computes or fixes or thermodynamic info, so it
-   may fail with an error.  The caller has to make certain, that the data
-   is extracted only when it safe to evaluate the variable and thus an
-   error and crash is avoided.
+   LAMMPS cannot easily check if it is valid to access the data
+   referenced by the variables, e.g. computes or fixes or thermodynamic
+   info, so it may fail with an error.  The caller has to make certain,
+   that the data is extracted only when it safe to evaluate the variable
+   and thus an error and crash is avoided.
+
 \endverbatim
  *
- * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param name  name of the variable
- * \param group group-ID for atom style variable or ``NULL``
- * \return pointer cast to ``void *`` to the location of the requested data or NULL if not found
- */
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \param  name    name of the variable
+ * \param  group   group-ID for atom style variable or ``NULL``
+ * \return         pointer (cast to ``void *``) to the location of the
+ *                 requested data or ``NULL`` if not found. */
+
 void *lammps_extract_variable(void *handle, char *name, char *group)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
@@ -1520,16 +1578,16 @@ void *lammps_extract_variable(void *handle, char *name, char *group)
   return NULL;
 }
 
-/** \brief Set the value of a string-style variable.
+/** Set the value of a string-style variable.
  *
  * This function assigns a new value from the string str to the
  * string-style variable name. Returns -1 if a variable of that
  * name does not exist or is not a string-style variable, otherwise 0.
  *
- * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param name  name of the variable
- * \param str new value of the variable
- * \return 0 on success or -1 on failure
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \param  name    name of the variable
+ * \param  str     new value of the variable
+ * \return         0 on success or -1 on failure
  */
 int lammps_set_variable(void *handle, char *name, char *str)
 {
@@ -2263,12 +2321,61 @@ void lammps_scatter_atoms_subset(void *handle, char *name,
 }
 #endif
 
-/* doxygen documentation for this function has to be in the header
- * so we can generate two entries with for the two different
- * signatures depending on the choice of integer sizes. */
+/** Create N atoms from list of coordinates
+ *
+\verbatim embed:rst
+
+The prototype for this function when compiling with ``-DLAMMPS_BIGBIG``
+is:
+
+.. code-block:: c
+
+   int lammps_create_atoms(void *handle, int n, int64_t *id, int *type, double *x, double *v, int64_t *image, int bexpand);
+
+This function creates additional atoms from a given list of coordinates
+and a list of atom types.  Additionally the atom-IDs, velocities, and
+image flags may be provided.  If atom-IDs are not provided, they will be
+automatically created as a sequence following the largest existing
+atom-ID.
+
+This function is useful to add atoms to a simulation or - in tandem with
+:cpp:func:`lammps_reset_box` - to restore a previously extracted and
+saved state of a simulation.  Additional properties for the new atoms
+can then be assigned via the :cpp:func:`lammps_scatter_atoms`
+:cpp:func:`lammps_extract_atom` functions.
+
+For non-periodic boundaries, atoms will **not** be created that have
+coordinates outside the box unless it is a shrink-wrap boundary and the
+shrinkexceed flag has been set to a non-zero value.  For periodic
+boundaries atoms will be wrapped back into the simulation cell and its
+image flags adjusted accordingly, unless explicit image flags are
+provided.
+
+The function returns the number of atoms created or -1 on failure, e.g.
+when called before as box has been created.
+
+Coordinates and velocities have to be given in a 1d-array in the order
+X(1),Y(1),Z(1),X(2),Y(2),Z(2),...,X(N),Y(N),Z(N).
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  n        number of atoms, N, to be added to the system
+ * \param  id       pointer to N atom IDs; ``NULL`` will generate IDs
+ * \param  type     pointer to N atom types (required)
+ * \param  x        pointer to 3N doubles with x-,y-,z- positions
+                    of the new atoms (required)
+ * \param  v        pointer to 3N doubles with x-,y-,z- velocities
+                    of the new atoms (set to 0.0 if ``NULL``)
+ * \param  image    pointer to N imageint sets of image flags, or ``NULL``
+ * \param  bexpand  if 1, atoms outside of shrink-wrap boundaries will
+                    still be created and not dropped and the box extended
+ * \return          number of atoms created on success;
+                    -1 on failure (no box, no atom IDs, etc.) */
+
 int lammps_create_atoms(void *handle, int n, tagint *id, int *type,
                         double *x, double *v, imageint *image,
-                        int shrinkexceed)
+                        int bexpand)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
   bigint natoms_prev = lmp->atom->natoms;
@@ -2313,7 +2420,7 @@ int lammps_create_atoms(void *handle, int n, tagint *id, int *type,
 
       // create atom only on MPI rank that would own it
 
-      if (!domain->ownatom(tag, xdata, img, shrinkexceed)) continue;
+      if (!domain->ownatom(tag, xdata, img, bexpand)) continue;
 
       atom->avec->create_atom(type[i],xdata);
       if (id) atom->tag[nlocal] = id[i];
@@ -2333,7 +2440,7 @@ int lammps_create_atoms(void *handle, int n, tagint *id, int *type,
 
     // reset box info, if extended when adding atoms.
 
-    if (shrinkexceed) domain->reset_box();
+    if (bexpand) domain->reset_box();
 
     // need to reset atom->natoms inside LAMMPS
 

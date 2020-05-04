@@ -99,12 +99,20 @@ void  lammps_reset_box(void *handle, double *boxlo, double *boxhi,
 double lammps_get_thermo(void *handle, char *keyword);
 
 int   lammps_extract_setting(void *handle, char *keyword);
-void *lammps_extract_global(void *handle, char *);
-void *lammps_extract_atom(void *handle, char *);
-void *lammps_extract_compute(void *handle, char *, int, int);
+void *lammps_extract_global(void *handle, char *name);
+void *lammps_extract_atom(void *handle, char *name);
+
+#if !defined(LAMMPS_BIGBIG)
+int lammps_create_atoms(void *handle, int n, int *id, int *type,
+                        double *x, double *v, int *image, int bexpand);
+#else
+int lammps_create_atoms(void *handle, int n, int64_t *id, int *type,
+                        double *x, double *v, int64_t* image, int bexpand);
+#endif
+
+void *lammps_extract_compute(void *handle, char *id, int, int);
 void *lammps_extract_fix(void *handle, char *, int, int, int, int);
 void *lammps_extract_variable(void *handle, char *, char *);
-
 int lammps_set_variable(void *, char *, char *);
 
 void lammps_gather_atoms(void *, char *, int, int, void *);
@@ -144,116 +152,16 @@ int lammps_neighlist_num_elements(void*, int);
 void lammps_neighlist_element_neighbors(void *, int, int, int *, int *, int ** );
 
 #if !defined(LAMMPS_BIGBIG)
-/** Create N atoms from list of coordinates
- *
-\verbatim embed:rst
-
-This function creates additional atoms from a given list of coordinates
-and a list of atom types.  Additionally the atom-IDs, velocities, and
-image flags may be provided.  If atom-IDs are not provided, they will be
-automatically created as a sequence following the largest existing
-atom-ID.
-
-This function is useful to add atoms to a simulation or - in tandem with
-:cpp:func:`lammps_reset_box` - to restore a previously extracted and
-saved state of a simulation.  Additional properties for the new atoms
-can then be assigned via the :cpp:func:`lammps_scatter_atoms`
-:cpp:func:`lammps_extract_atom` functions.
-
-For non-periodic boundaries, atoms will **not** be created that have
-coordinates outside the box unless it is a shrink-wrap boundary and the
-shrinkexceed flag has been set to a non-zero value.  For periodic
-boundaries atoms will be wrapped back into the simulation cell and its
-image flags adjusted accordingly, unless explicit image flags are
-provided.
-
-The function returns the number of atoms created or -1 on failure, e.g.
-when called before as box has been created.
-
-Coordinates and velocities have to be given in a 1d-array in the order
-X(1),Y(1),Z(1),X(2),Y(2),Z(2),...,X(N),Y(N),Z(N).
-
-\endverbatim
- *
- * \param  handle   pointer to a previously created LAMMPS instance
- * \param  n        number of atoms, N, to be added to the system
- * \param  id       pointer to N atom IDs; ``NULL`` will generate IDs
- * \param  type     pointer to N atom types (required)
- * \param  x        pointer to 3N doubles with x-,y-,z- positions
-                    of the new atoms (required)
- * \param  v        pointer to 3N doubles with x-,y-,z- velocities
-                    of the new atoms (set to 0.0 if ``NULL``)
- * \param  image    pointer to N imageint sets of image flags, or ``NULL``
- * \param  bexpand  if 1, atoms outside of shrink-wrap boundaries will
-                    still be created and not dropped and the box extended
- * \return          number of atoms created on success;
-                    -1 on failure (no box, no atom IDs, etc.) */
-
-int lammps_create_atoms(void *handle, int n, int *id, int *type,
-                        double *x, double *v, int *image, int bexpand);
-#else
-
-/** Create N atoms from list of coordinates
- *
-\verbatim embed:rst
-
-This is the interface of the
-:cpp:func:`int lammps_create_atoms(void *, int, int *, int *, double *, double *, int *, int)`
-function if LAMMPS has been compiled with the -DLAMMPS_BIGBIG setting.
-
-\endverbatim */
-int lammps_create_atoms(void *, int, int64_t *, int *,
-                        double *, double *, int64_t *, int);
-#endif
-
-#if !defined(LAMMPS_BIGBIG)
-/** \brief Encode three integer image flags into a single imageint
- *
- * This function performs the bit-shift, addition, and bit-wise OR
- * operations necessary to combine the values of three integers
- * representing the image flags in x-, y-, and z-direction.  Unless
- * LAMMPS is compiled with -DLAMMPS_BIGBIG, those integers are
- * limited 10-bit signed integers [-512, 511].  Otherwise the return
- * type changes from ``int`` to ``int64_t`` and the valid range for
- * the individual image flags becomes [-1048576,1048575],
- * i.e. that of a 21-bit signed integer.  There is no check on whether
- * the arguments conform to these requirements.
- *
- * \param ix  image flag value in x
- * \param iy  image flag value in y
- * \param iz  image flag value in z
- * \return encoded image flags
- */
 int lammps_encode_image_flags(int ix, int iy, int iz);
-
-/** \brief Decode a single image flag integer into three regular integers
- *
-\verbatim embed:rst
-This function does the reverse operation of :cpp:func:`lammps_encode_image_flags`
-and takes an image flag integer does the bit-shift and bit-masking operations to
-decode it and stores the resulting three regular integers into the buffer pointed
-to by *flags*.
-\endverbatim
- * \param image encoded image flag integer
- * \param [out] flags pointer to storage where the decoded image flags are stored.
- */
 void lammps_decode_image_flags(int image, int *flags);
 #else
-int64_t lammps_encode_image_flags(int, int, int);
-/** \brief Decode a single image flag integer into three regular integers
-\verbatim embed:rst
-This is the interface of the :cpp:func:`lammps_decode_image_flags`
-function if LAMMPS has been compiled with the -DLAMMPS_BIGBIG setting.
-\endverbatim
- * \param image encoded image flag integer
- * \param [out] flags pointer to storage where the decoded image flags are stored.
- */
+int64_t lammps_encode_image_flags(int ix, int iy, int iz);
 void lammps_decode_image_flags(int64_t image, int *flags);
 #endif
 
 #ifdef LAMMPS_EXCEPTIONS
-int lammps_has_error(void *);
-int lammps_get_last_error_message(void *, char *, int);
+int lammps_has_error(void *handle);
+int lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
 #endif
 
 #undef LAMMPS

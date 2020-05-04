@@ -11,12 +11,7 @@ some utility functions that are not directly calling LAMMPS.
 
 -----------------------
 
-.. doxygenfunction:: lammps_decode_image_flags(int, int*)
-   :project: progguide
-
------------------------
-
-.. doxygenfunction:: lammps_decode_image_flags(int64_t, int*)
+.. doxygenfunction:: lammps_decode_image_flags(int image, int *flags)
    :project: progguide
 
 -----------------------

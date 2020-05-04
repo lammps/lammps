@@ -85,9 +85,9 @@ int  lammps_version(void *handle);
 
 void lammps_file(void *handle, char *file);
 
-char *lammps_command(void *, char *);
-void lammps_commands_list(void *, int, char **);
-void lammps_commands_string(void *, char *);
+char *lammps_command(void *handle, char *cmd);
+void lammps_commands_list(void *handle, int ncmd, char **cmds);
+void lammps_commands_string(void *handle, char *str);
 
 int lammps_extract_setting(void *, char *);
 void *lammps_extract_global(void *, char *);

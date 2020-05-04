@@ -65,7 +65,7 @@ the :doc:`atom_style command <atom_style>`.
 \endverbatim
  */
 
-/** \brief Atom class constructor
+/** Atom class constructor
  *
  * This resets and initialized all kinds of settings,
  * parameters and pointer variables for per-atom arrays.
@@ -73,7 +73,7 @@ the :doc:`atom_style command <atom_style>`.
  * instances of classes derived from the AtomVec base
  * class, which correspond to the selected atom style.
  *
- * \param lmp pointer to the base LAMMPS class
+ * \param  lmp  pointer to the base LAMMPS class
  */
 Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 {

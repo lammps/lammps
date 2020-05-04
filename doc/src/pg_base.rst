@@ -35,5 +35,6 @@ some selected examples for derived classes of specific models.
 
    pg_lammps
    pg_pointers
+   pg_input
    pg_atom
    pg_command

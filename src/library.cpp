@@ -152,7 +152,7 @@ argument may be ``NULL`` and is then ignored.
  *
  * \param  argc  number of command line arguments
  * \param  argv  list of command line argument strings
- * \param  comm  MPI communicator for this LAMMPS instance.
+ * \param  comm  MPI communicator for this LAMMPS instance
  * \param  ptr   pointer to a void pointer variable which serves
  *               as a handle; may be ``NULL``
  * \return       pointer to new LAMMPS instance cast to ``void *`` */
@@ -222,7 +222,7 @@ communicator with ``MPI_Comm_f2c()`` and then calls
  *
  * \param  argc   number of command line arguments
  * \param  argv   list of command line argument strings
- * \param  f_comm Fortran style MPI communicator for this LAMMPS instance.
+ * \param  f_comm Fortran style MPI communicator for this LAMMPS instance
  * \param  ptr    pointer to a void pointer variable
  *                which serves as a handle; may be ``NULL``
  * \return        pointer to new LAMMPS instance cast to ``void *`` */
@@ -246,7 +246,7 @@ multiple LAMMPS instances concurrently or sequentially.  See
 
 \endverbatim
  *
- * \param  handle  pointer to a previously created LAMMPS instance. */
+ * \param  handle  pointer to a previously created LAMMPS instance */
 
 void lammps_close(void *handle)
 {
@@ -266,7 +266,7 @@ growing with every new LAMMPS release.
 
 \endverbatim
  *
- * \param  handle  pointer to a previously created LAMMPS instance.
+ * \param  handle  pointer to a previously created LAMMPS instance
  * \return         an integer representing the version data in the
  *                 format YYYYMMDD */
 
@@ -312,8 +312,8 @@ MPI is initialized implicitly using the ``MPI_COMM_WORLD``
 communicator, then this function should then be called
 before exiting the program to wait until all parallel
 tasks are completed and then cleanly shut down MPI.
-\endverbatim
-*/
+\endverbatim */
+
 void lammps_finalize()
 {
   MPI_Barrier(MPI_COMM_WORLD);
@@ -342,20 +342,24 @@ void lammps_free(void *ptr)
 // library API functions to process commands
 // ----------------------------------------------------------------------
 
-/** \brief Process LAMMPS input from a file
+/** Process LAMMPS input from a file.
  *
- * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param filename name of a file with LAMMPS input
-
 \verbatim embed:rst
-This function processes commands in the file pointed to
-by ``filename`` line by line and thus functions very much like
-the :doc:`include <include>` command.  The function returns when
-the end of the file is reached and the commands have completed.
-This may take considerable amounts of time, if the input file
-contains :doc:`run <run>` or :doc:`minimize <minimize>` commands.
+
+This function processes commands in the file pointed to by *filename*
+line by line and thus functions very similar to the :doc:`include
+<include>` command. The function returns when the end of the file is
+reached and the commands have completed.
+
+The actual work is done by the functions
+:cpp:func:`Input::file(const char *)<void LAMMPS_NS::Input::file(const char *)>`
+and :cpp:func:`Input::file()<void LAMMPS_NS::Input::file()>`.
+
 \endverbatim
-  */
+ *
+ * \param  handle    pointer to a previously created LAMMPS instance
+ * \param  filename  name of a file with LAMMPS input */
+
 void lammps_file(void *handle, char *filename)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
@@ -363,33 +367,35 @@ void lammps_file(void *handle, char *filename)
   BEGIN_CAPTURE
   {
     if (lmp->update->whichflag != 0)
-      lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
+      lmp->error->all(FLERR,"Library error: issuing LAMMPS commands "
+                      "during a run is not allowed.");
     else
       lmp->input->file(filename);
   }
   END_CAPTURE
 }
 
-/** \brief Process a single LAMMPS input command from a string
+/** Process a single LAMMPS input command from a string
  *
 \verbatim embed:rst
-This function processes a single command in the string ``str``.
 
-The string may but need not have a final newline character.
-Newline characters in the body of the string will be treated as
-part of the command and will not start a second command.  You may
-use the function :cpp:func:`lammps_commands_string`
-to process a string with multiple command lines.
+This function tells LAMMPS to execute the single command in the string
+*cmd*.  The entire string is considered as command and need not have a
+(final) newline character.  Newline characters in the body of the
+string, however, will be treated as part of the command and will **not**
+start a second command.  The function :cpp:func:`lammps_commands_string`
+processes a string with multiple command lines.
 
-The function returns the name of the command on success or ``NULL``
-when passing a string without a command.
+The function returns the name of the command on success or ``NULL`` when
+passing a string without a command.
+
 \endverbatim
  *
- * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param str string with the LAMMPS command
- * \return string with command name or ``NULL``
- */
-char *lammps_command(void *handle, char *str)
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \param  cmd     string with a single LAMMPS command
+ * \return         string with parsed command name or ``NULL`` */
+
+char *lammps_command(void *handle, char *cmd)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
   char *result = NULL;
@@ -406,21 +412,21 @@ char *lammps_command(void *handle, char *str)
   return result;
 }
 
-/** \brief Process multiple LAMMPS input commands from list of strings
+/** Process multiple LAMMPS input commands from list of strings
  *
 \verbatim embed:rst
-This function allows to process multiple commands from a list of strings.
-It does so by first concatenating the individual strings in ``cmds``
-into a single string,  while inserting newline characters, if needed.
-The combined string would be equivalent to a multi-line chunk of an
-input file and is then internally passed to
-:cpp:func:`lammps_commands_string` for processing.
+
+This function processes multiple commands from a list of strings by
+first concatenating the individual strings in *cmds* into a single
+string, inserting newline characters as needed.  The combined string
+is passed to :cpp:func:`lammps_commands_string` for processing.
+
 \endverbatim
  *
- * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param ncmd number of strings in the list
- * \param cmds list of strings with the LAMMPS commands
- */
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \param  ncmd    number of lines in *cmds*
+ * \param  cmds    list of strings with LAMMPS commands */
+
 void lammps_commands_list(void *handle, int ncmd, char **cmds)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
@@ -2909,7 +2915,7 @@ void lammps_neighlist_element_neighbors(void * handle, int idx, int element, int
   *numneigh  = list->numneigh[i];
   *neighbors = list->firstneigh[i];
 }
-
+<
 // Local Variables:
 // fill-column: 72
-// End: 
+// End:

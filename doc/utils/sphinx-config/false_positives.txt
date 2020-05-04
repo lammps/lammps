@@ -675,6 +675,7 @@ dotc
 Doty
 doxygen
 doxygenclass
+doxygenfunction
 downarrow
 Doye
 dpd
@@ -1263,6 +1264,7 @@ indices
 inertiax
 inertiay
 inertiaz
+infile
 infty
 inhomogeneities
 inhomogeneous

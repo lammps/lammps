@@ -59,10 +59,15 @@ From: nvidia/cuda:10.2-devel-ubuntu18.04
         virtualenv \
         voro++-dev \
         wget \
-        xxd
+        xxd \
+        valgrind \
+        gdb
 
     mkdir -p /etc/OpenCL/vendors
     echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
+
+    # clean cache
+    rm -rf /var/lib/apt/lists/*
 
 %environment
         LC_ALL=C

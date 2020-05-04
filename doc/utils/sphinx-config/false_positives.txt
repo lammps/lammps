@@ -1815,6 +1815,7 @@ Militzer
 Minary
 mincap
 Mindlin
+minhbonds
 mingw
 minima
 minimizations

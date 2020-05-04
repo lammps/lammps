@@ -59,11 +59,16 @@ From: ubuntu:18.04
         virtualenv \
         voro++-dev \
         wget \
-        xxd
+        xxd \
+        valgrind \
+        gdb
 
     add-apt-repository ppa:intel-opencl/intel-opencl
     apt-get update
     apt-get install -y intel-opencl-icd
+
+    # clean cache
+    rm -rf /var/lib/apt/lists/*
 
 %environment
         LC_ALL=C

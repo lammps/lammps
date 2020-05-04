@@ -29,7 +29,7 @@
 !
 MODULE LIBLAMMPS
 
-  USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_ptr, c_loc, &
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_ptr, c_null_ptr, c_loc, &
       c_int, c_char, c_null_char
 
   IMPLICIT NONE
@@ -51,20 +51,22 @@ MODULE LIBLAMMPS
 
   ! interface definitions for calling functions in library.cpp
   INTERFACE
-      SUBROUTINE lammps_open(argc,argv,comm,handle) &
+      FUNCTION lammps_open(argc,argv,comm,handle) &
           BIND(C, name='lammps_open_fortran')
         IMPORT :: c_ptr, c_int
         INTEGER(c_int), VALUE, INTENT(in)     :: argc, comm
         TYPE(c_ptr), DIMENSION(*), INTENT(in) :: argv
         TYPE(c_ptr), INTENT(out)              :: handle
-      END SUBROUTINE lammps_open
-      SUBROUTINE lammps_open_no_mpi(argc,argv,handle) &
+        TYPE(c_ptr)                           :: lammps_open
+      END FUNCTION lammps_open
+      FUNCTION lammps_open_no_mpi(argc,argv,handle) &
           BIND(C, name='lammps_open_no_mpi')
         IMPORT :: c_ptr, c_int
         INTEGER(c_int), VALUE, INTENT(in)     :: argc
         TYPE(c_ptr), DIMENSION(*), INTENT(in) :: argv
         TYPE(c_ptr), INTENT(out)              :: handle
-      END SUBROUTINE lammps_open_no_mpi
+        TYPE(c_ptr)                           :: lammps_open_no_mpi
+      END FUNCTION lammps_open_no_mpi
       SUBROUTINE lammps_close(handle) BIND(C, name='lammps_close')
         IMPORT :: c_ptr
         TYPE(c_ptr), VALUE :: handle
@@ -105,6 +107,7 @@ CONTAINS
     INTEGER,INTENT(in), OPTIONAL :: comm
     CHARACTER(len=*), INTENT(in) :: args(:)
     TYPE(c_ptr), ALLOCATABLE     :: argv(:)
+    TYPE(c_ptr)                  :: dummy=c_null_ptr
     INTEGER :: i,argc
 
     ! convert argument list to c style
@@ -113,11 +116,11 @@ CONTAINS
     DO i=1,argc
         argv(i) = f2c_string(args(i))
     END DO
-    
+
     IF (PRESENT(comm)) THEN
-        CALL lammps_open(argc,argv,comm,lmp_open%handle)
+        lmp_open%handle = lammps_open(argc,argv,comm,dummy)
     ELSE
-        CALL lammps_open_no_mpi(argc,argv,lmp_open%handle)
+        lmp_open%handle = lammps_open_no_mpi(argc,argv,dummy)
     END IF
 
     ! Clean up allocated memory

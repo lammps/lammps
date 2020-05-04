@@ -30,6 +30,7 @@ From: ubuntu:20.04
         libhwloc-dev \
         libjpeg-dev \
         liblapack-dev \
+        libnetcdf-dev \
         libomp-dev \
         libopenblas-dev \
         libnuma-dev \
@@ -57,11 +58,16 @@ From: ubuntu:20.04
         virtualenv \
         voro++-dev \
         wget \
-        xxd
+        xxd \
+        valgrind \
+        gdb
+
+    # clean cache
+    rm -rf /var/lib/apt/lists/*
 
 %environment
-        LC_ALL=C
-        export LC_ALL
+    LC_ALL=C
+    export LC_ALL
 
 %labels
     Author akohlmey, rbberger

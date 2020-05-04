@@ -558,33 +558,34 @@ pointers passed as arguments.
 
 \endverbatim
  *
- * \param  handle  pointer to a previously created LAMMPS instance
- * \param  boxlo   pointer to 3 doubles where the lower box boundary is stored
- * \param  boxhi   pointer to 3 doubles where the upper box boundary is stored
- * \param  xy      pointer to a double where the xy tilt factor is stored
- * \param  yz      pointer to a double where the yz tilt factor is stored
- * \param  xz      pointer to a double where the xz tilt factor is stored
- * \param  periodicity pointer to 3 ints, set to 1 for periodic boundaries and 0 for non-periodic
- * \param  box_change  pointer to an int, which is set to 1 if the box will be
- *                     changed during a simulation by a fix and 0 if  not. */
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  boxlo    pointer to 3 doubles where the lower box boundary is stored
+ * \param  boxhi    pointer to 3 doubles where the upper box boundary is stored
+ * \param  xy       pointer to a double where the xy tilt factor is stored
+ * \param  yz       pointer to a double where the yz tilt factor is stored
+ * \param  xz       pointer to a double where the xz tilt factor is stored
+ * \param  pflags   pointer to 3 ints, set to 1 for periodic boundaries
+                    and 0 for non-periodic
+ * \param  boxflag  pointer to an int, which is set to 1 if the box will be
+ *                  changed during a simulation by a fix and 0 if not. */
 
 void lammps_extract_box(void *handle, double *boxlo, double *boxhi,
                         double *xy, double *yz, double *xz,
-                        int *periodicity, int *box_change)
+                        int *pflags, int *boxflag)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
   Domain *domain = lmp->domain;
 
   BEGIN_CAPTURE
   {
-    // error if box does not exist
+    // do nothing if box does not yet exist
     if ((lmp->domain->box_exist == 0)
         && (lmp->comm->me == 0)) {
       lmp->error->warning(FLERR,"Calling lammps_extract_box without a box");
       return;
     }
 
-    // domain->init() is needed to set box_change
+    // domain->init() is needed to update domain->box_change
     domain->init();
 
     boxlo[0] = domain->boxlo[0];
@@ -598,30 +599,32 @@ void lammps_extract_box(void *handle, double *boxlo, double *boxhi,
     *yz = domain->yz;
     *xz = domain->xz;
 
-    periodicity[0] = domain->periodicity[0];
-    periodicity[1] = domain->periodicity[1];
-    periodicity[2] = domain->periodicity[2];
+    pflags[0] = domain->periodicity[0];
+    pflags[1] = domain->periodicity[1];
+    pflags[2] = domain->periodicity[2];
 
-    *box_change = domain->box_change;
+    *boxflag = domain->box_change;
   }
   END_CAPTURE
 }
 
-/** \brief Reset simulation box parameters
-
+/** Reset simulation box parameters
+ *
 \verbatim embed:rst
-This function sets the simulation box dimensions (upper and lower
-bounds and tilt factors) from the provided data and then re-initialize()
-in and all derived parameters.
-\endverbatim
 
- * \param handle pointer to a previously created LAMMPS instance cast to ``void *``
- * \param boxlo pointer to 3 doubles where the new lower box boundaries are stored
- * \param boxhi pointer to 3 doubles where the new upper box boundaries are stored
- * \param xy xy tilt factor
- * \param yz yz tilt factor
- * \param xz xz tilt factor
- */
+This function sets the simulation box dimensions (upper and lower bounds
+and tilt factors) from the provided data and then re-initializes the box
+information and all derived settings.
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  boxlo    pointer to 3 doubles containing the lower box boundary
+ * \param  boxhi    pointer to 3 doubles containing the upper box boundary
+ * \param  xy       xy tilt factor
+ * \param  yz       yz tilt factor
+ * \param  xz       xz tilt factor */
+
 void lammps_reset_box(void *handle, double *boxlo, double *boxhi,
                       double xy, double yz, double xz)
 {
@@ -654,29 +657,29 @@ void lammps_reset_box(void *handle, double *boxlo, double *boxhi,
   END_CAPTURE
 }
 
-/** \brief Get current value of a thermo keyword
-
+/** Get current value of a thermo keyword
+ *
 \verbatim embed:rst
+
 This function returns the current value of a :doc:`thermo keyword
 <thermo_style>`.  Unlike :cpp:func:`lammps_extract_global` it does not
-give access to the storage of the desired data, so it can also return
-information that is computed on-the-fly.  For that purpose it triggers
-the :cpp:class:`Thermo <LAMMPS_NS::Thermo>` class to compute the current
-value for that keyword and returns it.
-\endverbatim
+give access to the storage of the desired data but returns its value as
+a double, so it can also return information that is computed on-the-fly.
 
- * \param handle pointer to a previously created LAMMPS instance cast to ``void *``
- * \param name :doc:`thermo keyword <thermo_style>` name.
- * \return current value of the thermo keyword or 0.0
- */
-double lammps_get_thermo(void *handle, char *name)
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  keyword  string with the name of the thermo keyword
+ * \return          value of the requested thermo property or 0.0 */
+
+double lammps_get_thermo(void *handle, char *keyword)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
   double dval = 0.0;
 
   BEGIN_CAPTURE
   {
-    lmp->output->thermo->evaluate_keyword(name,&dval);
+    lmp->output->thermo->evaluate_keyword(keyword,&dval);
   }
   END_CAPTURE
 

@@ -98,12 +98,12 @@ void  lammps_reset_box(void *handle, double *boxlo, double *boxhi,
 
 double lammps_get_thermo(void *handle, char *keyword);
 
-int   lammps_extract_setting(void *, char *);
-void *lammps_extract_global(void *, char *);
-void *lammps_extract_atom(void *, char *);
-void *lammps_extract_compute(void *, char *, int, int);
-void *lammps_extract_fix(void *, char *, int, int, int, int);
-void *lammps_extract_variable(void *, char *, char *);
+int   lammps_extract_setting(void *handle, char *keyword);
+void *lammps_extract_global(void *handle, char *);
+void *lammps_extract_atom(void *handle, char *);
+void *lammps_extract_compute(void *handle, char *, int, int);
+void *lammps_extract_fix(void *handle, char *, int, int, int, int);
+void *lammps_extract_variable(void *handle, char *, char *);
 
 int lammps_set_variable(void *, char *, char *);
 
@@ -143,33 +143,28 @@ int lammps_find_compute_neighlist(void*, char *, int);
 int lammps_neighlist_num_elements(void*, int);
 void lammps_neighlist_element_neighbors(void *, int, int, int *, int *, int ** );
 
-/*
- * lammps_create_atoms() takes tagint and imageint as args
- * ifdef insures they are compatible with rest of LAMMPS
- * caller must match to how LAMMPS library is built
- */
-
 #if !defined(LAMMPS_BIGBIG)
 /** Create N atoms from list of coordinates
  *
 \verbatim embed:rst
+
 This function creates additional atoms from a given list of coordinates
 and a list of atom types.  Additionally the atom-IDs, velocities, and
-image flags may be provided.  If atom-IDs are not provided, they will
-be automatically created as a sequence following the largest existing
+image flags may be provided.  If atom-IDs are not provided, they will be
+automatically created as a sequence following the largest existing
 atom-ID.
 
-This function is useful to add atoms to a simulation or - in tandem
-with :cpp:func:`lammps_reset_box` - to restore a previously extracted
-and saved state of a simulation.  Additional properties for the new
-atoms can then be assigned via the :cpp:func:`lammps_scatter_atoms`
+This function is useful to add atoms to a simulation or - in tandem with
+:cpp:func:`lammps_reset_box` - to restore a previously extracted and
+saved state of a simulation.  Additional properties for the new atoms
+can then be assigned via the :cpp:func:`lammps_scatter_atoms`
 :cpp:func:`lammps_extract_atom` functions.
 
 For non-periodic boundaries, atoms will **not** be created that have
-coordinates outside the box unless it is a shrink-wrap boundary and
-the shrinkexceed flag has been set to a non-zero value.  For periodic
-boundaries atoms will be wrapped back into the simulation cell and
-its image flags adjusted accordingly, unless explicit image flags are
+coordinates outside the box unless it is a shrink-wrap boundary and the
+shrinkexceed flag has been set to a non-zero value.  For periodic
+boundaries atoms will be wrapped back into the simulation cell and its
+image flags adjusted accordingly, unless explicit image flags are
 provided.
 
 The function returns the number of atoms created or -1 on failure, e.g.
@@ -177,27 +172,36 @@ when called before as box has been created.
 
 Coordinates and velocities have to be given in a 1d-array in the order
 X(1),Y(1),Z(1),X(2),Y(2),Z(2),...,X(N),Y(N),Z(N).
+
 \endverbatim
  *
- * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param n number of atoms, N, to be added to the system
- * \param id pointer to N atom IDs; NULL will generate IDs 1 to N
- * \param type pointer to N atom types (required)
- * \param x pointer to 3N doubles with x-,y-,z- positions of new atoms (required)
- * \param v pointer to 3N doubles with x-,y-,z- velocities of new atoms (set to 0.0 if NULL)
- * \param image pointer to N imageint sets of image flags, or NULL
- * \param shrinkexceed if 1 atoms outside shrink-wrap boundaries will still be created and not dropped.
- * \return number of atoms created on success, -1 on failure (no box, no atom IDs, etc.)
- */
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  n        number of atoms, N, to be added to the system
+ * \param  id       pointer to N atom IDs; ``NULL`` will generate IDs
+ * \param  type     pointer to N atom types (required)
+ * \param  x        pointer to 3N doubles with x-,y-,z- positions
+                    of the new atoms (required)
+ * \param  v        pointer to 3N doubles with x-,y-,z- velocities
+                    of the new atoms (set to 0.0 if ``NULL``)
+ * \param  image    pointer to N imageint sets of image flags, or ``NULL``
+ * \param  bexpand  if 1, atoms outside of shrink-wrap boundaries will
+                    still be created and not dropped and the box extended
+ * \return          number of atoms created on success;
+                    -1 on failure (no box, no atom IDs, etc.) */
+
 int lammps_create_atoms(void *handle, int n, int *id, int *type,
-                        double *x, double *v, int *image, int shrinkexceed);
+                        double *x, double *v, int *image, int bexpand);
 #else
-/** \brief Create N atoms from list of coordinates
+
+/** Create N atoms from list of coordinates
+ *
 \verbatim embed:rst
-This is the interface of the :cpp:func:`lammps_create_atoms`
+
+This is the interface of the
+:cpp:func:`int lammps_create_atoms(void *, int, int *, int *, double *, double *, int *, int)`
 function if LAMMPS has been compiled with the -DLAMMPS_BIGBIG setting.
-\endverbatim
- */
+
+\endverbatim */
 int lammps_create_atoms(void *, int, int64_t *, int *,
                         double *, double *, int64_t *, int);
 #endif
@@ -308,3 +312,7 @@ W: Library warning in lammps_create_atoms, invalid total atoms %ld %ld
 UNDOCUMENTED
 
 */
+
+/* Local Variables:
+ * fill-column: 72
+ * End: */

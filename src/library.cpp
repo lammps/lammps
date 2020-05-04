@@ -53,9 +53,8 @@ using namespace LAMMPS_NS;
 // utility functions
 // ----------------------------------------------------------------------
 
-/* doxygen documentation for this function has to be in the header
- * so we can generate two entries for the two different function
- * signatures depending on the choice of integer sizes. */
+/* doxygen documentation for this function has to be in the header */
+
 imageint lammps_encode_image_flags(int ix, int iy, int iz)
 {
   imageint image = ((imageint) (ix + IMGMAX) & IMGMASK) |
@@ -64,9 +63,8 @@ imageint lammps_encode_image_flags(int ix, int iy, int iz)
   return image;
 }
 
-/* doxygen documentation for this function has to be in the header
- * so we can generate two entries with for the two different
- * signatures depending on the choice of integer sizes. */
+/* doxygen documentation for this function has to be in the header */
+
 void lammps_decode_image_flags(imageint image, int *flags)
 {
   flags[0] = (image & IMGMASK) - IMGMAX;
@@ -301,17 +299,18 @@ void lammps_mpi_init()
   }
 }
 
-/** \brief Shut down the MPI infrastructure
-
+/** Shut down the MPI infrastructure
+ *
 \verbatim embed:rst
+
 The MPI standard requires that any MPI application calls
-``MPI_Finalize()`` before exiting.  If a calling program does
-not do any MPI calls and creates the LAMMPS instance through
-:cpp:func:`lammps_open_no_mpi`,
-MPI is initialized implicitly using the ``MPI_COMM_WORLD``
-communicator, then this function should then be called
-before exiting the program to wait until all parallel
-tasks are completed and then cleanly shut down MPI.
+``MPI_Finalize()`` before exiting.  Even if a calling program does not
+do any MPI calls, MPI is still initialized internally to avoid errors
+accessing any MPI functions.  This function should then be called right
+before exiting the program to wait until all (parallel) tasks are
+completed and then MPI is cleanly shut down.  After this function no
+more MPI calls may be made.
+
 \endverbatim */
 
 void lammps_finalize()
@@ -686,16 +685,14 @@ double lammps_get_thermo(void *handle, char *keyword)
   return dval;
 }
 
-/** \brief Query LAMMPS about global settings that can be expressed as an integer
+/** Query LAMMPS about global settings
  *
 \verbatim embed:rst
 
-This function will retrieve or compute global properties and return them
-as an integer.
-The following query keywords are currently supported. If a keyword is
-not recognized, the function returns -1.
-
-Please also see :cpp:func:`lammps_extract_global`.
+This function will retrieve or compute global properties. In contrast to
+:cpp:func:`lammps_get_thermo` this function returns an ``int``.  The
+following keywords are currently supported.  If a keyword is not
+recognized, the function returns -1.  Please also see :cpp:func:`lammps_extract_global`.
 
 .. list-table::
    :header-rows: 1
@@ -715,9 +712,11 @@ Please also see :cpp:func:`lammps_extract_global`.
    * - dimension
      - Number of dimensions: 2 or 3. See :doc:`dimension`.
    * - box_exist
-     - 1 if the simulation box is defined, 0 if not. See :doc:`create_box`.
+     - 1 if the simulation box is defined, 0 if not.
+       See :doc:`create_box`.
    * - triclinic
-     - 1 if the the simulation box is triclinic, 0 if orthogonal. See :doc:`change_box`.
+     - 1 if the the simulation box is triclinic, 0 if orthogonal.
+       See :doc:`change_box`.
    * - nlocal
      - number of "owned" atoms of the current MPI rank.
    * - nghost
@@ -739,10 +738,10 @@ Please also see :cpp:func:`lammps_extract_global`.
 
 \endverbatim
  *
- * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param name string with keyword of the setting
- * \return the value of the queried setting as a signed integer or -1 if unknown
- */
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  keyword  string with the name of the thermo keyword
+ * \return          value of the queried setting or -1 if unknown */
+
 int lammps_extract_setting(void * handle, char *name)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
@@ -770,37 +769,36 @@ int lammps_extract_setting(void * handle, char *name)
   return -1;
 }
 
-/** \brief Get pointer to internal global LAMMPS variables or arrays.
+/** Get pointer to internal global LAMMPS variables or arrays.
  *
 \verbatim embed:rst
-This function returns a pointer to the location of some global
-property stored in one of the constituent classes of a LAMMPS instance.
-The returned pointer is cast to ``void *`` and needs to be cast to a
-pointer of type that the entity represents.  The pointers returned
-by this function are generally persistent unless, i.e. it is not
-necessary to call the function again, unless a :doc:`clear` command
-is issued and the contents of the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>`
-class are wiped out and recreated.
 
-Please also see :cpp:func:`lammps_extract_setting` and
-:cpp:func:`lammps_extract_box`.
+This function returns a pointer to the location of some global property
+stored in one of the constituent classes of a LAMMPS instance.  The
+returned pointer is cast to ``void *`` and needs to be cast to a pointer
+of the type that the entity represents.  The pointers returned by this
+function are generally persistent; therefore it is not necessary to call
+the function again, unless a :doc:`clear` command is issued which wipes
+out and recreates the contents of the :cpp:class:`LAMMPS
+<LAMMPS_NS::LAMMPS>` class.
+
+Please also see :cpp:func:`lammps_extract_setting`,
+ :cpp:func:`lammps_get_thermo`, and :cpp:func:`lammps_extract_box`.
 
 .. warning::
 
-   Modifying the data in the location pointed to by the returned
-   pointer may lead to inconsistent internal data and thus may
-   cause failures or crashes or bogus simulations.  In general it
-   is thus usually better to use a LAMMPS input command that sets
-   or changes these parameters.  Those will takes care of all side
-   effects and necessary updates of settings derived from such
-   settings.  Where possible a reference to such a command or a
-   relevant section of the manual is given below.
+   Modifying the data in the location pointed to by the returned pointer
+   may lead to inconsistent internal data and thus may cause failures or
+   crashes or bogus simulations.  In general it is thus usually better
+   to use a LAMMPS input command that sets or changes these parameters.
+   Those will takes care of all side effects and necessary updates of
+   settings derived from such settings.  Where possible a reference to
+   such a command or a relevant section of the manual is given below.
 
-This table lists the supported names, their data types, length
-of the data area, and a short description.  The ``bigint`` type
-may be defined to be either an ``int`` or an ``int64_t``.  This
-is selected at :ref:`compile time <size>`.
-
+This table lists the supported names, their data types, length of the
+data area, and a short description.  The ``bigint`` type may be defined
+to be either an ``int`` or an ``int64_t``.  This is selected at
+:ref:`compile time <size>`.
 
 .. list-table::
    :header-rows: 1
@@ -857,11 +855,13 @@ is selected at :ref:`compile time <size>`.
    * - periodicity
      - int
      - 3
-     - 0 if non-periodic, 1 if periodic for x, y, and z. See :doc:`boundary`.
+     - 0 if non-periodic, 1 if periodic for x, y, and z;
+       See :doc:`boundary`.
    * - triclinic
      - int
      - 1
-     - 1 if the the simulation box is triclinic, 0 if orthogonal. See :doc:`change_box`.
+     - 1 if the the simulation box is triclinic, 0 if orthogonal;
+       See :doc:`change_box`.
    * - xy
      - double
      - 1
@@ -933,7 +933,8 @@ is selected at :ref:`compile time <size>`.
    * - mvv2e
      - double
      - 1
-     - factor to convert :math:`\frac{1}{2}mv^2` for a particle to the current energy unit. See :doc:`units`.
+     - factor to convert :math:`\frac{1}{2}mv^2` for a particle to
+       the current energy unit; See :doc:`units`.
    * - ftm2v
      - double
      - 1
@@ -949,7 +950,8 @@ is selected at :ref:`compile time <size>`.
    * - qqr2e
      - double
      - 1
-     - factor to convert :math:`\frac{q_i q_j}{r}` to energy units. See :doc:`units`.
+     - factor to convert :math:`\frac{q_i q_j}{r}` to energy units;
+       See :doc:`units`.
    * - qe2f
      - double
      - 1
@@ -985,11 +987,13 @@ is selected at :ref:`compile time <size>`.
    * - angstrom
      - double
      - 1
-     - constant to convert current length unit to angstroms. 1.0 for reduced (aka "lj") units. See :doc:`units`.
+     - constant to convert current length unit to angstroms;
+       1.0 for reduced (aka "lj") units. See :doc:`units`.
    * - femtosecond
      - double
      - 1
-     - constant to convert current time unit to femtoseconds. 1.0 for reduced (aka "lj") units
+     - constant to convert current time unit to femtoseconds;
+       1.0 for reduced (aka "lj") units
    * - qelectron
      - double
      - 1
@@ -997,10 +1001,10 @@ is selected at :ref:`compile time <size>`.
 
 \endverbatim
  *
- * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param name string with name of the entity
- * \return pointer cast to ``void *`` to the location of the requested property. NULL if unknown keyword name
- */
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  name     string with the name of the extracted property
+ * \return          pointer (cast to ``void *``) to the location of the
+                    requested property. NULL if name is not known. */
 
 void *lammps_extract_global(void *handle, char *name)
 {
@@ -1066,117 +1070,24 @@ void *lammps_extract_global(void *handle, char *name)
   return NULL;
 }
 
-/** \brief Get pointer to a LAMMPS per-atom property.
+/** Get pointer to a LAMMPS per-atom property.
  *
 \verbatim embed:rst
+
 This function returns a pointer to the location of per-atom properties
 (and per-atom-type properties in the case of the 'mass' keyword).
-Per-atom data is distributed across sub-domains and thus MPI ranks.
-The returned pointer is cast to ``void *`` and needs to be cast to a
-pointer of data type that the entity represents.
+Per-atom data is distributed across sub-domains and thus MPI ranks.  The
+returned pointer is cast to ``void *`` and needs to be cast to a pointer
+of data type that the entity represents.
+
+A table with supported keywords is included in the documentation
+of the :cpp:func:`Atom::extract() <LAMMPS_NS::Atom::extract>` function.
 
 .. note::
 
    The pointers returned by this function are generally not persistent
    since per-atom data may be re-distributed, re-allocated, and
    re-ordered at every re-neighboring operation.
-
-This table lists a large part of the supported names, their data types,
-length of the data area, and a short description.  You can look up
-additional supported keywords and their data types in
-:ref:`Atom::extract() <cpp_atom_extract>` and the ``src/atom.h`` header file.
-The ``bigint``, ``tagint``, or ``imageint`` types may be defined to be
-either an ``int`` or an ``int64_t``.  This is selected at
-:ref:`compile time <size>`.
-
-.. list-table::
-   :header-rows: 1
-   :widths: auto
-
-   * - Name
-     - Type
-     - Items per atom
-     - Description
-   * - mass
-     - double
-     - 1
-     - per-type mass. This array is **NOT** a per-atom array but of length ``ntypes+1``, element 0 is ignored.
-   * - id
-     - tagint
-     - 1
-     - atom ID of the particles
-   * - type
-     - int
-     - 1
-     - atom type of the particles
-   * - mask
-     - int
-     - 1
-     - bitmask for mapping to groups. Individual bits are set to 0 or 1 for each group.
-   * - image
-     - imageint
-     - 1
-     - 3 image flags encoded into a single integer using either 10 or 21 bits per direction.
-   * - x
-     - double
-     - 3
-     - x-, y-, and z-coordinate of the particles
-   * - v
-     - double
-     - 3
-     - x-, y-, and z-component of the velocity of the particles
-   * - f
-     - double
-     - 3
-     - x-, y-, and z-component of the force on the particles
-   * - molecule
-     - int
-     - 1
-     - molecule ID of the particles
-   * - q
-     - double
-     - 1
-     - charge of the particles
-   * - mu
-     - double
-     - 3
-     - dipole moment of the particles
-   * - omega
-     - double
-     - 3
-     - x-, y-, and z-component of rotational velocity of the particles
-   * - angmom
-     - double
-     - 3
-     - x-, y-, and z-component of angular momentum of the particles
-   * - torque
-     - double
-     - 3
-     - x-, y-, and z-component of the torque on the particles
-   * - radius
-     - double
-     - 1
-     - radius of the (extended) particles
-   * - rmass
-     - double
-     - 1
-     - per-atom mass of the particles. ``NULL`` if per-type masses are used. See :cpp:func:`'rmass_flag' setting <lammps_extract_setting>`.
-   * - ellipsoid
-     - int
-     - 1
-     - 1 if the particle is an ellipsoidal particle, 0 if not
-   * - line
-     - int
-     - 1
-     - 1 if the particle is a line particle, 0 if not
-   * - tri
-     - int
-     - 1
-     - 1 if the particle is a triangulated particle, 0 if not
-   * - body
-     - int
-     - 1
-     - 1 if the particle is a body particle, 0 if not
 
 \endverbatim
  *

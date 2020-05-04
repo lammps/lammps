@@ -73,8 +73,8 @@ the :doc:`atom_style command <atom_style>`.
  * instances of classes derived from the AtomVec base
  * class, which correspond to the selected atom style.
  *
- * \param  lmp  pointer to the base LAMMPS class
- */
+ * \param  lmp  pointer to the base LAMMPS class */
+
 Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 {
   natoms = 0;
@@ -2270,25 +2270,117 @@ void Atom::remove_custom(int flag, int index)
   }
 }
 
-/** \brief Provide access to internal data of the Atom class by keyword
- *
- * This is a way to access internal per-atom data.  This data is
- * distributed across MPI ranks and thus only the data for "local"
- * atoms can be expected to be available.  Whether also data for
- * "ghost" atoms is stored and up-to-date depends on various
- * simulation settings.
+/** Provide access to internal data of the Atom class by keyword
  *
 \verbatim embed:rst
 
-.. _cpp_atom_extract:
+This function is a way to access internal per-atom data.  This data is
+distributed across MPI ranks and thus only the data for "local" atoms
+are expected to be available.  Whether also data for "ghost" atoms is
+stored and up-to-date depends on various simulation settings.
 
-A table with supported keywords is included in the documentation
-of the :cpp:func:`lammps_extract_atom` function.
+This table lists a large part of the supported names, their data types,
+length of the data area, and a short description.
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Name
+     - Type
+     - Items per atom
+     - Description
+   * - mass
+     - double
+     - 1
+     - per-type mass. This array is **NOT** a per-atom array
+       but of length ``ntypes+1``, element 0 is ignored.
+   * - id
+     - tagint
+     - 1
+     - atom ID of the particles
+   * - type
+     - int
+     - 1
+     - atom type of the particles
+   * - mask
+     - int
+     - 1
+     - bitmask for mapping to groups. Individual bits are set
+       to 0 or 1 for each group.
+   * - image
+     - imageint
+     - 1
+     - 3 image flags encoded into a single integer.
+       See :cpp:func:`lammps_encode_image_flags`.
+   * - x
+     - double
+     - 3
+     - x-, y-, and z-coordinate of the particles
+   * - v
+     - double
+     - 3
+     - x-, y-, and z-component of the velocity of the particles
+   * - f
+     - double
+     - 3
+     - x-, y-, and z-component of the force on the particles
+   * - molecule
+     - int
+     - 1
+     - molecule ID of the particles
+   * - q
+     - double
+     - 1
+     - charge of the particles
+   * - mu
+     - double
+     - 3
+     - dipole moment of the particles
+   * - omega
+     - double
+     - 3
+     - x-, y-, and z-component of rotational velocity of the particles
+   * - angmom
+     - double
+     - 3
+     - x-, y-, and z-component of angular momentum of the particles
+   * - torque
+     - double
+     - 3
+     - x-, y-, and z-component of the torque on the particles
+   * - radius
+     - double
+     - 1
+     - radius of the (extended) particles
+   * - rmass
+     - double
+     - 1
+     - per-atom mass of the particles. ``NULL`` if per-type masses are
+       used. See the :cpp:func:`rmass_flag<lammps_extract_setting>` setting.
+   * - ellipsoid
+     - int
+     - 1
+     - 1 if the particle is an ellipsoidal particle, 0 if not
+   * - line
+     - int
+     - 1
+     - 1 if the particle is a line particle, 0 if not
+   * - tri
+     - int
+     - 1
+     - 1 if the particle is a triangulated particle, 0 if not
+   * - body
+     - int
+     - 1
+     - 1 if the particle is a body particle, 0 if not
+
 \endverbatim
  *
- * \param name string with the keyword of the desired property. Typically the same as the internal name of the pointer variable.
- * \return pointer to the data of interest cast to ``void *`` or NULL
- */
+ * \param  name  string with the keyword of the desired property.
+                 Typically the name of the pointer variable returned
+ * \return       pointer to the requested data cast to ``void *`` or NULL */
+
 void *Atom::extract(char *name)
 {
   /* NOTE: this array is only of length ntypes+1 */
@@ -2406,3 +2498,7 @@ int Atom::memcheck(const char *str)
   delete [] padded;
   return 1;
 }
+
+// Local Variables:
+// fill-column: 72
+// End:

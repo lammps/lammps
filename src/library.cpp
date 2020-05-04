@@ -403,9 +403,10 @@ char *lammps_command(void *handle, char *cmd)
   BEGIN_CAPTURE
   {
     if (lmp->update->whichflag != 0)
-      lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
+      lmp->error->all(FLERR,"Library error: issuing LAMMPS commands "
+                      "during a run is not allowed.");
     else
-      result = lmp->input->one(str);
+      result = lmp->input->one(cmd);
   }
   END_CAPTURE
 
@@ -2915,7 +2916,7 @@ void lammps_neighlist_element_neighbors(void * handle, int idx, int element, int
   *numneigh  = list->numneigh[i];
   *neighbors = list->firstneigh[i];
 }
-<
+
 // Local Variables:
 // fill-column: 72
 // End:

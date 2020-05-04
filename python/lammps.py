@@ -215,6 +215,7 @@ class lammps(object):
     self.lib.lammps_command.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_command.restype = c_char_p
 
+    self.lib.lammps_get_natoms.restype = c_double
     self.lib.lammps_extract_box.argtypes = \
       [c_void_p,POINTER(c_double),POINTER(c_double),
        POINTER(c_double),POINTER(c_double),POINTER(c_double),
@@ -518,11 +519,11 @@ class lammps(object):
   def get_natoms(self):
     """Get the total number of atoms in the LAMMPS instance.
 
-    Limited to a 32-bit integer due to the limitation of the
-    underlying :cpp:func:`lammps_get_natoms` function.
+    Will be precise up to 53-bit signed integer due to the
+    underlying :cpp:func:`lammps_get_natoms` function returning a double.
 
     :return: number of atoms
-    :rtype: int
+    :rtype: float
     """
     return self.lib.lammps_get_natoms(self.lmp)
 

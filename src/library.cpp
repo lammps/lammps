@@ -456,12 +456,14 @@ void lammps_commands_list(void *handle, int ncmd, char **cmds)
 /** \brief Process a block of LAMMPS input commands from a single string
  *
 \verbatim embed:rst
-This function processes a string similar to a block of commands from
-an input file.  The string may have multiple lines (separated by newline
-characters) and also single commands may be distributed over multiple
-lines with continuation characters ('&').  Those lines are combined by
-removing the '&' and the following newline character.  After this processing
-the string is handed to LAMMPS for parsing and executing.
+
+This function processes a multi-line string similar to a block of
+commands from a file.  The string may have multiple lines (separated by
+newline characters) and also single commands may be distributed over
+multiple lines with continuation characters ('&').  Those lines are
+combined by removing the '&' and the following newline character.  After
+this processing the string is handed to LAMMPS for parsing and
+executing.
 
 .. note::
 
@@ -470,9 +472,9 @@ the string is handed to LAMMPS for parsing and executing.
 
 \endverbatim
  *
- * \param handle pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param str string with block of LAMMPS input
- */
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \param  str     string with block of LAMMPS input commands */
+
 void lammps_commands_string(void *handle, char *str)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
@@ -511,57 +513,61 @@ void lammps_commands_string(void *handle, char *str)
   delete [] copy;
 }
 
-// ----------------------------------------------------------------------
-// library API functions to extract info from LAMMPS or set info in LAMMPS
-// ----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+// library API functions to extract info from LAMMPS or set data in LAMMPS
+// -----------------------------------------------------------------------
 
-/** \brief Return the total number of atoms in the system
-
+/** Return the total number of atoms in the system
+ *
 \verbatim embed:rst
-This is particularly useful before making calls to
-:cpp:func:`lammps_extract_atom` or similar so one can
-pre-allocate the correct amount of storage for the result vector.
 
-.. note::
+This number may be very large when running large simulations across
+multiple processors.  Depending on compile time choices, LAMMPS may be
+using either 32-bit or a 64-bit integer to store this number. For
+portability this function returns thus a double precision
+floating point number, which can represent up to a 53-bit signed
+integer exactly (:math:`\approx 10^{16}`).
 
-   This function returns a 32-bit signed integer and thus will
-   not work for systems with more than about 2 billion atoms.
-   As an alternative, you can call :cpp:func:`lammps_extract_global`
-   and cast the resulting pointer to a 64-bit integer pointer
-   and dereference it.
+As an alternative, you can use :cpp:func:`lammps_extract_global`
+and cast the resulting pointer to an integer pointer of the correct
+size and dereference it.  The size of that integer (in bytes) can be
+queried by calling :cpp:func:`lammps_extract_setting` to return
+the size of a ``bigint`` integer.
 
 \endverbatim
+ *
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \return         total number of atoms or 0 if value is too large */
 
- * \param handle pointer to a previously created LAMMPS instance
- * \return total number of atoms in the system or 0 if value too large.
- */
-int lammps_get_natoms(void *handle)
+double lammps_get_natoms(void *handle)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
-  if (lmp->atom->natoms > MAXSMALLINT) return 0;
-  int natoms = static_cast<int> (lmp->atom->natoms);
+  double natoms = static_cast<double> (lmp->atom->natoms);
+  if (natoms > 9.0e15) return 0; // TODO:XXX why not -1?
   return natoms;
 }
 
-/** \brief Extract simulation box parameters
-
+/** Extract simulation box parameters
+ *
 \verbatim embed:rst
-This function (re-)initializes the simulation box and boundary information
-and then assign the designated data to the locations in the pointers passed as
-arguments.
-\endverbatim
 
- * \param handle pointer to a previously created LAMMPS instance cast to ``void *``
- * \param boxlo pointer to 3 doubles where the lower box boundary is stored
- * \param boxhi pointer to 3 doubles where the upper box boundary is stored
- * \param xy pointer to a double where the xy tilt factor is stored
- * \param yz pointer to a double where the yz tilt factor is stored
- * \param xz pointer to a double where the xz tilt factor is stored
- * \param periodicity pointer to 3 ints, set to 1 for periodic boundaries and 0 for non-periodic
- * \param box_change pointer to an int, which is set to 1 if the box will be
- *        changed during a simulation by a fix and 0 if not.
- */
+This function (re-)initializes the simulation box and boundary
+information and then assign the designated data to the locations in the
+pointers passed as arguments.
+
+\endverbatim
+ *
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \param  boxlo   pointer to 3 doubles where the lower box boundary is stored
+ * \param  boxhi   pointer to 3 doubles where the upper box boundary is stored
+ * \param  xy      pointer to a double where the xy tilt factor is stored
+ * \param  yz      pointer to a double where the yz tilt factor is stored
+ * \param  xz      pointer to a double where the xz tilt factor is stored
+ * \param  periodicity pointer to 3 ints, set to 1 for periodic boundaries and 0 for non-periodic
+ * \param  box_change  pointer to an int, which is set to 1 if the box will be
+ *                     changed during a simulation by a fix and 0 if  not. */
+
 void lammps_extract_box(void *handle, double *boxlo, double *boxhi,
                         double *xy, double *yz, double *xz,
                         int *periodicity, int *box_change)

@@ -89,20 +89,21 @@ char *lammps_command(void *handle, char *cmd);
 void lammps_commands_list(void *handle, int ncmd, char **cmds);
 void lammps_commands_string(void *handle, char *str);
 
-int lammps_extract_setting(void *, char *);
+double lammps_get_natoms(void *handle);
+void  lammps_extract_box(void *, double *, double *,
+                         double *, double *, double *, int *, int *);
+void  lammps_reset_box(void *, double *, double *, double, double, double);
+
+int   lammps_extract_setting(void *, char *);
 void *lammps_extract_global(void *, char *);
-void lammps_extract_box(void *, double *, double *,
-                        double *, double *, double *, int *, int *);
 void *lammps_extract_atom(void *, char *);
 void *lammps_extract_compute(void *, char *, int, int);
 void *lammps_extract_fix(void *, char *, int, int, int, int);
 void *lammps_extract_variable(void *, char *, char *);
 
 double lammps_get_thermo(void *, char *);
-int lammps_get_natoms(void *);
 
 int lammps_set_variable(void *, char *, char *);
-void lammps_reset_box(void *, double *, double *, double, double, double);
 
 void lammps_gather_atoms(void *, char *, int, int, void *);
 void lammps_gather_atoms_concat(void *, char *, int, int, void *);

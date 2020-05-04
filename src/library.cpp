@@ -159,23 +159,25 @@ argument may be ``NULL`` and is then ignored.
 
 void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
 {
+  LAMMPS *lmp = NULL;
   lammps_mpi_init();
 
 #ifdef LAMMPS_EXCEPTIONS
   try
   {
-    LAMMPS *lmp = new LAMMPS(argc, argv, comm);
+    lmp = new LAMMPS(argc, argv, comm);
     if (ptr) *ptr = (void *) lmp;
   }
   catch(LAMMPSException & e) {
     fprintf(stderr, "LAMMPS Exception: %s", e.message.c_str());
-    *ptr = (void *) NULL;
+    if (ptr) *ptr = (void *) NULL;
+    return NULL;
   }
 #else
-  LAMMPS *lmp = new LAMMPS(argc, argv, comm);
+  lmp = new LAMMPS(argc, argv, comm);
   if (ptr) *ptr = (void *) lmp;
 #endif
-  return (void *)lmp;
+  return (void *) lmp;
 }
 
 /** Variant of ``lammps_open()`` that implicitly uses ``MPI_COMM_WORLD``.

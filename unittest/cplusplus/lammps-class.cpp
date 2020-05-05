@@ -74,7 +74,7 @@ namespace LAMMPS_NS
         EXPECT_EQ(lmp->infile, stdin);
         EXPECT_EQ(lmp->screen, stdout);
         EXPECT_EQ(lmp->logfile, nullptr);
-        EXPECT_NE(lmp->initclock, 0.0);
+        EXPECT_GE(lmp->initclock, 0.0);
 
         EXPECT_EQ(lmp->suffix_enable, 0);
         EXPECT_EQ(lmp->suffix, nullptr);
@@ -218,7 +218,7 @@ namespace LAMMPS_NS
         EXPECT_EQ(lmp->infile, stdin);
         EXPECT_EQ(lmp->screen, nullptr);
         EXPECT_EQ(lmp->logfile, nullptr);
-        EXPECT_GT(lmp->initclock, 0.0);
+        EXPECT_GE(lmp->initclock, 0.0);
 
         EXPECT_EQ(lmp->suffix_enable, 1);
         EXPECT_STREQ(lmp->suffix, "omp");
@@ -308,7 +308,7 @@ namespace LAMMPS_NS
         EXPECT_EQ(lmp->infile, stdin);
         EXPECT_EQ(lmp->screen, stdout);
         EXPECT_EQ(lmp->logfile, nullptr);
-        EXPECT_GT(lmp->initclock, 0.0);
+        EXPECT_GE(lmp->initclock, 0.0);
 
         EXPECT_EQ(lmp->suffix_enable, 1);
         EXPECT_STREQ(lmp->suffix, "kk");

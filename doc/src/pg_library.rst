@@ -90,8 +90,9 @@ compiled to instead :ref:`throw a C++ exception <exceptions>`.
    pg_lib_neighbor
    pg_lib_config
    pg_lib_utility
+   pg_lib_add
 
-------------------- 
+--------------------
 
 .. _lammps_python_api:
 

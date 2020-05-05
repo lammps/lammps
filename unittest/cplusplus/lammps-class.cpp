@@ -1,12 +1,13 @@
+// unit tests for the LAMMPS base class
 
 #include "lammps.h"
 #include <mpi.h>
-#include <cstdio>
+#include <cstdio>  // for stdin, stdout
 #include <string>
 
 #include "gtest/gtest.h"
 
-namespace LAMMPS_NS 
+namespace LAMMPS_NS
 {
     // test fixture for regular tests
     class LAMMPS_test_plain : public ::testing::Test {
@@ -48,7 +49,7 @@ namespace LAMMPS_NS
         }
     };
 
-    TEST_F(LAMMPS_test_plain, InitMembers) 
+    TEST_F(LAMMPS_test_plain, InitMembers)
     {
         // skip tests if base class is not available
         if (lmp == nullptr) return;
@@ -99,7 +100,7 @@ namespace LAMMPS_NS
         }
     }
 
-    TEST_F(LAMMPS_test_plain, TestStyles) 
+    TEST_F(LAMMPS_test_plain, TestStyles)
     {
         // skip tests if base class is not available
         if (lmp == nullptr) return;
@@ -151,7 +152,7 @@ namespace LAMMPS_NS
         found = lmp->match_style("atom","i_don't_exist");
         EXPECT_STREQ(found,NULL);
     }
-    
+
     // test fixture for OpenMP with 2 threads
     class LAMMPS_test_omp : public ::testing::Test {
     protected:
@@ -192,7 +193,7 @@ namespace LAMMPS_NS
         }
     };
 
-    TEST_F(LAMMPS_test_omp, InitMembers) 
+    TEST_F(LAMMPS_test_omp, InitMembers)
     {
         // skip tests if base class is not available
         if (lmp == nullptr) return;
@@ -332,9 +333,23 @@ namespace LAMMPS_NS
             EXPECT_STREQ(LAMMPS::git_descriptor,"");
         }
     }
+
+    // check help message printing
+    TEST(LAMMPS_help, HelpMessage) {
+        const char *args[] = {"LAMMPS_test", "-h"};
+        char **argv = (char **)args;
+        int argc = sizeof(args)/sizeof(char *);
+
+        ::testing::internal::CaptureStdout();
+        LAMMPS *lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+        std::string output = testing::internal::GetCapturedStdout();
+        EXPECT_STREQ(output.substr(0,61).c_str(),
+                     "\nLarge-scale Atomic/Molecular Massively Parallel Simulator -");
+        delete lmp;
+    }
 }
 
-int main(int argc, char **argv) 
+int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

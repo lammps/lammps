@@ -63,7 +63,6 @@ class LAMMPS {
   char *exename;                //!< Name of the executable (=pointer to argv[0])
   char ***packargs;             //!< Arguments for command line package commands
   int num_package;              //!< Number of command line package commands
-  int cite_enable;              //!< 1 if generating log.cite is enabled, 0 if disabled
 
   int clientserver;             //!< Client/server status: 0 = neither, 1 = client, 2 = server
   void *cslib;                  //!< Pointer to client/server messaging class instance via CSlib

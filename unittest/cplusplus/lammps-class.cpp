@@ -2,6 +2,7 @@
 #include "lammps.h"
 #include <mpi.h>
 #include <cstdio>
+#include <string>
 
 #include "gtest/gtest.h"
 
@@ -28,15 +29,22 @@ namespace LAMMPS_NS
         void SetUp() override {
             const char *args[] = {"LAMMPS_test",
                                   "-log", "none",
-                                  "-echo", "screen",
+                                  "-echo", "both",
                                   "-nocite"};
             char **argv = (char **)args;
             int argc = sizeof(args)/sizeof(char *);
+
+            ::testing::internal::CaptureStdout();
             lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+            std::string output = testing::internal::GetCapturedStdout();
+            EXPECT_STREQ(output.substr(0,8).c_str(), "LAMMPS (");
         }
 
         void TearDown() override {
+            ::testing::internal::CaptureStdout();
             delete lmp;
+            std::string output = testing::internal::GetCapturedStdout();
+            EXPECT_STREQ(output.substr(0,16).c_str(), "Total wall time:");
         }
     };
 
@@ -73,11 +81,77 @@ namespace LAMMPS_NS
 
         EXPECT_STREQ(lmp->exename, "LAMMPS_test");
         EXPECT_EQ(lmp->num_package, 0);
+        EXPECT_EQ(lmp->clientserver, 0);
 
+        EXPECT_EQ(lmp->kokkos, nullptr);
+        EXPECT_EQ(lmp->atomKK, nullptr);
+        EXPECT_EQ(lmp->memoryKK, nullptr);
         EXPECT_NE(lmp->python, nullptr);
         EXPECT_EQ(lmp->citeme, nullptr);
+        if (LAMMPS::has_git_info) {
+            EXPECT_STRNE(LAMMPS::git_commit,"");
+            EXPECT_STRNE(LAMMPS::git_branch,"");
+            EXPECT_STRNE(LAMMPS::git_descriptor,"");
+        } else {
+            EXPECT_STREQ(LAMMPS::git_commit,"");
+            EXPECT_STREQ(LAMMPS::git_branch,"");
+            EXPECT_STREQ(LAMMPS::git_descriptor,"");
+        }
     }
 
+    TEST_F(LAMMPS_test_plain, TestStyles) 
+    {
+        // skip tests if base class is not available
+        if (lmp == nullptr) return;
+        const char *found;
+
+        const char *atom_styles[] = {
+            "atomic", "body", "charge", "ellipsoid", "hybrid",
+            "line", "sphere", "tri", NULL };
+        for (int i = 0; atom_styles[i] != NULL; ++i) {
+            found = lmp->match_style("atom",atom_styles[i]);
+            EXPECT_STREQ(found, NULL);
+        }
+
+        const char *molecule_atom_styles[] = {
+            "angle", "bond", "full", "molecular", "template", NULL };
+        for (int i = 0; molecule_atom_styles[i] != NULL; ++i) {
+            found = lmp->match_style("atom",molecule_atom_styles[i]);
+            EXPECT_STREQ(found, "MOLECULE");
+        }
+
+        const char *kokkos_atom_styles[] = {
+            "angle/kk", "bond/kk", "full/kk", "molecular/kk", "hybrid/kk", NULL };
+        for (int i = 0; kokkos_atom_styles[i] != NULL; ++i) {
+            found = lmp->match_style("atom",kokkos_atom_styles[i]);
+            EXPECT_STREQ(found, "KOKKOS");
+        }
+        found = lmp->match_style("atom","dipole");
+        EXPECT_STREQ(found,"DIPOLE");
+        found = lmp->match_style("atom","peri");
+        EXPECT_STREQ(found,"PERI");
+        found = lmp->match_style("atom","spin");
+        EXPECT_STREQ(found,"SPIN");
+        found = lmp->match_style("atom","wavepacket");
+        EXPECT_STREQ(found,"USER-AWPMD");
+        found = lmp->match_style("atom","dpd");
+        EXPECT_STREQ(found,"USER-DPD");
+        found = lmp->match_style("atom","edpd");
+        EXPECT_STREQ(found,"USER-MESODPD");
+        found = lmp->match_style("atom","mdpd");
+        EXPECT_STREQ(found,"USER-MESODPD");
+        found = lmp->match_style("atom","tdpd");
+        EXPECT_STREQ(found,"USER-MESODPD");
+        found = lmp->match_style("atom","spin");
+        EXPECT_STREQ(found,"SPIN");
+        found = lmp->match_style("atom","smd");
+        EXPECT_STREQ(found,"USER-SMD");
+        found = lmp->match_style("atom","meso");
+        EXPECT_STREQ(found,"USER-SPH");
+        found = lmp->match_style("atom","i_don't_exist");
+        EXPECT_STREQ(found,NULL);
+    }
+    
     // test fixture for OpenMP with 2 threads
     class LAMMPS_test_omp : public ::testing::Test {
     protected:
@@ -98,6 +172,7 @@ namespace LAMMPS_NS
 
         void SetUp() override {
             const char *args[] = {"LAMMPS_test",
+                                  "-log", "none",
                                   "-screen", "none",
                                   "-echo", "screen",
                                   "-pk", "omp","2", "neigh", "yes",
@@ -106,10 +181,10 @@ namespace LAMMPS_NS
             char **argv = (char **)args;
             int argc = sizeof(args)/sizeof(char *);
 
-            // only run this test fixture with omp suffix if KOKKOS package is installed
-            
+            // only run this test fixture with omp suffix if USER-OMP package is installed
+
             if (LAMMPS::is_installed_pkg("USER-OMP"))
-                lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+              lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
         }
 
         void TearDown() override {
@@ -141,7 +216,7 @@ namespace LAMMPS_NS
         EXPECT_EQ(lmp->world, MPI_COMM_WORLD);
         EXPECT_EQ(lmp->infile, stdin);
         EXPECT_EQ(lmp->screen, nullptr);
-        EXPECT_NE(lmp->logfile, nullptr);
+        EXPECT_EQ(lmp->logfile, nullptr);
         EXPECT_GT(lmp->initclock, 0.0);
 
         EXPECT_EQ(lmp->suffix_enable, 1);
@@ -150,9 +225,22 @@ namespace LAMMPS_NS
 
         EXPECT_STREQ(lmp->exename, "LAMMPS_test");
         EXPECT_EQ(lmp->num_package, 1);
+        EXPECT_EQ(lmp->clientserver, 0);
 
+        EXPECT_EQ(lmp->kokkos, nullptr);
+        EXPECT_EQ(lmp->atomKK, nullptr);
+        EXPECT_EQ(lmp->memoryKK, nullptr);
         EXPECT_NE(lmp->python, nullptr);
         EXPECT_NE(lmp->citeme, nullptr);
+        if (LAMMPS::has_git_info) {
+            EXPECT_STRNE(LAMMPS::git_commit,"");
+            EXPECT_STRNE(LAMMPS::git_branch,"");
+            EXPECT_STRNE(LAMMPS::git_descriptor,"");
+        } else {
+            EXPECT_STREQ(LAMMPS::git_commit,"");
+            EXPECT_STREQ(LAMMPS::git_branch,"");
+            EXPECT_STREQ(LAMMPS::git_descriptor,"");
+        }
     }
 
     // test fixture for Kokkos tests
@@ -177,6 +265,7 @@ namespace LAMMPS_NS
             const char *args[] = {"LAMMPS_test",
                                   "-log", "none",
                                   "-echo", "none",
+                                  "-screen", "none",
                                   "-k", "on","t", "2",
                                   "-sf", "kk"
             };
@@ -226,9 +315,22 @@ namespace LAMMPS_NS
 
         EXPECT_STREQ(lmp->exename, "LAMMPS_test");
         EXPECT_EQ(lmp->num_package, 0);
+        EXPECT_EQ(lmp->clientserver, 0);
 
+        EXPECT_NE(lmp->kokkos, nullptr);
+        EXPECT_NE(lmp->atomKK, nullptr);
+        EXPECT_NE(lmp->memoryKK, nullptr);
         EXPECT_NE(lmp->python, nullptr);
-        EXPECT_NE(lmp->citeme, nullptr);
+        EXPECT_EQ(lmp->citeme, nullptr);
+        if (LAMMPS::has_git_info) {
+            EXPECT_STRNE(LAMMPS::git_commit,"");
+            EXPECT_STRNE(LAMMPS::git_branch,"");
+            EXPECT_STRNE(LAMMPS::git_descriptor,"");
+        } else {
+            EXPECT_STREQ(LAMMPS::git_commit,"");
+            EXPECT_STREQ(LAMMPS::git_branch,"");
+            EXPECT_STREQ(LAMMPS::git_descriptor,"");
+        }
     }
 }
 

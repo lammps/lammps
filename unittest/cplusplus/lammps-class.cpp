@@ -28,7 +28,8 @@ namespace LAMMPS_NS
         void SetUp() override {
             const char *args[] = {"LAMMPS_test",
                                   "-log", "none",
-                                  "-echo", "screen"};
+                                  "-echo", "screen",
+                                  "-nocite"};
             char **argv = (char **)args;
             int argc = sizeof(args)/sizeof(char *);
             lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
@@ -41,6 +42,9 @@ namespace LAMMPS_NS
 
     TEST_F(LAMMPS_test_plain, InitMembers) 
     {
+        // skip tests if base class is not available
+        if (lmp == nullptr) return;
+
         EXPECT_NE(lmp->memory, nullptr);
         EXPECT_NE(lmp->error, nullptr);
         EXPECT_NE(lmp->universe, nullptr);
@@ -68,6 +72,10 @@ namespace LAMMPS_NS
         EXPECT_EQ(lmp->suffix2, nullptr);
 
         EXPECT_STREQ(lmp->exename, "LAMMPS_test");
+        EXPECT_EQ(lmp->num_package, 0);
+
+        EXPECT_NE(lmp->python, nullptr);
+        EXPECT_EQ(lmp->citeme, nullptr);
     }
 
     // test fixture for OpenMP with 2 threads
@@ -90,7 +98,7 @@ namespace LAMMPS_NS
 
         void SetUp() override {
             const char *args[] = {"LAMMPS_test",
-                                  "-log", "none",
+                                  "-screen", "none",
                                   "-echo", "screen",
                                   "-pk", "omp","2", "neigh", "yes",
                                   "-sf", "omp"
@@ -98,7 +106,7 @@ namespace LAMMPS_NS
             char **argv = (char **)args;
             int argc = sizeof(args)/sizeof(char *);
 
-            // only run this test fixture with omp suffix if USER-OMP is installed
+            // only run this test fixture with omp suffix if KOKKOS package is installed
             
             if (LAMMPS::is_installed_pkg("USER-OMP"))
                 lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
@@ -113,6 +121,7 @@ namespace LAMMPS_NS
     {
         // skip tests if base class is not available
         if (lmp == nullptr) return;
+
         EXPECT_NE(lmp->memory, nullptr);
         EXPECT_NE(lmp->error, nullptr);
         EXPECT_NE(lmp->universe, nullptr);
@@ -131,8 +140,8 @@ namespace LAMMPS_NS
 
         EXPECT_EQ(lmp->world, MPI_COMM_WORLD);
         EXPECT_EQ(lmp->infile, stdin);
-        EXPECT_EQ(lmp->screen, stdout);
-        EXPECT_EQ(lmp->logfile, nullptr);
+        EXPECT_EQ(lmp->screen, nullptr);
+        EXPECT_NE(lmp->logfile, nullptr);
         EXPECT_GT(lmp->initclock, 0.0);
 
         EXPECT_EQ(lmp->suffix_enable, 1);
@@ -140,6 +149,10 @@ namespace LAMMPS_NS
         EXPECT_EQ(lmp->suffix2, nullptr);
 
         EXPECT_STREQ(lmp->exename, "LAMMPS_test");
+        EXPECT_EQ(lmp->num_package, 1);
+
+        EXPECT_NE(lmp->python, nullptr);
+        EXPECT_NE(lmp->citeme, nullptr);
     }
 
     // test fixture for Kokkos tests
@@ -163,14 +176,14 @@ namespace LAMMPS_NS
         void SetUp() override {
             const char *args[] = {"LAMMPS_test",
                                   "-log", "none",
-                                  "-echo", "screen",
+                                  "-echo", "none",
                                   "-k", "on","t", "2",
                                   "-sf", "kk"
             };
             char **argv = (char **)args;
             int argc = sizeof(args)/sizeof(char *);
 
-            // only run this test fixture with omp suffix if USER-OMP is installed
+            // only run this test fixture with kk suffix if KOKKOS package is installed
 
             if (LAMMPS::is_installed_pkg("KOKKOS"))
                 lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
@@ -212,6 +225,10 @@ namespace LAMMPS_NS
         EXPECT_EQ(lmp->suffix2, nullptr);
 
         EXPECT_STREQ(lmp->exename, "LAMMPS_test");
+        EXPECT_EQ(lmp->num_package, 0);
+
+        EXPECT_NE(lmp->python, nullptr);
+        EXPECT_NE(lmp->citeme, nullptr);
     }
 }
 

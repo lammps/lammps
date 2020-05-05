@@ -10,10 +10,10 @@
 namespace LAMMPS_NS
 {
     // test fixture for regular tests
-    class LAMMPS_test_plain : public ::testing::Test {
+    class LAMMPS_plain : public ::testing::Test {
     protected:
         LAMMPS *lmp;
-        LAMMPS_test_plain() : lmp(nullptr) {
+        LAMMPS_plain() : lmp(nullptr) {
             const char *args[] = {"LAMMPS_test"};
             char **argv = (char **)args;
             int argc = sizeof(args)/sizeof(char *);
@@ -23,7 +23,7 @@ namespace LAMMPS_NS
             if (!flag) MPI_Init(&argc,&argv);
         }
 
-        ~LAMMPS_test_plain() override {
+        ~LAMMPS_plain() override {
             lmp = nullptr;
         }
 
@@ -49,7 +49,7 @@ namespace LAMMPS_NS
         }
     };
 
-    TEST_F(LAMMPS_test_plain, InitMembers)
+    TEST_F(LAMMPS_plain, InitMembers)
     {
         // skip tests if base class is not available
         if (lmp == nullptr) return;
@@ -100,7 +100,7 @@ namespace LAMMPS_NS
         }
     }
 
-    TEST_F(LAMMPS_test_plain, TestStyles)
+    TEST_F(LAMMPS_plain, TestStyles)
     {
         // skip tests if base class is not available
         if (lmp == nullptr) return;
@@ -154,10 +154,10 @@ namespace LAMMPS_NS
     }
 
     // test fixture for OpenMP with 2 threads
-    class LAMMPS_test_omp : public ::testing::Test {
+    class LAMMPS_omp : public ::testing::Test {
     protected:
         LAMMPS *lmp;
-        LAMMPS_test_omp() : lmp(nullptr) {
+        LAMMPS_omp() : lmp(nullptr) {
             const char *args[] = {"LAMMPS_test"};
             char **argv = (char **)args;
             int argc = sizeof(args)/sizeof(char *);
@@ -167,7 +167,7 @@ namespace LAMMPS_NS
             if (!flag) MPI_Init(&argc,&argv);
         }
 
-        ~LAMMPS_test_omp() override {
+        ~LAMMPS_omp() override {
             lmp = nullptr;
         }
 
@@ -193,7 +193,7 @@ namespace LAMMPS_NS
         }
     };
 
-    TEST_F(LAMMPS_test_omp, InitMembers)
+    TEST_F(LAMMPS_omp, InitMembers)
     {
         // skip tests if base class is not available
         if (lmp == nullptr) return;
@@ -245,10 +245,10 @@ namespace LAMMPS_NS
     }
 
     // test fixture for Kokkos tests
-    class LAMMPS_test_kokkos : public ::testing::Test {
+    class LAMMPS_kokkos : public ::testing::Test {
     protected:
         LAMMPS *lmp;
-        LAMMPS_test_kokkos() : lmp(nullptr) {
+        LAMMPS_kokkos() : lmp(nullptr) {
             const char *args[] = {"LAMMPS_test"};
             char **argv = (char **)args;
             int argc = sizeof(args)/sizeof(char *);
@@ -258,7 +258,7 @@ namespace LAMMPS_NS
             if (!flag) MPI_Init(&argc,&argv);
         }
 
-        ~LAMMPS_test_kokkos() override {
+        ~LAMMPS_kokkos() override {
             lmp = nullptr;
         }
 
@@ -284,7 +284,7 @@ namespace LAMMPS_NS
         }
     };
 
-    TEST_F(LAMMPS_test_kokkos, InitMembers)
+    TEST_F(LAMMPS_kokkos, InitMembers)
     {
         // skip tests if base class is not available
         if (lmp == nullptr) return;

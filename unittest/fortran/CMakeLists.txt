@@ -1,0 +1,14 @@
+
+include(CheckGeneratorSupport)
+if(CMAKE_GENERATOR_SUPPORT_FORTRAN)
+  include(CheckLanguage)
+  check_language(Fortran)
+  if(CMAKE_Fortran_COMPILER)
+    enable_language(Fortran)
+    get_filename_component(LAMMPS_FORTRAN_MODULE ${LAMMPS_SOURCE_DIR}/../examples/COUPLE/fortran/lammps.f90 ABSOLUTE)
+
+    add_executable(fortran-create wrap-create.cpp ${LAMMPS_FORTRAN_MODULE} fortran-create.f90)
+    target_link_libraries(fortran-create PRIVATE lammps GTest::GTest)
+    add_test(FortranModule fortran-create)
+  endif()
+endif()

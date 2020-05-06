@@ -13,7 +13,7 @@ Syntax
 * dump-ID = ID of dump to modify
 * one or more keyword/value pairs may be appended
 * these keywords apply to various dump styles
-* keyword = *append* or *at* or *buffer* or *delay* or *element* or *every* or *fileper* or *first* or *flush* or *format* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *varcomputes* or *units* or *unwrap*
+* keyword = *append* or *at* or *buffer* or *delay* or *element* or *every* or *fileper* or *first* or *flush* or *format* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap* or *vtime*
 
   .. parsed-literal::
 
@@ -62,11 +62,10 @@ Syntax
          operator = "<" or "<=" or ">" or ">=" or "==" or "!=" or "\|\^"
          value = numeric value to compare to, or LAST
          these 3 args can be replaced by the word "none" to turn off thresholding
-       *varcomputes* args = N compute_1 compute_2 ... compute_N
-           N = number of computes used in variables specified in *custom/time* style
-           compute_i = names of computes used in variables specified in *custom/time* style
        *units* arg = *yes* or *no*
        *unwrap* arg = *yes* or *no*
+       *vtime* arg = M
+         M = dump frequency in time units
 
 * these keywords apply only to the *image* and *movie* :doc:`styles <dump_image>`
 * keyword = *acolor* or *adiam* or *amap* or *backcolor* or *bcolor* or *bdiam* or *boxcolor* or *color* or *bitrate* or *framerate*
@@ -673,12 +672,6 @@ The default setting is *no*\ .
 
 ----------
 
-The *varcomputes* keyword only applies to the dump *custom/time* style. It
-contains a list of names of *N* computes which are invoked in atom variables
-used in the dump. This is required for a correct calculation of the variables.
-
-----------
-
 The *units* keyword only applies to the dump *atom*\ , *custom*\ , and
 *local* styles (and their COMPRESS package versions *atom/gz*\ ,
 *custom/gz* and *local/gz*\ ). If set to *yes*\ , each individual dump
@@ -703,6 +696,13 @@ a periodic boundary one or more times, the value is printed for what
 the coordinate would be if it had not been wrapped back into the
 periodic box.  Note that these coordinates may thus be far outside the
 box size stored with the snapshot.
+
+----------
+
+The *vtime* keyword allows for writing dumps every *M* time units instead 
+of *N* timesteps. If this option is used, the *N* parameter becomes a frequency
+of a check whether the dump should be written. *N* equal to 1 gives the best
+accuracy. Atom-style variables which invoke computes are not supported yet.
 
 ----------
 

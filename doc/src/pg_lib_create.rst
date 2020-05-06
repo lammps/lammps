@@ -25,7 +25,7 @@ Here is a simple example demonstrating its use:
      handle = lammps_open_no_mpi(lmpargc, lmpargv, NULL);
      if (handle == NULL) {
        printf("LAMMPS initialization failed");
-       lammps_finalize();
+       lammps_mpi_finalize();
        return 1;
      }
 
@@ -35,7 +35,7 @@ Here is a simple example demonstrating its use:
 
      /* delete LAMMPS instance and shut down MPI */
      lammps_close(handle);
-     lammps_finalize();
+     lammps_mpi_finalize();
      return 0;
    }
 
@@ -60,7 +60,7 @@ the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class pointed to by the handle
 passed as an argument and free all its memory. This has to be called for
 every instance created with any of the :cpp:func:`lammps_open` functions.  It will, however, **not** call
 ``MPI_Finalize()``, since that may only be called once.  See
-:cpp:func:`lammps_finalize` for an alternative to calling
+:cpp:func:`lammps_mpi_finalize` for an alternative to calling
 ``MPI_Finalize()`` explicitly in the calling program.
 
 The :cpp:func:`lammps_free` function is a clean-up
@@ -90,16 +90,15 @@ of the individual commands where such memory buffers were allocated.
 
 -----------------------
 
-.. doxygenfunction:: lammps_finalize
+.. doxygenfunction:: lammps_mpi_init
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_mpi_finalize
    :project: progguide
 
 -----------------------
 
 .. doxygenfunction:: lammps_free
    :project: progguide
-
------------------------
-
-.. doxygenfunction:: lammps_version
-   :project: progguide
-

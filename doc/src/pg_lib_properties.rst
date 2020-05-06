@@ -9,25 +9,30 @@ that is coupled to LAMMPS via the library interface.
 
 -----------------------
 
+.. doxygenfunction:: lammps_version
+   :project: progguide
+
+-----------------------
+
 .. doxygenfunction:: lammps_get_natoms
    :project: progguide
 
--------------------
-
-.. doxygenfunction:: lammps_extract_box
-   :project: progguide
-
--------------------
-
-.. doxygenfunction:: lammps_reset_box
-   :project: progguide
-
--------------------
+-----------------------
 
 .. doxygenfunction:: lammps_get_thermo
    :project: progguide
 
 -----------------------
+
+.. doxygenfunction:: lammps_extract_box
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_reset_box
+   :project: progguide
+
+-------------------
 
 .. doxygenfunction:: lammps_extract_setting
    :project: progguide

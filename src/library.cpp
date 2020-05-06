@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// C or Fortran style library interface to LAMMPS
-// customize by adding new LAMMPS-specific functions
+// C style library interface to LAMMPS.
+// See the manual for detailed documentation.
 
 #include "library.h"
 #include <mpi.h>
@@ -48,75 +48,6 @@
 #endif
 
 using namespace LAMMPS_NS;
-
-// ----------------------------------------------------------------------
-// utility functions
-// ----------------------------------------------------------------------
-
-/** Encode three integer image flags into a single imageint.
- *
-\verbatim embed:rst
-
-The prototype for this function when compiling with ``-DLAMMPS_BIGBIG``
-is:
-
-.. code-block:: c
-
-   int64_t lammps_encode_image_flags(int ix, int iy, int iz);
-
-This function performs the bit-shift, addition, and bit-wise OR
-operations necessary to combine the values of three integers
-representing the image flags in x-, y-, and z-direction.  Unless
-LAMMPS is compiled with -DLAMMPS_BIGBIG, those integers are
-limited 10-bit signed integers [-512, 511].  Otherwise the return
-type changes from ``int`` to ``int64_t`` and the valid range for
-the individual image flags becomes [-1048576,1048575],
-i.e. that of a 21-bit signed integer.  There is no check on whether
-the arguments conform to these requirements.
-
-\endverbatim
- *
- * \param  ix  image flag value in x
- * \param  iy  image flag value in y
- * \param  iz  image flag value in z
- * \return     encoded image flag integer */
-
-imageint lammps_encode_image_flags(int ix, int iy, int iz)
-{
-  imageint image = ((imageint) (ix + IMGMAX) & IMGMASK) |
-    (((imageint) (iy + IMGMAX) & IMGMASK) << IMGBITS) |
-    (((imageint) (iz + IMGMAX) & IMGMASK) << IMG2BITS);
-  return image;
-}
-
-/** Decode a single image flag integer into three regular integers
- *
-\verbatim embed:rst
-
-The prototype for this function when compiling with ``-DLAMMPS_BIGBIG``
-is:
-
-.. code-block:: c
-
-   void lammps_decode_image_flags(int64_t image, int *flags);
-
-This function does the reverse operation of
-:cpp:func:`lammps_encode_image_flags` and takes an image flag integer
-does the bit-shift and bit-masking operations to decode it and stores
-the resulting three regular integers into the buffer pointed to by
-*flags*.
-
-\endverbatim
- *
- * \param  image  encoded image flag integer
- * \param  flags  pointer to storage where the decoded image flags are stored. */
-
-void lammps_decode_image_flags(imageint image, int *flags)
-{
-  flags[0] = (image & IMGMASK) - IMGMAX;
-  flags[1] = (image >> IMGBITS & IMGMASK) - IMGMAX;
-  flags[2] = (image >> IMG2BITS) - IMGMAX;
-}
 
 // ----------------------------------------------------------------------
 // utility macros
@@ -161,7 +92,7 @@ void lammps_decode_image_flags(imageint image, int *flags)
 #endif
 
 // ----------------------------------------------------------------------
-// library API functions to create/destroy an instance of LAMMPS
+// Library functions to create/destroy an instance of LAMMPS
 // ----------------------------------------------------------------------
 
 /** Create instance of the LAMMPS class and return pointer to it.
@@ -286,7 +217,7 @@ This function deletes the LAMMPS class instance pointed to by ``handle``
 that was created by one of the :cpp:func:`lammps_open` variants.  It
 does **not** call ``MPI_Finalize()`` to allow creating and deleting
 multiple LAMMPS instances concurrently or sequentially.  See
-:cpp:func:`lammps_finalize` for a function performing this operation.
+:cpp:func:`lammps_mpi_finalize` for a function performing this operation.
 
 \endverbatim
  *
@@ -296,28 +227,6 @@ void lammps_close(void *handle)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
   delete lmp;
-}
-
-/** Get numerical representation of the LAMMPS version date.
- *
-\verbatim embed:rst
-
-The :cpp:func:`lammps_version` function returns an integer representing
-the version of the LAMMPS code in the format YYYYMMDD.  This can be used
-to implement backward compatibility in software using the LAMMPS library
-interface.  The specific format guarantees, that this version number is
-growing with every new LAMMPS release.
-
-\endverbatim
- *
- * \param  handle  pointer to a previously created LAMMPS instance
- * \return         an integer representing the version data in the
- *                 format YYYYMMDD */
-
-int lammps_version(void *handle)
-{
-  LAMMPS *lmp = (LAMMPS *) handle;
-  return atoi(lmp->universe->num_ver);
 }
 
 /** Ensure the MPI environment is initialized.
@@ -359,7 +268,7 @@ more MPI calls may be made.
 
 \endverbatim */
 
-void lammps_finalize()
+void lammps_mpi_finalize()
 {
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();
@@ -384,7 +293,7 @@ void lammps_free(void *ptr)
 }
 
 // ----------------------------------------------------------------------
-// library API functions to process commands
+// Library functions to process commands
 // ----------------------------------------------------------------------
 
 /** Process LAMMPS input from a file.
@@ -559,8 +468,30 @@ void lammps_commands_string(void *handle, char *str)
 }
 
 // -----------------------------------------------------------------------
-// library API functions to extract info from LAMMPS or set data in LAMMPS
+// Library functions to extract info from LAMMPS or set data in LAMMPS
 // -----------------------------------------------------------------------
+
+/** Get numerical representation of the LAMMPS version date.
+ *
+\verbatim embed:rst
+
+The :cpp:func:`lammps_version` function returns an integer representing
+the version of the LAMMPS code in the format YYYYMMDD.  This can be used
+to implement backward compatibility in software using the LAMMPS library
+interface.  The specific format guarantees, that this version number is
+growing with every new LAMMPS release.
+
+\endverbatim
+ *
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \return         an integer representing the version data in the
+ *                 format YYYYMMDD */
+
+int lammps_version(void *handle)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+  return atoi(lmp->universe->num_ver);
+}
 
 /** Return the total number of atoms in the system.
  *
@@ -591,6 +522,35 @@ double lammps_get_natoms(void *handle)
   double natoms = static_cast<double> (lmp->atom->natoms);
   if (natoms > 9.0e15) return 0; // TODO:XXX why not -1?
   return natoms;
+}
+
+/** Get current value of a thermo keyword.
+ *
+\verbatim embed:rst
+
+This function returns the current value of a :doc:`thermo keyword
+<thermo_style>`.  Unlike :cpp:func:`lammps_extract_global` it does not
+give access to the storage of the desired data but returns its value as
+a double, so it can also return information that is computed on-the-fly.
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  keyword  string with the name of the thermo keyword
+ * \return          value of the requested thermo property or 0.0 */
+
+double lammps_get_thermo(void *handle, char *keyword)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+  double dval = 0.0;
+
+  BEGIN_CAPTURE
+  {
+    lmp->output->thermo->evaluate_keyword(keyword,&dval);
+  }
+  END_CAPTURE
+
+  return dval;
 }
 
 /** Extract simulation box parameters.
@@ -700,35 +660,6 @@ void lammps_reset_box(void *handle, double *boxlo, double *boxhi,
     domain->set_local_box();
   }
   END_CAPTURE
-}
-
-/** Get current value of a thermo keyword.
- *
-\verbatim embed:rst
-
-This function returns the current value of a :doc:`thermo keyword
-<thermo_style>`.  Unlike :cpp:func:`lammps_extract_global` it does not
-give access to the storage of the desired data but returns its value as
-a double, so it can also return information that is computed on-the-fly.
-
-\endverbatim
- *
- * \param  handle   pointer to a previously created LAMMPS instance
- * \param  keyword  string with the name of the thermo keyword
- * \return          value of the requested thermo property or 0.0 */
-
-double lammps_get_thermo(void *handle, char *keyword)
-{
-  LAMMPS *lmp = (LAMMPS *) handle;
-  double dval = 0.0;
-
-  BEGIN_CAPTURE
-  {
-    lmp->output->thermo->evaluate_keyword(keyword,&dval);
-  }
-  END_CAPTURE
-
-  return dval;
 }
 
 /** Query LAMMPS about global settings.
@@ -1148,6 +1079,153 @@ void *lammps_extract_atom(void *handle, char *name)
   return lmp->atom->extract(name);
 }
 
+/** Create N atoms from list of coordinates
+ *
+\verbatim embed:rst
+
+The prototype for this function when compiling with ``-DLAMMPS_BIGBIG``
+is:
+
+.. code-block:: c
+
+   int lammps_create_atoms(void *handle, int n, int64_t *id, int *type, double *x, double *v, int64_t *image, int bexpand);
+
+This function creates additional atoms from a given list of coordinates
+and a list of atom types.  Additionally the atom-IDs, velocities, and
+image flags may be provided.  If atom-IDs are not provided, they will be
+automatically created as a sequence following the largest existing
+atom-ID.
+
+This function is useful to add atoms to a simulation or - in tandem with
+:cpp:func:`lammps_reset_box` - to restore a previously extracted and
+saved state of a simulation.  Additional properties for the new atoms
+can then be assigned via the :cpp:func:`lammps_scatter_atoms`
+:cpp:func:`lammps_extract_atom` functions.
+
+For non-periodic boundaries, atoms will **not** be created that have
+coordinates outside the box unless it is a shrink-wrap boundary and the
+shrinkexceed flag has been set to a non-zero value.  For periodic
+boundaries atoms will be wrapped back into the simulation cell and its
+image flags adjusted accordingly, unless explicit image flags are
+provided.
+
+The function returns the number of atoms created or -1 on failure, e.g.
+when called before as box has been created.
+
+Coordinates and velocities have to be given in a 1d-array in the order
+X(1),Y(1),Z(1),X(2),Y(2),Z(2),...,X(N),Y(N),Z(N).
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  n        number of atoms, N, to be added to the system
+ * \param  id       pointer to N atom IDs; ``NULL`` will generate IDs
+ * \param  type     pointer to N atom types (required)
+ * \param  x        pointer to 3N doubles with x-,y-,z- positions
+                    of the new atoms (required)
+ * \param  v        pointer to 3N doubles with x-,y-,z- velocities
+                    of the new atoms (set to 0.0 if ``NULL``)
+ * \param  image    pointer to N imageint sets of image flags, or ``NULL``
+ * \param  bexpand  if 1, atoms outside of shrink-wrap boundaries will
+                    still be created and not dropped and the box extended
+ * \return          number of atoms created on success;
+                    -1 on failure (no box, no atom IDs, etc.) */
+
+int lammps_create_atoms(void *handle, int n, tagint *id, int *type,
+                        double *x, double *v, imageint *image,
+                        int bexpand)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+  bigint natoms_prev = lmp->atom->natoms;
+
+  BEGIN_CAPTURE
+  {
+    // error if box does not exist or tags not defined
+
+    int flag = 0;
+    std::string msg("Failure in lammps_create_atoms: ");
+    if (lmp->domain->box_exist == 0) {
+      flag = 1;
+      msg += "trying to create atoms before before simulation box is defined";
+    }
+    if (lmp->atom->tag_enable == 0) {
+      flag = 1;
+      msg += "must have atom IDs to use this function";
+    }
+
+    if (flag) {
+      if (lmp->comm->me == 0) lmp->error->warning(FLERR,msg.c_str());
+      return -1;
+    }
+
+    // loop over all N atoms on all MPI ranks
+    // if this proc would own it based on its coordinates, invoke create_atom()
+    // optionally set atom tags and velocities
+
+    Atom *atom = lmp->atom;
+    Domain *domain = lmp->domain;
+    int nlocal = atom->nlocal;
+
+    int nlocal_prev = nlocal;
+    double xdata[3];
+
+    for (int i = 0; i < n; i++) {
+      xdata[0] = x[3*i];
+      xdata[1] = x[3*i+1];
+      xdata[2] = x[3*i+2];
+      imageint * img = image ? image + i : NULL;
+      tagint     tag = id    ? id[i]     : 0;
+
+      // create atom only on MPI rank that would own it
+
+      if (!domain->ownatom(tag, xdata, img, bexpand)) continue;
+
+      atom->avec->create_atom(type[i],xdata);
+      if (id) atom->tag[nlocal] = id[i];
+      else atom->tag[nlocal] = 0;
+      if (v) {
+        atom->v[nlocal][0] = v[3*i];
+        atom->v[nlocal][1] = v[3*i+1];
+        atom->v[nlocal][2] = v[3*i+2];
+      }
+      if (image) atom->image[nlocal] = image[i];
+      nlocal++;
+    }
+
+    // if no tags are given explicitly, create new and unique tags
+
+    if (id == NULL) atom->tag_extend();
+
+    // reset box info, if extended when adding atoms.
+
+    if (bexpand) domain->reset_box();
+
+    // need to reset atom->natoms inside LAMMPS
+
+    bigint ncurrent = nlocal;
+    MPI_Allreduce(&ncurrent,&lmp->atom->natoms,1,MPI_LMP_BIGINT,
+                  MPI_SUM,lmp->world);
+
+    // init per-atom fix/compute/variable values for created atoms
+
+    atom->data_fix_compute_variable(nlocal_prev,nlocal);
+
+    // if global map exists, reset it
+    // invoke map_init() b/c atom count has grown
+
+    if (lmp->atom->map_style) {
+      lmp->atom->map_init();
+      lmp->atom->map_set();
+    }
+  }
+  END_CAPTURE;
+  return (int) lmp->atom->natoms - natoms_prev;
+}
+
+// ----------------------------------------------------------------------
+// Library functions to access data from computes, fixes, variables in LAMMPS
+// ----------------------------------------------------------------------
+  
 /** Get pointer to data from a LAMMPS compute.
  *
 \verbatim embed:rst
@@ -1602,6 +1680,10 @@ int lammps_set_variable(void *handle, char *name, char *str)
 
   return err;
 }
+
+// ----------------------------------------------------------------------
+// Library functions for scatter/gather operations of data
+// ----------------------------------------------------------------------
 
 /* ----------------------------------------------------------------------
    gather the named atom-based entity for all atoms
@@ -2321,149 +2403,6 @@ void lammps_scatter_atoms_subset(void *handle, char *name,
 }
 #endif
 
-/** Create N atoms from list of coordinates
- *
-\verbatim embed:rst
-
-The prototype for this function when compiling with ``-DLAMMPS_BIGBIG``
-is:
-
-.. code-block:: c
-
-   int lammps_create_atoms(void *handle, int n, int64_t *id, int *type, double *x, double *v, int64_t *image, int bexpand);
-
-This function creates additional atoms from a given list of coordinates
-and a list of atom types.  Additionally the atom-IDs, velocities, and
-image flags may be provided.  If atom-IDs are not provided, they will be
-automatically created as a sequence following the largest existing
-atom-ID.
-
-This function is useful to add atoms to a simulation or - in tandem with
-:cpp:func:`lammps_reset_box` - to restore a previously extracted and
-saved state of a simulation.  Additional properties for the new atoms
-can then be assigned via the :cpp:func:`lammps_scatter_atoms`
-:cpp:func:`lammps_extract_atom` functions.
-
-For non-periodic boundaries, atoms will **not** be created that have
-coordinates outside the box unless it is a shrink-wrap boundary and the
-shrinkexceed flag has been set to a non-zero value.  For periodic
-boundaries atoms will be wrapped back into the simulation cell and its
-image flags adjusted accordingly, unless explicit image flags are
-provided.
-
-The function returns the number of atoms created or -1 on failure, e.g.
-when called before as box has been created.
-
-Coordinates and velocities have to be given in a 1d-array in the order
-X(1),Y(1),Z(1),X(2),Y(2),Z(2),...,X(N),Y(N),Z(N).
-
-\endverbatim
- *
- * \param  handle   pointer to a previously created LAMMPS instance
- * \param  n        number of atoms, N, to be added to the system
- * \param  id       pointer to N atom IDs; ``NULL`` will generate IDs
- * \param  type     pointer to N atom types (required)
- * \param  x        pointer to 3N doubles with x-,y-,z- positions
-                    of the new atoms (required)
- * \param  v        pointer to 3N doubles with x-,y-,z- velocities
-                    of the new atoms (set to 0.0 if ``NULL``)
- * \param  image    pointer to N imageint sets of image flags, or ``NULL``
- * \param  bexpand  if 1, atoms outside of shrink-wrap boundaries will
-                    still be created and not dropped and the box extended
- * \return          number of atoms created on success;
-                    -1 on failure (no box, no atom IDs, etc.) */
-
-int lammps_create_atoms(void *handle, int n, tagint *id, int *type,
-                        double *x, double *v, imageint *image,
-                        int bexpand)
-{
-  LAMMPS *lmp = (LAMMPS *) handle;
-  bigint natoms_prev = lmp->atom->natoms;
-
-  BEGIN_CAPTURE
-  {
-    // error if box does not exist or tags not defined
-
-    int flag = 0;
-    std::string msg("Failure in lammps_create_atoms: ");
-    if (lmp->domain->box_exist == 0) {
-      flag = 1;
-      msg += "trying to create atoms before before simulation box is defined";
-    }
-    if (lmp->atom->tag_enable == 0) {
-      flag = 1;
-      msg += "must have atom IDs to use this function";
-    }
-
-    if (flag) {
-      if (lmp->comm->me == 0) lmp->error->warning(FLERR,msg.c_str());
-      return -1;
-    }
-
-    // loop over all N atoms on all MPI ranks
-    // if this proc would own it based on its coordinates, invoke create_atom()
-    // optionally set atom tags and velocities
-
-    Atom *atom = lmp->atom;
-    Domain *domain = lmp->domain;
-    int nlocal = atom->nlocal;
-
-    int nlocal_prev = nlocal;
-    double xdata[3];
-
-    for (int i = 0; i < n; i++) {
-      xdata[0] = x[3*i];
-      xdata[1] = x[3*i+1];
-      xdata[2] = x[3*i+2];
-      imageint * img = image ? image + i : NULL;
-      tagint     tag = id    ? id[i]     : 0;
-
-      // create atom only on MPI rank that would own it
-
-      if (!domain->ownatom(tag, xdata, img, bexpand)) continue;
-
-      atom->avec->create_atom(type[i],xdata);
-      if (id) atom->tag[nlocal] = id[i];
-      else atom->tag[nlocal] = 0;
-      if (v) {
-        atom->v[nlocal][0] = v[3*i];
-        atom->v[nlocal][1] = v[3*i+1];
-        atom->v[nlocal][2] = v[3*i+2];
-      }
-      if (image) atom->image[nlocal] = image[i];
-      nlocal++;
-    }
-
-    // if no tags are given explicitly, create new and unique tags
-
-    if (id == NULL) atom->tag_extend();
-
-    // reset box info, if extended when adding atoms.
-
-    if (bexpand) domain->reset_box();
-
-    // need to reset atom->natoms inside LAMMPS
-
-    bigint ncurrent = nlocal;
-    MPI_Allreduce(&ncurrent,&lmp->atom->natoms,1,MPI_LMP_BIGINT,
-                  MPI_SUM,lmp->world);
-
-    // init per-atom fix/compute/variable values for created atoms
-
-    atom->data_fix_compute_variable(nlocal_prev,nlocal);
-
-    // if global map exists, reset it
-    // invoke map_init() b/c atom count has grown
-
-    if (lmp->atom->map_style) {
-      lmp->atom->map_init();
-      lmp->atom->map_set();
-    }
-  }
-  END_CAPTURE;
-  return (int) lmp->atom->natoms - natoms_prev;
-}
-
 /* ----------------------------------------------------------------------
    find fix external with given ID and set the callback function
    and caller pointer
@@ -2497,9 +2436,8 @@ void lammps_set_fix_external_callback(void *handle, char *id, FixExternalFnPtr c
   END_CAPTURE
 }
 
-
 // ----------------------------------------------------------------------
-// library API functions for accessing LAMMPS configuration
+// Library functions for accessing LAMMPS configuration
 // ----------------------------------------------------------------------
 
 /** \brief Check if a specific package has been included in LAMMPS
@@ -2711,75 +2649,8 @@ int lammps_config_has_exceptions() {
 }
 
 // ----------------------------------------------------------------------
-// library API functions for error handling
+// Library functions for accessing neighbor lists
 // ----------------------------------------------------------------------
-
-#ifdef LAMMPS_EXCEPTIONS
-
-/** \brief Check if there is a (new) error message available
-
-\verbatim embed:rst
-This function can be used to query if an error inside of LAMMPS
-has thrown a :ref:`C++ exception <exceptions>`.
-
-.. note:
-
-   This function is only available when the LAMMPS library has been
-   compiled with ``-DLAMMPS_EXCEPTIONS`` which turns errors aborting
-   LAMMPS into a C++ exceptions. You can use the library function
-   :cpp:func:`lammps_config_has_exceptions` to check if this is the case.
-\endverbatim
- *
- * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
- * \return 0 on no error, 1 on error.
- */
-int lammps_has_error(void *handle) {
-  LAMMPS *  lmp = (LAMMPS *) handle;
-  Error * error = lmp->error;
-  return error->get_last_error() ? 1 : 0;
-}
-
-/** \brief Copy the last error message into the provided buffer
-
-\verbatim embed:rst
-This function can be used to retrieve the error message that was set
-in the event of an error inside of LAMMPS which resulted in a
-:ref:`C++ exception <exceptions>`.  A suitable buffer for a C-style
-string has to be provided and its length.  If the internally stored
-error message is longer, it will be truncated accordingly.  The return
-value of the function corresponds to the kind of error: a "1" indicates
-an error that occurred on all MPI ranks and is often recoverable, while
-a "2" indicates an abort that would happen only in a single MPI rank
-and thus may not be recoverable as other MPI ranks may be waiting on
-the failing MPI ranks to send messages.
-
-.. note:
-
-   This function is only available when the LAMMPS library has been
-   compiled with ``-DLAMMPS_EXCEPTIONS`` which turns errors aborting
-   LAMMPS into a C++ exceptions.  You can use the library function
-   :cpp:func:`lammps_config_has_exceptions` to check if this is the case.
-\endverbatim
- *
- * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param buffer   string buffer to copy the error message to
- * \param buf_size size of the provided string buffer
- * \return 1 when all ranks had the error, 1 on a single rank error.
- */
-int lammps_get_last_error_message(void *handle, char * buffer, int buf_size) {
-  LAMMPS *  lmp = (LAMMPS *) handle;
-  Error * error = lmp->error;
-
-  if(error->get_last_error()) {
-    int error_type = error->get_last_error_type();
-    strncpy(buffer, error->get_last_error(), buf_size-1);
-    error->set_last_error(NULL, ERROR_NONE);
-    return error_type;
-  }
-  return 0;
-}
-
-#endif
 
 /** \brief Find neighbor list index of pair style neighbor list
  *
@@ -2943,6 +2814,146 @@ void lammps_neighlist_element_neighbors(void * handle, int idx, int element, int
   *numneigh  = list->numneigh[i];
   *neighbors = list->firstneigh[i];
 }
+
+// ----------------------------------------------------------------------
+// utility functions
+// ----------------------------------------------------------------------
+
+/** Encode three integer image flags into a single imageint.
+ *
+\verbatim embed:rst
+
+The prototype for this function when compiling with ``-DLAMMPS_BIGBIG``
+is:
+
+.. code-block:: c
+
+   int64_t lammps_encode_image_flags(int ix, int iy, int iz);
+
+This function performs the bit-shift, addition, and bit-wise OR
+operations necessary to combine the values of three integers
+representing the image flags in x-, y-, and z-direction.  Unless
+LAMMPS is compiled with -DLAMMPS_BIGBIG, those integers are
+limited 10-bit signed integers [-512, 511].  Otherwise the return
+type changes from ``int`` to ``int64_t`` and the valid range for
+the individual image flags becomes [-1048576,1048575],
+i.e. that of a 21-bit signed integer.  There is no check on whether
+the arguments conform to these requirements.
+
+\endverbatim
+ *
+ * \param  ix  image flag value in x
+ * \param  iy  image flag value in y
+ * \param  iz  image flag value in z
+ * \return     encoded image flag integer */
+
+imageint lammps_encode_image_flags(int ix, int iy, int iz)
+{
+  imageint image = ((imageint) (ix + IMGMAX) & IMGMASK) |
+    (((imageint) (iy + IMGMAX) & IMGMASK) << IMGBITS) |
+    (((imageint) (iz + IMGMAX) & IMGMASK) << IMG2BITS);
+  return image;
+}
+
+/** Decode a single image flag integer into three regular integers
+ *
+\verbatim embed:rst
+
+The prototype for this function when compiling with ``-DLAMMPS_BIGBIG``
+is:
+
+.. code-block:: c
+
+   void lammps_decode_image_flags(int64_t image, int *flags);
+
+This function does the reverse operation of
+:cpp:func:`lammps_encode_image_flags` and takes an image flag integer
+does the bit-shift and bit-masking operations to decode it and stores
+the resulting three regular integers into the buffer pointed to by
+*flags*.
+
+\endverbatim
+ *
+ * \param  image  encoded image flag integer
+ * \param  flags  pointer to storage where the decoded image flags are stored. */
+
+void lammps_decode_image_flags(imageint image, int *flags)
+{
+  flags[0] = (image & IMGMASK) - IMGMAX;
+  flags[1] = (image >> IMGBITS & IMGMASK) - IMGMAX;
+  flags[2] = (image >> IMG2BITS) - IMGMAX;
+}
+
+// ----------------------------------------------------------------------
+// Library functions for error handling with exceptions enabled
+// ----------------------------------------------------------------------
+
+#ifdef LAMMPS_EXCEPTIONS
+
+/** \brief Check if there is a (new) error message available
+
+\verbatim embed:rst
+This function can be used to query if an error inside of LAMMPS
+has thrown a :ref:`C++ exception <exceptions>`.
+
+.. note:
+
+   This function is only available when the LAMMPS library has been
+   compiled with ``-DLAMMPS_EXCEPTIONS`` which turns errors aborting
+   LAMMPS into a C++ exceptions. You can use the library function
+   :cpp:func:`lammps_config_has_exceptions` to check if this is the case.
+\endverbatim
+ *
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \return 0 on no error, 1 on error.
+ */
+int lammps_has_error(void *handle) {
+  LAMMPS *  lmp = (LAMMPS *) handle;
+  Error * error = lmp->error;
+  return error->get_last_error() ? 1 : 0;
+}
+
+/** \brief Copy the last error message into the provided buffer
+
+\verbatim embed:rst
+This function can be used to retrieve the error message that was set
+in the event of an error inside of LAMMPS which resulted in a
+:ref:`C++ exception <exceptions>`.  A suitable buffer for a C-style
+string has to be provided and its length.  If the internally stored
+error message is longer, it will be truncated accordingly.  The return
+value of the function corresponds to the kind of error: a "1" indicates
+an error that occurred on all MPI ranks and is often recoverable, while
+a "2" indicates an abort that would happen only in a single MPI rank
+and thus may not be recoverable as other MPI ranks may be waiting on
+the failing MPI ranks to send messages.
+
+.. note:
+
+   This function is only available when the LAMMPS library has been
+   compiled with ``-DLAMMPS_EXCEPTIONS`` which turns errors aborting
+   LAMMPS into a C++ exceptions.  You can use the library function
+   :cpp:func:`lammps_config_has_exceptions` to check if this is the case.
+\endverbatim
+ *
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param buffer   string buffer to copy the error message to
+ * \param buf_size size of the provided string buffer
+ * \return 1 when all ranks had the error, 1 on a single rank error.
+ */
+int lammps_get_last_error_message(void *handle, char * buffer, int buf_size) {
+  LAMMPS *  lmp = (LAMMPS *) handle;
+  Error * error = lmp->error;
+
+  if(error->get_last_error()) {
+    int error_type = error->get_last_error_type();
+    strncpy(buffer, error->get_last_error(), buf_size-1);
+    error->set_last_error(NULL, ERROR_NONE);
+    return error_type;
+  }
+  return 0;
+}
+
+#endif
 
 // Local Variables:
 // fill-column: 72

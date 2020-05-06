@@ -25,10 +25,10 @@ LAMMPS C Library API
 ====================
 
 The C library interface is most commonly used path to manage LAMMPS
-instances from a compiled code and it is the bases for the
-:doc:`Python <pg_python>` and :doc:`Fortran <pg_fortran>` modules.
-Almost all functions of the C language API require an argument containing
-a "handle" in the form of a ``void *`` type variable, which points to the
+instances from a compiled code and it is the basis for the :doc:`Python
+<pg_python>` and :doc:`Fortran <pg_fortran>` modules.  Almost all
+functions of the C language API require an argument containing a
+"handle" in the form of a ``void *`` type variable, which points to the
 location of a LAMMPS class instance.
 
 The ``library.h`` header file by default includes the ``mpi.h`` header
@@ -87,6 +87,7 @@ compiled to instead :ref:`throw a C++ exception <exceptions>`.
    pg_lib_execute
    pg_lib_properties
    pg_lib_objects
+   pg_lib_scatter
    pg_lib_neighbor
    pg_lib_config
    pg_lib_utility
@@ -96,8 +97,14 @@ compiled to instead :ref:`throw a C++ exception <exceptions>`.
 
 .. _lammps_python_api:
 
-LAMMPS Python Module API
-========================
+LAMMPS Python Modules
+=====================
+
+The LAMMPS Python modules enable calling the LAMMPS library API from
+Python through dynamically loading the LAMMPS shared library through
+the ctypes module.  The interface is object oriented but otherwise
+trying to be very similar to the C library API.  The differnt Python
+modules build on each other.
 
 .. toctree::
    :maxdepth: 1
@@ -108,8 +115,13 @@ LAMMPS Python Module API
 
 .. _lammps_fortran_api:
 
-LAMMPS Fortran Module API
+LAMMPS Fortran Module
 =========================
+
+The LAMMPS Fortran module enables calling the LAMMPS library API from
+Fortran through the ISO_C_BINDING Fortran 2003 module.  The interface
+is object oriented but otherwise trying to be very similar to the C
+library API.
 
 .. toctree::
    :maxdepth: 1

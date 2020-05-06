@@ -16,6 +16,11 @@ some utility functions that are not directly calling LAMMPS.
 
 -----------------------
 
+.. doxygenfunction:: lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*)
+   :project: progguide
+
+-----------------------
+
 .. doxygenfunction:: lammps_has_error
    :project: progguide
 

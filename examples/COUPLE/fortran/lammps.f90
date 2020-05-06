@@ -71,15 +71,14 @@ MODULE LIBLAMMPS
         IMPORT :: c_ptr
         TYPE(c_ptr), VALUE :: handle
       END SUBROUTINE lammps_close
-      SUBROUTINE lammps_finalize(handle) BIND(C, name='lammps_finalize')
+      SUBROUTINE lammps_mpi_init(handle) BIND(C, name='lammps_mpi_init')
         IMPORT :: c_ptr
         TYPE(c_ptr), VALUE :: handle
-      END SUBROUTINE lammps_finalize
-      FUNCTION lammps_version(handle) BIND(C, name='lammps_version')
-        IMPORT :: c_ptr, c_int
+      END SUBROUTINE lammps_mpi_init
+      SUBROUTINE lammps_mpi_finalize(handle) BIND(C, name='lammps_mpi_finalize')
+        IMPORT :: c_ptr
         TYPE(c_ptr), VALUE :: handle
-        INTEGER(c_int) :: lammps_version
-      END FUNCTION lammps_version
+      END SUBROUTINE lammps_mpi_finalize
       SUBROUTINE lammps_file(handle,filename) BIND(C, name='lammps_file')
         IMPORT :: c_ptr
         TYPE(c_ptr), VALUE :: handle
@@ -94,6 +93,11 @@ MODULE LIBLAMMPS
         IMPORT :: c_ptr
         TYPE(c_ptr), VALUE :: ptr
       END SUBROUTINE lammps_free
+      FUNCTION lammps_version(handle) BIND(C, name='lammps_version')
+        IMPORT :: c_ptr, c_int
+        TYPE(c_ptr), VALUE :: handle
+        INTEGER(c_int) :: lammps_version
+      END FUNCTION lammps_version
   END INTERFACE
 
 CONTAINS
@@ -130,7 +134,7 @@ CONTAINS
     DEALLOCATE(argv)
   END FUNCTION lmp_open
 
-  ! Combined Fortran wrapper around lammps_close() and lammps_finalize()
+  ! Combined Fortran wrapper around lammps_close() and lammps_mpi_finalize()
   SUBROUTINE lmp_close(self,finalize)
     IMPLICIT NONE
     CLASS(lammps) :: self
@@ -140,7 +144,7 @@ CONTAINS
 
     IF (PRESENT(finalize)) THEN
         IF (finalize) THEN
-            CALL lammps_finalize(self%handle)
+            CALL lammps_mpi_finalize(self%handle)
         END IF
     END IF
   END SUBROUTINE lmp_close

@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* -*- c -*- ------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -14,24 +14,23 @@
 #ifndef LAMMPS_LIBRARY_H
 #define LAMMPS_LIBRARY_H
 
-/*
- * C style library interface to LAMMPS which allows to create
- * and control instances of the LAMMPS C++ class and exchange
- * data with it.  The C bindings are then used as basis for
- * the ctypes based Python wrapper in lammps.py and also there
- * are Fortran interfaces that expose the functionality by
- * using the ISO_C_BINDINGS module in modern Fortran.
- * If needed, new LAMMPS-specific functions can be added to
- * expose additional LAMMPS functionality to this library interface.
- */
+/* C style library interface to LAMMPS which allows to create and
+ * control instances of the LAMMPS C++ class and exchange data with it.
+ * The C bindings are the basis for the Python and Fortran modules.
+ *
+ * If needed, new LAMMPS-specific functions can be added to expose
+ * additional LAMMPS functionality to this library interface. */
 
-/*
- * Follow the behavior of regular LAMMPS compilation and assume
- * -DLAMMPS_SMALLBIG when no define is set.
- */
-#if !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG) && !defined(LAMMPS_SMALLSMALL)
+/* We follow the behavior of regular LAMMPS compilation and assume
+ * -DLAMMPS_SMALLBIG when no define is set. */
+
+#if  !defined(LAMMPS_BIGBIG)     \
+  && !defined(LAMMPS_SMALLBIG)   \
+  && !defined(LAMMPS_SMALLSMALL)
 #define LAMMPS_SMALLBIG
 #endif
+
+/* To allow including the library interface without MPI */
 
 #if !defined(LAMMPS_LIB_NO_MPI)
 #include <mpi.h>
@@ -41,22 +40,20 @@
 #include <inttypes.h>  /* for int64_t */
 #endif
 
-/*! \brief Style constants for extracting data from computes
- * and fixes.
+/** Style constants for extracting data from computes and fixes.
  *
- * Must be kept in sync with constants in lammps.py
- */
+ * Must be kept in sync with the equivalent constants in lammps.py */
+
 enum _LMP_STYLE_CONST {
   LMP_STYLE_GLOBAL=0,           /*!< return global data */
   LMP_STYLE_ATOM  =1,           /*!< return per-atom data */
   LMP_STYLE_LOCAL =2            /*!< return local data */
 };
 
-/*! \brief Type and size constants for extracting data from
- * computes and fixes.
+/** Type and size constants for extracting data from computes and fixes.
  *
- * Must be kept in sync with constants in lammps.py
- */
+ * Must be kept in sync with the equivalent constants in lammps.py */
+
 enum _LMP_TYPE_CONST {
   LMP_TYPE_SCALAR=0,            /*!< return scalar */
   LMP_TYPE_VECTOR=1,            /*!< return vector */
@@ -66,54 +63,74 @@ enum _LMP_TYPE_CONST {
   LMP_SIZE_COLS  =5             /*!< return number of columns */
 };
 
-/* ifdefs allow this file to be included in a C program */
+/* Ifdefs to allow this file to be included in C and C++ programs */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+// ----------------------------------------------------------------------
+// Library functions to create/destroy an instance of LAMMPS
+// ----------------------------------------------------------------------
 
 #if !defined(LAMMPS_LIB_NO_MPI)
 void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr);
 #endif
 void *lammps_open_no_mpi(int argc, char **argv, void **ptr);
 void *lammps_open_fortran(int argc, char **argv, int f_comm, void **ptr);
-void lammps_close(void *handle);
-void lammps_mpi_init();
-void lammps_finalize();
-void lammps_free(void *ptr);
-int  lammps_version(void *handle);
+void  lammps_close(void *handle);
+void  lammps_mpi_init();
+void  lammps_mpi_finalize();
+void  lammps_free(void *ptr);
 
-void lammps_file(void *handle, char *file);
+// ----------------------------------------------------------------------
+// Library functions to process commands
+// ----------------------------------------------------------------------
+  
+void  lammps_file(void *handle, char *file);
 
 char *lammps_command(void *handle, char *cmd);
-void lammps_commands_list(void *handle, int ncmd, char **cmds);
-void lammps_commands_string(void *handle, char *str);
+void  lammps_commands_list(void *handle, int ncmd, char **cmds);
+void  lammps_commands_string(void *handle, char *str);
 
+// -----------------------------------------------------------------------
+// Library functions to extract info from LAMMPS or set data in LAMMPS
+// -----------------------------------------------------------------------
+  
+int    lammps_version(void *handle);
 double lammps_get_natoms(void *handle);
-void  lammps_extract_box(void *handle, double *boxlo, double *boxhi,
-                         double *xy, double *yz, double *xz,
-                         int *pflags, int *boxflag);
-void  lammps_reset_box(void *handle, double *boxlo, double *boxhi,
-                       double xy, double yz, double xz);
-
 double lammps_get_thermo(void *handle, char *keyword);
 
-int   lammps_extract_setting(void *handle, char *keyword);
-void *lammps_extract_global(void *handle, char *name);
-void *lammps_extract_atom(void *handle, char *name);
+void   lammps_extract_box(void *handle, double *boxlo, double *boxhi,
+                          double *xy, double *yz, double *xz,
+                          int *pflags, int *boxflag);
+void   lammps_reset_box(void *handle, double *boxlo, double *boxhi,
+                        double xy, double yz, double xz);
+
+int    lammps_extract_setting(void *handle, char *keyword);
+void  *lammps_extract_global(void *handle, char *name);
+void  *lammps_extract_atom(void *handle, char *name);
 
 #if !defined(LAMMPS_BIGBIG)
-int lammps_create_atoms(void *handle, int n, int *id, int *type,
-                        double *x, double *v, int *image, int bexpand);
+int    lammps_create_atoms(void *handle, int n, int *id, int *type,
+                           double *x, double *v, int *image, int bexpand);
 #else
-int lammps_create_atoms(void *handle, int n, int64_t *id, int *type,
-                        double *x, double *v, int64_t* image, int bexpand);
+int    lammps_create_atoms(void *handle, int n, int64_t *id, int *type,
+                           double *x, double *v, int64_t* image, int bexpand);
 #endif
 
+// ----------------------------------------------------------------------
+// Library functions to access data from computes, fixes, variables in LAMMPS
+// ----------------------------------------------------------------------
+  
 void *lammps_extract_compute(void *handle, char *id, int, int);
 void *lammps_extract_fix(void *handle, char *, int, int, int, int);
 void *lammps_extract_variable(void *handle, char *, char *);
-int lammps_set_variable(void *, char *, char *);
+int   lammps_set_variable(void *, char *, char *);
+
+// ----------------------------------------------------------------------
+// Library functions for scatter/gather operations of data
+// ----------------------------------------------------------------------
 
 void lammps_gather_atoms(void *, char *, int, int, void *);
 void lammps_gather_atoms_concat(void *, char *, int, int, void *);
@@ -121,16 +138,9 @@ void lammps_gather_atoms_subset(void *, char *, int, int, int, int *, void *);
 void lammps_scatter_atoms(void *, char *, int, int, void *);
 void lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
 
-#if defined(LAMMPS_BIGBIG)
-typedef void (*FixExternalFnPtr)(void *, int64_t, int, int64_t *, double **, double **);
-void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
-#elif defined(LAMMPS_SMALLBIG)
-typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
-void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
-#else
-typedef void (*FixExternalFnPtr)(void *, int, int, int *, double **, double **);
-void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
-#endif
+// ----------------------------------------------------------------------
+// Library functions for retrieving configuration information
+// ----------------------------------------------------------------------
 
 int lammps_config_has_package(char *);
 int lammps_config_package_count();
@@ -145,11 +155,19 @@ int lammps_has_style(void *, char *, char *);
 int lammps_style_count(void *, char *);
 int lammps_style_name(void *, char *, int, char *, int);
 
+// ----------------------------------------------------------------------
+// Library functions for accessing neighbor lists
+// ----------------------------------------------------------------------
+
 int lammps_find_pair_neighlist(void*, char *, int, int, int);
 int lammps_find_fix_neighlist(void*, char *, int);
 int lammps_find_compute_neighlist(void*, char *, int);
 int lammps_neighlist_num_elements(void*, int);
 void lammps_neighlist_element_neighbors(void *, int, int, int *, int *, int ** );
+
+// ----------------------------------------------------------------------
+// Utility functions
+// ----------------------------------------------------------------------
 
 #if !defined(LAMMPS_BIGBIG)
 int lammps_encode_image_flags(int ix, int iy, int iz);
@@ -159,17 +177,28 @@ int64_t lammps_encode_image_flags(int ix, int iy, int iz);
 void lammps_decode_image_flags(int64_t image, int *flags);
 #endif
 
+#if defined(LAMMPS_BIGBIG)
+typedef void (*FixExternalFnPtr)(void *, int64_t, int, int64_t *, double **, double **);
+void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
+#elif defined(LAMMPS_SMALLBIG)
+typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
+void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
+#else
+typedef void (*FixExternalFnPtr)(void *, int, int, int *, double **, double **);
+void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
+#endif
+
 #ifdef LAMMPS_EXCEPTIONS
 int lammps_has_error(void *handle);
 int lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
 #endif
 
-#undef LAMMPS
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* LAMMPS_LIBRARY_H */
+
 /* ERROR/WARNING messages:
 
 E: Library error: issuing LAMMPS command during run

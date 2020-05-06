@@ -76,7 +76,7 @@ was compiled with MPI support.
    This method will close down the LAMMPS instance through calling
    :cpp:func:`lammps_close`.  If the *finalize* argument is present and
    has a value of ``.true.``, then this subroutine also calls
-   :cpp:func:`lammps_finalize`.
+   :cpp:func:`lammps_mpi_finalize`.
 
    :o logical finalize [optional]: shut down the MPI environment of the LAMMPS library if true.
 

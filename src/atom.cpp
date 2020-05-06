@@ -596,7 +596,7 @@ void Atom::add_peratom(const char *name, void *address,
 }
 
 /* ----------------------------------------------------------------------
-   change the column count fof an existing peratom array entry
+   change the column count of an existing peratom array entry
    allows atom_style to specify column count as an argument
    see atom_style tdpd as an example
 ------------------------------------------------------------------------- */

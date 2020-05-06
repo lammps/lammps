@@ -1,6 +1,5 @@
 # Example for running DPD-RX
 
-log             log.dpdrx-shardlow
 boundary        p p p
 units           metal  # ev, ps
 atom_style      dpd

@@ -103,7 +103,7 @@ LAMMPS Python Modules
 The LAMMPS Python modules enable calling the LAMMPS library API from
 Python through dynamically loading the LAMMPS shared library through
 the ctypes module.  The interface is object oriented but otherwise
-trying to be very similar to the C library API.  The differnt Python
+trying to be very similar to the C library API.  The different Python
 modules build on each other.
 
 .. toctree::

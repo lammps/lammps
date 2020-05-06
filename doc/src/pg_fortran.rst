@@ -63,11 +63,12 @@ was compiled with MPI support.
    compiled with MPI support, it will also initialize MPI, if it has
    not already been initialized before.
 
-   The *comm* argument with the MPI communicator is optional. If it
-   is not provided, ``MPI_COMM_WORLD`` is assumed. For more details
-   please see the documentation of :cpp:func:`lammps_open`.
+   The *args* argument with the list of command line parameters is
+   optional and so it the *comm* argument with the MPI communicator.
+   If *comm* is not provided, ``MPI_COMM_WORLD`` is assumed. For
+   more details please see the documentation of :cpp:func:`lammps_open`.
 
-   :p character(len=*) args(): arguments as list of strings
+   :p character(len=*) args() [optional]: arguments as list of strings
    :o integer comm [optional]: MPI communicator
    :r lammps: an instance of the :f:type:`lammps` derived type
 

@@ -109,17 +109,23 @@ CONTAINS
   TYPE(lammps) FUNCTION lmp_open(args,comm)
     IMPLICIT NONE
     INTEGER,INTENT(in), OPTIONAL :: comm
-    CHARACTER(len=*), INTENT(in) :: args(:)
+    CHARACTER(len=*), INTENT(in), OPTIONAL :: args(:)
     TYPE(c_ptr), ALLOCATABLE     :: argv(:)
     TYPE(c_ptr)                  :: dummy=c_null_ptr
     INTEGER :: i,argc
 
-    ! convert argument list to c style
-    argc = SIZE(args)
-    ALLOCATE(argv(argc))
-    DO i=1,argc
-        argv(i) = f2c_string(args(i))
-    END DO
+    IF (PRESENT(args)) THEN
+        ! convert argument list to c style
+        argc = SIZE(args)
+        ALLOCATE(argv(argc))
+        DO i=1,argc
+           argv(i) = f2c_string(args(i))
+        END DO
+    ELSE
+        argc = 1
+        ALLOCATE(argv(1))
+        argv(1) = f2c_string("liblammps")
+    ENDIF
 
     IF (PRESENT(comm)) THEN
         lmp_open%handle = lammps_open(argc,argv,comm,dummy)

@@ -153,6 +153,9 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   if (suffix > filename && strcmp(suffix,".bin") == 0) binary = 1;
   suffix = filename + strlen(filename) - strlen(".gz");
   if (suffix > filename && strcmp(suffix,".gz") == 0) compressed = 1;
+
+  vtime = -1;
+  last_time = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1138,6 +1141,13 @@ void Dump::modify_params(int narg, char **arg)
       else error->all(FLERR,"Illegal dump_modify command");
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"vtime") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      vtime = force->numeric(FLERR, arg[iarg+1]);
+      if (vtime < 0) error->all(FLERR,"Illegal dump_modify command");
+      last_time = vtime;
+      iarg += 2;
+
     } else {
       int n = modify_param(narg-iarg,&arg[iarg]);
       if (n == 0) error->all(FLERR,"Illegal dump_modify command");
@@ -1189,3 +1199,46 @@ bigint Dump::memory_usage()
   }
   return bytes;
 }
+
+/* ----------------------------------------------------------------------
+   Checks whether dump should be written at a given time
+------------------------------------------------------------------------- */
+
+bool Dump::is_writing()
+{
+  if (vtime <= 0) //always write if it is not time-based dump
+    return true;
+  if (update->atime > last_time) {
+    last_time += vtime;
+    return true;
+  }
+  return false;
+}
+
+/* ----------------------------------------------------------------------
+   Checks whether computes should be prepared at a given time 
+------------------------------------------------------------------------- */
+
+int Dump::is_consuming_computes(bigint timestep)
+{
+  if (vtime <= 0)
+    return clearstep;
+  if (clearstep && (update->atime+update->dt > last_time))
+    return true;
+  return false;
+}
+
+/* ----------------------------------------------------------------------
+   Checks whether computes should be cleared at a given time 
+------------------------------------------------------------------------- */
+
+bool Dump::should_clear_computes()
+{
+  if (vtime <= 0)
+    return clearstep;
+  if (clearstep && (update->atime > last_time))
+    return true;
+  return false;
+}
+
+ void Dump::prepare_computes(bigint timestep) {}

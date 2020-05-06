@@ -136,7 +136,10 @@ void DumpXYZ::write_header(bigint n)
 {
   if (me == 0) {
     fprintf(fp,BIGINT_FORMAT "\n",n);
-    fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT "\n",update->ntimestep);
+    if (vtime <= 0)
+      fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT "\n",update->ntimestep);
+    else
+      fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT " Time: %f\n",update->ntimestep, update->atime);
   }
 }
 

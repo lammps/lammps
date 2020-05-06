@@ -27,6 +27,8 @@ class Dump : protected Pointers {
 
   int first_flag;            // 0 if no initial dump, 1 if yes initial dump
   int clearstep;             // 1 if dump invokes computes, 0 if not
+  double vtime;              // time frequency for time-dependent dumps
+  double last_time;          // last time time-dependent dump was written
 
   int comm_forward;          // size of forward communication (0 if none)
   int comm_reverse;          // size of reverse communication (0 if none)
@@ -48,6 +50,11 @@ class Dump : protected Pointers {
 
   void modify_params(int, char **);
   virtual bigint memory_usage();
+
+  bool is_writing();
+  int is_consuming_computes(bigint);
+  bool should_clear_computes();
+  virtual void prepare_computes(bigint);
 
  protected:
   int me,nprocs;             // proc info

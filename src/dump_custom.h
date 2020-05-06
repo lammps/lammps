@@ -29,6 +29,7 @@ class DumpCustom : public Dump {
   DumpCustom(class LAMMPS *, int, char **);
   virtual ~DumpCustom();
 
+  virtual void prepare_computes(bigint);
  protected:
   int nevery;                // dump frequency for output
   int iregion;               // -1 if no region, else which region

@@ -2842,3 +2842,13 @@ void DumpCustom::pack_tqz(int n)
     n += size_one;
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::prepare_computes(bigint timestep)
+{
+  if (ncompute) {
+    for (int i = 0; i < ncompute; i++)
+      compute[i]->addstep(timestep);
+    }
+}

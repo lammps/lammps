@@ -38,6 +38,14 @@ From: fedora:32
                blas-devel lapack-devel gtest-devel libyaml-devel
         dnf clean all
 
+        # set custom prompt indicating the container name
+        CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
+        cat >$CUSTOM_PROMPT_ENV <<EOF
+#!/bin/bash
+PS1="[fedora32:\u@\h] \W> "
+EOF
+        chmod 755 $CUSTOM_PROMPT_ENV
+
 %environment
         # we need to reset any module variables
         # inherited from the host.

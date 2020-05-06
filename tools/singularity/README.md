@@ -56,3 +56,4 @@ make
 | ubuntu18.04_nvidia.def         | Ubuntu 18.04LTS with Nvidia CUDA 10.2 toolkit  |
 | ubuntu18.04_intel_opencl.def   | Ubuntu 18.04LTS with Intel OpenCL runtime      |
 | ubuntu20.04.def                | Ubuntu 20.04LTS with MPI == OpenMPI            |
+| ------------------------------ | ---------------------------------------------- |

@@ -104,9 +104,18 @@ From: rocm/dev-ubuntu-18.04
     ln -s /usr/local/cuda-10.2 /usr/local/cuda
     ln -s /usr/local/cuda-10.2/lib64/stubs/libcuda.so /usr/local/cuda-10.2/lib64/stubs/libcuda.so.1
 
+    # set custom prompt indicating the container name
+    CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
+    cat >$CUSTOM_PROMPT_ENV <<EOF
+#!/bin/bash
+PS1="[ubuntu18/gpu:\u@\h] \W> "
+EOF
+    chmod 755 $CUSTOM_PROMPT_ENV
+
+
 %environment
     LC_ALL=C
     export LC_ALL
 
 %labels
-    Author rbberger
+    Author rbberger, akohlmey

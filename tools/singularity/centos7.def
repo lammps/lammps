@@ -4,7 +4,7 @@ From: centos:7
 %post
         yum -y install epel-release
         yum -y update
-        yum -y install vim-enhanced diffutils \
+        yum -y install vim-enhanced \
             ccache gcc-c++ gcc-gfortran clang gdb valgrind-openmpi \
             make cmake cmake3 ninja-build patch which file git Lmod \
             libpng-devel libjpeg-devel openmpi-devel mpich-devel python-devel python36-devel \
@@ -13,6 +13,15 @@ From: centos:7
             python-virtualenv fftw-devel voro++-devel eigen3-devel gsl-devel openblas-devel enchant \
             blas-devel lapack-devel gtest-devel libyaml-devel
         yum clean all
+
+        # set custom prompt indicating the container name
+        CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
+        cat >$CUSTOM_PROMPT_ENV <<EOF
+#!/bin/bash
+PS1="[centos7:\u@\h] \W> "
+EOF
+        chmod 755 $CUSTOM_PROMPT_ENV
+
 
 %environment
         LC_ALL=C

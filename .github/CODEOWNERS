@@ -115,6 +115,7 @@ src/min*                  @sjplimp @stanmoore1
 # tools
 tools/msi2lmp/*       @akohlmey
 tools/emacs/*         @HaoZeke
+tools/singularity/*   @akohlmey @rbberger
 
 # cmake
 cmake/*               @junghans @rbberger

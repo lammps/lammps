@@ -22,6 +22,7 @@ OPT.
 .. table_from_list::
    :columns: 5
 
+   * :doc:`accelerate/cos <fix_accelerate_cos>`
    * :doc:`adapt <fix_adapt>`
    * :doc:`adapt/fep <fix_adapt_fep>`
    * :doc:`addforce <fix_addforce>`

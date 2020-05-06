@@ -201,7 +201,7 @@ void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
 
   for (int i = 0; i < nmine; i++) mark[i] = 0;
   for (int i = 0; i < nmine; i++) next[i] = i+1;
-  next[nmine-1] = -1;
+  if (nmine > 0) next[nmine-1] = -1;
 
   nmark = 0;
   niter = 0;
@@ -241,7 +241,7 @@ void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
     // flip each value based on RN < thresh
 
     nflip = 0;
-    while (index >= 0) {
+    while ((nmine > 0) && (index >= 0)) {
       if (uniform() < thresh) {
         mark[index] = newvalue;
         nflip++;

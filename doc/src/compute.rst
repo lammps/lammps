@@ -307,6 +307,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` doc
 * :doc:`torque/chunk <compute_torque_chunk>` - torque applied on each chunk
 * :doc:`vacf <compute_vacf>` - velocity auto-correlation function of group of atoms
 * :doc:`vcm/chunk <compute_vcm_chunk>` - velocity of center-of-mass for each chunk
+* :doc:`viscosity/cos <compute_viscosity_cos>` - velocity profile under cosine-shaped acceleration
 * :doc:`voronoi/atom <compute_voronoi_atom>` - Voronoi volume and neighbors for each atom
 * :doc:`xrd <compute_xrd>` - x-ray diffraction intensity on a mesh of reciprocal lattice nodes
 

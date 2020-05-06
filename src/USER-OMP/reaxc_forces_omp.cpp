@@ -310,7 +310,7 @@ void Validate_ListsOMP(reax_system *system, storage * /*workspace*/, reax_list *
       Hindex = system->my_atoms[i].Hindex;
       if (Hindex > -1) {
         system->my_atoms[i].num_hbonds =
-          (int)(MAX( Num_Entries(Hindex, hbonds)*saferzone, MIN_HBONDS ));
+          (int)(MAX(Num_Entries(Hindex,hbonds)*saferzone,system->minhbonds));
 
         if (Hindex < numH-1)
           comp = Start_Index(Hindex+1, hbonds);

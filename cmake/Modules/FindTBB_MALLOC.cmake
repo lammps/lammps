@@ -11,7 +11,8 @@
 # TBB Malloc
 
 find_path(TBB_MALLOC_INCLUDE_DIR NAMES tbb/tbb.h PATHS $ENV{TBBROOT}/include)
-find_library(TBB_MALLOC_LIBRARY NAMES tbbmalloc PATHS $ENV{TBBROOT}/lib/intel64/gcc4.7
+find_library(TBB_MALLOC_LIBRARY NAMES tbbmalloc PATHS $ENV{TBBROOT}/lib/intel64/gcc4.8
+                                                      $ENV{TBBROOT}/lib/intel64/gcc4.7
                                                       $ENV{TBBROOT}/lib/intel64/gcc4.4
                                                       $ENV{TBBROOT}/lib/intel64/gcc4.1)
 

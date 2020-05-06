@@ -4,7 +4,7 @@ From: fedora:32
 %post
         dnf -y update
         dnf -y install vim-enhanced git file make cmake patch which file Lmod \
-               ninja-build clang libomp-devel libubsan libasan libtsan \
+               ninja-build clang libomp-devel libubsan libasan libtsan diffutils \
                dos2unix findutils rsync python-devel libjpeg-devel libpng-devel \
                ccache gcc-c++ gcc-gfortran gdb valgrind eigen3-devel openblas-devel \
                openmpi-devel mpich-devel fftw-devel voro++-devel gsl-devel hdf5-devel \
@@ -35,7 +35,7 @@ From: fedora:32
                texlive-latex-bin texlive-lualatex-math texlive-fncychap texlive-tabulary \
                texlive-framed texlive-wrapfig texlive-upquote texlive-capt-of \
                texlive-needspace texlive-titlesec texlive-anysize texlive-dvipng \
-               blas-devel lapack-devel diffutils
+               blas-devel lapack-devel gtest-devel libyaml-devel
         dnf clean all
 
 %environment

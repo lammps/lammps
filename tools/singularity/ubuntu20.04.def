@@ -26,6 +26,7 @@ From: ubuntu:20.04
         libenchant-dev \
         libfftw3-dev \
         libgsl-dev \
+        libgtest-dev \
         libhdf5-serial-dev \
         libhwloc-dev \
         libjpeg-dev \
@@ -37,6 +38,7 @@ From: ubuntu:20.04
         libpng-dev \
         libproj-dev \
         libvtk6-dev \
+        libyaml-dev \
         make \
         mpi-default-bin \
         mpi-default-dev \

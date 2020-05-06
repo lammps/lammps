@@ -48,7 +48,6 @@ make
 | ------------------------------ | ---------------------------------------------- |
 | centos7.def                    | CentOS 7.x with EPEL enabled, no LaTeX         |
 | centos8.def                    | CentOS 8.x with EPEL enabled                   |
-| fedora30_mingw.def             | Fedora 30 with MinGW cross-compiler toolchain  |
 | fedora32_mingw.def             | Fedora 32 with MinGW cross-compiler toolchain  |
 | ubuntu16.04.def                | Ubuntu 16.04LTS with MPI == OpenMPI, no LaTeX  |
 | ubuntu18.04.def                | Ubuntu 18.04LTS with MPI == OpenMPI            |

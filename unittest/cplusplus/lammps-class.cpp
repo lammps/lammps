@@ -275,8 +275,12 @@ namespace LAMMPS_NS
 
             // only run this test fixture with kk suffix if KOKKOS package is installed
 
-            if (LAMMPS::is_installed_pkg("KOKKOS"))
+            if (LAMMPS::is_installed_pkg("KOKKOS")) {
+                ::testing::internal::CaptureStdout();
                 lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+                std::string output = testing::internal::GetCapturedStdout();
+                EXPECT_STREQ(output.substr(0,16).c_str(), "Kokkos::OpenMP::");
+            }
         }
 
         void TearDown() override {
@@ -306,7 +310,7 @@ namespace LAMMPS_NS
 
         EXPECT_EQ(lmp->world, MPI_COMM_WORLD);
         EXPECT_EQ(lmp->infile, stdin);
-        EXPECT_EQ(lmp->screen, stdout);
+        EXPECT_EQ(lmp->screen, nullptr);
         EXPECT_EQ(lmp->logfile, nullptr);
         EXPECT_GE(lmp->initclock, 0.0);
 
@@ -322,7 +326,7 @@ namespace LAMMPS_NS
         EXPECT_NE(lmp->atomKK, nullptr);
         EXPECT_NE(lmp->memoryKK, nullptr);
         EXPECT_NE(lmp->python, nullptr);
-        EXPECT_EQ(lmp->citeme, nullptr);
+        EXPECT_NE(lmp->citeme, nullptr);
         if (LAMMPS::has_git_info) {
             EXPECT_STRNE(LAMMPS::git_commit,"");
             EXPECT_STRNE(LAMMPS::git_branch,"");

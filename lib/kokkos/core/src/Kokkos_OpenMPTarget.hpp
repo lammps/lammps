@@ -59,7 +59,7 @@
 #include <Kokkos_TaskPolicy.hpp>
 #include <Kokkos_Layout.hpp>
 #include <impl/Kokkos_Tags.hpp>
-
+#include <impl/Kokkos_Profiling_Interface.hpp>
 #include <KokkosExp_MDRangePolicy.hpp>
 /*--------------------------------------------------------------------------*/
 
@@ -124,8 +124,9 @@ class OpenMPTarget {
 namespace Profiling {
 namespace Experimental {
 template <>
-struct DeviceTypeTraits<Experimental::OpenMPTarget> {
-  static constexpr DeviceType id = DeviceType::OpenMPTarget;
+struct DeviceTypeTraits<::Kokkos::Experimental::OpenMPTarget> {
+  static constexpr DeviceType id =
+      ::Kokkos::Profiling::Experimental::DeviceType::OpenMPTarget;
 };
 }  // namespace Experimental
 }  // namespace Profiling

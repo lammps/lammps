@@ -1,5 +1,18 @@
 # Change Log
 
+## [3.1.1](https://github.com/kokkos/kokkos/tree/3.1.1) (2020-04-14)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/3.1.00...3.1.1)
+
+**Fixed bugs:**
+
+- Fix complex_double misalignment in reduce, clang+CUDA [\#2989](https://github.com/kokkos/kokkos/issues/2989)
+- Fix compilation fails when profiling disabled and CUDA enabled [\#3001](https://github.com/kokkos/kokkos/issues/3001)
+- Fix cuda reduction of non-trivial scalars of size 4 [\#2990](https://github.com/kokkos/kokkos/issues/2990)
+- Configure and install version file when building in Trilinos [\#2957](https://github.com/kokkos/kokkos/pull/2957)
+- Fix OpenMPTarget build missing include and namespace [\#3000](https://github.com/kokkos/kokkos/issues/3000)
+- fix typo in KOKKOS_SET_EXE_PROPERTY() [\#2959](https://github.com/kokkos/kokkos/issues/2959)
+- Fix non-zero span subviews of zero sized subviews [\#2979](https://github.com/kokkos/kokkos/issues/2979)
+
 ## [3.1.00](https://github.com/kokkos/kokkos/tree/3.1.00) (2020-04-14)
 [Full Changelog](https://github.com/kokkos/kokkos/compare/3.0.00...3.1.00)
 

@@ -214,7 +214,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   for (int idup = 0; idup < ndupfield; idup++) {
     char *dup = (char *) dupfield[idup];
     ptr = strstr(concat_grow,dup);
-    if (strstr(ptr+1,dup)) {
+    if (ptr && strstr(ptr+1,dup)) {
       char str[128];
       sprintf(str,"Peratom %s is in multiple sub-styles - "
               "must be used consistently",dup);
@@ -565,7 +565,7 @@ void AtomVecHybrid::build_styles()
 #undef ATOM_CLASS
 
   allstyles = new char*[nallstyles];
-
+  
   int n;
   nallstyles = 0;
 #define ATOM_CLASS

@@ -55,6 +55,9 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   threads = NULL;
   nthreads = comm->nthreads;
 
+  ngrow = ncopy = ncomm = ncomm_vel = nreverse = nborder = nborder_vel = 0;
+  nexchange = nrestart = ncreate = ndata_atom = ndata_vel = 0;
+
   // peratom variables auto-included in corresponding child style fields string
   // these fields cannot be specified in the fields string
 

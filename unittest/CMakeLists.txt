@@ -6,7 +6,6 @@ ExternalProject_Add(gtest
                     SOURCE_DIR      "${CMAKE_BINARY_DIR}/gtest-src"
                     BINARY_DIR      "${CMAKE_BINARY_DIR}/gtest-build"
                     CMAKE_ARGS      ${CMAKE_REQUEST_PIC} ${CMAKE_EXTRA_GTEST_OPTS}
-                                    -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                                     -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                                     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                                     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}

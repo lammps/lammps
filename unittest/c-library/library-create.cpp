@@ -10,7 +10,6 @@
 
 TEST(lammps_open, null_args) {
     ::testing::internal::CaptureStdout();
-    void *alt_ptr;
     void *handle = lammps_open(0,NULL, MPI_COMM_WORLD, NULL);
     std::string output = testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.substr(0,6).c_str(),"LAMMPS");

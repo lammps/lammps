@@ -26,7 +26,6 @@ From: ubuntu:18.04
         libenchant-dev \
         libfftw3-dev \
         libgsl-dev \
-        libgtest-dev \
         libhdf5-serial-dev \
         libhwloc-dev \
         libjpeg-dev \

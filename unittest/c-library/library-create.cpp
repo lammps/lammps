@@ -55,6 +55,40 @@ TEST(lammps_open, with_args) {
     EXPECT_EQ(lmp->infile, stdin);
     EXPECT_EQ(lmp->logfile, nullptr);
     EXPECT_EQ(lmp->citeme, nullptr);
+    EXPECT_EQ(lmp->kokkos, nullptr);
+    EXPECT_EQ(lmp->atomKK, nullptr);
+    EXPECT_EQ(lmp->memoryKK, nullptr);
+    ::testing::internal::CaptureStdout();
+    lammps_close(handle);
+    output = testing::internal::GetCapturedStdout();
+    EXPECT_STREQ(output.substr(0,16).c_str(), "Total wall time:");
+}
+
+TEST(lammps_open, with_kokkos) {
+    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("KOKKOS")) return;
+    const char *args[] = {"liblammps",
+                          "-k", "on", "t", "2",
+                          "-sf", "kk",
+                          "-log", "none" };
+    char **argv = (char **)args;
+    int argc = sizeof(args)/sizeof(char *);
+
+    ::testing::internal::CaptureStdout();
+    void *alt_ptr;
+    void *handle = lammps_open(argc, argv, MPI_COMM_WORLD, &alt_ptr);
+    std::string output = testing::internal::GetCapturedStdout();
+    EXPECT_STREQ(output.substr(0,6).c_str(),"LAMMPS");
+    EXPECT_EQ(handle,alt_ptr);
+    LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;
+
+    EXPECT_EQ(lmp->world, MPI_COMM_WORLD);
+    EXPECT_EQ(lmp->infile, stdin);
+    EXPECT_EQ(lmp->logfile, nullptr);
+    EXPECT_NE(lmp->citeme, nullptr);
+    EXPECT_EQ(lmp->num_package, 0);
+    EXPECT_NE(lmp->kokkos, nullptr);
+    EXPECT_NE(lmp->atomKK, nullptr);
+    EXPECT_NE(lmp->memoryKK, nullptr);
     ::testing::internal::CaptureStdout();
     lammps_close(handle);
     output = testing::internal::GetCapturedStdout();
@@ -82,14 +116,50 @@ TEST(lammps_open_no_mpi, no_screen) {
     EXPECT_EQ(lmp->screen, nullptr);
     EXPECT_EQ(lmp->logfile, nullptr);
     EXPECT_EQ(lmp->citeme, nullptr);
+    EXPECT_EQ(lmp->suffix_enable, 0);
+
+    EXPECT_STREQ(lmp->exename, "liblammps");
+    EXPECT_EQ(lmp->num_package, 0);
     ::testing::internal::CaptureStdout();
     lammps_close(handle);
     output = testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.c_str(), "");
 }
 
-TEST(lammps_open_fortran, no_args) {
+TEST(lammps_open_no_mpi, with_omp) {
+    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("USER-OMP")) return;
+    const char *args[] = {"liblammps",
+                          "-pk", "omp", "2", "neigh", "no",
+                          "-sf", "omp",
+                          "-log", "none",
+                          "-nocite"};
+    char **argv = (char **)args;
+    int argc = sizeof(args)/sizeof(char *);
 
+    ::testing::internal::CaptureStdout();
+    void *alt_ptr;
+    void *handle = lammps_open_no_mpi(argc, argv, &alt_ptr);
+    std::string output = testing::internal::GetCapturedStdout();
+    EXPECT_STREQ(output.substr(0,6).c_str(),"LAMMPS");
+    EXPECT_EQ(handle,alt_ptr);
+    LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;
+
+    EXPECT_EQ(lmp->world, MPI_COMM_WORLD);
+    EXPECT_EQ(lmp->infile, stdin);
+    EXPECT_EQ(lmp->logfile, nullptr);
+    EXPECT_EQ(lmp->citeme, nullptr);
+    EXPECT_EQ(lmp->suffix_enable, 1);
+    EXPECT_STREQ(lmp->suffix, "omp");
+    EXPECT_EQ(lmp->suffix2, nullptr);
+    EXPECT_STREQ(lmp->exename, "liblammps");
+    EXPECT_EQ(lmp->num_package, 1);
+    ::testing::internal::CaptureStdout();
+    lammps_close(handle);
+    output = testing::internal::GetCapturedStdout();
+    EXPECT_STREQ(output.substr(0,16).c_str(), "Total wall time:");
+}
+
+TEST(lammps_open_fortran, no_args) {
     // MPI is already initialized
     MPI_Comm mycomm;
     MPI_Comm_split(MPI_COMM_WORLD, 0, 1, &mycomm);

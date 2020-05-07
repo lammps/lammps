@@ -17,7 +17,7 @@ ExternalProject_Add(gtest
                     TEST_COMMAND    "")
 
 ExternalProject_Get_Property(gtest SOURCE_DIR)
-set(GTEST_INCLUDE_DIR ${SOURCE_DIR}/include)
+set(GTEST_INCLUDE_DIR ${SOURCE_DIR}/googletest/include)
 ExternalProject_Get_Property(gtest BINARY_DIR)
 set(GTEST_LIBRARY_PATH ${BINARY_DIR}/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gtest.a)
 
@@ -30,6 +30,7 @@ set(GTEST_LIBRARY GTest::GTest)
 add_library(${GTEST_LIBRARY} UNKNOWN IMPORTED)
 set_target_properties(${GTEST_LIBRARY} PROPERTIES
         IMPORTED_LOCATION ${GTEST_LIBRARY_PATH}
+        INTERFACE_INCLUDE_DIRECTORIES ${GTEST_INCLUDE_DIR}
         INTERFACE_LINK_LIBRARIES Threads::Threads)
 add_dependencies(${GTEST_LIBRARY} gtest)
 

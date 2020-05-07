@@ -565,7 +565,7 @@ void AtomVecHybrid::build_styles()
 #undef ATOM_CLASS
 
   allstyles = new char*[nallstyles];
-  
+
   int n;
   nallstyles = 0;
 #define ATOM_CLASS

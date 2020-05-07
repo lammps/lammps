@@ -52,6 +52,7 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   nargcopy = 0;
   argcopy = NULL;
 
+  threads = NULL;
   nthreads = comm->nthreads;
 
   // peratom variables auto-included in corresponding child style fields string

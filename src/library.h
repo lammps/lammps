@@ -86,7 +86,7 @@ void  lammps_free(void *ptr);
 // ----------------------------------------------------------------------
 // Library functions to process commands
 // ----------------------------------------------------------------------
-  
+
 void  lammps_file(void *handle, char *file);
 
 char *lammps_command(void *handle, char *cmd);
@@ -96,7 +96,7 @@ void  lammps_commands_string(void *handle, char *str);
 // -----------------------------------------------------------------------
 // Library functions to extract info from LAMMPS or set data in LAMMPS
 // -----------------------------------------------------------------------
-  
+
 int    lammps_version(void *handle);
 double lammps_get_natoms(void *handle);
 double lammps_get_thermo(void *handle, char *keyword);
@@ -122,7 +122,7 @@ int    lammps_create_atoms(void *handle, int n, int64_t *id, int *type,
 // ----------------------------------------------------------------------
 // Library functions to access data from computes, fixes, variables in LAMMPS
 // ----------------------------------------------------------------------
-  
+
 void *lammps_extract_compute(void *handle, char *id, int, int);
 void *lammps_extract_fix(void *handle, char *, int, int, int, int);
 void *lammps_extract_variable(void *handle, char *, char *);
@@ -142,6 +142,7 @@ void lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
 // Library functions for retrieving configuration information
 // ----------------------------------------------------------------------
 
+int lammps_config_has_mpi_support();
 int lammps_config_has_package(char *);
 int lammps_config_package_count();
 int lammps_config_package_name(int, char *, int);

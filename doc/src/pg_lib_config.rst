@@ -7,6 +7,11 @@ packages and styles.
 
 -----------------------
 
+.. doxygenfunction:: lammps_config_has_mpi_support
+   :project: progguide
+
+-----------------------
+
 .. doxygenfunction:: lammps_config_has_gzip_support
    :project: progguide
 

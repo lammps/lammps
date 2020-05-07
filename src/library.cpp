@@ -1225,7 +1225,7 @@ int lammps_create_atoms(void *handle, int n, tagint *id, int *type,
 // ----------------------------------------------------------------------
 // Library functions to access data from computes, fixes, variables in LAMMPS
 // ----------------------------------------------------------------------
-  
+
 /** Get pointer to data from a LAMMPS compute.
  *
 \verbatim embed:rst
@@ -2567,6 +2567,20 @@ int lammps_style_name(void* handle, char * category, int idx, char * buffer, int
 
   buffer[0] = '\0';
   return 0;
+}
+
+/** This function is used to query whether LAMMPS was compiled with
+ *  a real MPI library or in serial.
+ *
+ * \return 0 when compiled with MPI STUBS, otherwise 1 */
+
+int lammps_config_has_mpi_support()
+{
+#ifdef MPI_STUBS
+  return 0;
+#else
+  return 1;
+#endif
 }
 
 /** \brief Check if the LAMMPS library supports compressed files via a pipe to gzip

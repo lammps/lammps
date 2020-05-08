@@ -4,15 +4,44 @@ MODULE keepdata
   INTEGER :: mycomm
 END MODULE keepdata
 
-
-FUNCTION f_lammps_open_no_args() BIND(C, name="f_lammps_open_no_args")
+FUNCTION f_lammps_no_mpi_no_args() BIND(C, name="f_lammps_no_mpi_no_args")
   USE ISO_C_BINDING, ONLY: c_ptr
   USE liblammps
   USE keepdata,      ONLY: lmp
   IMPLICIT NONE
-  TYPE(c_ptr) :: f_lammps_open_no_args
-  
+  TYPE(c_ptr) :: f_lammps_no_mpi_no_args
+
   lmp = lammps()
+  f_lammps_no_mpi_no_args = lmp%handle
+END FUNCTION f_lammps_no_mpi_no_args
+
+FUNCTION f_lammps_no_mpi_with_args() BIND(C, name="f_lammps_no_mpi_with_args")
+  USE ISO_C_BINDING, ONLY: c_ptr
+  USE liblammps
+  USE keepdata,      ONLY: lmp
+  IMPLICIT NONE
+  TYPE(c_ptr) :: f_lammps_no_mpi_with_args
+
+  CHARACTER(len=*), DIMENSION(4), PARAMETER :: args = &
+      [ CHARACTER(len=12) :: 'liblammps', '-log', 'none', '-nocite' ]
+
+  lmp = lammps(args)
+  f_lammps_no_mpi_with_args = lmp%handle
+END FUNCTION f_lammps_no_mpi_with_args
+
+FUNCTION f_lammps_open_no_args() BIND(C, name="f_lammps_open_no_args")
+  USE ISO_C_BINDING, ONLY: c_ptr
+  USE MPI,           ONLY: MPI_COMM_WORLD, mpi_comm_split
+  USE liblammps
+  USE keepdata,      ONLY: lmp,mycomm
+  IMPLICIT NONE
+  TYPE(c_ptr) :: f_lammps_open_no_args
+  INTEGER     :: color, key, ierr
+
+  color = 1
+  key = 1
+  CALL mpi_comm_split(MPI_COMM_WORLD, color, key, mycomm, ierr)
+  lmp = lammps(comm=mycomm)
   f_lammps_open_no_args = lmp%handle
 END FUNCTION f_lammps_open_no_args
 
@@ -24,7 +53,7 @@ FUNCTION f_lammps_open_with_args() BIND(C, name="f_lammps_open_with_args")
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_open_with_args
   INTEGER     :: color, key, ierr
-  
+
   CHARACTER(len=*), DIMENSION(4), PARAMETER :: args = &
       [ CHARACTER(len=12) :: 'liblammps', '-log', 'none', '-nocite' ]
 

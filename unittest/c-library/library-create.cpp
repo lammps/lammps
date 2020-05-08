@@ -64,7 +64,7 @@ TEST(lammps_open, with_args) {
 }
 
 TEST(lammps_open, with_kokkos) {
-    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("KOKKOS")) return;
+    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("KOKKOS")) GTEST_SKIP();
     const char *args[] = {"liblammps",
                           "-k", "on", "t", "2",
                           "-sf", "kk",
@@ -126,7 +126,7 @@ TEST(lammps_open_no_mpi, no_screen) {
 }
 
 TEST(lammps_open_no_mpi, with_omp) {
-    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("USER-OMP")) return;
+    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
     const char *args[] = {"liblammps",
                           "-pk", "omp", "2", "neigh", "no",
                           "-sf", "omp",

@@ -51,9 +51,6 @@ namespace LAMMPS_NS
 
     TEST_F(LAMMPS_plain, InitMembers)
     {
-        // skip tests if base class is not available
-        if (lmp == nullptr) return;
-
         EXPECT_NE(lmp->memory, nullptr);
         EXPECT_NE(lmp->error, nullptr);
         EXPECT_NE(lmp->universe, nullptr);
@@ -186,6 +183,7 @@ namespace LAMMPS_NS
 
             if (LAMMPS::is_installed_pkg("USER-OMP"))
               lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+            else GTEST_SKIP();
         }
 
         void TearDown() override {
@@ -195,9 +193,6 @@ namespace LAMMPS_NS
 
     TEST_F(LAMMPS_omp, InitMembers)
     {
-        // skip tests if base class is not available
-        if (lmp == nullptr) return;
-
         EXPECT_NE(lmp->memory, nullptr);
         EXPECT_NE(lmp->error, nullptr);
         EXPECT_NE(lmp->universe, nullptr);
@@ -274,13 +269,14 @@ namespace LAMMPS_NS
             int argc = sizeof(args)/sizeof(char *);
 
             // only run this test fixture with kk suffix if KOKKOS package is installed
+            // also need to figure out a way to find which parallelizations are enabled
 
             if (LAMMPS::is_installed_pkg("KOKKOS")) {
                 ::testing::internal::CaptureStdout();
                 lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
                 std::string output = testing::internal::GetCapturedStdout();
                 EXPECT_STREQ(output.substr(0,16).c_str(), "Kokkos::OpenMP::");
-            }
+            } else GTEST_SKIP();
         }
 
         void TearDown() override {
@@ -290,8 +286,6 @@ namespace LAMMPS_NS
 
     TEST_F(LAMMPS_kokkos, InitMembers)
     {
-        // skip tests if base class is not available
-        if (lmp == nullptr) return;
         EXPECT_NE(lmp->memory, nullptr);
         EXPECT_NE(lmp->error, nullptr);
         EXPECT_NE(lmp->universe, nullptr);

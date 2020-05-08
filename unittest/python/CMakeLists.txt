@@ -17,8 +17,19 @@ if (Python_EXECUTABLE)
   add_test(NAME PythonOpen
            COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/python-open.py -v
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
-  set_tests_properties(PythonOpen PROPERTIES ENVIRONMENT
-           PYTHONPATH=${LAMMPS_PYTHON_DIR}:$ENV{PYTHONPATH})
+  # augment the environment so that the LAMMPS python module and the shared library is found.
+  set(PYTHON_TEST_ENVIRONMENT PYTHONPATH=${LAMMPS_PYTHON_DIR}:$ENV{PYTHONPATH})
+  if(APPLE)
+    list(APPEND PYTHON_TEST_ENVIRONMENT DYLD_LIBRARY_PATH=${CMAKE_BINARY_DIR}:$ENV{DYLD_LIBRARY_PATH})
+  else()
+    list(APPEND PYTHON_TEST_ENVIRONMENT LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}:$ENV{LD_LIBRARY_PATH})
+  endif()
+  if(LAMMPS_MACHINE)
+    # convert from '_machine' to 'machine'
+    string(SUBSTRING ${LAMMPS_MACHINE} 1 -1 LAMMPS_MACHINE_NAME)
+    list(APPEND PYTHON_TEST_ENVIRONMENT LAMMPS_MACHINE_NAME=${LAMMPS_MACHINE_NAME})
+  endif()
+  set_tests_properties(PythonOpen PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
 else()
   message(STATUS "Skipping Tests for the LAMMPS Python Module: no suitable Python interpreter")
 endif()

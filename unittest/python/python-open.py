@@ -1,6 +1,5 @@
 
-import sys
-import unittest
+import sys,os,unittest
 from lammps import lammps
 from io import StringIO
 from contextlib import redirect_stdout
@@ -14,23 +13,27 @@ class PythonOpen(unittest.TestCase):
             self.has_mpi=True
         except:
             pass
+        self.machine=None
+        if 'LAMMPS_MACHINE_NAME' in os.environ:
+            self.machine=os.environ['LAMMPS_MACHINE_NAME']
 
     def testNoArgs(self):
         """Create LAMMPS instance without any arguments"""
 
-        lmp=lammps()
+        lmp=lammps(name=self.machine)
         lmp.__del__()
 
     def testWithArgs(self):
         """Create LAMMPS instance with a few arguments"""
-        lmp=lammps(cmdargs=['-nocite','-sf','opt','-log','none'])
+        lmp=lammps(name=self.machine,
+                   cmdargs=['-nocite','-sf','opt','-log','none'])
         lmp.__del__()
 
     def testWithMPI(self):
         if self.has_mpi:
             from mpi4py import MPI
             mycomm=MPI.Comm.Split(MPI.COMM_WORLD, 0, 1)
-            lmp=lammps(comm=mycomm)
+            lmp=lammps(name=self.machine,comm=mycomm)
             lmp.__del__()
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
-
+message(STATUS "Downloading and building GTest library")
 include(ExternalProject)
-ExternalProject_Add(gtest
+ExternalProject_Add(gtest_build
                     GIT_REPOSITORY  https://github.com/google/googletest.git
                     GIT_TAG         release-1.10.0
                     SOURCE_DIR      "${CMAKE_BINARY_DIR}/gtest-src"
@@ -16,9 +16,10 @@ ExternalProject_Add(gtest
                     INSTALL_COMMAND ""
                     TEST_COMMAND    "")
 
-ExternalProject_Get_Property(gtest SOURCE_DIR)
+ExternalProject_Get_Property(gtest_build SOURCE_DIR)
 set(GTEST_INCLUDE_DIR ${SOURCE_DIR}/googletest/include)
-ExternalProject_Get_Property(gtest BINARY_DIR)
+
+ExternalProject_Get_Property(gtest_build BINARY_DIR)
 set(GTEST_LIBRARY_PATH ${BINARY_DIR}/lib/libgtest.a)
 
 # Prevent GoogleTest from overriding our compiler/linker options
@@ -31,7 +32,7 @@ set_target_properties(GTest::GTest PROPERTIES
         IMPORTED_LOCATION ${GTEST_LIBRARY_PATH}
         INTERFACE_INCLUDE_DIRECTORIES ${GTEST_INCLUDE_DIR}
         INTERFACE_LINK_LIBRARIES Threads::Threads)
-add_dependencies(GTest::GTest gtest)
+add_dependencies(GTest::GTest gtest_build)
 
 add_subdirectory(cplusplus)
 add_subdirectory(c-library)

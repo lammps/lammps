@@ -18,6 +18,8 @@ ExternalProject_Add(gtest_build
 
 ExternalProject_Get_Property(gtest_build SOURCE_DIR)
 set(GTEST_INCLUDE_DIR ${SOURCE_DIR}/googletest/include)
+# workaround for CMake 3.10 on ubuntu 18.04
+file(MAKE_DIRECTORY ${GTEST_INCLUDE_DIR})
 
 ExternalProject_Get_Property(gtest_build BINARY_DIR)
 set(GTEST_LIBRARY_PATH ${BINARY_DIR}/lib/libgtest.a)

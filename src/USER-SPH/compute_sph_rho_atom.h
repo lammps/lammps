@@ -13,21 +13,21 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(meso/rho/atom,ComputeMesoRhoAtom)
+ComputeStyle(sph/rho/atom,ComputeSPHRhoAtom)
 
 #else
 
-#ifndef LMP_COMPUTE_MESO_RHO_ATOM_H
-#define LMP_COMPUTE_MESO_RHO_ATOM_H
+#ifndef LMP_COMPUTE_MESO_SPH_ATOM_H
+#define LMP_COMPUTE_MESO_SPH_ATOM_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeMesoRhoAtom : public Compute {
+class ComputeSPHRhoAtom : public Compute {
  public:
-  ComputeMesoRhoAtom(class LAMMPS *, int, char **);
-  ~ComputeMesoRhoAtom();
+  ComputeSPHRhoAtom(class LAMMPS *, int, char **);
+  ~ComputeSPHRhoAtom();
   void init();
   void compute_peratom();
   double memory_usage();

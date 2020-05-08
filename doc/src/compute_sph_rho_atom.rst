@@ -1,6 +1,6 @@
-.. index:: compute meso/rho/atom
+.. index:: compute sph/rho/atom
 
-compute meso/rho/atom command
+compute sph/rho/atom command
 =============================
 
 Syntax
@@ -8,32 +8,31 @@ Syntax
 
 .. parsed-literal::
 
-   compute ID group-ID meso/rho/atom
+   compute ID group-ID sph/rho/atom
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
-* meso/rho/atom = style name of this compute command
+* sph/rho/atom = style name of this compute command
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   compute 1 all meso/rho/atom
+   compute 1 all sph/rho/atom
 
 Description
 """""""""""
 
-Define a computation that calculates the per-atom mesoscopic density
-for each atom in a group.
+Define a computation that calculates the per-atom SPH density for each
+atom in a group, i.e. a Smooth-Particle Hydrodynamics density.
 
-The mesoscopic density is the mass density of a mesoscopic particle,
-calculated by kernel function interpolation using "pair style
-sph/rhosum".
+The SPH density is the mass density of an SPH particle, calculated by
+kernel function interpolation using "pair style sph/rhosum".
 
 See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
 LAMMPS.
 
-The value of the mesoscopic density will be 0.0 for atoms not in the
+The value of the SPH density will be 0.0 for atoms not in the
 specified compute group.
 
 **Output info:**

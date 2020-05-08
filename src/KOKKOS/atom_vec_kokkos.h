@@ -41,6 +41,9 @@ class AtomVecKokkos : public AtomVec {
   virtual void unpack_comm_vel(int, int, double *);
   virtual int pack_reverse(int, int, double *);
   virtual void unpack_reverse(int, int *, double *);
+  virtual void data_vel(int, char **);
+  virtual void pack_vel(double **);
+  virtual void write_vel(FILE *, int, double **);
 
   virtual void sync(ExecutionSpace space, unsigned int mask) = 0;
   virtual void modified(ExecutionSpace space, unsigned int mask) = 0;

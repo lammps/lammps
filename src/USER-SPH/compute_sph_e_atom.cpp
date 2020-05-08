@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "compute_meso_e_atom.h"
+#include "compute_sph_e_atom.h"
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -24,11 +24,13 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeMesoEAtom::ComputeMesoEAtom(LAMMPS *lmp, int narg, char **arg) :
+ComputeSPHEAtom::ComputeSPHEAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Number of arguments for compute meso/e/atom command != 3");
-  if (atom->e_flag != 1) error->all(FLERR,"compute meso/e/atom command requires atom_style with energy (e.g. meso)");
+  if (narg != 3)
+    error->all(FLERR,"Number of arguments for compute sph/e/atom command != 3");
+  if (atom->esph_flag != 1)
+    error->all(FLERR,"Compute sph/e/atom command requires atom_style sph)");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -39,14 +41,14 @@ ComputeMesoEAtom::ComputeMesoEAtom(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-ComputeMesoEAtom::~ComputeMesoEAtom()
+ComputeSPHEAtom::~ComputeSPHEAtom()
 {
   memory->sfree(evector);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeMesoEAtom::init()
+void ComputeSPHEAtom::init()
 {
 
   int count = 0;
@@ -58,7 +60,7 @@ void ComputeMesoEAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeMesoEAtom::compute_peratom()
+void ComputeSPHEAtom::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
 
@@ -71,13 +73,13 @@ void ComputeMesoEAtom::compute_peratom()
     vector_atom = evector;
   }
 
-  double *e = atom->e;
+  double *esph = atom->esph;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-              evector[i] = e[i];
+              evector[i] = esph[i];
       }
       else {
               evector[i] = 0.0;
@@ -89,7 +91,7 @@ void ComputeMesoEAtom::compute_peratom()
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
-double ComputeMesoEAtom::memory_usage()
+double ComputeSPHEAtom::memory_usage()
 {
   double bytes = nmax * sizeof(double);
   return bytes;

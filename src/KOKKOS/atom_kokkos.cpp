@@ -237,7 +237,7 @@ void AtomKokkos::grow(unsigned int mask){
     sync(Device, mask);
     modified(Device, mask);
     memoryKK->grow_kokkos(k_special,special,nmax,maxspecial,"atom:special");
-    avec->grow_reset();
+    avec->grow_pointers();
     sync(Host, mask);
   }
 }

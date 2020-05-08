@@ -75,19 +75,21 @@ internal energy and extrapolated velocity are also updated.
 .. note::
 
    You should not update the particles in rigid bodies via other
-   time-integration fixes (e.g. :doc:`fix meso <fix_meso>`,
-   :doc:`fix meso/stationary <fix_meso_stationary>`), or you will have conflicting
-   updates to positions and velocities resulting in unphysical behavior in most
-   cases. When performing a hybrid simulation with some atoms in rigid bodies,
-   and some not, a separate time integration fix like :doc:`fix meso <fix_meso>`
-   should be used for the non-rigid particles.
+   time-integration fixes (e.g. :doc:`fix sph <fix_sph>`, :doc:`fix
+   sph/stationary <fix_sph_stationary>`), or you will have conflicting
+   updates to positions and velocities resulting in unphysical
+   behavior in most cases. When performing a hybrid simulation with
+   some atoms in rigid bodies, and some not, a separate time
+   integration fix like :doc:`fix sph <fix_sph>` should be used for
+   the non-rigid particles.
 
 .. note::
 
-   These fixes are overkill if you simply want to hold a collection
-   of particles stationary or have them move with a constant velocity. To
-   hold particles stationary use :doc:`fix meso/stationary <fix_meso_stationary>` instead. If you would like to
-   move particles with a constant velocity use :doc:`fix meso/move <fix_meso_move>`.
+   These fixes are overkill if you simply want to hold a collection of
+   particles stationary or have them move with a constant velocity. To
+   hold particles stationary use :doc:`fix sph/stationary
+   <fix_sph_stationary>` instead. If you would like to move particles
+   with a constant velocity use :doc:`fix meso/move <fix_meso_move>`.
 
 .. warning::
 
@@ -346,7 +348,7 @@ package.  It is only enabled if LAMMPS was built with both packages. See
 the :doc:`Build package <Build_package>` doc page for more info.
 
 This fix requires that atoms store density and internal energy as
-defined by the :doc:`atom_style meso <atom_style>` command.
+defined by the :doc:`atom_style sph <atom_style>` command.
 
 All particles in the group must be mesoscopic SPH/SDPD particles.
 

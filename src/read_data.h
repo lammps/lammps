@@ -97,7 +97,7 @@ class ReadData : protected Pointers {
   void impropers(int);
 
   void bonus(bigint, class AtomVec *, const char *);
-  void bodies(int);
+  void bodies(int, class AtomVec *);
 
   void mass();
   void paircoeffs();

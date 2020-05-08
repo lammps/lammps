@@ -340,6 +340,7 @@ ccache
 ccachepiecewise
 ccl
 ccmake
+ccN
 ccNspecies
 CCu
 cd
@@ -852,6 +853,7 @@ Espanol
 Eshelby
 eshelby
 eskm
+esph
 esu
 esub
 esw

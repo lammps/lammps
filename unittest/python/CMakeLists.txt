@@ -10,7 +10,7 @@ endif()
 
 if (Python_EXECUTABLE AND BUILD_SHARED_LIBS)
    add_test(NAME PythonOpen
-            COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/python-open.py
+            COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/python-open.py -v
             WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
    set_tests_properties(PythonOpen PROPERTIES ENVIRONMENT
             PYTHONPATH=${LAMMPS_PYTHON_DIR}:$ENV{PYTHONPATH})

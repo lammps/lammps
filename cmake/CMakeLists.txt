@@ -6,13 +6,16 @@ cmake_minimum_required(VERSION 3.10)
 
 project(lammps CXX)
 set(SOVERSION 0)
-get_filename_component(LAMMPS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src ABSOLUTE)
-get_filename_component(LAMMPS_LIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../lib ABSOLUTE)
+
+get_filename_component(LAMMPS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/.. ABSOLUTE)
 get_filename_component(LAMMPS_LIB_BINARY_DIR ${CMAKE_BINARY_DIR}/lib ABSOLUTE)
-get_filename_component(LAMMPS_DOC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../doc ABSOLUTE)
-get_filename_component(LAMMPS_TOOLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../tools ABSOLUTE)
-get_filename_component(LAMMPS_PYTHON_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../python ABSOLUTE)
-get_filename_component(LAMMPS_POTENTIALS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../potentials ABSOLUTE)
+
+set(LAMMPS_SOURCE_DIR     ${LAMMPS_DIR}/src)
+set(LAMMPS_LIB_SOURCE_DIR ${LAMMPS_DIR}/lib)
+set(LAMMPS_DOC_DIR        ${LAMMPS_DIR}/doc)
+set(LAMMPS_TOOLS_DIR      ${LAMMPS_DIR}/tools)
+set(LAMMPS_PYTHON_DIR     ${LAMMPS_DIR}/python)
+set(LAMMPS_POTENTIALS_DIR ${LAMMPS_DIR}/potentials)
 
 find_package(Git)
 
@@ -491,7 +494,7 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${LAMMPS_STYLE_HE
 # Generate lmpgitversion.h
 ######################################
 add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
-  -DCMAKE_CURRENT_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+  -DLAMMPS_DIR="${LAMMPS_DIR}"
   -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
   -DGIT_FOUND="${GIT_FOUND}"
   -DLAMMPS_STYLE_HEADERS_DIR="${LAMMPS_STYLE_HEADERS_DIR}"

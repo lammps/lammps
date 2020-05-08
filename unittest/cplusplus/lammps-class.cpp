@@ -91,9 +91,9 @@ namespace LAMMPS_NS
             EXPECT_STRNE(LAMMPS::git_branch,"");
             EXPECT_STRNE(LAMMPS::git_descriptor,"");
         } else {
-            EXPECT_STREQ(LAMMPS::git_commit,"");
-            EXPECT_STREQ(LAMMPS::git_branch,"");
-            EXPECT_STREQ(LAMMPS::git_descriptor,"");
+            EXPECT_STREQ(LAMMPS::git_commit,"(unknown)");
+            EXPECT_STREQ(LAMMPS::git_branch,"(unknown)");
+            EXPECT_STREQ(LAMMPS::git_descriptor,"(unknown)");
         }
     }
 
@@ -233,9 +233,9 @@ namespace LAMMPS_NS
             EXPECT_STRNE(LAMMPS::git_branch,"");
             EXPECT_STRNE(LAMMPS::git_descriptor,"");
         } else {
-            EXPECT_STREQ(LAMMPS::git_commit,"");
-            EXPECT_STREQ(LAMMPS::git_branch,"");
-            EXPECT_STREQ(LAMMPS::git_descriptor,"");
+            EXPECT_STREQ(LAMMPS::git_commit,"(unknown)");
+            EXPECT_STREQ(LAMMPS::git_branch,"(unknown)");
+            EXPECT_STREQ(LAMMPS::git_descriptor,"(unknown)");
         }
     }
 
@@ -326,9 +326,9 @@ namespace LAMMPS_NS
             EXPECT_STRNE(LAMMPS::git_branch,"");
             EXPECT_STRNE(LAMMPS::git_descriptor,"");
         } else {
-            EXPECT_STREQ(LAMMPS::git_commit,"");
-            EXPECT_STREQ(LAMMPS::git_branch,"");
-            EXPECT_STREQ(LAMMPS::git_descriptor,"");
+            EXPECT_STREQ(LAMMPS::git_commit,"(unknown)");
+            EXPECT_STREQ(LAMMPS::git_branch,"(unknown)");
+            EXPECT_STREQ(LAMMPS::git_descriptor,"(unknown)");
         }
     }
 

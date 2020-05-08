@@ -999,7 +999,7 @@ void AtomVecKokkos::unpack_reverse(int n, int *list, double *buf)
  *    ------------------------------------------------------------------------- */
 
 void AtomVecKokkos::data_vel(int m, char **values)
-{ 
+{
   double **v = atom->v;
   v[m][0] = utils::numeric(FLERR,values[0],true,lmp);
   v[m][1] = utils::numeric(FLERR,values[1],true,lmp);
@@ -1013,13 +1013,13 @@ void AtomVecKokkos::data_vel(int m, char **values)
  *    ------------------------------------------------------------------------- */
 
 void AtomVecKokkos::pack_vel(double **buf)
-{ 
+{
   double **v = atom->v;
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
   sync(Host,V_MASK|TAG_MASK);
-  
+
   for (int i = 0; i < nlocal; i++) {
     buf[i][0] = ubuf(tag[i]).d;
     buf[i][1] = v[i][0];

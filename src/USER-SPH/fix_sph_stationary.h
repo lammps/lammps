@@ -11,45 +11,39 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef ATOM_CLASS
+#ifdef FIX_CLASS
 
-AtomStyle(angle,AtomVecAngle)
+FixStyle(sph/stationary,FixSPHStationary)
 
 #else
 
-#ifndef LMP_ATOM_VEC_ANGLE_H
-#define LMP_ATOM_VEC_ANGLE_H
+#ifndef LMP_FIX_SPH_STATIONARY_H
+#define LMP_FIX_SPH_STATIONARY_H
 
-#include "atom_vec.h"
+#include "fix.h"
 
 namespace LAMMPS_NS {
 
-class AtomVecAngle : public AtomVec {
+class FixSPHStationary : public Fix {
  public:
-  AtomVecAngle(class LAMMPS *);
-  ~AtomVecAngle();
-
-  void grow_pointers();
-  void pack_restart_pre(int);
-  void pack_restart_post(int);
-  void unpack_restart_init(int);
-  void data_atom_post(int);
+  FixSPHStationary(class LAMMPS *, int, char **);
+  int setmask();
+  virtual void init();
+  virtual void initial_integrate(int);
+  virtual void final_integrate();
+  void reset_dt();
 
  private:
-  int *num_bond,*num_angle;
-  int **bond_type,**angle_type;
-  int **nspecial;
+  class NeighList *list;
+ protected:
+  double dtv,dtf;
+  double *step_respa;
+  int mass_require;
 
-  int any_bond_negative,any_angle_negative;
-  int bond_per_atom,angle_per_atom;
-  int *bond_negative,*angle_negative;
+  class Pair *pair;
 };
 
 }
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

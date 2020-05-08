@@ -11,23 +11,24 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include "atom_vec_mdpd.h"
+#include "atom_vec_sph.h"
 #include <cstring>
 #include "atom.h"
-#include "update.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecMDPD::AtomVecMDPD(LAMMPS *lmp) : AtomVec(lmp)
+AtomVecSPH::AtomVecSPH(LAMMPS *lmp) : AtomVec(lmp)
 {
   molecular = 0;
   mass_type = 1;
   forceclearflag = 1;
 
+  atom->esph_flag = 1;
   atom->rho_flag = 1;
+  atom->cv_flag = 1;
   atom->vest_flag = 1;
 
   // strings with peratom variables to include in each AtomVec method
@@ -35,30 +36,20 @@ AtomVecMDPD::AtomVecMDPD(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) "rho drho vest";
-  fields_copy = (char *) "rho drho vest";
-  fields_comm = (char *) "rho vest";
-  fields_comm_vel = (char *) "rho vest";
-  fields_reverse = (char *) "drho";
-  fields_border = (char *) "rho vest";
-  fields_border_vel = (char *) "rho vest";
-  fields_exchange = (char *) "rho vest";
-  fields_restart = (char * ) "rho vest";
-  fields_create = (char *) "rho drho vest";
-  fields_data_atom = (char *) "id type rho x";
+  fields_grow = (char *) "rho drho esph desph cv vest";
+  fields_copy = (char *) "rho drho esph desph cv vest";
+  fields_comm = (char *) "rho esph vest";
+  fields_comm_vel = (char *) "rho esph vest";
+  fields_reverse = (char *) "drho desph";
+  fields_border = (char *) "rho esph cv vest";
+  fields_border_vel = (char *) "rho esph cv vest";
+  fields_exchange = (char *) "rho esph cv vest";
+  fields_restart = (char * ) "rho esph cv vest";
+  fields_create = (char *) "rho esph cv vest de drho";
+  fields_data_atom = (char *) "id type rho esph cv x";
   fields_data_vel = (char *) "id v";
 
   setup_fields();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void AtomVecMDPD::init()
-{
-  AtomVec::init();
-
-  if (strcmp(update->unit_style,"lj") != 0)
-    error->all(FLERR,"Atom style mdpd requires lj units");
 }
 
 /* ----------------------------------------------------------------------
@@ -66,10 +57,13 @@ void AtomVecMDPD::init()
    needed in replicate when 2 atom classes exist and it calls pack_restart()
 ------------------------------------------------------------------------- */
 
-void AtomVecMDPD::grow_pointers()
+void AtomVecSPH::grow_pointers()
 {
   rho = atom->rho;
   drho = atom->drho;
+  esph = atom->esph;
+  desph = atom->desph;
+  cv = atom->cv;
   vest = atom->vest;
 }
 
@@ -78,9 +72,19 @@ void AtomVecMDPD::grow_pointers()
    nbytes = # of bytes to clear for a per-atom vector
 ------------------------------------------------------------------------- */
 
-void AtomVecMDPD::force_clear(int n, size_t nbytes)
+void AtomVecSPH::force_clear(int n, size_t nbytes)
 {
+  memset(&desph[n],0,nbytes);
   memset(&drho[n],0,nbytes);
+}
+
+/* ----------------------------------------------------------------------
+   initialize non-zero atom quantities
+------------------------------------------------------------------------- */
+
+void AtomVecSPH::create_atom_post(int ilocal)
+{
+  cv[ilocal] = 1.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -88,12 +92,13 @@ void AtomVecMDPD::force_clear(int n, size_t nbytes)
    or initialize other atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecMDPD::data_atom_post(int ilocal)
+void AtomVecSPH::data_atom_post(int ilocal)
 {
-  drho[ilocal] = 0.0;
   vest[ilocal][0] = 0.0;
   vest[ilocal][1] = 0.0;
   vest[ilocal][2] = 0.0;
+  desph[ilocal] = 0.0;
+  drho[ilocal] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -101,10 +106,13 @@ void AtomVecMDPD::data_atom_post(int ilocal)
    return -1 if name is unknown to this atom style
 ------------------------------------------------------------------------- */
 
-int AtomVecMDPD::property_atom(char *name)
+int AtomVecSPH::property_atom(char *name)
 {
   if (strcmp(name,"rho") == 0) return 0;
   if (strcmp(name,"drho") == 0) return 1;
+  if (strcmp(name,"esph") == 0) return 2;
+  if (strcmp(name,"desph") == 0) return 3;
+  if (strcmp(name,"cv") == 0) return 4;
   return -1;
 }
 
@@ -113,13 +121,13 @@ int AtomVecMDPD::property_atom(char *name)
    index maps to data specific to this atom style
 ------------------------------------------------------------------------- */
 
-void AtomVecMDPD::pack_property_atom(int index, double *buf,
+void AtomVecSPH::pack_property_atom(int index, double *buf,
                                      int nvalues, int groupbit)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-
   int n = 0;
+
   if (index == 0) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) buf[n] = rho[i];
@@ -129,6 +137,24 @@ void AtomVecMDPD::pack_property_atom(int index, double *buf,
   } else if (index == 1) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) buf[n] = drho[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 2) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = esph[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 3) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = desph[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 4) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = cv[i];
       else buf[n] = 0.0;
       n += nvalues;
     }

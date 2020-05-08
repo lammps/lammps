@@ -710,12 +710,12 @@ void Special::combine()
                         atom->nmax,atom->maxspecial,"atom:special");
     atomKK->modified(Device,SPECIAL_MASK);
     atomKK->sync(Host,SPECIAL_MASK);
+    atom->avec->grow_pointers();
   } else {
     memory->destroy(atom->special);
     memory->create(atom->special,atom->nmax,atom->maxspecial,"atom:special");
   }
 
-  atom->avec->grow_reset();
   tagint **special = atom->special;
 
   // ----------------------------------------------------

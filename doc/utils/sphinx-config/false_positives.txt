@@ -327,6 +327,7 @@ ccache
 ccachepiecewise
 ccl
 ccmake
+ccN
 ccNspecies
 CCu
 cd
@@ -593,6 +594,7 @@ Derjaguin
 Derlet
 Deserno
 Destree
+destructor
 detils
 Devanathan
 devel
@@ -833,6 +835,7 @@ Espanol
 Eshelby
 eshelby
 eskm
+esph
 esu
 esub
 esw

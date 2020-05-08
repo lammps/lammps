@@ -79,9 +79,6 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`ke/atom/eff <compute_ke_atom_eff>`
    * :doc:`ke/eff <compute_ke_eff>`
    * :doc:`ke/rigid <compute_ke_rigid>`
-   * :doc:`meso/e/atom <compute_meso_e_atom>`
-   * :doc:`meso/rho/atom <compute_meso_rho_atom>`
-   * :doc:`meso/t/atom <compute_meso_t_atom>`
    * :doc:`momentum <compute_momentum>`
    * :doc:`msd <compute_msd>`
    * :doc:`msd/chunk <compute_msd_chunk>`
@@ -133,6 +130,9 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`sna/atom <compute_sna_atom>`
    * :doc:`snad/atom <compute_sna_atom>`
    * :doc:`snav/atom <compute_sna_atom>`
+   * :doc:`sph/e/atom <compute_sph_e_atom>`
+   * :doc:`sph/rho/atom <compute_sph_rho_atom>`
+   * :doc:`sph/t/atom <compute_sph_t_atom>`
    * :doc:`spin <compute_spin>`
    * :doc:`stress/atom <compute_stress_atom>`
    * :doc:`stress/mop <compute_stress_mop>`

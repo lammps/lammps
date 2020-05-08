@@ -11,7 +11,7 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include "fix_meso.h"
+#include "fix_sph.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -22,22 +22,22 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixMeso::FixMeso(LAMMPS *lmp, int narg, char **arg) :
+FixSPH::FixSPH(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg) {
 
-  if ((atom->e_flag != 1) || (atom->rho_flag != 1))
+  if ((atom->esph_flag != 1) || (atom->rho_flag != 1))
     error->all(FLERR,
-        "fix meso command requires atom_style with both energy and density");
+        "Fix sph command requires atom_style with both energy and density");
 
   if (narg != 3)
-    error->all(FLERR,"Illegal number of arguments for fix meso command");
+    error->all(FLERR,"Illegal number of arguments for fix sph command");
 
   time_integrate = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-int FixMeso::setmask() {
+int FixSPH::setmask() {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
@@ -47,12 +47,12 @@ int FixMeso::setmask() {
 
 /* ---------------------------------------------------------------------- */
 
-void FixMeso::init() {
+void FixSPH::init() {
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 }
 
-void FixMeso::setup_pre_force(int /*vflag*/)
+void FixSPH::setup_pre_force(int /*vflag*/)
 {
   // set vest equal to v
   double **v = atom->v;
@@ -75,7 +75,7 @@ void FixMeso::setup_pre_force(int /*vflag*/)
  allow for both per-type and per-atom mass
  ------------------------------------------------------------------------- */
 
-void FixMeso::initial_integrate(int /*vflag*/) {
+void FixSPH::initial_integrate(int /*vflag*/) {
   // update v and x and rho and e of atoms in group
 
   double **x = atom->x;
@@ -84,8 +84,8 @@ void FixMeso::initial_integrate(int /*vflag*/) {
   double **vest = atom->vest;
   double *rho = atom->rho;
   double *drho = atom->drho;
-  double *e = atom->e;
-  double *de = atom->de;
+  double *esph = atom->esph;
+  double *desph = atom->desph;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int rmass_flag = atom->rmass_flag;
@@ -107,7 +107,7 @@ void FixMeso::initial_integrate(int /*vflag*/) {
         dtfm = dtf / mass[type[i]];
       }
 
-      e[i] += dtf * de[i]; // half-step update of particle internal energy
+      esph[i] += dtf * desph[i]; // half-step update of particle internal energy
       rho[i] += dtf * drho[i]; // ... and density
 
       // extrapolate velocity for use with velocity-dependent potentials, e.g. SPH
@@ -128,14 +128,14 @@ void FixMeso::initial_integrate(int /*vflag*/) {
 
 /* ---------------------------------------------------------------------- */
 
-void FixMeso::final_integrate() {
+void FixSPH::final_integrate() {
 
   // update v, rho, and e of atoms in group
 
   double **v = atom->v;
   double **f = atom->f;
-  double *e = atom->e;
-  double *de = atom->de;
+  double *esph = atom->esph;
+  double *desph = atom->desph;
   double *rho = atom->rho;
   double *drho = atom->drho;
   int *type = atom->type;
@@ -160,7 +160,7 @@ void FixMeso::final_integrate() {
       v[i][1] += dtfm * f[i][1];
       v[i][2] += dtfm * f[i][2];
 
-      e[i] += dtf * de[i];
+      esph[i] += dtf * desph[i];
       rho[i] += dtf * drho[i];
     }
   }
@@ -168,7 +168,7 @@ void FixMeso::final_integrate() {
 
 /* ---------------------------------------------------------------------- */
 
-void FixMeso::reset_dt() {
+void FixSPH::reset_dt() {
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 }

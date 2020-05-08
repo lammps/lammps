@@ -452,14 +452,14 @@ void TILD::vir_func_init() {
             vg[loc][3][n] = k[1] * -grad_potent[loc][0][n];
             vg[loc][4][n] = k[2] * -grad_potent[loc][0][n];
             vg[loc][5][n] = k[2] * -grad_potent[loc][1][n];
+            //fprintf(screen,"virial %d %f %f %f %f %f %f\n", n, k[0], k[1], k[2], grad_potent[loc][0][n], grad_potent[loc][1][n], grad_potent[loc][2][n]);
+            n++;
 
             }
           }
-        n++;
       }
 
       for (i = 0; i < 6; i++){
-        int loc = itype*(jtype+1)/2;
         n=0;
         for (j = 0; j < nfft; j++){
           work1[n++] = vg[loc][i][j];
@@ -639,7 +639,6 @@ void TILD::compute(int eflag, int vflag){
     energy = energy_all * volume;
 
   }
-*/
 
   if (vflag_global) {
     double virial_all[6];
@@ -647,6 +646,7 @@ void TILD::compute(int eflag, int vflag){
     double volume = domain->xprd * domain->yprd * domain->zprd;
     for (i = 0; i < 6; i++) virial[i] = volume * virial_all[i]; // DOUBLE CHECK THIS CALCULATION
   }
+*/
   if (atom->natoms != natoms_original) {
     natoms_original = atom->natoms;
   }
@@ -1605,7 +1605,7 @@ void TILD::init_cross_potentials(){
     for (int jtype = itype; jtype <= ntypes; jtype++) {
       // Skip if type cross-interaction does not use density/tild
       if ( potent_type_map[0][itype][jtype] == 1) continue;
-      fprintf(screen,"i j %d %d\n", itype, jtype);
+      //fprintf(screen,"i j %d %d\n", itype, jtype);
       int loc = itype*(jtype+1)/2;
 
 
@@ -1632,16 +1632,14 @@ void TILD::init_cross_potentials(){
         for (int i = 0; i < 2 * nfft; i++) {
           potent_hat[loc][i] *= scale_inv;
         }
-/*
-        init_potential_ft(potent_hat[loc], 1, p);
-*/
+        //init_potential_ft(potent_hat[loc], 1, p);
       } 
       // Computational Convolution
       else {
 
         // calculate 1st and 2nd potentials to convolv
         int style;
-      fprintf(screen,"i j %d %d %d\n", itype, jtype, mix_flag);
+      //fprintf(screen,"i j %d %d %d\n", itype, jtype, mix_flag);
         if (mix_flag == 1) {
           calc_work(work1, itype, itype);
           if ( itype == jtype) {
@@ -1657,7 +1655,9 @@ void TILD::init_cross_potentials(){
         // Convolution of potentials
         n = 0;
         for (int i = 0; i < nfft; i++) {
+        
           complex_multiply(work1, work2, potent_hat[loc], n);
+         //fprintf(screen,"i j %d %d %d %f %f %f\n", itype, jtype, i, work1[n], work2[n], potent_hat[loc][n]);
           n += 2;
         }
 
@@ -1729,7 +1729,6 @@ void TILD::calc_work(double* work, const int itype, const int jtype){
   } else if (style == 2) {
     params[0] = rp[itype][jtype];
     params[1] = xi[itype][jtype];
-// need another check to return the analytical value for gaussian FFT
     init_potential(tmp, style, params);
 
     int j = 0;
@@ -2012,7 +2011,7 @@ void TILD::particle_map(double delx, double dely, double delz,
         ny+nlow < nylo || ny+nup > nyhi ||
         nz+nlow < nzlo || nz+nup > nzhi){
       flag = 1;
-      std::cout << i << "\t" << x[i][0] << "\t" << x[i][1] << "\t" << x[i][2] << "\n"; 
+      //std::cout << i << "\t" << x[i][0] << "\t" << x[i][1] << "\t" << x[i][2] << "\n"; 
       
       }
   }
@@ -2061,7 +2060,6 @@ int TILD::modify_param(int narg, char** arg)
           for (int j = MAX(jlo,i); j <= jhi; j++) {
             potent_type_map[1][i][j] = 1;
             potent_type_map[0][i][j] = 0;
-            fprintf(screen,"types %d %d %d %d %d\n", i,j, potent_type_map[0][i][j], potent_type_map[1][i][j], ntypes);
             a2[i][j] = a2_one;
           }
         //nstyles++;
@@ -2075,7 +2073,6 @@ int TILD::modify_param(int narg, char** arg)
           for (int j = MAX(jlo,i); j <= jhi; j++) {
             potent_type_map[2][i][j] = 1;
             potent_type_map[0][i][j] = 0;
-            fprintf(screen,"types %d %d %d %d %d\n", i,j, potent_type_map[0][i][j], potent_type_map[1][i][j], potent_type_map[2][i][j]);
             rp[i][j] = rp_one;
             xi[i][j] = xi_one;
           }
@@ -2619,18 +2616,6 @@ void TILD::accumulate_gradient() {
   if (subtract_rho0 == 1)
     tmp_sub = rho0;
 
-  if ( tmp_kappa != 0 ) {
-    n = 0;
-    for (int k = 0; k < nfft; k++) {
-      kappa_density[k] = density_fft_types[0][k] - tmp_sub;
-      work1[n++] = kappa_density[k];
-      work1[n++] = ZEROF;
-    }
-    fft1->compute(work1, work1, 1);
-    for (int k = 0; k < 2*nfft; k++) {
-      work1[k] *= scale_inv;
-    }
-  }
   for (int itype = 1; itype <= ntypes; itype++) {
     for (int jtype = itype; jtype <= ntypes; jtype++) {
       if ( potent_type_map[0][itype][jtype] == 1) continue;
@@ -2639,94 +2624,60 @@ void TILD::accumulate_gradient() {
       int loc = itype*(jtype+1)/2;
       double tmp_chi = chi[itype][jtype];
 
-      if ( tmp_chi != 0 && tmp_kappa != 0 ) continue;
+      if ( tmp_chi == 0 && tmp_kappa == 0 ) continue;
 
+      int calc_kappa_rho0 = 0;
+      if (itype == jtype) {
+        tmp_kappa /= 2.0;
+      } else {
+        if ( subtract_rho0 == 1 ) {
+          calc_kappa_rho0 = 1;
+        }
+      }
       if (normalize_by_rho0 == 1) {
         tmp_chi /= rho0;
         tmp_kappa = kappa/rho0;
-        if (itype == jtype) {
-          tmp_kappa /= 2.0;
-        }
       }
 
-      //if ( tmp_chi != 0) {
-        n = 0;
-        for (int k = 0; k < nfft; k++) {
-          worki[n] = density_fft_types[itype][k];
-          workj[n] = density_fft_types[jtype][k];
-          n++;
-          worki[n] = ZEROF;
-          workj[n] = ZEROF;
-          n++;
-        }
-        fft1->compute(worki, worki, 1);
-        fft1->compute(workj, workj, 1);
-        for (int k = 0; k < 2*nfft; k++) {
-          worki[k] *= scale_inv;
-          workj[k] *= scale_inv;
-        }
-      //}
+      n = 0;
+      for (int k = 0; k < nfft; k++) {
+        worki[n] = density_fft_types[itype][k];
+        workj[n] = density_fft_types[jtype][k];
+        n++;
+        worki[n] = ZEROF;
+        workj[n] = ZEROF;
+        n++;
+      }
+      fft1->compute(worki, worki, 1);
+      fft1->compute(workj, workj, 1);
+      for (int k = 0; k < 2*nfft; k++) {
+        worki[k] *= scale_inv;
+        workj[k] *= scale_inv;
+      }
 
       //fprintf(screen,"pre ev_calculation\n");
       if (eflag_global || vflag_global) {
-        ev_calculation(kappa_density, work1, worki, itype, jtype);
+        ev_calculation(worki, itype, jtype);
       }
-      //fprintf(screen,"post ev_calculation\n");
 
       for (int i = 0; i < Dim; i++) {
-/*
-        n = 0;
-        for (int k = 0; k < nfft; k++) {
-          work2[n] = grad_potent[loc][i][n];
-          //work2[n] = grad_potent_hat[loc][i][n];
-          n++;
-          work2[n] = grad_potent[loc][i][n];
-          //work2[n] = grad_potent_hat[loc][i][n];
-          n++;
-        }
-      //fprintf(screen,"complex mult\n");
-*/
 
         n = 0;
         for (int k = 0; k < nfft; k++) {
-/*
-          if ( tmp_kappa != 0 ) {
-            complex_multiply(grad_potent_hat[loc][i], work1, ktmp2, n);
-            //complex_multiply(work1, work2, ktmp2, n);
-          }
-          if ( tmp_chi != 0) {
-            //complex_multiply(worki, work2, ktmp2i, n);
-            //complex_multiply(workj, work2, ktmp2j, n);
-          }
-*/
           complex_multiply(grad_potent_hat[loc][i], worki, ktmp2i, n);
           complex_multiply(grad_potent_hat[loc][i], workj, ktmp2j, n);
           n += 2;
         }
-      //fprintf(screen,"compute\n");
-        if ( tmp_kappa != 0 ) {
-          fft2->compute(ktmp2, ktmp, -1);
-        }
-        if ( tmp_chi != 0) {
-          fft2->compute(ktmp2i, ktmpi, -1);
-          fft2->compute(ktmp2j, ktmpj, -1);
-        }
+        fft2->compute(ktmp2i, ktmpi, -1);
+        fft2->compute(ktmp2j, ktmpj, -1);
 
         n = 0;
         for (int k = nzlo_in; k <= nzhi_in; k++)
           for (int m = nylo_in; m <= nyhi_in; m++)
             for (int o = nxlo_in; o <= nxhi_in; o++) {
-/*
-              if ( tmp_kappa != 0 ) {
-                gradWtype[loc][i][k][m][o] += ktmp[n] * tmp_kappa;
-              }
-              if ( tmp_chi != 0) {
-                gradWtype[loc][i][k][m][o] += ktmpi[n] * tmp_chi;
-                gradWtype[loc][i][k][m][o] += ktmpj[n] * tmp_chi;
-              }
-*/
               gradWtype[loc][i][k][m][o] += ktmpi[n] * (tmp_chi + tmp_kappa);
               gradWtype[loc][i][k][m][o] += ktmpj[n] * (tmp_chi + tmp_kappa);
+              if (calc_kappa_rho0 == 1) gradWtype[loc][i][k][m][o] -= grad_potent[loc][i][n] * rho0 * tmp_kappa;
               n += 2;
             }
       }
@@ -2890,14 +2841,15 @@ inline void TILD::complex_multiply(double *in1,double  *in2, int n){
   in2[n] = temp;
 }
 
-//void TILD::ev_calculation() {
-void TILD::ev_calculation(FFT_SCALAR *rho1, double *wk1, double *wki, const int itype, const int jtype) {
+void TILD::ev_calculation(FFT_SCALAR *wki, const int itype, const int jtype) {
   int n = 0;
   double eng, engk;
-  double vtmp;
+  double vtmp, vtmpk;
   double scale_inv = 1.0/(nx_pppm *ny_pppm * nz_pppm);
+  double V = domain->xprd * domain->yprd * domain->zprd;
   double s2 = scale_inv * scale_inv;
   int ntypes = atom->ntypes;
+  int loc = itype*(jtype+1)/2;
   FFT_SCALAR *dummy, *wk2;
 
   double tmp_rho_div = 1.0;
@@ -2905,8 +2857,8 @@ void TILD::ev_calculation(FFT_SCALAR *rho1, double *wk1, double *wki, const int 
 
   double tmp_kappa = kappa;
   int calc_kappa_rho0 = 0;
-  if (itype != jtype) {
-    tmp_kappa *= 2.0;
+  if (itype == jtype) {
+    tmp_kappa /= 2.0;
   } else {
     if ( subtract_rho0 == 1 ) {
       calc_kappa_rho0 = 1;
@@ -2914,158 +2866,84 @@ void TILD::ev_calculation(FFT_SCALAR *rho1, double *wk1, double *wki, const int 
   }
   // Convolve kspace-potential with fft(den_group)
   // take jtype density into k-space
-  
+ 
+      n = 0;
+      for (int k = 0; k < nfft; k++) {
+        work1[n++] = potent[loc][k];
+        work1[n++] = ZEROF;
+      }
+      fft1->compute(work1, work1, 1);
+      for (int k = 0; k < 2*nfft; k++) {
+        work1[k] *= scale_inv;
+      }
+
+ 
   // convolve itype-jtype interaction potential and itype density
-  int loc = itype*(jtype+1)/2;
   n = 0;
   for (int k = 0; k < nfft; k++) {
-      complex_multiply(wki, potent_hat[loc], ktmp2i, n);
+      //fprintf(screen,"%d %d %d %f %f\n", itype, jtype, k, wki[n], work1[n]);
+      complex_multiply(wki, work1, ktmp2i, n);
+      //complex_multiply(wki, potent_hat[loc], ktmp2i, n);
     n += 2;
   }
   // IFFT the convolution
   fft2->compute(ktmp2i, ktmp2i, -1);
-  double factor = 1.0 / delvolinv / tmp_rho_div / 2.0;
+  double factor = 1.0 / delvolinv / tmp_rho_div;
 
   // chi and kappa energy contribution
-  //fprintf(screen,"energy %f %f %f %f %f\n", energy, delvolinv, same_group_factor, 0.5, tmp_rho_div);
   if (eflag_global) {
     n = 0;
     eng = 0.0;
     engk = 0.0;
     for (int k = 0; k < nfft; k++) {
       // rho_i * u_ij * rho_j * chi * prefactor
+      //fprintf(screen,"%d %d %d %f %f\n", itype, jtype, k, ktmp2i[n], density_fft_types[jtype][k]);
       eng += ktmp2i[n] * density_fft_types[jtype][k];
-      cout << k << '\t' << ktmp2i[n] << '\t' << density_fft_types[jtype][k] << '\t' << ktmp2i[n]*density_fft_types[jtype][k] << endl;
       if ( calc_kappa_rho0 == 1 ) engk -= ktmp2i[n];
       n += 2;
     }
     energy += eng * factor * (chi[itype][jtype] + tmp_kappa); 
+    //fprintf(screen,"summed %d %d %f %f %f\n", itype, jtype, eng * factor * (chi[itype][jtype] + tmp_kappa), energy,  (chi[itype][jtype] + tmp_kappa)/tmp_rho_div);
     if ( calc_kappa_rho0 == 1 ) { 
-      energy += engk * rho0 * factor * 2.0 * kappa;
-      energy += kappa * rho0 * rho0 * factor * nfft;
+      energy += engk * rho0 * factor * kappa;
+      energy += kappa * rho0 * rho0 * factor * nfft / 2.0;
     }
   }
-  //fprintf(screen,"energy %f\n", energy);
 
   // pressure tensor calculation
   if (vflag_global) {
     // loop over stress tensor
-   //fprintf(screen,"virial %f %f %f %f %f %f\n", virial[0], virial[1], virial[2], virial[3], virial[4], virial[5]);
     for (int i = 0; i < 6; i++) {
-      double factor2 = factor * ( i/3 ? 2.0 : 1.0);
+      double factor2 = factor;//  * ( i/3 ? 2.0 : 1.0);
       n = 0;
       for (int k = 0; k < nfft; k++) {
-/*
-        if ( tmp_chi != 0) complex_multiply(vg_hat[loc][i], wki, ktmpi, n);
-        if ( kappa != 0 ) complex_multiply(vg_hat[loc][i], wk1, ktmp, n);
-*/
-        complex_multiply(vg_hat[loc][i], wki, ktmpi, n);
+        //fprintf(screen,"virial %d %d %f\n", i, k, -vg[loc][i][k]);
+        complex_multiply(wki, vg_hat[loc][i], ktmpi, n);
         n += 2;
       }
-      fft2->compute(ktmp, ktmp, -1);
-      n=0;
+      fft2->compute(ktmpi, ktmpi, -1);
       vtmp = 0.0;
+      vtmpk = 0.0;
+      n=0;
       for (int k = 0; k < nfft; k++) {
         // rho_i * u_ij * rho_j * chi * prefactor
-/*
-        if ( tmp_chi != 0) virial[i] += tmp_chi * ktmpi[n] * density_fft_types[jtype][k] * factor2;
-       //fprintf(screen,"factor2 %f %f %f %f %f\n", kappa, vg_hat[loc][i], ktmp[n], wk1[k], factor2);
-        // rho_i * u_ij * rho_j * prefactor * kappa
-        if ( kappa != 0 ) virial[i] += kappa * ktmp[n] * rho1[k] * factor2;
-*/
+        //fprintf(screen,"virial %d %d %f %f\n", i, k, ktmpi[n], density_fft_types[jtype][k]);
         vtmp += ktmpi[n] * density_fft_types[jtype][k];
+        if ( calc_kappa_rho0 == 1 ) vtmpk -= ktmpi[n];
         n+=2;
       }
       virial[i] += vtmp * (chi[itype][jtype] + tmp_kappa) * factor2;
+      if ( i < 3 ) { // if diagonal member of the matrix, not sure why
+        if ( calc_kappa_rho0 == 1 ) {
+          virial[i] += vtmpk * rho0 * tmp_kappa * factor2;
+          virial[i] += rho0 * kappa;
+        }
+      }
     }
-   //fprintf(screen,"virial %f %f %f %f %f %f\n", virial[0], virial[1], virial[2], virial[3], virial[4], virial[5]);
+   //fprintf(screen,"virial %f %f %f %f %f %f\n", virial[0]/V, virial[1]/V, virial[2]/V, virial[3]/V, virial[4]/V, virial[5]/V);
   }
   
 }
-/*
-  double tmp_rho_sub = 0.0;
-  if (subtract_rho0 == 1) tmp_rho_sub = rho0;
-  // Convolve kspace-potential with fft(den_group)
-  for ( int itype = 1; itype <= ntypes; itype++) {
-    for ( int jtype = itype; jtype <= ntypes; jtype++) {
-      if ( potent_type_map[0][itype][jtype] == 1) continue;
-      if (fabs(chi[itype][jtype]) == 0  && kappa == 0) continue;
-
-      // take itype density into k-space
-      for (int k = 0; k < nfft; k++) {
-         work1[n++] = density_fft_types[itype][k] - tmp_rho_sub;
-         work1[n++] = ZEROF;
-       }
-      fft1->compute(work1,work1,1);
-  
-      n=0;
-      for (int k = 0; k < nfft; k++) {
-        work1[n++] *= scale_inv;
-        work1[n++] *= scale_inv;
-      }
-      // take jtype density into k-space
-  
-      // convolve itype-jtype interaction potential and itype density
-      int loc = itype*(jtype+1)/2;
-      n = 0;
-      for (int k = 0; k < nfft; k++) {
-        complex_multiply(potent[loc], work1, ktmp2, n);
-        n += 2;
-      }
-      // IFFT the convolution
-      fft1->compute(ktmp2, ktmp2, -1);
-  
-      double same_group_factor = 1.0;
-      if (itype == jtype) {
-        same_group_factor = 2.0;
-        work2 = work1;
-      } else {
-        // take jtype density into k-space
-        for (int k = 0; k < nfft; k++) {
-           work2[n++] = density_fft_types[jtype][k] - tmp_rho_sub;
-           work2[n++] = ZEROF;
-         }
-        fft1->compute(work1,work1,1);
-      
-        n=0;
-        for (int k = 0; k < nfft; k++) {
-          work2[n++] *= scale_inv;
-          work2[n++] *= scale_inv;
-        }
-      }
-
-      double factor = (chi[itype][jtype] + kappa) / delvolinv * same_group_factor * 0.5 / tmp_rho_div;
-
-      // chi and kappa energy contribution
-      if (eflag_global) {
-      fprintf(screen,"accu grad E\n");
-        n = 0;
-        for (int k = 0; k < nfft; k++) {
-          // rho_i * u_ij * rho_j * prefactor
-          energy += ktmp2[n] * work2[k] * factor;
-          n += 2;
-        }
-      }
-
-      // pressure tensor calculation
-      if (vflag_global) {
-      fprintf(screen,"accu grad P\n");
-        for (int i = 0; i < 6; i++) {
-          double factor2 = factor * ( i/3 ? 2.0 : 1.0);
-          n = 0;
-          for (int k = 0; k < nfft; k++) {
-            complex_multiply(vg_hat[loc][i], work1, ktmp, n);
-            n += 2;
-          }
-          fft1->compute(ktmp, ktmp, -1);
-          n=0;
-          for (int k = 0; k < nfft; k++) {
-            virial[i] += ktmp[n] * work2[k] * factor2;
-            n+=2;
-          }
-        }
-      }
-*/
 
 /* ----------------------------------------------------------------------
   Calculates the rho0 needed for this system instead of the rho0 that 

@@ -212,7 +212,7 @@ class TILD : public KSpace{
                          LAMMPS_NS::Remap *);
   virtual void brick2fft();
   virtual void brick2fft_none();
-  void ev_calculation(double*, double*, double*, int, int);
+  void ev_calculation(FFT_SCALAR *, int, int);
   //void ev_calculation();
 
 

@@ -156,9 +156,9 @@ class lammps(object):
 
   has_mpi4py = False
   try:
-    from mpi4py import MPI
     from mpi4py import __version__ as mpi4py_version
     if mpi4py_version.split('.')[0] in ['2','3']: has_mpi4py = True
+    if has_mpi4py: from mpi4py import MPI
   except:
     pass
 
@@ -172,7 +172,7 @@ class lammps(object):
 
     modpath = dirname(abspath(getsourcefile(lambda:0)))
     self.lib = None
-    self.lmp = c_void_p()
+    self.lmp = None
 
     # if a pointer to a LAMMPS object is handed in,
     # all symbols should already be available
@@ -209,6 +209,7 @@ class lammps(object):
     # define ctypes API for each library method
     # NOTE: should add one of these for each lib function
 
+    self.lib.lammps_close.argtypes = [c_void_p]
     self.lib.lammps_file.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_file.restype = None
 
@@ -317,12 +318,12 @@ class lammps(object):
             if type(cmdargs[i]) is str:
               cmdargs[i] = cmdargs[i].encode()
           cargs = (c_char_p*narg)(*cmdargs)
-          self.lmp = lib.lammps_open_no_mpi(narg,cargs,None)
           self.lib.lammps_open_no_mpi.argtypes = [c_int, c_char_p*narg, \
                                                   c_void_p]
           self.lib.lammps_open_no_mpi.restype = c_void_p
+          self.lmp = self.lib.lammps_open_no_mpi(narg,cargs,None)
         else:
-          self.lib.lammps_open.argtypes = [c_int, c_int, c_void_p]
+          self.lib.lammps_open_no_mpi.argtypes = []
           self.lib.lammps_open_no_mpi.restype = c_void_p
           self.lmp = self.lib.lammps_open_no_mpi(0,None,None)
 

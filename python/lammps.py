@@ -206,15 +206,22 @@ class lammps(object):
         if not name: self.lib = CDLL("liblammps" + lib_ext,RTLD_GLOBAL)
         else: self.lib = CDLL("liblammps_%s" % name + lib_ext,RTLD_GLOBAL)
 
-    # define ctypes API for each library method
-    # NOTE: should add one of these for each lib function
-
+    # declare ctypes arguments and return types for all library methods
+    # exceptions are where the arguments depend on certain conditions
+    # and then are defined where the functions are used.
+    self.lib.lammps_open.restype = c_void_p
+    self.lib.lammps_open_no_mpi.restype = c_void_p
     self.lib.lammps_close.argtypes = [c_void_p]
+    self.lib.lammps_free.argtypes = [c_void_p]
+
     self.lib.lammps_file.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_file.restype = None
 
     self.lib.lammps_command.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_command.restype = c_char_p
+    self.lib.lammps_commands_list.restype = None
+    self.lib.lammps_commands_string.argtypes = [c_void_p, c_char_p]
+    self.lib.lammps_commands_string.restype = None
 
     self.lib.lammps_get_natoms.restype = c_double
     self.lib.lammps_extract_box.argtypes = \
@@ -286,7 +293,7 @@ class lammps(object):
           MPI_Comm = c_void_p
 
         narg = 0
-        cargs = 0
+        cargs = None
         if cmdargs:
           cmdargs.insert(0,"lammps.py")
           narg = len(cmdargs)
@@ -297,10 +304,9 @@ class lammps(object):
           self.lib.lammps_open.argtypes = [c_int, c_char_p*narg, \
                                            MPI_Comm, c_void_p]
         else:
-          self.lib.lammps_open.argtypes = [c_int, c_int, \
+          self.lib.lammps_open.argtypes = [c_int, c_char_p, \
                                            MPI_Comm, c_void_p]
 
-        self.lib.lammps_open.restype = c_void_p
         self.opened = 1
         comm_ptr = lammps.MPI._addressof(comm)
         comm_val = MPI_Comm.from_address(comm_ptr)
@@ -320,11 +326,9 @@ class lammps(object):
           cargs = (c_char_p*narg)(*cmdargs)
           self.lib.lammps_open_no_mpi.argtypes = [c_int, c_char_p*narg, \
                                                   c_void_p]
-          self.lib.lammps_open_no_mpi.restype = c_void_p
           self.lmp = self.lib.lammps_open_no_mpi(narg,cargs,None)
         else:
-          self.lib.lammps_open_no_mpi.argtypes = []
-          self.lib.lammps_open_no_mpi.restype = c_void_p
+          self.lib.lammps_open_no_mpi.argtypes = [c_int, c_char_p, c_void_p]
           self.lmp = self.lib.lammps_open_no_mpi(0,None,None)
 
     else:
@@ -501,8 +505,10 @@ class lammps(object):
     :type cmdlist:  list of strings
     """
     cmds = [x.encode() for x in cmdlist if type(x) is str]
-    args = (c_char_p * len(cmdlist))(*cmds)
-    self.lib.lammps_commands_list(self.lmp,len(cmdlist),args)
+    narg = len(cmdlist)
+    args = (c_char_p * narg)(*cmds)
+    self.lib.lammps_commands_list.argtypes = [c_void_p, c_int, c_char_p * narg]
+    self.lib.lammps_commands_list(self.lmp,narg,args)
 
   def commands_string(self,multicmd):
     """Process a block of LAMMPS input commands from a string.

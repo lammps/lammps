@@ -30,8 +30,7 @@ if (Python_EXECUTABLE)
   add_test(NAME PythonOpen
            COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/python-open.py -v
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
-  set_tests_properties(PythonOpen     PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
-
+  set_tests_properties(PythonOpen PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
   add_test(NAME PythonCommands
            COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/python-commands.py -v
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})

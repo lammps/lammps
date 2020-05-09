@@ -9,13 +9,18 @@ class PythonCommand(unittest.TestCase):
         if 'LAMMPS_MACHINE_NAME' in os.environ:
             machine=os.environ['LAMMPS_MACHINE_NAME']
         self.lmp=lammps(name=machine,
-                        cmdargs=['-nocite','-log','none','-echo','screen'])
+                        cmdargs=['-nocite',
+                                 '-log','none',
+                                 '-echo','screen',
+                                 '-var','zpos','1.5' ])
         # create demo input strings and files
+        # a few commands to set up a box with a single atom
         self.demo_input="""
 region       box block 0 2 0 2 0 2
 create_box 1 box
-create_atoms 1 single 1.0 1.0 1.0
+create_atoms 1 single 1.0 1.0 ${zpos}
 """
+        # another command to add an atom and use a continuation line
         self.cont_input="""
 create_atoms 1 single &
             0.2 0.1 0.1
@@ -27,6 +32,7 @@ create_atoms 1 single &
         with open(self.cont_file,'w') as f:
             f.write(self.cont_input)
 
+    # clean up temporary files
     def tearDown(self):
         if os.path.exists(self.demo_file):
             os.remove(self.demo_file)
@@ -36,27 +42,47 @@ create_atoms 1 single &
     ##############################
     def testFile(self):
         """Test reading commands from a file"""
+        natoms = int(self.lmp.get_natoms())
+        self.assertEqual(natoms,0)
         self.lmp.file(self.demo_file)
+        natoms = int(self.lmp.get_natoms())
+        self.assertEqual(natoms,1)
         self.lmp.file(self.cont_file)
+        natoms = int(self.lmp.get_natoms())
+        self.assertEqual(natoms,2)
 
     def testNoFile(self):
         """Test (not) reading commands from no file"""
         self.lmp.file(None)
+        natoms = int(self.lmp.get_natoms())
+        self.assertEqual(natoms,0)
 
     def testCommand(self):
         """Test executing individual commands"""
+        natoms = int(self.lmp.get_natoms())
+        self.assertEqual(natoms,0)
         cmds = self.demo_input.splitlines()
         for cmd in cmds:
             self.lmp.command(cmd)
+        natoms = int(self.lmp.get_natoms())
+        self.assertEqual(natoms,1)
 
     def testCommandsList(self):
-        """Test executing list of commands"""
+        """Test executing commands from list of strings"""
+        natoms = int(self.lmp.get_natoms())
+        self.assertEqual(natoms,0)
         cmds = self.demo_input.splitlines()+self.cont_input.splitlines()
         self.lmp.commands_list(cmds)
+        natoms = int(self.lmp.get_natoms())
+        self.assertEqual(natoms,2)
 
     def testCommandsString(self):
-        """Test executing block of commands"""
+        """Test executing block of commands from string"""
+        natoms = int(self.lmp.get_natoms())
+        self.assertEqual(natoms,0)
         self.lmp.commands_string(self.demo_input+self.cont_input)
+        natoms = int(self.lmp.get_natoms())
+        self.assertEqual(natoms,2)
 
 ##############################
 if __name__ == "__main__":

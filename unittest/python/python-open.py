@@ -1,8 +1,6 @@
 
 import sys,os,unittest
 from lammps import lammps
-from io import StringIO
-from contextlib import redirect_stdout
 
 class PythonOpen(unittest.TestCase):
 
@@ -27,6 +25,7 @@ class PythonOpen(unittest.TestCase):
         """Create LAMMPS instance with a few arguments"""
         lmp=lammps(name=self.machine,
                    cmdargs=['-nocite','-sf','opt','-log','none'])
+        lmp.close()
         lmp.__del__()
 
     def testWithMPI(self):

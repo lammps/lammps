@@ -1,0 +1,73 @@
+MODULE keepcmds
+  USE liblammps
+  TYPE(LAMMPS) :: lmp
+  CHARACTER(len=*), DIMENSION(*), PARAMETER :: demo_input = &
+      [ CHARACTER(len=40) ::                                &
+      'region       box block 0 2 0 2 0 2',                 &
+      'create_box 1 box',                                   &
+      'create_atoms 1 single 1.0 1.0 ${zpos}' ]
+  CHARACTER(len=*), DIMENSION(*), PARAMETER :: cont_input = &
+      [ CHARACTER(len=40) ::                                &
+      'create_atoms 1 single &',                            &
+      ' 0.2 0.1 0.1' ]
+END MODULE keepcmds
+
+FUNCTION f_lammps_with_args() BIND(C, name="f_lammps_with_args")
+  USE ISO_C_BINDING, ONLY: c_ptr
+  USE liblammps
+  USE keepcmds,      ONLY: lmp
+  IMPLICIT NONE
+  TYPE(c_ptr) :: f_lammps_with_args
+
+  CHARACTER(len=*), DIMENSION(*), PARAMETER :: args = &
+      [ CHARACTER(len=12) :: 'liblammps', '-log', 'none', &
+      '-echo','screen','-nocite','-var','zpos','1.5']
+
+  lmp = lammps(args)
+  f_lammps_with_args = lmp%handle
+END FUNCTION f_lammps_with_args
+
+SUBROUTINE f_lammps_close() BIND(C, name="f_lammps_close")
+  USE ISO_C_BINDING, ONLY: c_null_ptr
+  USE liblammps
+  USE keepcmds, ONLY: lmp
+  IMPLICIT NONE
+
+  CALL lmp%close()
+  lmp%handle = c_null_ptr
+END SUBROUTINE f_lammps_close
+
+FUNCTION f_lammps_get_natoms() BIND(C, name="f_lammps_get_natoms")
+  USE ISO_C_BINDING, ONLY: c_null_ptr, c_double
+  USE liblammps
+  USE keepcmds, ONLY: lmp
+  IMPLICIT NONE
+  REAL(c_double) :: f_lammps_get_natoms
+
+  f_lammps_get_natoms = lmp%get_natoms()
+END FUNCTION f_lammps_get_natoms
+
+SUBROUTINE f_lammps_file() BIND(C, name="f_lammps_file")
+  USE ISO_C_BINDING, ONLY: c_null_ptr
+  USE liblammps
+  USE keepcmds, ONLY: lmp, demo_input, cont_input
+  IMPLICIT NONE
+  INTEGER :: i
+  CHARACTER(len=*), PARAMETER :: demo_file = 'in.test', cont_file = 'in.cont'
+
+  OPEN(10, file=demo_file, status='replace')
+  WRITE(10, fmt='(A)') (demo_input(i),i=1,SIZE(demo_input))
+  CLOSE(10)
+  OPEN(11, file=cont_file, status='replace')
+  WRITE(11, fmt='(A)') (cont_input(i),i=1,SIZE(cont_input))
+  CLOSE(11)
+  CALL lmp%file(demo_file)
+  CALL lmp%file(cont_file)
+  OPEN(12, file=demo_file, status='old')
+  CLOSE(12, status='delete')
+  OPEN(13, file=cont_file, status='old')
+  CLOSE(13, status='delete')
+  
+END SUBROUTINE f_lammps_file
+  
+

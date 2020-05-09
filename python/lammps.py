@@ -223,6 +223,7 @@ class lammps(object):
     self.lib.lammps_commands_string.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_commands_string.restype = None
 
+    self.lib.lammps_get_natoms.argtypes = [c_void_p]
     self.lib.lammps_get_natoms.restype = c_double
     self.lib.lammps_extract_box.argtypes = \
       [c_void_p,POINTER(c_double),POINTER(c_double),

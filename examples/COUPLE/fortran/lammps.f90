@@ -30,7 +30,7 @@
 MODULE LIBLAMMPS
 
   USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_ptr, c_null_ptr, c_loc, &
-      c_int, c_char, c_null_char
+      c_int, c_char, c_null_char, c_double
 
   IMPLICIT NONE
   PRIVATE
@@ -43,6 +43,7 @@ MODULE LIBLAMMPS
       PROCEDURE :: file  => lmp_file
       PROCEDURE :: command => lmp_command
       PROCEDURE :: version => lmp_version
+      PROCEDURE :: get_natoms => lmp_get_natoms
   END TYPE lammps
 
   INTERFACE lammps
@@ -98,6 +99,11 @@ MODULE LIBLAMMPS
         TYPE(c_ptr), VALUE :: handle
         INTEGER(c_int) :: lammps_version
       END FUNCTION lammps_version
+      FUNCTION lammps_get_natoms(handle) BIND(C, name='lammps_get_natoms')
+        IMPORT :: c_ptr, c_double
+        TYPE(c_ptr), VALUE :: handle
+        REAL(c_double) :: lammps_get_natoms
+      END FUNCTION lammps_get_natoms
   END INTERFACE
 
 CONTAINS
@@ -161,6 +167,13 @@ CONTAINS
 
     lmp_version = lammps_version(self%handle)
   END FUNCTION lmp_version
+
+  DOUBLE PRECISION FUNCTION lmp_get_natoms(self)
+    IMPLICIT NONE
+    CLASS(lammps) :: self
+
+    lmp_get_natoms = lammps_get_natoms(self%handle)
+  END FUNCTION lmp_get_natoms
 
   SUBROUTINE lmp_file(self,filename)
     IMPLICIT NONE

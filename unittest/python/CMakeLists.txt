@@ -5,12 +5,12 @@ if(NOT BUILD_SHARED_LIBS)
 endif()
 
 if(CMAKE_VERSION VERSION_LESS 3.12)
-  find_package(PythonInterp) # Deprecated since version 3.12
+  find_package(PythonInterp 3.5) # Deprecated since version 3.12
   if(PYTHONINTERP_FOUND)
     set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
   endif()
 else()
-  find_package(Python COMPONENTS Interpreter)
+  find_package(Python3 COMPONENTS Interpreter)
 endif()
 
 if (Python_EXECUTABLE)

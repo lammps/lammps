@@ -144,7 +144,7 @@ namespace LAMMPS_NS
         EXPECT_STREQ(found,"SPIN");
         found = lmp->match_style("atom","smd");
         EXPECT_STREQ(found,"USER-SMD");
-        found = lmp->match_style("atom","meso");
+        found = lmp->match_style("atom","sph");
         EXPECT_STREQ(found,"USER-SPH");
         found = lmp->match_style("atom","i_don't_exist");
         EXPECT_STREQ(found,NULL);

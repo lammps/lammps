@@ -314,7 +314,7 @@ and :cpp:func:`Input::file()<void LAMMPS_NS::Input::file()>`.
  * \param  handle    pointer to a previously created LAMMPS instance
  * \param  filename  name of a file with LAMMPS input */
 
-void lammps_file(void *handle, char *filename)
+void lammps_file(void *handle, const char *filename)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
@@ -349,7 +349,7 @@ passing a string without a command.
  * \param  cmd     string with a single LAMMPS command
  * \return         string with parsed command name or ``NULL`` */
 
-char *lammps_command(void *handle, char *cmd)
+char *lammps_command(void *handle, const char *cmd)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
   char *result = NULL;
@@ -382,7 +382,7 @@ is passed to :cpp:func:`lammps_commands_string` for processing.
  * \param  ncmd    number of lines in *cmds*
  * \param  cmds    list of strings with LAMMPS commands */
 
-void lammps_commands_list(void *handle, int ncmd, char **cmds)
+void lammps_commands_list(void *handle, int ncmd, const char **cmds)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
@@ -429,7 +429,7 @@ executing.
  * \param  handle  pointer to a previously created LAMMPS instance
  * \param  str     string with block of LAMMPS input commands */
 
-void lammps_commands_string(void *handle, char *str)
+void lammps_commands_string(void *handle, const char *str)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 

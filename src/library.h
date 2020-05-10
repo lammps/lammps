@@ -87,11 +87,11 @@ void  lammps_free(void *ptr);
 // Library functions to process commands
 // ----------------------------------------------------------------------
 
-void  lammps_file(void *handle, char *file);
+void  lammps_file(void *handle, const char *file);
 
-char *lammps_command(void *handle, char *cmd);
-void  lammps_commands_list(void *handle, int ncmd, char **cmds);
-void  lammps_commands_string(void *handle, char *str);
+char *lammps_command(void *handle, const char *cmd);
+void  lammps_commands_list(void *handle, int ncmd, const char **cmds);
+void  lammps_commands_string(void *handle, const char *str);
 
 // -----------------------------------------------------------------------
 // Library functions to extract info from LAMMPS or set data in LAMMPS

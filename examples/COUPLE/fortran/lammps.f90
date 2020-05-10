@@ -39,11 +39,13 @@ MODULE LIBLAMMPS
   TYPE lammps
       TYPE(c_ptr) :: handle
     CONTAINS
-      PROCEDURE :: close => lmp_close
-      PROCEDURE :: file  => lmp_file
-      PROCEDURE :: command => lmp_command
-      PROCEDURE :: version => lmp_version
-      PROCEDURE :: get_natoms => lmp_get_natoms
+      PROCEDURE :: close              => lmp_close
+      PROCEDURE :: file               => lmp_file
+      PROCEDURE :: command            => lmp_command
+      PROCEDURE :: commands_list      => lmp_commands_list
+      PROCEDURE :: commands_string    => lmp_commands_string
+      PROCEDURE :: version            => lmp_version
+      PROCEDURE :: get_natoms         => lmp_get_natoms
   END TYPE lammps
 
   INTERFACE lammps
@@ -60,6 +62,7 @@ MODULE LIBLAMMPS
         TYPE(c_ptr), INTENT(out)              :: handle
         TYPE(c_ptr)                           :: lammps_open
       END FUNCTION lammps_open
+
       FUNCTION lammps_open_no_mpi(argc,argv,handle) &
           BIND(C, name='lammps_open_no_mpi')
         IMPORT :: c_ptr, c_int
@@ -68,37 +71,61 @@ MODULE LIBLAMMPS
         TYPE(c_ptr), INTENT(out)              :: handle
         TYPE(c_ptr)                           :: lammps_open_no_mpi
       END FUNCTION lammps_open_no_mpi
+
       SUBROUTINE lammps_close(handle) BIND(C, name='lammps_close')
         IMPORT :: c_ptr
         TYPE(c_ptr), VALUE :: handle
       END SUBROUTINE lammps_close
+
       SUBROUTINE lammps_mpi_init(handle) BIND(C, name='lammps_mpi_init')
         IMPORT :: c_ptr
         TYPE(c_ptr), VALUE :: handle
       END SUBROUTINE lammps_mpi_init
-      SUBROUTINE lammps_mpi_finalize(handle) BIND(C, name='lammps_mpi_finalize')
+
+      SUBROUTINE lammps_mpi_finalize(handle) &
+          BIND(C, name='lammps_mpi_finalize')
         IMPORT :: c_ptr
         TYPE(c_ptr), VALUE :: handle
       END SUBROUTINE lammps_mpi_finalize
+
       SUBROUTINE lammps_file(handle,filename) BIND(C, name='lammps_file')
         IMPORT :: c_ptr
         TYPE(c_ptr), VALUE :: handle
         TYPE(c_ptr), VALUE :: filename
       END SUBROUTINE lammps_file
+
       SUBROUTINE lammps_command(handle,cmd) BIND(C, name='lammps_command')
         IMPORT :: c_ptr
         TYPE(c_ptr), VALUE :: handle
         TYPE(c_ptr), VALUE :: cmd
       END SUBROUTINE lammps_command
+
+      SUBROUTINE lammps_commands_list(handle,ncmd,cmds) &
+          BIND(C, name='lammps_commands_list')
+        IMPORT :: c_ptr, c_int
+        TYPE(c_ptr), VALUE :: handle
+        INTEGER(c_int), VALUE, INTENT(in)     :: ncmd
+        TYPE(c_ptr), DIMENSION(*), INTENT(in) :: cmds
+      END SUBROUTINE lammps_commands_list
+
+      SUBROUTINE lammps_commands_string(handle,str) &
+          BIND(C, name='lammps_commands_string')
+        IMPORT :: c_ptr
+        TYPE(c_ptr), VALUE :: handle
+        TYPE(c_ptr), VALUE :: str
+      END SUBROUTINE lammps_commands_string
+
       SUBROUTINE lammps_free(ptr) BIND(C, name='lammps_free')
         IMPORT :: c_ptr
         TYPE(c_ptr), VALUE :: ptr
       END SUBROUTINE lammps_free
+
       FUNCTION lammps_version(handle) BIND(C, name='lammps_version')
         IMPORT :: c_ptr, c_int
         TYPE(c_ptr), VALUE :: handle
         INTEGER(c_int) :: lammps_version
       END FUNCTION lammps_version
+
       FUNCTION lammps_get_natoms(handle) BIND(C, name='lammps_get_natoms')
         IMPORT :: c_ptr, c_double
         TYPE(c_ptr), VALUE :: handle
@@ -197,6 +224,42 @@ CONTAINS
     CALL lammps_command(self%handle,str)
     CALL lammps_free(str)
   END SUBROUTINE lmp_command
+
+  ! equivalent function to lammps_commands_list()
+  SUBROUTINE lmp_commands_list(self,cmds)
+    IMPLICIT NONE
+    CLASS(lammps) :: self
+    CHARACTER(len=*), INTENT(in), OPTIONAL :: cmds(:)
+    TYPE(c_ptr), ALLOCATABLE     :: cmdv(:)
+    INTEGER :: i,ncmd
+
+    ! convert command list to c style
+    ncmd = SIZE(cmds)
+    ALLOCATE(cmdv(ncmd))
+    DO i=1,ncmd
+        cmdv(i) = f2c_string(cmds(i))
+    END DO
+
+    CALL lammps_commands_list(self%handle,ncmd,cmdv)
+
+    ! Clean up allocated memory
+    DO i=1,ncmd
+        CALL lammps_free(cmdv(i))
+    END DO
+    DEALLOCATE(cmdv)
+  END SUBROUTINE lmp_commands_list
+
+  ! equivalent function to lammps_commands_string()
+  SUBROUTINE lmp_commands_string(self,str)
+    IMPLICIT NONE
+    CLASS(lammps) :: self
+    CHARACTER(len=*) :: str
+    TYPE(c_ptr) :: tmp
+
+    tmp = f2c_string(str)
+    CALL lammps_commands_string(self%handle,tmp)
+    CALL lammps_free(tmp)
+  END SUBROUTINE lmp_commands_string
 
   ! ----------------------------------------------------------------------
   ! local helper functions

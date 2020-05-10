@@ -67,7 +67,45 @@ SUBROUTINE f_lammps_file() BIND(C, name="f_lammps_file")
   CLOSE(12, status='delete')
   OPEN(13, file=cont_file, status='old')
   CLOSE(13, status='delete')
-  
 END SUBROUTINE f_lammps_file
-  
 
+SUBROUTINE f_lammps_command() BIND(C, name="f_lammps_command")
+  USE ISO_C_BINDING, ONLY: c_null_ptr
+  USE liblammps
+  USE keepcmds, ONLY: lmp, demo_input
+  IMPLICIT NONE
+  INTEGER :: i
+
+  DO i=1,SIZE(demo_input)
+      call lmp%command(demo_input(i))
+  END DO
+END SUBROUTINE f_lammps_command
+
+SUBROUTINE f_lammps_commands_list() BIND(C, name="f_lammps_commands_list")
+  USE ISO_C_BINDING, ONLY: c_null_ptr
+  USE liblammps
+  USE keepcmds, ONLY: lmp, demo_input, cont_input
+  IMPLICIT NONE
+
+  CALL lmp%commands_list(demo_input)
+  CALL lmp%commands_list(cont_input)
+END SUBROUTINE f_lammps_commands_list
+
+SUBROUTINE f_lammps_commands_string() BIND(C, name="f_lammps_commands_string")
+  USE ISO_C_BINDING, ONLY: c_null_ptr
+  USE liblammps
+  USE keepcmds, ONLY: lmp, demo_input, cont_input
+  IMPLICIT NONE
+  INTEGER :: i
+  CHARACTER(len=512) :: cmds
+
+  cmds = ''
+  DO i=1,SIZE(demo_input)
+      cmds = TRIM(cmds) // TRIM(demo_input(i)) // NEW_LINE('A')
+  END DO
+  DO i=1,SIZE(cont_input)
+      cmds = TRIM(cmds) // TRIM(cont_input(i)) // NEW_LINE('A')
+  END DO
+
+  CALL lmp%commands_string(cmds)
+END SUBROUTINE f_lammps_commands_string

@@ -12,7 +12,7 @@ bound procedures.  Below is a minimal example:
    PROGRAM testlib
      USE LIBLAMMPS                 ! include the LAMMPS library interface
      TYPE(lammps)     :: lmp       ! derived type to hold LAMMPS instance
-     CHARACTER(len=*), DIMENSION(5), PARAMETER :: args = &
+     CHARACTER(len=*), DIMENSION(*), PARAMETER :: args = &
          [ CHARACTER(len=12) :: 'liblammps',&
           '-echo', 'both', '-log', 'log.fortran' ]
 
@@ -54,6 +54,8 @@ was compiled with MPI support.
    :f version: :f:func:`version`
    :f file: :f:func:`file`
    :f command: :f:func:`command`
+   :f commands_list: :f:func:`commands_list`
+   :f commands_string: :f:func:`commands_string`
 
 .. f:function:: lammps(args[,comm])
 
@@ -68,7 +70,7 @@ was compiled with MPI support.
    If *comm* is not provided, ``MPI_COMM_WORLD`` is assumed. For
    more details please see the documentation of :cpp:func:`lammps_open`.
 
-   :p character(len=*) args() [optional]: arguments as list of strings
+   :p character(len=*) args(*) [optional]: arguments as list of strings
    :o integer comm [optional]: MPI communicator
    :r lammps: an instance of the :f:type:`lammps` derived type
 
@@ -87,6 +89,8 @@ was compiled with MPI support.
 
    :r integer: LAMMPS version
 
+--------
+
 .. f:subroutine:: file(filename)
 
    This method will call :cpp:func:`lammps_file` to have LAMMPS read
@@ -99,4 +103,19 @@ was compiled with MPI support.
    This method will call :cpp:func:`lammps_command` to have LAMMPS
    execute a single command.
 
-   :p character(len=*) cmd: LAMMPS command
+   :p character(len=*) cmd: single LAMMPS command
+
+.. f:subroutine:: commands_list(cmds)
+
+   This method will call :cpp:func:`lammps_commands_list` to have LAMMPS
+   execute a list of input lines.
+
+   :p character(len=*) cmd(*): list of LAMMPS input lines
+
+.. f:subroutine:: commands_string(str)
+
+   This method will call :cpp:func:`lammps_commands_string` to have LAMMPS
+   execute a block of commands from a string.
+
+   :p character(len=*) str: LAMMPS input in string
+

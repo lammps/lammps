@@ -12,6 +12,9 @@ extern "C" {
     void *f_lammps_with_args();
     void f_lammps_close();
     void f_lammps_file();
+    void f_lammps_command();
+    void f_lammps_commands_list();
+    void f_lammps_commands_string();
     double f_lammps_get_natoms();
 }
 
@@ -40,6 +43,24 @@ protected:
 TEST_F(LAMMPS_commands, from_file) {
     EXPECT_EQ(f_lammps_get_natoms(),0);
     f_lammps_file();
+    EXPECT_EQ(f_lammps_get_natoms(),2);
+};
+
+TEST_F(LAMMPS_commands, from_line) {
+    EXPECT_EQ(f_lammps_get_natoms(),0);
+    f_lammps_command();
+    EXPECT_EQ(f_lammps_get_natoms(),1);
+};
+
+TEST_F(LAMMPS_commands, from_list) {
+    EXPECT_EQ(f_lammps_get_natoms(),0);
+    f_lammps_commands_list();
+    EXPECT_EQ(f_lammps_get_natoms(),2);
+};
+
+TEST_F(LAMMPS_commands, from_string) {
+    EXPECT_EQ(f_lammps_get_natoms(),0);
+    f_lammps_commands_string();
     EXPECT_EQ(f_lammps_get_natoms(),2);
 };
 

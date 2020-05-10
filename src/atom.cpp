@@ -604,10 +604,13 @@ void Atom::add_peratom(const char *name, void *address,
 void Atom::add_peratom_change_columns(const char *name, int cols)
 {
   int i;
-  for (int i = 0; i < nperatom; i++)
-    if (strcmp(name,peratom[i].name) == 0) peratom[i].cols = cols;
-  if (i == nperatom)
-    error->all(FLERR,"Could not find name of peratom array for column change");
+  for (i = 0; i < nperatom; i++) {
+    if (strcmp(name,peratom[i].name) == 0) {
+            peratom[i].cols = cols;
+            return;
+    }
+  }
+  error->all(FLERR,"Could not find name of peratom array for column change");
 }
 
 /* ----------------------------------------------------------------------

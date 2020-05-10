@@ -192,7 +192,7 @@ int AtomVec::grow_nmax_bonus(int nmax_bonus)
 void AtomVec::grow(int n)
 {
   int datatype,cols,maxcols;
-  void *pdata,*plength;
+  void *pdata;
 
   if (n == 0) grow_nmax();
   else nmax = n;
@@ -1775,7 +1775,7 @@ void AtomVec::pack_data(double **buf)
 
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++) {
+  for (i = 0; i < nlocal; i++) {
 
     // if needed, change values before packing
 
@@ -1841,33 +1841,26 @@ void AtomVec::write_data(FILE *fp, int n, double **buf)
 
     j = 1;
     for (nn = 1; nn < ndata_atom; nn++) {
-      pdata = mdata_atom.pdata[nn];
       datatype = mdata_atom.datatype[nn];
       cols = mdata_atom.cols[nn];
       if (datatype == DOUBLE) {
         if (cols == 0) {
-          double *vec = *((double **) pdata);
           fprintf(fp," %-1.16e",buf[i][j++]);
         } else {
-          double **array = *((double ***) pdata);
           for (m = 0; m < cols; m++)
             fprintf(fp," %-1.16e",buf[i][j++]);
         }
       } else if (datatype == INT) {
         if (cols == 0) {
-          int *vec = *((int **) pdata);
           fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
         } else {
-          int **array = *((int ***) pdata);
           for (m = 0; m < cols; m++)
             fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
         }
       } else if (datatype == BIGINT) {
         if (cols == 0) {
-          bigint *vec = *((bigint **) pdata);
           fprintf(fp," " BIGINT_FORMAT,(bigint) ubuf(buf[i][j++]).i);
         } else {
-          bigint **array = *((bigint ***) pdata);
           for (m = 0; m < cols; m++)
             fprintf(fp," " BIGINT_FORMAT,(bigint) ubuf(buf[i][j++]).i);
         }

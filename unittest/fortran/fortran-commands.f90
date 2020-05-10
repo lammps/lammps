@@ -3,7 +3,7 @@ MODULE keepcmds
   TYPE(LAMMPS) :: lmp
   CHARACTER(len=*), DIMENSION(*), PARAMETER :: demo_input = &
       [ CHARACTER(len=40) ::                                &
-      'region       box block 0 2 0 2 0 2',                 &
+      'region       box block 0 $x 0 2 0 2',                &
       'create_box 1 box',                                   &
       'create_atoms 1 single 1.0 1.0 ${zpos}' ]
   CHARACTER(len=*), DIMENSION(*), PARAMETER :: cont_input = &
@@ -21,7 +21,7 @@ FUNCTION f_lammps_with_args() BIND(C, name="f_lammps_with_args")
 
   CHARACTER(len=*), DIMENSION(*), PARAMETER :: args = &
       [ CHARACTER(len=12) :: 'liblammps', '-log', 'none', &
-      '-echo','screen','-nocite','-var','zpos','1.5']
+      '-echo','screen','-nocite','-var','zpos','1.5','-var','x','2']
 
   lmp = lammps(args)
   f_lammps_with_args = lmp%handle

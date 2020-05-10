@@ -12,11 +12,12 @@ class PythonCommand(unittest.TestCase):
                         cmdargs=['-nocite',
                                  '-log','none',
                                  '-echo','screen',
-                                 '-var','zpos','1.5' ])
+                                 '-var','zpos','1.5',
+                                 '-var','x','2'])
         # create demo input strings and files
         # a few commands to set up a box with a single atom
         self.demo_input="""
-region       box block 0 2 0 2 0 2
+region       box block 0 $x 0 2 0 2
 create_box 1 box
 create_atoms 1 single 1.0 1.0 ${zpos}
 """

@@ -7,7 +7,7 @@
 #include "gtest/gtest.h"
 
 const char *demo_input[] = {
-      "region       box block 0 2 0 2 0 2",
+      "region       box block 0 $x 0 2 0 2",
       "create_box 1 box",
       "create_atoms 1 single 1.0 1.0 ${zpos}" };
 const char *cont_input[] = {
@@ -25,7 +25,7 @@ protected:
         const char *args[] = {"LAMMPS_test",
                               "-log", "none",
                               "-echo", "screen",
-                              "-nocite",
+                              "-nocite", "-var","x","2",
                               "-var", "zpos", "1.5"};
         char **argv = (char **)args;
         int argc = sizeof(args)/sizeof(char *);

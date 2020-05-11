@@ -97,14 +97,14 @@ compiled to instead :ref:`throw a C++ exception <exceptions>`.
 
 .. _lammps_python_api:
 
-LAMMPS Python Modules
-=====================
+LAMMPS Python Module
+====================
 
-The LAMMPS Python modules enable calling the LAMMPS library API from
-Python through dynamically loading the LAMMPS shared library through
-the ctypes module.  The interface is object oriented but otherwise
-trying to be very similar to the C library API.  The different Python
-modules build on each other.
+The LAMMPS Python module enables calling the LAMMPS library API from
+Python by dynamically loading functions in the LAMMPS shared library through
+the `Python ctypes module <https://docs.python.org/3/library/ctypes.html>`_.
+The interface is object oriented but otherwise trying to be very similar
+to the C library API.  Three different Python classes build on each other.
 
 .. toctree::
    :maxdepth: 1
@@ -116,10 +116,10 @@ modules build on each other.
 .. _lammps_fortran_api:
 
 LAMMPS Fortran Module
-=========================
+=====================
 
 The LAMMPS Fortran module enables calling the LAMMPS library API from
-Fortran through the ISO_C_BINDING Fortran 2003 module.  The interface
+Fortran through the ISO_C_BINDING feature in Fortran 2003.  The interface
 is object oriented but otherwise trying to be very similar to the C
 library API.
 
@@ -127,6 +127,23 @@ library API.
    :maxdepth: 1
 
    pg_fortran
+
+-------------------
+
+.. _lammps_cplusplus_api:
+
+LAMMPS C++ API
+==============
+
+It is also possible to invoke the LAMMPS C++ API directly in your code.
+It is lacking some of the convenience of the C library API, but it allows
+a more direct access to simulation data and thus more low-level manipulations.
+The following links provide some examples and references to the C++ API.
+
+.. toctree::
+   :maxdepth: 1
+
+   pg_cplusplus
 
 -------------------
 

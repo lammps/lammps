@@ -37,6 +37,7 @@ From: ubuntu:18.04
         libpng-dev \
         libproj-dev \
         libvtk6-dev \
+        libyaml-dev \
         make \
         mpi-default-bin \
         mpi-default-dev \
@@ -54,6 +55,7 @@ From: ubuntu:18.04
         ssh \
         texlive \
         texlive-latex-recommended \
+        texlive-formats-extra \
         texlive-pictures \
         texlive-publishers \
         texlive-science \
@@ -69,10 +71,23 @@ From: ubuntu:18.04
     # clean cache
     rm -rf /var/lib/apt/lists/*
 
+    # set custom prompt indicating the container name
+    CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
+    cat >$CUSTOM_PROMPT_ENV <<EOF
+#!/bin/bash
+PS1="[ubuntu18.04:\u@\h] \W> "
+EOF
+    chmod 755 $CUSTOM_PROMPT_ENV
+
 %environment
     LC_ALL=C
     export LC_ALL
     export PATH=/usr/lib/ccache:$PATH
+    # restrict OpenMPI to shared memory comm by default
+    OMPI_MCA_btl="sm,self"
+    # do not warn about unused components as this messes up testing
+    OMPI_MCA_btl_base_warn_component_unused="0"
+    export OMPI_MCA_btl OMPI_MCA_btl_base_warn_component_unused
 
 %labels
     Author akohlmey, rbberger

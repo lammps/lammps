@@ -1,41 +1,66 @@
-LAMMPS Python Modules
-*********************
+The ``lammps`` Python module
+****************************
 
-The LAMMPS Python interface requires a :doc:`shared LAMMPS library
-<Build_link>` or to be called from inside LAMMPS via the :ref:`PYTHON
-<python>` package.  It uses the `ctypes
-<https://docs.python.org/3/library/ctypes.html>`_ Python module to
-dynamically import the compiled LAMMPS code via the :doc:`C-library API
-<pg_library>` into the Python interpreter.  This is implemented in the
-``lammps.py`` file in the ``python`` folder.
+The LAMMPS Python interface is implemented in the ``lammps.py`` file in
+the ``python`` folder.  After compilation of LAMMPS, in can be installed
+into a Python system folder or a user folder with ``make
+install-python``.
 
 There are multiple Python interface classes implemented:
 
-- the :py:class:`lammps class <lammps>`. This is a wrapper around
+- the :py:class:`lammps <lammps.lammps>` class. This is a wrapper around
   the C-library interface and its member functions try to replicate the
   :doc:`C-library API <pg_library>` closely.  This is the most
   feature-complete python API.
-- the :py:class:`PyLammps <lammps.PyLammps>`. This is a more high-level
+- the :py:class:`PyLammps <lammps.PyLammps>` class. This is a more high-level
   and more Python style class implemented on top of the
   :py:class:`lammps <lammps.lammps>` class.
 - the :py:class:`IPyLammps <lammps.IPyLammps>` class is derived from
   :py:class:`PyLammps <lammps.PyLammps>` and adds embedded graphics
-  features to conveniently embed LAMMPS into `Jupyter <https://jupyter.org/>`_
-  notebooks.
+  features to conveniently include LAMMPS into `Jupyter
+  <https://jupyter.org/>`_ notebooks.
 
-The lammps module
-=================
+----------
 
-The :py:mod:`lammps` module contains various functions, constants,
-and the :py:class:`lammps <lammps.lammps>`,
-:py:class:`PyLammps <lammps.PyLammps>`,
-and :py:class:`IPyLammps <lammps.IPyLammps>` classes that form
-the LAMMPS Python API.
+The ``lammps`` class API
+************************
 
-Here is a summary of the constants and their uses.
+The :py:class:`lammps <lammps.lammps>` class is the core of the LAMMPS
+Python interfaces.  It is a wrapper around the :doc:`LAMMPS C library
+API <pg_library>` using the `Python ctypes module
+<https://docs.python.org/3/library/ctypes.html>`_ and a shared library
+compiled from the LAMMPS sources code.  The individual methods in this
+class try to closely follow the corresponding C functions.  The handle
+argument that needs to be passed to the C functions is stored internally
+in the class and automatically added when calling the C library
+functions. Below is a detailed documentation of the API.
 
-.. py:module:: lammps
-   :synopsis: Python wrapper for the LAMMPS library API via ctypes
+.. autoclass:: lammps.lammps
+   :members:
+
+----------
+
+The ``PyLammps`` class API
+**************************
+
+.. autoclass:: lammps.PyLammps
+   :members:
+
+----------
+
+The ``IPyLammps`` class API
+***************************
+
+.. autoclass:: lammps.IPyLammps
+   :members:
+
+----------
+
+Additional components of the ``lammps`` module
+**********************************************
+
+The :py:mod:`lammps` module additionally contains several constants
+and the :py:class:`NeighList <lammps.NeighList>` class:
 
 .. _py_data_constants:
 .. py:data:: LAMMPS_INT, LAMMPS_DOUBLE, LAMMPS_BIGINT, LAMMPS_TAGINT, LAMMPS_STRING
@@ -70,45 +95,7 @@ Here is a summary of the constants and their uses.
    Constants in the :py:mod:`lammps` module to select what style of
    variable to query when calling :py:func:`lammps.extract_variable`.
 
-----------
-
-The lammps class
-================
-
-The :py:class:`lammps <lammps.lammps>` class is a wrapper around
-the :doc:`LAMMPS C library API <pg_library>` using the Python ``ctypes`` module
-and a shared library compiled from the LAMMPS sources code.
-The individual methods in this class try to closely follow the
-corresponding C functions.  The handle argument that needs to be
-passed to the C functions is stored internally in the class and
-automatically added when calling the C library functions.
-
-----------
-
-.. autoclass:: lammps.lammps
-   :members:
-
-----------
-
-The NeighList class
-===================
-
 .. autoclass:: lammps.NeighList
    :members:
    :no-undoc-members:
 
-----------
-
-The PyLammps class
-==================
-
-.. autoclass:: lammps.PyLammps
-   :members:
-
-----------
-
-The IPyLammps class
-===================
-
-.. autoclass:: lammps.IPyLammps
-   :members:

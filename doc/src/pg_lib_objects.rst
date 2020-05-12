@@ -6,12 +6,6 @@ computes, fixes, or variables in LAMMPS.
 
 -----------------------
 
-.. doxygenenum:: _LMP_STYLE_CONST
-
-.. doxygenenum:: _LMP_TYPE_CONST
-
------------------------
-
 .. doxygenfunction:: lammps_extract_compute
    :project: progguide
 
@@ -29,3 +23,9 @@ computes, fixes, or variables in LAMMPS.
 
 .. doxygenfunction:: lammps_set_variable
    :project: progguide
+
+-----------------------
+
+.. doxygenenum:: _LMP_STYLE_CONST
+
+.. doxygenenum:: _LMP_TYPE_CONST

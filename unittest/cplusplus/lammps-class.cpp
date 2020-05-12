@@ -5,7 +5,10 @@
 #include <cstdio>  // for stdin, stdout
 #include <string>
 
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
+
+using ::testing::StartsWith;
 
 namespace LAMMPS_NS
 {
@@ -37,15 +40,15 @@ namespace LAMMPS_NS
 
             ::testing::internal::CaptureStdout();
             lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
-            std::string output = testing::internal::GetCapturedStdout();
-            EXPECT_STREQ(output.substr(0,8).c_str(), "LAMMPS (");
+            std::string output = ::testing::internal::GetCapturedStdout();
+            EXPECT_THAT(output, StartsWith("LAMMPS ("));
         }
 
         void TearDown() override {
             ::testing::internal::CaptureStdout();
             delete lmp;
-            std::string output = testing::internal::GetCapturedStdout();
-            EXPECT_STREQ(output.substr(0,16).c_str(), "Total wall time:");
+            std::string output = ::testing::internal::GetCapturedStdout();
+            EXPECT_THAT(output, StartsWith("Total wall time:"));
         }
     };
 
@@ -274,8 +277,8 @@ namespace LAMMPS_NS
             if (LAMMPS::is_installed_pkg("KOKKOS")) {
                 ::testing::internal::CaptureStdout();
                 lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
-                std::string output = testing::internal::GetCapturedStdout();
-                EXPECT_STREQ(output.substr(0,16).c_str(), "Kokkos::OpenMP::");
+                std::string output = ::testing::internal::GetCapturedStdout();
+                EXPECT_THAT(output, StartsWith("Kokkos::OpenMP::"));
             } else GTEST_SKIP();
         }
 
@@ -340,9 +343,9 @@ namespace LAMMPS_NS
 
         ::testing::internal::CaptureStdout();
         LAMMPS *lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
-        std::string output = testing::internal::GetCapturedStdout();
-        EXPECT_STREQ(output.substr(0,61).c_str(),
-                     "\nLarge-scale Atomic/Molecular Massively Parallel Simulator -");
+        std::string output = ::testing::internal::GetCapturedStdout();
+        EXPECT_THAT(output,
+                    StartsWith("\nLarge-scale Atomic/Molecular Massively Parallel Simulator -"));
         delete lmp;
     }
 }

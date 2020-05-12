@@ -75,6 +75,9 @@ void ACECTildeEvaluator::init(ACECTildeBasisSet *basis_set) {
 }
 
 void ACECTildeEvaluator::resize_neighbours_cache(int max_jnum) {
+    if (basis_set == nullptr) {
+        throw std::invalid_argument("ACECTildeEvaluator: basis set is not assigned");
+    }
     if (R_cache.get_dim(0) < max_jnum) {
 
         //TODO: implement grow
@@ -109,6 +112,9 @@ void ACECTildeEvaluator::resize_neighbours_cache(int max_jnum) {
 
 void
 ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, const int jnum, const int *jlist) {
+    if (basis_set == nullptr) {
+        throw std::invalid_argument("ACECTildeEvaluator: basis set is not assigned");
+    }
     per_atom_calc_timer.start();
 #ifdef PRINT_MAIN_STEPS
     printf("\n ATOM: ind = %d r_norm=(%f, %f, %f)\n",i, x[i][0], x[i][1], x[i][2]);

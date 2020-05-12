@@ -9,8 +9,8 @@ PairStyle(pace,PairPACE)
 
 #else
 
-#ifndef LMP_PAIR_TERSOFF_H
-#define LMP_PAIR_TERSOFF_H
+#ifndef LMP_PAIR_PACE_H
+#define LMP_PAIR_PACE_H
 
 #include "pair.h"
 #include "ace_evaluator.h"
@@ -63,53 +63,3 @@ namespace LAMMPS_NS {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair style Tersoff requires atom IDs
-
-This is a requirement to use the Tersoff potential.
-
-E: Pair style Tersoff requires newton pair on
-
-See the newton command.  This is a restriction to use the Tersoff
-potential.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-E: Cannot open Tersoff potential file %s
-
-The specified potential file cannot be opened.  Check that the path
-and name are correct.
-
-E: Incorrect format in Tersoff potential file
-
-Incorrect number of words per line in the potential file.
-
-E: Illegal Tersoff parameter
-
-One or more of the coefficients defined in the potential file is
-invalid.
-
-E: Potential file has duplicate entry
-
-The potential file has more than one entry for the same element.
-
-E: Potential file is missing an entry
-
-The potential file does not have a needed entry.
-
-*/

@@ -94,7 +94,7 @@ class ACECTildeEvaluator : public ACEEvaluator {
     Array1D<ACEComplex> dB_flatten = Array1D<ACEComplex>("dB_flatten");
 
     //pointer to the ACEBasisSet object
-    ACECTildeBasisSet *basis_set;
+    ACECTildeBasisSet *basis_set = nullptr;
 
     void init(ACECTildeBasisSet *basis_set);
 

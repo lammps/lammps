@@ -102,6 +102,7 @@ void ACECTildeBasisSet::_copy_dynamic_memory(const ACECTildeBasisSet &other) {//
 }
 
 
+
 //re-pack the constituent dynamic arrays of all basis functions in contiguous arrays
 void ACECTildeBasisSet::pack_flatten_basis() {
 
@@ -216,7 +217,7 @@ void ACECTildeBasisSet::pack_flatten_basis() {
                                   func.num_ms_combs;
             coeff_array_ind_rank1 += func.num_ms_combs * func.ndensity;
 
-            func_ind_r1++;
+//            func_ind_r1++;
         }
     }
 
@@ -265,7 +266,7 @@ void ACECTildeBasisSet::pack_flatten_basis() {
                             func.num_ms_combs;
             coeff_array_ind += func.num_ms_combs * func.ndensity;
 
-            func_ind++;
+//            func_ind++;
         }
     }
 }

@@ -11,6 +11,10 @@ ExternalProject_Add(googletest
                                     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                                     -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
                                     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+                    BUILD_BYPRODUCTS <BINARY_DIR>/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gtest.a
+                                     <BINARY_DIR>/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gmock.a
+                                     <BINARY_DIR>/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main.a
+                                     <BINARY_DIR>/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gmock_main.a
                     LOG_DOWNLOAD ON
                     LOG_CONFIGURE ON
                     LOG_BUILD ON

@@ -19,11 +19,11 @@ if(CMAKE_Fortran_COMPILER)
   add_library(flammps STATIC ${LAMMPS_FORTRAN_MODULE})
 
   add_executable(fortran-create wrap-create.cpp fortran-create.f90)
-  target_link_libraries(fortran-create PRIVATE flammps lammps "MPI::MPI_Fortran;GTest::GTest")
+  target_link_libraries(fortran-create PRIVATE flammps lammps MPI::MPI_Fortran ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY})
   add_test(FortranOpen fortran-create)
 
   add_executable(fortran-commands wrap-commands.cpp fortran-commands.f90)
-  target_link_libraries(fortran-commands PRIVATE flammps lammps "MPI::MPI_Fortran;GTest::GTest")
+  target_link_libraries(fortran-commands PRIVATE flammps lammps MPI::MPI_Fortran ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY})
   add_test(FortranCommands fortran-commands)
 else()
   message(STATUS "Skipping Tests for the LAMMPS Fortran Module: no Fortran compiler")

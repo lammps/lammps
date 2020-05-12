@@ -101,9 +101,3 @@ TEST_F(LAMMPS_commands, from_string) {
     lammps_commands_string(lmp,cmds.c_str());
     EXPECT_EQ(lammps_get_natoms(lmp),2);
 };
-
-int main(int argc, char **argv)
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

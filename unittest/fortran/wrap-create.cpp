@@ -95,9 +95,3 @@ TEST(fortran_open, with_args) {
     output = testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.substr(0,16).c_str(), "Total wall time:");
 }
-
-int main(int argc, char **argv)
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

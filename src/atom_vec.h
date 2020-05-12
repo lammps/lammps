@@ -207,8 +207,7 @@ class AtomVec : protected Pointers {
   // thread info for fields that are duplicated over threads
   // used by fields in grow() and memory_usage()
 
-  int nthreads;
-  int *threads;
+  bool *threads;
 
   // union data struct for packing 32-bit and 64-bit ints into double bufs
   // this avoids aliasing issues by having 2 pointers (double,int)

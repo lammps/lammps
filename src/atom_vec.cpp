@@ -53,7 +53,6 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   argcopy = NULL;
 
   threads = NULL;
-  nthreads = comm->nthreads;
 
   // peratom variables auto-included in corresponding child style fields string
   // these fields cannot be specified in the fields string
@@ -192,7 +191,7 @@ int AtomVec::grow_nmax_bonus(int nmax_bonus)
 void AtomVec::grow(int n)
 {
   int datatype,cols,maxcols;
-  void *pdata,*plength;
+  void *pdata;
 
   if (n == 0) grow_nmax();
   else nmax = n;
@@ -206,38 +205,39 @@ void AtomVec::grow(int n)
   image = memory->grow(atom->image,nmax,"atom:image");
   x = memory->grow(atom->x,nmax,3,"atom:x");
   v = memory->grow(atom->v,nmax,3,"atom:v");
-  f = memory->grow(atom->f,nmax*nthreads,3,"atom:f");
+  f = memory->grow(atom->f,nmax*comm->nthreads,3,"atom:f");
 
   for (int i = 0; i < ngrow; i++) {
     pdata = mgrow.pdata[i];
     datatype = mgrow.datatype[i];
     cols = mgrow.cols[i];
+    const int nthreads = threads[i] ? comm->nthreads : 1;
     if (datatype == DOUBLE) {
       if (cols == 0)
-        memory->grow(*((double **) pdata),nmax*threads[i],"atom:dvec");
+        memory->grow(*((double **) pdata),nmax*nthreads,"atom:dvec");
       else if (cols > 0)
-        memory->grow(*((double ***) pdata),nmax*threads[i],cols,"atom:darray");
+        memory->grow(*((double ***) pdata),nmax*nthreads,cols,"atom:darray");
       else {
         maxcols = *(mgrow.maxcols[i]);
-        memory->grow(*((double ***) pdata),nmax*threads[i],maxcols,"atom:darray");
+        memory->grow(*((double ***) pdata),nmax*nthreads,maxcols,"atom:darray");
       }
     } else if (datatype == INT) {
       if (cols == 0)
-        memory->grow(*((int **) pdata),nmax*threads[i],"atom:ivec");
+        memory->grow(*((int **) pdata),nmax*nthreads,"atom:ivec");
       else if (cols > 0)
-        memory->grow(*((int ***) pdata),nmax*threads[i],cols,"atom:iarray");
+        memory->grow(*((int ***) pdata),nmax*nthreads,cols,"atom:iarray");
       else {
         maxcols = *(mgrow.maxcols[i]);
-        memory->grow(*((int ***) pdata),nmax*threads[i],maxcols,"atom:iarray");
+        memory->grow(*((int ***) pdata),nmax*nthreads,maxcols,"atom:iarray");
       }
     } else if (datatype == BIGINT) {
       if (cols == 0)
-        memory->grow(*((bigint **) pdata),nmax*threads[i],"atom:bvec");
+        memory->grow(*((bigint **) pdata),nmax*nthreads,"atom:bvec");
       else if (cols > 0)
-        memory->grow(*((bigint ***) pdata),nmax*threads[i],cols,"atom:barray");
+        memory->grow(*((bigint ***) pdata),nmax*nthreads,cols,"atom:barray");
       else {
         maxcols = *(mgrow.maxcols[i]);
-        memory->grow(*((int ***) pdata),nmax*threads[i],maxcols,"atom:barray");
+        memory->grow(*((int ***) pdata),nmax*nthreads,maxcols,"atom:barray");
       }
     }
   }
@@ -1775,7 +1775,7 @@ void AtomVec::pack_data(double **buf)
 
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++) {
+  for (i = 0; i < nlocal; i++) {
 
     // if needed, change values before packing
 
@@ -1841,33 +1841,26 @@ void AtomVec::write_data(FILE *fp, int n, double **buf)
 
     j = 1;
     for (nn = 1; nn < ndata_atom; nn++) {
-      pdata = mdata_atom.pdata[nn];
       datatype = mdata_atom.datatype[nn];
       cols = mdata_atom.cols[nn];
       if (datatype == DOUBLE) {
         if (cols == 0) {
-          double *vec = *((double **) pdata);
           fprintf(fp," %-1.16e",buf[i][j++]);
         } else {
-          double **array = *((double ***) pdata);
           for (m = 0; m < cols; m++)
             fprintf(fp," %-1.16e",buf[i][j++]);
         }
       } else if (datatype == INT) {
         if (cols == 0) {
-          int *vec = *((int **) pdata);
           fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
         } else {
-          int **array = *((int ***) pdata);
           for (m = 0; m < cols; m++)
             fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
         }
       } else if (datatype == BIGINT) {
         if (cols == 0) {
-          bigint *vec = *((bigint **) pdata);
           fprintf(fp," " BIGINT_FORMAT,(bigint) ubuf(buf[i][j++]).i);
         } else {
-          bigint **array = *((bigint ***) pdata);
           for (m = 0; m < cols; m++)
             fprintf(fp," " BIGINT_FORMAT,(bigint) ubuf(buf[i][j++]).i);
         }
@@ -2297,39 +2290,40 @@ bigint AtomVec::memory_usage()
   bytes += memory->usage(image,nmax);
   bytes += memory->usage(x,nmax,3);
   bytes += memory->usage(v,nmax,3);
-  bytes += memory->usage(f,nmax*nthreads,3);
+  bytes += memory->usage(f,nmax*comm->nthreads,3);
 
   for (int i = 0; i < ngrow; i++) {
     pdata = mgrow.pdata[i];
     datatype = mgrow.datatype[i];
     cols = mgrow.cols[i];
     index = mgrow.index[i];
+    const int nthreads = threads[i] ? comm->nthreads : 1;
     if (datatype == DOUBLE) {
       if (cols == 0) {
-        bytes += memory->usage(*((double **) pdata),nmax*threads[i]);
+        bytes += memory->usage(*((double **) pdata),nmax*nthreads);
       } else if (cols > 0) {
-        bytes += memory->usage(*((double ***) pdata),nmax*threads[i],cols);
+        bytes += memory->usage(*((double ***) pdata),nmax*nthreads,cols);
       } else {
         maxcols = *(mgrow.maxcols[i]);
-        bytes += memory->usage(*((double ***) pdata),nmax*threads[i],maxcols);
+        bytes += memory->usage(*((double ***) pdata),nmax*nthreads,maxcols);
       }
     } else if (datatype == INT) {
       if (cols == 0) {
-        bytes += memory->usage(*((int **) pdata),nmax*threads[i]);
+        bytes += memory->usage(*((int **) pdata),nmax*nthreads);
       } else if (cols > 0) {
-        bytes += memory->usage(*((int ***) pdata),nmax*threads[i],cols);
+        bytes += memory->usage(*((int ***) pdata),nmax*nthreads,cols);
       } else {
         maxcols = *(mgrow.maxcols[i]);
-        bytes += memory->usage(*((int ***) pdata),nmax*threads[i],maxcols);
+        bytes += memory->usage(*((int ***) pdata),nmax*nthreads,maxcols);
       }
     } else if (datatype == BIGINT) {
       if (cols == 0) {
-        bytes += memory->usage(*((bigint **) pdata),nmax*threads[i]);
+        bytes += memory->usage(*((bigint **) pdata),nmax*nthreads);
       } else if (cols > 0) {
-        bytes += memory->usage(*((bigint ***) pdata),nmax*threads[i],cols);
+        bytes += memory->usage(*((bigint ***) pdata),nmax*nthreads,cols);
       } else {
         maxcols = *(mgrow.maxcols[i]);
-        bytes += memory->usage(*((bigint ***) pdata),nmax*threads[i],maxcols);
+        bytes += memory->usage(*((bigint ***) pdata),nmax*nthreads,maxcols);
       }
     }
   }
@@ -2390,11 +2384,10 @@ void AtomVec::setup_fields()
 
   // create threads data struct for grow and memory_usage to use
 
-  threads = new int[ngrow];
+  threads = new bool[ngrow];
   for (int i = 0; i < ngrow; i++) {
     Atom::PerAtom *field = &atom->peratom[mgrow.index[i]];
-    if (field->threadflag) threads[i] = nthreads;
-    else threads[i] = 1;
+    threads[i] = (field->threadflag) ? true : false;
   }
 
   // set style-specific sizes

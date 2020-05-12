@@ -12,7 +12,7 @@ compile-cmake-serial:
     - which cmake
     - cmake --version
     - mkdir build; cd build
-    - cmake -DCMAKE_BUILD_TYPE=Release -DPKG_USER-PACE=ON ../cmake
+    - cmake -DCMAKE_BUILD_TYPE=Release -DPKG_USER-PACE=ON  -DPKG_MANYBODY=ON ../cmake
     - cmake --build .
   artifacts:
     paths:
@@ -28,7 +28,7 @@ compile-cmake-mpi:
     - which cmake
     - cmake --version
     - mkdir build-mpi; cd build-mpi
-    - cmake -DCMAKE_BUILD_TYPE=Release -D BUILD_MPI=ON -DPKG_USER-PACE=ON ../cmake
+    - cmake -DCMAKE_BUILD_TYPE=Release -D BUILD_MPI=ON -DPKG_USER-PACE=ON -DPKG_MANYBODY=ON ../cmake
     - cmake --build .
     - ls -lrt
   artifacts:
@@ -45,6 +45,7 @@ compile-make-serial:
     - which make
     - make --version
     - cd src
+    - make yes-manybody
     - make yes-user-pace
     - make serial
   artifacts:

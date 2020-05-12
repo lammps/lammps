@@ -1,11 +1,38 @@
-LAMMPS Fortran Module
-*********************
+The ``LIBLAMMPS`` Fortran Module
+********************************
 
-The LAMMPS module provides an interface to call LAMMPS from a Fortran
-code.  It is based on the C-library interface and requires a Fortran
-2003 compatible compiler to be compiled.  Similar to the LAMMPS Python
-wrapper it provides an object oriented interface through using type
-bound procedures.  Below is a minimal example:
+The ``LIBLAMMPS`` module provides an interface to call LAMMPS from a
+Fortran code.  It is based on the LAMMPS C-library interface and
+requires a Fortran 2003 compatible compiler to be compiled.
+
+While C libraries have a defined binary interface (ABI) and can thus be
+used from multiple compiler versions from different vendors for as long
+as they are compatible with the hosting operating system, the same is
+not true for Fortran codes.  Thus the LAMMPS Fortran module needs to be
+compiled alongside the code using it from the source code in
+``examples/COUPLE/fortran/lammps.f90``.  When linking, you also need to
+:doc:`link to the LAMMPS library <Build_link>`.  A typical command line
+for a simple program using the Fortran interface would be:
+
+.. code-block:: bash
+
+   mpifort -o testlib.x  lammps.f90 testlib.f90 -L. -llammps
+
+Please note, that the MPI compiler wrapper is only required when the
+calling the library from an MPI parallel code.
+
+----------
+
+Creating or deleting a LAMMPS object
+************************************
+
+With the Fortran interface the creation of a :cpp:func:`LAMMPS` instance
+is included in the constructor for creating the :f:func:`lammps` derived
+type.  To import the definition of that type and its type bound procedures
+you need to add a ``USE LIBLAMMPS`` statement.
+Internally it will call either :cpp:func:`lammps_open_fortran`
+or :cpp:func:`lammps_open_no_mpi` from the C library API to create the
+class instance.  All arguments are optional.  Here is a simple example:
 
 .. code-block:: fortran
 
@@ -13,35 +40,24 @@ bound procedures.  Below is a minimal example:
      USE LIBLAMMPS                 ! include the LAMMPS library interface
      TYPE(lammps)     :: lmp       ! derived type to hold LAMMPS instance
      CHARACTER(len=*), DIMENSION(*), PARAMETER :: args = &
-         [ CHARACTER(len=12) :: 'liblammps',&
-          '-echo', 'both', '-log', 'log.fortran' ]
+         [ CHARACTER(len=12) :: 'liblammps', '-log', 'none' ]
 
      ! create a LAMMPS instance (and initialize MPI)
      lmp = lammps(args)
-     ! read commands from a file
-     CALL lmp%file('in.melt')
-     ! execute a single command
-     CALL lmp%command('run 100 post no')
-     ! delete LAMMPS instance (and shut down MPI)
+     ! get and print numerical version code
+     PRINT*, 'LAMMPS Version: ', lmp%version()
+     ! delete LAMMPS instance (and shuts down MPI)
      CALL lmp%close(.true.)
 
    END PROGRAM testlib
 
-To compile and link Fortran code with the LAMMPS library, you need to
-compile the Fortran library module (source code is located in
-``examples/COUPLE/fortran/lammps.f90``) alongside your own Fortran code
-and then link it with your code and also :doc:`link to the LAMMPS
-library <Build_link>`.  A typical command line would be:
-
-.. code-block:: bash
-
-   mpifort -o testlib.x  lammps.f90 testlib.f90 -L. -llammps
-
-Please note, that the MPI compiler wrapper is only required when the
-calling the library from an MPI parallel code or when the LAMMPS library
-was compiled with MPI support.
-
 --------------------
+
+The ``LIBLAMMPS`` module API
+****************************
+
+Below are the detailed descriptions of definitions and interfaces
+of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
 
 .. f:type:: lammps
 

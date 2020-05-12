@@ -97,14 +97,14 @@ compiled to instead :ref:`throw a C++ exception <exceptions>`.
 
 .. _lammps_python_api:
 
-LAMMPS Python module
-====================
+LAMMPS Python APIs
+==================
 
 The LAMMPS Python module enables calling the LAMMPS C library API from
 Python by dynamically loading functions in the LAMMPS shared library through
 the `Python ctypes module <https://docs.python.org/3/library/ctypes.html>`_.
 Because of the dynamics loading, it is required that LAMMPS is compiled
-in :ref:`"shared" mode <exe>`.  The Python interface is object oriented but
+in :ref:`"shared" mode <exe>`.  The Python interface is object oriented, but
 otherwise trying to be very similar to the C library API.  Three different
 Python classes to run LAMMPS are available and they build on each other.
 
@@ -117,13 +117,13 @@ Python classes to run LAMMPS are available and they build on each other.
 
 .. _lammps_fortran_api:
 
-LAMMPS Fortran module
-=====================
+LAMMPS Fortran API
+==================
 
-The LAMMPS Fortran module enables calling the LAMMPS library API from
-Fortran through the ISO_C_BINDING feature in Fortran 2003.  The interface
-is object oriented but otherwise trying to be very similar to the C
-library API.
+The LAMMPS Fortran module is a wrapper around calling functions from the
+LAMMPS C library API from Fortran through the ISO_C_BINDING feature in
+Fortran 2003.  The interface is object oriented but otherwise trying to
+be very similar to the C library API and the basic Python module.
 
 .. toctree::
    :maxdepth: 1

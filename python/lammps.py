@@ -137,11 +137,6 @@ class lammps(object):
   C++ class.  The handle to this C++ class is stored internally
   and automatically passed to the calls to the C library interface.
 
-  When used in combination with the `mpi4py <mpi4py_>`_ module, it is even
-  possible to pass an MPI communicator to LAMMPS and thus it is possible
-  to run the Python module like the library interface on a subset of the
-  MPI ranks.
-
   :param name: "machine" name of the shared LAMMPS library ("mpi" loads ``liblammps_mpi.so``, "" loads ``liblammps.so``)
   :type  name: string
   :param cmdargs: list of command line arguments to be passed to the :cpp:func:`lammps_open` function.  The executable name is automatically added.
@@ -157,6 +152,7 @@ class lammps(object):
   has_mpi4py = False
   try:
     from mpi4py import __version__ as mpi4py_version
+    # tested to work with mpi4py versions 2 and 3
     if mpi4py_version.split('.')[0] in ['2','3']: has_mpi4py = True
     if has_mpi4py: from mpi4py import MPI
   except:

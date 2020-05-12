@@ -320,12 +320,13 @@ to have an executable that will run on this and newer architectures.
 
 .. note::
 
-   If you run Kokkos on a newer GPU architecture than what LAMMPS was
-   compiled with, there will be a delay during device initialization
-   since the just-in-time compiler has to recompile all GPU kernels
-   for the new hardware.  This is, however, not possible when compiled
-   for NVIDIA GPUs with CC 3.x (Kepler) for GPUs with CC 5.0 (Maxwell)
-   and newer as they are not compatible.
+   If you run Kokkos on a different GPU architecture than what LAMMPS
+   was compiled with, there will be a delay during device initialization
+   while the just-in-time compiler is recompiling all GPU kernels for
+   the new hardware.  This is, however, only supported for GPUs of the
+   **same** major hardware version and different minor hardware versions,
+   e.g. 5.0 and 5.2 but not 5.2 and 6.0.  LAMMPS will abort with an
+   error message indicating a mismatch, if that happens.
 
 The settings discussed below have been tested with LAMMPS and are
 confirmed to work.  Kokkos is an active project with ongoing improvements
@@ -580,9 +581,14 @@ recommended when developing a Kokkos-enabled style in LAMMPS.
 
 The CMake option ``-DKokkos_ENABLE_CUDA_UVM=on`` or the makefile
 setting ``KOKKOS_CUDA_OPTIONS=enable_lambda,force_uvm`` enables the
-use of CUDA "Unified Virtual Memory" in Kokkos.  Please note, that
-the LAMMPS KOKKOS package must **always** be compiled with the
-*enable_lambda* option when using GPUs.
+use of CUDA "Unified Virtual Memory" (UVM) in Kokkos.  UVM allows to
+transparently use RAM on the host to supplement the memory used on the
+GPU (with some performance penalty) and thus enables running larger
+problems that would otherwise not fit into the RAM on the GPU.
+
+Please note, that the LAMMPS KOKKOS package must **always** be compiled
+with the *enable_lambda* option when using GPUs.  The CMake configuration
+will thus always enable it.
 
 ----------
 

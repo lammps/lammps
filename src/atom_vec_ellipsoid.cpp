@@ -192,7 +192,6 @@ void AtomVecEllipsoid::unpack_comm_bonus(int n, int first, double *buf)
 int AtomVecEllipsoid::pack_border_bonus(int n, int *list, double *buf)
 {
   int i,j,m;
-  double dx,dy,dz;
   double *shape,*quat;
 
   m = 0;

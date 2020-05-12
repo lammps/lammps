@@ -31,7 +31,7 @@ class AtomNeighbors
   num_neighs(_num_neighs), _firstneigh(firstneigh), _stride(stride) {};
   KOKKOS_INLINE_FUNCTION
   int& operator()(const int &i) const {
-    return _firstneigh[i*_stride];
+    return _firstneigh[(bigint) i*_stride];
   }
 
  private:
@@ -51,7 +51,7 @@ class AtomNeighborsConst
   _firstneigh(firstneigh), num_neighs(_num_neighs), _stride(stride) {};
   KOKKOS_INLINE_FUNCTION
   const int& operator()(const int &i) const {
-    return _firstneigh[i*_stride];
+    return _firstneigh[(bigint) i*_stride];
   }
 
  private:

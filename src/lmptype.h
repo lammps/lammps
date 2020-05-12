@@ -250,17 +250,23 @@ The typecast prevents compiler warnings about possible truncations.
 // functions and avoid compiler warnings about variable tracking.
 // Disable for broken -D_FORTIFY_SOURCE feature.
 
-#if defined(_FORTIFY_SOURCE) && (_FORTIFY_SOURCE > 0)
-#define _noopt
-#elif defined(__clang__)
+#if defined(__clang__)
 #  define _noopt __attribute__((optnone))
 #elif defined(__INTEL_COMPILER)
 #  define _noopt
 #elif defined(__GNUC__)
 #  if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 9))
-#    define _noopt __attribute__((optimize("O0","no-var-tracking-assignments")))
+#    if defined(_FORTIFY_SOURCE) && (_FORTIFY_SOURCE > 0)
+#      define _noopt __attribute__((optimize("no-var-tracking-assignments")))
+#    else
+#      define _noopt __attribute__((optimize("O0","no-var-tracking-assignments")))
+#    endif
 #  else
-#    define _noopt __attribute__((optimize("O0")))
+#    if defined(_FORTIFY_SOURCE) && (_FORTIFY_SOURCE > 0)
+#      define _noopt
+#    else
+#      define _noopt __attribute__((optimize("O0")))
+#    endif
 #  endif
 #else
 #  define _noopt

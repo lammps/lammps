@@ -1,0 +1,22 @@
+variable  newton_pair     index  on
+variable  newton_bond     index  on
+variable  bond_factor     index  0.1
+variable  angle_factor    index  0.5
+variable  dihedral_factor index  0.75
+variable  units           index  real
+
+atom_style       full
+units            ${units}
+newton           ${newton_pair} ${newton_bond}
+special_bonds    lj/coul ${bond_factor} ${angle_factor} ${dihedral_factor}
+
+pair_style       zero 8.0
+bond_style       zero
+angle_style      zero
+dihedral_style   zero
+improper_style   zero
+
+read_data        data.fourmol
+dihedral_coeff   *
+improper_coeff   *
+

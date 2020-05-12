@@ -19,6 +19,30 @@ or read, manipulate, and update data from the active class instances
 inside the LAMMPS to do analysis or perform operations that are not
 possible with existing commands.
 
+.. _thread-safety:
+
+.. note:: Thread-safety
+
+   LAMMPS was initially not conceived as a thread-safe program, but over
+   the years changes have been applied to replace operations that
+   collide with creating multiple LAMMPS instances from multiple-threads
+   of the same process with thread-safe alternatives.  This primarily
+   applies to the core LAMMPS code and less so on add-on packages,
+   especially when those packages require additional code in the *lib*
+   folder, interface LAMMPS to Fortran libraries, or the code uses
+   static variables (like the USER-COLVARS package).
+
+   Another major issue to deal with is to correctly handle MPI.
+   Creating a LAMMPS instance requires passing an MPI communicator, or
+   it assumes the ``MPI_COMM_WORLD`` communicator, which spans all MPI
+   processor ranks.  When creating multiple LAMMPS object instances from
+   different threads, this communicator has to be different for each
+   thread or else collisions can happen.  or it has to be guaranteed,
+   that only one thread at a time is active.  MPI communicators,
+   however, are not a problem, if LAMMPS is compiled with the MPI STUBS
+   library, which implies that there is no MPI communication and only 1
+   MPI rank.
+
 .. _lammps_c_api:
 
 LAMMPS C Library API
@@ -46,30 +70,6 @@ If any of the function calls in the LAMMPS library API will trigger
 an error inside LAMMPS, this will result in an abort of the entire
 program.  This is not always desirable.  Instead, LAMMPS can be
 compiled to instead :ref:`throw a C++ exception <exceptions>`.
-
-.. _thread-safety:
-
-.. note:: Thread-safety
-
-   LAMMPS was initially not conceived as a thread-safe program, but over
-   the years changes have been applied to replace operations that
-   collide with creating multiple LAMMPS instances from multiple-threads
-   of the same process with thread-safe alternatives.  This primarily
-   applies to the core LAMMPS code and less so on add-on packages,
-   especially when those packages require additional code in the *lib*
-   folder, interface LAMMPS to Fortran libraries, or the code uses
-   static variables (like the USER-COLVARS package).
-
-   Another major issue to deal with is to correctly handle MPI.
-   Creating a LAMMPS instance requires passing an MPI communicator, or
-   it assumes the ``MPI_COMM_WORLD`` communicator, which spans all MPI
-   processor ranks.  When creating multiple LAMMPS object instances from
-   different threads, this communicator has to be different for each
-   thread or else collisions can happen.  or it has to be guaranteed,
-   that only one thread at a time is active.  MPI communicators,
-   however, are not a problem, if LAMMPS is compiled with the MPI STUBS
-   library, which implies that there is no MPI communication and only 1
-   MPI rank.
 
 .. warning::
    No checks are made on the arguments of the function calls of the C

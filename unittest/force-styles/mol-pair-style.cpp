@@ -91,8 +91,8 @@ LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg)
     LAMMPS_NS::LAMMPS *lmp;
 
     lmp = new LAMMPS_NS::LAMMPS(argc, argv, MPI_COMM_WORLD);
-    for (std::size_t i=0; i < cfg.pre_commands.size(); ++i)
-        lmp->input->one(cfg.pre_commands[i].c_str());
+    for (auto pre_command : cfg.pre_commands)
+        lmp->input->one(pre_command.c_str());
     lmp->input->file(cfg.input_file.c_str());
 
     // determine if pair style is available while applying suffix if active
@@ -118,12 +118,12 @@ LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg)
     std::string cmd("pair_style ");
     cmd += cfg.pair_style;
     lmp->input->one(cmd.c_str());
-    for (std::size_t i=0; i < cfg.pair_coeff.size(); ++i) {
-        cmd = "pair_coeff " + cfg.pair_coeff[i];
+    for (auto pair_coeff : cfg.pair_coeff) {
+        cmd = "pair_coeff " + pair_coeff;
         lmp->input->one(cmd.c_str());
     }
-    for (std::size_t i=0; i < cfg.post_commands.size(); ++i)
-        lmp->input->one(cfg.post_commands[i].c_str());
+    for (auto post_command : cfg.post_commands)
+        lmp->input->one(post_command.c_str());
     lmp->input->one("run 0 post no");
     return lmp;
 }

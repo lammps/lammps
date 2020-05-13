@@ -1,6 +1,6 @@
 
-find_package(Yaml QUIET)
-if(NOT Yaml_FOUND)
+find_package(YAML)
+if(NOT YAML_FOUND)
   message(STATUS "Skipping tests because libyaml is not found")
   return()
 endif()

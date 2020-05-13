@@ -35,6 +35,7 @@ struct parser_state {
 };
 
 class TestConfig {
+public:
     bool pair_newton_on;
     bool pair_newton_off;
     bool has_global_energy;
@@ -141,7 +142,7 @@ bool get_bool_from_data(yaml_char_t *data, int len)
         (atoi(value) != 0)) {
         rv = true;
     }
-    delete value;
+    delete[] value;
     return rv;
 }
 

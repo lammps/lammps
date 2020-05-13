@@ -1,4 +1,4 @@
-# demo input for pair style zero
+# demo input for pair style lj/cut
 ---
 pair_newton_on: 1
 pair_newton_off: yes
@@ -6,13 +6,8 @@ global_stress: True
 global_energy: on
 atom_stress: true
 atom_energy: true
-pair_style: zero 8.0
+pair_style: lj/cut 8.0
 pair_coeff: ! |
-  * *
-  2 *
-  3 *
-  4 *
-  5 *
-  6 *
+  * *  0.1  3.0
 input_file: in.fourmol
 ...

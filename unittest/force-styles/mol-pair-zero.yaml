@@ -1,0 +1,13 @@
+# demo input for pair style zero
+---
+pair_newton_on: 1
+pair_newton_off: yes
+global_stress: True
+global_energy: on
+atom_stress: true
+atom_energy: true
+pair_style: zero 8.0
+pair_coeff: ! |
+  * *
+input_file: in.fourmol
+...

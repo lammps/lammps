@@ -4,6 +4,7 @@
 #include "atom.h"
 #include "force.h"
 #include "pair.h"
+#include "info.h"
 #include "input.h"
 #include "universe.h"
 #include <mpi.h>
@@ -89,18 +90,43 @@ public:
 // default floating point error margin
 double float_epsilon = 1.0e-14;
 
+#define EXPECT_FP_EQ_WITH_EPS(val1,val2,eps)                \
+    do {                                                    \
+        const double diff = fabs(val1-val2);                \
+        const double div = std::max(fabs(val1),fabs(val2)); \
+        const double err = (div == 0.0) ? diff : diff/div;  \
+        EXPECT_PRED_FORMAT2(::testing::DoubleLE, err, eps); \
+    } while (0);
+
 LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg)
 {
     LAMMPS_NS::LAMMPS *lmp;
-
-    int flag;
-    MPI_Initialized(&flag);
-    if (!flag) MPI_Init(&argc,&argv);
 
     lmp = new LAMMPS_NS::LAMMPS(argc, argv, MPI_COMM_WORLD);
     for (std::size_t i=0; i < cfg.pre_commands.size(); ++i)
         lmp->input->one(cfg.pre_commands[i].c_str());
     lmp->input->file(cfg.input_file.c_str());
+
+    // determine if pair style is available while applying suffix if active
+    LAMMPS_NS::Info *info = new LAMMPS_NS::Info(lmp);
+    std::size_t found = cfg.pair_style.find(" ");
+    std::string style;
+    if ((found > 0) && (found != std::string::npos)) {
+        style = cfg.pair_style.substr(0,found);
+    } else {
+        style = cfg.pair_style;
+    }
+    if (lmp->suffix_enable) {
+        style += "/";
+        style += lmp->suffix;
+    }
+    if (!info->has_style("pair", style)) {
+        test_config.pair_style = style;  // for error message
+        delete info;
+        delete lmp;
+        return NULL;
+    }
+
     std::string cmd("pair_style ");
     cmd += cfg.pair_style;
     lmp->input->one(cmd.c_str());
@@ -450,12 +476,17 @@ public:
 
 void generate(const char *outfile) {
 
-
     // initialize molecular system geometry
     const char *args[] = {"MolPairStyle", "-log", "none", "-echo", "screen", "-nocite" };
     char **argv = (char **)args;
     int argc = sizeof(args)/sizeof(char *);
     LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
+    if (!lmp) {
+        std::cerr << "Pair style: " << test_config.pair_style << " is not available."
+            "in this LAMMPS configuration\n";
+        fclose(fp);
+        return;
+    }
 
     const int natoms = lmp->atom->natoms;
     const int bufsize = 256;
@@ -563,20 +594,13 @@ TEST(MolPairStyle, plain) {
     ::testing::internal::CaptureStdout();
     LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
     std::string output = ::testing::internal::GetCapturedStdout();
+    if (!lmp) GTEST_SKIP();
     EXPECT_THAT(output, StartsWith("LAMMPS ("));
     EXPECT_THAT(output, HasSubstr("Loop time"));
 
     // abort if running in parallel and not all atoms are local
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms,nlocal);
-
-#define EXPECT_FP_EQ_WITH_EPS(val1,val2,eps)                \
-    do {                                                    \
-        const double diff = fabs(val1-val2);                \
-        const double div = std::min(fabs(val1),fabs(val2)); \
-        const double err = (div == 0.0) ? diff : diff/div;  \
-        EXPECT_PRED_FORMAT2(::testing::DoubleLE, err, eps); \
-    } while (0);
 
     double **f=lmp->atom->f;
     LAMMPS_NS::tagint *tag=lmp->atom->tag;
@@ -629,8 +653,77 @@ TEST(MolPairStyle, plain) {
     ::testing::internal::GetCapturedStdout();
 };
 
+TEST(MolPairStyle, omp) {
+    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
+    const char *args[] = {"MolPairStyle", "-log", "none", "-echo", "screen",
+                          "-nocite", "-pk", "omp", "4", "-sf", "omp"};
+    char **argv = (char **)args;
+    int argc = sizeof(args)/sizeof(char *);
+    ::testing::internal::CaptureStdout();
+    LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (!lmp) GTEST_SKIP();
+    EXPECT_THAT(output, StartsWith("LAMMPS ("));
+    EXPECT_THAT(output, HasSubstr("Loop time"));
+
+    // abort if running in parallel and not all atoms are local
+    const int nlocal = lmp->atom->nlocal;
+    ASSERT_EQ(lmp->atom->natoms,nlocal);
+
+    double **f=lmp->atom->f;
+    LAMMPS_NS::tagint *tag=lmp->atom->tag;
+    const std::vector<coord_t> &f_ref = test_config.init_forces;
+    for (int i=0; i < nlocal; ++i) {
+        EXPECT_FP_EQ_WITH_EPS(f[i][0], f_ref[tag[i]].x, float_epsilon);
+        EXPECT_FP_EQ_WITH_EPS(f[i][1], f_ref[tag[i]].y, float_epsilon);
+        EXPECT_FP_EQ_WITH_EPS(f[i][2], f_ref[tag[i]].z, float_epsilon);
+    }
+
+    LAMMPS_NS::Pair *pair = lmp->force->pair;
+    double *stress = pair->virial;
+    EXPECT_FP_EQ_WITH_EPS(stress[0], test_config.init_stress.xx, float_epsilon);
+    EXPECT_FP_EQ_WITH_EPS(stress[1], test_config.init_stress.yy, float_epsilon);
+    EXPECT_FP_EQ_WITH_EPS(stress[2], test_config.init_stress.zz, float_epsilon);
+    EXPECT_FP_EQ_WITH_EPS(stress[3], test_config.init_stress.xy, float_epsilon);
+    EXPECT_FP_EQ_WITH_EPS(stress[4], test_config.init_stress.xz, float_epsilon);
+    EXPECT_FP_EQ_WITH_EPS(stress[5], test_config.init_stress.yz, float_epsilon);
+
+    EXPECT_FP_EQ_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, float_epsilon);
+    EXPECT_FP_EQ_WITH_EPS(pair->eng_coul, test_config.init_coul, float_epsilon);
+
+    ::testing::internal::CaptureStdout();
+    run_lammps(lmp);
+    ::testing::internal::GetCapturedStdout();
+
+    f = lmp->atom->f;
+    stress = pair->virial;
+    const std::vector<coord_t> &f_run = test_config.run_forces;
+    ASSERT_EQ(nlocal+1,f_run.size());
+    for (int i=0; i < nlocal; ++i) {
+        EXPECT_FP_EQ_WITH_EPS(f[i][0], f_run[tag[i]].x, float_epsilon*100);
+        EXPECT_FP_EQ_WITH_EPS(f[i][1], f_run[tag[i]].y, float_epsilon*100);
+        EXPECT_FP_EQ_WITH_EPS(f[i][2], f_run[tag[i]].z, float_epsilon*100);
+    }
+
+    stress = pair->virial;
+    EXPECT_FP_EQ_WITH_EPS(stress[0], test_config.run_stress.xx, float_epsilon*100);
+    EXPECT_FP_EQ_WITH_EPS(stress[1], test_config.run_stress.yy, float_epsilon*100);
+    EXPECT_FP_EQ_WITH_EPS(stress[2], test_config.run_stress.zz, float_epsilon*100);
+    EXPECT_FP_EQ_WITH_EPS(stress[3], test_config.run_stress.xy, float_epsilon*100);
+    EXPECT_FP_EQ_WITH_EPS(stress[4], test_config.run_stress.xz, float_epsilon*100);
+    EXPECT_FP_EQ_WITH_EPS(stress[5], test_config.run_stress.yz, float_epsilon*100);
+
+    EXPECT_FP_EQ_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, float_epsilon*100);
+    EXPECT_FP_EQ_WITH_EPS(pair->eng_coul, test_config.run_coul, float_epsilon*100);
+
+    ::testing::internal::CaptureStdout();
+    delete lmp;
+    ::testing::internal::GetCapturedStdout();
+};
+
 int main(int argc, char **argv)
 {
+    MPI_Init(&argc, &argv);
     ::testing::InitGoogleTest(&argc, argv);
 
     if ((argc != 2) && (argc != 4)) {

@@ -328,81 +328,127 @@ int parse(const char *infile)
     return retval;
 }
 
-void emit_double(yaml_emitter_t *emitter, yaml_event_t *event,
-                 const std::string &key, const double value)
-{
-    yaml_scalar_event_initialize(event, NULL,
-                                 (yaml_char_t *)YAML_STR_TAG,
-                                 (yaml_char_t *) key.c_str(),
-                                 key.size(), 1, 0,
-                                 YAML_PLAIN_SCALAR_STYLE);
-    yaml_emitter_emit(emitter, event);
-    char buf[256];
-    snprintf(buf,256,"%.15g",value);
-    yaml_scalar_event_initialize(event, NULL,
-                                 (yaml_char_t *)YAML_STR_TAG,
-                                 (yaml_char_t *)buf,
-                                 strlen(buf), 1, 0,
-                                 YAML_PLAIN_SCALAR_STYLE);
-    yaml_emitter_emit(emitter, event);
-}
 
-void emit_string(yaml_emitter_t *emitter, yaml_event_t *event,
-                 const std::string &key, const std::string &value)
-{
-    yaml_scalar_event_initialize(event, NULL,
-                                 (yaml_char_t *)YAML_STR_TAG,
-                                 (yaml_char_t *) key.c_str(),
-                                 key.size(), 1, 0,
-                                 YAML_PLAIN_SCALAR_STYLE);
-    yaml_emitter_emit(emitter, event);
-    yaml_scalar_event_initialize(event, NULL,
-                                 (yaml_char_t *)YAML_STR_TAG,
-                                 (yaml_char_t *)value.c_str(),
-                                 value.size(), 1, 0,
-                                 YAML_PLAIN_SCALAR_STYLE);
-    yaml_emitter_emit(emitter, event);
-}
-
-void emit_block(yaml_emitter_t *emitter, yaml_event_t *event,
-                const std::string &key, const std::string &value)
-{
-    yaml_scalar_event_initialize(event, NULL,
-                                 (yaml_char_t *)YAML_STR_TAG,
-                                 (yaml_char_t *) key.c_str(),
-                                 key.size(), 1, 0,
-                                 YAML_PLAIN_SCALAR_STYLE);
-    yaml_emitter_emit(emitter, event);
-    yaml_scalar_event_initialize(event, NULL,
-                                 (yaml_char_t *)YAML_STR_TAG,
-                                 (yaml_char_t *)value.c_str(),
-                                 value.size(), 1, 0,
-                                 YAML_LITERAL_SCALAR_STYLE);
-    yaml_emitter_emit(emitter, event);
-}
-
-void generate(const char *outfile)
-{
+class YamlWriter {
     FILE *fp;
     yaml_emitter_t emitter;
     yaml_event_t   event;
+public:
+    YamlWriter(const char * outfile) {
+        yaml_emitter_initialize(&emitter);
+        fp = fopen(outfile, "w");
+        if (!fp) {
+            perror(__FILE__);
+            return;
+        }
 
-    yaml_emitter_initialize(&emitter);
-    fp = fopen(outfile, "w");
-    if (!fp) {
-        perror(__FILE__);
-        return;
+        yaml_emitter_set_output_file(&emitter, fp);
+
+        yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);
+        yaml_emitter_emit(&emitter, &event);
+        yaml_document_start_event_initialize(&event, NULL, NULL, NULL, 0);
+        yaml_emitter_emit(&emitter, &event);
+        yaml_mapping_start_event_initialize(&event, NULL,
+                                            (yaml_char_t *)YAML_MAP_TAG,
+                                            1, YAML_ANY_MAPPING_STYLE);
+        yaml_emitter_emit(&emitter, &event);
     }
-    yaml_emitter_set_output_file(&emitter, fp);
 
-    yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);
-    yaml_emitter_emit(&emitter, &event);
-    yaml_document_start_event_initialize(&event, NULL, NULL, NULL, 0);
-    yaml_emitter_emit(&emitter, &event);
-    yaml_mapping_start_event_initialize(&event, NULL,
-                                        (yaml_char_t *)YAML_MAP_TAG,
-                                         1, YAML_ANY_MAPPING_STYLE);
-    yaml_emitter_emit(&emitter, &event);
+    ~YamlWriter() {
+        yaml_mapping_end_event_initialize(&event);
+        yaml_emitter_emit(&emitter, &event);
+        yaml_document_end_event_initialize(&event, 0);
+        yaml_emitter_emit(&emitter, &event);
+        yaml_stream_end_event_initialize(&event);
+        yaml_emitter_emit(&emitter, &event);
+        yaml_emitter_delete(&emitter);
+        fclose(fp);
+    }
+
+    void emit(const std::string &key, const double value){
+        yaml_scalar_event_initialize(&event, NULL,
+                                    (yaml_char_t *)YAML_STR_TAG,
+                                    (yaml_char_t *) key.c_str(),
+                                    key.size(), 1, 0,
+                                    YAML_PLAIN_SCALAR_STYLE);
+        yaml_emitter_emit(&emitter, &event);
+        char buf[256];
+        snprintf(buf,256,"%.15g",value);
+        yaml_scalar_event_initialize(&event, NULL,
+                                    (yaml_char_t *)YAML_STR_TAG,
+                                    (yaml_char_t *)buf,
+                                    strlen(buf), 1, 0,
+                                    YAML_PLAIN_SCALAR_STYLE);
+        yaml_emitter_emit(&emitter, &event);
+    }
+
+    void emit(const std::string &key, const long value){
+        yaml_scalar_event_initialize(&event, NULL,
+                                    (yaml_char_t *)YAML_STR_TAG,
+                                    (yaml_char_t *) key.c_str(),
+                                    key.size(), 1, 0,
+                                    YAML_PLAIN_SCALAR_STYLE);
+        yaml_emitter_emit(&emitter, &event);
+        char buf[256];
+        snprintf(buf,256,"%ld",value);
+        yaml_scalar_event_initialize(&event, NULL,
+                                    (yaml_char_t *)YAML_STR_TAG,
+                                    (yaml_char_t *)buf,
+                                    strlen(buf), 1, 0,
+                                    YAML_PLAIN_SCALAR_STYLE);
+        yaml_emitter_emit(&emitter, &event);
+    }
+
+    void emit(const std::string &key, const int value){
+        yaml_scalar_event_initialize(&event, NULL,
+                                    (yaml_char_t *)YAML_STR_TAG,
+                                    (yaml_char_t *) key.c_str(),
+                                    key.size(), 1, 0,
+                                    YAML_PLAIN_SCALAR_STYLE);
+        yaml_emitter_emit(&emitter, &event);
+        char buf[256];
+        snprintf(buf,256,"%d",value);
+        yaml_scalar_event_initialize(&event, NULL,
+                                    (yaml_char_t *)YAML_STR_TAG,
+                                    (yaml_char_t *)buf,
+                                    strlen(buf), 1, 0,
+                                    YAML_PLAIN_SCALAR_STYLE);
+        yaml_emitter_emit(&emitter, &event);
+    }
+
+    void emit(const std::string &key, const std::string &value)
+    {
+        yaml_scalar_event_initialize(&event, NULL,
+                                    (yaml_char_t *)YAML_STR_TAG,
+                                    (yaml_char_t *) key.c_str(),
+                                    key.size(), 1, 0,
+                                    YAML_PLAIN_SCALAR_STYLE);
+        yaml_emitter_emit(&emitter, &event);
+        yaml_scalar_event_initialize(&event, NULL,
+                                    (yaml_char_t *)YAML_STR_TAG,
+                                    (yaml_char_t *)value.c_str(),
+                                    value.size(), 1, 0,
+                                    YAML_PLAIN_SCALAR_STYLE);
+        yaml_emitter_emit(&emitter, &event);
+    }
+
+    void emit_block(const std::string &key, const std::string &value){
+        yaml_scalar_event_initialize(&event, NULL,
+                                    (yaml_char_t *)YAML_STR_TAG,
+                                    (yaml_char_t *) key.c_str(),
+                                    key.size(), 1, 0,
+                                    YAML_PLAIN_SCALAR_STYLE);
+        yaml_emitter_emit(&emitter, &event);
+        yaml_scalar_event_initialize(&event, NULL,
+                                    (yaml_char_t *)YAML_STR_TAG,
+                                    (yaml_char_t *)value.c_str(),
+                                    value.size(), 1, 0,
+                                    YAML_LITERAL_SCALAR_STYLE);
+        yaml_emitter_emit(&emitter, &event);
+    }
+};
+
+void generate(const char *outfile) {
 
 
     // initialize molecular system geometry
@@ -416,81 +462,96 @@ void generate(const char *outfile)
     char buf[bufsize];
     std::string block("");
 
-    emit_string(&emitter, &event, "lammps_version", lmp->universe->version);
+    YamlWriter writer(outfile);
+
+    // lammps_version
+    writer.emit("lammps_version", lmp->universe->version);
+
+    // date_generated
     std::time_t now = time(NULL);
     block = ctime(&now);
     block = block.substr(0,block.find("\n")-1);
-    emit_string(&emitter, &event, "date_generated", block.c_str());
+    writer.emit("date_generated", block);
 
+    // pre_commands
     block.clear();
-    for (std::size_t i=0; i < test_config.pre_commands.size(); ++i) {
-        block += test_config.pre_commands[i] + "\n";
+    for (auto command :  test_config.pre_commands) {
+        block += command + "\n";
     }
-    emit_block(&emitter, &event, "pre_commands", block);
-    block.clear();
-    for (std::size_t i=0; i < test_config.post_commands.size(); ++i) {
-        block += test_config.post_commands[i] + "\n";
-    }
-    emit_block(&emitter, &event, "post_commands", block);
-    emit_string(&emitter, &event, "input_file", test_config.input_file);
+    writer.emit_block("pre_commands", block);
 
-    emit_string(&emitter, &event, "pair_style", test_config.pair_style);
+    // post_commands
+    block.clear();
+    for (auto command : test_config.post_commands) {
+        block += command + "\n";
+    }
+    writer.emit_block("post_commands", block);
+
+    // input_file
+    writer.emit("input_file", test_config.input_file);
+
+    // pair_style
+    writer.emit("pair_style", test_config.pair_style);
+
+    // pair_coeff
     block.clear();
     for (std::size_t i=0; i < test_config.pair_coeff.size(); ++i) {
         block += test_config.pair_coeff[i] + "\n";
     }
-    emit_block(&emitter, &event, "pair_coeff", block);
+    writer.emit_block("pair_coeff", block);
 
-    snprintf(buf,bufsize,"%d", natoms);
-    emit_string(&emitter, &event, "natoms", buf);
-    emit_double(&emitter, &event, "init_vdwl", lmp->force->pair->eng_vdwl);
-    emit_double(&emitter, &event, "init_coul", lmp->force->pair->eng_coul);
+    // natoms
+    writer.emit("natoms", natoms);
 
+    // init_vdwl
+    writer.emit("init_vdwl", lmp->force->pair->eng_vdwl);
+
+    // init_coul
+    writer.emit("init_coul", lmp->force->pair->eng_coul);
+
+    // init_stress
     double *stress = lmp->force->pair->virial;
     snprintf(buf,bufsize,"%.15g %.15g %.15g %.15g %.15g %.15g",
              stress[0],stress[1],stress[2],stress[3],stress[4],stress[5]);
-    emit_string(&emitter, &event, "init_stress", buf);
+    writer.emit("init_stress", buf);
 
-    block = "";
+    // init_forces
+    block.clear();
     double **f = lmp->atom->f;
     LAMMPS_NS::tagint *tag = lmp->atom->tag;
     for (int i=0; i < natoms; ++i) {
         snprintf(buf,bufsize,"%d %.15g %.15g %.15g\n",
                  (int)tag[i], f[i][0], f[i][1], f[i][2]);
-        block += std::string(buf);
+        block += buf;
     }
-    emit_block(&emitter, &event, "init_forces", block);
+    writer.emit_block("init_forces", block);
 
     // do a few steps of MD
     run_lammps(lmp);
 
-    emit_double(&emitter, &event, "run_vdwl", lmp->force->pair->eng_vdwl);
-    emit_double(&emitter, &event, "run_coul", lmp->force->pair->eng_coul);
+    // run_vdwl
+    writer.emit("run_vdwl", lmp->force->pair->eng_vdwl);
 
+    // run_could
+    writer.emit("run_coul", lmp->force->pair->eng_coul);
+
+    // run_stress
     stress = lmp->force->pair->virial;
     snprintf(buf,bufsize,"%.15g %.15g %.15g %.15g %.15g %.15g",
              stress[0],stress[1],stress[2],stress[3],stress[4],stress[5]);
-    emit_string(&emitter, &event, "run_stress", buf);
+    writer.emit("run_stress", buf);
 
-    block = "";
+    block.clear();
     f = lmp->atom->f;
     tag = lmp->atom->tag;
     for (int i=0; i < natoms; ++i) {
         snprintf(buf,bufsize,"%d %.15g %.15g %.15g\n",
                  (int)tag[i], f[i][0], f[i][1], f[i][2]);
-        block += std::string(buf);
+        block += buf;
     }
-    emit_block(&emitter, &event, "run_forces", block);
+    writer.emit("run_forces", block);
 
     delete lmp;
-    yaml_mapping_end_event_initialize(&event);
-    yaml_emitter_emit(&emitter, &event);
-    yaml_document_end_event_initialize(&event, 0);
-    yaml_emitter_emit(&emitter, &event);
-    yaml_stream_end_event_initialize(&event);
-    yaml_emitter_emit(&emitter, &event);
-    yaml_emitter_delete(&emitter);
-    fclose(fp);
     return;
 }
 

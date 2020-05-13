@@ -5,18 +5,25 @@
 #include "force.h"
 #include "pair.h"
 #include "input.h"
+#include "universe.h"
 #include <mpi.h>
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
 #include <cctype>
 #include <cerrno>
+#include <cmath>
+#include <ctime>
 #include <string>
 #include <vector>
 #include <iostream>
 
 #include "gtest/gtest.h"
+#include "gmock/gmock.h"
 #include "yaml.h"
+
+using ::testing::StartsWith;
+using ::testing::HasSubstr;
 
 typedef struct {
     double x,y,z;
@@ -42,41 +49,45 @@ struct parser_state {
 
 class TestConfig {
 public:
-    bool pair_newton_on;
-    bool pair_newton_off;
-    bool has_global_energy;
-    bool has_global_stress;
-    bool has_atom_energy;
-    bool has_atom_stress;
+    std::string lammps_version;
+    std::string date_generated;
     std::vector<std::string> pre_commands;
     std::vector<std::string> post_commands;
     std::string input_file;
     std::string pair_style;
     std::vector<std::string> pair_coeff;
     int natoms;
-    std::vector<coord_t> init_forces;
     double init_vdwl;
+    double run_vdwl;
     double init_coul;
+    double run_coul;
     stress_t init_stress;
-    TestConfig() : pair_newton_on(false),
-                   pair_newton_off(false),
-                   has_global_energy(false),
-                   has_global_stress(false),
-                   has_atom_energy(false),
-                   has_atom_stress(false),
+    stress_t run_stress;
+    std::vector<coord_t> init_forces;
+    std::vector<coord_t> run_forces;
+    std::vector<coord_t> run_energy;
+    TestConfig() : lammps_version(""),
+                   date_generated(""),
                    input_file(""),
                    pair_style("zero"),
                    natoms(0),
                    init_vdwl(0),
+                   run_vdwl(0),
                    init_coul(0),
-                   init_stress({0,0,0,0,0,0}) {
+                   run_coul(0),
+                   init_stress({0,0,0,0,0,0}),
+                   run_stress({0,0,0,0,0,0}) {
         pre_commands.clear();
         post_commands.clear();
         pair_coeff.clear();
         init_forces.clear();
+        run_forces.clear();
+        run_energy.clear();
     }
 } test_config;
 
+// default floating point error margin
+double float_epsilon = 1.0e-14;
 
 LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg)
 {
@@ -103,6 +114,16 @@ LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg)
     return lmp;
 }
 
+void run_lammps(LAMMPS_NS::LAMMPS *lmp)
+{
+    lmp->input->one("fix 1 all nve");
+    lmp->input->one("compute pe all pe/atom");
+    lmp->input->one("compute sum all reduce sum c_pe");
+    lmp->input->one("thermo_style custom step temp pe press c_sum");
+    lmp->input->one("thermo 2");
+    lmp->input->one("run 4 post no");
+}
+
 int consume_event(struct parser_state *s, yaml_event_t *event)
 {
     s->accepted = 0;
@@ -125,7 +146,8 @@ int consume_event(struct parser_state *s, yaml_event_t *event)
                 // ignore
                 break;
             default:
-                std::cerr << "UNKNOWN YAML EVENT:  " << event->type << std::endl;
+                std::cerr << "UNHANDLED YAML EVENT:  " << event->type << std::endl;
+                s->state = ERROR;
                 break;
           }
           break;
@@ -140,9 +162,10 @@ int consume_event(struct parser_state *s, yaml_event_t *event)
                 s->state = STOP;
                 break;
             default:
-                std::cerr << "UNKNOWN YAML EVENT (key): " << event->type
+                std::cerr << "UNHANDLED YAML EVENT (key): " << event->type
                           << "\nVALUE: " << event->data.scalar.value
                           << std::endl;
+                s->state = ERROR;
                 break;
           }
           break;
@@ -154,9 +177,10 @@ int consume_event(struct parser_state *s, yaml_event_t *event)
                 s->state = ACCEPT_KEY;
                 break;
             default:
-                std::cerr << "UNKNOWN YAML EVENT (value): " << event->type
+                std::cerr << "UNHANDLED YAML EVENT (value): " << event->type
                           << "\nVALUE: " << event->data.scalar.value
                           << std::endl;
+                s->state = ERROR;
                 break;
           }
           break;
@@ -166,26 +190,6 @@ int consume_event(struct parser_state *s, yaml_event_t *event)
           break;
     }
     return (s->state == ERROR) ? 0 : 1;
-}
-
-bool get_bool_from_data(yaml_char_t *data, int len)
-{
-    bool rv = false;
-    char *value = new char[len+1];
-
-    for (int i=0; i < len; ++i) {
-        value[i] = tolower(data[i]);
-    }
-    value[len] = '\0';
-
-    if ((strcmp(value,"yes") == 0) ||
-        (strcmp(value,"true") == 0) ||
-        (strcmp(value,"on") == 0) ||
-        (atoi(value) != 0)) {
-        rv = true;
-    }
-    delete[] value;
-    return rv;
 }
 
 int parse(const char *infile)
@@ -205,135 +209,123 @@ int parse(const char *infile)
     yaml_parser_set_input_file(&parser, fp);
 
     int retval = 0;
-    try {
-        state.state = START;
-        do {
-            if (!yaml_parser_parse(&parser, &event))
-                throw;
+    state.state = START;
+    do {
+        if (!yaml_parser_parse(&parser, &event)) {
+            retval = 1;
+            state.state = STOP;
+        }
 
-            if (!consume_event(&state, &event))
-                throw;
+        if (!consume_event(&state, &event)) {
+            retval = 1;
+            state.state = STOP;
+        }
 
-            if (state.accepted) {
-                if (state.key == "pair_newton_on") {
-                    test_config.pair_newton_on =
-                        get_bool_from_data(event.data.scalar.value,
-                                           event.data.scalar.length);
-                } else if (state.key == "pair_newton_off") {
-                    test_config.pair_newton_off =
-                        get_bool_from_data(event.data.scalar.value,
-                                           event.data.scalar.length);
-                } else if (state.key == "global_stress") {
-                    test_config.has_global_stress =
-                        get_bool_from_data(event.data.scalar.value,
-                                           event.data.scalar.length);
-                } else if (state.key == "global_energy") {
-                    test_config.has_global_energy =
-                        get_bool_from_data(event.data.scalar.value,
-                                           event.data.scalar.length);
-                } else if (state.key == "atom_stress") {
-                    test_config.has_atom_stress =
-                        get_bool_from_data(event.data.scalar.value,
-                                           event.data.scalar.length);
-                } else if (state.key == "atom_energy") {
-                    test_config.has_atom_energy =
-                        get_bool_from_data(event.data.scalar.value,
-                                           event.data.scalar.length);
-                } else if (state.key == "pre_commands") {
-                    test_config.pre_commands.clear();
-                    std::string data  = (char *)event.data.scalar.value;
-                    std::size_t first = 0;
-                    std::size_t found = data.find("\n");
-                    while (found != std::string::npos) {
-                        std::string line(data.substr(first,found));
-                        test_config.pre_commands.push_back(line);
-                        data = data.substr(found+1);
-                        found = data.find("\n");
-                    }
-                } else if (state.key == "post_commands") {
-                    test_config.post_commands.clear();
-                    std::string data  = (char *)event.data.scalar.value;
-                    std::size_t first = 0;
-                    std::size_t found = data.find("\n");
-                    while (found != std::string::npos) {
-                        std::string line(data.substr(first,found));
-                        test_config.post_commands.push_back(line);
-                        data = data.substr(found+1);
-                        found = data.find("\n");
-                    }
-                } else if (state.key == "input_file") {
-                    test_config.input_file = (char *)event.data.scalar.value;
-                } else if (state.key == "pair_style") {
-                    test_config.pair_style = (char *)event.data.scalar.value;
-                } else if (state.key == "pair_coeff") {
-                    test_config.pair_coeff.clear();
-                    std::string data  = (char *)event.data.scalar.value;
-                    std::size_t first = 0;
-                    std::size_t found = data.find("\n");
-                    while (found != std::string::npos) {
-                        std::string line(data.substr(first,found));
-                        test_config.pair_coeff.push_back(line);
-                        data = data.substr(found+1);
-                        found = data.find("\n");
-                    }
-                } else if (state.key == "natoms") {
-                    test_config.natoms = atoi((char *)event.data.scalar.value);
-                } else if (state.key == "init_vdwl") {
-                    test_config.init_vdwl = atof((char *)event.data.scalar.value);
-                } else if (state.key == "init_coul") {
-                    test_config.init_coul = atof((char *)event.data.scalar.value);
-                } else if (state.key == "init_stress") {
-                    stress_t stress;
-                    sscanf((char *)event.data.scalar.value,
-                           "%lg %lg %lg %lg %lg %lg",
-                           &stress.xx, &stress.yy, &stress.zz,
-                           &stress.xy, &stress.xz, &stress.yz);
-                    test_config.init_stress = stress;
-                } else if (state.key == "init_forces") {
-                    test_config.init_forces.clear();
-                    test_config.init_forces.resize(test_config.natoms+1);
-                    std::string data  = (char *)event.data.scalar.value;
-                    std::size_t first = 0;
-                    std::size_t found = data.find("\n");
-                    while (found != std::string::npos) {
-                        std::string line(data.substr(first,found));
-                        coord_t xyz;
-                        int tag;
-                        sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
-                        test_config.init_forces[tag] = xyz;
-                        data = data.substr(found+1);
-                        found = data.find("\n");
-                    }
-                } else std::cerr << "Ignoring unknown key/value pair: " << state.key
-                                 << " = " << event.data.scalar.value << std::endl;
-            }
-            yaml_event_delete(&event);
-        } while (state.state != STOP);
-    } catch (...) {
-        retval = 1;
-    }
+        if (state.accepted) {
+            if (state.key == "pre_commands") {
+                test_config.pre_commands.clear();
+                std::string data  = (char *)event.data.scalar.value;
+                std::size_t first = 0;
+                std::size_t found = data.find("\n");
+                while (found != std::string::npos) {
+                    std::string line(data.substr(first,found));
+                    test_config.pre_commands.push_back(line);
+                    data = data.substr(found+1);
+                    found = data.find("\n");
+                }
+            } else if (state.key == "post_commands") {
+                test_config.post_commands.clear();
+                std::string data  = (char *)event.data.scalar.value;
+                std::size_t first = 0;
+                std::size_t found = data.find("\n");
+                while (found != std::string::npos) {
+                    std::string line(data.substr(first,found));
+                    test_config.post_commands.push_back(line);
+                    data = data.substr(found+1);
+                    found = data.find("\n");
+                }
+            } else if (state.key == "lammps_version") {
+                test_config.lammps_version = (char *)event.data.scalar.value;
+            } else if (state.key == "date_generated") {
+                test_config.date_generated = (char *)event.data.scalar.value;
+            } else if (state.key == "input_file") {
+                test_config.input_file = (char *)event.data.scalar.value;
+            } else if (state.key == "pair_style") {
+                test_config.pair_style = (char *)event.data.scalar.value;
+            } else if (state.key == "pair_coeff") {
+                test_config.pair_coeff.clear();
+                std::string data  = (char *)event.data.scalar.value;
+                std::size_t first = 0;
+                std::size_t found = data.find("\n");
+                while (found != std::string::npos) {
+                    std::string line(data.substr(first,found));
+                    test_config.pair_coeff.push_back(line);
+                    data = data.substr(found+1);
+                    found = data.find("\n");
+                }
+            } else if (state.key == "natoms") {
+                test_config.natoms = atoi((char *)event.data.scalar.value);
+            } else if (state.key == "init_vdwl") {
+                test_config.init_vdwl = atof((char *)event.data.scalar.value);
+            } else if (state.key == "run_vdwl") {
+                test_config.run_vdwl = atof((char *)event.data.scalar.value);
+            } else if (state.key == "init_coul") {
+                test_config.init_coul = atof((char *)event.data.scalar.value);
+            } else if (state.key == "run_coul") {
+                test_config.run_coul = atof((char *)event.data.scalar.value);
+            } else if (state.key == "init_stress") {
+                stress_t stress;
+                sscanf((char *)event.data.scalar.value,
+                       "%lg %lg %lg %lg %lg %lg",
+                       &stress.xx, &stress.yy, &stress.zz,
+                       &stress.xy, &stress.xz, &stress.yz);
+                test_config.init_stress = stress;
+            } else if (state.key == "run_stress") {
+                stress_t stress;
+                sscanf((char *)event.data.scalar.value,
+                       "%lg %lg %lg %lg %lg %lg",
+                       &stress.xx, &stress.yy, &stress.zz,
+                       &stress.xy, &stress.xz, &stress.yz);
+                test_config.run_stress = stress;
+            } else if (state.key == "init_forces") {
+                test_config.init_forces.clear();
+                test_config.init_forces.resize(test_config.natoms+1);
+                std::string data  = (char *)event.data.scalar.value;
+                std::size_t first = 0;
+                std::size_t found = data.find("\n");
+                while (found != std::string::npos) {
+                    std::string line(data.substr(first,found));
+                    coord_t xyz;
+                    int tag;
+                    sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
+                    test_config.init_forces[tag] = xyz;
+                    data = data.substr(found+1);
+                    found = data.find("\n");
+                }
+            } else if (state.key == "run_forces") {
+                test_config.run_forces.clear();
+                test_config.run_forces.resize(test_config.natoms+1);
+                std::string data  = (char *)event.data.scalar.value;
+                std::size_t first = 0;
+                std::size_t found = data.find("\n");
+                while (found != std::string::npos) {
+                    std::string line(data.substr(first,found));
+                    coord_t xyz;
+                    int tag;
+                    sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
+                    test_config.run_forces[tag] = xyz;
+                    data = data.substr(found+1);
+                    found = data.find("\n");
+                }
+            } else std::cerr << "Ignoring unknown key/value pair: " << state.key
+                             << " = " << event.data.scalar.value << std::endl;
+        }
+        yaml_event_delete(&event);
+    } while (state.state != STOP);
 
     yaml_parser_delete(&parser);
     fclose(fp);
     return retval;
-}
-
-void emit_boolean(yaml_emitter_t *emitter, yaml_event_t *event,
-                  const std::string &key, bool value)
-{
-    yaml_scalar_event_initialize(event, NULL,
-                                 (yaml_char_t *)YAML_STR_TAG,
-                                 (yaml_char_t *) key.c_str(),
-                                 key.size(), 1, 0,
-                                 YAML_PLAIN_SCALAR_STYLE);
-    yaml_emitter_emit(emitter, event);
-    std::string out = value ? "true" : "false";
-    yaml_scalar_event_initialize(event, NULL,
-                                 (yaml_char_t *)YAML_STR_TAG,
-                                 (yaml_char_t *) out.c_str(),
-                                 out.size(), 1, 0,
-                                 YAML_PLAIN_SCALAR_STYLE);
-    yaml_emitter_emit(emitter, event);
 }
 
 void emit_double(yaml_emitter_t *emitter, yaml_event_t *event,
@@ -412,20 +404,25 @@ void generate(const char *outfile)
                                          1, YAML_ANY_MAPPING_STYLE);
     yaml_emitter_emit(&emitter, &event);
 
-    emit_boolean(&emitter, &event,
-                 "pair_newton_on", test_config.pair_newton_on);
-    emit_boolean(&emitter, &event,
-                 "pair_newton_off", test_config.pair_newton_off);
-    emit_boolean(&emitter, &event,
-                 "global_stress", test_config.has_global_stress);
-    emit_boolean(&emitter, &event,
-                 "global_energy", test_config.has_global_energy);
-    emit_boolean(&emitter, &event,
-                 "atom_stress", test_config.has_atom_stress);
-    emit_boolean(&emitter, &event,
-                 "atom_energy", test_config.has_atom_energy);
 
+    // initialize molecular system geometry
+    const char *args[] = {"MolPairStyle", "-log", "none", "-echo", "screen", "-nocite" };
+    char **argv = (char **)args;
+    int argc = sizeof(args)/sizeof(char *);
+    LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
+
+    const int natoms = lmp->atom->natoms;
+    const int bufsize = 256;
+    char buf[bufsize];
     std::string block("");
+
+    emit_string(&emitter, &event, "lammps_version", lmp->universe->version);
+    std::time_t now = time(NULL);
+    block = ctime(&now);
+    block = block.substr(0,block.find("\n")-1);
+    emit_string(&emitter, &event, "date_generated", block.c_str());
+
+    block.clear();
     for (std::size_t i=0; i < test_config.pre_commands.size(); ++i) {
         block += test_config.pre_commands[i] + "\n";
     }
@@ -443,15 +440,7 @@ void generate(const char *outfile)
         block += test_config.pair_coeff[i] + "\n";
     }
     emit_block(&emitter, &event, "pair_coeff", block);
-    
-    const char *args[] = {"MolPairStyle", "-log", "none", "-echo", "screen", "-nocite" };
-    char **argv = (char **)args;
-    int argc = sizeof(args)/sizeof(char *);
-    LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
 
-    const int natoms = lmp->atom->natoms;
-    const int bufsize = 256;
-    char buf[bufsize];
     snprintf(buf,bufsize,"%d", natoms);
     emit_string(&emitter, &event, "natoms", buf);
     emit_double(&emitter, &event, "init_vdwl", lmp->force->pair->eng_vdwl);
@@ -472,6 +461,27 @@ void generate(const char *outfile)
     }
     emit_block(&emitter, &event, "init_forces", block);
 
+    // do a few steps of MD
+    run_lammps(lmp);
+
+    emit_double(&emitter, &event, "run_vdwl", lmp->force->pair->eng_vdwl);
+    emit_double(&emitter, &event, "run_coul", lmp->force->pair->eng_coul);
+
+    stress = lmp->force->pair->virial;
+    snprintf(buf,bufsize,"%.15g %.15g %.15g %.15g %.15g %.15g",
+             stress[0],stress[1],stress[2],stress[3],stress[4],stress[5]);
+    emit_string(&emitter, &event, "run_stress", buf);
+
+    block = "";
+    f = lmp->atom->f;
+    tag = lmp->atom->tag;
+    for (int i=0; i < natoms; ++i) {
+        snprintf(buf,bufsize,"%d %.15g %.15g %.15g\n",
+                 (int)tag[i], f[i][0], f[i][1], f[i][2]);
+        block += std::string(buf);
+    }
+    emit_block(&emitter, &event, "run_forces", block);
+
     delete lmp;
     yaml_mapping_end_event_initialize(&event);
     yaml_emitter_emit(&emitter, &event);
@@ -484,79 +494,106 @@ void generate(const char *outfile)
     return;
 }
 
-#if 0
-class MolPairStyle : public ::testing::Test
-{
-protected:
-    LAMMPS_NS::LAMMPS *lmp;
-    MolPairStyle() {
-        const char *args[] = {"LAMMPS_test",
-                              "-log", "none",
-                              "-echo", "screen",
-                              "-nocite" };
-        char **argv = (char **)args;
-        int argc = sizeof(args)/sizeof(char *);
+TEST(MolPairStyle, plain) {
 
-        int flag;
-        MPI_Initialized(&flag);
-        if (!flag) MPI_Init(&argc,&argv);
+    const char *args[] = {"MolPairStyle", "-log", "none", "-echo", "screen", "-nocite" };
+    char **argv = (char **)args;
+    int argc = sizeof(args)/sizeof(char *);
+    ::testing::internal::CaptureStdout();
+    LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
+    std::string output = ::testing::internal::GetCapturedStdout();
+    EXPECT_THAT(output, StartsWith("LAMMPS ("));
+    EXPECT_THAT(output, HasSubstr("Loop time"));
 
-        ::testing::internal::CaptureStdout();
-        lmp = new LAMMPS_NS::LAMMPS(argc, argv, MPI_COMM_WORLD);
-        ::testing::internal::GetCapturedStdout();
-    }
-    ~MolPairStyle() override {}
-
-    void SetUp() override {
-        lmp->input->one("clear");
-    }
-    void TearDown() override {
-    }
-};
-
-TEST_F(MolPairStyle, initial) {
-    double **f=lmp->atom->f;
-    double **v=lmp->atom->v;
+    // abort if running in parallel and not all atoms are local
     const int nlocal = lmp->atom->nlocal;
-
-    // abort if running in parallel
     ASSERT_EQ(lmp->atom->natoms,nlocal);
 
-    lmp->input->one("velocity all set 0.0 0.0 0.0");
-    lmp->input->one("run 0 post no");
+#define EXPECT_FP_EQ_WITH_EPS(val1,val2,eps)                \
+    do {                                                    \
+        const double diff = fabs(val1-val2);                \
+        const double div = std::min(fabs(val1),fabs(val2)); \
+        const double err = (div == 0.0) ? diff : diff/div;  \
+        EXPECT_PRED_FORMAT2(::testing::DoubleLE, err, eps); \
+    } while (0);
+
+    double **f=lmp->atom->f;
+    LAMMPS_NS::tagint *tag=lmp->atom->tag;
+    const std::vector<coord_t> &f_ref = test_config.init_forces;
     for (int i=0; i < nlocal; ++i) {
-        EXPECT_DOUBLE_EQ(f[i][0],0.0);
-        EXPECT_DOUBLE_EQ(f[i][1],0.0);
-        EXPECT_DOUBLE_EQ(f[i][2],0.0);
-        EXPECT_DOUBLE_EQ(v[i][0],0.0);
-        EXPECT_DOUBLE_EQ(v[i][1],0.0);
-        EXPECT_DOUBLE_EQ(v[i][2],0.0);
+        EXPECT_FP_EQ_WITH_EPS(f[i][0], f_ref[tag[i]].x, float_epsilon);
+        EXPECT_FP_EQ_WITH_EPS(f[i][1], f_ref[tag[i]].y, float_epsilon);
+        EXPECT_FP_EQ_WITH_EPS(f[i][2], f_ref[tag[i]].z, float_epsilon);
     }
+
+    LAMMPS_NS::Pair *pair = lmp->force->pair;
+    double *stress = pair->virial;
+    EXPECT_FP_EQ_WITH_EPS(stress[0], test_config.init_stress.xx, float_epsilon);
+    EXPECT_FP_EQ_WITH_EPS(stress[1], test_config.init_stress.yy, float_epsilon);
+    EXPECT_FP_EQ_WITH_EPS(stress[2], test_config.init_stress.zz, float_epsilon);
+    EXPECT_FP_EQ_WITH_EPS(stress[3], test_config.init_stress.xy, float_epsilon);
+    EXPECT_FP_EQ_WITH_EPS(stress[4], test_config.init_stress.xz, float_epsilon);
+    EXPECT_FP_EQ_WITH_EPS(stress[5], test_config.init_stress.yz, float_epsilon);
+    
+    EXPECT_FP_EQ_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, float_epsilon);
+    EXPECT_FP_EQ_WITH_EPS(pair->eng_coul, test_config.init_coul, float_epsilon);
+
+    ::testing::internal::CaptureStdout();
+    run_lammps(lmp);
+    ::testing::internal::GetCapturedStdout();
+
+    f = lmp->atom->f;
+    stress = pair->virial;
+    const std::vector<coord_t> &f_run = test_config.run_forces;
+    ASSERT_EQ(nlocal+1,f_run.size());
+    for (int i=0; i < nlocal; ++i) {
+        EXPECT_FP_EQ_WITH_EPS(f[i][0], f_run[tag[i]].x, float_epsilon*100);
+        EXPECT_FP_EQ_WITH_EPS(f[i][1], f_run[tag[i]].y, float_epsilon*100);
+        EXPECT_FP_EQ_WITH_EPS(f[i][2], f_run[tag[i]].z, float_epsilon*100);
+    }
+
+    stress = pair->virial;
+    EXPECT_FP_EQ_WITH_EPS(stress[0], test_config.run_stress.xx, float_epsilon*100);
+    EXPECT_FP_EQ_WITH_EPS(stress[1], test_config.run_stress.yy, float_epsilon*100);
+    EXPECT_FP_EQ_WITH_EPS(stress[2], test_config.run_stress.zz, float_epsilon*100);
+    EXPECT_FP_EQ_WITH_EPS(stress[3], test_config.run_stress.xy, float_epsilon*100);
+    EXPECT_FP_EQ_WITH_EPS(stress[4], test_config.run_stress.xz, float_epsilon*100);
+    EXPECT_FP_EQ_WITH_EPS(stress[5], test_config.run_stress.yz, float_epsilon*100);
+    
+    EXPECT_FP_EQ_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, float_epsilon*100);
+    EXPECT_FP_EQ_WITH_EPS(pair->eng_coul, test_config.run_coul, float_epsilon*100);
+
+    ::testing::internal::CaptureStdout();
+    delete lmp;
+    ::testing::internal::GetCapturedStdout();
 };
 
-#endif
 int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
 
     if ((argc != 2) && (argc != 4)) {
         std::cerr << "usage: " << argv[0] << " <testfile.yaml> "
-            "[--gen <newfile.yaml>]" << std::endl;
+            "[--gen <newfile.yaml> | --eps <floating-point epsilon>]" << std::endl;
         return 1;
     }
-    if (parse(argv[1]))
+    if (parse(argv[1])) {
+        std::cerr << "Error parsing yaml file: " << argv[1] << std::endl;
         return 2;
+    }
 
     if (argc == 4) {
         if (strcmp(argv[2],"--gen") == 0) {
             generate(argv[3]);
             return 0;
+        } else if (strcmp(argv[2],"--eps") == 0) {
+            float_epsilon = atof(argv[3]);
         } else {
             std::cerr << "usage: " << argv[0] << " <testfile.yaml> "
-                "[--gen <newfile.yaml>]" << std::endl;
+                "[--gen <newfile.yaml> | --eps <floating-point epsilon>]" << std::endl;
             return 1;
         }
     }
-//    return RUN_ALL_TESTS();
+    return RUN_ALL_TESTS();
     return 0;
 }

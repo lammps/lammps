@@ -1,6 +1,6 @@
 ---
 lammps_version: 5 May 2020
-date_generated: Wed May 13 11:32:53 202
+date_generated: Wed May 13 14:55:09 202
 pre_commands: ! ""
 post_commands: ! |
   pair_modify mix arithmetic

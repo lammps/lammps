@@ -12,7 +12,8 @@ file(GLOB MOL_PAIR_TESTS LIST_DIRECTORIES false mol-pair-*.yaml)
 
 foreach(TEST ${MOL_PAIR_TESTS})
   string(REGEX REPLACE "^.*mol-pair-(.*)\.yaml" "MolPairStyle:\\1" TNAME ${TEST})
-  add_test(NAME ${TNAME} COMMAND mol-pair-style ${TEST})
+  add_test(NAME ${TNAME} COMMAND mol-pair-style ${TEST}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endforeach()
 
 # copy files read at runtime to the working directory

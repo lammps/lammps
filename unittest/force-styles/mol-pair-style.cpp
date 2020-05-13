@@ -17,6 +17,7 @@
 #include <ctime>
 #include <string>
 #include <vector>
+#include <map>
 #include <iostream>
 
 #include "gtest/gtest.h"
@@ -26,26 +27,12 @@
 using ::testing::StartsWith;
 using ::testing::HasSubstr;
 
-typedef struct {
+struct coord_t {
     double x,y,z;
-} coord_t;
-
-typedef struct {
-    double xx,yy,zz,xy,xz,yz;
-} stress_t;
-
-enum state_value {
-    START,
-    ACCEPT_KEY,
-    ACCEPT_VALUE,
-    STOP,
-    ERROR,
 };
 
-struct parser_state {
-    enum state_value state;
-    int accepted;
-    std::string key;
+struct stress_t {
+    double xx,yy,zz,xy,xz,yz;
 };
 
 class TestConfig {
@@ -85,9 +72,10 @@ public:
         run_forces.clear();
         run_energy.clear();
     }
-} test_config;
+};
 
 // default floating point error margin
+TestConfig test_config;
 double float_epsilon = 1.0e-14;
 
 #define EXPECT_FP_EQ_WITH_EPS(val1,val2,eps)                \
@@ -150,210 +138,293 @@ void run_lammps(LAMMPS_NS::LAMMPS *lmp)
     lmp->input->one("run 4 post no");
 }
 
-int consume_event(struct parser_state *s, yaml_event_t *event)
-{
-    s->accepted = 0;
-    switch (s->state) {
-      case START:
-          switch (event->type) {
-            case YAML_MAPPING_START_EVENT:
-                s->state = ACCEPT_KEY;
-                break;
-            case YAML_SCALAR_EVENT:
-            case YAML_SEQUENCE_START_EVENT:
-                s->state = ERROR;
-                break;
-            case YAML_STREAM_END_EVENT:
-                s->state = STOP;
-                break;
-            case YAML_STREAM_START_EVENT:
-            case YAML_DOCUMENT_START_EVENT:
-            case YAML_DOCUMENT_END_EVENT:
-                // ignore
-                break;
-            default:
-                std::cerr << "UNHANDLED YAML EVENT:  " << event->type << std::endl;
-                s->state = ERROR;
-                break;
-          }
-          break;
+template<typename ConsumerClass>
+class YamlReader {
+    enum StateValue {
+        START,
+        ACCEPT_KEY,
+        ACCEPT_VALUE,
+        STOP,
+        ERROR,
+    };
 
-      case ACCEPT_KEY:
-          switch (event->type) {
-            case YAML_SCALAR_EVENT:
-                s->key =(char *) event->data.scalar.value;
-                s->state = ACCEPT_VALUE;
-                break;
-            case YAML_MAPPING_END_EVENT:
-                s->state = STOP;
-                break;
-            default:
-                std::cerr << "UNHANDLED YAML EVENT (key): " << event->type
-                          << "\nVALUE: " << event->data.scalar.value
-                          << std::endl;
-                s->state = ERROR;
-                break;
-          }
-          break;
+    StateValue state;
+    bool accepted;
+    std::string key;
 
-      case ACCEPT_VALUE:
-          switch (event->type) {
-            case YAML_SCALAR_EVENT:
-                s->accepted = 1;
-                s->state = ACCEPT_KEY;
-                break;
-            default:
-                std::cerr << "UNHANDLED YAML EVENT (value): " << event->type
-                          << "\nVALUE: " << event->data.scalar.value
-                          << std::endl;
-                s->state = ERROR;
-                break;
-          }
-          break;
+protected:
+    typedef void (ConsumerClass::*EventConsumer)(const yaml_event_t & event);
+    std::map<std::string, EventConsumer> consumers;
 
-      case ERROR:
-      case STOP:
-          break;
+public:
+    YamlReader() {
     }
-    return (s->state == ERROR) ? 0 : 1;
-}
 
-int parse(const char *infile)
-{
-    FILE *fp;
-    yaml_parser_t parser;
-    yaml_event_t event;
-    struct parser_state state;
-
-    fp = fopen(infile,"r");
-    if (!fp) {
-        std::cerr << "Cannot open yaml file '" << infile
-                  << "': " << strerror(errno) << std::endl;
-        return 1;
+    virtual ~YamlReader() {
     }
-    yaml_parser_initialize(&parser);
-    yaml_parser_set_input_file(&parser, fp);
 
-    int retval = 0;
-    state.state = START;
-    do {
-        if (!yaml_parser_parse(&parser, &event)) {
-            retval = 1;
-            state.state = STOP;
+    int parse_file(const std::string & infile) {
+        FILE * fp = fopen(infile.c_str(),"r");
+        yaml_parser_t parser;
+        yaml_event_t event;
+
+        if (!fp) {
+            std::cerr << "Cannot open yaml file '" << infile
+                    << "': " << strerror(errno) << std::endl;
+            return 1;
         }
+        yaml_parser_initialize(&parser);
+        yaml_parser_set_input_file(&parser, fp);
+        int retval = 0;
+        state = START;
+        do {
+            if (!yaml_parser_parse(&parser, &event)) {
+                retval = 1;
+                state = STOP;
+            }
 
-        if (!consume_event(&state, &event)) {
-            retval = 1;
-            state.state = STOP;
+            if (!consume_event(event)) {
+                retval = 1;
+                state = STOP;
+            }
+
+            if (accepted) {
+                if(!consume_key_value(key, event)){
+                    std::cerr << "Ignoring unknown key/value pair: " << key
+                                << " = " << event.data.scalar.value << std::endl;
+                }
+            }
+            yaml_event_delete(&event);
+        } while (state != STOP);
+
+        yaml_parser_delete(&parser);
+        fclose(fp);
+        return 0;
+    }
+
+protected:
+    bool consume_key_value(const std::string & key, const yaml_event_t & event) {
+        auto it = consumers.find(key);
+        ConsumerClass * consumer = dynamic_cast<ConsumerClass*>(this);
+
+        if(consumer) {
+            if(it != consumers.end()) {
+                //std::cerr << "Loading: " << key << std::endl;
+                (consumer->*(it->second))(event);
+                return true;
+            }
+            std::cerr << "UNKNOWN" << std::endl;
+        } else {
+            std::cerr << "ConsumerClass is not valid" << std::endl;
         }
+        return false;
+    }
 
-        if (state.accepted) {
-            if (state.key == "pre_commands") {
-                test_config.pre_commands.clear();
-                std::string data  = (char *)event.data.scalar.value;
-                std::size_t first = 0;
-                std::size_t found = data.find("\n");
-                while (found != std::string::npos) {
-                    std::string line(data.substr(first,found));
-                    test_config.pre_commands.push_back(line);
-                    data = data.substr(found+1);
-                    found = data.find("\n");
-                }
-            } else if (state.key == "post_commands") {
-                test_config.post_commands.clear();
-                std::string data  = (char *)event.data.scalar.value;
-                std::size_t first = 0;
-                std::size_t found = data.find("\n");
-                while (found != std::string::npos) {
-                    std::string line(data.substr(first,found));
-                    test_config.post_commands.push_back(line);
-                    data = data.substr(found+1);
-                    found = data.find("\n");
-                }
-            } else if (state.key == "lammps_version") {
-                test_config.lammps_version = (char *)event.data.scalar.value;
-            } else if (state.key == "date_generated") {
-                test_config.date_generated = (char *)event.data.scalar.value;
-            } else if (state.key == "input_file") {
-                test_config.input_file = (char *)event.data.scalar.value;
-            } else if (state.key == "pair_style") {
-                test_config.pair_style = (char *)event.data.scalar.value;
-            } else if (state.key == "pair_coeff") {
-                test_config.pair_coeff.clear();
-                std::string data  = (char *)event.data.scalar.value;
-                std::size_t first = 0;
-                std::size_t found = data.find("\n");
-                while (found != std::string::npos) {
-                    std::string line(data.substr(first,found));
-                    test_config.pair_coeff.push_back(line);
-                    data = data.substr(found+1);
-                    found = data.find("\n");
-                }
-            } else if (state.key == "natoms") {
-                test_config.natoms = atoi((char *)event.data.scalar.value);
-            } else if (state.key == "init_vdwl") {
-                test_config.init_vdwl = atof((char *)event.data.scalar.value);
-            } else if (state.key == "run_vdwl") {
-                test_config.run_vdwl = atof((char *)event.data.scalar.value);
-            } else if (state.key == "init_coul") {
-                test_config.init_coul = atof((char *)event.data.scalar.value);
-            } else if (state.key == "run_coul") {
-                test_config.run_coul = atof((char *)event.data.scalar.value);
-            } else if (state.key == "init_stress") {
-                stress_t stress;
-                sscanf((char *)event.data.scalar.value,
-                       "%lg %lg %lg %lg %lg %lg",
-                       &stress.xx, &stress.yy, &stress.zz,
-                       &stress.xy, &stress.xz, &stress.yz);
-                test_config.init_stress = stress;
-            } else if (state.key == "run_stress") {
-                stress_t stress;
-                sscanf((char *)event.data.scalar.value,
-                       "%lg %lg %lg %lg %lg %lg",
-                       &stress.xx, &stress.yy, &stress.zz,
-                       &stress.xy, &stress.xz, &stress.yz);
-                test_config.run_stress = stress;
-            } else if (state.key == "init_forces") {
-                test_config.init_forces.clear();
-                test_config.init_forces.resize(test_config.natoms+1);
-                std::string data  = (char *)event.data.scalar.value;
-                std::size_t first = 0;
-                std::size_t found = data.find("\n");
-                while (found != std::string::npos) {
-                    std::string line(data.substr(first,found));
-                    coord_t xyz;
-                    int tag;
-                    sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
-                    test_config.init_forces[tag] = xyz;
-                    data = data.substr(found+1);
-                    found = data.find("\n");
-                }
-            } else if (state.key == "run_forces") {
-                test_config.run_forces.clear();
-                test_config.run_forces.resize(test_config.natoms+1);
-                std::string data  = (char *)event.data.scalar.value;
-                std::size_t first = 0;
-                std::size_t found = data.find("\n");
-                while (found != std::string::npos) {
-                    std::string line(data.substr(first,found));
-                    coord_t xyz;
-                    int tag;
-                    sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
-                    test_config.run_forces[tag] = xyz;
-                    data = data.substr(found+1);
-                    found = data.find("\n");
-                }
-            } else std::cerr << "Ignoring unknown key/value pair: " << state.key
-                             << " = " << event.data.scalar.value << std::endl;
+    bool consume_event(yaml_event_t & event) {
+        accepted = false;
+        switch (state) {
+        case START:
+            switch (event.type) {
+                case YAML_MAPPING_START_EVENT:
+                    state = ACCEPT_KEY;
+                    break;
+                case YAML_SCALAR_EVENT:
+                case YAML_SEQUENCE_START_EVENT:
+                    state = ERROR;
+                    break;
+                case YAML_STREAM_END_EVENT:
+                    state = STOP;
+                    break;
+                case YAML_STREAM_START_EVENT:
+                case YAML_DOCUMENT_START_EVENT:
+                case YAML_DOCUMENT_END_EVENT:
+                    // ignore
+                    break;
+                default:
+                    std::cerr << "UNHANDLED YAML EVENT:  " << event.type << std::endl;
+                    state = ERROR;
+                    break;
+            }
+            break;
+
+        case ACCEPT_KEY:
+            switch (event.type) {
+                case YAML_SCALAR_EVENT:
+                    key = (char *) event.data.scalar.value;
+                    state = ACCEPT_VALUE;
+                    break;
+                case YAML_MAPPING_END_EVENT:
+                    state = STOP;
+                    break;
+                default:
+                    std::cerr << "UNHANDLED YAML EVENT (key): " << event.type
+                            << "\nVALUE: " << event.data.scalar.value
+                            << std::endl;
+                    state = ERROR;
+                    break;
+            }
+            break;
+
+        case ACCEPT_VALUE:
+            switch (event.type) {
+                case YAML_SCALAR_EVENT:
+                    accepted = true;
+                    state = ACCEPT_KEY;
+                    break;
+                default:
+                    std::cerr << "UNHANDLED YAML EVENT (value): " << event.type
+                            << "\nVALUE: " << event.data.scalar.value
+                            << std::endl;
+                    state = ERROR;
+                    break;
+            }
+            break;
+
+        case ERROR:
+        case STOP:
+            break;
         }
-        yaml_event_delete(&event);
-    } while (state.state != STOP);
+        return (state != ERROR);
+    }
+};
 
-    yaml_parser_delete(&parser);
-    fclose(fp);
-    return retval;
-}
+class TestConfigReader : public YamlReader<TestConfigReader> {
+    TestConfig & config;
 
+public:
+    TestConfigReader(TestConfig & config) : config(config), YamlReader() {
+        consumers["pre_commands"] = &TestConfigReader::pre_commands;
+        consumers["post_commands"] = &TestConfigReader::post_commands;
+        consumers["lammps_version"] = &TestConfigReader::lammps_version;
+        consumers["date_generated"] = &TestConfigReader::date_generated;
+        consumers["input_file"] = &TestConfigReader::input_file;
+        consumers["pair_style"] = &TestConfigReader::pair_style;
+        consumers["pair_coeff"] = &TestConfigReader::pair_coeff;
+        consumers["natoms"] = &TestConfigReader::natoms;
+        consumers["init_vdwl"] = &TestConfigReader::init_vdwl;
+        consumers["init_coul"] = &TestConfigReader::init_coul;
+        consumers["run_vdwl"] = &TestConfigReader::run_vdwl;
+        consumers["run_coul"] = &TestConfigReader::run_coul;
+        consumers["init_stress"] = &TestConfigReader::init_stress;
+        consumers["run_stress"] = &TestConfigReader::run_stress;
+        consumers["init_forces"] = &TestConfigReader::init_forces;
+        consumers["run_forces"] = &TestConfigReader::run_forces;
+    }
+
+protected:
+
+    void pre_commands(const yaml_event_t & event) {
+        config.pre_commands.clear();
+        std::stringstream data((char *)event.data.scalar.value);
+        std::string line;
+
+        while(std::getline(data, line, '\n')) {
+            test_config.pre_commands.push_back(line);
+        }
+    }
+
+    void post_commands(const yaml_event_t & event) {
+        config.post_commands.clear();
+        std::stringstream data((char *)event.data.scalar.value);
+        std::string line;
+
+        while (std::getline(data, line, '\n')) {
+            test_config.post_commands.push_back(line);
+        }
+    }
+
+    void lammps_version(const yaml_event_t & event) {
+        config.lammps_version = (char *)event.data.scalar.value;
+    }
+
+    void date_generated(const yaml_event_t & event) {
+        config.date_generated = (char *)event.data.scalar.value;
+    }
+
+    void input_file(const yaml_event_t & event) {
+        config.input_file = (char *)event.data.scalar.value;
+    }
+
+    void pair_style(const yaml_event_t & event) {
+        config.pair_style = (char *)event.data.scalar.value;
+    }
+
+    void pair_coeff(const yaml_event_t & event) {
+        config.pair_coeff.clear();
+        std::stringstream data((char *)event.data.scalar.value);
+        std::string line;
+
+        while (std::getline(data, line, '\n')) {
+            test_config.pair_coeff.push_back(line);
+        }
+    }
+
+    void natoms(const yaml_event_t & event) {
+        config.natoms = atoi((char *)event.data.scalar.value);
+    }
+
+    void init_vdwl(const yaml_event_t & event) {
+        config.init_vdwl = atof((char *)event.data.scalar.value);
+    }
+
+    void init_coul(const yaml_event_t & event) {
+        config.init_coul = atof((char *)event.data.scalar.value);
+    }
+
+    void run_vdwl(const yaml_event_t & event) {
+        config.run_vdwl = atof((char *)event.data.scalar.value);
+    }
+
+    void run_coul(const yaml_event_t & event) {
+        config.run_coul = atof((char *)event.data.scalar.value);
+    }
+
+    void init_stress(const yaml_event_t & event) {
+        stress_t stress;
+        sscanf((char *)event.data.scalar.value,
+                "%lg %lg %lg %lg %lg %lg",
+                &stress.xx, &stress.yy, &stress.zz,
+                &stress.xy, &stress.xz, &stress.yz);
+        config.init_stress = stress;
+    }
+
+    void run_stress(const yaml_event_t & event) {
+        stress_t stress;
+        sscanf((char *)event.data.scalar.value,
+                "%lg %lg %lg %lg %lg %lg",
+                &stress.xx, &stress.yy, &stress.zz,
+                &stress.xy, &stress.xz, &stress.yz);
+        config.run_stress = stress;
+    }
+
+    void init_forces(const yaml_event_t & event) {
+        config.init_forces.clear();
+        config.init_forces.resize(config.natoms+1);
+        std::stringstream data((const char*)event.data.scalar.value);
+        std::string line;
+        
+        while(std::getline(data, line, '\n')) {
+            int tag = 0;
+            coord_t xyz;
+            sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
+            config.init_forces[tag] = xyz;
+        }
+    }
+
+    void run_forces(const yaml_event_t & event) {
+        config.run_forces.clear();
+        config.run_forces.resize(config.natoms+1);
+        std::stringstream data((char *)event.data.scalar.value);
+        std::string line;
+
+        while(std::getline(data, line, '\n')) {
+            int tag;
+            coord_t xyz;
+            sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
+            config.run_forces[tag] = xyz;
+        }
+    }
+};
 
 class YamlWriter {
     FILE *fp;
@@ -484,7 +555,6 @@ void generate(const char *outfile) {
     if (!lmp) {
         std::cerr << "Pair style: " << test_config.pair_style << " is not available."
             "in this LAMMPS configuration\n";
-        fclose(fp);
         return;
     }
 
@@ -526,8 +596,8 @@ void generate(const char *outfile) {
 
     // pair_coeff
     block.clear();
-    for (std::size_t i=0; i < test_config.pair_coeff.size(); ++i) {
-        block += test_config.pair_coeff[i] + "\n";
+    for (auto pair_coeff : test_config.pair_coeff) {
+        block += pair_coeff + "\n";
     }
     writer.emit_block("pair_coeff", block);
 
@@ -731,7 +801,12 @@ int main(int argc, char **argv)
             "[--gen <newfile.yaml> | --eps <floating-point epsilon>]" << std::endl;
         return 1;
     }
-    if (parse(argv[1])) {
+
+    auto reader = TestConfigReader(test_config);
+
+    //std::cerr << "Loading test config..." << std::endl;
+
+    if (reader.parse_file(argv[1])) {
         std::cerr << "Error parsing yaml file: " << argv[1] << std::endl;
         return 2;
     }

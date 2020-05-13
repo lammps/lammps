@@ -14,4 +14,5 @@ foreach(TEST ${MOL_PAIR_TESTS})
   add_test(NAME ${TNAME} COMMAND mol-pair-style ${TEST})
 endforeach()
 
-file(INSTALL in.fourmol data.fourmol DESTINATION .)
+# copy files read at runtime to the working directory
+file(INSTALL in.fourmol data.fourmol DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

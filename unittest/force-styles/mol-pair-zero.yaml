@@ -6,6 +6,8 @@ global_stress: True
 global_energy: on
 atom_stress: true
 atom_energy: true
+pre_commands:
+post_commands:
 pair_style: zero 8.0
 pair_coeff: ! |
   * *

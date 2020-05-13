@@ -6,6 +6,7 @@ variable  dihedral_factor index  0.75
 variable  units           index  real
 
 atom_style       full
+atom_modify      map array
 units            ${units}
 newton           ${newton_pair} ${newton_bond}
 special_bonds    lj/coul ${bond_factor} ${angle_factor} ${dihedral_factor}

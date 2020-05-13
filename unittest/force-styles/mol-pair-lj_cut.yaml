@@ -8,6 +8,6 @@ atom_stress: true
 atom_energy: true
 pair_style: lj/cut 8.0
 pair_coeff: ! |
-  * *  0.1  3.0
+  * *  0.05  2.0
 input_file: in.fourmol
 ...

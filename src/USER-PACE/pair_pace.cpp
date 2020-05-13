@@ -28,21 +28,20 @@ using namespace MathConst;
 #define DELTA 4
 
 //added YL
-int elements_num = 104;
-char const *const elements[104] = {"X", "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na",
-                                   "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn",
-                                   "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr",
-                                   "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb",
-                                   "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd",
-                                   "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir",
-                                   "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th",
-                                   "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr"
+int elements_num_pace = 104;
+char const *const elements_pace[104] = {"X", "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na",
+                                        "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn",
+                                        "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr",
+                                        "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb",
+                                        "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd",
+                                        "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir",
+                                        "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th",
+                                        "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr"
 };
 
-int AtomicNumberByName(char *elname) {
-    int i = 0;
-    for (i = 1; i < elements_num; i++)
-        if (strcmp(elname, elements[i]) == 0)
+int AtomicNumberByName_pace(char *elname) {
+    for (int i = 1; i < elements_num_pace; i++)
+        if (strcmp(elname, elements_pace[i]) == 0)
             return i;
     return -1;
 }
@@ -298,7 +297,7 @@ void PairPACE::coeff(int narg, char **arg) {
 
     for (int i = 1; i <= atom->ntypes; i++) {
         char *elemname = elemtypes[i - 1];
-        int atomic_number = AtomicNumberByName(elemname);
+        int atomic_number = AtomicNumberByName_pace(elemname);
         if (atomic_number == -1) {
             char error_msg[1024];
             snprintf(error_msg, 1024, "String '%s' is not a valid element\n", elemname);

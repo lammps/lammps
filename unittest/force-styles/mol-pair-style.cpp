@@ -719,7 +719,7 @@ void generate(const char *outfile) {
 }
 
 TEST(MolPairStyle, plain) {
-
+    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
     const char *args[] = {"MolPairStyle", "-log", "none", "-echo", "screen", "-nocite" };
     char **argv = (char **)args;
     int argc = sizeof(args)/sizeof(char *);
@@ -807,6 +807,7 @@ TEST(MolPairStyle, plain) {
 };
 
 TEST(MolPairStyle, omp) {
+    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
     if (!LAMMPS_NS::LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
     const char *args[] = {"MolPairStyle", "-log", "none", "-echo", "screen",
                           "-nocite", "-pk", "omp", "4", "-sf", "omp"};

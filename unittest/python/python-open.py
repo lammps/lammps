@@ -8,6 +8,10 @@ try:
     from mpi4py import __version__ as mpi4py_version
     # tested to work with mpi4py versions 2 and 3
     has_mpi4py = mpi4py_version.split('.')[0] in ['2','3']
+except:
+    pass
+
+try:
     lmp = lammps()
     has_mpi = lmp.has_mpi_support
     lmp.close()
@@ -40,7 +44,7 @@ class PythonOpen(unittest.TestCase):
         self.assertIsNot(lmp.lmp,None)
         self.assertEqual(lmp.opened,1)
 
-    @unittest.skipIf(not has_mpi,"Skipping MPI test since mpi4py is not found")
+    @unittest.skipIf(not (has_mpi and has_mpi4py),"Skipping MPI test since mpi4py is not found")
     def testWithMPI(self):
         from mpi4py import MPI
         mycomm=MPI.Comm.Split(MPI.COMM_WORLD, 0, 1)

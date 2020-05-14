@@ -348,10 +348,11 @@ class TestConfigReader : public YamlReader<TestConfigReader> {
 
 public:
     TestConfigReader(TestConfig & config) : YamlReader(), config(config) {
-        consumers["pre_commands"]   = &TestConfigReader::pre_commands;
-        consumers["post_commands"]  = &TestConfigReader::post_commands;
         consumers["lammps_version"] = &TestConfigReader::lammps_version;
         consumers["date_generated"] = &TestConfigReader::date_generated;
+        consumers["epsilon"]        = &TestConfigReader::epsilon;
+        consumers["pre_commands"]   = &TestConfigReader::pre_commands;
+        consumers["post_commands"]  = &TestConfigReader::post_commands;
         consumers["input_file"]     = &TestConfigReader::input_file;
         consumers["pair_style"]     = &TestConfigReader::pair_style;
         consumers["pair_coeff"]     = &TestConfigReader::pair_coeff;

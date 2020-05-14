@@ -76,12 +76,12 @@ public:
 
 // default floating point error margin
 TestConfig test_config;
-double float_epsilon = 1.0e-14;
+double float_epsilon = 2.5e-14;
 
 #define EXPECT_FP_EQ_WITH_EPS(val1,val2,eps)                \
     do {                                                    \
         const double diff = fabs(val1-val2);                \
-        const double div = std::max(fabs(val1),fabs(val2)); \
+        const double div = std::min(fabs(val1),fabs(val2)); \
         const double err = (div == 0.0) ? diff : diff/div;  \
         EXPECT_PRED_FORMAT2(::testing::DoubleLE, err, eps); \
     } while (0);
@@ -683,12 +683,12 @@ TEST(MolPairStyle, plain) {
 
     LAMMPS_NS::Pair *pair = lmp->force->pair;
     double *stress = pair->virial;
-    EXPECT_FP_EQ_WITH_EPS(stress[0], test_config.init_stress.xx, float_epsilon);
-    EXPECT_FP_EQ_WITH_EPS(stress[1], test_config.init_stress.yy, float_epsilon);
-    EXPECT_FP_EQ_WITH_EPS(stress[2], test_config.init_stress.zz, float_epsilon);
-    EXPECT_FP_EQ_WITH_EPS(stress[3], test_config.init_stress.xy, float_epsilon);
-    EXPECT_FP_EQ_WITH_EPS(stress[4], test_config.init_stress.xz, float_epsilon);
-    EXPECT_FP_EQ_WITH_EPS(stress[5], test_config.init_stress.yz, float_epsilon);
+    EXPECT_FP_EQ_WITH_EPS(stress[0], test_config.init_stress.xx, float_epsilon*5);
+    EXPECT_FP_EQ_WITH_EPS(stress[1], test_config.init_stress.yy, float_epsilon*5);
+    EXPECT_FP_EQ_WITH_EPS(stress[2], test_config.init_stress.zz, float_epsilon*5);
+    EXPECT_FP_EQ_WITH_EPS(stress[3], test_config.init_stress.xy, float_epsilon*5);
+    EXPECT_FP_EQ_WITH_EPS(stress[4], test_config.init_stress.xz, float_epsilon*5);
+    EXPECT_FP_EQ_WITH_EPS(stress[5], test_config.init_stress.yz, float_epsilon*5);
 
     EXPECT_FP_EQ_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, float_epsilon);
     EXPECT_FP_EQ_WITH_EPS(pair->eng_coul, test_config.init_coul, float_epsilon);
@@ -708,15 +708,15 @@ TEST(MolPairStyle, plain) {
     }
 
     stress = pair->virial;
-    EXPECT_FP_EQ_WITH_EPS(stress[0], test_config.run_stress.xx, float_epsilon*200);
-    EXPECT_FP_EQ_WITH_EPS(stress[1], test_config.run_stress.yy, float_epsilon*200);
-    EXPECT_FP_EQ_WITH_EPS(stress[2], test_config.run_stress.zz, float_epsilon*200);
-    EXPECT_FP_EQ_WITH_EPS(stress[3], test_config.run_stress.xy, float_epsilon*200);
-    EXPECT_FP_EQ_WITH_EPS(stress[4], test_config.run_stress.xz, float_epsilon*200);
-    EXPECT_FP_EQ_WITH_EPS(stress[5], test_config.run_stress.yz, float_epsilon*200);
+    EXPECT_FP_EQ_WITH_EPS(stress[0], test_config.run_stress.xx, float_epsilon*20);
+    EXPECT_FP_EQ_WITH_EPS(stress[1], test_config.run_stress.yy, float_epsilon*20);
+    EXPECT_FP_EQ_WITH_EPS(stress[2], test_config.run_stress.zz, float_epsilon*20);
+    EXPECT_FP_EQ_WITH_EPS(stress[3], test_config.run_stress.xy, float_epsilon*20);
+    EXPECT_FP_EQ_WITH_EPS(stress[4], test_config.run_stress.xz, float_epsilon*20);
+    EXPECT_FP_EQ_WITH_EPS(stress[5], test_config.run_stress.yz, float_epsilon*20);
 
-    EXPECT_FP_EQ_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, float_epsilon*200);
-    EXPECT_FP_EQ_WITH_EPS(pair->eng_coul, test_config.run_coul, float_epsilon*200);
+    EXPECT_FP_EQ_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, float_epsilon*20);
+    EXPECT_FP_EQ_WITH_EPS(pair->eng_coul, test_config.run_coul, float_epsilon*20);
 
     ::testing::internal::CaptureStdout();
     delete lmp;

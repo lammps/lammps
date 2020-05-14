@@ -27,5 +27,9 @@ void print_C_tilde_B_basis_function(const ACECTildeBasisFunction &func) {
             printf(" %f ", func.ctildes[i * func.ndensity + p]);
         printf("\n");
     }
+    if (func.is_proxy)
+        printf("proxy ");
+    if (func.is_half_ms_basis)
+        printf("half_ms_basis ");
     printf("}\n");
 }

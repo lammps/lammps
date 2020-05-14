@@ -348,6 +348,7 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
 
     for (func_ind = 0; func_ind < total_basis_size; ++func_ind) {
         ACECTildeBasisFunction *func = &basis[func_ind];
+        //TODO: check if func->ctildes are zero, then skip
         ndensity = func->ndensity;
         rank = func->rank;
         r = rank - 1;

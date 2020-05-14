@@ -11,8 +11,6 @@ protected:
     DOUBLE_TYPE *full_c_tildes_rank1 = nullptr;
     DOUBLE_TYPE *full_c_tildes = nullptr;
 
-    void pack_flatten_basis() override;
-
     // routines for copying and cleaning dynamic memory of the class (see. Rule of Three)
     void _clean() override;
 
@@ -38,7 +36,10 @@ public:
     ~ACECTildeBasisSet() override;
 
     void save(const string &filename) override;
+
     void load(string filename) override;
+
+    void pack_flatten_basis() override;
 };
 
 #endif //ACE_C_BASIS_H

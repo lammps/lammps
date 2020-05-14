@@ -609,16 +609,16 @@ void generate(const char *outfile) {
 
     // init_stress
     double *stress = lmp->force->pair->virial;
-    snprintf(buf,bufsize,"%.15g %.15g %.15g %.15g %.15g %.15g",
+    snprintf(buf,bufsize,"% 23.16e % 23.16e % 23.16e % 23.16e % 23.16e % 23.16e",
              stress[0],stress[1],stress[2],stress[3],stress[4],stress[5]);
-    writer.emit("init_stress", buf);
+    writer.emit_block("init_stress", buf);
 
     // init_forces
     block.clear();
     double **f = lmp->atom->f;
     LAMMPS_NS::tagint *tag = lmp->atom->tag;
     for (int i=0; i < natoms; ++i) {
-        snprintf(buf,bufsize,"%d %.15g %.15g %.15g\n",
+        snprintf(buf,bufsize,"% 3d % 23.16e % 23.16e % 23.16e\n",
                  (int)tag[i], f[i][0], f[i][1], f[i][2]);
         block += buf;
     }
@@ -635,15 +635,15 @@ void generate(const char *outfile) {
 
     // run_stress
     stress = lmp->force->pair->virial;
-    snprintf(buf,bufsize,"%.15g %.15g %.15g %.15g %.15g %.15g",
+    snprintf(buf,bufsize,"% 23.16e % 23.16e % 23.16e % 23.16e % 23.16e % 23.16e",
              stress[0],stress[1],stress[2],stress[3],stress[4],stress[5]);
-    writer.emit("run_stress", buf);
+    writer.emit_block("run_stress", buf);
 
     block.clear();
     f = lmp->atom->f;
     tag = lmp->atom->tag;
     for (int i=0; i < natoms; ++i) {
-        snprintf(buf,bufsize,"%d %.15g %.15g %.15g\n",
+        snprintf(buf,bufsize,"% 3d % 23.16e % 23.16e % 23.16e\n",
                  (int)tag[i], f[i][0], f[i][1], f[i][2]);
         block += buf;
     }

@@ -51,20 +51,20 @@ struct ACECTildeBasisFunction {
     LS_TYPE *ls = nullptr;
 
     // number of ms-combinations, zero-th effective dimension of ms_combs arrays
-    SHORT_INT_TYPE num_ms_combs;
+    SHORT_INT_TYPE num_ms_combs = 0;
 
     // rank, number of atomic base functions "A"s in basis function B
-    RANK_TYPE rank;
+    RANK_TYPE rank = 0;
 
     // number of densities
-    DENSITY_TYPE ndensity;
+    DENSITY_TYPE ndensity = 0;
 
-    SPECIES_TYPE mu0; // element type of central atom
+    SPECIES_TYPE mu0 = 0; // element type of central atom
 
     // wheter ms array contains only "non-negative" ms-combinations.
     // positive ms-combination is when the first non-zero m is positive (0 1 -1)
     // negative ms-combination is when the first non-zero m is negative (0 -1 1)
-    bool is_half_ms_basis;
+    bool is_half_ms_basis = false;
 
     //flag, whether object is "owner" (i.e. reponsible for memory cleaning) of
     // the ms, ns, ls, mus, ctildes memory or just a proxy

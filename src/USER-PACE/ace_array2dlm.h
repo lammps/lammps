@@ -103,6 +103,19 @@ public:
         //l^2 + l + m
         return data[l * (l + 1) + m];
     }
+
+    vector<vector<T>> to_vector() const {
+        vector<vector<T>> res;
+        res.resize(lmax + 1);
+
+        for (int i = 0; i < lmax + 1; i++) {
+            res[i].resize(i + 1);
+            for (int j = 0; j < i + 1; j++) {
+                res[i][j] = operator()(i, j);
+            }
+        }
+        return res;
+    }
 };
 
 

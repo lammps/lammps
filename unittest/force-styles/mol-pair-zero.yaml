@@ -1,6 +1,6 @@
 ---
 lammps_version: 5 May 2020
-date_generated: Thu May 14 00:11:29 202
+date_generated: Thu May 14 01:18:10 202
 pre_commands: ! ""
 post_commands: ! ""
 input_file: in.fourmol

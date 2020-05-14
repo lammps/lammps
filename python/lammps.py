@@ -1131,6 +1131,19 @@ class lammps(object):
     return self.lib.lammps_create_atoms(self.lmp,n,id_lmp,type_lmp,x_lmp,v_lmp,img_lmp,se_lmp)
 
   @property
+  def has_mpi_support(self):
+    """ Report whether the LAMMPS shared library was compiled with a
+    real MPI library or in serial.
+
+    This is a wrapper around the :cpp:func:`lammps_config_has_mpi_support`
+    function of the library interface.
+
+    :return: False when compiled with MPI STUBS, otherwise True
+    :rtype: bool
+    """
+    return self.lib.lammps_config_has_mpi_support() != 0
+
+  @property
   def has_exceptions(self):
     """ Report whether the LAMMPS shared library was compiled with C++
     exceptions handling enabled

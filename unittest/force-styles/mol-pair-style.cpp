@@ -816,15 +816,17 @@ TEST(MolPairStyle, omp) {
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms,nlocal);
 
+    // relax error a bit for USER-OMP
+    double omp_epsilon = 5.0*float_epsilon;
     double **f=lmp->atom->f;
     LAMMPS_NS::tagint *tag=lmp->atom->tag;
     const std::vector<coord_t> &f_ref = test_config.init_forces;
     ErrorStats stats;
     stats.reset();
     for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, float_epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, float_epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, float_epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, omp_epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, omp_epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, omp_epsilon);
     }
     if (print_stats)
         std::cerr << "init_forces stats:" << stats << std::endl;
@@ -832,18 +834,18 @@ TEST(MolPairStyle, omp) {
     LAMMPS_NS::Pair *pair = lmp->force->pair;
     double *stress = pair->virial;
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10*float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10*float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 10*float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 10*float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 10*float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 10*float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10*omp_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10*omp_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 10*omp_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 10*omp_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 10*omp_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 10*omp_epsilon);
     if (print_stats)
         std::cerr << "init_stress stats:" << stats << std::endl;
 
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, omp_epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, omp_epsilon);
     if (print_stats)
         std::cerr << "init_energy stats:" << stats << std::endl;
 
@@ -857,27 +859,27 @@ TEST(MolPairStyle, omp) {
     ASSERT_EQ(nlocal+1,f_run.size());
     stats.reset();
     for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, float_epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, float_epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, float_epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, omp_epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, omp_epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, omp_epsilon);
     }
     if (print_stats)
         std::cerr << "run_forces  stats:" << stats << std::endl;
 
     stress = pair->virial;
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 10*float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 10*float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, 10*float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, 10*float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, 10*float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, 10*float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 10*omp_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 10*omp_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, 10*omp_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, 10*omp_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, 10*omp_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, 10*omp_epsilon);
     if (print_stats)
         std::cerr << "run_stress  stats:" << stats << std::endl;
 
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, omp_epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, omp_epsilon);
     if (print_stats)
         std::cerr << "run_energy  stats:" << stats << std::endl;
 

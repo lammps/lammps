@@ -292,7 +292,7 @@ class TestConfigReader : public YamlReader<TestConfigReader> {
     TestConfig & config;
 
 public:
-    TestConfigReader(TestConfig & config) : config(config), YamlReader() {
+    TestConfigReader(TestConfig & config) : YamlReader(), config(config) {
         consumers["pre_commands"] = &TestConfigReader::pre_commands;
         consumers["post_commands"] = &TestConfigReader::post_commands;
         consumers["lammps_version"] = &TestConfigReader::lammps_version;
@@ -402,7 +402,7 @@ protected:
         config.init_forces.resize(config.natoms+1);
         std::stringstream data((const char*)event.data.scalar.value);
         std::string line;
-        
+
         while(std::getline(data, line, '\n')) {
             int tag = 0;
             coord_t xyz;
@@ -650,7 +650,7 @@ void generate(const char *outfile) {
                  (int)tag[i], f[i][0], f[i][1], f[i][2]);
         block += buf;
     }
-    writer.emit("run_forces", block);
+    writer.emit_block("run_forces", block);
 
     delete lmp;
     return;
@@ -689,7 +689,7 @@ TEST(MolPairStyle, plain) {
     EXPECT_FP_EQ_WITH_EPS(stress[3], test_config.init_stress.xy, float_epsilon);
     EXPECT_FP_EQ_WITH_EPS(stress[4], test_config.init_stress.xz, float_epsilon);
     EXPECT_FP_EQ_WITH_EPS(stress[5], test_config.init_stress.yz, float_epsilon);
-    
+
     EXPECT_FP_EQ_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, float_epsilon);
     EXPECT_FP_EQ_WITH_EPS(pair->eng_coul, test_config.init_coul, float_epsilon);
 
@@ -824,5 +824,4 @@ int main(int argc, char **argv)
         }
     }
     return RUN_ALL_TESTS();
-    return 0;
 }

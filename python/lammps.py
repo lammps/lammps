@@ -280,13 +280,15 @@ class lammps(object):
       # with mpi4py v2, can pass MPI communicator to LAMMPS
       # need to adjust for type of MPI communicator object
       # allow for int (like MPICH) or void* (like OpenMPI)
-      if self.has_mpi4py:
+      if self.has_mpi4py and self.has_mpi_support:
         from mpi4py import MPI
         self.MPI = MPI
 
       if comm:
         if not self.has_mpi4py:
           raise Exception('Python mpi4py version is not 2 or 3')
+        if not self.has_mpi_support:
+          raise Exception('LAMMPS not compiled with real MPI library')
         if self.MPI._sizeof(self.MPI.Comm) == sizeof(c_int):
           MPI_Comm = c_int
         else:

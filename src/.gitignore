@@ -772,6 +772,8 @@
 /improper_umbrella.cpp
 /improper_umbrella.h
 /kissfft.h
+/kspace_zero.cpp
+/kspace_zero.h
 /lj_sdk_common.h
 /math_complex.h
 /math_vector.h

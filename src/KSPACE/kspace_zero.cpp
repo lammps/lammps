@@ -24,7 +24,17 @@ using namespace LAMMPS_NS;
 
 KSpaceZero::KSpaceZero(LAMMPS *lmp) : KSpace(lmp)
 {
+  g_ewald = 0.0;
   ewaldflag = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void KSpaceZero::settings(int narg, char **arg)
+{
+  if (narg != 1) error->all(FLERR,"Illegal kspace_style zero command");
+
+  g_ewald = force->numeric(FLERR,arg[0]);
 }
 
 /* ---------------------------------------------------------------------- */

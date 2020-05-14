@@ -34,7 +34,7 @@ class TILD : public KSpace{
   virtual void setup();
   virtual void settings(int, char **);
   virtual void compute(int, int);
-  void precompute_density_fft();
+  void precompute_density_hat_fft();
   double memory_usage();
   class FFT3d *fft1,*fft2;
   class Remap *remap;
@@ -212,7 +212,7 @@ class TILD : public KSpace{
                          LAMMPS_NS::Remap *);
   virtual void brick2fft();
   virtual void brick2fft_none();
-  void ev_calculation(FFT_SCALAR *, int, int);
+  void ev_calculation(int, int);
   //void ev_calculation();
 
 
@@ -273,8 +273,7 @@ class TILD : public KSpace{
   FFT_SCALAR ****density_brick_types;
   FFT_SCALAR *kappa_density;
   FFT_SCALAR **density_fft_types;
-  FFT_SCALAR **density_of_types_fft_ed;
-  FFT_SCALAR **density_of_potentials_fft_ed;
+  FFT_SCALAR **density_hat_fft_types;
   FFT_SCALAR *ktmp;
   FFT_SCALAR *ktmpi;
   FFT_SCALAR *ktmpj;

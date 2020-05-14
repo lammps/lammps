@@ -74,15 +74,74 @@ public:
     }
 };
 
-// default floating point error margin
 TestConfig test_config;
-double float_epsilon = 2.5e-14;
 
-#define EXPECT_FP_EQ_WITH_EPS(val1,val2,eps)                \
+// default floating point error margin
+double float_epsilon = 5.0e-14;
+
+// whether to print error statistics
+bool print_stats = false;
+
+class ErrorStats
+{
+public:
+    friend std::ostream &operator<<(std::ostream &out, const ErrorStats &stats);
+    ErrorStats() {
+            reset();
+    }
+    virtual ~ErrorStats() {}
+    void reset() {
+        num = 0;
+        maxidx = -1;
+        sum = sumsq = maxerr =0.0;
+    }
+    void add(const double &val) {
+        ++num;
+        if (val > maxerr) {
+            maxidx = num;
+            maxerr = val;
+        }
+        sum += val;
+        sumsq += val*val;
+    }
+    double avg() const {
+        return (num > 0) ? sum/num : 0.0;
+    }
+    double dev() const {
+        return (num > 0) ? sqrt(sumsq/num - sum/num*sum/num) : 0.0;
+    }
+    double max() const { return maxerr; }
+    double idx() const { return maxidx; }
+
+private:
+    double sum,sumsq,maxerr;
+    int num,maxidx;
+};
+
+std::ostream &operator<<(std::ostream &out, const ErrorStats &stats)
+{
+    const std::ios_base::fmtflags flags = out.flags();
+    const std::streamsize width = out.width(10);
+    const std::streamsize prec = out.precision(3);
+
+    out << std::scientific
+        << "Average: " << stats.avg()
+        << " StdDev: " << stats.dev()
+        << " MaxErr: " << stats.max();
+
+    out.precision(prec);
+    out.width(width);
+    out.flags(flags);
+
+    return out << " @ item: " << stats.idx();
+}
+
+#define EXPECT_FP_LE_WITH_EPS(val1,val2,eps)                \
     do {                                                    \
         const double diff = fabs(val1-val2);                \
         const double div = std::min(fabs(val1),fabs(val2)); \
         const double err = (div == 0.0) ? diff : diff/div;  \
+        stats.add(err);                                     \
         EXPECT_PRED_FORMAT2(::testing::DoubleLE, err, eps); \
     } while (0);
 
@@ -671,24 +730,35 @@ TEST(MolPairStyle, plain) {
 
     double **f=lmp->atom->f;
     LAMMPS_NS::tagint *tag=lmp->atom->tag;
+    ErrorStats stats;
+    stats.reset();
     const std::vector<coord_t> &f_ref = test_config.init_forces;
+    ASSERT_EQ(nlocal+1,f_ref.size());
     for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_EQ_WITH_EPS(f[i][0], f_ref[tag[i]].x, float_epsilon);
-        EXPECT_FP_EQ_WITH_EPS(f[i][1], f_ref[tag[i]].y, float_epsilon);
-        EXPECT_FP_EQ_WITH_EPS(f[i][2], f_ref[tag[i]].z, float_epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, float_epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, float_epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, float_epsilon);
     }
+    if (print_stats)
+        std::cerr << "init_forces stats:" << stats << std::endl;
 
     LAMMPS_NS::Pair *pair = lmp->force->pair;
     double *stress = pair->virial;
-    EXPECT_FP_EQ_WITH_EPS(stress[0], test_config.init_stress.xx, float_epsilon*5);
-    EXPECT_FP_EQ_WITH_EPS(stress[1], test_config.init_stress.yy, float_epsilon*5);
-    EXPECT_FP_EQ_WITH_EPS(stress[2], test_config.init_stress.zz, float_epsilon*5);
-    EXPECT_FP_EQ_WITH_EPS(stress[3], test_config.init_stress.xy, float_epsilon*5);
-    EXPECT_FP_EQ_WITH_EPS(stress[4], test_config.init_stress.xz, float_epsilon*5);
-    EXPECT_FP_EQ_WITH_EPS(stress[5], test_config.init_stress.yz, float_epsilon*5);
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, float_epsilon);
+    if (print_stats)
+        std::cerr << "init_stress stats:" << stats << std::endl;
 
-    EXPECT_FP_EQ_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, float_epsilon);
-    EXPECT_FP_EQ_WITH_EPS(pair->eng_coul, test_config.init_coul, float_epsilon);
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, float_epsilon);
+    if (print_stats)
+        std::cerr << "init_energy stats:" << stats << std::endl;
 
     ::testing::internal::CaptureStdout();
     run_lammps(lmp);
@@ -698,22 +768,31 @@ TEST(MolPairStyle, plain) {
     stress = pair->virial;
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal+1,f_run.size());
+    stats.reset();
     for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_EQ_WITH_EPS(f[i][0], f_run[tag[i]].x, float_epsilon*200);
-        EXPECT_FP_EQ_WITH_EPS(f[i][1], f_run[tag[i]].y, float_epsilon*200);
-        EXPECT_FP_EQ_WITH_EPS(f[i][2], f_run[tag[i]].z, float_epsilon*200);
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, float_epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, float_epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, float_epsilon);
     }
+    if (print_stats)
+        std::cerr << "run_forces  stats:" << stats << std::endl;
 
     stress = pair->virial;
-    EXPECT_FP_EQ_WITH_EPS(stress[0], test_config.run_stress.xx, float_epsilon*20);
-    EXPECT_FP_EQ_WITH_EPS(stress[1], test_config.run_stress.yy, float_epsilon*20);
-    EXPECT_FP_EQ_WITH_EPS(stress[2], test_config.run_stress.zz, float_epsilon*20);
-    EXPECT_FP_EQ_WITH_EPS(stress[3], test_config.run_stress.xy, float_epsilon*20);
-    EXPECT_FP_EQ_WITH_EPS(stress[4], test_config.run_stress.xz, float_epsilon*20);
-    EXPECT_FP_EQ_WITH_EPS(stress[5], test_config.run_stress.yz, float_epsilon*20);
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, float_epsilon);
+    if (print_stats)
+        std::cerr << "run_stress  stats:" << stats << std::endl;
 
-    EXPECT_FP_EQ_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, float_epsilon*20);
-    EXPECT_FP_EQ_WITH_EPS(pair->eng_coul, test_config.run_coul, float_epsilon*20);
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, float_epsilon);
+    if (print_stats)
+        std::cerr << "run_energy  stats:" << stats << std::endl;
 
     ::testing::internal::CaptureStdout();
     delete lmp;
@@ -740,23 +819,33 @@ TEST(MolPairStyle, omp) {
     double **f=lmp->atom->f;
     LAMMPS_NS::tagint *tag=lmp->atom->tag;
     const std::vector<coord_t> &f_ref = test_config.init_forces;
+    ErrorStats stats;
+    stats.reset();
     for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_EQ_WITH_EPS(f[i][0], f_ref[tag[i]].x, float_epsilon*20);
-        EXPECT_FP_EQ_WITH_EPS(f[i][1], f_ref[tag[i]].y, float_epsilon*20);
-        EXPECT_FP_EQ_WITH_EPS(f[i][2], f_ref[tag[i]].z, float_epsilon*20);
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, float_epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, float_epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, float_epsilon);
     }
+    if (print_stats)
+        std::cerr << "init_forces stats:" << stats << std::endl;
 
     LAMMPS_NS::Pair *pair = lmp->force->pair;
     double *stress = pair->virial;
-    EXPECT_FP_EQ_WITH_EPS(stress[0], test_config.init_stress.xx, float_epsilon*20);
-    EXPECT_FP_EQ_WITH_EPS(stress[1], test_config.init_stress.yy, float_epsilon*20);
-    EXPECT_FP_EQ_WITH_EPS(stress[2], test_config.init_stress.zz, float_epsilon*20);
-    EXPECT_FP_EQ_WITH_EPS(stress[3], test_config.init_stress.xy, float_epsilon*20);
-    EXPECT_FP_EQ_WITH_EPS(stress[4], test_config.init_stress.xz, float_epsilon*20);
-    EXPECT_FP_EQ_WITH_EPS(stress[5], test_config.init_stress.yz, float_epsilon*20);
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10*float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10*float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 10*float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 10*float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 10*float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 10*float_epsilon);
+    if (print_stats)
+        std::cerr << "init_stress stats:" << stats << std::endl;
 
-    EXPECT_FP_EQ_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, float_epsilon*10);
-    EXPECT_FP_EQ_WITH_EPS(pair->eng_coul, test_config.init_coul, float_epsilon*10);
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, float_epsilon);
+    if (print_stats)
+        std::cerr << "init_energy stats:" << stats << std::endl;
 
     ::testing::internal::CaptureStdout();
     run_lammps(lmp);
@@ -766,22 +855,31 @@ TEST(MolPairStyle, omp) {
     stress = pair->virial;
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal+1,f_run.size());
+    stats.reset();
     for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_EQ_WITH_EPS(f[i][0], f_run[tag[i]].x, float_epsilon*250);
-        EXPECT_FP_EQ_WITH_EPS(f[i][1], f_run[tag[i]].y, float_epsilon*250);
-        EXPECT_FP_EQ_WITH_EPS(f[i][2], f_run[tag[i]].z, float_epsilon*250);
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, float_epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, float_epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, float_epsilon);
     }
+    if (print_stats)
+        std::cerr << "run_forces  stats:" << stats << std::endl;
 
     stress = pair->virial;
-    EXPECT_FP_EQ_WITH_EPS(stress[0], test_config.run_stress.xx, float_epsilon*50);
-    EXPECT_FP_EQ_WITH_EPS(stress[1], test_config.run_stress.yy, float_epsilon*50);
-    EXPECT_FP_EQ_WITH_EPS(stress[2], test_config.run_stress.zz, float_epsilon*50);
-    EXPECT_FP_EQ_WITH_EPS(stress[3], test_config.run_stress.xy, float_epsilon*50);
-    EXPECT_FP_EQ_WITH_EPS(stress[4], test_config.run_stress.xz, float_epsilon*50);
-    EXPECT_FP_EQ_WITH_EPS(stress[5], test_config.run_stress.yz, float_epsilon*50);
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 10*float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 10*float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, 10*float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, 10*float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, 10*float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, 10*float_epsilon);
+    if (print_stats)
+        std::cerr << "run_stress  stats:" << stats << std::endl;
 
-    EXPECT_FP_EQ_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, float_epsilon*50);
-    EXPECT_FP_EQ_WITH_EPS(pair->eng_coul, test_config.run_coul, float_epsilon*50);
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, float_epsilon);
+    if (print_stats)
+        std::cerr << "run_energy  stats:" << stats << std::endl;
 
     ::testing::internal::CaptureStdout();
     delete lmp;
@@ -795,7 +893,9 @@ int main(int argc, char **argv)
 
     if ((argc != 2) && (argc != 4)) {
         std::cerr << "usage: " << argv[0] << " <testfile.yaml> "
-            "[--gen <newfile.yaml> | --eps <floating-point epsilon>]" << std::endl;
+            "[--gen <newfile.yaml> |"
+            " --eps <floating-point epsilon> |"
+            " --stats <yes|no>]" << std::endl;
         return 1;
     }
 
@@ -814,9 +914,13 @@ int main(int argc, char **argv)
             return 0;
         } else if (strcmp(argv[2],"--eps") == 0) {
             float_epsilon = atof(argv[3]);
+        } else if (strcmp(argv[2],"--stats") == 0) {
+            if (strcmp(argv[3],"yes") == 0) print_stats = true;
         } else {
             std::cerr << "usage: " << argv[0] << " <testfile.yaml> "
-                "[--gen <newfile.yaml> | --eps <floating-point epsilon>]" << std::endl;
+                "[--gen <newfile.yaml> |"
+                " --eps <floating-point epsilon> |"
+                " --stats <yes|no>]" << std::endl;
             return 1;
         }
     }

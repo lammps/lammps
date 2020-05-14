@@ -11,7 +11,7 @@
 TEST(lammps_open, null_args) {
     ::testing::internal::CaptureStdout();
     void *handle = lammps_open(0,NULL, MPI_COMM_WORLD, NULL);
-    std::string output = testing::internal::GetCapturedStdout();
+    std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.substr(0,6).c_str(),"LAMMPS");
     int mpi_init=0;
     MPI_Initialized(&mpi_init);
@@ -23,7 +23,7 @@ TEST(lammps_open, null_args) {
     EXPECT_NE(lmp->citeme, nullptr);
     ::testing::internal::CaptureStdout();
     lammps_close(handle);
-    output = testing::internal::GetCapturedStdout();
+    output = ::testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.substr(0,16).c_str(), "Total wall time:");
 }
 
@@ -40,7 +40,7 @@ TEST(lammps_open, with_args) {
     ::testing::internal::CaptureStdout();
     void *alt_ptr;
     void *handle = lammps_open(argc, argv, mycomm, &alt_ptr);
-    std::string output = testing::internal::GetCapturedStdout();
+    std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.substr(0,6).c_str(),"LAMMPS");
     EXPECT_EQ(handle,alt_ptr);
     LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;
@@ -59,7 +59,7 @@ TEST(lammps_open, with_args) {
     EXPECT_EQ(lmp->memoryKK, nullptr);
     ::testing::internal::CaptureStdout();
     lammps_close(handle);
-    output = testing::internal::GetCapturedStdout();
+    output = ::testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.substr(0,16).c_str(), "Total wall time:");
 }
 
@@ -75,7 +75,7 @@ TEST(lammps_open, with_kokkos) {
     ::testing::internal::CaptureStdout();
     void *alt_ptr;
     void *handle = lammps_open(argc, argv, MPI_COMM_WORLD, &alt_ptr);
-    std::string output = testing::internal::GetCapturedStdout();
+    std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.substr(0,6).c_str(),"LAMMPS");
     EXPECT_EQ(handle,alt_ptr);
     LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;
@@ -90,7 +90,7 @@ TEST(lammps_open, with_kokkos) {
     EXPECT_NE(lmp->memoryKK, nullptr);
     ::testing::internal::CaptureStdout();
     lammps_close(handle);
-    output = testing::internal::GetCapturedStdout();
+    output = ::testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.substr(0,16).c_str(), "Total wall time:");
 }
 
@@ -105,7 +105,7 @@ TEST(lammps_open_no_mpi, no_screen) {
     ::testing::internal::CaptureStdout();
     void *alt_ptr;
     void *handle = lammps_open_no_mpi(argc, argv, &alt_ptr);
-    std::string output = testing::internal::GetCapturedStdout();
+    std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.c_str(),"");
     EXPECT_EQ(handle,alt_ptr);
     LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;
@@ -121,7 +121,7 @@ TEST(lammps_open_no_mpi, no_screen) {
     EXPECT_EQ(lmp->num_package, 0);
     ::testing::internal::CaptureStdout();
     lammps_close(handle);
-    output = testing::internal::GetCapturedStdout();
+    output = ::testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.c_str(), "");
 }
 
@@ -138,7 +138,7 @@ TEST(lammps_open_no_mpi, with_omp) {
     ::testing::internal::CaptureStdout();
     void *alt_ptr;
     void *handle = lammps_open_no_mpi(argc, argv, &alt_ptr);
-    std::string output = testing::internal::GetCapturedStdout();
+    std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.substr(0,6).c_str(),"LAMMPS");
     EXPECT_EQ(handle,alt_ptr);
     LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;
@@ -154,7 +154,7 @@ TEST(lammps_open_no_mpi, with_omp) {
     EXPECT_EQ(lmp->num_package, 1);
     ::testing::internal::CaptureStdout();
     lammps_close(handle);
-    output = testing::internal::GetCapturedStdout();
+    output = ::testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.substr(0,16).c_str(), "Total wall time:");
 }
 
@@ -165,7 +165,7 @@ TEST(lammps_open_fortran, no_args) {
     int fcomm = MPI_Comm_c2f(mycomm);
     ::testing::internal::CaptureStdout();
     void *handle = lammps_open_fortran(0, NULL, fcomm, NULL);
-    std::string output = testing::internal::GetCapturedStdout();
+    std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.substr(0,6).c_str(),"LAMMPS");
     LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;
 
@@ -181,6 +181,6 @@ TEST(lammps_open_fortran, no_args) {
     EXPECT_NE(lmp->citeme, nullptr);
     ::testing::internal::CaptureStdout();
     lammps_close(handle);
-    output = testing::internal::GetCapturedStdout();
+    output = ::testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.substr(0,16).c_str(), "Total wall time:");
 }

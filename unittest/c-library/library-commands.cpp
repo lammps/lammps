@@ -32,17 +32,17 @@ protected:
 
         ::testing::internal::CaptureStdout();
         lmp = lammps_open_no_mpi(argc, argv, NULL);
-        std::string output = testing::internal::GetCapturedStdout();
+        std::string output = ::testing::internal::GetCapturedStdout();
         EXPECT_STREQ(output.substr(0,8).c_str(), "LAMMPS (");
     }
     void TearDown() override {
         ::testing::internal::CaptureStdout();
         lammps_close(lmp);
-        std::string output = testing::internal::GetCapturedStdout();
+        std::string output = ::testing::internal::GetCapturedStdout();
         EXPECT_STREQ(output.substr(0,16).c_str(), "Total wall time:");
         lmp = nullptr;
     }
-};            
+};
 
 TEST_F(LAMMPS_commands, from_file) {
     FILE *fp;
@@ -88,7 +88,7 @@ TEST_F(LAMMPS_commands, from_list) {
 
 TEST_F(LAMMPS_commands, from_string) {
     std::string cmds("");
-    
+
     for (unsigned int i=0; i < sizeof(demo_input)/sizeof(char *); ++i) {
         cmds += demo_input[i];
         cmds += "\n";

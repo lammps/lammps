@@ -20,7 +20,7 @@ const char *cont_input[] = {
 
 namespace LAMMPS_NS
 {
-    
+
     class Input_commands : public ::testing::Test
     {
     protected:
@@ -48,17 +48,17 @@ namespace LAMMPS_NS
 
             ::testing::internal::CaptureStdout();
             lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
-            std::string output = testing::internal::GetCapturedStdout();
+            std::string output = ::testing::internal::GetCapturedStdout();
             EXPECT_STREQ(output.substr(0,8).c_str(), "LAMMPS (");
         }
         void TearDown() override {
             ::testing::internal::CaptureStdout();
             delete lmp;
-            std::string output = testing::internal::GetCapturedStdout();
+            std::string output = ::testing::internal::GetCapturedStdout();
             EXPECT_STREQ(output.substr(0,16).c_str(), "Total wall time:");
             lmp = nullptr;
         }
-    };            
+    };
 
     TEST_F(Input_commands, from_file) {
         FILE *fp;

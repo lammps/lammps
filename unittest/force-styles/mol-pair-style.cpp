@@ -175,16 +175,13 @@ public:
         }
         yaml_parser_initialize(&parser);
         yaml_parser_set_input_file(&parser, fp);
-        int retval = 0;
         state = START;
         do {
             if (!yaml_parser_parse(&parser, &event)) {
-                retval = 1;
                 state = STOP;
             }
 
             if (!consume_event(event)) {
-                retval = 1;
                 state = STOP;
             }
 

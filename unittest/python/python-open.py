@@ -4,8 +4,12 @@ from lammps import lammps
 
 has_mpi=False
 try:
-    from mpi4py import MPI
-    has_mpi=True
+    from mpi4py import __version__ as mpi4py_version
+    # tested to work with mpi4py versions 2 and 3
+    has_mpi4py = mpi4py_version.split('.')[0] in ['2','3']
+    lmp = lammps()
+    has_mpi = lmp.has_mpi_support
+    lmp.close()
 except:
     pass
 
@@ -22,7 +26,8 @@ class PythonOpen(unittest.TestCase):
         lmp=lammps(name=self.machine)
         self.assertIsNot(lmp.lmp,None)
         self.assertEqual(lmp.opened,1)
-        self.assertEqual(has_mpi,lmp.has_mpi4py)
+        self.assertEqual(has_mpi4py,lmp.has_mpi4py)
+        self.assertEqual(has_mpi,lmp.has_mpi_support)
         lmp.close()
         self.assertIsNone(lmp.lmp,None)
         self.assertEqual(lmp.opened,0)
@@ -36,6 +41,7 @@ class PythonOpen(unittest.TestCase):
 
     @unittest.skipIf(not has_mpi,"Skipping MPI test since mpi4py is not found")
     def testWithMPI(self):
+        from mpi4py import MPI
         mycomm=MPI.Comm.Split(MPI.COMM_WORLD, 0, 1)
         lmp=lammps(name=self.machine,comm=mycomm)
         self.assertIsNot(lmp.lmp,None)

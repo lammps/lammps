@@ -147,16 +147,6 @@ class lammps(object):
   :type  comm: MPI_Comm
   """
 
-  # detect if Python is using version of mpi4py that can pass a communicator
-
-  has_mpi4py = False
-  try:
-    from mpi4py import __version__ as mpi4py_version
-    # tested to work with mpi4py versions 2 and 3
-    if mpi4py_version.split('.')[0] in ['2','3']: has_mpi4py = True
-    if has_mpi4py: from mpi4py import MPI
-  except:
-    pass
 
   # create instance of LAMMPS
 
@@ -266,6 +256,16 @@ class lammps(object):
     self.lib.lammps_neighlist_element_neighbors.argtypes = [c_void_p, c_int, c_int, POINTER(c_int), POINTER(c_int), POINTER(POINTER(c_int))]
     self.lib.lammps_neighlist_element_neighbors.restype  = None
 
+    # detect if Python is using version of mpi4py that can pass a communicator
+
+    self.has_mpi4py = False
+    try:
+      from mpi4py import __version__ as mpi4py_version
+      # tested to work with mpi4py versions 2 and 3
+      self.has_mpi4py = mpi4py_version.split('.')[0] in ['2','3']
+    except:
+      pass
+
     # if no ptr provided, create an instance of LAMMPS
     #   don't know how to pass an MPI communicator from PyPar
     #   but we can pass an MPI communicator from mpi4py v2.0.0 and later
@@ -280,11 +280,14 @@ class lammps(object):
       # with mpi4py v2, can pass MPI communicator to LAMMPS
       # need to adjust for type of MPI communicator object
       # allow for int (like MPICH) or void* (like OpenMPI)
+      if self.has_mpi4py:
+        from mpi4py import MPI
+        self.MPI = MPI
 
       if comm:
-        if not lammps.has_mpi4py:
+        if not self.has_mpi4py:
           raise Exception('Python mpi4py version is not 2 or 3')
-        if lammps.MPI._sizeof(lammps.MPI.Comm) == sizeof(c_int):
+        if self.MPI._sizeof(self.MPI.Comm) == sizeof(c_int):
           MPI_Comm = c_int
         else:
           MPI_Comm = c_void_p
@@ -305,14 +308,13 @@ class lammps(object):
                                            MPI_Comm, c_void_p]
 
         self.opened = 1
-        comm_ptr = lammps.MPI._addressof(comm)
+        comm_ptr = self.MPI._addressof(comm)
         comm_val = MPI_Comm.from_address(comm_ptr)
         self.lmp = self.lib.lammps_open(narg,cargs,comm_val,None)
 
       else:
-        if lammps.has_mpi4py:
-          from mpi4py import MPI
-          self.comm = MPI.COMM_WORLD
+        if self.has_mpi4py and self.has_mpi_support:
+          self.comm = self.MPI.COMM_WORLD
         self.opened = 1
         if cmdargs:
           cmdargs.insert(0,"lammps.py")
@@ -1659,7 +1661,7 @@ class PyLammps(object):
   def run(self, *args, **kwargs):
     output = self.__getattr__('run')(*args, **kwargs)
 
-    if(lammps.has_mpi4py):
+    if(self.has_mpi4py):
       output = self.lmp.comm.bcast(output, root=0)
 
     self.runs += get_thermo_data(output)

@@ -2560,7 +2560,7 @@ int lammps_style_name(void* handle, char * category, int idx, char * buffer, int
   Info info(lmp);
   auto styles = info.get_available_styles(category);
 
-  if ((idx >=0) && (idx < styles.size())) {
+  if ((idx >=0) && (idx < (int) styles.size())) {
     strncpy(buffer, styles[idx].c_str(), buf_size);
     return 1;
   }

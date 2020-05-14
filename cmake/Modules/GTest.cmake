@@ -1,4 +1,11 @@
 message(STATUS "Downloading and building Google Test library")
+
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    set(GTEST_LIB_POSTFIX "d")
+else()
+    set(GTEST_LIB_POSTFIX "")
+endif()
+
 include(ExternalProject)
 ExternalProject_Add(googletest
                     GIT_REPOSITORY  https://github.com/google/googletest.git
@@ -11,10 +18,10 @@ ExternalProject_Add(googletest
                                     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                                     -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
                                     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-                    BUILD_BYPRODUCTS <BINARY_DIR>/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gtest.a
-                                     <BINARY_DIR>/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gmock.a
-                                     <BINARY_DIR>/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main.a
-                                     <BINARY_DIR>/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gmock_main.a
+                    BUILD_BYPRODUCTS <BINARY_DIR>/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gtest${GTEST_LIB_POSTFIX}.a
+                                     <BINARY_DIR>/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gmock${GTEST_LIB_POSTFIX}.a
+                                     <BINARY_DIR>/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main${GTEST_LIB_POSTFIX}.a
+                                     <BINARY_DIR>/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gmock_main${GTEST_LIB_POSTFIX}.a
                     LOG_DOWNLOAD ON
                     LOG_CONFIGURE ON
                     LOG_BUILD ON
@@ -30,10 +37,10 @@ file(MAKE_DIRECTORY ${GTEST_INCLUDE_DIR})
 file(MAKE_DIRECTORY ${GMOCK_INCLUDE_DIR})
 
 ExternalProject_Get_Property(googletest BINARY_DIR)
-set(GTEST_LIBRARY_PATH ${BINARY_DIR}/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gtest.a)
-set(GMOCK_LIBRARY_PATH ${BINARY_DIR}/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gmock.a)
-set(GTEST_MAIN_LIBRARY_PATH ${BINARY_DIR}/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main.a)
-set(GMOCK_MAIN_LIBRARY_PATH ${BINARY_DIR}/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gmock_main.a)
+set(GTEST_LIBRARY_PATH ${BINARY_DIR}/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gtest${GTEST_LIB_POSTFIX}.a)
+set(GMOCK_LIBRARY_PATH ${BINARY_DIR}/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gmock${GTEST_LIB_POSTFIX}.a)
+set(GTEST_MAIN_LIBRARY_PATH ${BINARY_DIR}/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main${GTEST_LIB_POSTFIX}.a)
+set(GMOCK_MAIN_LIBRARY_PATH ${BINARY_DIR}/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gmock_main${GTEST_LIB_POSTFIX}.a)
 
 set(GTEST_LIBRARY GTest::GTest)
 set(GMOCK_LIBRARY GTest::GMock)

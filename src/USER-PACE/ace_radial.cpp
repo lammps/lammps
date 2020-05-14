@@ -3,6 +3,8 @@
 
 #include "ace_radial.h"
 
+const DOUBLE_TYPE pi = 3.14159265358979323846264338327950288419; // pi
+
 /**
 Constructor for ACERadialFunctions.
 
@@ -388,7 +390,7 @@ dcr: derivative of hard core repulsion
 
 */
 
-    DOUBLE_TYPE r2, lr2, y;
+    DOUBLE_TYPE r2, lr2, y, x0, env, denv;
 
 //   repulsion strictly positive and decaying
     pre = abs(pre);
@@ -400,6 +402,12 @@ dcr: derivative of hard core repulsion
         y = exp(-lr2);
         cr = pre * y / r;
         dcr = -pre * y * (2.0 * lr2 + 1.0) / r2;
+
+        x0 = r / cutoff;
+        env = 0.5 * (1.0 + cos(pi * x0));
+        denv = -0.5 * sin(pi * x0) * pi / cutoff;
+        dcr = cr * denv + dcr * env;
+        cr = cr * env;
     } else {
         cr = 0.0;
         dcr = 0.0;

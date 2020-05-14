@@ -1,9 +1,9 @@
 message(STATUS "Downloading and building Google Test library")
 
-if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    set(GTEST_LIB_POSTFIX "d")
+if(CMAKE_BUILD_TYPE STREQUAL Debug)
+  set(GTEST_LIB_POSTFIX d)
 else()
-    set(GTEST_LIB_POSTFIX "")
+  set(GTEST_LIB_POSTFIX)
 endif()
 
 include(ExternalProject)
@@ -42,41 +42,36 @@ set(GMOCK_LIBRARY_PATH ${BINARY_DIR}/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gmock${GT
 set(GTEST_MAIN_LIBRARY_PATH ${BINARY_DIR}/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main${GTEST_LIB_POSTFIX}.a)
 set(GMOCK_MAIN_LIBRARY_PATH ${BINARY_DIR}/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gmock_main${GTEST_LIB_POSTFIX}.a)
 
-set(GTEST_LIBRARY GTest::GTest)
-set(GMOCK_LIBRARY GTest::GMock)
-set(GTEST_MAIN_LIBRARY GTest::GTestMain)
-set(GMOCK_MAIN_LIBRARY GTest::GMockMain)
-
 # Prevent GoogleTest from overriding our compiler/linker options
 # when building with Visual Studio
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 find_package(Threads QUIET)
 
-add_library(${GTEST_LIBRARY} UNKNOWN IMPORTED)
-set_target_properties(${GTEST_LIBRARY} PROPERTIES
+add_library(GTest::GTest UNKNOWN IMPORTED)
+set_target_properties(GTest::GTest PROPERTIES
         IMPORTED_LOCATION ${GTEST_LIBRARY_PATH}
         INTERFACE_INCLUDE_DIRECTORIES ${GTEST_INCLUDE_DIR}
         IMPORTED_LINK_INTERFACE_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
-add_dependencies(${GTEST_LIBRARY} googletest)
+add_dependencies(GTest::GTest googletest)
 
-add_library(${GMOCK_LIBRARY} UNKNOWN IMPORTED)
-set_target_properties(${GMOCK_LIBRARY} PROPERTIES
+add_library(GTest::GMock UNKNOWN IMPORTED)
+set_target_properties(GTest::GMock PROPERTIES
         IMPORTED_LOCATION ${GMOCK_LIBRARY_PATH}
         INTERFACE_INCLUDE_DIRECTORIES ${GMOCK_INCLUDE_DIR}
         IMPORTED_LINK_INTERFACE_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
-add_dependencies(${GMOCK_LIBRARY} googletest)
+add_dependencies(GTest::GMock googletest)
 
-add_library(${GTEST_MAIN_LIBRARY} UNKNOWN IMPORTED)
-set_target_properties(${GTEST_MAIN_LIBRARY} PROPERTIES
+add_library(GTest::GTestMain UNKNOWN IMPORTED)
+set_target_properties(GTest::GTestMain PROPERTIES
         IMPORTED_LOCATION ${GTEST_MAIN_LIBRARY_PATH}
         INTERFACE_INCLUDE_DIRECTORIES ${GTEST_INCLUDE_DIR}
         IMPORTED_LINK_INTERFACE_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
-add_dependencies(${GTEST_MAIN_LIBRARY} googletest)
+add_dependencies(GTest::GTestMain googletest)
 
-add_library(${GMOCK_MAIN_LIBRARY} UNKNOWN IMPORTED)
-set_target_properties(${GMOCK_MAIN_LIBRARY} PROPERTIES
+add_library(GTest::GMockMain UNKNOWN IMPORTED)
+set_target_properties(GTest::GMockMain PROPERTIES
         IMPORTED_LOCATION ${GMOCK_MAIN_LIBRARY_PATH}
         INTERFACE_INCLUDE_DIRECTORIES ${GMOCK_INCLUDE_DIR}
         IMPORTED_LINK_INTERFACE_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
-add_dependencies(${GMOCK_MAIN_LIBRARY} googletest)
+add_dependencies(GTest::GMockMain googletest)

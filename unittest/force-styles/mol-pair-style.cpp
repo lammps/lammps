@@ -39,6 +39,7 @@ class TestConfig {
 public:
     std::string lammps_version;
     std::string date_generated;
+    double epsilon;
     std::vector<std::string> pre_commands;
     std::vector<std::string> post_commands;
     std::string input_file;
@@ -56,6 +57,7 @@ public:
     std::vector<coord_t> run_energy;
     TestConfig() : lammps_version(""),
                    date_generated(""),
+                   epsilon(1.0e-14),
                    input_file(""),
                    pair_style("zero"),
                    natoms(0),
@@ -75,9 +77,6 @@ public:
 };
 
 TestConfig test_config;
-
-// default floating point error margin
-double float_epsilon = 5.0e-14;
 
 // whether to print error statistics
 bool print_stats = false;
@@ -156,8 +155,8 @@ LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg)
 
     // determine if pair style is available while applying suffix if active
     LAMMPS_NS::Info *info = new LAMMPS_NS::Info(lmp);
-    std::size_t found = cfg.pair_style.find(" ");
     std::string style;
+    std::size_t found = cfg.pair_style.find(" ");
     if ((found > 0) && (found != std::string::npos)) {
         style = cfg.pair_style.substr(0,found);
     } else {
@@ -349,22 +348,22 @@ class TestConfigReader : public YamlReader<TestConfigReader> {
 
 public:
     TestConfigReader(TestConfig & config) : YamlReader(), config(config) {
-        consumers["pre_commands"] = &TestConfigReader::pre_commands;
-        consumers["post_commands"] = &TestConfigReader::post_commands;
+        consumers["pre_commands"]   = &TestConfigReader::pre_commands;
+        consumers["post_commands"]  = &TestConfigReader::post_commands;
         consumers["lammps_version"] = &TestConfigReader::lammps_version;
         consumers["date_generated"] = &TestConfigReader::date_generated;
-        consumers["input_file"] = &TestConfigReader::input_file;
-        consumers["pair_style"] = &TestConfigReader::pair_style;
-        consumers["pair_coeff"] = &TestConfigReader::pair_coeff;
-        consumers["natoms"] = &TestConfigReader::natoms;
-        consumers["init_vdwl"] = &TestConfigReader::init_vdwl;
-        consumers["init_coul"] = &TestConfigReader::init_coul;
-        consumers["run_vdwl"] = &TestConfigReader::run_vdwl;
-        consumers["run_coul"] = &TestConfigReader::run_coul;
-        consumers["init_stress"] = &TestConfigReader::init_stress;
-        consumers["run_stress"] = &TestConfigReader::run_stress;
-        consumers["init_forces"] = &TestConfigReader::init_forces;
-        consumers["run_forces"] = &TestConfigReader::run_forces;
+        consumers["input_file"]     = &TestConfigReader::input_file;
+        consumers["pair_style"]     = &TestConfigReader::pair_style;
+        consumers["pair_coeff"]     = &TestConfigReader::pair_coeff;
+        consumers["natoms"]         = &TestConfigReader::natoms;
+        consumers["init_vdwl"]      = &TestConfigReader::init_vdwl;
+        consumers["init_coul"]      = &TestConfigReader::init_coul;
+        consumers["run_vdwl"]       = &TestConfigReader::run_vdwl;
+        consumers["run_coul"]       = &TestConfigReader::run_coul;
+        consumers["init_stress"]    = &TestConfigReader::init_stress;
+        consumers["run_stress"]     = &TestConfigReader::run_stress;
+        consumers["init_forces"]    = &TestConfigReader::init_forces;
+        consumers["run_forces"]     = &TestConfigReader::run_forces;
     }
 
 protected:
@@ -395,6 +394,10 @@ protected:
 
     void date_generated(const yaml_event_t & event) {
         config.date_generated = (char *)event.data.scalar.value;
+    }
+
+    void epsilon(const yaml_event_t & event) {
+        config.epsilon = atof((char *)event.data.scalar.value);
     }
 
     void input_file(const yaml_event_t & event) {
@@ -630,6 +633,9 @@ void generate(const char *outfile) {
     block = block.substr(0,block.find("\n")-1);
     writer.emit("date_generated", block);
 
+    // epsilon
+    writer.emit("epsilon", test_config.epsilon);
+
     // pre_commands
     block.clear();
     for (auto command :  test_config.pre_commands) {
@@ -728,6 +734,7 @@ TEST(MolPairStyle, plain) {
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms,nlocal);
 
+    double epsilon = test_config.epsilon;
     double **f=lmp->atom->f;
     LAMMPS_NS::tagint *tag=lmp->atom->tag;
     ErrorStats stats;
@@ -735,9 +742,9 @@ TEST(MolPairStyle, plain) {
     const std::vector<coord_t> &f_ref = test_config.init_forces;
     ASSERT_EQ(nlocal+1,f_ref.size());
     for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, float_epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, float_epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, float_epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
     }
     if (print_stats)
         std::cerr << "init_forces stats:" << stats << std::endl;
@@ -745,18 +752,18 @@ TEST(MolPairStyle, plain) {
     LAMMPS_NS::Pair *pair = lmp->force->pair;
     double *stress = pair->virial;
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, epsilon);
     if (print_stats)
         std::cerr << "init_stress stats:" << stats << std::endl;
 
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, epsilon);
     if (print_stats)
         std::cerr << "init_energy stats:" << stats << std::endl;
 
@@ -770,27 +777,27 @@ TEST(MolPairStyle, plain) {
     ASSERT_EQ(nlocal+1,f_run.size());
     stats.reset();
     for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, float_epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, float_epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, float_epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, epsilon);
     }
     if (print_stats)
         std::cerr << "run_forces  stats:" << stats << std::endl;
 
     stress = pair->virial;
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
     if (print_stats)
         std::cerr << "run_stress  stats:" << stats << std::endl;
 
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, float_epsilon);
-    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, float_epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
     if (print_stats)
         std::cerr << "run_energy  stats:" << stats << std::endl;
 
@@ -817,16 +824,16 @@ TEST(MolPairStyle, omp) {
     ASSERT_EQ(lmp->atom->natoms,nlocal);
 
     // relax error a bit for USER-OMP
-    double omp_epsilon = 5.0*float_epsilon;
+    double epsilon = 5.0*test_config.epsilon;
     double **f=lmp->atom->f;
     LAMMPS_NS::tagint *tag=lmp->atom->tag;
     const std::vector<coord_t> &f_ref = test_config.init_forces;
     ErrorStats stats;
     stats.reset();
     for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, omp_epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, omp_epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, omp_epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
     }
     if (print_stats)
         std::cerr << "init_forces stats:" << stats << std::endl;
@@ -834,18 +841,18 @@ TEST(MolPairStyle, omp) {
     LAMMPS_NS::Pair *pair = lmp->force->pair;
     double *stress = pair->virial;
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10*omp_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10*omp_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 10*omp_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 10*omp_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 10*omp_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 10*omp_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 10*epsilon);
     if (print_stats)
         std::cerr << "init_stress stats:" << stats << std::endl;
 
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, omp_epsilon);
-    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, omp_epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, epsilon);
     if (print_stats)
         std::cerr << "init_energy stats:" << stats << std::endl;
 
@@ -859,27 +866,27 @@ TEST(MolPairStyle, omp) {
     ASSERT_EQ(nlocal+1,f_run.size());
     stats.reset();
     for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, omp_epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, omp_epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, omp_epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, epsilon);
     }
     if (print_stats)
         std::cerr << "run_forces  stats:" << stats << std::endl;
 
     stress = pair->virial;
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 10*omp_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 10*omp_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, 10*omp_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, 10*omp_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, 10*omp_epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, 10*omp_epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, 10*epsilon);
     if (print_stats)
         std::cerr << "run_stress  stats:" << stats << std::endl;
 
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, omp_epsilon);
-    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, omp_epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
     if (print_stats)
         std::cerr << "run_energy  stats:" << stats << std::endl;
 
@@ -896,15 +903,11 @@ int main(int argc, char **argv)
     if ((argc != 2) && (argc != 4)) {
         std::cerr << "usage: " << argv[0] << " <testfile.yaml> "
             "[--gen <newfile.yaml> |"
-            " --eps <floating-point epsilon> |"
             " --stats <yes|no>]" << std::endl;
         return 1;
     }
 
     auto reader = TestConfigReader(test_config);
-
-    //std::cerr << "Loading test config..." << std::endl;
-
     if (reader.parse_file(argv[1])) {
         std::cerr << "Error parsing yaml file: " << argv[1] << std::endl;
         return 2;
@@ -914,14 +917,11 @@ int main(int argc, char **argv)
         if (strcmp(argv[2],"--gen") == 0) {
             generate(argv[3]);
             return 0;
-        } else if (strcmp(argv[2],"--eps") == 0) {
-            float_epsilon = atof(argv[3]);
         } else if (strcmp(argv[2],"--stats") == 0) {
             if (strcmp(argv[3],"yes") == 0) print_stats = true;
         } else {
             std::cerr << "usage: " << argv[0] << " <testfile.yaml> "
                 "[--gen <newfile.yaml> |"
-                " --eps <floating-point epsilon> |"
                 " --stats <yes|no>]" << std::endl;
             return 1;
         }

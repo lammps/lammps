@@ -44,7 +44,7 @@ class PythonOpen(unittest.TestCase):
         self.assertIsNot(lmp.lmp,None)
         self.assertEqual(lmp.opened,1)
 
-    @unittest.skipIf(not (has_mpi and has_mpi4py),"Skipping MPI test since mpi4py is not found")
+    @unittest.skipIf(not (has_mpi and has_mpi4py),"Skipping MPI test since LAMMPS is not parallel or mpi4py is not found")
     def testWithMPI(self):
         from mpi4py import MPI
         mycomm=MPI.Comm.Split(MPI.COMM_WORLD, 0, 1)

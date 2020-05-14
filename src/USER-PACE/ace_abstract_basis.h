@@ -16,9 +16,7 @@ using namespace std;
 
 class ACEAbstractBasisSet {
 protected:
-    vector<DOUBLE_TYPE> FS_parameters;// for Eq.(53)
 
-    int ntot = 0;
 
     // routines for copying and cleaning dynamic memory of the class (see. Rule of Three)
     virtual void _clean(); //must be idempotent for safety
@@ -43,7 +41,7 @@ public:
     //energy-based inner cuttoff
     Array1D<DOUBLE_TYPE> rho_core_cutoffs;
     Array1D<DOUBLE_TYPE> drho_core_cutoffs;
-
+    vector<DOUBLE_TYPE> FS_parameters;// for Eq.(53)
     ACEAbstractBasisSet() = default;
 
     // copy constructor, operator= and destructor (see. Rule of Three)
@@ -67,6 +65,8 @@ public:
     virtual void load(string filename) = 0;
 
     SPECIES_TYPE get_species_index_by_name(const string &elemname);
+
+    int ntot = 0;
 };
 
 #include <vector>

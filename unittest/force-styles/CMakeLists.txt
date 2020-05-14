@@ -6,8 +6,7 @@ if(NOT YAML_FOUND)
 endif()
 
 add_executable(mol-pair-style mol-pair-style.cpp)
-target_link_libraries(mol-pair-style PRIVATE lammps
-  "GTest::GMock;GTest::GTest;Yaml::Yaml")
+target_link_libraries(mol-pair-style PRIVATE lammps GTest::GMock GTest::GTest Yaml::Yaml)
 file(GLOB MOL_PAIR_TESTS LIST_DIRECTORIES false mol-pair-*.yaml)
 
 foreach(TEST ${MOL_PAIR_TESTS})

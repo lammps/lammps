@@ -702,21 +702,21 @@ TEST(MolPairStyle, plain) {
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal+1,f_run.size());
     for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_EQ_WITH_EPS(f[i][0], f_run[tag[i]].x, float_epsilon*100);
-        EXPECT_FP_EQ_WITH_EPS(f[i][1], f_run[tag[i]].y, float_epsilon*100);
-        EXPECT_FP_EQ_WITH_EPS(f[i][2], f_run[tag[i]].z, float_epsilon*100);
+        EXPECT_FP_EQ_WITH_EPS(f[i][0], f_run[tag[i]].x, float_epsilon*200);
+        EXPECT_FP_EQ_WITH_EPS(f[i][1], f_run[tag[i]].y, float_epsilon*200);
+        EXPECT_FP_EQ_WITH_EPS(f[i][2], f_run[tag[i]].z, float_epsilon*200);
     }
 
     stress = pair->virial;
-    EXPECT_FP_EQ_WITH_EPS(stress[0], test_config.run_stress.xx, float_epsilon*100);
-    EXPECT_FP_EQ_WITH_EPS(stress[1], test_config.run_stress.yy, float_epsilon*100);
-    EXPECT_FP_EQ_WITH_EPS(stress[2], test_config.run_stress.zz, float_epsilon*100);
-    EXPECT_FP_EQ_WITH_EPS(stress[3], test_config.run_stress.xy, float_epsilon*100);
-    EXPECT_FP_EQ_WITH_EPS(stress[4], test_config.run_stress.xz, float_epsilon*100);
-    EXPECT_FP_EQ_WITH_EPS(stress[5], test_config.run_stress.yz, float_epsilon*100);
-    
-    EXPECT_FP_EQ_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, float_epsilon*100);
-    EXPECT_FP_EQ_WITH_EPS(pair->eng_coul, test_config.run_coul, float_epsilon*100);
+    EXPECT_FP_EQ_WITH_EPS(stress[0], test_config.run_stress.xx, float_epsilon*200);
+    EXPECT_FP_EQ_WITH_EPS(stress[1], test_config.run_stress.yy, float_epsilon*200);
+    EXPECT_FP_EQ_WITH_EPS(stress[2], test_config.run_stress.zz, float_epsilon*200);
+    EXPECT_FP_EQ_WITH_EPS(stress[3], test_config.run_stress.xy, float_epsilon*200);
+    EXPECT_FP_EQ_WITH_EPS(stress[4], test_config.run_stress.xz, float_epsilon*200);
+    EXPECT_FP_EQ_WITH_EPS(stress[5], test_config.run_stress.yz, float_epsilon*200);
+
+    EXPECT_FP_EQ_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, float_epsilon*200);
+    EXPECT_FP_EQ_WITH_EPS(pair->eng_coul, test_config.run_coul, float_epsilon*200);
 
     ::testing::internal::CaptureStdout();
     delete lmp;
@@ -744,22 +744,22 @@ TEST(MolPairStyle, omp) {
     LAMMPS_NS::tagint *tag=lmp->atom->tag;
     const std::vector<coord_t> &f_ref = test_config.init_forces;
     for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_EQ_WITH_EPS(f[i][0], f_ref[tag[i]].x, float_epsilon);
-        EXPECT_FP_EQ_WITH_EPS(f[i][1], f_ref[tag[i]].y, float_epsilon);
-        EXPECT_FP_EQ_WITH_EPS(f[i][2], f_ref[tag[i]].z, float_epsilon);
+        EXPECT_FP_EQ_WITH_EPS(f[i][0], f_ref[tag[i]].x, float_epsilon*20);
+        EXPECT_FP_EQ_WITH_EPS(f[i][1], f_ref[tag[i]].y, float_epsilon*20);
+        EXPECT_FP_EQ_WITH_EPS(f[i][2], f_ref[tag[i]].z, float_epsilon*20);
     }
 
     LAMMPS_NS::Pair *pair = lmp->force->pair;
     double *stress = pair->virial;
-    EXPECT_FP_EQ_WITH_EPS(stress[0], test_config.init_stress.xx, float_epsilon);
-    EXPECT_FP_EQ_WITH_EPS(stress[1], test_config.init_stress.yy, float_epsilon);
-    EXPECT_FP_EQ_WITH_EPS(stress[2], test_config.init_stress.zz, float_epsilon);
-    EXPECT_FP_EQ_WITH_EPS(stress[3], test_config.init_stress.xy, float_epsilon);
-    EXPECT_FP_EQ_WITH_EPS(stress[4], test_config.init_stress.xz, float_epsilon);
-    EXPECT_FP_EQ_WITH_EPS(stress[5], test_config.init_stress.yz, float_epsilon);
+    EXPECT_FP_EQ_WITH_EPS(stress[0], test_config.init_stress.xx, float_epsilon*20);
+    EXPECT_FP_EQ_WITH_EPS(stress[1], test_config.init_stress.yy, float_epsilon*20);
+    EXPECT_FP_EQ_WITH_EPS(stress[2], test_config.init_stress.zz, float_epsilon*20);
+    EXPECT_FP_EQ_WITH_EPS(stress[3], test_config.init_stress.xy, float_epsilon*20);
+    EXPECT_FP_EQ_WITH_EPS(stress[4], test_config.init_stress.xz, float_epsilon*20);
+    EXPECT_FP_EQ_WITH_EPS(stress[5], test_config.init_stress.yz, float_epsilon*20);
 
-    EXPECT_FP_EQ_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, float_epsilon);
-    EXPECT_FP_EQ_WITH_EPS(pair->eng_coul, test_config.init_coul, float_epsilon);
+    EXPECT_FP_EQ_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, float_epsilon*10);
+    EXPECT_FP_EQ_WITH_EPS(pair->eng_coul, test_config.init_coul, float_epsilon*10);
 
     ::testing::internal::CaptureStdout();
     run_lammps(lmp);
@@ -770,21 +770,21 @@ TEST(MolPairStyle, omp) {
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal+1,f_run.size());
     for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_EQ_WITH_EPS(f[i][0], f_run[tag[i]].x, float_epsilon*100);
-        EXPECT_FP_EQ_WITH_EPS(f[i][1], f_run[tag[i]].y, float_epsilon*100);
-        EXPECT_FP_EQ_WITH_EPS(f[i][2], f_run[tag[i]].z, float_epsilon*100);
+        EXPECT_FP_EQ_WITH_EPS(f[i][0], f_run[tag[i]].x, float_epsilon*250);
+        EXPECT_FP_EQ_WITH_EPS(f[i][1], f_run[tag[i]].y, float_epsilon*250);
+        EXPECT_FP_EQ_WITH_EPS(f[i][2], f_run[tag[i]].z, float_epsilon*250);
     }
 
     stress = pair->virial;
-    EXPECT_FP_EQ_WITH_EPS(stress[0], test_config.run_stress.xx, float_epsilon*100);
-    EXPECT_FP_EQ_WITH_EPS(stress[1], test_config.run_stress.yy, float_epsilon*100);
-    EXPECT_FP_EQ_WITH_EPS(stress[2], test_config.run_stress.zz, float_epsilon*100);
-    EXPECT_FP_EQ_WITH_EPS(stress[3], test_config.run_stress.xy, float_epsilon*100);
-    EXPECT_FP_EQ_WITH_EPS(stress[4], test_config.run_stress.xz, float_epsilon*100);
-    EXPECT_FP_EQ_WITH_EPS(stress[5], test_config.run_stress.yz, float_epsilon*100);
+    EXPECT_FP_EQ_WITH_EPS(stress[0], test_config.run_stress.xx, float_epsilon*50);
+    EXPECT_FP_EQ_WITH_EPS(stress[1], test_config.run_stress.yy, float_epsilon*50);
+    EXPECT_FP_EQ_WITH_EPS(stress[2], test_config.run_stress.zz, float_epsilon*50);
+    EXPECT_FP_EQ_WITH_EPS(stress[3], test_config.run_stress.xy, float_epsilon*50);
+    EXPECT_FP_EQ_WITH_EPS(stress[4], test_config.run_stress.xz, float_epsilon*50);
+    EXPECT_FP_EQ_WITH_EPS(stress[5], test_config.run_stress.yz, float_epsilon*50);
 
-    EXPECT_FP_EQ_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, float_epsilon*100);
-    EXPECT_FP_EQ_WITH_EPS(pair->eng_coul, test_config.run_coul, float_epsilon*100);
+    EXPECT_FP_EQ_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, float_epsilon*50);
+    EXPECT_FP_EQ_WITH_EPS(pair->eng_coul, test_config.run_coul, float_epsilon*50);
 
     ::testing::internal::CaptureStdout();
     delete lmp;

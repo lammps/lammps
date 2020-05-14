@@ -189,9 +189,9 @@ LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg)
 void run_lammps(LAMMPS_NS::LAMMPS *lmp)
 {
     lmp->input->one("fix 1 all nve");
-    lmp->input->one("compute pe all pe/atom");
-    lmp->input->one("compute sum all reduce sum c_pe");
-    lmp->input->one("thermo_style custom step temp pe press c_sum");
+//    lmp->input->one("compute pe all pe/atom");
+//    lmp->input->one("compute sum all reduce sum c_pe");
+//    lmp->input->one("thermo_style custom step temp pe press c_sum");
     lmp->input->one("thermo 2");
     lmp->input->one("run 4 post no");
 }
@@ -778,9 +778,9 @@ TEST(MolPairStyle, plain) {
     ASSERT_EQ(nlocal+1,f_run.size());
     stats.reset();
     for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 5*epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 5*epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 5*epsilon);
     }
     if (print_stats)
         std::cerr << "run_forces  stats:" << stats << std::endl;
@@ -868,9 +868,9 @@ TEST(MolPairStyle, omp) {
     ASSERT_EQ(nlocal+1,f_run.size());
     stats.reset();
     for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 5*epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 5*epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 5*epsilon);
     }
     if (print_stats)
         std::cerr << "run_forces  stats:" << stats << std::endl;

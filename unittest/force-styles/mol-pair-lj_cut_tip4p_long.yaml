@@ -1,7 +1,7 @@
 ---
 lammps_version: 5 May 2020
 date_generated: Thu May 14 19:27:50 202
-epsilon: 2.5e-14
+epsilon: 8e-14
 pre_commands: ! ""
 post_commands: ! |
   pair_modify mix arithmetic

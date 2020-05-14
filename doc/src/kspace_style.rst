@@ -10,7 +10,7 @@ Syntax
 
    kspace_style style value
 
-* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/omp* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *scafacos*
+* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/omp* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *scafacos* or *zero*
 
   .. parsed-literal::
 
@@ -74,6 +74,7 @@ Syntax
        *scafacos* values = method accuracy
          method = fmm or p2nfft or p3m or ewald or direct
          accuracy = desired relative error in forces
+       *zero* value = none
 
 Examples
 """"""""
@@ -85,6 +86,7 @@ Examples
    kspace style msm 1.0e-4
    kspace style scafacos fmm 1.0e-4
    kspace_style none
+   kspace_style zero
 
 Description
 """""""""""
@@ -308,6 +310,13 @@ the :doc:`kspace_modify scafacos accuracy <kspace_modify>` doc page.
 
 The :doc:`kspace_modify scafacos <kspace_modify>` command also explains
 other ScaFaCoS options currently exposed to LAMMPS.
+
+----------
+
+The KSpace style *zero* does not compute anything but signals that
+it is compatible with pair styles requiring a long-range coulomb solver.
+It can be used to debug the forces computed from such a pair style
+without being modified by the forces from the long-range solver.
 
 ----------
 

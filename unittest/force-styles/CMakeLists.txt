@@ -17,4 +17,4 @@ foreach(TEST ${MOL_PAIR_TESTS})
 endforeach()
 
 # copy files read at runtime to the working directory
-file(INSTALL in.fourmol data.fourmol DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY in.fourmol data.fourmol DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

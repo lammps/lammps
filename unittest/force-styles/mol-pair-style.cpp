@@ -164,15 +164,20 @@ LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg)
     } else {
         style = cfg.pair_style;
     }
-    if (lmp->suffix_enable) {
-        style += "/";
-        style += lmp->suffix;
-    }
-    if (!info->has_style("pair", style)) {
-        test_config.pair_style = style;  // for error message
-        delete info;
-        delete lmp;
-        return NULL;
+
+    // test for hybrid pair styles are assuming to use only core pair
+    // styles or their suffixed variants. so we can skip this check.
+    if (style.substr(0,6) != "hybrid") {
+        if (lmp->suffix_enable) {
+            style += "/";
+            style += lmp->suffix;
+        }
+        if (!info->has_style("pair", style)) {
+            test_config.pair_style = style;  // for error message
+            delete info;
+            delete lmp;
+            return NULL;
+        }
     }
 
     std::string cmd("pair_style ");

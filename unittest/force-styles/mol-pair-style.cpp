@@ -9,6 +9,7 @@
 #include "info.h"
 #include "input.h"
 #include "universe.h"
+
 #include <mpi.h>
 #include <cstdio>
 #include <cstring>
@@ -17,10 +18,12 @@
 #include <cerrno>
 #include <cmath>
 #include <ctime>
-#include <string>
-#include <vector>
-#include <map>
+
 #include <iostream>
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
@@ -42,6 +45,7 @@ public:
     std::string lammps_version;
     std::string date_generated;
     double epsilon;
+    std::vector<std::pair<std::string,std::string>> prerequisites;
     std::vector<std::string> pre_commands;
     std::vector<std::string> post_commands;
     std::string input_file;
@@ -69,6 +73,7 @@ public:
                    run_coul(0),
                    init_stress({0,0,0,0,0,0}),
                    run_stress({0,0,0,0,0,0}) {
+        prerequisites.clear();
         pre_commands.clear();
         post_commands.clear();
         pair_coeff.clear();
@@ -358,6 +363,7 @@ public:
         consumers["lammps_version"] = &TestConfigReader::lammps_version;
         consumers["date_generated"] = &TestConfigReader::date_generated;
         consumers["epsilon"]        = &TestConfigReader::epsilon;
+        consumers["prerequisites"]  = &TestConfigReader::prerequisites;
         consumers["pre_commands"]   = &TestConfigReader::pre_commands;
         consumers["post_commands"]  = &TestConfigReader::post_commands;
         consumers["input_file"]     = &TestConfigReader::input_file;
@@ -376,6 +382,25 @@ public:
 
 protected:
 
+    void prerequisites(const yaml_event_t & event) {
+        config.prerequisites.clear();
+        std::stringstream data((char *)event.data.scalar.value);
+        std::string line;
+
+        while(std::getline(data, line, '\n')) {
+            std::size_t found = line.find_first_of(" \t");
+            std::string key = line.substr(0,found);
+            found = line.find_first_not_of(" \t",found);
+            // skip invalid data
+            if (found == std::string::npos) {
+                std::cerr << "Skipping invalid prerequisite line:\n"
+                          << line << std::endl;
+                continue;
+            }
+            std::string value = line.substr(found,line.find_first_of(" \t",found));
+            test_config.prerequisites.push_back(std::pair<std::string,std::string>(key,value));
+        }
+    }
     void pre_commands(const yaml_event_t & event) {
         config.pre_commands.clear();
         std::stringstream data((char *)event.data.scalar.value);
@@ -644,6 +669,13 @@ void generate(const char *outfile) {
     // epsilon
     writer.emit("epsilon", test_config.epsilon);
 
+    // prerequisites
+    block.clear();
+    for (auto prerequisite :  test_config.prerequisites) {
+        block += prerequisite.first + " " + prerequisite.second + "\n";
+    }
+    writer.emit_block("prerequisites", block);
+
     // pre_commands
     block.clear();
     for (auto command :  test_config.pre_commands) {
@@ -727,7 +759,6 @@ void generate(const char *outfile) {
 }
 
 TEST(MolPairStyle, plain) {
-    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
     const char *args[] = {"MolPairStyle", "-log", "none", "-echo", "screen", "-nocite" };
     char **argv = (char **)args;
     int argc = sizeof(args)/sizeof(char *);
@@ -818,7 +849,6 @@ TEST(MolPairStyle, plain) {
 };
 
 TEST(MolPairStyle, omp) {
-    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
     if (!LAMMPS_NS::LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
     const char *args[] = {"MolPairStyle", "-log", "none", "-echo", "screen",
                           "-nocite", "-pk", "omp", "4", "-sf", "omp"};

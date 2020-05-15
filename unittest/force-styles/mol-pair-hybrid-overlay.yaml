@@ -1,7 +1,11 @@
 ---
 lammps_version: 5 May 2020
-date_generated: Fri May 15 10:17:52 202
+date_generated: Fri May 15 19:08:06 202
 epsilon: 5e-14
+prerequisites: ! |
+  atom full
+  pair lj/cut
+  pair coul/cut
 pre_commands: ! ""
 post_commands: ! |
   pair_modify mix arithmetic

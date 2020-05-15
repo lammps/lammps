@@ -1,4 +1,4 @@
-# lassen_kokkos = KOKKOS/CUDA, V100 GPU and Power9, IBM Spectrum MPI, nvcc compiler with gcc
+# summit_kokkos = KOKKOS/CUDA, V100 GPU and Power9, IBM Spectrum MPI, nvcc compiler with gcc
 
 SHELL = /bin/sh
 
@@ -7,8 +7,7 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
-export MPICH_CXX = $(KOKKOS_ABSOLUTE_PATH)/bin/nvcc_wrapper
-export OMPI_CXX = $(KOKKOS_ABSOLUTE_PATH)/bin/nvcc_wrapper
+
 CC =		$(KOKKOS_ABSOLUTE_PATH)/bin/nvcc_wrapper
 CCFLAGS =	-g -O3
 SHFLAGS =	-fPIC

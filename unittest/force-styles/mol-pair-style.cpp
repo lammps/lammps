@@ -2,6 +2,8 @@
 
 #include "lammps.h"
 #include "atom.h"
+#include "modify.h"
+#include "compute.h"
 #include "force.h"
 #include "pair.h"
 #include "info.h"
@@ -189,9 +191,9 @@ LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg)
 void run_lammps(LAMMPS_NS::LAMMPS *lmp)
 {
     lmp->input->one("fix 1 all nve");
-//    lmp->input->one("compute pe all pe/atom");
-//    lmp->input->one("compute sum all reduce sum c_pe");
-//    lmp->input->one("thermo_style custom step temp pe press c_sum");
+    lmp->input->one("compute pe all pe/atom");
+    lmp->input->one("compute sum all reduce sum c_pe");
+    lmp->input->one("thermo_style custom step temp pe press c_sum");
     lmp->input->one("thermo 2");
     lmp->input->one("run 4 post no");
 }
@@ -797,8 +799,11 @@ TEST(MolPairStyle, plain) {
         std::cerr << "run_stress  stats:" << stats << std::endl;
 
     stats.reset();
+    int id = lmp->modify->find_compute("sum");
+    double energy = lmp->modify->compute[id]->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
     EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
+    EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl+pair->eng_coul),energy, epsilon);
     if (print_stats)
         std::cerr << "run_energy  stats:" << stats << std::endl;
 
@@ -887,8 +892,11 @@ TEST(MolPairStyle, omp) {
         std::cerr << "run_stress  stats:" << stats << std::endl;
 
     stats.reset();
+    int id = lmp->modify->find_compute("sum");
+    double energy = lmp->modify->compute[id]->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
     EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
+    EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl+pair->eng_coul),energy, epsilon);
     if (print_stats)
         std::cerr << "run_energy  stats:" << stats << std::endl;
 

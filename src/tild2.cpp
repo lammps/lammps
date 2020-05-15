@@ -40,7 +40,6 @@ using namespace std;
 
 #define SMALL 0.00001
 #define OFFSET 16384
-#define PI 3.141592653589793238462643383279
 #define MAXORDER   7
 #define MAXPARAM   3 // Update as new potentials are introduced
 #define MAX_GROUP 32
@@ -1303,7 +1302,7 @@ void TILD::init_potential(FFT_SCALAR *wk1, const int type, const double* paramet
 
   if (type == 1) {
                                                                 // should be 3/2 right?
-    double pref = vole / (pow( sqrt(2.0 * PI * (parameters[0]) ), Dim));
+    double pref = vole / (pow( sqrt(2.0 * MY_PI * (parameters[0]) ), Dim));
     for (m = nzlo_fft; m <= nzhi_fft; m++) {
       zper = zprd * (static_cast<double>(m) / nz_pppm);
       if (zper >= zprd / 2.0) {
@@ -1405,9 +1404,9 @@ void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
     if (nz_pppm % 2 == 0 && z == nz_pppm / 2)
       k[2] = 0.0;
     else if (double(z) < double(nz_pppm) / 2.0)
-      k[2] = 2 * PI * double(z) / zprd;
+      k[2] = 2 * MY_PI * double(z) / zprd;
     else
-      k[2] = 2 * PI * double(z - nz_pppm) / zprd;
+      k[2] = 2 * MY_PI * double(z - nz_pppm) / zprd;
 
     for (y = nylo_fft; y <= nyhi_fft; y++) {
       // skip to kill off Nyquist modes
@@ -1417,9 +1416,9 @@ void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
       if (ny_pppm % 2 == 0 && y == ny_pppm / 2) {
         k[1] = 0.0;
       } else if (double(y) < double(ny_pppm) / 2.0)
-        k[1] = 2 * PI * double(y) / yprd;
+        k[1] = 2 * MY_PI * double(y) / yprd;
       else
-        k[1] = 2 * PI * double(y - ny_pppm) / yprd;
+        k[1] = 2 * MY_PI * double(y - ny_pppm) / yprd;
 
       for (x = nxlo_fft; x <= nxhi_fft; x++) {
         //if (k[2] == 0.0 || k[1] == 0.0 || (nx_pppm % 2 == 0 && x == nx_pppm / 2)) {
@@ -1428,9 +1427,9 @@ void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
         if (nx_pppm % 2 == 0 && x == nx_pppm / 2) {
           k[0] = 0.0;
         } else if (double(x) < double(nx_pppm) / 2.0)
-          k[0] = 2 * PI * double(x) / xprd;
+          k[0] = 2 * MY_PI * double(x) / xprd;
         else
-          k[0] = 2 * PI * double(x - nx_pppm) / xprd;
+          k[0] = 2 * MY_PI * double(x - nx_pppm) / xprd;
 /*
         if (has_nyquist && n>0) {
           if (k[2] == 0.0 || k[1] == 0.0 || k[0] == 0.0) {
@@ -2440,12 +2439,9 @@ double TILD::calculate_rho0(){
     // gaussian potential, has no radius
     if (potent_type_map[1][itype][itype] == 1) {
       lmass += count_per_type[itype];
-      fprintf(screen, "total count %d ", count_per_type[itype]);
     } else if (potent_type_map[2][itype][itype] == 1) {
-      double volume = (4.0 * PI / 3.0) * rp[itype][itype] * rp[itype][itype] * rp[itype][itype] * set_rho0;
-      fprintf(screen, "total count %f %f %f ", (4.0 * PI / 3.0) ,rp[itype][itype] * rp[itype][itype] * rp[itype][itype], set_rho0);
+      double volume = (4.0 * MY_PI / 3.0) * rp[itype][itype] * rp[itype][itype] * rp[itype][itype] * set_rho0;
       lmass += count_per_type[itype] * volume;
-      fprintf(screen, "total count %f %f %d ", count_per_type[itype] * volume, volume, count_per_type[itype]);
     }
   }
   MPI_Allreduce(&lmass, &lmass_all, 1, MPI_DOUBLE, MPI_SUM, world);
@@ -2453,7 +2449,9 @@ double TILD::calculate_rho0(){
   double vole = domain->xprd * domain->yprd * domain->zprd;
 
   rho0 = lmass_all / vole;
-  fprintf(screen, "rho0 %f %f %f ", rho0, lmass_all, vole);
+  if (logfile) {
+    fprintf(logfile, "User set rho0 = %f; actual rho0 = %f for TILD potential.\n", set_rho0, rho0);
+  }
   return rho0;
 }
 

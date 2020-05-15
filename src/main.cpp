@@ -59,7 +59,6 @@ int main(int argc, char **argv)
 #else
   LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);
   lammps->input->file();
-  lammps->cleanup();
   delete lammps;
 #endif
   MPI_Barrier(MPI_COMM_WORLD);

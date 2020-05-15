@@ -19,9 +19,6 @@
 #include <cctype>
 #include <map>
 #include <string>
-#ifdef FFT_FFTW3
-#include <fftw3.h>
-#endif
 #include "style_angle.h"     // IWYU pragma: keep
 #include "style_atom.h"      // IWYU pragma: keep
 #include "style_bond.h"      // IWYU pragma: keep
@@ -1317,16 +1314,4 @@ void LAMMPS::print_config(FILE *fp)
     ncline += ncword + 1;
   }
   fputs("\n\n",fp);
-}
-
-void LAMMPS::cleanup() {
-#ifdef FFT_FFTW3
-  // tell fftw3 to delete its global memory pool
-  // and thus avoid bogus valgrind memory leak reports
-#ifdef FFT_SINGLE
-  fftwf_cleanup();
-#else
-  fftw_cleanup();
-#endif
-#endif
 }

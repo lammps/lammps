@@ -38,6 +38,7 @@ class AtomVecSphere : public AtomVec {
 
  private:
   double *radius,*rmass;
+  double **omega;
 
   int radvary;
   double radius_one,rmass_one;

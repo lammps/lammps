@@ -56,7 +56,7 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
   fields_restart = (char *) "sp";
   fields_create = (char *) "sp";
   fields_data_atom = (char *) "id type x sp";
-  fields_data_vel = (char *) "id v omega";
+  fields_data_vel = (char *) "id v";
 
   setup_fields();
 }

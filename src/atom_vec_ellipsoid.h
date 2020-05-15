@@ -65,6 +65,7 @@ class AtomVecEllipsoid : public AtomVec {
  private:
   int *ellipsoid;
   double *rmass;
+  double **angmom;
 
   int nghost_bonus,nmax_bonus;
   int ellipsoid_flag;

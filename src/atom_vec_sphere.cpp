@@ -109,6 +109,7 @@ void AtomVecSphere::grow_pointers()
 {
   radius = atom->radius;
   rmass = atom->rmass;
+  omega = atom->omega;
 }
 
 /* ----------------------------------------------------------------------
@@ -135,6 +136,10 @@ void AtomVecSphere::data_atom_post(int ilocal)
 
   if (rmass[ilocal] <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
+
+  omega[ilocal][0] = 0.0;
+  omega[ilocal][1] = 0.0;
+  omega[ilocal][2] = 0.0;
 }
 
 /* ----------------------------------------------------------------------

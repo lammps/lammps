@@ -192,11 +192,6 @@ if(NOT ${LAMMPS_MEMALIGN} STREQUAL "0")
   target_compile_definitions(lammps PRIVATE -DLAMMPS_MEMALIGN=${LAMMPS_MEMALIGN})
 endif()
 
-option(LAMMPS_EXCEPTIONS "enable the use of C++ exceptions for error messages (useful for library interface)" OFF)
-if(LAMMPS_EXCEPTIONS)
-  target_compile_definitions(lammps PUBLIC -DLAMMPS_EXCEPTIONS)
-endif()
-
 # "hard" dependencies between packages resulting
 # in an error instead of skipping over files
 pkg_depends(MPIIO MPI)
@@ -510,12 +505,9 @@ list (FIND LANGUAGES "Fortran" _index)
 if (${_index} GREATER -1)
   target_link_libraries(lammps PRIVATE ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
-set(LAMMPS_CXX_HEADERS angle.h atom.h bond.h citeme.h comm.h compute.h dihedral.h domain.h error.h fix.h force.h group.h improper.h
+set(LAMMPS_CXX_HEADERS angle.h atom.h bond.h citeme.h comm.h compute.h dihedral.h domain.h exceptions.h error.h fix.h force.h group.h improper.h
   input.h info.h kspace.h lammps.h lattice.h library.h lmppython.h lmptype.h memory.h modify.h neighbor.h neigh_list.h output.h
   pair.h pointers.h region.h timer.h universe.h update.h variable.h)
-if(LAMMPS_EXCEPTIONS)
-  list(APPEND LAMMPS_CXX_HEADERS exceptions.h)
-endif()
 
 set_target_properties(lammps PROPERTIES OUTPUT_NAME lammps${LAMMPS_MACHINE})
 set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})

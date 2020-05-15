@@ -20,9 +20,7 @@
 #include "input.h"
 #include "accelerator_kokkos.h"
 
-#if defined(LAMMPS_EXCEPTIONS)
 #include "update.h"
-#endif
 
 using namespace LAMMPS_NS;
 
@@ -43,10 +41,8 @@ static const char *truncpath(const char *path)
 /* ---------------------------------------------------------------------- */
 
 Error::Error(LAMMPS *lmp) : Pointers(lmp) {
-#ifdef LAMMPS_EXCEPTIONS
   last_error_message = NULL;
   last_error_type = ERROR_NONE;
-#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -73,8 +69,6 @@ void Error::universe_all(const char *file, int line, const char *str)
   }
   if (universe->ulogfile) fclose(universe->ulogfile);
 
-#ifdef LAMMPS_EXCEPTIONS
-
   // allow commands if an exception was caught in a run
   // update may be NULL when catching command line errors
 
@@ -83,11 +77,6 @@ void Error::universe_all(const char *file, int line, const char *str)
   char msg[100];
   snprintf(msg, 100, "ERROR: %s (%s:%d)\n", str, truncpath(file), line);
   throw LAMMPSException(msg);
-#else
-  if (lmp->kokkos) Kokkos::finalize();
-  MPI_Finalize();
-  exit(1);
-#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -101,8 +90,6 @@ void Error::universe_one(const char *file, int line, const char *str)
     fprintf(universe->uscreen,"ERROR on proc %d: %s (%s:%d)\n",
             universe->me,str,truncpath(file),line);
 
-#ifdef LAMMPS_EXCEPTIONS
-
   // allow commands if an exception was caught in a run
   // update may be NULL when catching command line errors
 
@@ -111,9 +98,6 @@ void Error::universe_one(const char *file, int line, const char *str)
   char msg[100];
   snprintf(msg, 100, "ERROR: %s (%s:%d)\n", str, truncpath(file), line);
   throw LAMMPSAbortException(msg, universe->uworld);
-#else
-  MPI_Abort(universe->uworld,1);
-#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -154,8 +138,6 @@ void Error::all(const char *file, int line, const char *str)
                          str,truncpath(file),line,lastcmd);
   }
 
-#ifdef LAMMPS_EXCEPTIONS
-
   // allow commands if an exception was caught in a run
   // update may be NULL when catching command line errors
 
@@ -169,16 +151,6 @@ void Error::all(const char *file, int line, const char *str)
   }
 
   throw LAMMPSException(msg);
-#else
-  if (output) delete output;
-  if (screen && screen != stdout) fclose(screen);
-  if (logfile) fclose(logfile);
-
-  if (universe->nworlds > 1) MPI_Abort(universe->uworld,1);
-  if (lmp->kokkos) Kokkos::finalize();
-  MPI_Finalize();
-  exit(1);
-#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -207,8 +179,6 @@ void Error::one(const char *file, int line, const char *str)
       fprintf(universe->uscreen,"ERROR on proc %d: %s (%s:%d)\n",
               universe->me,str,truncpath(file),line);
 
-#ifdef LAMMPS_EXCEPTIONS
-
   // allow commands if an exception was caught in a run
   // update may be NULL when catching command line errors
 
@@ -217,11 +187,6 @@ void Error::one(const char *file, int line, const char *str)
   char msg[100];
   snprintf(msg, 100, "ERROR on proc %d: %s (%s:%d)\n", me, str, truncpath(file), line);
   throw LAMMPSAbortException(msg, world);
-#else
-  if (screen) fflush(screen);
-  if (logfile) fflush(logfile);
-  MPI_Abort(world,1);
-#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -267,10 +232,8 @@ void Error::done(int status)
   exit(status);
 }
 
-#ifdef LAMMPS_EXCEPTIONS
 /* ----------------------------------------------------------------------
-   return the last error message reported by LAMMPS (only used if
-   compiled with -DLAMMPS_EXCEPTIONS)
+   return the last error message reported by LAMMPS
 ------------------------------------------------------------------------- */
 
 char * Error::get_last_error() const
@@ -279,8 +242,7 @@ char * Error::get_last_error() const
 }
 
 /* ----------------------------------------------------------------------
-   return the type of the last error reported by LAMMPS (only used if
-   compiled with -DLAMMPS_EXCEPTIONS)
+   return the type of the last error reported by LAMMPS
 ------------------------------------------------------------------------- */
 
 ErrorType Error::get_last_error_type() const
@@ -290,7 +252,6 @@ ErrorType Error::get_last_error_type() const
 
 /* ----------------------------------------------------------------------
    set the last error message and error type
-   (only used if compiled with -DLAMMPS_EXCEPTIONS)
 ------------------------------------------------------------------------- */
 
 void Error::set_last_error(const char * msg, ErrorType type)
@@ -305,4 +266,3 @@ void Error::set_last_error(const char * msg, ErrorType type)
   }
   last_error_type = type;
 }
-#endif

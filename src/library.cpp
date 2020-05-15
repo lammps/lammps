@@ -42,9 +42,7 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 
-#if defined(LAMMPS_EXCEPTIONS)
 #include "exceptions.h"
-#endif
 
 using namespace LAMMPS_NS;
 
@@ -67,7 +65,6 @@ using namespace LAMMPS_NS;
    END_CAPTURE
 ------------------------------------------------------------------------- */
 
-#ifdef LAMMPS_EXCEPTIONS
 #define BEGIN_CAPTURE \
   Error * error = lmp->error; \
   try
@@ -85,10 +82,6 @@ using namespace LAMMPS_NS;
   } catch(LAMMPSException & e) { \
     error->set_last_error(e.message.c_str(), ERROR_NORMAL); \
   }
-#else
-#define BEGIN_CAPTURE
-#define END_CAPTURE
-#endif
 
 // ----------------------------------------------------------------------
 // helper functions, not in library API
@@ -129,7 +122,6 @@ void concatenate_lines(char *ptr)
 
 void lammps_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
 {
-#ifdef LAMMPS_EXCEPTIONS
   try
   {
     LAMMPS *lmp = new LAMMPS(argc,argv,communicator);
@@ -139,10 +131,6 @@ void lammps_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
     fprintf(stderr, "LAMMPS Exception: %s", e.message.c_str());
     *ptr = (void *) NULL;
   }
-#else
-  LAMMPS *lmp = new LAMMPS(argc,argv,communicator);
-  *ptr = (void *) lmp;
-#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -164,7 +152,6 @@ void lammps_open_no_mpi(int argc, char **argv, void **ptr)
 
   MPI_Comm communicator = MPI_COMM_WORLD;
 
-#ifdef LAMMPS_EXCEPTIONS
   try
   {
     LAMMPS *lmp = new LAMMPS(argc,argv,communicator);
@@ -174,10 +161,6 @@ void lammps_open_no_mpi(int argc, char **argv, void **ptr)
     fprintf(stderr, "LAMMPS Exception: %s", e.message.c_str());
     *ptr = (void*) NULL;
   }
-#else
-  LAMMPS *lmp = new LAMMPS(argc,argv,communicator);
-  *ptr = (void *) lmp;
-#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -1707,8 +1690,6 @@ int lammps_config_has_exceptions() {
 // library API functions for error handling
 // ----------------------------------------------------------------------
 
-#ifdef LAMMPS_EXCEPTIONS
-
 /* ----------------------------------------------------------------------
    check if a new error message
 ------------------------------------------------------------------------- */
@@ -1738,8 +1719,6 @@ int lammps_get_last_error_message(void *ptr, char * buffer, int buffer_size) {
   }
   return 0;
 }
-
-#endif
 
 /*******************************************************************************
  * Find neighbor list index of pair style neighbor list

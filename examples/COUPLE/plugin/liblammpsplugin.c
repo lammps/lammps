@@ -76,15 +76,9 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(config_has_ffmpeg_support);
   ADDSYM(config_has_exceptions);
   ADDSYM(create_atoms);
-#ifdef LAMMPS_EXCEPTIONS
   lmp->has_exceptions = 1;
   ADDSYM(has_error);
   ADDSYM(get_last_error_message);
-#else
-  lmp->has_exceptions = 0;
-  lmp->has_error = NULL;
-  lmp->get_last_error_message = NULL;
-#endif
   return lmp;
 }
 

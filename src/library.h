@@ -111,10 +111,8 @@ void lammps_create_atoms(void *, int, int *, int *,
                          double *, double *, int *, int);
 #endif
 
-#ifdef LAMMPS_EXCEPTIONS
 int lammps_has_error(void *);
 int lammps_get_last_error_message(void *, char *, int);
-#endif
 
 #undef LAMMPS
 #ifdef __cplusplus

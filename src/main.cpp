@@ -23,9 +23,7 @@
 #include <fftw3.h>
 #endif
 
-#if defined(LAMMPS_EXCEPTIONS)
 #include "exceptions.h"
-#endif
 
 using namespace LAMMPS_NS;
 
@@ -49,7 +47,6 @@ int main(int argc, char **argv)
   feenableexcept(FE_OVERFLOW);
 #endif
 
-#ifdef LAMMPS_EXCEPTIONS
   try {
     LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);
     lammps->input->file();
@@ -60,11 +57,6 @@ int main(int argc, char **argv)
     MPI_Finalize();
     exit(1);
   }
-#else
-  LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);
-  lammps->input->file();
-  delete lammps;
-#endif
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();
 

@@ -399,7 +399,7 @@ void PairEAMAlloyGPU::read_file(char *filename)
   MPI_Bcast(line,n,MPI_CHAR,0,world);
 
   sscanf(line,"%d",&file->nelements);
-  int nwords = atom->count_words(line);
+  int nwords = utils::count_words(line);
   if (nwords != file->nelements + 1)
     error->all(FLERR,"Incorrect element names in EAM potential file");
 

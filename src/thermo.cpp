@@ -44,6 +44,7 @@
 #include "memory.h"
 #include "error.h"
 #include "math_const.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -159,7 +160,7 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // allocate per-field memory
   // process line of keywords
 
-  nfield_initial = atom->count_words(line);
+  nfield_initial = utils::count_words(line);
   allocate();
   parse_fields(line);
 

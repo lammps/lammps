@@ -1,6 +1,6 @@
 set(COLVARS_SOURCE_DIR ${LAMMPS_LIB_SOURCE_DIR}/colvars)
 
-file(GLOB COLVARS_SOURCES ${COLVARS_SOURCE_DIR}/[^.]*.cpp)
+file(GLOB COLVARS_SOURCES ${LAMMPS_CONFIGURE_DEPENDS} ${COLVARS_SOURCE_DIR}/[^.]*.cpp)
 
 # Build Lepton by default
 option(COLVARS_LEPTON "Build and link the Lepton library" ON)

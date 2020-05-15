@@ -7,7 +7,7 @@ if(BUILD_DOC)
 
   set(VIRTUALENV ${PYTHON_EXECUTABLE} -m virtualenv)
 
-  file(GLOB DOC_SOURCES ${LAMMPS_DOC_DIR}/src/[^.]*.rst)
+  file(GLOB DOC_SOURCES ${LAMMPS_CONFIGURE_DEPENDS} ${LAMMPS_DOC_DIR}/src/[^.]*.rst)
 
   add_custom_command(
     OUTPUT docenv
@@ -31,7 +31,7 @@ if(BUILD_DOC)
 
   if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/mathjax)
     execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf mathjax.tar.gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-    file(GLOB MATHJAX_VERSION_DIR ${CMAKE_CURRENT_BINARY_DIR}/MathJax-*)
+    file(GLOB MATHJAX_VERSION_DIR ${LAMMPS_CONFIGURE_DEPENDS} ${CMAKE_CURRENT_BINARY_DIR}/MathJax-*)
     execute_process(COMMAND ${CMAKE_COMMAND} -E rename ${MATHJAX_VERSION_DIR} ${CMAKE_CURRENT_BINARY_DIR}/mathjax)
   endif()
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/_static/mathjax)

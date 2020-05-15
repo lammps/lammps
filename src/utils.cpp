@@ -16,6 +16,7 @@
 #include <cstdlib>
 #include "lammps.h"
 #include "error.h"
+#include "tokenizer.h"
 
 #if defined(__linux__)
 #include <unistd.h>  // for readlink
@@ -326,6 +327,26 @@ tagint utils::tnumeric(const char *file, int line, const char *str,
   return ATOTAGINT(str);
 }
 
+/* ----------------------------------------------------------------------
+   Return string without trailing # comment
+------------------------------------------------------------------------- */
+
+std::string utils::trim_comment(const std::string & line) {
+  auto end = line.find_first_of("#");
+  if (end != std::string::npos) {
+    return line.substr(0, end);
+  }
+  return std::string(line);
+}
+
+/* ----------------------------------------------------------------------
+   Trim comment from string and return number of words
+------------------------------------------------------------------------- */
+
+size_t utils::count_words(const std::string & text, const std::string & seperators) {
+  Tokenizer words(utils::trim_comment(text), seperators);
+  return words.count();
+}
 
 /* ------------------------------------------------------------------ */
 
@@ -668,4 +689,5 @@ extern "C" {
 
     return 0;
   }
+
 }

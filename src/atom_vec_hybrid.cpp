@@ -17,6 +17,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "tokenizer.h"
 
 using namespace LAMMPS_NS;
 
@@ -513,15 +514,15 @@ char *AtomVecHybrid::merge_fields(int inum, char *root,
 
   // identify unique words in concatenated string
 
-  char *copystr;
-  char **words;
-  int nwords = tokenize(concat,words,copystr);
+  Tokenizer words(concat, " ");
+  int nwords = words.count();
+  
   int *unique = new int[nwords];
 
   for (int i = 0; i < nwords; i++) {
     unique[i] = 1;
     for (int j = 0; j < i; j++)
-      if (strcmp(words[i],words[j]) == 0) unique[i] = 0;
+      if (words[i] == words[j]) unique[i] = 0;
   }
 
   // construct a new deduped string
@@ -531,7 +532,7 @@ char *AtomVecHybrid::merge_fields(int inum, char *root,
 
   for (int i = 0; i < nwords; i++) {
     if (!unique[i]) continue;
-    strcat(dedup,words[i]);
+    strcat(dedup,words[i].c_str());
     if (i < nwords-1) strcat(dedup," ");
   }
 
@@ -542,8 +543,6 @@ char *AtomVecHybrid::merge_fields(int inum, char *root,
 
   // clean up
 
-  delete [] copystr;
-  delete [] words;
   delete [] unique;
 
   // return final concatenated, deduped string

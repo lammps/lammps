@@ -688,7 +688,7 @@ message(STATUS "<<< Build configuration >>>
       Defines:       ${DEFINES}")
 get_target_property(OPTIONS lammps COMPILE_OPTIONS)
 if(OPTIONS)
-  message("      Options:       ${OPTIONS}")
+  message(STATUS "   Options:       ${OPTIONS}")
 endif()
 get_property(LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
 list (FIND LANGUAGES "Fortran" _index)

@@ -6,7 +6,9 @@ pre_commands: ! ""
 post_commands: ! |
   pair_modify mix arithmetic
   pair_modify table 16
-  kspace_style zero 0.3
+  kspace_style pppm/tip4p
+  kspace_modify gewald 0.3
+  kspace_modify compute no
 input_file: in.fourmol
 pair_style: lj/cut/tip4p/long 5 2 5 1 0.15 10.0
 pair_coeff: ! |

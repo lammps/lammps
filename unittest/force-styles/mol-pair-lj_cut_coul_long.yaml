@@ -1,12 +1,14 @@
 ---
 lammps_version: 5 May 2020
-date_generated: Thu May 14 19:27:50 202
+date_generated: Fri May 15 04:54:28 202
 epsilon: 5e-14
 pre_commands: ! ""
 post_commands: ! |
   pair_modify mix arithmetic
   pair_modify table 0
-  kspace_style zero 0.3
+  kspace_style ewald 1.0e-6
+  kspace_modify gewald 0.3
+  kspace_modify compute no
 input_file: in.fourmol
 pair_style: lj/cut/coul/long 8.0
 pair_coeff: ! |

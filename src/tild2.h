@@ -75,8 +75,7 @@ class TILD : public KSpace{
   double **potent_param;
   int npot, *pot_map;
   int ***potent_type_map;
-  double rho0;
-  double set_rho0, old_volume;
+  double rho0, set_rho0;
 
   double unitk[3];
   int *kxvecs,*kyvecs,*kzvecs;
@@ -118,7 +117,8 @@ class TILD : public KSpace{
   void init_gauss();
   void init_potential(FFT_SCALAR*, const int, const double*);
   void init_potential_ft(FFT_SCALAR*, const int, const double*);
-  void calc_work(double*, const int, const int);
+  void calc_work(FFT_SCALAR*, const int, const int);
+  //void calc_work(double*, const int, const int);
   //void init_potential(FFT_SCALAR*, std::tuple<int,int,std::vector<double>> &tup);
   void init_cross_potentials();
   double get_k_alias(int, double*);
@@ -131,7 +131,7 @@ class TILD : public KSpace{
   int nfactors;
   int *factors;
   double cutoff;
-  double kappa, w_3body;
+  double kappa;
   double delxinv,delyinv,delzinv,delvolinv;
   double h_x,h_y,h_z;
   double shift,shiftone;
@@ -143,7 +143,7 @@ class TILD : public KSpace{
   int nxlo_fft,nylo_fft,nzlo_fft,nxhi_fft,nyhi_fft,nzhi_fft;
   int nlower,nupper;
   int ngrid,nfft,nfft_both;
-  int set_rho0_flag, subtract_rho0, normalize_by_rho0, mix_flag, sub_flag, norm_flag;
+  int subtract_rho0, normalize_by_rho0, mix_flag, sub_flag, norm_flag;
   int *total_counter, specified_all_group, start_group_ind, total_groups; 
 
   FFT_SCALAR ***density_brick;
@@ -180,11 +180,6 @@ class TILD : public KSpace{
 
   void set_grid_global();
   void set_grid();
-  void set_grid_6();
-  void set_init_g6();
-  void set_n_pppm_6();
-  void calc_csum();
-//   void set_grid_local();
   void adjust_gewald();
   double newton_raphson_f();
   double derivf();
@@ -193,40 +188,23 @@ class TILD : public KSpace{
   virtual void allocate_peratom();
   virtual void deallocate_peratom();
   double estimate_ik_error(double, double, bigint);
-  // virtual double compute_qopt();
-  // virtual double compute_qopt_ik();
-  // virtual double compute_qopt_ad();
-  // virtual void compute_gf_denom();
-  // virtual void compute_gf_ik();
-  // virtual void compute_gf_ad();
-  // void compute_sf_precoeff();
 
   virtual void particle_map(double, double, double,
                              double, int **, int, int,
                              int, int, int,
                              int, int, int);
   // virtual void make_rho();
-  virtual void make_rho_none();
+  virtual void make_rho();
   virtual void brick2fft(int, int, int, int, int, int,
                          FFT_SCALAR ***, FFT_SCALAR *, FFT_SCALAR *,
                          LAMMPS_NS::Remap *);
   virtual void brick2fft();
   virtual void brick2fft_none();
-  void ev_calculation(int, int);
+  void ev_calculation(int, int, int);
   //void ev_calculation();
 
-
-  // virtual void poisson();
-  // virtual void poisson_ik();
-  // virtual void poisson_ad();
-
-  // virtual void fieldforce();
   virtual void fieldforce_param();
-  // virtual void fieldforce_ik();
-  // virtual void fieldforce_ad();
 
-  // virtual void poisson_peratom();
-  // virtual void fieldforce_peratom();
   void procs2grid2d(int,int,int,int *, int*);
   void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &,
                      const FFT_SCALAR &);
@@ -284,23 +262,6 @@ class TILD : public KSpace{
   void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &,
                      const FFT_SCALAR &, int, FFT_SCALAR **, FFT_SCALAR **);
   void compute_rho_coeff(FFT_SCALAR **,FFT_SCALAR **, int);
-
-  double csumij;
-  double csum;
-  double *B;
-  double *csumi;  //needed as correction term for per atom calculations!
-  double *cii;
-  int csumflag;
-  int nsplit;
-  int nsplit_alloc;
-  int nxlo_in_6,nylo_in_6,nzlo_in_6,nxhi_in_6,nyhi_in_6,nzhi_in_6;
-  int nxlo_out_6,nylo_out_6,nzlo_out_6,nxhi_out_6,nyhi_out_6,nzhi_out_6;
-  int nxlo_fft_6,nylo_fft_6,nzlo_fft_6,nxhi_fft_6,nyhi_fft_6,nzhi_fft_6;
-  int nlower_6,nupper_6;
-  int ngrid_6,nfft_6,nfft_both_6;
-  double compute_qopt_6();
-  double compute_qopt_6_ik();
-  double compute_qopt_6_ad();
 
 };
 

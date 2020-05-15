@@ -74,10 +74,6 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
     if (screen) fprintf(screen, "TILD construction...\n");
     if (logfile) fprintf(logfile, "TILD construction...\n");
   }
-  csumflag = 0;
-  B = NULL;
-  cii = NULL;
-  csumi = NULL;
   peratom_allocate_flag = 0;
 
   group_allocate_flag = 0;
@@ -151,13 +147,11 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   specified_all_group = 0;
 
   rho0 = 0.0;
-  set_rho0 = 0.0;
-  old_volume = 0.0;
   nmax = 0;
   sub_flag  = 1;
   mix_flag  = 1;
+  set_rho0 = 1.0;
   subtract_rho0 = 0;
-  set_rho0_flag = 0;
   norm_flag = 1;
   part2grid = NULL;
 
@@ -274,7 +268,7 @@ void TILD::init()
       error->all(FLERR,"Incorrect boundaries with slab TILD");
   }
 
-  if (order > MAXORDER || order_6 > MAXORDER) {
+  if (order > MAXORDER) {
     char str[128];
     sprintf(str,"TILD coulomb order cannot be greater than %d",MAXORDER);
     error->all(FLERR,str);
@@ -419,11 +413,11 @@ void TILD::vir_func_init() {
   double delz = zprd/nz_pppm;
   int ntypes = atom->ntypes;
 
+  int loc = 0;
   for (int itype = 1; itype <= ntypes; itype++) {
     for (int jtype = itype; jtype <= ntypes; jtype++) {
       // Skip if type cross-interaction does not use density/tild
       if ( potent_type_map[0][itype][jtype] == 1) continue;
-      int loc = itype*(jtype+1)/2;
 
       n = 0;
       for (z = nzlo_fft; z <= nzhi_fft; z++) {
@@ -471,6 +465,7 @@ void TILD::vir_func_init() {
         }
       }
     }
+  loc++;
   }
 }
 
@@ -502,12 +497,7 @@ void TILD::setup_grid()
 
   allocate();
 
-  if ( set_rho0_flag ) {
-    rho0 = set_rho0;
-    old_volume = domain->xprd * domain->yprd * domain->zprd;
-  } else {
-    rho0 = calculate_rho0();
-  }
+  rho0 = calculate_rho0();
 
   // pre-compute volume-dependent coeffs
   compute_rho_coeff(rho_coeff, drho_coeff, order);
@@ -548,12 +538,7 @@ void TILD::compute(int eflag, int vflag){
 
   double density;
   if (domain->box_change) {
-    if ( set_rho0_flag ) {
-      rho0 *=  old_volume / (domain->xprd * domain->yprd * domain->zprd);
-    } else {
-      rho0 = calculate_rho0();
-    }
-    old_volume = domain->xprd * domain->yprd * domain->zprd;
+    rho0 = calculate_rho0();
   }
   
   int i; 
@@ -598,7 +583,7 @@ void TILD::compute(int eflag, int vflag){
                 nxlo_out, nylo_out, nzlo_out, nxhi_out, nyhi_out, nzhi_out);
 
       //fprintf(screen,"make rho none\n");
-  make_rho_none();
+  make_rho();
 
       //fprintf(screen,"revcom\n");
   cg->reverse_comm(this, REVERSE_RHO_NONE);
@@ -633,51 +618,6 @@ void TILD::compute(int eflag, int vflag){
   if (atom->natoms != natoms_original) {
     natoms_original = atom->natoms;
   }
-  // convert atoms from box to lambda coords
-
-  // if (eflag || vflag) ev_setup(eflag,vflag);
-  // else evflag = evflag_atom = eflag_global = vflag_global =
-  //        eflag_atom = vflag_atom = 0;
-
-  // if (evflag_atom && !peratom_allocate_flag) {
-  //   allocate_peratom();
-  //   if (function[0]) {
-  //     cg_peratom->ghost_notify();
-  //     cg_peratom->setup();
-  //   }
-  //   if (function[1] + function[2] + function[3]) {
-  //     cg_peratom_6->ghost_notify();
-  //     cg_peratom_6->setup();
-  //   }
-  //   peratom_allocate_flag = 1;
-  // }
-
-  // if (triclinic == 0) boxlo = domain->boxlo;
-  // else {
-  //   boxlo = domain->boxlo_lamda;
-  //   domain->x2lamda(atom->nlocal);
-  // }
-  // // extend size of per-atom arrays if necessary
-
-  // if (atom->nmax > nmax) {
-
-  //   if (function[0]) memory->destroy(part2grid);
-  //   if (function[1] + function[2] + function[3]) memory->destroy(part2grid_6);
-  //   nmax = atom->nmax;
-  //   if (function[0]) memory->create(part2grid,nmax,3,"pppm/disp:part2grid");
-  //   if (function[1] + function[2] + function[3])
-  //     memory->create(part2grid_6,nmax,3,"pppm/disp:part2grid_6");
-  // }
-
-  // find grid points for all my particles 
-  // distribute particles' densities on the grid
-  // communication between processors and remapping two fft
-  // Convolution in k-space and backtransformation 
-  // communication between processors
-  // calculation of forces
-
-  //   make_rho_g();
-
   if (triclinic) domain->lamda2x(atom->nlocal);
   return;
 }
@@ -1151,6 +1091,7 @@ void TILD::init_cross_potentials(){
 
   double vole = domain->xprd * domain->yprd * domain->zprd; // Note: the factor of V comes from the FFT
   // Loop over potental styles
+  int loc = 0;
   for (int itype = 1; itype <= ntypes; itype++) {
     // Skip if type cross-interaction does not use density/tild
 
@@ -1158,11 +1099,10 @@ void TILD::init_cross_potentials(){
       // Skip if type cross-interaction does not use density/tild
       if ( potent_type_map[0][itype][jtype] == 1) continue;
       //fprintf(screen,"i j %d %d\n", itype, jtype);
-      int loc = itype*(jtype+1)/2;
 
 
       // If both parameters are Gaussian, just do analytical convolution
-      if (potent_type_map[1][itype][jtype] == 1 or (potent_type_map[1][itype][itype] == 1 && potent_type_map[1][jtype][jtype] == 1) ){
+      if (potent_type_map[1][itype][jtype] == 1 or (mix_flag ==1 && potent_type_map[1][itype][itype] == 1 && potent_type_map[1][jtype][jtype] == 1) ){
         // mixing
         double a2_mix;
         if (mix_flag == 1) {
@@ -1191,7 +1131,7 @@ void TILD::init_cross_potentials(){
 
         // calculate 1st and 2nd potentials to convolv
         int style;
-      //fprintf(screen,"i j %d %d %d\n", itype, jtype, mix_flag);
+        //fprintf(screen,"i j %d %d %d\n", itype, jtype, mix_flag);
         if (mix_flag == 1) {
           calc_work(work1, itype, itype);
           if ( itype == jtype) {
@@ -1209,7 +1149,7 @@ void TILD::init_cross_potentials(){
         for (int i = 0; i < nfft; i++) {
         
           complex_multiply(work1, work2, potent_hat[loc], n);
-         //fprintf(screen,"i j %d %d %d %f %f %f\n", itype, jtype, i, work1[n], work2[n], potent_hat[loc][n]);
+          fprintf(screen,"i j %d %d %d %f %f %f\n", itype, jtype, i, work1[n], work2[n], potent_hat[loc][n]);
           n += 2;
         }
 
@@ -1254,6 +1194,7 @@ void TILD::init_cross_potentials(){
       filegradU.close();
       filegradUhat.close();
       filegradUhatI.close();
+      loc++;
     }
   }
 
@@ -1266,7 +1207,8 @@ int TILD::get_style( const int i, const int j) {
   return 0;
 }
 
-void TILD::calc_work(double* work, const int itype, const int jtype){
+//void TILD::calc_work(double* work, const int itype, const int jtype){
+void TILD::calc_work(FFT_SCALAR *work, const int itype, const int jtype){
   double scale_inv = 1.0/ nx_pppm/ ny_pppm/ nz_pppm;
 
   // needs work is this right for cross terms of the same potential?
@@ -1407,8 +1349,8 @@ void TILD::init_potential(FFT_SCALAR *wk1, const int type, const double* paramet
           }
 
           mdr2 = xper * xper + yper * yper + zper * zper;
-                                    // missing pararentheses, xi should be inside erf()
           wk1[n++] = rho0 * 0.5 * (1.0 - erf((sqrt(mdr2) - parameters[0])/parameters[1])) * vole;
+          fprintf(screen,"n %d %f %f %f %f %f\n", n, wk1[n-1], rho0, vole, parameters[0], parameters[1]);
         }
       }
     }
@@ -1646,13 +1588,9 @@ int TILD::modify_param(int narg, char** arg)
       if (strcmp(arg[1], "convolution") == 0)  mix_flag = 1;
       else if (strcmp(arg[1], "define") == 0) mix_flag = 0;
       else error->all(FLERR, "Illegal kspace_modify tild mix argument");
-  } else if (strcmp(arg[0], "set_rho0") == 0) {
-      if (narg < 2 ) error->all(FLERR, "Illegal kspace_modify tild command");
-      if (strcmp(arg[1], "yes") == 0) {
-        set_rho0_flag = 1;
-        set_rho0 = force->numeric(FLERR,arg[2]);
-      } 
-      else error->all(FLERR, "Illegal kspace_modify tild set_rho0 argument");
+ } else if (strcmp(arg[0], "set_rho0") == 0) {
+     if (narg < 2 ) error->all(FLERR, "Illegal kspace_modify tild command");
+     set_rho0 = force->numeric(FLERR,arg[1]);
   } else if (strcmp(arg[0], "subtract_rho0") == 0) {
       if (narg != 2) error->all(FLERR, "Illegal kspace_modify tild command");
       if (strcmp(arg[1], "yes") == 0) sub_flag = 1;
@@ -2003,16 +1941,11 @@ void TILD::brick2fft()
 }
 
 
-void TILD::make_rho_none()
+void TILD::make_rho()
 {
   int k,l,m,n,nx,ny,nz,mx,my,mz;
   int ntypes = atom->ntypes;
   FFT_SCALAR dx,dy,dz,x0,y0,z0,w;
-
-  // clear 3d density array
-  // for (k = 0; k < nsplit_alloc; k++)
-  //   memset(&(density_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6]),0,
-  //          ngrid_6*sizeof(FFT_SCALAR));
 
   for (int k = 0; k <= ntypes; k++) {
     memset(&(density_brick_types[k][nzlo_out][nylo_out][nxlo_out]),0,
@@ -2143,12 +2076,12 @@ void TILD::accumulate_gradient() {
   if (subtract_rho0 == 1)
     tmp_sub = rho0;
 
+  int loc = 0;
   for (int itype = 1; itype <= ntypes; itype++) {
     for (int jtype = itype; jtype <= ntypes; jtype++) {
       if ( potent_type_map[0][itype][jtype] == 1) continue;
       //fprintf(screen,"i j %d %d\n", itype,jtype);
 
-      int loc = itype*(jtype+1)/2;
       double tmp_chi = chi[itype][jtype];
 
       if ( tmp_chi == 0 && tmp_kappa == 0 ) continue;
@@ -2170,7 +2103,7 @@ void TILD::accumulate_gradient() {
 
       //fprintf(screen,"pre ev_calculation\n");
       if (eflag_global || vflag_global) {
-        ev_calculation(itype, jtype);
+        ev_calculation(loc, itype, jtype);
       }
 
       for (int i = 0; i < Dim; i++) {
@@ -2200,6 +2133,7 @@ void TILD::accumulate_gradient() {
           }
         }
       }
+      loc++;
     }
   }
   ofstream gradtype("grad_lammps.txt");
@@ -2364,7 +2298,7 @@ inline void TILD::complex_multiply(double *in1,double  *in2, int n){
   in2[n] = temp;
 }
 
-void TILD::ev_calculation(const int itype, const int jtype) {
+void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
   int n = 0;
   double eng, engk;
   double vtmp, vtmpk;
@@ -2372,7 +2306,7 @@ void TILD::ev_calculation(const int itype, const int jtype) {
   double V = domain->xprd * domain->yprd * domain->zprd;
   double s2 = scale_inv * scale_inv;
   int ntypes = atom->ntypes;
-  int loc = itype*(jtype+1)/2;
+  //int loc = (jtype - itype) + ((itype-1)*ntypes) - (0.5*(itype-2)*(itype-1));
   FFT_SCALAR *dummy, *wk2;
 
   double tmp_rho_div = 1.0;
@@ -2505,16 +2439,21 @@ double TILD::calculate_rho0(){
 
     // gaussian potential, has no radius
     if (potent_type_map[1][itype][itype] == 1) {
-      lmass += count_per_type[itype] * mass[itype];
+      lmass += count_per_type[itype];
+      fprintf(screen, "total count %d ", count_per_type[itype]);
     } else if (potent_type_map[2][itype][itype] == 1) {
-      double volume = 4.0 * PI / 3 * rp[itype][itype] * rp[itype][itype] * rp[itype][itype];
-      lmass += count_per_type[itype] * mass[itype] * volume;
+      double volume = (4.0 * PI / 3.0) * rp[itype][itype] * rp[itype][itype] * rp[itype][itype] * set_rho0;
+      fprintf(screen, "total count %f %f %f ", (4.0 * PI / 3.0) ,rp[itype][itype] * rp[itype][itype] * rp[itype][itype], set_rho0);
+      lmass += count_per_type[itype] * volume;
+      fprintf(screen, "total count %f %f %d ", count_per_type[itype] * volume, volume, count_per_type[itype]);
     }
   }
   MPI_Allreduce(&lmass, &lmass_all, 1, MPI_DOUBLE, MPI_SUM, world);
 
   double vole = domain->xprd * domain->yprd * domain->zprd;
+
   rho0 = lmass_all / vole;
+  fprintf(screen, "rho0 %f %f %f ", rho0, lmass_all, vole);
   return rho0;
 }
 

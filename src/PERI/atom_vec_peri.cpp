@@ -64,7 +64,7 @@ AtomVecPeri::AtomVecPeri(LAMMPS *lmp) : AtomVec(lmp)
   fields_restart = (char *) "rmass vfrac s0 x0";
   fields_create = (char *) "rmass vfrac s0 x0";
   fields_data_atom = (char *) "id type vfrac rmass x";
-  fields_data_vel = (char *) "id v omega";
+  fields_data_vel = (char *) "id v";
 
   setup_fields();
 }

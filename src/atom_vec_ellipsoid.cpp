@@ -84,6 +84,7 @@ void AtomVecEllipsoid::grow_pointers()
 {
   ellipsoid = atom->ellipsoid;
   rmass = atom->rmass;
+  angmom = atom->angmom;
 }
 
 /* ----------------------------------------------------------------------
@@ -444,6 +445,10 @@ void AtomVecEllipsoid::data_atom_post(int ilocal)
 
   if (rmass[ilocal] <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
+
+  angmom[ilocal][0] = 0.0;
+  angmom[ilocal][1] = 0.0;
+  angmom[ilocal][2] = 0.0;
 }
 
 /* ----------------------------------------------------------------------

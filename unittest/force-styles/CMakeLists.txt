@@ -23,5 +23,17 @@ foreach(TEST ${MOL_PAIR_TESTS})
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 endforeach()
+
+# bond style tester
+add_executable(bond-style bond-style.cpp)
+target_link_libraries(bond-style PRIVATE lammps GTest::GMock GTest::GTest Yaml::Yaml)
+
+file(GLOB BOND_TESTS LIST_DIRECTORIES false bond-*.yaml)
+foreach(TEST ${BOND_TESTS})
+  string(REGEX REPLACE "^.*bond-(.*)\.yaml" "BondStyle:\\1" TNAME ${TEST})
+  add_test(NAME ${TNAME} COMMAND bond-style ${TEST}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+endforeach()
+
 # copy files read at runtime to the working directory
 file(COPY in.fourmol data.fourmol in.metal data.metal DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

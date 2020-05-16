@@ -1042,7 +1042,6 @@ TEST(BondStyle, intel) {
     int id = lmp->modify->find_compute("sum");
     double energy = lmp->modify->compute[id]->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.run_energy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(bond->energy, energy, epsilon);
     if (print_stats)
         std::cerr << "run_energy  stats:" << stats << std::endl;
 

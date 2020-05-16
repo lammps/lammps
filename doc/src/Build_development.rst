@@ -58,32 +58,31 @@ variable during configuration. Examples:
 .. _testing:
 
 Code Coverage and Testing
----------------------------------------
+-------------------------
 
-We do extensive regression testing of the LAMMPS code base on a continuous
-basis. Some of the logic to do this has been added to the CMake build so
-developers can run the tests directly on their workstation.
+The LAMMPS code is subject to multiple levels of automated testing
+during development: integration testing (i.e. whether the code compiles
+on various platforms and with a variety of settings), unit testing
+(i.e. whether certain individual parts of the code produce the expected
+results for given inputs), run testing (whether selected complete input
+decks run without crashing for multiple configurations), and regression
+testing (i.e. whether selected input examples reproduce the same
+results over a given number of steps and operations within a given
+error margin).  The status of this automated testing can be viewed on
+`https://ci.lammps.org`_.
+
+The unit testing facility is integrated into the CMake build process of
+the LAMMPS distribution itself.  It can be enabled by setting
+``-D ENABLE_TESTING=on`` during the CMake configuration step.  After
+compilation, the unit testing is started in the build folder using the
+``ctest`` command, which is part of the CMake software.
 
 .. note::
 
-   this is incomplete and only represents a small subset of tests that we run
+   The unit test framework is new and still under development.
+   The coverage is only minimal and will be expanded over time.
+   Documentation about how to add tests will be provided as well.
 
-.. code-block:: bash
-
-   -D ENABLE_TESTING=value               # enable simple run tests of LAMMPS, value = no (default) or yes
-   -D LAMMPS_TESTING_SOURCE_DIR=path     # path to lammps-testing repository (option if in custom location)
-   -D LAMMPS_TESTING_GIT_TAG=value       # version of lammps-testing repository that should be used, value = master (default) or custom git commit or tag
-
-If you enable testing in the CMake build it will create an additional
-target called "test". You can run them with:
-
-.. code-block:: bash
-
-   cmake --build . test
-
-The test cases used come from the lammps-testing repository. They are
-derivatives of the examples folder with some modifications to make the
-run faster.
 
 You can also collect code coverage metrics while running the tests by
 enabling coverage support during building.

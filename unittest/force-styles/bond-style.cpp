@@ -174,9 +174,20 @@ LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg)
         return NULL;
     }
 
+#define STRINGIFY(val) XSTR(val)
+#define XSTR(val) #val
+    std::string set_input_dir = "variable input_dir index ";
+    set_input_dir += STRINGIFY(TEST_INPUT_FOLDER);
+    lmp->input->one(set_input_dir.c_str());
     for (auto pre_command : cfg.pre_commands)
         lmp->input->one(pre_command.c_str());
-    lmp->input->file(cfg.input_file.c_str());
+
+    std::string input_file = STRINGIFY(TEST_INPUT_FOLDER);
+    input_file += "/";
+    input_file += cfg.input_file;
+    lmp->input->file(input_file.c_str());
+#undef STRINGIFY
+#undef XSTR
 
     std::string cmd("bond_style ");
     cmd += cfg.bond_style;
@@ -1039,8 +1050,6 @@ TEST(BondStyle, intel) {
         std::cerr << "run_stress  stats:" << stats << std::endl;
 
     stats.reset();
-    int id = lmp->modify->find_compute("sum");
-    double energy = lmp->modify->compute[id]->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.run_energy, epsilon);
     if (print_stats)
         std::cerr << "run_energy  stats:" << stats << std::endl;

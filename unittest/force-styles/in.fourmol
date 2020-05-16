@@ -4,6 +4,7 @@ variable  bond_factor     index  0.10
 variable  angle_factor    index  0.25
 variable  dihedral_factor index  0.50
 variable  units           index  real
+variable  input_dir       index  .
 
 atom_style       full
 atom_modify      map array
@@ -19,7 +20,7 @@ angle_style      zero
 dihedral_style   zero
 improper_style   zero
 
-read_data        data.fourmol
+read_data        ${input_dir}/data.fourmol
 dihedral_coeff   *
 improper_coeff   *
 

@@ -30,7 +30,6 @@ class KSpaceZero : public KSpace {
   virtual ~KSpaceZero() {};
   void init();
   void setup() {};
-  void settings(int, char**);
   virtual void compute(int, int);
   double memory_usage();
 };

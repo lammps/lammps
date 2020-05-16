@@ -74,8 +74,7 @@ Syntax
        *scafacos* values = method accuracy
          method = fmm or p2nfft or p3m or ewald or direct
          accuracy = desired relative error in forces
-       *zero* value = gewald
-         gewald = G-ewald parameter for Coulomb (1/distance units)
+       *zero* value = none
 
 Examples
 """"""""
@@ -318,8 +317,6 @@ The KSpace style *zero* does not compute anything but signals that
 it is compatible with pair styles requiring a long-range coulomb solver.
 It can be used to debug the forces computed from such a pair style
 without being modified by the forces from the long-range solver.
-Since this style does no computation as all, you have to provide the
-G-ewald parameter to be used in the corresponding pair style as argument.
 
 ----------
 

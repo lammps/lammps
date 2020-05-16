@@ -639,7 +639,7 @@ public:
 void generate(const char *outfile) {
 
     // initialize molecular system geometry
-    const char *args[] = {"MolPairStyle", "-log", "none", "-echo", "screen", "-nocite" };
+    const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite" };
     char **argv = (char **)args;
     int argc = sizeof(args)/sizeof(char *);
     LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
@@ -761,8 +761,8 @@ void generate(const char *outfile) {
     return;
 }
 
-TEST(MolPairStyle, plain) {
-    const char *args[] = {"MolPairStyle", "-log", "none", "-echo", "screen", "-nocite" };
+TEST(PairStyle, plain) {
+    const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite" };
     char **argv = (char **)args;
     int argc = sizeof(args)/sizeof(char *);
 
@@ -862,9 +862,9 @@ TEST(MolPairStyle, plain) {
     ::testing::internal::GetCapturedStdout();
 };
 
-TEST(MolPairStyle, omp) {
+TEST(PairStyle, omp) {
     if (!LAMMPS_NS::LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
-    const char *args[] = {"MolPairStyle", "-log", "none", "-echo", "screen",
+    const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen",
                           "-nocite", "-pk", "omp", "4", "-sf", "omp"};
     char **argv = (char **)args;
     int argc = sizeof(args)/sizeof(char *);
@@ -965,9 +965,9 @@ TEST(MolPairStyle, omp) {
     ::testing::internal::GetCapturedStdout();
 };
 
-TEST(MolPairStyle, intel) {
+TEST(PairStyle, intel) {
     if (!LAMMPS_NS::LAMMPS::is_installed_pkg("USER-INTEL")) GTEST_SKIP();
-    const char *args[] = {"MolPairStyle", "-log", "none", "-echo", "screen",
+    const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen",
                           "-nocite", "-pk", "intel", "0", "mode", "double",
                           "omp", "4", "lrt", "no", "-sf", "intel"};
     char **argv = (char **)args;
@@ -1079,9 +1079,9 @@ TEST(MolPairStyle, intel) {
     ::testing::internal::GetCapturedStdout();
 };
 
-TEST(MolPairStyle, opt) {
+TEST(PairStyle, opt) {
     if (!LAMMPS_NS::LAMMPS::is_installed_pkg("OPT")) GTEST_SKIP();
-    const char *args[] = {"MolPairStyle", "-log", "none", "-echo", "screen",
+    const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen",
                           "-nocite", "-sf", "opt"};
     char **argv = (char **)args;
     int argc = sizeof(args)/sizeof(char *);

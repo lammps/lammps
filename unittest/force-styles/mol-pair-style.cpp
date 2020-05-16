@@ -156,34 +156,33 @@ LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg)
     LAMMPS_NS::LAMMPS *lmp;
 
     lmp = new LAMMPS_NS::LAMMPS(argc, argv, MPI_COMM_WORLD);
+
+    // check if prerequisite styles are available
+    LAMMPS_NS::Info *info = new LAMMPS_NS::Info(lmp);
+    int nfail = 0;
+    for (auto prerequisite : cfg.prerequisites) {
+        std::string style = prerequisite.second;
+
+        // this is a test for pair styles, so if the suffixed
+        // version is not available, there is no reason to test.
+        if (prerequisite.first == "pair") {
+            if (lmp->suffix_enable) {
+                style += "/";
+                style += lmp->suffix;
+            }
+        }
+
+        if (!info->has_style(prerequisite.first,style)) ++nfail;
+    }
+    if (nfail > 0) {
+        delete info;
+        delete lmp;
+        return NULL;
+    }
+
     for (auto pre_command : cfg.pre_commands)
         lmp->input->one(pre_command.c_str());
     lmp->input->file(cfg.input_file.c_str());
-
-    // determine if pair style is available while applying suffix if active
-    LAMMPS_NS::Info *info = new LAMMPS_NS::Info(lmp);
-    std::string style;
-    std::size_t found = cfg.pair_style.find(" ");
-    if ((found > 0) && (found != std::string::npos)) {
-        style = cfg.pair_style.substr(0,found);
-    } else {
-        style = cfg.pair_style;
-    }
-
-    // test for hybrid pair styles are assuming to use only core pair
-    // styles or their suffixed variants. so we can skip this check.
-    if (style.substr(0,6) != "hybrid") {
-        if (lmp->suffix_enable) {
-            style += "/";
-            style += lmp->suffix;
-        }
-        if (!info->has_style("pair", style)) {
-            test_config.pair_style = style;  // for error message
-            delete info;
-            delete lmp;
-            return NULL;
-        }
-    }
 
     std::string cmd("pair_style ");
     cmd += cfg.pair_style;
@@ -645,8 +644,12 @@ void generate(const char *outfile) {
     int argc = sizeof(args)/sizeof(char *);
     LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
     if (!lmp) {
-        std::cerr << "Pair style: " << test_config.pair_style << " is not available."
-            "in this LAMMPS configuration\n";
+        std::cerr << "One ore more prerequisite styles are not available "
+            "in this LAMMPS configuration:\n";
+        for (auto prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style "
+                      << prerequisite.second << "\n";
+        }
         return;
     }
 
@@ -762,10 +765,21 @@ TEST(MolPairStyle, plain) {
     const char *args[] = {"MolPairStyle", "-log", "none", "-echo", "screen", "-nocite" };
     char **argv = (char **)args;
     int argc = sizeof(args)/sizeof(char *);
+
     ::testing::internal::CaptureStdout();
     LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
     std::string output = ::testing::internal::GetCapturedStdout();
-    if (!lmp) GTEST_SKIP();
+
+    if (!lmp) {
+        std::cerr << "One ore more prerequisite styles are not available "
+            "in this LAMMPS configuration:\n";
+        for (auto prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style "
+                      << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+
     EXPECT_THAT(output, StartsWith("LAMMPS ("));
     EXPECT_THAT(output, HasSubstr("Loop time"));
 
@@ -854,10 +868,21 @@ TEST(MolPairStyle, omp) {
                           "-nocite", "-pk", "omp", "4", "-sf", "omp"};
     char **argv = (char **)args;
     int argc = sizeof(args)/sizeof(char *);
+
     ::testing::internal::CaptureStdout();
     LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
     std::string output = ::testing::internal::GetCapturedStdout();
-    if (!lmp) GTEST_SKIP();
+
+    if (!lmp) {
+        std::cerr << "One ore more prerequisite styles with /omp suffix\n"
+            "are not available in this LAMMPS configuration:\n";
+        for (auto prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style "
+                      << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+
     EXPECT_THAT(output, StartsWith("LAMMPS ("));
     EXPECT_THAT(output, HasSubstr("Loop time"));
 
@@ -865,7 +890,7 @@ TEST(MolPairStyle, omp) {
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms,nlocal);
 
-    // relax error a bit for USER-OMP
+    // relax error a bit for USER-OMP package
     double epsilon = 5.0*test_config.epsilon;
     double **f=lmp->atom->f;
     LAMMPS_NS::tagint *tag=lmp->atom->tag;

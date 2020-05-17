@@ -1498,6 +1498,14 @@ TEST(PairStyle, single) {
         GTEST_SKIP();
     }
 
+    // gather some information and skip if unsupported
+    int ntypes = lmp->atom->ntypes;
+    int molecular = lmp->atom->molecular;
+    if (molecular > 1) {
+        std::cerr << "Only atomic and simple molecular atom styles are supported\n";
+        GTEST_SKIP();
+    }
+
     LAMMPS_NS::Pair *pair = lmp->force->pair;
     if (!pair->single_enable) {
         std::cerr << "Single method not available for pair style "
@@ -1508,8 +1516,6 @@ TEST(PairStyle, single) {
     // The single function in EAM is different from what we assume
     // here, therefore we have to skip testing those pair styles.
     if (test_config.pair_style.substr(0,3) == "eam") GTEST_SKIP();
-
-    int ntypes = lmp->atom->ntypes;
 
     // now start over
     ::testing::internal::CaptureStdout();
@@ -1527,10 +1533,14 @@ TEST(PairStyle, single) {
 #undef STRINGIFY
 #undef XSTR
 
-    lmp->input->one("atom_style charge");
+    lmp->input->one("atom_style full");
     lmp->input->one("units ${units}");
     lmp->input->one("boundary p p p");
     lmp->input->one("newton ${newton_pair} ${newton_bond}");
+    if (molecular) {
+        lmp->input->one("special_bonds lj/coul "
+                        "${bond_factor} ${angle_factor} ${dihedral_factor}");
+    }
     lmp->input->one("atom_modify map array");
     lmp->input->one("region box block -10.0 10.0 -10.0 10.0 -10.0 10.0 units box");
     char buf[10];
@@ -1538,6 +1548,11 @@ TEST(PairStyle, single) {
     std::string cmd("create_box ");
     cmd += buf;
     cmd += " box";
+    if (molecular) {
+        cmd += " bond/types 1";
+        cmd += " extra/bond/per/atom 1";
+        cmd += " extra/special/per/atom 1";
+    }
     lmp->input->one(cmd.c_str());
 
     cmd = "pair_style ";
@@ -1556,6 +1571,11 @@ TEST(PairStyle, single) {
     lmp->input->one("create_atoms 2 single 0.5  0.25 -0.1 units box");
     lmp->input->one("set atom 1 charge -0.5");
     lmp->input->one("set atom 2 charge  0.5");
+    if (molecular) {
+        lmp->input->one("create_bonds single/bond 1 1 2");
+        lmp->input->one("bond_style zero");
+        lmp->input->one("bond_coeff 1 2.0");
+    }
     for (auto post_command : test_config.post_commands)
         lmp->input->one(post_command.c_str());
     lmp->input->one("run 0 post no");
@@ -1572,8 +1592,10 @@ TEST(PairStyle, single) {
     double rsq = delx*delx+dely*dely+delz*delz;
     double fsingle = 0.0;
     double epair[4], esngl[4];
+    double splj = lmp->force->special_lj[1];
+    double spcl = lmp->force->special_coul[1];
     epair[0] = pair->eng_vdwl + pair->eng_coul;
-    esngl[0] = pair->single(idx1, idx2, 1, 2, rsq, 1.0, 1.0, fsingle);
+    esngl[0] = pair->single(idx1, idx2, 1, 2, rsq, splj, spcl, fsingle);
 
     ErrorStats stats;
     EXPECT_FP_LE_WITH_EPS(f[idx1][0],-fsingle*delx, epsilon);
@@ -1596,7 +1618,7 @@ TEST(PairStyle, single) {
     rsq = delx*delx+dely*dely+delz*delz;
     fsingle = 0.0;
     epair[1] = pair->eng_vdwl + pair->eng_coul;
-    esngl[1] = pair->single(idx1, idx2, 1, 2, rsq, 1.0, 1.0, fsingle);
+    esngl[1] = pair->single(idx1, idx2, 1, 2, rsq, splj, spcl, fsingle);
 
     EXPECT_FP_LE_WITH_EPS(f[idx1][0],-fsingle*delx, epsilon);
     EXPECT_FP_LE_WITH_EPS(f[idx1][1],-fsingle*dely, epsilon);
@@ -1615,7 +1637,7 @@ TEST(PairStyle, single) {
     rsq = delx*delx+dely*dely+delz*delz;
     fsingle = 0.0;
     epair[2] = pair->eng_vdwl + pair->eng_coul;
-    esngl[2] = pair->single(idx1, idx2, 1, 2, rsq, 1.0, 1.0, fsingle);
+    esngl[2] = pair->single(idx1, idx2, 1, 2, rsq, splj, spcl, fsingle);
 
     EXPECT_FP_LE_WITH_EPS(f[idx1][0],-fsingle*delx, epsilon);
     EXPECT_FP_LE_WITH_EPS(f[idx1][1],-fsingle*dely, epsilon);
@@ -1634,7 +1656,7 @@ TEST(PairStyle, single) {
     rsq = delx*delx+dely*dely+delz*delz;
     fsingle = 0.0;
     epair[3] = pair->eng_vdwl + pair->eng_coul;
-    esngl[3] = pair->single(idx1, idx2, 1, 2, rsq, 1.0, 1.0, fsingle);
+    esngl[3] = pair->single(idx1, idx2, 1, 2, rsq, splj, spcl, fsingle);
 
     EXPECT_FP_LE_WITH_EPS(f[idx1][0],-fsingle*delx, epsilon);
     EXPECT_FP_LE_WITH_EPS(f[idx1][1],-fsingle*dely, epsilon);

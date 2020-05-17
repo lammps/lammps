@@ -151,6 +151,19 @@ std::ostream &operator<<(std::ostream &out, const ErrorStats &stats)
         EXPECT_PRED_FORMAT2(::testing::DoubleLE, err, eps); \
     } while (0);
 
+void cleanup_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
+{
+    std::string name;
+
+    name = cfg.basename + ".restart";
+    remove(name.c_str());
+    name = cfg.basename + ".data";
+    remove(name.c_str());
+    name = cfg.basename + "-coeffs.in";
+    remove(name.c_str());
+    delete lmp;
+}
+
 LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv,
                                const TestConfig &cfg,
                                const bool newton=true)
@@ -178,7 +191,7 @@ LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv,
     }
     if (nfail > 0) {
         delete info;
-        delete lmp;
+        cleanup_lammps(lmp,cfg);
         return NULL;
     }
 
@@ -216,6 +229,8 @@ LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv,
     cmd = "write_restart " + cfg.basename + ".restart";
     lmp->input->one(cmd.c_str());
     cmd = "write_data " + cfg.basename + ".data";
+    lmp->input->one(cmd.c_str());
+    cmd = "write_coeff " + cfg.basename + "-coeffs.in";
     lmp->input->one(cmd.c_str());
 
     return lmp;
@@ -849,7 +864,7 @@ void generate(const char *outfile) {
     }
     writer.emit_block("run_forces", block);
 
-    delete lmp;
+    cleanup_lammps(lmp,test_config);
     return;
 }
 
@@ -1087,7 +1102,7 @@ TEST(PairStyle, plain) {
         std::cerr << "data_energy stats:" << stats << std::endl;
 
     ::testing::internal::CaptureStdout();
-    delete lmp;
+    cleanup_lammps(lmp,test_config);
     ::testing::internal::GetCapturedStdout();
 };
 
@@ -1258,7 +1273,7 @@ TEST(PairStyle, omp) {
         std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
 
     ::testing::internal::CaptureStdout();
-    delete lmp;
+    cleanup_lammps(lmp,test_config);
     ::testing::internal::GetCapturedStdout();
 };
 
@@ -1372,7 +1387,7 @@ TEST(PairStyle, intel) {
         std::cerr << "run_energy  stats:" << stats << std::endl;
 
     ::testing::internal::CaptureStdout();
-    delete lmp;
+    cleanup_lammps(lmp,test_config);
     ::testing::internal::GetCapturedStdout();
 };
 
@@ -1475,7 +1490,7 @@ TEST(PairStyle, opt) {
         std::cerr << "run_energy  stats:" << stats << std::endl;
 
     ::testing::internal::CaptureStdout();
-    delete lmp;
+    cleanup_lammps(lmp,test_config);
     ::testing::internal::GetCapturedStdout();
 };
 
@@ -1503,6 +1518,9 @@ TEST(PairStyle, single) {
     int molecular = lmp->atom->molecular;
     if (molecular > 1) {
         std::cerr << "Only atomic and simple molecular atom styles are supported\n";
+        ::testing::internal::CaptureStdout();
+        cleanup_lammps(lmp,test_config);
+        output = ::testing::internal::GetCapturedStdout();
         GTEST_SKIP();
     }
 
@@ -1510,12 +1528,20 @@ TEST(PairStyle, single) {
     if (!pair->single_enable) {
         std::cerr << "Single method not available for pair style "
                   << test_config.pair_style << std::endl;
+        ::testing::internal::CaptureStdout();
+        cleanup_lammps(lmp,test_config);
+        output = ::testing::internal::GetCapturedStdout();
         GTEST_SKIP();
     }
 
     // The single function in EAM is different from what we assume
     // here, therefore we have to skip testing those pair styles.
-    if (test_config.pair_style.substr(0,3) == "eam") GTEST_SKIP();
+    if (test_config.pair_style.substr(0,3) == "eam") {
+        ::testing::internal::CaptureStdout();
+        cleanup_lammps(lmp,test_config);
+        output = ::testing::internal::GetCapturedStdout();
+        GTEST_SKIP();
+    }
 
     // now start over
     ::testing::internal::CaptureStdout();
@@ -1676,7 +1702,7 @@ TEST(PairStyle, single) {
         std::cerr << "single_energy  stats:" << stats << std::endl;
 
     ::testing::internal::CaptureStdout();
-    delete lmp;
+    cleanup_lammps(lmp,test_config);
     ::testing::internal::GetCapturedStdout();
 }
 

@@ -1190,7 +1190,7 @@ TEST(PairStyle, omp) {
         std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
     ::testing::internal::CaptureStdout();
-    lmp = init_lammps(argc,argv,test_config);
+    lmp = init_lammps(argc,argv,test_config,false);
     output = ::testing::internal::GetCapturedStdout();
 
     f=lmp->atom->f;
@@ -1478,6 +1478,185 @@ TEST(PairStyle, opt) {
     delete lmp;
     ::testing::internal::GetCapturedStdout();
 };
+
+TEST(PairStyle, single) {
+    const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite" };
+    char **argv = (char **)args;
+    int argc = sizeof(args)/sizeof(char *);
+
+    // create a LAMMPS instance with standard settings to detect the number of atom types
+    ::testing::internal::CaptureStdout();
+    LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (!lmp) {
+        std::cerr << "One ore more prerequisite styles are not available "
+            "in this LAMMPS configuration:\n";
+        for (auto prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style "
+                      << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+
+    LAMMPS_NS::Pair *pair = lmp->force->pair;
+    if (!pair->single_enable) {
+        std::cerr << "Single method not available for pair style "
+                  << test_config.pair_style << std::endl;
+        GTEST_SKIP();
+    }
+
+    // The single function in EAM is different from what we assume
+    // here, therefore we have to skip testing those pair styles.
+    if (test_config.pair_style.substr(0,3) == "eam") GTEST_SKIP();
+
+    int ntypes = lmp->atom->ntypes;
+
+    // now start over
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("variable newton_pair delete");
+    lmp->input->one("variable newton_pair index on");
+
+#define STRINGIFY(val) XSTR(val)
+#define XSTR(val) #val
+    std::string set_input_dir = "variable input_dir index ";
+    set_input_dir += STRINGIFY(TEST_INPUT_FOLDER);
+    lmp->input->one(set_input_dir.c_str());
+    for (auto pre_command : test_config.pre_commands)
+        lmp->input->one(pre_command.c_str());
+#undef STRINGIFY
+#undef XSTR
+
+    lmp->input->one("atom_style charge");
+    lmp->input->one("units ${units}");
+    lmp->input->one("boundary p p p");
+    lmp->input->one("newton ${newton_pair} ${newton_bond}");
+    lmp->input->one("atom_modify map array");
+    lmp->input->one("region box block -10.0 10.0 -10.0 10.0 -10.0 10.0 units box");
+    char buf[10];
+    snprintf(buf,10,"%d",ntypes);
+    std::string cmd("create_box ");
+    cmd += buf;
+    cmd += " box";
+    lmp->input->one(cmd.c_str());
+
+    cmd = "pair_style ";
+    cmd += test_config.pair_style;
+    lmp->input->one(cmd.c_str());
+    pair = lmp->force->pair;
+
+    for (auto pair_coeff : test_config.pair_coeff) {
+        cmd = "pair_coeff " + pair_coeff;
+        lmp->input->one(cmd.c_str());
+    }
+
+    // create (only) two atoms
+    lmp->input->one("mass * 1.0");
+    lmp->input->one("create_atoms 1 single 0.0 -0.75  0.4 units box");
+    lmp->input->one("create_atoms 2 single 0.5  0.25 -0.1 units box");
+    lmp->input->one("set atom 1 charge -0.5");
+    lmp->input->one("set atom 2 charge  0.5");
+    for (auto post_command : test_config.post_commands)
+        lmp->input->one(post_command.c_str());
+    lmp->input->one("run 0 post no");
+    output = ::testing::internal::GetCapturedStdout();
+
+    int idx1 = lmp->atom->map(1);
+    int idx2 = lmp->atom->map(2);
+    double epsilon = test_config.epsilon;
+    double **f=lmp->atom->f;
+    double **x=lmp->atom->x;
+    double delx = x[idx2][0] - x[idx1][0];
+    double dely = x[idx2][1] - x[idx1][1];
+    double delz = x[idx2][2] - x[idx1][2];
+    double rsq = delx*delx+dely*dely+delz*delz;
+    double fsingle = 0.0;
+    double epair[4], esngl[4];
+    epair[0] = pair->eng_vdwl + pair->eng_coul;
+    esngl[0] = pair->single(idx1, idx2, 1, 2, rsq, 1.0, 1.0, fsingle);
+
+    ErrorStats stats;
+    EXPECT_FP_LE_WITH_EPS(f[idx1][0],-fsingle*delx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx1][1],-fsingle*dely, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx1][2],-fsingle*delz, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][0], fsingle*delx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][1], fsingle*dely, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][2], fsingle*delz, epsilon);
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("displace_atoms all random 1.0 1.0 1.0 723456");
+    lmp->input->one("run 0 post no");
+    output = ::testing::internal::GetCapturedStdout();
+
+    f=lmp->atom->f;
+    x=lmp->atom->x;
+    delx = x[idx2][0] - x[idx1][0];
+    dely = x[idx2][1] - x[idx1][1];
+    delz = x[idx2][2] - x[idx1][2];
+    rsq = delx*delx+dely*dely+delz*delz;
+    fsingle = 0.0;
+    epair[1] = pair->eng_vdwl + pair->eng_coul;
+    esngl[1] = pair->single(idx1, idx2, 1, 2, rsq, 1.0, 1.0, fsingle);
+
+    EXPECT_FP_LE_WITH_EPS(f[idx1][0],-fsingle*delx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx1][1],-fsingle*dely, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx1][2],-fsingle*delz, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][0], fsingle*delx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][1], fsingle*dely, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][2], fsingle*delz, epsilon);
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("displace_atoms all random 1.0 1.0 1.0 3456963");
+    lmp->input->one("run 0 post no");
+    output = ::testing::internal::GetCapturedStdout();
+    delx = x[idx2][0] - x[idx1][0];
+    dely = x[idx2][1] - x[idx1][1];
+    delz = x[idx2][2] - x[idx1][2];
+    rsq = delx*delx+dely*dely+delz*delz;
+    fsingle = 0.0;
+    epair[2] = pair->eng_vdwl + pair->eng_coul;
+    esngl[2] = pair->single(idx1, idx2, 1, 2, rsq, 1.0, 1.0, fsingle);
+
+    EXPECT_FP_LE_WITH_EPS(f[idx1][0],-fsingle*delx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx1][1],-fsingle*dely, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx1][2],-fsingle*delz, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][0], fsingle*delx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][1], fsingle*dely, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][2], fsingle*delz, epsilon);
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("displace_atoms all random 0.5 0.5 0.5 9726532");
+    lmp->input->one("run 0 post no");
+    output = ::testing::internal::GetCapturedStdout();
+    delx = x[idx2][0] - x[idx1][0];
+    dely = x[idx2][1] - x[idx1][1];
+    delz = x[idx2][2] - x[idx1][2];
+    rsq = delx*delx+dely*dely+delz*delz;
+    fsingle = 0.0;
+    epair[3] = pair->eng_vdwl + pair->eng_coul;
+    esngl[3] = pair->single(idx1, idx2, 1, 2, rsq, 1.0, 1.0, fsingle);
+
+    EXPECT_FP_LE_WITH_EPS(f[idx1][0],-fsingle*delx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx1][1],-fsingle*dely, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx1][2],-fsingle*delz, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][0], fsingle*delx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][1], fsingle*dely, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][2], fsingle*delz, epsilon);
+    if (print_stats)
+        std::cerr << "single_force  stats:" << stats << std::endl;
+
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(epair[0], esngl[0], epsilon);
+    EXPECT_FP_LE_WITH_EPS(epair[1], esngl[1], epsilon);
+    EXPECT_FP_LE_WITH_EPS(epair[2], esngl[2], epsilon);
+    EXPECT_FP_LE_WITH_EPS(epair[3], esngl[3], epsilon);
+    if (print_stats)
+        std::cerr << "single_energy  stats:" << stats << std::endl;
+
+    ::testing::internal::CaptureStdout();
+    delete lmp;
+    ::testing::internal::GetCapturedStdout();
+}
 
 int main(int argc, char **argv)
 {

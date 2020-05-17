@@ -44,6 +44,7 @@ class TestConfig {
 public:
     std::string lammps_version;
     std::string date_generated;
+    std::string basename;
     double epsilon;
     std::vector<std::pair<std::string,std::string>> prerequisites;
     std::vector<std::string> pre_commands;
@@ -60,6 +61,7 @@ public:
     std::vector<coord_t> run_forces;
     TestConfig() : lammps_version(""),
                    date_generated(""),
+                   basename(""),
                    epsilon(1.0e-14),
                    input_file(""),
                    bond_style("zero"),
@@ -199,6 +201,11 @@ LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg)
     for (auto post_command : cfg.post_commands)
         lmp->input->one(post_command.c_str());
     lmp->input->one("run 0 post no");
+    cmd = "write_restart " + cfg.basename + ".restart";
+    lmp->input->one(cmd.c_str());
+    cmd = "write_data " + cfg.basename + ".data";
+    lmp->input->one(cmd.c_str());
+
     return lmp;
 }
 
@@ -210,6 +217,49 @@ void run_lammps(LAMMPS_NS::LAMMPS *lmp)
     lmp->input->one("thermo_style custom step temp pe press c_sum");
     lmp->input->one("thermo 2");
     lmp->input->one("run 4 post no");
+}
+
+void restart_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
+{
+    lmp->input->one("clear");
+    std::string cmd("read_restart ");
+    cmd += cfg.basename + ".restart";
+    lmp->input->one(cmd.c_str());
+
+    for (auto post_command : cfg.post_commands)
+        lmp->input->one(post_command.c_str());
+    lmp->input->one("run 0 post no");
+}
+
+void data_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
+{
+    lmp->input->one("clear");
+    lmp->input->one("variable bond_style delete");
+    lmp->input->one("variable data_file  delete");
+
+    for (auto pre_command : cfg.pre_commands)
+        lmp->input->one(pre_command.c_str());
+
+    std::string cmd("variable bond_style index '");
+    cmd += cfg.bond_style + "'";
+    lmp->input->one(cmd.c_str());
+
+    cmd = "variable data_file index ";
+    cmd += cfg.basename + ".data";
+    lmp->input->one(cmd.c_str());
+
+#define STRINGIFY(val) XSTR(val)
+#define XSTR(val) #val
+    std::string input_file = STRINGIFY(TEST_INPUT_FOLDER);
+    input_file += "/";
+    input_file += cfg.input_file;
+    lmp->input->file(input_file.c_str());
+#undef STRINGIFY
+#undef XSTR
+
+    for (auto post_command : cfg.post_commands)
+        lmp->input->one(post_command.c_str());
+    lmp->input->one("run 0 post no");
 }
 
 template<typename ConsumerClass>
@@ -225,6 +275,7 @@ class YamlReader {
     StateValue state;
     bool accepted;
     std::string key;
+    std::string basename;
 
 protected:
     typedef void (ConsumerClass::*EventConsumer)(const yaml_event_t & event);
@@ -237,7 +288,15 @@ public:
     virtual ~YamlReader() {
     }
 
+    std::string get_basename() const { return basename; }
+
     int parse_file(const std::string & infile) {
+        basename = infile;
+        std::size_t found = basename.rfind(".yaml");
+        if (found > 0) basename = basename.substr(0,found);
+        found = basename.find_last_of("/\\");
+        if (found != std::string::npos) basename = basename.substr(found+1);
+
         FILE * fp = fopen(infile.c_str(),"r");
         yaml_parser_t parser;
         yaml_event_t event;
@@ -845,6 +904,72 @@ TEST(BondStyle, plain) {
         std::cerr << "run_energy  stats:" << stats << std::endl;
 
     ::testing::internal::CaptureStdout();
+    restart_lammps(lmp, test_config);
+    ::testing::internal::GetCapturedStdout();
+
+    f=lmp->atom->f;
+    tag=lmp->atom->tag;
+    stats.reset();
+    ASSERT_EQ(nlocal+1,f_ref.size());
+    for (int i=0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
+    }
+    if (print_stats)
+        std::cerr << "restart_forces stats:" << stats << std::endl;
+
+    bond = lmp->force->bond;
+    stress = bond->virial;
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, epsilon);
+    if (print_stats)
+        std::cerr << "restart_stress stats:" << stats << std::endl;
+
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.init_energy, epsilon);
+    if (print_stats)
+        std::cerr << "restart_energy stats:" << stats << std::endl;
+
+    ::testing::internal::CaptureStdout();
+    data_lammps(lmp, test_config);
+    ::testing::internal::GetCapturedStdout();
+
+    f=lmp->atom->f;
+    tag=lmp->atom->tag;
+    stats.reset();
+    ASSERT_EQ(nlocal+1,f_ref.size());
+    for (int i=0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
+    }
+    if (print_stats)
+        std::cerr << "data_forces stats:" << stats << std::endl;
+
+    bond = lmp->force->bond;
+    stress = bond->virial;
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, epsilon);
+    if (print_stats)
+        std::cerr << "data_stress stats:" << stats << std::endl;
+
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.init_energy, epsilon);
+    if (print_stats)
+        std::cerr << "data_energy stats:" << stats << std::endl;
+
+    ::testing::internal::CaptureStdout();
     delete lmp;
     ::testing::internal::GetCapturedStdout();
 };
@@ -950,115 +1075,6 @@ TEST(BondStyle, omp) {
     ::testing::internal::GetCapturedStdout();
 };
 
-TEST(BondStyle, intel) {
-    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("USER-INTEL")) GTEST_SKIP();
-    const char *args[] = {"BondStyle", "-log", "none", "-echo", "screen",
-                          "-nocite", "-pk", "intel", "0", "mode", "double",
-                          "omp", "4", "lrt", "no", "-sf", "intel"};
-    char **argv = (char **)args;
-    int argc = sizeof(args)/sizeof(char *);
-
-    ::testing::internal::CaptureStdout();
-    LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
-    std::string output = ::testing::internal::GetCapturedStdout();
-
-    if (!lmp) {
-        std::cerr << "One ore more prerequisite styles with /intel suffix\n"
-            "are not available in this LAMMPS configuration:\n";
-        for (auto prerequisite : test_config.prerequisites) {
-            std::cerr << prerequisite.first << "_style "
-                      << prerequisite.second << "\n";
-        }
-        GTEST_SKIP();
-    }
-
-    // relax error a bit for USER-INTEL package
-    double epsilon = 5.0*test_config.epsilon;
-
-    // we need to relax the epsilon a LOT for tests using long-range
-    // coulomb with tabulation. seems more like mixed precision or a bug
-    for (auto post_cmd : test_config.post_commands) {
-        if (post_cmd.find("bond_modify table") != std::string::npos) {
-            if (post_cmd.find("bond_modify table 0") == std::string::npos)
-                epsilon *= 1000000.0;
-        }
-    }
-
-    EXPECT_THAT(output, StartsWith("LAMMPS ("));
-    EXPECT_THAT(output, HasSubstr("Loop time"));
-
-    // abort if running in parallel and not all atoms are local
-    const int nlocal = lmp->atom->nlocal;
-    ASSERT_EQ(lmp->atom->natoms,nlocal);
-
-    double **f=lmp->atom->f;
-    LAMMPS_NS::tagint *tag=lmp->atom->tag;
-    const std::vector<coord_t> &f_ref = test_config.init_forces;
-    ErrorStats stats;
-    stats.reset();
-    for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats)
-        std::cerr << "init_forces stats:" << stats << std::endl;
-
-    LAMMPS_NS::Bond *bond = lmp->force->bond;
-    double *stress = bond->virial;
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 10*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 10*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 10*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 10*epsilon);
-    if (print_stats)
-        std::cerr << "init_stress stats:" << stats << std::endl;
-
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.init_energy, epsilon);
-    if (print_stats)
-        std::cerr << "init_energy stats:" << stats << std::endl;
-
-    ::testing::internal::CaptureStdout();
-    run_lammps(lmp);
-    ::testing::internal::GetCapturedStdout();
-
-    f = lmp->atom->f;
-    stress = bond->virial;
-    const std::vector<coord_t> &f_run = test_config.run_forces;
-    ASSERT_EQ(nlocal+1,f_run.size());
-    stats.reset();
-    for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10*epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 10*epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 10*epsilon);
-    }
-    if (print_stats)
-        std::cerr << "run_forces  stats:" << stats << std::endl;
-
-    stress = bond->virial;
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 10*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 10*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, 10*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, 10*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, 10*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, 10*epsilon);
-    if (print_stats)
-        std::cerr << "run_stress  stats:" << stats << std::endl;
-
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.run_energy, epsilon);
-    if (print_stats)
-        std::cerr << "run_energy  stats:" << stats << std::endl;
-
-    ::testing::internal::CaptureStdout();
-    delete lmp;
-    ::testing::internal::GetCapturedStdout();
-};
-
 int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
@@ -1076,6 +1092,7 @@ int main(int argc, char **argv)
         std::cerr << "Error parsing yaml file: " << argv[1] << std::endl;
         return 2;
     }
+    test_config.basename = reader.get_basename();
 
     if (argc == 4) {
         if (strcmp(argv[2],"--gen") == 0) {

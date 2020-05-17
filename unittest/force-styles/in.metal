@@ -2,6 +2,8 @@ variable  newton_pair     index  on
 variable  newton_bond     index  on
 variable  units           index  metal
 variable  input_dir       index  .
+variable  data_file       index ${input_dir}/data.metal
+variable  pair_style      index 'zero 8.0'
 
 atom_style       atomic
 atom_modify      map array
@@ -10,5 +12,5 @@ timestep         0.0001
 units            ${units}
 newton           ${newton_pair} ${newton_bond}
 
-pair_style       zero 8.0
-read_data        ${input_dir}/data.metal
+pair_style       ${pair_style}
+read_data        ${data_file}

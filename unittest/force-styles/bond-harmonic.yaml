@@ -6,9 +6,7 @@ prerequisites: ! |
   atom full
   bond harmonic
 pre_commands: ! ""
-post_commands: ! |
-  pair_style  lj/cut 4.0
-  pair_coeff  * *  0.0 1.0
+post_commands: ! ""
 input_file: in.fourmol
 bond_style: harmonic
 bond_coeff: ! |

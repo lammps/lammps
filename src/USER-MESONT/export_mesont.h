@@ -19,8 +19,7 @@ extern "C" {
   // see ExportCNT.f90 in lib/mesont for function details
   void mesont_lib_TPBInit();
   void mesont_lib_TPMInit(const int& M, const int& N);
-  void mesont_lib_SetTablePath(const char* TPMSSTPFile, const int& N1,
-    const char* TPMAFile, const int& N2);
+  void mesont_lib_SetTablePath(const char* TPMFile, const int& N);
 
   void mesont_lib_InitCNTPotModule(const int& STRModel, const int& STRParams,
     const int& YMType, const int& BNDModel, const double& Rref);

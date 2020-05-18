@@ -15,7 +15,7 @@
 
 module Spline2 !************************************************************************************
 !
-! TMD Library: Two-dimensional cubic spline function
+! Two-dimensional cubic spline function.
 !
 !---------------------------------------------------------------------------------------------------
 !
@@ -32,12 +32,12 @@ implicit none
 contains !******************************************************************************************
 
         subroutine CreateSpline2 ( CL, CD, CR, CU, N1, N2, N, P1, P2, F, Fxx, Fyy, Fxxyy, FF, MM, DD, K0, K1, K2 )
-        integer(c_int), intent(in)                           :: CL, CD, CR, CU, N1, N2, N
+        integer(c_int), intent(in)                              :: CL, CD, CR, CU, N1, N2, N
         real(c_double), dimension(0:N1-1), intent(in)           :: P1
         real(c_double), dimension(0:N2-1), intent(in)           :: P2
         real(c_double), dimension(0:N1-1,0:N2-1), intent(inout) :: F, Fxx, Fyy, Fxxyy
         real(c_double), dimension(0:N-1), intent(inout)         :: FF, MM, DD, K0, K1, K2
-        integer(c_int)                                       :: II
+        integer(c_int)                                          :: II
         !-------------------------------------------------------------------------------------------
                 do II = 0, N2 - 1
                         FF(0:N1-1) = F(0:N1-1,II)
@@ -69,12 +69,12 @@ contains !**********************************************************************
         end subroutine CreateSpline2 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         subroutine CreateSpline2Ext ( CL, CD, CR, CU, N1, N1A, N2, N2A, N, P1, P2, F, Fxx, Fyy, Fxxyy, FF, MM, DD, K0, K1, K2 )
-        integer(c_int), intent(in)                           :: CL, CD, CR, CU, N1, N1A, N2, N2A, N
+        integer(c_int), intent(in)                              :: CL, CD, CR, CU, N1, N1A, N2, N2A, N
         real(c_double), dimension(0:N1-1), intent(in)           :: P1
         real(c_double), dimension(0:N2-1), intent(in)           :: P2
         real(c_double), dimension(0:N1-1,0:N2-1), intent(inout) :: F, Fxx, Fyy, Fxxyy
         real(c_double), dimension(0:N-1), intent(inout)         :: FF, MM, DD, K0, K1, K2
-        integer(c_int)                                       :: II
+        integer(c_int)                                          :: II
         !-------------------------------------------------------------------------------------------
                 Fxx = 0.0d+00
                 Fyy = 0.0d+00
@@ -142,13 +142,13 @@ contains !**********************************************************************
                 
         end subroutine CreateSpline2Ext !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
-        real(c_double) function CalcSpline2_0 ( i, j, X, Y, N1, N2, P1, P2, F, Fxx, Fyy, Fxxyy ) !!!!!!!!!!!
-        integer(c_int), intent(in)                           :: i, j, N1, N2
+        real(c_double) function CalcSpline2_0 ( i, j, X, Y, N1, N2, P1, P2, F, Fxx, Fyy, Fxxyy ) !!!
+        integer(c_int), intent(in)                              :: i, j, N1, N2
         real(c_double), intent(in)                              :: X, Y
         real(c_double), dimension(0:N1-1), intent(in)           :: P1
         real(c_double), dimension(0:N2-1), intent(in)           :: P2
         real(c_double), dimension(0:N1-1,0:N2-1), intent(inout) :: F, Fxx, Fyy, Fxxyy
-        integer(c_int)                                       :: i1, j1
+        integer(c_int)                                          :: i1, j1
         real(c_double)                                          :: T, Gy_0, Gy_1, Gxxy_0, Gxxy_1
         !-------------------------------------------------------------------------------------------
                 i1 = i - 1
@@ -163,12 +163,12 @@ contains !**********************************************************************
 
         subroutine CalcSpline2_1 ( S, Sx1, Sy1, i, j, X, Y, N1, N2, P1, P2, F, Fxx, Fyy, Fxxyy ) !!!
         real(c_double), intent(out)                             :: S, Sx1, Sy1
-        integer(c_int), intent(in)                           :: i, j, N1, N2
+        integer(c_int), intent(in)                              :: i, j, N1, N2
         real(c_double), intent(in)                              :: X, Y
         real(c_double), dimension(0:N1-1), intent(in)           :: P1
         real(c_double), dimension(0:N2-1), intent(in)           :: P2
         real(c_double), dimension(0:N1-1,0:N2-1), intent(inout) :: F, Fxx, Fyy, Fxxyy
-        integer(c_int)                                       :: i1, j1
+        integer(c_int)                                          :: i1, j1
         real(c_double)                                          :: T, Gy_0, Gy_1, Gxxy_0, Gxxy_1
         real(c_double)                                          :: Gyy_0, Gyy_1, Gxxyy_0, Gxxyy_1
         !-------------------------------------------------------------------------------------------

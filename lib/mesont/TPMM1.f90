@@ -15,9 +15,8 @@
 
 module TPMM1 !**************************************************************************************
 !
-! TMD Library: Combined/Weighted potential of type 3
+! Combined/Weighted potential of type 1.
 !
-! Weighting functions are the same as in potential of type 2.
 ! Calculation of the combined potential is based on the 'extended' chain.
 !
 !---------------------------------------------------------------------------------------------------
@@ -28,7 +27,6 @@ module TPMM1 !******************************************************************
 !
 !***************************************************************************************************
 
-!use TMDCounters
 use TubePotMono
 use iso_c_binding, only : c_int, c_double, c_char
 implicit none
@@ -37,8 +35,8 @@ implicit none
 ! Constants
 !---------------------------------------------------------------------------------------------------
 
-        ! Maximal length of a segment chain
-        integer(c_int), parameter                            :: TPM_MAX_CHAIN = 100
+        ! Maximum length of a segment chain
+        integer(c_int), parameter                               :: TPM_MAX_CHAIN = 100
 
 !---------------------------------------------------------------------------------------------------
 ! Numerical parameters
@@ -104,7 +102,7 @@ contains !**********************************************************************
                 E2_2 = dWdD * ( E - t * E20 ) 
         end subroutine PairWeight1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
-        integer(c_int) function EndWeight1 ( W, E1_1, E1_2, E2_1, E2_2, R1_1, R1_2, R2_1, R2_2 ) !!!!!!!!
+        integer(c_int) function EndWeight1 ( W, E1_1, E1_2, E2_1, E2_2, R1_1, R1_2, R2_1, R2_2 ) !!!
         real(c_double), intent(out)                     :: W
         real(c_double), dimension(0:2), intent(out)     :: E1_1, E1_2, E2_1, E2_2
         real(c_double), dimension(0:2), intent(in)      :: R1_1, R1_2, R2_1, R2_2
@@ -154,19 +152,17 @@ contains !**********************************************************************
         real(c_double), intent(out)                     :: Q, U
         real(c_double), dimension(0:2), intent(out)     :: F1, F2, P1, P2, Pe, Pe1
         real(c_double), dimension(0:2), intent(in)      :: R1, R2, Q1, Q2, Qe, Qe1
-        integer(c_int), intent(in)                   :: EType
+        integer(c_int), intent(in)                      :: EType
         !-------------------------------------------------------------------------------------------
         real(c_double), dimension(0:2)                  :: M, QX, Me, F1a, F2a, P1a, P2a, F1b, F2b, P1b, P2b, ER1, ER2, EQe, EQe1
         real(c_double)                                  :: W, W1, D, Qa, Qb, Ua, Ub, L, Pee, Peea, Peeb, DU
-        integer(c_int)                               :: IntSigna, IntSignb, CaseID
+        integer(c_int)                                  :: IntSigna, IntSignb, CaseID
         !-------------------------------------------------------------------------------------------
                 if ( EType == 0 ) then
-!                        C_TPM_0 = C_TPM_0 + 1
                         TPMInteractionFC1 = TPMInteractionF ( Q, U, F1, F2, P1, P2, Pee, R1, R2, Q1, Q2, 0 )
                         Pe = 0.0d+00
                         Pe1 = 0.0d+00
                 else if ( EType < 3 ) then
-!                        C_TPM_1 = C_TPM_1 + 1
                         QX = 0.5d+00 * ( Q1 + Q2 )
                         M  = Q2 - Q1
                         L  = S_V3norm3 ( M )
@@ -206,7 +202,6 @@ contains !**********************************************************************
                         end if
                         
                         if ( CaseID == 0 ) then
-!                                C_TPM_1 = C_TPM_1 + 1
                                 TPMInteractionFC1 = IntSigna
                                 Q   = Qa
                                 U   = Ua
@@ -218,7 +213,6 @@ contains !**********************************************************************
                                 P1  = P1a + QX
                                 P2  = P2a + QX
                         else if ( CaseID == 2 ) then
-!                                C_TPM_0 = C_TPM_0 + 1
                                 TPMInteractionFC1 = IntSignb
                                 Q   = Qb
                                 U   = Ub
@@ -229,7 +223,6 @@ contains !**********************************************************************
                                 Pe  = 0.0d+00
                                 Pe1 = 0.0d+00
                         else
-!                                C_TPM_2 = C_TPM_2 + 1
                                 TPMInteractionFC1 = 0
                                 if ( IntSigna > 0 .or. IntSignb > 0 ) TPMInteractionFC1 = 1
                                 W1  = 1.0d+00 - W
@@ -248,16 +241,16 @@ contains !**********************************************************************
                 end if
         end function TPMInteractionFC1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
-        integer(c_int) function TPMInteractionFW1 ( QQ, U, U1, U2, UU, F1, F2, F, Fe, G1, G2, R1, R2, N, NMAX, R, Re, EType ) 
+        integer(c_int) function TPMInteractionFW1 ( QQ, U, U1, U2, UU, F1, F2, F, Fe, G1, G2, R1, R2, N, NMAX, R, Re, EType )
         real(c_double), intent(out)                             :: U, U1, U2
-        integer(c_int), intent(in)                           :: N, NMAX, EType
+        integer(c_int), intent(in)                              :: N, NMAX, EType
         real(c_double), dimension(0:NMAX-1), intent(out)        :: QQ, UU
         real(c_double), dimension(0:2), intent(out)             :: F1, F2, Fe
         real(c_double), dimension(0:2,0:NMAX-1), intent(out)    :: F, G1, G2
         real(c_double), dimension(0:2), intent(in)              :: R1, R2, Re
         real(c_double), dimension(0:2,0:NMAX-1), intent(in)     :: R
         !-------------------------------------------------------------------------------------------
-        integer(c_int)                                       :: i, j
+        integer(c_int)                                          :: i, j
         real(c_double)                                          :: Q, WW, DD 
         !-------------------------------------------------------------------------------------------
                 Q1 = 0.0d+00

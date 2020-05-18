@@ -15,9 +15,9 @@
 
 module TPMM0 !**************************************************************************************
 !
-! TMD Library: Combined/Weighted potential of type 0
+! Combined/Weighted TPM potential of type 0.
 !
-! Direct application of SST potential to calculation of segment-segment interaction
+! Direct application of SST potential to calculation of segment-segment interaction.
 !
 !---------------------------------------------------------------------------------------------------
 !
@@ -27,7 +27,6 @@ module TPMM0 !******************************************************************
 !
 !***************************************************************************************************
 
-!use TMDCounters
 use TubePotMono
 use iso_c_binding, only : c_int, c_double, c_char
 implicit none
@@ -38,13 +37,12 @@ contains !**********************************************************************
         real(c_double), intent(inout)                   :: Q, U
         real(c_double), dimension(0:2), intent(inout)   :: F1_1, F1_2, F2_1, F2_2
         real(c_double), dimension(0:2), intent(in)      :: R1_1, R1_2, R2_1, R2_2
-        integer(c_int), intent(in)                   :: EType
+        integer(c_int), intent(in)                      :: EType
         !-------------------------------------------------------------------------------------------
         real(c_double)                                  :: Qa, Ua, Fd, L2
         real(c_double), dimension(0:2)                  :: F1_1a, F1_2a, F2_1a, F2_2a, R2_3, R2, Laxis2, F
-	integer(c_int)				:: IntSign
+        integer(c_int)				:: IntSign
         !-------------------------------------------------------------------------------------------
-!                C_TPM_4 = C_TPM_4 + 1
                 R2 = 0.5d+00 * ( R2_1 + R2_2 )
                 Laxis2 = R2_2 - R2_1
                 L2 = S_V3norm3 ( Laxis2 )
@@ -85,14 +83,14 @@ contains !**********************************************************************
         
         integer(c_int) function TPMInteractionFW0 ( QQ, U, U1, U2, UU, F1, F2, F, G1, G2, R1, R2, N, NMAX, R )
         real(c_double), intent(inout)                           :: U, U1, U2
-        integer(c_int), intent(in)                           :: N, NMAX
+        integer(c_int), intent(in)                              :: N, NMAX
         real(c_double), dimension(0:NMAX-1), intent(out)        :: QQ, UU
         real(c_double), dimension(0:2), intent(out)             :: F1, F2
         real(c_double), dimension(0:2,0:NMAX-1), intent(out)    :: F, G1, G2
         real(c_double), dimension(0:2), intent(in)              :: R1, R2
         real(c_double), dimension(0:2,0:NMAX-1), intent(in)     :: R
         !-------------------------------------------------------------------------------------------
-        integer(c_int)                                       :: i, SType2, GeomID, EType
+        integer(c_int)                                          :: i, SType2, GeomID, EType
         real(c_double)                                          :: Ua
         real(c_double), dimension(0:2)                          :: F1_1a, F1_2a, F2_1a, F2_2a
         real(c_double), dimension(0:2)                          :: R1a, R2a, Laxis1, Laxis2, L12, DR
@@ -174,8 +172,9 @@ contains !**********************************************************************
                                 EType = 2
                         end if
                         
-                        if ( TPMInteractionFSS ( QQ(i), Ua, F1_1a, F1_2a, F2_1a, F2_2a, R1, R2, R(0:2,i), R(0:2,i+1), EType ) > 0 ) then
-				TPMInteractionFW0 = 1
+                        if ( TPMInteractionFSS ( QQ(i), Ua, F1_1a, F1_2a, F2_1a, F2_2a, R1, R2, R(0:2,i), R(0:2,i+1), & 
+                        EType ) > 0 ) then
+							TPMInteractionFW0 = 1
 	                        U = U + Ua
         	                Ua = 0.25d+00 * Ua 
                 	        U1 = U1 + Ua 

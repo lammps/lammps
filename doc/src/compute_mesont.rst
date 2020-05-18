@@ -13,7 +13,7 @@ Syntax
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * mesont = style name of the compute command
-* mode = one of estretch, ebend, etube, stretch_tot, ebend_tot, and etube_tot (see details below)
+* mode = one of estretch, ebend, etube (see details below)
 
 Examples
 """"""""
@@ -26,22 +26,19 @@ Examples
 Description
 """""""""""
 
-These computes define computations for the per-node stretching (estretch),
-bending (ebend), and intertube (etube) energies, as well as the total 
-stretching (estretch_tot), bending (ebend_tot), and intertube (etube_tot) 
-energies for each atom (node) in a group. The evaluated value is selected by 
-a parameter passed to the compute: estretch, ebend, etube, estretch_tot, 
-ebend_tot, and etube_tot.
+These computes define computations for the stretching (estretch), bending 
+(ebend), and intertube (etube) per-node (atom) and total energies. The 
+evaluated value is selected by a parameter passed to the compute: estretch, 
+ebend, etube.
 
 **Output info:**
 
-These computes calculate per-node (per-atom) vectors (estretch, ebend, etube), 
-which can be accessed by any command that uses per-atom values from a 
-compute as input, and global scalars (stretch_tot, ebend_tot, and etube_tot). 
-See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS 
-output options.
+These computes calculate per-node (per-atom) vectors, which can be accessed by 
+any command that uses per-atom values from a compute as input, and global 
+scalars. See the :doc:`Howto output <Howto_output>` doc page for an overview of 
+LAMMPS output options.
 
-The per-atom vector values will be in energy :doc:`units <units>`.
+The computed values are provided in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
@@ -57,7 +54,3 @@ Related commands
 
 **Default:** none
 
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -585,19 +585,14 @@ void PairMESONTTPM::settings(int narg, char **arg){
       for (j = i+1; j <= atom->ntypes; j++)
         cut[i][j] = cut_global;
   }
-  std::string TPMAFile;
-  if (narg > 1) {
-    std::string path = arg[1];
-    if(path.back() != '/') path += '/';
-    tab_path_length = path.length();
-    memory->create(tab_path,tab_path_length,"pair:path");
-    std::memcpy(tab_path, path.c_str(), tab_path_length);
-    std::string TPMSSTPFile = path + "TPMSSTP.xrs";
-    TPMAFile = path + "TPMA.xrs";
-    mesont_lib_SetTablePath(TPMSSTPFile.c_str(), TPMSSTPFile.length(),
-     TPMAFile.c_str(), TPMAFile.length());
-  }
-  else TPMAFile = "TPMA.xrs";
+  std::string TPMAFile = (narg > 1) ? arg[1] : "MESONT-TABTP.xrs";
+  tab_path_length = TPMAFile.length();
+  if (tab_path != NULL) memory->destroy(tab_path);
+  //c_str returns '\0' terminated string
+  memory->create(tab_path,tab_path_length+1,"pair:path");
+  std::memcpy(tab_path, TPMAFile.c_str(), tab_path_length+1);
+  mesont_lib_SetTablePath(tab_path, tab_path_length);
+
   if (narg > 2) {
     BendingMode = force->numeric(FLERR,arg[2]);
     if ((BendingMode < 0) || (BendingMode > 1))
@@ -613,6 +608,10 @@ void PairMESONTTPM::settings(int narg, char **arg){
   int M, N;
   std::ifstream in(TPMAFile);
   if (!in.is_open()) error->all(FLERR,"Incorrect table path");
+  std::string tmp;
+  std::getline(in,tmp);
+  std::getline(in,tmp);
+  std::getline(in,tmp);
   in >> M >> N;
   in.close();
   mesont_lib_TPMInit(M, N);
@@ -709,7 +708,7 @@ void PairMESONTTPM::write_restart_settings(FILE *fp){
   fwrite(&TPMType,sizeof(int),1,fp);
   fwrite(&cut_global,sizeof(double),1,fp);
   fwrite(&tab_path_length,sizeof(int),1,fp);
-  fwrite(tab_path,tab_path_length,1,fp);
+  fwrite(tab_path,tab_path_length+1,1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -729,23 +728,19 @@ void PairMESONTTPM::read_restart_settings(FILE *fp){
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&tab_path_length,1,MPI_INT,0,world);
 
-  memory->create(tab_path,tab_path_length,"pair:path");
-  if (me == 0) fread(tab_path,tab_path_length,1,fp);
-  MPI_Bcast(tab_path,tab_path_length,MPI_CHAR,0,world);
-
-  if (tab_path != NULL) {
-    std::string TPMSSTPFile = std::string(tab_path) + "TPMSSTP.xrs";
-    std::string TPMAFile = std::string(tab_path) + "TPMA.xrs";
-    mesont_lib_SetTablePath(TPMSSTPFile.c_str(), TPMSSTPFile.length(),
-     TPMAFile.c_str(), TPMAFile.length());
-  }
-
-  std::string TPMAFile = std::string((tab_path == NULL) ? "" : tab_path)
-   + "TPMA.xrs";
+  if (tab_path != NULL) memory->destroy(tab_path);
+  memory->create(tab_path,tab_path_length+1,"pair:path");
+  if (me == 0) fread(tab_path,tab_path_length+1,1,fp);
+  MPI_Bcast(tab_path,tab_path_length+1,MPI_CHAR,0,world);
+  mesont_lib_SetTablePath(tab_path,tab_path_length);
   mesont_lib_TPBInit();
   int M, N;
-  std::ifstream in(TPMAFile);
+  std::ifstream in(tab_path);
   if (!in.is_open()) error->all(FLERR,"Incorrect table path");
+  std::string tmp;
+  std::getline(in,tmp);
+  std::getline(in,tmp);
+  std::getline(in,tmp);
   in >> M >> N;
   in.close();
   mesont_lib_TPMInit(M, N);

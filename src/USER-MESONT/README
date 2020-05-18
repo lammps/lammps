@@ -30,14 +30,12 @@ pair_style mesont/tpm cut table_path BendingMode TPMType
   be set to be at least max(2.0*L, sqrt(L^2/2 + (2.0*R + Tcut)^2)), 
   where L is the maximum segment length, R is the maximum tube radius, 
   and Tcut = 10.2 A is the maximum distance between surfaces of interacting 
-  segments.
+  segments. However, the recommended cutoff is 3L.
 
 compute mesont
   This command allows evaluation of per atom and total values of stretching, 
   bending, and intertube interaction components of energies. Use the following 
-  flags to obtain specific values: 'estretch' and 'estretch_tot' are per atom (node) 
-  and total stretching energies, 'ebend' and 'ebend_tot' are per atom and total 
-  bending energy, 'etube' and 'etube_tot' are per atom and total intertube energies
+  flags: 'estretch', 'ebend', 'etube'.
 
 --
 
@@ -89,4 +87,3 @@ modeling and mesoscopic description, Phys. Rev. B 86, 165414, 2012.
 A. N. Volkov and A. H. Banna, Mesoscopic computational model of covalent 
 cross-links and mechanisms of load transfer in cross-linked carbon nanotube 
 films with continuous networks of bundles, Comp. Mater. Sci. 176, 109410, 2020.
-

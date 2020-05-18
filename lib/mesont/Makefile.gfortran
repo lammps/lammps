@@ -21,7 +21,6 @@ OBJ =   $(SRC:.f90=.o)
 F90 =           gfortran
 CC  =		gcc
 F90FLAGS =      -O3 -fPIC -ffast-math -ftree-vectorize -fexpensive-optimizations -fno-second-underscore -g -ffree-line-length-none 
-#F90FLAGS =      -O 
 ARCHIVE =	ar
 ARCHFLAG =	-rc
 LINK =         	g++
@@ -46,7 +45,7 @@ lib: 	$(OBJ)
 %.o:%.c
 	$(CC) $(F90FLAGS) -c $<
 
-#include .depend
+include .depend
 # ------ CLEAN ------
 
 clean:

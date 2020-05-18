@@ -25,7 +25,7 @@ module TubePotTrue !************************************************************
 !
 !---------------------------------------------------------------------------------------------------
 !
-! This module implements calculation of true potential and transfer functions for interaction 
+! This module implements calculation of the true potential and transfer functions for interaction 
 ! between two cylinder segments of nanotubes by direct integration over the surfaces of both 
 ! segments.
 !
@@ -52,7 +52,7 @@ implicit none
         real(c_double)                  :: Psi, Theta, Phi              ! Euler's angles
         real(c_double)                  :: R                            ! Segment radius
         real(c_double)                  :: L                            ! Segment length
-        integer(c_int)               :: NX, NE                       ! Number of nodes for numerical integration
+        integer(c_int)               :: NX, NE                          ! Number of nodes for numerical integration
         real(c_double)                  :: DX, DE                       ! Spacings
         real(c_double), dimension(0:2,0:2) :: M                         ! Transformation matrix
         real(c_double), dimension(0:TPTNXMAX-1,0:TPTNXMAX-1,0:2) :: Rtab! Node coordinates        
@@ -105,7 +105,7 @@ contains !**********************************************************************
         type(TPTSEG), intent(inout)     :: S
         !-------------------------------------------------------------------------------------------
         real(c_double)                          :: X, Eps
-        integer(c_int)                       :: i, j
+        integer(c_int)                          :: i, j
         !-------------------------------------------------------------------------------------------
                 X = - S%L / 2.0
                 call RotationMatrix3 ( S%M, S%Psi, S%Theta, S%Phi )
@@ -120,7 +120,7 @@ contains !**********************************************************************
         end subroutine TPTCalcSegNodeTable !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         subroutine TPTSetSegPosition1 ( S, Rcenter, Laxis, L ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        type(TPTSEG), intent(inout)             :: S
+        type(TPTSEG), intent(inout)                     :: S
         real(c_double), dimension(0:2), intent(in)      :: Rcenter, Laxis
         real(c_double), intent(in)                      :: L
         !-------------------------------------------------------------------------------------------
@@ -135,7 +135,7 @@ contains !**********************************************************************
         end subroutine TPTSetSegPosition1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         subroutine TPTSetSegPosition2 ( S, R1, R2 ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        type(TPTSEG), intent(inout)             :: S
+        type(TPTSEG), intent(inout)                     :: S
         real(c_double), dimension(0:2), intent(in)      :: R1, R2
         !-------------------------------------------------------------------------------------------
         real(c_double), dimension(0:2)                  :: R, Laxis 
@@ -148,10 +148,10 @@ contains !**********************************************************************
                 call TPTSetSegPosition1 ( S, R, Laxis, L )
         end subroutine TPTSetSegPosition2 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
-        integer(c_int) function TPTCheckIntersection ( S1, S2 ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        integer(c_int) function TPTCheckIntersection ( S1, S2 ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         type(TPTSEG), intent(in)        :: S1, S2
         !-------------------------------------------------------------------------------------------
-        integer(c_int)                       :: i, j
+        integer(c_int)                          :: i, j
         real(c_double)                          :: L1, L2, Displacement, D
         real(c_double), dimension(0:2)          :: Laxis, Q, R
         !-------------------------------------------------------------------------------------------
@@ -164,7 +164,8 @@ contains !**********************************************************************
                 do i = 0, S2%NX - 1
                         do j = 0, S2%NE - 1
                                 call LinePoint ( Displacement, Q, R, Laxis, S2%Rtab(i,j,0:2) )
-                                D = sqrt ( sqr ( Q(0) - S2%Rtab(i,j,0) ) + sqr ( Q(1) - S2%Rtab(i,j,1) ) + sqr ( Q(2) - S2%Rtab(i,j,2) )  )
+                                D = sqrt ( sqr ( Q(0) - S2%Rtab(i,j,0) ) + sqr ( Q(1) - S2%Rtab(i,j,1) ) &
+                                        + sqr ( Q(2) - S2%Rtab(i,j,2) )  )
                                 if ( Displacement > L1 .and. Displacement < L2 .and. D < S1%R ) then
                                         TPTCheckIntersection = 1
                                         return
@@ -174,8 +175,8 @@ contains !**********************************************************************
                 TPTCheckIntersection = 0
         end function TPTCheckIntersection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        integer(c_int) function TPTCalcPointRange ( S, Xmin, Xmax, Re ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        type(TPTSEG), intent(in)                :: S
+        integer(c_int) function TPTCalcPointRange ( S, Xmin, Xmax, Re ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        type(TPTSEG), intent(in)                        :: S
         real(c_double), intent(out)                     :: Xmin, Xmax
         real(c_double), dimension(0:2), intent(in)      :: Re
         !-------------------------------------------------------------------------------------------
@@ -222,16 +223,16 @@ contains !**********************************************************************
 ! Tubular potential
 !---------------------------------------------------------------------------------------------------
         
-        integer(c_int) function TPTPointPotential ( Q, U, F, R, S ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        ! This function returns the potential U and force F applied to the atom  in position R and 
+        integer(c_int) function TPTPointPotential ( Q, U, F, R, S ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        ! This function returns the potential U and force F applied to an atom in position R and 
         ! produced by the segment S.
         !-------------------------------------------------------------------------------------------
         real(c_double), intent(out)                     :: Q, U
         real(c_double), dimension(0:2), intent(out)     :: F
         real(c_double), dimension(0:2), intent(in)      :: R
-        type(TPTSEG), intent(in)                :: S
+        type(TPTSEG), intent(in)                        :: S
         !-------------------------------------------------------------------------------------------
-        integer(c_int)                               :: i, j
+        integer(c_int)                                  :: i, j
         real(c_double), dimension(0:2)                  :: RR, FF
         real(c_double)                                  :: QQ, UU, UUU, FFF, Rabs
         real(c_double)                                  :: Coeff, Xmin, Xmax, X
@@ -277,16 +278,16 @@ contains !**********************************************************************
                 F = F * Coeff
         end function TPTPointPotential !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        integer(c_int) function TPTSectionPotential ( Q, U, F, M, S, i, Ssource ) !!!!!!!!!!!!!!!!!!!!!!!
-        ! This funcion returns the potential U, force F and torque M produced by the segment Ssource 
+        integer(c_int) function TPTSectionPotential ( Q, U, F, M, S, i, Ssource ) !!!!!!!!!!!!!!!!!!
+        ! This function returns the potential U, force F and torque M produced by the segment Ssource 
         ! and applied to the i-th circular cross-section of the segment S.
         !-------------------------------------------------------------------------------------------
         real(c_double), intent(out)                     :: Q, U
         real(c_double), dimension(0:2), intent(out)     :: F, M
-        type(TPTSEG), intent(in)                :: S, Ssource
-        integer(c_int), intent(in)                   :: i
+        type(TPTSEG), intent(in)                        :: S, Ssource
+        integer(c_int), intent(in)                      :: i
         !-------------------------------------------------------------------------------------------
-        integer(c_int)                               :: j
+        integer(c_int)                                  :: j
         real(c_double), dimension(0:2)                  :: R, Fp, Mp, Lrad
         real(c_double)                                  :: Qp, Up, Eps
         real(c_double)                                  :: Coeff 
@@ -319,7 +320,7 @@ contains !**********************************************************************
                 M     = M * Coeff
         end function TPTSectionPotential !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        integer(c_int) function TPTSegmentPotential ( Q, U, F, M, S, Ssource ) !!!!!!!!!!!!!!!!!!!!!!!!!!
+        integer(c_int) function TPTSegmentPotential ( Q, U, F, M, S, Ssource ) !!!!!!!!!!!!!!!!!!!!!!
         ! This function returns the potential U, force F and torque M produced by the segment 
         ! Ssource and applied to the segment S.
         !-------------------------------------------------------------------------------------------
@@ -380,7 +381,7 @@ contains !**********************************************************************
         end subroutine TPTSegmentForces !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         integer(c_int) function TPTInteractionF ( Q, U, F1_1, F1_2, F2_1, F2_2, R1_1, R1_2, R2_1, R2_2 )
-        ! This function returns the potential and forces appliend to the ends of segments.
+        ! This function returns the potential and forces applied to the ends of segments.
         !-------------------------------------------------------------------------------------------
         real(c_double), intent(out)                     :: Q, U
         real(c_double), dimension(0:2), intent(out)     :: F1_1, F1_2, F2_1, F2_2

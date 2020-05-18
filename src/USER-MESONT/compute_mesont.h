@@ -41,7 +41,7 @@ class ComputeMesoNT : public Compute {
   int nmax;
   double *energy;
 
-  enum ComputeType {ES, EB, ET, ESTOT, EBTOT, ETTOT};
+  enum ComputeType {ES, EB, ET};
   ComputeType compute_type;
 };
 

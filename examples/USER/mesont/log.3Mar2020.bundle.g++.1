@@ -1,4 +1,6 @@
 LAMMPS (3 Mar 2020)
+  using 1 OpenMP thread(s) per MPI task
+processors      1 1 *
 newton          on
 units           metal
 lattice         sc 1.0
@@ -9,13 +11,13 @@ neigh_modify    every 5 delay 0 check yes
 
 atom_style      mesont
 #               cut, path, BendingMode, TPMType
-pair_style      mesont/tpm 45.0 ../../../potentials/CNT_10_10 0 0
+pair_style      mesont/tpm 45.0 ../../../potentials/MESONT-TABTP_10_10.xrs 0 0
 read_data       data.bundle
   orthogonal box = (-143.89 -143.89 0) to (143.89 143.89 220)
   1 by 1 by 1 MPI processor grid
   reading atoms ...
   77 atoms
-  read_data CPU = 0.442627 secs
+  read_data CPU = 0.025475 secs
 pair_coeff      * *
 
 velocity        all create 6000.0 2019
@@ -29,11 +31,8 @@ compute         Es all mesont estretch
 compute         Eb all mesont ebend
 compute         Et all mesont etube
 compute         B all property/atom buckling
-compute         Es_tot all mesont estretch_tot
-compute         Eb_tot all mesont ebend_tot
-compute         Et_tot all mesont etube_tot
 
-thermo_style    custom step time temp etotal ke pe c_Es_tot c_Eb_tot c_Et_tot
+thermo_style    custom step time temp etotal ke pe c_Es c_Eb c_Et
 WARNING: New thermo_style command, previous thermo_modify settings will be lost (../output.cpp:708)
 #dump            out_dump all custom 50 dump.bundle id type x y z c_Es c_Eb c_Et c_B ix iy iz
 
@@ -51,7 +50,7 @@ Neighbor list info ...
       stencil: full/ghost/bin/3d
       bin: standard
 Per MPI rank memory allocation (min/avg/max) = 4.675 | 4.675 | 4.675 Mbytes
-Step Time Temp TotEng KinEng PotEng c_Es_tot c_Eb_tot c_Et_tot 
+Step Time Temp TotEng KinEng PotEng c_Es c_Eb c_Et 
        0            0         6000   -201.86935    58.942626   -260.81198            0            0   -260.81198 
       10         0.05    5114.1875   -201.86234    50.240607   -252.10295    4.8334861    2.3998206   -259.33626 
       20          0.1    3437.2958    -201.8522    33.767207   -235.61941     11.42384    8.3426957   -255.38594 
@@ -63,20 +62,20 @@ Step Time Temp TotEng KinEng PotEng c_Es_tot c_Eb_tot c_Et_tot
       80          0.4    3849.9855    -201.8635    37.821376   -239.68487    7.9899173    6.4332848   -254.10807 
       90         0.45    3618.1311   -201.85967    35.543692   -237.40336    9.2616931    7.0452637   -253.71032 
      100          0.5    2866.2722   -201.85273    28.157602   -230.01033    12.204916    10.284525   -252.49977 
-Loop time of 0.455531 on 1 procs for 100 steps with 77 atoms
+Loop time of 0.457417 on 1 procs for 100 steps with 77 atoms
 
-Performance: 94.834 ns/day, 0.253 hours/ns, 219.524 timesteps/s
-99.7% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 94.443 ns/day, 0.254 hours/ns, 218.619 timesteps/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.4551     | 0.4551     | 0.4551     |   0.0 | 99.91
-Neigh   | 6.485e-05  | 6.485e-05  | 6.485e-05  |   0.0 |  0.01
-Comm    | 3.0994e-05 | 3.0994e-05 | 3.0994e-05 |   0.0 |  0.01
-Output  | 0.00020385 | 0.00020385 | 0.00020385 |   0.0 |  0.04
-Modify  | 8.6069e-05 | 8.6069e-05 | 8.6069e-05 |   0.0 |  0.02
-Other   |            | 4.697e-05  |            |       |  0.01
+Pair    | 0.45698    | 0.45698    | 0.45698    |   0.0 | 99.90
+Neigh   | 5.6982e-05 | 5.6982e-05 | 5.6982e-05 |   0.0 |  0.01
+Comm    | 4.4584e-05 | 4.4584e-05 | 4.4584e-05 |   0.0 |  0.01
+Output  | 0.00019693 | 0.00019693 | 0.00019693 |   0.0 |  0.04
+Modify  | 7.4863e-05 | 7.4863e-05 | 7.4863e-05 |   0.0 |  0.02
+Other   |            | 6.318e-05  |            |       |  0.01
 
 Nlocal:    77 ave 77 max 77 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

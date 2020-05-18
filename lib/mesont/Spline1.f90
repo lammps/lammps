@@ -15,7 +15,7 @@
 
 module Spline1 !************************************************************************************
 !
-! TMD Library: One-dimensional cubic spline function
+! One-dimensional cubic spline function.
 !
 !---------------------------------------------------------------------------------------------------
 !
@@ -29,14 +29,15 @@ implicit none
 
 contains !******************************************************************************************
 
-        real(c_double) function ValueSpline1_0 ( X, Xi, Xi_1, Yi, Yi_1, Mi, Mi_1, Hi_1 ) !!!!!!!!!!!!!!!!!!!
+        real(c_double) function ValueSpline1_0 ( X, Xi, Xi_1, Yi, Yi_1, Mi, Mi_1, Hi_1 ) !!!!!!!!!!!!
         real(c_double), intent(in)      :: X, Xi, Xi_1, Yi, Yi_1, Mi, Mi_1, Hi_1
         real(c_double)                  :: H26, HL, HR
         !-------------------------------------------------------------------------------------------
                 H26     = Hi_1 * Hi_1 / 6.0
                 Hl      = X - Xi_1
                 Hr      = Xi - X
-                ValueSpline1_0 = ( ( Mi_1 * Hr * Hr * Hr + Mi * Hl * Hl * Hl ) / 6.0 + ( Yi_1 - Mi_1 * H26 ) * Hr + ( Yi - Mi * H26 ) * Hl ) / Hi_1
+                ValueSpline1_0 = ( ( Mi_1 * Hr * Hr * Hr + Mi * Hl * Hl * Hl ) / 6.0 + ( Yi_1 - Mi_1 * H26 ) * Hr &
+                        + ( Yi - Mi * H26 ) * Hl ) / Hi_1
         end function ValueSpline1_0 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         subroutine ValueSpline1_1 ( S, S1, X, Xi, Xi_1, Yi, Yi_1, Mi, Mi_1, Hi_1 ) !!!!!!!!!!!!!!!!!
@@ -55,9 +56,6 @@ contains !**********************************************************************
         end subroutine ValueSpline1_1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         subroutine sprogonka3 ( N, K0, K1, K2, F, X ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        !    K0[i] * X[i-1] + K1[i] * X[I] + K2[i] * X[i+1] = F[i]
-        !                      i = 0..(N-1)
-        !-------------------------------------------------------------------------------------------
         integer(c_int), intent(in)                   :: N
         real(c_double), dimension(0:N-1), intent(in)    :: K0, K1, K2
         real(c_double), dimension(0:N-1), intent(inout) :: F, X
@@ -124,7 +122,7 @@ contains !**********************************************************************
                 call sprogonka3 ( N, K0, K1, K2, D, M )
         end subroutine CreateSpline1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
-        real(c_double) function CalcSpline1_0 ( i, X, N, P, F, M ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        real(c_double) function CalcSpline1_0 ( i, X, N, P, F, M ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         integer(c_int), intent(in)                   :: i, N
         real(c_double), intent(in)                      :: X
         real(c_double), dimension(0:N-1), intent(in)    :: P, F, M        
@@ -141,7 +139,8 @@ contains !**********************************************************************
                 HR2 = HR * HR
                 HLH = HL / H
                 HRH = HR / H
-                CalcSpline1_0 = ( M(j) * HR2 * HRH + M(i) * HL2 * HLH ) / 6.0d+00 + ( F(j) - M(j) * H26 ) * HRH + ( F(i) - M(i) * H26 ) * HLH
+                CalcSpline1_0 = ( M(j) * HR2 * HRH + M(i) * HL2 * HLH ) / 6.0d+00 + ( F(j) - M(j) * H26 ) * HRH &
+                        + ( F(i) - M(i) * H26 ) * HLH
         end function CalcSpline1_0 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         subroutine CalcSpline1_1 ( S, S1, i, X, N, P, F, M ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -162,8 +161,8 @@ contains !**********************************************************************
                 HR2 = HR * HR
                 HLH = HL / H
                 HRH = HR / H
-                S   = ( M(j) * HR2 * HRH + M(i) * HL2 * HLH ) / 6.0d+00 + ( F(j) - M(j) * H26 ) * HRH + ( F(i) - M(i) * H26 ) * HLH
-                S1  = ( ( M(i) * HL2 - M(j) * HR2 ) / 2.0d+00 + F(i) - F(j) ) / H - H6 * ( M(i) - M(j) )
+                S  = ( M(j) * HR2 * HRH + M(i) * HL2 * HLH ) / 6.0d+00 + ( F(j) - M(j) * H26 ) * HRH + ( F(i) - M(i) * H26 ) * HLH
+                S1 = ( ( M(i) * HL2 - M(j) * HR2 ) / 2.0d+00 + F(i) - F(j) ) / H - H6 * ( M(i) - M(j) )
         end subroutine CalcSpline1_1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         subroutine CalcSpline1_2 ( S, S1, S2, i, X, N, P, F, M ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -184,9 +183,9 @@ contains !**********************************************************************
                 HR2 = HR * HR
                 HLH = HL / H
                 HRH = HR / H
-                S   = ( M(j) * HR2 * HRH + M(i) * HL2 * HLH ) / 6.0d+00 + ( F(j) - M(j) * H26 ) * HRH + ( F(i) - M(i) * H26 ) * HLH
-                S1  = ( ( M(i) * HL2 - M(j) * HR2 ) / 2.0d+00 + F(i) - F(j) ) / H - H6 * ( M(i) - M(j) )
-                S2  = M(j) * HRH + M(i) * HLH 
+                S  = ( M(j) * HR2 * HRH + M(i) * HL2 * HLH ) / 6.0d+00 + ( F(j) - M(j) * H26 ) * HRH + ( F(i) - M(i) * H26 ) * HLH
+                S1 = ( ( M(i) * HL2 - M(j) * HR2 ) / 2.0d+00 + F(i) - F(j) ) / H - H6 * ( M(i) - M(j) )
+                S2 = M(j) * HRH + M(i) * HLH 
         end subroutine CalcSpline1_2 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
 end module Spline1 !********************************************************************************

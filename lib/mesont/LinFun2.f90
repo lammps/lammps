@@ -15,7 +15,7 @@
 
 module LinFun2 !************************************************************************************
 !
-! TMD Library: Bi-linear functions and their derivatives
+! Bi-linear functions and their derivatives.
 !
 !---------------------------------------------------------------------------------------------------
 !
@@ -29,7 +29,7 @@ implicit none
         
 contains !******************************************************************************************
 
-        real(c_double) function CalcLinFun1_0 ( i, X, N, P, F ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        real(c_double) function CalcLinFun1_0 ( i, X, N, P, F ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         integer(c_int), intent(in)                           :: i, N
         real(c_double), intent(in)                              :: X
         real(c_double), dimension(0:N-1), intent(in)            :: P

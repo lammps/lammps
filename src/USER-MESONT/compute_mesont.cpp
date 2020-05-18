@@ -34,25 +34,18 @@ ComputeMesoNT::ComputeMesoNT(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 4) error->all(FLERR,"Illegal compute mesont command");
   std::string ctype = arg[3];
   if (ctype == "estretch") compute_type = ES;
-  else if (ctype == "estretch_tot") compute_type = ESTOT;
   else if (ctype == "ebend") compute_type = EB;
-  else if (ctype == "ebend_tot") compute_type = EBTOT;
   else if (ctype == "etube") compute_type = ET;
-  else if (ctype == "etube_tot") compute_type = ETTOT;
   else error->all(FLERR,"Illegal compute mesont command");
 
-  if ((compute_type == ES) || (compute_type == EB) || (compute_type == ET)) {
-    peratom_flag = 1;
-    size_peratom_cols = 0;
-    peatomflag = 1;
-    timeflag = 1;
-    comm_reverse = 1;
-    nmax = 0;
-  } else {
-    timeflag = 1;
-    extscalar = 1;
-    scalar_flag = 1;
-  }
+  peratom_flag = 1;
+  size_peratom_cols = 0;
+  peatomflag = 1;
+  timeflag = 1;
+  comm_reverse = 1;
+  extscalar = 1;
+  scalar_flag = 1;
+  nmax = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -70,11 +63,11 @@ double ComputeMesoNT::compute_scalar() {
 
   int i;
   double* ptr = NULL;
-  if (compute_type == ESTOT)
+  if (compute_type == ES)
    ptr = static_cast<double*>(force->pair->extract("mesonttpm_Es_tot",i));
-  else if (compute_type == EBTOT)
+  else if (compute_type == EB)
    ptr = static_cast<double*>(force->pair->extract("mesonttpm_Eb_tot",i));
-  else if (compute_type == ETTOT)
+  else if (compute_type == ET)
    ptr = static_cast<double*>(force->pair->extract("mesonttpm_Et_tot",i));
   else error->all(FLERR,"Illegal compute mesont command");
 

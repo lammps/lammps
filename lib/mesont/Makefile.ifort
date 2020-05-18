@@ -42,7 +42,7 @@ lib: 	$(OBJ)
 %.o:%.c
 	$(CC) $(F90FLAGS) -c $<
 
-#include .depend
+include .depend
 # ------ CLEAN ------
 
 clean:

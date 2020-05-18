@@ -1,3 +1,4 @@
+processors      1 1 *
 newton          on
 units           metal
 lattice         sc 1.0
@@ -7,7 +8,7 @@ neigh_modify    every 5 delay 0 check yes
 
 atom_style      mesont
 #               cut, path, BendingMode, TPMType
-pair_style      mesont/tpm 45.0 ../../../potentials/CNT_10_10 0 0
+pair_style      mesont/tpm 45.0 ../../../potentials/MESONT-TABTP_10_10.xrs 0 0
 read_data       data.bundle
 pair_coeff      * *
 
@@ -22,11 +23,8 @@ compute         Es all mesont estretch
 compute         Eb all mesont ebend
 compute         Et all mesont etube
 compute         B all property/atom buckling
-compute         Es_tot all mesont estretch_tot
-compute         Eb_tot all mesont ebend_tot
-compute         Et_tot all mesont etube_tot
 
-thermo_style    custom step time temp etotal ke pe c_Es_tot c_Eb_tot c_Et_tot
+thermo_style    custom step time temp etotal ke pe c_Es c_Eb c_Et
 #dump            out_dump all custom 50 dump.bundle id type x y z c_Es c_Eb c_Et c_B ix iy iz
 
 run             100

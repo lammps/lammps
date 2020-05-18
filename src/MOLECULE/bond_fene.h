@@ -36,6 +36,7 @@ class BondFENE : public Bond {
   void read_restart(FILE *);
   void write_data(FILE *);
   double single(int, double, int, int, double &);
+  virtual void *extract(char *, int &);
 
  protected:
   double TWO_1_3;

@@ -26,7 +26,7 @@ Syntax
        v_name = global value calculated by an equal-style variable with name
 
 * zero or more keyword/arg pairs may be appended
-* keyword = *type* or *start* or *file* or *overwrite* or *title1* or *title2* or *ncorr* or *p* or *m*
+* keyword = *type* or *start* or *file* or *overwrite* or *title1* or *title2* or *ncorr* or *nlen* or *ncount*
 
   .. parsed-literal::
 

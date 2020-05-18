@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "npair_halffull_newton_omp.h"
 #include "npair_omp.h"
 #include "neigh_list.h"
@@ -38,7 +39,7 @@ void NPairHalffullNewtonOmp::build(NeighList *list)
 
   NPAIR_OMP_INIT;
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(list)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list)
 #endif
   NPAIR_OMP_SETUP(inum_full);
 

@@ -91,7 +91,7 @@ class Compute : protected Pointers {
   ExecutionSpace execution_space;
   unsigned int datamask_read,datamask_modify;
 
-  int copymode;
+  int copymode,kokkosable;
 
   Compute(class LAMMPS *, int, char **);
   virtual ~Compute();

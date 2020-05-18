@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -45,7 +46,7 @@
 #define KOKKOS_CUDA_HPP
 
 #include <Kokkos_Macros.hpp>
-#if defined( KOKKOS_ENABLE_CUDA )
+#if defined(KOKKOS_ENABLE_CUDA)
 
 #include <Kokkos_Core_fwd.hpp>
 
@@ -62,37 +63,45 @@
 #include <Kokkos_MemoryTraits.hpp>
 #include <impl/Kokkos_Tags.hpp>
 
-
 /*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
 namespace Impl {
-class CudaExec ;
-class CudaInternal ;
-} // namespace Impl
-} // namespace Kokkos
+class CudaExec;
+class CudaInternal;
+}  // namespace Impl
+}  // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
 
 namespace Impl {
-  namespace Experimental {
-    enum class CudaLaunchMechanism:unsigned{Default=0,ConstantMemory=1,GlobalMemory=2,LocalMemory=4};
+namespace Experimental {
+enum class CudaLaunchMechanism : unsigned {
+  Default        = 0,
+  ConstantMemory = 1,
+  GlobalMemory   = 2,
+  LocalMemory    = 4
+};
 
-    constexpr inline CudaLaunchMechanism operator | (CudaLaunchMechanism p1, CudaLaunchMechanism p2) {
-      return static_cast<CudaLaunchMechanism>(static_cast<unsigned>(p1) |  static_cast<unsigned>(p2));
-    }
-    constexpr inline CudaLaunchMechanism operator & (CudaLaunchMechanism p1, CudaLaunchMechanism p2) {
-      return static_cast<CudaLaunchMechanism>(static_cast<unsigned>(p1) &  static_cast<unsigned>(p2));
-    }
-
-    template<CudaLaunchMechanism l>
-    struct CudaDispatchProperties {
-      CudaLaunchMechanism launch_mechanism = l;
-    };
-  }
+constexpr inline CudaLaunchMechanism operator|(CudaLaunchMechanism p1,
+                                               CudaLaunchMechanism p2) {
+  return static_cast<CudaLaunchMechanism>(static_cast<unsigned>(p1) |
+                                          static_cast<unsigned>(p2));
 }
+constexpr inline CudaLaunchMechanism operator&(CudaLaunchMechanism p1,
+                                               CudaLaunchMechanism p2) {
+  return static_cast<CudaLaunchMechanism>(static_cast<unsigned>(p1) &
+                                          static_cast<unsigned>(p2));
+}
+
+template <CudaLaunchMechanism l>
+struct CudaDispatchProperties {
+  CudaLaunchMechanism launch_mechanism = l;
+};
+}  // namespace Experimental
+}  // namespace Impl
 /// \class Cuda
 /// \brief Kokkos Execution Space that uses CUDA to run on GPUs.
 ///
@@ -104,32 +113,32 @@ namespace Impl {
 /// sequentially.  The Cuda execution space uses NVIDIA's CUDA programming
 /// model to execute kernels in parallel on GPUs.
 class Cuda {
-public:
+ public:
   //! \name Type declarations that all Kokkos execution spaces must provide.
   //@{
 
   //! Tag this class as a kokkos execution space
-  typedef Cuda                  execution_space ;
+  typedef Cuda execution_space;
 
-#if defined( KOKKOS_ENABLE_CUDA_UVM )
+#if defined(KOKKOS_ENABLE_CUDA_UVM)
   //! This execution space's preferred memory space.
-  typedef CudaUVMSpace          memory_space ;
+  typedef CudaUVMSpace memory_space;
 #else
   //! This execution space's preferred memory space.
-  typedef CudaSpace             memory_space ;
+  typedef CudaSpace memory_space;
 #endif
 
   //! This execution space preferred device_type
-  typedef Kokkos::Device<execution_space,memory_space> device_type;
+  typedef Kokkos::Device<execution_space, memory_space> device_type;
 
   //! The size_type best suited for this execution space.
-  typedef memory_space::size_type  size_type ;
+  typedef memory_space::size_type size_type;
 
   //! This execution space's preferred array layout.
-  typedef LayoutLeft            array_layout ;
+  typedef LayoutLeft array_layout;
 
   //!
-  typedef ScratchMemorySpace< Cuda >  scratch_memory_space ;
+  typedef ScratchMemorySpace<Cuda> scratch_memory_space;
 
   //@}
   //--------------------------------------------------
@@ -139,7 +148,7 @@ public:
   /// \brief True if and only if this method is being called in a
   ///   thread-parallel function.
   KOKKOS_INLINE_FUNCTION static int in_parallel() {
-#if defined( __CUDA_ARCH__ )
+#if defined(__CUDA_ARCH__)
     return true;
 #else
     return false;
@@ -174,31 +183,30 @@ public:
   /// device have completed.
   static void impl_static_fence();
 
-  #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   static void fence();
-  #else
+#else
   void fence() const;
-  #endif
+#endif
 
   /** \brief  Return the maximum amount of concurrency.  */
   static int concurrency();
 
   //! Print configuration information to the given output stream.
-  static void print_configuration( std::ostream & , const bool detail = false );
+  static void print_configuration(std::ostream&, const bool detail = false);
 
   //@}
   //--------------------------------------------------
   //! \name  Cuda space instances
 
-  KOKKOS_INLINE_FUNCTION
-  ~Cuda() {}
+  ~Cuda() = default;
 
   Cuda();
 
-  Cuda( Cuda && ) = default ;
-  Cuda( const Cuda & ) = default ;
-  Cuda & operator = ( Cuda && ) = default ;
-  Cuda & operator = ( const Cuda & ) = default ;
+  Cuda(Cuda&&)      = default;
+  Cuda(const Cuda&) = default;
+  Cuda& operator=(Cuda&&) = default;
+  Cuda& operator=(const Cuda&) = default;
 
   Cuda(cudaStream_t stream);
 
@@ -207,9 +215,9 @@ public:
   //@{
 
   struct SelectDevice {
-    int cuda_device_id ;
+    int cuda_device_id;
     SelectDevice() : cuda_device_id(0) {}
-    explicit SelectDevice( int id ) : cuda_device_id( id ) {}
+    explicit SelectDevice(int id) : cuda_device_id(id) {}
   };
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
@@ -220,8 +228,8 @@ public:
   static int is_initialized();
 
   //! Initialize, telling the CUDA run-time library which device to use.
-  static void initialize( const SelectDevice = SelectDevice()
-                        , const size_t num_instances = 1 );
+  static void initialize(const SelectDevice         = SelectDevice(),
+                         const size_t num_instances = 1);
 #else
   //! Free any resources being consumed by the device.
   static void impl_finalize();
@@ -230,8 +238,8 @@ public:
   static int impl_is_initialized();
 
   //! Initialize, telling the CUDA run-time library which device to use.
-  static void impl_initialize( const SelectDevice = SelectDevice()
-                        , const size_t num_instances = 1 );
+  static void impl_initialize(const SelectDevice         = SelectDevice(),
+                              const size_t num_instances = 1);
 #endif
 
   /// \brief Cuda device architecture of the selected device.
@@ -248,20 +256,33 @@ public:
   static std::vector<unsigned> detect_device_arch();
 
   cudaStream_t cuda_stream() const;
-  int          cuda_device() const;
+  int cuda_device() const;
+  const cudaDeviceProp& cuda_device_prop() const;
 
   //@}
   //--------------------------------------------------------------------------
 
   static const char* name();
 
-  inline Impl::CudaInternal* impl_internal_space_instance() const { return m_space_instance; }
-private:
+  inline Impl::CudaInternal* impl_internal_space_instance() const {
+    return m_space_instance;
+  }
+  uint32_t impl_instance_id() const noexcept { return 0; }
 
+ private:
   Impl::CudaInternal* m_space_instance;
 };
 
-} // namespace Kokkos
+namespace Profiling {
+namespace Experimental {
+template <>
+struct DeviceTypeTraits<Cuda> {
+  /// \brief An ID to differentiate (for example) Serial from OpenMP in Tooling
+  static constexpr DeviceType id = DeviceType::Cuda;
+};
+}  // namespace Experimental
+}  // namespace Profiling
+}  // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
 /*--------------------------------------------------------------------------*/
@@ -269,18 +290,15 @@ private:
 namespace Kokkos {
 namespace Impl {
 
-template<>
-struct MemorySpaceAccess
-  < Kokkos::CudaSpace
-  , Kokkos::Cuda::scratch_memory_space
-  >
-{
+template <>
+struct MemorySpaceAccess<Kokkos::CudaSpace,
+                         Kokkos::Cuda::scratch_memory_space> {
   enum { assignable = false };
   enum { accessible = true };
-  enum { deepcopy   = false };
+  enum { deepcopy = false };
 };
 
-#if defined( KOKKOS_ENABLE_CUDA_UVM )
+#if defined(KOKKOS_ENABLE_CUDA_UVM)
 
 // If forcing use of UVM everywhere
 // then must assume that CudaUVMSpace
@@ -288,44 +306,34 @@ struct MemorySpaceAccess
 // This will fail when a strange host-side execution space
 // that defines CudaUVMSpace as its preferredmemory space.
 
-template<>
-struct MemorySpaceAccess
-  < Kokkos::CudaUVMSpace
-  , Kokkos::Cuda::scratch_memory_space
-  >
-{
+template <>
+struct MemorySpaceAccess<Kokkos::CudaUVMSpace,
+                         Kokkos::Cuda::scratch_memory_space> {
   enum { assignable = false };
   enum { accessible = true };
-  enum { deepcopy   = false };
+  enum { deepcopy = false };
 };
 
 #endif
 
-
-template<>
-struct VerifyExecutionCanAccessMemorySpace
-  < Kokkos::CudaSpace
-  , Kokkos::Cuda::scratch_memory_space
-  >
-{
+template <>
+struct VerifyExecutionCanAccessMemorySpace<Kokkos::CudaSpace,
+                                           Kokkos::Cuda::scratch_memory_space> {
   enum { value = true };
-  KOKKOS_INLINE_FUNCTION static void verify( void ) { }
-  KOKKOS_INLINE_FUNCTION static void verify( const void * ) { }
+  KOKKOS_INLINE_FUNCTION static void verify(void) {}
+  KOKKOS_INLINE_FUNCTION static void verify(const void*) {}
 };
 
-template<>
-struct VerifyExecutionCanAccessMemorySpace
-  < Kokkos::HostSpace
-  , Kokkos::Cuda::scratch_memory_space
-  >
-{
+template <>
+struct VerifyExecutionCanAccessMemorySpace<Kokkos::HostSpace,
+                                           Kokkos::Cuda::scratch_memory_space> {
   enum { value = false };
-  inline static void verify( void ) { CudaSpace::access_error(); }
-  inline static void verify( const void * p ) { CudaSpace::access_error(p); }
+  inline static void verify(void) { CudaSpace::access_error(); }
+  inline static void verify(const void* p) { CudaSpace::access_error(p); }
 };
 
-} // namespace Impl
-} // namespace Kokkos
+}  // namespace Impl
+}  // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
 /*--------------------------------------------------------------------------*/
@@ -343,4 +351,3 @@ struct VerifyExecutionCanAccessMemorySpace
 
 #endif /* #if defined( KOKKOS_ENABLE_CUDA ) */
 #endif /* #ifndef KOKKOS_CUDA_HPP */
-

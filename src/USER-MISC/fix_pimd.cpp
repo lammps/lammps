@@ -32,11 +32,13 @@
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace MathConst;
 
 enum{PIMD,NMPIMD,CMD};
 
@@ -165,7 +167,7 @@ void FixPIMD::init()
   const double Boltzmann = 1.3806488E-23;    // SI unit: J/K
   const double Plank     = 6.6260755E-34;    // SI unit: m^2 kg / s
 
-  double hbar = Plank / ( 2.0 * M_PI ) * sp;
+  double hbar = Plank / ( 2.0 * MY_PI ) * sp;
   double beta = 1.0 / ( Boltzmann * input.nh_temp);
 
   // - P / ( beta^2 * hbar^2)   SI unit: s^-2
@@ -181,7 +183,7 @@ void FixPIMD::init()
   const double Boltzmann = force->boltz;
   const double Plank     = force->hplanck;
 
-  double hbar   = Plank / ( 2.0 * M_PI );
+  double hbar   = Plank / ( 2.0 * MY_PI );
   double beta   = 1.0 / (Boltzmann * nhc_temp);
   double _fbond = 1.0 * np / (beta*beta*hbar*hbar) ;
 
@@ -429,7 +431,7 @@ void FixPIMD::nmpimd_init()
 
   for(int i=2; i<=np/2; i++)
   {
-    lam[2*i-3] = lam[2*i-2] = 2.0 * np * (1.0 - 1.0 *cos(2.0*M_PI*(i-1)/np));
+    lam[2*i-3] = lam[2*i-2] = 2.0 * np * (1.0 - 1.0 *cos(2.0*MY_PI*(i-1)/np));
   }
 
   // Set up eigenvectors for non-degenerated modes
@@ -444,8 +446,8 @@ void FixPIMD::nmpimd_init()
 
   for(int i=0; i<(np-1)/2; i++) for(int j=0; j<np; j++)
   {
-    M_x2xp[2*i+1][j] =   sqrt(2.0) * cos ( 2.0 * M_PI * (i+1) * j / np) / np;
-    M_x2xp[2*i+2][j] = - sqrt(2.0) * sin ( 2.0 * M_PI * (i+1) * j / np) / np;
+    M_x2xp[2*i+1][j] =   sqrt(2.0) * cos ( 2.0 * MY_PI * (i+1) * j / np) / np;
+    M_x2xp[2*i+2][j] = - sqrt(2.0) * sin ( 2.0 * MY_PI * (i+1) * j / np) / np;
   }
 
   // Set up Ut

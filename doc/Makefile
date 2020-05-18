@@ -12,6 +12,7 @@ PYTHON        = $(shell which python3)
 VIRTUALENV     = virtualenv
 HAS_PYTHON3    = NO
 HAS_VIRTUALENV = NO
+HAS_PDFLATEX   = NO
 
 ifeq ($(shell which python3 >/dev/null 2>&1; echo $$?), 0)
 HAS_PYTHON3 = YES
@@ -26,6 +27,11 @@ ifeq ($(shell which virtualenv >/dev/null 2>&1; echo $$?), 0)
 VIRTUALENV     = virtualenv
 HAS_VIRTUALENV = YES
 endif
+
+ifeq ($(shell which pdflatex >/dev/null 2>&1; echo $$?), 0)
+HAS_PDFLATEX = YES
+endif
+
 
 SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())')
 
@@ -51,7 +57,7 @@ help:
 # ------------------------------------------
 
 clean-all: clean
-	rm -rf $(BUILDDIR)/docenv $(BUILDDIR)/doctrees $(BUILDDIR)/mathjax
+	rm -rf $(BUILDDIR)/docenv $(BUILDDIR)/doctrees $(BUILDDIR)/mathjax Manual.pdf Developer.pdf
 
 clean: clean-spelling
 	rm -rf html epub latex
@@ -77,7 +83,7 @@ html: $(ANCHORCHECK) $(MATHJAX)
 	@rm -rf html/JPG
 	@cp -r src/PDF html/PDF
 	@mkdir -p html/JPG
-	@cp `grep -A2 '\.\. .*image::' src/*.rst | grep ':target:' | sed -e 's,.*:target: JPG/,src/JPG/,' | sort | uniq` html/JPG/
+	@cp `grep -A2 '\.\. .*\(image\|figure\)::' src/*.rst | grep ':target:' | sed -e 's,.*:target: JPG/,src/JPG/,' | sort | uniq` html/JPG/
 	@rm -rf html/PDF/.[sg]*
 	@mkdir -p html/_static/mathjax
 	@cp -r $(MATHJAX)/es5 html/_static/mathjax/
@@ -86,8 +92,7 @@ html: $(ANCHORCHECK) $(MATHJAX)
 spelling: $(VENV) utils/sphinx-config/false_positives.txt
 	@(\
 		. $(VENV)/bin/activate ;\
-		pip install sphinxcontrib-spelling ;\
-		cp utils/sphinx-config/false_positives.txt $(RSTDIR)/ ;\
+		cp utils/sphinx-config/false_positives.txt $(RSTDIR)/ ; env PYTHONWARNINGS= \
 		sphinx-build -b spelling -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) spelling ;\
 		deactivate ;\
 	)
@@ -113,6 +118,7 @@ mobi: epub
 	@echo "Conversion finished. The MOBI manual file is created."
 
 pdf: $(ANCHORCHECK)
+	@if [ "$(HAS_PDFLATEX)" == "NO" ] ; then echo "PDFLaTeX was not found! Please check README.md for further instructions" 1>&2; exit 1; fi
 	@(\
 		cd src/Developer; \
 		pdflatex developer; \
@@ -187,7 +193,10 @@ $(VENV):
 	@( \
 		$(VIRTUALENV) -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
+		pip install --upgrade pip; \
 		pip install Sphinx; \
+		pip install sphinxcontrib-spelling ;\
+		pip install breathe; \
 		deactivate;\
 	)
 

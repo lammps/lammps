@@ -20,7 +20,7 @@ standard or user packages:
 +-----------------------------------------+-------------------------------------------------------+
 | :doc:`USER-INTEL Package <Speed_intel>` | for Intel CPUs and Intel Xeon Phi                     |
 +-----------------------------------------+-------------------------------------------------------+
-| :doc:`KOKKOS Package <Speed_kokkos>`    | for Nvidia GPUs, Intel Xeon Phi, and OpenMP threading |
+| :doc:`KOKKOS Package <Speed_kokkos>`    | for NVIDIA GPUs, Intel Xeon Phi, and OpenMP threading |
 +-----------------------------------------+-------------------------------------------------------+
 | :doc:`USER-OMP Package <Speed_omp>`     | for OpenMP threading and generic CPU optimizations    |
 +-----------------------------------------+-------------------------------------------------------+

@@ -1007,7 +1007,7 @@ void *PairHybrid::extract(const char *str, int &dim)
   for (int m = 0; m < nstyles; m++) {
     ptr = styles[m]->extract(str,dim);
     if (ptr && strcmp(str,"cut_coul") == 0) {
-      if (cutptr && dim != couldim)
+      if (couldim != -1 && dim != couldim)
         error->all(FLERR,
                    "Coulomb styles of pair hybrid sub-styles do not match");
       double *p_newvalue = (double *) ptr;

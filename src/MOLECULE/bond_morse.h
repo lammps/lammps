@@ -35,6 +35,7 @@ class BondMorse : public Bond {
   void read_restart(FILE *);
   void write_data(FILE *);
   double single(int, double, int, int, double &);
+  virtual void *extract(char *, int &);
 
  protected:
   double *d0,*alpha,*r0;

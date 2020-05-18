@@ -52,19 +52,16 @@ replicas of a system.  One or more replicas can be used.  The total
 number of steps *N* to run can be interpreted in one of two ways; see
 discussion of the *time* keyword below.
 
-PRD is described in :ref:`(Voter1998) <Voter1998>` by Art Voter.  Similar to
-global or local hyperdynamics (HD), PRD is a method for performing
-accelerated dynamics that is suitable for infrequent-event systems
-that obey first-order kinetics.  A good overview of accelerated
-dynamics methods for such systems in given in this review paper
-:ref:`(Voter2002) <Voter2002prd>` from Art's group.  To quote from the
-paper: "The dynamical evolution is characterized by vibrational
-excursions within a potential basin, punctuated by occasional
-transitions between basins."  The transition probability is
-characterized by p(t) = k\*exp(-kt) where k is the rate constant.
-Running multiple replicas gives an effective enhancement in the
-timescale spanned by the multiple simulations, while waiting for an
-event to occur.
+PRD is described in :ref:`(Voter1998) <Voter1998>` by Art Voter.
+Similar to global or local hyperdynamics (HD), PRD is a method for
+performing accelerated dynamics that is suitable for infrequent-event
+systems that obey first-order kinetics.  A good overview of
+accelerated dynamics methods (AMD) for such systems in given in this
+review paper :ref:`(Voter2002) <Voter2002prd>` from Art's group.  To
+quote from the paper: "The dynamical evolution is characterized by
+vibrational excursions within a potential basin, punctuated by
+occasional transitions between basins.  The transition probability is
+characterized by p(t) = k\*exp(-kt) where k is the rate constant."
 
 Both PRD and HD produce a time-accurate trajectory that effectively
 extends the timescale over which a system can be simulated, but they

@@ -409,7 +409,7 @@ struct _reax_system
   class LAMMPS_NS::Error *error_ptr;
   class LAMMPS_NS::Pair *pair_ptr;
   int my_bonds;
-  int mincap;
+  int mincap,minhbonds;
   double safezone, saferzone;
 
   _LR_lookup_table **LR;

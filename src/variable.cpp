@@ -661,6 +661,8 @@ int Variable::next(int narg, char **arg)
 
   } else if (istyle == UNIVERSE || istyle == ULOOP) {
 
+    RanMars *random = nullptr;
+
     uloop_again:
 
     // wait until lock file can be created and owned by proc 0 of this world
@@ -674,7 +676,7 @@ int Variable::next(int narg, char **arg)
     int nextindex = -1;
     if (me == 0) {
       int seed = 12345 + universe->me + which[find(arg[0])];
-      RanMars *random = new RanMars(lmp,seed);
+      if (!random) random = new RanMars(lmp,seed);
       int delay = (int) (1000000*random->uniform());
       usleep(delay);
       while (1) {
@@ -682,7 +684,6 @@ int Variable::next(int narg, char **arg)
         delay = (int) (1000000*random->uniform());
         usleep(delay);
       }
-      delete random;
 
       // if the file cannot be found, we may have a race with some
       // other MPI rank that has called rename at the same time
@@ -706,6 +707,9 @@ int Variable::next(int narg, char **arg)
         delay = (int) (1000000*random->uniform());
         usleep(delay);
       }
+      delete random;
+      random = nullptr;
+
       if (nextindex < 0)
         error->one(FLERR,"Unexpected error while incrementing uloop "
                    "style variable. Please contact LAMMPS developers.");

@@ -149,12 +149,18 @@ potentials stored in DYNAMO or other formats:
    http://www.ctcms.nist.gov/potentials
    http://cst-www.nrl.navy.mil/ccm6/ap
    http://enpub.fulton.asu.edu/cms/potentials/main/main.htm
+   https://openkim.org
 
 These potentials should be usable with LAMMPS, though the alternate
 formats would need to be converted to the DYNAMO format used by LAMMPS
 and described on this page.  The NIST site is maintained by Chandler
 Becker (cbecker at nist.gov) who is good resource for info on
 interatomic potentials and file formats.
+
+The OpenKIM Project at
+`https://openkim.org/browse/models/by-type <https://openkim.org/browse/models/by-type>`_
+provides EAM potentials that can be used directly in LAMMPS with the
+:doc:`kim_commands <kim_commands>` interface.
 
 ----------
 

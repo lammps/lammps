@@ -290,6 +290,7 @@ class lammps(object):
     self.c_tagint = get_ctypes_int(self.extract_setting("tagint"))
     self.c_imageint = get_ctypes_int(self.extract_setting("imageint"))
     self._installed_packages = None
+    self._available_styles = None
 
     # add way to insert Python callback for fix external
     self.callback = {}
@@ -700,6 +701,38 @@ class lammps(object):
         self.lib.lammps_config_package_name(idx, sb, 100)
         self._installed_packages.append(sb.value.decode())
     return self._installed_packages
+
+  def has_style(self, category, name):
+    """Returns whether a given style name is available in a given category
+
+    :param category: name of category
+    :type  category: string
+    :param name: name of the style
+    :type  name: string
+    :return: true if style is available in given category
+    :rtype:  bool
+    """
+    return self.lib.lammps_has_style(self.lmp, category.encode(), name.encode()) != 0
+
+  def available_styles(self, category):
+    """Returns a list of styles available for a given category
+
+    :param category: name of category
+    :type  category: string
+    :return: list of style names in given category
+    :rtype:  list
+    """
+    if self._available_styles is None:
+      self._available_styles = {}
+
+    if category not in self._available_styles:
+      self._available_styles[category] = []
+      nstyles = self.lib.lammps_style_count(self.lmp, category.encode())
+      sb = create_string_buffer(100)
+      for idx in range(nstyles):
+        self.lib.lammps_style_name(self.lmp, category.encode(), idx, sb, 100)
+        self._available_styles[category].append(sb.value.decode())
+    return self._available_styles[category]
 
   def set_fix_external_callback(self, fix_name, callback, caller=None):
     import numpy as np

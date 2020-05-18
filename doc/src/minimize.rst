@@ -64,7 +64,7 @@ performed using a line search algorithm.  The line search typically
 evaluates forces and energies several times to set new coordinates.
 Currently, a backtracking algorithm is used which may not be optimal
 in terms of the number of force evaluations performed, but appears to
-be more robust than previous line searches we've tried.  The
+be more robust than previous line searches we have tried.  The
 backtracking method is described in Nocedal and Wright's Numerical
 Optimization (Procedure 3.1 on p 41).
 

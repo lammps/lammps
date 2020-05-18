@@ -47,7 +47,7 @@ enum{TYPE,TYPE_FRACTION,TYPE_RATIO,TYPE_SUBSET,
      DIPOLE,DIPOLE_RANDOM,SPIN,SPIN_RANDOM,QUAT,QUAT_RANDOM,
      THETA,THETA_RANDOM,ANGMOM,OMEGA,
      DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
-     MESO_E,MESO_CV,MESO_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
+     SPH_E,SPH_CV,SPH_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
      SMD_CONTACT_RADIUS,DPDTHETA,INAME,DNAME,VX,VY,VZ};
 
 #define BIG INT_MAX
@@ -472,31 +472,31 @@ void Set::command(int narg, char **arg)
       topology(IMPROPER);
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"meso/e") == 0) {
+    } else if (strcmp(arg[iarg],"sph/e") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
       else dvalue = force->numeric(FLERR,arg[iarg+1]);
-      if (!atom->e_flag)
+      if (!atom->esph_flag)
         error->all(FLERR,"Cannot set meso/e for this atom style");
-      set(MESO_E);
+      set(SPH_E);
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"meso/cv") == 0) {
+    } else if (strcmp(arg[iarg],"sph/cv") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
       else dvalue = force->numeric(FLERR,arg[iarg+1]);
       if (!atom->cv_flag)
             error->all(FLERR,"Cannot set meso/cv for this atom style");
-      set(MESO_CV);
+      set(SPH_CV);
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"meso/rho") == 0) {
+    } else if (strcmp(arg[iarg],"sph/rho") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
       else dvalue = force->numeric(FLERR,arg[iarg+1]);
       if (!atom->rho_flag)
         error->all(FLERR,"Cannot set meso/rho for this atom style");
-      set(MESO_RHO);
+      set(SPH_RHO);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"edpd/temp") == 0) {
@@ -797,9 +797,9 @@ void Set::set(int keyword)
       if (dvalue <= 0.0) error->one(FLERR,"Invalid volume in set command");
       atom->vfrac[i] = dvalue;
     }
-    else if (keyword == MESO_E) atom->e[i] = dvalue;
-    else if (keyword == MESO_CV) atom->cv[i] = dvalue;
-    else if (keyword == MESO_RHO) atom->rho[i] = dvalue;
+    else if (keyword == SPH_E) atom->esph[i] = dvalue;
+    else if (keyword == SPH_CV) atom->cv[i] = dvalue;
+    else if (keyword == SPH_RHO) atom->rho[i] = dvalue;
 
     else if (keyword == EDPD_TEMP) atom->edpd_temp[i] = dvalue;
     else if (keyword == EDPD_CV) atom->edpd_cv[i] = dvalue;

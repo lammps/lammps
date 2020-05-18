@@ -15,6 +15,7 @@
    Contributing author : Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "accelerator_omp.h"
 #include "atom.h"
 
@@ -45,7 +46,7 @@ void DomainOMP::pbc()
   const int nlocal = atom->nlocal;
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
   for (int i = 0; i < nlocal; i++) {
     imageint idim,otherdims;
@@ -143,7 +144,7 @@ void DomainOMP::lamda2x(int n)
   const int num = n;
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
   for (int i = 0; i < num; i++) {
     x[i].x = h[0]*x[i].x + h[5]*x[i].y + h[4]*x[i].z + boxlo[0];
@@ -163,7 +164,7 @@ void DomainOMP::x2lamda(int n)
   const int num = n;
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
   for (int i = 0; i < num; i++) {
     double delta0 = x[i].x - boxlo[0];

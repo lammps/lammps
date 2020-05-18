@@ -89,6 +89,10 @@ int lammps_config_has_jpeg_support();
 int lammps_config_has_ffmpeg_support();
 int lammps_config_has_exceptions();
 
+int lammps_has_style(void* ptr, char * category, char * name);
+int lammps_style_count(void* ptr, char * category);
+int lammps_style_name(void*ptr, char * category, int index, char * buffer, int max_size);
+
 int lammps_find_pair_neighlist(void* ptr, char * style, int exact, int nsub, int request);
 int lammps_find_fix_neighlist(void* ptr, char * id, int request);
 int lammps_find_compute_neighlist(void* ptr, char * id, int request);

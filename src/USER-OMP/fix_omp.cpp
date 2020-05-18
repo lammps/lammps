@@ -16,6 +16,7 @@
    OpenMP based threading support for LAMMPS
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
@@ -70,7 +71,7 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
   if (narg > 3) {
 #if defined(_OPENMP)
     if (strcmp(arg[3],"0") == 0)
-#pragma omp parallel default(none) shared(nthreads)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(nthreads)
       nthreads = omp_get_num_threads();
     else
       nthreads = force->inumeric(FLERR,arg[3]);
@@ -134,7 +135,7 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
   thr = new ThrData *[nthreads];
   _nthr = nthreads;
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(lmp)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(lmp)
 #endif
   {
     const int tid = get_tid();
@@ -186,7 +187,7 @@ void FixOMP::init()
     thr = new ThrData *[nthreads];
     _nthr = nthreads;
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
     {
       const int tid = get_tid();
@@ -346,16 +347,16 @@ void FixOMP::pre_force(int)
   double **f = atom->f;
   double **torque = atom->torque;
   double *erforce = atom->erforce;
-  double *de = atom->de;
+  double *desph = atom->desph;
   double *drho = atom->drho;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(f,torque,erforce,de,drho)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(f,torque,erforce,desph,drho)
 #endif
   {
     const int tid = get_tid();
     thr[tid]->check_tid(tid);
-    thr[tid]->init_force(nall,f,torque,erforce,de,drho);
+    thr[tid]->init_force(nall,f,torque,erforce,desph,drho);
   } // end of omp parallel region
 
   _reduced = false;

@@ -990,6 +990,7 @@ TEST(PairStyle, plain) {
         std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
     ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp,test_config);
     lmp = init_lammps(argc,argv,test_config,false);
     output = ::testing::internal::GetCapturedStdout();
 
@@ -1230,6 +1231,7 @@ TEST(PairStyle, omp) {
         std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
     ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp,test_config);
     lmp = init_lammps(argc,argv,test_config,false);
     output = ::testing::internal::GetCapturedStdout();
 
@@ -1759,6 +1761,32 @@ TEST(PairStyle, extract) {
     }
     ptr = pair->extract("does_not_exist",dim);
     EXPECT_EQ(ptr, nullptr);
+
+    // replace pair style with the same.
+    // should just update setting, but not create new style.
+
+    int ntypes = lmp->atom->ntypes;
+    for (int i=1; i <= ntypes; ++i) {
+        for (int j=1; j <= ntypes; ++j) {
+            pair->cutsq[i][j] = -1.0;
+        }
+    }
+    std::string cmd = "pair_style ";
+    cmd += test_config.pair_style;
+    lmp->input->one(cmd.c_str());
+    EXPECT_EQ(pair,lmp->force->pair);
+
+    for (auto pair_coeff : test_config.pair_coeff) {
+        cmd = "pair_coeff " + pair_coeff;
+        lmp->input->one(cmd.c_str());
+    }
+    pair->init();
+    for (int i=1; i <= ntypes; ++i) {
+        for (int j=1; j <= ntypes; ++j) {
+            EXPECT_GE(pair->cutsq[i][j],0.0);
+        }
+    }
+
     ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp,test_config);
     ::testing::internal::GetCapturedStdout();

@@ -276,7 +276,7 @@ double BondFENE::single(int type, double rsq, int /*i*/, int /*j*/,
 
 /* ---------------------------------------------------------------------- */
 
-void *BondFENE::extract( char *str, int &dim )
+void *BondFENE::extract(const char *str, int &dim)
 {
   dim = 1;
   if (strcmp(str,"kappa")==0) return (void*) k;

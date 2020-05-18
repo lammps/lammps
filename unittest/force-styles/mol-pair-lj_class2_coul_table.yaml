@@ -21,6 +21,10 @@ pair_coeff: ! |
   3 3  0.02   3.2
   4 4  0.015  3.1
   5 5  0.015  3.1
+extract: ! |
+  epsilon 2
+  sigma 2
+  cut_coul 0
 natoms: 29
 init_vdwl: 33.5760671323649
 init_coul: 225.821851347828

@@ -52,6 +52,7 @@ public:
     std::string input_file;
     std::string pair_style;
     std::vector<std::string> pair_coeff;
+    std::vector<std::pair<std::string,int>> extract;
     int natoms;
     double init_vdwl;
     double run_vdwl;
@@ -78,6 +79,7 @@ public:
         pre_commands.clear();
         post_commands.clear();
         pair_coeff.clear();
+        extract.clear();
         init_forces.clear();
         run_forces.clear();
     }
@@ -475,6 +477,7 @@ public:
         consumers["input_file"]     = &TestConfigReader::input_file;
         consumers["pair_style"]     = &TestConfigReader::pair_style;
         consumers["pair_coeff"]     = &TestConfigReader::pair_coeff;
+        consumers["extract"]        = &TestConfigReader::extract;
         consumers["natoms"]         = &TestConfigReader::natoms;
         consumers["init_vdwl"]      = &TestConfigReader::init_vdwl;
         consumers["init_coul"]      = &TestConfigReader::init_coul;
@@ -554,6 +557,20 @@ protected:
 
         while (std::getline(data, line, '\n')) {
             test_config.pair_coeff.push_back(line);
+        }
+    }
+
+    void extract(const yaml_event_t & event) {
+        config.extract.clear();
+        std::stringstream data((char *)event.data.scalar.value);
+        std::string line;
+
+        while (std::getline(data, line, '\n')) {
+            std::size_t found = line.find_first_of(" \t");
+            std::pair<std::string,int> data;
+            data.first = line.substr(0,found);
+            data.second = atoi(line.substr(found).c_str());
+            test_config.extract.push_back(data);
         }
     }
 
@@ -812,6 +829,14 @@ void generate(const char *outfile) {
         block += pair_coeff + "\n";
     }
     writer.emit_block("pair_coeff", block);
+
+    // extract
+    block.clear();
+    std::stringstream outstr;
+    for (auto data : test_config.extract) {
+        outstr << data.first << " " << data.second << std::endl;
+    }
+    writer.emit_block("extract", outstr.str());
 
     // natoms
     writer.emit("natoms", natoms);
@@ -1701,6 +1726,39 @@ TEST(PairStyle, single) {
     if (print_stats)
         std::cerr << "single_energy  stats:" << stats << std::endl;
 
+    ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp,test_config);
+    ::testing::internal::GetCapturedStdout();
+}
+
+TEST(PairStyle, extract) {
+    const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite" };
+    char **argv = (char **)args;
+    int argc = sizeof(args)/sizeof(char *);
+
+    ::testing::internal::CaptureStdout();
+    LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config,true);
+    std::string output = ::testing::internal::GetCapturedStdout();
+
+    if (!lmp) {
+        std::cerr << "One ore more prerequisite styles are not available "
+            "in this LAMMPS configuration:\n";
+        for (auto prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style "
+                      << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+    LAMMPS_NS::Pair *pair = lmp->force->pair;
+    void *ptr = nullptr;
+    int dim = 0;
+    for (auto extract : test_config.extract) {
+        ptr = pair->extract(extract.first.c_str(),dim);
+        EXPECT_NE(ptr, nullptr);
+        EXPECT_EQ(dim, extract.second);
+    }
+    ptr = pair->extract("does_not_exist",dim);
+    EXPECT_EQ(ptr, nullptr);
     ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp,test_config);
     ::testing::internal::GetCapturedStdout();

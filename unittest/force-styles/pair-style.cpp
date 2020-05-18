@@ -1563,7 +1563,9 @@ TEST(PairStyle, single) {
 
     // The single function in EAM is different from what we assume
     // here, therefore we have to skip testing those pair styles.
-    if (test_config.pair_style.substr(0,3) == "eam") {
+    if ((test_config.pair_style.substr(0,3) == "eam")
+        || ((test_config.pair_style.substr(0,6) == "hybrid")
+            && (test_config.pair_style.find("eam") != std::string::npos))) {
         ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp,test_config);
         output = ::testing::internal::GetCapturedStdout();

@@ -206,7 +206,7 @@ double BondNonlinear::single(int type, double rsq, int /*i*/, int /*j*/,
 
 /* ---------------------------------------------------------------------- */
 
-void *BondNonlinear::extract( char *str, int &dim )
+void *BondNonlinear::extract(const char *str, int &dim)
 {
   dim = 1;
   if (strcmp(str,"epsilon")==0) return (void*) epsilon;

@@ -1909,6 +1909,7 @@ void TILD::make_rho()
         for (l = nlower; l <= nupper; l++) {
           mx = l+nx;
           w = x0*rho1d[0][l];
+/*
           int j = 0;
           bool stop = false;
           for (int iz = nzlo_in; (iz <= nzhi_in) && !stop; iz++)
@@ -1919,7 +1920,8 @@ void TILD::make_rho()
                     break;
                 } else j++;
               }
-          //fprintf(screen,"weight %d %d %d %d %d %f\n", i, j, mz,my,mx, w);
+          fprintf(screen,"weight %d %d %d %d %d %f\n", i, j, mz,my,mx, w);
+*/
           density_brick_types[type[i]][mz][my][mx] += w;
           density_brick_types[0][mz][my][mx] += w;
         }

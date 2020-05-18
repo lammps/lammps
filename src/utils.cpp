@@ -348,6 +348,40 @@ size_t utils::count_words(const std::string & text, const std::string & seperato
   return words.count();
 }
 
+/* ----------------------------------------------------------------------
+   Return whether string is a valid integer number
+------------------------------------------------------------------------- */
+
+bool utils::is_integer(const std::string & str) {
+  if (str.size() == 0) {
+    return false;
+  }
+
+  for (auto c : str) {
+    if (isdigit(c) || c == '-' || c == '+') continue;
+    return false;
+  }
+  return true;
+}
+
+/* ----------------------------------------------------------------------
+   Return whether string is a valid floating-point number
+------------------------------------------------------------------------- */
+
+bool utils::is_double(const std::string & str) {
+  if (str.size() == 0) {
+    return false;
+  }
+
+  for (auto c : str) {
+    if (isdigit(c)) continue;
+    if (c == '-' || c == '+' || c == '.') continue;
+    if (c == 'e' || c == 'E') continue;
+    return false;
+  }
+  return true;
+}
+
 /* ------------------------------------------------------------------ */
 
 extern "C" {

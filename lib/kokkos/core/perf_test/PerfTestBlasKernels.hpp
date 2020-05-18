@@ -1,13 +1,14 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
-// 
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+//
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
+//
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -36,7 +37,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -48,218 +49,169 @@
 
 namespace Kokkos {
 
-template< class ConstVectorType ,
-          class Device = typename ConstVectorType::execution_space >
-struct Dot ;
+template <class Type>
+struct Dot {
+  typedef typename Type::execution_space execution_space;
 
-template< class ConstVectorType ,
-          class Device = typename ConstVectorType::execution_space >
-struct DotSingle ;
+  static_assert(static_cast<unsigned>(Type::Rank) == static_cast<unsigned>(1),
+                "Dot static_assert Fail: Rank != 1");
 
-template< class ConstScalarType ,
-          class VectorType ,
-          class Device = typename VectorType::execution_space >
-struct Scale ;
+  typedef double value_type;
 
-template< class ConstScalarType ,
-          class ConstVectorType ,
-          class VectorType ,
-          class Device = typename VectorType::execution_space >
-struct AXPBY ;
+#if 1
+  typename Type::const_type X;
+  typename Type::const_type Y;
+#else
+  Type X;
+  Type Y;
+#endif
 
-/** \brief  Y = alpha * X + beta * Y */
-template< class ConstScalarType ,
-          class ConstVectorType ,
-          class      VectorType >
-void axpby( const ConstScalarType & alpha ,
-            const ConstVectorType & X ,
-            const ConstScalarType & beta ,
-            const      VectorType & Y )
-{
-  typedef AXPBY< ConstScalarType , ConstVectorType , VectorType > functor ;
+  Dot(const Type& arg_x, const Type& arg_y) : X(arg_x), Y(arg_y) {}
 
-  parallel_for( Y.extent(0) , functor( alpha , X , beta , Y ) );
-}
+  KOKKOS_INLINE_FUNCTION
+  void operator()(int i, value_type& update) const { update += X[i] * Y[i]; }
 
-/** \brief  Y *= alpha */
-template< class ConstScalarType ,
-          class      VectorType >
-void scale( const ConstScalarType & alpha , const VectorType & Y )
-{
-  typedef Scale< ConstScalarType , VectorType > functor ;
+  KOKKOS_INLINE_FUNCTION
+  static void join(volatile value_type& update,
+                   const volatile value_type& source) {
+    update += source;
+  }
 
-  parallel_for( Y.extent(0) , functor( alpha , Y ) );
-}
+  KOKKOS_INLINE_FUNCTION
+  static void init(value_type& update) { update = 0; }
+};
 
-template< class ConstVectorType ,
-          class Finalize >
-void dot( const ConstVectorType & X ,
-          const ConstVectorType & Y ,
-          const Finalize & finalize )
-{
-  typedef Dot< ConstVectorType >  functor ;
+template <class Type>
+struct DotSingle {
+  typedef typename Type::execution_space execution_space;
 
-  parallel_reduce( X.extent(0) , functor( X , Y ) , finalize );
-}
+  static_assert(static_cast<unsigned>(Type::Rank) == static_cast<unsigned>(1),
+                "DotSingle static_assert Fail: Rank != 1");
 
-template< class ConstVectorType ,
-          class Finalize >
-void dot( const ConstVectorType & X ,
-          const Finalize & finalize )
-{
-  typedef DotSingle< ConstVectorType >  functor ;
+  typedef double value_type;
 
-  parallel_reduce( X.extent(0) , functor( X ) , finalize );
-}
+#if 1
+  typename Type::const_type X;
+#else
+  Type X;
+#endif
+
+  DotSingle(const Type& arg_x) : X(arg_x) {}
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(int i, value_type& update) const {
+    const typename Type::value_type& x = X[i];
+    update += x * x;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  static void join(volatile value_type& update,
+                   const volatile value_type& source) {
+    update += source;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  static void init(value_type& update) { update = 0; }
+};
+
+template <class ScalarType, class VectorType>
+struct Scale {
+  typedef typename VectorType::execution_space execution_space;
+
+  static_assert(static_cast<unsigned>(ScalarType::Rank) ==
+                    static_cast<unsigned>(0),
+                "Scale static_assert Fail: ScalarType::Rank != 0");
+
+  static_assert(static_cast<unsigned>(VectorType::Rank) ==
+                    static_cast<unsigned>(1),
+                "Scale static_assert Fail: VectorType::Rank != 1");
+
+#if 1
+  typename ScalarType::const_type alpha;
+#else
+  ScalarType alpha;
+#endif
+
+  VectorType Y;
+
+  Scale(const ScalarType& arg_alpha, const VectorType& arg_Y)
+      : alpha(arg_alpha), Y(arg_Y) {}
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(int i) const { Y[i] *= alpha(); }
+};
+
+template <class ScalarType, class ConstVectorType, class VectorType>
+struct AXPBY {
+  typedef typename VectorType::execution_space execution_space;
+
+  static_assert(static_cast<unsigned>(ScalarType::Rank) ==
+                    static_cast<unsigned>(0),
+                "AXPBY static_assert Fail: ScalarType::Rank != 0");
+
+  static_assert(static_cast<unsigned>(ConstVectorType::Rank) ==
+                    static_cast<unsigned>(1),
+                "AXPBY static_assert Fail: ConstVectorType::Rank != 1");
+
+  static_assert(static_cast<unsigned>(VectorType::Rank) ==
+                    static_cast<unsigned>(1),
+                "AXPBY static_assert Fail: VectorType::Rank != 1");
+
+#if 1
+  typename ScalarType::const_type alpha, beta;
+  typename ConstVectorType::const_type X;
+#else
+  ScalarType alpha, beta;
+  ConstVectorType X;
+#endif
+
+  VectorType Y;
+
+  AXPBY(const ScalarType& arg_alpha, const ConstVectorType& arg_X,
+        const ScalarType& arg_beta, const VectorType& arg_Y)
+      : alpha(arg_alpha), beta(arg_beta), X(arg_X), Y(arg_Y) {}
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(int i) const { Y[i] = alpha() * X[i] + beta() * Y[i]; }
+};
 
 } /* namespace Kokkos */
-
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
+/** \brief  Y = alpha * X + beta * Y */
+template <class ConstScalarType, class ConstVectorType, class VectorType>
+void axpby(const ConstScalarType& alpha, const ConstVectorType& X,
+           const ConstScalarType& beta, const VectorType& Y) {
+  typedef AXPBY<ConstScalarType, ConstVectorType, VectorType> functor;
 
-template< class Type , class Device >
-struct Dot
-{
-  typedef typename Device::execution_space execution_space ;
+  parallel_for(Y.extent(0), functor(alpha, X, beta, Y));
+}
 
-  static_assert( static_cast<unsigned>(Type::Rank) == static_cast<unsigned>(1),
-    "Dot static_assert Fail: Rank != 1");
+/** \brief  Y *= alpha */
+template <class ConstScalarType, class VectorType>
+void scale(const ConstScalarType& alpha, const VectorType& Y) {
+  typedef Scale<ConstScalarType, VectorType> functor;
 
+  parallel_for(Y.extent(0), functor(alpha, Y));
+}
 
-  typedef double value_type ;
+template <class ConstVectorType, class Finalize>
+void dot(const ConstVectorType& X, const ConstVectorType& Y,
+         const Finalize& finalize) {
+  typedef Dot<ConstVectorType> functor;
 
-#if 1
-  typename Type::const_type X ;
-  typename Type::const_type Y ;
-#else
-  Type X ;
-  Type Y ;
-#endif
+  parallel_reduce(X.extent(0), functor(X, Y), finalize);
+}
 
-  Dot( const Type & arg_x , const Type & arg_y )
-    : X(arg_x) , Y(arg_y) { }
+template <class ConstVectorType, class Finalize>
+void dot(const ConstVectorType& X, const Finalize& finalize) {
+  typedef DotSingle<ConstVectorType> functor;
 
-  KOKKOS_INLINE_FUNCTION
-  void operator()( int i , value_type & update ) const
-    { update += X[i] * Y[i]; }
-
-  KOKKOS_INLINE_FUNCTION
-  static void join( volatile value_type & update ,
-                    const volatile value_type & source )
-    { update += source; }
-
-  KOKKOS_INLINE_FUNCTION
-  static void init( value_type & update )
-    { update = 0 ; }
-};
-
-template< class Type , class Device >
-struct DotSingle
-{
-  typedef typename Device::execution_space execution_space ;
-
-  static_assert( static_cast<unsigned>(Type::Rank) == static_cast<unsigned>(1),
-    "DotSingle static_assert Fail: Rank != 1");
-
-  typedef double value_type ;
-
-#if 1
-  typename Type::const_type X ;
-#else
-  Type X ;
-#endif
-
-  DotSingle( const Type & arg_x ) : X(arg_x) {}
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()( int i , value_type & update ) const
-    {
-      const typename Type::value_type & x = X[i]; update += x * x ;
-    }
-
-  KOKKOS_INLINE_FUNCTION
-  static void join( volatile value_type & update ,
-                    const volatile value_type & source )
-    { update += source; }
-
-  KOKKOS_INLINE_FUNCTION
-  static void init( value_type & update )
-    { update = 0 ; }
-};
-
-
-template< class ScalarType , class VectorType , class Device>
-struct Scale
-{
-  typedef typename Device::execution_space execution_space ;
-
-  static_assert( static_cast<unsigned>(ScalarType::Rank) == static_cast<unsigned>(0),
-    "Scale static_assert Fail: ScalarType::Rank != 0");
-
-  static_assert( static_cast<unsigned>(VectorType::Rank) == static_cast<unsigned>(1),
-    "Scale static_assert Fail: VectorType::Rank != 1");
-
-#if 1
-  typename ScalarType::const_type alpha ;
-#else
-  ScalarType alpha ;
-#endif
-
-  VectorType Y ;
-
-  Scale( const ScalarType & arg_alpha , const VectorType & arg_Y )
-    : alpha( arg_alpha ), Y( arg_Y ) {}
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()( int i ) const
-    {
-      Y[i] *= alpha() ;
-    }
-};
-
-
-template< class ScalarType ,
-          class ConstVectorType ,
-          class VectorType,
-          class Device>
-struct AXPBY
-{
-  typedef typename Device::execution_space execution_space ;
-
-  static_assert( static_cast<unsigned>(ScalarType::Rank) == static_cast<unsigned>(0),
-    "AXPBY static_assert Fail: ScalarType::Rank != 0");
-
-  static_assert( static_cast<unsigned>(ConstVectorType::Rank) == static_cast<unsigned>(1),
-    "AXPBY static_assert Fail: ConstVectorType::Rank != 1");
-
-  static_assert( static_cast<unsigned>(VectorType::Rank) == static_cast<unsigned>(1),
-    "AXPBY static_assert Fail: VectorType::Rank != 1");
-
-#if 1
-  typename ScalarType::const_type alpha , beta ;
-  typename ConstVectorType::const_type X ;
-#else
-  ScalarType alpha , beta ;
-  ConstVectorType X ;
-#endif
-
-  VectorType Y ;
-
-  AXPBY( const ScalarType      & arg_alpha ,
-         const ConstVectorType & arg_X ,
-         const ScalarType      & arg_beta ,
-         const VectorType      & arg_Y )
-    : alpha( arg_alpha ), beta( arg_beta ), X( arg_X ), Y( arg_Y ) {}
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()( int i ) const
-    {
-      Y[i] = alpha() * X[i] + beta() * Y[i] ;
-    }
-};
+  parallel_reduce(X.extent(0), functor(X), finalize);
+}
 
 } /* namespace Kokkos */
 

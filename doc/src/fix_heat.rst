@@ -47,16 +47,22 @@ and the specified geometric :doc:`region <region>` in order to have
 energy added or subtracted to it.  If not specified, then the atoms in
 the group are affected wherever they may move to.
 
-Heat addition/subtraction is performed every N timesteps.  The *eflux*
-parameter can be specified as a numeric constant or as a variable (see
-below).  If it is a numeric constant or equal-style variable which
-evaluates to a scalar value, then the *eflux* determines the change in
-aggregate energy of the entire group of atoms per unit time, e.g. in
-eV/psec for :doc:`metal units <units>`.  In this case it is an
-"extensive" quantity, meaning its magnitude should be scaled with the
-number of atoms in the group.  Note that since *eflux* has per-time
-units (i.e. it is a flux), this means that a larger value of N will
-add/subtract a larger amount of energy each time the fix is invoked.
+Heat addition/subtraction is performed every N timesteps.
+
+The *eflux* parameter can be specified as a numeric constant or as an
+equal- or atom-style :doc:`variable <variable>`.  If the value is a
+variable, it should be specified as v_name, where *name* is the variable
+name.  In this case, the variable will be evaluated each timestep, and
+its current value(s) used to determine the flux.
+
+If *eflux* is a numeric constant or equal-style variable which evaluates
+to a scalar value, then *eflux* determines the change in aggregate energy
+of the entire group of atoms per unit time, e.g. in eV/psec for
+:doc:`metal units <units>`.  In this case it is an "extensive" quantity,
+meaning its magnitude should be scaled with the number of atoms in the
+group.  Note that since *eflux* also has per-time units (i.e. it is a
+flux), this means that a larger value of N will add/subtract a larger
+amount of energy each time the fix is invoked.
 
 .. note::
 
@@ -70,12 +76,6 @@ the variable computes one value per atom.  In this case, each value is
 the energy flux for a single atom, again in units of energy per unit
 time.  In this case, each value is an "intensive" quantity, which need
 not be scaled with the number of atoms in the group.
-
-As mentioned above, the *eflux* parameter can be specified as an
-equal-style or atom_style :doc:`variable <variable>`.  If the value is a
-variable, it should be specified as v_name, where name is the variable
-name.  In this case, the variable will be evaluated each timestep, and
-its value(s) used to determine the flux.
 
 Equal-style variables can specify formulas with various mathematical
 functions, and include :doc:`thermo_style <thermo_style>` command

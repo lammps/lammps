@@ -67,6 +67,7 @@ class FixBondReact : public Fix {
   int nconstraints;
   int narrhenius;
   double **constraints;
+  int **var_flag,**var_id; // for keyword values with variable inputs
   int status;
   int *groupbits;
 
@@ -278,5 +279,13 @@ E: Bond/react topology/atom exceed system topology/atom
 The number of bonds, angles etc per-atom created by a reaction exceeds
 the system setting. See the read_data or create_box command for how to
 specify this value.
+
+E: Bond/react: Variable name does not exist
+
+Self-explanatory.
+
+E: Bond/react: Variable is not equal-style
+
+Self-explanatory.
 
 */

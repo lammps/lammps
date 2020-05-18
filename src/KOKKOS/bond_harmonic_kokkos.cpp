@@ -69,14 +69,14 @@ void BondHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     //if(k_eatom.extent(0)<maxeatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_eatom,eatom);
       memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
-      d_eatom = k_eatom.template view<DeviceType>();
+      d_eatom = k_eatom.template view<KKDeviceType>();
     //}
   }
   if (vflag_atom) {
     //if(k_vatom.extent(0)<maxvatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_vatom,vatom);
-      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
-      d_vatom = k_vatom.template view<DeviceType>();
+      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"improper:vatom");
+      d_vatom = k_vatom.template view<KKDeviceType>();
     //}
   }
 
@@ -204,8 +204,8 @@ void BondHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
   BondHarmonic::coeff(narg, arg);
 
   int n = atom->nbondtypes;
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_k("BondHarmonic::k",n+1);
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_r0("BondHarmonic::r0",n+1);
+  typename AT::tdual_ffloat_1d k_k("BondHarmonic::k",n+1);
+  typename AT::tdual_ffloat_1d k_r0("BondHarmonic::r0",n+1);
 
   d_k = k_k.template view<DeviceType>();
   d_r0 = k_r0.template view<DeviceType>();
@@ -231,8 +231,8 @@ void BondHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
   BondHarmonic::read_restart(fp);
 
   int n = atom->nbondtypes;
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_k("BondHarmonic::k",n+1);
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_r0("BondHarmonic::r0",n+1);
+  typename AT::tdual_ffloat_1d k_k("BondHarmonic::k",n+1);
+  typename AT::tdual_ffloat_1d k_r0("BondHarmonic::r0",n+1);
 
   d_k = k_k.template view<DeviceType>();
   d_r0 = k_r0.template view<DeviceType>();

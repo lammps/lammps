@@ -1,13 +1,14 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
-// 
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+//
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
+//
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -36,7 +37,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -62,82 +63,85 @@ typedef Kokkos::View<double*> view_type;
 // cache.  This only works if the View is read-only, which we enforce
 // through the first template parameter.
 //
-// Note that we are still talking about views of the data, its not a new allocation.
-// For example you can have an atomic view of a default view. While you even
-// could use both in the same kernel, this could lead to undefined behaviour because
-// one of your access paths is not atomic. Think of it in the same way as you think of
-// pointers to const data and pointers to non-const data (i.e. const double* and double*).
-// While these pointers can point to the same data you should not use them together if that
-// brakes the const guarantee of the first pointer.
-typedef Kokkos::View<const double*, Kokkos::MemoryTraits<Kokkos::RandomAccess> > view_type_rnd;
+// Note that we are still talking about views of the data, its not a new
+// allocation. For example you can have an atomic view of a default view. While
+// you even could use both in the same kernel, this could lead to undefined
+// behaviour because one of your access paths is not atomic. Think of it in the
+// same way as you think of pointers to const data and pointers to non-const
+// data (i.e. const double* and double*). While these pointers can point to the
+// same data you should not use them together if that brakes the const guarantee
+// of the first pointer.
+typedef Kokkos::View<const double*, Kokkos::MemoryTraits<Kokkos::RandomAccess> >
+    view_type_rnd;
 typedef Kokkos::View<int**> idx_type;
 typedef idx_type::HostMirror idx_type_host;
 
-// We template this functor on the ViewTypes to show the effect of the RandomAccess trait.
-template<class DestType, class SrcType>
+// We template this functor on the ViewTypes to show the effect of the
+// RandomAccess trait.
+template <class DestType, class SrcType>
 struct localsum {
   idx_type::const_type idx;
   DestType dest;
   SrcType src;
-  localsum (idx_type idx_, DestType dest_, SrcType src_) :
-    idx (idx_), dest (dest_), src (src_)
-  {}
+  localsum(idx_type idx_, DestType dest_, SrcType src_)
+      : idx(idx_), dest(dest_), src(src_) {}
 
   // Calculate a local sum of values
   KOKKOS_INLINE_FUNCTION
-  void operator() (const int i) const {
+  void operator()(const int i) const {
     double tmp = 0.0;
-    for (int j = 0; j < (int) idx.extent(1); ++j) {
+    for (int j = 0; j < (int)idx.extent(1); ++j) {
       // This is an indirect access on src
-      const double val = src(idx(i,j));
-      tmp += val*val + 0.5*(idx.extent(0)*val -idx.extent(1)*val);
+      const double val = src(idx(i, j));
+      tmp += val * val + 0.5 * (idx.extent(0) * val - idx.extent(1) * val);
     }
     dest(i) = tmp;
   }
 };
 
 int main(int narg, char* arg[]) {
-  Kokkos::initialize (narg, arg);
+  Kokkos::initialize(narg, arg);
 
   {
     int size = 1000000;
 
-    idx_type idx("Idx",size,64);
-    idx_type_host h_idx = Kokkos::create_mirror_view (idx);
+    idx_type idx("Idx", size, 64);
+    idx_type_host h_idx = Kokkos::create_mirror_view(idx);
 
-    view_type dest ("Dest", size);
-    view_type src ("Src", size);
+    view_type dest("Dest", size);
+    view_type src("Src", size);
 
     srand(134231);
 
     for (int i = 0; i < size; i++) {
       for (view_type::size_type j = 0; j < h_idx.extent(1); ++j) {
-        h_idx(i,j) = (size + i + (rand () % 500 - 250)) % size;
+        h_idx(i, j) = (size + i + (rand() % 500 - 250)) % size;
       }
     }
 
     // Deep copy the initial data to the device
-    Kokkos::deep_copy(idx,h_idx);
+    Kokkos::deep_copy(idx, h_idx);
     // Run the first kernel to warmup caches
-    Kokkos::parallel_for(size,localsum<view_type,view_type_rnd>(idx,dest,src));
+    Kokkos::parallel_for(size,
+                         localsum<view_type, view_type_rnd>(idx, dest, src));
     Kokkos::fence();
 
-    // Run the localsum functor using the RandomAccess trait. On CPUs there should
-    // not be any different in performance to not using the RandomAccess trait.
-    // On GPUs where can be a dramatic difference
+    // Run the localsum functor using the RandomAccess trait. On CPUs there
+    // should not be any different in performance to not using the RandomAccess
+    // trait. On GPUs where can be a dramatic difference
     Kokkos::Timer time1;
-    Kokkos::parallel_for(size,localsum<view_type,view_type_rnd>(idx,dest,src));
+    Kokkos::parallel_for(size,
+                         localsum<view_type, view_type_rnd>(idx, dest, src));
     Kokkos::fence();
     double sec1 = time1.seconds();
 
     Kokkos::Timer time2;
-    Kokkos::parallel_for(size,localsum<view_type,view_type>(idx,dest,src));
+    Kokkos::parallel_for(size, localsum<view_type, view_type>(idx, dest, src));
     Kokkos::fence();
     double sec2 = time2.seconds();
 
-    printf("Time with Trait RandomAccess: %f with Plain: %f \n",sec1,sec2);
+    printf("Time with Trait RandomAccess: %f with Plain: %f \n", sec1, sec2);
   }
 
   Kokkos::finalize();
 }
-

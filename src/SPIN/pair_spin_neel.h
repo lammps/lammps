@@ -38,6 +38,7 @@ class PairSpinNeel : public PairSpin {
 
   void compute_neel(int, int, double, double *, double *, double *, double *);
   void compute_neel_mech(int, int, double, double *, double *, double *, double *);
+  double compute_neel_energy(int, int, double, double *, double *, double *);
 
   void write_restart(FILE *);
   void read_restart(FILE *);

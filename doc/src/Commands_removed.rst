@@ -48,7 +48,7 @@ The USER-CUDA package had been removed, since it had been unmaintained
 for a long time and had known bugs and problems.  Significant parts of
 the design were transferred to the
 :ref:`KOKKOS package <PKG-KOKKOS>`, which has similar
-performance characteristics on Nvidia GPUs. Both, the KOKKOS
+performance characteristics on NVIDIA GPUs. Both, the KOKKOS
 and the :ref:`GPU package <PKG-GPU>` are maintained
 and allow running LAMMPS with GPU acceleration.
 

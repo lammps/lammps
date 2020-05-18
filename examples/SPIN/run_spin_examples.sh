@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DATE=19Nov19
+DATE=14Apr20
 
 # bfo
 cd bfo/

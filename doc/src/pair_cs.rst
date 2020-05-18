@@ -30,6 +30,9 @@ pair_style coul/wolf/cs command
 pair_style lj/cut/coul/long/cs command
 =======================================
 
+pair_style lj/class2/coul/long/cs command
+==========================================
+
 Syntax
 """"""
 
@@ -37,7 +40,7 @@ Syntax
 
    pair_style style args
 
-* style = *born/coul/dsf/cs* or *born/coul/long/cs* or *born/coul/wolf/cs* or *buck/coul/long/cs* or *coul/long/cs* or *coul/wolf/cs* or *lj/cut/coul/long/cs*
+* style = *born/coul/dsf/cs* or *born/coul/long/cs* or *born/coul/wolf/cs* or *buck/coul/long/cs* or *coul/long/cs* or *coul/wolf/cs* or *lj/cut/coul/long/cs* or *lj/class2/coul/long/cs*
 * args = list of arguments for a particular style
 
 .. parsed-literal::
@@ -62,6 +65,9 @@ Syntax
        alpha = damping parameter (inverse distance units)
        cutoff = global cutoff for Coulombic (distance units)
      *lj/cut/coul/long/cs* args = cutoff (cutoff2)
+       cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+       cutoff2 = global cutoff for Coulombic (optional) (distance units)
+     *lj/class2/coul/long/cs* args = cutoff (cutoff2)
        cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
        cutoff2 = global cutoff for Coulombic (optional) (distance units)
 
@@ -115,6 +121,7 @@ the "/cs" in the name:
 * :doc:`pair_style coul/long <pair_coul>`
 * :doc:`pair_style coul/wolf <pair_coul>`
 * :doc:`pair_style lj/cut/coul/long <pair_lj>`
+* :doc:`pair_style lj/class2/coul/long <pair_class2>`
 
 except that they correctly treat the special case where the distance
 between two charged core and shell atoms in the same core/shell pair

@@ -25,71 +25,13 @@
 
 namespace LAMMPS_NS {
 
-typedef double SNAreal;
-
-//typedef struct { SNAreal re, im; } SNAcomplex;
-template <typename real>
-struct alignas(2*sizeof(real)) SNAComplex
-{
-  real re,im;
-
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex() = default;
-
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real re)
-   : re(re), im(static_cast<real>(0.)) { ; }
-
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real re, real im)
-   : re(re), im(im) { ; }
-
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(const SNAComplex& other)
-   : re(other.re), im(other.im) { ; }
-
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex& operator=(const SNAComplex& other) {
-    re = other.re; im = other.im;
-    return *this;
-  }
-
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(SNAComplex&& other)
-   : re(other.re), im(other.im) { ; }
-
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex& operator=(SNAComplex&& other) {
-    re = other.re; im = other.im;
-    return *this;
-  }
-
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex operator+(SNAComplex const& other) {
-    return SNAComplex(re + other.re, im + other.im);
-  }
-
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex& operator+=(SNAComplex const& other) {
-    re += other.re; im += other.im;
-    return *this;
-  }
-
-};
-
-template <typename real>
-KOKKOS_FORCEINLINE_FUNCTION SNAComplex<real> operator*(const real& r, const SNAComplex<real>& self) {
-  return SNAComplex<real>(r*self.re, r*self.im);
-}
-
-typedef SNAComplex<SNAreal> SNAcomplex;
-
-//struct SNAKK_ZINDICES {
-//  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju;
-//};
-//
-//struct SNAKK_BINDICES {
-//  int j1, j2, j;
-//};
-
 template<class DeviceType>
 class SNAKokkos {
 
 public:
   typedef Kokkos::View<int*, DeviceType> t_sna_1i;
   typedef Kokkos::View<double*, DeviceType> t_sna_1d;
-  typedef Kokkos::View<double*, DeviceType, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1d_atomic;
+  typedef Kokkos::View<double*, typename KKDevice<DeviceType>::value, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1d_atomic;
   typedef Kokkos::View<int**, DeviceType> t_sna_2i;
   typedef Kokkos::View<double**, DeviceType> t_sna_2d;
   typedef Kokkos::View<double**, Kokkos::LayoutLeft, DeviceType> t_sna_2d_ll;
@@ -99,7 +41,7 @@ public:
   typedef Kokkos::View<double*****, DeviceType> t_sna_5d;
 
   typedef Kokkos::View<SNAcomplex*, DeviceType> t_sna_1c;
-  typedef Kokkos::View<SNAcomplex*, DeviceType, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1c_atomic;
+  typedef Kokkos::View<SNAcomplex*, typename KKDevice<DeviceType>::value, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1c_atomic;
   typedef Kokkos::View<SNAcomplex**, DeviceType> t_sna_2c;
   typedef Kokkos::View<SNAcomplex**, Kokkos::LayoutLeft, DeviceType> t_sna_2c_ll;
   typedef Kokkos::View<SNAcomplex**, Kokkos::LayoutRight, DeviceType> t_sna_2c_lr;

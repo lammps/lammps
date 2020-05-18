@@ -495,7 +495,7 @@ void FixAveCorrelateLong::end_of_step()
     if(overwrite) fseek(fp,filepos,SEEK_SET);
     fprintf(fp,"# Timestep: " BIGINT_FORMAT "\n", ntimestep);
     for (unsigned int i=0;i<npcorr;++i) {
-      fprintf(fp, "%lg ", t[i]*update->dt);
+      fprintf(fp, "%lg ", t[i]*update->dt*nevery);
       for (int j=0;j<npair;++j) {
         fprintf(fp, "%lg ", f[j][i]);
       }

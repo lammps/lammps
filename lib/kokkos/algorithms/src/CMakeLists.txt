@@ -1,8 +1,9 @@
 
-TRIBITS_CONFIGURE_FILE(${PACKAGE_NAME}_config.h)
+KOKKOS_CONFIGURE_FILE(${PACKAGE_NAME}_config.h)
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+#I have to leave these here for tribits
+KOKKOS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+KOKKOS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
 #-----------------------------------------------------------------------------
 
@@ -12,10 +13,18 @@ LIST(APPEND HEADERS ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_NAME}_config.h)
 
 #-----------------------------------------------------------------------------
 
-TRIBITS_ADD_LIBRARY(
-    kokkosalgorithms
-    HEADERS ${HEADERS}
-    SOURCES ${SOURCES}
-    DEPLIBS
-    )
+# We have to pass the sources in here for Tribits
+# These will get ignored for standalone CMake and a true interface library made
+KOKKOS_ADD_INTERFACE_LIBRARY(
+  kokkosalgorithms
+  HEADERS ${HEADERS}
+  SOURCES ${SOURCES}
+)
+KOKKOS_LIB_INCLUDE_DIRECTORIES(kokkosalgorithms
+  ${KOKKOS_TOP_BUILD_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+
 

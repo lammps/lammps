@@ -261,8 +261,8 @@ void DihedralNHarmonic::allocate()
   allocated = 1;
   int n = atom->ndihedraltypes;
 
-  memory->create(nterms,n+1,"dihedral:nt");
-  a = new double * [n+1];
+  nterms = new int[n+1];
+  a = new double *[n+1];
 
   memory->create(setflag,n+1,"dihedral:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;

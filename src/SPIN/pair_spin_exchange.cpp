@@ -50,6 +50,7 @@ PairSpinExchange::~PairSpinExchange()
     memory->destroy(J2);
     memory->destroy(J3);
     memory->destroy(cutsq); // to be implemented
+    memory->destroy(emag);
   }
 }
 
@@ -176,6 +177,13 @@ void PairSpinExchange::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  // checking size of emag
+
+  if (nlocal_max < nlocal) {    // grow emag lists if necessary
+    nlocal_max = nlocal;
+    memory->grow(emag,nlocal_max,"pair/spin:emag");
+  }
+
   // computation of the exchange interaction
   // loop over atoms and their neighbors
 
@@ -191,6 +199,7 @@ void PairSpinExchange::compute(int eflag, int vflag)
     spi[0] = sp[i][0];
     spi[1] = sp[i][1];
     spi[2] = sp[i][2];
+    emag[i] = 0.0;
 
     // loop on neighbors
 
@@ -234,16 +243,10 @@ void PairSpinExchange::compute(int eflag, int vflag)
       fm[i][1] += fmi[1];
       fm[i][2] += fmi[2];
 
-      if (newton_pair || j < nlocal) {
-        f[j][0] -= fi[0];
-        f[j][1] -= fi[1];
-        f[j][2] -= fi[2];
-      }
-
       if (eflag) {
         evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
         evdwl *= 0.5*hbar;
-        // evdwl *= hbar;
+        emag[i] += evdwl;
       } else evdwl = 0.0;
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
@@ -384,6 +387,29 @@ void PairSpinExchange::compute_exchange_mech(int i, int j, double rsq, double ei
   fi[1] -= Jex_mech*eij[1];
   fi[2] -= Jex_mech*eij[2];
 }
+
+/* ----------------------------------------------------------------------
+   compute energy of spin pair i and j
+------------------------------------------------------------------------- */
+
+// double PairSpinExchange::compute_energy(int i, int j, double rsq, double spi[3], double spj[3])
+// {
+//   int *type = atom->type;
+//   int itype, jtype;
+//   double Jex, ra;
+//   double energy = 0.0;
+//   itype = type[i];
+//   jtype = type[j];
+//
+//   Jex = J1_mech[itype][jtype];
+//   ra = rsq/J3[itype][jtype]/J3[itype][jtype];
+//   Jex = 4.0*Jex*ra;
+//   Jex *= (1.0-J2[itype][jtype]*ra);
+//   Jex *= exp(-ra);
+//
+//   energy = Jex*(spi[0]*spj[0]+spi[1]*spj[1]+spi[2]*spj[2]);
+//   return energy;
+// }
 
 /* ----------------------------------------------------------------------
    allocate all arrays

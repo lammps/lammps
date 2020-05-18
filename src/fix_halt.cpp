@@ -306,12 +306,12 @@ double FixHalt::tlimit()
 /* ----------------------------------------------------------------------
    determine available disk space, if supported. Return -1 if not.
 ------------------------------------------------------------------------- */
-#if defined(__linux) || defined(__APPLE__)
+#if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__NetBSD__)
 #include <sys/statvfs.h>
 #endif
 double FixHalt::diskfree()
 {
-#if defined(__linux) || defined(__APPLE__)
+#if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__NetBSD__)
   struct statvfs fs;
   double disk_free = -1.0;
 
@@ -319,9 +319,9 @@ double FixHalt::diskfree()
     disk_free = 1.0e100;
     int rv = statvfs(dlimit_path,&fs);
     if (rv == 0) {
-#if defined(__linux)
+#if defined(__linux__)
       disk_free = fs.f_bavail*fs.f_bsize/1048576.0;
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__NetBSD__)
       disk_free = fs.f_bavail*fs.f_frsize/1048576.0;
 #endif
     } else

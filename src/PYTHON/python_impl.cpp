@@ -535,3 +535,10 @@ void PythonImpl::deallocate(int i)
   delete [] pfuncs[i].ovarname;
   delete [] pfuncs[i].longstr;
 }
+
+/* ------------------------------------------------------------------ */
+
+bool PythonImpl::has_minimum_version(int major, int minor)
+{
+    return (PY_MAJOR_VERSION == major && PY_MINOR_VERSION >= minor) || (PY_MAJOR_VERSION > major);
+}

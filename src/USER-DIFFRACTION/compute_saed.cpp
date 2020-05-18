@@ -15,6 +15,7 @@
    Contributing authors: Shawn Coleman & Douglas Spearot (Arkansas)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "compute_saed.h"
 #include <mpi.h>
 #include <cmath>
@@ -418,7 +419,7 @@ void ComputeSAED::compute_vector()
   double frac = 0.1;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(offset,ASFSAED,typelocal,xlocal,Fvec,m,frac)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(offset,ASFSAED,typelocal,xlocal,Fvec,m,frac)
 #endif
   {
     double *f = new double[ntypes];    // atomic structure factor by type

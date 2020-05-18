@@ -769,7 +769,7 @@ void generate(const char *outfile) {
     int argc = sizeof(args)/sizeof(char *);
     LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
     if (!lmp) {
-        std::cerr << "One ore more prerequisite styles are not available "
+        std::cerr << "One or more prerequisite styles are not available "
             "in this LAMMPS configuration:\n";
         for (auto prerequisite : test_config.prerequisites) {
             std::cerr << prerequisite.first << "_style "
@@ -904,7 +904,7 @@ TEST(PairStyle, plain) {
     std::string output = ::testing::internal::GetCapturedStdout();
 
     if (!lmp) {
-        std::cerr << "One ore more prerequisite styles are not available "
+        std::cerr << "One or more prerequisite styles are not available "
             "in this LAMMPS configuration:\n";
         for (auto prerequisite : test_config.prerequisites) {
             std::cerr << prerequisite.first << "_style "
@@ -1144,7 +1144,7 @@ TEST(PairStyle, omp) {
     std::string output = ::testing::internal::GetCapturedStdout();
 
     if (!lmp) {
-        std::cerr << "One ore more prerequisite styles with /omp suffix\n"
+        std::cerr << "One or more prerequisite styles with /omp suffix\n"
             "are not available in this LAMMPS configuration:\n";
         for (auto prerequisite : test_config.prerequisites) {
             std::cerr << prerequisite.first << "_style "
@@ -1316,7 +1316,7 @@ TEST(PairStyle, intel) {
     std::string output = ::testing::internal::GetCapturedStdout();
 
     if (!lmp) {
-        std::cerr << "One ore more prerequisite styles with /intel suffix\n"
+        std::cerr << "One or more prerequisite styles with /intel suffix\n"
             "are not available in this LAMMPS configuration:\n";
         for (auto prerequisite : test_config.prerequisites) {
             std::cerr << prerequisite.first << "_style "
@@ -1429,7 +1429,7 @@ TEST(PairStyle, opt) {
     std::string output = ::testing::internal::GetCapturedStdout();
 
     if (!lmp) {
-        std::cerr << "One ore more prerequisite styles with /opt suffix\n"
+        std::cerr << "One or more prerequisite styles with /opt suffix\n"
             "are not available in this LAMMPS configuration:\n";
         for (auto prerequisite : test_config.prerequisites) {
             std::cerr << prerequisite.first << "_style "
@@ -1530,7 +1530,7 @@ TEST(PairStyle, single) {
     LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
     std::string output = ::testing::internal::GetCapturedStdout();
     if (!lmp) {
-        std::cerr << "One ore more prerequisite styles are not available "
+        std::cerr << "One or more prerequisite styles are not available "
             "in this LAMMPS configuration:\n";
         for (auto prerequisite : test_config.prerequisites) {
             std::cerr << prerequisite.first << "_style "
@@ -1648,10 +1648,10 @@ TEST(PairStyle, single) {
     double epair[4], esngl[4];
     double splj = lmp->force->special_lj[1];
     double spcl = lmp->force->special_coul[1];
+    ErrorStats stats;
+
     epair[0] = pair->eng_vdwl + pair->eng_coul;
     esngl[0] = pair->single(idx1, idx2, 1, 2, rsq, splj, spcl, fsingle);
-
-    ErrorStats stats;
     EXPECT_FP_LE_WITH_EPS(f[idx1][0],-fsingle*delx, epsilon);
     EXPECT_FP_LE_WITH_EPS(f[idx1][1],-fsingle*dely, epsilon);
     EXPECT_FP_LE_WITH_EPS(f[idx1][2],-fsingle*delz, epsilon);
@@ -1664,6 +1664,10 @@ TEST(PairStyle, single) {
     lmp->input->one("run 0 post no");
     output = ::testing::internal::GetCapturedStdout();
 
+    f = lmp->atom->f;
+    x = lmp->atom->x;
+    idx1 = lmp->atom->map(1);
+    idx2 = lmp->atom->map(2);
     delx = x[idx2][0] - x[idx1][0];
     dely = x[idx2][1] - x[idx1][1];
     delz = x[idx2][2] - x[idx1][2];
@@ -1684,6 +1688,10 @@ TEST(PairStyle, single) {
     lmp->input->one("run 0 post no");
     output = ::testing::internal::GetCapturedStdout();
 
+    f = lmp->atom->f;
+    x = lmp->atom->x;
+    idx1 = lmp->atom->map(1);
+    idx2 = lmp->atom->map(2);
     delx = x[idx2][0] - x[idx1][0];
     dely = x[idx2][1] - x[idx1][1];
     delz = x[idx2][2] - x[idx1][2];
@@ -1704,6 +1712,10 @@ TEST(PairStyle, single) {
     lmp->input->one("run 0 post no");
     output = ::testing::internal::GetCapturedStdout();
 
+    f = lmp->atom->f;
+    x = lmp->atom->x;
+    idx1 = lmp->atom->map(1);
+    idx2 = lmp->atom->map(2);
     delx = x[idx2][0] - x[idx1][0];
     dely = x[idx2][1] - x[idx1][1];
     delz = x[idx2][2] - x[idx1][2];
@@ -1744,7 +1756,7 @@ TEST(PairStyle, extract) {
     std::string output = ::testing::internal::GetCapturedStdout();
 
     if (!lmp) {
-        std::cerr << "One ore more prerequisite styles are not available "
+        std::cerr << "One or more prerequisite styles are not available "
             "in this LAMMPS configuration:\n";
         for (auto prerequisite : test_config.prerequisites) {
             std::cerr << prerequisite.first << "_style "

@@ -71,7 +71,6 @@ class TILD : public KSpace{
   double gsqmx,volume;
   int nmax;
   void complex_multiply(FFT_SCALAR*,FFT_SCALAR*,FFT_SCALAR*, int);
-  void complex_multiply(double*,double*, int);
   double **potent_param;
   int npot, *pot_map;
   int ***potent_type_map;
@@ -195,11 +194,7 @@ class TILD : public KSpace{
                              int, int, int);
   // virtual void make_rho();
   virtual void make_rho();
-  virtual void brick2fft(int, int, int, int, int, int,
-                         FFT_SCALAR ***, FFT_SCALAR *, FFT_SCALAR *,
-                         LAMMPS_NS::Remap *);
-  virtual void brick2fft();
-  virtual void brick2fft_none();
+  void brick2fft();
   void ev_calculation(int, int, int);
   //void ev_calculation();
 

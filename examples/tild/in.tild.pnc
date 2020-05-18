@@ -29,7 +29,8 @@ bond_coeff      * 1.5 0
 
 # Mesh parameters
 kspace_style    tild 1.0e-4
-kspace_modify   mesh 25 25 320
+kspace_modify   mesh 25 25 128
+#kspace_modify   mesh 25 25 320
 kspace_modify   order 2 #1
 kspace_modify   order/disp 2 #1
 
@@ -43,7 +44,7 @@ kspace_modify   mix convolution
 kspace_modify   tild/chi * * 0.0
 kspace_modify   tild/chi 1 2 0.0175
 kspace_modify   tild/chi 2 3 0.0175
-kspace_modify   set_rho0 yes 2.276
+kspace_modify   set_rho0 2.276
 kspace_modify   subtract_rho0 no #yes
 kspace_modify   normalize_by_rho0 yes
 
@@ -56,26 +57,11 @@ fix             3 all langevin 1.0 1.0 100.0 12345 gjf yes zero yes
 dump            trj all custom 1 diblock-mpi.lammpstrj id type mol x y z
 
 thermo          1
-group           testpair1 id 267143 267144
-group           testpair2 id 264397 264447
-group           testpair3 id 264397 264397
-variable a1 equal x[267143]-x[267144]
-variable a2 equal y[267143]-y[267144]
-variable a3 equal z[267143]-z[267144]
-variable b1 equal x[264398]-x[264397]
-variable b2 equal y[264398]-y[264397]
-variable b3 equal z[264398]-z[264397]
-variable c1 equal x[264398]-x[264447]
-variable c2 equal y[264398]-y[264447]
-variable c3 equal z[264398]-z[264447]
-variable dist_sq_a equal v_a1*v_a1+v_a2*v_a2+v_a3*v_a3
-variable dist_sq_b equal v_b1*v_b1+v_b2*v_b2+v_b3*v_b3
-variable dist_sq_c equal v_c1*v_c1+v_c2*v_c2+v_c3*v_c3
-thermo_style    custom step ebond epair ecoul pe temp press pxx pyy pzz pxy pxz pyz v_dist_sq_a v_dist_sq_b v_dist_sq_c
+thermo_style    custom step ebond epair ecoul pe temp press pxx pyy pzz pxy pxz pyz 
 thermo_modify   norm no
 
 timestep        0.02
-run             10
+run             0
 
 
 # the last atom id that corresponds to 
@@ -86,3 +72,18 @@ run             10
 #group           gNP subtract all solvent
 #group           NP union P anchors
 #group           tethers subtract gNP NP
+#group           testpair1 id 267143 267144
+#group           testpair2 id 264397 264447
+#group           testpair3 id 264397 264397
+#variable a1 equal x[267143]-x[267144]
+#variable a2 equal y[267143]-y[267144]
+#variable a3 equal z[267143]-z[267144]
+#variable b1 equal x[264398]-x[264397]
+#variable b2 equal y[264398]-y[264397]
+#variable b3 equal z[264398]-z[264397]
+#variable c1 equal x[264398]-x[264447]
+#variable c2 equal y[264398]-y[264447]
+#variable c3 equal z[264398]-z[264447]
+#variable dist_sq_a equal v_a1*v_a1+v_a2*v_a2+v_a3*v_a3
+#variable dist_sq_b equal v_b1*v_b1+v_b2*v_b2+v_b3*v_b3
+#variable dist_sq_c equal v_c1*v_c1+v_c2*v_c2+v_c3*v_c3

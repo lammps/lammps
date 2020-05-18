@@ -59,3 +59,43 @@ TEST(Tokenizer, for_loop) {
     ASSERT_THAT(list[0], Eq("test"));
     ASSERT_THAT(list[1], Eq("word"));
 }
+
+TEST(ValueTokenizer, empty_string) {
+    ValueTokenizer values("");
+    ASSERT_FALSE(values.has_next());
+}
+
+TEST(ValueTokenizer, bad_integer) {
+    ValueTokenizer values("f10");
+    ASSERT_THROW(values.next_int(), InvalidIntegerException);
+}
+
+TEST(ValueTokenizer, bad_double) {
+    ValueTokenizer values("1a.0");
+    ASSERT_THROW(values.next_double(), InvalidFloatException);
+}
+
+TEST(ValueTokenizer, valid_int) {
+    ValueTokenizer values("10");
+    ASSERT_EQ(values.next_int(), 10);
+}
+
+TEST(ValueTokenizer, valid_tagint) {
+    ValueTokenizer values("42");
+    ASSERT_EQ(values.next_tagint(), 42);
+}
+
+TEST(ValueTokenizer, valid_bigint) {
+    ValueTokenizer values("42");
+    ASSERT_EQ(values.next_bigint(), 42);
+}
+
+TEST(ValueTokenizer, valid_double) {
+    ValueTokenizer values("3.14");
+    ASSERT_DOUBLE_EQ(values.next_double(), 3.14);
+}
+
+TEST(ValueTokenizer, valid_double_with_exponential) {
+    ValueTokenizer values("3.14e22");
+    ASSERT_DOUBLE_EQ(values.next_double(), 3.14e22);
+}

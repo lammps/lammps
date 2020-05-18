@@ -20,6 +20,8 @@
 
 #include <string>
 #include <vector>
+#include "lmptype.h"
+#include <exception>
 
 namespace LAMMPS_NS {
 
@@ -27,15 +29,61 @@ class Tokenizer {
     std::vector<std::string> tokens;
 public:
     typedef std::vector<std::string>::iterator iterator;
+    typedef std::vector<std::string>::const_iterator const_iterator;
 
     Tokenizer(const std::string & str, const std::string & seperators = " \t\r\n\f");
 
     iterator begin();
     iterator end();
+    const_iterator cbegin() const;
+    const_iterator cend() const;
 
     const std::string & operator[](size_t index);
     const size_t count() const;
 };
+
+class TokenizerException : public std::exception {
+  std::string message;
+public:
+  TokenizerException(const std::string & msg, const std::string & token) : message(msg + ": '" + token + "'") {
+  }
+
+  ~TokenizerException() throw() {
+  }
+
+  virtual const char * what() const throw() {
+    return message.c_str();
+  }
+};
+
+class InvalidIntegerException : public TokenizerException {
+public:
+    InvalidIntegerException(const std::string & token) : TokenizerException("Not a valid integer number", token) {
+    }
+};
+
+class InvalidFloatException : public TokenizerException {
+public:
+    InvalidFloatException(const std::string & token) : TokenizerException("Not a valid floating-point number", token) {
+    }
+};
+
+class ValueTokenizer {
+    Tokenizer tokens;
+    Tokenizer::const_iterator current;
+public:
+    ValueTokenizer(const std::string & str, const std::string & seperators = " \t\r\n\f");
+
+    std::string next_string();
+    tagint next_tagint();
+    bigint next_bigint();
+    int    next_int();
+    double next_double();
+
+    bool has_next() const;
+    void skip(int ntokens);
+};
+
 
 }
 

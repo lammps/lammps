@@ -39,6 +39,8 @@ public:
     void pair_coeff(const yaml_event_t & event);
     void bond_style(const yaml_event_t & event);
     void bond_coeff(const yaml_event_t & event);
+    void angle_style(const yaml_event_t & event);
+    void angle_coeff(const yaml_event_t & event);
     void init_vdwl(const yaml_event_t & event);
     void init_coul(const yaml_event_t & event);
     void run_vdwl(const yaml_event_t & event);

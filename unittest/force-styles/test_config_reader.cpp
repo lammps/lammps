@@ -177,6 +177,20 @@ void TestConfigReader::bond_coeff(const yaml_event_t & event) {
     }
 }
 
+void TestConfigReader::angle_style(const yaml_event_t & event) {
+        config.angle_style = (char *)event.data.scalar.value;
+}
+
+void TestConfigReader::angle_coeff(const yaml_event_t & event) {
+    config.angle_coeff.clear();
+    std::stringstream data((char *)event.data.scalar.value);
+    std::string line;
+
+    while (std::getline(data, line, '\n')) {
+        config.angle_coeff.push_back(line);
+    }
+}
+
 void TestConfigReader::init_vdwl(const yaml_event_t & event) {
     config.init_vdwl = atof((char *)event.data.scalar.value);
 }

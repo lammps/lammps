@@ -12,6 +12,7 @@ add_executable(pair_style pair_style.cpp ${TEST_COMMON_FILES})
 target_link_libraries(pair_style PRIVATE lammps GTest::GMock GTest::GTest Yaml::Yaml)
 target_compile_definitions(pair_style PRIVATE TEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
 
+# tests for a molecular system and related pair styles
 file(GLOB MOL_PAIR_TESTS LIST_DIRECTORIES false mol-pair-*.yaml)
 foreach(TEST ${MOL_PAIR_TESTS})
   string(REGEX REPLACE "^.*mol-pair-(.*)\.yaml" "MolPairStyle:\\1" TNAME ${TEST})
@@ -19,8 +20,9 @@ foreach(TEST ${MOL_PAIR_TESTS})
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endforeach()
 
-file(GLOB MOL_PAIR_TESTS LIST_DIRECTORIES false atomic-pair-*.yaml)
-foreach(TEST ${MOL_PAIR_TESTS})
+# tests for a molecular system and related pair styles
+file(GLOB ATOMIC_PAIR_TESTS LIST_DIRECTORIES false atomic-pair-*.yaml)
+foreach(TEST ${ATOMIC_PAIR_TESTS})
   string(REGEX REPLACE "^.*atomic-pair-(.*)\.yaml" "AtomicPairStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND pair_style ${TEST}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
@@ -36,6 +38,18 @@ file(GLOB BOND_TESTS LIST_DIRECTORIES false bond-*.yaml)
 foreach(TEST ${BOND_TESTS})
   string(REGEX REPLACE "^.*bond-(.*)\.yaml" "BondStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND bond_style ${TEST}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+endforeach()
+
+# angle style tester
+add_executable(angle_style angle_style.cpp ${TEST_COMMON_FILES})
+target_link_libraries(angle_style PRIVATE lammps GTest::GMock GTest::GTest Yaml::Yaml)
+target_compile_definitions(angle_style PRIVATE TEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
+
+file(GLOB ANGLE_TESTS LIST_DIRECTORIES false angle-*.yaml)
+foreach(TEST ${ANGLE_TESTS})
+  string(REGEX REPLACE "^.*angle-(.*)\.yaml" "AngleStyle:\\1" TNAME ${TEST})
+  add_test(NAME ${TNAME} COMMAND angle_style ${TEST}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endforeach()
 

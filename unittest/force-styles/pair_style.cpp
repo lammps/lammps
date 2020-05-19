@@ -4,6 +4,8 @@
 #include "yaml_writer.h"
 #include "error_stats.h"
 #include "test_config.h"
+#include "test_config_reader.h"
+#include "test_main.h"
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
@@ -23,8 +25,6 @@
 #include <cstring>
 #include <cstdlib>
 #include <cctype>
-#include <cerrno>
-#include <cmath>
 #include <ctime>
 
 #include <iostream>
@@ -33,28 +33,8 @@
 #include <utility>
 #include <vector>
 
-#include "yaml.h"
-
 using ::testing::StartsWith;
 using ::testing::HasSubstr;
-
-// test configuration settings read from yaml file
-TestConfig test_config;
-
-// whether to print error statistics
-bool print_stats = false;
-
-// whether to print verbose output (e.g. not capturing LAMMPS screen output.
-bool verbose = false;
-
-#define EXPECT_FP_LE_WITH_EPS(val1,val2,eps)                \
-    do {                                                    \
-        const double diff = fabs(val1-val2);                \
-        const double div = std::min(fabs(val1),fabs(val2)); \
-        const double err = (div == 0.0) ? diff : diff/div;  \
-        stats.add(err);                                     \
-        EXPECT_PRED_FORMAT2(::testing::DoubleLE, err, eps); \
-    } while (0);
 
 void cleanup_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
 {
@@ -211,195 +191,44 @@ void data_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
     lmp->input->one("run 0 post no");
 }
 
-class TestConfigReader : public YamlReader<TestConfigReader> {
-    TestConfig & config;
-
+class PairConfigReader : public TestConfigReader
+{
 public:
-    TestConfigReader(TestConfig & config) : YamlReader(), config(config) {
-        consumers["lammps_version"] = &TestConfigReader::lammps_version;
-        consumers["date_generated"] = &TestConfigReader::date_generated;
-        consumers["epsilon"]        = &TestConfigReader::epsilon;
-        consumers["prerequisites"]  = &TestConfigReader::prerequisites;
-        consumers["pre_commands"]   = &TestConfigReader::pre_commands;
-        consumers["post_commands"]  = &TestConfigReader::post_commands;
-        consumers["input_file"]     = &TestConfigReader::input_file;
+    PairConfigReader(TestConfig &config) : TestConfigReader(config) {
         consumers["pair_style"]     = &TestConfigReader::pair_style;
         consumers["pair_coeff"]     = &TestConfigReader::pair_coeff;
-        consumers["extract"]        = &TestConfigReader::extract;
-        consumers["natoms"]         = &TestConfigReader::natoms;
         consumers["init_vdwl"]      = &TestConfigReader::init_vdwl;
         consumers["init_coul"]      = &TestConfigReader::init_coul;
         consumers["run_vdwl"]       = &TestConfigReader::run_vdwl;
         consumers["run_coul"]       = &TestConfigReader::run_coul;
-        consumers["init_stress"]    = &TestConfigReader::init_stress;
-        consumers["run_stress"]     = &TestConfigReader::run_stress;
-        consumers["init_forces"]    = &TestConfigReader::init_forces;
-        consumers["run_forces"]     = &TestConfigReader::run_forces;
-    }
-
-protected:
-
-    void prerequisites(const yaml_event_t & event) {
-        config.prerequisites.clear();
-        std::stringstream data((char *)event.data.scalar.value);
-        std::string line;
-
-        while(std::getline(data, line, '\n')) {
-            std::size_t found = line.find_first_of(" \t");
-            std::string key = line.substr(0,found);
-            found = line.find_first_not_of(" \t",found);
-            // skip invalid data
-            if (found == std::string::npos) {
-                std::cerr << "Skipping invalid prerequisite line:\n"
-                          << line << std::endl;
-                continue;
-            }
-            std::string value = line.substr(found,line.find_first_of(" \t",found));
-            test_config.prerequisites.push_back(std::pair<std::string,std::string>(key,value));
-        }
-    }
-    void pre_commands(const yaml_event_t & event) {
-        config.pre_commands.clear();
-        std::stringstream data((char *)event.data.scalar.value);
-        std::string line;
-
-        while(std::getline(data, line, '\n')) {
-            test_config.pre_commands.push_back(line);
-        }
-    }
-
-    void post_commands(const yaml_event_t & event) {
-        config.post_commands.clear();
-        std::stringstream data((char *)event.data.scalar.value);
-        std::string line;
-
-        while (std::getline(data, line, '\n')) {
-            test_config.post_commands.push_back(line);
-        }
-    }
-
-    void lammps_version(const yaml_event_t & event) {
-        config.lammps_version = (char *)event.data.scalar.value;
-    }
-
-    void date_generated(const yaml_event_t & event) {
-        config.date_generated = (char *)event.data.scalar.value;
-    }
-
-    void epsilon(const yaml_event_t & event) {
-        config.epsilon = atof((char *)event.data.scalar.value);
-    }
-
-    void input_file(const yaml_event_t & event) {
-        config.input_file = (char *)event.data.scalar.value;
-    }
-
-    void pair_style(const yaml_event_t & event) {
-        config.pair_style = (char *)event.data.scalar.value;
-    }
-
-    void pair_coeff(const yaml_event_t & event) {
-        config.pair_coeff.clear();
-        std::stringstream data((char *)event.data.scalar.value);
-        std::string line;
-
-        while (std::getline(data, line, '\n')) {
-            test_config.pair_coeff.push_back(line);
-        }
-    }
-
-    void extract(const yaml_event_t & event) {
-        config.extract.clear();
-        std::stringstream data((char *)event.data.scalar.value);
-        std::string line;
-
-        while (std::getline(data, line, '\n')) {
-            std::size_t found = line.find_first_of(" \t");
-            std::pair<std::string,int> data;
-            data.first = line.substr(0,found);
-            data.second = atoi(line.substr(found).c_str());
-            test_config.extract.push_back(data);
-        }
-    }
-
-    void natoms(const yaml_event_t & event) {
-        config.natoms = atoi((char *)event.data.scalar.value);
-    }
-
-    void init_vdwl(const yaml_event_t & event) {
-        config.init_vdwl = atof((char *)event.data.scalar.value);
-    }
-
-    void init_coul(const yaml_event_t & event) {
-        config.init_coul = atof((char *)event.data.scalar.value);
-    }
-
-    void run_vdwl(const yaml_event_t & event) {
-        config.run_vdwl = atof((char *)event.data.scalar.value);
-    }
-
-    void run_coul(const yaml_event_t & event) {
-        config.run_coul = atof((char *)event.data.scalar.value);
-    }
-
-    void init_stress(const yaml_event_t & event) {
-        stress_t stress;
-        sscanf((char *)event.data.scalar.value,
-                "%lg %lg %lg %lg %lg %lg",
-                &stress.xx, &stress.yy, &stress.zz,
-                &stress.xy, &stress.xz, &stress.yz);
-        config.init_stress = stress;
-    }
-
-    void run_stress(const yaml_event_t & event) {
-        stress_t stress;
-        sscanf((char *)event.data.scalar.value,
-                "%lg %lg %lg %lg %lg %lg",
-                &stress.xx, &stress.yy, &stress.zz,
-                &stress.xy, &stress.xz, &stress.yz);
-        config.run_stress = stress;
-    }
-
-    void init_forces(const yaml_event_t & event) {
-        config.init_forces.clear();
-        config.init_forces.resize(config.natoms+1);
-        std::stringstream data((const char*)event.data.scalar.value);
-        std::string line;
-
-        while(std::getline(data, line, '\n')) {
-            int tag = 0;
-            coord_t xyz;
-            sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
-            config.init_forces[tag] = xyz;
-        }
-    }
-
-    void run_forces(const yaml_event_t & event) {
-        config.run_forces.clear();
-        config.run_forces.resize(config.natoms+1);
-        std::stringstream data((char *)event.data.scalar.value);
-        std::string line;
-
-        while(std::getline(data, line, '\n')) {
-            int tag;
-            coord_t xyz;
-            sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
-            config.run_forces[tag] = xyz;
-        }
     }
 };
 
-void generate(const char *outfile) {
+// read/parse yaml file
 
-    // initialize molecular system geometry
+bool read_yaml_file(const char *infile, TestConfig &config)
+{
+    auto reader = PairConfigReader(config);
+    if (reader.parse_file(infile))
+        return false;
+    
+    config.basename = reader.get_basename();
+    return true;
+}
+
+// re-generate yaml file with current settings.
+
+void generate_yaml_file(const char *outfile, const TestConfig &config)
+{
+    // initialize system geometry
     const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite" };
     char **argv = (char **)args;
     int argc = sizeof(args)/sizeof(char *);
-    LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
+    LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,config);
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
             "in this LAMMPS configuration:\n";
-        for (auto prerequisite : test_config.prerequisites) {
+        for (auto prerequisite : config.prerequisites) {
             std::cerr << prerequisite.first << "_style "
                       << prerequisite.second << "\n";
         }
@@ -423,38 +252,38 @@ void generate(const char *outfile) {
     writer.emit("date_generated", block);
 
     // epsilon
-    writer.emit("epsilon", test_config.epsilon);
+    writer.emit("epsilon", config.epsilon);
 
     // prerequisites
     block.clear();
-    for (auto prerequisite :  test_config.prerequisites) {
+    for (auto prerequisite :  config.prerequisites) {
         block += prerequisite.first + " " + prerequisite.second + "\n";
     }
     writer.emit_block("prerequisites", block);
 
     // pre_commands
     block.clear();
-    for (auto command :  test_config.pre_commands) {
+    for (auto command :  config.pre_commands) {
         block += command + "\n";
     }
     writer.emit_block("pre_commands", block);
 
     // post_commands
     block.clear();
-    for (auto command : test_config.post_commands) {
+    for (auto command : config.post_commands) {
         block += command + "\n";
     }
     writer.emit_block("post_commands", block);
 
     // input_file
-    writer.emit("input_file", test_config.input_file);
+    writer.emit("input_file", config.input_file);
 
     // pair_style
-    writer.emit("pair_style", test_config.pair_style);
+    writer.emit("pair_style", config.pair_style);
 
     // pair_coeff
     block.clear();
-    for (auto pair_coeff : test_config.pair_coeff) {
+    for (auto pair_coeff : config.pair_coeff) {
         block += pair_coeff + "\n";
     }
     writer.emit_block("pair_coeff", block);
@@ -462,7 +291,7 @@ void generate(const char *outfile) {
     // extract
     block.clear();
     std::stringstream outstr;
-    for (auto data : test_config.extract) {
+    for (auto data : config.extract) {
         outstr << data.first << " " << data.second << std::endl;
     }
     writer.emit_block("extract", outstr.str());
@@ -518,7 +347,7 @@ void generate(const char *outfile) {
     }
     writer.emit_block("run_forces", block);
 
-    cleanup_lammps(lmp,test_config);
+    cleanup_lammps(lmp,config);
     return;
 }
 
@@ -1431,39 +1260,4 @@ TEST(PairStyle, extract) {
     ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp,test_config);
     ::testing::internal::GetCapturedStdout();
-}
-
-int main(int argc, char **argv)
-{
-    MPI_Init(&argc, &argv);
-    ::testing::InitGoogleTest(&argc, argv);
-
-    if ((argc != 2) && (argc != 4)) {
-        std::cerr << "usage: " << argv[0] << " <testfile.yaml> "
-            "[--gen <newfile.yaml> |"
-            " --stats <yes|no>]" << std::endl;
-        return 1;
-    }
-
-    auto reader = TestConfigReader(test_config);
-    if (reader.parse_file(argv[1])) {
-        std::cerr << "Error parsing yaml file: " << argv[1] << std::endl;
-        return 2;
-    }
-    test_config.basename = reader.get_basename();
-
-    if (argc == 4) {
-        if (strcmp(argv[2],"--gen") == 0) {
-            generate(argv[3]);
-            return 0;
-        } else if (strcmp(argv[2],"--stats") == 0) {
-            if (strcmp(argv[3],"yes") == 0) print_stats = true;
-        } else {
-            std::cerr << "usage: " << argv[0] << " <testfile.yaml> "
-                "[--gen <newfile.yaml> |"
-                " --stats <yes|no>]" << std::endl;
-            return 1;
-        }
-    }
-    return RUN_ALL_TESTS();
 }

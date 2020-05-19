@@ -5,8 +5,10 @@ if(NOT YAML_FOUND)
   return()
 endif()
 
+set(TEST_COMMON_FILES yaml_writer.cpp;error_stats.cpp;test_config_reader.cpp;test_main.cpp)
+
 # pair style tester
-add_executable(pair_style pair_style.cpp yaml_writer.cpp error_stats.cpp)
+add_executable(pair_style pair_style.cpp ${TEST_COMMON_FILES})
 target_link_libraries(pair_style PRIVATE lammps GTest::GMock GTest::GTest Yaml::Yaml)
 target_compile_definitions(pair_style PRIVATE TEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -26,7 +28,7 @@ foreach(TEST ${MOL_PAIR_TESTS})
 endforeach()
 
 # bond style tester
-add_executable(bond_style bond_style.cpp yaml_writer.cpp error_stats.cpp)
+add_executable(bond_style bond_style.cpp ${TEST_COMMON_FILES})
 target_link_libraries(bond_style PRIVATE lammps GTest::GMock GTest::GTest Yaml::Yaml)
 target_compile_definitions(bond_style PRIVATE TEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
 

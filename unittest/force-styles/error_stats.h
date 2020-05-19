@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#if !defined(ERROR_STATS_H)
+#ifndef ERROR_STATS_H
 #define ERROR_STATS_H
 
 #include <iostream>

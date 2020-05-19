@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#if !defined(TEST_CONFIG_H)
+#ifndef TEST_CONFIG_H
 #define TEST_CONFIG_H
 
 #include <string>

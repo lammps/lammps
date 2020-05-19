@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#if !defined(YAML_WRITER_H)
+#ifndef YAML_WRITER_H
 #define YAML_WRITER_H
 
 #include "yaml.h"

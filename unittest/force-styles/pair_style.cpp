@@ -1,11 +1,19 @@
-// unit tests for bond styles intended for molecular systems
+// unit tests for pair styles intended for molecular systems
+
+#include "yaml_reader.h"
+#include "yaml_writer.h"
+#include "error_stats.h"
+#include "test_config.h"
+
+#include "gtest/gtest.h"
+#include "gmock/gmock.h"
 
 #include "lammps.h"
 #include "atom.h"
 #include "modify.h"
 #include "compute.h"
 #include "force.h"
-#include "bond.h"
+#include "pair.h"
 #include "info.h"
 #include "input.h"
 #include "universe.h"
@@ -25,120 +33,19 @@
 #include <utility>
 #include <vector>
 
-#include "gtest/gtest.h"
-#include "gmock/gmock.h"
 #include "yaml.h"
 
 using ::testing::StartsWith;
 using ::testing::HasSubstr;
 
-struct coord_t {
-    double x,y,z;
-};
-
-struct stress_t {
-    double xx,yy,zz,xy,xz,yz;
-};
-
-class TestConfig {
-public:
-    std::string lammps_version;
-    std::string date_generated;
-    std::string basename;
-    double epsilon;
-    std::vector<std::pair<std::string,std::string>> prerequisites;
-    std::vector<std::string> pre_commands;
-    std::vector<std::string> post_commands;
-    std::string input_file;
-    std::string bond_style;
-    std::vector<std::string> bond_coeff;
-    std::vector<std::pair<std::string,int>> extract;
-    int natoms;
-    double init_energy;
-    double run_energy;
-    stress_t init_stress;
-    stress_t run_stress;
-    std::vector<coord_t> init_forces;
-    std::vector<coord_t> run_forces;
-    TestConfig() : lammps_version(""),
-                   date_generated(""),
-                   basename(""),
-                   epsilon(1.0e-14),
-                   input_file(""),
-                   bond_style("zero"),
-                   natoms(0),
-                   init_energy(0),
-                   run_energy(0),
-                   init_stress({0,0,0,0,0,0}),
-                   run_stress({0,0,0,0,0,0}) {
-        prerequisites.clear();
-        pre_commands.clear();
-        post_commands.clear();
-        bond_coeff.clear();
-        extract.clear();
-        init_forces.clear();
-        run_forces.clear();
-    }
-};
-
+// test configuration settings read from yaml file
 TestConfig test_config;
 
 // whether to print error statistics
 bool print_stats = false;
 
-class ErrorStats
-{
-public:
-    friend std::ostream &operator<<(std::ostream &out, const ErrorStats &stats);
-    ErrorStats() {
-            reset();
-    }
-    virtual ~ErrorStats() {}
-    void reset() {
-        num = 0;
-        maxidx = -1;
-        sum = sumsq = maxerr =0.0;
-    }
-    void add(const double &val) {
-        ++num;
-        if (val > maxerr) {
-            maxidx = num;
-            maxerr = val;
-        }
-        sum += val;
-        sumsq += val*val;
-    }
-    double avg() const {
-        return (num > 0) ? sum/num : 0.0;
-    }
-    double dev() const {
-        return (num > 0) ? sqrt(sumsq/num - sum/num*sum/num) : 0.0;
-    }
-    double max() const { return maxerr; }
-    double idx() const { return maxidx; }
-
-private:
-    double sum,sumsq,maxerr;
-    int num,maxidx;
-};
-
-std::ostream &operator<<(std::ostream &out, const ErrorStats &stats)
-{
-    const std::ios_base::fmtflags flags = out.flags();
-    const std::streamsize width = out.width(10);
-    const std::streamsize prec = out.precision(3);
-
-    out << std::scientific
-        << "Average: " << stats.avg()
-        << " StdDev: " << stats.dev()
-        << " MaxErr: " << stats.max();
-
-    out.precision(prec);
-    out.width(width);
-    out.flags(flags);
-
-    return out << " @ item: " << stats.idx();
-}
+// whether to print verbose output (e.g. not capturing LAMMPS screen output.
+bool verbose = false;
 
 #define EXPECT_FP_LE_WITH_EPS(val1,val2,eps)                \
     do {                                                    \
@@ -176,9 +83,9 @@ LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv,
     for (auto prerequisite : cfg.prerequisites) {
         std::string style = prerequisite.second;
 
-        // this is a test for bond styles, so if the suffixed
+        // this is a test for pair styles, so if the suffixed
         // version is not available, there is no reason to test.
-        if (prerequisite.first == "bond") {
+        if (prerequisite.first == "pair") {
             if (lmp->suffix_enable) {
                 style += "/";
                 style += lmp->suffix;
@@ -194,9 +101,9 @@ LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv,
     }
 
     if (newton) {
-        lmp->input->one("variable newton_bond index on");
+        lmp->input->one("variable newton_pair index on");
     } else {
-        lmp->input->one("variable newton_bond index off");
+        lmp->input->one("variable newton_pair index off");
     }
 
 #define STRINGIFY(val) XSTR(val)
@@ -214,11 +121,11 @@ LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv,
 #undef STRINGIFY
 #undef XSTR
 
-    std::string cmd("bond_style ");
-    cmd += cfg.bond_style;
+    std::string cmd("pair_style ");
+    cmd += cfg.pair_style;
     lmp->input->one(cmd.c_str());
-    for (auto bond_coeff : cfg.bond_coeff) {
-        cmd = "bond_coeff " + bond_coeff;
+    for (auto pair_coeff : cfg.pair_coeff) {
+        cmd = "pair_coeff " + pair_coeff;
         lmp->input->one(cmd.c_str());
     }
     for (auto post_command : cfg.post_commands)
@@ -251,14 +158,14 @@ void restart_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
     cmd += cfg.basename + ".restart";
     lmp->input->one(cmd.c_str());
 
-    if (!lmp->force->bond) {
-        cmd = "bond_style " + cfg.bond_style;
+    if (!lmp->force->pair) {
+        cmd = "pair_style " + cfg.pair_style;
         lmp->input->one(cmd.c_str());
     }
-    if ((cfg.bond_style.substr(0,6) == "hybrid")
-        || !lmp->force->bond->writedata) {
-        for (auto bond_coeff : cfg.bond_coeff) {
-            cmd = "bond_coeff " + bond_coeff;
+    if (!lmp->force->pair->restartinfo
+        || !lmp->force->pair->writedata) {
+        for (auto pair_coeff : cfg.pair_coeff) {
+            cmd = "pair_coeff " + pair_coeff;
             lmp->input->one(cmd.c_str());
         }
     }
@@ -270,16 +177,16 @@ void restart_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
 void data_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
 {
     lmp->input->one("clear");
-    lmp->input->one("variable bond_style delete");
-    lmp->input->one("variable data_file  delete");
-    lmp->input->one("variable newton_bond delete");
-    lmp->input->one("variable newton_bond index on");
+    lmp->input->one("variable pair_style  delete");
+    lmp->input->one("variable data_file   delete");
+    lmp->input->one("variable newton_pair delete");
+    lmp->input->one("variable newton_pair index on");
 
     for (auto pre_command : cfg.pre_commands)
         lmp->input->one(pre_command.c_str());
 
-    std::string cmd("variable bond_style index '");
-    cmd += cfg.bond_style + "'";
+    std::string cmd("variable pair_style index '");
+    cmd += cfg.pair_style + "'";
     lmp->input->one(cmd.c_str());
 
     cmd = "variable data_file index ";
@@ -295,170 +202,14 @@ void data_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
 #undef STRINGIFY
 #undef XSTR
 
-    for (auto bond_coeff : cfg.bond_coeff) {
-        cmd = "bond_coeff " + bond_coeff;
+    for (auto pair_coeff : cfg.pair_coeff) {
+        cmd = "pair_coeff " + pair_coeff;
         lmp->input->one(cmd.c_str());
     }
     for (auto post_command : cfg.post_commands)
         lmp->input->one(post_command.c_str());
     lmp->input->one("run 0 post no");
 }
-
-template<typename ConsumerClass>
-class YamlReader {
-    enum StateValue {
-        START,
-        ACCEPT_KEY,
-        ACCEPT_VALUE,
-        STOP,
-        ERROR,
-    };
-
-    StateValue state;
-    bool accepted;
-    std::string key;
-    std::string basename;
-
-protected:
-    typedef void (ConsumerClass::*EventConsumer)(const yaml_event_t & event);
-    std::map<std::string, EventConsumer> consumers;
-
-public:
-    YamlReader() {
-    }
-
-    virtual ~YamlReader() {
-    }
-
-    std::string get_basename() const { return basename; }
-
-    int parse_file(const std::string & infile) {
-        basename = infile;
-        std::size_t found = basename.rfind(".yaml");
-        if (found > 0) basename = basename.substr(0,found);
-        found = basename.find_last_of("/\\");
-        if (found != std::string::npos) basename = basename.substr(found+1);
-
-        FILE * fp = fopen(infile.c_str(),"r");
-        yaml_parser_t parser;
-        yaml_event_t event;
-
-        if (!fp) {
-            std::cerr << "Cannot open yaml file '" << infile
-                    << "': " << strerror(errno) << std::endl;
-            return 1;
-        }
-        yaml_parser_initialize(&parser);
-        yaml_parser_set_input_file(&parser, fp);
-        state = START;
-        do {
-            if (!yaml_parser_parse(&parser, &event)) {
-                state = STOP;
-            }
-
-            if (!consume_event(event)) {
-                state = STOP;
-            }
-
-            if (accepted) {
-                if(!consume_key_value(key, event)){
-                    std::cerr << "Ignoring unknown key/value pair: " << key
-                                << " = " << event.data.scalar.value << std::endl;
-                }
-            }
-            yaml_event_delete(&event);
-        } while (state != STOP);
-
-        yaml_parser_delete(&parser);
-        fclose(fp);
-        return 0;
-    }
-
-protected:
-    bool consume_key_value(const std::string & key, const yaml_event_t & event) {
-        auto it = consumers.find(key);
-        ConsumerClass * consumer = dynamic_cast<ConsumerClass*>(this);
-
-        if(consumer) {
-            if(it != consumers.end()) {
-                //std::cerr << "Loading: " << key << std::endl;
-                (consumer->*(it->second))(event);
-                return true;
-            }
-            std::cerr << "UNKNOWN" << std::endl;
-        } else {
-            std::cerr << "ConsumerClass is not valid" << std::endl;
-        }
-        return false;
-    }
-
-    bool consume_event(yaml_event_t & event) {
-        accepted = false;
-        switch (state) {
-        case START:
-            switch (event.type) {
-                case YAML_MAPPING_START_EVENT:
-                    state = ACCEPT_KEY;
-                    break;
-                case YAML_SCALAR_EVENT:
-                case YAML_SEQUENCE_START_EVENT:
-                    state = ERROR;
-                    break;
-                case YAML_STREAM_END_EVENT:
-                    state = STOP;
-                    break;
-                case YAML_STREAM_START_EVENT:
-                case YAML_DOCUMENT_START_EVENT:
-                case YAML_DOCUMENT_END_EVENT:
-                    // ignore
-                    break;
-                default:
-                    std::cerr << "UNHANDLED YAML EVENT:  " << event.type << std::endl;
-                    state = ERROR;
-                    break;
-            }
-            break;
-
-        case ACCEPT_KEY:
-            switch (event.type) {
-                case YAML_SCALAR_EVENT:
-                    key = (char *) event.data.scalar.value;
-                    state = ACCEPT_VALUE;
-                    break;
-                case YAML_MAPPING_END_EVENT:
-                    state = STOP;
-                    break;
-                default:
-                    std::cerr << "UNHANDLED YAML EVENT (key): " << event.type
-                            << "\nVALUE: " << event.data.scalar.value
-                            << std::endl;
-                    state = ERROR;
-                    break;
-            }
-            break;
-
-        case ACCEPT_VALUE:
-            switch (event.type) {
-                case YAML_SCALAR_EVENT:
-                    accepted = true;
-                    state = ACCEPT_KEY;
-                    break;
-                default:
-                    std::cerr << "UNHANDLED YAML EVENT (value): " << event.type
-                            << "\nVALUE: " << event.data.scalar.value
-                            << std::endl;
-                    state = ERROR;
-                    break;
-            }
-            break;
-
-        case ERROR:
-        case STOP:
-            break;
-        }
-        return (state != ERROR);
-    }
-};
 
 class TestConfigReader : public YamlReader<TestConfigReader> {
     TestConfig & config;
@@ -472,12 +223,14 @@ public:
         consumers["pre_commands"]   = &TestConfigReader::pre_commands;
         consumers["post_commands"]  = &TestConfigReader::post_commands;
         consumers["input_file"]     = &TestConfigReader::input_file;
-        consumers["bond_style"]     = &TestConfigReader::bond_style;
-        consumers["bond_coeff"]     = &TestConfigReader::bond_coeff;
+        consumers["pair_style"]     = &TestConfigReader::pair_style;
+        consumers["pair_coeff"]     = &TestConfigReader::pair_coeff;
         consumers["extract"]        = &TestConfigReader::extract;
         consumers["natoms"]         = &TestConfigReader::natoms;
-        consumers["init_energy"]    = &TestConfigReader::init_energy;
-        consumers["run_energy"]     = &TestConfigReader::run_energy;
+        consumers["init_vdwl"]      = &TestConfigReader::init_vdwl;
+        consumers["init_coul"]      = &TestConfigReader::init_coul;
+        consumers["run_vdwl"]       = &TestConfigReader::run_vdwl;
+        consumers["run_coul"]       = &TestConfigReader::run_coul;
         consumers["init_stress"]    = &TestConfigReader::init_stress;
         consumers["run_stress"]     = &TestConfigReader::run_stress;
         consumers["init_forces"]    = &TestConfigReader::init_forces;
@@ -541,17 +294,17 @@ protected:
         config.input_file = (char *)event.data.scalar.value;
     }
 
-    void bond_style(const yaml_event_t & event) {
-        config.bond_style = (char *)event.data.scalar.value;
+    void pair_style(const yaml_event_t & event) {
+        config.pair_style = (char *)event.data.scalar.value;
     }
 
-    void bond_coeff(const yaml_event_t & event) {
-        config.bond_coeff.clear();
+    void pair_coeff(const yaml_event_t & event) {
+        config.pair_coeff.clear();
         std::stringstream data((char *)event.data.scalar.value);
         std::string line;
 
         while (std::getline(data, line, '\n')) {
-            test_config.bond_coeff.push_back(line);
+            test_config.pair_coeff.push_back(line);
         }
     }
 
@@ -573,12 +326,20 @@ protected:
         config.natoms = atoi((char *)event.data.scalar.value);
     }
 
-    void init_energy(const yaml_event_t & event) {
-        config.init_energy = atof((char *)event.data.scalar.value);
+    void init_vdwl(const yaml_event_t & event) {
+        config.init_vdwl = atof((char *)event.data.scalar.value);
     }
 
-    void run_energy(const yaml_event_t & event) {
-        config.run_energy = atof((char *)event.data.scalar.value);
+    void init_coul(const yaml_event_t & event) {
+        config.init_coul = atof((char *)event.data.scalar.value);
+    }
+
+    void run_vdwl(const yaml_event_t & event) {
+        config.run_vdwl = atof((char *)event.data.scalar.value);
+    }
+
+    void run_coul(const yaml_event_t & event) {
+        config.run_coul = atof((char *)event.data.scalar.value);
     }
 
     void init_stress(const yaml_event_t & event) {
@@ -628,129 +389,10 @@ protected:
     }
 };
 
-class YamlWriter {
-    FILE *fp;
-    yaml_emitter_t emitter;
-    yaml_event_t   event;
-public:
-    YamlWriter(const char * outfile) {
-        yaml_emitter_initialize(&emitter);
-        fp = fopen(outfile, "w");
-        if (!fp) {
-            perror(__FILE__);
-            return;
-        }
-
-        yaml_emitter_set_output_file(&emitter, fp);
-
-        yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);
-        yaml_emitter_emit(&emitter, &event);
-        yaml_document_start_event_initialize(&event, NULL, NULL, NULL, 0);
-        yaml_emitter_emit(&emitter, &event);
-        yaml_mapping_start_event_initialize(&event, NULL,
-                                            (yaml_char_t *)YAML_MAP_TAG,
-                                            1, YAML_ANY_MAPPING_STYLE);
-        yaml_emitter_emit(&emitter, &event);
-    }
-
-    ~YamlWriter() {
-        yaml_mapping_end_event_initialize(&event);
-        yaml_emitter_emit(&emitter, &event);
-        yaml_document_end_event_initialize(&event, 0);
-        yaml_emitter_emit(&emitter, &event);
-        yaml_stream_end_event_initialize(&event);
-        yaml_emitter_emit(&emitter, &event);
-        yaml_emitter_delete(&emitter);
-        fclose(fp);
-    }
-
-    void emit(const std::string &key, const double value){
-        yaml_scalar_event_initialize(&event, NULL,
-                                    (yaml_char_t *)YAML_STR_TAG,
-                                    (yaml_char_t *) key.c_str(),
-                                    key.size(), 1, 0,
-                                    YAML_PLAIN_SCALAR_STYLE);
-        yaml_emitter_emit(&emitter, &event);
-        char buf[256];
-        snprintf(buf,256,"%.15g",value);
-        yaml_scalar_event_initialize(&event, NULL,
-                                    (yaml_char_t *)YAML_STR_TAG,
-                                    (yaml_char_t *)buf,
-                                    strlen(buf), 1, 0,
-                                    YAML_PLAIN_SCALAR_STYLE);
-        yaml_emitter_emit(&emitter, &event);
-    }
-
-    void emit(const std::string &key, const long value){
-        yaml_scalar_event_initialize(&event, NULL,
-                                    (yaml_char_t *)YAML_STR_TAG,
-                                    (yaml_char_t *) key.c_str(),
-                                    key.size(), 1, 0,
-                                    YAML_PLAIN_SCALAR_STYLE);
-        yaml_emitter_emit(&emitter, &event);
-        char buf[256];
-        snprintf(buf,256,"%ld",value);
-        yaml_scalar_event_initialize(&event, NULL,
-                                    (yaml_char_t *)YAML_STR_TAG,
-                                    (yaml_char_t *)buf,
-                                    strlen(buf), 1, 0,
-                                    YAML_PLAIN_SCALAR_STYLE);
-        yaml_emitter_emit(&emitter, &event);
-    }
-
-    void emit(const std::string &key, const int value){
-        yaml_scalar_event_initialize(&event, NULL,
-                                    (yaml_char_t *)YAML_STR_TAG,
-                                    (yaml_char_t *) key.c_str(),
-                                    key.size(), 1, 0,
-                                    YAML_PLAIN_SCALAR_STYLE);
-        yaml_emitter_emit(&emitter, &event);
-        char buf[256];
-        snprintf(buf,256,"%d",value);
-        yaml_scalar_event_initialize(&event, NULL,
-                                    (yaml_char_t *)YAML_STR_TAG,
-                                    (yaml_char_t *)buf,
-                                    strlen(buf), 1, 0,
-                                    YAML_PLAIN_SCALAR_STYLE);
-        yaml_emitter_emit(&emitter, &event);
-    }
-
-    void emit(const std::string &key, const std::string &value)
-    {
-        yaml_scalar_event_initialize(&event, NULL,
-                                    (yaml_char_t *)YAML_STR_TAG,
-                                    (yaml_char_t *) key.c_str(),
-                                    key.size(), 1, 0,
-                                    YAML_PLAIN_SCALAR_STYLE);
-        yaml_emitter_emit(&emitter, &event);
-        yaml_scalar_event_initialize(&event, NULL,
-                                    (yaml_char_t *)YAML_STR_TAG,
-                                    (yaml_char_t *)value.c_str(),
-                                    value.size(), 1, 0,
-                                    YAML_PLAIN_SCALAR_STYLE);
-        yaml_emitter_emit(&emitter, &event);
-    }
-
-    void emit_block(const std::string &key, const std::string &value){
-        yaml_scalar_event_initialize(&event, NULL,
-                                    (yaml_char_t *)YAML_STR_TAG,
-                                    (yaml_char_t *) key.c_str(),
-                                    key.size(), 1, 0,
-                                    YAML_PLAIN_SCALAR_STYLE);
-        yaml_emitter_emit(&emitter, &event);
-        yaml_scalar_event_initialize(&event, NULL,
-                                    (yaml_char_t *)YAML_STR_TAG,
-                                    (yaml_char_t *)value.c_str(),
-                                    value.size(), 1, 0,
-                                    YAML_LITERAL_SCALAR_STYLE);
-        yaml_emitter_emit(&emitter, &event);
-    }
-};
-
 void generate(const char *outfile) {
 
     // initialize molecular system geometry
-    const char *args[] = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite" };
+    const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite" };
     char **argv = (char **)args;
     int argc = sizeof(args)/sizeof(char *);
     LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
@@ -807,15 +449,15 @@ void generate(const char *outfile) {
     // input_file
     writer.emit("input_file", test_config.input_file);
 
-    // bond_style
-    writer.emit("bond_style", test_config.bond_style);
+    // pair_style
+    writer.emit("pair_style", test_config.pair_style);
 
-    // bond_coeff
+    // pair_coeff
     block.clear();
-    for (auto bond_coeff : test_config.bond_coeff) {
-        block += bond_coeff + "\n";
+    for (auto pair_coeff : test_config.pair_coeff) {
+        block += pair_coeff + "\n";
     }
-    writer.emit_block("bond_coeff", block);
+    writer.emit_block("pair_coeff", block);
 
     // extract
     block.clear();
@@ -828,11 +470,14 @@ void generate(const char *outfile) {
     // natoms
     writer.emit("natoms", natoms);
 
-    // init_energy
-    writer.emit("init_energy", lmp->force->bond->energy);
+    // init_vdwl
+    writer.emit("init_vdwl", lmp->force->pair->eng_vdwl);
+
+    // init_coul
+    writer.emit("init_coul", lmp->force->pair->eng_coul);
 
     // init_stress
-    double *stress = lmp->force->bond->virial;
+    double *stress = lmp->force->pair->virial;
     snprintf(buf,bufsize,"% 23.16e % 23.16e % 23.16e % 23.16e % 23.16e % 23.16e",
              stress[0],stress[1],stress[2],stress[3],stress[4],stress[5]);
     writer.emit_block("init_stress", buf);
@@ -851,11 +496,14 @@ void generate(const char *outfile) {
     // do a few steps of MD
     run_lammps(lmp);
 
-    // run_energy
-    writer.emit("run_energy", lmp->force->bond->energy);
+    // run_vdwl
+    writer.emit("run_vdwl", lmp->force->pair->eng_vdwl);
+
+    // run_coul
+    writer.emit("run_coul", lmp->force->pair->eng_coul);
 
     // run_stress
-    stress = lmp->force->bond->virial;
+    stress = lmp->force->pair->virial;
     snprintf(buf,bufsize,"% 23.16e % 23.16e % 23.16e % 23.16e % 23.16e % 23.16e",
              stress[0],stress[1],stress[2],stress[3],stress[4],stress[5]);
     writer.emit_block("run_stress", buf);
@@ -874,8 +522,8 @@ void generate(const char *outfile) {
     return;
 }
 
-TEST(BondStyle, plain) {
-    const char *args[] = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite" };
+TEST(PairStyle, plain) {
+    const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite" };
     char **argv = (char **)args;
     int argc = sizeof(args)/sizeof(char *);
 
@@ -915,8 +563,8 @@ TEST(BondStyle, plain) {
     if (print_stats)
         std::cerr << "init_forces stats, newton on: " << stats << std::endl;
 
-    LAMMPS_NS::Bond *bond = lmp->force->bond;
-    double *stress = bond->virial;
+    LAMMPS_NS::Pair *pair = lmp->force->pair;
+    double *stress = pair->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, epsilon);
@@ -928,7 +576,8 @@ TEST(BondStyle, plain) {
         std::cerr << "init_stress stats, newton on: " << stats << std::endl;
 
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.init_energy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, epsilon);
     if (print_stats)
         std::cerr << "init_energy stats, newton on: " << stats << std::endl;
 
@@ -937,19 +586,19 @@ TEST(BondStyle, plain) {
     ::testing::internal::GetCapturedStdout();
 
     f = lmp->atom->f;
-    stress = bond->virial;
+    stress = pair->virial;
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal+1,f_run.size());
     stats.reset();
     for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10*epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 10*epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 10*epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 5*epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 5*epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 5*epsilon);
     }
     if (print_stats)
         std::cerr << "run_forces  stats, newton on: " << stats << std::endl;
 
-    stress = bond->virial;
+    stress = pair->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
@@ -963,8 +612,9 @@ TEST(BondStyle, plain) {
     stats.reset();
     int id = lmp->modify->find_compute("sum");
     double energy = lmp->modify->compute[id]->compute_scalar();
-    EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.run_energy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(bond->energy, energy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
+    EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl+pair->eng_coul),energy, epsilon);
     if (print_stats)
         std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
@@ -984,20 +634,21 @@ TEST(BondStyle, plain) {
     if (print_stats)
         std::cerr << "init_forces stats, newton off:" << stats << std::endl;
 
-    bond = lmp->force->bond;
-    stress = bond->virial;
+    pair = lmp->force->pair;
+    stress = pair->virial;
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 2*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 2*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 2*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 2*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 2*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 2*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 3*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 3*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 3*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 3*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 3*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 3*epsilon);
     if (print_stats)
         std::cerr << "init_stress stats, newton off:" << stats << std::endl;
 
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.init_energy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, epsilon);
     if (print_stats)
         std::cerr << "init_energy stats, newton off:" << stats << std::endl;
 
@@ -1006,17 +657,17 @@ TEST(BondStyle, plain) {
     ::testing::internal::GetCapturedStdout();
 
     f = lmp->atom->f;
-    stress = bond->virial;
+    stress = pair->virial;
     stats.reset();
     for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10*epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 10*epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 10*epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 5*epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 5*epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 5*epsilon);
     }
     if (print_stats)
         std::cerr << "run_forces  stats, newton off:" << stats << std::endl;
 
-    stress = bond->virial;
+    stress = pair->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
@@ -1030,8 +681,9 @@ TEST(BondStyle, plain) {
     stats.reset();
     id = lmp->modify->find_compute("sum");
     energy = lmp->modify->compute[id]->compute_scalar();
-    EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.run_energy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(bond->energy, energy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
+    EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl+pair->eng_coul),energy, epsilon);
     if (print_stats)
         std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
 
@@ -1051,8 +703,8 @@ TEST(BondStyle, plain) {
     if (print_stats)
         std::cerr << "restart_forces stats:" << stats << std::endl;
 
-    bond = lmp->force->bond;
-    stress = bond->virial;
+    pair = lmp->force->pair;
+    stress = pair->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, epsilon);
@@ -1064,7 +716,8 @@ TEST(BondStyle, plain) {
         std::cerr << "restart_stress stats:" << stats << std::endl;
 
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.init_energy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, epsilon);
     if (print_stats)
         std::cerr << "restart_energy stats:" << stats << std::endl;
 
@@ -1084,8 +737,8 @@ TEST(BondStyle, plain) {
     if (print_stats)
         std::cerr << "data_forces stats:" << stats << std::endl;
 
-    bond = lmp->force->bond;
-    stress = bond->virial;
+    pair = lmp->force->pair;
+    stress = pair->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, epsilon);
@@ -1097,7 +750,8 @@ TEST(BondStyle, plain) {
         std::cerr << "data_stress stats:" << stats << std::endl;
 
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.init_energy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, epsilon);
     if (print_stats)
         std::cerr << "data_energy stats:" << stats << std::endl;
 
@@ -1106,9 +760,9 @@ TEST(BondStyle, plain) {
     ::testing::internal::GetCapturedStdout();
 };
 
-TEST(BondStyle, omp) {
+TEST(PairStyle, omp) {
     if (!LAMMPS_NS::LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
-    const char *args[] = {"BondStyle", "-log", "none", "-echo", "screen",
+    const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen",
                           "-nocite", "-pk", "omp", "4", "-sf", "omp"};
     char **argv = (char **)args;
     int argc = sizeof(args)/sizeof(char *);
@@ -1149,9 +803,8 @@ TEST(BondStyle, omp) {
     if (print_stats)
         std::cerr << "init_forces stats, newton on: " << stats << std::endl;
 
-    LAMMPS_NS::Bond *bond = lmp->force->bond;
-    double *stress = bond->virial;
-
+    LAMMPS_NS::Pair *pair = lmp->force->pair;
+    double *stress = pair->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10*epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10*epsilon);
@@ -1163,7 +816,8 @@ TEST(BondStyle, omp) {
         std::cerr << "init_stress stats, newton on: " << stats << std::endl;
 
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.init_energy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, epsilon);
     if (print_stats)
         std::cerr << "init_energy stats, newton on: " << stats << std::endl;
 
@@ -1172,19 +826,19 @@ TEST(BondStyle, omp) {
     ::testing::internal::GetCapturedStdout();
 
     f = lmp->atom->f;
-    stress = bond->virial;
+    stress = pair->virial;
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal+1,f_run.size());
     stats.reset();
     for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10*epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 10*epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 10*epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 5*epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 5*epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 5*epsilon);
     }
     if (print_stats)
         std::cerr << "run_forces  stats, newton on: " << stats << std::endl;
 
-    stress = bond->virial;
+    stress = pair->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 10*epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 10*epsilon);
@@ -1198,11 +852,9 @@ TEST(BondStyle, omp) {
     stats.reset();
     int id = lmp->modify->find_compute("sum");
     double energy = lmp->modify->compute[id]->compute_scalar();
-    EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.run_energy, epsilon);
-    // TODO: this is currently broken for USER-OMP with bond style hybrid
-    // needs to be fixed in the main code somewhere. Not sure where, though.
-    if (test_config.bond_style.substr(0,6) != "hybrid")
-        EXPECT_FP_LE_WITH_EPS(bond->energy, energy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
+    EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl+pair->eng_coul),energy, epsilon);
     if (print_stats)
         std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
@@ -1222,8 +874,8 @@ TEST(BondStyle, omp) {
     if (print_stats)
         std::cerr << "init_forces stats, newton off:" << stats << std::endl;
 
-    bond = lmp->force->bond;
-    stress = bond->virial;
+    pair = lmp->force->pair;
+    stress = pair->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10*epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10*epsilon);
@@ -1235,7 +887,8 @@ TEST(BondStyle, omp) {
         std::cerr << "init_stress stats, newton off:" << stats << std::endl;
 
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.init_energy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, epsilon);
     if (print_stats)
         std::cerr << "init_energy stats, newton off:" << stats << std::endl;
 
@@ -1246,14 +899,14 @@ TEST(BondStyle, omp) {
     f = lmp->atom->f;
     stats.reset();
     for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10*epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 10*epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 10*epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 5*epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 5*epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 5*epsilon);
     }
     if (print_stats)
         std::cerr << "run_forces  stats, newton off:" << stats << std::endl;
 
-    stress = bond->virial;
+    stress = pair->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 10*epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 10*epsilon);
@@ -1267,11 +920,9 @@ TEST(BondStyle, omp) {
     stats.reset();
     id = lmp->modify->find_compute("sum");
     energy = lmp->modify->compute[id]->compute_scalar();
-    EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.run_energy, epsilon);
-    // TODO: this is currently broken for USER-OMP with bond style hybrid
-    // needs to be fixed in the main code somewhere. Not sure where, though.
-    if (test_config.bond_style.substr(0,6) != "hybrid")
-        EXPECT_FP_LE_WITH_EPS(bond->energy, energy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
+    EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl+pair->eng_coul),energy, epsilon);
     if (print_stats)
         std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
 
@@ -1280,8 +931,225 @@ TEST(BondStyle, omp) {
     ::testing::internal::GetCapturedStdout();
 };
 
-TEST(BondStyle, single) {
-    const char *args[] = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite" };
+TEST(PairStyle, intel) {
+    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("USER-INTEL")) GTEST_SKIP();
+    const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen",
+                          "-nocite", "-pk", "intel", "0", "mode", "double",
+                          "omp", "4", "lrt", "no", "-sf", "intel"};
+    char **argv = (char **)args;
+    int argc = sizeof(args)/sizeof(char *);
+
+    ::testing::internal::CaptureStdout();
+    LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
+    std::string output = ::testing::internal::GetCapturedStdout();
+
+    if (!lmp) {
+        std::cerr << "One or more prerequisite styles with /intel suffix\n"
+            "are not available in this LAMMPS configuration:\n";
+        for (auto prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style "
+                      << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+
+    // relax error a bit for USER-INTEL package
+    double epsilon = 5.0*test_config.epsilon;
+
+    // we need to relax the epsilon a LOT for tests using long-range
+    // coulomb with tabulation. seems more like mixed precision or a bug
+    for (auto post_cmd : test_config.post_commands) {
+        if (post_cmd.find("pair_modify table") != std::string::npos) {
+            if (post_cmd.find("pair_modify table 0") == std::string::npos)
+                epsilon *= 1000000.0;
+        }
+    }
+
+    EXPECT_THAT(output, StartsWith("LAMMPS ("));
+    EXPECT_THAT(output, HasSubstr("Loop time"));
+
+    // abort if running in parallel and not all atoms are local
+    const int nlocal = lmp->atom->nlocal;
+    ASSERT_EQ(lmp->atom->natoms,nlocal);
+
+    double **f=lmp->atom->f;
+    LAMMPS_NS::tagint *tag=lmp->atom->tag;
+    const std::vector<coord_t> &f_ref = test_config.init_forces;
+    ErrorStats stats;
+    stats.reset();
+    for (int i=0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
+    }
+    if (print_stats)
+        std::cerr << "init_forces stats:" << stats << std::endl;
+
+    LAMMPS_NS::Pair *pair = lmp->force->pair;
+    double *stress = pair->virial;
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 10*epsilon);
+    if (print_stats)
+        std::cerr << "init_stress stats:" << stats << std::endl;
+
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, epsilon);
+    if (print_stats)
+        std::cerr << "init_energy stats:" << stats << std::endl;
+
+    ::testing::internal::CaptureStdout();
+    run_lammps(lmp);
+    ::testing::internal::GetCapturedStdout();
+
+    f = lmp->atom->f;
+    stress = pair->virial;
+    const std::vector<coord_t> &f_run = test_config.run_forces;
+    ASSERT_EQ(nlocal+1,f_run.size());
+    stats.reset();
+    for (int i=0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 5*epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 5*epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 5*epsilon);
+    }
+    if (print_stats)
+        std::cerr << "run_forces  stats:" << stats << std::endl;
+
+    stress = pair->virial;
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, 10*epsilon);
+    if (print_stats)
+        std::cerr << "run_stress  stats:" << stats << std::endl;
+
+    stats.reset();
+    int id = lmp->modify->find_compute("sum");
+    double energy = lmp->modify->compute[id]->compute_scalar();
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
+    EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl+pair->eng_coul),energy, epsilon);
+    if (print_stats)
+        std::cerr << "run_energy  stats:" << stats << std::endl;
+
+    ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp,test_config);
+    ::testing::internal::GetCapturedStdout();
+};
+
+TEST(PairStyle, opt) {
+    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("OPT")) GTEST_SKIP();
+    const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen",
+                          "-nocite", "-sf", "opt"};
+    char **argv = (char **)args;
+    int argc = sizeof(args)/sizeof(char *);
+
+    ::testing::internal::CaptureStdout();
+    LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
+    std::string output = ::testing::internal::GetCapturedStdout();
+
+    if (!lmp) {
+        std::cerr << "One or more prerequisite styles with /opt suffix\n"
+            "are not available in this LAMMPS configuration:\n";
+        for (auto prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style "
+                      << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+
+    EXPECT_THAT(output, StartsWith("LAMMPS ("));
+    EXPECT_THAT(output, HasSubstr("Loop time"));
+
+    // abort if running in parallel and not all atoms are local
+    const int nlocal = lmp->atom->nlocal;
+    ASSERT_EQ(lmp->atom->natoms,nlocal);
+
+    // relax error a bit for OPT package
+    double epsilon = 2.0*test_config.epsilon;
+    double **f=lmp->atom->f;
+    LAMMPS_NS::tagint *tag=lmp->atom->tag;
+    const std::vector<coord_t> &f_ref = test_config.init_forces;
+    ErrorStats stats;
+    stats.reset();
+    for (int i=0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
+    }
+    if (print_stats)
+        std::cerr << "init_forces stats:" << stats << std::endl;
+
+    LAMMPS_NS::Pair *pair = lmp->force->pair;
+    double *stress = pair->virial;
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 10*epsilon);
+    if (print_stats)
+        std::cerr << "init_stress stats:" << stats << std::endl;
+
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, epsilon);
+    if (print_stats)
+        std::cerr << "init_energy stats:" << stats << std::endl;
+
+    ::testing::internal::CaptureStdout();
+    run_lammps(lmp);
+    ::testing::internal::GetCapturedStdout();
+
+    f = lmp->atom->f;
+    stress = pair->virial;
+    const std::vector<coord_t> &f_run = test_config.run_forces;
+    ASSERT_EQ(nlocal+1,f_run.size());
+    stats.reset();
+    for (int i=0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 5*epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 5*epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 5*epsilon);
+    }
+    if (print_stats)
+        std::cerr << "run_forces  stats:" << stats << std::endl;
+
+    stress = pair->virial;
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, 10*epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, 10*epsilon);
+    if (print_stats)
+        std::cerr << "run_stress  stats:" << stats << std::endl;
+
+    stats.reset();
+    int id = lmp->modify->find_compute("sum");
+    double energy = lmp->modify->compute[id]->compute_scalar();
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
+    EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl+pair->eng_coul),energy, epsilon);
+    if (print_stats)
+        std::cerr << "run_energy  stats:" << stats << std::endl;
+
+    ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp,test_config);
+    ::testing::internal::GetCapturedStdout();
+};
+
+TEST(PairStyle, single) {
+    const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite" };
     char **argv = (char **)args;
     int argc = sizeof(args)/sizeof(char *);
 
@@ -1301,23 +1169,41 @@ TEST(BondStyle, single) {
 
     // gather some information and skip if unsupported
     int ntypes = lmp->atom->ntypes;
-    int nbondtypes = lmp->atom->nbondtypes;
     int molecular = lmp->atom->molecular;
-    if (molecular != 1) {
-        std::cerr << "Only simple molecular atom styles are supported\n";
+    if (molecular > 1) {
+        std::cerr << "Only atomic and simple molecular atom styles are supported\n";
         ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp,test_config);
         output = ::testing::internal::GetCapturedStdout();
         GTEST_SKIP();
     }
 
-    LAMMPS_NS::Bond *bond = lmp->force->bond;
+    LAMMPS_NS::Pair *pair = lmp->force->pair;
+    if (!pair->single_enable) {
+        std::cerr << "Single method not available for pair style "
+                  << test_config.pair_style << std::endl;
+        ::testing::internal::CaptureStdout();
+        cleanup_lammps(lmp,test_config);
+        output = ::testing::internal::GetCapturedStdout();
+        GTEST_SKIP();
+    }
+
+    // The single function in EAM is different from what we assume
+    // here, therefore we have to skip testing those pair styles.
+    if ((test_config.pair_style.substr(0,3) == "eam")
+        || ((test_config.pair_style.substr(0,6) == "hybrid")
+            && (test_config.pair_style.find("eam") != std::string::npos))) {
+        ::testing::internal::CaptureStdout();
+        cleanup_lammps(lmp,test_config);
+        output = ::testing::internal::GetCapturedStdout();
+        GTEST_SKIP();
+    }
 
     // now start over
     ::testing::internal::CaptureStdout();
     lmp->input->one("clear");
-    lmp->input->one("variable newton_bond delete");
-    lmp->input->one("variable newton_bond index on");
+    lmp->input->one("variable newton_pair delete");
+    lmp->input->one("variable newton_pair index on");
 
 #define STRINGIFY(val) XSTR(val)
 #define XSTR(val) #val
@@ -1329,46 +1215,49 @@ TEST(BondStyle, single) {
 #undef STRINGIFY
 #undef XSTR
 
-    lmp->input->one("atom_style molecular");
+    lmp->input->one("atom_style full");
     lmp->input->one("units ${units}");
     lmp->input->one("boundary p p p");
     lmp->input->one("newton ${newton_pair} ${newton_bond}");
-    lmp->input->one("special_bonds lj/coul "
-                    "${bond_factor} ${angle_factor} ${dihedral_factor}");
-
+    if (molecular) {
+        lmp->input->one("special_bonds lj/coul "
+                        "${bond_factor} ${angle_factor} ${dihedral_factor}");
+    }
     lmp->input->one("atom_modify map array");
     lmp->input->one("region box block -10.0 10.0 -10.0 10.0 -10.0 10.0 units box");
     char buf[10];
     snprintf(buf,10,"%d",ntypes);
-    std::string cmd("create_box 1 box");
-    cmd += " bond/types ";
-    snprintf(buf,10,"%d",nbondtypes);
+    std::string cmd("create_box ");
     cmd += buf;
-    cmd += " extra/bond/per/atom 2";
-    cmd += " extra/special/per/atom 2";
+    cmd += " box";
+    if (molecular) {
+        cmd += " bond/types 1";
+        cmd += " extra/bond/per/atom 1";
+        cmd += " extra/special/per/atom 1";
+    }
     lmp->input->one(cmd.c_str());
 
-    lmp->input->one("pair_style zero 8.0");
-    lmp->input->one("pair_coeff * *");
-
-    cmd = "bond_style ";
-    cmd += test_config.bond_style;
+    cmd = "pair_style ";
+    cmd += test_config.pair_style;
     lmp->input->one(cmd.c_str());
-    bond = lmp->force->bond;
+    pair = lmp->force->pair;
 
-    for (auto bond_coeff : test_config.bond_coeff) {
-        cmd = "bond_coeff " + bond_coeff;
+    for (auto pair_coeff : test_config.pair_coeff) {
+        cmd = "pair_coeff " + pair_coeff;
         lmp->input->one(cmd.c_str());
     }
 
-    // create (only) four atoms and two bonds
+    // create (only) two atoms
     lmp->input->one("mass * 1.0");
-    lmp->input->one("create_atoms 1 single  5.0 -0.75  0.4 units box");
-    lmp->input->one("create_atoms 1 single  5.5  0.25 -0.1 units box");
-    lmp->input->one("create_atoms 1 single -5.0  0.75  0.4 units box");
-    lmp->input->one("create_atoms 1 single -5.5 -0.25 -0.1 units box");
-    lmp->input->one("create_bonds single/bond 1 1 2");
-    lmp->input->one("create_bonds single/bond 2 3 4");
+    lmp->input->one("create_atoms 1 single 0.0 -0.75  0.4 units box");
+    lmp->input->one("create_atoms 2 single 0.5  0.25 -0.1 units box");
+    lmp->input->one("set atom 1 charge -0.5");
+    lmp->input->one("set atom 2 charge  0.5");
+    if (molecular) {
+        lmp->input->one("create_bonds single/bond 1 1 2");
+        lmp->input->one("bond_style zero");
+        lmp->input->one("bond_coeff 1 2.0");
+    }
     for (auto post_command : test_config.post_commands)
         lmp->input->one(post_command.c_str());
     lmp->input->one("run 0 post no");
@@ -1376,42 +1265,30 @@ TEST(BondStyle, single) {
 
     int idx1 = lmp->atom->map(1);
     int idx2 = lmp->atom->map(2);
-    int idx3 = lmp->atom->map(3);
-    int idx4 = lmp->atom->map(4);
     double epsilon = test_config.epsilon;
     double **f=lmp->atom->f;
     double **x=lmp->atom->x;
-    double delx1 = x[idx2][0] - x[idx1][0];
-    double dely1 = x[idx2][1] - x[idx1][1];
-    double delz1 = x[idx2][2] - x[idx1][2];
-    double rsq1 = delx1*delx1+dely1*dely1+delz1*delz1;
-    double delx2 = x[idx4][0] - x[idx3][0];
-    double dely2 = x[idx4][1] - x[idx3][1];
-    double delz2 = x[idx4][2] - x[idx3][2];
-    double rsq2 = delx2*delx2+dely2*dely2+delz2*delz2;
+    double delx = x[idx2][0] - x[idx1][0];
+    double dely = x[idx2][1] - x[idx1][1];
+    double delz = x[idx2][2] - x[idx1][2];
+    double rsq = delx*delx+dely*dely+delz*delz;
     double fsingle = 0.0;
-    double ebond[4], esngl[4];
+    double epair[4], esngl[4];
+    double splj = lmp->force->special_lj[1];
+    double spcl = lmp->force->special_coul[1];
     ErrorStats stats;
 
-    ebond[0] = bond->energy;
-    esngl[0] = bond->single(1, rsq1, idx1, idx2, fsingle);
-    EXPECT_FP_LE_WITH_EPS(f[idx1][0],-fsingle*delx1, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx1][1],-fsingle*dely1, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx1][2],-fsingle*delz1, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx2][0], fsingle*delx1, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx2][1], fsingle*dely1, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx2][2], fsingle*delz1, epsilon);
-
-    esngl[0] += bond->single(2, rsq2, idx3, idx4, fsingle);
-    EXPECT_FP_LE_WITH_EPS(f[idx3][0],-fsingle*delx2, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx3][1],-fsingle*dely2, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx3][2],-fsingle*delz2, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx4][0], fsingle*delx2, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx4][1], fsingle*dely2, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx4][2], fsingle*delz2, epsilon);
+    epair[0] = pair->eng_vdwl + pair->eng_coul;
+    esngl[0] = pair->single(idx1, idx2, 1, 2, rsq, splj, spcl, fsingle);
+    EXPECT_FP_LE_WITH_EPS(f[idx1][0],-fsingle*delx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx1][1],-fsingle*dely, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx1][2],-fsingle*delz, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][0], fsingle*delx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][1], fsingle*dely, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][2], fsingle*delz, epsilon);
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one("displace_atoms all random 0.5 0.5 0.5 23456");
+    lmp->input->one("displace_atoms all random 1.0 1.0 1.0 723456");
     lmp->input->one("run 0 post no");
     output = ::testing::internal::GetCapturedStdout();
 
@@ -1419,37 +1296,23 @@ TEST(BondStyle, single) {
     x = lmp->atom->x;
     idx1 = lmp->atom->map(1);
     idx2 = lmp->atom->map(2);
-    idx3 = lmp->atom->map(3);
-    idx4 = lmp->atom->map(4);
-    delx1 = x[idx2][0] - x[idx1][0];
-    dely1 = x[idx2][1] - x[idx1][1];
-    delz1 = x[idx2][2] - x[idx1][2];
-    rsq1 = delx1*delx1+dely1*dely1+delz1*delz1;
-    delx2 = x[idx4][0] - x[idx3][0];
-    dely2 = x[idx4][1] - x[idx3][1];
-    delz2 = x[idx4][2] - x[idx3][2];
-    rsq2 = delx2*delx2+dely2*dely2+delz2*delz2;
+    delx = x[idx2][0] - x[idx1][0];
+    dely = x[idx2][1] - x[idx1][1];
+    delz = x[idx2][2] - x[idx1][2];
+    rsq = delx*delx+dely*dely+delz*delz;
     fsingle = 0.0;
 
-    ebond[1] = bond->energy;
-    esngl[1] = bond->single(1, rsq1, idx1, idx2, fsingle);
-    EXPECT_FP_LE_WITH_EPS(f[idx1][0],-fsingle*delx1, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx1][1],-fsingle*dely1, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx1][2],-fsingle*delz1, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx2][0], fsingle*delx1, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx2][1], fsingle*dely1, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx2][2], fsingle*delz1, epsilon);
-
-    esngl[1] += bond->single(2, rsq2, idx3, idx4, fsingle);
-    EXPECT_FP_LE_WITH_EPS(f[idx3][0],-fsingle*delx2, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx3][1],-fsingle*dely2, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx3][2],-fsingle*delz2, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx4][0], fsingle*delx2, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx4][1], fsingle*dely2, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx4][2], fsingle*delz2, epsilon);
+    epair[1] = pair->eng_vdwl + pair->eng_coul;
+    esngl[1] = pair->single(idx1, idx2, 1, 2, rsq, splj, spcl, fsingle);
+    EXPECT_FP_LE_WITH_EPS(f[idx1][0],-fsingle*delx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx1][1],-fsingle*dely, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx1][2],-fsingle*delz, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][0], fsingle*delx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][1], fsingle*dely, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][2], fsingle*delz, epsilon);
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one("displace_atoms all random 0.5 0.5 0.5 456963");
+    lmp->input->one("displace_atoms all random 1.0 1.0 1.0 3456963");
     lmp->input->one("run 0 post no");
     output = ::testing::internal::GetCapturedStdout();
 
@@ -1457,34 +1320,20 @@ TEST(BondStyle, single) {
     x = lmp->atom->x;
     idx1 = lmp->atom->map(1);
     idx2 = lmp->atom->map(2);
-    idx3 = lmp->atom->map(3);
-    idx4 = lmp->atom->map(4);
-    delx1 = x[idx2][0] - x[idx1][0];
-    dely1 = x[idx2][1] - x[idx1][1];
-    delz1 = x[idx2][2] - x[idx1][2];
-    rsq1 = delx1*delx1+dely1*dely1+delz1*delz1;
-    delx2 = x[idx4][0] - x[idx3][0];
-    dely2 = x[idx4][1] - x[idx3][1];
-    delz2 = x[idx4][2] - x[idx3][2];
-    rsq2 = delx2*delx2+dely2*dely2+delz2*delz2;
+    delx = x[idx2][0] - x[idx1][0];
+    dely = x[idx2][1] - x[idx1][1];
+    delz = x[idx2][2] - x[idx1][2];
+    rsq = delx*delx+dely*dely+delz*delz;
     fsingle = 0.0;
 
-    ebond[2] = bond->energy;
-    esngl[2] = bond->single(1, rsq1, idx1, idx2, fsingle);
-    EXPECT_FP_LE_WITH_EPS(f[idx1][0],-fsingle*delx1, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx1][1],-fsingle*dely1, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx1][2],-fsingle*delz1, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx2][0], fsingle*delx1, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx2][1], fsingle*dely1, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx2][2], fsingle*delz1, epsilon);
-
-    esngl[2] += bond->single(2, rsq2, idx3, idx4, fsingle);
-    EXPECT_FP_LE_WITH_EPS(f[idx3][0],-fsingle*delx2, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx3][1],-fsingle*dely2, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx3][2],-fsingle*delz2, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx4][0], fsingle*delx2, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx4][1], fsingle*dely2, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx4][2], fsingle*delz2, epsilon);
+    epair[2] = pair->eng_vdwl + pair->eng_coul;
+    esngl[2] = pair->single(idx1, idx2, 1, 2, rsq, splj, spcl, fsingle);
+    EXPECT_FP_LE_WITH_EPS(f[idx1][0],-fsingle*delx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx1][1],-fsingle*dely, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx1][2],-fsingle*delz, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][0], fsingle*delx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][1], fsingle*dely, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][2], fsingle*delz, epsilon);
 
     ::testing::internal::CaptureStdout();
     lmp->input->one("displace_atoms all random 0.5 0.5 0.5 9726532");
@@ -1495,42 +1344,28 @@ TEST(BondStyle, single) {
     x = lmp->atom->x;
     idx1 = lmp->atom->map(1);
     idx2 = lmp->atom->map(2);
-    idx3 = lmp->atom->map(3);
-    idx4 = lmp->atom->map(4);
-    delx1 = x[idx2][0] - x[idx1][0];
-    dely1 = x[idx2][1] - x[idx1][1];
-    delz1 = x[idx2][2] - x[idx1][2];
-    rsq1 = delx1*delx1+dely1*dely1+delz1*delz1;
-    delx2 = x[idx4][0] - x[idx3][0];
-    dely2 = x[idx4][1] - x[idx3][1];
-    delz2 = x[idx4][2] - x[idx3][2];
-    rsq2 = delx2*delx2+dely2*dely2+delz2*delz2;
+    delx = x[idx2][0] - x[idx1][0];
+    dely = x[idx2][1] - x[idx1][1];
+    delz = x[idx2][2] - x[idx1][2];
+    rsq = delx*delx+dely*dely+delz*delz;
     fsingle = 0.0;
 
-    ebond[3] = bond->energy;
-    esngl[3] = bond->single(1, rsq1, idx1, idx2, fsingle);
-    EXPECT_FP_LE_WITH_EPS(f[idx1][0],-fsingle*delx1, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx1][1],-fsingle*dely1, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx1][2],-fsingle*delz1, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx2][0], fsingle*delx1, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx2][1], fsingle*dely1, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx2][2], fsingle*delz1, epsilon);
-
-    esngl[3] += bond->single(2, rsq2, idx3, idx4, fsingle);
-    EXPECT_FP_LE_WITH_EPS(f[idx3][0],-fsingle*delx2, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx3][1],-fsingle*dely2, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx3][2],-fsingle*delz2, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx4][0], fsingle*delx2, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx4][1], fsingle*dely2, epsilon);
-    EXPECT_FP_LE_WITH_EPS(f[idx4][2], fsingle*delz2, epsilon);
+    epair[3] = pair->eng_vdwl + pair->eng_coul;
+    esngl[3] = pair->single(idx1, idx2, 1, 2, rsq, splj, spcl, fsingle);
+    EXPECT_FP_LE_WITH_EPS(f[idx1][0],-fsingle*delx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx1][1],-fsingle*dely, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx1][2],-fsingle*delz, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][0], fsingle*delx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][1], fsingle*dely, epsilon);
+    EXPECT_FP_LE_WITH_EPS(f[idx2][2], fsingle*delz, epsilon);
     if (print_stats)
         std::cerr << "single_force  stats:" << stats << std::endl;
 
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(ebond[0], esngl[0], epsilon);
-    EXPECT_FP_LE_WITH_EPS(ebond[1], esngl[1], epsilon);
-    EXPECT_FP_LE_WITH_EPS(ebond[2], esngl[2], epsilon);
-    EXPECT_FP_LE_WITH_EPS(ebond[3], esngl[3], epsilon);
+    EXPECT_FP_LE_WITH_EPS(epair[0], esngl[0], epsilon);
+    EXPECT_FP_LE_WITH_EPS(epair[1], esngl[1], epsilon);
+    EXPECT_FP_LE_WITH_EPS(epair[2], esngl[2], epsilon);
+    EXPECT_FP_LE_WITH_EPS(epair[3], esngl[3], epsilon);
     if (print_stats)
         std::cerr << "single_energy  stats:" << stats << std::endl;
 
@@ -1539,8 +1374,8 @@ TEST(BondStyle, single) {
     ::testing::internal::GetCapturedStdout();
 }
 
-TEST(BondStyle, extract) {
-    const char *args[] = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite" };
+TEST(PairStyle, extract) {
+    const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite" };
     char **argv = (char **)args;
     int argc = sizeof(args)/sizeof(char *);
 
@@ -1557,19 +1392,41 @@ TEST(BondStyle, extract) {
         }
         GTEST_SKIP();
     }
-    LAMMPS_NS::Bond *bond = lmp->force->bond;
+    LAMMPS_NS::Pair *pair = lmp->force->pair;
     void *ptr = nullptr;
     int dim = 0;
     for (auto extract : test_config.extract) {
-        ptr = bond->extract(extract.first.c_str(),dim);
+        ptr = pair->extract(extract.first.c_str(),dim);
         EXPECT_NE(ptr, nullptr);
         EXPECT_EQ(dim, extract.second);
     }
-    ptr = bond->extract("does_not_exist",dim);
+    ptr = pair->extract("does_not_exist",dim);
     EXPECT_EQ(ptr, nullptr);
 
-    for (int i=1; i <= lmp->atom->nbondtypes; ++i)
-        EXPECT_GE(bond->equilibrium_distance(i), 0.0);
+    // replace pair style with the same.
+    // should just update setting, but not create new style.
+
+    int ntypes = lmp->atom->ntypes;
+    for (int i=1; i <= ntypes; ++i) {
+        for (int j=1; j <= ntypes; ++j) {
+            pair->cutsq[i][j] = -1.0;
+        }
+    }
+    std::string cmd = "pair_style ";
+    cmd += test_config.pair_style;
+    lmp->input->one(cmd.c_str());
+    EXPECT_EQ(pair,lmp->force->pair);
+
+    for (auto pair_coeff : test_config.pair_coeff) {
+        cmd = "pair_coeff " + pair_coeff;
+        lmp->input->one(cmd.c_str());
+    }
+    pair->init();
+    for (int i=1; i <= ntypes; ++i) {
+        for (int j=1; j <= ntypes; ++j) {
+            EXPECT_GE(pair->cutsq[i][j],0.0);
+        }
+    }
 
     ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp,test_config);

@@ -6,7 +6,8 @@
 #  TBB_MALLOC_FOUND        - True if tbb found.
 #
 
-if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.12)
+# silence warning about ignoring <PackageName>_ROOT and use it.
+if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif()
 ########################################################

@@ -1,8 +1,12 @@
 # USER-NETCDF can use NetCDF, Parallel NetCDF (PNetCDF), or both. At least one necessary.
 # NetCDF library enables dump style "netcdf", while PNetCDF enables dump style "netcdf/mpiio"
-if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.12)
+
+# silence warning about ignoring <PackageName>_ROOT and use it.
+if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif()
+
+# may use NetCDF or PNetCDF with MPI, but must have NetCDF without
 if(NOT BUILD_MPI)
   find_package(NetCDF REQUIRED)
 else()

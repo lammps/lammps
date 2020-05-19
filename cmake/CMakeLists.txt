@@ -3,6 +3,11 @@
 # This file is part of LAMMPS
 # Created by Christoph Junghans and Richard Berger
 cmake_minimum_required(VERSION 3.10)
+# set policy to silence warnings about ignoring <PackageName>_ROOT but use it
+if(POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif()
+########################################
 
 project(lammps CXX)
 set(SOVERSION 0)

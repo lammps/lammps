@@ -6,10 +6,6 @@
 #  TBB_MALLOC_FOUND        - True if tbb found.
 #
 
-# silence warning about ignoring <PackageName>_ROOT and use it.
-if(POLICY CMP0074)
-  cmake_policy(SET CMP0074 NEW)
-endif()
 ########################################################
 # TBB Malloc
 

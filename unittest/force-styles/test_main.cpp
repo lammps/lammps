@@ -27,9 +27,10 @@ void usage(std::ostream &out, const char *name)
 {
     out << "usage: " << name << " <testfile.yaml> [OPTIONS]\n\n"
         << "Available options:\n"
-        << "  -g <newfile.yaml>   regenerate <testfile.yaml>\n"
-        << "  -v                  verbose output\n"
-        << "  -s                  print error statistics\n"
+        << "  -g <newfile.yaml>   regenerate yaml file under a new name\n"
+        << "  -u                  update the original yaml file\n"
+        << "  -v                  run tests with verbose output\n"
+        << "  -s                  run tests with error statistics output\n"
         << "  -h                  print this message\n"
         << std::endl;
 }
@@ -69,6 +70,9 @@ int main(int argc, char **argv)
                 usage(std::cerr,argv[0]);
                 return 1;
             }
+        } else if (strcmp(argv[iarg],"-u") == 0) {
+            generate_yaml_file(argv[1], test_config);
+            return 0;
         } else if (strcmp(argv[iarg],"-s") == 0) {
             print_stats = true;
             ++iarg;

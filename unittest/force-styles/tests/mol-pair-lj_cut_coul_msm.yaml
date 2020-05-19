@@ -9,7 +9,7 @@ pre_commands: ! ""
 post_commands: ! |
   pair_modify mix arithmetic
   pair_modify table 0
-  kspace_style msm 1.0e-6
+  kspace_style msm 1.0e-4
   kspace_modify compute no
   kspace_modify cutoff/adjust no
   kspace_modify pressure/scalar no # required for USER-OMP with msm

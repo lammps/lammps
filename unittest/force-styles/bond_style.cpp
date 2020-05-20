@@ -194,18 +194,6 @@ void data_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
     lmp->input->one("run 0 post no");
 }
 
-// read/parse yaml file
-
-bool read_yaml_file(const char *infile, TestConfig &config)
-{
-    auto reader = TestConfigReader(config);
-    if (reader.parse_file(infile))
-        return false;
-    
-    config.basename = reader.get_basename();
-    return true;
-}
-
 // re-generate yaml file with current settings.
 
 void generate_yaml_file(const char *outfile, const TestConfig &config)

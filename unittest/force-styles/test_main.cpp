@@ -13,14 +13,25 @@
 
 #include "test_main.h"
 #include "test_config.h"
+#include "test_config_reader.h"
 #include "gtest/gtest.h"
 
 #include <mpi.h>
 #include <cstring>
 #include <iostream>
 
+// common read_yaml_file function
+bool read_yaml_file(const char *infile, TestConfig &config)
+{
+    auto reader = TestConfigReader(config);
+    if (reader.parse_file(infile))
+        return false;
+    
+    config.basename = reader.get_basename();
+    return true;
+}
+
 // need to be defined in unit test body
-extern bool read_yaml_file(const char *, TestConfig &);
 extern void generate_yaml_file(const char *, const TestConfig &);
 
 void usage(std::ostream &out, const char *name)

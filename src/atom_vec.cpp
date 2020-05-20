@@ -2462,6 +2462,7 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
   Tokenizer def_words(default_str, " ");
 
   int nfield = words.count();
+  int ndef   = def_words.count();
 
   // process fields one by one, add to index vector
 
@@ -2472,15 +2473,15 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
   int match;
 
   for (int i = 0; i < nfield; i++) {
-    const std::string & field = words[i];
+    const char * field = words[i].c_str();
 
     // find field in master Atom::peratom list
 
     for (match = 0; match < nperatom; match++)
-      if (field == peratom[match].name) break;
+      if (strcmp(field, peratom[match].name) == 0) break;
     if (match == nperatom) {
       char str[128];
-      sprintf(str,"Peratom field %s not recognized", field.c_str());
+      sprintf(str,"Peratom field %s not recognized", field);
       error->all(FLERR,str);
     }
     index[i] = match;
@@ -2490,18 +2491,19 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
     for (match = 0; match < i; match++)
       if (index[i] == index[match]) {
         char str[128];
-        sprintf(str,"Peratom field %s is repeated", field.c_str());
+        sprintf(str,"Peratom field %s is repeated", field);
         error->all(FLERR,str);
       }
 
     // error if field is in default str
 
-    for (auto & def_field : def_words)
-      if (def_field == field) {
+    for (match = 0; match < ndef; match++)
+      if (strcmp(field, def_words[match].c_str()) == 0) {
         char str[128];
-        sprintf(str,"Peratom field %s is a default", field.c_str());
+        sprintf(str,"Peratom field %s is a default", field);
         error->all(FLERR,str);
       }
+
   }
 
   method->index = index;

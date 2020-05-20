@@ -13,14 +13,25 @@
 
 #include "test_main.h"
 #include "test_config.h"
+#include "test_config_reader.h"
 #include "gtest/gtest.h"
 
 #include <mpi.h>
 #include <cstring>
 #include <iostream>
 
+// common read_yaml_file function
+bool read_yaml_file(const char *infile, TestConfig &config)
+{
+    auto reader = TestConfigReader(config);
+    if (reader.parse_file(infile))
+        return false;
+
+    config.basename = reader.get_basename();
+    return true;
+}
+
 // need to be defined in unit test body
-extern bool read_yaml_file(const char *, TestConfig &);
 extern void generate_yaml_file(const char *, const TestConfig &);
 
 void usage(std::ostream &out, const char *name)
@@ -28,13 +39,14 @@ void usage(std::ostream &out, const char *name)
     out << "usage: " << name << " <testfile.yaml> [OPTIONS]\n\n"
         << "Available options:\n"
         << "  -g <newfile.yaml>   regenerate yaml file under a new name\n"
+        << "  -d <folder>         set folder where to find input files\n"
         << "  -u                  update the original yaml file\n"
         << "  -v                  run tests with verbose output\n"
         << "  -s                  run tests with error statistics output\n"
         << "  -h                  print this message\n"
         << std::endl;
 }
-    
+
 // test configuration settings read from yaml file
 TestConfig test_config;
 
@@ -43,6 +55,11 @@ bool print_stats = false;
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
+
+// location for 'in.*' and 'data.*' files required by tests
+#define STRINGIFY(val) XSTR(val)
+#define XSTR(val) #val
+std::string INPUT_FOLDER = STRINGIFY(TEST_INPUT_FOLDER);
 
 int main(int argc, char **argv)
 {
@@ -73,6 +90,14 @@ int main(int argc, char **argv)
         } else if (strcmp(argv[iarg],"-u") == 0) {
             generate_yaml_file(argv[1], test_config);
             return 0;
+        } else if (strcmp(argv[iarg],"-d") == 0) {
+            if (iarg+1 < argc) {
+                INPUT_FOLDER = argv[iarg+1];
+                iarg += 2;
+            } else {
+                usage(std::cerr,argv[0]);
+                return 1;
+            }
         } else if (strcmp(argv[iarg],"-s") == 0) {
             print_stats = true;
             ++iarg;

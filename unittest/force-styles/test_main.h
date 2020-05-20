@@ -15,10 +15,12 @@
 #define TEST_MAIN_H
 
 #include "test_config.h"
+#include <string>
 
 extern TestConfig test_config;
 extern bool print_stats;
 extern bool verbose;
+extern std::string INPUT_FOLDER;
 
 #define EXPECT_FP_LE_WITH_EPS(val1,val2,eps)                \
     do {                                                    \
@@ -31,3 +33,8 @@ extern bool verbose;
 
 #endif
 
+#if defined _WIN32
+static const char PATH_SEP = '\\';
+#else
+static const char PATH_SEP = '/';
+#endif

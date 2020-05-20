@@ -48,7 +48,7 @@ YamlWriter::~YamlWriter() {
     fclose(fp);
 }
 
-void YamlWriter::emit(const std::string &key, const double value){
+void YamlWriter::emit(const std::string &key, const double value) {
     yaml_scalar_event_initialize(&event, NULL,
                                  (yaml_char_t *)YAML_STR_TAG,
                                  (yaml_char_t *) key.c_str(),
@@ -65,7 +65,7 @@ void YamlWriter::emit(const std::string &key, const double value){
     yaml_emitter_emit(&emitter, &event);
 }
 
-void YamlWriter::emit(const std::string &key, const long value){
+void YamlWriter::emit(const std::string &key, const long value) {
     yaml_scalar_event_initialize(&event, NULL,
                                  (yaml_char_t *)YAML_STR_TAG,
                                  (yaml_char_t *) key.c_str(),
@@ -82,7 +82,7 @@ void YamlWriter::emit(const std::string &key, const long value){
     yaml_emitter_emit(&emitter, &event);
 }
 
-void YamlWriter::emit(const std::string &key, const int value){
+void YamlWriter::emit(const std::string &key, const int value) {
     yaml_scalar_event_initialize(&event, NULL,
                                  (yaml_char_t *)YAML_STR_TAG,
                                  (yaml_char_t *) key.c_str(),
@@ -115,7 +115,7 @@ void YamlWriter::emit(const std::string &key, const std::string &value)
     yaml_emitter_emit(&emitter, &event);
 }
 
-void YamlWriter::emit_block(const std::string &key, const std::string &value){
+void YamlWriter::emit_block(const std::string &key, const std::string &value) {
     yaml_scalar_event_initialize(&event, NULL,
                                  (yaml_char_t *)YAML_STR_TAG,
                                  (yaml_char_t *) key.c_str(),

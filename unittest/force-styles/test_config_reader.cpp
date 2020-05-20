@@ -40,6 +40,23 @@ TestConfigReader::TestConfigReader(TestConfig & config)
     consumers["run_stress"]     = &TestConfigReader::run_stress;
     consumers["init_forces"]    = &TestConfigReader::init_forces;
     consumers["run_forces"]     = &TestConfigReader::run_forces;
+
+    consumers["pair_style"]     = &TestConfigReader::pair_style;
+    consumers["pair_coeff"]     = &TestConfigReader::pair_coeff;
+    consumers["init_vdwl"]      = &TestConfigReader::init_vdwl;
+    consumers["init_coul"]      = &TestConfigReader::init_coul;
+    consumers["run_vdwl"]       = &TestConfigReader::run_vdwl;
+    consumers["run_coul"]       = &TestConfigReader::run_coul;
+
+    consumers["bond_style"]     = &TestConfigReader::bond_style;
+    consumers["bond_coeff"]     = &TestConfigReader::bond_coeff;
+    consumers["init_energy"]    = &TestConfigReader::init_energy;
+    consumers["run_energy"]     = &TestConfigReader::run_energy;
+
+    consumers["angle_style"]    = &TestConfigReader::angle_style;
+    consumers["angle_coeff"]    = &TestConfigReader::angle_coeff;
+    consumers["init_energy"]    = &TestConfigReader::init_energy;
+    consumers["run_energy"]     = &TestConfigReader::run_energy;
 }
 
 void TestConfigReader::prerequisites(const yaml_event_t & event) {
@@ -58,9 +75,10 @@ void TestConfigReader::prerequisites(const yaml_event_t & event) {
             continue;
         }
         std::string value = line.substr(found,line.find_first_of(" \t",found));
-        config.prerequisites.push_back(std::pair<std::string,std::string>(key,value));
+        config.prerequisites.push_back(std::make_pair(key,value));
     }
 }
+
 void TestConfigReader::pre_commands(const yaml_event_t & event) {
     config.pre_commands.clear();
     std::stringstream data((char *)event.data.scalar.value);
@@ -104,10 +122,9 @@ void TestConfigReader::extract(const yaml_event_t & event) {
 
     while (std::getline(data, line, '\n')) {
         std::size_t found = line.find_first_of(" \t");
-        std::pair<std::string,int> data;
-        data.first = line.substr(0,found);
-        data.second = atoi(line.substr(found).c_str());
-        config.extract.push_back(data);
+        std::string name = line.substr(0,found);
+        int value = atoi(line.substr(found).c_str());
+        config.extract.push_back(make_pair(name, value));
     }
 }
 
@@ -162,7 +179,7 @@ void TestConfigReader::run_forces(const yaml_event_t & event) {
 }
 
 void TestConfigReader::pair_style(const yaml_event_t & event) {
-        config.pair_style = (char *)event.data.scalar.value;
+    config.pair_style = (char *)event.data.scalar.value;
 }
 
 void TestConfigReader::pair_coeff(const yaml_event_t & event) {
@@ -176,7 +193,7 @@ void TestConfigReader::pair_coeff(const yaml_event_t & event) {
 }
 
 void TestConfigReader::bond_style(const yaml_event_t & event) {
-        config.bond_style = (char *)event.data.scalar.value;
+    config.bond_style = (char *)event.data.scalar.value;
 }
 
 void TestConfigReader::bond_coeff(const yaml_event_t & event) {
@@ -190,7 +207,7 @@ void TestConfigReader::bond_coeff(const yaml_event_t & event) {
 }
 
 void TestConfigReader::angle_style(const yaml_event_t & event) {
-        config.angle_style = (char *)event.data.scalar.value;
+    config.angle_style = (char *)event.data.scalar.value;
 }
 
 void TestConfigReader::angle_coeff(const yaml_event_t & event) {

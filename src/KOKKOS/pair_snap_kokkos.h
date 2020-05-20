@@ -112,7 +112,7 @@ public:
   void operator() (TagPairSNAPComputeDeidrjCPU,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDeidrjCPU>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAPBeta,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPBeta>::member_type& team) const;
+  void operator() (TagPairSNAPBeta,const int& ii) const;
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION

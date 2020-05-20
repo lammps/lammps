@@ -414,9 +414,9 @@ TEST(AngleStyle, plain) {
     if (print_stats)
         std::cerr << "init_energy stats, newton on: " << stats << std::endl;
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     run_lammps(lmp);
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f = lmp->atom->f;
     stress = angle->virial;
@@ -450,10 +450,10 @@ TEST(AngleStyle, plain) {
     if (print_stats)
         std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp,test_config);
     lmp = init_lammps(argc,argv,test_config,false);
-    output = ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f=lmp->atom->f;
     tag=lmp->atom->tag;
@@ -483,9 +483,9 @@ TEST(AngleStyle, plain) {
     if (print_stats)
         std::cerr << "init_energy stats, newton off:" << stats << std::endl;
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     run_lammps(lmp);
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f = lmp->atom->f;
     stress = angle->virial;
@@ -517,9 +517,9 @@ TEST(AngleStyle, plain) {
     if (print_stats)
         std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     restart_lammps(lmp, test_config);
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f=lmp->atom->f;
     tag=lmp->atom->tag;
@@ -550,9 +550,9 @@ TEST(AngleStyle, plain) {
     if (print_stats)
         std::cerr << "restart_energy stats:" << stats << std::endl;
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     data_lammps(lmp, test_config);
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f=lmp->atom->f;
     tag=lmp->atom->tag;
@@ -583,9 +583,9 @@ TEST(AngleStyle, plain) {
     if (print_stats)
         std::cerr << "data_energy stats:" << stats << std::endl;
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp,test_config);
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 };
 
 TEST(AngleStyle, omp) {
@@ -649,9 +649,9 @@ TEST(AngleStyle, omp) {
     if (print_stats)
         std::cerr << "init_energy stats, newton on: " << stats << std::endl;
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     run_lammps(lmp);
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f = lmp->atom->f;
     stress = angle->virial;
@@ -688,10 +688,10 @@ TEST(AngleStyle, omp) {
     if (print_stats)
         std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp,test_config);
     lmp = init_lammps(argc,argv,test_config,false);
-    output = ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f=lmp->atom->f;
     tag=lmp->atom->tag;
@@ -721,9 +721,9 @@ TEST(AngleStyle, omp) {
     if (print_stats)
         std::cerr << "init_energy stats, newton off:" << stats << std::endl;
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     run_lammps(lmp);
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f = lmp->atom->f;
     stats.reset();
@@ -757,8 +757,8 @@ TEST(AngleStyle, omp) {
     if (print_stats)
         std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp,test_config);
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 };
 

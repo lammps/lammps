@@ -414,9 +414,9 @@ TEST(BondStyle, plain) {
     if (print_stats)
         std::cerr << "init_energy stats, newton on: " << stats << std::endl;
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     run_lammps(lmp);
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f = lmp->atom->f;
     stress = bond->virial;
@@ -450,10 +450,10 @@ TEST(BondStyle, plain) {
     if (print_stats)
         std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp,test_config);
     lmp = init_lammps(argc,argv,test_config,false);
-    output = ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f=lmp->atom->f;
     tag=lmp->atom->tag;
@@ -483,9 +483,9 @@ TEST(BondStyle, plain) {
     if (print_stats)
         std::cerr << "init_energy stats, newton off:" << stats << std::endl;
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     run_lammps(lmp);
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f = lmp->atom->f;
     stress = bond->virial;
@@ -517,9 +517,9 @@ TEST(BondStyle, plain) {
     if (print_stats)
         std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     restart_lammps(lmp, test_config);
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f=lmp->atom->f;
     tag=lmp->atom->tag;
@@ -550,9 +550,9 @@ TEST(BondStyle, plain) {
     if (print_stats)
         std::cerr << "restart_energy stats:" << stats << std::endl;
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     data_lammps(lmp, test_config);
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f=lmp->atom->f;
     tag=lmp->atom->tag;
@@ -583,9 +583,9 @@ TEST(BondStyle, plain) {
     if (print_stats)
         std::cerr << "data_energy stats:" << stats << std::endl;
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp,test_config);
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 };
 
 TEST(BondStyle, omp) {
@@ -649,9 +649,9 @@ TEST(BondStyle, omp) {
     if (print_stats)
         std::cerr << "init_energy stats, newton on: " << stats << std::endl;
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     run_lammps(lmp);
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f = lmp->atom->f;
     stress = bond->virial;
@@ -688,10 +688,10 @@ TEST(BondStyle, omp) {
     if (print_stats)
         std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp,test_config);
     lmp = init_lammps(argc,argv,test_config,false);
-    output = ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f=lmp->atom->f;
     tag=lmp->atom->tag;
@@ -721,9 +721,9 @@ TEST(BondStyle, omp) {
     if (print_stats)
         std::cerr << "init_energy stats, newton off:" << stats << std::endl;
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     run_lammps(lmp);
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f = lmp->atom->f;
     stats.reset();
@@ -757,9 +757,9 @@ TEST(BondStyle, omp) {
     if (print_stats)
         std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp,test_config);
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 };
 
 TEST(BondStyle, single) {
@@ -768,9 +768,9 @@ TEST(BondStyle, single) {
     int argc = sizeof(args)/sizeof(char *);
 
     // create a LAMMPS instance with standard settings to detect the number of atom types
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
-    std::string output = ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
             "in this LAMMPS configuration:\n";
@@ -787,16 +787,16 @@ TEST(BondStyle, single) {
     int molecular = lmp->atom->molecular;
     if (molecular != 1) {
         std::cerr << "Only simple molecular atom styles are supported\n";
-        ::testing::internal::CaptureStdout();
+        if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp,test_config);
-        output = ::testing::internal::GetCapturedStdout();
+        if (!verbose) ::testing::internal::GetCapturedStdout();
         GTEST_SKIP();
     }
 
     LAMMPS_NS::Bond *bond = lmp->force->bond;
 
     // now start over
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("clear");
     lmp->input->one("variable newton_bond delete");
     lmp->input->one("variable newton_bond index on");
@@ -854,7 +854,7 @@ TEST(BondStyle, single) {
     for (auto post_command : test_config.post_commands)
         lmp->input->one(post_command.c_str());
     lmp->input->one("run 0 post no");
-    output = ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     int idx1 = lmp->atom->map(1);
     int idx2 = lmp->atom->map(2);
@@ -892,10 +892,10 @@ TEST(BondStyle, single) {
     EXPECT_FP_LE_WITH_EPS(f[idx4][1], fsingle*dely2, epsilon);
     EXPECT_FP_LE_WITH_EPS(f[idx4][2], fsingle*delz2, epsilon);
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("displace_atoms all random 0.5 0.5 0.5 23456");
     lmp->input->one("run 0 post no");
-    output = ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f = lmp->atom->f;
     x = lmp->atom->x;
@@ -930,10 +930,10 @@ TEST(BondStyle, single) {
     EXPECT_FP_LE_WITH_EPS(f[idx4][1], fsingle*dely2, epsilon);
     EXPECT_FP_LE_WITH_EPS(f[idx4][2], fsingle*delz2, epsilon);
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("displace_atoms all random 0.5 0.5 0.5 456963");
     lmp->input->one("run 0 post no");
-    output = ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f = lmp->atom->f;
     x = lmp->atom->x;
@@ -968,10 +968,10 @@ TEST(BondStyle, single) {
     EXPECT_FP_LE_WITH_EPS(f[idx4][1], fsingle*dely2, epsilon);
     EXPECT_FP_LE_WITH_EPS(f[idx4][2], fsingle*delz2, epsilon);
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("displace_atoms all random 0.5 0.5 0.5 9726532");
     lmp->input->one("run 0 post no");
-    output = ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f = lmp->atom->f;
     x = lmp->atom->x;
@@ -1016,9 +1016,9 @@ TEST(BondStyle, single) {
     if (print_stats)
         std::cerr << "single_energy  stats:" << stats << std::endl;
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp,test_config);
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 }
 
 TEST(BondStyle, extract) {
@@ -1026,9 +1026,9 @@ TEST(BondStyle, extract) {
     char **argv = (char **)args;
     int argc = sizeof(args)/sizeof(char *);
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config,true);
-    std::string output = ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
@@ -1053,7 +1053,7 @@ TEST(BondStyle, extract) {
     for (int i=1; i <= lmp->atom->nbondtypes; ++i)
         EXPECT_GE(bond->equilibrium_distance(i), 0.0);
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp,test_config);
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 }

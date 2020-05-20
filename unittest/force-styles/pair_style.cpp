@@ -99,20 +99,14 @@ LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv,
         lmp->input->one("variable newton_pair index off");
     }
 
-#define STRINGIFY(val) XSTR(val)
-#define XSTR(val) #val
     std::string set_input_dir = "variable input_dir index ";
-    set_input_dir += STRINGIFY(TEST_INPUT_FOLDER);
+    set_input_dir += INPUT_FOLDER;
     lmp->input->one(set_input_dir.c_str());
     for (auto pre_command : cfg.pre_commands)
         lmp->input->one(pre_command.c_str());
 
-    std::string input_file = STRINGIFY(TEST_INPUT_FOLDER);
-    input_file += "/";
-    input_file += cfg.input_file;
+    std::string input_file = INPUT_FOLDER + PATH_SEP + cfg.input_file;
     lmp->input->file(input_file.c_str());
-#undef STRINGIFY
-#undef XSTR
 
     std::string cmd("pair_style ");
     cmd += cfg.pair_style;
@@ -186,14 +180,8 @@ void data_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
     cmd += cfg.basename + ".data";
     lmp->input->one(cmd.c_str());
 
-#define STRINGIFY(val) XSTR(val)
-#define XSTR(val) #val
-    std::string input_file = STRINGIFY(TEST_INPUT_FOLDER);
-    input_file += "/";
-    input_file += cfg.input_file;
+    std::string input_file = INPUT_FOLDER + PATH_SEP + cfg.input_file;
     lmp->input->file(input_file.c_str());
-#undef STRINGIFY
-#undef XSTR
 
     for (auto pair_coeff : cfg.pair_coeff) {
         cmd = "pair_coeff " + pair_coeff;
@@ -1050,15 +1038,11 @@ TEST(PairStyle, single) {
     lmp->input->one("variable newton_pair delete");
     lmp->input->one("variable newton_pair index on");
 
-#define STRINGIFY(val) XSTR(val)
-#define XSTR(val) #val
     std::string set_input_dir = "variable input_dir index ";
-    set_input_dir += STRINGIFY(TEST_INPUT_FOLDER);
+    set_input_dir += INPUT_FOLDER;
     lmp->input->one(set_input_dir.c_str());
     for (auto pre_command : test_config.pre_commands)
         lmp->input->one(pre_command.c_str());
-#undef STRINGIFY
-#undef XSTR
 
     lmp->input->one("atom_style full");
     lmp->input->one("units ${units}");

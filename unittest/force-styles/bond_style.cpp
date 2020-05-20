@@ -49,6 +49,7 @@
 using ::testing::StartsWith;
 using ::testing::HasSubstr;
 
+
 void cleanup_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
 {
     std::string name;
@@ -90,7 +91,7 @@ LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv,
     if (nfail > 0) {
         delete info;
         cleanup_lammps(lmp,cfg);
-        return NULL;
+        return nullptr;
     }
 
     if (newton) {
@@ -99,20 +100,15 @@ LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv,
         lmp->input->one("variable newton_bond index off");
     }
 
-#define STRINGIFY(val) XSTR(val)
-#define XSTR(val) #val
     std::string set_input_dir = "variable input_dir index ";
-    set_input_dir += STRINGIFY(TEST_INPUT_FOLDER);
+    set_input_dir += INPUT_FOLDER;
     lmp->input->one(set_input_dir.c_str());
     for (auto pre_command : cfg.pre_commands)
         lmp->input->one(pre_command.c_str());
 
-    std::string input_file = STRINGIFY(TEST_INPUT_FOLDER);
-    input_file += "/";
-    input_file += cfg.input_file;
+    std::string input_file = INPUT_FOLDER + "/" + cfg.input_file;
+
     lmp->input->file(input_file.c_str());
-#undef STRINGIFY
-#undef XSTR
 
     std::string cmd("bond_style ");
     cmd += cfg.bond_style;
@@ -186,14 +182,8 @@ void data_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
     cmd += cfg.basename + ".data";
     lmp->input->one(cmd.c_str());
 
-#define STRINGIFY(val) XSTR(val)
-#define XSTR(val) #val
-    std::string input_file = STRINGIFY(TEST_INPUT_FOLDER);
-    input_file += "/";
-    input_file += cfg.input_file;
+    std::string input_file = INPUT_FOLDER + PATH_SEP + cfg.input_file;
     lmp->input->file(input_file.c_str());
-#undef STRINGIFY
-#undef XSTR
 
     for (auto bond_coeff : cfg.bond_coeff) {
         cmd = "bond_coeff " + bond_coeff;
@@ -801,15 +791,11 @@ TEST(BondStyle, single) {
     lmp->input->one("variable newton_bond delete");
     lmp->input->one("variable newton_bond index on");
 
-#define STRINGIFY(val) XSTR(val)
-#define XSTR(val) #val
     std::string set_input_dir = "variable input_dir index ";
-    set_input_dir += STRINGIFY(TEST_INPUT_FOLDER);
+    set_input_dir += INPUT_FOLDER;
     lmp->input->one(set_input_dir.c_str());
     for (auto pre_command : test_config.pre_commands)
         lmp->input->one(pre_command.c_str());
-#undef STRINGIFY
-#undef XSTR
 
     lmp->input->one("atom_style molecular");
     lmp->input->one("units ${units}");

@@ -15,6 +15,7 @@
 #define TEST_MAIN_H
 
 #include "test_config.h"
+#include <string>
 
 extern TestConfig test_config;
 extern bool print_stats;
@@ -31,3 +32,14 @@ extern bool verbose;
 
 #endif
 
+#define STRINGIFY(val) XSTR(val)
+#define XSTR(val) #val
+static const std::string INPUT_FOLDER = STRINGIFY(TEST_INPUT_FOLDER);
+#undef STRINGIFY
+#undef XSTR
+
+#if defined _WIN32
+static const char PATH_SEP = '\\';
+#else
+static const char PATH_SEP = '/';
+#endif

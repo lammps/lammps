@@ -57,33 +57,64 @@ variable during configuration. Examples:
 
 .. _testing:
 
-Code Coverage and Testing
----------------------------------------
+Code Coverage and Unit Testing
+------------------------------
 
-We do extensive regression testing of the LAMMPS code base on a continuous
-basis. Some of the logic to do this has been added to the CMake build so
-developers can run the tests directly on their workstation.
+The LAMMPS code is subject to multiple levels of automated testing
+during development: integration testing (i.e. whether the code compiles
+on various platforms and with a variety of settings), unit testing
+(i.e. whether certain individual parts of the code produce the expected
+results for given inputs), run testing (whether selected complete input
+decks run without crashing for multiple configurations), and regression
+testing (i.e. whether selected input examples reproduce the same
+results over a given number of steps and operations within a given
+error margin).  The status of this automated testing can be viewed on
+`https://ci.lammps.org <https://ci.lammps.org>`_.
+
+The unit testing facility is integrated into the CMake build process
+of the LAMMPS source code distribution itself.  It can be enabled by
+setting ``-D ENABLE_TESTING=on`` during the CMake configuration step.
+It requires the `YAML <http://pyyaml.org/>`_ library and development
+headers to compile and will download and compile the
+`Googletest <https://github.com/google/googletest/>`_ C++ test framework
+for programming the tests.
+
+After compilation is complete, the unit testing is started in the build
+folder using the ``ctest`` command, which is part of the CMake software.
+The output of this command will be looking something like this::
+
+   [...]$ ctest
+   Test project /home/akohlmey/compile/lammps/build-testing
+         Start  1: MolPairStyle:hybrid-overlay
+    1/26 Test  #1: MolPairStyle:hybrid-overlay .........   Passed    0.02 sec
+         Start  2: MolPairStyle:hybrid
+    2/26 Test  #2: MolPairStyle:hybrid .................   Passed    0.01 sec
+         Start  3: MolPairStyle:lj_class2
+    [...]
+         Start 25: AngleStyle:harmonic
+   25/26 Test #25: AngleStyle:harmonic .................   Passed    0.01 sec
+         Start 26: AngleStyle:zero
+   26/26 Test #26: AngleStyle:zero .....................   Passed    0.01 sec
+   
+   100% tests passed, 0 tests failed out of 26
+   
+   Total Test time (real) =   0.27 sec
 
 .. note::
 
-   this is incomplete and only represents a small subset of tests that we run
+   This unit test framework is new and still under development.
+   The coverage is only minimal and will be expanded over time.
+   Tests styles of the same kind of style (e.g. pair styles or
+   bond styles) are performed with the same executable using
+   different input files in YAML format.  So to add a test for
+   another pair style can be done by copying the YAML file and
+   editing the style settings and then running the individual test
+   program with a flag to update the computed reference data.
+   Detailed documentation about how to add new test program and
+   the contents of the YAML files for existing test programs
+   will be provided in time as well.
 
-.. code-block:: bash
-
-   -D ENABLE_TESTING=value               # enable simple run tests of LAMMPS, value = no (default) or yes
-   -D LAMMPS_TESTING_SOURCE_DIR=path     # path to lammps-testing repository (option if in custom location)
-   -D LAMMPS_TESTING_GIT_TAG=value       # version of lammps-testing repository that should be used, value = master (default) or custom git commit or tag
-
-If you enable testing in the CMake build it will create an additional
-target called "test". You can run them with:
-
-.. code-block:: bash
-
-   cmake --build . test
-
-The test cases used come from the lammps-testing repository. They are
-derivatives of the examples folder with some modifications to make the
-run faster.
+------------
 
 You can also collect code coverage metrics while running the tests by
 enabling coverage support during building.
@@ -93,16 +124,15 @@ enabling coverage support during building.
    -D ENABLE_COVERAGE=value  # enable coverage measurements, value = no (default) or yes
 
 This will also add the following targets to generate coverage reports
-after running the LAMMPS executable:
+after running the LAMMPS executable or the unit tests:
 
 .. code-block:: bash
 
-   make test               # run tests first!
    make gen_coverage_html  # generate coverage report in HTML format
    make gen_coverage_xml   # generate coverage report in XML format
 
-These reports require GCOVR to be installed. The easiest way to do this
-to install it via pip:
+These reports require `GCOVR <https://gcovr.com/>`_ to be installed. The easiest way
+to do this to install it via pip:
 
 .. code-block:: bash
 

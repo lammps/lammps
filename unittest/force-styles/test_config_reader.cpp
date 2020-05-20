@@ -75,9 +75,10 @@ void TestConfigReader::prerequisites(const yaml_event_t & event) {
             continue;
         }
         std::string value = line.substr(found,line.find_first_of(" \t",found));
-        config.prerequisites.push_back(std::pair<std::string,std::string>(key,value));
+        config.prerequisites.push_back(std::make_pair(key,value));
     }
 }
+
 void TestConfigReader::pre_commands(const yaml_event_t & event) {
     config.pre_commands.clear();
     std::stringstream data((char *)event.data.scalar.value);
@@ -121,10 +122,9 @@ void TestConfigReader::extract(const yaml_event_t & event) {
 
     while (std::getline(data, line, '\n')) {
         std::size_t found = line.find_first_of(" \t");
-        std::pair<std::string,int> data;
-        data.first = line.substr(0,found);
-        data.second = atoi(line.substr(found).c_str());
-        config.extract.push_back(data);
+        std::string name = line.substr(0,found);
+        int value = atoi(line.substr(found).c_str());
+        config.extract.push_back(make_pair(name, value));
     }
 }
 

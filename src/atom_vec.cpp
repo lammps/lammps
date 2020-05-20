@@ -2279,7 +2279,7 @@ void AtomVec::write_improper(FILE *fp, int n, tagint **buf, int index)
 
 bigint AtomVec::memory_usage()
 {
-  int datatype,cols,index,maxcols;
+  int datatype,cols,maxcols;
   void *pdata;
 
   bigint bytes = 0;
@@ -2296,7 +2296,6 @@ bigint AtomVec::memory_usage()
     pdata = mgrow.pdata[i];
     datatype = mgrow.datatype[i];
     cols = mgrow.cols[i];
-    index = mgrow.index[i];
     const int nthreads = threads[i] ? comm->nthreads : 1;
     if (datatype == DOUBLE) {
       if (cols == 0) {

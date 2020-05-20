@@ -55,6 +55,11 @@ bool print_stats = false;
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
+// location for 'in.*' and 'data.*' files required by tests
+#define STRINGIFY(val) XSTR(val)
+#define XSTR(val) #val
+std::string INPUT_FOLDER = STRINGIFY(TEST_INPUT_FOLDER);
+
 int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);

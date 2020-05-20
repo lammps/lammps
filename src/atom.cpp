@@ -93,6 +93,10 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   ellipsoid = line = tri = body = NULL;
 
   // molecular systems
+
+  molecule = NULL;
+  molindex = molatom = NULL;
+
   bond_per_atom =  extra_bond_per_atom = 0;
   num_bond = NULL;
   bond_type = NULL;
@@ -146,7 +150,6 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   // USER-MESONT package
 
-  mesont_flag = 0;
   length = NULL;
   buckling = NULL;
   bond_nt = NULL;
@@ -299,6 +302,11 @@ Atom::~Atom()
   memory->destroy(cv);
   memory->destroy(vest);
 
+  // USER-MESONT package
+  memory->destroy(length);
+  memory->destroy(buckling);
+  memory->destroy(bond_nt);
+
   memory->destroy(contact_radius);
   memory->destroy(smd_data_9);
   memory->destroy(smd_stress);
@@ -372,12 +380,6 @@ Atom::~Atom()
 
   for (int i = 0; i < nmolecule; i++) delete molecules[i];
   memory->sfree(molecules);
-
-  // USER-MESONT package
-
-  memory->destroy(length);
-  memory->destroy(buckling);
-  memory->destroy(bond_nt);
 
   // delete per-type arrays
 
@@ -554,6 +556,12 @@ void Atom::peratom_create()
   add_peratom("cc",&cc,DOUBLE,1);
   add_peratom("cc_flux",&cc_flux,DOUBLE,1,1);         // set per-thread flag
 
+  // USER-MESONT package
+
+  add_peratom("length",&length,DOUBLE,0);
+  add_peratom("buckling",&buckling,INT,0);
+  add_peratom("bond_nt",&bond_nt,tagintsize,2);
+
   // USER-SPH package
 
   add_peratom("rho",&rho,DOUBLE,0);
@@ -679,6 +687,7 @@ void Atom::set_atomflag_defaults()
   sp_flag = 0;
   x0_flag = 0;
   smd_flag = damage_flag = 0;
+  mesont_flag = 0;
   contact_radius_flag = smd_data_9_flag = smd_stress_flag = 0;
   eff_plastic_strain_flag = eff_plastic_strain_rate_flag = 0;
 
@@ -1236,16 +1245,23 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
         error->all(FLERR,"Incorrect atom format in data file");
     }
 
-    if (imageflag)
-      imagedata = ((imageint) (atoi(values[iptr]) + IMGMAX) & IMGMASK) |
-        (((imageint) (atoi(values[iptr+1]) + IMGMAX) & IMGMASK) << IMGBITS) |
-        (((imageint) (atoi(values[iptr+2]) + IMGMAX) & IMGMASK) << IMG2BITS);
-    else imagedata = ((imageint) IMGMAX << IMG2BITS) |
-           ((imageint) IMGMAX << IMGBITS) | IMGMAX;
+    int imx = 0;
+    int imy = 0;
+    int imz = 0;
+    if (imageflag) {
+      imx = utils::inumeric(FLERR,values[iptr],false,lmp);
+      imy = utils::inumeric(FLERR,values[iptr+1],false,lmp);
+      imz = utils::inumeric(FLERR,values[iptr+2],false,lmp);
+      if ((domain->dimension == 2) && (imz != 0))
+        error->all(FLERR,"Z-direction image flag must be 0 for 2d-systems");
+    }
+    imagedata = ((imageint) (imx + IMGMAX) & IMGMASK) |
+        (((imageint) (imy + IMGMAX) & IMGMASK) << IMGBITS) |
+        (((imageint) (imz + IMGMAX) & IMGMASK) << IMG2BITS);
 
-    xdata[0] = atof(values[xptr]);
-    xdata[1] = atof(values[xptr+1]);
-    xdata[2] = atof(values[xptr+2]);
+    xdata[0] = utils::numeric(FLERR,values[xptr],false,lmp);
+    xdata[1] = utils::numeric(FLERR,values[xptr+1],false,lmp);
+    xdata[2] = utils::numeric(FLERR,values[xptr+2],false,lmp);
     if (shiftflag) {
       xdata[0] += shift[0];
       xdata[1] += shift[1];
@@ -2539,6 +2555,11 @@ void *Atom::extract(char *name)
   if (strcmp(name,"cv") == 0) return (void *) cv;
   if (strcmp(name,"vest") == 0) return (void *) vest;
 
+  // USER-MESONT package
+  if (strcmp(name,"length") == 0) return (void *) length;
+  if (strcmp(name,"buckling") == 0) return (void *) buckling;
+  if (strcmp(name,"bond_nt") == 0) return (void *) bond_nt;
+
   if (strcmp(name, "contact_radius") == 0) return (void *) contact_radius;
   if (strcmp(name, "smd_data_9") == 0) return (void *) smd_data_9;
   if (strcmp(name, "smd_stress") == 0) return (void *) smd_stress;
@@ -2551,10 +2572,8 @@ void *Atom::extract(char *name)
   if (strcmp(name,"dpdTheta") == 0) return (void *) dpdTheta;
   if (strcmp(name,"edpd_temp") == 0) return (void *) edpd_temp;
 
-  // USER-MESONT package
-  if (strcmp(name,"length") == 0) return (void *) length;
-  if (strcmp(name,"buckling") == 0) return (void *) buckling;
-  if (strcmp(name,"bond_nt") == 0) return (void *) bond_nt;
+  // end of customization section
+  // --------------------------------------------------------------------
 
   return NULL;
 }

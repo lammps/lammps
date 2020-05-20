@@ -413,6 +413,19 @@ void PairMESONTTPM::compute(int eflag, int vflag){
      X1, X2, X3, R123, L123, BBF2);
   }
 
+  //share new values of buckling
+  if (BendingMode == 1){
+    for (int i = 0; i < nall; i++){
+      int idx = ntlist.get_idx(i);
+      buckling[idx] = b_sort[i];
+    }
+    comm->forward_comm_pair(this);
+    for (int i = 0; i < nall; i++){
+      int idx = ntlist.get_idx(i);
+      b_sort[i] = buckling[idx];
+    }
+  }
+
   //segment-segment and segment-tube interactions
   int n_segments = ntlist.get_segments().size();
   double Rmax = 0.0;

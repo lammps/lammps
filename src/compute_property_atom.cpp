@@ -376,6 +376,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
                    "vector does not exist");
       pack_choice[i] = &ComputePropertyAtom::pack_dname;
     }
+
     else if (strcmp(arg[iarg],"buckling") == 0) {
       if (!atom->mesont_flag)
         error->all(FLERR,"Compute property/atom for "

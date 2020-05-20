@@ -127,18 +127,21 @@ class Atom : protected Pointers {
   double *vest_temp;
   double *edpd_cv;               // heat capacity
   int cc_species;
-  double *contact_radius;
-  double **smd_data_9;
-  double **smd_stress;
-  double *eff_plastic_strain;
-  double *eff_plastic_strain_rate;
-  double *damage;
 
   // USER-MESONT package
 
   double *length;
   int *buckling;
   tagint **bond_nt;
+
+  // USER-SMD package
+
+  double *contact_radius;
+  double **smd_data_9;
+  double **smd_stress;
+  double *eff_plastic_strain;
+  double *eff_plastic_strain_rate;
+  double *damage;
 
   // USER-SPH package
 

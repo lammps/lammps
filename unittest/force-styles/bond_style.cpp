@@ -194,22 +194,11 @@ void data_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
     lmp->input->one("run 0 post no");
 }
 
-class BondConfigReader : public TestConfigReader 
-{
-public:
-    BondConfigReader(TestConfig &config) : TestConfigReader(config) {        
-        consumers["bond_style"]     = &TestConfigReader::bond_style;
-        consumers["bond_coeff"]     = &TestConfigReader::bond_coeff;
-        consumers["init_energy"]    = &TestConfigReader::init_energy;
-        consumers["run_energy"]     = &TestConfigReader::run_energy;
-    }
-};
-
 // read/parse yaml file
 
 bool read_yaml_file(const char *infile, TestConfig &config)
 {
-    auto reader = BondConfigReader(config);
+    auto reader = TestConfigReader(config);
     if (reader.parse_file(infile))
         return false;
     

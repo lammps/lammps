@@ -40,6 +40,16 @@ TestConfigReader::TestConfigReader(TestConfig & config)
     consumers["run_stress"]     = &TestConfigReader::run_stress;
     consumers["init_forces"]    = &TestConfigReader::init_forces;
     consumers["run_forces"]     = &TestConfigReader::run_forces;
+
+    consumers["bond_style"]     = &TestConfigReader::bond_style;
+    consumers["bond_coeff"]     = &TestConfigReader::bond_coeff;
+    consumers["init_energy"]    = &TestConfigReader::init_energy;
+    consumers["run_energy"]     = &TestConfigReader::run_energy;
+
+    consumers["angle_style"]    = &TestConfigReader::angle_style;
+    consumers["angle_coeff"]    = &TestConfigReader::angle_coeff;
+    consumers["init_energy"]    = &TestConfigReader::init_energy;
+    consumers["run_energy"]     = &TestConfigReader::run_energy;
 }
 
 void TestConfigReader::prerequisites(const yaml_event_t & event) {

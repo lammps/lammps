@@ -192,22 +192,12 @@ void data_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
     lmp->input->one("run 0 post no");
 }
 
-class AngleConfigReader : public TestConfigReader 
-{
-public:
-    AngleConfigReader(TestConfig &config) : TestConfigReader(config) {        
-        consumers["angle_style"]     = &TestConfigReader::angle_style;
-        consumers["angle_coeff"]     = &TestConfigReader::angle_coeff;
-        consumers["init_energy"]    = &TestConfigReader::init_energy;
-        consumers["run_energy"]     = &TestConfigReader::run_energy;
-    }
-};
 
 // read/parse yaml file
 
 bool read_yaml_file(const char *infile, TestConfig &config)
 {
-    auto reader = AngleConfigReader(config);
+    auto reader = TestConfigReader(config);
     if (reader.parse_file(infile))
         return false;
     

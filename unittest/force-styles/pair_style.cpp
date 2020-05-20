@@ -192,24 +192,11 @@ void data_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
     lmp->input->one("run 0 post no");
 }
 
-class PairConfigReader : public TestConfigReader
-{
-public:
-    PairConfigReader(TestConfig &config) : TestConfigReader(config) {
-        consumers["pair_style"]     = &TestConfigReader::pair_style;
-        consumers["pair_coeff"]     = &TestConfigReader::pair_coeff;
-        consumers["init_vdwl"]      = &TestConfigReader::init_vdwl;
-        consumers["init_coul"]      = &TestConfigReader::init_coul;
-        consumers["run_vdwl"]       = &TestConfigReader::run_vdwl;
-        consumers["run_coul"]       = &TestConfigReader::run_coul;
-    }
-};
-
 // read/parse yaml file
 
 bool read_yaml_file(const char *infile, TestConfig &config)
 {
-    auto reader = PairConfigReader(config);
+    auto reader = TestConfigReader(config);
     if (reader.parse_file(infile))
         return false;
     

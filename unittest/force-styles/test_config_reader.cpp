@@ -41,6 +41,13 @@ TestConfigReader::TestConfigReader(TestConfig & config)
     consumers["init_forces"]    = &TestConfigReader::init_forces;
     consumers["run_forces"]     = &TestConfigReader::run_forces;
 
+    consumers["pair_style"]     = &TestConfigReader::pair_style;
+    consumers["pair_coeff"]     = &TestConfigReader::pair_coeff;
+    consumers["init_vdwl"]      = &TestConfigReader::init_vdwl;
+    consumers["init_coul"]      = &TestConfigReader::init_coul;
+    consumers["run_vdwl"]       = &TestConfigReader::run_vdwl;
+    consumers["run_coul"]       = &TestConfigReader::run_coul;
+
     consumers["bond_style"]     = &TestConfigReader::bond_style;
     consumers["bond_coeff"]     = &TestConfigReader::bond_coeff;
     consumers["init_energy"]    = &TestConfigReader::init_energy;

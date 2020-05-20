@@ -49,7 +49,9 @@
 using ::testing::StartsWith;
 using ::testing::HasSubstr;
 
-void cleanup_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
+using namespace LAMMPS_NS;
+
+void cleanup_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
     std::string name;
 
@@ -62,16 +64,16 @@ void cleanup_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
     delete lmp;
 }
 
-LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv,
+LAMMPS *init_lammps(int argc, char **argv,
                                const TestConfig &cfg,
                                const bool newton=true)
 {
-    LAMMPS_NS::LAMMPS *lmp;
+    LAMMPS *lmp;
 
-    lmp = new LAMMPS_NS::LAMMPS(argc, argv, MPI_COMM_WORLD);
+    lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
 
     // check if prerequisite styles are available
-    LAMMPS_NS::Info *info = new LAMMPS_NS::Info(lmp);
+    Info *info = new Info(lmp);
     int nfail = 0;
     for (auto prerequisite : cfg.prerequisites) {
         std::string style = prerequisite.second;
@@ -90,7 +92,7 @@ LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv,
     if (nfail > 0) {
         delete info;
         cleanup_lammps(lmp,cfg);
-        return NULL;
+        return nullptr;
     }
 
     if (newton) {
@@ -128,7 +130,7 @@ LAMMPS_NS::LAMMPS *init_lammps(int argc, char **argv,
     return lmp;
 }
 
-void run_lammps(LAMMPS_NS::LAMMPS *lmp)
+void run_lammps(LAMMPS *lmp)
 {
     lmp->input->one("fix 1 all nve");
     lmp->input->one("compute pe all pe/atom");
@@ -138,7 +140,7 @@ void run_lammps(LAMMPS_NS::LAMMPS *lmp)
     lmp->input->one("run 4 post no");
 }
 
-void restart_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
+void restart_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
     lmp->input->one("clear");
     std::string cmd("read_restart ");
@@ -161,7 +163,7 @@ void restart_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
     lmp->input->one("run 0 post no");
 }
 
-void data_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
+void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
     lmp->input->one("clear");
     lmp->input->one("variable pair_style  delete");
@@ -192,9 +194,6 @@ void data_lammps(LAMMPS_NS::LAMMPS *lmp, const TestConfig &cfg)
     lmp->input->one("run 0 post no");
 }
 
-// read/parse yaml file
-
-
 // re-generate yaml file with current settings.
 
 void generate_yaml_file(const char *outfile, const TestConfig &config)
@@ -203,7 +202,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite" };
     char **argv = (char **)args;
     int argc = sizeof(args)/sizeof(char *);
-    LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,config);
+    LAMMPS *lmp = init_lammps(argc,argv,config);
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
             "in this LAMMPS configuration:\n";
@@ -293,7 +292,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     // init_forces
     block.clear();
     double **f = lmp->atom->f;
-    LAMMPS_NS::tagint *tag = lmp->atom->tag;
+    tagint *tag = lmp->atom->tag;
     for (int i=0; i < natoms; ++i) {
         snprintf(buf,bufsize,"% 3d % 23.16e % 23.16e % 23.16e\n",
                  (int)tag[i], f[i][0], f[i][1], f[i][2]);
@@ -336,7 +335,7 @@ TEST(PairStyle, plain) {
     int argc = sizeof(args)/sizeof(char *);
 
     ::testing::internal::CaptureStdout();
-    LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config,true);
+    LAMMPS *lmp = init_lammps(argc,argv,test_config,true);
     std::string output = ::testing::internal::GetCapturedStdout();
 
     if (!lmp) {
@@ -358,7 +357,7 @@ TEST(PairStyle, plain) {
 
     double epsilon = test_config.epsilon;
     double **f=lmp->atom->f;
-    LAMMPS_NS::tagint *tag=lmp->atom->tag;
+    tagint *tag=lmp->atom->tag;
     ErrorStats stats;
     stats.reset();
     const std::vector<coord_t> &f_ref = test_config.init_forces;
@@ -371,7 +370,7 @@ TEST(PairStyle, plain) {
     if (print_stats)
         std::cerr << "init_forces stats, newton on: " << stats << std::endl;
 
-    LAMMPS_NS::Pair *pair = lmp->force->pair;
+    Pair *pair = lmp->force->pair;
     double *stress = pair->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
@@ -569,14 +568,14 @@ TEST(PairStyle, plain) {
 };
 
 TEST(PairStyle, omp) {
-    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
+    if (!LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
     const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen",
                           "-nocite", "-pk", "omp", "4", "-sf", "omp"};
     char **argv = (char **)args;
     int argc = sizeof(args)/sizeof(char *);
 
     ::testing::internal::CaptureStdout();
-    LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config,true);
+    LAMMPS *lmp = init_lammps(argc,argv,test_config,true);
     std::string output = ::testing::internal::GetCapturedStdout();
 
     if (!lmp) {
@@ -599,7 +598,7 @@ TEST(PairStyle, omp) {
     // relax error a bit for USER-OMP package
     double epsilon = 5.0*test_config.epsilon;
     double **f=lmp->atom->f;
-    LAMMPS_NS::tagint *tag=lmp->atom->tag;
+    tagint *tag=lmp->atom->tag;
     const std::vector<coord_t> &f_ref = test_config.init_forces;
     ErrorStats stats;
     stats.reset();
@@ -611,7 +610,7 @@ TEST(PairStyle, omp) {
     if (print_stats)
         std::cerr << "init_forces stats, newton on: " << stats << std::endl;
 
-    LAMMPS_NS::Pair *pair = lmp->force->pair;
+    Pair *pair = lmp->force->pair;
     double *stress = pair->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10*epsilon);
@@ -740,7 +739,7 @@ TEST(PairStyle, omp) {
 };
 
 TEST(PairStyle, intel) {
-    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("USER-INTEL")) GTEST_SKIP();
+    if (!LAMMPS::is_installed_pkg("USER-INTEL")) GTEST_SKIP();
     const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen",
                           "-nocite", "-pk", "intel", "0", "mode", "double",
                           "omp", "4", "lrt", "no", "-sf", "intel"};
@@ -748,7 +747,7 @@ TEST(PairStyle, intel) {
     int argc = sizeof(args)/sizeof(char *);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
+    LAMMPS *lmp = init_lammps(argc,argv,test_config);
     std::string output;
     if (!verbose) output = ::testing::internal::GetCapturedStdout();
 
@@ -782,7 +781,7 @@ TEST(PairStyle, intel) {
     ASSERT_EQ(lmp->atom->natoms,nlocal);
 
     double **f=lmp->atom->f;
-    LAMMPS_NS::tagint *tag=lmp->atom->tag;
+    tagint *tag=lmp->atom->tag;
     const std::vector<coord_t> &f_ref = test_config.init_forces;
     ErrorStats stats;
     stats.reset();
@@ -794,7 +793,7 @@ TEST(PairStyle, intel) {
     if (print_stats)
         std::cerr << "init_forces stats:" << stats << std::endl;
 
-    LAMMPS_NS::Pair *pair = lmp->force->pair;
+    Pair *pair = lmp->force->pair;
     double *stress = pair->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10*epsilon);
@@ -855,14 +854,14 @@ TEST(PairStyle, intel) {
 };
 
 TEST(PairStyle, opt) {
-    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("OPT")) GTEST_SKIP();
+    if (!LAMMPS::is_installed_pkg("OPT")) GTEST_SKIP();
     const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen",
                           "-nocite", "-sf", "opt"};
     char **argv = (char **)args;
     int argc = sizeof(args)/sizeof(char *);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
+    LAMMPS *lmp = init_lammps(argc,argv,test_config);
     std::string output;
     if (!verbose) output = ::testing::internal::GetCapturedStdout();
 
@@ -886,7 +885,7 @@ TEST(PairStyle, opt) {
     // relax error a bit for OPT package
     double epsilon = 2.0*test_config.epsilon;
     double **f=lmp->atom->f;
-    LAMMPS_NS::tagint *tag=lmp->atom->tag;
+    tagint *tag=lmp->atom->tag;
     const std::vector<coord_t> &f_ref = test_config.init_forces;
     ErrorStats stats;
     stats.reset();
@@ -898,7 +897,7 @@ TEST(PairStyle, opt) {
     if (print_stats)
         std::cerr << "init_forces stats:" << stats << std::endl;
 
-    LAMMPS_NS::Pair *pair = lmp->force->pair;
+    Pair *pair = lmp->force->pair;
     double *stress = pair->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10*epsilon);
@@ -965,7 +964,7 @@ TEST(PairStyle, single) {
 
     // create a LAMMPS instance with standard settings to detect the number of atom types
     if (!verbose) ::testing::internal::CaptureStdout();
-    LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config);
+    LAMMPS *lmp = init_lammps(argc,argv,test_config);
     if (!verbose)  ::testing::internal::GetCapturedStdout();
 
     if (!lmp) {
@@ -989,7 +988,7 @@ TEST(PairStyle, single) {
         GTEST_SKIP();
     }
 
-    LAMMPS_NS::Pair *pair = lmp->force->pair;
+    Pair *pair = lmp->force->pair;
     if (!pair->single_enable) {
         std::cerr << "Single method not available for pair style "
                   << test_config.pair_style << std::endl;
@@ -1187,7 +1186,7 @@ TEST(PairStyle, extract) {
     int argc = sizeof(args)/sizeof(char *);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    LAMMPS_NS::LAMMPS *lmp = init_lammps(argc,argv,test_config,true);
+    LAMMPS *lmp = init_lammps(argc,argv,test_config,true);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     if (!lmp) {
@@ -1199,7 +1198,7 @@ TEST(PairStyle, extract) {
         }
         GTEST_SKIP();
     }
-    LAMMPS_NS::Pair *pair = lmp->force->pair;
+    Pair *pair = lmp->force->pair;
     void *ptr = nullptr;
     int dim = 0;
     for (auto extract : test_config.extract) {

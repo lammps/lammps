@@ -51,16 +51,15 @@ using ::testing::HasSubstr;
 
 using namespace LAMMPS_NS;
 
+static void delete_file(const std::string & filename) {
+    remove(filename.c_str());
+};
+
 void cleanup_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
-    std::string name;
-
-    name = cfg.basename + ".restart";
-    remove(name.c_str());
-    name = cfg.basename + ".data";
-    remove(name.c_str());
-    name = cfg.basename + "-coeffs.in";
-    remove(name.c_str());
+    delete_file(cfg.basename + ".restart");
+    delete_file(cfg.basename + ".data");
+    delete_file(cfg.basename + "-coeffs.in");
     delete lmp;
 }
 
@@ -75,7 +74,7 @@ LAMMPS *init_lammps(int argc, char **argv,
     // check if prerequisite styles are available
     Info *info = new Info(lmp);
     int nfail = 0;
-    for (auto prerequisite : cfg.prerequisites) {
+    for (auto& prerequisite : cfg.prerequisites) {
         std::string style = prerequisite.second;
 
         // this is a test for pair styles, so if the suffixed
@@ -95,103 +94,122 @@ LAMMPS *init_lammps(int argc, char **argv,
         return nullptr;
     }
 
+    // utility lambdas to improve readability
+    auto command = [&](const std::string & line){
+        lmp->input->one(line.c_str());
+    };
+    auto parse_input_script = [&](const std::string & filename){
+        lmp->input->file(filename.c_str());
+    };
+
     if (newton) {
-        lmp->input->one("variable newton_pair index on");
+        command("variable newton_pair index on");
     } else {
-        lmp->input->one("variable newton_pair index off");
+        command("variable newton_pair index off");
     }
 
-    std::string set_input_dir = "variable input_dir index ";
-    set_input_dir += INPUT_FOLDER;
-    lmp->input->one(set_input_dir.c_str());
-    for (auto pre_command : cfg.pre_commands)
-        lmp->input->one(pre_command.c_str());
+    command("variable input_dir index " + INPUT_FOLDER);
+
+    for (auto& pre_command : cfg.pre_commands) {
+        command(pre_command);
+    }
 
     std::string input_file = INPUT_FOLDER + PATH_SEP + cfg.input_file;
-    lmp->input->file(input_file.c_str());
+    parse_input_script(input_file);
 
-    std::string cmd("pair_style ");
-    cmd += cfg.pair_style;
-    lmp->input->one(cmd.c_str());
-    for (auto pair_coeff : cfg.pair_coeff) {
-        cmd = "pair_coeff " + pair_coeff;
-        lmp->input->one(cmd.c_str());
+    command("pair_style " + cfg.pair_style);
+
+    for (auto& pair_coeff : cfg.pair_coeff) {
+        command("pair_coeff " + pair_coeff);
     }
-    for (auto post_command : cfg.post_commands)
-        lmp->input->one(post_command.c_str());
-    lmp->input->one("run 0 post no");
-    cmd = "write_restart " + cfg.basename + ".restart";
-    lmp->input->one(cmd.c_str());
-    cmd = "write_data " + cfg.basename + ".data";
-    lmp->input->one(cmd.c_str());
-    cmd = "write_coeff " + cfg.basename + "-coeffs.in";
-    lmp->input->one(cmd.c_str());
+
+    for (auto& post_command : cfg.post_commands) {
+        command(post_command);
+    }
+
+    command("run 0 post no");
+    command("write_restart " + cfg.basename + ".restart");
+    command("write_data " + cfg.basename + ".data");
+    command("write_coeff " + cfg.basename + "-coeffs.in");
 
     return lmp;
 }
 
 void run_lammps(LAMMPS *lmp)
 {
-    lmp->input->one("fix 1 all nve");
-    lmp->input->one("compute pe all pe/atom");
-    lmp->input->one("compute sum all reduce sum c_pe");
-    lmp->input->one("thermo_style custom step temp pe press c_sum");
-    lmp->input->one("thermo 2");
-    lmp->input->one("run 4 post no");
+    // utility lambda to improve readability
+    auto command = [&](const std::string & line){
+        lmp->input->one(line.c_str());
+    };
+
+    command("fix 1 all nve");
+    command("compute pe all pe/atom");
+    command("compute sum all reduce sum c_pe");
+    command("thermo_style custom step temp pe press c_sum");
+    command("thermo 2");
+    command("run 4 post no");
 }
 
 void restart_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
-    lmp->input->one("clear");
-    std::string cmd("read_restart ");
-    cmd += cfg.basename + ".restart";
-    lmp->input->one(cmd.c_str());
+    // utility lambda to improve readability
+    auto command = [&](const std::string & line){
+        lmp->input->one(line.c_str());
+    };
+
+    command("clear");
+    command("read_restart " + cfg.basename + ".restart");
 
     if (!lmp->force->pair) {
-        cmd = "pair_style " + cfg.pair_style;
-        lmp->input->one(cmd.c_str());
+        command("pair_style " + cfg.pair_style);
     }
     if (!lmp->force->pair->restartinfo
         || !lmp->force->pair->writedata) {
-        for (auto pair_coeff : cfg.pair_coeff) {
-            cmd = "pair_coeff " + pair_coeff;
-            lmp->input->one(cmd.c_str());
+        for (auto& pair_coeff : cfg.pair_coeff) {
+            command("pair_coeff " + pair_coeff);
         }
     }
-    for (auto post_command : cfg.post_commands)
-        lmp->input->one(post_command.c_str());
-    lmp->input->one("run 0 post no");
+
+    for (auto& post_command : cfg.post_commands) {
+        command(post_command);
+    }
+
+    command("run 0 post no");
 }
 
 void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
-    lmp->input->one("clear");
-    lmp->input->one("variable pair_style  delete");
-    lmp->input->one("variable data_file   delete");
-    lmp->input->one("variable newton_pair delete");
-    lmp->input->one("variable newton_pair index on");
+    // utility lambdas to improve readability
+    auto command = [&](const std::string & line){
+        lmp->input->one(line.c_str());
+    };
+    auto parse_input_script = [&](const std::string & filename){
+        lmp->input->file(filename.c_str());
+    };
 
-    for (auto pre_command : cfg.pre_commands)
-        lmp->input->one(pre_command.c_str());
+    command("clear");
+    command("variable pair_style  delete");
+    command("variable data_file   delete");
+    command("variable newton_pair delete");
+    command("variable newton_pair index on");
 
-    std::string cmd("variable pair_style index '");
-    cmd += cfg.pair_style + "'";
-    lmp->input->one(cmd.c_str());
+    for (auto& pre_command : cfg.pre_commands) {
+        command(pre_command);
+    }
 
-    cmd = "variable data_file index ";
-    cmd += cfg.basename + ".data";
-    lmp->input->one(cmd.c_str());
+    command("variable pair_style index '" + cfg.pair_style + "'");
+    command("variable data_file index " + cfg.basename + ".data");
 
     std::string input_file = INPUT_FOLDER + PATH_SEP + cfg.input_file;
-    lmp->input->file(input_file.c_str());
+    parse_input_script(input_file);
 
-    for (auto pair_coeff : cfg.pair_coeff) {
-        cmd = "pair_coeff " + pair_coeff;
-        lmp->input->one(cmd.c_str());
+    for (auto& pair_coeff : cfg.pair_coeff) {
+        command("pair_coeff " + pair_coeff);
     }
-    for (auto post_command : cfg.post_commands)
-        lmp->input->one(post_command.c_str());
-    lmp->input->one("run 0 post no");
+    for (auto& post_command : cfg.post_commands) {
+        command(post_command);
+    }
+    command("run 0 post no");
 }
 
 // re-generate yaml file with current settings.
@@ -1011,62 +1029,73 @@ TEST(PairStyle, single) {
 
     // now start over
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("variable newton_pair delete");
-    lmp->input->one("variable newton_pair index on");
 
-    std::string set_input_dir = "variable input_dir index ";
-    set_input_dir += INPUT_FOLDER;
-    lmp->input->one(set_input_dir.c_str());
-    for (auto pre_command : test_config.pre_commands)
-        lmp->input->one(pre_command.c_str());
+    // utility lambda to improve readability
+    auto command = [&](const std::string & line){
+        lmp->input->one(line.c_str());
+    };
 
-    lmp->input->one("atom_style full");
-    lmp->input->one("units ${units}");
-    lmp->input->one("boundary p p p");
-    lmp->input->one("newton ${newton_pair} ${newton_bond}");
-    if (molecular) {
-        lmp->input->one("special_bonds lj/coul "
-                        "${bond_factor} ${angle_factor} ${dihedral_factor}");
+    command("clear");
+    command("variable newton_pair delete");
+    command("variable newton_pair index on");
+
+    command("variable input_dir index " + INPUT_FOLDER);
+
+    for (auto& pre_command : test_config.pre_commands) {
+        command(pre_command);
     }
-    lmp->input->one("atom_modify map array");
-    lmp->input->one("region box block -10.0 10.0 -10.0 10.0 -10.0 10.0 units box");
+
+    command("atom_style full");
+    command("units ${units}");
+    command("boundary p p p");
+    command("newton ${newton_pair} ${newton_bond}");
+
+    if (molecular) {
+        command("special_bonds lj/coul "
+                "${bond_factor} ${angle_factor} ${dihedral_factor}");
+    }
+
+    command("atom_modify map array");
+    command("region box block -10.0 10.0 -10.0 10.0 -10.0 10.0 units box");
+
     char buf[10];
     snprintf(buf,10,"%d",ntypes);
     std::string cmd("create_box ");
     cmd += buf;
     cmd += " box";
     if (molecular) {
-        cmd += " bond/types 1";
-        cmd += " extra/bond/per/atom 1";
-        cmd += " extra/special/per/atom 1";
+        cmd += " bond/types 1"
+               " extra/bond/per/atom 1"
+               " extra/special/per/atom 1";
     }
-    lmp->input->one(cmd.c_str());
+    command(cmd);
 
-    cmd = "pair_style ";
-    cmd += test_config.pair_style;
-    lmp->input->one(cmd.c_str());
+    command("pair_style " + test_config.pair_style);
+
     pair = lmp->force->pair;
 
-    for (auto pair_coeff : test_config.pair_coeff) {
-        cmd = "pair_coeff " + pair_coeff;
-        lmp->input->one(cmd.c_str());
+    for (auto& pair_coeff : test_config.pair_coeff) {
+        command("pair_coeff " + pair_coeff);
     }
 
     // create (only) two atoms
-    lmp->input->one("mass * 1.0");
-    lmp->input->one("create_atoms 1 single 0.0 -0.75  0.4 units box");
-    lmp->input->one("create_atoms 2 single 0.5  0.25 -0.1 units box");
-    lmp->input->one("set atom 1 charge -0.5");
-    lmp->input->one("set atom 2 charge  0.5");
+    command("mass * 1.0");
+    command("create_atoms 1 single 0.0 -0.75  0.4 units box");
+    command("create_atoms 2 single 0.5  0.25 -0.1 units box");
+    command("set atom 1 charge -0.5");
+    command("set atom 2 charge  0.5");
+
     if (molecular) {
-        lmp->input->one("create_bonds single/bond 1 1 2");
-        lmp->input->one("bond_style zero");
-        lmp->input->one("bond_coeff 1 2.0");
+        command("create_bonds single/bond 1 1 2");
+        command("bond_style zero");
+        command("bond_coeff 1 2.0");
     }
-    for (auto post_command : test_config.post_commands)
-        lmp->input->one(post_command.c_str());
-    lmp->input->one("run 0 post no");
+
+    for (auto& post_command : test_config.post_commands) {
+        command(post_command);
+    }
+
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     int idx1 = lmp->atom->map(1);
@@ -1094,8 +1123,8 @@ TEST(PairStyle, single) {
     EXPECT_FP_LE_WITH_EPS(f[idx2][2], fsingle*delz, epsilon);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("displace_atoms all random 1.0 1.0 1.0 723456");
-    lmp->input->one("run 0 post no");
+    command("displace_atoms all random 1.0 1.0 1.0 723456");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f = lmp->atom->f;
@@ -1118,8 +1147,8 @@ TEST(PairStyle, single) {
     EXPECT_FP_LE_WITH_EPS(f[idx2][2], fsingle*delz, epsilon);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("displace_atoms all random 1.0 1.0 1.0 3456963");
-    lmp->input->one("run 0 post no");
+    command("displace_atoms all random 1.0 1.0 1.0 3456963");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f = lmp->atom->f;
@@ -1142,8 +1171,8 @@ TEST(PairStyle, single) {
     EXPECT_FP_LE_WITH_EPS(f[idx2][2], fsingle*delz, epsilon);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("displace_atoms all random 0.5 0.5 0.5 9726532");
-    lmp->input->one("run 0 post no");
+    command("displace_atoms all random 0.5 0.5 0.5 9726532");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f = lmp->atom->f;
@@ -1201,8 +1230,8 @@ TEST(PairStyle, extract) {
     Pair *pair = lmp->force->pair;
     void *ptr = nullptr;
     int dim = 0;
-    for (auto extract : test_config.extract) {
-        ptr = pair->extract(extract.first.c_str(),dim);
+    for (auto& extract : test_config.extract) {
+        ptr = pair->extract(extract.first.c_str(), dim);
         EXPECT_NE(ptr, nullptr);
         EXPECT_EQ(dim, extract.second);
     }
@@ -1218,16 +1247,21 @@ TEST(PairStyle, extract) {
             pair->cutsq[i][j] = -1.0;
         }
     }
-    std::string cmd = "pair_style ";
-    cmd += test_config.pair_style;
-    lmp->input->one(cmd.c_str());
-    EXPECT_EQ(pair,lmp->force->pair);
 
-    for (auto pair_coeff : test_config.pair_coeff) {
-        cmd = "pair_coeff " + pair_coeff;
-        lmp->input->one(cmd.c_str());
+    // utility lambda to improve readability
+    auto command = [&](const std::string & line){
+        lmp->input->one(line.c_str());
+    };
+
+    command("pair_style " + test_config.pair_style);
+    EXPECT_EQ(pair, lmp->force->pair);
+
+    for (auto& pair_coeff : test_config.pair_coeff) {
+        command("pair_coeff " + pair_coeff);
     }
+
     pair->init();
+
     for (int i=1; i <= ntypes; ++i) {
         for (int j=1; j <= ntypes; ++j) {
             EXPECT_GE(pair->cutsq[i][j],0.0);

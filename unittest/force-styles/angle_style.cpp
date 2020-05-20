@@ -51,16 +51,15 @@ using ::testing::HasSubstr;
 
 using namespace LAMMPS_NS;
 
+static void delete_file(const std::string & filename) {
+    remove(filename.c_str());
+};
+
 void cleanup_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
-    std::string name;
-
-    name = cfg.basename + ".restart";
-    remove(name.c_str());
-    name = cfg.basename + ".data";
-    remove(name.c_str());
-    name = cfg.basename + "-coeffs.in";
-    remove(name.c_str());
+    delete_file(cfg.basename + ".restart");
+    delete_file(cfg.basename + ".data");
+    delete_file(cfg.basename + "-coeffs.in");
     delete lmp;
 }
 
@@ -75,7 +74,7 @@ LAMMPS *init_lammps(int argc, char **argv,
     // check if prerequisite styles are available
     Info *info = new Info(lmp);
     int nfail = 0;
-    for (auto prerequisite : cfg.prerequisites) {
+    for (auto& prerequisite : cfg.prerequisites) {
         std::string style = prerequisite.second;
 
         // this is a test for angle styles, so if the suffixed
@@ -92,106 +91,128 @@ LAMMPS *init_lammps(int argc, char **argv,
     if (nfail > 0) {
         delete info;
         cleanup_lammps(lmp,cfg);
-        return NULL;
+        return nullptr;
     }
+
+    // utility lambdas to improve readability
+    auto command = [&](const std::string & line){ 
+        lmp->input->one(line.c_str());
+    };
+    auto parse_input_script = [&](const std::string & filename){
+        lmp->input->file(filename.c_str());
+    };
 
     if (newton) {
-        lmp->input->one("variable newton_bond index on");
+        command("variable newton_bond index on");
     } else {
-        lmp->input->one("variable newton_bond index off");
+        command("variable newton_bond index off");
     }
 
-    std::string set_input_dir = "variable input_dir index ";
-    set_input_dir += INPUT_FOLDER;
-    lmp->input->one(set_input_dir.c_str());
-    for (auto pre_command : cfg.pre_commands)
-        lmp->input->one(pre_command.c_str());
+    command("variable input_dir index " + INPUT_FOLDER);
+
+    for (auto& pre_command : cfg.pre_commands) {
+        command(pre_command);
+    }
 
     std::string input_file = INPUT_FOLDER + PATH_SEP + cfg.input_file;
-    lmp->input->file(input_file.c_str());
+    parse_input_script(input_file);
 
-    std::string cmd("angle_style ");
-    cmd += cfg.angle_style;
-    lmp->input->one(cmd.c_str());
-    for (auto angle_coeff : cfg.angle_coeff) {
-        cmd = "angle_coeff " + angle_coeff;
-        lmp->input->one(cmd.c_str());
+    command("angle_style " + cfg.angle_style);
+
+    for (auto& angle_coeff : cfg.angle_coeff) {
+        command("angle_coeff " + angle_coeff);
     }
-    for (auto post_command : cfg.post_commands)
-        lmp->input->one(post_command.c_str());
-    lmp->input->one("run 0 post no");
-    cmd = "write_restart " + cfg.basename + ".restart";
-    lmp->input->one(cmd.c_str());
-    cmd = "write_data " + cfg.basename + ".data";
-    lmp->input->one(cmd.c_str());
-    cmd = "write_coeff " + cfg.basename + "-coeffs.in";
-    lmp->input->one(cmd.c_str());
+
+    for (auto& post_command : cfg.post_commands) {
+        command(post_command);
+    }
+
+    command("run 0 post no");
+    command("write_restart " + cfg.basename + ".restart");
+    command("write_data " + cfg.basename + ".data");
+    command("write_coeff " + cfg.basename + "-coeffs.in");
 
     return lmp;
 }
 
 void run_lammps(LAMMPS *lmp)
 {
-    lmp->input->one("fix 1 all nve");
-    lmp->input->one("compute pe all pe/atom");
-    lmp->input->one("compute sum all reduce sum c_pe");
-    lmp->input->one("thermo_style custom step temp pe press c_sum");
-    lmp->input->one("thermo 2");
-    lmp->input->one("run 4 post no");
+    // utility lambda to improve readability
+    auto command = [&](const std::string & line){ 
+        lmp->input->one(line.c_str());
+    };
+
+    command("fix 1 all nve");
+    command("compute pe all pe/atom");
+    command("compute sum all reduce sum c_pe");
+    command("thermo_style custom step temp pe press c_sum");
+    command("thermo 2");
+    command("run 4 post no");
 }
 
 void restart_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
-    lmp->input->one("clear");
-    std::string cmd("read_restart ");
-    cmd += cfg.basename + ".restart";
-    lmp->input->one(cmd.c_str());
+    // utility lambda to improve readability
+    auto command = [&](const std::string & line){ 
+        lmp->input->one(line.c_str());
+    };
+
+    command("clear");
+    command("read_restart " + cfg.basename + ".restart");
 
     if (!lmp->force->angle) {
-        cmd = "angle_style " + cfg.angle_style;
-        lmp->input->one(cmd.c_str());
+        command("angle_style " + cfg.angle_style);
     }
+
     if ((cfg.angle_style.substr(0,6) == "hybrid")
         || !lmp->force->angle->writedata) {
-        for (auto angle_coeff : cfg.angle_coeff) {
-            cmd = "angle_coeff " + angle_coeff;
-            lmp->input->one(cmd.c_str());
+        for (auto& angle_coeff : cfg.angle_coeff) {
+            command("angle_coeff " + angle_coeff);
         }
     }
-    for (auto post_command : cfg.post_commands)
-        lmp->input->one(post_command.c_str());
-    lmp->input->one("run 0 post no");
+
+    for (auto& post_command : cfg.post_commands) {
+        command(post_command);
+    }
+
+    command("run 0 post no");
 }
 
 void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
-    lmp->input->one("clear");
-    lmp->input->one("variable angle_style delete");
-    lmp->input->one("variable data_file  delete");
-    lmp->input->one("variable newton_bond delete");
-    lmp->input->one("variable newton_bond index on");
+    // utility lambdas to improve readability
+    auto command = [&](const std::string & line){ 
+        lmp->input->one(line.c_str());
+    };
+    auto parse_input_script = [&](const std::string & filename){
+        lmp->input->file(filename.c_str());
+    };
 
-    for (auto pre_command : cfg.pre_commands)
-        lmp->input->one(pre_command.c_str());
+    command("clear");
+    command("variable angle_style delete");
+    command("variable data_file  delete");
+    command("variable newton_bond delete");
+    command("variable newton_bond index on");
 
-    std::string cmd("variable angle_style index '");
-    cmd += cfg.angle_style + "'";
-    lmp->input->one(cmd.c_str());
+    for (auto& pre_command : cfg.pre_commands) {
+        command(pre_command);
+    }
 
-    cmd = "variable data_file index ";
-    cmd += cfg.basename + ".data";
-    lmp->input->one(cmd.c_str());
+    command("variable angle_style index '" + cfg.angle_style + "'");
+    command("variable data_file index " + cfg.basename + ".data");
 
     std::string input_file = INPUT_FOLDER + PATH_SEP + cfg.input_file;
-    lmp->input->file(input_file.c_str());
+    parse_input_script(input_file);
 
-    for (auto angle_coeff : cfg.angle_coeff) {
-        cmd = "angle_coeff " + angle_coeff;
-        lmp->input->one(cmd.c_str());
+    for (auto& angle_coeff : cfg.angle_coeff) {
+        command("angle_coeff " + angle_coeff);
     }
-    for (auto post_command : cfg.post_commands)
-        lmp->input->one(post_command.c_str());
-    lmp->input->one("run 0 post no");
+
+    for (auto& post_command : cfg.post_commands) {
+        command(post_command);
+    }
+
+    command("run 0 post no");
 }
 
 
@@ -207,7 +228,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
             "in this LAMMPS configuration:\n";
-        for (auto prerequisite : config.prerequisites) {
+        for (auto& prerequisite : config.prerequisites) {
             std::cerr << prerequisite.first << "_style "
                       << prerequisite.second << "\n";
         }
@@ -235,21 +256,21 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // prerequisites
     block.clear();
-    for (auto prerequisite :  config.prerequisites) {
+    for (auto& prerequisite :  config.prerequisites) {
         block += prerequisite.first + " " + prerequisite.second + "\n";
     }
     writer.emit_block("prerequisites", block);
 
     // pre_commands
     block.clear();
-    for (auto command :  config.pre_commands) {
+    for (auto& command :  config.pre_commands) {
         block += command + "\n";
     }
     writer.emit_block("pre_commands", block);
 
     // post_commands
     block.clear();
-    for (auto command : config.post_commands) {
+    for (auto& command : config.post_commands) {
         block += command + "\n";
     }
     writer.emit_block("post_commands", block);
@@ -262,7 +283,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // angle_coeff
     block.clear();
-    for (auto angle_coeff : config.angle_coeff) {
+    for (auto& angle_coeff : config.angle_coeff) {
         block += angle_coeff + "\n";
     }
     writer.emit_block("angle_coeff", block);
@@ -270,7 +291,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     // extract
     block.clear();
     std::stringstream outstr;
-    for (auto data : config.extract) {
+    for (auto& data : config.extract) {
         outstr << data.first << " " << data.second << std::endl;
     }
     writer.emit_block("extract", outstr.str());
@@ -336,7 +357,7 @@ TEST(AngleStyle, plain) {
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
             "in this LAMMPS configuration:\n";
-        for (auto prerequisite : test_config.prerequisites) {
+        for (auto& prerequisite : test_config.prerequisites) {
             std::cerr << prerequisite.first << "_style "
                       << prerequisite.second << "\n";
         }
@@ -570,7 +591,7 @@ TEST(AngleStyle, omp) {
     if (!lmp) {
         std::cerr << "One or more prerequisite styles with /omp suffix\n"
             "are not available in this LAMMPS configuration:\n";
-        for (auto prerequisite : test_config.prerequisites) {
+        for (auto& prerequisite : test_config.prerequisites) {
             std::cerr << prerequisite.first << "_style "
                       << prerequisite.second << "\n";
         }

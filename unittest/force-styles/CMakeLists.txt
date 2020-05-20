@@ -5,13 +5,14 @@ if(NOT YAML_FOUND)
   return()
 endif()
 
-set(TEST_COMMON_FILES yaml_writer.cpp;error_stats.cpp;test_config_reader.cpp;test_main.cpp)
 set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+add_library(style_tests STATIC yaml_writer.cpp error_stats.cpp test_config_reader.cpp test_main.cpp)
+target_compile_definitions(style_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
+target_link_libraries(style_tests PRIVATE MPI::MPI_CXX Yaml::Yaml)
 
 # pair style tester
-add_executable(pair_style pair_style.cpp ${TEST_COMMON_FILES})
-target_link_libraries(pair_style PRIVATE lammps GTest::GMock GTest::GTest Yaml::Yaml)
-target_compile_definitions(pair_style PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
+add_executable(pair_style pair_style.cpp)
+target_link_libraries(pair_style PRIVATE lammps GTest::GTest GTest::GMock style_tests)
 
 # tests for a molecular systems and related pair styles
 file(GLOB MOL_PAIR_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/mol-pair-*.yaml)
@@ -31,9 +32,8 @@ foreach(TEST ${ATOMIC_PAIR_TESTS})
 endforeach()
 
 # bond style tester
-add_executable(bond_style bond_style.cpp ${TEST_COMMON_FILES})
-target_link_libraries(bond_style PRIVATE lammps GTest::GMock GTest::GTest Yaml::Yaml)
-target_compile_definitions(bond_style PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
+add_executable(bond_style bond_style.cpp)
+target_link_libraries(bond_style PRIVATE lammps GTest::GTest GTest::GMock style_tests)
 
 file(GLOB BOND_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/bond-*.yaml)
 foreach(TEST ${BOND_TESTS})
@@ -43,9 +43,8 @@ foreach(TEST ${BOND_TESTS})
 endforeach()
 
 # angle style tester
-add_executable(angle_style angle_style.cpp ${TEST_COMMON_FILES})
-target_link_libraries(angle_style PRIVATE lammps GTest::GMock GTest::GTest Yaml::Yaml)
-target_compile_definitions(angle_style PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
+add_executable(angle_style angle_style.cpp)
+target_link_libraries(angle_style PRIVATE lammps GTest::GTest GTest::GMock style_tests)
 
 file(GLOB ANGLE_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/angle-*.yaml)
 foreach(TEST ${ANGLE_TESTS})

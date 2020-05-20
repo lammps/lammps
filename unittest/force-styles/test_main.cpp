@@ -26,7 +26,7 @@ bool read_yaml_file(const char *infile, TestConfig &config)
     auto reader = TestConfigReader(config);
     if (reader.parse_file(infile))
         return false;
-    
+
     config.basename = reader.get_basename();
     return true;
 }
@@ -45,7 +45,7 @@ void usage(std::ostream &out, const char *name)
         << "  -h                  print this message\n"
         << std::endl;
 }
-    
+
 // test configuration settings read from yaml file
 TestConfig test_config;
 

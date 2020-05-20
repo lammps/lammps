@@ -75,7 +75,7 @@ public:
             }
 
             if (accepted) {
-                if(!consume_key_value(key, event)){
+                if(!consume_key_value(key, event)) {
                     std::cerr << "Ignoring unknown key/value pair: " << key
                               << " = " << event.data.scalar.value << std::endl;
                 }

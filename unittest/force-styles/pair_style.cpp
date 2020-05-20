@@ -95,10 +95,10 @@ LAMMPS *init_lammps(int argc, char **argv,
     }
 
     // utility lambdas to improve readability
-    auto command = [&](const std::string & line){
+    auto command = [&](const std::string & line) {
         lmp->input->one(line.c_str());
     };
-    auto parse_input_script = [&](const std::string & filename){
+    auto parse_input_script = [&](const std::string & filename) {
         lmp->input->file(filename.c_str());
     };
 
@@ -138,7 +138,7 @@ LAMMPS *init_lammps(int argc, char **argv,
 void run_lammps(LAMMPS *lmp)
 {
     // utility lambda to improve readability
-    auto command = [&](const std::string & line){
+    auto command = [&](const std::string & line) {
         lmp->input->one(line.c_str());
     };
 
@@ -153,7 +153,7 @@ void run_lammps(LAMMPS *lmp)
 void restart_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
     // utility lambda to improve readability
-    auto command = [&](const std::string & line){
+    auto command = [&](const std::string & line) {
         lmp->input->one(line.c_str());
     };
 
@@ -180,10 +180,10 @@ void restart_lammps(LAMMPS *lmp, const TestConfig &cfg)
 void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
     // utility lambdas to improve readability
-    auto command = [&](const std::string & line){
+    auto command = [&](const std::string & line) {
         lmp->input->one(line.c_str());
     };
-    auto parse_input_script = [&](const std::string & filename){
+    auto parse_input_script = [&](const std::string & filename) {
         lmp->input->file(filename.c_str());
     };
 
@@ -1031,7 +1031,7 @@ TEST(PairStyle, single) {
     if (!verbose) ::testing::internal::CaptureStdout();
 
     // utility lambda to improve readability
-    auto command = [&](const std::string & line){
+    auto command = [&](const std::string & line) {
         lmp->input->one(line.c_str());
     };
 
@@ -1249,7 +1249,7 @@ TEST(PairStyle, extract) {
     }
 
     // utility lambda to improve readability
-    auto command = [&](const std::string & line){
+    auto command = [&](const std::string & line) {
         lmp->input->one(line.c_str());
     };
 

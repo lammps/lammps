@@ -37,7 +37,7 @@ private:
 
 private:
     YamlWriter() {};
-    YamlWriter(const YamlWriter &){};
+    YamlWriter(const YamlWriter &) {};
 };
 
 #endif

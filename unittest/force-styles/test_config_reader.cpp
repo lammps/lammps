@@ -179,7 +179,7 @@ void TestConfigReader::run_forces(const yaml_event_t & event) {
 }
 
 void TestConfigReader::pair_style(const yaml_event_t & event) {
-        config.pair_style = (char *)event.data.scalar.value;
+    config.pair_style = (char *)event.data.scalar.value;
 }
 
 void TestConfigReader::pair_coeff(const yaml_event_t & event) {
@@ -193,7 +193,7 @@ void TestConfigReader::pair_coeff(const yaml_event_t & event) {
 }
 
 void TestConfigReader::bond_style(const yaml_event_t & event) {
-        config.bond_style = (char *)event.data.scalar.value;
+    config.bond_style = (char *)event.data.scalar.value;
 }
 
 void TestConfigReader::bond_coeff(const yaml_event_t & event) {
@@ -207,7 +207,7 @@ void TestConfigReader::bond_coeff(const yaml_event_t & event) {
 }
 
 void TestConfigReader::angle_style(const yaml_event_t & event) {
-        config.angle_style = (char *)event.data.scalar.value;
+    config.angle_style = (char *)event.data.scalar.value;
 }
 
 void TestConfigReader::angle_coeff(const yaml_event_t & event) {

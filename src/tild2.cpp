@@ -459,9 +459,14 @@ void TILD::vir_func_init() {
         for (j = 0; j < 2 * nfft; j++) {
           vg_hat[loc][i][j] *= scale_inv;
         }
+        n = 0;
+        for (j = 0; j <  nfft; j++) {
+          fprintf(screen,"vg %d %d %d %f %f\n", loc, i, j,vg_hat[loc][i][n],vg_hat[loc][i][n+1]);
+          n+=2;
+        }
       }
+      loc++;
     }
-  loc++;
   }
 }
 
@@ -524,14 +529,16 @@ void TILD::precompute_density_hat_fft() {
 
     for (int k = 0; k < 2*nfft; k++) {
       work1[k] *= scale_inv;
-      density_hat_fft_types[ktype][k] += work1[k];
+      density_hat_fft_types[ktype][k] = work1[k];
     }
 
+/*
     n = 0;
     for (int k = 0; k < nfft; k++){
-      //fprintf(screen,"%d %d %f %f %f\n", ktype, k,density_fft_types[ktype][k], density_hat_fft_types[ktype][n], density_hat_fft_types[ktype][n+1]);
+      fprintf(screen,"%d %d %f %f %f\n", ktype, k,density_fft_types[ktype][k], density_hat_fft_types[ktype][n], density_hat_fft_types[ktype][n+1]);
       n += 2;
     }
+*/
   }
 }
 
@@ -2058,7 +2065,7 @@ void TILD::accumulate_gradient() {
               if (diff_type) gradWtype[itype][i][k][m][o] += ktmpj[n] * (tmp_chi + tmp_kappa);
               if (calc_kappa_rho0 == 1) {
                 gradWtype[itype][i][k][m][o] -= grad_potent[loc][i][j] * rho0 * tmp_kappa;
-                if (diff_type) gradWtype[jtype][i][k][m][o] -= grad_potent[loc][i][n] * rho0 * tmp_kappa;
+                if (diff_type) gradWtype[jtype][i][k][m][o] -= grad_potent[loc][i][j] * rho0 * tmp_kappa;
               }
               n += 2;
               j++;
@@ -2243,36 +2250,22 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
       calc_kappa_rho0 = 1;
     }
   }
-  // Convolve kspace-potential with fft(den_group)
-  // take jtype density into k-space
- /*
-      n = 0;
-      for (int k = 0; k < nfft; k++) {
-        work1[n++] = potent[loc][k];
-        work1[n++] = ZEROF;
-      }
-      fft1->compute(work1, work1, 1);
-      for (int k = 0; k < 2*nfft; k++) {
-        work1[k] *= scale_inv;
-      }
-
-*/
  
-  // convolve itype-jtype interaction potential and itype density
-  n = 0;
-  for (int k = 0; k < nfft; k++) {
+  double factor = 1.0 / delvolinv / tmp_rho_div;
+  if (eflag_global) {
+    // convolve itype-jtype interaction potential and itype density
+    n = 0;
+    for (int k = 0; k < nfft; k++) {
       //fprintf(screen,"%d %d %d %f %f\n", itype, jtype, k, wki[n], work1[n]);
       complex_multiply(density_hat_fft_types[itype], potent_hat[loc], ktmpi, n);
       //complex_multiply(density_hat_fft_types[itype], work1, ktmpi, n);
       //complex_multiply(wki, potent_hat[loc], ktmpi, n);
-    n += 2;
-  }
-  // IFFT the convolution
-  fft1->compute(ktmpi, ktmp2i, -1);
-  double factor = 1.0 / delvolinv / tmp_rho_div;
+      n += 2;
+    }
+    // IFFT the convolution
+    fft1->compute(ktmpi, ktmp2i, -1);
 
-  // chi and kappa energy contribution
-  if (eflag_global) {
+    // chi and kappa energy contribution
     n = 0;
     eng = 0.0;
     engk = 0.0;
@@ -2298,7 +2291,7 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
       double factor2 = factor;//  * ( i/3 ? 2.0 : 1.0);
       n = 0;
       for (int k = 0; k < nfft; k++) {
-        //fprintf(screen,"virial %d %d %f\n", i, k, -vg[loc][i][k]);
+        fprintf(screen,"vg %d %d %f %f %f %f\n", i, k, density_hat_fft_types[itype][n], density_hat_fft_types[itype][n+1],vg_hat[loc][i][n],vg_hat[loc][i][n+1]);
         complex_multiply(density_hat_fft_types[itype], vg_hat[loc][i], ktmp2i, n);
         n += 2;
       }
@@ -2308,7 +2301,7 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
       n=0;
       for (int k = 0; k < nfft; k++) {
         // rho_i * u_ij * rho_j * chi * prefactor
-        //fprintf(screen,"virial %d %d %f %f\n", i, k, ktmpi[n], density_fft_types[jtype][k]);
+        fprintf(screen,"virial %d %d %f %f %f\n", i, k, ktmpi[n], density_fft_types[jtype][k], ktmpi[n] * density_fft_types[jtype][k]);
         vtmp += ktmpi[n] * density_fft_types[jtype][k];
         if ( calc_kappa_rho0 == 1 ) vtmpk -= ktmpi[n];
         n+=2;

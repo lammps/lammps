@@ -355,6 +355,7 @@ TEST(PairStyle, plain) {
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = init_lammps(argc,argv,test_config,true);
     std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
 
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
@@ -1253,14 +1254,15 @@ TEST(PairStyle, extract) {
         lmp->input->one(line.c_str());
     };
 
+    if (!verbose) ::testing::internal::CaptureStdout();
     command("pair_style " + test_config.pair_style);
     EXPECT_EQ(pair, lmp->force->pair);
 
     for (auto& pair_coeff : test_config.pair_coeff) {
         command("pair_coeff " + pair_coeff);
     }
-
     pair->init();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     for (int i=1; i <= ntypes; ++i) {
         for (int j=1; j <= ntypes; ++j) {

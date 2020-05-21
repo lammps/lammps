@@ -353,6 +353,7 @@ TEST(AngleStyle, plain) {
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = init_lammps(argc,argv,test_config,true);
     std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
 
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "

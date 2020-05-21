@@ -57,7 +57,7 @@ its current value(s) used to determine the flux.
 
 If *eflux* is a numeric constant or equal-style variable which evaluates
 to a scalar value, then *eflux* determines the change in aggregate energy
-of the entire group of atoms per unit time, e.g. in eV/psec for
+of the entire group of atoms per unit time, e.g. in eV/ps for
 :doc:`metal units <units>`.  In this case it is an "extensive" quantity,
 meaning its magnitude should be scaled with the number of atoms in the
 group.  Note that since *eflux* also has per-time units (i.e. it is a

@@ -145,16 +145,16 @@ parameters, see the :doc:`How-To <Howto_dispersion>` discussion.
 
 The *fftbench* keyword applies only to PPPM. It is off by default. If
 this option is turned on, LAMMPS will perform a short FFT benchmark
-computation and report its timings, and will thus finish a some seconds
+computation and report its timings, and will thus finish some seconds
 later than it would if this option were off.
 
 ----------
 
 The *force/disp/real* and *force/disp/kspace* keywords set the force
-accuracy for the real and space computations for the dispersion part
-of pppm/disp. As shown in :ref:`(Isele-Holder) <Isele-Holder1>`, optimal
-performance and accuracy in the results is obtained when these values
-are different.
+accuracy for the real and reciprocal space computations for the dispersion
+part of pppm/disp. As shown in :ref:`(Isele-Holder) <Isele-Holder1>`,
+optimal performance and accuracy in the results is obtained when these
+values are different.
 
 ----------
 
@@ -413,10 +413,10 @@ slab correction has also been extended to point dipole interactions
 ----------
 
 The *force/disp/real* and *force/disp/kspace* keywords set the force
-accuracy for the real and space computations for the dispersion part
-of pppm/disp. As shown in :ref:`(Isele-Holder) <Isele-Holder1>`, optimal
-performance and accuracy in the results is obtained when these values
-are different.
+accuracy for the real and reciprocal space computations for the dispersion
+part of pppm/disp. As shown in :ref:`(Isele-Holder) <Isele-Holder1>`,
+optimal performance and accuracy in the results is obtained when these
+values are different.
 
 The *disp/auto* option controls whether the pppm/disp is allowed to
 generate PPPM parameters automatically. If set to *no*\ , parameters

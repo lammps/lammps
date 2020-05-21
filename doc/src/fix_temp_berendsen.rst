@@ -45,7 +45,7 @@ The desired temperature at each timestep is a ramped value during the
 run from *Tstart* to *Tstop*\ .  The *Tdamp* parameter is specified in
 time units and determines how rapidly the temperature is relaxed.  For
 example, a value of 100.0 means to relax the temperature in a timespan
-of (roughly) 100 time units (tau or fmsec or psec - see the
+of (roughly) 100 time units (tau or fs or ps - see the
 :doc:`units <units>` command).
 
 *Tstart* can be specified as an equal-style :doc:`variable <variable>`.

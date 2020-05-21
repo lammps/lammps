@@ -50,7 +50,7 @@ void WriteCoeff::command(int narg, char **arg)
   strcat(file,arg[0]);
 
   // initialize relevant styles
-  force->init();
+  lmp->init();
 
   if (comm->me == 0) {
     char str[256], coeff[256];

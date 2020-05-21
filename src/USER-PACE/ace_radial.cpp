@@ -2,7 +2,6 @@
 #include <stdexcept>
 
 #include "ace_radial.h"
-
 const DOUBLE_TYPE pi = 3.14159265358979323846264338327950288419; // pi
 
 /**

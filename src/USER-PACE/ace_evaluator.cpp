@@ -126,7 +126,6 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
     DOUBLE_TYPE *r_hat;
 
     SPECIES_TYPE mu_j;
-    DENSITY_TYPE ndensity; //TODO: extract from basis set, as it is equal to all functions
     RANK_TYPE r, rank, t;
     NS_TYPE n;
     LS_TYPE l;
@@ -179,14 +178,17 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
     DOUBLE_TYPE rho_cut, drho_cut, fcut, dfcut;
     DOUBLE_TYPE dF_drho_core;
 
-    //TODO: lmax -> lmaxi
+    //TODO: lmax -> lmaxi (get per-species type)
     const LS_TYPE lmaxi = basis_set->lmax;
 
-    //TODO: nradmax -> nradiali
+    //TODO: nradmax -> nradiali (get per-species type)
     const NS_TYPE nradiali = basis_set->nradmax;
 
-    //TODO: nradbase -> nradbasei
+    //TODO: nradbase -> nradbasei (get per-species type)
     const NS_TYPE nradbasei = basis_set->nradbase;
+
+    //TODO: get per-species type number of densities
+    const DENSITY_TYPE ndensity = basis_set->ndensitymax;
 
     neighbours_forces.resize(jnum, 3);
     neighbours_forces.fill(0);
@@ -198,6 +200,11 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
     A_rank1.fill(0);
     rhos.fill(0);
     dF_drho.fill(0);
+
+#ifdef EXTRA_C_PROJECTIONS
+    basis_projections_rank1.init(total_basis_size_rank1, ndensity, "c_projections_rank1");
+    basis_projections.init(total_basis_size, ndensity, "c_projections");
+#endif
 
     //proxy references to spherical harmonics and radial functions arrays
     const Array2DLM<ACEComplex> &ylm = basis_set->spherical_harmonics.ylm;
@@ -322,12 +329,16 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
     // ==================== ENERGY ====================
 
     energy_calc_timer.start();
+#ifdef EXTRA_C_PROJECTIONS
+    basis_projections_rank1.fill(0);
+    basis_projections.fill(0);
+#endif
 
     //ALGORITHM 2: Basis functions B with iterative product and density rho(p) calculation
     //rank=1
-    for (int f_ind = 0; f_ind < total_basis_size_rank1; ++f_ind) {
-        ACECTildeBasisFunction *func = &basis_rank1[f_ind];
-        ndensity = func->ndensity;
+    for (int func_rank1_ind = 0; func_rank1_ind < total_basis_size_rank1; ++func_rank1_ind) {
+        ACECTildeBasisFunction *func = &basis_rank1[func_rank1_ind];
+//        ndensity = func->ndensity;
 #ifdef PRINT_LOOPS_INDICES
         printf("Num density = %d r = 0\n",(int) ndensity );
         print_C_tilde_B_basis_function(*func);
@@ -339,6 +350,10 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
         for (DENSITY_TYPE p = 0; p < ndensity; ++p) {
             //for rank=1 (r=0) only 1 ms-combination exists (ms_ind=0), so index of func.ctildes is 0..ndensity-1
             rhos(p) += func->ctildes[p] * A_cur;
+#ifdef EXTRA_C_PROJECTIONS
+            //aggregate C-projections separately
+            basis_projections_rank1(func_rank1_ind, p)+= func->ctildes[p] * A_cur;
+#endif
         }
     } // end loop for rank=1
 
@@ -349,7 +364,7 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
     for (func_ind = 0; func_ind < total_basis_size; ++func_ind) {
         ACECTildeBasisFunction *func = &basis[func_ind];
         //TODO: check if func->ctildes are zero, then skip
-        ndensity = func->ndensity;
+//        ndensity = func->ndensity;
         rank = func->rank;
         r = rank - 1;
 #ifdef PRINT_LOOPS_INDICES
@@ -401,6 +416,12 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
             for (DENSITY_TYPE p = 0; p < ndensity; ++p) {
                 //real-part only multiplication
                 rhos(p) += B.real_part_product(func->ctildes[ms_ind * ndensity + p]);
+
+#ifdef EXTRA_C_PROJECTIONS
+                //aggregate C-projections separately
+                basis_projections(func_ind, p)+=B.real_part_product(func->ctildes[ms_ind * ndensity + p]);
+#endif
+
 #ifdef PRINT_INTERMEDIATE_VALUES
                 printf("rhos(%d) += %f\n", p, B.real_part_product(func->ctildes[ms_ind * ndensity + p]));
                 printf("Rho[i = %d][p = %d] = %f\n",  i , p , rhos(p));
@@ -438,7 +459,7 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
     // rank = 1
     for (int f_ind = 0; f_ind < total_basis_size_rank1; ++f_ind) {
         ACECTildeBasisFunction *func = &basis_rank1[f_ind];
-        ndensity = func->ndensity;
+//        ndensity = func->ndensity;
         for (DENSITY_TYPE p = 0; p < ndensity; ++p) {
             //for rank=1 (r=0) only 1 ms-combination exists (ms_ind=0), so index of func.ctildes is 0..ndensity-1
             weights_rank1(func->mus[0], func->ns[0] - 1) += dF_drho(p) * func->ctildes[p];
@@ -451,7 +472,7 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
     DOUBLE_TYPE theta = 0;
     for (func_ind = 0; func_ind < total_basis_size; ++func_ind) {
         ACECTildeBasisFunction *func = &basis[func_ind];
-        ndensity = func->ndensity;
+//        ndensity = func->ndensity;
         rank = func->rank;
         mus = func->mus;
         ns = func->ns;

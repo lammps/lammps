@@ -1,5 +1,4 @@
 #include "ace_c_basis.h"
-#include "ace_flatten_basis.h"
 
 using namespace std;
 //------------------------------------------------------------------------
@@ -7,168 +6,107 @@ using namespace std;
 ACECTildeBasisSet::ACECTildeBasisSet(const ACECTildeBasisSet &other) {
     ACECTildeBasisSet::_copy_scalar_memory(other);
     ACECTildeBasisSet::_copy_dynamic_memory(other);
+    pack_flatten_basis();
 }
 
-void ACECTildeBasisSet::_clean() {
-    // call parent method
-    ACEFlattenBasisSet::_clean();
-
-    if (full_c_tildes_rank1 != nullptr) {
-        delete[] full_c_tildes_rank1;
-        full_c_tildes_rank1 = nullptr;
-    }
-
-    if (full_c_tildes != nullptr) {
-        delete[] full_c_tildes;
-        full_c_tildes = nullptr;
-    }
-
-
-    if (basis_rank1 != nullptr) {
-        for (SPECIES_TYPE mu = 0; mu < this->nelements; ++mu) {
-            delete[] basis_rank1[mu];
-            basis_rank1[mu] = nullptr;
-        }
-
-        delete[] basis_rank1;
-        basis_rank1 = nullptr;
-    }
-
-    if (basis != nullptr) {
-        for (SPECIES_TYPE mu = 0; mu < this->nelements; ++mu) {
-            delete[] basis[mu];
-            basis[mu] = nullptr;
-        }
-        delete[] basis;
-        basis = nullptr;
-    }
-
-
-}
-
-ACECTildeBasisSet::~ACECTildeBasisSet() {
-    ACECTildeBasisSet::_clean();
-}
 
 ACECTildeBasisSet &ACECTildeBasisSet::operator=(const ACECTildeBasisSet &other) {
     if (this != &other) {
-        ACEFlattenBasisSet::_clean();
-        ACECTildeBasisSet::_copy_scalar_memory(other);
-        ACECTildeBasisSet::_copy_dynamic_memory(other);
+        _clean();
+        _copy_scalar_memory(other);
+        _copy_dynamic_memory(other);
+        pack_flatten_basis();
     }
     return *this;
 }
 
 
-void ACECTildeBasisSet::_copy_scalar_memory(const ACECTildeBasisSet &other) {
-    ACEFlattenBasisSet::_copy_scalar_memory(other);
-
-    num_ctilde_max = other.num_ctilde_max;
-
+ACECTildeBasisSet::~ACECTildeBasisSet() {
+    ACECTildeBasisSet::_clean();
 }
 
-void ACECTildeBasisSet::_copy_dynamic_memory(const ACECTildeBasisSet &other) {//allocate new memory
-    ACEFlattenBasisSet::_copy_dynamic_memory(other);
+void ACECTildeBasisSet::_clean() {
+    // call parent method
+    ACEFlattenBasisSet::_clean();
+    _clean_contiguous_arrays();
+    _clean_basis_arrays();
+}
 
-    basis = new ACECTildeBasisFunction *[nelements];
-    basis_rank1 = new ACECTildeBasisFunction *[nelements];
+void ACECTildeBasisSet::_copy_scalar_memory(const ACECTildeBasisSet &src) {
+    ACEFlattenBasisSet::_copy_scalar_memory(src);
+    num_ctilde_max = src.num_ctilde_max;
+}
 
-    //copy
-    for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
+void ACECTildeBasisSet::_copy_dynamic_memory(const ACECTildeBasisSet &src) {//allocate new memory
+    ACEFlattenBasisSet::_copy_dynamic_memory(src);
 
-        basis_rank1[mu] = new ACECTildeBasisFunction[total_basis_size_rank1[mu]];
+    if (src.basis_rank1 == nullptr)
+        throw runtime_error("Could not copy ACECTildeBasisSet::basis_rank1 - array not initialized");
+    if (src.basis == nullptr) throw runtime_error("Could not copy ACECTildeBasisSet::basis - array not initialized");
 
-        for (size_t i = 0; i < total_basis_size_rank1[mu]; i++) {
-            basis_rank1[mu][i] = other.basis_rank1[mu][i];
+
+    basis_rank1 = new ACECTildeBasisFunction *[src.nelements];
+    basis = new ACECTildeBasisFunction *[src.nelements];
+
+    //copy basis arrays
+    for (SPECIES_TYPE mu = 0; mu < src.nelements; ++mu) {
+        basis_rank1[mu] = new ACECTildeBasisFunction[src.total_basis_size_rank1[mu]];
+
+        for (size_t i = 0; i < src.total_basis_size_rank1[mu]; i++) {
+            basis_rank1[mu][i] = src.basis_rank1[mu][i];
         }
 
 
-        basis[mu] = new ACECTildeBasisFunction[total_basis_size[mu]];
-        for (size_t i = 0; i < total_basis_size[mu]; i++) {
-            basis[mu][i] = other.basis[mu][i];
+        basis[mu] = new ACECTildeBasisFunction[src.total_basis_size[mu]];
+        for (size_t i = 0; i < src.total_basis_size[mu]; i++) {
+            basis[mu][i] = src.basis[mu][i];
         }
     }
-
-    full_c_tildes_rank1 = new DOUBLE_TYPE[coeff_array_total_size_rank1];
-    for (size_t i = 0; i < coeff_array_total_size_rank1; i++) {
-        full_c_tildes_rank1[i] = other.full_c_tildes_rank1[i];
-    }
-
-    full_c_tildes = new DOUBLE_TYPE[coeff_array_total_size];
-    for (size_t i = 0; i < coeff_array_total_size; i++) {
-        full_c_tildes[i] = other.full_c_tildes[i];
-    }
-
+    //DON"T COPY CONTIGUOUS ARRAY, REBUILD THEM
 }
 
+void ACECTildeBasisSet::_clean_contiguous_arrays() {
+    ACEFlattenBasisSet::_clean_contiguous_arrays();
 
+    delete[] full_c_tildes_rank1;
+    full_c_tildes_rank1 = nullptr;
+
+    delete[] full_c_tildes;
+    full_c_tildes = nullptr;
+}
 
 //re-pack the constituent dynamic arrays of all basis functions in contiguous arrays
 void ACECTildeBasisSet::pack_flatten_basis() {
+    compute_array_sizes(basis_rank1, basis);
 
-    //1. compute arrays sizes
-    rank_array_total_size_rank1 = 0;
-    //ms_array_total_size_rank1 = rank_array_total_size_rank1;
-    coeff_array_total_size_rank1 = 0;
-
-    for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
-        if (total_basis_size_rank1[mu] > 0) {
-            rank_array_total_size_rank1 += total_basis_size_rank1[mu];
-
-            ACECTildeBasisFunction &func = basis_rank1[mu][0];
-            coeff_array_total_size_rank1 += total_basis_size_rank1[mu] * func.ndensity;
-        }
-    }
-
-    rank_array_total_size = 0;
-    coeff_array_total_size = 0;
-
-    ms_array_total_size = 0;
-    max_dB_array_size = 0;
-
-
-    max_B_array_size = 0;
-
-    size_t cur_ms_size = 0;
-    size_t cur_ms_rank_size = 0;
-
-    for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
-
-        cur_ms_size = 0;
-        cur_ms_rank_size = 0;
-        for (int func_ind = 0; func_ind < total_basis_size[mu]; ++func_ind) {
-            ACECTildeBasisFunction &func = basis[mu][func_ind];
-            rank_array_total_size += func.rank;
-            ms_array_total_size += func.rank * func.num_ms_combs;
-            coeff_array_total_size += func.ndensity * func.num_ms_combs;
-
-            cur_ms_size += func.num_ms_combs;
-            cur_ms_rank_size += func.rank * func.num_ms_combs;
-        }
-
-        if (cur_ms_size > max_B_array_size)
-            max_B_array_size = cur_ms_size;
-
-        if (cur_ms_rank_size > max_dB_array_size)
-            max_dB_array_size = cur_ms_rank_size;
-    }
-
+    //1. clean contiguous arrays
+    _clean_contiguous_arrays();
     //2. allocate contiguous arrays
+    delete[] full_ns_rank1;
     full_ns_rank1 = new NS_TYPE[rank_array_total_size_rank1];
+    delete[] full_ls_rank1;
     full_ls_rank1 = new NS_TYPE[rank_array_total_size_rank1];
+    delete[] full_Xs_rank1;
     full_Xs_rank1 = new SPECIES_TYPE[rank_array_total_size_rank1];
+    delete[] full_ms_rank1;
     full_ms_rank1 = new MS_TYPE[rank_array_total_size_rank1];
+
+    delete[] full_c_tildes_rank1;
     full_c_tildes_rank1 = new DOUBLE_TYPE[coeff_array_total_size_rank1];
 
 
+    delete[] full_ns;
     full_ns = new NS_TYPE[rank_array_total_size];
+    delete[] full_ls;
     full_ls = new LS_TYPE[rank_array_total_size];
+    delete[] full_Xs;
     full_Xs = new SPECIES_TYPE[rank_array_total_size];
-    full_c_tildes = new DOUBLE_TYPE[coeff_array_total_size];
+    delete[] full_ms;
     full_ms = new MS_TYPE[ms_array_total_size];
 
-    //TODO: allocate dB, Theta, B
-    //ACEComplex** dB = new ACEComplex*[ms_array_total_size];
+    delete[] full_c_tildes;
+    full_c_tildes = new DOUBLE_TYPE[coeff_array_total_size];
+
 
     //3. copy the values from private C_tilde_B_basis_function arrays to new contigous space
     //4. clean private memory
@@ -205,11 +143,11 @@ void ACECTildeBasisSet::pack_flatten_basis() {
             //release memory of each ACECTildeBasisFunction if it is not proxy
             func._clean();
 
+            func.mus = &full_Xs_rank1[rank_array_ind_rank1];
             func.ns = &full_ns_rank1[rank_array_ind_rank1];
             func.ls = &full_ls_rank1[rank_array_ind_rank1];
-            func.mus = &full_Xs_rank1[rank_array_ind_rank1];
-            func.ctildes = &full_c_tildes_rank1[coeff_array_ind_rank1];
             func.ms_combs = &full_ms_rank1[ms_array_ind_rank1];
+            func.ctildes = &full_c_tildes_rank1[coeff_array_ind_rank1];
             func.is_proxy = true;
 
             rank_array_ind_rank1 += func.rank;
@@ -217,7 +155,6 @@ void ACECTildeBasisSet::pack_flatten_basis() {
                                   func.num_ms_combs;
             coeff_array_ind_rank1 += func.num_ms_combs * func.ndensity;
 
-//            func_ind_r1++;
         }
     }
 
@@ -231,6 +168,10 @@ void ACECTildeBasisSet::pack_flatten_basis() {
         for (int func_ind = 0; func_ind < total_basis_size[mu]; ++func_ind) {
             ACECTildeBasisFunction &func = basis[mu][func_ind];
 
+            //copy values mus from c_tilde_basis_function private memory to contigous memory part
+            memcpy(&full_Xs[rank_array_ind], func.mus,
+                   func.rank * sizeof(SPECIES_TYPE));
+
             //copy values ns from c_tilde_basis_function private memory to contigous memory part
             memcpy(&full_ns[rank_array_ind], func.ns,
                    func.rank * sizeof(NS_TYPE));
@@ -238,18 +179,14 @@ void ACECTildeBasisSet::pack_flatten_basis() {
             memcpy(&full_ls[rank_array_ind], func.ls,
                    func.rank * sizeof(LS_TYPE));
             //copy values mus from c_tilde_basis_function private memory to contigous memory part
-            memcpy(&full_Xs[rank_array_ind], func.mus,
-                   func.rank * sizeof(SPECIES_TYPE));
+            memcpy(&full_ms[ms_array_ind], func.ms_combs,
+                   func.num_ms_combs *
+                   func.rank * sizeof(MS_TYPE));
 
             //copy values ctildes from c_tilde_basis_function private memory to contigous memory part
             memcpy(&full_c_tildes[coeff_array_ind], func.ctildes,
                    func.num_ms_combs * func.ndensity * sizeof(DOUBLE_TYPE));
 
-
-            //copy values mus from c_tilde_basis_function private memory to contigous memory part
-            memcpy(&full_ms[ms_array_ind], func.ms_combs,
-                   func.num_ms_combs *
-                   func.rank * sizeof(MS_TYPE));
 
             //release memory of each ACECTildeBasisFunction if it is not proxy
             func._clean();
@@ -265,8 +202,6 @@ void ACECTildeBasisSet::pack_flatten_basis() {
             ms_array_ind += func.rank *
                             func.num_ms_combs;
             coeff_array_ind += func.num_ms_combs * func.ndensity;
-
-//            func_ind++;
         }
     }
 }
@@ -568,7 +503,6 @@ void ACECTildeBasisSet::load(string filename) {
     ntot = stoi(buffer);
 
 
-
     int parameters_size;
     res = fscanf(fptr, "%s parameters:", buffer);
     if (res != 1) {
@@ -768,3 +702,120 @@ void ACECTildeBasisSet::load(string filename) {
     pack_flatten_basis();
 }
 
+void ACECTildeBasisSet::compute_array_sizes(ACECTildeBasisFunction **basis_rank1, ACECTildeBasisFunction **basis) {
+    //compute arrays sizes
+    rank_array_total_size_rank1 = 0;
+    //ms_array_total_size_rank1 = rank_array_total_size_rank1;
+    coeff_array_total_size_rank1 = 0;
+
+    for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
+        if (total_basis_size_rank1[mu] > 0) {
+            rank_array_total_size_rank1 += total_basis_size_rank1[mu];
+
+            ACEAbstractBasisFunction &func = basis_rank1[mu][0];//TODO: get total density instead of density from first function
+            coeff_array_total_size_rank1 += total_basis_size_rank1[mu] * func.ndensity;
+        }
+    }
+
+    rank_array_total_size = 0;
+    coeff_array_total_size = 0;
+
+    ms_array_total_size = 0;
+    max_dB_array_size = 0;
+
+
+    max_B_array_size = 0;
+
+    size_t cur_ms_size = 0;
+    size_t cur_ms_rank_size = 0;
+
+    for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
+
+        cur_ms_size = 0;
+        cur_ms_rank_size = 0;
+        for (int func_ind = 0; func_ind < total_basis_size[mu]; ++func_ind) {
+            auto &func = basis[mu][func_ind];
+            rank_array_total_size += func.rank;
+            ms_array_total_size += func.rank * func.num_ms_combs;
+            coeff_array_total_size += func.ndensity * func.num_ms_combs;
+
+            cur_ms_size += func.num_ms_combs;
+            cur_ms_rank_size += func.rank * func.num_ms_combs;
+        }
+
+        if (cur_ms_size > max_B_array_size)
+            max_B_array_size = cur_ms_size;
+
+        if (cur_ms_rank_size > max_dB_array_size)
+            max_dB_array_size = cur_ms_rank_size;
+    }
+}
+
+void ACECTildeBasisSet::_clean_basis_arrays() {
+    if (basis_rank1 != nullptr)
+        for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
+            delete[] basis_rank1[mu];
+            basis_rank1[mu] = nullptr;
+        }
+
+    if (basis != nullptr)
+        for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
+            delete[] basis[mu];
+            basis[mu] = nullptr;
+        }
+    delete[] basis;
+    basis = nullptr;
+
+    delete[] basis_rank1;
+    basis_rank1 = nullptr;
+}
+
+//pack into 1D array with all basis functions
+void ACECTildeBasisSet::flatten_basis(C_tilde_full_basis_vector2d &mu0_ctilde_basis_vector) {
+
+    _clean_basis_arrays();
+    basis_rank1 = new ACECTildeBasisFunction *[nelements];
+    basis = new ACECTildeBasisFunction *[nelements];
+
+    delete[] total_basis_size_rank1;
+    delete[] total_basis_size;
+    total_basis_size_rank1 = new SHORT_INT_TYPE[nelements];
+    total_basis_size = new SHORT_INT_TYPE[nelements];
+
+
+    size_t tot_size_rank1 = 0;
+    size_t tot_size = 0;
+
+    for (SPECIES_TYPE mu = 0; mu < this->nelements; ++mu) {
+        tot_size = 0;
+        tot_size_rank1 = 0;
+
+        for (auto &func: mu0_ctilde_basis_vector[mu]) {
+            if (func.rank == 1) tot_size_rank1 += 1;
+            else tot_size += 1;
+        }
+
+        total_basis_size_rank1[mu] = tot_size_rank1;
+        basis_rank1[mu] = new ACECTildeBasisFunction[tot_size_rank1];
+
+        total_basis_size[mu] = tot_size;
+        basis[mu] = new ACECTildeBasisFunction[tot_size];
+    }
+
+
+    for (SPECIES_TYPE mu = 0; mu < this->nelements; ++mu) {
+        size_t ind_rank1 = 0;
+        size_t ind = 0;
+
+        for (auto &func: mu0_ctilde_basis_vector[mu]) {
+            if (func.rank == 1) { //r=0, rank=1
+                basis_rank1[mu][ind_rank1] = func;
+                ind_rank1 += 1;
+            } else {  //r>0, rank>1
+                basis[mu][ind] = func;
+                ind += 1;
+            }
+        }
+
+    }
+}

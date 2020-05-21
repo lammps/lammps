@@ -18,11 +18,7 @@ class ACEAbstractBasisSet {
 protected:
 
 
-    // routines for copying and cleaning dynamic memory of the class (see. Rule of Three)
-    virtual void _clean(); //must be idempotent for safety
-    virtual void _copy_dynamic_memory(const ACEAbstractBasisSet &other);
 
-    virtual void _copy_scalar_memory(const ACEAbstractBasisSet &other);
 
 public:
     SPECIES_TYPE nelements = 0; //number of elements
@@ -32,6 +28,7 @@ public:
     LS_TYPE lmax = 0;
     NS_TYPE nradmax = 0;
     DOUBLE_TYPE cutoffmax = 0;
+    int ntot = 0;
 
     string *elements_name = nullptr; //mapping index(0..nelements) -> element_symbol
 
@@ -42,6 +39,7 @@ public:
     Array1D<DOUBLE_TYPE> rho_core_cutoffs;
     Array1D<DOUBLE_TYPE> drho_core_cutoffs;
     vector<DOUBLE_TYPE> FS_parameters;// for Eq.(53)
+
     ACEAbstractBasisSet() = default;
 
     // copy constructor, operator= and destructor (see. Rule of Three)
@@ -66,7 +64,12 @@ public:
 
     SPECIES_TYPE get_species_index_by_name(const string &elemname);
 
-    int ntot = 0;
+
+    // routines for copying and cleaning dynamic memory of the class (see. Rule of Three)
+    virtual void _clean(); //must be idempotent for safety
+    virtual void _copy_dynamic_memory(const ACEAbstractBasisSet &src);
+
+    virtual void _copy_scalar_memory(const ACEAbstractBasisSet &src);
 };
 
 #include <vector>

@@ -2,8 +2,8 @@
 // Created by Yury Lysogorskiy on 31.01.20.
 //
 
-#ifndef ACE_H
-#define ACE_H
+#ifndef ACE_EVALUATOR_H
+#define ACE_EVALUATOR_H
 
 
 #include "ace_arraynd.h"
@@ -69,6 +69,11 @@ public:
     virtual void compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, const int jnum, const int *jlist) = 0;
 
     virtual void resize_neighbours_cache(int max_jnum) = 0;
+
+#ifdef EXTRA_C_PROJECTIONS
+    Array2D<DOUBLE_TYPE> basis_projections_rank1 = Array2D<DOUBLE_TYPE>("basis_projections_rank1");
+    Array2D<DOUBLE_TYPE> basis_projections = Array2D<DOUBLE_TYPE>("basis_projections");
+#endif
 };
 
 class ACECTildeEvaluator : public ACEEvaluator {

@@ -16,10 +16,8 @@ mass		1 26.98
 group		Al type 1
 
 pair_style 	pace
-pair_coeff  * * Al.pbe.rhocore.ace Al
+pair_coeff  * * Al.pbe.rhocore-v2.ace Al
 
-#dump		snap all cfg 10 ./dump.fcc.*.cfg mass type xs ys zs fx fy fz
-#dump_modify	snap element Al
 
 fix 1 all box/relax iso 0.0 vmax 0.001
 min_style	cg

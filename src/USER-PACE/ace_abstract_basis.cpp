@@ -69,10 +69,9 @@ void ACEAbstractBasisSet::FS_values_and_derivatives(Array1D<DOUBLE_TYPE> &rhos, 
 }
 
 void ACEAbstractBasisSet::_clean() {
-    if (elements_name != nullptr) {
-        delete[] elements_name;
-        elements_name = nullptr;
-    }
+
+    delete[] elements_name;
+    elements_name = nullptr;
 }
 
 ACEAbstractBasisSet::ACEAbstractBasisSet(const ACEAbstractBasisSet &other) {
@@ -96,33 +95,34 @@ ACEAbstractBasisSet::~ACEAbstractBasisSet() {
     ACEAbstractBasisSet::_clean();
 }
 
-void ACEAbstractBasisSet::_copy_scalar_memory(const ACEAbstractBasisSet &other) {
-    ntot = other.ntot;
-    FS_parameters = other.FS_parameters;
+void ACEAbstractBasisSet::_copy_scalar_memory(const ACEAbstractBasisSet &src) {
+    ntot = src.ntot;
+    FS_parameters = src.FS_parameters;
 
-    nelements = other.nelements;
-    rankmax = other.rankmax;
-    ndensitymax = other.ndensitymax;
-    nradbase = other.nradbase;
-    lmax = other.lmax;
-    nradmax = other.nradmax;
-    cutoffmax = other.cutoffmax;
+    nelements = src.nelements;
+    rankmax = src.rankmax;
+    ndensitymax = src.ndensitymax;
+    nradbase = src.nradbase;
+    lmax = src.lmax;
+    nradmax = src.nradmax;
+    cutoffmax = src.cutoffmax;
 
-    radial_functions = other.radial_functions;
-    spherical_harmonics = other.spherical_harmonics;
+    radial_functions = src.radial_functions;
+    spherical_harmonics = src.spherical_harmonics;
 
-    rho_core_cutoffs = other.rho_core_cutoffs;
-    drho_core_cutoffs = other.drho_core_cutoffs;
+    rho_core_cutoffs = src.rho_core_cutoffs;
+    drho_core_cutoffs = src.drho_core_cutoffs;
 
 
 }
 
-void ACEAbstractBasisSet::_copy_dynamic_memory(const ACEAbstractBasisSet &other) {//allocate new memory
-
+void ACEAbstractBasisSet::_copy_dynamic_memory(const ACEAbstractBasisSet &src) {//allocate new memory
+    if (src.elements_name == nullptr)
+        throw runtime_error("Could not copy ACEAbstractBasisSet::elements_name - array not initialized");
     elements_name = new string[nelements];
     //copy
     for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
-        elements_name[mu] = other.elements_name[mu];
+        elements_name[mu] = src.elements_name[mu];
     }
 }
 

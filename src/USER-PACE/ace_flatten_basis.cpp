@@ -7,7 +7,6 @@
 ACEFlattenBasisSet::ACEFlattenBasisSet(const ACEFlattenBasisSet &other) {
     _copy_scalar_memory(other);
     _copy_dynamic_memory(other);
-    //pack_flatten_basis();
 }
 
 ACEFlattenBasisSet &ACEFlattenBasisSet::operator=(const ACEFlattenBasisSet &other) {
@@ -15,7 +14,6 @@ ACEFlattenBasisSet &ACEFlattenBasisSet::operator=(const ACEFlattenBasisSet &othe
         _clean();
         _copy_scalar_memory(other);
         _copy_dynamic_memory(other);
-        //  pack_flatten_basis();
     }
     return *this;
 }

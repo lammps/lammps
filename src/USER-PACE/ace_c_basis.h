@@ -1,15 +1,11 @@
 #ifndef ACE_C_BASIS_H
 #define ACE_C_BASIS_H
 
-
 #include "ace_flatten_basis.h"
 
 typedef vector<vector<ACECTildeBasisFunction>> C_tilde_full_basis_vector2d;
 
 class ACECTildeBasisSet : public ACEFlattenBasisSet {
-protected:
-    //2D-vector-like basis representation:[mu][func_ind]
-    C_tilde_full_basis_vector2d mu0_ctilde_basis_vector;
 public:
     //[mu][func_ind]
     ACECTildeBasisFunction **basis_rank1 = nullptr;
@@ -38,7 +34,7 @@ public:
 
     void _copy_scalar_memory(const ACECTildeBasisSet &src);
 
-    void _clean_contiguous_arrays();
+    void _clean_contiguous_arrays() override;
 
     void save(const string &filename) override;
 

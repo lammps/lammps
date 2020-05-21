@@ -5,8 +5,8 @@
 #define ACE_MULTIARRAY_H
 
 #include <cstring>
-#include <vector>
 #include <stdexcept>
+#include <vector>
 
 #include "ace_contigous_array.h"
 

@@ -6,6 +6,8 @@
 #define ACE_C_BASISFUNCTION_H
 
 #include <cstring>
+#include <iomanip>
+#include <iostream>
 #include <sstream>
 
 #include "ace_types.h"
@@ -147,32 +149,34 @@ struct ACECTildeBasisFunction : public ACEAbstractBasisFunction {
     }
 
     void print() const {
-        printf("C_tilde_B_basis_function: ndensity= %d, mu0 = %d ", this->ndensity, this->mu0);
-        printf(" XS=(");
+        using namespace std;
+        cout << "ACECTildeBasisFunction: ndensity= " << (int) this->ndensity << ", mu0 = " << (int) this->mu0 << " ";
+        cout << " mus=(";
         for (RANK_TYPE r = 0; r < this->rank; r++)
-            printf("%d ", int(this->mus[r]));
-        printf("), ns=(");
+            cout << (int) this->mus[r] << " ";
+        cout << "), ns=(";
         for (RANK_TYPE r = 0; r < this->rank; r++)
-            printf("%d ", this->ns[r]);
-        printf("), ls=(");
+            cout << this->ns[r] << " ";
+        cout << "), ls=(";
         for (RANK_TYPE r = 0; r < this->rank; r++)
-            printf("%d ", this->ls[r]);
+            cout << this->ls[r] << " ";
 
-        printf("), %d m_s combinations: {\n", this->num_ms_combs);
+        cout << "), " << this->num_ms_combs << " m_s combinations: {" << endl;
+
         for (int i = 0; i < this->num_ms_combs; i++) {
-            printf("\t< ");
+            cout << "\t< ";
             for (RANK_TYPE r = 0; r < this->rank; r++)
-                printf("%d ", this->ms_combs[i * this->rank + r]);
-            printf(" >: c_tilde=");
+                cout << this->ms_combs[i * this->rank + r] << " ";
+            cout << " >: c_tilde=";
             for (DENSITY_TYPE p = 0; p < this->ndensity; ++p)
-                printf(" %f ", this->ctildes[i * this->ndensity + p]);
-            printf("\n");
+                cout << " " << this->ctildes[i * this->ndensity + p] << " ";
+            cout << endl;
         }
         if (this->is_proxy)
-            printf("proxy ");
+            cout << "proxy ";
         if (this->is_half_ms_basis)
-            printf("half_ms_basis ");
-        printf("}\n");
+            cout << "half_ms_basis";
+        cout << "}" << endl;
     }
 };
 

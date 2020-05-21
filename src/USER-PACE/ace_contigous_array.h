@@ -5,6 +5,7 @@
 #define ACE_CONTIGUOUSARRAYND_H
 
 #include <string>
+
 #include "ace_types.h"
 
 using namespace std;

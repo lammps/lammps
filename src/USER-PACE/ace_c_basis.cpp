@@ -1,7 +1,6 @@
 #include "ace_c_basis.h"
 
 using namespace std;
-//------------------------------------------------------------------------
 
 ACECTildeBasisSet::ACECTildeBasisSet(const ACECTildeBasisSet &other) {
     ACECTildeBasisSet::_copy_scalar_memory(other);

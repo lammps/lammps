@@ -1,16 +1,16 @@
 //
-// Created by yury on 28.04.2020.
+// Created by Lysogroskiy Yury on 28.04.2020.
 //
 
 #ifndef ACE_EVALUATOR_ACE_FLATTEN_BASIS_H
 #define ACE_EVALUATOR_ACE_FLATTEN_BASIS_H
 
 
+#include "ace_abstract_basis.h"
 #include "ace_c_basisfunction.h"
 #include "ace_radial.h"
 #include "ace_spherical_cart.h"
 #include "ace_types.h"
-#include "ace_abstract_basis.h"
 
 class ACEFlattenBasisSet : public ACEAbstractBasisSet {
 public:
@@ -57,11 +57,7 @@ public:
     // rearrange basis functions in contiguous memory to optimize cache access
     virtual void pack_flatten_basis() = 0;
 
-//    void __copy_packed_arrays(const ACEFlattenBasisSet &src);
-
     virtual void flatten_basis() = 0;
-
-
 
     //1D flat array basis representation: [mu]
 
@@ -90,10 +86,9 @@ public:
     // routines for copying and cleaning dynamic memory of the class (see. Rule of Three)
     void _clean() override; //must be idempotent for safety
     void _copy_scalar_memory(const ACEFlattenBasisSet &src);
-
     void _copy_dynamic_memory(const ACEFlattenBasisSet &src);
 
-    void _clean_contiguous_arrays();
+    virtual void _clean_contiguous_arrays();
 
     void _clean_basissize_arrays();
 };

@@ -7,19 +7,16 @@
 
 #include <vector>
 #include <string>
-#include "ace_types.h"
-#include "ace_radial.h"
+
+#include "ace_c_basisfunction.h"
 #include "ace_contigous_array.h"
+#include "ace_radial.h"
 #include "ace_spherical_cart.h"
+#include "ace_types.h"
 
 using namespace std;
 
 class ACEAbstractBasisSet {
-protected:
-
-
-
-
 public:
     SPECIES_TYPE nelements = 0; //number of elements
     RANK_TYPE rankmax = 0;
@@ -68,14 +65,8 @@ public:
     // routines for copying and cleaning dynamic memory of the class (see. Rule of Three)
     virtual void _clean(); //must be idempotent for safety
     virtual void _copy_dynamic_memory(const ACEAbstractBasisSet &src);
-
     virtual void _copy_scalar_memory(const ACEAbstractBasisSet &src);
 };
 
-#include <vector>
-#include "ace_c_basisfunction.h"
-#include "ace_radial.h"
-#include "ace_spherical_cart.h"
-#include "ace_types.h"
 
 #endif //ACE_EVALUATOR_ACE_ABSTRACT_BASIS_H

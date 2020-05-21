@@ -4,9 +4,10 @@
 
 #ifndef ACE_TIMING_H
 #define ACE_TIMING_H
+
 //keywords for macros
-#define __start_moment __start_moment
-#define __duration __duration
+//#define __start_moment __start_moment
+//#define __duration __duration
 
 
 #include <chrono>

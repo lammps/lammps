@@ -5,14 +5,14 @@
 #ifndef ACE_EVALUATOR_H
 #define ACE_EVALUATOR_H
 
-
+#include "ace_abstract_basis.h"
 #include "ace_arraynd.h"
 #include "ace_array2dlm.h"
 #include "ace_c_basis.h"
 #include "ace_complex.h"
 #include "ace_timing.h"
 #include "ace_types.h"
-#include "ace_abstract_basis.h"
+
 
 class ACEEvaluator {
 protected:
@@ -101,11 +101,16 @@ class ACECTildeEvaluator : public ACEEvaluator {
     //pointer to the ACEBasisSet object
     ACECTildeBasisSet *basis_set = nullptr;
 
+
     void init(ACECTildeBasisSet *basis_set);
 
 public:
 
     ACECTildeEvaluator() = default;
+
+    explicit ACECTildeEvaluator(ACECTildeBasisSet &bas) {
+        set_basis(bas);
+    }
 
     //set the basis function to the ACE evaluator
     void set_basis(ACECTildeBasisSet &bas);

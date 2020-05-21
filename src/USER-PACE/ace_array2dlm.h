@@ -4,12 +4,13 @@
 #ifndef ACE_ARRAY2DLM_H
 #define ACE_ARRAY2DLM_H
 
+#include <stdexcept>
 #include <string>
 
-#include "ace_types.h"
-#include "ace_contigous_array.h"
 #include "ace_arraynd.h"
-#include <stdexcept>
+#include "ace_contigous_array.h"
+#include "ace_types.h"
+
 using namespace std;
 
 template<typename T>

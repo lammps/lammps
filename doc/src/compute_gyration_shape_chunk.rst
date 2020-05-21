@@ -37,7 +37,7 @@ and the relative shape anisotropy, k:
  b = & l_y - l_x \\
  k = & \frac{3}{2} \frac{l_x^2+l_y^2+l_z^2}{(l_x+l_y+l_z)^2} - \frac{1}{2}
 
-where :math:`l_x` <= :math:`l_y` <= :math`l_z` are the three eigenvalues of the gyration tensor. A general description
+where :math:`l_x` <= :math:`l_y` <= :math:`l_z` are the three eigenvalues of the gyration tensor. A general description
 of these parameters is provided in :ref:`(Mattice) <Mattice2>` while an application to polymer systems
 can be found in :ref:`(Theodorou) <Theodorou2>`. The asphericity  is always non-negative and zero
 only when the three principal moments are equal. This zero condition is met when the distribution

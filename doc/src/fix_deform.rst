@@ -154,8 +154,8 @@ specified in units of distance/time.  This is effectively a "constant
 engineering strain rate", where rate = V/L0 and L0 is the initial box
 length.  The distance can be in lattice or box distance units.  See
 the discussion of the units keyword below.  For example, if the
-initial box length is 100 Angstroms, and V is 10 Angstroms/psec, then
-after 10 psec, the box length will have doubled.  After 20 psec, it
+initial box length is 100 Angstroms, and V is 10 Angstroms/ps, then
+after 10 ps, the box length will have doubled.  After 20 ps, it
 will have tripled.
 
 The *erate* style changes a dimension of the box at a "constant
@@ -174,7 +174,7 @@ function of time will change as
 where dt is the elapsed time (in time units).  Thus if *erate* R is
 specified as 0.1 and time units are picoseconds, this means the box
 length will increase by 10% of its original length every picosecond.
-I.e. strain after 1 psec = 0.1, strain after 2 psec = 0.2, etc.  R =
+I.e. strain after 1 ps = 0.1, strain after 2 ps = 0.2, etc.  R =
 -0.01 means the box length will shrink by 1% of its original length
 every picosecond.  Note that for an "engineering" rate the change is
 based on the original box length, so running with R = 1 for 10
@@ -201,7 +201,7 @@ The box length L as a function of time will change as
 where dt is the elapsed time (in time units).  Thus if *trate* R is
 specified as ln(1.1) and time units are picoseconds, this means the
 box length will increase by 10% of its current (not original) length
-every picosecond.  I.e. strain after 1 psec = 0.1, strain after 2 psec
+every picosecond.  I.e. strain after 1 ps = 0.1, strain after 2 ps
 = 0.21, etc.  R = ln(2) or ln(3) means the box length will double or
 triple every picosecond.  R = ln(0.99) means the box length will
 shrink by 1% of its current length every picosecond.  Note that for a
@@ -317,8 +317,8 @@ specified in units of distance/time.  This is effectively an
 initial box length perpendicular to the direction of shear.  The
 distance can be in lattice or box distance units.  See the discussion
 of the units keyword below.  For example, if the initial tilt factor
-is 5 Angstroms, and the V is 10 Angstroms/psec, then after 1 psec, the
-tilt factor will be 15 Angstroms.  After 2 psec, it will be 25
+is 5 Angstroms, and the V is 10 Angstroms/ps, then after 1 ps, the
+tilt factor will be 15 Angstroms.  After 2 ps, it will be 25
 Angstroms.
 
 The *erate* style changes a tilt factor at a "constant engineering
@@ -342,9 +342,9 @@ box perpendicular to the shear direction (e.g. y box length for xy
 deformation), and dt is the elapsed time (in time units).  Thus if
 *erate* R is specified as 0.1 and time units are picoseconds, this
 means the shear strain will increase by 0.1 every picosecond.  I.e. if
-the xy shear strain was initially 0.0, then strain after 1 psec = 0.1,
-strain after 2 psec = 0.2, etc.  Thus the tilt factor would be 0.0 at
-time 0, 0.1\*ybox at 1 psec, 0.2\*ybox at 2 psec, etc, where ybox is the
+the xy shear strain was initially 0.0, then strain after 1 ps = 0.1,
+strain after 2 ps = 0.2, etc.  Thus the tilt factor would be 0.0 at
+time 0, 0.1\*ybox at 1 ps, 0.2\*ybox at 2 ps, etc, where ybox is the
 original y box length.  R = 1 or 2 means the tilt factor will increase
 by 1 or 2 every picosecond.  R = -0.01 means a decrease in shear
 strain by 0.01 every picosecond.
@@ -373,7 +373,7 @@ where T0 is the initial tilt factor and dt is the elapsed time (in
 time units).  Thus if *trate* R is specified as ln(1.1) and time units
 are picoseconds, this means the shear strain or tilt factor will
 increase by 10% every picosecond.  I.e. if the xy shear strain was
-initially 0.1, then strain after 1 psec = 0.11, strain after 2 psec =
+initially 0.1, then strain after 1 ps = 0.11, strain after 2 ps =
 0.121, etc.  R = ln(2) or ln(3) means the tilt factor will double or
 triple every picosecond.  R = ln(0.99) means the tilt factor will
 shrink by 1% every picosecond.  Note that the change is continuous, so

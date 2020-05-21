@@ -143,7 +143,7 @@ void run_lammps(LAMMPS *lmp)
     };
 
     command("fix 1 all nve");
-    command("compute pe all pe/atom");
+    command("compute pe all pe/atom pair");
     command("compute sum all reduce sum c_pe");
     command("thermo_style custom step temp pe press c_sum");
     command("thermo 2");

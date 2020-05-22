@@ -73,7 +73,7 @@ Executing LAMMPS commands
 
 Once an instance of the :py:class:`lammps <lammps.lammps>` class is
 created, there are multiple ways to "feed" it commands. In a way that is
-not very different from running a LAMMPS input script, execpt that
+not very different from running a LAMMPS input script, except that
 Python has many more facilities for structured programming than the
 LAMMPS input script syntax.  Furthermore it is possible to "compute"
 what the next LAMMPS command should be. Same as in the equivalent `C

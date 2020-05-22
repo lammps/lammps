@@ -34,21 +34,20 @@ public:
 
     void _copy_scalar_memory(const ACECTildeBasisSet &src);
 
-    void _clean_contiguous_arrays() override;
+    void _clean_contiguous_arrays() override ;
 
     void save(const string &filename) override;
-
     void load(string filename) override;
 
     void pack_flatten_basis() override;
 
-    void compute_array_sizes(ACECTildeBasisFunction **basis_rank1, ACECTildeBasisFunction **basis);
+    void compute_array_sizes(ACECTildeBasisFunction** basis_rank1, ACECTildeBasisFunction** basis);
 
     void _clean_basis_arrays();
 
-    void flatten_basis(C_tilde_full_basis_vector2d &mu0_ctilde_basis_vector);
+    void flatten_basis(C_tilde_full_basis_vector2d& mu0_ctilde_basis_vector);
 
-    void flatten_basis() override {};
+    void flatten_basis() override{};
 };
 
 #endif //ACE_C_BASIS_H

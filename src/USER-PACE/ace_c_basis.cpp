@@ -52,7 +52,7 @@ void ACECTildeBasisSet::_copy_dynamic_memory(const ACECTildeBasisSet &src) {//al
         basis_rank1[mu] = new ACECTildeBasisFunction[src.total_basis_size_rank1[mu]];
 
         for (size_t i = 0; i < src.total_basis_size_rank1[mu]; i++) {
-            basis_rank1[mu][i] = src.basis_rank1[mu][i];
+              basis_rank1[mu][i] = src.basis_rank1[mu][i];
         }
 
 

@@ -45,16 +45,12 @@ struct ACETimer {
     TimePoint start_moment;
 
     ACETimer() {};
-
     void init() {}
-
     void start() {}
-
     void stop() {}
 
-    long as_microseconds() { return 0; }
-
-    long as_nanoseconds() { return 0; }
+    long as_microseconds() {return 0; }
+    long as_nanoseconds() {return 0; }
 
 };
 

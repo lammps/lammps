@@ -62,11 +62,13 @@ public:
     SPECIES_TYPE get_species_index_by_name(const string &elemname);
 
 
+
     // routines for copying and cleaning dynamic memory of the class (see. Rule of Three)
     virtual void _clean(); //must be idempotent for safety
     virtual void _copy_dynamic_memory(const ACEAbstractBasisSet &src);
     virtual void _copy_scalar_memory(const ACEAbstractBasisSet &src);
 };
+
 
 
 #endif //ACE_EVALUATOR_ACE_ABSTRACT_BASIS_H

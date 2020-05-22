@@ -102,7 +102,7 @@ struct ACEAbstractBasisFunction {
 
 };
 
-struct ACECTildeBasisFunction : public ACEAbstractBasisFunction {
+struct ACECTildeBasisFunction: public ACEAbstractBasisFunction {
 
     // c_tilde coefficients for all densities
     // size = num_ms_combs*ndensity
@@ -150,33 +150,33 @@ struct ACECTildeBasisFunction : public ACEAbstractBasisFunction {
 
     void print() const {
         using namespace std;
-        cout << "ACECTildeBasisFunction: ndensity= " << (int) this->ndensity << ", mu0 = " << (int) this->mu0 << " ";
-        cout << " mus=(";
+        cout<<"ACECTildeBasisFunction: ndensity= "<<(int)this->ndensity<<", mu0 = "<<(int)this->mu0<<" ";
+        cout<<" mus=(";
         for (RANK_TYPE r = 0; r < this->rank; r++)
-            cout << (int) this->mus[r] << " ";
-        cout << "), ns=(";
+            cout<< (int)this->mus[r]<<" ";
+        cout<<"), ns=(";
         for (RANK_TYPE r = 0; r < this->rank; r++)
-            cout << this->ns[r] << " ";
-        cout << "), ls=(";
+            cout<< this->ns[r]<<" ";
+        cout <<"), ls=(";
         for (RANK_TYPE r = 0; r < this->rank; r++)
-            cout << this->ls[r] << " ";
+            cout<<this->ls[r]<<" ";
 
-        cout << "), " << this->num_ms_combs << " m_s combinations: {" << endl;
+        cout<<"), "<<this->num_ms_combs<<" m_s combinations: {"<<endl;
 
         for (int i = 0; i < this->num_ms_combs; i++) {
-            cout << "\t< ";
+            cout<<"\t< ";
             for (RANK_TYPE r = 0; r < this->rank; r++)
-                cout << this->ms_combs[i * this->rank + r] << " ";
-            cout << " >: c_tilde=";
+                cout<< this->ms_combs[i * this->rank + r]<<" ";
+            cout<<" >: c_tilde=";
             for (DENSITY_TYPE p = 0; p < this->ndensity; ++p)
-                cout << " " << this->ctildes[i * this->ndensity + p] << " ";
-            cout << endl;
+                cout<<" "<<this->ctildes[i * this->ndensity + p]<<" ";
+                cout<<endl;
         }
         if (this->is_proxy)
-            cout << "proxy ";
+            cout<<"proxy ";
         if (this->is_half_ms_basis)
-            cout << "half_ms_basis";
-        cout << "}" << endl;
+            cout<<"half_ms_basis";
+        cout<<"}"<<endl;
     }
 };
 

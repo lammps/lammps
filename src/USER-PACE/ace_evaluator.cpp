@@ -76,7 +76,7 @@ void ACECTildeEvaluator::init(ACECTildeBasisSet *basis_set) {
 }
 
 void ACECTildeEvaluator::resize_neighbours_cache(int max_jnum) {
-    if (basis_set == nullptr) {
+    if(basis_set== nullptr) {
         throw std::invalid_argument("ACECTildeEvaluator: basis set is not assigned");
     }
     if (R_cache.get_dim(0) < max_jnum) {
@@ -113,7 +113,7 @@ void ACECTildeEvaluator::resize_neighbours_cache(int max_jnum) {
 
 void
 ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, const int jnum, const int *jlist) {
-    if (basis_set == nullptr) {
+    if(basis_set== nullptr) {
         throw std::invalid_argument("ACECTildeEvaluator: basis set is not assigned");
     }
     per_atom_calc_timer.start();
@@ -189,7 +189,7 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
     const NS_TYPE nradbasei = basis_set->nradbase;
 
     //TODO: get per-species type number of densities
-    const DENSITY_TYPE ndensity = basis_set->ndensitymax;
+    const DENSITY_TYPE ndensity= basis_set->ndensitymax;
 
     neighbours_forces.resize(jnum, 3);
     neighbours_forces.fill(0);

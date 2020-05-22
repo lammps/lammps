@@ -403,11 +403,11 @@ dcr: derivative of hard core repulsion
         cr = pre * y / r;
         dcr = -pre * y * (2.0 * lr2 + 1.0) / r2;
 
-        x0 = r / cutoff;
-        env = 0.5 * (1.0 + cos(pi * x0));
-        denv = -0.5 * sin(pi * x0) * pi / cutoff;
-        dcr = cr * denv + dcr * env;
-        cr = cr * env;
+        x0 = r/cutoff;
+        env  =  0.5*( 1.0 + cos( pi*x0 ) );
+        denv = -0.5*sin( pi*x0 )*pi/cutoff;
+        dcr = cr*denv + dcr*env;
+        cr = cr*env;
     } else {
         cr = 0.0;
         dcr = 0.0;

@@ -40,6 +40,8 @@ class FixAdapt : public Fix {
   void setup_pre_force_respa(int,int);
   void pre_force_respa(int,int,int);
   void set_arrays(int);
+  void write_restart(FILE *);
+  void restart(char *);
 
  private:
   int nadapt,resetflag,scaleflag;

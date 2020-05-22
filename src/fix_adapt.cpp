@@ -50,6 +50,7 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
 
   dynamic_group_allow = 1;
   create_attribute = 1;
+  restart_global = 1;
 
   // count # of adaptations
 
@@ -435,12 +436,12 @@ void FixAdapt::init()
           error->all(FLERR,"Fix adapt requires atom attribute mass");
         if (discflag && domain->dimension!=2)
           error->all(FLERR,"Fix adapt requires 2d simulation");
-        if(scaleflag) diam_scale = 1.0;
+        diam_scale = 1.0; // Here I would like if(!restart_reset) diam_scale = 1.0;
       }
       if (ad->aparam == CHARGE) {
         if (!atom->q_flag)
           error->all(FLERR,"Fix adapt requires atom attribute charge");
-        if(scaleflag) chg_scale = 1.0;
+        chg_scale = 1.0; // Same here, default to 1 when fix is no restarted
       }
     }
   }
@@ -478,6 +479,8 @@ void FixAdapt::init()
 
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  
+  if(restart_reset) restart_reset = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -714,4 +717,30 @@ void FixAdapt::set_arrays(int i)
 {
   if (fix_diam) fix_diam->vstore[i] = atom->radius[i];
   if (fix_chg) fix_chg->vstore[i] = atom->q[i];
+}
+
+/* ----------------------------------------------------------------------
+   write scale factors for diameter and charge to restart file
+------------------------------------------------------------------------- */
+
+void FixAdapt::write_restart(FILE *fp)
+{
+  int size = 2*sizeof(double);
+  
+  fwrite(&size,sizeof(int),1,fp);
+  fwrite(&diam_scale,sizeof(double),1,fp);
+  fwrite(&chg_scale,sizeof(double),1,fp);
+}
+
+
+/* ----------------------------------------------------------------------
+   use scale factors from restart file to restart the Fix
+------------------------------------------------------------------------- */
+
+void FixAdapt::restart(char *buf)
+{
+  double *dbuf = (double *) buf;
+  
+  diam_scale = dbuf[0];
+  chg_scale = dbuf[1];
 }

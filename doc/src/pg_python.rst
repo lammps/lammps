@@ -72,14 +72,17 @@ Executing LAMMPS commands
 *************************
 
 Once an instance of the :py:class:`lammps <lammps.lammps>` class is
-created, there are multiple ways to "feed" it commands. In a way that
-is not very different from running a LAMMPS input script, execpt that
+created, there are multiple ways to "feed" it commands. In a way that is
+not very different from running a LAMMPS input script, execpt that
 Python has many more facilities for structured programming than the
 LAMMPS input script syntax.  Furthermore it is possible to "compute"
-what the next LAMMPS command should be. Same as in the equivalent
-`C library functions <pg_lib_execute>`, commands can be read from a
-file, a single string, a list of strings and a block of commands in
-a single string and the same conditions for how they are processed apply.
+what the next LAMMPS command should be. Same as in the equivalent `C
+library functions <pg_lib_execute>`, commands can be read from a file, a
+single string, a list of strings and a block of commands in a single
+multi-line string. They are processed under the same boundary conditions
+as the C library counterparts.  The example below demonstrates the use
+of :py:func:`lammps.file`, :py:func:`lammps.command`,
+:py:func:`lammps.commands_list`, and :py:func:`lammps.commands_string`:
 
 .. code-block:: python
 

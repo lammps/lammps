@@ -26,13 +26,17 @@ calling the library from an MPI parallel code.
 Creating or deleting a LAMMPS object
 ************************************
 
-With the Fortran interface the creation of a :cpp:func:`LAMMPS` instance
-is included in the constructor for creating the :f:func:`lammps` derived
-type.  To import the definition of that type and its type bound procedures
-you need to add a ``USE LIBLAMMPS`` statement.
-Internally it will call either :cpp:func:`lammps_open_fortran`
-or :cpp:func:`lammps_open_no_mpi` from the C library API to create the
-class instance.  All arguments are optional.  Here is a simple example:
+With the Fortran interface the creation of a :cpp:class:`LAMMPS
+<LAMMPS_NS::LAMMPS>` instance is included in the constructor for
+creating the :f:func:`lammps` derived type.  To import the definition of
+that type and its type bound procedures you need to add a ``USE
+LIBLAMMPS`` statement.  Internally it will call either
+:cpp:func:`lammps_open_fortran` or :cpp:func:`lammps_open_no_mpi` from
+the C library API to create the class instance.  All arguments are
+optional and :cpp:func:`lammps_mpi_init` will be called automatically,
+if it is needed.  Similarly, a possible call to :cpp:func:`lammps_finalize`
+is integrated into the :f:func:`close` function and triggered with
+the optional logical argument set to ``.true.``. Here is a simple example:
 
 .. code-block:: fortran
 
@@ -52,6 +56,17 @@ class instance.  All arguments are optional.  Here is a simple example:
    END PROGRAM testlib
 
 --------------------
+
+Executing LAMMPS commands
+=========================
+
+Once a LAMMPS instance is created, it is possible to "drive" the
+LAMMPS simulation by telling LAMMPS to read commands from a file,
+or pass individual or multiple commands from strings or lists of
+strings.  This is done similar to how it is implemented in the
+`C library <pg_lib_execute>`.
+
+---------------
 
 The ``LIBLAMMPS`` module API
 ****************************

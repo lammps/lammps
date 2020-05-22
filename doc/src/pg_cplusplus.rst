@@ -55,3 +55,37 @@ the ``delete`` operator.  Here is a simple example:
 
 Please note that this requires to include the ``lammps.h`` header for accessing
 the members of the LAMMPS class and then the ``universe.h`` header for accessing the ``num_ver`` member of the :cpp:class:`Universe` class.
+
+
+Executing LAMMPS commands
+*************************
+
+Once a LAMMPS instance is created by your C++ code, you need to set up a
+simulation and that is most conveniently done by "driving" it through
+issuing commands like you would do when running a LAMMPS simulation from
+an input script. Processing of input in LAMMPS is handled by the
+:cpp:class:`Input <LAMMPS_NS::Input>` class an instance of which is a
+member of the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class.  You have
+two options: reading commands from a file, or executing a single
+command from a string. See below for a small example:
+
+.. code-block:: c++
+
+   #include "lammps.h"
+   #include "input.h"
+   #include <mpi.h>
+
+   using namespace LAMMPS_NS;
+
+   int main(int argc, char **argv)
+   {
+       const char *lmpargv[] {"liblammps", "-log", "none"};
+       int lmpargc = sizeof(lmpargv)/sizeof(const char *);
+
+       MPI_Init(&argc, &argv);
+       LAMMPS *lmp = new LAMMPS(lmpargc, (char **)lmpargv, MPI_COMM_WORLD);
+       lmp->input->file("in.melt");
+       lmp->input->one("run 100 post no");
+       delete lmp;
+       return 0;
+   }

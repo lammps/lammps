@@ -60,11 +60,49 @@ the optional logical argument set to ``.true.``. Here is a simple example:
 Executing LAMMPS commands
 =========================
 
-Once a LAMMPS instance is created, it is possible to "drive" the
-LAMMPS simulation by telling LAMMPS to read commands from a file,
-or pass individual or multiple commands from strings or lists of
-strings.  This is done similar to how it is implemented in the
-`C library <pg_lib_execute>`.
+Once a LAMMPS instance is created, it is possible to "drive" the LAMMPS
+simulation by telling LAMMPS to read commands from a file, or pass
+individual or multiple commands from strings or lists of strings.  This
+is done similar to how it is implemented in the `C-library
+<pg_lib_execute>` interface. Before handing off the calls to the
+C-library interface, the corresponding Fortran versions of the calls
+(:f:func:`file`, :f:func:`command`, :f:func:`commands_list`, and
+:f:func:`commands_string`) have to make a copy of the strings passed as
+arguments so that they can be modified to be compatible with the
+requirements of strings in C without affecting the original strings.
+Those copies are automatically deleted after the functions return.
+Below is a small demonstration of the uses of the different functions:
+
+.. code-block:: fortran
+
+   PROGRAM testcmd
+     USE LIBLAMMPS
+     TYPE(lammps)     :: lmp
+     CHARACTER(len=512) :: cmds
+     CHARACTER(len=40),ALLOCATABLE :: cmdlist(:)
+     CHARACTER(len=10) :: trimmed
+     INTEGER :: i
+
+     lmp = lammps()
+     CALL lmp%file('in.melt')
+     CALL lmp%command('variable zpos index 1.0')
+     ! define 10 groups of 10 atoms each
+     ALLOCATE(cmdlist(10))
+     DO i=1,10
+         WRITE(trimmed,'(I10)') 10*i
+         WRITE(cmdlist(i),'(A,I1,A,I10,A,A)')       &
+             'group g',i-1,' id ',10*(i-1)+1,':',ADJUSTL(trimmed)
+     END DO
+     CALL lmp%commands_list(cmdlist)
+     ! run multiple commands from multi-line string
+     cmds = 'clear' // NEW_LINE('A') //                       &
+         'region  box block 0 2 0 2 0 2' // NEW_LINE('A') //  &
+         'create_box 1 box' // NEW_LINE('A') //               &
+         'create_atoms 1 single 1.0 1.0 ${zpos}'
+     CALL lmp%commands_string(cmds)
+     CALL lmp%close()
+
+   END PROGRAM testcmd
 
 ---------------
 

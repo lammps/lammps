@@ -10,10 +10,9 @@
 #
 #   See the README file in the top-level LAMMPS directory.
 # -------------------------------------------------------------------------
+# Python wrappers for the LAMMPS library via ctypes
 
-# Python wrappers on LAMMPS library via ctypes
-
-# for python3 compatibility
+# for python2/3 compatibility
 
 from __future__ import print_function
 
@@ -32,6 +31,8 @@ import select
 import re
 import sys
 
+# various symbolic constants to be used
+# in certain calls to select data formats
 LAMMPS_INT    = 0
 LAMMPS_INT2D  = 1
 LAMMPS_DOUBLE = 2
@@ -40,7 +41,7 @@ LAMMPS_BIGINT = 4
 LAMMPS_TAGINT = 5
 LAMMPS_STRING = 6
 
-# must be kept in sync with enums in library.h
+# these must be kept in sync with the enums in library.h
 LMP_STYLE_GLOBAL = 0
 LMP_STYLE_ATOM   = 1
 LMP_STYLE_LOCAL  = 2
@@ -147,21 +148,23 @@ class lammps(object):
   :type  comm: MPI_Comm
   """
 
-
   # create instance of LAMMPS
 
   def __init__(self,name='',cmdargs=None,ptr=None,comm=None):
     self.comm = comm
     self.opened = 0
 
-    # determine module location
+    # determine module file location
 
     modpath = dirname(abspath(getsourcefile(lambda:0)))
     self.lib = None
     self.lmp = None
 
-    # if a pointer to a LAMMPS object is handed in,
-    # all symbols should already be available
+    # if a pointer to a LAMMPS object is handed in
+    # when being called from a Python interpreter
+    # embedded into a LAMMPS executable, all library
+    # symbols should already be available so we do not
+    # load a shared object.
 
     try:
       if ptr: self.lib = CDLL("",RTLD_GLOBAL)
@@ -176,25 +179,31 @@ class lammps(object):
     # fall back to loading with a relative path,
     #   typically requires LD_LIBRARY_PATH to be set appropriately
 
-    if any([f.startswith('liblammps') and f.endswith('.dylib') for f in os.listdir(modpath)]):
+    if any([f.startswith('liblammps') and f.endswith('.dylib')
+            for f in os.listdir(modpath)]):
       lib_ext = ".dylib"
-    elif any([f.startswith('liblammps') and f.endswith('.dll') for f in os.listdir(modpath)]):
+    elif any([f.startswith('liblammps') and f.endswith('.dll')
+              for f in os.listdir(modpath)]):
       lib_ext = ".dll"
     else:
       lib_ext = ".so"
 
     if not self.lib:
       try:
-        if not name: self.lib = CDLL(join(modpath,"liblammps" + lib_ext),RTLD_GLOBAL)
-        else: self.lib = CDLL(join(modpath,"liblammps_%s" % name + lib_ext),
-                              RTLD_GLOBAL)
+        if not name:
+          self.lib = CDLL(join(modpath,"liblammps" + lib_ext),RTLD_GLOBAL)
+        else:
+          self.lib = CDLL(join(modpath,"liblammps_%s" % name + lib_ext),
+                          RTLD_GLOBAL)
       except:
-        if not name: self.lib = CDLL("liblammps" + lib_ext,RTLD_GLOBAL)
-        else: self.lib = CDLL("liblammps_%s" % name + lib_ext,RTLD_GLOBAL)
+        if not name:
+          self.lib = CDLL("liblammps" + lib_ext,RTLD_GLOBAL)
+        else:
+          self.lib = CDLL("liblammps_%s" % name + lib_ext,RTLD_GLOBAL)
 
-    # declare ctypes arguments and return types for all library methods
-    # exceptions are where the arguments depend on certain conditions
-    # and then are defined where the functions are used.
+    # declare all argument and return types for all library methods here.
+    # exceptions are where the arguments depend on certain conditions and
+    # then are defined where the functions are used.
     self.lib.lammps_open.restype = c_void_p
     self.lib.lammps_open_no_mpi.restype = c_void_p
     self.lib.lammps_close.argtypes = [c_void_p]

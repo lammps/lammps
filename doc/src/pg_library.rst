@@ -21,7 +21,8 @@ possible with existing commands.
 
 .. _thread-safety:
 
-.. note:: Thread-safety
+.. admonition:: Thread-safety
+   :class: note
 
    LAMMPS was initially not conceived as a thread-safe program, but over
    the years changes have been applied to replace operations that
@@ -42,6 +43,8 @@ possible with existing commands.
    however, are not a problem, if LAMMPS is compiled with the MPI STUBS
    library, which implies that there is no MPI communication and only 1
    MPI rank.
+
+----------
 
 .. _lammps_c_api:
 
@@ -66,17 +69,22 @@ LAMMPS instance. Then you may set the define ``-DLAMMPS_LIB_NO_MPI``
 when compiling your code and the inclusion of ``mpi.h`` will be skipped
 and consequently the function :cpp:func:`lammps_open` may not be used.
 
-If any of the function calls in the LAMMPS library API will trigger
-an error inside LAMMPS, this will result in an abort of the entire
-program.  This is not always desirable.  Instead, LAMMPS can be
-compiled to instead :ref:`throw a C++ exception <exceptions>`.
+.. admonition:: Errors versus exceptions
+   :class: note
+
+   If any of the function calls in the LAMMPS library API will trigger
+   an error inside LAMMPS, this will result in an abort of the entire
+   program.  This is not always desirable.  Instead, LAMMPS can be
+   compiled to instead :ref:`throw a C++ exception <exceptions>`.
 
 .. warning::
+
    No checks are made on the arguments of the function calls of the C
-   library interface.  All arguments must be non-NULL unless explicitly
-   allowed and point to consistent and valid data.  Buffers for storing
-   returned data must be allocated to a suitable size.  Passing invalid
-   or unsuitable information will likely cause crashes or corrupt data.
+   library interface.  *All* function arguments must be non-NULL unless
+   *explicitly* allowed and point to consistent and valid data.  Buffers
+   for storing returned data must be allocated to a suitable size.
+   Passing invalid or unsuitable information will likely cause crashes
+   or corrupt data.
 
 ------------------------------
 
@@ -103,7 +111,7 @@ LAMMPS Python APIs
 The LAMMPS Python module enables calling the LAMMPS C library API from
 Python by dynamically loading functions in the LAMMPS shared library through
 the `Python ctypes module <https://docs.python.org/3/library/ctypes.html>`_.
-Because of the dynamics loading, it is required that LAMMPS is compiled
+Because of the dynamics loading, it is **required** that LAMMPS is compiled
 in :ref:`"shared" mode <exe>`.  The Python interface is object oriented, but
 otherwise trying to be very similar to the C library API.  Three different
 Python classes to run LAMMPS are available and they build on each other.

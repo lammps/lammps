@@ -1,17 +1,21 @@
 The ``lammps`` Python module
 ****************************
 
-The LAMMPS Python interface is implemented in the ``lammps.py`` file in
-the ``python`` folder.  After compilation of LAMMPS, in can be installed
-into a Python system folder or a user folder with ``make
-install-python``.
+.. py:module:: lammps
 
-There are multiple Python interface classes implemented:
+The LAMMPS Python interface is implemented as a module called
+:py:mod:`lammps` in the ``lammps.py`` file in the ``python`` folder of
+the LAMMPS source code distribution.  After compilation of LAMMPS, the
+module can be installed into a Python system folder or a user folder
+with ``make install-python``.  Components of the module can then loaded
+into a Python session with the ``import`` command.
+
+There are multiple Python interface classes in the :py:mod:`lammps` module:
 
 - the :py:class:`lammps <lammps.lammps>` class. This is a wrapper around
   the C-library interface and its member functions try to replicate the
   :doc:`C-library API <pg_library>` closely.  This is the most
-  feature-complete python API.
+  feature-complete Python API.
 - the :py:class:`PyLammps <lammps.PyLammps>` class. This is a more high-level
   and more Python style class implemented on top of the
   :py:class:`lammps <lammps.lammps>` class.
@@ -25,9 +29,9 @@ There are multiple Python interface classes implemented:
 Creating or deleting a LAMMPS object
 ************************************
 
-With the Python interface the creation of a :cpp:func:`LAMMPS` instance
-is included in the constructor for the :py:func:`lammps
-<lammps.lammps>` class.  Internally it will call either
+With the Python interface the creation of a :cpp:class:`LAMMPS
+<LAMMPS_NS::LAMMPS>` instance is included in the constructor for the
+:py:func:`lammps <lammps.lammps>` class.  Internally it will call either
 :cpp:func:`lammps_open` or :cpp:func:`lammps_open_no_mpi` from the C
 library API to create the class instance.
 
@@ -63,6 +67,40 @@ compiled with.  The :py:func:`lmp.close() <lammps.lammps.close>` call is
 optional since the LAMMPS class instance will also be deleted
 automatically during the :py:class:`lammps <lammps.lammps>` class
 destructor.
+
+Executing LAMMPS commands
+*************************
+
+Once an instance of the :py:class:`lammps <lammps.lammps>` class is
+created, there are multiple ways to "feed" it commands. In a way that
+is not very different from running a LAMMPS input script, execpt that
+Python has many more facilities for structured programming than the
+LAMMPS input script syntax.  Furthermore it is possible to "compute"
+what the next LAMMPS command should be. Same as in the equivalent
+`C library functions <pg_lib_execute>`, commands can be read from a
+file, a single string, a list of strings and a block of commands in
+a single string and the same conditions for how they are processed apply.
+
+.. code-block:: python
+
+   from lammps import lammps
+
+   lmp = lammps()
+   # read commands from file 'in.melt'
+   lmp.file('in.melt')
+   # issue a single command
+   lmp.command('variable zpos index 1.0')
+   # create 10 groups with 10 atoms each
+   cmds = ["group g{} id {}:{}".format(i,10*i+1,10*(i+1)) for i in range(10)]
+   lmp.commands_list(cmds)
+   # run commands from a multi-line string
+   block = """
+   clear
+   region  box block 0 2 0 2 0 2
+   create_box 1 box
+   create_atoms 1 single 1.0 1.0 ${zpos}
+   """
+   lmp.commands_string(block)
 
 ----------
 

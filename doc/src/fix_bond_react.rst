@@ -496,7 +496,9 @@ removed. All of these operations increase the cost of a timestep. Thus
 you should be cautious about invoking this fix too frequently.
 
 You can dump out snapshots of the current bond topology via the dump
-local command.
+local command. Molecule IDs are not updated by fix bond/react after a
+reaction occurs. To obtain updated molecule IDs, e.g., for writing to
+a data file, use the :doc:`reset_mol_ids <reset_mol_ids>` command.
 
 ----------
 

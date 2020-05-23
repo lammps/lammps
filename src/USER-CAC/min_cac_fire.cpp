@@ -104,9 +104,7 @@ int CACMinFire::iterate(int maxiter)
   double dtvone,dtv,dtf,dtfm;
   int i, flag,flagall;
 
-  int *element_type = atom->element_type;
-  int **node_types = atom->node_types;
-  int *npoly = atom->poly_count;
+  
   int *nodes_per_element_list = atom->nodes_per_element_list;
 
   //copy nodal arrays to the continuous arrays for the min algorithm
@@ -245,6 +243,9 @@ int CACMinFire::iterate(int maxiter)
     } else {
 
         int dense = 0;
+        int *element_type = atom->element_type;
+        int **node_types = atom->node_types;
+        int *npoly = atom->poly_count;
         // nodal loops required to get mass
         for(int element_counter=0; element_counter < atom->nlocal; element_counter++) {
           for (int poly_counter = 0; poly_counter < npoly[element_counter]; poly_counter++) {

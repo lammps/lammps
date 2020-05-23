@@ -57,6 +57,6 @@ none
 Related commands
 """"""""""""""""
 
-:doc:`delete_atoms <delete_atoms>`
+:doc:`reset_mol_ids <reset_mol_ids>`, :doc:`delete_atoms <delete_atoms>`
 
 **Default:** none

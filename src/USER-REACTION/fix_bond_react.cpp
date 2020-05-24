@@ -1919,14 +1919,20 @@ void FixBondReact::get_IDcoords(int mode, int myID, double *center)
     for (int i = 0; i < 3; i++)
       center[i] = x[iatom][i];
   } else {
+    int iref = -1; // choose first atom as reference
+    int iatom;
     int nfragatoms = 0;
     for (int i = 0; i < 3; i++)
       center[i] = 0;
 
     for (int i = 0; i < onemol->natoms; i++) {
       if (onemol->fragmentmask[myID][i]) {
+        if (iref == -1)
+          iref = atom->map(glove[i][1]);
         for (int j = 0; j < 3; j++) {
-          center[j] += x[atom->map(glove[i][1])][j];
+          iatom = atom->map(glove[i][1]);
+          iatom = domain->closest_image(iref,iatom);
+          center[j] += x[iatom][j];
         }
         nfragatoms++;
       }

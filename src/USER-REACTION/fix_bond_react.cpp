@@ -1757,7 +1757,7 @@ evaluate constraints: return 0 if any aren't satisfied
 int FixBondReact::check_constraints()
 {
   tagint atom1,atom2,atom3,atom4;
-  double x1[3],x2[3];
+  double x1[3],x2[3],x3[3];
   double delx,dely,delz,rsq;
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double rsq1,rsq2,r1,r2,c,t,prrhob;
@@ -1781,22 +1781,22 @@ int FixBondReact::check_constraints()
         rsq = delx*delx + dely*dely + delz*delz;
         if (rsq < constraints[i][6] || rsq > constraints[i][7]) return 0;
       } else if (constraints[i][1] == ANGLE) {
-        atom1 = atom->map(glove[(int) constraints[i][2]-1][1]);
-        atom2 = atom->map(glove[(int) constraints[i][3]-1][1]);
-        atom3 = atom->map(glove[(int) constraints[i][4]-1][1]);
+        get_IDcoords((int) constraints[i][2], (int) constraints[i][3], x1);
+        get_IDcoords((int) constraints[i][4], (int) constraints[i][5], x2);
+        get_IDcoords((int) constraints[i][6], (int) constraints[i][7], x3);
 
         // 1st bond
-        delx1 = x[atom1][0] - x[atom2][0];
-        dely1 = x[atom1][1] - x[atom2][1];
-        delz1 = x[atom1][2] - x[atom2][2];
+        delx1 = x1[0] - x2[0];
+        dely1 = x1[1] - x2[1];
+        delz1 = x1[2] - x2[2];
         domain->minimum_image(delx1,dely1,delz1); // ghost location fix
         rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
         r1 = sqrt(rsq1);
 
         // 2nd bond
-        delx2 = x[atom3][0] - x[atom2][0];
-        dely2 = x[atom3][1] - x[atom2][1];
-        delz2 = x[atom3][2] - x[atom2][2];
+        delx2 = x3[0] - x2[0];
+        dely2 = x3[1] - x2[1];
+        delz2 = x3[2] - x2[2];
         domain->minimum_image(delx2,dely2,delz2); // ghost location fix
         rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
         r2 = sqrt(rsq2);
@@ -1806,7 +1806,7 @@ int FixBondReact::check_constraints()
         c /= r1*r2;
         if (c > 1.0) c = 1.0;
         if (c < -1.0) c = -1.0;
-        if (acos(c) < constraints[i][5] || acos(c) > constraints[i][6]) return 0;
+        if (acos(c) < constraints[i][8] || acos(c) > constraints[i][9]) return 0;
       } else if (constraints[i][1] == DIHEDRAL) {
         // phi calculation from dihedral style harmonic
         atom1 = atom->map(glove[(int) constraints[i][2]-1][1]);
@@ -3304,14 +3304,12 @@ void FixBondReact::Constraints(char *line, int myrxn)
       constraints[nconstraints][7] = tmp[1]*tmp[1];
     } else if (strcmp(constraint_type,"angle") == 0) {
       constraints[nconstraints][1] = ANGLE;
-      sscanf(line,"%*s %lg %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3],&tmp[4]);
-      if (tmp[0] > onemol->natoms || tmp[1] > onemol->natoms || tmp[2] > onemol->natoms)
-        error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
-      constraints[nconstraints][2] = tmp[0];
-      constraints[nconstraints][3] = tmp[1];
-      constraints[nconstraints][4] = tmp[2];
-      constraints[nconstraints][5] = tmp[3]/180.0 * MY_PI;
-      constraints[nconstraints][6] = tmp[4]/180.0 * MY_PI;
+      sscanf(line,"%*s %s %s %s %lg %lg",strargs[0],strargs[1],strargs[2],&tmp[0],&tmp[1]);
+      readID(strargs[0], nconstraints, 2, 3);
+      readID(strargs[1], nconstraints, 4, 5);
+      readID(strargs[2], nconstraints, 6, 7);
+      constraints[nconstraints][8] = tmp[0]/180.0 * MY_PI;
+      constraints[nconstraints][9] = tmp[1]/180.0 * MY_PI;
     } else if (strcmp(constraint_type,"dihedral") == 0) {
       constraints[nconstraints][1] = DIHEDRAL;
       tmp[6] = 181.0; // impossible range

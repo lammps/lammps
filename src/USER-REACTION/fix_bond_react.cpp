@@ -1757,6 +1757,7 @@ evaluate constraints: return 0 if any aren't satisfied
 int FixBondReact::check_constraints()
 {
   tagint atom1,atom2,atom3,atom4;
+  double x1[3],x2[3];
   double delx,dely,delz,rsq;
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double rsq1,rsq2,r1,r2,c,t,prrhob;
@@ -1771,14 +1772,14 @@ int FixBondReact::check_constraints()
   for (int i = 0; i < nconstraints; i++) {
     if (constraints[i][0] == rxnID) {
       if (constraints[i][1] == DISTANCE) {
-        atom1 = atom->map(glove[(int) constraints[i][2]-1][1]);
-        atom2 = atom->map(glove[(int) constraints[i][3]-1][1]);
-        delx = x[atom1][0] - x[atom2][0];
-        dely = x[atom1][1] - x[atom2][1];
-        delz = x[atom1][2] - x[atom2][2];
+        get_IDcoords((int) constraints[i][2], (int) constraints[i][3], x1);
+        get_IDcoords((int) constraints[i][4], (int) constraints[i][5], x2);
+        delx = x1[0] - x2[0];
+        dely = x1[1] - x2[1];
+        delz = x1[2] - x2[2];
         domain->minimum_image(delx,dely,delz); // ghost location fix
         rsq = delx*delx + dely*dely + delz*delz;
-        if (rsq < constraints[i][4] || rsq > constraints[i][5]) return 0;
+        if (rsq < constraints[i][6] || rsq > constraints[i][7]) return 0;
       } else if (constraints[i][1] == ANGLE) {
         atom1 = atom->map(glove[(int) constraints[i][2]-1][1]);
         atom2 = atom->map(glove[(int) constraints[i][3]-1][1]);
@@ -1902,6 +1903,37 @@ int FixBondReact::check_constraints()
   }
 
   return 1;
+}
+
+/* ----------------------------------------------------------------------
+return pre-reaction atom or fragment location
+fragment: given pre-reacted molID (onemol) and fragID,
+          return geometric center (of mapped simulation atoms)
+------------------------------------------------------------------------- */
+
+void FixBondReact::get_IDcoords(int mode, int myID, double *center)
+{
+  double **x = atom->x;
+  if (mode == 1) {
+    int iatom = atom->map(glove[myID-1][1]);
+    for (int i = 0; i < 3; i++)
+      center[i] = x[iatom][i];
+  } else {
+    int nfragatoms = 0;
+    for (int i = 0; i < 3; i++)
+      center[i] = 0;
+
+    for (int i = 0; i < onemol->natoms; i++) {
+      if (onemol->fragmentmask[myID][i]) {
+        for (int j = 0; j < 3; j++) {
+          center[j] += x[atom->map(glove[i][1])][j];
+        }
+        nfragatoms++;
+      }
+    }
+    for (int i = 0; i < 3; i++)
+      center[i] /= nfragatoms;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -3255,21 +3287,21 @@ void FixBondReact::ChiralCenters(char *line, int myrxn)
 void FixBondReact::Constraints(char *line, int myrxn)
 {
   double tmp[MAXCONARGS];
-  int n = strlen("distance") + 1;
-  char *constraint_type = new char[n];
+  char **strargs;
+  memory->create(strargs,MAXCONARGS,MAXLINE,"bond/react:strargs");
+  char *constraint_type = new char[MAXLINE];
   for (int i = 0; i < nconstr; i++) {
     readline(line);
     sscanf(line,"%s",constraint_type);
     constraints[nconstraints][0] = myrxn;
     if (strcmp(constraint_type,"distance") == 0) {
       constraints[nconstraints][1] = DISTANCE;
-      sscanf(line,"%*s %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
-      if (tmp[0] > onemol->natoms || tmp[1] > onemol->natoms)
-        error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
-      constraints[nconstraints][2] = tmp[0];
-      constraints[nconstraints][3] = tmp[1];
-      constraints[nconstraints][4] = tmp[2]*tmp[2]; // using square of distance
-      constraints[nconstraints][5] = tmp[3]*tmp[3];
+      sscanf(line,"%*s %s %s %lg %lg",strargs[0],strargs[1],&tmp[0],&tmp[1]);
+      readID(strargs[0], nconstraints, 2, 3);
+      readID(strargs[1], nconstraints, 4, 5);
+      // cutoffs
+      constraints[nconstraints][6] = tmp[0]*tmp[0]; // using square of distance
+      constraints[nconstraints][7] = tmp[1]*tmp[1];
     } else if (strcmp(constraint_type,"angle") == 0) {
       constraints[nconstraints][1] = ANGLE;
       sscanf(line,"%*s %lg %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3],&tmp[4]);
@@ -3310,6 +3342,27 @@ void FixBondReact::Constraints(char *line, int myrxn)
     nconstraints++;
   }
   delete [] constraint_type;
+  memory->destroy(strargs);
+}
+
+/* ----------------------------------------------------------------------
+if ID starts with character, assume it is a pre-reaction molecule fragment ID
+otherwise, it is a pre-reaction atom ID
+---------------------------------------------------------------------- */
+
+void FixBondReact::readID(char *strarg, int iconstr, int mode, int myID)
+{
+  if (isalpha(strarg[0])) {
+    constraints[iconstr][mode] = 0; // fragment vs. atom ID flag
+    int ifragment = onemol->findfragment(strarg);
+    if (ifragment < 0) error->one(FLERR,"Bond/react: Molecule fragment does not exist");
+    constraints[iconstr][myID] = ifragment;
+  } else {
+    constraints[iconstr][mode] = 1; // fragment vs. atom ID flag
+    int iatom = atoi(strarg);
+    if (iatom > onemol->natoms) error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
+    constraints[iconstr][myID] = iatom;
+  }
 }
 
 void FixBondReact::open(char *file)

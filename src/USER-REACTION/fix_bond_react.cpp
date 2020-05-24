@@ -62,7 +62,7 @@ static const char cite_fix_bond_react[] =
 #define BIG 1.0e20
 #define DELTA 16
 #define MAXGUESS 20 // max # of guesses allowed by superimpose algorithm
-#define MAXCONARGS 10 // max # of arguments for any type of constraint + rxnID
+#define MAXCONARGS 14 // max # of arguments for any type of constraint + rxnID
 #define NUMVARVALS 4 // max # of keyword values that have variables as input
 
 // various statuses of superimpose algorithm:
@@ -1756,8 +1756,7 @@ evaluate constraints: return 0 if any aren't satisfied
 
 int FixBondReact::check_constraints()
 {
-  tagint atom1,atom2,atom3,atom4;
-  double x1[3],x2[3],x3[3];
+  double x1[3],x2[3],x3[3],x4[3];
   double delx,dely,delz,rsq;
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double rsq1,rsq2,r1,r2,c,t,prrhob;
@@ -1767,6 +1766,7 @@ int FixBondReact::check_constraints()
   double s,phi;
   int ANDgate;
 
+  tagint atom1,atom2;
   double **x = atom->x;
 
   for (int i = 0; i < nconstraints; i++) {
@@ -1809,19 +1809,19 @@ int FixBondReact::check_constraints()
         if (acos(c) < constraints[i][8] || acos(c) > constraints[i][9]) return 0;
       } else if (constraints[i][1] == DIHEDRAL) {
         // phi calculation from dihedral style harmonic
-        atom1 = atom->map(glove[(int) constraints[i][2]-1][1]);
-        atom2 = atom->map(glove[(int) constraints[i][3]-1][1]);
-        atom3 = atom->map(glove[(int) constraints[i][4]-1][1]);
-        atom4 = atom->map(glove[(int) constraints[i][5]-1][1]);
+        get_IDcoords((int) constraints[i][2], (int) constraints[i][3], x1);
+        get_IDcoords((int) constraints[i][4], (int) constraints[i][5], x2);
+        get_IDcoords((int) constraints[i][6], (int) constraints[i][7], x3);
+        get_IDcoords((int) constraints[i][8], (int) constraints[i][9], x4);
 
-        vb1x = x[atom1][0] - x[atom2][0];
-        vb1y = x[atom1][1] - x[atom2][1];
-        vb1z = x[atom1][2] - x[atom2][2];
+        vb1x = x1[0] - x2[0];
+        vb1y = x1[1] - x2[1];
+        vb1z = x1[2] - x2[2];
         domain->minimum_image(vb1x,vb1y,vb1z);
 
-        vb2x = x[atom3][0] - x[atom2][0];
-        vb2y = x[atom3][1] - x[atom2][1];
-        vb2z = x[atom3][2] - x[atom2][2];
+        vb2x = x3[0] - x2[0];
+        vb2y = x3[1] - x2[1];
+        vb2z = x3[2] - x2[2];
         domain->minimum_image(vb2x,vb2y,vb2z);
 
         vb2xm = -vb2x;
@@ -1829,9 +1829,9 @@ int FixBondReact::check_constraints()
         vb2zm = -vb2z;
         domain->minimum_image(vb2xm,vb2ym,vb2zm);
 
-        vb3x = x[atom4][0] - x[atom3][0];
-        vb3y = x[atom4][1] - x[atom3][1];
-        vb3z = x[atom4][2] - x[atom3][2];
+        vb3x = x4[0] - x3[0];
+        vb3y = x4[1] - x3[1];
+        vb3z = x4[2] - x3[2];
         domain->minimum_image(vb3x,vb3y,vb3z);
 
         ax = vb1y*vb2zm - vb1z*vb2ym;
@@ -3312,21 +3312,18 @@ void FixBondReact::Constraints(char *line, int myrxn)
       constraints[nconstraints][9] = tmp[1]/180.0 * MY_PI;
     } else if (strcmp(constraint_type,"dihedral") == 0) {
       constraints[nconstraints][1] = DIHEDRAL;
-      tmp[6] = 181.0; // impossible range
-      tmp[7] = 182.0;
-      sscanf(line,"%*s %lg %lg %lg %lg %lg %lg %lg %lg",&tmp[0],&tmp[1],
-             &tmp[2],&tmp[3],&tmp[4],&tmp[5],&tmp[6],&tmp[7]);
-      if (tmp[0] > onemol->natoms || tmp[1] > onemol->natoms ||
-          tmp[2] > onemol->natoms || tmp[3] > onemol->natoms)
-        error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
-      constraints[nconstraints][2] = tmp[0];
-      constraints[nconstraints][3] = tmp[1];
-      constraints[nconstraints][4] = tmp[2];
-      constraints[nconstraints][5] = tmp[3];
-      constraints[nconstraints][6] = tmp[4]/180.0 * MY_PI;
-      constraints[nconstraints][7] = tmp[5]/180.0 * MY_PI;
-      constraints[nconstraints][8] = tmp[6]/180.0 * MY_PI;
-      constraints[nconstraints][9] = tmp[7]/180.0 * MY_PI;
+      tmp[2] = 181.0; // impossible range
+      tmp[3] = 182.0;
+      sscanf(line,"%*s %s %s %s %s %lg %lg %lg %lg",strargs[0],strargs[1],
+             strargs[2],strargs[3],&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
+      readID(strargs[0], nconstraints, 2, 3);
+      readID(strargs[1], nconstraints, 4, 5);
+      readID(strargs[2], nconstraints, 6, 7);
+      readID(strargs[3], nconstraints, 8, 9);
+      constraints[nconstraints][10] = tmp[0]/180.0 * MY_PI;
+      constraints[nconstraints][11] = tmp[1]/180.0 * MY_PI;
+      constraints[nconstraints][12] = tmp[2]/180.0 * MY_PI;
+      constraints[nconstraints][13] = tmp[3]/180.0 * MY_PI;
     } else if (strcmp(constraint_type,"arrhenius") == 0) {
       constraints[nconstraints][1] = ARRHENIUS;
       constraints[nconstraints][2] = narrhenius++;

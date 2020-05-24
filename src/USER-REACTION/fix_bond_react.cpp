@@ -1859,15 +1859,15 @@ int FixBondReact::check_constraints()
         phi = atan2(s,c);
 
         ANDgate = 0;
-        if (constraints[i][6] < constraints[i][7]) {
-          if (phi > constraints[i][6] && phi < constraints[i][7]) ANDgate = 1;
+        if (constraints[i][10] < constraints[i][11]) {
+          if (phi > constraints[i][10] && phi < constraints[i][11]) ANDgate = 1;
         } else {
-          if (phi > constraints[i][6] || phi < constraints[i][7]) ANDgate = 1;
+          if (phi > constraints[i][10] || phi < constraints[i][11]) ANDgate = 1;
         }
-        if (constraints[i][8] < constraints[i][9]) {
-          if (phi > constraints[i][8] && phi < constraints[i][9]) ANDgate = 1;
+        if (constraints[i][12] < constraints[i][13]) {
+          if (phi > constraints[i][12] && phi < constraints[i][13]) ANDgate = 1;
         } else {
-          if (phi > constraints[i][8] || phi < constraints[i][9]) ANDgate = 1;
+          if (phi > constraints[i][12] || phi < constraints[i][13]) ANDgate = 1;
         }
         if (ANDgate != 1) return 0;
       } else if (constraints[i][1] == ARRHENIUS) {

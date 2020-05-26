@@ -85,8 +85,8 @@ void ACECTildeBasisSet::pack_flatten_basis() {
     full_ns_rank1 = new NS_TYPE[rank_array_total_size_rank1];
     delete[] full_ls_rank1;
     full_ls_rank1 = new NS_TYPE[rank_array_total_size_rank1];
-    delete[] full_Xs_rank1;
-    full_Xs_rank1 = new SPECIES_TYPE[rank_array_total_size_rank1];
+    delete[] full_mus_rank1;
+    full_mus_rank1 = new SPECIES_TYPE[rank_array_total_size_rank1];
     delete[] full_ms_rank1;
     full_ms_rank1 = new MS_TYPE[rank_array_total_size_rank1];
 
@@ -98,8 +98,8 @@ void ACECTildeBasisSet::pack_flatten_basis() {
     full_ns = new NS_TYPE[rank_array_total_size];
     delete[] full_ls;
     full_ls = new LS_TYPE[rank_array_total_size];
-    delete[] full_Xs;
-    full_Xs = new SPECIES_TYPE[rank_array_total_size];
+    delete[] full_mus;
+    full_mus = new SPECIES_TYPE[rank_array_total_size];
     delete[] full_ms;
     full_ms = new MS_TYPE[ms_array_total_size];
 
@@ -127,7 +127,7 @@ void ACECTildeBasisSet::pack_flatten_basis() {
             full_ls_rank1[rank_array_ind_rank1] = func.ls[0];
 
             //copy values mus from c_tilde_basis_function private memory to contigous memory part
-            full_Xs_rank1[rank_array_ind_rank1] = func.mus[0];
+            full_mus_rank1[rank_array_ind_rank1] = func.mus[0];
 
             //copy values ctildes from c_tilde_basis_function private memory to contigous memory part
             memcpy(&full_c_tildes_rank1[coeff_array_ind_rank1], func.ctildes,
@@ -142,7 +142,7 @@ void ACECTildeBasisSet::pack_flatten_basis() {
             //release memory of each ACECTildeBasisFunction if it is not proxy
             func._clean();
 
-            func.mus = &full_Xs_rank1[rank_array_ind_rank1];
+            func.mus = &full_mus_rank1[rank_array_ind_rank1];
             func.ns = &full_ns_rank1[rank_array_ind_rank1];
             func.ls = &full_ls_rank1[rank_array_ind_rank1];
             func.ms_combs = &full_ms_rank1[ms_array_ind_rank1];
@@ -168,7 +168,7 @@ void ACECTildeBasisSet::pack_flatten_basis() {
             ACECTildeBasisFunction &func = basis[mu][func_ind];
 
             //copy values mus from c_tilde_basis_function private memory to contigous memory part
-            memcpy(&full_Xs[rank_array_ind], func.mus,
+            memcpy(&full_mus[rank_array_ind], func.mus,
                    func.rank * sizeof(SPECIES_TYPE));
 
             //copy values ns from c_tilde_basis_function private memory to contigous memory part
@@ -192,7 +192,7 @@ void ACECTildeBasisSet::pack_flatten_basis() {
 
             func.ns = &full_ns[rank_array_ind];
             func.ls = &full_ls[rank_array_ind];
-            func.mus = &full_Xs[rank_array_ind];
+            func.mus = &full_mus[rank_array_ind];
             func.ctildes = &full_c_tildes[coeff_array_ind];
             func.ms_combs = &full_ms[ms_array_ind];
             func.is_proxy = true;

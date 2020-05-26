@@ -16,6 +16,9 @@
 
 using namespace std;
 
+/**
+ * Abstract basis set class
+ */
 class ACEAbstractBasisSet {
 public:
     SPECIES_TYPE nelements = 0;        ///< number of elements in basis set

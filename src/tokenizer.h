@@ -82,6 +82,8 @@ public:
 
     bool has_next() const;
     void skip(int ntokens);
+    
+    const size_t count() const;
 };
 
 

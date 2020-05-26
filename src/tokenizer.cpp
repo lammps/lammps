@@ -131,3 +131,7 @@ double ValueTokenizer::next_double() {
 void ValueTokenizer::skip(int ntokens) {
     current = std::next(current, ntokens);
 }
+
+const size_t ValueTokenizer::count() const {
+    return tokens.count();
+}

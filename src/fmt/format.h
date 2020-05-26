@@ -3638,4 +3638,11 @@ FMT_END_NAMESPACE
 #  define fmt(s) FMT_STRING_IMPL(s, [[deprecated]])
 #endif
 
+#ifdef FMT_HEADER_ONLY
+#  define FMT_FUNC inline
+#  include "format-inl.h"
+#else
+#  define FMT_FUNC
+#endif
+
 #endif  // FMT_FORMAT_H_

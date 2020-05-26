@@ -189,7 +189,7 @@
     FMT_INLINE_NAMESPACE v6 {
 #endif
 
-#if defined(_WIN32)
+#if !defined(FMT_HEADER_ONLY) && defined(_WIN32)
 #  if FMT_MSC_VER
 #    define FMT_NO_W4275 __pragma(warning(suppress : 4275))
 #  else
@@ -222,7 +222,11 @@
 #  define FMT_INSTANTIATION_DEF_API FMT_API
 #endif
 
-#define FMT_EXTERN extern
+#ifndef FMT_HEADER_ONLY
+#  define FMT_EXTERN extern
+#else
+#  define FMT_EXTERN
+#endif
 
 // libc++ supports string_view in pre-c++17.
 #if (FMT_HAS_INCLUDE(<string_view>) &&                       \

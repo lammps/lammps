@@ -18,57 +18,115 @@ using namespace std;
 
 class ACEAbstractBasisSet {
 public:
-    SPECIES_TYPE nelements = 0; //number of elements
-    RANK_TYPE rankmax = 0;
-    DENSITY_TYPE ndensitymax = 0;
-    NS_TYPE nradbase = 0;
-    LS_TYPE lmax = 0;
-    NS_TYPE nradmax = 0;
-    DOUBLE_TYPE cutoffmax = 0;
-    int ntot = 0;
+    SPECIES_TYPE nelements = 0;        ///< number of elements in basis set
+    RANK_TYPE rankmax = 0;             ///< maximum value of rank
+    DENSITY_TYPE ndensitymax = 0;      ///< maximum number of densities \f$ \rho^{(p)} \f$
+    NS_TYPE nradbase = 0; ///< maximum number of radial \f$\textbf{basis}\f$ function \f$ g_{k}(r) \f$
+    LS_TYPE lmax = 0;  ///< \f$ l_\textrm{max} \f$ - maximum value of orbital moment \f$ l \f$
+    NS_TYPE nradmax = 0;  ///< maximum number \f$ n \f$ of radial function \f$ R_{nl}(r) \f$
+    DOUBLE_TYPE cutoffmax = 0;  ///< maximum value of cutoff distance among all species in basis set
+    int ntot = 0; ///< Number of spline points to represent radial functions
 
-    string *elements_name = nullptr; //mapping index(0..nelements) -> element_symbol
+    string *elements_name = nullptr; ///< Array of elements name for mapping from index (0..nelements-1) to element symbol (string)
 
-    ACERadialFunctions radial_functions;
-    ACECartesianSphericalHarmonics spherical_harmonics;
+    ACERadialFunctions radial_functions; ///< object to work with radial functions
+    ACECartesianSphericalHarmonics spherical_harmonics; ///< object to work with spherical harmonics in Cartesian representation
 
-    //energy-based inner cuttoff
-    Array1D<DOUBLE_TYPE> rho_core_cutoffs;
-    Array1D<DOUBLE_TYPE> drho_core_cutoffs;
-    vector<DOUBLE_TYPE> FS_parameters;// for Eq.(53)
 
+    Array1D<DOUBLE_TYPE> rho_core_cutoffs; ///< energy-based inner cut-off
+    Array1D<DOUBLE_TYPE> drho_core_cutoffs; ///< decay of energy-based inner cut-off
+
+    vector<DOUBLE_TYPE> FS_parameters;  ///< parameters for cluster functional, see Eq.(3) in implementation notes or Eq.(53) in <A HREF="https://journals.aps.org/prb/abstract/10.1103/PhysRevB.99.014104">  PRB 99, 014104 (2019) </A>
+
+    /**
+     * Default empty constructor
+     */
     ACEAbstractBasisSet() = default;
 
     // copy constructor, operator= and destructor (see. Rule of Three)
+
+    /**
+     * Copy constructor (see. Rule of Three)
+     * @param other
+     */
     ACEAbstractBasisSet(const ACEAbstractBasisSet &other);
 
+    /**
+     * operator=  (see. Rule of Three)
+     * @param other
+     * @return
+     */
     ACEAbstractBasisSet &operator=(const ACEAbstractBasisSet &other);
 
-    //virtual destructor
+    /**
+     * virtual destructor (see. Rule of Three)
+     */
     virtual ~ACEAbstractBasisSet();
 
-
+    /**
+     * Computing cluster functional \f$ F(\rho_i^{(1)}, \dots, \rho_i^{(P)})  \f$
+     * and its derivatives  \f$ (\partial F/\partial\rho_i^{(1)}, \dots, \partial F/\partial \rho_i^{(P)} ) \f$
+     * @param rhos array with densities \f$ \rho^{(p)} \f$
+     * @param value (out) return value of cluster functional
+     * @param derivatives (out) array of derivatives  \f$ (\partial F/\partial\rho_i^{(1)}, \dots, \partial F/\partial \rho_i^{(P)} )  \f$
+     * @param ndensity  number \f$ P \f$ of densities to use
+     */
     void FS_values_and_derivatives(Array1D<DOUBLE_TYPE> &rhos, DOUBLE_TYPE &value, Array1D<DOUBLE_TYPE> &derivatives,
                                    DENSITY_TYPE ndensity);
 
+    /**
+     * Computing hard core pairwise repulsive potential \f$ f_{cut}(\rho_i^{(\textrm{core})})\f$ and its derivative,
+     * see Eq.(29) of implementation notes
+     * @param rho_core value of \f$ \rho_i^{(\textrm{core})} \f$
+     * @param rho_cut  \f$ \rho_{cut}^{\mu_i} \f$ value
+     * @param drho_cut \f$ \Delta_{cut}^{\mu_i} \f$ value
+     * @param fcut (out) return inner cutoff function
+     * @param dfcut (out) return derivative of inner cutoff function
+     */
     static void inner_cutoff(DOUBLE_TYPE rho_core, DOUBLE_TYPE rho_cut, DOUBLE_TYPE drho_cut, DOUBLE_TYPE &fcut,
                              DOUBLE_TYPE &dfcut);
 
 
+    /**
+     * Virtual method to save potential to file
+     * @param filename file name
+     */
     virtual void save(const string &filename) = 0;
 
+    /**
+     * Virtual method to load potential from file
+     * @param filename file name
+     */
     virtual void load(string filename) = 0;
 
+    /**
+     * Get the species index by its element name
+     * @param elemname element name
+     * @return species index
+     */
     SPECIES_TYPE get_species_index_by_name(const string &elemname);
 
 
-
     // routines for copying and cleaning dynamic memory of the class (see. Rule of Three)
-    virtual void _clean(); //must be idempotent for safety
+
+    /**
+     * Routine for clean the dynamically allocated memory\n
+     * IMPORTANT! It must be idempotent for safety.
+     */
+    virtual void _clean();
+
+    /**
+     * Copy dynamic memory from src. Must be override and extended in derived classes!
+     * @param src source object to copy from
+     */
     virtual void _copy_dynamic_memory(const ACEAbstractBasisSet &src);
+
+    /**
+     * Copy scalar values from src. Must be override and extended in derived classes!
+     * @param src source object to copy from
+     */
     virtual void _copy_scalar_memory(const ACEAbstractBasisSet &src);
 };
-
 
 
 #endif //ACE_EVALUATOR_ACE_ABSTRACT_BASIS_H

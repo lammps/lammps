@@ -61,7 +61,7 @@ public:
     Array2DLM<DOUBLE_TYPE> dplm;
 
     Array2DLM<ACEComplex> ylm;
-    Array2DLM<Dycomponent> dylm;
+    Array2DLM<ACEDYcomponent> dylm;
 
 };
 

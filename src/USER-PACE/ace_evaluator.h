@@ -89,7 +89,7 @@ class ACECTildeEvaluator : public ACEEvaluator {
     Array3D<DOUBLE_TYPE> DR_cache = Array3D<DOUBLE_TYPE>("DR_cache");
     // (neigh_jj)(l,m)
     Array3DLM<ACEComplex> Y_cache = Array3DLM<ACEComplex>("Y_cache");
-    Array3DLM<Dycomponent> DY_cache = Array3DLM<Dycomponent>("dY_dense_cache");
+    Array3DLM<ACEDYcomponent> DY_cache = Array3DLM<ACEDYcomponent>("dY_dense_cache");
 
     //hard-core repulsion
     //(neigh_jj)

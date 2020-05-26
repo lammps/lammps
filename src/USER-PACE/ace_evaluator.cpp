@@ -147,7 +147,7 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
 
     dB_flatten.fill({0.});
 
-    Dycomponent grad_phi_nlm{0}, DY{0.};
+    ACEDYcomponent grad_phi_nlm{0}, DY{0.};
 
     //size is +1 of max to avoid out-of-boundary array access in double-triangular scheme
     ACEComplex A_forward_prod[basis_set->rankmax + 1];
@@ -209,7 +209,7 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
 
     //proxy references to spherical harmonics and radial functions arrays
     const Array2DLM<ACEComplex> &ylm = basis_set->spherical_harmonics.ylm;
-    const Array2DLM<Dycomponent> &dylm = basis_set->spherical_harmonics.dylm;
+    const Array2DLM<ACEDYcomponent> &dylm = basis_set->spherical_harmonics.dylm;
 
     const Array2D<DOUBLE_TYPE> &fr = basis_set->radial_functions.fr;
     const Array2D<DOUBLE_TYPE> &dfr = basis_set->radial_functions.dfr;
@@ -263,7 +263,7 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
 
         //proxies
         Array2DLM<ACEComplex> &Y_jj = Y_cache(jj);
-        Array2DLM<Dycomponent> &DY_jj = DY_cache(jj);
+        Array2DLM<ACEDYcomponent> &DY_jj = DY_cache(jj);
 
 
         basis_set->radial_functions.lookupRadspline(r_norm, basis_set->nradbase, nradiali, mu_i, mu_j);
@@ -526,7 +526,7 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
         inv_r_norm = inv_r_norms[jj];
 
         Array2DLM<ACEComplex> &Y_cache_jj = Y_cache(jj);
-        Array2DLM<Dycomponent> &DY_cache_jj = DY_cache(jj);
+        Array2DLM<ACEDYcomponent> &DY_cache_jj = DY_cache(jj);
 
 #ifdef PRINT_LOOPS_INDICES
         printf("\nneighbour atom #%d\n", jj);

@@ -22,10 +22,19 @@ foreach(TEST ${MOL_PAIR_TESTS})
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endforeach()
 
-# tests for atomic systems and related pair styles
+# tests for metal-like atomic systems and related pair styles
 file(GLOB ATOMIC_PAIR_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/atomic-pair-*.yaml)
 foreach(TEST ${ATOMIC_PAIR_TESTS})
   string(REGEX REPLACE "^.*atomic-pair-(.*)\.yaml" "AtomicPairStyle:\\1" TNAME ${TEST})
+  add_test(NAME ${TNAME} COMMAND pair_style ${TEST}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+endforeach()
+
+# tests for Si-like manybody systems and related pair styles
+file(GLOB MANYBODY_PAIR_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/manybody-pair-*.yaml)
+foreach(TEST ${MANYBODY_PAIR_TESTS})
+  string(REGEX REPLACE "^.*manybody-pair-(.*)\.yaml" "ManybodyPairStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND pair_style ${TEST}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")

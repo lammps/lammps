@@ -44,6 +44,7 @@ class PairSW : public Pair {
     double sigma_gamma,lambda_epsilon,lambda_epsilon2;
     double c1,c2,c3,c4,c5,c6;
     int ielement,jelement,kelement;
+    static const int NPARAMS_PER_LINE = 14;
   };
 
  protected:

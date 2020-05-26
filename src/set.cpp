@@ -36,6 +36,8 @@
 #include "memory.h"
 #include "error.h"
 #include "modify.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -601,23 +603,12 @@ void Set::command(int narg, char **arg)
     MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
 
     if (comm->me == 0) {
-
-      if (screen) {
-        if (strcmp(arg[origarg],"cc") == 0)
-          fprintf(screen,"  %d settings made for %s index %s\n",
-                  allcount,arg[origarg],arg[origarg+1]);
-        else
-          fprintf(screen,"  %d settings made for %s\n",
-                  allcount,arg[origarg]);
-      }
-      if (logfile) {
-        if (strcmp(arg[origarg],"cc") == 0)
-          fprintf(logfile,"  %d settings made for %s index %s\n",
-                  allcount,arg[origarg],arg[origarg+1]);
-        else
-          fprintf(logfile,"  %d settings made for %s\n",
-                  allcount,arg[origarg]);
-      }
+      if (strcmp(arg[origarg],"cc") == 0)
+        utils::logmesg(lmp,fmt::format("  {} settings made for {} index {}",
+                       allcount,arg[origarg],arg[origarg+1]));
+      else
+        utils::logmesg(lmp,fmt::format("  {} settings made for {}",
+                       allcount,arg[origarg]));
     }
   }
 

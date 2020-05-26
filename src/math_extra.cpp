@@ -258,8 +258,8 @@ void no_squish_rotate(int k, double *p, double *q, double *inertia,
   // obtain phi, cosines and sines
 
   phi = p[0]*kq[0] + p[1]*kq[1] + p[2]*kq[2] + p[3]*kq[3];
-  phi /= (4.0 * inertia[k-1]);
-  if (!std::isfinite(phi)) phi = 0.0;
+  if (fabs(inertia[k-1]) < 1e-250) phi *= 0.0;
+  else phi /= 4.0 * inertia[k-1];
   c_phi = cos(dt * phi);
   s_phi = sin(dt * phi);
 

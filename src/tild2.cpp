@@ -461,7 +461,7 @@ void TILD::vir_func_init() {
         }
         n = 0;
         for (j = 0; j <  nfft; j++) {
-          fprintf(screen,"vg %d %d %d %f %f\n", loc, i, j,vg_hat[loc][i][n],vg_hat[loc][i][n+1]);
+          //fprintf(screen,"vg %d %d %d %f %f\n", loc, i, j,vg_hat[loc][i][n],vg_hat[loc][i][n+1]);
           n+=2;
         }
       }
@@ -532,13 +532,13 @@ void TILD::precompute_density_hat_fft() {
       density_hat_fft_types[ktype][k] = work1[k];
     }
 
-/*
+    std::string fname = "rho_"+std::to_string(ktype)+"_lammps.txt";
+    std::ofstream rhof(fname);
     n = 0;
     for (int k = 0; k < nfft; k++){
-      fprintf(screen,"%d %d %f %f %f\n", ktype, k,density_fft_types[ktype][k], density_hat_fft_types[ktype][n], density_hat_fft_types[ktype][n+1]);
+      rhof << k << '\t' << density_fft_types[ktype][k] << '\t' << density_hat_fft_types[ktype][n] << '\t' << density_hat_fft_types[ktype][n+1] << endl;
       n += 2;
     }
-*/
   }
 }
 
@@ -674,8 +674,8 @@ void TILD::allocate()
   memory->create(tmp, nfft, "tild:tmp");
   memory->create(vg,ntypecross+1,6,nfft_both,"pppm:vg");
   memory->create(vg_hat,ntypecross+1,6,2*nfft_both,"pppm:vg_hat");
-  memory->create(density_fft_types,ntypes+1, nfft_both, "pppm:density_fft_types");
-  memory->create(density_hat_fft_types,ntypes+1, 2*nfft_both, "pppm:density_hat_fft_types");
+  memory->create(density_fft_types,ntypes+1, nfft_both, "pppm/tild:density_fft_types");
+  memory->create(density_hat_fft_types,ntypes+1, 2*nfft_both, "pppm/tild:density_hat_fft_types");
   memory->create(kappa_density, nfft_both, "pppm:kappa_density");
   memory->create(potent,ntypecross+1,nfft_both,"pppm:potent"); // Voignot 
   memory->create(potent_hat,ntypecross+1,2*nfft_both,"pppm:potent_hat");
@@ -1893,7 +1893,7 @@ void TILD::make_rho()
   int *type = atom->type;
 
   for (int i = 0; i < nlocal; i++) {
-
+    
     // Skip if the particle type has no TILD interaction
     if (potent_type_map[0][type[i]][type[i]] == 1) continue;
 
@@ -1916,19 +1916,7 @@ void TILD::make_rho()
         for (l = nlower; l <= nupper; l++) {
           mx = l+nx;
           w = x0*rho1d[0][l];
-/*
-          int j = 0;
-          bool stop = false;
-          for (int iz = nzlo_in; (iz <= nzhi_in) && !stop; iz++)
-            for (int iy = nylo_in; (iy <= nyhi_in) && !stop; iy++)
-              for (int ix = nxlo_in; (ix <= nxhi_in) && !stop; ix++){
-                if ( (iz == mz) && (iy == my) && (ix == mx) ) {
-                    stop = true;
-                    break;
-                } else j++;
-              }
-          fprintf(screen,"weight %d %d %d %d %d %f\n", i, j, mz,my,mx, w);
-*/
+
           density_brick_types[type[i]][mz][my][mx] += w;
           density_brick_types[0][mz][my][mx] += w;
         }
@@ -1946,14 +1934,13 @@ void TILD::brick2fft()
   // remap could be done as pre-stage of FFT,
   //   but this works optimally on only double values, not complex values
 
-  //std::ofstream rhoA("rhot_lammps.txt");
   for (int k = 0; k <= ntypes; k++) {
     int n = 0;
     for (iz = nzlo_in; iz <= nzhi_in; iz++)
       for (iy = nylo_in; iy <= nyhi_in; iy++)
         for (ix = nxlo_in; ix <= nxhi_in; ix++){
           density_fft_types[k][n++] = density_brick_types[k][iz][iy][ix];
-          //rhoA<<"firstrho\t"<<n-1<<'\t'<<density_fft_types[k][n-1] <<std::endl;
+          //rhof<<n-1<<'\t'<<density_fft_types[k][n-1] <<std::endl;
         }
   }
 
@@ -2147,8 +2134,8 @@ void TILD::fieldforce_param(){
     // f[i][0] += grid_vol * ekx;
     // f[i][1] += grid_vol * eky;
     // f[i][2] += grid_vol * ekz;
-    delvolinv_forces << i <<'\t'<<  f[i][0] <<'\t'<< f[i][1] <<'\t'<<  f[i][2] << endl;
-    //delvolinv_forces << i <<'\t'<<  ekx <<'\t'<< eky <<'\t'<<  ekz << endl;
+    //delvolinv_forces << i <<'\t'<<  f[i][0] <<'\t'<< f[i][1] <<'\t'<<  f[i][2] << endl;
+    delvolinv_forces << i <<'\t'<<  ekx <<'\t'<< eky <<'\t'<<  ekz << endl;
     // grid_vol_forces<<i<<'\t'<< "0 " <<'\t'<<  grid_vol*ekx << endl;
     // grid_vol_forces<<i<<'\t'<< "1 " <<'\t'<<  grid_vol*eky << endl;
     // grid_vol_forces<<i<<'\t'<< "2 " <<'\t'<<  grid_vol*ekz << endl;
@@ -2251,15 +2238,12 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
     }
   }
  
-  double factor = 1.0 / delvolinv / tmp_rho_div;
+  double factor = 1.0 * scale_inv / tmp_rho_div;
   if (eflag_global) {
     // convolve itype-jtype interaction potential and itype density
     n = 0;
     for (int k = 0; k < nfft; k++) {
-      //fprintf(screen,"%d %d %d %f %f\n", itype, jtype, k, wki[n], work1[n]);
       complex_multiply(density_hat_fft_types[itype], potent_hat[loc], ktmpi, n);
-      //complex_multiply(density_hat_fft_types[itype], work1, ktmpi, n);
-      //complex_multiply(wki, potent_hat[loc], ktmpi, n);
       n += 2;
     }
     // IFFT the convolution
@@ -2271,13 +2255,11 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
     engk = 0.0;
     for (int k = 0; k < nfft; k++) {
       // rho_i * u_ij * rho_j * chi * prefactor
-      //fprintf(screen,"%d %d %d %f %f\n", itype, jtype, k, ktmp2i[n], density_fft_types[jtype][k]);
       eng += ktmp2i[n] * density_fft_types[jtype][k];
       if ( calc_kappa_rho0 == 1 ) engk -= ktmp2i[n];
       n += 2;
     }
     energy += eng * factor * (chi[itype][jtype] + tmp_kappa); 
-    //fprintf(screen,"summed %d %d %f %f %f\n", itype, jtype, eng * factor * (chi[itype][jtype] + tmp_kappa), energy,  (chi[itype][jtype] + tmp_kappa)/tmp_rho_div);
     if ( calc_kappa_rho0 == 1 ) { 
       energy += engk * rho0 * factor * kappa;
       energy += kappa * rho0 * rho0 * factor * nfft / 2.0;
@@ -2291,7 +2273,6 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
       double factor2 = factor;//  * ( i/3 ? 2.0 : 1.0);
       n = 0;
       for (int k = 0; k < nfft; k++) {
-        fprintf(screen,"vg %d %d %f %f %f %f\n", i, k, density_hat_fft_types[itype][n], density_hat_fft_types[itype][n+1],vg_hat[loc][i][n],vg_hat[loc][i][n+1]);
         complex_multiply(density_hat_fft_types[itype], vg_hat[loc][i], ktmp2i, n);
         n += 2;
       }
@@ -2300,12 +2281,11 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
       vtmpk = 0.0;
       n=0;
       for (int k = 0; k < nfft; k++) {
-        // rho_i * u_ij * rho_j * chi * prefactor
-        fprintf(screen,"virial %d %d %f %f %f\n", i, k, ktmpi[n], density_fft_types[jtype][k], ktmpi[n] * density_fft_types[jtype][k]);
         vtmp += ktmpi[n] * density_fft_types[jtype][k];
         if ( calc_kappa_rho0 == 1 ) vtmpk -= ktmpi[n];
         n+=2;
       }
+      //fprintf(screen,"virial %d %f\n", i, vtmp * (chi[itype][jtype] + tmp_kappa) * scale_inv);
       virial[i] += vtmp * (chi[itype][jtype] + tmp_kappa) * factor2;
       if ( i < 3 ) { // if diagonal member of the matrix, not sure why
         if ( calc_kappa_rho0 == 1 ) {
@@ -2314,7 +2294,6 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
         }
       }
     }
-   //fprintf(screen,"virial %f %f %f %f %f %f\n", virial[0]/V, virial[1]/V, virial[2]/V, virial[3]/V, virial[4]/V, virial[5]/V);
   }
   
 }

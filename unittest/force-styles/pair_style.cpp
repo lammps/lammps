@@ -645,6 +645,7 @@ TEST(PairStyle, omp) {
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = init_lammps(argc,argv,test_config,true);
     std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
 
     if (!lmp) {
         std::cerr << "One or more prerequisite styles with /omp suffix\n"
@@ -817,10 +818,10 @@ TEST(PairStyle, intel) {
     char **argv = (char **)args;
     int argc = sizeof(args)/sizeof(char *);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    ::testing::internal::CaptureStdout();
     LAMMPS *lmp = init_lammps(argc,argv,test_config);
-    std::string output;
-    if (!verbose) output = ::testing::internal::GetCapturedStdout();
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
 
     if (!lmp) {
         std::cerr << "One or more prerequisite styles with /intel suffix\n"

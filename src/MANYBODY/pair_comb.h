@@ -57,6 +57,7 @@ class PairComb : public Pair {
     double coulcut, lcut, lcutsq, hfocor;
     int ielement,jelement,kelement;
     int powermint;
+    static const int NPARAMS_PER_LINE = 49;
   };
 
   double cutmax;                // max cutoff for all elements

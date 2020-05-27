@@ -771,7 +771,6 @@ TEST(BondStyle, single) {
     }
 
     // gather some information and skip if unsupported
-    int ntypes = lmp->atom->ntypes;
     int nbondtypes = lmp->atom->nbondtypes;
     int molecular = lmp->atom->molecular;
     if (molecular != 1) {

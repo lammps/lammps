@@ -39,14 +39,8 @@ pair_style eam/alloy/opt command
 pair_style eam/cd command
 =========================
 
-pair_style eam/cd/omp command
-=============================
-
 pair_style eam/cd/old command
 =============================
-
-pair_style eam/cd/old/omp command
-=================================
 
 pair_style eam/fs command
 =========================

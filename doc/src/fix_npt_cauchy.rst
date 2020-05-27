@@ -103,8 +103,8 @@ description below.  The desired temperature at each timestep is a
 ramped value during the run from *Tstart* to *Tstop*\ .  The *Tdamp*
 parameter is specified in time units and determines how rapidly the
 temperature is relaxed.  For example, a value of 10.0 means to relax
-the temperature in a timespan of (roughly) 10 time units (e.g. tau or
-fmsec or psec - see the :doc:`units <units>` command).  The atoms in the
+the temperature in a timespan of (roughly) 10 time units (e.g. :math:`\tau`
+or fs or ps - see the :doc:`units <units>` command).  The atoms in the
 fix group are the only ones whose velocities and positions are updated
 by the velocity/position update portion of the integration.
 
@@ -154,8 +154,8 @@ simulation box must be triclinic, even if its initial tilt factors are
 For all barostat keywords, the *Pdamp* parameter operates like the
 *Tdamp* parameter, determining the time scale on which pressure is
 relaxed.  For example, a value of 10.0 means to relax the pressure in
-a timespan of (roughly) 10 time units (e.g. tau or fmsec or psec - see
-the :doc:`units <units>` command).
+a timespan of (roughly) 10 time units (e.g. :math:`\tau` or fs or ps
+- see the :doc:`units <units>` command).
 
 .. note::
 

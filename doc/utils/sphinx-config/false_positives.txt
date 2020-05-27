@@ -943,7 +943,6 @@ fmackay
 fmag
 fmass
 fmm
-fmsec
 fmx
 fmy
 fmz
@@ -2078,9 +2077,9 @@ Nroff
 nrun
 Ns
 Nsample
-nsec
 Nskip
 Nspecies
+ns
 nsq
 Nstart
 nstats
@@ -2353,7 +2352,6 @@ ps
 Ps
 pscreen
 pscrozi
-psec
 pseudodynamics
 pseudopotential
 Pstart

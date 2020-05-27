@@ -60,7 +60,7 @@ char *PotentialFileReader::next_line(int nparams) {
       {
         char str[128];
         snprintf(str, 128, "Incorrect format in %s potential file", potential_name.c_str());
-        error->all(FLERR, str);
+        error->one(FLERR, str);
       }
 
       return nullptr;

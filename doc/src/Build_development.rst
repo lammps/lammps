@@ -75,9 +75,9 @@ The unit testing facility is integrated into the CMake build process
 of the LAMMPS source code distribution itself.  It can be enabled by
 setting ``-D ENABLE_TESTING=on`` during the CMake configuration step.
 It requires the `YAML <http://pyyaml.org/>`_ library and development
-headers to compile and will download and compile the
+headers to compile and will download and compile a recent version of the
 `Googletest <https://github.com/google/googletest/>`_ C++ test framework
-for programming the tests.
+for implementing the tests.
 
 After compilation is complete, the unit testing is started in the build
 folder using the ``ctest`` command, which is part of the CMake software.
@@ -100,6 +100,30 @@ The output of this command will be looking something like this::
    
    Total Test time (real) =   0.27 sec
 
+
+The ``ctest`` command has many options, the most important ones are:
+
+.. list-table::
+
+   * - Option
+     - Function
+   * - -V
+     - verbose output: display output of individual test runs
+   * - -j <num>
+     - parallel run: run <num> tests in parallel
+   * - -R <regex>
+     - run subset of tests matching the regular expression <regex>
+   * - -E <regex>
+     - exclude subset of tests matching the regular expression <regex>
+   * - -N
+     - dry-run: display list of tests without running them
+
+In its full implementation, the unit test framework will consist of multiple
+kinds of tests implemented in different programming languages (C++, C, Python,
+Fortran) and testing different aspects of the LAMMPS software and its features.
+At the moment only tests for "force styles" are implemented. More on those
+in the next section.
+
 .. note::
 
    This unit test framework is new and still under development.
@@ -113,6 +137,112 @@ The output of this command will be looking something like this::
    Detailed documentation about how to add new test program and
    the contents of the YAML files for existing test programs
    will be provided in time as well.
+
+Unit tests for force styles
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A large part of LAMMPS are different "styles" for computing non-bonded
+and bonded interactions selected through the :doc:`pair_style`,
+:doc:`bond_style`, :doc:`angle_style`, :doc:`dihedral_style`,
+:doc:`improper_style`, and :doc:`kspace_style`.  Since these all share
+common interfaces, it is possible to write generic test programs that
+will call those common interfaces for small test systems with less than
+100 atoms and compare the results with pre-recorded reference results.
+A test run is then a a collection multiple individual test runs each
+with many comparisons to reference results based on template input
+files, individual command settings, relative error margins, and
+reference data stored in a YAML format file with ``.yaml``
+suffix. Currently the programs ``pair_style``, ``bond_style``, and
+``angle_style`` are implemented.  They will compare forces, energies and
+(global) stress for all atoms after a ``run 0`` calculation and after a
+few steps of MD with :doc:`fix nve <fix_nve>`, each in multiple variants
+with different settings and also for multiple accelerated styles. If a
+prerequisite style or package is missing, the individual tests are
+skipped.  All tests will be executed on a single MPI process, so using
+the CMake option ``-D BUILD_MPI=off`` can significantly speed up testing,
+since this will skip the MPI initialization for each test run.
+Below is an example command and output:
+
+.. parsed-literal::
+
+   [tests]$ pair_style mol-pair-lj_cut.yaml
+   [==========] Running 6 tests from 1 test suite.
+   [----------] Global test environment set-up.
+   [----------] 6 tests from PairStyle
+   [ RUN      ] PairStyle.plain
+   [       OK ] PairStyle.plain (24 ms)
+   [ RUN      ] PairStyle.omp
+   [       OK ] PairStyle.omp (18 ms)
+   [ RUN      ] PairStyle.intel
+   [       OK ] PairStyle.intel (6 ms)
+   [ RUN      ] PairStyle.opt
+   [  SKIPPED ] PairStyle.opt (0 ms)
+   [ RUN      ] PairStyle.single
+   [       OK ] PairStyle.single (7 ms)
+   [ RUN      ] PairStyle.extract
+   [       OK ] PairStyle.extract (6 ms)
+   [----------] 6 tests from PairStyle (62 ms total)
+
+   [----------] Global test environment tear-down
+   [==========] 6 tests from 1 test suite ran. (63 ms total)
+   [  PASSED  ] 5 tests.
+   [  SKIPPED ] 1 test, listed below:
+   [  SKIPPED ] PairStyle.opt
+
+In this particular case, 5 out of 6 sets of tests were conducted, the
+tests for the ``lj/cut/opt`` pair style was skipped, since the tests
+executable did not include it.  To learn what individual tests are performed,
+you (currently) need to read the source code.  You can use code coverage
+recording (see next section) to confirm how well the tests cover the individual
+source files.
+
+The force style test programs have a common set of options:
+
+.. list-table::
+
+   * - Option
+     - Function
+   * - -g <newfile>
+     - regenerate reference data in new YAML file
+   * - -u
+     - update reference data in the original YAML file
+   * - -s
+     - print error statistics for each group of comparisons
+   * - -v
+     - verbose output: also print the executed LAMMPS commands
+
+To add a test for a style that is not yet covered, it is usually best
+to copy a YAML file for a similar style to a new file, edit the details
+of the style (how to call it, how to set its coefficients) and then
+run test command with either the *-g* and the replace the initial
+test file with the regenerated one or the *-u* option.  The *-u* option
+will destroy the original file, if the generation run does not complete,
+so using *-g* is recommended unless the YAML file is fully tested
+and working.
+
+.. admonition:: Recommendations and notes for YAML files
+   :class: note
+
+   - The reference results should be recorded without any code
+     optimization or related compiler flags enabled.
+   - The ``epsilon`` parameter defines the relative precision with which
+     the reference results must be met.  The test geometries often have
+     high and low energy parts and thus a significant impact from
+     floating-point math truncation errors is to be expected. Some
+     functional forms and potentials are more noisy than others, so this
+     parameter needs to be adjusted. Typically a value around 1.0e-13
+     can be used, but it may need to be as large as 1.0e-8 in some
+     cases.
+   - The tests for pair styles from OPT, USER-OMP and USER-INTEL are
+     performed with automatically rescaled epsilon to account for
+     additional loss of precision from code optimizations and different
+     summation orders.
+   - When compiling with aggressive compiler optimization, some tests
+     are likely to fail.  It is recommended to inspect the individual
+     tests in detail to decide whether the specific error for a specific
+     property is acceptable (it often is), or this may be an indication
+     of mis-compiled code (or undesired large of precision due to
+     reordering of operations).
 
 ------------
 

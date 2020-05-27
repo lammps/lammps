@@ -56,8 +56,7 @@ char *PotentialFileReader::next_line(int nparams) {
 
     if (ptr == nullptr) {
       // EOF
-      if (nwords > 0 && nwords < nparams)
-      {
+      if (nwords > 0 && nwords < nparams) {
         char str[128];
         snprintf(str, 128, "Incorrect format in %s potential file", potential_name.c_str());
         error->one(FLERR, str);

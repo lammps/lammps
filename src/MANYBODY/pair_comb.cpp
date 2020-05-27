@@ -583,7 +583,7 @@ double PairComb::init_one(int i, int j)
 void PairComb::read_file(char *file)
 {
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   nparams = 0;
   maxparam = 0;
 
@@ -596,9 +596,9 @@ void PairComb::read_file(char *file)
       try {
         ValueTokenizer values(line," \t\n\r\f");
 
-        std::string iword = values.next_string();
-        std::string jword = values.next_string();
-        std::string kword = values.next_string();
+        std::string iname = values.next_string();
+        std::string jname = values.next_string();
+        std::string kname = values.next_string();
 
         // ielement,jelement,kelement = 1st args
         // if all 3 args are in element list, then parse this line
@@ -606,13 +606,13 @@ void PairComb::read_file(char *file)
         int ielement, jelement, kelement;
 
         for (ielement = 0; ielement < nelements; ielement++)
-          if (iword == elements[ielement]) break;
+          if (iname == elements[ielement]) break;
         if (ielement == nelements) continue;
         for (jelement = 0; jelement < nelements; jelement++)
-          if (jword == elements[jelement]) break;
+          if (jname == elements[jelement]) break;
         if (jelement == nelements) continue;
         for (kelement = 0; kelement < nelements; kelement++)
-          if (kword == elements[kelement]) break;
+          if (kname == elements[kelement]) break;
         if (kelement == nelements) continue;
 
         // load up parameter settings and error check their values

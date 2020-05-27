@@ -54,6 +54,8 @@
 #include "version.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 #include "lmpinstalledpkgs.h"
 #include "lmpgitversion.h"
@@ -441,23 +443,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       }
     }
 
-    if ((universe->me == 0) && !helpflag) {
-      if (screen) fprintf(screen,"LAMMPS (%s)\n",universe->version);
-      if (logfile) fprintf(logfile,"LAMMPS (%s)\n",universe->version);
-#if defined(LAMMPS_CXX98)
-      const char warning[] = "\nWARNING-WARNING-WARNING-WARNING-WARNING\n"
-        "This LAMMPS executable was compiled using C++98 compatibility.\n"
-        "Please report the compiler info below at https://github.com/lammps/lammps/issues/1659\n";
-      const char *infobuf = Info::get_compiler_info();
-      if (screen)
-         fprintf(screen,"%s%s\nWARNING-WARNING-WARNING-WARNING-WARNING\n\n",
-                 warning,infobuf);
-      if (logfile)
-         fprintf(logfile,"%s%s\nWARNING-WARNING-WARNING-WARNING-WARNING\n\n",
-                 warning,infobuf);
-      delete[] infobuf;
-#endif
-    }
+    if ((universe->me == 0) && !helpflag)
+      utils::logmesg(this,fmt::format("LAMMPS ({})\n",universe->version));
 
   // universe is one or more worlds, as setup by partition switch
   // split universe communicator into separate world communicators
@@ -529,28 +516,17 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     // screen and logfile messages for universe and world
 
     if ((universe->me == 0) && (!helpflag)) {
-      if (universe->uscreen) {
-        fprintf(universe->uscreen,"LAMMPS (%s)\n",universe->version);
-        fprintf(universe->uscreen,"Running on %d partitions of processors\n",
-                universe->nworlds);
-      }
-      if (universe->ulogfile) {
-        fprintf(universe->ulogfile,"LAMMPS (%s)\n",universe->version);
-        fprintf(universe->ulogfile,"Running on %d partitions of processors\n",
-                universe->nworlds);
-      }
+      const char fmt[] = "LAMMPS ({})\nRunning on {} partitions of processors\n";
+      if (universe->uscreen)
+        fmt::print(universe->uscreen,fmt,universe->version,universe->nworlds);
+
+      if (universe->ulogfile)
+        fmt::print(universe->ulogfile,fmt,universe->version,universe->nworlds);
     }
 
-    if ((me == 0) && (!helpflag)) {
-      if (screen) {
-        fprintf(screen,"LAMMPS (%s)\n",universe->version);
-        fprintf(screen,"Processor partition = %d\n",universe->iworld);
-      }
-      if (logfile) {
-        fprintf(logfile,"LAMMPS (%s)\n",universe->version);
-        fprintf(logfile,"Processor partition = %d\n",universe->iworld);
-      }
-    }
+    if ((me == 0) && (!helpflag))
+      utils::logmesg(this,fmt::format("LAMMPS ({})\nProcessor partition = {}\n",
+                                      universe->version, universe->iworld));
   }
 
   // check consistency of datatype settings in lmptype.h
@@ -643,17 +619,15 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   // write_dump will just give a warning message about no init
 
   if (restart2data || restart2dump) {
-    char cmd[256];
-    snprintf(cmd,248,"read_restart %s\n",restartfile);
-    if (restartremap) strcat(cmd," remap\n");
-    input->one(cmd);
-    if (restart2data) strcpy(cmd,"write_data");
-    else strcpy(cmd,"write_dump");
+    std::string cmd = fmt::format("read_restart {}",restartfile);
+    if (restartremap) cmd += " remap\n";
+    input->one(cmd.c_str());
+    if (restart2data) cmd = "write_data ";
+    else cmd = "write_dump";
     for (iarg = wfirst; iarg < wlast; iarg++)
-      snprintf(&cmd[strlen(cmd)],246-strlen(cmd)," %s",arg[iarg]);
-    if (restart2data) strcat(cmd," noinit\n");
-    else strcat(cmd,"\n");
-    input->one(cmd);
+       cmd += fmt::format(" {}", arg[iarg]);
+    if (restart2data) cmd += " noinit";
+    input->one(cmd.c_str());
     error->done(0);
   }
 }

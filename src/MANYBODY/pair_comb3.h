@@ -38,7 +38,6 @@ class PairComb3 : public Pair {
   double enegtot;
 
  // general potential parameters
- protected:
   struct Param {
     int ielement,jelement,kelement,powermint;
     int ielementgp,jelementgp,kelementgp;       //element group
@@ -56,7 +55,10 @@ class PairComb3 : public Pair {
     double veps, vsig, pcna, pcnb, pcnc, pcnd, polz, curl, pcross;
     double paaa, pbbb;
     double curlcut1, curlcut2, curl0;
+    static const int NPARAMS_PER_LINE = 74;
   };
+
+ protected:
 
   // general setups
   int nelements;                        // # of unique elements

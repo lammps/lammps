@@ -38,7 +38,6 @@ class PairComb : public Pair {
   virtual double yasu_char(double *, int &);
   double enegtot;
 
- protected:
   struct Param {
     double lam11,lam12,lam21,lam22;
     double c,d,h;
@@ -60,6 +59,7 @@ class PairComb : public Pair {
     static const int NPARAMS_PER_LINE = 49;
   };
 
+ protected:
   double cutmax;                // max cutoff for all elements
   int nelements;                // # of unique elements
   char **elements;              // names of unique elements

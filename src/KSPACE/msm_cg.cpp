@@ -15,10 +15,9 @@
    Contributing authors: Paul Crozier, Stan Moore, Stephen Bond, (all SNL)
 ------------------------------------------------------------------------- */
 
+#include "msm_cg.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "gridcomm.h"
@@ -27,12 +26,8 @@
 #include "force.h"
 #include "neighbor.h"
 #include "memory.h"
-#include "msm_cg.h"
-
-#include "math_const.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define OFFSET 16384
 #define SMALLQ 0.00001
@@ -197,7 +192,7 @@ void MSMCG::compute(int eflag, int vflag)
   }
 
 
-  // compute direct interation for top grid level for non-periodic
+  // compute direct interaction for top grid level for non-periodic
   //   and for second from top grid level for periodic
 
   if (active_flag[levels-1]) {

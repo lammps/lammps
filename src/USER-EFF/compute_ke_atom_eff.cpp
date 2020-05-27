@@ -15,7 +15,6 @@
    Contributing author: Andres Jaramillo-Botero
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include <cstring>
 #include <cstdlib>
 #include "compute_ke_atom_eff.h"

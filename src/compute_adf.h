@@ -20,7 +20,6 @@ ComputeStyle(adf,ComputeADF)
 #ifndef LMP_COMPUTE_ADF_H
 #define LMP_COMPUTE_ADF_H
 
-#include <cstdio>
 #include "compute.h"
 
 namespace LAMMPS_NS {

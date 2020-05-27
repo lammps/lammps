@@ -82,43 +82,43 @@ namespace ATC {
     virtual ~AtomMass() {};
 
     /** sets the quantity to a given value */
-    virtual void operator=(const DENS_MAT & target)
+    virtual void operator=(const DENS_MAT & /* target */)
       {throw ATC_Error("Cannot modify type-based atom mass");};
 
     /** sets the quantity to a given constant value */
-    virtual void operator=(const double & target)
+    virtual void operator=(const double & /* target */)
       {throw ATC_Error("Cannot modify type-based atom mass");};
 
     /** adds the given data to the Lammps quantity */
-    virtual void operator+=(const DENS_MAT & addition)
+    virtual void operator+=(const DENS_MAT & /* addition */)
       {throw ATC_Error("Cannot modify type-based atom mass");};
 
     /** adds the scalar data to the Lammps quantity for AtC atoms */
-    virtual void operator+=(double addition)
+    virtual void operator+=(double /* addition */)
       {throw ATC_Error("Cannot modify type-based atom mass");};
 
     /** subtracts the given data from the Lammps quantity */
-    virtual void operator-=(const DENS_MAT & subtraction)
+    virtual void operator-=(const DENS_MAT & /* subtraction */)
       {throw ATC_Error("Cannot modify type-based atom mass");};
 
     /** subtracts the scalar data from the Lammps quantity for AtC atoms */
-    virtual void operator-=(double subtracts)
+    virtual void operator-=(double /* subtracts */)
       {throw ATC_Error("Cannot modify type-based atom mass");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator*=(const DENS_MAT & multiplier)
+    virtual void operator*=(const DENS_MAT & /* multiplier */)
       {throw ATC_Error("Cannot modify type-based atom mass");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator*=(double multiplier)
+    virtual void operator*=(double /* multiplier */)
       {throw ATC_Error("Cannot modify type-based atom mass");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator/=(const DENS_MAT & divisor)
+    virtual void operator/=(const DENS_MAT & /* divisor */)
       {throw ATC_Error("Cannot modify type-based atom mass");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator/=(double divisor)
+    virtual void operator/=(double /* divisor */)
       {throw ATC_Error("Cannot modify type-based atom mass");};
 
   protected:
@@ -167,7 +167,7 @@ namespace ATC {
     // destructor
     virtual ~ComputedAtomQuantity() {};
 
-    /** resets compute, must be this way to accomodate atom sorting between runs */
+    /** resets compute, must be this way to accommodate atom sorting between runs */
     virtual void post_exchange() {this->needReset_ = true;};
 
     /** specialized reset to account for forcing lammps to perform the compute */
@@ -182,39 +182,39 @@ namespace ATC {
       {throw ATC_Error("ComputedAtomQuantity::set_quantity - Cannot modify computed per atom quantities"); return quantity_;};
 
     /** sets the quantity to a given constant value */
-    virtual void operator=(const DENS_MAT & target)
+    virtual void operator=(const DENS_MAT & /* target */)
       {throw ATC_Error("ComputedAtomQuantity::operator= - Cannot modify computed per atom quantities");};
 
     /** adds the given data to the Lammps quantity */
-    virtual void operator+=(const DENS_MAT & addition)
+    virtual void operator+=(const DENS_MAT & /* addition */)
       {throw ATC_Error("ComputedAtomQuantity::operator+= - Cannot modify computed per atom quantities");};
 
     /** adds the scalar data to the Lammps quantity for AtC atoms */
-    virtual void operator+=(double addition)
+    virtual void operator+=(double /* addition */)
       {throw ATC_Error("ComputedAtomQuantity::operator+= - Cannot modify computed per atom quantities");};
 
     /** subtracts the given data from the Lammps quantity */
-    virtual void operator-=(const DENS_MAT & subtraction)
+    virtual void operator-=(const DENS_MAT & /* subtraction */)
       {throw ATC_Error("ComputedAtomQuantity::operator-= - Cannot modify computed per atom quantities");};
 
     /** subtracts the scalar data from the Lammps quantity for AtC atoms */
-    virtual void operator-=(double subtraction)
+    virtual void operator-=(double /* subtraction */)
       {throw ATC_Error("ComputedAtomQuantity::operator-= - Cannot modify computed per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator*=(const DENS_MAT & multiplier)
+    virtual void operator*=(const DENS_MAT & /* multiplier */)
       {throw ATC_Error("ComputedAtomQuantity::operator*= - Cannot modify computed per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator*=(double multiplier)
+    virtual void operator*=(double /* multiplier */)
       {throw ATC_Error("ComputedAtomQuantity::operator*= - Cannot modify computed per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator/=(const DENS_MAT & divisor)
+    virtual void operator/=(const DENS_MAT & /* divisor */)
       {throw ATC_Error("ComputedAtomQuantity::operator/= - Cannot modify computed per atom quantities");};
 
     /** multiples the Lammps quantity by the given data, input is indexed in AtC atom counts */
-    virtual void operator/=(double divisor)
+    virtual void operator/=(double /* divisor */)
       {throw ATC_Error("ComputedAtomQuantity::operator/= - Cannot modify computed per atom quantities");};
 
   protected:

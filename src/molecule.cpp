@@ -11,9 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "molecule.h"
+#include <mpi.h>
+#include <cctype>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_body.h"
@@ -21,12 +23,10 @@
 #include "comm.h"
 #include "domain.h"
 #include "math_extra.h"
-#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define MAXLINE 256
 #define EPSILON 1.0e-7
@@ -37,7 +37,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
-  Pointers(lmp), id(NULL), x(NULL), type(NULL), q(NULL), radius(NULL),
+  Pointers(lmp), id(NULL), x(NULL), type(NULL), molecule(NULL), q(NULL), radius(NULL),
   rmass(NULL), num_bond(NULL), bond_type(NULL), bond_atom(NULL),
   num_angle(NULL), angle_type(NULL), angle_atom1(NULL), angle_atom2(NULL),
   angle_atom3(NULL), num_dihedral(NULL), dihedral_type(NULL), dihedral_atom1(NULL),
@@ -45,8 +45,8 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
   improper_type(NULL), improper_atom1(NULL), improper_atom2(NULL),
   improper_atom3(NULL), improper_atom4(NULL), nspecial(NULL), special(NULL),
   shake_flag(NULL), shake_atom(NULL), shake_type(NULL), avec_body(NULL), ibodyparams(NULL),
-  dbodyparams(NULL), dx(NULL), dxcom(NULL), dxbody(NULL), quat_external(NULL),
-  fp(NULL), count(NULL)
+  dbodyparams(NULL), fragmentmask(NULL), fragmentnames(NULL),
+  dx(NULL), dxcom(NULL), dxbody(NULL), quat_external(NULL), fp(NULL), count(NULL)
 {
   me = comm->me;
 
@@ -146,19 +146,19 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
 
   if (me == 0) {
     if (screen)
-      fprintf(screen,"Read molecule %s:\n"
+      fprintf(screen,"Read molecule template %s:\n  %d molecules\n"
               "  %d atoms with max type %d\n  %d bonds with max type %d\n"
               "  %d angles with max type %d\n  %d dihedrals with max type %d\n"
               "  %d impropers with max type %d\n",
-              id,natoms,ntypes,
+              id,nmolecules,natoms,ntypes,
               nbonds,nbondtypes,nangles,nangletypes,
               ndihedrals,ndihedraltypes,nimpropers,nimpropertypes);
     if (logfile)
-      fprintf(logfile,"Read molecule %s:\n"
+      fprintf(logfile,"Read molecule template %s:\n  %d molecules\n"
               "  %d atoms with max type %d\n  %d bonds with max type %d\n"
               "  %d angles with max type %d\n  %d dihedrals with max type %d\n"
               "  %d impropers with max type %d\n",
-              id,natoms,ntypes,
+              id,nmolecules,natoms,ntypes,
               nbonds,nbondtypes,nangles,nangletypes,
               ndihedrals,ndihedraltypes,nimpropers,nimpropertypes);
   }
@@ -447,6 +447,9 @@ void Molecule::read(int flag)
     } else if (strstr(line,"impropers")) {
       nmatch = sscanf(line,"%d",&nimpropers);
       nwant = 1;
+    } else if (strstr(line,"fragments")) {
+      nmatch = sscanf(line,"%d",&nfragments);
+      nwant = 1;
     } else if (strstr(line,"mass")) {
       massflag = 1;
       nmatch = sscanf(line,"%lg",&masstotal);
@@ -519,6 +522,14 @@ void Molecule::read(int flag)
       typeflag = 1;
       if (flag) types(line);
       else skip_lines(natoms,line);
+    } else if (strcmp(keyword,"Molecules") == 0) {
+      moleculeflag = 1;
+      if (flag) molecules(line);
+      else skip_lines(natoms,line);
+    } else if (strcmp(keyword,"Fragments") == 0) {
+      fragmentflag = 1;
+      if (flag) fragments(line);
+      else skip_lines(nfragments,line);
     } else if (strcmp(keyword,"Charges") == 0) {
       qflag = 1;
       if (flag) charges(line);
@@ -692,6 +703,58 @@ void Molecule::types(char *line)
 
   for (int i = 0; i < natoms; i++)
     ntypes = MAX(ntypes,type[i]);
+}
+
+/* ----------------------------------------------------------------------
+   read molecules from file
+   set nmolecules = max of any molecule type
+------------------------------------------------------------------------- */
+
+void Molecule::molecules(char *line)
+{
+  int tmp;
+  for (int i = 0; i < natoms; i++) {
+    readline(line);
+    if (2 != sscanf(line,"%d %d",&tmp,&molecule[i]))
+      error->all(FLERR,"Invalid Molecules section in molecule file");
+    // molecule[i] += moffset; // placeholder for possible molecule offset
+  }
+
+  for (int i = 0; i < natoms; i++)
+    if (molecule[i] <= 0)
+      error->all(FLERR,"Invalid molecule ID in molecule file");
+
+  for (int i = 0; i < natoms; i++)
+    nmolecules = MAX(nmolecules,molecule[i]);
+}
+
+/* ----------------------------------------------------------------------
+   read fragments from file
+------------------------------------------------------------------------- */
+
+void Molecule::fragments(char *line)
+{
+  int n,m,atomID,nwords;
+  char **words = new char*[natoms+1];
+
+  for (int i = 0; i < nfragments; i++) {
+    readline(line);
+    nwords = parse(line,words,natoms+1);
+    if (nwords > natoms+1)
+      error->all(FLERR,"Invalid atom ID in Fragments section of molecule file");
+    n = strlen(words[0]) + 1;
+    fragmentnames[i] = new char[n];
+    strcpy(fragmentnames[i],words[0]);
+
+    for (m = 1; m < nwords; m++) {
+      atomID = atoi(words[m]);
+      if (atomID <= 0 || atomID > natoms)
+        error->all(FLERR,"Invalid atom ID in Fragments section of molecule file");
+      fragmentmask[i][atomID-1] = 1;
+    }
+  }
+
+  delete [] words;
 }
 
 /* ----------------------------------------------------------------------
@@ -1360,6 +1423,17 @@ void Molecule::body(int flag, int pflag, char *line)
 }
 
 /* ----------------------------------------------------------------------
+   return fragment index if name matches existing fragment, -1 if no such fragment
+------------------------------------------------------------------------- */
+
+int Molecule::findfragment(const char *name)
+{
+  for (int i = 0; i < nfragments; i++)
+    if (fragmentnames[i] && strcmp(name,fragmentnames[i]) == 0) return i;
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
    error check molecule attributes and topology against system settings
    flag = 0, just check this molecule
    flag = 1, check all molecules in set, this is 1st molecule in set
@@ -1432,13 +1506,14 @@ void Molecule::initialize()
   natoms = 0;
   nbonds = nangles = ndihedrals = nimpropers = 0;
   ntypes = 0;
+  nmolecules = 1;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
   nibody = ndbody = 0;
 
   bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
   maxspecial = 0;
 
-  xflag = typeflag = qflag = radiusflag = rmassflag = 0;
+  xflag = typeflag = moleculeflag = fragmentflag = qflag = radiusflag = rmassflag = 0;
   bondflag = angleflag = dihedralflag = improperflag = 0;
   nspecialflag = specialflag = 0;
   shakeflag = shakeflagflag = shakeatomflag = shaketypeflag = 0;
@@ -1493,6 +1568,13 @@ void Molecule::allocate()
 {
   if (xflag) memory->create(x,natoms,3,"molecule:x");
   if (typeflag) memory->create(type,natoms,"molecule:type");
+  if (moleculeflag) memory->create(molecule,natoms,"molecule:molecule");
+  if (fragmentflag) {
+     fragmentnames = new char*[nfragments];
+     memory->create(fragmentmask,nfragments,natoms,"molecule:fragmentmask");
+     for (int i = 0; i < nfragments; i++)
+       for (int j = 0; j < natoms; j++) fragmentmask[i][j] = 0;
+  }
   if (qflag) memory->create(q,natoms,"molecule:q");
   if (radiusflag) memory->create(radius,natoms,"molecule:radius");
   if (rmassflag) memory->create(rmass,natoms,"molecule:rmass");
@@ -1580,9 +1662,17 @@ void Molecule::deallocate()
 {
   memory->destroy(x);
   memory->destroy(type);
+  memory->destroy(molecule);
   memory->destroy(q);
   memory->destroy(radius);
   memory->destroy(rmass);
+
+  memory->destroy(molecule);
+  memory->destroy(fragmentmask);
+  if (fragmentflag) {
+    for (int i = 0; i < nfragments; i++) delete [] fragmentnames[i];
+    delete [] fragmentnames;
+  }
 
   memory->destroy(num_bond);
   memory->destroy(bond_type);

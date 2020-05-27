@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_temp_kokkos.h"
 #include <mpi.h>
 #include <cstring>
-#include "compute_temp_kokkos.h"
 #include "atom_kokkos.h"
 #include "update.h"
 #include "force.h"
@@ -31,6 +31,7 @@ template<class DeviceType>
 ComputeTempKokkos<DeviceType>::ComputeTempKokkos(LAMMPS *lmp, int narg, char **arg) :
   ComputeTemp(lmp, narg, arg)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 

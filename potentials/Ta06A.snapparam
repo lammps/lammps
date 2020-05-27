@@ -10,6 +10,5 @@ twojmax 6
 
 rfac0 0.99363
 rmin0 0
-diagonalstyle 3
 bzeroflag 0
 quadraticflag 0

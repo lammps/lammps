@@ -11,12 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
+#include "fix_rx.h"
+#include <mpi.h>
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
 #include <cfloat> // DBL_EPSILON
-#include "fix_rx.h"
 #include "atom.h"
 #include "error.h"
 #include "group.h"
@@ -254,10 +254,6 @@ void FixRX::post_constructor()
   int maxspecies = 1000;
   int nUniqueSpecies = 0;
   bool match;
-
-  for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"property/atom",13) == 0)
-      error->all(FLERR,"fix rx cannot be combined with fix property/atom");
 
   char **tmpspecies = new char*[maxspecies];
   int tmpmaxstrlen = 0;

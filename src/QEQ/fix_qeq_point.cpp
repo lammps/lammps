@@ -15,14 +15,11 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_qeq_point.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"

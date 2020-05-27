@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_property_atom.h"
 #include <cmath>
 #include <cstring>
-#include "compute_property_atom.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec.h"

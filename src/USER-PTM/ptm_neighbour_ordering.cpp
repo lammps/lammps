@@ -9,16 +9,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 //todo: normalize vertices
 
-#include <cstdlib>
+#include "ptm_neighbour_ordering.h"
 #include <cmath>
 #include <cstring>
 #include <cassert>
 #include <algorithm>
 #include <set>
+#include <vector>
 #include "ptm_constants.h"
 #include "ptm_voronoi_cell.h"
-#include "ptm_neighbour_ordering.h"
-#include "ptm_normalize_vertices.h"
 
 
 namespace ptm {

@@ -17,10 +17,10 @@
                Miller et al., J Chem Phys. 116, 8649-8659 (2002)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "fix_rigid_nh_small.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "math_extra.h"
 #include "atom.h"
 #include "compute.h"
@@ -32,20 +32,14 @@
 #include "comm.h"
 #include "force.h"
 #include "kspace.h"
-#include "output.h"
 #include "memory.h"
 #include "error.h"
+#include "rigid_const.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathExtra;
-
-enum{NONE,XYZ,XY,YZ,XZ};     // same as in FixRigid
-enum{ISO,ANISO,TRICLINIC};   // same as in FixRigid
-
-#define EPSILON 1.0e-7
-
-enum{FULL_BODY,INITIAL,FINAL,FORCE_TORQUE,VCM_ANGMOM,XCM_MASS,ITENSOR,DOF};
+using namespace RigidConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -125,6 +119,10 @@ FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
       (p_start[0] != p_start[2] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[2]))
     error->all(FLERR,"Invalid fix rigid/small npt/nph command pressure settings");
+
+  if (p_flag[0]) box_change |= BOX_CHANGE_X;
+  if (p_flag[1]) box_change |= BOX_CHANGE_Y;
+  if (p_flag[2]) box_change |= BOX_CHANGE_Z;
 
   if ((tstat_flag && t_period <= 0.0) ||
       (p_flag[0] && p_period[0] <= 0.0) ||

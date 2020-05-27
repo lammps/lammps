@@ -17,22 +17,19 @@
    see Reed, Fried, Joannopoulos, Phys Rev Lett, 90, 235503 (2003)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "fix_msst.h"
+#include <mpi.h>
+#include <cstring>
+#include <cmath>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
-#include "output.h"
 #include "modify.h"
 #include "fix_external.h"
 #include "compute.h"
 #include "kspace.h"
 #include "update.h"
-#include "respa.h"
 #include "domain.h"
-#include "thermo.h"
 #include "memory.h"
 #include "error.h"
 
@@ -49,7 +46,6 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all(FLERR,"Illegal fix msst command");
 
   restart_global = 1;
-  box_change_size = 1;
   time_integrate = 1;
   scalar_flag = 1;
   vector_flag = 1;
@@ -81,10 +77,16 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
   dftb = 0;
   beta = 0.0;
 
-  if (strcmp(arg[3],"x") == 0) direction = 0;
-  else if (strcmp(arg[3],"y") == 0) direction = 1;
-  else if (strcmp(arg[3],"z") == 0) direction = 2;
-  else error->all(FLERR,"Illegal fix msst command");
+  if (strcmp(arg[3],"x") == 0) {
+    direction = 0;
+    box_change |= BOX_CHANGE_X;
+  } else if (strcmp(arg[3],"y") == 0) {
+    direction = 1;
+    box_change |= BOX_CHANGE_Y;
+  } else if (strcmp(arg[3],"z") == 0) {
+    direction = 2;
+    box_change |= BOX_CHANGE_Z;
+  } else error->all(FLERR,"Illegal fix msst command");
 
   velocity = force->numeric(FLERR,arg[4]);
   if (velocity < 0) error->all(FLERR,"Illegal fix msst command");

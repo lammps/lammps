@@ -15,12 +15,14 @@
    Contributing authors: Timothy Sirk (ARL), Pieter in't Veld (BASF)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "fix_srp.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "domain.h"
+#include "modify.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
@@ -111,19 +113,21 @@ void FixSRP::init()
   if ((bptype < 1) || (bptype > atom->ntypes))
     error->all(FLERR,"Illegal bond particle type");
 
-  // fix SRP should be the first fix running at the PRE_EXCHANGE step.
-  // Otherwise it might conflict with, e.g. fix deform
+  // this fix must come before any fix which migrates atoms in its pre_exchange()
+  // b/c this fix's pre_exchange() creates per-atom data structure
+  // that data must be current for atom migration to carry it along
 
-  if (modify->n_pre_exchange > 1) {
-    char *first = modify->fix[modify->list_pre_exchange[0]]->id;
-    if ((comm->me == 0) && (strcmp(id,first) != 0))
-      error->warning(FLERR,"Internal fix for pair srp defined too late."
-                     " May lead to incorrect behavior.");
+  for (int i = 0; i < modify->nfix; i++) {
+    if (modify->fix[i] == this) break;
+    if (modify->fix[i]->pre_exchange_migrate)
+      error->all(FLERR,"Fix SRP comes after a fix which "
+                 "migrates atoms in pre_exchange");
   }
 
   // setup neigh exclusions for diff atom types
   // bond particles do not interact with other types
   // type bptype only interacts with itself
+
   char* arg1[4];
   arg1[0] = (char *) "exclude";
   arg1[1] = (char *) "type";
@@ -635,11 +639,11 @@ void FixSRP::restart(char *buf)
 int FixSRP::modify_param(int /*narg*/, char **arg)
 {
   if (strcmp(arg[0],"btype") == 0) {
-    btype = atoi(arg[1]);
+    btype = force->inumeric(FLERR,arg[1]);
     return 2;
   }
   if (strcmp(arg[0],"bptype") == 0) {
-    bptype = atoi(arg[1]);
+    bptype = force->inumeric(FLERR,arg[1]);
     return 2;
   }
   return 0;

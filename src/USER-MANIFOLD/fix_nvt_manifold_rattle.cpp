@@ -21,7 +21,7 @@
    This file is part of the user-manifold package written by
    Stefan Paquay at the Eindhoven University of Technology.
    This module makes it possible to do MD with particles constrained
-   to pretty arbitrary manifolds characterised by some constraint function
+   to pretty arbitrary manifolds characterized by some constraint function
    g(x,y,z) = 0 and its normal grad(g). The number of manifolds available
    right now is limited but can be extended straightforwardly by making
    a new class that inherits from manifold and implements all pure virtual
@@ -32,25 +32,18 @@
 ------------------------------------------------------------------------- */
 
 
-#include <cstdio>
-#include <cstdlib>
+#include "fix_nvt_manifold_rattle.h"
 #include <cstring>
 #include <cmath>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
-#include "respa.h"
 #include "error.h"
 #include "group.h"
-#include "input.h"
-#include "variable.h"
 #include "citeme.h"
-#include "memory.h"
-#include "comm.h"
 #include "modify.h"
 #include "compute.h"
 
-#include "fix_nvt_manifold_rattle.h"
 #include "manifold.h"
 
 

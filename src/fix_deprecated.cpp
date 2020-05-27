@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_deprecated.h"
+#include <cstring>
 #include "comm.h"
 #include "error.h"
 

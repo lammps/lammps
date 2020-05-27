@@ -1,5 +1,4 @@
 variable        sname index Be-solid
-log             ${sname}.spe.log
 
 units           electron
 newton          on

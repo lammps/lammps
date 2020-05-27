@@ -11,16 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "fix_nve_body.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_body.h"
-#include "force.h"
-#include "update.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

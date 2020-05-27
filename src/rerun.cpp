@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "rerun.h"
+#include <cstring>
 #include "read_dump.h"
 #include "domain.h"
 #include "update.h"

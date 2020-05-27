@@ -15,8 +15,8 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "pair_deprecated.h"
+#include <cstring>
 #include "pair_hybrid.h"
 #include "comm.h"
 #include "force.h"

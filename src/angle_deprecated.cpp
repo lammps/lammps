@@ -15,12 +15,13 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "angle_deprecated.h"
+#include <cstring>
 #include "angle_hybrid.h"
 #include "comm.h"
 #include "force.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -43,7 +44,7 @@ void AngleDeprecated::settings(int, char **)
   // hybrid substyles are created in AngleHybrid::settings(), so when this is
   // called, our style was just added at the end of the list of substyles
 
-  if (strncmp(my_style,"hybrid",6) == 0) {
+  if (utils::strmatch(my_style,"^hybrid")) {
     AngleHybrid *hybrid = (AngleHybrid *)force->angle;
     my_style = hybrid->keywords[hybrid->nstyles];
   }

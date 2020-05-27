@@ -11,19 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdio>
 #include "special.h"
+#include <mpi.h>
 #include "atom.h"
 #include "atom_vec.h"
 #include "force.h"
 #include "comm.h"
 #include "modify.h"
 #include "fix.h"
-#include "accelerator_kokkos.h"
+#include "accelerator_kokkos.h"  // IWYU pragma: export
 #include "atom_masks.h"
 #include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -712,12 +710,12 @@ void Special::combine()
                         atom->nmax,atom->maxspecial,"atom:special");
     atomKK->modified(Device,SPECIAL_MASK);
     atomKK->sync(Host,SPECIAL_MASK);
+    atom->avec->grow_pointers();
   } else {
     memory->destroy(atom->special);
     memory->create(atom->special,atom->nmax,atom->maxspecial,"atom:special");
   }
 
-  atom->avec->grow_reset();
   tagint **special = atom->special;
 
   // ----------------------------------------------------

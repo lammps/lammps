@@ -31,7 +31,6 @@ class PairOxdna2Coaxstk : public Pair {
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
-  void init_style();
   void init_list(int, class NeighList *);
   double init_one(int, int);
   void write_restart(FILE *);

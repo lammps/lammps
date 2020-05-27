@@ -20,7 +20,6 @@ AngleStyle(charmm,AngleCharmm)
 #ifndef LMP_ANGLE_CHARMM_H
 #define LMP_ANGLE_CHARMM_H
 
-#include <cstdio>
 #include "angle.h"
 
 namespace LAMMPS_NS {

@@ -24,7 +24,6 @@ AngleStyle(charmm/intel,AngleCharmmIntel)
 #ifndef LMP_ANGLE_CHARMM_INTEL_H
 #define LMP_ANGLE_CHARMM_INTEL_H
 
-#include <cstdio>
 #include "angle_charmm.h"
 #include "fix_intel.h"
 

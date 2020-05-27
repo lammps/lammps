@@ -12,13 +12,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 
 #include "ptm_graph_data.h"
-#include "ptm_graph_tools.h"
 #include "ptm_deformation_gradient.h"
 #include "ptm_fundamental_mappings.h"
-#include "ptm_neighbour_ordering.h"
-#include "ptm_canonical_coloured.h"
-#include "ptm_convex_hull_incremental.h"
 #include "ptm_alt_templates.h"
+#include <cstddef>
 
 
 namespace ptm {

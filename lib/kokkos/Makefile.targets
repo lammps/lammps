@@ -6,6 +6,8 @@ Kokkos_CPUDiscovery.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_CPUDiscovery.cpp
 Kokkos_Error.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_Error.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_Error.cpp
+Kokkos_Stacktrace.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_Stacktrace.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_Stacktrace.cpp
 Kokkos_ExecPolicy.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_ExecPolicy.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_ExecPolicy.cpp
 Kokkos_HostSpace.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_HostSpace.cpp
@@ -30,6 +32,8 @@ Kokkos_SharedAlloc.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_SharedAlloc.cpp
 Kokkos_MemoryPool.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_MemoryPool.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_MemoryPool.cpp
+Kokkos_HostSpace_deepcopy.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_HostSpace_deepcopy.cpp 
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_HostSpace_deepcopy.cpp
 
 ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
 ifeq ($(KOKKOS_INTERNAL_ENABLE_ETI), 1)
@@ -38,8 +42,8 @@ endif
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
-Kokkos_Cuda_Impl.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_Impl.cpp
-	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_Impl.cpp
+Kokkos_Cuda_Instance.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_Instance.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_Instance.cpp
 Kokkos_CudaSpace.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Cuda/Kokkos_CudaSpace.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Cuda/Kokkos_CudaSpace.cpp
 Kokkos_Cuda_Task.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_Task.cpp
@@ -49,6 +53,17 @@ Kokkos_Cuda_Locks.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Cuda/Kokkos_C
 ifeq ($(KOKKOS_INTERNAL_ENABLE_ETI), 1)
   include $(KOKKOS_ETI_PATH)/Cuda/Makefile.eti_Cuda
 endif
+endif
+
+ifeq ($(KOKKOS_INTERNAL_USE_HIP), 1)
+Kokkos_HIP_Space.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/HIP/Kokkos_HIP_Space.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/HIP/Kokkos_HIP_Space.cpp
+Kokkos_HIP_Instance.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/HIP/Kokkos_HIP_Instance.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/HIP/Kokkos_HIP_Instance.cpp
+Kokkos_HIP_KernelLaunch.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/HIP/Kokkos_HIP_KernelLaunch.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/HIP/Kokkos_HIP_KernelLaunch.cpp
+Kokkos_HIP_Locks.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/HIP/Kokkos_HIP_Locks.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/HIP/Kokkos_HIP_Locks.cpp
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_ROCM), 1)
@@ -75,13 +90,6 @@ ifeq ($(KOKKOS_INTERNAL_ENABLE_ETI), 1)
 endif
 endif
 
-ifeq ($(KOKKOS_INTERNAL_USE_QTHREADS), 1)
-Kokkos_QthreadsExec.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Qthreads/Kokkos_QthreadsExec.cpp
-	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Qthreads/Kokkos_QthreadsExec.cpp
-Kokkos_Qthreads_Task.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Qthreads/Kokkos_Qthreads_Task.cpp
-	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Qthreads/Kokkos_Qthreads_Task.cpp
-endif
-
 ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
 Kokkos_OpenMP_Exec.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/OpenMP/Kokkos_OpenMP_Exec.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/OpenMP/Kokkos_OpenMP_Exec.cpp
@@ -92,13 +100,22 @@ ifeq ($(KOKKOS_INTERNAL_ENABLE_ETI), 1)
 endif
 endif
 
+ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
+Kokkos_HPX.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/HPX/Kokkos_HPX.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/HPX/Kokkos_HPX.cpp
+Kokkos_HPX_Task.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/HPX/Kokkos_HPX_Task.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/HPX/Kokkos_HPX_Task.cpp
+endif
+
 ifeq ($(KOKKOS_INTERNAL_USE_OPENMPTARGET), 1)
 Kokkos_OpenMPTarget_Exec.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/OpenMPTarget/Kokkos_OpenMPTarget_Exec.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/OpenMPTarget/Kokkos_OpenMPTarget_Exec.cpp
+Kokkos_OpenMPTarget_Instance.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/OpenMPTarget/Kokkos_OpenMPTarget_Instance.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/OpenMPTarget/Kokkos_OpenMPTarget_Instance.cpp
 Kokkos_OpenMPTargetSpace.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/OpenMPTarget/Kokkos_OpenMPTargetSpace.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/OpenMPTarget/Kokkos_OpenMPTargetSpace.cpp
-#Kokkos_OpenMPTarget_Task.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/OpenMPTarget/Kokkos_OpenMPTarget_Task.cpp
-#       $(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/OpenMPTarget/Kokkos_OpenMPTarget_Task.cpp
+Kokkos_OpenMPTarget_Task.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/OpenMPTarget/Kokkos_OpenMPTarget_Task.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/OpenMPTarget/Kokkos_OpenMPTarget_Task.cpp
 endif
 
 Kokkos_HBWSpace.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_HBWSpace.cpp

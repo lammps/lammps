@@ -11,14 +11,18 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "error.h"
 #include <mpi.h>
 #include <cstdlib>
 #include <cstring>
-#include "error.h"
 #include "universe.h"
-#include "update.h"
 #include "output.h"
 #include "input.h"
+#include "accelerator_kokkos.h"
+
+#if defined(LAMMPS_EXCEPTIONS)
+#include "update.h"
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -80,6 +84,7 @@ void Error::universe_all(const char *file, int line, const char *str)
   snprintf(msg, 100, "ERROR: %s (%s:%d)\n", str, truncpath(file), line);
   throw LAMMPSException(msg);
 #else
+  if (lmp->kokkos) Kokkos::finalize();
   MPI_Finalize();
   exit(1);
 #endif
@@ -170,6 +175,7 @@ void Error::all(const char *file, int line, const char *str)
   if (logfile) fclose(logfile);
 
   if (universe->nworlds > 1) MPI_Abort(universe->uworld,1);
+  if (lmp->kokkos) Kokkos::finalize();
   MPI_Finalize();
   exit(1);
 #endif
@@ -256,6 +262,7 @@ void Error::done(int status)
   if (screen && screen != stdout) fclose(screen);
   if (logfile) fclose(logfile);
 
+  if (lmp->kokkos) Kokkos::finalize();
   MPI_Finalize();
   exit(status);
 }

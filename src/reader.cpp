@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstring>
 #include "reader.h"
+#include <cstring>
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -74,4 +73,14 @@ void Reader::close_file()
   if (compressed) pclose(fp);
   else fclose(fp);
   fp = NULL;
+}
+
+/* ----------------------------------------------------------------------
+   detect unused arguments
+------------------------------------------------------------------------- */
+
+void Reader::settings(int narg, char** /*args*/)
+{
+  if (narg > 0)
+    error->all(FLERR,"Illegal read_dump command");
 }

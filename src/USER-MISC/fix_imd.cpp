@@ -58,8 +58,6 @@ negotiate an appropriate license for such distribution."
 #include "group.h"
 #include "memory.h"
 
-#include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
@@ -1239,7 +1237,7 @@ void *imdsock_accept(void * v) {
 #elif defined(SOCKLEN_T)
   SOCKLEN_T len;
 #define _SOCKLEN_TYPE SOCKLEN_T
-#elif defined(_POSIX_SOURCE) || (defined(__APPLE__) && defined(__MACH__)) || defined(__linux)
+#elif defined(_POSIX_SOURCE) || (defined(__APPLE__) && defined(__MACH__)) || defined(__linux__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__NetBSD__)
   socklen_t len;
 #define _SOCKLEN_TYPE socklen_t
 #else

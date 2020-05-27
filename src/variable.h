@@ -14,9 +14,7 @@
 #ifndef LMP_VARIABLE_H
 #define LMP_VARIABLE_H
 
-#include <cstdlib>
 #include "pointers.h"
-#include "input.h"
 
 namespace LAMMPS_NS {
 
@@ -209,6 +207,10 @@ E: Invalid variable style with next command
 
 Variable styles {equal} and {world} cannot be used in a next
 command.
+
+E: Incorrect conversion in format string
+
+A format style variable was not using either a %f, a %g, or a %e conversion.
 
 E: Next command must list all universe and uloop variables
 

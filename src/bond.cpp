@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "bond.h"
+#include <mpi.h>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -91,6 +91,7 @@ void Bond::ev_setup(int eflag, int vflag, int alloc)
 
   vflag_either = vflag;
   vflag_global = vflag % 4;
+  // per-atom virial and per-atom centroid virial are the same for bonds
   vflag_atom = vflag / 4;
 
   // reallocate per-atom arrays if necessary

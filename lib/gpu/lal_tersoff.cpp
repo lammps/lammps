@@ -23,7 +23,7 @@ const char *tersoff=0;
 
 #include "lal_tersoff.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define TersoffT Tersoff<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -329,4 +329,4 @@ void TersoffT::loop(const bool _eflag, const bool _vflag, const int evatom) {
 }
 
 template class Tersoff<PRECISION,ACC_PRECISION>;
-
+}

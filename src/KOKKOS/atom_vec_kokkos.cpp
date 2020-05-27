@@ -16,6 +16,7 @@
 #include "comm_kokkos.h"
 #include "domain.h"
 #include "atom_masks.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -265,6 +266,114 @@ int AtomVecKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &list, c
     }
   }
         return n*3;
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType,int TRICLINIC>
+struct AtomVecKokkos_PackCommSelfFused {
+  typedef DeviceType device_type;
+
+  typename ArrayTypes<DeviceType>::t_x_array_randomread _x;
+  typename ArrayTypes<DeviceType>::t_x_array _xw;
+  typename ArrayTypes<DeviceType>::t_int_2d_const _list;
+  typename ArrayTypes<DeviceType>::t_int_2d_const _pbc;
+  typename ArrayTypes<DeviceType>::t_int_1d_const _pbc_flag;
+  typename ArrayTypes<DeviceType>::t_int_1d_const _firstrecv;
+  typename ArrayTypes<DeviceType>::t_int_1d_const _sendnum_scan;
+  typename ArrayTypes<DeviceType>::t_int_1d_const _g2l;
+  X_FLOAT _xprd,_yprd,_zprd,_xy,_xz,_yz;
+
+  AtomVecKokkos_PackCommSelfFused(
+      const typename DAT::tdual_x_array &x,
+      const typename DAT::tdual_int_2d &list,
+      const typename DAT::tdual_int_2d &pbc,
+      const typename DAT::tdual_int_1d &pbc_flag,
+      const typename DAT::tdual_int_1d &firstrecv,
+      const typename DAT::tdual_int_1d &sendnum_scan,
+      const typename DAT::tdual_int_1d &g2l,
+      const X_FLOAT &xprd, const X_FLOAT &yprd, const X_FLOAT &zprd,
+      const X_FLOAT &xy, const X_FLOAT &xz, const X_FLOAT &yz):
+      _x(x.view<DeviceType>()),_xw(x.view<DeviceType>()),
+      _list(list.view<DeviceType>()),
+      _pbc(pbc.view<DeviceType>()),
+      _pbc_flag(pbc_flag.view<DeviceType>()),
+      _firstrecv(firstrecv.view<DeviceType>()),
+      _sendnum_scan(sendnum_scan.view<DeviceType>()),
+      _g2l(g2l.view<DeviceType>()),
+      _xprd(xprd),_yprd(yprd),_zprd(zprd),
+      _xy(xy),_xz(xz),_yz(yz) {};
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const int& ii) const {
+
+    int iswap = 0;
+    while (ii >= _sendnum_scan[iswap]) iswap++;
+    int i = ii;
+    if (iswap > 0)
+      i = ii - _sendnum_scan[iswap-1];
+
+    const int _nfirst = _firstrecv[iswap];
+    const int nlocal = _firstrecv[0];
+
+    int j = _list(iswap,i);
+    if (j >= nlocal)
+      j = _g2l(j-nlocal);
+
+    if (_pbc_flag(ii) == 0) {
+        _xw(i+_nfirst,0) = _x(j,0);
+        _xw(i+_nfirst,1) = _x(j,1);
+        _xw(i+_nfirst,2) = _x(j,2);
+    } else {
+      if (TRICLINIC == 0) {
+        _xw(i+_nfirst,0) = _x(j,0) + _pbc(ii,0)*_xprd;
+        _xw(i+_nfirst,1) = _x(j,1) + _pbc(ii,1)*_yprd;
+        _xw(i+_nfirst,2) = _x(j,2) + _pbc(ii,2)*_zprd;
+      } else {
+        _xw(i+_nfirst,0) = _x(j,0) + _pbc(ii,0)*_xprd + _pbc(ii,5)*_xy + _pbc(ii,4)*_xz;
+        _xw(i+_nfirst,1) = _x(j,1) + _pbc(ii,1)*_yprd + _pbc(ii,3)*_yz;
+        _xw(i+_nfirst,2) = _x(j,2) + _pbc(ii,2)*_zprd;
+      }
+    }
+  }
+};
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecKokkos::pack_comm_self_fused(const int &n, const DAT::tdual_int_2d &list, const DAT::tdual_int_1d &sendnum_scan,
+                                         const DAT::tdual_int_1d &firstrecv, const DAT::tdual_int_1d &pbc_flag, const DAT::tdual_int_2d &pbc,
+                                         const DAT::tdual_int_1d &g2l) {
+  if(commKK->forward_comm_on_host) {
+    sync(Host,X_MASK);
+    modified(Host,X_MASK);
+    if(domain->triclinic) {
+    struct AtomVecKokkos_PackCommSelfFused<LMPHostType,1> f(atomKK->k_x,list,pbc,pbc_flag,firstrecv,sendnum_scan,g2l,
+        domain->xprd,domain->yprd,domain->zprd,
+        domain->xy,domain->xz,domain->yz);
+    Kokkos::parallel_for(n,f);
+    } else {
+    struct AtomVecKokkos_PackCommSelfFused<LMPHostType,0> f(atomKK->k_x,list,pbc,pbc_flag,firstrecv,sendnum_scan,g2l,
+        domain->xprd,domain->yprd,domain->zprd,
+        domain->xy,domain->xz,domain->yz);
+    Kokkos::parallel_for(n,f);
+    }
+  } else {
+    sync(Device,X_MASK);
+    modified(Device,X_MASK);
+    if(domain->triclinic) {
+    struct AtomVecKokkos_PackCommSelfFused<LMPDeviceType,1> f(atomKK->k_x,list,pbc,pbc_flag,firstrecv,sendnum_scan,g2l,
+        domain->xprd,domain->yprd,domain->zprd,
+        domain->xy,domain->xz,domain->yz);
+    Kokkos::parallel_for(n,f);
+    } else {
+    struct AtomVecKokkos_PackCommSelfFused<LMPDeviceType,0> f(atomKK->k_x,list,pbc,pbc_flag,firstrecv,sendnum_scan,g2l,
+        domain->xprd,domain->yprd,domain->zprd,
+        domain->xy,domain->xz,domain->yz);
+    Kokkos::parallel_for(n,f);
+    }
+  }
+  return n*3;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -884,3 +993,49 @@ void AtomVecKokkos::unpack_reverse(int n, int *list, double *buf)
   if(n > 0)
     modified(Host,F_MASK);
 }
+
+/* ----------------------------------------------------------------------
+ *    unpack one line from Velocities section of data file
+ *    ------------------------------------------------------------------------- */
+
+void AtomVecKokkos::data_vel(int m, char **values)
+{
+  double **v = atom->v;
+  v[m][0] = utils::numeric(FLERR,values[0],true,lmp);
+  v[m][1] = utils::numeric(FLERR,values[1],true,lmp);
+  v[m][2] = utils::numeric(FLERR,values[2],true,lmp);
+
+  modified(Host,V_MASK);
+}
+
+/* ----------------------------------------------------------------------
+ *    pack velocity info for data file
+ *    ------------------------------------------------------------------------- */
+
+void AtomVecKokkos::pack_vel(double **buf)
+{
+  double **v = atom->v;
+  tagint *tag = atom->tag;
+  int nlocal = atom->nlocal;
+
+  sync(Host,V_MASK|TAG_MASK);
+
+  for (int i = 0; i < nlocal; i++) {
+    buf[i][0] = ubuf(tag[i]).d;
+    buf[i][1] = v[i][0];
+    buf[i][2] = v[i][1];
+    buf[i][3] = v[i][2];
+  }
+}
+
+/* ----------------------------------------------------------------------
+ *    write velocity info to data file
+ *    ------------------------------------------------------------------------- */
+
+void AtomVecKokkos::write_vel(FILE *fp, int n, double **buf)
+{
+  for (int i = 0; i < n; i++)
+    fprintf(fp,TAGINT_FORMAT " %-1.16e %-1.16e %-1.16e\n",
+            (tagint) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3]);
+}
+

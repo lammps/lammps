@@ -12,14 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_copy.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "atom.h"
-#include "atom_vec.h"
-#include "molecule.h"
-#include "domain.h"
-#include "my_page.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

@@ -1045,26 +1045,26 @@ namespace ATC {
     virtual int memory_usage() const {return 0;};
 
     /** packs up data for parallel transfer when atoms change processors */
-    virtual int pack_exchange(int i, double *buffer) {return 0;};
+    virtual int pack_exchange(int /* i */, double * /* buffer */) {return 0;};
 
     /** unpacks data after parallel transfer when atoms change processors */
-    virtual int unpack_exchange(int i, double *buffer) {return 0;};
+    virtual int unpack_exchange(int /* i */, double * /* buffer */) {return 0;};
 
     /** packs up data for parallel transfer to ghost atoms on other processors */
-    virtual int pack_comm(int index, double *buf, 
-                          int pbc_flag, int *pbc) {return 0;};
+    virtual int pack_comm(int /* index */, double * /* buf */, 
+                          int /* pbc_flag */, int * /* pbc */) {return 0;};
 
     /** unpacks data after parallel transfer to ghost atoms on other processors */
-    virtual int unpack_comm(int index, double *buf) {return 0;};
+    virtual int unpack_comm(int /* index */, double * /* buf */) {return 0;};
 
     /** returns size of per-atom communication */
     virtual int size_comm() const {return 0;};
 
     /** changes size of temperary lammps storage data if transfer is being used */
-    virtual void grow_lammps_array(int nmax, const std::string & tag) {};
+    virtual void grow_lammps_array(int /* nmax */, const std::string & /* tag */) {};
 
     /** rearrange memory of temporary lammps storage data, called from copy_array */
-    virtual void copy_lammps_array(int i, int j) {};
+    virtual void copy_lammps_array(int /* i */, int /* j */) {};
 
   protected:
 

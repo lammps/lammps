@@ -15,19 +15,18 @@
    Contributing author: Carsten Svaneborg, science@zqex.dk
 ------------------------------------------------------------------------- */
 
+#include "dihedral_cosine_shift_exp.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
-#include "dihedral_cosine_shift_exp.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
 #include "update.h"
 #include "memory.h"
 #include "math_const.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -323,11 +322,11 @@ void DihedralCosineShiftExp::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&umin[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&a[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&cost[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&sint[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&theta[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&umin[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&a[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&cost[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&sint[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&theta[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
   }
   MPI_Bcast(&umin[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&a[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);

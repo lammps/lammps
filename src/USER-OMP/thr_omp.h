@@ -18,10 +18,13 @@
 #ifndef LMP_THR_OMP_H
 #define LMP_THR_OMP_H
 
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
 #include "pointers.h"
 #include "error.h"
-#include "fix_omp.h"
-#include "thr_data.h"
+#include "fix_omp.h"  // IWYU pragma: export
+#include "thr_data.h" // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -31,8 +34,6 @@ class Bond;
 class Angle;
 class Dihedral;
 class Improper;
-class KSpace;
-class Fix;
 
 class ThrOMP {
 
@@ -63,7 +64,7 @@ class ThrOMP {
 
  protected:
   // extra ev_tally setup work for threaded styles
-  void ev_setup_thr(int, int, int, double *, double **, ThrData *);
+  void ev_setup_thr(int, int, int, double *, double **, double **, ThrData *);
 
   // compute global per thread virial contribution from per-thread force
   void virial_fdotr_compute_thr(double * const, const double * const * const,

@@ -152,7 +152,7 @@ E: Invalid dump frequency
 
 Dump frequency must be 1 or greater.
 
-E: Unknown dump style
+E: Unrecognized dump style
 
 The choice of dump style is unknown.
 

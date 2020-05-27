@@ -15,9 +15,10 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "compute_aggregate_atom.h"
+#include <mpi.h>
 #include <cstring>
 #include <cmath>
-#include "compute_aggregate_atom.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "update.h"

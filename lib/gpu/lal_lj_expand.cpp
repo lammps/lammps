@@ -23,7 +23,7 @@ const char *lj_expand=0;
 
 #include "lal_lj_expand.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define LJExpandT LJExpand<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -171,3 +171,4 @@ void LJExpandT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class LJExpand<PRECISION,ACC_PRECISION>;
+}

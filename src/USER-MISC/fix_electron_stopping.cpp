@@ -16,16 +16,14 @@
    Information: k.avchachov@gmail.com
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "fix_electron_stopping.h"
+#include <cmath>
+#include <cstring>
 #include "mpi.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
 #include "region.h"
-#include "group.h"
 #include "force.h"
 #include "fix.h"
 #include "memory.h"

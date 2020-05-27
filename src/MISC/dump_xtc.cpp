@@ -22,12 +22,11 @@
                            support for groups
 ------------------------------------------------------------------------- */
 
+#include "dump_xtc.h"
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <climits>
-#include "dump_xtc.h"
 #include "domain.h"
 #include "atom.h"
 #include "update.h"
@@ -440,7 +439,7 @@ int xdropen(XDR *xdrs, const char *filename, const char *type)
   }
   xdrmodes[xdrid] = *type;
 
-  /* next test isn't usefull in the case of C language
+  /* next test isn't useful in the case of C language
    * but is used for the Fortran interface
    * (C users are expected to pass the address of an already allocated
    * XDR staructure)
@@ -611,7 +610,7 @@ static int sizeofints( const int num_of_ints, unsigned int sizes[])
  | this routine is used internally by xdr3dfcoord, to send a set of
  | small integers to the buffer.
  | Multiplication with fixed (specified maximum ) sizes is used to get
- | to one big, multibyte integer. Allthough the routine could be
+ | to one big, multibyte integer. Although the routine could be
  | modified to handle sizes bigger than 16777216, or more than just
  | a few integers, this is not done, because the gain in compression
  | isn't worth the effort. Note that overflowing the multiplication
@@ -759,7 +758,7 @@ static void receiveints(int buf[], const int num_of_ints, int num_of_bits,
  | using multiplication by *precision and rounding to the nearest integer.
  | Then the minimum and maximum value are calculated to determine the range.
  | The limited range of integers so found, is used to compress the coordinates.
- | In addition the differences between succesive coordinates is calculated.
+ | In addition the differences between successive coordinates is calculated.
  | If the difference happens to be 'small' then only the difference is saved,
  | compressing the data even more. The notion of 'small' is changed dynamically
  | and is enlarged or reduced whenever needed or possible.

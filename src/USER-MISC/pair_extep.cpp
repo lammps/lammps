@@ -15,11 +15,12 @@
    Contributing author: Jan Los
 ------------------------------------------------------------------------- */
 
+#include "pair_extep.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_extep.h"
+#include <cctype>
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -705,7 +706,7 @@ void PairExTeP::read_file(char *file)
       error->all(FLERR,"Illegal ExTeP parameter");
 
     nparams++;
-    if (nparams >= pow(atom->ntypes,3)) break;
+    if (nparams >= pow(nelements,3)) break;
   }
 
   // deallocate words array
@@ -717,9 +718,9 @@ void PairExTeP::read_file(char *file)
   // reallocate with new size
   words = new char*[params_per_line+1];
 
-  // intialize F_corr_data to all zeros
-  for (int iel=0;iel<atom->ntypes;iel++)
-    for (int jel=0;jel<atom->ntypes;jel++)
+  // initialize F_corr_data to all zeros
+  for (int iel=0;iel<nelements;iel++)
+    for (int jel=0;jel<nelements;jel++)
       for (int in=0;in<4;in++)
         for (int jn=0;jn<4;jn++)
           for (int ivar=0;ivar<3;ivar++)
@@ -746,14 +747,24 @@ void PairExTeP::read_file(char *file)
     nwords = atom->count_words(line);
     if (nwords == 0) continue;
 
-    if (nwords != params_per_line)
-      error->all(FLERR,"Incorrect format in ExTeP potential file");
-
     // words = ptrs to all words in line
 
     nwords = 0;
     words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    while ((nwords < params_per_line)
+           && (words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+
+    // skip line if it is a leftover from the previous section,
+    // which can be identified by having 3 elements (instead of 2)
+    // as first words.
+
+    if (isupper(words[0][0]) && isupper(words[1][0]) && isupper(words[2][0]))
+      continue;
+
+    // need to have two elements followed by a number in each line
+    if (!(isupper(words[0][0]) && isupper(words[1][0])
+        && !isupper(words[2][0])))
+      error->all(FLERR,"Incorrect format in ExTeP potential file");
 
     // ielement,jelement = 1st args
     // if all 3 args are in element list, then parse this line
@@ -1074,8 +1085,8 @@ void PairExTeP::costheta_d(double *rij_hat, double rij,
 // initialize spline for F_corr (based on PairLCBOP::F_conj)
 
 void PairExTeP::spline_init() {
-  for ( int iel=0; iel<atom->ntypes; iel++) {
-    for ( int jel=0; jel<atom->ntypes; jel++) {
+  for ( int iel=0; iel<nelements; iel++) {
+    for ( int jel=0; jel<nelements; jel++) {
       for ( int N_ij=0; N_ij<4; N_ij++ ) {
         for ( int N_ji=0; N_ji<4; N_ji++ ) {
           TF_corr_param &f = F_corr_param[iel][jel][N_ij][N_ji];

@@ -15,8 +15,8 @@
    Contributing author: Andres Jaramillo-Botero
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "pair_eff_cut.h"
@@ -31,7 +31,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "atom_vec_electron.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -801,7 +801,7 @@ void PairEffCut::settings(int narg, char **arg)
 
   int atype;
   int iarg = 1;
-  int ecp_found = 0;
+  ecp_found = 0;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"limit/eradius") == 0) {
@@ -821,17 +821,15 @@ void PairEffCut::settings(int narg, char **arg)
         else if (strcmp(arg[iarg+1],"O") == 0) ecp_type[atype] = 8;
         else if (strcmp(arg[iarg+1],"Al") == 0) ecp_type[atype] = 13;
         else if (strcmp(arg[iarg+1],"Si") == 0) ecp_type[atype] = 14;
-        else error->all(FLERR, "Note: there are no default parameters for this atom ECP\n");
+        else error->all(FLERR, "No default parameters for this atom ECP\n");
         iarg += 2;
         ecp_found = 1;
       }
-    }
+    } else error->all(FLERR,"Illegal pair style command");
   }
 
-  if (!ecp_found && atom->ecp_flag)
-    error->all(FLERR,"Need to specify ECP type on pair_style command");
-
   // Need to introduce 2 new constants w/out changing update.cpp
+
   if (force->qqr2e==332.06371) {        // i.e. Real units chosen
     h2e = 627.509;                      // hartree->kcal/mol
     hhmss2e = 175.72044219620075;       // hartree->kcal/mol * (Bohr->Angstrom)^2
@@ -872,8 +870,23 @@ void PairEffCut::init_style()
 
   if (update->whichflag == 1) {
     if (force->qqr2e == 332.06371 && update->dt == 1.0)
-      error->all(FLERR,"You must lower the default real units timestep for pEFF ");
+      error->all(FLERR,"Must lower the default real units timestep for pEFF ");
   }
+
+  // check if any atom's spin = 3 and ECP type was not set
+
+  int *spin = atom->spin;
+  int nlocal = atom->nlocal;
+
+  int flag = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (spin[i] == 3) flag = 1;
+
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+
+  if (flagall && !ecp_found)
+    error->all(FLERR,"Need to specify ECP type on pair_style command");
 
   // need a half neigh list and optionally a granular history neigh list
 
@@ -966,10 +979,10 @@ void PairEffCut::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-        if (me == 0) fread(&cut[i][j],sizeof(double),1,fp);
+        if (me == 0) utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
@@ -993,9 +1006,9 @@ void PairEffCut::write_restart_settings(FILE *fp)
 void PairEffCut::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);

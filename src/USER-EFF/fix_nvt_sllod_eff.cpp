@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <cmath>
+#include <cstring>
 #include <cstdlib>
 #include "fix_nvt_sllod_eff.h"
 #include "math_extra.h"

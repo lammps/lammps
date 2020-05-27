@@ -18,12 +18,10 @@
      triclinic added by Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pppm.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdio>
-#include <cstdlib>
 #include <cmath>
-#include "pppm.h"
 #include "atom.h"
 #include "comm.h"
 #include "gridcomm.h"
@@ -227,6 +225,10 @@ void PPPM::init()
     error->all(FLERR,str);
   }
 
+  // compute two charge force
+
+  two_charge();
+
   // extract short-range Coulombic cutoff from pair style
 
   triclinic = domain->triclinic;
@@ -350,12 +352,6 @@ void PPPM::init()
 
   if (me == 0) {
 
-#ifdef FFT_SINGLE
-    const char fft_prec[] = "single";
-#else
-    const char fft_prec[] = "double";
-#endif
-
     if (screen) {
       fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
       fprintf(screen,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
@@ -364,7 +360,7 @@ void PPPM::init()
               estimated_accuracy);
       fprintf(screen,"  estimated relative force accuracy = %g\n",
               estimated_accuracy/two_charge_force);
-      fprintf(screen,"  using %s precision FFTs\n",fft_prec);
+      fprintf(screen,"  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n");
       fprintf(screen,"  3d grid and FFT values/proc = %d %d\n",
               ngrid_max,nfft_both_max);
     }
@@ -376,7 +372,7 @@ void PPPM::init()
               estimated_accuracy);
       fprintf(logfile,"  estimated relative force accuracy = %g\n",
               estimated_accuracy/two_charge_force);
-      fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
+      fprintf(logfile,"  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n");
       fprintf(logfile,"  3d grid and FFT values/proc = %d %d\n",
               ngrid_max,nfft_both_max);
     }
@@ -822,7 +818,7 @@ void PPPM::allocate()
                           "pppm:drho_coeff");
 
   // create 2 FFTs and a Remap
-  // 1st FFT keeps data in FFT decompostion
+  // 1st FFT keeps data in FFT decomposition
   // 2nd FFT returns data in 3d brick decomposition
   // remap takes data from 3d brick to FFT decomposition
 
@@ -1430,12 +1426,13 @@ void PPPM::set_grid_local()
   double zprd = prd[2];
   double zprd_slab = zprd*slab_volfactor;
 
-  double dist[3];
+  double dist[3] = {0.0,0.0,0.0};
   double cuthalf = 0.5*neighbor->skin + qdist;
   if (triclinic == 0) dist[0] = dist[1] = dist[2] = cuthalf;
   else kspacebbox(cuthalf,&dist[0]);
 
   int nlo,nhi;
+  nlo = nhi = 0;
 
   nlo = static_cast<int> ((sublo[0]-dist[0]-boxlo[0]) *
                             nx_pppm/xprd + shift) - OFFSET;
@@ -2568,7 +2565,7 @@ void PPPM::fieldforce_ad()
     eky *= hy_inv;
     ekz *= hz_inv;
 
-    // convert E-field to force and substract self forces
+    // convert E-field to force and subtract self forces
 
     const double qfactor = qqrd2e * scale;
 

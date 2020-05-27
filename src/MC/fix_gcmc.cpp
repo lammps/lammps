@@ -15,13 +15,12 @@
    Contributing author: Paul Crozier, Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_gcmc.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
-#include "atom_vec_hybrid.h"
 #include "molecule.h"
 #include "update.h"
 #include "modify.h"
@@ -43,10 +42,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "thermo.h"
-#include "output.h"
 #include "neighbor.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -272,6 +268,8 @@ void FixGCMC::options(int narg, char **arg)
   tfac_insert = 1.0;
   overlap_cutoffsq = 0.0;
   overlap_flag = 0;
+  min_ngas = -1;
+  max_ngas = INT_MAX;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -371,7 +369,7 @@ void FixGCMC::options(int narg, char **arg)
                            ngrouptypesmax*sizeof(char *),
                            "fix_gcmc:grouptypestrings");
       }
-      grouptypes[ngrouptypes] = atoi(arg[iarg+1]);
+      grouptypes[ngrouptypes] = force->inumeric(FLERR,arg[iarg+1]);
       int n = strlen(arg[iarg+2]) + 1;
       grouptypestrings[ngrouptypes] = new char[n];
       strcpy(grouptypestrings[ngrouptypes],arg[iarg+2]);
@@ -390,6 +388,14 @@ void FixGCMC::options(int narg, char **arg)
       double rtmp = force->numeric(FLERR,arg[iarg+1]);
       overlap_cutoffsq = rtmp*rtmp;
       overlap_flag = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"min") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
+      min_ngas = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"max") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
+      max_ngas = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix gcmc command");
   }
@@ -897,7 +903,7 @@ void FixGCMC::attempt_atomic_deletion()
 {
   ndeletion_attempts += 1.0;
 
-  if (ngas == 0) return;
+  if (ngas == 0 || ngas <= min_ngas) return;
 
   int i = pick_random_gas_atom();
 
@@ -937,6 +943,8 @@ void FixGCMC::attempt_atomic_insertion()
   double lamda[3];
 
   ninsertion_attempts += 1.0;
+
+  if (ngas >= max_ngas) return;
 
   // pick coordinates for insertion point
 
@@ -1252,7 +1260,7 @@ void FixGCMC::attempt_molecule_deletion()
 {
   ndeletion_attempts += 1.0;
 
-  if (ngas == 0) return;
+  if (ngas == 0 || ngas <= min_ngas) return;
 
   // work-around to avoid n=0 problem with fix rigid/nvt/small
 
@@ -1290,6 +1298,8 @@ void FixGCMC::attempt_molecule_insertion()
 {
   double lamda[3];
   ninsertion_attempts += 1.0;
+
+  if (ngas >= max_ngas) return;
 
   double com_coord[3];
   if (regionflag) {
@@ -1574,7 +1584,7 @@ void FixGCMC::attempt_atomic_deletion_full()
 
   ndeletion_attempts += 1.0;
 
-  if (ngas == 0) return;
+  if (ngas == 0 || ngas <= min_ngas) return;
 
   double energy_before = energy_stored;
 
@@ -1622,6 +1632,8 @@ void FixGCMC::attempt_atomic_insertion_full()
 {
   double lamda[3];
   ninsertion_attempts += 1.0;
+
+  if (ngas >= max_ngas) return;
 
   double energy_before = energy_stored;
 
@@ -1918,7 +1930,7 @@ void FixGCMC::attempt_molecule_deletion_full()
 {
   ndeletion_attempts += 1.0;
 
-  if (ngas == 0) return;
+  if (ngas == 0 || ngas <= min_ngas) return;
 
   // work-around to avoid n=0 problem with fix rigid/nvt/small
 
@@ -2000,6 +2012,8 @@ void FixGCMC::attempt_molecule_insertion_full()
 {
   double lamda[3];
   ninsertion_attempts += 1.0;
+
+  if (ngas >= max_ngas) return;
 
   double energy_before = energy_stored;
 
@@ -2531,10 +2545,19 @@ double FixGCMC::memory_usage()
 void FixGCMC::write_restart(FILE *fp)
 {
   int n = 0;
-  double list[4];
+  double list[12];
   list[n++] = random_equal->state();
   list[n++] = random_unequal->state();
-  list[n++] = next_reneighbor;
+  list[n++] = ubuf(next_reneighbor).d;
+  list[n++] = ntranslation_attempts;
+  list[n++] = ntranslation_successes;
+  list[n++] = nrotation_attempts;
+  list[n++] = nrotation_successes;
+  list[n++] = ndeletion_attempts;
+  list[n++] = ndeletion_successes;
+  list[n++] = ninsertion_attempts;
+  list[n++] = ninsertion_successes;
+  list[n++] = ubuf(update->ntimestep).d;
 
   if (comm->me == 0) {
     int size = n * sizeof(double);
@@ -2558,7 +2581,20 @@ void FixGCMC::restart(char *buf)
   seed = static_cast<int> (list[n++]);
   random_unequal->reset(seed);
 
-  next_reneighbor = static_cast<int> (list[n++]);
+  next_reneighbor = (bigint) ubuf(list[n++]).i;
+
+  ntranslation_attempts  = list[n++];
+  ntranslation_successes = list[n++];
+  nrotation_attempts     = list[n++];
+  nrotation_successes    = list[n++];
+  ndeletion_attempts     = list[n++];
+  ndeletion_successes    = list[n++];
+  ninsertion_attempts    = list[n++];
+  ninsertion_successes   = list[n++];
+
+  bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
+  if (ntimestep_restart != update->ntimestep)
+    error->all(FLERR,"Must not reset timestep when restarting fix gcmc");
 }
 
 void FixGCMC::grow_molecule_arrays(int nmolatoms) {

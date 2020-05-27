@@ -27,7 +27,7 @@ namespace ATC {
   //  modify
   //    parses inputs and modifies state of the integrator
   //--------------------------------------------------------
-  bool MomentumTimeIntegrator::modify(int narg, char **arg)
+  bool MomentumTimeIntegrator::modify(int /* narg */, char **arg)
   {
     bool foundMatch = false;
     int argIndex = 0;
@@ -91,7 +91,7 @@ namespace ATC {
             atc_->set_mass_mat_time_filter(MOMENTUM,TimeFilterManager::EXPLICIT_IMPLICIT);
             break;
           default:
-            throw ATC_Error("Uknown time integration type in ThermalTimeIntegrator::Initialize()");
+            throw ATC_Error("Unknown time integration type in ThermalTimeIntegrator::Initialize()");
         }
       }
 
@@ -102,7 +102,7 @@ namespace ATC {
             break;
           }
         default:
-          throw ATC_Error("Uknown time integration type in MomentumTimeIntegrator::Initialize()");
+          throw ATC_Error("Unknown time integration type in MomentumTimeIntegrator::Initialize()");
         }
       }
       else {
@@ -120,7 +120,7 @@ namespace ATC {
             break;
           }
         default:
-          throw ATC_Error("Uknown time integration type in MomentumTimeIntegrator::Initialize()");
+          throw ATC_Error("Unknown time integration type in MomentumTimeIntegrator::Initialize()");
         }
       }   
     }
@@ -611,7 +611,7 @@ namespace ATC {
   //  compute_velocity_delta
   //--------------------------------------------------------
   void ElasticTimeIntegratorFractionalStep::compute_velocity_delta(const DENS_MAT & atomicMomentumDelta,
-                                                                   double dt)
+                                                                   double /* dt */)
   {
     DENS_MAT & myAtomicVelocityDelta(atomicVelocityDelta_.set_quantity());
     myAtomicVelocityDelta = nodalAtomicMomentumOld_ + atomicMomentumDelta;
@@ -832,7 +832,7 @@ namespace ATC {
   //  compute_velocity_delta
   //--------------------------------------------------------
   void FluidsTimeIntegratorGear::compute_velocity_delta(const DENS_MAT & atomicMomentumDelta,
-                                                        double dt)
+                                                        double /* dt */)
   {
     DENS_MAT & myAtomicVelocityDelta(atomicVelocityDelta_.set_quantity());
     myAtomicVelocityDelta = nodalAtomicMomentumOld_ + atomicMomentumDelta;

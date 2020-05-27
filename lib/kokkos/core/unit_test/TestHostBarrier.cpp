@@ -2,15 +2,6 @@
 
 namespace Test {
 
-class host_barrier : public ::testing::Test {
-protected:
-  static void SetUpTestCase() {}
-  static void TearDownTestCase() {}
-};
+TEST(host_barrier, openmp) {}
 
-TEST_F( host_barrier, openmp )
-{
-
-}
-
-} // namespace Test
+}  // namespace Test

@@ -49,6 +49,12 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
 	TEST_TARGETS += test-openmp
 endif
 
+ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
+	OBJ_HPX = TestHPX.o TestMain.o gtest-all.o
+	TARGETS += KokkosContainers_PerformanceTest_HPX
+	TEST_TARGETS += test-hpx
+endif
+
 KokkosContainers_PerformanceTest_Cuda: $(OBJ_CUDA) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(EXTRA_PATH) $(OBJ_CUDA) $(KOKKOS_LIBS) $(LIB) -o KokkosContainers_PerformanceTest_Cuda
 
@@ -61,6 +67,9 @@ KokkosContainers_PerformanceTest_Threads: $(OBJ_THREADS) $(KOKKOS_LINK_DEPENDS)
 KokkosContainers_PerformanceTest_OpenMP: $(OBJ_OPENMP) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(EXTRA_PATH) $(OBJ_OPENMP) $(KOKKOS_LIBS) $(LIB) -o KokkosContainers_PerformanceTest_OpenMP
 
+KokkosContainers_PerformanceTest_HPX: $(OBJ_HPX) $(KOKKOS_LINK_DEPENDS)
+	$(LINK) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(EXTRA_PATH) $(OBJ_HPX) $(KOKKOS_LIBS) $(LIB) -o KokkosContainers_PerformanceTest_HPX
+
 test-cuda: KokkosContainers_PerformanceTest_Cuda
 	./KokkosContainers_PerformanceTest_Cuda
 
@@ -72,6 +81,9 @@ test-threads: KokkosContainers_PerformanceTest_Threads
 
 test-openmp: KokkosContainers_PerformanceTest_OpenMP
 	./KokkosContainers_PerformanceTest_OpenMP
+
+test-hpx: KokkosContainers_PerformanceTest_HPX
+	./KokkosContainers_PerformanceTest_HPX
 
 build_all: $(TARGETS)
 

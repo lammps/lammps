@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_deposit.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
@@ -184,8 +184,11 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
   if (idnext) find_maxid();
 
   // random number generator, same for all procs
+  // warm up the generator 30x to avoid correlations in first-particle
+  // positions if runs are repeated with consecutive seeds
 
   random = new RanPark(lmp,seed);
+  for (int ii=0; ii < 30; ii++) random->uniform();
 
   // set up reneighboring
 
@@ -418,9 +421,15 @@ void FixDeposit::pre_exchange()
       while (rng > molfrac[imol]) imol++;
       natom = onemols[imol]->natoms;
       if (dimension == 3) {
-        r[0] = random->uniform() - 0.5;
-        r[1] = random->uniform() - 0.5;
-        r[2] = random->uniform() - 0.5;
+        if (orientflag) {
+          r[0] = rx;
+          r[1] = ry;
+          r[2] = rz;
+        } else {
+          r[0] = random->uniform() - 0.5;
+          r[1] = random->uniform() - 0.5;
+          r[2] = random->uniform() - 0.5;
+        }
       } else {
         r[0] = r[1] = 0.0;
         r[2] = 1.0;
@@ -530,7 +539,13 @@ void FixDeposit::pre_exchange()
         n = atom->nlocal - 1;
         atom->tag[n] = maxtag_all + m+1;
         if (mode == MOLECULE) {
-          if (atom->molecule_flag) atom->molecule[n] = maxmol_all+1;
+          if (atom->molecule_flag) {
+            if (onemols[imol]->moleculeflag) {
+              atom->molecule[n] = maxmol_all + onemols[imol]->molecule[m];
+            } else {
+              atom->molecule[n] = maxmol_all+1;
+            }
+          }
           if (atom->molecular == 2) {
             atom->molindex[n] = 0;
             atom->molatom[n] = m;
@@ -560,7 +575,7 @@ void FixDeposit::pre_exchange()
 
     // old code: unsuccessful if no proc performed insertion of an atom
     // don't think that check is necessary
-    // if get this far, should always be succesful
+    // if get this far, should always be successful
     // would be hard to undo partial insertion for a molecule
     // better to check how many atoms could be inserted (w/out inserting)
     //   then sum to insure all are inserted, before doing actual insertion
@@ -594,7 +609,13 @@ void FixDeposit::pre_exchange()
     maxtag_all += natom;
     if (maxtag_all >= MAXTAGINT)
       error->all(FLERR,"New atom IDs exceed maximum allowed ID");
-    if (mode == MOLECULE && atom->molecule_flag) maxmol_all++;
+    if (mode == MOLECULE && atom->molecule_flag) {
+      if (onemols[imol]->moleculeflag) {
+        maxmol_all += onemols[imol]->nmolecules;
+      } else {
+        maxmol_all++;
+      }
+    }
     if (atom->map_style) {
       atom->map_init();
       atom->map_set();
@@ -659,6 +680,10 @@ void FixDeposit::options(int narg, char **arg)
   xmid = ymid = zmid = 0.0;
   scaleflag = 1;
   targetflag = 0;
+  orientflag = 0;
+  rx = 0.0;
+  ry = 0.0;
+  rz = 0.0;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -766,6 +791,17 @@ void FixDeposit::options(int narg, char **arg)
       vzlo = force->numeric(FLERR,arg[iarg+1]);
       vzhi = force->numeric(FLERR,arg[iarg+2]);
       iarg += 3;
+    } else if (strcmp(arg[iarg],"orient") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix deposit command");
+      orientflag = 1;
+      rx = force->numeric(FLERR,arg[iarg+1]);
+      ry = force->numeric(FLERR,arg[iarg+2]);
+      rz = force->numeric(FLERR,arg[iarg+3]);
+      if (domain->dimension == 2 && (rx != 0.0 || ry != 0.0))
+        error->all(FLERR,"Illegal fix deposit orient settings");
+      if (rx == 0.0 && ry == 0.0 && rz == 0.0)
+        error->all(FLERR,"Illegal fix deposit orient settings");
+      iarg += 4;
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
@@ -798,11 +834,12 @@ void FixDeposit::options(int narg, char **arg)
 void FixDeposit::write_restart(FILE *fp)
 {
   int n = 0;
-  double list[4];
+  double list[5];
   list[n++] = random->state();
   list[n++] = ninserted;
   list[n++] = nfirst;
-  list[n++] = next_reneighbor;
+  list[n++] = ubuf(next_reneighbor).d;
+  list[n++] = ubuf(update->ntimestep).d;
 
   if (comm->me == 0) {
     int size = n * sizeof(double);
@@ -823,7 +860,11 @@ void FixDeposit::restart(char *buf)
   seed = static_cast<int> (list[n++]);
   ninserted = static_cast<int> (list[n++]);
   nfirst = static_cast<int> (list[n++]);
-  next_reneighbor = static_cast<int> (list[n++]);
+  next_reneighbor = (bigint) ubuf(list[n++]).i;
+
+  bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
+  if (ntimestep_restart != update->ntimestep)
+    error->all(FLERR,"Must not reset timestep when restarting this fix");
 
   random->reset(seed);
 }

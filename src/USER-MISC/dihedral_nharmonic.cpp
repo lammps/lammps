@@ -16,17 +16,17 @@
    [ based on dihedral_multi_harmonic.cpp Mathias Puetz (SNL) and friends ]
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "dihedral_nharmonic.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "update.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -261,8 +261,8 @@ void DihedralNHarmonic::allocate()
   allocated = 1;
   int n = atom->ndihedraltypes;
 
-  memory->create(nterms,n+1,"dihedral:nt");
-  a = new double * [n+1];
+  nterms = new int[n+1];
+  a = new double *[n+1];
 
   memory->create(setflag,n+1,"dihedral:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
@@ -319,7 +319,7 @@ void DihedralNHarmonic::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0)
-    fread(&nterms[1],sizeof(int),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&nterms[1],sizeof(int),atom->ndihedraltypes,fp,NULL,error);
 
   MPI_Bcast(&nterms[1],atom->ndihedraltypes,MPI_INT,0,world);
 
@@ -329,7 +329,7 @@ void DihedralNHarmonic::read_restart(FILE *fp)
 
   if (comm->me == 0) {
     for(int i = 1; i <= atom->ndihedraltypes; i++)
-      fread(a[i],sizeof(double),nterms[i],fp);
+      utils::sfread(FLERR,a[i],sizeof(double),nterms[i],fp,NULL,error);
   }
 
   for (int i = 1; i <= atom->ndihedraltypes; i++ )

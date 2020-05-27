@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lattice.h"
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
-#include "lattice.h"
 #include "update.h"
 #include "domain.h"
 #include "comm.h"

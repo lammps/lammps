@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
 #include "compute_bond.h"
+#include <mpi.h>
+#include "bond.h"
 #include "update.h"
 #include "force.h"
 #include "bond_hybrid.h"

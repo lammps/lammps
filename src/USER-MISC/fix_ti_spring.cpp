@@ -18,9 +18,9 @@
              Maurice de Koning (Unicamp/Brazil) - dekoning@ifi.unicamp.br
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "fix_ti_spring.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "domain.h"

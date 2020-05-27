@@ -40,7 +40,7 @@ export LMP_THREAD_LIST="2"     # -- For 2 threads per core w/ HT enabled
 # End settings for your system
 #########################################################################
 
-export WORKLOADS="lj rhodo rhodo_lrt lc sw water eam"
+export WORKLOADS="lj rhodo lc sw water eam airebo dpd tersoff"
 export LMP_ARGS="-pk intel 0 -sf intel -screen none -v d 1"
 export RLMP_ARGS="-pk intel 0 lrt yes -sf intel -screen none -v d 1"
 
@@ -51,7 +51,7 @@ export LOG_DIR=$LOG_DIR_HOST"_"$LOG_DIR_HEADER"_"$DATE_STRING
 mkdir $LOG_DIR
 
 export I_MPI_PIN_DOMAIN=core
-export I_MPI_FABRICS=shm
+#export I_MPI_FABRICS=shm
 export KMP_BLOCKTIME=0
 
 echo -n "Creating restart file...."
@@ -59,13 +59,12 @@ $MPI -np $LMP_CORES $LMP_BIN -in in.lc_generate_restart -log none $LMP_ARGS
 echo "Done."
 for threads in $LMP_THREAD_LIST
 do
-  export OMP_NUM_THREADS=$threads
   for workload in $WORKLOADS
   do
     export LOGFILE=$LOG_DIR/$workload.$LMP_CORES"c"$threads"t".log
     echo "Running $LOGFILE"
     cmd="$MPI -np $LMP_CORES $LMP_BIN -in in.intel.$workload -log $LOGFILE $LMP_ARGS";
-    rthreads=$threads
+    export OMP_NUM_THREADS=$threads
     unset KMP_AFFINITY
     $cmd
 

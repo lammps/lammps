@@ -16,15 +16,13 @@
                          Dan Bolintineanu (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_wall_gran.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
 #include "force.h"
-#include "pair.h"
 #include "modify.h"
 #include "respa.h"
 #include "math_const.h"
@@ -1136,40 +1134,36 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
     t2 = 8*dR*dR2*E*E*E;
     t3 = 4*dR2*E;
     sqrt1 = MAX(0, t0*(t1+2*t2)); // in case sqrt(0) < 0 due to precision issues
-    t4 = cbrt(t1+t2+THREEROOT3*M_PI*sqrt(sqrt1));
+    t4 = cbrt(t1+t2+THREEROOT3*MY_PI*sqrt(sqrt1));
     t5 = t3/t4 + t4/E;
     sqrt2 = MAX(0, 2*dR + t5);
     t6 = sqrt(sqrt2);
-    sqrt3 = MAX(0, 4*dR - t5 + SIXROOT6*coh*M_PI*R2/(E*t6));
+    sqrt3 = MAX(0, 4*dR - t5 + SIXROOT6*coh*MY_PI*R2/(E*t6));
     a = INVROOT6*(t6 + sqrt(sqrt3));
     a2 = a*a;
     knfac = normal_coeffs[0]*a;
-    Fne = knfac*a2/Reff - TWOPI*a2*sqrt(4*coh*E/(M_PI*a));
-  }
-  else{
+    Fne = knfac*a2/Reff - TWOPI*a2*sqrt(4*coh*E/(MY_PI*a));
+  } else {
     knfac = E; //Hooke
     a = sqrt(dR);
+    Fne = knfac*delta;
     if (normal_model != HOOKE) {
       Fne *= a;
       knfac *= a;
     }
-    Fne = knfac*delta;
     if (normal_model == DMT)
       Fne -= 4*MY_PI*normal_coeffs[3]*Reff;
   }
 
   if (damping_model == VELOCITY) {
     damp_normal = 1;
-  }
-  else if (damping_model == MASS_VELOCITY) {
+  } else if (damping_model == MASS_VELOCITY) {
     damp_normal = meff;
-  }
-  else if (damping_model == VISCOELASTIC) {
+  } else if (damping_model == VISCOELASTIC) {
     damp_normal = a*meff;
-  }
-  else if (damping_model == TSUJI) {
+  } else if (damping_model == TSUJI) {
     damp_normal = sqrt(meff*knfac);
-  }
+  } else damp_normal = 0.0;
 
   damp_normal_prefactor = normal_coeffs[1]*damp_normal;
   Fdamp = -damp_normal_prefactor*vnnr;
@@ -1198,11 +1192,11 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   vrel = sqrt(vrel);
 
   if (normal_model == JKR) {
-    F_pulloff = 3*M_PI*coh*Reff;
+    F_pulloff = 3*MY_PI*coh*Reff;
     Fncrit = fabs(Fne + 2*F_pulloff);
   }
   else if (normal_model == DMT) {
-    F_pulloff = 4*M_PI*coh*Reff;
+    F_pulloff = 4*MY_PI*coh*Reff;
     Fncrit = fabs(Fne + 2*F_pulloff);
   }
   else{
@@ -1294,10 +1288,12 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   // rolling resistance
   //****************************************
 
-  if (roll_model != ROLL_NONE) {
+  if (roll_model != ROLL_NONE || twist_model != NONE) {
     relrot1 = omega[0];
     relrot2 = omega[1];
     relrot3 = omega[2];
+  }
+  if (roll_model != ROLL_NONE){
 
     // rolling velocity, see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
     // This is different from the Marshall papers,
@@ -1593,8 +1589,8 @@ double FixWallGran::pulloff_distance(double radius)
   double coh, E, a, dist;
   coh = normal_coeffs[3];
   E = normal_coeffs[0]*THREEQUARTERS;
-  a = cbrt(9*M_PI*coh*radius/(4*E));
-  dist = a*a/radius - 2*sqrt(M_PI*coh*a/E);
+  a = cbrt(9*MY_PI*coh*radius/(4*E));
+  dist = a*a/radius - 2*sqrt(MY_PI*coh*a/E);
   return dist;
 }
 

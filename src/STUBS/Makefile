@@ -28,7 +28,7 @@ ARCHFLAG =	rs
 
 # Targets
 
-lib:	$(OBJ)
+$(EXE):	$(OBJ)
 	$(ARCHIVE) $(ARCHFLAG) $(EXE) $(OBJ)
 
 clean:
@@ -41,4 +41,4 @@ clean:
 
 # Individual dependencies
 
-$(OBJ):	$(INC)
+$(OBJ):	$(INC) ../version.h

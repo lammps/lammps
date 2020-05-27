@@ -12,9 +12,9 @@
 #endif
 
 #cmakedefine KOKKOS_ENABLE_CUDA
+#cmakedefine KOKKOS_ENABLE_HIP
 #cmakedefine KOKKOS_ENABLE_OPENMP
-#cmakedefine KOKKOS_ENABLE_PTHREAD
-#cmakedefine KOKKOS_ENABLE_QTHREADS
+#cmakedefine KOKKOS_ENABLE_THREADS
 #cmakedefine KOKKOS_ENABLE_SERIAL
 #cmakedefine KOKKOS_ENABLE_Winthread
 
@@ -62,6 +62,10 @@
 #cmakedefine KOKKOS_ENABLE_ISA_X86_64
 #cmakedefine KOKKOS_ENABLE_ISA_KNC
 #cmakedefine KOKKOS_ENABLE_ISA_POWERPCLE
+#endif
+
+#ifdef KOKKOS_ENABLE_HIP
+#cmakedefine KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE
 #endif
 
 #cmakedefine KOKKOS_ARCH_ARMV80 1

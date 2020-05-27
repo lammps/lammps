@@ -28,6 +28,7 @@
 #define __SYSTEM_PROP_H_
 
 #include "reaxc_types.h"
+#include <mpi.h>
 
 void Compute_System_Energy( reax_system*, simulation_data*, MPI_Comm );
 

@@ -12,15 +12,16 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
+#include "omp_compat.h"
 #include "pair_dpd_omp.h"
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "update.h"
 #include "random_mars.h"
+#include "timer.h"
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
@@ -80,7 +81,7 @@ void PairDPDOMP::compute(int eflag, int vflag)
   }
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -88,7 +89,7 @@ void PairDPDOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
 
     // generate a random number generator instance for
     // all threads != 0. make sure we use unique seeds.

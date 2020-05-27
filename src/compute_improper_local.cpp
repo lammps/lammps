@@ -11,16 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_improper_local.h"
 #include <cmath>
 #include <cstring>
-#include "compute_improper_local.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
 #include "update.h"
 #include "domain.h"
 #include "force.h"
-#include "improper.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"

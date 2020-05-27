@@ -15,15 +15,15 @@
    Contributing author: Carsten Svaneborg (SDU)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "bond_zero.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -127,7 +127,7 @@ void BondZero::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&r0[1],sizeof(double),atom->nbondtypes,fp);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
   }
   MPI_Bcast(&r0[1],atom->nbondtypes,MPI_DOUBLE,0,world);
 
@@ -144,12 +144,19 @@ void BondZero::write_data(FILE *fp)
     fprintf(fp,"%d %g\n",i,r0[i]);
 }
 
-
-
 /* ---------------------------------------------------------------------- */
 
 double BondZero::single(int /*type*/, double /*rsq*/, int /*i*/, int /*j*/,
                         double & /*fforce*/)
 {
   return 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *BondZero::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str,"r0")==0) return (void*) r0;
+  return NULL;
 }

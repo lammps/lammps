@@ -14,7 +14,7 @@
 #ifndef LMP_KSPACE_H
 #define LMP_KSPACE_H
 
-#include "pointers.h"
+#include "pointers.h"  // IWYU pragma: export
 
 #ifdef FFT_SINGLE
 typedef float FFT_SCALAR;
@@ -44,6 +44,7 @@ class KSpace : protected Pointers {
   int dispersionflag;            // 1 if a LJ/dispersion solver
   int tip4pflag;                 // 1 if a TIP4P solver
   int dipoleflag;                // 1 if a dipole solver
+  int spinflag;                  // 1 if a spin solver
   int differentiation_flag;
   int neighrequest_flag;         // used to avoid obsolete construction
                                  // of neighbor lists
@@ -63,7 +64,7 @@ class KSpace : protected Pointers {
   double accuracy;                  // accuracy of KSpace solver (force units)
   double accuracy_absolute;         // user-specified accuracy in force units
   double accuracy_relative;         // user-specified dimensionless accuracy
-                                    // accurary = acc_rel * two_charge_force
+                                    // accuracy = acc_rel * two_charge_force
   double accuracy_real_6;           // real space accuracy for
                                     // dispersion solver (force units)
   double accuracy_kspace_6;         // reciprocal space accuracy for
@@ -94,6 +95,7 @@ class KSpace : protected Pointers {
 
   KSpace(class LAMMPS *);
   virtual ~KSpace();
+  void two_charge();
   void triclinic_check();
   void modify_params(int, char **);
   void *extract(const char *);
@@ -108,7 +110,7 @@ class KSpace : protected Pointers {
 
   // public so can be called by commands that change charge
 
-  void qsum_qsq();
+  void qsum_qsq(int warning_flag = 1);
 
   // general child-class methods
 
@@ -250,6 +252,18 @@ command-line option when running LAMMPS to see the offending line.
 E: Bad kspace_modify slab parameter
 
 Kspace_modify value for the slab/volume keyword must be >= 2.0.
+
+E: Kspace_modify mesh parameter must be all zero or all positive
+
+Valid kspace mesh parameters are >0. The code will try to auto-detect
+suitable values when all three mesh sizes are set to zero (the default).
+
+E: Kspace_modify mesh/disp parameter must be all zero or all positive
+
+Valid kspace mesh/disp parameters are >0. The code will try to auto-detect
+suitable values when all three mesh sizes are set to zero [and]
+the required accuracy via {force/disp/real} as well as
+{force/disp/kspace} is set.
 
 W: Kspace_modify slab param < 2.0 may cause unphysical behavior
 

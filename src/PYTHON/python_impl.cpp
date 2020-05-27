@@ -15,8 +15,10 @@
    Contributing author: Richard Berger and Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <Python.h>
-#include "lmppython.h"
+#include "python_impl.h"
+#include <cstdlib>
+#include <cstring>
+#include <Python.h>  // IWYU pragma: keep
 #include "force.h"
 #include "input.h"
 #include "variable.h"
@@ -532,4 +534,11 @@ void PythonImpl::deallocate(int i)
   delete [] pfuncs[i].svalue;
   delete [] pfuncs[i].ovarname;
   delete [] pfuncs[i].longstr;
+}
+
+/* ------------------------------------------------------------------ */
+
+bool PythonImpl::has_minimum_version(int major, int minor)
+{
+    return (PY_MAJOR_VERSION == major && PY_MINOR_VERSION >= minor) || (PY_MAJOR_VERSION > major);
 }

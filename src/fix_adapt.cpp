@@ -11,12 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
 #include "fix_adapt.h"
+#include <cstring>
 #include "atom.h"
 #include "bond.h"
+#include "domain.h"
 #include "update.h"
 #include "group.h"
 #include "modify.h"
@@ -31,6 +30,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -140,9 +140,11 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
     } else if (strcmp(arg[iarg],"atom") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix adapt command");
       adapt[nadapt].which = ATOM;
-      if (strcmp(arg[iarg+1],"diameter") == 0) {
+      if (strcmp(arg[iarg+1],"diameter") == 0 || strcmp(arg[iarg+1],"diameter/disc") == 0) {
         adapt[nadapt].aparam = DIAMETER;
         diamflag = 1;
+        discflag = 0;
+        if (strcmp(arg[iarg+1],"diameter/disc") == 0) discflag = 1;
       } else if (strcmp(arg[iarg+1],"charge") == 0) {
         adapt[nadapt].aparam = CHARGE;
         chgflag = 1;
@@ -236,7 +238,6 @@ int FixAdapt::setmask()
 
 void FixAdapt::post_constructor()
 {
-  if (!resetflag) return;
   if (!diamflag && !chgflag) return;
 
   // new id = fix-ID + FIX_STORE_ATTRIBUTE
@@ -252,7 +253,7 @@ void FixAdapt::post_constructor()
   newarg[4] = (char *) "1";
   newarg[5] = (char *) "1";
 
-  if (diamflag) {
+  if (diamflag && atom->radius_flag) {
     int n = strlen(id) + strlen("_FIX_STORE_DIAM") + 1;
     id_fix_diam = new char[n];
     strcpy(id_fix_diam,id);
@@ -275,7 +276,7 @@ void FixAdapt::post_constructor()
     }
   }
 
-  if (chgflag) {
+  if (chgflag && atom->q_flag) {
     int n = strlen(id) + strlen("_FIX_STORE_CHG") + 1;
     id_fix_chg = new char[n];
     strcpy(id_fix_chg,id);
@@ -375,8 +376,7 @@ void FixAdapt::init()
 
       // if pair hybrid, test that ilo,ihi,jlo,jhi are valid for sub-style
 
-      if (strcmp(force->pair_style,"hybrid") == 0 ||
-          strcmp(force->pair_style,"hybrid/overlay") == 0) {
+      if (utils::strmatch(force->pair_style,"^hybrid")) {
         PairHybrid *pair = (PairHybrid *) force->pair;
         for (i = ad->ilo; i <= ad->ihi; i++)
           for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
@@ -416,8 +416,7 @@ void FixAdapt::init()
 
       if (ad->bdim == 1) ad->vector = (double *) ptr;
 
-      if (strcmp(force->bond_style,"hybrid") == 0 ||
-          strcmp(force->bond_style,"hybrid_overlay") == 0)
+      if (utils::strmatch(force->bond_style,"^hybrid"))
         error->all(FLERR,"Fix adapt does not support bond_style hybrid");
 
       delete [] bstyle;
@@ -431,6 +430,10 @@ void FixAdapt::init()
       if (ad->aparam == DIAMETER) {
         if (!atom->radius_flag)
           error->all(FLERR,"Fix adapt requires atom attribute diameter");
+        if (!atom->rmass_flag)
+          error->all(FLERR,"Fix adapt requires atom attribute mass");
+        if (discflag && domain->dimension!=2)
+          error->all(FLERR,"Fix adapt requires 2d simulation");
       }
       if (ad->aparam == CHARGE) {
         if (!atom->q_flag)
@@ -571,38 +574,44 @@ void FixAdapt::change_settings()
       // also scale rmass to new value
 
       if (ad->aparam == DIAMETER) {
-        int mflag = 0;
-        if (atom->rmass_flag) mflag = 1;
         double density;
 
+        // Get initial diameter if `scale` keyword is used
+
+        double *vec = fix_diam->vstore;
         double *radius = atom->radius;
         double *rmass = atom->rmass;
         int *mask = atom->mask;
         int nlocal = atom->nlocal;
         int nall = nlocal + atom->nghost;
 
-        if (mflag == 0) {
-          for (i = 0; i < nall; i++)
-            if (mask[i] & groupbit)
-              radius[i] = 0.5*value;
-        } else {
-          for (i = 0; i < nall; i++)
-            if (mask[i] & groupbit) {
-              density = rmass[i] / (4.0*MY_PI/3.0 *
-                                    radius[i]*radius[i]*radius[i]);
-              radius[i] = 0.5*value;
-              rmass[i] = 4.0*MY_PI/3.0 *
-                radius[i]*radius[i]*radius[i] * density;
-            }
-        }
+        for (i = 0; i < nall; i++)
+          if (mask[i] & groupbit) {
+            if (discflag) density = rmass[i] / (MY_PI * radius[i]*radius[i]);
+            else density = rmass[i] / (4.0*MY_PI/3.0 *
+                                       radius[i]*radius[i]*radius[i]);
+            if (scaleflag) radius[i] = value * vec[i];
+            else radius[i] = 0.5*value;
+            if (discflag) rmass[i] = MY_PI * radius[i]*radius[i] * density;
+            else rmass[i] = 4.0*MY_PI/3.0 *
+                            radius[i]*radius[i]*radius[i] * density;
+          }
+
       } else if (ad->aparam == CHARGE) {
+
+        // Get initial charge if `scale` keyword is used
+
+        double *vec = fix_chg->vstore;
         double *q = atom->q;
         int *mask = atom->mask;
         int nlocal = atom->nlocal;
         int nall = nlocal + atom->nghost;
 
         for (i = 0; i < nall; i++)
-          if (mask[i] & groupbit) q[i] = value;
+          if (mask[i] & groupbit) {
+            if (scaleflag) q[i] = value * vec[i];
+            else q[i] = value;
+          }
       }
     }
   }
@@ -610,7 +619,7 @@ void FixAdapt::change_settings()
   modify->addstep_compute(update->ntimestep + nevery);
 
   // re-initialize pair styles if any PAIR settings were changed
-  // ditto for bond styles if any BOND setitings were changes
+  // ditto for bond styles if any BOND settings were changed
   // this resets other coeffs that may depend on changed values,
   //   and also offset and tail corrections
 
@@ -673,10 +682,13 @@ void FixAdapt::restore_settings()
 
         for (int i = 0; i < nlocal; i++)
           if (mask[i] & groupbit) {
-            density = rmass[i] / (4.0*MY_PI/3.0 *
-                                  radius[i]*radius[i]*radius[i]);
+            if(discflag) density = rmass[i] / (MY_PI * radius[i]*radius[i]);
+            else density = rmass[i] / (4.0*MY_PI/3.0 *
+                                       radius[i]*radius[i]*radius[i]);
             radius[i] = vec[i];
-            rmass[i] = 4.0*MY_PI/3.0 * radius[i]*radius[i]*radius[i] * density;
+            if(discflag) rmass[i] = MY_PI * radius[i]*radius[i] * density;
+            else rmass[i] = 4.0*MY_PI/3.0 *
+                            radius[i]*radius[i]*radius[i] * density;
           }
       }
       if (chgflag) {

@@ -24,8 +24,15 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc.h"
 #include "reaxc_tool_box.h"
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include "reaxc_defs.h"
+
+#if !defined(_MSC_VER)
+#include <sys/time.h>
+#endif
 
 #include "error.h"
 
@@ -34,8 +41,16 @@ double t_end;
 
 double Get_Time( )
 {
+#if defined(_MSC_VER)
+  double t;
+
+  t = GetTickCount();
+  t /= 1000.0;
+  return t;
+#else
   gettimeofday(&tim, NULL );
   return( tim.tv_sec + (tim.tv_usec / 1000000.0) );
+#endif
 }
 
 int Tokenize( char* s, char*** tok )

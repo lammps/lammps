@@ -19,10 +19,10 @@
             JR Shewchuk, http://www-2.cs.cmu.edu/~jrs/jrspapers.html#cg
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "min.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
@@ -42,10 +42,12 @@
 #include "output.h"
 #include "thermo.h"
 #include "timer.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -54,9 +56,22 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   dmax = 0.1;
   searchflag = 0;
   linestyle = 1;
+  normstyle = TWO;
+
+  delaystep = 20;
+  dtgrow = 1.1;
+  dtshrink = 0.5;
+  alpha0 = 0.25;
+  alphashrink = 0.99;
+  tmax = 10.0;
+  tmin = 0.02;
+  integrator = 0;
+  halfstepback_flag = 1;
+  delaystep_start_flag = 1;
+  max_vdotf_negatif = 2000;
 
   elist_global = elist_atom = NULL;
-  vlist_global = vlist_atom = NULL;
+  vlist_global = vlist_atom = cvlist_atom = NULL;
 
   nextra_global = 0;
   fextra = NULL;
@@ -68,6 +83,8 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   requestor = NULL;
 
   external_force_clear = 0;
+
+  kokkosable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -78,6 +95,7 @@ Min::~Min()
   delete [] elist_atom;
   delete [] vlist_global;
   delete [] vlist_atom;
+  delete [] cvlist_atom;
 
   delete [] fextra;
 
@@ -93,6 +111,10 @@ Min::~Min()
 
 void Min::init()
 {
+  if (lmp->kokkos && !kokkosable)
+    error->all(FLERR,"Must use a Kokkos-enabled min style (e.g. min_style cg/kk) "
+     "with Kokkos minimize");
+
   // create fix needed for storing atom-based quantities
   // will delete it at end of run
 
@@ -174,6 +196,10 @@ void Min::init()
   neighbor->dist_check = 1;
 
   niter = neval = 0;
+
+  // store timestep size (important for variable timestep minimizer)
+
+  dtinit = update->dt;
 }
 
 /* ----------------------------------------------------------------------
@@ -315,7 +341,7 @@ void Min::setup(int flag)
 
   einitial = ecurrent;
   fnorm2_init = sqrt(fnorm_sqr());
-  fnorminf_init = fnorm_inf();
+  fnorminf_init = sqrt(fnorm_inf());
 }
 
 /* ----------------------------------------------------------------------
@@ -396,7 +422,7 @@ void Min::setup_minimal(int flag)
 
   einitial = ecurrent;
   fnorm2_init = sqrt(fnorm_sqr());
-  fnorminf_init = fnorm_inf();
+  fnorminf_init = sqrt(fnorm_inf());
 }
 
 /* ----------------------------------------------------------------------
@@ -451,7 +477,7 @@ void Min::cleanup()
 
   efinal = ecurrent;
   fnorm2_final = sqrt(fnorm_sqr());
-  fnorminf_final = fnorm_inf();
+  fnorminf_final = sqrt(fnorm_inf());
 
   // reset reneighboring criteria
 
@@ -463,6 +489,10 @@ void Min::cleanup()
 
   modify->delete_fix("MINIMIZE");
   domain->box_too_small_check();
+
+  // reset timestep size (important for variable timestep minimizer)
+
+  update->dt = dtinit;
 }
 
 /* ----------------------------------------------------------------------
@@ -648,11 +678,72 @@ void Min::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
       dmax = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"delaystep") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      delaystep = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"dtgrow") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      dtgrow = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"dtshrink") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      dtshrink = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"alpha0") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      alpha0 = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"alphashrink") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      alphashrink = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"tmax") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      tmax = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"tmin") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      tmin = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"halfstepback") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) halfstepback_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) halfstepback_flag = 0;
+      else error->all(FLERR,"Illegal min_modify command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"initialdelay") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) delaystep_start_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) delaystep_start_flag = 0;
+      else error->all(FLERR,"Illegal min_modify command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"vdfmax") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      max_vdotf_negatif = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"integrator") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      if (strcmp(arg[iarg+1],"eulerimplicit") == 0) integrator = 0;
+      else if (strcmp(arg[iarg+1],"verlet") == 0) integrator = 1;
+      else if (strcmp(arg[iarg+1],"leapfrog") == 0) integrator = 2;
+      else if (strcmp(arg[iarg+1],"eulerexplicit") == 0) integrator = 3;
+      else error->all(FLERR,"Illegal min_modify command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"line") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
       if (strcmp(arg[iarg+1],"backtrack") == 0) linestyle = 0;
       else if (strcmp(arg[iarg+1],"quadratic") == 0) linestyle = 1;
       else if (strcmp(arg[iarg+1],"forcezero") == 0) linestyle = 2;
+      else if (strcmp(arg[iarg+1],"spin_cubic") == 0) linestyle = 3;
+      else if (strcmp(arg[iarg+1],"spin_none") == 0) linestyle = 4;
+      else error->all(FLERR,"Illegal min_modify command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"norm") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      if (strcmp(arg[iarg+1],"two") == 0) normstyle = TWO;
+      else if (strcmp(arg[iarg+1],"max") == 0) normstyle = MAX;
+      else if (strcmp(arg[iarg+1],"inf") == 0) normstyle = INF;
       else error->all(FLERR,"Illegal min_modify command");
       iarg += 2;
     } else {
@@ -673,25 +764,28 @@ void Min::ev_setup()
   delete [] elist_atom;
   delete [] vlist_global;
   delete [] vlist_atom;
+  delete [] cvlist_atom;
   elist_global = elist_atom = NULL;
-  vlist_global = vlist_atom = NULL;
+  vlist_global = vlist_atom = cvlist_atom = NULL;
 
   nelist_global = nelist_atom = 0;
-  nvlist_global = nvlist_atom = 0;
+  nvlist_global = nvlist_atom = ncvlist_atom = 0;
   for (int i = 0; i < modify->ncompute; i++) {
     if (modify->compute[i]->peflag) nelist_global++;
     if (modify->compute[i]->peatomflag) nelist_atom++;
     if (modify->compute[i]->pressflag) nvlist_global++;
-    if (modify->compute[i]->pressatomflag) nvlist_atom++;
+    if (modify->compute[i]->pressatomflag & 1) nvlist_atom++;
+    if (modify->compute[i]->pressatomflag & 2) ncvlist_atom++;
   }
 
   if (nelist_global) elist_global = new Compute*[nelist_global];
   if (nelist_atom) elist_atom = new Compute*[nelist_atom];
   if (nvlist_global) vlist_global = new Compute*[nvlist_global];
   if (nvlist_atom) vlist_atom = new Compute*[nvlist_atom];
+  if (ncvlist_atom) cvlist_atom = new Compute*[ncvlist_atom];
 
   nelist_global = nelist_atom = 0;
-  nvlist_global = nvlist_atom = 0;
+  nvlist_global = nvlist_atom = ncvlist_atom = 0;
   for (int i = 0; i < modify->ncompute; i++) {
     if (modify->compute[i]->peflag)
       elist_global[nelist_global++] = modify->compute[i];
@@ -699,8 +793,10 @@ void Min::ev_setup()
       elist_atom[nelist_atom++] = modify->compute[i];
     if (modify->compute[i]->pressflag)
       vlist_global[nvlist_global++] = modify->compute[i];
-    if (modify->compute[i]->pressatomflag)
+    if (modify->compute[i]->pressatomflag & 1)
       vlist_atom[nvlist_atom++] = modify->compute[i];
+    if (modify->compute[i]->pressatomflag & 2)
+      cvlist_atom[ncvlist_atom++] = modify->compute[i];
   }
 }
 
@@ -718,6 +814,10 @@ void Min::ev_setup()
    vflag = 2 = global virial with pair portion via F dot r including ghosts
    vflag = 4 = per-atom virial only
    vflag = 5 or 6 = both global and per-atom virial
+   vflag = 8 = per-atom centroid virial only
+   vflag = 9 or 10 = both global and per-atom centroid virial
+   vflag = 12 = both per-atom virial and per-atom centroid virial
+   vflag = 13 or 15 = global, per-atom virial and per-atom centroid virial
 ------------------------------------------------------------------------- */
 
 void Min::ev_set(bigint ntimestep)
@@ -750,9 +850,15 @@ void Min::ev_set(bigint ntimestep)
     if (vlist_atom[i]->matchstep(ntimestep)) flag = 1;
   if (flag) vflag_atom = 4;
 
+  flag = 0;
+  int cvflag_atom = 0;
+  for (i = 0; i < ncvlist_atom; i++)
+    if (cvlist_atom[i]->matchstep(ntimestep)) flag = 1;
+  if (flag) cvflag_atom = 8;
+
   if (vflag_global) update->vflag_global = update->ntimestep;
-  if (vflag_atom) update->vflag_atom = update->ntimestep;
-  vflag = vflag_global + vflag_atom;
+  if (vflag_atom || cvflag_atom) update->vflag_atom = update->ntimestep;
+  vflag = vflag_global + vflag_atom + cvflag_atom;
 }
 
 /* ----------------------------------------------------------------------
@@ -796,13 +902,13 @@ double Min::fnorm_inf()
 
   double local_norm_inf = 0.0;
   for (i = 0; i < nvec; i++)
-    local_norm_inf = MAX(fabs(fvec[i]),local_norm_inf);
+    local_norm_inf = MAX(fvec[i]*fvec[i],local_norm_inf);
   if (nextra_atom) {
     for (int m = 0; m < nextra_atom; m++) {
       fatom = fextra_atom[m];
       n = extra_nlen[m];
       for (i = 0; i < n; i++)
-        local_norm_inf = MAX(fabs(fatom[i]),local_norm_inf);
+        local_norm_inf = MAX(fatom[i]*fatom[i],local_norm_inf);
     }
   }
 
@@ -811,9 +917,142 @@ double Min::fnorm_inf()
 
   if (nextra_global)
     for (i = 0; i < nextra_global; i++)
-      norm_inf = MAX(fabs(fextra[i]),norm_inf);
+      norm_inf = MAX(fextra[i]*fextra[i],norm_inf);
 
   return norm_inf;
+}
+
+/* ----------------------------------------------------------------------
+   compute and return ||force||_max (inf norm per-vector)
+------------------------------------------------------------------------- */
+
+double Min::fnorm_max()
+{
+  int i,n;
+  double fdotf,*fatom;
+
+  double local_norm_max = 0.0;
+  for (i = 0; i < nvec; i+=3) {
+    fdotf = fvec[i]*fvec[i]+fvec[i+1]*fvec[i+1]+fvec[i+2]*fvec[i+2];
+    local_norm_max = MAX(fdotf,local_norm_max);
+  }
+  if (nextra_atom) {
+    for (int m = 0; m < nextra_atom; m++) {
+      fatom = fextra_atom[m];
+      n = extra_nlen[m];
+      for (i = 0; i < n; i+=3) {
+        fdotf = fatom[i]*fatom[i]+fatom[i+1]*fatom[i+1]+fatom[i+2]*fatom[i+2];
+        local_norm_max = MAX(fdotf,local_norm_max);
+      }
+    }
+  }
+
+  double norm_max = 0.0;
+  MPI_Allreduce(&local_norm_max,&norm_max,1,MPI_DOUBLE,MPI_MAX,world);
+
+  if (nextra_global) {
+    for (i = 0; i < nextra_global; i+=3) {
+      fdotf = fextra[i]*fextra[i];
+      norm_max = MAX(fdotf,norm_max);
+    }
+  }
+  return norm_max;
+}
+
+/* ----------------------------------------------------------------------
+   compute and return  sum_i||mag. torque_i||_2 (in eV)
+------------------------------------------------------------------------- */
+
+double Min::total_torque()
+{
+  double fmsq,ftotsqone,ftotsqall;
+  int nlocal = atom->nlocal;
+  double hbar = force->hplanck/MY_2PI;
+  double tx,ty,tz;
+  double **sp = atom->sp;
+  double **fm = atom->fm;
+
+  fmsq = ftotsqone = ftotsqall = 0.0;
+  for (int i = 0; i < nlocal; i++) {
+    tx = fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1];
+    ty = fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2];
+    tz = fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0];
+    fmsq = tx*tx + ty*ty + tz*tz;
+    ftotsqone += fmsq;
+  }
+
+  // summing all fmsqtot on this replica
+
+  MPI_Allreduce(&ftotsqone,&ftotsqall,1,MPI_DOUBLE,MPI_SUM,world);
+
+  // multiply it by hbar so that units are in eV
+
+  return sqrt(ftotsqall) * hbar;
+}
+
+/* ----------------------------------------------------------------------
+   compute and return max_i ||mag. torque components|| (in eV)
+------------------------------------------------------------------------- */
+
+double Min::inf_torque()
+{
+  double fmaxsqone,fmaxsqall;
+  int nlocal = atom->nlocal;
+  double hbar = force->hplanck/MY_2PI;
+  double tx,ty,tz;
+  double **sp = atom->sp;
+  double **fm = atom->fm;
+
+  fmaxsqone = fmaxsqall = 0.0;
+  for (int i = 0; i < nlocal; i++) {
+    tx = fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1];
+    ty = fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2];
+    tz = fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0];
+    fmaxsqone = MAX(fmaxsqone,tx*tx);
+    fmaxsqone = MAX(fmaxsqone,ty*ty);
+    fmaxsqone = MAX(fmaxsqone,tz*tz);
+  }
+
+  // finding max fm on this replica
+
+  fmaxsqall = fmaxsqone;
+  MPI_Allreduce(&fmaxsqone,&fmaxsqall,1,MPI_DOUBLE,MPI_MAX,world);
+
+  // multiply it by hbar so that units are in eV
+
+  return sqrt(fmaxsqall) * hbar;
+}
+
+/* ----------------------------------------------------------------------
+   compute and return max_i ||mag. torque_i|| (in eV)
+------------------------------------------------------------------------- */
+
+double Min::max_torque()
+{
+  double fmsq,fmaxsqone,fmaxsqall;
+  int nlocal = atom->nlocal;
+  double hbar = force->hplanck/MY_2PI;
+  double tx,ty,tz;
+  double **sp = atom->sp;
+  double **fm = atom->fm;
+
+  fmsq = fmaxsqone = fmaxsqall = 0.0;
+  for (int i = 0; i < nlocal; i++) {
+    tx = fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1];
+    ty = fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2];
+    tz = fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0];
+    fmsq = tx*tx + ty*ty + tz*tz;
+    fmaxsqone = MAX(fmaxsqone,fmsq);
+  }
+
+  // finding max fm on this replica
+
+  fmaxsqall = fmaxsqone;
+  MPI_Allreduce(&fmaxsqone,&fmaxsqall,1,MPI_DOUBLE,MPI_MAX,world);
+
+  // multiply it by hbar so that units are in eV
+
+  return sqrt(fmaxsqall) * hbar;
 }
 
 /* ----------------------------------------------------------------------
@@ -832,6 +1071,7 @@ char *Min::stopstrings(int n)
                            "quadratic factors are zero",
                            "trust region too small",
                            "HFTN minimizer error",
-                           "walltime limit reached"};
+                           "walltime limit reached",
+                           "max iterations with v.f negative"};
   return (char *) strings[n];
 }

@@ -12,14 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_airebo_morse.h"
-#include "force.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairAIREBOMorse::PairAIREBOMorse(LAMMPS *lmp) : PairAIREBO(lmp) {}
+PairAIREBOMorse::PairAIREBOMorse(LAMMPS *lmp) : PairAIREBO(lmp) {
+  variant = AIREBO_M;
+}
 
 /* ----------------------------------------------------------------------
    global settings

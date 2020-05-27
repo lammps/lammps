@@ -2,10 +2,12 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
+
+#include <algorithm>
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
@@ -15,30 +17,28 @@
 
 
 colvar::cvc::cvc()
-  : sup_coeff(1.0),
-    sup_np(1),
-    b_periodic(false),
-    b_try_scalable(true)
 {
   description = "uninitialized colvar component";
-  init_dependencies();
+  b_try_scalable = true;
   sup_coeff = 1.0;
+  sup_np = 1;
   period = 0.0;
   wrap_center = 0.0;
+  width = 0.0;
+  init_dependencies();
 }
 
 
 colvar::cvc::cvc(std::string const &conf)
-  : sup_coeff(1.0),
-    sup_np(1),
-    b_periodic(false),
-    b_try_scalable(true)
 {
   description = "uninitialized colvar component";
-  init_dependencies();
+  b_try_scalable = true;
   sup_coeff = 1.0;
+  sup_np = 1;
   period = 0.0;
   wrap_center = 0.0;
+  width = 0.0;
+  init_dependencies();
   init(conf);
 }
 
@@ -70,11 +70,17 @@ int colvar::cvc::init(std::string const &conf)
 
   get_keyval(conf, "componentCoeff", sup_coeff, sup_coeff);
   get_keyval(conf, "componentExp", sup_np, sup_np);
+  // TODO these could be condensed into get_keyval()
+  register_param("componentCoeff", reinterpret_cast<void *>(&sup_coeff));
+  register_param("componentExp", reinterpret_cast<void *>(&sup_np));
 
   get_keyval(conf, "period", period, period);
   get_keyval(conf, "wrapAround", wrap_center, wrap_center);
+  // TODO when init() is called after all constructors, check periodic flag
+  register_param("period", reinterpret_cast<void *>(&period));
+  register_param("wrapAround", reinterpret_cast<void *>(&wrap_center));
 
-  get_keyval_feature(dynamic_cast<colvarparse *>(this), conf, "debugGradients",
+  get_keyval_feature(this, conf, "debugGradients",
                      f_cvc_debug_gradient, false, parse_silent);
 
   bool b_no_PBC = !is_enabled(f_cvc_pbc_minimum_image); // Enabled by default
@@ -192,6 +198,14 @@ int colvar::cvc::init_dependencies() {
 
     init_feature(f_cvc_scalar, "scalar", f_type_static);
 
+    init_feature(f_cvc_periodic, "periodic", f_type_static);
+
+    init_feature(f_cvc_width, "defined width", f_type_static);
+
+    init_feature(f_cvc_lower_boundary, "defined lower boundary", f_type_static);
+
+    init_feature(f_cvc_upper_boundary, "defined upper boundary", f_type_static);
+
     init_feature(f_cvc_gradient, "gradient", f_type_dynamic);
 
     init_feature(f_cvc_explicit_gradient, "explicit gradient", f_type_static);
@@ -207,14 +221,14 @@ int colvar::cvc::init_dependencies() {
     init_feature(f_cvc_Jacobian, "Jacobian derivative", f_type_dynamic);
     require_feature_self(f_cvc_Jacobian, f_cvc_inv_gradient);
 
-    init_feature(f_cvc_com_based, "depends on group centers of mass", f_type_static);
-
-    init_feature(f_cvc_pbc_minimum_image, "use minimum-image distances with PBCs", f_type_user);
-
     // Compute total force on first site only to avoid unwanted
     // coupling to other colvars (see e.g. Ciccotti et al., 2005)
     init_feature(f_cvc_one_site_total_force, "compute total force from one group", f_type_user);
     require_feature_self(f_cvc_one_site_total_force, f_cvc_com_based);
+
+    init_feature(f_cvc_com_based, "depends on group centers of mass", f_type_static);
+
+    init_feature(f_cvc_pbc_minimum_image, "use minimum-image distances with PBCs", f_type_user);
 
     init_feature(f_cvc_scalable, "scalable calculation", f_type_static);
     require_feature_self(f_cvc_scalable, f_cvc_scalable_com);
@@ -286,6 +300,77 @@ colvar::cvc::~cvc()
   for (size_t i = 0; i < atom_groups.size(); i++) {
     if (atom_groups[i] != NULL) delete atom_groups[i];
   }
+}
+
+
+void colvar::cvc::init_as_distance()
+{
+  x.type(colvarvalue::type_scalar);
+  enable(f_cvc_lower_boundary);
+  lower_boundary.type(colvarvalue::type_scalar);
+  lower_boundary.real_value = 0.0;
+  register_param("lowerBoundary", reinterpret_cast<void *>(&lower_boundary));
+}
+
+
+void colvar::cvc::init_as_angle()
+{
+  x.type(colvarvalue::type_scalar);
+  init_scalar_boundaries(0.0, 180);
+}
+
+
+void colvar::cvc::init_scalar_boundaries(cvm::real lb, cvm::real ub)
+{
+  enable(f_cvc_lower_boundary);
+  lower_boundary.type(colvarvalue::type_scalar);
+  lower_boundary.real_value = lb;
+  enable(f_cvc_upper_boundary);
+  upper_boundary.type(colvarvalue::type_scalar);
+  upper_boundary.real_value = ub;
+  register_param("lowerBoundary", reinterpret_cast<void *>(&lower_boundary));
+  register_param("upperBoundary", reinterpret_cast<void *>(&upper_boundary));
+}
+
+
+void colvar::cvc::register_atom_group(cvm::atom_group *ag)
+{
+  atom_groups.push_back(ag);
+  add_child(ag);
+}
+
+
+colvarvalue const *colvar::cvc::get_param_grad(std::string const &param_name)
+{
+  colvarvalue const *ptr =
+    reinterpret_cast<colvarvalue const *>(get_param_grad_ptr(param_name));
+  return ptr != NULL ? ptr : NULL;
+}
+
+
+int colvar::cvc::set_param(std::string const &param_name,
+                           void const *new_value)
+{
+  if (param_map.count(param_name) > 0) {
+
+    // TODO When we can use C++11, make this a proper function map
+    if (param_name.compare("componentCoeff") == 0) {
+      sup_coeff = *(reinterpret_cast<cvm::real const *>(new_value));
+    }
+    if (param_name.compare("componentExp") == 0) {
+      sup_np = *(reinterpret_cast<int const *>(new_value));
+    }
+    if (is_enabled(f_cvc_periodic)) {
+      if (param_name.compare("period") == 0) {
+        period = *(reinterpret_cast<cvm::real const *>(new_value));
+      }
+      if (param_name.compare("wrapAround") == 0) {
+        wrap_center = *(reinterpret_cast<cvm::real const *>(new_value));
+      }
+    }
+  }
+
+  return colvarparams::set_param(param_name, new_value);
 }
 
 
@@ -535,7 +620,7 @@ colvarvalue colvar::cvc::dist2_rgrad(colvarvalue const &x1,
 }
 
 
-void colvar::cvc::wrap(colvarvalue &x_unwrapped) const
+void colvar::cvc::wrap(colvarvalue & /* x_unwrapped */) const
 {
   return;
 }

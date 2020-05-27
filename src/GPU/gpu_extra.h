@@ -133,4 +133,9 @@ E: Unknown error in GPU library
 
 Self-explanatory.
 
+W: Increasing communication cutoff for GPU style
+
+The pair style has increased the communication cutoff to be consistent with
+the communication cutoff requirements for this pair style when run on the GPU.
+
 */

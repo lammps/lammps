@@ -29,6 +29,7 @@
 #include "pair_reaxc_omp.h"
 #include "thr_data.h"
 
+#include "reaxc_defs.h"
 #include "reaxc_types.h"
 
 #include "reaxc_nonbonded.h"

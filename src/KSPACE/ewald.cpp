@@ -18,12 +18,9 @@
      triclinic added by Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
-#include <cmath>
 #include "ewald.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -114,6 +111,10 @@ void Ewald::init()
       error->all(FLERR,"Cannot (yet) use Ewald with triclinic box "
                  "and slab correction");
   }
+
+  // compute two charge force
+
+  two_charge();
 
   // extract short-range Coulombic cutoff from pair style
 

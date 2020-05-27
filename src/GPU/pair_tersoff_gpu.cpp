@@ -15,11 +15,11 @@
    Contributing author: Trung Dac Nguyen (ndactrung@gmail.com)
 ------------------------------------------------------------------------- */
 
+#include "pair_tersoff_gpu.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_tersoff_gpu.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_request.h"
@@ -32,6 +32,7 @@
 #include "error.h"
 #include "domain.h"
 #include "gpu_extra.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -76,6 +77,7 @@ extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
 PairTersoffGPU::PairTersoffGPU(LAMMPS *lmp) : PairTersoff(lmp), gpu_mode(GPU_FORCE)
 {
   cpu_time = 0.0;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 
   cutghost = NULL;
@@ -105,10 +107,21 @@ void PairTersoffGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3],subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+    }
     inum = atom->nlocal;
     firstneigh = tersoff_gpu_compute_n(neighbor->ago, inum, nall,
-                                  atom->x, atom->type, domain->sublo,
-                                  domain->subhi, atom->tag, atom->nspecial,
+                                  atom->x, atom->type, sublo,
+                                  subhi, atom->tag, atom->nspecial,
                                   atom->special, eflag, vflag, eflag_atom,
                                   vflag_atom, host_start,
                                   &ilist, &numneigh, cpu_time, success);
@@ -240,8 +253,11 @@ void PairTersoffGPU::init_style()
     neighbor->requests[irequest]->ghost = 1;
   }
 
-  if (comm->cutghostuser < (2.0*cutmax + neighbor->skin) )
+  if (comm->cutghostuser < (2.0*cutmax + neighbor->skin)) {
     comm->cutghostuser = 2.0*cutmax + neighbor->skin;
+    if (comm->me == 0)
+       error->warning(FLERR,"Increasing communication cutoff for GPU style");
+  }
 }
 
 /* ----------------------------------------------------------------------

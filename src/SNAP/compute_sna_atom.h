@@ -34,7 +34,7 @@ class ComputeSNAAtom : public Compute {
   double memory_usage();
 
  private:
-  int nmax, njmax, diagonalstyle;
+  int nmax;
   int ncoeff;
   double **cutsq;
   class NeighList *list;
@@ -42,10 +42,9 @@ class ComputeSNAAtom : public Compute {
   double rcutfac;
   double *radelem;
   double *wjelem;
-  class SNA** snaptr;
+  class SNA* snaptr;
   double cutmax;
   int quadraticflag;
-  int nthreads;
 };
 
 }

@@ -17,20 +17,18 @@
                   Kurt Anderson (anderk5@rpi.edu)
 ------------------------------------------------------------------------- */
 
+#include "fix_poems.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstring>
 #include <cstdlib>
 #include "workspace.h"
-#include "fix_poems.h"
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
 #include "respa.h"
 #include "modify.h"
 #include "force.h"
-#include "output.h"
 #include "group.h"
 #include "comm.h"
 #include "citeme.h"

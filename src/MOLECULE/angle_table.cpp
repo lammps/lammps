@@ -15,10 +15,11 @@
    Contributing author: Chuanfu Luo (luochuanfu@gmail.com)
 ------------------------------------------------------------------------- */
 
+#include "angle_table.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "angle_table.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -27,6 +28,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 #include "utils.h"
 
 using namespace LAMMPS_NS;
@@ -278,8 +280,7 @@ double AngleTable::equilibrium_angle(int i)
 
 void AngleTable::write_restart(FILE *fp)
 {
-  fwrite(&tabstyle,sizeof(int),1,fp);
-  fwrite(&tablength,sizeof(int),1,fp);
+  write_restart_settings(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -288,14 +289,32 @@ void AngleTable::write_restart(FILE *fp)
 
 void AngleTable::read_restart(FILE *fp)
 {
+  read_restart_settings(fp);
+  allocate();
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to restart file
+ ------------------------------------------------------------------------- */
+
+void AngleTable::write_restart_settings(FILE *fp)
+{
+  fwrite(&tabstyle,sizeof(int),1,fp);
+  fwrite(&tablength,sizeof(int),1,fp);
+}
+
+/* ----------------------------------------------------------------------
+    proc 0 reads from restart file, bcasts
+ ------------------------------------------------------------------------- */
+
+void AngleTable::read_restart_settings(FILE *fp)
+{
   if (comm->me == 0) {
-    fread(&tabstyle,sizeof(int),1,fp);
-    fread(&tablength,sizeof(int),1,fp);
+    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);
-
-  allocate();
 }
 
 /* ---------------------------------------------------------------------- */

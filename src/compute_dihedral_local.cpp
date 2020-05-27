@@ -11,19 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_dihedral_local.h"
 #include <cmath>
 #include <cstring>
-#include "compute_dihedral_local.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
 #include "update.h"
 #include "domain.h"
 #include "force.h"
-#include "dihedral.h"
 #include "input.h"
 #include "variable.h"
-
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"

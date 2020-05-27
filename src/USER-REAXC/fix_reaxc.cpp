@@ -23,8 +23,6 @@
 
 #include "fix_reaxc.h"
 #include "atom.h"
-#include "pair.h"
-#include "comm.h"
 #include "memory.h"
 
 using namespace LAMMPS_NS;

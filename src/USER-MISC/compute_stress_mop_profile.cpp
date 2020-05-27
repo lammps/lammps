@@ -15,18 +15,14 @@
   Contributing Authors : Romain Vermorel (LFCR), Laurent Joly (ULyon)
   --------------------------------------------------------------------------*/
 
+#include "compute_stress_mop_profile.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
 
-#include "compute_stress_mop_profile.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
-#include "group.h"
-#include "modify.h"
-#include "fix.h"
 #include "neighbor.h"
 #include "force.h"
 #include "pair.h"
@@ -337,7 +333,7 @@ void ComputeStressMopProfile::compute_pairs()
               pos = coord[ibin][0];
               pos1 = coordp[ibin][0];
 
-              //check if ij pair is accross plane, add contribution to pressure
+              //check if ij pair is across plane, add contribution to pressure
 
               if ( ((xi[dir]>pos) && (xj[dir]<pos))
                    || ((xi[dir]>pos1) && (xj[dir]<pos1)) ) {
@@ -364,7 +360,7 @@ void ComputeStressMopProfile::compute_pairs()
               pos = coord[ibin][0];
               pos1 = coordp[ibin][0];
 
-              //check if ij pair is accross plane, add contribution to pressure
+              //check if ij pair is across plane, add contribution to pressure
 
               if ( ((xi[dir]>pos) && (xj[dir]<pos))
                    || ((xi[dir]>pos1) && (xj[dir]<pos1)) ) {

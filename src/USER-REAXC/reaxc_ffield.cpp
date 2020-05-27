@@ -24,11 +24,15 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc.h"
-#include "error.h"
 #include "reaxc_ffield.h"
+#include <mpi.h>
+#include <cctype>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include "reaxc_defs.h"
+#include "error.h"
 #include "reaxc_tool_box.h"
-
 
 char Read_Force_Field( FILE *fp, reax_interaction *reax,
                        control_params *control )
@@ -150,7 +154,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
     /* Sanity checks */
     if (c == 2 && !lgflag)
-        control->error_ptr->all(FLERR, "Force field file requires using 'lgvdw yes'");	
+        control->error_ptr->all(FLERR, "Force field file requires using 'lgvdw yes'");
 
     if (c < 9) {
       snprintf (errmsg, 1024, "Missing parameter(s) in line %s", s);

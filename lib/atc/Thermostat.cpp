@@ -483,7 +483,7 @@ namespace ATC {
   //            manages the solution of the
   //            thermostat equations and variables
   //--------------------------------------------------------
-  void ThermostatRescale::compute_thermostat(double dt)
+  void ThermostatRescale::compute_thermostat(double /* dt */)
   {
     // compute right-hand side
     this->set_rhs(_rhs_);
@@ -738,7 +738,7 @@ namespace ATC {
   //  Constructor
   //--------------------------------------------------------
   ThermostatGlcFs::ThermostatGlcFs(AtomicRegulator * thermostat,
-                                   int lambdaMaxIterations,
+                                   int /* lambdaMaxIterations */,
                                    const string & regulatorPrefix) :
     RegulatorMethod(thermostat,regulatorPrefix),
     lambdaSolver_(NULL),
@@ -1225,7 +1225,7 @@ namespace ATC {
   //    fixed (uncoupled) nodes
   //--------------------------------------------------------
   void ThermostatIntegratorFlux::set_thermostat_rhs(DENS_MAT & rhs,
-                                                    double dt)
+                                                    double /* dt */)
   {
     
     // only tested with flux != 0 + ess bc = 0
@@ -1460,7 +1460,7 @@ namespace ATC {
   //  initialize_delta_nodal_atomic_energy:
   //    initializes storage for the variable tracking
   //    the change in the nodal atomic energy
-  //    that has occured over the past timestep
+  //    that has occurred over the past timestep
   //--------------------------------------------------------
   void ThermostatIntegratorFixed::initialize_delta_nodal_atomic_energy(double dt)
   {
@@ -1475,7 +1475,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  compute_delta_nodal_atomic_energy:
   //    computes the change in the nodal atomic energy
-  //    that has occured over the past timestep
+  //    that has occurred over the past timestep
   //--------------------------------------------------------
   void ThermostatIntegratorFixed::compute_delta_nodal_atomic_energy(double dt)
   {
@@ -1586,7 +1586,7 @@ namespace ATC {
   //--------------------------------------------------------
   void ThermostatIntegratorFixed::add_to_energy(const DENS_MAT & nodalLambdaPower,
                                                 DENS_MAT & deltaEnergy,
-                                                double dt)
+                                                double /* dt */)
   {
     deltaEnergy.resize(nNodes_,1);
     
@@ -1778,7 +1778,7 @@ namespace ATC {
   //  initialize_delta_nodal_atomic_energy:
   //    initializes storage for the variable tracking
   //    the change in the nodal atomic energy
-  //    that has occured over the past timestep
+  //    that has occurred over the past timestep
   //--------------------------------------------------------
   
   
@@ -1795,7 +1795,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  compute_delta_nodal_atomic_energy:
   //    computes the change in the nodal atomic energy
-  //    that has occured over the past timestep
+  //    that has occurred over the past timestep
   //--------------------------------------------------------
   void ThermostatIntegratorFixedFiltered::compute_delta_nodal_atomic_energy(double dt)
   {
@@ -2387,7 +2387,7 @@ namespace ATC {
   //    determines the power exerted by the Hoover 
   //    thermostat at each FE node
   //--------------------------------------------------------
-  void ThermostatHooverVerlet::add_to_lambda_power(const DENS_MAT & myLambdaForce,
+  void ThermostatHooverVerlet::add_to_lambda_power(const DENS_MAT & /* myLambdaForce */,
                                                    double dt)
   {
     _myNodalLambdaPower_ = nodalAtomicHooverLambdaPower_->quantity();
@@ -2593,7 +2593,7 @@ namespace ATC {
   //    determines the power exerted by the Hoover 
   //    thermostat at each FE node
   //--------------------------------------------------------
-  void ThermostatHooverVerletFiltered::add_to_lambda_power(const DENS_MAT & myLambdaForce,
+  void ThermostatHooverVerletFiltered::add_to_lambda_power(const DENS_MAT & /* myLambdaForce */,
                                                            double dt)
   {
     _myNodalLambdaPower_ = nodalAtomicHooverLambdaPower_->quantity();

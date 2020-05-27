@@ -271,6 +271,16 @@ ExpressionTreeNode ParsedExpression::substituteSimplerExpression(const Expressio
                 return ExpressionTreeNode(new Operation::MultiplyConstant(-dynamic_cast<const Operation::MultiplyConstant*>(&node.getOperation())->getValue()), children[0].getChildren()[0]);
             break;
         }
+        case Operation::SQRT:
+        {
+            if (children[0].getOperation().getId() == Operation::SQUARE) // sqrt(square(x)) = abs(x)
+                return ExpressionTreeNode(new Operation::Abs(), children[0].getChildren()[0]);
+        }
+        case Operation::SQUARE:
+        {
+            if (children[0].getOperation().getId() == Operation::SQRT) // square(sqrt(x)) = x
+                return children[0].getChildren()[0];
+        }
         default:
         {
             // If operation ID is not one of the above,

@@ -23,7 +23,7 @@ const char *lj_cubic=0;
 
 #include "lal_lj_cubic.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define LJCubicT LJCubic<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -157,3 +157,4 @@ void LJCubicT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class LJCubic<PRECISION,ACC_PRECISION>;
+}

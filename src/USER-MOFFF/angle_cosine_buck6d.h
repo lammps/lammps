@@ -20,7 +20,6 @@ AngleStyle(cosine/buck6d, AngleCosineBuck6d)
 #ifndef LMP_ANGLE_COSINE_BUCK6D_H
 #define LMP_ANGLE_COSINE_BUCK6D_H
 
-#include <cstdio>
 #include "angle.h"
 
 namespace LAMMPS_NS {

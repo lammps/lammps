@@ -14,7 +14,6 @@
 #ifndef LMP_GROUP_H
 #define LMP_GROUP_H
 
-#include <cstdio>
 #include "pointers.h"
 #include <map>
 

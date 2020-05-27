@@ -15,18 +15,16 @@
    Contributing authors: Axel Kohlmeyer (Temple U), Venkatesh Botu
 ------------------------------------------------------------------------- */
 
+#include "pair_agni.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_agni.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "force.h"
 #include "comm.h"
-#include "memory.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
@@ -245,7 +243,7 @@ void PairAGNI::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairAGNI::settings(int narg, char **/*arg*/)
+void PairAGNI::settings(int narg, char ** /* arg */)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }

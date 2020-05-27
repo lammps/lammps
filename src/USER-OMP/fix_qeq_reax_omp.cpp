@@ -31,26 +31,22 @@
    High Performance Computing Applications, to appear.
  ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_qeq_reax_omp.h"
-#include "pair_reaxc_omp.h"
+#include <mpi.h>
+#include <cmath>
+#include "pair_reaxc.h"
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "update.h"
-#include "force.h"
-#include "group.h"
-#include "pair.h"
-#include "respa.h"
 #include "memory.h"
 #include "error.h"
 #include "reaxc_defs.h"
+#include "reaxc_types.h"
+
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -192,7 +188,7 @@ void FixQEqReaxOMP::compute_H()
 #pragma omp parallel default(shared)
 #endif
   {
-    int i, j, ii, jj, mfill, jnum, flag;
+    int  mfill, jnum, flag;
     int *jlist;
     double dx, dy, dz, r_sqr;
 
@@ -201,15 +197,15 @@ void FixQEqReaxOMP::compute_H()
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)
 #endif
-    for (ii = 0; ii < inum; ii++) {
-      i = ilist[ii];
+    for (int ii = 0; ii < inum; ii++) {
+      int i = ilist[ii];
       if (mask[i] & groupbit) {
         jlist = firstneigh[i];
         jnum = numneigh[i];
         mfill = H.firstnbr[i];
 
-        for (jj = 0; jj < jnum; jj++) {
-          j = jlist[jj];
+        for (int jj = 0; jj < jnum; jj++) {
+          int j = jlist[jj];
 
           dx = x[j][0] - x[i][0];
           dy = x[j][1] - x[i][1];
@@ -454,13 +450,13 @@ void FixQEqReaxOMP::init_matvec()
 
 int FixQEqReaxOMP::CG( double *b, double *x)
 {
-  int  i, ii, imax;
+  int  i, imax;
   double alpha, beta, b_norm;
   double sig_old, sig_new;
 
   double my_buf[2], buf[2];
 
-  int nn, jj;
+  int nn;
   int *ilist;
   if (reaxc) {
     nn = reaxc->list->inum;
@@ -480,16 +476,16 @@ int FixQEqReaxOMP::CG( double *b, double *x)
   tmp1 = tmp2 = 0.0;
 
 #if defined(_OPENMP)
-#pragma omp parallel for schedule(dynamic,50) private(i) reduction(+:tmp1,tmp2)
+#pragma omp parallel for schedule(dynamic,50) reduction(+:tmp1,tmp2)
 #endif
-  for (jj = 0; jj < nn; ++jj) {
-    i = ilist[jj];
-    if (atom->mask[i] & groupbit) {
-      r[i] = b[i] - q[i];
-      d[i] = r[i] * Hdia_inv[i]; //pre-condition
+  for (int jj = 0; jj < nn; ++jj) {
+    int ii = ilist[jj];
+    if (atom->mask[ii] & groupbit) {
+      r[ii] = b[ii] - q[ii];
+      d[ii] = r[ii] * Hdia_inv[ii]; //pre-condition
 
-      tmp1 += b[i] * b[i];
-      tmp2 += r[i] * d[i];
+      tmp1 += b[ii] * b[ii];
+      tmp2 += r[ii] * d[ii];
     }
   }
 
@@ -513,10 +509,10 @@ int FixQEqReaxOMP::CG( double *b, double *x)
     {
 
 #if defined(_OPENMP)
-#pragma omp for schedule(dynamic,50) private(ii) reduction(+:tmp1)
+#pragma omp for schedule(dynamic,50) reduction(+:tmp1)
 #endif
-      for (jj = 0; jj < nn; jj++) {
-        ii = ilist[jj];
+      for (int jj = 0; jj < nn; jj++) {
+        int ii = ilist[jj];
         if (atom->mask[ii] & groupbit) tmp1 += d[ii] * q[ii];
       }
 
@@ -533,10 +529,10 @@ int FixQEqReaxOMP::CG( double *b, double *x)
 
 #if defined(_OPENMP)
 #pragma omp barrier
-#pragma omp for schedule(dynamic,50) private(ii) reduction(+:tmp1)
+#pragma omp for schedule(dynamic,50) reduction(+:tmp1)
 #endif
-      for (jj = 0; jj < nn; jj++) {
-        ii = ilist[jj];
+      for (int jj = 0; jj < nn; jj++) {
+        int ii = ilist[jj];
         if (atom->mask[ii] & groupbit) {
           x[ii] += alpha * d[ii];
           r[ii] -= alpha * q[ii];
@@ -556,10 +552,10 @@ int FixQEqReaxOMP::CG( double *b, double *x)
     beta = sig_new / sig_old;
 
 #if defined(_OPENMP)
-#pragma omp for schedule(dynamic,50) private(ii)
+#pragma omp for schedule(dynamic,50)
 #endif
-    for (jj = 0; jj < nn; jj++) {
-      ii = ilist[jj];
+    for (int jj = 0; jj < nn; jj++) {
+      int ii = ilist[jj];
       if (atom->mask[ii] & groupbit) d[ii] = p[ii] + beta * d[ii];
     }
   }
@@ -769,13 +765,13 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2)
   startTimeBase = MPI_Wtime();
 #endif
 
-  int  i, imax;
+  int i, imax;
   double alpha_s, alpha_t, beta_s, beta_t, b_norm_s, b_norm_t;
   double sig_old_s, sig_old_t, sig_new_s, sig_new_t;
 
   double my_buf[4], buf[4];
 
-  int nn, ii, jj;
+  int nn;
   int *ilist;
   if (reaxc) {
     nn = reaxc->list->inum;
@@ -789,26 +785,26 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2)
 
   pack_flag = 5; // forward 2x d and reverse 2x q
   dual_sparse_matvec( &H, x1, x2, q );
-  comm->reverse_comm_fix( this); //Coll_Vector( q );
+  comm->reverse_comm_fix(this); //Coll_Vector( q );
 
   double tmp1, tmp2, tmp3, tmp4;
   tmp1 = tmp2 = tmp3 = tmp4 = 0.0;
 
 #if defined(_OPENMP)
-#pragma omp parallel for schedule(dynamic,50) private(i) reduction(+:tmp1,tmp2,tmp3,tmp4)
+#pragma omp parallel for schedule(dynamic,50) reduction(+:tmp1,tmp2,tmp3,tmp4)
 #endif
-  for (jj = 0; jj < nn; ++jj) {
-    i = ilist[jj];
-    if (atom->mask[i] & groupbit) {
-      int indxI = 2 * i;
-      r[indxI  ] = b1[i] - q[indxI  ];
-      r[indxI+1] = b2[i] - q[indxI+1];
+  for (int jj = 0; jj < nn; ++jj) {
+    int ii = ilist[jj];
+    if (atom->mask[ii] & groupbit) {
+      int indxI = 2 * ii;
+      r[indxI  ] = b1[ii] - q[indxI  ];
+      r[indxI+1] = b2[ii] - q[indxI+1];
 
-      d[indxI  ] = r[indxI  ] * Hdia_inv[i]; //pre-condition
-      d[indxI+1] = r[indxI+1] * Hdia_inv[i];
+      d[indxI  ] = r[indxI  ] * Hdia_inv[ii]; //pre-condition
+      d[indxI+1] = r[indxI+1] * Hdia_inv[ii];
 
-      tmp1 += b1[i] * b1[i];
-      tmp2 += b2[i] * b2[i];
+      tmp1 += b1[ii] * b1[ii];
+      tmp2 += b2[ii] * b2[ii];
 
       tmp3 += r[indxI  ] * d[indxI  ];
       tmp4 += r[indxI+1] * d[indxI+1];
@@ -840,10 +836,10 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2)
     {
 
 #if defined(_OPENMP)
-#pragma omp for schedule(dynamic,50) private(ii) reduction(+:tmp1,tmp2)
+#pragma omp for schedule(dynamic,50) reduction(+:tmp1,tmp2)
 #endif
-      for (jj = 0; jj < nn; jj++) {
-        ii = ilist[jj];
+      for (int jj = 0; jj < nn; jj++) {
+        int ii = ilist[jj];
         if (atom->mask[ii] & groupbit) {
           int indxI = 2 * ii;
           tmp1 += d[indxI  ] * q[indxI  ];
@@ -869,10 +865,10 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2)
 
 #if defined(_OPENMP)
 #pragma omp barrier
-#pragma omp for schedule(dynamic,50) private(ii) reduction(+:tmp1,tmp2)
+#pragma omp for schedule(dynamic,50) reduction(+:tmp1,tmp2)
 #endif
-      for (jj = 0; jj < nn; jj++) {
-        ii = ilist[jj];
+      for (int jj = 0; jj < nn; jj++) {
+        int ii = ilist[jj];
         if (atom->mask[ii] & groupbit) {
           int indxI = 2 * ii;
           x1[ii] += alpha_s * d[indxI  ];
@@ -909,10 +905,10 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2)
     beta_t = sig_new_t / sig_old_t;
 
 #if defined(_OPENMP)
-#pragma omp for schedule(dynamic,50) private(ii)
+#pragma omp for schedule(dynamic,50)
 #endif
-    for (jj = 0; jj < nn; jj++) {
-      ii = ilist[jj];
+    for (int jj = 0; jj < nn; jj++) {
+      int ii = ilist[jj];
       if (atom->mask[ii] & groupbit) {
         int indxI = 2 * ii;
 

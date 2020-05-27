@@ -132,7 +132,7 @@ class IntelBuffers {
   inline flt_t * get_ncachez() { return _ncachez; }
   inline int * get_ncachej() { return _ncachej; }
   inline int * get_ncachejtype() { return _ncachejtype; }
-  inline int * get_ncachetag() { return _ncachetag; }
+  inline tagint * get_ncachetag() { return _ncachetag; }
 
   inline int get_max_nbors() {
     int mn = lmp->neighbor->oneatom * sizeof(int) /
@@ -336,7 +336,8 @@ class IntelBuffers {
 
   int _ncache_stride, _ncache_alloc;
   flt_t *_ncachex, *_ncachey, *_ncachez;
-  int *_ncachej, *_ncachejtype, *_ncachetag;
+  int *_ncachej, *_ncachejtype;
+  tagint *_ncachetag;
 
   int _need_tag, _host_nmax;
 
@@ -352,8 +353,8 @@ class IntelBuffers {
   quat_t *_host_quat;
   vec3_acc_t *_off_f;
   int _off_map_nmax, _cop, _off_ccache, _off_ncache;
-  int *_off_map_ilist;
-  int *_off_map_special, *_off_map_nspecial, *_off_map_tag;
+  int *_off_map_ilist, *_off_map_nspecial;
+  tagint *_off_map_tag, *_off_map_special;
   int **_off_map_firstneigh, *_off_map_numneigh;
   bool _off_list_alloc;
   #endif

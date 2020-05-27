@@ -51,9 +51,6 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
   dynamic_group_allow = 1;
   create_attribute = 1;
   restart_global = 1;
-  
-  diam_scale = 1.0; // If default in the constructor, not overwritten each fresh run
-  chg_scale = 1.0; // If default in the constructor, not overwritten each fresh run
 
   // count # of adaptations
 
@@ -439,10 +436,12 @@ void FixAdapt::init()
           error->all(FLERR,"Fix adapt requires atom attribute mass");
         if (discflag && domain->dimension!=2)
           error->all(FLERR,"Fix adapt requires 2d simulation");
+        if (!restart_reset) diam_scale = 1.0;
       }
       if (ad->aparam == CHARGE) {
         if (!atom->q_flag)
           error->all(FLERR,"Fix adapt requires atom attribute charge");
+        if(!restart_reset) chg_scale = 1.0;
       }
     }
   }

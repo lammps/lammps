@@ -51,19 +51,36 @@ char *PotentialFileReader::next_line(int nparams) {
   int n = 0;
   int nwords = 0;
 
-  do {
+  char *ptr = fgets(line, MAXLINE, fp);
+
+  if (ptr == nullptr) {
+    // EOF
+    return nullptr;
+  }
+
+  // strip comment
+  if ((ptr = strchr(line, '#'))) *ptr = '\0';
+
+  nwords = utils::count_words(line);
+
+  if (nwords > 0) {
+    n = strlen(line);
+  }
+
+  while(nwords < nparams) {
     char *ptr = fgets(&line[n], MAXLINE - n, fp);
 
     if (ptr == nullptr) {
       // EOF
       if (nwords > 0 && nwords < nparams) {
         char str[128];
-        snprintf(str, 128, "Incorrect format in %s potential file", potential_name.c_str());
+        snprintf(str, 128, "Incorrect format in %s potential file! %d/%d parameters", potential_name.c_str(), nwords, nparams);
         error->one(FLERR, str);
       }
 
       return nullptr;
     }
+
 
     // strip comment
     if ((ptr = strchr(line, '#'))) *ptr = '\0';
@@ -71,11 +88,10 @@ char *PotentialFileReader::next_line(int nparams) {
     nwords = utils::count_words(line);
 
     // skip line if blank
-    if (nwords == 0)
-      continue;
-
-    n = strlen(line) + 1;
-  } while (nwords < nparams);
+    if (nwords > 0) {
+      n = strlen(line);
+    }
+  }
 
   return line;
 }

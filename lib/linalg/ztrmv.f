@@ -2,14 +2,14 @@
 *
 *  =========== DOCUMENTATION ===========
 *
-* Online html documentation available at 
-*            http://www.netlib.org/lapack/explore-html/ 
+* Online html documentation available at
+*            http://www.netlib.org/lapack/explore-html/
 *
 *  Definition:
 *  ===========
 *
 *       SUBROUTINE ZTRMV(UPLO,TRANS,DIAG,N,A,LDA,X,INCX)
-* 
+*
 *       .. Scalar Arguments ..
 *       INTEGER INCX,LDA,N
 *       CHARACTER DIAG,TRANS,UPLO
@@ -17,7 +17,7 @@
 *       .. Array Arguments ..
 *       COMPLEX*16 A(LDA,*),X(*)
 *       ..
-*  
+*
 *
 *> \par Purpose:
 *  =============
@@ -80,7 +80,7 @@
 *>
 *> \param[in] A
 *> \verbatim
-*>          A is COMPLEX*16 array of DIMENSION ( LDA, n ).
+*>          A is COMPLEX*16 array, dimension ( LDA, N ).
 *>           Before entry with  UPLO = 'U' or 'u', the leading n by n
 *>           upper triangular part of the array A must contain the upper
 *>           triangular matrix and the strictly lower triangular part of
@@ -101,13 +101,13 @@
 *>           max( 1, n ).
 *> \endverbatim
 *>
-*> \param[in] X
+*> \param[in,out] X
 *> \verbatim
-*>          X is (input/output) COMPLEX*16 array of dimension at least
+*>          X is COMPLEX*16 array, dimension at least
 *>           ( 1 + ( n - 1 )*abs( INCX ) ).
 *>           Before entry, the incremented array X must contain the n
 *>           element vector x. On exit, X is overwritten with the
-*>           tranformed vector x.
+*>           transformed vector x.
 *> \endverbatim
 *>
 *> \param[in] INCX
@@ -120,12 +120,12 @@
 *  Authors:
 *  ========
 *
-*> \author Univ. of Tennessee 
-*> \author Univ. of California Berkeley 
-*> \author Univ. of Colorado Denver 
-*> \author NAG Ltd. 
+*> \author Univ. of Tennessee
+*> \author Univ. of California Berkeley
+*> \author Univ. of Colorado Denver
+*> \author NAG Ltd.
 *
-*> \date November 2011
+*> \date December 2016
 *
 *> \ingroup complex16_blas_level2
 *
@@ -147,10 +147,10 @@
 *  =====================================================================
       SUBROUTINE ZTRMV(UPLO,TRANS,DIAG,N,A,LDA,X,INCX)
 *
-*  -- Reference BLAS level2 routine (version 3.4.0) --
+*  -- Reference BLAS level2 routine (version 3.7.0) --
 *  -- Reference BLAS is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     November 2011
+*     December 2016
 *
 *     .. Scalar Arguments ..
       INTEGER INCX,LDA,N

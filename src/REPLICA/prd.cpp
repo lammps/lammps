@@ -15,16 +15,9 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-// lmptype.h must be first b/c this file uses MAXBIGINT and includes mpi.h
-// due to OpenMPI bug which sets INT64_MAX via its mpi.h
-//   before lmptype.h can set flags to insure it is done correctly
-
-#include "lmptype.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "prd.h"
+#include <mpi.h>
+#include <cstring>
 #include "universe.h"
 #include "update.h"
 #include "atom.h"
@@ -40,11 +33,9 @@
 #include "fix.h"
 #include "fix_event_prd.h"
 #include "force.h"
-#include "pair.h"
 #include "random_park.h"
 #include "random_mars.h"
 #include "output.h"
-#include "dump.h"
 #include "finish.h"
 #include "timer.h"
 #include "memory.h"
@@ -617,7 +608,7 @@ void PRD::quench()
    if replica_num is non-negative only check for event on replica_num
    if multiple events, choose one at random
    return -1 if no event
-   else return ireplica = world in which event occured
+   else return ireplica = world in which event occurred
 ------------------------------------------------------------------------- */
 
 int PRD::check_event(int replica_num)

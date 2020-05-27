@@ -31,20 +31,19 @@
                        conform with pairing, updated to LAMMPS style
 ------------------------------------------------------------------------- */
 
+#include "pair_meam_spline.h"
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_meam_spline.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
-#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -103,12 +102,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
   double* const * const forces = atom->f;
   const int ntypes = atom->ntypes;
 
-  if (eflag || vflag) {
-    ev_setup(eflag, vflag);
-  } else {
-    evflag = vflag_fdotr = eflag_global = 0;
-    vflag_global = eflag_atom = vflag_atom = 0;
-  }
+  ev_init(eflag, vflag);
 
   // Grow per-atom array if necessary
 
@@ -360,7 +354,7 @@ void PairMEAMSpline::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairMEAMSpline::settings(int narg, char **arg)
+void PairMEAMSpline::settings(int narg, char **/*arg*/)
 {
   if(narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -439,20 +433,20 @@ void PairMEAMSpline::read_file(const char* filename)
     FILE *fp = force->open_potential(filename);
     if(fp == NULL) {
       char str[1024];
-      sprintf(str,"Cannot open spline MEAM potential file %s", filename);
+      snprintf(str,128,"Cannot open spline MEAM potential file %s", filename);
       error->one(FLERR,str);
     }
 
     // Skip first line of file. It's a comment.
     char line[MAXLINE];
     char *ptr;
-    fgets(line, MAXLINE, fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
 
     // Second line holds potential type ("meam/spline")
     // in new potential format.
 
     bool isNewFormat = false;
-    fgets(line, MAXLINE, fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
     ptr = strtok(line, " \t\n\r\f");
 
     if (strcmp(ptr, "meam/spline") == 0) {
@@ -482,7 +476,7 @@ void PairMEAMSpline::read_file(const char* filename)
       elements[0] = new char[1];
       strcpy(elements[0], "");
       rewind(fp);
-      fgets(line, MAXLINE, fp);
+      utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
     }
 
     nmultichoose2 = ((nelements+1)*nelements)/2;
@@ -592,7 +586,7 @@ void PairMEAMSpline::init_list(int id, NeighList *ptr)
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
-double PairMEAMSpline::init_one(int i, int j)
+double PairMEAMSpline::init_one(int /*i*/, int /*j*/)
 {
   return cutoff;
 }
@@ -600,7 +594,7 @@ double PairMEAMSpline::init_one(int i, int j)
 /* ---------------------------------------------------------------------- */
 
 int PairMEAMSpline::pack_forward_comm(int n, int *list, double *buf,
-                                      int pbc_flag, int *pbc)
+                                      int /*pbc_flag*/, int * /*pbc*/)
 {
   int* list_iter = list;
   int* list_iter_end = list + n;
@@ -618,14 +612,14 @@ void PairMEAMSpline::unpack_forward_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int PairMEAMSpline::pack_reverse_comm(int n, int first, double *buf)
+int PairMEAMSpline::pack_reverse_comm(int /*n*/, int /*first*/, double * /*buf*/)
 {
   return 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAMSpline::unpack_reverse_comm(int n, int *list, double *buf)
+void PairMEAMSpline::unpack_reverse_comm(int /*n*/, int * /*list*/, double * /*buf*/)
 {
 }
 
@@ -646,27 +640,27 @@ void PairMEAMSpline::SplineFunction::parse(FILE* fp, Error* error,
 
   // If new format, read the spline format.  Should always be "spline3eq" for now.
   if (isNewFormat)
-    fgets(line, MAXLINE, fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
 
   // Parse number of spline knots.
-  fgets(line, MAXLINE, fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
   int n = atoi(line);
   if(n < 2)
     error->one(FLERR,"Invalid number of spline knots in MEAM potential file");
 
   // Parse first derivatives at beginning and end of spline.
-  fgets(line, MAXLINE, fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
   double d0 = atof(strtok(line, " \t\n\r\f"));
   double dN = atof(strtok(NULL, " \t\n\r\f"));
   init(n, d0, dN);
 
   // Skip line in old format
   if (!isNewFormat)
-    fgets(line, MAXLINE, fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
 
   // Parse knot coordinates.
   for(int i=0; i<n; i++) {
-    fgets(line, MAXLINE, fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
     double x, y, y2;
     if(sscanf(line, "%lg %lg %lg", &x, &y, &y2) != 3) {
       error->one(FLERR,"Invalid knot line in MEAM potential file");
@@ -723,6 +717,7 @@ void PairMEAMSpline::SplineFunction::prepareSpline(Error* error)
     Y2[i] /= h*6.0;
 #endif
   }
+  inv_h = (1/h);
   xmax_shifted = xmax - xmin;
 }
 
@@ -738,6 +733,7 @@ void PairMEAMSpline::SplineFunction::communicate(MPI_Comm& world, int me)
   MPI_Bcast(&isGridSpline, 1, MPI_INT, 0, world);
   MPI_Bcast(&h, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&hsq, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&inv_h, 1, MPI_DOUBLE, 0, world);
   if(me != 0) {
     X = new double[N];
     Xs = new double[N];

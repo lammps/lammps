@@ -56,6 +56,7 @@ class FixReaxC : public Fix {
   int maxhbonds;             // max # of Hbonds for any atom
   int *num_bonds;            // # of bonds for each atom
   int *num_hbonds;           // # of Hbonds for each atom
+  int oldnmax;               // arrays' size before growing
 };
 
 }

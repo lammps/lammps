@@ -18,6 +18,7 @@
                          W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include <mpi.h>
 #include <cstdlib>
 #include <cmath>
@@ -57,7 +58,7 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-PPPMIntel::PPPMIntel(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
+PPPMIntel::PPPMIntel(LAMMPS *lmp) : PPPM(lmp)
 {
   suffix_flag |= Suffix::INTEL;
 
@@ -161,9 +162,7 @@ void PPPMIntel::compute_first(int eflag, int vflag)
   // set energy/virial flags
   // invoke allocate_peratom() if needed for first time
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global =
-         eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   if (evflag_atom && !peratom_allocate_flag) {
     allocate_peratom();
@@ -210,16 +209,23 @@ void PPPMIntel::compute_first(int eflag, int vflag)
 
   // find grid points for all my particles
   // map my particle charge onto my local 3d density grid
+  // optimized versions can only be used for orthogonal boxes
 
-  if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-    particle_map<float,double>(fix->get_mixed_buffers());
-    make_rho<float,double>(fix->get_mixed_buffers());
-  } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-    particle_map<double,double>(fix->get_double_buffers());
-    make_rho<double,double>(fix->get_double_buffers());
+  if (triclinic) {
+    PPPM::particle_map();
+    PPPM::make_rho();
   } else {
-    particle_map<float,float>(fix->get_single_buffers());
-    make_rho<float,float>(fix->get_single_buffers());
+
+    if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
+      particle_map<float,double>(fix->get_mixed_buffers());
+      make_rho<float,double>(fix->get_mixed_buffers());
+    } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
+      particle_map<double,double>(fix->get_double_buffers());
+      make_rho<double,double>(fix->get_double_buffers());
+    } else {
+      particle_map<float,float>(fix->get_single_buffers());
+      make_rho<float,float>(fix->get_single_buffers());
+    }
   }
 
   // all procs communicate density values from their ghost cells
@@ -255,26 +261,31 @@ void PPPMIntel::compute_first(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PPPMIntel::compute_second(int eflag, int vflag)
+void PPPMIntel::compute_second(int /*eflag*/, int /*vflag*/)
 {
   int i,j;
 
   // calculate the force on my particles
+  // optimized versions can only be used for orthogonal boxes
 
-  if (differentiation_flag == 1) {
-    if (fix->precision() == FixIntel::PREC_MODE_MIXED)
-      fieldforce_ad<float,double>(fix->get_mixed_buffers());
-    else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
-      fieldforce_ad<double,double>(fix->get_double_buffers());
-    else
-      fieldforce_ad<float,float>(fix->get_single_buffers());
+  if (triclinic) {
+    PPPM::fieldforce();
   } else {
-    if (fix->precision() == FixIntel::PREC_MODE_MIXED)
-      fieldforce_ik<float,double>(fix->get_mixed_buffers());
-    else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
-      fieldforce_ik<double,double>(fix->get_double_buffers());
-    else
-      fieldforce_ik<float,float>(fix->get_single_buffers());
+    if (differentiation_flag == 1) {
+      if (fix->precision() == FixIntel::PREC_MODE_MIXED)
+        fieldforce_ad<float,double>(fix->get_mixed_buffers());
+      else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
+        fieldforce_ad<double,double>(fix->get_double_buffers());
+      else
+        fieldforce_ad<float,float>(fix->get_single_buffers());
+    } else {
+      if (fix->precision() == FixIntel::PREC_MODE_MIXED)
+        fieldforce_ik<float,double>(fix->get_mixed_buffers());
+      else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
+        fieldforce_ik<double,double>(fix->get_double_buffers());
+      else
+        fieldforce_ik<float,float>(fix->get_single_buffers());
+    }
   }
 
   // extra per-atom energy/virial communication
@@ -362,7 +373,7 @@ void PPPMIntel::particle_map(IntelBuffers<flt_t,acc_t> *buffers)
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nlocal, nthr) reduction(+:flag) if(!_use_lrt)
   #endif
   {
@@ -436,7 +447,7 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
     nthr = comm->nthreads;
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nthr, nlocal, global_density) if(!_use_lrt)
   #endif
   {
@@ -539,7 +550,7 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
   // reduce all the perthread_densities into global_density
   if (nthr > 1) {
     #if defined(_OPENMP)
-    #pragma omp parallel default(none) \
+    #pragma omp parallel LMP_DEFAULT_NONE \
       shared(nthr, global_density) if(!_use_lrt)
     #endif
     {
@@ -581,8 +592,14 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
   else
     nthr = comm->nthreads;
 
+  if (fix->need_zero(0)) {
+    int zl = nlocal;
+    if (force->newton_pair) zl += atom->nghost;
+    memset(f, 0, zl * sizeof(FORCE_T));
+  }
+
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nlocal, nthr) if(!_use_lrt)
   #endif
   {
@@ -726,8 +743,14 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
   FFT_SCALAR * _noalias const particle_eky = this->particle_eky;
   FFT_SCALAR * _noalias const particle_ekz = this->particle_ekz;
 
+  if (fix->need_zero(0)) {
+    int zl = nlocal;
+    if (force->newton_pair) zl += atom->nghost;
+    memset(f, 0, zl * sizeof(FORCE_T));
+  }
+
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nlocal, nthr) if(!_use_lrt)
   #endif
   {

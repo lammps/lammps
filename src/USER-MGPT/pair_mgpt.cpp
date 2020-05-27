@@ -21,17 +21,16 @@
    (2011).  See LLNL copyright notice at bottom of this file.
 ------------------------------------------------------------------------- */
 
+#include "pair_mgpt.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <cassert>
 
-#include "pair_mgpt.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
-#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -79,7 +78,7 @@ static double gettime(int x = 0) {
     return 0.0;
 }
 #else
-static double gettime(int x = 0) { return 0.0; }
+static double gettime(int /*x*/ = 0) { return 0.0; }
 #endif
 
 
@@ -119,7 +118,7 @@ void PairMGPT::make_bond(const double xx[][3],int i,int j,bond_data *bptr) {
 
   double t0,t1;
 
-  /* Check that alignment requirements for SIMD code are fullfilled */
+  /* Check that alignment requirements for SIMD code are fulfilled */
   assert( (((unsigned long long int) (bptr->H.m )) & 31) == 0 );
   assert( (((unsigned long long int) (bptr->Hx.m)) & 31) == 0 );
   assert( (((unsigned long long int) (bptr->Hy.m)) & 31) == 0 );
@@ -1673,8 +1672,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
 
 void PairMGPT::compute(int eflag, int vflag)
 {
-  if(eflag || vflag) ev_setup(eflag, vflag);
-  else evflag = vflag_fdotr = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  ev_init(eflag, vflag);
 
   int newton_pair = force->newton_pair;
   double e_s,e_p,e_t,e_q;
@@ -1805,7 +1803,7 @@ void PairMGPT::allocate()
 /* ----------------------------------------------------------------------
    global settings
 ------------------------------------------------------------------------- */
-void PairMGPT::settings(int narg, char **arg)
+void PairMGPT::settings(int narg, char **/*arg*/)
 {
   if(narg != 0) error->all(__FILE__,__LINE__,"Illegal pair_style command");
 }
@@ -2025,7 +2023,7 @@ void PairMGPT::init_list(int id, NeighList *ptr)
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
-double PairMGPT::init_one(int i, int j)
+double PairMGPT::init_one(int /*i*/, int /*j*/)
 {
 	return cutoff;
 }

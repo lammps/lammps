@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_pressure.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdlib>
-#include "compute_pressure.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
@@ -22,6 +21,7 @@
 #include "fix.h"
 #include "force.h"
 #include "pair.h"
+#include "pair_hybrid.h"
 #include "bond.h"
 #include "angle.h"
 #include "dihedral.h"
@@ -66,6 +66,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
 
   // process optional args
 
+  pairhybridflag = 0;
   if (narg == 4) {
     keflag = 1;
     pairflag = 1;
@@ -79,6 +80,37 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
     int iarg = 4;
     while (iarg < narg) {
       if (strcmp(arg[iarg],"ke") == 0) keflag = 1;
+      else if (strcmp(arg[iarg],"pair/hybrid") == 0) {
+        int n = strlen(arg[++iarg]) + 1;
+        if (lmp->suffix) n += strlen(lmp->suffix) + 1;
+        pstyle = new char[n];
+        strcpy(pstyle,arg[iarg++]);
+
+        nsub = 0;
+
+        if (narg > iarg) {
+          if (isdigit(arg[iarg][0])) {
+            nsub = force->inumeric(FLERR,arg[iarg]);
+            ++iarg;
+            if (nsub <= 0)
+              error->all(FLERR,"Illegal compute pressure command");
+          }
+        }
+
+        // check if pair style with and without suffix exists
+
+        pairhybrid = (Pair *) force->pair_match(pstyle,1,nsub);
+        if (!pairhybrid && lmp->suffix) {
+          strcat(pstyle,"/");
+          strcat(pstyle,lmp->suffix);
+          pairhybrid = (Pair *) force->pair_match(pstyle,1,nsub);
+        }
+
+        if (!pairhybrid)
+          error->all(FLERR,"Unrecognized pair style in compute pressure command");
+
+        pairhybridflag = 1;
+      }
       else if (strcmp(arg[iarg],"pair") == 0) pairflag = 1;
       else if (strcmp(arg[iarg],"bond") == 0) bondflag = 1;
       else if (strcmp(arg[iarg],"angle") == 0) angleflag = 1;
@@ -101,7 +133,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Compute pressure requires temperature ID "
                "to include kinetic energy");
 
-  vector = new double[6];
+  vector = new double[size_vector];
   nvirial = 0;
   vptr = NULL;
 }
@@ -133,6 +165,20 @@ void ComputePressure::init()
     temperature = modify->compute[icompute];
   }
 
+  // recheck if pair style with and without suffix exists
+
+  if (pairhybridflag) {
+    pairhybrid = (Pair *) force->pair_match(pstyle,1,nsub);
+    if (!pairhybrid && lmp->suffix) {
+      strcat(pstyle,"/");
+      strcat(pstyle,lmp->suffix);
+      pairhybrid = (Pair *) force->pair_match(pstyle,1,nsub);
+    }
+
+    if (!pairhybrid)
+      error->all(FLERR,"Unrecognized pair style in compute pressure command");
+  }
+
   // detect contributions to virial
   // vptr points to all virial[6] contributions
 
@@ -140,6 +186,7 @@ void ComputePressure::init()
   nvirial = 0;
   vptr = NULL;
 
+  if (pairhybridflag && force->pair) nvirial++;
   if (pairflag && force->pair) nvirial++;
   if (bondflag && atom->molecular && force->bond) nvirial++;
   if (angleflag && atom->molecular && force->angle) nvirial++;
@@ -152,6 +199,11 @@ void ComputePressure::init()
   if (nvirial) {
     vptr = new double*[nvirial];
     nvirial = 0;
+    if (pairhybridflag && force->pair) {
+      PairHybrid *ph = (PairHybrid *) force->pair;
+      ph->no_virial_fdotr_compute = 1;
+      vptr[nvirial++] = pairhybrid->virial;
+    }
     if (pairflag && force->pair) vptr[nvirial++] = force->pair->virial;
     if (bondflag && force->bond) vptr[nvirial++] = force->bond->virial;
     if (angleflag && force->angle) vptr[nvirial++] = force->angle->virial;

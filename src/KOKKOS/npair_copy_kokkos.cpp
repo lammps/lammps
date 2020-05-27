@@ -12,12 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_copy_kokkos.h"
-#include "neighbor.h"
 #include "neigh_list_kokkos.h"
-#include "atom.h"
-#include "atom_vec.h"
-#include "molecule.h"
-#include "domain.h"
 #include "my_page.h"
 #include "error.h"
 
@@ -37,6 +32,24 @@ void NPairCopyKokkos<DeviceType>::build(NeighList *list)
 {
   NeighList *listcopy = list->listcopy;
 
+  if (list->kokkos) {
+    if (!listcopy->kokkos)
+      error->all(FLERR,"Cannot copy non-Kokkos neighbor list to Kokkos neighbor list");
+    copy_to_kokkos(list);
+  } else {
+    if (!listcopy->kokkos)
+      error->all(FLERR,"Missing Kokkos neighbor list for copy");
+    copy_to_cpu(list);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void NPairCopyKokkos<DeviceType>::copy_to_kokkos(NeighList *list)
+{
+  NeighList *listcopy = list->listcopy;
+
   list->inum = listcopy->inum;
   list->gnum = listcopy->gnum;
   list->ilist = listcopy->ilist;
@@ -51,9 +64,65 @@ void NPairCopyKokkos<DeviceType>::build(NeighList *list)
   list_kk->d_neighbors = listcopy_kk->d_neighbors;
 }
 
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void NPairCopyKokkos<DeviceType>::copy_to_cpu(NeighList *list)
+{
+  NeighList *listcopy = list->listcopy;
+  NeighListKokkos<DeviceType>* listcopy_kk = (NeighListKokkos<DeviceType>*) listcopy;
+
+  listcopy_kk->k_ilist.template sync<LMPHostType>();
+  listcopy_kk->k_numneigh.template sync<LMPHostType>();
+  listcopy_kk->k_neighbors.template sync<LMPHostType>();
+
+  int inum = listcopy->inum;
+  int gnum = listcopy->gnum;
+  int inum_all = inum;
+  if (list->ghost) inum_all += gnum;
+  auto h_ilist = listcopy_kk->k_ilist.h_view;
+  auto h_numneigh = listcopy_kk->k_numneigh.h_view;
+  auto h_neighbors = listcopy_kk->k_neighbors.h_view;
+
+  list->inum = inum;
+  list->gnum = gnum;
+  auto ilist = list->ilist;
+  auto numneigh = list->numneigh;
+
+  // Kokkos neighbor data is stored differently than regular CPU,
+  //  must copy element by element
+
+  int *neighptr;
+  int **firstneigh = list->firstneigh;
+  MyPage<int> *ipage = list->ipage;
+  ipage->reset();
+
+  for (int ii = 0; ii < inum_all; ii++) {
+    neighptr = ipage->vget();
+
+    const int i = h_ilist[ii];
+    ilist[ii] = i;
+
+    // loop over Kokkos neighbor list
+
+    const int jnum = h_numneigh[i];
+    numneigh[i] = jnum;
+
+    for (int jj = 0; jj < jnum; jj++) {
+      const int joriginal = h_neighbors(i,jj);
+      neighptr[jj] = joriginal;
+    }
+
+    firstneigh[i] = neighptr;
+    ipage->vgot(jnum);
+    if (ipage->status())
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+  }
+}
+
 namespace LAMMPS_NS {
 template class NPairCopyKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class NPairCopyKokkos<LMPHostType>;
 #endif
 }

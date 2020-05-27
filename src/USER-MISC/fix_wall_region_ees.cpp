@@ -15,19 +15,16 @@
    Contributing author:  Abdoreza Ershadinia, a.ershadinia at gmail.com
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_wall_region_ees.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"
 #include "domain.h"
 #include "region.h"
 #include "force.h"
-#include "lattice.h"
 #include "update.h"
-#include "output.h"
 #include "respa.h"
 #include "error.h"
 #include "math_extra.h"
@@ -149,7 +146,7 @@ void FixWallRegionEES::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallRegionEES::post_force(int vflag)
+void FixWallRegionEES::post_force(int /*vflag*/)
 {
   //sth is needed here, but I dont know what
   //that is calculation of sn
@@ -246,7 +243,7 @@ void FixWallRegionEES::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallRegionEES::post_force_respa(int vflag, int ilevel, int iloop)
+void FixWallRegionEES::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }

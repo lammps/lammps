@@ -1,0 +1,34 @@
+variable  A string bulkNi
+
+boundary        p p p
+
+units		metal
+timestep	0.001
+
+lattice         fcc 3.52
+region          box block 0 20 0 20 0 20
+create_box      1 box
+create_atoms    1 box
+
+pair_style      none
+mass            * 58.71
+atom_modify     sort 0 0
+
+compute         XRD all xrd  1.541838 Ni 2Theta 40 80 c 2 2 2 LP 1 echo
+
+compute         SAED all saed 0.0251  Ni Kmax 0.85 &
+                Zone 0 0 0 c 0.025 0.025 0.025 &
+                dR_Ewald 0.01 echo manual
+
+fix             1 all ave/histo/weight 1 1 1 40 80 200 c_XRD[1] c_XRD[2] &
+                mode vector file $A.hist.xrd
+
+fix             2 all saed/vtk 1 1 1 c_SAED file $A_001.saed 
+
+#dump            1 all custom 1 $A.dump id x y z 
+run             0
+
+unfix           1
+unfix           2
+uncompute       XRD
+uncompute       SAED

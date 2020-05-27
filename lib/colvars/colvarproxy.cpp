@@ -2,13 +2,19 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
 
+#if !defined(WIN32) || defined(__CYGWIN__)
+#include <unistd.h>
+#endif
+#include <cerrno>
+
 #include <sstream>
 #include <cstring>
+#include <cstdio>
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -27,6 +33,7 @@
 
 
 colvarproxy_system::colvarproxy_system()
+  : angstrom_value(0.)
 {
   reset_pbc_lattice();
 }
@@ -35,7 +42,7 @@ colvarproxy_system::colvarproxy_system()
 colvarproxy_system::~colvarproxy_system() {}
 
 
-void colvarproxy_system::add_energy(cvm::real energy) {}
+void colvarproxy_system::add_energy(cvm::real /* energy */) {}
 
 
 void colvarproxy_system::request_total_force(bool yesno)
@@ -60,7 +67,7 @@ bool colvarproxy_system::total_forces_same_step() const
 
 inline int round_to_integer(cvm::real x)
 {
-  return std::floor(x+0.5);
+  return cvm::floor(x+0.5);
 }
 
 
@@ -129,7 +136,10 @@ cvm::rvector colvarproxy_system::position_distance(cvm::atom_pos const &pos1,
 
 
 
-colvarproxy_atoms::colvarproxy_atoms() {}
+colvarproxy_atoms::colvarproxy_atoms()
+{
+  updated_masses_ = updated_charges_ = false;
+}
 
 
 colvarproxy_atoms::~colvarproxy_atoms()
@@ -164,9 +174,9 @@ int colvarproxy_atoms::add_atom_slot(int atom_id)
 }
 
 
-int colvarproxy_atoms::init_atom(cvm::residue_id const &residue,
-                                 std::string const     &atom_name,
-                                 std::string const     &segment_id)
+int colvarproxy_atoms::init_atom(cvm::residue_id const & /* residue */,
+                                 std::string const     & /* atom_name */,
+                                 std::string const     & /* segment_id */)
 {
   cvm::error("Error: initializing an atom by name and residue number is currently not supported.\n",
              COLVARS_NOT_IMPLEMENTED);
@@ -195,9 +205,9 @@ void colvarproxy_atoms::clear_atom(int index)
 }
 
 
-int colvarproxy_atoms::load_atoms(char const *filename,
-                                  cvm::atom_group &atoms,
-                                  std::string const &pdb_field,
+int colvarproxy_atoms::load_atoms(char const * /* filename */,
+                                  cvm::atom_group & /* atoms */,
+                                  std::string const & /* pdb_field */,
                                   double)
 {
   return cvm::error("Error: loading atom identifiers from a file "
@@ -206,10 +216,10 @@ int colvarproxy_atoms::load_atoms(char const *filename,
 }
 
 
-int colvarproxy_atoms::load_coords(char const *filename,
-                                   std::vector<cvm::atom_pos> &pos,
-                                   std::vector<int> const &sorted_ids,
-                                   std::string const &pdb_field,
+int colvarproxy_atoms::load_coords(char const * /* filename */,
+                                   std::vector<cvm::atom_pos> & /* pos */,
+                                   std::vector<int> const & /* sorted_ids */,
+                                   std::string const & /* pdb_field */,
                                    double)
 {
   return cvm::error("Error: loading atomic coordinates from a file "
@@ -260,7 +270,7 @@ int colvarproxy_atom_groups::scalable_group_coms()
 }
 
 
-int colvarproxy_atom_groups::init_atom_group(std::vector<int> const &atoms_ids)
+int colvarproxy_atom_groups::init_atom_group(std::vector<int> const & /* atoms_ids */)
 {
   cvm::error("Error: initializing a group outside of the Colvars module "
              "is currently not supported.\n",
@@ -289,13 +299,23 @@ colvarproxy_smp::colvarproxy_smp()
   omp_lock_state = NULL;
 #if defined(_OPENMP)
   if (smp_thread_id() == 0) {
+    omp_lock_state = reinterpret_cast<void *>(new omp_lock_t);
     omp_init_lock(reinterpret_cast<omp_lock_t *>(omp_lock_state));
   }
 #endif
 }
 
 
-colvarproxy_smp::~colvarproxy_smp() {}
+colvarproxy_smp::~colvarproxy_smp()
+{
+#if defined(_OPENMP)
+  if (smp_thread_id() == 0) {
+    if (omp_lock_state) {
+      delete reinterpret_cast<omp_lock_t *>(omp_lock_state);
+    }
+  }
+#endif
+}
 
 
 int colvarproxy_smp::smp_enabled()
@@ -437,51 +457,6 @@ int colvarproxy_smp::smp_unlock()
 
 
 
-colvarproxy_replicas::colvarproxy_replicas() {}
-
-
-colvarproxy_replicas::~colvarproxy_replicas() {}
-
-
-bool colvarproxy_replicas::replica_enabled()
-{
-  return false;
-}
-
-
-int colvarproxy_replicas::replica_index()
-{
-  return 0;
-}
-
-
-int colvarproxy_replicas::replica_num()
-{
-  return 1;
-}
-
-
-void colvarproxy_replicas::replica_comm_barrier() {}
-
-
-int colvarproxy_replicas::replica_comm_recv(char* msg_data,
-                                            int buf_len,
-                                            int src_rep)
-{
-  return COLVARS_NOT_IMPLEMENTED;
-}
-
-
-int colvarproxy_replicas::replica_comm_send(char* msg_data,
-                                            int msg_len,
-                                            int dest_rep)
-{
-  return COLVARS_NOT_IMPLEMENTED;
-}
-
-
-
-
 colvarproxy_script::colvarproxy_script()
 {
   script = NULL;
@@ -499,25 +474,31 @@ char const *colvarproxy_script::script_obj_to_str(unsigned char *obj)
 }
 
 
+std::vector<std::string> colvarproxy_script::script_obj_to_str_vector(unsigned char * /* obj */)
+{
+  cvm::error("Error: trying to print a script object without a scripting "
+             "language interface.\n", BUG_ERROR);
+  return std::vector<std::string>();
+}
+
+
 int colvarproxy_script::run_force_callback()
 {
   return COLVARS_NOT_IMPLEMENTED;
 }
 
 
-int colvarproxy_script::run_colvar_callback(
-      std::string const &name,
-      std::vector<const colvarvalue *> const &cvcs,
-      colvarvalue &value)
+int colvarproxy_script::run_colvar_callback(std::string const & /* name */,
+					    std::vector<const colvarvalue *> const & /* cvcs */,
+					    colvarvalue & /* value */)
 {
   return COLVARS_NOT_IMPLEMENTED;
 }
 
 
-int colvarproxy_script::run_colvar_gradient_callback(
-      std::string const &name,
-      std::vector<const colvarvalue *> const &cvcs,
-      std::vector<cvm::matrix2d<cvm::real> > &gradient)
+int colvarproxy_script::run_colvar_gradient_callback(std::string const & /* name */,
+						     std::vector<const colvarvalue *> const & /* cvcs */,
+						     std::vector<cvm::matrix2d<cvm::real> > & /* gradient */)
 {
   return COLVARS_NOT_IMPLEMENTED;
 }
@@ -526,7 +507,7 @@ int colvarproxy_script::run_colvar_gradient_callback(
 
 colvarproxy_tcl::colvarproxy_tcl()
 {
-  _tcl_interp = NULL;
+  tcl_interp_ = NULL;
 }
 
 
@@ -555,7 +536,7 @@ char const *colvarproxy_tcl::tcl_obj_to_str(unsigned char *obj)
 int colvarproxy_tcl::tcl_run_force_callback()
 {
 #if defined(COLVARS_TCL)
-  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(_tcl_interp);
+  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(tcl_interp_);
   std::string cmd = std::string("calc_colvar_forces ")
     + cvm::to_str(cvm::step_absolute());
   int err = Tcl_Eval(tcl_interp, cmd.c_str());
@@ -572,13 +553,13 @@ int colvarproxy_tcl::tcl_run_force_callback()
 
 
 int colvarproxy_tcl::tcl_run_colvar_callback(
-                         std::string const &name,
-                         std::vector<const colvarvalue *> const &cvc_values,
-                         colvarvalue &value)
+					     std::string const & name,
+					     std::vector<const colvarvalue *> const & cvc_values,
+					     colvarvalue & value)
 {
 #if defined(COLVARS_TCL)
 
-  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(_tcl_interp);
+  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(tcl_interp_);
   size_t i;
   std::string cmd = std::string("calc_") + name;
   for (i = 0; i < cvc_values.size(); i++) {
@@ -609,13 +590,13 @@ int colvarproxy_tcl::tcl_run_colvar_callback(
 
 
 int colvarproxy_tcl::tcl_run_colvar_gradient_callback(
-                         std::string const &name,
-                         std::vector<const colvarvalue *> const &cvc_values,
-                         std::vector<cvm::matrix2d<cvm::real> > &gradient)
+						      std::string const & name,
+						      std::vector<const colvarvalue *> const & cvc_values,
+						      std::vector<cvm::matrix2d<cvm::real> > & gradient)
 {
 #if defined(COLVARS_TCL)
 
-  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(_tcl_interp);
+  Tcl_Interp *const tcl_interp = reinterpret_cast<Tcl_Interp *>(tcl_interp_);
   size_t i;
   std::string cmd = std::string("calc_") + name + "_gradient";
   for (i = 0; i < cvc_values.size(); i++) {
@@ -683,6 +664,27 @@ std::ostream * colvarproxy_io::output_stream(std::string const &output_name,
   if (cvm::debug()) {
     cvm::log("Using colvarproxy::output_stream()\n");
   }
+
+  std::ostream *os = get_output_stream(output_name);
+  if (os != NULL) return os;
+
+  if (!(mode & (std::ios_base::app | std::ios_base::ate))) {
+    backup_file(output_name);
+  }
+  std::ofstream *osf = new std::ofstream(output_name.c_str(), mode);
+  if (!osf->is_open()) {
+    cvm::error("Error: cannot write to file/channel \""+output_name+"\".\n",
+               FILE_ERROR);
+    return NULL;
+  }
+  output_stream_names.push_back(output_name);
+  output_files.push_back(osf);
+  return osf;
+}
+
+
+std::ostream *colvarproxy_io::get_output_stream(std::string const &output_name)
+{
   std::list<std::ostream *>::iterator osi  = output_files.begin();
   std::list<std::string>::iterator    osni = output_stream_names.begin();
   for ( ; osi != output_files.end(); osi++, osni++) {
@@ -690,19 +692,9 @@ std::ostream * colvarproxy_io::output_stream(std::string const &output_name,
       return *osi;
     }
   }
-  if (!(mode & (std::ios_base::app | std::ios_base::ate))) {
-    backup_file(output_name);
-  }
-  std::ofstream *os = new std::ofstream(output_name.c_str(), mode);
-  if (!os->is_open()) {
-    cvm::error("Error: cannot write to file/channel \""+output_name+"\".\n",
-               FILE_ERROR);
-    return NULL;
-  }
-  output_stream_names.push_back(output_name);
-  output_files.push_back(os);
-  return os;
+  return NULL;
 }
+
 
 
 int colvarproxy_io::flush_output_stream(std::ostream *os)
@@ -738,9 +730,64 @@ int colvarproxy_io::close_output_stream(std::string const &output_name)
 }
 
 
-int colvarproxy_io::backup_file(char const *filename)
+int colvarproxy_io::backup_file(char const * /* filename */)
 {
+  // TODO implement this using rename_file()
   return COLVARS_NOT_IMPLEMENTED;
+}
+
+
+int colvarproxy_io::remove_file(char const *filename)
+{
+  int error_code = COLVARS_OK;
+#if defined(WIN32) && !defined(__CYGWIN__)
+  // Because the file may be open by other processes, rename it to filename.old
+  std::string const renamed_file(std::string(filename)+".old");
+  // It may still be there from an interrupted run, so remove it to be safe
+  std::remove(renamed_file.c_str());
+  int rename_exit_code = 0;
+  while ((rename_exit_code = std::rename(filename,
+                                         renamed_file.c_str())) != 0) {
+    if (errno == EINTR) continue;
+    error_code |= FILE_ERROR;
+    break;
+  }
+  // Ask to remove filename.old, but ignore any errors raised
+  std::remove(renamed_file.c_str());
+#else
+  if (std::remove(filename)) {
+    if (errno != ENOENT) {
+      error_code |= FILE_ERROR;
+    }
+  }
+#endif
+  if (error_code != COLVARS_OK) {
+    return cvm::error("Error: in removing file \""+std::string(filename)+
+                      "\".\n.",
+                      error_code);
+  }
+  return COLVARS_OK;
+}
+
+
+int colvarproxy_io::rename_file(char const *filename, char const *newfilename)
+{
+  int error_code = COLVARS_OK;
+#if defined(WIN32) && !defined(__CYGWIN__)
+  // On straight Windows, must remove the destination before renaming it
+  error_code |= remove_file(newfilename);
+#endif
+  int rename_exit_code = 0;
+  while ((rename_exit_code = std::rename(filename, newfilename)) != 0) {
+    if (errno == EINTR) continue;
+    // Call log() instead of error to allow the next try
+    cvm::log("Error: in renaming file \""+std::string(filename)+"\" to \""+
+             std::string(newfilename)+"\".\n.");
+    error_code |= FILE_ERROR;
+    if (errno == EXDEV) continue;
+    break;
+  }
+  return rename_exit_code ? error_code : COLVARS_OK;
 }
 
 
@@ -805,4 +852,3 @@ int colvarproxy::get_version_from_string(char const *version_string)
   is >> newint;
   return newint;
 }
-

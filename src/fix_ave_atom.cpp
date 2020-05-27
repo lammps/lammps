@@ -11,11 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_ave_atom.h"
 #include <cstdlib>
 #include <cstring>
-#include "fix_ave_atom.h"
 #include "atom.h"
-#include "domain.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
@@ -283,7 +282,7 @@ void FixAveAtom::init()
    only does something if nvalid = current timestep
 ------------------------------------------------------------------------- */
 
-void FixAveAtom::setup(int vflag)
+void FixAveAtom::setup(int /*vflag*/)
 {
   end_of_step();
 }
@@ -432,7 +431,7 @@ void FixAveAtom::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixAveAtom::copy_arrays(int i, int j, int delflag)
+void FixAveAtom::copy_arrays(int i, int j, int /*delflag*/)
 {
   for (int m = 0; m < nvalues; m++)
     array[j][m] = array[i][m];

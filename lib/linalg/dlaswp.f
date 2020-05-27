@@ -2,24 +2,24 @@
 *
 *  =========== DOCUMENTATION ===========
 *
-* Online html documentation available at 
-*            http://www.netlib.org/lapack/explore-html/ 
+* Online html documentation available at
+*            http://www.netlib.org/lapack/explore-html/
 *
 *> \htmlonly
-*> Download DLASWP + dependencies 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dlaswp.f"> 
-*> [TGZ]</a> 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dlaswp.f"> 
-*> [ZIP]</a> 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dlaswp.f"> 
+*> Download DLASWP + dependencies
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dlaswp.f">
+*> [TGZ]</a>
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dlaswp.f">
+*> [ZIP]</a>
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dlaswp.f">
 *> [TXT]</a>
-*> \endhtmlonly 
+*> \endhtmlonly
 *
 *  Definition:
 *  ===========
 *
 *       SUBROUTINE DLASWP( N, A, LDA, K1, K2, IPIV, INCX )
-* 
+*
 *       .. Scalar Arguments ..
 *       INTEGER            INCX, K1, K2, LDA, N
 *       ..
@@ -27,7 +27,7 @@
 *       INTEGER            IPIV( * )
 *       DOUBLE PRECISION   A( LDA, * )
 *       ..
-*  
+*
 *
 *> \par Purpose:
 *  =============
@@ -71,34 +71,35 @@
 *> \param[in] K2
 *> \verbatim
 *>          K2 is INTEGER
-*>          The last element of IPIV for which a row interchange will
-*>          be done.
+*>          (K2-K1+1) is the number of elements of IPIV for which a row
+*>          interchange will be done.
 *> \endverbatim
 *>
 *> \param[in] IPIV
 *> \verbatim
-*>          IPIV is INTEGER array, dimension (K2*abs(INCX))
-*>          The vector of pivot indices.  Only the elements in positions
-*>          K1 through K2 of IPIV are accessed.
-*>          IPIV(K) = L implies rows K and L are to be interchanged.
+*>          IPIV is INTEGER array, dimension (K1+(K2-K1)*abs(INCX))
+*>          The vector of pivot indices. Only the elements in positions
+*>          K1 through K1+(K2-K1)*abs(INCX) of IPIV are accessed.
+*>          IPIV(K1+(K-K1)*abs(INCX)) = L implies rows K and L are to be
+*>          interchanged.
 *> \endverbatim
 *>
 *> \param[in] INCX
 *> \verbatim
 *>          INCX is INTEGER
-*>          The increment between successive values of IPIV.  If IPIV
+*>          The increment between successive values of IPIV. If INCX
 *>          is negative, the pivots are applied in reverse order.
 *> \endverbatim
 *
 *  Authors:
 *  ========
 *
-*> \author Univ. of Tennessee 
-*> \author Univ. of California Berkeley 
-*> \author Univ. of Colorado Denver 
-*> \author NAG Ltd. 
+*> \author Univ. of Tennessee
+*> \author Univ. of California Berkeley
+*> \author Univ. of Colorado Denver
+*> \author NAG Ltd.
 *
-*> \date September 2012
+*> \date June 2017
 *
 *> \ingroup doubleOTHERauxiliary
 *
@@ -114,10 +115,10 @@
 *  =====================================================================
       SUBROUTINE DLASWP( N, A, LDA, K1, K2, IPIV, INCX )
 *
-*  -- LAPACK auxiliary routine (version 3.4.2) --
+*  -- LAPACK auxiliary routine (version 3.7.1) --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     September 2012
+*     June 2017
 *
 *     .. Scalar Arguments ..
       INTEGER            INCX, K1, K2, LDA, N
@@ -135,7 +136,8 @@
 *     ..
 *     .. Executable Statements ..
 *
-*     Interchange row I with row IPIV(I) for each of rows K1 through K2.
+*     Interchange row I with row IPIV(K1+(I-K1)*abs(INCX)) for each of rows
+*     K1 through K2.
 *
       IF( INCX.GT.0 ) THEN
          IX0 = K1
@@ -143,7 +145,7 @@
          I2 = K2
          INC = 1
       ELSE IF( INCX.LT.0 ) THEN
-         IX0 = 1 + ( 1-K2 )*INCX
+         IX0 = K1 + ( K1-K2 )*INCX
          I1 = K2
          I2 = K1
          INC = -1

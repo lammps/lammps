@@ -15,13 +15,12 @@
    Contributing authors: Mark Stevens (SNL), Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
+#include "omp_compat.h"
 #include "respa_omp.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "atom.h"
+#include "domain.h"
 #include "force.h"
 #include "pair.h"
 #include "bond.h"
@@ -32,11 +31,8 @@
 #include "output.h"
 #include "update.h"
 #include "modify.h"
-#include "compute.h"
-#include "fix_respa.h"
-#include "timer.h"
-#include "memory.h"
 #include "error.h"
+#include "timer.h"
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -151,7 +147,7 @@ void RespaOMP::setup(int flag)
       const int nall = atom->nlocal + atom->nghost;
       const int nthreads = comm->nthreads;
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
       {
 #if defined(_OPENMP)
@@ -246,7 +242,7 @@ void RespaOMP::setup_minimal(int flag)
       const int nall = atom->nlocal + atom->nghost;
       const int nthreads = comm->nthreads;
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
       {
 #if defined(_OPENMP)
@@ -399,7 +395,7 @@ void RespaOMP::recurse(int ilevel)
       const int nall = atom->nlocal + atom->nghost;
       const int nthreads = comm->nthreads;
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
       {
 #if defined(_OPENMP)

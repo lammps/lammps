@@ -27,20 +27,16 @@
    - MacKerell et al., J. Comput. Chem. 25(2004):1400-1415.
 ------------------------------------------------------------------------- */
 
+#include "fix_cmap.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include <cstdio>
-#include "fix_cmap.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "update.h"
 #include "respa.h"
-#include "modify.h"
 #include "domain.h"
 #include "force.h"
-#include "group.h"
 #include "comm.h"
 #include "math_const.h"
 #include "memory.h"
@@ -295,7 +291,7 @@ void FixCMAP::pre_neighbor()
    store eflag, so can use it in post_force to tally per-atom energies
 ------------------------------------------------------------------------- */
 
-void FixCMAP::pre_reverse(int eflag, int vflag)
+void FixCMAP::pre_reverse(int eflag, int /*vflag*/)
 {
   eflag_caller = eflag;
 }
@@ -341,8 +337,7 @@ void FixCMAP::post_force(int vflag)
 
   ecmap = 0.0;
   int eflag = eflag_caller;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   for (n = 0; n < ncrosstermlist; n++) {
     i1 = crosstermlist[n][0];
@@ -604,7 +599,7 @@ void FixCMAP::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixCMAP::post_force_respa(int vflag, int ilevel, int iloop)
+void FixCMAP::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }
@@ -644,7 +639,7 @@ void FixCMAP::read_grid_map(char *cmapfile)
     fp = force->open_potential(cmapfile);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open fix cmap file %s",cmapfile);
+      snprintf(str,128,"Cannot open fix cmap file %s",cmapfile);
       error->one(FLERR,str);
     }
   }
@@ -943,7 +938,7 @@ double FixCMAP::dihedral_angle_atan2(double fx, double fy, double fz,
 {
   // calculate the dihedral angle
 
-  double angle, arg1, arg2;
+  double angle = 0.0, arg1, arg2;
 
   arg1 = absg*(fx*bx+fy*by+fz*bz);
   arg2 = ax*bx+ay*by+az*bz;
@@ -1076,7 +1071,7 @@ void FixCMAP::read_data_section(char *keyword, int n, char *buf,
 
   if (nwords != 7) {
     char str[128];
-    sprintf(str,"Incorrect %s format in data file",keyword);
+    snprintf(str,128,"Incorrect %s format in data file",keyword);
     error->all(FLERR,str);
   }
 
@@ -1163,7 +1158,7 @@ void FixCMAP::read_data_section(char *keyword, int n, char *buf,
 
 /* ---------------------------------------------------------------------- */
 
-bigint FixCMAP::read_data_skip_lines(char *keyword)
+bigint FixCMAP::read_data_skip_lines(char * /*keyword*/)
 {
   return ncmap;
 }
@@ -1173,7 +1168,7 @@ bigint FixCMAP::read_data_skip_lines(char *keyword)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void FixCMAP::write_data_header(FILE *fp, int mth)
+void FixCMAP::write_data_header(FILE *fp, int /*mth*/)
 {
   fprintf(fp,BIGINT_FORMAT " cmap crossterms\n",ncmap);
 }
@@ -1186,7 +1181,7 @@ void FixCMAP::write_data_header(FILE *fp, int mth)
    ny = columns = type + 5 atom IDs
 ------------------------------------------------------------------------- */
 
-void FixCMAP::write_data_section_size(int mth, int &nx, int &ny)
+void FixCMAP::write_data_section_size(int /*mth*/, int &nx, int &ny)
 {
   int i,m;
 
@@ -1206,7 +1201,7 @@ void FixCMAP::write_data_section_size(int mth, int &nx, int &ny)
    buf allocated by caller as owned crossterms by 6
 ------------------------------------------------------------------------- */
 
-void FixCMAP::write_data_section_pack(int mth, double **buf)
+void FixCMAP::write_data_section_pack(int /*mth*/, double **buf)
 {
   int i,m;
 
@@ -1237,7 +1232,7 @@ void FixCMAP::write_data_section_pack(int mth, double **buf)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void FixCMAP::write_data_section_keyword(int mth, FILE *fp)
+void FixCMAP::write_data_section_keyword(int /*mth*/, FILE *fp)
 {
   fprintf(fp,"\nCMAP\n\n");
 }
@@ -1249,7 +1244,7 @@ void FixCMAP::write_data_section_keyword(int mth, FILE *fp)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void FixCMAP::write_data_section(int mth, FILE *fp,
+void FixCMAP::write_data_section(int /*mth*/, FILE *fp,
                                   int n, double **buf, int index)
 {
   for (int i = 0; i < n; i++)
@@ -1383,7 +1378,7 @@ void FixCMAP::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixCMAP::copy_arrays(int i, int j, int delflag)
+void FixCMAP::copy_arrays(int i, int j, int /*delflag*/)
 {
   num_crossterm[j] = num_crossterm[i];
 

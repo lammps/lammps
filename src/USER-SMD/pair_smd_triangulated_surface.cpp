@@ -26,20 +26,15 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_smd_triangulated_surface.h"
+#include <mpi.h>
 #include <cmath>
-#include <cfloat>
 #include <cstdlib>
 #include <cstring>
-#include <cstdio>
-#include <iostream>
 #include <Eigen/Eigen>
-#include "pair_smd_triangulated_surface.h"
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -96,10 +91,7 @@ void PairTriSurf::compute(int eflag, int vflag) {
         Vector2d w2d, rhs;
 
         evdwl = 0.0;
-        if (eflag || vflag)
-                ev_setup(eflag, vflag);
-        else
-                evflag = vflag_fdotr = 0;
+        ev_init(eflag, vflag);
 
         tagint *mol = atom->molecule;
         double **f = atom->f;
@@ -489,7 +481,7 @@ double PairTriSurf::memory_usage() {
  % Release: 1.2 Fixed Bug because of typo in region 5 20101013
  % Release: 1.3 Fixed Bug because of typo in region 2 20101014
 
- % Possible extention could be a version tailored not to return the distance
+ % Possible extension could be a version tailored not to return the distance
  % and additionally the closest point, but instead return only the closest
  % point. Could lead to a small speed gain.
 
@@ -834,7 +826,7 @@ double PairTriSurf::clamp(const double a, const double min, const double max) {
         }
 }
 
-void *PairTriSurf::extract(const char *str, int &i) {
+void *PairTriSurf::extract(const char *str, int &/*i*/) {
         //printf("in PairTriSurf::extract\n");
         if (strcmp(str, "smd/tri_surface/stable_time_increment_ptr") == 0) {
                 return (void *) &stable_time_increment;

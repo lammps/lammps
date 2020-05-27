@@ -26,13 +26,16 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
+#include "reaxc_valence_angles_omp.h"
+#include <mpi.h>
+#include <cmath>
 #include "pair_reaxc_omp.h"
-#include "thr_data.h"
+#include "fix_omp.h"
+#include "error.h"
 
+#include "reaxc_defs.h"
 #include "reaxc_types.h"
 #include "reaxc_valence_angles.h"
-#include "reaxc_valence_angles_omp.h"
-#include "reaxc_bond_orders_omp.h"
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
 
@@ -100,7 +103,7 @@ void Calculate_dCos_ThetaOMP( rvec dvec_ji, double d_ji, rvec dvec_jk, double d_
    played by j which sits in the middle of the other two. */
 void Valence_AnglesOMP( reax_system *system, control_params *control,
                         simulation_data *data, storage *workspace,
-                        reax_list **lists, output_controls *out_control )
+                        reax_list **lists, output_controls * /* out_control */)
 {
 
 #ifdef OMP_TIMING
@@ -237,12 +240,12 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
 
       // Confirm that thb_intrs->num_intrs / nthreads is enough to hold all angles from a single atom
       if(my_offset >= (tid+1)*per_thread) {
-        int me;
-        MPI_Comm_rank(MPI_COMM_WORLD,&me);
-        fprintf( stderr, "step%d-ran out of space on angle_list on proc %i for atom %i:", data->step, me, j);
-        fprintf( stderr, " nthreads= %d, tid=%d, my_offset=%d, per_thread=%d\n", nthreads, tid, my_offset, per_thread);
-        fprintf( stderr, " num_intrs= %i  N= %i\n",thb_intrs->num_intrs , system->N);
-        MPI_Abort( MPI_COMM_WORLD, INSUFFICIENT_MEMORY );
+        char errmsg[512];
+        snprintf( errmsg, 512, "step%d-ran out of space on angle_list for atom %i:\n"
+        " nthreads= %d, tid=%d, my_offset=%d, per_thread=%d\n"
+        " num_intrs= %i  N= %i\n"
+        , data->step, j, nthreads, tid, my_offset, per_thread,thb_intrs->num_intrs , system->N);
+        control->error_ptr->one(FLERR, errmsg);
       }
 
       // Number of angles owned by this atom
@@ -308,11 +311,10 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
       }
 
       // modifications to match Adri's code - 09/01/09
-      if( workspace->vlpex[j] >= 0 ){
+      if (workspace->vlpex[j] >= 0) {
         vlpadj = 0;
         dSBO2 = prod_SBO - 1;
-      }
-      else{
+      } else {
         vlpadj = workspace->nlp[j];
         dSBO2 = (prod_SBO - 1) * (1 - p_val8 * workspace->dDelta_lp[j]);
       }
@@ -320,13 +322,13 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
       SBO = SBOp + (1 - prod_SBO) * (-workspace->Delta_boc[j] - p_val8 * vlpadj);
       dSBO1 = -8 * prod_SBO * ( workspace->Delta_boc[j] + p_val8 * vlpadj );
 
-      if( SBO <= 0 )
+      if (SBO <= 0)
         SBO2 = 0, CSBO2 = 0;
-      else if( SBO > 0 && SBO <= 1 ) {
+      else if (SBO > 0 && SBO <= 1) {
         SBO2 = pow( SBO, p_val9 );
         CSBO2 = p_val9 * pow( SBO, p_val9 - 1 );
       }
-      else if( SBO > 1 && SBO < 2 ) {
+      else if (SBO > 1 && SBO < 2) {
         SBO2 = 2 - pow( 2-SBO, p_val9 );
         CSBO2 = p_val9 * pow( 2 - SBO, p_val9 - 1 );
       }
@@ -399,7 +401,7 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
             p_ijk->theta = theta;
 
             sin_theta = sin( theta );
-            if( sin_theta < 1.0e-5 )
+            if (sin_theta < 1.0e-5)
               sin_theta = 1.0e-5;
 
             ++my_offset; // add this  to the list of 3-body interactions
@@ -413,7 +415,7 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
 
               for (cnt = 0; cnt < thbh->cnt; ++cnt) {
 
-                if( fabs(thbh->prm[cnt].p_val1) > 0.001 ) {
+                if (fabs(thbh->prm[cnt].p_val1) > 0.001) {
                   thbp = &( thbh->prm[cnt] );
 
                   /* ANGLE ENERGY */
@@ -537,14 +539,13 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
                     bo_jt->Cdbopi2 += CEval5;
                   }
 
-                  if( control->virial == 0 ) {
+                  if (control->virial == 0) {
                     rvec_ScaledAdd( workspace->f[j], CEval8, p_ijk->dcos_dj );
                     rvec_ScaledAdd( workspace->forceReduction[reductionOffset+i],
                                     CEval8, p_ijk->dcos_di );
                     rvec_ScaledAdd( workspace->forceReduction[reductionOffset+k],
                                     CEval8, p_ijk->dcos_dk );
-                  }
-                  else {
+                  } else {
                     /* terms not related to bond order derivatives are
                        added directly into forces and pressure vector/tensor */
                     rvec_Scale( force, CEval8, p_ijk->dcos_di );
@@ -563,7 +564,7 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
                   }
 
                   /* tally into per-atom virials */
-                  if( system->pair_ptr->vflag_atom || system->pair_ptr->evflag) {
+                  if (system->pair_ptr->vflag_atom || system->pair_ptr->evflag) {
 
                     /* Acquire vectors */
                     rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
@@ -577,10 +578,10 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
 
                     eng_tmp = e_ang + e_pen + e_coa;
 
-                    if( system->pair_ptr->evflag)
+                    if (system->pair_ptr->evflag)
                       pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, j, j, system->N, 1,
                                                         eng_tmp, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
-                    if( system->pair_ptr->vflag_atom)
+                    if (system->pair_ptr->vflag_atom)
                       // NEED TO MAKE AN OMP VERSION OF THIS CALL!
                       system->pair_ptr->v_tally3( i, j, k, fi_tmp, fk_tmp, delij, delkj);
                   }
@@ -600,12 +601,13 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
   data->my_en.e_pen = total_Epen;
   data->my_en.e_coa = total_Ecoa;
 
-  if( num_thb_intrs >= thb_intrs->num_intrs * DANGER_ZONE ) {
+  if (num_thb_intrs >= thb_intrs->num_intrs * DANGER_ZONE) {
     workspace->realloc.num_3body = num_thb_intrs * TWICE;
-    if( num_thb_intrs > thb_intrs->num_intrs ) {
-      fprintf( stderr, "step%d-ran out of space on angle_list: top=%d, max=%d",
-               data->step, num_thb_intrs, thb_intrs->num_intrs );
-      MPI_Abort( MPI_COMM_WORLD, INSUFFICIENT_MEMORY );
+    if (num_thb_intrs > thb_intrs->num_intrs) {
+      char errmsg[128];
+      snprintf(errmsg, 128, "step%d-ran out of space on angle_list: top=%d, max=%d",
+               data->step, num_thb_intrs, thb_intrs->num_intrs);
+      control->error_ptr->one(FLERR, errmsg);
     }
   }
 

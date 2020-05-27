@@ -11,19 +11,16 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "lammps.h"
+#include <mpi.h>
 #include "input.h"
-#include "error.h"
-#include <cstdio>
-#include <cstdlib>
 
 #if defined(LAMMPS_TRAP_FPE) && defined(_GNU_SOURCE)
 #include <fenv.h>
 #endif
 
-#ifdef FFT_FFTW3
-#include <fftw3.h>
+#if defined(LAMMPS_EXCEPTIONS)
+#include "exceptions.h"
 #endif
 
 using namespace LAMMPS_NS;
@@ -66,14 +63,4 @@ int main(int argc, char **argv)
 #endif
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();
-
-#ifdef FFT_FFTW3
-  // tell fftw3 to delete its global memory pool
-  // and thus avoid bogus valgrind memory leak reports
-#ifdef FFT_SINGLE
-  fftwf_cleanup();
-#else
-  fftw_cleanup();
-#endif
-#endif
 }

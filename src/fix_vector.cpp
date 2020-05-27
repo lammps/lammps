@@ -11,13 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_vector.h"
+#include <cstdlib>
+#include <cstring>
 #include "update.h"
 #include "force.h"
 #include "modify.h"
 #include "compute.h"
-#include "group.h"
 #include "input.h"
 #include "variable.h"
 #include "memory.h"
@@ -239,7 +239,7 @@ void FixVector::init()
    only does something if nvalid = current timestep
 ------------------------------------------------------------------------- */
 
-void FixVector::setup(int vflag)
+void FixVector::setup(int /*vflag*/)
 {
   end_of_step();
 }

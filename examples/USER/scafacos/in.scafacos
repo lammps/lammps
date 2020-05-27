@@ -1,0 +1,37 @@
+# Point dipoles in a 2d box
+
+units		lj
+atom_style  charge	
+
+read_data data.NaCl
+
+replicate 8 8 8
+
+velocity	all create 1.5 49893
+
+neighbor	1.0 bin
+neigh_modify	delay 0
+
+fix             1 all nve
+
+# LAMMPS computes pairwise and long-range Coulombics
+
+#pair_style      coul/long 3.0
+#pair_coeff      * *
+#kspace_style    pppm 1.0e-3
+
+# Scafacos computes entire long-range Coulombics
+# use dummy pair style to perform atom sorting
+
+pair_style	zero 1.0
+pair_coeff	* * 
+
+#fix		2 all scafacos p3m tolerance field 0.001
+
+kspace_style    scafacos p3m 0.001
+#kspace_style    scafacos tolerance field 
+
+timestep	0.005
+thermo          10
+
+run		100

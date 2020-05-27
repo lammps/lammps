@@ -15,9 +15,9 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
+#include "math_extra.h"
 #include <cstdio>
 #include <cstring>
-#include "math_extra.h"
 
 #define MAXJACOBI 50
 
@@ -56,7 +56,7 @@ int mldivide3(const double m[3][3], const double *v, double *ans)
       if (fabs(aug[j][i]) > fabs(aug[i][i])) {
         double tempv[4];
         memcpy(tempv,aug[i],4*sizeof(double));
-        memcpy(aug[i],aug[j],4*sizeof(double));
+        memmove(aug[i],aug[j],4*sizeof(double));
         memcpy(aug[j],tempv,4*sizeof(double));
       }
     }
@@ -68,7 +68,7 @@ int mldivide3(const double m[3][3], const double *v, double *ans)
       if (p != i) {
         double tempv[4];
         memcpy(tempv,aug[i],4*sizeof(double));
-        memcpy(aug[i],aug[p],4*sizeof(double));
+        memmove(aug[i],aug[p],4*sizeof(double));
         memcpy(aug[p],tempv,4*sizeof(double));
       }
 
@@ -590,7 +590,7 @@ void inertia_triangle(double *v0, double *v1, double *v2,
    return symmetric inertia tensor as 6-vector in Voigt notation
 ------------------------------------------------------------------------- */
 
-void inertia_triangle(double *idiag, double *quat, double mass,
+void inertia_triangle(double *idiag, double *quat, double /*mass*/,
                       double *inertia)
 {
   double p[3][3],ptrans[3][3],itemp[3][3],tensor[3][3];

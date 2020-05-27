@@ -234,7 +234,7 @@ int NPairSSAKokkosExecute<DeviceType>::exclusion(const int &i,const int &j,
 
 /* ----------------------------------------------------------------------
    binned neighbor list construction with full Newton's 3rd law
-   for use by Shardlow Spliting Algorithm
+   for use by Shardlow Splitting Algorithm
    each owned atom i checks its own bin and other bins in Newton stencil
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
@@ -519,6 +519,8 @@ fprintf(stdout, "Fina%03d %6d inum %6d gnum, total used %6d, allocated %6d\n"
 #endif
 
   list->k_ilist.template modify<DeviceType>();
+  list->k_numneigh.template modify<DeviceType>();
+  list->k_neighbors.template modify<DeviceType>();
 }
 
 
@@ -588,7 +590,7 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals_onePhase(const bool firstTr
                 if (which == 0){
                   if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
                   else n++;
-                }else if (minimum_image_check(delx,dely,delz)){
+                } else if (minimum_image_check(delx,dely,delz)){
                   if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
                   else n++;
                 }
@@ -715,7 +717,7 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts_onePhase(int workPhase) con
                 if (which == 0){
                   if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
                   else n++;
-                }else if (minimum_image_check(delx,dely,delz)){
+                } else if (minimum_image_check(delx,dely,delz)){
                   if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
                   else n++;
                 }
@@ -751,7 +753,7 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts_onePhase(int workPhase) con
 
 namespace LAMMPS_NS {
 template class NPairSSAKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class NPairSSAKokkos<LMPHostType>;
 #endif
 }

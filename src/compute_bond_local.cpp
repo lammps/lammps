@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_bond_local.h"
 #include <cmath>
 #include <cstring>
-#include "compute_bond_local.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
@@ -21,8 +21,10 @@
 #include "domain.h"
 #include "force.h"
 #include "bond.h"
-#include "math_extra.h"
 #include "comm.h"
+#include "input.h"
+#include "variable.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "error.h"
 
@@ -31,13 +33,13 @@ using namespace LAMMPS_NS;
 #define DELTA 10000
 #define EPSILON 1.0e-12
 
-enum{DIST,VELVIB,OMEGA,ENGTRANS,ENGVIB,ENGROT,ENGPOT,FORCE};
+enum{DIST,VELVIB,OMEGA,ENGTRANS,ENGVIB,ENGROT,ENGPOT,FORCE,FX,FY,FZ,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
 ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  bstyle(NULL), vlocal(NULL), alocal(NULL)
+  bstyle(NULL), vvar(NULL), dstr(NULL), vstr(NULL), vlocal(NULL), alocal(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute bond/local command");
 
@@ -47,24 +49,80 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   local_flag = 1;
   comm_forward = 3;
 
-  nvalues = narg - 3;
-  if (nvalues == 1) size_local_cols = 0;
-  else size_local_cols = nvalues;
+  // style args
 
+  nvalues = narg - 3;
   bstyle = new int[nvalues];
+  vstr = new char*[nvalues];
+  vvar = new int[nvalues];
 
   nvalues = 0;
-  for (int iarg = 3; iarg < narg; iarg++) {
+  nvar = 0;
+
+  int iarg;
+  for (iarg = 3; iarg < narg; iarg++) {
     if (strcmp(arg[iarg],"dist") == 0) bstyle[nvalues++] = DIST;
     else if (strcmp(arg[iarg],"engpot") == 0) bstyle[nvalues++] = ENGPOT;
     else if (strcmp(arg[iarg],"force") == 0) bstyle[nvalues++] = FORCE;
+    else if (strcmp(arg[iarg],"fx") == 0) bstyle[nvalues++] = FX;
+    else if (strcmp(arg[iarg],"fy") == 0) bstyle[nvalues++] = FY;
+    else if (strcmp(arg[iarg],"fz") == 0) bstyle[nvalues++] = FZ;
     else if (strcmp(arg[iarg],"engvib") == 0) bstyle[nvalues++] = ENGVIB;
     else if (strcmp(arg[iarg],"engrot") == 0) bstyle[nvalues++] = ENGROT;
     else if (strcmp(arg[iarg],"engtrans") == 0) bstyle[nvalues++] = ENGTRANS;
     else if (strcmp(arg[iarg],"omega") == 0) bstyle[nvalues++] = OMEGA;
     else if (strcmp(arg[iarg],"velvib") == 0) bstyle[nvalues++] = VELVIB;
-    else error->all(FLERR,"Invalid keyword in compute bond/local command");
+    else if (strncmp(arg[iarg],"v_",2) == 0) {
+      bstyle[nvalues++] = VARIABLE;
+      int n = strlen(arg[iarg]);
+      vstr[nvar] = new char[n];
+      strcpy(vstr[nvar],&arg[iarg][2]);
+      nvar++;
+    } else break;
   }
+
+  // optional args
+
+  setflag = 0;
+  dstr = NULL;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"set") == 0) {
+      setflag = 1;
+      if (iarg+3 > narg) error->all(FLERR,"Illegal compute bond/local command");
+      if (strcmp(arg[iarg+1],"dist") == 0) {
+        delete [] dstr;
+        int n = strlen(arg[iarg+2]) + 1;
+        dstr = new char[n];
+        strcpy(dstr,arg[iarg+2]);
+      } else error->all(FLERR,"Illegal compute bond/local command");
+      iarg += 3;
+    } else error->all(FLERR,"Illegal compute bond/local command");
+  }
+
+  // error check
+
+  if (nvar) {
+    if (!setflag)
+      error->all(FLERR,"Compute bond/local variable requires a set variable");
+    for (int i = 0; i < nvar; i++) {
+      vvar[i] = input->variable->find(vstr[i]);
+      if (vvar[i] < 0)
+        error->all(FLERR,"Variable name for copute bond/local does not exist");
+      if (!input->variable->equalstyle(vvar[i]))
+        error->all(FLERR,"Variable for compute bond/local is invalid style");
+    }
+
+    if (dstr) {
+      dvar = input->variable->find(dstr);
+      if (dvar < 0)
+        error->all(FLERR,"Variable name for compute bond/local does not exist");
+      if (!input->variable->internalstyle(dvar))
+        error->all(FLERR,"Variable for compute bond/local is invalid style");
+    }
+  } else if (setflag)
+    error->all(FLERR,"Compute bond/local set with no variable");
+
 
   // set singleflag if need to call bond->single()
   // set velflag if compute any quantities based on velocities
@@ -72,10 +130,16 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   singleflag = 0;
   velflag = 0;
   for (int i = 0; i < nvalues; i++) {
-    if (bstyle[i] == ENGPOT || bstyle[i] == FORCE) singleflag = 1;
+    if (bstyle[i] == ENGPOT || bstyle[i] == FORCE || bstyle[i] == FX       ||
+        bstyle[i] == FY     || bstyle[i] == FZ) singleflag = 1;
     if (bstyle[i] == VELVIB || bstyle[i] == OMEGA || bstyle[i] == ENGTRANS ||
         bstyle[i] == ENGVIB || bstyle[i] == ENGROT) velflag = 1;
   }
+
+  // initialize output
+
+  if (nvalues == 1) size_local_cols = 0;
+  else size_local_cols = nvalues;
 
   nmax = 0;
   vlocal = NULL;
@@ -86,9 +150,15 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeBondLocal::~ComputeBondLocal()
 {
+  delete [] bstyle;
+  for (int i = 0; i < nvar; i++) delete [] vstr[i];
+  delete [] vstr;
+  delete [] vvar;
+
+  delete [] dstr;
+
   memory->destroy(vlocal);
   memory->destroy(alocal);
-  delete [] bstyle;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -97,6 +167,20 @@ void ComputeBondLocal::init()
 {
   if (force->bond == NULL)
     error->all(FLERR,"No bond style is defined for compute bond/local");
+
+  if (nvar) {
+    for (int i = 0; i < nvar; i++) {
+      vvar[i] = input->variable->find(vstr[i]);
+      if (vvar[i] < 0)
+        error->all(FLERR,"Variable name for compute bond/local does not exist");
+    }
+
+    if (dstr) {
+      dvar = input->variable->find(dstr);
+      if (dvar < 0)
+        error->all(FLERR,"Variable name for compute bond/local does not exist");
+    }
+  }
 
   // set ghostvelflag if need to acquire ghost atom velocities
 
@@ -140,7 +224,7 @@ void ComputeBondLocal::compute_local()
 
 int ComputeBondLocal::compute_bonds(int flag)
 {
-  int i,m,n,nb,atom1,atom2,imol,iatom,btype;
+  int i,m,n,nb,atom1,atom2,imol,iatom,btype,ivar;
   tagint tagprev;
   double dx,dy,dz,rsq;
   double mass1,mass2,masstotal,invmasstotal;
@@ -297,6 +381,11 @@ int ComputeBondLocal::compute_bonds(int flag)
         if (nvalues == 1) ptr = &vlocal[m];
         else ptr = alocal[m];
 
+        if (nvar) {
+          ivar = 0;
+          if (dstr) input->variable->internal_set(dvar,sqrt(rsq));
+        }
+
         for (n = 0; n < nvalues; n++) {
           switch (bstyle[n]) {
           case DIST:
@@ -307,6 +396,15 @@ int ComputeBondLocal::compute_bonds(int flag)
             break;
           case FORCE:
             ptr[n] = sqrt(rsq)*fbond;
+            break;
+          case FX:
+            ptr[n] = dx*fbond;
+            break;
+          case FY:
+            ptr[n] = dy*fbond;
+            break;
+          case FZ:
+            ptr[n] = dz*fbond;
             break;
           case ENGVIB:
             ptr[n] = engvib;
@@ -323,6 +421,10 @@ int ComputeBondLocal::compute_bonds(int flag)
           case VELVIB:
             ptr[n] = vvib;
             break;
+          case VARIABLE:
+            ptr[n] = input->variable->compute_equal(vvar[ivar]);
+            ivar++;
+            break;
           }
         }
       }
@@ -337,7 +439,7 @@ int ComputeBondLocal::compute_bonds(int flag)
 /* ---------------------------------------------------------------------- */
 
 int ComputeBondLocal::pack_forward_comm(int n, int *list, double *buf,
-                                        int pbc_flag, int *pbc)
+                                        int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

@@ -23,7 +23,7 @@ const char *yukawa=0;
 
 #include "lal_yukawa.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define YukawaT Yukawa<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -147,3 +147,4 @@ void YukawaT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class Yukawa<PRECISION,ACC_PRECISION>;
+}

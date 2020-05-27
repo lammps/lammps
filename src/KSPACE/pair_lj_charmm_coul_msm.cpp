@@ -15,21 +15,13 @@
    Contributing authors: Paul Crozier (SNL), Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lj_charmm_coul_msm.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
-#include "comm.h"
 #include "force.h"
 #include "kspace.h"
-#include "update.h"
-#include "integrate.h"
-#include "respa.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
 
@@ -87,8 +79,7 @@ void PairLJCharmmCoulMSM::compute(int eflag, int vflag)
   }
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -265,8 +256,7 @@ void PairLJCharmmCoulMSM::compute_outer(int eflag, int vflag)
      "for rRESPA with kspace_style MSM");
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

@@ -18,11 +18,9 @@
                Fennell and Gezelter, JCP 124, 234104 (2006)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_buck6d_coul_gauss_dsf.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -31,6 +29,7 @@
 #include "memory.h"
 #include "math_const.h"
 #include "error.h"
+#include "utils.h"
 #include "math_special.h"
 
 using namespace LAMMPS_NS;
@@ -48,29 +47,29 @@ PairBuck6dCoulGaussDSF::PairBuck6dCoulGaussDSF(LAMMPS *lmp) : Pair(lmp)
 
 PairBuck6dCoulGaussDSF::~PairBuck6dCoulGaussDSF()
 {
-  if (!copymode) {
-    if (allocated) {
-      memory->destroy(setflag);
-      memory->destroy(cutsq);
+  if (copymode) return;
 
-      memory->destroy(cut_lj);
-      memory->destroy(cut_ljsq);
-      memory->destroy(alpha_ij);
-      memory->destroy(f_shift_ij);
-      memory->destroy(e_shift_ij);
-      memory->destroy(buck6d1);
-      memory->destroy(buck6d2);
-      memory->destroy(buck6d3);
-      memory->destroy(buck6d4);
-      memory->destroy(c0);
-      memory->destroy(c1);
-      memory->destroy(c2);
-      memory->destroy(c3);
-      memory->destroy(c4);
-      memory->destroy(c5);
-      memory->destroy(rsmooth_sq);
-      memory->destroy(offset);
-    }
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+
+    memory->destroy(cut_lj);
+    memory->destroy(cut_ljsq);
+    memory->destroy(alpha_ij);
+    memory->destroy(f_shift_ij);
+    memory->destroy(e_shift_ij);
+    memory->destroy(buck6d1);
+    memory->destroy(buck6d2);
+    memory->destroy(buck6d3);
+    memory->destroy(buck6d4);
+    memory->destroy(c0);
+    memory->destroy(c1);
+    memory->destroy(c2);
+    memory->destroy(c3);
+    memory->destroy(c4);
+    memory->destroy(c5);
+    memory->destroy(rsmooth_sq);
+    memory->destroy(offset);
   }
 }
 
@@ -83,12 +82,11 @@ void PairBuck6dCoulGaussDSF::compute(int eflag, int vflag)
   double r,rsq,r2inv,r6inv,r14inv,rexp,forcecoul,forcebuck6d,factor_coul,factor_lj;
   double term1,term2,term3,term4,term5;
   double rcu,rqu,sme,smf,ebuck6d;
-  double prefactor,erfcc,erfcd,t,arg;
+  double prefactor,erfcc,erfcd,arg;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -142,7 +140,7 @@ void PairBuck6dCoulGaussDSF::compute(int eflag, int vflag)
           term3 = term2*term2;
           term4 = 1.0/(1.0 + term2);
           term5 = 1.0/(1.0 + 2.0*term2 + term3);
-          forcebuck6d = buck6d1[itype][jtype]*buck6d2[itype][jtype]*r*rexp; 
+          forcebuck6d = buck6d1[itype][jtype]*buck6d2[itype][jtype]*r*rexp;
           forcebuck6d -= term1*(6.0*term4 - term5*14.0*term2);
           ebuck6d = buck6d1[itype][jtype]*rexp - term1*term4;
 
@@ -150,11 +148,11 @@ void PairBuck6dCoulGaussDSF::compute(int eflag, int vflag)
           if (rsq > rsmooth_sq[itype][jtype]) {
             rcu = r*rsq;
             rqu = rsq*rsq;
-            sme = c5[itype][jtype]*rqu*r + c4[itype][jtype]*rqu + c3[itype][jtype]*rcu + 
+            sme = c5[itype][jtype]*rqu*r + c4[itype][jtype]*rqu + c3[itype][jtype]*rcu +
                   c2[itype][jtype]*rsq + c1[itype][jtype]*r + c0[itype][jtype];
-            smf = 5.0*c5[itype][jtype]*rqu + 4.0*c4[itype][jtype]*rcu + 
+            smf = 5.0*c5[itype][jtype]*rqu + 4.0*c4[itype][jtype]*rcu +
                   3.0*c3[itype][jtype]*rsq + 2.0*c2[itype][jtype]*r + c1[itype][jtype];
-            // forcebuck6d is -dE/dr*r 
+            // forcebuck6d is -dE/dr*r
             forcebuck6d = forcebuck6d*sme - ebuck6d*smf*r; //RS was here: changed this from +E*smf to -E*smf*r
             ebuck6d *= sme;
           }
@@ -167,10 +165,10 @@ void PairBuck6dCoulGaussDSF::compute(int eflag, int vflag)
           arg = alpha_ij[itype][jtype]*r;
           erfcd = MathSpecial::expmsq(arg);
           erfcc = 1 - (MathSpecial::my_erfcx(arg) * erfcd);
-          
-          forcecoul = prefactor * ((erfcc/r) - (2.0/MY_PIS*alpha_ij[itype][jtype]*erfcd) + 
+
+          forcecoul = prefactor * ((erfcc/r) - (2.0/MY_PIS*alpha_ij[itype][jtype]*erfcd) +
                                                 r*f_shift_ij[itype][jtype]) * r;
-        
+
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
         } else forcecoul = 0.0;
 
@@ -191,7 +189,7 @@ void PairBuck6dCoulGaussDSF::compute(int eflag, int vflag)
           } else evdwl = 0.0;
 
           if (rsq < cut_coulsq) {
-            ecoul = prefactor * (erfcc - r*e_shift_ij[itype][jtype] - 
+            ecoul = prefactor * (erfcc - r*e_shift_ij[itype][jtype] -
                                  rsq*f_shift_ij[itype][jtype]);
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           } else ecoul = 0.0;
@@ -317,7 +315,7 @@ void PairBuck6dCoulGaussDSF::init_style()
 
   neighbor->request(this,instance_me);
 
-  cut_coulsq = cut_coul * cut_coul;  
+  cut_coulsq = cut_coul * cut_coul;
 }
 
 /* ----------------------------------------------------------------------
@@ -330,7 +328,7 @@ double PairBuck6dCoulGaussDSF::init_one(int i, int j)
 
   double cut = MAX(cut_lj[i][j],cut_coul);
   cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];
-  
+
   //calculation of smoothing coefficients c0-c5
   c0[i][j] = c1[i][j] = c2[i][j] = c3[i][j] = c4[i][j] = c5[i][j] = 0.0;
   rsmooth_sq[i][j] = cut_ljsq[i][j];
@@ -347,7 +345,7 @@ double PairBuck6dCoulGaussDSF::init_one(int i, int j)
     c5[i][j] = -6.0/denom;
     rsmooth_sq[i][j] = rsm_sq;
   }
-  
+
   // if offset_flag, shift is only invoked if there is not already smoothing
   if (offset_flag && vdwl_smooth >= 1.0) {
     double term1 = buck6d3[i][j]/pow(cut_lj[i][j],6.0);
@@ -355,12 +353,12 @@ double PairBuck6dCoulGaussDSF::init_one(int i, int j)
     double rexp = exp(-cut_lj[i][j]*buck6d2[i][j]);
     offset[i][j] = buck6d1[i][j]*rexp - term1*term4;
   } else offset[i][j] = 0.0;
-  
+
   double erfcd_c = exp(-alpha_ij[i][j]*alpha_ij[i][j]*cut_coul*cut_coul);
   double erfcc_c = erf(alpha_ij[i][j]*cut_coul);
   f_shift_ij[i][j] = -erfcc_c/cut_coulsq + 2.0/MY_PIS*alpha_ij[i][j]*erfcd_c/cut_coul;
   e_shift_ij[i][j] = erfcc_c/cut_coul - f_shift_ij[i][j]*cut_coul;
-  
+
   cut_ljsq[j][i] = cut_ljsq[i][j];
   alpha_ij[j][i] = alpha_ij[i][j];
   f_shift_ij[j][i] = f_shift_ij[i][j];
@@ -417,16 +415,16 @@ void PairBuck6dCoulGaussDSF::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&buck6d1[i][j],sizeof(double),1,fp);
-          fread(&buck6d2[i][j],sizeof(double),1,fp);
-          fread(&buck6d3[i][j],sizeof(double),1,fp);
-          fread(&buck6d4[i][j],sizeof(double),1,fp);
-          fread(&alpha_ij[i][j],sizeof(double),1,fp);
-          fread(&cut_lj[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&buck6d1[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&buck6d2[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&buck6d3[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&buck6d4[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&alpha_ij[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_lj[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&buck6d1[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&buck6d2[i][j],1,MPI_DOUBLE,0,world);
@@ -459,12 +457,12 @@ void PairBuck6dCoulGaussDSF::write_restart_settings(FILE *fp)
 void PairBuck6dCoulGaussDSF::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&vdwl_smooth,sizeof(double),1,fp);
-    fread(&cut_lj_global,sizeof(double),1,fp);
-    fread(&cut_coul,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
-    fread(&tail_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&vdwl_smooth,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&vdwl_smooth,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
@@ -520,18 +518,18 @@ double PairBuck6dCoulGaussDSF::single(int i, int j, int itype, int jtype, double
     term3 = term2*term2;
     term4 = 1.0/(1.0 + term2);
     term5 = 1.0/(1.0 + 2.0*term2 + term3);
-    forcebuck6d = buck6d1[itype][jtype]*buck6d2[itype][jtype]*r*rexp; 
+    forcebuck6d = buck6d1[itype][jtype]*buck6d2[itype][jtype]*r*rexp;
     forcebuck6d -= term1*(6.0*term4 - term5*14.0*term2);
     ebuck6d = buck6d1[itype][jtype]*rexp - term1*term4;
     // smoothing term
     if (rsq > rsmooth_sq[itype][jtype]) {
       rcu = r*rsq;
       rqu = rsq*rsq;
-      sme = c5[itype][jtype]*rqu*r + c4[itype][jtype]*rqu + c3[itype][jtype]*rcu + 
+      sme = c5[itype][jtype]*rqu*r + c4[itype][jtype]*rqu + c3[itype][jtype]*rcu +
             c2[itype][jtype]*rsq + c1[itype][jtype]*r + c0[itype][jtype];
-      smf = 5.0*c5[itype][jtype]*rqu + 4.0*c4[itype][jtype]*rcu + 
+      smf = 5.0*c5[itype][jtype]*rqu + 4.0*c4[itype][jtype]*rcu +
             3.0*c3[itype][jtype]*rsq + 2.0*c2[itype][jtype]*r + c1[itype][jtype];
-      // forcebuck6d is -dE/dr*r 
+      // forcebuck6d is -dE/dr*r
       forcebuck6d = forcebuck6d*sme - ebuck6d*smf*r; //RS was here: changed this from +E*smf to -E*smf*r
       ebuck6d *= sme;
     }
@@ -542,7 +540,7 @@ double PairBuck6dCoulGaussDSF::single(int i, int j, int itype, int jtype, double
     arg = alpha_ij[itype][jtype]*r;
     erfcd = MathSpecial::expmsq(arg);
     erfcc = 1 - (MathSpecial::my_erfcx(arg) * erfcd);
-    forcecoul = prefactor * ((erfcc/r) - (2.0/MY_PIS*alpha_ij[itype][jtype]*erfcd) + 
+    forcecoul = prefactor * ((erfcc/r) - (2.0/MY_PIS*alpha_ij[itype][jtype]*erfcd) +
                                           r*f_shift_ij[itype][jtype]) * r;
   } else forcecoul = 0.0;
 
@@ -555,7 +553,7 @@ double PairBuck6dCoulGaussDSF::single(int i, int j, int itype, int jtype, double
   }
 
   if (rsq < cut_coulsq) {
-    phicoul = prefactor * (erfcc - r*e_shift_ij[itype][jtype] - 
+    phicoul = prefactor * (erfcc - r*e_shift_ij[itype][jtype] -
                                  rsq*f_shift_ij[itype][jtype]);
     eng += phicoul;
   }

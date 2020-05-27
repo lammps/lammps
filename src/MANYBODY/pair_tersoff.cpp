@@ -15,11 +15,11 @@
    Contributing author: Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_tersoff.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_tersoff.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -30,9 +30,11 @@
 #include "error.h"
 
 #include "math_const.h"
+#include "math_special.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
 
 #define MAXLINE 1024
 #define DELTA 4
@@ -93,8 +95,7 @@ void PairTersoff::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -280,7 +281,7 @@ void PairTersoff::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairTersoff::settings(int narg, char **arg)
+void PairTersoff::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -404,7 +405,7 @@ void PairTersoff::read_file(char *file)
     fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open Tersoff potential file %s",file);
+      snprintf(str,128,"Cannot open Tersoff potential file %s",file);
       error->one(FLERR,str);
     }
   }
@@ -605,7 +606,7 @@ double PairTersoff::zeta(Param *param, double rsqij, double rsqik,
   costheta = (delrij[0]*delrik[0] + delrij[1]*delrik[1] +
               delrij[2]*delrik[2]) / (rij*rik);
 
-  if (param->powermint == 3) arg = pow(param->lam3 * (rij-rik),3.0);
+  if (param->powermint == 3) arg = cube(param->lam3 * (rij-rik));
   else arg = param->lam3 * (rij-rik);
 
   if (arg > 69.0776) ex_delr = 1.e30;
@@ -745,7 +746,7 @@ void PairTersoff::ters_zetaterm_d(double prefactor,
 
   fc = ters_fc(rik,param);
   dfc = ters_fc_d(rik,param);
-  if (param->powermint == 3) tmp = pow(param->lam3 * (rij-rik),3.0);
+  if (param->powermint == 3) tmp = cube(param->lam3 * (rij-rik));
   else tmp = param->lam3 * (rij-rik);
 
   if (tmp > 69.0776) ex_delr = 1.e30;
@@ -753,7 +754,7 @@ void PairTersoff::ters_zetaterm_d(double prefactor,
   else ex_delr = exp(tmp);
 
   if (param->powermint == 3)
-    ex_delr_d = 3.0*pow(param->lam3,3.0) * pow(rij-rik,2.0)*ex_delr;
+    ex_delr_d = 3.0*cube(param->lam3) * square(rij-rik)*ex_delr;
   else ex_delr_d = param->lam3 * ex_delr;
 
   cos_theta = vec3_dot(rij_hat,rik_hat);

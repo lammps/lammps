@@ -16,30 +16,25 @@
      some subroutines are from fix_shake.cpp
    ------------------------------------------------------------------------- */
 
+#include "fix_filter_corotate.h"
 #include <mpi.h>
+#include <cctype>
+#include <cmath>
 #include <cstring>
 #include <cstdlib>
-#include "fix_filter_corotate.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "bond.h"
+#include "comm.h"
+#include "domain.h"
 #include "angle.h"
+#include "bond.h"
 #include "math_const.h"
 #include "update.h"
 #include "modify.h"
-#include "domain.h"
-#include "region.h"
 #include "memory.h"
 #include "error.h"
 #include "force.h"
-#include "comm.h"
-#include "error.h"
-#include "memory.h"
-#include "domain.h"
-#include "integrate.h"
 #include "respa.h"
-#include "neighbor.h"
 #include "citeme.h"
 
 using namespace LAMMPS_NS;
@@ -59,7 +54,7 @@ static const char cite_filter_corotate[] =
   " Year = {2017},\n"
   " Pages = {180 - 198},\n"
   " Volume = {333},\n\n"
-  " Doi = {http://dx.doi.org/10.1016/j.jcp.2016.12.024},\n"
+  " Doi = {https://doi.org/10.1016/j.jcp.2016.12.024},\n"
   " ISSN = {0021-9991},\n"
   " Keywords = {Mollified impulse method},\n"
   " Url = {http://www.sciencedirect.com/science/article/pii/S0021999116306787}\n"
@@ -217,7 +212,6 @@ FixFilterCorotate::~FixFilterCorotate()
   memory->destroy(dn2dx);
   memory->destroy(dn3dx);
 
-  atom->delete_callback(id,2);
   atom->delete_callback(id,0);
 
   // delete locally stored arrays
@@ -592,14 +586,13 @@ void FixFilterCorotate::pre_neighbor()
       double c = (del2[0])*(del3[1]) - (del2[1])*(del3[0]);
       int signum = sgn(a*(del1[0]) + b*(del1[1]) + c*(del1[2]));
 
-      if (fabs(signum)!= 1)
+      if (abs(signum) != 1)
         error->all(FLERR,"Wrong orientation in cluster of size 4"
           "in fix filter/corotate!");
       clist_q0[i][8] *= signum;
       clist_q0[i][11] *= signum;
 
-    } else if (N == 5)
-    {
+    } else if (N == 5) {
       oxy = atom->map(shake_atom[m][0]);
       atom1 = atom->map(shake_atom[m][1]);
       atom2 = atom->map(shake_atom[m][2]);
@@ -666,14 +659,12 @@ void FixFilterCorotate::pre_neighbor()
       double c = (del2[0])*(del3[1]) - (del2[1])*(del3[0]);
       int signum = sgn(a*(del1[0]) + b*(del1[1]) + c*(del1[2]));
 
-      if (fabs(signum)!= 1)
+      if (abs(signum)!= 1)
         error->all(FLERR,"Wrong orientation in cluster of size 5"
           "in fix filter/corotate!");
       clist_q0[i][8] *= signum;
       clist_q0[i][11] *= signum;
-    }
-    else
-    {
+    } else {
       error->all(FLERR,"Fix filter/corotate cluster with size > 5"
         "not yet configured...");
     }
@@ -705,7 +696,7 @@ double FixFilterCorotate::compute_array(int,int)
   return 1;
 }
 
-void FixFilterCorotate::pre_force_respa(int vflag, int ilevel, int iloop)
+void FixFilterCorotate::pre_force_respa(int /*vflag*/, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1)
   {
@@ -717,7 +708,7 @@ void FixFilterCorotate::pre_force_respa(int vflag, int ilevel, int iloop)
   }
 }
 
-void FixFilterCorotate::post_force_respa(int vflag, int ilevel, int iloop)
+void FixFilterCorotate::post_force_respa(int /*vflag*/, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1)
   {
@@ -1699,7 +1690,7 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
 }
 
 int FixFilterCorotate::pack_forward_comm(int n, int *list, double *buf,
-                                         int pbc_flag, int *pbc)
+                                         int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
   double**f = atom->f;
@@ -1839,7 +1830,7 @@ double FixFilterCorotate::memory_usage()
  *  copy values within local atom-based arrays
  * ------------------------------------------------------------------------- */
 
-void FixFilterCorotate::copy_arrays(int i, int j, int delflag)
+void FixFilterCorotate::copy_arrays(int i, int j, int /*delflag*/)
 {
   int flag = shake_flag[j] = shake_flag[i];
   if (flag == 1) {

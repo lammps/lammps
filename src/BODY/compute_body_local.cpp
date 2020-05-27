@@ -11,16 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
 #include "compute_body_local.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "body.h"
 #include "update.h"
-#include "domain.h"
 #include "force.h"
-#include "bond.h"
 #include "memory.h"
 #include "error.h"
 
@@ -39,8 +37,6 @@ ComputeBodyLocal::ComputeBodyLocal(LAMMPS *lmp, int narg, char **arg) :
 
   local_flag = 1;
   nvalues = narg - 3;
-  if (nvalues == 1) size_local_cols = 0;
-  else size_local_cols = nvalues;
 
   which = new int[nvalues];
   index = new int[nvalues];
@@ -65,6 +61,9 @@ ComputeBodyLocal::ComputeBodyLocal(LAMMPS *lmp, int narg, char **arg) :
     if (which[i] == INDEX && (index[i] < 0 || index[i] >= indexmax))
       error->all(FLERR,"Invalid index in compute body/local command");
   }
+
+  if (nvalues == 1) size_local_cols = 0;
+  else size_local_cols = nvalues;
 
   nmax = 0;
   vector = NULL;

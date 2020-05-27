@@ -1,0 +1,108 @@
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
+# Point dipoles in a 2d box
+
+units		lj
+atom_style  charge
+
+read_data data.hammersley_sphere
+  orthogonal box = (-51.5 -51.5 -51.5) to (51.5 51.5 51.5)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  1000 atoms
+change_box all boundary f f f
+
+velocity	all create 1.5 49893
+
+neighbor	1.0 bin
+neigh_modify	delay 0
+
+fix             1 all nve
+
+# LAMMPS computes pairwise and long-range Coulombics
+
+#pair_style      coul/long 3.0
+#pair_coeff      * *
+#kspace_style    pppm 1.0e-3
+
+# Scafacos computes entire long-range Coulombics
+# use dummy pair style to perform atom sorting
+
+pair_style	zero 1.0
+pair_coeff	* *
+
+#fix		2 all scafacos p3m tolerance field 0.001
+
+kspace_style    scafacos fmm 0.001
+kspace_modify scafacos tolerance energy_rel
+kspace_modify scafacos fmm_tuning 1
+ScaFaCoS setting fmm inhomogen tuning ...
+
+timestep	0.005
+thermo          1
+
+run		20
+Setting up ScaFaCoS with solver fmm ...
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2
+  ghost atom cutoff = 2
+  binsize = 1, bins = 103 103 103
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 10.44 | 10.44 | 10.44 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0          1.5  -0.62417141            0    1.6235786   0.00152244 
+       1    18.780412   -10.770009            0    17.372438  0.016236934 
+       2    65.294131   -11.084501            0    86.758754  0.058617275 
+       3    121.92555   -7.0612033            0    175.64423   0.11075612 
+       4    185.71165   -5.8781334            0    272.41077   0.16952031 
+       5    286.28339   -4.3800108            0    424.61565   0.26135067 
+       6    481.28097   -4.3052012            0    716.89433   0.43956491 
+       7    487.26022   -3.8672741            0    726.29216   0.44508273 
+       8    493.65478   -3.0242687            0    736.71742   0.45104121 
+       9    495.66203   -3.4336343            0    739.31592   0.45268492 
+      10    498.41831   -2.8837072            0    743.99613    0.4553526 
+      11    499.20944   -2.7724783            0    745.29287   0.45612146 
+      12    500.97345   -2.8281484            0    747.88057    0.4576713 
+      13    507.46412   -2.7752775            0    757.65971   0.46352056 
+      14    525.35729   -2.5749814            0    784.67292   0.47996621 
+      15     563.9578   -2.9982381            0    842.09253   0.51513685 
+      16    645.47602   -2.5519203            0    964.69389   0.58979054 
+      17    647.09276   -2.2568468            0    967.41166   0.59135526 
+      18    647.12596   -2.2791003            0    967.43915   0.59143679 
+      19    647.24862   -2.2495226            0    967.65253   0.59151478 
+      20    647.51175   -2.0239179            0    968.27244   0.59175037 
+Loop time of 0.345449 on 1 procs for 20 steps with 1000 atoms
+
+Performance: 25010.947 tau/day, 57.896 timesteps/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 6.485e-05  | 6.485e-05  | 6.485e-05  |   0.0 |  0.02
+Kspace  | 0.30702    | 0.30702    | 0.30702    |   0.0 | 88.88
+Neigh   | 0.037661   | 0.037661   | 0.037661   |   0.0 | 10.90
+Comm    | 5.4598e-05 | 5.4598e-05 | 5.4598e-05 |   0.0 |  0.02
+Output  | 0.00032878 | 0.00032878 | 0.00032878 |   0.0 |  0.10
+Modify  | 0.00016141 | 0.00016141 | 0.00016141 |   0.0 |  0.05
+Other   |            | 0.0001564  |            |       |  0.05
+
+Nlocal:    1000 ave 1000 max 1000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    244342 ave 244342 max 244342 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 244342
+Ave neighs/atom = 244.342
+Neighbor list builds = 19
+Dangerous builds = 18
+Total wall time: 0:00:00

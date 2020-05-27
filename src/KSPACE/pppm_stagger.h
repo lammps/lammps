@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class PPPMStagger : public PPPM {
  public:
-  PPPMStagger(class LAMMPS *, int, char **);
+  PPPMStagger(class LAMMPS *);
   virtual ~PPPMStagger();
   virtual void init();
   virtual void compute(int, int);

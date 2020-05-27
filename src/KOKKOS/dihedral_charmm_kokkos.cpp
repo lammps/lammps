@@ -15,9 +15,9 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "dihedral_charmm_kokkos.h"
 #include <cmath>
 #include <cstdlib>
-#include "dihedral_charmm_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"
 #include "neighbor_kokkos.h"
@@ -28,6 +28,7 @@
 #include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
+#include "kokkos.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -69,8 +70,10 @@ void DihedralCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   eflag = eflag_in;
   vflag = vflag_in;
 
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = 0;
+  if (lmp->kokkos->neighflag == FULL)
+    error->all(FLERR,"Dihedral_style charmm/kk requires half neighbor list");
+
+  ev_init(eflag,vflag,0);
 
   // insure pair->ev_tally() will use 1-4 virial contribution
 
@@ -83,18 +86,18 @@ void DihedralCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     //if(k_eatom.extent(0)<maxeatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_eatom,eatom);
       memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"dihedral:eatom");
-      d_eatom = k_eatom.template view<DeviceType>();
-      k_eatom_pair = Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,DeviceType>("dihedral:eatom_pair",maxeatom);
-      d_eatom_pair = k_eatom.template view<DeviceType>();
+      d_eatom = k_eatom.template view<KKDeviceType>();
+      k_eatom_pair = Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,KKDeviceType>("dihedral:eatom_pair",maxeatom);
+      d_eatom_pair = k_eatom_pair.template view<KKDeviceType>();
     //}
   }
   if (vflag_atom) {
     //if(k_vatom.extent(0)<maxvatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_vatom,vatom);
-      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"dihedral:vatom");
-      d_vatom = k_vatom.template view<DeviceType>();
-      k_vatom_pair = Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,DeviceType>("dihedral:vatom_pair",maxvatom);
-      d_vatom_pair = k_vatom.template view<DeviceType>();
+      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"dihedral:vatom");
+      d_vatom = k_vatom.template view<KKDeviceType>();
+      k_vatom_pair = Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,KKDeviceType>("dihedral:vatom_pair",maxvatom);
+      d_vatom_pair = k_vatom_pair.template view<KKDeviceType>();
     //}
   }
 
@@ -202,7 +205,7 @@ KOKKOS_INLINE_FUNCTION
 void DihedralCharmmKokkos<DeviceType>::operator()(TagDihedralCharmmCompute<NEWTON_BOND,EVFLAG>, const int &n, EVM_FLOAT& evm) const {
 
   // The f array is atomic
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
+  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
 
   const int i1 = dihedrallist(n,0);
   const int i2 = dihedrallist(n,1);
@@ -425,12 +428,12 @@ void DihedralCharmmKokkos<DeviceType>::coeff(int narg, char **arg)
   DihedralCharmm::coeff(narg, arg);
 
   int nd = atom->ndihedraltypes;
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_k("DihedralCharmm::k",nd+1);
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_multiplicity("DihedralCharmm::multiplicity",nd+1);
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_shift("DihedralCharmm::shift",nd+1);
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_cos_shift("DihedralCharmm::cos_shift",nd+1);
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_sin_shift("DihedralCharmm::sin_shift",nd+1);
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_weight("DihedralCharmm::weight",nd+1);
+  typename AT::tdual_ffloat_1d k_k("DihedralCharmm::k",nd+1);
+  typename AT::tdual_ffloat_1d k_multiplicity("DihedralCharmm::multiplicity",nd+1);
+  typename AT::tdual_ffloat_1d k_shift("DihedralCharmm::shift",nd+1);
+  typename AT::tdual_ffloat_1d k_cos_shift("DihedralCharmm::cos_shift",nd+1);
+  typename AT::tdual_ffloat_1d k_sin_shift("DihedralCharmm::sin_shift",nd+1);
+  typename AT::tdual_ffloat_1d k_weight("DihedralCharmm::weight",nd+1);
 
   d_k = k_k.template view<DeviceType>();
   d_multiplicity = k_multiplicity.template view<DeviceType>();
@@ -474,10 +477,10 @@ void DihedralCharmmKokkos<DeviceType>::init_style()
   DihedralCharmm::init_style();
 
   int n = atom->ntypes;
-  Kokkos::DualView<F_FLOAT**,Kokkos::LayoutRight,DeviceType> k_lj14_1("DihedralCharmm:lj14_1",n+1,n+1);
-  Kokkos::DualView<F_FLOAT**,Kokkos::LayoutRight,DeviceType> k_lj14_2("DihedralCharmm:lj14_2",n+1,n+1);
-  Kokkos::DualView<F_FLOAT**,Kokkos::LayoutRight,DeviceType> k_lj14_3("DihedralCharmm:lj14_3",n+1,n+1);
-  Kokkos::DualView<F_FLOAT**,Kokkos::LayoutRight,DeviceType> k_lj14_4("DihedralCharmm:lj14_4",n+1,n+1);
+  DAT::tdual_ffloat_2d k_lj14_1("DihedralCharmm:lj14_1",n+1,n+1);
+  DAT::tdual_ffloat_2d k_lj14_2("DihedralCharmm:lj14_2",n+1,n+1);
+  DAT::tdual_ffloat_2d k_lj14_3("DihedralCharmm:lj14_3",n+1,n+1);
+  DAT::tdual_ffloat_2d k_lj14_4("DihedralCharmm:lj14_4",n+1,n+1);
 
   d_lj14_1 = k_lj14_1.template view<DeviceType>();
   d_lj14_2 = k_lj14_2.template view<DeviceType>();
@@ -506,7 +509,55 @@ void DihedralCharmmKokkos<DeviceType>::init_style()
   k_lj14_2.template sync<DeviceType>();
   k_lj14_3.template sync<DeviceType>();
   k_lj14_4.template sync<DeviceType>();
+}
 
+/* ----------------------------------------------------------------------
+   proc 0 reads coeffs from restart file, bcasts them
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void DihedralCharmmKokkos<DeviceType>::read_restart(FILE *fp)
+{
+  DihedralCharmm::read_restart(fp);
+
+  int nd = atom->ndihedraltypes;
+  typename AT::tdual_ffloat_1d k_k("DihedralCharmm::k",nd+1);
+  typename AT::tdual_ffloat_1d k_multiplicity("DihedralCharmm::multiplicity",nd+1);
+  typename AT::tdual_ffloat_1d k_shift("DihedralCharmm::shift",nd+1);
+  typename AT::tdual_ffloat_1d k_cos_shift("DihedralCharmm::cos_shift",nd+1);
+  typename AT::tdual_ffloat_1d k_sin_shift("DihedralCharmm::sin_shift",nd+1);
+  typename AT::tdual_ffloat_1d k_weight("DihedralCharmm::weight",nd+1);
+
+  d_k = k_k.template view<DeviceType>();
+  d_multiplicity = k_multiplicity.template view<DeviceType>();
+  d_shift = k_shift.template view<DeviceType>();
+  d_cos_shift = k_cos_shift.template view<DeviceType>();
+  d_sin_shift = k_sin_shift.template view<DeviceType>();
+  d_weight = k_weight.template view<DeviceType>();
+
+  int n = atom->ndihedraltypes;
+  for (int i = 1; i <= n; i++) {
+    k_k.h_view[i] = k[i];
+    k_multiplicity.h_view[i] = multiplicity[i];
+    k_shift.h_view[i] = shift[i];
+    k_cos_shift.h_view[i] = cos_shift[i];
+    k_sin_shift.h_view[i] = sin_shift[i];
+    k_weight.h_view[i] = weight[i];
+  }
+
+  k_k.template modify<LMPHostType>();
+  k_multiplicity.template modify<LMPHostType>();
+  k_shift.template modify<LMPHostType>();
+  k_cos_shift.template modify<LMPHostType>();
+  k_sin_shift.template modify<LMPHostType>();
+  k_weight.template modify<LMPHostType>();
+
+  k_k.template sync<DeviceType>();
+  k_multiplicity.template sync<DeviceType>();
+  k_shift.template sync<DeviceType>();
+  k_cos_shift.template sync<DeviceType>();
+  k_sin_shift.template sync<DeviceType>();
+  k_weight.template sync<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -738,7 +789,7 @@ void DihedralCharmmKokkos<DeviceType>::ev_tally(EVM_FLOAT &evm, const int i, con
 
 namespace LAMMPS_NS {
 template class DihedralCharmmKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class DihedralCharmmKokkos<LMPHostType>;
 #endif
 }

@@ -15,6 +15,7 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
@@ -83,8 +84,9 @@ void ImproperCvffIntel::compute(int eflag, int vflag,
                                     IntelBuffers<flt_t,acc_t> *buffers,
                                     const ForceConst<flt_t> &fc)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
+  if (vflag_atom)
+    error->all(FLERR,"USER-INTEL package does not support per-atom stress");
 
   if (evflag) {
     if (vflag && !eflag) {
@@ -137,7 +139,7 @@ void ImproperCvffIntel::eval(const int vflag,
   }
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(f_start,f_stride,fc) \
     reduction(+:oeimproper,ov0,ov1,ov2,ov3,ov4,ov5)
   #endif
@@ -428,7 +430,7 @@ void ImproperCvffIntel::init_style()
 
 template <class flt_t, class acc_t>
 void ImproperCvffIntel::pack_force_const(ForceConst<flt_t> &fc,
-                                             IntelBuffers<flt_t,acc_t> *buffers)
+                                         IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
   const int bp1 = atom->nimpropertypes + 1;
   fc.set_ntypes(bp1,memory);

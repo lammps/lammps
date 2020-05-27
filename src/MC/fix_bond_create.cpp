@@ -11,16 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
+#include "fix_bond_create.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdlib>
-#include "fix_bond_create.h"
 #include "update.h"
 #include "respa.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "force.h"
+#include "modify.h"
 #include "pair.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -219,6 +217,19 @@ void FixBondCreate::init()
   if (force->pair == NULL || cutsq > force->pair->cutsq[iatomtype][jatomtype])
     error->all(FLERR,"Fix bond/create cutoff is longer than pairwise cutoff");
 
+  // warn if more than one fix bond/create or also a fix bond/break
+  // because this fix stores per-atom state in bondcount
+  //   if other fixes create/break bonds, this fix will not know about it
+
+  int count = 0;
+  for (int i = 0; i < modify->nfix; i++) {
+    if (strcmp(modify->fix[i]->style,"bond/create") == 0) count++;
+    if (strcmp(modify->fix[i]->style,"bond/break") == 0) count++;
+  }
+  if (count > 1 && me == 0)
+    error->warning(FLERR,"Fix bond/create is used multiple times "
+                   " or with fix bond/break - may not work as expected");
+
   // enable angle/dihedral/improper creation if atype/dtype/itype
   //   option was used and a force field has been specified
 
@@ -258,14 +269,14 @@ void FixBondCreate::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondCreate::init_list(int id, NeighList *ptr)
+void FixBondCreate::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondCreate::setup(int vflag)
+void FixBondCreate::setup(int /*vflag*/)
 {
   int i,j,m;
 
@@ -1206,7 +1217,7 @@ int FixBondCreate::dedup(int nstart, int nstop, tagint *copy)
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondCreate::post_integrate_respa(int ilevel, int iloop)
+void FixBondCreate::post_integrate_respa(int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_integrate();
 }
@@ -1214,7 +1225,7 @@ void FixBondCreate::post_integrate_respa(int ilevel, int iloop)
 /* ---------------------------------------------------------------------- */
 
 int FixBondCreate::pack_forward_comm(int n, int *list, double *buf,
-                                     int pbc_flag, int *pbc)
+                                     int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,k,m,ns;
 
@@ -1347,7 +1358,7 @@ void FixBondCreate::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixBondCreate::copy_arrays(int i, int j, int delflag)
+void FixBondCreate::copy_arrays(int i, int j, int /*delflag*/)
 {
   bondcount[j] = bondcount[i];
 }

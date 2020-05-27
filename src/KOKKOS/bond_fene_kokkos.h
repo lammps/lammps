@@ -39,8 +39,9 @@ class BondFENEKokkos : public BondFENE {
 
   BondFENEKokkos(class LAMMPS *);
   virtual ~BondFENEKokkos();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
+  void compute(int, int);
+  void coeff(int, char **);
+  void read_restart(FILE *);
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -90,7 +91,7 @@ class BondFENEKokkos : public BondFENE {
   typename AT::t_ffloat_1d d_epsilon;
   typename AT::t_ffloat_1d d_sigma;
 
-  virtual void allocate();
+  void allocate();
 };
 
 }

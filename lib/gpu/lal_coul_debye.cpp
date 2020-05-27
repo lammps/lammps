@@ -23,7 +23,7 @@ const char *coul_debye=0;
 
 #include "lal_coul_debye.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define CoulDebyeT CoulDebye<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -165,3 +165,4 @@ void CoulDebyeT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class CoulDebye<PRECISION,ACC_PRECISION>;
+}

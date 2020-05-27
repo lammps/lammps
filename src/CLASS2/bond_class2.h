@@ -20,7 +20,6 @@ BondStyle(class2,BondClass2)
 #ifndef LMP_BOND_CLASS2_H
 #define LMP_BOND_CLASS2_H
 
-#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {
@@ -30,12 +29,13 @@ class BondClass2 : public Bond {
   BondClass2(class LAMMPS *);
   virtual ~BondClass2();
   virtual void compute(int, int);
-  void coeff(int, char **);
+  virtual void coeff(int, char **);
   double equilibrium_distance(int);
   void write_restart(FILE *);
-  void read_restart(FILE *);
+  virtual void read_restart(FILE *);
   void write_data(FILE *);
   double single(int, double, int, int, double &);
+  virtual void *extract(const char *, int &);
 
  protected:
   double *r0,*k2,*k3,*k4;

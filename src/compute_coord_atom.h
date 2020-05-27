@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class ComputeCoordAtom : public Compute {
  public:
   ComputeCoordAtom(class LAMMPS *, int, char **);
-  ~ComputeCoordAtom();
-  void init();
+  virtual ~ComputeCoordAtom();
+  virtual void init();
   void init_list(int, class NeighList *);
-  void compute_peratom();
+  virtual void compute_peratom();
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
   double memory_usage();
   enum {NONE,CUTOFF,ORIENT};
 
- private:
+ protected:
   int nmax,ncol;
   double cutsq;
   class NeighList *list;
@@ -44,6 +44,9 @@ class ComputeCoordAtom : public Compute {
   int *typelo,*typehi;
   double *cvec;
   double **carray;
+
+  char *group2;
+  int jgroup,jgroupbit;
 
   class ComputeOrientOrderAtom *c_orientorder;
   char *id_orientorder;
@@ -93,9 +96,5 @@ E: Compute coord/atom cutoff is longer than pairwise cutoff
 
 Cannot compute coordination at distances longer than the pair cutoff,
 since those atoms are not in the neighbor list.
-
-W: More than one compute coord/atom
-
-It is not efficient to use compute coord/atom more than once.
 
 */

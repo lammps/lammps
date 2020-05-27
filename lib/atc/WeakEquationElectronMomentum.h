@@ -78,10 +78,10 @@ namespace ATC{
     
     /** flux that is integrated with grad N as its weight */
     virtual bool has_B_integrand(void) const {return false;}
-    virtual void B_integrand(const FIELD_MATS &fields,
-                             const GRAD_FIELD_MATS &grad_fields,
-                             const Material * material,
-                             DENS_MAT_VEC &flux) const {};
+    virtual void B_integrand(const FIELD_MATS & /* fields */,
+                             const GRAD_FIELD_MATS & /* grad_fields */,
+                             const Material * /* material */,
+                             DENS_MAT_VEC &/* flux */) const {};
     
     /** flux that is integrated with N as its weight */
     virtual bool has_N_integrand(void) const {return true;}

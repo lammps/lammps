@@ -20,7 +20,6 @@ FixStyle(tmd,FixTMD)
 #ifndef LMP_FIX_TMD_H
 #define LMP_FIX_TMD_H
 
-#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {

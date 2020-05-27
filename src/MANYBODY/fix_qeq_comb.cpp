@@ -15,16 +15,13 @@
    Contributing authors: Ray Shan (Sandia, tnshan@sandia.gov)
 ------------------------------------------------------------------------- */
 
+#include "fix_qeq_comb.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "pair_comb.h"
 #include "pair_comb3.h"
-#include "fix_qeq_comb.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -33,6 +30,8 @@
 #include "update.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -67,7 +66,7 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
         fp = fopen(arg[iarg+1],"w");
         if (fp == NULL) {
           char str[128];
-          sprintf(str,"Cannot open fix qeq/comb file %s",arg[iarg+1]);
+          snprintf(str,128,"Cannot open fix qeq/comb file %s",arg[iarg+1]);
           error->one(FLERR,str);
         }
       }
@@ -121,12 +120,12 @@ void FixQEQComb::init()
   if (!atom->q_flag)
     error->all(FLERR,"Fix qeq/comb requires atom attribute q");
 
-  comb = (PairComb *) force->pair_match("comb",1);
-  comb3 = (PairComb3 *) force->pair_match("comb3",1);
+  comb = (PairComb *) force->pair_match("^comb",0);
+  comb3 = (PairComb3 *) force->pair_match("^comb3",0);
   if (comb == NULL && comb3 == NULL)
     error->all(FLERR,"Must use pair_style comb or comb3 with fix qeq/comb");
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -159,7 +158,7 @@ void FixQEQComb::min_post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEQComb::post_force(int vflag)
+void FixQEQComb::post_force(int /*vflag*/)
 {
   int i,ii,iloop,loopmax,inum,*ilist;
   double heatpq,qmass,dtq,dtq2;
@@ -276,7 +275,7 @@ void FixQEQComb::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEQComb::post_force_respa(int vflag, int ilevel, int iloop)
+void FixQEQComb::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }
@@ -293,7 +292,7 @@ double FixQEQComb::memory_usage()
 /* ---------------------------------------------------------------------- */
 
 int FixQEQComb::pack_forward_comm(int n, int *list, double *buf,
-                                  int pbc_flag, int *pbc)
+                                  int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

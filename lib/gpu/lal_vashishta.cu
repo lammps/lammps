@@ -11,25 +11,25 @@
 //
 //    begin                : Mon June 12, 2017
 //    email                : andershaf@gmail.com
-// ***************************************************************************/
+// ***************************************************************************
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_aux_fun1.h"
 
 #ifndef _DOUBLE_DOUBLE
-texture<float4> pos_tex;
-texture<float4> param1_tex;
-texture<float4> param2_tex;
-texture<float4> param3_tex;
-texture<float4> param4_tex;
-texture<float4> param5_tex;
+_texture( pos_tex,float4);
+_texture( param1_tex,float4);
+_texture( param2_tex,float4);
+_texture( param3_tex,float4);
+_texture( param4_tex,float4);
+_texture( param5_tex,float4);
 #else
-texture<int4,1> pos_tex;
-texture<int4> param1_tex;
-texture<int4> param2_tex;
-texture<int4> param3_tex;
-texture<int4> param4_tex;
-texture<int4> param5_tex;
+_texture_2d( pos_tex,int4);
+_texture( param1_tex,int4);
+_texture( param2_tex,int4);
+_texture( param3_tex,int4);
+_texture( param4_tex,int4);
+_texture( param5_tex,int4);
 #endif
 
 #else
@@ -290,7 +290,7 @@ __kernel void k_vashishta(const __global numtyp4 *restrict x_,
 
         if (eflag>0)
           energy += (param3_bigh*reta+vc2-vc3-param3_bigw*r6inv-r*param3_dvrc+param3_c0);
-          
+
         if (vflag>0) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
@@ -471,13 +471,13 @@ __kernel void k_vashishta_three_center(const __global numtyp4 *restrict x_,
       numtyp rsq1 = delr1x*delr1x+delr1y*delr1y+delr1z*delr1z;
 
       int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
-      
+
       numtyp4 param4_ijparam; fetch4(param4_ijparam,ijparam,param4_tex);
       param_r0sq_ij=param4_ijparam.x;
       if (rsq1 > param_r0sq_ij) continue; // still keep this for neigh no and tpa > 1
       param_gamma_ij=param4_ijparam.y;
       param_r0_ij=param4_ijparam.w;
-      
+
       int nbor_k,k_end;
       if (dev_packed==dev_nbor) {
         nbor_k=nborj_start-offset_j+offset_k;
@@ -554,7 +554,7 @@ __kernel void k_vashishta_three_end(const __global numtyp4 *restrict x_,
                              const int nelements,
                              const __global int * dev_nbor,
                              const __global int * dev_packed,
-                             const __global int * dev_acc,
+                             const __global int * dev_ilist,
                              const __global int * dev_short_nbor,
                              __global acctyp4 *restrict ans,
                              __global acctyp *restrict engv,
@@ -619,17 +619,17 @@ __kernel void k_vashishta_three_end(const __global numtyp4 *restrict x_,
 
       param_gamma_ij=param4_ijparam.y;
       param_r0_ij = param4_ijparam.w;
-      
+
       int nbor_k,numk;
       if (dev_nbor==dev_packed) {
         if (gpu_nbor) nbor_k=j+nbor_pitch;
-        else nbor_k=dev_acc[j]+nbor_pitch;
+        else nbor_k=dev_ilist[j]+nbor_pitch;
         numk=dev_nbor[nbor_k];
         nbor_k+=nbor_pitch+fast_mul(j,t_per_atom-1);
         k_end=nbor_k+fast_mul(numk/t_per_atom,n_stride)+(numk & (t_per_atom-1));
         nbor_k+=offset_k;
       } else {
-        nbor_k=dev_acc[j]+nbor_pitch;
+        nbor_k=dev_ilist[j]+nbor_pitch;
         numk=dev_nbor[nbor_k];
         nbor_k+=nbor_pitch;
         nbor_k=dev_nbor[nbor_k];
@@ -665,14 +665,14 @@ __kernel void k_vashishta_three_end(const __global numtyp4 *restrict x_,
         if (rsq2 < param_r0sq_ik) {
           param_gamma_ik=param4_ikparam.y;
           param_r0_ik=param4_ikparam.w;
-          
+
           int ijkparam=elem2param[jtype*nelements*nelements+itype*nelements+ktype]; //jik
           numtyp4 param5_ijkparam; fetch4(param5_ijkparam,ijkparam,param5_tex);
           param_bigc_ijk=param5_ijkparam.x;
           param_costheta_ijk=param5_ijkparam.y;
           param_bigb_ijk=param5_ijkparam.z;
           param_big2b_ijk=param5_ijkparam.w;
-          
+
           numtyp fjx, fjy, fjz;
           //if (evatom==0) {
             threebody_half(delr1x,delr1y,delr1z);
@@ -709,7 +709,7 @@ __kernel void k_vashishta_three_end_vatom(const __global numtyp4 *restrict x_,
                              const int nelements,
                              const __global int * dev_nbor,
                              const __global int * dev_packed,
-                             const __global int * dev_acc,
+                             const __global int * dev_ilist,
                              const __global int * dev_short_nbor,
                              __global acctyp4 *restrict ans,
                              __global acctyp *restrict engv,
@@ -774,17 +774,17 @@ __kernel void k_vashishta_three_end_vatom(const __global numtyp4 *restrict x_,
 
       param_gamma_ij=param4_ijparam.y;
       param_r0_ij=param4_ijparam.w;
-      
+
       int nbor_k,numk;
       if (dev_nbor==dev_packed) {
         if (gpu_nbor) nbor_k=j+nbor_pitch;
-        else nbor_k=dev_acc[j]+nbor_pitch;
+        else nbor_k=dev_ilist[j]+nbor_pitch;
         numk=dev_nbor[nbor_k];
         nbor_k+=nbor_pitch+fast_mul(j,t_per_atom-1);
         k_end=nbor_k+fast_mul(numk/t_per_atom,n_stride)+(numk & (t_per_atom-1));
         nbor_k+=offset_k;
       } else {
-        nbor_k=dev_acc[j]+nbor_pitch;
+        nbor_k=dev_ilist[j]+nbor_pitch;
         numk=dev_nbor[nbor_k];
         nbor_k+=nbor_pitch;
         nbor_k=dev_nbor[nbor_k];
@@ -827,7 +827,7 @@ __kernel void k_vashishta_three_end_vatom(const __global numtyp4 *restrict x_,
           param_costheta_ijk=param5_ijkparam.y;
           param_bigb_ijk=param5_ijkparam.z;
           param_big2b_ijk=param5_ijkparam.w;
-          
+
           numtyp fjx, fjy, fjz, fkx, fky, fkz;
           threebody(delr1x,delr1y,delr1z,eflag,energy);
 

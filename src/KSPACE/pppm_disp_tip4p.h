@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class PPPMDispTIP4P : public PPPMDisp {
  public:
-  PPPMDispTIP4P(class LAMMPS *, int, char **);
+  PPPMDispTIP4P(class LAMMPS *);
   virtual ~PPPMDispTIP4P () {};
   void init();
 

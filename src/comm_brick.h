@@ -46,6 +46,7 @@ class CommBrick : public Comm {
 
   void forward_comm_array(int, double **);         // forward comm of array
   int exchange_variable(int, double *, double *&);  // exchange on neigh stencil
+  void *extract(const char *,int &);
   virtual bigint memory_usage();
 
  protected:
@@ -67,12 +68,12 @@ class CommBrick : public Comm {
 
   int *firstrecv;                   // where to put 1st recv atom in each swap
   int **sendlist;                   // list of atoms to send in each swap
+  int *localsendlist;               // indexed list of local sendlist atoms
   int *maxsendlist;                 // max size of send list for each swap
 
   double *buf_send;                 // send buffer for all comm
   double *buf_recv;                 // recv buffer for all comm
   int maxsend,maxrecv;              // current size of send/recv buffer
-  int bufextra;                     // extra space beyond maxsend in send buffer
   int smax,rmax;             // max size in atoms of single borders send/recv
 
   // NOTE: init_buffers is called from a constructor and must not be made virtual

@@ -11,12 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_wall_piston.h"
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_wall_piston.h"
 #include "atom.h"
-#include "modify.h"
 #include "domain.h"
 #include "lattice.h"
 #include "update.h"
@@ -171,7 +169,7 @@ int FixWallPiston::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixWallPiston::initial_integrate(int vflag)
+void FixWallPiston::initial_integrate(int /*vflag*/)
 {
   next_reneighbor = update->ntimestep;
 }

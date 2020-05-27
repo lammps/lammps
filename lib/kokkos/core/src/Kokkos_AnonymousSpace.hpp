@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -53,28 +54,28 @@
 namespace Kokkos {
 
 class AnonymousSpace {
-public:
+ public:
   //! Tag this class as a kokkos memory space
-  typedef AnonymousSpace  memory_space;
+  typedef AnonymousSpace memory_space;
   typedef Kokkos::DefaultExecutionSpace execution_space;
-  typedef size_t     size_type;
+  typedef size_t size_type;
 
   //! This memory space preferred device_type
-  typedef Kokkos::Device< execution_space, memory_space > device_type;
+  typedef Kokkos::Device<execution_space, memory_space> device_type;
 
   /**\brief  Default memory space instance */
-  AnonymousSpace() = default;
-  AnonymousSpace( AnonymousSpace && rhs ) = default;
-  AnonymousSpace( const AnonymousSpace & rhs ) = default;
-  AnonymousSpace & operator = ( AnonymousSpace && ) = default;
-  AnonymousSpace & operator = ( const AnonymousSpace & ) = default;
-  ~AnonymousSpace() = default;
+  AnonymousSpace()                          = default;
+  AnonymousSpace(AnonymousSpace &&rhs)      = default;
+  AnonymousSpace(const AnonymousSpace &rhs) = default;
+  AnonymousSpace &operator=(AnonymousSpace &&) = default;
+  AnonymousSpace &operator=(const AnonymousSpace &) = default;
+  ~AnonymousSpace()                                 = default;
 
   /**\brief Return Name of the MemorySpace */
-  static constexpr const char* name() { return "Anonymous"; }
+  static constexpr const char *name() { return "Anonymous"; }
 };
 
-} // namespace Kokkos
+}  // namespace Kokkos
 
 //----------------------------------------------------------------------------
 
@@ -82,46 +83,43 @@ namespace Kokkos {
 
 namespace Impl {
 
-template<typename OtherSpace>
-struct MemorySpaceAccess< Kokkos::AnonymousSpace , OtherSpace > {
+template <typename OtherSpace>
+struct MemorySpaceAccess<Kokkos::AnonymousSpace, OtherSpace> {
   enum { assignable = true };
   enum { accessible = true };
-  enum { deepcopy   = true };
+  enum { deepcopy = true };
 };
 
-template<typename OtherSpace>
-struct MemorySpaceAccess<  OtherSpace, Kokkos::AnonymousSpace > {
+template <typename OtherSpace>
+struct MemorySpaceAccess<OtherSpace, Kokkos::AnonymousSpace> {
   enum { assignable = true };
   enum { accessible = true };
-  enum { deepcopy   = true };
+  enum { deepcopy = true };
 };
 
-template<>
-struct MemorySpaceAccess<  Kokkos::AnonymousSpace, Kokkos::AnonymousSpace > {
+template <>
+struct MemorySpaceAccess<Kokkos::AnonymousSpace, Kokkos::AnonymousSpace> {
   enum { assignable = true };
   enum { accessible = true };
-  enum { deepcopy   = true };
+  enum { deepcopy = true };
 };
 
-template<typename OtherSpace>
-struct VerifyExecutionCanAccessMemorySpace<OtherSpace, Kokkos::AnonymousSpace>
-{
-  enum {value = 1};
+template <typename OtherSpace>
+struct VerifyExecutionCanAccessMemorySpace<OtherSpace, Kokkos::AnonymousSpace> {
+  enum { value = 1 };
   KOKKOS_INLINE_FUNCTION static void verify(void) {}
   KOKKOS_INLINE_FUNCTION static void verify(const void *) {}
 };
 
-template<typename OtherSpace>
-struct VerifyExecutionCanAccessMemorySpace<Kokkos::AnonymousSpace, OtherSpace>
-{
-  enum {value = 1};
+template <typename OtherSpace>
+struct VerifyExecutionCanAccessMemorySpace<Kokkos::AnonymousSpace, OtherSpace> {
+  enum { value = 1 };
   KOKKOS_INLINE_FUNCTION static void verify(void) {}
   KOKKOS_INLINE_FUNCTION static void verify(const void *) {}
 };
 
-} // namespace Impl
+}  // namespace Impl
 
-} // namespace Kokkos
+}  // namespace Kokkos
 
-#endif // #define KOKKOS_ANONYMOUSSPACE_HPP
-
+#endif  // #define KOKKOS_ANONYMOUSSPACE_HPP

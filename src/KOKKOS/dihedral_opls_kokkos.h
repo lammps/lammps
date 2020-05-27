@@ -39,8 +39,9 @@ class DihedralOPLSKokkos : public DihedralOPLS {
 
   DihedralOPLSKokkos(class LAMMPS *);
   virtual ~DihedralOPLSKokkos();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
+  void compute(int, int);
+  void coeff(int, char **);
+  void read_restart(FILE *);
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -88,7 +89,7 @@ class DihedralOPLSKokkos : public DihedralOPLS {
   typename AT::t_ffloat_1d d_k3;
   typename AT::t_ffloat_1d d_k4;
 
-  virtual void allocate();
+  void allocate();
 };
 
 }

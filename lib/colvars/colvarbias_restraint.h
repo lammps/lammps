@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -26,17 +26,15 @@ public:
   virtual int update();
 
   /// Load new configuration - force constant and/or centers only
-  virtual int change_configuration(std::string const &conf) { return COLVARS_NOT_IMPLEMENTED; }
+  virtual int change_configuration(std::string const & /* conf */) { return COLVARS_NOT_IMPLEMENTED; }
 
   /// Calculate change in energy from using alternate configuration
-  virtual cvm::real energy_difference(std::string const &conf) { return 0.0; }
+  virtual cvm::real energy_difference(std::string const & /* conf */) { return 0.0; }
 
   virtual std::string const get_state_params() const;
   virtual int set_state_params(std::string const &conf);
   // virtual std::ostream & write_state_data(std::ostream &os);
   // virtual std::istream & read_state_data(std::istream &os);
-  virtual std::ostream & write_state(std::ostream &os);
-  virtual std::istream & read_state(std::istream &is);
 
   virtual std::ostream & write_traj_label(std::ostream &os);
   virtual std::ostream & write_traj(std::ostream &os);
@@ -107,7 +105,7 @@ public:
   // Note: despite the diamond inheritance, most of this function gets only executed once
   virtual int init(std::string const &conf);
   virtual int update() { return COLVARS_OK; }
-  virtual int change_configuration(std::string const &conf) { return COLVARS_NOT_IMPLEMENTED; }
+  virtual int change_configuration(std::string const & /* conf */) { return COLVARS_NOT_IMPLEMENTED; }
 
   virtual std::string const get_state_params() const;
   virtual int set_state_params(std::string const &conf);
@@ -132,7 +130,7 @@ protected:
 
   /// \brief Number of steps required to reach the target force constant
   /// or restraint centers
-  long target_nsteps;
+  cvm::step_number target_nsteps;
 
   /// \brief Accumulated work (computed when outputAccumulatedWork == true)
   cvm::real acc_work;
@@ -149,7 +147,7 @@ public:
   colvarbias_restraint_centers_moving(char const *key);
   virtual int init(std::string const &conf);
   virtual int update();
-  virtual int change_configuration(std::string const &conf) { return COLVARS_NOT_IMPLEMENTED; }
+  virtual int change_configuration(std::string const & /* conf */) { return COLVARS_NOT_IMPLEMENTED; }
 
   virtual std::string const get_state_params() const;
   virtual int set_state_params(std::string const &conf);
@@ -188,7 +186,7 @@ public:
   colvarbias_restraint_k_moving(char const *key);
   virtual int init(std::string const &conf);
   virtual int update();
-  virtual int change_configuration(std::string const &conf) { return COLVARS_NOT_IMPLEMENTED; }
+  virtual int change_configuration(std::string const & /* conf */) { return COLVARS_NOT_IMPLEMENTED; }
 
   virtual std::string const get_state_params() const;
   virtual int set_state_params(std::string const &conf);
@@ -258,7 +256,6 @@ public:
   colvarbias_restraint_harmonic_walls(char const *key);
   virtual int init(std::string const &conf);
   virtual int update();
-  virtual void communicate_forces();
   virtual std::string const get_state_params() const;
   virtual int set_state_params(std::string const &conf);
   virtual std::ostream & write_state_data(std::ostream &os);
@@ -328,8 +325,7 @@ public:
 
   virtual int update();
 
-  virtual std::istream & read_restart(std::istream &is);
-  virtual std::ostream & write_restart(std::ostream &os);
+  virtual int write_output_files();
   virtual std::ostream & write_traj_label(std::ostream &os);
   virtual std::ostream & write_traj(std::ostream &os);
 

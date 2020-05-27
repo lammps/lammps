@@ -15,14 +15,11 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_qeq_point.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -67,15 +64,15 @@ void FixQEqPoint::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqPoint::pre_force(int vflag)
+void FixQEqPoint::pre_force(int /*vflag*/)
 {
   if (update->ntimestep % nevery) return;
 
   nlocal = atom->nlocal;
 
-  if( atom->nmax > nmax ) reallocate_storage();
+  if (atom->nmax > nmax) reallocate_storage();
 
-  if( nlocal > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE )
+  if (nlocal > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
     reallocate_matrix();
 
   init_matvec();

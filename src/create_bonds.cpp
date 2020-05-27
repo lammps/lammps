@@ -12,12 +12,14 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Mike Salerno (NRL) added single methods
+   Contributing authors:
+     Mike Salerno (NRL) added single methods
+     Thomas Farmer (ISIS) added single/improper
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "create_bonds.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
@@ -31,7 +33,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{MANY,SBOND,SANGLE,SDIHEDRAL};
+enum{MANY,SBOND,SANGLE,SDIHEDRAL,SIMPROPER};
 
 /* ---------------------------------------------------------------------- */
 
@@ -54,7 +56,7 @@ void CreateBonds::command(int narg, char **arg)
 
   int style;
 
-  int iarg;
+  int iarg = 0;
   if (strcmp(arg[0],"many") == 0) {
     style = MANY;
     if (narg != 6) error->all(FLERR,"Illegal create_bonds command");
@@ -100,6 +102,18 @@ void CreateBonds::command(int narg, char **arg)
         (datom2 == datom3) || (datom2 == datom4) || (datom3 == datom4))
       error->all(FLERR,"Illegal create_bonds command");
     iarg = 6;
+  } else if (strcmp(arg[0],"single/improper") == 0) {
+    style = SIMPROPER;
+    if (narg < 6) error->all(FLERR,"Illegal create_bonds command");
+    dtype = force->inumeric(FLERR,arg[1]);
+    datom1 = force->tnumeric(FLERR,arg[2]);
+    datom2 = force->tnumeric(FLERR,arg[3]);
+    datom3 = force->tnumeric(FLERR,arg[4]);
+    datom4 = force->tnumeric(FLERR,arg[5]);
+    if ((datom1 == datom2) || (datom1 == datom3) || (datom1 == datom4) ||
+        (datom2 == datom3) || (datom2 == datom4) || (datom3 == datom4))
+      error->all(FLERR,"Illegal create_bonds command");
+    iarg = 6;
   } else error->all(FLERR,"Illegal create_bonds command");
 
   // optional args
@@ -132,6 +146,9 @@ void CreateBonds::command(int narg, char **arg)
   } else if (style == SDIHEDRAL) {
     if (dtype <= 0 || dtype > atom->ndihedraltypes)
       error->all(FLERR,"Invalid dihedral type in create_bonds command");
+  } else if (style == SIMPROPER) {
+    if (dtype <= 0 || dtype > atom->nimpropertypes)
+      error->all(FLERR,"Invalid improper type in create_bonds command");
   }
 
   // invoke creation method
@@ -140,6 +157,7 @@ void CreateBonds::command(int narg, char **arg)
   else if (style == SBOND) single_bond();
   else if (style == SANGLE) single_angle();
   else if (style == SDIHEDRAL) single_dihedral();
+  else if (style == SIMPROPER) single_improper();
 
   // trigger special list build
 
@@ -510,5 +528,91 @@ void CreateBonds::single_dihedral()
     dihedral_atom3[m][num_dihedral[m]] = datom3;
     dihedral_atom4[m][num_dihedral[m]] = datom4;
     num_dihedral[m]++;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void CreateBonds::single_improper()
+{
+  int m;
+
+  // check that 4 atoms exist
+
+  const int nlocal = atom->nlocal;
+  const int idx1 = atom->map(datom1);
+  const int idx2 = atom->map(datom2);
+  const int idx3 = atom->map(datom3);
+  const int idx4 = atom->map(datom4);
+
+  int count = 0;
+  if ((idx1 >= 0) && (idx1 < nlocal)) count++;
+  if ((idx2 >= 0) && (idx2 < nlocal)) count++;
+  if ((idx3 >= 0) && (idx3 < nlocal)) count++;
+  if ((idx4 >= 0) && (idx4 < nlocal)) count++;
+
+  int allcount;
+  MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
+  if (allcount != 4)
+    error->all(FLERR,"Create_bonds single/improper atoms do not exist");
+
+  // create bond once or 4x if newton_bond set
+
+  int *num_improper = atom->num_improper;
+  int **improper_type = atom->improper_type;
+  tagint **improper_atom1 = atom->improper_atom1;
+  tagint **improper_atom2 = atom->improper_atom2;
+  tagint **improper_atom3 = atom->improper_atom3;
+  tagint **improper_atom4 = atom->improper_atom4;
+
+  if ((m = idx2) >= 0) {
+    if (num_improper[m] == atom->improper_per_atom)
+      error->one(FLERR,
+                 "New improper exceeded impropers per atom in create_bonds");
+    improper_type[m][num_improper[m]] = dtype;
+    improper_atom1[m][num_improper[m]] = datom1;
+    improper_atom2[m][num_improper[m]] = datom2;
+    improper_atom3[m][num_improper[m]] = datom3;
+    improper_atom4[m][num_improper[m]] = datom4;
+    num_improper[m]++;
+  }
+  atom->nimpropers++;
+
+  if (force->newton_bond) return;
+
+  if ((m = idx1) >= 0) {
+    if (num_improper[m] == atom->improper_per_atom)
+      error->one(FLERR,
+                 "New improper exceeded impropers per atom in create_bonds");
+    improper_type[m][num_improper[m]] = dtype;
+    improper_atom1[m][num_improper[m]] = datom1;
+    improper_atom2[m][num_improper[m]] = datom2;
+    improper_atom3[m][num_improper[m]] = datom3;
+    improper_atom4[m][num_improper[m]] = datom4;
+    num_improper[m]++;
+  }
+
+  if ((m = idx3) >= 0) {
+    if (num_improper[m] == atom->improper_per_atom)
+      error->one(FLERR,
+                 "New improper exceeded impropers per atom in create_bonds");
+    improper_type[m][num_improper[m]] = dtype;
+    improper_atom1[m][num_improper[m]] = datom1;
+    improper_atom2[m][num_improper[m]] = datom2;
+    improper_atom3[m][num_improper[m]] = datom3;
+    improper_atom4[m][num_improper[m]] = datom4;
+    num_improper[m]++;
+  }
+
+  if ((m = idx4) >= 0) {
+    if (num_improper[m] == atom->improper_per_atom)
+      error->one(FLERR,
+                 "New improper exceeded impropers per atom in create_bonds");
+    improper_type[m][num_improper[m]] = dtype;
+    improper_atom1[m][num_improper[m]] = datom1;
+    improper_atom2[m][num_improper[m]] = datom2;
+    improper_atom3[m][num_improper[m]] = datom3;
+    improper_atom4[m][num_improper[m]] = datom4;
+    num_improper[m]++;
   }
 }

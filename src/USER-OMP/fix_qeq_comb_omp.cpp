@@ -15,24 +15,20 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "fix_qeq_comb_omp.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include "fix_qeq_comb_omp.h"
-#include "fix_omp.h"
+#include "pair_comb.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "group.h"
 #include "memory.h"
-#include "modify.h"
 #include "error.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "respa.h"
 #include "update.h"
-#include "pair_comb_omp.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -73,7 +69,7 @@ void FixQEQCombOMP::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEQCombOMP::post_force(int vflag)
+void FixQEQCombOMP::post_force(int /* vflag */)
 {
   int i,ii,iloop,loopmax,inum,*ilist;
   double heatpq,qmass,dtq,dtq2;

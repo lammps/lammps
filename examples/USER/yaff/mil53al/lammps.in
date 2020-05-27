@@ -1,0 +1,42 @@
+#########################################
+#General settings
+#########################################
+units           real
+atom_style      full
+boundary        p p p
+dielectric      1
+
+#########################################
+#Force field and system specification
+#########################################
+special_bonds   lj 0.000000 0.000000 1.000000 coul 1.000000 1.000000 1.000000
+pair_style      mm3/switch3/coulgauss/long  12.0000  4.0000
+pair_modify     table 16 # Accuracy of the table used for real space electrostatics
+pair_modify     mix arithmetic
+pair_modify     tail no
+bond_style      harmonic
+angle_style     hybrid cosine/periodic cross harmonic cosine/squared
+dihedral_style  fourier
+improper_style  distharm
+box tilt large
+
+read_data       lammps.data       # Data file location
+kspace_style    pppm 0.0000001      # Ewald accuracy
+neighbor        2.0 multi
+neigh_modify    every 2 delay 4 check yes
+
+#########################################
+#Output settings
+#########################################
+thermo 100       # Provide output every n steps
+thermo_style 	custom step time etotal ke temp pe emol evdwl ecoul elong etail vol press
+thermo_modify	line multi format float %20.12f
+
+#########################################
+#Sampling options
+#########################################
+timestep 0.5 # in femtosecond
+velocity all create 0.0 5 # initial temperature in Kelvin and random seed
+fix 1 all npt temp 300.0 300.0 100.0 tri 2000.0 2000.0 1000.0 tchain 3 mtk yes nreset 1000
+fix_modify 1 energy yes # Add thermo/barostat contributions to energy
+run 10000

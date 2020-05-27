@@ -23,8 +23,6 @@
 #include "force.h"
 #include "group.h"
 #include "update.h"
-#include "domain.h"
-#include "region.h"
 #include "comm.h"
 #include "modify.h"
 #include "compute.h"

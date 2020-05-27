@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_drag.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "respa.h"
@@ -90,7 +90,7 @@ void FixDrag::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixDrag::post_force(int vflag)
+void FixDrag::post_force(int /*vflag*/)
 {
   // apply drag force to atoms in group of magnitude f_mag
   // apply in direction (r-r0) if atom is further than delta away
@@ -132,7 +132,7 @@ void FixDrag::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixDrag::post_force_respa(int vflag, int ilevel, int iloop)
+void FixDrag::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }

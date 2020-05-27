@@ -20,7 +20,6 @@ BondStyle(gromos,BondGromos)
 #ifndef LMP_BOND_GROMOS_H
 #define LMP_BOND_GROMOS_H
 
-#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {
@@ -36,7 +35,7 @@ class BondGromos : public Bond {
   void read_restart(FILE *);
   void write_data(FILE *);
   double single(int, double, int, int, double &);
-  virtual void *extract(char *, int &);
+  virtual void *extract(const char *, int &);
 
  protected:
   double *k,*r0;

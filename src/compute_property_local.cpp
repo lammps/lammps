@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_property_local.h"
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "update.h"
@@ -308,7 +308,7 @@ void ComputePropertyLocal::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyLocal::init_list(int id, NeighList *ptr)
+void ComputePropertyLocal::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

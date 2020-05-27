@@ -11,15 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
 #include "compute_temp_ramp.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "force.h"
 #include "group.h"
-#include "fix.h"
 #include "domain.h"
 #include "lattice.h"
 #include "memory.h"
@@ -101,7 +99,7 @@ ComputeTempRamp::ComputeTempRamp(LAMMPS *lmp, int narg, char **arg) :
 
   maxbias = 0;
   vbiasall = NULL;
-  vector = new double[6];
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -279,7 +277,7 @@ void ComputeTempRamp::remove_bias_all()
    assume remove_bias() was previously called
 ------------------------------------------------------------------------- */
 
-void ComputeTempRamp::restore_bias(int i, double *v)
+void ComputeTempRamp::restore_bias(int /*i*/, double *v)
 {
   v[v_dim] += vbias[v_dim];
 }
@@ -289,7 +287,7 @@ void ComputeTempRamp::restore_bias(int i, double *v)
    assume remove_bias_thr() was previously called with the same buffer b
 ------------------------------------------------------------------------- */
 
-void ComputeTempRamp::restore_bias_thr(int i, double *v, double *b)
+void ComputeTempRamp::restore_bias_thr(int /*i*/, double *v, double *b)
 {
   v[v_dim] += b[v_dim];
 }

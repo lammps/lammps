@@ -16,14 +16,13 @@
                          Mario Pinto (Computational Research Lab, Pune, India)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
 #include "compute_heat_flux.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
 #include "force.h"
-#include "group.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -66,11 +65,12 @@ ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Compute heat/flux compute ID does not compute ke/atom");
   if (modify->compute[ipe]->peatomflag == 0)
     error->all(FLERR,"Compute heat/flux compute ID does not compute pe/atom");
-  if (modify->compute[istress]->pressatomflag == 0)
+  if (modify->compute[istress]->pressatomflag != 1
+      && modify->compute[istress]->pressatomflag != 2)
     error->all(FLERR,
-               "Compute heat/flux compute ID does not compute stress/atom");
+               "Compute heat/flux compute ID does not compute stress/atom or centroid/stress/atom");
 
-  vector = new double[6];
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -138,18 +138,48 @@ void ComputeHeatFlux::compute_vector()
   double jv[3] = {0.0,0.0,0.0};
   double eng;
 
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      eng = pe[i] + ke[i];
-      jc[0] += eng*v[i][0];
-      jc[1] += eng*v[i][1];
-      jc[2] += eng*v[i][2];
-      jv[0] -= stress[i][0]*v[i][0] + stress[i][3]*v[i][1] +
-        stress[i][4]*v[i][2];
-      jv[1] -= stress[i][3]*v[i][0] + stress[i][1]*v[i][1] +
-        stress[i][5]*v[i][2];
-      jv[2] -= stress[i][4]*v[i][0] + stress[i][5]*v[i][1] +
-        stress[i][2]*v[i][2];
+  // heat flux via centroid atomic stress
+  if (c_stress->pressatomflag == 2) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        eng = pe[i] + ke[i];
+        jc[0] += eng*v[i][0];
+        jc[1] += eng*v[i][1];
+        jc[2] += eng*v[i][2];
+        // stress[0]: rijx*fijx
+        // stress[1]: rijy*fijy
+        // stress[2]: rijz*fijz
+        // stress[3]: rijx*fijy
+        // stress[4]: rijx*fijz
+        // stress[5]: rijy*fijz
+        // stress[6]: rijy*fijx
+        // stress[7]: rijz*fijx
+        // stress[8]: rijz*fijy
+        // jv[0]  = rijx fijx vjx + rijx fijy vjy + rijx fijz vjz
+        jv[0] -= stress[i][0]*v[i][0] + stress[i][3]*v[i][1] +
+          stress[i][4]*v[i][2];
+        // jv[1]  = rijy fijx vjx + rijy fijy vjy + rijy fijz vjz
+        jv[1] -= stress[i][6]*v[i][0] + stress[i][1]*v[i][1] +
+          stress[i][5]*v[i][2];
+        // jv[2]  = rijz fijx vjx + rijz fijy vjy + rijz fijz vjz
+        jv[2] -= stress[i][7]*v[i][0] + stress[i][8]*v[i][1] +
+          stress[i][2]*v[i][2];
+      }
+    }
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        eng = pe[i] + ke[i];
+        jc[0] += eng*v[i][0];
+        jc[1] += eng*v[i][1];
+        jc[2] += eng*v[i][2];
+        jv[0] -= stress[i][0]*v[i][0] + stress[i][3]*v[i][1] +
+          stress[i][4]*v[i][2];
+        jv[1] -= stress[i][3]*v[i][0] + stress[i][1]*v[i][1] +
+          stress[i][5]*v[i][2];
+        jv[2] -= stress[i][4]*v[i][0] + stress[i][5]*v[i][1] +
+          stress[i][2]*v[i][2];
+      }
     }
   }
 

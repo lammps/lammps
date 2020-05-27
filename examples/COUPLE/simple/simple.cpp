@@ -19,15 +19,16 @@
 //         in.lammps = LAMMPS input script
 // See README for compilation instructions
 
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "mpi.h"
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <mpi.h>
 
-#include "lammps.h"         // these are LAMMPS include files
-#include "input.h"
-#include "atom.h"
-#include "library.h"
+// these are LAMMPS include files
+#include <lammps/lammps.h>
+#include <lammps/input.h>
+#include <lammps/atom.h>
+#include <lammps/library.h>
 
 using namespace LAMMPS_NS;
 

@@ -11,12 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "write_data.h"
 #include <mpi.h>
 #include <cstring>
-#include "write_data.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "group.h"
 #include "force.h"
 #include "pair.h"
 #include "bond.h"
@@ -177,13 +176,24 @@ void WriteData::write(char *file)
     MPI_Allreduce(&nimpropers_local,&nimpropers,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
 
+  // check for bonus data.
+  if (me == 0) {
+    if ((atom->nellipsoids > 0)
+        || (atom->nlines > 0)
+        || (atom->ntris > 0)
+        || (atom->nbodies > 0))
+      error->warning(FLERR,"System has ellipsoids, lines, triangles, or bodies. "
+                     "Those are not yet supported by write_data. The data file "
+                     "will thus be incomplete.");
+  }
+
   // open data file
 
   if (me == 0) {
     fp = fopen(file,"w");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open data file %s",file);
+      snprintf(str,128,"Cannot open data file %s",file);
       error->one(FLERR,str);
     }
   }
@@ -255,7 +265,7 @@ void WriteData::header()
     }
   }
 
-  if (fixflag) 
+  if (fixflag)
     for (int i = 0; i < modify->nfix; i++)
       if (modify->fix[i]->wd_header)
         for (int m = 0; m < modify->fix[i]->wd_header; m++)

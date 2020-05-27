@@ -11,8 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "body_nparticle.h"
+#include <cstring>
+#include <cstdlib>
+#include "my_pool_chunk.h"
 #include "math_extra.h"
 #include "atom_vec_body.h"
 #include "atom.h"
@@ -44,6 +46,7 @@ BodyNparticle::BodyNparticle(LAMMPS *lmp, int narg, char **arg) :
 
   icp = new MyPoolChunk<int>(1,1);
   dcp = new MyPoolChunk<double>(3*nmin,3*nmax);
+  maxexchange = 1 + 3*nmax;        // icp max + dcp max
 
   memory->create(imflag,nmax,"body/nparticle:imflag");
   memory->create(imdata,nmax,4,"body/nparticle:imdata");
@@ -195,7 +198,7 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
    called by Molecule class which needs single body size
 ------------------------------------------------------------------------- */
 
-double BodyNparticle::radius_body(int ninteger, int ndouble,
+double BodyNparticle::radius_body(int /*ninteger*/, int ndouble,
                                   int *ifile, double *dfile)
 {
   int nsub = ifile[0];
@@ -258,7 +261,7 @@ void BodyNparticle::output(int ibonus, int m, double *values)
 
 /* ---------------------------------------------------------------------- */
 
-int BodyNparticle::image(int ibonus, double flag1, double flag2,
+int BodyNparticle::image(int ibonus, double flag1, double /*flag2*/,
                          int *&ivec, double **&darray)
 {
   double p[3][3];

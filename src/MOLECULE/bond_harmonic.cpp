@@ -11,17 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "bond_harmonic.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -52,8 +52,7 @@ void BondHarmonic::compute(int eflag, int vflag)
   double rsq,r,dr,rk;
 
   ebond = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -169,8 +168,8 @@ void BondHarmonic::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&r0[1],sizeof(double),atom->nbondtypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
   }
   MPI_Bcast(&k[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&r0[1],atom->nbondtypes,MPI_DOUBLE,0,world);
@@ -190,8 +189,8 @@ void BondHarmonic::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondHarmonic::single(int type, double rsq, int i, int j,
-                        double &fforce)
+double BondHarmonic::single(int type, double rsq, int /*i*/, int /*j*/,
+                            double &fforce)
 {
   double r = sqrt(rsq);
   double dr = r - r0[type];
@@ -204,11 +203,11 @@ double BondHarmonic::single(int type, double rsq, int i, int j,
 /* ----------------------------------------------------------------------
     Return ptr to internal members upon request.
 ------------------------------------------------------------------------ */
-void *BondHarmonic::extract( char *str, int &dim )
+void *BondHarmonic::extract(const char *str, int &dim)
 {
   dim = 1;
-  if( strcmp(str,"kappa")==0) return (void*) k;
-  if( strcmp(str,"r0")==0) return (void*) r0;
+  if (strcmp(str,"kappa")==0) return (void*) k;
+  if (strcmp(str,"r0")==0) return (void*) r0;
   return NULL;
 }
 

@@ -110,7 +110,7 @@ class Neighbor {
       }
       if (_time_device) {
         time_nbor.add_to_total();
-        time_kernel.add_to_total();
+        if (_use_packing==false) time_kernel.add_to_total();
         if (_gpu_nbor==2) {
           time_hybrid1.add_to_total();
           time_hybrid2.add_to_total();
@@ -200,7 +200,7 @@ class Neighbor {
   /// Host storage for nbor counts (row 1) & accumulated neighbor counts (row2)
   UCL_H_Vec<int> host_acc;
   /// Device storage for accessing atom indices from the neighbor list (3-body)
-  UCL_D_Vec<int> dev_acc;
+  UCL_D_Vec<int> dev_ilist;
 
   // ----------------- Data for GPU Neighbor Calculation ---------------
 

@@ -21,21 +21,24 @@
    Version      1.0
 ------------------------------------------------------------------------- */
 
+#include "fix_pimd.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
-#include "fix_pimd.h"
 #include "universe.h"
 #include "comm.h"
 #include "force.h"
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace MathConst;
 
 enum{PIMD,NMPIMD,CMD};
 
@@ -56,7 +59,7 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       if(strcmp(arg[i+1],"pimd")==0) method=PIMD;
       else if(strcmp(arg[i+1],"nmpimd")==0) method=NMPIMD;
       else if(strcmp(arg[i+1],"cmd")==0) method=CMD;
-      else error->universe_all(FLERR,"Unkown method parameter for fix pimd");
+      else error->universe_all(FLERR,"Unknown method parameter for fix pimd");
     }
     else if(strcmp(arg[i],"fmass")==0)
     {
@@ -78,7 +81,7 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       nhc_nchain = atoi(arg[i+1]);
       if(nhc_nchain<2) error->universe_all(FLERR,"Invalid nhc value for fix pimd");
     }
-    else error->universe_all(arg[i],i+1,"Unkown keyword for fix pimd");
+    else error->universe_all(arg[i],i+1,"Unknown keyword for fix pimd");
   }
 
   /* Initiation */
@@ -164,7 +167,7 @@ void FixPIMD::init()
   const double Boltzmann = 1.3806488E-23;    // SI unit: J/K
   const double Plank     = 6.6260755E-34;    // SI unit: m^2 kg / s
 
-  double hbar = Plank / ( 2.0 * M_PI ) * sp;
+  double hbar = Plank / ( 2.0 * MY_PI ) * sp;
   double beta = 1.0 / ( Boltzmann * input.nh_temp);
 
   // - P / ( beta^2 * hbar^2)   SI unit: s^-2
@@ -180,7 +183,7 @@ void FixPIMD::init()
   const double Boltzmann = force->boltz;
   const double Plank     = force->hplanck;
 
-  double hbar   = Plank / ( 2.0 * M_PI );
+  double hbar   = Plank / ( 2.0 * MY_PI );
   double beta   = 1.0 / (Boltzmann * nhc_temp);
   double _fbond = 1.0 * np / (beta*beta*hbar*hbar) ;
 
@@ -214,7 +217,7 @@ void FixPIMD::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::initial_integrate(int vflag)
+void FixPIMD::initial_integrate(int /*vflag*/)
 {
   nhc_update_v();
   nhc_update_x();
@@ -229,7 +232,7 @@ void FixPIMD::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::post_force(int flag)
+void FixPIMD::post_force(int /*flag*/)
 {
   for(int i=0; i<atom->nlocal; i++) for(int j=0; j<3; j++) atom->f[i][j] /= np;
 
@@ -428,7 +431,7 @@ void FixPIMD::nmpimd_init()
 
   for(int i=2; i<=np/2; i++)
   {
-    lam[2*i-3] = lam[2*i-2] = 2.0 * np * (1.0 - 1.0 *cos(2.0*M_PI*(i-1)/np));
+    lam[2*i-3] = lam[2*i-2] = 2.0 * np * (1.0 - 1.0 *cos(2.0*MY_PI*(i-1)/np));
   }
 
   // Set up eigenvectors for non-degenerated modes
@@ -443,8 +446,8 @@ void FixPIMD::nmpimd_init()
 
   for(int i=0; i<(np-1)/2; i++) for(int j=0; j<np; j++)
   {
-    M_x2xp[2*i+1][j] =   sqrt(2.0) * cos ( 2.0 * M_PI * (i+1) * j / np) / np;
-    M_x2xp[2*i+2][j] = - sqrt(2.0) * sin ( 2.0 * M_PI * (i+1) * j / np) / np;
+    M_x2xp[2*i+1][j] =   sqrt(2.0) * cos ( 2.0 * MY_PI * (i+1) * j / np) / np;
+    M_x2xp[2*i+2][j] = - sqrt(2.0) * sin ( 2.0 * MY_PI * (i+1) * j / np) / np;
   }
 
   // Set up Ut
@@ -637,14 +640,14 @@ void FixPIMD::comm_exec(double **ptr)
     if(nsend > max_nsend)
     {
       max_nsend = nsend+200;
-      tag_send = (int*) memory->srealloc(tag_send, sizeof(int)*max_nsend, "FixPIMD:tag_send");
+      tag_send = (tagint*) memory->srealloc(tag_send, sizeof(tagint)*max_nsend, "FixPIMD:tag_send");
       buf_send = (double*) memory->srealloc(buf_send, sizeof(double)*max_nsend*3, "FixPIMD:x_send");
     }
 
     // send tags
 
-    MPI_Sendrecv( atom->tag, nlocal, MPI_INT, plan_send[iplan], 0,
-                  tag_send,  nsend,  MPI_INT, plan_recv[iplan], 0, universe->uworld, MPI_STATUS_IGNORE);
+    MPI_Sendrecv( atom->tag, nlocal, MPI_LMP_TAGINT, plan_send[iplan], 0,
+                  tag_send,  nsend,  MPI_LMP_TAGINT, plan_recv[iplan], 0, universe->uworld, MPI_STATUS_IGNORE);
 
     // wrap positions
 
@@ -661,7 +664,7 @@ void FixPIMD::comm_exec(double **ptr)
 
         sprintf(error_line, "Atom " TAGINT_FORMAT " is missing at world [%d] "
                 "rank [%d] required by  rank [%d] (" TAGINT_FORMAT ", "
-                TAGINT_FORMAT ", " TAGINT_FORMAT ").\n",tag_send[i],
+                TAGINT_FORMAT ", " TAGINT_FORMAT ").\n", tag_send[i],
                 universe->iworld, comm->me, plan_recv[iplan],
                 atom->tag[0], atom->tag[1], atom->tag[2]);
 
@@ -686,7 +689,7 @@ void FixPIMD::comm_exec(double **ptr)
 /* ---------------------------------------------------------------------- */
 
 int FixPIMD::pack_forward_comm(int n, int *list, double *buf,
-                             int pbc_flag, int *pbc)
+                             int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 
@@ -744,7 +747,7 @@ void FixPIMD::grow_arrays(int nmax)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::copy_arrays(int i, int j, int delflag)
+void FixPIMD::copy_arrays(int i, int j, int /*delflag*/)
 {
   int i_pos = i*3;
   int j_pos = j*3;
@@ -832,7 +835,7 @@ int FixPIMD::maxsize_restart()
 
 /* ---------------------------------------------------------------------- */
 
-int FixPIMD::size_restart(int nlocal)
+int FixPIMD::size_restart(int /*nlocal*/)
 {
   return size_peratom_cols+1;
 }

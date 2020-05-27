@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstring>
 #include "fix_nve.h"
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -62,7 +61,7 @@ void FixNVE::init()
    allow for both per-type and per-atom mass
 ------------------------------------------------------------------------- */
 
-void FixNVE::initial_integrate(int vflag)
+void FixNVE::initial_integrate(int /*vflag*/)
 {
   double dtfm;
 
@@ -143,7 +142,7 @@ void FixNVE::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVE::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixNVE::initial_integrate_respa(int vflag, int ilevel, int /*iloop*/)
 {
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
@@ -157,7 +156,7 @@ void FixNVE::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVE::final_integrate_respa(int ilevel, int iloop)
+void FixNVE::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
   final_integrate();

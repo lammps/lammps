@@ -395,6 +395,8 @@ class Txt2RstConverter(TxtConverter):
         parser = argparse.ArgumentParser(description='converts a text file with simple formatting & markup into '
                                                      'Restructured Text for Sphinx.')
         parser.add_argument('-x', metavar='file-to-skip', dest='skip_files', action='append')
+        parser.add_argument('--verbose', '-v', dest='verbose', action='store_true')
+        parser.add_argument('--output-directory', '-o', dest='output_dir')
         parser.add_argument('files',  metavar='file', nargs='+', help='one or more files to convert')
         return parser
 

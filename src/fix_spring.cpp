@@ -15,14 +15,12 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_spring.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "respa.h"
-#include "domain.h"
 #include "force.h"
 #include "group.h"
 #include "error.h"
@@ -159,7 +157,7 @@ void FixSpring::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixSpring::post_force(int vflag)
+void FixSpring::post_force(int /*vflag*/)
 {
   if (styleflag == TETHER) spring_tether();
   else spring_couple();
@@ -335,7 +333,7 @@ void FixSpring::spring_couple()
 
 /* ---------------------------------------------------------------------- */
 
-void FixSpring::post_force_respa(int vflag, int ilevel, int iloop)
+void FixSpring::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }

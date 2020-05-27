@@ -15,12 +15,11 @@
    Contributing author: Nathan Fabian (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "image.h"
 #include <mpi.h>
 #include <cmath>
 #include <cctype>
-#include <cstdlib>
 #include <cstring>
-#include "image.h"
 #include "math_extra.h"
 #include "random_mars.h"
 #include "math_const.h"
@@ -29,7 +28,7 @@
 #include "memory.h"
 
 #ifdef LAMMPS_JPEG
-#include "jpeglib.h"
+#include <jpeglib.h>
 #endif
 
 #ifdef LAMMPS_PNG
@@ -1017,6 +1016,8 @@ void Image::write_JPG(FILE *fp)
 
   jpeg_finish_compress(&cinfo);
   jpeg_destroy_compress(&cinfo);
+#else
+  LMP_UNUSED_PARAM(fp);
 #endif
 }
 
@@ -1074,6 +1075,8 @@ void Image::write_PNG(FILE *fp)
 
   png_destroy_write_struct(&png_ptr, &info_ptr);
   delete[] row_pointers;
+#else
+  LMP_UNUSED_PARAM(fp);
 #endif
 }
 
@@ -1463,10 +1466,12 @@ double *Image::color2rgb(const char *color, int index)
     return userrgb[-index-1];
   }
 
-  for (int i = 0; i < ncolors; i++)
-    if (strcmp(color,username[i]) == 0) return userrgb[i];
-  for (int i = 0; i < NCOLORS; i++)
-    if (strcmp(color,name[i]) == 0) return rgb[i];
+  if (color) {
+    for (int i = 0; i < ncolors; i++)
+      if (strcmp(color,username[i]) == 0) return userrgb[i];
+    for (int i = 0; i < NCOLORS; i++)
+      if (strcmp(color,name[i]) == 0) return rgb[i];
+  }
   return NULL;
 }
 

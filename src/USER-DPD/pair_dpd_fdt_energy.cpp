@@ -15,24 +15,22 @@
    Contributing author: James Larentzos (U.S. Army Research Laboratory)
 ------------------------------------------------------------------------- */
 
+#include "pair_dpd_fdt_energy.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
 #include "comm.h"
 #include "update.h"
 #include "fix.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "random_mars.h"
 #include "memory.h"
 #include "modify.h"
-#include "pair_dpd_fdt_energy.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -65,6 +63,7 @@ PairDPDfdtEnergy::~PairDPDfdtEnergy()
     memory->destroy(a0);
     memory->destroy(sigma);
     memory->destroy(kappa);
+    memory->destroy(alpha);
     memory->destroy(duCond);
     memory->destroy(duMech);
   }
@@ -84,8 +83,7 @@ void PairDPDfdtEnergy::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **v = atom->v;
@@ -269,7 +267,7 @@ void PairDPDfdtEnergy::compute(int eflag, int vflag)
           // Compute uCond
           randnum = random->gaussian();
           kappa_ij = kappa[itype][jtype];
-          alpha_ij = sqrt(2.0*force->boltz*kappa_ij);
+          alpha_ij = alpha[itype][jtype];
           randPair = alpha_ij*wr*randnum*dtinvsqrt;
 
           uTmp = kappa_ij*(1.0/dpdTheta[i] - 1.0/dpdTheta[j])*wd;
@@ -322,6 +320,7 @@ void PairDPDfdtEnergy::allocate()
   memory->create(a0,n+1,n+1,"pair:a0");
   memory->create(sigma,n+1,n+1,"pair:sigma");
   memory->create(kappa,n+1,n+1,"pair:kappa");
+  memory->create(alpha,n+1,n+1,"pair:alpha");
   if (!splitFDT_flag) {
     memory->create(duCond,nlocal+nghost+1,"pair:duCond");
     memory->create(duMech,nlocal+nghost+1,"pair:duMech");
@@ -374,11 +373,12 @@ void PairDPDfdtEnergy::coeff(int narg, char **arg)
   double a0_one = force->numeric(FLERR,arg[2]);
   double sigma_one = force->numeric(FLERR,arg[3]);
   double cut_one = cut_global;
-  double kappa_one;
+  double kappa_one, alpha_one;
 
   a0_is_zero = (a0_one == 0.0); // Typical use with SSA is to set a0 to zero
 
   kappa_one = force->numeric(FLERR,arg[4]);
+  alpha_one = sqrt(2.0*force->boltz*kappa_one);
   if (narg == 6) cut_one = force->numeric(FLERR,arg[5]);
 
   int count = 0;
@@ -387,6 +387,7 @@ void PairDPDfdtEnergy::coeff(int narg, char **arg)
       a0[i][j] = a0_one;
       sigma[i][j] = sigma_one;
       kappa[i][j] = kappa_one;
+      alpha[i][j] = alpha_one;
       cut[i][j] = cut_one;
       setflag[i][j] = 1;
       count++;
@@ -406,9 +407,9 @@ void PairDPDfdtEnergy::init_style()
     error->all(FLERR,"Pair dpd/fdt/energy requires ghost atoms store velocity");
 
   splitFDT_flag = false;
-  int irequest = neighbor->request(this,instance_me);
+  neighbor->request(this,instance_me);
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"shardlow", 8) == 0){
+    if (utils::strmatch(modify->fix[i]->style,"^shardlow")) {
       splitFDT_flag = true;
     }
 
@@ -419,8 +420,8 @@ void PairDPDfdtEnergy::init_style()
 
   bool eos_flag = false;
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"eos",3) == 0) eos_flag = true;
-  if(!eos_flag) error->all(FLERR,"pair_style dpd/fdt/energy requires an EOS to be specified");
+    if (utils::strmatch(modify->fix[i]->style,"^eos")) eos_flag = true;
+  if(!eos_flag) error->all(FLERR,"pair_style dpd/fdt/energy requires an EOS fix to be specified");
 }
 
 /* ----------------------------------------------------------------------
@@ -435,6 +436,7 @@ double PairDPDfdtEnergy::init_one(int i, int j)
   a0[j][i] = a0[i][j];
   sigma[j][i] = sigma[i][j];
   kappa[j][i] = kappa[i][j];
+  alpha[j][i] = alpha[i][j];
 
   return cut[i][j];
 }
@@ -475,19 +477,20 @@ void PairDPDfdtEnergy::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&a0[i][j],sizeof(double),1,fp);
-          fread(&sigma[i][j],sizeof(double),1,fp);
-          fread(&kappa[i][j],sizeof(double),1,fp);
-          fread(&cut[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&a0[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&kappa[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&a0[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&kappa[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        alpha[i][j] = sqrt(2.0*force->boltz*kappa[i][j]);
         a0_is_zero = a0_is_zero && (a0[i][j] == 0.0); // verify the zero assumption
       }
     }
@@ -511,9 +514,9 @@ void PairDPDfdtEnergy::write_restart_settings(FILE *fp)
 void PairDPDfdtEnergy::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&seed,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&seed,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&seed,1,MPI_INT,0,world);
@@ -528,8 +531,8 @@ void PairDPDfdtEnergy::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairDPDfdtEnergy::single(int i, int j, int itype, int jtype, double rsq,
-                       double factor_coul, double factor_dpd, double &fforce)
+double PairDPDfdtEnergy::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                       double /*factor_coul*/, double factor_dpd, double &fforce)
 {
   double r,rinv,wr,wd,phi;
 

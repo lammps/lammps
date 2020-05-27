@@ -15,18 +15,17 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "dihedral_harmonic.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
-#include "dihedral_harmonic.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
 #include "update.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -44,7 +43,7 @@ DihedralHarmonic::DihedralHarmonic(LAMMPS *lmp) : Dihedral(lmp)
 
 DihedralHarmonic::~DihedralHarmonic()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(k);
     memory->destroy(sign);
@@ -67,8 +66,7 @@ void DihedralHarmonic::compute(int eflag, int vflag)
   double c,s,p,sx2,sy2,sz2;
 
   edihedral = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -330,9 +328,9 @@ void DihedralHarmonic::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&sign[1],sizeof(int),atom->ndihedraltypes,fp);
-    fread(&multiplicity[1],sizeof(int),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&sign[1],sizeof(int),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&multiplicity[1],sizeof(int),atom->ndihedraltypes,fp,NULL,error);
   }
   MPI_Bcast(&k[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&sign[1],atom->ndihedraltypes,MPI_INT,0,world);

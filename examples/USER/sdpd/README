@@ -1,0 +1,24 @@
+Smoothed Dissipative Particle Dynamics examples
+
+equipartition-verification:
+  This example verifies the equipartition theorem.
+  It simulates a periodic box of water with no solid bodies.
+  If equipartition theorem holds true, the average of each component of
+  translational kinetic energy should be equal to k_B T, and therefore
+  vx_sq_check, vy_sq_check, and vz_sq_check should fluctuate near 1.
+
+2d-diffusion:
+  This example demonstrates the free diffusion of a disk in 2D.
+  The 3D simulation is similar but takes much longer to complete.
+  As with other statistical experiments you need an ensemble to
+  extract meaningful average quantities.
+  For a more realistic simulation you should increase the resolution
+  of the disk/sphere which also necessitates reduction of timestep.
+
+2d-diffusion-in-shear-flow:
+  This example demonstrates the diffusion of a disk in shear flow in 2D.
+  The 3D simulation is similar but takes much longer to complete.
+  As with other statistical experiments you need an ensemble to
+  extract meaningful average quantities.
+  For a more realistic simulation you should increase the resolution
+  of the disk/sphere which also necessitates reduction of timestep.

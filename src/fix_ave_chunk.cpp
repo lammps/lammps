@@ -11,10 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_ave_chunk.h"
+#include <mpi.h>
 #include <cstdlib>
 #include <cstring>
 #include <unistd.h>
-#include "fix_ave_chunk.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -63,7 +64,6 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   strcpy(idchunk,arg[6]);
 
   global_freq = nfreq;
-  peratom_freq = nfreq;
   no_change_box = 1;
 
   // expand args if any have wildcard character "*"
@@ -225,7 +225,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
         fp = fopen(arg[iarg+1],"w");
         if (fp == NULL) {
           char str[128];
-          sprintf(str,"Cannot open fix ave/chunk file %s",arg[iarg+1]);
+          snprintf(str,128,"Cannot open fix ave/chunk file %s",arg[iarg+1]);
           error->one(FLERR,str);
         }
       }
@@ -557,7 +557,7 @@ void FixAveChunk::init()
      that nchunk may not track it
 ------------------------------------------------------------------------- */
 
-void FixAveChunk::setup(int vflag)
+void FixAveChunk::setup(int /*vflag*/)
 {
   end_of_step();
 }
@@ -1055,7 +1055,8 @@ void FixAveChunk::end_of_step()
 
     if (overwrite) {
       long fileend = ftell(fp);
-      if (fileend > 0) ftruncate(fileno(fp),fileend);
+      if ((fileend > 0) && (ftruncate(fileno(fp),fileend)))
+        perror("Error while tuncating output");
     }
   }
 }

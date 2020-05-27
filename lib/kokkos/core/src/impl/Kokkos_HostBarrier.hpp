@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -44,103 +45,212 @@
 #ifndef KOKKOS_HOST_BARRIER_HPP
 #define KOKKOS_HOST_BARRIER_HPP
 
-#include <cstddef>
-#include <cstdint>
+#include <Kokkos_Macros.hpp>
+#include <Kokkos_Atomic.hpp>
 
-namespace Kokkos { namespace Impl {
+namespace Kokkos {
+namespace Impl {
 
-//------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
+// class HostBarrier
+//
+// provides a static and member interface for a barrier shared between threads
+// of execution.
+//
+// *buffer* is a shared resource between the threads of execution
+// *step* should be a stack variable associated with the current thread of
+// execution *size* is the number of threads which share the barrier
+//
+// before calling any arrive type function the buffer and step must have been
+// initialized to 0 and one of the following conditions must be true
+//
+// 1) step == 0 (i.e. first arrive call to HostBarrier),
+// 2) try_wait has returned true for the current thread of execution,
+// 3) a wait type function has returned for the current thread of execution, or
+// 4) split_arrive returned true on the current thread of execution and it has
+//    called split_release
+//
+// The purporse of the split functions is to allow the last thread to arrive
+// an opportunity to perform some actions before releasing the waiting threads
+//
+// If all threads have arrived (and split_release has been call if using
+// split_arrive) before a wait type call, the wait may return quickly
+class HostBarrier {
+ public:
+  using buffer_type                         = int;
+  static constexpr int required_buffer_size = 128;
+  static constexpr int required_buffer_length =
+      required_buffer_size / sizeof(int);
 
-enum : int { RENDEZVOUS_ALIGNMENT = 128
-           , RENDEZVOUS_HEADER    = RENDEZVOUS_ALIGNMENT
-           };
+ private:
+  // fit the following 3 atomics within a 128 bytes while
+  // keeping the arrive atomic at least 64 bytes away from
+  // the wait atomic to reduce contention on the caches
+  static constexpr int arrive_idx = 32 / sizeof(int);
+  static constexpr int master_idx = 64 / sizeof(int);
+  static constexpr int wait_idx   = 96 / sizeof(int);
 
-inline constexpr int rendezvous_buffer_size( const int nthreads ) noexcept
-{
-  return RENDEZVOUS_HEADER + ((nthreads-1 + RENDEZVOUS_ALIGNMENT-1) / RENDEZVOUS_ALIGNMENT) * RENDEZVOUS_ALIGNMENT;
-}
+  static constexpr int num_nops                   = 32;
+  static constexpr int iterations_till_backoff    = 64;
+  static constexpr int log2_iterations_till_yield = 4;
+  static constexpr int log2_iterations_till_sleep = 6;
 
-void rendezvous_initialize( volatile void * buffer
-                          , const int       size
-                          , const int       rank
-                          ) noexcept;
+ public:
+  // will return true if call is the last thread to arrive
+  KOKKOS_INLINE_FUNCTION
+  static bool split_arrive(int* buffer, const int size, int& step,
+                           const bool master_wait = true) noexcept {
+    if (size <= 1) return true;
 
+    ++step;
+    Kokkos::memory_fence();
+    const bool result =
+        Kokkos::atomic_fetch_add(buffer + arrive_idx, 1) == size - 1;
 
-bool rendezvous( volatile void * buffer
-               , uint64_t &      step
-               , const int       size
-               , const int       rank
-               , bool            active_wait = true
-               ) noexcept;
+    if (master_wait && result) {
+      Kokkos::atomic_fetch_add(buffer + master_idx, 1);
+    }
 
-void rendezvous_release( volatile void * buffer
-                       , const uint64_t  step
-                       ) noexcept;
-
-
-//------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
-
-
-class HostBarrier
-{
-public:
-
-  enum : int { ALIGNMENT = RENDEZVOUS_ALIGNMENT };
-  enum : int { HEADER    = ALIGNMENT};
-
-  enum Policy : int { ACTIVE, PASSIVE };
-
-  inline static constexpr int buffer_size( const int nthreads ) noexcept
-  {
-    return rendezvous_buffer_size(nthreads);
+    return result;
   }
 
-  HostBarrier( volatile void * arg_buffer
-             , int             arg_size
-             , int             arg_rank
-             , Policy          arg_policy
-             ) noexcept
-    : m_buffer{arg_buffer}
-    , m_size{arg_size}
-    , m_rank{arg_rank}
-    , m_policy{arg_policy}
-    , m_step{0}
-  {
-    rendezvous_initialize( m_buffer, m_size, m_rank );
+  // release waiting threads
+  // only the thread which received a return value of true from split_arrive
+  // or the thread which calls split_master_wait may call split_release
+  KOKKOS_INLINE_FUNCTION
+  static void split_release(int* buffer, const int size, const int /*step*/
+                            ) noexcept {
+    if (size <= 1) return;
+    Kokkos::memory_fence();
+    Kokkos::atomic_fetch_sub(buffer + arrive_idx, size);
+    Kokkos::atomic_fetch_add(buffer + wait_idx, 1);
   }
 
-  bool rendezvous() const noexcept
-  {
-    return Kokkos::Impl::rendezvous( m_buffer
-                                   , m_step
-                                   , m_size
-                                   , m_rank
-                                   , m_policy == ACTIVE
-                                   );
+  // should only be called by the master thread, will allow the master thread to
+  // resume after all threads have arrived
+  KOKKOS_INLINE_FUNCTION
+  static void split_master_wait(int* buffer, const int size, const int step,
+                                const bool active_wait = true) noexcept {
+    if (size <= 1) return;
+    wait_until_equal(buffer + master_idx, step, active_wait);
   }
 
-  void rendezvous_release() const noexcept
-  {
-    Kokkos::Impl::rendezvous_release( m_buffer, m_step );
+  // arrive, last thread automatically release waiting threads
+  KOKKOS_INLINE_FUNCTION
+  static void arrive(int* buffer, const int size, int& step) noexcept {
+    if (size <= 1) return;
+    if (split_arrive(buffer, size, step)) {
+      split_release(buffer, size, step);
+    }
   }
 
-private:
-  volatile void *   m_buffer ;
-  const int         m_size   ;
-  const int         m_rank   ;
-  const Policy      m_policy ;
-  mutable uint64_t  m_step   ;
+  // test if all threads have arrived
+  KOKKOS_INLINE_FUNCTION
+  static bool try_wait(int* buffer, const int size, const int step) noexcept {
+    if (size <= 1) return true;
+    return test_equal(buffer + wait_idx, step);
+  }
 
-private:
-  HostBarrier( const HostBarrier &  )             = delete;
-  HostBarrier(       HostBarrier && )             = delete;
-  HostBarrier & operator=( const HostBarrier &  ) = delete;
-  HostBarrier & operator=(       HostBarrier && ) = delete;
+  // wait for all threads to arrive
+  KOKKOS_INLINE_FUNCTION
+  static void wait(int* buffer, const int size, const int step,
+                   bool active_wait = true) noexcept {
+    if (size <= 1) return;
+    wait_until_equal(buffer + wait_idx, step, active_wait);
+  }
+
+ public:
+  KOKKOS_INLINE_FUNCTION
+  bool split_arrive(const bool master_wait = true) const noexcept {
+    return split_arrive(m_buffer, m_size, m_step, master_wait);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void split_release() const noexcept {
+    split_release(m_buffer, m_size, m_step);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void split_master_wait(const bool active_wait = true) noexcept {
+    split_master_wait(m_buffer, m_size, m_step, active_wait);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void arrive() const noexcept { return arrive(m_buffer, m_size, m_step); }
+
+  KOKKOS_INLINE_FUNCTION
+  bool try_wait() const noexcept { return try_wait(m_buffer, m_size, m_step); }
+
+  KOKKOS_INLINE_FUNCTION
+  void wait() const noexcept { wait(m_buffer, m_size, m_step); }
+
+  HostBarrier()              = default;
+  HostBarrier(HostBarrier&&) = default;
+  HostBarrier& operator=(HostBarrier&&) = default;
+
+  KOKKOS_INLINE_FUNCTION
+  HostBarrier(int size, int* buffer)
+      : m_size{size}, m_step{0u}, m_buffer{buffer} {}
+
+  HostBarrier(const HostBarrier&) = delete;
+  HostBarrier& operator=(const HostBarrier&) = delete;
+
+ private:
+  KOKKOS_INLINE_FUNCTION
+  static bool test_equal(int* ptr, int v) noexcept {
+    const bool result = Kokkos::atomic_fetch_add(ptr, 0) == v;
+    if (result) {
+      Kokkos::memory_fence();
+    }
+    return result;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  static void wait_until_equal(int* ptr, const int v,
+                               bool active_wait = true) noexcept {
+#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
+    bool result = test_equal(ptr, v);
+    for (int i = 0; !result && i < iterations_till_backoff; ++i) {
+#if defined(KOKKOS_ENABLE_ASM)
+#if defined(_WIN32)
+      for (int j = 0; j < num_nops; ++j) {
+        __asm__ __volatile__("nop\n");
+      }
+      __asm__ __volatile__("pause\n" ::: "memory");
+#elif defined(__PPC64__)
+      for (int j = 0; j < num_nops; ++j) {
+        asm volatile("nop\n");
+      }
+      asm volatile("or 27, 27, 27" ::: "memory");
+#elif defined(__amd64) || defined(__amd64__) || defined(__x86_64) || \
+    defined(__x86_64__)
+      for (int j = 0; j < num_nops; ++j) {
+        asm volatile("nop\n");
+      }
+      asm volatile("pause\n" ::: "memory");
+#endif
+#endif
+      result = test_equal(ptr, v);
+    }
+    if (!result) {
+      impl_backoff_wait_until_equal(ptr, v, active_wait);
+    }
+#else
+    (void)active_wait;
+    while (!test_equal(ptr, v)) {
+    }
+#endif
+  }
+
+  static void impl_backoff_wait_until_equal(int* ptr, const int v,
+                                            const bool active_wait) noexcept;
+
+ private:
+  int m_size{0};
+  mutable int m_step{0};
+  int* m_buffer{nullptr};
 };
 
-}} // namespace Kokkos::Impl
+}  // namespace Impl
+}  // namespace Kokkos
 
-#endif // KOKKOS_HOST_BARRIER_HPP
-
+#endif  // KOKKOS_HOST_BARRIER_HPP

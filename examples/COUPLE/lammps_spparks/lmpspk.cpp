@@ -7,10 +7,10 @@
 //         Sfactor = multiplier on strain effect
 //         in.spparks = SPPARKS input script
 
-#include "mpi.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "lammps_data_write.h"
 #include "many2many.h"

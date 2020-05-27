@@ -11,11 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_nve_limit.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -23,6 +22,7 @@
 #include "modify.h"
 #include "comm.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -72,8 +72,8 @@ void FixNVELimit::init()
   // warn if using fix shake, which will lead to invalid constraint forces
 
   for (int i = 0; i < modify->nfix; i++)
-    if ((strcmp(modify->fix[i]->style,"shake") == 0)
-        || (strcmp(modify->fix[i]->style,"rattle") == 0)) {
+    if (utils::strmatch(modify->fix[i]->style,"^shake")
+        || utils::strmatch(modify->fix[i]->style,"^rattle")) {
       if (comm->me == 0)
         error->warning(FLERR,"Should not use fix nve/limit with fix shake or fix rattle");
     }
@@ -83,7 +83,7 @@ void FixNVELimit::init()
    allow for both per-type and per-atom mass
 ------------------------------------------------------------------------- */
 
-void FixNVELimit::initial_integrate(int vflag)
+void FixNVELimit::initial_integrate(int /*vflag*/)
 {
   double dtfm,vsq,scale;
 
@@ -202,7 +202,7 @@ void FixNVELimit::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVELimit::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixNVELimit::initial_integrate_respa(int vflag, int ilevel, int /*iloop*/)
 {
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
@@ -213,7 +213,7 @@ void FixNVELimit::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVELimit::final_integrate_respa(int ilevel, int iloop)
+void FixNVELimit::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
   final_integrate();

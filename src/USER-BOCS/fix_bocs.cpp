@@ -14,11 +14,10 @@
    from The Pennsylvania State University
 ------------------------------------------------------------------------- */
 
+#include "fix_bocs.h"
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
-#include "fix_bocs.h"
-#include "math_extra.h"
 #include "atom.h"
 #include "force.h"
 #include "group.h"
@@ -59,6 +58,9 @@ static const char cite_user_bocs_package[] =
 enum{NOBIAS,BIAS};
 enum{NONE,XYZ,XY,YZ,XZ};
 enum{ISO,ANISO,TRICLINIC};
+
+// NB: Keep error and warning messages less than 255 chars long.
+const int MAX_MESSAGE_LENGTH = 256;
 
 /* ----------------------------------------------------------------------
    NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion
@@ -207,12 +209,11 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
         p_basis_type = 2;
         spline_length = read_F_table( arg[iarg+1], p_basis_type );
         iarg += 2;
-      }  else
-      {
-         char * errmsg = (char *) calloc(150,sizeof(char));
-         sprintf(errmsg,"CG basis type %s is not recognized\nSupported "
-             "basis types: analytic linear_spline cubic_spline",arg[iarg]);
-         error->all(FLERR,errmsg);
+      }  else {
+        char errmsg[256];
+        snprintf(errmsg,256,"CG basis type %s is not recognized\nSupported "
+                 "basis types: analytic linear_spline cubic_spline",arg[iarg]);
+        error->all(FLERR,errmsg);
       } // END NJD MRD
     } else if (strcmp(arg[iarg],"tchain") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command");
@@ -243,9 +244,9 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
       if (nc_pchain < 0) error->all(FLERR,"Illegal fix bocs command");
       iarg += 2;
     } else {
-      char * errmsg = (char *) calloc(80,sizeof(char));
-      sprintf(errmsg,"Illegal fix bocs command: unrecognized keyword %s"
-                                                             ,arg[iarg]);
+      char errmsg[128];
+      snprintf(errmsg,128,"Illegal fix bocs command: unrecognized keyword %s"
+               ,arg[iarg]);
       error->all(FLERR,errmsg);
     }
   }
@@ -291,8 +292,12 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
     if (p_flag[i]) pstat_flag = 1;
 
   if (pstat_flag) {
-    if (p_flag[0] || p_flag[1] || p_flag[2]) box_change_size = 1;
-    if (p_flag[3] || p_flag[4] || p_flag[5]) box_change_shape = 1;
+    if (p_flag[0]) box_change |= BOX_CHANGE_X;
+    if (p_flag[1]) box_change |= BOX_CHANGE_Y;
+    if (p_flag[2]) box_change |= BOX_CHANGE_Z;
+    if (p_flag[3]) box_change |= BOX_CHANGE_YZ;
+    if (p_flag[4]) box_change |= BOX_CHANGE_XZ;
+    if (p_flag[5]) box_change |= BOX_CHANGE_XY;
     no_change_box = 1;
     if (allremap == 0) restart_pbc = 1;
 
@@ -301,10 +306,10 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
     // pre_exchange only required if flips can occur due to shape changes
 
     if (flipflag && (p_flag[3] || p_flag[4] || p_flag[5]))
-      pre_exchange_flag = 1;
+      pre_exchange_flag = pre_exchange_migrate = 1;
     if (flipflag && (domain->yz != 0.0 || domain->xz != 0.0 ||
                      domain->xy != 0.0))
-      pre_exchange_flag = 1;
+      pre_exchange_flag = pre_exchange_migrate = 1;
   }
 
   // convert input periods to frequencies
@@ -625,59 +630,87 @@ void FixBocs::init()
 // NJD MRD 2 functions
 int FixBocs::read_F_table( char *filename, int p_basis_type )
 {
-  char separator = ',';
   FILE *fpi;
   int N_columns = 2, n_entries = 0, i;
   float f1, f2;
-  double n1, n2;
   int test_sscanf;
   double **data = (double **) calloc(N_columns,sizeof(double *));
   char * line = (char *) calloc(200,sizeof(char));
 
+  bool badInput = false;
+  char badDataMsg[MAX_MESSAGE_LENGTH];
   fpi = fopen(filename,"r");
   if (fpi)
   {
     while (fgets(line,199,fpi)) { ++n_entries; }
-    fclose(fpi);
+
     for (i = 0; i < N_columns; ++i)
     {
       data[i] = (double *) calloc(n_entries,sizeof(double));
     }
-  }
-  else
-  {
-    char * errmsg = (char *) calloc(50,sizeof(char));
-    sprintf(errmsg,"Unable to open file: %s\n",filename);
-    error->all(FLERR,errmsg);
-  }
 
-  n_entries = 0;
-  fpi = fopen(filename,"r");
-  if (fpi)
-  {
-    while( fgets(line,199,fpi))
-    {
+    // Don't need to re-open the file to make a second pass through it
+    // simply rewind to beginning
+    rewind(fpi);
+
+    double stdVolumeInterval = 0.0;
+    double currVolumeInterval = 0.0;
+    // When comparing doubles/floats, we need an Epsilon.
+    // The literature indicates getting this value right in the
+    // general case can be pretty complicated. I don't think it
+    // needs to be complicated here, though. At least based on the
+    // sample data I've seen where the volume values are fairly
+    // large.
+    const double volumeIntervalTolerance = 0.001;
+    n_entries = 0;
+    while( fgets(line,199,fpi)) {
       ++n_entries;
       test_sscanf = sscanf(line," %f , %f ",&f1, &f2);
       if (test_sscanf == 2)
       {
         data[0][n_entries-1] = (double) f1;
         data[1][n_entries-1] = (double) f2;
+        if (n_entries == 2) {
+          stdVolumeInterval = data[0][n_entries-1] - data[0][n_entries-2];
+        }
+        else if (n_entries > 2) {
+          currVolumeInterval = data[0][n_entries-1] - data[0][n_entries-2];
+          if (fabs(currVolumeInterval - stdVolumeInterval) > volumeIntervalTolerance) {
+            snprintf(badDataMsg,MAX_MESSAGE_LENGTH,
+                     "BAD VOLUME INTERVAL: spline analysis requires uniform"
+                     " volume distribution, found inconsistent volume"
+                     " differential, line %d of file %s\n\tline: %s",
+                     n_entries,filename,line);
+            error->message(FLERR,badDataMsg);
+            badInput = true;
+          }
+        }
+        // no else -- first entry is simply ignored
       }
       else
       {
-        fprintf(stderr,"WARNING: did not find 2 comma separated values in "
-                 "line %d of file %s\n\tline: %s",n_entries,filename,line);
+        snprintf(badDataMsg,MAX_MESSAGE_LENGTH,
+                 "BAD INPUT FORMAT: did not find 2 comma separated numeric"
+                 " values in line %d of file %s\n\tline: %s",
+                 n_entries,filename,line);
+        error->message(FLERR,badDataMsg);
+        badInput = true;
       }
     }
+    fclose(fpi);
   }
-  else
-  {
-    char * errmsg = (char *) calloc(50,sizeof(char));
-    sprintf(errmsg,"Unable to open file: %s\n",filename);
+  else {
+    char errmsg[MAX_MESSAGE_LENGTH];
+    snprintf(errmsg,MAX_MESSAGE_LENGTH,"Unable to open file: %s\n",filename);
     error->all(FLERR,errmsg);
   }
-  fclose(fpi);
+
+  if (badInput) {
+    char errmsg[MAX_MESSAGE_LENGTH];
+    snprintf(errmsg,MAX_MESSAGE_LENGTH,
+             "Bad volume / pressure-correction data: %s\nSee details above",filename);
+    error->all(FLERR,errmsg);
+  }
 
   if (p_basis_type == 1)
   {
@@ -701,11 +734,17 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
   }
   else
   {
-    char * errmsg = (char *) calloc(70,sizeof(char));
-    sprintf(errmsg,"ERROR: invalid p_basis_type value "
-                                    "of %d in read_F_table",p_basis_type);
+    char errmsg[MAX_MESSAGE_LENGTH];
+    snprintf(errmsg, MAX_MESSAGE_LENGTH,
+             "ERROR: invalid p_basis_type value of %d in read_F_table",
+             p_basis_type);
     error->all(FLERR,errmsg);
   }
+  // cleanup
+  for (i = 0; i < N_columns; ++i) {
+    free(data[i]);
+  }
+  free(data);
   return n_entries;
 }
 
@@ -790,7 +829,7 @@ void FixBocs::build_cubic_splines( double **data )
    compute T,P before integrator starts
 ------------------------------------------------------------------------- */
 
-void FixBocs::setup(int vflag)
+void FixBocs::setup(int /*vflag*/)
 {
   // tdof needed by compute_temp_target()
 
@@ -846,7 +885,7 @@ void FixBocs::setup(int vflag)
 
   if (pstat_flag) {
     double kt = boltz * t_target;
-    double nkt = atom->natoms * kt;
+    double nkt = (atom->natoms + 1) * kt;
 
     for (int i = 0; i < 3; i++)
       if (p_flag[i])
@@ -875,7 +914,7 @@ void FixBocs::setup(int vflag)
    1st half of Verlet update
 ------------------------------------------------------------------------- */
 
-void FixBocs::initial_integrate(int vflag)
+void FixBocs::initial_integrate(int /*vflag*/)
 {
   // update eta_press_dot
 
@@ -970,7 +1009,7 @@ void FixBocs::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBocs::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixBocs::initial_integrate_respa(int /*vflag*/, int ilevel, int /*iloop*/)
 {
   // set timesteps by level
 
@@ -1039,7 +1078,7 @@ void FixBocs::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixBocs::final_integrate_respa(int ilevel, int iloop)
+void FixBocs::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   // set timesteps by level
 
@@ -1508,7 +1547,7 @@ double FixBocs::compute_scalar()
   double volume;
   double energy;
   double kt = boltz * t_target;
-  double lkt_press = kt;
+  double lkt_press = 0.0;
   int ich;
   if (dimension == 3) volume = domain->xprd * domain->yprd * domain->zprd;
   else volume = domain->xprd * domain->yprd;
@@ -1539,15 +1578,21 @@ double FixBocs::compute_scalar()
   //       sum is over barostatted dimensions
 
   if (pstat_flag) {
-    for (i = 0; i < 3; i++)
-      if (p_flag[i])
+    for (i = 0; i < 3; i++) {
+      if (p_flag[i]) {
         energy += 0.5*omega_dot[i]*omega_dot[i]*omega_mass[i] +
           p_hydro*(volume-vol0) / (pdim*nktv2p);
+        lkt_press += kt;
+      }
+    }
 
     if (pstyle == TRICLINIC) {
-      for (i = 3; i < 6; i++)
-        if (p_flag[i])
+      for (i = 3; i < 6; i++) {
+        if (p_flag[i]) {
           energy += 0.5*omega_dot[i]*omega_dot[i]*omega_mass[i];
+          lkt_press += kt;
+        }
+      }
     }
 
     // extra contributions from thermostat chain for barostat
@@ -1880,15 +1925,14 @@ void FixBocs::nhc_temp_integrate()
 
 void FixBocs::nhc_press_integrate()
 {
-  int ich,i;
+  int ich,i,pdof;
   double expfac,factor_etap,kecurrent;
   double kt = boltz * t_target;
-  double lkt_press = kt;
 
   // Update masses, to preserve initial freq, if flag set
 
   if (omega_mass_flag) {
-    double nkt = atom->natoms * kt;
+    double nkt = (atom->natoms + 1) * kt;
     for (int i = 0; i < 3; i++)
       if (p_flag[i])
         omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
@@ -1912,14 +1956,24 @@ void FixBocs::nhc_press_integrate()
   }
 
   kecurrent = 0.0;
-  for (i = 0; i < 3; i++)
-    if (p_flag[i]) kecurrent += omega_mass[i]*omega_dot[i]*omega_dot[i];
-
-  if (pstyle == TRICLINIC) {
-    for (i = 3; i < 6; i++)
-      if (p_flag[i]) kecurrent += omega_mass[i]*omega_dot[i]*omega_dot[i];
+  pdof = 0;
+  for (i = 0; i < 3; i++) {
+    if (p_flag[i]) {
+      kecurrent += omega_mass[i]*omega_dot[i]*omega_dot[i];
+      pdof++;
+    }
   }
 
+  if (pstyle == TRICLINIC) {
+    for (i = 3; i < 6; i++) {
+      if (p_flag[i]) {
+        kecurrent += omega_mass[i]*omega_dot[i]*omega_dot[i];
+        pdof++;
+      }
+    }
+  }
+
+  double lkt_press = pdof * kt;
   etap_dotdot[0] = (kecurrent - lkt_press)/etap_mass[0];
 
   double ncfac = 1.0/nc_pchain;

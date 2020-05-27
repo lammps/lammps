@@ -11,13 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "gridcomm_kokkos.h"
+#include <mpi.h>
 #include "comm.h"
 #include "kspace.h"
 #include "memory_kokkos.h"
 #include "error.h"
-#include "kokkos_base.h"
+#include "kokkos_base_fft.h"
+#include "kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -501,9 +502,9 @@ void GridCommKokkos<DeviceType>::setup()
   }
   nbuf *= MAX(nforward,nreverse);
   //memory->create(buf1,nbuf,"Commgrid:buf1");
-  k_buf1 = DAT::tdual_FFT_SCALAR_1d("Commgrid:buf1",nbuf);
+  k_buf1 = FFT_DAT::tdual_FFT_SCALAR_1d("Commgrid:buf1",nbuf);
   //memory->create(buf2,nbuf,"Commgrid:buf2");
-  k_buf2 = DAT::tdual_FFT_SCALAR_1d("Commgrid:buf2",nbuf);
+  k_buf2 = FFT_DAT::tdual_FFT_SCALAR_1d("Commgrid:buf2",nbuf);
 }
 
 /* ----------------------------------------------------------------------
@@ -516,25 +517,42 @@ void GridCommKokkos<DeviceType>::forward_comm(KSpace *kspace, int which)
   k_packlist.sync<DeviceType>();
   k_unpacklist.sync<DeviceType>();
 
-  KokkosBase* kspaceKKBase = dynamic_cast<KokkosBase*>(kspace);
+  KokkosBaseFFT* kspaceKKBase = dynamic_cast<KokkosBaseFFT*>(kspace);
 
   for (int m = 0; m < nswap; m++) {
     if (swap[m].sendproc == me)
       kspaceKKBase->pack_forward_kspace_kokkos(which,k_buf2,swap[m].npack,k_packlist,m);
     else
       kspaceKKBase->pack_forward_kspace_kokkos(which,k_buf1,swap[m].npack,k_packlist,m);
-    DeviceType::fence();
+    DeviceType().fence();
 
     if (swap[m].sendproc != me) {
-      MPI_Irecv(k_buf2.view<DeviceType>().data(),nforward*swap[m].nunpack,MPI_FFT_SCALAR,
+      FFT_SCALAR* buf1;
+      FFT_SCALAR* buf2;
+      if (lmp->kokkos->cuda_aware_flag) {
+        buf1 = k_buf1.view<DeviceType>().data();
+        buf2 = k_buf2.view<DeviceType>().data();
+      } else {
+        k_buf1.modify<DeviceType>();
+        k_buf1.sync<LMPHostType>();
+        buf1 = k_buf1.h_view.data();
+        buf2 = k_buf2.h_view.data();
+      }
+
+      MPI_Irecv(buf2,nforward*swap[m].nunpack,MPI_FFT_SCALAR,
                 swap[m].recvproc,0,gridcomm,&request);
-      MPI_Send(k_buf1.view<DeviceType>().data(),nforward*swap[m].npack,MPI_FFT_SCALAR,
+      MPI_Send(buf1,nforward*swap[m].npack,MPI_FFT_SCALAR,
                swap[m].sendproc,0,gridcomm);
       MPI_Wait(&request,MPI_STATUS_IGNORE);
+
+      if (!lmp->kokkos->cuda_aware_flag) {
+        k_buf2.modify<LMPHostType>();
+        k_buf2.sync<DeviceType>();
+      }
     }
 
     kspaceKKBase->unpack_forward_kspace_kokkos(which,k_buf2,swap[m].nunpack,k_unpacklist,m);
-    DeviceType::fence();
+    DeviceType().fence();
   }
 }
 
@@ -549,25 +567,42 @@ void GridCommKokkos<DeviceType>::reverse_comm(KSpace *kspace, int which)
   k_packlist.sync<DeviceType>();
   k_unpacklist.sync<DeviceType>();
 
-  KokkosBase* kspaceKKBase = dynamic_cast<KokkosBase*>(kspace);
+  KokkosBaseFFT* kspaceKKBase = dynamic_cast<KokkosBaseFFT*>(kspace);
 
   for (int m = nswap-1; m >= 0; m--) {
     if (swap[m].recvproc == me)
       kspaceKKBase->pack_reverse_kspace_kokkos(which,k_buf2,swap[m].nunpack,k_unpacklist,m);
     else
       kspaceKKBase->pack_reverse_kspace_kokkos(which,k_buf1,swap[m].nunpack,k_unpacklist,m);
-    DeviceType::fence();
+    DeviceType().fence();
 
     if (swap[m].recvproc != me) {
-      MPI_Irecv(k_buf2.view<DeviceType>().data(),nreverse*swap[m].npack,MPI_FFT_SCALAR,
+      FFT_SCALAR* buf1;
+      FFT_SCALAR* buf2;
+      if (lmp->kokkos->cuda_aware_flag) {
+        buf1 = k_buf1.view<DeviceType>().data();
+        buf2 = k_buf2.view<DeviceType>().data();
+      } else {
+        k_buf1.modify<DeviceType>();
+        k_buf1.sync<LMPHostType>();
+        buf1 = k_buf1.h_view.data();
+        buf2 = k_buf2.h_view.data();
+      }
+
+      MPI_Irecv(buf2,nreverse*swap[m].npack,MPI_FFT_SCALAR,
                 swap[m].sendproc,0,gridcomm,&request);
-      MPI_Send(k_buf1.view<DeviceType>().data(),nreverse*swap[m].nunpack,MPI_FFT_SCALAR,
+      MPI_Send(buf1,nreverse*swap[m].nunpack,MPI_FFT_SCALAR,
                swap[m].recvproc,0,gridcomm);
       MPI_Wait(&request,MPI_STATUS_IGNORE);
+
+      if (!lmp->kokkos->cuda_aware_flag) {
+        k_buf2.modify<LMPHostType>();
+        k_buf2.sync<DeviceType>();
+      }
     }
 
     kspaceKKBase->unpack_reverse_kspace_kokkos(which,k_buf2,swap[m].npack,k_packlist,m);
-    DeviceType::fence();
+    DeviceType().fence();
   }
 }
 
@@ -617,7 +652,7 @@ double GridCommKokkos<DeviceType>::memory_usage()
 
 namespace LAMMPS_NS {
 template class GridCommKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class GridCommKokkos<LMPHostType>;
 #endif
 }

@@ -58,8 +58,6 @@ negotiate an appropriate license for such distribution."
 #include "group.h"
 #include "memory.h"
 
-#include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
@@ -811,7 +809,7 @@ void FixIMD::ioworker()
 /* ---------------------------------------------------------------------- */
 /* Main IMD protocol handler:
  * Send coodinates, energies, and add IMD forces to atoms. */
-void FixIMD::post_force(int vflag)
+void FixIMD::post_force(int /*vflag*/)
 {
   /* check for reconnect */
   if (imd_inactive) {
@@ -1153,7 +1151,7 @@ void FixIMD::post_force(int vflag)
 }
 
 /* ---------------------------------------------------------------------- */
-void FixIMD::post_force_respa(int vflag, int ilevel, int iloop)
+void FixIMD::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   /* only process IMD on the outmost RESPA level. */
   if (ilevel == nlevels_respa-1) post_force(vflag);
@@ -1239,7 +1237,7 @@ void *imdsock_accept(void * v) {
 #elif defined(SOCKLEN_T)
   SOCKLEN_T len;
 #define _SOCKLEN_TYPE SOCKLEN_T
-#elif defined(_POSIX_SOURCE) || (defined(__APPLE__) && defined(__MACH__)) || defined(__linux)
+#elif defined(_POSIX_SOURCE) || (defined(__APPLE__) && defined(__MACH__)) || defined(__linux__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__NetBSD__)
   socklen_t len;
 #define _SOCKLEN_TYPE socklen_t
 #else

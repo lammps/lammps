@@ -15,15 +15,12 @@
    Contributing author: Michele Ceriotti (EPFL), Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdio>
-#include <cstring>
-#include <cstdlib>
 #include "fix_ipi.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
-#include "respa.h"
 #include "error.h"
 #include "kspace.h"
 #include "modify.h"
@@ -32,8 +29,6 @@
 #include "neighbor.h"
 #include "irregular.h"
 #include "domain.h"
-#include "compute_pressure.h"
-#include <errno.h>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -112,7 +107,7 @@ static void open_socket(int &sockfd, int inet, int port, char* host,
   } else {  // creates a unix socket
     struct sockaddr_un serv_addr;
 
-    // fills up details of the socket addres
+    // fills up details of the socket address
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sun_family = AF_UNIX;
     strcpy(serv_addr.sun_path, "/tmp/ipi_");
@@ -269,7 +264,7 @@ void FixIPI::init()
   neighbor->every = 1;
 }
 
-void FixIPI::initial_integrate(int vflag)
+void FixIPI::initial_integrate(int /*vflag*/)
 {
   /* This is called at the beginning of the integration loop,
    * and will be used to read positions from the socket. Then,

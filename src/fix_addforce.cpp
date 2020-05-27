@@ -11,9 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_addforce.h"
+#include <mpi.h>
 #include <cstring>
 #include <cstdlib>
-#include "fix_addforce.h"
 #include "atom.h"
 #include "atom_masks.h"
 #include "update.h"
@@ -361,7 +362,7 @@ void FixAddForce::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixAddForce::post_force_respa(int vflag, int ilevel, int iloop)
+void FixAddForce::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }

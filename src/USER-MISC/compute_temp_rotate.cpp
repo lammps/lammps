@@ -15,16 +15,13 @@
    Contributing author: Laurent Joly (U Lyon, France), ljoly.ulyon@gmail.com
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
 #include "compute_temp_rotate.h"
+#include <mpi.h>
 #include "atom.h"
 #include "update.h"
 #include "force.h"
 #include "group.h"
 #include "domain.h"
-#include "lattice.h"
 #include "error.h"
 #include "memory.h"
 
@@ -46,7 +43,7 @@ ComputeTempRotate::ComputeTempRotate(LAMMPS *lmp, int narg, char **arg) :
 
   maxbias = 0;
   vbiasall = NULL;
-  vector = new double[6];
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */

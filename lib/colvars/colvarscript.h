@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -71,8 +71,10 @@ public:
     cv_help,
     cv_version,
     cv_config,
+    cv_getconfig,
     cv_configfile,
     cv_reset,
+    cv_resetindexgroups,
     cv_delete,
     cv_list,
     cv_list_biases,
@@ -84,6 +86,7 @@ public:
     cv_printframe,
     cv_printframelabels,
     cv_frame,
+    cv_units,
     cv_colvar,
     cv_colvar_value,
     cv_colvar_update,
@@ -189,8 +192,9 @@ inline static colvarbias *colvarbias_obj(void *pobj)
 
 #ifdef COLVARSCRIPT_CPP
 #define CVSCRIPT_COMM_FN(COMM,N_ARGS_MIN,N_ARGS_MAX,ARGS,FN_BODY)       \
-  int CVSCRIPT_COMM_FNAME(COMM)(void *pobj,                             \
-                                int objc, unsigned char *const objv[])  \
+  extern "C" int CVSCRIPT_COMM_FNAME(COMM)(void *pobj,                  \
+                                           int objc,                    \
+                                           unsigned char *const objv[]) \
   {                                                                     \
     colvarscript *script = colvarscript_obj();                          \
     script->clear_results();                                            \
@@ -254,6 +258,21 @@ extern "C" {
            return COLVARSCRIPT_ERROR;
            )
 
+  CVSCRIPT(cv_getconfig,
+           "Get the module's configuration string read so far",
+           0, 0,
+           { },
+           script->set_str_result(cvm::main()->get_config());
+           return COLVARS_OK;
+           )
+
+  CVSCRIPT(cv_resetindexgroups,
+           "Clear the index groups loaded so far, allowing to replace them",
+           0, 0,
+           { },
+           return cvm::main()->reset_index_groups();
+           )
+
   CVSCRIPT(cv_addenergy,
            "Add an energy to the MD engine",
            1, 1,
@@ -270,6 +289,18 @@ extern "C" {
            double *energy = reinterpret_cast<double *>(objv[2]);
            *energy = cvm::main()->total_bias_energy;
            return COLVARS_OK;
+           )
+
+  CVSCRIPT(cv_units,
+           "Get the current Colvars unit system",
+           0, 1,
+           { },
+           if (objc < 3) {
+            script->set_str_result(cvm::proxy->units);
+            return COLVARS_OK;
+           } else {
+            return cvm::proxy->set_unit_system(script->obj_to_str(objv[2]) , false);
+           }
            )
 
 #ifndef COLVARSCRIPT_INIT_FN

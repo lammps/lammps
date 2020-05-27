@@ -1,6 +1,5 @@
 # INPUT FILE FOR DPD_Fluid
 
-log             log.dpde-vv
 boundary        p p p
 
 units           metal  # ev, ps

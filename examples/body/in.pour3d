@@ -1,0 +1,57 @@
+# pouring 3d rounded polyhedron bodies
+
+variable    steps index 6000
+
+units       lj
+boundary    p p fm
+comm_modify vel yes
+
+atom_style  body rounded/polyhedron 1 8
+atom_modify map array
+
+region		reg block 0 50 0 50 0 50 units box
+create_box	4 reg
+
+variable cut_inner  equal 0.5
+variable k_n        equal 100
+variable k_na       equal 5
+variable c_n        equal 20
+variable c_t        equal 5
+variable mu         equal 0
+variable A_ua       equal 1
+
+pair_style body/rounded/polyhedron ${c_n} ${c_t} ${mu} ${A_ua} ${cut_inner}
+pair_coeff * * ${k_n} ${k_na}
+
+neighbor     0.5 bin
+neigh_modify every 1 delay 0 check yes
+
+timestep     0.001
+
+fix          1 all nve/body
+fix          2 all gravity 1.0 spherical 0.0 -180.0
+
+molecule     object molecule.cube molecule.tetra toff 1 &
+             molecule.rod3d toff 2 molecule.point3d toff 3
+
+region       slab block 5 45 5 45 25 35 units box
+fix          ins all pour 500 0 4767548 vol 0.4 10 region slab mol object &
+             molfrac 0.25 0.25 0.25 0.25
+
+fix          4 all wall/body/polyhedron 2000 50 50 zplane 0.0 NULL
+
+#compute      1 all body/local type 1 2 3
+#dump         1 all local 1000 dump.polyhedron index c_1[1] c_1[2] c_1[3] c_1[4]
+#dump         10 all custom 1000 tmp.dump id type x y z radius
+
+thermo_style custom step atoms ke pe etotal press
+
+thermo       1000
+
+#dump	     2 all image 500 image.*.jpg type type &
+#	     zoom 1.5 adiam 1.5 body type 0 0 view 75 15
+#dump_modify  2 pad 6
+
+run	     ${steps}
+
+

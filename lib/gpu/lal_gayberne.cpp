@@ -26,7 +26,7 @@ const char *gayberne_lj=0;
 
 #include "lal_gayberne.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 
 #define GayBerneT GayBerne<numtyp, acctyp>
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -315,4 +315,4 @@ void GayBerneT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class GayBerne<PRECISION,ACC_PRECISION>;
-
+}

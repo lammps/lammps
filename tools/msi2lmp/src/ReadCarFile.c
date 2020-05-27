@@ -77,7 +77,6 @@ void ReadCarFile(void)
   double cos_gamma;
   double sin_gamma;
   double cos_beta;
-  double sin_beta;
   double A, B, C;
   double center[3];
   double hmat[6];
@@ -228,7 +227,7 @@ void ReadCarFile(void)
   /* Search coordinates to find lowest and highest for x, y, and z */
 
   if (periodic == 0) {
-    /* Added if/else statment STLM Oct 5 2010 */
+    /* Added if/else statement STLM Oct 5 2010 */
     if (TriclinicFlag == 0) {
       /* no need to re-center the box, if we use min/max values */
       center[0] = center[1] = center[2] = 0.0;
@@ -265,7 +264,6 @@ void ReadCarFile(void)
       cos_gamma = cos(pbc[5]*PI_180);
       sin_gamma = sin(pbc[5]*PI_180);
       cos_beta =  cos(pbc[4]*PI_180);
-      sin_beta =  sin(pbc[4]*PI_180);
       if (pflag > 2) {
         printf(" pbc[3] %f pbc[4] %f pbc[5] %f\n", pbc[3] ,pbc[4] ,pbc[5]);
         printf(" cos_alpha %f cos_beta %f cos_gamma %f\n", cos_alpha ,cos_beta ,cos_gamma);

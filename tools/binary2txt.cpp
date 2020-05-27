@@ -99,9 +99,9 @@ int main(int narg, char **arg)
       // detect end-of-file
 
       if (feof(fp)) {
-	fclose(fp);
-	fclose(fptxt);
-	break;
+        fclose(fp);
+        fclose(fptxt);
+        break;
       }
 
       fread(&natoms,sizeof(bigint),1,fp);
@@ -114,13 +114,13 @@ int main(int narg, char **arg)
       fread(&zlo,sizeof(double),1,fp);
       fread(&zhi,sizeof(double),1,fp);
       if (triclinic) {
-	fread(&xy,sizeof(double),1,fp);
-	fread(&xz,sizeof(double),1,fp);
-	fread(&yz,sizeof(double),1,fp);
+        fread(&xy,sizeof(double),1,fp);
+        fread(&xz,sizeof(double),1,fp);
+        fread(&yz,sizeof(double),1,fp);
       }
       fread(&size_one,sizeof(int),1,fp);
       fread(&nchunk,sizeof(int),1,fp);
-      
+
       fprintf(fptxt,"ITEM: TIMESTEP\n");
       fprintf(fptxt,BIGINT_FORMAT "\n",ntimestep);
       fprintf(fptxt,"ITEM: NUMBER OF ATOMS\n");
@@ -128,26 +128,26 @@ int main(int narg, char **arg)
 
       m = 0;
       for (int idim = 0; idim < 3; idim++) {
-	for (int iside = 0; iside < 2; iside++) {
-	  if (boundary[idim][iside] == 0) boundstr[m++] = 'p';
-	  else if (boundary[idim][iside] == 1) boundstr[m++] = 'f';
-	  else if (boundary[idim][iside] == 2) boundstr[m++] = 's';
-	  else if (boundary[idim][iside] == 3) boundstr[m++] = 'm';
-	}
-	boundstr[m++] = ' ';
+        for (int iside = 0; iside < 2; iside++) {
+          if (boundary[idim][iside] == 0) boundstr[m++] = 'p';
+          else if (boundary[idim][iside] == 1) boundstr[m++] = 'f';
+          else if (boundary[idim][iside] == 2) boundstr[m++] = 's';
+          else if (boundary[idim][iside] == 3) boundstr[m++] = 'm';
+        }
+        boundstr[m++] = ' ';
       }
       boundstr[8] = '\0';
-      
+
       if (!triclinic) {
-	fprintf(fptxt,"ITEM: BOX BOUNDS %s\n",boundstr);
-	fprintf(fptxt,"%g %g\n",xlo,xhi);
-	fprintf(fptxt,"%g %g\n",ylo,yhi);
-	fprintf(fptxt,"%g %g\n",zlo,zhi);
+        fprintf(fptxt,"ITEM: BOX BOUNDS %s\n",boundstr);
+        fprintf(fptxt,"%g %g\n",xlo,xhi);
+        fprintf(fptxt,"%g %g\n",ylo,yhi);
+        fprintf(fptxt,"%g %g\n",zlo,zhi);
       } else {
-	fprintf(fptxt,"ITEM: BOX BOUNDS %s xy xz yz\n",boundstr);
-	fprintf(fptxt,"%g %g %g\n",xlo,xhi,xy);
-	fprintf(fptxt,"%g %g %g\n",ylo,yhi,xz);
-	fprintf(fptxt,"%g %g %g\n",zlo,zhi,yz);
+        fprintf(fptxt,"ITEM: BOX BOUNDS %s xy xz yz\n",boundstr);
+        fprintf(fptxt,"%g %g %g\n",xlo,xhi,xy);
+        fprintf(fptxt,"%g %g %g\n",ylo,yhi,xz);
+        fprintf(fptxt,"%g %g %g\n",zlo,zhi,yz);
       }
       fprintf(fptxt,"ITEM: ATOMS\n");
 
@@ -156,25 +156,25 @@ int main(int narg, char **arg)
       // loop over processor chunks in file
 
       for (i = 0; i < nchunk; i++) {
-	fread(&n,sizeof(int),1,fp);
+        fread(&n,sizeof(int),1,fp);
 
-	// extend buffer to fit chunk size
-	
-	if (n > maxbuf) {
-	  if (buf) delete [] buf;
-	  buf = new double[n];
-	  maxbuf = n;
-	}
+        // extend buffer to fit chunk size
 
-	// read chunk and write as size_one values per line
+        if (n > maxbuf) {
+          if (buf) delete [] buf;
+          buf = new double[n];
+          maxbuf = n;
+        }
 
-	fread(buf,sizeof(double),n,fp);
-	n /= size_one;
-	m = 0;
-	for (j = 0; j < n; j++) {
-	  for (k = 0; k < size_one; k++) fprintf(fptxt,"%g ",buf[m++]);
-	  fprintf(fptxt,"\n");
-	}
+        // read chunk and write as size_one values per line
+
+        fread(buf,sizeof(double),n,fp);
+        n /= size_one;
+        m = 0;
+        for (j = 0; j < n; j++) {
+          for (k = 0; k < size_one; k++) fprintf(fptxt,"%g ",buf[m++]);
+          fprintf(fptxt,"\n");
+        }
       }
 
       printf(" " BIGINT_FORMAT,ntimestep);

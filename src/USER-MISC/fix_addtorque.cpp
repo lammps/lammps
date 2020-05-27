@@ -15,9 +15,9 @@
    Contributing author: Laurent Joly (U Lyon, France), ljoly.ulyon@gmail.com
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "fix_addtorque.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -25,7 +25,6 @@
 #include "respa.h"
 #include "input.h"
 #include "variable.h"
-#include "memory.h"
 #include "error.h"
 #include "group.h"
 #include "force.h"
@@ -164,7 +163,7 @@ void FixAddTorque::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixAddTorque::post_force(int vflag)
+void FixAddTorque::post_force(int /*vflag*/)
 {
   double **x = atom->x;
   double **f = atom->f;
@@ -252,7 +251,7 @@ void FixAddTorque::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixAddTorque::post_force_respa(int vflag, int ilevel, int iloop)
+void FixAddTorque::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }

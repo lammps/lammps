@@ -15,11 +15,11 @@
    Contributing authors: Stephen Foiles (SNL), Murray Daw (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_eam.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_eam.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -27,6 +27,8 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "update.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -38,10 +40,12 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
 {
   restartinfo = 0;
   manybody_flag = 1;
+  embedstep = -1;
 
   nmax = 0;
   rho = NULL;
   fp = NULL;
+  numforce = NULL;
   map = NULL;
   type2frho = NULL;
 
@@ -76,6 +80,7 @@ PairEAM::~PairEAM()
 
   memory->destroy(rho);
   memory->destroy(fp);
+  memory->destroy(numforce);
 
   if (allocated) {
     memory->destroy(setflag);
@@ -142,8 +147,7 @@ void PairEAM::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // grow energy and fp arrays if necessary
   // need to be atom->nmax in length
@@ -151,9 +155,11 @@ void PairEAM::compute(int eflag, int vflag)
   if (atom->nmax > nmax) {
     memory->destroy(rho);
     memory->destroy(fp);
+    memory->destroy(numforce);
     nmax = atom->nmax;
     memory->create(rho,nmax,"pair:rho");
     memory->create(fp,nmax,"pair:fp");
+    memory->create(numforce,nmax,"pair:numforce");
   }
 
   double **x = atom->x;
@@ -242,6 +248,7 @@ void PairEAM::compute(int eflag, int vflag)
   // communicate derivative of embedding function
 
   comm->forward_comm_pair(this);
+  embedstep = update->ntimestep;
 
   // compute forces on each atom
   // loop over neighbors of my atoms
@@ -255,6 +262,7 @@ void PairEAM::compute(int eflag, int vflag)
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
+    numforce[i] = 0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -266,6 +274,7 @@ void PairEAM::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cutforcesq) {
+        ++numforce[i];
         jtype = type[j];
         r = sqrt(rsq);
         p = r*rdr + 1.0;
@@ -347,7 +356,7 @@ void PairEAM::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairEAM::settings(int narg, char **arg)
+void PairEAM::settings(int narg, char **/*arg*/)
 {
   if (narg > 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -417,6 +426,7 @@ void PairEAM::init_style()
   array2spline();
 
   neighbor->request(this,instance_me);
+  embedstep = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -460,17 +470,17 @@ void PairEAM::read_file(char *filename)
     fptr = force->open_potential(filename);
     if (fptr == NULL) {
       char str[128];
-      sprintf(str,"Cannot open EAM potential file %s",filename);
+      snprintf(str,128,"Cannot open EAM potential file %s",filename);
       error->one(FLERR,str);
     }
   }
 
   int tmp,nwords;
   if (me == 0) {
-    fgets(line,MAXLINE,fptr);
-    fgets(line,MAXLINE,fptr);
+    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
+    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
     sscanf(line,"%d %lg",&tmp,&file->mass);
-    fgets(line,MAXLINE,fptr);
+    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
     nwords = sscanf(line,"%d %lg %d %lg %lg",
            &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
   }
@@ -785,9 +795,9 @@ void PairEAM::grab(FILE *fptr, int n, double *list)
 
   int i = 0;
   while (i < n) {
-    fgets(line,MAXLINE,fptr);
+    utils::sfgets(FLERR,line,MAXLINE,fptr,NULL,error);
     ptr = strtok(line," \t\n\r\f");
-    list[i++] = atof(ptr);
+    if (ptr) list[i++] = atof(ptr);
     while ((ptr = strtok(NULL," \t\n\r\f"))) list[i++] = atof(ptr);
   }
 }
@@ -795,12 +805,32 @@ void PairEAM::grab(FILE *fptr, int n, double *list)
 /* ---------------------------------------------------------------------- */
 
 double PairEAM::single(int i, int j, int itype, int jtype,
-                       double rsq, double factor_coul, double factor_lj,
+                       double rsq, double /*factor_coul*/, double /*factor_lj*/,
                        double &fforce)
 {
   int m;
   double r,p,rhoip,rhojp,z2,z2p,recip,phi,phip,psip;
   double *coeff;
+
+  if (!numforce)
+    error->all(FLERR,"EAM embedding data required for this calculation is missing");
+
+  if ((comm->me == 0) && (embedstep != update->ntimestep)) {
+    error->warning(FLERR,"EAM embedding data not computed for this time step ");
+    embedstep = update->ntimestep;
+  }
+
+  if (numforce[i] > 0) {
+    p = rho[i]*rdrho + 1.0;
+    m = static_cast<int> (p);
+    m = MAX(1,MIN(m,nrho-1));
+    p -= m;
+    p = MIN(p,1.0);
+    coeff = frho_spline[type2frho[itype]][m];
+    phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+    if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
+    phi *= 1.0/static_cast<double>(numforce[i]);
+  } else phi = 0.0;
 
   r = sqrt(rsq);
   p = r*rdr + 1.0;
@@ -818,7 +848,7 @@ double PairEAM::single(int i, int j, int itype, int jtype,
   z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
 
   recip = 1.0/r;
-  phi = z2*recip;
+  phi += z2*recip;
   phip = z2p*recip - phi*recip;
   psip = fp[i]*rhojp + fp[j]*rhoip + phip;
   fforce = -psip*recip;
@@ -829,7 +859,7 @@ double PairEAM::single(int i, int j, int itype, int jtype,
 /* ---------------------------------------------------------------------- */
 
 int PairEAM::pack_forward_comm(int n, int *list, double *buf,
-                               int pbc_flag, int *pbc)
+                               int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 
@@ -898,6 +928,9 @@ void PairEAM::swap_eam(double *fp_caller, double **fp_caller_hold)
   double *tmp = fp;
   fp = fp_caller;
   *fp_caller_hold = tmp;
+
+  // skip warning about out-of-sync timestep, since we already warn in the caller
+  embedstep = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */

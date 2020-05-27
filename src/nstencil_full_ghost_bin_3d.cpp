@@ -12,8 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "nstencil_full_ghost_bin_3d.h"
-#include "neighbor.h"
-#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 

@@ -1,0 +1,65 @@
+# Test compute momentum with by comparing it's output with compute reduce
+
+# Script will output the two computations of the total momentum as
+# thermo vars - they should be identical
+
+# 3D LJ Poiseuille flow simulation
+dimension	3
+boundary	p p p
+
+atom_style	atomic
+neighbor	0.3 bin
+neigh_modify	delay 5
+
+# create geometry
+lattice		hcp 0.5
+region		box block 0 20 0 10 0 10
+create_box	3 box
+create_atoms	1 box
+
+mass		1 1.0
+mass		2 1.0
+mass		3 1.0
+
+# LJ potentials
+pair_style	lj/cut 1.0
+pair_coeff	* * 1.0 1.0 1.0
+
+# define groups
+region	     1 block INF INF INF 1.0 INF INF
+group	     lower region 1
+region	     2 block INF INF 9.0 INF INF INF
+group	     upper region 2
+group	     boundary union lower upper
+group	     liquid subtract all boundary
+
+set	     group lower type 2
+set	     group upper type 3
+
+# temperature settings
+compute      mobile liquid temp
+velocity     liquid create 1.0 100 temp mobile
+fix          1 all nve
+fix          2 liquid temp/rescale 200 1.0 2.0 0.02 1.0
+fix_modify   2 temp mobile
+
+velocity     boundary set 0.0 0.0 0.0
+fix	     4 lower setforce 0.0 0.0 0.0
+fix	     5 upper setforce 0.0 0.0 0.0
+fix	     6 liquid addforce 0.1 0.0 0.0
+
+# Compute total momentum
+compute mom liquid momentum
+
+# Comparison (momentum variables + compute reduce)
+variable mx atom mass*vx
+variable my atom mass*vy
+variable mz atom mass*vz
+compute mom_red liquid reduce sum v_mx v_my v_mz
+
+# Run
+timestep	0.003
+thermo		1000
+thermo_style custom step c_mom_red[*] c_mom[*]
+
+run		100000

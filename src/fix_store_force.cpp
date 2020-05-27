@@ -11,11 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_store_force.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
-#include "group.h"
 #include "respa.h"
 #include "memory.h"
 #include "error.h"
@@ -95,7 +94,7 @@ void FixStoreForce::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStoreForce::post_force(int vflag)
+void FixStoreForce::post_force(int /*vflag*/)
 {
   if (atom->nmax > nmax) {
     nmax = atom->nmax;
@@ -118,7 +117,7 @@ void FixStoreForce::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixStoreForce::post_force_respa(int vflag, int ilevel, int iloop)
+void FixStoreForce::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }

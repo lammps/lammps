@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_temp_kokkos.h"
 #include <mpi.h>
 #include <cstring>
-#include "compute_temp_kokkos.h"
 #include "atom_kokkos.h"
 #include "update.h"
 #include "force.h"
@@ -31,6 +31,7 @@ template<class DeviceType>
 ComputeTempKokkos<DeviceType>::ComputeTempKokkos(LAMMPS *lmp, int narg, char **arg) :
   ComputeTemp(lmp, narg, arg)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
@@ -49,8 +50,10 @@ double ComputeTempKokkos<DeviceType>::compute_scalar()
   invoked_scalar = update->ntimestep;
 
   v = atomKK->k_v.view<DeviceType>();
-  rmass = atomKK->rmass;
-  mass = atomKK->k_mass.view<DeviceType>();
+  if (atomKK->rmass)
+    rmass = atomKK->k_rmass.view<DeviceType>();
+  else
+    mass = atomKK->k_mass.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
   int nlocal = atom->nlocal;
@@ -59,7 +62,7 @@ double ComputeTempKokkos<DeviceType>::compute_scalar()
   CTEMP t_kk;
 
   copymode = 1;
-  if (rmass)
+  if (atomKK->rmass)
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagComputeTempScalar<1> >(0,nlocal),*this,t_kk);
   else
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagComputeTempScalar<0> >(0,nlocal),*this,t_kk);
@@ -102,8 +105,10 @@ void ComputeTempKokkos<DeviceType>::compute_vector()
   invoked_vector = update->ntimestep;
 
   v = atomKK->k_v.view<DeviceType>();
-  rmass = atomKK->rmass;
-  mass = atomKK->k_mass.view<DeviceType>();
+  if (atomKK->rmass)
+    rmass = atomKK->k_rmass.view<DeviceType>();
+  else
+    mass = atomKK->k_mass.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
   int nlocal = atom->nlocal;
@@ -113,7 +118,7 @@ void ComputeTempKokkos<DeviceType>::compute_vector()
   CTEMP t_kk;
 
   copymode = 1;
-  if (rmass)
+  if (atomKK->rmass)
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagComputeTempVector<1> >(0,nlocal),*this,t_kk);
   else
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagComputeTempVector<0> >(0,nlocal),*this,t_kk);
@@ -149,7 +154,7 @@ void ComputeTempKokkos<DeviceType>::operator()(TagComputeTempVector<RMASS>, cons
 
 namespace LAMMPS_NS {
 template class ComputeTempKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class ComputeTempKokkos<LMPHostType>;
 #endif
 }

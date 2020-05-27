@@ -1,0 +1,297 @@
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
+# 3d Lennard-Jones hybrid
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
+region		box block 0 10 0 10 0 10
+create_box	2 box
+Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
+  1 by 2 by 2 MPI processor grid
+create_atoms	1 box
+Created 4000 atoms
+  Time spent = 0.000420809 secs
+mass		* 1.0
+region          half block -0.1 4.9 0 10 0 10
+set region half type 2
+  2000 settings made for type
+
+velocity	all create 3.0 87287
+
+pair_style	hybrid lj/cut 2.5 python 2.5
+pair_coeff	* * python py_pot.LJCutMelt lj NULL
+pair_coeff      * 2 lj/cut 1.0 1.0
+
+neighbor	0.3 bin
+neigh_modify	every 20 delay 0 check no
+
+fix		1 all nve
+
+thermo		50
+run		250
+Neighbor list info ...
+  update every 20 steps, delay 0 steps, check no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 12 12 12
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair lj/cut, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair python, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (3) neighbor class addition, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.968 | 3.968 | 3.968 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            3   -6.7733681            0   -2.2744931   -3.7033504 
+      50    1.6754119   -4.7947589            0   -2.2822693    5.6615925 
+     100    1.6503357    -4.756014            0   -2.2811293    5.8050524 
+     150    1.6596605   -4.7699432            0   -2.2810749    5.7830138 
+     200    1.6371874   -4.7365462            0   -2.2813789    5.9246674 
+     250    1.6323462   -4.7292021            0   -2.2812949    5.9762238 
+Loop time of 1.53377 on 4 procs for 250 steps with 4000 atoms
+
+Performance: 70414.718 tau/day, 162.997 timesteps/s
+98.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.3644     | 1.406      | 1.4448     |   3.2 | 91.67
+Neigh   | 0.027066   | 0.027591   | 0.028437   |   0.3 |  1.80
+Comm    | 0.055296   | 0.095109   | 0.13733    |  12.4 |  6.20
+Output  | 0.00022817 | 0.00030088 | 0.00042033 |   0.0 |  0.02
+Modify  | 0.0037878  | 0.0038549  | 0.0040336  |   0.2 |  0.25
+Other   |            | 0.0008861  |            |       |  0.06
+
+Nlocal:    1000 ave 1010 max 982 min
+Histogram: 1 0 0 0 0 0 1 0 0 2
+Nghost:    2703.75 ave 2713 max 2689 min
+Histogram: 1 0 0 0 0 0 0 2 0 1
+Neighs:    21469.8 ave 22167 max 20546 min
+Histogram: 1 0 0 0 0 1 1 0 0 1
+
+Total # of neighbors = 85879
+Ave neighs/atom = 21.4698
+Neighbor list builds = 12
+Dangerous builds not checked
+
+write_data      hybrid.data
+Neighbor list info ...
+  update every 20 steps, delay 0 steps, check no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 12 12 12
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair lj/cut, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair python, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (3) neighbor class addition, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+write_restart   hybrid.restart
+Neighbor list info ...
+  update every 20 steps, delay 0 steps, check no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 12 12 12
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair lj/cut, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair python, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (3) neighbor class addition, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+
+read_restart    hybrid.restart
+  restoring atom style atomic from restart
+  orthogonal box = (0 0 0) to (16.796 16.796 16.796)
+  1 by 2 by 2 MPI processor grid
+  restoring pair style hybrid from restart
+  4000 atoms
+
+pair_style	hybrid lj/cut 2.5 python 2.5
+pair_coeff	* * python py_pot.LJCutMelt lj NULL
+pair_coeff      * 2 lj/cut 1.0 1.0
+
+fix		1 all nve
+
+thermo		50
+run		250
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 12 12 12
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair lj/cut, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair python, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (3) neighbor class addition, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.626 | 3.626 | 3.626 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+     250    1.6323462   -4.7292062            0   -2.2812991    5.9762168 
+     300    1.6451788   -4.7488091            0   -2.2816578    5.8375485 
+     350    1.6171909   -4.7064928            0   -2.2813129    6.0094235 
+     400    1.6388136   -4.7387093            0   -2.2811035    5.9331084 
+     450    1.6431295   -4.7452215            0   -2.2811435    5.8929898 
+     500     1.643316   -4.7454222            0   -2.2810644    5.8454817 
+Loop time of 1.51785 on 4 procs for 250 steps with 4000 atoms
+
+Performance: 71153.411 tau/day, 164.707 timesteps/s
+98.9% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.2893     | 1.3741     | 1.416      |   4.2 | 90.53
+Neigh   | 0.055474   | 0.056676   | 0.057363   |   0.3 |  3.73
+Comm    | 0.039187   | 0.081666   | 0.16742    |  17.6 |  5.38
+Output  | 0.00014877 | 0.0002687  | 0.00061893 |   0.0 |  0.02
+Modify  | 0.003741   | 0.0037862  | 0.0038075  |   0.0 |  0.25
+Other   |            | 0.001315   |            |       |  0.09
+
+Nlocal:    1000 ave 1012 max 983 min
+Histogram: 1 0 0 0 0 0 2 0 0 1
+Nghost:    2699 ave 2706 max 2693 min
+Histogram: 1 1 0 0 0 0 1 0 0 1
+Neighs:    21802 ave 22700 max 21236 min
+Histogram: 1 1 0 1 0 0 0 0 0 1
+
+Total # of neighbors = 87208
+Ave neighs/atom = 21.802
+Neighbor list builds = 25
+Dangerous builds = 25
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+
+units		lj
+atom_style	atomic
+
+read_data       hybrid.data
+  orthogonal box = (0 0 0) to (16.796 16.796 16.796)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  4000 atoms
+  reading velocities ...
+  4000 velocities
+
+pair_style	hybrid lj/cut 2.5 python 2.5
+pair_coeff	* * python py_pot.LJCutMelt lj NULL
+pair_coeff      * 2 lj/cut 1.0 1.0
+
+neighbor	0.3 bin
+neigh_modify	every 20 delay 0 check no
+
+fix		1 all nve
+
+thermo		50
+run		250
+Neighbor list info ...
+  update every 20 steps, delay 0 steps, check no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 12 12 12
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair lj/cut, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair python, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (3) neighbor class addition, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.126 | 3.126 | 3.126 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0    1.6323462   -4.7292062            0   -2.2812991    5.9762168 
+      50    1.6450626   -4.7488948            0   -2.2819177    5.8370409 
+     100    1.6169004   -4.7066969            0   -2.2819526    6.0082546 
+     150    1.6384234   -4.7389689            0   -2.2819482    5.9315273 
+     200    1.6428814   -4.7460743            0   -2.2823683    5.8888228 
+     250    1.6432631   -4.7466603            0   -2.2823818    5.8398819 
+Loop time of 1.53622 on 4 procs for 250 steps with 4000 atoms
+
+Performance: 70302.534 tau/day, 162.737 timesteps/s
+97.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.2893     | 1.3875     | 1.4506     |   5.1 | 90.32
+Neigh   | 0.026512   | 0.02714    | 0.027651   |   0.2 |  1.77
+Comm    | 0.053684   | 0.11665    | 0.21515    |  17.6 |  7.59
+Output  | 0.00017214 | 0.00029582 | 0.0006547  |   0.0 |  0.02
+Modify  | 0.0037682  | 0.0037964  | 0.0038147  |   0.0 |  0.25
+Other   |            | 0.0008581  |            |       |  0.06
+
+Nlocal:    1000 ave 1013 max 989 min
+Histogram: 1 0 0 1 0 1 0 0 0 1
+Nghost:    2695.5 ave 2706 max 2682 min
+Histogram: 1 0 0 0 0 0 2 0 0 1
+Neighs:    21792 ave 22490 max 21457 min
+Histogram: 2 0 1 0 0 0 0 0 0 1
+
+Total # of neighbors = 87168
+Ave neighs/atom = 21.792
+Neighbor list builds = 12
+Dangerous builds not checked
+
+shell rm hybrid.data hybrid.restart
+Total wall time: 0:00:04

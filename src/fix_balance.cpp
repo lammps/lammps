@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "fix_balance.h"
+#include <cstring>
 #include "balance.h"
 #include "update.h"
 #include "atom.h"
@@ -26,7 +25,6 @@
 #include "modify.h"
 #include "fix_store.h"
 #include "rcb.h"
-#include "timer.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -41,7 +39,8 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 6) error->all(FLERR,"Illegal fix balance command");
 
-  box_change_domain = 1;
+  box_change = BOX_CHANGE_DOMAIN;
+  pre_exchange_migrate = 1;
   scalar_flag = 1;
   extscalar = 0;
   vector_flag = 1;
@@ -114,6 +113,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
 
   if (nevery) force_reneighbor = 1;
   lastbalance = -1;
+  next_reneighbor = -1;
 
   // compute initial outputs
 
@@ -159,7 +159,7 @@ void FixBalance::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBalance::setup(int vflag)
+void FixBalance::setup(int /*vflag*/)
 {
   // compute final imbalance factor if setup_pre_exchange() invoked balancer
   // this is called at end of run setup, before output
@@ -240,7 +240,7 @@ void FixBalance::pre_exchange()
 
 /* ----------------------------------------------------------------------
    compute final imbalance factor based on nlocal after comm->exchange()
-   only do this if rebalancing just occured
+   only do this if rebalancing just occurred
 ------------------------------------------------------------------------- */
 
 void FixBalance::pre_neighbor()
@@ -248,6 +248,10 @@ void FixBalance::pre_neighbor()
   if (!pending) return;
   imbfinal = balance->imbalance_factor(maxloadperproc);
   pending = 0;
+
+  // set disable = 1, so weights no longer migrate with atoms
+
+  if (wtflag) balance->fixstore->disable = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -269,27 +273,30 @@ void FixBalance::rebalance()
     comm->layout = Comm::LAYOUT_TILED;
   }
 
-  // output of new decomposition
-
-  if (balance->outflag) balance->dumpout(update->ntimestep);
-
   // reset proc sub-domains
   // check and warn if any proc's subbox is smaller than neigh skin
-  //   since may lead to lost atoms in exchange()
+  //   since may lead to lost atoms in comm->exchange()
 
   if (domain->triclinic) domain->set_lamda_box();
   domain->set_local_box();
   domain->subbox_too_small_check(neighbor->skin);
 
+  // output of new decomposition
+
+  if (balance->outflag) balance->dumpout(update->ntimestep);
+
   // move atoms to new processors via irregular()
-  // only needed if migrate_check() says an atom moves to far
+  // for non-RCB only needed if migrate_check() says an atom moves too far
   // else allow caller's comm->exchange() to do it
+  // set disable = 0, so weights migrate with atoms
+  //   important to delay disable = 1 until after pre_neighbor imbfinal calc
+  //   b/c atoms may migrate again in comm->exchange()
+  // NOTE: for reproducible debug runs, set 1st arg of migrate_atoms() to 1
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   if (wtflag) balance->fixstore->disable = 0;
   if (lbstyle == BISECTION) irregular->migrate_atoms(0,1,sendproc);
   else if (irregular->migrate_check()) irregular->migrate_atoms();
-  if (wtflag) balance->fixstore->disable = 1;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // invoke KSpace setup_grid() to adjust to new proc sub-domains

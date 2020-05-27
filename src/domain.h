@@ -15,9 +15,9 @@
 #define LMP_DOMAIN_H
 
 #include <cmath>
-#include "pointers.h"
 #include <map>
 #include <string>
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 
@@ -115,9 +115,8 @@ class Domain : protected Pointers {
   void minimum_image(double *);
   void minimum_image_once(double *);
   int closest_image(int, int);
-  int closest_image(double *, int);
-  void closest_image(const double * const, const double * const,
-                     double * const);
+  int closest_image(const double * const, int);
+  void closest_image(const double * const, const double * const, double * const);
   void remap(double *, imageint &);
   void remap(double *);
   void remap_near(double *, double *);
@@ -270,7 +269,7 @@ E: Reuse of region ID
 
 A region ID cannot be used twice.
 
-E: Unknown region style
+E: Unrecognized region style
 
 The choice of region style is unknown.
 
@@ -282,6 +281,10 @@ E: Both sides of boundary must be periodic
 
 Cannot specify a boundary as periodic only on the lo or hi side.  Must
 be periodic on both sides.
+
+E: Must not have multiple fixes change box parameter ...
+
+Self-explanatory.
 
 U: Box bounds are invalid
 

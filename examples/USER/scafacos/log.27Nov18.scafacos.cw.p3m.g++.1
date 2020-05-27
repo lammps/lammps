@@ -1,0 +1,92 @@
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
+
+units		lj
+atom_style  charge
+
+read_data data.cloud_wall
+  orthogonal box = (0 0 0) to (10 10 10)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  300 atoms
+
+velocity	all set 0.0 0.0 0.0 mom no
+
+pair_style	zero 1.0
+pair_coeff	* *
+
+neighbor	1.0 bin
+neigh_modify	delay 0
+
+fix     1 all nve
+kspace_style scafacos p3m  0.001
+kspace_modify scafacos tolerance field
+
+timestep	0.005
+
+thermo_style custom step atoms cpu temp pe ke etotal ecoul press
+
+run_style verlet
+
+#dump simple all custom 1000 id x y z vx vy vz
+#dump dmp    all custom 1000 part.dump id mol x y z vx vy vz fx fy fz q mass
+#dump dmpvtk all vtk 1000 vtk/part_*.vtk id mol x y z vx vy vz fx fy fz q mass
+#dump_modify dmpvtk pad 7
+
+thermo 10
+run	100
+Setting up ScaFaCoS with solver p3m ...
+WARNING: Virial computation for P3M not available (src/USER-SCAFACOS/scafacos.cpp:104)
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2
+  ghost atom cutoff = 2
+  binsize = 1, bins = 10 10 10
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.34 | 3.34 | 3.34 Mbytes
+Step Atoms CPU Temp PotEng KinEng TotEng E_coul Press 
+       0      300            0            0   0.49619864            0   0.49619864            0            0 
+      10      300  0.018853664  0.015458704   0.47310664  0.023110763    0.4962174            0 0.0046221526 
+      20      300  0.037713289  0.062303961   0.40312435  0.093144421   0.49626877            0  0.018628884 
+      30      300  0.055995226   0.14313464   0.28239193   0.21398628   0.49637821            0  0.042797257 
+      40      300  0.074442625   0.53306643  0.089950137   0.79693431   0.88688444            0   0.15938686 
+      50      300  0.093066454    1.1925037  -0.08272797    1.7827931    1.7000651            0   0.35655861 
+      60      300   0.11158967    1.3890617  -0.37645444    2.0766472    1.7001927            0   0.41532944 
+      70      300    0.1300416    1.7033725  -0.84587122    2.5465418    1.7006706            0   0.50930837 
+      80      300   0.14844203    15.906218   -3.3586154    23.779796    20.421181            0    4.7559592 
+      90      300    0.1676445    42.749883   -2.2769116    63.911076    61.634164            0    12.782215 
+     100      300    0.1866703     42.25523  -0.84978755    63.171569    62.321782            0    12.634314 
+Loop time of 0.186683 on 1 procs for 100 steps with 300 atoms
+
+Performance: 231408.103 tau/day, 535.667 timesteps/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.7657e-05 | 2.7657e-05 | 2.7657e-05 |   0.0 |  0.01
+Kspace  | 0.18368    | 0.18368    | 0.18368    |   0.0 | 98.39
+Neigh   | 0.0020967  | 0.0020967  | 0.0020967  |   0.0 |  1.12
+Comm    | 0.00027132 | 0.00027132 | 0.00027132 |   0.0 |  0.15
+Output  | 0.00013709 | 0.00013709 | 0.00013709 |   0.0 |  0.07
+Modify  | 0.0002718  | 0.0002718  | 0.0002718  |   0.0 |  0.15
+Other   |            | 0.0001974  |            |       |  0.11
+
+Nlocal:    300 ave 300 max 300 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    374 ave 374 max 374 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    2478 ave 2478 max 2478 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2478
+Ave neighs/atom = 8.26
+Neighbor list builds = 15
+Dangerous builds = 0
+Total wall time: 0:00:00

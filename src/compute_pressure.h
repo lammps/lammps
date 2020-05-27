@@ -41,10 +41,16 @@ class ComputePressure : public Compute {
   Compute *temperature;
   char *id_temp;
   double virial[6];
+  int pairhybridflag;
+  class Pair *pairhybrid;
   int keflag,pairflag,bondflag,angleflag,dihedralflag,improperflag;
   int fixflag,kspaceflag;
 
   void virial_compute(int, int);
+
+ private:
+  char *pstyle;
+  int nsub;
 };
 
 }

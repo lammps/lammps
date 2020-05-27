@@ -20,7 +20,6 @@ PairStyle(eam,PairEAM)
 #ifndef LMP_PAIR_EAM_H
 #define LMP_PAIR_EAM_H
 
-#include <cstdio>
 #include "pair.h"
 
 namespace LAMMPS_NS {
@@ -67,10 +66,12 @@ class PairEAM : public Pair {
   int nmax;                   // allocated size of per-atom arrays
   double cutforcesq;
   double **scale;
+  bigint embedstep;           // timestep, the embedding term was computed
 
   // per-atom arrays
 
   double *rho,*fp;
+  int *numforce;
 
   // potentials as file data
 

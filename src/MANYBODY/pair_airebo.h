@@ -21,7 +21,6 @@ PairStyle(airebo,PairAIREBO)
 #define LMP_PAIR_AIREBO_H
 
 #include "pair.h"
-#include "my_page.h"
 #include <cmath>
 #include "math_const.h"
 
@@ -38,10 +37,12 @@ class PairAIREBO : public Pair {
   double init_one(int, int);
   double memory_usage();
 
- protected:
+  enum { AIREBO, REBO_2, AIREBO_M }; // for telling class variants apart in shared code
+
+protected:
   int *map;                        // 0 (C), 1 (H), or -1 (NULL) for each type
 
-  int me;
+  int me,variant;
   int ljflag,torflag;              // 0/1 if LJ/Morse,torsion terms included
   int morseflag;                   // 1 if Morse instead of LJ for non-bonded
 
@@ -84,7 +85,6 @@ class PairAIREBO : public Pair {
 
   // spline knot values
 
-  double PCCf_2_0;
   double PCCf[5][5],PCCdfdx[5][5],PCCdfdy[5][5],PCHf[5][5];
   double PCHdfdx[5][5],PCHdfdy[5][5];
   double piCCf[5][5][11],piCCdfdx[5][5][11];
@@ -120,7 +120,7 @@ class PairAIREBO : public Pair {
   void Spbicubic_patch_adjust(double *, double, double, char);
   void Spbicubic_patch_coeffs(double, double, double, double, double *,
                               double *, double *, double *);
-  void spline_init();
+  virtual void spline_init();
 
   void allocate();
 

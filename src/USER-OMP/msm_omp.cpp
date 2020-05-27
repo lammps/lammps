@@ -15,16 +15,13 @@
    Contributing authors: Axel Kohlmeyer (Temple U), Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "msm_omp.h"
-#include "atom.h"
+#include <cstring>
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
-#include "memory.h"
-#include "math_const.h"
-
-#include <cstring>
+#include "timer.h"
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -35,8 +32,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MSMOMP::MSMOMP(LAMMPS *lmp, int narg, char **arg) :
-  MSM(lmp, narg, arg), ThrOMP(lmp, THR_KSPACE)
+MSMOMP::MSMOMP(LAMMPS *lmp) : MSM(lmp), ThrOMP(lmp, THR_KSPACE)
 {
   triclinic_support = 0;
   suffix_flag |= Suffix::OMP;
@@ -57,7 +53,7 @@ void MSMOMP::compute(int eflag, int vflag)
   MSM::compute(eflag,vflag);
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
 #if defined(_OPENMP)
@@ -163,7 +159,7 @@ void MSMOMP::direct_eval(const int nn)
   const int n=nn;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) reduction(+:v0,v1,v2,v3,v4,v5,emsm)
+#pragma omp parallel LMP_DEFAULT_NONE reduction(+:v0,v1,v2,v3,v4,v5,emsm)
 #endif
   {
     double esum,v0sum,v1sum,v2sum,v3sum,v4sum,v5sum;

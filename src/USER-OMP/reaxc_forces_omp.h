@@ -30,7 +30,6 @@
 #define __FORCES_OMP_H_
 
 #include "reaxc_types.h"
-#include "reaxc_defs.h"
 
 void Init_Force_FunctionsOMP( control_params* );
 void Compute_ForcesOMP( reax_system*, control_params*, simulation_data*,

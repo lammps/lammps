@@ -15,10 +15,11 @@
    Contributing author: Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
+#include "fix_ave_time.h"
+#include <mpi.h>
 #include <cstdlib>
 #include <cstring>
 #include <unistd.h>
-#include "fix_ave_time.h"
 #include "update.h"
 #include "force.h"
 #include "modify.h"
@@ -529,7 +530,7 @@ void FixAveTime::init()
    only does something if nvalid = current timestep
 ------------------------------------------------------------------------- */
 
-void FixAveTime::setup(int vflag)
+void FixAveTime::setup(int /*vflag*/)
 {
   end_of_step();
 }
@@ -697,7 +698,8 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
 
     if (overwrite) {
       long fileend = ftell(fp);
-      if (fileend > 0) ftruncate(fileno(fp),fileend);
+      if ((fileend > 0) && (ftruncate(fileno(fp),fileend)))
+        perror("Error while tuncating output");
     }
   }
 }
@@ -908,7 +910,8 @@ void FixAveTime::invoke_vector(bigint ntimestep)
     fflush(fp);
     if (overwrite) {
       long fileend = ftell(fp);
-      if (fileend > 0) ftruncate(fileno(fp),fileend);
+      if ((fileend > 0) && (ftruncate(fileno(fp),fileend)))
+        perror("Error while tuncating output");
     }
   }
 }
@@ -1042,7 +1045,7 @@ void FixAveTime::options(int iarg, int narg, char **arg)
         fp = fopen(arg[iarg+1],"w");
         if (fp == NULL) {
           char str[128];
-          sprintf(str,"Cannot open fix ave/time file %s",arg[iarg+1]);
+          snprintf(str,128,"Cannot open fix ave/time file %s",arg[iarg+1]);
           error->one(FLERR,str);
         }
       }

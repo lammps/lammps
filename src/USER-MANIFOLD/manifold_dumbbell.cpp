@@ -6,7 +6,7 @@ using namespace LAMMPS_NS;
 
 using namespace user_manifold;
 
-manifold_dumbbell::manifold_dumbbell( LAMMPS *lmp, int argc, char **argv ) : manifold(lmp)
+manifold_dumbbell::manifold_dumbbell( LAMMPS *lmp, int /*argc*/, char **/*argv*/ ) : manifold(lmp)
 {}
 
 

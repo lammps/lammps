@@ -1,0 +1,103 @@
+LAMMPS (11 May 2018)
+# simple water model with LATTE
+
+units		metal
+atom_style	full
+atom_modify     sort 0 0.0    # turn off sorting of the coordinates
+
+read_data       data.water
+  orthogonal box = (0 0 0) to (6.267 6.267 6.267)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  24 atoms
+  0 = max # of 1-2 neighbors
+  0 = max # of 1-3 neighbors
+  0 = max # of 1-4 neighbors
+  1 = max # of special neighbors
+
+# replicate system if requested
+
+variable	x index 1
+variable	y index 1
+variable	z index 1
+
+variable        nrep equal v_x*v_y*v_z
+if              "${nrep} > 1" then "replicate $x $y $z"
+
+# initialize system
+
+velocity	all create 0.0 87287 loop geom
+
+pair_style      zero 1.0
+pair_coeff	* *
+
+neighbor	1.0 bin
+neigh_modify    every 1 delay 0 check yes
+
+timestep        0.00025
+
+fix		1 all nve
+
+fix             2 all latte NULL
+fix_modify      2 energy yes
+
+thermo_style    custom step temp pe etotal press
+
+# dynamics
+
+thermo          10
+run		100
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2
+  ghost atom cutoff = 2
+  binsize = 1, bins = 7 7 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 5.629 | 5.629 | 5.629 Mbytes
+Step Temp PotEng TotEng Press 
+       0            0   -104.95594   -104.95594    48236.006 
+      10     336.5303   -105.96026   -104.95976    97997.303 
+      20    529.06385   -106.53021   -104.95731    131520.49 
+      30    753.62616    -107.1995   -104.95898    49297.371 
+      40     716.6565   -107.08802   -104.95741    28307.272 
+      50    824.04417   -107.40822   -104.95835    102167.48 
+      60    933.56056   -107.73478   -104.95932    92508.792 
+      70    851.18518   -107.48766   -104.95711     13993.28 
+      80    999.80265   -107.93146   -104.95906    36700.417 
+      90    998.77707   -107.92569   -104.95634     107233.7 
+     100    1281.4446   -108.76961   -104.95989    49703.193 
+Loop time of 10.6388 on 1 procs for 100 steps with 24 atoms
+
+Performance: 0.203 ns/day, 118.209 hours/ns, 9.400 timesteps/s
+6459.7% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 7.6771e-05 | 7.6771e-05 | 7.6771e-05 |   0.0 |  0.00
+Bond    | 7.5817e-05 | 7.5817e-05 | 7.5817e-05 |   0.0 |  0.00
+Neigh   | 4.6015e-05 | 4.6015e-05 | 4.6015e-05 |   0.0 |  0.00
+Comm    | 0.00031829 | 0.00031829 | 0.00031829 |   0.0 |  0.00
+Output  | 0.00032401 | 0.00032401 | 0.00032401 |   0.0 |  0.00
+Modify  | 10.637     | 10.637     | 10.637     |   0.0 | 99.99
+Other   |            | 0.00052    |            |       |  0.00
+
+Nlocal:    24 ave 24 max 24 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    77 ave 77 max 77 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    31 ave 31 max 31 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 31
+Ave neighs/atom = 1.29167
+Ave special neighs/atom = 0
+Neighbor list builds = 2
+Dangerous builds = 0
+Total wall time: 0:00:10

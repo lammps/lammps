@@ -16,14 +16,12 @@
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
-#include <cmath>
 #include <cstring>
 #include <cstdlib>
 #include "compute_temp_region_eff.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"
-#include "modify.h"
 #include "domain.h"
 #include "region.h"
 #include "group.h"
@@ -58,7 +56,7 @@ ComputeTempRegionEff::ComputeTempRegionEff(LAMMPS *lmp, int narg, char **arg) :
 
   maxbias = 0;
   vbiasall = NULL;
-  vector = new double[6];
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -263,7 +261,7 @@ void ComputeTempRegionEff::remove_bias_all()
    assume remove_bias() was previously called
 ------------------------------------------------------------------------- */
 
-void ComputeTempRegionEff::restore_bias(int i, double *v)
+void ComputeTempRegionEff::restore_bias(int /*i*/, double *v)
 {
   v[0] += vbias[0];
   v[1] += vbias[1];

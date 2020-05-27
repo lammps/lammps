@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "set.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "set.h"
+#include <climits>
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"
@@ -26,12 +26,11 @@
 #include "region.h"
 #include "group.h"
 #include "comm.h"
-#include "neighbor.h"
 #include "force.h"
-#include "pair.h"
 #include "input.h"
 #include "variable.h"
 #include "random_park.h"
+#include "random_mars.h"
 #include "math_extra.h"
 #include "math_const.h"
 #include "memory.h"
@@ -43,11 +42,13 @@ using namespace MathConst;
 
 enum{ATOM_SELECT,MOL_SELECT,TYPE_SELECT,GROUP_SELECT,REGION_SELECT};
 
-enum{TYPE,TYPE_FRACTION,MOLECULE,X,Y,Z,CHARGE,MASS,SHAPE,LENGTH,TRI,
-     DIPOLE,DIPOLE_RANDOM,QUAT,QUAT_RANDOM,THETA,THETA_RANDOM,ANGMOM,OMEGA,
+enum{TYPE,TYPE_FRACTION,TYPE_RATIO,TYPE_SUBSET,
+     MOLECULE,X,Y,Z,CHARGE,MASS,SHAPE,LENGTH,TRI,
+     DIPOLE,DIPOLE_RANDOM,SPIN,SPIN_RANDOM,QUAT,QUAT_RANDOM,
+     THETA,THETA_RANDOM,ANGMOM,OMEGA,
      DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
-     MESO_E,MESO_CV,MESO_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
-     SMD_CONTACT_RADIUS,DPDTHETA,INAME,DNAME};
+     SPH_E,SPH_CV,SPH_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
+     SMD_CONTACT_RADIUS,DPDTHETA,INAME,DNAME,VX,VY,VZ};
 
 #define BIG INT_MAX
 
@@ -110,6 +111,34 @@ void Set::command(int narg, char **arg)
       setrandom(TYPE_FRACTION);
       iarg += 4;
 
+    } else if (strcmp(arg[iarg],"type/ratio") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal set command");
+      newtype = force->inumeric(FLERR,arg[iarg+1]);
+      fraction = force->numeric(FLERR,arg[iarg+2]);
+      ivalue = force->inumeric(FLERR,arg[iarg+3]);
+      if (newtype <= 0 || newtype > atom->ntypes)
+        error->all(FLERR,"Invalid value in set command");
+      if (fraction < 0.0 || fraction > 1.0)
+        error->all(FLERR,"Invalid value in set command");
+      if (ivalue <= 0)
+        error->all(FLERR,"Invalid random number seed in set command");
+      setrandom(TYPE_RATIO);
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"type/subset") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal set command");
+      newtype = force->inumeric(FLERR,arg[iarg+1]);
+      nsubset = force->bnumeric(FLERR,arg[iarg+2]);
+      ivalue = force->inumeric(FLERR,arg[iarg+3]);
+      if (newtype <= 0 || newtype > atom->ntypes)
+        error->all(FLERR,"Invalid value in set command");
+      if (nsubset < 0)
+        error->all(FLERR,"Invalid value in set command");
+      if (ivalue <= 0)
+        error->all(FLERR,"Invalid random number seed in set command");
+      setrandom(TYPE_SUBSET);
+      iarg += 4;
+
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
@@ -138,6 +167,27 @@ void Set::command(int narg, char **arg)
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
       else dvalue = force->numeric(FLERR,arg[iarg+1]);
       set(Z);
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"vx") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+      else dvalue = force->numeric(FLERR,arg[iarg+1]);
+      set(VX);
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"vy") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+      else dvalue = force->numeric(FLERR,arg[iarg+1]);
+      set(VY);
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"vz") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+      else dvalue = force->numeric(FLERR,arg[iarg+1]);
+      set(VZ);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"charge") == 0) {
@@ -213,6 +263,34 @@ void Set::command(int narg, char **arg)
       if (dvalue <= 0.0)
         error->all(FLERR,"Invalid dipole length in set command");
       setrandom(DIPOLE_RANDOM);
+      iarg += 3;
+
+    } else if (strcmp(arg[iarg],"spin") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal set command");
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+      else dvalue = force->numeric(FLERR,arg[iarg+1]);
+      if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) varparse(arg[iarg+2],2);
+      else xvalue = force->numeric(FLERR,arg[iarg+2]);
+      if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) varparse(arg[iarg+3],3);
+      else yvalue = force->numeric(FLERR,arg[iarg+3]);
+      if (strstr(arg[iarg+4],"v_") == arg[iarg+4]) varparse(arg[iarg+4],4);
+      else zvalue = force->numeric(FLERR,arg[iarg+4]);
+      if (!atom->sp_flag)
+        error->all(FLERR,"Cannot set this attribute for this atom style");
+      set(SPIN);
+      iarg += 5;
+
+    } else if (strcmp(arg[iarg],"spin/random") == 0) {
+      if (iarg+3 > narg) error->all(FLERR,"Illegal set command");
+      ivalue = force->inumeric(FLERR,arg[iarg+1]);
+      dvalue = force->numeric(FLERR,arg[iarg+2]);
+      if (!atom->sp_flag)
+        error->all(FLERR,"Cannot set this attribute for this atom style");
+      if (ivalue <= 0)
+        error->all(FLERR,"Invalid random number seed in set command");
+      if (dvalue <= 0.0)
+        error->all(FLERR,"Invalid dipole length in set command");
+      setrandom(SPIN_RANDOM);
       iarg += 3;
 
     } else if (strcmp(arg[iarg],"quat") == 0) {
@@ -394,31 +472,31 @@ void Set::command(int narg, char **arg)
       topology(IMPROPER);
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"meso/e") == 0) {
+    } else if (strcmp(arg[iarg],"sph/e") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
       else dvalue = force->numeric(FLERR,arg[iarg+1]);
-      if (!atom->e_flag)
+      if (!atom->esph_flag)
         error->all(FLERR,"Cannot set meso/e for this atom style");
-      set(MESO_E);
+      set(SPH_E);
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"meso/cv") == 0) {
+    } else if (strcmp(arg[iarg],"sph/cv") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
       else dvalue = force->numeric(FLERR,arg[iarg+1]);
       if (!atom->cv_flag)
             error->all(FLERR,"Cannot set meso/cv for this atom style");
-      set(MESO_CV);
+      set(SPH_CV);
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"meso/rho") == 0) {
+    } else if (strcmp(arg[iarg],"sph/rho") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
       else dvalue = force->numeric(FLERR,arg[iarg+1]);
       if (!atom->rho_flag)
         error->all(FLERR,"Cannot set meso/rho for this atom style");
-      set(MESO_RHO);
+      set(SPH_RHO);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"edpd/temp") == 0) {
@@ -703,6 +781,9 @@ void Set::set(int keyword)
     else if (keyword == X) atom->x[i][0] = dvalue;
     else if (keyword == Y) atom->x[i][1] = dvalue;
     else if (keyword == Z) atom->x[i][2] = dvalue;
+    else if (keyword == VX) atom->v[i][0] = dvalue;
+    else if (keyword == VY) atom->v[i][1] = dvalue;
+    else if (keyword == VZ) atom->v[i][2] = dvalue;
     else if (keyword == CHARGE) atom->q[i] = dvalue;
     else if (keyword == MASS) {
       if (dvalue <= 0.0) error->one(FLERR,"Invalid mass in set command");
@@ -716,9 +797,9 @@ void Set::set(int keyword)
       if (dvalue <= 0.0) error->one(FLERR,"Invalid volume in set command");
       atom->vfrac[i] = dvalue;
     }
-    else if (keyword == MESO_E) atom->e[i] = dvalue;
-    else if (keyword == MESO_CV) atom->cv[i] = dvalue;
-    else if (keyword == MESO_RHO) atom->rho[i] = dvalue;
+    else if (keyword == SPH_E) atom->esph[i] = dvalue;
+    else if (keyword == SPH_CV) atom->cv[i] = dvalue;
+    else if (keyword == SPH_RHO) atom->rho[i] = dvalue;
 
     else if (keyword == EDPD_TEMP) atom->edpd_temp[i] = dvalue;
     else if (keyword == EDPD_CV) atom->edpd_cv[i] = dvalue;
@@ -821,11 +902,23 @@ void Set::set(int keyword)
                       mu[i][2]*mu[i][2]);
     }
 
+    // set magnetic moments
+
+    else if (keyword == SPIN) {
+      double **sp = atom->sp;
+      double inorm = 1.0/sqrt(xvalue*xvalue+yvalue*yvalue+zvalue*zvalue);
+      sp[i][0] = inorm*xvalue;
+      sp[i][1] = inorm*yvalue;
+      sp[i][2] = inorm*zvalue;
+      sp[i][3] = dvalue;
+    }
+
+    // set quaternion orientation of ellipsoid or tri or body particle
     // set quaternion orientation of ellipsoid or tri or body particle
     // enforce quat rotation vector in z dir for 2d systems
 
     else if (keyword == QUAT) {
-      double *quat;
+      double *quat = NULL;
       if (avec_ellipsoid && atom->ellipsoid[i] >= 0)
         quat = avec_ellipsoid->bonus[atom->ellipsoid[i]].quat;
       else if (avec_tri && atom->tri[i] >= 0)
@@ -899,6 +992,21 @@ void Set::set(int keyword)
     count++;
   }
 
+  // update bonus data numbers
+  if (keyword == SHAPE) {
+    bigint nlocal_bonus = avec_ellipsoid->nlocal_bonus;
+    MPI_Allreduce(&nlocal_bonus,&atom->nellipsoids,1,
+                  MPI_LMP_BIGINT,MPI_SUM,world);
+  }
+  if (keyword == LENGTH) {
+    bigint nlocal_bonus = avec_line->nlocal_bonus;
+    MPI_Allreduce(&nlocal_bonus,&atom->nlines,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  }
+  if (keyword == TRI) {
+    bigint nlocal_bonus = avec_tri->nlocal_bonus;
+    MPI_Allreduce(&nlocal_bonus,&atom->ntris,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  }
+
   // clear up per-atom memory if allocated
 
   memory->destroy(vec1);
@@ -923,22 +1031,76 @@ void Set::setrandom(int keyword)
   AtomVecTri *avec_tri = (AtomVecTri *) atom->style_match("tri");
   AtomVecBody *avec_body = (AtomVecBody *) atom->style_match("body");
 
-  RanPark *random = new RanPark(lmp,1);
   double **x = atom->x;
   int seed = ivalue;
 
-  // set fraction of atom types to newtype
+  RanPark *ranpark = new RanPark(lmp,1);
+  RanMars *ranmars = new RanMars(lmp,seed + comm->me);
+
+  // set approx fraction of atom types to newtype
 
   if (keyword == TYPE_FRACTION) {
     int nlocal = atom->nlocal;
 
     for (i = 0; i < nlocal; i++)
       if (select[i]) {
-        random->reset(seed,x[i]);
-        if (random->uniform() > fraction) continue;
+        ranpark->reset(seed,x[i]);
+        if (ranpark->uniform() > fraction) continue;
         atom->type[i] = newtype;
         count++;
       }
+
+  // set exact count of atom types to newtype
+  // for TYPE_RATIO, exact = fraction out of total eligible
+  // for TYPE_SUBSET, exact = nsubset out of total eligible
+
+  } else if (keyword == TYPE_RATIO || keyword == TYPE_SUBSET) {
+    int nlocal = atom->nlocal;
+
+    // count = number of eligible atoms I own
+
+    count = 0;
+    for (i = 0; i < nlocal; i++)
+      if (select[i]) count++;
+
+    // convert specified fraction to nsubset
+
+    bigint bcount = count;
+    bigint allcount;
+    MPI_Allreduce(&bcount,&allcount,1,MPI_LMP_BIGINT,MPI_SUM,world);
+
+    if (keyword == TYPE_RATIO) {
+      nsubset = static_cast<bigint> (fraction * allcount);
+    } else if (keyword == TYPE_SUBSET) {
+      if (nsubset > allcount)
+        error->all(FLERR,"Set type/subset value exceeds eligible atoms");
+    }
+
+    // make selection
+
+    int *flag = memory->create(flag,count,"set:flag");
+    int *work = memory->create(work,count,"set:work");
+
+    ranmars->select_subset(nsubset,count,flag,work);
+
+    // change types of selected atoms
+    // flag vector from select_subset() is only for eligible atoms
+
+    count = 0;
+    int eligible = 0;
+    for (i = 0; i < nlocal; i++) {
+      if (!select[i]) continue;
+      if (flag[eligible]) {
+        atom->type[i] = newtype;
+        count++;
+      }
+      eligible++;
+    }
+
+    // clean up
+
+    memory->destroy(flag);
+    memory->destroy(work);
 
   // set dipole moments to random orientations in 3d or 2d
   // dipole length is determined by dipole type array
@@ -952,10 +1114,10 @@ void Set::setrandom(int keyword)
     if (domain->dimension == 3) {
       for (i = 0; i < nlocal; i++)
         if (select[i]) {
-          random->reset(seed,x[i]);
-          mu[i][0] = random->uniform() - 0.5;
-          mu[i][1] = random->uniform() - 0.5;
-          mu[i][2] = random->uniform() - 0.5;
+          ranpark->reset(seed,x[i]);
+          mu[i][0] = ranpark->uniform() - 0.5;
+          mu[i][1] = ranpark->uniform() - 0.5;
+          mu[i][2] = ranpark->uniform() - 0.5;
           msq = mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2];
           scale = dvalue/sqrt(msq);
           mu[i][0] *= scale;
@@ -968,15 +1130,57 @@ void Set::setrandom(int keyword)
     } else {
       for (i = 0; i < nlocal; i++)
         if (select[i]) {
-          random->reset(seed,x[i]);
-          mu[i][0] = random->uniform() - 0.5;
-          mu[i][1] = random->uniform() - 0.5;
+          ranpark->reset(seed,x[i]);
+          mu[i][0] = ranpark->uniform() - 0.5;
+          mu[i][1] = ranpark->uniform() - 0.5;
           mu[i][2] = 0.0;
           msq = mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1];
           scale = dvalue/sqrt(msq);
           mu[i][0] *= scale;
           mu[i][1] *= scale;
           mu[i][3] = dvalue;
+          count++;
+        }
+    }
+
+
+  // set spin moments to random orientations in 3d or 2d
+  // spin length is fixed to unity
+
+  } else if (keyword == SPIN_RANDOM) {
+    double **sp = atom->sp;
+    int nlocal = atom->nlocal;
+
+    double sp_sq,scale;
+
+    if (domain->dimension == 3) {
+      for (i = 0; i < nlocal; i++)
+        if (select[i]) {
+          ranpark->reset(seed,x[i]);
+          sp[i][0] = ranpark->uniform() - 0.5;
+          sp[i][1] = ranpark->uniform() - 0.5;
+          sp[i][2] = ranpark->uniform() - 0.5;
+          sp_sq = sp[i][0]*sp[i][0] + sp[i][1]*sp[i][1] + sp[i][2]*sp[i][2];
+          scale = 1.0/sqrt(sp_sq);
+          sp[i][0] *= scale;
+          sp[i][1] *= scale;
+          sp[i][2] *= scale;
+          sp[i][3] = dvalue;
+          count++;
+        }
+
+    } else {
+      for (i = 0; i < nlocal; i++)
+        if (select[i]) {
+          ranpark->reset(seed,x[i]);
+          sp[i][0] = ranpark->uniform() - 0.5;
+          sp[i][1] = ranpark->uniform() - 0.5;
+          sp[i][2] = 0.0;
+          sp_sq = sp[i][0]*sp[i][0] + sp[i][1]*sp[i][1];
+          scale = 1.0/sqrt(sp_sq);
+          sp[i][0] *= scale;
+          sp[i][1] *= scale;
+          sp[i][3] = dvalue;
           count++;
         }
     }
@@ -1000,12 +1204,12 @@ void Set::setrandom(int keyword)
           else
             error->one(FLERR,"Cannot set quaternion for atom that has none");
 
-          random->reset(seed,x[i]);
-          s = random->uniform();
+          ranpark->reset(seed,x[i]);
+          s = ranpark->uniform();
           t1 = sqrt(1.0-s);
           t2 = sqrt(s);
-          theta1 = 2.0*MY_PI*random->uniform();
-          theta2 = 2.0*MY_PI*random->uniform();
+          theta1 = 2.0*MY_PI*ranpark->uniform();
+          theta2 = 2.0*MY_PI*ranpark->uniform();
           quat[0] = cos(theta2)*t2;
           quat[1] = sin(theta1)*t1;
           quat[2] = cos(theta1)*t1;
@@ -1024,8 +1228,8 @@ void Set::setrandom(int keyword)
           else
             error->one(FLERR,"Cannot set quaternion for atom that has none");
 
-          random->reset(seed,x[i]);
-          theta2 = MY_PI*random->uniform();
+          ranpark->reset(seed,x[i]);
+          theta2 = MY_PI*ranpark->uniform();
           quat[0] = cos(theta2);
           quat[1] = 0.0;
           quat[2] = 0.0;
@@ -1042,14 +1246,15 @@ void Set::setrandom(int keyword)
       if (select[i]) {
         if (atom->line[i] < 0)
           error->one(FLERR,"Cannot set theta for atom that is not a line");
-        random->reset(seed,x[i]);
-        avec_line->bonus[atom->line[i]].theta = MY_2PI*random->uniform();
+        ranpark->reset(seed,x[i]);
+        avec_line->bonus[atom->line[i]].theta = MY_2PI*ranpark->uniform();
         count++;
       }
     }
   }
 
-  delete random;
+  delete ranpark;
+  delete ranmars;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -12,10 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "reset_ids.h"
+#include <mpi.h>
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
 #include "comm.h"
+#include "special.h"
 #include "memory.h"
 #include "error.h"
 
@@ -27,7 +29,7 @@ ResetIDs::ResetIDs(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-void ResetIDs::command(int narg, char **arg)
+void ResetIDs::command(int narg, char ** /* arg */)
 {
   if (domain->box_exist == 0)
     error->all(FLERR,"Reset_ids command before simulation box is defined");
@@ -44,7 +46,7 @@ void ResetIDs::command(int narg, char **arg)
   }
 
   // create an atom map if one doesn't exist already
-  
+
   int mapflag = 0;
   if (atom->map_style == 0) {
     mapflag = 1;
@@ -84,7 +86,7 @@ void ResetIDs::command(int narg, char **arg)
     tag[i] = 0;
   }
 
-  // assign new contigous IDs to owned atoms via tag_extend()
+  // assign new contiguous IDs to owned atoms via tag_extend()
 
   atom->tag_extend();
 
@@ -93,7 +95,7 @@ void ResetIDs::command(int narg, char **arg)
   // forward_comm_array acquires new IDs for ghost atoms
 
   double **newIDs;
-  memory->create(newIDs,nall,1,"reset_ids:newIDs");  
+  memory->create(newIDs,nall,1,"reset_ids:newIDs");
 
   for (int i = 0; i < nlocal; i++) {
     newIDs[i][0] = tag[i];
@@ -105,7 +107,7 @@ void ResetIDs::command(int narg, char **arg)
   // loop over bonds, angles, etc and reset IDs in stored topology arrays
   // only necessary for molecular = 1, not molecular = 2
   // badcount = atom IDs that could not be found
-  
+
   int badcount = 0;
 
   if (atom->molecular == 1) {
@@ -232,8 +234,15 @@ void ResetIDs::command(int narg, char **arg)
   atom->map_init();
   atom->map_set();
 
+  // need to update exclusions with new atom IDs
+
+  if (atom->molecular == 1) {
+    Special special(lmp);
+    special.build();
+  }
+
   // delete temporary atom map
-  
+
   if (mapflag) {
     atom->map_delete();
     atom->map_style = 0;

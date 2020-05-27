@@ -23,8 +23,6 @@
 
 #include "fix_reaxc.h"
 #include "atom.h"
-#include "pair.h"
-#include "comm.h"
 #include "memory.h"
 
 using namespace LAMMPS_NS;
@@ -42,16 +40,14 @@ FixReaxC::FixReaxC(LAMMPS *lmp,int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with atom class
 
+  oldnmax = 0;
   num_bonds = NULL;
   num_hbonds = NULL;
   grow_arrays(atom->nmax);
   atom->add_callback(0);
 
   // initialize arrays to MIN so atom migration is OK the 1st time
-
-  int nlocal = atom->nlocal;
-  for (int i = 0; i < nlocal; i++)
-    num_bonds[i] = num_hbonds[i] = MIN_REAX_BONDS;
+  // it is done in grow_arrays() now
 
   // set comm sizes needed by this fix
 
@@ -99,13 +95,18 @@ void FixReaxC::grow_arrays(int nmax)
 {
   memory->grow(num_bonds,nmax,"reaxc:num_bonds");
   memory->grow(num_hbonds,nmax,"reaxc:num_hbonds");
+  for (int i = oldnmax; i < nmax; i++) {
+    num_hbonds[i] = MIN_REAX_HBONDS;
+    num_bonds[i] = MIN_REAX_BONDS;
+  }
+  oldnmax = nmax;
 }
 
 /* ----------------------------------------------------------------------
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixReaxC::copy_arrays(int i, int j, int delflag)
+void FixReaxC::copy_arrays(int i, int j, int /*delflag*/)
 {
   num_bonds[j] = num_bonds[i];
   num_hbonds[j] = num_hbonds[i];
@@ -136,7 +137,7 @@ int FixReaxC::unpack_exchange(int nlocal, double *buf)
 /* ---------------------------------------------------------------------- */
 
 int FixReaxC::pack_forward_comm(int n, int *list, double *buf,
-                                int pbc_flag, int *pbc)
+                                int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

@@ -15,11 +15,10 @@
    Contributing author (triclinic and multi-neigh) : Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
+#include "neighbor.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "nbin.h"
@@ -35,6 +34,7 @@
 #include "comm.h"
 #include "force.h"
 #include "pair.h"
+#include "pair_hybrid.h"
 #include "domain.h"
 #include "group.h"
 #include "modify.h"
@@ -46,8 +46,7 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
-
-#include <map>
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace NeighConst;
@@ -376,16 +375,32 @@ void Neighbor::init()
     special_flag[3] = 1;
   else special_flag[3] = 2;
 
-  if (force->kspace || force->pair_match("coul/wolf",0) ||
-      force->pair_match("coul/dsf",0) || force->pair_match("thole",0))
-     special_flag[1] = special_flag[2] = special_flag[3] = 2;
+  // We cannot remove special neighbors with kspace or kspace-like pair styles
+  // as the exclusion needs to remove the full coulomb and not the damped interaction.
+  // Special treatment is required for hybrid pair styles since Force::pair_match()
+  // will only return a non-NULL pointer if there is only one substyle of the kind.
 
-  // maxwt = max multiplicative factor on atom indices stored in neigh list
-
-  maxwt = 0;
-  if (special_flag[1] == 2) maxwt = 2;
-  if (special_flag[2] == 2) maxwt = 3;
-  if (special_flag[3] == 2) maxwt = 4;
+  if (force->kspace) {
+    special_flag[1] = special_flag[2] = special_flag[3] = 2;
+  } else {
+    PairHybrid *ph = reinterpret_cast<PairHybrid *>(force->pair_match("^hybrid",0));
+    if (ph) {
+      int flag=0;
+      for (int isub=0; isub < ph->nstyles; ++isub) {
+        if (force->pair_match("coul/wolf",0,isub)
+            || force->pair_match("coul/dsf",0,isub)
+            || force->pair_match("thole",0,isub))
+          ++flag;
+      }
+      if (flag)
+        special_flag[1] = special_flag[2] = special_flag[3] = 2;
+    } else {
+      if (force->pair_match("coul/wolf",0)
+          || force->pair_match("coul/dsf",0)
+          || force->pair_match("thole",0))
+        special_flag[1] = special_flag[2] = special_flag[3] = 2;
+    }
+  }
 
   // ------------------------------------------------------------------
   // xhold array
@@ -470,6 +485,9 @@ void Neighbor::init()
   if (exclude && force->kspace && me == 0)
     error->warning(FLERR,"Neighbor exclusions used with KSpace solver "
                    "may give inconsistent Coulombic energies");
+
+  if (lmp->kokkos)
+    set_binsize_kokkos();
 
   // ------------------------------------------------------------------
   // create pairwise lists
@@ -700,6 +718,15 @@ int Neighbor::init_pair()
       create_kokkos_list(i);
     else lists[i] = new NeighList(lmp);
     lists[i]->index = i;
+    lists[i]->requestor = requests[i]->requestor;
+
+    if(requests[i]->pair) {
+        lists[i]->requestor_type = NeighList::PAIR;
+    } else if(requests[i]->fix) {
+        lists[i]->requestor_type = NeighList::FIX;
+    } else if(requests[i]->compute) {
+        lists[i]->requestor_type = NeighList::COMPUTE;
+    }
 
     if (requests[i]->pair && i < nrequest_original) {
       Pair *pair = (Pair *) requests[i]->requestor;
@@ -822,7 +849,8 @@ int Neighbor::init_pair()
   // allocate initial pages for each list, except if copy flag set
 
   for (i = 0; i < nlist; i++) {
-    if (lists[i]->copy) continue;
+    if (lists[i]->copy && !lists[i]->kk2cpu)
+        continue;
     lists[i]->setup_pages(pgsize,oneatom);
   }
 
@@ -833,8 +861,10 @@ int Neighbor::init_pair()
   // also Kokkos list initialization
 
   int maxatom = atom->nmax;
-  for (i = 0; i < nlist; i++)
-    if (neigh_pair[i] && !lists[i]->copy) lists[i]->grow(maxatom,maxatom);
+  for (i = 0; i < nlist; i++) {
+    if (neigh_pair[i] && (!lists[i]->copy || lists[i]->kk2cpu))
+      lists[i]->grow(maxatom,maxatom);
+  }
 
   // plist = indices of perpetual NPair classes
   //         perpetual = non-occasional, re-built at every reneighboring
@@ -1230,8 +1260,8 @@ void Neighbor::morph_copy()
       if (irq->history != jrq->history) continue;
       if (irq->bond != jrq->bond) continue;
       if (irq->intel != jrq->intel) continue;
-      if (irq->kokkos_host != jrq->kokkos_host) continue;
-      if (irq->kokkos_device != jrq->kokkos_device) continue;
+      if (irq->kokkos_host && !jrq->kokkos_host) continue;
+      if (irq->kokkos_device && !jrq->kokkos_device) continue;
       if (irq->ssa != jrq->ssa) continue;
       if (irq->cut != jrq->cut) continue;
       if (irq->cutoff != jrq->cutoff) continue;
@@ -1279,8 +1309,8 @@ void Neighbor::init_topology()
   int bond_off = 0;
   int angle_off = 0;
   for (i = 0; i < modify->nfix; i++)
-    if ((strcmp(modify->fix[i]->style,"shake") == 0)
-        || (strcmp(modify->fix[i]->style,"rattle") == 0))
+    if (utils::strmatch(modify->fix[i]->style,"^shake")
+        || utils::strmatch(modify->fix[i]->style,"^rattle"))
       bond_off = angle_off = 1;
   if (force->bond && force->bond_match("quartic")) bond_off = 1;
 
@@ -1408,7 +1438,6 @@ void Neighbor::init_topology()
 void Neighbor::print_pairwise_info()
 {
   int i,m;
-  char str[128];
   NeighRequest *rq;
   FILE *out;
 
@@ -1457,18 +1486,17 @@ void Neighbor::print_pairwise_info()
         rq = requests[i];
         if (rq->pair) {
           char *pname = force->pair_match_ptr((Pair *) rq->requestor);
-          sprintf(str,"  (%d) pair %s",i+1,pname);
+          fprintf(out,"  (%d) pair %s",i+1,pname);
         } else if (rq->fix) {
-          sprintf(str,"  (%d) fix %s",i+1,((Fix *) rq->requestor)->style);
+          fprintf(out,"  (%d) fix %s",i+1,((Fix *) rq->requestor)->style);
         } else if (rq->compute) {
-          sprintf(str,"  (%d) compute %s",i+1,
+          fprintf(out,"  (%d) compute %s",i+1,
                   ((Compute *) rq->requestor)->style);
         } else if (rq->command) {
-          sprintf(str,"  (%d) command %s",i+1,rq->command_style);
+          fprintf(out,"  (%d) command %s",i+1,rq->command_style);
         } else if (rq->neigh) {
-          sprintf(str,"  (%d) neighbor class addition",i+1);
+          fprintf(out,"  (%d) neighbor class addition",i+1);
         }
-        fprintf(out,"%s",str);
 
         if (rq->occasional) fprintf(out,", occasional");
         else fprintf(out,", perpetual");
@@ -1764,8 +1792,12 @@ int Neighbor::choose_pair(NeighRequest *rq)
 
     if (rq->copy) {
       if (!(mask & NP_COPY)) continue;
-      if (!rq->kokkos_device != !(mask & NP_KOKKOS_DEVICE)) continue;
-      if (!rq->kokkos_host != !(mask & NP_KOKKOS_HOST)) continue;
+      if (rq->kokkos_device || rq->kokkos_host) {
+        if (!rq->kokkos_device != !(mask & NP_KOKKOS_DEVICE)) continue;
+        if (!rq->kokkos_host != !(mask & NP_KOKKOS_HOST)) continue;
+      }
+      if (!requests[rq->copylist]->kokkos_device != !(mask & NP_KOKKOS_DEVICE)) continue;
+      if (!requests[rq->copylist]->kokkos_host != !(mask & NP_KOKKOS_HOST)) continue;
       return i+1;
     }
 
@@ -1942,6 +1974,7 @@ int Neighbor::decide()
    conservative shrink procedure:
      compute distance each of 8 corners of box has moved since last reneighbor
      reduce skin distance by sum of 2 largest of the 8 values
+     if reduced skin distance is negative, set to zero
      new trigger = 1/2 of reduced skin distance
    for orthogonal box, only need 2 lo/hi corners
    for triclinic, need all 8 corners since deformations can displace all 8
@@ -1963,6 +1996,7 @@ int Neighbor::check_distance()
       delz = bboxhi[2] - boxhi_hold[2];
       delta2 = sqrt(delx*delx + dely*dely + delz*delz);
       delta = 0.5 * (skin - (delta1+delta2));
+      if (delta < 0.0) delta = 0.0;
       deltasq = delta*delta;
     } else {
       domain->box_corners();
@@ -1976,6 +2010,7 @@ int Neighbor::check_distance()
         else if (delta > delta2) delta2 = delta;
       }
       delta = 0.5 * (skin - (delta1+delta2));
+      if (delta < 0.0) delta = 0.0;
       deltasq = delta*delta;
     }
   } else deltasq = triggersq;
@@ -2074,7 +2109,8 @@ void Neighbor::build(int topoflag)
 
   for (i = 0; i < npair_perpetual; i++) {
     m = plist[i];
-    if (!lists[m]->copy) lists[m]->grow(nlocal,nall);
+    if (!lists[i]->copy || lists[i]->kk2cpu)
+      lists[m]->grow(nlocal,nall);
     neigh_pair[m]->build_setup();
     neigh_pair[m]->build(lists[m]);
   }
@@ -2163,7 +2199,8 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
 
   // build the list
 
-  if (!mylist->copy) mylist->grow(atom->nlocal,atom->nlocal+atom->nghost);
+  if (!mylist->copy || mylist->kk2cpu)
+    mylist->grow(atom->nlocal,atom->nlocal+atom->nghost);
   np->build_setup();
   np->build(mylist);
 }
@@ -2193,7 +2230,7 @@ void Neighbor::set(int narg, char **arg)
    ditto for lastcall and last_setup_bins
 ------------------------------------------------------------------------- */
 
-void Neighbor::reset_timestep(bigint ntimestep)
+void Neighbor::reset_timestep(bigint /*ntimestep*/)
 {
   for (int i = 0; i < nbin; i++)
     neigh_bin[i]->last_bin = -1;

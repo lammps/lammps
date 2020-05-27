@@ -15,21 +15,14 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
+#include "dump_xyz_mpiio.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "dump_xyz_mpiio.h"
-#include "atom.h"
-#include "force.h"
 #include "domain.h"
-#include "region.h"
-#include "group.h"
-#include "input.h"
-#include "variable.h"
 #include "update.h"
-#include "modify.h"
 #include "compute.h"
-#include "fix.h"
 #include "memory.h"
 #include "error.h"
 
@@ -358,7 +351,7 @@ int DumpXYZMPIIO::convert_string_omp(int n, double *mybuf)
     mpifh_buffer_line_per_thread[i] = (char *) malloc(DUMP_BUF_CHUNK_SIZE * sizeof(char));
     mpifh_buffer_line_per_thread[i][0] = '\0';
 
-#pragma omp parallel default(none) shared(bufOffset, bufRange, bufLength, mpifhStringCountPerThread, mpifh_buffer_line_per_thread, mybuf)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(bufOffset, bufRange, bufLength, mpifhStringCountPerThread, mpifh_buffer_line_per_thread, mybuf)
     {
       int tid = omp_get_thread_num();
       int m=0;

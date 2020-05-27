@@ -15,10 +15,9 @@
    Contributing author: Eduardo Bringa (LLNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include "pair_buck_coul_cut.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -27,6 +26,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -36,13 +36,16 @@ using namespace MathConst;
 PairBuckCoulCut::PairBuckCoulCut(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
+  centroidstressflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairBuckCoulCut::~PairBuckCoulCut()
 {
-  if (!copymode) {
+  if (copymode) return;
+
+  if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
 
@@ -71,8 +74,7 @@ void PairBuckCoulCut::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -363,15 +365,15 @@ void PairBuckCoulCut::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&a[i][j],sizeof(double),1,fp);
-          fread(&rho[i][j],sizeof(double),1,fp);
-          fread(&c[i][j],sizeof(double),1,fp);
-          fread(&cut_lj[i][j],sizeof(double),1,fp);
-          fread(&cut_coul[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&a[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&rho[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&c[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_lj[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_coul[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&a[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&rho[i][j],1,MPI_DOUBLE,0,world);
@@ -402,11 +404,11 @@ void PairBuckCoulCut::write_restart_settings(FILE *fp)
 void PairBuckCoulCut::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_lj_global,sizeof(double),1,fp);
-    fread(&cut_coul_global,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
-    fread(&tail_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_coul_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul_global,1,MPI_DOUBLE,0,world);

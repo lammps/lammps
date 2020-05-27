@@ -15,11 +15,10 @@
    Contributing author: Ray Shan (SNL), Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_reaxc_kokkos.h"
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_reaxc_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"
@@ -27,9 +26,6 @@
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "neigh_list_kokkos.h"
-#include "update.h"
-#include "integrate.h"
-#include "respa.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory_kokkos.h"
@@ -38,7 +34,6 @@
 #include "reaxc_defs.h"
 #include "reaxc_lookup.h"
 #include "reaxc_tool_box.h"
-#include "modify.h"
 
 
 #define TEAMSIZE 128
@@ -143,7 +138,7 @@ template<class DeviceType>
 void PairReaxCKokkos<DeviceType>::init_style()
 {
   PairReaxC::init_style();
-  if (fix_reax) modify->delete_fix("REAXC"); // not needed in the Kokkos version
+  if (fix_reax) modify->delete_fix(fix_id); // not needed in the Kokkos version
   fix_reax = NULL;
 
   // irequest = neigh request made by parent class
@@ -152,21 +147,17 @@ void PairReaxCKokkos<DeviceType>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
+    !std::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
 
-  if (neighflag == FULL) {
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-    neighbor->requests[irequest]->ghost = 1;
-  } else if (neighflag == HALF || neighflag == HALFTHREAD) {
+  if (neighflag == HALF || neighflag == HALFTHREAD) {
     neighbor->requests[irequest]->full = 0;
     neighbor->requests[irequest]->half = 1;
     neighbor->requests[irequest]->ghost = 1;
   } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with reax/c/kk");
+    error->all(FLERR,"Must use half neighbor list with pair style reax/c/kk");
   }
 
   allocate();
@@ -340,9 +331,11 @@ void PairReaxCKokkos<DeviceType>::init_md()
 {
   // init_taper()
   F_FLOAT d1, d7, swa, swa2, swa3, swb, swb2, swb3;
+  LR_lookup_table ** & LR = system->LR;
 
   swa = control->nonb_low;
   swb = control->nonb_cut;
+  enobondsflag = control->enobondsflag;
 
   if (fabs(swa) > 0.01 )
     error->warning(FLERR,"Warning: non-zero lower Taper-radius cutoff");
@@ -436,6 +429,7 @@ int PairReaxCKokkos<DeviceType>::Init_Lookup_Tables()
   double dr;
   double *h, *fh, *fvdw, *fele, *fCEvd, *fCEclmb;
   double v0_vdw, v0_ele, vlast_vdw, vlast_ele;
+  LR_lookup_table ** & LR = system->LR;
 
   /* initializations */
   v0_vdw = 0;
@@ -446,23 +440,23 @@ int PairReaxCKokkos<DeviceType>::Init_Lookup_Tables()
   num_atom_types = atom->ntypes;
   dr = control->nonb_cut / control->tabulate;
   h = (double*)
-    smalloc( (control->tabulate+2) * sizeof(double), "lookup:h", world );
+    smalloc( control->error_ptr, (control->tabulate+2) * sizeof(double), "lookup:h");
   fh = (double*)
-    smalloc( (control->tabulate+2) * sizeof(double), "lookup:fh", world );
+    smalloc( control->error_ptr, (control->tabulate+2) * sizeof(double), "lookup:fh");
   fvdw = (double*)
-    smalloc( (control->tabulate+2) * sizeof(double), "lookup:fvdw", world );
+    smalloc( control->error_ptr, (control->tabulate+2) * sizeof(double), "lookup:fvdw");
   fCEvd = (double*)
-    smalloc( (control->tabulate+2) * sizeof(double), "lookup:fCEvd", world );
+    smalloc( control->error_ptr, (control->tabulate+2) * sizeof(double), "lookup:fCEvd");
   fele = (double*)
-    smalloc( (control->tabulate+2) * sizeof(double), "lookup:fele", world );
+    smalloc( control->error_ptr, (control->tabulate+2) * sizeof(double), "lookup:fele");
   fCEclmb = (double*)
-    smalloc( (control->tabulate+2) * sizeof(double), "lookup:fCEclmb", world );
+    smalloc( control->error_ptr, (control->tabulate+2) * sizeof(double), "lookup:fCEclmb");
 
   LR = (LR_lookup_table**)
-    scalloc( num_atom_types+1, sizeof(LR_lookup_table*), "lookup:LR", world );
+    scalloc( control->error_ptr, num_atom_types+1, sizeof(LR_lookup_table*), "lookup:LR");
   for( i = 0; i < num_atom_types+1; ++i )
     LR[i] = (LR_lookup_table*)
-      scalloc( num_atom_types+1, sizeof(LR_lookup_table), "lookup:LR[i]", world );
+      scalloc( control->error_ptr, num_atom_types+1, sizeof(LR_lookup_table), "lookup:LR[i]");
 
   for( i = 1; i <= num_atom_types; ++i ) {
     for( j = i; j <= num_atom_types; ++j ) {
@@ -472,22 +466,18 @@ int PairReaxCKokkos<DeviceType>::Init_Lookup_Tables()
       LR[i][j].dx = dr;
       LR[i][j].inv_dx = control->tabulate / control->nonb_cut;
       LR[i][j].y = (LR_data*)
-        smalloc( LR[i][j].n * sizeof(LR_data), "lookup:LR[i,j].y", world );
+        smalloc( control->error_ptr, LR[i][j].n * sizeof(LR_data), "lookup:LR[i,j].y");
       LR[i][j].H = (cubic_spline_coef*)
-        smalloc( LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].H" ,
-                 world );
+        smalloc( control->error_ptr, LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].H");
       LR[i][j].vdW = (cubic_spline_coef*)
-        smalloc( LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].vdW",
-                 world);
+        smalloc( control->error_ptr, LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].vdW");
       LR[i][j].CEvd = (cubic_spline_coef*)
-        smalloc( LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].CEvd",
-                 world);
+        smalloc( control->error_ptr, LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].CEvd");
       LR[i][j].ele = (cubic_spline_coef*)
-        smalloc( LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].ele",
-                 world );
+        smalloc( control->error_ptr, LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].ele");
       LR[i][j].CEclmb = (cubic_spline_coef*)
-        smalloc( LR[i][j].n*sizeof(cubic_spline_coef),
-                 "lookup:LR[i,j].CEclmb", world );
+        smalloc( control->error_ptr, LR[i][j].n*sizeof(cubic_spline_coef),
+                 "lookup:LR[i,j].CEclmb");
 
       for( r = 1; r <= control->tabulate; ++r ) {
         LR_vdW_Coulomb(i, j, r * dr, &(LR[i][j].y[r]) );
@@ -511,27 +501,21 @@ int PairReaxCKokkos<DeviceType>::Init_Lookup_Tables()
       vlast_vdw = fCEvd[r-1];
       vlast_ele = fele[r-1];
 
-      Natural_Cubic_Spline( &h[1], &fh[1],
-                            &(LR[i][j].H[1]), control->tabulate+1, world );
+      Natural_Cubic_Spline( control->error_ptr, &h[1], &fh[1],
+                            &(LR[i][j].H[1]), control->tabulate+1 );
 
-      Complete_Cubic_Spline( &h[1], &fvdw[1], v0_vdw, vlast_vdw,
-                             &(LR[i][j].vdW[1]), control->tabulate+1,
-                             world );
+      Complete_Cubic_Spline( control->error_ptr, &h[1], &fvdw[1], v0_vdw, vlast_vdw,
+                             &(LR[i][j].vdW[1]), control->tabulate+1 );
 
-      Natural_Cubic_Spline( &h[1], &fCEvd[1],
-                            &(LR[i][j].CEvd[1]), control->tabulate+1,
-                            world );
+      Natural_Cubic_Spline( control->error_ptr, &h[1], &fCEvd[1],
+                            &(LR[i][j].CEvd[1]), control->tabulate+1 );
 
-      Complete_Cubic_Spline( &h[1], &fele[1], v0_ele, vlast_ele,
-                             &(LR[i][j].ele[1]), control->tabulate+1,
-                             world );
+      Complete_Cubic_Spline( control->error_ptr, &h[1], &fele[1], v0_ele, vlast_ele,
+                             &(LR[i][j].ele[1]), control->tabulate+1 );
 
-      Natural_Cubic_Spline( &h[1], &fCEclmb[1],
-                            &(LR[i][j].CEclmb[1]), control->tabulate+1,
-                            world );
-    }// else{
-     // LR[i][j].n = 0;
-    //}//
+      Natural_Cubic_Spline( control->error_ptr, &h[1], &fCEclmb[1],
+                            &(LR[i][j].CEclmb[1]), control->tabulate+1 );
+    }
   }
   free(h);
   free(fh);
@@ -550,22 +534,23 @@ void PairReaxCKokkos<DeviceType>::Deallocate_Lookup_Tables()
 {
   int i, j;
   int ntypes;
+  LR_lookup_table ** & LR = system->LR;
 
   ntypes = atom->ntypes;
 
   for( i = 0; i <= ntypes; ++i ) {
     for( j = i; j <= ntypes; ++j )
-      if( LR[i][j].n ) {
-        sfree( LR[i][j].y, "LR[i,j].y" );
-        sfree( LR[i][j].H, "LR[i,j].H" );
-        sfree( LR[i][j].vdW, "LR[i,j].vdW" );
-        sfree( LR[i][j].CEvd, "LR[i,j].CEvd" );
-        sfree( LR[i][j].ele, "LR[i,j].ele" );
-        sfree( LR[i][j].CEclmb, "LR[i,j].CEclmb" );
+      if (LR[i][j].n) {
+        sfree( control->error_ptr, LR[i][j].y, "LR[i,j].y" );
+        sfree( control->error_ptr, LR[i][j].H, "LR[i,j].H" );
+        sfree( control->error_ptr, LR[i][j].vdW, "LR[i,j].vdW" );
+        sfree( control->error_ptr, LR[i][j].CEvd, "LR[i,j].CEvd" );
+        sfree( control->error_ptr, LR[i][j].ele, "LR[i,j].ele" );
+        sfree( control->error_ptr, LR[i][j].CEclmb, "LR[i,j].CEclmb" );
       }
-    sfree( LR[i], "LR[i]" );
+    sfree( control->error_ptr, LR[i], "LR[i]" );
   }
-  sfree( LR, "LR" );
+  sfree( control->error_ptr, LR, "LR" );
 }
 
 /* ---------------------------------------------------------------------- */
@@ -621,7 +606,7 @@ void PairReaxCKokkos<DeviceType>::LR_vdW_Coulomb( int i, int j, double r_ij, LR_
       lr->CEvd = dTap * twbp->D * (exp1 - 2.0 * exp2) -
         Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) * dfn13;
     }
-  else{ // no shielding
+  else { // no shielding
     exp1 = exp( twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
     exp2 = exp( 0.5 * twbp->alpha * (1.0 - r_ij / twbp->r_vdW) );
 
@@ -676,10 +661,7 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   eflag = eflag_in;
   vflag = vflag_in;
 
-  if (neighflag == FULL) no_virial_fdotr_compute = 1;
-
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   atomKK->sync(execution_space,datamask_read);
   k_params_sing.template sync<DeviceType>();
@@ -706,6 +688,19 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
+
+  need_dup = lmp->kokkos->need_dup<DeviceType>();
+
+  // allocate duplicated memory
+  if (need_dup) {
+    dup_f            = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(f);
+    dup_eatom        = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_eatom);
+    dup_vatom        = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_vatom);
+  } else {
+    ndup_f            = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(f);
+    ndup_eatom        = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_eatom);
+    ndup_vatom        = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_vatom);
+  }
 
   if (eflag_global) {
     for (int i = 0; i < 14; i++)
@@ -742,11 +737,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeTabulatedLJCoulomb<HALFTHREAD,1> >(0,inum),*this,ev);
       else
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTabulatedLJCoulomb<HALFTHREAD,0> >(0,inum),*this);
-    } else if (neighflag == FULL) {
-      if (evflag)
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeTabulatedLJCoulomb<FULL,1> >(0,inum),*this,ev);
-      else
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeTabulatedLJCoulomb<FULL,0> >(0,inum),*this);
     }
   } else {
     if (neighflag == HALF) {
@@ -759,11 +749,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<HALFTHREAD,1> >(0,inum),*this,ev);
       else
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<HALFTHREAD,0> >(0,inum),*this);
-    } else if (neighflag == FULL) {
-      if (evflag)
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<FULL,1> >(0,inum),*this,ev);
-      else
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxComputeLJCoulomb<FULL,0> >(0,inum),*this);
     }
   }
   ev_all += ev;
@@ -774,6 +759,15 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (atom->nmax > nmax) {
     nmax = atom->nmax;
     allocate_array();
+  }
+
+  // allocate duplicated memory
+  if (need_dup) {
+    dup_dDeltap_self = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_dDeltap_self);
+    dup_total_bo     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_total_bo);
+  } else {
+    ndup_dDeltap_self = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_dDeltap_self);
+    ndup_total_bo     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_total_bo);
   }
 
   // Neighbor lists for bond and hbond
@@ -798,9 +792,7 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     if (neighflag == HALF)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf<HALF> >(0,ignum),*this);
     else if (neighflag == HALFTHREAD)
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf_LessAtomics<HALFTHREAD> >(0,ignum),*this);
-    else //(neighflag == FULL)
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsFull>(0,ignum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf<HALFTHREAD> >(0,ignum),*this);
 
     k_resize_bo.modify<DeviceType>();
     k_resize_bo.sync<LMPHostType>();
@@ -813,15 +805,37 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     if (resize_hb) maxhb++;
 
     resize = resize_bo || resize_hb;
-    if (resize) allocate_array();
+    if (resize) {
+      allocate_array();
+      if (need_dup) {
+        dup_dDeltap_self = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_dDeltap_self);
+        dup_total_bo     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_total_bo);
+      } else {
+        ndup_dDeltap_self = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_dDeltap_self);
+        ndup_total_bo     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_total_bo);
+      }
+    }
   }
 
-  // Bond order
-  if (neighflag == HALF) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder1>(0,ignum),*this);
-  } else if (neighflag == HALFTHREAD) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder1_LessAtomics>(0,ignum),*this);
+  // allocate duplicated memory
+  if (need_dup) {
+    dup_CdDelta = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_CdDelta);
+    //dup_Cdbo    = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_Cdbo);
+    //dup_Cdbopi  = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_Cdbopi);
+    //dup_Cdbopi2 = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_Cdbopi2);
+  } else {
+    ndup_CdDelta = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_CdDelta);
+    //ndup_Cdbo    = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_Cdbo);
+    //ndup_Cdbopi  = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_Cdbopi);
+    //ndup_Cdbopi2 = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_Cdbopi2);
   }
+
+  // reduction over duplicated memory
+  if (need_dup)
+    Kokkos::Experimental::contribute(d_total_bo, dup_total_bo); // needed in BondOrder1
+
+  // Bond order
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder1>(0,ignum),*this);
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder2>(0,ignum),*this);
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBondOrder3>(0,ignum),*this);
 
@@ -919,9 +933,30 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   pvector[7] = ev.ereax[8];
   ev_all.evdwl += ev.ereax[8];
 
+  // reduction over duplicated memory
+  if (need_dup) {
+    Kokkos::Experimental::contribute(d_dDeltap_self, dup_dDeltap_self); // needed in ComputeBond2
+    Kokkos::Experimental::contribute(d_CdDelta, dup_CdDelta); // needed in ComputeBond2
+
+    //Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in UpdateBond, but also used in UpdateBond
+    //Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in UpdateBond, but also used in UpdateBond
+    //Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in UpdateBond, but also used in UpdateBond
+    //dup_Cdbo.reset_except(d_Cdbo);
+    //dup_Cdbopi.reset_except(d_Cdbopi);
+    //dup_Cdbopi2.reset_except(d_Cdbopi2);
+  }
+
   // Bond force
   if (neighflag == HALF) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxUpdateBond<HALF> >(0,ignum),*this);
+
+    // reduction over duplicated memory
+    //if (need_dup) {
+    //  Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in ComputeBond2
+    //  Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in ComputeBond2
+    //  Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in ComputeBond2
+    //}
+
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond2<HALF,1> >(0,ignum),*this,ev);
     else
@@ -930,6 +965,14 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     pvector[0] += ev.evdwl;
   } else { //if (neighflag == HALFTHREAD) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxUpdateBond<HALFTHREAD> >(0,ignum),*this);
+
+    // reduction over duplicated memory
+    //if (need_dup) {
+    //  Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in ComputeBond2
+    //  Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in ComputeBond2
+    //  Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in ComputeBond2
+    //}
+
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxComputeBond2<HALFTHREAD,1> >(0,ignum),*this,ev);
     else
@@ -937,6 +980,10 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     ev_all += ev;
     pvector[0] += ev.evdwl;
   }
+
+  // reduction over duplicated memory
+  if (need_dup)
+    Kokkos::Experimental::contribute(f, dup_f);
 
   if (eflag_global) {
     eng_vdwl += ev_all.evdwl;
@@ -954,11 +1001,15 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
   if (eflag_atom) {
+    if (need_dup)
+      Kokkos::Experimental::contribute(d_eatom, dup_eatom);
     k_eatom.template modify<DeviceType>();
     k_eatom.template sync<LMPHostType>();
   }
 
   if (vflag_atom) {
+    if (need_dup)
+      Kokkos::Experimental::contribute(d_vatom, dup_vatom);
     k_vatom.template modify<DeviceType>();
     k_vatom.template sync<LMPHostType>();
   }
@@ -967,6 +1018,19 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     FindBondSpecies();
 
   copymode = 0;
+
+  // free duplicated memory
+  if (need_dup) {
+    dup_f            = decltype(dup_f)();
+    dup_eatom        = decltype(dup_eatom)();
+    dup_vatom        = decltype(dup_vatom)();
+    dup_dDeltap_self = decltype(dup_dDeltap_self)();
+    dup_total_bo     = decltype(dup_total_bo)();
+    dup_CdDelta      = decltype(dup_CdDelta)();
+    //dup_Cdbo         = decltype(dup_Cdbo)();
+    //dup_Cdbopi       = decltype(dup_Cdbopi)();
+    //dup_Cdbopi2      = decltype(dup_Cdbopi2)();
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1005,8 +1069,10 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeLJCoulomb<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
-  // The f array is atomic for Half/Thread neighbor style
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+
+  auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   F_FLOAT powr_vdw, powgi_vdw, fn13, dfn13, exp1, exp2, etmp;
   F_FLOAT evdwl, fvdwl;
@@ -1031,18 +1097,16 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeLJCoulomb<NEIGHFLAG,
     const tagint jtag = tag(j);
     const F_FLOAT qj = q(j);
 
-    if (NEIGHFLAG != FULL) {
-      // skip half of the interactions
-      if (j >= nlocal) {
-        if (itag > jtag) {
-          if ((itag+jtag) % 2 == 0) continue;
-        } else if (itag < jtag) {
-          if ((itag+jtag) % 2 == 1) continue;
-        } else {
-          if (x(j,2) < ztmp) continue;
-          if (x(j,2) == ztmp && x(j,1)  < ytmp) continue;
-          if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) continue;
-        }
+    // skip half of the interactions
+    if (j >= nlocal) {
+      if (itag > jtag) {
+        if ((itag+jtag) % 2 == 0) continue;
+      } else if (itag < jtag) {
+        if ((itag+jtag) % 2 == 1) continue;
+      } else {
+        if (x(j,2) < ztmp) continue;
+        if (x(j,2) == ztmp && x(j,1)  < ytmp) continue;
+        if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) continue;
       }
     }
 
@@ -1127,19 +1191,12 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeLJCoulomb<NEIGHFLAG,
     fxtmp += delx*ftotal;
     fytmp += dely*ftotal;
     fztmp += delz*ftotal;
-    if (NEIGHFLAG != FULL) {
-      a_f(j,0) -= delx*ftotal;
-      a_f(j,1) -= dely*ftotal;
-      a_f(j,2) -= delz*ftotal;
-    }
+    a_f(j,0) -= delx*ftotal;
+    a_f(j,1) -= dely*ftotal;
+    a_f(j,2) -= delz*ftotal;
 
-    if (NEIGHFLAG == FULL) {
-      if (eflag) ev.evdwl += 0.5*evdwl;
-      if (eflag) ev.ecoul += 0.5*ecoul;
-    } else {
-      if (eflag) ev.evdwl += evdwl;
-      if (eflag) ev.ecoul += ecoul;
-    }
+    if (eflag) ev.evdwl += evdwl;
+    if (eflag) ev.ecoul += ecoul;
 
     if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,evdwl+ecoul,-ftotal,delx,dely,delz);
   }
@@ -1164,8 +1221,10 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTabulatedLJCoulomb<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
-  // The f array is atomic for Half/Thread neighbor style
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+
+  auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
@@ -1186,18 +1245,16 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTabulatedLJCoulomb<N
     const tagint jtag = tag(j);
     const F_FLOAT qj = q(j);
 
-    if (NEIGHFLAG != FULL) {
-      // skip half of the interactions
-      if (j >= nlocal) {
-        if (itag > jtag) {
-          if ((itag+jtag) % 2 == 0) continue;
-        } else if (itag < jtag) {
-          if ((itag+jtag) % 2 == 1) continue;
-        } else {
-          if (x(j,2) < ztmp) continue;
-          if (x(j,2) == ztmp && x(j,1)  < ytmp) continue;
-          if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) continue;
-        }
+    // skip half of the interactions
+    if (j >= nlocal) {
+      if (itag > jtag) {
+        if ((itag+jtag) % 2 == 0) continue;
+      } else if (itag < jtag) {
+        if ((itag+jtag) % 2 == 1) continue;
+      } else {
+        if (x(j,2) < ztmp) continue;
+        if (x(j,2) == ztmp && x(j,1)  < ytmp) continue;
+        if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) continue;
       }
     }
 
@@ -1216,7 +1273,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTabulatedLJCoulomb<N
 
     /* Cubic Spline Interpolation */
     int r = (int)(rij * t.inv_dx);
-    if( r == 0 )  ++r;
+    if (r == 0)  ++r;
     const F_FLOAT base = (double)(r+1) * t.dx;
     const F_FLOAT dif = rij - base;
 
@@ -1241,19 +1298,12 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTabulatedLJCoulomb<N
     fxtmp += delx*ftotal;
     fytmp += dely*ftotal;
     fztmp += delz*ftotal;
-    if (NEIGHFLAG != FULL) {
-      a_f(j,0) -= delx*ftotal;
-      a_f(j,1) -= dely*ftotal;
-      a_f(j,2) -= delz*ftotal;
-    }
+    a_f(j,0) -= delx*ftotal;
+    a_f(j,1) -= dely*ftotal;
+    a_f(j,2) -= delz*ftotal;
 
-    if (NEIGHFLAG == FULL) {
-      if (eflag) ev.evdwl += 0.5*evdwl;
-      if (eflag) ev.ecoul += 0.5*ecoul;
-    } else {
-      if (eflag) ev.evdwl += evdwl;
-      if (eflag) ev.ecoul += ecoul;
-    }
+    if (eflag) ev.evdwl += evdwl;
+    if (eflag) ev.ecoul += ecoul;
 
     if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,evdwl+ecoul,-ftotal,delx,dely,delz);
   }
@@ -1333,14 +1383,6 @@ void PairReaxCKokkos<DeviceType>::allocate_array()
   d_CdDelta = typename AT::t_ffloat_1d("reax/c/kk:CdDelta",nmax);
   d_sum_ovun = typename AT::t_ffloat_2d_dl("reax/c/kk:sum_ovun",nmax,3);
 
-  // FixReaxCSpecies
-  if (fixspecies_flag) {
-    memoryKK->destroy_kokkos(k_tmpid,tmpid);
-    memoryKK->destroy_kokkos(k_tmpbo,tmpbo);
-    memoryKK->create_kokkos(k_tmpid,tmpid,nmax,MAXSPECBOND,"pair:tmpid");
-    memoryKK->create_kokkos(k_tmpbo,tmpbo,nmax,MAXSPECBOND,"pair:tmpbo");
-  }
-
   // FixReaxCBonds
   d_abo = typename AT::t_ffloat_2d("reax/c/kk:abo",nmax,maxbo);
   d_neighid = typename AT::t_tagint_2d("reax/c/kk:neighid",nmax,maxbo);
@@ -1354,10 +1396,8 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxZero, const int &n) const {
   d_total_bo(n) = 0.0;
   d_CdDelta(n) = 0.0;
-  if (neighflag != FULL) {
-    d_bo_num(n) = 0.0;
-    d_hb_num(n) = 0.0;
-  }
+  d_bo_num(n) = 0.0;
+  d_hb_num(n) = 0.0;
   for (int j = 0; j < 3; j++)
     d_dDeltap_self(n,j) = 0.0;
 }
@@ -1365,18 +1405,18 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxZero, const int &n) const {
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxZeroEAtom, const int &i) const {
-  v_eatom(i) = 0.0;
+  d_eatom(i) = 0.0;
 }
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxZeroVAtom, const int &i) const {
-  v_vatom(i,0) = 0.0;
-  v_vatom(i,1) = 0.0;
-  v_vatom(i,2) = 0.0;
-  v_vatom(i,3) = 0.0;
-  v_vatom(i,4) = 0.0;
-  v_vatom(i,5) = 0.0;
+  d_vatom(i,0) = 0.0;
+  d_vatom(i,1) = 0.0;
+  d_vatom(i,2) = 0.0;
+  d_vatom(i,3) = 0.0;
+  d_vatom(i,4) = 0.0;
+  d_vatom(i,5) = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1433,7 +1473,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsFull, const int &
     // hbond list
     if (i < nlocal && cut_hbsq > 0.0 && (ihb == 1 || ihb == 2) && rsq <= cut_hbsq) {
       jhb = paramssing(jtype).p_hbond;
-      if( ihb == 1 && jhb == 2) {
+      if (ihb == 1 && jhb == 2) {
         const int jj_index = hb_index - hb_first_i;
         if (jj_index >= maxhb) {
           d_resize_hb() = 1;
@@ -1546,8 +1586,11 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>, 
   if (d_resize_bo() || d_resize_hb())
     return;
 
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_dDeltap_self = d_dDeltap_self;
-  Kokkos::View<F_FLOAT*, typename DAT::t_float_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_total_bo = d_total_bo;
+  auto v_dDeltap_self = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_dDeltap_self),decltype(ndup_dDeltap_self)>::get(dup_dDeltap_self,ndup_dDeltap_self);
+  auto a_dDeltap_self = v_dDeltap_self.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+
+  auto v_total_bo = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_total_bo),decltype(ndup_total_bo)>::get(dup_total_bo,ndup_total_bo);
+  auto a_total_bo = v_total_bo.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
@@ -1598,7 +1641,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>, 
     // hbond list
     if (i < nlocal && cut_hbsq > 0.0 && (ihb == 1 || ihb == 2) && rsq <= cut_hbsq) {
       jhb = paramssing(jtype).p_hbond;
-      if( ihb == 1 && jhb == 2) {
+      if (ihb == 1 && jhb == 2) {
         if (NEIGHFLAG == HALF) {
           j_index = hb_first_i + d_hb_num[i];
           d_hb_num[i]++;
@@ -1757,261 +1800,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBondOrder1, const int &ii) 
 
   const int i = d_ilist[ii];
   const int itype = type(i);
-
-  const F_FLOAT val_i = paramssing(itype).valency;
-  d_Deltap[i] = d_total_bo[i] - val_i;
-  d_Deltap_boc[i] = d_total_bo[i] - paramssing(itype).valency_val;
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-template<int NEIGHFLAG>
-KOKKOS_INLINE_FUNCTION
-void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf_LessAtomics<NEIGHFLAG>, const int &ii) const {
-
-  if (d_resize_bo() || d_resize_hb())
-    return;
-
-  const int i = d_ilist[ii];
-  const X_FLOAT xtmp = x(i,0);
-  const X_FLOAT ytmp = x(i,1);
-  const X_FLOAT ztmp = x(i,2);
-  const int itype = type(i);
-  const tagint itag = tag(i);
-  const int jnum = d_numneigh[i];
-
-  F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3];
-
-  int j_index,i_index;
-  d_bo_first[i] = i*maxbo;
-  const int bo_first_i = d_bo_first[i];
-
-  int ihb = -1;
-  int jhb = -1;
-
-  int hb_first_i;
-  if (cut_hbsq > 0.0) {
-    ihb = paramssing(itype).p_hbond;
-    if (ihb == 1) {
-      d_hb_first[i] = i*maxhb;
-      hb_first_i = d_hb_first[i];
-    }
-  }
-
-  for (int jj = 0; jj < jnum; jj++) {
-    int j = d_neighbors(i,jj);
-    j &= NEIGHMASK;
-    const tagint jtag = tag(j);
-
-    d_bo_first[j] = j*maxbo;
-    d_hb_first[j] = j*maxhb;
-    const int jtype = type(j);
-
-    delij[0] = x(j,0) - xtmp;
-    delij[1] = x(j,1) - ytmp;
-    delij[2] = x(j,2) - ztmp;
-    const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
-
-    double cutoffsq;
-    if(i < nlocal) cutoffsq = MAX(cut_bosq,cut_hbsq);
-    else cutoffsq = cut_bosq;
-    if (rsq > cutoffsq) continue;
-
-    // hbond list
-    if (i < nlocal && cut_hbsq > 0.0 && (ihb == 1 || ihb == 2) && rsq <= cut_hbsq) {
-      jhb = paramssing(jtype).p_hbond;
-      if( ihb == 1 && jhb == 2) {
-        if (NEIGHFLAG == HALF) {
-          j_index = hb_first_i + d_hb_num[i];
-          d_hb_num[i]++;
-        } else {
-          j_index = hb_first_i + Kokkos::atomic_fetch_add(&d_hb_num[i],1);
-        }
-
-        const int jj_index = j_index - hb_first_i;
-
-        if (jj_index >= maxhb) {
-          d_resize_hb() = 1;
-          return;
-        }
-
-        d_hb_list[j_index] = j;
-      } else if ( j < nlocal && ihb == 2 && jhb == 1) {
-        if (NEIGHFLAG == HALF) {
-          i_index = d_hb_first[j] + d_hb_num[j];
-          d_hb_num[j]++;
-        } else {
-          i_index = d_hb_first[j] + Kokkos::atomic_fetch_add(&d_hb_num[j],1);
-        }
-
-        const int ii_index = i_index - d_hb_first[j];
-
-        if (ii_index >= maxhb) {
-          d_resize_hb() = 1;
-          return;
-        }
-
-        d_hb_list[i_index] = i;
-      }
-    }
-
-    if (rsq > cut_bosq) continue;
-
-    // bond_list
-    const F_FLOAT rij = sqrt(rsq);
-    const F_FLOAT p_bo1 = paramstwbp(itype,jtype).p_bo1;
-    const F_FLOAT p_bo2 = paramstwbp(itype,jtype).p_bo2;
-    const F_FLOAT p_bo3 = paramstwbp(itype,jtype).p_bo3;
-    const F_FLOAT p_bo4 = paramstwbp(itype,jtype).p_bo4;
-    const F_FLOAT p_bo5 = paramstwbp(itype,jtype).p_bo5;
-    const F_FLOAT p_bo6 = paramstwbp(itype,jtype).p_bo6;
-    const F_FLOAT r_s = paramstwbp(itype,jtype).r_s;
-    const F_FLOAT r_pi = paramstwbp(itype,jtype).r_pi;
-    const F_FLOAT r_pi2 = paramstwbp(itype,jtype).r_pi2;
-
-    if (paramssing(itype).r_s > 0.0  && paramssing(jtype).r_s > 0.0) {
-      C12 = p_bo1*pow(rij/r_s,p_bo2);
-      BO_s = (1.0+bo_cut)*exp(C12);
-    }
-    else BO_s = C12 = 0.0;
-
-    if (paramssing(itype).r_pi > 0.0  && paramssing(jtype).r_pi > 0.0) {
-      C34 = p_bo3*pow(rij/r_pi,p_bo4);
-      BO_pi = exp(C34);
-    }
-    else BO_pi = C34 = 0.0;
-
-    if (paramssing(itype).r_pi2 > 0.0  && paramssing(jtype).r_pi2 > 0.0) {
-      C56 = p_bo5*pow(rij/r_pi2,p_bo6);
-      BO_pi2 = exp(C56);
-    }
-    else BO_pi2 = C56 = 0.0;
-
-    BO = BO_s + BO_pi + BO_pi2;
-    if (BO < bo_cut) continue;
-
-    if (NEIGHFLAG == HALF) {
-      j_index = bo_first_i + d_bo_num[i];
-      i_index = d_bo_first[j] + d_bo_num[j];
-      d_bo_num[i]++;
-      d_bo_num[j]++;
-    } else {
-      j_index = bo_first_i + Kokkos::atomic_fetch_add(&d_bo_num[i],1);
-      i_index = d_bo_first[j] + Kokkos::atomic_fetch_add(&d_bo_num[j],1);
-    }
-
-    const int jj_index = j_index - bo_first_i;
-    const int ii_index = i_index - d_bo_first[j];
-
-    if (jj_index >= maxbo || ii_index >= maxbo) {
-      d_resize_bo() = 1;
-      return;
-    }
-
-    d_bo_list[j_index] = j;
-    d_bo_list[i_index] = i;
-  }
-
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void PairReaxCKokkos<DeviceType>::operator()(PairReaxBondOrder1_LessAtomics, const int &ii) const {
-
-  F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3], dBOp_i[3], dln_BOp_pi_i[3], dln_BOp_pi2_i[3];
-
-  const int i = d_ilist[ii];
-  const X_FLOAT xtmp = x(i,0);
-  const X_FLOAT ytmp = x(i,1);
-  const X_FLOAT ztmp = x(i,2);
-  const int itype = type(i);
-
-  const int j_start = d_bo_first[i];
-  const int j_end = j_start + d_bo_num[i];
-
-  F_FLOAT total_bo = 0.0;
-
-  for (int jj = j_start; jj < j_end; jj++) {
-    int j = d_bo_list[jj];
-    j &= NEIGHMASK;
-    delij[0] = x(j,0) - xtmp;
-    delij[1] = x(j,1) - ytmp;
-    delij[2] = x(j,2) - ztmp;
-    const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
-    const F_FLOAT rij = sqrt(rsq);
-    const int jtype = type(j);
-    const int j_index = jj - j_start;
-
-    // calculate uncorrected BO and total bond order
-
-    const F_FLOAT p_bo1 = paramstwbp(itype,jtype).p_bo1;
-    const F_FLOAT p_bo2 = paramstwbp(itype,jtype).p_bo2;
-    const F_FLOAT p_bo3 = paramstwbp(itype,jtype).p_bo3;
-    const F_FLOAT p_bo4 = paramstwbp(itype,jtype).p_bo4;
-    const F_FLOAT p_bo5 = paramstwbp(itype,jtype).p_bo5;
-    const F_FLOAT p_bo6 = paramstwbp(itype,jtype).p_bo6;
-    const F_FLOAT r_s = paramstwbp(itype,jtype).r_s;
-    const F_FLOAT r_pi = paramstwbp(itype,jtype).r_pi;
-    const F_FLOAT r_pi2 = paramstwbp(itype,jtype).r_pi2;
-
-    if (paramssing(itype).r_s > 0.0  && paramssing(jtype).r_s > 0.0) {
-      C12 = p_bo1*pow(rij/r_s,p_bo2);
-      BO_s = (1.0+bo_cut)*exp(C12);
-    }
-    else BO_s = C12 = 0.0;
-
-    if (paramssing(itype).r_pi > 0.0  && paramssing(jtype).r_pi > 0.0) {
-      C34 = p_bo3*pow(rij/r_pi,p_bo4);
-      BO_pi = exp(C34);
-    }
-    else BO_pi = C34 = 0.0;
-
-    if (paramssing(itype).r_pi2 > 0.0  && paramssing(jtype).r_pi2 > 0.0) {
-      C56 = p_bo5*pow(rij/r_pi2,p_bo6);
-      BO_pi2 = exp(C56);
-    }
-    else BO_pi2 = C56 = 0.0;
-
-    BO = BO_s + BO_pi + BO_pi2;
-    if (BO < bo_cut) continue;
-
-    d_BO(i,j_index) = BO;
-    d_BO_s(i,j_index) = BO;
-    d_BO_pi(i,j_index) = BO_pi;
-    d_BO_pi2(i,j_index) = BO_pi2;
-
-    F_FLOAT Cln_BOp_s = p_bo2 * C12 / rij / rij;
-    F_FLOAT Cln_BOp_pi = p_bo4 * C34 / rij / rij;
-    F_FLOAT Cln_BOp_pi2 = p_bo6 * C56 / rij / rij;
-
-    if (nlocal == 0)
-      Cln_BOp_s = Cln_BOp_pi = Cln_BOp_pi2 = 0.0;
-
-    for (int d = 0; d < 3; d++) dln_BOp_pi_i[d] = -(BO_pi*Cln_BOp_pi)*delij[d];
-    for (int d = 0; d < 3; d++) dln_BOp_pi2_i[d] = -(BO_pi2*Cln_BOp_pi2)*delij[d];
-    for (int d = 0; d < 3; d++) dBOp_i[d] = -(BO_s*Cln_BOp_s+BO_pi*Cln_BOp_pi+BO_pi2*Cln_BOp_pi2)*delij[d];
-    for (int d = 0; d < 3; d++) d_dDeltap_self(i,d) += dBOp_i[d];
-
-    d_dln_BOp_pix(i,j_index) = dln_BOp_pi_i[0];
-    d_dln_BOp_piy(i,j_index) = dln_BOp_pi_i[1];
-    d_dln_BOp_piz(i,j_index) = dln_BOp_pi_i[2];
-
-    d_dln_BOp_pi2x(i,j_index) = dln_BOp_pi2_i[0];
-    d_dln_BOp_pi2y(i,j_index) = dln_BOp_pi2_i[1];
-    d_dln_BOp_pi2z(i,j_index) = dln_BOp_pi2_i[2];
-
-    d_dBOpx(i,j_index) = dBOp_i[0];
-    d_dBOpy(i,j_index) = dBOp_i[1];
-    d_dBOpz(i,j_index) = dBOp_i[2];
-
-    d_BO(i,j_index) -= bo_cut;
-    d_BO_s(i,j_index) -= bo_cut;
-    total_bo += d_BO(i,j_index);
-  }
-  d_total_bo[i] += total_bo;
 
   const F_FLOAT val_i = paramssing(itype).valency;
   d_Deltap[i] = d_total_bo[i] - val_i;
@@ -2184,7 +1972,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBondOrder3, const int &ii) 
   const F_FLOAT Clp = 2.0 * gp[15] * explp1 * (2.0 + vlpex);
   d_dDelta_lp[i] = Clp;
 
-  if( paramssing(itype).mass > 21.0 ) {
+  if (paramssing(itype).mass > 21.0) {
     nlp_temp = 0.5 * (paramssing(itype).valency_e - paramssing(itype).valency);
     d_Delta_lp_temp[i] = paramssing(itype).nlp_opt - nlp_temp;
   } else {
@@ -2238,10 +2026,8 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeMulti2<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
-  Kokkos::View<F_FLOAT*, typename DAT::t_float_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_CdDelta = d_CdDelta;
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi = d_Cdbopi;
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi2 = d_Cdbopi2;
+  auto v_CdDelta = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
+  auto a_CdDelta = v_CdDelta.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   const int itype = type(i);
@@ -2272,12 +2058,12 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeMulti2<NEIGHFLAG,EVF
   int numbonds = d_bo_num[i];
 
   e_lp = 0.0;
-  if (numbonds > 0 || control->enobondsflag)
+  if (numbonds > 0 || enobondsflag)
     e_lp = p_lp2 * d_Delta_lp[i] * inv_expvd2;
   const F_FLOAT dElp = p_lp2 * inv_expvd2 + 75.0 * p_lp2 * d_Delta_lp[i] * expvd2 * inv_expvd2*inv_expvd2;
   const F_FLOAT CElp = dElp * d_dDelta_lp[i];
 
-  if (numbonds > 0 || control->enobondsflag)
+  if (numbonds > 0 || enobondsflag)
     a_CdDelta[i] += CElp;
 
   if (eflag) ev.ereax[0] += e_lp;
@@ -2314,7 +2100,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeMulti2<NEIGHFLAG,EVF
   const F_FLOAT inv_exp_ovun8 = 1.0 / (1.0 + exp_ovun8);
 
   e_un = 0;
-  if (numbonds > 0 || control->enobondsflag)
+  if (numbonds > 0 || enobondsflag)
     e_un = -p_ovun5 * (1.0 - exp_ovun6) * inv_exp_ovun2n * inv_exp_ovun8;
 
   if (eflag) ev.ereax[2] += e_un;
@@ -2334,7 +2120,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeMulti2<NEIGHFLAG,EVF
   // multibody forces
 
   a_CdDelta[i] += CEover3;
-  if (numbonds > 0 || control->enobondsflag)
+  if (numbonds > 0 || enobondsflag)
     a_CdDelta[i] += CEunder3;
 
   const int j_start = d_bo_first[i];
@@ -2392,9 +2178,12 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
-  Kokkos::View<F_FLOAT*, typename DAT::t_float_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_CdDelta = d_CdDelta;
+  auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
+
+  auto v_CdDelta = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
+  auto a_CdDelta = v_CdDelta.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   const int itype = type(i);
@@ -2462,10 +2251,10 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EV
   const F_FLOAT vlpex = Delta_e - 2.0 * (int)(Delta_e/2.0);
   const F_FLOAT explp1 = exp(-gp[15] * SQR(2.0 + vlpex));
   const F_FLOAT nlp = explp1 - (int)(Delta_e / 2.0);
-  if( vlpex >= 0.0 ){
+  if (vlpex >= 0.0) {
     vlpadj = 0.0;
     dSBO2 = prod_SBO - 1.0;
-  } else{
+  } else {
     vlpadj = nlp;
     dSBO2 = (prod_SBO - 1.0) * (1.0 - p_val8 * d_dDelta_lp[i]);
   }
@@ -2473,13 +2262,13 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EV
   SBO = SBOp + (1.0 - prod_SBO) * (-d_Delta_boc[i] - p_val8 * vlpadj);
   dSBO1 = -8.0 * prod_SBO * ( d_Delta_boc[i] + p_val8 * vlpadj );
 
-  if( SBO <= 0.0 ) {
+  if (SBO <= 0.0) {
     SBO2 = 0.0;
     CSBO2 = 0.0;
-  } else if( SBO > 0.0 && SBO <= 1.0 ) {
+  } else if (SBO > 0.0 && SBO <= 1.0) {
     SBO2 = pow( SBO, p_val9 );
     CSBO2 = p_val9 * pow( SBO, p_val9 - 1.0 );
-  } else if( SBO > 1.0 && SBO < 2.0 ) {
+  } else if (SBO > 1.0 && SBO < 2.0) {
     SBO2 = 2.0 - pow( 2.0-SBO, p_val9 );
     CSBO2 = p_val9 * pow( 2.0 - SBO, p_val9 - 1.0 );
   } else {
@@ -2535,8 +2324,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EV
       // theta and derivatives
 
       cos_theta = (delij[0]*delik[0]+delij[1]*delik[1]+delij[2]*delik[2])/(rij*rik);
-      if( cos_theta > 1.0 ) cos_theta  = 1.0;
-      if( cos_theta < -1.0 ) cos_theta  = -1.0;
+      if (cos_theta > 1.0) cos_theta  = 1.0;
+      if (cos_theta < -1.0) cos_theta  = -1.0;
       theta = acos(cos_theta);
 
       const F_FLOAT inv_dists = 1.0 / (rij * rik);
@@ -2577,7 +2366,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EV
       theta_0 = theta_0*constPI/180.0;
 
       expval2theta  = exp( -p_val2 * (theta_0-theta)*(theta_0-theta) );
-      if( p_val1 >= 0 )
+      if (p_val1 >= 0)
         expval12theta = p_val1 * (1.0 - expval2theta);
       else // To avoid linear Me-H-Me angles (6/6/06)
         expval12theta = p_val1 * -expval2theta;
@@ -2701,9 +2490,13 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
-  Kokkos::View<F_FLOAT*, typename DAT::t_float_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_CdDelta = d_CdDelta;
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
+  auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+
+  auto v_CdDelta = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
+  auto a_CdDelta = v_CdDelta.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
+  //auto a_Cdbo = dup_Cdbo.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   // in reaxc_torsion_angles: j = i, k = j, i = k;
 
@@ -2801,8 +2594,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
       const F_FLOAT rik = sqrt(rsqik);
 
       cos_ijk = (delij[0]*delik[0]+delij[1]*delik[1]+delij[2]*delik[2])/(rij*rik);
-      if( cos_ijk > 1.0 ) cos_ijk  = 1.0;
-      if( cos_ijk < -1.0 ) cos_ijk  = -1.0;
+      if (cos_ijk > 1.0) cos_ijk  = 1.0;
+      if (cos_ijk < -1.0) cos_ijk  = -1.0;
       theta_ijk = acos(cos_ijk);
 
       // dcos_ijk
@@ -2816,7 +2609,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
       }
 
       sin_ijk = sin( theta_ijk );
-      if( sin_ijk >= 0 && sin_ijk <= 1e-10 )
+      if (sin_ijk >= 0 && sin_ijk <= 1e-10)
         tan_ijk_i = cos_ijk / 1e-10;
       else if( sin_ijk <= 0 && sin_ijk >= -1e-10 )
         tan_ijk_i = -cos_ijk / 1e-10;
@@ -2843,8 +2636,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
         BOA_jl = bo_jl - thb_cut;
 
         cos_jil = -(delij[0]*deljl[0]+delij[1]*deljl[1]+delij[2]*deljl[2])/(rij*rjl);
-        if( cos_jil > 1.0 ) cos_jil  = 1.0;
-        if( cos_jil < -1.0 ) cos_jil  = -1.0;
+        if (cos_jil > 1.0) cos_jil  = 1.0;
+        if (cos_jil < -1.0) cos_jil  = -1.0;
         theta_jil = acos(cos_jil);
 
         // dcos_jil
@@ -2859,7 +2652,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
         }
 
         sin_jil = sin( theta_jil );
-        if( sin_jil >= 0 && sin_jil <= 1e-10 )
+        if (sin_jil >= 0 && sin_jil <= 1e-10)
           tan_jil_i = cos_jil / 1e-10;
         else if( sin_jil <= 0 && sin_jil >= -1e-10 )
           tan_jil_i = -cos_jil / 1e-10;
@@ -2899,21 +2692,21 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
         hnhe = rik * rjl * sin_ijk * cos_jil;
 
         poem = 2.0 * rik * rjl * sin_ijk * sin_jil;
-        if( poem < 1e-20 ) poem = 1e-20;
+        if (poem < 1e-20) poem = 1e-20;
 
         tel = SQR(rik) + SQR(rij) + SQR(rjl) - SQR(rlk) -
               2.0 * (rik * rij * cos_ijk - rik * rjl * cos_ijk * cos_jil + rij * rjl * cos_jil);
 
         arg = tel / poem;
-        if( arg >  1.0 ) arg =  1.0;
-        if( arg < -1.0 ) arg = -1.0;
+        if (arg >  1.0) arg =  1.0;
+        if (arg < -1.0) arg = -1.0;
 
         F_FLOAT sin_ijk_rnd = sin_ijk;
         F_FLOAT sin_jil_rnd = sin_jil;
 
-        if( sin_ijk >= 0 && sin_ijk <= 1e-10 ) sin_ijk_rnd = 1e-10;
+        if (sin_ijk >= 0 && sin_ijk <= 1e-10) sin_ijk_rnd = 1e-10;
         else if( sin_ijk <= 0 && sin_ijk >= -1e-10 ) sin_ijk_rnd = -1e-10;
-        if( sin_jil >= 0 && sin_jil <= 1e-10 ) sin_jil_rnd = 1e-10;
+        if (sin_jil >= 0 && sin_jil <= 1e-10) sin_jil_rnd = 1e-10;
         else if( sin_jil <= 0 && sin_jil >= -1e-10 ) sin_jil_rnd = -1e-10;
 
         // dcos_omega_di
@@ -3073,7 +2866,8 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeHydrogen<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   int hblist[MAX_BONDS];
   F_FLOAT theta, cos_theta, sin_xhz4, cos_xhz1, sin_theta2;
@@ -3086,7 +2880,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeHydrogen<NEIGHFLAG,E
 
   const int i = d_ilist[ii];
   const int itype = type(i);
-  if( paramssing(itype).p_hbond != 1 ) return;
+  if (paramssing(itype).p_hbond != 1) return;
 
   const X_FLOAT xtmp = x(i,0);
   const X_FLOAT ytmp = x(i,1);
@@ -3106,7 +2900,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeHydrogen<NEIGHFLAG,E
     const int j_index = jj - j_start;
     const F_FLOAT bo_ij = d_BO(i,j_index);
 
-    if( paramssing(jtype).p_hbond == 2 && bo_ij >= HB_THRESHOLD ) {
+    if (paramssing(jtype).p_hbond == 2 && bo_ij >= HB_THRESHOLD) {
       hblist[top] = jj;
       top ++;
     }
@@ -3146,8 +2940,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeHydrogen<NEIGHFLAG,E
 
       // theta and derivatives
       cos_theta = (delij[0]*delik[0]+delij[1]*delik[1]+delij[2]*delik[2])/(rij*rik);
-      if( cos_theta > 1.0 ) cos_theta  = 1.0;
-      if( cos_theta < -1.0 ) cos_theta  = -1.0;
+      if (cos_theta > 1.0) cos_theta  = 1.0;
+      if (cos_theta < -1.0) cos_theta  = -1.0;
       theta = acos(cos_theta);
 
       const F_FLOAT inv_dists = 1.0 / (rij * rik);
@@ -3220,9 +3014,12 @@ template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxUpdateBond<NEIGHFLAG>, const int &ii) const {
 
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi = d_Cdbopi;
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi2 = d_Cdbopi2;
+  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
+  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi = d_Cdbopi;
+  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi2 = d_Cdbopi2;
+  //auto a_Cdbo = dup_Cdbo.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  //auto a_Cdbopi = dup_Cdbopi.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  //auto a_Cdbopi2 = dup_Cdbopi2.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   const tagint itag = tag(i);
@@ -3269,8 +3066,11 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond1<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
-  Kokkos::View<F_FLOAT*, typename DAT::t_ffloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_CdDelta = d_CdDelta;
+  auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+
+  auto v_CdDelta = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
+  auto a_CdDelta = v_CdDelta.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   F_FLOAT delij[3];
   F_FLOAT p_be1, p_be2, De_s, De_p, De_pp, pow_BOs_be2, exp_be12, CEbo, ebond;
@@ -3359,8 +3159,8 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond1<NEIGHFLAG,EVFL
     // Stabilisation terminal triple bond
     F_FLOAT estriph = 0.0;
 
-    if( BO_i >= 1.00 ) {
-      if( gp[37] == 2 || (imass == 12.0000 && jmass == 15.9990) ||
+    if (BO_i >= 1.00) {
+      if (gp[37] == 2 || (imass == 12.0000 && jmass == 15.9990) ||
                          (jmass == 12.0000 && imass == 15.9990) ) {
         const F_FLOAT exphu = exp(-gp[7] * SQR(BO_i - 2.50) );
         const F_FLOAT exphua1 = exp(-gp[3] * (d_total_bo[i]-BO_i));
@@ -3407,7 +3207,8 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond2<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   F_FLOAT delij[3], delik[3], deljk[3], tmpvec[3];
   F_FLOAT dBOp_i[3], dBOp_k[3], dln_BOp_pi[3], dln_BOp_pi2[3];
@@ -3619,14 +3420,18 @@ void PairReaxCKokkos<DeviceType>::ev_tally(EV_FLOAT_REAX &ev, const int &i, cons
 {
   const int VFLAG = vflag_either;
 
-  // The eatom and vatom arrays are atomic for Half/Thread neighbor style
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_eatom = v_eatom;
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_vatom = v_vatom;
+  // The eatom and vatom arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
+
+  auto v_eatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
+  auto a_eatom = v_eatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+
+  auto v_vatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
+  auto a_vatom = v_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   if (eflag_atom) {
     const E_FLOAT epairhalf = 0.5 * epair;
     a_eatom[i] += epairhalf;
-    if (NEIGHFLAG != FULL) a_eatom[j] += epairhalf;
+    a_eatom[j] += epairhalf;
   }
 
   if (VFLAG) {
@@ -3638,21 +3443,12 @@ void PairReaxCKokkos<DeviceType>::ev_tally(EV_FLOAT_REAX &ev, const int &i, cons
     const E_FLOAT v5 = dely*delz*fpair;
 
     if (vflag_global) {
-      if (NEIGHFLAG != FULL) {
-        ev.v[0] += v0;
-        ev.v[1] += v1;
-        ev.v[2] += v2;
-        ev.v[3] += v3;
-        ev.v[4] += v4;
-        ev.v[5] += v5;
-      } else {
-        ev.v[0] += 0.5*v0;
-        ev.v[1] += 0.5*v1;
-        ev.v[2] += 0.5*v2;
-        ev.v[3] += 0.5*v3;
-        ev.v[4] += 0.5*v4;
-        ev.v[5] += 0.5*v5;
-      }
+      ev.v[0] += v0;
+      ev.v[1] += v1;
+      ev.v[2] += v2;
+      ev.v[3] += v3;
+      ev.v[4] += v4;
+      ev.v[5] += v5;
     }
 
     if (vflag_atom) {
@@ -3662,15 +3458,12 @@ void PairReaxCKokkos<DeviceType>::ev_tally(EV_FLOAT_REAX &ev, const int &i, cons
       a_vatom(i,3) += 0.5*v3;
       a_vatom(i,4) += 0.5*v4;
       a_vatom(i,5) += 0.5*v5;
-
-      if (NEIGHFLAG != FULL) {
-        a_vatom(j,0) += 0.5*v0;
-        a_vatom(j,1) += 0.5*v1;
-        a_vatom(j,2) += 0.5*v2;
-        a_vatom(j,3) += 0.5*v3;
-        a_vatom(j,4) += 0.5*v4;
-        a_vatom(j,5) += 0.5*v5;
-      }
+      a_vatom(j,0) += 0.5*v0;
+      a_vatom(j,1) += 0.5*v1;
+      a_vatom(j,2) += 0.5*v2;
+      a_vatom(j,3) += 0.5*v3;
+      a_vatom(j,4) += 0.5*v4;
+      a_vatom(j,5) += 0.5*v5;
     }
   }
 }
@@ -3684,10 +3477,13 @@ void PairReaxCKokkos<DeviceType>::e_tally(EV_FLOAT_REAX &ev, const int &i, const
       const F_FLOAT &epair) const
 {
 
-  // The eatom array is atomic for Half/Thread neighbor style
+  // The eatom array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+
 
   if (eflag_atom) {
-    Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_eatom = v_eatom;
+    auto v_eatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
+    auto a_eatom = v_eatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+
     const E_FLOAT epairhalf = 0.5 * epair;
     a_eatom[i] += epairhalf;
     a_eatom[j] += epairhalf;
@@ -3702,8 +3498,9 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::e_tally_single(EV_FLOAT_REAX &ev, const int &i,
       const F_FLOAT &epair) const
 {
-  // The eatom array is atomic for Half/Thread neighbor style
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_eatom = v_eatom;
+  // The eatom array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  auto v_eatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
+  auto a_eatom = v_eatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   a_eatom[i] += epair;
 }
@@ -3736,7 +3533,9 @@ void PairReaxCKokkos<DeviceType>::v_tally(EV_FLOAT_REAX &ev, const int &i,
   }
 
   if (vflag_atom) {
-    Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_vatom = v_vatom;
+    auto v_vatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
+    auto a_vatom = v_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+
     a_vatom(i,0) += v[0]; a_vatom(i,1) += v[1]; a_vatom(i,2) += v[2];
     a_vatom(i,3) += v[3]; a_vatom(i,4) += v[4]; a_vatom(i,5) += v[5];
   }
@@ -3751,8 +3550,9 @@ void PairReaxCKokkos<DeviceType>::v_tally3(EV_FLOAT_REAX &ev, const int &i, cons
   F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drij, F_FLOAT *drik) const
 {
 
-  // The eatom and vatom arrays are atomic for Half/Thread neighbor style
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_vatom = v_vatom;
+  // The eatom and vatom arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  auto v_vatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
+  auto a_vatom = v_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   F_FLOAT v[6];
 
@@ -3792,7 +3592,8 @@ void PairReaxCKokkos<DeviceType>::v_tally4(EV_FLOAT_REAX &ev, const int &i, cons
   const int &l, F_FLOAT *fi, F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *dril, F_FLOAT *drjl, F_FLOAT *drkl) const
 {
 
-  // The vatom array is atomic for Half/Thread neighbor style
+  // The vatom array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+
   F_FLOAT v[6];
 
   v[0] = dril[0]*fi[0] + drjl[0]*fj[0] + drkl[0]*fk[0];
@@ -3812,7 +3613,9 @@ void PairReaxCKokkos<DeviceType>::v_tally4(EV_FLOAT_REAX &ev, const int &i, cons
   }
 
   if (vflag_atom) {
-    Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_vatom = v_vatom;
+    auto v_vatom = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
+    auto a_vatom = v_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+
     a_vatom(i,0) += 0.25 * v[0]; a_vatom(i,1) += 0.25 * v[1]; a_vatom(i,2) += 0.25 * v[2];
     a_vatom(i,3) += 0.25 * v[3]; a_vatom(i,4) += 0.25 * v[4]; a_vatom(i,5) += 0.25 * v[5];
     a_vatom(j,0) += 0.25 * v[0]; a_vatom(j,1) += 0.25 * v[1]; a_vatom(j,2) += 0.25 * v[2];
@@ -3909,13 +3712,13 @@ void PairReaxCKokkos<DeviceType>::ev_setup(int eflag, int vflag, int)
     maxeatom = atom->nmax;
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
-    v_eatom = k_eatom.view<DeviceType>();
+    d_eatom = k_eatom.view<DeviceType>();
   }
   if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
-    v_vatom = k_vatom.view<DeviceType>();
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
+    d_vatom = k_vatom.view<DeviceType>();
   }
 
   // zero accumulators
@@ -4106,6 +3909,14 @@ void PairReaxCKokkos<DeviceType>::pack_bond_buffer_item(int i, int &j, const boo
 template<class DeviceType>
 void PairReaxCKokkos<DeviceType>::FindBondSpecies()
 {
+
+  if (nmax > k_tmpid.extent(0)) {
+    memoryKK->destroy_kokkos(k_tmpid,tmpid);
+    memoryKK->destroy_kokkos(k_tmpbo,tmpbo);
+    memoryKK->create_kokkos(k_tmpid,tmpid,nmax,MAXSPECBOND,"pair:tmpid");
+    memoryKK->create_kokkos(k_tmpbo,tmpbo,nmax,MAXSPECBOND,"pair:tmpbo");
+  }
+
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFindBondSpeciesZero>(0,nmax),*this);
 
@@ -4161,7 +3972,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxFindBondSpecies, const int 
 }
 
 template class PairReaxCKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class PairReaxCKokkos<LMPHostType>;
 #endif
 }

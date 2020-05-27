@@ -6,7 +6,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2013-2016 Stanford University and the Authors.      *
+ * Portions copyright (c) 2013-2019 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -84,17 +84,17 @@ CompiledExpression& CompiledExpression::operator=(const CompiledExpression& expr
 void CompiledExpression::compileExpression(const ExpressionTreeNode& node, vector<pair<ExpressionTreeNode, int> >& temps) {
     if (findTempIndex(node, temps) != -1)
         return; // We have already processed a node identical to this one.
-    
+
     // Process the child nodes.
-    
+
     vector<int> args;
     for (int i = 0; i < node.getChildren().size(); i++) {
         compileExpression(node.getChildren()[i], temps);
         args.push_back(findTempIndex(node.getChildren()[i], temps));
     }
-    
+
     // Process this node.
-    
+
     if (node.getOperation().getId() == Operation::VARIABLE) {
         variableIndices[node.getOperation().getName()] = (int) workspace.size();
         variableNames.insert(node.getOperation().getName());
@@ -108,7 +108,7 @@ void CompiledExpression::compileExpression(const ExpressionTreeNode& node, vecto
             arguments[stepIndex].push_back(0); // The value won't actually be used.  We just need something there.
         else {
             // If the arguments are sequential, we can just pass a pointer to the first one.
-            
+
             bool sequential = true;
             for (int i = 1; i < args.size(); i++)
                 if (args[i] != args[i-1]+1)
@@ -148,12 +148,12 @@ void CompiledExpression::setVariableLocations(map<string, double*>& variableLoca
     variablePointers = variableLocations;
 #ifdef LEPTON_USE_JIT
     // Rebuild the JIT code.
-    
+
     if (workspace.size() > 0)
         generateJitCode();
 #else
     // Make a list of all variables we will need to copy before evaluating the expression.
-    
+
     variablesToCopy.clear();
     for (map<string, int>::const_iterator iter = variableIndices.begin(); iter != variableIndices.end(); ++iter) {
         map<string, double*>::iterator pointer = variablePointers.find(iter->first);
@@ -165,13 +165,13 @@ void CompiledExpression::setVariableLocations(map<string, double*>& variableLoca
 
 double CompiledExpression::evaluate() const {
 #ifdef LEPTON_USE_JIT
-    return ((double (*)()) jitCode)();
+    return jitCode();
 #else
     for (int i = 0; i < variablesToCopy.size(); i++)
         *variablesToCopy[i].first = *variablesToCopy[i].second;
 
     // Loop over the operations and evaluate each one.
-    
+
     for (int step = 0; step < operation.size(); step++) {
         const vector<int>& args = arguments[step];
         if (args.size() == 1)
@@ -188,34 +188,36 @@ double CompiledExpression::evaluate() const {
 
 #ifdef LEPTON_USE_JIT
 static double evaluateOperation(Operation* op, double* args) {
-    map<string, double>* dummyVariables = NULL;
-    return op->evaluate(args, *dummyVariables);
+    static map<string, double> dummyVariables;
+    return op->evaluate(args, dummyVariables);
 }
 
 void CompiledExpression::generateJitCode() {
-    X86Compiler c(&runtime);
-    c.addFunc(kFuncConvHost, FuncBuilder0<double>());
-    vector<X86XmmVar> workspaceVar(workspace.size());
+    CodeHolder code;
+    code.init(runtime.getCodeInfo());
+    X86Compiler c(&code);
+    c.addFunc(FuncSignature0<double>());
+    vector<X86Xmm> workspaceVar(workspace.size());
     for (int i = 0; i < (int) workspaceVar.size(); i++)
-        workspaceVar[i] = c.newXmmVar(kX86VarTypeXmmSd);
-    X86GpVar argsPointer(c);
+        workspaceVar[i] = c.newXmmSd();
+    X86Gp argsPointer = c.newIntPtr();
     c.mov(argsPointer, imm_ptr(&argValues[0]));
-    
+
     // Load the arguments into variables.
-    
+
     for (set<string>::const_iterator iter = variableNames.begin(); iter != variableNames.end(); ++iter) {
         map<string, int>::iterator index = variableIndices.find(*iter);
-        X86GpVar variablePointer(c);
+        X86Gp variablePointer = c.newIntPtr();
         c.mov(variablePointer, imm_ptr(&getVariableReference(index->first)));
         c.movsd(workspaceVar[index->second], x86::ptr(variablePointer, 0, 0));
     }
 
     // Make a list of all constants that will be needed for evaluation.
-    
+
     vector<int> operationConstantIndex(operation.size(), -1);
     for (int step = 0; step < (int) operation.size(); step++) {
         // Find the constant value (if any) used by this operation.
-        
+
         Operation& op = *operation[step];
         double value;
         if (op.getId() == Operation::CONSTANT)
@@ -232,9 +234,9 @@ void CompiledExpression::generateJitCode() {
             value = 1.0;
         else
             continue;
-        
+
         // See if we already have a variable for this constant.
-        
+
         for (int i = 0; i < (int) constants.size(); i++)
             if (value == constants[i]) {
                 operationConstantIndex[step] = i;
@@ -245,33 +247,33 @@ void CompiledExpression::generateJitCode() {
             constants.push_back(value);
         }
     }
-    
+
     // Load constants into variables.
-    
-    vector<X86XmmVar> constantVar(constants.size());
+
+    vector<X86Xmm> constantVar(constants.size());
     if (constants.size() > 0) {
-        X86GpVar constantsPointer(c);
+        X86Gp constantsPointer = c.newIntPtr();
         c.mov(constantsPointer, imm_ptr(&constants[0]));
         for (int i = 0; i < (int) constants.size(); i++) {
-            constantVar[i] = c.newXmmVar(kX86VarTypeXmmSd);
+            constantVar[i] = c.newXmmSd();
             c.movsd(constantVar[i], x86::ptr(constantsPointer, 8*i, 0));
         }
     }
-    
+
     // Evaluate the operations.
-    
+
     for (int step = 0; step < (int) operation.size(); step++) {
         Operation& op = *operation[step];
         vector<int> args = arguments[step];
         if (args.size() == 1) {
             // One or more sequential arguments.  Fill out the list.
-            
+
             for (int i = 1; i < op.getNumArguments(); i++)
                 args.push_back(args[0]+i);
         }
-        
+
         // Generate instructions to execute this operation.
-        
+
         switch (op.getId()) {
             case Operation::CONSTANT:
                 c.movsd(workspaceVar[target[step]], constantVar[operationConstantIndex[step]]);
@@ -291,6 +293,9 @@ void CompiledExpression::generateJitCode() {
             case Operation::DIVIDE:
                 c.movsd(workspaceVar[target[step]], workspaceVar[args[0]]);
                 c.divsd(workspaceVar[target[step]], workspaceVar[args[1]]);
+                break;
+            case Operation::POWER:
+                generateTwoArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]], pow);
                 break;
             case Operation::NEGATE:
                 c.xorps(workspaceVar[target[step]], workspaceVar[target[step]]);
@@ -322,6 +327,9 @@ void CompiledExpression::generateJitCode() {
                 break;
             case Operation::ATAN:
                 generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], atan);
+                break;
+            case Operation::ATAN2:
+                generateTwoArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]], atan2);
                 break;
             case Operation::SINH:
                 generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], sinh);
@@ -374,12 +382,12 @@ void CompiledExpression::generateJitCode() {
                 break;
             default:
                 // Just invoke evaluateOperation().
-                
+
                 for (int i = 0; i < (int) args.size(); i++)
                     c.movsd(x86::ptr(argsPointer, 8*i, 0), workspaceVar[args[i]]);
-                X86GpVar fn(c, kVarTypeIntPtr);
+                X86Gp fn = c.newIntPtr();
                 c.mov(fn, imm_ptr((void*) evaluateOperation));
-                X86CallNode* call = c.call(fn, kFuncConvHost, FuncBuilder2<double, Operation*, double*>());
+                CCFuncCall* call = c.call(fn, FuncSignature2<double, Operation*, double*>());
                 call->setArg(0, imm_ptr(&op));
                 call->setArg(1, imm_ptr(&argValues[0]));
                 call->setRet(0, workspaceVar[target[step]]);
@@ -387,14 +395,24 @@ void CompiledExpression::generateJitCode() {
     }
     c.ret(workspaceVar[workspace.size()-1]);
     c.endFunc();
-    jitCode = c.make();
+    c.finalize();
+    runtime.add(&jitCode, &code);
 }
 
-void CompiledExpression::generateSingleArgCall(X86Compiler& c, X86XmmVar& dest, X86XmmVar& arg, double (*function)(double)) {
-    X86GpVar fn(c, kVarTypeIntPtr);
+void CompiledExpression::generateSingleArgCall(X86Compiler& c, X86Xmm& dest, X86Xmm& arg, double (*function)(double)) {
+    X86Gp fn = c.newIntPtr();
     c.mov(fn, imm_ptr((void*) function));
-    X86CallNode* call = c.call(fn, kFuncConvHost, FuncBuilder1<double, double>());
+    CCFuncCall* call = c.call(fn, FuncSignature1<double, double>());
     call->setArg(0, arg);
+    call->setRet(0, dest);
+}
+
+void CompiledExpression::generateTwoArgCall(X86Compiler& c, X86Xmm& dest, X86Xmm& arg1, X86Xmm& arg2, double (*function)(double, double)) {
+    X86Gp fn = c.newIntPtr();
+    c.mov(fn, imm_ptr((void*) function));
+    CCFuncCall* call = c.call(fn, FuncSignature2<double, double, double>());
+    call->setArg(0, arg1);
+    call->setArg(1, arg2);
     call->setRet(0, dest);
 }
 #endif

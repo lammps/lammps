@@ -5,7 +5,7 @@
 # The boundary dump file (see below) can be converted into VTK format using the conversion
 # tool dump2vtk_tris from the tools/smd directory.
 #
-# unit sytem: GPa / mm / ms
+# unit system: GPa / mm / ms
 #
 ####################################################################################################
 

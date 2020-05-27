@@ -39,8 +39,9 @@ class DihedralClass2Kokkos : public DihedralClass2 {
 
   DihedralClass2Kokkos(class LAMMPS *);
   virtual ~DihedralClass2Kokkos();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
+  void compute(int, int);
+  void coeff(int, char **);
+  void read_restart(FILE *);
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -102,7 +103,7 @@ class DihedralClass2Kokkos : public DihedralClass2 {
   typename AT::t_ffloat_1d d_setflag_d, d_setflag_mbt, d_setflag_ebt;
   typename AT::t_ffloat_1d d_setflag_at, d_setflag_aat, d_setflag_bb13t;
 
-  virtual void allocate();
+  void allocate();
 };
 
 }

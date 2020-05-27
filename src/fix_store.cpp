@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "fix_store.h"
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -106,6 +105,7 @@ vstore(NULL), astore(NULL), rbuf(NULL)
       for (int i = 0; i < nlocal; i++)
         for (int j = 0; j < nvalues; j++)
           astore[i][j] = 0.0;
+    maxexchange = nvalues;
   }
 }
 
@@ -154,8 +154,6 @@ void FixStore::reset_global(int nrow_caller, int ncol_caller)
   if (vecflag) memory->create(vstore,nrow,"fix/store:vstore");
   else memory->create(astore,nrow,ncol,"fix/store:astore");
   memory->create(rbuf,nrow*ncol+2,"fix/store:rbuf");
-
- // printf("AAA HOW GET HERE\n");
 }
 
 /* ----------------------------------------------------------------------
@@ -231,7 +229,7 @@ void FixStore::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixStore::copy_arrays(int i, int j, int delflag)
+void FixStore::copy_arrays(int i, int j, int /*delflag*/)
 {
   if (disable) return;
 
@@ -282,7 +280,7 @@ int FixStore::pack_restart(int i, double *buf)
     return 1;
   }
 
-  buf[0] = nvalues+1;
+  buf[0] = ubuf(nvalues+1).d;
   if (vecflag) buf[1] = vstore[i];
   else
     for (int m = 0; m < nvalues; m++)
@@ -303,7 +301,7 @@ void FixStore::unpack_restart(int nlocal, int nth)
   // skip to Nth set of extra values
 
   int m = 0;
-  for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);
+  for (int i = 0; i < nth; i++) m += (int) ubuf(extra[nlocal][m]).i;
   m++;
 
   if (vecflag) vstore[nlocal] = extra[nlocal][m];
@@ -326,7 +324,7 @@ int FixStore::maxsize_restart()
    size of atom nlocal's restart data
 ------------------------------------------------------------------------- */
 
-int FixStore::size_restart(int nlocal)
+int FixStore::size_restart(int /*nlocal*/)
 {
   if (disable) return 1;
   return nvalues+1;

@@ -17,19 +17,13 @@
 
 #include <mpi.h>
 #include <cmath>
-#include <cstring>
 #include <cstdlib>
 #include "fix_langevin_eff.h"
-#include "math_extra.h"
 #include "atom.h"
-#include "force.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
 #include "domain.h"
-#include "region.h"
-#include "respa.h"
-#include "comm.h"
 #include "input.h"
 #include "variable.h"
 #include "random_mars.h"
@@ -63,7 +57,7 @@ FixLangevinEff::~FixLangevinEff()
 
 /* ---------------------------------------------------------------------- */
 
-void FixLangevinEff::post_force(int vflag)
+void FixLangevinEff::post_force(int /*vflag*/)
 {
   if (tallyflag) post_force_tally();
   else post_force_no_tally();

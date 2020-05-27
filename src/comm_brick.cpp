@@ -15,35 +15,25 @@
    Contributing author (triclinic) : Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
+#include "comm_brick.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdio>
-#include <cstdlib>
-#include "comm_brick.h"
-#include "comm_tiled.h"
-#include "universe.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
 #include "pair.h"
 #include "domain.h"
 #include "neighbor.h"
-#include "group.h"
-#include "modify.h"
 #include "fix.h"
 #include "compute.h"
-#include "output.h"
 #include "dump.h"
-#include "math_extra.h"
 #include "error.h"
 #include "memory.h"
 
 using namespace LAMMPS_NS;
 
 #define BUFFACTOR 1.5
-#define BUFMIN 1000
-#define BUFEXTRA 1000
+#define BUFMIN 1024
 #define BIG 1.0e20
 
 /* ---------------------------------------------------------------------- */
@@ -55,7 +45,8 @@ CommBrick::CommBrick(LAMMPS *lmp) :
   size_reverse_send(NULL), size_reverse_recv(NULL),
   slablo(NULL), slabhi(NULL), multilo(NULL), multihi(NULL),
   cutghostmulti(NULL), pbc_flag(NULL), pbc(NULL), firstrecv(NULL),
-  sendlist(NULL), maxsendlist(NULL), buf_send(NULL), buf_recv(NULL)
+  sendlist(NULL),  localsendlist(NULL), maxsendlist(NULL),
+  buf_send(NULL), buf_recv(NULL)
 {
   style = 0;
   layout = Comm::LAYOUT_UNIFORM;
@@ -74,6 +65,7 @@ CommBrick::~CommBrick()
   }
 
   if (sendlist) for (int i = 0; i < maxswap; i++) memory->destroy(sendlist[i]);
+  if (localsendlist) memory->destroy(localsendlist);
   memory->sfree(sendlist);
   memory->destroy(maxsendlist);
 
@@ -88,7 +80,7 @@ CommBrick::~CommBrick()
 //           The call to Comm::copy_arrays() then converts the shallow copy
 //           into a deep copy of the class with the new layout.
 
-CommBrick::CommBrick(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
+CommBrick::CommBrick(LAMMPS * /*lmp*/, Comm *oldcomm) : Comm(*oldcomm)
 {
   if (oldcomm->layout == Comm::LAYOUT_TILED)
     error->all(FLERR,"Cannot change to comm_style brick from tiled layout");
@@ -108,17 +100,9 @@ void CommBrick::init_buffers()
   multilo = multihi = NULL;
   cutghostmulti = NULL;
 
-  // bufextra = max size of one exchanged atom
-  //          = allowed overflow of sendbuf in exchange()
-  // atomvec, fix reset these 2 maxexchange values if needed
-  // only necessary if their size > BUFEXTRA
-
-  maxexchange = maxexchange_atom + maxexchange_fix;
-  bufextra = maxexchange + BUFEXTRA;
-
-  maxsend = BUFMIN;
-  memory->create(buf_send,maxsend+bufextra,"comm:buf_send");
-  maxrecv = BUFMIN;
+  buf_send = buf_recv = NULL;
+  maxsend = maxrecv = BUFMIN;
+  grow_send(maxsend,2);
   memory->create(buf_recv,maxrecv,"comm:buf_recv");
 
   nswap = 0;
@@ -138,6 +122,10 @@ void CommBrick::init_buffers()
 void CommBrick::init()
 {
   Comm::init();
+
+  int bufextra_old = bufextra;
+  init_exchange();
+  if (bufextra > bufextra_old) grow_send(maxsend+bufextra,2);
 
   // memory for multi-style communication
 
@@ -173,7 +161,10 @@ void CommBrick::setup()
   int ntypes = atom->ntypes;
   double *prd,*sublo,*subhi;
 
-  double cut = MAX(neighbor->cutneighmax,cutghostuser);
+  double cut = get_comm_cutoff();
+  if ((cut == 0.0) && (me == 0))
+    error->warning(FLERR,"Communication cutoff is 0.0. No ghost atoms "
+                   "will be generated. Atoms may get lost.");
 
   if (triclinic == 0) {
     prd = domain->prd;
@@ -457,7 +448,7 @@ int CommBrick::updown(int dim, int dir, int loc,
    other per-atom attributes may also be sent via pack/unpack routines
 ------------------------------------------------------------------------- */
 
-void CommBrick::forward_comm(int dummy)
+void CommBrick::forward_comm(int /*dummy*/)
 {
   int n;
   MPI_Request request;
@@ -576,7 +567,7 @@ void CommBrick::reverse_comm()
    atoms exchanged with all 6 stencil neighbors
    send out atoms that have left my box, receive ones entering my box
    atoms will be lost if not inside a stencil proc's box
-     can happen if atom moves outside of non-periodic bounary
+     can happen if atom moves outside of non-periodic boundary
      or if atom moves more than one proc away
    this routine called before every reneighboring
    for triclinic, atoms must be in lamda coords (0-1) before exchange is called
@@ -601,15 +592,14 @@ void CommBrick::exchange()
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
-  // insure send buf is large enough for single atom
-  // bufextra = max size of one atom = allowed overflow of sendbuf
-  // fixes can change per-atom size requirement on-the-fly
+  // insure send buf has extra space for a single atom
+  // only need to reset if a fix can dynamically add to size of single atom
 
-  int bufextra_old = bufextra;
-  maxexchange = maxexchange_atom + maxexchange_fix;
-  bufextra = maxexchange + BUFEXTRA;
-  if (bufextra > bufextra_old)
-    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
+  if (maxexchange_fix_dynamic) {
+    int bufextra_old = bufextra;
+    init_exchange();
+    if (bufextra > bufextra_old) grow_send(maxsend+bufextra,2);
+  }
 
   // subbox bounds for orthogonal or triclinic
 
@@ -1067,6 +1057,7 @@ void CommBrick::reverse_comm_fix_variable(Fix *fix)
       MPI_Sendrecv(&nsend,1,MPI_INT,recvproc[iswap],0,
                    &nrecv,1,MPI_INT,sendproc[iswap],0,world,
                    MPI_STATUS_IGNORE);
+
       if (sendnum[iswap]) {
         if (nrecv > maxrecv) grow_recv(nrecv);
         MPI_Irecv(buf_recv,maxrecv,MPI_DOUBLE,sendproc[iswap],0,
@@ -1349,18 +1340,23 @@ int CommBrick::exchange_variable(int n, double *inbuf, double *&outbuf)
 
 /* ----------------------------------------------------------------------
    realloc the size of the send buffer as needed with BUFFACTOR and bufextra
-   if flag = 1, realloc
-   if flag = 0, don't need to realloc with copy, just free/malloc
+   flag = 0, don't need to realloc with copy, just free/malloc w/ BUFFACTOR
+   flag = 1, realloc with BUFFACTOR
+   flag = 2, free/malloc w/out BUFFACTOR
 ------------------------------------------------------------------------- */
 
 void CommBrick::grow_send(int n, int flag)
 {
-  maxsend = static_cast<int> (BUFFACTOR * n);
-  if (flag)
-    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
-  else {
+  if (flag == 0) {
+    maxsend = static_cast<int> (BUFFACTOR * n);
     memory->destroy(buf_send);
     memory->create(buf_send,maxsend+bufextra,"comm:buf_send");
+  } else if (flag == 1) {
+    maxsend = static_cast<int> (BUFFACTOR * n);
+    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
+  } else {
+    memory->destroy(buf_send);
+    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
   }
 }
 
@@ -1467,6 +1463,35 @@ void CommBrick::free_multi()
   memory->destroy(multilo);
   memory->destroy(multihi);
   multilo = multihi = NULL;
+}
+
+/* ----------------------------------------------------------------------
+   extract data potentially useful to other classes
+------------------------------------------------------------------------- */
+
+void *CommBrick::extract(const char *str, int &dim)
+{
+  dim = 0;
+  if (strcmp(str,"localsendlist") == 0) {
+    int i, iswap, isend;
+    dim = 1;
+    if (!localsendlist)
+      memory->create(localsendlist,atom->nlocal,"comm:localsendlist");
+    else
+      memory->grow(localsendlist,atom->nlocal,"comm:localsendlist");
+
+    for (i = 0; i < atom->nlocal; i++)
+      localsendlist[i] = 0;
+
+    for (iswap = 0; iswap < nswap; iswap++)
+      for (isend = 0; isend < sendnum[iswap]; isend++)
+        if (sendlist[iswap][isend] < atom->nlocal)
+          localsendlist[sendlist[iswap][isend]] = 1;
+
+    return (void *) localsendlist;
+  }
+
+  return NULL;
 }
 
 /* ----------------------------------------------------------------------

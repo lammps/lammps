@@ -335,7 +335,7 @@ void FixNHIntel::reset_dt()
   if (nlocal > _nlocal_max) {
     if (_nlocal_max) memory->destroy(_dtfm);
     _nlocal_max = static_cast<int>(1.20 * nlocal);
-    memory->create(_dtfm, _nlocal_max * 3, "fix_nve_intel:dtfm");
+    memory->create(_dtfm, _nlocal_max * 3, "fix_nh_intel:dtfm");
   }
 
   _nlocal3 = nlocal * 3;
@@ -464,7 +464,6 @@ void FixNHIntel::nve_x()
 {
   double * _noalias const x = atom->x[0];
   double * _noalias const v = atom->v[0];
-  const double * _noalias const f = atom->f[0];
 
   // x update by full step only for atoms in group
 

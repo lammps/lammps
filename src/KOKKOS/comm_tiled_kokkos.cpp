@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "comm_tiled_kokkos.h"
+#include <cstring>
 #include "comm_brick.h"
 #include "atom_kokkos.h"
 #include "atom_vec.h"
@@ -113,7 +113,7 @@ void CommTiledKokkos::reverse_comm()
    atoms exchanged with procs that touch sub-box in each of 3 dims
    send out atoms that have left my box, receive ones entering my box
    atoms will be lost if not inside a touching proc's box
-     can happen if atom moves outside of non-periodic bounary
+     can happen if atom moves outside of non-periodic boundary
      or if atom moves more than one proc away
    this routine called before every reneighboring
    for triclinic, atoms must be in lamda coords (0-1) before exchange is called

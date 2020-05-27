@@ -23,7 +23,7 @@ const char *born_coul_long=0;
 
 #include "lal_born_coul_long.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define BornCoulLongT BornCoulLong<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -57,7 +57,7 @@ int BornCoulLongT::init(const int ntypes, double **host_cutsq, double **host_rho
                        const double g_ewald) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                            _screen,born_coul_long,"k_born_long");
+                            _screen,born_coul_long,"k_born_coul_long");
   if (success!=0)
     return success;
 
@@ -173,3 +173,4 @@ void BornCoulLongT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class BornCoulLong<PRECISION,ACC_PRECISION>;
+}

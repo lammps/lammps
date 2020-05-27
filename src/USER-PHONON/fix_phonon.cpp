@@ -23,8 +23,8 @@
      konglt@sjtu.edu.cn; konglt@gmail.com
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
+#include <mpi.h>
+#include <cmath>
 #include <cstring>
 #include "fix_phonon.h"
 #include "fft3d_wrap.h"
@@ -33,7 +33,6 @@
 #include "domain.h"
 #include "force.h"
 #include "group.h"
-#include "lattice.h"
 #include "modify.h"
 #include "update.h"
 #include "citeme.h"
@@ -299,7 +298,7 @@ void FixPhonon::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPhonon::setup(int flag)
+void FixPhonon::setup(int /*flag*/)
 {
   // initialize accumulating variables
   for (int i = 0; i < sysdim; ++i) TempSum[i] = 0.;

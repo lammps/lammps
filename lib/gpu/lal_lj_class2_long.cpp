@@ -23,7 +23,7 @@ const char *lj_class2_long=0;
 
 #include "lal_lj_class2_long.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 
 #define LJClass2LongT LJClass2Long<numtyp, acctyp>
 
@@ -164,4 +164,4 @@ void LJClass2LongT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class LJClass2Long<PRECISION,ACC_PRECISION>;
-
+}

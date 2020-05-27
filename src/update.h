@@ -35,6 +35,7 @@ class Update : protected Pointers {
   int max_eval;                   // max force evaluations for minimizer
   int restrict_output;            // 1 if output should not write dump/restart
   int setupflag;                  // set when setup() is computing forces
+  int post_integrate;             // 1 if now at post_integrate() in timestep
   int multireplica;               // 1 if min across replicas, else 0
 
   bigint eflag_global,eflag_atom;  // timestep global/peratom eng is tallied on
@@ -62,7 +63,7 @@ class Update : protected Pointers {
   void init();
   void set_units(const char *);
   void create_integrate(int, char **, int);
-  void create_minimize(int, char **);
+  void create_minimize(int, char **, int);
   void reset_timestep(int, char **);
   void reset_timestep(bigint);
   void update_time();
@@ -70,6 +71,7 @@ class Update : protected Pointers {
 
  private:
   void new_integrate(char *, int, char **, int, int &);
+  void new_minimize(char *, int, char **, int, int &);
 
   template <typename T> static Integrate *integrate_creator(LAMMPS *, int, char **);
   template <typename T> static Min *minimize_creator(LAMMPS *);

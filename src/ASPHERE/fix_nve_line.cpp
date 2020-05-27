@@ -11,9 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "fix_nve_line.h"
 #include "atom.h"
 #include "atom_vec_line.h"
@@ -81,7 +78,7 @@ void FixNVELine::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVELine::initial_integrate(int vflag)
+void FixNVELine::initial_integrate(int /*vflag*/)
 {
   double dtfm,dtirotate,length,theta;
 

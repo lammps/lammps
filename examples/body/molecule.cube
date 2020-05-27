@@ -1,0 +1,52 @@
+# 3d polygon body: cubes, moment of inertia I = m edge^2/ 6
+
+1 atoms
+3 79 body
+
+Coords
+
+1 0 0 0
+
+Types
+
+1 1
+
+Masses
+
+1 1.0
+
+Body Integers
+
+8 12 6
+
+Body Doubles
+
+0.667 0.667 0.667 0 0 0
+1 1 1
+1 -1 1
+-1 -1 1
+-1 1 1
+1 1 -1
+1 -1 -1
+-1 -1 -1
+-1 1 -1
+0 1
+1 2
+2 3
+3 0
+4 5
+5 6
+6 7
+7 4
+0 4
+1 5
+2 6
+3 7
+0 1 2 3
+4 5 6 7
+0 1 5 4
+1 2 6 5
+2 3 7 6
+3 0 4 7
+0.5
+

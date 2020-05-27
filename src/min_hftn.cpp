@@ -17,11 +17,13 @@
             "Parallel Unconstrained Min", Plantenga, SAND98-8201
 ------------------------------------------------------------------------- */
 
+#include "min_hftn.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
 #include "atom.h"
+#include "error.h"
 #include "fix_minimize.h"
-#include "min_hftn.h"
 #include "modify.h"
 #include "output.h"
 #include "pair.h"
@@ -110,6 +112,9 @@ MinHFTN::~MinHFTN (void)
 void MinHFTN::init()
 {
   Min::init();
+
+  if (normstyle == MAX)
+    error->all(FLERR,"Incorrect min_modify option");
 
   for (int  i = 1; i < NUM_HFTN_ATOM_BASED_VECTORS; i++) {
     if (_daExtraGlobal[i] != NULL)

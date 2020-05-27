@@ -15,18 +15,17 @@
    Contributing author: Paolo Raiteri (Curtin University)
 ------------------------------------------------------------------------- */
 
+#include "improper_distance.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
-#include "improper_distance.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "domain.h"
 #include "force.h"
-#include "update.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -67,8 +66,7 @@ void ImproperDistance::compute(int eflag, int vflag)
   double domega,a;
 
   eimproper = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -250,8 +248,8 @@ void ImproperDistance::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nimpropertypes,fp);
-    fread(&chi[1],sizeof(double),atom->nimpropertypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
+    utils::sfread(FLERR,&chi[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
   }
   MPI_Bcast(&k[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&chi[1],atom->nimpropertypes,MPI_DOUBLE,0,world);

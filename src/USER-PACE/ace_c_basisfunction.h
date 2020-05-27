@@ -20,58 +20,72 @@
     memcpy(array, other.array, (size) * sizeof(type));\
 }
 
-
+/**
+ * Abstract basis function, that stores general quantities
+ */
 struct ACEAbstractBasisFunction {
-    // flattened array of  computed combinations of (m1, m2, ..., m_rank)
-    // which have non-zero general Clebsch-Gordan coefficient
-    // (m1, m2, ..., m_rank)_1 ... (m1, m2, ..., m_rank)_num_ms_combs
-    // size =  num_ms_combs * rank
-    // effective shape [num_ms_combs][rank]
+    /**
+    * flattened array of  computed combinations of (m1, m2, ..., m_rank)
+    * which have non-zero general Clebsch-Gordan coefficient:
+    *  \f$ \mathbf{m}_1, \dots, \mathbf{m}_\mathrm{num ms combs}\f$ =
+    * \f$ (m_1, m_2, \dots, m_{rank})_1,  \dots, (m_1, m_2, \dots, m_{rank})_{\mathrm{num ms combs}} \f$,
+    * size =  num_ms_combs * rank,
+    * effective shape: [num_ms_combs][rank]
+    */
     MS_TYPE *ms_combs = nullptr;
 
-
-    // species types of neighbours atoms, should be lexicographically sorted
-    // size  = rank
-    // effective shape [rank]
+    /**
+    * species types of neighbours atoms \f$ \mathbf{\mu} = (\mu_1, \mu_2, \dots, \mu_{rank}) \f$,
+    * should be lexicographically sorted,
+    * size  = rank,
+    * effective shape: [rank]
+    */
     SPECIES_TYPE *mus = nullptr;
 
-    // "ns" - indexes for radial part
-    // size  = rank
-    // effective shape [rank]
+    /**
+    * indices for radial part \f$ \mathbf{n} = (n_1, n_2, \dots, n_{rank}) \f$,
+    * should be lexicographically sorted,
+    * size  = rank,
+    * effective shape: [rank]
+    */
     NS_TYPE *ns = nullptr;
 
-    // "ls" - indexes for l-part: l1, l2, ..., l_rank
-    // size  = rank
-    // effective shape [rank]
+
+    /**
+    * indices for radial part \f$ \mathbf{l} = (l_1, l_2, \dots, l_{rank}) \f$,
+    * should be lexicographically sorted,
+    * size  = rank,
+    * effective shape: [rank]
+    */
     LS_TYPE *ls = nullptr;
 
+    SHORT_INT_TYPE num_ms_combs = 0; ///< number of different ms-combinations
 
-    // number of combinations length of  ms_cg array
-    SHORT_INT_TYPE num_ms_combs = 0;
+    RANK_TYPE rank = 0; ///< number of atomic base functions "A"s in basis function product B
 
-    // rank, number of atomic base functions "A"s in basis function B
-    RANK_TYPE rank = 0;
+    DENSITY_TYPE ndensity = 0; ///< number of densities
 
-    // rankL=rank-2
-    RANK_TYPE rankL = 0;
+    SPECIES_TYPE mu0 = 0; ///< species type of central atom
 
-    // number of densities
-    DENSITY_TYPE ndensity = 0;
-
-    // species type of central atom
-    SPECIES_TYPE mu0 = 0;
-
-    // whether ms array contains only "non-negative" ms-combinations.
-    // positive ms-combination is when the first non-zero m is positive (0 1 -1)
-    // negative ms-combination is when the first non-zero m is negative (0 -1 1)
+    /**
+    * whether ms array contains only "non-negative" ms-combinations.
+    * positive ms-combination is when the first non-zero m is positive (0 1 -1)
+    * negative ms-combination is when the first non-zero m is negative (0 -1 1)
+    */
     bool is_half_ms_basis = false;
 
-    //flag, whether object is "owner" (i.e. responsible for memory cleaning) of
-    // the ms, ns, ls, mus, ctildes memory or just a proxy
+    /*
+     * flag, whether object is "owner" (i.e. responsible for memory cleaning) of
+    * the ms, ns, ls, mus and other dynamically allocated arrases or just a proxy for them
+     */
     bool is_proxy = false;
 
+    /**
+     * Copying static and dynamic memory variables from another ACEAbstractBasisFunction.
+     * Always copy the dynamic memory, even if the source is a proxy object
+     * @param other
+     */
     virtual void _copy_from(const ACEAbstractBasisFunction &other) {
-
         rank = other.rank;
         ndensity = other.ndensity;
         mu0 = other.mu0;
@@ -85,6 +99,9 @@ struct ACEAbstractBasisFunction {
         basis_mem_copy(other, ms_combs, num_ms_combs * rank, MS_TYPE)
     }
 
+    /**
+     * Clean the dynamically allocated memory if object is responsible for it
+     */
     virtual void _clean() {
         //release memory if the structure is not proxy
         if (!is_proxy) {
@@ -102,43 +119,66 @@ struct ACEAbstractBasisFunction {
 
 };
 
-struct ACECTildeBasisFunction: public ACEAbstractBasisFunction {
+/**
+ * Representation of C-tilde basis function, i.e. the function that is summed up over a group of B-functions
+ * that differs only by intermediate coupling orbital moment \f$ L \f$ and coefficients.
+ */
+struct ACECTildeBasisFunction : public ACEAbstractBasisFunction {
 
-    // c_tilde coefficients for all densities
-    // size = num_ms_combs*ndensity
-    // effective shape [num_ms_combs][ndensity]
+    /**
+     * c_tilde coefficients for all densities,
+     * size = num_ms_combs*ndensity,
+     * effective shape [num_ms_combs][ndensity]
+     */
     DOUBLE_TYPE *ctildes = nullptr;
 
-    //default constructor
+    /*
+     * Default constructor
+     */
     ACECTildeBasisFunction() = default;
 
     // Because the ACECTildeBasisFunction contains dynamically allocated arrays, the Rule of Three should be
     // fulfilled, i.e. copy constructor (copy the dynamic arrays), operator= (release previous arrays and
     // copy the new dynamic arrays) and destructor (release all dynamically allocated memory)
 
-    //copy constructor
+    /**
+     * Copy constructor, to fulfill the Rule of Three.
+     * Always copy the dynamic memory, even if the source is a proxy object.
+     */
     ACECTildeBasisFunction(const ACECTildeBasisFunction &other) {
         _copy_from(other);
     }
 
-    //operator=
+    /*
+     * operator=, to fulfill the Rule of Three.
+     * Always copy the dynamic memory, even if the source is a proxy object
+     */
     ACECTildeBasisFunction &operator=(const ACECTildeBasisFunction &other) {
         _clean();
         _copy_from(other);
         return *this;
     }
 
-    //destructor
+    /*
+     * Destructor
+     */
     ~ACECTildeBasisFunction() {
         _clean();
     }
 
+    /**
+     * Copy from another object, always copy the memory, even if the source is a proxy object
+     * @param other
+     */
     void _copy_from(const ACECTildeBasisFunction &other) {
         ACEAbstractBasisFunction::_copy_from(other);
         is_proxy = false;
         basis_mem_copy(other, ctildes, num_ms_combs * ndensity, DOUBLE_TYPE)
     }
 
+    /**
+     * Clean the dynamically allocated memory if object is responsible for it
+     */
     void _clean() override {
         ACEAbstractBasisFunction::_clean();
         //release memory if the structure is not proxy
@@ -148,37 +188,39 @@ struct ACECTildeBasisFunction: public ACEAbstractBasisFunction {
         ctildes = nullptr;
     }
 
+    /**
+     * Print the information about basis function to cout, in order to ease the output redirection.
+     */
     void print() const {
         using namespace std;
-        cout<<"ACECTildeBasisFunction: ndensity= "<<(int)this->ndensity<<", mu0 = "<<(int)this->mu0<<" ";
-        cout<<" mus=(";
+        cout << "ACECTildeBasisFunction: ndensity= " << (int) this->ndensity << ", mu0 = " << (int) this->mu0 << " ";
+        cout << " mus=(";
         for (RANK_TYPE r = 0; r < this->rank; r++)
-            cout<< (int)this->mus[r]<<" ";
-        cout<<"), ns=(";
+            cout << (int) this->mus[r] << " ";
+        cout << "), ns=(";
         for (RANK_TYPE r = 0; r < this->rank; r++)
-            cout<< this->ns[r]<<" ";
-        cout <<"), ls=(";
+            cout << this->ns[r] << " ";
+        cout << "), ls=(";
         for (RANK_TYPE r = 0; r < this->rank; r++)
-            cout<<this->ls[r]<<" ";
+            cout << this->ls[r] << " ";
 
-        cout<<"), "<<this->num_ms_combs<<" m_s combinations: {"<<endl;
+        cout << "), " << this->num_ms_combs << " m_s combinations: {" << endl;
 
         for (int i = 0; i < this->num_ms_combs; i++) {
-            cout<<"\t< ";
+            cout << "\t< ";
             for (RANK_TYPE r = 0; r < this->rank; r++)
-                cout<< this->ms_combs[i * this->rank + r]<<" ";
-            cout<<" >: c_tilde=";
+                cout << this->ms_combs[i * this->rank + r] << " ";
+            cout << " >: c_tilde=";
             for (DENSITY_TYPE p = 0; p < this->ndensity; ++p)
-                cout<<" "<<this->ctildes[i * this->ndensity + p]<<" ";
-                cout<<endl;
+                cout << " " << this->ctildes[i * this->ndensity + p] << " ";
+            cout << endl;
         }
         if (this->is_proxy)
-            cout<<"proxy ";
+            cout << "proxy ";
         if (this->is_half_ms_basis)
-            cout<<"half_ms_basis";
-        cout<<"}"<<endl;
+            cout << "half_ms_basis";
+        cout << "}" << endl;
     }
 };
-
 
 #endif //ACE_C_BASISFUNCTION_H

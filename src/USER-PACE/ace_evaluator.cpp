@@ -17,21 +17,11 @@ void ACEEvaluator::init(ACEAbstractBasisSet *basis_set) {
 
 void ACEEvaluator::init_timers() {
     loop_over_neighbour_timer.init();
-
     forces_calc_loop_timer.init();
     forces_calc_neighbour_timer.init();
-    phi_calc_timer.init();
-    phi_recalc_timer.init();
     energy_calc_timer.init();
-    bond_calc_timer.init();
-    A_calc_timer.init();
-
     per_atom_calc_timer.init();
-
-
-    basis_func_calc_timer.init();
     total_time_calc_timer.init();
-
 }
 
 //================================================================================================================

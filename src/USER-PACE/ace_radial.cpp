@@ -5,13 +5,6 @@
 
 const DOUBLE_TYPE pi = 3.14159265358979323846264338327950288419; // pi
 
-/**
-Constructor for ACERadialFunctions.
-
-@param None
-
-@returns None
-*/
 ACERadialFunctions::ACERadialFunctions(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SPECIES_TYPE nelements,
                                        DOUBLE_TYPE cutoff) {
     init(nradb, lmax, nradial, ntot, nelements, cutoff);
@@ -69,13 +62,7 @@ void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int 
 
 }
 
-/**
-Destructor for ACERadialFunctions.
 
-@param None
-
-@returns None
-*/
 ACERadialFunctions::~ACERadialFunctions() {
 }
 
@@ -199,13 +186,6 @@ void ACERadialFunctions::radfunc(SPECIES_TYPE elei, SPECIES_TYPE elej) {
     }
 }
 
-/**
-Function that sets up the look-up tables for spline-representation of radial functions.
-
-@param ntot
-
-@returns None
-*/
 void ACERadialFunctions::setuplookupRadspline() {
     SPECIES_TYPE elei, elej;
     int n, l, idx;

@@ -52,24 +52,58 @@ public:
     size_t max_B_array_size = 0; ///< maximum over elements array size for B[func_ind][ms_ind]
     size_t max_dB_array_size = 0; ///<  maximum over elements array size for dB[func_ind][ms_ind][r]
 
-    SHORT_INT_TYPE num_ms_combinations_max = 0;
+    SHORT_INT_TYPE num_ms_combinations_max = 0; ///< maximum number of ms combinations  among all basis functions
 
+    /**
+     * Default constructor
+     */
     ACEFlattenBasisSet() = default;
 
-    // copy constructor, operator= and destructor (see. Rule of Three)
+    /**
+     * Copy constructor (see Rule of Three)
+     * @param other
+     */
     ACEFlattenBasisSet(const ACEFlattenBasisSet &other);
 
+    /**
+     * operator= (see Rule of Three)
+     * @param other
+     * @return
+     */
     ACEFlattenBasisSet &operator=(const ACEFlattenBasisSet &other);
 
+    /**
+     * Destructor  (see Rule of Three)
+     */
     ~ACEFlattenBasisSet() override;
 
-    // routines for copying and cleaning dynamic memory of the class (see. Rule of Three)
-    void _clean() override; //must be idempotent for safety
+    // routines for copying and cleaning dynamic memory of the class (see Rule of Three)
+    /**
+     * Cleaning dynamic memory of the class (see. Rule of Three),
+     * must be idempotent for safety
+     */
+    void _clean() override;
+
+    /**
+    * Copying scalar variables
+    * @param src
+    */
     void _copy_scalar_memory(const ACEFlattenBasisSet &src);
+
+    /**
+    * Copying and cleaning dynamic memory of the class (see. Rule of Three)
+    * @param src
+    */
     void _copy_dynamic_memory(const ACEFlattenBasisSet &src);
 
+    /**
+    * Clean contiguous arrays
+    */
     virtual void _clean_contiguous_arrays();
 
+    /**
+     * Release dynamic arrays with basis set sizes
+     */
     void _clean_basissize_arrays();
 };
 

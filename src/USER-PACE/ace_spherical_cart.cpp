@@ -6,15 +6,6 @@
 
 #include "ace_spherical_cart.h"
 
-/**
-Constructor for ACECartesianSphericalHarmonics. Dynamically initialises all the arrays.
-
-@param lmax, int
-
-The value of lmax
-
-@returns None
-*/
 ACECartesianSphericalHarmonics::ACECartesianSphericalHarmonics(LS_TYPE lm) {
     init(lm);
 }
@@ -46,13 +37,6 @@ Destructor for ACECartesianSphericalHarmonics.
 ACECartesianSphericalHarmonics::~ACECartesianSphericalHarmonics() {}
 
 
-/**
-Precomputes the value of \f$ a_{lm}, b_{lm} \f$ values.
-
-@param None
-
-@returns None
-*/
 void ACECartesianSphericalHarmonics::pre_compute() {
 
     DOUBLE_TYPE a, b;
@@ -79,17 +63,7 @@ void ACECartesianSphericalHarmonics::pre_compute() {
     }
 }
 
-/**
-Function that computes \f$ \bar{P}_{lm} \f$ for the corresponding lmax value
-Input is \f$ \hat{r}_z \f$ which is the $z$-component of the bond direction.
 
-For each \f$ \hat{r}_z \f$, this computes the whole range of \f$ \bar{P}_{lm} \f$ values
-and its derivatives upto the lmax specified, which is a member of the class.
-
-@param rz, DOUBLE_TYPE
-
-@returns None
-*/
 void ACECartesianSphericalHarmonics::compute_barplm(DOUBLE_TYPE rz, LS_TYPE lmaxi) {
 
     // requires -1 <= rz <= 1 , NO CHECKING IS PERFORMED !!!!!!!!!
@@ -127,21 +101,6 @@ void ACECartesianSphericalHarmonics::compute_barplm(DOUBLE_TYPE rz, LS_TYPE lmax
 }  //end compute_barplm
 
 
-/**
-Function that computes \f$ Y_{lm} \f$ for the corresponding lmax value
-Input is the bond-directon vector \f$ \hat{r}_x, \hat{r}_y, \hat{r}_z \f$
-
-Each \f$ Y_{lm} \f$ value is a ACEComplex object with real and imaginary parts. This function also
-finds the derivatives, which are stored in the Dycomponent class, with each component being a
-ACEComplex object.
-
-@param rx, DOUBLE_TYPE
-@param ry, DOUBLE_TYPE
-@param rz, DOUBLE_TYPE
-@param lmaxi, int
-
-@returns None
-*/
 void ACECartesianSphericalHarmonics::compute_ylm(DOUBLE_TYPE rx, DOUBLE_TYPE ry, DOUBLE_TYPE rz, LS_TYPE lmaxi) {
 
     // requires rx^2 + ry^2 + rz^2 = 1 , NO CHECKING IS PERFORMED !!!!!!!!!

@@ -1,7 +1,7 @@
 ---
 lammps_version: 5 May 2020
 date_generated: Wed May 27 06:34:15 202
-epsilon: 1e-13
+epsilon: 5.0e-13
 prerequisites: ! |
   pair gw
 pre_commands: ! |

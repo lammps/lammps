@@ -464,7 +464,8 @@ void kimProperty::command(int narg, char **arg)
         error->one(FLERR, "Error Python `kim_property_dump` function "
                           "evaluation failed!");
       }
-    }
+    } else
+      pValue = NULL;
 
     // Destroy the variable
     kim_str_cmd[1] = const_cast<char *>("delete");

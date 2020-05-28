@@ -188,6 +188,8 @@ void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
 typedef void (*FixExternalFnPtr)(void *, int, int, int *, double **, double **);
 void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
 #endif
+void lammps_fix_external_set_energy_global(void *, char *, double);
+void lammps_fix_external_set_virial_global(void *, char *, double *);
 
 #ifdef LAMMPS_EXCEPTIONS
 int lammps_has_error(void *handle);

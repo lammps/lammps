@@ -2436,6 +2436,64 @@ void lammps_set_fix_external_callback(void *handle, char *id, FixExternalFnPtr c
   END_CAPTURE
 }
 
+/* set global energy contribution from fix external */
+void lammps_fix_external_set_energy_global(void *handle, char *id,
+                                           double energy)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+
+  BEGIN_CAPTURE
+  {
+    int ifix = lmp->modify->find_fix(id);
+    if (ifix < 0) {
+      char str[128];
+      snprintf(str, 128, "Can not find fix with ID '%s'!", id);
+      lmp->error->all(FLERR,str);
+    }
+
+    Fix *fix = lmp->modify->fix[ifix];
+
+    if (strcmp("external",fix->style) != 0){
+      char str[128];
+      snprintf(str, 128, "Fix '%s' is not of style external!", id);
+      lmp->error->all(FLERR,str);
+    }
+
+    FixExternal * fext = (FixExternal*) fix;
+    fext->set_energy_global(energy);
+  }
+  END_CAPTURE
+}
+
+/* set global virial contribution from fix external */
+void lammps_fix_external_set_virial_global(void *handle, char *id,
+                                           double *virial)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+
+  BEGIN_CAPTURE
+  {
+    int ifix = lmp->modify->find_fix(id);
+    if (ifix < 0) {
+      char str[128];
+      snprintf(str, 128, "Can not find fix with ID '%s'!", id);
+      lmp->error->all(FLERR,str);
+    }
+
+    Fix *fix = lmp->modify->fix[ifix];
+
+    if (strcmp("external",fix->style) != 0){
+      char str[128];
+      snprintf(str, 128, "Fix '%s' is not of style external!", id);
+      lmp->error->all(FLERR,str);
+    }
+
+    FixExternal * fext = (FixExternal*) fix;
+    fext->set_virial_global(virial);
+  }
+  END_CAPTURE
+}
+
 // ----------------------------------------------------------------------
 // Library functions for accessing LAMMPS configuration
 // ----------------------------------------------------------------------

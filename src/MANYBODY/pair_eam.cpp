@@ -464,6 +464,7 @@ void PairEAM::read_file(char *filename)
 {
   Funcfl *file = &funcfl[nfuncfl-1];
 
+  // read potential file
   if(comm->me == 0) {
     PotentialFileReader reader(lmp, filename, "EAM");
 

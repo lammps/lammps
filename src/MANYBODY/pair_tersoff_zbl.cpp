@@ -152,7 +152,7 @@ void PairTersoffZBL::read_file(char *file)
           params[nparams].Z_j < 1.0 ||
           params[nparams].ZBLcut < 0.0 ||
           params[nparams].ZBLexpscale < 0.0)
-        error->all(FLERR,"Illegal Tersoff parameter");
+        error->one(FLERR,"Illegal Tersoff parameter");
 
       nparams++;
     }

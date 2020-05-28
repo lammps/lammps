@@ -38,7 +38,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define MAXLINE 1024
 #define DELTA 4
 
 /* ---------------------------------------------------------------------- */
@@ -442,7 +441,7 @@ void PairGW::read_file(char *file)
           params[nparams].powerm - params[nparams].powermint != 0.0 ||
           (params[nparams].powermint != 3 && params[nparams].powermint != 1) ||
           params[nparams].gamma < 0.0)
-        error->all(FLERR,"Illegal GW parameter");
+        error->one(FLERR,"Illegal GW parameter");
 
       nparams++;
     }

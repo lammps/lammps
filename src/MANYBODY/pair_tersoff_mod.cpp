@@ -127,7 +127,7 @@ void PairTersoffMOD::read_file(char *file)
           (params[nparams].powermint != 3 &&
           params[nparams].powermint != 1)
           )
-        error->all(FLERR,"Illegal Tersoff parameter");
+        error->one(FLERR,"Illegal Tersoff parameter");
 
       nparams++;
     }

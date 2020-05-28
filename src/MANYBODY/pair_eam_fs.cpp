@@ -163,16 +163,16 @@ void PairEAMFS::read_file(char *filename)
       memory->create(file->z2r, file->nelements, file->nelements, file->nr + 1, "pair:z2r");
 
       for (int i = 0; i < file->nelements; i++) {
-          line = reader.next_line(2);
-          values = ValueTokenizer(line);
-          values.next_int(); // ignore
-          file->mass[i] = values.next_double();
+        line = reader.next_line(2);
+        values = ValueTokenizer(line);
+        values.next_int(); // ignore
+        file->mass[i] = values.next_double();
 
-          reader.next_dvector(file->nrho, &file->frho[i][1]);
+        reader.next_dvector(file->nrho, &file->frho[i][1]);
 
-          for (int j = 0; j < file->nelements; j++) {
-            reader.next_dvector(file->nr, &file->rhor[i][j][1]);
-          }
+        for (int j = 0; j < file->nelements; j++) {
+          reader.next_dvector(file->nr, &file->rhor[i][j][1]);
+        }
       }
 
       for (int i = 0; i < file->nelements; i++) {

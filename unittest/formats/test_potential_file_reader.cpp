@@ -9,6 +9,7 @@
 #include "MANYBODY/pair_tersoff.h"
 #include "MANYBODY/pair_tersoff_mod.h"
 #include "MANYBODY/pair_tersoff_mod_c.h"
+#include "MANYBODY/pair_tersoff_zbl.h"
 
 #include <mpi.h>
 
@@ -20,6 +21,7 @@ const int LAMMPS_NS::PairComb3::NPARAMS_PER_LINE;
 const int LAMMPS_NS::PairTersoff::NPARAMS_PER_LINE;
 const int LAMMPS_NS::PairTersoffMOD::NPARAMS_PER_LINE;
 const int LAMMPS_NS::PairTersoffMODC::NPARAMS_PER_LINE;
+const int LAMMPS_NS::PairTersoffZBL::NPARAMS_PER_LINE;
 
 class PotenialFileReaderTest : public ::testing::Test {
 protected:
@@ -93,6 +95,15 @@ TEST_F(PotenialFileReaderTest, TersoffModC) {
 
     auto line = reader.next_line(PairTersoffMODC::NPARAMS_PER_LINE);
     ASSERT_EQ(utils::count_words(line), PairTersoffMODC::NPARAMS_PER_LINE);
+}
+
+TEST_F(PotenialFileReaderTest, TersoffZBL) {
+    ::testing::internal::CaptureStdout();
+    PotentialFileReader reader(lmp, "SiC.tersoff.zbl", "Tersoff");
+    ::testing::internal::GetCapturedStdout();
+
+    auto line = reader.next_line(PairTersoffZBL::NPARAMS_PER_LINE);
+    ASSERT_EQ(utils::count_words(line), PairTersoffZBL::NPARAMS_PER_LINE);
 }
 
 int main(int argc, char **argv)

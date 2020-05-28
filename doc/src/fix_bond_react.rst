@@ -392,9 +392,9 @@ angles *amin2*-*amax2* can be specified.
 For the 'distance', 'angle', and 'dihedral' constraints (explained
 above), atom IDs can be replaced by pre-reaction molecule-fragment
 IDs. The molecule-fragment ID must begin with a letter. The location
-of the ID is the average of all atom positions in the fragment. The
-molecule fragment must have been defined in the :doc:`molecule <molecule>`
-command for the pre-reaction template.
+of the ID is the unweighted average of all atom positions in the
+fragment. The molecule fragment must have been defined in the
+:doc:`molecule <molecule>` command for the pre-reaction template.
 
 The constraint of type 'arrhenius' imposes an additional reaction
 probability according to the temperature-dependent Arrhenius equation:

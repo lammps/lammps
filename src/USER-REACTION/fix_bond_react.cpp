@@ -1929,11 +1929,10 @@ void FixBondReact::get_IDcoords(int mode, int myID, double *center)
       if (onemol->fragmentmask[myID][i]) {
         if (iref == -1)
           iref = atom->map(glove[i][1]);
-        for (int j = 0; j < 3; j++) {
-          iatom = atom->map(glove[i][1]);
-          iatom = domain->closest_image(iref,iatom);
+        iatom = atom->map(glove[i][1]);
+        iatom = domain->closest_image(iref,iatom);
+        for (int j = 0; j < 3; j++)
           center[j] += x[iatom][j];
-        }
         nfragatoms++;
       }
     }

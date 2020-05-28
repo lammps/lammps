@@ -11,6 +11,7 @@
 #include "MANYBODY/pair_tersoff_mod_c.h"
 #include "MANYBODY/pair_tersoff_zbl.h"
 #include "MANYBODY/pair_gw.h"
+#include "MANYBODY/pair_gw_zbl.h"
 
 #include <mpi.h>
 
@@ -24,6 +25,7 @@ const int LAMMPS_NS::PairTersoffMOD::NPARAMS_PER_LINE;
 const int LAMMPS_NS::PairTersoffMODC::NPARAMS_PER_LINE;
 const int LAMMPS_NS::PairTersoffZBL::NPARAMS_PER_LINE;
 const int LAMMPS_NS::PairGW::NPARAMS_PER_LINE;
+const int LAMMPS_NS::PairGWZBL::NPARAMS_PER_LINE;
 
 class PotenialFileReaderTest : public ::testing::Test {
 protected:
@@ -115,6 +117,15 @@ TEST_F(PotenialFileReaderTest, GW) {
 
     auto line = reader.next_line(PairGW::NPARAMS_PER_LINE);
     ASSERT_EQ(utils::count_words(line), PairGW::NPARAMS_PER_LINE);
+}
+
+TEST_F(PotenialFileReaderTest, GWZBL) {
+    ::testing::internal::CaptureStdout();
+    PotentialFileReader reader(lmp, "SiC.gw.zbl", "GWZBL");
+    ::testing::internal::GetCapturedStdout();
+
+    auto line = reader.next_line(PairGWZBL::NPARAMS_PER_LINE);
+    ASSERT_EQ(utils::count_words(line), PairGWZBL::NPARAMS_PER_LINE);
 }
 
 int main(int argc, char **argv)

@@ -31,7 +31,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024
 #define DELTA 4
 
 /* ---------------------------------------------------------------------- */

@@ -256,7 +256,7 @@ void ComputeViscosityCos::remove_bias_all() {
    assume remove_bias() was previously called
 ------------------------------------------------------------------------- */
 
-void ComputeViscosityCos::restore_bias(int i, double *v) {
+void ComputeViscosityCos::restore_bias(int /* i */, double *v) {
   v[0] += vbias[0];
   v[1] += vbias[1];
   v[2] += vbias[2];
@@ -267,7 +267,7 @@ void ComputeViscosityCos::restore_bias(int i, double *v) {
    assume remove_bias_thr() was previously called with the same buffer b
 ------------------------------------------------------------------------- */
 
-void ComputeViscosityCos::restore_bias_thr(int i, double *v, double *b) {
+void ComputeViscosityCos::restore_bias_thr(int /* i */, double *v, double *b) {
   v[0] += b[0];
   v[1] += b[1];
   v[2] += b[2];

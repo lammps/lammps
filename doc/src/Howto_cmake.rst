@@ -415,9 +415,10 @@ This is particularly convenient, if you have set a custom build command
 via the ``CMAKE_MAKE_PROGRAM`` variable.
 
 When calling the build program, you can also select which "target" is to
-be build through appending the name of the target to the build command.
-Example: ``make all`` or ``cmake --build . --target all``.
-The following abstract targets are available with LAMMPS:
+be build through appending the ``--target`` flag and the name of the target
+to the build command.  When using ``make`` as build tool, you can just append
+the target name to the command. Example: ``cmake --build . --target all`` or
+``make all``.  The following abstract targets are available:
 
 .. list-table::
    :header-rows: 1
@@ -433,7 +434,7 @@ The following abstract targets are available with LAMMPS:
    * - ``install``
      - install all target files into folders in ``CMAKE_INSTALL_PREFIX``
    * - ``test``
-     - run some simple tests (if configured with ``-D ENABLE_TESTING=on``)
+     - run some tests (if configured with ``-D ENABLE_TESTING=on``)
    * - ``clean``
      - remove all generated files
 

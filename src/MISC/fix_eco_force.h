@@ -18,6 +18,7 @@ FixStyle(eco/force,FixECOForce)
 #else
 
 #ifndef LMP_FIX_ECO_FORCE_H
+#define LMP_FIX_ECO_FORCE_H
 
 #include "fix.h"
 

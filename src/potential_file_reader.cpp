@@ -21,6 +21,7 @@
 #include "comm.h"
 #include "potential_file_reader.h"
 #include "utils.h"
+#include "tokenizer.h"
 
 #include <cstring>
 
@@ -28,7 +29,7 @@ using namespace LAMMPS_NS;
 
 PotentialFileReader::PotentialFileReader(LAMMPS *lmp,
                                          const std::string &filename,
-                                         const std::string &potential_name) : Pointers(lmp) {
+                                         const std::string &potential_name) : Pointers(lmp), filename(filename) {
   if (comm->me != 0) {
     error->one(FLERR, "PotentialFileReader should only be called by proc 0!");
   }
@@ -44,6 +45,16 @@ PotentialFileReader::PotentialFileReader(LAMMPS *lmp,
 
 PotentialFileReader::~PotentialFileReader() {
   fclose(fp);
+}
+
+void PotentialFileReader::skip_line() {
+  char *ptr = fgets(line, MAXLINE, fp);
+  if (ptr == nullptr) {
+    // EOF
+    char str[128];
+    snprintf(str, 128, "Missing line in %s potential file!", potential_name.c_str());
+    error->one(FLERR, str);
+  }
 }
 
 char *PotentialFileReader::next_line(int nparams) {
@@ -94,4 +105,25 @@ char *PotentialFileReader::next_line(int nparams) {
   }
 
   return line;
+}
+
+void PotentialFileReader::next_dvector(int n, double * list) {
+  int i = 0;
+  while (i < n) {
+    char *ptr = fgets(line, MAXLINE, fp);
+
+    if (ptr == nullptr) {
+      // EOF
+      if (i < n) {
+        char str[128];
+        snprintf(str, 128, "Incorrect format in %s potential file! %d/%d values", potential_name.c_str(), i, n);
+        error->one(FLERR, str);
+      }
+    }
+
+    ValueTokenizer values(line);
+    while(values.has_next()) {
+      list[i++] = values.next_double();
+    }
+  }
 }

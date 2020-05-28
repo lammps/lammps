@@ -26,6 +26,7 @@ namespace LAMMPS_NS
 {
   class PotentialFileReader : protected Pointers {
     std::string potential_name;
+    std::string filename;
     static const int MAXLINE = 1024;
     char line[MAXLINE];
     FILE *fp;
@@ -34,7 +35,9 @@ namespace LAMMPS_NS
     PotentialFileReader(class LAMMPS *lmp, const std::string &filename, const std::string &potential_name);
     ~PotentialFileReader();
 
-    char *next_line(int nparams);
+    void skip_line();
+    char * next_line(int nparams);
+    void next_dvector(int n, double * list);
   };
 
 } // namespace LAMMPS_NS

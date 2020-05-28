@@ -40,7 +40,7 @@ executed. Below is a short example using some of these functions.
      for (i=0; i < 100; ++i) {
        lammps_commands_string(handle,"run 100 pre no post no\n"
                                      "print 'PE = $(pe)'\n"
-                                     "print 'KE = $(ke)'\n")
+                                     "print 'KE = $(ke)'\n");
      }
      lammps_close(handle);
      MPI_Finalize();

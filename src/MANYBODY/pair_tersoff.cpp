@@ -404,7 +404,7 @@ void PairTersoff::read_file(char *file)
     PotentialFileReader reader(lmp, file, "Tersoff");
     char * line;
 
-    while(line = reader.next_line(Param::NPARAMS_PER_LINE)) {
+    while(line = reader.next_line(NPARAMS_PER_LINE)) {
       try {
         ValueTokenizer values(line, " \t\n\r\f");
 

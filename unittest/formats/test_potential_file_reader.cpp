@@ -7,15 +7,17 @@
 #include "MANYBODY/pair_comb.h"
 #include "MANYBODY/pair_comb3.h"
 #include "MANYBODY/pair_tersoff.h"
+#include "MANYBODY/pair_tersoff_mod.h"
 
 #include <mpi.h>
 
 using namespace LAMMPS_NS;
 
-const int LAMMPS_NS::PairSW::Param::NPARAMS_PER_LINE;
-const int LAMMPS_NS::PairComb::Param::NPARAMS_PER_LINE;
-const int LAMMPS_NS::PairComb3::Param::NPARAMS_PER_LINE;
-const int LAMMPS_NS::PairTersoff::Param::NPARAMS_PER_LINE;
+const int LAMMPS_NS::PairSW::NPARAMS_PER_LINE;
+const int LAMMPS_NS::PairComb::NPARAMS_PER_LINE;
+const int LAMMPS_NS::PairComb3::NPARAMS_PER_LINE;
+const int LAMMPS_NS::PairTersoff::NPARAMS_PER_LINE;
+const int LAMMPS_NS::PairTersoffMOD::NPARAMS_PER_LINE;
 
 class PotenialFileReaderTest : public ::testing::Test {
 protected:
@@ -42,8 +44,8 @@ TEST_F(PotenialFileReaderTest, Si) {
     PotentialFileReader reader(lmp, "Si.sw", "Stillinger-Weber");
     ::testing::internal::GetCapturedStdout();
 
-    auto line = reader.next_line(PairSW::Param::NPARAMS_PER_LINE);
-    ASSERT_EQ(utils::count_words(line), PairSW::Param::NPARAMS_PER_LINE);
+    auto line = reader.next_line(PairSW::NPARAMS_PER_LINE);
+    ASSERT_EQ(utils::count_words(line), PairSW::NPARAMS_PER_LINE);
 }
 
 TEST_F(PotenialFileReaderTest, Comb) {
@@ -51,8 +53,8 @@ TEST_F(PotenialFileReaderTest, Comb) {
     PotentialFileReader reader(lmp, "ffield.comb", "COMB");
     ::testing::internal::GetCapturedStdout();
 
-    auto line = reader.next_line(PairComb::Param::NPARAMS_PER_LINE);
-    ASSERT_EQ(utils::count_words(line), PairComb::Param::NPARAMS_PER_LINE);
+    auto line = reader.next_line(PairComb::NPARAMS_PER_LINE);
+    ASSERT_EQ(utils::count_words(line), PairComb::NPARAMS_PER_LINE);
 }
 
 TEST_F(PotenialFileReaderTest, Comb3) {
@@ -60,8 +62,8 @@ TEST_F(PotenialFileReaderTest, Comb3) {
     PotentialFileReader reader(lmp, "ffield.comb3", "COMB3");
     ::testing::internal::GetCapturedStdout();
 
-    auto line = reader.next_line(PairComb3::Param::NPARAMS_PER_LINE);
-    ASSERT_EQ(utils::count_words(line), PairComb3::Param::NPARAMS_PER_LINE);
+    auto line = reader.next_line(PairComb3::NPARAMS_PER_LINE);
+    ASSERT_EQ(utils::count_words(line), PairComb3::NPARAMS_PER_LINE);
 }
 
 TEST_F(PotenialFileReaderTest, Tersoff) {
@@ -69,8 +71,17 @@ TEST_F(PotenialFileReaderTest, Tersoff) {
     PotentialFileReader reader(lmp, "Si.tersoff", "Tersoff");
     ::testing::internal::GetCapturedStdout();
 
-    auto line = reader.next_line(PairTersoff::Param::NPARAMS_PER_LINE);
-    ASSERT_EQ(utils::count_words(line), PairTersoff::Param::NPARAMS_PER_LINE);
+    auto line = reader.next_line(PairTersoff::NPARAMS_PER_LINE);
+    ASSERT_EQ(utils::count_words(line), PairTersoff::NPARAMS_PER_LINE);
+}
+
+TEST_F(PotenialFileReaderTest, TersoffMod) {
+    ::testing::internal::CaptureStdout();
+    PotentialFileReader reader(lmp, "Si.tersoff.mod", "Tersoff");
+    ::testing::internal::GetCapturedStdout();
+
+    auto line = reader.next_line(PairTersoffMOD::NPARAMS_PER_LINE);
+    ASSERT_EQ(utils::count_words(line), PairTersoffMOD::NPARAMS_PER_LINE);
 }
 
 int main(int argc, char **argv)

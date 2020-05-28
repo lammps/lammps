@@ -45,7 +45,7 @@ PairTersoffMOD::PairTersoffMOD(LAMMPS *lmp) : PairTersoff(lmp) {}
 
 void PairTersoffMOD::read_file(char *file)
 {
-  int params_per_line = 20;
+  int params_per_line = NPARAMS_PER_LINE;
   char **words = new char*[params_per_line+1];
 
   memory->sfree(params);

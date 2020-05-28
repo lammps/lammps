@@ -37,6 +37,9 @@ class PairComb3 : public Pair {
   virtual double combqeq(double *, int &);
   double enegtot;
 
+  static const int NPARAMS_PER_LINE = 74;
+
+ protected:
  // general potential parameters
   struct Param {
     int ielement,jelement,kelement,powermint;
@@ -55,10 +58,7 @@ class PairComb3 : public Pair {
     double veps, vsig, pcna, pcnb, pcnc, pcnd, polz, curl, pcross;
     double paaa, pbbb;
     double curlcut1, curlcut2, curl0;
-    static const int NPARAMS_PER_LINE = 74;
   };
-
- protected:
 
   // general setups
   int nelements;                        // # of unique elements

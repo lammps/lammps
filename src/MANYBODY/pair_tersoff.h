@@ -34,6 +34,10 @@ class PairTersoff : public Pair {
   virtual void init_style();
   double init_one(int, int);
 
+  static const int NPARAMS_PER_LINE = 17;
+
+ protected:
+ 
   struct Param {
     double lam1,lam2,lam3;
     double c,d,h;
@@ -49,10 +53,8 @@ class PairTersoff : public Pair {
     double c5,ca1,ca4;           // added for TersoffMOD
     double powern_del;
     double c0;                   // added for TersoffMODC
-    static const int NPARAMS_PER_LINE = 17;
   };
 
- protected:
   Param *params;                // parameter set for an I-J-K interaction
   char **elements;              // names of unique elements
   int ***elem2param;            // mapping from element triplets to parameters

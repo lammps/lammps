@@ -789,26 +789,6 @@ void PairEAM::interpolate(int n, double delta, double *f, double **spline)
   }
 }
 
-/* ----------------------------------------------------------------------
-   grab n values from file fp and put them in list
-   values can be several to a line
-   only called by proc 0
-------------------------------------------------------------------------- */
-
-void PairEAM::grab(FILE *fptr, int n, double *list)
-{
-  char *ptr;
-  char line[MAXLINE];
-
-  int i = 0;
-  while (i < n) {
-    utils::sfgets(FLERR,line,MAXLINE,fptr,NULL,error);
-    ptr = strtok(line," \t\n\r\f");
-    if (ptr) list[i++] = atof(ptr);
-    while ((ptr = strtok(NULL," \t\n\r\f"))) list[i++] = atof(ptr);
-  }
-}
-
 /* ---------------------------------------------------------------------- */
 
 double PairEAM::single(int i, int j, int itype, int jtype,

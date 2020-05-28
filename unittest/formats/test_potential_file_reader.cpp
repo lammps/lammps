@@ -13,6 +13,7 @@
 #include "MANYBODY/pair_gw.h"
 #include "MANYBODY/pair_gw_zbl.h"
 #include "MANYBODY/pair_nb3b_harmonic.h"
+#include "MANYBODY/pair_vashishta.h"
 
 #include <mpi.h>
 
@@ -28,6 +29,7 @@ const int LAMMPS_NS::PairTersoffZBL::NPARAMS_PER_LINE;
 const int LAMMPS_NS::PairGW::NPARAMS_PER_LINE;
 const int LAMMPS_NS::PairGWZBL::NPARAMS_PER_LINE;
 const int LAMMPS_NS::PairNb3bHarmonic::NPARAMS_PER_LINE;
+const int LAMMPS_NS::PairVashishta::NPARAMS_PER_LINE;
 
 class PotenialFileReaderTest : public ::testing::Test {
 protected:
@@ -137,6 +139,14 @@ TEST_F(PotenialFileReaderTest, Nb3bHarmonic) {
 
     auto line = reader.next_line(PairNb3bHarmonic::NPARAMS_PER_LINE);
     ASSERT_EQ(utils::count_words(line), PairNb3bHarmonic::NPARAMS_PER_LINE);
+}
+TEST_F(PotenialFileReaderTest, Vashishta) {
+    ::testing::internal::CaptureStdout();
+    PotentialFileReader reader(lmp, "SiC.vashishta", "Vashishta");
+    ::testing::internal::GetCapturedStdout();
+
+    auto line = reader.next_line(PairVashishta::NPARAMS_PER_LINE);
+    ASSERT_EQ(utils::count_words(line), PairVashishta::NPARAMS_PER_LINE);
 }
 
 int main(int argc, char **argv)

@@ -199,14 +199,11 @@ class PairBOP : public Pair {
   void setPrepul();
   void setSign();
   void gneigh();
-  void theta();
-  void theta_mod();
   double sigmaBo(int, int);
   double PiBo(int, int);
   void memory_theta_create();
   void memory_theta_destroy();
   void memory_theta_grow();
-  double cutoff(double, double, int, double);
 
   void read_table(char *);
   void allocate();

@@ -34,5 +34,14 @@ if(ENABLE_COVERAGE)
         add_custom_target(clean_coverage_html
             ${CMAKE_COMMAND} -E remove_directory ${COVERAGE_HTML_DIR}
         )
+
+       add_custom_target(reset_coverage
+            ${CMAKE_COMMAND} -E remove -f */*.gcda */*/*.gcda */*/*/*.gcda
+                              */*/*/*/*.gcda */*/*/*/*/*.gcda */*/*/*/*/*/*.gcda
+                              */*/*/*/*/*/*/*.gcda */*/*/*/*/*/*/*/*.gcda
+                              */*/*/*/*/*/*/*/*/*.gcda */*/*/*/*/*/*/*/*/*/*.gcda
+            WORKIND_DIRECTORY ${CMAKE_BINARY_DIR}
+            COMMENT "Deleting coverage report data files"
+       )
     endif()
 endif()

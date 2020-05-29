@@ -778,7 +778,7 @@ TEST(BondStyle, single) {
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
             "in this LAMMPS configuration:\n";
-        for (auto prerequisite : test_config.prerequisites) {
+        for (auto& prerequisite : test_config.prerequisites) {
             std::cerr << prerequisite.first << "_style "
                       << prerequisite.second << "\n";
         }
@@ -800,8 +800,6 @@ TEST(BondStyle, single) {
     auto command = [&](const std::string & line) {
         lmp->input->one(line.c_str());
     };
-
-    Bond *bond = lmp->force->bond;
 
     // now start over
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -838,9 +836,9 @@ TEST(BondStyle, single) {
     command("pair_coeff * *");
 
     command("bond_style " + test_config.bond_style);
-    bond = lmp->force->bond;
+    Bond *bond = lmp->force->bond;
 
-    for (auto bond_coeff : test_config.bond_coeff) {
+    for (auto& bond_coeff : test_config.bond_coeff) {
         command("bond_coeff " + bond_coeff);
     }
 
@@ -1019,6 +1017,10 @@ TEST(BondStyle, single) {
     EXPECT_FP_LE_WITH_EPS(ebond[3], esngl[3], epsilon);
     if (print_stats)
         std::cerr << "single_energy  stats:" << stats << std::endl;
+
+    int i = 0;
+    for (auto &dist : test_config.equilibrium)
+        EXPECT_NEAR(dist,bond->equilibrium_distance(++i),0.00001);
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp,test_config);

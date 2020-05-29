@@ -14,6 +14,7 @@
 #include "MANYBODY/pair_gw_zbl.h"
 #include "MANYBODY/pair_nb3b_harmonic.h"
 #include "MANYBODY/pair_vashishta.h"
+#include "MANYBODY/pair_eim.h"
 
 #include <mpi.h>
 
@@ -31,7 +32,7 @@ const int LAMMPS_NS::PairGWZBL::NPARAMS_PER_LINE;
 const int LAMMPS_NS::PairNb3bHarmonic::NPARAMS_PER_LINE;
 const int LAMMPS_NS::PairVashishta::NPARAMS_PER_LINE;
 
-class PotenialFileReaderTest : public ::testing::Test {
+class PotentialFileReaderTest : public ::testing::Test {
 protected:
     LAMMPS * lmp;
 
@@ -51,7 +52,7 @@ protected:
     }
 };
 
-TEST_F(PotenialFileReaderTest, Si) {
+TEST_F(PotentialFileReaderTest, Si) {
     ::testing::internal::CaptureStdout();
     PotentialFileReader reader(lmp, "Si.sw", "Stillinger-Weber");
     ::testing::internal::GetCapturedStdout();
@@ -60,7 +61,7 @@ TEST_F(PotenialFileReaderTest, Si) {
     ASSERT_EQ(utils::count_words(line), PairSW::NPARAMS_PER_LINE);
 }
 
-TEST_F(PotenialFileReaderTest, Comb) {
+TEST_F(PotentialFileReaderTest, Comb) {
     ::testing::internal::CaptureStdout();
     PotentialFileReader reader(lmp, "ffield.comb", "COMB");
     ::testing::internal::GetCapturedStdout();
@@ -69,7 +70,7 @@ TEST_F(PotenialFileReaderTest, Comb) {
     ASSERT_EQ(utils::count_words(line), PairComb::NPARAMS_PER_LINE);
 }
 
-TEST_F(PotenialFileReaderTest, Comb3) {
+TEST_F(PotentialFileReaderTest, Comb3) {
     ::testing::internal::CaptureStdout();
     PotentialFileReader reader(lmp, "ffield.comb3", "COMB3");
     ::testing::internal::GetCapturedStdout();
@@ -78,7 +79,7 @@ TEST_F(PotenialFileReaderTest, Comb3) {
     ASSERT_EQ(utils::count_words(line), PairComb3::NPARAMS_PER_LINE);
 }
 
-TEST_F(PotenialFileReaderTest, Tersoff) {
+TEST_F(PotentialFileReaderTest, Tersoff) {
     ::testing::internal::CaptureStdout();
     PotentialFileReader reader(lmp, "Si.tersoff", "Tersoff");
     ::testing::internal::GetCapturedStdout();
@@ -87,7 +88,7 @@ TEST_F(PotenialFileReaderTest, Tersoff) {
     ASSERT_EQ(utils::count_words(line), PairTersoff::NPARAMS_PER_LINE);
 }
 
-TEST_F(PotenialFileReaderTest, TersoffMod) {
+TEST_F(PotentialFileReaderTest, TersoffMod) {
     ::testing::internal::CaptureStdout();
     PotentialFileReader reader(lmp, "Si.tersoff.mod", "Tersoff/Mod");
     ::testing::internal::GetCapturedStdout();
@@ -96,7 +97,7 @@ TEST_F(PotenialFileReaderTest, TersoffMod) {
     ASSERT_EQ(utils::count_words(line), PairTersoffMOD::NPARAMS_PER_LINE);
 }
 
-TEST_F(PotenialFileReaderTest, TersoffModC) {
+TEST_F(PotentialFileReaderTest, TersoffModC) {
     ::testing::internal::CaptureStdout();
     PotentialFileReader reader(lmp, "Si.tersoff.modc", "Tersoff/ModC");
     ::testing::internal::GetCapturedStdout();
@@ -105,7 +106,7 @@ TEST_F(PotenialFileReaderTest, TersoffModC) {
     ASSERT_EQ(utils::count_words(line), PairTersoffMODC::NPARAMS_PER_LINE);
 }
 
-TEST_F(PotenialFileReaderTest, TersoffZBL) {
+TEST_F(PotentialFileReaderTest, TersoffZBL) {
     ::testing::internal::CaptureStdout();
     PotentialFileReader reader(lmp, "SiC.tersoff.zbl", "Tersoff/ZBL");
     ::testing::internal::GetCapturedStdout();
@@ -114,7 +115,7 @@ TEST_F(PotenialFileReaderTest, TersoffZBL) {
     ASSERT_EQ(utils::count_words(line), PairTersoffZBL::NPARAMS_PER_LINE);
 }
 
-TEST_F(PotenialFileReaderTest, GW) {
+TEST_F(PotentialFileReaderTest, GW) {
     ::testing::internal::CaptureStdout();
     PotentialFileReader reader(lmp, "SiC.gw", "GW");
     ::testing::internal::GetCapturedStdout();
@@ -123,7 +124,7 @@ TEST_F(PotenialFileReaderTest, GW) {
     ASSERT_EQ(utils::count_words(line), PairGW::NPARAMS_PER_LINE);
 }
 
-TEST_F(PotenialFileReaderTest, GWZBL) {
+TEST_F(PotentialFileReaderTest, GWZBL) {
     ::testing::internal::CaptureStdout();
     PotentialFileReader reader(lmp, "SiC.gw.zbl", "GW/ZBL");
     ::testing::internal::GetCapturedStdout();
@@ -132,7 +133,7 @@ TEST_F(PotenialFileReaderTest, GWZBL) {
     ASSERT_EQ(utils::count_words(line), PairGWZBL::NPARAMS_PER_LINE);
 }
 
-TEST_F(PotenialFileReaderTest, Nb3bHarmonic) {
+TEST_F(PotentialFileReaderTest, Nb3bHarmonic) {
     ::testing::internal::CaptureStdout();
     PotentialFileReader reader(lmp, "MOH.nb3b.harmonic", "NB3B Harmonic");
     ::testing::internal::GetCapturedStdout();
@@ -140,7 +141,8 @@ TEST_F(PotenialFileReaderTest, Nb3bHarmonic) {
     auto line = reader.next_line(PairNb3bHarmonic::NPARAMS_PER_LINE);
     ASSERT_EQ(utils::count_words(line), PairNb3bHarmonic::NPARAMS_PER_LINE);
 }
-TEST_F(PotenialFileReaderTest, Vashishta) {
+
+TEST_F(PotentialFileReaderTest, Vashishta) {
     ::testing::internal::CaptureStdout();
     PotentialFileReader reader(lmp, "SiC.vashishta", "Vashishta");
     ::testing::internal::GetCapturedStdout();

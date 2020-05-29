@@ -103,11 +103,11 @@ void PairTersoffMOD::read_file(char *file)
         params[nparams].lam1       = values.next_double();
         params[nparams].biga       = values.next_double();
         params[nparams].powern_del = values.next_double();
-        params[nparams].c1         = values.next_double(); 
-        params[nparams].c2         = values.next_double(); 
-        params[nparams].c3         = values.next_double(); 
-        params[nparams].c4         = values.next_double(); 
-        params[nparams].c5         = values.next_double(); 
+        params[nparams].c1         = values.next_double();
+        params[nparams].c2         = values.next_double();
+        params[nparams].c3         = values.next_double();
+        params[nparams].c4         = values.next_double();
+        params[nparams].c5         = values.next_double();
         params[nparams].powermint = int(params[nparams].powerm);
       } catch (TokenizerException & e) {
         error->one(FLERR, e.what());

@@ -285,6 +285,14 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     }
     writer.emit_block("bond_coeff", block);
 
+    // equilibrium distance
+    std::stringstream eqstr;
+    eqstr << lmp->force->bond->equilibrium_distance(1);
+    for (std::size_t i=1; i < config.bond_coeff.size(); ++i) {
+        eqstr << " " << lmp->force->bond->equilibrium_distance(i+1);
+    }
+    writer.emit("equilibrium", eqstr.str());
+
     // extract
     block.clear();
     std::stringstream outstr;

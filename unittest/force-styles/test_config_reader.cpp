@@ -50,13 +50,11 @@ TestConfigReader::TestConfigReader(TestConfig & config)
 
     consumers["bond_style"]     = &TestConfigReader::bond_style;
     consumers["bond_coeff"]     = &TestConfigReader::bond_coeff;
-    consumers["init_energy"]    = &TestConfigReader::init_energy;
-    consumers["run_energy"]     = &TestConfigReader::run_energy;
-
     consumers["angle_style"]    = &TestConfigReader::angle_style;
     consumers["angle_coeff"]    = &TestConfigReader::angle_coeff;
     consumers["init_energy"]    = &TestConfigReader::init_energy;
     consumers["run_energy"]     = &TestConfigReader::run_energy;
+    consumers["equilibrium"]    = &TestConfigReader::equilibrium;
 }
 
 void TestConfigReader::prerequisites(const yaml_event_t & event) {
@@ -217,6 +215,20 @@ void TestConfigReader::angle_coeff(const yaml_event_t & event) {
 
     while (std::getline(data, line, '\n')) {
         config.angle_coeff.push_back(line);
+    }
+}
+
+void TestConfigReader::equilibrium(const yaml_event_t & event) {
+    std::string vals = (char *)event.data.scalar.value;
+    config.equilibrium.clear();
+    std::size_t found = vals.find_first_of(" \t");
+    while (found != std::string::npos) {
+        double value = atof(vals.substr(0,found).c_str());
+        config.equilibrium.push_back(value);
+        printf("vals=%s ->",vals.c_str());
+        vals = vals.substr(found+1);
+        printf("%s\n",vals.c_str());
+        found = vals.find_first_of(" \t");
     }
 }
 

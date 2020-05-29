@@ -285,6 +285,14 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     }
     writer.emit_block("angle_coeff", block);
 
+    // equilibrium angle
+    std::stringstream eqstr;
+    eqstr << lmp->force->angle->equilibrium_angle(1);
+    for (std::size_t i=1; i < config.angle_coeff.size(); ++i) {
+        eqstr << " " << lmp->force->angle->equilibrium_angle(i+1);
+    }
+    writer.emit("equilibrium", eqstr.str());
+
     // extract
     block.clear();
     std::stringstream outstr;

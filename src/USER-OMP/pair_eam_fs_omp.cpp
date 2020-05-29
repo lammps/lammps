@@ -206,7 +206,8 @@ void PairEAMFSOMP::read_file(char *filename)
 
   // broadcast file->elements string array
   for (int i = 0; i < file->nelements; i++) {
-    int n = strlen(file->elements[i]) + 1;
+    int n;
+    if (comm->me == 0) n = strlen(file->elements[i]) + 1;
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
     if (comm->me != 0) file->elements[i] = new char[n];
     MPI_Bcast(file->elements[i], n, MPI_CHAR, 0, world);

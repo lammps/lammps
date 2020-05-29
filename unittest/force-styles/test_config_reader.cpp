@@ -210,14 +210,13 @@ void TestConfigReader::angle_coeff(const yaml_event_t & event) {
 }
 
 void TestConfigReader::equilibrium(const yaml_event_t & event) {
-    std::string vals = (char *)event.data.scalar.value;
+    std::stringstream data((char *)event.data.scalar.value);
     config.equilibrium.clear();
-    std::size_t found = vals.find_first_of(" \t");
-    while (found != std::string::npos) {
-        double value = atof(vals.substr(0,found).c_str());
+    double value;
+    while (1) {
+        data >> value;
+        if (data.eof()) break;
         config.equilibrium.push_back(value);
-        vals = vals.substr(found+1);
-        found = vals.find_first_of(" \t");
     }
 }
 

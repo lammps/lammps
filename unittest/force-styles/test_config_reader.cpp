@@ -50,31 +50,21 @@ TestConfigReader::TestConfigReader(TestConfig & config)
 
     consumers["bond_style"]     = &TestConfigReader::bond_style;
     consumers["bond_coeff"]     = &TestConfigReader::bond_coeff;
-    consumers["init_energy"]    = &TestConfigReader::init_energy;
-    consumers["run_energy"]     = &TestConfigReader::run_energy;
-
     consumers["angle_style"]    = &TestConfigReader::angle_style;
     consumers["angle_coeff"]    = &TestConfigReader::angle_coeff;
     consumers["init_energy"]    = &TestConfigReader::init_energy;
     consumers["run_energy"]     = &TestConfigReader::run_energy;
+    consumers["equilibrium"]    = &TestConfigReader::equilibrium;
 }
 
 void TestConfigReader::prerequisites(const yaml_event_t & event) {
     config.prerequisites.clear();
     std::stringstream data((char *)event.data.scalar.value);
-    std::string line;
+    std::string key, value;
 
-    while(std::getline(data, line, '\n')) {
-        std::size_t found = line.find_first_of(" \t");
-        std::string key = line.substr(0,found);
-        found = line.find_first_not_of(" \t",found);
-        // skip invalid data
-        if (found == std::string::npos) {
-            std::cerr << "Skipping invalid prerequisite line:\n"
-                      << line << std::endl;
-            continue;
-        }
-        std::string value = line.substr(found,line.find_first_of(" \t",found));
+    while(1) {
+        data >> key >> value;
+        if (data.eof()) break;
         config.prerequisites.push_back(std::make_pair(key,value));
     }
 }
@@ -118,12 +108,11 @@ void TestConfigReader::input_file(const yaml_event_t & event) {
 void TestConfigReader::extract(const yaml_event_t & event) {
     config.extract.clear();
     std::stringstream data((char *)event.data.scalar.value);
-    std::string line;
-
-    while (std::getline(data, line, '\n')) {
-        std::size_t found = line.find_first_of(" \t");
-        std::string name = line.substr(0,found);
-        int value = atoi(line.substr(found).c_str());
+    std::string name;
+    int value;
+    while(1) {
+        data >> name >> value;
+        if (data.eof()) break;
         config.extract.push_back(make_pair(name, value));
     }
 }
@@ -217,6 +206,17 @@ void TestConfigReader::angle_coeff(const yaml_event_t & event) {
 
     while (std::getline(data, line, '\n')) {
         config.angle_coeff.push_back(line);
+    }
+}
+
+void TestConfigReader::equilibrium(const yaml_event_t & event) {
+    std::stringstream data((char *)event.data.scalar.value);
+    config.equilibrium.clear();
+    double value;
+    while (1) {
+        data >> value;
+        if (data.eof()) break;
+        config.equilibrium.push_back(value);
     }
 }
 

@@ -1050,7 +1050,7 @@ TEST(PairStyle, single) {
     // create a LAMMPS instance with standard settings to detect the number of atom types
     if (!verbose) ::testing::internal::CaptureStdout();
     LAMMPS *lmp = init_lammps(argc,argv,test_config);
-    if (!verbose)  ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "

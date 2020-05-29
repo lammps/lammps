@@ -244,22 +244,35 @@ and working.
      of mis-compiled code (or undesired large of precision due to
      reordering of operations).
 
-------------
+Collect and visualize code coverage metrics
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-You can also collect code coverage metrics while running the tests by
-enabling coverage support during building.
-
-.. code-block:: bash
-
-   -D ENABLE_COVERAGE=value  # enable coverage measurements, value = no (default) or yes
-
-This will also add the following targets to generate coverage reports
-after running the LAMMPS executable or the unit tests:
+You can also collect code coverage metrics while running LAMMPS or the
+tests by enabling code coverage support during the CMake configuration:
 
 .. code-block:: bash
 
-   make gen_coverage_html  # generate coverage report in HTML format
-   make gen_coverage_xml   # generate coverage report in XML format
+   -D ENABLE_COVERAGE=on  # enable coverage measurements (off by default)
+
+This will instrument all object files to write information about which
+lines of code were accessed during execution in files next to the
+corresponding object files.  These can be post-processed to visually
+show the degree of coverage and which code paths are accessed and which
+are not taken.  When working on unit tests (see above), this can be
+extremely helpful to determine which parts of the code are not executed
+and thus what kind of tests are still missing. The coverage data is
+cumulative, i.e. new data is added with each new run.
+
+Enabling code coverage will also add the following build targets to
+generate coverage reports after running the LAMMPS executable or the
+unit tests:
+
+.. code-block:: bash
+
+   make gen_coverage_html   # generate coverage report in HTML format
+   make gen_coverage_xml    # generate coverage report in XML format
+   make clean_coverage_html # delete folder with HTML format coverage report
+   make reset_coverage      # delete all collected coverage data and HTML output
 
 These reports require `GCOVR <https://gcovr.com/>`_ to be installed. The easiest way
 to do this to install it via pip:
@@ -267,3 +280,29 @@ to do this to install it via pip:
 .. code-block:: bash
 
    pip install git+https://github.com/gcovr/gcovr.git
+
+After post-processing with ``gen_coverage_html`` the results are in
+a folder ``coverage_html`` and can be viewed with a web browser.
+The images below illustrate how the data is presented.
+
+.. list-table::
+
+      * - .. figure:: JPG/coverage-overview-top.png
+             :target: JPG/coverage-overview-top.png
+
+          Top of the overview page
+
+        - .. figure:: JPG/coverage-overview-manybody.png
+             :target: JPG/coverage-overview-manybody.png
+
+          Styles with good coverage
+
+        - .. figure:: JPG/coverage-file-top.png
+             :target: JPG/coverage-file-top.png
+
+          Top of individual source page
+
+        - .. figure:: JPG/coverage-file-branches.png
+             :target: JPG/coverage-file-branches.png
+
+          Source page with branches

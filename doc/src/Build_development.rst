@@ -269,9 +269,10 @@ unit tests:
 
 .. code-block:: bash
 
-   make gen_coverage_html  # generate coverage report in HTML format
-   make gen_coverage_xml   # generate coverage report in XML format
-   make reset_coverage     # delete all collected coverage data
+   make gen_coverage_html   # generate coverage report in HTML format
+   make gen_coverage_xml    # generate coverage report in XML format
+   make clean_coverage_html # delete folder with HTML format coverage report
+   make reset_coverage      # delete all collected coverage data and HTML output
 
 These reports require `GCOVR <https://gcovr.com/>`_ to be installed. The easiest way
 to do this to install it via pip:

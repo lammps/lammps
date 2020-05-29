@@ -37,7 +37,7 @@ class PairTersoff : public Pair {
   static const int NPARAMS_PER_LINE = 17;
 
  protected:
- 
+
   struct Param {
     double lam1,lam2,lam3;
     double c,d,h;

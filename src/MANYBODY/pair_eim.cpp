@@ -1049,7 +1049,7 @@ double PairEIM::memory_usage()
   return bytes;
 }
 
-EIMPotentialFileReader::EIMPotentialFileReader(LAMMPS * lmp, const std::string & filename) : 
+EIMPotentialFileReader::EIMPotentialFileReader(LAMMPS * lmp, const std::string & filename) :
   Pointers(lmp), filename(filename)
 {
   if (comm->me != 0) {
@@ -1065,7 +1065,7 @@ EIMPotentialFileReader::EIMPotentialFileReader(LAMMPS * lmp, const std::string &
   }
 
   parse(fp);
-  
+
   fclose(fp);
 }
 
@@ -1115,7 +1115,7 @@ char * EIMPotentialFileReader::next_line(FILE * fp) {
 
     // strip comment
     if ((ptr = strchr(line, '#'))) *ptr = '\0';
-    
+
     // strip ampersand
     if ((ptr = strrchr(line, '&'))) {
       concat = true;

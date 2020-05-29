@@ -126,7 +126,7 @@ namespace LAMMPS_NS {
      */
     tagint tnumeric(const char *file, int line, const char *str,
                     bool do_abort, LAMMPS *lmp);
-   
+
 
     /**
      * \brief Trim anything from '#' onward

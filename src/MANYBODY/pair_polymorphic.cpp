@@ -573,12 +573,12 @@ void PairPolymorphic::read_file(char *file)
 
       char * line = reader->next_line(2);
       ValueTokenizer values(line);
-    
+
       int ntypes = values.next_int();
 
       if (ntypes != nelements)
         error->one(FLERR,"Incorrect number of elements in potential file");
-      
+
       eta = values.next_int();
 
       // map the elements in the potential file to LAMMPS atom types

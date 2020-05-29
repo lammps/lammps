@@ -41,7 +41,6 @@ class TILD : public KSpace{
   class GridComm *cg;
   class GridComm *cg_peratom;
   int *groupbits;
-  double a_squared;
   void setup_grid();
   // virtual int timing_1d(int, double &);
   // virtual int timing_3d(int, double &);
@@ -50,19 +49,11 @@ class TILD : public KSpace{
   void field_gradient(FFT_SCALAR*, FFT_SCALAR**, int);
   // void get_k_alias(int, double *);
 
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  void write_data(FILE *);
-  void write_data_all(FILE *);
-
  protected:
   // For future kspace_hybrid
   int nstyles;                  // # of sub-styles For future kspace_hybrid
   int **setflag;                 // 0/1 = whether each i,j has been set
 
-  FFT_SCALAR *temp;
   FFT_SCALAR ***grad_potent, ***grad_potent_hat, **potent, **potent_hat;
   int **potent_map;
   FFT_SCALAR *****gradWtype;
@@ -145,24 +136,11 @@ class TILD : public KSpace{
   int subtract_rho0, normalize_by_rho0, mix_flag, sub_flag, norm_flag;
   int *total_counter, specified_all_group, start_group_ind, total_groups; 
 
-  FFT_SCALAR ***density_brick;
-  FFT_SCALAR ***vdx_brick,***vdy_brick,***vdz_brick;
-  FFT_SCALAR ***u_brick;
-  FFT_SCALAR ***v0_brick,***v1_brick,***v2_brick;
-  FFT_SCALAR ***v3_brick,***v4_brick,***v5_brick;
-  double *greensfn;
   double *fkx,*fky,*fkz;
   double *fkx2, *fky2, *fkz2;
-  FFT_SCALAR *density_fft;
   FFT_SCALAR *work1,*work2;
-  FFT_SCALAR *worki,*workj;
 
-  double *gf_b;
-  FFT_SCALAR **rho1d,**rho_coeff,**drho1d,**drho_coeff;
-  double *sf_precoeff1, *sf_precoeff2, *sf_precoeff3;
-  double *sf_precoeff4, *sf_precoeff5, *sf_precoeff6;
-  double sf_coeff[6];          // coefficients for calculating ad self-forces
-  double **acons;
+  FFT_SCALAR **rho1d,**rho_coeff,**drho_coeff;
 
   // group-group interactions
 
@@ -202,10 +180,8 @@ class TILD : public KSpace{
 
   void procs2grid2d(int,int,int,int *, int*);
   void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &,
-                     const FFT_SCALAR &);
-  void compute_drho1d(const FFT_SCALAR &, const FFT_SCALAR &,
-                     const FFT_SCALAR &);
-  void compute_rho_coeff();
+                     const FFT_SCALAR &, int, FFT_SCALAR **, FFT_SCALAR **);
+  void compute_rho_coeff(FFT_SCALAR **,FFT_SCALAR **, const int);
 
   // grid communication
 
@@ -218,9 +194,6 @@ class TILD : public KSpace{
 
   int triclinic;               // domain settings, orthog or triclinic
   void setup_triclinic();
-  // void compute_gf_ik_triclinic();
-  // void poisson_ik_triclinic();
-  // void poisson_groups_triclinic();
 
   // group-group interactions
 
@@ -254,9 +227,6 @@ class TILD : public KSpace{
   FFT_SCALAR *ktmp2i;
   FFT_SCALAR *ktmp2j;
   FFT_SCALAR *tmp;
-  void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &,
-                     const FFT_SCALAR &, int, FFT_SCALAR **, FFT_SCALAR **);
-  void compute_rho_coeff(FFT_SCALAR **,FFT_SCALAR **, int);
 
 };
 

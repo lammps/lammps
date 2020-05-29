@@ -11,12 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "write_restart.h"
 #include <mpi.h>
 #include <cstring>
-#include "write_restart.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "atom_vec_hybrid.h"
 #include "group.h"
 #include "force.h"
 #include "pair.h"
@@ -37,31 +36,9 @@
 #include "memory.h"
 #include "error.h"
 
+#include "lmprestart.h"
+
 using namespace LAMMPS_NS;
-
-// same as read_restart.cpp
-
-#define MAGIC_STRING "LammpS RestartT"
-#define ENDIAN 0x0001
-#define ENDIANSWAP 0x1000
-#define VERSION_NUMERIC 0
-
-enum{VERSION,SMALLINT,TAGINT,BIGINT,
-     UNITS,NTIMESTEP,DIMENSION,NPROCS,PROCGRID,
-     NEWTON_PAIR,NEWTON_BOND,
-     XPERIODIC,YPERIODIC,ZPERIODIC,BOUNDARY,
-     ATOM_STYLE,NATOMS,NTYPES,
-     NBONDS,NBONDTYPES,BOND_PER_ATOM,
-     NANGLES,NANGLETYPES,ANGLE_PER_ATOM,
-     NDIHEDRALS,NDIHEDRALTYPES,DIHEDRAL_PER_ATOM,
-     NIMPROPERS,NIMPROPERTYPES,IMPROPER_PER_ATOM,
-     TRICLINIC,BOXLO,BOXHI,XY,XZ,YZ,
-     SPECIAL_LJ,SPECIAL_COUL,
-     MASS,PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER,
-     MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
-     IMAGEINT,BOUNDMIN,TIMESTEP,
-     ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
-     COMM_MODE,COMM_CUTOFF,COMM_VEL,NO_PAIR};
 
 /* ---------------------------------------------------------------------- */
 
@@ -267,7 +244,7 @@ void WriteRestart::write(char *file)
     fp = fopen(hfile,"wb");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open restart file %s",hfile);
+      snprintf(str,128,"Cannot open restart file %s",hfile);
       error->one(FLERR,str);
     }
     if (multiproc) delete [] hfile;
@@ -298,7 +275,7 @@ void WriteRestart::write(char *file)
   // max_size = largest buffer needed by any proc
   // NOTE: are assuming size_restart() returns 32-bit int
   //   for a huge one-proc problem, nlocal could be 32-bit
-  //   but nlocal * doubles-peratom could oveflow
+  //   but nlocal * doubles-peratom could overflow
 
   int max_size;
   int send_size = atom->avec->size_restart();
@@ -316,8 +293,11 @@ void WriteRestart::write(char *file)
   //   close header file, open multiname file on each writing proc,
   //   write PROCSPERFILE into new file
 
+  int io_error = 0;
   if (multiproc) {
     if (me == 0 && fp) {
+      magic_string();
+      if (ferror(fp)) io_error = 1;
       fclose(fp);
       fp = NULL;
     }
@@ -332,7 +312,7 @@ void WriteRestart::write(char *file)
       fp = fopen(multiname,"wb");
       if (fp == NULL) {
         char str[128];
-        sprintf(str,"Cannot open restart file %s",multiname);
+        snprintf(str,128,"Cannot open restart file %s",multiname);
         error->one(FLERR,str);
       }
       write_int(PROCSPERFILE,nclusterprocs);
@@ -400,20 +380,21 @@ void WriteRestart::write(char *file)
 
   if (mpiioflag) {
     if (me == 0 && fp) {
+      magic_string();
+      if (ferror(fp)) io_error = 1;
       fclose(fp);
       fp = NULL;
     }
     mpiio->openForWrite(file);
     mpiio->write(headerOffset,send_size,buf);
     mpiio->close();
-  }
+  } else {
 
-  // output of one or more native files
-  // filewriter = 1 = this proc writes to file
-  // ping each proc in my cluster, receive its data, write data to file
-  // else wait for ping from fileproc, send my data to fileproc
+    // output of one or more native files
+    // filewriter = 1 = this proc writes to file
+    // ping each proc in my cluster, receive its data, write data to file
+    // else wait for ping from fileproc, send my data to fileproc
 
-  else {
     int tmp,recv_size;
 
     if (filewriter) {
@@ -429,6 +410,8 @@ void WriteRestart::write(char *file)
 
         write_double_vec(PERPROC,recv_size,buf);
       }
+      magic_string();
+      if (ferror(fp)) io_error = 1;
       fclose(fp);
       fp = NULL;
 
@@ -437,6 +420,12 @@ void WriteRestart::write(char *file)
       MPI_Rsend(buf,send_size,MPI_DOUBLE,fileproc,0,world);
     }
   }
+
+  // Check for I/O error status
+
+  int io_all = 0;
+  MPI_Allreduce(&io_error,&io_all,1,MPI_INT,MPI_MAX,world);
+  if (io_all) error->all(FLERR,"I/O error while writing restart");
 
   // clean up
 
@@ -526,6 +515,12 @@ void WriteRestart::header()
   write_int(COMM_MODE,comm->mode);
   write_double(COMM_CUTOFF,comm->cutghostuser);
   write_int(COMM_VEL,comm->ghost_velocity);
+
+  write_int(EXTRA_BOND_PER_ATOM,atom->extra_bond_per_atom);
+  write_int(EXTRA_ANGLE_PER_ATOM,atom->extra_angle_per_atom);
+  write_int(EXTRA_DIHEDRAL_PER_ATOM,atom->extra_dihedral_per_atom);
+  write_int(EXTRA_IMPROPER_PER_ATOM,atom->extra_improper_per_atom);
+  write_int(ATOM_MAXSPECIAL,atom->maxspecial);
 
   // -1 flag signals end of header
 
@@ -649,7 +644,7 @@ void WriteRestart::endian()
 
 void WriteRestart::version_numeric()
 {
-  int vn = VERSION_NUMERIC;
+  int vn = FORMAT_REVISION;
   fwrite(&vn,sizeof(int),1,fp);
 }
 

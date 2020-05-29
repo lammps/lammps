@@ -17,14 +17,12 @@
 ------------------------------------------------------------------------- */
 
 #include "group_ndx.h"
+#include <mpi.h>
+#include <cstdlib>
 #include "atom.h"
 #include "comm.h"
 #include "group.h"
-#include "memory.h"
 #include "error.h"
-
-#include <cstdio>
-#include <cstdlib>
 
 using namespace LAMMPS_NS;
 
@@ -50,7 +48,7 @@ static int cmptagint(const void *p1, const void *p2)
 static void write_group(FILE *fp, int gid, Atom *atom, Group *group, int me,
                         int np, MPI_Comm world, FILE *screen, FILE *logfile)
 {
-  char fmt[8];
+  char fmt[16];
   tagint *sendlist, *recvlist;
   bigint num = group->count(gid);
   int lnum, cols;
@@ -73,7 +71,7 @@ static void write_group(FILE *fp, int gid, Atom *atom, Group *group, int me,
       ++i;
       j /= 10;
     }
-    sprintf(fmt,"%%%dd ", i);
+    snprintf(fmt,16,"%%%dd ", i);
     cols = 80 / (i+1);
   }
 

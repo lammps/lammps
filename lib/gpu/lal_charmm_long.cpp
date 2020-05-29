@@ -23,7 +23,7 @@ const char *charmm_long=0;
 
 #include "lal_charmm_long.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define CHARMMLongT CHARMMLong<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -174,3 +174,4 @@ void CHARMMLongT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class CHARMMLong<PRECISION,ACC_PRECISION>;
+}

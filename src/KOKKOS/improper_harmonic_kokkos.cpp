@@ -15,23 +15,17 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
 #include "improper_harmonic_kokkos.h"
+#include <cmath>
 #include "atom_kokkos.h"
 #include "comm.h"
 #include "neighbor_kokkos.h"
-#include "domain.h"
 #include "force.h"
-#include "update.h"
-#include "math_const.h"
 #include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define TOLERANCE 0.05
 #define SMALL     0.001
@@ -71,8 +65,7 @@ void ImproperHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   eflag = eflag_in;
   vflag = vflag_in;
 
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = 0;
+  ev_init(eflag,vflag,0);
 
   // reallocate per-atom arrays if necessary
 
@@ -80,14 +73,14 @@ void ImproperHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     //if(k_eatom.extent(0)<maxeatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_eatom,eatom);
       memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
-      d_eatom = k_eatom.template view<DeviceType>();
+      d_eatom = k_eatom.template view<KKDeviceType>();
     //}
   }
   if (vflag_atom) {
     //if(k_vatom.extent(0)<maxvatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_vatom,vatom);
-      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
-      d_vatom = k_vatom.template view<DeviceType>();
+      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"improper:vatom");
+      d_vatom = k_vatom.template view<KKDeviceType>();
     //}
   }
 
@@ -333,6 +326,25 @@ void ImproperHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   proc 0 reads coeffs from restart file, bcasts them
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void ImproperHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
+{
+  ImproperHarmonic::read_restart(fp);
+
+  int n = atom->nimpropertypes;
+  for (int i = 1; i <= n; i++) {
+    k_k.h_view[i] = k[i];
+    k_chi.h_view[i] = chi[i];
+  }
+
+  k_k.template modify<LMPHostType>();
+  k_chi.template modify<LMPHostType>();
+}
+
+/* ----------------------------------------------------------------------
    tally energy and virial into global and per-atom accumulators
    virial = r1F1 + r2F2 + r3F3 + r4F4 = (r1-r2) F1 + (r3-r2) F3 + (r4-r2) F4
           = (r1-r2) F1 + (r3-r2) F3 + (r4-r3 + r3-r2) F4
@@ -465,7 +477,7 @@ void ImproperHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, co
 
 namespace LAMMPS_NS {
 template class ImproperHarmonicKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class ImproperHarmonicKokkos<LMPHostType>;
 #endif
 }

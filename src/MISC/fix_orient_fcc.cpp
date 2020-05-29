@@ -15,11 +15,11 @@
    Contributing authors: Koenraad Janssens and David Olmsted (SNL)
 ------------------------------------------------------------------------- */
 
+#include "fix_orient_fcc.h"
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
 #include <mpi.h>
-#include "fix_orient_fcc.h"
 #include "atom.h"
 #include "update.h"
 #include "respa.h"
@@ -27,7 +27,6 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "comm.h"
-#include "output.h"
 #include "force.h"
 #include "math_const.h"
 #include "citeme.h"
@@ -113,25 +112,25 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
     char *result;
     int count;
 
-    FILE *infile = fopen(xifilename,"r");
-    if (infile == NULL) error->one(FLERR,"Fix orient/fcc file open failed");
+    FILE *inpfile = fopen(xifilename,"r");
+    if (inpfile == NULL) error->one(FLERR,"Fix orient/fcc file open failed");
     for (int i = 0; i < 6; i++) {
-      result = fgets(line,IMGMAX,infile);
+      result = fgets(line,IMGMAX,inpfile);
       if (!result) error->one(FLERR,"Fix orient/fcc file read failed");
       count = sscanf(line,"%lg %lg %lg",&Rxi[i][0],&Rxi[i][1],&Rxi[i][2]);
       if (count != 3) error->one(FLERR,"Fix orient/fcc file read failed");
     }
-    fclose(infile);
+    fclose(inpfile);
 
-    infile = fopen(chifilename,"r");
-    if (infile == NULL) error->one(FLERR,"Fix orient/fcc file open failed");
+    inpfile = fopen(chifilename,"r");
+    if (inpfile == NULL) error->one(FLERR,"Fix orient/fcc file open failed");
     for (int i = 0; i < 6; i++) {
-      result = fgets(line,IMGMAX,infile);
+      result = fgets(line,IMGMAX,inpfile);
       if (!result) error->one(FLERR,"Fix orient/fcc file read failed");
       count = sscanf(line,"%lg %lg %lg",&Rchi[i][0],&Rchi[i][1],&Rchi[i][2]);
       if (count != 3) error->one(FLERR,"Fix orient/fcc file read failed");
     }
-    fclose(infile);
+    fclose(inpfile);
   }
 
   MPI_Bcast(&Rxi[0][0],18,MPI_DOUBLE,0,world);
@@ -228,7 +227,7 @@ void FixOrientFCC::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixOrientFCC::init_list(int id, NeighList *ptr)
+void FixOrientFCC::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
@@ -248,7 +247,7 @@ void FixOrientFCC::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixOrientFCC::post_force(int vflag)
+void FixOrientFCC::post_force(int /*vflag*/)
 {
   int i,j,k,ii,jj,inum,jnum,m,n,nn,nsort;
   tagint id_self;
@@ -469,7 +468,7 @@ void FixOrientFCC::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixOrientFCC::post_force_respa(int vflag, int ilevel, int iloop)
+void FixOrientFCC::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }
@@ -486,7 +485,7 @@ double FixOrientFCC::compute_scalar()
 /* ---------------------------------------------------------------------- */
 
 int FixOrientFCC::pack_forward_comm(int n, int *list, double *buf,
-                                    int pbc_flag, int *pbc)
+                                    int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,k,num;
   tagint id;

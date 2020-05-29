@@ -11,9 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "kspace.h"
+#include <mpi.h>
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "kspace.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -30,14 +32,15 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
+KSpace::KSpace(LAMMPS *lmp) : Pointers(lmp)
 {
   order_allocated = 0;
   energy = 0.0;
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
 
   triclinic_support = 1;
-  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = 0;
+  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag =
+    dipoleflag = spinflag = 0;
   compute_flag = 1;
   group_group_enable = 0;
   stagger_flag = 0;
@@ -76,9 +79,6 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   accuracy_absolute = -1.0;
   accuracy_real_6 = -1.0;
   accuracy_kspace_6 = -1.0;
-  two_charge_force = force->qqr2e *
-    (force->qelectron * force->qelectron) /
-    (force->angstrom * force->angstrom);
 
   neighrequest_flag = 1;
   mixflag = 0;
@@ -156,6 +156,17 @@ KSpace::~KSpace()
   memory->destroy(dgcons);
 }
 
+/* ----------------------------------------------------------------------
+   calculate this in init() so that units are finalized
+------------------------------------------------------------------------- */
+
+void KSpace::two_charge()
+{
+  two_charge_force = force->qqr2e *
+    (force->qelectron * force->qelectron) /
+    (force->angstrom * force->angstrom);
+}
+
 /* ---------------------------------------------------------------------- */
 
 void KSpace::triclinic_check()
@@ -168,9 +179,7 @@ void KSpace::triclinic_check()
 
 void KSpace::compute_dummy(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global =
-         eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -191,6 +200,8 @@ void KSpace::pair_check()
   if (dispersionflag && !force->pair->dispersionflag)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   if (dipoleflag && !force->pair->dipoleflag)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (spinflag && !force->pair->spinflag)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   if (tip4pflag && !force->pair->tip4pflag)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
@@ -268,14 +279,14 @@ void KSpace::ev_setup(int eflag, int vflag, int alloc)
    called initially, when particle count changes, when charges are changed
 ------------------------------------------------------------------------- */
 
-void KSpace::qsum_qsq()
+void KSpace::qsum_qsq(int warning_flag)
 {
   const double * const q = atom->q;
   const int nlocal = atom->nlocal;
   double qsum_local(0.0), qsqsum_local(0.0);
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) reduction(+:qsum_local,qsqsum_local)
+#pragma omp parallel for default(shared) reduction(+:qsum_local,qsqsum_local)
 #endif
   for (int i = 0; i < nlocal; i++) {
     qsum_local += q[i];
@@ -285,7 +296,7 @@ void KSpace::qsum_qsq()
   MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&qsqsum_local,&qsqsum,1,MPI_DOUBLE,MPI_SUM,world);
 
-  if ((qsqsum == 0.0) && (comm->me == 0) && warn_nocharge) {
+  if ((qsqsum == 0.0) && (comm->me == 0) && warn_nocharge && warning_flag) {
     error->warning(FLERR,"Using kspace solver on system with no charge");
     warn_nocharge = 0;
   }
@@ -445,7 +456,11 @@ void KSpace::modify_params(int narg, char **arg)
       nx_pppm = nx_msm_max = force->inumeric(FLERR,arg[iarg+1]);
       ny_pppm = ny_msm_max = force->inumeric(FLERR,arg[iarg+2]);
       nz_pppm = nz_msm_max = force->inumeric(FLERR,arg[iarg+3]);
-      if (nx_pppm == 0 && ny_pppm == 0 && nz_pppm == 0) gridflag = 0;
+      if (nx_pppm == 0 && ny_pppm == 0 && nz_pppm == 0)
+        gridflag = 0;
+      else if (nx_pppm <= 0 || ny_pppm <= 0 || nz_pppm <= 0)
+        error->all(FLERR,"Kspace_modify mesh parameters must be all "
+                   "zero or all positive");
       else gridflag = 1;
       iarg += 4;
     } else if (strcmp(arg[iarg],"mesh/disp") == 0) {
@@ -453,7 +468,11 @@ void KSpace::modify_params(int narg, char **arg)
       nx_pppm_6 = force->inumeric(FLERR,arg[iarg+1]);
       ny_pppm_6 = force->inumeric(FLERR,arg[iarg+2]);
       nz_pppm_6 = force->inumeric(FLERR,arg[iarg+3]);
-      if (nx_pppm_6 == 0 || ny_pppm_6 == 0 || nz_pppm_6 == 0) gridflag_6 = 0;
+      if (nx_pppm_6 == 0 && ny_pppm_6 == 0 && nz_pppm_6 == 0)
+        gridflag_6 = 0;
+      else if (nx_pppm_6 <= 0 || ny_pppm_6 <= 0 || nz_pppm_6 == 0)
+        error->all(FLERR,"Kspace_modify mesh/disp parameters must be all "
+                   "zero or all positive");
       else gridflag_6 = 1;
       iarg += 4;
     } else if (strcmp(arg[iarg],"order") == 0) {
@@ -580,7 +599,11 @@ void KSpace::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"no") == 0) auto_disp_flag = 0;
       else error->all(FLERR,"Illegal kspace_modify command");
       iarg += 2;
-    } else error->all(FLERR,"Illegal kspace_modify command");
+    } else {
+      int n = modify_param(narg-iarg,&arg[iarg]);
+      if (n == 0) error->all(FLERR,"Illegal kspace_modify command");
+      iarg += n;
+    }
   }
 }
 

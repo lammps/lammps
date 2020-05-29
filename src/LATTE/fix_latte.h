@@ -48,7 +48,7 @@ class FixLatte : public Fix {
   int coulomb,pbcflag,pe_peratom,virial_global,virial_peratom,neighflag;
   int eflag_caller;
 
-  int nmax;
+  int nmax,newsystem;
   double *qpotential;
   double **flatte;
   double latte_energy;

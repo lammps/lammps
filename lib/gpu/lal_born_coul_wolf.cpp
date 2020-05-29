@@ -23,7 +23,7 @@ const char *born_coul_wolf=0;
 
 #include "lal_born_coul_wolf.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define BornCoulWolfT BornCoulWolf<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -57,7 +57,7 @@ int BornCoulWolfT::init(const int ntypes, double **host_cutsq, double **host_rho
                         const double alf, const double e_shift, const double f_shift) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                            _screen,born_coul_wolf,"k_born_wolf");
+                            _screen,born_coul_wolf,"k_born_coul_wolf");
   if (success!=0)
     return success;
 
@@ -174,3 +174,4 @@ void BornCoulWolfT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class BornCoulWolf<PRECISION,ACC_PRECISION>;
+}

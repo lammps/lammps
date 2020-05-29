@@ -15,17 +15,17 @@
    Contributing author: Mark Stevens (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "dihedral_opls.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
 #include "update.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -67,8 +67,7 @@ void DihedralOPLS::compute(int eflag, int vflag)
   double s2,cx,cy,cz,cmag,dx,phi,si,siinv,sin2;
 
   edihedral = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -332,10 +331,10 @@ void DihedralOPLS::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&k2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&k3[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&k4[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&k1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&k2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&k3[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&k4[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
   }
   MPI_Bcast(&k1[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&k2[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);

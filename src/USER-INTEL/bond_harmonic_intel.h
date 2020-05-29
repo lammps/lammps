@@ -24,7 +24,6 @@ BondStyle(harmonic/intel,BondHarmonicIntel)
 #ifndef LMP_BOND_HARMONIC_INTEL_H
 #define LMP_BOND_HARMONIC_INTEL_H
 
-#include <cstdio>
 #include "bond_harmonic.h"
 #include "fix_intel.h"
 

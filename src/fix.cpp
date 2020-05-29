@@ -11,13 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix.h"
 #include <cstring>
 #include <cctype>
-#include "fix.h"
 #include "atom.h"
 #include "group.h"
 #include "force.h"
-#include "comm.h"
 #include "atom_masks.h"
 #include "memory.h"
 #include "error.h"
@@ -31,7 +30,7 @@ int Fix::instance_total = 0;
 
 /* ---------------------------------------------------------------------- */
 
-Fix::Fix(LAMMPS *lmp, int narg, char **arg) :
+Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   Pointers(lmp),
   id(NULL), style(NULL), extlist(NULL), vector_atom(NULL), array_atom(NULL),
   vector_local(NULL), array_local(NULL), eatom(NULL), vatom(NULL)
@@ -59,7 +58,7 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) :
 
   restart_global = restart_peratom = restart_file = 0;
   force_reneighbor = 0;
-  box_change_size = box_change_shape = box_change_domain = 0;
+  box_change = NO_BOX_CHANGE;
   thermo_energy = 0;
   thermo_virial = 0;
   rigid_flag = 0;
@@ -78,9 +77,13 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) :
   enforce2d_flag = 0;
   respa_level_support = 0;
   respa_level = -1;
+  maxexchange = 0;
+  maxexchange_dynamic = 0;
+  pre_exchange_migrate = 0;
 
   scalar_flag = vector_flag = array_flag = 0;
   peratom_flag = local_flag = 0;
+  global_freq = local_freq = peratom_freq = -1;
   size_vector_variable = size_array_rows_variable = 0;
 
   comm_forward = comm_reverse = comm_border = 0;

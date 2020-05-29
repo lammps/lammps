@@ -17,13 +17,15 @@
 namespace LAMMPS_NS {
 
 namespace Suffix {
-  static const int NONE = 0;
-  static const int OPT  = 1<<0;
-  static const int GPU  = 1<<1;
-  static const int OMP  = 1<<2;
-  static const int INTEL  = 1<<3;
+  enum {
+    NONE   = 0,
+    OPT    = 1<<0,
+    GPU    = 1<<1,
+    OMP    = 1<<2,
+    INTEL  = 1<<3,
+    KOKKOS = 1<<4
+  };
 }
-
 }
 
 #endif

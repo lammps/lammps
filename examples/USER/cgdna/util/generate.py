@@ -81,7 +81,7 @@ EXCL_RC2 =  0.335388426126
 EXCL_RC3 =  0.52329943261
 
 """
-Define auxillary variables for the construction of a helix
+Define auxiliary variables for the construction of a helix
 """
 # center of the double strand
 CM_CENTER_DS = POS_BASE + 0.2
@@ -103,7 +103,7 @@ number_to_base = {1 : 'A', 2 : 'C', 3 : 'G', 4 : 'T'}
 base_to_number = {'A' : 1, 'a' : 1, 'C' : 2, 'c' : 2,
                   'G' : 3, 'g' : 3, 'T' : 4, 't' : 4}
 
-# auxillary arrays
+# auxiliary arrays
 positions = []
 a1s = []
 a3s = []

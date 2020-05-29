@@ -23,7 +23,7 @@ const char *lj=0;
 
 #include "lal_lj.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define LJT LJ<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -168,3 +168,4 @@ void LJT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class LJ<PRECISION,ACC_PRECISION>;
+}

@@ -15,23 +15,16 @@
    Contributing author: Ray Shan (Materials Design)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
 #include "improper_class2_kokkos.h"
+#include <cmath>
 #include "atom_kokkos.h"
-#include "comm.h"
 #include "neighbor_kokkos.h"
-#include "domain.h"
 #include "force.h"
-#include "update.h"
-#include "math_const.h"
 #include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define TOLERANCE 0.05
 #define SMALL     0.001
@@ -71,8 +64,7 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   eflag = eflag_in;
   vflag = vflag_in;
 
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = 0;
+  ev_init(eflag,vflag,0);
 
   // reallocate per-atom arrays if necessary
 
@@ -86,7 +78,7 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (vflag_atom) {
     //if(k_vatom.extent(0)<maxvatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_vatom,vatom);
-      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
+      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"improper:vatom");
       d_vatom = k_vatom.template view<DeviceType>();
     //}
   }
@@ -196,7 +188,7 @@ KOKKOS_INLINE_FUNCTION
 void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2Compute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
   // The f array is atomic
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
+  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
 
   int i, j, k;
   F_FLOAT delr[3][3],rmag[3],rinvmag[3],rmag2[3];
@@ -668,7 +660,7 @@ KOKKOS_INLINE_FUNCTION
 void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2AngleAngle<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
   // The f array is atomic
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
+  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
 
   int i,j,k;
   F_FLOAT eimproper;
@@ -938,6 +930,67 @@ void ImproperClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   proc 0 reads coeffs from restart file, bcasts them
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void ImproperClass2Kokkos<DeviceType>::read_restart(FILE *fp)
+{
+  ImproperClass2::read_restart(fp);
+
+  int n = atom->nimpropertypes;
+  k_k0 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::k0",n+1);
+  k_chi0 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::chi0",n+1);
+  k_aa_k1 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::aa_k1",n+1);
+  k_aa_k2 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::aa_k2",n+1);
+  k_aa_k3 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::aa_k3",n+1);
+  k_aa_theta0_1 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::aa_theta0_1",n+1);
+  k_aa_theta0_2 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::aa_theta0_2",n+1);
+  k_aa_theta0_3 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::aa_theta0_3",n+1);
+  k_setflag = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::setflag",n+1);
+  k_setflag_i = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::setflag_i",n+1);
+  k_setflag_aa = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("ImproperClass2::setflag_aa",n+1);
+
+  d_k0 = k_k0.template view<DeviceType>();
+  d_chi0 = k_chi0.template view<DeviceType>();
+  d_aa_k1 = k_aa_k1.template view<DeviceType>();
+  d_aa_k2 = k_aa_k2.template view<DeviceType>();
+  d_aa_k3 = k_aa_k3.template view<DeviceType>();
+  d_aa_theta0_1 = k_aa_theta0_1.template view<DeviceType>();
+  d_aa_theta0_2 = k_aa_theta0_2.template view<DeviceType>();
+  d_aa_theta0_3 = k_aa_theta0_3.template view<DeviceType>();
+  d_setflag = k_setflag.template view<DeviceType>();
+  d_setflag_i = k_setflag_i.template view<DeviceType>();
+  d_setflag_aa = k_setflag_aa.template view<DeviceType>();
+
+  for (int i = 1; i <= n; i++) {
+    k_k0.h_view[i] = k0[i];
+    k_chi0.h_view[i] = chi0[i];
+    k_aa_k1.h_view[i] = aa_k1[i];
+    k_aa_k2.h_view[i] = aa_k2[i];
+    k_aa_k3.h_view[i] = aa_k3[i];
+    k_aa_theta0_1.h_view[i] = aa_theta0_1[i];
+    k_aa_theta0_2.h_view[i] = aa_theta0_2[i];
+    k_aa_theta0_3.h_view[i] = aa_theta0_3[i];
+    k_setflag.h_view[i] = setflag[i];
+    k_setflag_i.h_view[i] = setflag_i[i];
+    k_setflag_aa.h_view[i] = setflag_aa[i];
+  }
+
+  k_k0.template modify<LMPHostType>();
+  k_chi0.template modify<LMPHostType>();
+  k_aa_k1.template modify<LMPHostType>();
+  k_aa_k2.template modify<LMPHostType>();
+  k_aa_k3.template modify<LMPHostType>();
+  k_aa_theta0_1.template modify<LMPHostType>();
+  k_aa_theta0_2.template modify<LMPHostType>();
+  k_aa_theta0_3 .template modify<LMPHostType>();
+  k_setflag.template modify<LMPHostType>();
+  k_setflag_i.template modify<LMPHostType>();
+  k_setflag_aa.template modify<LMPHostType>();
+}
+
+/* ----------------------------------------------------------------------
    tally energy and virial into global and per-atom accumulators
    virial = r1F1 + r2F2 + r3F3 + r4F4 = (r1-r2) F1 + (r3-r2) F3 + (r4-r2) F4
           = (r1-r2) F1 + (r3-r2) F3 + (r4-r3 + r3-r2) F4
@@ -957,8 +1010,8 @@ void ImproperClass2Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, cons
   F_FLOAT v[6];
 
   // The eatom and vatom arrays are atomic
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_eatom = k_eatom.view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_vatom = k_vatom.view<DeviceType>();
+  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_eatom = k_eatom.view<DeviceType>();
+  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_vatom = k_vatom.view<DeviceType>();
 
   if (eflag_either) {
     if (eflag_global) {
@@ -1073,7 +1126,7 @@ void ImproperClass2Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, cons
 
 namespace LAMMPS_NS {
 template class ImproperClass2Kokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class ImproperClass2Kokkos<LMPHostType>;
 #endif
 }

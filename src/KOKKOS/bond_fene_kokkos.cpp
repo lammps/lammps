@@ -15,9 +15,9 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "bond_fene_kokkos.h"
 #include <cmath>
 #include <cstdlib>
-#include "bond_fene_kokkos.h"
 #include "atom_kokkos.h"
 #include "neighbor_kokkos.h"
 #include "domain.h"
@@ -69,8 +69,7 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   eflag = eflag_in;
   vflag = vflag_in;
 
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = 0;
+  ev_init(eflag,vflag,0);
 
   // reallocate per-atom arrays if necessary
 
@@ -81,7 +80,7 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"bond:vatom");
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"bond:vatom");
     d_vatom = k_vatom.view<DeviceType>();
   }
 
@@ -167,7 +166,7 @@ void BondFENEKokkos<DeviceType>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLA
   if (d_error_flag()) return;
 
   // The f array is atomic
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
+  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
 
   const int i1 = bondlist(n,0);
   const int i2 = bondlist(n,1);
@@ -282,6 +281,30 @@ void BondFENEKokkos<DeviceType>::coeff(int narg, char **arg)
   k_sigma.template modify<LMPHostType>();
 }
 
+
+/* ----------------------------------------------------------------------
+   proc 0 reads coeffs from restart file, bcasts them
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void BondFENEKokkos<DeviceType>::read_restart(FILE *fp)
+{
+  BondFENE::read_restart(fp);
+
+  int n = atom->nbondtypes;
+  for (int i = 1; i <= n; i++) {
+    k_k.h_view[i] = k[i];
+    k_r0.h_view[i] = r0[i];
+    k_epsilon.h_view[i] = epsilon[i];
+    k_sigma.h_view[i] = sigma[i];
+  }
+
+  k_k.template modify<LMPHostType>();
+  k_r0.template modify<LMPHostType>();
+  k_epsilon.template modify<LMPHostType>();
+  k_sigma.template modify<LMPHostType>();
+}
+
 /* ----------------------------------------------------------------------
    tally energy and virial into global and per-atom accumulators
 ------------------------------------------------------------------------- */
@@ -297,8 +320,8 @@ void BondFENEKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int 
   F_FLOAT v[6];
 
   // The eatom and vatom arrays are atomic
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_eatom = k_eatom.view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_vatom = k_vatom.view<DeviceType>();
+  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_eatom = k_eatom.view<DeviceType>();
+  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_vatom = k_vatom.view<DeviceType>();
 
   if (eflag_either) {
     if (eflag_global) {
@@ -377,7 +400,7 @@ void BondFENEKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int 
 
 namespace LAMMPS_NS {
 template class BondFENEKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class BondFENEKokkos<LMPHostType>;
 #endif
 }

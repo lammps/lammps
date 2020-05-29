@@ -1,0 +1,601 @@
+LAMMPS (27 Nov 2018)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:87)
+  using 1 OpenMP thread(s) per MPI task
+# pour particles into cone-shaped funnel, settle them, let them run out bottom
+
+variable	name string funnel_pour
+
+thermo_modify	flush yes
+units 		si
+variable	PI equal 3.141592653589
+variable	seed equal 14314
+
+###############################################
+# Geometry-related parameters
+###############################################
+
+variable	xlo equal 10
+variable	xhi equal 40
+variable	ylo equal 10
+variable	yhi equal 40
+variable	zlo equal -20
+variable	zhi equal 50
+
+variable	xc equal 25
+variable	yc equal 25
+
+variable	zconehi equal 50
+variable	zconelo equal 10
+variable	zcyllo equal 0
+variable	radconelo equal 2
+variable	radconehi equal 20
+
+################################################
+# Particle sizes
+################################################
+
+variable	rlo equal 0.25
+variable	rhi equal 0.5
+variable	dlo equal 2.0*${rlo}
+variable	dlo equal 2.0*0.25
+variable	dhi equal 2.0*${rhi}
+variable	dhi equal 2.0*0.5
+
+variable 	skin equal ${rhi}
+variable 	skin equal 0.5
+
+###############################################
+# Granular contact parameters
+###############################################
+
+variable	coeffRes equal 0.1
+variable	coeffFric equal 0.5
+
+variable	density equal 1.0
+variable	EYoung equal 10^5
+variable 	Poisson equal 2.0/7.0
+variable	GShear equal ${EYoung}/(2*(1+${Poisson}))
+variable	GShear equal 100000/(2*(1+${Poisson}))
+variable	GShear equal 100000/(2*(1+0.285714285714286))
+
+variable	gravity equal 1.0
+
+variable	reff equal 0.5*(${rhi}+${rlo})
+variable	reff equal 0.5*(0.5+${rlo})
+variable	reff equal 0.5*(0.5+0.25)
+variable	meff equal ${density}*4.0/3.0*${PI}*${reff}^3
+variable	meff equal 1*4.0/3.0*${PI}*${reff}^3
+variable	meff equal 1*4.0/3.0*3.141592653589*${reff}^3
+variable	meff equal 1*4.0/3.0*3.141592653589*0.375^3
+variable	min_mass equal ${density}*4.0/3.0*${PI}*${rlo}*${rlo}*${rlo}
+variable	min_mass equal 1*4.0/3.0*${PI}*${rlo}*${rlo}*${rlo}
+variable	min_mass equal 1*4.0/3.0*3.141592653589*${rlo}*${rlo}*${rlo}
+variable	min_mass equal 1*4.0/3.0*3.141592653589*0.25*${rlo}*${rlo}
+variable	min_mass equal 1*4.0/3.0*3.141592653589*0.25*0.25*${rlo}
+variable	min_mass equal 1*4.0/3.0*3.141592653589*0.25*0.25*0.25
+variable	max_mass equal ${density}*4.0/3.0*${PI}*${rhi}*${rhi}*${rhi}
+variable	max_mass equal 1*4.0/3.0*${PI}*${rhi}*${rhi}*${rhi}
+variable	max_mass equal 1*4.0/3.0*3.141592653589*${rhi}*${rhi}*${rhi}
+variable	max_mass equal 1*4.0/3.0*3.141592653589*0.5*${rhi}*${rhi}
+variable	max_mass equal 1*4.0/3.0*3.141592653589*0.5*0.5*${rhi}
+variable	max_mass equal 1*4.0/3.0*3.141592653589*0.5*0.5*0.5
+
+## Typical way to set kn, kt, etc.:
+variable        kn equal 4.0*${GShear}/(3*(1-${Poisson}))
+variable        kn equal 4.0*38888.8888888889/(3*(1-${Poisson}))
+variable        kn equal 4.0*38888.8888888889/(3*(1-0.285714285714286))
+variable        kt equal 4.0*${GShear}/(2-${Poisson})
+variable        kt equal 4.0*38888.8888888889/(2-${Poisson})
+variable        kt equal 4.0*38888.8888888889/(2-0.285714285714286)
+
+variable	a equal (-2.0*log(${coeffRes})/${PI})^2
+variable	a equal (-2.0*log(0.1)/${PI})^2
+variable	a equal (-2.0*log(0.1)/3.141592653589)^2
+variable        gamma_n equal sqrt($a*2*${kn}/${min_mass}/(1+0.25*$a))
+variable        gamma_n equal sqrt(0.405284734569556*2*${kn}/${min_mass}/(1+0.25*$a))
+variable        gamma_n equal sqrt(0.405284734569556*2*72592.5925925926/${min_mass}/(1+0.25*$a))
+variable        gamma_n equal sqrt(0.405284734569556*2*72592.5925925926/0.0654498469497708/(1+0.25*$a))
+variable        gamma_n equal sqrt(0.405284734569556*2*72592.5925925926/0.0654498469497708/(1+0.25*0.405284734569556))
+variable        gamma_t equal ${gamma_n}*0.5
+variable        gamma_t equal 903.503751814138*0.5
+
+variable	tcol equal ${PI}/sqrt(2*${kn}/${min_mass}-${gamma_n}/4.0)
+variable	tcol equal 3.141592653589/sqrt(2*${kn}/${min_mass}-${gamma_n}/4.0)
+variable	tcol equal 3.141592653589/sqrt(2*72592.5925925926/${min_mass}-${gamma_n}/4.0)
+variable	tcol equal 3.141592653589/sqrt(2*72592.5925925926/0.0654498469497708-${gamma_n}/4.0)
+variable	tcol equal 3.141592653589/sqrt(2*72592.5925925926/0.0654498469497708-903.503751814138/4.0)
+
+variable	dt equal ${tcol}*0.05
+variable	dt equal 0.00210943016014969*0.05
+timestep	${dt}
+timestep	0.000105471508007485
+
+###############################################
+variable	dumpfreq equal 1000
+variable	logfreq equal 1000
+
+newton 		off
+atom_style	sphere
+
+boundary	p p f
+
+region		boxreg block ${xlo} ${xhi} ${ylo} ${yhi} ${zlo} ${zhi}
+region		boxreg block 10 ${xhi} ${ylo} ${yhi} ${zlo} ${zhi}
+region		boxreg block 10 40 ${ylo} ${yhi} ${zlo} ${zhi}
+region		boxreg block 10 40 10 ${yhi} ${zlo} ${zhi}
+region		boxreg block 10 40 10 40 ${zlo} ${zhi}
+region		boxreg block 10 40 10 40 -20 ${zhi}
+region		boxreg block 10 40 10 40 -20 50
+create_box	1 boxreg
+Created orthogonal box = (10 10 -20) to (40 40 50)
+  1 by 1 by 1 MPI processor grid
+
+pair_style	gran/hertz/history 		${kn} ${kt} ${gamma_n} ${gamma_t} ${coeffFric} 1
+pair_style	gran/hertz/history 		72592.5925925926 ${kt} ${gamma_n} ${gamma_t} ${coeffFric} 1
+pair_style	gran/hertz/history 		72592.5925925926 90740.7407407408 ${gamma_n} ${gamma_t} ${coeffFric} 1
+pair_style	gran/hertz/history 		72592.5925925926 90740.7407407408 903.503751814138 ${gamma_t} ${coeffFric} 1
+pair_style	gran/hertz/history 		72592.5925925926 90740.7407407408 903.503751814138 451.751875907069 ${coeffFric} 1
+pair_style	gran/hertz/history 		72592.5925925926 90740.7407407408 903.503751814138 451.751875907069 0.5 1
+pair_coeff	* *
+
+neighbor        ${skin} bin
+neighbor        0.5 bin
+thermo 		${logfreq}
+thermo 		1000
+
+comm_style	brick
+comm_modify 	mode multi group all vel yes
+balance		1.1 shift xyz 20 1.1
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 0
+  ghost atom cutoff = 0
+  binsize = 30, bins = 1 1 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair gran/hertz/history, perpetual
+      attributes: half, newton off, size, history
+      pair build: half/size/bin/newtoff
+      stencil: half/bin/3d/newtoff
+      bin: standard
+fix		bal all balance 10000 1.1 shift xyz 20 1.01
+
+####################### Options specific to pouring #########################
+
+# insertion region for fix/pour
+
+region	     	insreg cylinder z ${xc} ${yc} 10 30 50 side in units box
+region	     	insreg cylinder z 25 ${yc} 10 30 50 side in units box
+region	     	insreg cylinder z 25 25 10 30 50 side in units box
+
+# define cone and cylinder regions - see lammps doc on region command
+# note new open options
+
+region	    	cylreg cylinder z ${xc} ${yc} ${radconelo} 		${zcyllo} ${zconelo} side in units box 		open 2 #Top is open
+region	    	cylreg cylinder z 25 ${yc} ${radconelo} 		${zcyllo} ${zconelo} side in units box 		open 2 
+region	    	cylreg cylinder z 25 25 ${radconelo} 		${zcyllo} ${zconelo} side in units box 		open 2 
+region	    	cylreg cylinder z 25 25 2 		${zcyllo} ${zconelo} side in units box 		open 2 
+region	    	cylreg cylinder z 25 25 2 		0 ${zconelo} side in units box 		open 2 
+region	    	cylreg cylinder z 25 25 2 		0 10 side in units box 		open 2 
+
+region		conereg cone z ${xc} ${yc} ${radconelo} ${radconehi} 		${zconelo} ${zconehi} side in units box 		open 1 open 2 #Bottom and top are open
+region		conereg cone z 25 ${yc} ${radconelo} ${radconehi} 		${zconelo} ${zconehi} side in units box 		open 1 open 2 
+region		conereg cone z 25 25 ${radconelo} ${radconehi} 		${zconelo} ${zconehi} side in units box 		open 1 open 2 
+region		conereg cone z 25 25 2 ${radconehi} 		${zconelo} ${zconehi} side in units box 		open 1 open 2 
+region		conereg cone z 25 25 2 20 		${zconelo} ${zconehi} side in units box 		open 1 open 2 
+region		conereg cone z 25 25 2 20 		10 ${zconehi} side in units box 		open 1 open 2 
+region		conereg cone z 25 25 2 20 		10 50 side in units box 		open 1 open 2 
+
+region		hopreg union 2 conereg cylreg
+
+fix		grav all gravity ${gravity} vector 0 0 -1
+fix		grav all gravity 1 vector 0 0 -1
+fix		1 all nve/sphere
+
+
+fix		hopper3 all wall/gran/region hertz/history                 ${kn} ${kt} ${gamma_n} ${gamma_t} ${coeffFric} 1 region hopreg
+fix		hopper3 all wall/gran/region hertz/history                 72592.5925925926 ${kt} ${gamma_n} ${gamma_t} ${coeffFric} 1 region hopreg
+fix		hopper3 all wall/gran/region hertz/history                 72592.5925925926 90740.7407407408 ${gamma_n} ${gamma_t} ${coeffFric} 1 region hopreg
+fix		hopper3 all wall/gran/region hertz/history                 72592.5925925926 90740.7407407408 903.503751814138 ${gamma_t} ${coeffFric} 1 region hopreg
+fix		hopper3 all wall/gran/region hertz/history                 72592.5925925926 90740.7407407408 903.503751814138 451.751875907069 ${coeffFric} 1 region hopreg
+fix		hopper3 all wall/gran/region hertz/history                 72592.5925925926 90740.7407407408 903.503751814138 451.751875907069 0.5 1 region hopreg
+
+fix		ins all pour 2000 1 42424 region insreg 		diam range ${dlo} ${dhi} dens ${density} ${density}
+fix		ins all pour 2000 1 42424 region insreg 		diam range 0.5 ${dhi} dens ${density} ${density}
+fix		ins all pour 2000 1 42424 region insreg 		diam range 0.5 1 dens ${density} ${density}
+fix		ins all pour 2000 1 42424 region insreg 		diam range 0.5 1 dens 1 ${density}
+fix		ins all pour 2000 1 42424 region insreg 		diam range 0.5 1 dens 1 1
+Particle insertion: 3000 every 59965 steps, 2000 by step 1
+
+#dump		1 all custom ${dumpfreq} ${name}.dump #		id type mass diameter x y z
+
+#dump		2 all image 4000 image.*.jpg type type #		axes yes 0.8 0.02 view 60 -30 zoom 3.0 #                box no 0.0 axes no 0.0 0.0
+#dump_modify	2 pad 6
+
+thermo_style	custom step cpu atoms ke
+WARNING: New thermo_style command, previous thermo_modify settings will be lost (src/output.cpp:705)
+thermo_modify	flush yes lost warn
+
+# Initial run to fill up the cone
+
+run		20000
+Per MPI rank memory allocation (min/avg/max) = 6.649 | 6.649 | 6.649 Mbytes
+Step CPU Atoms KinEng 
+       0            0        0           -0 
+    1000   0.63593698     2000           -0 
+    2000    1.0282419     2000           -0 
+    3000    1.4184453     2000           -0 
+    4000    1.8055785     2000           -0 
+    5000    2.1941335     2000           -0 
+    6000    2.5804653     2000           -0 
+    7000    2.9660621     2000           -0 
+    8000    3.3506265     2000           -0 
+    9000    3.7344413     2000           -0 
+   10000    4.1212304     2000           -0 
+   11000    4.5044594     2000           -0 
+   12000    4.8875456     2000           -0 
+   13000    5.2698007     2000           -0 
+   14000    5.6527214     2000           -0 
+   15000    6.0349295     2000           -0 
+   16000    6.4172938     2000           -0 
+   17000    6.8001184     2000           -0 
+   18000    7.1826644     2000           -0 
+   19000    7.5654378     2000           -0 
+   20000    7.9511659     2000           -0 
+Loop time of 7.95118 on 1 procs for 20000 steps with 2000 atoms
+
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.6189     | 0.6189     | 0.6189     |   0.0 |  7.78
+Neigh   | 0.09361    | 0.09361    | 0.09361    |   0.0 |  1.18
+Comm    | 0.016098   | 0.016098   | 0.016098   |   0.0 |  0.20
+Output  | 0.00048828 | 0.00048828 | 0.00048828 |   0.0 |  0.01
+Modify  | 6.9973     | 6.9973     | 6.9973     |   0.0 | 88.00
+Other   |            | 0.2248     |            |       |  2.83
+
+Nlocal:    2000 ave 2000 max 2000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1537 ave 1537 max 1537 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1537
+Ave neighs/atom = 0.7685
+Neighbor list builds = 69
+Dangerous builds = 0
+unfix 		ins
+run		150000
+Per MPI rank memory allocation (min/avg/max) = 12.77 | 12.77 | 12.77 Mbytes
+Step CPU Atoms KinEng 
+   20000            0     2000    6443.7665 
+   21000    0.3826313     2000    6572.3531 
+   22000   0.76688981     2000    6723.8376 
+   23000    1.1534231     2000    6853.1812 
+   24000    1.5391715     2000    6976.0209 
+   25000    1.9263508     2000    7096.9955 
+   26000    2.3168406     2000    7215.5795 
+   27000    2.7065961     2000    7349.2382 
+   28000     3.096664     2000    7471.8719 
+   29000    3.4905531     2000    7574.8228 
+   30000    3.8877606     2000    7659.3836 
+   31000    4.2839894     2000    7703.6856 
+   32000    4.6859732     2000     7644.279 
+   33000    5.0932801     2000    7526.6944 
+   34000    5.5045564     2000    7370.0821 
+   35000    5.9206297     2000    7193.0457 
+   36000     6.343729     2000    6990.9899 
+   37000    6.7719142     2000    6849.2841 
+   38000    7.2016783     2000    6701.7433 
+   39000    7.6354482     2000    6538.9557 
+   40000     8.078445     2000    6381.9346 
+   41000    8.5191586     2000    6217.5253 
+   42000    8.9630713     2000    6093.5344 
+   43000    9.4097741     2000    5943.0479 
+   44000    9.8652256     2000    5841.0782 
+   45000    10.331057     2000    5652.8319 
+   46000    10.803253     2000    5476.1466 
+   47000    11.278766     2000    5267.7855 
+   48000    11.759121     2000    5131.4036 
+   49000    12.248896     2000    4972.7696 
+   50000    12.747719     2000    4867.0868 
+   51000    13.246704     2000     4681.897 
+   52000    13.757842     2000    4506.8185 
+   53000    14.276078     2000    4346.8045 
+   54000    14.795933     2000    4193.8194 
+   55000    15.311241     2000    4058.2049 
+   56000    15.828737     2000    3879.0325 
+   57000    16.359453     2000    3696.3154 
+   58000    16.905406     2000    3504.0399 
+   59000    17.460454     2000    3284.6522 
+   60000    18.027276     2000    3061.0727 
+   61000    18.586931     2000    2874.2926 
+   62000    19.158563     2000    2653.0722 
+   63000    19.738442     2000    2437.4941 
+   64000    20.331411     2000    2124.1876 
+   65000    20.936204     2000    1864.5661 
+   66000    21.547443     2000    1610.2335 
+   67000    22.166888     2000    1390.0428 
+   68000    22.789106     2000    1163.7679 
+   69000    23.416016     2000     933.0928 
+   70000    24.038879     2000    745.66667 
+   71000    24.663115     2000    605.58458 
+   72000    25.294193     2000    444.31183 
+   73000    25.932019     2000    357.19162 
+   74000    26.568184     2000    291.16762 
+   75000    27.203393     2000    230.58362 
+   76000    27.836079     2000    197.59502 
+   77000    28.467344     2000    166.55702 
+   78000    29.099997     2000    139.89052 
+   79000    29.741694     2000     117.1145 
+   80000    30.388097     2000    100.12353 
+   81000    31.036193     2000    85.233155 
+   82000    31.688463     2000    71.145302 
+   83000    32.343411     2000    61.545348 
+   84000    32.999346     2000    54.099358 
+   85000    33.652976     2000    46.922028 
+   86000    34.306931     2000    41.606645 
+   87000    34.967787     2000    37.462793 
+   88000    35.633721     2000    33.698298 
+   89000    36.310035     2000    29.340455 
+   90000    36.995441     2000    26.072122 
+   91000     37.67904     2000     23.20848 
+   92000    38.367699     2000    21.015862 
+   93000    39.058641     2000    20.134175 
+   94000    39.749342     2000    19.196075 
+   95000    40.442651     2000    18.285127 
+   96000    41.140177     2000    17.476411 
+   97000    41.840761     2000     16.55882 
+   98000    42.543845     2000    15.444541 
+   99000    43.256415     2000     14.41642 
+  100000     43.97382     2000    13.818738 
+  101000    44.684596     2000    12.878373 
+  102000    45.401082     2000     12.11804 
+  103000    46.120936     2000    11.016885 
+  104000     46.83935     2000    10.531044 
+  105000    47.559419     2000     10.46735 
+  106000    48.286016     2000    10.246007 
+  107000    49.012266     2000    9.6423041 
+  108000     49.74013     2000    9.3948808 
+  109000    50.471961     2000    9.5178141 
+  110000    51.206152     2000    9.4143884 
+  111000    51.939123     2000    9.5058226 
+  112000    52.673443     2000    9.6911516 
+  113000    53.410485     2000    9.7756849 
+  114000    54.152537     2000    9.3876232 
+  115000    54.891784     2000    8.6725333 
+  116000    55.631474     2000    8.6691065 
+  117000    56.371762     2000    8.0156055 
+  118000    57.110131     2000    7.9150786 
+  119000      57.8533     2000    7.5310892 
+  120000    58.599064     2000    7.2940498 
+  121000    59.340753     2000    6.8347898 
+  122000    60.084676     2000     6.696484 
+  123000    60.826952     2000    6.7799146 
+  124000    61.569413     2000    6.7901567 
+  125000    62.316334     2000    6.7532108 
+  126000    63.061374     2000     6.762162 
+  127000    63.806385     2000    6.6317366 
+  128000    64.555969     2000    6.8246399 
+  129000    65.308131     2000    6.9130358 
+  130000    66.060967     2000    7.1750566 
+  131000    66.809725     2000    6.9507379 
+  132000    67.559796     2000    6.7987445 
+  133000    68.314249     2000    6.8535775 
+  134000    69.065513     2000    7.0255144 
+  135000    69.817604     2000    6.7381064 
+  136000    70.572079     2000    6.5567748 
+  137000    71.324444     2000    6.2655395 
+  138000    72.079147     2000    6.1923013 
+  139000    72.831323     2000    6.0958081 
+  140000     73.59117     2000    5.9185709 
+  141000    74.343753     2000    5.9151241 
+  142000    75.096509     2000    5.4743035 
+  143000    75.852151     2000     5.438642 
+  144000    76.605005     2000    4.6646664 
+  145000    77.357571     2000    4.6899837 
+  146000    78.113125     2000    4.5357917 
+  147000    78.867751     2000    4.5993842 
+  148000    79.625344     2000    4.7076884 
+  149000     80.37992     2000    4.8306642 
+  150000    81.143175     2000    4.8282147 
+  151000    81.899326     2000     4.546308 
+  152000    82.658645     2000    4.6700755 
+  153000     83.41837     2000    4.7557633 
+  154000     84.17509     2000    4.9004538 
+  155000    84.934161     2000    5.0552949 
+  156000    85.695466     2000    4.0672495 
+  157000    86.453115     2000    3.5819543 
+  158000    87.212663     2000    3.3533477 
+  159000    87.967768     2000    3.3281001 
+  160000    88.729631     2000    3.0831743 
+  161000    89.498983     2000    3.0519269 
+  162000    90.259424     2000    3.0951675 
+  163000    91.019656     2000    2.9868352 
+  164000    91.776359     2000    2.9195788 
+  165000    92.536374     2000    2.5637813 
+  166000    93.296332     2000    2.5553272 
+  167000     94.05653     2000    2.0752912 
+  168000    94.814559     2000    1.9689845 
+  169000    95.576005     2000    1.9117916 
+  170000    96.337863     2000    1.8568914 
+Loop time of 96.3379 on 1 procs for 150000 steps with 2000 atoms
+
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 37.121     | 37.121     | 37.121     |   0.0 | 38.53
+Neigh   | 0.8454     | 0.8454     | 0.8454     |   0.0 |  0.88
+Comm    | 0.11506    | 0.11506    | 0.11506    |   0.0 |  0.12
+Output  | 0.004431   | 0.004431   | 0.004431   |   0.0 |  0.00
+Modify  | 56.517     | 56.517     | 56.517     |   0.0 | 58.67
+Other   |            | 1.735      |            |       |  1.80
+
+Nlocal:    2000 ave 2000 max 2000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    15524 ave 15524 max 15524 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 15524
+Ave neighs/atom = 7.762
+Neighbor list builds = 388
+Dangerous builds = 0
+
+# remove "plug" - need to redefine cylinder region & union
+
+region	  	cylreg delete
+region		hopreg delete
+region	    	cylreg cylinder z ${xc} ${yc} ${radconelo} 		${zcyllo} ${zconelo} side in units box 		open 1 open 2 #Bottom & top are open
+region	    	cylreg cylinder z 25 ${yc} ${radconelo} 		${zcyllo} ${zconelo} side in units box 		open 1 open 2 
+region	    	cylreg cylinder z 25 25 ${radconelo} 		${zcyllo} ${zconelo} side in units box 		open 1 open 2 
+region	    	cylreg cylinder z 25 25 2 		${zcyllo} ${zconelo} side in units box 		open 1 open 2 
+region	    	cylreg cylinder z 25 25 2 		0 ${zconelo} side in units box 		open 1 open 2 
+region	    	cylreg cylinder z 25 25 2 		0 10 side in units box 		open 1 open 2 
+
+region		hopreg union 2 cylreg conereg
+
+unfix		hopper3
+fix		hopper3 all wall/gran/region hertz/history 		${kn} ${kt} ${gamma_n} ${gamma_t} ${coeffFric} 1 region hopreg
+fix		hopper3 all wall/gran/region hertz/history 		72592.5925925926 ${kt} ${gamma_n} ${gamma_t} ${coeffFric} 1 region hopreg
+fix		hopper3 all wall/gran/region hertz/history 		72592.5925925926 90740.7407407408 ${gamma_n} ${gamma_t} ${coeffFric} 1 region hopreg
+fix		hopper3 all wall/gran/region hertz/history 		72592.5925925926 90740.7407407408 903.503751814138 ${gamma_t} ${coeffFric} 1 region hopreg
+fix		hopper3 all wall/gran/region hertz/history 		72592.5925925926 90740.7407407408 903.503751814138 451.751875907069 ${coeffFric} 1 region hopreg
+fix		hopper3 all wall/gran/region hertz/history 		72592.5925925926 90740.7407407408 903.503751814138 451.751875907069 0.5 1 region hopreg
+
+run		100000
+Per MPI rank memory allocation (min/avg/max) = 18.64 | 18.64 | 18.64 Mbytes
+Step CPU Atoms KinEng 
+  170000            0     2000    1.8568914 
+  171000   0.75704765     2000    2.4011583 
+  172000    1.5101345     2000     3.176628 
+  173000    2.2556529     2000    4.5364486 
+  174000    2.9946566     2000    6.5494125 
+  175000    3.7253478     2000    9.1934319 
+  176000    4.4570525     2000     12.25765 
+  177000    5.1876664     2000    15.799657 
+  178000    5.9178619     2000    19.982558 
+  179000    6.6439464     2000    24.927165 
+  180000    7.3749168     2000    30.428362 
+  181000    8.1011977     2000     36.74232 
+  182000    8.8207343     2000    43.820448 
+  183000    9.5397925     2000    50.903222 
+  184000    10.253098     2000    59.425781 
+  185000    10.965505     2000    69.143119 
+  186000    11.673319     2000    79.210705 
+  187000    12.373966     2000    90.411346 
+  188000    13.075475     2000    102.35389 
+  189000    13.770632     2000    114.93888 
+  190000    14.469445     2000    128.63341 
+  191000    15.158381     2000    143.44526 
+  192000    15.846267     2000    159.04574 
+  193000    16.527754     2000     174.3114 
+  194000    17.204808     2000    190.42123 
+  195000    17.881059     2000    207.70459 
+  196000    18.556555     2000    224.90931 
+  197000    19.229818     2000    242.64914 
+  198000    19.905086     2000    261.48312 
+  199000    20.578518     2000    281.28308 
+  200000     21.25632     2000    302.95108 
+  201000    21.921347     2000    325.95534 
+  202000    22.583873     2000     350.6874 
+  203000    23.244724     2000    376.31773 
+  204000    23.904842     2000    404.21947 
+  205000    24.562788     2000    432.96116 
+  206000    25.217762     2000     462.4113 
+  207000    25.875814     2000    491.91207 
+  208000    26.531285     2000    522.15395 
+  209000    27.184766     2000     553.1024 
+  210000    27.842961     2000     585.7133 
+  211000    28.489339     2000    619.96357 
+  212000    29.139612     2000    653.96189 
+  213000    29.783866     2000     689.8027 
+  214000    30.426881     2000    727.28401 
+  215000     31.06706     2000    766.40354 
+  216000    31.706399     2000    805.65433 
+  217000    32.343033     2000    845.40981 
+  218000    32.989384     2000    884.24637 
+  219000    33.633664     2000     923.5998 
+  220000    34.285172     2000    965.01779 
+  221000    34.931959     2000    1009.1763 
+  222000    35.571624     2000    1054.7789 
+  223000    36.207868     2000    1101.9922 
+  224000    36.836062     2000    1151.1205 
+  225000    37.464514     2000    1201.3979 
+  226000     38.09746     2000    1252.4054 
+  227000    38.732507     1999    1296.6784 
+  228000    39.371367     1997    1342.3466 
+  229000    40.012553     1992    1368.8559 
+  230000    40.652111     1977    1360.2259 
+  231000    41.275478     1965    1340.3793 
+  232000    41.892734     1953    1318.8318 
+  233000     42.50588     1938    1295.5667 
+  234000    43.121427     1924    1270.0641 
+  235000    43.740727     1914     1258.296 
+  236000    44.359241     1902    1224.3945 
+  237000    44.979463     1899    1248.3905 
+  238000    45.597358     1885    1206.9229 
+  239000    46.210114     1875    1195.5429 
+  240000    46.818148     1861    1142.6591 
+  241000    47.411079     1851    1131.5523 
+  242000    48.002522     1841    1116.8741 
+  243000    48.594254     1830    1099.9978 
+  244000    49.191798     1822    1078.6068 
+  245000    49.791332     1814    1072.1498 
+  246000    50.389728     1803    1020.7842 
+  247000    50.984212     1794    1000.1936 
+  248000    51.571047     1781    942.02462 
+  249000    52.149428     1772    916.83697 
+  250000    52.726202     1758    825.10751 
+  251000     53.29913     1748    789.06351 
+  252000    53.871912     1739    753.92258 
+  253000    54.441009     1729    697.83686 
+  254000    55.010203     1718    648.98541 
+  255000    55.573602     1710    620.38129 
+  256000    56.134709     1705    622.43466 
+  257000    56.701827     1700    595.79102 
+  258000    57.264463     1698    608.49223 
+  259000    57.827817     1695     614.0119 
+  260000    58.398994     1690    601.50438 
+  261000    58.964611     1687     608.5892 
+  262000    59.526765     1683    597.07884 
+  263000    60.082729     1682    618.65041 
+  264000    60.640105     1678    615.47784 
+  265000    61.195717     1675    605.27658 
+  266000    61.751087     1671    583.69853 
+  267000    62.305546     1669    600.11043 
+  268000     62.86105     1666    598.79807 
+  269000    63.417551     1663    588.40338 
+  270000    63.974486     1660    579.59387 
+Loop time of 63.9745 on 1 procs for 100000 steps with 1660 atoms
+
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 26.514     | 26.514     | 26.514     |   0.0 | 41.44
+Neigh   | 0.60324    | 0.60324    | 0.60324    |   0.0 |  0.94
+Comm    | 0.075881   | 0.075881   | 0.075881   |   0.0 |  0.12
+Output  | 0.0029137  | 0.0029137  | 0.0029137  |   0.0 |  0.00
+Modify  | 35.686     | 35.686     | 35.686     |   0.0 | 55.78
+Other   |            | 1.092      |            |       |  1.71
+
+Nlocal:    1660 ave 1660 max 1660 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    11681 ave 11681 max 11681 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 11681
+Ave neighs/atom = 7.03675
+Neighbor list builds = 249
+Dangerous builds = 0
+Total wall time: 0:02:48

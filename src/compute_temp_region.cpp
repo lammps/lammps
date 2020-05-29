@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_temp_region.h"
 #include <mpi.h>
 #include <cstring>
-#include "compute_temp_region.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -49,7 +49,7 @@ ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) :
 
   maxbias = 0;
   vbiasall = NULL;
-  vector = new double[6];
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -253,7 +253,7 @@ void ComputeTempRegion::remove_bias_all()
    assume remove_bias() was previously called
 ------------------------------------------------------------------------- */
 
-void ComputeTempRegion::restore_bias(int i, double *v)
+void ComputeTempRegion::restore_bias(int /*i*/, double *v)
 {
   v[0] += vbias[0];
   v[1] += vbias[1];
@@ -265,7 +265,7 @@ void ComputeTempRegion::restore_bias(int i, double *v)
    assume remove_bias_thr() was previously called with the same buffer b
 ------------------------------------------------------------------------- */
 
-void ComputeTempRegion::restore_bias_thr(int i, double *v, double *b)
+void ComputeTempRegion::restore_bias_thr(int /*i*/, double *v, double *b)
 {
   v[0] += b[0];
   v[1] += b[1];

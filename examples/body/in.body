@@ -8,7 +8,7 @@ read_data       data.body
 
 velocity	all create 1.44 87287 loop geom
 
-pair_style	body 5.0
+pair_style	body/nparticle 5.0
 pair_coeff	* * 1.0 1.0
 
 neighbor	0.5 bin

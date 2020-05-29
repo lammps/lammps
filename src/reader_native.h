@@ -33,7 +33,7 @@ class ReaderNative : public Reader {
 
   int read_time(bigint &);
   void skip();
-  bigint read_header(double [3][3], int &, int, int, int *, char **,
+  bigint read_header(double [3][3], int &, int &, int, int, int *, char **,
                      int, int, int &, int &, int &, int &);
   void read_atoms(int, int, double **);
 

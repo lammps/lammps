@@ -15,19 +15,18 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_table_rx.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "pair_table_rx.h"
 #include "atom.h"
 #include "force.h"
-#include "comm.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
 #include "modify.h"
 #include "fix.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -78,8 +77,7 @@ void PairTableRX::compute(int eflag, int vflag)
 
   evdwlOld = 0.0;
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -306,8 +304,8 @@ void PairTableRX::coeff(int narg, char **arg)
 
   bool rx_flag = false;
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"rx",2) == 0) rx_flag = true;
-  if (!rx_flag) error->all(FLERR,"PairTableRX requires a fix rx command.");
+    if (utils::strmatch(modify->fix[i]->style,"^rx")) rx_flag = true;
+  if (!rx_flag) error->all(FLERR,"Pair style table/rx requires a fix rx command.");
 
   int ilo,ihi,jlo,jhi;
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
@@ -439,7 +437,7 @@ void PairTableRX::coeff(int narg, char **arg)
 /* ---------------------------------------------------------------------- */
 
 double PairTableRX::single(int i, int j, int itype, int jtype, double rsq,
-                         double factor_coul, double factor_lj,
+                         double /*factor_coul*/, double factor_lj,
                          double &fforce)
 {
   int itable;

@@ -11,17 +11,17 @@
 //
 //    begin                :
 //    email                : nguyentd@ornl.gov
-// ***************************************************************************/
+// ***************************************************************************
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 
 #include "lal_aux_fun1.h"
 #ifndef _DOUBLE_DOUBLE
-texture<float4> pos_tex;
-texture<float> q_tex;
+_texture( pos_tex,float4);
+_texture( q_tex,float);
 #else
-texture<int4,1> pos_tex;
-texture<int2> q_tex;
+_texture_2d( pos_tex,int4);
+_texture( q_tex,int2);
 #endif
 
 #else
@@ -31,7 +31,7 @@ texture<int2> q_tex;
 
 #define MY_PIS (acctyp)1.77245385090551602729
 
-__kernel void k_born_wolf(const __global numtyp4 *restrict x_,
+__kernel void k_born_coul_wolf(const __global numtyp4 *restrict x_,
                           const __global numtyp4 *restrict coeff1,
                           const __global numtyp4 *restrict coeff2,
                           const int lj_types,
@@ -165,7 +165,7 @@ __kernel void k_born_wolf(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_born_wolf_fast(const __global numtyp4 *restrict x_,
+__kernel void k_born_coul_wolf_fast(const __global numtyp4 *restrict x_,
                                const __global numtyp4 *restrict coeff1_in,
                                const __global numtyp4 *restrict coeff2_in,
                                const __global numtyp *restrict sp_lj_in,

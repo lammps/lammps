@@ -30,6 +30,7 @@
 #include "style_nstencil.h"
 #include "style_npair.h"
 #include "style_ntopo.h"
+#include "comm.h"
 
 using namespace LAMMPS_NS;
 
@@ -300,6 +301,7 @@ void NeighborKokkos::build_kokkos(int topoflag)
 
   if (style != Neighbor::NSQ) {
     for (int i = 0; i < nbin; i++) {
+      if (!neigh_bin[i]->kokkos) atomKK->sync(Host,ALL_MASK);
       neigh_bin[i]->bin_atoms_setup(nall);
       neigh_bin[i]->bin_atoms();
     }
@@ -357,6 +359,14 @@ void NeighborKokkos::modify_mol_group_grow_kokkos(){
 void NeighborKokkos::modify_mol_intra_grow_kokkos(){
   memoryKK->grow_kokkos(k_ex_mol_intra,ex_mol_intra,maxex_mol,"neigh:ex_mol_intra");
   k_ex_mol_intra.modify<LMPHostType>();
+}
+
+/* ---------------------------------------------------------------------- */
+void NeighborKokkos::set_binsize_kokkos() {
+  if (!binsizeflag && lmp->kokkos->ngpus > 0) {
+    binsize_user = cutneighmax;
+    binsizeflag = 1;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

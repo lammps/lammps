@@ -22,9 +22,8 @@ struct pack_plan_3d {
   int nqty;                  // # of values/element
 };
 
-
-#if !defined(PACK_POINTER) && !defined(PACK_MEMCPY)
-#define PACK_ARRAY
+#if !defined(FFT_PACK_POINTER) && !defined(FFT_PACK_MEMCPY)
+#define FFT_PACK_ARRAY
 #endif
 
 #ifndef PACK_DATA
@@ -47,7 +46,7 @@ struct pack_plan_3d {
    pack/unpack with array indices
 ------------------------------------------------------------------------- */
 
-#ifdef PACK_ARRAY
+#ifdef FFT_PACK_ARRAY
 
 /* ----------------------------------------------------------------------
    pack from data -> buf
@@ -55,8 +54,8 @@ struct pack_plan_3d {
 
 static void pack_3d(PACK_DATA *data, PACK_DATA *buf, struct pack_plan_3d *plan)
 {
-  register int in,out,fast,mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane,plane;
+  int in,out,fast,mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane,plane;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -81,8 +80,8 @@ static void pack_3d(PACK_DATA *data, PACK_DATA *buf, struct pack_plan_3d *plan)
 
 static void unpack_3d(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 {
-  register int in,out,fast,mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane,plane;
+  int in,out,fast,mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane,plane;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -107,8 +106,8 @@ static void unpack_3d(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan
 
 static void unpack_3d_permute1_1(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 {
-  register int in,out,fast,mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane,plane;
+  int in,out,fast,mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane,plane;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -133,8 +132,8 @@ static void unpack_3d_permute1_1(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
 
 static void unpack_3d_permute1_2(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 {
-  register int in,out,fast,mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane,plane;
+  int in,out,fast,mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane,plane;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -162,8 +161,8 @@ static void unpack_3d_permute1_2(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
 static void unpack_3d_permute1_n(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
-  register int in,out,iqty,instart,fast,mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane,plane,nqty;
+  int in,out,iqty,instart,fast,mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane,plane,nqty;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -192,8 +191,8 @@ static void unpack_3d_permute1_n(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
 static void unpack_3d_permute2_1(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
-  register int in,out,fast,mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane;
+  int in,out,fast,mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -218,8 +217,8 @@ static void unpack_3d_permute2_1(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
 static void unpack_3d_permute2_2(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
-  register int in,out,fast,mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane;
+  int in,out,fast,mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -246,8 +245,8 @@ static void unpack_3d_permute2_2(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
 static void unpack_3d_permute2_n(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
-  register int in,out,iqty,instart,fast,mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane,nqty;
+  int in,out,iqty,instart,fast,mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane,nqty;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -274,7 +273,7 @@ static void unpack_3d_permute2_n(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
    pack/unpack with pointers
 ------------------------------------------------------------------------- */
 
-#ifdef PACK_POINTER
+#ifdef FFT_PACK_POINTER
 
 /* ----------------------------------------------------------------------
    pack from data -> buf
@@ -283,9 +282,9 @@ static void unpack_3d_permute2_n(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
 static void pack_3d(PACK_DATA *data, PACK_DATA *buf, struct pack_plan_3d *plan)
 
 {
-  register PACK_DATA *in,*out,*begin,*end;
-  register int mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane,plane;
+  PACK_DATA *in,*out,*begin,*end;
+  int mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane,plane;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -312,9 +311,9 @@ static void pack_3d(PACK_DATA *data, PACK_DATA *buf, struct pack_plan_3d *plan)
 static void unpack_3d(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
-  register PACK_DATA *in,*out,*begin,*end;
-  register int mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane,plane;
+  PACK_DATA *in,*out,*begin,*end;
+  int mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane,plane;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -341,9 +340,9 @@ static void unpack_3d(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan
 static void unpack_3d_permute1_1(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
-  register PACK_DATA *in,*out,*begin,*end;
-  register int mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane,plane;
+  PACK_DATA *in,*out,*begin,*end;
+  int mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane,plane;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -370,9 +369,9 @@ static void unpack_3d_permute1_1(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
 static void unpack_3d_permute1_2(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
-  register PACK_DATA *in,*out,*begin,*end;
-  register int mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane,plane;
+  PACK_DATA *in,*out,*begin,*end;
+  int mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane,plane;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -401,9 +400,9 @@ static void unpack_3d_permute1_2(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
 static void unpack_3d_permute1_n(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
-  register PACK_DATA *in,*out,*instart,*begin,*end;
-  register int iqty,mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane,plane,nqty;
+  PACK_DATA *in,*out,*instart,*begin,*end;
+  int iqty,mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane,plane,nqty;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -433,9 +432,9 @@ static void unpack_3d_permute1_n(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
 static void unpack_3d_permute2_1(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
-  register PACK_DATA *in,*out,*begin,*end;
-  register int mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane;
+  PACK_DATA *in,*out,*begin,*end;
+  int mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -461,9 +460,9 @@ static void unpack_3d_permute2_1(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
 static void unpack_3d_permute2_2(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
-  register PACK_DATA *in,*out,*begin,*end;
-  register int mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane;
+  PACK_DATA *in,*out,*begin,*end;
+  int mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -491,9 +490,9 @@ static void unpack_3d_permute2_2(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
 static void unpack_3d_permute2_n(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
-  register PACK_DATA *in,*out,*instart,*begin,*end;
-  register int iqty,mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane,nqty;
+  PACK_DATA *in,*out,*instart,*begin,*end;
+  int iqty,mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane,nqty;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -523,7 +522,7 @@ static void unpack_3d_permute2_n(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
      just use PACK_POINTER versions
 ------------------------------------------------------------------------- */
 
-#ifdef PACK_MEMCPY
+#ifdef FFT_PACK_MEMCPY
 
 /* ----------------------------------------------------------------------
    pack from data -> buf
@@ -532,9 +531,9 @@ static void unpack_3d_permute2_n(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
 static void pack_3d(PACK_DATA *data, PACK_DATA *buf, struct pack_plan_3d *plan)
 
 {
-  register PACK_DATA *in,*out;
-  register int mid,slow,size;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane,plane,upto;
+  PACK_DATA *in,*out;
+  int mid,slow,size;
+  int nfast,nmid,nslow,nstride_line,nstride_plane,plane,upto;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -561,9 +560,9 @@ static void pack_3d(PACK_DATA *data, PACK_DATA *buf, struct pack_plan_3d *plan)
 static void unpack_3d(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
-  register PACK_DATA *in,*out;
-  register int mid,slow,size;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane,plane,upto;
+  PACK_DATA *in,*out;
+  int mid,slow,size;
+  int nfast,nmid,nslow,nstride_line,nstride_plane,plane,upto;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -590,9 +589,9 @@ static void unpack_3d(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan
 static void unpack_3d_permute1_1(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
-  register PACK_DATA *in,*out,*begin,*end;
-  register int mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane,plane;
+  PACK_DATA *in,*out,*begin,*end;
+  int mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane,plane;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -619,9 +618,9 @@ static void unpack_3d_permute1_1(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
 static void unpack_3d_permute1_2(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
-  register PACK_DATA *in,*out,*begin,*end;
-  register int mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane,plane;
+  PACK_DATA *in,*out,*begin,*end;
+  int mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane,plane;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -650,9 +649,9 @@ static void unpack_3d_permute1_2(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
 static void unpack_3d_permute1_n(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
-  register PACK_DATA *in,*out,*instart,*begin,*end;
-  register int iqty,mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane,plane,nqty;
+  PACK_DATA *in,*out,*instart,*begin,*end;
+  int iqty,mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane,plane,nqty;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -682,9 +681,9 @@ static void unpack_3d_permute1_n(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
 static void unpack_3d_permute2_1(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
-  register PACK_DATA *in,*out,*begin,*end;
-  register int mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane;
+  PACK_DATA *in,*out,*begin,*end;
+  int mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -710,9 +709,9 @@ static void unpack_3d_permute2_1(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
 static void unpack_3d_permute2_2(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
-  register PACK_DATA *in,*out,*begin,*end;
-  register int mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane;
+  PACK_DATA *in,*out,*begin,*end;
+  int mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane;
 
   nfast = plan->nfast;
   nmid = plan->nmid;
@@ -740,9 +739,9 @@ static void unpack_3d_permute2_2(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
 static void unpack_3d_permute2_n(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
-  register PACK_DATA *in,*out,*instart,*begin,*end;
-  register int iqty,mid,slow;
-  register int nfast,nmid,nslow,nstride_line,nstride_plane,nqty;
+  PACK_DATA *in,*out,*instart,*begin,*end;
+  int iqty,mid,slow;
+  int nfast,nmid,nslow,nstride_line,nstride_plane,nqty;
 
   nfast = plan->nfast;
   nmid = plan->nmid;

@@ -72,6 +72,38 @@ public:
     virtual CustomFunction* clone() const = 0;
 };
 
+/**
+ * This class is an implementation of CustomFunction that does no computation.  It just returns
+ * 0 for the value and derivatives.  This is useful when using the parser to analyze expressions
+ * rather than to evaluate them.  You can just create PlaceholderFunctions to represent any custom
+ * functions that may appear in expressions.
+ */
+
+class LEPTON_EXPORT PlaceholderFunction : public CustomFunction {
+public:
+    /**
+     * Create a Placeholder function.
+     *
+     * @param numArgs    the number of arguments the function expects
+     */
+    PlaceholderFunction(int numArgs) : numArgs(numArgs) {
+    }
+    int getNumArguments() const {
+        return numArgs;
+    }
+    double evaluate(const double* arguments) const {
+        return 0.0;
+    }
+    double evaluateDerivative(const double* arguments, const int* derivOrder) const {
+        return 0.0;
+    }
+    CustomFunction* clone() const {
+        return new PlaceholderFunction(numArgs);
+    };
+private:
+    int numArgs;
+};
+
 } // namespace Lepton
 
 #endif /*LEPTON_CUSTOM_FUNCTION_H_*/

@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_half_multi_newton.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"

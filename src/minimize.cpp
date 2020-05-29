@@ -11,7 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "minimize.h"
 #include "domain.h"
 #include "update.h"
@@ -52,9 +51,6 @@ void Minimize::command(int narg, char **arg)
   update->endstep = update->laststep = update->firststep + update->nsteps;
   if (update->laststep < 0)
     error->all(FLERR,"Too many iterations");
-
-  if (lmp->kokkos)
-    error->all(FLERR,"Cannot yet use minimize with Kokkos");
 
   lmp->init();
   timer->init_timeout();

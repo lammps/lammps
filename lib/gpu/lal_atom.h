@@ -29,6 +29,11 @@ using namespace ucl_opencl;
 #include "geryon/nvc_mat.h"
 #include "geryon/nvc_kernel.h"
 using namespace ucl_cudart;
+#elif defined(USE_HIP)
+#include "geryon/hip_timer.h"
+#include "geryon/hip_mat.h"
+#include "geryon/hip_kernel.h"
+using namespace ucl_hip;
 #else
 #include "geryon/nvd_timer.h"
 #include "geryon/nvd_mat.h"
@@ -322,10 +327,12 @@ class Atom {
 
   // Copy charges to device asynchronously
   inline void add_q_data() {
+    time_q.start();
     if (_q_avail==false) {
       q.update_device(_nall,true);
       _q_avail=true;
     }
+    time_q.stop();
   }
 
   // Cast quaternions to write buffer
@@ -347,10 +354,12 @@ class Atom {
   // Copy quaternions to device
   /** Copies nall()*4 elements **/
   inline void add_quat_data() {
+    time_quat.start();
     if (_quat_avail==false) {
       quat.update_device(_nall*4,true);
       _quat_avail=true;
     }
+    time_quat.stop();
   }
 
   /// Cast velocities and tags to write buffer
@@ -472,6 +481,14 @@ class Atom {
   #ifdef USE_CUDPP
   CUDPPConfiguration sort_config;
   CUDPPHandle sort_plan;
+  #endif
+
+  #ifdef USE_HIP_DEVICE_SORT
+  unsigned* sort_out_keys = nullptr;
+  int* sort_out_values = nullptr;
+  void* sort_temp_storage = nullptr;
+  size_t sort_temp_storage_size = 0;
+  size_t sort_out_size = 0;
   #endif
 };
 

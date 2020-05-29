@@ -1,0 +1,85 @@
+LAMMPS (22 Aug 2018)
+# 3d Lennard-Jones melt - no client/server mode
+
+variable	x index 5
+variable	y index 5
+variable	z index 5
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
+region		box block 0 $x 0 $y 0 $z
+region		box block 0 5 0 $y 0 $z
+region		box block 0 5 0 5 0 $z
+region		box block 0 5 0 5 0 5
+create_box	1 box
+Created orthogonal box = (0 0 0) to (8.39798 8.39798 8.39798)
+  1 by 2 by 2 MPI processor grid
+create_atoms	1 box
+Created 500 atoms
+  Time spent = 0.000656843 secs
+mass		1 1.0
+
+velocity	all create 1.44 87287 loop geom
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+fix		1 all nve
+# same with NPT
+#fix             1 all npt temp 1.0 1.0 0.1 iso 1 1 1.0
+
+thermo          10
+run		50
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 6 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.109 | 3.109 | 3.109 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0         1.44   -6.7733681            0   -4.6176881   -5.0221006 
+      10    1.1347688   -6.3153532            0   -4.6166043   -2.6072847 
+      20     0.628166   -5.5624945            0     -4.62213    1.0186262 
+      30   0.73767593   -5.7297655            0   -4.6254647   0.49629637 
+      40   0.69517962   -5.6660345            0   -4.6253506   0.69303877 
+      50   0.70150496   -5.6761362            0   -4.6259832   0.59551518 
+Loop time of 0.0131519 on 4 procs for 50 steps with 500 atoms
+
+Performance: 1642350.242 tau/day, 3801.737 timesteps/s
+97.9% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.006074   | 0.0065379  | 0.0072589  |   0.6 | 49.71
+Neigh   | 0.0014219  | 0.0015552  | 0.0017018  |   0.3 | 11.82
+Comm    | 0.003546   | 0.0043943  | 0.0049584  |   0.8 | 33.41
+Output  | 0.000108   | 0.00012845 | 0.00016999 |   0.0 |  0.98
+Modify  | 0.00014353 | 0.00014949 | 0.00015569 |   0.0 |  1.14
+Other   |            | 0.0003865  |            |       |  2.94
+
+Nlocal:    125 ave 128 max 121 min
+Histogram: 1 0 0 0 1 0 0 0 1 1
+Nghost:    1091 ave 1094 max 1089 min
+Histogram: 1 0 1 0 1 0 0 0 0 1
+Neighs:    4705 ave 4849 max 4648 min
+Histogram: 2 1 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 18820
+Ave neighs/atom = 37.64
+Neighbor list builds = 4
+Dangerous builds = 0
+Total wall time: 0:00:00

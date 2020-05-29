@@ -27,26 +27,27 @@ class UEFBox
     bool reduce();
     void get_box(double[3][3], double);
     void get_rot(double[3][3]);
+    void get_inverse_cob(int[3][3]);
   private:
     double l0[3][3]; // initial basis
-    double w1[3],w2[3], winv[3][3]; // omega1 and omega2 (spectra of automorphisms)
-    //double edot[3], delta[2];
+    double w1[3],w2[3],winv[3][3];//omega1 and omega2 (spectra of automorphisms)
     double theta[2];
     double l[3][3], rot[3][3], lrot[3][3];
-    int r[3][3],a1[3][3],a2[3][3],a1i[3][3],a2i[3][3];
+    int r[3][3],ri[3][3],a1[3][3],a2[3][3],a1i[3][3],a2i[3][3];
 };
 
-
 // lattice reduction routines
-void greedy(double[3][3],int[3][3]);
-void col_sort(double[3][3],int[3][3]);
-void red12(double[3][3],int[3][3]);
-void greedy_recurse(double[3][3],int[3][3]);
-void red3(double [3][3],int r[3][3]);
-void make_unique(double[3][3],int[3][3]);
+
+void greedy(double[3][3],int[3][3],int[3][3]);
+void col_sort(double[3][3],int[3][3],int[3][3]);
+void red12(double[3][3],int[3][3],int[3][3]);
+void greedy_recurse(double[3][3],int[3][3],int[3][3]);
+void red3(double [3][3],int r[3][3],int[3][3]);
+void make_unique(double[3][3],int[3][3],int[3][3]);
 void rotation_matrix(double[3][3],double[3][3],const double [3][3]);
 
 // A few utility functions for 3x3 arrays
+
 template<typename T>
 T col_prod(T x[3][3], int c1, int c2)
 {
@@ -56,8 +57,7 @@ T col_prod(T x[3][3], int c1, int c2)
 template<typename T>
 void col_swap(T x[3][3], int c1, int c2)
 {
-  for (int k=0;k<3;k++)
-  {
+  for (int k=0;k<3;k++) {
     T t = x[k][c2];
     x[k][c2]=x[k][c1];
     x[k][c1]=t;
@@ -101,9 +101,20 @@ bool mat_same(T x1[3][3], T x2[3][3])
 }
 
 template<typename T>
-void mul_m1(T m1[3][3], const T m2[3][3])
+void transpose(T m[3][3])
 {
-  T t[3][3];
+  for (int k=0;k<3;k++)
+    for (int j=k+1;j<3;j++) {
+      T x = m[k][j];
+      m[k][j] = m[j][k];
+      m[j][k] = x;
+    }
+}
+
+template<typename T1,typename T2>
+void mul_m1(T1 m1[3][3], const T2 m2[3][3])
+{
+  T1 t[3][3];
   for (int k=0;k<3;k++)
     for (int j=0;j<3;j++)
       t[k][j]=m1[k][j];
@@ -113,10 +124,10 @@ void mul_m1(T m1[3][3], const T m2[3][3])
       m1[k][j] = t[k][0]*m2[0][j] + t[k][1]*m2[1][j] + t[k][2]*m2[2][j];
 }
 
-template<typename T>
-void mul_m2(const T m1[3][3], T m2[3][3])
+template<typename T1, typename T2>
+void mul_m2(const T1 m1[3][3], T2 m2[3][3])
 {
-  T t[3][3];
+  T2 t[3][3];
   for (int k=0;k<3;k++)
     for (int j=0;j<3;j++)
       t[k][j]=m2[k][j];

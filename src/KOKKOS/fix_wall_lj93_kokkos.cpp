@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "fix_wall_lj93_kokkos.h"
+#include <cmath>
 #include "atom_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
@@ -98,7 +98,7 @@ void FixWallLJ93Kokkos<DeviceType>::wall_particle_item(int i, value_type ewall) 
 
 namespace LAMMPS_NS {
 template class FixWallLJ93Kokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class FixWallLJ93Kokkos<LMPHostType>;
 #endif
 }

@@ -15,33 +15,22 @@
    Contributing author: Peter Wirnsberger (University of Cambridge)
 ------------------------------------------------------------------------- */
 
+#include "fix_rattle.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include <cstdio>
-#include "fix_rattle.h"
 #include "atom.h"
-#include "atom_vec.h"
-#include "molecule.h"
 #include "update.h"
-#include "respa.h"
 #include "modify.h"
 #include "domain.h"
 #include "force.h"
-#include "bond.h"
-#include "angle.h"
 #include "comm.h"
-#include "group.h"
-#include "fix_respa.h"
-#include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-using namespace MathConst;
 using namespace MathExtra;
 
 // set RATTLE_DEBUG  1 to check constraints at end of timestep
@@ -130,7 +119,7 @@ int FixRattle::setmask()
 
 void FixRattle::init() {
 
-  // initialise SHAKE first
+  // initialize SHAKE first
 
   FixShake::init();
 
@@ -185,7 +174,7 @@ void FixRattle::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRattle::post_force_respa(int vflag, int ilevel, int iloop)
+void FixRattle::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   // remember vflag for the coordinate correction in this->final_integrate
 
@@ -625,7 +614,7 @@ void FixRattle::update_v_half_nocons()
 
 /* ---------------------------------------------------------------------- */
 
-void FixRattle::update_v_half_nocons_respa(int ilevel)
+void FixRattle::update_v_half_nocons_respa(int /*ilevel*/)
 {
   // carry out unconstrained velocity update
 

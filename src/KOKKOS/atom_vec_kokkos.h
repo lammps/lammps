@@ -41,6 +41,9 @@ class AtomVecKokkos : public AtomVec {
   virtual void unpack_comm_vel(int, int, double *);
   virtual int pack_reverse(int, int, double *);
   virtual void unpack_reverse(int, int *, double *);
+  virtual void data_vel(int, char **);
+  virtual void pack_vel(double **);
+  virtual void write_vel(FILE *, int, double **);
 
   virtual void sync(ExecutionSpace space, unsigned int mask) = 0;
   virtual void modified(ExecutionSpace space, unsigned int mask) = 0;
@@ -52,6 +55,14 @@ class AtomVecKokkos : public AtomVec {
                    const int &pbc_flag, const int pbc[]);
 
   virtual int
+    pack_comm_self_fused(const int &n, const DAT::tdual_int_2d &list,
+                         const DAT::tdual_int_1d &sendnum_scan,
+                         const DAT::tdual_int_1d &firstrecv,
+                         const DAT::tdual_int_1d &pbc_flag,
+                         const DAT::tdual_int_2d &pbc,
+                         const DAT::tdual_int_1d &g2l);
+
+  virtual int
     pack_comm_kokkos(const int &n, const DAT::tdual_int_2d &list,
                      const int & iswap, const DAT::tdual_xfloat_2d &buf,
                      const int &pbc_flag, const int pbc[]);
@@ -59,6 +70,15 @@ class AtomVecKokkos : public AtomVec {
   virtual void
     unpack_comm_kokkos(const int &n, const int &nfirst,
                        const DAT::tdual_xfloat_2d &buf);
+
+  virtual int
+    pack_comm_vel_kokkos(const int &n, const DAT::tdual_int_2d &list,
+                         const int & iswap, const DAT::tdual_xfloat_2d &buf,
+                         const int &pbc_flag, const int pbc[]);
+
+  virtual void
+    unpack_comm_vel_kokkos(const int &n, const int &nfirst,
+                           const DAT::tdual_xfloat_2d &buf);
 
   virtual int
     unpack_reverse_self(const int &n, const DAT::tdual_int_2d &list,
@@ -83,6 +103,16 @@ class AtomVecKokkos : public AtomVec {
                          ExecutionSpace space) = 0;
 
   virtual int
+    pack_border_vel_kokkos(int n, DAT::tdual_int_2d k_sendlist,
+                           DAT::tdual_xfloat_2d buf,int iswap,
+                           int pbc_flag, int *pbc, ExecutionSpace space) { return 0; }
+
+  virtual void
+    unpack_border_vel_kokkos(const int &n, const int &nfirst,
+                             const DAT::tdual_xfloat_2d &buf,
+                             ExecutionSpace space) {}
+
+  virtual int
     pack_exchange_kokkos(const int &nsend, DAT::tdual_xfloat_2d &buf,
                          DAT::tdual_int_1d k_sendlist,
                          DAT::tdual_int_1d k_copylist,
@@ -94,6 +124,8 @@ class AtomVecKokkos : public AtomVec {
                            ExecutionSpace space) = 0;
 
 
+  int no_comm_vel_flag,no_border_vel_flag;
+
  protected:
 
   HAT::t_x_array h_x;
@@ -104,7 +136,7 @@ class AtomVecKokkos : public AtomVec {
   size_t buffer_size;
   void* buffer;
 
-  #ifdef KOKKOS_HAVE_CUDA
+  #ifdef KOKKOS_ENABLE_CUDA
   template<class ViewType>
   Kokkos::View<typename ViewType::data_type,
                typename ViewType::array_layout,
@@ -118,25 +150,17 @@ class AtomVecKokkos : public AtomVec {
                    Kokkos::CudaHostPinnedSpace,typename ViewType::memory_space>::type,
                  Kokkos::MemoryTraits<Kokkos::Unmanaged> > mirror_type;
     if (buffer_size == 0) {
-       buffer = Kokkos::kokkos_malloc<Kokkos::CudaHostPinnedSpace>(src.capacity());
-       buffer_size = src.capacity();
-    } else if (buffer_size < src.capacity()) {
-       buffer = Kokkos::kokkos_realloc<Kokkos::CudaHostPinnedSpace>(buffer,src.capacity());
-       buffer_size = src.capacity();
+       buffer = Kokkos::kokkos_malloc<Kokkos::CudaHostPinnedSpace>(src.span());
+       buffer_size = src.span();
+    } else if (buffer_size < src.span()) {
+       buffer = Kokkos::kokkos_realloc<Kokkos::CudaHostPinnedSpace>(buffer,src.span());
+       buffer_size = src.span();
     }
-    return mirror_type( buffer ,
-                             src.extent(0) ,
-                             src.extent(1) ,
-                             src.extent(2) ,
-                             src.extent(3) ,
-                             src.extent(4) ,
-                             src.extent(5) ,
-                             src.extent(6) ,
-                             src.extent(7) );
+    return mirror_type(buffer, src.d_view.layout());
   }
 
   template<class ViewType>
-  void perform_async_copy(const ViewType& src, unsigned int space) {
+  void perform_async_copy(ViewType& src, unsigned int space) {
     typedef Kokkos::View<typename ViewType::data_type,
                  typename ViewType::array_layout,
                  typename std::conditional<
@@ -144,29 +168,22 @@ class AtomVecKokkos : public AtomVec {
                    Kokkos::CudaHostPinnedSpace,typename ViewType::memory_space>::type,
                  Kokkos::MemoryTraits<Kokkos::Unmanaged> > mirror_type;
     if (buffer_size == 0) {
-       buffer = Kokkos::kokkos_malloc<Kokkos::CudaHostPinnedSpace>(src.capacity()*sizeof(typename ViewType::value_type));
-       buffer_size = src.capacity();
-    } else if (buffer_size < src.capacity()) {
-       buffer = Kokkos::kokkos_realloc<Kokkos::CudaHostPinnedSpace>(buffer,src.capacity()*sizeof(typename ViewType::value_type));
-       buffer_size = src.capacity();
+       buffer = Kokkos::kokkos_malloc<Kokkos::CudaHostPinnedSpace>(src.span()*sizeof(typename ViewType::value_type));
+       buffer_size = src.span();
+    } else if (buffer_size < src.span()) {
+       buffer = Kokkos::kokkos_realloc<Kokkos::CudaHostPinnedSpace>(buffer,src.span()*sizeof(typename ViewType::value_type));
+       buffer_size = src.span();
     }
-    mirror_type tmp_view( (typename ViewType::value_type*)buffer ,
-                             src.extent(0) ,
-                             src.extent(1) ,
-                             src.extent(2) ,
-                             src.extent(3) ,
-                             src.extent(4) ,
-                             src.extent(5) ,
-                             src.extent(6) ,
-                             src.extent(7) );
+    mirror_type tmp_view((typename ViewType::value_type*)buffer, src.d_view.layout());
+
     if(space == Device) {
       Kokkos::deep_copy(LMPHostType(),tmp_view,src.h_view),
       Kokkos::deep_copy(LMPHostType(),src.d_view,tmp_view);
-      src.modified_device() = src.modified_host();
+      src.clear_sync_state();
     } else {
       Kokkos::deep_copy(LMPHostType(),tmp_view,src.d_view),
       Kokkos::deep_copy(LMPHostType(),src.h_view,tmp_view);
-      src.modified_device() = src.modified_host();
+      src.clear_sync_state();
     }
   }
   #else

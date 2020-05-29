@@ -1,0 +1,82 @@
+# -*- Makefile -*- for coupling LAMMPS to PWscf for QM/MM molecular dynamics
+# adapted for the case of compiling LAMMPS with CMake. This assumes that
+# LAMMPS was configured to build a shared library and installed with "make install"
+# as it used the PKG config configuration file. You may need to extend
+# the PKG_CONFIG_PATH environment variable to have pkgconf find the liblammps.pc file.
+# This is set up for using GNU Fortran and OpenMPI to compile both LAMMPS and QE
+
+# this file will be copied to Makefile.lammps
+EXTRAMAKE = Makefile.lammps.empty
+
+# top level directory of Quantum ESPRESSO 6.3 or later (tested up to QE 6.5)
+QETOPDIR=$(HOME)/compile/espresso
+
+# import compiler settings from Quantum ESPRESSO
+sinclude $(QETOPDIR)/make.inc
+
+# FLAGS for compiling and linking the pwqmmm.x executable
+MPICXX=mpicxx
+MPICXXFLAGS=-DOMPI_SKIP_MPICXX=1 -O2 -Wall -g -fPIC\
+	-I../../src -I$(QETOPDIR)/COUPLE/include
+
+# location of required libraries
+# part 1: hi-level libraries for building pw.x
+PWOBJS = \
+$(QETOPDIR)/COUPLE/src/libqecouple.a \
+$(QETOPDIR)/PW/src/libpw.a \
+$(QETOPDIR)/Modules/libqemod.a
+# part 2: lo-level libraries for all of Q-E
+LIBOBJS = \
+$(QETOPDIR)/FFTXlib/libqefft.a \
+$(QETOPDIR)/dft-d3/libdftd3qe.a  \
+$(QETOPDIR)/KS_Solvers/PPCG/libppcg.a  \
+$(QETOPDIR)/KS_Solvers/CG/libcg.a  \
+$(QETOPDIR)/KS_Solvers/Davidson/libdavid.a  \
+$(QETOPDIR)/UtilXlib/libutil.a   \
+$(QETOPDIR)/LAXlib/libqela.a   \
+$(QETOPDIR)/clib/clib.a   \
+$(QETOPDIR)/iotk/src/libiotk.a
+
+# add support for fortran runtimes for compiler and MPI library
+# those are automatically included when linking QE executables,
+# since they use mpifort/mpif90 to link, but we are using the
+# C++ MPI compiler wrapper instead, so those need to be added
+# as a dependency for QE objects and libraries
+QELIBS +=  -lgfortran -lmpi_mpifh
+
+# part 3: add-on libraries and main library for LAMMPS
+sinclude ../../src/Makefile.package
+LAMMPSFLAGS = $(shell pkgconf liblammps --cflags)
+LAMMPSLIB   = $(shell pkgconf liblammps --libs)
+
+# part 4: local QM/MM library and progams
+SRC=pwqmmm.c libqmmm.c
+OBJ=$(SRC:%.c=%.o)
+
+
+default: libqmmm.a
+
+all : tldeps libqmmm.a pwqmmm.x
+
+pwqmmm.x : pwqmmm.o $(PWOBJS) $(LIBOBJS)
+	$(MPICXX) $(LDFLAGS) -o $@ $^ $(LAMMPSLIB) $(QELIBS) $(LIBS) 
+
+libqmmm.a: libqmmm.o
+	$(AR) $(ARFLAGS) $@ $^
+	@cp $(EXTRAMAKE) Makefile.lammps
+
+%.o: %.c
+	$(MPICXX) -c $(LAMMPSFLAGS) $(MPICXXFLAGS) $< -o $@
+
+tldeps:
+	( cd $(QETOPDIR) ; $(MAKE) $(MFLAGS) couple || exit 1)
+	$(MAKE) -C ../../src $(MFLAGS) $(LAMMPSCFG)
+	$(MAKE) -C ../../src $(MFLAGS) mode=lib $(LAMMPSCFG)
+
+clean :
+	-rm -f *.x *.o *.a *~ *.F90 *.d *.mod *.i *.L
+
+# explicit dependencies
+
+pwqmmm.o: pwqmmm.c libqmmm.h
+libqmmm.o: libqmmm.c libqmmm.h

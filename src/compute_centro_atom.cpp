@@ -15,9 +15,8 @@
    Contributing author: Michel Perez (U Lyon) for non-fcc lattices
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "compute_centro_atom.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -110,7 +109,7 @@ void ComputeCentroAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeCentroAtom::init_list(int id, NeighList *ptr)
+void ComputeCentroAtom::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

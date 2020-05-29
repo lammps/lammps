@@ -23,20 +23,19 @@
  * 01-Aug-12 - RER: First code version.
 ------------------------------------------------------------------------- */
 
+#include "pair_meam_sw_spline.h"
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_meam_sw_spline.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
-#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -85,9 +84,7 @@ PairMEAMSWSpline::~PairMEAMSWSpline()
 
 void PairMEAMSWSpline::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag, vflag);
-  else evflag = vflag_fdotr =
-         eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  ev_init(eflag, vflag);
 
   double cutforcesq = cutoff*cutoff;
 
@@ -372,7 +369,7 @@ void PairMEAMSWSpline::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairMEAMSWSpline::settings(int narg, char **arg)
+void PairMEAMSWSpline::settings(int narg, char **/*arg*/)
 {
   if(narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -462,64 +459,64 @@ void PairMEAMSWSpline::coeff(int narg, char **arg)
 
 void PairMEAMSWSpline::read_file(const char* filename)
 {
-        if(comm->me == 0) {
-                FILE *fp = force->open_potential(filename);
-                if(fp == NULL) {
-                        char str[1024];
-                        sprintf(str,"Cannot open spline MEAM potential file %s", filename);
-                        error->one(FLERR,str);
-                }
+  if(comm->me == 0) {
+    FILE *fp = force->open_potential(filename);
+    if(fp == NULL) {
+      char str[1024];
+      snprintf(str,1024,"Cannot open spline MEAM potential file %s", filename);
+      error->one(FLERR,str);
+    }
 
-                // Skip first line of file.
-                char line[MAXLINE];
-                fgets(line, MAXLINE, fp);
+    // Skip first line of file.
+    char line[MAXLINE];
+    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
 
-                // Parse spline functions.
-                phi.parse(fp, error);
-                F.parse(fp, error);
-                G.parse(fp, error);
-                rho.parse(fp, error);
-                U.parse(fp, error);
-                f.parse(fp, error);
-                g.parse(fp, error);
+    // Parse spline functions.
+    phi.parse(fp, error);
+    F.parse(fp, error);
+    G.parse(fp, error);
+    rho.parse(fp, error);
+    U.parse(fp, error);
+    f.parse(fp, error);
+    g.parse(fp, error);
 
-                fclose(fp);
-        }
+    fclose(fp);
+  }
 
-        // Transfer spline functions from master processor to all other processors.
-        phi.communicate(world, comm->me);
-        rho.communicate(world, comm->me);
-        f.communicate(world, comm->me);
-        U.communicate(world, comm->me);
-        g.communicate(world, comm->me);
-        F.communicate(world, comm->me);
-        G.communicate(world, comm->me);
+  // Transfer spline functions from master processor to all other processors.
+  phi.communicate(world, comm->me);
+  rho.communicate(world, comm->me);
+  f.communicate(world, comm->me);
+  U.communicate(world, comm->me);
+  g.communicate(world, comm->me);
+  F.communicate(world, comm->me);
+  G.communicate(world, comm->me);
 
-        // Calculate 'zero-point energy' of single atom in vacuum.
-        zero_atom_energy = U.eval(0.0);
+  // Calculate 'zero-point energy' of single atom in vacuum.
+  zero_atom_energy = U.eval(0.0);
 
-        // Determine maximum cutoff radius of all relevant spline functions.
-        cutoff = 0.0;
-        if(phi.cutoff() > cutoff) cutoff = phi.cutoff();
-        if(rho.cutoff() > cutoff) cutoff = rho.cutoff();
-        if(f.cutoff() > cutoff) cutoff = f.cutoff();
-        if(F.cutoff() > cutoff) cutoff = F.cutoff();
+  // Determine maximum cutoff radius of all relevant spline functions.
+  cutoff = 0.0;
+  if(phi.cutoff() > cutoff) cutoff = phi.cutoff();
+  if(rho.cutoff() > cutoff) cutoff = rho.cutoff();
+  if(f.cutoff() > cutoff) cutoff = f.cutoff();
+  if(F.cutoff() > cutoff) cutoff = F.cutoff();
 
-        // Set LAMMPS pair interaction flags.
-        for(int i = 1; i <= atom->ntypes; i++) {
-                for(int j = 1; j <= atom->ntypes; j++) {
-                        setflag[i][j] = 1;
-                        cutsq[i][j] = cutoff;
-                }
-        }
+  // Set LAMMPS pair interaction flags.
+  for(int i = 1; i <= atom->ntypes; i++) {
+    for(int j = 1; j <= atom->ntypes; j++) {
+      setflag[i][j] = 1;
+      cutsq[i][j] = cutoff;
+    }
+  }
 
-        // phi.writeGnuplot("phi.gp", "Phi(r)");
-        // rho.writeGnuplot("rho.gp", "Rho(r)");
-        // f.writeGnuplot("f.gp", "f(r)");
-        // U.writeGnuplot("U.gp", "U(rho)");
-        // g.writeGnuplot("g.gp", "g(x)");
-        // F.writeGnuplot("F.gp", "F(r)");
-        // G.writeGnuplot("G.gp", "G(x)");
+  // phi.writeGnuplot("phi.gp", "Phi(r)");
+  // rho.writeGnuplot("rho.gp", "Rho(r)");
+  // f.writeGnuplot("f.gp", "f(r)");
+  // U.writeGnuplot("U.gp", "U(rho)");
+  // g.writeGnuplot("g.gp", "g(x)");
+  // F.writeGnuplot("F.gp", "F(r)");
+  // G.writeGnuplot("G.gp", "G(x)");
 }
 
 /* ----------------------------------------------------------------------
@@ -552,7 +549,7 @@ void PairMEAMSWSpline::init_list(int id, NeighList *ptr)
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
-double PairMEAMSWSpline::init_one(int i, int j)
+double PairMEAMSWSpline::init_one(int /*i*/, int /*j*/)
 {
         return cutoff;
 }
@@ -560,7 +557,7 @@ double PairMEAMSWSpline::init_one(int i, int j)
 /* ---------------------------------------------------------------------- */
 
 int PairMEAMSWSpline::pack_forward_comm(int n, int *list, double *buf,
-                                        int pbc_flag, int *pbc)
+                                        int /*pbc_flag*/, int * /*pbc*/)
 {
         int* list_iter = list;
         int* list_iter_end = list + n;
@@ -578,14 +575,14 @@ void PairMEAMSWSpline::unpack_forward_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int PairMEAMSWSpline::pack_reverse_comm(int n, int first, double *buf)
+int PairMEAMSWSpline::pack_reverse_comm(int /*n*/, int /*first*/, double * /*buf*/)
 {
         return 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAMSWSpline::unpack_reverse_comm(int n, int *list, double *buf)
+void PairMEAMSWSpline::unpack_reverse_comm(int /*n*/, int * /*list*/, double * /*buf*/)
 {
 }
 
@@ -604,23 +601,23 @@ void PairMEAMSWSpline::SplineFunction::parse(FILE* fp, Error* error)
         char line[MAXLINE];
 
         // Parse number of spline knots.
-        fgets(line, MAXLINE, fp);
+        utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
         int n = atoi(line);
         if(n < 2)
                 error->one(FLERR,"Invalid number of spline knots in MEAM potential file");
 
         // Parse first derivatives at beginning and end of spline.
-        fgets(line, MAXLINE, fp);
+        utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
         double d0 = atof(strtok(line, " \t\n\r\f"));
         double dN = atof(strtok(NULL, " \t\n\r\f"));
         init(n, d0, dN);
 
         // Skip line.
-        fgets(line, MAXLINE, fp);
+        utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
 
         // Parse knot coordinates.
         for(int i=0; i<n; i++) {
-                fgets(line, MAXLINE, fp);
+          utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
                 double x, y, y2;
                 if(sscanf(line, "%lg %lg %lg", &x, &y, &y2) != 3) {
                         error->one(FLERR,"Invalid knot line in MEAM potential file");
@@ -677,6 +674,7 @@ void PairMEAMSWSpline::SplineFunction::prepareSpline(Error* error)
                 Y2[i] /= h*6.0;
 #endif
         }
+        inv_h = 1/h;
         xmax_shifted = xmax - xmin;
 }
 
@@ -692,6 +690,7 @@ void PairMEAMSWSpline::SplineFunction::communicate(MPI_Comm& world, int me)
         MPI_Bcast(&isGridSpline, 1, MPI_INT, 0, world);
         MPI_Bcast(&h, 1, MPI_DOUBLE, 0, world);
         MPI_Bcast(&hsq, 1, MPI_DOUBLE, 0, world);
+        MPI_Bcast(&inv_h, 1, MPI_DOUBLE, 0, world);
         if(me != 0) {
                 X = new double[N];
                 Xs = new double[N];

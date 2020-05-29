@@ -1,0 +1,130 @@
+LAMMPS (22 Aug 2018)
+# 2d NEMD simulation - client script
+
+variable        mode index file
+
+if "${mode} == file" then   "message client md file tmp.couple" elif "${mode} == zmq"   "message client md zmq localhost:5555" elif "${mode} == mpione"   "message client md mpi/one" elif "${mode} == mpitwo"   "message client md mpi/two tmp.couple"
+message client md mpi/two tmp.couple
+
+units		lj
+atom_style	atomic
+dimension	2
+atom_modify     sort 0 0.0 map yes
+
+lattice		sq2 0.8442
+Lattice spacing in x,y,z = 1.53919 1.53919 1.53919
+region		box prism 0 10 0 8 -0.5 0.5 0 0 0
+create_box	2 box
+Created triclinic box = (0 0 -0.769595) to (15.3919 12.3135 0.769595) with tilt (0 0 0)
+  2 by 1 by 1 MPI processor grid
+create_atoms	1 box
+Created 160 atoms
+  Time spent = 0.000574827 secs
+mass		* 1.0
+
+velocity	all create 1.44 87287 loop geom
+
+region		slice block 4 6 INF INF INF INF
+set		region slice type 2
+  40 settings made for type
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+fix		1 all nvt/sllod temp 1.0 1.0 1.0 tchain 1
+fix		2 all deform 1 xy erate 0.01 remap v
+
+fix             3 all client/md
+fix_modify      3 energy yes
+
+thermo_style    custom step temp epair etotal press xy
+
+thermo		1000
+run		50000
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 0
+  ghost atom cutoff = 0
+  binsize = 15.3919, bins = 1 1 1
+  0 neighbor lists, perpetual/occasional/extra = 0 0 0
+Per MPI rank memory allocation (min/avg/max) = 2.308 | 2.308 | 2.308 Mbytes
+Step Temp E_pair TotEng Press Xy 
+       0         1.44            0        1.431    1.2080502            0 
+    1000    1.0876599            0    1.3637783     6.063363   0.61567613 
+    2000    1.0722996            0    1.4108622    7.0518942    1.2313523 
+    3000    1.0580774            0    1.3845895    6.0395275    1.8470284 
+    4000    1.0068006            0    1.3804387    7.0944598    2.4627045 
+    5000   0.95391814            0    1.2578438    6.1878831    3.0783806 
+    6000   0.93492945            0    1.2711287    7.0440517    3.6940568 
+    7000   0.94107853            0    1.2384371    6.1438077    4.3097329 
+    8000   0.89711744            0     1.145748    6.3558305     4.925409 
+    9000   0.90190304            0    1.0860684     4.957098    5.5410852 
+   10000   0.84255749            0    1.0376892    5.2351795    6.1567613 
+   11000   0.90250882            0    1.0497695    4.3844838    6.7724374 
+   12000   0.83461274            0    1.0281949    5.1534361    7.3881135 
+   13000   0.80315331            0    1.0226333     5.757222   -7.3881135 
+   14000   0.81820939            0   0.99276466    4.6943725   -6.7724374 
+   15000    0.8239631            0    1.0408289    5.1669006   -6.1567613 
+   16000   0.88908894            0    1.1554855    6.3510278   -5.5410852 
+   17000   0.98268136            0    1.2086981    5.6302847    -4.925409 
+   18000    1.0098162            0    1.3687676    7.5243587   -4.3097329 
+   19000    1.0795086            0    1.4562691     7.639418   -3.6940568 
+   20000    1.1932155            0    1.5278988    7.0668432   -3.0783806 
+   21000    1.2424296            0    1.6048792     7.959585   -2.4627045 
+   22000     1.297169            0    1.7421262    8.9432388   -1.8470284 
+   23000    1.2863494            0    1.7236774    8.3584973   -1.2313523 
+   24000    1.4084347            0    1.7370339    7.2729078  -0.61567613 
+   25000    1.3339728            0    1.6883255     7.529098            0 
+   26000    1.1483243            0    1.5155578    7.3869994   0.61567613 
+   27000    1.1372606            0    1.4368323    7.0580136    1.2313523 
+   28000    1.0518579            0     1.355311     6.478857    1.8470284 
+   29000    1.0581145            0    1.2535509    5.3697479    2.4627045 
+   30000   0.93612564            0     1.185532    5.5520142    3.0783806 
+   31000   0.94387516            0    1.1716454    5.8655485    3.6940568 
+   32000   0.83953515            0    1.0737746    5.5551953    4.3097329 
+   33000   0.84862926            0    1.0564042    5.7795428     4.925409 
+   34000   0.83621877            0     1.079387    5.7514243    5.5410852 
+   35000   0.86938506            0     1.031783    4.5897825    6.1567613 
+   36000   0.88990609            0    1.0807597    5.3751744    6.7724374 
+   37000   0.89534631            0    1.1238882    5.2400355    7.3881135 
+   38000   0.98545003            0    1.2121125    5.7783854   -7.3881135 
+   39000   0.96737778            0    1.2472934       6.1139   -6.7724374 
+   40000    1.0664194            0    1.2956811    5.7353661   -6.1567613 
+   41000    1.0681494            0    1.3269435    6.3102722   -5.5410852 
+   42000    1.0875422            0    1.3963739    7.1208066    -4.925409 
+   43000    1.0968173            0    1.3388062    6.1704339   -4.3097329 
+   44000    1.1182109            0    1.3773214    7.0872686   -3.6940568 
+   45000    1.1243261            0     1.432186     6.884782   -3.0783806 
+   46000     1.039713            0    1.4389721    7.5585257   -2.4627045 
+   47000    1.0816108            0    1.4100361    6.4611126   -1.8470284 
+   48000   0.97637127            0    1.3605389    7.3992744   -1.2313523 
+   49000    1.0361978            0    1.2721873    5.8166109  -0.61567613 
+   50000   0.92367087            0    1.1875669    6.4685214            0 
+Loop time of 5.66536 on 2 procs for 50000 steps with 160 atoms
+
+Performance: 3812643.232 tau/day, 8825.563 timesteps/s
+48.1% CPU use with 2 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0.0012836  | 0.0015377  | 0.0017917  |   0.6 |  0.03
+Comm    | 0.037211   | 0.037922   | 0.038633   |   0.4 |  0.67
+Output  | 0.00052023 | 0.00073683 | 0.00095344 |   0.0 |  0.01
+Modify  | 5.5101     | 5.5105     | 5.511      |   0.0 | 97.27
+Other   |            | 0.1146     |            |       |  2.02
+
+Nlocal:    80 ave 80 max 80 min
+Histogram: 2 0 0 0 0 0 0 0 0 0
+Nghost:    0 ave 0 max 0 min
+Histogram: 2 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 2 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 5257
+Dangerous builds = 0
+Total wall time: 0:00:06

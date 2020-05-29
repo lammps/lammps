@@ -11,7 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "fix_read_restart.h"
 #include "atom.h"
 #include "memory.h"
@@ -96,7 +95,7 @@ void FixReadRestart::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixReadRestart::copy_arrays(int i, int j, int delflag)
+void FixReadRestart::copy_arrays(int i, int j, int /*delflag*/)
 {
   count[j] = count[i];
   for (int m = 0; m < count[i]; m++) extra[j][m] = extra[i][m];

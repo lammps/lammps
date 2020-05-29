@@ -1,26 +1,40 @@
 #!/usr/bin/env python
 
-# Install.py tool to download, unpack, build, and link to the Voro++ library
-# used to automate the steps described in the README file in this dir
+"""
+Install.py tool to download, unpack, build, and link to the Voro++ library
+used to automate the steps described in the README file in this dir
+"""
 
 from __future__ import print_function
-import sys,os,re,subprocess
+import sys, os, subprocess, shutil, tarfile
+from argparse import ArgumentParser
 
-# help message
+sys.path.append('..')
+from install_helpers import fullpath, geturl, checkmd5sum
 
-help = """
+parser = ArgumentParser(prog='Install.py',
+                        description="LAMMPS library build wrapper script")
+
+# settings
+
+version = "voro++-0.4.6"
+url = "https://download.lammps.org/thirdparty/%s.tar.gz" % version
+
+# known checksums for different Voro++ versions. used to validate the download.
+checksums = { \
+        'voro++-0.4.6' : '2338b824c3b7b25590e18e8df5d68af9' \
+        }
+
+# extra help message
+
+HELP = """
 Syntax from src dir: make lib-voronoi args="-b"
                  or: make lib-voronoi args="-p /usr/local/voro++-0.4.6"
                  or: make lib-voronoi args="-b -v voro++-0.4.6"
+
 Syntax from lib dir: python Install.py -b -v voro++-0.4.6
                  or: python Install.py -b
                  or: python Install.py -p /usr/local/voro++-0.4.6
-
-specify one or more options, order does not matter
-
-  -b = download and build the Voro++ library
-  -p = specify folder of existing Voro++ installation
-  -v = set version of Voro++ to download and build (default voro++-0.4.6)
 
 Example:
 
@@ -28,142 +42,80 @@ make lib-voronoi args="-b"   # download/build in lib/voronoi/voro++-0.4.6
 make lib-voronoi args="-p $HOME/voro++-0.4.6" # use existing Voro++ installation in $HOME/voro++-0.4.6
 """
 
-# settings
+# parse and process arguments
 
-version = "voro++-0.4.6"
-url = "http://math.lbl.gov/voro++/download/dir/%s.tar.gz" % version
+pgroup = parser.add_mutually_exclusive_group()
+pgroup.add_argument("-b", "--build", action="store_true",
+                    help="download and build the Voro++ library")
+pgroup.add_argument("-p", "--path",
+                    help="specify folder of existing Voro++ installation")
+parser.add_argument("-v", "--version", default=version,
+                    help="set version of Voro++ to download and build (default: %s)" % version)
 
-# print error message or help
+args = parser.parse_args()
 
-def error(str=None):
-  if not str: print(help)
-  else: print("ERROR",str)
-  sys.exit()
+# print help message and exit, if neither build nor path options are given
+if not args.build and not args.path:
+  parser.print_help()
+  sys.exit(HELP)
 
-# expand to full path name
-# process leading '~' or relative path
+buildflag = args.build
+pathflag = args.path is not None
+voropath = args.path
 
-def fullpath(path):
-  return os.path.abspath(os.path.expanduser(path))
+homepath = fullpath(".")
+homedir = os.path.join(homepath, version)
 
-def which(program):
-  def is_exe(fpath):
-    return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-  fpath, fname = os.path.split(program)
-  if fpath:
-    if is_exe(program):
-      return program
-  else:
-    for path in os.environ["PATH"].split(os.pathsep):
-      path = path.strip('"')
-      exe_file = os.path.join(path, program)
-      if is_exe(exe_file):
-        return exe_file
-
-  return None
-
-def geturl(url,fname):
-  success = False
-
-  if which('curl') != None:
-    cmd = 'curl -L -o "%s" %s' % (fname,url)
-    try:
-      subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-      success = True
-    except subprocess.CalledProcessError as e:
-      print("Calling curl failed with: %s" % e.output.decode('UTF-8'))
-
-  if not success and which('wget') != None:
-    cmd = 'wget -O "%s" %s' % (fname,url)
-    try:
-      subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-      success = True
-    except subprocess.CalledProcessError as e:
-      print("Calling wget failed with: %s" % e.output.decode('UTF-8'))
-
-  if not success:
-    error("Failed to download source code with 'curl' or 'wget'")
-  return
-
-# parse args
-
-args = sys.argv[1:]
-nargs = len(args)
-if nargs == 0: error()
-
-homepath = "."
-homedir = version
-
-buildflag = False
-pathflag = False
-linkflag = True
-
-iarg = 0
-while iarg < nargs:
-  if args[iarg] == "-v":
-    if iarg+2 > nargs: error()
-    version = args[iarg+1]
-    iarg += 2
-  elif args[iarg] == "-p":
-    if iarg+2 > nargs: error()
-    voropath = fullpath(args[iarg+1])
-    pathflag = True
-    iarg += 2
-  elif args[iarg] == "-b":
-    buildflag = True
-    iarg += 1
-  else: error()
-
-homepath = fullpath(homepath)
-homedir = "%s/%s" % (homepath,version)
-
-if (pathflag):
-    if not os.path.isdir(voropath): error("Voro++ path does not exist")
-    homedir = voropath
-
-if (buildflag and pathflag):
-    error("Cannot use -b and -p flag at the same time")
-
-if (not buildflag and not pathflag):
-    error("Have to use either -b or -p flag")
+if pathflag:
+    if not os.path.isdir(voropath):
+      sys.exit("Voro++ path %s does not exist" % voropath)
+    homedir = fullpath(voropath)
 
 # download and unpack Voro++ tarball
 
 if buildflag:
   print("Downloading Voro++ ...")
-  geturl(url,"%s/%s.tar.gz" % (homepath,version))
+  vorotar = os.path.join(homepath, version) + '.tar.gz'
+  geturl(url, vorotar)
+
+  # verify downloaded archive integrity via md5 checksum, if known.
+  if version in checksums:
+    if not checkmd5sum(checksums[version], vorotar):
+      sys.exit("Checksum for Voro++ library does not match")
 
   print("Unpacking Voro++ tarball ...")
-  if os.path.exists("%s/%s" % (homepath,version)):
-    cmd = 'rm -rf "%s/%s"' % (homepath,version)
-    subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  cmd = 'cd "%s"; tar -xzvf %s.tar.gz' % (homepath,version)
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  os.remove("%s/%s.tar.gz" % (homepath,version))
+  srcpath = os.path.join(homepath, version)
+  if os.path.exists(srcpath):
+    shutil.rmtree(srcpath)
+  if tarfile.is_tarfile(vorotar):
+    tgz = tarfile.open(vorotar)
+    tgz.extractall(path=homepath)
+    os.remove(vorotar)
+  else:
+    sys.exit("File %s is not a supported archive" % vorotar)
   if os.path.basename(homedir) != version:
     if os.path.exists(homedir):
-      cmd = 'rm -rf "%s"' % homedir
-      subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-    os.rename("%s/%s" % (homepath,version),homedir)
+      shutil.rmtree(homedir)
+    os.rename(srcpath, homedir)
 
 # build Voro++
 
 if buildflag:
   print("Building Voro++ ...")
   cmd = 'cd "%s"; make CXX=g++ CFLAGS="-fPIC -O3"' % homedir
-  txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  print(txt.decode('UTF-8'))
+  try:
+    txt = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+    print(txt.decode('UTF-8'))
+  except subprocess.CalledProcessError as e:
+    print("Make failed with:\n %s" % e.output.decode('UTF-8'))
+    sys.exit(1)
 
 # create 2 links in lib/voronoi to Voro++ src dir
 
-if linkflag:
-  print("Creating links to Voro++ include and lib files")
-  if os.path.isfile("includelink") or os.path.islink("includelink"):
-    os.remove("includelink")
-  if os.path.isfile("liblink") or os.path.islink("liblink"):
-    os.remove("liblink")
-  cmd = 'ln -s "%s/src" includelink' % homedir
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  cmd = 'ln -s "%s/src" liblink' % homedir
-  subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+print("Creating links to Voro++ include and lib files")
+if os.path.isfile("includelink") or os.path.islink("includelink"):
+  os.remove("includelink")
+if os.path.isfile("liblink") or os.path.islink("liblink"):
+  os.remove("liblink")
+os.symlink(os.path.join(homedir, 'src'), 'includelink')
+os.symlink(os.path.join(homedir, 'src'), 'liblink')

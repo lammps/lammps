@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "compute_stress_atom.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "comm.h"
@@ -171,7 +170,7 @@ void ComputeStressAtom::compute_peratom()
 
   // add in per-atom contributions from each force
 
-  if (pairflag && force->pair) {
+  if (pairflag && force->pair && force->pair->compute_flag) {
     double **vatom = force->pair->vatom;
     for (i = 0; i < npair; i++)
       for (j = 0; j < 6; j++)
@@ -206,7 +205,7 @@ void ComputeStressAtom::compute_peratom()
         stress[i][j] += vatom[i][j];
   }
 
-  if (kspaceflag && force->kspace) {
+  if (kspaceflag && force->kspace && force->kspace->compute_flag) {
     double **vatom = force->kspace->vatom;
     for (i = 0; i < nkspace; i++)
       for (j = 0; j < 6; j++)

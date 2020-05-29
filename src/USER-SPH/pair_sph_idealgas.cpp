@@ -11,12 +11,10 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "pair_sph_idealgas.h"
+#include <cmath>
 #include "atom.h"
 #include "force.h"
-#include "comm.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
@@ -53,18 +51,15 @@ void PairSPHIdealGas::compute(int eflag, int vflag) {
   double vxtmp, vytmp, vztmp, imass, jmass, fi, fj, fvisc, h, ih, ihsq;
   double rsq, wfd, delVdotDelR, mu, deltaE, ci, cj;
 
-  if (eflag || vflag)
-    ev_setup(eflag, vflag);
-  else
-    evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
 
   double **v = atom->vest;
   double **x = atom->x;
   double **f = atom->f;
   double *rho = atom->rho;
   double *mass = atom->mass;
-  double *de = atom->de;
-  double *e = atom->e;
+  double *desph = atom->desph;
+  double *esph = atom->esph;
   double *drho = atom->drho;
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -91,8 +86,8 @@ void PairSPHIdealGas::compute(int eflag, int vflag) {
 
     imass = mass[itype];
 
-    fi = 0.4 * e[i] / imass / rho[i]; // ideal gas EOS; this expression is fi = pressure / rho^2
-    ci = sqrt(0.4*e[i]/imass); // speed of sound with heat capacity ratio gamma=1.4
+    fi = 0.4 * esph[i] / imass / rho[i]; // ideal gas EOS; this expression is fi = pressure / rho^2
+    ci = sqrt(0.4*esph[i]/imass); // speed of sound with heat capacity ratio gamma=1.4
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -124,7 +119,7 @@ void PairSPHIdealGas::compute(int eflag, int vflag) {
           wfd = -19.098593171027440292e0 * wfd * wfd * ihsq * ihsq * ihsq;
         }
 
-        fj = 0.4 * e[j] / jmass / rho[j];
+        fj = 0.4 * esph[j] / jmass / rho[j];
 
         // dot product of velocity delta and distance vector
         delVdotDelR = delx * (vxtmp - v[j][0]) + dely * (vytmp - v[j][1])
@@ -132,7 +127,7 @@ void PairSPHIdealGas::compute(int eflag, int vflag) {
 
         // artificial viscosity (Monaghan 1992)
         if (delVdotDelR < 0.) {
-          cj = sqrt(0.4*e[j]/jmass);
+          cj = sqrt(0.4*esph[j]/jmass);
           mu = h * delVdotDelR / (rsq + 0.01 * h * h);
           fvisc = -viscosity[itype][jtype] * (ci + cj) * mu / (rho[i] + rho[j]);
         } else {
@@ -151,13 +146,13 @@ void PairSPHIdealGas::compute(int eflag, int vflag) {
         drho[i] += jmass * delVdotDelR * wfd;
 
         // change in thermal energy
-        de[i] += deltaE;
+        desph[i] += deltaE;
 
         if (newton_pair || j < nlocal) {
           f[j][0] -= delx * fpair;
           f[j][1] -= dely * fpair;
           f[j][2] -= delz * fpair;
-          de[j] += deltaE;
+          desph[j] += deltaE;
           drho[j] += imass * delVdotDelR * wfd;
         }
 
@@ -197,10 +192,10 @@ void PairSPHIdealGas::allocate() {
  global settings
  ------------------------------------------------------------------------- */
 
-void PairSPHIdealGas::settings(int narg, char **arg) {
+void PairSPHIdealGas::settings(int narg, char **/*arg*/) {
   if (narg != 0)
     error->all(FLERR,
-        "Illegal number of setting arguments for pair_style sph/idealgas");
+        "Illegal number of arguments for pair_style sph/idealgas");
 }
 
 /* ----------------------------------------------------------------------
@@ -252,8 +247,8 @@ double PairSPHIdealGas::init_one(int i, int j) {
 
 /* ---------------------------------------------------------------------- */
 
-double PairSPHIdealGas::single(int i, int j, int itype, int jtype,
-    double rsq, double factor_coul, double factor_lj, double &fforce) {
+double PairSPHIdealGas::single(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/,
+    double /*rsq*/, double /*factor_coul*/, double /*factor_lj*/, double &fforce) {
   fforce = 0.0;
 
   return 0.0;

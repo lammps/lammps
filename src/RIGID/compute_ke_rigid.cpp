@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
 #include "compute_ke_rigid.h"
+#include <cstring>
 #include "update.h"
 #include "force.h"
 #include "modify.h"

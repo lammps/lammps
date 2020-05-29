@@ -22,6 +22,8 @@ FixStyle(poems,FixPOEMS)
 
 #include "fix.h"
 
+class Workspace;
+
 namespace LAMMPS_NS {
 
 class FixPOEMS : public Fix  {
@@ -94,7 +96,7 @@ class FixPOEMS : public Fix  {
 
   // POEMS object
 
-  class Workspace *poems;
+  Workspace *poems;
 
   // internal class functions
 

@@ -11,13 +11,18 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "error.h"
 #include <mpi.h>
 #include <cstdlib>
 #include <cstring>
-#include "error.h"
 #include "universe.h"
 #include "output.h"
 #include "input.h"
+#include "accelerator_kokkos.h"
+
+#if defined(LAMMPS_EXCEPTIONS)
+#include "update.h"
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -28,7 +33,7 @@ static const char *truncpath(const char *path)
    if (path) {
      int len = strlen(path);
      for (int i = len-4; i > 0; --i) {
-	if (strncmp("src/",path+i,4) == 0)
+        if (strncmp("src/",path+i,4) == 0)
           return path+i;
      }
    }
@@ -69,10 +74,17 @@ void Error::universe_all(const char *file, int line, const char *str)
   if (universe->ulogfile) fclose(universe->ulogfile);
 
 #ifdef LAMMPS_EXCEPTIONS
+
+  // allow commands if an exception was caught in a run
+  // update may be NULL when catching command line errors
+
+  if (update) update->whichflag = 0;
+
   char msg[100];
-  sprintf(msg, "ERROR: %s (%s:%d)\n", str, file, line);
+  snprintf(msg, 100, "ERROR: %s (%s:%d)\n", str, truncpath(file), line);
   throw LAMMPSException(msg);
 #else
+  if (lmp->kokkos) Kokkos::finalize();
   MPI_Finalize();
   exit(1);
 #endif
@@ -90,8 +102,14 @@ void Error::universe_one(const char *file, int line, const char *str)
             universe->me,str,truncpath(file),line);
 
 #ifdef LAMMPS_EXCEPTIONS
+
+  // allow commands if an exception was caught in a run
+  // update may be NULL when catching command line errors
+
+  if (update) update->whichflag = 0;
+
   char msg[100];
-  sprintf(msg, "ERROR: %s (%s:%d)\n", str, file, line);
+  snprintf(msg, 100, "ERROR: %s (%s:%d)\n", str, truncpath(file), line);
   throw LAMMPSAbortException(msg, universe->uworld);
 #else
   MPI_Abort(universe->uworld,1);
@@ -137,8 +155,14 @@ void Error::all(const char *file, int line, const char *str)
   }
 
 #ifdef LAMMPS_EXCEPTIONS
+
+  // allow commands if an exception was caught in a run
+  // update may be NULL when catching command line errors
+
+  if (update) update->whichflag = 0;
+
   char msg[100];
-  sprintf(msg, "ERROR: %s (%s:%d)\n", str, file, line);
+  snprintf(msg, 100, "ERROR: %s (%s:%d)\n", str, truncpath(file), line);
 
   if (universe->nworlds > 1) {
     throw LAMMPSAbortException(msg, universe->uworld);
@@ -151,6 +175,7 @@ void Error::all(const char *file, int line, const char *str)
   if (logfile) fclose(logfile);
 
   if (universe->nworlds > 1) MPI_Abort(universe->uworld,1);
+  if (lmp->kokkos) Kokkos::finalize();
   MPI_Finalize();
   exit(1);
 #endif
@@ -183,10 +208,18 @@ void Error::one(const char *file, int line, const char *str)
               universe->me,str,truncpath(file),line);
 
 #ifdef LAMMPS_EXCEPTIONS
+
+  // allow commands if an exception was caught in a run
+  // update may be NULL when catching command line errors
+
+  if (update) update->whichflag = 0;
+
   char msg[100];
-  sprintf(msg, "ERROR on proc %d: %s (%s:%d)\n", me, str, file, line);
+  snprintf(msg, 100, "ERROR on proc %d: %s (%s:%d)\n", me, str, truncpath(file), line);
   throw LAMMPSAbortException(msg, world);
 #else
+  if (screen) fflush(screen);
+  if (logfile) fflush(logfile);
   MPI_Abort(world,1);
 #endif
 }
@@ -229,6 +262,7 @@ void Error::done(int status)
   if (screen && screen != stdout) fclose(screen);
   if (logfile) fclose(logfile);
 
+  if (lmp->kokkos) Kokkos::finalize();
   MPI_Finalize();
   exit(status);
 }

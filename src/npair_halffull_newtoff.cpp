@@ -12,12 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_halffull_newtoff.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "domain.h"
 #include "my_page.h"
 #include "error.h"
 

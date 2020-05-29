@@ -20,7 +20,6 @@ FixStyle(ave/correlate/long,FixAveCorrelateLong)
 #ifndef LMP_FIX_AVE_CORRELATE_LONG_H
 #define LMP_FIX_AVE_CORRELATE_LONG_H
 
-#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -52,7 +51,7 @@ class FixAveCorrelateLong : public Fix {
   unsigned int *insertindex;
 
   int numcorrelators; // Recommended 20
-  int p; // Points per correlator (recommended 16)
+  unsigned int p; // Points per correlator (recommended 16)
   unsigned int m; // Num points for average (recommended 2; p mod m = 0)
   unsigned int dmin; // Min distance between ponts for correlators k>0; dmin=p/m
 

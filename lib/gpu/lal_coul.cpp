@@ -23,7 +23,7 @@ const char *coul=0;
 
 #include "lal_coul.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define CoulT Coul<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -164,3 +164,4 @@ void CoulT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class Coul<PRECISION,ACC_PRECISION>;
+}

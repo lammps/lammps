@@ -17,9 +17,8 @@
                Miller et al., J Chem Phys. 116, 8649-8659 (2002)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_rigid_nph.h"
-#include "domain.h"
+#include <cstring>
 #include "modify.h"
 #include "error.h"
 
@@ -34,7 +33,6 @@ FixRigidNPH::FixRigidNPH(LAMMPS *lmp, int narg, char **arg) :
 
   scalar_flag = 1;
   restart_global = 1;
-  box_change_size = 1;
   extscalar = 1;
 
   // error checks

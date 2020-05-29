@@ -15,21 +15,19 @@
    Contributing author: Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_sw.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_sw.h"
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
 #include "comm.h"
+#include "error.h"
+#include "force.h"
 #include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
+#include "neigh_request.h"
 
 using namespace LAMMPS_NS;
 
@@ -91,8 +89,7 @@ void PairSW::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -239,7 +236,7 @@ void PairSW::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairSW::settings(int narg, char **arg)
+void PairSW::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -363,7 +360,7 @@ void PairSW::read_file(char *file)
     fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open Stillinger-Weber potential file %s",file);
+      snprintf(str,128,"Cannot open Stillinger-Weber potential file %s",file);
       error->one(FLERR,str);
     }
   }

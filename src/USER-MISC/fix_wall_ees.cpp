@@ -15,21 +15,13 @@
    Contributing author:  Abdoreza Ershadinia, a.ershadinia at gmail.com
 ------------------------------------------------------------------------- */
 
+#include "fix_wall_ees.h"
 #include <cmath>
 #include "math_extra.h"
-#include "fix_wall_ees.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"
-#include "domain.h"
-#include "region.h"
-#include "force.h"
-#include "lattice.h"
-#include "update.h"
-#include "output.h"
-#include "respa.h"
 #include "error.h"
-#include "math_extra.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

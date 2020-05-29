@@ -13,10 +13,13 @@
 
 // NOTE: allow for bin center to be variables for sphere/cylinder
 
+#include "compute_chunk_atom.h"
 #include <mpi.h>
+#include <cmath>
 #include <cstring>
 #include <cstdlib>
-#include "compute_chunk_atom.h"
+#include <map>
+#include <utility>
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -24,6 +27,7 @@
 #include "region.h"
 #include "lattice.h"
 #include "modify.h"
+#include "fix.h"
 #include "fix_store.h"
 #include "comm.h"
 #include "group.h"
@@ -32,8 +36,6 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-
-#include <map>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -66,7 +68,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // chunk style and its args
 
-  int iarg;
+  int iarg = 0;
 
   binflag = 0;
   ncoord = 0;
@@ -248,7 +250,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"bound") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
-      int idim;
+      int idim = 0;
       if (strcmp(arg[iarg+1],"x") == 0) idim = 0;
       else if (strcmp(arg[iarg+1],"y") == 0) idim = 1;
       else if (strcmp(arg[iarg+1],"z") == 0) idim = 2;

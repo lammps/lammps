@@ -15,17 +15,11 @@
    Contributing author: Mike Brown (SNL), Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "fix_event.h"
 #include "atom.h"
-#include "update.h"
 #include "domain.h"
-#include "neighbor.h"
-#include "comm.h"
-#include "universe.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -241,7 +235,7 @@ void FixEvent::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixEvent::copy_arrays(int i, int j, int delflag)
+void FixEvent::copy_arrays(int i, int j, int /*delflag*/)
 {
   xevent[j][0] = xevent[i][0];
   xevent[j][1] = xevent[i][1];

@@ -11,12 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "rcb.h"
 #include <mpi.h>
 #include <cstring>
-#include "rcb.h"
 #include "irregular.h"
 #include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -241,9 +240,11 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
     // dim_select = selected cut dimension
     // valuehalf_select = valuehalf in that dimension
     // dotmark_select = dot markings in that dimension
+    // initialize largest = -1.0 to insure a cut in some dim is accepted
+    //   e.g. if current recursed box is size 0 in all dims
 
     int dim_select = -1;
-    double largest = 0.0;
+    double largest = -1.0;
 
     for (dim = 0; dim < dimension; dim++) {
 
@@ -471,6 +472,24 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
     valuehalf = valuehalf_select;
     if (ndot > 0) memcpy(dotmark,dotmark_select,ndot*sizeof(int));
 
+    // special case for zero box width
+    // can occur when all dots are on corner vertices of this sub-box
+    // split box on longest dimension
+    // reset dotmark for that cut
+
+    if (largest == 0.0) {
+      dim = 0;
+      if (hi[1]-lo[1] > hi[0]-lo[0]) dim = 1;
+      if (dimension == 3 && hi[2]-lo[2] > hi[dim]-lo[dim]) dim = 2;
+      valuehalf = 0.5* (lo[dim] + hi[dim]);
+
+      for (j = 0; j < nlist; j++) {
+        i = dotlist[j];
+        if (dots[i].x[dim] <= valuehalf) dotmark[i] = 0;
+        else dotmark[i] = 1;
+      }
+    }
+
     // found median
     // store cut info only if I am procmid
 
@@ -535,7 +554,7 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
       if (dotmark[i] == markactive)
         memcpy(&buf[outgoing++],&dots[i],sizeof(Dot));
       else
-        memcpy(&dots[keep++],&dots[i],sizeof(Dot));
+        memmove(&dots[keep++],&dots[i],sizeof(Dot));
     }
 
     // post receives for dots
@@ -1027,7 +1046,7 @@ void RCB::compute_old(int dimension, int n, double **x, double *wt,
       if (dotmark[i] == markactive)
         memcpy(&buf[outgoing++],&dots[i],sizeof(Dot));
       else
-        memcpy(&dots[keep++],&dots[i],sizeof(Dot));
+        memmove(&dots[keep++],&dots[i],sizeof(Dot));
     }
 
     // post receives for dots
@@ -1106,7 +1125,7 @@ void RCB::compute_old(int dimension, int n, double **x, double *wt,
    merge of each component of an RCB bounding box
 ------------------------------------------------------------------------- */
 
-void box_merge(void *in, void *inout, int *len, MPI_Datatype *dptr)
+void box_merge(void *in, void *inout, int * /*len*/, MPI_Datatype * /*dptr*/)
 
 {
   RCB::BBox *box1 = (RCB::BBox *) in;
@@ -1136,7 +1155,7 @@ void box_merge(void *in, void *inout, int *len, MPI_Datatype *dptr)
                                   all procs must get same proclo,prochi
 ------------------------------------------------------------------------- */
 
-void median_merge(void *in, void *inout, int *len, MPI_Datatype *dptr)
+void median_merge(void *in, void *inout, int * /*len*/, MPI_Datatype * /*dptr*/)
 
 {
   RCB::Median *med1 = (RCB::Median *) in;

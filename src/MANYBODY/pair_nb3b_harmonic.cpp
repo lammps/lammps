@@ -16,18 +16,16 @@
    (based on Stillinger-Weber pair style)
 ------------------------------------------------------------------------- */
 
+#include "pair_nb3b_harmonic.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_nb3b_harmonic.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "force.h"
 #include "comm.h"
-#include "memory.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
@@ -87,8 +85,7 @@ void PairNb3bHarmonic::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -174,7 +171,7 @@ void PairNb3bHarmonic::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairNb3bHarmonic::settings(int narg, char **arg)
+void PairNb3bHarmonic::settings(int narg, char **/*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -299,7 +296,7 @@ void PairNb3bHarmonic::read_file(char *file)
     fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open nb3b/harmonic potential file %s",file);
+      snprintf(str,128,"Cannot open nb3b/harmonic potential file %s",file);
       error->one(FLERR,str);
     }
   }
@@ -454,7 +451,7 @@ void PairNb3bHarmonic::setup_params()
 /* ---------------------------------------------------------------------- */
 
 
-void PairNb3bHarmonic::threebody(Param *paramij, Param *paramik,
+void PairNb3bHarmonic::threebody(Param * /*paramij*/, Param * /*paramik*/,
                                  Param *paramijk,
                                  double rsq1, double rsq2,
                                  double *delr1, double *delr2,

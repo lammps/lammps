@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "ntopo_improper_template.h"
+#include <mpi.h>
 #include "atom.h"
 #include "atom_vec.h"
 #include "force.h"

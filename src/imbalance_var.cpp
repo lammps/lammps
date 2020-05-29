@@ -11,17 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "imbalance_var.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "group.h"
 #include "input.h"
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
-
-// DEBUG
-#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -52,7 +50,7 @@ int ImbalanceVar::options(int narg, char **arg)
 
 /* -------------------------------------------------------------------- */
 
-void ImbalanceVar::init(int flag)
+void ImbalanceVar::init(int /*flag*/)
 {
   id = input->variable->find(name);
   if (id < 0) {

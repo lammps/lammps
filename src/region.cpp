@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "region.h"
+#include <cmath>
+#include <cstring>
 #include "update.h"
 #include "domain.h"
 #include "lattice.h"
@@ -28,7 +27,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Region::Region(LAMMPS *lmp, int narg, char **arg) :
+Region::Region(LAMMPS *lmp, int /*narg*/, char **arg) :
   Pointers(lmp),
   id(NULL), style(NULL), contact(NULL), list(NULL),
   xstr(NULL), ystr(NULL), zstr(NULL), tstr(NULL)
@@ -174,8 +173,7 @@ int Region::surface(double x, double y, double z, double cutoff)
   if (!openflag) {
     if (interior) ncontact = surface_interior(xnear,cutoff);
     else ncontact = surface_exterior(xnear,cutoff);
-  }
-  else{
+  } else {
     // one of surface_int/ext() will return 0
     // so no need to worry about offset of contact indices
     ncontact = surface_exterior(xnear,cutoff) + surface_interior(xnear,cutoff);

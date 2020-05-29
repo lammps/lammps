@@ -1,0 +1,127 @@
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
+# Solvated 5-mer peptide
+
+units		real
+dimension	3
+atom_style	angle
+
+# enforce that in z-direction there is only one
+# processor (could be two) for optimal performance
+processors * * 1
+
+# read topology and force field
+pair_style	lj/sdk 15.0
+bond_style	harmonic
+angle_style	sdk
+special_bonds	lj/coul 0.0 0.0 1.0
+
+read_data	data.pegc12e8.gz
+  orthogonal box = (-63.7 -63.7 -200) to (63.7 63.7 200)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  40140 atoms
+  reading velocities ...
+  40140 velocities
+  scanning bonds ...
+  1 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  13284 bonds
+  reading angles ...
+  12177 angles
+  2 = max # of 1-2 neighbors
+  2 = max # of 1-3 neighbors
+  4 = max # of special neighbors
+
+neighbor	3.0 bin
+neigh_modify	delay 5
+
+timestep	5.0
+#dump            1 all xtc 200 pegc12e8-1.xtc
+#dump_modify  1 unwrap yes
+#dump            2 all dcd 200 pegc12e8-1.dcd unwrap
+#dump_modify  2 unwrap yes
+
+velocity all create 303.0 46659 mom yes rot yes dist gaussian
+
+fix		1 all nvt temp 303.0 303.0 100.0
+
+thermo_style	multi
+thermo		200
+run		1000
+Neighbor list info ...
+  update every 1 steps, delay 5 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 18
+  ghost atom cutoff = 18
+  binsize = 9, bins = 15 15 45
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/sdk, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 47.18 | 47.18 | 47.18 Mbytes
+---------------- Step        0 ----- CPU =      0.0000 (sec) ----------------
+TotEng   =   -217835.8659 KinEng   =     36252.9606 Temp     =       303.0000 
+PotEng   =   -254088.8265 E_bond   =      4468.5931 E_angle  =      3565.0955 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =   -262122.5151 
+E_coul   =         0.0000 E_long   =         0.0000 Press    =       114.4952 
+---------------- Step      200 ----- CPU =     11.2079 (sec) ----------------
+TotEng   =   -217870.2208 KinEng   =     36451.9852 Temp     =       304.6634 
+PotEng   =   -254322.2060 E_bond   =      4534.3652 E_angle  =      3349.2174 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =   -262205.7887 
+E_coul   =         0.0000 E_long   =         0.0000 Press    =        39.4030 
+---------------- Step      400 ----- CPU =     22.6137 (sec) ----------------
+TotEng   =   -218169.7022 KinEng   =     36263.1022 Temp     =       303.0848 
+PotEng   =   -254432.8045 E_bond   =      4598.1819 E_angle  =      3416.3763 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =   -262447.3627 
+E_coul   =         0.0000 E_long   =         0.0000 Press    =         9.8923 
+---------------- Step      600 ----- CPU =     33.9441 (sec) ----------------
+TotEng   =   -217912.9317 KinEng   =     36465.5757 Temp     =       304.7770 
+PotEng   =   -254378.5074 E_bond   =      4648.1881 E_angle  =      3412.8346 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =   -262439.5301 
+E_coul   =         0.0000 E_long   =         0.0000 Press    =        25.6392 
+---------------- Step      800 ----- CPU =     45.4291 (sec) ----------------
+TotEng   =   -218439.8078 KinEng   =     36035.8518 Temp     =       301.1854 
+PotEng   =   -254475.6596 E_bond   =      4557.5842 E_angle  =      3438.5605 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =   -262471.8043 
+E_coul   =         0.0000 E_long   =         0.0000 Press    =        -1.6281 
+---------------- Step     1000 ----- CPU =     56.9328 (sec) ----------------
+TotEng   =   -217925.0543 KinEng   =     36271.3928 Temp     =       303.1541 
+PotEng   =   -254196.4471 E_bond   =      4624.7673 E_angle  =      3487.7805 
+E_dihed  =         0.0000 E_impro  =         0.0000 E_vdwl   =   -262308.9949 
+E_coul   =         0.0000 E_long   =         0.0000 Press    =        -7.3081 
+Loop time of 56.9329 on 1 procs for 1000 steps with 40140 atoms
+
+Performance: 7.588 ns/day, 3.163 hours/ns, 17.565 timesteps/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 50.734     | 50.734     | 50.734     |   0.0 | 89.11
+Bond    | 0.94032    | 0.94032    | 0.94032    |   0.0 |  1.65
+Neigh   | 4.5195     | 4.5195     | 4.5195     |   0.0 |  7.94
+Comm    | 0.15045    | 0.15045    | 0.15045    |   0.0 |  0.26
+Output  | 0.00056767 | 0.00056767 | 0.00056767 |   0.0 |  0.00
+Modify  | 0.47228    | 0.47228    | 0.47228    |   0.0 |  0.83
+Other   |            | 0.1154     |            |       |  0.20
+
+Nlocal:    40140 ave 40140 max 40140 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    25966 ave 25966 max 25966 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    5.68676e+06 ave 5.68676e+06 max 5.68676e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 5686756
+Ave neighs/atom = 141.673
+Ave special neighs/atom = 1.26861
+Neighbor list builds = 38
+Dangerous builds = 0
+#write_restart	pegc12e8-1.restart
+
+Total wall time: 0:00:57

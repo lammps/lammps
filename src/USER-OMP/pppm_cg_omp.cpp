@@ -15,20 +15,21 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
+#include "pppm_cg_omp.h"
+#include <mpi.h>
 #include <cstring>
 #include <cmath>
-#include "pppm_cg_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
-#include "error.h"
-#include "fix_omp.h"
 #include "force.h"
-#include "neighbor.h"
-#include "memory.h"
 #include "math_const.h"
 #include "math_special.h"
-
+#include "timer.h"
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
 #include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -46,8 +47,7 @@ using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
-PPPMCGOMP::PPPMCGOMP(LAMMPS *lmp, int narg, char **arg) :
-  PPPMCG(lmp, narg, arg), ThrOMP(lmp, THR_KSPACE)
+PPPMCGOMP::PPPMCGOMP(LAMMPS *lmp) : PPPMCG(lmp), ThrOMP(lmp, THR_KSPACE)
 {
   triclinic_support = 0;
   suffix_flag |= Suffix::OMP;
@@ -60,7 +60,7 @@ PPPMCGOMP::PPPMCGOMP(LAMMPS *lmp, int narg, char **arg) :
 PPPMCGOMP::~PPPMCGOMP()
 {
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -82,7 +82,7 @@ void PPPMCGOMP::allocate()
   PPPMCG::allocate();
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -123,7 +123,7 @@ void PPPMCGOMP::compute_gf_ik()
   const int twoorder = 2*order;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     double snx,sny,snz;
@@ -217,7 +217,7 @@ void PPPMCGOMP::compute_gf_ad()
   double sf0=0.0,sf1=0.0,sf2=0.0,sf3=0.0,sf4=0.0,sf5=0.0;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) reduction(+:sf0,sf1,sf2,sf3,sf4,sf5)
+#pragma omp parallel LMP_DEFAULT_NONE reduction(+:sf0,sf1,sf2,sf3,sf4,sf5)
 #endif
   {
     double snx,sny,snz,sqk;
@@ -282,7 +282,7 @@ void PPPMCGOMP::compute_gf_ad()
       }
     }
     thr->timer(Timer::KSPACE);
-  } // end of paralle region
+  } // end of parallel region
 
   // compute the coefficients for the self-force correction
 
@@ -315,7 +315,7 @@ void PPPMCGOMP::compute(int eflag, int vflag)
   PPPMCG::compute(eflag,vflag);
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
 #if defined(_OPENMP)
@@ -352,7 +352,7 @@ void PPPMCGOMP::make_rho()
   const int iy = nyhi_out - nylo_out + 1;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     const double * _noalias const q = atom->q;
@@ -444,7 +444,7 @@ void PPPMCGOMP::fieldforce_ik()
   const int nthreads = comm->nthreads;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     FFT_SCALAR dx,dy,dz,x0,y0,z0,ekx,eky,ekz;
@@ -525,7 +525,7 @@ void PPPMCGOMP::fieldforce_ad()
   const int nthreads = comm->nthreads;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     int i,ifrom,ito,tid,l,m,n,nx,ny,nz,mx,my,mz;
@@ -571,7 +571,7 @@ void PPPMCGOMP::fieldforce_ad()
       eky *= hy_inv;
       ekz *= hz_inv;
 
-      // convert E-field to force and substract self forces
+      // convert E-field to force and subtract self forces
 
       const double qi = q[i];
       const double qfactor = qqrd2e * scale * qi;
@@ -618,7 +618,7 @@ void PPPMCGOMP::fieldforce_peratom()
   const int nthreads = comm->nthreads;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     FFT_SCALAR dx,dy,dz,x0,y0,z0;

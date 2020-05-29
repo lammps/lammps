@@ -15,6 +15,7 @@
    Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include <cmath>
 #include <cstdlib>
 #include "bond_fene_intel.h"
@@ -74,8 +75,9 @@ void BondFENEIntel::compute(int eflag, int vflag,
                                 IntelBuffers<flt_t,acc_t> *buffers,
                                 const ForceConst<flt_t> &fc)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
+  if (vflag_atom)
+    error->all(FLERR,"USER-INTEL package does not support per-atom stress");
 
   if (evflag) {
     if (vflag && !eflag) {
@@ -126,7 +128,7 @@ void BondFENEIntel::eval(const int vflag,
   }
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(f_start,f_stride,fc)           \
     reduction(+:oebond,ov0,ov1,ov2,ov3,ov4,ov5)
   #endif
@@ -291,7 +293,7 @@ void BondFENEIntel::init_style()
 
 template <class flt_t, class acc_t>
 void BondFENEIntel::pack_force_const(ForceConst<flt_t> &fc,
-                                         IntelBuffers<flt_t,acc_t> *buffers)
+                                     IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
   const int bp1 = atom->nbondtypes + 1;
   fc.set_ntypes(bp1,memory);

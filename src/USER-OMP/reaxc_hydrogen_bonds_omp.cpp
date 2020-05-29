@@ -26,10 +26,13 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc_omp.h"
-
+#include "omp_compat.h"
 #include "reaxc_hydrogen_bonds_omp.h"
-#include "reaxc_bond_orders_omp.h"
+#include <mpi.h>
+#include <cmath>
+#include "fix_omp.h"
+#include "pair_reaxc_omp.h"
+#include "reaxc_defs.h"
 #include "reaxc_list.h"
 #include "reaxc_valence_angles.h"     // To access Calculate_Theta()
 #include "reaxc_valence_angles_omp.h" // To access Calculate_dCos_ThetaOMP()
@@ -45,7 +48,7 @@ using namespace LAMMPS_NS;
 
 void Hydrogen_BondsOMP( reax_system *system, control_params *control,
                      simulation_data *data, storage *workspace,
-                     reax_list **lists, output_controls *out_control )
+                     reax_list **lists, output_controls * /* out_control */)
 {
 #ifdef OMP_TIMING
   double endTimeBase, startTimeBase;
@@ -55,7 +58,7 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
   const int nthreads = control->nthreads;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared) //default(none)
+#pragma omp parallel default(shared) //LMP_DEFAULT_NONE
 #endif
   {
   int  i, j, k, pi, pk;
@@ -110,7 +113,7 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
   //  for( j = 0; j < system->n; ++j )
   for( j = ifrom; j < ito; ++j ) {
     /* j has to be of type H */
-    if( system->reax_param.sbp[system->my_atoms[j].type].p_hbond == 1 ) {
+    if (system->reax_param.sbp[system->my_atoms[j].type].p_hbond == 1) {
       /*set j's variables */
       type_j     = system->my_atoms[j].type;
       start_j    = Start_Index(j, bonds);
@@ -146,7 +149,7 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
           pbond_ij = &( bonds->select.bond_list[pi] );
           i = pbond_ij->nbr;
 
-          if( system->my_atoms[i].orig_id != system->my_atoms[k].orig_id ) {
+          if (system->my_atoms[i].orig_id != system->my_atoms[k].orig_id) {
             bo_ij = &(pbond_ij->bo_data);
             type_i = system->my_atoms[i].type;
             if(type_i < 0) continue;
@@ -179,7 +182,7 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
             /* hydrogen bond forces */
             bo_ij->Cdbo += CEhb1; // dbo term
 
-            if( control->virial == 0 ) {
+            if (control->virial == 0) {
               // dcos terms
               rvec_ScaledAdd(workspace->forceReduction[reductionOffset+i], +CEhb2, dcos_theta_di );
               rvec_ScaledAdd(workspace->forceReduction[reductionOffset+j], +CEhb2, dcos_theta_dj );

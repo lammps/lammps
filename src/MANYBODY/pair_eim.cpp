@@ -15,11 +15,10 @@
    Contributing author: Xiaowang Zhou (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_eim.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -27,6 +26,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -113,8 +113,7 @@ void PairEIM::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // grow energy array if necessary
 
@@ -342,7 +341,7 @@ void PairEIM::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairEIM::settings(int narg, char **arg)
+void PairEIM::settings(int narg, char **/*arg*/)
 {
   if (narg > 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -461,7 +460,7 @@ void PairEIM::read_file(char *filename)
     fptr = force->open_potential(filename);
     if (fptr == NULL) {
       char str[128];
-      sprintf(str,"Cannot open EIM potential file %s",filename);
+      snprintf(str,128,"Cannot open EIM potential file %s",filename);
       error->one(FLERR,str);
     }
   }
@@ -850,7 +849,7 @@ void PairEIM::array2spline()
 /* ---------------------------------------------------------------------- */
 
 void PairEIM::interpolate(int n, double delta, double *f,
-                          double **spline, double origin)
+                          double **spline, double /*origin*/)
 {
   for (int m = 1; m <= n; m++) spline[m][6] = f[m];
 
@@ -968,11 +967,11 @@ int PairEIM::grabpair(FILE *fptr, int i, int j)
           sscanf(data,"%lg %lg %lg %lg %lg",
             &setfl->rcutphiA[ij],&setfl->rcutphiR[ij],
             &setfl->Eb[ij],&setfl->r0[ij],&setfl->alpha[ij]);
-          fgets(line,MAXLINE,fptr);
+          utils::sfgets(FLERR,line,MAXLINE,fptr,NULL,error);
           sscanf(line,"%lg %lg %lg %lg %lg",
             &setfl->beta[ij],&setfl->rcutq[ij],&setfl->Asigma[ij],
             &setfl->rq[ij],&setfl->rcutsigma[ij]);
-          fgets(line,MAXLINE,fptr);
+          utils::sfgets(FLERR,line,MAXLINE,fptr,NULL,error);
           sscanf(line,"%lg %lg %lg %d",
             &setfl->Ac[ij],&setfl->zeta[ij],&setfl->rs[ij],
             &setfl->tp[ij]);
@@ -1087,7 +1086,7 @@ double PairEIM::funccoul(int i, int j, double r)
 /* ---------------------------------------------------------------------- */
 
 int PairEIM::pack_forward_comm(int n, int *list, double *buf,
-                               int pbc_flag, int *pbc)
+                               int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

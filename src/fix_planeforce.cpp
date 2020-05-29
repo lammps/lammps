@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_planeforce.h"
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_planeforce.h"
 #include "atom.h"
 #include "update.h"
 #include "respa.h"
@@ -80,7 +79,7 @@ void FixPlaneForce::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPlaneForce::post_force(int vflag)
+void FixPlaneForce::post_force(int /*vflag*/)
 {
   double **f = atom->f;
   int *mask = atom->mask;
@@ -98,7 +97,7 @@ void FixPlaneForce::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPlaneForce::post_force_respa(int vflag, int ilevel, int iloop)
+void FixPlaneForce::post_force_respa(int vflag, int /*ilevel*/, int /*iloop*/)
 {
   post_force(vflag);
 }

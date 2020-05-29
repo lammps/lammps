@@ -24,11 +24,9 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc.h"
 #include "reaxc_system_props.h"
-#include "reaxc_tool_box.h"
-#include "reaxc_vector.h"
-
+#include <mpi.h>
+#include "reaxc_defs.h"
 
 void Compute_System_Energy( reax_system *system, simulation_data *data,
                             MPI_Comm comm )
@@ -60,7 +58,7 @@ void Compute_System_Energy( reax_system *system, simulation_data *data,
 
   data->my_en.e_tot = data->my_en.e_pot + E_CONV * data->my_en.e_kin;
 
-  if( system->my_rank == MASTER_NODE ) {
+  if (system->my_rank == MASTER_NODE) {
     data->sys_en.e_bond = sys_en[0];
     data->sys_en.e_ov = sys_en[1];
     data->sys_en.e_un = sys_en[2];

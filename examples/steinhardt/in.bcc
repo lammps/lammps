@@ -1,0 +1,91 @@
+# Steinhardt-Nelson bond orientational order parameters for BCC
+
+variable  	rcut equal 3.0
+
+boundary	p p p
+
+atom_style	atomic
+neighbor	0.3 bin
+neigh_modify	delay 5
+
+# create geometry
+
+lattice		bcc 1.0
+region		box block 0 3 0 3 0 3
+create_box	1 box
+create_atoms	1 box
+
+mass		1 1.0
+
+# LJ potentials
+
+pair_style	lj/cut ${rcut}
+pair_coeff	* * 1.0 1.0 ${rcut}
+
+# 14 neighbors, perfect crystal 
+
+compute 	qlwlhat all orientorder/atom degrees 6 2 4 6 8 10 12 nnn 14 wl/hat yes
+compute 	avql all reduce ave c_qlwlhat[1] c_qlwlhat[2] c_qlwlhat[3] c_qlwlhat[4] c_qlwlhat[5] c_qlwlhat[6] 
+compute 	avwlhat all reduce ave c_qlwlhat[7] c_qlwlhat[8] c_qlwlhat[9] c_qlwlhat[10] c_qlwlhat[11] c_qlwlhat[12] 
+
+thermo_style    custom step temp epair etotal c_avql[*] c_avwlhat[*]
+
+run		0
+
+# check Q_l values
+
+print " "
+print "*******************************************************************"
+print " "
+print "Comparison with reference values of Q_l "
+print "   [Table I in W. Mickel, S. C. Kapfer," 
+print "   G. E. Schroeder-Turkand, K. Mecke, "
+print "   J. Chem. Phys. 138, 044501 (2013).]"
+print " "
+
+variable 	q2ref equal 0.0
+variable 	q4ref equal 0.036
+variable 	q6ref equal 0.511
+variable 	q8ref equal 0.429
+variable 	q10ref equal 0.195
+variable 	q12ref equal 0.405
+
+variable 	q2 equal c_avql[1]
+variable 	q4 equal c_avql[2]
+variable 	q6 equal c_avql[3]
+variable 	q8 equal c_avql[4]
+variable 	q10 equal c_avql[5]
+variable 	q12 equal c_avql[6]
+
+print "q2     = $(v_q2:%10.6f) delta = $(v_q2-v_q2ref:%10.4f)"
+print "q4     = $(v_q4:%10.6f) delta = $(v_q4-v_q4ref:%10.4f)"
+print "q6     = $(v_q6:%10.6f) delta = $(v_q6-v_q6ref:%10.4f)"
+print "q8     = $(v_q8:%10.6f) delta = $(v_q8-v_q8ref:%10.4f)"
+print "q10    = $(v_q10:%10.6f) delta = $(v_q10-v_q10ref:%10.4f)"
+print "q12    = $(v_q12:%10.6f) delta = $(v_q12-v_q12ref:%10.4f)"
+
+# check W_l_hat values
+
+print " "
+print "Comparison with reference values of W_l_hat"
+print "   [Table I in P. Steinhardt, D. Nelson, and M. Ronchetti, "
+print "   Phys. Rev. B 28, 784 (1983).]"
+print " "
+
+variable 	w4hatref equal 0.159317
+variable 	w6hatref equal 0.013161
+variable 	w8hatref equal -0.058455
+variable 	w10hatref equal -0.090130
+
+variable 	w4hat equal c_avwlhat[2]
+variable 	w6hat equal c_avwlhat[3]
+variable 	w8hat equal c_avwlhat[4]
+variable 	w10hat equal c_avwlhat[5]
+
+print "w4hat  = $(v_w4hat:%10.6f) delta = $(v_w4hat-v_w4hatref:%10.6f)"
+print "w6hat  = $(v_w6hat:%10.6f) delta = $(v_w6hat-v_w6hatref:%10.6f)"
+print "w8hat  = $(v_w8hat:%10.6f) delta = $(v_w8hat-v_w8hatref:%10.6f)"
+print "w10hat = $(v_w10hat:%10.6f) delta = $(v_w10hat-v_w10hatref:%10.6f)"
+print " "
+print "*******************************************************************"
+print " "

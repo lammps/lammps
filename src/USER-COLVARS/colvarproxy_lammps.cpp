@@ -2,39 +2,28 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
 
 
+#include "colvarproxy_lammps.h"
 #include <mpi.h>
+#include <sys/stat.h>
+#include <cerrno>
+#include <cstring>
+#include <iostream>
+#include <memory>
+#include <string>
+
 #include "lammps.h"
-#include "atom.h"
 #include "error.h"
 #include "output.h"
 #include "random_park.h"
 
-#include "fix_colvars.h"
-
 #include "colvarmodule.h"
-#include "colvar.h"
-#include "colvarbias.h"
-#include "colvaratoms.h"
 #include "colvarproxy.h"
-#include "colvarproxy_lammps.h"
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
-#include <cerrno>
-#include <cstdio>
-#include <cstring>
-
-#include <iostream>
-#include <sstream>
-#include <string>
 
 #define HASH_FAIL  -1
 
@@ -121,7 +110,7 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
     restart_output_prefix_str.erase(restart_output_prefix_str.rfind(".*"),2);
 
   // initialize multi-replica support, if available
-  if (replica_enabled()) {
+  if (replica_enabled() == COLVARS_OK) {
     MPI_Comm_rank(inter_comm, &inter_me);
     MPI_Comm_size(inter_comm, &inter_num);
   }
@@ -142,6 +131,11 @@ void colvarproxy_lammps::init(const char *conf_file)
            cvm::to_str(COLVARPROXY_VERSION)+".\n");
 
   my_angstrom  = _lmp->force->angstrom;
+  // Front-end unit is the same as back-end
+  angstrom_value = my_angstrom;
+
+  // my_kcal_mol  = _lmp->force->qe2f / 23.060549;
+  // force->qe2f is 1eV expressed in LAMMPS' energy unit (1 if unit is eV, 23 if kcal/mol)
   my_boltzmann = _lmp->force->boltz;
   my_timestep  = _lmp->update->dt * _lmp->force->femtosecond;
 
@@ -153,16 +147,33 @@ void colvarproxy_lammps::init(const char *conf_file)
   if (_lmp->update->ntimestep != 0) {
     cvm::log("Setting initial step number from LAMMPS: "+
              cvm::to_str(_lmp->update->ntimestep)+"\n");
-    colvars->it = colvars->it_restart = _lmp->update->ntimestep;
+    colvars->it = colvars->it_restart =
+      static_cast<cvm::step_number>(_lmp->update->ntimestep);
   }
 
   if (cvm::debug()) {
-    log("atoms_ids = "+cvm::to_str(atoms_ids)+"\n");
-    log("atoms_ncopies = "+cvm::to_str(atoms_ncopies)+"\n");
-    log("atoms_positions = "+cvm::to_str(atoms_positions)+"\n");
-    log(cvm::line_marker);
-    log("Info: done initializing the colvars proxy object.\n");
+    cvm::log("atoms_ids = "+cvm::to_str(atoms_ids)+"\n");
+    cvm::log("atoms_ncopies = "+cvm::to_str(atoms_ncopies)+"\n");
+    cvm::log("atoms_positions = "+cvm::to_str(atoms_positions)+"\n");
+    cvm::log(cvm::line_marker);
+    cvm::log("Info: done initializing the colvars proxy object.\n");
   }
+}
+
+int colvarproxy_lammps::add_config_file(const char *conf_file)
+{
+  return colvars->read_config_file(conf_file);
+}
+
+int colvarproxy_lammps::add_config_string(const std::string &conf)
+{
+  return colvars->read_config_string(conf);
+}
+
+int colvarproxy_lammps::read_state_file(char const *state_filename)
+{
+  input_prefix() = std::string(state_filename);
+  return colvars->setup_input();
 }
 
 colvarproxy_lammps::~colvarproxy_lammps()
@@ -185,7 +196,7 @@ int colvarproxy_lammps::setup()
 double colvarproxy_lammps::compute()
 {
   if (cvm::debug()) {
-    log(std::string(cvm::line_marker)+
+    cvm::log(std::string(cvm::line_marker)+
         "colvarproxy_lammps step no. "+
         cvm::to_str(_lmp->update->ntimestep)+" [first - last = "+
         cvm::to_str(_lmp->update->beginstep)+" - "+
@@ -238,20 +249,20 @@ double colvarproxy_lammps::compute()
   bias_energy = 0.0;
 
   if (cvm::debug()) {
-    log("atoms_ids = "+cvm::to_str(atoms_ids)+"\n");
-    log("atoms_ncopies = "+cvm::to_str(atoms_ncopies)+"\n");
-    log("atoms_positions = "+cvm::to_str(atoms_positions)+"\n");
-    log("atoms_new_colvar_forces = "+cvm::to_str(atoms_new_colvar_forces)+"\n");
+    cvm::log("atoms_ids = "+cvm::to_str(atoms_ids)+"\n");
+    cvm::log("atoms_ncopies = "+cvm::to_str(atoms_ncopies)+"\n");
+    cvm::log("atoms_positions = "+cvm::to_str(atoms_positions)+"\n");
+    cvm::log("atoms_new_colvar_forces = "+cvm::to_str(atoms_new_colvar_forces)+"\n");
   }
 
   // call the collective variable module
   colvars->calc();
 
   if (cvm::debug()) {
-    log("atoms_ids = "+cvm::to_str(atoms_ids)+"\n");
-    log("atoms_ncopies = "+cvm::to_str(atoms_ncopies)+"\n");
-    log("atoms_positions = "+cvm::to_str(atoms_positions)+"\n");
-    log("atoms_new_colvar_forces = "+cvm::to_str(atoms_new_colvar_forces)+"\n");
+    cvm::log("atoms_ids = "+cvm::to_str(atoms_ids)+"\n");
+    cvm::log("atoms_ncopies = "+cvm::to_str(atoms_ncopies)+"\n");
+    cvm::log("atoms_positions = "+cvm::to_str(atoms_positions)+"\n");
+    cvm::log("atoms_new_colvar_forces = "+cvm::to_str(atoms_new_colvar_forces)+"\n");
   }
 
   return bias_energy;
@@ -325,6 +336,17 @@ void colvarproxy_lammps::fatal_error(std::string const &message)
 }
 
 
+int colvarproxy_lammps::set_unit_system(std::string const &units_in, bool /*check_only*/)
+{
+  std::string lmp_units = _lmp->update->unit_style;
+  if (units_in != lmp_units) {
+    cvm::error("Error: Specified unit system for Colvars \"" + units_in + "\" is incompatible with LAMMPS internal units (" + lmp_units + ").\n");
+    return COLVARS_ERROR;
+  }
+  return COLVARS_OK;
+}
+
+
 int colvarproxy_lammps::backup_file(char const *filename)
 {
   if (std::string(filename).rfind(std::string(".colvars.state"))
@@ -337,6 +359,24 @@ int colvarproxy_lammps::backup_file(char const *filename)
 
 
 // multi-replica support
+
+int colvarproxy_lammps::replica_enabled()
+{
+  return (inter_comm != MPI_COMM_NULL) ? COLVARS_OK : COLVARS_NOT_IMPLEMENTED;
+}
+
+
+int colvarproxy_lammps::replica_index()
+{
+  return inter_me;
+}
+
+
+int colvarproxy_lammps::num_replicas()
+{
+  return inter_num;
+}
+
 
 void colvarproxy_lammps::replica_comm_barrier()
 {

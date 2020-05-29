@@ -14,10 +14,11 @@
    from The Pennsylvania State University
 ------------------------------------------------------------------------- */
 
+#include "compute_pressure_bocs.h"
 #include <mpi.h>
+#include <cmath>
 #include <cstring>
 #include <cstdlib>
-#include "compute_pressure_bocs.h"
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
@@ -106,9 +107,9 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
 
   if (keflag && id_temp == NULL)
     error->all(FLERR,"Compute pressure/bocs requires temperature ID "
-	       "to include kinetic energy");
+               "to include kinetic energy");
 
-  vector = new double[6];
+  vector = new double[size_vector];
   nvirial = 0;
   vptr = NULL;
 }
@@ -365,7 +366,7 @@ void ComputePressureBocs::compute_vector()
 
   if (force->kspace && kspace_virial && force->kspace->scalar_pressure_flag)
     error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' for "
-	       "tensor components with kspace_style msm");
+               "tensor components with kspace_style msm");
 
   // invoke temperature if it hasn't been already
 

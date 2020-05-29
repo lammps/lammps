@@ -18,12 +18,9 @@
      triclinic added by Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
-#include <cmath>
 #include "ewald.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -40,7 +37,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-Ewald::Ewald(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
+Ewald::Ewald(LAMMPS *lmp) : KSpace(lmp),
   kxvecs(NULL), kyvecs(NULL), kzvecs(NULL), ug(NULL), eg(NULL), vg(NULL),
   ek(NULL), sfacrl(NULL), sfacim(NULL), sfacrl_all(NULL), sfacim_all(NULL),
   cs(NULL), sn(NULL), sfacrl_A(NULL), sfacim_A(NULL), sfacrl_A_all(NULL),
@@ -49,12 +46,10 @@ Ewald::Ewald(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
 {
   group_allocate_flag = 0;
   kmax_created = 0;
-  if (narg != 1) error->all(FLERR,"Illegal kspace_style ewald command");
-
   ewaldflag = 1;
   group_group_enable = 1;
 
-  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
+  accuracy_relative = 0.0;
 
   kmax = 0;
   kxvecs = kyvecs = kzvecs = NULL;
@@ -67,6 +62,13 @@ Ewald::Ewald(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
   cs = sn = NULL;
 
   kcount = 0;
+}
+
+void Ewald::settings(int narg, char **arg)
+{
+  if (narg != 1) error->all(FLERR,"Illegal kspace_style ewald command");
+
+  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 }
 
 /* ----------------------------------------------------------------------
@@ -100,7 +102,7 @@ void Ewald::init()
   if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR,"Cannot use nonperiodic boundaries with Ewald");
+    error->all(FLERR,"Cannot use non-periodic boundaries with Ewald");
   if (slabflag) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
@@ -109,6 +111,10 @@ void Ewald::init()
       error->all(FLERR,"Cannot (yet) use Ewald with triclinic box "
                  "and slab correction");
   }
+
+  // compute two charge force
+
+  two_charge();
 
   // extract short-range Coulombic cutoff from pair style
 
@@ -360,9 +366,7 @@ void Ewald::compute(int eflag, int vflag)
 
   // set energy/virial flags
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global =
-         eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // if atom count has changed, update qsum and qsqsum
 

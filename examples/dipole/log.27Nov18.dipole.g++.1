@@ -1,0 +1,111 @@
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
+# Point dipoles in a 2d box
+
+units		lj
+atom_style	hybrid sphere dipole
+dimension	2
+
+lattice		sq2 0.7
+Lattice spacing in x,y,z = 1.69031 1.69031 1.69031
+region		box block 0 10 0 10 -0.5 0.5
+create_box	1 box
+Created orthogonal box = (0 0 -0.845154) to (16.9031 16.9031 0.845154)
+  1 by 1 by 1 MPI processor grid
+create_atoms	1 box
+Created 200 atoms
+  Time spent = 0.00140882 secs
+
+# need both mass settings due to hybrid atom style
+
+mass		1 1.0
+set		group all mass 1.0
+  200 settings made for mass
+set		group all dipole/random 98934 0.75
+  200 settings made for dipole/random
+
+velocity	all create 0.0 87287 mom no
+
+pair_style	lj/cut/dipole/cut 2.5
+pair_coeff	* * 1.0 1.0
+
+neighbor	0.3 bin
+neigh_modify	delay 0
+
+fix		1 all nve/sphere update dipole
+fix		2 all enforce2d
+
+timestep	0.005
+
+compute		erot all erotate/sphere
+thermo_style	custom step temp epair c_erot etotal press
+thermo		500
+
+#dump		1 all custom 500 dump.dipole id type x y z mux muy
+
+#dump		1 all image 250 image.*.jpg mux type #		zoom 1.6 adiam 1.2
+#dump_modify	1 pad 5
+
+run		10000
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 13 13 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/dipole/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 5.049 | 5.049 | 5.049 Mbytes
+Step Temp E_pair c_erot TotEng Press 
+       0            0   -2.1909822            0   -2.1909822   -2.5750971 
+     500   0.39335419   -2.7940623   0.20683255   -2.4026749  -0.24768899 
+    1000   0.45259485   -2.8743423   0.22311811   -2.4240104  -0.14864606 
+    1500   0.42110221   -2.8019062   0.19532181   -2.3829095   0.18067141 
+    2000   0.39019964   -2.7914873    0.2240704   -2.4032387  -0.40914108 
+    2500   0.40258219   -2.8140936   0.24274448   -2.4135243  -0.33941924 
+    3000   0.41800133   -2.8282056   0.24466746   -2.4122942 -0.090527465 
+    3500   0.40116089   -2.7573067   0.18791549   -2.3581517  -0.10988473 
+    4000   0.44069383   -2.8320262   0.23306586   -2.3935358  -0.16090586 
+    4500   0.39984934   -2.7780055    0.2316558   -2.3801554 -0.060493508 
+    5000   0.38478499   -2.7506484   0.22192236   -2.3677873  -0.20522733 
+    5500   0.41563657   -2.7772758   0.21967501   -2.3637174  -0.21224098 
+    6000    0.4784307   -2.8050644   0.19178566   -2.3290259 -0.084370417 
+    6500   0.45915752   -2.8043874   0.21761744   -2.3475257  0.044744498 
+    7000   0.45492064   -2.7795535   0.20340455   -2.3269074 -0.027924625 
+    7500   0.41266295   -2.7515872   0.22903767   -2.3409876  -0.43730101 
+    8000   0.41905675   -2.7281536   0.19413869   -2.3111921 -0.020762772 
+    8500   0.42951176   -2.7616497   0.22863785   -2.3342855  -0.18867239 
+    9000   0.42532413    -2.748856   0.21378021   -2.3256584  0.015079949 
+    9500   0.42237159   -2.7266142   0.20255034   -2.3063545  -0.15538561 
+   10000   0.40758268    -2.778401    0.2746675   -2.3728562  -0.20811978 
+Loop time of 0.851938 on 1 procs for 10000 steps with 200 atoms
+
+Performance: 5070791.481 tau/day, 11737.943 timesteps/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.64889    | 0.64889    | 0.64889    |   0.0 | 76.17
+Neigh   | 0.04038    | 0.04038    | 0.04038    |   0.0 |  4.74
+Comm    | 0.058003   | 0.058003   | 0.058003   |   0.0 |  6.81
+Output  | 0.00021219 | 0.00021219 | 0.00021219 |   0.0 |  0.02
+Modify  | 0.083454   | 0.083454   | 0.083454   |   0.0 |  9.80
+Other   |            | 0.021      |            |       |  2.47
+
+Nlocal:    200 ave 200 max 200 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    162 ave 162 max 162 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1625 ave 1625 max 1625 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1625
+Ave neighs/atom = 8.125
+Neighbor list builds = 673
+Dangerous builds = 0
+Total wall time: 0:00:00

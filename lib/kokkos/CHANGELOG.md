@@ -1,9 +1,287 @@
 # Change Log
 
+## [3.1.1](https://github.com/kokkos/kokkos/tree/3.1.1) (2020-04-14)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/3.1.00...3.1.1)
+
+**Fixed bugs:**
+
+- Fix complex_double misalignment in reduce, clang+CUDA [\#2989](https://github.com/kokkos/kokkos/issues/2989)
+- Fix compilation fails when profiling disabled and CUDA enabled [\#3001](https://github.com/kokkos/kokkos/issues/3001)
+- Fix cuda reduction of non-trivial scalars of size 4 [\#2990](https://github.com/kokkos/kokkos/issues/2990)
+- Configure and install version file when building in Trilinos [\#2957](https://github.com/kokkos/kokkos/pull/2957)
+- Fix OpenMPTarget build missing include and namespace [\#3000](https://github.com/kokkos/kokkos/issues/3000)
+- fix typo in KOKKOS_SET_EXE_PROPERTY() [\#2959](https://github.com/kokkos/kokkos/issues/2959)
+- Fix non-zero span subviews of zero sized subviews [\#2979](https://github.com/kokkos/kokkos/issues/2979)
+
+## [3.1.00](https://github.com/kokkos/kokkos/tree/3.1.00) (2020-04-14)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/3.0.00...3.1.00)
+
+**Features:**
+
+- HIP Support for AMD
+- OpenMPTarget Support with clang
+- Windows VS19 (Serial) Support [\#1533](https://github.com/kokkos/kokkos/issues/1533)
+
+**Implemented enhancements:**
+
+- generate\_makefile.bash should allow tests to be disabled [\#2886](https://github.com/kokkos/kokkos/issues/2886)
+- clang/7+cuda/9 build -Werror-unused parameter error in nightly test [\#2884](https://github.com/kokkos/kokkos/issues/2884)
+- ScatterView memory space is not user settable [\#2826](https://github.com/kokkos/kokkos/issues/2826)
+- clang/8+cuda/10.0 build error with c++17 [\#2809](https://github.com/kokkos/kokkos/issues/2809)
+- warnings.... [\#2805](https://github.com/kokkos/kokkos/issues/2805)
+- Kokkos version in cpp define [\#2787](https://github.com/kokkos/kokkos/issues/2787)
+- Remove Defunct QThreads Backend [\#2751](https://github.com/kokkos/kokkos/issues/2751)
+- Improve Kokkos::fence behavior with multiple execution spaces [\#2659](https://github.com/kokkos/kokkos/issues/2659)
+- polylithic\(?\) initialization of Kokkos [\#2658](https://github.com/kokkos/kokkos/issues/2658)
+- Unnecessary\(?\) check for host execution space initialization from Cuda initialization [\#2652](https://github.com/kokkos/kokkos/issues/2652)
+- Kokkos error reporting failures with CUDA GPUs in exclusive mode [\#2471](https://github.com/kokkos/kokkos/issues/2471)
+- atomicMax equivalent \(and other atomics\) [\#2401](https://github.com/kokkos/kokkos/issues/2401)
+- Fix alignment for Kokkos::complex [\#2255](https://github.com/kokkos/kokkos/issues/2255)
+- Warnings with Cuda 10.1 [\#2206](https://github.com/kokkos/kokkos/issues/2206)
+- dual view with Kokkos::ViewAllocateWithoutInitializing [\#2188](https://github.com/kokkos/kokkos/issues/2188)
+- Check error code  from cudaOccupancyMaxActiveBlocksPerMultiprocessor [\#2172](https://github.com/kokkos/kokkos/issues/2172)
+- Add non-member Kokkos::resize/realloc for DualView [\#2170](https://github.com/kokkos/kokkos/issues/2170)
+- Construct DualView without initialization [\#2046](https://github.com/kokkos/kokkos/issues/2046)
+- Expose is\_assignable to determine if one view can be assigned to another [\#1936](https://github.com/kokkos/kokkos/issues/1936)
+- profiling label [\#1935](https://github.com/kokkos/kokkos/issues/1935)
+- team\_broadcast of bool failed on CUDA backend [\#1908](https://github.com/kokkos/kokkos/issues/1908)
+- View static\_extent [\#660](https://github.com/kokkos/kokkos/issues/660)
+- Misleading Kokkos::Cuda::initialize ERROR message when compiled for wrong GPU architecture [\#1944](https://github.com/kokkos/kokkos/issues/1944)
+- Cryptic Error When Malloc Fails [\#2164](https://github.com/kokkos/kokkos/issues/2164)
+- Drop support for intermediate standards in CMake [\#2336](https://github.com/kokkos/kokkos/issues/2336)
+
+**Fixed bugs:**
+
+- DualView sync\_device with length zero creates cuda errors [\#2946](https://github.com/kokkos/kokkos/issues/2946)
+- building with nvcc and clang \(or clang based XL\) as host compiler: "Kokkos::atomic\_fetch\_min\(volatile int \*, int\)" has already been defined [\#2903](https://github.com/kokkos/kokkos/issues/2903)
+- Cuda 9.1,10.1 debug builds failing due to -Werror=unused-parameter [\#2880](https://github.com/kokkos/kokkos/issues/2880)
+- clang -Werror: Kokkos\_FixedBufferMemoryPool.hpp:140:28: error: unused parameter 'alloc\_size' [\#2869](https://github.com/kokkos/kokkos/issues/2869)
+- intel/16.0.1, intel/17.0.1 nightly build failures with debugging enabled [\#2867](https://github.com/kokkos/kokkos/issues/2867)
+- intel/16.0.1 debug build errors [\#2863](https://github.com/kokkos/kokkos/issues/2863)
+- xl/16.1.1 with cpp14, openmp build, nightly test failures [\#2856](https://github.com/kokkos/kokkos/issues/2856)
+- Intel nightly test failures: team\_vector [\#2852](https://github.com/kokkos/kokkos/issues/2852)
+- Kokkos Views with intmax/2\<N\<intmax can hang during construction [\#2850](https://github.com/kokkos/kokkos/issues/2850)
+- workgraph\_fib test seg-faults with threads backend and hwloc [\#2797](https://github.com/kokkos/kokkos/issues/2797)
+- cuda.view\_64bit test hangs on Power8+Kepler37 system - develop and 2.9.00 branches [\#2771](https://github.com/kokkos/kokkos/issues/2771)
+- device\_type for Kokkos\_Random ?  [\#2693](https://github.com/kokkos/kokkos/issues/2693)
+- "More than one tag given" error in Experimental::require\(\) [\#2608](https://github.com/kokkos/kokkos/issues/2608)
+- Segfault on Marvell from our finalization stack [\#2542](https://github.com/kokkos/kokkos/issues/2542)
+
+## [3.0.00](https://github.com/kokkos/kokkos/tree/3.0.00) (2020-01-27)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/2.9.00...3.0.00)
+
+**Implemented enhancements:**
+
+- BuildSystem: Standalone Modern CMake Support [\#2104](https://github.com/kokkos/kokkos/issues/2104)
+- StyleFormat: ClangFormat Style [\#2157](https://github.com/kokkos/kokkos/issues/2157)
+- Documentation: Document build system and CMake philosophy [\#2263](https://github.com/kokkos/kokkos/issues/2263)
+- BuildSystem: Add Alias with Namespace Kokkos:: to Interal Libraries [\#2530](https://github.com/kokkos/kokkos/issues/2530)
+- BuildSystem: Universal Kokkos find\_package [\#2099](https://github.com/kokkos/kokkos/issues/2099)
+- BuildSystem: Dropping support for Kokkos\_{DEVICES,OPTIONS,ARCH} in CMake [\#2329](https://github.com/kokkos/kokkos/issues/2329)
+- BuildSystem: Set Kokkos\_DEVICES and Kokkos\_ARCH variables in exported CMake configuration [\#2193](https://github.com/kokkos/kokkos/issues/2193)
+- BuildSystem: Drop support for CUDA 7 and CUDA 8 [\#2489](https://github.com/kokkos/kokkos/issues/2489)
+- BuildSystem: Drop CMake option SEPARATE\_TESTS [\#2266](https://github.com/kokkos/kokkos/issues/2266)
+- BuildSystem: Support expt-relaxed-constexpr same as expt-extended-lambda [\#2411](https://github.com/kokkos/kokkos/issues/2411)
+- BuildSystem: Add Xnvlink to command line options allowed in nvcc\_wrapper [\#2197](https://github.com/kokkos/kokkos/issues/2197)
+- BuildSystem: Install Kokkos config files and target files to lib/cmake/Kokkos [\#2162](https://github.com/kokkos/kokkos/issues/2162)
+- BuildSystem: nvcc\_wrappers and c++ 14 [\#2035](https://github.com/kokkos/kokkos/issues/2035)
+- BuildSystem: Kokkos version major/version minor \(Feature request\) [\#1930](https://github.com/kokkos/kokkos/issues/1930)
+- BuildSystem: CMake namespaces \(and other modern cmake cleanup\) [\#1924](https://github.com/kokkos/kokkos/issues/1924)
+- BuildSystem: Remove capability to install Kokkos via GNU Makefiles [\#2332](https://github.com/kokkos/kokkos/issues/2332)
+- Documentation: Remove PDF ProgrammingGuide in Kokkos replace with link [\#2244](https://github.com/kokkos/kokkos/issues/2244)
+- View: Add Method to Resize View without Initialization [\#2048](https://github.com/kokkos/kokkos/issues/2048)
+- Vector: implement “insert” method for Kokkos\_Vector  \(as a serial function on host\) [\#2437](https://github.com/kokkos/kokkos/issues/2437)
+
+**Fixed bugs:**
+
+- ParallelScan: Kokkos::parallel\scan fix race condition seen in inter-block fence [\#2681](https://github.com/kokkos/kokkos/issues/2681)
+- OffsetView: Kokkos::OffsetView missing constructor which takes pointer [\#2247](https://github.com/kokkos/kokkos/issues/2247)
+- OffsetView: Kokkos::OffsetView: allow offset=0 [\#2246](https://github.com/kokkos/kokkos/issues/2246)
+- DeepCopy: Missing DeepCopy instrumentation in Kokkos [\#2522](https://github.com/kokkos/kokkos/issues/2522)
+- nvcc\_wrapper: --host-only fails with multiple -W\* flags [\#2484](https://github.com/kokkos/kokkos/issues/2484)
+- nvcc\_wrapper: taking first -std option is counterintuitive [\#2553](https://github.com/kokkos/kokkos/issues/2553)
+- Subview: Error taking subviews of views with static_extents of min rank [\#2448](https://github.com/kokkos/kokkos/issues/2448)
+- TeamPolicy: reducers with valuetypes without += broken on CUDA [\#2410](https://github.com/kokkos/kokkos/issues/2410)
+- Libs: Fix inconsistency of Kokkos library names in Kokkos and Trilinos [\#1902](https://github.com/kokkos/kokkos/issues/1902)
+- Complex: operator\>\> for complex\<T\> uses std::ostream, not std::istream [\#2313](https://github.com/kokkos/kokkos/issues/2313)
+- Macros: Restrict not honored for non-intel compilers  [\#1922](https://github.com/kokkos/kokkos/issues/1922)
+
+
+## [2.9.00](https://github.com/kokkos/kokkos/tree/2.9.00) (2019-06-24)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/2.8.00...2.9.00)
+
+**Implemented enhancements:**
+
+- Capability: CUDA Streams [\#1723](https://github.com/kokkos/kokkos/issues/1723)
+- Capability: CUDA Stream support for parallel\_reduce [\#2061](https://github.com/kokkos/kokkos/issues/2061)
+- Capability: Feature Request: TeamVectorRange [\#713](https://github.com/kokkos/kokkos/issues/713)
+- Capability: Adding HPX backend [\#2080](https://github.com/kokkos/kokkos/issues/2080)
+- Capability: TaskScheduler to have multiple queues [\#565](https://github.com/kokkos/kokkos/issues/565)
+- Capability: Support for additional reductions in ScatterView [\#1674](https://github.com/kokkos/kokkos/issues/1674)
+- Capability: Request: deep\_copy within parallel regions [\#689](https://github.com/kokkos/kokkos/issues/689)
+- Capability: Feature Request: `create\_mirror\_view\_without\_initializing` [\#1765](https://github.com/kokkos/kokkos/issues/1765)
+- View: Use SFINAE to restrict possible View type conversions [\#2127](https://github.com/kokkos/kokkos/issues/2127)
+- Deprecation: Deprecate ExecutionSpace::fence\(\) as static function and make it non-static [\#2140](https://github.com/kokkos/kokkos/issues/2140)
+- Deprecation: Deprecate LayoutTileLeft [\#2122](https://github.com/kokkos/kokkos/issues/2122)
+- Macros: KOKKOS\_RESTRICT defined for non-Intel compilers [\#2038](https://github.com/kokkos/kokkos/issues/2038)
+
+**Fixed bugs:**
+
+- Cuda: TeamThreadRange loop count on device is passed by reference to host static constexpr [\#1733](https://github.com/kokkos/kokkos/issues/1733)
+- Cuda: Build error with relocatable device code with CUDA 10.1 GCC 7.3 [\#2134](https://github.com/kokkos/kokkos/issues/2134)
+- Cuda: cudaFuncSetCacheConfig is setting CachePreferShared too often [\#2066](https://github.com/kokkos/kokkos/issues/2066)
+- Cuda: TeamPolicy doesn't throw then created with non-viable vector length and also doesn't backscale to viable one [\#2020](https://github.com/kokkos/kokkos/issues/2020)
+- Cuda: cudaMemcpy error for large league sizes on V100 [\#1991](https://github.com/kokkos/kokkos/issues/1991)
+- Cuda: illegal warp sync in parallel\_reduce by functor on Turing 75 [\#1958](https://github.com/kokkos/kokkos/issues/1958)
+- TeamThreadRange: Inconsistent results from TeamThreadRange reduction [\#1905](https://github.com/kokkos/kokkos/issues/1905)
+- Atomics: atomic\_fetch\_oper & atomic\_oper\_fetch don't build for complex\<float\> [\#1964](https://github.com/kokkos/kokkos/issues/1964)
+- Views: Kokkos randomread Views leak memory [\#2155](https://github.com/kokkos/kokkos/issues/2155)
+- ScatterView: LayoutLeft overload currently non-functional [\#2165](https://github.com/kokkos/kokkos/issues/2165)
+- KNL: With intel 17.2.174 illegal instruction in random number test [\#2078](https://github.com/kokkos/kokkos/issues/2078)
+- Bitset: Enable copy constructor on device [\#2094](https://github.com/kokkos/kokkos/issues/2094)
+- Examples: do not compile due to template deduction error \(multi\_fem\) [\#1928](https://github.com/kokkos/kokkos/issues/1928)
+
+## [2.8.00](https://github.com/kokkos/kokkos/tree/2.8.00) (2019-02-05)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/2.7.24...2.8.00)
+
+**Implemented enhancements:**
+
+- Capability, Tests: C++14 support and testing [\#1914](https://github.com/kokkos/kokkos/issues/1914)
+- Capability: Add environment variables for all command line arguments [\#1798](https://github.com/kokkos/kokkos/issues/1798)
+- Capability: --kokkos-ndevices not working for Slurm [\#1920](https://github.com/kokkos/kokkos/issues/1920)
+- View: Undefined behavior when deep copying from and to an empty unmanaged view [\#1967](https://github.com/kokkos/kokkos/issues/1967)
+- BuildSystem: nvcc\_wrapper should stop immediately if nvcc is not in PATH [\#1861](https://github.com/kokkos/kokkos/issues/1861)
+
+**Fixed bugs:**
+
+- Cuda: Fix Volta Issues 1 Non-deterministic behavior on Volta, runs fine on Pascal [\#1949](https://github.com/kokkos/kokkos/issues/1949)
+- Cuda: Fix Volta Issues 2 CUDA Team Scan gives wrong values on Volta with -G compile flag [\#1942](https://github.com/kokkos/kokkos/issues/1942)
+- Cuda: illegal warp sync in parallel\_reduce by functor on Turing 75 [\#1958](https://github.com/kokkos/kokkos/issues/1958)
+- Threads: Pthreads backend does not handle RangePolicy with offset correctly [\#1976](https://github.com/kokkos/kokkos/issues/1976)
+- Atomics: atomic\_fetch\_oper has no case for Kokkos::complex\<double\> or other 16-byte types [\#1951](https://github.com/kokkos/kokkos/issues/1951)
+- MDRangePolicy: Fix zero-length range [\#1948](https://github.com/kokkos/kokkos/issues/1948)
+- TeamThreadRange: TeamThreadRange MaxLoc reduce doesnt compile  [\#1909](https://github.com/kokkos/kokkos/issues/1909)
+
+## [2.7.24](https://github.com/kokkos/kokkos/tree/2.7.24) (2018-11-04)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/2.7.00...2.7.24)
+
+**Implemented enhancements:**
+
+- DualView: Add non-templated functions for sync, need\_sync, view, modify [\#1858](https://github.com/kokkos/kokkos/issues/1858)
+- DualView: Avoid needlessly allocates and initializes modify\_host and modify\_device flag views [\#1831](https://github.com/kokkos/kokkos/issues/1831)
+- DualView: Incorrect deduction of "not device type" [\#1659](https://github.com/kokkos/kokkos/issues/1659)
+- BuildSystem: Add KOKKOS\_ENABLE\_CXX14 and KOKKOS\_ENABLE\_CXX17 [\#1602](https://github.com/kokkos/kokkos/issues/1602)
+- BuildSystem: Installed kokkos\_generated\_settings.cmake contains build directories instead of install directories [\#1838](https://github.com/kokkos/kokkos/issues/1838)
+- BuildSystem: KOKKOS\_ARCH: add ticks to printout of improper arch setting [\#1649](https://github.com/kokkos/kokkos/issues/1649)
+- BuildSystem: Make core/src/Makefile for Cuda use needed nvcc\_wrapper [\#1296](https://github.com/kokkos/kokkos/issues/1296)
+- Build: Support PGI as host compiler for NVCC [\#1828](https://github.com/kokkos/kokkos/issues/1828)
+- Build: Many Warnings Fixed e.g.[\#1786](https://github.com/kokkos/kokkos/issues/1786)
+- Capability: OffsetView with non-zero begin index [\#567](https://github.com/kokkos/kokkos/issues/567)
+- Capability: Reductions into device side view [\#1788](https://github.com/kokkos/kokkos/issues/1788)
+- Capability: Add max\_size to Kokkos::Array [\#1760](https://github.com/kokkos/kokkos/issues/1760)
+- Capability: View Assignment: LayoutStride -\> LayoutLeft and LayoutStride -\> LayoutRight [\#1594](https://github.com/kokkos/kokkos/issues/1594)
+- Capability: Atomic function allow implicit conversion of update argument [\#1571](https://github.com/kokkos/kokkos/issues/1571)
+- Capability: Add team\_size\_max with tagged functors [\#663](https://github.com/kokkos/kokkos/issues/663)
+- Capability: Fix allignment of views from Kokkos\_ScratchSpace should use different alignment [\#1700](https://github.com/kokkos/kokkos/issues/1700)
+- Capabilitiy: create\_mirror\_view\_and\_copy for DynRankView [\#1651](https://github.com/kokkos/kokkos/issues/1651)
+- Capability: DeepCopy HBWSpace / HostSpace [\#548](https://github.com/kokkos/kokkos/issues/548)
+- ROCm: support team vector scan  [\#1645](https://github.com/kokkos/kokkos/issues/1645)
+- ROCm:  Merge from rocm-hackathon2 [\#1636](https://github.com/kokkos/kokkos/issues/1636)
+- ROCm:  Add ParallelScanWithTotal [\#1611](https://github.com/kokkos/kokkos/issues/1611)
+- ROCm: Implement MDRange in ROCm [\#1314](https://github.com/kokkos/kokkos/issues/1314)
+- ROCm: Implement Reducers for Nested Parallelism Levels [\#963](https://github.com/kokkos/kokkos/issues/963)
+- ROCm: Add asynchronous deep copy [\#959](https://github.com/kokkos/kokkos/issues/959)
+- Tests: Memory pool test seems to allocate 8GB [\#1830](https://github.com/kokkos/kokkos/issues/1830)
+- Tests: Add unit\_test for team\_broadcast [\#734](https://github.com/kokkos/kokkos/issues/734)
+
+**Fixed bugs:**
+
+- BuildSystem: Makefile.kokkos gets gcc-toolchain wrong if gcc is cached [\#1841](https://github.com/kokkos/kokkos/issues/1841)
+- BuildSystem: kokkos\_generated\_settings.cmake placement is inconsistent [\#1771](https://github.com/kokkos/kokkos/issues/1771)
+- BuildSystem: Invalid escape sequence \. in kokkos\_functions.cmake [\#1661](https://github.com/kokkos/kokkos/issues/1661)
+- BuildSystem: Problem in Kokkos generated cmake file [\#1770](https://github.com/kokkos/kokkos/issues/1770)
+- BuildSystem: invalid file names on windows [\#1671](https://github.com/kokkos/kokkos/issues/1671)
+- Tests: reducers min/max\_loc test fails randomly due to multiple min values and thus multiple valid locations [\#1681](https://github.com/kokkos/kokkos/issues/1681)
+- Tests: cuda.scatterview unit test causes "Bus error" when force\_uvm and enable\_lambda are enabled [\#1852](https://github.com/kokkos/kokkos/issues/1852)
+- Tests: cuda.cxx11 unit test fails when force\_uvm and enable\_lambda are enabled [\#1850](https://github.com/kokkos/kokkos/issues/1850)
+- Tests: threads.reduce\_device\_view\_range\_policy failing with Cuda/8.0.44 and RDC [\#1836](https://github.com/kokkos/kokkos/issues/1836)
+- Build: compile error when compiling Kokkos with hwloc 2.0.1 \(on OSX 10.12.6, with g++ 7.2.0\) [\#1506](https://github.com/kokkos/kokkos/issues/1506)
+- Build: dual\_view.view broken with UVM [\#1834](https://github.com/kokkos/kokkos/issues/1834)
+- Build: White cuda/9.2 + gcc/7.2 warnings triggering errors  [\#1833](https://github.com/kokkos/kokkos/issues/1833)
+- Build: warning: enum constant in boolean context [\#1813](https://github.com/kokkos/kokkos/issues/1813)
+- Capability: Fix overly conservative max\_team\_size thingy [\#1808](https://github.com/kokkos/kokkos/issues/1808)
+- DynRankView: Ctors taking ViewAllocateWithoutInitializing broken [\#1783](https://github.com/kokkos/kokkos/issues/1783)
+- Cuda: Apollo cuda.team\_broadcast test fail with clang-6.0 [\#1762](https://github.com/kokkos/kokkos/issues/1762)
+- Cuda: Clang spurious test failure in impl\_view\_accessible [\#1753](https://github.com/kokkos/kokkos/issues/1753)
+- Cuda: Kokkos::complex\<double\> atomic deadlocks with Clang 6 Cuda build with -O0 [\#1752](https://github.com/kokkos/kokkos/issues/1752)
+- Cuda: LayoutStride Test fails for UVM as default memory space [\#1688](https://github.com/kokkos/kokkos/issues/1688)
+- Cuda: Scan wrong values on Volta [\#1676](https://github.com/kokkos/kokkos/issues/1676)
+- Cuda: Kokkos::deep\_copy error with CudaUVM and Kokkos::Serial spaces [\#1652](https://github.com/kokkos/kokkos/issues/1652)
+- Cuda: cudaErrorInvalidConfiguration with debug build [\#1647](https://github.com/kokkos/kokkos/issues/1647)
+- Cuda: parallel\_for with TeamPolicy::team\_size\_recommended with launch bounds not working -- reported by Daniel Holladay [\#1283](https://github.com/kokkos/kokkos/issues/1283)
+- Cuda: Using KOKKOS\_CLASS\_LAMBDA in a class with Kokkos::Random\_XorShift64\_Pool member data [\#1696](https://github.com/kokkos/kokkos/issues/1696)
+- Long Build Times on Darwin [\#1721](https://github.com/kokkos/kokkos/issues/1721)
+- Capability: Typo in Kokkos\_Sort.hpp - BinOp3D - wrong comparison [\#1720](https://github.com/kokkos/kokkos/issues/1720)
+- Buffer overflow in SharedAllocationRecord in Kokkos\_HostSpace.cpp [\#1673](https://github.com/kokkos/kokkos/issues/1673)
+- Serial unit test failure [\#1632](https://github.com/kokkos/kokkos/issues/1632)
+
+## [2.7.00](https://github.com/kokkos/kokkos/tree/2.7.00) (2018-05-24)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/2.6.00...2.7.00)
+
+**Part of the Kokkos C++ Performance Portability Programming EcoSystem 2.7**
+
+**Implemented enhancements:**
+
+- Deprecate team\_size auto adjusting to maximal value possible [\#1618](https://github.com/kokkos/kokkos/issues/1618)
+- DynamicView - remove restrictions to std::is\_trivial types and value\_type is power of two [\#1586](https://github.com/kokkos/kokkos/issues/1586)
+- Kokkos::StaticCrsGraph does not propagate memory traits \(e.g., Unmanaged\) [\#1581](https://github.com/kokkos/kokkos/issues/1581)
+- Adding ETI for DeepCopy / ViewFill etc. [\#1578](https://github.com/kokkos/kokkos/issues/1578)
+- Deprecate all the left over KOKKOS\_HAVE\_ Macros and Kokkos\_OldMacros.hpp [\#1572](https://github.com/kokkos/kokkos/issues/1572)
+- Error if Kokkos\_ARCH set in CMake [\#1555](https://github.com/kokkos/kokkos/issues/1555)
+- Deprecate ExecSpace::initialize / ExecSpace::finalize [\#1532](https://github.com/kokkos/kokkos/issues/1532)
+- New API for TeamPolicy property setting [\#1531](https://github.com/kokkos/kokkos/issues/1531)
+- clang 6.0 + cuda debug out-of-memory test failure [\#1521](https://github.com/kokkos/kokkos/issues/1521)
+- Cuda UniqueToken interface not consistent with other backends [\#1505](https://github.com/kokkos/kokkos/issues/1505)
+- Move Reducers out of Experimental namespace [\#1494](https://github.com/kokkos/kokkos/issues/1494)
+- Provide scope guard for initialize/finalize [\#1479](https://github.com/kokkos/kokkos/issues/1479)
+- Check Kokkos::is\_initialized in SharedAllocationRecord dtor [\#1465](https://github.com/kokkos/kokkos/issues/1465)
+- Remove static list of allocations [\#1464](https://github.com/kokkos/kokkos/issues/1464)
+- Makefiles: Support single compile/link line use case [\#1402](https://github.com/kokkos/kokkos/issues/1402)
+- ThreadVectorRange with a range  [\#1400](https://github.com/kokkos/kokkos/issues/1400)
+- Exclusive scan + last value API [\#1358](https://github.com/kokkos/kokkos/issues/1358)
+- Install kokkos\_generated\_settings.cmake [\#1348](https://github.com/kokkos/kokkos/issues/1348)
+- Kokkos arrays \(not views!\) don't do bounds checking in debug mode [\#1342](https://github.com/kokkos/kokkos/issues/1342)
+- Expose round-robin GPU assignment outside of initialize\(int, char\*\*\) [\#1318](https://github.com/kokkos/kokkos/issues/1318)
+- DynamicView misses use\_count and label function [\#1298](https://github.com/kokkos/kokkos/issues/1298)
+- View constructor should check arguments [\#1286](https://github.com/kokkos/kokkos/issues/1286)
+- False Positive on Oversubscription Warning [\#1207](https://github.com/kokkos/kokkos/issues/1207)
+- Allow \(require\) execution space for 1st arg of VerifyExecutionCanAccessMemorySpace [\#1192](https://github.com/kokkos/kokkos/issues/1192)
+- ROCm: Add ROCmHostPinnedSpace [\#958](https://github.com/kokkos/kokkos/issues/958)
+- power of two functions [\#656](https://github.com/kokkos/kokkos/issues/656)
+- CUDA 8 has 64bit \_\_shfl [\#361](https://github.com/kokkos/kokkos/issues/361)
+- Add TriBITS/CMake configure information about node types [\#243](https://github.com/kokkos/kokkos/issues/243)
+
+**Fixed bugs:**
+
+- CUDA atomic\_fetch\_sub for doubles is hitting CAS instead of intrinsic [\#1624](https://github.com/kokkos/kokkos/issues/1624)
+- Bug: use of ballot on Volta [\#1612](https://github.com/kokkos/kokkos/issues/1612)
+- Kokkos::deep\_copy memory access failures [\#1583](https://github.com/kokkos/kokkos/issues/1583)
+- g++ -std option doubly set for cmake project [\#1548](https://github.com/kokkos/kokkos/issues/1548)
+- ViewFill for 1D Views of larger 32bit entries fails [\#1541](https://github.com/kokkos/kokkos/issues/1541)
+- CUDA Volta another warpsync bug [\#1520](https://github.com/kokkos/kokkos/issues/1520)
+- triple\_nested\_parallelism fails with KOKKOS\_DEBUG and CUDA [\#1513](https://github.com/kokkos/kokkos/issues/1513)
+- Jenkins errors in Kokkos\_SharedAlloc.cpp with debug build [\#1511](https://github.com/kokkos/kokkos/issues/1511)
+- Kokkos::Sort out-of-bounds with empty bins [\#1504](https://github.com/kokkos/kokkos/issues/1504)
+- Get rid of deprecated functions inside Kokkos [\#1484](https://github.com/kokkos/kokkos/issues/1484)
+- get\_work\_partition casts int64\_t to int, causing a seg fault [\#1481](https://github.com/kokkos/kokkos/issues/1481)
+- NVCC bug with \_\_device\_\_ on defaulted function [\#1470](https://github.com/kokkos/kokkos/issues/1470)
+- CMake example broken with CUDA backend [\#1468](https://github.com/kokkos/kokkos/issues/1468)
+
+
 ## [2.6.00](https://github.com/kokkos/kokkos/tree/2.6.00) (2018-03-07)
 [Full Changelog](https://github.com/kokkos/kokkos/compare/2.5.00...2.6.00)
 
-**Part of the Kokkos C++ Performance Portability Programming EcoSystem 2.6**      
+**Part of the Kokkos C++ Performance Portability Programming EcoSystem 2.6**
 
 **Implemented enhancements:**
 
@@ -47,7 +325,7 @@
 ## [2.5.00](https://github.com/kokkos/kokkos/tree/2.5.00) (2017-12-15)
 [Full Changelog](https://github.com/kokkos/kokkos/compare/2.04.11...2.5.00)
 
-**Part of the Kokkos C++ Performance Portability Programming EcoSystem 2.5**      
+**Part of the Kokkos C++ Performance Portability Programming EcoSystem 2.5**
 
 **Implemented enhancements:**
 

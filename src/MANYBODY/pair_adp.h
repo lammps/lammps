@@ -82,7 +82,7 @@ class PairADP : public Pair {
   void allocate();
   void array2spline();
   void interpolate(int, double, double *, double **);
-  void grab(FILE *, int, double *);
+  void grab(FILE *, char *, int, double *);
 
   void read_file(char *);
   void file2array();

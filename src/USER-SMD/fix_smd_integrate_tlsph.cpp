@@ -22,22 +22,16 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <Eigen/Eigen>
 #include "fix_smd_integrate_tlsph.h"
+#include <cmath>
+#include <cstring>
+#include <Eigen/Eigen>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "error.h"
 #include "pair.h"
-#include "neigh_list.h"
-#include "domain.h"
-#include "neighbor.h"
 #include "comm.h"
-#include "modify.h"
 
 using namespace Eigen;
 using namespace LAMMPS_NS;
@@ -86,7 +80,7 @@ FixSMDIntegrateTlsph::FixSMDIntegrateTlsph(LAMMPS *lmp, int narg, char **arg) :
                         }
                 } else {
                         char msg[128];
-                        sprintf(msg, "Illegal keyword for smd/integrate_tlsph: %s\n", arg[iarg]);
+                        snprintf(msg,128, "Illegal keyword for smd/integrate_tlsph: %s\n", arg[iarg]);
                         error->all(FLERR, msg);
                 }
 
@@ -125,7 +119,7 @@ void FixSMDIntegrateTlsph::init() {
 /* ----------------------------------------------------------------------
  ------------------------------------------------------------------------- */
 
-void FixSMDIntegrateTlsph::initial_integrate(int vflag) {
+void FixSMDIntegrateTlsph::initial_integrate(int /*vflag*/) {
         double dtfm, vsq, scale;
 
         // update v and x of atoms in group
@@ -209,8 +203,8 @@ void FixSMDIntegrateTlsph::final_integrate() {
 
         double **v = atom->v;
         double **f = atom->f;
-        double *e = atom->e;
-        double *de = atom->de;
+        double *esph = atom->esph;
+        double *desph = atom->desph;
         double *rmass = atom->rmass;
         int *mask = atom->mask;
         int nlocal = atom->nlocal;
@@ -237,7 +231,7 @@ void FixSMDIntegrateTlsph::final_integrate() {
                                 }
                         }
 
-                        e[i] += dtv * de[i];
+                        esph[i] += dtv * desph[i];
                 }
         }
 }

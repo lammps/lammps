@@ -36,6 +36,8 @@ class DihedralTable : public Dihedral {
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
+  void write_restart_settings(FILE *);
+  void read_restart_settings(FILE *);
   double single(int type, int i1, int i2, int i3, int i4);
 
  protected:

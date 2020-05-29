@@ -32,7 +32,7 @@ namespace ATC {
   //    parses and adjusts thermostat state based on
   //    user input, in the style of LAMMPS user input
   //--------------------------------------------------------
-  bool KinetoThermostat::modify(int narg, char **arg)
+  bool KinetoThermostat::modify(int /* narg */, char ** /* arg */)
   {
     bool foundMatch = false;
     return foundMatch;
@@ -171,7 +171,7 @@ namespace ATC {
   //            sets up the right-hand side of the
   //            kinetostat equations
   //--------------------------------------------------------
-  void VelocityRescaleCombined::set_kinetostat_rhs(DENS_MAT & rhs, double dt)
+  void VelocityRescaleCombined::set_kinetostat_rhs(DENS_MAT & rhs, double /* dt */)
   {
     rhs = ((atc_->mass_mat_md(VELOCITY)).quantity())*(velocity_.quantity());
     rhs -= thermostatCorrection_->quantity();
@@ -682,8 +682,8 @@ namespace ATC {
   //   sets up and solves linear system for lambda, if the
   //   bool is true it iterators to a non-linear solution
   //--------------------------------------------------------
-  void KinetoThermostatGlcFs::compute_lambda(double dt,
-                                       bool iterateSolution)
+  void KinetoThermostatGlcFs::compute_lambda(double /* dt */,
+                                             bool /* iterateSolution */)
   {
     // ITERATIVE SOLUTION
   }
@@ -692,7 +692,7 @@ namespace ATC {
   //  output:
   //    adds all relevant output to outputData
   //--------------------------------------------------------
-  void KinetoThermostatGlcFs::output(OUTPUT_LIST & outputData)
+  void KinetoThermostatGlcFs::output(OUTPUT_LIST & /* outputData */)
   {
     // DO NOT CALL INDIVIDUAL REGULATORS
     // OUTPUT TOTAL FORCE AND TOTAL POWER 

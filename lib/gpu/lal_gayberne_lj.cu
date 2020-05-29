@@ -11,9 +11,9 @@
 //
 //    begin                :
 //    email                : brownw@ornl.gov
-// ***************************************************************************/
+// ***************************************************************************
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_ellipsoid_extra.h"
 #endif
 

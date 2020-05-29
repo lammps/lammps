@@ -11,10 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_viscous.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "respa.h"
@@ -109,7 +107,7 @@ void FixViscous::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixViscous::post_force(int vflag)
+void FixViscous::post_force(int /*vflag*/)
 {
   // apply drag force to atoms in group
   // direction is opposed to velocity vector
@@ -134,7 +132,7 @@ void FixViscous::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixViscous::post_force_respa(int vflag, int ilevel, int iloop)
+void FixViscous::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }

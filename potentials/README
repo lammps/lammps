@@ -89,6 +89,7 @@ lcbop         LCBOP long-range bond-order potential
 meam	      modified EAM (MEAM) library and individual elements/alloys
 meam.spline   modified EAM (MEAM) spline potential
 meam.sw.spline modified EAM (MEAM) Stillinger-Weber spline potential
+mesocnt       mesoscopic carbon nanotube (CNT) potential
 mgpt          model generalized pseudopotential theory (MGPT) potential
 nb3b.harmonic nonbonded 3-body harmonic potential
 poly          polymorphic 3-body potential

@@ -35,10 +35,13 @@ class ComputeBondLocal : public Compute {
   double memory_usage();
 
  private:
-  int nvalues;
-  int ncount;
-  int *bstyle;
+  int nvalues,nvar,ncount,setflag;
+
   int singleflag,velflag,ghostvelflag,initflag;
+  int dvar;
+  int *bstyle,*vvar;
+  char *dstr;
+  char **vstr;
 
   int nmax;
   double *vlocal;

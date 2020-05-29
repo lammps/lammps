@@ -16,9 +16,9 @@
                         and Rochus Schmid (Ruhr-Universitaet Bochum)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "angle_cosine_buck6d.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -26,13 +26,12 @@
 #include "force.h"
 #include "pair.h"
 #include "math_const.h"
-#include "math_special.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace MathSpecial;
 
 #define SMALL 0.001
 
@@ -56,7 +55,7 @@ AngleCosineBuck6d::~AngleCosineBuck6d()
 
 void AngleCosineBuck6d::compute(int eflag, int vflag)
 {
-  int i,i1,i2,i3,n,type,itype,jtype;
+  int i1,i2,i3,n,type,itype,jtype;
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double eangle,f1[3],f3[3];
   double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22;
@@ -69,8 +68,7 @@ void AngleCosineBuck6d::compute(int eflag, int vflag)
   double rcu,rqu,sme,smf;
 
   eangle = evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   // insure pair->ev_tally() will use 1-3 virial contribution
 
@@ -309,7 +307,7 @@ void AngleCosineBuck6d::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-double AngleCosineBuck6d::equilibrium_angle(int i)
+double AngleCosineBuck6d::equilibrium_angle(int /*i*/)
 {
   return MY_PI;
 }
@@ -334,9 +332,9 @@ void AngleCosineBuck6d::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nangletypes,fp);
-    fread(&multiplicity[1],sizeof(int),atom->nangletypes,fp);
-    fread(&th0[1],sizeof(double),atom->nangletypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&multiplicity[1],sizeof(int),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&th0[1],sizeof(double),atom->nangletypes,fp,NULL,error);
   }
 
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
@@ -353,7 +351,7 @@ void AngleCosineBuck6d::read_restart(FILE *fp)
 void AngleCosineBuck6d::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nangletypes; i++) {
-    fprintf(fp,"%d %g %d %d\n",i,k[i],multiplicity[i],th0[i]);
+    fprintf(fp,"%d %g %d %g\n",i,k[i],multiplicity[i],th0[i]);
   }
 }
 

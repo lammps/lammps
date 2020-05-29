@@ -11,7 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "atom_vec_dpd_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm_kokkos.h"
@@ -21,10 +20,11 @@
 #include "atom_masks.h"
 #include "memory_kokkos.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
-#define DELTA 10000
+#define DELTA 10
 
 /* ---------------------------------------------------------------------- */
 
@@ -48,6 +48,8 @@ AtomVecDPDKokkos::AtomVecDPDKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
   k_count = DAT::tdual_int_1d("atom::k_count",1);
   atomKK = (AtomKokkos *) atom;
   commKK = (CommKokkos *) comm;
+
+  no_comm_vel_flag = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -58,23 +60,24 @@ AtomVecDPDKokkos::AtomVecDPDKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
 
 void AtomVecDPDKokkos::grow(int n)
 {
-  if (n == 0) nmax += DELTA;
+  int step = MAX(DELTA,nmax*0.01);
+  if (n == 0) nmax += step;
   else nmax = n;
   atomKK->nmax = nmax;
   if (nmax < 0 || nmax > MAXSMALLINT)
     error->one(FLERR,"Per-processor system is too big");
 
-  sync(Device,ALL_MASK);
-  modified(Device,ALL_MASK);
+  atomKK->sync(Device,ALL_MASK);
+  atomKK->modified(Device,ALL_MASK);
 
   memoryKK->grow_kokkos(atomKK->k_tag,atomKK->tag,nmax,"atom:tag");
   memoryKK->grow_kokkos(atomKK->k_type,atomKK->type,nmax,"atom:type");
   memoryKK->grow_kokkos(atomKK->k_mask,atomKK->mask,nmax,"atom:mask");
   memoryKK->grow_kokkos(atomKK->k_image,atomKK->image,nmax,"atom:image");
 
-  memoryKK->grow_kokkos(atomKK->k_x,atomKK->x,nmax,3,"atom:x");
-  memoryKK->grow_kokkos(atomKK->k_v,atomKK->v,nmax,3,"atom:v");
-  memoryKK->grow_kokkos(atomKK->k_f,atomKK->f,nmax,3,"atom:f");
+  memoryKK->grow_kokkos(atomKK->k_x,atomKK->x,nmax,"atom:x");
+  memoryKK->grow_kokkos(atomKK->k_v,atomKK->v,nmax,"atom:v");
+  memoryKK->grow_kokkos(atomKK->k_f,atomKK->f,nmax,"atom:f");
 
 
   memoryKK->grow_kokkos(atomKK->k_rho,atomKK->rho,nmax,"atom:rho");
@@ -90,15 +93,15 @@ void AtomVecDPDKokkos::grow(int n)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
 
-  grow_reset();
-  sync(Host,ALL_MASK);
+  grow_pointers();
+  atomKK->sync(Host,ALL_MASK);
 }
 
 /* ----------------------------------------------------------------------
    reset local array ptrs
 ------------------------------------------------------------------------- */
 
-void AtomVecDPDKokkos::grow_reset()
+void AtomVecDPDKokkos::grow_pointers()
 {
   tag = atomKK->tag;
   d_tag = atomKK->k_tag.d_view;
@@ -156,8 +159,9 @@ void AtomVecDPDKokkos::grow_reset()
 
 void AtomVecDPDKokkos::copy(int i, int j, int delflag)
 {
-  sync(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+  atomKK->sync(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
             MASK_MASK | IMAGE_MASK | DPDTHETA_MASK |
+            UCG_MASK | UCGNEW_MASK |
             UCOND_MASK | UMECH_MASK | UCHEM_MASK | DVECTOR_MASK);
 
   h_tag[j] = h_tag[i];
@@ -181,8 +185,9 @@ void AtomVecDPDKokkos::copy(int i, int j, int delflag)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       modify->fix[atom->extra_grow[iextra]]->copy_arrays(i,j,delflag);
 
-  modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+  atomKK->modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
                 MASK_MASK | IMAGE_MASK | DPDTHETA_MASK |
+                UCG_MASK | UCGNEW_MASK |
                 UCOND_MASK | UMECH_MASK | UCHEM_MASK | DVECTOR_MASK);
 }
 
@@ -264,7 +269,7 @@ int AtomVecDPDKokkos::pack_comm_kokkos(const int &n,
   // Choose correct forward PackComm kernel
 
   if(commKK->forward_comm_on_host) {
-    sync(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
+    atomKK->sync(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
     if(pbc_flag) {
       if(domain->triclinic) {
         struct AtomVecDPDKokkos_PackComm<LMPHostType,1,1> f(atomKK->k_x,
@@ -299,7 +304,7 @@ int AtomVecDPDKokkos::pack_comm_kokkos(const int &n,
       }
     }
   } else {
-    sync(Device,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
+    atomKK->sync(Device,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
     if(pbc_flag) {
       if(domain->triclinic) {
         struct AtomVecDPDKokkos_PackComm<LMPDeviceType,1,1> f(atomKK->k_x,
@@ -406,8 +411,8 @@ struct AtomVecDPDKokkos_PackCommSelf {
 int AtomVecDPDKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &list, const int & iswap,
                                                                                 const int nfirst, const int &pbc_flag, const int* const pbc) {
   if(commKK->forward_comm_on_host) {
-    sync(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
-    modified(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
+    atomKK->sync(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
+    atomKK->modified(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
     if(pbc_flag) {
       if(domain->triclinic) {
       struct AtomVecDPDKokkos_PackCommSelf<LMPHostType,1,1> f(atomKK->k_x,
@@ -442,8 +447,8 @@ int AtomVecDPDKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &list
       }
     }
   } else {
-    sync(Device,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
-    modified(Device,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
+    atomKK->sync(Device,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
+    atomKK->modified(Device,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
     if(pbc_flag) {
       if(domain->triclinic) {
       struct AtomVecDPDKokkos_PackCommSelf<LMPDeviceType,1,1> f(atomKK->k_x,
@@ -524,15 +529,15 @@ struct AtomVecDPDKokkos_UnpackComm {
 void AtomVecDPDKokkos::unpack_comm_kokkos(const int &n, const int &first,
     const DAT::tdual_xfloat_2d &buf ) {
   if(commKK->forward_comm_on_host) {
-    sync(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
-    modified(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
+    atomKK->sync(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
+    atomKK->modified(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
     struct AtomVecDPDKokkos_UnpackComm<LMPHostType> f(atomKK->k_x,
     atomKK->k_dpdTheta,atomKK->k_uCond,atomKK->k_uMech,atomKK->k_uChem,
     buf,first);
     Kokkos::parallel_for(n,f);
   } else {
-    sync(Device,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
-    modified(Device,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
+    atomKK->sync(Device,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
+    atomKK->modified(Device,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
     struct AtomVecDPDKokkos_UnpackComm<LMPDeviceType> f(atomKK->k_x,
     atomKK->k_dpdTheta,atomKK->k_uCond,atomKK->k_uMech,atomKK->k_uChem,
     buf,first);
@@ -548,7 +553,7 @@ int AtomVecDPDKokkos::pack_comm(int n, int *list, double *buf,
   int i,j,m;
   double dx,dy,dz;
 
-  sync(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
+  atomKK->sync(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
 
   m = 0;
   if (pbc_flag == 0) {
@@ -594,7 +599,7 @@ int AtomVecDPDKokkos::pack_comm_vel(int n, int *list, double *buf,
   int i,j,m;
   double dx,dy,dz,dvx,dvy,dvz;
 
-  sync(Host,X_MASK|V_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
+  atomKK->sync(Host,X_MASK|V_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
 
   m = 0;
   if (pbc_flag == 0) {
@@ -681,7 +686,7 @@ void AtomVecDPDKokkos::unpack_comm(int n, int first, double *buf)
     h_uChem[i] = buf[m++];
   }
 
-  modified(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
+  atomKK->modified(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -705,7 +710,7 @@ void AtomVecDPDKokkos::unpack_comm_vel(int n, int first, double *buf)
     h_uChem[i] = buf[m++];
   }
 
-  modified(Host,X_MASK|V_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
+  atomKK->modified(Host,X_MASK|V_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -713,7 +718,7 @@ void AtomVecDPDKokkos::unpack_comm_vel(int n, int first, double *buf)
 int AtomVecDPDKokkos::pack_reverse(int n, int first, double *buf)
 {
   if(n > 0)
-    sync(Host,F_MASK);
+    atomKK->sync(Host,F_MASK);
 
   int m = 0;
   const int last = first + n;
@@ -730,8 +735,8 @@ int AtomVecDPDKokkos::pack_reverse(int n, int first, double *buf)
 void AtomVecDPDKokkos::unpack_reverse(int n, int *list, double *buf)
 {
   if(n > 0) {
-    sync(Host,F_MASK);
-    modified(Host,F_MASK);
+    atomKK->sync(Host,F_MASK);
+    atomKK->modified(Host,F_MASK);
   }
 
   int m = 0;
@@ -815,7 +820,7 @@ int AtomVecDPDKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist, DA
 {
   X_FLOAT dx,dy,dz;
 
-  sync(space,ALL_MASK);
+  atomKK->sync(space,ALL_MASK);
 
   if (pbc_flag != 0) {
     if (domain->triclinic == 0) {
@@ -872,7 +877,7 @@ int AtomVecDPDKokkos::pack_border(int n, int *list, double *buf,
   int i,j,m;
   double dx,dy,dz;
 
-  sync(Host,ALL_MASK);
+  atomKK->sync(Host,ALL_MASK);
 
   m = 0;
   if (pbc_flag == 0) {
@@ -933,7 +938,7 @@ int AtomVecDPDKokkos::pack_border_vel(int n, int *list, double *buf,
   int i,j,m;
   double dx,dy,dz,dvx,dvy,dvz;
 
-  sync(Host,ALL_MASK);
+  atomKK->sync(Host,ALL_MASK);
 
   m = 0;
   if (pbc_flag == 0) {
@@ -1028,8 +1033,8 @@ int AtomVecDPDKokkos::pack_comm_hybrid(int n, int *list, double *buf)
 {
   int i,j,m;
 
-  sync(Host,DPDTHETA_MASK | UCOND_MASK |
-            UMECH_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
+  atomKK->sync(Host,DPDTHETA_MASK | UCOND_MASK |
+            UMECH_MASK | UCHEM_MASK);
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -1048,7 +1053,7 @@ int AtomVecDPDKokkos::pack_border_hybrid(int n, int *list, double *buf)
 {
   int i,j,m;
 
-  sync(Host,DPDTHETA_MASK | UCOND_MASK |
+  atomKK->sync(Host,DPDTHETA_MASK | UCOND_MASK |
             UMECH_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
 
   m = 0;
@@ -1123,11 +1128,11 @@ struct AtomVecDPDKokkos_UnpackBorder {
 
 void AtomVecDPDKokkos::unpack_border_kokkos(const int &n, const int &first,
                      const DAT::tdual_xfloat_2d &buf,ExecutionSpace space) {
-  modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|
+  atomKK->modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|
                  DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK|
                  UCG_MASK|UCGNEW_MASK);
   while (first+n >= nmax) grow(0);
-  modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|
+  atomKK->modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|
                  DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK|
                  UCG_MASK|UCGNEW_MASK|DVECTOR_MASK);
   if(space==Host) {
@@ -1175,7 +1180,7 @@ void AtomVecDPDKokkos::unpack_border(int n, int first, double *buf)
       m += modify->fix[atom->extra_border[iextra]]->
         unpack_border(n,first,&buf[m]);
 
-  modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|
+  atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|
                 DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK|
                 UCG_MASK|UCGNEW_MASK|DVECTOR_MASK);
 }
@@ -1213,7 +1218,7 @@ void AtomVecDPDKokkos::unpack_border_vel(int n, int first, double *buf)
       m += modify->fix[atom->extra_border[iextra]]->
         unpack_border(n,first,&buf[m]);
 
-  modified(Host,X_MASK|V_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|
+  atomKK->modified(Host,X_MASK|V_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|
                 DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK|
                 UCG_MASK|UCGNEW_MASK|DVECTOR_MASK);
 }
@@ -1233,8 +1238,8 @@ int AtomVecDPDKokkos::unpack_comm_hybrid(int n, int first, double *buf)
     h_uChem(i) = buf[m++];
   }
 
-  modified(Host,DPDTHETA_MASK | UCOND_MASK |
-                UMECH_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
+  atomKK->modified(Host,DPDTHETA_MASK | UCOND_MASK |
+                UMECH_MASK | UCHEM_MASK );
 
   return m;
 }
@@ -1256,7 +1261,7 @@ int AtomVecDPDKokkos::unpack_border_hybrid(int n, int first, double *buf)
     h_uCGnew(i) = buf[m++];
   }
 
-  modified(Host,DPDTHETA_MASK | UCOND_MASK |
+  atomKK->modified(Host,DPDTHETA_MASK | UCOND_MASK |
                 UMECH_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
 
   return m;
@@ -1380,7 +1385,7 @@ int AtomVecDPDKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d
     int newsize = nsend*17/k_buf.view<LMPHostType>().extent(1)+1;
     k_buf.resize(newsize,k_buf.view<LMPHostType>().extent(1));
   }
-  sync(space,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+  atomKK->sync(space,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
              MASK_MASK | IMAGE_MASK| DPDTHETA_MASK | UCOND_MASK |
              UMECH_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK |
              DVECTOR_MASK);
@@ -1398,7 +1403,7 @@ int AtomVecDPDKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d
 
 int AtomVecDPDKokkos::pack_exchange(int i, double *buf)
 {
-  sync(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+  atomKK->sync(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
             MASK_MASK | IMAGE_MASK| DPDTHETA_MASK | UCOND_MASK |
             UMECH_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK |
             DVECTOR_MASK);
@@ -1514,7 +1519,7 @@ int AtomVecDPDKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int nre
     k_count.sync<LMPHostType>();
   }
 
-  modified(space,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+  atomKK->modified(space,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
                  MASK_MASK | IMAGE_MASK| DPDTHETA_MASK | UCOND_MASK |
                  UMECH_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK |
                  DVECTOR_MASK);
@@ -1552,7 +1557,7 @@ int AtomVecDPDKokkos::unpack_exchange(double *buf)
       m += modify->fix[atom->extra_grow[iextra]]->
         unpack_exchange(nlocal,&buf[m]);
 
-  modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+  atomKK->modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
            MASK_MASK | IMAGE_MASK| DPDTHETA_MASK | UCOND_MASK |
            UMECH_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK |
            DVECTOR_MASK);
@@ -1589,7 +1594,7 @@ int AtomVecDPDKokkos::size_restart()
 
 int AtomVecDPDKokkos::pack_restart(int i, double *buf)
 {
-  sync(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+  atomKK->sync(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
             MASK_MASK | IMAGE_MASK | DPDTHETA_MASK |
             UCOND_MASK | UMECH_MASK | UCHEM_MASK | DVECTOR_MASK);
 
@@ -1645,6 +1650,8 @@ int AtomVecDPDKokkos::unpack_restart(double *buf)
   h_uCond[nlocal] = buf[m++];
   h_uMech[nlocal] = buf[m++];
   h_uChem[nlocal] = buf[m++];
+  h_uCG[nlocal] = 0.0;
+  h_uCGnew[nlocal] = 0.0;
 
   double **extra = atom->extra;
   if (atom->nextra_store) {
@@ -1652,8 +1659,9 @@ int AtomVecDPDKokkos::unpack_restart(double *buf)
     for (int i = 0; i < size; i++) extra[nlocal][i] = buf[m++];
   }
 
-  modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+  atomKK->modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
                 MASK_MASK | IMAGE_MASK | DPDTHETA_MASK |
+                UCG_MASK | UCGNEW_MASK |
                 UCOND_MASK | UMECH_MASK | UCHEM_MASK | DVECTOR_MASK);
 
   atom->nlocal++;
@@ -1714,12 +1722,12 @@ void AtomVecDPDKokkos::data_atom(double *coord, tagint imagetmp,
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
-  h_tag[nlocal] = ATOTAGINT(values[0]);
-  h_type[nlocal] = atoi(values[1]);
+  h_tag[nlocal] = utils::tnumeric(FLERR,values[0],true,lmp);
+  h_type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  h_dpdTheta[nlocal] = atof(values[2]);
+  h_dpdTheta[nlocal] = utils::numeric(FLERR,values[2],true,lmp);
   if (h_dpdTheta[nlocal] <= 0)
     error->one(FLERR,"Internal temperature in Atoms section of date file must be > zero");
 
@@ -1753,7 +1761,7 @@ void AtomVecDPDKokkos::data_atom(double *coord, tagint imagetmp,
 
 int AtomVecDPDKokkos::data_atom_hybrid(int nlocal, char **values)
 {
-  h_dpdTheta(nlocal) = atof(values[0]);
+  h_dpdTheta(nlocal) = utils::numeric(FLERR,values[0],true,lmp);
 
   atomKK->modified(Host,DPDTHETA_MASK);
 

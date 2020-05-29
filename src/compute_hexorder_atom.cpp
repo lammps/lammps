@@ -15,10 +15,10 @@
    Contributing author:  Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include <complex>
-#include <cstring>
-#include <cstdlib>
 #include "compute_hexorder_atom.h"
+#include <cmath>
+#include <cstring>
+#include <complex>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -129,7 +129,7 @@ void ComputeHexOrderAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeHexOrderAtom::init_list(int id, NeighList *ptr)
+void ComputeHexOrderAtom::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

@@ -12,9 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "citeme.h"
-#include "version.h"
 #include "universe.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

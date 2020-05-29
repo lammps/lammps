@@ -20,7 +20,6 @@ AngleStyle(cosine/squared,AngleCosineSquared)
 #ifndef LMP_ANGLE_COSINE_SQUARED_H
 #define LMP_ANGLE_COSINE_SQUARED_H
 
-#include <cstdio>
 #include "angle.h"
 
 namespace LAMMPS_NS {

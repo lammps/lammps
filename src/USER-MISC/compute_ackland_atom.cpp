@@ -105,7 +105,7 @@ void ComputeAcklandAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeAcklandAtom::init_list(int id, NeighList *ptr)
+void ComputeAcklandAtom::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }

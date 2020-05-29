@@ -1,2 +1,0 @@
-OPLSAA force-field conversion tools provided by
-Jason Lambert, Sebastian Echeverri, and Andrew Jewett

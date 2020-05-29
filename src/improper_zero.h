@@ -20,7 +20,6 @@ ImproperStyle(zero,ImproperZero)
 #ifndef LMP_IMPROPER_ZERO_H
 #define LMP_IMPROPER_ZERO_H
 
-#include <cstdio>
 #include "improper.h"
 
 namespace LAMMPS_NS {

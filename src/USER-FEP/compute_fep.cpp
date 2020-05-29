@@ -15,7 +15,7 @@
    Contributing author: Agilio Padua (Univ Blaise Pascal & CNRS)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
+#include "compute_fep.h"
 #include <cstring>
 #include <cmath>
 #include <mpi.h>
@@ -34,7 +34,6 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
-#include "compute_fep.h"
 
 using namespace LAMMPS_NS;
 
@@ -53,7 +52,7 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 3;
   extvector = 0;
 
-  vector = new double[3];
+  vector = new double[size_vector];
 
   fepinitflag = 0;    // avoid init to run entirely when called by write_data
 

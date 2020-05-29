@@ -298,7 +298,7 @@ typedef PerAtomQuantity<double> PAQ;
 //-----------------------------------------------------------------------------
 //* REFERENCE_POTENTIAL_ENERGY 
 //-----------------------------------------------------------------------------
-  DENS_MAN * FieldManager::reference_potential_energy(string name)
+  DENS_MAN * FieldManager::reference_potential_energy(string /* name */)
   {
     DENS_MAN * rpe = interscaleManager_.dense_matrix(field_to_string(REFERENCE_POTENTIAL_ENERGY));
     if (! rpe ) { 

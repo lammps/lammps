@@ -18,11 +18,11 @@
    and Aidan Thompson's Tersoff code in LAMMPS
 ------------------------------------------------------------------------- */
 
+#include "pair_comb.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_comb.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -30,7 +30,6 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "group.h"
-#include "update.h"
 #include "my_page.h"
 #include "math_const.h"
 #include "memory.h"
@@ -144,8 +143,7 @@ void PairComb::compute(int eflag, int vflag)
   int sht_jnum, *sht_jlist, nj;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // Build short range neighbor list
 
@@ -432,7 +430,7 @@ void PairComb::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairComb::settings(int narg, char **arg)
+void PairComb::settings(int narg, char **/*arg*/)
 {
   if (narg > 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -597,7 +595,7 @@ void PairComb::read_file(char *file)
     fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open COMB potential file %s",file);
+      snprintf(str,128,"Cannot open COMB potential file %s",file);
       error->one(FLERR,str);
     }
   }
@@ -1542,7 +1540,7 @@ void PairComb::potal_calc(double &calc1, double &calc2, double &calc3)
 
 void PairComb::tri_point(double rsq, int &mr1, int &mr2,
                          int &mr3, double &sr1, double &sr2,
-                         double &sr3, int &itype)
+                         double &sr3, int &/*itype*/)
 {
  double r, rin, dr, dd, rr1, rridr, rridr2;
 
@@ -1572,7 +1570,7 @@ void PairComb::tri_point(double rsq, int &mr1, int &mr2,
 void PairComb::direct(int inty, int mr1, int mr2, int mr3, double rsq,
                       double sr1, double sr2, double sr3,
                       double iq, double jq,
-                      double potal, double fac11, double fac11e,
+                      double /*potal*/, double fac11, double fac11e,
                       double &pot_tmp, double &pot_d)
 {
  double r,erfcc,fafbn1,potij,sme2,esucon;
@@ -2002,7 +2000,7 @@ void PairComb::Over_cor(Param *param, double rsq1, int NCoi,
 /* ---------------------------------------------------------------------- */
 
 int PairComb::pack_forward_comm(int n, int *list, double *buf,
-                                int pbc_flag, int *pbc)
+                                int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

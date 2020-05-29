@@ -36,20 +36,18 @@
                   of j.
 ------------------------------------------------------------------------- */
 
+#include "improper_ring.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
-#include "improper_ring.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
-#include "update.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -95,8 +93,7 @@ void ImproperRing::compute(int eflag, int vflag)
    double   cjiji, ckjji, ckjkj, fix, fiy, fiz, fjx, fjy, fjz, fkx, fky, fkz;
 
    eimproper = 0.0;
-   if (eflag || vflag) ev_setup(eflag,vflag);
-   else evflag = 0;
+   ev_init(eflag,vflag);
 
    /* References to simulation data. */
    double **x = atom->x;
@@ -329,8 +326,8 @@ void ImproperRing::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nimpropertypes,fp);
-    fread(&chi[1],sizeof(double),atom->nimpropertypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
+    utils::sfread(FLERR,&chi[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
   }
   MPI_Bcast(&k[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&chi[1],atom->nimpropertypes,MPI_DOUBLE,0,world);

@@ -33,29 +33,28 @@
    135, 204105.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
+#include "fix_shardlow.h"
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
-#include "fix_shardlow.h"
+#include <stdint.h>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
-#include "respa.h"
 #include "error.h"
-#include "atom_vec.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "npair.h"
 #include "memory.h"
 #include "domain.h"
 #include "modify.h"
 #include "pair_dpd_fdt.h"
 #include "pair_dpd_fdt_energy.h"
-#include "pair.h"
 #include "npair_half_bin_newton_ssa.h"
 #include "citeme.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -145,24 +144,25 @@ void FixShardlow::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixShardlow::init_list(int id, NeighList *ptr)
+void FixShardlow::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixShardlow::setup(int vflag)
+void FixShardlow::setup(int /*vflag*/)
 {
   bool fixShardlow = false;
 
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"nvt",3) == 0 || strncmp(modify->fix[i]->style,"npt",3) == 0)
-      error->all(FLERR,"Cannot use constant temperature integration routines with DPD.");
+    if (strstr(modify->fix[i]->style,"nvt") || strstr(modify->fix[i]->style,"npt") ||
+        strstr(modify->fix[i]->style,"gle") || strstr(modify->fix[i]->style,"gld"))
+      error->all(FLERR,"Cannot use constant temperature integration routines with USER-DPD.");
 
   for (int i = 0; i < modify->nfix; i++){
-    if (strncmp(modify->fix[i]->style,"shardlow",3) == 0) fixShardlow = true;
-    if (strncmp(modify->fix[i]->style,"nve",3) == 0 || (strncmp(modify->fix[i]->style,"nph",3) == 0)){
+    if (utils::strmatch(modify->fix[i]->style,"^shardlow")) fixShardlow = true;
+    if (utils::strmatch(modify->fix[i]->style,"^nve") || utils::strmatch(modify->fix[i]->style,"^nph")){
       if(fixShardlow) break;
       else error->all(FLERR,"The deterministic integrator must follow fix shardlow in the input file.");
     }
@@ -354,9 +354,8 @@ void FixShardlow::ssa_update_dpde(
   double *uMech = atom->uMech;
   double *dpdTheta = atom->dpdTheta;
 
-  double *cut_i, *cut2_i, *sigma_i, *kappa_i;
+  double *cut_i, *cut2_i, *sigma_i, *kappa_i, *alpha_i;
   double theta_ij_inv, theta_i_inv;
-  const double boltz2 = 2.0*force->boltz;
   const double boltz_inv = 1.0/force->boltz;
   const double ftm2v = force->ftm2v;
 
@@ -389,6 +388,7 @@ while (ct-- > 0) {
   cut_i  = pairDPDE->cut[itype];
   sigma_i = pairDPDE->sigma[itype];
   kappa_i = pairDPDE->kappa[itype];
+  alpha_i = pairDPDE->alpha[itype];
   theta_i_inv = 1.0/dpdTheta[i];
   const double mass_i = (rmass) ? rmass[i] : mass[itype];
   const double massinv_i = 1.0 / mass_i;
@@ -448,7 +448,7 @@ while (ct-- > 0) {
 
       // Compute uCond
       double kappa_ij = kappa_i[jtype];
-      double alpha_ij = sqrt(boltz2*kappa_ij);
+      double alpha_ij = alpha_i[jtype];
       double del_uCond = alpha_ij*wr*dtsqrt * es_normal(RNGstate);
 
       del_uCond += kappa_ij*(theta_i_inv - theta_j_inv)*wdt;
@@ -527,7 +527,7 @@ while (ct-- > 0) {
   rand_state[id] = RNGstate;
 }
 
-void FixShardlow::initial_integrate(int vflag)
+void FixShardlow::initial_integrate(int /*vflag*/)
 {
   int ii;
 
@@ -646,7 +646,7 @@ fprintf(stdout, "\n%6d %6d,%6d %6d: "
 
 /* ---------------------------------------------------------------------- */
 
-int FixShardlow::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int FixShardlow::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int ii,jj,m;
   double **v  = atom->v;

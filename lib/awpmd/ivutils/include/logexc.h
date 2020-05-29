@@ -42,13 +42,13 @@ enum vbLEVELS{
 /// by default all exceptions have vblFATAL level
 template<class exc_t>
 struct log_exception_traits{
-  /// exeption level according to the vbLEVELS
-  static int level(const exc_t &signal){ return vblFATAL; } 
+  /// exception level according to the vbLEVELS
+  static int level(const exc_t & /* signal */){ return vblFATAL; } 
   /// the string name of exception category
-  static string name(const exc_t &signal){ return typeid(exc_t).name();}
+  static string name(const exc_t & /* signal */){ return typeid(exc_t).name();}
   /// adds some more explanations to the description
   /// default behaviour: nothing done
-  static exc_t add_words(const exc_t &orig, const char *words){
+  static exc_t add_words(const exc_t &orig, const char * /* words */){
     return orig;
   }
 };
@@ -59,7 +59,7 @@ struct log_exception_traits{
 /// integer exceptions have the level equal to their value
 template<>
 struct log_exception_traits<int>{
-  /// exeption level according to the vbLEVELS
+  /// exception level according to the vbLEVELS
   static int level(const int &signal){ return signal; } 
   /// the string name of exception category
   static string name(const int &signal){ 
@@ -80,7 +80,7 @@ struct log_exception_traits<int>{
       return "integer exception";*/
   }
   /// default behaviour: nothing done
-  static int add_words(const int &orig, const char *words){
+  static int add_words(const int &orig, const char * /* words */){
     return orig;
   }
 };
@@ -90,13 +90,10 @@ template<>
 struct log_exception_traits<enum vbLEVELS>{
   static int level(const enum vbLEVELS &signal){ return log_exception_traits<int>::level(signal); } 
   static string name(const enum vbLEVELS &signal){ return log_exception_traits<int>::name(signal); } 
-  static enum vbLEVELS add_words(const enum vbLEVELS &orig, const char *words){
+  static enum vbLEVELS add_words(const enum vbLEVELS &orig, const char * /* words */){
     return orig;
   }
 };
-
-
-
 
 /// Logger class to control (computational) function behaviour when something requiring user attention has happened.
 /// message(signal,errcode, text) is used to either throw an exception or return errorcode
@@ -205,7 +202,7 @@ public:
     return errcode;
   }
 
-  virtual void log_text(int level, const char *messtype, const char *messtext){
+  virtual void log_text(int /* level */, const char *messtype, const char *messtext){
     if(descriptor!="") // descriptor is used as header
       printf("%s:\n",descriptor.c_str());
     if(string(messtype)!=string(""))
@@ -297,7 +294,7 @@ const char *fmt(const char *format,...);
 /// this may be used to inherit exceptions
 /// where level and name are defined whithin a class
 struct log_exception {
-   /// exeption level according to the vbLEVELS
+   /// exception level according to the vbLEVELS
   static int level(const log_exception &signal){ return vblFATAL; } 
   /// the string name of exception category
   static string name(const log_exception &signal){ return "undefined exception";}

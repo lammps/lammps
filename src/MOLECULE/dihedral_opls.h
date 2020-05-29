@@ -20,7 +20,6 @@ DihedralStyle(opls,DihedralOPLS)
 #ifndef LMP_DIHEDRAL_OPLS_H
 #define LMP_DIHEDRAL_OPLS_H
 
-#include <cstdio>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {
@@ -30,9 +29,9 @@ class DihedralOPLS : public Dihedral {
   DihedralOPLS(class LAMMPS *);
   virtual ~DihedralOPLS();
   virtual void compute(int, int);
-  void coeff(int, char **);
+  virtual void coeff(int, char **);
   void write_restart(FILE *);
-  void read_restart(FILE *);
+  virtual void read_restart(FILE *);
   void write_data(FILE *);
 
  protected:

@@ -20,7 +20,6 @@ AtomStyle(hybrid/kk,AtomVecHybridKokkos)
 #ifndef LMP_ATOM_VEC_HYBRID_KOKKOS_H
 #define LMP_ATOM_VEC_HYBRID_KOKKOS_H
 
-#include <cstdio>
 #include "atom_vec_kokkos.h"
 #include "kokkos_type.h"
 
@@ -37,7 +36,7 @@ class AtomVecHybridKokkos : public AtomVecKokkos {
   void process_args(int, char **);
   void init();
   void grow(int);
-  void grow_reset();
+  void grow_pointers();
   void copy(int, int, int);
   void clear_bonus();
   void force_clear(int, size_t);

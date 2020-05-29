@@ -26,7 +26,7 @@ WeakEquationPhononTemperature::~WeakEquationPhononTemperature(void)
 //---------------------------------------------------------------------
 void WeakEquationPhononTemperature::E_integrand(
   const FIELD_MATS &fields,
-  const GRAD_FIELD_MATS &gradFields,
+  const GRAD_FIELD_MATS & /* gradFields */,
   const Material * material,
   DENS_MAT &energy) const
 {

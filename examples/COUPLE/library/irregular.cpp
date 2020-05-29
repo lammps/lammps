@@ -1,6 +1,6 @@
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "irregular.h"
 #include "memory.h"
 #include "error.h"

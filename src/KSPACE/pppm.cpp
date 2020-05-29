@@ -18,12 +18,10 @@
      triclinic added by Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pppm.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdio>
-#include <cstdlib>
 #include <cmath>
-#include "pppm.h"
 #include "atom.h"
 #include "comm.h"
 #include "gridcomm.h"
@@ -64,7 +62,7 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
+PPPM::PPPM(LAMMPS *lmp) : KSpace(lmp),
   factors(NULL), density_brick(NULL), vdx_brick(NULL), vdy_brick(NULL), vdz_brick(NULL),
   u_brick(NULL), v0_brick(NULL), v1_brick(NULL), v2_brick(NULL), v3_brick(NULL),
   v4_brick(NULL), v5_brick(NULL), greensfn(NULL), vg(NULL), fkx(NULL), fky(NULL),
@@ -78,13 +76,9 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
   peratom_allocate_flag = 0;
   group_allocate_flag = 0;
 
-  if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm command");
-
   pppmflag = 1;
   group_group_enable = 1;
   triclinic = domain->triclinic;
-
-  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 
   nfactors = 3;
   factors = new int[nfactors];
@@ -161,6 +155,14 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
   acons[7][6] = 4887769399.0 / 37838389248.0;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void PPPM::settings(int narg, char **arg)
+{
+  if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm command");
+  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
+}
+
 /* ----------------------------------------------------------------------
    free all memory
 ------------------------------------------------------------------------- */
@@ -210,7 +212,7 @@ void PPPM::init()
   if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR,"Cannot use nonperiodic boundaries with PPPM");
+    error->all(FLERR,"Cannot use non-periodic boundaries with PPPM");
   if (slabflag) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
@@ -222,6 +224,10 @@ void PPPM::init()
     sprintf(str,"PPPM order cannot be < 2 or > than %d",MAXORDER);
     error->all(FLERR,str);
   }
+
+  // compute two charge force
+
+  two_charge();
 
   // extract short-range Coulombic cutoff from pair style
 
@@ -346,12 +352,6 @@ void PPPM::init()
 
   if (me == 0) {
 
-#ifdef FFT_SINGLE
-    const char fft_prec[] = "single";
-#else
-    const char fft_prec[] = "double";
-#endif
-
     if (screen) {
       fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
       fprintf(screen,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
@@ -360,7 +360,7 @@ void PPPM::init()
               estimated_accuracy);
       fprintf(screen,"  estimated relative force accuracy = %g\n",
               estimated_accuracy/two_charge_force);
-      fprintf(screen,"  using %s precision FFTs\n",fft_prec);
+      fprintf(screen,"  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n");
       fprintf(screen,"  3d grid and FFT values/proc = %d %d\n",
               ngrid_max,nfft_both_max);
     }
@@ -372,7 +372,7 @@ void PPPM::init()
               estimated_accuracy);
       fprintf(logfile,"  estimated relative force accuracy = %g\n",
               estimated_accuracy/two_charge_force);
-      fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
+      fprintf(logfile,"  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n");
       fprintf(logfile,"  3d grid and FFT values/proc = %d %d\n",
               ngrid_max,nfft_both_max);
     }
@@ -407,7 +407,7 @@ void PPPM::setup()
   // perform some checks to avoid illegal boundaries with read_data
 
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR,"Cannot use nonperiodic boundaries with PPPM");
+    error->all(FLERR,"Cannot use non-periodic boundaries with PPPM");
   if (slabflag) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
@@ -626,9 +626,7 @@ void PPPM::compute(int eflag, int vflag)
   // set energy/virial flags
   // invoke allocate_peratom() if needed for first time
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global =
-         eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   if (evflag_atom && !peratom_allocate_flag) {
     allocate_peratom();
@@ -820,7 +818,7 @@ void PPPM::allocate()
                           "pppm:drho_coeff");
 
   // create 2 FFTs and a Remap
-  // 1st FFT keeps data in FFT decompostion
+  // 1st FFT keeps data in FFT decomposition
   // 2nd FFT returns data in 3d brick decomposition
   // remap takes data from 3d brick to FFT decomposition
 
@@ -1428,12 +1426,13 @@ void PPPM::set_grid_local()
   double zprd = prd[2];
   double zprd_slab = zprd*slab_volfactor;
 
-  double dist[3];
+  double dist[3] = {0.0,0.0,0.0};
   double cuthalf = 0.5*neighbor->skin + qdist;
   if (triclinic == 0) dist[0] = dist[1] = dist[2] = cuthalf;
   else kspacebbox(cuthalf,&dist[0]);
 
   int nlo,nhi;
+  nlo = nhi = 0;
 
   nlo = static_cast<int> ((sublo[0]-dist[0]-boxlo[0]) *
                             nx_pppm/xprd + shift) - OFFSET;
@@ -2566,7 +2565,7 @@ void PPPM::fieldforce_ad()
     eky *= hy_inv;
     ekz *= hz_inv;
 
-    // convert E-field to force and substract self forces
+    // convert E-field to force and subtract self forces
 
     const double qfactor = qqrd2e * scale;
 

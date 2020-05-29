@@ -15,14 +15,13 @@
    Contributing authors: Rob Hoy
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_msd_nongauss.h"
+#include <mpi.h>
 #include "atom.h"
 #include "update.h"
 #include "group.h"
 #include "domain.h"
 #include "fix_store.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

@@ -15,9 +15,9 @@
    Contributing authors: Mike Parks (SNL), Ezwanur Rahman, J.T. Foster (UTSA)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "fix_peri_neigh.h"
-#include "pair_peri_pmb.h"
+#include <mpi.h>
+#include <cmath>
 #include "pair_peri_lps.h"
 #include "pair_peri_ves.h"
 #include "pair_peri_eps.h"
@@ -25,7 +25,6 @@
 #include "domain.h"
 #include "force.h"
 #include "comm.h"
-#include "update.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -140,7 +139,7 @@ void FixPeriNeigh::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPeriNeigh::init_list(int id, NeighList *ptr)
+void FixPeriNeigh::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
@@ -159,7 +158,7 @@ void FixPeriNeigh::min_setup(int vflag)
    must be done in setup (not init) since fix init comes before neigh init
 ------------------------------------------------------------------------- */
 
-void FixPeriNeigh::setup(int vflag)
+void FixPeriNeigh::setup(int /*vflag*/)
 {
   int i,j,ii,jj,itype,jtype,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
@@ -441,7 +440,7 @@ void FixPeriNeigh::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixPeriNeigh::copy_arrays(int i, int j, int delflag)
+void FixPeriNeigh::copy_arrays(int i, int j, int /*delflag*/)
 {
   npartner[j] = npartner[i];
   for (int m = 0; m < npartner[j]; m++) {
@@ -514,7 +513,7 @@ int FixPeriNeigh::unpack_exchange(int nlocal, double *buf)
 /* ---------------------------------------------------------------------- */
 
 int FixPeriNeigh::pack_forward_comm(int n, int *list, double *buf,
-                                    int pbc_flag, int *pbc)
+                                    int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

@@ -23,7 +23,7 @@ const char *lj_coul_long=0;
 
 #include "lal_lj_coul_long.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define LJCoulLongT LJCoulLong<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -181,3 +181,4 @@ void LJCoulLongT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class LJCoulLong<PRECISION,ACC_PRECISION>;
+}

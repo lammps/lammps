@@ -1,0 +1,14 @@
+# Lebedeva Potential. Original values from Lebedeva. May be played with ;)
+#
+# Cite as: Irina V. Lebedeva, Andrey A. Knizhnik, Andrey M. Popov, Yurii E. Lozovik, Boris V. Potapkin, 
+# Modeling of graphene-based NEMS
+# Physica E 44 (6), 949 (2012)
+# https://doi.org/10.1016/j.physe.2011.07.018
+#
+# Parameters must be in this order as here, otherwise their values may be changed. 
+# The last one, S, is convenient for scaling the potential amplitude. S is a multiplication factor for A, B, C
+#      A       B           C       z0     alpha   D1      D2       lambda1   lambda2     S
+# These are values according to Levedeva et al
+#C  C   10.510  11.6523.34  35.883  3.34   4.16   -0.86232 0.10049  0.48703   0.46445     1.0
+# These are values by Z. Koziol et al.: https://arxiv.org/abs/1803.05162
+C  C   14.558  21.204  1.8  3.198   4.16   -0.862 0.10049  0.6   0.4     1.0

@@ -21,6 +21,10 @@
 
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
+#include "smd_material_models.h"
+#include <cmath>
+#include <cstdlib>
+#include <utility>
 #include <iostream>
 #include <cstdio>
 #include "math_special.h"
@@ -97,7 +101,7 @@ void ShockEOS(double rho, double rho0, double e, double e0, double c0, double S,
  final pressure pFinal
 
  ------------------------------------------------------------------------- */
-void polynomialEOS(double rho, double rho0, double e, double C0, double C1, double C2, double C3, double C4, double C5, double C6,
+void polynomialEOS(double rho, double rho0, double /*e*/, double C0, double C1, double C2, double C3, double /*C4*/, double /*C5*/, double /*C6*/,
                 double pInitial, double dt, double &pFinal, double &p_rate) {
 
         double mu = rho / rho0 - 1.0;
@@ -259,7 +263,7 @@ void LinearPlasticStrength(const double G, const double yieldStress, const Matri
 
         if (J2 < yieldStress) {
                 /*
-                 * no yielding has occured.
+                 * no yielding has occurred.
                  * final deviatoric stress is trial deviatoric stress
                  */
                 sigma_dev_rate__ = dev_rate;
@@ -270,7 +274,7 @@ void LinearPlasticStrength(const double G, const double yieldStress, const Matri
         } else {
                 //printf("yiedl\n");
                 /*
-                 * yielding has occured
+                 * yielding has occurred
                  */
                 plastic_strain_increment = (J2 - yieldStress) / (3.0 * G);
 
@@ -284,7 +288,7 @@ void LinearPlasticStrength(const double G, const double yieldStress, const Matri
                  * new deviatoric stress rate
                  */
                 sigma_dev_rate__ = sigmaFinal_dev__ - sigmaInitial_dev;
-                //printf("yielding has occured.\n");
+                //printf("yielding has occurred.\n");
         }
 }
 
@@ -307,7 +311,7 @@ void LinearPlasticStrength(const double G, const double yieldStress, const Matri
  output:  sigmaFinal_dev, sigmaFinal_dev_rate__: final stress deviator and its rate.
  ------------------------------------------------------------------------- */
 void JohnsonCookStrength(const double G, const double cp, const double espec, const double A, const double B, const double a,
-                const double C, const double epdot0, const double T0, const double Tmelt, const double M, const double dt, const double ep,
+                const double C, const double epdot0, const double T0, const double Tmelt, const double /*M*/, const double dt, const double ep,
                 const double epdot, const Matrix3d sigmaInitial_dev, const Matrix3d d_dev, Matrix3d &sigmaFinal_dev__,
                 Matrix3d &sigma_dev_rate__, double &plastic_strain_increment) {
 
@@ -340,7 +344,7 @@ void JohnsonCookStrength(const double G, const double cp, const double espec, co
 
         if (J2 < yieldStress) {
                 /*
-                 * no yielding has occured.
+                 * no yielding has occurred.
                  * final deviatoric stress is trial deviatoric stress
                  */
                 sigma_dev_rate__ = dev_rate;
@@ -351,7 +355,7 @@ void JohnsonCookStrength(const double G, const double cp, const double espec, co
         } else {
                 //printf("yiedl\n");
                 /*
-                 * yielding has occured
+                 * yielding has occurred
                  */
                 plastic_strain_increment = (J2 - yieldStress) / (3.0 * G);
 
@@ -365,7 +369,7 @@ void JohnsonCookStrength(const double G, const double cp, const double espec, co
                  * new deviatoric stress rate
                  */
                 sigma_dev_rate__ = sigmaFinal_dev__ - sigmaInitial_dev;
-                //printf("yielding has occured.\n");
+                //printf("yielding has occurred.\n");
         }
 }
 
@@ -448,7 +452,7 @@ double JohnsonCookFailureStrain(const double p, const Matrix3d Sdev, const doubl
         }
 
         // determine stress triaxiality
-        double triax = p / (vm + 0.01 * fabs(p)); // have softening in denominator to avoid divison by zero
+        double triax = p / (vm + 0.01 * fabs(p)); // have softening in denominator to avoid division by zero
         if (triax < 0.0) {
                 triax = 0.0;
         } else if (triax > 3.0) {

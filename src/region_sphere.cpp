@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "region_sphere.h"
+#include <cmath>
+#include <cstring>
 #include "update.h"
 #include "input.h"
 #include "variable.h"
@@ -28,15 +27,46 @@ enum{CONSTANT,VARIABLE};
 /* ---------------------------------------------------------------------- */
 
 RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
-  Region(lmp, narg, arg)
+  Region(lmp, narg, arg), xstr(NULL), ystr(NULL), zstr(NULL), rstr(NULL)
 {
   options(narg-6,&arg[6]);
 
-  xc = xscale*force->numeric(FLERR,arg[2]);
-  yc = yscale*force->numeric(FLERR,arg[3]);
-  zc = zscale*force->numeric(FLERR,arg[4]);
+  if (strstr(arg[2],"v_") == arg[2]) {
+    int n = strlen(arg[2]+2) + 1;
+    xstr = new char[n];
+    strcpy(xstr,arg[2]+2);
+    xc = 0.0;
+    xstyle = VARIABLE;
+    varshape = 1;
+  } else {
+    xc = xscale*force->numeric(FLERR,arg[2]);
+    xstyle = CONSTANT;
+  }
 
-  rstr = NULL;
+  if (strstr(arg[3],"v_") == arg[3]) {
+    int n = strlen(arg[3]+2) + 1;
+    ystr = new char[n];
+    strcpy(ystr,arg[3]+2);
+    yc = 0.0;
+    ystyle = VARIABLE;
+    varshape = 1;
+  } else {
+    yc = yscale*force->numeric(FLERR,arg[3]);
+    ystyle = CONSTANT;
+  }
+
+  if (strstr(arg[4],"v_") == arg[4]) {
+    int n = strlen(arg[4]+2) + 1;
+    zstr = new char[n];
+    strcpy(zstr,arg[4]+2);
+    zc = 0.0;
+    zstyle = VARIABLE;
+    varshape = 1;
+  } else {
+    zc = zscale*force->numeric(FLERR,arg[4]);
+    zstyle = CONSTANT;
+  }
+
   if (strstr(arg[5],"v_") == arg[5]) {
     int n = strlen(&arg[5][2]) + 1;
     rstr = new char[n];
@@ -44,11 +74,14 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
     radius = 0.0;
     rstyle = VARIABLE;
     varshape = 1;
-    variable_check();
-    shape_update();
   } else {
     radius = xscale*force->numeric(FLERR,arg[5]);
     rstyle = CONSTANT;
+  }
+
+  if (varshape) {
+    variable_check();
+    shape_update();
   }
 
   // error check
@@ -56,7 +89,7 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
   if (radius < 0.0) error->all(FLERR,"Illegal region sphere command");
 
   // extent of sphere
-  // for variable radius, uses initial radius
+  // for variable radius, uses initial radius and origin for variable center
 
   if (interior) {
     bboxflag = 1;
@@ -77,6 +110,9 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
 
 RegSphere::~RegSphere()
 {
+  delete [] xstr;
+  delete [] ystr;
+  delete [] zstr;
   delete [] rstr;
   delete [] contact;
 }
@@ -86,7 +122,7 @@ RegSphere::~RegSphere()
 void RegSphere::init()
 {
   Region::init();
-  if (rstr) variable_check();
+  if (varshape) variable_check();
 }
 
 /* ----------------------------------------------------------------------
@@ -168,9 +204,20 @@ int RegSphere::surface_exterior(double *x, double cutoff)
 
 void RegSphere::shape_update()
 {
-  radius = xscale * input->variable->compute_equal(rvar);
-  if (radius < 0.0)
-    error->one(FLERR,"Variable evaluation in region gave bad value");
+  if (xstyle == VARIABLE)
+    xc = xscale * input->variable->compute_equal(xvar);
+
+  if (ystyle == VARIABLE)
+    yc = yscale * input->variable->compute_equal(yvar);
+
+  if (zstyle == VARIABLE)
+    zc = zscale * input->variable->compute_equal(zvar);
+
+  if (rstyle == VARIABLE) {
+    radius = xscale * input->variable->compute_equal(rvar);
+    if (radius < 0.0)
+      error->one(FLERR,"Variable evaluation in region gave bad value");
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -179,13 +226,38 @@ void RegSphere::shape_update()
 
 void RegSphere::variable_check()
 {
-  rvar = input->variable->find(rstr);
-  if (rvar < 0)
-    error->all(FLERR,"Variable name for region sphere does not exist");
-  if (!input->variable->equalstyle(rvar))
-    error->all(FLERR,"Variable for region sphere is invalid style");
-}
+  if (xstyle == VARIABLE) {
+    xvar = input->variable->find(xstr);
+    if (xvar < 0)
+      error->all(FLERR,"Variable name for region sphere does not exist");
+    if (!input->variable->equalstyle(xvar))
+      error->all(FLERR,"Variable for region sphere is invalid style");
+  }
 
+  if (ystyle == VARIABLE) {
+    yvar = input->variable->find(ystr);
+    if (yvar < 0)
+      error->all(FLERR,"Variable name for region sphere does not exist");
+    if (!input->variable->equalstyle(yvar))
+      error->all(FLERR,"Variable for region sphere is invalid style");
+  }
+
+  if (zstyle == VARIABLE) {
+    zvar = input->variable->find(zstr);
+    if (zvar < 0)
+      error->all(FLERR,"Variable name for region sphere does not exist");
+    if (!input->variable->equalstyle(zvar))
+      error->all(FLERR,"Variable for region sphere is invalid style");
+  }
+
+  if (rstyle == VARIABLE) {
+    rvar = input->variable->find(rstr);
+    if (rvar < 0)
+      error->all(FLERR,"Variable name for region sphere does not exist");
+    if (!input->variable->equalstyle(rvar))
+      error->all(FLERR,"Variable for region sphere is invalid style");
+  }
+}
 
 /* ----------------------------------------------------------------------
    Set values needed to calculate velocity due to shape changes.

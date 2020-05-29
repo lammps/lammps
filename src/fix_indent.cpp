@@ -15,10 +15,10 @@
    Contributing author: Ravi Agrawal (Northwestern U)
 ------------------------------------------------------------------------- */
 
+#include "fix_indent.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_indent.h"
 #include "atom.h"
 #include "input.h"
 #include "variable.h"
@@ -26,7 +26,6 @@
 #include "lattice.h"
 #include "update.h"
 #include "modify.h"
-#include "output.h"
 #include "respa.h"
 #include "error.h"
 #include "force.h"
@@ -182,7 +181,7 @@ void FixIndent::min_setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixIndent::post_force(int vflag)
+void FixIndent::post_force(int /*vflag*/)
 {
   // indenter values, 0 = energy, 1-3 = force components
   // wrap variable evaluations with clear/add
@@ -357,7 +356,7 @@ void FixIndent::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixIndent::post_force_respa(int vflag, int ilevel, int iloop)
+void FixIndent::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }

@@ -11,6 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
+
 // User-settable FFT precision
 
 // FFT_PRECISION = 1 is single-precision complex (4-byte real, 4-byte imag)
@@ -24,8 +26,8 @@ typedef float FFT_SCALAR;
 typedef double FFT_SCALAR;
 #endif
 
+// if user set FFTW, it means FFTW3
 
-// set default fftw library. switch to FFT_FFTW3 when convenient.
 #ifdef FFT_FFTW
 #define FFT_FFTW3
 #endif
@@ -41,14 +43,6 @@ typedef double FFT_SCALAR;
 typedef float _Complex FFT_DATA;
 #define FFT_MKL_PREC DFTI_SINGLE
 
-#elif defined(FFT_FFTW2)
-#if defined(FFTW_SIZE)
-#include "sfftw.h"
-#else
-#include "fftw.h"
-#endif
-typedef FFTW_COMPLEX FFT_DATA;
-
 #elif defined(FFT_FFTW3)
 #include "fftw3.h"
 typedef fftwf_complex FFT_DATA;
@@ -57,8 +51,9 @@ typedef fftwf_complex FFT_DATA;
 #else
 
 /* use a stripped down version of kiss fft as default fft */
-#ifndef FFT_KISSFFT
-#define FFT_KISSFFT
+
+#ifndef FFT_KISS
+#define FFT_KISS
 #endif
 #define kiss_fft_scalar float
 typedef struct {
@@ -81,14 +76,6 @@ typedef struct kiss_fft_state* kiss_fft_cfg;
 typedef double _Complex FFT_DATA;
 #define FFT_MKL_PREC DFTI_DOUBLE
 
-#elif defined(FFT_FFTW2)
-#if defined(FFTW_SIZE)
-#include "dfftw.h"
-#else
-#include "fftw.h"
-#endif
-typedef FFTW_COMPLEX FFT_DATA;
-
 #elif defined(FFT_FFTW3)
 #include "fftw3.h"
 typedef fftw_complex FFT_DATA;
@@ -97,8 +84,8 @@ typedef fftw_complex FFT_DATA;
 #else
 
 /* use a stripped down version of kiss fft as default fft */
-#ifndef FFT_KISSFFT
-#define FFT_KISSFFT
+#ifndef FFT_KISS
+#define FFT_KISS
 #endif
 #define kiss_fft_scalar double
 typedef struct {
@@ -138,13 +125,6 @@ struct fft_plan_3d {
   DFTI_DESCRIPTOR *handle_fast;
   DFTI_DESCRIPTOR *handle_mid;
   DFTI_DESCRIPTOR *handle_slow;
-#elif defined(FFT_FFTW2)
-  fftw_plan plan_fast_forward;
-  fftw_plan plan_fast_backward;
-  fftw_plan plan_mid_forward;
-  fftw_plan plan_mid_backward;
-  fftw_plan plan_slow_forward;
-  fftw_plan plan_slow_backward;
 #elif defined(FFT_FFTW3)
   FFTW_API(plan) plan_fast_forward;
   FFTW_API(plan) plan_fast_backward;
@@ -152,7 +132,7 @@ struct fft_plan_3d {
   FFTW_API(plan) plan_mid_backward;
   FFTW_API(plan) plan_slow_forward;
   FFTW_API(plan) plan_slow_backward;
-#elif defined(FFT_KISSFFT)
+#elif defined(FFT_KISS)
   kiss_fft_cfg cfg_fast_forward;
   kiss_fft_cfg cfg_fast_backward;
   kiss_fft_cfg cfg_mid_forward;

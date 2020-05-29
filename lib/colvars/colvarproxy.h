@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -29,7 +29,7 @@
 ///
 /// To interface to a new MD engine, the simplest solution is to derive a new
 /// class from \link colvarproxy \endlink.  Currently implemented are: \link
-/// colvarproxy_lammps, \endlink, \link colvarproxy_namd, \endlink, \link
+/// colvarproxy_lammps \endlink, \link colvarproxy_namd \endlink, \link
 /// colvarproxy_vmd \endlink.
 
 
@@ -48,11 +48,45 @@ public:
   /// Destructor
   virtual ~colvarproxy_system();
 
-  /// \brief Value of the unit for atomic coordinates with respect to
-  /// angstroms (used by some variables for hard-coded default values)
-  virtual cvm::real unit_angstrom() = 0;
+  /// \brief Name of the unit system used internally by Colvars (by default, that of the back-end).
+  /// Supported depending on the back-end: real (A, kcal/mol), metal (A, eV), electron (Bohr, Hartree), gromacs (nm, kJ/mol)
+  /// Note: calls to back-end PBC functions assume back-end length unit
+  /// We use different unit from back-end in VMD bc using PBC functions from colvarproxy base class
+  /// Colvars internal units are user specified, because the module exchanges info in unknown
+  /// composite dimensions with user input, while it only exchanges quantities of known
+  /// dimension with the back-end (length and forces)
+  std::string units;
 
-  /// \brief Boltzmann constant
+  /// \brief Request to set the units used internally by Colvars
+  virtual int set_unit_system(std::string const &units, bool check_only) = 0;
+
+  /// \brief Value of 1 Angstrom in the internal (front-end) Colvars unit for atomic coordinates
+  /// * defaults to 0. in the base class; derived proxy classes must set it
+  /// * in VMD proxy, can only be changed when no variables are defined
+  /// as user-defined values in composite units must be compatible with that system
+  cvm::real angstrom_value;
+
+  /// \brief Value of 1 Angstrom in the backend's unit for atomic coordinates
+  virtual cvm::real backend_angstrom_value() = 0;
+
+  /// \brief Value of 1 kcal/mol in the internal Colvars unit for energy
+  cvm::real kcal_mol_value;
+
+  /// \brief Convert a length from Angstrom to internal
+  inline cvm::real angstrom_to_internal(cvm::real l) const
+  {
+    return l * angstrom_value;
+  }
+
+  // /// \brief Convert a length from back-end unit to internal
+  // inline cvm::real back_end_to_internal_unit(cvm::real l) {
+  //   if (angstrom_value == 0.) {
+  //     return l / backend_angstrom_value();
+  //   }
+  //   return l * angstrom_value / backend_angstrom_value();
+  // }
+
+  /// \brief Boltzmann constant in internal Colvars units
   virtual cvm::real boltzmann() = 0;
 
   /// \brief Target temperature of the simulation (K units)
@@ -212,7 +246,7 @@ public:
   }
 
   /// Read the current velocity of the given atom
-  inline cvm::rvector get_atom_velocity(int index)
+  inline cvm::rvector get_atom_velocity(int /* index */)
   {
     cvm::error("Error: reading the current velocity of an atom "
                "is not yet implemented.\n",
@@ -227,11 +261,15 @@ public:
 
   inline std::vector<cvm::real> *modify_atom_masses()
   {
+    // assume that we are requesting masses to change them
+    updated_masses_ = true;
     return &atoms_masses;
   }
 
   inline std::vector<cvm::real> *modify_atom_charges()
   {
+    // assume that we are requesting charges to change them
+    updated_charges_ = true;
     return &atoms_charges;
   }
 
@@ -248,6 +286,18 @@ public:
   inline std::vector<cvm::rvector> *modify_atom_new_colvar_forces()
   {
     return &atoms_new_colvar_forces;
+  }
+
+  /// Record whether masses have been updated
+  inline bool updated_masses() const
+  {
+    return updated_masses_;
+  }
+
+  /// Record whether masses have been updated
+  inline bool updated_charges() const
+  {
+    return updated_charges_;
   }
 
 protected:
@@ -268,6 +318,9 @@ protected:
   /// \brief Forces applied from colvars, to be communicated to the MD integrator
   std::vector<cvm::rvector> atoms_new_colvar_forces;
 
+  /// Whether the masses and charges have been updated from the host code
+  bool updated_masses_, updated_charges_;
+
   /// Used by all init_atom() functions: create a slot for an atom not
   /// requested yet; returns the index in the arrays
   int add_atom_slot(int atom_id);
@@ -281,7 +334,7 @@ class colvarproxy_atom_groups {
 
 public:
 
-  /// Contructor
+  /// Constructor
   colvarproxy_atom_groups();
 
   /// Destructor
@@ -336,7 +389,7 @@ public:
   }
 
   /// Read the current velocity of the given atom group
-  inline cvm::rvector get_atom_group_velocity(int index)
+  inline cvm::rvector get_atom_group_velocity(int /* index */)
   {
     cvm::error("Error: reading the current velocity of an atom group is not yet implemented.\n",
                COLVARS_NOT_IMPLEMENTED);
@@ -427,15 +480,15 @@ public:
   virtual ~colvarproxy_replicas();
 
   /// \brief Indicate if multi-replica support is available and active
-  virtual bool replica_enabled();
+  virtual int replica_enabled();
 
   /// \brief Index of this replica
   virtual int replica_index();
 
-  /// \brief Total number of replica
-  virtual int replica_num();
+  /// \brief Total number of replicas
+  virtual int num_replicas();
 
-  /// \brief Synchronize replica
+  /// \brief Synchronize replica with others
   virtual void replica_comm_barrier();
 
   /// \brief Receive data from other replica
@@ -460,6 +513,9 @@ public:
 
   /// Convert a script object (Tcl or Python call argument) to a C string
   virtual char const *script_obj_to_str(unsigned char *obj);
+
+  /// Convert a script object (Tcl or Python call argument) to a vector of strings
+  virtual std::vector<std::string> script_obj_to_str_vector(unsigned char *obj);
 
   /// Pointer to the scripting interface object
   /// (does not need to be allocated in a new interface)
@@ -519,7 +575,7 @@ public:
 protected:
 
   /// Pointer to Tcl interpreter object
-  void *_tcl_interp;
+  void *tcl_interp_;
 
   /// Set Tcl pointers
   virtual void init_tcl_pointers();
@@ -549,7 +605,10 @@ public:
   /// if this is not open already, then open it
   virtual std::ostream *output_stream(std::string const &output_name,
                                       std::ios_base::openmode mode =
-                                        std::ios_base::out);
+                                      std::ios_base::out);
+
+  /// Returns a reference to output_name if it exists, NULL otherwise
+  virtual std::ostream *get_output_stream(std::string const &output_name);
 
   /// \brief Flushes the given output channel
   virtual int flush_output_stream(std::ostream *os);
@@ -564,6 +623,25 @@ public:
   inline int backup_file(std::string const &filename)
   {
     return backup_file(filename.c_str());
+  }
+
+  /// Remove the given file (on Windows only, rename to filename.old)
+  int remove_file(char const *filename);
+
+  /// Remove the given file (on Windows only, rename to filename.old)
+  inline int remove_file(std::string const &filename)
+  {
+    return remove_file(filename.c_str());
+  }
+
+  /// Rename the given file
+  int rename_file(char const *filename, char const *newfilename);
+
+  /// Rename the given file
+  inline int rename_file(std::string const &filename,
+                         std::string const &newfilename)
+  {
+    return rename_file(filename.c_str(), newfilename.c_str());
   }
 
   /// \brief Prefix of the input state file

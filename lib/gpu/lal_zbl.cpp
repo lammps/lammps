@@ -23,7 +23,7 @@ const char *zbl=0;
 
 #include "lal_zbl.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define ZBLT ZBL<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -157,3 +157,4 @@ void ZBLT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class ZBL<PRECISION,ACC_PRECISION>;
+}

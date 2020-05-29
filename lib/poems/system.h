@@ -15,7 +15,6 @@
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
- 
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
@@ -31,7 +30,6 @@
 #include "workspace.h"
 #include "matrixfun.h"
 #include "onsolver.h"
-#include "system.h"
 #include "inertialframe.h"
 #include "rigidbody.h"
 #include "revolutejoint.h"

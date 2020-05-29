@@ -11,17 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
+#include "bond_hybrid.h"
+#include <mpi.h>
 #include <cstring>
 #include <cctype>
-#include "bond_hybrid.h"
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -33,6 +33,7 @@ BondHybrid::BondHybrid(LAMMPS *lmp) : Bond(lmp)
 {
   writedata = 0;
   nstyles = 0;
+  has_quartic = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -102,8 +103,7 @@ void BondHybrid::compute(int eflag, int vflag)
   // set neighbor->bondlist to sub-style bondlist before call
   // accumulate sub-style global/peratom energy/virial in hybrid
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   for (m = 0; m < nstyles; m++) {
     neighbor->nbondlist = nbondlist[m];
@@ -171,6 +171,7 @@ void BondHybrid::settings(int narg, char **arg)
     delete [] styles;
     for (int i = 0; i < nstyles; i++) delete [] keywords[i];
     delete [] keywords;
+    has_quartic = -1;
   }
 
   if (allocated) {
@@ -214,13 +215,22 @@ void BondHybrid::settings(int narg, char **arg)
   i = 0;
 
   while (i < narg) {
+
     for (m = 0; m < nstyles; m++)
       if (strcmp(arg[i],keywords[m]) == 0)
         error->all(FLERR,"Bond style hybrid cannot use same bond style twice");
+
     if (strcmp(arg[i],"hybrid") == 0)
       error->all(FLERR,"Bond style hybrid cannot have hybrid as an argument");
+
     if (strcmp(arg[i],"none") == 0)
       error->all(FLERR,"Bond style hybrid cannot have none as an argument");
+
+    // register index of quartic bond type,
+    // so that bond type 0 can be mapped to it
+
+    if (strncmp(arg[i],"quartic",7) == 0)
+      has_quartic = m;
 
     styles[nstyles] = force->new_bond(arg[i],1,dummy);
     force->store_style(keywords[nstyles],arg[i],0);
@@ -283,6 +293,12 @@ void BondHybrid::init_style()
 {
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) styles[m]->init_style();
+
+  // bond style quartic will set broken bonds to bond type 0, so we need
+  // to create an entry for it in the bond type to sub-style map
+
+  if (has_quartic >= 0)
+    map[0] = has_quartic;
 }
 
 /* ----------------------------------------------------------------------
@@ -309,6 +325,7 @@ void BondHybrid::write_restart(FILE *fp)
     n = strlen(keywords[m]) + 1;
     fwrite(&n,sizeof(int),1,fp);
     fwrite(keywords[m],sizeof(char),n,fp);
+    styles[m]->write_restart_settings(fp);
   }
 }
 
@@ -319,7 +336,7 @@ void BondHybrid::write_restart(FILE *fp)
 void BondHybrid::read_restart(FILE *fp)
 {
   int me = comm->me;
-  if (me == 0) fread(&nstyles,sizeof(int),1,fp);
+  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,NULL,error);
   MPI_Bcast(&nstyles,1,MPI_INT,0,world);
   styles = new Bond*[nstyles];
   keywords = new char*[nstyles];
@@ -328,12 +345,13 @@ void BondHybrid::read_restart(FILE *fp)
 
   int n,dummy;
   for (int m = 0; m < nstyles; m++) {
-    if (me == 0) fread(&n,sizeof(int),1,fp);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     keywords[m] = new char[n];
-    if (me == 0) fread(keywords[m],sizeof(char),n,fp);
+    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,NULL,error);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
     styles[m] = force->new_bond(keywords[m],0,dummy);
+    styles[m]->read_restart_settings(fp);
   }
 }
 

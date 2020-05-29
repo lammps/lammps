@@ -68,12 +68,14 @@ void NPairHalffullKokkos<DeviceType,NEWTON>::build(NeighList *list)
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagNPairHalffullCompute>(0,inum_full),*this);
+  copymode = 0;
 
   list->inum = k_list_full->inum;
   list->gnum = k_list_full->gnum;
-  k_list->k_ilist.template modify<DeviceType>();
 
-  copymode = 0;
+  k_list->k_ilist.template modify<DeviceType>();
+  k_list->k_numneigh.template modify<DeviceType>();
+  k_list->k_neighbors.template modify<DeviceType>();
 }
 
 template<class DeviceType, int NEWTON>
@@ -121,7 +123,7 @@ void NPairHalffullKokkos<DeviceType,NEWTON>::operator()(TagNPairHalffullCompute,
 namespace LAMMPS_NS {
 template class NPairHalffullKokkos<LMPDeviceType,0>;
 template class NPairHalffullKokkos<LMPDeviceType,1>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class NPairHalffullKokkos<LMPHostType,0>;
 template class NPairHalffullKokkos<LMPHostType,1>;
 #endif

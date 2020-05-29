@@ -324,7 +324,7 @@ public:
   }
 
   //e initializes by unmanaged pointer
-  sqmatrix(size_t n, T *ptr):size(n){ 
+  sqmatrix(size_t n, T * /* ptr */):size(n){ 
     init(n);
   }
 

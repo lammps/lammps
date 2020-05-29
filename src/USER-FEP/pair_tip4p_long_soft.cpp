@@ -17,25 +17,21 @@
    Soft-core version: Agilio Padua (Univ Blaise Pascal & CNRS)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_tip4p_long_soft.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "angle.h"
 #include "atom.h"
 #include "bond.h"
 #include "comm.h"
 #include "domain.h"
 #include "force.h"
-#include "kspace.h"
-#include "update.h"
-#include "respa.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -91,8 +87,7 @@ void PairTIP4PLongSoft::compute(int eflag, int vflag)
   double rsq;
 
   ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // reallocate hneigh & newsite if necessary
   // initialize hneigh[0] to -1 on steps when reneighboring occurred
@@ -459,11 +454,11 @@ void PairTIP4PLongSoft::read_restart_settings(FILE *fp)
   PairCoulLongSoft::read_restart_settings(fp);
 
   if (comm->me == 0) {
-    fread(&typeO,sizeof(int),1,fp);
-    fread(&typeH,sizeof(int),1,fp);
-    fread(&typeB,sizeof(int),1,fp);
-    fread(&typeA,sizeof(int),1,fp);
-    fread(&qdist,sizeof(double),1,fp);
+    utils::sfread(FLERR,&typeO,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&typeH,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&typeB,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&typeA,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&qdist,sizeof(double),1,fp,NULL,error);
   }
   MPI_Bcast(&typeO,1,MPI_INT,0,world);
   MPI_Bcast(&typeH,1,MPI_INT,0,world);

@@ -1,0 +1,524 @@
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
+# Simple regression tests for threebody potentials
+
+# NOTE: These are not intended to represent real materials
+
+units           metal
+
+atom_style      atomic
+atom_modify     map array
+boundary        p p p
+atom_modify	sort 0 0.0
+
+# temperature
+
+variable t equal 1800.0
+
+# cubic diamond unit cell
+
+variable a equal 5.431
+lattice         custom $a                               a1 1.0 0.0 0.0                          a2 0.0 1.0 0.0                          a3 0.0 0.0 1.0                          basis 0.0 0.0 0.0                       basis 0.0 0.5 0.5                       basis 0.5 0.0 0.5                       basis 0.5 0.5 0.0                       basis 0.25 0.25 0.25                    basis 0.25 0.75 0.75                    basis 0.75 0.25 0.75                    basis 0.75 0.75 0.25
+lattice         custom 5.431                               a1 1.0 0.0 0.0                          a2 0.0 1.0 0.0                          a3 0.0 0.0 1.0                          basis 0.0 0.0 0.0                       basis 0.0 0.5 0.5                       basis 0.5 0.0 0.5                       basis 0.5 0.5 0.0                       basis 0.25 0.25 0.25                    basis 0.25 0.75 0.75                    basis 0.75 0.25 0.75                    basis 0.75 0.75 0.25
+Lattice spacing in x,y,z = 5.431 5.431 5.431
+
+region          myreg block     0 4                                 0 4                                 0 4
+
+create_box      8 myreg
+Created orthogonal box = (0 0 0) to (21.724 21.724 21.724)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 region myreg 		basis 1 1  		basis 2 2  		basis 3 3  		basis 4 4  		basis 5 5  		basis 6 6  		basis 7 7  		basis 8 8
+Created 512 atoms
+  Time spent = 0.000483751 secs
+
+mass            *       28.06
+
+velocity 	all create $t 5287287 mom yes rot yes dist gaussian
+velocity 	all create 1800 5287287 mom yes rot yes dist gaussian
+
+# Equilibrate using Stillinger-Weber model for silicon
+
+pair_style      sw
+pair_coeff 	* * Si.sw Si Si Si Si Si Si Si Si
+Reading potential file Si.sw with DATE: 2007-06-11
+
+thermo          10
+fix             1 all nvt temp $t $t 0.1
+fix             1 all nvt temp 1800 $t 0.1
+fix             1 all nvt temp 1800 1800 0.1
+fix_modify 	1 energy yes
+timestep        1.0e-3
+neighbor        1.0 bin
+neigh_modify    every 1 delay 10 check yes
+run             100
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.77118
+  ghost atom cutoff = 4.77118
+  binsize = 2.38559, bins = 10 10 10
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair sw, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.982 | 2.982 | 2.982 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0         1800   -2220.3392            0   -2101.4457    12358.626 
+      10    993.48824   -2166.8749            0   -2101.3265    14121.853 
+      20    587.90768   -2139.6876            0   -2101.3093    11864.886 
+      30    1030.8616   -2167.8446            0   -2101.3947    6649.2566 
+      40    724.62874   -2145.9637            0   -2101.3436    5859.6447 
+      50     490.9053   -2129.5491            0   -2101.3077    6326.5434 
+      60    960.24533    -2159.427            0   -2101.3794    5733.9889 
+      70    906.76518   -2154.3675            0   -2101.3496    8380.4834 
+      80     800.7253   -2146.0714            0   -2101.3113    11515.737 
+      90    1249.2719   -2173.9445            0   -2101.3818    11593.728 
+     100    1080.3797   -2160.6174            0   -2101.3445    12414.602 
+Loop time of 0.129171 on 1 procs for 100 steps with 512 atoms
+
+Performance: 66.888 ns/day, 0.359 hours/ns, 774.165 timesteps/s
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.12468    | 0.12468    | 0.12468    |   0.0 | 96.52
+Neigh   | 0.0017159  | 0.0017159  | 0.0017159  |   0.0 |  1.33
+Comm    | 0.00088573 | 0.00088573 | 0.00088573 |   0.0 |  0.69
+Output  | 0.00011206 | 0.00011206 | 0.00011206 |   0.0 |  0.09
+Modify  | 0.0014365  | 0.0014365  | 0.0014365  |   0.0 |  1.11
+Other   |            | 0.0003417  |            |       |  0.26
+
+Nlocal:    512 ave 512 max 512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    1017 ave 1017 max 1017 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  14044 ave 14044 max 14044 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 14044
+Ave neighs/atom = 27.4297
+Neighbor list builds = 2
+Dangerous builds = 0
+
+write_restart	restart.equil
+
+# Test Stillinger-Weber model for Cd/Te/Zn/Se/Hg/S
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart	restart.equil
+  restoring atom style atomic from restart
+  orthogonal box = (0 0 0) to (21.724 21.724 21.724)
+  1 by 1 by 1 MPI processor grid
+  pair style sw stores no restart info
+  512 atoms
+
+pair_style      sw
+pair_coeff 	* * CdTeZnSeHgS0.sw Cd Zn Hg Cd Te S Se Te
+Reading potential file CdTeZnSeHgS0.sw with DATE: 2013-08-09
+
+thermo          10
+fix             1 all nvt temp $t $t 0.1
+fix             1 all nvt temp 1800 $t 0.1
+fix             1 all nvt temp 1800 1800 0.1
+Resetting global fix info from restart file:
+  fix style: nvt, fix ID: 1
+fix_modify 	1 energy yes
+timestep        1.0e-3
+neighbor        1.0 bin
+neigh_modify    every 1 delay 10 check yes
+run             100
+All restart file global fix info was re-assigned
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.632
+  ghost atom cutoff = 5.632
+  binsize = 2.816, bins = 8 8 8
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair sw, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.758 | 2.758 | 2.758 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+     100    1080.3797   -621.93681            0   -562.66385    464005.01 
+     110    1512.4547   -648.51133            0   -562.74194    463733.24 
+     120    1959.7565   -675.18668            0    -562.8255    486580.33 
+     130    1138.5498   -618.80419            0    -562.6427    515406.41 
+     140    1827.3403   -662.43867            0   -562.78985       485719 
+     150    1822.9803   -659.56725            0   -562.76627    465652.59 
+     160    1128.3444   -611.92808            0   -562.65512    469836.33 
+     170    1699.6402   -647.82381            0   -562.75353    467977.54 
+     180     1840.047    -654.5552            0   -562.77005    488397.41 
+     190    1312.0974   -617.70228            0    -562.6629    510856.48 
+     200    1809.8409    -648.6173            0   -562.75377    490822.97 
+Loop time of 0.399255 on 1 procs for 100 steps with 512 atoms
+
+Performance: 21.640 ns/day, 1.109 hours/ns, 250.467 timesteps/s
+99.2% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.38979    | 0.38979    | 0.38979    |   0.0 | 97.63
+Neigh   | 0.0061283  | 0.0061283  | 0.0061283  |   0.0 |  1.53
+Comm    | 0.0013483  | 0.0013483  | 0.0013483  |   0.0 |  0.34
+Output  | 0.00016642 | 0.00016642 | 0.00016642 |   0.0 |  0.04
+Modify  | 0.0014937  | 0.0014937  | 0.0014937  |   0.0 |  0.37
+Other   |            | 0.0003231  |            |       |  0.08
+
+Nlocal:    512 ave 512 max 512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    1386 ave 1386 max 1386 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  17388 ave 17388 max 17388 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 17388
+Ave neighs/atom = 33.9609
+Neighbor list builds = 5
+Dangerous builds = 0
+
+# Test Vashishta model for In/P
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart	restart.equil
+  restoring atom style atomic from restart
+  orthogonal box = (0 0 0) to (21.724 21.724 21.724)
+  1 by 1 by 1 MPI processor grid
+  pair style sw stores no restart info
+  512 atoms
+
+pair_style      vashishta
+pair_coeff 	* * InP.vashishta In In In In P P P P
+Reading potential file InP.vashishta with DATE: 2015-10-14
+
+thermo          10
+fix             1 all nvt temp $t $t 0.1
+fix             1 all nvt temp 1800 $t 0.1
+fix             1 all nvt temp 1800 1800 0.1
+Resetting global fix info from restart file:
+  fix style: nvt, fix ID: 1
+fix_modify 	1 energy yes
+timestep        1.0e-3
+neighbor        1.0 bin
+neigh_modify    every 1 delay 10 check yes
+run             100
+All restart file global fix info was re-assigned
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7
+  ghost atom cutoff = 7
+  binsize = 3.5, bins = 7 7 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair vashishta, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.783 | 2.783 | 2.783 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+     100    1080.3797   -1491.8652            0   -1432.5922    358930.65 
+     110    1299.3069    -1504.494            0   -1432.6803    347566.41 
+     120    1396.3035   -1508.3817            0    -1432.672    336798.42 
+     130    1055.9254   -1483.8342            0   -1432.5849    341035.18 
+     140    1543.9033   -1513.8559            0   -1432.6931    314268.54 
+     150    1242.5383    -1491.417            0   -1432.6036    311068.53 
+     160    1240.1733   -1489.2495            0   -1432.6033    295776.98 
+     170    1559.5037    -1507.824            0   -1432.6417    266170.25 
+     180    1379.0358   -1493.4092            0   -1432.5869    251410.63 
+     190    1465.8073   -1496.8564            0   -1432.6105    226461.31 
+     200    1456.6383   -1493.8133            0   -1432.5852    208188.34 
+Loop time of 0.198058 on 1 procs for 100 steps with 512 atoms
+
+Performance: 43.624 ns/day, 0.550 hours/ns, 504.903 timesteps/s
+99.3% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.18746    | 0.18746    | 0.18746    |   0.0 | 94.65
+Neigh   | 0.00688    | 0.00688    | 0.00688    |   0.0 |  3.47
+Comm    | 0.001718   | 0.001718   | 0.001718   |   0.0 |  0.87
+Output  | 0.00013351 | 0.00013351 | 0.00013351 |   0.0 |  0.07
+Modify  | 0.0015109  | 0.0015109  | 0.0015109  |   0.0 |  0.76
+Other   |            | 0.0003531  |            |       |  0.18
+
+Nlocal:    512 ave 512 max 512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    1810 ave 1810 max 1810 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  36480 ave 36480 max 36480 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 36480
+Ave neighs/atom = 71.25
+Neighbor list builds = 4
+Dangerous builds = 0
+
+# Test Tersoff model for B/N/C
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart	restart.equil
+  restoring atom style atomic from restart
+  orthogonal box = (0 0 0) to (21.724 21.724 21.724)
+  1 by 1 by 1 MPI processor grid
+  pair style sw stores no restart info
+  512 atoms
+
+variable	fac equal 0.6
+change_box 	all x scale ${fac} y scale ${fac} z scale ${fac} remap
+change_box 	all x scale 0.6 y scale ${fac} z scale ${fac} remap
+change_box 	all x scale 0.6 y scale 0.6 z scale ${fac} remap
+change_box 	all x scale 0.6 y scale 0.6 z scale 0.6 remap
+  orthogonal box = (4.3448 0 0) to (17.3792 21.724 21.724)
+  orthogonal box = (4.3448 4.3448 0) to (17.3792 17.3792 21.724)
+  orthogonal box = (4.3448 4.3448 4.3448) to (17.3792 17.3792 17.3792)
+
+pair_style      tersoff
+pair_coeff 	* * BNC.tersoff N N N C B B C B
+Reading potential file BNC.tersoff with DATE: 2013-03-21
+
+thermo          10
+fix             1 all nvt temp $t $t 0.1
+fix             1 all nvt temp 1800 $t 0.1
+fix             1 all nvt temp 1800 1800 0.1
+Resetting global fix info from restart file:
+  fix style: nvt, fix ID: 1
+fix_modify 	1 energy yes
+timestep        1.0e-3
+neighbor        1.0 bin
+neigh_modify    every 1 delay 10 check yes
+run             100
+All restart file global fix info was re-assigned
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.1
+  ghost atom cutoff = 3.1
+  binsize = 1.55, bins = 9 9 9
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair tersoff, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.74 | 2.74 | 2.74 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+     100    1080.3797   -3249.8451            0   -3190.5722    1925371.8 
+     110    1878.2843   -3300.7205            0   -3191.0964    1893058.6 
+     120    1153.8494   -3250.2114            0   -3190.5436    1932141.4 
+     130    1363.8664   -3261.6889            0   -3190.6116    1902268.1 
+     140    1565.5505   -3273.0405            0   -3190.6982      1878817 
+     150    1416.9458   -3261.1805            0    -3190.865    1916554.4 
+     160    1288.6997   -3249.8279            0   -3190.4141    1933227.4 
+     170    1768.3043   -3279.2164            0   -3190.4535    1898123.4 
+     180    1375.1942   -3251.0929            0   -3190.3781    1896205.1 
+     190    1527.0671   -3258.7679            0   -3190.4344    1900673.6 
+     200    1586.8691   -3260.4713            0    -3190.434    1912454.8 
+Loop time of 0.210082 on 1 procs for 100 steps with 512 atoms
+
+Performance: 41.127 ns/day, 0.584 hours/ns, 476.006 timesteps/s
+98.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.20628    | 0.20628    | 0.20628    |   0.0 | 98.19
+Neigh   | 0.00099182 | 0.00099182 | 0.00099182 |   0.0 |  0.47
+Comm    | 0.00085139 | 0.00085139 | 0.00085139 |   0.0 |  0.41
+Output  | 0.00013494 | 0.00013494 | 0.00013494 |   0.0 |  0.06
+Modify  | 0.0014665  | 0.0014665  | 0.0014665  |   0.0 |  0.70
+Other   |            | 0.0003612  |            |       |  0.17
+
+Nlocal:    512 ave 512 max 512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    1027 ave 1027 max 1027 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  14602 ave 14602 max 14602 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 14602
+Ave neighs/atom = 28.5195
+Neighbor list builds = 1
+Dangerous builds = 0
+
+# Test Tersoff/Mod model for Si
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart	restart.equil
+  restoring atom style atomic from restart
+  orthogonal box = (0 0 0) to (21.724 21.724 21.724)
+  1 by 1 by 1 MPI processor grid
+  pair style sw stores no restart info
+  512 atoms
+
+pair_style      tersoff/mod
+pair_coeff 	* * Si.tersoff.mod Si Si Si Si Si Si Si Si
+Reading potential file Si.tersoff.mod with DATE: 2013-07-26
+
+thermo          10
+fix             1 all nvt temp $t $t 0.1
+fix             1 all nvt temp 1800 $t 0.1
+fix             1 all nvt temp 1800 1800 0.1
+Resetting global fix info from restart file:
+  fix style: nvt, fix ID: 1
+fix_modify 	1 energy yes
+timestep        1.0e-3
+neighbor        1.0 bin
+neigh_modify    every 1 delay 10 check yes
+run             100
+All restart file global fix info was re-assigned
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.3
+  ghost atom cutoff = 4.3
+  binsize = 2.15, bins = 11 11 11
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair tersoff/mod, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.744 | 2.744 | 2.744 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+     100    1080.3797   -2307.5808            0   -2248.3078     18624.75 
+     110    851.21757   -2290.7529            0   -2248.2817     21041.97 
+     120    1074.6349   -2303.6437            0    -2248.321    15244.809 
+     130    1006.5662   -2296.9866            0   -2248.3057     15954.09 
+     140    855.64354   -2285.1581            0   -2248.2781    19346.662 
+     150    1111.1546    -2300.024            0    -2248.314    14698.998 
+     160    1114.7933   -2297.8629            0   -2248.3098     14414.14 
+     170     853.9568   -2278.6047            0   -2248.2716    20120.632 
+     180    1031.0925   -2288.3481            0   -2248.2949    18332.008 
+     190    1230.3458   -2298.9946            0   -2248.3111    15520.302 
+     200    1053.8799   -2284.8931            0   -2248.2816    20033.536 
+Loop time of 0.158428 on 1 procs for 100 steps with 512 atoms
+
+Performance: 54.536 ns/day, 0.440 hours/ns, 631.200 timesteps/s
+99.3% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.15318    | 0.15318    | 0.15318    |   0.0 | 96.69
+Neigh   | 0.0022631  | 0.0022631  | 0.0022631  |   0.0 |  1.43
+Comm    | 0.00093651 | 0.00093651 | 0.00093651 |   0.0 |  0.59
+Output  | 0.00019622 | 0.00019622 | 0.00019622 |   0.0 |  0.12
+Modify  | 0.0015035  | 0.0015035  | 0.0015035  |   0.0 |  0.95
+Other   |            | 0.0003462  |            |       |  0.22
+
+Nlocal:    512 ave 512 max 512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    1001 ave 1001 max 1001 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  8872 ave 8872 max 8872 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 8872
+Ave neighs/atom = 17.3281
+Neighbor list builds = 3
+Dangerous builds = 0
+
+# Test Tersoff/Mod/C model for Si
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart	restart.equil
+  restoring atom style atomic from restart
+  orthogonal box = (0 0 0) to (21.724 21.724 21.724)
+  1 by 1 by 1 MPI processor grid
+  pair style sw stores no restart info
+  512 atoms
+newton on on
+pair_style      tersoff/mod/c
+pair_coeff 	* * Si.tersoff.modc Si Si Si Si Si Si Si Si
+Reading potential file Si.tersoff.modc with DATE: 2016-11-09
+
+thermo          10
+fix             1 all nvt temp $t $t 0.1
+fix             1 all nvt temp 1800 $t 0.1
+fix             1 all nvt temp 1800 1800 0.1
+Resetting global fix info from restart file:
+  fix style: nvt, fix ID: 1
+fix_modify 	1 energy yes
+timestep        1.0e-3
+neighbor        1.0 bin
+neigh_modify    every 1 delay 10 check yes
+run             100
+All restart file global fix info was re-assigned
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.20569
+  ghost atom cutoff = 4.20569
+  binsize = 2.10285, bins = 11 11 11
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair tersoff/mod/c, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.739 | 2.739 | 2.739 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+     100    1080.3797   -2307.5509            0   -2248.2779     21368.36 
+     110    846.70637   -2290.4239            0   -2248.2488     22856.37 
+     120    1083.0906   -2304.1686            0   -2248.2895    17530.457 
+     130    1008.7015   -2297.0835            0   -2248.2781    17698.498 
+     140    811.71413   -2282.2528            0   -2248.2417    19986.737 
+     150    1094.4969   -2298.9718            0   -2248.2836    15822.967 
+     160    1100.1109   -2296.9461            0   -2248.2804     15213.75 
+     170    801.20165   -2275.2175            0   -2248.2372    20153.957 
+     180    994.63485   -2286.1145            0   -2248.2621    19167.021 
+     190    1215.6425   -2298.2082            0    -2248.284    15895.654 
+     200    992.20385   -2281.0372            0   -2248.2425    19643.792 
+Loop time of 0.282035 on 1 procs for 100 steps with 512 atoms
+
+Performance: 30.634 ns/day, 0.783 hours/ns, 354.565 timesteps/s
+98.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.27701    | 0.27701    | 0.27701    |   0.0 | 98.22
+Neigh   | 0.0021927  | 0.0021927  | 0.0021927  |   0.0 |  0.78
+Comm    | 0.00089169 | 0.00089169 | 0.00089169 |   0.0 |  0.32
+Output  | 0.0001452  | 0.0001452  | 0.0001452  |   0.0 |  0.05
+Modify  | 0.0014682  | 0.0014682  | 0.0014682  |   0.0 |  0.52
+Other   |            | 0.0003295  |            |       |  0.12
+
+Nlocal:    512 ave 512 max 512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    972 ave 972 max 972 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  8390 ave 8390 max 8390 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 8390
+Ave neighs/atom = 16.3867
+Neighbor list builds = 3
+Dangerous builds = 0
+
+Total wall time: 0:00:01

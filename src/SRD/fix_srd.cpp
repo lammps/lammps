@@ -15,10 +15,10 @@
    Contributing authors: Jeremy Lechman (SNL), Pieter in 't Veld (BASF)
 ------------------------------------------------------------------------- */
 
+#include "fix_srd.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_srd.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
@@ -27,7 +27,6 @@
 #include "group.h"
 #include "update.h"
 #include "force.h"
-#include "pair.h"
 #include "domain.h"
 #include "neighbor.h"
 #include "comm.h"
@@ -376,13 +375,16 @@ void FixSRD::init()
 
   change_size = change_shape = deformflag = 0;
   if (domain->nonperiodic == 2) change_size = 1;
+
+  Fix **fixes = modify->fix;
   for (int i = 0; i < modify->nfix; i++) {
-    if (modify->fix[i]->box_change_size) change_size = 1;
-    if (modify->fix[i]->box_change_shape) change_shape = 1;
-    if (strcmp(modify->fix[i]->style,"deform") == 0) {
+    if (fixes[i]->box_change & BOX_CHANGE_SIZE)  change_size = 1;
+    if (fixes[i]->box_change & BOX_CHANGE_SHAPE) change_shape = 1;
+    if (strcmp(fixes[i]->style,"deform") == 0) {
       deformflag = 1;
       FixDeform *deform = (FixDeform *) modify->fix[i];
-      if (deform->box_change_shape && deform->remapflag != Domain::V_REMAP)
+      if ((deform->box_change & BOX_CHANGE_SHAPE)
+          && deform->remapflag != Domain::V_REMAP)
         error->all(FLERR,"Using fix srd with inconsistent "
                    "fix deform remap option");
     }
@@ -440,7 +442,7 @@ void FixSRD::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixSRD::setup(int vflag)
+void FixSRD::setup(int /*vflag*/)
 {
   setup_bounds();
 
@@ -455,7 +457,7 @@ void FixSRD::setup(int vflag)
     setup_search_stencil();
   } else nbins2 = 0;
 
-  // perform first bining of SRD and big particles and walls
+  // perform first binning of SRD and big particles and walls
   // set reneighflag to turn off SRD rotation
   // don't do SRD rotation in setup, only during timestepping
 
@@ -703,7 +705,7 @@ void FixSRD::pre_neighbor()
    when collision occurs, change x,v of SRD, force,torque of BIG particle
 ------------------------------------------------------------------------- */
 
-void FixSRD::post_force(int vflag)
+void FixSRD::post_force(int /*vflag*/)
 {
   int i,m,ix,iy,iz;
 
@@ -1068,7 +1070,7 @@ void FixSRD::vbin_comm(int ishift)
 
   // send/recv bins in both directions in each dimension
   // don't send if nsend = 0
-  //   due to static bins aliging with proc boundary
+  //   due to static bins aligning with proc boundary
   //   due to dynamic bins across non-periodic global boundary
   // copy to self if sendproc = me
   // MPI send to another proc if sendproc != me
@@ -1170,7 +1172,7 @@ void FixSRD::xbin_comm(int ishift, int nval)
 
   // send/recv bins in both directions in each dimension
   // don't send if nsend = 0
-  //   due to static bins aliging with proc boundary
+  //   due to static bins aligning with proc boundary
   //   due to dynamic bins across non-periodic global boundary
   // copy to self if sendproc = me
   // MPI send to another proc if sendproc != me
@@ -1348,7 +1350,7 @@ void FixSRD::collisions_single()
                         atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
                 if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
                 error->warning(FLERR,str);
-              } else{
+              } else {
                 sprintf(str,
                         "SRD particle " TAGINT_FORMAT " started "
                         "inside wall %d on step " BIGINT_FORMAT " bounce %d",
@@ -1507,7 +1509,7 @@ void FixSRD::collisions_multi()
                         atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
                 if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
                 error->warning(FLERR,str);
-              } else{
+              } else {
                 sprintf(str,
                         "SRD particle " TAGINT_FORMAT " started "
                         "inside wall %d on step " BIGINT_FORMAT " bounce %d",
@@ -2168,8 +2170,8 @@ void FixSRD::collision_ellipsoid_inexact(double *xs, double *xb,
    norm = surface normal of collision pt at time of collision
 ------------------------------------------------------------------------- */
 
-double FixSRD::collision_line_exact(double *xs, double *xb,
-                                    double *vs, double *vb, Big *big,
+double FixSRD::collision_line_exact(double * /*xs*/, double * /*xb*/,
+                                    double * /*vs*/, double * /*vb*/, Big * /*big*/,
                                     double dt_step,
                                     double *xscoll, double *xbcoll,
                                     double *norm)
@@ -2197,8 +2199,8 @@ double FixSRD::collision_line_exact(double *xs, double *xb,
    norm = surface normal of collision pt at time of collision
 ------------------------------------------------------------------------- */
 
-double FixSRD::collision_tri_exact(double *xs, double *xb,
-                                   double *vs, double *vb, Big *big,
+double FixSRD::collision_tri_exact(double * /*xs*/, double * /*xb*/,
+                                   double * /*vs*/, double * /*vb*/, Big * /*big*/,
                                    double dt_step,
                                    double *xscoll, double *xbcoll,
                                    double *norm)

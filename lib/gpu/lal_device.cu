@@ -11,9 +11,9 @@
 //
 //    begin                :
 //    email                : brownw@ornl.gov
-// ***************************************************************************/
+// ***************************************************************************
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_preprocessor.h"
 #endif
 
@@ -42,3 +42,4 @@ __kernel void kernel_info(__global int *info) {
   info[13]=THREADS_PER_CHARGE;
   info[14]=BLOCK_ELLIPSE;
 }
+

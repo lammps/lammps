@@ -23,7 +23,7 @@ const char *beck=0;
 
 #include "lal_beck.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define BeckT Beck<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -150,3 +150,4 @@ void BeckT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class Beck<PRECISION,ACC_PRECISION>;
+}

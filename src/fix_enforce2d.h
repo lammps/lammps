@@ -36,7 +36,7 @@ class FixEnforce2D : public Fix {
   void post_force_respa(int, int, int);
   void min_post_force(int);
 
- private:
+ protected:
   int nfixlist;
   class Fix **flist;
 };

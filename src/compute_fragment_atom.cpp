@@ -15,8 +15,9 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_fragment_atom.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "update.h"
@@ -159,7 +160,7 @@ void ComputeFragmentAtom::compute_peratom()
 /* ---------------------------------------------------------------------- */
 
 int ComputeFragmentAtom::pack_forward_comm(int n, int *list, double *buf,
-                                          int pbc_flag, int *pbc)
+                                          int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

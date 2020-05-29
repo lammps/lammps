@@ -15,16 +15,10 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "fix_nve_asphere.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
-#include "force.h"
-#include "update.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -62,7 +56,7 @@ void FixNVEAsphere::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEAsphere::initial_integrate(int vflag)
+void FixNVEAsphere::initial_integrate(int /*vflag*/)
 {
   double dtfm;
   double inertia[3],omega[3];

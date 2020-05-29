@@ -43,7 +43,7 @@ class PairDPDfdtEnergy : public Pair {
 
   double **cut;
   double **a0;
-  double **sigma,**kappa;
+  double **sigma,**kappa,**alpha;
   double *duCond,*duMech;
 
   int seed;

@@ -23,7 +23,7 @@ const char *buck_coul_long=0;
 
 #include "lal_buck_coul_long.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define BuckCoulLongT BuckCoulLong<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -166,3 +166,4 @@ void BuckCoulLongT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class BuckCoulLong<PRECISION,ACC_PRECISION>;
+}

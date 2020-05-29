@@ -19,9 +19,9 @@
      Vincent Natoli, Stone Ridge Technology
 ------------------------------------------------------------------------- */
 
+#include "pair_eam_opt.h"
 #include <cmath>
 #include <cstdlib>
-#include "pair_eam_opt.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -38,8 +38,7 @@ PairEAMOpt::PairEAMOpt(LAMMPS *lmp) : PairEAM(lmp) {}
 
 void PairEAMOpt::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   if (evflag) {
     if (eflag) {
@@ -81,11 +80,13 @@ void PairEAMOpt::eval()
   // grow energy array if necessary
 
   if (atom->nmax > nmax) {
-    memory->sfree(rho);
-    memory->sfree(fp);
+    memory->destroy(rho);
+    memory->destroy(fp);
+    memory->destroy(numforce);
     nmax = atom->nmax;
-    rho = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho");
-    fp = (double *) memory->smalloc(nmax*sizeof(double),"pair:fp");
+    memory->create(rho,nmax,"pair:rho");
+    memory->create(fp,nmax,"pair:fp");
+    memory->create(numforce,nmax,"pair:numforce");
   }
 
   double** _noalias x = atom->x;
@@ -270,6 +271,7 @@ void PairEAMOpt::eval()
 
     fast_gamma_t* _noalias tabssi = &tabss[itype1*ntypes*nr];
     double* _noalias scale_i = scale[itype1+1]+1;
+    numforce[i] = 0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -281,6 +283,7 @@ void PairEAMOpt::eval()
       double rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < tmp_cutforcesq) {
+        ++numforce[i];
         jtype = type[j] - 1;
         double r = sqrt(rsq);
         double rhoip,rhojp,z2,z2p;

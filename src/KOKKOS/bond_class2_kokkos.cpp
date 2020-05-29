@@ -15,9 +15,9 @@
    Contributing author: Ray Shan (Materials Design)
 ------------------------------------------------------------------------- */
 
+#include "bond_class2_kokkos.h"
 #include <cmath>
 #include <cstdlib>
-#include "bond_class2_kokkos.h"
 #include "atom_kokkos.h"
 #include "neighbor_kokkos.h"
 #include "domain.h"
@@ -60,8 +60,7 @@ void BondClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   eflag = eflag_in;
   vflag = vflag_in;
 
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = 0;
+  ev_init(eflag,vflag,0);
 
   // reallocate per-atom arrays if necessary
 
@@ -75,7 +74,7 @@ void BondClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (vflag_atom) {
     //if(k_vatom.extent(0)<maxvatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_vatom,vatom);
-      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
+      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"improper:vatom");
       d_vatom = k_vatom.template view<DeviceType>();
     //}
   }
@@ -236,7 +235,43 @@ void BondClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
   k_k4.template sync<DeviceType>();
   k_r0.template modify<LMPHostType>();
   k_r0.template sync<DeviceType>();
+}
 
+/* ----------------------------------------------------------------------
+   proc 0 reads coeffs from restart file, bcasts them
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void BondClass2Kokkos<DeviceType>::read_restart(FILE *fp)
+{
+  BondClass2::read_restart(fp);
+
+  int n = atom->nbondtypes;
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_k2("BondClass2::k2",n+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_k3("BondClass2::k3",n+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_k4("BondClass2::k4",n+1);
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_r0("BondClass2::r0",n+1);
+
+  d_k2 = k_k2.template view<DeviceType>();
+  d_k3 = k_k3.template view<DeviceType>();
+  d_k4 = k_k4.template view<DeviceType>();
+  d_r0 = k_r0.template view<DeviceType>();
+
+  for (int i = 1; i <= n; i++) {
+    k_k2.h_view[i] = k2[i];
+    k_k3.h_view[i] = k3[i];
+    k_k4.h_view[i] = k4[i];
+    k_r0.h_view[i] = r0[i];
+  }
+
+  k_k2.template modify<LMPHostType>();
+  k_k2.template sync<DeviceType>();
+  k_k3.template modify<LMPHostType>();
+  k_k3.template sync<DeviceType>();
+  k_k4.template modify<LMPHostType>();
+  k_k4.template sync<DeviceType>();
+  k_r0.template modify<LMPHostType>();
+  k_r0.template sync<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -330,7 +365,7 @@ void BondClass2Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const in
 
 namespace LAMMPS_NS {
 template class BondClass2Kokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class BondClass2Kokkos<LMPHostType>;
 #endif
 }

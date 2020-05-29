@@ -22,7 +22,6 @@
 #include <cfloat>
 #include "atom.h"
 #include "force.h"
-#include "update.h"
 #include "group.h"
 #include "random_mars.h"
 #include "comm.h"
@@ -158,7 +157,7 @@ void FixTFMC::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixTFMC::initial_integrate(int vflag)
+void FixTFMC::initial_integrate(int /*vflag*/)
 {
   double boltz = force->boltz;
   double **x = atom->x;

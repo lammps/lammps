@@ -11,11 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_tri_lj.h"
+#include <cmath>
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_tri.h"
@@ -77,8 +74,7 @@ void PairTriLJ::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   AtomVecTri::Bonus *bonus = avec->bonus;
   double **x = atom->x;

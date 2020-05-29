@@ -19,11 +19,8 @@
 #include "nbin_ssa_kokkos.h"
 #include "neighbor.h"
 #include "atom_kokkos.h"
-#include "group.h"
 #include "domain.h"
-#include "comm.h"
 #include "update.h"
-#include "error.h"
 #include "atom_masks.h"
 
 // #include "memory_kokkos.h"
@@ -301,7 +298,7 @@ void NBinSSAKokkos<DeviceType>::sortBin(
 
 namespace LAMMPS_NS {
 template class NBinSSAKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class NBinSSAKokkos<LMPHostType>;
 #endif
 }

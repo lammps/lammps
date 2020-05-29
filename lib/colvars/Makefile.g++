@@ -6,7 +6,7 @@ COLVARS_LIB = libcolvars.a
 COLVARS_OBJ_DIR =
 
 CXX =		g++
-CXXFLAGS =	-O2 -g -Wall -fPIC -funroll-loops
+CXXFLAGS =	-std=c++0x -O2 -g -Wall -fPIC -funroll-loops
 AR =		ar
 ARFLAGS =	-rscv
 SHELL =		/bin/sh

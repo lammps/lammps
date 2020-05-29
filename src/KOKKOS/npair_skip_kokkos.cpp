@@ -12,13 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_skip_kokkos.h"
-#include "neighbor.h"
 #include "neigh_list_kokkos.h"
 #include "atom_kokkos.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "domain.h"
-#include "my_page.h"
 #include "error.h"
 #include "atom_masks.h"
 
@@ -151,7 +147,7 @@ void NPairSkipKokkos<DeviceType>::operator()(TagNPairSkipCountLocal, const int &
 
 namespace LAMMPS_NS {
 template class NPairSkipKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class NPairSkipKokkos<LMPHostType>;
 #endif
 }

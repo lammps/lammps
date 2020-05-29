@@ -58,6 +58,9 @@ namespace GPU_EXTRA {
       else if (all_success == -11)
         error->all(FLERR,
                    "Invalid custom OpenCL parameter string.");
+      else if (all_success == -12)
+        error->all(FLERR,
+                   "Invalid OpenCL platform ID.");
       else
         error->all(FLERR,"Unknown error in GPU library");
     }
@@ -129,5 +132,10 @@ GPU.
 E: Unknown error in GPU library
 
 Self-explanatory.
+
+W: Increasing communication cutoff for GPU style
+
+The pair style has increased the communication cutoff to be consistent with
+the communication cutoff requirements for this pair style when run on the GPU.
 
 */

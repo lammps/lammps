@@ -11,15 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "fix_nve_sphere.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "domain.h"
 #include "atom_vec.h"
-#include "update.h"
-#include "respa.h"
 #include "force.h"
 #include "error.h"
 #include "math_vector.h"
@@ -97,7 +94,7 @@ void FixNVESphere::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVESphere::initial_integrate(int vflag)
+void FixNVESphere::initial_integrate(int /*vflag*/)
 {
   double dtfm,dtirotate,msq,scale,s2,inv_len_mu;
   double g[3];

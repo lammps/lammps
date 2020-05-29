@@ -15,25 +15,22 @@
    Contributing author: Pieter J. in 't Veld and Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "pair_lj_long_dipole_long.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "math_const.h"
 #include "math_vector.h"
-#include "pair_lj_long_dipole_long.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "force.h"
 #include "kspace.h"
 #include "update.h"
-#include "integrate.h"
-#include "respa.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -67,10 +64,10 @@ void PairLJLongDipoleLong::options(char **arg, int order)
   if (!*arg) error->all(FLERR,"Illegal pair_style lj/long/dipole/long command");
   for (i=0; option[i]&&strcmp(arg[0], option[i]); ++i);
   switch (i) {
-    default: error->all(FLERR,"Illegal pair_style lj/long/dipole/long command");
     case 0: ewald_order |= 1<<order; break;             // set kspace r^-order
     case 2: ewald_off |= 1<<order;                      // turn r^-order off
     case 1: break;
+    default: error->all(FLERR,"Illegal pair_style lj/long/dipole/long command");
   }
 }
 
@@ -348,13 +345,13 @@ void PairLJLongDipoleLong::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&epsilon_read[i][j],sizeof(double),1,fp);
-          fread(&sigma_read[i][j],sizeof(double),1,fp);
-          fread(&cut_lj_read[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&epsilon_read[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&sigma_read[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_lj_read[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&epsilon_read[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma_read[i][j],1,MPI_DOUBLE,0,world);
@@ -383,11 +380,11 @@ void PairLJLongDipoleLong::write_restart_settings(FILE *fp)
 void PairLJLongDipoleLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_lj_global,sizeof(double),1,fp);
-    fread(&cut_coul,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
-    fread(&ewald_order,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&ewald_order,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
@@ -405,8 +402,7 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
   double evdwl,ecoul,fpair;
   evdwl = ecoul = 0.0;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x, *x0 = x[0];
   double **mu = atom->mu, *mu0 = mu[0], *imu, *jmu;
@@ -452,7 +448,7 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
       ni = sbmask(j);                                   // special index
       j &= NEIGHMASK;
 
-      { register double *xj = x0+(j+(j<<1));
+      { double *xj = x0+(j+(j<<1));
         d[0] = xi[0] - xj[0];                           // pair vector
         d[1] = xi[1] - xj[1];
         d[2] = xi[2] - xj[2]; }
@@ -463,9 +459,9 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
       if (order3 && (rsq < cut_coulsq)) {               // dipole
         memcpy(muj, jmu = mu0+(j<<2), sizeof(vector));
         {                                               // series real space
-          register double r = sqrt(rsq);
-          register double x = g_ewald*r;
-          register double f = exp(-x*x)*qqrd2e;
+          double r = sqrt(rsq);
+          double x = g_ewald*r;
+          double f = exp(-x*x)*qqrd2e;
 
           B0 = 1.0/(1.0+EWALD_P*x);                     // eqn 2.8
           B0 *= ((((A5*B0+A4)*B0+A3)*B0+A2)*B0+A1)*f/r;
@@ -524,8 +520,8 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
 
       if (rsq < cut_ljsqi[typej]) {                     // lj
         if (order6) {                                   // long-range lj
-          register double rn = r2inv*r2inv*r2inv;
-          register double x2 = g2*rsq, a2 = 1.0/x2;
+          double rn = r2inv*r2inv*r2inv;
+          double x2 = g2*rsq, a2 = 1.0/x2;
           x2 = a2*exp(-x2)*lj4i[typej];
           if (ni < 0) {
             force_lj =
@@ -533,7 +529,7 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
             if (eflag) evdwl = rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2;
           }
           else {                                        // special case
-            register double f = special_lj[ni], t = rn*(1.0-f);
+            double f = special_lj[ni], t = rn*(1.0-f);
             force_lj = f*(rn *= rn)*lj1i[typej]-
               g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[typej];
             if (eflag) evdwl =
@@ -541,13 +537,13 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
           }
         }
         else {                                          // cut lj
-          register double rn = r2inv*r2inv*r2inv;
+          double rn = r2inv*r2inv*r2inv;
           if (ni < 0) {
             force_lj = rn*(rn*lj1i[typej]-lj2i[typej]);
             if (eflag) evdwl = rn*(rn*lj3i[typej]-lj4i[typej])-offseti[typej];
           }
           else {                                        // special case
-            register double f = special_lj[ni];
+            double f = special_lj[ni];
             force_lj = f*rn*(rn*lj1i[typej]-lj2i[typej]);
             if (eflag) evdwl = f*(
                 rn*(rn*lj3i[typej]-lj4i[typej])-offseti[typej]);
@@ -559,14 +555,14 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
 
       fpair = force_coul+force_lj;                      // force
       if (newton_pair || j < nlocal) {
-        register double *fj = f0+(j+(j<<1));
+        double *fj = f0+(j+(j<<1));
         fi[0] += fx = d[0]*fpair+force_d[0]; fj[0] -= fx;
         fi[1] += fy = d[1]*fpair+force_d[1]; fj[1] -= fy;
         fi[2] += fz = d[2]*fpair+force_d[2]; fj[2] -= fz;
         tqi[0] += mui[1]*ti[2]-mui[2]*ti[1];            // torque
         tqi[1] += mui[2]*ti[0]-mui[0]*ti[2];
         tqi[2] += mui[0]*ti[1]-mui[1]*ti[0];
-        register double *tqj = tq0+(j+(j<<1));
+        double *tqj = tq0+(j+(j<<1));
         tqj[0] += muj[1]*tj[2]-muj[2]*tj[1];
         tqj[1] += muj[2]*tj[0]-muj[0]*tj[2];
         tqj[2] += muj[0]*tj[1]-muj[1]*tj[0];
@@ -608,9 +604,9 @@ double PairLJLongDipoleLong::single(int i, int j, int itype, int jtype,
     double G0, G1, G2, B0, B1, B2, B3, mudi, mudj, muij;
     vector d = {xi[0]-xj[0], xi[1]-xj[1], xi[2]-xj[2]};
     {                                                   // series real space
-      register double r = sqrt(rsq);
-      register double x = g_ewald*r;
-      register double f = exp(-x*x)*qqrd2e;
+      double r = sqrt(rsq);
+      double x = g_ewald*r;
+      double f = exp(-x*x)*qqrd2e;
 
       B0 = 1.0/(1.0+EWALD_P*x);                 // eqn 2.8
       B0 *= ((((A5*B0+A4)*B0+A3)*B0+A2)*B0+A1)*f/r;
@@ -644,7 +640,7 @@ double PairLJLongDipoleLong::single(int i, int j, int itype, int jtype,
   if (rsq < cut_ljsq[itype][jtype]) {                   // lennard-jones
     r6inv = r2inv*r2inv*r2inv;
     if (ewald_order&0x40) {                             // long-range
-      register double x2 = g2*rsq, a2 = 1.0/x2, t = r6inv*(1.0-factor_lj);
+      double x2 = g2*rsq, a2 = 1.0/x2, t = r6inv*(1.0-factor_lj);
       x2 = a2*exp(-x2)*lj4[itype][jtype];
       force_lj = factor_lj*(r6inv *= r6inv)*lj1[itype][jtype]-
         g8*(((6.0*a2+6.0)*a2+3.0)*a2+a2)*x2*rsq+t*lj2[itype][jtype];

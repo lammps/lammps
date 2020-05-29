@@ -55,6 +55,34 @@ style () {
   fi
 }
 
+packages () {
+  list=`grep -sl $1 */$2*.h`
+  if (test -e packages_$3.tmp) then
+    rm -f packages_$3.tmp
+  fi
+  for file in $list; do
+    dir="\"`dirname $file`\""
+    echo "#undef PACKAGE" >> packages_$3.tmp
+    echo "#define PACKAGE $dir" >> packages_$3.tmp
+    qfile="\"$file\""
+    echo "#include $qfile" >> packages_$3.tmp
+  done
+  if (test ! -e packages_$3.tmp) then
+    if (test ! -e packages_$3.h) then
+      touch packages_$3.h
+    elif (test "`cat packages_$3.h`" != "") then
+      rm -f packages_$3.h
+      touch packages_$3.h
+    fi
+  elif (test ! -e packages_$3.h) then
+    mv packages_$3.tmp packages_$3.h
+  elif (test "`diff --brief packages_$3.h packages_$3.tmp`" != "") then
+    mv packages_$3.tmp packages_$3.h
+  else
+    rm -f packages_$3.tmp
+  fi
+}
+
 # create individual style files
 # called by "make machine"
 # col 1 = string to search for
@@ -63,28 +91,30 @@ style () {
 # col 4 = file that includes the style file
 # col 5 = optional 2nd file that includes the style file
 
-if (test $1 = "style") then
+cmd=$1
 
-  style ANGLE_CLASS     angle_      angle      force
-  style ATOM_CLASS      atom_vec_   atom       atom      atom_vec_hybrid
-  style BODY_CLASS      body_       body       atom_vec_body
-  style BOND_CLASS      bond_       bond       force
-  style COMMAND_CLASS   ""          command    input
-  style COMPUTE_CLASS   compute_    compute    modify
-  style DIHEDRAL_CLASS  dihedral_   dihedral   force
-  style DUMP_CLASS      dump_       dump       output    write_dump
-  style FIX_CLASS       fix_        fix        modify
-  style IMPROPER_CLASS  improper_   improper   force
-  style INTEGRATE_CLASS ""          integrate  update
-  style KSPACE_CLASS    ""          kspace     force
-  style MINIMIZE_CLASS  min_        minimize   update
-  style NBIN_CLASS      nbin_       nbin       neighbor
-  style NPAIR_CLASS     npair_      npair      neighbor
-  style NSTENCIL_CLASS  nstencil_   nstencil   neighbor
-  style NTOPO_CLASS     ntopo_      ntopo      neighbor
-  style PAIR_CLASS      pair_       pair       force
-  style READER_CLASS    reader_     reader     read_dump
-  style REGION_CLASS    region_     region     domain
+if (test $cmd = "style") || (test $cmd = "packages") then
+
+  $cmd ANGLE_CLASS     angle_      angle      force
+  $cmd ATOM_CLASS      atom_vec_   atom       atom      atom_vec_hybrid
+  $cmd BODY_CLASS      body_       body       atom_vec_body
+  $cmd BOND_CLASS      bond_       bond       force
+  $cmd COMMAND_CLASS   ""          command    input
+  $cmd COMPUTE_CLASS   compute_    compute    modify
+  $cmd DIHEDRAL_CLASS  dihedral_   dihedral   force
+  $cmd DUMP_CLASS      dump_       dump       output    write_dump
+  $cmd FIX_CLASS       fix_        fix        modify
+  $cmd IMPROPER_CLASS  improper_   improper   force
+  $cmd INTEGRATE_CLASS ""          integrate  update
+  $cmd KSPACE_CLASS    ""          kspace     force
+  $cmd MINIMIZE_CLASS  min_        minimize   update
+  $cmd NBIN_CLASS      nbin_       nbin       neighbor
+  $cmd NPAIR_CLASS     npair_      npair      neighbor
+  $cmd NSTENCIL_CLASS  nstencil_   nstencil   neighbor
+  $cmd NTOPO_CLASS     ntopo_      ntopo      neighbor
+  $cmd PAIR_CLASS      pair_       pair       force
+  $cmd READER_CLASS    reader_     reader     read_dump
+  $cmd REGION_CLASS    region_     region     domain
 
 # edit Makefile.lib, for creating non-shared lib
 # called by "make makelib"

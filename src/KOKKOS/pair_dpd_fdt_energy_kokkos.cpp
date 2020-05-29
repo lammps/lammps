@@ -15,22 +15,16 @@
    Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "pair_dpd_fdt_energy_kokkos.h"
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "atom_kokkos.h"
-#include "atom_vec.h"
 #include "comm.h"
 #include "update.h"
-#include "fix.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "memory_kokkos.h"
-#include "modify.h"
-#include "pair_dpd_fdt_energy_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 #include "kokkos.h"
@@ -93,10 +87,10 @@ void PairDPDfdtEnergyKokkos<DeviceType>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
+    !std::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
 
   if (neighflag == FULL) {
     neighbor->requests[irequest]->full = 1;
@@ -131,10 +125,10 @@ void PairDPDfdtEnergyKokkos<Kokkos::Cuda>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<Kokkos::Cuda,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<Kokkos::Cuda,LMPDeviceType>::value;
+    kokkos_host = std::is_same<Kokkos::Cuda,LMPHostType>::value &&
+    !std::is_same<Kokkos::Cuda,LMPDeviceType>::value;
   neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<Kokkos::Cuda,LMPDeviceType>::value;
+    kokkos_device = std::is_same<Kokkos::Cuda,LMPDeviceType>::value;
 
   if (neighflag == FULL) {
     neighbor->requests[irequest]->full = 1;
@@ -165,8 +159,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   vflag = vflag_in;
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag,0);
 
   // reallocate per-atom arrays if necessary
 
@@ -177,7 +170,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
     d_vatom = k_vatom.template view<DeviceType>();
   }
 
@@ -186,7 +179,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   f = atomKK->k_f.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
   mass = atomKK->k_mass.view<DeviceType>();
-  rmass = atomKK->rmass;
+  rmass = atomKK->k_rmass.view<DeviceType>();
   dpdTheta = atomKK->k_dpdTheta.view<DeviceType>();
 
   k_cutsq.template sync<DeviceType>();
@@ -396,7 +389,7 @@ KOKKOS_INLINE_FUNCTION
 void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>, const int &ii, EV_FLOAT& ev) const {
 
   // The f array is atomic for Half/Thread neighbor style
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
 
   int i,j,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
@@ -480,9 +473,9 @@ KOKKOS_INLINE_FUNCTION
 void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeNoSplit<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>, const int &ii, EV_FLOAT& ev) const {
 
   // These array are atomic for Half/Thread neighbor style
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_duCond = d_duCond;
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_duMech = d_duMech;
+  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_duCond = d_duCond;
+  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_duMech = d_duMech;
 
   int i,j,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
@@ -564,7 +557,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeNo
         a_f(j,2) -= delz*fpair;
       }
 
-      if (rmass) {
+      if (rmass.data()) {
         mass_i = rmass[i];
         mass_j = rmass[j];
       } else {
@@ -591,7 +584,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::operator()(TagPairDPDfdtEnergyComputeNo
       // Compute uCond
       randnum = rand_gen.normal();
       kappa_ij = STACKPARAMS?m_params[itype][jtype].kappa:params(itype,jtype).kappa;
-      alpha_ij = sqrt(2.0*boltz*kappa_ij);
+      alpha_ij = STACKPARAMS?m_params[itype][jtype].alpha:params(itype,jtype).alpha;
       randPair = alpha_ij*wr*randnum*dtinvsqrt;
 
       uTmp = kappa_ij*(1.0/dpdTheta[i] - 1.0/dpdTheta[j])*wd;
@@ -676,6 +669,7 @@ double PairDPDfdtEnergyKokkos<DeviceType>::init_one(int i, int j)
   k_params.h_view(i,j).a0 = a0[i][j];
   k_params.h_view(i,j).sigma = sigma[i][j];
   k_params.h_view(i,j).kappa = kappa[i][j];
+  k_params.h_view(i,j).alpha = alpha[i][j];
   k_params.h_view(j,i) = k_params.h_view(i,j);
   if(i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
@@ -703,8 +697,8 @@ void PairDPDfdtEnergyKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, co
   const int VFLAG = vflag_either;
 
   // The eatom and vatom arrays are atomic for Half/Thread neighbor style
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = k_eatom.view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
+  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = k_eatom.view<DeviceType>();
+  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
 
   if (EFLAG) {
     if (eflag_atom) {
@@ -794,7 +788,7 @@ int PairDPDfdtEnergyKokkos<DeviceType>::sbmask(const int& j) const {
 
 namespace LAMMPS_NS {
 template class PairDPDfdtEnergyKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef KOKKOS_ENABLE_CUDA
 template class PairDPDfdtEnergyKokkos<LMPHostType>;
 #endif
 }

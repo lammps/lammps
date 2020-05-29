@@ -20,19 +20,17 @@ KSpaceStyle(msm,MSM)
 #ifndef LMP_MSM_H
 #define LMP_MSM_H
 
-#include "lmptype.h"
-#include <mpi.h>
-
 #include "kspace.h"
 
 namespace LAMMPS_NS {
 
 class MSM : public KSpace {
  public:
-  MSM(class LAMMPS *, int, char **);
+  MSM(class LAMMPS *);
   virtual ~MSM();
   void init();
   void setup();
+  virtual void settings(int, char **);
   virtual void compute(int, int);
 
  protected:

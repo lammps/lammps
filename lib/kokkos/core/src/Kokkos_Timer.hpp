@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -44,70 +45,34 @@
 #ifndef KOKKOS_TIMER_HPP
 #define KOKKOS_TIMER_HPP
 
-#include <cstddef>
-
-#ifdef _MSC_VER
-#undef KOKKOS_ENABLE_LIBRT
-#include <gettimeofday.c>
-#else
-#ifdef KOKKOS_ENABLE_LIBRT
-#include <ctime>
-#else
-#include <sys/time.h>
-#endif
-#endif
+#include <chrono>
 
 namespace Kokkos {
 
 /** \brief  Time since construction */
 
 class Timer {
-private:
-  #ifdef KOKKOS_ENABLE_LIBRT
-	struct timespec m_old;
-  #else
-	struct timeval m_old ;
-  #endif
-  Timer( const Timer & );
-  Timer & operator = ( const Timer & );
-public:
+ private:
+  std::chrono::high_resolution_clock::time_point m_old;
+  Timer(const Timer&);
+  Timer& operator=(const Timer&);
 
-  inline
-  void reset() {
-    #ifdef KOKKOS_ENABLE_LIBRT
-	  clock_gettime(CLOCK_REALTIME, &m_old);
-    #else
-	  gettimeofday( & m_old , ((struct timezone *) NULL ) );
-    #endif
-  }
+ public:
+  inline void reset() { m_old = std::chrono::high_resolution_clock::now(); }
 
-  inline
-  ~Timer() {}
+  inline ~Timer() = default;
 
-  inline
-  Timer() { reset(); }
+  inline Timer() { reset(); }
 
-  inline
-  double seconds() const
-  {
-    #ifdef KOKKOS_ENABLE_LIBRT
-      struct timespec m_new;
-      clock_gettime(CLOCK_REALTIME, &m_new);
-
-      return ( (double) ( m_new.tv_sec  - m_old.tv_sec ) ) +
-             ( (double) ( m_new.tv_nsec - m_old.tv_nsec ) * 1.0e-9 );
-    #else
-      struct timeval m_new ;
-
-      gettimeofday( & m_new , ((struct timezone *) NULL ) );
-
-      return ( (double) ( m_new.tv_sec  - m_old.tv_sec ) ) +
-             ( (double) ( m_new.tv_usec - m_old.tv_usec ) * 1.0e-6 );
-    #endif
+  inline double seconds() const {
+    std::chrono::high_resolution_clock::time_point m_new =
+        std::chrono::high_resolution_clock::now();
+    return std::chrono::duration_cast<std::chrono::duration<double>>(m_new -
+                                                                     m_old)
+        .count();
   }
 };
 
-} // namespace Kokkos
+}  // namespace Kokkos
 
 #endif /* #ifndef KOKKOS_TIMER_HPP */
-

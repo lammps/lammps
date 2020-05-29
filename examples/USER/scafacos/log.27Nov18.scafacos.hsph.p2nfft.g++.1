@@ -1,0 +1,106 @@
+LAMMPS (27 Nov 2018)
+  using 1 OpenMP thread(s) per MPI task
+# Point dipoles in a 2d box
+
+units		lj
+atom_style  charge
+
+read_data data.hammersley_sphere
+  orthogonal box = (-51.5 -51.5 -51.5) to (51.5 51.5 51.5)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  1000 atoms
+change_box all boundary f f f
+
+velocity	all create 1.5 49893
+
+neighbor	1.0 bin
+neigh_modify	delay 0
+
+fix             1 all nve
+
+# LAMMPS computes pairwise and long-range Coulombics
+
+#pair_style      coul/long 3.0
+#pair_coeff      * *
+#kspace_style    pppm 1.0e-3
+
+# Scafacos computes entire long-range Coulombics
+# use dummy pair style to perform atom sorting
+
+pair_style	zero 1.0
+pair_coeff	* *
+
+#fix		2 all scafacos p3m tolerance field 0.001
+
+kspace_style    scafacos p2nfft 0.001
+kspace_modify scafacos tolerance potential
+
+timestep	0.005
+thermo          1
+
+run		20
+Setting up ScaFaCoS with solver p2nfft ...
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2
+  ghost atom cutoff = 2
+  binsize = 1, bins = 103 103 103
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 10.44 | 10.44 | 10.44 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0          1.5  -0.62417787            0    1.6235721 0.0015226607 
+       1    18.780041   -10.770002            0    17.371889   0.01623671 
+       2    65.289192   -11.084705            0    86.751149  0.058612772 
+       3    121.92987   -7.0625759            0    175.64933   0.11076005 
+       4    185.78164   -5.8777511            0    272.51603   0.16958509 
+       5    286.36221   -4.3820531            0    424.73172   0.26142466 
+       6    481.42203   -4.3095567            0    717.10136   0.43968184 
+       7    488.59165   -3.8685193            0    728.28608   0.44631269 
+       8    497.85288   -3.0417938            0    742.99075   0.45487102 
+       9    499.61619   -3.4190062            0    745.25585   0.45628145 
+      10    502.63691   -2.8360951            0    750.36531   0.45917031 
+      11     504.4847    -2.762809            0    753.20751   0.46093768 
+      12    506.54494    -2.846032            0    756.21156   0.46276975 
+      13     508.2722   -2.7309328            0    758.91496   0.46434604 
+      14    510.57052   -2.6094795            0    762.48045   0.46646002 
+      15    513.14804    -2.715082            0    766.23725   0.46882767 
+      16    515.78127    -2.396175            0    770.50206   0.47126626 
+      17    515.70267   -2.2982584            0    770.48219   0.47126901 
+      18    515.70813   -2.1516073            0    770.63702   0.47130567 
+      19    515.74908   -2.0581482            0    770.79185   0.47131134 
+      20    515.70881   -1.8922354            0    770.89742   0.47127371 
+Loop time of 0.313936 on 1 procs for 20 steps with 1000 atoms
+
+Performance: 27521.533 tau/day, 63.707 timesteps/s
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 5.7697e-05 | 5.7697e-05 | 5.7697e-05 |   0.0 |  0.02
+Kspace  | 0.27613    | 0.27613    | 0.27613    |   0.0 | 87.96
+Neigh   | 0.037193   | 0.037193   | 0.037193   |   0.0 | 11.85
+Comm    | 4.9591e-05 | 4.9591e-05 | 4.9591e-05 |   0.0 |  0.02
+Output  | 0.00022483 | 0.00022483 | 0.00022483 |   0.0 |  0.07
+Modify  | 0.00014615 | 0.00014615 | 0.00014615 |   0.0 |  0.05
+Other   |            | 0.0001338  |            |       |  0.04
+
+Nlocal:    1000 ave 1000 max 1000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    247817 ave 247817 max 247817 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 247817
+Ave neighs/atom = 247.817
+Neighbor list builds = 19
+Dangerous builds = 18
+Total wall time: 0:00:00

@@ -26,10 +26,10 @@ extern "C"
 {
   int quip_lammps_api_version();
   void quip_lammps_wrapper(int*, int*, int*, int*,
-      int*, int*, int*,
-      int*, int*, double*,
-      int*, int*, double*,
-      double*, double*, double*, double*, double*);
+                           int*, int*, int*,
+                           int*, int*, double*,
+                           int*, int*, double*,
+                           double*, double*, double*, double*, double*);
   void quip_lammps_potential_initialise(int*, int*, double*, char*, int*, char*, int*);
 }
 

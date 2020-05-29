@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "compute_reduce_region.h"
+#include <mpi.h>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -28,8 +27,8 @@
 
 using namespace LAMMPS_NS;
 
-enum{SUM,SUMSQ,MINN,MAXX,AVE,AVESQ};          // also in ComputeReduce
-enum{X,V,F,COMPUTE,FIX,VARIABLE};
+enum{SUM,SUMSQ,MINN,MAXX,AVE,AVESQ};             // also in ComputeReduce
+enum{UNKNOWN=-1,X,V,F,COMPUTE,FIX,VARIABLE};
 enum{PERATOM,LOCAL};
 
 #define INVOKED_VECTOR 2
@@ -70,6 +69,14 @@ double ComputeReduceRegion::compute_one(int m, int flag)
   int nlocal = atom->nlocal;
 
   int n = value2index[m];
+
+  // initialization in case it has not yet been run,
+  // e.g. when invoked
+  if (n == UNKNOWN) {
+    init();
+    n = value2index[m];
+  }
+
   int j = argindex[m];
 
   double one = 0.0;

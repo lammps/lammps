@@ -488,7 +488,7 @@ void PairEAM::read_file(char *filename)
 
       if ((file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
         error->one(FLERR,"Invalid EAM potential file");
-      
+
       memory->create(file->frho, (file->nrho+1), "pair:frho");
       memory->create(file->rhor, (file->nr+1), "pair:rhor");
       memory->create(file->zr, (file->nr+1), "pair:zr");

@@ -144,7 +144,7 @@ void PairEAMAlloy::read_file(char *filename)
         strcpy(file->elements[i], word.c_str());
       }
 
-      // 
+      //
 
       line = reader.next_line(5);
       values = ValueTokenizer(line);
@@ -153,10 +153,10 @@ void PairEAMAlloy::read_file(char *filename)
       file->nr   = values.next_int();
       file->dr   = values.next_double();
       file->cut  = values.next_double();
-      
+
       if ((file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
         error->one(FLERR,"Invalid EAM potential file");
-      
+
       memory->create(file->mass, file->nelements, "pair:mass");
       memory->create(file->frho, file->nelements, file->nrho + 1, "pair:frho");
       memory->create(file->rhor, file->nelements, file->nr + 1, "pair:rhor");

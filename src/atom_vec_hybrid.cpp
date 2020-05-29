@@ -516,7 +516,7 @@ char *AtomVecHybrid::merge_fields(int inum, char *root,
 
   Tokenizer words(concat, " ");
   int nwords = words.count();
-  
+
   int *unique = new int[nwords];
 
   for (int i = 0; i < nwords; i++) {

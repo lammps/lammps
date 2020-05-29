@@ -216,9 +216,7 @@ void TestConfigReader::equilibrium(const yaml_event_t & event) {
     while (found != std::string::npos) {
         double value = atof(vals.substr(0,found).c_str());
         config.equilibrium.push_back(value);
-        printf("vals=%s ->",vals.c_str());
         vals = vals.substr(found+1);
-        printf("%s\n",vals.c_str());
         found = vals.find_first_of(" \t");
     }
 }

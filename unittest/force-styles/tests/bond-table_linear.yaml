@@ -10,11 +10,11 @@ post_commands: ! ""
 input_file: in.fourmol
 bond_style: table linear 1000
 bond_coeff: ! |
-  1 bond_table.txt harmonic_1
-  2 bond_table.txt harmonic_2
-  3 bond_table.txt harmonic_3
-  4 bond_table.txt harmonic_4
-  5 bond_table.txt harmonic_5
+  1 ${input_dir}/bond_table.txt harmonic_1
+  2 ${input_dir}/bond_table.txt harmonic_2
+  3 ${input_dir}/bond_table.txt harmonic_3
+  4 ${input_dir}/bond_table.txt harmonic_4
+  5 ${input_dir}/bond_table.txt harmonic_5
 equilibrium: 1.5 1.1 1.3 1.2 1
 extract: ! ""
 natoms: 29

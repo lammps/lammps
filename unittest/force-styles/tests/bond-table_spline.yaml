@@ -1,6 +1,6 @@
 ---
 lammps_version: 5 May 2020
-date_generated: Sat May 30 10:43:27 202
+date_generated: Sat May 30 17:49:16 202
 epsilon: 2.5e-13
 prerequisites: ! |
   atom full
@@ -15,7 +15,7 @@ bond_coeff: ! |
   3 ${input_dir}/bond_table.txt harmonic_3
   4 ${input_dir}/bond_table.txt harmonic_4
   5 ${input_dir}/bond_table.txt harmonic_5
-equilibrium: 1.5 1.1 1.3 1.2 1
+equilibrium: 5 1.5 1.1 1.3 1.2 1
 extract: ! ""
 natoms: 29
 init_energy: 4.78937402460107

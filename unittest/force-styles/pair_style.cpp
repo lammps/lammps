@@ -1148,9 +1148,10 @@ TEST(PairStyle, single) {
     // create (only) two atoms
     command("mass * 1.0");
     command("create_atoms 1 single 0.0 -0.75  0.4 units box");
-    command("create_atoms 2 single 0.5  0.25 -0.1 units box");
+    command("create_atoms 2 single 1.5  0.25 -0.1 units box");
     command("set atom 1 charge -0.5");
     command("set atom 2 charge  0.5");
+    command("special_bonds lj/coul 1.0 1.0 1.0");
 
     if (molecular) {
         command("create_bonds single/bond 1 1 2");
@@ -1181,7 +1182,7 @@ TEST(PairStyle, single) {
     ErrorStats stats;
 
     epair[0] = pair->eng_vdwl + pair->eng_coul;
-    esngl[0] = pair->single(idx1, idx2, 1, 2, rsq, splj, spcl, fsingle);
+    esngl[0] = pair->single(idx1, idx2, 1, 2, rsq, spcl, splj, fsingle);
     EXPECT_FP_LE_WITH_EPS(f[idx1][0],-fsingle*delx, epsilon);
     EXPECT_FP_LE_WITH_EPS(f[idx1][1],-fsingle*dely, epsilon);
     EXPECT_FP_LE_WITH_EPS(f[idx1][2],-fsingle*delz, epsilon);
@@ -1190,7 +1191,7 @@ TEST(PairStyle, single) {
     EXPECT_FP_LE_WITH_EPS(f[idx2][2], fsingle*delz, epsilon);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    command("displace_atoms all random 1.0 1.0 1.0 723456");
+    command("displace_atoms all random 0.5 0.5 0.5 723456");
     command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
@@ -1205,7 +1206,7 @@ TEST(PairStyle, single) {
     fsingle = 0.0;
 
     epair[1] = pair->eng_vdwl + pair->eng_coul;
-    esngl[1] = pair->single(idx1, idx2, 1, 2, rsq, splj, spcl, fsingle);
+    esngl[1] = pair->single(idx1, idx2, 1, 2, rsq, spcl, splj, fsingle);
     EXPECT_FP_LE_WITH_EPS(f[idx1][0],-fsingle*delx, epsilon);
     EXPECT_FP_LE_WITH_EPS(f[idx1][1],-fsingle*dely, epsilon);
     EXPECT_FP_LE_WITH_EPS(f[idx1][2],-fsingle*delz, epsilon);
@@ -1229,7 +1230,7 @@ TEST(PairStyle, single) {
     fsingle = 0.0;
 
     epair[2] = pair->eng_vdwl + pair->eng_coul;
-    esngl[2] = pair->single(idx1, idx2, 1, 2, rsq, splj, spcl, fsingle);
+    esngl[2] = pair->single(idx1, idx2, 1, 2, rsq, spcl, splj, fsingle);
     EXPECT_FP_LE_WITH_EPS(f[idx1][0],-fsingle*delx, epsilon);
     EXPECT_FP_LE_WITH_EPS(f[idx1][1],-fsingle*dely, epsilon);
     EXPECT_FP_LE_WITH_EPS(f[idx1][2],-fsingle*delz, epsilon);
@@ -1253,7 +1254,7 @@ TEST(PairStyle, single) {
     fsingle = 0.0;
 
     epair[3] = pair->eng_vdwl + pair->eng_coul;
-    esngl[3] = pair->single(idx1, idx2, 1, 2, rsq, splj, spcl, fsingle);
+    esngl[3] = pair->single(idx1, idx2, 1, 2, rsq, spcl, splj, fsingle);
     EXPECT_FP_LE_WITH_EPS(f[idx1][0],-fsingle*delx, epsilon);
     EXPECT_FP_LE_WITH_EPS(f[idx1][1],-fsingle*dely, epsilon);
     EXPECT_FP_LE_WITH_EPS(f[idx1][2],-fsingle*delz, epsilon);

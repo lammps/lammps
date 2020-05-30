@@ -1215,7 +1215,7 @@ TEST(PairStyle, single) {
     EXPECT_FP_LE_WITH_EPS(f[idx2][2], fsingle*delz, epsilon);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    command("displace_atoms all random 1.0 1.0 1.0 3456963");
+    command("displace_atoms all random 0.5 0.5 0.5 3456963");
     command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 

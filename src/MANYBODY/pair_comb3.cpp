@@ -373,6 +373,7 @@ void PairComb3::read_lib()
       for (l = 0; l < nsplpcn; l++) {
         utils::sfgets(FLERR, s, MAXLIB, fp, filename, error);
         values = ValueTokenizer(s, " \t\n\r\f");
+        values.skip(1);
 
         maxxcn[l]   = values.next_int();
         vmaxxcn[l]  = values.next_double();
@@ -387,6 +388,7 @@ void PairComb3::read_lib()
       for (i = 0; i < (ntab + 1); i++){
         utils::sfgets(FLERR, s, MAXLIB, fp, filename, error);
         values = ValueTokenizer(s, " \t\n\r\f");
+        values.skip(1);
 
         pang[i]   = values.next_double();
         dpang[i]  = values.next_double();

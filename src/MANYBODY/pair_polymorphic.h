@@ -304,7 +304,6 @@ class PairPolymorphic : public Pair {
   int *match;
 
   void allocate();
-  void grab(FILE *, int, double *);
 
   virtual void read_file(char *);
   void setup_params();

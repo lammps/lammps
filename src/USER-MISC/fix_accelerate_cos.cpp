@@ -58,7 +58,7 @@ void FixAccelerateCos::setup(int vflag) {
 
 /* ---------------------------------------------------------------------- */
 
-void FixAccelerateCos::post_force(int vflag) {
+void FixAccelerateCos::post_force(int /* vflag */) {
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;

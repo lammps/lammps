@@ -364,7 +364,7 @@ void PairVashishta::read_file(char *file)
     PotentialFileReader reader(lmp, file, "Vashishta");
     char * line;
 
-    while(line = reader.next_line(NPARAMS_PER_LINE)) {
+    while((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
         ValueTokenizer values(line, " \t\n\r\f");
 

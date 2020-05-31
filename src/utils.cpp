@@ -17,6 +17,7 @@
 #include "lammps.h"
 #include "error.h"
 #include "tokenizer.h"
+#include "fmt/format.h"
 
 #if defined(__linux__)
 #include <unistd.h>  // for readlink
@@ -83,6 +84,19 @@ bool utils::strmatch(std::string text, std::string pattern)
 {
   const int pos = re_match(text.c_str(),pattern.c_str());
   return (pos >= 0);
+}
+
+/* This simplifies the repetitive task of outputting some
+ * message to both the screen and/or the log file. In combination
+ * with using fmt::format(), which returns the formatted text
+ * in a std::string() instance, this can be used to reduce
+ * operations previously requiring several lines of code to
+ * a single statement. */
+
+void utils::logmesg(LAMMPS *lmp, const std::string &mesg)
+{
+  if (lmp->screen)  fputs(mesg.c_str(), lmp->screen);
+  if (lmp->logfile) fputs(mesg.c_str(), lmp->logfile);
 }
 
 /** \brief try to detect pathname from FILE pointer. Currently only supported on Linux, otherwise will report "(unknown)".
@@ -168,14 +182,15 @@ void utils::sfread(const char *srcname, int srcline, void *s, size_t size,
 
 /* ------------------------------------------------------------------ */
 
-std::string utils::check_packages_for_style(std::string style,
-                                            std::string name, LAMMPS *lmp)
+std::string utils::check_packages_for_style(const std::string &style,
+                                            const std::string &name,
+                                            LAMMPS *lmp)
 {
   std::string errmsg = "Unrecognized " + style + " style '" + name + "'";
   const char *pkg = lmp->match_style(style.c_str(),name.c_str());
 
   if (pkg) {
-    errmsg += " is part of the " + std::string(pkg) + " package";
+    errmsg += fmt::format(" is part of the {} package",pkg);
     if (lmp->is_installed_pkg(pkg))
       errmsg += ", but seems to be missing because of a dependency";
     else

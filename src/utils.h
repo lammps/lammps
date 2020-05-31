@@ -36,6 +36,13 @@ namespace LAMMPS_NS {
      */
     bool strmatch(std::string text, std::string pattern);
 
+    /** \brief Send message to screen and logfile, if available
+     *
+     *  \param lmp   pointer to LAMMPS class instance
+     *  \param mesg  message to be printed
+     */
+    void logmesg(LAMMPS *lmp, const std::string &mesg);
+
     /** \brief safe wrapper around fgets() which aborts on errors
      *  or EOF and prints a suitable error message to help debugging
      *
@@ -72,8 +79,8 @@ namespace LAMMPS_NS {
      *  \param lmp   pointer to top-level LAMMPS class instance
      *  \return string usable for error messages
      */
-    std::string check_packages_for_style(std::string style,
-                                         std::string name, LAMMPS *lmp);
+    std::string check_packages_for_style(const std::string &style,
+                                         const std::string &name, LAMMPS *lmp);
 
     /** \brief Convert a string to a floating point number while checking
         if it is a valid floating point or integer number

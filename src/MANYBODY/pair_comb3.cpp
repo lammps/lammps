@@ -313,7 +313,7 @@ double PairComb3::init_one(int i, int j)
 void PairComb3::read_lib()
 {
   const unsigned int MAXLIB = 1024;
-  int i,j,k,l,nwords,m;
+  int i,j,k,l,m;
   int ii,jj,kk,ll,mm,iii;
   char s[MAXLIB];
 
@@ -592,7 +592,7 @@ void PairComb3::read_file(char *file)
     PotentialFileReader reader(lmp, file, "COMB3");
     char * line;
 
-    while(line = reader.next_line(NPARAMS_PER_LINE)) {
+    while((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
         ValueTokenizer values(line, " \t\n\r\f");
 

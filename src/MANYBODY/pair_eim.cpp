@@ -1140,7 +1140,7 @@ void EIMPotentialFileReader::parse(FILE * fp)
   char * line = nullptr;
   bool found_global = false;
 
-  while(line = next_line(fp)) {
+  while((line = next_line(fp))) {
     ValueTokenizer values(line, " \t\r\n\f");
     std::string type = values.next_string();
 

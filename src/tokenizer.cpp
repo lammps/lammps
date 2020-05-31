@@ -53,11 +53,11 @@ Tokenizer::const_iterator Tokenizer::cend() const {
     return tokens.cend();
 }
 
-const std::string & Tokenizer::operator[](size_t index) {
+std::string & Tokenizer::operator[](size_t index) {
     return tokens[index];
 }
 
-const size_t Tokenizer::count() const {
+size_t Tokenizer::count() const {
     return tokens.size();
 }
 
@@ -132,6 +132,6 @@ void ValueTokenizer::skip(int ntokens) {
     current = std::next(current, ntokens);
 }
 
-const size_t ValueTokenizer::count() const {
+size_t ValueTokenizer::count() const {
     return tokens.count();
 }

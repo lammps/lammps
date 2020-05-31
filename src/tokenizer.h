@@ -38,8 +38,8 @@ public:
     const_iterator cbegin() const;
     const_iterator cend() const;
 
-    const std::string & operator[](size_t index);
-    const size_t count() const;
+    std::string & operator[](size_t index);
+    size_t count() const;
 };
 
 class TokenizerException : public std::exception {
@@ -83,7 +83,7 @@ public:
     bool has_next() const;
     void skip(int ntokens);
 
-    const size_t count() const;
+    size_t count() const;
 };
 
 

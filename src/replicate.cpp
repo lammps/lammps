@@ -23,6 +23,8 @@
 #include "accelerator_kokkos.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -733,8 +735,7 @@ void Replicate::command(int narg, char **arg)
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  " BIGINT_FORMAT " atoms\n",natoms);
-    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " atoms\n",natoms);
+    utils::logmesg(lmp,fmt::format("  {} atoms\n",natoms));
   }
 
   if (natoms != atom->natoms)
@@ -742,26 +743,16 @@ void Replicate::command(int narg, char **arg)
 
   if (me == 0) {
     if (atom->nbonds) {
-      if (screen) fprintf(screen,"  " BIGINT_FORMAT " bonds\n",atom->nbonds);
-      if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " bonds\n",atom->nbonds);
+      utils::logmesg(lmp,fmt::format("  {} bonds\n",atom->nbonds));
     }
     if (atom->nangles) {
-      if (screen) fprintf(screen,"  " BIGINT_FORMAT " angles\n",
-                          atom->nangles);
-      if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " angles\n",
-                           atom->nangles);
+      utils::logmesg(lmp,fmt::format("  {} angles\n",atom->nangles));
     }
     if (atom->ndihedrals) {
-      if (screen) fprintf(screen,"  " BIGINT_FORMAT " dihedrals\n",
-                          atom->ndihedrals);
-      if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " dihedrals\n",
-                           atom->ndihedrals);
+      utils::logmesg(lmp,fmt::format("  {} dihedrals\n",atom->ndihedrals));
     }
     if (atom->nimpropers) {
-      if (screen) fprintf(screen,"  " BIGINT_FORMAT " impropers\n",
-                          atom->nimpropers);
-      if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " impropers\n",
-                           atom->nimpropers);
+      utils::logmesg(lmp,fmt::format("  {} impropers\n",atom->nimpropers));
     }
   }
 

@@ -50,6 +50,7 @@
 #include "error.h"
 #include "memory.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 #ifdef _WIN32
 #include <direct.h>
@@ -330,11 +331,11 @@ arguments).  If there was no command in *single* it will return
  * \param  single  string with LAMMPS command
  * \return         string with name of the parsed command w/o arguments */
 
-char *Input::one(const char *single)
+char *Input::one(const std::string &single)
 {
-  int n = strlen(single) + 1;
+  int n = single.size() + 1;
   if (n > maxline) reallocate(line,maxline,n);
-  strcpy(line,single);
+  strcpy(line,single.c_str());
 
   // echo the command unless scanning for label
 
@@ -355,11 +356,8 @@ char *Input::one(const char *single)
 
   // execute the command and return its name
 
-  if (execute_command()) {
-    char *str = new char[maxline+32];
-    sprintf(str,"Unknown command: %s",line);
-    error->all(FLERR,str);
-  }
+  if (execute_command())
+    error->all(FLERR,fmt::format("Unknown command: {}",line).c_str());
 
   return command;
 }

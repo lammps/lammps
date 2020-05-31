@@ -20,6 +20,7 @@
 #include "special.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -40,10 +41,7 @@ void ResetIDs::command(int narg, char ** /* arg */)
   // NOTE: check if any fixes exist which store atom IDs?
   // if so, this operation will mess up the fix
 
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,"Resetting atom IDs ...\n");
-    if (logfile) fprintf(logfile,"Resetting atom IDs ...\n");
-  }
+  if (comm->me == 0) utils::logmesg(lmp,"Resetting atom IDs ...\n");
 
   // create an atom map if one doesn't exist already
 

@@ -126,3 +126,59 @@ TEST(Utils, is_double_with_neg_d_exponential) {
 TEST(Utils, signed_double_and_d_exponential) {
     ASSERT_FALSE(utils::is_double("-10D-22"));
 }
+
+TEST(Utils, strmatch_beg) {
+    ASSERT_TRUE(utils::strmatch("rigid/small/omp","^rigid"));
+}
+
+TEST(Utils, strmatch_mid1) {
+    ASSERT_TRUE(utils::strmatch("rigid/small/omp","small"));
+}
+
+TEST(Utils, strmatch_mid2) {
+    ASSERT_TRUE(utils::strmatch("rigid/small/omp","omp"));
+}
+
+TEST(Utils, strmatch_end) {
+    ASSERT_TRUE(utils::strmatch("rigid/small/omp","/omp$"));
+}
+
+TEST(Utils, no_strmatch_beg) {
+    ASSERT_FALSE(utils::strmatch("rigid/small/omp","^small"));
+}
+
+TEST(Utils, no_strmatch_mid) {
+    ASSERT_FALSE(utils::strmatch("rigid/small/omp","none"));
+}
+
+TEST(Utils, no_strmatch_end) {
+    ASSERT_FALSE(utils::strmatch("rigid/small/omp","/opt$"));
+}
+
+TEST(Utils, strmatch_whole_line) {
+    ASSERT_TRUE(utils::strmatch("ITEM: UNITS\n","^\\s*ITEM: UNITS\\s*$"));
+}
+
+TEST(Utils, no_strmatch_whole_line) {
+    ASSERT_FALSE(utils::strmatch("ITEM: UNITS\n","^\\s*ITEM: UNIT\\s*$"));
+}
+
+TEST(Utils, strmatch_integer_in_line) {
+    ASSERT_TRUE(utils::strmatch(" 5  angles\n","^\\s*\\d+\\s+angles\\s"));
+}
+
+TEST(Utils, strmatch_float_in_line) {
+    ASSERT_TRUE(utils::strmatch(" 5.0  angles\n","^\\s*\\f+\\s+angles\\s"));
+}
+
+TEST(Utils, strmatch_int_as_float_in_line) {
+    ASSERT_TRUE(utils::strmatch(" 5  angles\n","^\\s*\\f+\\s+angles\\s"));
+}
+
+TEST(Utils, strmatch_char_range) {
+    ASSERT_TRUE(utils::strmatch("rigid","^[ip-s]+gid"));
+}
+
+TEST(Utils, strmatch_opt_range) {
+    ASSERT_TRUE(utils::strmatch("rigid","^[0-9]*[p-s]igid"));
+}

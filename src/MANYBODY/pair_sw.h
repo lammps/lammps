@@ -34,6 +34,9 @@ class PairSW : public Pair {
   virtual double init_one(int, int);
   virtual void init_style();
 
+  static const int NPARAMS_PER_LINE = 14;
+
+ protected:
   struct Param {
     double epsilon,sigma;
     double littlea,lambda,gamma,costheta;
@@ -46,7 +49,6 @@ class PairSW : public Pair {
     int ielement,jelement,kelement;
   };
 
- protected:
   double cutmax;                // max cutoff for all elements
   int nelements;                // # of unique elements
   char **elements;              // names of unique elements

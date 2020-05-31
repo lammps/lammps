@@ -70,7 +70,6 @@ ReadData::ReadData(LAMMPS *lmp) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
   line = new char[MAXLINE];
-  copy = new char[MAXLINE];
   keyword = new char[MAXLINE];
   style = new char[MAXLINE];
   buffer = new char[CHUNK*MAXLINE];
@@ -96,7 +95,6 @@ ReadData::ReadData(LAMMPS *lmp) : Pointers(lmp)
 ReadData::~ReadData()
 {
   delete [] line;
-  delete [] copy;
   delete [] keyword;
   delete [] style;
   delete [] buffer;
@@ -1736,7 +1734,7 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
         while (nword < ninteger) {
           eof = fgets(&buffer[m],MAXLINE,fp);
           if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-          ncount = atom->count_words(&buffer[m],copy);
+          ncount = utils::count_words(&buffer[m]);
           if (ncount == 0)
             error->one(FLERR,"Too few values in body lines in data file");
           nword += ncount;
@@ -1750,7 +1748,7 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
         while (nword < ndouble) {
           eof = fgets(&buffer[m],MAXLINE,fp);
           if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-          ncount = atom->count_words(&buffer[m],copy);
+          ncount = utils::count_words(&buffer[m]);
           if (ncount == 0)
             error->one(FLERR,"Too few values in body lines in data file");
           nword += ncount;

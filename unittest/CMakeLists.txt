@@ -6,3 +6,7 @@ add_subdirectory(fortran)
 add_subdirectory(python)
 
 add_subdirectory(force-styles)
+
+add_subdirectory(utils)
+
+add_subdirectory(formats)

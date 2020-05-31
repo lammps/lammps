@@ -24,6 +24,7 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "tokenizer.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -2448,11 +2449,11 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
   }
 
   // tokenize words in both strings
+  Tokenizer words(str, " ");
+  Tokenizer def_words(default_str, " ");
 
-  char *copy1,*copy2;
-  char **words,**defwords;
-  int nfield = tokenize(str,words,copy1);
-  int ndef = tokenize((char *) default_str,defwords,copy2);
+  int nfield = words.count();
+  int ndef   = def_words.count();
 
   // process fields one by one, add to index vector
 
@@ -2463,14 +2464,15 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
   int match;
 
   for (int i = 0; i < nfield; i++) {
+    const char * field = words[i].c_str();
 
     // find field in master Atom::peratom list
 
     for (match = 0; match < nperatom; match++)
-      if (strcmp(words[i],peratom[match].name) == 0) break;
+      if (strcmp(field, peratom[match].name) == 0) break;
     if (match == nperatom) {
       char str[128];
-      sprintf(str,"Peratom field %s not recognized",words[i]);
+      sprintf(str,"Peratom field %s not recognized", field);
       error->all(FLERR,str);
     }
     index[i] = match;
@@ -2480,54 +2482,23 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
     for (match = 0; match < i; match++)
       if (index[i] == index[match]) {
         char str[128];
-        sprintf(str,"Peratom field %s is repeated",words[i]);
+        sprintf(str,"Peratom field %s is repeated", field);
         error->all(FLERR,str);
       }
 
     // error if field is in default str
 
     for (match = 0; match < ndef; match++)
-      if (strcmp(words[i],defwords[match]) == 0) {
+      if (strcmp(field, def_words[match].c_str()) == 0) {
         char str[128];
-        sprintf(str,"Peratom field %s is a default",words[i]);
+        sprintf(str,"Peratom field %s is a default", field);
         error->all(FLERR,str);
       }
 
   }
 
-  delete [] copy1;
-  delete [] copy2;
-  delete [] words;
-  delete [] defwords;
-
   method->index = index;
   return nfield;
-}
-
-/* ----------------------------------------------------------------------
-   tokenize str into white-space separated words
-   return nwords = number of words
-   return words = vector of ptrs to each word
-   also return copystr since words points into it, caller will delete copystr
-------------------------------------------------------------------------- */
-
-int AtomVec::tokenize(char *str, char **&words, char *&copystr)
-{
-  int n = strlen(str) + 1;
-  copystr = new char[n];
-  strcpy(copystr,str);
-
-  int nword = atom->count_words(copystr);
-  words = new char*[nword];
-
-  nword = 0;
-  char *word = strtok(copystr," ");
-  while (word) {
-    words[nword++] = word;
-    word = strtok(NULL," ");
-  }
-
-  return nword;
 }
 
 /* ----------------------------------------------------------------------

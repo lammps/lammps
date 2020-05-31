@@ -29,6 +29,8 @@ class PairGWZBL : public PairGW {
   PairGWZBL(class LAMMPS *);
   ~PairGWZBL() {}
 
+  static const int NPARAMS_PER_LINE = 21;
+
  private:
   double global_a_0;                // Bohr radius for Coulomb repulsion
   double global_epsilon_0;        // permittivity of vacuum for Coulomb repulsion

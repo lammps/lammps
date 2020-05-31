@@ -18,6 +18,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -217,7 +218,7 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
 
   next = strchr(buf,'\n');
   *next = '\0';
-  int nwords = atom->count_words(buf);
+  int nwords = utils::count_words(buf);
   *next = '\n';
 
   if (nwords != nvalue+1) {

@@ -1,7 +1,7 @@
 # Bond potential harmonic for bond type 1: i,r,energy,force
 
 harmonic_1
-N 100 EQ 1.5
+N 100 FP 500 500 EQ 1.5
 
 1 0.1 490 700
 2 0.150505050505051 455.284154678094 674.747474747475
@@ -106,7 +106,7 @@ N 100 EQ 1.5
 # Bond potential harmonic for bond type 2: i,r,energy,force
 
 harmonic_2
-N 100 EQ 1.1
+N 100 FP 600 600 EQ 1.1
 
 1 0.1 300 600
 2 0.150505050505051 270.462197734925 569.69696969697

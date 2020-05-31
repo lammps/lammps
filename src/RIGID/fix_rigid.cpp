@@ -35,6 +35,7 @@
 #include "memory.h"
 #include "error.h"
 #include "rigid_const.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -2330,7 +2331,7 @@ void FixRigid::readfile(int which, double *vec,
     buf = buffer;
     next = strchr(buf,'\n');
     *next = '\0';
-    int nwords = atom->count_words(buf);
+    int nwords = utils::count_words(utils::trim_comment(buf));
     *next = '\n';
 
     if (nwords != ATTRIBUTE_PERBODY)

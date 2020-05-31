@@ -234,7 +234,6 @@ class AtomVec : protected Pointers {
   int grow_nmax_bonus(int);
   void setup_fields();
   int process_fields(char *, const char *, Method *);
-  int tokenize(char *, char **&, char *&);
   void create_method(int, Method *);
   void init_method(Method *);
   void destroy_method(Method *);

@@ -31,6 +31,7 @@
 #include "neigh_request.h"
 #include "math_special.h"
 #include "pair_dpd_fdt_energy.h"
+#include "utils.h"
 
 #include <vector> // std::vector<>
 #include <algorithm> // std::max
@@ -296,7 +297,7 @@ void FixRX::post_constructor()
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // words = ptrs to all words in line
@@ -884,7 +885,7 @@ void FixRX::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     nreactions++;
@@ -938,7 +939,7 @@ void FixRX::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // words = ptrs to all words in line

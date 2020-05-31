@@ -16,6 +16,8 @@
 #include <cstdlib>
 #include "lammps.h"
 #include "error.h"
+#include "tokenizer.h"
+#include "fmt/format.h"
 
 #if defined(__linux__)
 #include <unistd.h>  // for readlink
@@ -82,6 +84,19 @@ bool utils::strmatch(std::string text, std::string pattern)
 {
   const int pos = re_match(text.c_str(),pattern.c_str());
   return (pos >= 0);
+}
+
+/* This simplifies the repetitive task of outputting some
+ * message to both the screen and/or the log file. In combination
+ * with using fmt::format(), which returns the formatted text
+ * in a std::string() instance, this can be used to reduce
+ * operations previously requiring several lines of code to
+ * a single statement. */
+
+void utils::logmesg(LAMMPS *lmp, const std::string &mesg)
+{
+  if (lmp->screen)  fputs(mesg.c_str(), lmp->screen);
+  if (lmp->logfile) fputs(mesg.c_str(), lmp->logfile);
 }
 
 /** \brief try to detect pathname from FILE pointer. Currently only supported on Linux, otherwise will report "(unknown)".
@@ -167,14 +182,15 @@ void utils::sfread(const char *srcname, int srcline, void *s, size_t size,
 
 /* ------------------------------------------------------------------ */
 
-std::string utils::check_packages_for_style(std::string style,
-                                            std::string name, LAMMPS *lmp)
+std::string utils::check_packages_for_style(const std::string &style,
+                                            const std::string &name,
+                                            LAMMPS *lmp)
 {
   std::string errmsg = "Unrecognized " + style + " style '" + name + "'";
   const char *pkg = lmp->match_style(style.c_str(),name.c_str());
 
   if (pkg) {
-    errmsg += " is part of the " + std::string(pkg) + " package";
+    errmsg += fmt::format(" is part of the {} package",pkg);
     if (lmp->is_installed_pkg(pkg))
       errmsg += ", but seems to be missing because of a dependency";
     else
@@ -326,6 +342,60 @@ tagint utils::tnumeric(const char *file, int line, const char *str,
   return ATOTAGINT(str);
 }
 
+/* ----------------------------------------------------------------------
+   Return string without trailing # comment
+------------------------------------------------------------------------- */
+
+std::string utils::trim_comment(const std::string & line) {
+  auto end = line.find_first_of("#");
+  if (end != std::string::npos) {
+    return line.substr(0, end);
+  }
+  return std::string(line);
+}
+
+/* ----------------------------------------------------------------------
+   Trim comment from string and return number of words
+------------------------------------------------------------------------- */
+
+size_t utils::count_words(const std::string & text, const std::string & seperators) {
+  Tokenizer words(utils::trim_comment(text), seperators);
+  return words.count();
+}
+
+/* ----------------------------------------------------------------------
+   Return whether string is a valid integer number
+------------------------------------------------------------------------- */
+
+bool utils::is_integer(const std::string & str) {
+  if (str.size() == 0) {
+    return false;
+  }
+
+  for (auto c : str) {
+    if (isdigit(c) || c == '-' || c == '+') continue;
+    return false;
+  }
+  return true;
+}
+
+/* ----------------------------------------------------------------------
+   Return whether string is a valid floating-point number
+------------------------------------------------------------------------- */
+
+bool utils::is_double(const std::string & str) {
+  if (str.size() == 0) {
+    return false;
+  }
+
+  for (auto c : str) {
+    if (isdigit(c)) continue;
+    if (c == '-' || c == '+' || c == '.') continue;
+    if (c == 'e' || c == 'E') continue;
+    return false;
+  }
+  return true;
+}
 
 /* ------------------------------------------------------------------ */
 
@@ -668,4 +738,5 @@ extern "C" {
 
     return 0;
   }
+
 }

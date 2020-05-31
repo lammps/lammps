@@ -15,6 +15,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cctype>
+#include <string>
 #include "style_bond.h"
 #include "style_angle.h"
 #include "style_dihedral.h"
@@ -34,6 +35,7 @@
 #include "kspace.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -945,10 +947,9 @@ double Force::numeric(const char *file, int line, char *str)
     if (isdigit(str[i])) continue;
     if (str[i] == '-' || str[i] == '+' || str[i] == '.') continue;
     if (str[i] == 'e' || str[i] == 'E') continue;
-    char msg[256];
-    snprintf(msg,256,"Expected floating point parameter instead of "
-                    "'%s' in input script or data file",str);
-    error->all(file,line,msg);
+    std::string msg = fmt::format("Expected floating point parameter "
+                    "instead of '{}' in input script or data file",str);
+    error->all(file,line,msg.c_str());
   }
 
   return atof(str);
@@ -971,10 +972,9 @@ int Force::inumeric(const char *file, int line, char *str)
 
   for (int i = 0; i < n; i++) {
     if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    char msg[256];
-    snprintf(msg,256,"Expected integer parameter instead of "
-                    "'%s' in input script or data file",str);
-    error->all(file,line,msg);
+    std::string msg = fmt::format("Expected integer parameter instead "
+                    "of '{}' in input script or data file",str);
+    error->all(file,line,msg.c_str());
   }
 
   return atoi(str);
@@ -997,10 +997,9 @@ bigint Force::bnumeric(const char *file, int line, char *str)
 
   for (int i = 0; i < n; i++) {
     if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    char msg[256];
-    snprintf(msg,256,"Expected integer parameter instead of "
-                    "'%s' in input script or data file",str);
-    error->all(file,line,msg);
+    std::string msg = fmt::format("Expected integer parameter instead "
+                    "of '{}' in input script or data file",str);
+    error->all(file,line,msg.c_str());
   }
 
   return ATOBIGINT(str);
@@ -1023,10 +1022,9 @@ tagint Force::tnumeric(const char *file, int line, char *str)
 
   for (int i = 0; i < n; i++) {
     if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    char msg[256];
-    snprintf(msg,256,"Expected integer parameter instead of "
-                    "'%s' in input script or data file",str);
-    error->all(file,line,msg);
+    std::string msg = fmt::format("Expected integer parameter instead "
+                    "of '{}' in input script or data file",str);
+    error->all(file,line,msg.c_str());
   }
 
   return ATOTAGINT(str);
@@ -1129,10 +1127,8 @@ void Force::potential_date(FILE *fp, const char *name)
     if (strcmp(word,"DATE:") == 0) {
       word = strtok(NULL," \t\n\r\f");
       if (word == NULL) return;
-      if (screen)
-        fprintf(screen,"Reading potential file %s with DATE: %s\n",name,word);
-      if (logfile)
-        fprintf(logfile,"Reading potential file %s with DATE: %s\n",name,word);
+      utils::logmesg(lmp,fmt::format("Reading potential "
+                     "file {} with DATE: {}",name,word));
       return;
     }
     word = strtok(NULL," \t\n\r\f");

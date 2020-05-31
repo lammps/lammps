@@ -47,6 +47,7 @@ public:
     std::vector<std::string> angle_coeff;
     std::vector<std::string> dihedral_coeff;
     std::vector<std::string> improper_coeff;
+    std::vector<double> equilibrium;
     std::vector<std::pair<std::string,int>> extract;
     int natoms;
     double init_energy;

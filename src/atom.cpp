@@ -1032,56 +1032,6 @@ void Atom::bonus_check()
 }
 
 /* ----------------------------------------------------------------------
-   count and return words in a single line
-   make copy of line before using strtok so as not to change line
-   trim anything from '#' onward
-------------------------------------------------------------------------- */
-
-int Atom::count_words(const char *line)
-{
-  int n = strlen(line) + 1;
-  char *copy;
-  memory->create(copy,n,"atom:copy");
-  strcpy(copy,line);
-
-  char *ptr;
-  if ((ptr = strchr(copy,'#'))) *ptr = '\0';
-
-  if (strtok(copy," \t\n\r\f") == NULL) {
-    memory->destroy(copy);
-    return 0;
-  }
-  n = 1;
-  while (strtok(NULL," \t\n\r\f")) n++;
-
-  memory->destroy(copy);
-  return n;
-}
-
-/* ----------------------------------------------------------------------
-   count and return words in a single line using provided copy buf
-   make copy of line before using strtok so as not to change line
-   trim anything from '#' onward
-------------------------------------------------------------------------- */
-
-int Atom::count_words(const char *line, char *copy)
-{
-  strcpy(copy,line);
-
-  char *ptr;
-  if ((ptr = strchr(copy,'#'))) *ptr = '\0';
-
-  if (strtok(copy," \t\n\r\f") == NULL) {
-    memory->destroy(copy);
-    return 0;
-  }
-  int n = 1;
-  while (strtok(NULL," \t\n\r\f")) n++;
-
-  return n;
-}
-
-/* ----------------------------------------------------------------------
    deallocate molecular topology arrays
    done before realloc with (possibly) new 2nd dimension set to
      correctly initialized per-atom values, e.g. bond_per_atom
@@ -1139,7 +1089,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
   next = strchr(buf,'\n');
   *next = '\0';
-  int nwords = count_words(buf);
+  int nwords = utils::count_words(buf);
   *next = '\n';
 
   if (nwords != avec->size_data_atom && nwords != avec->size_data_atom + 3)
@@ -1289,7 +1239,7 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
 
   next = strchr(buf,'\n');
   *next = '\0';
-  int nwords = count_words(buf);
+  int nwords = utils::count_words(buf);
   *next = '\n';
 
   if (nwords != avec->size_data_vel)
@@ -1641,7 +1591,7 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
 
   next = strchr(buf,'\n');
   *next = '\0';
-  int nwords = count_words(buf);
+  int nwords = utils::count_words(buf);
   *next = '\n';
 
   if (nwords != avec_bonus->size_data_bonus)

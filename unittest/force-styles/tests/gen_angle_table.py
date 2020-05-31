@@ -16,7 +16,11 @@ fac = 180.0/num
 
 for i in [1,2,3,4]:
     fp.write("\nharmonic_%d\n" % i)
-    fp.write("N %d EQ %g\n\n" % (num+1,theta0[i]))
+    if i > 2:
+      fp.write("N %d EQ %g\n\n" % (num+1,theta0[i]))
+    else:
+      grad=2.0*k[i]*M_PI/180.0*M_PI/180.0
+      fp.write("N %d FP %g %g EQ %g\n\n" % (num+1,grad, grad, theta0[i]))
 
     for j in range(num+1):
         theta = fac*j

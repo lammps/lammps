@@ -1264,13 +1264,17 @@ TEST(PairStyle, single) {
     if (print_stats)
         std::cerr << "single_force  stats:" << stats << std::endl;
 
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(epair[0], esngl[0], epsilon);
-    EXPECT_FP_LE_WITH_EPS(epair[1], esngl[1], epsilon);
-    EXPECT_FP_LE_WITH_EPS(epair[2], esngl[2], epsilon);
-    EXPECT_FP_LE_WITH_EPS(epair[3], esngl[3], epsilon);
-    if (print_stats)
-        std::cerr << "single_energy  stats:" << stats << std::endl;
+    if ((test_config.pair_style.find("coul/dsf") != std::string::npos)
+        && (test_config.pair_style.find("coul/wolf") != std::string::npos)) {
+        stats.reset();
+        EXPECT_FP_LE_WITH_EPS(epair[0], esngl[0], epsilon);
+        EXPECT_FP_LE_WITH_EPS(epair[1], esngl[1], epsilon);
+        EXPECT_FP_LE_WITH_EPS(epair[2], esngl[2], epsilon);
+        EXPECT_FP_LE_WITH_EPS(epair[3], esngl[3], epsilon);
+        if (print_stats)
+            std::cerr << "single_energy  stats:" << stats << std::endl;
+    } else if (print_stats)
+        std::cerr << "skipping single_energy test due to self energy\n";
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp,test_config);

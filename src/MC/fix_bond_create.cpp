@@ -79,6 +79,11 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   int seed = 12345;
   atype = dtype = itype = 0;
 
+  constrainflag = 0;
+  constrainpass = 0;
+  amin = 0;
+  amax = 180;
+
   int iarg = 8;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"iparam") == 0) {
@@ -120,6 +125,20 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
       itype = force->inumeric(FLERR,arg[iarg+1]);
       if (itype < 0) error->all(FLERR,"Illegal fix bond/create command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"aconstrain") == 0) {
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/create command");
+      amin = force->numeric(FLERR,arg[iarg+1]);
+      amax = force->inumeric(FLERR,arg[iarg+2]);
+      if (amin  >= amax)
+        error->all(FLERR,"Illegal fix bond/create command");
+      if (amin < 0 || amin > 180)
+        error->all(FLERR,"Illegal fix bond/create command");
+      if (amax < 0 || amax > 180)
+        error->all(FLERR,"Illegal fix bond/create command");
+      amin = (3.14159265358979323846/180.0) * amin;
+      amax = (3.14159265358979323846/180.0) * amax;
+      constrainflag = 1;
+      iarg += 3;
     } else error->all(FLERR,"Illegal fix bond/create command");
   }
 
@@ -434,6 +453,11 @@ void FixBondCreate::post_integrate()
       rsq = delx*delx + dely*dely + delz*delz;
       if (rsq >= cutsq) continue;
 
+      if (constrainflag) {
+        constrainpass = constrain(i,j,amin,amax);
+        if (!constrainpass) continue;
+      }
+
       if (rsq < distsq[i]) {
         partner[i] = tag[j];
         distsq[i] = rsq;
@@ -442,6 +466,7 @@ void FixBondCreate::post_integrate()
         partner[j] = tag[i];
         distsq[j] = rsq;
       }
+  
     }
   }
 
@@ -1402,6 +1427,13 @@ double FixBondCreate::memory_usage()
   bytes = 2*nmax * sizeof(tagint);
   bytes += nmax * sizeof(double);
   return bytes;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixBondCreate::constrain(int i, int j, double amin, double amax)
+{
+  return 1;
 }
 
 /* ---------------------------------------------------------------------- */

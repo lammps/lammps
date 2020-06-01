@@ -2,6 +2,8 @@
 
 fix bond/create command
 =======================
+fix bond/create/angle command
+=============================
 
 Syntax
 """"""
@@ -17,8 +19,8 @@ Syntax
 * Rmin = 2 atoms separated by less than Rmin can bond (distance units)
 * bondtype = type of created bonds
 * zero or more keyword/value pairs may be appended to args
-* keyword = *iparam* or *jparam* or *prob* or *atype* or *dtype* or *itype*
-
+* keyword = *iparam* or *jparam* or *prob* or *atype* or *dtype* or *itype* or *aconstrain*
+  
   .. parsed-literal::
 
        *iparam* values = maxbond, newtype
@@ -36,6 +38,9 @@ Syntax
          dihedraltype = type of created dihedrals
        *itype* value = impropertype
          impropertype = type of created impropers
+       *aconstrain* value = amin amax
+         amin = minimal angle at which new bonds can be created
+         amax = maximal angle at which new bonds can be created
 
 Examples
 """"""""
@@ -45,6 +50,7 @@ Examples
    fix 5 all bond/create 10 1 2 0.8 1
    fix 5 all bond/create 1 3 3 0.8 1 prob 0.5 85784 iparam 2 3
    fix 5 all bond/create 1 3 3 0.8 1 prob 0.5 85784 iparam 2 3 atype 1 dtype 2
+   fix 5 all bond/create/angle 10 1 2 1.122 1 aconstrain 120 180 prob 1 4928459 iparam 2 1 jparam 2 2
 
 Description
 """""""""""
@@ -110,7 +116,16 @@ actually created.  The *fraction* setting must be a value between 0.0
 and 1.0.  A uniform random number between 0.0 and 1.0 is generated and
 the eligible bond is only created if the random number < fraction.
 
-Any bond that is created is assigned a bond type of *bondtype*
+The *aconstrain* keyword allows to specify a minimal and maximal angle
+*amin* and *amax* between the two prospective bonding partners and a 
+third particle that is already bonded to one of the two partners. 
+Such a criterion can be important, for instance when new angle 
+potentials are simultaneously introduced after the formation of the 
+new bond. Without a restriction on the permissible angle, and for 
+stiffer angle potentials very large energies can arise and lead to 
+uncontrolled behavior.
+
+Any bond that is created is assigned a bond type of *bondtype*.
 
 When a bond is created, data structures within LAMMPS that store bond
 topology are updated to reflect the creation.  If the bond is part of
@@ -237,8 +252,11 @@ Restrictions
 """"""""""""
 
 This fix is part of the MC package.  It is only enabled if LAMMPS was
-built with that package.  See the :doc:`Build package <Build_package>`
-doc page for more info.
+built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+
+The *aconstrain* keyword is only available 
+when LAMMPS was built with the FixBondCreateAngle class.
+
 
 Related commands
 """"""""""""""""

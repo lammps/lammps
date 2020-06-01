@@ -426,10 +426,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (peratom_flag) {
-    int nlocal = atom->nlocal;
-    for (int i = 0; i < nlocal; i++)
-      for (int m = 0; m < size_peratom_cols; m++)
-        array_atom[i][m] = 0.0;
+    clear_stored_contacts();
   }
 
   time_origin = update->ntimestep;
@@ -596,6 +593,10 @@ void FixWallGran::post_force(int /*vflag*/)
 
   rwall = 0.0;
 
+  if (peratom_flag) {
+    clear_stored_contacts();
+  }
+
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
 
@@ -698,6 +699,15 @@ void FixWallGran::post_force(int /*vflag*/)
               omega[i],torque[i],radius[i],meff,history_one[i],
               contact);
       }
+    }
+  }
+}
+
+void FixWallGran::clear_stored_contacts() {
+  const int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) {
+    for (int m = 0; m < size_peratom_cols; m++) {
+      array_atom[i][m] = 0.0;
     }
   }
 }

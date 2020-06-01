@@ -559,7 +559,8 @@ double lammps_get_thermo(void *handle, char *keyword)
 
 This function (re-)initializes the simulation box and boundary
 information and then assign the designated data to the locations in the
-pointers passed as arguments.
+pointers passed as arguments. Any argument (except the first) may be
+a NULL pointer and then will not be assigned.
 
 \endverbatim
  *
@@ -593,22 +594,26 @@ void lammps_extract_box(void *handle, double *boxlo, double *boxhi,
     // domain->init() is needed to update domain->box_change
     domain->init();
 
-    boxlo[0] = domain->boxlo[0];
-    boxlo[1] = domain->boxlo[1];
-    boxlo[2] = domain->boxlo[2];
-    boxhi[0] = domain->boxhi[0];
-    boxhi[1] = domain->boxhi[1];
-    boxhi[2] = domain->boxhi[2];
+    if (boxlo) {
+      boxlo[0] = domain->boxlo[0];
+      boxlo[1] = domain->boxlo[1];
+      boxlo[2] = domain->boxlo[2];
+    }
+    if (boxhi) {
+      boxhi[0] = domain->boxhi[0];
+      boxhi[1] = domain->boxhi[1];
+      boxhi[2] = domain->boxhi[2];
+    }
+    if (xy) *xy = domain->xy;
+    if (yz) *yz = domain->yz;
+    if (xz) *xz = domain->xz;
 
-    *xy = domain->xy;
-    *yz = domain->yz;
-    *xz = domain->xz;
-
-    pflags[0] = domain->periodicity[0];
-    pflags[1] = domain->periodicity[1];
-    pflags[2] = domain->periodicity[2];
-
-    *boxflag = domain->box_change;
+    if (pflags) {
+      pflags[0] = domain->periodicity[0];
+      pflags[1] = domain->periodicity[1];
+      pflags[2] = domain->periodicity[2];
+    }
+    if (boxflag) *boxflag = domain->box_change;
   }
   END_CAPTURE
 }

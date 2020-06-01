@@ -295,5 +295,5 @@ double AngleCosinePeriodic::single(int type, int i1, int i2, int i3)
   if (c < -1.0) c = -1.0;
 
   c = cos(acos(c)*multiplicity[type]);
-  return k[type]*(1.0-b[type]*powsign(multiplicity[type])*c);
+  return 2.0*k[type]*(1.0-b[type]*powsign(multiplicity[type])*c);
 }

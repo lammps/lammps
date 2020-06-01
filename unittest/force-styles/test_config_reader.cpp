@@ -213,7 +213,9 @@ void TestConfigReader::equilibrium(const yaml_event_t & event) {
     std::stringstream data((char *)event.data.scalar.value);
     config.equilibrium.clear();
     double value;
-    while (1) {
+    std::size_t num;
+    data >> num;
+    for (std::size_t i=0; i < num; ++i) {
         data >> value;
         if (data.eof()) break;
         config.equilibrium.push_back(value);

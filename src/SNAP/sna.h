@@ -23,7 +23,7 @@
 namespace LAMMPS_NS {
 
 struct SNA_ZINDICES {
-  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju, ma, mb;
+  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju;
 };
 
 struct SNA_BINDICES {
@@ -110,7 +110,6 @@ private:
   void print_clebsch_gordan();
   void init_rootpqarray();
   void zero_uarraytot(int);
-  void addself_uarraytot(double, int);
   void add_uarraytot(double, double, double, int, int);
   void compute_uarray(double, double, double,
                       double, double, int);

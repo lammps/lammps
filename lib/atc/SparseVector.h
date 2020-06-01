@@ -30,9 +30,9 @@ class SparseVector : public Vector<T> {
   // for use with gcc
   friend T dot<T>(const SparseVector<T> &a, const SparseVector<T> &b);
 #endif
-  //* computes the product of a SparseMatrix tranpose with a SparseVector (M'*v).
+  //* computes the product of a SparseMatrix transpose with a SparseVector (M'*v).
   friend SparseVector<T> operator*<T>(const SparseMatrix<T> &M, const SparseVector<T> &v);
-  //* computes the product of a SparseMatrix tranpose with a SparseVector (M'*v).
+  //* computes the product of a SparseMatrix transpose with a SparseVector (M'*v).
   friend SparseVector<T> operator*<T>(const SparseVector<T> &v, const SparseMatrix<T> &M);
 public:
   //* Constructor - sets length of vector (NOT # of nonzeros).
@@ -71,9 +71,9 @@ public:
   void reset (INDEX nRows, INDEX nCols=1, bool zero=0);
   //* zeros out all elements while preserving sparcity pattern
   void zero();
-  //* TODO impliment copy (or maybe not necessary)
+  //* TODO implement copy (or maybe not necessary)
   void copy(const T* ptr, INDEX nRows, INDEX nCols=1);
-  //* Writes a restart file (TODO impliment this if needed/wanted).
+  //* Writes a restart file (TODO implement this if needed/wanted).
   void write_restart(FILE *F) const;
   //* Adds SparseVector x, scaled by s to this one.  Can be different sparcity.
   void add_scaled(SparseVector<T>& x, const T& s);

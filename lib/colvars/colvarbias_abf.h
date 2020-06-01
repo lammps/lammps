@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -109,7 +109,7 @@ private:
   colvar_grid_gradient  *z_gradients;
   /// n-dim grid of number of samples on "real" coordinate for eABF z-based estimator
   colvar_grid_count     *z_samples;
-  /// n-dim grid contining CZAR estimator of "real" free energy gradients
+  /// n-dim grid containing CZAR estimator of "real" free energy gradients
   colvar_grid_gradient  *czar_gradients;
   /// n-dim grid of CZAR pmf (dimension 1 to 3)
   integrate_potential   *czar_pmf;
@@ -159,7 +159,9 @@ private:
   virtual std::istream& read_state_data(std::istream&);
   virtual std::ostream& write_state_data(std::ostream&);
   virtual int write_output_files();
+
+  /// Calculate the bias energy for 1D ABF
+  virtual int calc_energy(std::vector<colvarvalue> const *values);
 };
 
 #endif
-

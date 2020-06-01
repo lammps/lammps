@@ -6,7 +6,6 @@ compute group/group command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID group/group group2-ID keyword value ...
@@ -16,21 +15,18 @@ Syntax
 * group2-ID = group ID of second (or same) group
 * zero or more keyword/value pairs may be appended
 * keyword = *pair* or *kspace* or *boundary* or *molecule*
-  
+
   .. parsed-literal::
-  
+
        *pair* value = *yes* or *no*
        *kspace* value = *yes* or *no*
        *boundary* value = *yes* or *no*
        *molecule* value = *off* or *inter* or *intra*
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 lower group/group upper
    compute 1 lower group/group upper kspace yes
@@ -55,7 +51,7 @@ interactions with atoms in the specified group2.
 
    The energies computed by the *pair* keyword do not include tail
    corrections, even if they are enabled via the
-   :doc:`pair\_modify <pair_modify>` command.
+   :doc:`pair_modify <pair_modify>` command.
 
 If the *molecule* keyword is set to *inter* or *intra* than an
 additional check is made based on the molecule IDs of the two atoms in
@@ -65,7 +61,7 @@ molecules.  For the *intra* setting, the two atoms must be in the same
 molecule.
 
 If the *kspace* keyword is set to *yes*\ , which is not the default, and
-if a :doc:`kspace\_style <kspace_style>` is defined, then the interaction
+if a :doc:`kspace_style <kspace_style>` is defined, then the interaction
 energy will include a Kspace component which is the long-range
 Coulombic energy between all the atoms in the first group and all the
 atoms in the 2nd group.  Likewise, the interaction force calculated by
@@ -93,9 +89,7 @@ that included in the regular Ewald and PPPM routines.
 This compute does not calculate any bond or angle or dihedral or
 improper interactions between atoms in the two groups.
 
-
 ----------
-
 
 The pairwise contributions to the group-group interactions are
 calculated by looping over a neighbor list.  The Kspace contribution
@@ -107,19 +101,19 @@ frequently.
 .. note::
 
    If you have a bonded system, then the settings of
-   :doc:`special\_bonds <special_bonds>` command can remove pairwise
+   :doc:`special_bonds <special_bonds>` command can remove pairwise
    interactions between atoms in the same bond, angle, or dihedral.  This
-   is the default setting for the :doc:`special\_bonds <special_bonds>`
+   is the default setting for the :doc:`special_bonds <special_bonds>`
    command, and means those pairwise interactions do not appear in the
    neighbor list.  Because this compute uses a neighbor list, it also
    means those pairs will not be included in the group/group interaction.
    This does not apply when using long-range coulomb interactions
    (\ *coul/long*\ , *coul/msm*\ , *coul/wolf* or similar.  One way to get
-   around this would be to set special\_bond scaling factors to very tiny
+   around this would be to set special_bond scaling factors to very tiny
    numbers that are not exactly zero (e.g. 1.0e-50). Another workaround
    is to write a dump file, and use the :doc:`rerun <rerun>` command to
    compute the group/group interactions for snapshots in the dump file.
-   The rerun script can use a :doc:`special\_bonds <special_bonds>` command
+   The rerun script can use a :doc:`special_bonds <special_bonds>` command
    that includes all pairs in the neighbor list.
 
 If you desire a breakdown of the interactions into a pairwise and
@@ -132,9 +126,7 @@ The individual contributions can be summed in a
 This `document <PDF/kspace.pdf>`_ describes how the long-range
 group-group calculations are performed.
 
-
 ----------
-
 
 **Output info:**
 
@@ -150,7 +142,6 @@ The vector values will be in force :doc:`units <units>`.
 
 Restrictions
 """"""""""""
-
 
 Not all pair styles can be evaluated in a pairwise mode as required by
 this compute.  For example, 3-body and other many-body potentials,
@@ -171,17 +162,8 @@ Default
 The option defaults are pair = yes, kspace = no, boundary = yes,
 molecule = off.
 
-
 ----------
-
 
 .. _Bogusz:
 
-
-
 Bogusz et al, J Chem Phys, 108, 7070 (1998)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -6,7 +6,6 @@ fix viscosity command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID viscosity N vdim pdim Nbin keyword value ...
@@ -19,19 +18,16 @@ Syntax
 * Nbin = # of layers in pdim direction (must be even number)
 * zero or more keyword/value pairs may be appended
 * keyword = *swap* or *target*
-  
+
   .. parsed-literal::
-  
+
        *swap* value = Nswap = number of swaps to perform every N steps
        *vtarget* value = V or INF = target velocity of swap partners (velocity units)
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all viscosity 100 x z 20
    fix 1 all viscosity 50 x z 20 swap 2 vtarget 1.5
@@ -66,8 +62,7 @@ directions.  Over time, this induces a shear velocity profile in the
 system which can be measured using commands such as the following,
 which writes the profile to the file tmp.profile:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute layers all chunk/atom bin/1d z lower 0.05 units reduced
    fix f1 all ave/chunk 100 10 1000 layers vx file tmp.profile
@@ -118,9 +113,9 @@ system using a :doc:`PPPM solver <kspace_style>` since PPPM does not
 currently support non-orthogonal boxes.  Using fix viscosity keeps the
 box orthogonal; thus it does not suffer from this limitation.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix computes a global scalar which can be accessed by various
@@ -137,7 +132,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the MISC package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -168,24 +162,13 @@ Default
 
 The option defaults are swap = 1 and vtarget = INF.
 
-
 ----------
 
-
 .. _Muller-Plathe2:
-
-
 
 **(Muller-Plathe)** Muller-Plathe, Phys Rev E, 59, 4894-4898 (1999).
 
 .. _Maginn:
 
-
-
 **(Maginn)** Kelkar, Rafferty, Maginn, Siepmann, Fluid Phase Equilibria,
 260, 218-231 (2007).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

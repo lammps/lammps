@@ -1,0 +1,40 @@
+dimension 3
+boundary p p p
+
+atom_style ellipsoid
+variable L equal 20
+region total block -$L $L -$L $L -$L $L
+lattice sc 0.1
+create_box 2 total
+create_atoms 1 box
+
+# Set random fraction to passive:
+set type 1 type/fraction 2 0.5 1337
+
+# Purely repulsive particles:
+variable rc equal "2^(1.0/6.0)"
+pair_style lj/cut ${rc}
+pair_coeff * * 1.0 1.0
+pair_modify shift yes
+
+# mass * 1.0
+set type * shape 1.0 1.0 1.0
+set type * density 1.9098593171027443
+set type * quat 0 0 1 0
+
+fix step all nve/asphere
+fix temp all langevin 1.0 1.0 1.0 13 angmom 3.333333333
+
+neighbor 0.6 bin
+
+dump traj all custom 100 3d_active.dump.bin id type x y z fx fy fz
+
+thermo_style custom step pe ke etotal temp
+thermo 100
+run 500
+
+fix active all propel/self quat 1.0
+
+# With active force there is more motion so increase bin size:
+neighbor 1.0 bin
+run 500

@@ -50,6 +50,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   n_pre_force_respa = n_post_force_respa = n_final_integrate_respa = 0;
   n_min_pre_exchange = n_min_pre_force = n_min_pre_reverse = 0;
   n_min_post_force = n_min_energy = 0;
+  n_timeflag = -1;
 
   fix = NULL;
   fmask = NULL;
@@ -526,6 +527,11 @@ void Modify::thermo_energy_atom(int nlocal, double *energy)
 void Modify::post_run()
 {
   for (int i = 0; i < nfix; i++) fix[i]->post_run();
+
+  // must reset this to its default value, since computes may be added
+  // or removed between runs and with this change we will redirect any
+  // calls to addstep_compute() to addstep_compute_all() instead.
+  n_timeflag = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -954,6 +960,46 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 }
 
 /* ----------------------------------------------------------------------
+   replace replaceID fix with a new fix
+   this is used by callers to preserve ordering of fixes
+   e.g. create replaceID as a FixDummy instance early in the input script
+        replace it later with the desired Fix instance
+------------------------------------------------------------------------- */
+
+void Modify::replace_fix(const char *replaceID,
+                         int narg, char **arg, int trysuffix)
+{
+  int ifix = find_fix(replaceID);
+  if (ifix < 0) error->all(FLERR,"Modify replace_fix ID could not be found");
+
+  // change ID, igroup, style of fix being replaced to match new fix
+  // requires some error checking on arguments for new fix
+
+  if (narg < 3) error->all(FLERR,"Illegal replace_fix invocation");
+  int jfix = find_fix(arg[0]);
+  if (jfix >= 0) error->all(FLERR,"Replace_fix ID is already in use");
+
+  delete [] fix[ifix]->id;
+  int n = strlen(arg[0]) + 1;
+  fix[ifix]->id = new char[n];
+  strcpy(fix[ifix]->id,arg[0]);
+
+  int jgroup = group->find(arg[1]);
+  if (jgroup == -1) error->all(FLERR,"Could not find replace_fix group ID");
+  fix[ifix]->igroup = jgroup;
+
+  delete [] fix[ifix]->style;
+  n = strlen(arg[2]) + 1;
+  fix[ifix]->style = new char[n];
+  strcpy(fix[ifix]->style,arg[2]);
+
+  // invoke add_fix
+  // it will find and overwrite the replaceID fix
+
+  add_fix(narg,arg,trysuffix);
+}
+
+/* ----------------------------------------------------------------------
    one instance per fix in style_fix.h
 ------------------------------------------------------------------------- */
 
@@ -1283,6 +1329,14 @@ void Modify::clearstep_compute()
 
 void Modify::addstep_compute(bigint newstep)
 {
+  // If we are called before the first run init, n_timeflag is not yet
+  // initialized, thus defer to addstep_compute_all() instead
+
+  if (n_timeflag < 0) {
+     addstep_compute_all(newstep);
+     return;
+  }
+
   for (int icompute = 0; icompute < n_timeflag; icompute++)
     if (compute[list_timeflag[icompute]]->invoked_flag)
       compute[list_timeflag[icompute]]->addstep(newstep);

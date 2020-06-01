@@ -42,7 +42,7 @@ enum vbLEVELS{
 /// by default all exceptions have vblFATAL level
 template<class exc_t>
 struct log_exception_traits{
-  /// exeption level according to the vbLEVELS
+  /// exception level according to the vbLEVELS
   static int level(const exc_t & /* signal */){ return vblFATAL; } 
   /// the string name of exception category
   static string name(const exc_t & /* signal */){ return typeid(exc_t).name();}
@@ -59,7 +59,7 @@ struct log_exception_traits{
 /// integer exceptions have the level equal to their value
 template<>
 struct log_exception_traits<int>{
-  /// exeption level according to the vbLEVELS
+  /// exception level according to the vbLEVELS
   static int level(const int &signal){ return signal; } 
   /// the string name of exception category
   static string name(const int &signal){ 
@@ -294,7 +294,7 @@ const char *fmt(const char *format,...);
 /// this may be used to inherit exceptions
 /// where level and name are defined whithin a class
 struct log_exception {
-   /// exeption level according to the vbLEVELS
+   /// exception level according to the vbLEVELS
   static int level(const log_exception &signal){ return vblFATAL; } 
   /// the string name of exception category
   static string name(const log_exception &signal){ return "undefined exception";}

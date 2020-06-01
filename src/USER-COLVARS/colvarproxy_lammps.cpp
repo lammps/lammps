@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -110,7 +110,7 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
     restart_output_prefix_str.erase(restart_output_prefix_str.rfind(".*"),2);
 
   // initialize multi-replica support, if available
-  if (replica_enabled()) {
+  if (replica_enabled() == COLVARS_OK) {
     MPI_Comm_rank(inter_comm, &inter_me);
     MPI_Comm_size(inter_comm, &inter_num);
   }
@@ -131,6 +131,11 @@ void colvarproxy_lammps::init(const char *conf_file)
            cvm::to_str(COLVARPROXY_VERSION)+".\n");
 
   my_angstrom  = _lmp->force->angstrom;
+  // Front-end unit is the same as back-end
+  angstrom_value = my_angstrom;
+
+  // my_kcal_mol  = _lmp->force->qe2f / 23.060549;
+  // force->qe2f is 1eV expressed in LAMMPS' energy unit (1 if unit is eV, 23 if kcal/mol)
   my_boltzmann = _lmp->force->boltz;
   my_timestep  = _lmp->update->dt * _lmp->force->femtosecond;
 
@@ -155,14 +160,20 @@ void colvarproxy_lammps::init(const char *conf_file)
   }
 }
 
-void colvarproxy_lammps::add_config_file(const char *conf_file)
+int colvarproxy_lammps::add_config_file(const char *conf_file)
 {
-  colvars->read_config_file(conf_file);
+  return colvars->read_config_file(conf_file);
 }
 
-void colvarproxy_lammps::add_config_string(const std::string &conf)
+int colvarproxy_lammps::add_config_string(const std::string &conf)
 {
-  colvars->read_config_string(conf);
+  return colvars->read_config_string(conf);
+}
+
+int colvarproxy_lammps::read_state_file(char const *state_filename)
+{
+  input_prefix() = std::string(state_filename);
+  return colvars->setup_input();
 }
 
 colvarproxy_lammps::~colvarproxy_lammps()
@@ -325,6 +336,17 @@ void colvarproxy_lammps::fatal_error(std::string const &message)
 }
 
 
+int colvarproxy_lammps::set_unit_system(std::string const &units_in, bool /*check_only*/)
+{
+  std::string lmp_units = _lmp->update->unit_style;
+  if (units_in != lmp_units) {
+    cvm::error("Error: Specified unit system for Colvars \"" + units_in + "\" is incompatible with LAMMPS internal units (" + lmp_units + ").\n");
+    return COLVARS_ERROR;
+  }
+  return COLVARS_OK;
+}
+
+
 int colvarproxy_lammps::backup_file(char const *filename)
 {
   if (std::string(filename).rfind(std::string(".colvars.state"))
@@ -337,6 +359,24 @@ int colvarproxy_lammps::backup_file(char const *filename)
 
 
 // multi-replica support
+
+int colvarproxy_lammps::replica_enabled()
+{
+  return (inter_comm != MPI_COMM_NULL) ? COLVARS_OK : COLVARS_NOT_IMPLEMENTED;
+}
+
+
+int colvarproxy_lammps::replica_index()
+{
+  return inter_me;
+}
+
+
+int colvarproxy_lammps::num_replicas()
+{
+  return inter_num;
+}
+
 
 void colvarproxy_lammps::replica_comm_barrier()
 {

@@ -6,7 +6,6 @@ compute temp/deform/eff command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/deform/eff
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myTemp all temp/deform/eff
 
@@ -34,7 +32,7 @@ induced by use of the :doc:`fix deform <fix_deform>` command.  A
 compute of this style is created by the :doc:`fix nvt/sllod/eff <fix_nvt_sllod_eff>` command to compute the thermal
 temperature of atoms for thermostatting purposes.  A compute of this
 style can also be used by any command that computes a temperature,
-e.g. :doc:`thermo\_modify <thermo_modify>`, :doc:`fix npt/eff <fix_nh_eff>`,
+e.g. :doc:`thermo_modify <thermo_modify>`, :doc:`fix npt/eff <fix_nh_eff>`,
 etc.
 
 The calculation performed by this compute is exactly like that
@@ -62,7 +60,6 @@ vector values will be in energy :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -73,8 +70,3 @@ Related commands
 :doc:`fix nvt/sllod/eff <fix_nvt_sllod_eff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

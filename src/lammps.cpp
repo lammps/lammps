@@ -54,6 +54,8 @@
 #include "version.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 #include "lmpinstalledpkgs.h"
 #include "lmpgitversion.h"
@@ -441,23 +443,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       }
     }
 
-    if ((universe->me == 0) && !helpflag) {
-      if (screen) fprintf(screen,"LAMMPS (%s)\n",universe->version);
-      if (logfile) fprintf(logfile,"LAMMPS (%s)\n",universe->version);
-#if defined(LAMMPS_CXX98)
-      const char warning[] = "\nWARNING-WARNING-WARNING-WARNING-WARNING\n"
-        "This LAMMPS executable was compiled using C++98 compatibility.\n"
-        "Please report the compiler info below at https://github.com/lammps/lammps/issues/1659\n";
-      const char *infobuf = Info::get_compiler_info();
-      if (screen)
-         fprintf(screen,"%s%s\nWARNING-WARNING-WARNING-WARNING-WARNING\n\n",
-                 warning,infobuf);
-      if (logfile)
-         fprintf(logfile,"%s%s\nWARNING-WARNING-WARNING-WARNING-WARNING\n\n",
-                 warning,infobuf);
-      delete[] infobuf;
-#endif
-    }
+    if ((universe->me == 0) && !helpflag)
+      utils::logmesg(this,fmt::format("LAMMPS ({})\n",universe->version));
 
   // universe is one or more worlds, as setup by partition switch
   // split universe communicator into separate world communicators
@@ -469,88 +456,70 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     MPI_Comm_split(universe->uworld,universe->iworld,0,&world);
     MPI_Comm_rank(world,&me);
 
-    if (me == 0)
-      if (partscreenflag == 0)
-       if (screenflag == 0) {
-         char str[32];
-         sprintf(str,"screen.%d",universe->iworld);
-         screen = fopen(str,"w");
-         if (screen == NULL) error->one(FLERR,"Cannot open screen file");
-       } else if (strcmp(arg[screenflag],"none") == 0)
-         screen = NULL;
-       else {
-         char str[128];
-         snprintf(str,128,"%s.%d",arg[screenflag],universe->iworld);
-         screen = fopen(str,"w");
-         if (screen == NULL) error->one(FLERR,"Cannot open screen file");
-       }
-      else if (strcmp(arg[partscreenflag],"none") == 0)
-        screen = NULL;
-      else {
-        char str[128];
-        snprintf(str,128,"%s.%d",arg[partscreenflag],universe->iworld);
-        screen = fopen(str,"w");
-        if (screen == NULL) error->one(FLERR,"Cannot open screen file");
-      } else screen = NULL;
-
-    if (me == 0)
-      if (partlogflag == 0)
-       if (logflag == 0) {
-         char str[32];
-         sprintf(str,"log.lammps.%d",universe->iworld);
-         logfile = fopen(str,"w");
-         if (logfile == NULL) error->one(FLERR,"Cannot open logfile");
-       } else if (strcmp(arg[logflag],"none") == 0)
-         logfile = NULL;
-       else {
-         char str[128];
-         snprintf(str,128,"%s.%d",arg[logflag],universe->iworld);
-         logfile = fopen(str,"w");
-         if (logfile == NULL) error->one(FLERR,"Cannot open logfile");
-       }
-      else if (strcmp(arg[partlogflag],"none") == 0)
-        logfile = NULL;
-      else {
-        char str[128];
-        snprintf(str,128,"%s.%d",arg[partlogflag],universe->iworld);
-        logfile = fopen(str,"w");
-        if (logfile == NULL) error->one(FLERR,"Cannot open logfile");
-      } else logfile = NULL;
-
+    screen = logfile = infile = NULL;
     if (me == 0) {
+      std::string str;
+      if (partscreenflag == 0) {
+        if (screenflag == 0) {
+          str = fmt::format("screen.{}",universe->iworld);
+          screen = fopen(str.c_str(),"w");
+          if (screen == NULL) error->one(FLERR,"Cannot open screen file");
+        } else if (strcmp(arg[screenflag],"none") == 0) {
+          screen = NULL;
+        } else {
+          str = fmt::format("{}.{}",arg[screenflag],universe->iworld);
+          screen = fopen(str.c_str(),"w");
+          if (screen == NULL) error->one(FLERR,"Cannot open screen file");
+        }
+      } else if (strcmp(arg[partscreenflag],"none") == 0) {
+        screen = NULL;
+      } else {
+        str = fmt::format("{}.{}",arg[partscreenflag],universe->iworld);
+        screen = fopen(str.c_str(),"w");
+        if (screen == NULL) error->one(FLERR,"Cannot open screen file");
+      }
+
+      if (partlogflag == 0) {
+        if (logflag == 0) {
+          str = fmt::format("log.lammps.{}",universe->iworld);
+          logfile = fopen(str.c_str(),"w");
+          if (logfile == NULL) error->one(FLERR,"Cannot open logfile");
+        } else if (strcmp(arg[logflag],"none") == 0) {
+          logfile = NULL;
+        } else {
+          str = fmt::format("{}.{}",arg[logflag],universe->iworld);
+          logfile = fopen(str.c_str(),"w");
+          if (logfile == NULL) error->one(FLERR,"Cannot open logfile");
+        }
+      } else if (strcmp(arg[partlogflag],"none") == 0) {
+        logfile = NULL;
+      } else {
+        str = fmt::format("{}.{}",arg[partlogflag],universe->iworld);
+        logfile = fopen(str.c_str(),"w");
+        if (logfile == NULL) error->one(FLERR,"Cannot open logfile");
+      }
+
       infile = fopen(arg[inflag],"r");
       if (infile == NULL) {
-        char str[128];
-        snprintf(str,128,"Cannot open input script %s",arg[inflag]);
-        error->one(FLERR,str);
+        str = fmt::format("Cannot open input script {}",arg[inflag]);
+        error->one(FLERR,str.c_str());
       }
-    } else infile = NULL;
+    }
 
     // screen and logfile messages for universe and world
 
     if ((universe->me == 0) && (!helpflag)) {
-      if (universe->uscreen) {
-        fprintf(universe->uscreen,"LAMMPS (%s)\n",universe->version);
-        fprintf(universe->uscreen,"Running on %d partitions of processors\n",
-                universe->nworlds);
-      }
-      if (universe->ulogfile) {
-        fprintf(universe->ulogfile,"LAMMPS (%s)\n",universe->version);
-        fprintf(universe->ulogfile,"Running on %d partitions of processors\n",
-                universe->nworlds);
-      }
+      const char fmt[] = "LAMMPS ({})\nRunning on {} partitions of processors\n";
+      if (universe->uscreen)
+        fmt::print(universe->uscreen,fmt,universe->version,universe->nworlds);
+
+      if (universe->ulogfile)
+        fmt::print(universe->ulogfile,fmt,universe->version,universe->nworlds);
     }
 
-    if ((me == 0) && (!helpflag)) {
-      if (screen) {
-        fprintf(screen,"LAMMPS (%s)\n",universe->version);
-        fprintf(screen,"Processor partition = %d\n",universe->iworld);
-      }
-      if (logfile) {
-        fprintf(logfile,"LAMMPS (%s)\n",universe->version);
-        fprintf(logfile,"Processor partition = %d\n",universe->iworld);
-      }
-    }
+    if ((me == 0) && (!helpflag))
+      utils::logmesg(this,fmt::format("LAMMPS ({})\nProcessor partition = {}\n",
+                                      universe->version, universe->iworld));
   }
 
   // check consistency of datatype settings in lmptype.h
@@ -643,17 +612,15 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   // write_dump will just give a warning message about no init
 
   if (restart2data || restart2dump) {
-    char cmd[256];
-    snprintf(cmd,248,"read_restart %s\n",restartfile);
-    if (restartremap) strcat(cmd," remap\n");
-    input->one(cmd);
-    if (restart2data) strcpy(cmd,"write_data");
-    else strcpy(cmd,"write_dump");
+    std::string cmd = fmt::format("read_restart {}",restartfile);
+    if (restartremap) cmd += " remap\n";
+    input->one(cmd.c_str());
+    if (restart2data) cmd = "write_data ";
+    else cmd = "write_dump";
     for (iarg = wfirst; iarg < wlast; iarg++)
-      snprintf(&cmd[strlen(cmd)],246-strlen(cmd)," %s",arg[iarg]);
-    if (restart2data) strcat(cmd," noinit\n");
-    else strcat(cmd,"\n");
-    input->one(cmd);
+       cmd += fmt::format(" {}", arg[iarg]);
+    if (restart2data) cmd += " noinit";
+    input->one(cmd.c_str());
     error->done(0);
   }
 }
@@ -785,7 +752,7 @@ void LAMMPS::create()
 
 /* ----------------------------------------------------------------------
    check suffix consistency with installed packages
-   invoke package-specific deafult package commands
+   invoke package-specific default package commands
      only invoke if suffix is set and enabled
      also check if suffix2 is set
    called from LAMMPS constructor and after clear() command

@@ -1,38 +1,34 @@
-.. index:: write\_restart
+.. index:: write_restart
 
-write\_restart command
-======================
+write_restart command
+=====================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    write_restart file keyword value ...
 
 * file = name of file to write restart information to
 * zero or more keyword/value pairs may be appended
 * keyword = *fileper* or *nfile*
-  
+
   .. parsed-literal::
-  
+
        *fileper* arg = Np
          Np = write one file for every this many processors
        *nfile* arg = Nf
          Nf = write this many files, one from each of Nf processors
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    write_restart restart.equil
    write_restart restart.equil.mpiio
-   write_restart poly.%.\* nfile 10
+   write_restart poly.%.* nfile 10
 
 Description
 """""""""""
@@ -41,7 +37,7 @@ Write a binary restart file of the current state of the simulation.
 
 During a long simulation, the :doc:`restart <restart>` command is
 typically used to output restart files periodically.  The
-write\_restart command is useful after a minimization or whenever you
+write_restart command is useful after a minimization or whenever you
 wish to write out a single current restart file.
 
 Similar to :doc:`dump <dump>` files, the restart filename can contain
@@ -62,8 +58,7 @@ file via the MPI-IO library, which is part of the MPI standard for
 versions 2.0 and above.  Using MPI-IO requires two steps.  First,
 build LAMMPS with its MPIIO package installed, e.g.
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    make yes-mpiio    # installs the MPIIO package
    make mpi          # build LAMMPS for your platform
@@ -73,7 +68,7 @@ does not have to end in ".mpiio", just contain those characters.
 Unlike MPI-IO dump files, a particular restart file must be both
 written and read using MPI-IO.
 
-Restart files can be read by a :doc:`read\_restart <read_restart>`
+Restart files can be read by a :doc:`read_restart <read_restart>`
 command to restart a simulation from a particular state.  Because the
 file is binary (to enable exact restarts), it may not be readable on
 another machine.  In this case, you can use the :doc:`-r command-line switch <Run_options>` to convert a restart file to a data file.
@@ -89,12 +84,10 @@ another machine.  In this case, you can use the :doc:`-r command-line switch <Ru
    commands may need to be re-specified in the new input script, in order
    to re-use that information. Details are usually given in the
    documentation of the respective command. Also, see the
-   :doc:`read\_restart <read_restart>` command for general information about
+   :doc:`read_restart <read_restart>` command for general information about
    what is stored in a restart file.
 
-
 ----------
-
 
 The optional *nfile* or *fileper* keywords can be used in conjunction
 with the "%" wildcard character in the specified restart file name.
@@ -114,13 +107,10 @@ file for every Np processors.  For example, if Np = 4, every 4th
 processor (0,4,8,12,etc) will collect information from itself and the
 next 3 processors and write it to a restart file.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command requires inter-processor communication to migrate atoms
 before the restart file is written.  This means that your system must
@@ -133,12 +123,7 @@ package must be installed.
 Related commands
 """"""""""""""""
 
-:doc:`restart <restart>`, :doc:`read\_restart <read_restart>`,
-:doc:`write\_data <write_data>`
+:doc:`restart <restart>`, :doc:`read_restart <read_restart>`,
+:doc:`write_data <write_data>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

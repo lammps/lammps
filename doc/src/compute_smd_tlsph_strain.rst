@@ -6,7 +6,6 @@ compute smd/tlsph/strain command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID smd/tlsph/strain
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all smd/tlsph/strain
 
@@ -47,7 +45,6 @@ zz, xy, xz, yz components of the symmetric strain tensor.
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -61,8 +58,3 @@ Related commands
 :doc:`smd/tlsph/stress <compute_smd_tlsph_stress>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

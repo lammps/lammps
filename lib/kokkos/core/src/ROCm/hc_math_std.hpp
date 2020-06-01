@@ -9,225 +9,230 @@
 
 #ifdef __KALMAR_ACCELERATOR__
 
-#define HC_MATH_WRAPPER_1(function, arg1) \
-template<typename T> \
-inline T function(T arg1) __attribute__((hc,cpu)) { \
-  return hc::precise_math::function(arg1); \
-}
+#define HC_MATH_WRAPPER_1(function, arg1)              \
+  template <typename T>                                \
+  inline T function(T arg1) __attribute__((hc, cpu)) { \
+    return hc::precise_math::function(arg1);           \
+  }
 
 #define KALMAR_MATH_WRAPPER_1(function, arg1) HC_MATH_WRAPPER_1(function, arg1)
 
-#define HC_MATH_WRAPPER_FP_OVERLOAD_1(function, arg1) \
-template<typename T> \
-inline \
-typename std::enable_if<std::is_integral<T>::value,HC_IMPLICIT_FLOAT_CONV>::type \
- function(T arg1) __attribute__((hc,cpu)) { \
-  return hc::precise_math::function(static_cast<HC_IMPLICIT_FLOAT_CONV>(arg1)); \
-} \
-template<typename T> \
-inline \
-typename std::enable_if<std::is_floating_point <T>::value,T>::type \
- function(T arg1) __attribute__((hc,cpu)) { \
-  return hc::precise_math::function(arg1); \
-}
+#define HC_MATH_WRAPPER_FP_OVERLOAD_1(function, arg1)                       \
+  template <typename T>                                                     \
+  inline typename std::enable_if<std::is_integral<T>::value,                \
+                                 HC_IMPLICIT_FLOAT_CONV>::type              \
+  function(T arg1) __attribute__((hc, cpu)) {                               \
+    return hc::precise_math::function(                                      \
+        static_cast<HC_IMPLICIT_FLOAT_CONV>(arg1));                         \
+  }                                                                         \
+  template <typename T>                                                     \
+  inline typename std::enable_if<std::is_floating_point<T>::value, T>::type \
+  function(T arg1) __attribute__((hc, cpu)) {                               \
+    return hc::precise_math::function(arg1);                                \
+  }
 
-#define KALMAR_MATH_WRAPPER_FP_OVERLOAD_1(function, arg1) HC_MATH_WRAPPER_FP_OVERLOAD_1(function, arg1) 
+#define KALMAR_MATH_WRAPPER_FP_OVERLOAD_1(function, arg1) \
+  HC_MATH_WRAPPER_FP_OVERLOAD_1(function, arg1)
 
-#define HC_MATH_WRAPPER_2(function, arg1, arg2) \
-template<typename T> \
-inline T function(T arg1, T arg2) __attribute__((hc,cpu)) { \
-  return hc::precise_math::function(arg1, arg2); \
-}
+#define HC_MATH_WRAPPER_2(function, arg1, arg2)                \
+  template <typename T>                                        \
+  inline T function(T arg1, T arg2) __attribute__((hc, cpu)) { \
+    return hc::precise_math::function(arg1, arg2);             \
+  }
 
-#define HC_MATH_ALIAS_2(alias, function, arg1, arg2) \
-template<typename T> \
-inline T alias(T arg1, T arg2) __attribute__((hc,cpu)) { \
-  return hc::precise_math::function(arg1, arg2); \
-}
+#define HC_MATH_ALIAS_2(alias, function, arg1, arg2)        \
+  template <typename T>                                     \
+  inline T alias(T arg1, T arg2) __attribute__((hc, cpu)) { \
+    return hc::precise_math::function(arg1, arg2);          \
+  }
 
-#define HC_MATH_WRAPPER_3(function, arg1, arg2, arg3) \
-template<typename T> \
-inline T function(T arg1, T arg2, T arg3) __attribute__((hc,cpu)) { \
-  return hc::precise_math::function(arg1, arg2, arg3); \
-}
+#define HC_MATH_WRAPPER_3(function, arg1, arg2, arg3)                  \
+  template <typename T>                                                \
+  inline T function(T arg1, T arg2, T arg3) __attribute__((hc, cpu)) { \
+    return hc::precise_math::function(arg1, arg2, arg3);               \
+  }
 
-#define HC_MATH_WRAPPER_TQ(function, arg1) \
-template<typename T, typename Q> \
-inline T function(Q arg1) __attribute__((hc,cpu)) { \
-  return hc::precise_math::function(arg1); \
-}
+#define HC_MATH_WRAPPER_TQ(function, arg1)             \
+  template <typename T, typename Q>                    \
+  inline T function(Q arg1) __attribute__((hc, cpu)) { \
+    return hc::precise_math::function(arg1);           \
+  }
 
-#define HC_MATH_WRAPPER_FP_OVERLOAD_TQ(function, T, arg1) \
-template<typename Q> \
-inline \
-typename std::enable_if<std::is_integral<Q>::value,T>::type \
-function(Q arg1) __attribute__((hc,cpu)) { \
-  return hc::precise_math::function(static_cast<HC_IMPLICIT_FLOAT_CONV>(arg1)); \
-}\
-template<typename Q> \
-inline \
-typename std::enable_if<std::is_floating_point<Q>::value,T>::type \
-function(Q arg1) __attribute__((hc,cpu)) { \
-  return hc::precise_math::function(arg1); \
-}
+#define HC_MATH_WRAPPER_FP_OVERLOAD_TQ(function, T, arg1)                   \
+  template <typename Q>                                                     \
+  inline typename std::enable_if<std::is_integral<Q>::value, T>::type       \
+  function(Q arg1) __attribute__((hc, cpu)) {                               \
+    return hc::precise_math::function(                                      \
+        static_cast<HC_IMPLICIT_FLOAT_CONV>(arg1));                         \
+  }                                                                         \
+  template <typename Q>                                                     \
+  inline typename std::enable_if<std::is_floating_point<Q>::value, T>::type \
+  function(Q arg1) __attribute__((hc, cpu)) {                               \
+    return hc::precise_math::function(arg1);                                \
+  }
 
-#define HC_MATH_WRAPPER_TTQ(function, arg1, arg2) \
-template<typename T, typename Q> \
-inline T function(T arg1, Q arg2) __attribute__((hc,cpu)) { \
-  return hc::precise_math::function(arg1, arg2); \
-}
+#define HC_MATH_WRAPPER_TTQ(function, arg1, arg2)              \
+  template <typename T, typename Q>                            \
+  inline T function(T arg1, Q arg2) __attribute__((hc, cpu)) { \
+    return hc::precise_math::function(arg1, arg2);             \
+  }
 
-#define HC_MATH_WRAPPER_FP_OVERLOAD_TTQ(function, arg1, arg2) \
-template<typename T, typename Q> \
-inline \
-typename std::enable_if<std::is_integral<T>::value||std::is_integral<Q>::value,HC_IMPLICIT_FLOAT_CONV>::type \
-function(T arg1, Q arg2) __attribute__((hc,cpu)) { \
-  return hc::precise_math::function(static_cast<HC_IMPLICIT_FLOAT_CONV>(arg1),static_cast<HC_IMPLICIT_FLOAT_CONV>(arg2)); \
-}\
-template<typename T, typename Q> \
-inline \
-typename std::enable_if<std::is_floating_point<T>::value&&std::is_floating_point<Q>::value,T>::type \
-function(T arg1, Q arg2) __attribute__((hc,cpu)) { \
-  return hc::precise_math::function(arg1,arg2); \
-}
+#define HC_MATH_WRAPPER_FP_OVERLOAD_TTQ(function, arg1, arg2)          \
+  template <typename T, typename Q>                                    \
+  inline typename std::enable_if<std::is_integral<T>::value ||         \
+                                     std::is_integral<Q>::value,       \
+                                 HC_IMPLICIT_FLOAT_CONV>::type         \
+  function(T arg1, Q arg2) __attribute__((hc, cpu)) {                  \
+    return hc::precise_math::function(                                 \
+        static_cast<HC_IMPLICIT_FLOAT_CONV>(arg1),                     \
+        static_cast<HC_IMPLICIT_FLOAT_CONV>(arg2));                    \
+  }                                                                    \
+  template <typename T, typename Q>                                    \
+  inline typename std::enable_if<std::is_floating_point<T>::value &&   \
+                                     std::is_floating_point<Q>::value, \
+                                 T>::type                              \
+  function(T arg1, Q arg2) __attribute__((hc, cpu)) {                  \
+    return hc::precise_math::function(arg1, arg2);                     \
+  }
 
-#define HC_MATH_WRAPPER_TTTQ(function, arg1, arg2, arg3) \
-template<typename T, typename Q> \
-inline T function(T arg1, T arg2, Q arg3) __attribute__((hc,cpu)) { \
-  return hc::precise_math::function(arg1, arg2, arg3); \
-}
+#define HC_MATH_WRAPPER_TTTQ(function, arg1, arg2, arg3)               \
+  template <typename T, typename Q>                                    \
+  inline T function(T arg1, T arg2, Q arg3) __attribute__((hc, cpu)) { \
+    return hc::precise_math::function(arg1, arg2, arg3);               \
+  }
 
-#define HC_MATH_WRAPPER_VTQQ(function, arg1, arg2, arg3) \
-template<typename T, typename Q> \
-inline void function(T arg1, Q arg2, Q arg3) __attribute__((hc,cpu)) { \
-  hc::precise_math::function(arg1, arg2, arg3); \
-}
+#define HC_MATH_WRAPPER_VTQQ(function, arg1, arg2, arg3)                  \
+  template <typename T, typename Q>                                       \
+  inline void function(T arg1, Q arg2, Q arg3) __attribute__((hc, cpu)) { \
+    hc::precise_math::function(arg1, arg2, arg3);                         \
+  }
 
 #else
 
-#define HC_MATH_WRAPPER_1(function, arg1) \
-template<typename T> \
-inline T function(T arg1) __attribute__((hc,cpu)) { \
-  return std::function(arg1); \
-}
+#define HC_MATH_WRAPPER_1(function, arg1)              \
+  template <typename T>                                \
+  inline T function(T arg1) __attribute__((hc, cpu)) { \
+    return std::function(arg1);                        \
+  }
 
-#define KALMAR_MATH_WRAPPER_1(function, arg1) \
-template<typename T> \
-inline T function(T arg1) __attribute__((hc,cpu)) { \
-  return hc::precise_math::function(arg1); \
-}
+#define KALMAR_MATH_WRAPPER_1(function, arg1)          \
+  template <typename T>                                \
+  inline T function(T arg1) __attribute__((hc, cpu)) { \
+    return hc::precise_math::function(arg1);           \
+  }
 
-#define HC_MATH_WRAPPER_FP_OVERLOAD_1(function, arg1) \
-template<typename T> \
-inline \
-typename std::enable_if<std::is_integral<T>::value,HC_IMPLICIT_FLOAT_CONV>::type \
- function(T arg1) __attribute__((hc,cpu)) { \
-  return ::function(static_cast<HC_IMPLICIT_FLOAT_CONV>(arg1)); \
-} \
-template<typename T> \
-inline \
-typename std::enable_if<std::is_floating_point <T>::value,T>::type \
- function(T arg1) __attribute__((hc,cpu)) { \
-  return std::function(arg1); \
-} 
+#define HC_MATH_WRAPPER_FP_OVERLOAD_1(function, arg1)                       \
+  template <typename T>                                                     \
+  inline typename std::enable_if<std::is_integral<T>::value,                \
+                                 HC_IMPLICIT_FLOAT_CONV>::type              \
+  function(T arg1) __attribute__((hc, cpu)) {                               \
+    return ::function(static_cast<HC_IMPLICIT_FLOAT_CONV>(arg1));           \
+  }                                                                         \
+  template <typename T>                                                     \
+  inline typename std::enable_if<std::is_floating_point<T>::value, T>::type \
+  function(T arg1) __attribute__((hc, cpu)) {                               \
+    return std::function(arg1);                                             \
+  }
 
-#define KALMAR_MATH_WRAPPER_FP_OVERLOAD_1(function, arg1) \
-template<typename T> \
-inline \
-typename std::enable_if<std::is_integral<T>::value,HC_IMPLICIT_FLOAT_CONV>::type \
- function(T arg1) __attribute__((hc,cpu)) { \
-  return hc::precise_math::function(static_cast<HC_IMPLICIT_FLOAT_CONV>(arg1)); \
-} \
-template<typename T> \
-inline \
-typename std::enable_if<std::is_floating_point <T>::value,T>::type \
- function(T arg1) __attribute__((hc,cpu)) { \
-  return hc::precise_math::function(arg1); \
-}
+#define KALMAR_MATH_WRAPPER_FP_OVERLOAD_1(function, arg1)                   \
+  template <typename T>                                                     \
+  inline typename std::enable_if<std::is_integral<T>::value,                \
+                                 HC_IMPLICIT_FLOAT_CONV>::type              \
+  function(T arg1) __attribute__((hc, cpu)) {                               \
+    return hc::precise_math::function(                                      \
+        static_cast<HC_IMPLICIT_FLOAT_CONV>(arg1));                         \
+  }                                                                         \
+  template <typename T>                                                     \
+  inline typename std::enable_if<std::is_floating_point<T>::value, T>::type \
+  function(T arg1) __attribute__((hc, cpu)) {                               \
+    return hc::precise_math::function(arg1);                                \
+  }
 
-#define HC_MATH_WRAPPER_2(function, arg1, arg2) \
-template<typename T> \
-inline T function(T arg1, T arg2) __attribute__((hc,cpu)) { \
-  return std::function(arg1, arg2); \
-}
+#define HC_MATH_WRAPPER_2(function, arg1, arg2)                \
+  template <typename T>                                        \
+  inline T function(T arg1, T arg2) __attribute__((hc, cpu)) { \
+    return std::function(arg1, arg2);                          \
+  }
 
-#define HC_MATH_ALIAS_2(alias, function, arg1, arg2) \
-template<typename T> \
-inline T alias(T arg1, T arg2) __attribute__((hc,cpu)) { \
-  return std::function(arg1, arg2); \
-}
+#define HC_MATH_ALIAS_2(alias, function, arg1, arg2)        \
+  template <typename T>                                     \
+  inline T alias(T arg1, T arg2) __attribute__((hc, cpu)) { \
+    return std::function(arg1, arg2);                       \
+  }
 
-#define HC_MATH_WRAPPER_3(function, arg1, arg2, arg3) \
-template<typename T> \
-inline T function(T arg1, T arg2, T arg3) __attribute__((hc,cpu)) { \
-  return std::function(arg1, arg2, arg3); \
-}
+#define HC_MATH_WRAPPER_3(function, arg1, arg2, arg3)                  \
+  template <typename T>                                                \
+  inline T function(T arg1, T arg2, T arg3) __attribute__((hc, cpu)) { \
+    return std::function(arg1, arg2, arg3);                            \
+  }
 
-#define HC_MATH_WRAPPER_TQ(function, arg1) \
-template<typename T, typename Q> \
-inline T function(Q arg1) __attribute__((hc,cpu)) { \
-  return std::function(arg1); \
-}
+#define HC_MATH_WRAPPER_TQ(function, arg1)             \
+  template <typename T, typename Q>                    \
+  inline T function(Q arg1) __attribute__((hc, cpu)) { \
+    return std::function(arg1);                        \
+  }
 
-#define HC_MATH_WRAPPER_FP_OVERLOAD_TQ(function, T, arg1) \
-template<typename Q> \
-inline \
-typename std::enable_if<std::is_integral<Q>::value,T>::type \
-function(Q arg1) __attribute__((hc)) { \
-  return std::function(static_cast<HC_IMPLICIT_FLOAT_CONV>(arg1)); \
-}\
-template<typename Q> \
-inline \
-typename std::enable_if<std::is_floating_point<Q>::value,T>::type \
-function(Q arg1) __attribute__((hc)) { \
-  return std::function(arg1); \
-}
+#define HC_MATH_WRAPPER_FP_OVERLOAD_TQ(function, T, arg1)                   \
+  template <typename Q>                                                     \
+  inline typename std::enable_if<std::is_integral<Q>::value, T>::type       \
+  function(Q arg1) __attribute__((hc)) {                                    \
+    return std::function(static_cast<HC_IMPLICIT_FLOAT_CONV>(arg1));        \
+  }                                                                         \
+  template <typename Q>                                                     \
+  inline typename std::enable_if<std::is_floating_point<Q>::value, T>::type \
+  function(Q arg1) __attribute__((hc)) {                                    \
+    return std::function(arg1);                                             \
+  }
 
-#define HC_MATH_WRAPPER_TTQ(function, arg1, arg2) \
-template<typename T, typename Q> \
-inline T function(T arg1, Q arg2) __attribute__((hc,cpu)) { \
-  return std::function(arg1, arg2); \
-}
+#define HC_MATH_WRAPPER_TTQ(function, arg1, arg2)              \
+  template <typename T, typename Q>                            \
+  inline T function(T arg1, Q arg2) __attribute__((hc, cpu)) { \
+    return std::function(arg1, arg2);                          \
+  }
 
-#define HC_MATH_WRAPPER_FP_OVERLOAD_TTQ(function, arg1, arg2) \
-template<typename T, typename Q> \
-inline \
-typename std::enable_if<std::is_integral<T>::value||std::is_integral<Q>::value,HC_IMPLICIT_FLOAT_CONV>::type \
-function(T arg1, Q arg2) __attribute__((hc,cpu)) { \
-  return std::function(static_cast<HC_IMPLICIT_FLOAT_CONV>(arg1),static_cast<HC_IMPLICIT_FLOAT_CONV>(arg2)); \
-}\
-template<typename T, typename Q> \
-inline \
-typename std::enable_if<std::is_floating_point<T>::value&&std::is_floating_point<Q>::value,T>::type \
-function(T arg1, Q arg2) __attribute__((hc,cpu)) { \
-  return std::function(arg1,arg2); \
-}
+#define HC_MATH_WRAPPER_FP_OVERLOAD_TTQ(function, arg1, arg2)          \
+  template <typename T, typename Q>                                    \
+  inline typename std::enable_if<std::is_integral<T>::value ||         \
+                                     std::is_integral<Q>::value,       \
+                                 HC_IMPLICIT_FLOAT_CONV>::type         \
+  function(T arg1, Q arg2) __attribute__((hc, cpu)) {                  \
+    return std::function(static_cast<HC_IMPLICIT_FLOAT_CONV>(arg1),    \
+                         static_cast<HC_IMPLICIT_FLOAT_CONV>(arg2));   \
+  }                                                                    \
+  template <typename T, typename Q>                                    \
+  inline typename std::enable_if<std::is_floating_point<T>::value &&   \
+                                     std::is_floating_point<Q>::value, \
+                                 T>::type                              \
+  function(T arg1, Q arg2) __attribute__((hc, cpu)) {                  \
+    return std::function(arg1, arg2);                                  \
+  }
 
-#define HC_MATH_WRAPPER_TTTQ(function, arg1, arg2, arg3) \
-template<typename T, typename Q> \
-inline T function(T arg1, T arg2, Q arg3) __attribute__((hc,cpu)) { \
-  return std::function(arg1, arg2, arg3); \
-}
+#define HC_MATH_WRAPPER_TTTQ(function, arg1, arg2, arg3)               \
+  template <typename T, typename Q>                                    \
+  inline T function(T arg1, T arg2, Q arg3) __attribute__((hc, cpu)) { \
+    return std::function(arg1, arg2, arg3);                            \
+  }
 
-#define HC_MATH_WRAPPER_VTQQ(function, arg1, arg2, arg3) \
-template<typename T, typename Q> \
-inline void function(T arg1, Q arg2, Q arg3) __attribute__((hc,cpu)) { \
-  std::function(arg1, arg2, arg3); \
-}
+#define HC_MATH_WRAPPER_VTQQ(function, arg1, arg2, arg3)                  \
+  template <typename T, typename Q>                                       \
+  inline void function(T arg1, Q arg2, Q arg3) __attribute__((hc, cpu)) { \
+    std::function(arg1, arg2, arg3);                                      \
+  }
 
 #endif
-
 
 // override global math functions
 namespace std {
 
-// following math functions are NOT available because they don't have a GPU implementation
+// following math functions are NOT available because they don't have a GPU
+// implementation
 //
 // erfinv
 // erfcinv
 // fpclassify
-// 
-// following math functions are NOT available because they don't have a CPU implementation
+//
+// following math functions are NOT available because they don't have a CPU
+// implementation
 //
 // cospif
 // cospi
@@ -246,7 +251,7 @@ HC_MATH_WRAPPER_FP_OVERLOAD_TQ(isnan, bool, x)
 HC_MATH_WRAPPER_FP_OVERLOAD_TQ(isnormal, bool, x)
 HC_MATH_WRAPPER_TQ(nanf, tagp)
 HC_MATH_WRAPPER_TQ(nan, tagp)
-//HC_MATH_WRAPPER_TQ(signbitf, x)
+// HC_MATH_WRAPPER_TQ(signbitf, x)
 HC_MATH_WRAPPER_TQ(signbit, x)
 HC_MATH_WRAPPER_TTQ(frexpf, x, exp)
 HC_MATH_WRAPPER_TTQ(frexp, x, exp)
@@ -332,9 +337,9 @@ HC_MATH_WRAPPER_FP_OVERLOAD_1(nearbyint, x)
 HC_MATH_WRAPPER_2(nextafterf, x, y)
 HC_MATH_WRAPPER_2(nextafter, x, y)
 HC_MATH_WRAPPER_2(powf, x, y)
-HC_MATH_WRAPPER_FP_OVERLOAD_TTQ(pow,x,y)
-//HC_MATH_WRAPPER_1(rcbrtf, x)
-//HC_MATH_WRAPPER_1(rcbrt, x)
+HC_MATH_WRAPPER_FP_OVERLOAD_TTQ(pow, x, y)
+// HC_MATH_WRAPPER_1(rcbrtf, x)
+// HC_MATH_WRAPPER_1(rcbrt, x)
 HC_MATH_WRAPPER_2(remainderf, x, y)
 HC_MATH_WRAPPER_2(remainder, x, y)
 HC_MATH_WRAPPER_1(roundf, x)
@@ -360,8 +365,7 @@ HC_MATH_WRAPPER_FP_OVERLOAD_1(tanh, x)
 HC_MATH_WRAPPER_1(truncf, x)
 HC_MATH_WRAPPER_FP_OVERLOAD_1(trunc, x)
 
-//HC_MATH_ALIAS_2(min, fmin, x, y)
-//HC_MATH_ALIAS_2(max, fmax, x, y)
+// HC_MATH_ALIAS_2(min, fmin, x, y)
+// HC_MATH_ALIAS_2(max, fmax, x, y)
 
-} // namespace
-
+}  // namespace std

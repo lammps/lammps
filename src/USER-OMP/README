@@ -9,11 +9,3 @@ doc/Section_accelerate.html, sub-section 5.2
 The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.
 
---------------------------
-
-This directory also contains a shell script:
-
-hack_openmp_for_pgi.sh
-
-which will convert OpenMP directives in src files
-into a form compatible with the PGI compiler.

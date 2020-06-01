@@ -30,6 +30,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 #include "math_const.h"
 #include "math_special.h"
@@ -88,7 +89,7 @@ void PairTersoffZBLOMP::read_file(char *file)
 
   memory->sfree(params);
   params = NULL;
-  nparams = 0;
+  nparams = maxparam = 0;
 
   // open file on proc 0
 
@@ -125,7 +126,7 @@ void PairTersoffZBLOMP::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // concatenate additional lines until have params_per_line words
@@ -144,7 +145,7 @@ void PairTersoffZBLOMP::read_file(char *file)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+      nwords = utils::count_words(line);
     }
 
     if (nwords != params_per_line)
@@ -204,8 +205,7 @@ void PairTersoffZBLOMP::read_file(char *file)
 
     params[nparams].powermint = int(params[nparams].powerm);
 
-    if (
-        params[nparams].c < 0.0 ||
+    if (params[nparams].c < 0.0 ||
         params[nparams].d < 0.0 ||
         params[nparams].powern < 0.0 ||
         params[nparams].beta < 0.0 ||
@@ -214,6 +214,7 @@ void PairTersoffZBLOMP::read_file(char *file)
         params[nparams].bigr < 0.0 ||
         params[nparams].bigd < 0.0 ||
         params[nparams].bigd > params[nparams].bigr ||
+        params[nparams].lam1 < 0.0 ||
         params[nparams].biga < 0.0 ||
         params[nparams].powerm - params[nparams].powermint != 0.0 ||
         (params[nparams].powermint != 3 &&
@@ -287,8 +288,8 @@ void PairTersoffZBLOMP::repulsive(Param *param, double rsq, double &fforce,
                               0.9423*0.5099*exp(-0.9423*r_ov_a) -
                               0.4029*0.2802*exp(-0.4029*r_ov_a) -
                               0.2016*0.02817*exp(-0.2016*r_ov_a));
-  double fforce_ZBL = premult*-rsq* phi + premult/r*dphi;
-  double eng_ZBL = premult/r*phi;
+  double fforce_ZBL = premult*-phi/rsq + premult*dphi/r;
+  double eng_ZBL = premult*(1.0/r)*phi;
 
   // combine two parts with smoothing by Fermi-like function
 

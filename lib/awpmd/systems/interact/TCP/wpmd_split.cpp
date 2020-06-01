@@ -351,7 +351,7 @@ int  AWPMD_split::interaction_hartree(int flag, Vector_3P fi, Vector_3P fe_x,
   
   // resize arrays if needed
   enum APPROX tmp=HARTREE;
-  swap(tmp,approx); // do not neeed large matrices
+  swap(tmp,approx); // do not need large matrices
   resize(flag);
   swap(tmp,approx);
 

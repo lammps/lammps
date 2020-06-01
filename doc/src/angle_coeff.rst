@@ -6,7 +6,6 @@ angle_coeff command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    angle_coeff N args
@@ -16,7 +15,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -45,7 +43,6 @@ Note that using an :doc:`angle_coeff <angle_coeff>` command can override a previ
 for the same angle type.  For example, these commands set the coeffs
 for all angle types, then overwrite the coeffs for just angle type 2:
 
-
 .. code-block:: LAMMPS
 
    angle_coeff * 200.0 107.0 1.2
@@ -58,7 +55,6 @@ coefficients for all N types must be listed in the file.  For example,
 under the "Angle Coeffs" section of a data file, the line that
 corresponds to the 1st example above would be listed as
 
-
 .. parsed-literal::
 
    1 300.0 107.0
@@ -68,9 +64,7 @@ rule, in that an additional argument is used in the input script to
 allow specification of the cross-term coefficients.   See its
 doc page for details.
 
-
 ----------
-
 
 The list of all angle styles defined in LAMMPS is given on the
 :doc:`angle_style <angle_style>` doc page.  They are also listed in more
@@ -81,13 +75,10 @@ On either of those pages, click on the style to display the formula it
 computes and its coefficients as specified by the associated
 :doc:`angle_coeff <angle_coeff>` command.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command must come after the simulation box is defined by a
 :doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or

@@ -379,7 +379,7 @@ void FixHyperLocal::pre_neighbor()
   //   closest current I or J atoms to old I may now be ghost atoms
   //   closest_image() returns the ghost atom index in that case
   // also compute max drift of any atom in a bond
-  //   drift = displacement from quenched coord while event has not yet occured
+  //   drift = displacement from quenched coord while event has not yet occurred
   // NOTE: drift calc is now done in bond_build(), between 2 quenched states
 
   for (i = 0; i < nall_old; i++) old2now[i] = -1;
@@ -796,7 +796,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     rmaxeverbig = rmax2all[1];
   }
 
-  // if requsted, check for any biased bonds that are too close to each other
+  // if requested, check for any biased bonds that are too close to each other
   // keep a running count for output
   // requires 2 additional local comm operations
 
@@ -887,7 +887,7 @@ void FixHyperLocal::build_bond_list(int natom)
 
   // reset Vmax to current bias coeff average
   // only if requested and elapsed time >= resetfreq
-  // ave = curent ave of all bias coeffs
+  // ave = current ave of all bias coeffs
   // if reset, adjust all Cij to keep Cij*Vmax unchanged
 
   if (resetfreq >= 0) {

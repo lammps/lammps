@@ -12,14 +12,12 @@ bond_style class2/kk command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    bond_style class2
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -35,24 +33,21 @@ The *class2* bond style uses the potential
 
    E = K_2 (r - r_0)^2 + K_3 (r - r_0)^3 + K_4 (r - r_0)^4
 
-
 where :math:`r_0` is the equilibrium bond distance.
 
 See :ref:`(Sun) <bond-Sun>` for a description of the COMPASS class2 force field.
 
 The following coefficients must be defined for each bond type via the
-:doc:`bond\_coeff <bond_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`bond_coeff <bond_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
 * :math:`r_0` (distance)
 * :math:`K_2` (energy/distance\^2)
 * :math:`K_3` (energy/distance\^3)
 * :math:`K_4` (energy/distance\^4)
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -72,13 +67,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This bond style can only be used if LAMMPS was built with the CLASS2
 package.  See the :doc:`Build package <Build_package>` doc page for more
@@ -87,16 +79,12 @@ info.
 Related commands
 """"""""""""""""
 
-:doc:`bond\_coeff <bond_coeff>`, :doc:`delete\_bonds <delete_bonds>`
+:doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
 
 **Default:** none
 
-
 ----------
 
-
 .. _bond-Sun:
-
-
 
 **(Sun)** Sun, J Phys Chem B 102, 7338-7364 (1998).

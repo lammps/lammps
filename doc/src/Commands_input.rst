@@ -16,7 +16,6 @@ simulation with all the settings.  Rather, the input script is read
 one line at a time and each command takes effect when it is read.
 Thus this sequence of commands:
 
-
 .. code-block:: LAMMPS
 
    timestep 0.5
@@ -24,7 +23,6 @@ Thus this sequence of commands:
    run      100
 
 does something different than this sequence:
-
 
 .. code-block:: LAMMPS
 
@@ -45,10 +43,10 @@ belong to the group.
 (3) Sometimes command B will use values that can be set by command A.
 This means command A must precede command B in the input script if it
 is to have the desired effect.  For example, the
-:doc:`read\_data <read_data>` command initializes the system by setting
+:doc:`read_data <read_data>` command initializes the system by setting
 up the simulation box and assigning atoms to processors.  If default
 values are not desired, the :doc:`processors <processors>` and
-:doc:`boundary <boundary>` commands need to be used before read\_data to
+:doc:`boundary <boundary>` commands need to be used before read_data to
 tell LAMMPS how to map processors to the simulation box.
 
 Many input script errors are detected by LAMMPS and an ERROR or

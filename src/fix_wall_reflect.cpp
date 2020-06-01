@@ -213,7 +213,7 @@ void FixWallReflect::post_integrate()
    this method may be overwritten by a child class
 ------------------------------------------------------------------------- */
 
-void FixWallReflect::wall_particle(int m, int which, double coord)
+void FixWallReflect::wall_particle(int /* m */, int which, double coord)
 {
   int i,dim,side;
 

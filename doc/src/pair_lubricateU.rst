@@ -1,16 +1,15 @@
-.. index:: pair\_style lubricateU
+.. index:: pair_style lubricateU
 
-pair\_style lubricateU command
-==============================
+pair_style lubricateU command
+=============================
 
-pair\_style lubricateU/poly command
-===================================
+pair_style lubricateU/poly command
+==================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style mu flaglog cutinner cutoff gdot flagHI flagVF
 
@@ -25,12 +24,11 @@ Syntax
 
 **Examples:** (all assume radius = 1)
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lubricateU 1.5 1 2.01 2.5 0.01 1 1
    pair_coeff 1 1 2.05 2.8
-   pair_coeff \* \*
+   pair_coeff * *
 
 Description
 """""""""""
@@ -43,8 +41,15 @@ other types of interactions.
 The interactions have 2 components.  The first is
 Ball-Melrose lubrication terms via the formulas in :ref:`(Ball and Melrose) <Ball2>`
 
-.. image:: Eqs/pair_lubricate.jpg
-   :align: center
+.. math::
+
+   W & =  - a_{sq} | (v_1 - v_2) \bullet \mathbf{nn} |^2 -
+   a_{sh} | (\omega_1 + \omega_2) \bullet
+   (\mathbf{I} - \mathbf{nn}) - 2 \Omega_N |^2 - \\
+   &  a_{pu} | (\omega_1 - \omega_2) \bullet (\mathbf{I} - \mathbf{nn}) |^2 -
+   a_{tw} | (\omega_1 - \omega_2) \bullet \mathbf{nn} |^2  \qquad r < r_c \\
+   & \\
+   \Omega_N & = \mathbf{n} \times (v_1 - v_2) / r
 
 which represents the dissipation W between two nearby particles due to
 their relative velocities in the presence of a background solvent with
@@ -75,16 +80,17 @@ The other component is due to the Fast Lubrication Dynamics (FLD)
 approximation, described in :ref:`(Kumar) <Kumar2>`.  The equation being
 solved to balance the forces and torques is
 
-.. image:: Eqs/fld2.jpg
-   :align: center
+.. math::
+
+   -R_{FU}(U-U^{\infty}) = -R_{FE}E^{\infty} - F^{rest}
 
 where U represents the velocities and angular velocities of the
-particles, U\^\ *infty* represents the velocities and the angular
-velocities of the undisturbed fluid, and E\^\ *infty* represents the rate
-of strain tensor of the undisturbed fluid flow with viscosity
+particles, :math:`U^{\infty}` represents the velocities and the angular
+velocities of the undisturbed fluid, and :math:`E^{\infty}` represents
+the rate of strain tensor of the undisturbed fluid flow with viscosity
 *mu*\ . Again, note that this is dynamic viscosity which has units of
 mass/distance/time, not kinematic viscosity.  Volume fraction
-corrections to R\_FU are included if *flagVF* is set to 1 (default).
+corrections to R_FU are included if *flagVF* is set to 1 (default).
 
 F\ *rest* represents the forces and torques due to all other types of
 interactions, e.g. Brownian, electrostatic etc.  Note that this
@@ -105,8 +111,8 @@ computed.
    When using these styles, the these pair styles are designed to
    be used with implicit time integration and a correspondingly larger
    timestep.  Thus either :doc:`fix nve/noforce <fix_nve_noforce>` should
-   be used for spherical particles defined via :doc:`atom\_style sphere <atom_style>` or :doc:`fix nve/asphere/noforce <fix_nve_asphere_noforce>` should be used for
-   spherical particles defined via :doc:`atom\_style ellipsoid <atom_style>`.  This is because the velocity and angular
+   be used for spherical particles defined via :doc:`atom_style sphere <atom_style>` or :doc:`fix nve/asphere/noforce <fix_nve_asphere_noforce>` should be used for
+   spherical particles defined via :doc:`atom_style ellipsoid <atom_style>`.  This is because the velocity and angular
    momentum of each particle is set by the pair style, and should not be
    reset by the time integration fix.
 
@@ -117,9 +123,9 @@ If the suspension is sheared via the :doc:`fix deform <fix_deform>`
 command then the pair style uses the shear rate to adjust the
 hydrodynamic interactions accordingly. Volume changes due to fix
 deform are accounted for when computing the volume fraction
-corrections to R\_FU.
+corrections to R_FU.
 
-When computing the volume fraction corrections to R\_FU, the presence
+When computing the volume fraction corrections to R_FU, the presence
 of walls (whether moving or stationary) will affect the volume
 fraction available to colloidal particles. This is currently accounted
 for with the following types of walls: :doc:`wall/lj93 <fix_wall>`,
@@ -127,68 +133,61 @@ for with the following types of walls: :doc:`wall/lj93 <fix_wall>`,
 :doc:`wall/harmonic <fix_wall>`.  For these wall styles, the correct
 volume fraction will be used when walls do not coincide with the box
 boundary, as well as when walls move and thereby cause a change in the
-volume fraction. To use these wall styles with pair\_style *lubricateU*
+volume fraction. To use these wall styles with pair_style *lubricateU*
 or *lubricateU/poly*\ , the *fld yes* option must be specified in the
 fix wall command.
 
 Since lubrication forces are dissipative, it is usually desirable to
 thermostat the system at a constant temperature. If Brownian motion
 (at a constant temperature) is desired, it can be set using the
-:doc:`pair\_style brownian <pair_brownian>` command. These pair styles
+:doc:`pair_style brownian <pair_brownian>` command. These pair styles
 and the brownian style should use consistent parameters for *mu*\ ,
 *flaglog*\ , *flagfld*\ , *cutinner*\ , *cutoff*\ , *flagHI* and *flagVF*\ .
 
-
 ----------
 
-
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
 * cutinner (distance units)
 * cutoff (distance units)
 
 The two coefficients are optional.  If neither is specified, the two
-cutoffs specified in the pair\_style command are used.  Otherwise both
+cutoffs specified in the pair_style command are used.  Otherwise both
 must be specified.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 For atom type pairs I,J and I != J, the two cutoff distances for this
 pair style can be mixed.  The default mix value is *geometric*\ .  See
-the "pair\_modify" command for details.
+the "pair_modify" command for details.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the pair interaction.
 
-The :doc:`pair\_modify <pair_modify>` table option is not relevant
+The :doc:`pair_modify <pair_modify>` table option is not relevant
 for this pair style.
 
-This pair style does not support the :doc:`pair\_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
-
 
 ----------
 
-
 Restrictions
 """"""""""""
-
 
 These styles are part of the COLLOID package.  They are only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -200,10 +199,10 @@ the pair styles, and that no fixes apply additional constraint forces.
 One exception is the :doc:`fix wall/colloid <fix_wall>` commands, which
 has an "fld" option to apply their wall forces correctly.
 
-Only spherical monodisperse particles are allowed for pair\_style
+Only spherical monodisperse particles are allowed for pair_style
 lubricateU.
 
-Only spherical particles are allowed for pair\_style lubricateU/poly.
+Only spherical particles are allowed for pair_style lubricateU/poly.
 
 For sheared suspensions, it is assumed that the shearing is done in
 the xy plane, with x being the velocity direction and y being the
@@ -212,7 +211,7 @@ velocity-gradient direction. In this case, one must use :doc:`fix deform <fix_de
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`pair\_style lubricate <pair_lubricate>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style lubricate <pair_lubricate>`
 
 Default
 """""""
@@ -220,23 +219,12 @@ Default
 The default settings for the optional args are flagHI = 1 and flagVF =
 1.
 
-
 ----------
 
-
 .. _Ball2:
-
-
 
 **(Ball)** Ball and Melrose, Physica A, 247, 444-472 (1997).
 
 .. _Kumar2:
 
-
-
 **(Kumar)** Kumar and Higdon, Phys Rev E, 82, 051401 (2010).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

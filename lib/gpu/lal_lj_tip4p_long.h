@@ -32,7 +32,7 @@ public:
     * \param gpu_split fraction of particles handled by device
     *
     * Returns:
-    * -  0 if successfull
+    * -  0 if successful
     * - -1 if fix gpu not found
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
@@ -110,7 +110,7 @@ public:
   UCL_D_Vec<acctyp4> ansO; // force applied to virtual particle
   // UCL_D_Vec<acctyp4> force_comp;
 
-  UCL_D_Vec<int> tag;
+  UCL_D_Vec<tagint> tag;
   UCL_D_Vec<int> map_array;
   UCL_D_Vec<int> atom_sametag;
 

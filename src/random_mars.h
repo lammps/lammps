@@ -27,6 +27,7 @@ class RanMars : protected Pointers {
   double gaussian(double mu, double sigma);
   double rayleigh(double sigma);
   double besselexp(double theta, double alpha, double cp);
+  void select_subset(bigint, int, int *, int *);
 
  private:
   int save;

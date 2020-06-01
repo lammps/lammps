@@ -1,25 +1,23 @@
-.. index:: pair\_style dpd/fdt
+.. index:: pair_style dpd/fdt
 
-pair\_style dpd/fdt command
-===========================
+pair_style dpd/fdt command
+==========================
 
-pair\_style dpd/fdt/energy command
-==================================
+pair_style dpd/fdt/energy command
+=================================
 
-pair\_style dpd/fdt/energy/kk command
-=====================================
+pair_style dpd/fdt/energy/kk command
+====================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *dpd/fdt* or *dpd/fdt/energy*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -34,14 +32,13 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style dpd/fdt 300.0 2.5 34387
-   pair_coeff \* \* 3.0 1.0 2.5
+   pair_coeff * * 3.0 1.0 2.5
 
    pair_style dpd/fdt/energy 2.5 34387
-   pair_coeff \* \* 3.0 1.0 0.1 2.5
+   pair_coeff * * 3.0 1.0 0.1 2.5
 
 Description
 """""""""""
@@ -54,68 +51,83 @@ under isoenergetic and isoenthalpic conditions (see :ref:`(Lisal) <Lisal3>`).
 For DPD simulations in general, the force on atom I due to atom J is
 given as a sum of 3 terms
 
-.. image:: Eqs/pair_dpd.jpg
-   :align: center
+.. math::
 
-where Fc is a conservative force, Fd is a dissipative force, and Fr is
-a random force.  Rij is a unit vector in the direction Ri - Rj, Vij is
-the vector difference in velocities of the two atoms = Vi - Vj, alpha
-is a Gaussian random number with zero mean and unit variance, dt is
-the timestep size, and w(r) is a weighting factor that varies between
-0 and 1.  Rc is the cutoff.  The weighting factor, omega\_ij, varies
-between 0 and 1, and is chosen to have the following functional form:
+   \vec{f}  = & (F^C + F^D + F^R) \hat{r_{ij}} \qquad \qquad r < r_c \\
+   F^C      = & A w(r) \\
+   F^D      = & - \gamma w^2(r) (\hat{r_{ij}} \bullet \vec{v_{ij}}) \\
+   F^R      = & \sigma w(r) \alpha (\Delta t)^{-1/2} \\
+   w(r)     = & 1 - r/r_c
 
-.. image:: Eqs/pair_dpd_omega.jpg
-   :align: center
+where :math:`F^C` is a conservative force, :math:`F^D` is a dissipative
+force, and :math:`F^R` is a random force.  :math:`r_{ij}` is a unit
+vector in the direction :math:`r_i - r_j`, :math:`V_{ij} is the vector
+difference in velocities of the two atoms :math:`= \vec{v}_i -
+\vec{v}_j, :math:`\alpha` is a Gaussian random number with zero mean and
+unit variance, dt is the timestep size, and w(r) is a weighting factor
+that varies between 0 and 1.  Rc is the cutoff.  The weighting factor,
+:math:`\omega_{ij}`, varies between 0 and 1, and is chosen to have the
+following functional form:
+
+.. math::
+
+   \omega_{ij} = 1 - \frac{r_{ij}}{r_{c}}
 
 Note that alternative definitions of the weighting function exist, but
 would have to be implemented as a separate pair style command.
 
-For style *dpd/fdt*\ , the fluctuation-dissipation theorem defines gamma
-to be set equal to sigma\*sigma/(2 T), where T is the set point
+For style *dpd/fdt*\ , the fluctuation-dissipation theorem defines :math:`\gamma`
+to be set equal to :math:`\sigma^2/(2 T)`, where T is the set point
 temperature specified as a pair style parameter in the above examples.
 The following coefficients must be defined for each pair of atoms types
-via the :doc:`pair\_coeff <pair_coeff>` command as in the examples above,
+via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
 or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>` commands:
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>` commands:
 
 * A (force units)
-* sigma (force\*time\^(1/2) units)
+* :math:`\sigma` (force\*time\^(1/2) units)
 * cutoff (distance units)
 
 The last coefficient is optional.  If not specified, the global DPD
 cutoff is used.
 
-Style *dpd/fdt/energy* is used to perform DPD simulations
-under isoenergetic and isoenthalpic conditions.  The fluctuation-dissipation
-theorem defines gamma to be set equal to sigma\*sigma/(2 dpdTheta), where
-dpdTheta is the average internal temperature for the pair. The particle
-internal temperature is related to the particle internal energy through
-a mesoparticle equation of state (see :doc:`fix eos <fix>`). The
-differential internal conductive and mechanical energies are computed
-within style *dpd/fdt/energy* as:
+Style *dpd/fdt/energy* is used to perform DPD simulations under
+isoenergetic and isoenthalpic conditions.  The fluctuation-dissipation
+theorem defines :math:`\gamma` to be set equal to :math:`sigma^2/(2
+\theta)`, where :math:theta` is the average internal temperature for the
+pair. The particle internal temperature is related to the particle
+internal energy through a mesoparticle equation of state (see :doc:`fix
+eos <fix>`). The differential internal conductive and mechanical
+energies are computed within style *dpd/fdt/energy* as:
 
-.. image:: Eqs/pair_dpd_energy.jpg
-   :align: center
+.. math::
+
+   du_{i}^{cond}  = & \kappa_{ij}(\frac{1}{\theta_{i}}-\frac{1}{\theta_{j}})\omega_{ij}^{2} + \alpha_{ij}\omega_{ij}\zeta_{ij}^{q}(\Delta{t})^{-1/2} \\
+   du_{i}^{mech}  = & -\frac{1}{2}\gamma_{ij}\omega_{ij}^{2}(\frac{\vec{r_{ij}}}{r_{ij}}\bullet\vec{v_{ij}})^{2} -
+   \frac{\sigma^{2}_{ij}}{4}(\frac{1}{m_{i}}+\frac{1}{m_{j}})\omega_{ij}^{2} -
+   \frac{1}{2}\sigma_{ij}\omega_{ij}(\frac{\vec{r_{ij}}}{r_{ij}}\bullet\vec{v_{ij}})\zeta_{ij}(\Delta{t})^{-1/2}
 
 where
 
-.. image:: Eqs/pair_dpd_energy_terms.jpg
-   :align: center
+.. math::
 
-Zeta\_ij\^q is a second Gaussian random number with zero mean and unit
+   \alpha_{ij}^{2}  = & 2k_{B}\kappa_{ij} \\
+   \sigma^{2}_{ij}  = & 2\gamma_{ij}k_{B}\Theta_{ij} \\
+   \Theta_{ij}^{-1}  = & \frac{1}{2}(\frac{1}{\theta_{i}}+\frac{1}{\theta_{j}})
+
+:math:`\zeta_ij^q` is a second Gaussian random number with zero mean and unit
 variance that is used to compute the internal conductive energy. The
-fluctuation-dissipation theorem defines alpha\*alpha to be set
-equal to 2\*kB\*kappa, where kappa is the mesoparticle thermal
+fluctuation-dissipation theorem defines :math:`alpha^2` to be set
+equal to :math:2k_B\kappa`, where :math:`\kappa` is the mesoparticle thermal
 conductivity parameter.   The following coefficients must be defined for
-each pair of atoms types via the :doc:`pair\_coeff <pair_coeff>`
+each pair of atoms types via the :doc:`pair_coeff <pair_coeff>`
 command as in the examples above, or in the data file or restart files
-read by the :doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+read by the :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * A (force units)
-* sigma (force\*time\^(1/2) units)
-* kappa (energy\*temperature/time units)
+* :math:`\sigma` (force\*time\^(1/2) units)
+* :math:`\kappa` (energy\*temperature/time units)
 * cutoff (distance units)
 
 The last coefficient is optional.  If not specified, the global DPD
@@ -140,9 +152,7 @@ Shardlow splitting algorithm is advantageous, especially when
 performing DPD under isoenergetic conditions, as it allows
 significantly larger timesteps to be taken.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -162,46 +172,34 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 These commands are part of the USER-DPD package.  They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Pair styles *dpd/fdt* and *dpd/fdt/energy* require use of the
-:doc:`comm\_modify vel yes <comm_modify>` option so that velocities are
+:doc:`comm_modify vel yes <comm_modify>` option so that velocities are
 stored by ghost atoms.
 
-Pair style *dpd/fdt/energy* requires :doc:`atom\_style dpd <atom_style>`
+Pair style *dpd/fdt/energy* requires :doc:`atom_style dpd <atom_style>`
 to be used in order to properly account for the particle internal
 energies and temperatures.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`, :doc:`fix shardlow <fix_shardlow>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`fix shardlow <fix_shardlow>`
 
 **Default:** none
 
-
 ----------
 
-
 .. _Lisal3:
-
-
 
 **(Lisal)** M. Lisal, J.K. Brennan, J. Bonet Avalos, "Dissipative
 particle dynamics at isothermal, isobaric, isoenergetic, and
 isoenthalpic conditions using Shardlow-like splitting algorithms.",
 J. Chem. Phys., 135, 204105 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

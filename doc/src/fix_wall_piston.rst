@@ -6,7 +6,6 @@ fix wall/piston command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID wall/piston face ... keyword value ...
@@ -16,9 +15,9 @@ Syntax
 * face = *zlo*
 * zero or more keyword/value pairs may be appended
 * keyword = *pos* or *vel* or *ramp* or *units*
-  
+
   .. parsed-literal::
-  
+
        *pos* args = z
          z = z coordinate at which the piston begins (distance units)
        *vel* args = vz
@@ -33,13 +32,10 @@ Syntax
          *lattice* = the wall position is defined in lattice units
          *box* = the wall position is defined in simulation box units
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix xwalls all wall/piston zlo
    fix walls all wall/piston zlo pos 1.0 vel 10.0 units box
@@ -92,13 +88,11 @@ A *lattice* value means the distance units are in lattice spacings.
 The :doc:`lattice <lattice>` command must have been previously used to
 define the lattice spacings.
 
-
 ----------
 
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
-
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
@@ -106,7 +100,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix style is part of the SHOCK package.  It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
@@ -128,8 +121,3 @@ Default
 """""""
 
 The keyword defaults are pos = 0, vel = 0, units = lattice.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

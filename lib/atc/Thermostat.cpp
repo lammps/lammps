@@ -1460,7 +1460,7 @@ namespace ATC {
   //  initialize_delta_nodal_atomic_energy:
   //    initializes storage for the variable tracking
   //    the change in the nodal atomic energy
-  //    that has occured over the past timestep
+  //    that has occurred over the past timestep
   //--------------------------------------------------------
   void ThermostatIntegratorFixed::initialize_delta_nodal_atomic_energy(double dt)
   {
@@ -1475,7 +1475,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  compute_delta_nodal_atomic_energy:
   //    computes the change in the nodal atomic energy
-  //    that has occured over the past timestep
+  //    that has occurred over the past timestep
   //--------------------------------------------------------
   void ThermostatIntegratorFixed::compute_delta_nodal_atomic_energy(double dt)
   {
@@ -1778,7 +1778,7 @@ namespace ATC {
   //  initialize_delta_nodal_atomic_energy:
   //    initializes storage for the variable tracking
   //    the change in the nodal atomic energy
-  //    that has occured over the past timestep
+  //    that has occurred over the past timestep
   //--------------------------------------------------------
   
   
@@ -1795,7 +1795,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  compute_delta_nodal_atomic_energy:
   //    computes the change in the nodal atomic energy
-  //    that has occured over the past timestep
+  //    that has occurred over the past timestep
   //--------------------------------------------------------
   void ThermostatIntegratorFixedFiltered::compute_delta_nodal_atomic_energy(double dt)
   {

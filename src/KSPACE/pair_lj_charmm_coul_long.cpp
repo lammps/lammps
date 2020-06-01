@@ -51,6 +51,7 @@ PairLJCharmmCoulLong::PairLJCharmmCoulLong(LAMMPS *lmp) : Pair(lmp)
   implicit = 0;
   mix_flag = ARITHMETIC;
   writedata = 1;
+  cut_respa = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

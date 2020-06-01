@@ -66,6 +66,7 @@ class PairEAM : public Pair {
   int nmax;                   // allocated size of per-atom arrays
   double cutforcesq;
   double **scale;
+  bigint embedstep;           // timestep, the embedding term was computed
 
   // per-atom arrays
 
@@ -106,7 +107,6 @@ class PairEAM : public Pair {
   virtual void allocate();
   virtual void array2spline();
   void interpolate(int, double, double *, double **);
-  void grab(FILE *, int, double *);
 
   virtual void read_file(char *);
   virtual void file2array();

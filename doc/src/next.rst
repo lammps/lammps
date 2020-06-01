@@ -6,7 +6,6 @@ next command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    next variables
@@ -16,8 +15,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    next x
    next a t x myTemp
@@ -84,8 +82,7 @@ command with an *index*\ -style variable.  If this input script is named
 in.polymer, 8 simulations would be run using data files from
 directories run1 through run8.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable d index run1 run2 run3 run4 run5 run6 run7 run8
    shell cd $d
@@ -106,8 +103,7 @@ finished.
 Jump and next commands can also be nested to enable multi-level loops.
 For example, this script will run 15 simulations in a double loop.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable i loop 3
      variable j loop 5
@@ -125,8 +121,7 @@ Here is an example of a double loop which uses the :doc:`if <if>` and
 :doc:`jump <jump>` commands to break out of the inner loop when a
 condition is met, then continues iterating through the outer loop.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    label       loopa
    variable    a loop 5
@@ -146,7 +141,6 @@ condition is met, then continues iterating through the outer loop.
 Restrictions
 """"""""""""
 
-
 As described above.
 
 Related commands
@@ -156,8 +150,3 @@ Related commands
 :doc:`variable <variable>`,
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

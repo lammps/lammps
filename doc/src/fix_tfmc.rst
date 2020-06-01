@@ -6,7 +6,6 @@ fix tfmc command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID tfmc Delta Temp seed keyword value
@@ -18,20 +17,17 @@ Syntax
 * seed = random number seed (positive integer)
 * zero or more keyword/arg pairs may be appended
 * keyword = *com* or *rot*
-  
+
   .. parsed-literal::
-  
+
        *com* args = xflag yflag zflag
          xflag,yflag,zflag = 0/1 to exclude/include each dimension
        *rot* args = none
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all tfmc 0.1 1000.0 159345
    fix 1 all tfmc 0.05 600.0 658943 com 1 1 0
@@ -118,22 +114,19 @@ rotational component of the tfMC displacements after every iteration.
    external forces, and removing them will lead to a violation of
    detailed balance.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.
 
 This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
@@ -151,31 +144,18 @@ Default
 
 The option default is com = 0 0 0
 
-
 ----------
 
-
 .. _Bal:
-
-
 
 **(Bal)** K. M Bal and E. C. Neyts, J. Chem. Phys. 141, 204104 (2014).
 
 .. _Mees:
-
-
 
 **(Mees)** M. J. Mees, G. Pourtois, E. C. Neyts, B. J. Thijsse, and
 A. Stesmans, Phys. Rev. B 85, 134301 (2012).
 
 .. _Neyts:
 
-
-
 **(Neyts)** E. C. Neyts and A. Bogaerts, Theor. Chem. Acc. 132, 1320
 (2013).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

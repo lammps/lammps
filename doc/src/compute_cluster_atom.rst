@@ -12,7 +12,6 @@ compute aggregate/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID cluster/atom cutoff
@@ -26,8 +25,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all cluster/atom 3.5
    compute 1 all fragment/atom
@@ -47,7 +45,7 @@ cluster.
 
 A fragment is similarly defined as a set of atoms, each of
 which has an explicit bond (i.e. defined via a :doc:`data file <read_data>`,
-the :doc:`create\_bonds <create_bonds>` command, or through fixes like
+the :doc:`create_bonds <create_bonds>` command, or through fixes like
 :doc:`fix bond/create <fix_bond_create>`, :doc:`fix bond/swap <fix_bond_swap>`,
 or :doc:`fix bond/break <fix_bond_break>`).  The cluster ID or fragment ID
 of every atom in the cluster will be set to the smallest atom ID of any atom
@@ -76,19 +74,19 @@ multiple compute/dump commands, each of a *cluster/atom* or
 .. note::
 
    If you have a bonded system, then the settings of
-   :doc:`special\_bonds <special_bonds>` command can remove pairwise
+   :doc:`special_bonds <special_bonds>` command can remove pairwise
    interactions between atoms in the same bond, angle, or dihedral.  This
-   is the default setting for the :doc:`special\_bonds <special_bonds>`
+   is the default setting for the :doc:`special_bonds <special_bonds>`
    command, and means those pairwise interactions do not appear in the
    neighbor list.  Because this fix uses the neighbor list, it also means
    those pairs will not be included when computing the clusters. This
    does not apply when using long-range coulomb (\ *coul/long*\ , *coul/msm*\ ,
    *coul/wolf* or similar.  One way to get around this would be to set
-   special\_bond scaling factors to very tiny numbers that are not exactly
+   special_bond scaling factors to very tiny numbers that are not exactly
    zero (e.g. 1.0e-50). Another workaround is to write a dump file, and
    use the :doc:`rerun <rerun>` command to compute the clusters for
    snapshots in the dump file.  The rerun script can use a
-   :doc:`special\_bonds <special_bonds>` command that includes all pairs in
+   :doc:`special_bonds <special_bonds>` command that includes all pairs in
    the neighbor list.
 
 **Output info:**
@@ -110,8 +108,3 @@ Related commands
 :doc:`compute coord/atom <compute_coord_atom>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

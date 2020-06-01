@@ -3059,7 +3059,7 @@ void FixShake::correct_velocities() {}
 void FixShake::correct_coordinates(int vflag) {
 
   // save current forces and velocities so that you
-  // initialise them to zero such that FixShake::unconstrained_coordinate_update has no effect
+  // initialize them to zero such that FixShake::unconstrained_coordinate_update has no effect
 
   for (int j=0; j<nlocal; j++) {
     for (int k=0; k<3; k++) {
@@ -3082,7 +3082,7 @@ void FixShake::correct_coordinates(int vflag) {
   dtfsq   = 0.5 * update->dt * update->dt * force->ftm2v;
   FixShake::post_force(vflag);
 
-  // integrate coordiantes: x' = xnp1 + dt^2/2m_i * f, where f is the constraining force
+  // integrate coordinates: x' = xnp1 + dt^2/2m_i * f, where f is the constraining force
   // NOTE: After this command, the coordinates geometry of the molecules will be correct!
 
   double dtfmsq;

@@ -631,7 +631,7 @@ LammpsInterface::LatticeType LammpsInterface::lattice_style() const
     throw ATC_Error("Lattice has not been defined");
 }
 
-//* retuns the number of basis vectors 
+//* returns the number of basis vectors
 int LammpsInterface::n_basis() const
 {
   return lammps_->domain->lattice->nbasis;

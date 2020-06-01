@@ -510,7 +510,7 @@ namespace ATC {
     /** finite element mesh */
     FE_Mesh *feMesh_;
 
-    /** auxillary kernel function */
+    /** auxiliary kernel function */
     KernelFunction *kernelFunction_;
  
     /** initialized flag */ 

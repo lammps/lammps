@@ -1,21 +1,20 @@
-.. index:: pair\_style eff/cut
+.. index:: pair_style eff/cut
 
-pair\_style eff/cut command
-===========================
+pair_style eff/cut command
+==========================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style eff/cut cutoff keyword args ...
 
 * cutoff = global cutoff for Coulombic interactions
 * zero or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      keyword = *limit/eradius* or *pressure/evirials* or *ecp*
        *limit/eradius* args = none
        *pressure/evirials* args = none
@@ -23,19 +22,16 @@ Syntax
          type = LAMMPS atom type (1 to Ntypes)
          element = element symbol (e.g. H, Si)
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style eff/cut 39.7
    pair_style eff/cut 40.0 limit/eradius
    pair_style eff/cut 40.0 limit/eradius pressure/evirials
    pair_style eff/cut 40.0 ecp 1 Si 3 C
-   pair_coeff \* \*
+   pair_coeff * *
    pair_coeff 2 2 20.0
    pair_coeff 1 s 0.320852 2.283269 0.814857
    pair_coeff 3 p 22.721015 0.728733 1.103199 17.695345 6.693621
@@ -93,40 +89,34 @@ electronically excited and ionized states of matter can occur and
 coexist.  Furthermore, the interactions between particles -nuclei and
 electrons- reduce to the sum of a set of effective pairwise potentials
 in the eFF formulation.  The *eff/cut* style computes the pairwise
-Coulomb interactions between nuclei and electrons (E\_NN,E\_Ne,E\_ee),
-and the quantum-derived Pauli (E\_PR) and Kinetic energy interactions
-potentials between electrons (E\_KE) for a total energy expression
+Coulomb interactions between nuclei and electrons (E_NN,E_Ne,E_ee),
+and the quantum-derived Pauli (E_PR) and Kinetic energy interactions
+potentials between electrons (E_KE) for a total energy expression
 given as,
 
-.. image:: Eqs/eff_energy_expression.jpg
-   :align: center
+.. math::
+
+   U\left(R,r,s\right) =  E_{NN} \left( R \right) + E_{Ne} \left( {R,r,s} \right) + E_{ee} \left( {r,s} \right) + E_{KE} \left( {r,s} \right) + E_{PR} \left( { \uparrow  \downarrow ,S} \right)
 
 The individual terms are defined as follows:
 
-.. image:: Eqs/eff_KE.jpg
-   :align: center
+.. math::
 
-.. image:: Eqs/eff_NN.jpg
-   :align: center
+   E_{KE}  = & \frac{\hbar^2 }{{m_{e} }}\sum\limits_i {\frac{3}{{2s_i^2 }}} \\
+   E_{NN}  = & \frac{1}{{4\pi \varepsilon _0 }}\sum\limits_{i < j} {\frac{{Z_i Z_j }}{{R_{ij} }}} \\
+   E_{Ne}  = & - \frac{1}{{4\pi \varepsilon _0 }}\sum\limits_{i,j} {\frac{{Z_i }}{{R_{ij} }}Erf\left( {\frac{{\sqrt 2 R_{ij} }}{{s_j }}} \right)} \\
+   E_{ee}  = & \frac{1}{{4\pi \varepsilon _0 }}\sum\limits_{i < j} {\frac{1}{{r_{ij} }}Erf\left( {\frac{{\sqrt 2 r_{ij} }}{{\sqrt {s_i^2  + s_j^2 } }}} \right)} \\
+   E_{Pauli}  = & \sum\limits_{\sigma _i  = \sigma _j } {E\left( { \uparrow  \uparrow } \right)_{ij}}  + \sum\limits_{\sigma _i  \ne \sigma _j } {E\left( { \uparrow  \downarrow } \right)_{ij}} \\
 
-.. image:: Eqs/eff_Ne.jpg
-   :align: center
-
-.. image:: Eqs/eff_ee.jpg
-   :align: center
-
-.. image:: Eqs/eff_Pauli.jpg
-   :align: center
-
-where, s\_i correspond to the electron sizes, the sigmas i's to the
-fixed spins of the electrons, Z\_i to the charges on the nuclei, R\_ij
+where, s_i correspond to the electron sizes, the sigmas i's to the
+fixed spins of the electrons, Z_i to the charges on the nuclei, R_ij
 to the distances between the nuclei or the nuclei and electrons, and
-r\_ij to the distances between electrons.  For additional details see
+r_ij to the distances between electrons.  For additional details see
 :ref:`(Jaramillo-Botero) <Jaramillo-Botero>`.
 
 The overall electrostatics energy is given in Hartree units of energy
 by default and can be modified by an energy-conversion constant,
-according to the units chosen (see :doc:`electron\_units <units>`).  The
+according to the units chosen (see :doc:`electron_units <units>`).  The
 cutoff Rc, given in Bohrs (by default), truncates the interaction
 distance.  The recommended cutoff for this pair style should follow
 the minimum image criterion, i.e. half of the minimum unit cell
@@ -135,34 +125,32 @@ length.
 Style *eff/long* (not yet available) computes the same interactions as
 style *eff/cut* except that an additional damping factor is applied so
 it can be used in conjunction with the
-:doc:`kspace\_style <kspace_style>` command and its *ewald* or *pppm*
+:doc:`kspace_style <kspace_style>` command and its *ewald* or *pppm*
 option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
 
-This potential is designed to be used with :doc:`atom\_style electron <atom_style>` definitions, in order to handle the
+This potential is designed to be used with :doc:`atom_style electron <atom_style>` definitions, in order to handle the
 description of systems with interacting nuclei and explicit electrons.
 
 The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair\_coeff <pair_coeff>` command as in the examples
+types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
 * cutoff (distance units)
 
 For *eff/cut*\ , the cutoff coefficient is optional.  If it is not used
 (as in some of the examples above), the default global value specified
-in the pair\_style command is used.
+in the pair_style command is used.
 
 For *eff/long* (not yet available) no cutoff will be specified for an
-individual I,J type pair via the :doc:`pair\_coeff <pair_coeff>` command.
-All type pairs use the same global cutoff specified in the pair\_style
+individual I,J type pair via the :doc:`pair_coeff <pair_coeff>` command.
+All type pairs use the same global cutoff specified in the pair_style
 command.
 
-
 ----------
-
 
 The *limit/eradius* and *pressure/evirials* keywords are optional.
 Neither or both must be specified.  If not specified they are unset.
@@ -172,7 +160,7 @@ becoming excessively diffuse at very high temperatures were the
 Gaussian wave packet representation breaks down, and from expanding as
 free particles to infinite size.  If unset, electron radius is free to
 increase without bounds.  If set, a restraining harmonic potential of
-the form E = 1/2k\_ss\^2 for s > L\_box/2, where k\_s = 1 Hartrees/Bohr\^2,
+the form E = 1/2k_ss\^2 for s > L_box/2, where k_s = 1 Hartrees/Bohr\^2,
 is applied on the electron radius.
 
 The *pressure/evirials* keyword is used to control between two types
@@ -191,7 +179,7 @@ representations, after the "ecp" keyword.
 .. note::
 
    Default ECP parameters are provided for C, N, O, Al, and Si.
-   Users can modify these using the pair\_coeff command as exemplified
+   Users can modify these using the pair_coeff command as exemplified
    above.  For this, the User must distinguish between two different
    functional forms supported, one that captures the orbital overlap
    assuming the s-type core interacts with an s-like valence electron
@@ -203,7 +191,7 @@ representations, after the "ecp" keyword.
 .. note::
 
    there are two different pressures that can be reported for eFF
-   when defining this pair\_style, one (default) that considers electrons
+   when defining this pair_style, one (default) that considers electrons
    do not contribute radial virial components (i.e. electrons treated as
    incompressible 'rigid' spheres) and one that does.  The radial
    electronic contributions to the virials are only tallied if the
@@ -214,9 +202,7 @@ representations, after the "ecp" keyword.
    significant over long-term averaged runs (i.e. even though the energy
    partitioning changes, the total energy remains similar).
 
-
 ----------
-
 
 .. note::
 
@@ -229,11 +215,10 @@ representations, after the "ecp" keyword.
    Si.  The ECP captures the orbital overlap between the core and valence
    electrons (i.e. Pauli repulsion) with one of the functional forms:
 
-.. image:: Eqs/eff_ECP1.jpg
-   :align: center
+.. math::
 
-.. image:: Eqs/eff_ECP2.jpg
-   :align: center
+   E_{Pauli(ECP_s)} = & p_1\exp\left(-\frac{p_2r^2}{p_3+s^2} \right) \\
+   E_{Pauli(ECP_p)} = & p_1\left( \frac{2}{p_2/s+s/p_2} \right)\left( r-p_3s\right)^2\exp \left[ -\frac{p_4\left( r-p_3s \right)^2}{p_5+s^2} \right]
 
 Where the 1st form correspond to core interactions with s-type valence
 electrons and the 2nd to core interactions with p-type valence
@@ -273,41 +258,36 @@ metals (e.g. beryllium) and semimetals such as boron; and various
 compounds containing ionic and/or multicenter bonds, such as boron
 dihydride.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 For atom type pairs I,J and I != J, the cutoff distance for the
 *eff/cut* style can be mixed.  The default mix value is *geometric*\ .
-See the "pair\_modify" command for details.
+See the "pair_modify" command for details.
 
-The :doc:`pair\_modify <pair_modify>` shift option is not relevant for
+The :doc:`pair_modify <pair_modify>` shift option is not relevant for
 these pair styles.
 
 The *eff/long* (not yet available) style supports the
-:doc:`pair\_modify <pair_modify>` table option for tabulation of the
+:doc:`pair_modify <pair_modify>` table option for tabulation of the
 short-range portion of the long-range Coulombic interaction.
 
-These pair styles do not support the :doc:`pair\_modify <pair_modify>`
+These pair styles do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-These pair styles write their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+These pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  They do not support the
+:doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
-
 
 ----------
 
-
 Restrictions
 """"""""""""
-
 
 These pair styles will only be enabled if LAMMPS is built with the
 USER-EFF package.  It will only be enabled if LAMMPS was built with
@@ -316,43 +296,32 @@ more info.
 
 These pair styles require that particles store electron attributes
 such as radius, radial velocity, and radial force, as defined by the
-:doc:`atom\_style <atom_style>`.  The *electron* atom style does all of
+:doc:`atom_style <atom_style>`.  The *electron* atom style does all of
 this.
 
-Thes pair styles require you to use the :doc:`comm\_modify vel yes <comm_modify>` command so that velocities are stored by ghost
+Thes pair styles require you to use the :doc:`comm_modify vel yes <comm_modify>` command so that velocities are stored by ghost
 atoms.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`
 
 Default
 """""""
 
-If not specified, limit\_eradius = 0 and pressure\_with\_evirials = 0.
-
+If not specified, limit_eradius = 0 and pressure_with_evirials = 0.
 
 ----------
 
-
 .. _Su:
-
-
 
 **(Su)** Su and Goddard, Excited Electron Dynamics Modeling of Warm
 Dense Matter, Phys Rev Lett, 99:185003 (2007).
 
 .. _Jaramillo-Botero:
 
-
-
 **(Jaramillo-Botero)** Jaramillo-Botero, Su, Qi, Goddard, Large-scale,
 Long-term Non-adiabatic Electron Molecular Dynamics for Describing
 Material Properties and Phenomena in Extreme Environments, J Comp
 Chem, 32, 497-512 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

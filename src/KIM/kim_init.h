@@ -69,7 +69,7 @@ CommandStyle(kim_init,KimInit)
 #include <string>
 
 // Forward declaration.
-class KIM_Model;
+typedef struct KIM_Model KIM_Model;
 
 namespace LAMMPS_NS {
 

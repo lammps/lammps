@@ -9,7 +9,6 @@ fix rx/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID rx file localTemp matrix solver minSteps ...
@@ -19,7 +18,7 @@ Syntax
 * file = filename containing the reaction kinetic equations and Arrhenius parameters
 * localTemp = *none,lucy* = no local temperature averaging or local temperature defined through Lucy weighting function
 * matrix = *sparse, dense* format for the stoichiometric matrix
-* solver = *lammps\_rk4,rkf45* = rk4 is an explicit 4th order Runge-Kutta method; rkf45 is an adaptive 4th-order Runge-Kutta-Fehlberg method
+* solver = *lammps_rk4,rkf45* = rk4 is an explicit 4th order Runge-Kutta method; rkf45 is an adaptive 4th-order Runge-Kutta-Fehlberg method
 * minSteps = # of steps for rk4 solver or minimum # of steps for rkf45 (rk4 or rkf45)
 * maxSteps = maximum number of steps for the rkf45 solver (rkf45 only)
 * relTol = relative tolerance for the rkf45 solver (rkf45 only)
@@ -29,8 +28,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all rx kinetics.rx none dense lammps_rk4
    fix 1 all rx kinetics.rx none sparse lammps_rk4 1
@@ -46,13 +44,15 @@ defined within the file associated with this command.
 
 For a general reaction such that
 
-.. image:: Eqs/fix_rx_reaction.jpg
-   :align: center
+.. math::
+
+   \nu_{A}A + \nu_{B}B \rightarrow \nu_{C}C
 
 the reaction rate equation is defined to be of the form
 
-.. image:: Eqs/fix_rx_reactionRate.jpg
-   :align: center
+.. math::
+
+   r = k(T)[A]^{\nu_{A}}[B]^{\nu_{B}}
 
 In the current implementation, the exponents are defined to be equal
 to the stoichiometric coefficients.  A given reaction set consisting
@@ -63,10 +63,10 @@ constructed based on the *n* reaction rate equations.
 
 The ODE systems are solved over the full DPD timestep *dt* using either a 4th
 order Runge-Kutta *rk4* method with a fixed step-size *h*\ , specified
-by the *lammps\_rk4* keyword, or a 4th order Runge-Kutta-Fehlberg (rkf45) method
+by the *lammps_rk4* keyword, or a 4th order Runge-Kutta-Fehlberg (rkf45) method
 with an adaptive step-size for *h*\ . The number of ODE steps per DPD timestep
 for the rk4 method is optionally specified immediately after the rk4
-keyword. The ODE step-size is set as *dt/num\_steps*. Smaller
+keyword. The ODE step-size is set as *dt/num_steps*. Smaller
 step-sizes tend to yield more accurate results but there is not
 control on the error. For error control, use the rkf45 ODE solver.
 
@@ -74,13 +74,13 @@ The rkf45 method adjusts the step-size so that the local truncation error is hel
 within the specified absolute and relative tolerances. The initial step-size *h0*
 can be specified by the user or estimated internally. It is recommended that the user
 specify *h0* since this will generally reduced the number of ODE integration steps
-required. *h0* is defined as *dt / min\_steps* if min\_steps >= 1. If min\_steps == 0,
+required. *h0* is defined as *dt / min_steps* if min_steps >= 1. If min_steps == 0,
 *h0* is estimated such that an explicit Euler method would likely produce
 an acceptable solution. This is generally overly conservative for the 4th-order
 method and users are advised to specify *h0* as some fraction of the DPD timestep.
 For small DPD timesteps, only one step may be necessary depending upon the tolerances.
-Note that more than min\_steps ODE steps may be taken depending upon the ODE stiffness
-but no more than max\_steps will be taken. If max\_steps is reached, an error warning
+Note that more than min_steps ODE steps may be taken depending upon the ODE stiffness
+but no more than max_steps will be taken. If max_steps is reached, an error warning
 is printed and the simulation is stopped.
 
 After each ODE step, the solution error *e* is tested and weighted using the absTol
@@ -103,9 +103,7 @@ statistics per MPI process can be useful to examine any load imbalance caused by
 adaptive ODE solver. (Some DPD particles can take longer to solve than others. This
 can lead to an imbalance across the MPI processes.)
 
-
 ----------
-
 
 The filename specifies a file that contains the entire set of reaction
 kinetic equations and corresponding Arrhenius parameters.  The format of
@@ -121,12 +119,13 @@ irreversible reaction.  After specifying the reaction, the reaction
 rate constant is determined through the temperature dependent
 Arrhenius equation:
 
-.. image:: Eqs/fix_rx.jpg
-   :align: center
+.. math::
+
+   k = AT^{n}e^{\frac{-E_{a}}{k_{B}T}}
 
 where *A* is the Arrhenius factor in time units or concentration/time
 units, *n* is the unitless exponent of the temperature dependence, and
-*E\_a* is the activation energy in energy units.  The temperature
+:math:`E_a` is the activation energy in energy units.  The temperature
 dependence can be removed by specifying the exponent as zero.
 
 The internal temperature of the coarse-grained particles can be used
@@ -136,13 +135,15 @@ be specified to compute a local-average particle internal temperature
 for use in the reaction rate constant expressions.  The local-average
 particle internal temperature is defined as:
 
-.. image:: Eqs/fix_rx_localTemp.jpg
-   :align: center
+.. math::
+
+   \theta_i^{-1} = \frac{\sum_{j=1}\omega_{Lucy}\left(r_{ij}\right)\theta_j^{-1}}{\sum_{j=1}\omega_{Lucy}\left(r_{ij}\right)}
 
 where the Lucy function is expressed as:
 
-.. image:: Eqs/fix_rx_localTemp2.jpg
-   :align: center
+.. math::
+
+   \omega_{Lucy}\left(r_{ij}\right) = \left( 1 + \frac{3r_{ij}}{r_c} \right) \left( 1 - \frac{r_{ij}}{r_c} \right)^3
 
 The self-particle interaction is included in the above equation.
 
@@ -157,13 +158,10 @@ numbers <= 3), a fast exponential function is used. This can save significant
 computational time so users are encouraged to use integer coefficients
 where possible.
 
-
 ----------
-
 
 The format of a tabulated file is as follows (without the
 parenthesized comments):
-
 
 .. parsed-literal::
 
@@ -193,15 +191,13 @@ define the thermodynamic properties of each species.  Furthermore, the
 number of species molecules (i.e., concentration) can be specified
 either with the :doc:`set <set>` command using the "d\_" prefix or by
 reading directly the concentrations from a data file.  For the latter
-case, the :doc:`read\_data <read_data>` command with the fix keyword
+case, the :doc:`read_data <read_data>` command with the fix keyword
 should be specified, where the fix-ID will be the "fix rx`ID with a <SPECIES">`_ suffix, e.g.
 
 fix          foo all rx reaction.file ...
-read\_data    data.dpd fix foo\_SPECIES NULL Species
-
+read_data    data.dpd fix foo_SPECIES NULL Species
 
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -221,18 +217,15 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
 
-
 This command is part of the USER-DPD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
-This command also requires use of the :doc:`atom\_style dpd <atom_style>`
+This command also requires use of the :doc:`atom_style dpd <atom_style>`
 command.
 
 This command can only be used with a constant energy or constant
@@ -246,8 +239,3 @@ Related commands
 :doc:`pair dpd/fdt/energy <pair_dpd_fdt>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

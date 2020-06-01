@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 
    Force scaling fix for gREM.
-   Cite: http://dx.doi.org/10.1063/1.3432176
-   Cite: http://dx.doi.org/10.1021/acs.jpcb.5b07614
+   Cite: https://doi.org/10.1063/1.3432176
+   Cite: https://doi.org/10.1021/acs.jpcb.5b07614
 
 ------------------------------------------------------------------------- */
 

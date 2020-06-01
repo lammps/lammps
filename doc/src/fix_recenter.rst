@@ -6,7 +6,6 @@ fix recenter command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID recenter x y z keyword value ...
@@ -16,20 +15,17 @@ Syntax
 * x,y,z = constrain center-of-mass to these coords (distance units),         any coord can also be NULL or INIT (see below)
 * zero or more keyword/value pairs may be appended
 * keyword = *shift* or *units*
-  
+
   .. parsed-literal::
-  
+
        *shift* value = group-ID
          group-ID = group of atoms whose coords are shifted
        *units* value = *box* or *lattice* or *fraction*
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all recenter 0.0 0.5 0.0
    fix 1 all recenter INIT INIT NULL
@@ -97,9 +93,9 @@ velocities with zero aggregate linear and/or angular momentum.
    simulation scenario is to use the :doc:`fix spring <fix_spring>` command
    to tether the molecule in place.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix computes a global scalar which can be accessed by various
@@ -119,12 +115,11 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-
 This fix should not be used with an x,y,z setting that causes a large
 shift in the system on the 1st timestep, due to the requested COM
 being very different from the initial COM.  This could cause atoms to
 be lost, especially in parallel.  Instead, use the
-:doc:`displace\_atoms <displace_atoms>` command, which can be used to
+:doc:`displace_atoms <displace_atoms>` command, which can be used to
 move atoms a large distance.
 
 Related commands
@@ -136,8 +131,3 @@ Default
 """""""
 
 The option defaults are shift = fix group-ID, and units = lattice.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

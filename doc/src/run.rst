@@ -6,7 +6,6 @@ run command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    run N keyword values ...
@@ -14,9 +13,9 @@ Syntax
 * N = # of timesteps
 * zero or more keyword/value pairs may be appended
 * keyword = *upto* or *start* or *stop* or *pre* or *post* or *every*
-  
+
   .. parsed-literal::
-  
+
        *upto* value = none
        *start* value = N1
          N1 = timestep at which 1st run started
@@ -29,13 +28,10 @@ Syntax
          c1,c2,...,cN = one or more LAMMPS commands, each enclosed in quotes
          c1 = NULL means no command will be invoked
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    run 10000
    run 1000000 upto
@@ -74,8 +70,7 @@ keywords.
 
 For example, consider this fix followed by 10 run commands:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix         1 all nvt 200.0 300.0 1.0
    run         1000 start 0 stop 10000
@@ -149,16 +144,14 @@ of M steps each.  After each M-length run, the specified commands are
 invoked.  If only a single command is specified as NULL, then no
 command is invoked.  Thus these lines:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable q equal x[100]
    run 6000 every 2000 "print 'Coord = $q'"
 
 are the equivalent of:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable q equal x[100]
    run 2000
@@ -176,8 +169,7 @@ Note that by using the line continuation character "&", the run every
 command can be spread across many lines, though it is still a single
 command:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    run 100000 every 1000 &
      "print 'Minimum value = $a'" &
@@ -195,8 +187,7 @@ skipped for intermediate runs.
    You might wish to specify a command that exits the run by
    jumping out of the loop, e.g.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable t equal temp
    run 10000 every 100 "if '$t < 300.0' then 'jump SELF afterrun'"
@@ -209,7 +200,6 @@ has additional options for how to exit the run.
 
 Restrictions
 """"""""""""
-
 
 When not using the *upto* keyword, the number of specified timesteps N
 must fit in a signed 32-bit integer, so you are limited to slightly
@@ -226,7 +216,7 @@ successive runs to run a simulation for any number of steps (ok, up to
 Related commands
 """"""""""""""""
 
-:doc:`minimize <minimize>`, :doc:`run\_style <run_style>`,
+:doc:`minimize <minimize>`, :doc:`run_style <run_style>`,
 :doc:`temper <temper>`, :doc:`fix halt <fix_halt>`
 
 Default
@@ -234,8 +224,3 @@ Default
 
 The option defaults are start = the current timestep, stop = current
 timestep + N, pre = yes, and post = yes.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

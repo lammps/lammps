@@ -6,7 +6,6 @@ fix wall/gran command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID wall/gran fstyle fstyle_params wallstyle args keyword values ...
@@ -14,15 +13,15 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * wall/gran = style name of this fix command
 * fstyle = style of force interactions between particles and wall
-  
+
   .. parsed-literal::
-  
+
        possible choices: hooke, hooke/history, hertz/history, granular
 
-* fstyle\_params = parameters associated with force interaction style
-  
+* fstyle_params = parameters associated with force interaction style
+
   .. parsed-literal::
-  
+
        For *hooke*\ , *hooke/history*\ , and *hertz/history*\ , *fstyle_params* are:
              Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below)
              Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below)
@@ -31,16 +30,15 @@ Syntax
              xmu = static yield criterion (unitless value between 0.0 and 1.0e4)
              dampflag = 0 or 1 if tangential damping force is excluded or included
 
-  
   .. parsed-literal::
-  
+
        For *granular*\ , *fstyle_params* are set using the same syntax as for the *pair_coeff* command of :doc:`pair_style granular <pair_granular>`
 
 * wallstyle = *xplane* or *yplane* or *zplane* or *zcylinder*
 * args = list of arguments for a particular style
-  
+
   .. parsed-literal::
-  
+
        *xplane* or *yplane* or *zplane* args = lo hi
          lo,hi = position of lower and upper plane (distance units), either can be NULL)
        *zcylinder* args = radius
@@ -48,9 +46,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended to args
 * keyword = *wiggle* or *shear*
-  
+
   .. parsed-literal::
-  
+
        *wiggle* values = dim amplitude period
          dim = *x* or *y* or *z*
          amplitude = size of oscillation (distance units)
@@ -59,13 +57,10 @@ Syntax
          dim = *x* or *y* or *z*
          vshear = magnitude of shear velocity (velocity units)
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all wall/gran hooke  200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0
    fix 1 all wall/gran hooke/history 200000.0 NULL 50.0 NULL 0.5 0 zplane 0.0 NULL
@@ -83,30 +78,31 @@ close enough to touch it.
 
 The nature of the wall/particle interactions are determined by the
 *fstyle* setting.  It can be any of the styles defined by the
-:doc:`pair\_style gran/\* <pair_gran>` or the more general `pair\_style granular <pair_granular.html">`_ commands.  Currently the options are
-*hooke*\ , *hooke/history*\ , or *hertz/history* for the former, and
-*granular* with all the possible options of the associated
-*pair\_coeff* command for the latter.  The equation for the force
+:doc:`pair_style gran/\* <pair_gran>` or the more general
+:doc:`pair_style granular <pair_granular>` commands.  Currently the
+options are *hooke*\ , *hooke/history*\ , or *hertz/history* for the
+former, and *granular* with all the possible options of the associated
+*pair_coeff* command for the latter.  The equation for the force
 between the wall and particles touching it is the same as the
-corresponding equation on the :doc:`pair\_style gran/\* <pair_gran>` and
-:doc:`pair\_style\_granular <pair_granular>` doc pages, in the limit of
-one of the two particles going to infinite radius and mass (flat
-wall).  Specifically, delta = radius - r = overlap of particle with
-wall, m\_eff = mass of particle, and the effective radius of contact =
-RiRj/Ri+Rj is set to the radius of the particle.
+corresponding equation on the :doc:`pair_style gran/\* <pair_gran>` and
+:doc:`pair_style granular <pair_granular>` doc pages, in the limit of
+one of the two particles going to infinite radius and mass (flat wall).
+Specifically, delta = radius - r = overlap of particle with wall, m_eff
+= mass of particle, and the effective radius of contact = RiRj/Ri+Rj is
+set to the radius of the particle.
 
-The parameters *Kn*\ , *Kt*\ , *gamma\_n*, *gamma\_t*, *xmu* and *dampflag*
+The parameters *Kn*\ , *Kt*\ , *gamma_n*, *gamma_t*, *xmu* and *dampflag*
 have the same meaning and units as those specified with the
-:doc:`pair\_style gran/\* <pair_gran>` commands.  This means a NULL can be
-used for either *Kt* or *gamma\_t* as described on that page.  If a
+:doc:`pair_style gran/\* <pair_gran>` commands.  This means a NULL can be
+used for either *Kt* or *gamma_t* as described on that page.  If a
 NULL is used for *Kt*\ , then a default value is used where *Kt* = 2/7
-*Kn*\ .  If a NULL is used for *gamma\_t*, then a default value is used
-where *gamma\_t* = 1/2 *gamma\_n*.
+*Kn*\ .  If a NULL is used for *gamma_t*, then a default value is used
+where *gamma_t* = 1/2 *gamma_n*.
 
 All the model choices for cohesion, tangential friction, rolling
-friction and twisting friction supported by the :doc:`pair\_style granular <pair_granular>` through its *pair\_coeff* command are also
+friction and twisting friction supported by the :doc:`pair_style granular <pair_granular>` through its *pair_coeff* command are also
 supported for walls. These are discussed in greater detail on the doc
-page for :doc:`pair\_style granular <pair_granular>`.
+page for :doc:`pair_style granular <pair_granular>`.
 
 Note that you can choose a different force styles and/or different
 values for the wall/particle coefficients than for particle/particle
@@ -115,7 +111,8 @@ material.
 
 .. note::
 
-   As discussed on the doc page for :doc:`pair\_style gran/\* <pair_gran>`, versions of LAMMPS before 9Jan09 used a
+   As discussed on the doc page for :doc:`pair_style gran/\* <pair_gran>`,
+   versions of LAMMPS before 9Jan09 used a
    different equation for Hertzian interactions.  This means Hertizian
    wall/particle interactions have also changed.  They now include a
    sqrt(radius) term which was not present before.  Also the previous
@@ -125,10 +122,10 @@ material.
    appropriately in the current code to reproduce the results of a
    previous Hertzian monodisperse calculation.  For example, for the
    common case of a monodisperse system with particles of diameter 1, Kn,
-   Kt, gamma\_n, and gamma\_s should be set sqrt(2.0) larger than they were
+   Kt, gamma_n, and gamma_s should be set sqrt(2.0) larger than they were
    previously.
 
-The effective mass *m\_eff* in the formulas listed on the :doc:`pair\_style granular <pair_gran>` doc page is the mass of the particle for
+The effective mass *m_eff* in the formulas listed on the :doc:`pair_style granular <pair_gran>` doc page is the mass of the particle for
 particle/wall interactions (mass of wall is infinite).  If the
 particle is part of a rigid body, its mass is replaced by the mass of
 the rigid body in those formulas.  This is determined by searching for
@@ -155,7 +152,6 @@ be wiggled in the z dimension.
 Each timestep, the position of a wiggled wall in the appropriate *dim*
 is set according to this equation:
 
-
 .. parsed-literal::
 
    position = coord + A - A cos (omega \* delta)
@@ -175,17 +171,17 @@ the clockwise direction for *vshear* > 0 or counter-clockwise for
 *vshear* < 0.  In this case, *vshear* is the tangential velocity of
 the wall at whatever *radius* has been defined.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the shear friction state of atoms interacting with the
 wall to :doc:`binary restart files <restart>`, so that a simulation can
 continue correctly if granular potentials with shear "history" effects
-are being used.  See the :doc:`read\_restart <read_restart>` command for
+are being used.  See the :doc:`read_restart <read_restart>` command for
 info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
 access by various :doc:`output commands <Howto_output>`.  No parameter
 of this fix can be used with the *start/stop* keywords of the
@@ -193,7 +189,6 @@ of this fix can be used with the *start/stop* keywords of the
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the GRANULAR package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -205,12 +200,7 @@ Related commands
 
 :doc:`fix move <fix_move>`,
 :doc:`fix wall/gran/region <fix_wall_gran_region>`,
-:doc:`pair\_style gran/\* <pair_gran>`
-:doc:`pair\_style granular <pair_granular>`
+:doc:`pair_style gran/\* <pair_gran>`
+:doc:`pair_style granular <pair_granular>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

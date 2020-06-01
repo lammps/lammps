@@ -6,7 +6,6 @@ fix wall/gran/region command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID wall/gran/region fstyle fstyle_params wallstyle regionID
@@ -14,15 +13,15 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * wall/region = style name of this fix command
 * fstyle = style of force interactions between particles and wall
-  
+
   .. parsed-literal::
-  
+
        possible choices: hooke, hooke/history, hertz/history, granular
 
-* fstyle\_params = parameters associated with force interaction style
-  
+* fstyle_params = parameters associated with force interaction style
+
   .. parsed-literal::
-  
+
        For *hooke*\ , *hooke/history*\ , and *hertz/history*\ , *fstyle_params* are:
              Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below)
              Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below)
@@ -31,9 +30,8 @@ Syntax
              xmu = static yield criterion (unitless value between 0.0 and 1.0e4)
              dampflag = 0 or 1 if tangential damping force is excluded or included
 
-  
   .. parsed-literal::
-  
+
        For *granular*\ , *fstyle_params* are set using the same syntax as for the *pair_coeff* command of :doc:`pair_style granular <pair_granular>`
 
 * wallstyle = region (see :doc:`fix wall/gran <fix_wall_gran>` for options for other kinds of walls)
@@ -42,8 +40,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix wall all wall/gran/region hooke/history 1000.0 200.0 200.0 100.0 0.5 1 region myCone
    fix 3 all wall/gran/region granular hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 damping velocity region myBox
@@ -62,7 +59,7 @@ non-granular particles and simpler wall geometries, respectively.
 Here are snapshots of example models using this command.
 Corresponding input scripts can be found in examples/granregion.
 Click on the images to see a bigger picture.  Movies of these
-simulations are `here on the Movies page <http://lammps.sandia.gov/movies.html#granregion>`_ of the LAMMPS
+simulations are `here on the Movies page <https://lammps.sandia.gov/movies.html#granregion>`_ of the LAMMPS
 web site.
 
 .. image:: JPG/gran_funnel_small.jpg
@@ -71,9 +68,7 @@ web site.
 .. image:: JPG/gran_mixer_small.jpg
    :target: JPG/gran_mixer.png
 
-
 ----------
-
 
 The distance between a particle and the region boundary is the
 distance to the nearest point on the region surface.  The force the
@@ -81,7 +76,7 @@ wall exerts on the particle is along the direction between that point
 and the particle center, which is the direction normal to the surface
 at that point.  Note that if the region surface is comprised of
 multiple "faces", then each face can exert a force on the particle if
-it is close enough.  E.g. for :doc:`region\_style block <region>`, a
+it is close enough.  E.g. for :doc:`region_style block <region>`, a
 particle in the interior, near a corner of the block, could feel wall
 forces from 1, 2, or 3 faces of the block.
 
@@ -154,50 +149,51 @@ corresponding manner.
 
 The nature of the wall/particle interactions are determined by the
 *fstyle* setting.  It can be any of the styles defined by the
-:doc:`pair\_style gran/\* <pair_gran>` or the more general `pair\_style granular <pair_granular.html">`_ commands.  Currently the options are
-*hooke*\ , *hooke/history*\ , or *hertz/history* for the former, and
-*granular* with all the possible options of the associated
-*pair\_coeff* command for the latter.  The equation for the force
+:doc:`pair_style gran/\* <pair_gran>` or the more general
+:doc:`pair_style granular <pair_granular>` commands.  Currently the
+options are *hooke*\ , *hooke/history*\ , or *hertz/history* for the
+former, and *granular* with all the possible options of the associated
+*pair_coeff* command for the latter.  The equation for the force
 between the wall and particles touching it is the same as the
-corresponding equation on the :doc:`pair\_style gran/\* <pair_gran>` and
-:doc:`pair\_style\_granular <pair_granular>` doc pages, but the effective
-radius is calculated using the radius of the particle and the radius
-of curvature of the wall at the contact point.
+corresponding equation on the :doc:`pair_style gran/\* <pair_gran>` and
+:doc:`pair_style granular <pair_granular>` doc pages, but the effective
+radius is calculated using the radius of the particle and the radius of
+curvature of the wall at the contact point.
 
 Specifically, delta = radius - r = overlap of particle with wall,
-m\_eff = mass of particle, and RiRj/Ri+Rj is the effective radius, with
+m_eff = mass of particle, and RiRj/Ri+Rj is the effective radius, with
 Rj replaced by the radius of curvature of the wall at the contact
 point.  The radius of curvature can be negative for a concave wall
 section, e.g. the interior of cylinder.  For a flat wall, delta =
-radius - r = overlap of particle with wall, m\_eff = mass of particle,
+radius - r = overlap of particle with wall, m_eff = mass of particle,
 and the effective radius of contact is just the radius of the
 particle.
 
-The parameters *Kn*\ , *Kt*\ , *gamma\_n*, *gamma\_t*, *xmu* and *dampflag*
+The parameters *Kn*\ , *Kt*\ , *gamma_n*, *gamma_t*, *xmu* and *dampflag*
 have the same meaning and units as those specified with the
-:doc:`pair\_style gran/\* <pair_gran>` commands.  This means a NULL can be
-used for either *Kt* or *gamma\_t* as described on that page.  If a
+:doc:`pair_style gran/\* <pair_gran>` commands.  This means a NULL can be
+used for either *Kt* or *gamma_t* as described on that page.  If a
 NULL is used for *Kt*\ , then a default value is used where *Kt* = 2/7
-*Kn*\ .  If a NULL is used for *gamma\_t*, then a default value is used
-where *gamma\_t* = 1/2 *gamma\_n*.
+*Kn*\ .  If a NULL is used for *gamma_t*, then a default value is used
+where *gamma_t* = 1/2 *gamma_n*.
 
 All the model choices for cohesion, tangential friction, rolling
-friction and twisting friction supported by the :doc:`pair\_style granular <pair_granular>` through its *pair\_coeff* command are also
+friction and twisting friction supported by the :doc:`pair_style granular <pair_granular>` through its *pair_coeff* command are also
 supported for walls. These are discussed in greater detail on the doc
-page for :doc:`pair\_style granular <pair_granular>`.
+page for :doc:`pair_style granular <pair_granular>`.
 
 Note that you can choose a different force styles and/or different
 values for the 6 wall/particle coefficients than for particle/particle
 interactions.  E.g. if you wish to model the wall as a different
 material.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 Similar to :doc:`fix wall/gran <fix_wall_gran>` command, this fix writes
 the shear friction state of atoms interacting with the wall to :doc:`binary restart files <restart>`, so that a simulation can continue
 correctly if granular potentials with shear "history" effects are
 being used.  This fix also includes info about a moving region in the
-restart file.  See the :doc:`read\_restart <read_restart>` command for
+restart file.  See the :doc:`read_restart <read_restart>` command for
 info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
@@ -205,7 +201,7 @@ uninterrupted fashion.
 .. note::
 
    Information about region definitions is NOT included in restart
-   files, as discussed on the :doc:`read\_restart <read_restart>` doc page.
+   files, as discussed on the :doc:`read_restart <read_restart>` doc page.
    So you must re-define your region and if it is a moving region, define
    its motion attributes in a way that is consistent with the simulation
    that wrote the restart file.  In particular, if you want to change the
@@ -219,7 +215,7 @@ uninterrupted fashion.
    use the same fix ID for fix wall/gran/region, but assign it a region
    with a different region ID.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
 access by various :doc:`output commands <Howto_output>`.  No parameter
 of this fix can be used with the *start/stop* keywords of the
@@ -228,22 +224,16 @@ of this fix can be used with the *start/stop* keywords of the
 Restrictions
 """"""""""""
 
-
 This fix is part of the GRANULAR package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""
 
-:doc:`fix\_move <fix_move>`,
+:doc:`fix_move <fix_move>`,
 :doc:`fix wall/gran <fix_wall_gran>`,
 :doc:`fix wall/region <fix_wall_region>`,
-:doc:`pair\_style granular <pair_gran>`,
+:doc:`pair_style granular <pair_gran>`,
 :doc:`region <region>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

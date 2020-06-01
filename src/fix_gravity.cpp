@@ -31,7 +31,7 @@ using namespace FixConst;
 using namespace MathConst;
 
 enum{CHUTE,SPHERICAL,VECTOR};
-enum{CONSTANT,EQUAL};
+enum{CONSTANT,EQUAL};          // same as FixPour
 
 /* ---------------------------------------------------------------------- */
 
@@ -62,7 +62,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
     mstyle = CONSTANT;
   }
 
-  int iarg;
+  int iarg=4;
 
   if (strcmp(arg[4],"chute") == 0) {
     if (narg < 6) error->all(FLERR,"Illegal fix gravity command");
@@ -153,6 +153,16 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
 
   eflag = 0;
   egrav = 0.0;
+
+  // set gravity components once and for all if CONSTANT
+
+  varflag = CONSTANT;
+  if (mstyle != CONSTANT || vstyle != CONSTANT || pstyle != CONSTANT ||
+      tstyle != CONSTANT || xstyle != CONSTANT || ystyle != CONSTANT ||
+      zstyle != CONSTANT) varflag = EQUAL;
+
+  if (varflag == CONSTANT) set_acceleration();
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -241,15 +251,6 @@ void FixGravity::init()
     if (!input->variable->equalstyle(zvar))
       error->all(FLERR,"Variable for fix gravity is invalid style");
   }
-
-  varflag = CONSTANT;
-  if (mstyle != CONSTANT || vstyle != CONSTANT || pstyle != CONSTANT ||
-      tstyle != CONSTANT || xstyle != CONSTANT || ystyle != CONSTANT ||
-      zstyle != CONSTANT) varflag = EQUAL;
-
-  // set gravity components once and for all
-
-  if (varflag == CONSTANT) set_acceleration();
 }
 
 /* ---------------------------------------------------------------------- */

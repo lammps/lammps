@@ -76,9 +76,9 @@ void EwaldDipole::init()
   if (dipoleflag && q2)
     error->all(FLERR,"Cannot (yet) use charges with Kspace style EwaldDipole");
 
-  triclinic_check();
-
   // no triclinic ewald dipole (yet)
+
+  triclinic_check();
 
   triclinic = domain->triclinic;
   if (triclinic)
@@ -99,6 +99,10 @@ void EwaldDipole::init()
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
       error->all(FLERR,"Incorrect boundaries with slab EwaldDipole");
   }
+
+  // compute two charge force
+
+  two_charge();
 
   // extract short-range Coulombic cutoff from pair style
 
@@ -489,7 +493,7 @@ void EwaldDipole::compute(int eflag, int vflag)
 
   // sum global energy across Kspace vevs and add in volume-dependent term
   // taking the re-part of struct_fact_i x struct_fact_j
-  // substracting self energy and scaling
+  // subtracting self energy and scaling
 
   if (eflag_global) {
     for (k = 0; k < kcount; k++) {

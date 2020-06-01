@@ -6,7 +6,6 @@ fix nve/limit command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nve/limit xmax
@@ -18,8 +17,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nve/limit 0.1
 
@@ -42,7 +40,7 @@ in a single timestep.  *Xmax* is specified in distance units; see the
 consistent with the neighbor skin distance and the frequency of
 neighbor list re-building, so that pairwise interactions are not
 missed on successive timesteps as atoms move.  See the
-:doc:`neighbor <neighbor>` and :doc:`neigh\_modify <neigh_modify>` commands
+:doc:`neighbor <neighbor>` and :doc:`neigh_modify <neigh_modify>` commands
 for details.
 
 Note that if a velocity reset occurs the integrator will not conserve
@@ -62,9 +60,9 @@ very large for overlapped configurations.
    that need this fix, then turn fix shake on when doing normal dynamics
    with a fixed-size timestep.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix computes a global scalar which can be accessed by various
@@ -88,11 +86,6 @@ Related commands
 """"""""""""""""
 
 :doc:`fix nve <fix_nve>`, :doc:`fix nve/noforce <fix_nve_noforce>`,
-:doc:`pair\_style soft <pair_soft>`
+:doc:`pair_style soft <pair_soft>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

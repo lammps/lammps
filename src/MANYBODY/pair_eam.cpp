@@ -27,7 +27,10 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "update.h"
 #include "utils.h"
+#include "tokenizer.h"
+#include "potential_file_reader.h"
 
 using namespace LAMMPS_NS;
 
@@ -39,6 +42,7 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
 {
   restartinfo = 0;
   manybody_flag = 1;
+  embedstep = -1;
 
   nmax = 0;
   rho = NULL;
@@ -246,6 +250,7 @@ void PairEAM::compute(int eflag, int vflag)
   // communicate derivative of embedding function
 
   comm->forward_comm_pair(this);
+  embedstep = update->ntimestep;
 
   // compute forces on each atom
   // loop over neighbors of my atoms
@@ -423,6 +428,7 @@ void PairEAM::init_style()
   array2spline();
 
   neighbor->request(this,instance_me);
+  embedstep = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -458,54 +464,59 @@ void PairEAM::read_file(char *filename)
 {
   Funcfl *file = &funcfl[nfuncfl-1];
 
-  int me = comm->me;
-  FILE *fptr;
-  char line[MAXLINE];
+  // read potential file
+  if(comm->me == 0) {
+    PotentialFileReader reader(lmp, filename, "EAM");
 
-  if (me == 0) {
-    fptr = force->open_potential(filename);
-    if (fptr == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open EAM potential file %s",filename);
-      error->one(FLERR,str);
+    try {
+      char * line = nullptr;
+
+      reader.skip_line();
+
+      line = reader.next_line(2);
+      ValueTokenizer values(line);
+      values.next_int(); // ignore
+      file->mass = values.next_double();
+
+      line = reader.next_line(5);
+      values = ValueTokenizer(line);
+      file->nrho = values.next_int();
+      file->drho = values.next_double();
+      file->nr   = values.next_int();
+      file->dr   = values.next_double();
+      file->cut  = values.next_double();
+
+      if ((file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
+        error->one(FLERR,"Invalid EAM potential file");
+
+      memory->create(file->frho, (file->nrho+1), "pair:frho");
+      memory->create(file->rhor, (file->nr+1), "pair:rhor");
+      memory->create(file->zr, (file->nr+1), "pair:zr");
+
+      reader.next_dvector(file->nrho, &file->frho[1]);
+      reader.next_dvector(file->nr, &file->zr[1]);
+      reader.next_dvector(file->nr, &file->rhor[1]);
+    } catch (TokenizerException & e) {
+      error->one(FLERR, e.what());
     }
   }
 
-  int tmp,nwords;
-  if (me == 0) {
-    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
-    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
-    sscanf(line,"%d %lg",&tmp,&file->mass);
-    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
-    nwords = sscanf(line,"%d %lg %d %lg %lg",
-           &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
+  MPI_Bcast(&file->mass, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->nrho, 1, MPI_INT, 0, world);
+  MPI_Bcast(&file->drho, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->nr, 1, MPI_INT, 0, world);
+  MPI_Bcast(&file->dr, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->cut, 1, MPI_DOUBLE, 0, world);
+
+  if(comm->me != 0) {
+    memory->create(file->frho, (file->nrho+1), "pair:frho");
+    memory->create(file->rhor, (file->nr+1), "pair:rhor");
+    memory->create(file->zr, (file->nr+1), "pair:zr");
   }
 
-  MPI_Bcast(&nwords,1,MPI_INT,0,world);
-  MPI_Bcast(&file->mass,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&file->nrho,1,MPI_INT,0,world);
-  MPI_Bcast(&file->drho,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&file->nr,1,MPI_INT,0,world);
-  MPI_Bcast(&file->dr,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&file->cut,1,MPI_DOUBLE,0,world);
-
-  if ((nwords != 5) || (file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
-    error->all(FLERR,"Invalid EAM potential file");
-
-  memory->create(file->frho,(file->nrho+1),"pair:frho");
-  memory->create(file->rhor,(file->nr+1),"pair:rhor");
-  memory->create(file->zr,(file->nr+1),"pair:zr");
-
-  if (me == 0) grab(fptr,file->nrho,&file->frho[1]);
-  MPI_Bcast(&file->frho[1],file->nrho,MPI_DOUBLE,0,world);
-
-  if (me == 0) grab(fptr,file->nr,&file->zr[1]);
-  MPI_Bcast(&file->zr[1],file->nr,MPI_DOUBLE,0,world);
-
-  if (me == 0) grab(fptr,file->nr,&file->rhor[1]);
-  MPI_Bcast(&file->rhor[1],file->nr,MPI_DOUBLE,0,world);
-
-  if (me == 0) fclose(fptr);
+  MPI_Bcast(&file->frho[1], file->nrho, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->zr[1], file->nr, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->rhor[1], file->nr, MPI_DOUBLE, 0, world);
 }
 
 /* ----------------------------------------------------------------------
@@ -778,26 +789,6 @@ void PairEAM::interpolate(int n, double delta, double *f, double **spline)
   }
 }
 
-/* ----------------------------------------------------------------------
-   grab n values from file fp and put them in list
-   values can be several to a line
-   only called by proc 0
-------------------------------------------------------------------------- */
-
-void PairEAM::grab(FILE *fptr, int n, double *list)
-{
-  char *ptr;
-  char line[MAXLINE];
-
-  int i = 0;
-  while (i < n) {
-    utils::sfgets(FLERR,line,MAXLINE,fptr,NULL,error);
-    ptr = strtok(line," \t\n\r\f");
-    list[i++] = atof(ptr);
-    while ((ptr = strtok(NULL," \t\n\r\f"))) list[i++] = atof(ptr);
-  }
-}
-
 /* ---------------------------------------------------------------------- */
 
 double PairEAM::single(int i, int j, int itype, int jtype,
@@ -807,6 +798,14 @@ double PairEAM::single(int i, int j, int itype, int jtype,
   int m;
   double r,p,rhoip,rhojp,z2,z2p,recip,phi,phip,psip;
   double *coeff;
+
+  if (!numforce)
+    error->all(FLERR,"EAM embedding data required for this calculation is missing");
+
+  if ((comm->me == 0) && (embedstep != update->ntimestep)) {
+    error->warning(FLERR,"EAM embedding data not computed for this time step ");
+    embedstep = update->ntimestep;
+  }
 
   if (numforce[i] > 0) {
     p = rho[i]*rdrho + 1.0;
@@ -916,6 +915,9 @@ void PairEAM::swap_eam(double *fp_caller, double **fp_caller_hold)
   double *tmp = fp;
   fp = fp_caller;
   *fp_caller_hold = tmp;
+
+  // skip warning about out-of-sync timestep, since we already warn in the caller
+  embedstep = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */

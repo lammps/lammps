@@ -40,6 +40,7 @@ using namespace MathConst;
 
 enum{ATOM,MOLECULE};
 enum{ONE,RANGE,POLY};
+enum{CONSTANT,EQUAL};    // same as FixGravity
 
 #define EPSILON 0.001
 #define SMALL 1.0e-10
@@ -317,6 +318,10 @@ void FixPour::init()
   int ifix = modify->find_fix_by_style("^gravity");
   if (ifix == -1)
     error->all(FLERR,"No fix gravity defined for fix pour");
+
+  int varflag = ((FixGravity *) modify->fix[ifix])->varflag;
+  if (varflag != CONSTANT)
+    error->all(FLERR,"Fix gravity for fix pour must be constant");
 
   double xgrav = ((FixGravity *) modify->fix[ifix])->xgrav;
   double ygrav = ((FixGravity *) modify->fix[ifix])->ygrav;
@@ -632,7 +637,13 @@ void FixPour::pre_exchange()
         int n = atom->nlocal - 1;
         atom->tag[n] = maxtag_all + m+1;
         if (mode == MOLECULE) {
-          if (atom->molecule_flag) atom->molecule[n] = maxmol_all+1;
+          if (atom->molecule_flag) {
+            if (onemols[imol]->moleculeflag) {
+              atom->molecule[n] = maxmol_all + onemols[imol]->molecule[m];
+            } else {
+              atom->molecule[n] = maxmol_all+1;
+            }
+          }
           if (atom->molecular == 2) {
             atom->molindex[n] = 0;
             atom->molatom[n] = m;
@@ -666,7 +677,13 @@ void FixPour::pre_exchange()
       fixshake->set_molecule(nlocalprev,maxtag_all,imol,coord,vnew,quat);
 
     maxtag_all += natom;
-    if (mode == MOLECULE && atom->molecule_flag) maxmol_all++;
+    if (mode == MOLECULE && atom->molecule_flag) {
+      if (onemols[imol]->moleculeflag) {
+        maxmol_all += onemols[imol]->nmolecules;
+      } else {
+        maxmol_all++;
+      }
+    }
   }
 
   // warn if not successful with all insertions b/c too many attempts

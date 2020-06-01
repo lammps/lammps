@@ -36,24 +36,12 @@ namespace LAMMPS_NS {
      */
     bool strmatch(std::string text, std::string pattern);
 
-    /** Categories of special arguments for cfvarg() function
+    /** \brief Send message to screen and logfile, if available
      *
-     * Enum starts from 100 to avoid conflicts with other local define flags
+     *  \param lmp   pointer to LAMMPS class instance
+     *  \param mesg  message to be printed
      */
-    enum {NONE=100,              /// does not match any category
-          COMPUTE,               /// processed a compute
-          FIX,                   /// processed a fix
-          VARIABLE               /// processed a variable
-    };
-
-    /** \brief Convenience function to process 'c_', 'f_', and 'v_' arguments
-     *
-     *  \param mode types to search for. 1-3 char string from 'c', 'f', or 'v'
-     *  \param arg  argument string to test against the prefixes
-     *  \param cfv_id name or ID of the compute, fix, or variable
-     *  \return utils::COMPUTE, utils::FIX, utils::VARIABLE or utils::NONE
-     */
-    int cfvarg(std::string mode, const char *arg, char *&cfv_id);
+    void logmesg(LAMMPS *lmp, const std::string &mesg);
 
     /** \brief safe wrapper around fgets() which aborts on errors
      *  or EOF and prints a suitable error message to help debugging
@@ -91,8 +79,8 @@ namespace LAMMPS_NS {
      *  \param lmp   pointer to top-level LAMMPS class instance
      *  \return string usable for error messages
      */
-    std::string check_packages_for_style(std::string style,
-                                         std::string name, LAMMPS *lmp);
+    std::string check_packages_for_style(const std::string &style,
+                                         const std::string &name, LAMMPS *lmp);
 
     /** \brief Convert a string to a floating point number while checking
         if it is a valid floating point or integer number
@@ -145,6 +133,36 @@ namespace LAMMPS_NS {
      */
     tagint tnumeric(const char *file, int line, const char *str,
                     bool do_abort, LAMMPS *lmp);
+
+
+    /**
+     * \brief Trim anything from '#' onward
+     * \param line string that should be trimmed
+     * \return new string without comment (string)
+     */
+    std::string trim_comment(const std::string & line);
+
+    /**
+     * \brief Count words in a single line, trim anything from '#' onward
+     * \param text string that should be trimmed and searched
+     * \param seperators string containing characters that will be treated as whitespace
+     * \return number of words found
+     */
+    size_t count_words(const std::string & text, const std::string & seperators = " \t\r\n\f");
+
+    /**
+     * \brief Check if string can be converted to valid integer
+     * \param text string that should be checked
+     * \return true, if string contains valid integer, false otherwise
+     */
+    bool is_integer(const std::string & str);
+
+    /**
+     * \brief Check if string can be converted to valid floating-point number
+     * \param text string that should be checked
+     * \return true, if string contains valid floating-point number, false otherwise
+     */
+    bool is_double(const std::string & str);
   }
 }
 

@@ -1,20 +1,19 @@
-.. index:: neigh\_modify
+.. index:: neigh_modify
 
-neigh\_modify command
-=====================
+neigh_modify command
+====================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    neigh_modify keyword values ...
 
 * one or more keyword/value pairs may be listed
-  
+
   .. parsed-literal::
-  
+
      keyword = *delay* or *every* or *check* or *once* or *cluster* or *include* or *exclude* or *page* or *one* or *binsize*
        *delay* value = N
          N = delay building until this many steps since last build
@@ -49,13 +48,10 @@ Syntax
        *binsize* value = size
          size = bin size for neighbor list construction (distance units)
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    neigh_modify every 2 delay 10 check yes page 100000
    neigh_modify exclude type 2 3
@@ -92,7 +88,7 @@ move far enough that the neighbor list should be rebuilt, e.g. running
 a simulation of a cold crystal.  Note that it is not that expensive to
 check if neighbor lists should be rebuilt.
 
-When the rRESPA integrator is used (see the :doc:`run\_style <run_style>`
+When the rRESPA integrator is used (see the :doc:`run_style <run_style>`
 command), the *every* and *delay* parameters refer to the longest
 (outermost) timestep.
 
@@ -107,7 +103,7 @@ nearby periodic images.  The only way this should happen is if the
 pairwise cutoff is so short that atoms that are part of the same
 interaction are not communicated as ghost atoms.  This is an unusual
 model (e.g. no pair interactions at all) and the problem can be fixed
-by use of the :doc:`comm\_modify cutoff <comm_modify>` command.  Note
+by use of the :doc:`comm_modify cutoff <comm_modify>` command.  Note
 that to save time, the default *cluster* setting is *no*\ , so that this
 check is not performed.
 
@@ -116,7 +112,7 @@ atoms in the specified group.  This can be useful for models where a
 large portion of the simulation is particles that do not interact with
 other particles or with each other via pairwise interactions.  The
 group specified with this option must also be specified via the
-:doc:`atom\_modify first <atom_modify>` command.  Note that specifying
+:doc:`atom_modify first <atom_modify>` command.  Note that specifying
 "all" as the group-ID effectively turns off the *include* option.
 
 The *exclude* option turns off pairwise interactions between certain
@@ -131,7 +127,6 @@ sample scenarios where this is useful:
   to freeze a wall or portion of a bio-molecule.
 * When one or more rigid bodies are specified, interactions within each
   body can be turned off to save needless computation.  See the :doc:`fix rigid <fix_rigid>` command for more details.
-
 
 The *exclude type* option turns off the pairwise interaction if one
 atom is of type M and the other of type N.  M can equal N.  The
@@ -150,21 +145,21 @@ The other exclude options are more expensive if specified multiple
 times; they require one check for each time they have been specified.
 
 Note that the exclude options only affect pairwise interactions; see
-the :doc:`delete\_bonds <delete_bonds>` command for information on
+the :doc:`delete_bonds <delete_bonds>` command for information on
 turning off bond interactions.
 
 .. note::
 
    Excluding pairwise interactions will not work correctly when
    also using a long-range solver via the
-   :doc:`kspace\_style <kspace_style>` command.  LAMMPS will give a warning
+   :doc:`kspace_style <kspace_style>` command.  LAMMPS will give a warning
    to this effect.  This is because the short-range pairwise interaction
    needs to subtract off a term from the total energy for pairs whose
    short-range interaction is excluded, to compensate for how the
    long-range solver treats the interaction.  This is done correctly for
    pairwise interactions that are excluded (or weighted) via the
-   :doc:`special\_bonds <special_bonds>` command.  But it is not done for
-   interactions that are excluded via these neigh\_modify exclude options.
+   :doc:`special_bonds <special_bonds>` command.  But it is not done for
+   interactions that are excluded via these neigh_modify exclude options.
 
 The *page* and *one* options affect how memory is allocated for the
 neighbor lists.  For most simulations the default settings for these
@@ -182,10 +177,10 @@ atom can have.
    LAMMPS can crash without an error message if the number of
    neighbors for a single particle is larger than the *page* setting,
    which means it is much, much larger than the *one* setting.  This is
-   because LAMMPS doesn't error check these limits for every pairwise
+   because LAMMPS does not error check these limits for every pairwise
    interaction (too costly), but only after all the particle's neighbors
    have been found.  This problem usually means something is very wrong
-   with the way you've setup your problem (particle spacing, cutoff
+   with the way you have setup your problem (particle spacing, cutoff
    length, neighbor skin distance, etc).  If you really expect that many
    neighbors per particle, then boost the *one* and *page* settings
    accordingly.
@@ -205,7 +200,6 @@ binsize of 1/2 the cutoff.
 Restrictions
 """"""""""""
 
-
 If the "delay" setting is non-zero, then it must be a multiple of the
 "every" setting.
 
@@ -219,7 +213,7 @@ space.
 Related commands
 """"""""""""""""
 
-:doc:`neighbor <neighbor>`, :doc:`delete\_bonds <delete_bonds>`
+:doc:`neighbor <neighbor>`, :doc:`delete_bonds <delete_bonds>`
 
 Default
 """""""
@@ -227,8 +221,3 @@ Default
 The option defaults are delay = 10, every = 1, check = yes, once = no,
 cluster = no, include = all (same as no include option defined),
 exclude = none, page = 100000, one = 2000, and binsize = 0.0.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

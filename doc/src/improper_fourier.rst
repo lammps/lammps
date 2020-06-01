@@ -1,24 +1,22 @@
-.. index:: improper\_style fourier
+.. index:: improper_style fourier
 
-improper\_style fourier command
-===============================
+improper_style fourier command
+==============================
 
-improper\_style fourier/omp command
-===================================
+improper_style fourier/omp command
+==================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style fourier
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style fourier
    improper_coeff 1 100.0 0.0 1.0 0.5 1
@@ -28,8 +26,9 @@ Description
 
 The *fourier* improper style uses the following potential:
 
-.. image:: Eqs/improper_fourier.jpg
-   :align: center
+.. math::
+
+   E = K [C_0 + C_1 \cos ( \omega) + C_2 \cos( 2 \omega) ]
 
 where K is the force constant, C0, C1, C2 are dimensionless coefficients,
 and omega is the angle between the IL axis and the IJK plane:
@@ -40,20 +39,18 @@ and omega is the angle between the IL axis and the IJK plane:
 If all parameter (see below) is not zero, the all the three possible angles will taken in account.
 
 The following coefficients must be defined for each improper type via
-the :doc:`improper\_coeff <improper_coeff>` command as in the example
+the :doc:`improper_coeff <improper_coeff>` command as in the example
 above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
-* K (energy)
-* C0 (unitless)
-* C1 (unitless)
-* C2 (unitless)
+* :math:`K` (energy)
+* :math:`C_0` (unitless)
+* :math:`C_1` (unitless)
+* :math:`C_2` (unitless)
 * all  (0 or 1, optional)
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -73,26 +70,18 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
 
-
 This angle style can only be used if LAMMPS was built with the
-USER\_MISC package.  See the :doc:`Build package <Build_package>` doc
+USER_MISC package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 Related commands
 """"""""""""""""
 
-:doc:`improper\_coeff <improper_coeff>`
+:doc:`improper_coeff <improper_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

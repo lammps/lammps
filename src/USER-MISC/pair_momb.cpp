@@ -37,7 +37,7 @@ static const char cite_momb[] =
        " solution-phase synthesis of shape-selective Ag nanoparticles.},\n"
   "volume = {118},\n"
   "number = {6},\n"
-  "url = {http://dx.doi.org/10.1021/jp412098n},\n"
+  "url = {https://doi.org/10.1021/jp412098n},\n"
   "doi = {10.1021/jp412098n},\n"
   "journal = {J. Phys. Chem. C},\n"
   "author = {Zhou, Ya, Wissam A. Saidi, and Kristen A. Fichthorn},\n"

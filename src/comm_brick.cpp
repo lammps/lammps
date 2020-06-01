@@ -567,7 +567,7 @@ void CommBrick::reverse_comm()
    atoms exchanged with all 6 stencil neighbors
    send out atoms that have left my box, receive ones entering my box
    atoms will be lost if not inside a stencil proc's box
-     can happen if atom moves outside of non-periodic bounary
+     can happen if atom moves outside of non-periodic boundary
      or if atom moves more than one proc away
    this routine called before every reneighboring
    for triclinic, atoms must be in lamda coords (0-1) before exchange is called

@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -12,10 +12,10 @@
 
 #include <cstring>
 #include <string>
-#include <map>
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
+#include "colvarparams.h"
 
 
 /// \file colvarparse.h Parsing functions for collective variables
@@ -23,37 +23,24 @@
 
 /// \brief Base class containing parsing functions; all objects which
 /// need to parse input inherit from this
-class colvarparse {
+class colvarparse : public colvarparams {
 
 public:
 
   /// Default constructor
-  inline colvarparse()
-  {
-    init();
-  }
+  colvarparse();
 
   /// Constructor that stores the object's config string
-  inline colvarparse(const std::string& conf)
-  {
-    init(conf);
-  }
+  colvarparse(const std::string& conf);
 
   /// Set the object ready to parse a new configuration string
-  inline void init()
-  {
-    config_string.clear();
-    clear_keyword_registry();
-  }
+  void init();
 
   /// Set a new config string for this object
-  inline void init(std::string const &conf)
-  {
-    if (! config_string.size()) {
-      init();
-      config_string = conf;
-    }
-  }
+  void init(std::string const &conf);
+
+  /// Default destructor
+  virtual ~colvarparse();
 
   /// Get the configuration string (includes comments)
   inline std::string const & get_config() const
@@ -285,14 +272,18 @@ public:
   /// skipping other blocks
   class read_block {
 
-    std::string const   key;
+    /// The keyword that identifies the block
+    std::string const key;
+
+    /// Where to keep the data (may be NULL)
     std::string * const data;
 
   public:
-    inline read_block(std::string const &key_in, std::string &data_in)
-      : key(key_in), data(&data_in)
-    {}
-    inline ~read_block() {}
+
+    read_block(std::string const &key_in, std::string *data_in = NULL);
+
+    ~read_block();
+
     friend std::istream & operator >> (std::istream &is, read_block const &rb);
   };
 

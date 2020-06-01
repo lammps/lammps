@@ -91,7 +91,7 @@ namespace ATC {
             atc_->set_mass_mat_time_filter(MOMENTUM,TimeFilterManager::EXPLICIT_IMPLICIT);
             break;
           default:
-            throw ATC_Error("Uknown time integration type in ThermalTimeIntegrator::Initialize()");
+            throw ATC_Error("Unknown time integration type in ThermalTimeIntegrator::Initialize()");
         }
       }
 
@@ -102,7 +102,7 @@ namespace ATC {
             break;
           }
         default:
-          throw ATC_Error("Uknown time integration type in MomentumTimeIntegrator::Initialize()");
+          throw ATC_Error("Unknown time integration type in MomentumTimeIntegrator::Initialize()");
         }
       }
       else {
@@ -120,7 +120,7 @@ namespace ATC {
             break;
           }
         default:
-          throw ATC_Error("Uknown time integration type in MomentumTimeIntegrator::Initialize()");
+          throw ATC_Error("Unknown time integration type in MomentumTimeIntegrator::Initialize()");
         }
       }   
     }

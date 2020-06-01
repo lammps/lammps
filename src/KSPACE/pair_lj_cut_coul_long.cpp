@@ -53,6 +53,7 @@ PairLJCutCoulLong::PairLJCutCoulLong(LAMMPS *lmp) : Pair(lmp)
   writedata = 1;
   ftable = NULL;
   qdist = 0.0;
+  cut_respa = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

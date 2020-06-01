@@ -25,6 +25,7 @@
 #include "sna.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -535,7 +536,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
   }
   if (nwords != 2)
     error->all(FLERR,"Incorrect format in SNAP coefficient file");
@@ -576,7 +577,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     MPI_Bcast(&n,1,MPI_INT,0,world);
     MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords != 3)
       error->all(FLERR,"Incorrect format in SNAP coefficient file");
 
@@ -618,7 +619,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-      nwords = atom->count_words(line);
+      nwords = utils::count_words(line);
       if (nwords != 1)
         error->all(FLERR,"Incorrect format in SNAP coefficient file");
 
@@ -647,6 +648,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   quadraticflag = 0;
   alloyflag = 0;
   wselfallflag = 0;
+  chunksize = 2000;
 
   // open SNAP parameter file on proc 0
 
@@ -677,7 +679,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     if (nwords != 2)
@@ -714,6 +716,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       alloyflag = atoi(keyval);
     else if (strcmp(keywd,"wselfallflag") == 0)
       wselfallflag = atoi(keyval);
+    else if (strcmp(keywd,"chunksize") == 0)
+      chunksize = atoi(keyval);
     else
       error->all(FLERR,"Incorrect SNAP parameter file");
   }

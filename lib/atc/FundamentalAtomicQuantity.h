@@ -167,7 +167,7 @@ namespace ATC {
     // destructor
     virtual ~ComputedAtomQuantity() {};
 
-    /** resets compute, must be this way to accomodate atom sorting between runs */
+    /** resets compute, must be this way to accommodate atom sorting between runs */
     virtual void post_exchange() {this->needReset_ = true;};
 
     /** specialized reset to account for forcing lammps to perform the compute */

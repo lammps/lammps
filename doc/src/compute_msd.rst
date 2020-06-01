@@ -6,7 +6,6 @@ compute msd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID msd keyword values ...
@@ -15,19 +14,16 @@ Syntax
 * msd = style name of this compute command
 * zero or more keyword/value pairs may be appended
 * keyword = *com* or *average*
-  
+
   .. parsed-literal::
-  
+
        *com* value = *yes* or *no*
        *average* value = *yes* or *no*
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all msd
    compute 1 upper msd com yes average yes
@@ -80,7 +76,7 @@ solids undergoing thermal motion.
 
    Initial coordinates are stored in "unwrapped" form, by using the
    image flags associated with each atom.  See the :doc:`dump custom <dump>` command for a discussion of "unwrapped" coordinates.
-   See the Atoms section of the :doc:`read\_data <read_data>` command for a
+   See the Atoms section of the :doc:`read_data <read_data>` command for a
    discussion of image flags and how they are set for each atom.  You can
    reset the image flags (e.g. to 0) before invoking this compute by
    using the :doc:`set image <set>` command.
@@ -116,14 +112,9 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`compute msd/nongauss <compute_msd_nongauss>`, :doc:`compute displace\_atom <compute_displace_atom>`, :doc:`fix store/state <fix_store_state>`, :doc:`compute msd/chunk <compute_msd_chunk>`
+:doc:`compute msd/nongauss <compute_msd_nongauss>`, :doc:`compute displace_atom <compute_displace_atom>`, :doc:`fix store/state <fix_store_state>`, :doc:`compute msd/chunk <compute_msd_chunk>`
 
 Default
 """""""
 
 The option default are com = no, average = no.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

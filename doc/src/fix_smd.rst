@@ -6,7 +6,6 @@ fix smd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID smd type values keyword values
@@ -14,9 +13,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * smd  = style name of this fix command
 * mode = *cvel* or *cfor* to select constant velocity or constant force SMD
-  
+
   .. parsed-literal::
-  
+
        *cvel* values = K vel
          K = spring constant (force/distance units)
          vel = velocity of pulling (distance/time units)
@@ -24,9 +23,9 @@ Syntax
          force = pulling force (force units)
 
 * keyword = *tether* or *couple*
-  
+
   .. parsed-literal::
-  
+
        *tether* values = x y z R0
          x,y,z = point to which spring is tethered
          R0 = distance of end of spring from tether point (distance units)
@@ -35,13 +34,10 @@ Syntax
          x,y,z = direction of spring, automatically computed with 'auto'
          R0 = distance of end of spring (distance units)
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix  pull    cterm smd cvel 20.0 -0.00005 tether NULL NULL 100.0 0.0
    fix  pull    cterm smd cvel 20.0 -0.0001 tether 25.0 25 25.0 0.0
@@ -103,20 +99,20 @@ can then later be used to compute the potential of mean force (PMF)
 by averaging over multiple independent trajectories along the same
 pulling path.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 The fix stores the direction of the spring, current pulling target
 distance and the running PMF to :doc:`binary restart files <restart>`.
-See the :doc:`read\_restart <read_restart>` command for info on how to
+See the :doc:`read_restart <read_restart>` command for info on how to
 re-specify a fix in an input script that reads a restart file, so that
 the operation of the fix continues in an uninterrupted fashion.
 
-The :doc:`fix\_modify <fix_modify>` *virial* option is supported by this
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
 fix to add the contribution due to the added forces on atoms to the
 system's virial as part of :doc:`thermodynamic output <thermo_style>`.
 The default is *virial no*
 
-The :doc:`fix\_modify <fix_modify>` *respa* option is supported by
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by
 this fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
 integrator the fix is adding its forces. Default is the outermost level.
 
@@ -139,7 +135,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -153,13 +148,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Izrailev:
-
-
 
 **(Izrailev)** Izrailev, Stepaniants, Isralewitz, Kosztin, Lu, Molnar,
 Wriggers, Schulten. Computational Molecular Dynamics: Challenges,
@@ -168,17 +159,8 @@ Engineering, pp. 39-65. Springer-Verlag, Berlin, 1998.
 
 .. _Park:
 
-
-
 **(Park)** Park, Schulten, J. Chem. Phys. 120 (13), 5946 (2004)
 
 .. _Jarzynski:
 
-
-
 **(Jarzynski)** Jarzynski, Phys. Rev. Lett. 78, 2690 (1997)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

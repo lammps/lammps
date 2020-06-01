@@ -6,24 +6,23 @@ lattice command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    lattice style scale keyword values ...
 
 * style = *none* or *sc* or *bcc* or *fcc* or *hcp* or *diamond* or         *sq* or *sq2* or *hex* or *custom*
 * scale = scale factor between lattice and simulation box
-  
+
   .. parsed-literal::
-  
+
        scale = reduced density rho\* (for LJ units)
        scale = lattice constant in distance units (for all other units)
 
 * zero or more keyword/value pairs may be appended
 * keyword = *origin* or *orient* or *spacing* or *a1* or *a2* or *a3* or *basis*
-  
+
   .. parsed-literal::
-  
+
        *origin* values = x y z
          x,y,z = fractions of a unit cell (0 <= x,y,z < 1)
        *orient* values = dim i j k
@@ -36,13 +35,10 @@ Syntax
        *basis* values = x y z
          x,y,z = fractional coords of a basis atom (0 <= x,y,z < 1)
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    lattice fcc 3.52
    lattice hex 0.85
@@ -61,13 +57,13 @@ of the lattice command can be used to define a wide variety of
 crystallographic lattices.
 
 A lattice is used by LAMMPS in two ways.  First, the
-:doc:`create\_atoms <create_atoms>` command creates atoms on the lattice
+:doc:`create_atoms <create_atoms>` command creates atoms on the lattice
 points inside the simulation box.  Note that the
-:doc:`create\_atoms <create_atoms>` command allows different atom types
+:doc:`create_atoms <create_atoms>` command allows different atom types
 to be assigned to different basis atoms of the lattice.  Second, the
 lattice spacing in the x,y,z dimensions implied by the lattice, can be
 used by other commands as distance units
-(e.g. :doc:`create\_box <create_box>`, :doc:`region <region>` and
+(e.g. :doc:`create_box <create_box>`, :doc:`region <region>` and
 :doc:`velocity <velocity>`), which are often convenient to use when the
 underlying problem geometry is atoms on a lattice.
 
@@ -89,17 +85,15 @@ Note that the lattice command can be used multiple times in an input
 script.  Each time it is invoked, the lattice attributes are
 re-defined and are used for all subsequent commands (that use lattice
 attributes).  For example, a sequence of lattice,
-:doc:`region <region>`, and :doc:`create\_atoms <create_atoms>` commands
+:doc:`region <region>`, and :doc:`create_atoms <create_atoms>` commands
 can be repeated multiple times to build a poly-crystalline model with
 different geometric regions populated with atoms in different lattice
 orientations.
 
-
 ----------
 
-
 A lattice of style *none* does not define a unit cell and basis set,
-so it cannot be used with the :doc:`create\_atoms <create_atoms>`
+so it cannot be used with the :doc:`create_atoms <create_atoms>`
 command.  However it does define a lattice spacing via the specified
 scale parameter.  As explained above the lattice spacings in x,y,z can
 be used by other commands as distance units.  No additional
@@ -140,9 +134,7 @@ x of a basis atom within the unit cell is thus a linear combination of
 the unit cell's 3 edge vectors, i.e. x = bx a1 + by a2 + bz a3,
 where bx,by,bz are the 3 values specified for the *basis* keyword.
 
-
 ----------
-
 
 This sub-section discusses the arguments that determine how the
 idealized unit cell is transformed into a lattice of points within the
@@ -199,9 +191,7 @@ the Z direction.
    applied to a1,a2,a3 to rotate the original unit cell to a new
    orientation in the simulation box.
 
-
 ----------
-
 
 Several LAMMPS commands have the option to use distance units that are
 inferred from "lattice spacings" in the x,y,z box directions.
@@ -242,7 +232,7 @@ factor of 3.0 Angstroms, would have a lattice spacing of 3.0 in x and
    of the periodicity of the lattice in that direction.  Thus, if you
    create an orthogonal periodic simulation box whose size in a dimension
    is a multiple of the lattice spacing, and then fill it with atoms via
-   the :doc:`create\_atoms <create_atoms>` command, you will NOT necessarily
+   the :doc:`create_atoms <create_atoms>` command, you will NOT necessarily
    create a periodic system.  I.e. atoms may overlap incorrectly at the
    faces of the simulation box.
 
@@ -259,19 +249,16 @@ Note that whenever the lattice command is used, the values of the
 lattice spacings LAMMPS calculates are printed out.  Thus their effect
 in commands that use the spacings should be decipherable.
 
-
 ----------
-
 
 Example commands for generating a Wurtzite crystal (courtesy
 of Aidan Thompson), with its 8 atom unit cell.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable a equal  4.340330
-   variable b equal  $a\*sqrt(3.0)
-   variable c equal  $a\*sqrt(8.0/3.0)
+   variable b equal  $a*sqrt(3.0)
+   variable c equal  $a*sqrt(8.0/3.0)
 
    variable 1_3 equal 1.0/3.0
    variable 2_3 equal 2.0/3.0
@@ -301,35 +288,26 @@ of Aidan Thompson), with its 8 atom unit cell.
            basis   7       2       &
            basis   8       2
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The *a1,a2,a3,basis* keywords can only be used with style *custom*\ .
 
 Related commands
 """"""""""""""""
 
-:doc:`dimension <dimension>`, :doc:`create\_atoms <create_atoms>`,
+:doc:`dimension <dimension>`, :doc:`create_atoms <create_atoms>`,
 :doc:`region <region>`
 
 Default
 """""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    lattice none 1.0
 
 For other lattice styles, the option defaults are origin = 0.0 0.0
 0.0, orient = x 1 0 0, orient = y 0 1 0, orient = z 0 0 1, a1 = 1 0 0,
 a2 = 0 1 0, and a3 = 0 0 1.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -225,6 +225,10 @@ void PPPM::init()
     error->all(FLERR,str);
   }
 
+  // compute two charge force
+
+  two_charge();
+
   // extract short-range Coulombic cutoff from pair style
 
   triclinic = domain->triclinic;
@@ -814,7 +818,7 @@ void PPPM::allocate()
                           "pppm:drho_coeff");
 
   // create 2 FFTs and a Remap
-  // 1st FFT keeps data in FFT decompostion
+  // 1st FFT keeps data in FFT decomposition
   // 2nd FFT returns data in 3d brick decomposition
   // remap takes data from 3d brick to FFT decomposition
 
@@ -2561,7 +2565,7 @@ void PPPM::fieldforce_ad()
     eky *= hy_inv;
     ekz *= hz_inv;
 
-    // convert E-field to force and substract self forces
+    // convert E-field to force and subtract self forces
 
     const double qfactor = qqrd2e * scale;
 

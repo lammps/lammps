@@ -40,8 +40,6 @@ class PairLJCutTholeLong : public Pair {
   virtual void read_restart_settings(FILE *);
   void write_data(FILE *);
   void write_data_all(FILE *);
-  virtual double single(int, int, int, int, double, double, double, double &);
-
   virtual void *extract(const char *, int &);
 
  protected:

@@ -55,6 +55,7 @@ PairLJLongCoulLong::PairLJLongCoulLong(LAMMPS *lmp) : Pair(lmp)
   ftable = NULL;
   fdisptable = NULL;
   qdist = 0.0;
+  cut_respa = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -426,10 +427,17 @@ void PairLJLongCoulLong::write_data(FILE *fp)
 
 void PairLJLongCoulLong::write_data_all(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g\n",i,j,
-              epsilon_read[i][j],sigma_read[i][j],cut_lj_read[i][j]);
+  for (int i = 1; i <= atom->ntypes; i++) {
+    for (int j = i; j <= atom->ntypes; j++) {
+      if (ewald_order & (1<<6)) {
+        fprintf(fp,"%d %d %g %g\n",i,j,
+                epsilon_read[i][j],sigma_read[i][j]);
+      } else {
+        fprintf(fp,"%d %d %g %g %g\n",i,j,
+                epsilon_read[i][j],sigma_read[i][j],cut_lj_read[i][j]);
+      }
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

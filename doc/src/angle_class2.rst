@@ -15,14 +15,12 @@ angle_style class2/p6 command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    angle_style class2
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -43,7 +41,6 @@ The *class2* angle style uses the potential
    E_{bb} & = M (r_{ij} - r_1) (r_{jk} - r_2) \\
    E_{ba} & = N_1 (r_{ij} - r_1) (\theta - \theta_0) + N_2(r_{jk} - r_2)(\theta - \theta_0)
 
-
 where :math:`E_a` is the angle term, :math:`E_{bb}` is a bond-bond term, and :math:`E_{ba}` is a
 bond-angle term.  :math:`\theta_0` is the equilibrium angle and :math:`r_1` and :math:`r_2` are
 the equilibrium bond lengths.
@@ -51,9 +48,9 @@ the equilibrium bond lengths.
 See :ref:`(Sun) <angle-Sun>` for a description of the COMPASS class2 force field.
 
 Coefficients for the :math:`E_a`, :math:`E_{bb}`, and :math:`E_{ba}` formulas must be defined for
-each angle type via the :doc:`angle\_coeff <angle_coeff>` command as in
+each angle type via the :doc:`angle_coeff <angle_coeff>` command as in
 the example above, or in the data file or restart files read by the
-:doc:`read\_data <read_data>` or :doc:`read\_restart <read_restart>`
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands.
 
 These are the 4 coefficients for the :math:`E_a` formula:
@@ -66,7 +63,7 @@ These are the 4 coefficients for the :math:`E_a` formula:
 :math:`\theta_0` is specified in degrees, but LAMMPS converts it to radians
 internally; hence the units of the various :math:`K` are in per-radian.
 
-For the :math:`E_{bb}` formula, each line in a :doc:`angle\_coeff <angle_coeff>`
+For the :math:`E_{bb}` formula, each line in a :doc:`angle_coeff <angle_coeff>`
 command in the input script lists 4 coefficients, the first of which
 is "bb" to indicate they are BondBond coefficients.  In a data file,
 these coefficients should be listed under a "BondBond Coeffs" heading
@@ -78,7 +75,7 @@ the angle type.
 * :math:`r_1` (distance)
 * :math:`r_2` (distance)
 
-For the :math:`E_{ba}` formula, each line in a :doc:`angle\_coeff <angle_coeff>`
+For the :math:`E_{ba}` formula, each line in a :doc:`angle_coeff <angle_coeff>`
 command in the input script lists 5 coefficients, the first of which
 is "ba" to indicate they are BondAngle coefficients.  In a data file,
 these coefficients should be listed under a "BondAngle Coeffs" heading
@@ -94,9 +91,7 @@ the angle type.
 The :math:`\theta_0` value in the :math:`E_{ba}` formula is not specified,
 since it is the same value from the :math:`E_a` formula.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -116,16 +111,13 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 The *class2/p6* angle style uses the *class2* potential expanded to sixth order:
 
 .. math::
 
    E_{a} = K_2\left(\theta - \theta_0\right)^2 + K_3\left(\theta - \theta_0\right)^3 + K_4\left(\theta - \theta_0\right)^4 + K_5\left(\theta - \theta_0\right)^5 + K_6\left(\theta - \theta_0\right)^6
-
 
 In this expanded term 6 coefficients for the :math:`E_a` formula need to be set:
 
@@ -138,13 +130,10 @@ In this expanded term 6 coefficients for the :math:`E_a` formula need to be set:
 
 The bond-bond and bond-angle terms remain unchanged.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This angle style can only be used if LAMMPS was built with the CLASS2
 package.  For the *class2/p6* style LAMMPS needs to be built with the
@@ -154,16 +143,12 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`angle\_coeff <angle_coeff>`
+:doc:`angle_coeff <angle_coeff>`
 
 **Default:** none
 
-
 ----------
 
-
 .. _angle-Sun:
-
-
 
 **(Sun)** Sun, J Phys Chem B 102, 7338-7364 (1998).

@@ -6,7 +6,6 @@ compute erotate/sphere/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID erotate/sphere/atom
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all erotate/sphere/atom
 
@@ -60,8 +58,3 @@ Related commands
 :doc:`dump custom <dump>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -8,7 +8,7 @@ KOKKOS_ARCH_OPTIONS="None AMDAVX ARMv80 ARMv81 ARMv8-ThunderX \
      Maxwell Maxwell50 Maxwell52 Maxwell53 Pascal60 Pascal61"
 #KOKKOS_ARCH_OPTIONS="AMDAVX"
 
-KOKKOS_DEVICE_OPTIONS="Cuda ROCm OpenMP Pthread Serial Qthreads"
+KOKKOS_DEVICE_OPTIONS="Cuda ROCm OpenMP Pthread Serial"
 #KOKKOS_DEVICE_OPTIONS="Cuda"
 
 # Configure paths to enable environment query in Makefile.kokkos to work

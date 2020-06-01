@@ -6,7 +6,6 @@ pair_style list command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style list listfile cutoff keyword
@@ -17,7 +16,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -34,7 +32,7 @@ Description
 Style *list* computes interactions between explicitly listed pairs of
 atoms with the option to select functional form and parameters for
 each individual pair.  Because the parameters are set in the list
-file, the pair\_coeff command has no parameters (but still needs to be
+file, the pair_coeff command has no parameters (but still needs to be
 provided).  The *check* and *nocheck* keywords enable/disable a test
 that checks whether all listed bonds were present and computed.
 
@@ -50,22 +48,19 @@ The format of the list file is as follows:
 * empty lines will be ignored
 * comment text starts with a '#' character
 * line syntax: *ID1 ID2 style coeffs cutoff*
-  
+
   .. parsed-literal::
-  
+
        ID1 = atom ID of first atom
        ID2 = atom ID of second atom
        style = style of interaction
        coeffs = list of coeffs
        cutoff = cutoff for interaction (optional)
 
-
-
 The cutoff parameter is optional. If not specified, the global cutoff
 is used.
 
 Here is an example file:
-
 
 .. parsed-literal::
 
@@ -81,7 +76,6 @@ The style *lj126* computes pairwise interactions with the formula
 
    E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - \left(\frac{\sigma}{r}\right)^6 \right] \qquad r < r_c
 
-
 and the coefficients:
 
 * :math:`\epsilon` (energy units)
@@ -92,7 +86,6 @@ The style *morse* computes pairwise interactions with the formula
 .. math::
 
    E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right] \qquad r < r_c
-
 
 and the coefficients:
 
@@ -113,35 +106,30 @@ and the coefficients:
 
 Note that the usual 1/2 factor is included in :math:`K`.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 This pair style does not support mixing since all parameters are
 explicit for each pair.
 
-The :doc:`pair\_modify <pair_modify>` shift option is supported by this
+The :doc:`pair_modify <pair_modify>` shift option is supported by this
 pair style.
 
-The :doc:`pair\_modify <pair_modify>` table and tail options are not
+The :doc:`pair_modify <pair_modify>` table and tail options are not
 relevant for this pair style.
 
-This pair style does not write its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands need
+This pair style does not write its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
-
 
 ----------
 
-
 Restrictions
 """"""""""""
-
 
 This pair style does not use a neighbor list and instead identifies
 atoms by their IDs. This has two consequences: 1) The cutoff has to be
@@ -159,10 +147,10 @@ LAMMPS is build with that package. See the :doc:`Build package <Build_package>` 
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`,
-:doc:`pair\_style hybrid/overlay <pair_hybrid>`,
-:doc:`pair\_style lj/cut <pair_lj>`,
-:doc:`pair\_style morse <pair_morse>`,
-:doc:`bond\_style harmonic <bond_harmonic>`
+:doc:`pair_coeff <pair_coeff>`,
+:doc:`pair_style hybrid/overlay <pair_hybrid>`,
+:doc:`pair_style lj/cut <pair_lj>`,
+:doc:`pair_style morse <pair_morse>`,
+:doc:`bond_style harmonic <bond_harmonic>`
 
 **Default:** none

@@ -104,10 +104,21 @@ void PairBornCoulWolfCSGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3],subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+    }
     inum = atom->nlocal;
     firstneigh = borncwcs_gpu_compute_n(neighbor->ago, inum, nall,
-                                      atom->x, atom->type, domain->sublo,
-                                      domain->subhi, atom->tag, atom->nspecial,
+                                      atom->x, atom->type, sublo,
+                                      subhi, atom->tag, atom->nspecial,
                                       atom->special, eflag, vflag, eflag_atom,
                                       vflag_atom, host_start,
                                       &ilist, &numneigh, cpu_time, success,
@@ -249,7 +260,7 @@ void PairBornCoulWolfCSGPU::cpu_compute(int start, int inum, int eflag,
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        rsq += EPSILON; // Add EPISLON for case: r = 0; Interaction must be removed by special bond
+        rsq += EPSILON; // Add EPSILON for case: r = 0; Interaction must be removed by special bond
         r2inv = 1.0/rsq;
 
         if (rsq < cut_coulsq) {

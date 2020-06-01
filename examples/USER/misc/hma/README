@@ -15,7 +15,7 @@ Averages of the potential energy (#3 and #4) agree although #4 (HMA) is more pre
 Averages of the pressure (#5 and #6) agree once the ideal gas
 contribution is included; #6 (HMA) is more precise.
 
-The heat capacity can be computed from colume #3 (convential) as
+The heat capacity can be computed from colume #3 (conventional) as
 Cv = Var(#3)/(k T^2)
 
 With HMA, the heat capacity can be computed from column #4 and #7 as

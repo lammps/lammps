@@ -120,3 +120,14 @@ set (NETCDF_INCLUDE_DIRS ${NetCDF_includes})
 include (FindPackageHandleStandardArgs)
 find_package_handle_standard_args (NetCDF
   DEFAULT_MSG NETCDF_LIBRARIES NETCDF_INCLUDE_DIRS NETCDF_HAS_INTERFACES)
+
+# Copy the results to the output variables and target.
+if(NetCDF_FOUND)
+  if(NOT TARGET NetCDF::NetCDF)
+    add_library(NetCDF::NetCDF UNKNOWN IMPORTED)
+    set_target_properties(NetCDF::NetCDF PROPERTIES
+      IMPORTED_LOCATION "${NETCDF_LIBRARY}"
+      INTERFACE_INCLUDE_DIRECTORIES "${NETCDF_INCLUDE_DIRS}"
+      INTERFACE_LINK_LIBRARIES "${NETCDF_LIBRARIES}")
+  endif()
+endif()

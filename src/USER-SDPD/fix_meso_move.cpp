@@ -46,7 +46,7 @@ FixMesoMove::FixMesoMove (LAMMPS *lmp, int narg, char **arg) :
   xvarstr(NULL), yvarstr(NULL), zvarstr(NULL),
   vxvarstr(NULL), vyvarstr(NULL), vzvarstr(NULL),
   xoriginal(NULL), displace(NULL), velocity(NULL) {
-  if ((atom->e_flag != 1) || (atom->rho_flag != 1))
+  if ((atom->esph_flag != 1) || (atom->rho_flag != 1))
     error->all(FLERR,
         "fix meso/move command requires atom_style with both energy and density");
 
@@ -393,8 +393,8 @@ void FixMesoMove::initial_integrate (int /*vflag*/) {
   double **vest = atom->vest;
   double *rho = atom->rho;
   double *drho = atom->drho;
-  double *e = atom->e;
-  double *de = atom->de;
+  double *esph = atom->esph;
+  double *desph = atom->desph;
   double **f = atom->f;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
@@ -415,7 +415,7 @@ void FixMesoMove::initial_integrate (int /*vflag*/) {
         xold[1] = x[i][1];
         xold[2] = x[i][2];
 
-        e[i] += dtf * de[i]; // half-step update of particle internal energy
+        esph[i] += dtf * desph[i]; // half-step update of particle internal energy
         rho[i] += dtf * drho[i]; // ... and density
 
         if (vxflag) {
@@ -467,7 +467,7 @@ void FixMesoMove::initial_integrate (int /*vflag*/) {
         xold[1] = x[i][1];
         xold[2] = x[i][2];
 
-        e[i] += dtf * de[i]; // half-step update of particle internal energy
+        esph[i] += dtf * desph[i]; // half-step update of particle internal energy
         rho[i] += dtf * drho[i]; // ... and density
 
         if (axflag) {
@@ -535,7 +535,7 @@ void FixMesoMove::initial_integrate (int /*vflag*/) {
         xold[1] = x[i][1];
         xold[2] = x[i][2];
 
-        e[i] += dtf * de[i]; // half-step update of particle internal energy
+        esph[i] += dtf * desph[i]; // half-step update of particle internal energy
         rho[i] += dtf * drho[i]; // ... and density
 
         d[0] = xoriginal[i][0] - point[0];
@@ -757,8 +757,8 @@ void FixMesoMove::final_integrate () {
 
   double **v = atom->v;
   double **f = atom->f;
-  double *e = atom->e;
-  double *de = atom->de;
+  double *esph = atom->esph;
+  double *desph = atom->desph;
   double *rho = atom->rho;
   double *drho = atom->drho;
   double *rmass = atom->rmass;
@@ -773,7 +773,7 @@ void FixMesoMove::final_integrate () {
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      e[i] += dtf * de[i];
+      esph[i] += dtf * desph[i];
       rho[i] += dtf * drho[i];
 
       if (xflag) {

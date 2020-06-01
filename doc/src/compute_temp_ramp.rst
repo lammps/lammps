@@ -6,7 +6,6 @@ compute temp/ramp command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/ramp vdim vlo vhi dim clo chi keyword value ...
@@ -20,7 +19,6 @@ Syntax
 * zero or more keyword/value pairs may be appended
 * keyword = *units*
 
-
 .. parsed-literal::
 
      *units* value = *lattice* or *box*
@@ -28,8 +26,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 2nd middle temp/ramp vx 0 8 y 2 12 units lattice
 
@@ -40,7 +37,7 @@ Define a computation that calculates the temperature of a group of
 atoms, after subtracting out an ramped velocity profile before
 computing the kinetic energy.  A compute of this style can be used by
 any command that computes a temperature,
-e.g. :doc:`thermo\_modify <thermo_modify>`, :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix npt <fix_nh>`, etc.
+e.g. :doc:`thermo_modify <thermo_modify>`, :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix npt <fix_nh>`, etc.
 
 The meaning of the arguments for this command which define the
 velocity ramp are the same as for the :doc:`velocity ramp <velocity>`
@@ -70,7 +67,7 @@ zz, xy, xz, yz.
 
 The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the *dynamic* option of the
-:doc:`compute\_modify <compute_modify>` command if this is not the case.
+:doc:`compute_modify <compute_modify>` command if this is not the case.
 
 The removal of the ramped velocity component by this fix is
 essentially computing the temperature after a "bias" has been removed
@@ -85,7 +82,7 @@ constrain molecular motion, such as :doc:`fix shake <fix_shake>` and
 :doc:`fix rigid <fix_rigid>`.  This means the temperature of groups of
 atoms that include these constraints will be computed correctly.  If
 needed, the subtracted degrees-of-freedom can be altered using the
-*extra* option of the :doc:`compute\_modify <compute_modify>` command.
+*extra* option of the :doc:`compute_modify <compute_modify>` command.
 
 See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform
@@ -118,8 +115,3 @@ Default
 """""""
 
 The option default is units = lattice.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

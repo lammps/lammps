@@ -608,7 +608,7 @@ void PRD::quench()
    if replica_num is non-negative only check for event on replica_num
    if multiple events, choose one at random
    return -1 if no event
-   else return ireplica = world in which event occured
+   else return ireplica = world in which event occurred
 ------------------------------------------------------------------------- */
 
 int PRD::check_event(int replica_num)

@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -97,6 +97,8 @@ colvar::coordnum::coordnum(std::string const &conf)
   function_type = "coordnum";
   x.type(colvarvalue::type_scalar);
 
+  colvarproxy *proxy = cvm::main()->proxy;
+
   group1 = parse_group(conf, "group1");
   group2 = parse_group(conf, "group2");
 
@@ -119,12 +121,12 @@ colvar::coordnum::coordnum(std::string const &conf)
   }
 
   bool const b_isotropic = get_keyval(conf, "cutoff", r0,
-                                      cvm::real(4.0 * cvm::unit_angstrom()));
+                                      cvm::real(4.0 * proxy->angstrom_value));
 
   if (get_keyval(conf, "cutoff3", r0_vec,
-                 cvm::rvector(4.0 * cvm::unit_angstrom(),
-                              4.0 * cvm::unit_angstrom(),
-                              4.0 * cvm::unit_angstrom()))) {
+                 cvm::rvector(4.0 * proxy->angstrom_value,
+                              4.0 * proxy->angstrom_value,
+                              4.0 * proxy->angstrom_value))) {
     if (b_isotropic) {
       cvm::error("Error: cannot specify \"cutoff\" and \"cutoff3\" "
                  "at the same time.\n",
@@ -174,14 +176,8 @@ colvar::coordnum::coordnum(std::string const &conf)
     }
   }
 
-}
-
-
-colvar::coordnum::coordnum()
-  : b_anisotropic(false), pairlist(NULL)
-{
-  function_type = "coordnum";
-  x.type(colvarvalue::type_scalar);
+  init_scalar_boundaries(0.0, b_group2_center_only ? group1->size() :
+                         group1->size() * group2->size());
 }
 
 
@@ -310,10 +306,13 @@ colvar::h_bond::h_bond(std::string const &conf)
 
   function_type = "h_bond";
   x.type(colvarvalue::type_scalar);
+  init_scalar_boundaries(0.0, 1.0);
 
-  int a_num, d_num;
-  get_keyval(conf, "acceptor", a_num, -1);
-  get_keyval(conf, "donor",    d_num, -1);
+  colvarproxy *proxy = cvm::main()->proxy;
+
+  int a_num = -1, d_num = -1;
+  get_keyval(conf, "acceptor", a_num, a_num);
+  get_keyval(conf, "donor",    d_num, a_num);
 
   if ( (a_num == -1) || (d_num == -1) ) {
     cvm::error("Error: either acceptor or donor undefined.\n");
@@ -326,7 +325,7 @@ colvar::h_bond::h_bond(std::string const &conf)
   atom_groups[0]->add_atom(acceptor);
   atom_groups[0]->add_atom(donor);
 
-  get_keyval(conf, "cutoff",   r0, (3.3 * cvm::unit_angstrom()));
+  get_keyval(conf, "cutoff",   r0, (3.3 * proxy->angstrom_value));
   get_keyval(conf, "expNumer", en, 6);
   get_keyval(conf, "expDenom", ed, 8);
 
@@ -352,18 +351,11 @@ colvar::h_bond::h_bond(cvm::atom const &acceptor,
 {
   function_type = "h_bond";
   x.type(colvarvalue::type_scalar);
+  init_scalar_boundaries(0.0, 1.0);
 
   register_atom_group(new cvm::atom_group);
   atom_groups[0]->add_atom(acceptor);
   atom_groups[0]->add_atom(donor);
-}
-
-
-colvar::h_bond::h_bond()
-  : cvc()
-{
-  function_type = "h_bond";
-  x.type(colvarvalue::type_scalar);
 }
 
 
@@ -406,9 +398,11 @@ colvar::selfcoordnum::selfcoordnum(std::string const &conf)
   function_type = "selfcoordnum";
   x.type(colvarvalue::type_scalar);
 
+  colvarproxy *proxy = cvm::main()->proxy;
+
   group1 = parse_group(conf, "group1");
 
-  get_keyval(conf, "cutoff", r0, cvm::real(4.0 * cvm::unit_angstrom()));
+  get_keyval(conf, "cutoff", r0, cvm::real(4.0 * proxy->angstrom_value));
   get_keyval(conf, "expNumer", en, 6);
   get_keyval(conf, "expDenom", ed, 12);
 
@@ -437,14 +431,8 @@ colvar::selfcoordnum::selfcoordnum(std::string const &conf)
     }
     pairlist = new bool[(group1->size()-1) * (group1->size()-1)];
   }
-}
 
-
-colvar::selfcoordnum::selfcoordnum()
-  : pairlist(NULL)
-{
-  function_type = "selfcoordnum";
-  x.type(colvarvalue::type_scalar);
+  init_scalar_boundaries(0.0, (group1->size()-1) * (group1->size()-1));
 }
 
 
@@ -553,6 +541,9 @@ colvar::groupcoordnum::groupcoordnum(std::string const &conf)
 {
   function_type = "groupcoordnum";
   x.type(colvarvalue::type_scalar);
+  init_scalar_boundaries(0.0, 1.0);
+
+  colvarproxy *proxy = cvm::main()->proxy;
 
   // group1 and group2 are already initialized by distance()
   if (group1->b_dummy || group2->b_dummy) {
@@ -561,7 +552,7 @@ colvar::groupcoordnum::groupcoordnum(std::string const &conf)
   }
 
   bool const b_scale = get_keyval(conf, "cutoff", r0,
-                                  cvm::real(4.0 * cvm::unit_angstrom()));
+                                  cvm::real(4.0 * proxy->angstrom_value));
 
   if (get_keyval(conf, "cutoff3", r0_vec,
                  cvm::rvector(4.0, 4.0, 4.0), parse_silent)) {
@@ -595,14 +586,6 @@ colvar::groupcoordnum::groupcoordnum(std::string const &conf)
     cvm::log("Warning: only minimum-image distances are used by this variable.\n");
   }
 
-}
-
-
-colvar::groupcoordnum::groupcoordnum()
-  : b_anisotropic(false)
-{
-  function_type = "groupcoordnum";
-  x.type(colvarvalue::type_scalar);
 }
 
 

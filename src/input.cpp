@@ -50,6 +50,7 @@
 #include "error.h"
 #include "memory.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 #ifdef _WIN32
 #include <direct.h>
@@ -275,11 +276,11 @@ void Input::file(const char *filename)
    return command name to caller
 ------------------------------------------------------------------------- */
 
-char *Input::one(const char *single)
+char *Input::one(const std::string &single)
 {
-  int n = strlen(single) + 1;
+  int n = single.size() + 1;
   if (n > maxline) reallocate(line,maxline,n);
-  strcpy(line,single);
+  strcpy(line,single.c_str());
 
   // echo the command unless scanning for label
 
@@ -300,11 +301,8 @@ char *Input::one(const char *single)
 
   // execute the command and return its name
 
-  if (execute_command()) {
-    char *str = new char[maxline+32];
-    sprintf(str,"Unknown command: %s",line);
-    error->all(FLERR,str);
-  }
+  if (execute_command())
+    error->all(FLERR,fmt::format("Unknown command: {}",line).c_str());
 
   return command;
 }
@@ -1177,7 +1175,7 @@ void Input::print()
   if (narg < 1) error->all(FLERR,"Illegal print command");
 
   // copy 1st arg back into line (copy is being used)
-  // check maxline since arg[0] could have been exanded by variables
+  // check maxline since arg[0] could have been expanded by variables
   // substitute for $ variables (no printing) and print arg
 
   int n = strlen(arg[0]) + 1;

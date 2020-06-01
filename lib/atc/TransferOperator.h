@@ -466,7 +466,7 @@ namespace ATC {
     /** reference to shape function matrix */
     SPAR_MAN * shapeFunction_;
 
-    /** persistant workspace */
+    /** persistent workspace */
     
     
     mutable DENS_MAT _workspace_;
@@ -510,7 +510,7 @@ namespace ATC {
     /** reference to shape function matrix */
     SPAR_MAN * shapeFunction_;
 
-    /** persistant workspace */
+    /** persistent workspace */
     
     
     mutable DENS_MAT _workspace_;
@@ -560,7 +560,7 @@ namespace ATC {
     DIAG_MAN * weights_;
     DENS_MAT * reference_;
 
-    /** persistant workspace */
+    /** persistent workspace */
     
     
     mutable DENS_MAT _workspace_;
@@ -887,7 +887,7 @@ namespace ATC {
     /** pointer to the mesh being used */
     const FE_Mesh * feMesh_;
 
-    /** persistant workspace */
+    /** persistent workspace */
     
     
     mutable DENS_MAT _workspace_;

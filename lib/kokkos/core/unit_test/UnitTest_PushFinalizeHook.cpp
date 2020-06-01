@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -47,7 +48,7 @@
 #include <sstream>
 #include <Kokkos_Core.hpp>
 
-namespace { // (anonymous)
+namespace {  // (anonymous)
 
 // Output for the finalize hooks.  Use this to make sure that all the
 // hooks ran, and that they ran in the correct order.
@@ -58,7 +59,7 @@ const char hook2str[] = "Yea verily, I am Hook 2.";
 const char hook3str[] = "Indeed, I am Hook 3.";
 const char hook4str[] = "Last but not least, I am Hook 4.";
 
-} // namespace (anonymous)
+}  // namespace
 
 // Don't just have all the hooks print the same thing except for a
 // number.  Have them print different things, so we can detect
@@ -73,62 +74,52 @@ const char hook4str[] = "Last but not least, I am Hook 4.";
 //    unfortunately like to call "functor," even though this word
 //    means something different in other languages.
 
-void hook1 () {
-  hookOutput << hook1str << std::endl;
-}
+void hook1() { hookOutput << hook1str << std::endl; }
 
 struct Hook4 {
-  void operator () () const {
-    hookOutput << hook4str << std::endl;
-  }
+  void operator()() const { hookOutput << hook4str << std::endl; }
 };
 
-int main( int argc, char *argv[] ) {
+int main(int argc, char* argv[]) {
   using std::cout;
   using std::endl;
 
-  const std::string expectedOutput ([] {
-      std::ostringstream os;
-      os << hook4str << endl
-         << hook3str << endl
-         << hook2str << endl
-         << hook1str << endl;
-      return os.str();
-    }());
+  const std::string expectedOutput([] {
+    std::ostringstream os;
+    os << hook4str << endl
+       << hook3str << endl
+       << hook2str << endl
+       << hook1str << endl;
+    return os.str();
+  }());
 
   Kokkos::initialize(argc, argv);
 
-  Kokkos::push_finalize_hook(hook1); // plain old function
-  Kokkos::push_finalize_hook ([] {
-      hookOutput << hook2str << endl;
-    }); // lambda
-  std::function<void()> hook3 = [] {
-    hookOutput << hook3str << endl;
-  };
-  Kokkos::push_finalize_hook(hook3); // actual std::function
+  Kokkos::push_finalize_hook(hook1);  // plain old function
+  Kokkos::push_finalize_hook([] { hookOutput << hook2str << endl; });  // lambda
+  std::function<void()> hook3 = [] { hookOutput << hook3str << endl; };
+  Kokkos::push_finalize_hook(hook3);  // actual std::function
   Hook4 hook4;
-  Kokkos::push_finalize_hook(hook4); // function object instance
+  Kokkos::push_finalize_hook(hook4);  // function object instance
 
   // This should invoke the finalize hooks in reverse order.
   // Furthermore, it should not throw an exception.
   try {
     Kokkos::finalize();
-  }
-  catch (std::exception& e) {
+  } catch (std::exception& e) {
     cout << "FAILED: Kokkos::finalize threw an exception: " << e.what() << endl;
     return EXIT_FAILURE;
-  }
-  catch (...) {
+  } catch (...) {
     cout << "FAILED: Kokkos::finalize threw an exception whose base class "
-      "is not std::exception." << endl;
+            "is not std::exception."
+         << endl;
     return EXIT_FAILURE;
   }
 
   const bool success = (hookOutput.str() == expectedOutput);
   if (success) {
     cout << "SUCCESS" << endl;
-  }
-  else {
+  } else {
     cout << "FAILED:" << endl
          << "  Expected output:" << endl
          << expectedOutput << endl

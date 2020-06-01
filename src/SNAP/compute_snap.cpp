@@ -33,7 +33,8 @@ enum{SCALAR,VECTOR,ARRAY};
 
 ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), cutsq(NULL), list(NULL), snap(NULL),
-  radelem(NULL), wjelem(NULL), snap_peratom(NULL), snapall(NULL)
+  snapall(NULL), snap_peratom(NULL), radelem(NULL), wjelem(NULL),
+  snaptr(NULL)
 {
 
   array_flag = 1;
@@ -444,7 +445,6 @@ void ComputeSnap::compute_array()
     const int typeoffset_local = ndims_peratom*nperdim*itype;
     const int typeoffset_global = nperdim*itype;
     for (int icoeff = 0; icoeff < nperdim; icoeff++) {
-      int irow = 1;
       for (int i = 0; i < ntotal; i++) {
         double *snadi = snap_peratom[i]+typeoffset_local;
         int iglobal = atom->tag[i];

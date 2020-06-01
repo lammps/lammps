@@ -9,14 +9,12 @@ angle_style quartic/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    angle_style quartic
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -32,14 +30,13 @@ The *quartic* angle style uses the potential
 
    E = K_2 (\theta - \theta_0)^2 + K_3 (\theta - \theta_0)^3 + K_4 (\theta - \theta_0)^4
 
-
 where :math:`\theta_0` is the equilibrium value of the angle, and :math:`K` is a
 prefactor.  Note that the usual 1/2 factor is included in :math:`K`.
 
 The following coefficients must be defined for each angle type via the
-:doc:`angle\_coeff <angle_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`angle_coeff <angle_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
 * :math:`\theta_0` (degrees)
 * :math:`K_2` (energy/radian\^2)
@@ -49,9 +46,7 @@ or :doc:`read\_restart <read_restart>` commands:
 :math:`\theta_0` is specified in degrees, but LAMMPS converts it to radians
 internally; hence the units of :math:`K` are in energy/radian\^2.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -71,21 +66,18 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
 
-
 This angle style can only be used if LAMMPS was built with the
-USER\_MISC package.  See the :doc:`Build package <Build_package>` doc
+USER_MISC package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 Related commands
 """"""""""""""""
 
-:doc:`angle\_coeff <angle_coeff>`
+:doc:`angle_coeff <angle_coeff>`
 
 **Default:** none

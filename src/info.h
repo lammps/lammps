@@ -21,6 +21,8 @@ CommandStyle(info,Info)
 #define LMP_INFO_H
 
 #include "pointers.h"
+#include <string>
+#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -32,6 +34,9 @@ class Info : protected Pointers {
   bool is_active(const char *, const char *);
   bool is_defined(const char *, const char *);
   bool is_available(const char *, const char *);
+
+  bool has_style(const std::string & category, const std::string & name);
+  std::vector<std::string> get_available_styles(const std::string & category);
 
   static bool has_gzip_support();
   static bool has_png_support();

@@ -23,7 +23,7 @@ executed. Below is a short example using some of these functions.
 
 .. code-block:: C
 
-   #include <library.h>
+   #include "library.h"
    #include <mpi.h>
    #include <stdio.h>
 
@@ -33,7 +33,7 @@ executed. Below is a short example using some of these functions.
      int i;
 
      MPI_Init(&argc, &argv);
-     lammps_open(0, NULL, MPI_COMM_WORLD, &handle);
+     handle = lammps_open(0, NULL, MPI_COMM_WORLD, NULL);
      lammps_file(handle,"in.sysinit");
      lammps_command(handle,"run 1000 post no");
 

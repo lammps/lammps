@@ -18,7 +18,7 @@ Here is a simple example demonstrating its use:
    {
      void *handle;
      int version;
-     const char *lmpargv[] { "liblammps", "-log", "none"};
+     const char *lmpargv[] = { "liblammps", "-log", "none"};
      int lmpargc = sizeof(lmpargv)/sizeof(const char *);
 
      /* create LAMMPS instance */

@@ -29,7 +29,9 @@ using namespace LAMMPS_NS;
 
 PotentialFileReader::PotentialFileReader(LAMMPS *lmp,
                                          const std::string &filename,
-                                         const std::string &potential_name) : Pointers(lmp), filename(filename) {
+                                         const std::string &potential_name) : 
+  Pointers(lmp), filename(filename), potential_name(potential_name)
+{
   if (comm->me != 0) {
     error->one(FLERR, "PotentialFileReader should only be called by proc 0!");
   }
@@ -78,7 +80,7 @@ char *PotentialFileReader::next_line(int nparams) {
     n = strlen(line);
   }
 
-  while(nwords < nparams) {
+  while(nwords == 0 || nwords < nparams) {
     char *ptr = fgets(&line[n], MAXLINE - n, fp);
 
     if (ptr == nullptr) {

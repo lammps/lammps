@@ -1,15 +1,30 @@
-1 	fix eco/force command
+..  index:: fix eco/force
 
-fix ID group-ID eco/force u0 eta rcut file
-• ID, group-ID are documented in fix command
-• u0 = energy added to each atom (energy units)
-• eta = cutoff value (usually 0.25)
-• rcut = cutoff radius for orientation parameter calculation • file = file that specifies orientation of each grain
-Examples: fix gb all eco/force 0.08 0.25 3.524 sigma5.ori 
+fix eco/force command
+=====================
 
 
+.. parsed-literal::
 
-1.1	Description:
+   fix ID group-ID eco/force u0 eta rcut file
+
+
+* ID, group-ID are documented in fix command
+* u0 = energy added to each atom (energy units)
+* eta = cutoff value (usually 0.25)
+* rcut = cutoff radius for orientation parameter calculation 
+* file = file that specifies orientation of each grain
+
+Examples
+""""""""
+
+.. code-block:: LAMMPS
+
+   fix gb all eco/force 0.08 0.25 3.524 sigma5.ori 
+
+
+Description
+"""""""""""
 
 The fix applies a synthetic driving force to a grain boundary which can 
 be used for the investigation of grain boundary motion. The affiliation 
@@ -27,6 +42,8 @@ evaluation of the grain boundary velocity. While the basic method is
 described in (Ulomek), the implementation follows the efficient 
 implementation from (Schratt & Mohles). The synthetic potential energy added to an 
 atom j is given by the following formulas
+
+.. math::
 
 \begin{eqnarray}
 w(|\vec{r}_{jk}|)=w_{jk}=\left\{\begin{array}{lc}
@@ -51,7 +68,8 @@ u(\chi_{j}) & = & \frac{u_{0}}{2}\left\{\begin{array}{lc}
 \label{eq:energy-mid}
 \end{eqnarray}
 
-which are fully explained in (Ulomek) and (Schratt & Mohles).
+which are fully explained in :ref: `(Ulomek) <Ulomek>`
+and `(Schratt & Mohles) <Schratt>`.
 
 The force on each atom is the negative gradient of the synthetic potential energy. It 
 depends on the surrounding of this atom. An atom far from the grain boundary does not 
@@ -85,12 +103,13 @@ simulation.
 
 
 
-1.2	Restart, fix_modify, output, run start/stop, minimize info:
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to binary restart files. The 
-fix_modify energy option is supported by this fix to add the potential energy of 
-atominteractions with the grain boundary driving force to the system's poten-
-tial energy as part of thermodynamic output. 
+No information about this fix is written to :doc: `binary restart files`.
+ 
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this fix to 
+add the potential energy of atom interactions with the grain boundary 
+driving force to the system's potential energy as part of thermodynamic output. 
 The total sum of added synthetic potential energy is computed and can be accessed 
 by various output options. The order parameter as well as the thermally masked 
 output parameter are stored in per-atom arrays and can also be accessed by various 
@@ -101,30 +120,48 @@ not invoked during energy minimization.
 
 
 
-1.3	Restrictions:
+Restrictions
+""""""""""""
 
 This fix is part of the MISC package. It is only enabled if LAMMPS was
 built with that package. See the Making LAMMPS section for more info.
 
 
 
-1.4	Related commands:
+Related commands
+""""""""""""""""
 
-fix_modify
-Default: none
-(Ulomek) Felix Ulomek et al. Modelling Simul. Mater. Sci. Eng. 23 (2015) 025007
-(Schratt & Mohles) Adrian A. Schratt and Volker Mohles. Comp. Mat. Sci. 182 (2020) 109774
+:doc:`fix_modify <fix_modify>`
 
-For illustration purposes, here is an example file that specifies a $\Sigma5\langle001\rangle$ tilt grain boundary. 
+**Default:** none
+
+----------
+
+.. _Ulomek:
+
+**(Ulomek)** Ulomek, Brien, Foiles, Mohles, Modelling Simul. Mater. Sci. Eng. 23 (2015) 025007
+
+.. _Schratt:
+
+**(Schratt)** Schratt, Mohles. Comp. Mat. Sci. 182 (2020) 109774
+
+----------
+
+
+For illustration purposes, here is an example file that specifies a 
+Sigma=5 <001> tilt grain boundary. 
 This is for a lattice constant of 3.52 Angs.
 
 
+file:
 
-1.5	File:
+.. parsed-literal::
+
     1.671685 0.557228 1.76212
     0.557228 -1.671685 1.76212
     2.228913 -1.114456 0.000000
     0.557228 1.671685 1.76212
     1.671685 -0.557228 1.76212
     2.228913 1.114456 0.000000
+
 

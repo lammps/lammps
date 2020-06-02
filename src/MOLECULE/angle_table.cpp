@@ -383,7 +383,7 @@ void AngleTable::free_table(Table *tb)
 
 void AngleTable::read_table(Table *tb, char *file, char *keyword)
 {
-  TableFileReader reader(lmp, file);
+  TableFileReader reader(lmp, file, "angle");
 
   char * line = reader.find_section_start(keyword);
 

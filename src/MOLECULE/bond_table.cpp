@@ -309,7 +309,7 @@ void BondTable::free_table(Table *tb)
 
 void BondTable::read_table(Table *tb, char *file, char *keyword)
 {
-  TableFileReader reader(lmp, file);
+  TableFileReader reader(lmp, file, "bond");
   double emin = BIGNUM;
 
   char * line = reader.find_section_start(keyword);

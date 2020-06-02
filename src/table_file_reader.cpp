@@ -27,8 +27,9 @@
 using namespace LAMMPS_NS;
 
 TableFileReader::TableFileReader(LAMMPS *lmp,
-                                         const std::string &filename) : 
-  PotentialFileReader(lmp, filename, "table")
+                                         const std::string &filename,
+                                         const std::string &type) : 
+  PotentialFileReader(lmp, filename, type + " table")
 {
 }
 

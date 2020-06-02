@@ -24,7 +24,7 @@ namespace LAMMPS_NS
 {
   class TableFileReader : public PotentialFileReader {
   public:
-    TableFileReader(class LAMMPS *lmp, const std::string &filename);
+    TableFileReader(class LAMMPS *lmp, const std::string &filename, const std::string & type);
     virtual ~TableFileReader();
 
     char * find_section_start(const std::string & keyword);

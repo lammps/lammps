@@ -102,9 +102,9 @@ public:
     void check_indices(size_t i0) const {
 
         if((i0<0)|(i0>=dim[0])){
-            printf("%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
-            //TODO: throw exception instead of exit
-            exit(EXIT_FAILURE);
+            char buf[1024];
+            sprintf(buf,"%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
+            throw std::out_of_range(buf);
         }
 
     }
@@ -281,15 +281,15 @@ public:
     void check_indices(size_t i0, size_t i1) const {
 
         if((i0<0)|(i0>=dim[0])){
-            printf("%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
-            //TODO: throw exception instead of exit
-            exit(EXIT_FAILURE);
+            char buf[1024];
+            sprintf(buf,"%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
+            throw std::out_of_range(buf);
         }
 
         if((i1<0)|(i1>=dim[1])){
-            printf("%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1]-1);
-            //TODO: throw exception instead of exit
-            exit(EXIT_FAILURE);
+            char buf[1024];
+            sprintf(buf,"%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1]-1);
+            throw std::out_of_range(buf);
         }
 
     }
@@ -484,21 +484,21 @@ public:
     void check_indices(size_t i0, size_t i1, size_t i2) const {
 
         if((i0<0)|(i0>=dim[0])){
-            printf("%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
-            //TODO: throw exception instead of exit
-            exit(EXIT_FAILURE);
+            char buf[1024];
+            sprintf(buf,"%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
+            throw std::out_of_range(buf);
         }
 
         if((i1<0)|(i1>=dim[1])){
-            printf("%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1]-1);
-            //TODO: throw exception instead of exit
-            exit(EXIT_FAILURE);
+            char buf[1024];
+            sprintf(buf,"%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1]-1);
+            throw std::out_of_range(buf);
         }
 
         if((i2<0)|(i2>=dim[2])){
-            printf("%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2]-1);
-            //TODO: throw exception instead of exit
-            exit(EXIT_FAILURE);
+            char buf[1024];
+            sprintf(buf,"%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2]-1);
+            throw std::out_of_range(buf);
         }
 
     }
@@ -709,27 +709,27 @@ public:
     void check_indices(size_t i0, size_t i1, size_t i2, size_t i3) const {
 
         if((i0<0)|(i0>=dim[0])){
-            printf("%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
-            //TODO: throw exception instead of exit
-            exit(EXIT_FAILURE);
+            char buf[1024];
+            sprintf(buf,"%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
+            throw std::out_of_range(buf);
         }
 
         if((i1<0)|(i1>=dim[1])){
-            printf("%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1]-1);
-            //TODO: throw exception instead of exit
-            exit(EXIT_FAILURE);
+            char buf[1024];
+            sprintf(buf,"%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1]-1);
+            throw std::out_of_range(buf);
         }
 
         if((i2<0)|(i2>=dim[2])){
-            printf("%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2]-1);
-            //TODO: throw exception instead of exit
-            exit(EXIT_FAILURE);
+            char buf[1024];
+            sprintf(buf,"%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2]-1);
+            throw std::out_of_range(buf);
         }
 
         if((i3<0)|(i3>=dim[3])){
-            printf("%s: index i3=%ld out of range (0, %ld)\n", array_name.c_str(), i3, dim[3]-1);
-            //TODO: throw exception instead of exit
-            exit(EXIT_FAILURE);
+            char buf[1024];
+            sprintf(buf,"%s: index i3=%ld out of range (0, %ld)\n", array_name.c_str(), i3, dim[3]-1);
+            throw std::out_of_range(buf);
         }
 
     }
@@ -956,33 +956,33 @@ public:
     void check_indices(size_t i0, size_t i1, size_t i2, size_t i3, size_t i4) const {
 
         if((i0<0)|(i0>=dim[0])){
-            printf("%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
-            //TODO: throw exception instead of exit
-            exit(EXIT_FAILURE);
+            char buf[1024];
+            sprintf(buf,"%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
+            throw std::out_of_range(buf);
         }
 
         if((i1<0)|(i1>=dim[1])){
-            printf("%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1]-1);
-            //TODO: throw exception instead of exit
-            exit(EXIT_FAILURE);
+            char buf[1024];
+            sprintf(buf,"%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1]-1);
+            throw std::out_of_range(buf);
         }
 
         if((i2<0)|(i2>=dim[2])){
-            printf("%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2]-1);
-            //TODO: throw exception instead of exit
-            exit(EXIT_FAILURE);
+            char buf[1024];
+            sprintf(buf,"%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2]-1);
+            throw std::out_of_range(buf);
         }
 
         if((i3<0)|(i3>=dim[3])){
-            printf("%s: index i3=%ld out of range (0, %ld)\n", array_name.c_str(), i3, dim[3]-1);
-            //TODO: throw exception instead of exit
-            exit(EXIT_FAILURE);
+            char buf[1024];
+            sprintf(buf,"%s: index i3=%ld out of range (0, %ld)\n", array_name.c_str(), i3, dim[3]-1);
+            throw std::out_of_range(buf);
         }
 
         if((i4<0)|(i4>=dim[4])){
-            printf("%s: index i4=%ld out of range (0, %ld)\n", array_name.c_str(), i4, dim[4]-1);
-            //TODO: throw exception instead of exit
-            exit(EXIT_FAILURE);
+            char buf[1024];
+            sprintf(buf,"%s: index i4=%ld out of range (0, %ld)\n", array_name.c_str(), i4, dim[4]-1);
+            throw std::out_of_range(buf);
         }
 
     }
@@ -1225,39 +1225,39 @@ public:
     void check_indices(size_t i0, size_t i1, size_t i2, size_t i3, size_t i4, size_t i5) const {
 
         if((i0<0)|(i0>=dim[0])){
-            printf("%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
-            //TODO: throw exception instead of exit
-            exit(EXIT_FAILURE);
+            char buf[1024];
+            sprintf(buf,"%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
+            throw std::out_of_range(buf);
         }
 
         if((i1<0)|(i1>=dim[1])){
-            printf("%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1]-1);
-            //TODO: throw exception instead of exit
-            exit(EXIT_FAILURE);
+            char buf[1024];
+            sprintf(buf,"%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1]-1);
+            throw std::out_of_range(buf);
         }
 
         if((i2<0)|(i2>=dim[2])){
-            printf("%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2]-1);
-            //TODO: throw exception instead of exit
-            exit(EXIT_FAILURE);
+            char buf[1024];
+            sprintf(buf,"%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2]-1);
+            throw std::out_of_range(buf);
         }
 
         if((i3<0)|(i3>=dim[3])){
-            printf("%s: index i3=%ld out of range (0, %ld)\n", array_name.c_str(), i3, dim[3]-1);
-            //TODO: throw exception instead of exit
-            exit(EXIT_FAILURE);
+            char buf[1024];
+            sprintf(buf,"%s: index i3=%ld out of range (0, %ld)\n", array_name.c_str(), i3, dim[3]-1);
+            throw std::out_of_range(buf);
         }
 
         if((i4<0)|(i4>=dim[4])){
-            printf("%s: index i4=%ld out of range (0, %ld)\n", array_name.c_str(), i4, dim[4]-1);
-            //TODO: throw exception instead of exit
-            exit(EXIT_FAILURE);
+            char buf[1024];
+            sprintf(buf,"%s: index i4=%ld out of range (0, %ld)\n", array_name.c_str(), i4, dim[4]-1);
+            throw std::out_of_range(buf);
         }
 
         if((i5<0)|(i5>=dim[5])){
-            printf("%s: index i5=%ld out of range (0, %ld)\n", array_name.c_str(), i5, dim[5]-1);
-            //TODO: throw exception instead of exit
-            exit(EXIT_FAILURE);
+            char buf[1024];
+            sprintf(buf,"%s: index i5=%ld out of range (0, %ld)\n", array_name.c_str(), i5, dim[5]-1);
+            throw std::out_of_range(buf);
         }
 
     }

@@ -244,11 +244,11 @@ void fwrite_c_tilde_b_basis_func(FILE *fptr, ACECTildeBasisFunction &func) {
 }
 
 void ACECTildeBasisSet::save(const string &filename) {
-    // TODO: save radbasename to file
     FILE *fptr;
     fptr = fopen(filename.c_str(), "w");
     fprintf(fptr, "lmax=%d\n", lmax);
     fprintf(fptr, "nradbase=%d\n", nradbase);
+    fprintf(fptr, "radbasename=%s\n", radial_functions.radbasename.c_str());
     fprintf(fptr, "nradmax=%d\n", nradmax);
     fprintf(fptr, "nelements=%d\n", nelements);
     fprintf(fptr, "rankmax=%d\n", rankmax);
@@ -439,6 +439,10 @@ void ACECTildeBasisSet::load(const string filename) {
         throw invalid_argument(("File '" +filename +"': couldn't read nradbase").c_str());
     nradbase = stoi(buffer);
 
+    res = fscanf(fptr, " radbasename=%s", buffer);
+    if(res>0)
+        radbasename = buffer;
+
     res = fscanf(fptr, " nradmax=");
     res = fscanf(fptr, "%s", buffer);
     if (res != 1)
@@ -486,7 +490,6 @@ void ACECTildeBasisSet::load(const string filename) {
     FS_parameters.resize(parameters_size);
 
     spherical_harmonics.init(lmax);
-    //TODO: read "radbasename" argument from file
     radial_functions.init(nradbase, lmax, nradmax,
                           ntot,
                           nelements,
@@ -581,8 +584,6 @@ void ACECTildeBasisSet::load(const string filename) {
                         radial_functions.crad(mu_i, mu_j, l, nr - 1, idx - 1) = stod(buffer);
                     }
 
-    radial_functions.setuplookupRadspline();
-
     //num_c_tilde_max
     res = fscanf(fptr, " num_c_tilde_max=");
     res = fscanf(fptr, "%s\n", buffer);
@@ -632,15 +633,9 @@ void ACECTildeBasisSet::load(const string filename) {
         }
 
     fclose(fptr);
-//    spherical_harmonics.init(lmax);
-//    //TODO: pass "radbasename" argument
-//    radial_functions.init(nradbase, lmax, nradmax,
-//                          ntot,
-//                          nelements,
-//                          cutoffmax, radbasename);
-//    rho_core_cutoffs.init(nelements, "rho_core_cutoffs");
-//    drho_core_cutoffs.init(nelements, "drho_core_cutoffs");
-//    radial_functions.setuplookupRadspline();
+
+    radial_functions.radbasename = radbasename;
+    radial_functions.setuplookupRadspline();
     pack_flatten_basis();
 }
 

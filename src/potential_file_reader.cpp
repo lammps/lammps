@@ -34,10 +34,10 @@ PotentialFileReader::PotentialFileReader(LAMMPS *lmp,
   Pointers(lmp),
   reader(nullptr),
   filename(filename),
-  potential_name(potential_name)
+  filetype(potential_name + " potential")
 {
   if (comm->me != 0) {
-    error->one(FLERR, "PotentialFileReader should only be called by proc 0!");
+    error->one(FLERR, "FileReader should only be called by proc 0!");
   }
 
   try {
@@ -112,7 +112,7 @@ TextFileReader * PotentialFileReader::open_potential(const std::string& path) {
     utils::logmesg(lmp, fmt::format("Reading potential file {} with DATE: {}", filename, date));
   }
 
-  return new TextFileReader(filepath, potential_name + " potential");
+  return new TextFileReader(filepath, filetype);
 }
 
 /* ----------------------------------------------------------------------
@@ -121,7 +121,7 @@ TextFileReader * PotentialFileReader::open_potential(const std::string& path) {
 ------------------------------------------------------------------------- */
 
 std::string PotentialFileReader::get_potential_date(const std::string & path) {
-  TextFileReader reader(path, potential_name + " potential");
+  TextFileReader reader(path, filetype);
   reader.ignore_comments = false;
   char * line = nullptr;
 

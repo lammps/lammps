@@ -26,19 +26,20 @@
 namespace LAMMPS_NS
 {
   class PotentialFileReader : protected Pointers {
+  protected:
     TextFileReader * reader;
     std::string filename;
-    std::string potential_name;
+    std::string filetype;
 
     TextFileReader * open_potential(const std::string& path);
     std::string get_potential_date(const std::string & path);
 
   public:
     PotentialFileReader(class LAMMPS *lmp, const std::string &filename, const std::string &potential_name);
-    ~PotentialFileReader();
+    virtual ~PotentialFileReader();
 
     void skip_line();
-    char * next_line(int nparams);
+    char * next_line(int nparams = 0);
     void next_dvector(int n, double * list);
   };
 

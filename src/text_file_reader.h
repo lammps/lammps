@@ -15,31 +15,52 @@
    Contributing authors: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_POTENTIAL_FILE_READER_H
-#define LMP_POTENTIAL_FILE_READER_H
+#ifndef LMP_TEXT_FILE_READER_H
+#define LMP_TEXT_FILE_READER_H
 
+#include <cstdio>
 #include <string>
-
-#include "pointers.h"
-#include "text_file_reader.h"
+#include <exception>
 
 namespace LAMMPS_NS
 {
-  class PotentialFileReader : protected Pointers {
-    TextFileReader * reader;
+  class TextFileReader {
     std::string filename;
-    std::string potential_name;
-
-    TextFileReader * open_potential(const std::string& path);
-    std::string get_potential_date(const std::string & path);
+    std::string filetype;
+    static const int MAXLINE = 1024;
+    char line[MAXLINE];
+    FILE *fp;
 
   public:
-    PotentialFileReader(class LAMMPS *lmp, const std::string &filename, const std::string &potential_name);
-    ~PotentialFileReader();
+    bool ignore_comments;
+    
+    TextFileReader(const std::string &filename, const std::string &filetype);
+    ~TextFileReader();
 
     void skip_line();
-    char * next_line(int nparams);
+    char * next_line(int nparams = 0);
+
     void next_dvector(int n, double * list);
+  };
+
+  class FileReaderException : public std::exception {
+    std::string message;
+  public:
+    FileReaderException(const std::string & msg) : message(msg) {
+    }
+  
+    ~FileReaderException() throw() {
+    }
+  
+    virtual const char * what() const throw() {
+      return message.c_str();
+    }
+  };
+
+  class EOFException : public FileReaderException {
+  public:
+    EOFException(const std::string & msg) : FileReaderException(msg) {
+    }
   };
 
 } // namespace LAMMPS_NS

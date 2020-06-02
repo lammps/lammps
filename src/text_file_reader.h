@@ -33,7 +33,7 @@ namespace LAMMPS_NS
 
   public:
     bool ignore_comments;
-    
+
     TextFileReader(const std::string &filename, const std::string &filetype);
     ~TextFileReader();
 
@@ -48,10 +48,10 @@ namespace LAMMPS_NS
   public:
     FileReaderException(const std::string & msg) : message(msg) {
     }
-  
+
     ~FileReaderException() throw() {
     }
-  
+
     virtual const char * what() const throw() {
       return message.c_str();
     }

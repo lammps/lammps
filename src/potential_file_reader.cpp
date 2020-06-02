@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 
 PotentialFileReader::PotentialFileReader(LAMMPS *lmp,
                                          const std::string &filename,
-                                         const std::string &potential_name) : 
+                                         const std::string &potential_name) :
   Pointers(lmp),
   reader(nullptr),
   filename(filename),

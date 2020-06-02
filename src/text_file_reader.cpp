@@ -28,7 +28,7 @@
 
 using namespace LAMMPS_NS;
 
-TextFileReader::TextFileReader(const std::string &filename, const std::string &filetype) 
+TextFileReader::TextFileReader(const std::string &filename, const std::string &filetype)
   : filename(filename), filetype(filetype)
 {
   fp = fopen(filename.c_str(), "r");

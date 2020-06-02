@@ -17,21 +17,11 @@ void ACEEvaluator::init(ACEAbstractBasisSet *basis_set) {
 
 void ACEEvaluator::init_timers() {
     loop_over_neighbour_timer.init();
-
     forces_calc_loop_timer.init();
     forces_calc_neighbour_timer.init();
-    phi_calc_timer.init();
-    phi_recalc_timer.init();
     energy_calc_timer.init();
-    bond_calc_timer.init();
-    A_calc_timer.init();
-
     per_atom_calc_timer.init();
-
-
-    basis_func_calc_timer.init();
     total_time_calc_timer.init();
-
 }
 
 //================================================================================================================
@@ -76,7 +66,7 @@ void ACECTildeEvaluator::init(ACECTildeBasisSet *basis_set) {
 }
 
 void ACECTildeEvaluator::resize_neighbours_cache(int max_jnum) {
-    if (basis_set == nullptr) {
+    if(basis_set== nullptr) {
         throw std::invalid_argument("ACECTildeEvaluator: basis set is not assigned");
     }
     if (R_cache.get_dim(0) < max_jnum) {
@@ -113,7 +103,7 @@ void ACECTildeEvaluator::resize_neighbours_cache(int max_jnum) {
 
 void
 ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *type, const int jnum, const int *jlist) {
-    if (basis_set == nullptr) {
+    if(basis_set== nullptr) {
         throw std::invalid_argument("ACECTildeEvaluator: basis set is not assigned");
     }
     per_atom_calc_timer.start();
@@ -147,7 +137,7 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
 
     dB_flatten.fill({0.});
 
-    Dycomponent grad_phi_nlm{0}, DY{0.};
+    ACEDYcomponent grad_phi_nlm{0}, DY{0.};
 
     //size is +1 of max to avoid out-of-boundary array access in double-triangular scheme
     ACEComplex A_forward_prod[basis_set->rankmax + 1];
@@ -189,7 +179,7 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
     const NS_TYPE nradbasei = basis_set->nradbase;
 
     //TODO: get per-species type number of densities
-    const DENSITY_TYPE ndensity = basis_set->ndensitymax;
+    const DENSITY_TYPE ndensity= basis_set->ndensitymax;
 
     neighbours_forces.resize(jnum, 3);
     neighbours_forces.fill(0);
@@ -209,7 +199,7 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
 
     //proxy references to spherical harmonics and radial functions arrays
     const Array2DLM<ACEComplex> &ylm = basis_set->spherical_harmonics.ylm;
-    const Array2DLM<Dycomponent> &dylm = basis_set->spherical_harmonics.dylm;
+    const Array2DLM<ACEDYcomponent> &dylm = basis_set->spherical_harmonics.dylm;
 
     const Array2D<DOUBLE_TYPE> &fr = basis_set->radial_functions.fr;
     const Array2D<DOUBLE_TYPE> &dfr = basis_set->radial_functions.dfr;
@@ -263,7 +253,7 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
 
         //proxies
         Array2DLM<ACEComplex> &Y_jj = Y_cache(jj);
-        Array2DLM<Dycomponent> &DY_jj = DY_cache(jj);
+        Array2DLM<ACEDYcomponent> &DY_jj = DY_cache(jj);
 
 
         basis_set->radial_functions.lookupRadspline(r_norm, basis_set->nradbase, nradiali, mu_i, mu_j);
@@ -526,7 +516,7 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
         inv_r_norm = inv_r_norms[jj];
 
         Array2DLM<ACEComplex> &Y_cache_jj = Y_cache(jj);
-        Array2DLM<Dycomponent> &DY_cache_jj = DY_cache(jj);
+        Array2DLM<ACEDYcomponent> &DY_cache_jj = DY_cache(jj);
 
 #ifdef PRINT_LOOPS_INDICES
         printf("\nneighbour atom #%d\n", jj);

@@ -10,22 +10,36 @@
 
 using namespace std;
 
-
+/**
+ * Common predecessor class to represent multidimensional array of type T
+ * and store it in memory contiguous form
+ *
+ * @tparam T data type
+ */
 template<typename T>
 class ContiguousArrayND {
 protected:
-    T *data = nullptr;
-    size_t size = 0;
-    string array_name = "Array";
+    T *data = nullptr; ///< pointer to contiguous data
+    size_t size = 0; ///< total array size
+    string array_name = "Array"; ///<array name
 public:
 
-    //default empty constructor
+    /**
+     * Default empty constructor
+     */
     ContiguousArrayND() = default;
 
-    //default empty constructor
+
+    /**
+     *  Constructor with array name
+     * @param array_name name of array (for error logging)
+     */
     ContiguousArrayND(string array_name) : array_name(array_name) {};
 
-    //copy constructor
+    /**
+     * Copy constructor
+     * @param other other ContiguousArrayND
+     */
     ContiguousArrayND(const ContiguousArrayND &other) : array_name(other.array_name), size(other.size) {
 #ifdef MULTIARRAY_LIFE_CYCLE
         cout<<array_name<<"::copy constructor"<<endl;
@@ -37,7 +51,12 @@ public:
         }
     }
 
-    //operator=
+    /**
+     * Overload operator=
+     * @param other another  ContiguousArrayND
+     * @return itself
+     */
+
     ContiguousArrayND &operator=(const ContiguousArrayND &other) {
 #ifdef MULTIARRAY_LIFE_CYCLE
         cout<<array_name<<"::operator="<<endl;
@@ -56,7 +75,10 @@ public:
 
 
     //TODO: make destructor virtual, check the destructors in inherited classes
-    //destructor
+
+    /**
+     * Destructor
+     */
     ~ContiguousArrayND() {
 #ifdef MULTIARRAY_LIFE_CYCLE
         cout<<array_name<<"::~destructor"<<endl;
@@ -65,19 +87,36 @@ public:
         data = nullptr;
     }
 
+    /**
+     * Set array name
+     * @param name array name
+     */
     void set_array_name(const string &name) {
         this->array_name = name;
     }
 
+    /**
+     * Get total number of elements in array (its size)
+     * @return array size
+     */
     size_t get_size() const {
         return size;
     }
 
+    /**
+     * Fill array with value
+     * @param value value to fill
+     */
     void fill(T value) {
         for (size_t ind = 0; ind < size; ind++)
             data[ind] = value;
     }
 
+    /**
+     * Get array data at absolute index ind for reading
+     * @param ind absolute index
+     * @return array value
+     */
     inline const T &get_data(size_t ind) const {
 #ifdef MULTIARRAY_INDICES_CHECK
         if ((ind < 0) | (ind >= size)) {
@@ -88,6 +127,11 @@ public:
         return data[ind];
     }
 
+    /**
+     * Get array data at absolute index ind for writing
+     * @param ind absolute index
+     * @return array value
+     */
     inline T &get_data(size_t ind) {
 #ifdef MULTIARRAY_INDICES_CHECK
         if ((ind < 0) | (ind >= size)) {
@@ -98,15 +142,20 @@ public:
         return data[ind];
     }
 
+    /**
+     * Overload comparison operator==
+     * Compare the total size and array values elementwise.
+     *
+     * @param other another array
+     * @return
+     */
     bool operator==(const ContiguousArrayND &other) const {
         if (this->size != other.size)
             return false;
 
-
-        for (size_t i = 0; i < this->size; ++i) {
+        for (size_t i = 0; i < this->size; ++i)
             if (this->data[i] != other.data[i])
                 return false;
-        }
 
         return true;
     }

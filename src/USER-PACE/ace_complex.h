@@ -6,8 +6,7 @@
 
 
 /**
-A custom data structure for complex numbers.
-Associated functions can be added later if required.
+A custom data structure for complex numbers and overloaded operations with them.
 */
 struct ACEComplex {
 public:
@@ -28,28 +27,35 @@ public:
         return *this;
     }
 
-/**
-Overloading of arithmetical operators
-*/
-
+    /**
+    Overloading of arithmetical operator += ACEComplex
+    */
     ACEComplex &operator+=(const ACEComplex &rhs) {
         this->real += rhs.real;
         this->img += rhs.img;
         return *this; // return the result by reference
     }
 
+    /**
+    Overloading of arithmetical operator += DOUBLE_TYPE
+    */
     ACEComplex &operator+=(const DOUBLE_TYPE &rhs) {
         this->real += rhs;
         return *this; // return the result by reference
     }
 
-
+    /**
+    Overloading of arithmetical operator *= DOUBLE_TYPE
+    */
     ACEComplex &operator*=(const DOUBLE_TYPE &rhs) {
         this->real *= rhs;
         this->img *= rhs;
         return *this; // return the result by reference
     }
 
+    /**
+    Overloading of arithmetical operator *= ACEComplex
+    */
     ACEComplex &operator*=(const ACEComplex &rhs) {
         DOUBLE_TYPE old_real = this->real;
         this->real = old_real * rhs.real - this->img * rhs.img;
@@ -57,77 +63,110 @@ Overloading of arithmetical operators
         return *this; // return the result by reference
     }
 
+    /**
+    Overloading of arithmetical operator *  ACEComplex
+    */
     ACEComplex operator*(const ACEComplex &cm2) const {
         ACEComplex res{real * cm2.real - img * cm2.img,
                        real * cm2.img + img * cm2.real};
         return res;
     }
 
-    //complex conjugation
+    /*
+     * Return complex conjugated copy of itself
+     */
     ACEComplex conjugated() const {
         ACEComplex res{real, -img};
         return res;
     }
 
+    /*
+     * Complex conjugate itself inplace
+     */
     void conjugate() {
         img = -img;
     }
 
-    // real_part_product for real-part only multiplication
+    /*
+     *  Multiplication by ACEComplex and return real-part only
+     */
     DOUBLE_TYPE real_part_product(const ACEComplex &cm2) const {
         return real * cm2.real - img * cm2.img;
     }
 
-
-    DOUBLE_TYPE operator%(const DOUBLE_TYPE &cm2) const {
-        return real * cm2;
-    }
-
+    /*
+     *  Multiplication by DOUBLE_TYPE and return real-part only
+     */
     DOUBLE_TYPE real_part_product(const DOUBLE_TYPE &cm2) const {
         return real * cm2;
     }
 
+    /*
+     *  Overloading of arithmetical operator * by  DOUBLE_TYPE
+     */
     ACEComplex operator*(const DOUBLE_TYPE &cm2) const {
         ACEComplex res{real * cm2,
                        img * cm2};
         return res;
     }
 
+    /*
+     *  Overloading of arithmetical operator +  ACEComplex
+     */
     ACEComplex operator+(const ACEComplex &cm2) const {
         ACEComplex res{real + cm2.real,
                        img + cm2.img};
         return res;
     }
 
+    /*
+     *  Overloading of arithmetical operator + with DOUBLE_TYPE
+     */
     ACEComplex operator+(const DOUBLE_TYPE &cm2) const {
         ACEComplex res{real + cm2, img};
         return res;
     }
 
+    /*
+     *  Overloading of arithmetical operator == ACEComplex
+     */
     bool operator==(const ACEComplex &c2) const {
         return (real == c2.real) && (img == c2.img);
     }
 
+    /*
+     *  Overloading of arithmetical operator == DOUBLE_TYPE
+     */
     bool operator==(const DOUBLE_TYPE &d2) const {
         return (real == d2) && (img == 0.);
     }
 
+    /*
+     *  Overloading of arithmetical operator != ACEComplex
+     */
     bool operator!=(const ACEComplex &c2) const {
         return (real != c2.real) || (img != c2.img);
     }
 
+    /*
+     *  Overloading of arithmetical operator != DOUBLE_TYPE
+     */
     bool operator!=(const DOUBLE_TYPE &d2) const {
         return (real != d2) || (img != 0.);
     }
 
 };
 
-// double * complex for commutativity with complex * double
+/*
+ * double * complex for commutativity with complex * double
+ */
 inline ACEComplex operator*(const DOUBLE_TYPE &real, const ACEComplex &cm) {
     return cm * real;
 }
 
-// double + complex for commutativity with complex + double
+/*
+ * double + complex for commutativity with complex + double
+ */
 inline ACEComplex operator+(const DOUBLE_TYPE &real, const ACEComplex &cm) {
     return cm + real;
 }
@@ -135,7 +174,7 @@ inline ACEComplex operator+(const DOUBLE_TYPE &real, const ACEComplex &cm) {
 /**
 A structure to store the derivative of \f$ Y_{lm} \f$
 */
-struct Dycomponent {
+struct ACEDYcomponent {
 public:
     /**
     complex, contains the three components of derivative of Ylm,
@@ -143,37 +182,52 @@ public:
     */
     ACEComplex a[3];
 
-    Dycomponent &operator*=(const DOUBLE_TYPE &rhs) {
+    /*
+     *  Overloading of arithmetical operator*= DOUBLE_TYPE
+     */
+    ACEDYcomponent &operator*=(const DOUBLE_TYPE &rhs) {
         this->a[0] *= rhs;
         this->a[1] *= rhs;
         this->a[2] *= rhs;
         return *this;
     }
 
-    Dycomponent operator*(const ACEComplex &rhs) const {
-        Dycomponent res;
+    /*
+     *  Overloading of arithmetical operator * ACEComplex
+     */
+    ACEDYcomponent operator*(const ACEComplex &rhs) const {
+        ACEDYcomponent res;
         res.a[0] = this->a[0] * rhs;
         res.a[1] = this->a[1] * rhs;
         res.a[2] = this->a[2] * rhs;
         return res;
     }
 
-    Dycomponent operator*(const DOUBLE_TYPE &rhs) const {
-        Dycomponent res;
+    /*
+     *  Overloading of arithmetical operator * DOUBLE_TYPE
+     */
+    ACEDYcomponent operator*(const DOUBLE_TYPE &rhs) const {
+        ACEDYcomponent res;
         res.a[0] = this->a[0] * rhs;
         res.a[1] = this->a[1] * rhs;
         res.a[2] = this->a[2] * rhs;
         return res;
     }
 
-    Dycomponent conjugated() const {
-        Dycomponent res;
+    /*
+     *  Return conjugated copy of itself
+     */
+    ACEDYcomponent conjugated() const {
+        ACEDYcomponent res;
         res.a[0] = this->a[0].conjugated();
         res.a[1] = this->a[1].conjugated();
         res.a[2] = this->a[2].conjugated();
         return res;
     }
 
+    /*
+     *  Conjugated itself in-place
+     */
     void conjugate() {
         this->a[0].conjugate();
         this->a[1].conjugate();

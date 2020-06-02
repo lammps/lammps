@@ -64,7 +64,7 @@ struct ReduceFunctorHasInit {
 template <class FunctorType>
 struct ReduceFunctorHasInit<
     FunctorType,
-    typename Impl::enable_if<0 < sizeof(&FunctorType::init)>::type> {
+    typename std::enable_if<0 < sizeof(&FunctorType::init)>::type> {
   enum { value = true };
 };
 
@@ -76,7 +76,7 @@ struct ReduceFunctorHasJoin {
 template <class FunctorType>
 struct ReduceFunctorHasJoin<
     FunctorType,
-    typename Impl::enable_if<0 < sizeof(&FunctorType::join)>::type> {
+    typename std::enable_if<0 < sizeof(&FunctorType::join)>::type> {
   enum { value = true };
 };
 
@@ -88,7 +88,7 @@ struct ReduceFunctorHasFinal {
 template <class FunctorType>
 struct ReduceFunctorHasFinal<
     FunctorType,
-    typename Impl::enable_if<0 < sizeof(&FunctorType::final)>::type> {
+    typename std::enable_if<0 < sizeof(&FunctorType::final)>::type> {
   enum { value = true };
 };
 
@@ -100,18 +100,18 @@ struct ReduceFunctorHasShmemSize {
 template <class FunctorType>
 struct ReduceFunctorHasShmemSize<
     FunctorType,
-    typename Impl::enable_if<0 < sizeof(&FunctorType::team_shmem_size)>::type> {
+    typename std::enable_if<0 < sizeof(&FunctorType::team_shmem_size)>::type> {
   enum { value = true };
 };
 
 template <class FunctorType, class ArgTag, class Enable = void>
-struct FunctorDeclaresValueType : public Impl::false_type {};
+struct FunctorDeclaresValueType : public std::false_type {};
 
 template <class FunctorType, class ArgTag>
 struct FunctorDeclaresValueType<
     FunctorType, ArgTag,
     typename Impl::enable_if_type<typename FunctorType::value_type>::type>
-    : public Impl::true_type {};
+    : public std::true_type {};
 
 template <class FunctorType,
           bool Enable = (FunctorDeclaresValueType<FunctorType, void>::value) ||
@@ -174,18 +174,19 @@ struct FunctorValueTraits<void, ArgTag, false> {
 template <class FunctorType, class ArgTag>
 struct FunctorValueTraits<FunctorType, ArgTag,
                           true /* == exists FunctorType::value_type */> {
-  typedef typename Impl::remove_extent<typename FunctorType::value_type>::type
+  typedef typename std::remove_extent<typename FunctorType::value_type>::type
       value_type;
   typedef FunctorType functor_type;
 
-  static_assert(0 == (sizeof(value_type) % sizeof(int)),
+  static_assert((sizeof(value_type) < sizeof(int)) ||
+                    0 == (sizeof(value_type) % sizeof(int)),
                 "Reduction functor's declared value_type requires: 0 == "
                 "sizeof(value_type) % sizeof(int)");
 
   /* this cast to bool is needed for correctness by NVCC */
   enum : bool {
     IsArray = static_cast<bool>(
-        Impl::is_array<typename FunctorType::value_type>::value)
+        std::is_array<typename FunctorType::value_type>::value)
   };
 
   // If not an array then what is the sizeof(value_type)
@@ -202,8 +203,8 @@ struct FunctorValueTraits<FunctorType, ArgTag,
   // Number of values if single value
   template <class F>
   KOKKOS_FORCEINLINE_FUNCTION static
-      typename Impl::enable_if<std::is_same<F, FunctorType>::value && !IsArray,
-                               unsigned>::type
+      typename std::enable_if<std::is_same<F, FunctorType>::value && !IsArray,
+                              unsigned>::type
       value_count(const F&) {
     return 1;
   }
@@ -213,8 +214,8 @@ struct FunctorValueTraits<FunctorType, ArgTag,
   // be an array.
   template <class F>
   KOKKOS_FORCEINLINE_FUNCTION static
-      typename Impl::enable_if<std::is_same<F, FunctorType>::value && IsArray,
-                               unsigned>::type
+      typename std::enable_if<std::is_same<F, FunctorType>::value && IsArray,
+                              unsigned>::type
       value_count(const F& f) {
     return f.value_count;
   }
@@ -1412,8 +1413,10 @@ struct FunctorValueInit<
     // First  substitution failure when FunctorType::init does not exist.
     // Second substitution failure when FunctorType::init is not compatible.
     ,
-    decltype(FunctorValueInitFunction<FunctorType, ArgTag>::enable_if(
-        &FunctorType::init))> {
+    typename std::enable_if<
+        !std::is_same<ArgTag, void>::value,
+        decltype(FunctorValueInitFunction<FunctorType, ArgTag>::enable_if(
+            &FunctorType::init))>::type> {
   KOKKOS_FORCEINLINE_FUNCTION static T& init(const FunctorType& f, void* p) {
     f.init(ArgTag(), *((T*)p));
     return *((T*)p);
@@ -1428,8 +1431,10 @@ struct FunctorValueInit<
     // First  substitution failure when FunctorType::init does not exist.
     // Second substitution failure when FunctorType::init is not compatible
     ,
-    decltype(FunctorValueInitFunction<FunctorType, ArgTag>::enable_if(
-        &FunctorType::init))> {
+    typename std::enable_if<
+        !std::is_same<ArgTag, void>::value,
+        decltype(FunctorValueInitFunction<FunctorType, ArgTag>::enable_if(
+            &FunctorType::init))>::type> {
   KOKKOS_FORCEINLINE_FUNCTION static T* init(const FunctorType& f, void* p) {
     f.init(ArgTag(), (T*)p);
     return (T*)p;
@@ -1525,7 +1530,7 @@ struct FunctorValueJoin<FunctorType, ArgTag, T&, Enable> {
   KOKKOS_FORCEINLINE_FUNCTION
   FunctorValueJoin(const FunctorType&) {}
 
-  KOKKOS_FORCEINLINE_FUNCTION static void join(const FunctorType& f,
+  KOKKOS_FORCEINLINE_FUNCTION static void join(const FunctorType& /*f*/,
                                                volatile void* const lhs,
                                                const volatile void* const rhs) {
     *((volatile T*)lhs) += *((const volatile T*)rhs);
@@ -1760,8 +1765,8 @@ template <typename ValueType>
 struct JoinAdd {
   typedef ValueType value_type;
 
-  KOKKOS_INLINE_FUNCTION
-  JoinAdd() {}
+  KOKKOS_DEFAULTED_FUNCTION
+  JoinAdd() = default;
 
   KOKKOS_INLINE_FUNCTION
   void join(volatile value_type& dst, const volatile value_type& src) const {

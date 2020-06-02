@@ -137,132 +137,6 @@ struct are_integral<T, Args...> {
 };
 
 //----------------------------------------------------------------------------
-/* C++11 conformal compile-time type traits utilities.
- * Prefer to use C++11 when portably available.
- */
-//----------------------------------------------------------------------------
-// C++11 Helpers:
-
-template <class T, T v>
-struct integral_constant {
-  // Declaration of 'static const' causes an unresolved linker symbol in debug
-  // static const T value = v ;
-  enum { value = T(v) };
-  typedef T value_type;
-  typedef integral_constant<T, v> type;
-  KOKKOS_INLINE_FUNCTION operator T() { return v; }
-};
-
-typedef integral_constant<bool, false> false_type;
-typedef integral_constant<bool, true> true_type;
-
-//----------------------------------------------------------------------------
-// C++11 Type relationships:
-
-template <class X, class Y>
-struct is_same : public false_type {};
-template <class X>
-struct is_same<X, X> : public true_type {};
-
-//----------------------------------------------------------------------------
-// C++11 Type properties:
-
-template <typename T>
-struct is_const : public false_type {};
-template <typename T>
-struct is_const<const T> : public true_type {};
-template <typename T>
-struct is_const<const T&> : public true_type {};
-
-template <typename T>
-struct is_array : public false_type {};
-template <typename T>
-struct is_array<T[]> : public true_type {};
-template <typename T, unsigned N>
-struct is_array<T[N]> : public true_type {};
-
-//----------------------------------------------------------------------------
-// C++11 Type transformations:
-
-template <typename T>
-struct remove_const {
-  typedef T type;
-};
-template <typename T>
-struct remove_const<const T> {
-  typedef T type;
-};
-template <typename T>
-struct remove_const<const T&> {
-  typedef T& type;
-};
-
-template <typename T>
-struct add_const {
-  typedef const T type;
-};
-template <typename T>
-struct add_const<T&> {
-  typedef const T& type;
-};
-template <typename T>
-struct add_const<const T> {
-  typedef const T type;
-};
-template <typename T>
-struct add_const<const T&> {
-  typedef const T& type;
-};
-
-template <typename T>
-struct remove_reference {
-  typedef T type;
-};
-template <typename T>
-struct remove_reference<T&> {
-  typedef T type;
-};
-template <typename T>
-struct remove_reference<const T&> {
-  typedef const T type;
-};
-
-template <typename T>
-struct remove_extent {
-  typedef T type;
-};
-template <typename T>
-struct remove_extent<T[]> {
-  typedef T type;
-};
-template <typename T, unsigned N>
-struct remove_extent<T[N]> {
-  typedef T type;
-};
-
-//----------------------------------------------------------------------------
-// C++11 Other type generators:
-
-template <bool, class T, class F>
-struct condition {
-  typedef F type;
-};
-
-template <class T, class F>
-struct condition<true, T, F> {
-  typedef T type;
-};
-
-template <bool, class = void>
-struct enable_if;
-
-template <class T>
-struct enable_if<true, T> {
-  typedef T type;
-};
-
-//----------------------------------------------------------------------------
-
 }  // namespace Impl
 }  // namespace Kokkos
 
@@ -281,19 +155,6 @@ struct enable_if_type {
 };
 
 //----------------------------------------------------------------------------
-
-template <bool B>
-struct bool_ : public integral_constant<bool, B> {};
-
-template <unsigned I>
-struct unsigned_ : public integral_constant<unsigned, I> {};
-
-template <int I>
-struct int_ : public integral_constant<int, I> {};
-
-typedef bool_<true> true_;
-typedef bool_<false> false_;
-//----------------------------------------------------------------------------
 // if_
 
 template <bool Cond, typename TrueType, typename FalseType>
@@ -302,10 +163,10 @@ struct if_c {
 
   typedef FalseType type;
 
-  typedef typename remove_const<typename remove_reference<type>::type>::type
-      value_type;
+  typedef typename std::remove_const<
+      typename std::remove_reference<type>::type>::type value_type;
 
-  typedef typename add_const<value_type>::type const_value_type;
+  typedef typename std::add_const<value_type>::type const_value_type;
 
   static KOKKOS_INLINE_FUNCTION const_value_type& select(const_value_type& v) {
     return v;
@@ -337,10 +198,10 @@ struct if_c<true, TrueType, FalseType> {
 
   typedef TrueType type;
 
-  typedef typename remove_const<typename remove_reference<type>::type>::type
-      value_type;
+  typedef typename std::remove_const<
+      typename std::remove_reference<type>::type>::type value_type;
 
-  typedef typename add_const<value_type>::type const_value_type;
+  typedef typename std::add_const<value_type>::type const_value_type;
 
   static KOKKOS_INLINE_FUNCTION const_value_type& select(const_value_type& v) {
     return v;
@@ -387,50 +248,26 @@ struct if_ : public if_c<Cond::value, TrueType, FalseType> {};
 
 //----------------------------------------------------------------------------
 
-// Allows aliased types:
 template <typename T>
-struct is_integral
-    : public integral_constant<
-          bool,
-          (std::is_same<T, char>::value ||
-           std::is_same<T, unsigned char>::value ||
-           std::is_same<T, short int>::value ||
-           std::is_same<T, unsigned short int>::value ||
-           std::is_same<T, int>::value ||
-           std::is_same<T, unsigned int>::value ||
-           std::is_same<T, long int>::value ||
-           std::is_same<T, unsigned long int>::value ||
-           std::is_same<T, long long int>::value ||
-           std::is_same<T, unsigned long long int>::value ||
-
-           std::is_same<T, int8_t>::value || std::is_same<T, int16_t>::value ||
-           std::is_same<T, int32_t>::value || std::is_same<T, int64_t>::value ||
-           std::is_same<T, uint8_t>::value ||
-           std::is_same<T, uint16_t>::value ||
-           std::is_same<T, uint32_t>::value ||
-           std::is_same<T, uint64_t>::value)> {};
-//----------------------------------------------------------------------------
-
-template <typename T>
-struct is_label : public false_type {};
+struct is_label : public std::false_type {};
 
 template <>
-struct is_label<const char*> : public true_type {};
+struct is_label<const char*> : public std::true_type {};
 
 template <>
-struct is_label<char*> : public true_type {};
+struct is_label<char*> : public std::true_type {};
 
 template <int N>
-struct is_label<const char[N]> : public true_type {};
+struct is_label<const char[N]> : public std::true_type {};
 
 template <int N>
-struct is_label<char[N]> : public true_type {};
+struct is_label<char[N]> : public std::true_type {};
 
 template <>
-struct is_label<const std::string> : public true_type {};
+struct is_label<const std::string> : public std::true_type {};
 
 template <>
-struct is_label<std::string> : public true_type {};
+struct is_label<std::string> : public std::true_type {};
 
 // These 'constexpr'functions can be used as
 // both regular functions and meta-function.
@@ -511,20 +348,6 @@ struct integral_nonzero_constant<T, zero, false> {
   typedef T value_type;
   typedef integral_nonzero_constant<T, 0> type;
   KOKKOS_INLINE_FUNCTION integral_nonzero_constant(const T& v) : value(v) {}
-};
-
-//----------------------------------------------------------------------------
-
-template <class C>
-struct is_integral_constant : public false_ {
-  typedef void integral_type;
-  enum { integral_value = 0 };
-};
-
-template <typename T, T v>
-struct is_integral_constant<integral_constant<T, v>> : public true_ {
-  typedef T integral_type;
-  enum { integral_value = v };
 };
 
 //----------------------------------------------------------------------------

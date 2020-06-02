@@ -87,7 +87,7 @@ section below for examples where this has been done.
 * The GPU package requires neighbor lists to be built on the CPU when using
   exclusion lists, or a triclinic simulation box.
 * The GPU package can be compiled for CUDA or OpenCL and thus supports
-  both, Nvidia and AMD GPUs well. On Nvidia hardware, using CUDA is typically
+  both, NVIDIA and AMD GPUs well. On NVIDIA hardware, using CUDA is typically
   resulting in equal or better performance over OpenCL.
 * OpenCL in the GPU package does theoretically also support Intel CPUs or
   Intel Xeon Phi, but the native support for those in KOKKOS (or USER-INTEL)

@@ -38,6 +38,10 @@
 #include "error.h"
 #include "memory.h"
 
+#include <string>
+#include "utils.h"
+#include "fmt/format.h"
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -581,20 +585,11 @@ void CreateAtoms::command(int narg, char **arg)
   // print status
 
   MPI_Barrier(world);
-  double time2 = MPI_Wtime();
-
-  if (me == 0) {
-    if (screen) {
-      fprintf(screen,"Created " BIGINT_FORMAT " atoms\n",
-              atom->natoms-natoms_previous);
-      fprintf(screen,"  create_atoms CPU = %g secs\n",time2-time1);
-    }
-    if (logfile) {
-      fprintf(logfile,"Created " BIGINT_FORMAT " atoms\n",
-              atom->natoms-natoms_previous);
-      fprintf(logfile,"  create_atoms CPU = %g secs\n",time2-time1);
-    }
-  }
+  if (me == 0)
+    utils::logmesg(lmp, fmt::format("Created {} atoms\n"
+                        "  create_atoms CPU = {:.3g} seconds\n",
+                        atom->natoms - natoms_previous,
+                        MPI_Wtime() - time1));
 }
 
 /* ----------------------------------------------------------------------

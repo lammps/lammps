@@ -15,6 +15,7 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "pair_lj_cut_thole_long_omp.h"
 #include <cmath>
 #include <cstdio>
@@ -70,7 +71,7 @@ void PairLJCutTholeLongOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;

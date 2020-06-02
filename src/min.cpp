@@ -341,7 +341,7 @@ void Min::setup(int flag)
 
   einitial = ecurrent;
   fnorm2_init = sqrt(fnorm_sqr());
-  fnorminf_init = fnorm_inf();
+  fnorminf_init = sqrt(fnorm_inf());
 }
 
 /* ----------------------------------------------------------------------
@@ -422,7 +422,7 @@ void Min::setup_minimal(int flag)
 
   einitial = ecurrent;
   fnorm2_init = sqrt(fnorm_sqr());
-  fnorminf_init = fnorm_inf();
+  fnorminf_init = sqrt(fnorm_inf());
 }
 
 /* ----------------------------------------------------------------------
@@ -477,7 +477,7 @@ void Min::cleanup()
 
   efinal = ecurrent;
   fnorm2_final = sqrt(fnorm_sqr());
-  fnorminf_final = fnorm_inf();
+  fnorminf_final = sqrt(fnorm_inf());
 
   // reset reneighboring criteria
 
@@ -902,13 +902,13 @@ double Min::fnorm_inf()
 
   double local_norm_inf = 0.0;
   for (i = 0; i < nvec; i++)
-    local_norm_inf = MAX(fabs(fvec[i]),local_norm_inf);
+    local_norm_inf = MAX(fvec[i]*fvec[i],local_norm_inf);
   if (nextra_atom) {
     for (int m = 0; m < nextra_atom; m++) {
       fatom = fextra_atom[m];
       n = extra_nlen[m];
       for (i = 0; i < n; i++)
-        local_norm_inf = MAX(fabs(fatom[i]),local_norm_inf);
+        local_norm_inf = MAX(fatom[i]*fatom[i],local_norm_inf);
     }
   }
 
@@ -917,7 +917,7 @@ double Min::fnorm_inf()
 
   if (nextra_global)
     for (i = 0; i < nextra_global; i++)
-      norm_inf = MAX(fabs(fextra[i]),norm_inf);
+      norm_inf = MAX(fextra[i]*fextra[i],norm_inf);
 
   return norm_inf;
 }

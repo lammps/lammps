@@ -86,6 +86,10 @@
 
 #define KOKKOS_ENABLE_ROCM_ATOMICS
 
+#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HIP_GPU)
+
+#define KOKKOS_ENABLE_HIP_ATOMICS
+
 #endif
 
 #if !defined(KOKKOS_ENABLE_GNU_ATOMICS) &&    \
@@ -178,11 +182,13 @@ extern KOKKOS_INLINE_FUNCTION void unlock_address_rocm_space(void* ptr);
 }  // namespace Kokkos
 #include <ROCm/Kokkos_ROCm_Atomic.hpp>
 #endif
+#if defined(KOKKOS_ENABLE_HIP)
+#include <HIP/Kokkos_HIP_Atomic.hpp>
+#endif
 
 #ifdef _WIN32
 #include "impl/Kokkos_Atomic_Windows.hpp"
 #else
-
 //----------------------------------------------------------------------------
 // Atomic Assembly
 //
@@ -209,6 +215,11 @@ extern KOKKOS_INLINE_FUNCTION void unlock_address_rocm_space(void* ptr);
 
 #include "impl/Kokkos_Atomic_Compare_Exchange_Strong.hpp"
 
+#endif  //_WIN32
+
+#include "impl/Kokkos_Atomic_Generic.hpp"
+
+#ifndef _WIN32
 //----------------------------------------------------------------------------
 // Atomic fetch and add
 //
@@ -262,6 +273,18 @@ extern KOKKOS_INLINE_FUNCTION void unlock_address_rocm_space(void* ptr);
 // { T tmp = *dest ; *dest = tmp & val ; return tmp ; }
 
 #include "impl/Kokkos_Atomic_Fetch_And.hpp"
+
+//----------------------------------------------------------------------------
+// Atomic MinMax
+//
+// template<class T>
+// T atomic_min(volatile T* const dest, const T val)
+// { T tmp = *dest ; *dest = min(*dest, val); return tmp ; }
+// template<class T>
+// T atomic_max(volatile T* const dest, const T val)
+// { T tmp = *dest ; *dest = max(*dest, val); return tmp ; }
+
+#include "impl/Kokkos_Atomic_MinMax.hpp"
 #endif /*Not _WIN32*/
 
 //----------------------------------------------------------------------------
@@ -284,16 +307,14 @@ extern KOKKOS_INLINE_FUNCTION void unlock_address_rocm_space(void* ptr);
 
 #include "impl/Kokkos_Volatile_Load.hpp"
 
-#ifndef _WIN32
-#include "impl/Kokkos_Atomic_Generic.hpp"
-#endif
-
 //----------------------------------------------------------------------------
 // Provide atomic loads and stores with memory order semantics
 
 #include "impl/Kokkos_Atomic_Load.hpp"
 #include "impl/Kokkos_Atomic_Store.hpp"
 
+// Generic functions using the above defined functions
+#include "impl/Kokkos_Atomic_Generic_Secondary.hpp"
 //----------------------------------------------------------------------------
 // This atomic-style macro should be an inlined function, not a macro
 

@@ -9,6 +9,7 @@
 *.d
 *.x
 *.exe
+*.sif
 *.dll
 *.pyc
 __pycache__

@@ -12,6 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include <cmath>
 #include "pair_lj_charmm_coul_msm_omp.h"
 #include "atom.h"
@@ -49,7 +50,7 @@ void PairLJCharmmCoulMSMOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -136,7 +137,7 @@ void PairLJCharmmCoulMSMOMP::eval(int iifrom, int iito, ThrData * const thr)
             const double prefactor = qqrd2e * qtmp*q[j]/r;
             const double egamma = 1.0 - (r/cut_coul)*force->kspace->gamma(r/cut_coul);
             const double fgamma = 1.0 + (rsq/cut_coulsq)*force->kspace->dgamma(r/cut_coul);
-            forcecoul = prefactor * (fgamma - 1.0);
+            forcecoul = prefactor * fgamma;
 
             if (EFLAG) ecoul = prefactor*egamma;
             if (sbindex) {

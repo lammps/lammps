@@ -92,8 +92,8 @@ OPT.
    * :doc:`drip <pair_drip>`
    * :doc:`eam (gikot) <pair_eam>`
    * :doc:`eam/alloy (gikot) <pair_eam>`
-   * :doc:`eam/cd (o) <pair_eam>`
-   * :doc:`eam/cd/old (o) <pair_eam>`
+   * :doc:`eam/cd <pair_eam>`
+   * :doc:`eam/cd/old <pair_eam>`
    * :doc:`eam/fs (gikot) <pair_eam>`
    * :doc:`edip (o) <pair_edip>`
    * :doc:`edip/multi <pair_edip>`
@@ -131,6 +131,7 @@ OPT.
    * :doc:`lj/class2/coul/cut (ko) <pair_class2>`
    * :doc:`lj/class2/coul/cut/soft <pair_fep_soft>`
    * :doc:`lj/class2/coul/long (gko) <pair_class2>`
+   * :doc:`lj/class2/coul/long/cs <pair_cs>`
    * :doc:`lj/class2/coul/long/soft <pair_fep_soft>`
    * :doc:`lj/class2/soft <pair_fep_soft>`
    * :doc:`lj/cubic (go) <pair_lj_cubic>`

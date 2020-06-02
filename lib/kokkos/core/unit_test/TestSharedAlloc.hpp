@@ -116,7 +116,7 @@ void test_shared_alloc() {
 #endif
 
     Kokkos::parallel_for(range, [=](size_t i) {
-      while (0 !=
+      while (nullptr !=
              (r[i] = static_cast<RecordMemS*>(RecordBase::decrement(r[i])))) {
 #ifdef KOKKOS_DEBUG
         if (r[i]->use_count() == 1) RecordBase::is_sane(r[i]);
@@ -157,7 +157,7 @@ void test_shared_alloc() {
 #endif
 
     Kokkos::parallel_for(range, [=](size_t i) {
-      while (0 !=
+      while (nullptr !=
              (r[i] = static_cast<RecordMemS*>(RecordBase::decrement(r[i])))) {
 #ifdef KOKKOS_DEBUG
         if (r[i]->use_count() == 1) RecordBase::is_sane(r[i]);

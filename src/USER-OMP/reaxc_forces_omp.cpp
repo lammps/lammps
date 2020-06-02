@@ -26,6 +26,7 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
+#include "omp_compat.h"
 #include "reaxc_forces_omp.h"
 #include <mpi.h>
 #include <cmath>
@@ -146,7 +147,7 @@ void Compute_Total_ForceOMP( reax_system *system, control_params *control,
   reax_list *bonds = (*lists) + BONDS;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared) //default(none)
+#pragma omp parallel default(shared) //LMP_DEFAULT_NONE
 #endif
   {
     int i, j, k, pj, pk, start_j, end_j;
@@ -309,7 +310,7 @@ void Validate_ListsOMP(reax_system *system, storage * /*workspace*/, reax_list *
       Hindex = system->my_atoms[i].Hindex;
       if (Hindex > -1) {
         system->my_atoms[i].num_hbonds =
-          (int)(MAX( Num_Entries(Hindex, hbonds)*saferzone, MIN_HBONDS ));
+          (int)(MAX(Num_Entries(Hindex,hbonds)*saferzone,system->minhbonds));
 
         if (Hindex < numH-1)
           comp = Start_Index(Hindex+1, hbonds);

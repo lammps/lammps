@@ -30,7 +30,7 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 class PairTableRXKokkos : public PairTable {
  public:
-  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2};
+  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   typedef DeviceType device_type;
 
   PairTableRXKokkos(class LAMMPS *);

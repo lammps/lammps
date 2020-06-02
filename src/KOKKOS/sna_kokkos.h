@@ -25,64 +25,6 @@
 
 namespace LAMMPS_NS {
 
-typedef double SNAreal;
-
-//typedef struct { SNAreal re, im; } SNAcomplex;
-template <typename real>
-struct alignas(2*sizeof(real)) SNAComplex
-{
-  real re,im;
-
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex() = default;
-
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real re)
-   : re(re), im(static_cast<real>(0.)) { ; }
-
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real re, real im)
-   : re(re), im(im) { ; }
-
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(const SNAComplex& other)
-   : re(other.re), im(other.im) { ; }
-
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex& operator=(const SNAComplex& other) {
-    re = other.re; im = other.im;
-    return *this;
-  }
-
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(SNAComplex&& other)
-   : re(other.re), im(other.im) { ; }
-
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex& operator=(SNAComplex&& other) {
-    re = other.re; im = other.im;
-    return *this;
-  }
-
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex operator+(SNAComplex const& other) {
-    return SNAComplex(re + other.re, im + other.im);
-  }
-
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex& operator+=(SNAComplex const& other) {
-    re += other.re; im += other.im;
-    return *this;
-  }
-
-};
-
-template <typename real>
-KOKKOS_FORCEINLINE_FUNCTION SNAComplex<real> operator*(const real& r, const SNAComplex<real>& self) {
-  return SNAComplex<real>(r*self.re, r*self.im);
-}
-
-typedef SNAComplex<SNAreal> SNAcomplex;
-
-//struct SNAKK_ZINDICES {
-//  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju;
-//};
-//
-//struct SNAKK_BINDICES {
-//  int j1, j2, j;
-//};
-
 template<class DeviceType>
 class SNAKokkos {
 

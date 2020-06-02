@@ -5851,6 +5851,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Cannot use the temper command with only one processor partition.  Use
    the -partition command-line option.
 
+*Must not have multiple fixes change box parameter ...*
+   Self-explanatory.
+
 *Must read Atoms before Angles*
    The Atoms section of a data file must come before an Angles section.
 

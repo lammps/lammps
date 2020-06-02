@@ -1,6 +1,8 @@
 Build LAMMPS as a shared library
 ================================
 
+.. TODO this is mostly redundant and should be addressed in the 'progguide' branch if it has not already
+
 Build LAMMPS as a shared library using make
 -------------------------------------------
 
@@ -14,7 +16,7 @@ From the src directory, type
 
 .. code-block:: bash
 
-   make foo mode=shlib
+   make foo mode=shared
 
 where foo is the machine target name, such as mpi or serial.
 This should create the file liblammps_foo.so in the src directory, as
@@ -39,7 +41,6 @@ shared library:
 
 .. code-block:: bash
 
-   -D BUILD_LIB=on            # enable building LAMMPS as a library
    -D BUILD_SHARED_LIBS=on    # enable building of LAMMPS shared library (both options are needed!)
 
 What this does is create a liblammps.so which contains the majority of LAMMPS
@@ -59,7 +60,7 @@ CMAKE_INSTALL_PREFIX.
    # build library
    mkdir build
    cd build
-   cmake -D PKG_PYTHON=on -D BUILD_LIB=on -D BUILD_SHARED_LIBS=on -D CMAKE_INSTALL_PREFIX=$VIRTUAL_ENV ../cmake
+   cmake -D PKG_PYTHON=on -D BUILD_SHARED_LIBS=on -D CMAKE_INSTALL_PREFIX=$VIRTUAL_ENV ../cmake
    make -j 4
 
    # install into prefix

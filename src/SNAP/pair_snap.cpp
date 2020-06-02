@@ -25,6 +25,7 @@
 #include "sna.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -548,7 +549,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
   }
   if (nwords != 2)
     error->all(FLERR,"Incorrect format in SNAP coefficient file");
@@ -589,7 +590,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     MPI_Bcast(&n,1,MPI_INT,0,world);
     MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords != 3)
       error->all(FLERR,"Incorrect format in SNAP coefficient file");
 
@@ -631,7 +632,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-      nwords = atom->count_words(line);
+      nwords = utils::count_words(line);
       if (nwords != 1)
         error->all(FLERR,"Incorrect format in SNAP coefficient file");
 
@@ -691,7 +692,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     if (nwords != 2)

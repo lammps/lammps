@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  const long n = strtol(argv[1], NULL, 10);
+  const long n = strtol(argv[1], nullptr, 10);
 
   printf("Number of even integers from 0 to %ld\n", n - 1);
 

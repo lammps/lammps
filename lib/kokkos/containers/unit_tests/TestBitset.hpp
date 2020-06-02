@@ -253,8 +253,10 @@ void test_bitset() {
   }
 }
 
+// FIXME_HIP deadlock
+#ifndef KOKKOS_ENABLE_HIP
 TEST(TEST_CATEGORY, bitset) { test_bitset<TEST_EXECSPACE>(); }
-
+#endif
 }  // namespace Test
 
 #endif  // KOKKOS_TEST_BITSET_HPP

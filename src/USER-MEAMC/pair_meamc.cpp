@@ -28,6 +28,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -383,7 +384,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
       // strip comment, skip line if blank
 
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      int nwords = atom->count_words(line);
+      int nwords = utils::count_words(line);
       if (nwords == 0) continue;
 
       // concatenate additional lines until have params_per_line words
@@ -396,7 +397,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
           break;
         }
         if ((ptr = strchr(line,'#'))) *ptr = '\0';
-        nwords = atom->count_words(line);
+        nwords = utils::count_words(line);
       }
 
       if (nwords != params_per_line)
@@ -455,7 +456,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
 
       nset++;
     }
-      
+
     // error if didn't find all elements in file
 
     if (nset != nelements) {
@@ -537,7 +538,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
   // read settings
   // pass them one at a time to MEAM package
   // match strings to list of corresponding ints
-  
+
   int maxparams = 6;
   char **params = new char*[maxparams];
   while (1) {
@@ -561,10 +562,10 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    if (atom->count_words(line) == 0) continue;
+    if (utils::count_words(line) == 0) continue;
 
     // params = ptrs to all fields in line
-    
+
     int nparams = 0;
     params[nparams++] = strtok(line,"=(), '\t\n\r\f");
     while (nparams < maxparams &&
@@ -576,7 +577,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
       if (strcmp(params[0],keywords[which]) == 0) break;
     if (which == nkeywords)
       ERRFMT(error->all, "Keyword %s in MEAM parameter file not recognized", params[0]);
-    
+
     nindex = nparams - 2;
     for (int i = 0; i < nindex; i++) index[i] = atoi(params[i+1]) - 1;
 
@@ -595,16 +596,15 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     int errorflag = 0;
     meam_inst->meam_setup_param(which,value,nindex,index,&errorflag);
     if (errorflag) {
-      char str[128];
-      snprintf(str,80,"Error in MEAM parameter file: keyword %s",params[0]);
-      switch(errorflag) {
-        case 1: strcat(str, " is out of range (please report a bug)"); break;
-        case 2: strcat(str, " expected more indices"); break;
-        case 3: strcat(str, " has out of range element index"); break;
-      }
+      const char *descr[] = { "has an unknown error",
+              "is out of range (please report a bug)",
+              "expected more indices",
+              "has out of range element index"};
+      char str[256];
+      if ((errorflag < 0) || (errorflag > 3)) errorflag = 0;
+      snprintf(str,256,"Error in MEAM parameter file: keyword %s %s",params[0],descr[errorflag]);
       error->all(FLERR,str);
     }
-    
   }
   delete [] params;
 }

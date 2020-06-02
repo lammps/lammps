@@ -18,6 +18,7 @@
                          W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include <mpi.h>
 #include <cstdlib>
 #include <cmath>
@@ -372,7 +373,7 @@ void PPPMIntel::particle_map(IntelBuffers<flt_t,acc_t> *buffers)
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nlocal, nthr) reduction(+:flag) if(!_use_lrt)
   #endif
   {
@@ -446,7 +447,7 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
     nthr = comm->nthreads;
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nthr, nlocal, global_density) if(!_use_lrt)
   #endif
   {
@@ -549,7 +550,7 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
   // reduce all the perthread_densities into global_density
   if (nthr > 1) {
     #if defined(_OPENMP)
-    #pragma omp parallel default(none) \
+    #pragma omp parallel LMP_DEFAULT_NONE \
       shared(nthr, global_density) if(!_use_lrt)
     #endif
     {
@@ -598,7 +599,7 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
   }
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nlocal, nthr) if(!_use_lrt)
   #endif
   {
@@ -749,7 +750,7 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
   }
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nlocal, nthr) if(!_use_lrt)
   #endif
   {

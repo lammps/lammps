@@ -409,7 +409,7 @@ void* SharedAllocationRecord<Kokkos::Experimental::ROCmSpace, void>::
     allocate_tracked(const Kokkos::Experimental::ROCmSpace& arg_space,
                      const std::string& arg_alloc_label,
                      const size_t arg_alloc_size) {
-  if (!arg_alloc_size) return (void*)0;
+  if (!arg_alloc_size) return nullptr;
 
   SharedAllocationRecord* const r =
       allocate(arg_space, arg_alloc_label, arg_alloc_size);
@@ -621,7 +621,7 @@ namespace Kokkos {
 namespace {
 
 void* rocm_resize_scratch_space(size_t bytes, bool force_shrink) {
-  static void* ptr           = NULL;
+  static void* ptr           = nullptr;
   static size_t current_size = 0;
   if (current_size == 0) {
     current_size = bytes;

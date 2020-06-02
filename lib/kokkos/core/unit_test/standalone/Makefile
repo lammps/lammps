@@ -9,7 +9,6 @@ ifndef KOKKOS_PATH
 endif
 
 SRC = $(wildcard $(MAKEFILE_PATH)*.cpp)
-SRC += $(MAKEFILE_PATH)/../TestStackTrace.cpp
 HEADERS = $(wildcard $(MAKEFILE_PATH)*.hpp)
 HEADERS = $(wildcard $(MAKEFILE_PATH)/../*.hpp)
 
@@ -42,7 +41,7 @@ include $(KOKKOS_PATH)/Makefile.kokkos
 build: $(EXE)
 
 $(EXE): $(OBJ) $(KOKKOS_LINK_DEPENDS) gtest-all.o
-	$(LINK) $(KOKKOS_LDFLAGS) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(KOKKOS_LIBS) $(LIB) gtest-all.o  -o $(EXE)
+	$(LINK) $(KOKKOS_LDFLAGS) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(KOKKOS_LIBS) $(LIB) gtest-all.o -lpthread -o $(EXE)
 
 clean: kokkos-clean
 	rm -f *.o *.cuda *.host

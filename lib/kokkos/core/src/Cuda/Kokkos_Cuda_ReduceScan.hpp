@@ -97,7 +97,9 @@ __device__ inline
   // Depending on the ValueType _shared__ memory must be aligned up to 8byte
   // boundaries The reason not to use ValueType directly is that for types with
   // constructors it could lead to race conditions
-  __shared__ double sh_result[(sizeof(ValueType) + 7) / 8 * STEP_WIDTH];
+  alignas(alignof(ValueType) > alignof(double) ? alignof(ValueType)
+                                               : alignof(double))
+      __shared__ double sh_result[(sizeof(ValueType) + 7) / 8 * STEP_WIDTH];
   ValueType* result = (ValueType*)&sh_result;
   const int step    = 32 / blockDim.x;
   int shift         = STEP_WIDTH;
@@ -133,7 +135,8 @@ __device__ bool cuda_inter_block_reduction(
     typename FunctorValueTraits<FunctorType, ArgTag>::reference_type value,
     typename FunctorValueTraits<FunctorType, ArgTag>::reference_type neutral,
     const JoinOp& join, Cuda::size_type* const m_scratch_space,
-    typename FunctorValueTraits<FunctorType, ArgTag>::pointer_type const result,
+    typename FunctorValueTraits<FunctorType,
+                                ArgTag>::pointer_type const /*result*/,
     Cuda::size_type* const m_scratch_flags,
     const int max_active_thread = blockDim.y) {
 #ifdef __CUDA_ARCH__
@@ -236,6 +239,12 @@ __device__ bool cuda_inter_block_reduction(
   // "value"
   return last_block;
 #else
+  (void)value;
+  (void)neutral;
+  (void)join;
+  (void)m_scratch_space;
+  (void)m_scratch_flags;
+  (void)max_active_thread;
   return true;
 #endif
 }
@@ -275,7 +284,9 @@ __device__ inline
   // Depending on the ValueType _shared__ memory must be aligned up to 8byte
   // boundaries The reason not to use ValueType directly is that for types with
   // constructors it could lead to race conditions
-  __shared__ double sh_result[(sizeof(ValueType) + 7) / 8 * STEP_WIDTH];
+  alignas(alignof(ValueType) > alignof(double) ? alignof(ValueType)
+                                               : alignof(double))
+      __shared__ double sh_result[(sizeof(ValueType) + 7) / 8 * STEP_WIDTH];
   ValueType* result = (ValueType*)&sh_result;
   const int step    = 32 / blockDim.x;
   int shift         = STEP_WIDTH;
@@ -426,6 +437,10 @@ __device__ inline
   // "value"
   return last_block;
 #else
+  (void)reducer;
+  (void)m_scratch_space;
+  (void)m_scratch_flags;
+  (void)max_active_thread;
   return true;
 #endif
 }
@@ -500,7 +515,7 @@ struct CudaReductionsFunctor<FunctorType, ArgTag, false, true> {
   }
 
   __device__ static inline bool scalar_inter_block_reduction(
-      const FunctorType& functor, const Cuda::size_type block_id,
+      const FunctorType& functor, const Cuda::size_type /*block_id*/,
       const Cuda::size_type block_count, Cuda::size_type* const shared_data,
       Cuda::size_type* const global_data, Cuda::size_type* const global_flags) {
     Scalar* const global_team_buffer_element = ((Scalar*)global_data);
@@ -577,7 +592,7 @@ struct CudaReductionsFunctor<FunctorType, ArgTag, false, false> {
 
   __device__ static inline void scalar_intra_block_reduction(
       const FunctorType& functor, Scalar value, const bool skip, Scalar* result,
-      const int shared_elements, Scalar* shared_team_buffer_element) {
+      const int /*shared_elements*/, Scalar* shared_team_buffer_element) {
     const int warp_id = (threadIdx.y * blockDim.x) / 32;
     Scalar* const my_shared_team_buffer_element =
         shared_team_buffer_element + threadIdx.y * blockDim.x + threadIdx.x;
@@ -601,7 +616,7 @@ struct CudaReductionsFunctor<FunctorType, ArgTag, false, false> {
   }
 
   __device__ static inline bool scalar_inter_block_reduction(
-      const FunctorType& functor, const Cuda::size_type block_id,
+      const FunctorType& functor, const Cuda::size_type /*block_id*/,
       const Cuda::size_type block_count, Cuda::size_type* const shared_data,
       Cuda::size_type* const global_data, Cuda::size_type* const global_flags) {
     Scalar* const global_team_buffer_element = ((Scalar*)global_data);

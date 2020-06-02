@@ -67,8 +67,8 @@ library requires installing the CUDA GPU driver and CUDA toolkit for
 your operating system. Installation of the CUDA SDK is not necessary.
 In addition to the LAMMPS library, the binary nvc_get_devices will also
 be built. This can be used to query the names and properties of GPU 
-devices on your system. A Makefile for OpenCL compilation is provided,
-but support for OpenCL use is not currently provided by the developers.
+devices on your system. A Makefile for OpenCL and ROCm HIP compilation
+is provided, but support for it is not currently provided by the developers.
 Details of the implementation are provided in:
 
 ----
@@ -168,6 +168,25 @@ NOTE: The system-specific setting LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG,
       or LAMMPS_SMALLSMALL if specified when building LAMMPS (i.e. in 
       src/MAKE/Makefile.foo) should be consistent with that specified 
       when building libgpu.a (i.e. by LMP_INC in the lib/gpu/Makefile.bar).
+
+                      BUILDING FOR HIP FRAMEWORK
+                   --------------------------------
+1. Install the latest ROCm framework (https://github.com/RadeonOpenCompute/ROCm).
+2. GPU sorting requires installing hipcub 
+(https://github.com/ROCmSoftwarePlatform/hipCUB). The HIP CUDA-backend
+additionally requires cub (https://nvlabs.github.io/cub). Download and
+extract the cub directory to lammps/lib/gpu/ or specify an appropriate
+path in lammps/lib/gpu/Makefile.hip.
+3. In Makefile.hip it is possible to specify the target platform via 
+export HIP_PLATFORM=hcc or HIP_PLATFORM=nvcc as well as the target 
+architecture (gfx803, gfx900, gfx906 etc.)
+4. If your MPI implementation does not support `mpicxx --showme` command,
+it is required to specify the corresponding MPI compiler and linker flags
+in lammps/lib/gpu/Makefile.hip and in lammps/src/MAKE/OPTIONS/Makefile.hip.
+5. Building the GPU library (libgpu.a): 
+    cd lammps/lib/gpu; make -f Makefile.hip -j
+6. Building the LAMMPS executable (lmp_hip):
+    cd ../../src; make hip -j
 
                       EXAMPLE CONVENTIONAL BUILD PROCESS
                   --------------------------------

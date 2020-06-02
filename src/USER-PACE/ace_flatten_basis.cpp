@@ -46,8 +46,8 @@ void ACEFlattenBasisSet::_clean_contiguous_arrays() {
     delete[] full_ls_rank1;
     full_ls_rank1 = nullptr;
 
-    delete[] full_Xs_rank1;
-    full_Xs_rank1 = nullptr;
+    delete[] full_mus_rank1;
+    full_mus_rank1 = nullptr;
 
     delete[] full_ms_rank1;
     full_ms_rank1 = nullptr;
@@ -60,8 +60,8 @@ void ACEFlattenBasisSet::_clean_contiguous_arrays() {
     delete[] full_ls;
     full_ls = nullptr;
 
-    delete[] full_Xs;
-    full_Xs = nullptr;
+    delete[] full_mus;
+    full_mus = nullptr;
 
     delete[] full_ms;
     full_ms = nullptr;

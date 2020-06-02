@@ -26,9 +26,7 @@ const DOUBLE_TYPE Y00 = 1;
 /**
 Class to store spherical harmonics and their associated functions. \n
 All the associated members such as \f$ P_{lm}, Y_{lm}\f$ etc are one dimensional arrays of length (L+1)*(L+2)/2. \n
-The value that corresponds to a particular l, m configuration can be accessed through a preprocessor directive as \n
-\code ylm[at(l,m)] \endcode \n
-which can access the (m+(l*(l+1))/2) value from the one dimensional array.
+The value that corresponds to a particular l, m configuration can be accessed through a \code ylm(l,m) \endcode \n
 */
 class ACECartesianSphericalHarmonics {
 public:
@@ -38,18 +36,59 @@ public:
     */
     LS_TYPE lmax;
 
+    /**
+     * Default constructor
+     */
     ACECartesianSphericalHarmonics() = default;
 
+    /**
+     * Parametrized constructor.  Dynamically initialises all the arrays.
+     * @param lmax maximum orbital moment
+     */
     explicit ACECartesianSphericalHarmonics(LS_TYPE lmax);
 
+    /**
+     * Initialize internal arrays and precompute necessary coefficients
+     * @param lm maximum orbital moment
+     */
     void init(LS_TYPE lm);
 
+    /**
+     * Destructor
+     */
     ~ACECartesianSphericalHarmonics();
 
+    /**
+     * Precompute necessaary helper arrays Precomputes the value of \f$ a_{lm}, b_{lm}, c_l, d_l \f$
+     */
     void pre_compute();
 
+    /**
+    Function that computes \f$ \bar{P}_{lm} \f$ for the corresponding lmax value
+    Input is \f$ \hat{r}_z \f$ which is the $z$-component of the bond direction.
+
+    For each \f$ \hat{r}_z \f$, this computes the whole range of \f$ \bar{P}_{lm} \f$ values
+    and its derivatives upto the lmax specified, which is a member of the class.
+
+    @param rz, DOUBLE_TYPE
+
+    @returns None
+    */
     void compute_barplm(DOUBLE_TYPE rz, LS_TYPE lmaxi);
 
+    /**
+    Function that computes \f$ Y_{lm} \f$ for the corresponding lmax value
+    Input is the bond-directon vector \f$ \hat{r}_x, \hat{r}_y, \hat{r}_z \f$
+
+    Each \f$ Y_{lm} \f$ value is a ACEComplex object with real and imaginary parts. This function also
+    finds the derivatives, which are stored in the Dycomponent class, with each component being a
+    ACEComplex object.
+
+    @param rx, DOUBLE_TYPE
+    @param ry, DOUBLE_TYPE
+    @param rz, DOUBLE_TYPE
+    @param lmaxi, int
+    */
     void compute_ylm(DOUBLE_TYPE rx, DOUBLE_TYPE ry, DOUBLE_TYPE rz, LS_TYPE lmaxi);
 
     Array2DLM<DOUBLE_TYPE> alm;
@@ -60,8 +99,8 @@ public:
     Array2DLM<DOUBLE_TYPE> plm;
     Array2DLM<DOUBLE_TYPE> dplm;
 
-    Array2DLM<ACEComplex> ylm;
-    Array2DLM<Dycomponent> dylm;
+    Array2DLM<ACEComplex> ylm; ///< Values of all spherical harmonics after \code compute_ylm(rx,ry,rz, lmaxi) \endcode call
+    Array2DLM<ACEDYcomponent> dylm;///< Values of gradients of all spherical harmonics after \code compute_ylm(rx,ry,rz, lmaxi) \endcode call
 
 };
 

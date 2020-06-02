@@ -13,26 +13,44 @@
 
 using namespace std;
 
+/**
+ * Contiguous array to organize values by \f$ (l,m) \f$ indiced (orbital moment and its projection).
+ * Only \f$ l_\textrm{max}\f$ should be provided, \f$ m = -l, \dots,l \f$
+ * for \f$ l = 0, \dots, l_\textrm{max}\f$
+ * @tparam T type of values to store
+ */
 template<typename T>
 class Array2DLM : public ContiguousArrayND<T> {
     using ContiguousArrayND<T>::array_name;
     using ContiguousArrayND<T>::data;
     using ContiguousArrayND<T>::size;
-    // dimensions
-    LS_TYPE lmax = 0;
 
-    bool is_proxy = false;
+    LS_TYPE lmax = 0; ///< orbital dimension \f$ l_{max} \f$
+
+    bool is_proxy = false; ///< flag to show, if object is owning the memory or just represent it (proxying)dimensions
 
 public:
-    // default empty constructor
+    /**
+     *  Default empty constructor
+     */
     Array2DLM() = default;
 
-    // parametrized constructor
+    /**
+     *  Parametrized constructor
+     * @param lmax maximum value of \f$ l \f$
+     * @param array_name name of the array
+     */
     explicit Array2DLM(LS_TYPE lmax, string array_name = "Array2DLM") {
         init(lmax, array_name);
     }
 
-    //constructor for create slices-proxy
+
+    /**
+     * Constructor to create slices-proxy array, i.e. to provide access to the memory, but not to own it.
+     * @param lmax  maximum value of \f$ l \f$
+     * @param data_ptr pointer to original data
+     * @param array_name name of the array
+     */
     Array2DLM(LS_TYPE lmax, T *data_ptr, string array_name = "Array2DLM") {
         this->lmax = lmax;
         this->size = (lmax + 1) * (lmax + 1);
@@ -41,7 +59,9 @@ public:
         is_proxy = true;
     };
 
-    //destructor
+    /**
+     * Destructor
+     */
     ~Array2DLM() {
         if (!is_proxy) {
             if (data != nullptr) delete[] data;
@@ -49,7 +69,11 @@ public:
         data = nullptr;
     }
 
-    //initialize array
+    /**
+     * Initialize array, allocate memory
+     * @param lmax maximum value of l
+     * @param array_name name of the array
+     */
     void init(LS_TYPE lmax, string array_name = "Array2DLM") {
         if (is_proxy) {
             char s[1024];
@@ -70,6 +94,9 @@ public:
     }
 
 #ifdef MULTIARRAY_INDICES_CHECK
+/**
+ * Check if indices (l,m) are within array
+ */
     void check_indices(LS_TYPE l, MS_TYPE m) const {
 
         if ((l < 0) | (l > lmax)) {
@@ -89,6 +116,12 @@ public:
     }
 #endif
 
+    /**
+     * Accessing the array value by index (l,m) for reading
+     * @param l
+     * @param m
+     * @return array value
+     */
     inline const T &operator()(LS_TYPE l, MS_TYPE m) const {
 #ifdef MULTIARRAY_INDICES_CHECK
         check_indices(l, m);
@@ -97,6 +130,12 @@ public:
         return data[l * (l + 1) + m];
     }
 
+    /**
+     * Accessing the array value by index (l,m) for writing
+     * @param l
+     * @param m
+     * @return array value
+     */
     inline T &operator()(LS_TYPE l, MS_TYPE m) {
 #ifdef MULTIARRAY_INDICES_CHECK
         check_indices(l, m);
@@ -105,6 +144,10 @@ public:
         return data[l * (l + 1) + m];
     }
 
+    /**
+     * Convert array to STL vector<vector<T>> container
+     * @return  vector<vector<T>> container
+     */
     vector<vector<T>> to_vector() const {
         vector<vector<T>> res;
         res.resize(lmax + 1);
@@ -119,34 +162,56 @@ public:
     }
 };
 
-
+/**
+ * Contiguous array to organize values by \f$ (i_0, l , m) \f$ indices.
+ * Only \f$ d_{0}, l_\textrm{max}\f$ should be provided: \f$ m = -l, \dots,l \f$
+ * for \f$ l = 0, \dots, l_\textrm{max}\f$
+ * @tparam T type of values to store
+ */
 template<typename T>
 class Array3DLM : public ContiguousArrayND<T> {
     using ContiguousArrayND<T>::array_name;
     using ContiguousArrayND<T>::data;
     using ContiguousArrayND<T>::size;
-    // dimensions
-    LS_TYPE lmax = 0;
-    // dimensions
-    size_t dim[1] = {0};
-    // strides
-    size_t s[1] = {0};
 
-    Array1D<Array2DLM<T> *> _proxy_slices;
+    LS_TYPE lmax = 0; ///< orbital dimension \f$ l_{max} \f$
+
+
+    size_t dim[1] = {0}; ///< linear dimension \f$ d_{0} \f$
+
+    size_t s[1] = {0}; ///< strides for linear dimensions
+
+    Array1D<Array2DLM<T> *> _proxy_slices; ///< slices representation
 public:
-    // default empty constructor
+    /**
+     *  Default empty constructor
+     */
     Array3DLM() = default;
 
+    /**
+     *  Parametrized constructor
+     * @param array_name name of the array
+     */
     Array3DLM(string array_name) {
         this->array_name = array_name;
     };
 
-    // parametrized constructor
+    /**
+     *  Parametrized constructor
+     * @param d0 maximum value of \f$ i_0 \f$
+     * @param lmax maximum value of \f$ l \f$
+     * @param array_name name of the array
+     */
     explicit Array3DLM(size_t d0, LS_TYPE lmax, string array_name = "Array3DLM") {
         init(d0, lmax, array_name);
     }
 
-    //initialize array
+    /**
+     * Initialize array and its slices
+     * @param d0 maximum value of \f$ i_0 \f$
+     * @param lmax  maximum value of \f$ l \f$
+     * @param array_name name of the array
+     */
     void init(size_t d0, LS_TYPE lmax, string array_name = "Array3DLM") {
         this->array_name = array_name;
         this->lmax = lmax;
@@ -171,6 +236,9 @@ public:
         }
     }
 
+    /**
+     * Release pointers to slices
+     */
     void _clear_proxies() {
         for (size_t i0 = 0; i0 < _proxy_slices.get_dim(0); ++i0) {
             delete _proxy_slices(i0);
@@ -178,21 +246,36 @@ public:
         }
     }
 
+    /**
+     * Destructor, clear proxies
+     */
     ~Array3DLM() {
         _clear_proxies();
     }
 
+    /**
+     * Resize array to new dimensions
+     * @param d0
+     * @param lmax
+     */
     void resize(size_t d0, LS_TYPE lmax) {
         _clear_proxies();
         init(d0, lmax, this->array_name);
     }
 
+    /**
+     * Get array dimensions
+     * @param d dimension index
+     * @return  dimension along axis 'd'
+     */
     size_t get_dim(int d) const {
         return dim[d];
     }
 
 #ifdef MULTIARRAY_INDICES_CHECK
-
+    /**
+     * Check if indices (i0, l,m) are within array
+     */
     void check_indices(size_t i0, LS_TYPE l, MS_TYPE m) const {
         if ((l < 0) | (l > lmax)) {
             fprintf(stderr, "%s: Index l = %d out of range (0, %d)\n", array_name.c_str(), l, lmax);
@@ -217,6 +300,13 @@ public:
     }
 #endif
 
+    /**
+     * Accessing the array value by index (i0,l,m) for reading
+     * @param i0
+     * @param l
+     * @param m
+     * @return array value
+     */
     inline const T &operator()(size_t i0, LS_TYPE l, MS_TYPE m) const {
 #ifdef MULTIARRAY_INDICES_CHECK
         check_indices(i0, l, m);
@@ -224,6 +314,13 @@ public:
         return data[i0 * s[0] + l * (l + 1) + m];
     }
 
+    /**
+     * Accessing the array value by index (i0,l,m) for writing
+     * @param i0
+     * @param l
+     * @param m
+     * @return array value
+     */
     inline T &operator()(size_t i0, LS_TYPE l, MS_TYPE m) {
 #ifdef MULTIARRAY_INDICES_CHECK
         check_indices(i0, l, m);
@@ -231,49 +328,78 @@ public:
         return data[i0 * s[0] + l * (l + 1) + m];
     }
 
+    /**
+     * Return proxy Array2DLM pointing to i0, l=0, m=0 to read
+     * @param i0
+     * @return proxy Array2DLM pointing to i0, l=0, m=0
+     */
     inline const Array2DLM<T> &operator()(size_t i0) const {
-        //return proxy Array2DLM pointing to i0,i1,l=0,m=0
         return *_proxy_slices(i0);
     }
 
+    /**
+     * Return proxy Array2DLM pointing to i0, l=0, m=0 to write
+     * @param i0
+     * @return proxy Array2DLM pointing to i0, l=0, m=0
+     */
     inline Array2DLM<T> &operator()(size_t i0) {
         return *_proxy_slices(i0);
     }
 };
 
 
+/**
+ * Contiguous array to organize values by \f$ (i_0, i_1, l , m) \f$ indices.
+ * Only \f$ d_{0}, d_{1}, l_\textrm{max}\f$ should be provided: \f$ m = -l, \dots,l \f$
+ * for \f$ l = 0, \dots, l_\textrm{max}\f$
+ * @tparam T type of values to store
+ */
 template<typename T>
 class Array4DLM : public ContiguousArrayND<T> {
     using ContiguousArrayND<T>::array_name;
     using ContiguousArrayND<T>::data;
     using ContiguousArrayND<T>::size;
-    // dimensions
-    LS_TYPE lmax = 0;
-    // dimensions
-    size_t dim[2] = {0, 0};
-    // strides
-    size_t s[2] = {0, 0};
 
-    Array2D<Array2DLM<T> *> _proxy_slices;
+    LS_TYPE lmax = 0; ///< orbital dimension \f$ l_{max} \f$
+    size_t dim[2] = {0, 0}; ///< linear dimension \f$ d_{0}, d_{1} \f$
+    size_t s[2] = {0, 0}; ///< strides for linear dimensions
+
+    Array2D<Array2DLM<T> *> _proxy_slices; ///< slices representation
 public:
-    // default empty constructor
+    /**
+     *  Default empty constructor
+     */
     Array4DLM() = default;
 
+    /**
+     *  Parametrized constructor
+     * @param array_name name of the array
+     */
     Array4DLM(string array_name) {
         this->array_name = array_name;
     };
 
-    // parametrized constructor
+    /**
+     *  Parametrized constructor
+     * @param d0 maximum value of \f$ i_0 \f$
+     * @param d1 maximum value of \f$ i_1 \f$
+     * @param lmax maximum value of \f$ l \f$
+     * @param array_name name of the array
+     */
     explicit Array4DLM(size_t d0, size_t d1, LS_TYPE lmax, string array_name = "Array4DLM") {
         init(d0, d1, lmax, array_name);
     }
 
-    //initialize array
+    /**
+     * Initialize array, reallocate memory and its slices
+     * @param d0 maximum value of \f$ i_0 \f$
+     * @param d1 maximum value of \f$ i_1 \f$
+     * @param lmax  maximum value of \f$ l \f$
+     * @param array_name name of the array
+     */
     void init(size_t d0, size_t d1, LS_TYPE lmax, string array_name = "Array4DLM") {
         this->array_name = array_name;
         this->lmax = lmax;
-
-
         dim[1] = d1;
         dim[0] = d0;
         s[1] = lmax * lmax;
@@ -299,6 +425,9 @@ public:
             }
     }
 
+    /**
+     * Release pointers to slices
+     */
     void _clear_proxies() {
 
         for (size_t i0 = 0; i0 < _proxy_slices.get_dim(0); ++i0)
@@ -308,21 +437,36 @@ public:
             }
     }
 
+    /**
+     * Destructor, clear proxies
+     */
     ~Array4DLM() {
         _clear_proxies();
     }
 
+    /**
+     * Deallocate memory, reallocate with the new dimensions
+     * @param d0
+     * @param lmax
+     */
     void resize(size_t d0, size_t d1, LS_TYPE lmax) {
         _clear_proxies();
         init(d0, d1, lmax, this->array_name);
     }
 
+    /**
+      * Get array dimensions
+      * @param d dimension index
+      * @return  dimension along axis 'd'
+      */
     size_t get_dim(int d) const {
         return dim[d];
     }
 
 #ifdef MULTIARRAY_INDICES_CHECK
-
+    /**
+     * Check if indices (i0, l,m) are within array
+     */
     void check_indices(size_t i0, size_t i1, LS_TYPE l, MS_TYPE m) const {
         if ((l < 0) | (l > lmax)) {
             fprintf(stderr, "%s: Index l = %d out of range (0, %d)\n", array_name.c_str(), l, lmax);
@@ -353,6 +497,14 @@ public:
     }
 #endif
 
+    /**
+     * Accessing the array value by index (i0,l,m) for reading
+     * @param i0
+     * @param i1
+     * @param l
+     * @param m
+     * @return array value
+     */
     inline const T &operator()(size_t i0, size_t i1, LS_TYPE l, MS_TYPE m) const {
 #ifdef MULTIARRAY_INDICES_CHECK
         check_indices(i0, i1, l, m);
@@ -360,6 +512,14 @@ public:
         return data[i0 * s[0] + i1 * s[1] + l * (l + 1) + m];
     }
 
+    /**
+     * Accessing the array value by index (i0,l,m) for writing
+     * @param i0
+     * @param i1
+     * @param l
+     * @param m
+     * @return array value
+     */
     inline T &operator()(size_t i0, size_t i1, LS_TYPE l, MS_TYPE m) {
 #ifdef MULTIARRAY_INDICES_CHECK
         check_indices(i0, i1, l, m);
@@ -367,11 +527,22 @@ public:
         return data[i0 * s[0] + i1 * s[1] + l * (l + 1) + m];
     }
 
+    /**
+     * Return proxy Array2DLM pointing to i0, i1, l=0, m=0 to read
+     * @param i0
+     * @param i1
+     * @return proxy Array2DLM pointing to i0, l=0, m=0
+     */
     inline const Array2DLM<T> &operator()(size_t i0, size_t i1) const {
-        //return proxy Array2DLM pointing to i0,i1,l=0,m=0
         return *_proxy_slices(i0, i1);
     }
 
+    /**
+     * Return proxy Array2DLM pointing to i0, i1, l=0, m=0 to write
+     * @param i0
+     * @param i1
+     * @return proxy Array2DLM pointing to i0, l=0, m=0
+     */
     inline Array2DLM<T> &operator()(size_t i0, size_t i1) {
         return *_proxy_slices(i0, i1);
     }

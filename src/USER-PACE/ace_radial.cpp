@@ -5,13 +5,6 @@
 
 const DOUBLE_TYPE pi = 3.14159265358979323846264338327950288419; // pi
 
-/**
-Constructor for ACERadialFunctions.
-
-@param None
-
-@returns None
-*/
 ACERadialFunctions::ACERadialFunctions(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SPECIES_TYPE nelements,
                                        DOUBLE_TYPE cutoff) {
     init(nradb, lmax, nradial, ntot, nelements, cutoff);
@@ -32,8 +25,8 @@ void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int 
     f1g.init(nradbase + 1, "f1g");
     f1gd1.init(nradbase + 1, "f1gd1");
 
-    fr.init(nradbase, lmax + 1, "fr");
-    dfr.init(nradbase, lmax + 1, "dfr");
+    fr.init(nradial, lmax + 1, "fr");
+    dfr.init(nradial, lmax + 1, "dfr");
 
     f1f.init(nradbase, lmax + 1, "f1f");
     f1fd1.init(nradbase, lmax + 1, "f1fd1");
@@ -69,13 +62,7 @@ void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int 
 
 }
 
-/**
-Destructor for ACERadialFunctions.
 
-@param None
-
-@returns None
-*/
 ACERadialFunctions::~ACERadialFunctions() {
 }
 
@@ -199,13 +186,6 @@ void ACERadialFunctions::radfunc(SPECIES_TYPE elei, SPECIES_TYPE elej) {
     }
 }
 
-/**
-Function that sets up the look-up tables for spline-representation of radial functions.
-
-@param ntot
-
-@returns None
-*/
 void ACERadialFunctions::setuplookupRadspline() {
     SPECIES_TYPE elei, elej;
     int n, l, idx;
@@ -403,11 +383,11 @@ dcr: derivative of hard core repulsion
         cr = pre * y / r;
         dcr = -pre * y * (2.0 * lr2 + 1.0) / r2;
 
-        x0 = r / cutoff;
-        env = 0.5 * (1.0 + cos(pi * x0));
-        denv = -0.5 * sin(pi * x0) * pi / cutoff;
-        dcr = cr * denv + dcr * env;
-        cr = cr * env;
+        x0 = r/cutoff;
+        env  =  0.5*( 1.0 + cos( pi*x0 ) );
+        denv = -0.5*sin( pi*x0 )*pi/cutoff;
+        dcr = cr*denv + dcr*env;
+        cr = cr*env;
     } else {
         cr = 0.0;
         dcr = 0.0;

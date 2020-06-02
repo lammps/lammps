@@ -397,6 +397,51 @@ bool utils::is_double(const std::string & str) {
   return true;
 }
 
+/* ----------------------------------------------------------------------
+   strip off leading part of path, return just the filename
+------------------------------------------------------------------------- */
+
+std::string utils::path_basename(const std::string & path) {
+#if defined(_WIN32)
+  size_t start = path.find_last_of('/\\');
+#else
+  size_t start = path.find_last_of('/');
+#endif
+
+  if (start == std::string::npos) {
+    start = 0;
+  } else {
+    start += 1;
+  }
+
+  return path.substr(start);
+}
+
+/* ----------------------------------------------------------------------
+   join two paths
+------------------------------------------------------------------------- */
+
+std::string utils::path_join(const std::string & a, const std::string & b) {
+  #if defined(_WIN32)
+    return fmt::format("{}\\{}", a, b);
+  #else
+    return fmt::format("{}/{}", a, b);
+  #endif
+}
+
+/* ----------------------------------------------------------------------
+   try to open file for reading
+------------------------------------------------------------------------- */
+
+bool utils::file_is_readable(const std::string & path) {
+  FILE * fp = fopen(path.c_str(), "r");
+  if(fp) {
+    fclose(fp);
+    return true;
+  }
+  return false;
+}
+
 /* ------------------------------------------------------------------ */
 
 extern "C" {

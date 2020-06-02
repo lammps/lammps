@@ -163,6 +163,28 @@ namespace LAMMPS_NS {
      * \return true, if string contains valid floating-point number, false otherwise
      */
     bool is_double(const std::string & str);
+
+    /**
+     * \brief Strip off leading part of path, return just the filename
+     * \param path file path
+     * \return file name
+     */
+    std::string path_basename(const std::string & path);
+
+    /**
+     * \brief Join two paths
+     * \param a first path
+     * \param b second path
+     * \return combined path
+     */
+    std::string path_join(const std::string & a, const std::string & b);
+
+    /**
+     * \brief Check if file exists and is readable
+     * \param path file path
+     * \return true if file exists and is readable
+     */
+    bool file_is_readable(const std::string & path);
   }
 }
 

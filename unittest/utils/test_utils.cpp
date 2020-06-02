@@ -182,3 +182,19 @@ TEST(Utils, strmatch_char_range) {
 TEST(Utils, strmatch_opt_range) {
     ASSERT_TRUE(utils::strmatch("rigid","^[0-9]*[p-s]igid"));
 }
+
+TEST(Utils, path_join) {
+#if defined(_WIN32)
+    ASSERT_THAT(utils::path_join("c:\\parent\\folder", "filename"), Eq("c:\\parent\\folder\\filename"));
+#else
+    ASSERT_THAT(utils::path_join("/parent/folder", "filename"), Eq("/parent/folder/filename"));
+#endif
+}
+
+TEST(Utils, path_basename) {
+#if defined(_WIN32)
+    ASSERT_THAT(utils::path_basename("c:\\parent\\folder\\filename"), Eq("filename"));
+#else
+    ASSERT_THAT(utils::path_basename("/parent/folder/filename"), Eq("filename"));
+#endif
+}

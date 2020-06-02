@@ -16,6 +16,7 @@
 #include "gmock/gmock.h"
 #include "fmt/format.h"
 #include <string>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using ::testing::Eq;
@@ -92,4 +93,14 @@ TEST(Fmtlib, insert_neg_double) {
     const double val = -1.5;
     auto text = fmt::format("word {}",val);
     ASSERT_THAT(text, Eq("word -1.5"));
+}
+
+TEST(Fmtlib, int_for_double) {
+    const double val = -1.5;
+    ASSERT_THROW(fmt::format("word {:d}",val),std::exception);
+}
+
+TEST(Fmtlib, double_for_int) {
+    const int val = 15;
+    ASSERT_THROW(fmt::format("word {:g}",val),std::exception);
 }

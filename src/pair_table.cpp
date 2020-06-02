@@ -28,12 +28,14 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "tokenizer.h"
+#include "table_file_reader.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
 enum{NONE,RLINEAR,RSQ,BMP};
 
-#define MAXLINE 1024
 #define EPSILONR 1.0e-6
 
 /* ---------------------------------------------------------------------- */
@@ -356,37 +358,18 @@ double PairTable::init_one(int i, int j)
 
 void PairTable::read_table(Table *tb, char *file, char *keyword)
 {
-  char line[MAXLINE];
+  TableFileReader reader(lmp, file, "pair");
 
-  // open file
+  char * line = reader.find_section_start(keyword);
 
-  FILE *fp = force->open_potential(file);
-  if (fp == NULL) {
-    std::string str("Cannot open file ");
-    str += file;
-    error->one(FLERR,str.c_str());
-  }
-
-  // loop until section found with matching keyword
-
-  while (1) {
-    if (fgets(line,MAXLINE,fp) == NULL)
-      error->one(FLERR,"Did not find keyword in table file");
-    if (strspn(line," \t\n\r") == strlen(line)) continue;  // blank line
-    if (line[0] == '#') continue;                          // comment
-    char *word = strtok(line," \t\n\r");
-    if (strcmp(word,keyword) == 0) break;            // matching keyword
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error); // no match, skip section
-    param_extract(tb,line);
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-    for (int i = 0; i < tb->ninput; i++)
-      utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
+  if (!line) {
+    error->one(FLERR,"Did not find keyword in table file");
   }
 
   // read args on 2nd line of section
   // allocate table arrays for file values
 
-  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
+  line = reader.next_line();
   param_extract(tb,line);
   memory->create(tb->rfile,tb->ninput,"pair:rfile");
   memory->create(tb->efile,tb->ninput,"pair:efile");
@@ -407,19 +390,25 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
   // if rflag set, compute r
   // if rflag not set, use r from file
 
-  int itmp;
   double rfile,rnew;
   union_int_float_t rsq_lookup;
 
   int rerror = 0;
   int cerror = 0;
 
-  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
+  reader.skip_line();
   for (int i = 0; i < tb->ninput; i++) {
-    if (NULL == fgets(line,MAXLINE,fp))
-      error->one(FLERR,"Premature end of file in pair table");
-    if (4 != sscanf(line,"%d %lg %lg %lg",
-                    &itmp,&rfile,&tb->efile[i],&tb->ffile[i]))  ++cerror;
+    line = reader.next_line(4);
+
+    try {
+      ValueTokenizer values(line);
+      values.next_int();
+      rfile = values.next_double();
+      tb->efile[i] = values.next_double();
+      tb->ffile[i] = values.next_double();
+    } catch (TokenizerException & e) {
+      ++cerror;
+    }
 
     rnew = rfile;
     if (tb->rflag == RLINEAR)
@@ -442,10 +431,6 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
 
     tb->rfile[i] = rnew;
   }
-
-  // close file
-
-  fclose(fp);
 
   // warn if force != dE/dr at any point that is not an inflection point
   // check via secant approximation to dE/dr
@@ -477,10 +462,9 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
   }
 
   if (ferror) {
-    char str[128];
-    sprintf(str,"%d of %d force values in table are inconsistent with -dE/dr.\n"
-            "  Should only be flagged at inflection points",ferror,tb->ninput);
-    error->warning(FLERR,str);
+    std::string str = fmt::format("{} of {} force values in table are inconsistent with -dE/dr.\n"
+                                  "  Should only be flagged at inflection points",ferror,tb->ninput);
+    error->warning(FLERR,str.c_str());
   }
 
   // warn if re-computed distance values differ from file values
@@ -573,31 +557,25 @@ void PairTable::param_extract(Table *tb, char *line)
   tb->rflag = NONE;
   tb->fpflag = 0;
 
-  char *word = strtok(line," \t\n\r\f");
-  while (word) {
-    if (strcmp(word,"N") == 0) {
-      word = strtok(NULL," \t\n\r\f");
-      tb->ninput = atoi(word);
-    } else if (strcmp(word,"R") == 0 || strcmp(word,"RSQ") == 0 ||
-               strcmp(word,"BITMAP") == 0) {
-      if (strcmp(word,"R") == 0) tb->rflag = RLINEAR;
-      else if (strcmp(word,"RSQ") == 0) tb->rflag = RSQ;
-      else if (strcmp(word,"BITMAP") == 0) tb->rflag = BMP;
-      word = strtok(NULL," \t\n\r\f");
-      tb->rlo = atof(word);
-      word = strtok(NULL," \t\n\r\f");
-      tb->rhi = atof(word);
-    } else if (strcmp(word,"FPRIME") == 0) {
+  ValueTokenizer values(line);
+
+  while (values.has_next()) {
+    std::string word = values.next_string();
+    if (word == "N") {
+      tb->ninput = values.next_int();
+    } else if ((word == "R") || (word == "RSQ") || (word == "BITMAP")) {
+      if (word == "R") tb->rflag = RLINEAR;
+      else if (word == "RSQ") tb->rflag = RSQ;
+      else if (word == "BITMAP") tb->rflag = BMP;
+      tb->rlo = values.next_double();
+      tb->rhi = values.next_double();
+    } else if (word == "FPRIME") {
       tb->fpflag = 1;
-      word = strtok(NULL," \t\n\r\f");
-      tb->fplo = atof(word);
-      word = strtok(NULL," \t\n\r\f");
-      tb->fphi = atof(word);
+      tb->fplo = values.next_double();
+      tb->fphi = values.next_double();
     } else {
-      printf("WORD: %s\n",word);
-      error->one(FLERR,"Invalid keyword in pair table parameters");
+      error->one(FLERR,fmt::format("Invalid keyword {} in pair table parameters", word).c_str());
     }
-    word = strtok(NULL," \t\n\r\f");
   }
 
   if (tb->ninput == 0) error->one(FLERR,"Pair table parameters did not set N");

@@ -2,6 +2,10 @@
 
 using namespace std;
 
+ACECTildeBasisSet::ACECTildeBasisSet(string filename) {
+    load(filename);
+}
+
 ACECTildeBasisSet::ACECTildeBasisSet(const ACECTildeBasisSet &other) {
     ACECTildeBasisSet::_copy_scalar_memory(other);
     ACECTildeBasisSet::_copy_dynamic_memory(other);
@@ -427,7 +431,7 @@ void fread_c_tilde_b_basis_func(FILE *fptr, ACECTildeBasisFunction &func) {
     }
 }
 
-void ACECTildeBasisSet::load(string filename) {
+void ACECTildeBasisSet::load(const string filename) {
     int res;
     FILE *fptr;
     char buffer[1024], buffer2[1024];

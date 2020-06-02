@@ -100,7 +100,7 @@ public:
      * Virtual method to load potential from file
      * @param filename file name
      */
-    virtual void load(string filename) = 0;
+    virtual void load(const string filename) = 0;
 
     /**
      * Get the species index by its element name

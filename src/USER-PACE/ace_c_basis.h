@@ -26,6 +26,11 @@ public:
     ACECTildeBasisSet() = default;
 
     /**
+    * Constructor from .ace file
+    */
+    ACECTildeBasisSet(const string filename);
+
+    /**
      * Copy constructor (see. Rule of Three)
      * @param other
      */
@@ -75,7 +80,7 @@ public:
      * Load potential from .ace
      * @param filename .ace file name
      */
-    void load(string filename) override;
+    void load(const string filename) override;
 
     /**
      * Re-pack the constituent dynamic arrays of all basis functions in contiguous arrays

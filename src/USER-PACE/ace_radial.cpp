@@ -25,8 +25,8 @@ void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int 
     f1g.init(nradbase + 1, "f1g");
     f1gd1.init(nradbase + 1, "f1gd1");
 
-    fr.init(nradbase, lmax + 1, "fr");
-    dfr.init(nradbase, lmax + 1, "dfr");
+    fr.init(nradial, lmax + 1, "fr");
+    dfr.init(nradial, lmax + 1, "dfr");
 
     f1f.init(nradbase, lmax + 1, "f1f");
     f1fd1.init(nradbase, lmax + 1, "f1fd1");

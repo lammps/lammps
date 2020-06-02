@@ -244,6 +244,7 @@ void fwrite_c_tilde_b_basis_func(FILE *fptr, ACECTildeBasisFunction &func) {
 }
 
 void ACECTildeBasisSet::save(const string &filename) {
+    // TODO: save radbasename to file
     FILE *fptr;
     fptr = fopen(filename.c_str(), "w");
     fprintf(fptr, "lmax=%d\n", lmax);
@@ -352,10 +353,8 @@ void fread_c_tilde_b_basis_func(FILE *fptr, ACECTildeBasisFunction &func) {
     res = fscanf(fptr, " ctilde_basis_func: ");
 
     res = fscanf(fptr, "rank=%s ndens=%s mu0=%s ", buf[0], buf[1], buf[2]);
-    if (res != 3) {
-        printf("Error while reading file");
-        exit(EXIT_FAILURE);
-    }
+    if (res != 3)
+        throw invalid_argument("Could not read C-tilde basis function");
 
     func.rank = (RANK_TYPE) stol(buf[0]);
     func.ndensity = (DENSITY_TYPE) stol(buf[1]);
@@ -368,10 +367,8 @@ void fread_c_tilde_b_basis_func(FILE *fptr, ACECTildeBasisFunction &func) {
     res = fscanf(fptr, " mu=(");
     for (r = 0; r < func.rank; ++r) {
         res = fscanf(fptr, "%s", buf[0]);
-        if (res != 1) {
-            printf("Error while reading file");
-            exit(EXIT_FAILURE);
-        }
+        if (res != 1)
+            throw invalid_argument("Could not read C-tilde basis function");
         func.mus[r] = (SPECIES_TYPE) stol(buf[0]);
     }
     res = fscanf(fptr, " )"); // ")"
@@ -379,10 +376,8 @@ void fread_c_tilde_b_basis_func(FILE *fptr, ACECTildeBasisFunction &func) {
     res = fscanf(fptr, " n=("); // "n="
     for (r = 0; r < func.rank; ++r) {
         res = fscanf(fptr, "%s", buf[0]);
-        if (res != 1) {
-            printf("Error while reading file");
-            exit(EXIT_FAILURE);
-        }
+        if (res != 1)
+            throw invalid_argument("Could not read C-tilde basis function");
 
         func.ns[r] = (NS_TYPE) stol(buf[0]);
     }
@@ -391,19 +386,16 @@ void fread_c_tilde_b_basis_func(FILE *fptr, ACECTildeBasisFunction &func) {
     res = fscanf(fptr, " l=(");
     for (r = 0; r < func.rank; ++r) {
         res = fscanf(fptr, "%s", buf[0]);
-        if (res != 1) {
-            printf("Error while reading file");
-            exit(EXIT_FAILURE);
-        }
+        if (res != 1)
+            throw invalid_argument("Could not read C-tilde basis function");
         func.ls[r] = (NS_TYPE) stol(buf[0]);
     }
     res = fscanf(fptr, " )");
 
     res = fscanf(fptr, " num_ms=%s\n", buf[0]);
-    if (res != 1) {
-        printf("Error while reading file");
-        exit(EXIT_FAILURE);
-    }
+    if (res != 1)
+        throw invalid_argument("Could not read C-tilde basis function");
+
     func.num_ms_combs = (SHORT_INT_TYPE) stoi(buf[0]);
 
     func.ms_combs = new MS_TYPE[func.rank * func.num_ms_combs];
@@ -413,19 +405,15 @@ void fread_c_tilde_b_basis_func(FILE *fptr, ACECTildeBasisFunction &func) {
         res = fscanf(fptr, " <");
         for (r = 0; r < func.rank; ++r) {
             res = fscanf(fptr, "%s", buf[0]);
-            if (res != 1) {
-                printf("Error while reading file");
-                exit(EXIT_FAILURE);
-            }
+            if (res != 1)
+                throw invalid_argument("Could not read C-tilde basis function");
             func.ms_combs[m_ind * func.rank + r] = stoi(buf[0]);
         }
         res = fscanf(fptr, " >:");
         for (DENSITY_TYPE p = 0; p < func.ndensity; p++) {
             res = fscanf(fptr, "%s", buf[0]);
-            if (res != 1) {
-                printf("Error while reading file");
-                exit(EXIT_FAILURE);
-            }
+            if (res != 1)
+                throw invalid_argument("Could not read C-tilde basis function");
             func.ctildes[m_ind * func.ndensity + p] = stod(buf[0]);
         }
     }
@@ -435,141 +423,107 @@ void ACECTildeBasisSet::load(const string filename) {
     int res;
     FILE *fptr;
     char buffer[1024], buffer2[1024];
+    string radbasename = "ChebExpCos";
+
     fptr = fopen(filename.c_str(), "r");
-    if (fptr == NULL) {
-        printf("Could not open file %s.\n", filename.c_str());
-        exit(EXIT_FAILURE);
-    }
+    if (fptr == NULL)
+        throw invalid_argument("Could not open file %s."+filename);
     res = fscanf(fptr, "lmax=%s", buffer);
-    if (res != 1) {
-        printf("Error while reading file");
-        exit(EXIT_FAILURE);
-    }
+    if (res != 1)
+        throw invalid_argument(("File '" +filename +"': couldn't read lmax").c_str());
     lmax = stoi(buffer);
 
     res = fscanf(fptr, " nradbase=");
     res = fscanf(fptr, "%s", buffer);
-    if (res != 1) {
-        printf("Error while reading file");
-        exit(EXIT_FAILURE);
-    }
+    if (res != 1)
+        throw invalid_argument(("File '" +filename +"': couldn't read nradbase").c_str());
     nradbase = stoi(buffer);
 
     res = fscanf(fptr, " nradmax=");
     res = fscanf(fptr, "%s", buffer);
-    if (res != 1) {
-        printf("Error while reading file");
-        exit(EXIT_FAILURE);
-    }
+    if (res != 1)
+        throw invalid_argument(("File '" +filename +"': couldn't read nradmax").c_str());
     nradmax = stoi(buffer);
 
     res = fscanf(fptr, " nelements=");
     res = fscanf(fptr, "%s", buffer);
-    if (res != 1) {
-        printf("Error while reading file");
-        exit(EXIT_FAILURE);
-    }
+    if (res != 1)
+        throw invalid_argument(("File '" +filename +"': couldn't read nelements").c_str());
     nelements = stoi(buffer);
 
     res = fscanf(fptr, " rankmax=");
     res = fscanf(fptr, "%s", buffer);
-    if (res != 1) {
-        printf("Error while reading file");
-        exit(EXIT_FAILURE);
-    }
+    if (res != 1)
+        throw invalid_argument(("File '" +filename +"': couldn't read rankmax").c_str());
     rankmax = stoi(buffer);
 
     res = fscanf(fptr, " ndensitymax=");
     res = fscanf(fptr, "%s", buffer);
-    if (res != 1) {
-        printf("Error while reading file");
-        exit(EXIT_FAILURE);
-    }
+    if (res != 1)
+        throw invalid_argument(("File '" +filename +"': couldn't read ndensitymax").c_str());
     ndensitymax = stoi(buffer);
 
 
     res = fscanf(fptr, " cutoffmax=");
     res = fscanf(fptr, "%s", buffer);
-    if (res != 1) {
-        printf("Error while reading file");
-        exit(EXIT_FAILURE);
-    }
+    if (res != 1)
+        throw invalid_argument(("File '" +filename +"': couldn't read cutoffmax").c_str());
     cutoffmax = stod(buffer);
 
 
     res = fscanf(fptr, " ntot=");
     res = fscanf(fptr, "%s", buffer);
-    if (res != 1) {
-        printf("Error while reading file");
-        exit(EXIT_FAILURE);
-    }
+    if (res != 1)
+        throw invalid_argument(("File '" +filename +"': couldn't read ntot").c_str());
     ntot = stoi(buffer);
 
 
     int parameters_size;
     res = fscanf(fptr, "%s parameters:", buffer);
-    if (res != 1) {
-        printf("Error while reading file");
-        exit(EXIT_FAILURE);
-    }
+    if (res != 1)
+        throw invalid_argument(("File '" +filename +"': couldn't read number of FS_parameters").c_str());
     parameters_size = stoi(buffer);
     FS_parameters.resize(parameters_size);
 
     spherical_harmonics.init(lmax);
+    //TODO: read "radbasename" argument from file
     radial_functions.init(nradbase, lmax, nradmax,
                           ntot,
                           nelements,
-                          cutoffmax);
+                          cutoffmax, radbasename);
     rho_core_cutoffs.init(nelements, "rho_core_cutoffs");
     drho_core_cutoffs.init(nelements, "drho_core_cutoffs");
 
-    for (int i = 0; i < FS_parameters.size(); ++i) {
+    for(int i = 0; i < FS_parameters.size(); ++i) {
         res = fscanf(fptr, "%s", buffer);
-        if (res != 1) {
-            printf("Error while reading file");
-            exit(EXIT_FAILURE);
-        }
-        if (!res) exit(EXIT_FAILURE);
+        if (res != 1)
+            throw invalid_argument(("File '" +filename +"': couldn't read  FS_parameters").c_str());
         FS_parameters[i] = stof(buffer);
     }
 
     //hard-core repulsion
     res = fscanf(fptr, " core repulsion parameters:");
-    if (res != 0) {
-        printf("Error while reading core repulsion parameters\n");
-        exit(EXIT_FAILURE);
-    }
+    if (res != 0)
+        throw invalid_argument(("File '" +filename +"': couldn't read core repulsion parameters").c_str());
     for (SPECIES_TYPE mu_i = 0; mu_i < nelements; ++mu_i)
         for (SPECIES_TYPE mu_j = 0; mu_j < nelements; ++mu_j) {
             res = fscanf(fptr, "%s %s", buffer, buffer2);
-            if (res != 2) {
-                printf("Error while reading file core repulsion parameters (values)\n");
-                exit(EXIT_FAILURE);
-            }
+            if (res != 2)
+                throw invalid_argument(("File '" +filename +"': couldn't read core repulsion parameters (values)").c_str());
             radial_functions.prehc(mu_i, mu_j) = stod(buffer);
             radial_functions.lambdahc(mu_i, mu_j) = stod(buffer2);
-
-//            printf("Read: prehc(mu_i, mu_j)=%f\n",radial_functions.prehc(mu_i, mu_j));
-//            printf("Read: lambdahc(mu_i, mu_j)=%f\n",radial_functions.lambdahc(mu_i, mu_j));
         }
 
     //hard-core energy cutoff repulsion
     res = fscanf(fptr, " core energy-cutoff parameters:");
-    if (res != 0) {
-        printf("Error while reading core energy-cutoff parameters\n");
-        exit(EXIT_FAILURE);
-    }
+    if (res != 0)
+        throw invalid_argument(("File '" +filename +"': couldn't read core energy-cutoff parameters").c_str());
     for (SPECIES_TYPE mu_i = 0; mu_i < nelements; ++mu_i) {
         res = fscanf(fptr, "%s %s", buffer, buffer2);
-        if (res != 2) {
-            printf("Error while reading file core energy-cutoff parameters (values)\n");
-            exit(EXIT_FAILURE);
-        }
+        if (res != 2)
+            throw invalid_argument(("File '" +filename +"': couldn't read core energy-cutoff parameters (values)").c_str());
         rho_core_cutoffs(mu_i) = stod(buffer);
         drho_core_cutoffs(mu_i) = stod(buffer2);
-
-//        printf("Read: rho_core_cutoffs(mu_i)=%f\n", rho_core_cutoffs(mu_i));
-//        printf("Read: drho_core_cutoffs(mu_i)=%f\n", drho_core_cutoffs(mu_i));
     }
 
 
@@ -578,10 +532,8 @@ void ACECTildeBasisSet::load(const string filename) {
     res = fscanf(fptr, " elements:");
     for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
         res = fscanf(fptr, "%s", buffer);
-        if (res != 1) {
-            printf("Error while reading file");
-            exit(EXIT_FAILURE);
-        }
+        if (res != 1)
+            throw invalid_argument(("File '" +filename +"': couldn't read elements name").c_str());
         elements_name[mu] = buffer;
     }
 
@@ -591,10 +543,8 @@ void ACECTildeBasisSet::load(const string filename) {
     for (SPECIES_TYPE mu_i = 0; mu_i < nelements; ++mu_i)
         for (SPECIES_TYPE mu_j = 0; mu_j < nelements; ++mu_j) {
             res = fscanf(fptr, "%s", buffer);
-            if (res != 1) {
-                printf("Error while reading file");
-                exit(EXIT_FAILURE);
-            }
+            if (res != 1)
+                throw invalid_argument(("File '" +filename +"': couldn't read radparameter").c_str());
             radial_functions.lambda(mu_i, mu_j) = stod(buffer);
         }
 
@@ -603,10 +553,8 @@ void ACECTildeBasisSet::load(const string filename) {
     for (SPECIES_TYPE mu_i = 0; mu_i < nelements; ++mu_i)
         for (SPECIES_TYPE mu_j = 0; mu_j < nelements; ++mu_j) {
             res = fscanf(fptr, "%s", buffer);
-            if (res != 1) {
-                printf("Error while reading file");
-                exit(EXIT_FAILURE);
-            }
+            if (res != 1)
+                throw invalid_argument(("File '" +filename +"': couldn't read cutoff").c_str());
             radial_functions.cut(mu_i, mu_j) = stod(buffer);
         }
 
@@ -615,10 +563,8 @@ void ACECTildeBasisSet::load(const string filename) {
     for (SPECIES_TYPE mu_i = 0; mu_i < nelements; ++mu_i)
         for (SPECIES_TYPE mu_j = 0; mu_j < nelements; ++mu_j) {
             res = fscanf(fptr, " %s", buffer);
-            if (res != 1) {
-                printf("Error while reading file");
-                exit(EXIT_FAILURE);
-            }
+            if (res != 1)
+                throw invalid_argument(("File '" +filename +"': couldn't read dcut").c_str());
             radial_functions.dcut(mu_i, mu_j) = stod(buffer);
         }
 
@@ -630,10 +576,8 @@ void ACECTildeBasisSet::load(const string filename) {
                 for (NS_TYPE nr = 1; nr <= nradmax; nr++)
                     for (LS_TYPE l = 0; l <= lmax; l++) {
                         res = fscanf(fptr, "%s", buffer);
-                        if (res != 1) {
-                            printf("Error while reading file");
-                            exit(EXIT_FAILURE);
-                        }
+                        if (res != 1)
+                            throw invalid_argument(("File '" +filename +"': couldn't read crad").c_str());
                         radial_functions.crad(mu_i, mu_j, l, nr - 1, idx - 1) = stod(buffer);
                     }
 
@@ -642,18 +586,14 @@ void ACECTildeBasisSet::load(const string filename) {
     //num_c_tilde_max
     res = fscanf(fptr, " num_c_tilde_max=");
     res = fscanf(fptr, "%s\n", buffer);
-    if (res != 1) {
-        printf("Error while reading file");
-        exit(EXIT_FAILURE);
-    }
+    if (res != 1)
+        throw invalid_argument(("File '" +filename +"': couldn't read num_c_tilde_max").c_str());
     num_ctilde_max = stol(buffer);
 
     res = fscanf(fptr, " num_ms_combinations_max=");
     res = fscanf(fptr, "%s", buffer);
-    if (res != 1) {
-        printf("Error while reading file");
-        exit(EXIT_FAILURE);
-    }
+    if (res != 1)
+        throw invalid_argument(("File '" +filename +"': couldn't read num_ms_combinations_max").c_str());
     num_ms_combinations_max = stol(buffer);
 
     //read total_basis_size_rank1
@@ -664,19 +604,14 @@ void ACECTildeBasisSet::load(const string filename) {
 
     for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
         res = fscanf(fptr, "%s", buffer);
-        if (res != 1) {
-            printf("Error while reading file");
-            exit(EXIT_FAILURE);
-        }
+        if (res != 1)
+            throw invalid_argument(("File '" +filename +"': couldn't read total_basis_size_rank1").c_str());
         total_basis_size_rank1[mu] = stoi(buffer);
-        //printf("total_basis_size[%d] = %d\n", mu, total_basis_size_rank1[mu]);
         basis_rank1[mu] = new ACECTildeBasisFunction[total_basis_size_rank1[mu]];
     }
-
     for (SPECIES_TYPE mu = 0; mu < nelements; mu++)
         for (SHORT_INT_TYPE func_ind = 0; func_ind < total_basis_size_rank1[mu]; ++func_ind) {
             fread_c_tilde_b_basis_func(fptr, basis_rank1[mu][func_ind]);
-            //print_C_tilde_B_basis_function(basis_rank1[mu][func_ind]);
         }
 
     //read total_basis_size
@@ -686,22 +621,26 @@ void ACECTildeBasisSet::load(const string filename) {
 
     for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
         res = fscanf(fptr, "%s", buffer);
-        if (res != 1) {
-            printf("Error while reading file");
-            exit(EXIT_FAILURE);
-        }
+        if (res != 1)
+            throw invalid_argument(("File '" +filename +"': couldn't read total_basis_size").c_str());
         total_basis_size[mu] = stoi(buffer);
         basis[mu] = new ACECTildeBasisFunction[total_basis_size[mu]];
     }
-
     for (SPECIES_TYPE mu = 0; mu < nelements; mu++)
         for (SHORT_INT_TYPE func_ind = 0; func_ind < total_basis_size[mu]; ++func_ind) {
             fread_c_tilde_b_basis_func(fptr, basis[mu][func_ind]);
-            //print_C_tilde_B_basis_function(basis[mu][func_ind]);
         }
 
     fclose(fptr);
-
+//    spherical_harmonics.init(lmax);
+//    //TODO: pass "radbasename" argument
+//    radial_functions.init(nradbase, lmax, nradmax,
+//                          ntot,
+//                          nelements,
+//                          cutoffmax, radbasename);
+//    rho_core_cutoffs.init(nelements, "rho_core_cutoffs");
+//    drho_core_cutoffs.init(nelements, "drho_core_cutoffs");
+//    radial_functions.setuplookupRadspline();
     pack_flatten_basis();
 }
 

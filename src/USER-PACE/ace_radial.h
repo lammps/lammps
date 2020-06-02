@@ -11,13 +11,23 @@ Class to store radial functions and their associated functions. \n
 */
 class ACERadialFunctions {
 public:
+
+    SPECIES_TYPE nelements = 0; ///< number of elements
+    LS_TYPE lmax = 0; ///< maximum value of `l`
+    NS_TYPE nradial = 0;  ///< maximum number `n` of radial functions \f$ R_{nl}(r) \f$
+    NS_TYPE nradbase = 0; ///< number of radial basis functions \f$ g_k(r) \f$
+    DOUBLE_TYPE cutoff = 0; ///< cutoff
+    string radbasename = "ChebExpCos"; ///< type of radial basis functions \f$ g_{k}(r) \f$ (default="ChebExpCos")
+    int ntot = 10000; ///< Number of bins for look-up tables.
+    //--------------------------------------------------------------------------
+
     /**
     Arrays to store radial functions.
     */
-    Array1D<DOUBLE_TYPE> gr; ///< g_k(r) functions, shape: [nradbase+1]
-    Array1D<DOUBLE_TYPE> dgr; ///< derivatives of g_k(r) functions, shape: [nradbase+1]
-    Array2D<DOUBLE_TYPE> fr;  ///< R_nl(r) functions, shape: [nradbase][lmax+1]
-    Array2D<DOUBLE_TYPE> dfr; ///< derivatives of R_nl(r) functions, shape: [nradbase][lmax+1]
+    Array1D<DOUBLE_TYPE> gr; ///< g_k(r) functions, shape: [nradbase]
+    Array1D<DOUBLE_TYPE> dgr; ///< derivatives of g_k(r) functions, shape: [nradbase]
+    Array2D<DOUBLE_TYPE> fr;  ///< R_nl(r) functions, shape: [nradial][lmax+1]
+    Array2D<DOUBLE_TYPE> dfr; ///< derivatives of R_nl(r) functions, shape: [nradial][lmax+1]
 
 
     DOUBLE_TYPE cr; ///< hard-core repulsion
@@ -55,17 +65,7 @@ public:
     Array2D<DOUBLE_TYPE> prehc; ///< hard-core repulsion coefficients (prefactor), shape: [nelements][nelements]
     Array2D<DOUBLE_TYPE> lambdahc; ///< hard-core repulsion coefficients (lambdahc), shape: [nelements][nelements]
 
-
-//--------------------------------------------------------------------------
-
-    SPECIES_TYPE nelements; ///< number of elements
-    LS_TYPE lmax; ///< maximum value of `l`
-    NS_TYPE nradial;  ///< maximum number `n` of radial functions \f$ R_{nl}(r) \f$
-    NS_TYPE nradbase; ///< number of radial basis functions \f$ g_k(r) \f$
-    DOUBLE_TYPE cutoff; ///< cutoff
-
-    int ntot = 10000; ///< Number of bins for look-up tables.
-//--------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
 
     /**
      * Default constructor
@@ -81,9 +81,10 @@ public:
      * @param ntot   Number of bins for spline look-up tables.
      * @param nelements   numer of elements
      * @param cutoff cutoff
+     * @param radbasename  type of radial basis function \f$ g_k(r) \f$ (default: "ChebExpCos")
      */
     ACERadialFunctions(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SPECIES_TYPE nelements,
-                       DOUBLE_TYPE cutoff);
+                       DOUBLE_TYPE cutoff, string radbasename = "ChebExpCos");
 
     /**
      * Initialize arrays for given parameters
@@ -94,8 +95,10 @@ public:
      * @param ntot   Number of bins for spline look-up tables.
      * @param nelements   numer of elements
      * @param cutoff cutoff
+     * @param radbasename  type of radial basis function \f$ g_k(r) \f$ (default: "ChebExpCos")
      */
-    void init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SPECIES_TYPE nelements, DOUBLE_TYPE cutoff);
+    void init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SPECIES_TYPE nelements, DOUBLE_TYPE cutoff,
+              string radbasename = "ChebExpCos");
 
     /**
      * Destructor
@@ -155,6 +158,9 @@ public:
     void radfunc(SPECIES_TYPE elei, SPECIES_TYPE elej);
 
     void lookupRadspline(DOUBLE_TYPE r, NS_TYPE nradbase_c, NS_TYPE nradial_c, SPECIES_TYPE elei, SPECIES_TYPE elej);
+
+    void chebExpCos(DOUBLE_TYPE lam, DOUBLE_TYPE cut, DOUBLE_TYPE dcut, DOUBLE_TYPE r);
+    void chebPow(DOUBLE_TYPE lam, DOUBLE_TYPE cut,  DOUBLE_TYPE dcut, DOUBLE_TYPE r);
 };
 
 #endif

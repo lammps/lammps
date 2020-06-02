@@ -30,7 +30,6 @@
 #include "error.h"
 #include "utils.h"
 #include "tokenizer.h"
-#include "text_file_reader.h"
 #include "table_file_reader.h"
 #include "fmt/format.h"
 

@@ -506,9 +506,9 @@ void AngleTable::param_extract(Table *tb, char *line)
   tb->fpflag = 0;
   tb->theta0 = MY_PI;
 
-  ValueTokenizer values(line);
-
   try {
+    ValueTokenizer values(line);
+
     while (values.has_next()) {
       std::string word = values.next_string();
 

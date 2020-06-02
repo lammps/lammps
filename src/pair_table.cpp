@@ -557,25 +557,29 @@ void PairTable::param_extract(Table *tb, char *line)
   tb->rflag = NONE;
   tb->fpflag = 0;
 
-  ValueTokenizer values(line);
+  try {
+    ValueTokenizer values(line);
 
-  while (values.has_next()) {
-    std::string word = values.next_string();
-    if (word == "N") {
-      tb->ninput = values.next_int();
-    } else if ((word == "R") || (word == "RSQ") || (word == "BITMAP")) {
-      if (word == "R") tb->rflag = RLINEAR;
-      else if (word == "RSQ") tb->rflag = RSQ;
-      else if (word == "BITMAP") tb->rflag = BMP;
-      tb->rlo = values.next_double();
-      tb->rhi = values.next_double();
-    } else if (word == "FPRIME") {
-      tb->fpflag = 1;
-      tb->fplo = values.next_double();
-      tb->fphi = values.next_double();
-    } else {
-      error->one(FLERR,fmt::format("Invalid keyword {} in pair table parameters", word).c_str());
+    while (values.has_next()) {
+      std::string word = values.next_string();
+      if (word == "N") {
+        tb->ninput = values.next_int();
+      } else if ((word == "R") || (word == "RSQ") || (word == "BITMAP")) {
+        if (word == "R") tb->rflag = RLINEAR;
+        else if (word == "RSQ") tb->rflag = RSQ;
+        else if (word == "BITMAP") tb->rflag = BMP;
+        tb->rlo = values.next_double();
+        tb->rhi = values.next_double();
+      } else if (word == "FPRIME") {
+        tb->fpflag = 1;
+        tb->fplo = values.next_double();
+        tb->fphi = values.next_double();
+      } else {
+        error->one(FLERR,fmt::format("Invalid keyword {} in pair table parameters", word).c_str());
+      }
     }
+  } catch (TokenizerException & e) {
+    error->one(FLERR, e.what());
   }
 
   if (tb->ninput == 0) error->one(FLERR,"Pair table parameters did not set N");

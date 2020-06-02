@@ -476,21 +476,26 @@ void BondTable::param_extract(Table *tb, char *line)
   tb->fpflag = 0;
   tb->r0 = 0.0;
 
-  ValueTokenizer values(line);
-  while (values.has_next()) {
-    std::string word = values.next_string();
+  try {
+    ValueTokenizer values(line);
 
-    if (word == "N") {
-      tb->ninput = values.next_int();
-    } else if (word == "FP") {
-      tb->fpflag = 1;
-      tb->fplo = values.next_double();
-      tb->fphi = values.next_double();
-    } else if (word == "EQ") {
-      tb->r0 = values.next_double();
-    } else {
-      error->one(FLERR,"Invalid keyword in bond table parameters");
+    while (values.has_next()) {
+      std::string word = values.next_string();
+
+      if (word == "N") {
+        tb->ninput = values.next_int();
+      } else if (word == "FP") {
+        tb->fpflag = 1;
+        tb->fplo = values.next_double();
+        tb->fphi = values.next_double();
+      } else if (word == "EQ") {
+        tb->r0 = values.next_double();
+      } else {
+        error->one(FLERR,"Invalid keyword in bond table parameters");
+      }
     }
+  } catch(TokenizerException & e) {
+    error->one(FLERR, e.what());
   }
 
   if (tb->ninput == 0) error->one(FLERR,"Bond table parameters did not set N");

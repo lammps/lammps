@@ -23,84 +23,84 @@ using ::testing::Eq;
 
 // this tests a subset of {fmt} that is most relevant to LAMMPS
 
-TEST(Fmtlib, insert_string) {
+TEST(FmtLib, insert_string) {
     const char val[] = "word";
     auto text = fmt::format("word {}",val);
     ASSERT_THAT(text, Eq("word word"));
 }
 
-TEST(Fmtlib, insert_int) {
+TEST(FmtLib, insert_int) {
     const int val = 333;
     auto text = fmt::format("word {}",val);
     ASSERT_THAT(text, Eq("word 333"));
 }
 
-TEST(Fmtlib, insert_neg_int) {
+TEST(FmtLib, insert_neg_int) {
     const int val = -333;
     auto text = fmt::format("word {}",val);
     ASSERT_THAT(text, Eq("word -333"));
 }
 
-TEST(Fmtlib, insert_bigint) {
+TEST(FmtLib, insert_bigint) {
     if (sizeof(bigint) == 4) GTEST_SKIP();
     const bigint val = 9945234592L;
     auto text = fmt::format("word {}",val);
     ASSERT_THAT(text, Eq("word 9945234592"));
 }
 
-TEST(Fmtlib, insert_neg_bigint) {
+TEST(FmtLib, insert_neg_bigint) {
     if (sizeof(bigint) == 4) GTEST_SKIP();
     const bigint val = -9945234592L;
     auto text = fmt::format("word {}",val);
     ASSERT_THAT(text, Eq("word -9945234592"));
 }
 
-TEST(Fmtlib, insert_tagint) {
+TEST(FmtLib, insert_tagint) {
     if (sizeof(tagint) == 4) GTEST_SKIP();
     const tagint val = 9945234592L;
     auto text = fmt::format("word {}",val);
     ASSERT_THAT(text, Eq("word 9945234592"));
 }
 
-TEST(Fmtlib, insert_neg_tagint) {
+TEST(FmtLib, insert_neg_tagint) {
     if (sizeof(tagint) == 4) GTEST_SKIP();
     const tagint val = -9945234592L;
     auto text = fmt::format("word {}",val);
     ASSERT_THAT(text, Eq("word -9945234592"));
 }
 
-TEST(Fmtlib, insert_imageint) {
+TEST(FmtLib, insert_imageint) {
     if (sizeof(imageint) == 4) GTEST_SKIP();
     const imageint val = 9945234592L;
     auto text = fmt::format("word {}",val);
     ASSERT_THAT(text, Eq("word 9945234592"));
 }
 
-TEST(Fmtlib, insert_neg_imageint) {
+TEST(FmtLib, insert_neg_imageint) {
     if (sizeof(imageint) == 4) GTEST_SKIP();
     const imageint val = -9945234592L;
     auto text = fmt::format("word {}",val);
     ASSERT_THAT(text, Eq("word -9945234592"));
 }
 
-TEST(Fmtlib, insert_double) {
+TEST(FmtLib, insert_double) {
     const double val = 1.5;
     auto text = fmt::format("word {}",val);
     ASSERT_THAT(text, Eq("word 1.5"));
 }
 
-TEST(Fmtlib, insert_neg_double) {
+TEST(FmtLib, insert_neg_double) {
     const double val = -1.5;
     auto text = fmt::format("word {}",val);
     ASSERT_THAT(text, Eq("word -1.5"));
 }
 
-TEST(Fmtlib, int_for_double) {
+TEST(FmtLib, int_for_double) {
     const double val = -1.5;
     ASSERT_THROW(fmt::format("word {:d}",val),std::exception);
 }
 
-TEST(Fmtlib, double_for_int) {
+TEST(FmtLib, double_for_int) {
     const int val = 15;
     ASSERT_THROW(fmt::format("word {:g}",val),std::exception);
 }

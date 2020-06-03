@@ -24,15 +24,17 @@ FixStyle(eco/force,FixECOForce)
 
 namespace LAMMPS_NS {
 
+#define FIX_ECO_FORCE_MAX_NEIGHBORS 24
+
 class FixECOForce : public Fix {
   public:
     struct Nbr {
       int n;                    // # of neighbors
-      tagint id[24];            // IDs of each neighbor
+      tagint id[FIX_ECO_FORCE_MAX_NEIGHBORS];       // IDs of each neighbor
                                 // if center atom is owned, these are local IDs
                                 // if center atom is ghost, these are global IDs
       double duchi;             // potential derivative
-      double delta[24][3];      // difference vectors
+      double delta[FIX_ECO_FORCE_MAX_NEIGHBORS][3]; // difference vectors
       double real_phi[2][3];    // real part of wave function
       double imag_phi[2][3];    // imaginary part of wave function
     };

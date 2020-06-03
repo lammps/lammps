@@ -263,7 +263,7 @@ void ReadDump::setup_reader(int narg, char **arg)
 
   // unrecognized style
 
-  else error->all(FLERR,utils::check_packages_for_style("reader",readerstyle,lmp).c_str());
+  else error->all(FLERR,utils::check_packages_for_style("reader",readerstyle,lmp));
 
   if (utils::strmatch(readerstyle,"^adios")) {
       // everyone is a reader with adios

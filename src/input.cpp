@@ -302,7 +302,7 @@ char *Input::one(const std::string &single)
   // execute the command and return its name
 
   if (execute_command())
-    error->all(FLERR,fmt::format("Unknown command: {}",line).c_str());
+    error->all(FLERR,fmt::format("Unknown command: {}",line));
 
   return command;
 }

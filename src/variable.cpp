@@ -41,6 +41,7 @@
 #include "info.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -1336,7 +1337,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           std::string mesg = "Invalid compute ID '";
           mesg += (word+2);
           mesg += "' in variable formula";
-          print_var_error(FLERR,mesg.c_str(),ivar);
+          print_var_error(FLERR,mesg,ivar);
         }
         Compute *compute = modify->compute[icompute];
 
@@ -1641,7 +1642,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           std::string mesg = "Invalid fix ID '";
           mesg += (word+2);
           mesg += "' in variable formula";
-          print_var_error(FLERR,mesg.c_str(),ivar);
+          print_var_error(FLERR,mesg,ivar);
         }
         Fix *fix = modify->fix[ifix];
 
@@ -3831,7 +3832,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     std::string mesg = "Group ID '";
     mesg += args[0];
     mesg += "' in variable formula does not exist";
-    print_var_error(FLERR,mesg.c_str(),ivar);
+    print_var_error(FLERR,mesg,ivar);
   }
 
   // match word to group function
@@ -4044,7 +4045,7 @@ int Variable::region_function(char *id, int ivar)
     std::string mesg = "Region ID '";
     mesg += id;
     mesg += "' in variable formula does not exist";
-    print_var_error(FLERR,mesg.c_str(),ivar);
+    print_var_error(FLERR,mesg,ivar);
   }
 
   // init region in case sub-regions have been deleted
@@ -4126,7 +4127,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         std::string mesg = "Invalid compute ID '";
         mesg += (args[0]+2);
         mesg += "' in variable formula";
-        print_var_error(FLERR,mesg.c_str(),ivar);
+        print_var_error(FLERR,mesg,ivar);
       }
       compute = modify->compute[icompute];
       if (index == 0 && compute->vector_flag) {
@@ -4171,7 +4172,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         std::string mesg = "Invalid fix ID '";
         mesg += (args[0]+2);
         mesg += "' in variable formula";
-        print_var_error(FLERR,mesg.c_str(),ivar);
+        print_var_error(FLERR,mesg,ivar);
       }
       fix = modify->fix[ifix];
       if (index == 0 && fix->vector_flag) {
@@ -4179,7 +4180,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
           std::string mesg = "Fix with ID '";
           mesg += (args[0]+2);
           mesg += "' in variable formula not computed at compatible time";
-          print_var_error(FLERR,mesg.c_str(),ivar);
+          print_var_error(FLERR,mesg,ivar);
         }
         nvec = fix->size_vector;
         nstride = 1;
@@ -4391,7 +4392,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       std::string mesg = "Variable ID '";
       mesg += args[0];
       mesg += "' in variable formula does not exist";
-      print_var_error(FLERR,mesg.c_str(),ivar);
+      print_var_error(FLERR,mesg,ivar);
     }
 
     // SCALARFILE has single current value, read next one
@@ -4772,13 +4773,11 @@ char *Variable::find_next_comma(char *str)
    helper routine for printing variable name with error message
 ------------------------------------------------------------------------- */
 
-void Variable::print_var_error(const char *srcfile, int lineno,
-                               const char *errmsg, int ivar, int global)
+void Variable::print_var_error(const std::string &srcfile, const int lineno,
+                               const std::string &errmsg, int ivar, int global)
 {
   if ((ivar >= 0) && (ivar < nvar)) {
-    char msg[128];
-
-    snprintf(msg,128,"Variable %s: %s",names[ivar],errmsg);
+    std::string msg = fmt::format("Variable {}: ",names[ivar]) + errmsg;
     if (global)
       error->all(srcfile,lineno,msg);
     else

@@ -904,7 +904,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
   }
 
   if (fix[ifix] == NULL)
-    error->all(FLERR,utils::check_packages_for_style("fix",arg[2],lmp).c_str());
+    error->all(FLERR,utils::check_packages_for_style("fix",arg[2],lmp));
 
   // check if Fix is in restart_global list
   // if yes, pass state info to the Fix so it can reset itself
@@ -1243,7 +1243,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
   }
 
   if (compute[ncompute] == NULL)
-    error->all(FLERR,utils::check_packages_for_style("compute",arg[2],lmp).c_str());
+    error->all(FLERR,utils::check_packages_for_style("compute",arg[2],lmp));
 
   ncompute++;
 }

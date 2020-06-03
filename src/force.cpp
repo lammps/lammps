@@ -284,7 +284,7 @@ Pair *Force::new_pair(const char *style, int trysuffix, int &sflag)
     return pair_creator(lmp);
   }
 
-  error->all(FLERR,utils::check_packages_for_style("pair",style,lmp).c_str());
+  error->all(FLERR,utils::check_packages_for_style("pair",style,lmp));
 
   return NULL;
 }
@@ -397,7 +397,7 @@ Bond *Force::new_bond(const char *style, int trysuffix, int &sflag)
     return bond_creator(lmp);
   }
 
-  error->all(FLERR,utils::check_packages_for_style("bond",style,lmp).c_str());
+  error->all(FLERR,utils::check_packages_for_style("bond",style,lmp));
 
   return NULL;
 }
@@ -476,7 +476,7 @@ Angle *Force::new_angle(const char *style, int trysuffix, int &sflag)
     return angle_creator(lmp);
   }
 
-  error->all(FLERR,utils::check_packages_for_style("angle",style,lmp).c_str());
+  error->all(FLERR,utils::check_packages_for_style("angle",style,lmp));
 
   return NULL;
 }
@@ -556,7 +556,7 @@ Dihedral *Force::new_dihedral(const char *style, int trysuffix, int &sflag)
     return dihedral_creator(lmp);
   }
 
-  error->all(FLERR,utils::check_packages_for_style("dihedral",style,lmp).c_str());
+  error->all(FLERR,utils::check_packages_for_style("dihedral",style,lmp));
 
   return NULL;
 }
@@ -635,7 +635,7 @@ Improper *Force::new_improper(const char *style, int trysuffix, int &sflag)
     return improper_creator(lmp);
   }
 
-  error->all(FLERR,utils::check_packages_for_style("improper",style,lmp).c_str());
+  error->all(FLERR,utils::check_packages_for_style("improper",style,lmp));
 
   return NULL;
 }
@@ -718,7 +718,7 @@ KSpace *Force::new_kspace(const char *style, int trysuffix, int &sflag)
     return kspace_creator(lmp);
   }
 
-  error->all(FLERR,utils::check_packages_for_style("kspace",style,lmp).c_str());
+  error->all(FLERR,utils::check_packages_for_style("kspace",style,lmp));
 
   return NULL;
 }
@@ -947,9 +947,8 @@ double Force::numeric(const char *file, int line, char *str)
     if (isdigit(str[i])) continue;
     if (str[i] == '-' || str[i] == '+' || str[i] == '.') continue;
     if (str[i] == 'e' || str[i] == 'E') continue;
-    std::string msg = fmt::format("Expected floating point parameter "
-                    "instead of '{}' in input script or data file",str);
-    error->all(file,line,msg.c_str());
+    error->all(file,line,fmt::format("Expected floating point parameter "
+               "instead of '{}' in input script or data file",str));
   }
 
   return atof(str);
@@ -972,9 +971,8 @@ int Force::inumeric(const char *file, int line, char *str)
 
   for (int i = 0; i < n; i++) {
     if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    std::string msg = fmt::format("Expected integer parameter instead "
-                    "of '{}' in input script or data file",str);
-    error->all(file,line,msg.c_str());
+    error->all(file,line,fmt::format("Expected integer parameter instead "
+               "of '{}' in input script or data file",str));
   }
 
   return atoi(str);
@@ -997,9 +995,8 @@ bigint Force::bnumeric(const char *file, int line, char *str)
 
   for (int i = 0; i < n; i++) {
     if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    std::string msg = fmt::format("Expected integer parameter instead "
-                    "of '{}' in input script or data file",str);
-    error->all(file,line,msg.c_str());
+    error->all(file,line,fmt::format("Expected integer parameter instead "
+               "of '{}' in input script or data file",str));
   }
 
   return ATOBIGINT(str);
@@ -1022,9 +1019,8 @@ tagint Force::tnumeric(const char *file, int line, char *str)
 
   for (int i = 0; i < n; i++) {
     if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    std::string msg = fmt::format("Expected integer parameter instead "
-                    "of '{}' in input script or data file",str);
-    error->all(file,line,msg.c_str());
+    error->all(file,line,fmt::format("Expected integer parameter instead "
+               "of '{}' in input script or data file",str));
   }
 
   return ATOTAGINT(str);

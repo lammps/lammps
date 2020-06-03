@@ -584,7 +584,7 @@ void Output::add_dump(int narg, char **arg)
   if (dump_map->find(arg[2]) != dump_map->end()) {
     DumpCreator dump_creator = (*dump_map)[arg[2]];
     dump[ndump] = dump_creator(lmp, narg, arg);
-  } else error->all(FLERR,utils::check_packages_for_style("dump",arg[2],lmp).c_str());
+  } else error->all(FLERR,utils::check_packages_for_style("dump",arg[2],lmp));
 
   every_dump[ndump] = force->inumeric(FLERR,arg[3]);
   if (every_dump[ndump] <= 0) error->all(FLERR,"Illegal dump command");

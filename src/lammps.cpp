@@ -500,10 +500,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       }
 
       infile = fopen(arg[inflag],"r");
-      if (infile == NULL) {
-        str = fmt::format("Cannot open input script {}",arg[inflag]);
-        error->one(FLERR,str.c_str());
-      }
+      if (infile == NULL)
+        error->one(FLERR,fmt::format("Cannot open input script {}",arg[inflag]));
     }
 
     // screen and logfile messages for universe and world
@@ -614,13 +612,13 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   if (restart2data || restart2dump) {
     std::string cmd = fmt::format("read_restart {}",restartfile);
     if (restartremap) cmd += " remap\n";
-    input->one(cmd.c_str());
+    input->one(cmd);
     if (restart2data) cmd = "write_data ";
     else cmd = "write_dump";
     for (iarg = wfirst; iarg < wlast; iarg++)
        cmd += fmt::format(" {}", arg[iarg]);
     if (restart2data) cmd += " noinit";
-    input->one(cmd.c_str());
+    input->one(cmd);
     error->done(0);
   }
 }

@@ -30,7 +30,7 @@ The fix applies a synthetic driving force to a grain boundary which can
 be used for the investigation of grain boundary motion. The affiliation 
 of atoms to either of the two grains forming the grain boundary is 
 determined from an orientation-dependent order parameter as described 
-in (Ulomek). The potential energy of atoms is either increased by an amount 
+in :ref:`(Ulomek) <Ulomek>`. The potential energy of atoms is either increased by an amount 
 of 0.5*u0 or -0.5*u0 according to the orientation of the surrounding 
 crystal. This creates a potential energy gradient which pushes atoms near 
 the grain boundary to orient according to the energetically favorable 
@@ -39,8 +39,8 @@ with one grain boundary and open ends, or two opposite grain boundaries in
 a periodic system. In either case, the entire system can experience a 
 displacement during the simulation which needs to be accounted for in the 
 evaluation of the grain boundary velocity. While the basic method is 
-described in (Ulomek), the implementation follows the efficient 
-implementation from (Schratt & Mohles). The synthetic potential energy added to an 
+described in :ref:`(Ulomek) <Ulomek>`, the implementation follows the efficient 
+implementation from :ref:`(Schratt & Mohles) <Schratt>`. The synthetic potential energy added to an 
 atom j is given by the following formulas
 
 .. math::
@@ -68,8 +68,8 @@ u(\chi_{j}) & = & \frac{u_{0}}{2}\left\{\begin{array}{lc}
 \label{eq:energy-mid}
 \end{eqnarray}
 
-which are fully explained in :ref: `(Ulomek) <Ulomek>`
-and `(Schratt & Mohles) <Schratt>`.
+which are fully explained in :ref:`(Ulomek) <Ulomek>`
+and :ref:`(Schratt & Mohles) <Schratt>`.
 
 The force on each atom is the negative gradient of the synthetic potential energy. It 
 depends on the surrounding of this atom. An atom far from the grain boundary does not 
@@ -94,7 +94,7 @@ the 6 oriented crystal basis vectors is specified. Each line of the input file
 contains the three components of a primitive lattice vector oriented according to 
 the grain orientation in the simulation box. The first (last) three lines correspond 
 to the primitive lattice vectors of the first (second) grain. An example for 
-a Σ5⟨001⟩ misorientation is given at the end.
+a :math:`\Sigma\langle001\rangle` misorientation is given at the end.
 
 If no synthetic energy difference between the grains is created, u0=0, the 
 force computation is omitted. In this case, the order parameter of the 
@@ -114,8 +114,8 @@ The total sum of added synthetic potential energy is computed and can be accesse
 by various output options. The order parameter as well as the thermally masked 
 output parameter are stored in per-atom arrays and can also be accessed by various 
 output commands. 
-No parameter of this fix
-can be used with the start/stop keywords of the run command. This fix is
+
+No parameter of this fix can be used with the start/stop keywords of the run command. This fix is
 not invoked during energy minimization.
 
 
@@ -124,7 +124,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the MISC package. It is only enabled if LAMMPS was
-built with that package. See the Making LAMMPS section for more info.
+built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
 
 
@@ -143,7 +143,7 @@ Related commands
 
 .. _Schratt:
 
-**(Schratt)** Schratt, Mohles. Comp. Mat. Sci. 182 (2020) 109774
+**(Schratt & Mohles)** Schratt, Mohles. Comp. Mat. Sci. 182 (2020) 109774
 
 ----------
 
@@ -153,7 +153,7 @@ Sigma=5 <001> tilt grain boundary.
 This is for a lattice constant of 3.52 Angs.
 
 
-file:
+sigma5.ori:
 
 .. parsed-literal::
 

@@ -62,10 +62,10 @@ class DomainKokkos : public Domain {
       Few<double,3> x, imageint image);
 
  private:
-  double lo[3],hi[3],period[3];
+  KK_FLOAT lo[3],hi[3],period[3];
   int n_flip, m_flip, p_flip;
-  ArrayTypes<LMPDeviceType>::t_x_array x;
-  ArrayTypes<LMPDeviceType>::t_imageint_1d image;
+  DAT::t_float_1d_3 x;
+  DAT::t_imageint_1d image;
 };
 
 KOKKOS_INLINE_FUNCTION

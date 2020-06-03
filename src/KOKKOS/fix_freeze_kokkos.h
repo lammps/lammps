@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(freeze/kk,FixFreezeKokkos<LMPDeviceType>)
-FixStyle(freeze/kk/device,FixFreezeKokkos<LMPDeviceType>)
-FixStyle(freeze/kk/host,FixFreezeKokkos<LMPHostType>)
+FixStyle(freeze/kk,FixFreezeKokkos<Device>)
+FixStyle(freeze/kk/device,FixFreezeKokkos<Device>)
+FixStyle(freeze/kk/host,FixFreezeKokkos<Host>)
 
 #else
 
@@ -27,11 +27,11 @@ FixStyle(freeze/kk/host,FixFreezeKokkos<LMPHostType>)
 
 namespace LAMMPS_NS {
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class FixFreezeKokkos : public FixFreeze {
  public:
   struct OriginalForce {
-    double values[3];
+    KK_FLOAT values[3];
 
     KOKKOS_INLINE_FUNCTION
     OriginalForce() {
@@ -62,15 +62,15 @@ class FixFreezeKokkos : public FixFreeze {
   void setup(int);
   void post_force(int);
   void post_force_respa(int, int, int);
-  double compute_vector(int);
+  KK_FLOAT compute_vector(int);
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i, OriginalForce &original) const;
 
  private:
-  typename ArrayTypes<DeviceType>::t_f_array f;
-  typename ArrayTypes<DeviceType>::t_f_array torque;
-  typename ArrayTypes<DeviceType>::t_int_1d mask;
+  typename AT::t_float_1d_3 f;
+  typename AT::t_float_1d_3 torque;
+  typename AT::t_int_1d mask;
 };
 
 } // namespace LAMMPS_NS

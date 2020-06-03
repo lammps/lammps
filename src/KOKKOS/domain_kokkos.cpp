@@ -42,18 +42,21 @@ void DomainKokkos::init()
    for triclinic, atoms must be in lamda coords (0-1) before reset_box is called
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 struct DomainResetBoxFunctor{
 public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typename ArrayTypes<DeviceType>::t_x_array x;
+  typedef ArrayTypes<Space> AT;
+
+  typename AT::t_float_1d_3 x;
 
   struct value_type {
-    double value[3][2] ;
+    KK_FLOAT value[3][2] ;
   };
 
-  DomainResetBoxFunctor(DAT::tdual_x_array _x):
-    x(_x.view<DeviceType>()) {}
+  DomainResetBoxFunctor(DAT::tdual_float_1d_3 _x):
+    x(DualViewHelper<Space>::view(_x)) {}
 
   KOKKOS_INLINE_FUNCTION
   void init(value_type &dst) const {
@@ -95,14 +98,14 @@ void DomainKokkos::reset_box()
 
     int nlocal = atom->nlocal;
 
-    DomainResetBoxFunctor<LMPDeviceType>::value_type result;
+    DomainResetBoxFunctor<Device>::value_type result;
 
-    DomainResetBoxFunctor<LMPDeviceType>
+    DomainResetBoxFunctor<Device>
       f(atomKK->k_x);
     Kokkos::parallel_reduce(nlocal,f,result);
 
-    double (*extent)[2] = result.value;
-    double all[3][2];
+    KK_FLOAT (*extent)[2] = result.value;
+    KK_FLOAT all[3][2];
 
     // compute extent across all procs
     // flip sign of MIN to do it in one Allreduce MAX
@@ -111,7 +114,7 @@ void DomainKokkos::reset_box()
     extent[1][0] = -extent[1][0];
     extent[2][0] = -extent[2][0];
 
-    MPI_Allreduce(extent,all,6,MPI_DOUBLE,MPI_MAX,world);
+    MPI_Allreduce(extent,all,6,MPI_KK_FLOAT,MPI_MAX,world);
 
     // for triclinic, convert back to box coords before changing box
 
@@ -215,25 +218,28 @@ void DomainKokkos::reset_box()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType, int PERIODIC, int DEFORM_VREMAP>
+template<ExecutionSpace Space, int PERIODIC, int DEFORM_VREMAP>
 struct DomainPBCFunctor {
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
+  typedef ArrayTypes<Space> AT;
+
   double lo[3],hi[3],period[3];
-  typename ArrayTypes<DeviceType>::t_x_array x;
-  typename ArrayTypes<DeviceType>::t_v_array v;
-  typename ArrayTypes<DeviceType>::t_int_1d mask;
-  typename ArrayTypes<DeviceType>::t_imageint_1d image;
+  typename AT::t_float_1d_3 x;
+  typename AT::t_float_1d_3 v;
+  typename AT::t_int_1d mask;
+  typename AT::t_imageint_1d image;
   int deform_groupbit;
   double h_rate[6];
   int xperiodic,yperiodic,zperiodic;
 
   DomainPBCFunctor(double* _lo, double* _hi, double* _period,
-                   DAT::tdual_x_array _x, DAT::tdual_v_array _v,
+                   DAT::tdual_float_1d_3 _x, DAT::tdual_float_1d_3 _v,
                    DAT::tdual_int_1d _mask, DAT::tdual_imageint_1d _image,
                    int _deform_groupbit, double* _h_rate,
                    int _xperiodic, int _yperiodic, int _zperiodic):
-    x(_x.view<DeviceType>()), v(_v.view<DeviceType>()),
-    mask(_mask.view<DeviceType>()), image(_image.view<DeviceType>()),
+    x(DualViewHelper<Space>::view(_x)), v(DualViewHelper<Space>::view(_v)),
+    mask(DualViewHelper<Space>::view(_mask)), image(DualViewHelper<Space>::view(_image)),
     deform_groupbit(_deform_groupbit),
     xperiodic(_xperiodic), yperiodic(_yperiodic), zperiodic(_zperiodic){
     lo[0]=_lo[0]; lo[1]=_lo[1]; lo[2]=_lo[2];
@@ -368,13 +374,13 @@ void DomainKokkos::pbc()
 
   if (xperiodic || yperiodic || zperiodic) {
     if (deform_vremap) {
-      DomainPBCFunctor<LMPDeviceType,1,1>
+      DomainPBCFunctor<Device,1,1>
         f(lo,hi,period,
           atomKK->k_x,atomKK->k_v,atomKK->k_mask,atomKK->k_image,
           deform_groupbit,h_rate,xperiodic,yperiodic,zperiodic);
       Kokkos::parallel_for(nlocal,f);
     } else {
-      DomainPBCFunctor<LMPDeviceType,1,0>
+      DomainPBCFunctor<Device,1,0>
         f(lo,hi,period,
           atomKK->k_x,atomKK->k_v,atomKK->k_mask,atomKK->k_image,
           deform_groupbit,h_rate,xperiodic,yperiodic,zperiodic);
@@ -382,13 +388,13 @@ void DomainKokkos::pbc()
     }
   } else {
     if (deform_vremap) {
-      DomainPBCFunctor<LMPDeviceType,0,1>
+      DomainPBCFunctor<Device,0,1>
         f(lo,hi,period,
           atomKK->k_x,atomKK->k_v,atomKK->k_mask,atomKK->k_image,
           deform_groupbit,h_rate,xperiodic,yperiodic,zperiodic);
       Kokkos::parallel_for(nlocal,f);
     } else {
-      DomainPBCFunctor<LMPDeviceType,0,0>
+      DomainPBCFunctor<Device,0,0>
         f(lo,hi,period,
           atomKK->k_x,atomKK->k_v,atomKK->k_mask,atomKK->k_image,
           deform_groupbit,h_rate,xperiodic,yperiodic,zperiodic);
@@ -413,8 +419,8 @@ void DomainKokkos::remap_all()
 {
   atomKK->sync(Device,X_MASK | IMAGE_MASK);
 
-  x = atomKK->k_x.view<LMPDeviceType>();
-  image = atomKK->k_image.view<LMPDeviceType>();
+  x = atomKK->k_x.d_view;
+  image = atomKK->k_image.d_view;
   int nlocal = atomKK->nlocal;
 
   if (triclinic == 0) {
@@ -532,7 +538,7 @@ void DomainKokkos::image_flip(int m_in, int n_in, int p_in)
 
   atomKK->sync(Device,IMAGE_MASK);
 
-  image = atomKK->k_image.view<LMPDeviceType>();
+  image = atomKK->k_image.d_view;
   int nlocal = atomKK->nlocal;
 
   copymode = 1;
@@ -565,7 +571,7 @@ void DomainKokkos::lamda2x(int n)
 {
   atomKK->sync(Device,X_MASK);
 
-  x = atomKK->k_x.view<LMPDeviceType>();
+  x = atomKK->k_x.d_view;
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagDomain_lamda2x>(0,n),*this);
@@ -590,7 +596,7 @@ void DomainKokkos::x2lamda(int n)
 {
   atomKK->sync(Device,X_MASK);
 
-  x = atomKK->k_x.view<LMPDeviceType>();
+  x = atomKK->k_x.d_view;
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagDomain_x2lamda>(0,n),*this);
@@ -601,7 +607,7 @@ void DomainKokkos::x2lamda(int n)
 
 KOKKOS_INLINE_FUNCTION
 void DomainKokkos::operator()(TagDomain_x2lamda, const int &i) const {
-  F_FLOAT delta[3];
+  KK_FLOAT delta[3];
   delta[0] = x(i,0) - boxlo[0];
   delta[1] = x(i,1) - boxlo[1];
   delta[2] = x(i,2) - boxlo[2];

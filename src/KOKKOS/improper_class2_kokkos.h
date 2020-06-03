@@ -13,9 +13,9 @@
 
 #ifdef IMPROPER_CLASS
 
-ImproperStyle(class2/kk,ImproperClass2Kokkos<LMPDeviceType>)
-ImproperStyle(class2/kk/device,ImproperClass2Kokkos<LMPDeviceType>)
-ImproperStyle(class2/kk/host,ImproperClass2Kokkos<LMPHostType>)
+ImproperStyle(class2/kk,ImproperClass2Kokkos<Device>)
+ImproperStyle(class2/kk/device,ImproperClass2Kokkos<Device>)
+ImproperStyle(class2/kk/host,ImproperClass2Kokkos<Host>)
 
 #else
 
@@ -33,12 +33,13 @@ struct TagImproperClass2Compute{};
 template<int NEWTON_BOND, int EVFLAG>
 struct TagImproperClass2AngleAngle{};
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class ImproperClass2Kokkos : public ImproperClass2 {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
   typedef EV_FLOAT value_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
 
   ImproperClass2Kokkos(class LAMMPS *);
   virtual ~ImproperClass2Kokkos();
@@ -65,23 +66,23 @@ class ImproperClass2Kokkos : public ImproperClass2 {
   //template<int NEWTON_BOND>
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int i1, const int i2, const int i3, const int i4,
-                          F_FLOAT &eimproper, F_FLOAT *f1, F_FLOAT *f3, F_FLOAT *f4,
-                          const F_FLOAT &vb1x, const F_FLOAT &vb1y, const F_FLOAT &vb1z,
-                          const F_FLOAT &vb2x, const F_FLOAT &vb2y, const F_FLOAT &vb2z,
-                          const F_FLOAT &vb3x, const F_FLOAT &vb3y, const F_FLOAT &vb3z) const;
+                          KK_FLOAT &eimproper, KK_FLOAT *f1, KK_FLOAT *f3, KK_FLOAT *f4,
+                          const KK_FLOAT &vb1x, const KK_FLOAT &vb1y, const KK_FLOAT &vb1z,
+                          const KK_FLOAT &vb2x, const KK_FLOAT &vb2y, const KK_FLOAT &vb2z,
+                          const KK_FLOAT &vb3x, const KK_FLOAT &vb3y, const KK_FLOAT &vb3z) const;
 
  protected:
 
   class NeighborKokkos *neighborKK;
 
-  typename AT::t_x_array_randomread x;
-  typename Kokkos::View<double*[3],typename AT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic> > f;
+  typename AT::t_float_1d_3_randomread x;
+  typename Kokkos::View<typename AT::t_float_1d_3::data_type,typename AT::t_float_1d_3::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic> > f;
   typename AT::t_int_2d improperlist;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_efloat_1d d_eatom;
-  typename AT::t_virial_array d_vatom;
+  DAT::tdual_float_1d k_eatom;
+  DAT::tdual_float_1d_6 k_vatom;
+  typename AT::t_float_1d d_eatom;
+  typename AT::t_float_1d_6 d_vatom;
 
   int nlocal,newton_bond;
   int eflag,vflag;
@@ -90,13 +91,13 @@ class ImproperClass2Kokkos : public ImproperClass2 {
   typename AT::t_int_scalar d_warning_flag;
   HAT::t_int_scalar h_warning_flag;
 
-  typename AT::tdual_ffloat_1d k_k0,k_chi0;
-  typename AT::tdual_ffloat_1d k_aa_k1,k_aa_k2,k_aa_k3,k_aa_theta0_1,k_aa_theta0_2,k_aa_theta0_3;
-  typename AT::tdual_ffloat_1d k_setflag_i,k_setflag_aa,k_setflag;
+  DAT::tdual_float_1d k_k0,k_chi0;
+  DAT::tdual_float_1d k_aa_k1,k_aa_k2,k_aa_k3,k_aa_theta0_1,k_aa_theta0_2,k_aa_theta0_3;
+  DAT::tdual_float_1d k_setflag_i,k_setflag_aa,k_setflag;
 
-  typename AT::t_ffloat_1d d_k0,d_chi0;
-  typename AT::t_ffloat_1d d_aa_k1,d_aa_k2,d_aa_k3,d_aa_theta0_1,d_aa_theta0_2,d_aa_theta0_3;
-  typename AT::t_ffloat_1d d_setflag_i,d_setflag_aa,d_setflag;
+  typename AT::t_float_1d d_k0,d_chi0;
+  typename AT::t_float_1d d_aa_k1,d_aa_k2,d_aa_k3,d_aa_theta0_1,d_aa_theta0_2,d_aa_theta0_3;
+  typename AT::t_float_1d d_setflag_i,d_setflag_aa,d_setflag;
 
   void allocate();
 };

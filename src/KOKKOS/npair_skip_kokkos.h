@@ -13,28 +13,28 @@
 
 #ifdef NPAIR_CLASS
 
-typedef NPairSkipKokkos<LMPDeviceType> NPairKokkosSkipDevice;
+typedef NPairSkipKokkos<Device> NPairKokkosSkipDevice;
 NPairStyle(skip/kk/device,
            NPairKokkosSkipDevice,
            NP_SKIP | NP_HALF | NP_FULL |
            NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_KOKKOS_DEVICE)
 
-typedef NPairSkipKokkos<LMPDeviceType> NPairKokkosSkipGhostDevice;
+typedef NPairSkipKokkos<Device> NPairKokkosSkipGhostDevice;
 NPairStyle(skip/ghost/kk/device,
            NPairKokkosSkipGhostDevice,
            NP_SKIP | NP_HALF | NP_FULL |
            NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_GHOST | NP_KOKKOS_DEVICE)
 
-typedef NPairSkipKokkos<LMPHostType> NPairKokkosSkipHost;
+typedef NPairSkipKokkos<Host> NPairKokkosSkipHost;
 NPairStyle(skip/kk/host,
            NPairKokkosSkipHost,
            NP_SKIP | NP_HALF | NP_FULL |
            NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_KOKKOS_HOST)
 
-typedef NPairSkipKokkos<LMPHostType> NPairKokkosSkipGhostHost;
+typedef NPairSkipKokkos<Host> NPairKokkosSkipGhostHost;
 NPairStyle(skip/ghost/kk/host,
            NPairKokkosSkipGhostHost,
            NP_SKIP | NP_HALF | NP_FULL |
@@ -54,12 +54,13 @@ namespace LAMMPS_NS {
 struct TagNPairSkipCompute{};
 struct TagNPairSkipCountLocal{};
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class NPairSkipKokkos : public NPair {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
   typedef int value_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
 
   NPairSkipKokkos(class LAMMPS *);
   ~NPairSkipKokkos() {}

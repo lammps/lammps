@@ -25,13 +25,13 @@
 using namespace LAMMPS_NS;
 
 
-template <class DeviceType>
-FixEnforce2DKokkos<DeviceType>::FixEnforce2DKokkos(LAMMPS *lmp, int narg, char **arg) :
+template <ExecutionSpace Space>
+FixEnforce2DKokkos<Space>::FixEnforce2DKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixEnforce2D(lmp, narg, arg)
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  execution_space = Space;
 
   datamask_read   = V_MASK | F_MASK | OMEGA_MASK | MASK_MASK
           | TORQUE_MASK | ANGMOM_MASK;
@@ -41,32 +41,32 @@ FixEnforce2DKokkos<DeviceType>::FixEnforce2DKokkos(LAMMPS *lmp, int narg, char *
 }
 
 
-template <class DeviceType>
-void FixEnforce2DKokkos<DeviceType>::setup(int vflag)
+template <ExecutionSpace Space>
+void FixEnforce2DKokkos<Space>::setup(int vflag)
 {
   post_force(vflag);
 }
 
 
-template <class DeviceType>
-void FixEnforce2DKokkos<DeviceType>::post_force(int vflag)
+template <ExecutionSpace Space>
+void FixEnforce2DKokkos<Space>::post_force(int vflag)
 {
   atomKK->sync(execution_space,datamask_read);
 
-  v = atomKK->k_v.view<DeviceType>();
-  f = atomKK->k_f.view<DeviceType>();
+  v = DualViewHelper<Space>::view(atomKK->k_v);
+  f = DualViewHelper<Space>::view(atomKK->k_f);
 
   if (atomKK->omega_flag)
-    omega  = atomKK->k_omega.view<DeviceType>();
+    omega  = DualViewHelper<Space>::view(atomKK->k_omega);
 
   if (atomKK->angmom_flag)
-    angmom = atomKK->k_angmom.view<DeviceType>();
+    angmom = DualViewHelper<Space>::view(atomKK->k_angmom);
 
   if (atomKK->torque_flag)
-    torque = atomKK->k_torque.view<DeviceType>();
+    torque = DualViewHelper<Space>::view(atomKK->k_torque);
 
 
-  mask = atomKK->k_mask.view<DeviceType>();
+  mask = DualViewHelper<Space>::view(atomKK->k_mask);
 
   int nlocal = atomKK->nlocal;
   if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
@@ -79,42 +79,42 @@ void FixEnforce2DKokkos<DeviceType>::post_force(int vflag)
   copymode = 1;
   switch( flag_mask ){
     case 0:{
-      FixEnforce2DKokkosPostForceFunctor<DeviceType,0,0,0> functor(this);
+      FixEnforce2DKokkosPostForceFunctor<Space,0,0,0> functor(this);
       Kokkos::parallel_for(nlocal,functor);
       break;
     }
     case 1:{
-      FixEnforce2DKokkosPostForceFunctor<DeviceType,1,0,0> functor(this);
+      FixEnforce2DKokkosPostForceFunctor<Space,1,0,0> functor(this);
       Kokkos::parallel_for(nlocal,functor);
       break;
     }
     case 2:{
-      FixEnforce2DKokkosPostForceFunctor<DeviceType,0,1,0> functor(this);
+      FixEnforce2DKokkosPostForceFunctor<Space,0,1,0> functor(this);
       Kokkos::parallel_for(nlocal,functor);
       break;
     }
     case 3:{
-      FixEnforce2DKokkosPostForceFunctor<DeviceType,1,1,0> functor(this);
+      FixEnforce2DKokkosPostForceFunctor<Space,1,1,0> functor(this);
       Kokkos::parallel_for(nlocal,functor);
       break;
     }
     case 4:{
-      FixEnforce2DKokkosPostForceFunctor<DeviceType,0,0,1> functor(this);
+      FixEnforce2DKokkosPostForceFunctor<Space,0,0,1> functor(this);
       Kokkos::parallel_for(nlocal,functor);
       break;
     }
     case 5:{
-      FixEnforce2DKokkosPostForceFunctor<DeviceType,1,0,1> functor(this);
+      FixEnforce2DKokkosPostForceFunctor<Space,1,0,1> functor(this);
       Kokkos::parallel_for(nlocal,functor);
       break;
     }
     case 6:{
-      FixEnforce2DKokkosPostForceFunctor<DeviceType,0,1,1> functor(this);
+      FixEnforce2DKokkosPostForceFunctor<Space,0,1,1> functor(this);
       Kokkos::parallel_for(nlocal,functor);
       break;
     }
     case 7:{
-      FixEnforce2DKokkosPostForceFunctor<DeviceType,1,1,1> functor(this);
+      FixEnforce2DKokkosPostForceFunctor<Space,1,1,1> functor(this);
       Kokkos::parallel_for(nlocal,functor);
       break;
     }
@@ -134,10 +134,10 @@ void FixEnforce2DKokkos<DeviceType>::post_force(int vflag)
 }
 
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 template <int omega_flag, int angmom_flag, int torque_flag>
 KOKKOS_INLINE_FUNCTION
-void FixEnforce2DKokkos<DeviceType>::post_force_item( int i ) const
+void FixEnforce2DKokkos<Space>::post_force_item( int i ) const
 {
   if (mask[i] & groupbit){
     v(i,2) = 0.0;
@@ -162,8 +162,6 @@ void FixEnforce2DKokkos<DeviceType>::post_force_item( int i ) const
 
 
 namespace LAMMPS_NS {
-template class FixEnforce2DKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class FixEnforce2DKokkos<LMPHostType>;
-#endif
+template class FixEnforce2DKokkos<Device>;
+template class FixEnforce2DKokkos<Host>;
 }

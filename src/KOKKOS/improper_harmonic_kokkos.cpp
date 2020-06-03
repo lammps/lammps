@@ -32,24 +32,24 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-ImproperHarmonicKokkos<DeviceType>::ImproperHarmonicKokkos(LAMMPS *lmp) : ImproperHarmonic(lmp)
+template<ExecutionSpace Space>
+ImproperHarmonicKokkos<Space>::ImproperHarmonicKokkos(LAMMPS *lmp) : ImproperHarmonic(lmp)
 {
   atomKK = (AtomKokkos *) atom;
+  execution_space = Space;
   neighborKK = (NeighborKokkos *) neighbor;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 
   k_warning_flag = Kokkos::DualView<int,DeviceType>("Dihedral:warning_flag");
-  d_warning_flag = k_warning_flag.template view<DeviceType>();
+  d_warning_flag = DualViewHelper<Space>::view(k_warning_flag);
   h_warning_flag = k_warning_flag.h_view;
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-ImproperHarmonicKokkos<DeviceType>::~ImproperHarmonicKokkos()
+template<ExecutionSpace Space>
+ImproperHarmonicKokkos<Space>::~ImproperHarmonicKokkos()
 {
   if (!copymode) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
@@ -59,8 +59,8 @@ ImproperHarmonicKokkos<DeviceType>::~ImproperHarmonicKokkos()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void ImproperHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
+template<ExecutionSpace Space>
+void ImproperHarmonicKokkos<Space>::compute(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
@@ -73,34 +73,34 @@ void ImproperHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     //if(k_eatom.extent(0)<maxeatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_eatom,eatom);
       memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
-      d_eatom = k_eatom.template view<KKDeviceType>();
+      d_eatom = DualViewHelper<Space>::view(k_eatom);
     //}
   }
   if (vflag_atom) {
     //if(k_vatom.extent(0)<maxvatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_vatom,vatom);
       memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"improper:vatom");
-      d_vatom = k_vatom.template view<KKDeviceType>();
+      d_vatom = DualViewHelper<Space>::view(k_vatom);
     //}
   }
 
   //atomKK->sync(execution_space,datamask_read);
-  k_k.template sync<DeviceType>();
-  k_chi.template sync<DeviceType>();
+  DualViewHelper<Space>::sync(k_k);
+  DualViewHelper<Space>::sync(k_chi);
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
 
-  x = atomKK->k_x.view<DeviceType>();
-  f = atomKK->k_f.view<DeviceType>();
-  neighborKK->k_improperlist.template sync<DeviceType>();
-  improperlist = neighborKK->k_improperlist.view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  f = DualViewHelper<Space>::view(atomKK->k_f);
+  DualViewHelper<Space>::sync(neighborKK->k_improperlist);
+  improperlist = DualViewHelper<Space>::view(neighborKK->k_improperlist);
   int nimproperlist = neighborKK->nimproperlist;
   nlocal = atom->nlocal;
   newton_bond = force->newton_bond;
 
   h_warning_flag() = 0;
-  k_warning_flag.template modify<LMPHostType>();
-  k_warning_flag.template sync<DeviceType>();
+  k_warning_flag.modify_host();
+  DualViewHelper<Space>::sync(k_warning_flag);
 
   copymode = 1;
 
@@ -124,8 +124,8 @@ void ImproperHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // error check
 
-  k_warning_flag.template modify<DeviceType>();
-  k_warning_flag.template sync<LMPHostType>();
+  DualViewHelper<Space>::modify(k_warning_flag);
+  k_warning_flag.sync_host();
   if (h_warning_flag())
     error->warning(FLERR,"Dihedral problem",0);
 
@@ -140,22 +140,22 @@ void ImproperHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   if (eflag_atom) {
-    k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_eatom);
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
-    k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_vatom);
+    k_vatom.sync_host();
   }
 
   copymode = 0;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEWTON_BOND, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void ImproperHarmonicKokkos<DeviceType>::operator()(TagImproperHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
+void ImproperHarmonicKokkos<Space>::operator()(TagImproperHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
   const int i1 = improperlist(n,0);
   const int i2 = improperlist(n,1);
@@ -165,42 +165,42 @@ void ImproperHarmonicKokkos<DeviceType>::operator()(TagImproperHarmonicCompute<N
 
   // geometry of 4-body
 
-  const F_FLOAT vb1x = x(i1,0) - x(i2,0);
-  const F_FLOAT vb1y = x(i1,1) - x(i2,1);
-  const F_FLOAT vb1z = x(i1,2) - x(i2,2);
+  const KK_FLOAT vb1x = x(i1,0) - x(i2,0);
+  const KK_FLOAT vb1y = x(i1,1) - x(i2,1);
+  const KK_FLOAT vb1z = x(i1,2) - x(i2,2);
 
-  const F_FLOAT vb2x = x(i3,0) - x(i2,0);
-  const F_FLOAT vb2y = x(i3,1) - x(i2,1);
-  const F_FLOAT vb2z = x(i3,2) - x(i2,2);
+  const KK_FLOAT vb2x = x(i3,0) - x(i2,0);
+  const KK_FLOAT vb2y = x(i3,1) - x(i2,1);
+  const KK_FLOAT vb2z = x(i3,2) - x(i2,2);
 
-  const F_FLOAT vb3x = x(i4,0) - x(i3,0);
-  const F_FLOAT vb3y = x(i4,1) - x(i3,1);
-  const F_FLOAT vb3z = x(i4,2) - x(i3,2);
+  const KK_FLOAT vb3x = x(i4,0) - x(i3,0);
+  const KK_FLOAT vb3y = x(i4,1) - x(i3,1);
+  const KK_FLOAT vb3z = x(i4,2) - x(i3,2);
 
-  const F_FLOAT ss1 = 1.0 / (vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
-  const F_FLOAT ss2 = 1.0 / (vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
-  const F_FLOAT ss3 = 1.0 / (vb3x*vb3x + vb3y*vb3y + vb3z*vb3z);
+  const KK_FLOAT ss1 = 1.0 / (vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
+  const KK_FLOAT ss2 = 1.0 / (vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
+  const KK_FLOAT ss3 = 1.0 / (vb3x*vb3x + vb3y*vb3y + vb3z*vb3z);
 
-  const F_FLOAT r1 = sqrt(ss1);
-  const F_FLOAT r2 = sqrt(ss2);
-  const F_FLOAT r3 = sqrt(ss3);
+  const KK_FLOAT r1 = sqrt(ss1);
+  const KK_FLOAT r2 = sqrt(ss2);
+  const KK_FLOAT r3 = sqrt(ss3);
 
   // sin and cos of improper
 
-  const F_FLOAT c0 = (vb1x * vb3x + vb1y * vb3y + vb1z * vb3z) * r1 * r3;
-  const F_FLOAT c1 = (vb1x * vb2x + vb1y * vb2y + vb1z * vb2z) * r1 * r2;
-  const F_FLOAT c2 = -(vb3x * vb2x + vb3y * vb2y + vb3z * vb2z) * r3 * r2;
+  const KK_FLOAT c0 = (vb1x * vb3x + vb1y * vb3y + vb1z * vb3z) * r1 * r3;
+  const KK_FLOAT c1 = (vb1x * vb2x + vb1y * vb2y + vb1z * vb2z) * r1 * r2;
+  const KK_FLOAT c2 = -(vb3x * vb2x + vb3y * vb2y + vb3z * vb2z) * r3 * r2;
 
-  F_FLOAT s1 = 1.0 - c1*c1;
+  KK_FLOAT s1 = 1.0 - c1*c1;
   if (s1 < SMALL) s1 = SMALL;
   s1 = 1.0 / s1;
 
-  F_FLOAT s2 = 1.0 - c2*c2;
+  KK_FLOAT s2 = 1.0 - c2*c2;
   if (s2 < SMALL) s2 = SMALL;
   s2 = 1.0 / s2;
 
-  F_FLOAT s12 = sqrt(s1*s2);
-  F_FLOAT c = (c1*c2 + c0) * s12;
+  KK_FLOAT s12 = sqrt(s1*s2);
+  KK_FLOAT c = (c1*c2 + c0) * s12;
 
   // error check
 
@@ -210,32 +210,32 @@ void ImproperHarmonicKokkos<DeviceType>::operator()(TagImproperHarmonicCompute<N
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
 
-  F_FLOAT s = sqrt(1.0 - c*c);
+  KK_FLOAT s = sqrt(1.0 - c*c);
   if (s < SMALL) s = SMALL;
 
   // force & energy
 
-  const F_FLOAT domega = acos(c) - d_chi[type];
-  F_FLOAT a = d_k[type] * domega;
+  const KK_FLOAT domega = acos(c) - d_chi[type];
+  KK_FLOAT a = d_k[type] * domega;
 
-  F_FLOAT eimproper = 0.0;
+  KK_FLOAT eimproper = 0.0;
   if (eflag) eimproper = a*domega;
 
   a = -a * 2.0/s;
   c = c * a;
   s12 = s12 * a;
-  const F_FLOAT a11 = c*ss1*s1;
-  const F_FLOAT a22 = -ss2 * (2.0*c0*s12 - c*(s1+s2));
-  const F_FLOAT a33 = c*ss3*s2;
-  const F_FLOAT a12 = -r1*r2*(c1*c*s1 + c2*s12);
-  const F_FLOAT a13 = -r1*r3*s12;
-  const F_FLOAT a23 = r2*r3*(c2*c*s2 + c1*s12);
+  const KK_FLOAT a11 = c*ss1*s1;
+  const KK_FLOAT a22 = -ss2 * (2.0*c0*s12 - c*(s1+s2));
+  const KK_FLOAT a33 = c*ss3*s2;
+  const KK_FLOAT a12 = -r1*r2*(c1*c*s1 + c2*s12);
+  const KK_FLOAT a13 = -r1*r3*s12;
+  const KK_FLOAT a23 = r2*r3*(c2*c*s2 + c1*s12);
 
-  const F_FLOAT sx2  = a22*vb2x + a23*vb3x + a12*vb1x;
-  const F_FLOAT sy2  = a22*vb2y + a23*vb3y + a12*vb1y;
-  const F_FLOAT sz2  = a22*vb2z + a23*vb3z + a12*vb1z;
+  const KK_FLOAT sx2  = a22*vb2x + a23*vb3x + a12*vb1x;
+  const KK_FLOAT sy2  = a22*vb2y + a23*vb3y + a12*vb1y;
+  const KK_FLOAT sz2  = a22*vb2z + a23*vb3z + a12*vb1z;
 
-  F_FLOAT f1[3],f2[3],f3[3],f4[3];
+  KK_FLOAT f1[3],f2[3],f3[3],f4[3];
   f1[0] = a12*vb2x + a13*vb3x + a11*vb1x;
   f1[1] = a12*vb2y + a13*vb3y + a11*vb1y;
   f1[2] = a12*vb2z + a13*vb3z + a11*vb1z;
@@ -283,35 +283,35 @@ void ImproperHarmonicKokkos<DeviceType>::operator()(TagImproperHarmonicCompute<N
              vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEWTON_BOND, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void ImproperHarmonicKokkos<DeviceType>::operator()(TagImproperHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n) const {
+void ImproperHarmonicKokkos<Space>::operator()(TagImproperHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n) const {
   EV_FLOAT ev;
   this->template operator()<NEWTON_BOND,EVFLAG>(TagImproperHarmonicCompute<NEWTON_BOND,EVFLAG>(), n, ev);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void ImproperHarmonicKokkos<DeviceType>::allocate()
+template<ExecutionSpace Space>
+void ImproperHarmonicKokkos<Space>::allocate()
 {
   ImproperHarmonic::allocate();
 
   int n = atom->nimpropertypes;
-  k_k = Kokkos::DualView<F_FLOAT*,DeviceType>("ImproperHarmonic::k",n+1);
-  k_chi = Kokkos::DualView<F_FLOAT*,DeviceType>("ImproperHarmonic::chi",n+1);
+  k_k = Kokkos::DualView<KK_FLOAT*,DeviceType>("ImproperHarmonic::k",n+1);
+  k_chi = Kokkos::DualView<KK_FLOAT*,DeviceType>("ImproperHarmonic::chi",n+1);
 
-  d_k = k_k.template view<DeviceType>();
-  d_chi = k_chi.template view<DeviceType>();
+  d_k = DualViewHelper<Space>::view(k_k);
+  d_chi = DualViewHelper<Space>::view(k_chi);
 }
 
 /* ----------------------------------------------------------------------
    set coeffs for one type
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void ImproperHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
+template<ExecutionSpace Space>
+void ImproperHarmonicKokkos<Space>::coeff(int narg, char **arg)
 {
   ImproperHarmonic::coeff(narg, arg);
 
@@ -321,16 +321,16 @@ void ImproperHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
     k_chi.h_view[i] = chi[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_chi.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_chi.modify_host();
 }
 
 /* ----------------------------------------------------------------------
    proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void ImproperHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
+template<ExecutionSpace Space>
+void ImproperHarmonicKokkos<Space>::read_restart(FILE *fp)
 {
   ImproperHarmonic::read_restart(fp);
 
@@ -340,8 +340,8 @@ void ImproperHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
     k_chi.h_view[i] = chi[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_chi.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_chi.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -351,17 +351,17 @@ void ImproperHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
           = vb1*f1 + vb2*f3 + (vb3+vb2)*f4
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 //template<int NEWTON_BOND>
 KOKKOS_INLINE_FUNCTION
-void ImproperHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, const int i2, const int i3, const int i4,
-                        F_FLOAT &eimproper, F_FLOAT *f1, F_FLOAT *f3, F_FLOAT *f4,
-                        const F_FLOAT &vb1x, const F_FLOAT &vb1y, const F_FLOAT &vb1z,
-                        const F_FLOAT &vb2x, const F_FLOAT &vb2y, const F_FLOAT &vb2z,
-                        const F_FLOAT &vb3x, const F_FLOAT &vb3y, const F_FLOAT &vb3z) const
+void ImproperHarmonicKokkos<Space>::ev_tally(EV_FLOAT &ev, const int i1, const int i2, const int i3, const int i4,
+                        KK_FLOAT &eimproper, KK_FLOAT *f1, KK_FLOAT *f3, KK_FLOAT *f4,
+                        const KK_FLOAT &vb1x, const KK_FLOAT &vb1y, const KK_FLOAT &vb1z,
+                        const KK_FLOAT &vb2x, const KK_FLOAT &vb2y, const KK_FLOAT &vb2z,
+                        const KK_FLOAT &vb3x, const KK_FLOAT &vb3y, const KK_FLOAT &vb3z) const
 {
-  E_FLOAT eimproperquarter;
-  F_FLOAT v[6];
+  KK_FLOAT eimproperquarter;
+  KK_FLOAT v[6];
 
 
   if (eflag_either) {
@@ -476,9 +476,7 @@ void ImproperHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, co
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
-template class ImproperHarmonicKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class ImproperHarmonicKokkos<LMPHostType>;
-#endif
+template class ImproperHarmonicKokkos<Device>;
+template class ImproperHarmonicKokkos<Host>;
 }
 

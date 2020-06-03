@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(dpd/energy/kk,FixDPDenergyKokkos<LMPDeviceType>)
-FixStyle(dpd/energy/kk/device,FixDPDenergyKokkos<LMPDeviceType>)
-FixStyle(dpd/energy/kk/host,FixDPDenergyKokkos<LMPHostType>)
+FixStyle(dpd/energy/kk,FixDPDenergyKokkos<Device>)
+FixStyle(dpd/energy/kk/device,FixDPDenergyKokkos<Device>)
+FixStyle(dpd/energy/kk/host,FixDPDenergyKokkos<Host>)
 
 #else
 
@@ -27,7 +27,7 @@ FixStyle(dpd/energy/kk/host,FixDPDenergyKokkos<LMPHostType>)
 
 namespace LAMMPS_NS {
 
-template <typename DeviceType>
+template <ExecutionSpace Space>
 class FixDPDenergyKokkos : public FixDPDenergy {
  public:
   FixDPDenergyKokkos(class LAMMPS *, int, char **);
@@ -37,7 +37,7 @@ class FixDPDenergyKokkos : public FixDPDenergy {
 
   void take_half_step();
  protected:
-  PairDPDfdtEnergyKokkos<DeviceType>* pairDPDEKK;
+  PairDPDfdtEnergyKokkos<Space>* pairDPDEKK;
 };
 
 }

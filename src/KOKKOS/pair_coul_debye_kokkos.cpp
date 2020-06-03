@@ -37,13 +37,13 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-PairCoulDebyeKokkos<DeviceType>::PairCoulDebyeKokkos(LAMMPS *lmp):PairCoulDebye(lmp)
+template<ExecutionSpace Space>
+PairCoulDebyeKokkos<Space>::PairCoulDebyeKokkos(LAMMPS *lmp):PairCoulDebye(lmp)
 {
   respa_enable = 0;
 
   atomKK = (AtomKokkos *) atom;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  execution_space = Space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
   cutsq = NULL;
@@ -52,8 +52,8 @@ PairCoulDebyeKokkos<DeviceType>::PairCoulDebyeKokkos(LAMMPS *lmp):PairCoulDebye(
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-PairCoulDebyeKokkos<DeviceType>::~PairCoulDebyeKokkos()
+template<ExecutionSpace Space>
+PairCoulDebyeKokkos<Space>::~PairCoulDebyeKokkos()
 {
   if (!copymode) {
     memoryKK->destroy_kokkos(k_cutsq, cutsq);
@@ -62,8 +62,8 @@ PairCoulDebyeKokkos<DeviceType>::~PairCoulDebyeKokkos()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairCoulDebyeKokkos<DeviceType>::cleanup_copy() {
+template<ExecutionSpace Space>
+void PairCoulDebyeKokkos<Space>::cleanup_copy() {
   // WHY needed: this prevents parent copy from deallocating any arrays
   allocated = 0;
   cutsq = NULL;
@@ -73,8 +73,8 @@ void PairCoulDebyeKokkos<DeviceType>::cleanup_copy() {
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairCoulDebyeKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
+template<ExecutionSpace Space>
+void PairCoulDebyeKokkos<Space>::compute(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
@@ -88,27 +88,27 @@ void PairCoulDebyeKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag_atom) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
-    d_eatom = k_eatom.view<DeviceType>();
+    d_eatom = DualViewHelper<Space>::view(k_eatom);
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
-    d_vatom = k_vatom.view<DeviceType>();
+    d_vatom = DualViewHelper<Space>::view(k_vatom);
   }
 
   atomKK->sync(execution_space,datamask_read);
-  k_cutsq.template sync<DeviceType>();
-  k_cut_ljsq.template sync<DeviceType>();
-  k_cut_coulsq.template sync<DeviceType>();
-  k_params.template sync<DeviceType>();
+  DualViewHelper<Space>::sync(k_cutsq);
+  DualViewHelper<Space>::sync(k_cut_ljsq);
+  DualViewHelper<Space>::sync(k_cut_coulsq);
+  DualViewHelper<Space>::sync(k_params);
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
 
-  x = atomKK->k_x.view<DeviceType>();
-  c_x = atomKK->k_x.view<DeviceType>();
-  f = atomKK->k_f.view<DeviceType>();
-  q = atomKK->k_q.view<DeviceType>();
-  type = atomKK->k_type.view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  c_x = DualViewHelper<Space>::view(atomKK->k_x);
+  f = DualViewHelper<Space>::view(atomKK->k_f);
+  q = DualViewHelper<Space>::view(atomKK->k_q);
+  type = DualViewHelper<Space>::view(atomKK->k_type);
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   special_lj[0] = force->special_lj[0];
@@ -126,8 +126,8 @@ void PairCoulDebyeKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   copymode = 1;
 
-  EV_FLOAT ev = pair_compute<PairCoulDebyeKokkos<DeviceType>,void >
-    (this,(NeighListKokkos<DeviceType>*)list);
+  EV_FLOAT ev = pair_compute<Space,PairCoulDebyeKokkos<Space>,void >
+    (this,(NeighListKokkos<Space>*)list);
 
   if (eflag) {
     eng_vdwl += ev.evdwl;
@@ -143,16 +143,16 @@ void PairCoulDebyeKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   if (eflag_atom) {
-    k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_eatom);
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
-    k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_vatom);
+    k_vatom.sync_host();
   }
 
-  if (vflag_fdotr) pair_virial_fdotr_compute(this);
+  if (vflag_fdotr) pair_virial_fdotr_compute<Space>(this);
 
   copymode = 0;
 }
@@ -160,18 +160,18 @@ void PairCoulDebyeKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 /* ----------------------------------------------------------------------
    compute coulomb pair force between atoms i and j
    ---------------------------------------------------------------------- */
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairCoulDebyeKokkos<DeviceType>::
-compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j,
-              const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
+KK_FLOAT PairCoulDebyeKokkos<Space>::
+compute_fcoul(const KK_FLOAT& rsq, const int& i, const int&j,
+              const int& itype, const int& jtype, const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
 
-  const F_FLOAT r2inv = 1.0/rsq;
-  const F_FLOAT rinv = sqrt(r2inv);
-  const F_FLOAT r = 1.0/rinv;
-  const F_FLOAT screening = exp(-kappa*r);
-  F_FLOAT forcecoul;
+  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT rinv = sqrt(r2inv);
+  const KK_FLOAT r = 1.0/rinv;
+  const KK_FLOAT screening = exp(-kappa*r);
+  KK_FLOAT forcecoul;
 
   forcecoul = qqrd2e * qtmp * q(j) * screening * (kappa + rinv) *
           (STACKPARAMS?m_params[itype][jtype].scale:params(itype,jtype).scale);
@@ -183,17 +183,17 @@ compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j,
 /* ----------------------------------------------------------------------
    compute coulomb pair potential energy between atoms i and j
    ---------------------------------------------------------------------- */
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairCoulDebyeKokkos<DeviceType>::
-compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
-              const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
+KK_FLOAT PairCoulDebyeKokkos<Space>::
+compute_ecoul(const KK_FLOAT& rsq, const int& i, const int&j,
+              const int& itype, const int& jtype, const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
 
-  const F_FLOAT r2inv = 1.0/rsq;
-  const F_FLOAT rinv = sqrt(r2inv);
-  const F_FLOAT r = 1.0/rinv;
-  const F_FLOAT screening = exp(-kappa*r);
+  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT rinv = sqrt(r2inv);
+  const KK_FLOAT r = 1.0/rinv;
+  const KK_FLOAT screening = exp(-kappa*r);
 
   return factor_coul * qqrd2e * qtmp * q(j) * rinv * screening *
           (STACKPARAMS?m_params[itype][jtype].scale:params(itype,jtype).scale);
@@ -204,25 +204,25 @@ compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairCoulDebyeKokkos<DeviceType>::allocate()
+template<ExecutionSpace Space>
+void PairCoulDebyeKokkos<Space>::allocate()
 {
   PairCoulDebye::allocate();
 
   int n = atom->ntypes;
   memory->destroy(cutsq);
   memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
-  d_cutsq = k_cutsq.template view<DeviceType>();
+  d_cutsq = DualViewHelper<Space>::view(k_cutsq);
   k_params = Kokkos::DualView<params_coul**,Kokkos::LayoutRight,DeviceType>("PairCoulDebye::params",n+1,n+1);
-  params = k_params.template view<DeviceType>();
+  params = DualViewHelper<Space>::view(k_params);
 }
 
 /* ----------------------------------------------------------------------
    global settings
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairCoulDebyeKokkos<DeviceType>::settings(int narg, char **arg)
+template<ExecutionSpace Space>
+void PairCoulDebyeKokkos<Space>::settings(int narg, char **arg)
 {
   if (narg > 2) error->all(FLERR,"Illegal pair_style command");
 
@@ -244,8 +244,8 @@ void PairCoulDebyeKokkos<DeviceType>::settings(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairCoulDebyeKokkos<DeviceType>::init_style()
+template<ExecutionSpace Space>
+void PairCoulDebyeKokkos<Space>::init_style()
 {
   PairCoulDebye::init_style();
 
@@ -265,10 +265,10 @@ void PairCoulDebyeKokkos<DeviceType>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = (Space == Host) &&
+    !(Space == Device);
   neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = (Space == Device);
 
   if (neighflag == FULL) {
     neighbor->requests[irequest]->full = 1;
@@ -285,10 +285,10 @@ void PairCoulDebyeKokkos<DeviceType>::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-double PairCoulDebyeKokkos<DeviceType>::init_one(int i, int j)
+template<ExecutionSpace Space>
+double PairCoulDebyeKokkos<Space>::init_one(int i, int j)
 {
-  double cutone = PairCoulDebye::init_one(i,j);
+  KK_FLOAT cutone = PairCoulDebye::init_one(i,j);
 
   k_params.h_view(i,j).scale = scale[i][j];
   k_params.h_view(i,j).cutsq = cutone*cutone;
@@ -301,20 +301,18 @@ double PairCoulDebyeKokkos<DeviceType>::init_one(int i, int j)
     m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cutone*cutone;
   }
   k_cutsq.h_view(i,j) = cutone*cutone;
-  k_cutsq.template modify<LMPHostType>();
+  k_cutsq.modify_host();
   //k_cut_ljsq.h_view(i,j) = cutone*cutone;
-  k_cut_ljsq.template modify<LMPHostType>();
+  k_cut_ljsq.modify_host();
   //k_cut_coulsq.h_view(i,j) = cutone*cutone;
-  k_cut_coulsq.template modify<LMPHostType>();
-  k_params.template modify<LMPHostType>();
+  k_cut_coulsq.modify_host();
+  k_params.modify_host();
 
   return cutone;
 }
 
 namespace LAMMPS_NS {
-template class PairCoulDebyeKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class PairCoulDebyeKokkos<LMPHostType>;
-#endif
+template class PairCoulDebyeKokkos<Device>;
+template class PairCoulDebyeKokkos<Host>;
 }
 

@@ -22,13 +22,12 @@ enum{NONE,DIPOLE};
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-FixNVESphereKokkos<DeviceType>::FixNVESphereKokkos(LAMMPS *lmp, int narg, char **arg) :
+template<ExecutionSpace Space>
+FixNVESphereKokkos<Space>::FixNVESphereKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixNVESphere(lmp, narg, arg)
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *)atom;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
   datamask_read = F_MASK | TORQUE_MASK | RMASS_MASK | RADIUS_MASK | MASK_MASK;
   datamask_modify = X_MASK | V_MASK | OMEGA_MASK;
@@ -36,8 +35,8 @@ FixNVESphereKokkos<DeviceType>::FixNVESphereKokkos(LAMMPS *lmp, int narg, char *
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixNVESphereKokkos<DeviceType>::cleanup_copy()
+template<ExecutionSpace Space>
+void FixNVESphereKokkos<Space>::cleanup_copy()
 {
   id = style = NULL;
   vatom = NULL;
@@ -45,8 +44,8 @@ void FixNVESphereKokkos<DeviceType>::cleanup_copy()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixNVESphereKokkos<DeviceType>::init()
+template<ExecutionSpace Space>
+void FixNVESphereKokkos<Space>::init()
 {
   FixNVESphere::init();
 
@@ -57,38 +56,38 @@ void FixNVESphereKokkos<DeviceType>::init()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixNVESphereKokkos<DeviceType>::initial_integrate(int vflag)
+template<ExecutionSpace Space>
+void FixNVESphereKokkos<Space>::initial_integrate(int vflag)
 {
   atomKK->sync(execution_space,datamask_read);
   atomKK->modified(execution_space,datamask_modify);
 
-  x = atomKK->k_x.view<DeviceType>();
-  v = atomKK->k_v.view<DeviceType>();
-  omega = atomKK->k_omega.view<DeviceType>();
-  f = atomKK->k_f.view<DeviceType>();
-  torque = atomKK->k_torque.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
-  rmass = atomKK->k_rmass.view<DeviceType>();
-  radius = atomKK->k_radius.view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  v = DualViewHelper<Space>::view(atomKK->k_v);
+  omega = DualViewHelper<Space>::view(atomKK->k_omega);
+  f = DualViewHelper<Space>::view(atomKK->k_f);
+  torque = DualViewHelper<Space>::view(atomKK->k_torque);
+  mask = DualViewHelper<Space>::view(atomKK->k_mask);
+  rmass = DualViewHelper<Space>::view(atomKK->k_rmass);
+  radius = DualViewHelper<Space>::view(atomKK->k_radius);
 
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  FixNVESphereKokkosInitialIntegrateFunctor<DeviceType> f(this);
+  FixNVESphereKokkosInitialIntegrateFunctor<Space> f(this);
   Kokkos::parallel_for(nlocal,f);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void FixNVESphereKokkos<DeviceType>::initial_integrate_item(const int i) const
+void FixNVESphereKokkos<Space>::initial_integrate_item(const int i) const
 {
-  const double dtfrotate = dtf / inertia;
+  const KK_FLOAT dtfrotate = dtf / inertia;
 
   if (mask(i) & groupbit) {
-    const double dtfm = dtf / rmass(i);
+    const KK_FLOAT dtfm = dtf / rmass(i);
     v(i,0) += dtfm * f(i,0);
     v(i,1) += dtfm * f(i,1);
     v(i,2) += dtfm * f(i,2);
@@ -96,7 +95,7 @@ void FixNVESphereKokkos<DeviceType>::initial_integrate_item(const int i) const
     x(i,1) += dtv * v(i,1);
     x(i,2) += dtv * v(i,2);
 
-    const double dtirotate = dtfrotate / (radius(i)*radius(i)*rmass(i));
+    const KK_FLOAT dtirotate = dtfrotate / (radius(i)*radius(i)*rmass(i));
     omega(i,0) += dtirotate * torque(i,0);
     omega(i,1) += dtirotate * torque(i,1);
     omega(i,2) += dtirotate * torque(i,2);
@@ -105,42 +104,42 @@ void FixNVESphereKokkos<DeviceType>::initial_integrate_item(const int i) const
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixNVESphereKokkos<DeviceType>::final_integrate()
+template<ExecutionSpace Space>
+void FixNVESphereKokkos<Space>::final_integrate()
 {
   atomKK->sync(execution_space,datamask_read);
   atomKK->modified(execution_space,datamask_modify);
 
-  v = atomKK->k_v.view<DeviceType>();
-  omega = atomKK->k_omega.view<DeviceType>();
-  f = atomKK->k_f.view<DeviceType>();
-  torque = atomKK->k_torque.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
-  rmass = atomKK->k_rmass.view<DeviceType>();
-  radius = atomKK->k_radius.view<DeviceType>();
+  v = DualViewHelper<Space>::view(atomKK->k_v);
+  omega = DualViewHelper<Space>::view(atomKK->k_omega);
+  f = DualViewHelper<Space>::view(atomKK->k_f);
+  torque = DualViewHelper<Space>::view(atomKK->k_torque);
+  mask = DualViewHelper<Space>::view(atomKK->k_mask);
+  rmass = DualViewHelper<Space>::view(atomKK->k_rmass);
+  radius = DualViewHelper<Space>::view(atomKK->k_radius);
 
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  FixNVESphereKokkosFinalIntegrateFunctor<DeviceType> f(this);
+  FixNVESphereKokkosFinalIntegrateFunctor<Space> f(this);
   Kokkos::parallel_for(nlocal,f);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void FixNVESphereKokkos<DeviceType>::final_integrate_item(const int i) const
+void FixNVESphereKokkos<Space>::final_integrate_item(const int i) const
 {
-  const double dtfrotate = dtf / inertia;
+  const KK_FLOAT dtfrotate = dtf / inertia;
 
   if (mask(i) & groupbit) {
-    const double dtfm = dtf / rmass(i);
+    const KK_FLOAT dtfm = dtf / rmass(i);
     v(i,0) += dtfm * f(i,0);
     v(i,1) += dtfm * f(i,1);
     v(i,2) += dtfm * f(i,2);
 
-    const double dtirotate = dtfrotate / (radius(i)*radius(i)*rmass(i));
+    const KK_FLOAT dtirotate = dtfrotate / (radius(i)*radius(i)*rmass(i));
     omega(i,0) += dtirotate * torque(i,0);
     omega(i,1) += dtirotate * torque(i,1);
     omega(i,2) += dtirotate * torque(i,2);
@@ -148,8 +147,6 @@ void FixNVESphereKokkos<DeviceType>::final_integrate_item(const int i) const
 }
 
 namespace LAMMPS_NS {
-template class FixNVESphereKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class FixNVESphereKokkos<LMPHostType>;
-#endif
+template class FixNVESphereKokkos<Device>;
+template class FixNVESphereKokkos<Host>;
 }

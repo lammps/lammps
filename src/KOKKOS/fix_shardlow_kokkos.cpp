@@ -61,13 +61,13 @@ using namespace random_external_state;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **arg) :
+template<ExecutionSpace Space>
+FixShardlowKokkos<Space>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixShardlow(lmp, narg, arg), k_pairDPDE(NULL), ghostmax(0), nlocal(0) , nghost(0)
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  execution_space = Space;
 
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
@@ -77,7 +77,7 @@ FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **a
 //  k_pairDPD = NULL;
   k_pairDPDE = NULL;
 //  k_pairDPD = (PairDPDfdtKokkos *) force->pair_match("dpd/fdt",1);
-  k_pairDPDE = dynamic_cast<PairDPDfdtEnergyKokkos<DeviceType> *>(force->pair_match("dpd/fdt/energy",0));
+  k_pairDPDE = dynamic_cast<PairDPDfdtEnergyKokkos<Space> *>(force->pair_match("dpd/fdt/energy",0));
 
 //   if(k_pairDPDE){
     comm_forward = 3;
@@ -106,16 +106,16 @@ FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **a
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-FixShardlowKokkos<DeviceType>::~FixShardlowKokkos()
+template<ExecutionSpace Space>
+FixShardlowKokkos<Space>::~FixShardlowKokkos()
 {
   ghostmax = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-int FixShardlowKokkos<DeviceType>::setmask()
+template<ExecutionSpace Space>
+int FixShardlowKokkos<Space>::setmask()
 {
   int mask = 0;
   mask |= INITIAL_INTEGRATE | PRE_NEIGHBOR;
@@ -124,18 +124,18 @@ int FixShardlowKokkos<DeviceType>::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixShardlowKokkos<DeviceType>::init()
+template<ExecutionSpace Space>
+void FixShardlowKokkos<Space>::init()
 {
   FixShardlow::init();
 
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = (Space == Host) &&
+    !(Space == Device);
   neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = (Space == Device);
 
 //  neighbor->requests[irequest]->pair = 0;
 //  neighbor->requests[irequest]->fix  = 1;
@@ -145,13 +145,13 @@ void FixShardlowKokkos<DeviceType>::init()
   int ntypes = atom->ntypes;
   k_params = Kokkos::DualView<params_ssa**,Kokkos::LayoutRight,DeviceType>
     ("FixShardlowKokkos::params",ntypes+1,ntypes+1);
-  params = k_params.template view<DeviceType>();
-  k_pairDPDE->k_cutsq.template sync<DeviceType>();
-  d_cutsq = k_pairDPDE->k_cutsq.template view<DeviceType>();
+  params = DualViewHelper<Space>::view(k_params);
+  DualViewHelper<Space>::sync(k_pairDPDE->k_cutsq);
+  d_cutsq = DualViewHelper<Space>::view(k_pairDPDE->k_cutsq);
 
   for (int i = 1; i <= ntypes; i++) {
     for (int j = i; j <= ntypes; j++) {
-      F_FLOAT cutone = k_pairDPDE->cut[i][j];
+      KK_FLOAT cutone = k_pairDPDE->cut[i][j];
       if (cutone > EPSILON) k_params.h_view(i,j).cutinv = 1.0/cutone;
       else k_params.h_view(i,j).cutinv = FLT_MAX;
       k_params.h_view(i,j).halfsigma = 0.5*k_pairDPDE->sigma[i][j];
@@ -167,31 +167,31 @@ void FixShardlowKokkos<DeviceType>::init()
     }
   }
 
-  k_params.template modify<LMPHostType>();
+  k_params.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixShardlowKokkos<DeviceType>::init_list(int id, NeighList *ptr)
+template<ExecutionSpace Space>
+void FixShardlowKokkos<Space>::init_list(int id, NeighList *ptr)
 {
   FixShardlow::init_list(id, ptr);
-  k_list = static_cast<NeighListKokkos<DeviceType>*>(ptr);
+  k_list = static_cast<NeighListKokkos<Space>*>(ptr);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixShardlowKokkos<DeviceType>::pre_neighbor()
+template<ExecutionSpace Space>
+void FixShardlowKokkos<Space>::pre_neighbor()
 {
   // NOTE: this logic is specific to orthogonal boxes, not triclinic
 
   // Enforce the constraint that ghosts must be contained in the nearest sub-domains
-  double bbx = domain->subhi[0] - domain->sublo[0];
-  double bby = domain->subhi[1] - domain->sublo[1];
-  double bbz = domain->subhi[2] - domain->sublo[2];
+  KK_FLOAT bbx = domain->subhi[0] - domain->sublo[0];
+  KK_FLOAT bby = domain->subhi[1] - domain->sublo[1];
+  KK_FLOAT bbz = domain->subhi[2] - domain->sublo[2];
 
-  double rcut = 2.0*neighbor->cutneighmax;
+  KK_FLOAT rcut = 2.0*neighbor->cutneighmax;
 
   if (domain->triclinic)
     error->all(FLERR,"Fix shardlow does not yet support triclinic geometries");
@@ -210,36 +210,36 @@ void FixShardlowKokkos<DeviceType>::pre_neighbor()
   // Allocate memory for h_v_t0 to hold the initial velocities for the ghosts
   if (nghost > ghostmax) {
     ghostmax = nghost;
-    k_v_t0 = DAT::tdual_v_array("FixShardlowKokkos:v_t0", ghostmax);
-    // d_v_t0 = k_v_t0.template view<DeviceType>();
+    k_v_t0 = DAT::tdual_float_1d_3("FixShardlowKokkos:v_t0", ghostmax);
+    // d_v_t0 = DualViewHelper<Space>::view(k_v_t0);
     h_v_t0 = k_v_t0.h_view;
   }
 
   // Setup views of relevant data
-  x = atomKK->k_x.template view<DeviceType>();
-  v = atomKK->k_v.template view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  v = DualViewHelper<Space>::view(atomKK->k_v);
   h_v = atomKK->k_v.h_view;
-  uCond = atomKK->k_uCond.template view<DeviceType>();
+  uCond = DualViewHelper<Space>::view(atomKK->k_uCond);
   h_uCond = atomKK->k_uCond.h_view;
-  uMech = atomKK->k_uMech.template view<DeviceType>();
+  uMech = DualViewHelper<Space>::view(atomKK->k_uMech);
   h_uMech = atomKK->k_uMech.h_view;
-  type = atomKK->k_type.view<DeviceType>();
+  type = DualViewHelper<Space>::view(atomKK->k_type);
   if (atomKK->rmass) {
     massPerI = true;
-    masses = atomKK->k_rmass.view<DeviceType>();
+    masses = DualViewHelper<Space>::view(atomKK->k_rmass);
   } else {
     massPerI = false;
-    masses = atomKK->k_mass.view<DeviceType>();
+    masses = DualViewHelper<Space>::view(atomKK->k_mass);
   }
 //   if(k_pairDPDE){
-  dpdTheta = atomKK->k_dpdTheta.view<DeviceType>();
+  dpdTheta = DualViewHelper<Space>::view(atomKK->k_dpdTheta);
 
 //} else {
 //}
 }
 
-template<class DeviceType>
-void FixShardlowKokkos<DeviceType>::setup_pre_neighbor()
+template<ExecutionSpace Space>
+void FixShardlowKokkos<Space>::setup_pre_neighbor()
 {
   pre_neighbor();
 }
@@ -254,9 +254,9 @@ void FixShardlowKokkos<DeviceType>::setup_pre_neighbor()
 
    NOTE: only implemented for orthogonal boxes, not triclinic
 ------------------------------------------------------------------------- */
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<bool STACKPARAMS>
-void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
+void FixShardlowKokkos<Space>::ssa_update_dpd(
   int start_ii, int count, int id
 )
 {
@@ -269,29 +269,29 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
     const int i = d_ilist(ii);
     const int jlen = d_numneigh(ii);
 
-    const double xtmp = x(i, 0);
-    const double ytmp = x(i, 1);
-    const double ztmp = x(i, 2);
+    const KK_FLOAT xtmp = x(i, 0);
+    const KK_FLOAT ytmp = x(i, 1);
+    const KK_FLOAT ztmp = x(i, 2);
 
     // load velocity for i from memory
-    double vxi = v(i, 0);
-    double vyi = v(i, 1);
-    double vzi = v(i, 2);
+    KK_FLOAT vxi = v(i, 0);
+    KK_FLOAT vyi = v(i, 1);
+    KK_FLOAT vzi = v(i, 2);
 
     const int itype = type(i);
 
-    const double mass_i = masses(massPerI ? i : itype);
-    const double massinv_i = 1.0 / mass_i;
+    const KK_FLOAT mass_i = masses(massPerI ? i : itype);
+    const KK_FLOAT massinv_i = 1.0 / mass_i;
 
     // Loop over Directional Neighbors only
     for (int jj = 0; jj < jlen; jj++) {
       const int j = d_neighbors(ii,jj) & NEIGHMASK;
       int jtype = type[j];
 
-      const X_FLOAT delx = xtmp - x(j, 0);
-      const X_FLOAT dely = ytmp - x(j, 1);
-      const X_FLOAT delz = ztmp - x(j, 2);
-      const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+      const KK_FLOAT delx = xtmp - x(j, 0);
+      const KK_FLOAT dely = ytmp - x(j, 1);
+      const KK_FLOAT delz = ztmp - x(j, 2);
+      const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 #ifdef DEBUG_SSA_PAIR_CT
       if ((i < nlocal) && (j < nlocal)) Kokkos::atomic_increment(&(d_counters(0, 0)));
       else Kokkos::atomic_increment(&(d_counters(0, 1)));
@@ -310,38 +310,38 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
         else Kokkos::atomic_increment(&(d_counters(1, 1)));
         Kokkos::atomic_increment(&(d_counters(1, 2)));
 #endif
-        double r = sqrt(rsq);
-        double rinv = 1.0/r;
-        double delx_rinv = delx*rinv;
-        double dely_rinv = dely*rinv;
-        double delz_rinv = delz*rinv;
+        KK_FLOAT r = sqrt(rsq);
+        KK_FLOAT rinv = 1.0/r;
+        KK_FLOAT delx_rinv = delx*rinv;
+        KK_FLOAT dely_rinv = dely*rinv;
+        KK_FLOAT delz_rinv = delz*rinv;
 
-        double wr = 1.0 - r*(STACKPARAMS?m_params[itype][jtype].cutinv:params(itype,jtype).cutinv);
-        double wdt = wr*wr*dt;
+        KK_FLOAT wr = 1.0 - r*(STACKPARAMS?m_params[itype][jtype].cutinv:params(itype,jtype).cutinv);
+        KK_FLOAT wdt = wr*wr*dt;
 
-        double halfsigma_ij = STACKPARAMS?m_params[itype][jtype].halfsigma:params(itype,jtype).halfsigma;
-        double halfgamma_ij = halfsigma_ij*halfsigma_ij*boltz_inv*theta_ij_inv;
+        KK_FLOAT halfsigma_ij = STACKPARAMS?m_params[itype][jtype].halfsigma:params(itype,jtype).halfsigma;
+        KK_FLOAT halfgamma_ij = halfsigma_ij*halfsigma_ij*boltz_inv*theta_ij_inv;
 
-        double sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * es_normal(RNGstate);
+        KK_FLOAT sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * es_normal(RNGstate);
 
-        const double mass_j = masses(massPerI ? j : jtype);
-        double massinv_j = 1.0 / mass_j;
+        const KK_FLOAT mass_j = masses(massPerI ? j : jtype);
+        KK_FLOAT massinv_j = 1.0 / mass_j;
 
-        double gammaFactor = halfgamma_ij*wdt*ftm2v;
-        double inv_1p_mu_gammaFactor = 1.0/(1.0 + (massinv_i + massinv_j)*gammaFactor);
+        KK_FLOAT gammaFactor = halfgamma_ij*wdt*ftm2v;
+        KK_FLOAT inv_1p_mu_gammaFactor = 1.0/(1.0 + (massinv_i + massinv_j)*gammaFactor);
 
-        double vxj = v(j, 0);
-        double vyj = v(j, 1);
-        double vzj = v(j, 2);
+        KK_FLOAT vxj = v(j, 0);
+        KK_FLOAT vyj = v(j, 1);
+        KK_FLOAT vzj = v(j, 2);
 
         // Compute the initial velocity difference between atom i and atom j
-        double delvx = vxi - vxj;
-        double delvy = vyi - vyj;
-        double delvz = vzi - vzj;
-        double dot_rinv = (delx_rinv*delvx + dely_rinv*delvy + delz_rinv*delvz);
+        KK_FLOAT delvx = vxi - vxj;
+        KK_FLOAT delvy = vyi - vyj;
+        KK_FLOAT delvz = vzi - vzj;
+        KK_FLOAT dot_rinv = (delx_rinv*delvx + dely_rinv*delvy + delz_rinv*delvz);
 
         // Compute momentum change between t and t+dt
-        double factorA = sigmaRand - gammaFactor*dot_rinv;
+        KK_FLOAT factorA = sigmaRand - gammaFactor*dot_rinv;
 
         // Update the velocity on i
         vxi += delx_rinv*factorA*massinv_i;
@@ -360,7 +360,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
         dot_rinv = delx_rinv*delvx + dely_rinv*delvy + delz_rinv*delvz;
 
         // Compute the new momentum change between t and t+dt
-        double factorB = (sigmaRand - gammaFactor*dot_rinv)*inv_1p_mu_gammaFactor;
+        KK_FLOAT factorB = (sigmaRand - gammaFactor*dot_rinv)*inv_1p_mu_gammaFactor;
 
         // Update the velocity on i
         vxi += delx_rinv*factorB*massinv_i;
@@ -394,10 +394,10 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
 
    NOTE: only implemented for orthogonal boxes, not triclinic
 ------------------------------------------------------------------------- */
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<bool STACKPARAMS>
 KOKKOS_INLINE_FUNCTION
-void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
+void FixShardlowKokkos<Space>::ssa_update_dpde(
   int start_ii, int count, int id
 ) const
 {
@@ -410,33 +410,33 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
     const int i = d_ilist(ii);
     const int jlen = d_numneigh(ii);
 
-    const double xtmp = x(i, 0);
-    const double ytmp = x(i, 1);
-    const double ztmp = x(i, 2);
+    const KK_FLOAT xtmp = x(i, 0);
+    const KK_FLOAT ytmp = x(i, 1);
+    const KK_FLOAT ztmp = x(i, 2);
 
     // load velocity for i from memory
-    double vxi = v(i, 0);
-    double vyi = v(i, 1);
-    double vzi = v(i, 2);
+    KK_FLOAT vxi = v(i, 0);
+    KK_FLOAT vyi = v(i, 1);
+    KK_FLOAT vzi = v(i, 2);
 
-    double uMech_i = uMech(i);
-    double uCond_i = uCond(i);
+    KK_FLOAT uMech_i = uMech(i);
+    KK_FLOAT uCond_i = uCond(i);
     const int itype = type(i);
 
-    const double theta_i_inv = 1.0/dpdTheta(i);
-    const double mass_i = masses(massPerI ? i : itype);
-    const double massinv_i = 1.0 / mass_i;
-    const double mass_i_div_neg4_ftm2v = mass_i*(-0.25)/ftm2v;
+    const KK_FLOAT theta_i_inv = 1.0/dpdTheta(i);
+    const KK_FLOAT mass_i = masses(massPerI ? i : itype);
+    const KK_FLOAT massinv_i = 1.0 / mass_i;
+    const KK_FLOAT mass_i_div_neg4_ftm2v = mass_i*(-0.25)/ftm2v;
 
     // Loop over Directional Neighbors only
     for (int jj = 0; jj < jlen; jj++) {
       const int j = d_neighbors(ii,jj) & NEIGHMASK;
       const int jtype = type(j);
 
-      const X_FLOAT delx = xtmp - x(j, 0);
-      const X_FLOAT dely = ytmp - x(j, 1);
-      const X_FLOAT delz = ztmp - x(j, 2);
-      const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+      const KK_FLOAT delx = xtmp - x(j, 0);
+      const KK_FLOAT dely = ytmp - x(j, 1);
+      const KK_FLOAT delz = ztmp - x(j, 2);
+      const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 #ifdef DEBUG_SSA_PAIR_CT
       if ((i < nlocal) && (j < nlocal)) Kokkos::atomic_increment(&(d_counters(0, 0)));
       else Kokkos::atomic_increment(&(d_counters(0, 1)));
@@ -456,54 +456,54 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
         Kokkos::atomic_increment(&(d_counters(1, 2)));
 #endif
 
-        double r = sqrt(rsq);
-        double rinv = 1.0/r;
-        double delx_rinv = delx*rinv;
-        double dely_rinv = dely*rinv;
-        double delz_rinv = delz*rinv;
+        KK_FLOAT r = sqrt(rsq);
+        KK_FLOAT rinv = 1.0/r;
+        KK_FLOAT delx_rinv = delx*rinv;
+        KK_FLOAT dely_rinv = dely*rinv;
+        KK_FLOAT delz_rinv = delz*rinv;
 
-        double wr = 1.0 - r*(STACKPARAMS?m_params[itype][jtype].cutinv:params(itype,jtype).cutinv);
-        double wdt = wr*wr*dt;
+        KK_FLOAT wr = 1.0 - r*(STACKPARAMS?m_params[itype][jtype].cutinv:params(itype,jtype).cutinv);
+        KK_FLOAT wdt = wr*wr*dt;
 
         // Compute the current temperature
-        double theta_j_inv = 1.0/dpdTheta(j);
-        double theta_ij_inv = 0.5*(theta_i_inv + theta_j_inv);
+        KK_FLOAT theta_j_inv = 1.0/dpdTheta(j);
+        KK_FLOAT theta_ij_inv = 0.5*(theta_i_inv + theta_j_inv);
 
-        double halfsigma_ij = STACKPARAMS?m_params[itype][jtype].halfsigma:params(itype,jtype).halfsigma;
-        double halfgamma_ij = halfsigma_ij*halfsigma_ij*boltz_inv*theta_ij_inv;
+        KK_FLOAT halfsigma_ij = STACKPARAMS?m_params[itype][jtype].halfsigma:params(itype,jtype).halfsigma;
+        KK_FLOAT halfgamma_ij = halfsigma_ij*halfsigma_ij*boltz_inv*theta_ij_inv;
 
-        double sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * es_normal(RNGstate);
+        KK_FLOAT sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * es_normal(RNGstate);
 
-        const double mass_j = masses(massPerI ? j : jtype);
-        double mass_ij_div_neg4_ftm2v = mass_j*mass_i_div_neg4_ftm2v;
-        double massinv_j = 1.0 / mass_j;
+        const KK_FLOAT mass_j = masses(massPerI ? j : jtype);
+        KK_FLOAT mass_ij_div_neg4_ftm2v = mass_j*mass_i_div_neg4_ftm2v;
+        KK_FLOAT massinv_j = 1.0 / mass_j;
 
         // Compute uCond
-        double kappa_ij = STACKPARAMS?m_params[itype][jtype].kappa:params(itype,jtype).kappa;
-        double alpha_ij = STACKPARAMS?m_params[itype][jtype].alpha:params(itype,jtype).alpha;
-        double del_uCond = alpha_ij*wr*dtsqrt * es_normal(RNGstate);
+        KK_FLOAT kappa_ij = STACKPARAMS?m_params[itype][jtype].kappa:params(itype,jtype).kappa;
+        KK_FLOAT alpha_ij = STACKPARAMS?m_params[itype][jtype].alpha:params(itype,jtype).alpha;
+        KK_FLOAT del_uCond = alpha_ij*wr*dtsqrt * es_normal(RNGstate);
 
         del_uCond += kappa_ij*(theta_i_inv - theta_j_inv)*wdt;
         uCond[j] -= del_uCond;
         uCond_i += del_uCond;
 
-        double gammaFactor = halfgamma_ij*wdt*ftm2v;
-        double inv_1p_mu_gammaFactor = 1.0/(1.0 + (massinv_i + massinv_j)*gammaFactor);
+        KK_FLOAT gammaFactor = halfgamma_ij*wdt*ftm2v;
+        KK_FLOAT inv_1p_mu_gammaFactor = 1.0/(1.0 + (massinv_i + massinv_j)*gammaFactor);
 
-        double vxj = v(j, 0);
-        double vyj = v(j, 1);
-        double vzj = v(j, 2);
-        double dot4 = vxj*vxj + vyj*vyj + vzj*vzj;
-        double dot3 = vxi*vxi + vyi*vyi + vzi*vzi;
+        KK_FLOAT vxj = v(j, 0);
+        KK_FLOAT vyj = v(j, 1);
+        KK_FLOAT vzj = v(j, 2);
+        KK_FLOAT dot4 = vxj*vxj + vyj*vyj + vzj*vzj;
+        KK_FLOAT dot3 = vxi*vxi + vyi*vyi + vzi*vzi;
 
         // Compute the initial velocity difference between atom i and atom j
-        double delvx = vxi - vxj;
-        double delvy = vyi - vyj;
-        double delvz = vzi - vzj;
-        double dot_rinv = (delx_rinv*delvx + dely_rinv*delvy + delz_rinv*delvz);
+        KK_FLOAT delvx = vxi - vxj;
+        KK_FLOAT delvy = vyi - vyj;
+        KK_FLOAT delvz = vzi - vzj;
+        KK_FLOAT dot_rinv = (delx_rinv*delvx + dely_rinv*delvy + delz_rinv*delvz);
 
         // Compute momentum change between t and t+dt
-        double factorA = sigmaRand - gammaFactor*dot_rinv;
+        KK_FLOAT factorA = sigmaRand - gammaFactor*dot_rinv;
 
         // Update the velocity on i
         vxi += delx_rinv*factorA*massinv_i;
@@ -522,13 +522,13 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
         dot_rinv = delx_rinv*delvx + dely_rinv*delvy + delz_rinv*delvz;
 
         // Compute the new momentum change between t and t+dt
-        double factorB = (sigmaRand - gammaFactor*dot_rinv)*inv_1p_mu_gammaFactor;
+        KK_FLOAT factorB = (sigmaRand - gammaFactor*dot_rinv)*inv_1p_mu_gammaFactor;
 
         // Update the velocity on i
         vxi += delx_rinv*factorB*massinv_i;
         vyi += dely_rinv*factorB*massinv_i;
         vzi += delz_rinv*factorB*massinv_i;
-        double partial_uMech = (vxi*vxi + vyi*vyi + vzi*vzi - dot3)*massinv_j;
+        KK_FLOAT partial_uMech = (vxi*vxi + vyi*vyi + vzi*vzi - dot3)*massinv_j;
 
         // Update the velocity on j
         vxj -= delx_rinv*factorB*massinv_j;
@@ -542,7 +542,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
         v(j, 2) = vzj;
 
         // Compute uMech
-        double del_uMech = partial_uMech*mass_ij_div_neg4_ftm2v;
+        KK_FLOAT del_uMech = partial_uMech*mass_ij_div_neg4_ftm2v;
         uMech_i += del_uMech;
         uMech(j) += del_uMech;
       }
@@ -561,8 +561,8 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
 }
 
 
-template<class DeviceType>
-void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
+template<ExecutionSpace Space>
+void FixShardlowKokkos<Space>::initial_integrate(int vflag)
 {
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
@@ -572,7 +572,7 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
 
   dtsqrt = sqrt(update->dt);
 
-  NPairSSAKokkos<DeviceType> *np_ssa = dynamic_cast<NPairSSAKokkos<DeviceType>*>(list->np);
+  NPairSSAKokkos<Space> *np_ssa = dynamic_cast<NPairSSAKokkos<Space>*>(list->np);
   if (!np_ssa) error->one(FLERR, "NPair wasn't a NPairSSAKokkos object");
   ssa_phaseCt = np_ssa->ssa_phaseCt;
   ssa_phaseLen = np_ssa->ssa_phaseLen;
@@ -583,13 +583,13 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
   ssa_gitemLoc = np_ssa->ssa_gitemLoc;
   ssa_gitemLen = np_ssa->ssa_gitemLen;
 
-  np_ssa->k_ssa_itemLoc.template sync<DeviceType>();
-  np_ssa->k_ssa_itemLen.template sync<DeviceType>();
-  np_ssa->k_ssa_gitemLoc.template sync<DeviceType>();
-  np_ssa->k_ssa_gitemLen.template sync<DeviceType>();
+  DualViewHelper<Space>::sync(np_ssa->k_ssa_itemLoc);
+  DualViewHelper<Space>::sync(np_ssa->k_ssa_itemLen);
+  DualViewHelper<Space>::sync(np_ssa->k_ssa_gitemLoc);
+  DualViewHelper<Space>::sync(np_ssa->k_ssa_gitemLen);
 
-  np_ssa->k_ssa_phaseLen.template sync<LMPHostType>();
-  np_ssa->k_ssa_gphaseLen.template sync<LMPHostType>();
+  np_ssa->k_ssa_phaseLen.sync_host();
+  np_ssa->k_ssa_gphaseLen.sync_host();
   auto h_ssa_phaseLen = np_ssa->k_ssa_phaseLen.h_view;
   auto h_ssa_gphaseLen = np_ssa->k_ssa_gphaseLen.h_view;
 
@@ -625,7 +625,7 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
   ftm2v = force->ftm2v;
   dt     = update->dt;
 
-  k_params.template sync<DeviceType>();
+  DualViewHelper<Space>::sync(k_params);
 
   // process neighbors in the local AIR
   atomKK->sync(execution_space,X_MASK | V_MASK | TYPE_MASK | RMASS_MASK | UCOND_MASK | UMECH_MASK | DPDTHETA_MASK);
@@ -651,14 +651,14 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
 
     if(k_pairDPDE){
       // Zero out the ghosts' uCond & uMech to be used as delta accumulators
-//      memset(&(atom->uCond[nlocal]), 0, sizeof(double)*nghost);
-//      memset(&(atom->uMech[nlocal]), 0, sizeof(double)*nghost);
+//      memset(&(atom->uCond[nlocal]), 0, sizeof(KK_FLOAT)*nghost);
+//      memset(&(atom->uMech[nlocal]), 0, sizeof(KK_FLOAT)*nghost);
 
       // must capture local variables, not class variables
       atomKK->sync(execution_space,UCOND_MASK | UMECH_MASK);
       auto l_uCond = uCond;
       auto l_uMech = uMech;
-      Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType>(nlocal,nlocal+nghost), LAMMPS_LAMBDA (const int i) {
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(nlocal,nlocal+nghost), LAMMPS_LAMBDA (const int i) {
         l_uCond(i) = 0.0;
         l_uMech(i) = 0.0;
       });
@@ -695,19 +695,19 @@ fprintf(stdout, "\n%6d %6d,%6d %6d: "
   copymode = 0;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<bool STACKPARAMS>
 KOKKOS_INLINE_FUNCTION
-void FixShardlowKokkos<DeviceType>::operator()(TagFixShardlowSSAUpdateDPDE<STACKPARAMS>, const int &workItem) const {
+void FixShardlowKokkos<Space>::operator()(TagFixShardlowSSAUpdateDPDE<STACKPARAMS>, const int &workItem) const {
   const int ct = ssa_itemLen(workPhase, workItem);
   const int ii = ssa_itemLoc(workPhase, workItem);
   ssa_update_dpde<STACKPARAMS>(ii, ct, workItem);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<bool STACKPARAMS>
 KOKKOS_INLINE_FUNCTION
-void FixShardlowKokkos<DeviceType>::operator()(TagFixShardlowSSAUpdateDPDEGhost<STACKPARAMS>, const int &workItem) const {
+void FixShardlowKokkos<Space>::operator()(TagFixShardlowSSAUpdateDPDEGhost<STACKPARAMS>, const int &workItem) const {
   const int ct = ssa_gitemLen(workPhase, workItem);
   const int ii = ssa_gitemLoc(workPhase, workItem);
   ssa_update_dpde<STACKPARAMS>(ii, ct, workItem);
@@ -715,8 +715,8 @@ void FixShardlowKokkos<DeviceType>::operator()(TagFixShardlowSSAUpdateDPDEGhost<
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-int FixShardlowKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+template<ExecutionSpace Space>
+int FixShardlowKokkos<Space>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
 {
   int ii,jj,m;
 
@@ -732,8 +732,8 @@ int FixShardlowKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *b
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixShardlowKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf)
+template<ExecutionSpace Space>
+void FixShardlowKokkos<Space>::unpack_forward_comm(int n, int first, double *buf)
 {
   int ii,m,last;
 
@@ -748,8 +748,8 @@ void FixShardlowKokkos<DeviceType>::unpack_forward_comm(int n, int first, double
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-int FixShardlowKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
+template<ExecutionSpace Space>
+int FixShardlowKokkos<Space>::pack_reverse_comm(int n, int first, double *buf)
 {
   int i,m,last;
 
@@ -769,8 +769,8 @@ int FixShardlowKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *b
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixShardlowKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
+template<ExecutionSpace Space>
+void FixShardlowKokkos<Space>::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int i,j,m;
 
@@ -790,17 +790,15 @@ void FixShardlowKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-double FixShardlowKokkos<DeviceType>::memory_usage()
+template<ExecutionSpace Space>
+double FixShardlowKokkos<Space>::memory_usage()
 {
   double bytes = 0.0;
-  bytes += sizeof(double)*3*ghostmax; // v_t0[]
+  bytes += sizeof(KK_FLOAT)*3*ghostmax; // v_t0[]
   return bytes;
 }
 
 namespace LAMMPS_NS {
-template class FixShardlowKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class FixShardlowKokkos<LMPHostType>;
-#endif
+template class FixShardlowKokkos<Device>;
+template class FixShardlowKokkos<Host>;
 }

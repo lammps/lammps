@@ -28,8 +28,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-NBinKokkos<DeviceType>::NBinKokkos(LAMMPS *lmp) : NBinStandard(lmp) {
+template<ExecutionSpace Space>
+NBinKokkos<Space>::NBinKokkos(LAMMPS *lmp) : NBinStandard(lmp) {
   atoms_per_bin = 16;
 
   d_resize = typename AT::t_int_scalar("NeighborKokkosFunctor::resize");
@@ -64,19 +64,19 @@ NBinKokkos<DeviceType>::NBinKokkos(LAMMPS *lmp) : NBinStandard(lmp) {
    mbin = number of bins I need in a dimension
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NBinKokkos<DeviceType>::bin_atoms_setup(int nall)
+template<ExecutionSpace Space>
+void NBinKokkos<Space>::bin_atoms_setup(int nall)
 {
   if (mbins > k_bins.d_view.extent(0)) {
     k_bins = DAT::tdual_int_2d("Neighbor::d_bins",mbins,atoms_per_bin);
-    bins = k_bins.view<DeviceType>();
+    bins = DualViewHelper<Space>::view(k_bins);
 
     k_bincount = DAT::tdual_int_1d("Neighbor::d_bincount",mbins);
-    bincount = k_bincount.view<DeviceType>();
+    bincount = DualViewHelper<Space>::view(k_bincount);
   }
   if (nall > k_atom2bin.d_view.extent(0)) {
     k_atom2bin = DAT::tdual_int_1d("Neighbor::d_atom2bin",nall);
-    atom2bin = k_atom2bin.view<DeviceType>();
+    atom2bin = DualViewHelper<Space>::view(k_atom2bin);
   }
 }
 
@@ -84,14 +84,14 @@ void NBinKokkos<DeviceType>::bin_atoms_setup(int nall)
    bin owned and ghost atoms
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NBinKokkos<DeviceType>::bin_atoms()
+template<ExecutionSpace Space>
+void NBinKokkos<Space>::bin_atoms()
 {
   last_bin = update->ntimestep;
 
-  k_bins.template sync<DeviceType>();
-  k_bincount.template sync<DeviceType>();
-  k_atom2bin.template sync<DeviceType>();
+  DualViewHelper<Space>::sync(k_bins);
+  DualViewHelper<Space>::sync(k_bincount);
+  DualViewHelper<Space>::sync(k_atom2bin);
 
   h_resize() = 1;
 
@@ -100,16 +100,16 @@ void NBinKokkos<DeviceType>::bin_atoms()
     deep_copy(d_resize, h_resize);
 
     MemsetZeroFunctor<DeviceType> f_zero;
-    f_zero.ptr = (void*) k_bincount.view<DeviceType>().data();
+    f_zero.ptr = (void*) DualViewHelper<Space>::view(k_bincount).data();
     Kokkos::parallel_for(mbins, f_zero);
 
-    atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
-    x = atomKK->k_x.view<DeviceType>();
+    atomKK->sync(Space,X_MASK);
+    x = DualViewHelper<Space>::view(atomKK->k_x);
 
     bboxlo_[0] = bboxlo[0]; bboxlo_[1] = bboxlo[1]; bboxlo_[2] = bboxlo[2];
     bboxhi_[0] = bboxhi[0]; bboxhi_[1] = bboxhi[1]; bboxhi_[2] = bboxhi[2];
 
-    NPairKokkosBinAtomsFunctor<DeviceType> f(*this);
+    NPairKokkosBinAtomsFunctor<Space> f(*this);
 
     Kokkos::parallel_for(atom->nlocal+atom->nghost, f);
 
@@ -118,21 +118,21 @@ void NBinKokkos<DeviceType>::bin_atoms()
 
       atoms_per_bin += 16;
       k_bins = DAT::tdual_int_2d("bins", mbins, atoms_per_bin);
-      bins = k_bins.view<DeviceType>();
+      bins = DualViewHelper<Space>::view(k_bins);
       c_bins = bins;
     }
   }
 
-  k_bins.template modify<DeviceType>();
-  k_bincount.template modify<DeviceType>();
-  k_atom2bin.template modify<DeviceType>();
+  DualViewHelper<Space>::modify(k_bins);
+  DualViewHelper<Space>::modify(k_bincount);
+  DualViewHelper<Space>::modify(k_atom2bin);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void NBinKokkos<DeviceType>::binatomsItem(const int &i) const
+void NBinKokkos<Space>::binatomsItem(const int &i) const
 {
   const int ibin = coord2bin(x(i, 0), x(i, 1), x(i, 2));
 
@@ -146,8 +146,6 @@ void NBinKokkos<DeviceType>::binatomsItem(const int &i) const
 }
 
 namespace LAMMPS_NS {
-template class NBinKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class NBinKokkos<LMPHostType>;
-#endif
+template class NBinKokkos<Device>;
+template class NBinKokkos<Host>;
 }

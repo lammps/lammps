@@ -91,7 +91,7 @@ void FixDeformKokkos::end_of_step()
 {
   int i;
 
-  double delta = update->ntimestep - update->beginstep;
+  KK_FLOAT delta = update->ntimestep - update->beginstep;
   if (delta != 0.0) delta /= update->endstep - update->beginstep;
 
   // wrap variable evaluations with clear/add
@@ -110,7 +110,7 @@ void FixDeformKokkos::end_of_step()
       set[i].lo_target = domain->boxlo[i];
       set[i].hi_target = domain->boxhi[i];
     } else if (set[i].style == TRATE) {
-      double delt = (update->ntimestep - update->beginstep) * update->dt;
+      KK_FLOAT delt = (update->ntimestep - update->beginstep) * update->dt;
       set[i].lo_target = 0.5*(set[i].lo_start+set[i].hi_start) -
         0.5*((set[i].hi_start-set[i].lo_start) * exp(set[i].rate*delt));
       set[i].hi_target = 0.5*(set[i].lo_start+set[i].hi_start) +
@@ -118,7 +118,7 @@ void FixDeformKokkos::end_of_step()
       h_rate[i] = set[i].rate * domain->h[i];
       h_ratelo[i] = -0.5*h_rate[i];
     } else if (set[i].style == WIGGLE) {
-      double delt = (update->ntimestep - update->beginstep) * update->dt;
+      KK_FLOAT delt = (update->ntimestep - update->beginstep) * update->dt;
       set[i].lo_target = set[i].lo_start -
         0.5*set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
       set[i].hi_target = set[i].hi_start +
@@ -127,7 +127,7 @@ void FixDeformKokkos::end_of_step()
         cos(TWOPI*delt/set[i].tperiod);
       h_ratelo[i] = -0.5*h_rate[i];
     } else if (set[i].style == VARIABLE) {
-      double del = input->variable->compute_equal(set[i].hvar);
+      KK_FLOAT del = input->variable->compute_equal(set[i].hvar);
       set[i].lo_target = set[i].lo_start - 0.5*del;
       set[i].hi_target = set[i].hi_start + 0.5*del;
       h_rate[i] = input->variable->compute_equal(set[i].hratevar);
@@ -206,17 +206,17 @@ void FixDeformKokkos::end_of_step()
         else if (i == 4) set[i].tilt_target = domain->xz;
         else if (i == 3) set[i].tilt_target = domain->yz;
       } else if (set[i].style == TRATE) {
-        double delt = (update->ntimestep - update->beginstep) * update->dt;
+        KK_FLOAT delt = (update->ntimestep - update->beginstep) * update->dt;
         set[i].tilt_target = set[i].tilt_start * exp(set[i].rate*delt);
         h_rate[i] = set[i].rate * domain->h[i];
       } else if (set[i].style == WIGGLE) {
-        double delt = (update->ntimestep - update->beginstep) * update->dt;
+        KK_FLOAT delt = (update->ntimestep - update->beginstep) * update->dt;
         set[i].tilt_target = set[i].tilt_start +
           set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
         h_rate[i] = TWOPI/set[i].tperiod * set[i].amplitude *
           cos(TWOPI*delt/set[i].tperiod);
       } else if (set[i].style == VARIABLE) {
-        double delta_tilt = input->variable->compute_equal(set[i].hvar);
+        KK_FLOAT delta_tilt = input->variable->compute_equal(set[i].hvar);
         set[i].tilt_target = set[i].tilt_start + delta_tilt;
         h_rate[i] = input->variable->compute_equal(set[i].hratevar);
       } else {
@@ -231,9 +231,9 @@ void FixDeformKokkos::end_of_step()
       if (i == 5) idenom = 0;
       else if (i == 4) idenom = 0;
       else if (i == 3) idenom = 1;
-      double denom = set[idenom].hi_target - set[idenom].lo_target;
+      KK_FLOAT denom = set[idenom].hi_target - set[idenom].lo_target;
 
-      double current = h[i]/h[idenom];
+      KK_FLOAT current = h[i]/h[idenom];
 
       while (set[i].tilt_target/denom - current > 0.0)
         set[i].tilt_target -= denom;
@@ -257,10 +257,10 @@ void FixDeformKokkos::end_of_step()
   // flip is performed on next timestep, before reneighboring in pre-exchange()
 
   if (triclinic && flipflag) {
-    double xprd = set[0].hi_target - set[0].lo_target;
-    double yprd = set[1].hi_target - set[1].lo_target;
-    double xprdinv = 1.0 / xprd;
-    double yprdinv = 1.0 / yprd;
+    KK_FLOAT xprd = set[0].hi_target - set[0].lo_target;
+    KK_FLOAT yprd = set[1].hi_target - set[1].lo_target;
+    KK_FLOAT xprdinv = 1.0 / xprd;
+    KK_FLOAT yprdinv = 1.0 / yprd;
     if (set[3].tilt_target*yprdinv < -0.5 ||
                                      set[3].tilt_target*yprdinv > 0.5 ||
         set[4].tilt_target*xprdinv < -0.5 ||

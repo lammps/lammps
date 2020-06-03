@@ -37,13 +37,13 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-PairLJGromacsKokkos<DeviceType>::PairLJGromacsKokkos(LAMMPS *lmp):PairLJGromacs(lmp)
+template<ExecutionSpace Space>
+PairLJGromacsKokkos<Space>::PairLJGromacsKokkos(LAMMPS *lmp):PairLJGromacs(lmp)
 {
   respa_enable = 0;
 
   atomKK = (AtomKokkos *) atom;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  execution_space = Space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
   cutsq = NULL;
@@ -54,14 +54,14 @@ PairLJGromacsKokkos<DeviceType>::PairLJGromacsKokkos(LAMMPS *lmp):PairLJGromacs(
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-PairLJGromacsKokkos<DeviceType>::~PairLJGromacsKokkos()
+template<ExecutionSpace Space>
+PairLJGromacsKokkos<Space>::~PairLJGromacsKokkos()
 {
   if (!copymode) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    k_cutsq = DAT::tdual_ffloat_2d();
-    k_cut_inner_sq = DAT::tdual_ffloat_2d();
+    k_cutsq = DAT::tdual_float_2d();
+    k_cut_inner_sq = DAT::tdual_float_2d();
     memory->sfree(cutsq);
     eatom = NULL;
     vatom = NULL;
@@ -73,8 +73,8 @@ PairLJGromacsKokkos<DeviceType>::~PairLJGromacsKokkos()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairLJGromacsKokkos<DeviceType>::cleanup_copy() {
+template<ExecutionSpace Space>
+void PairLJGromacsKokkos<Space>::cleanup_copy() {
   // WHY needed: this prevents parent copy from deallocating any arrays
   allocated = 0;
   cutsq = NULL;
@@ -86,8 +86,8 @@ void PairLJGromacsKokkos<DeviceType>::cleanup_copy() {
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairLJGromacsKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
+template<ExecutionSpace Space>
+void PairLJGromacsKokkos<Space>::compute(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
@@ -101,27 +101,27 @@ void PairLJGromacsKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag_atom) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
-    d_eatom = k_eatom.view<DeviceType>();
+    d_eatom = DualViewHelper<Space>::view(k_eatom);
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
-    d_vatom = k_vatom.view<DeviceType>();
+    d_vatom = DualViewHelper<Space>::view(k_vatom);
   }
 
   atomKK->sync(execution_space,datamask_read);
-  k_cutsq.template sync<DeviceType>();
-  k_cut_inner.template sync<DeviceType>();
-  k_cut_inner_sq.template sync<DeviceType>();
-  k_params.template sync<DeviceType>();
+  DualViewHelper<Space>::sync(k_cutsq);
+  DualViewHelper<Space>::sync(k_cut_inner);
+  DualViewHelper<Space>::sync(k_cut_inner_sq);
+  DualViewHelper<Space>::sync(k_params);
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
 
-  x = atomKK->k_x.view<DeviceType>();
-  c_x = atomKK->k_x.view<DeviceType>();
-  f = atomKK->k_f.view<DeviceType>();
-  q = atomKK->k_q.view<DeviceType>();
-  type = atomKK->k_type.view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  c_x = DualViewHelper<Space>::view(atomKK->k_x);
+  f = DualViewHelper<Space>::view(atomKK->k_f);
+  q = DualViewHelper<Space>::view(atomKK->k_q);
+  type = DualViewHelper<Space>::view(atomKK->k_type);
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   special_lj[0] = force->special_lj[0];
@@ -135,8 +135,8 @@ void PairLJGromacsKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   copymode = 1;
 
-  EV_FLOAT ev = pair_compute<PairLJGromacsKokkos<DeviceType>,CoulLongTable<0> >
-      (this,(NeighListKokkos<DeviceType>*)list);
+  EV_FLOAT ev = pair_compute<Space,PairLJGromacsKokkos<Space>,CoulLongTable<0> >
+      (this,(NeighListKokkos<Space>*)list);
 
   if (eflag) {
     eng_vdwl += ev.evdwl;
@@ -152,16 +152,16 @@ void PairLJGromacsKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   if (eflag_atom) {
-    k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_eatom);
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
-    k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_vatom);
+    k_vatom.sync_host();
   }
 
-  if (vflag_fdotr) pair_virial_fdotr_compute(this);
+  if (vflag_fdotr) pair_virial_fdotr_compute<Space>(this);
 
   copymode = 0;
 }
@@ -169,23 +169,23 @@ void PairLJGromacsKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 /* ----------------------------------------------------------------------
    compute LJ GROMACS pair force between atoms i and j
    ---------------------------------------------------------------------- */
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJGromacsKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
+KK_FLOAT PairLJGromacsKokkos<Space>::
+compute_fpair(const KK_FLOAT& rsq, const int& i, const int&j,
               const int& itype, const int& jtype) const {
 
-  const F_FLOAT r2inv = 1.0/rsq;
-  const F_FLOAT r6inv = r2inv*r2inv*r2inv;
-  F_FLOAT forcelj = r6inv *
+  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
+  KK_FLOAT forcelj = r6inv *
     ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
      (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
 
   if (rsq > (STACKPARAMS?m_params[itype][jtype].cut_inner_sq:params(itype,jtype).cut_inner_sq)) {
-    const F_FLOAT r = sqrt(rsq);
-    const F_FLOAT tlj = r - (STACKPARAMS?m_params[itype][jtype].cut_inner:params(itype,jtype).cut_inner);
-    const F_FLOAT fswitch = r*tlj*tlj*
+    const KK_FLOAT r = sqrt(rsq);
+    const KK_FLOAT tlj = r - (STACKPARAMS?m_params[itype][jtype].cut_inner:params(itype,jtype).cut_inner);
+    const KK_FLOAT fswitch = r*tlj*tlj*
             ((STACKPARAMS?m_params[itype][jtype].ljsw1:params(itype,jtype).ljsw1) +
              (STACKPARAMS?m_params[itype][jtype].ljsw2:params(itype,jtype).ljsw2)*tlj);
     forcelj += fswitch;
@@ -196,24 +196,24 @@ compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
 /* ----------------------------------------------------------------------
    compute LJ GROMACS pair potential energy between atoms i and j
    ---------------------------------------------------------------------- */
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJGromacsKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
+KK_FLOAT PairLJGromacsKokkos<Space>::
+compute_evdwl(const KK_FLOAT& rsq, const int& i, const int&j,
               const int& itype, const int& jtype) const {
 
-  const F_FLOAT r2inv = 1.0/rsq;
-  const F_FLOAT r6inv = r2inv*r2inv*r2inv;
-  F_FLOAT englj = r6inv *
+  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
+  KK_FLOAT englj = r6inv *
     ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
      (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
   englj += (STACKPARAMS?m_params[itype][jtype].ljsw5:params(itype,jtype).ljsw5);
 
   if (rsq > (STACKPARAMS?m_params[itype][jtype].cut_inner_sq:params(itype,jtype).cut_inner_sq)) {
-    const F_FLOAT r = sqrt(rsq);
-    const F_FLOAT tlj = r - (STACKPARAMS?m_params[itype][jtype].cut_inner:params(itype,jtype).cut_inner);
-    const F_FLOAT eswitch = tlj*tlj*tlj *
+    const KK_FLOAT r = sqrt(rsq);
+    const KK_FLOAT tlj = r - (STACKPARAMS?m_params[itype][jtype].cut_inner:params(itype,jtype).cut_inner);
+    const KK_FLOAT eswitch = tlj*tlj*tlj *
             ((STACKPARAMS?m_params[itype][jtype].ljsw3:params(itype,jtype).ljsw3) +
              (STACKPARAMS?m_params[itype][jtype].ljsw4:params(itype,jtype).ljsw4)*tlj);
     englj += eswitch;
@@ -225,8 +225,8 @@ compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairLJGromacsKokkos<DeviceType>::allocate()
+template<ExecutionSpace Space>
+void PairLJGromacsKokkos<Space>::allocate()
 {
   PairLJGromacs::allocate();
 
@@ -234,26 +234,26 @@ void PairLJGromacsKokkos<DeviceType>::allocate()
 
   memory->destroy(cutsq);
   memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
-  d_cutsq = k_cutsq.template view<DeviceType>();
+  d_cutsq = DualViewHelper<Space>::view(k_cutsq);
 
   memory->destroy(cut_inner);
   memoryKK->create_kokkos(k_cut_inner,cut_inner,n+1,n+1,"pair:cut_inner");
-  d_cut_inner = k_cut_inner.template view<DeviceType>();
+  d_cut_inner = DualViewHelper<Space>::view(k_cut_inner);
 
   memory->destroy(cut_inner_sq);
   memoryKK->create_kokkos(k_cut_inner_sq,cut_inner_sq,n+1,n+1,"pair:cut_inner_sq");
-  d_cut_inner_sq = k_cut_inner_sq.template view<DeviceType>();
+  d_cut_inner_sq = DualViewHelper<Space>::view(k_cut_inner_sq);
 
   k_params = Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>("PairLJGromacs::params",n+1,n+1);
-  params = k_params.template view<DeviceType>();
+  params = DualViewHelper<Space>::view(k_params);
 }
 
 /* ----------------------------------------------------------------------
    global settings
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairLJGromacsKokkos<DeviceType>::settings(int narg, char **arg)
+template<ExecutionSpace Space>
+void PairLJGromacsKokkos<Space>::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
@@ -264,8 +264,8 @@ void PairLJGromacsKokkos<DeviceType>::settings(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairLJGromacsKokkos<DeviceType>::init_style()
+template<ExecutionSpace Space>
+void PairLJGromacsKokkos<Space>::init_style()
 {
   PairLJGromacs::init_style();
 
@@ -285,10 +285,10 @@ void PairLJGromacsKokkos<DeviceType>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = (Space == Host) &&
+    !(Space == Device);
   neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = (Space == Device);
 
   if (neighflag == FULL) {
     neighbor->requests[irequest]->full = 1;
@@ -305,11 +305,11 @@ void PairLJGromacsKokkos<DeviceType>::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-double PairLJGromacsKokkos<DeviceType>::init_one(int i, int j)
+template<ExecutionSpace Space>
+double PairLJGromacsKokkos<Space>::init_one(int i, int j)
 {
-  double cutone = PairLJGromacs::init_one(i,j);
-  double cut_inner_sqm = cut_inner_sq[i][j];
+  KK_FLOAT cutone = PairLJGromacs::init_one(i,j);
+  KK_FLOAT cut_inner_sqm = cut_inner_sq[i][j];
 
   k_params.h_view(i,j).lj1 = lj1[i][j];
   k_params.h_view(i,j).lj2 = lj2[i][j];
@@ -331,18 +331,16 @@ double PairLJGromacsKokkos<DeviceType>::init_one(int i, int j)
   }
 
   k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
-  k_cutsq.template modify<LMPHostType>();
+  k_cutsq.modify_host();
   k_cut_inner_sq.h_view(i,j) = k_cut_inner_sq.h_view(j,i) = cut_inner_sqm;
-  k_cut_inner_sq.template modify<LMPHostType>();
-  k_params.template modify<LMPHostType>();
+  k_cut_inner_sq.modify_host();
+  k_params.modify_host();
 
   return cutone;
 }
 
 namespace LAMMPS_NS {
-template class PairLJGromacsKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class PairLJGromacsKokkos<LMPHostType>;
-#endif
+template class PairLJGromacsKokkos<Device>;
+template class PairLJGromacsKokkos<Host>;
 }
 

@@ -32,20 +32,20 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-BondHarmonicKokkos<DeviceType>::BondHarmonicKokkos(LAMMPS *lmp) : BondHarmonic(lmp)
+template<ExecutionSpace Space>
+BondHarmonicKokkos<Space>::BondHarmonicKokkos(LAMMPS *lmp) : BondHarmonic(lmp)
 {
   atomKK = (AtomKokkos *) atom;
+  execution_space = Space;
   neighborKK = (NeighborKokkos *) neighbor;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-BondHarmonicKokkos<DeviceType>::~BondHarmonicKokkos()
+template<ExecutionSpace Space>
+BondHarmonicKokkos<Space>::~BondHarmonicKokkos()
 {
   if (!copymode) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
@@ -55,8 +55,8 @@ BondHarmonicKokkos<DeviceType>::~BondHarmonicKokkos()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void BondHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
+template<ExecutionSpace Space>
+void BondHarmonicKokkos<Space>::compute(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
@@ -69,24 +69,24 @@ void BondHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     //if(k_eatom.extent(0)<maxeatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_eatom,eatom);
       memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
-      d_eatom = k_eatom.template view<KKDeviceType>();
+      d_eatom = DualViewHelper<Space>::view(k_eatom);
     //}
   }
   if (vflag_atom) {
     //if(k_vatom.extent(0)<maxvatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_vatom,vatom);
       memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"improper:vatom");
-      d_vatom = k_vatom.template view<KKDeviceType>();
+      d_vatom = DualViewHelper<Space>::view(k_vatom);
     //}
   }
 
 //  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
 //  else atomKK->modified(execution_space,F_MASK);
 
-  x = atomKK->k_x.template view<DeviceType>();
-  f = atomKK->k_f.template view<DeviceType>();
-  neighborKK->k_bondlist.template sync<DeviceType>();
-  bondlist = neighborKK->k_bondlist.template view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  f = DualViewHelper<Space>::view(atomKK->k_f);
+  DualViewHelper<Space>::sync(neighborKK->k_bondlist);
+  bondlist = DualViewHelper<Space>::view(neighborKK->k_bondlist);
   int nbondlist = neighborKK->nbondlist;
   nlocal = atom->nlocal;
   newton_bond = force->newton_bond;
@@ -122,42 +122,42 @@ void BondHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   if (eflag_atom) {
-    k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_eatom);
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
-    k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_vatom);
+    k_vatom.sync_host();
   }
 
   copymode = 0;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEWTON_BOND, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void BondHarmonicKokkos<DeviceType>::operator()(TagBondHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
+void BondHarmonicKokkos<Space>::operator()(TagBondHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
   const int i1 = bondlist(n,0);
   const int i2 = bondlist(n,1);
   const int type = bondlist(n,2);
 
-  const F_FLOAT delx = x(i1,0) - x(i2,0);
-  const F_FLOAT dely = x(i1,1) - x(i2,1);
-  const F_FLOAT delz = x(i1,2) - x(i2,2);
+  const KK_FLOAT delx = x(i1,0) - x(i2,0);
+  const KK_FLOAT dely = x(i1,1) - x(i2,1);
+  const KK_FLOAT delz = x(i1,2) - x(i2,2);
 
-  const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-  const F_FLOAT r = sqrt(rsq);
-  const F_FLOAT dr = r - d_r0[type];
-  const F_FLOAT rk = d_k[type] * dr;
+  const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT dr = r - d_r0[type];
+  const KK_FLOAT rk = d_k[type] * dr;
 
   // force & energy
 
-  F_FLOAT fbond = 0.0;
+  KK_FLOAT fbond = 0.0;
   if (r > 0.0) fbond = -2.0*rk/r;
 
-  F_FLOAT ebond = 0.0;
+  KK_FLOAT ebond = 0.0;
   if (eflag)
     ebond = rk*dr;
 
@@ -178,18 +178,18 @@ void BondHarmonicKokkos<DeviceType>::operator()(TagBondHarmonicCompute<NEWTON_BO
   if (EVFLAG) ev_tally(ev,i1,i2,ebond,fbond,delx,dely,delz);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEWTON_BOND, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void BondHarmonicKokkos<DeviceType>::operator()(TagBondHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n) const {
+void BondHarmonicKokkos<Space>::operator()(TagBondHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n) const {
   EV_FLOAT ev;
   this->template operator()<NEWTON_BOND,EVFLAG>(TagBondHarmonicCompute<NEWTON_BOND,EVFLAG>(), n, ev);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void BondHarmonicKokkos<DeviceType>::allocate()
+template<ExecutionSpace Space>
+void BondHarmonicKokkos<Space>::allocate()
 {
   BondHarmonic::allocate();
 }
@@ -198,69 +198,69 @@ void BondHarmonicKokkos<DeviceType>::allocate()
    set coeffs for one type
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void BondHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
+template<ExecutionSpace Space>
+void BondHarmonicKokkos<Space>::coeff(int narg, char **arg)
 {
   BondHarmonic::coeff(narg, arg);
 
   int n = atom->nbondtypes;
-  typename AT::tdual_ffloat_1d k_k("BondHarmonic::k",n+1);
-  typename AT::tdual_ffloat_1d k_r0("BondHarmonic::r0",n+1);
+  DAT::tdual_float_1d k_k("BondHarmonic::k",n+1);
+  DAT::tdual_float_1d k_r0("BondHarmonic::r0",n+1);
 
-  d_k = k_k.template view<DeviceType>();
-  d_r0 = k_r0.template view<DeviceType>();
+  d_k = DualViewHelper<Space>::view(k_k);
+  d_r0 = DualViewHelper<Space>::view(k_r0);
 
   for (int i = 1; i <= n; i++) {
     k_k.h_view[i] = k[i];
     k_r0.h_view[i] = r0[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_r0.template modify<LMPHostType>();
-  k_k.template sync<DeviceType>();
-  k_r0.template sync<DeviceType>();
+  k_k.modify_host();
+  k_r0.modify_host();
+  DualViewHelper<Space>::sync(k_k);
+  DualViewHelper<Space>::sync(k_r0);
 }
 
 /* ----------------------------------------------------------------------
    proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void BondHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
+template<ExecutionSpace Space>
+void BondHarmonicKokkos<Space>::read_restart(FILE *fp)
 {
   BondHarmonic::read_restart(fp);
 
   int n = atom->nbondtypes;
-  typename AT::tdual_ffloat_1d k_k("BondHarmonic::k",n+1);
-  typename AT::tdual_ffloat_1d k_r0("BondHarmonic::r0",n+1);
+  DAT::tdual_float_1d k_k("BondHarmonic::k",n+1);
+  DAT::tdual_float_1d k_r0("BondHarmonic::r0",n+1);
 
-  d_k = k_k.template view<DeviceType>();
-  d_r0 = k_r0.template view<DeviceType>();
+  d_k = DualViewHelper<Space>::view(k_k);
+  d_r0 = DualViewHelper<Space>::view(k_r0);
 
   for (int i = 1; i <= n; i++) {
     k_k.h_view[i] = k[i];
     k_r0.h_view[i] = r0[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_r0.template modify<LMPHostType>();
-  k_k.template sync<DeviceType>();
-  k_r0.template sync<DeviceType>();
+  k_k.modify_host();
+  k_r0.modify_host();
+  DualViewHelper<Space>::sync(k_k);
+  DualViewHelper<Space>::sync(k_r0);
 }
 
 /* ----------------------------------------------------------------------
    tally energy and virial into global and per-atom accumulators
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 //template<int NEWTON_BOND>
 KOKKOS_INLINE_FUNCTION
-void BondHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &ebond, const F_FLOAT &fbond, const F_FLOAT &delx,
-                const F_FLOAT &dely, const F_FLOAT &delz) const
+void BondHarmonicKokkos<Space>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
+      const KK_FLOAT &ebond, const KK_FLOAT &fbond, const KK_FLOAT &delx,
+                const KK_FLOAT &dely, const KK_FLOAT &delz) const
 {
-  E_FLOAT ebondhalf;
-  F_FLOAT v[6];
+  KK_FLOAT ebondhalf;
+  KK_FLOAT v[6];
 
   if (eflag_either) {
     if (eflag_global) {
@@ -338,9 +338,7 @@ void BondHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const 
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
-template class BondHarmonicKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class BondHarmonicKokkos<LMPHostType>;
-#endif
+template class BondHarmonicKokkos<Device>;
+template class BondHarmonicKokkos<Host>;
 }
 

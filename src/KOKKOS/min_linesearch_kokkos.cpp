@@ -95,8 +95,8 @@ void MinLineSearchKokkos::reset_vectors()
   auto d_x = atomKK->k_x.d_view;
   auto d_f = atomKK->k_f.d_view;
 
-  if (nvec) xvec = DAT::t_ffloat_1d(d_x.data(),d_x.size());
-  if (nvec) fvec = DAT::t_ffloat_1d(d_f.data(),d_f.size());
+  if (nvec) xvec = DAT::t_float_1d(d_x.data(),d_x.size());
+  if (nvec) fvec = DAT::t_float_1d(d_f.data(),d_f.size());
   x0 = fix_minimize_kk->request_vector_kokkos(0);
   g = fix_minimize_kk->request_vector_kokkos(1);
   h = fix_minimize_kk->request_vector_kokkos(2);
@@ -161,14 +161,14 @@ void MinLineSearchKokkos::reset_vectors()
 
 int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
 {
-  double fdothall,fdothme,hme,hmaxall;
-  double de_ideal,de;
-  double delfh,engprev,relerr,alphaprev,fhprev,ff,fh,alpha0;
-  double dot[2],dotall[2];
-  double alphamax;
+  KK_FLOAT fdothall,fdothme,hme,hmaxall;
+  KK_FLOAT de_ideal,de;
+  KK_FLOAT delfh,engprev,relerr,alphaprev,fhprev,ff,fh,alpha0;
+  KK_FLOAT dot[2],dotall[2];
+  KK_FLOAT alphamax;
 
-  fix_minimize_kk->k_vectors.sync<LMPDeviceType>();
-  fix_minimize_kk->k_vectors.modify<LMPDeviceType>();
+  fix_minimize_kk->k_vectors.sync_device();
+  fix_minimize_kk->k_vectors.modify_device();
 
   // fdothall = projection of search dir along downhill gradient
   // if search direction is not downhill, exit with error
@@ -180,7 +180,7 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
     auto l_fvec = fvec;
     auto l_h = h;
 
-    Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, double& fdothme) {
+    Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, KK_FLOAT& fdothme) {
       fdothme += l_fvec[i]*l_h[i];
     },fdothme);
   }
@@ -204,9 +204,9 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
 
     auto l_h = h;
 
-    Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, double& hme) {
+    Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, KK_FLOAT& hme) {
       hme = MAX(hme,fabs(l_h[i]));
-    },Kokkos::Max<double>(hme));
+    },Kokkos::Max<KK_FLOAT>(hme));
   }
   MPI_Allreduce(&hme,&hmaxall,1,MPI_DOUBLE,MPI_MAX,world);
   alphamax = MIN(ALPHA_MAX,dmax/hmaxall);
@@ -236,8 +236,8 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
   alphaprev = 0.0;
 
   // // important diagnostic: test the gradient against energy
-  // double etmp;
-  // double alphatmp = alphamax*1.0e-4;
+  // KK_FLOAT etmp;
+  // KK_FLOAT alphatmp = alphamax*1.0e-4;
   // etmp = alpha_step(alphatmp,1);
   // printf("alpha = %g dele = %g dele_force = %g err = %g\n",
   //        alphatmp,etmp-eoriginal,-alphatmp*fdothall,
@@ -249,14 +249,14 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
 
     // compute new fh, alpha, delfh
 
-    s_double2 sdot;
+    s_KK_FLOAT2 sdot;
     {
       // local variables for lambda capture
 
       auto l_fvec = fvec;
       auto l_h = h;
 
-      Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, s_double2& sdot) {
+      Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, s_KK_FLOAT2& sdot) {
         sdot.d0 += l_fvec[i]*l_fvec[i];
         sdot.d1 += l_fvec[i]*l_h[i];
       },sdot);
@@ -368,19 +368,19 @@ double MinLineSearchKokkos::alpha_step(double alpha, int resetflag)
 
 double MinLineSearchKokkos::compute_dir_deriv(double &ff)
 {
-  double dot[2],dotall[2];
-  double fh;
+  KK_FLOAT dot[2],dotall[2];
+  KK_FLOAT fh;
 
   // compute new fh, alpha, delfh
 
-  s_double2 sdot;
+  s_KK_FLOAT2 sdot;
   {
     // local variables for lambda capture
 
     auto l_fvec = fvec;
     auto l_h = h;
 
-    Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, s_double2& sdot) {
+    Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, s_KK_FLOAT2& sdot) {
       sdot.d0 += l_fvec[i]*l_fvec[i];
       sdot.d1 += l_fvec[i]*l_h[i];
     },sdot);

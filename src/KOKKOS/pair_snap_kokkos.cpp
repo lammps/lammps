@@ -15,9 +15,7 @@
 #include "pair_snap_kokkos_impl.h"
 
 namespace LAMMPS_NS {
-template class PairSNAPKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class PairSNAPKokkos<LMPHostType>;
-#endif
+template class PairSNAPKokkos<Device>;
+template class PairSNAPKokkos<Host>;
 }
 

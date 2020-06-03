@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(wall/lj93/kk,FixWallLJ93Kokkos<LMPDeviceType>)
-FixStyle(wall/lj93/kk/device,FixWallLJ93Kokkos<LMPDeviceType>)
-FixStyle(wall/lj93/kk/host,FixWallLJ93Kokkos<LMPHostType>)
+FixStyle(wall/lj93/kk,FixWallLJ93Kokkos<Device>)
+FixStyle(wall/lj93/kk/device,FixWallLJ93Kokkos<Device>)
+FixStyle(wall/lj93/kk/host,FixWallLJ93Kokkos<Host>)
 
 #else
 
@@ -27,11 +27,12 @@ FixStyle(wall/lj93/kk/host,FixWallLJ93Kokkos<LMPHostType>)
 
 namespace LAMMPS_NS {
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 class FixWallLJ93Kokkos : public FixWallLJ93 {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
   typedef double value_type[];
 
   FixWallLJ93Kokkos(class LAMMPS *, int, char **);
@@ -44,22 +45,22 @@ class FixWallLJ93Kokkos : public FixWallLJ93 {
 
  private:
   int dim,side;
-  double coord;
+  KK_FLOAT coord;
 
-  typename AT::t_x_array x;
-  typename AT::t_f_array f;
+  typename AT::t_float_1d_3 x;
+  typename AT::t_float_1d_3 f;
   typename AT::t_int_1d mask;
   typename AT::t_int_scalar d_oneflag;
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixWallLJ93KokkosFunctor  {
-  typedef DeviceType device_type ;
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef double value_type[];
   const int value_count;
 
-  FixWallLJ93Kokkos<DeviceType> c;
-  FixWallLJ93KokkosFunctor(FixWallLJ93Kokkos<DeviceType>* c_ptr):
+  FixWallLJ93Kokkos<Space> c;
+  FixWallLJ93KokkosFunctor(FixWallLJ93Kokkos<Space>* c_ptr):
     c(*c_ptr),
     value_count(c_ptr->m+1) {}
   KOKKOS_INLINE_FUNCTION

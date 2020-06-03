@@ -41,9 +41,9 @@ class PairHybridKokkos : public PairHybrid {
   void compute(int, int);
 
  private:
-  DAT::t_x_array_randomread x;
-  DAT::t_f_array f;
-  friend void pair_virial_fdotr_compute<PairHybridKokkos>(PairHybridKokkos*);
+  DAT::t_float_1d_3_randomread x;
+  DAT::t_float_1d_3 f;
+  friend void pair_virial_fdotr_compute<Device,PairHybridKokkos>(PairHybridKokkos*);
 };
 
 }

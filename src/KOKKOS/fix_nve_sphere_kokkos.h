@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(nve/sphere/kk,FixNVESphereKokkos<LMPDeviceType>)
-FixStyle(nve/sphere/kk/device,FixNVESphereKokkos<LMPDeviceType>)
-FixStyle(nve/sphere/kk/host,FixNVESphereKokkos<LMPHostType>)
+FixStyle(nve/sphere/kk,FixNVESphereKokkos<Device>)
+FixStyle(nve/sphere/kk/device,FixNVESphereKokkos<Device>)
+FixStyle(nve/sphere/kk/host,FixNVESphereKokkos<Host>)
 
 #else
 
@@ -27,9 +27,12 @@ FixStyle(nve/sphere/kk/host,FixNVESphereKokkos<LMPHostType>)
 
 namespace LAMMPS_NS {
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class FixNVESphereKokkos : public FixNVESphere {
   public:
+    typedef typename GetDeviceType<Space>::value DeviceType;
+    typedef ArrayTypes<Space> AT;
+
     FixNVESphereKokkos(class LAMMPS *, int, char **);
     virtual ~FixNVESphereKokkos() {}
     void cleanup_copy();
@@ -43,30 +46,30 @@ class FixNVESphereKokkos : public FixNVESphere {
     void final_integrate_item(const int i) const;
 
   private:
-    typename ArrayTypes<DeviceType>::t_x_array x;
-    typename ArrayTypes<DeviceType>::t_v_array v;
-    typename ArrayTypes<DeviceType>::t_v_array omega;
-    typename ArrayTypes<DeviceType>::t_f_array f;
-    typename ArrayTypes<DeviceType>::t_f_array torque;
-    typename ArrayTypes<DeviceType>::t_float_1d rmass;
-    typename ArrayTypes<DeviceType>::t_float_1d radius;
-    typename ArrayTypes<DeviceType>::t_int_1d mask;
+    typename AT::t_float_1d_3 x;
+    typename AT::t_float_1d_3 v;
+    typename AT::t_float_1d_3 omega;
+    typename AT::t_float_1d_3 f;
+    typename AT::t_float_1d_3 torque;
+    typename AT::t_float_1d rmass;
+    typename AT::t_float_1d radius;
+    typename AT::t_int_1d mask;
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixNVESphereKokkosInitialIntegrateFunctor {
-  FixNVESphereKokkos<DeviceType> c;
-  FixNVESphereKokkosInitialIntegrateFunctor(FixNVESphereKokkos<DeviceType> *c_ptr): c(*c_ptr) { c.cleanup_copy(); }
+  FixNVESphereKokkos<Space> c;
+  FixNVESphereKokkosInitialIntegrateFunctor(FixNVESphereKokkos<Space> *c_ptr): c(*c_ptr) { c.cleanup_copy(); }
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i) const {
     c.initial_integrate_item(i);
   }
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixNVESphereKokkosFinalIntegrateFunctor {
-  FixNVESphereKokkos<DeviceType> c;
-  FixNVESphereKokkosFinalIntegrateFunctor(FixNVESphereKokkos<DeviceType> *c_ptr): c(*c_ptr) { c.cleanup_copy(); }
+  FixNVESphereKokkos<Space> c;
+  FixNVESphereKokkosFinalIntegrateFunctor(FixNVESphereKokkos<Space> *c_ptr): c(*c_ptr) { c.cleanup_copy(); }
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i) const {
     c.final_integrate_item(i);

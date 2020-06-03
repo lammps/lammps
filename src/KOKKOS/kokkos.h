@@ -42,7 +42,7 @@ class KokkosLMP : protected Pointers {
   int neigh_thread;
   int neigh_thread_set;
   int newtonflag;
-  double binsize;
+  KK_FLOAT binsize;
 
   KokkosLMP(class LAMMPS *, int, char **);
   ~KokkosLMP();

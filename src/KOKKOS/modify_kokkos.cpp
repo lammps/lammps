@@ -357,7 +357,7 @@ void ModifyKokkos::end_of_step()
 
 double ModifyKokkos::thermo_energy()
 {
-  double energy = 0.0;
+  KK_FLOAT energy = 0.0;
   for (int i = 0; i < n_thermo_energy; i++) {
     atomKK->sync(fix[list_thermo_energy[i]]->execution_space,
                  fix[list_thermo_energy[i]]->datamask_read);
@@ -595,7 +595,7 @@ double ModifyKokkos::min_energy(double *fextra)
   int ifix,index;
 
   index = 0;
-  double eng = 0.0;
+  KK_FLOAT eng = 0.0;
   for (int i = 0; i < n_min_energy; i++) {
     ifix = list_min_energy[i];
     atomKK->sync(fix[ifix]->execution_space,fix[ifix]->datamask_read);
@@ -702,14 +702,14 @@ double ModifyKokkos::max_alpha(double *hextra)
 {
   int ifix,index;
 
-  double alpha = BIG;
+  KK_FLOAT alpha = BIG;
   index = 0;
   for (int i = 0; i < n_min_energy; i++) {
     ifix = list_min_energy[i];
     atomKK->sync(fix[ifix]->execution_space,fix[ifix]->datamask_read);
     int prev_auto_sync = lmp->kokkos->auto_sync;
     if (!fix[ifix]->kokkosable) lmp->kokkos->auto_sync = 1;
-    double alpha_one = fix[ifix]->max_alpha(&hextra[index]);
+    KK_FLOAT alpha_one = fix[ifix]->max_alpha(&hextra[index]);
     alpha = MIN(alpha,alpha_one);
     index += fix[ifix]->min_dof();
     lmp->kokkos->auto_sync = prev_auto_sync;

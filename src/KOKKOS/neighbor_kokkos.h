@@ -22,10 +22,10 @@
 
 namespace LAMMPS_NS {
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 struct TagNeighborCheckDistance{};
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 struct TagNeighborXhold{};
 
 class NeighborKokkos : public Neighbor {
@@ -38,15 +38,15 @@ class NeighborKokkos : public Neighbor {
   void init_topology();
   void build_topology();
 
-  template<class DeviceType>
+  template<ExecutionSpace Space>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagNeighborCheckDistance<DeviceType>, const int&, int&) const;
+  void operator()(TagNeighborCheckDistance<Space>, const int&, int&) const;
 
-  template<class DeviceType>
+  template<ExecutionSpace Space>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagNeighborXhold<DeviceType>, const int&) const;
+  void operator()(TagNeighborXhold<Space>, const int&) const;
 
-  DAT::tdual_xfloat_2d k_cutneighsq;
+  DAT::tdual_float_2d k_cutneighsq;
 
   DAT::tdual_int_1d k_ex1_type,k_ex2_type;
   DAT::tdual_int_2d k_ex_type;
@@ -56,8 +56,8 @@ class NeighborKokkos : public Neighbor {
   DAT::tdual_int_1d k_ex_mol_bit;
   DAT::tdual_int_1d k_ex_mol_intra;
 
-  NeighBondKokkos<LMPHostType> neighbond_host;
-  NeighBondKokkos<LMPDeviceType> neighbond_device;
+  NeighBondKokkos<Host> neighbond_host;
+  NeighBondKokkos<Device> neighbond_device;
 
   DAT::tdual_int_2d k_bondlist;
   DAT::tdual_int_2d k_anglelist;
@@ -66,10 +66,10 @@ class NeighborKokkos : public Neighbor {
 
  private:
 
-  DAT::tdual_x_array x;
-  DAT::tdual_x_array xhold;
+  DAT::tdual_float_1d_3 x;
+  DAT::tdual_float_1d_3 xhold;
 
-  X_FLOAT deltasq;
+  KK_FLOAT deltasq;
   int device_flag;
 
   void init_cutneighsq_kokkos(int);
@@ -79,9 +79,9 @@ class NeighborKokkos : public Neighbor {
   void init_ex_mol_bit_kokkos();
   void grow_ex_mol_intra_kokkos();
   virtual int check_distance();
-  template<class DeviceType> int check_distance_kokkos();
+  template<ExecutionSpace Space> int check_distance_kokkos();
   virtual void build(int);
-  template<class DeviceType> void build_kokkos(int);
+  template<ExecutionSpace Space> void build_kokkos(int);
   void setup_bins_kokkos(int);
   void modify_ex_type_grow_kokkos();
   void modify_ex_group_grow_kokkos();

@@ -52,27 +52,28 @@ enum{NONE,RLINEAR,RSQ};
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-PairMultiLucyRXKokkos<DeviceType>::PairMultiLucyRXKokkos(LAMMPS *lmp) : PairMultiLucyRX(lmp)
+template<ExecutionSpace Space>
+PairMultiLucyRXKokkos<Space>::PairMultiLucyRXKokkos(LAMMPS *lmp) : PairMultiLucyRX(lmp)
 {
   respa_enable = 0;
 
   atomKK = (AtomKokkos *) atom;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  execution_space = Space;
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 
   update_table = 1;
-  h_table = new TableHost();
-  d_table = new TableDevice();
+  k_table = new TableDual();
+  h_table = new TableHost(k_table);
+  d_table = new TableDevice(k_table);
 
   k_error_flag = DAT::tdual_int_scalar("pair:error_flag");
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-PairMultiLucyRXKokkos<DeviceType>::~PairMultiLucyRXKokkos()
+template<ExecutionSpace Space>
+PairMultiLucyRXKokkos<Space>::~PairMultiLucyRXKokkos()
 {
   if (copymode) return;
 
@@ -81,6 +82,7 @@ PairMultiLucyRXKokkos<DeviceType>::~PairMultiLucyRXKokkos()
 
   memoryKK->destroy_kokkos(k_cutsq,cutsq);
 
+  delete k_table;
   delete h_table;
   delete d_table;
   tabindex = NULL;
@@ -88,8 +90,8 @@ PairMultiLucyRXKokkos<DeviceType>::~PairMultiLucyRXKokkos()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairMultiLucyRXKokkos<DeviceType>::init_style()
+template<ExecutionSpace Space>
+void PairMultiLucyRXKokkos<Space>::init_style()
 {
   PairMultiLucyRX::init_style();
 
@@ -99,10 +101,10 @@ void PairMultiLucyRXKokkos<DeviceType>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = (Space == Host) &&
+    !(Space == Device);
   neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = (Space == Device);
 
   if (neighflag == FULL) {
     neighbor->requests[irequest]->full = 1;
@@ -117,8 +119,8 @@ void PairMultiLucyRXKokkos<DeviceType>::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairMultiLucyRXKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
+template<ExecutionSpace Space>
+void PairMultiLucyRXKokkos<Space>::compute(int eflag_in, int vflag_in)
 {
   copymode = 1;
 
@@ -135,9 +137,9 @@ void PairMultiLucyRXKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int TABSTYLE>
-void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
+void PairMultiLucyRXKokkos<Space>::compute_style(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
@@ -150,24 +152,24 @@ void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in
   if (eflag_atom) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
-    d_eatom = k_eatom.template view<DeviceType>();
+    d_eatom = DualViewHelper<Space>::view(k_eatom);
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
-    d_vatom = k_vatom.template view<DeviceType>();
+    d_vatom = DualViewHelper<Space>::view(k_vatom);
   }
 
-  x = atomKK->k_x.view<DeviceType>();
-  f = atomKK->k_f.view<DeviceType>();
-  type = atomKK->k_type.view<DeviceType>();
-  rho = atomKK->k_rho.view<DeviceType>();
-  uCG = atomKK->k_uCG.view<DeviceType>();
-  uCGnew = atomKK->k_uCGnew.view<DeviceType>();
-  dvector = atomKK->k_dvector.view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  f = DualViewHelper<Space>::view(atomKK->k_f);
+  type = DualViewHelper<Space>::view(atomKK->k_type);
+  rho = DualViewHelper<Space>::view(atomKK->k_rho);
+  uCG = DualViewHelper<Space>::view(atomKK->k_uCG);
+  uCGnew = DualViewHelper<Space>::view(atomKK->k_uCGnew);
+  dvector = DualViewHelper<Space>::view(atomKK->k_dvector);
 
   atomKK->sync(execution_space,X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK | DPDRHO_MASK | UCG_MASK | UCGNEW_MASK | DVECTOR_MASK);
-  k_cutsq.template sync<DeviceType>();
+  DualViewHelper<Space>::sync(k_cutsq);
 
   nlocal = atom->nlocal;
   int nghost = atom->nghost;
@@ -186,7 +188,7 @@ void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in
   }
 
   const int inum = list->inum;
-  NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
+  NeighListKokkos<Space>* k_list = static_cast<NeighListKokkos<Space>*>(list);
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
@@ -226,8 +228,8 @@ void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in
   if (evflag) atomKK->modified(execution_space,F_MASK | ENERGY_MASK | VIRIAL_MASK | UCG_MASK | UCGNEW_MASK);
   else atomKK->modified(execution_space,F_MASK | UCG_MASK | UCGNEW_MASK);
 
-  k_error_flag.template modify<DeviceType>();
-  k_error_flag.template sync<LMPHostType>();
+  DualViewHelper<Space>::modify(k_error_flag);
+  k_error_flag.sync_host();
   if (k_error_flag.h_view() == 1)
     error->one(FLERR,"Density < table inner cutoff");
   else if (k_error_flag.h_view() == 2)
@@ -245,44 +247,44 @@ void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in
     virial[5] += ev.v[5];
   }
 
-  if (vflag_fdotr) pair_virial_fdotr_compute(this);
+  if (vflag_fdotr) pair_virial_fdotr_compute<Space>(this);
 
   if (eflag_atom) {
-    k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_eatom);
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
-    k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_vatom);
+    k_vatom.sync_host();
   }
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXgetMixingWeights, const int &i) const {
+void PairMultiLucyRXKokkos<Space>::operator()(TagPairMultiLucyRXgetMixingWeights, const int &i) const {
   getMixingWeights(i, d_mixWtSite1old[i], d_mixWtSite2old[i], d_mixWtSite1[i], d_mixWtSite2[i]);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int TABSTYLE>
 KOKKOS_INLINE_FUNCTION
-void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,TABSTYLE>, const int &ii, EV_FLOAT& ev) const {
+void PairMultiLucyRXKokkos<Space>::operator()(TagPairMultiLucyRXCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,TABSTYLE>, const int &ii, EV_FLOAT& ev) const {
 
   // The f array is atomic for Half/Thread neighbor style
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  Kokkos::View<typename AT::t_float_1d_3::data_type, typename AT::t_float_1d_3::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
 
   int i,jj,jnum,itype,jtype,itable;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwlOld,fpair;
-  double rsq;
+  KK_FLOAT xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwlOld,fpair;
+  KK_FLOAT rsq;
 
-  double mixWtSite1old_i,mixWtSite1old_j;
-  double mixWtSite2old_i,mixWtSite2old_j;
-  double mixWtSite1_i;
+  KK_FLOAT mixWtSite1old_i,mixWtSite1old_j;
+  KK_FLOAT mixWtSite2old_i,mixWtSite2old_j;
+  KK_FLOAT mixWtSite1_i;
 
-  double pi = MathConst::MY_PI;
-  double A_i, A_j;
-  double fraction_i,fraction_j;
+  KK_FLOAT pi = MathConst::MY_PI;
+  KK_FLOAT A_i, A_j;
+  KK_FLOAT fraction_i,fraction_j;
   int jtable;
 
   int tlm1 = tablength - 1;
@@ -294,9 +296,9 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
   itype = type[i];
   jnum = d_numneigh[i];
 
-  double fx_i = 0.0;
-  double fy_i = 0.0;
-  double fz_i = 0.0;
+  KK_FLOAT fx_i = 0.0;
+  KK_FLOAT fy_i = 0.0;
+  KK_FLOAT fz_i = 0.0;
 
   mixWtSite1old_i = d_mixWtSite1old[i];
   mixWtSite2old_i = d_mixWtSite2old[i];
@@ -323,7 +325,7 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
 
       //if (rho[i]*rho[i] < tb->innersq || rho[j]*rho[j] < tb->innersq){
       if (rho[i]*rho[i] < d_table_const.innersq(tidx) || rho[j]*rho[j] < d_table_const.innersq(tidx)){
-        k_error_flag.template view<DeviceType>()() = 1;
+        DualViewHelper<Space>::view(k_error_flag)() = 1;
       }
 
       if (TABSTYLE == LOOKUP) {
@@ -332,14 +334,14 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
         //jtable = static_cast<int> (((rho[j]*rho[j]) - tb->innersq) * tb->invdelta);
         jtable = static_cast<int> (((rho[j]*rho[j]) - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
         if (itable >= tlm1 || jtable >= tlm1){
-          k_error_flag.template view<DeviceType>()() = 2;
+          DualViewHelper<Space>::view(k_error_flag)() = 2;
         }
         //A_i = tb->f[itable];
         A_i = d_table_const.f(tidx,itable);
         //A_j = tb->f[jtable];
         A_j = d_table_const.f(tidx,jtable);
 
-        const double rfactor = 1.0-sqrt(rsq/d_cutsq(itype,jtype));
+        const KK_FLOAT rfactor = 1.0-sqrt(rsq/d_cutsq(itype,jtype));
         fpair = 0.5*(A_i + A_j)*(4.0-3.0*rfactor)*rfactor*rfactor*rfactor;
         fpair /= sqrt(rsq);
 
@@ -350,7 +352,7 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
         //jtable = static_cast<int> (((rho[j]*rho[j]) - tb->innersq) * tb->invdelta);
         jtable = static_cast<int> ((rho[j]*rho[j] - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
         if (itable >= tlm1 || jtable >= tlm1){
-          k_error_flag.template view<DeviceType>()() = 2;
+          DualViewHelper<Space>::view(k_error_flag)() = 2;
         }
         if(itable<0) itable=0;
         if(itable>=tlm1) itable=tlm1;
@@ -371,11 +373,11 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
         //A_j = tb->f[jtable] + fraction_j*tb->df[jtable];
         A_j = d_table_const.f(tidx,jtable) + fraction_j*d_table_const.df(tidx,jtable);
 
-        const double rfactor = 1.0-sqrt(rsq/d_cutsq(itype,jtype));
+        const KK_FLOAT rfactor = 1.0-sqrt(rsq/d_cutsq(itype,jtype));
         fpair = 0.5*(A_i + A_j)*(4.0-3.0*rfactor)*rfactor*rfactor*rfactor;
         fpair /= sqrt(rsq);
 
-      } else k_error_flag.template view<DeviceType>()() = 3;
+      } else DualViewHelper<Space>::view(k_error_flag)() = 3;
 
       if (isite1 == isite2) fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpair;
       else fpair = (sqrt(mixWtSite1old_i*mixWtSite2old_j) + sqrt(mixWtSite2old_i*mixWtSite1old_j))*fpair;
@@ -406,14 +408,14 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
     evdwl = d_table_const.e(tidx,itable);
   } else if (TABSTYLE == LINEAR) {
     if (itable >= tlm1){
-      k_error_flag.template view<DeviceType>()() = 2;
+      DualViewHelper<Space>::view(k_error_flag)() = 2;
     }
     if(itable==0) fraction_i=0.0;
     //else fraction_i = (((rho[i]*rho[i]) - tb->rsq[itable]) * tb->invdelta);
     else fraction_i = (((rho[i]*rho[i]) - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx));
     //evdwl = tb->e[itable] + fraction_i*tb->de[itable];
     evdwl = d_table_const.e(tidx,itable) + fraction_i*d_table_const.de(tidx,itable);
-  } else k_error_flag.template view<DeviceType>()() = 3;
+  } else DualViewHelper<Space>::view(k_error_flag)() = 3;
 
   evdwl *=(pi*d_cutsq(itype,itype)*d_cutsq(itype,itype))/84.0;
   evdwlOld = mixWtSite1old_i*evdwl;
@@ -429,34 +431,34 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
     ev.evdwl += ((/*FIXME??? (NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && */ NEWTON_PAIR)?1.0:0.5)*evdwl;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int TABSTYLE>
 KOKKOS_INLINE_FUNCTION
-void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,TABSTYLE>, const int &ii) const {
+void PairMultiLucyRXKokkos<Space>::operator()(TagPairMultiLucyRXCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,TABSTYLE>, const int &ii) const {
   EV_FLOAT ev;
   this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG,TABSTYLE>(TagPairMultiLucyRXCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,TABSTYLE>(), ii, ev);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairMultiLucyRXKokkos<DeviceType>::computeLocalDensity()
+template<ExecutionSpace Space>
+void PairMultiLucyRXKokkos<Space>::computeLocalDensity()
 {
-  x = atomKK->k_x.view<DeviceType>();
-  type = atomKK->k_type.view<DeviceType>();
-  rho = atomKK->k_rho.view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  type = DualViewHelper<Space>::view(atomKK->k_type);
+  rho = DualViewHelper<Space>::view(atomKK->k_rho);
   h_rho = atomKK->k_rho.h_view;
   nlocal = atom->nlocal;
 
   atomKK->sync(execution_space,X_MASK | TYPE_MASK | DPDRHO_MASK);
 
   const int inum = list->inum;
-  NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
+  NeighListKokkos<Space>* k_list = static_cast<NeighListKokkos<Space>*>(list);
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
 
-  const double pi = MathConst::MY_PI;
+  const KK_FLOAT pi = MathConst::MY_PI;
 
   const bool newton_pair = force->newton_pair;
   const bool one_type = (atom->ntypes == 1);
@@ -519,59 +521,59 @@ void PairMultiLucyRXKokkos<DeviceType>::computeLocalDensity()
   comm->forward_comm_pair(this);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXZero, const int &i) const {
+void PairMultiLucyRXKokkos<Space>::operator()(TagPairMultiLucyRXZero, const int &i) const {
   rho[i] = 0.0;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEIGHFLAG, int NEWTON_PAIR, bool ONE_TYPE>
 KOKKOS_INLINE_FUNCTION
-void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXComputeLocalDensity<NEIGHFLAG,NEWTON_PAIR,ONE_TYPE>, const int &ii) const {
+void PairMultiLucyRXKokkos<Space>::operator()(TagPairMultiLucyRXComputeLocalDensity<NEIGHFLAG,NEWTON_PAIR,ONE_TYPE>, const int &ii) const {
 
 
   // The rho array is atomic for Half/Thread neighbor style
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_rho = rho;
+  Kokkos::View<typename AT::t_float_1d::data_type, typename AT::t_float_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_rho = rho;
 
   const int i = d_ilist[ii];
 
-  const double xtmp = x(i,0);
-  const double ytmp = x(i,1);
-  const double ztmp = x(i,2);
+  const KK_FLOAT xtmp = x(i,0);
+  const KK_FLOAT ytmp = x(i,1);
+  const KK_FLOAT ztmp = x(i,2);
 
-  double rho_i_contrib = 0.0;
+  KK_FLOAT rho_i_contrib = 0.0;
 
   const int itype = type[i];
   const int jnum = d_numneigh[i];
 
-  const double pi = MathConst::MY_PI;
+  const KK_FLOAT pi = MathConst::MY_PI;
 
   for (int jj = 0; jj < jnum; jj++){
     const int j = (d_neighbors(i,jj) & NEIGHMASK);
     const int jtype = type[j];
 
-    const double delx = xtmp - x(j,0);
-    const double dely = ytmp - x(j,1);
-    const double delz = ztmp - x(j,2);
-    const double rsq = delx*delx + dely*dely + delz*delz;
+    const KK_FLOAT delx = xtmp - x(j,0);
+    const KK_FLOAT dely = ytmp - x(j,1);
+    const KK_FLOAT delz = ztmp - x(j,2);
+    const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
     if (ONE_TYPE) {
       if (rsq < cutsq_type11) {
-        const double rcut = rcut_type11;
-        const double r_over_rcut = sqrt(rsq) / rcut;
-        const double tmpFactor = 1.0 - r_over_rcut;
-        const double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
-        const double factor = factor_type11*(1.0 + 1.5*r_over_rcut)*tmpFactor4;
+        const KK_FLOAT rcut = rcut_type11;
+        const KK_FLOAT r_over_rcut = sqrt(rsq) / rcut;
+        const KK_FLOAT tmpFactor = 1.0 - r_over_rcut;
+        const KK_FLOAT tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
+        const KK_FLOAT factor = factor_type11*(1.0 + 1.5*r_over_rcut)*tmpFactor4;
         rho_i_contrib += factor;
         if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
           a_rho[j] += factor;
       }
     } else if (rsq < d_cutsq(itype,jtype)) {
-      const double rcut = sqrt(d_cutsq(itype,jtype));
-      const double tmpFactor = 1.0-sqrt(rsq)/rcut;
-      const double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
-      const double factor = (84.0/(5.0*pi*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*tmpFactor4;
+      const KK_FLOAT rcut = sqrt(d_cutsq(itype,jtype));
+      const KK_FLOAT tmpFactor = 1.0-sqrt(rsq)/rcut;
+      const KK_FLOAT tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
+      const KK_FLOAT factor = (84.0/(5.0*pi*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*tmpFactor4;
       rho_i_contrib += factor;
       if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
         a_rho[j] += factor;
@@ -583,17 +585,17 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXComputeLoca
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void PairMultiLucyRXKokkos<DeviceType>::getMixingWeights(int id, double &mixWtSite1old, double &mixWtSite2old, double &mixWtSite1, double &mixWtSite2) const
+void PairMultiLucyRXKokkos<Space>::getMixingWeights(int id, SPACE_FLOAT &mixWtSite1old, SPACE_FLOAT &mixWtSite2old, SPACE_FLOAT &mixWtSite1, SPACE_FLOAT &mixWtSite2) const
 {
-  double fractionOFAold, fractionOFA;
-  double fractionOld1, fraction1;
-  double fractionOld2, fraction2;
-  double nMoleculesOFAold, nMoleculesOFA;
-  double nMoleculesOld1, nMolecules1;
-  double nMoleculesOld2, nMolecules2;
-  double nTotal, nTotalOld;
+  KK_FLOAT fractionOFAold, fractionOFA;
+  KK_FLOAT fractionOld1, fraction1;
+  KK_FLOAT fractionOld2, fraction2;
+  KK_FLOAT nMoleculesOFAold, nMoleculesOFA;
+  KK_FLOAT nMoleculesOld1, nMolecules1;
+  KK_FLOAT nMoleculesOld2, nMolecules2;
+  KK_FLOAT nTotal, nTotalOld;
 
 
   nTotal = 0.0;
@@ -658,48 +660,48 @@ void PairMultiLucyRXKokkos<DeviceType>::getMixingWeights(int id, double &mixWtSi
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-int PairMultiLucyRXKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist, int iswap_in, DAT::tdual_xfloat_1d &buf,
+template<ExecutionSpace Space>
+int PairMultiLucyRXKokkos<Space>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist, int iswap_in, DAT::tdual_float_1d &buf,
                                int pbc_flag, int *pbc)
 {
   atomKK->sync(execution_space,DPDRHO_MASK);
 
-  d_sendlist = k_sendlist.view<DeviceType>();
+  d_sendlist = DualViewHelper<Space>::view(k_sendlist);
   iswap = iswap_in;
-  v_buf = buf.view<DeviceType>();
-  Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagPairMultiLucyRXPackForwardComm>(0,n),*this);
+  v_buf = DualViewHelper<Space>::view(buf);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXPackForwardComm>(0,n),*this);
   return n;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXPackForwardComm, const int &i) const {
+void PairMultiLucyRXKokkos<Space>::operator()(TagPairMultiLucyRXPackForwardComm, const int &i) const {
   int j = d_sendlist(iswap, i);
   v_buf[i] = rho[j];
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairMultiLucyRXKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in, DAT::tdual_xfloat_1d &buf)
+template<ExecutionSpace Space>
+void PairMultiLucyRXKokkos<Space>::unpack_forward_comm_kokkos(int n, int first_in, DAT::tdual_float_1d &buf)
 {
   first = first_in;
-  v_buf = buf.view<DeviceType>();
-  Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagPairMultiLucyRXUnpackForwardComm>(0,n),*this);
+  v_buf = DualViewHelper<Space>::view(buf);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXUnpackForwardComm>(0,n),*this);
 
   atomKK->modified(execution_space,DPDRHO_MASK);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXUnpackForwardComm, const int &i) const {
+void PairMultiLucyRXKokkos<Space>::operator()(TagPairMultiLucyRXUnpackForwardComm, const int &i) const {
   rho[i + first] = v_buf[i];
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-int PairMultiLucyRXKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+template<ExecutionSpace Space>
+int PairMultiLucyRXKokkos<Space>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
 {
   int i,j,m;
 
@@ -715,8 +717,8 @@ int PairMultiLucyRXKokkos<DeviceType>::pack_forward_comm(int n, int *list, doubl
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairMultiLucyRXKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf)
+template<ExecutionSpace Space>
+void PairMultiLucyRXKokkos<Space>::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 
@@ -729,8 +731,8 @@ void PairMultiLucyRXKokkos<DeviceType>::unpack_forward_comm(int n, int first, do
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-int PairMultiLucyRXKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
+template<ExecutionSpace Space>
+int PairMultiLucyRXKokkos<Space>::pack_reverse_comm(int n, int first, double *buf)
 {
   int i,m,last;
 
@@ -744,8 +746,8 @@ int PairMultiLucyRXKokkos<DeviceType>::pack_reverse_comm(int n, int first, doubl
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairMultiLucyRXKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
+template<ExecutionSpace Space>
+void PairMultiLucyRXKokkos<Space>::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int i,j,m;
 
@@ -760,23 +762,23 @@ void PairMultiLucyRXKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, do
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEIGHFLAG, int NEWTON_PAIR>
 KOKKOS_INLINE_FUNCTION
-void PairMultiLucyRXKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
-                const F_FLOAT &dely, const F_FLOAT &delz) const
+void PairMultiLucyRXKokkos<Space>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
+      const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
+                const KK_FLOAT &dely, const KK_FLOAT &delz) const
 {
   const int EFLAG = eflag;
   const int VFLAG = vflag_either;
 
   // The eatom and vatom arrays are atomic for Half/Thread neighbor style
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = k_eatom.view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
+  Kokkos::View<typename AT::t_float_1d::data_type, typename AT::t_float_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = DualViewHelper<Space>::view(k_eatom);
+  Kokkos::View<typename AT::t_float_1d_6::data_type, typename AT::t_float_1d_6::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = DualViewHelper<Space>::view(k_vatom);
 
   if (EFLAG) {
     if (eflag_atom) {
-      const E_FLOAT epairhalf = 0.5 * epair;
+      const KK_FLOAT epairhalf = 0.5 * epair;
       if (NEIGHFLAG!=FULL) {
         if (NEWTON_PAIR || i < nlocal) v_eatom[i] += epairhalf;
         if (NEWTON_PAIR || j < nlocal) v_eatom[j] += epairhalf;
@@ -787,12 +789,12 @@ void PairMultiLucyRXKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, con
   }
 
   if (VFLAG) {
-    const E_FLOAT v0 = delx*delx*fpair;
-    const E_FLOAT v1 = dely*dely*fpair;
-    const E_FLOAT v2 = delz*delz*fpair;
-    const E_FLOAT v3 = delx*dely*fpair;
-    const E_FLOAT v4 = delx*delz*fpair;
-    const E_FLOAT v5 = dely*delz*fpair;
+    const KK_FLOAT v0 = delx*delx*fpair;
+    const KK_FLOAT v1 = dely*dely*fpair;
+    const KK_FLOAT v2 = delz*delz*fpair;
+    const KK_FLOAT v3 = delx*dely*fpair;
+    const KK_FLOAT v4 = delx*delz*fpair;
+    const KK_FLOAT v5 = dely*delz*fpair;
 
     if (vflag_global) {
       if (NEIGHFLAG!=FULL) {
@@ -854,25 +856,25 @@ void PairMultiLucyRXKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, con
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairMultiLucyRXKokkos<DeviceType>::create_kokkos_tables()
+template<ExecutionSpace Space>
+void PairMultiLucyRXKokkos<Space>::create_kokkos_tables()
 {
   const int tlm1 = tablength-1;
 
-  memoryKK->create_kokkos(d_table->innersq,h_table->innersq,ntables,"Table::innersq");
-  memoryKK->create_kokkos(d_table->invdelta,h_table->invdelta,ntables,"Table::invdelta");
+  memoryKK->create_kokkos(k_table->k_innersq,ntables,"Table::innersq");
+  memoryKK->create_kokkos(k_table->k_invdelta,ntables,"Table::invdelta");
 
   if(tabstyle == LOOKUP) {
-    memoryKK->create_kokkos(d_table->e,h_table->e,ntables,tlm1,"Table::e");
-    memoryKK->create_kokkos(d_table->f,h_table->f,ntables,tlm1,"Table::f");
+    memoryKK->create_kokkos(k_table->k_e,ntables,tlm1,"Table::e");
+    memoryKK->create_kokkos(k_table->k_f,ntables,tlm1,"Table::f");
   }
 
   if(tabstyle == LINEAR) {
-    memoryKK->create_kokkos(d_table->rsq,h_table->rsq,ntables,tablength,"Table::rsq");
-    memoryKK->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
-    memoryKK->create_kokkos(d_table->f,h_table->f,ntables,tablength,"Table::f");
-    memoryKK->create_kokkos(d_table->de,h_table->de,ntables,tlm1,"Table::de");
-    memoryKK->create_kokkos(d_table->df,h_table->df,ntables,tlm1,"Table::df");
+    memoryKK->create_kokkos(k_table->k_rsq,ntables,tablength,"Table::rsq");
+    memoryKK->create_kokkos(k_table->k_e,ntables,tablength,"Table::e");
+    memoryKK->create_kokkos(k_table->k_f,ntables,tablength,"Table::f");
+    memoryKK->create_kokkos(k_table->k_de,ntables,tlm1,"Table::de");
+    memoryKK->create_kokkos(k_table->k_df,ntables,tlm1,"Table::df");
   }
 
   for(int i=0; i < ntables; i++) {
@@ -894,14 +896,22 @@ void PairMultiLucyRXKokkos<DeviceType>::create_kokkos_tables()
   }
 
 
-  Kokkos::deep_copy(d_table->innersq,h_table->innersq);
-  Kokkos::deep_copy(d_table->invdelta,h_table->invdelta);
-  Kokkos::deep_copy(d_table->rsq,h_table->rsq);
-  Kokkos::deep_copy(d_table->e,h_table->e);
-  Kokkos::deep_copy(d_table->de,h_table->de);
-  Kokkos::deep_copy(d_table->f,h_table->f);
-  Kokkos::deep_copy(d_table->df,h_table->df);
-  Kokkos::deep_copy(d_table->tabindex,h_table->tabindex);
+  k_table->k_innersq.modify_host();
+  k_table->k_innersq.sync_device();
+  k_table->k_invdelta.modify_host();
+  k_table->k_invdelta.sync_device();
+  k_table->k_rsq.modify_host();
+  k_table->k_rsq.sync_device();
+  k_table->k_e.modify_host();
+  k_table->k_e.sync_device();
+  k_table->k_de.modify_host();
+  k_table->k_de.sync_device();
+  k_table->k_f.modify_host();
+  k_table->k_f.sync_device();
+  k_table->k_df.modify_host();
+  k_table->k_df.sync_device();
+  k_table->k_tabindex.modify_host();
+  k_table->k_tabindex.sync_device();
 
   d_table_const.innersq = d_table->innersq;
   d_table_const.invdelta = d_table->invdelta;
@@ -918,8 +928,8 @@ void PairMultiLucyRXKokkos<DeviceType>::create_kokkos_tables()
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairMultiLucyRXKokkos<DeviceType>::allocate()
+template<ExecutionSpace Space>
+void PairMultiLucyRXKokkos<Space>::allocate()
 {
   allocated = 1;
   const int nt = atom->ntypes + 1;
@@ -927,14 +937,14 @@ void PairMultiLucyRXKokkos<DeviceType>::allocate()
   memory->create(setflag,nt,nt,"pair:setflag");
 
   memoryKK->create_kokkos(k_cutsq,cutsq,nt,nt,"pair:cutsq");
-  d_cutsq = k_cutsq.template view<DeviceType>();
-  k_cutsq.template modify<LMPHostType>();
+  d_cutsq = DualViewHelper<Space>::view(k_cutsq);
+  k_cutsq.modify_host();
 
-  memoryKK->create_kokkos(d_table->tabindex,h_table->tabindex,tabindex,nt,nt,"pair:tabindex");
+  memoryKK->create_kokkos(k_table->k_tabindex,tabindex,nt,nt,"pair:tabindex");
   d_table_const.tabindex = d_table->tabindex;
 
   memset(&setflag[0][0],0,nt*nt*sizeof(int));
-  memset(&cutsq[0][0],0,nt*nt*sizeof(double));
+  memset(&cutsq[0][0],0,nt*nt*sizeof(KK_FLOAT));
   memset(&tabindex[0][0],0,nt*nt*sizeof(int));
 }
 
@@ -942,8 +952,8 @@ void PairMultiLucyRXKokkos<DeviceType>::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairMultiLucyRXKokkos<DeviceType>::settings(int narg, char **arg)
+template<ExecutionSpace Space>
+void PairMultiLucyRXKokkos<Space>::settings(int narg, char **arg)
 {
   if (narg < 2) error->all(FLERR,"Illegal pair_style command");
 
@@ -974,8 +984,8 @@ void PairMultiLucyRXKokkos<DeviceType>::settings(int narg, char **arg)
   if (allocated) {
     memory->destroy(setflag);
 
-    d_table_const.tabindex = d_table->tabindex = typename ArrayTypes<DeviceType>::t_int_2d();
-    h_table->tabindex = typename ArrayTypes<LMPHostType>::t_int_2d();
+    d_table_const.tabindex = d_table->tabindex = typename AT::t_int_2d();
+    h_table->tabindex = HAT::t_int_2d();
   }
   allocated = 0;
 
@@ -986,8 +996,6 @@ void PairMultiLucyRXKokkos<DeviceType>::settings(int narg, char **arg)
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
-template class PairMultiLucyRXKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class PairMultiLucyRXKokkos<LMPHostType>;
-#endif
+template class PairMultiLucyRXKokkos<Device>;
+template class PairMultiLucyRXKokkos<Host>;
 }

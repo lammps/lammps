@@ -13,12 +13,12 @@
 
 #ifdef NPAIR_CLASS
 
-typedef NPairSSAKokkos<LMPHostType> NPairSSAKokkosHost;
+typedef NPairSSAKokkos<Host> NPairSSAKokkosHost;
 NPairStyle(half/bin/newton/ssa/kk/host,
            NPairSSAKokkosHost,
            NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA | NP_GHOST | NP_KOKKOS_HOST)
 
-typedef NPairSSAKokkos<LMPDeviceType> NPairSSAKokkosDevice;
+typedef NPairSSAKokkos<Device> NPairSSAKokkosDevice;
 NPairStyle(half/bin/newton/ssa/kk/device,
            NPairSSAKokkosDevice,
            NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA | NP_GHOST | NP_KOKKOS_DEVICE)
@@ -33,10 +33,10 @@ NPairStyle(half/bin/newton/ssa/kk/device,
 
 namespace LAMMPS_NS {
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class NPairSSAKokkos : public NPair {
  public:
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
 
   // SSA Work plan data structures
   int ssa_phaseCt;
@@ -66,7 +66,7 @@ class NPairSSAKokkos : public NPair {
  private:
   // data from Neighbor class
 
-  DAT::tdual_xfloat_2d k_cutneighsq;
+  DAT::tdual_float_2d k_cutneighsq;
 
   // exclusion data from Neighbor class
 
@@ -97,17 +97,17 @@ class NPairSSAKokkos : public NPair {
   int sx1, sy1, sz1;
 };
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class NPairSSAKokkosExecute
 {
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
 
  public:
-  NeighListKokkos<DeviceType> neigh_list;
+  NeighListKokkos<Space> neigh_list;
 
   // data from Neighbor class
 
-  const typename AT::t_xfloat_2d_randomread cutneighsq;
+  const typename AT::t_float_2d_randomread cutneighsq;
 
   // exclusion data from Neighbor class
 
@@ -149,7 +149,7 @@ class NPairSSAKokkosExecute
 
   // data from Atom class
 
-  const typename AT::t_x_array_randomread x;
+  const typename AT::t_float_1d_3_randomread x;
   const typename AT::t_int_1d_const type,mask;
   const typename AT::t_tagint_1d_const molecule;
   const typename AT::t_tagint_1d_const tag;
@@ -163,15 +163,15 @@ class NPairSSAKokkosExecute
   const int nbinx,nbiny,nbinz;
   const int mbinx,mbiny,mbinz;
   const int mbinxlo,mbinylo,mbinzlo;
-  const X_FLOAT bininvx,bininvy,bininvz;
-  X_FLOAT bboxhi[3],bboxlo[3];
+  const double bininvx,bininvy,bininvz;
+  double bboxhi[3],bboxlo[3];
 
   const int nlocal;
 
   typename AT::t_int_scalar resize;
   typename AT::t_int_scalar new_maxneighs;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_resize;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_new_maxneighs;
+  HAT::t_int_scalar h_resize;
+  HAT::t_int_scalar h_new_maxneighs;
 
   const int xperiodic, yperiodic, zperiodic;
   const int xprd_half, yprd_half, zprd_half;
@@ -188,8 +188,8 @@ class NPairSSAKokkosExecute
   typename AT::t_int_2d d_ssa_gitemLen;
 
   NPairSSAKokkosExecute(
-        const NeighListKokkos<DeviceType> &_neigh_list,
-        const typename AT::t_xfloat_2d_randomread &_cutneighsq,
+        const NeighListKokkos<Space> &_neigh_list,
+        const typename AT::t_float_2d_randomread &_cutneighsq,
         const typename AT::t_int_1d &_bincount,
         const typename AT::t_int_2d &_bins,
         const typename AT::t_int_1d &_gbincount,
@@ -211,7 +211,7 @@ class NPairSSAKokkosExecute
         const typename AT::t_int_2d &_d_ssa_gitemLoc,
         const typename AT::t_int_2d &_d_ssa_gitemLen,
         const int _nlocal,
-        const typename AT::t_x_array_randomread &_x,
+        const typename AT::t_float_1d_3_randomread &_x,
         const typename AT::t_int_1d_const &_type,
         const typename AT::t_int_1d_const &_mask,
         const typename AT::t_tagint_1d_const &_molecule,
@@ -222,7 +222,7 @@ class NPairSSAKokkosExecute
         const int & _nbinx,const int & _nbiny,const int & _nbinz,
         const int & _mbinx,const int & _mbiny,const int & _mbinz,
         const int & _mbinxlo,const int & _mbinylo,const int & _mbinzlo,
-        const X_FLOAT &_bininvx,const X_FLOAT &_bininvy,const X_FLOAT &_bininvz,
+        const double &_bininvx,const double &_bininvy,const double &_bininvz,
         const int & _exclude,const int & _nex_type,
         const typename AT::t_int_1d_const & _ex1_type,
         const typename AT::t_int_1d_const & _ex2_type,
@@ -236,7 +236,7 @@ class NPairSSAKokkosExecute
         const typename AT::t_int_1d_const & _ex_mol_group,
         const typename AT::t_int_1d_const & _ex_mol_bit,
         const typename AT::t_int_1d_const & _ex_mol_intra,
-        const X_FLOAT *_bboxhi, const X_FLOAT* _bboxlo,
+        const double *_bboxhi, const double *_bboxlo,
         const int & _xperiodic, const int & _yperiodic, const int & _zperiodic,
         const int & _xprd_half, const int & _yprd_half, const int & _zprd_half):
     neigh_list(_neigh_list), cutneighsq(_cutneighsq),
@@ -305,7 +305,7 @@ class NPairSSAKokkosExecute
   void build_ghosts_onePhase(int workPhase) const;
 
   KOKKOS_INLINE_FUNCTION
-  int coord2bin(const X_FLOAT & x,const X_FLOAT & y,const X_FLOAT & z, int* i) const
+  int coord2bin(const KK_FLOAT & x,const KK_FLOAT & y,const KK_FLOAT & z, int* i) const
   {
     int ix,iy,iz;
 
@@ -347,7 +347,7 @@ class NPairSSAKokkosExecute
   int find_special(const int &i, const int &j) const;
 
   KOKKOS_INLINE_FUNCTION
-  int minimum_image_check(double dx, double dy, double dz) const {
+  int minimum_image_check(KK_FLOAT dx, KK_FLOAT dy, KK_FLOAT dz) const {
     if (xperiodic && fabs(dx) > xprd_half) return 1;
     if (yperiodic && fabs(dy) > yprd_half) return 1;
     if (zperiodic && fabs(dz) > zprd_half) return 1;

@@ -27,13 +27,13 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-ComputeTempKokkos<DeviceType>::ComputeTempKokkos(LAMMPS *lmp, int narg, char **arg) :
+template<ExecutionSpace Space>
+ComputeTempKokkos<Space>::ComputeTempKokkos(LAMMPS *lmp, int narg, char **arg) :
   ComputeTemp(lmp, narg, arg)
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  execution_space = Space;
 
   datamask_read = V_MASK | MASK_MASK | RMASS_MASK | TYPE_MASK;
   datamask_modify = EMPTY_MASK;
@@ -41,21 +41,21 @@ ComputeTempKokkos<DeviceType>::ComputeTempKokkos(LAMMPS *lmp, int narg, char **a
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-double ComputeTempKokkos<DeviceType>::compute_scalar()
+template<ExecutionSpace Space>
+double ComputeTempKokkos<Space>::compute_scalar()
 {
   atomKK->sync(execution_space,datamask_read);
-  atomKK->k_mass.sync<DeviceType>();
+  DualViewHelper<Space>::sync(atomKK->k_mass);
 
   invoked_scalar = update->ntimestep;
 
-  v = atomKK->k_v.view<DeviceType>();
+  v = DualViewHelper<Space>::view(atomKK->k_v);
   if (atomKK->rmass)
-    rmass = atomKK->k_rmass.view<DeviceType>();
+    rmass = DualViewHelper<Space>::view(atomKK->k_rmass);
   else
-    mass = atomKK->k_mass.view<DeviceType>();
-  type = atomKK->k_type.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
+    mass = DualViewHelper<Space>::view(atomKK->k_mass);
+  type = DualViewHelper<Space>::view(atomKK->k_type);
+  mask = DualViewHelper<Space>::view(atomKK->k_mask);
   int nlocal = atom->nlocal;
 
   double t = 0.0;
@@ -79,10 +79,10 @@ double ComputeTempKokkos<DeviceType>::compute_scalar()
   return scalar;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int RMASS>
 KOKKOS_INLINE_FUNCTION
-void ComputeTempKokkos<DeviceType>::operator()(TagComputeTempScalar<RMASS>, const int &i, CTEMP& t_kk) const {
+void ComputeTempKokkos<Space>::operator()(TagComputeTempScalar<RMASS>, const int &i, CTEMP& t_kk) const {
   if (RMASS) {
     if (mask[i] & groupbit)
       t_kk.t0 += (v(i,0)*v(i,0) + v(i,1)*v(i,1) + v(i,2)*v(i,2)) * rmass[i];
@@ -95,8 +95,8 @@ void ComputeTempKokkos<DeviceType>::operator()(TagComputeTempScalar<RMASS>, cons
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void ComputeTempKokkos<DeviceType>::compute_vector()
+template<ExecutionSpace Space>
+void ComputeTempKokkos<Space>::compute_vector()
 {
   atomKK->sync(execution_space,datamask_read);
 
@@ -104,13 +104,13 @@ void ComputeTempKokkos<DeviceType>::compute_vector()
 
   invoked_vector = update->ntimestep;
 
-  v = atomKK->k_v.view<DeviceType>();
+  v = DualViewHelper<Space>::view(atomKK->k_v);
   if (atomKK->rmass)
-    rmass = atomKK->k_rmass.view<DeviceType>();
+    rmass = DualViewHelper<Space>::view(atomKK->k_rmass);
   else
-    mass = atomKK->k_mass.view<DeviceType>();
-  type = atomKK->k_type.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
+    mass = DualViewHelper<Space>::view(atomKK->k_mass);
+  type = DualViewHelper<Space>::view(atomKK->k_type);
+  mask = DualViewHelper<Space>::view(atomKK->k_mask);
   int nlocal = atom->nlocal;
 
   double t[6];
@@ -135,12 +135,12 @@ void ComputeTempKokkos<DeviceType>::compute_vector()
   for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int RMASS>
 KOKKOS_INLINE_FUNCTION
-void ComputeTempKokkos<DeviceType>::operator()(TagComputeTempVector<RMASS>, const int &i, CTEMP& t_kk) const {
+void ComputeTempKokkos<Space>::operator()(TagComputeTempVector<RMASS>, const int &i, CTEMP& t_kk) const {
   if (mask[i] & groupbit) {
-    F_FLOAT massone = 0.0;
+    KK_FLOAT massone = 0.0;
     if (RMASS) massone = rmass[i];
     else massone = mass[type[i]];
     t_kk.t0 += massone * v(i,0)*v(i,0);
@@ -153,9 +153,7 @@ void ComputeTempKokkos<DeviceType>::operator()(TagComputeTempVector<RMASS>, cons
 }
 
 namespace LAMMPS_NS {
-template class ComputeTempKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class ComputeTempKokkos<LMPHostType>;
-#endif
+template class ComputeTempKokkos<Device>;
+template class ComputeTempKokkos<Host>;
 }
 

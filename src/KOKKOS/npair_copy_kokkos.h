@@ -14,11 +14,11 @@
 #ifdef NPAIR_CLASS
 
 NPairStyle(copy/kk/device,
-           NPairCopyKokkos<LMPDeviceType>,
+           NPairCopyKokkos<Device>,
            NP_COPY | NP_KOKKOS_DEVICE)
 
 NPairStyle(copy/kk/host,
-           NPairCopyKokkos<LMPHostType>,
+           NPairCopyKokkos<Host>,
            NP_COPY | NP_KOKKOS_HOST)
 
 #else
@@ -30,7 +30,7 @@ NPairStyle(copy/kk/host,
 
 namespace LAMMPS_NS {
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class NPairCopyKokkos : public NPair {
  public:
   NPairCopyKokkos(class LAMMPS *);

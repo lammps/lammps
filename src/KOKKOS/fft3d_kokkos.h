@@ -24,15 +24,16 @@ namespace LAMMPS_NS {
 
 // plan for how to perform a 3d FFT
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 struct fft_plan_3d_kokkos {
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef FFTArrayTypes<DeviceType> FFT_AT;
+  typedef FFTArrayTypes<Space> FFT_AT;
 
-  struct remap_plan_3d_kokkos<DeviceType> *pre_plan;       // remap from input -> 1st FFTs
-  struct remap_plan_3d_kokkos<DeviceType> *mid1_plan;      // remap from 1st -> 2nd FFTs
-  struct remap_plan_3d_kokkos<DeviceType> *mid2_plan;      // remap from 2nd -> 3rd FFTs
-  struct remap_plan_3d_kokkos<DeviceType> *post_plan;      // remap from 3rd FFTs -> output
+  struct remap_plan_3d_kokkos<Space> *pre_plan;       // remap from input -> 1st FFTs
+  struct remap_plan_3d_kokkos<Space> *mid1_plan;      // remap from 1st -> 2nd FFTs
+  struct remap_plan_3d_kokkos<Space> *mid2_plan;      // remap from 2nd -> 3rd FFTs
+  struct remap_plan_3d_kokkos<Space> *post_plan;      // remap from 3rd FFTs -> output
   typename FFT_AT::t_FFT_DATA_1d d_copy;                   // memory for remap results (if needed)
   typename FFT_AT::t_FFT_DATA_1d d_scratch;                // scratch space for remaps
   int total1,total2,total3;         // # of 1st,2nd,3rd FFTs (times length)
@@ -41,7 +42,7 @@ struct fft_plan_3d_kokkos {
   int mid1_target,mid2_target;
   int scaled;                       // whether to scale FFT results
   int normnum;                      // # of values to rescale
-  double norm;                      // normalization factor for rescaling
+  KK_FLOAT norm;                      // normalization factor for rescaling
 
                                     // system specific 1d FFT info
 #if defined(FFT_MKL)
@@ -60,20 +61,21 @@ struct fft_plan_3d_kokkos {
   cufftHandle plan_mid;
   cufftHandle plan_slow;
 #else
-  kiss_fft_state_kokkos<DeviceType> cfg_fast_forward;
-  kiss_fft_state_kokkos<DeviceType> cfg_fast_backward;
-  kiss_fft_state_kokkos<DeviceType> cfg_mid_forward;
-  kiss_fft_state_kokkos<DeviceType> cfg_mid_backward;
-  kiss_fft_state_kokkos<DeviceType> cfg_slow_forward;
-  kiss_fft_state_kokkos<DeviceType> cfg_slow_backward;
+  kiss_fft_state_kokkos<Space> cfg_fast_forward;
+  kiss_fft_state_kokkos<Space> cfg_fast_backward;
+  kiss_fft_state_kokkos<Space> cfg_mid_forward;
+  kiss_fft_state_kokkos<Space> cfg_mid_backward;
+  kiss_fft_state_kokkos<Space> cfg_slow_forward;
+  kiss_fft_state_kokkos<Space> cfg_slow_backward;
 #endif
 };
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class FFT3dKokkos : protected Pointers {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef FFTArrayTypes<DeviceType> FFT_AT;
+  typedef FFTArrayTypes<Space> FFT_AT;
 
   FFT3dKokkos(class LAMMPS *, MPI_Comm,
         int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,
@@ -83,23 +85,23 @@ class FFT3dKokkos : protected Pointers {
   void timing1d(typename FFT_AT::t_FFT_SCALAR_1d, int, int);
 
  private:
-  struct fft_plan_3d_kokkos<DeviceType> *plan;
-  RemapKokkos<DeviceType> *remapKK;
+  struct fft_plan_3d_kokkos<Space> *plan;
+  RemapKokkos<Space> *remapKK;
 
 #ifdef FFT_KISSFFT
-  KissFFTKokkos<DeviceType> *kissfftKK;
+  KissFFTKokkos<Space> *kissfftKK;
 #endif
 
-  void fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d, typename FFT_AT::t_FFT_DATA_1d, int, struct fft_plan_3d_kokkos<DeviceType> *);
+  void fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d, typename FFT_AT::t_FFT_DATA_1d, int, struct fft_plan_3d_kokkos<Space> *);
 
-  struct fft_plan_3d_kokkos<DeviceType> *fft_3d_create_plan_kokkos(MPI_Comm, int, int, int,
+  struct fft_plan_3d_kokkos<Space> *fft_3d_create_plan_kokkos(MPI_Comm, int, int, int,
                                          int, int, int, int, int,
                                          int, int, int, int, int, int, int,
                                          int, int, int *, int, int, int);
 
-  void fft_3d_destroy_plan_kokkos(struct fft_plan_3d_kokkos<DeviceType> *);
+  void fft_3d_destroy_plan_kokkos(struct fft_plan_3d_kokkos<Space> *);
 
-  void fft_3d_1d_only_kokkos(typename FFT_AT::t_FFT_DATA_1d, int, int, struct fft_plan_3d_kokkos<DeviceType> *);
+  void fft_3d_1d_only_kokkos(typename FFT_AT::t_FFT_DATA_1d, int, int, struct fft_plan_3d_kokkos<Space> *);
 
   void bifactor(int, int *, int *);
 };

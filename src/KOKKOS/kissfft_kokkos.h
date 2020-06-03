@@ -134,10 +134,11 @@ namespace LAMMPS_NS {
 #define MAXFACTORS 32
 /* e.g. an fft of length 128 has 4 factors
  as far as kissfft is concerned: 4*4*4*2  */
-template<class DeviceType>
+template<ExecutionSpace Space>
 struct kiss_fft_state_kokkos {
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef FFTArrayTypes<DeviceType> FFT_AT;
+  typedef FFTArrayTypes<Space> FFT_AT;
   int nfft;
   int inverse;
   typename FFT_AT::t_int_64 d_factors;
@@ -145,15 +146,16 @@ struct kiss_fft_state_kokkos {
   typename FFT_AT::t_FFT_DATA_1d d_scratch;
 };
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class KissFFTKokkos {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef FFTArrayTypes<DeviceType> FFT_AT;
+  typedef FFTArrayTypes<Space> FFT_AT;
 
   KOKKOS_INLINE_FUNCTION
   static void kf_bfly2(typename FFT_AT::t_FFT_DATA_1d_um &d_Fout, const size_t fstride,
-                       const kiss_fft_state_kokkos<DeviceType> &st, int m, int Fout_count)
+                       const kiss_fft_state_kokkos<Space> &st, int m, int Fout_count)
   {
       typename FFT_AT::t_FFT_DATA_1d_um d_twiddles = st.d_twiddles;
       FFT_SCALAR t[2];
@@ -179,7 +181,7 @@ class KissFFTKokkos {
 
   KOKKOS_INLINE_FUNCTION
   static void kf_bfly4(typename FFT_AT::t_FFT_DATA_1d_um &d_Fout, const size_t fstride,
-                       const kiss_fft_state_kokkos<DeviceType> &st, const size_t m, int Fout_count)
+                       const kiss_fft_state_kokkos<Space> &st, const size_t m, int Fout_count)
   {
       typename FFT_AT::t_FFT_DATA_1d_um d_twiddles = st.d_twiddles;
       FFT_SCALAR scratch[6][2];
@@ -237,7 +239,7 @@ class KissFFTKokkos {
 
   KOKKOS_INLINE_FUNCTION
   static void kf_bfly3(typename FFT_AT::t_FFT_DATA_1d_um &d_Fout, const size_t fstride,
-                       const kiss_fft_state_kokkos<DeviceType> &st, size_t m, int Fout_count)
+                       const kiss_fft_state_kokkos<Space> &st, size_t m, int Fout_count)
   {
       size_t k=m;
       const size_t m2 = 2*m;
@@ -289,7 +291,7 @@ class KissFFTKokkos {
 
   KOKKOS_INLINE_FUNCTION
   static void kf_bfly5(typename FFT_AT::t_FFT_DATA_1d_um &d_Fout, const size_t fstride,
-                       const kiss_fft_state_kokkos<DeviceType> &st, int m, int Fout_count)
+                       const kiss_fft_state_kokkos<Space> &st, int m, int Fout_count)
   {
       int u;
       FFT_SCALAR scratch[13][2];
@@ -369,7 +371,7 @@ class KissFFTKokkos {
 
   KOKKOS_INLINE_FUNCTION
   static void kf_bfly_generic(typename FFT_AT::t_FFT_DATA_1d_um &d_Fout, const size_t fstride,
-                              const kiss_fft_state_kokkos<DeviceType> &st, int m, int p, int Fout_count)
+                              const kiss_fft_state_kokkos<Space> &st, int m, int p, int Fout_count)
   {
       int u,k,q1,q;
       typename FFT_AT::t_FFT_DATA_1d_um d_twiddles = st.d_twiddles;
@@ -409,7 +411,7 @@ class KissFFTKokkos {
   KOKKOS_INLINE_FUNCTION
   static void kf_work(typename FFT_AT::t_FFT_DATA_1d_um &d_Fout, const typename FFT_AT::t_FFT_DATA_1d_um &d_f,
                       const size_t fstride, int in_stride,
-                      const typename FFT_AT::t_int_64_um &d_factors, const kiss_fft_state_kokkos<DeviceType> &st, int Fout_count, int f_count, int factors_count)
+                      const typename FFT_AT::t_int_64_um &d_factors, const kiss_fft_state_kokkos<Space> &st, int Fout_count, int f_count, int factors_count)
   {
       const int beg = Fout_count;
       const int p = d_factors[factors_count++]; /* the radix  */
@@ -454,8 +456,8 @@ class KissFFTKokkos {
   static int kf_factor(int n, FFT_HAT::t_int_64 h_facbuf)
   {
       int p=4, nf=0;
-      double floor_sqrt;
-      floor_sqrt = floor( sqrt((double)n) );
+      KK_FLOAT floor_sqrt;
+      floor_sqrt = floor( sqrt((KK_FLOAT)n) );
       int facbuf_count = 0;
       int p_max = 0;
 
@@ -488,9 +490,9 @@ class KissFFTKokkos {
    * It can be freed with free(), rather than a kiss_fft-specific function.
    */
 
-  static kiss_fft_state_kokkos<DeviceType> kiss_fft_alloc_kokkos(int nfft, int inverse_fft, void *mem, size_t *lenmem)
+  static kiss_fft_state_kokkos<Space> kiss_fft_alloc_kokkos(int nfft, int inverse_fft, void *mem, size_t *lenmem)
   {
-      kiss_fft_state_kokkos<DeviceType> st;
+      kiss_fft_state_kokkos<Space> st;
       int i;
       st.nfft = nfft;
       st.inverse = inverse_fft;
@@ -503,7 +505,7 @@ class KissFFTKokkos {
           k_twiddles = typename FFT_AT::tdual_FFT_DATA_1d("kissfft:twiddles",nfft);
 
           for (i=0;i<nfft;++i) {
-              const double phase = (st.inverse ? 2.0*M_PI:-2.0*M_PI)*i / nfft;
+              const KK_FLOAT phase = (st.inverse ? 2.0*M_PI:-2.0*M_PI)*i / nfft;
               kf_cexp(k_twiddles.h_view,i,phase );
           }
 
@@ -511,19 +513,19 @@ class KissFFTKokkos {
           st.d_scratch = typename FFT_AT::t_FFT_DATA_1d("kissfft:scratch",p_max);
       }
 
-      k_factors.template modify<LMPHostType>();
-      k_factors.template sync<LMPDeviceType>();
-      st.d_factors = k_factors.template view<DeviceType>();
+      k_factors.modify_host();
+      k_factors.sync_device();
+      st.d_factors = DualViewHelper<Space>::view(k_factors);
 
-      k_twiddles.template modify<LMPHostType>();
-      k_twiddles.template sync<LMPDeviceType>();
-      st.d_twiddles = k_twiddles.template view<DeviceType>();
+      k_twiddles.modify_host();
+      k_twiddles.sync_device();
+      st.d_twiddles = DualViewHelper<Space>::view(k_twiddles);
 
       return st;
   }
 
   KOKKOS_INLINE_FUNCTION
-  static void kiss_fft_stride(const kiss_fft_state_kokkos<DeviceType> &st, const typename FFT_AT::t_FFT_DATA_1d_um &d_fin, typename FFT_AT::t_FFT_DATA_1d_um &d_fout, int in_stride, int offset)
+  static void kiss_fft_stride(const kiss_fft_state_kokkos<Space> &st, const typename FFT_AT::t_FFT_DATA_1d_um &d_fin, typename FFT_AT::t_FFT_DATA_1d_um &d_fout, int in_stride, int offset)
   {
       //if (d_fin.data() == d_fout.data()) {
       //    // NOTE: this is not really an in-place FFT algorithm.
@@ -537,7 +539,7 @@ class KissFFTKokkos {
   }
 
   KOKKOS_INLINE_FUNCTION
-  static void kiss_fft_kokkos(const kiss_fft_state_kokkos<DeviceType> &cfg, const typename FFT_AT::t_FFT_DATA_1d_um d_fin, typename FFT_AT::t_FFT_DATA_1d_um d_fout, int offset)
+  static void kiss_fft_kokkos(const kiss_fft_state_kokkos<Space> &cfg, const typename FFT_AT::t_FFT_DATA_1d_um d_fin, typename FFT_AT::t_FFT_DATA_1d_um d_fout, int offset)
   {
       kiss_fft_stride(cfg,d_fin,d_fout,1,offset);
   }

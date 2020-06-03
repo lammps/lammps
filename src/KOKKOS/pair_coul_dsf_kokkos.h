@@ -13,9 +13,9 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(coul/dsf/kk,PairCoulDSFKokkos<LMPDeviceType>)
-PairStyle(coul/dsf/kk/device,PairCoulDSFKokkos<LMPDeviceType>)
-PairStyle(coul/dsf/kk/host,PairCoulDSFKokkos<LMPHostType>)
+PairStyle(coul/dsf/kk,PairCoulDSFKokkos<Device>)
+PairStyle(coul/dsf/kk/device,PairCoulDSFKokkos<Device>)
+PairStyle(coul/dsf/kk/host,PairCoulDSFKokkos<Host>)
 
 #else
 
@@ -31,13 +31,14 @@ namespace LAMMPS_NS {
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 struct TagPairCoulDSFKernelA{};
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class PairCoulDSFKokkos : public PairCoulDSF {
  public:
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=1};
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
   typedef EV_FLOAT value_type;
   PairCoulDSFKokkos(class LAMMPS *);
   ~PairCoulDSFKokkos();
@@ -56,36 +57,36 @@ class PairCoulDSFKokkos : public PairCoulDSF {
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
-                  const F_FLOAT &dely, const F_FLOAT &delz) const;
+      const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
+                  const KK_FLOAT &dely, const KK_FLOAT &delz) const;
 
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;
 
-  typename AT::t_x_array_randomread x;
-  typename AT::t_f_array f;
+  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_float_1d_3 f;
   typename AT::t_float_1d_randomread q;
 
  protected:
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_efloat_1d d_eatom;
-  typename AT::t_virial_array d_vatom;
+  DAT::tdual_float_1d k_eatom;
+  DAT::tdual_float_1d_6 k_vatom;
+  typename AT::t_float_1d d_eatom;
+  typename AT::t_float_1d_6 d_vatom;
 
 
   int neighflag,newton_pair;
   int nlocal,nall,eflag,vflag;
 
-  double special_coul[4];
-  double qqrd2e;
+  KK_FLOAT special_coul[4];
+  KK_FLOAT qqrd2e;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
-  //NeighListKokkos<DeviceType> k_list;
+  //NeighListKokkos<Space> k_list;
 
-  friend void pair_virial_fdotr_compute<PairCoulDSFKokkos>(PairCoulDSFKokkos*);
+  friend void pair_virial_fdotr_compute<Space,PairCoulDSFKokkos>(PairCoulDSFKokkos*);
 
 };
 

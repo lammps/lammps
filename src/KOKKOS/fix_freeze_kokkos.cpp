@@ -19,13 +19,12 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-FixFreezeKokkos<DeviceType>::FixFreezeKokkos(LAMMPS *lmp, int narg, char **arg) :
+template<ExecutionSpace Space>
+FixFreezeKokkos<Space>::FixFreezeKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixFreeze(lmp, narg, arg)
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *)atom;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
   datamask_read = F_MASK | MASK_MASK;
   datamask_modify = F_MASK | TORQUE_MASK;
@@ -33,39 +32,39 @@ FixFreezeKokkos<DeviceType>::FixFreezeKokkos(LAMMPS *lmp, int narg, char **arg) 
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-int FixFreezeKokkos<DeviceType>::setmask()
+template<ExecutionSpace Space>
+int FixFreezeKokkos<Space>::setmask()
 {
   return FixFreeze::setmask();
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixFreezeKokkos<DeviceType>::init()
+template<ExecutionSpace Space>
+void FixFreezeKokkos<Space>::init()
 {
   FixFreeze::init();
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixFreezeKokkos<DeviceType>::setup(int vflag)
+template<ExecutionSpace Space>
+void FixFreezeKokkos<Space>::setup(int vflag)
 {
   FixFreeze::setup(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixFreezeKokkos<DeviceType>::post_force(int vflag)
+template<ExecutionSpace Space>
+void FixFreezeKokkos<Space>::post_force(int vflag)
 {
   atomKK->sync(execution_space,datamask_read);
   atomKK->modified(execution_space,datamask_modify);
 
-  f = atomKK->k_f.view<DeviceType>();
-  torque = atomKK->k_torque.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
+  f = DualViewHelper<Space>::view(atomKK->k_f);
+  torque = DualViewHelper<Space>::view(atomKK->k_torque);
+  mask = DualViewHelper<Space>::view(atomKK->k_mask);
 
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
@@ -83,8 +82,8 @@ void FixFreezeKokkos<DeviceType>::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixFreezeKokkos<DeviceType>::post_force_respa(int vflag, int ilevel, int iloop)
+template<ExecutionSpace Space>
+void FixFreezeKokkos<Space>::post_force_respa(int vflag, int ilevel, int iloop)
 {
   post_force(vflag);
 }
@@ -93,16 +92,16 @@ void FixFreezeKokkos<DeviceType>::post_force_respa(int vflag, int ilevel, int il
    return components of total force on fix group before force was changed
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-double FixFreezeKokkos<DeviceType>::compute_vector(int n)
+template<ExecutionSpace Space>
+KK_FLOAT FixFreezeKokkos<Space>::compute_vector(int n)
 {
   return FixFreeze::compute_vector(n);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixFreezeKokkos<DeviceType>::operator()(const int i, OriginalForce &original) const {
+template<ExecutionSpace Space>
+void FixFreezeKokkos<Space>::operator()(const int i, OriginalForce &original) const {
   if (mask[i] & groupbit) {
     original.values[0] += f(i,0);
     original.values[1] += f(i,1);
@@ -117,8 +116,6 @@ void FixFreezeKokkos<DeviceType>::operator()(const int i, OriginalForce &origina
 }
 
 namespace LAMMPS_NS {
-template class FixFreezeKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class FixFreezeKokkos<LMPHostType>;
-#endif
+template class FixFreezeKokkos<Device>;
+template class FixFreezeKokkos<Host>;
 }

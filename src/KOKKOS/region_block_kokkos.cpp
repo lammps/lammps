@@ -21,16 +21,16 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-RegBlockKokkos<DeviceType>::RegBlockKokkos(LAMMPS *lmp, int narg, char **arg) : RegBlock(lmp, narg, arg)
+template<ExecutionSpace Space>
+RegBlockKokkos<Space>::RegBlockKokkos(LAMMPS *lmp, int narg, char **arg) : RegBlock(lmp, narg, arg)
 {
   atomKK = (AtomKokkos*) atom;
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-RegBlockKokkos<DeviceType>::~RegBlockKokkos()
+template<ExecutionSpace Space>
+RegBlockKokkos<Space>::~RegBlockKokkos()
 {
 
 }
@@ -40,41 +40,41 @@ RegBlockKokkos<DeviceType>::~RegBlockKokkos()
    inside = 0 if x,y,z is outside and not on surface
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-int RegBlockKokkos<DeviceType>::k_inside(double x, double y, double z) const
+int RegBlockKokkos<Space>::k_inside(KK_FLOAT x, KK_FLOAT y, KK_FLOAT z) const
 {
   if (x >= xlo && x <= xhi && y >= ylo && y <= yhi && z >= zlo && z <= zhi)
     return 1;
   return 0;
 }
 
-template<class DeviceType>
-void RegBlockKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_int_1d k_match_in)
+template<ExecutionSpace Space>
+void RegBlockKokkos<Space>::match_all_kokkos(int groupbit_in, DAT::tdual_int_1d k_match_in)
 {
   groupbit = groupbit_in;
-  d_match = k_match_in.template view<DeviceType>();
+  d_match = DualViewHelper<Space>::view(k_match_in);
 
   atomKK->sync(Device, X_MASK | MASK_MASK);
 
-  x = atomKK->k_x.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  mask = DualViewHelper<Space>::view(atomKK->k_mask);
   int nlocal = atom->nlocal;
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagRegBlockMatchAll>(0,nlocal),*this);
   copymode = 0;
 
-  k_match_in.template modify<DeviceType>();
+  DualViewHelper<Space>::modify(k_match_in);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void RegBlockKokkos<DeviceType>::operator()(TagRegBlockMatchAll, const int &i) const {
+void RegBlockKokkos<Space>::operator()(TagRegBlockMatchAll, const int &i) const {
   if (mask[i] & groupbit) {
-    double x_tmp = x(i,0);
-    double y_tmp = x(i,1);
-    double z_tmp = x(i,2);
+    KK_FLOAT x_tmp = x(i,0);
+    KK_FLOAT y_tmp = x(i,1);
+    KK_FLOAT z_tmp = x(i,2);
     d_match[i] = match(x_tmp,y_tmp,z_tmp);
   }
 }
@@ -91,9 +91,9 @@ void RegBlockKokkos<DeviceType>::operator()(TagRegBlockMatchAll, const int &i) c
      modify->clearstep_compute() and modify->addstep_compute() if needed
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-int RegBlockKokkos<DeviceType>::match(double x, double y, double z) const
+int RegBlockKokkos<Space>::match(KK_FLOAT x, KK_FLOAT y, KK_FLOAT z) const
 {
   if (dynamic) inverse_transform(x,y,z);
   return !(k_inside(x,y,z) ^ interior);
@@ -104,9 +104,9 @@ int RegBlockKokkos<DeviceType>::match(double x, double y, double z) const
    undisplace first, then unrotate (around original P)
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void RegBlockKokkos<DeviceType>::inverse_transform(double &x, double &y, double &z) const
+void RegBlockKokkos<Space>::inverse_transform(KK_FLOAT &x, KK_FLOAT &y, KK_FLOAT &z) const
 {
   if (moveflag) {
     x -= dx;
@@ -132,18 +132,18 @@ void RegBlockKokkos<DeviceType>::inverse_transform(double &x, double &y, double 
    new x,y,z = P + C + A cos(angle) + B sin(angle)
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void RegBlockKokkos<DeviceType>::rotate(double &x, double &y, double &z, double angle) const
+void RegBlockKokkos<Space>::rotate(KK_FLOAT &x, KK_FLOAT &y, KK_FLOAT &z, KK_FLOAT angle) const
 {
-  double a[3],b[3],c[3],d[3],disp[3];
+  KK_FLOAT a[3],b[3],c[3],d[3],disp[3];
 
-  double sine = sin(angle);
-  double cosine = cos(angle);
+  KK_FLOAT sine = sin(angle);
+  KK_FLOAT cosine = cos(angle);
   d[0] = x - point[0];
   d[1] = y - point[1];
   d[2] = z - point[2];
-  double x0dotr = d[0]*runit[0] + d[1]*runit[1] + d[2]*runit[2];
+  KK_FLOAT x0dotr = d[0]*runit[0] + d[1]*runit[1] + d[2]*runit[2];
   c[0] = x0dotr * runit[0];
   c[1] = x0dotr * runit[1];
   c[2] = x0dotr * runit[2];
@@ -162,9 +162,7 @@ void RegBlockKokkos<DeviceType>::rotate(double &x, double &y, double &z, double 
 }
 
 namespace LAMMPS_NS {
-template class RegBlockKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class RegBlockKokkos<LMPHostType>;
-#endif
+template class RegBlockKokkos<Device>;
+template class RegBlockKokkos<Host>;
 }
 

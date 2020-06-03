@@ -66,16 +66,16 @@ void FixReaxCBondsKokkos::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
   int nbuf_local;
   int nlocal_max, numbonds, numbonds_max;
   double *buf;
-  DAT::tdual_ffloat_1d k_buf;
+  DAT::tdual_float_1d k_buf;
 
   int nlocal = atom->nlocal;
   int nlocal_tot = static_cast<int> (atom->natoms);
 
   numbonds = 0;
   if (reaxc->execution_space == Device)
-    ((PairReaxCKokkos<LMPDeviceType>*) reaxc)->FindBond(numbonds);
+    ((PairReaxCKokkos<Device>*) reaxc)->FindBond(numbonds);
   else
-    ((PairReaxCKokkos<LMPHostType>*) reaxc)->FindBond(numbonds);
+    ((PairReaxCKokkos<Host>*) reaxc)->FindBond(numbonds);
 
   // allocate a temporary buffer for the snapshot info
   MPI_Allreduce(&numbonds,&numbonds_max,1,MPI_INT,MPI_MAX,world);
@@ -86,9 +86,9 @@ void FixReaxCBondsKokkos::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
 
   // Pass information to buffer
   if (reaxc->execution_space == Device)
-    ((PairReaxCKokkos<LMPDeviceType>*) reaxc)->PackBondBuffer(k_buf,nbuf_local);
+    ((PairReaxCKokkos<Device>*) reaxc)->PackBondBuffer(k_buf,nbuf_local);
   else
-    ((PairReaxCKokkos<LMPHostType>*) reaxc)->PackBondBuffer(k_buf,nbuf_local);
+    ((PairReaxCKokkos<Host>*) reaxc)->PackBondBuffer(k_buf,nbuf_local);
   buf[0] = nlocal;
 
   // Receive information from buffer for output
@@ -103,10 +103,10 @@ double FixReaxCBondsKokkos::memory_usage()
 {
   double bytes;
 
-  bytes = nbuf*sizeof(double);
+  bytes = nbuf*sizeof(KK_FLOAT);
   // These are accounted for in PairReaxCKokkos:
   //bytes += nmax*sizeof(int);
-  //bytes += 1.0*nmax*MAXREAXBOND*sizeof(double);
+  //bytes += 1.0*nmax*MAXREAXBOND*sizeof(KK_FLOAT);
   //bytes += 1.0*nmax*MAXREAXBOND*sizeof(int);
 
   return bytes;

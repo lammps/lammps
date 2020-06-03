@@ -71,18 +71,18 @@ void FixReaxCSpeciesKokkos::FindMolecule()
   int i,j,ii,jj,inum,itype,jtype,loop,looptot;
   int change,done,anychange;
   int *mask = atom->mask;
-  double bo_tmp,bo_cut;
+  KK_FLOAT bo_tmp,bo_cut;
   double **spec_atom = f_SPECBOND->array_atom;
 
   inum = reaxc->list->inum;
-  typename ArrayTypes<LMPHostType>::t_int_1d ilist;
+  HAT::t_int_1d ilist;
   if (reaxc->execution_space == Host) {
-    NeighListKokkos<LMPHostType>* k_list = static_cast<NeighListKokkos<LMPHostType>*>(reaxc->list);
-    k_list->k_ilist.sync<LMPHostType>();
+    NeighListKokkos<Host>* k_list = static_cast<NeighListKokkos<Host>*>(reaxc->list);
+    k_list->k_ilist.sync_host();
     ilist = k_list->k_ilist.h_view;
   } else {
-    NeighListKokkos<LMPDeviceType>* k_list = static_cast<NeighListKokkos<LMPDeviceType>*>(reaxc->list);
-    k_list->k_ilist.sync<LMPHostType>();
+    NeighListKokkos<Device>* k_list = static_cast<NeighListKokkos<Device>*>(reaxc->list);
+    k_list->k_ilist.sync_host();
     ilist = k_list->k_ilist.h_view;
   }
 

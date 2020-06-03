@@ -33,25 +33,25 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-FixSetForceKokkos<DeviceType>::FixSetForceKokkos(LAMMPS *lmp, int narg, char **arg) :
+template<ExecutionSpace Space>
+FixSetForceKokkos<Space>::FixSetForceKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixSetForce(lmp, narg, arg)
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  execution_space = Space;
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 
   memory->destroy(sforce);
   memoryKK->create_kokkos(k_sforce,sforce,maxatom,3,"setforce:sforce");
-  d_sforce = k_sforce.view<DeviceType>();
+  d_sforce = DualViewHelper<Space>::view(k_sforce);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-FixSetForceKokkos<DeviceType>::~FixSetForceKokkos()
+template<ExecutionSpace Space>
+FixSetForceKokkos<Space>::~FixSetForceKokkos()
 {
   if (copymode) return;
 
@@ -61,8 +61,8 @@ FixSetForceKokkos<DeviceType>::~FixSetForceKokkos()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixSetForceKokkos<DeviceType>::init()
+template<ExecutionSpace Space>
+void FixSetForceKokkos<Space>::init()
 {
   FixSetForce::init();
 
@@ -72,14 +72,14 @@ void FixSetForceKokkos<DeviceType>::init()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixSetForceKokkos<DeviceType>::post_force(int vflag)
+template<ExecutionSpace Space>
+void FixSetForceKokkos<Space>::post_force(int vflag)
 {
   atomKK->sync(execution_space, X_MASK | F_MASK | MASK_MASK);
 
-  x = atomKK->k_x.view<DeviceType>();
-  f = atomKK->k_f.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  f = DualViewHelper<Space>::view(atomKK->k_f);
+  mask = DualViewHelper<Space>::view(atomKK->k_mask);
 
   int nlocal = atom->nlocal;
 
@@ -92,8 +92,8 @@ void FixSetForceKokkos<DeviceType>::post_force(int vflag)
     DAT::tdual_int_1d k_match = DAT::tdual_int_1d("setforce:k_match",nlocal);
     KokkosBase* regionKKBase = dynamic_cast<KokkosBase*>(region);
     regionKKBase->match_all_kokkos(groupbit,k_match);
-    k_match.template sync<DeviceType>();
-    d_match = k_match.template view<DeviceType>();
+    DualViewHelper<Space>::sync(k_match);
+    d_match = DualViewHelper<Space>::view(k_match);
   }
 
   // reallocate sforce array if necessary
@@ -102,11 +102,11 @@ void FixSetForceKokkos<DeviceType>::post_force(int vflag)
     maxatom = atom->nmax;
     memoryKK->destroy_kokkos(k_sforce,sforce);
     memoryKK->create_kokkos(k_sforce,sforce,maxatom,3,"setforce:sforce");
-    d_sforce = k_sforce.view<DeviceType>();
+    d_sforce = DualViewHelper<Space>::view(k_sforce);
   }
 
   foriginal[0] = foriginal[1] = foriginal[2] = 0.0;
-  double_3 foriginal_kk;
+  KK_FLOAT_3 foriginal_kk;
   force_flag = 0;
 
   if (varflag == CONSTANT) {
@@ -135,8 +135,8 @@ void FixSetForceKokkos<DeviceType>::post_force(int vflag)
     modify->addstep_compute(update->ntimestep + 1);
 
     if (varflag == ATOM) {  // this can be removed when variable class is ported to Kokkos
-      k_sforce.modify<LMPHostType>();
-      k_sforce.sync<DeviceType>();
+      k_sforce.modify_host();
+      DualViewHelper<Space>::sync(k_sforce);
     }
 
     copymode = 1;
@@ -151,9 +151,9 @@ void FixSetForceKokkos<DeviceType>::post_force(int vflag)
   foriginal[2] = foriginal_kk.d2;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void FixSetForceKokkos<DeviceType>::operator()(TagFixSetForceConstant, const int &i, double_3& foriginal_kk) const {
+void FixSetForceKokkos<Space>::operator()(TagFixSetForceConstant, const int &i, KK_FLOAT_3& foriginal_kk) const {
   if (mask[i] & groupbit) {
     if (region && !d_match[i]) return;
     foriginal_kk.d0 += f(i,0);
@@ -165,9 +165,9 @@ void FixSetForceKokkos<DeviceType>::operator()(TagFixSetForceConstant, const int
   }
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void FixSetForceKokkos<DeviceType>::operator()(TagFixSetForceNonConstant, const int &i, double_3& foriginal_kk) const {
+void FixSetForceKokkos<Space>::operator()(TagFixSetForceNonConstant, const int &i, KK_FLOAT_3& foriginal_kk) const {
   if (mask[i] & groupbit) {
     if (region && !d_match[i]) return;
     foriginal_kk.d0 += f(i,0);
@@ -183,9 +183,7 @@ void FixSetForceKokkos<DeviceType>::operator()(TagFixSetForceNonConstant, const 
 }
 
 namespace LAMMPS_NS {
-template class FixSetForceKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class FixSetForceKokkos<LMPHostType>;
-#endif
+template class FixSetForceKokkos<Device>;
+template class FixSetForceKokkos<Host>;
 }
 

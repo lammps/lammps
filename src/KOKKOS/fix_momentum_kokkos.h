@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(momentum/kk,FixMomentumKokkos<LMPDeviceType>)
-FixStyle(momentum/kk/device,FixMomentumKokkos<LMPDeviceType>)
-FixStyle(momentum/kk/host,FixMomentumKokkos<LMPHostType>)
+FixStyle(momentum/kk,FixMomentumKokkos<Device>)
+FixStyle(momentum/kk/device,FixMomentumKokkos<Device>)
+FixStyle(momentum/kk/host,FixMomentumKokkos<Host>)
 
 #else
 
@@ -27,10 +27,11 @@ FixStyle(momentum/kk/host,FixMomentumKokkos<LMPHostType>)
 
 namespace LAMMPS_NS {
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class FixMomentumKokkos : public FixMomentum {
  public:
-  typedef ArrayTypes<DeviceType> AT;
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef ArrayTypes<Space> AT;
 
   FixMomentumKokkos(class LAMMPS *, int, char **);
   void end_of_step();

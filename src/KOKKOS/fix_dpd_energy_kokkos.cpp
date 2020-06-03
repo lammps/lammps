@@ -22,13 +22,13 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-template <typename DeviceType>
-FixDPDenergyKokkos<DeviceType>::FixDPDenergyKokkos(LAMMPS *lmp, int narg, char **arg) :
+template <ExecutionSpace Space>
+FixDPDenergyKokkos<Space>::FixDPDenergyKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixDPDenergy(lmp, narg, arg)
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  execution_space = Space;
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
   pairDPDEKK = dynamic_cast<decltype(pairDPDEKK)>(pairDPDE);
@@ -38,23 +38,23 @@ FixDPDenergyKokkos<DeviceType>::FixDPDenergyKokkos(LAMMPS *lmp, int narg, char *
 
 /* ---------------------------------------------------------------------- */
 
-template <typename DeviceType>
-void FixDPDenergyKokkos<DeviceType>::take_half_step()
+template <ExecutionSpace Space>
+void FixDPDenergyKokkos<Space>::take_half_step()
 {
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  using AT = ArrayTypes<DeviceType>;
+  using AT = ArrayTypes<Space>;
 
   atomKK->sync(execution_space, UCOND_MASK);
-  typename AT::t_efloat_1d uCond = atomKK->k_uCond.view<DeviceType>();
+  typename AT::t_float_1d uCond = DualViewHelper<Space>::view(atomKK->k_uCond);
   atomKK->sync(execution_space, UMECH_MASK);
-  typename AT::t_efloat_1d uMech = atomKK->k_uMech.view<DeviceType>();
+  typename AT::t_float_1d uMech = DualViewHelper<Space>::view(atomKK->k_uMech);
 
-  pairDPDEKK->k_duCond.template sync<DeviceType>();
-  typename AT::t_efloat_1d_const duCond = pairDPDEKK->k_duCond.template view<DeviceType>();
-  pairDPDEKK->k_duMech.template sync<DeviceType>();
-  typename AT::t_efloat_1d_const duMech = pairDPDEKK->k_duMech.template view<DeviceType>();
+  DualViewHelper<Space>::sync(pairDPDEKK->k_duCond);
+  typename AT::t_float_1d_const duCond = DualViewHelper<Space>::view(pairDPDEKK->k_duCond);
+  DualViewHelper<Space>::sync(pairDPDEKK->k_duMech);
+  typename AT::t_float_1d_const duMech = DualViewHelper<Space>::view(pairDPDEKK->k_duMech);
 
   auto dt = update->dt;
 
@@ -69,23 +69,21 @@ void FixDPDenergyKokkos<DeviceType>::take_half_step()
 
 /* ---------------------------------------------------------------------- */
 
-template <typename DeviceType>
-void FixDPDenergyKokkos<DeviceType>::initial_integrate(int)
+template <ExecutionSpace Space>
+void FixDPDenergyKokkos<Space>::initial_integrate(int)
 {
   take_half_step();
 }
 
 /* ---------------------------------------------------------------------- */
 
-template <typename DeviceType>
-void FixDPDenergyKokkos<DeviceType>::final_integrate()
+template <ExecutionSpace Space>
+void FixDPDenergyKokkos<Space>::final_integrate()
 {
   take_half_step();
 }
 
 namespace LAMMPS_NS {
-template class FixDPDenergyKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class FixDPDenergyKokkos<LMPHostType>;
-#endif
+template class FixDPDenergyKokkos<Device>;
+template class FixDPDenergyKokkos<Host>;
 }

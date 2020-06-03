@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(langevin/kk,FixLangevinKokkos<LMPDeviceType>)
-FixStyle(langevin/kk/device,FixLangevinKokkos<LMPDeviceType>)
-FixStyle(langevin/kk/host,FixLangevinKokkos<LMPHostType>)
+FixStyle(langevin/kk,FixLangevinKokkos<Device>)
+FixStyle(langevin/kk/device,FixLangevinKokkos<Device>)
+FixStyle(langevin/kk/host,FixLangevinKokkos<Host>)
 
 #else
 
@@ -30,7 +30,7 @@ FixStyle(langevin/kk/host,FixLangevinKokkos<LMPHostType>)
 namespace LAMMPS_NS {
 
   struct s_FSUM {
-    double fx, fy, fz;
+    KK_FLOAT fx, fy, fz;
     KOKKOS_INLINE_FUNCTION
     s_FSUM() {
       fx = fy = fz = 0.0;
@@ -53,23 +53,26 @@ namespace LAMMPS_NS {
   };
   typedef s_FSUM FSUM;
 
-  template<class DeviceType>
+  template<ExecutionSpace Space>
     class FixLangevinKokkos;
 
-  template <class DeviceType>
+  template <ExecutionSpace Space>
   class FixLangevinKokkosInitialIntegrateFunctor;
 
-  template<class DeviceType,int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
+  template<ExecutionSpace Space,int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
     int Tp_BIAS, int Tp_RMASS, int Tp_ZERO>
     class FixLangevinKokkosPostForceFunctor;
 
-  template<class DeviceType> class FixLangevinKokkosZeroForceFunctor;
+  template<ExecutionSpace Space> class FixLangevinKokkosZeroForceFunctor;
 
-  template<class DeviceType> class FixLangevinKokkosTallyEnergyFunctor;
+  template<ExecutionSpace Space> class FixLangevinKokkosTallyEnergyFunctor;
 
-  template<class DeviceType>
+  template<ExecutionSpace Space>
     class FixLangevinKokkos : public FixLangevin {
   public:
+    typedef typename GetDeviceType<Space>::value DeviceType;
+    typedef ArrayTypes<Space> AT;
+
     FixLangevinKokkos(class LAMMPS *, int, char **);
     ~FixLangevinKokkos();
 
@@ -98,7 +101,7 @@ namespace LAMMPS_NS {
       void zero_force_item(int) const;
 
     KOKKOS_INLINE_FUNCTION
-      double compute_energy_item(int) const;
+      KK_FLOAT compute_energy_item(int) const;
 
     KOKKOS_INLINE_FUNCTION
       void end_of_step_item(int) const;
@@ -109,40 +112,40 @@ namespace LAMMPS_NS {
   private:
     class CommKokkos *commKK;
 
-    typename ArrayTypes<DeviceType>::t_float_1d rmass;
-    typename ArrayTypes<DeviceType>::t_float_1d mass;
-    typename ArrayTypes<DeviceType>::tdual_double_2d k_franprev;
-    typename ArrayTypes<DeviceType>::t_double_2d d_franprev;
-    HAT::t_double_2d h_franprev;
+    typename AT::t_float_1d rmass;
+    typename AT::t_float_1d mass;
+    DAT::tdual_float_2d k_franprev;
+    typename AT::t_float_2d d_franprev;
+    HAT::t_float_2d h_franprev;
 
-    typename ArrayTypes<DeviceType>::tdual_double_2d k_lv;
-    typename ArrayTypes<DeviceType>::t_double_2d d_lv;
-    HAT::t_double_2d h_lv;
+    DAT::tdual_float_2d k_lv;
+    typename AT::t_float_2d d_lv;
+    HAT::t_float_2d h_lv;
 
-    typename ArrayTypes<DeviceType>::tdual_double_2d k_flangevin;
-    typename ArrayTypes<DeviceType>::t_double_2d d_flangevin;
-    HAT::t_double_2d h_flangevin;
+    DAT::tdual_float_2d k_flangevin;
+    typename AT::t_float_2d d_flangevin;
+    HAT::t_float_2d h_flangevin;
 
-    typename ArrayTypes<DeviceType>::tdual_double_1d k_tforce;
-    typename ArrayTypes<DeviceType>::t_double_1d d_tforce;
-    HAT::t_double_1d h_tforce;
+    DAT::tdual_float_1d k_tforce;
+    typename AT::t_float_1d d_tforce;
+    HAT::t_float_1d h_tforce;
 
-    typename ArrayTypes<DeviceType>::t_v_array v;
-    typename ArrayTypes<DeviceType>::t_f_array f;
-    typename ArrayTypes<DeviceType>::t_int_1d type;
-    typename ArrayTypes<DeviceType>::t_int_1d mask;
+    typename AT::t_float_1d_3 v;
+    typename AT::t_float_1d_3 f;
+    typename AT::t_int_1d type;
+    typename AT::t_int_1d mask;
 
-    typename ArrayTypes<DeviceType>::tdual_double_1d k_gfactor1, k_gfactor2, k_ratio;
-    typename ArrayTypes<DeviceType>::t_double_1d d_gfactor1, d_gfactor2, d_ratio;
-    HAT::t_double_1d h_gfactor1, h_gfactor2, h_ratio;
+    DAT::tdual_float_1d k_gfactor1, k_gfactor2, k_ratio;
+    typename AT::t_float_1d d_gfactor1, d_gfactor2, d_ratio;
+    HAT::t_float_1d h_gfactor1, h_gfactor2, h_ratio;
 
-    typedef Kokkos::DualView<double[3], DeviceType>
-      tdual_double_1d_3n;
-    tdual_double_1d_3n k_fsumall;
-    typename tdual_double_1d_3n::t_dev d_fsumall;
-    typename tdual_double_1d_3n::t_host h_fsumall;
+    typedef Kokkos::DualView<KK_FLOAT[3], DeviceType>
+      tdual_float_1d_3n;
+    tdual_float_1d_3n k_fsumall;
+    typename tdual_float_1d_3n::t_dev d_fsumall;
+    typename tdual_float_1d_3n::t_host h_fsumall;
 
-    double boltz,dt,mvv2e,ftm2v,fran_prop_const;
+    KK_FLOAT boltz,dt,mvv2e,ftm2v,fran_prop_const;
 
     void compute_target();
 
@@ -151,12 +154,12 @@ namespace LAMMPS_NS {
 
   };
 
-  template <class DeviceType>
+  template <ExecutionSpace Space>
   struct FixLangevinKokkosInitialIntegrateFunctor  {
-    typedef DeviceType  device_type ;
-    FixLangevinKokkos<DeviceType> c;
+    typedef typename GetDeviceType<Space>::value DeviceType;
+    FixLangevinKokkos<Space> c;
 
-  FixLangevinKokkosInitialIntegrateFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
+  FixLangevinKokkosInitialIntegrateFunctor(FixLangevinKokkos<Space>* c_ptr):
     c(*c_ptr) {c.cleanup_copy();};
 
     KOKKOS_INLINE_FUNCTION
@@ -166,15 +169,15 @@ namespace LAMMPS_NS {
   };
 
 
-  template <class DeviceType,int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
+  template <ExecutionSpace Space,int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
     int Tp_BIAS, int Tp_RMASS, int Tp_ZERO>
     struct FixLangevinKokkosPostForceFunctor {
 
-      typedef DeviceType  device_type;
+      typedef typename GetDeviceType<Space>::value DeviceType;
       typedef FSUM value_type;
-      FixLangevinKokkos<DeviceType> c;
+      FixLangevinKokkos<Space> c;
 
-    FixLangevinKokkosPostForceFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
+    FixLangevinKokkosPostForceFunctor(FixLangevinKokkos<Space>* c_ptr):
       c(*c_ptr) {}
       ~FixLangevinKokkosPostForceFunctor(){c.cleanup_copy();}
 
@@ -207,12 +210,12 @@ namespace LAMMPS_NS {
 
     };
 
-  template <class DeviceType>
+  template <ExecutionSpace Space>
     struct FixLangevinKokkosZeroForceFunctor {
-      typedef DeviceType  device_type ;
-      FixLangevinKokkos<DeviceType> c;
+      typedef typename GetDeviceType<Space>::value DeviceType;
+      FixLangevinKokkos<Space> c;
 
-    FixLangevinKokkosZeroForceFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
+    FixLangevinKokkosZeroForceFunctor(FixLangevinKokkos<Space>* c_ptr):
       c(*c_ptr) {c.cleanup_copy();}
 
       KOKKOS_INLINE_FUNCTION
@@ -221,12 +224,12 @@ namespace LAMMPS_NS {
       }
     };
 
-  template<class DeviceType>
+  template<ExecutionSpace Space>
     struct FixLangevinKokkosTallyEnergyFunctor {
-      typedef DeviceType  device_type ;
-      FixLangevinKokkos<DeviceType> c;
-      typedef double value_type;
-    FixLangevinKokkosTallyEnergyFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
+      typedef typename GetDeviceType<Space>::value DeviceType;
+      FixLangevinKokkos<Space> c;
+      typedef KK_FLOAT value_type;
+    FixLangevinKokkosTallyEnergyFunctor(FixLangevinKokkos<Space>* c_ptr):
       c(*c_ptr) {c.cleanup_copy();}
 
       KOKKOS_INLINE_FUNCTION
@@ -244,12 +247,12 @@ namespace LAMMPS_NS {
       }
     };
 
-  template <class DeviceType, int RMass>
+  template <ExecutionSpace Space, int RMass>
   struct FixLangevinKokkosEndOfStepFunctor {
-    typedef DeviceType  device_type ;
-    FixLangevinKokkos<DeviceType> c;
+    typedef typename GetDeviceType<Space>::value DeviceType;
+    FixLangevinKokkos<Space> c;
 
-    FixLangevinKokkosEndOfStepFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
+    FixLangevinKokkosEndOfStepFunctor(FixLangevinKokkos<Space>* c_ptr):
       c(*c_ptr) {c.cleanup_copy();}
 
     KOKKOS_INLINE_FUNCTION

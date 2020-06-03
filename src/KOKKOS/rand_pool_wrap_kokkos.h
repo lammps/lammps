@@ -30,12 +30,12 @@ struct RandWrap {
   }
 
   KOKKOS_INLINE_FUNCTION
-  double drand() {
+  KK_FLOAT drand() {
     return rng->uniform();
   }
 
   KOKKOS_INLINE_FUNCTION
-  double normal() {
+  KK_FLOAT normal() {
     return rng->gaussian();
   }
 };

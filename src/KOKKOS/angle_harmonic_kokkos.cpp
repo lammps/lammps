@@ -35,20 +35,20 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-AngleHarmonicKokkos<DeviceType>::AngleHarmonicKokkos(LAMMPS *lmp) : AngleHarmonic(lmp)
+template<ExecutionSpace Space>
+AngleHarmonicKokkos<Space>::AngleHarmonicKokkos(LAMMPS *lmp) : AngleHarmonic(lmp)
 {
   atomKK = (AtomKokkos *) atom;
+  execution_space = Space;
   neighborKK = (NeighborKokkos *) neighbor;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-AngleHarmonicKokkos<DeviceType>::~AngleHarmonicKokkos()
+template<ExecutionSpace Space>
+AngleHarmonicKokkos<Space>::~AngleHarmonicKokkos()
 {
   if (!copymode) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
@@ -58,8 +58,8 @@ AngleHarmonicKokkos<DeviceType>::~AngleHarmonicKokkos()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void AngleHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
+template<ExecutionSpace Space>
+void AngleHarmonicKokkos<Space>::compute(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
@@ -71,24 +71,24 @@ void AngleHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag_atom) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"angle:eatom");
-    d_eatom = k_eatom.template view<DeviceType>();
+    d_eatom = DualViewHelper<Space>::view(k_eatom);
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"angle:vatom");
-    d_vatom = k_vatom.template view<DeviceType>();
+    d_vatom = DualViewHelper<Space>::view(k_vatom);
   }
 
   //atomKK->sync(execution_space,datamask_read);
-  k_k.template sync<DeviceType>();
-  k_theta0.template sync<DeviceType>();
+  DualViewHelper<Space>::sync(k_k);
+  DualViewHelper<Space>::sync(k_theta0);
   //  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   //  else atomKK->modified(execution_space,F_MASK);
 
-  x = atomKK->k_x.template view<DeviceType>();
-  f = atomKK->k_f.template view<DeviceType>();
-  neighborKK->k_anglelist.template sync<DeviceType>();
-  anglelist = neighborKK->k_anglelist.template view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  f = DualViewHelper<Space>::view(atomKK->k_f);
+  DualViewHelper<Space>::sync(neighborKK->k_anglelist);
+  anglelist = DualViewHelper<Space>::view(neighborKK->k_anglelist);
   int nanglelist = neighborKK->nanglelist;
   nlocal = atom->nlocal;
   newton_bond = force->newton_bond;
@@ -124,25 +124,25 @@ void AngleHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   if (eflag_atom) {
-    k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_eatom);
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
-    k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_vatom);
+    k_vatom.sync_host();
   }
 
   copymode = 0;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEWTON_BOND, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void AngleHarmonicKokkos<DeviceType>::operator()(TagAngleHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
+void AngleHarmonicKokkos<Space>::operator()(TagAngleHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
   // The f array is atomic
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
+  Kokkos::View<typename AT::t_float_1d_3::data_type, typename AT::t_float_1d_3::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
 
   const int i1 = anglelist(n,0);
   const int i2 = anglelist(n,1);
@@ -151,48 +151,48 @@ void AngleHarmonicKokkos<DeviceType>::operator()(TagAngleHarmonicCompute<NEWTON_
 
   // 1st bond
 
-  const F_FLOAT delx1 = x(i1,0) - x(i2,0);
-  const F_FLOAT dely1 = x(i1,1) - x(i2,1);
-  const F_FLOAT delz1 = x(i1,2) - x(i2,2);
+  const KK_FLOAT delx1 = x(i1,0) - x(i2,0);
+  const KK_FLOAT dely1 = x(i1,1) - x(i2,1);
+  const KK_FLOAT delz1 = x(i1,2) - x(i2,2);
 
-  const F_FLOAT rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-  const F_FLOAT r1 = sqrt(rsq1);
+  const KK_FLOAT rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
+  const KK_FLOAT r1 = sqrt(rsq1);
 
   // 2nd bond
 
-  const F_FLOAT delx2 = x(i3,0) - x(i2,0);
-  const F_FLOAT dely2 = x(i3,1) - x(i2,1);
-  const F_FLOAT delz2 = x(i3,2) - x(i2,2);
+  const KK_FLOAT delx2 = x(i3,0) - x(i2,0);
+  const KK_FLOAT dely2 = x(i3,1) - x(i2,1);
+  const KK_FLOAT delz2 = x(i3,2) - x(i2,2);
 
-  const F_FLOAT rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-  const F_FLOAT r2 = sqrt(rsq2);
+  const KK_FLOAT rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
+  const KK_FLOAT r2 = sqrt(rsq2);
 
   // angle (cos and sin)
 
-  F_FLOAT c = delx1*delx2 + dely1*dely2 + delz1*delz2;
+  KK_FLOAT c = delx1*delx2 + dely1*dely2 + delz1*delz2;
   c /= r1*r2;
 
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
 
-  F_FLOAT s = sqrt(1.0 - c*c);
+  KK_FLOAT s = sqrt(1.0 - c*c);
   if (s < SMALL) s = SMALL;
   s = 1.0/s;
 
   // force & energy
 
-  const F_FLOAT dtheta = acos(c) - d_theta0[type];
-  const F_FLOAT tk = d_k[type] * dtheta;
+  const KK_FLOAT dtheta = acos(c) - d_theta0[type];
+  const KK_FLOAT tk = d_k[type] * dtheta;
 
-  F_FLOAT eangle = 0.0;
+  KK_FLOAT eangle = 0.0;
   if (eflag) eangle = tk*dtheta;
 
-  const F_FLOAT a = -2.0 * tk * s;
-  const F_FLOAT a11 = a*c / rsq1;
-  const F_FLOAT a12 = -a / (r1*r2);
-  const F_FLOAT a22 = a*c / rsq2;
+  const KK_FLOAT a = -2.0 * tk * s;
+  const KK_FLOAT a11 = a*c / rsq1;
+  const KK_FLOAT a12 = -a / (r1*r2);
+  const KK_FLOAT a22 = a*c / rsq2;
 
-  F_FLOAT f1[3],f3[3];
+  KK_FLOAT f1[3],f3[3];
   f1[0] = a11*delx1 + a12*delx2;
   f1[1] = a11*dely1 + a12*dely2;
   f1[2] = a11*delz1 + a12*delz2;
@@ -224,35 +224,35 @@ void AngleHarmonicKokkos<DeviceType>::operator()(TagAngleHarmonicCompute<NEWTON_
                        delx1,dely1,delz1,delx2,dely2,delz2);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEWTON_BOND, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void AngleHarmonicKokkos<DeviceType>::operator()(TagAngleHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n) const {
+void AngleHarmonicKokkos<Space>::operator()(TagAngleHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n) const {
   EV_FLOAT ev;
   this->template operator()<NEWTON_BOND,EVFLAG>(TagAngleHarmonicCompute<NEWTON_BOND,EVFLAG>(), n, ev);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void AngleHarmonicKokkos<DeviceType>::allocate()
+template<ExecutionSpace Space>
+void AngleHarmonicKokkos<Space>::allocate()
 {
   AngleHarmonic::allocate();
 
   int n = atom->nangletypes;
-  k_k = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleHarmonic::k",n+1);
-  k_theta0 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleHarmonic::theta0",n+1);
+  k_k = DAT::tdual_float_1d("AngleHarmonic::k",n+1);
+  k_theta0 = DAT::tdual_float_1d("AngleHarmonic::theta0",n+1);
 
-  d_k = k_k.template view<DeviceType>();
-  d_theta0 = k_theta0.template view<DeviceType>();
+  d_k = DualViewHelper<Space>::view(k_k);
+  d_theta0 = DualViewHelper<Space>::view(k_theta0);
 }
 
 /* ----------------------------------------------------------------------
    set coeffs for one or more types
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void AngleHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
+template<ExecutionSpace Space>
+void AngleHarmonicKokkos<Space>::coeff(int narg, char **arg)
 {
   AngleHarmonic::coeff(narg, arg);
 
@@ -262,16 +262,16 @@ void AngleHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
     k_theta0.h_view[i] = theta0[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_theta0.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_theta0.modify_host();
 }
 
 /* ----------------------------------------------------------------------
    proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void AngleHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
+template<ExecutionSpace Space>
+void AngleHarmonicKokkos<Space>::read_restart(FILE *fp)
 {
   AngleHarmonic::read_restart(fp);
 
@@ -281,8 +281,8 @@ void AngleHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
     k_theta0.h_view[i] = theta0[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_theta0.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_theta0.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -290,20 +290,20 @@ void AngleHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
    virial = r1F1 + r2F2 + r3F3 = (r1-r2) F1 + (r3-r2) F3 = del1*f1 + del2*f3
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 //template<int NEWTON_BOND>
 KOKKOS_INLINE_FUNCTION
-void AngleHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const int j, const int k,
-                     F_FLOAT &eangle, F_FLOAT *f1, F_FLOAT *f3,
-                     const F_FLOAT &delx1, const F_FLOAT &dely1, const F_FLOAT &delz1,
-                     const F_FLOAT &delx2, const F_FLOAT &dely2, const F_FLOAT &delz2) const
+void AngleHarmonicKokkos<Space>::ev_tally(EV_FLOAT &ev, const int i, const int j, const int k,
+                     KK_FLOAT &eangle, KK_FLOAT *f1, KK_FLOAT *f3,
+                     const KK_FLOAT &delx1, const KK_FLOAT &dely1, const KK_FLOAT &delz1,
+                     const KK_FLOAT &delx2, const KK_FLOAT &dely2, const KK_FLOAT &delz2) const
 {
-  E_FLOAT eanglethird;
-  F_FLOAT v[6];
+  KK_FLOAT eanglethird;
+  KK_FLOAT v[6];
 
   // The eatom and vatom arrays are atomic
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_eatom = k_eatom.template view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_vatom = k_vatom.template view<DeviceType>();
+  Kokkos::View<typename AT::t_float_1d::data_type, typename AT::t_float_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_eatom = DualViewHelper<Space>::view(k_eatom);
+  Kokkos::View<typename AT::t_float_1d_6::data_type, typename AT::t_float_1d_6::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_vatom = DualViewHelper<Space>::view(k_vatom);
 
   if (eflag_either) {
     if (eflag_global) {
@@ -403,9 +403,7 @@ void AngleHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const 
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
-template class AngleHarmonicKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class AngleHarmonicKokkos<LMPHostType>;
-#endif
+template class AngleHarmonicKokkos<Device>;
+template class AngleHarmonicKokkos<Host>;
 }
 

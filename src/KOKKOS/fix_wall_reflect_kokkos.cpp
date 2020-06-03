@@ -36,21 +36,21 @@ enum{NONE=0,EDGE,CONSTANT,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-FixWallReflectKokkos<DeviceType>::FixWallReflectKokkos(LAMMPS *lmp, int narg, char **arg) :
+template<ExecutionSpace Space>
+FixWallReflectKokkos<Space>::FixWallReflectKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixWallReflect(lmp, narg, arg)
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  execution_space = Space;
   datamask_read = X_MASK | V_MASK | MASK_MASK;
   datamask_modify = X_MASK | V_MASK;
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixWallReflectKokkos<DeviceType>::post_integrate()
+template<ExecutionSpace Space>
+void FixWallReflectKokkos<Space>::post_integrate()
 {
   // coord = current position of wall
   // evaluate variable if necessary, wrap with clear/add
@@ -58,9 +58,9 @@ void FixWallReflectKokkos<DeviceType>::post_integrate()
   atomKK->sync(execution_space,datamask_read);
   atomKK->modified(execution_space,datamask_modify);
 
-  x = atomKK->k_x.view<DeviceType>();
-  v = atomKK->k_v.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  v = DualViewHelper<Space>::view(atomKK->k_v);
+  mask = DualViewHelper<Space>::view(atomKK->k_mask);
   int nlocal = atom->nlocal;
 
 
@@ -85,9 +85,9 @@ void FixWallReflectKokkos<DeviceType>::post_integrate()
   if (varflag) modify->addstep_compute(update->ntimestep + 1);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void FixWallReflectKokkos<DeviceType>::operator()(TagFixWallReflectPostIntegrate, const int &i) const {
+void FixWallReflectKokkos<Space>::operator()(TagFixWallReflectPostIntegrate, const int &i) const {
   if (mask[i] & groupbit) {
     if (side == 0) {
       if (x(i,dim) < coord) {
@@ -106,9 +106,7 @@ void FixWallReflectKokkos<DeviceType>::operator()(TagFixWallReflectPostIntegrate
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
-template class FixWallReflectKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class FixWallReflectKokkos<LMPHostType>;
-#endif
+template class FixWallReflectKokkos<Device>;
+template class FixWallReflectKokkos<Host>;
 }
 

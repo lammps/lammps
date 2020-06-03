@@ -36,21 +36,21 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-PairCoulWolfKokkos<DeviceType>::PairCoulWolfKokkos(LAMMPS *lmp) : PairCoulWolf(lmp)
+template<ExecutionSpace Space>
+PairCoulWolfKokkos<Space>::PairCoulWolfKokkos(LAMMPS *lmp) : PairCoulWolf(lmp)
 {
   respa_enable = 0;
 
   atomKK = (AtomKokkos *) atom;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  execution_space = Space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-PairCoulWolfKokkos<DeviceType>::~PairCoulWolfKokkos()
+template<ExecutionSpace Space>
+PairCoulWolfKokkos<Space>::~PairCoulWolfKokkos()
 {
   if (!copymode) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
@@ -60,8 +60,8 @@ PairCoulWolfKokkos<DeviceType>::~PairCoulWolfKokkos()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairCoulWolfKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
+template<ExecutionSpace Space>
+void PairCoulWolfKokkos<Space>::compute(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
@@ -75,12 +75,12 @@ void PairCoulWolfKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag_atom) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
-    d_eatom = k_eatom.view<DeviceType>();
+    d_eatom = DualViewHelper<Space>::view(k_eatom);
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
-    d_vatom = k_vatom.view<DeviceType>();
+    d_vatom = DualViewHelper<Space>::view(k_vatom);
   }
 
   atomKK->sync(execution_space,datamask_read);
@@ -93,14 +93,14 @@ void PairCoulWolfKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   f_shift = -(e_shift+ 2.0*alf/MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) /
     cut_coul;
 
-  x = atomKK->k_x.view<DeviceType>();
-  f = atomKK->k_f.view<DeviceType>();
-  q = atomKK->k_q.view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  f = DualViewHelper<Space>::view(atomKK->k_f);
+  q = DualViewHelper<Space>::view(atomKK->k_q);
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
 
-  NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
+  NeighListKokkos<Space>* k_list = static_cast<NeighListKokkos<Space>*>(list);
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
@@ -174,16 +174,16 @@ void PairCoulWolfKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   if (eflag_atom) {
-    k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_eatom);
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
-    k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_vatom);
+    k_vatom.sync_host();
   }
 
-  if (vflag_fdotr) pair_virial_fdotr_compute(this);
+  if (vflag_fdotr) pair_virial_fdotr_compute<Space>(this);
 
   copymode = 0;
 }
@@ -192,8 +192,8 @@ void PairCoulWolfKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairCoulWolfKokkos<DeviceType>::init_style()
+template<ExecutionSpace Space>
+void PairCoulWolfKokkos<Space>::init_style()
 {
   PairCoulWolf::init_style();
 
@@ -203,10 +203,10 @@ void PairCoulWolfKokkos<DeviceType>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = (Space == Host) &&
+    !(Space == Device);
   neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = (Space == Device);
 
   if (neighflag == FULL) {
     neighbor->requests[irequest]->full = 1;
@@ -222,24 +222,24 @@ void PairCoulWolfKokkos<DeviceType>::init_style()
 /* ---------------------------------------------------------------------- */
 
 ////Specialisation for Neighborlist types Half, HalfThread, Full
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairCoulWolfKokkos<DeviceType>::operator()(TagPairCoulWolfKernelA<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
+void PairCoulWolfKokkos<Space>::operator()(TagPairCoulWolfKernelA<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
   // The f array is atomic for Half/Thread neighbor style
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = k_eatom.view<DeviceType>();
+  Kokkos::View<typename AT::t_float_1d_3::data_type, typename AT::t_float_1d_3::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  Kokkos::View<typename AT::t_float_1d::data_type, typename AT::t_float_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = DualViewHelper<Space>::view(k_eatom);
 
   const int i = d_ilist[ii];
-  const X_FLOAT xtmp = x(i,0);
-  const X_FLOAT ytmp = x(i,1);
-  const X_FLOAT ztmp = x(i,2);
-  const F_FLOAT qtmp = q[i];
+  const KK_FLOAT xtmp = x(i,0);
+  const KK_FLOAT ytmp = x(i,1);
+  const KK_FLOAT ztmp = x(i,2);
+  const KK_FLOAT qtmp = q[i];
 
   if (eflag) {
-    const F_FLOAT qisq = qtmp*qtmp;
-    const F_FLOAT e_self = -(e_shift/2.0 + alf/MY_PIS) * qisq*qqrd2e;
+    const KK_FLOAT qisq = qtmp*qtmp;
+    const KK_FLOAT e_self = -(e_shift/2.0 + alf/MY_PIS) * qisq*qqrd2e;
     if (eflag_global)
       ev.ecoul += e_self;
     if (eflag_atom)
@@ -249,30 +249,30 @@ void PairCoulWolfKokkos<DeviceType>::operator()(TagPairCoulWolfKernelA<NEIGHFLAG
   //const AtomNeighborsConst d_neighbors_i = k_list.get_neighbors_const(i);
   const int jnum = d_numneigh[i];
 
-  F_FLOAT fxtmp = 0.0;
-  F_FLOAT fytmp = 0.0;
-  F_FLOAT fztmp = 0.0;
+  KK_FLOAT fxtmp = 0.0;
+  KK_FLOAT fytmp = 0.0;
+  KK_FLOAT fztmp = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
     //int j = d_neighbors_i(jj);
     int j = d_neighbors(i,jj);
-    const F_FLOAT factor_coul = special_coul[sbmask(j)];
+    const KK_FLOAT factor_coul = special_coul[sbmask(j)];
     j &= NEIGHMASK;
-    const X_FLOAT delx = xtmp - x(j,0);
-    const X_FLOAT dely = ytmp - x(j,1);
-    const X_FLOAT delz = ztmp - x(j,2);
-    const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+    const KK_FLOAT delx = xtmp - x(j,0);
+    const KK_FLOAT dely = ytmp - x(j,1);
+    const KK_FLOAT delz = ztmp - x(j,2);
+    const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
     if (rsq < cut_coulsq) {
-      const F_FLOAT r = sqrt(rsq);
-      const F_FLOAT prefactor = qqrd2e*qtmp*q[j]/r;
-      const F_FLOAT erfcc = erfc(alf*r);
-      const F_FLOAT erfcd = exp(-alf*alf*r*r);
-      const F_FLOAT v_sh = (erfcc - e_shift*r) * prefactor;
-      const F_FLOAT dvdrr = (erfcc/rsq + 2.0*alf/MY_PIS * erfcd/r) + f_shift;
-      F_FLOAT forcecoul = dvdrr*rsq*prefactor;
+      const KK_FLOAT r = sqrt(rsq);
+      const KK_FLOAT prefactor = qqrd2e*qtmp*q[j]/r;
+      const KK_FLOAT erfcc = erfc(alf*r);
+      const KK_FLOAT erfcd = exp(-alf*alf*r*r);
+      const KK_FLOAT v_sh = (erfcc - e_shift*r) * prefactor;
+      const KK_FLOAT dvdrr = (erfcc/rsq + 2.0*alf/MY_PIS * erfcd/r) + f_shift;
+      KK_FLOAT forcecoul = dvdrr*rsq*prefactor;
       if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-      const F_FLOAT fpair = forcecoul / rsq;
+      const KK_FLOAT fpair = forcecoul / rsq;
 
 
 
@@ -287,7 +287,7 @@ void PairCoulWolfKokkos<DeviceType>::operator()(TagPairCoulWolfKernelA<NEIGHFLAG
       }
 
       if (EVFLAG) {
-        F_FLOAT ecoul = v_sh;
+        KK_FLOAT ecoul = v_sh;
         if (eflag) {
           if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           ev.ecoul += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*ecoul;
@@ -304,33 +304,33 @@ void PairCoulWolfKokkos<DeviceType>::operator()(TagPairCoulWolfKernelA<NEIGHFLAG
   a_f(i,2) += fztmp;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairCoulWolfKokkos<DeviceType>::operator()(TagPairCoulWolfKernelA<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii) const {
+void PairCoulWolfKokkos<Space>::operator()(TagPairCoulWolfKernelA<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii) const {
   EV_FLOAT ev;
   this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(TagPairCoulWolfKernelA<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ii, ev);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEIGHFLAG, int NEWTON_PAIR>
 KOKKOS_INLINE_FUNCTION
-void PairCoulWolfKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
-                const F_FLOAT &dely, const F_FLOAT &delz) const
+void PairCoulWolfKokkos<Space>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
+      const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
+                const KK_FLOAT &dely, const KK_FLOAT &delz) const
 {
   const int EFLAG = eflag;
   const int VFLAG = vflag_either;
 
   // The eatom and vatom arrays are atomic for Half/Thread neighbor style
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = k_eatom.view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
+  Kokkos::View<typename AT::t_float_1d::data_type, typename AT::t_float_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = DualViewHelper<Space>::view(k_eatom);
+  Kokkos::View<typename AT::t_float_1d_6::data_type, typename AT::t_float_1d_6::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = DualViewHelper<Space>::view(k_vatom);
 
   if (EFLAG) {
     if (eflag_atom) {
-      const E_FLOAT epairhalf = 0.5 * epair;
+      const KK_FLOAT epairhalf = 0.5 * epair;
       if (NEIGHFLAG!=FULL) {
         if (NEWTON_PAIR || i < nlocal) v_eatom[i] += epairhalf;
         if (NEWTON_PAIR || j < nlocal) v_eatom[j] += epairhalf;
@@ -341,12 +341,12 @@ void PairCoulWolfKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const 
   }
 
   if (VFLAG) {
-    const E_FLOAT v0 = delx*delx*fpair;
-    const E_FLOAT v1 = dely*dely*fpair;
-    const E_FLOAT v2 = delz*delz*fpair;
-    const E_FLOAT v3 = delx*dely*fpair;
-    const E_FLOAT v4 = delx*delz*fpair;
-    const E_FLOAT v5 = dely*delz*fpair;
+    const KK_FLOAT v0 = delx*delx*fpair;
+    const KK_FLOAT v1 = dely*dely*fpair;
+    const KK_FLOAT v2 = delz*delz*fpair;
+    const KK_FLOAT v3 = delx*dely*fpair;
+    const KK_FLOAT v4 = delx*delz*fpair;
+    const KK_FLOAT v5 = dely*delz*fpair;
 
     if (vflag_global) {
       if (NEIGHFLAG!=FULL) {
@@ -408,16 +408,14 @@ void PairCoulWolfKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const 
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-int PairCoulWolfKokkos<DeviceType>::sbmask(const int& j) const {
+int PairCoulWolfKokkos<Space>::sbmask(const int& j) const {
   return j >> SBBITS & 3;
 }
 
 namespace LAMMPS_NS {
-template class PairCoulWolfKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class PairCoulWolfKokkos<LMPHostType>;
-#endif
+template class PairCoulWolfKokkos<Device>;
+template class PairCoulWolfKokkos<Host>;
 }
 

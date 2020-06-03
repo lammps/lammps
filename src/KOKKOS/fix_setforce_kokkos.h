@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(setforce/kk,FixSetForceKokkos<LMPDeviceType>)
-FixStyle(setforce/kk/device,FixSetForceKokkos<LMPDeviceType>)
-FixStyle(setforce/kk/host,FixSetForceKokkos<LMPHostType>)
+FixStyle(setforce/kk,FixSetForceKokkos<Device>)
+FixStyle(setforce/kk/device,FixSetForceKokkos<Device>)
+FixStyle(setforce/kk/host,FixSetForceKokkos<Host>)
 
 #else
 
@@ -27,14 +27,14 @@ FixStyle(setforce/kk/host,FixSetForceKokkos<LMPHostType>)
 
 namespace LAMMPS_NS {
 
-struct s_double_3 {
-  double d0, d1, d2;
+struct s_KK_FLOAT_3 {
+  KK_FLOAT d0, d1, d2;
   KOKKOS_INLINE_FUNCTION
-  s_double_3() {
+  s_KK_FLOAT_3() {
     d0 = d1 = d2 = 0.0;
   }
   KOKKOS_INLINE_FUNCTION
-  s_double_3& operator+=(const s_double_3 &rhs){
+  s_KK_FLOAT_3& operator+=(const s_KK_FLOAT_3 &rhs){
     d0 += rhs.d0;
     d1 += rhs.d1;
     d2 += rhs.d2;
@@ -42,24 +42,25 @@ struct s_double_3 {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void operator+=(const volatile s_double_3 &rhs) volatile {
+  void operator+=(const volatile s_KK_FLOAT_3 &rhs) volatile {
     d0 += rhs.d0;
     d1 += rhs.d1;
     d2 += rhs.d2;
   }
 };
-typedef s_double_3 double_3;
+typedef s_KK_FLOAT_3 KK_FLOAT_3;
 
 struct TagFixSetForceConstant{};
 
 struct TagFixSetForceNonConstant{};
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class FixSetForceKokkos : public FixSetForce {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef double_3 value_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef KK_FLOAT_3 value_type;
+  typedef ArrayTypes<Space> AT;
 
   FixSetForceKokkos(class LAMMPS *, int, char **);
   ~FixSetForceKokkos();
@@ -67,18 +68,18 @@ class FixSetForceKokkos : public FixSetForce {
   void post_force(int);
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagFixSetForceConstant, const int&, double_3&) const;
+  void operator()(TagFixSetForceConstant, const int&, KK_FLOAT_3&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagFixSetForceNonConstant, const int&, double_3&) const;
+  void operator()(TagFixSetForceNonConstant, const int&, KK_FLOAT_3&) const;
 
  private:
-  DAT::tdual_ffloat_2d k_sforce;
-  typename AT::t_ffloat_2d_randomread d_sforce;
+  DAT::tdual_float_2d k_sforce;
+  typename AT::t_float_2d_randomread d_sforce;
   typename AT::t_int_1d d_match;
 
-  typename AT::t_x_array_randomread x;
-  typename AT::t_f_array f;
+  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_float_1d_3 f;
   typename AT::t_int_1d_randomread mask;
 
   class Region* region;

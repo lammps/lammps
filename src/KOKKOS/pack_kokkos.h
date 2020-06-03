@@ -33,16 +33,18 @@
 
 namespace LAMMPS_NS {
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class PackKokkos {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef FFTArrayTypes<DeviceType> FFT_AT;
+  typedef FFTArrayTypes<Space> FFT_AT;
 
 struct pack_3d_functor {
 public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef FFTArrayTypes<DeviceType> FFT_AT;
+  typedef FFTArrayTypes<Space> FFT_AT;
   typename FFT_AT::t_FFT_SCALAR_1d_um d_buf,d_data;
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
@@ -95,8 +97,9 @@ static void pack_3d(typename FFT_AT::t_FFT_SCALAR_1d_um d_data, int data_offset,
 
 struct unpack_3d_functor {
 public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
   typename FFT_AT::t_FFT_SCALAR_1d_um d_buf,d_data;
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
@@ -150,8 +153,9 @@ static void unpack_3d(typename FFT_AT::t_FFT_SCALAR_1d_um d_buf, int buf_offset,
 
 struct unpack_3d_permute1_1_functor {
 public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
   typename FFT_AT::t_FFT_SCALAR_1d_um d_buf,d_data;
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
@@ -203,8 +207,9 @@ static void unpack_3d_permute1_1(typename FFT_AT::t_FFT_SCALAR_1d_um d_buf, int 
 
 struct unpack_3d_permute1_2_functor {
 public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
   typename FFT_AT::t_FFT_SCALAR_1d_um d_buf,d_data;
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
@@ -258,8 +263,9 @@ static void unpack_3d_permute1_2(typename FFT_AT::t_FFT_SCALAR_1d_um d_buf, int 
 
 struct unpack_3d_permute1_n_functor {
 public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
   typename FFT_AT::t_FFT_SCALAR_1d_um d_buf,d_data;
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
@@ -314,8 +320,9 @@ static void unpack_3d_permute1_n(typename FFT_AT::t_FFT_SCALAR_1d_um d_buf, int 
 
 struct unpack_3d_permute2_1_functor {
 public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
   typename FFT_AT::t_FFT_SCALAR_1d_um d_buf,d_data;
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
@@ -367,8 +374,9 @@ static void unpack_3d_permute2_1(typename FFT_AT::t_FFT_SCALAR_1d_um d_buf, int 
 
 struct unpack_3d_permute2_2_functor {
 public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
   typename FFT_AT::t_FFT_SCALAR_1d_um d_buf,d_data;
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
@@ -420,8 +428,9 @@ static void unpack_3d_permute2_2(typename FFT_AT::t_FFT_SCALAR_1d_um d_buf, int 
 
 struct unpack_3d_permute2_n_functor {
 public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
   typename FFT_AT::t_FFT_SCALAR_1d_um d_buf,d_data;
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index

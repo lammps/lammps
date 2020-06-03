@@ -36,24 +36,24 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-DihedralHarmonicKokkos<DeviceType>::DihedralHarmonicKokkos(LAMMPS *lmp) : DihedralHarmonic(lmp)
+template<ExecutionSpace Space>
+DihedralHarmonicKokkos<Space>::DihedralHarmonicKokkos(LAMMPS *lmp) : DihedralHarmonic(lmp)
 {
   atomKK = (AtomKokkos *) atom;
+  execution_space = Space;
   neighborKK = (NeighborKokkos *) neighbor;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 
   k_warning_flag = DAT::tdual_int_scalar("Dihedral:warning_flag");
-  d_warning_flag = k_warning_flag.view<DeviceType>();
+  d_warning_flag = DualViewHelper<Space>::view(k_warning_flag);
   h_warning_flag = k_warning_flag.h_view;
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-DihedralHarmonicKokkos<DeviceType>::~DihedralHarmonicKokkos()
+template<ExecutionSpace Space>
+DihedralHarmonicKokkos<Space>::~DihedralHarmonicKokkos()
 {
   if (!copymode) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
@@ -63,8 +63,8 @@ DihedralHarmonicKokkos<DeviceType>::~DihedralHarmonicKokkos()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void DihedralHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
+template<ExecutionSpace Space>
+void DihedralHarmonicKokkos<Space>::compute(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
@@ -76,31 +76,31 @@ void DihedralHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag_atom) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"dihedral:eatom");
-    d_eatom = k_eatom.view<DeviceType>();
+    d_eatom = DualViewHelper<Space>::view(k_eatom);
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"dihedral:vatom");
-    d_vatom = k_vatom.view<DeviceType>();
+    d_vatom = DualViewHelper<Space>::view(k_vatom);
   }
 
-  k_k.template sync<DeviceType>();
-  k_cos_shift.template sync<DeviceType>();
-  k_sin_shift.template sync<DeviceType>();
-  k_sign.template sync<DeviceType>();
-  k_multiplicity.template sync<DeviceType>();
+  DualViewHelper<Space>::sync(k_k);
+  DualViewHelper<Space>::sync(k_cos_shift);
+  DualViewHelper<Space>::sync(k_sin_shift);
+  DualViewHelper<Space>::sync(k_sign);
+  DualViewHelper<Space>::sync(k_multiplicity);
 
-  x = atomKK->k_x.view<DeviceType>();
-  f = atomKK->k_f.view<DeviceType>();
-  neighborKK->k_dihedrallist.template sync<DeviceType>();
-  dihedrallist = neighborKK->k_dihedrallist.view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  f = DualViewHelper<Space>::view(atomKK->k_f);
+  DualViewHelper<Space>::sync(neighborKK->k_dihedrallist);
+  dihedrallist = DualViewHelper<Space>::view(neighborKK->k_dihedrallist);
   int ndihedrallist = neighborKK->ndihedrallist;
   nlocal = atom->nlocal;
   newton_bond = force->newton_bond;
 
   h_warning_flag() = 0;
-  k_warning_flag.template modify<LMPHostType>();
-  k_warning_flag.template sync<DeviceType>();
+  k_warning_flag.modify_host();
+  DualViewHelper<Space>::sync(k_warning_flag);
 
   copymode = 1;
 
@@ -124,8 +124,8 @@ void DihedralHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // error check
 
-  k_warning_flag.template modify<DeviceType>();
-  k_warning_flag.template sync<LMPHostType>();
+  DualViewHelper<Space>::modify(k_warning_flag);
+  k_warning_flag.sync_host();
   if (h_warning_flag())
     error->warning(FLERR,"Dihedral problem",0);
 
@@ -140,25 +140,25 @@ void DihedralHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   if (eflag_atom) {
-    k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_eatom);
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
-    k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_vatom);
+    k_vatom.sync_host();
   }
 
   copymode = 0;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEWTON_BOND, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void DihedralHarmonicKokkos<DeviceType>::operator()(TagDihedralHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
+void DihedralHarmonicKokkos<Space>::operator()(TagDihedralHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
   // The f array is atomic
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
+  Kokkos::View<typename AT::t_float_1d_3::data_type, typename AT::t_float_1d_3::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
 
   const int i1 = dihedrallist(n,0);
   const int i2 = dihedrallist(n,1);
@@ -168,49 +168,49 @@ void DihedralHarmonicKokkos<DeviceType>::operator()(TagDihedralHarmonicCompute<N
 
   // 1st bond
 
-  const F_FLOAT vb1x = x(i1,0) - x(i2,0);
-  const F_FLOAT vb1y = x(i1,1) - x(i2,1);
-  const F_FLOAT vb1z = x(i1,2) - x(i2,2);
+  const KK_FLOAT vb1x = x(i1,0) - x(i2,0);
+  const KK_FLOAT vb1y = x(i1,1) - x(i2,1);
+  const KK_FLOAT vb1z = x(i1,2) - x(i2,2);
 
   // 2nd bond
 
-  const F_FLOAT vb2x = x(i3,0) - x(i2,0);
-  const F_FLOAT vb2y = x(i3,1) - x(i2,1);
-  const F_FLOAT vb2z = x(i3,2) - x(i2,2);
+  const KK_FLOAT vb2x = x(i3,0) - x(i2,0);
+  const KK_FLOAT vb2y = x(i3,1) - x(i2,1);
+  const KK_FLOAT vb2z = x(i3,2) - x(i2,2);
 
-  const F_FLOAT vb2xm = -vb2x;
-  const F_FLOAT vb2ym = -vb2y;
-  const F_FLOAT vb2zm = -vb2z;
+  const KK_FLOAT vb2xm = -vb2x;
+  const KK_FLOAT vb2ym = -vb2y;
+  const KK_FLOAT vb2zm = -vb2z;
 
   // 3rd bond
 
-  const F_FLOAT vb3x = x(i4,0) - x(i3,0);
-  const F_FLOAT vb3y = x(i4,1) - x(i3,1);
-  const F_FLOAT vb3z = x(i4,2) - x(i3,2);
+  const KK_FLOAT vb3x = x(i4,0) - x(i3,0);
+  const KK_FLOAT vb3y = x(i4,1) - x(i3,1);
+  const KK_FLOAT vb3z = x(i4,2) - x(i3,2);
 
   // c,s calculation
 
-  const F_FLOAT ax = vb1y*vb2zm - vb1z*vb2ym;
-  const F_FLOAT ay = vb1z*vb2xm - vb1x*vb2zm;
-  const F_FLOAT az = vb1x*vb2ym - vb1y*vb2xm;
-  const F_FLOAT bx = vb3y*vb2zm - vb3z*vb2ym;
-  const F_FLOAT by = vb3z*vb2xm - vb3x*vb2zm;
-  const F_FLOAT bz = vb3x*vb2ym - vb3y*vb2xm;
+  const KK_FLOAT ax = vb1y*vb2zm - vb1z*vb2ym;
+  const KK_FLOAT ay = vb1z*vb2xm - vb1x*vb2zm;
+  const KK_FLOAT az = vb1x*vb2ym - vb1y*vb2xm;
+  const KK_FLOAT bx = vb3y*vb2zm - vb3z*vb2ym;
+  const KK_FLOAT by = vb3z*vb2xm - vb3x*vb2zm;
+  const KK_FLOAT bz = vb3x*vb2ym - vb3y*vb2xm;
 
-  const F_FLOAT rasq = ax*ax + ay*ay + az*az;
-  const F_FLOAT rbsq = bx*bx + by*by + bz*bz;
-  const F_FLOAT rgsq = vb2xm*vb2xm + vb2ym*vb2ym + vb2zm*vb2zm;
-  const F_FLOAT rg = sqrt(rgsq);
+  const KK_FLOAT rasq = ax*ax + ay*ay + az*az;
+  const KK_FLOAT rbsq = bx*bx + by*by + bz*bz;
+  const KK_FLOAT rgsq = vb2xm*vb2xm + vb2ym*vb2ym + vb2zm*vb2zm;
+  const KK_FLOAT rg = sqrt(rgsq);
 
-  F_FLOAT rginv,ra2inv,rb2inv;
+  KK_FLOAT rginv,ra2inv,rb2inv;
   rginv = ra2inv = rb2inv = 0.0;
   if (rg > 0) rginv = 1.0/rg;
   if (rasq > 0) ra2inv = 1.0/rasq;
   if (rbsq > 0) rb2inv = 1.0/rbsq;
-  const F_FLOAT rabinv = sqrt(ra2inv*rb2inv);
+  const KK_FLOAT rabinv = sqrt(ra2inv*rb2inv);
 
-  F_FLOAT c = (ax*bx + ay*by + az*bz)*rabinv;
-  const F_FLOAT s = rg*rabinv*(ax*vb3x + ay*vb3y + az*vb3z);
+  KK_FLOAT c = (ax*bx + ay*by + az*bz)*rabinv;
+  const KK_FLOAT s = rg*rabinv*(ax*vb3x + ay*vb3y + az*vb3z);
 
   // error check
 
@@ -221,8 +221,8 @@ void DihedralHarmonicKokkos<DeviceType>::operator()(TagDihedralHarmonicCompute<N
   if (c < -1.0) c = -1.0;
 
   const int m = d_multiplicity[type];
-  F_FLOAT p = 1.0;
-  F_FLOAT ddf1,df1;
+  KK_FLOAT p = 1.0;
+  KK_FLOAT ddf1,df1;
   ddf1 = df1 = 0.0;
 
   for (int i = 0; i < m; i++) {
@@ -241,33 +241,33 @@ void DihedralHarmonicKokkos<DeviceType>::operator()(TagDihedralHarmonicCompute<N
     df1 = 0.0;
   }
 
-  E_FLOAT edihedral = 0.0;
+  KK_FLOAT edihedral = 0.0;
   if (eflag) edihedral = d_k[type] * p;
 
-  const F_FLOAT fg = vb1x*vb2xm + vb1y*vb2ym + vb1z*vb2zm;
-  const F_FLOAT hg = vb3x*vb2xm + vb3y*vb2ym + vb3z*vb2zm;
-  const F_FLOAT fga = fg*ra2inv*rginv;
-  const F_FLOAT hgb = hg*rb2inv*rginv;
-  const F_FLOAT gaa = -ra2inv*rg;
-  const F_FLOAT gbb = rb2inv*rg;
+  const KK_FLOAT fg = vb1x*vb2xm + vb1y*vb2ym + vb1z*vb2zm;
+  const KK_FLOAT hg = vb3x*vb2xm + vb3y*vb2ym + vb3z*vb2zm;
+  const KK_FLOAT fga = fg*ra2inv*rginv;
+  const KK_FLOAT hgb = hg*rb2inv*rginv;
+  const KK_FLOAT gaa = -ra2inv*rg;
+  const KK_FLOAT gbb = rb2inv*rg;
 
-  const F_FLOAT dtfx = gaa*ax;
-  const F_FLOAT dtfy = gaa*ay;
-  const F_FLOAT dtfz = gaa*az;
-  const F_FLOAT dtgx = fga*ax - hgb*bx;
-  const F_FLOAT dtgy = fga*ay - hgb*by;
-  const F_FLOAT dtgz = fga*az - hgb*bz;
-  const F_FLOAT dthx = gbb*bx;
-  const F_FLOAT dthy = gbb*by;
-  const F_FLOAT dthz = gbb*bz;
+  const KK_FLOAT dtfx = gaa*ax;
+  const KK_FLOAT dtfy = gaa*ay;
+  const KK_FLOAT dtfz = gaa*az;
+  const KK_FLOAT dtgx = fga*ax - hgb*bx;
+  const KK_FLOAT dtgy = fga*ay - hgb*by;
+  const KK_FLOAT dtgz = fga*az - hgb*bz;
+  const KK_FLOAT dthx = gbb*bx;
+  const KK_FLOAT dthy = gbb*by;
+  const KK_FLOAT dthz = gbb*bz;
 
-  const F_FLOAT df = -d_k[type] * df1;
+  const KK_FLOAT df = -d_k[type] * df1;
 
-  const F_FLOAT sx2  = df*dtgx;;
-  const F_FLOAT sy2  = df*dtgy;;
-  const F_FLOAT sz2  = df*dtgz;;
+  const KK_FLOAT sx2  = df*dtgx;;
+  const KK_FLOAT sy2  = df*dtgy;;
+  const KK_FLOAT sz2  = df*dtgz;;
 
-  F_FLOAT f1[3],f2[3],f3[3],f4[3];
+  KK_FLOAT f1[3],f2[3],f3[3],f4[3];
   f1[0] = df*dtfx;
   f1[1] = df*dtfy;
   f1[2] = df*dtfz;
@@ -315,41 +315,41 @@ void DihedralHarmonicKokkos<DeviceType>::operator()(TagDihedralHarmonicCompute<N
              vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEWTON_BOND, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void DihedralHarmonicKokkos<DeviceType>::operator()(TagDihedralHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n) const {
+void DihedralHarmonicKokkos<Space>::operator()(TagDihedralHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n) const {
   EV_FLOAT ev;
   this->template operator()<NEWTON_BOND,EVFLAG>(TagDihedralHarmonicCompute<NEWTON_BOND,EVFLAG>(), n, ev);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void DihedralHarmonicKokkos<DeviceType>::allocate()
+template<ExecutionSpace Space>
+void DihedralHarmonicKokkos<Space>::allocate()
 {
   DihedralHarmonic::allocate();
 
   int n = atom->ndihedraltypes;
-  k_k = DAT::tdual_ffloat_1d("DihedralHarmonic::k",n+1);
-  k_cos_shift = DAT::tdual_ffloat_1d("DihedralHarmonic::cos_shift",n+1);
-  k_sin_shift = DAT::tdual_ffloat_1d("DihedralHarmonic::sin_shift",n+1);
+  k_k = DAT::tdual_float_1d("DihedralHarmonic::k",n+1);
+  k_cos_shift = DAT::tdual_float_1d("DihedralHarmonic::cos_shift",n+1);
+  k_sin_shift = DAT::tdual_float_1d("DihedralHarmonic::sin_shift",n+1);
   k_sign = DAT::tdual_int_1d("DihedralHarmonic::sign",n+1);
   k_multiplicity = DAT::tdual_int_1d("DihedralHarmonic::multiplicity",n+1);
 
-  d_k = k_k.template view<DeviceType>();
-  d_cos_shift = k_cos_shift.template view<DeviceType>();
-  d_sin_shift = k_sin_shift.template view<DeviceType>();
-  d_sign = k_sign.template view<DeviceType>();
-  d_multiplicity = k_multiplicity.template view<DeviceType>();
+  d_k = DualViewHelper<Space>::view(k_k);
+  d_cos_shift = DualViewHelper<Space>::view(k_cos_shift);
+  d_sin_shift = DualViewHelper<Space>::view(k_sin_shift);
+  d_sign = DualViewHelper<Space>::view(k_sign);
+  d_multiplicity = DualViewHelper<Space>::view(k_multiplicity);
 }
 
 /* ----------------------------------------------------------------------
    set coeffs for one type
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void DihedralHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
+template<ExecutionSpace Space>
+void DihedralHarmonicKokkos<Space>::coeff(int narg, char **arg)
 {
   DihedralHarmonic::coeff(narg, arg);
 
@@ -362,19 +362,19 @@ void DihedralHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
     k_multiplicity.h_view[i] = multiplicity[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_cos_shift.template modify<LMPHostType>();
-  k_sin_shift.template modify<LMPHostType>();
-  k_sign.template modify<LMPHostType>();
-  k_multiplicity.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_cos_shift.modify_host();
+  k_sin_shift.modify_host();
+  k_sign.modify_host();
+  k_multiplicity.modify_host();
 }
 
 /* ----------------------------------------------------------------------
    proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void DihedralHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
+template<ExecutionSpace Space>
+void DihedralHarmonicKokkos<Space>::read_restart(FILE *fp)
 {
   DihedralHarmonic::read_restart(fp);
 
@@ -387,11 +387,11 @@ void DihedralHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
     k_multiplicity.h_view[i] = multiplicity[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_cos_shift.template modify<LMPHostType>();
-  k_sin_shift.template modify<LMPHostType>();
-  k_sign.template modify<LMPHostType>();
-  k_multiplicity.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_cos_shift.modify_host();
+  k_sin_shift.modify_host();
+  k_sign.modify_host();
+  k_multiplicity.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -401,21 +401,21 @@ void DihedralHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
           = vb1*f1 + vb2*f3 + (vb3+vb2)*f4
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 //template<int NEWTON_BOND>
 KOKKOS_INLINE_FUNCTION
-void DihedralHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, const int i2, const int i3, const int i4,
-                        F_FLOAT &edihedral, F_FLOAT *f1, F_FLOAT *f3, F_FLOAT *f4,
-                        const F_FLOAT &vb1x, const F_FLOAT &vb1y, const F_FLOAT &vb1z,
-                        const F_FLOAT &vb2x, const F_FLOAT &vb2y, const F_FLOAT &vb2z,
-                        const F_FLOAT &vb3x, const F_FLOAT &vb3y, const F_FLOAT &vb3z) const
+void DihedralHarmonicKokkos<Space>::ev_tally(EV_FLOAT &ev, const int i1, const int i2, const int i3, const int i4,
+                        KK_FLOAT &edihedral, KK_FLOAT *f1, KK_FLOAT *f3, KK_FLOAT *f4,
+                        const KK_FLOAT &vb1x, const KK_FLOAT &vb1y, const KK_FLOAT &vb1z,
+                        const KK_FLOAT &vb2x, const KK_FLOAT &vb2y, const KK_FLOAT &vb2z,
+                        const KK_FLOAT &vb3x, const KK_FLOAT &vb3y, const KK_FLOAT &vb3z) const
 {
-  E_FLOAT edihedralquarter;
-  F_FLOAT v[6];
+  KK_FLOAT edihedralquarter;
+  KK_FLOAT v[6];
 
   // The eatom and vatom arrays are atomic
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_eatom = k_eatom.view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_vatom = k_vatom.view<DeviceType>();
+  Kokkos::View<typename AT::t_float_1d::data_type, typename AT::t_float_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_eatom = DualViewHelper<Space>::view(k_eatom);
+  Kokkos::View<typename AT::t_float_1d_6::data_type, typename AT::t_float_1d_6::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_vatom = DualViewHelper<Space>::view(k_vatom);
 
   if (eflag_either) {
     if (eflag_global) {
@@ -529,9 +529,7 @@ void DihedralHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, co
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
-template class DihedralHarmonicKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class DihedralHarmonicKokkos<LMPHostType>;
-#endif
+template class DihedralHarmonicKokkos<Device>;
+template class DihedralHarmonicKokkos<Host>;
 }
 

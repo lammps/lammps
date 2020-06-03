@@ -21,9 +21,9 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-FixNPHKokkos<DeviceType>::FixNPHKokkos(LAMMPS *lmp, int narg, char **arg) :
-  FixNHKokkos<DeviceType>(lmp, narg, arg)
+template<ExecutionSpace Space>
+FixNPHKokkos<Space>::FixNPHKokkos(LAMMPS *lmp, int narg, char **arg) :
+  FixNHKokkos<Space>(lmp, narg, arg)
 {
   this->kokkosable = 1;
   if (this->tstat_flag)
@@ -70,9 +70,7 @@ FixNPHKokkos<DeviceType>::FixNPHKokkos(LAMMPS *lmp, int narg, char **arg) :
 }
 
 namespace LAMMPS_NS {
-template class FixNPHKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class FixNPHKokkos<LMPHostType>;
-#endif
+template class FixNPHKokkos<Device>;
+template class FixNPHKokkos<Host>;
 }
 

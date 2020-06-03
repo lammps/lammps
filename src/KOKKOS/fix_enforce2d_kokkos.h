@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(enforce2d/kk,FixEnforce2DKokkos<LMPDeviceType>)
-FixStyle(enforce2d/kk/device,FixEnforce2DKokkos<LMPDeviceType>)
-FixStyle(enforce2d/kk/host,FixEnforce2DKokkos<LMPHostType>)
+FixStyle(enforce2d/kk,FixEnforce2DKokkos<Device>)
+FixStyle(enforce2d/kk/device,FixEnforce2DKokkos<Device>)
+FixStyle(enforce2d/kk/host,FixEnforce2DKokkos<Host>)
 
 #else
 
@@ -27,9 +27,12 @@ FixStyle(enforce2d/kk/host,FixEnforce2DKokkos<LMPHostType>)
 
 namespace LAMMPS_NS {
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class FixEnforce2DKokkos : public FixEnforce2D {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef ArrayTypes<Space> AT;
+
   FixEnforce2DKokkos(class LAMMPS *, int, char **);
   // ~FixEnforce2DKokkos() {}
   void setup(int);
@@ -44,23 +47,24 @@ class FixEnforce2DKokkos : public FixEnforce2D {
   // void post_force_respa(int, int, int);  No RRESPA support yet.
 
  private:
-  typename ArrayTypes<DeviceType>::t_v_array v;
-  typename ArrayTypes<DeviceType>::t_f_array f;
+  typename AT::t_float_1d_3 v;
+  typename AT::t_float_1d_3 f;
 
-  typename ArrayTypes<DeviceType>::t_v_array omega;
-  typename ArrayTypes<DeviceType>::t_v_array angmom;
-  typename ArrayTypes<DeviceType>::t_f_array torque;
+  typename AT::t_float_1d_3 omega;
+  typename AT::t_float_1d_3 angmom;
+  typename AT::t_float_1d_3 torque;
 
-  typename ArrayTypes<DeviceType>::t_int_1d mask;
+  typename AT::t_int_1d mask;
 };
 
 
-template <class DeviceType, int omega_flag, int angmom_flag, int torque_flag>
+template <ExecutionSpace Space, int omega_flag, int angmom_flag, int torque_flag>
 struct FixEnforce2DKokkosPostForceFunctor {
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  FixEnforce2DKokkos<DeviceType> c;
+  FixEnforce2DKokkos<Space> c;
 
-  FixEnforce2DKokkosPostForceFunctor(FixEnforce2DKokkos<DeviceType>* c_ptr):
+  FixEnforce2DKokkosPostForceFunctor(FixEnforce2DKokkos<Space>* c_ptr):
     c(*c_ptr) {};
 
   KOKKOS_INLINE_FUNCTION

@@ -33,10 +33,11 @@ struct TagNeighBondDihedralCheck{};
 struct TagNeighBondImproperAll{};
 struct TagNeighBondImproperPartial{};
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class NeighBondKokkos : protected Pointers  {
  public:
-  typedef ArrayTypes<DeviceType> AT;
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef ArrayTypes<Space> AT;
   typedef int value_type;
 
   NeighBondKokkos(class LAMMPS *);
@@ -94,7 +95,7 @@ class NeighBondKokkos : protected Pointers  {
   typename AT::t_int_2d v_improperlist;
   typename AT::t_int_2d list;
 
-  typename AT::t_x_array_randomread x;
+  typename AT::t_float_1d_3_randomread x;
   typename AT::t_tagint_1d_randomread tag;
 
   typename AT::t_int_1d num_bond;
@@ -127,7 +128,7 @@ class NeighBondKokkos : protected Pointers  {
   int closest_image(const int, int) const;
 
   KOKKOS_INLINE_FUNCTION
-  void minimum_image(X_FLOAT &dx, X_FLOAT &dy, X_FLOAT &dz) const;
+  void minimum_image(KK_FLOAT &dx, KK_FLOAT &dy, KK_FLOAT &dz) const;
 
   void update_domain_variables();
 
@@ -162,9 +163,9 @@ class NeighBondKokkos : protected Pointers  {
 
   int triclinic;
   int xperiodic,yperiodic,zperiodic;
-  X_FLOAT xprd_half,yprd_half,zprd_half;
-  X_FLOAT xprd,yprd,zprd;
-  X_FLOAT xy,xz,yz;
+  KK_FLOAT xprd_half,yprd_half,zprd_half;
+  KK_FLOAT xprd,yprd,zprd;
+  KK_FLOAT xy,xz,yz;
 };
 
 }

@@ -22,10 +22,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-NPairSkipKokkos<DeviceType>::NPairSkipKokkos(LAMMPS *lmp) : NPair(lmp) {
+template<ExecutionSpace Space>
+NPairSkipKokkos<Space>::NPairSkipKokkos(LAMMPS *lmp) : NPair(lmp) {
   atomKK = (AtomKokkos *) atom;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  execution_space = Space;
   d_inum = typename AT::t_int_scalar("npair_skip:inum");
 }
 
@@ -37,15 +37,15 @@ NPairSkipKokkos<DeviceType>::NPairSkipKokkos(LAMMPS *lmp) : NPair(lmp) {
    if ghost, also store neighbors of ghost atoms & set inum,gnum correctly
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NPairSkipKokkos<DeviceType>::build(NeighList *list)
+template<ExecutionSpace Space>
+void NPairSkipKokkos<Space>::build(NeighList *list)
 {
   atomKK->sync(execution_space,TYPE_MASK);
-  type = atomKK->k_type.view<DeviceType>();
+  type = DualViewHelper<Space>::view(atomKK->k_type);
   nlocal = atom->nlocal;
 
 
-  NeighListKokkos<DeviceType>* k_list_skip = static_cast<NeighListKokkos<DeviceType>*>(list->listskip);
+  NeighListKokkos<Space>* k_list_skip = static_cast<NeighListKokkos<Space>*>(list->listskip);
   d_ilist_skip = k_list_skip->d_ilist;
   d_numneigh_skip = k_list_skip->d_numneigh;
   d_neighbors_skip = k_list_skip->d_neighbors;
@@ -53,7 +53,7 @@ void NPairSkipKokkos<DeviceType>::build(NeighList *list)
   num_skip = list->listskip->inum;
   if (list->ghost) num_skip += list->listskip->gnum;
 
-  NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
+  NeighListKokkos<Space>* k_list = static_cast<NeighListKokkos<Space>*>(list);
   k_list->maxneighs = k_list_skip->maxneighs; // simple, but could be made more memory efficient
   k_list->grow(atom->nmax);
   d_ilist = k_list->d_ilist;
@@ -64,8 +64,8 @@ void NPairSkipKokkos<DeviceType>::build(NeighList *list)
 
   k_iskip = DAT::tdual_int_1d("npair_skip:iskip",ntypes+1);
   k_ijskip = DAT::tdual_int_2d("npair_skip:ijskip",ntypes+1,ntypes+1);
-  d_iskip = k_iskip.view<DeviceType>();
-  d_ijskip = k_ijskip.view<DeviceType>();
+  d_iskip = DualViewHelper<Space>::view(k_iskip);
+  d_ijskip = DualViewHelper<Space>::view(k_ijskip);
 
   for (int itype = 1; itype <= ntypes; itype++) {
     k_iskip.h_view(itype) = list->iskip[itype];
@@ -73,11 +73,11 @@ void NPairSkipKokkos<DeviceType>::build(NeighList *list)
       k_ijskip.h_view(itype,jtype) = list->ijskip[itype][jtype];
     }
   }
-  k_iskip.modify<LMPHostType>();
-  k_ijskip.modify<LMPHostType>();
+  k_iskip.modify_host();
+  k_ijskip.modify_host();
 
-  k_iskip.sync<DeviceType>();
-  k_ijskip.sync<DeviceType>();
+  DualViewHelper<Space>::sync(k_iskip);
+  DualViewHelper<Space>::sync(k_ijskip);
 
   // loop over atoms in other list
   // skip I atom entirely if iskip is set for type[I]
@@ -99,9 +99,9 @@ void NPairSkipKokkos<DeviceType>::build(NeighList *list)
   copymode = 0;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void NPairSkipKokkos<DeviceType>::operator()(TagNPairSkipCompute, const int &ii, int &inum, const bool &final) const {
+void NPairSkipKokkos<Space>::operator()(TagNPairSkipCompute, const int &ii, int &inum, const bool &final) const {
 
   const int i = d_ilist_skip(ii);
   const int itype = type(i);
@@ -138,16 +138,14 @@ void NPairSkipKokkos<DeviceType>::operator()(TagNPairSkipCompute, const int &ii,
   }
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void NPairSkipKokkos<DeviceType>::operator()(TagNPairSkipCountLocal, const int &i, int &num) const {
+void NPairSkipKokkos<Space>::operator()(TagNPairSkipCountLocal, const int &i, int &num) const {
   if (d_ilist[i] < nlocal) num++;
 }
 
 
 namespace LAMMPS_NS {
-template class NPairSkipKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class NPairSkipKokkos<LMPHostType>;
-#endif
+template class NPairSkipKokkos<Device>;
+template class NPairSkipKokkos<Host>;
 }

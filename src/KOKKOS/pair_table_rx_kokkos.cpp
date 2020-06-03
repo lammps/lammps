@@ -49,23 +49,23 @@ enum{NONE,RLINEAR,RSQ,BMP};
 #define OneFluidValue (-1)
 #define isOneFluid(_site_) ( (_site_) == OneFluidValue )
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
 void getMixingWeights(
-    typename ArrayTypes<DeviceType>::t_float_2d_randomread dvector,
+    typename ArrayTypes<Space>::t_float_2d_randomread dvector,
     int nspecies,
     int isite1, int isite2,
     bool fractionalWeighting,
     int id,
-    double &mixWtSite1old, double &mixWtSite2old,
-    double &mixWtSite1, double &mixWtSite2) {
-  double fractionOFAold, fractionOFA;
-  double fractionOld1, fraction1;
-  double fractionOld2, fraction2;
-  double nMoleculesOFAold, nMoleculesOFA;
-  double nMoleculesOld1, nMolecules1;
-  double nMoleculesOld2, nMolecules2;
-  double nTotal, nTotalOld;
+    typename GetFloatType<Space>::type &mixWtSite1old, typename GetFloatType<Space>::type &mixWtSite2old,
+    typename GetFloatType<Space>::type &mixWtSite1, typename GetFloatType<Space>::type &mixWtSite2) {
+  KK_FLOAT fractionOFAold, fractionOFA;
+  KK_FLOAT fractionOld1, fraction1;
+  KK_FLOAT fractionOld2, fraction2;
+  KK_FLOAT nMoleculesOFAold, nMoleculesOFA;
+  KK_FLOAT nMoleculesOld1, nMolecules1;
+  KK_FLOAT nMoleculesOld2, nMolecules2;
+  KK_FLOAT nTotal, nTotalOld;
 
   nTotal = 0.0;
   nTotalOld = 0.0;
@@ -137,17 +137,18 @@ void getMixingWeights(
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-PairTableRXKokkos<DeviceType>::PairTableRXKokkos(LAMMPS *lmp) : PairTable(lmp)
+template<ExecutionSpace Space>
+PairTableRXKokkos<Space>::PairTableRXKokkos(LAMMPS *lmp) : PairTable(lmp)
 {
   update_table = 0;
   atomKK = (AtomKokkos *) atom;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  execution_space = Space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK |
                   DVECTOR_MASK | UCG_MASK | UCGNEW_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK | UCG_MASK | UCGNEW_MASK;
-  h_table = new TableHost();
-  d_table = new TableDevice();
+  k_table = new TableDual();
+  h_table = new TableHost(k_table);
+  d_table = new TableDevice(k_table);
   fractionalWeighting = true;
 
   site1 = nullptr;
@@ -156,8 +157,8 @@ PairTableRXKokkos<DeviceType>::PairTableRXKokkos(LAMMPS *lmp) : PairTable(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-PairTableRXKokkos<DeviceType>::~PairTableRXKokkos()
+template<ExecutionSpace Space>
+PairTableRXKokkos<Space>::~PairTableRXKokkos()
 {
   if (copymode) return;
 
@@ -168,10 +169,12 @@ PairTableRXKokkos<DeviceType>::~PairTableRXKokkos()
   memoryKK->destroy_kokkos(k_vatom,vatom);
 
   if (allocated) {
-    memoryKK->destroy_kokkos(d_table->cutsq, cutsq);
-    memoryKK->destroy_kokkos(d_table->tabindex, tabindex);
+    memoryKK->destroy_kokkos(k_table->k_cutsq, cutsq);
+    memoryKK->destroy_kokkos(k_table->k_tabindex, tabindex);
   }
 
+  delete k_table;
+  k_table = nullptr;
   delete h_table;
   h_table = nullptr;
   delete d_table;
@@ -180,8 +183,8 @@ PairTableRXKokkos<DeviceType>::~PairTableRXKokkos()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairTableRXKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
+template<ExecutionSpace Space>
+void PairTableRXKokkos<Space>::compute(int eflag_in, int vflag_in)
 {
   if(update_table)
     create_kokkos_tables();
@@ -200,27 +203,27 @@ KOKKOS_INLINE_FUNCTION static int sbmask(const int& j)
   return j >> SBBITS & 3;
 }
 
-template <class DeviceType, int TABSTYLE>
+template <ExecutionSpace Space, int TABSTYLE>
 KOKKOS_INLINE_FUNCTION
-static F_FLOAT
-compute_fpair(F_FLOAT rsq,
+static KK_FLOAT
+compute_fpair(KK_FLOAT rsq,
               int itype, int jtype,
-              typename PairTableRXKokkos<DeviceType>::TableDeviceConst const& d_table_const
+              typename PairTableRXKokkos<Space>::TableDeviceConst const& d_table_const
               ) {
   Pair::union_int_float_t rsq_lookup;
-  double fpair;
+  KK_FLOAT fpair;
   const int tidx = d_table_const.tabindex(itype,jtype);
   if (TABSTYLE == PairTable::LOOKUP) {
     const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
     fpair = d_table_const.f(tidx,itable);
   } else if (TABSTYLE == PairTable::LINEAR) {
     const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    const double fraction = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
+    const KK_FLOAT fraction = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
     fpair = d_table_const.f(tidx,itable) + fraction*d_table_const.df(tidx,itable);
   } else if (TABSTYLE == PairTable::SPLINE) {
     const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    const double b = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
-    const double a = 1.0 - b;
+    const KK_FLOAT b = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
+    const KK_FLOAT a = 1.0 - b;
     fpair = a * d_table_const.f(tidx,itable) + b * d_table_const.f(tidx,itable+1) +
       ((a*a*a-a)*d_table_const.f2(tidx,itable) + (b*b*b-b)*d_table_const.f2(tidx,itable+1)) *
       d_table_const.deltasq6(tidx);
@@ -228,21 +231,21 @@ compute_fpair(F_FLOAT rsq,
     rsq_lookup.f = rsq;
     int itable = rsq_lookup.i & d_table_const.nmask(tidx);
     itable >>= d_table_const.nshiftbits(tidx);
-    const double fraction = (rsq_lookup.f - d_table_const.rsq(tidx,itable)) * d_table_const.drsq(tidx,itable);
+    const KK_FLOAT fraction = (rsq_lookup.f - d_table_const.rsq(tidx,itable)) * d_table_const.drsq(tidx,itable);
     fpair = d_table_const.f(tidx,itable) + fraction*d_table_const.df(tidx,itable);
   }
   return fpair;
 }
 
-template<class DeviceType, int TABSTYLE>
+template<ExecutionSpace Space, int TABSTYLE>
 KOKKOS_INLINE_FUNCTION
-static F_FLOAT
+static KK_FLOAT
 compute_evdwl(
-    F_FLOAT rsq,
+    KK_FLOAT rsq,
     int itype, int jtype,
-    typename PairTableRXKokkos<DeviceType>::TableDeviceConst const& d_table_const
+    typename PairTableRXKokkos<Space>::TableDeviceConst const& d_table_const
     ) {
-  double evdwl;
+  KK_FLOAT evdwl;
   Pair::union_int_float_t rsq_lookup;
   const int tidx = d_table_const.tabindex(itype,jtype);
   if (TABSTYLE == PairTable::LOOKUP) {
@@ -250,12 +253,12 @@ compute_evdwl(
     evdwl = d_table_const.e(tidx,itable);
   } else if (TABSTYLE == PairTable::LINEAR) {
     const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    const double fraction = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
+    const KK_FLOAT fraction = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
     evdwl = d_table_const.e(tidx,itable) + fraction*d_table_const.de(tidx,itable);
   } else if (TABSTYLE == PairTable::SPLINE) {
     const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    const double b = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
-    const double a = 1.0 - b;
+    const KK_FLOAT b = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
+    const KK_FLOAT a = 1.0 - b;
     evdwl = a * d_table_const.e(tidx,itable) + b * d_table_const.e(tidx,itable+1) +
         ((a*a*a-a)*d_table_const.e2(tidx,itable) + (b*b*b-b)*d_table_const.e2(tidx,itable+1)) *
         d_table_const.deltasq6(tidx);
@@ -263,13 +266,13 @@ compute_evdwl(
     rsq_lookup.f = rsq;
     int itable = rsq_lookup.i & d_table_const.nmask(tidx);
     itable >>= d_table_const.nshiftbits(tidx);
-    const double fraction = (rsq_lookup.f - d_table_const.rsq(tidx,itable)) * d_table_const.drsq(tidx,itable);
+    const KK_FLOAT fraction = (rsq_lookup.f - d_table_const.rsq(tidx,itable)) * d_table_const.drsq(tidx,itable);
     evdwl = d_table_const.e(tidx,itable) + fraction*d_table_const.de(tidx,itable);
   }
   return evdwl;
 }
 
-template<class DeviceType, int NEIGHFLAG, int TABSTYLE, int NEWTON_PAIR>
+template<ExecutionSpace Space, int NEIGHFLAG, int TABSTYLE, int NEWTON_PAIR>
 KOKKOS_INLINE_FUNCTION
 void
 ev_tally(
@@ -281,15 +284,15 @@ ev_tally(
     int nlocal,
     int i, int j,
     EV_FLOAT& ev,
-    F_FLOAT epair, F_FLOAT fpair,
-    F_FLOAT delx, F_FLOAT dely, F_FLOAT delz,
-    Kokkos::View<F_FLOAT*[6],
-                 typename ArrayTypes<DeviceType>::t_virial_array::array_layout,
-                 typename KKDevice<DeviceType>::value,
+    KK_FLOAT epair, KK_FLOAT fpair,
+    KK_FLOAT delx, KK_FLOAT dely, KK_FLOAT delz,
+    Kokkos::View<typename ArrayTypes<Space>::t_float_1d_6::data_type,
+                 typename ArrayTypes<Space>::t_float_1d_6::array_layout,
+                 typename KKDevice<typename GetDeviceType<Space>::value>::value,
                  Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > const& v_vatom,
-    Kokkos::View<E_FLOAT*,
-                 typename ArrayTypes<DeviceType>::t_efloat_1d::array_layout,
-                 typename KKDevice<DeviceType>::value,
+    Kokkos::View<typename ArrayTypes<Space>::t_float_1d::data_type,
+                 typename ArrayTypes<Space>::t_float_1d::array_layout,
+                 typename KKDevice<typename GetDeviceType<Space>::value>::value,
                  Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > const& v_eatom)
 {
   if (eflag) {
@@ -379,51 +382,51 @@ ev_tally(
   }
 }
 
-template <class DeviceType, int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE,
+template <ExecutionSpace Space, int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE,
           int EVFLAG, int NEWTON_PAIR>
 KOKKOS_INLINE_FUNCTION
 static EV_FLOAT
 compute_item(
     int ii,
     int nlocal,
-    typename ArrayTypes<DeviceType>::t_int_1d_const const& d_ilist,
-    typename ArrayTypes<DeviceType>::t_neighbors_2d_const const& d_neighbors,
-    typename ArrayTypes<DeviceType>::t_int_1d_const const& d_numneigh,
-    typename ArrayTypes<DeviceType>::t_x_array_randomread const& x,
-    typename ArrayTypes<DeviceType>::t_int_1d_randomread const& type,
-    Kokkos::View<double*, DeviceType> const& mixWtSite1old,
-    Kokkos::View<double*, DeviceType> const& mixWtSite2old,
-    Kokkos::View<double*, DeviceType> const& mixWtSite1,
-    Kokkos::View<double*, DeviceType> const& mixWtSite2,
+    typename ArrayTypes<Space>::t_int_1d_const const& d_ilist,
+    typename ArrayTypes<Space>::t_neighbors_2d_const const& d_neighbors,
+    typename ArrayTypes<Space>::t_int_1d_const const& d_numneigh,
+    typename ArrayTypes<Space>::t_float_1d_3_randomread const& x,
+    typename ArrayTypes<Space>::t_int_1d_randomread const& type,
+    typename ArrayTypes<Space>::t_float_1d const& mixWtSite1old,
+    typename ArrayTypes<Space>::t_float_1d const& mixWtSite2old,
+    typename ArrayTypes<Space>::t_float_1d const& mixWtSite1,
+    typename ArrayTypes<Space>::t_float_1d const& mixWtSite2,
     Few<int, 4> const& special_lj,
-    Few<Few<F_FLOAT, MAX_TYPES_STACKPARAMS+1>, MAX_TYPES_STACKPARAMS+1> const& m_cutsq,
-    typename ArrayTypes<DeviceType>::t_ffloat_2d const& d_cutsq,
-    Kokkos::View<F_FLOAT*[3],
-      typename ArrayTypes<DeviceType>::t_f_array::array_layout,
-      typename KKDevice<DeviceType>::value,
+    Few<Few<KK_FLOAT, MAX_TYPES_STACKPARAMS+1>, MAX_TYPES_STACKPARAMS+1> const& m_cutsq,
+    typename ArrayTypes<Space>::t_float_2d const& d_cutsq,
+    Kokkos::View<typename ArrayTypes<Space>::t_float_1d_3::data_type,
+      typename ArrayTypes<Space>::t_float_1d_3::array_layout,
+      typename KKDevice<typename GetDeviceType<Space>::value>::value,
       Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > const& f,
-    Kokkos::View<E_FLOAT*,
-                 typename ArrayTypes<DeviceType>::t_efloat_1d::array_layout,
-                 typename KKDevice<DeviceType>::value,
+    Kokkos::View<typename ArrayTypes<Space>::t_float_1d::data_type,
+                 typename ArrayTypes<Space>::t_float_1d::array_layout,
+                 typename KKDevice<typename GetDeviceType<Space>::value>::value,
                  Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > const& uCG,
-    Kokkos::View<E_FLOAT*,
-                 typename ArrayTypes<DeviceType>::t_efloat_1d::array_layout,
-                 typename KKDevice<DeviceType>::value,
+    Kokkos::View<typename ArrayTypes<Space>::t_float_1d::data_type,
+                 typename ArrayTypes<Space>::t_float_1d::array_layout,
+                 typename KKDevice<typename GetDeviceType<Space>::value>::value,
                  Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > const& uCGnew,
     int isite1, int isite2,
-    typename PairTableRXKokkos<DeviceType>::TableDeviceConst const& d_table_const,
+    typename PairTableRXKokkos<Space>::TableDeviceConst const& d_table_const,
     int eflag,
     int eflag_atom,
     int vflag,
     int vflag_global,
     int vflag_atom,
-    Kokkos::View<F_FLOAT*[6],
-                 typename ArrayTypes<DeviceType>::t_virial_array::array_layout,
-                 typename KKDevice<DeviceType>::value,
+    Kokkos::View<typename ArrayTypes<Space>::t_float_1d_6::data_type,
+                 typename ArrayTypes<Space>::t_float_1d_6::array_layout,
+                 typename KKDevice<typename GetDeviceType<Space>::value>::value,
                  Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > const& v_vatom,
-    Kokkos::View<E_FLOAT*,
-                 typename ArrayTypes<DeviceType>::t_efloat_1d::array_layout,
-                 typename KKDevice<DeviceType>::value,
+    Kokkos::View<typename ArrayTypes<Space>::t_float_1d::data_type,
+                 typename ArrayTypes<Space>::t_float_1d::array_layout,
+                 typename KKDevice<typename GetDeviceType<Space>::value>::value,
                  Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > const& v_eatom) {
   EV_FLOAT ev;
   auto i = d_ilist(ii);
@@ -432,13 +435,13 @@ compute_item(
   auto ztmp = x(i,2);
   auto itype = type(i);
 
-  auto jlist = NeighListKokkos<DeviceType>::static_neighbors_const(i,
+  auto jlist = NeighListKokkos<Space>::static_neighbors_const(i,
       d_neighbors, d_numneigh);
   auto jnum = d_numneigh(i);
 
-  double uCG_i = 0.0;
-  double uCGnew_i = 0.0;
-  double fx_i = 0.0, fy_i = 0.0, fz_i = 0.0;
+  KK_FLOAT uCG_i = 0.0;
+  KK_FLOAT uCGnew_i = 0.0;
+  KK_FLOAT fx_i = 0.0, fy_i = 0.0, fz_i = 0.0;
 
   auto mixWtSite1old_i = mixWtSite1old(i);
   auto mixWtSite2old_i = mixWtSite2old(i);
@@ -447,7 +450,7 @@ compute_item(
 
   for (int jj = 0; jj < jnum; jj++) {
     auto j = jlist(jj);
-    const F_FLOAT factor_lj = special_lj[sbmask(j)];
+    const KK_FLOAT factor_lj = special_lj[sbmask(j)];
     j &= NEIGHMASK;
 
     auto delx = xtmp - x(j,0);
@@ -462,7 +465,7 @@ compute_item(
       auto mixWtSite1_j = mixWtSite1(j);
       auto mixWtSite2_j = mixWtSite2(j);
 
-      auto fpair = factor_lj * compute_fpair<DeviceType,TABSTYLE>(
+      auto fpair = factor_lj * compute_fpair<Space,TABSTYLE>(
           rsq,itype,jtype,d_table_const);
 
       if (isite1 == isite2) fpair *= sqrt(mixWtSite1old_i * mixWtSite2old_j);
@@ -481,10 +484,10 @@ compute_item(
         f(j,2) -= delz*fpair;
       }
 
-      auto evdwl = compute_evdwl<DeviceType,TABSTYLE>(
+      auto evdwl = compute_evdwl<Space,TABSTYLE>(
           rsq,itype,jtype,d_table_const);
 
-      double evdwlOld;
+      KK_FLOAT evdwlOld;
       if (isite1 == isite2) {
         evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwl;
         evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwl;
@@ -507,7 +510,7 @@ compute_item(
       ev.evdwl += (do_half ? 1.0 : 0.5)*evdwl;
 
       if (EVFLAG) {
-        ev_tally<DeviceType,NEIGHFLAG,TABSTYLE,NEWTON_PAIR>(
+        ev_tally<Space,NEIGHFLAG,TABSTYLE,NEWTON_PAIR>(
             eflag,eflag_atom,
             vflag,vflag_global,vflag_atom,
             nlocal,i,j,ev,evdwl,fpair,delx,dely,delz,
@@ -526,55 +529,55 @@ compute_item(
   return ev;
 }
 
-template<class DeviceType, int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE, int NEWTON_PAIR>
+template<ExecutionSpace Space, int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE, int NEWTON_PAIR>
 static void compute_all_items(
     EV_FLOAT& ev,
     int nlocal,
     int inum,
-    typename ArrayTypes<DeviceType>::t_int_1d_const d_ilist,
-    typename ArrayTypes<DeviceType>::t_neighbors_2d_const d_neighbors,
-    typename ArrayTypes<DeviceType>::t_int_1d_const d_numneigh,
-    typename ArrayTypes<DeviceType>::t_x_array_randomread x,
-    typename ArrayTypes<DeviceType>::t_int_1d_randomread type,
-    Kokkos::View<double*, DeviceType> const& mixWtSite1old,
-    Kokkos::View<double*, DeviceType> const& mixWtSite2old,
-    Kokkos::View<double*, DeviceType> const& mixWtSite1,
-    Kokkos::View<double*, DeviceType> const& mixWtSite2,
+    typename ArrayTypes<Space>::t_int_1d_const d_ilist,
+    typename ArrayTypes<Space>::t_neighbors_2d_const d_neighbors,
+    typename ArrayTypes<Space>::t_int_1d_const d_numneigh,
+    typename ArrayTypes<Space>::t_float_1d_3_randomread x,
+    typename ArrayTypes<Space>::t_int_1d_randomread type,
+    typename ArrayTypes<Space>::t_float_1d const& mixWtSite1old,
+    typename ArrayTypes<Space>::t_float_1d const& mixWtSite2old,
+    typename ArrayTypes<Space>::t_float_1d const& mixWtSite1,
+    typename ArrayTypes<Space>::t_float_1d const& mixWtSite2,
     Few<int, 4> special_lj,
-    Few<Few<F_FLOAT, MAX_TYPES_STACKPARAMS+1>, MAX_TYPES_STACKPARAMS+1> m_cutsq,
-    typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq,
-    Kokkos::View<F_FLOAT*[3],
-      typename ArrayTypes<DeviceType>::t_f_array::array_layout,
-      typename KKDevice<DeviceType>::value,
+    Few<Few<KK_FLOAT, MAX_TYPES_STACKPARAMS+1>, MAX_TYPES_STACKPARAMS+1> m_cutsq,
+    typename ArrayTypes<Space>::t_float_2d d_cutsq,
+    Kokkos::View<typename ArrayTypes<Space>::t_float_1d_3::data_type,
+      typename ArrayTypes<Space>::t_float_1d_3::array_layout,
+      typename KKDevice<typename GetDeviceType<Space>::value>::value,
       Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > f,
-    Kokkos::View<E_FLOAT*,
-                 typename ArrayTypes<DeviceType>::t_efloat_1d::array_layout,
-                 typename KKDevice<DeviceType>::value,
+    Kokkos::View<typename ArrayTypes<Space>::t_float_1d::data_type,
+                 typename ArrayTypes<Space>::t_float_1d::array_layout,
+                 typename KKDevice<typename GetDeviceType<Space>::value>::value,
                  Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > uCG,
-    Kokkos::View<E_FLOAT*,
-                 typename ArrayTypes<DeviceType>::t_efloat_1d::array_layout,
-                 typename KKDevice<DeviceType>::value,
+    Kokkos::View<typename ArrayTypes<Space>::t_float_1d::data_type,
+                 typename ArrayTypes<Space>::t_float_1d::array_layout,
+                 typename KKDevice<typename GetDeviceType<Space>::value>::value,
                  Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > uCGnew,
     int isite1, int isite2,
-    typename PairTableRXKokkos<DeviceType>::TableDeviceConst d_table_const,
+    typename PairTableRXKokkos<Space>::TableDeviceConst d_table_const,
     int eflag,
     int eflag_atom,
     int vflag,
     int vflag_global,
     int vflag_atom,
-    Kokkos::View<F_FLOAT*[6],
-                 typename ArrayTypes<DeviceType>::t_virial_array::array_layout,
-                 typename KKDevice<DeviceType>::value,
+    Kokkos::View<typename ArrayTypes<Space>::t_float_1d_6::data_type,
+                 typename ArrayTypes<Space>::t_float_1d_6::array_layout,
+                 typename KKDevice<typename GetDeviceType<Space>::value>::value,
                  Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom,
-    Kokkos::View<E_FLOAT*,
-                 typename ArrayTypes<DeviceType>::t_efloat_1d::array_layout,
-                 typename KKDevice<DeviceType>::value,
+    Kokkos::View<typename ArrayTypes<Space>::t_float_1d::data_type,
+                 typename ArrayTypes<Space>::t_float_1d::array_layout,
+                 typename KKDevice<typename GetDeviceType<Space>::value>::value,
                  Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom) {
   if (eflag || vflag) {
     Kokkos::parallel_reduce(inum,
     LAMMPS_LAMBDA(int i, EV_FLOAT& energy_virial) {
         energy_virial +=
-          compute_item<DeviceType,NEIGHFLAG,STACKPARAMS,TABSTYLE,1,NEWTON_PAIR>(
+          compute_item<Space,NEIGHFLAG,STACKPARAMS,TABSTYLE,1,NEWTON_PAIR>(
             i, nlocal, d_ilist, d_neighbors, d_numneigh, x, type,
             mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
             special_lj, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
@@ -584,7 +587,7 @@ static void compute_all_items(
   } else {
     Kokkos::parallel_for(inum,
     LAMMPS_LAMBDA(int i) {
-        compute_item<DeviceType,NEIGHFLAG,STACKPARAMS,TABSTYLE,0,NEWTON_PAIR>(
+        compute_item<Space,NEIGHFLAG,STACKPARAMS,TABSTYLE,0,NEWTON_PAIR>(
             i, nlocal, d_ilist, d_neighbors, d_numneigh, x, type,
             mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
             special_lj, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
@@ -594,27 +597,27 @@ static void compute_all_items(
   }
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 static void getAllMixingWeights(
     int ntotal,
-    typename ArrayTypes<DeviceType>::t_float_2d_randomread dvector,
+    typename ArrayTypes<Space>::t_float_2d_randomread dvector,
     int nspecies,
     int isite1, int isite2,
     bool fractionalWeighting,
-    Kokkos::View<double*, DeviceType> const& mixWtSite1old,
-    Kokkos::View<double*, DeviceType> const& mixWtSite2old,
-    Kokkos::View<double*, DeviceType> const& mixWtSite1,
-    Kokkos::View<double*, DeviceType> const& mixWtSite2) {
+    typename ArrayTypes<Space>::t_float_1d const& mixWtSite1old,
+    typename ArrayTypes<Space>::t_float_1d const& mixWtSite2old,
+    typename ArrayTypes<Space>::t_float_1d const& mixWtSite1,
+    typename ArrayTypes<Space>::t_float_1d const& mixWtSite2) {
   Kokkos::parallel_for(ntotal,
   LAMMPS_LAMBDA(int i) {
-      getMixingWeights<DeviceType>(dvector,nspecies,isite1,isite2,fractionalWeighting,
+      getMixingWeights<Space>(dvector,nspecies,isite1,isite2,fractionalWeighting,
         i, mixWtSite1old(i), mixWtSite2old(i), mixWtSite1(i), mixWtSite2(i));
   });
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int TABSTYLE>
-void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
+void PairTableRXKokkos<Space>::compute_style(int eflag_in, int vflag_in)
 {
   auto eflag = eflag_in;
   auto vflag = vflag_in;
@@ -626,23 +629,23 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   if (eflag_atom) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
-    d_eatom = k_eatom.template view<DeviceType>();
+    d_eatom = DualViewHelper<Space>::view(k_eatom);
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
-    d_vatom = k_vatom.template view<DeviceType>();
+    d_vatom = DualViewHelper<Space>::view(k_vatom);
   }
 
   atomKK->sync(execution_space,datamask_read);
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
 
-  x = atomKK->k_x.view<DeviceType>();
-  f = atomKK->k_f.view<DeviceType>();
-  auto type = atomKK->k_type.view<DeviceType>();
-  auto uCG = atomKK->k_uCG.view<DeviceType>();
-  auto uCGnew = atomKK->k_uCGnew.view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  f = DualViewHelper<Space>::view(atomKK->k_f);
+  auto type = DualViewHelper<Space>::view(atomKK->k_type);
+  auto uCG = DualViewHelper<Space>::view(atomKK->k_uCG);
+  auto uCGnew = DualViewHelper<Space>::view(atomKK->k_uCGnew);
   auto nlocal = atom->nlocal;
   Few<int, 4> special_lj_local;
   special_lj_local[0] = force->special_lj[0];
@@ -655,31 +658,31 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
 
   const int ntotal = atom->nlocal + atom->nghost;
   if (ntotal > mixWtSite1.extent(0)) {
-    mixWtSite1old = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite1old", ntotal);
-    mixWtSite2old = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite2old", ntotal);
-    mixWtSite1 = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite1", ntotal);
-    mixWtSite2 = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite2", ntotal);
+    mixWtSite1old = typename AT::t_float_1d("PairTableRXKokkos::mixWtSite1old", ntotal);
+    mixWtSite2old = typename AT::t_float_1d("PairTableRXKokkos::mixWtSite2old", ntotal);
+    mixWtSite1 = typename AT::t_float_1d("PairTableRXKokkos::mixWtSite1", ntotal);
+    mixWtSite2 = typename AT::t_float_1d("PairTableRXKokkos::mixWtSite2", ntotal);
   }
 
-  getAllMixingWeights(ntotal, atomKK->k_dvector.template view<DeviceType>(),
+  getAllMixingWeights<Space>(ntotal, DualViewHelper<Space>::view(atomKK->k_dvector),
       nspecies, isite1, isite2, fractionalWeighting,
       mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2);
 
-  NeighListKokkos<DeviceType>* l =
-    dynamic_cast<NeighListKokkos<DeviceType>*>(list);
+  NeighListKokkos<Space>* l =
+    dynamic_cast<NeighListKokkos<Space>*>(list);
 
   EV_FLOAT ev;
   if(atom->ntypes > MAX_TYPES_STACKPARAMS) {
     if (neighflag == HALFTHREAD) {
       if (newton_pair) {
-        compute_all_items<DeviceType,HALFTHREAD,false,TABSTYLE,1>(
+        compute_all_items<Space,HALFTHREAD,false,TABSTYLE,1>(
           ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
           d_table_const, eflag, eflag_atom,
           vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
       } else {
-        compute_all_items<DeviceType,HALFTHREAD,false,TABSTYLE,0>(
+        compute_all_items<Space,HALFTHREAD,false,TABSTYLE,0>(
           ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
@@ -688,14 +691,14 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
       }
     } else if (neighflag == HALF) {
       if (newton_pair) {
-        compute_all_items<DeviceType,HALF,false,TABSTYLE,1>(
+        compute_all_items<Space,HALF,false,TABSTYLE,1>(
           ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
           d_table_const, eflag, eflag_atom,
           vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
       } else {
-        compute_all_items<DeviceType,HALF,false,TABSTYLE,0>(
+        compute_all_items<Space,HALF,false,TABSTYLE,0>(
           ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
@@ -704,14 +707,14 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
       }
     } else if (neighflag == FULL) {
       if (newton_pair) {
-        compute_all_items<DeviceType,FULL,false,TABSTYLE,1>(
+        compute_all_items<Space,FULL,false,TABSTYLE,1>(
           ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
           d_table_const, eflag, eflag_atom,
           vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
       } else {
-        compute_all_items<DeviceType,FULL,false,TABSTYLE,0>(
+        compute_all_items<Space,FULL,false,TABSTYLE,0>(
           ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
@@ -722,14 +725,14 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   } else {
     if (neighflag == HALFTHREAD) {
       if (newton_pair) {
-        compute_all_items<DeviceType,HALFTHREAD,true,TABSTYLE,1>(
+        compute_all_items<Space,HALFTHREAD,true,TABSTYLE,1>(
           ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
           d_table_const, eflag, eflag_atom,
           vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
       } else {
-        compute_all_items<DeviceType,HALFTHREAD,true,TABSTYLE,0>(
+        compute_all_items<Space,HALFTHREAD,true,TABSTYLE,0>(
           ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
@@ -738,14 +741,14 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
       }
     } else if (neighflag == HALF) {
       if (newton_pair) {
-        compute_all_items<DeviceType,HALF,true,TABSTYLE,1>(
+        compute_all_items<Space,HALF,true,TABSTYLE,1>(
           ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
           d_table_const, eflag, eflag_atom,
           vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
       } else {
-        compute_all_items<DeviceType,HALF,true,TABSTYLE,0>(
+        compute_all_items<Space,HALF,true,TABSTYLE,0>(
           ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
@@ -754,14 +757,14 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
       }
     } else if (neighflag == FULL) {
       if (newton_pair) {
-        compute_all_items<DeviceType,FULL,true,TABSTYLE,1>(
+        compute_all_items<Space,FULL,true,TABSTYLE,1>(
           ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
           d_table_const, eflag, eflag_atom,
           vflag, vflag_global, vflag_atom, d_vatom, d_eatom);
       } else {
-        compute_all_items<DeviceType,FULL,true,TABSTYLE,0>(
+        compute_all_items<Space,FULL,true,TABSTYLE,0>(
           ev, nlocal, l->inum, l->d_ilist, l->d_neighbors, l->d_numneigh,
           x, type, mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
           special_lj_local, m_cutsq, d_cutsq, f, uCG, uCGnew, isite1, isite2,
@@ -781,59 +784,59 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
     virial[5] += ev.v[5];
   }
 
-  if (vflag_fdotr) pair_virial_fdotr_compute(this);
+  if (vflag_fdotr) pair_virial_fdotr_compute<Space>(this);
 
   if (eflag_atom) {
-    k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_eatom);
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
-    k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_vatom);
+    k_vatom.sync_host();
   }
 }
 
-template<class DeviceType>
-void PairTableRXKokkos<DeviceType>::create_kokkos_tables()
+template<ExecutionSpace Space>
+void PairTableRXKokkos<Space>::create_kokkos_tables()
 {
   const int tlm1 = tablength-1;
 
-  memoryKK->create_kokkos(d_table->nshiftbits,h_table->nshiftbits,ntables,"Table::nshiftbits");
-  memoryKK->create_kokkos(d_table->nmask,h_table->nmask,ntables,"Table::nmask");
-  memoryKK->create_kokkos(d_table->innersq,h_table->innersq,ntables,"Table::innersq");
-  memoryKK->create_kokkos(d_table->invdelta,h_table->invdelta,ntables,"Table::invdelta");
-  memoryKK->create_kokkos(d_table->deltasq6,h_table->deltasq6,ntables,"Table::deltasq6");
+  memoryKK->create_kokkos(k_table->k_nshiftbits,ntables,"Table::nshiftbits");
+  memoryKK->create_kokkos(k_table->k_nmask,ntables,"Table::nmask");
+  memoryKK->create_kokkos(k_table->k_innersq,ntables,"Table::innersq");
+  memoryKK->create_kokkos(k_table->k_invdelta,ntables,"Table::invdelta");
+  memoryKK->create_kokkos(k_table->k_deltasq6,ntables,"Table::deltasq6");
 
   if(tabstyle == LOOKUP) {
-    memoryKK->create_kokkos(d_table->e,h_table->e,ntables,tlm1,"Table::e");
-    memoryKK->create_kokkos(d_table->f,h_table->f,ntables,tlm1,"Table::f");
+    memoryKK->create_kokkos(k_table->k_e,ntables,tlm1,"Table::e");
+    memoryKK->create_kokkos(k_table->k_f,ntables,tlm1,"Table::f");
   }
 
   if(tabstyle == LINEAR) {
-    memoryKK->create_kokkos(d_table->rsq,h_table->rsq,ntables,tablength,"Table::rsq");
-    memoryKK->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
-    memoryKK->create_kokkos(d_table->f,h_table->f,ntables,tablength,"Table::f");
-    memoryKK->create_kokkos(d_table->de,h_table->de,ntables,tlm1,"Table::de");
-    memoryKK->create_kokkos(d_table->df,h_table->df,ntables,tlm1,"Table::df");
+    memoryKK->create_kokkos(k_table->k_rsq,ntables,tablength,"Table::rsq");
+    memoryKK->create_kokkos(k_table->k_e,ntables,tablength,"Table::e");
+    memoryKK->create_kokkos(k_table->k_f,ntables,tablength,"Table::f");
+    memoryKK->create_kokkos(k_table->k_de,ntables,tlm1,"Table::de");
+    memoryKK->create_kokkos(k_table->k_df,ntables,tlm1,"Table::df");
   }
 
   if(tabstyle == SPLINE) {
-    memoryKK->create_kokkos(d_table->rsq,h_table->rsq,ntables,tablength,"Table::rsq");
-    memoryKK->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
-    memoryKK->create_kokkos(d_table->f,h_table->f,ntables,tablength,"Table::f");
-    memoryKK->create_kokkos(d_table->e2,h_table->e2,ntables,tablength,"Table::e2");
-    memoryKK->create_kokkos(d_table->f2,h_table->f2,ntables,tablength,"Table::f2");
+    memoryKK->create_kokkos(k_table->k_rsq,ntables,tablength,"Table::rsq");
+    memoryKK->create_kokkos(k_table->k_e,ntables,tablength,"Table::e");
+    memoryKK->create_kokkos(k_table->k_f,ntables,tablength,"Table::f");
+    memoryKK->create_kokkos(k_table->k_e2,ntables,tablength,"Table::e2");
+    memoryKK->create_kokkos(k_table->k_f2,ntables,tablength,"Table::f2");
   }
 
   if(tabstyle == BITMAP) {
     int ntable = 1 << tablength;
-    memoryKK->create_kokkos(d_table->rsq,h_table->rsq,ntables,ntable,"Table::rsq");
-    memoryKK->create_kokkos(d_table->e,h_table->e,ntables,ntable,"Table::e");
-    memoryKK->create_kokkos(d_table->f,h_table->f,ntables,ntable,"Table::f");
-    memoryKK->create_kokkos(d_table->de,h_table->de,ntables,ntable,"Table::de");
-    memoryKK->create_kokkos(d_table->df,h_table->df,ntables,ntable,"Table::df");
-    memoryKK->create_kokkos(d_table->drsq,h_table->drsq,ntables,ntable,"Table::drsq");
+    memoryKK->create_kokkos(k_table->k_rsq,ntables,ntable,"Table::rsq");
+    memoryKK->create_kokkos(k_table->k_e,ntables,ntable,"Table::e");
+    memoryKK->create_kokkos(k_table->k_f,ntables,ntable,"Table::f");
+    memoryKK->create_kokkos(k_table->k_de,ntables,ntable,"Table::de");
+    memoryKK->create_kokkos(k_table->k_df,ntables,ntable,"Table::df");
+    memoryKK->create_kokkos(k_table->k_drsq,ntables,ntable,"Table::drsq");
   }
 
 
@@ -866,68 +869,93 @@ void PairTableRXKokkos<DeviceType>::create_kokkos_tables()
   }
 
 
-  Kokkos::deep_copy(d_table->nshiftbits,h_table->nshiftbits);
+  k_table->k_nshiftbits.modify_host();
+  k_table->k_nshiftbits.sync_device();
   d_table_const.nshiftbits = d_table->nshiftbits;
-  Kokkos::deep_copy(d_table->nmask,h_table->nmask);
+  k_table->k_nmask.modify_host();
+  k_table->k_nmask.sync_device();
   d_table_const.nmask = d_table->nmask;
-  Kokkos::deep_copy(d_table->innersq,h_table->innersq);
+  k_table->k_innersq.modify_host();
+  k_table->k_innersq.sync_device();
   d_table_const.innersq = d_table->innersq;
-  Kokkos::deep_copy(d_table->invdelta,h_table->invdelta);
+  k_table->k_invdelta.modify_host();
+  k_table->k_invdelta.sync_device();
   d_table_const.invdelta = d_table->invdelta;
-  Kokkos::deep_copy(d_table->deltasq6,h_table->deltasq6);
+  k_table->k_deltasq6.modify_host();
+  k_table->k_deltasq6.sync_device();
   d_table_const.deltasq6 = d_table->deltasq6;
 
   if(tabstyle == LOOKUP) {
-    Kokkos::deep_copy(d_table->e,h_table->e);
+    k_table->k_e.modify_host();
+    k_table->k_e.sync_device();
     d_table_const.e = d_table->e;
-    Kokkos::deep_copy(d_table->f,h_table->f);
+    k_table->k_f.modify_host();
+    k_table->k_f.sync_device();
     d_table_const.f = d_table->f;
   }
 
   if(tabstyle == LINEAR) {
-    Kokkos::deep_copy(d_table->rsq,h_table->rsq);
+    k_table->k_rsq.modify_host();
+    k_table->k_rsq.sync_device();
     d_table_const.rsq = d_table->rsq;
-    Kokkos::deep_copy(d_table->e,h_table->e);
+    k_table->k_e.modify_host();
+    k_table->k_e.sync_device();
     d_table_const.e = d_table->e;
-    Kokkos::deep_copy(d_table->f,h_table->f);
+    k_table->k_f.modify_host();
+    k_table->k_f.sync_device();
     d_table_const.f = d_table->f;
-    Kokkos::deep_copy(d_table->de,h_table->de);
+    k_table->k_de.modify_host();
+    k_table->k_de.sync_device();
     d_table_const.de = d_table->de;
-    Kokkos::deep_copy(d_table->df,h_table->df);
+    k_table->k_df.modify_host();
+    k_table->k_df.sync_device();
     d_table_const.df = d_table->df;
   }
 
   if(tabstyle == SPLINE) {
-    Kokkos::deep_copy(d_table->rsq,h_table->rsq);
+    k_table->k_rsq.modify_host();
+    k_table->k_rsq.sync_device();
     d_table_const.rsq = d_table->rsq;
-    Kokkos::deep_copy(d_table->e,h_table->e);
+    k_table->k_e.modify_host();
+    k_table->k_e.sync_device();
     d_table_const.e = d_table->e;
-    Kokkos::deep_copy(d_table->f,h_table->f);
+    k_table->k_f.modify_host();
+    k_table->k_f.sync_device();
     d_table_const.f = d_table->f;
-    Kokkos::deep_copy(d_table->e2,h_table->e2);
+    k_table->k_e2.modify_host();
+    k_table->k_e2.sync_device();
     d_table_const.e2 = d_table->e2;
-    Kokkos::deep_copy(d_table->f2,h_table->f2);
+    k_table->k_f2.modify_host();
+    k_table->k_f2.sync_device();
     d_table_const.f2 = d_table->f2;
   }
 
   if(tabstyle == BITMAP) {
-    Kokkos::deep_copy(d_table->rsq,h_table->rsq);
+    k_table->k_rsq.modify_host();
+    k_table->k_rsq.sync_device();
     d_table_const.rsq = d_table->rsq;
-    Kokkos::deep_copy(d_table->e,h_table->e);
+    k_table->k_e.modify_host();
+    k_table->k_e.sync_device();
     d_table_const.e = d_table->e;
-    Kokkos::deep_copy(d_table->f,h_table->f);
+    k_table->k_f.modify_host();
+    k_table->k_f.sync_device();
     d_table_const.f = d_table->f;
-    Kokkos::deep_copy(d_table->de,h_table->de);
+    k_table->k_de.modify_host();
+    k_table->k_de.sync_device();
     d_table_const.de = d_table->de;
-    Kokkos::deep_copy(d_table->df,h_table->df);
+    k_table->k_df.modify_host();
+    k_table->k_df.sync_device();
     d_table_const.df = d_table->df;
-    Kokkos::deep_copy(d_table->drsq,h_table->drsq);
+    k_table->k_drsq.modify_host();
+    k_table->k_drsq.sync_device();
     d_table_const.drsq = d_table->drsq;
   }
 
-  Kokkos::deep_copy(d_table->cutsq,h_table->cutsq);
+  k_table->k_cutsq.modify_host();
+  k_table->k_cutsq.sync_device();
   d_table_const.cutsq = d_table->cutsq;
-  Kokkos::deep_copy(d_table->tabindex,h_table->tabindex);
+  k_table->k_tabindex.modify_host();
+  k_table->k_tabindex.sync_device();
   d_table_const.tabindex = d_table->tabindex;
 
   update_table = 0;
@@ -937,20 +965,20 @@ void PairTableRXKokkos<DeviceType>::create_kokkos_tables()
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairTableRXKokkos<DeviceType>::allocate()
+template<ExecutionSpace Space>
+void PairTableRXKokkos<Space>::allocate()
 {
   allocated = 1;
   const int nt = atom->ntypes + 1;
 
   memory->create(setflag,nt,nt,"pair:setflag");
-  memoryKK->create_kokkos(d_table->cutsq,h_table->cutsq,cutsq,nt,nt,"pair:cutsq");
-  memoryKK->create_kokkos(d_table->tabindex,h_table->tabindex,tabindex,nt,nt,"pair:tabindex");
+  memoryKK->create_kokkos(k_table->k_cutsq,cutsq,nt,nt,"pair:cutsq");
+  memoryKK->create_kokkos(k_table->k_tabindex,tabindex,nt,nt,"pair:tabindex");
   d_table_const.cutsq = d_table->cutsq;
   d_table_const.tabindex = d_table->tabindex;
 
   memset(&setflag[0][0],0,nt*nt*sizeof(int));
-  memset(&cutsq[0][0],0,nt*nt*sizeof(double));
+  memset(&cutsq[0][0],0,nt*nt*sizeof(KK_FLOAT));
   memset(&tabindex[0][0],0,nt*nt*sizeof(int));
 }
 
@@ -958,8 +986,8 @@ void PairTableRXKokkos<DeviceType>::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairTableRXKokkos<DeviceType>::settings(int narg, char **arg)
+template<ExecutionSpace Space>
+void PairTableRXKokkos<Space>::settings(int narg, char **arg)
 {
   if (narg < 2) error->all(FLERR,"Illegal pair_style command");
 
@@ -1000,11 +1028,11 @@ void PairTableRXKokkos<DeviceType>::settings(int narg, char **arg)
   if (allocated) {
     memory->destroy(setflag);
 
-    d_table_const.tabindex = d_table->tabindex = typename ArrayTypes<DeviceType>::t_int_2d();
-    h_table->tabindex = typename ArrayTypes<LMPHostType>::t_int_2d();
+    d_table_const.tabindex = d_table->tabindex = typename AT::t_int_2d();
+    h_table->tabindex = HAT::t_int_2d();
 
-    d_table_const.cutsq = d_table->cutsq = typename ArrayTypes<DeviceType>::t_ffloat_2d();
-    h_table->cutsq = typename ArrayTypes<LMPHostType>::t_ffloat_2d();
+    d_table_const.cutsq = d_table->cutsq = typename AT::t_float_2d();
+    h_table->cutsq = HAT::t_float_2d();
     allocated = 0;
   }
 }
@@ -1013,8 +1041,8 @@ void PairTableRXKokkos<DeviceType>::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
+template<ExecutionSpace Space>
+void PairTableRXKokkos<Space>::coeff(int narg, char **arg)
 {
   if (narg != 6 && narg != 7) error->all(FLERR,"Illegal pair_coeff command");
   if (!allocated) allocate();
@@ -1072,7 +1100,7 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
   // for BITMAP tables, file values can be in non-ascending order
 
   if (tb->ninput <= 1) error->one(FLERR,"Invalid pair table length");
-  double rlo,rhi;
+  KK_FLOAT rlo,rhi;
   if (tb->rflag == 0) {
     rlo = tb->rfile[0];
     rhi = tb->rfile[tb->ninput-1];
@@ -1155,8 +1183,8 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-double PairTableRXKokkos<DeviceType>::init_one(int i, int j)
+template<ExecutionSpace Space>
+double PairTableRXKokkos<Space>::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
@@ -1171,33 +1199,35 @@ double PairTableRXKokkos<DeviceType>::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-double PairTableRXKokkos<DeviceType>::single(int i, int j, int itype, int jtype, double rsq,
+template<ExecutionSpace Space>
+double PairTableRXKokkos<Space>::single(int i, int j, int itype, int jtype, double rsq,
                          double factor_coul, double factor_lj,
                          double &fforce)
 {
   int itable;
-  double fraction,value,a,b,phi;
+  KK_FLOAT fraction,value,a,b,phi;
   int tlm1 = tablength - 1;
 
   Table *tb = &tables[tabindex[itype][jtype]];
-  double mixWtSite1_i, mixWtSite1_j;
-  double mixWtSite2_i, mixWtSite2_j;
-  double mixWtSite1old_i, mixWtSite1old_j;
-  double mixWtSite2old_i, mixWtSite2old_j;
+
+  typedef typename GetFloatType<Host>::type HOST_FLOAT;
+  HOST_FLOAT mixWtSite1_i, mixWtSite1_j;
+  HOST_FLOAT mixWtSite2_i, mixWtSite2_j;
+  HOST_FLOAT mixWtSite1old_i, mixWtSite1old_j;
+  HOST_FLOAT mixWtSite2old_i, mixWtSite2old_j;
 
   fraction = 0.0;
   a = 0.0;
   b = 0.0;
 
-  atomKK->k_dvector.template sync<LMPHostType>();
-  typename ArrayTypes<LMPHostType>::t_float_2d_randomread h_dvector =
-    atomKK->k_dvector.view<LMPHostType>();
-  getMixingWeights<LMPHostType>(h_dvector,
+  atomKK->k_dvector.sync_host();
+  HAT::t_float_2d_randomread h_dvector =
+    atomKK->k_dvector.h_view;
+  getMixingWeights<Host>(h_dvector,
       nspecies, isite1, isite2, fractionalWeighting,
       i,mixWtSite1old_i,mixWtSite2old_i,
       mixWtSite1_i,mixWtSite2_i);
-  getMixingWeights<LMPHostType>(h_dvector,
+  getMixingWeights<Host>(h_dvector,
       nspecies, isite1, isite2, fractionalWeighting,
       j,mixWtSite1old_j,mixWtSite2old_j,
       mixWtSite1_j,mixWtSite2_j);
@@ -1254,25 +1284,25 @@ double PairTableRXKokkos<DeviceType>::single(int i, int j, int itype, int jtype,
    compute r,e,f vectors from splined values
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairTableRXKokkos<DeviceType>::compute_table(Table *tb)
+template<ExecutionSpace Space>
+void PairTableRXKokkos<Space>::compute_table(Table *tb)
 {
   update_table = 1;
   PairTable::compute_table(tb);
 }
 
-template<class DeviceType>
-void PairTableRXKokkos<DeviceType>::init_style()
+template<ExecutionSpace Space>
+void PairTableRXKokkos<Space>::init_style()
 {
   neighbor->request(this,instance_me);
   neighflag = lmp->kokkos->neighflag;
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = (Space == Host) &&
+    !(Space == Device);
   neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = (Space == Device);
 
   if (neighflag == FULL) {
     neighbor->requests[irequest]->full = 1;
@@ -1285,8 +1315,8 @@ void PairTableRXKokkos<DeviceType>::init_style()
   }
 }
 
-template<class DeviceType>
-void PairTableRXKokkos<DeviceType>::cleanup_copy() {
+template<ExecutionSpace Space>
+void PairTableRXKokkos<Space>::cleanup_copy() {
   // WHY needed: this prevents parent copy from deallocating any arrays
   allocated = 0;
   cutsq = NULL;
@@ -1296,10 +1326,8 @@ void PairTableRXKokkos<DeviceType>::cleanup_copy() {
 }
 
 namespace LAMMPS_NS {
-template class PairTableRXKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class PairTableRXKokkos<LMPHostType>;
-#endif
+template class PairTableRXKokkos<Device>;
+template class PairTableRXKokkos<Host>;
 
 }
 

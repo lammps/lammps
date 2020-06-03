@@ -13,9 +13,9 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(exp6/rx/kk,PairExp6rxKokkos<LMPDeviceType>)
-PairStyle(exp6/rx/kk/device,PairExp6rxKokkos<LMPDeviceType>)
-PairStyle(exp6/rx/kk/host,PairExp6rxKokkos<LMPHostType>)
+PairStyle(exp6/rx/kk,PairExp6rxKokkos<Device>)
+PairStyle(exp6/rx/kk/device,PairExp6rxKokkos<Device>)
+PairStyle(exp6/rx/kk/host,PairExp6rxKokkos<Host>)
 
 #else
 
@@ -32,10 +32,10 @@ namespace LAMMPS_NS {
 // local and neighbor particles. Pack inside this struct
 // to avoid any name clashes.
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 struct PairExp6ParamDataTypeKokkos
 {
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
 
    int n;
    typename AT::t_float_1d epsilon1, alpha1, rm1, mixWtSite1,
@@ -44,15 +44,15 @@ struct PairExp6ParamDataTypeKokkos
           epsilonOld2, alphaOld2, rmOld2, mixWtSite2old;
 
    // Default constructor -- nullify everything.
-   PairExp6ParamDataTypeKokkos<DeviceType>(void)
+   PairExp6ParamDataTypeKokkos<Space>(void)
       : n(0)
    {}
 };
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 struct PairExp6ParamDataTypeKokkosVect
 {
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
 
    typename AT::t_float_1d epsilon, rm3, alpha, xMolei, epsilon_old, rm3_old,
                            alpha_old, xMolei_old, fractionOFA, fraction1,
@@ -62,7 +62,7 @@ struct PairExp6ParamDataTypeKokkosVect
                            nTotalold;
 
    // Default constructor -- nullify everything.
-   PairExp6ParamDataTypeKokkosVect<DeviceType>(void)
+   PairExp6ParamDataTypeKokkosVect<Space>(void)
    {}
 };
 
@@ -78,11 +78,13 @@ struct TagPairExp6rxComputeNoAtomics{};
 struct TagPairExp6rxCollapseDupViews{};
 struct TagPairExp6rxZeroDupViews{};
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class PairExp6rxKokkos : public PairExp6rx {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
+  typedef typename GetFloatType<Space>::type SPACE_FLOAT;
   typedef EV_FLOAT value_type;
 
   PairExp6rxKokkos(class LAMMPS *);
@@ -126,8 +128,8 @@ class PairExp6rxKokkos : public PairExp6rx {
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
-                  const F_FLOAT &dely, const F_FLOAT &delz) const;
+      const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
+                  const KK_FLOAT &dely, const KK_FLOAT &delz) const;
 
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;
@@ -135,25 +137,25 @@ class PairExp6rxKokkos : public PairExp6rx {
  protected:
   int eflag,vflag;
   int nlocal,newton_pair,neighflag;
-  double special_lj[4];
+  KK_FLOAT special_lj[4];
   int nthreads,ntypes;
 
-  typename AT::t_x_array_randomread x;
-  typename AT::t_f_array f;
+  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_float_1d_3 f;
   typename AT::t_int_1d_randomread type;
-  typename AT::t_efloat_1d uCG, uCGnew;
+  typename AT::t_float_1d uCG, uCGnew;
   typename AT::t_float_2d dvector;
 
-  typedef Kokkos::View<F_FLOAT**[3],Kokkos::LayoutRight,DeviceType> t_f_array_thread;
-  typedef Kokkos::View<E_FLOAT**,Kokkos::LayoutRight,DeviceType> t_efloat_1d_thread;
+  typedef Kokkos::View<typename AT::t_float_1d::data_type*[3],Kokkos::LayoutRight,DeviceType> t_float_1d_3_thread;
+  typedef Kokkos::View<typename AT::t_float_1d::data_type*,Kokkos::LayoutRight,DeviceType> t_float_1d_thread;
 
-  t_f_array_thread t_f;
-  t_efloat_1d_thread t_uCG, t_uCGnew;
+  t_float_1d_3_thread t_f;
+  t_float_1d_thread t_uCG, t_uCGnew;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_efloat_1d d_eatom;
-  typename AT::t_virial_array d_vatom;
+  DAT::tdual_float_1d k_eatom;
+  DAT::tdual_float_1d_6 k_vatom;
+  typename AT::t_float_1d d_eatom;
+  typename AT::t_float_1d_6 d_vatom;
 
   DAT::tdual_int_scalar k_error_flag;
 
@@ -161,8 +163,8 @@ class PairExp6rxKokkos : public PairExp6rx {
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
 
-  PairExp6ParamDataTypeKokkos<DeviceType> PairExp6ParamData;
-  PairExp6ParamDataTypeKokkosVect<DeviceType> PairExp6ParamDataVect;
+  PairExp6ParamDataTypeKokkos<Space> PairExp6ParamData;
+  PairExp6ParamDataTypeKokkosVect<Space> PairExp6ParamDataVect;
 
   void allocate();
   DAT::tdual_int_1d k_mol2param;               // mapping from molecule to parameters
@@ -174,33 +176,33 @@ class PairExp6rxKokkos : public PairExp6rx {
   tdual_param_1d k_params;                // parameter set for an I-J-K interaction
   t_param_1d_randomread d_params;                // parameter set for an I-J-K interaction
 
-  typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cutsq;
-  typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;
+  DAT::tdual_float_2d k_cutsq;
+  typename AT::t_float_2d d_cutsq;
 
   void read_file(char *);
   void setup();
 
   KOKKOS_INLINE_FUNCTION
-  void getMixingWeights(int, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &) const;
+  void getMixingWeights(int, SPACE_FLOAT &, SPACE_FLOAT &, SPACE_FLOAT &, SPACE_FLOAT &, SPACE_FLOAT &, SPACE_FLOAT &, SPACE_FLOAT &, SPACE_FLOAT &, SPACE_FLOAT &, SPACE_FLOAT &, SPACE_FLOAT &, SPACE_FLOAT &, SPACE_FLOAT &, SPACE_FLOAT &, SPACE_FLOAT &, SPACE_FLOAT &) const;
 
   template <class ArrayT>
   void getMixingWeightsVect(const int, int, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &) const;
 
   KOKKOS_INLINE_FUNCTION
-  void exponentScaling(double, double &, double &) const;
+  void exponentScaling(KK_FLOAT, SPACE_FLOAT &, SPACE_FLOAT &) const;
 
   KOKKOS_INLINE_FUNCTION
-  void polynomialScaling(double, double &, double &, double &) const;
+  void polynomialScaling(KK_FLOAT, SPACE_FLOAT &, SPACE_FLOAT &, SPACE_FLOAT &) const;
 
-  double s_coeffAlpha[6],s_coeffEps[6],s_coeffRm[6];
-
-  KOKKOS_INLINE_FUNCTION
-  double func_rin(const double &) const;
+  KK_FLOAT s_coeffAlpha[6],s_coeffEps[6],s_coeffRm[6];
 
   KOKKOS_INLINE_FUNCTION
-  double expValue(const double) const;
+  KK_FLOAT func_rin(const SPACE_FLOAT &) const;
 
-  friend void pair_virial_fdotr_compute<PairExp6rxKokkos>(PairExp6rxKokkos*);
+  KOKKOS_INLINE_FUNCTION
+  KK_FLOAT expValue(const KK_FLOAT) const;
+
+  friend void pair_virial_fdotr_compute<Space,PairExp6rxKokkos>(PairExp6rxKokkos*);
 };
 
 }

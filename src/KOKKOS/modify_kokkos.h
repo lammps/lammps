@@ -15,6 +15,7 @@
 #define LMP_MODIFY_KOKKOS_H
 
 #include "modify.h"
+#include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 

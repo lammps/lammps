@@ -13,9 +13,9 @@
 
 #ifdef REGION_CLASS
 
-RegionStyle(block/kk,RegBlockKokkos<LMPDeviceType>)
-RegionStyle(block/kk/device,RegBlockKokkos<LMPDeviceType>)
-RegionStyle(block/kk/host,RegBlockKokkos<LMPHostType>)
+RegionStyle(block/kk,RegBlockKokkos<Device>)
+RegionStyle(block/kk/device,RegBlockKokkos<Device>)
+RegionStyle(block/kk/host,RegBlockKokkos<Host>)
 
 #else
 
@@ -30,13 +30,14 @@ namespace LAMMPS_NS {
 
 struct TagRegBlockMatchAll{};
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class RegBlockKokkos : public RegBlock, public KokkosBase {
   friend class FixPour;
 
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
 
   RegBlockKokkos(class LAMMPS *, int, char **);
   ~RegBlockKokkos();
@@ -49,17 +50,17 @@ class RegBlockKokkos : public RegBlock, public KokkosBase {
   int groupbit;
   typename AT::t_int_1d d_match;
 
-  typename AT::t_x_array_randomread x;
+  typename AT::t_float_1d_3_randomread x;
   typename AT::t_int_1d_randomread mask;
 
   KOKKOS_INLINE_FUNCTION
-  int k_inside(double, double, double) const;
+  int k_inside(KK_FLOAT, KK_FLOAT, KK_FLOAT) const;
   KOKKOS_INLINE_FUNCTION
-  int match(double, double, double) const;
+  int match(KK_FLOAT, KK_FLOAT, KK_FLOAT) const;
   KOKKOS_INLINE_FUNCTION
-  void inverse_transform(double &, double &, double &) const;
+  void inverse_transform(KK_FLOAT &, KK_FLOAT &, KK_FLOAT &) const;
   KOKKOS_INLINE_FUNCTION
-  void rotate(double &, double &, double &, double) const;
+  void rotate(KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT) const;
 
 };
 

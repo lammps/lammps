@@ -39,14 +39,14 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-PairSWKokkos<DeviceType>::PairSWKokkos(LAMMPS *lmp) : PairSW(lmp)
+template<ExecutionSpace Space>
+PairSWKokkos<Space>::PairSWKokkos(LAMMPS *lmp) : PairSW(lmp)
 {
   respa_enable = 0;
 
 
   atomKK = (AtomKokkos *) atom;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  execution_space = Space;
   datamask_read = X_MASK | F_MASK | TAG_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 }
@@ -55,8 +55,8 @@ PairSWKokkos<DeviceType>::PairSWKokkos(LAMMPS *lmp) : PairSW(lmp)
    check if allocated, since class can be destructed when incomplete
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-PairSWKokkos<DeviceType>::~PairSWKokkos()
+template<ExecutionSpace Space>
+PairSWKokkos<Space>::~PairSWKokkos()
 {
   if (!copymode) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
@@ -68,8 +68,8 @@ PairSWKokkos<DeviceType>::~PairSWKokkos()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairSWKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
+template<ExecutionSpace Space>
+void PairSWKokkos<Space>::compute(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
@@ -83,29 +83,29 @@ void PairSWKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag_atom) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
-    d_eatom = k_eatom.view<DeviceType>();
+    d_eatom = DualViewHelper<Space>::view(k_eatom);
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
-    d_vatom = k_vatom.view<DeviceType>();
+    d_vatom = DualViewHelper<Space>::view(k_vatom);
   }
 
   atomKK->sync(execution_space,datamask_read);
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
 
-  x = atomKK->k_x.view<DeviceType>();
-  f = atomKK->k_f.view<DeviceType>();
-  tag = atomKK->k_tag.view<DeviceType>();
-  type = atomKK->k_type.view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  f = DualViewHelper<Space>::view(atomKK->k_f);
+  tag = DualViewHelper<Space>::view(atomKK->k_tag);
+  type = DualViewHelper<Space>::view(atomKK->k_type);
   nlocal = atom->nlocal;
   newton_pair = force->newton_pair;
   nall = atom->nlocal + atom->nghost;
 
   const int inum = list->inum;
   const int ignum = inum + list->gnum;
-  NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
+  NeighListKokkos<Space>* k_list = static_cast<NeighListKokkos<Space>*>(list);
   d_ilist = k_list->d_ilist;
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
@@ -182,18 +182,18 @@ void PairSWKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag_atom) {
     if (need_dup)
       Kokkos::Experimental::contribute(d_eatom, dup_eatom);
-    k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_eatom);
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     if (need_dup)
       Kokkos::Experimental::contribute(d_vatom, dup_vatom);
-    k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_vatom);
+    k_vatom.sync_host();
   }
 
-  if (vflag_fdotr) pair_virial_fdotr_compute(this);
+  if (vflag_fdotr) pair_virial_fdotr_compute<Space>(this);
 
   copymode = 0;
 
@@ -208,13 +208,13 @@ void PairSWKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeShortNeigh, const int& ii) const {
+void PairSWKokkos<Space>::operator()(TagPairSWComputeShortNeigh, const int& ii) const {
     const int i = d_ilist[ii];
-    const X_FLOAT xtmp = x(i,0);
-    const X_FLOAT ytmp = x(i,1);
-    const X_FLOAT ztmp = x(i,2);
+    const KK_FLOAT xtmp = x(i,0);
+    const KK_FLOAT ytmp = x(i,1);
+    const KK_FLOAT ztmp = x(i,2);
 
     const int jnum = d_numneigh[i];
     int inside = 0;
@@ -222,10 +222,10 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeShortNeigh, const int&
       int j = d_neighbors(i,jj);
       j &= NEIGHMASK;
 
-      const X_FLOAT delx = xtmp - x(j,0);
-      const X_FLOAT dely = ytmp - x(j,1);
-      const X_FLOAT delz = ztmp - x(j,2);
-      const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+      const KK_FLOAT delx = xtmp - x(j,0);
+      const KK_FLOAT dely = ytmp - x(j,1);
+      const KK_FLOAT delz = ztmp - x(j,2);
+      const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cutmax*cutmax) {
         d_neighbors_short(i,inside) = j;
@@ -237,34 +237,34 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeShortNeigh, const int&
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeHalf<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
+void PairSWKokkos<Space>::operator()(TagPairSWComputeHalf<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
   auto v_f = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
-  F_FLOAT delr1[3],delr2[3],fj[3],fk[3];
-  F_FLOAT evdwl = 0.0;
-  F_FLOAT fpair = 0.0;
+  KK_FLOAT delr1[3],delr2[3],fj[3],fk[3];
+  KK_FLOAT evdwl = 0.0;
+  KK_FLOAT fpair = 0.0;
 
   const int i = d_ilist[ii];
   const tagint itag = tag[i];
   const int itype = d_map[type[i]];
-  const X_FLOAT xtmp = x(i,0);
-  const X_FLOAT ytmp = x(i,1);
-  const X_FLOAT ztmp = x(i,2);
+  const KK_FLOAT xtmp = x(i,0);
+  const KK_FLOAT ytmp = x(i,1);
+  const KK_FLOAT ztmp = x(i,2);
 
   // two-body interactions, skip half of them
 
   const int jnum = d_numneigh_short[i];
 
-  F_FLOAT fxtmpi = 0.0;
-  F_FLOAT fytmpi = 0.0;
-  F_FLOAT fztmpi = 0.0;
+  KK_FLOAT fxtmpi = 0.0;
+  KK_FLOAT fytmpi = 0.0;
+  KK_FLOAT fztmpi = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors_short(i,jj);
@@ -283,10 +283,10 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeHalf<NEIGHFLAG,EVFLAG>
 
     const int jtype = d_map[type[j]];
 
-    const X_FLOAT delx = xtmp - x(j,0);
-    const X_FLOAT dely = ytmp - x(j,1);
-    const X_FLOAT delz = ztmp - x(j,2);
-    const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+    const KK_FLOAT delx = xtmp - x(j,0);
+    const KK_FLOAT dely = ytmp - x(j,1);
+    const KK_FLOAT delz = ztmp - x(j,2);
+    const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
     const int ijparam = d_elem2param(itype,jtype,jtype);
     if (rsq >= d_params[ijparam].cutsq) continue;
@@ -316,12 +316,12 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeHalf<NEIGHFLAG,EVFLAG>
     delr1[0] = x(j,0) - xtmp;
     delr1[1] = x(j,1) - ytmp;
     delr1[2] = x(j,2) - ztmp;
-    const F_FLOAT rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
+    const KK_FLOAT rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
     if (rsq1 >= d_params[ijparam].cutsq) continue;
 
-    F_FLOAT fxtmpj = 0.0;
-    F_FLOAT fytmpj = 0.0;
-    F_FLOAT fztmpj = 0.0;
+    KK_FLOAT fxtmpj = 0.0;
+    KK_FLOAT fytmpj = 0.0;
+    KK_FLOAT fztmpj = 0.0;
 
     for (int kk = jj+1; kk < jnum; kk++) {
       int k = d_neighbors_short(i,kk);
@@ -333,7 +333,7 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeHalf<NEIGHFLAG,EVFLAG>
       delr2[0] = x(k,0) - xtmp;
       delr2[1] = x(k,1) - ytmp;
       delr2[2] = x(k,2) - ztmp;
-      const F_FLOAT rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+      const KK_FLOAT rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 
       if (rsq2 >= d_params[ikparam].cutsq) continue;
 
@@ -366,40 +366,40 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeHalf<NEIGHFLAG,EVFLAG>
   a_f(i,2) += fztmpi;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeHalf<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairSWKokkos<Space>::operator()(TagPairSWComputeHalf<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT ev;
   this->template operator()<NEIGHFLAG,EVFLAG>(TagPairSWComputeHalf<NEIGHFLAG,EVFLAG>(), ii, ev);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullA<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
+void PairSWKokkos<Space>::operator()(TagPairSWComputeFullA<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
-  F_FLOAT delr1[3],delr2[3],fj[3],fk[3];
-  F_FLOAT evdwl = 0.0;
-  F_FLOAT fpair = 0.0;
+  KK_FLOAT delr1[3],delr2[3],fj[3],fk[3];
+  KK_FLOAT evdwl = 0.0;
+  KK_FLOAT fpair = 0.0;
 
   const int i = d_ilist[ii];
 
   const tagint itag = tag[i];
   const int itype = d_map[type[i]];
-  const X_FLOAT xtmp = x(i,0);
-  const X_FLOAT ytmp = x(i,1);
-  const X_FLOAT ztmp = x(i,2);
+  const KK_FLOAT xtmp = x(i,0);
+  const KK_FLOAT ytmp = x(i,1);
+  const KK_FLOAT ztmp = x(i,2);
 
   // two-body interactions
 
   const int jnum = d_numneigh_short[i];
 
-  F_FLOAT fxtmpi = 0.0;
-  F_FLOAT fytmpi = 0.0;
-  F_FLOAT fztmpi = 0.0;
+  KK_FLOAT fxtmpi = 0.0;
+  KK_FLOAT fytmpi = 0.0;
+  KK_FLOAT fztmpi = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors_short(i,jj);
@@ -408,10 +408,10 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullA<NEIGHFLAG,EVFLAG
 
     const int jtype = d_map[type[j]];
 
-    const X_FLOAT delx = xtmp - x(j,0);
-    const X_FLOAT dely = ytmp - x(j,1);
-    const X_FLOAT delz = ztmp - x(j,2);
-    const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+    const KK_FLOAT delx = xtmp - x(j,0);
+    const KK_FLOAT dely = ytmp - x(j,1);
+    const KK_FLOAT delz = ztmp - x(j,2);
+    const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
     const int ijparam = d_elem2param(itype,jtype,jtype);
 
@@ -439,7 +439,7 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullA<NEIGHFLAG,EVFLAG
     delr1[0] = x(j,0) - xtmp;
     delr1[1] = x(j,1) - ytmp;
     delr1[2] = x(j,2) - ztmp;
-    const F_FLOAT rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
+    const KK_FLOAT rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
 
     if (rsq1 >= d_params[ijparam].cutsq) continue;
 
@@ -453,7 +453,7 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullA<NEIGHFLAG,EVFLAG
       delr2[0] = x(k,0) - xtmp;
       delr2[1] = x(k,1) - ytmp;
       delr2[2] = x(k,2) - ztmp;
-      const F_FLOAT rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+      const KK_FLOAT rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 
       if (rsq2 >= d_params[ikparam].cutsq) continue;
 
@@ -476,36 +476,36 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullA<NEIGHFLAG,EVFLAG
   f(i,2) += fztmpi;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullA<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairSWKokkos<Space>::operator()(TagPairSWComputeFullA<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT ev;
   this->template operator()<NEIGHFLAG,EVFLAG>(TagPairSWComputeFullA<NEIGHFLAG,EVFLAG>(), ii, ev);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullB<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
+void PairSWKokkos<Space>::operator()(TagPairSWComputeFullB<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
-  F_FLOAT delr1[3],delr2[3],fj[3],fk[3];
-  F_FLOAT evdwl = 0.0;
+  KK_FLOAT delr1[3],delr2[3],fj[3],fk[3];
+  KK_FLOAT evdwl = 0.0;
 
   const int i = d_ilist[ii];
 
   const int itype = d_map[type[i]];
-  const X_FLOAT xtmpi = x(i,0);
-  const X_FLOAT ytmpi = x(i,1);
-  const X_FLOAT ztmpi = x(i,2);
+  const KK_FLOAT xtmpi = x(i,0);
+  const KK_FLOAT ytmpi = x(i,1);
+  const KK_FLOAT ztmpi = x(i,2);
 
   const int jnum = d_numneigh_short[i];
 
-  F_FLOAT fxtmpi = 0.0;
-  F_FLOAT fytmpi = 0.0;
-  F_FLOAT fztmpi = 0.0;
+  KK_FLOAT fxtmpi = 0.0;
+  KK_FLOAT fytmpi = 0.0;
+  KK_FLOAT fztmpi = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors_short(i,jj);
@@ -513,14 +513,14 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullB<NEIGHFLAG,EVFLAG
     if (j >= nlocal) continue;
     const int jtype = d_map[type[j]];
     const int jiparam = d_elem2param(jtype,itype,itype);
-    const X_FLOAT xtmpj = x(j,0);
-    const X_FLOAT ytmpj = x(j,1);
-    const X_FLOAT ztmpj = x(j,2);
+    const KK_FLOAT xtmpj = x(j,0);
+    const KK_FLOAT ytmpj = x(j,1);
+    const KK_FLOAT ztmpj = x(j,2);
 
     delr1[0] = xtmpi - xtmpj;
     delr1[1] = ytmpi - ytmpj;
     delr1[2] = ztmpi - ztmpj;
-    const F_FLOAT rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
+    const KK_FLOAT rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
 
     if (rsq1 >= d_params[jiparam].cutsq) continue;
 
@@ -537,7 +537,7 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullB<NEIGHFLAG,EVFLAG
       delr2[0] = x(k,0) - xtmpj;
       delr2[1] = x(k,1) - ytmpj;
       delr2[2] = x(k,2) - ztmpj;
-      const F_FLOAT rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+      const KK_FLOAT rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 
       if (rsq2 >= d_params[jkparam].cutsq) continue;
 
@@ -562,10 +562,10 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullB<NEIGHFLAG,EVFLAG
   f(i,2) += fztmpi;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullB<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairSWKokkos<Space>::operator()(TagPairSWComputeFullB<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT ev;
   this->template operator()<NEIGHFLAG,EVFLAG>(TagPairSWComputeFullB<NEIGHFLAG,EVFLAG>(), ii, ev);
 }
@@ -574,8 +574,8 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullB<NEIGHFLAG,EVFLAG
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairSWKokkos<DeviceType>::coeff(int narg, char **arg)
+template<ExecutionSpace Space>
+void PairSWKokkos<Space>::coeff(int narg, char **arg)
 {
   PairSW::coeff(narg,arg);
 
@@ -589,18 +589,18 @@ void PairSWKokkos<DeviceType>::coeff(int narg, char **arg)
   for (int i = 1; i <= n; i++)
     h_map[i] = map[i];
 
-  k_map.template modify<LMPHostType>();
-  k_map.template sync<DeviceType>();
+  k_map.modify_host();
+  DualViewHelper<Space>::sync(k_map);
 
-  d_map = k_map.template view<DeviceType>();
+  d_map = DualViewHelper<Space>::view(k_map);
 }
 
 /* ----------------------------------------------------------------------
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairSWKokkos<DeviceType>::init_style()
+template<ExecutionSpace Space>
+void PairSWKokkos<Space>::init_style()
 {
   PairSW::init_style();
 
@@ -610,10 +610,10 @@ void PairSWKokkos<DeviceType>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = (Space == Host) &&
+    !(Space == Device);
   neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = (Space == Device);
 
   // always request a full neighbor list
 
@@ -631,8 +631,8 @@ void PairSWKokkos<DeviceType>::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairSWKokkos<DeviceType>::setup_params()
+template<ExecutionSpace Space>
+void PairSWKokkos<Space>::setup_params()
 {
   PairSW::setup_params();
 
@@ -652,23 +652,23 @@ void PairSWKokkos<DeviceType>::setup_params()
   for (int m = 0; m < nparams; m++)
     h_params[m] = params[m];
 
-  k_elem2param.template modify<LMPHostType>();
-  k_elem2param.template sync<DeviceType>();
-  k_params.template modify<LMPHostType>();
-  k_params.template sync<DeviceType>();
+  k_elem2param.modify_host();
+  DualViewHelper<Space>::sync(k_elem2param);
+  k_params.modify_host();
+  DualViewHelper<Space>::sync(k_params);
 
-  d_elem2param = k_elem2param.template view<DeviceType>();
-  d_params = k_params.template view<DeviceType>();
+  d_elem2param = DualViewHelper<Space>::view(k_elem2param);
+  d_params = DualViewHelper<Space>::view(k_params);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void PairSWKokkos<DeviceType>::twobody(const Param& param, const F_FLOAT& rsq, F_FLOAT& fforce,
-                     const int& eflag, F_FLOAT& eng) const
+void PairSWKokkos<Space>::twobody(const Param& param, const KK_FLOAT& rsq, KK_FLOAT& fforce,
+                     const int& eflag, KK_FLOAT& eng) const
 {
-  F_FLOAT r,rinvsq,rp,rq,rainv,rainvsq,expsrainv;
+  KK_FLOAT r,rinvsq,rp,rq,rainv,rainvsq,expsrainv;
 
   r = sqrt(rsq);
   rinvsq = 1.0/rsq;
@@ -684,17 +684,17 @@ void PairSWKokkos<DeviceType>::twobody(const Param& param, const F_FLOAT& rsq, F
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void PairSWKokkos<DeviceType>::threebody(const Param& paramij, const Param& paramik, const Param& paramijk,
-                       const F_FLOAT& rsq1, const F_FLOAT& rsq2,
-                       F_FLOAT *delr1, F_FLOAT *delr2,
-                       F_FLOAT *fj, F_FLOAT *fk, const int& eflag, F_FLOAT& eng) const
+void PairSWKokkos<Space>::threebody(const Param& paramij, const Param& paramik, const Param& paramijk,
+                       const KK_FLOAT& rsq1, const KK_FLOAT& rsq2,
+                       KK_FLOAT *delr1, KK_FLOAT *delr2,
+                       KK_FLOAT *fj, KK_FLOAT *fk, const int& eflag, KK_FLOAT& eng) const
 {
-  F_FLOAT r1,rinvsq1,rainv1,gsrainv1,gsrainvsq1,expgsrainv1;
-  F_FLOAT r2,rinvsq2,rainv2,gsrainv2,gsrainvsq2,expgsrainv2;
-  F_FLOAT rinv12,cs,delcs,delcssq,facexp,facrad,frad1,frad2;
-  F_FLOAT facang,facang12,csfacang,csfac1,csfac2;
+  KK_FLOAT r1,rinvsq1,rainv1,gsrainv1,gsrainvsq1,expgsrainv1;
+  KK_FLOAT r2,rinvsq2,rainv2,gsrainv2,gsrainvsq2,expgsrainv2;
+  KK_FLOAT rinv12,cs,delcs,delcssq,facexp,facrad,frad1,frad2;
+  KK_FLOAT facang,facang12,csfacang,csfac1,csfac2;
 
   r1 = sqrt(rsq1);
   rinvsq1 = 1.0/rsq1;
@@ -743,15 +743,15 @@ void PairSWKokkos<DeviceType>::threebody(const Param& paramij, const Param& para
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void PairSWKokkos<DeviceType>::threebodyj(const Param& paramij, const Param& paramik, const Param& paramijk,
-                       const F_FLOAT& rsq1, const F_FLOAT& rsq2, F_FLOAT *delr1, F_FLOAT *delr2, F_FLOAT *fj) const
+void PairSWKokkos<Space>::threebodyj(const Param& paramij, const Param& paramik, const Param& paramijk,
+                       const KK_FLOAT& rsq1, const KK_FLOAT& rsq2, KK_FLOAT *delr1, KK_FLOAT *delr2, KK_FLOAT *fj) const
 {
-  F_FLOAT r1,rinvsq1,rainv1,gsrainv1,gsrainvsq1,expgsrainv1;
-  F_FLOAT r2, rainv2, gsrainv2, expgsrainv2;
-  F_FLOAT rinv12,cs,delcs,delcssq,facexp,facrad,frad1;
-  F_FLOAT facang,facang12,csfacang,csfac1;
+  KK_FLOAT r1,rinvsq1,rainv1,gsrainv1,gsrainvsq1,expgsrainv1;
+  KK_FLOAT r2, rainv2, gsrainv2, expgsrainv2;
+  KK_FLOAT rinv12,cs,delcs,delcssq,facexp,facrad,frad1;
+  KK_FLOAT facang,facang12,csfacang,csfac1;
 
   r1 = sqrt(rsq1);
   rinvsq1 = 1.0/rsq1;
@@ -789,12 +789,12 @@ void PairSWKokkos<DeviceType>::threebodyj(const Param& paramij, const Param& par
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairSWKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
-                const F_FLOAT &dely, const F_FLOAT &delz) const
+void PairSWKokkos<Space>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
+      const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
+                const KK_FLOAT &dely, const KK_FLOAT &delz) const
 {
   const int VFLAG = vflag_either;
 
@@ -807,19 +807,19 @@ void PairSWKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j
   auto a_vatom = v_vatom.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   if (eflag_atom) {
-    const E_FLOAT epairhalf = 0.5 * epair;
+    const KK_FLOAT epairhalf = 0.5 * epair;
     a_eatom[i] += epairhalf;
     if (NEIGHFLAG != FULL)
       a_eatom[j] += epairhalf;
   }
 
   if (VFLAG) {
-    const E_FLOAT v0 = delx*delx*fpair;
-    const E_FLOAT v1 = dely*dely*fpair;
-    const E_FLOAT v2 = delz*delz*fpair;
-    const E_FLOAT v3 = delx*dely*fpair;
-    const E_FLOAT v4 = delx*delz*fpair;
-    const E_FLOAT v5 = dely*delz*fpair;
+    const KK_FLOAT v0 = delx*delx*fpair;
+    const KK_FLOAT v1 = dely*dely*fpair;
+    const KK_FLOAT v2 = delz*delz*fpair;
+    const KK_FLOAT v3 = delx*dely*fpair;
+    const KK_FLOAT v4 = delx*delz*fpair;
+    const KK_FLOAT v5 = dely*delz*fpair;
 
     if (vflag_global) {
       if (NEIGHFLAG != FULL) {
@@ -865,14 +865,14 @@ void PairSWKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j
    virial = riFi + rjFj + rkFk = (rj-ri) Fj + (rk-ri) Fk = drji*fj + drki*fk
  ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairSWKokkos<DeviceType>::ev_tally3(EV_FLOAT &ev, const int &i, const int &j, int &k,
-          const F_FLOAT &evdwl, const F_FLOAT &ecoul,
-                     F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drki) const
+void PairSWKokkos<Space>::ev_tally3(EV_FLOAT &ev, const int &i, const int &j, int &k,
+          const KK_FLOAT &evdwl, const KK_FLOAT &ecoul,
+                     KK_FLOAT *fj, KK_FLOAT *fk, KK_FLOAT *drji, KK_FLOAT *drki) const
 {
-  F_FLOAT epairthird,v[6];
+  KK_FLOAT epairthird,v[6];
 
   const int VFLAG = vflag_either;
 
@@ -934,13 +934,13 @@ void PairSWKokkos<DeviceType>::ev_tally3(EV_FLOAT &ev, const int &i, const int &
    virial = riFi + rjFj + rkFk = (rj-ri) Fj + (rk-ri) Fk = drji*fj + drki*fk
  ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void PairSWKokkos<DeviceType>::ev_tally3_atom(EV_FLOAT &ev, const int &i,
-          const F_FLOAT &evdwl, const F_FLOAT &ecoul,
-                     F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drki) const
+void PairSWKokkos<Space>::ev_tally3_atom(EV_FLOAT &ev, const int &i,
+          const KK_FLOAT &evdwl, const KK_FLOAT &ecoul,
+                     KK_FLOAT *fj, KK_FLOAT *fk, KK_FLOAT *drji, KK_FLOAT *drki) const
 {
-  F_FLOAT epairthird,v[6];
+  KK_FLOAT epairthird,v[6];
 
   const int VFLAG = vflag_either;
 
@@ -966,9 +966,7 @@ void PairSWKokkos<DeviceType>::ev_tally3_atom(EV_FLOAT &ev, const int &i,
 }
 
 namespace LAMMPS_NS {
-template class PairSWKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class PairSWKokkos<LMPHostType>;
-#endif
+template class PairSWKokkos<Device>;
+template class PairSWKokkos<Host>;
 }
 

@@ -44,9 +44,9 @@ class FixMinimizeKokkos : public FixMinimize {
   DAT::t_float_1d request_vector_kokkos(int);
   void reset_coords();
 
-  DAT::tdual_float_2d k_vectors;
-  DAT::t_float_2d d_vectors;
-  HAT::t_float_2d h_vectors;
+  DAT::tdual_float_2d_lr k_vectors;
+  DAT::t_float_2d_lr d_vectors;
+  HAT::t_float_2d_lr h_vectors;
 };
 
 }

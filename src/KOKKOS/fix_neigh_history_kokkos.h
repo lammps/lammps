@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(NEIGH_HISTORY/KK,FixNeighHistoryKokkos<LMPDeviceType>)
-FixStyle(NEIGH_HISTORY/KK/DEVICE,FixNeighHistoryKokkos<LMPDeviceType>)
-FixStyle(NEIGH_HISTORY/KK/HOST,FixNeighHistoryKokkos<LMPHostType>)
+FixStyle(NEIGH_HISTORY/KK,FixNeighHistoryKokkos<Device>)
+FixStyle(NEIGH_HISTORY/KK/DEVICE,FixNeighHistoryKokkos<Device>)
+FixStyle(NEIGH_HISTORY/KK/HOST,FixNeighHistoryKokkos<Host>)
 
 #else
 
@@ -26,9 +26,12 @@ FixStyle(NEIGH_HISTORY/KK/HOST,FixNeighHistoryKokkos<LMPHostType>)
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
-template <class DeviceType>
+template <ExecutionSpace Space>
 class FixNeighHistoryKokkos : public FixNeighHistory {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef ArrayTypes<Space> AT;
+
   FixNeighHistoryKokkos(class LAMMPS *, int, char **);
   ~FixNeighHistoryKokkos();
 
@@ -50,51 +53,51 @@ class FixNeighHistoryKokkos : public FixNeighHistory {
   void post_neighbor_item(const int &ii) const;
 
   typename Kokkos::View<int**> d_firstflag;
-  typename Kokkos::View<LMP_FLOAT**> d_firstvalue;
+  typename Kokkos::View<typename AT::t_float_1d::data_type*> d_firstvalue;
 
  private:
-  typename ArrayTypes<DeviceType>::tdual_int_1d k_npartner;
-  typename ArrayTypes<DeviceType>::tdual_tagint_2d k_partner;
-  typename ArrayTypes<DeviceType>::tdual_float_2d k_valuepartner;
+  DAT::tdual_int_1d k_npartner;
+  DAT::tdual_tagint_2d k_partner;
+  DAT::tdual_float_2d k_valuepartner;
 
   // for neighbor list lookup
-  typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread d_ilist;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread d_numneigh;
+  typename AT::t_neighbors_2d d_neighbors;
+  typename AT::t_int_1d_randomread d_ilist;
+  typename AT::t_int_1d_randomread d_numneigh;
 
-  typename ArrayTypes<DeviceType>::t_tagint_1d tag;
-  typename ArrayTypes<DeviceType>::t_int_1d d_npartner;
-  typename ArrayTypes<DeviceType>::t_tagint_2d d_partner;
-  typename ArrayTypes<DeviceType>::t_float_2d d_valuepartner;
+  typename AT::t_tagint_1d tag;
+  typename AT::t_int_1d d_npartner;
+  typename AT::t_tagint_2d d_partner;
+  typename AT::t_float_2d d_valuepartner;
 
-  typename ArrayTypes<DeviceType>::t_int_scalar d_resize;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_resize;
+  typename AT::t_int_scalar d_resize;
+  HAT::t_int_scalar h_resize;
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixNeighHistoryKokkosZeroPartnerCountFunctor {
-  FixNeighHistoryKokkos<DeviceType> c;
-  FixNeighHistoryKokkosZeroPartnerCountFunctor(FixNeighHistoryKokkos<DeviceType> *c_ptr): c(*c_ptr) {}
+  FixNeighHistoryKokkos<Space> c;
+  FixNeighHistoryKokkosZeroPartnerCountFunctor(FixNeighHistoryKokkos<Space> *c_ptr): c(*c_ptr) {}
   KOKKOS_INLINE_FUNCTION
   void operator()(const int &i) const {
     c.zero_partner_count_item(i);
   }
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixNeighHistoryKokkosPreExchangeFunctor {
-  FixNeighHistoryKokkos<DeviceType> c;
-  FixNeighHistoryKokkosPreExchangeFunctor(FixNeighHistoryKokkos<DeviceType> *c_ptr): c(*c_ptr) {}
+  FixNeighHistoryKokkos<Space> c;
+  FixNeighHistoryKokkosPreExchangeFunctor(FixNeighHistoryKokkos<Space> *c_ptr): c(*c_ptr) {}
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &i) const {
     c.pre_exchange_item(i);
   }
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixNeighHistoryKokkosPostNeighborFunctor {
-  FixNeighHistoryKokkos<DeviceType> c;
-  FixNeighHistoryKokkosPostNeighborFunctor(FixNeighHistoryKokkos<DeviceType> *c_ptr): c(*c_ptr) {}
+  FixNeighHistoryKokkos<Space> c;
+  FixNeighHistoryKokkosPostNeighborFunctor(FixNeighHistoryKokkos<Space> *c_ptr): c(*c_ptr) {}
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &i) const {
     c.post_neighbor_item(i);

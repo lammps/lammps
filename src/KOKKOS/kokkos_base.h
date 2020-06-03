@@ -24,9 +24,9 @@ class KokkosBase {
 
   // Pair
   virtual int pack_forward_comm_kokkos(int, DAT::tdual_int_2d,
-                                       int, DAT::tdual_xfloat_1d &,
+                                       int, DAT::tdual_float_1d &,
                                        int, int *) {return 0;};
-  virtual void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d &) {}
+  virtual void unpack_forward_comm_kokkos(int, int, DAT::tdual_float_1d &) {}
 
   // Region
   virtual void match_all_kokkos(int, DAT::tdual_int_1d) {}

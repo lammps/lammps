@@ -13,9 +13,9 @@
 
 #ifdef DIHEDRAL_CLASS
 
-DihedralStyle(charmm/kk,DihedralCharmmKokkos<LMPDeviceType>)
-DihedralStyle(charmm/kk/device,DihedralCharmmKokkos<LMPDeviceType>)
-DihedralStyle(charmm/kk/host,DihedralCharmmKokkos<LMPHostType>)
+DihedralStyle(charmm/kk,DihedralCharmmKokkos<Device>)
+DihedralStyle(charmm/kk/device,DihedralCharmmKokkos<Device>)
+DihedralStyle(charmm/kk/host,DihedralCharmmKokkos<Host>)
 
 #else
 
@@ -28,11 +28,11 @@ DihedralStyle(charmm/kk/host,DihedralCharmmKokkos<LMPHostType>)
 namespace LAMMPS_NS {
 
 struct s_EVM_FLOAT {
-  E_FLOAT evdwl;
-  E_FLOAT ecoul;
-  E_FLOAT emol;
-  F_FLOAT v[6];
-  F_FLOAT vp[6];
+  KK_FLOAT evdwl;
+  KK_FLOAT ecoul;
+  KK_FLOAT emol;
+  KK_FLOAT v[6];
+  KK_FLOAT vp[6];
   KOKKOS_INLINE_FUNCTION
   s_EVM_FLOAT() {
           evdwl = 0;
@@ -87,12 +87,13 @@ typedef struct s_EVM_FLOAT EVM_FLOAT;
 template<int NEWTON_BOND, int EVFLAG>
 struct TagDihedralCharmmCompute{};
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class DihedralCharmmKokkos : public DihedralCharmm {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
   typedef EVM_FLOAT value_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
 
   DihedralCharmmKokkos(class LAMMPS *);
   virtual ~DihedralCharmmKokkos();
@@ -112,56 +113,56 @@ class DihedralCharmmKokkos : public DihedralCharmm {
   //template<int NEWTON_BOND>
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EVM_FLOAT &evm, const int i1, const int i2, const int i3, const int i4,
-                          F_FLOAT &edihedral, F_FLOAT *f1, F_FLOAT *f3, F_FLOAT *f4,
-                          const F_FLOAT &vb1x, const F_FLOAT &vb1y, const F_FLOAT &vb1z,
-                          const F_FLOAT &vb2x, const F_FLOAT &vb2y, const F_FLOAT &vb2z,
-                          const F_FLOAT &vb3x, const F_FLOAT &vb3y, const F_FLOAT &vb3z) const;
+                          KK_FLOAT &edihedral, KK_FLOAT *f1, KK_FLOAT *f3, KK_FLOAT *f4,
+                          const KK_FLOAT &vb1x, const KK_FLOAT &vb1y, const KK_FLOAT &vb1z,
+                          const KK_FLOAT &vb2x, const KK_FLOAT &vb2y, const KK_FLOAT &vb2z,
+                          const KK_FLOAT &vb3x, const KK_FLOAT &vb3y, const KK_FLOAT &vb3z) const;
 
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EVM_FLOAT &evm, const int i, const int j,
-        const F_FLOAT &evdwl, const F_FLOAT &ecoul, const F_FLOAT &fpair, const F_FLOAT &delx,
-                const F_FLOAT &dely, const F_FLOAT &delz) const;
+        const KK_FLOAT &evdwl, const KK_FLOAT &ecoul, const KK_FLOAT &fpair, const KK_FLOAT &delx,
+                const KK_FLOAT &dely, const KK_FLOAT &delz) const;
 
  protected:
 
   class NeighborKokkos *neighborKK;
 
-  typename AT::t_x_array_randomread x;
+  typename AT::t_float_1d_3_randomread x;
   typename AT::t_int_1d_randomread atomtype;
-  typename AT::t_ffloat_1d_randomread q;
-  typename AT::t_f_array f;
+  typename AT::t_float_1d_randomread q;
+  typename AT::t_float_1d_3 f;
   typename AT::t_int_2d dihedrallist;
 
   typedef typename KKDevice<DeviceType>::value KKDeviceType;
-  Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,KKDeviceType> k_eatom;
-  Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,KKDeviceType> k_vatom;
-  Kokkos::View<E_FLOAT*,Kokkos::LayoutRight,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_eatom;
-  Kokkos::View<F_FLOAT*[6],Kokkos::LayoutRight,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_vatom;
+  DAT::tdual_float_1d k_eatom;
+  DAT::tdual_float_1d_6 k_vatom;
+  Kokkos::View<typename AT::t_float_1d::data_type,typename AT::t_float_1d::array_layout,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_eatom;
+  Kokkos::View<typename AT::t_float_1d_6::data_type,typename AT::t_float_1d_6::array_layout,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_vatom;
 
-  Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,KKDeviceType> k_eatom_pair;
-  Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,KKDeviceType> k_vatom_pair;
-  Kokkos::View<E_FLOAT*,Kokkos::LayoutRight,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_eatom_pair;
-  Kokkos::View<F_FLOAT*[6],Kokkos::LayoutRight,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_vatom_pair;
+  DAT::tdual_float_1d k_eatom_pair;
+  DAT::tdual_float_1d_6 k_vatom_pair;
+  Kokkos::View<typename AT::t_float_1d::data_type,typename AT::t_float_1d::array_layout,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_eatom_pair;
+  Kokkos::View<typename AT::t_float_1d_6::data_type,typename AT::t_float_1d_6::array_layout,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_vatom_pair;
 
   int nlocal,newton_bond;
   int eflag,vflag;
-  double qqrd2e;
+  KK_FLOAT qqrd2e;
 
   Kokkos::DualView<int,DeviceType> k_warning_flag;
   typename Kokkos::DualView<int,DeviceType>::t_dev d_warning_flag;
   typename Kokkos::DualView<int,DeviceType>::t_host h_warning_flag;
 
-  typename AT::t_ffloat_2d d_lj14_1;
-  typename AT::t_ffloat_2d d_lj14_2;
-  typename AT::t_ffloat_2d d_lj14_3;
-  typename AT::t_ffloat_2d d_lj14_4;
+  typename AT::t_float_2d d_lj14_1;
+  typename AT::t_float_2d d_lj14_2;
+  typename AT::t_float_2d d_lj14_3;
+  typename AT::t_float_2d d_lj14_4;
 
-  typename AT::t_ffloat_1d d_k;
-  typename AT::t_ffloat_1d d_multiplicity;
-  typename AT::t_ffloat_1d d_shift;
-  typename AT::t_ffloat_1d d_sin_shift;
-  typename AT::t_ffloat_1d d_cos_shift;
-  typename AT::t_ffloat_1d d_weight;
+  typename AT::t_float_1d d_k;
+  typename AT::t_float_1d d_multiplicity;
+  typename AT::t_float_1d d_shift;
+  typename AT::t_float_1d d_sin_shift;
+  typename AT::t_float_1d d_cos_shift;
+  typename AT::t_float_1d d_weight;
 
   void allocate();
 };

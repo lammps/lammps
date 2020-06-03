@@ -254,14 +254,14 @@ void AtomVecHybridKokkos::force_clear(int n, size_t nbytes)
 
 int AtomVecHybridKokkos::pack_comm_kokkos(const int &n, const DAT::tdual_int_2d &k_sendlist,
                      const int & iswap,
-                     const DAT::tdual_xfloat_2d &buf,
+                     const DAT::tdual_float_2d &buf,
                      const int &pbc_flag, const int pbc[])
 {
   error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
   return 0;
 }
 void AtomVecHybridKokkos::unpack_comm_kokkos(const int &n, const int &nfirst,
-                        const DAT::tdual_xfloat_2d &buf)
+                        const DAT::tdual_float_2d &buf)
 {
   error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
 }
@@ -273,29 +273,29 @@ int AtomVecHybridKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &l
   return 0;
 }
 int AtomVecHybridKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
-                       DAT::tdual_xfloat_2d buf,int iswap,
+                       DAT::tdual_float_2d buf,int iswap,
                        int pbc_flag, int *pbc, ExecutionSpace space)
 {
   error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
   return 0;
 }
 void AtomVecHybridKokkos::unpack_border_kokkos(const int &n, const int &nfirst,
-                          const DAT::tdual_xfloat_2d &buf,
+                          const DAT::tdual_float_2d &buf,
                           ExecutionSpace space)
 {
   error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
 }
-int AtomVecHybridKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
+int AtomVecHybridKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_float_2d &buf,
                          DAT::tdual_int_1d k_sendlist,
                          DAT::tdual_int_1d k_copylist,
                          ExecutionSpace space, int dim,
-                         X_FLOAT lo, X_FLOAT hi)
+                         KK_FLOAT lo, KK_FLOAT hi)
 {
   error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
   return 0;
 }
-int AtomVecHybridKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int nrecv,
-                           int nlocal, int dim, X_FLOAT lo, X_FLOAT hi,
+int AtomVecHybridKokkos::unpack_exchange_kokkos(DAT::tdual_float_2d &k_buf, int nrecv,
+                           int nlocal, int dim, KK_FLOAT lo, KK_FLOAT hi,
                            ExecutionSpace space)
 {
   error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
@@ -310,7 +310,7 @@ int AtomVecHybridKokkos::pack_comm(int n, int *list, double *buf,
   atomKK->sync(Host,X_MASK);
 
   int i,j,k,m;
-  double dx,dy,dz;
+  KK_FLOAT dx,dy,dz;
 
   m = 0;
   if (pbc_flag == 0) {
@@ -354,7 +354,7 @@ int AtomVecHybridKokkos::pack_comm_vel(int n, int *list, double *buf,
   atomKK->sync(Host,X_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
 
   int i,j,k,m;
-  double dx,dy,dz,dvx,dvy,dvz;
+  KK_FLOAT dx,dy,dz,dvx,dvy,dvz;
   int omega_flag = atom->omega_flag;
   int angmom_flag = atom->angmom_flag;
 
@@ -562,7 +562,7 @@ int AtomVecHybridKokkos::pack_border(int n, int *list, double *buf,
   atomKK->sync(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK);
 
   int i,j,k,m;
-  double dx,dy,dz;
+  KK_FLOAT dx,dy,dz;
 
   m = 0;
   if (pbc_flag == 0) {
@@ -615,7 +615,7 @@ int AtomVecHybridKokkos::pack_border_vel(int n, int *list, double *buf,
 {
   atomKK->sync(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
   int i,j,k,m;
-  double dx,dy,dz,dvx,dvy,dvz;
+  KK_FLOAT dx,dy,dz,dvx,dvy,dvz;
   int omega_flag = atom->omega_flag;
   int angmom_flag = atom->angmom_flag;
 

@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(eos/table/rx/kk,FixEOStableRXKokkos<LMPDeviceType>)
-FixStyle(eos/table/rx/kk/device,FixEOStableRXKokkos<LMPDeviceType>)
-FixStyle(eos/table/rx/kk/host,FixEOStableRXKokkos<LMPHostType>)
+FixStyle(eos/table/rx/kk,FixEOStableRXKokkos<Device>)
+FixStyle(eos/table/rx/kk/device,FixEOStableRXKokkos<Device>)
+FixStyle(eos/table/rx/kk/host,FixEOStableRXKokkos<Host>)
 
 #else
 
@@ -32,12 +32,14 @@ struct TagFixEOStableRXSetup{};
 struct TagFixEOStableRXTemperatureLookup{};
 struct TagFixEOStableRXTemperatureLookup2{};
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class FixEOStableRXKokkos : public FixEOStableRX {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
   typedef EV_FLOAT value_type;
+  typedef typename GetFloatType<Space>::type SPACE_FLOAT;
 
   FixEOStableRXKokkos(class LAMMPS *, int, char **);
   virtual ~FixEOStableRXKokkos();
@@ -59,53 +61,78 @@ class FixEOStableRXKokkos : public FixEOStableRX {
   void operator()(TagFixEOStableRXTemperatureLookup2, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void energy_lookup(int, double, double &) const;
+  void energy_lookup(int, SPACE_FLOAT, SPACE_FLOAT &) const;
 
   KOKKOS_INLINE_FUNCTION
-  void temperature_lookup(int, double, double &) const;
+  void temperature_lookup(int, SPACE_FLOAT, SPACE_FLOAT &) const;
 
  protected:
   //struct Table {
   //  int ninput;
-  //  double lo,hi;
-  //  double *rfile,*efile;
-  //  double *e2file;
-  //  double delta,invdelta,deltasq6;
-  //  double *r,*e,*de,*e2;
+  //  KK_FLOAT lo,hi;
+  //  KK_FLOAT *rfile,*efile;
+  //  KK_FLOAT *e2file;
+  //  KK_FLOAT delta,invdelta,deltasq6;
+  //  KK_FLOAT *r,*e,*de,*e2;
   //};
   //Table *tables, *tables2;
 
+  struct TableDual {
+    DAT::tdual_int_1d k_lo,k_hi;
+    DAT::tdual_float_1d k_invdelta;
+    DAT::tdual_float_2d k_r,k_e,k_de;
+  };
+
   /*struct TableDeviceConst {
-    typename ArrayTypes<DeviceType>::t_int_1d_randomread lo,hi;
-    typename ArrayTypes<DeviceType>::t_ffloat_1d_randomread invdelta;
-    typename ArrayTypes<DeviceType>::t_ffloat_2d_randomread r,e,de;
+    typename AT::t_int_1d_randomread lo,hi;
+    typename AT::t_float_1d_randomread invdelta;
+    typename AT::t_float_2d_randomread r,e,de;
   };*/
  //Its faster not to use texture fetch if the number of tables is less than 32!
   struct TableDeviceConst {
-    typename ArrayTypes<DeviceType>::t_int_1d lo,hi;
-    typename ArrayTypes<DeviceType>::t_ffloat_1d invdelta;
-    typename ArrayTypes<DeviceType>::t_ffloat_2d_randomread r,e,de;
+    typename AT::t_int_1d lo,hi;
+    typename AT::t_float_1d invdelta;
+    typename AT::t_float_2d_randomread r,e,de;
   };
 
   struct TableDevice {
-    typename ArrayTypes<DeviceType>::t_int_1d lo,hi;
-    typename ArrayTypes<DeviceType>::t_ffloat_1d invdelta;
-    typename ArrayTypes<DeviceType>::t_ffloat_2d r,e,de;
+    typename AT::t_int_1d lo,hi;
+    typename AT::t_float_1d invdelta;
+    typename AT::t_float_2d r,e,de;
+
+    TableDevice(const TableDual *rhs) {
+      lo = DualViewHelper<Space>::view(rhs->k_lo);
+      hi = DualViewHelper<Space>::view(rhs->k_hi);
+      invdelta = DualViewHelper<Space>::view(rhs->k_invdelta);
+      r = DualViewHelper<Space>::view(rhs->k_r);
+      e = DualViewHelper<Space>::view(rhs->k_e);
+      de = DualViewHelper<Space>::view(rhs->k_de);
+    }
   };
 
   struct TableHost {
-    typename ArrayTypes<LMPHostType>::t_int_1d lo,hi;
-    typename ArrayTypes<LMPHostType>::t_ffloat_1d invdelta;
-    typename ArrayTypes<LMPHostType>::t_ffloat_2d r,e,de;
+    HAT::t_int_1d lo,hi;
+    HAT::t_float_1d invdelta;
+    HAT::t_float_2d r,e,de;
+
+    TableHost(const TableDual *rhs) {
+      lo = rhs->k_lo.h_view;
+      hi = rhs->k_hi.h_view;
+      invdelta = rhs->k_invdelta.h_view;
+      r = rhs->k_r.h_view;
+      e = rhs->k_e.h_view;
+      de = rhs->k_de.h_view;
+    }
   };
 
+  TableDual* k_table;
   TableDeviceConst d_table_const;
   TableDevice* d_table;
   TableHost* h_table;
 
   int **tabindex;
 
-  double boltz;
+  KK_FLOAT boltz;
 
   void allocate();
   void error_check();
@@ -116,7 +143,7 @@ class FixEOStableRXKokkos : public FixEOStableRX {
   typename AT::t_float_1d d_dHf,d_energyCorr,d_tempCorrCoeff,d_moleculeCorrCoeff;
 
   typename AT::t_int_1d mask;
-  typename AT::t_efloat_1d uCond,uMech,uChem,uCG,uCGnew,rho,dpdTheta,duChem;
+  typename AT::t_float_1d uCond,uMech,uChem,uCG,uCGnew,rho,dpdTheta,duChem;
   typename AT::t_float_2d dvector;
 
   DAT::tdual_int_scalar k_error_flag;

@@ -13,9 +13,9 @@
 
 #ifdef BOND_CLASS
 
-BondStyle(fene/kk,BondFENEKokkos<LMPDeviceType>)
-BondStyle(fene/kk/device,BondFENEKokkos<LMPDeviceType>)
-BondStyle(fene/kk/host,BondFENEKokkos<LMPHostType>)
+BondStyle(fene/kk,BondFENEKokkos<Device>)
+BondStyle(fene/kk/device,BondFENEKokkos<Device>)
+BondStyle(fene/kk/host,BondFENEKokkos<Host>)
 
 #else
 
@@ -30,12 +30,13 @@ namespace LAMMPS_NS {
 template<int NEWTON_BOND, int EVFLAG>
 struct TagBondFENECompute{};
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class BondFENEKokkos : public BondFENE {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
   typedef EV_FLOAT value_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
 
   BondFENEKokkos(class LAMMPS *);
   virtual ~BondFENEKokkos();
@@ -54,21 +55,21 @@ class BondFENEKokkos : public BondFENE {
   //template<int NEWTON_BOND>
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &ebond, const F_FLOAT &fbond, const F_FLOAT &delx,
-                  const F_FLOAT &dely, const F_FLOAT &delz) const;
+      const KK_FLOAT &ebond, const KK_FLOAT &fbond, const KK_FLOAT &delx,
+                  const KK_FLOAT &dely, const KK_FLOAT &delz) const;
 
  protected:
 
   class NeighborKokkos *neighborKK;
 
-  typename ArrayTypes<DeviceType>::t_x_array_randomread x;
-  typename ArrayTypes<DeviceType>::t_f_array f;
-  typename ArrayTypes<DeviceType>::t_int_2d bondlist;
+  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_float_1d_3 f;
+  typename AT::t_int_2d bondlist;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
-  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
+  DAT::tdual_float_1d k_eatom;
+  DAT::tdual_float_1d_6 k_vatom;
+  typename AT::t_float_1d d_eatom;
+  typename AT::t_float_1d_6 d_vatom;
 
   DAT::tdual_int_scalar k_warning_flag;
   typename AT::t_int_scalar d_warning_flag;
@@ -81,15 +82,15 @@ class BondFENEKokkos : public BondFENE {
   int nlocal,newton_bond;
   int eflag,vflag;
 
-  DAT::tdual_ffloat_1d k_k;
-  DAT::tdual_ffloat_1d k_r0;
-  DAT::tdual_ffloat_1d k_epsilon;
-  DAT::tdual_ffloat_1d k_sigma;
+  DAT::tdual_float_1d k_k;
+  DAT::tdual_float_1d k_r0;
+  DAT::tdual_float_1d k_epsilon;
+  DAT::tdual_float_1d k_sigma;
 
-  typename AT::t_ffloat_1d d_k;
-  typename AT::t_ffloat_1d d_r0;
-  typename AT::t_ffloat_1d d_epsilon;
-  typename AT::t_ffloat_1d d_sigma;
+  typename AT::t_float_1d d_k;
+  typename AT::t_float_1d d_r0;
+  typename AT::t_float_1d d_epsilon;
+  typename AT::t_float_1d d_sigma;
 
   void allocate();
 };

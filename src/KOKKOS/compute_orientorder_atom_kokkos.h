@@ -13,9 +13,9 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(orientorder/atom/kk,ComputeOrientOrderAtomKokkos<LMPDeviceType>)
-ComputeStyle(orientorder/atom/kk/device,ComputeOrientOrderAtomKokkos<LMPDeviceType>)
-ComputeStyle(orientorder/atom/kk/host,ComputeOrientOrderAtomKokkos<LMPHostType>)
+ComputeStyle(orientorder/atom/kk,ComputeOrientOrderAtomKokkos<Device>)
+ComputeStyle(orientorder/atom/kk/device,ComputeOrientOrderAtomKokkos<Device>)
+ComputeStyle(orientorder/atom/kk/host,ComputeOrientOrderAtomKokkos<Host>)
 
 #else
 
@@ -32,25 +32,28 @@ struct TagComputeOrientOrderAtomSelect3{};
 struct TagComputeOrientOrderAtomBOOP1{};
 struct TagComputeOrientOrderAtomBOOP2{};
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef ArrayTypes<Space> AT;
+
   typedef Kokkos::View<int*, DeviceType> t_sna_1i;
-  typedef Kokkos::View<double*, DeviceType> t_sna_1d;
-  typedef Kokkos::View<double*, DeviceType, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1d_atomic;
+  typedef Kokkos::View<KK_FLOAT*, DeviceType> t_sna_1d;
+  typedef Kokkos::View<KK_FLOAT*, DeviceType, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1d_atomic;
   typedef Kokkos::View<int**, Kokkos::LayoutRight, DeviceType> t_sna_2i_lr;
   typedef Kokkos::View<int**, Kokkos::LayoutRight, DeviceType, Kokkos::MemoryTraits<Kokkos::Unmanaged> > t_sna_2i_lr_um;
   typedef Kokkos::View<int**, DeviceType> t_sna_2i;
-  typedef Kokkos::View<double**, DeviceType> t_sna_2d;
-  typedef Kokkos::View<double**, Kokkos::LayoutRight, DeviceType> t_sna_2d_lr;
-  typedef Kokkos::DualView<double**, Kokkos::LayoutRight, DeviceType> tdual_sna_2d_lr;
-  typedef Kokkos::View<double**, Kokkos::LayoutRight, DeviceType, Kokkos::MemoryTraits<Kokkos::Unmanaged> > t_sna_2d_lr_um;
-  typedef Kokkos::View<double***, DeviceType> t_sna_3d;
-  typedef Kokkos::View<double***, Kokkos::LayoutRight, DeviceType> t_sna_3d_lr;
-  typedef Kokkos::View<double***, Kokkos::LayoutRight, DeviceType, Kokkos::MemoryTraits<Kokkos::Unmanaged> > t_sna_3d_lr_um;
-  typedef Kokkos::View<double***[3], DeviceType> t_sna_4d;
-  typedef Kokkos::View<double**[3], DeviceType> t_sna_3d3;
-  typedef Kokkos::View<double*****, DeviceType> t_sna_5d;
+  typedef Kokkos::View<KK_FLOAT**, DeviceType> t_sna_2d;
+  typedef Kokkos::View<KK_FLOAT**, Kokkos::LayoutRight, DeviceType> t_sna_2d_lr;
+  typedef Kokkos::DualView<KK_FLOAT**, Kokkos::LayoutRight, DeviceType> tdual_sna_2d_lr;
+  typedef Kokkos::View<KK_FLOAT**, Kokkos::LayoutRight, DeviceType, Kokkos::MemoryTraits<Kokkos::Unmanaged> > t_sna_2d_lr_um;
+  typedef Kokkos::View<KK_FLOAT***, DeviceType> t_sna_3d;
+  typedef Kokkos::View<KK_FLOAT***, Kokkos::LayoutRight, DeviceType> t_sna_3d_lr;
+  typedef Kokkos::View<KK_FLOAT***, Kokkos::LayoutRight, DeviceType, Kokkos::MemoryTraits<Kokkos::Unmanaged> > t_sna_3d_lr_um;
+  typedef Kokkos::View<KK_FLOAT***[3], DeviceType> t_sna_4d;
+  typedef Kokkos::View<KK_FLOAT**[3], DeviceType> t_sna_3d3;
+  typedef Kokkos::View<KK_FLOAT*****, DeviceType> t_sna_5d;
 
   typedef Kokkos::View<SNAcomplex*, DeviceType> t_sna_1c;
   typedef Kokkos::View<SNAcomplex*, DeviceType, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1c_atomic;
@@ -62,7 +65,6 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
   typedef Kokkos::View<SNAcomplex*****, DeviceType> t_sna_5c;
 
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
   typedef int value_type;
 
   ComputeOrientOrderAtomKokkos(class LAMMPS *, int, char **);
@@ -93,8 +95,8 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
   int inum,chunk_size,chunk_offset;
   int host_flag;
 
-  typename AT::t_x_array_randomread x;
-  typename ArrayTypes<DeviceType>::t_int_1d mask;
+  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_int_1d mask;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;
@@ -121,10 +123,10 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
   void calc_boop2(int, int) const;
 
   KOKKOS_INLINE_FUNCTION
-  double polar_prefactor(int, int, double) const;
+  KK_FLOAT polar_prefactor(int, int, KK_FLOAT) const;
 
   KOKKOS_INLINE_FUNCTION
-  double associated_legendre(int, int, double) const;
+  KK_FLOAT associated_legendre(int, int, KK_FLOAT) const;
 
   void init_clebsch_gordan();
   t_sna_1d d_cglist;                     // Clebsch-Gordan coeffs

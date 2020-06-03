@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(wall/reflect/kk,FixWallReflectKokkos<LMPDeviceType>)
-FixStyle(wall/reflect/kk/device,FixWallReflectKokkos<LMPDeviceType>)
-FixStyle(wall/reflect/kk/host,FixWallReflectKokkos<LMPHostType>)
+FixStyle(wall/reflect/kk,FixWallReflectKokkos<Device>)
+FixStyle(wall/reflect/kk/device,FixWallReflectKokkos<Device>)
+FixStyle(wall/reflect/kk/host,FixWallReflectKokkos<Host>)
 
 #else
 
@@ -29,11 +29,12 @@ namespace LAMMPS_NS {
 
 struct TagFixWallReflectPostIntegrate{};
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class FixWallReflectKokkos : public FixWallReflect {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
   FixWallReflectKokkos(class LAMMPS *, int, char **);
   void post_integrate();
 
@@ -41,13 +42,13 @@ class FixWallReflectKokkos : public FixWallReflect {
   void operator()(TagFixWallReflectPostIntegrate, const int&) const;
 
  protected:
-  typename AT::t_x_array x;
-  typename AT::t_v_array v;
+  typename AT::t_float_1d_3 x;
+  typename AT::t_float_1d_3 v;
   typename AT::t_int_1d_randomread mask;
 
 
   int dim,side;
-  X_FLOAT coord;
+  KK_FLOAT coord;
 };
 
 }

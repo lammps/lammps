@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(nvt/kk,FixNVTKokkos<LMPDeviceType>)
-FixStyle(nvt/kk/device,FixNVTKokkos<LMPDeviceType>)
-FixStyle(nvt/kk/host,FixNVTKokkos<LMPHostType>)
+FixStyle(nvt/kk,FixNVTKokkos<Device>)
+FixStyle(nvt/kk/device,FixNVTKokkos<Device>)
+FixStyle(nvt/kk/host,FixNVTKokkos<Host>)
 
 #else
 
@@ -27,8 +27,8 @@ FixStyle(nvt/kk/host,FixNVTKokkos<LMPHostType>)
 
 namespace LAMMPS_NS {
 
-template<class DeviceType>
-class FixNVTKokkos : public FixNHKokkos<DeviceType> {
+template<ExecutionSpace Space>
+class FixNVTKokkos : public FixNHKokkos<Space> {
  public:
   FixNVTKokkos(class LAMMPS *, int, char **);
   ~FixNVTKokkos() {}

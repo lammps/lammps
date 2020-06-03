@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(nve/kk,FixNVEKokkos<LMPDeviceType>)
-FixStyle(nve/kk/device,FixNVEKokkos<LMPDeviceType>)
-FixStyle(nve/kk/host,FixNVEKokkos<LMPHostType>)
+FixStyle(nve/kk,FixNVEKokkos<Device>)
+FixStyle(nve/kk/device,FixNVEKokkos<Device>)
+FixStyle(nve/kk/host,FixNVEKokkos<Host>)
 
 #else
 
@@ -27,17 +27,20 @@ FixStyle(nve/kk/host,FixNVEKokkos<LMPHostType>)
 
 namespace LAMMPS_NS {
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class FixNVEKokkos;
 
-template <class DeviceType, int RMass>
+template <ExecutionSpace Space, int RMass>
 class FixNVEKokkosInitialIntegrateFunctor;
-template <class DeviceType, int RMass>
+template <ExecutionSpace Space, int RMass>
 class FixNVEKokkosFinalIntegrateFunctor;
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class FixNVEKokkos : public FixNVE {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef ArrayTypes<Space> AT;
+
   FixNVEKokkos(class LAMMPS *, int, char **);
   ~FixNVEKokkos() {}
   void cleanup_copy();
@@ -57,21 +60,21 @@ class FixNVEKokkos : public FixNVE {
  private:
 
 
-  typename ArrayTypes<DeviceType>::t_x_array x;
-  typename ArrayTypes<DeviceType>::t_v_array v;
-  typename ArrayTypes<DeviceType>::t_f_array_const f;
-  typename ArrayTypes<DeviceType>::t_float_1d rmass;
-  typename ArrayTypes<DeviceType>::t_float_1d mass;
-  typename ArrayTypes<DeviceType>::t_int_1d type;
-  typename ArrayTypes<DeviceType>::t_int_1d mask;
+  typename AT::t_float_1d_3 x;
+  typename AT::t_float_1d_3 v;
+  typename AT::t_float_1d_3_const f;
+  typename AT::t_float_1d rmass;
+  typename AT::t_float_1d mass;
+  typename AT::t_int_1d type;
+  typename AT::t_int_1d mask;
 };
 
-template <class DeviceType, int RMass>
+template <ExecutionSpace Space, int RMass>
 struct FixNVEKokkosInitialIntegrateFunctor  {
-  typedef DeviceType  device_type ;
-  FixNVEKokkos<DeviceType> c;
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  FixNVEKokkos<Space> c;
 
-  FixNVEKokkosInitialIntegrateFunctor(FixNVEKokkos<DeviceType>* c_ptr):
+  FixNVEKokkosInitialIntegrateFunctor(FixNVEKokkos<Space>* c_ptr):
   c(*c_ptr) {c.cleanup_copy();};
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i) const {
@@ -80,12 +83,12 @@ struct FixNVEKokkosInitialIntegrateFunctor  {
   }
 };
 
-template <class DeviceType, int RMass>
+template <ExecutionSpace Space, int RMass>
 struct FixNVEKokkosFinalIntegrateFunctor  {
-  typedef DeviceType  device_type ;
-  FixNVEKokkos<DeviceType> c;
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  FixNVEKokkos<Space> c;
 
-  FixNVEKokkosFinalIntegrateFunctor(FixNVEKokkos<DeviceType>* c_ptr):
+  FixNVEKokkosFinalIntegrateFunctor(FixNVEKokkos<Space>* c_ptr):
   c(*c_ptr) {c.cleanup_copy();};
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i) const {

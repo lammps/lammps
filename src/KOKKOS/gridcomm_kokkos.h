@@ -28,12 +28,13 @@ typedef double FFT_SCALAR;
 
 namespace LAMMPS_NS {
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class GridCommKokkos : protected Pointers {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
-  typedef FFTArrayTypes<DeviceType> FFT_AT;
+  typedef ArrayTypes<Space> AT;
+  typedef FFTArrayTypes<Space> FFT_AT;
 
   GridCommKokkos(class LAMMPS *, MPI_Comm, int, int,
            int, int, int, int, int, int,

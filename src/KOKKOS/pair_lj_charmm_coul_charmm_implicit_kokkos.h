@@ -13,9 +13,9 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(lj/charmm/coul/charmm/implicit/kk,PairLJCharmmCoulCharmmImplicitKokkos<LMPDeviceType>)
-PairStyle(lj/charmm/coul/charmm/implicit/kk/device,PairLJCharmmCoulCharmmImplicitKokkos<LMPDeviceType>)
-PairStyle(lj/charmm/coul/charmm/implicit/kk/host,PairLJCharmmCoulCharmmImplicitKokkos<LMPHostType>)
+PairStyle(lj/charmm/coul/charmm/implicit/kk,PairLJCharmmCoulCharmmImplicitKokkos<Device>)
+PairStyle(lj/charmm/coul/charmm/implicit/kk/device,PairLJCharmmCoulCharmmImplicitKokkos<Device>)
+PairStyle(lj/charmm/coul/charmm/implicit/kk/host,PairLJCharmmCoulCharmmImplicitKokkos<Host>)
 
 #else
 
@@ -28,13 +28,14 @@ PairStyle(lj/charmm/coul/charmm/implicit/kk/host,PairLJCharmmCoulCharmmImplicitK
 
 namespace LAMMPS_NS {
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class PairLJCharmmCoulCharmmImplicitKokkos : public PairLJCharmmCoulCharmmImplicit {
  public:
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=1};
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
   PairLJCharmmCoulCharmmImplicitKokkos(class LAMMPS *);
   ~PairLJCharmmCoulCharmmImplicitKokkos();
 
@@ -51,23 +52,23 @@ class PairLJCharmmCoulCharmmImplicitKokkos : public PairLJCharmmCoulCharmmImplic
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
+  KK_FLOAT compute_fpair(const KK_FLOAT& rsq, const int& i, const int&j,
                         const int& itype, const int& jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j, const int& itype,
-                        const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const;
+  KK_FLOAT compute_fcoul(const KK_FLOAT& rsq, const int& i, const int&j, const int& itype,
+                        const int& jtype, const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const;
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
+  KK_FLOAT compute_evdwl(const KK_FLOAT& rsq, const int& i, const int&j,
                         const int& itype, const int& jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
-                        const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const;
+  KK_FLOAT compute_ecoul(const KK_FLOAT& rsq, const int& i, const int&j,
+                        const int& itype, const int& jtype, const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const;
 
   Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_lj_coul**,
@@ -75,65 +76,65 @@ class PairLJCharmmCoulCharmmImplicitKokkos : public PairLJCharmmCoulCharmmImplic
   // hardwired to space for 12 atom types
   params_lj_coul m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
-  F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
-  F_FLOAT m_cut_ljsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
-  F_FLOAT m_cut_coulsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
-  typename AT::t_x_array_randomread x;
-  typename AT::t_x_array c_x;
-  typename AT::t_f_array f;
+  KK_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
+  KK_FLOAT m_cut_ljsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
+  KK_FLOAT m_cut_coulsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
+  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_float_1d_3 c_x;
+  typename AT::t_float_1d_3 f;
   typename AT::t_int_1d_randomread type;
   typename AT::t_float_1d_randomread q;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_efloat_1d d_eatom;
-  typename AT::t_virial_array d_vatom;
+  DAT::tdual_float_1d k_eatom;
+  DAT::tdual_float_1d_6 k_vatom;
+  typename AT::t_float_1d d_eatom;
+  typename AT::t_float_1d_6 d_vatom;
 
   int newton_pair;
 
-  typename AT::tdual_ffloat_2d k_cutsq;
-  typename AT::t_ffloat_2d d_cutsq;
-  typename AT::tdual_ffloat_2d k_cut_ljsq;
-  typename AT::t_ffloat_2d d_cut_ljsq;
-  typename AT::tdual_ffloat_2d k_cut_coulsq;
-  typename AT::t_ffloat_2d d_cut_coulsq;
+  DAT::tdual_float_2d k_cutsq;
+  typename AT::t_float_2d d_cutsq;
+  DAT::tdual_float_2d k_cut_ljsq;
+  typename AT::t_float_2d d_cut_ljsq;
+  DAT::tdual_float_2d k_cut_coulsq;
+  typename AT::t_float_2d d_cut_coulsq;
 
-  typename AT::t_ffloat_1d_randomread
+  typename AT::t_float_1d_randomread
     d_rtable, d_drtable, d_ftable, d_dftable,
     d_ctable, d_dctable, d_etable, d_detable;
 
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
-  double special_coul[4];
-  double special_lj[4];
-  double qqrd2e;
+  KK_FLOAT special_coul[4];
+  KK_FLOAT special_lj[4];
+  KK_FLOAT qqrd2e;
 
   void allocate();
 
-  friend class PairComputeFunctor<PairLJCharmmCoulCharmmImplicitKokkos,FULL,true,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairLJCharmmCoulCharmmImplicitKokkos,HALF,true,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairLJCharmmCoulCharmmImplicitKokkos,HALFTHREAD,true,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairLJCharmmCoulCharmmImplicitKokkos,FULL,false,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairLJCharmmCoulCharmmImplicitKokkos,HALF,false,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairLJCharmmCoulCharmmImplicitKokkos,HALFTHREAD,false,CoulLongTable<1> >;
-  friend EV_FLOAT pair_compute_neighlist<PairLJCharmmCoulCharmmImplicitKokkos,FULL,CoulLongTable<1> >(PairLJCharmmCoulCharmmImplicitKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJCharmmCoulCharmmImplicitKokkos,HALF,CoulLongTable<1> >(PairLJCharmmCoulCharmmImplicitKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJCharmmCoulCharmmImplicitKokkos,HALFTHREAD,CoulLongTable<1> >(PairLJCharmmCoulCharmmImplicitKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute<PairLJCharmmCoulCharmmImplicitKokkos,CoulLongTable<1> >(PairLJCharmmCoulCharmmImplicitKokkos*,
-                                                            NeighListKokkos<DeviceType>*);
-  friend class PairComputeFunctor<PairLJCharmmCoulCharmmImplicitKokkos,FULL,true,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairLJCharmmCoulCharmmImplicitKokkos,HALF,true,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairLJCharmmCoulCharmmImplicitKokkos,HALFTHREAD,true,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairLJCharmmCoulCharmmImplicitKokkos,FULL,false,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairLJCharmmCoulCharmmImplicitKokkos,HALF,false,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairLJCharmmCoulCharmmImplicitKokkos,HALFTHREAD,false,CoulLongTable<0> >;
-  friend EV_FLOAT pair_compute_neighlist<PairLJCharmmCoulCharmmImplicitKokkos,FULL,CoulLongTable<0> >(PairLJCharmmCoulCharmmImplicitKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJCharmmCoulCharmmImplicitKokkos,HALF,CoulLongTable<0> >(PairLJCharmmCoulCharmmImplicitKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJCharmmCoulCharmmImplicitKokkos,HALFTHREAD,CoulLongTable<0> >(PairLJCharmmCoulCharmmImplicitKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute<PairLJCharmmCoulCharmmImplicitKokkos,CoulLongTable<0> >(PairLJCharmmCoulCharmmImplicitKokkos*,
-                                                            NeighListKokkos<DeviceType>*);
-  friend void pair_virial_fdotr_compute<PairLJCharmmCoulCharmmImplicitKokkos>(PairLJCharmmCoulCharmmImplicitKokkos*);
+  friend class PairComputeFunctor<Space,PairLJCharmmCoulCharmmImplicitKokkos,FULL,true,CoulLongTable<1> >;
+  friend class PairComputeFunctor<Space,PairLJCharmmCoulCharmmImplicitKokkos,HALF,true,CoulLongTable<1> >;
+  friend class PairComputeFunctor<Space,PairLJCharmmCoulCharmmImplicitKokkos,HALFTHREAD,true,CoulLongTable<1> >;
+  friend class PairComputeFunctor<Space,PairLJCharmmCoulCharmmImplicitKokkos,FULL,false,CoulLongTable<1> >;
+  friend class PairComputeFunctor<Space,PairLJCharmmCoulCharmmImplicitKokkos,HALF,false,CoulLongTable<1> >;
+  friend class PairComputeFunctor<Space,PairLJCharmmCoulCharmmImplicitKokkos,HALFTHREAD,false,CoulLongTable<1> >;
+  friend EV_FLOAT pair_compute_neighlist<Space,PairLJCharmmCoulCharmmImplicitKokkos,FULL,CoulLongTable<1> >(PairLJCharmmCoulCharmmImplicitKokkos*,NeighListKokkos<Space>*);
+  friend EV_FLOAT pair_compute_neighlist<Space,PairLJCharmmCoulCharmmImplicitKokkos,HALF,CoulLongTable<1> >(PairLJCharmmCoulCharmmImplicitKokkos*,NeighListKokkos<Space>*);
+  friend EV_FLOAT pair_compute_neighlist<Space,PairLJCharmmCoulCharmmImplicitKokkos,HALFTHREAD,CoulLongTable<1> >(PairLJCharmmCoulCharmmImplicitKokkos*,NeighListKokkos<Space>*);
+  friend EV_FLOAT pair_compute<Space,PairLJCharmmCoulCharmmImplicitKokkos,CoulLongTable<1> >(PairLJCharmmCoulCharmmImplicitKokkos*,
+                                                            NeighListKokkos<Space>*);
+  friend class PairComputeFunctor<Space,PairLJCharmmCoulCharmmImplicitKokkos,FULL,true,CoulLongTable<0> >;
+  friend class PairComputeFunctor<Space,PairLJCharmmCoulCharmmImplicitKokkos,HALF,true,CoulLongTable<0> >;
+  friend class PairComputeFunctor<Space,PairLJCharmmCoulCharmmImplicitKokkos,HALFTHREAD,true,CoulLongTable<0> >;
+  friend class PairComputeFunctor<Space,PairLJCharmmCoulCharmmImplicitKokkos,FULL,false,CoulLongTable<0> >;
+  friend class PairComputeFunctor<Space,PairLJCharmmCoulCharmmImplicitKokkos,HALF,false,CoulLongTable<0> >;
+  friend class PairComputeFunctor<Space,PairLJCharmmCoulCharmmImplicitKokkos,HALFTHREAD,false,CoulLongTable<0> >;
+  friend EV_FLOAT pair_compute_neighlist<Space,PairLJCharmmCoulCharmmImplicitKokkos,FULL,CoulLongTable<0> >(PairLJCharmmCoulCharmmImplicitKokkos*,NeighListKokkos<Space>*);
+  friend EV_FLOAT pair_compute_neighlist<Space,PairLJCharmmCoulCharmmImplicitKokkos,HALF,CoulLongTable<0> >(PairLJCharmmCoulCharmmImplicitKokkos*,NeighListKokkos<Space>*);
+  friend EV_FLOAT pair_compute_neighlist<Space,PairLJCharmmCoulCharmmImplicitKokkos,HALFTHREAD,CoulLongTable<0> >(PairLJCharmmCoulCharmmImplicitKokkos*,NeighListKokkos<Space>*);
+  friend EV_FLOAT pair_compute<Space,PairLJCharmmCoulCharmmImplicitKokkos,CoulLongTable<0> >(PairLJCharmmCoulCharmmImplicitKokkos*,
+                                                            NeighListKokkos<Space>*);
+  friend void pair_virial_fdotr_compute<Space,PairLJCharmmCoulCharmmImplicitKokkos>(PairLJCharmmCoulCharmmImplicitKokkos*);
 
 };
 

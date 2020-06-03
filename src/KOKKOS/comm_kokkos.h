@@ -48,24 +48,24 @@ class CommKokkos : public CommBrick {
   void forward_comm_dump(class Dump *);    // forward comm from a Dump
   void reverse_comm_dump(class Dump *);    // reverse comm from a Dump
 
-  template<class DeviceType> void forward_comm_device(int dummy);
-  template<class DeviceType> void reverse_comm_device();
-  template<class DeviceType> void forward_comm_pair_device(Pair *pair);
-  template<class DeviceType> void exchange_device();
-  template<class DeviceType> void borders_device();
+  template<ExecutionSpace Space> void forward_comm_device(int dummy);
+  template<ExecutionSpace Space> void reverse_comm_device();
+  template<ExecutionSpace Space> void forward_comm_pair_device(Pair *pair);
+  template<ExecutionSpace Space> void exchange_device();
+  template<ExecutionSpace Space> void borders_device();
 
  protected:
   DAT::tdual_int_2d k_sendlist;
   DAT::tdual_int_scalar k_total_send;
-  DAT::tdual_xfloat_2d k_buf_send,k_buf_recv;
-  DAT::tdual_int_2d k_exchange_lists;
+  DAT::tdual_float_2d k_buf_send,k_buf_recv;
+  DAT::tdual_int_2d_lr k_exchange_lists;
   DAT::tdual_int_1d k_exchange_sendlist,k_exchange_copylist,k_sendflag;
   DAT::tdual_int_scalar k_count;
   //double *buf_send;                 // send buffer for all comm
   //double *buf_recv;                 // recv buffer for all comm
 
-  DAT::tdual_int_2d k_swap;
-  DAT::tdual_int_2d k_swap2;
+  DAT::tdual_int_2d_lr k_swap;
+  DAT::tdual_int_2d_lr k_swap2;
   DAT::tdual_int_2d k_pbc;
   DAT::tdual_int_1d k_pbc_flag;
   DAT::tdual_int_1d k_g2l;
@@ -74,8 +74,8 @@ class CommKokkos : public CommBrick {
   int totalsend;
 
   int max_buf_pair;
-  DAT::tdual_xfloat_1d k_buf_send_pair;
-  DAT::tdual_xfloat_1d k_buf_recv_pair;
+  DAT::tdual_float_1d k_buf_send_pair;
+  DAT::tdual_float_1d k_buf_recv_pair;
   void grow_buf_pair(int);
 
   void grow_send(int, int);

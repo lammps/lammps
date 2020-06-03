@@ -31,25 +31,25 @@ namespace LAMMPS_NS {
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-NPairSSAKokkos<DeviceType>::NPairSSAKokkos(LAMMPS *lmp) : NPair(lmp), ssa_phaseCt(27), ssa_gphaseCt(7)
+template<ExecutionSpace Space>
+NPairSSAKokkos<Space>::NPairSSAKokkos(LAMMPS *lmp) : NPair(lmp), ssa_phaseCt(27), ssa_gphaseCt(7)
 {
   const int gphaseLenEstimate = 1; //FIXME make this 4 eventually
   k_ssa_gphaseLen = DAT::tdual_int_1d("NPairSSAKokkos:ssa_gphaseLen",ssa_gphaseCt);
-  ssa_gphaseLen = k_ssa_gphaseLen.view<DeviceType>();
+  ssa_gphaseLen = DualViewHelper<Space>::view(k_ssa_gphaseLen);
 
   k_ssa_gitemLoc = DAT::tdual_int_2d("NPairSSAKokkos::ssa_gitemLoc",ssa_gphaseCt,gphaseLenEstimate);
-  ssa_gitemLoc = k_ssa_gitemLoc.view<DeviceType>();
+  ssa_gitemLoc = DualViewHelper<Space>::view(k_ssa_gitemLoc);
   k_ssa_gitemLen = DAT::tdual_int_2d("NPairSSAKokkos::ssa_gitemLen",ssa_gphaseCt,gphaseLenEstimate);
-  ssa_gitemLen = k_ssa_gitemLen.view<DeviceType>();
+  ssa_gitemLen = DualViewHelper<Space>::view(k_ssa_gitemLen);
 }
 
 /* ----------------------------------------------------------------------
    copy needed info from Neighbor class to this build class
    ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NPairSSAKokkos<DeviceType>::copy_neighbor_info()
+template<ExecutionSpace Space>
+void NPairSSAKokkos<Space>::copy_neighbor_info()
 {
   NPair::copy_neighbor_info();
 
@@ -77,12 +77,12 @@ void NPairSSAKokkos<DeviceType>::copy_neighbor_info()
  copy per-atom and per-bin vectors from NBinSSAKokkos class to this build class
  ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NPairSSAKokkos<DeviceType>::copy_bin_info()
+template<ExecutionSpace Space>
+void NPairSSAKokkos<Space>::copy_bin_info()
 {
   NPair::copy_bin_info();
 
-  NBinSSAKokkos<DeviceType>* nbKK = dynamic_cast<NBinSSAKokkos<DeviceType>*>(nb);
+  NBinSSAKokkos<Space>* nbKK = dynamic_cast<NBinSSAKokkos<Space>*>(nb);
   if (!nbKK) error->one(FLERR, "NBin wasn't a NBinSSAKokkos object");
 
   atoms_per_bin = nbKK->atoms_per_bin;
@@ -105,8 +105,8 @@ void NPairSSAKokkos<DeviceType>::copy_bin_info()
  copy needed info from NStencil class to this build class
  ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NPairSSAKokkos<DeviceType>::copy_stencil_info()
+template<ExecutionSpace Space>
+void NPairSSAKokkos<Space>::copy_stencil_info()
 {
   NPair::copy_stencil_info();
 
@@ -118,16 +118,16 @@ void NPairSSAKokkos<DeviceType>::copy_stencil_info()
   for (int k = 0; k < maxstencil; k++) {
     k_stencil.h_view(k) = ns->stencil[k];
   }
-  k_stencil.modify<LMPHostType>();
-  k_stencil.sync<DeviceType>();
+  k_stencil.modify_host();
+  DualViewHelper<Space>::sync(k_stencil);
   k_stencilxyz = DAT::tdual_int_1d_3("NPairSSAKokkos:stencilxyz",maxstencil);
   for (int k = 0; k < maxstencil; k++) {
     k_stencilxyz.h_view(k,0) = ns->stencilxyz[k][0];
     k_stencilxyz.h_view(k,1) = ns->stencilxyz[k][1];
     k_stencilxyz.h_view(k,2) = ns->stencilxyz[k][2];
   }
-  k_stencilxyz.modify<LMPHostType>();
-  k_stencilxyz.sync<DeviceType>();
+  k_stencilxyz.modify_host();
+  DualViewHelper<Space>::sync(k_stencilxyz);
 
   NStencilSSA *ns_ssa = dynamic_cast<NStencilSSA*>(ns);
   if (!ns_ssa) error->one(FLERR, "NStencil wasn't a NStencilSSA object");
@@ -136,8 +136,8 @@ void NPairSSAKokkos<DeviceType>::copy_stencil_info()
   for (int k = 0; k < 5; ++k) {
     k_nstencil_ssa.h_view(k) = ns_ssa->nstencil_ssa[k];
   }
-  k_nstencil_ssa.modify<LMPHostType>();
-  k_nstencil_ssa.sync<DeviceType>();
+  k_nstencil_ssa.modify_host();
+  DualViewHelper<Space>::sync(k_nstencil_ssa);
   sx1 = ns_ssa->sx + 1;
   sy1 = ns_ssa->sy + 1;
   sz1 = ns_ssa->sz + 1;
@@ -146,12 +146,12 @@ void NPairSSAKokkos<DeviceType>::copy_stencil_info()
   ssa_phaseCt = sz1*sy1*sx1;
   if (ssa_phaseCt > (int) k_ssa_phaseLen.extent(0)) {
     k_ssa_phaseLen = DAT::tdual_int_1d("NPairSSAKokkos:ssa_phaseLen",ssa_phaseCt);
-    ssa_phaseLen = k_ssa_phaseLen.view<DeviceType>();
+    ssa_phaseLen = DualViewHelper<Space>::view(k_ssa_phaseLen);
     k_ssa_phaseOff = DAT::tdual_int_1d_3("NPairSSAKokkos:ssa_phaseOff",ssa_phaseCt);
-    ssa_phaseOff = k_ssa_phaseOff.view<DeviceType>();
+    ssa_phaseOff = DualViewHelper<Space>::view(k_ssa_phaseOff);
   }
   auto h_ssa_phaseOff = k_ssa_phaseOff.h_view;
-  k_ssa_phaseOff.sync<LMPHostType>();
+  k_ssa_phaseOff.sync_host();
   int workPhase = 0;
   for (int zoff = sz1 - 1; zoff >= 0; --zoff) {
     for (int yoff = sy1 - 1; yoff >= 0; --yoff) {
@@ -163,16 +163,16 @@ void NPairSSAKokkos<DeviceType>::copy_stencil_info()
       }
     }
   }
-  k_ssa_phaseOff.modify<LMPHostType>();
-  k_ssa_phaseOff.sync<DeviceType>();
+  k_ssa_phaseOff.modify_host();
+  DualViewHelper<Space>::sync(k_ssa_phaseOff);
 
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-int NPairSSAKokkosExecute<DeviceType>::find_special(const int &i, const int &j) const
+int NPairSSAKokkosExecute<Space>::find_special(const int &i, const int &j) const
 {
   const int n1 = nspecial(i,0);
   const int n2 = nspecial(i,1);
@@ -200,9 +200,9 @@ int NPairSSAKokkosExecute<DeviceType>::find_special(const int &i, const int &j) 
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-int NPairSSAKokkosExecute<DeviceType>::exclusion(const int &i,const int &j,
+int NPairSSAKokkosExecute<Space>::exclusion(const int &i,const int &j,
                                              const int &itype,const int &jtype) const
 {
   int m;
@@ -239,10 +239,10 @@ int NPairSSAKokkosExecute<DeviceType>::exclusion(const int &i,const int &j,
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
+template<ExecutionSpace Space>
+void NPairSSAKokkos<Space>::build(NeighList *list_)
 {
-  NeighListKokkos<DeviceType>* list = (NeighListKokkos<DeviceType>*) list_;
+  NeighListKokkos<Space>* list = (NeighListKokkos<Space>*) list_;
   const int nlocal = includegroup?atom->nfirst:atom->nlocal;
   int nl_size;
 
@@ -254,17 +254,17 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
   if ((ssa_phaseCt > (int) k_ssa_itemLoc.extent(0)) ||
       (phaseLenEstimate > (int) k_ssa_itemLoc.extent(1))) {
     k_ssa_itemLoc = DAT::tdual_int_2d("NPairSSAKokkos::ssa_itemLoc",ssa_phaseCt,phaseLenEstimate);
-    ssa_itemLoc = k_ssa_itemLoc.view<DeviceType>();
+    ssa_itemLoc = DualViewHelper<Space>::view(k_ssa_itemLoc);
     k_ssa_itemLen = DAT::tdual_int_2d("NPairSSAKokkos::ssa_itemLen",ssa_phaseCt,phaseLenEstimate);
-    ssa_itemLen = k_ssa_itemLen.view<DeviceType>();
+    ssa_itemLen = DualViewHelper<Space>::view(k_ssa_itemLen);
   }
 
-  k_ssa_itemLoc.sync<LMPHostType>();
-  k_ssa_itemLen.sync<LMPHostType>();
-  k_ssa_gitemLoc.sync<LMPHostType>();
-  k_ssa_gitemLen.sync<LMPHostType>();
-  k_ssa_phaseOff.sync<LMPHostType>();
-  k_ssa_phaseLen.sync<LMPHostType>();
+  k_ssa_itemLoc.sync_host();
+  k_ssa_itemLen.sync_host();
+  k_ssa_gitemLoc.sync_host();
+  k_ssa_gitemLen.sync_host();
+  k_ssa_phaseOff.sync_host();
+  k_ssa_phaseLen.sync_host();
   auto h_ssa_itemLoc = k_ssa_itemLoc.h_view;
   auto h_ssa_itemLen = k_ssa_itemLen.h_view;
   auto h_ssa_gitemLoc = k_ssa_gitemLoc.h_view;
@@ -273,11 +273,11 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
   auto h_ssa_phaseLen = k_ssa_phaseLen.h_view;
 
 { // Preflight the neighbor list workplan
-  k_bincount.sync<LMPHostType>();
+  k_bincount.sync_host();
   auto h_bincount = k_bincount.h_view;
-  k_stencil.sync<LMPHostType>();
+  k_stencil.sync_host();
   auto h_stencil = k_stencil.h_view;
-  k_nstencil_ssa.sync<LMPHostType>();
+  k_nstencil_ssa.sync_host();
   auto h_nstencil_ssa = k_nstencil_ssa.h_view;
   int inum = 0;
 
@@ -338,7 +338,7 @@ fprintf(stdout, "phas%03d phase %3d could use %6d inums, expected %6d inums. max
   ,inum - h_ssa_itemLoc(workPhase, 0)
   ,(nlocal*4 + ssa_phaseCt - 1) / ssa_phaseCt
   ,workItem
-  ,(inum - h_ssa_itemLoc(workPhase, 0)) / (double) workItem
+  ,(inum - h_ssa_itemLoc(workPhase, 0)) / (KK_FLOAT) workItem
 );
 #endif
     // record where workPhase ends
@@ -350,14 +350,14 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
   ,workPhase
   ,inum
   ,nlocal*4
-  ,inum / (double) workPhase
+  ,inum / (KK_FLOAT) workPhase
 );
 #endif
   nl_size = inum; // record how much space is needed for the local work plan
 }
 
   // count how many ghosts might have neighbors, and increase the work plan storage
-  k_gbincount.sync<LMPHostType>();
+  k_gbincount.sync_host();
   for (int workPhase = 0; workPhase < ssa_gphaseCt; workPhase++) {
     int len = k_gbincount.h_view(workPhase + 1);
     h_ssa_gitemLoc(workPhase,0) = nl_size; // record where workItem starts in ilist
@@ -366,83 +366,83 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
   }
   list->grow(nl_size); // Make special larger SSA neighbor list
 
-  k_ssa_itemLoc.modify<LMPHostType>();
-  k_ssa_itemLen.modify<LMPHostType>();
-  k_ssa_gitemLoc.modify<LMPHostType>();
-  k_ssa_gitemLen.modify<LMPHostType>();
-  k_ssa_phaseLen.modify<LMPHostType>();
-  k_ssa_itemLoc.sync<DeviceType>();
-  k_ssa_itemLen.sync<DeviceType>();
-  k_ssa_gitemLen.sync<DeviceType>();
-  k_ssa_gitemLoc.sync<DeviceType>();
-  k_ssa_phaseOff.sync<DeviceType>();
-  k_ssa_phaseLen.sync<DeviceType>();
-  k_ssa_gphaseLen.sync<DeviceType>();
+  k_ssa_itemLoc.modify_host();
+  k_ssa_itemLen.modify_host();
+  k_ssa_gitemLoc.modify_host();
+  k_ssa_gitemLen.modify_host();
+  k_ssa_phaseLen.modify_host();
+  DualViewHelper<Space>::sync(k_ssa_itemLoc);
+  DualViewHelper<Space>::sync(k_ssa_itemLen);
+  DualViewHelper<Space>::sync(k_ssa_gitemLen);
+  DualViewHelper<Space>::sync(k_ssa_gitemLoc);
+  DualViewHelper<Space>::sync(k_ssa_phaseOff);
+  DualViewHelper<Space>::sync(k_ssa_phaseLen);
+  DualViewHelper<Space>::sync(k_ssa_gphaseLen);
 
-  NPairSSAKokkosExecute<DeviceType>
+  NPairSSAKokkosExecute<Space>
     data(*list,
-         k_cutneighsq.view<DeviceType>(),
-         k_bincount.view<DeviceType>(),
-         k_bins.view<DeviceType>(),
-         k_gbincount.view<DeviceType>(),
-         k_gbins.view<DeviceType>(),
+         DualViewHelper<Space>::view(k_cutneighsq),
+         DualViewHelper<Space>::view(k_bincount),
+         DualViewHelper<Space>::view(k_bins),
+         DualViewHelper<Space>::view(k_gbincount),
+         DualViewHelper<Space>::view(k_gbins),
          lbinxlo, lbinxhi, lbinylo, lbinyhi, lbinzlo, lbinzhi,
          nstencil, sx1, sy1, sz1,
-         k_stencil.view<DeviceType>(),
-         k_stencilxyz.view<DeviceType>(),
-         k_nstencil_ssa.view<DeviceType>(),
+         DualViewHelper<Space>::view(k_stencil),
+         DualViewHelper<Space>::view(k_stencilxyz),
+         DualViewHelper<Space>::view(k_nstencil_ssa),
          ssa_phaseCt,
-         k_ssa_phaseLen.view<DeviceType>(),
-         k_ssa_phaseOff.view<DeviceType>(),
-         k_ssa_itemLoc.view<DeviceType>(),
-         k_ssa_itemLen.view<DeviceType>(),
+         DualViewHelper<Space>::view(k_ssa_phaseLen),
+         DualViewHelper<Space>::view(k_ssa_phaseOff),
+         DualViewHelper<Space>::view(k_ssa_itemLoc),
+         DualViewHelper<Space>::view(k_ssa_itemLen),
          ssa_gphaseCt,
-         k_ssa_gphaseLen.view<DeviceType>(),
-         k_ssa_gitemLoc.view<DeviceType>(),
-         k_ssa_gitemLen.view<DeviceType>(),
+         DualViewHelper<Space>::view(k_ssa_gphaseLen),
+         DualViewHelper<Space>::view(k_ssa_gitemLoc),
+         DualViewHelper<Space>::view(k_ssa_gitemLen),
          nlocal,
-         atomKK->k_x.view<DeviceType>(),
-         atomKK->k_type.view<DeviceType>(),
-         atomKK->k_mask.view<DeviceType>(),
-         atomKK->k_molecule.view<DeviceType>(),
-         atomKK->k_tag.view<DeviceType>(),
-         atomKK->k_special.view<DeviceType>(),
-         atomKK->k_nspecial.view<DeviceType>(),
+         DualViewHelper<Space>::view(atomKK->k_x),
+         DualViewHelper<Space>::view(atomKK->k_type),
+         DualViewHelper<Space>::view(atomKK->k_mask),
+         DualViewHelper<Space>::view(atomKK->k_molecule),
+         DualViewHelper<Space>::view(atomKK->k_tag),
+         DualViewHelper<Space>::view(atomKK->k_special),
+         DualViewHelper<Space>::view(atomKK->k_nspecial),
          atomKK->molecular,
          nbinx,nbiny,nbinz,mbinx,mbiny,mbinz,mbinxlo,mbinylo,mbinzlo,
          bininvx,bininvy,bininvz,
          exclude, nex_type,
-         k_ex1_type.view<DeviceType>(),
-         k_ex2_type.view<DeviceType>(),
-         k_ex_type.view<DeviceType>(),
+         DualViewHelper<Space>::view(k_ex1_type),
+         DualViewHelper<Space>::view(k_ex2_type),
+         DualViewHelper<Space>::view(k_ex_type),
          nex_group,
-         k_ex1_group.view<DeviceType>(),
-         k_ex2_group.view<DeviceType>(),
-         k_ex1_bit.view<DeviceType>(),
-         k_ex2_bit.view<DeviceType>(),
+         DualViewHelper<Space>::view(k_ex1_group),
+         DualViewHelper<Space>::view(k_ex2_group),
+         DualViewHelper<Space>::view(k_ex1_bit),
+         DualViewHelper<Space>::view(k_ex2_bit),
          nex_mol,
-         k_ex_mol_group.view<DeviceType>(),
-         k_ex_mol_bit.view<DeviceType>(),
-         k_ex_mol_intra.view<DeviceType>(),
+         DualViewHelper<Space>::view(k_ex_mol_group),
+         DualViewHelper<Space>::view(k_ex_mol_bit),
+         DualViewHelper<Space>::view(k_ex_mol_intra),
          bboxhi,bboxlo,
          domain->xperiodic,domain->yperiodic,domain->zperiodic,
          domain->xprd_half,domain->yprd_half,domain->zprd_half);
 
-  k_cutneighsq.sync<DeviceType>();
-  k_ex1_type.sync<DeviceType>();
-  k_ex2_type.sync<DeviceType>();
-  k_ex_type.sync<DeviceType>();
-  k_ex1_group.sync<DeviceType>();
-  k_ex2_group.sync<DeviceType>();
-  k_ex1_bit.sync<DeviceType>();
-  k_ex2_bit.sync<DeviceType>();
-  k_ex_mol_group.sync<DeviceType>();
-  k_ex_mol_bit.sync<DeviceType>();
-  k_ex_mol_intra.sync<DeviceType>();
-  k_bincount.sync<DeviceType>();
-  k_bins.sync<DeviceType>();
-  k_gbincount.sync<DeviceType>();
-  k_gbins.sync<DeviceType>();
+  DualViewHelper<Space>::sync(k_cutneighsq);
+  DualViewHelper<Space>::sync(k_ex1_type);
+  DualViewHelper<Space>::sync(k_ex2_type);
+  DualViewHelper<Space>::sync(k_ex_type);
+  DualViewHelper<Space>::sync(k_ex1_group);
+  DualViewHelper<Space>::sync(k_ex2_group);
+  DualViewHelper<Space>::sync(k_ex1_bit);
+  DualViewHelper<Space>::sync(k_ex2_bit);
+  DualViewHelper<Space>::sync(k_ex_mol_group);
+  DualViewHelper<Space>::sync(k_ex_mol_bit);
+  DualViewHelper<Space>::sync(k_ex_mol_intra);
+  DualViewHelper<Space>::sync(k_bincount);
+  DualViewHelper<Space>::sync(k_bins);
+  DualViewHelper<Space>::sync(k_gbincount);
+  DualViewHelper<Space>::sync(k_gbins);
   atomKK->sync(Device,X_MASK|TYPE_MASK|MASK_MASK|MOLECULE_MASK|TAG_MASK|SPECIAL_MASK);
 
   data.special_flag[0] = special_flag[0];
@@ -463,12 +463,12 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
     Kokkos::parallel_for(ssa_phaseCt, LAMMPS_LAMBDA (const int workPhase) {
       data.build_locals_onePhase(firstTry, comm->me, workPhase);
     });
-    k_ssa_itemLoc.modify<DeviceType>();
-    k_ssa_itemLen.modify<DeviceType>();
-    k_ssa_phaseLen.modify<DeviceType>();
-    k_ssa_itemLoc.sync<LMPHostType>();
-    k_ssa_itemLen.sync<LMPHostType>();
-    k_ssa_phaseLen.sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_ssa_itemLoc);
+    DualViewHelper<Space>::modify(k_ssa_itemLen);
+    DualViewHelper<Space>::modify(k_ssa_phaseLen);
+    k_ssa_itemLoc.sync_host();
+    k_ssa_itemLen.sync_host();
+    k_ssa_phaseLen.sync_host();
     data.neigh_list.inum = h_ssa_itemLoc(ssa_phaseCt-1,h_ssa_phaseLen(ssa_phaseCt-1)-1) +
       h_ssa_itemLen(ssa_phaseCt-1,h_ssa_phaseLen(ssa_phaseCt-1)-1);
 
@@ -476,12 +476,12 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
     Kokkos::parallel_for(ssa_gphaseCt, LAMMPS_LAMBDA (const int workPhase) {
       data.build_ghosts_onePhase(workPhase);
     });
-    k_ssa_gitemLoc.modify<DeviceType>();
-    k_ssa_gitemLen.modify<DeviceType>();
-    k_ssa_gphaseLen.modify<DeviceType>();
-    k_ssa_gitemLoc.sync<LMPHostType>();
-    k_ssa_gitemLen.sync<LMPHostType>();
-    k_ssa_gphaseLen.sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_ssa_gitemLoc);
+    DualViewHelper<Space>::modify(k_ssa_gitemLen);
+    DualViewHelper<Space>::modify(k_ssa_gphaseLen);
+    k_ssa_gitemLoc.sync_host();
+    k_ssa_gitemLen.sync_host();
+    k_ssa_gphaseLen.sync_host();
     auto h_ssa_gphaseLen = k_ssa_gphaseLen.h_view;
     data.neigh_list.gnum = h_ssa_gitemLoc(ssa_gphaseCt-1,h_ssa_gphaseLen(ssa_gphaseCt-1)-1) +
       h_ssa_gitemLen(ssa_gphaseCt-1,h_ssa_gphaseLen(ssa_gphaseCt-1)-1) - data.neigh_list.inum;
@@ -492,18 +492,18 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
     if(data.h_resize()) {
       deep_copy(data.h_new_maxneighs, data.new_maxneighs);
       list->maxneighs = data.h_new_maxneighs() * 1.2;
-      list->d_neighbors = typename ArrayTypes<DeviceType>::t_neighbors_2d("neighbors", list->d_neighbors.extent(0), list->maxneighs);
+      list->d_neighbors = typename AT::t_neighbors_2d("neighbors", list->d_neighbors.extent(0), list->maxneighs);
       data.neigh_list.d_neighbors = list->d_neighbors;
       data.neigh_list.maxneighs = list->maxneighs;
     }
   }
 
-  //k_ssa_phaseLen.modify<DeviceType>();
-  //k_ssa_itemLoc.modify<DeviceType>();
-  //k_ssa_itemLen.modify<DeviceType>();
-  //k_ssa_gphaseLen.modify<DeviceType>();
-  //k_ssa_gitemLoc.modify<DeviceType>();
-  //k_ssa_gitemLen.modify<DeviceType>();
+  //DualViewHelper<Space>::modify(k_ssa_phaseLen);
+  //DualViewHelper<Space>::modify(k_ssa_itemLoc);
+  //DualViewHelper<Space>::modify(k_ssa_itemLen);
+  //DualViewHelper<Space>::modify(k_ssa_gphaseLen);
+  //DualViewHelper<Space>::modify(k_ssa_gitemLoc);
+  //DualViewHelper<Space>::modify(k_ssa_gitemLen);
 
   list->inum = data.neigh_list.inum; //FIXME once the above is in a parallel_for
   list->gnum = data.neigh_list.gnum; // it will need a deep_copy or something
@@ -518,16 +518,16 @@ fprintf(stdout, "Fina%03d %6d inum %6d gnum, total used %6d, allocated %6d\n"
 );
 #endif
 
-  list->k_ilist.template modify<DeviceType>();
-  list->k_numneigh.template modify<DeviceType>();
-  list->k_neighbors.template modify<DeviceType>();
+  DualViewHelper<Space>::modify(list->k_ilist);
+  DualViewHelper<Space>::modify(list->k_numneigh);
+  DualViewHelper<Space>::modify(list->k_neighbors);
 }
 
 
-template<class DeviceType>
-void NPairSSAKokkosExecute<DeviceType>::build_locals_onePhase(const bool firstTry, int me, int workPhase) const
+template<ExecutionSpace Space>
+void NPairSSAKokkosExecute<Space>::build_locals_onePhase(const bool firstTry, int me, int workPhase) const
 {
-  const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil = d_stencil;
+  const typename AT::t_int_1d_const_um stencil = d_stencil;
   int which = 0;
 
   int zoff = d_ssa_phaseOff(workPhase, 2);
@@ -558,9 +558,9 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals_onePhase(const bool firstTr
         int n = 0;
 
         const AtomNeighbors neighbors_i = neigh_list.get_neighbors(inum);
-        const X_FLOAT xtmp = x(i, 0);
-        const X_FLOAT ytmp = x(i, 1);
-        const X_FLOAT ztmp = x(i, 2);
+        const KK_FLOAT xtmp = x(i, 0);
+        const KK_FLOAT ytmp = x(i, 1);
+        const KK_FLOAT ztmp = x(i, 2);
         const int itype = type(i);
 
         // loop over all local atoms in the current stencil "subphase"
@@ -574,10 +574,10 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals_onePhase(const bool firstTr
             const int jtype = type(j);
             if(exclude && exclusion(i,j,itype,jtype)) continue;
 
-            const X_FLOAT delx = xtmp - x(j, 0);
-            const X_FLOAT dely = ytmp - x(j, 1);
-            const X_FLOAT delz = ztmp - x(j, 2);
-            const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+            const KK_FLOAT delx = xtmp - x(j, 0);
+            const KK_FLOAT dely = ytmp - x(j, 1);
+            const KK_FLOAT delz = ztmp - x(j, 2);
+            const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
             if(rsq <= cutneighsq(itype,jtype)) {
               if (molecular) {
                 if (!moltemplate)
@@ -646,7 +646,7 @@ fprintf(stdout, "Phas%03d phase %3d used %6d inums, workItems = %3d, skipped = %
   ,inum - d_ssa_itemLoc(workPhase, 0)
   ,workItem
   ,skippedItems
-  ,(inum - d_ssa_itemLoc(workPhase, 0)) / (double) workItem
+  ,(inum - d_ssa_itemLoc(workPhase, 0)) / (KK_FLOAT) workItem
 );
 #endif
     // record where workPhase actually ends
@@ -660,10 +660,10 @@ fprintf(stdout, "Phas%03d phase %3d used %6d inums, workItems = %3d, skipped = %
 }
 
 
-template<class DeviceType>
-void NPairSSAKokkosExecute<DeviceType>::build_ghosts_onePhase(int workPhase) const
+template<ExecutionSpace Space>
+void NPairSSAKokkosExecute<Space>::build_ghosts_onePhase(int workPhase) const
 {
-  const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil = d_stencil;
+  const typename AT::t_int_1d_const_um stencil = d_stencil;
   int which = 0;
 
   // since these are ghosts, must check if stencil bin is out of bounds
@@ -677,9 +677,9 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts_onePhase(int workPhase) con
         int n = 0;
 
         const AtomNeighbors neighbors_i = neigh_list.get_neighbors(gNdx);
-        const X_FLOAT xtmp = x(i, 0);
-        const X_FLOAT ytmp = x(i, 1);
-        const X_FLOAT ztmp = x(i, 2);
+        const KK_FLOAT xtmp = x(i, 0);
+        const KK_FLOAT ytmp = x(i, 1);
+        const KK_FLOAT ztmp = x(i, 2);
         const int itype = type(i);
 
         int loc[3];
@@ -701,10 +701,10 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts_onePhase(int workPhase) con
             const int jtype = type(j);
             if(exclude && exclusion(i,j,itype,jtype)) continue;
 
-            const X_FLOAT delx = xtmp - x(j, 0);
-            const X_FLOAT dely = ytmp - x(j, 1);
-            const X_FLOAT delz = ztmp - x(j, 2);
-            const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+            const KK_FLOAT delx = xtmp - x(j, 0);
+            const KK_FLOAT dely = ytmp - x(j, 1);
+            const KK_FLOAT delz = ztmp - x(j, 2);
+            const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
             if(rsq <= cutneighsq(itype,jtype)) {
               if (molecular) {
                 if (!moltemplate)
@@ -752,8 +752,6 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts_onePhase(int workPhase) con
 }
 
 namespace LAMMPS_NS {
-template class NPairSSAKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class NPairSSAKokkos<LMPHostType>;
-#endif
+template class NPairSSAKokkos<Device>;
+template class NPairSSAKokkos<Host>;
 }

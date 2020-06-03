@@ -32,28 +32,28 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-BondFENEKokkos<DeviceType>::BondFENEKokkos(LAMMPS *lmp) : BondFENE(lmp)
+template<ExecutionSpace Space>
+BondFENEKokkos<Space>::BondFENEKokkos(LAMMPS *lmp) : BondFENE(lmp)
 {
   atomKK = (AtomKokkos *) atom;
+  execution_space = Space;
   neighborKK = (NeighborKokkos *) neighbor;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 
   k_warning_flag = DAT::tdual_int_scalar("Bond:warning_flag");
-  d_warning_flag = k_warning_flag.view<DeviceType>();
+  d_warning_flag = DualViewHelper<Space>::view(k_warning_flag);
   h_warning_flag = k_warning_flag.h_view;
 
   k_error_flag = DAT::tdual_int_scalar("Bond:error_flag");
-  d_error_flag = k_error_flag.view<DeviceType>();
+  d_error_flag = DualViewHelper<Space>::view(k_error_flag);
   h_error_flag = k_error_flag.h_view;
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-BondFENEKokkos<DeviceType>::~BondFENEKokkos()
+template<ExecutionSpace Space>
+BondFENEKokkos<Space>::~BondFENEKokkos()
 {
   if (!copymode) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
@@ -63,8 +63,8 @@ BondFENEKokkos<DeviceType>::~BondFENEKokkos()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
+template<ExecutionSpace Space>
+void BondFENEKokkos<Space>::compute(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
@@ -76,34 +76,34 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag_atom) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"bond:eatom");
-    d_eatom = k_eatom.view<DeviceType>();
+    d_eatom = DualViewHelper<Space>::view(k_eatom);
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"bond:vatom");
-    d_vatom = k_vatom.view<DeviceType>();
+    d_vatom = DualViewHelper<Space>::view(k_vatom);
   }
 
-  k_k.template sync<DeviceType>();
-  k_r0.template sync<DeviceType>();
-  k_epsilon.template sync<DeviceType>();
-  k_sigma.template sync<DeviceType>();
+  DualViewHelper<Space>::sync(k_k);
+  DualViewHelper<Space>::sync(k_r0);
+  DualViewHelper<Space>::sync(k_epsilon);
+  DualViewHelper<Space>::sync(k_sigma);
 
-  x = atomKK->k_x.view<DeviceType>();
-  f = atomKK->k_f.view<DeviceType>();
-  neighborKK->k_bondlist.template sync<DeviceType>();
-  bondlist = neighborKK->k_bondlist.view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  f = DualViewHelper<Space>::view(atomKK->k_f);
+  DualViewHelper<Space>::sync(neighborKK->k_bondlist);
+  bondlist = DualViewHelper<Space>::view(neighborKK->k_bondlist);
   int nbondlist = neighborKK->nbondlist;
   nlocal = atom->nlocal;
   newton_bond = force->newton_bond;
 
   h_warning_flag() = 0;
-  k_warning_flag.template modify<LMPHostType>();
-  k_warning_flag.template sync<DeviceType>();
+  k_warning_flag.modify_host();
+  DualViewHelper<Space>::sync(k_warning_flag);
 
   h_error_flag() = 0;
-  k_error_flag.template modify<LMPHostType>();
-  k_error_flag.template sync<DeviceType>();
+  k_error_flag.modify_host();
+  DualViewHelper<Space>::sync(k_error_flag);
 
   copymode = 1;
 
@@ -125,13 +125,13 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
   }
 
-  k_warning_flag.template modify<DeviceType>();
-  k_warning_flag.template sync<LMPHostType>();
+  DualViewHelper<Space>::modify(k_warning_flag);
+  k_warning_flag.sync_host();
   if (h_warning_flag())
     error->warning(FLERR,"FENE bond too long",0);
 
-  k_error_flag.template modify<DeviceType>();
-  k_error_flag.template sync<LMPHostType>();
+  DualViewHelper<Space>::modify(k_error_flag);
+  k_error_flag.sync_host();
   if (h_error_flag())
     error->one(FLERR,"Bad FENE bond");
 
@@ -146,41 +146,41 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   if (eflag_atom) {
-    k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_eatom);
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
-    k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_vatom);
+    k_vatom.sync_host();
   }
 
   copymode = 0;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEWTON_BOND, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void BondFENEKokkos<DeviceType>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
+void BondFENEKokkos<Space>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
   if (d_error_flag()) return;
 
   // The f array is atomic
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
+  Kokkos::View<typename AT::t_float_1d_3::data_type, typename AT::t_float_1d_3::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
 
   const int i1 = bondlist(n,0);
   const int i2 = bondlist(n,1);
   const int type = bondlist(n,2);
 
-  const F_FLOAT delx = x(i1,0) - x(i2,0);
-  const F_FLOAT dely = x(i1,1) - x(i2,1);
-  const F_FLOAT delz = x(i1,2) - x(i2,2);
+  const KK_FLOAT delx = x(i1,0) - x(i2,0);
+  const KK_FLOAT dely = x(i1,1) - x(i2,1);
+  const KK_FLOAT delz = x(i1,2) - x(i2,2);
 
   // force from log term
 
-  const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-  const F_FLOAT r0sq = d_r0[type] * d_r0[type];
-  F_FLOAT rlogarg = 1.0 - rsq/r0sq;
+  const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+  const KK_FLOAT r0sq = d_r0[type] * d_r0[type];
+  KK_FLOAT rlogarg = 1.0 - rsq/r0sq;
 
   // if r -> r0, then rlogarg < 0.0 which is an error
   // issue a warning and reset rlogarg = epsilon
@@ -194,20 +194,20 @@ void BondFENEKokkos<DeviceType>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLA
     rlogarg = 0.1;
   }
 
-  F_FLOAT fbond = -d_k[type]/rlogarg;
+  KK_FLOAT fbond = -d_k[type]/rlogarg;
 
   // force from LJ term
 
-  F_FLOAT sr6 = 0.0;
+  KK_FLOAT sr6 = 0.0;
   if (rsq < TWO_1_3*d_sigma[type]*d_sigma[type]) {
-    const F_FLOAT sr2 = d_sigma[type]*d_sigma[type]/rsq;
+    const KK_FLOAT sr2 = d_sigma[type]*d_sigma[type]/rsq;
     sr6 = sr2*sr2*sr2;
     fbond += 48.0*d_epsilon[type]*sr6*(sr6-0.5)/rsq;
   }
 
   // energy
 
-  F_FLOAT ebond = 0.0;
+  KK_FLOAT ebond = 0.0;
   if (eflag) {
     ebond = -0.5 * d_k[type]*r0sq*log(rlogarg);
     if (rsq < TWO_1_3*d_sigma[type]*d_sigma[type])
@@ -231,39 +231,39 @@ void BondFENEKokkos<DeviceType>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLA
   if (EVFLAG) ev_tally(ev,i1,i2,ebond,fbond,delx,dely,delz);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int NEWTON_BOND, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void BondFENEKokkos<DeviceType>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLAG>, const int &n) const {
+void BondFENEKokkos<Space>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLAG>, const int &n) const {
   EV_FLOAT ev;
   this->template operator()<NEWTON_BOND,EVFLAG>(TagBondFENECompute<NEWTON_BOND,EVFLAG>(), n, ev);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void BondFENEKokkos<DeviceType>::allocate()
+template<ExecutionSpace Space>
+void BondFENEKokkos<Space>::allocate()
 {
   BondFENE::allocate();
 
   int n = atom->nbondtypes;
-  k_k = DAT::tdual_ffloat_1d("BondFene::k",n+1);
-  k_r0 = DAT::tdual_ffloat_1d("BondFene::r0",n+1);
-  k_epsilon = DAT::tdual_ffloat_1d("BondFene::epsilon",n+1);
-  k_sigma = DAT::tdual_ffloat_1d("BondFene::sigma",n+1);
+  k_k = DAT::tdual_float_1d("BondFene::k",n+1);
+  k_r0 = DAT::tdual_float_1d("BondFene::r0",n+1);
+  k_epsilon = DAT::tdual_float_1d("BondFene::epsilon",n+1);
+  k_sigma = DAT::tdual_float_1d("BondFene::sigma",n+1);
 
-  d_k = k_k.template view<DeviceType>();
-  d_r0 = k_r0.template view<DeviceType>();
-  d_epsilon = k_epsilon.template view<DeviceType>();
-  d_sigma = k_sigma.template view<DeviceType>();
+  d_k = DualViewHelper<Space>::view(k_k);
+  d_r0 = DualViewHelper<Space>::view(k_r0);
+  d_epsilon = DualViewHelper<Space>::view(k_epsilon);
+  d_sigma = DualViewHelper<Space>::view(k_sigma);
 }
 
 /* ----------------------------------------------------------------------
    set coeffs for one type
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void BondFENEKokkos<DeviceType>::coeff(int narg, char **arg)
+template<ExecutionSpace Space>
+void BondFENEKokkos<Space>::coeff(int narg, char **arg)
 {
   BondFENE::coeff(narg, arg);
 
@@ -275,10 +275,10 @@ void BondFENEKokkos<DeviceType>::coeff(int narg, char **arg)
     k_sigma.h_view[i] = sigma[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_r0.template modify<LMPHostType>();
-  k_epsilon.template modify<LMPHostType>();
-  k_sigma.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_r0.modify_host();
+  k_epsilon.modify_host();
+  k_sigma.modify_host();
 }
 
 
@@ -286,8 +286,8 @@ void BondFENEKokkos<DeviceType>::coeff(int narg, char **arg)
    proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void BondFENEKokkos<DeviceType>::read_restart(FILE *fp)
+template<ExecutionSpace Space>
+void BondFENEKokkos<Space>::read_restart(FILE *fp)
 {
   BondFENE::read_restart(fp);
 
@@ -299,29 +299,29 @@ void BondFENEKokkos<DeviceType>::read_restart(FILE *fp)
     k_sigma.h_view[i] = sigma[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_r0.template modify<LMPHostType>();
-  k_epsilon.template modify<LMPHostType>();
-  k_sigma.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_r0.modify_host();
+  k_epsilon.modify_host();
+  k_sigma.modify_host();
 }
 
 /* ----------------------------------------------------------------------
    tally energy and virial into global and per-atom accumulators
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 //template<int NEWTON_BOND>
 KOKKOS_INLINE_FUNCTION
-void BondFENEKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &ebond, const F_FLOAT &fbond, const F_FLOAT &delx,
-                const F_FLOAT &dely, const F_FLOAT &delz) const
+void BondFENEKokkos<Space>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
+      const KK_FLOAT &ebond, const KK_FLOAT &fbond, const KK_FLOAT &delx,
+                const KK_FLOAT &dely, const KK_FLOAT &delz) const
 {
-  E_FLOAT ebondhalf;
-  F_FLOAT v[6];
+  KK_FLOAT ebondhalf;
+  KK_FLOAT v[6];
 
   // The eatom and vatom arrays are atomic
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_eatom = k_eatom.view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_vatom = k_vatom.view<DeviceType>();
+  Kokkos::View<typename AT::t_float_1d::data_type, typename AT::t_float_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_eatom = DualViewHelper<Space>::view(k_eatom);
+  Kokkos::View<typename AT::t_float_1d_6::data_type, typename AT::t_float_1d_6::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_vatom = DualViewHelper<Space>::view(k_vatom);
 
   if (eflag_either) {
     if (eflag_global) {
@@ -399,9 +399,7 @@ void BondFENEKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int 
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
-template class BondFENEKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class BondFENEKokkos<LMPHostType>;
-#endif
+template class BondFENEKokkos<Device>;
+template class BondFENEKokkos<Host>;
 }
 

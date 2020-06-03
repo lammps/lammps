@@ -13,9 +13,9 @@
 
 #ifdef BOND_CLASS
 
-BondStyle(harmonic/kk,BondHarmonicKokkos<LMPDeviceType>)
-BondStyle(harmonic/kk/device,BondHarmonicKokkos<LMPDeviceType>)
-BondStyle(harmonic/kk/host,BondHarmonicKokkos<LMPHostType>)
+BondStyle(harmonic/kk,BondHarmonicKokkos<Device>)
+BondStyle(harmonic/kk/device,BondHarmonicKokkos<Device>)
+BondStyle(harmonic/kk/host,BondHarmonicKokkos<Host>)
 
 #else
 
@@ -30,10 +30,11 @@ namespace LAMMPS_NS {
 template<int NEWTON_BOND, int EVFLAG>
 struct TagBondHarmonicCompute{};
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class BondHarmonicKokkos : public BondHarmonic {
 
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
   typedef EV_FLOAT value_type;
 
@@ -54,29 +55,29 @@ class BondHarmonicKokkos : public BondHarmonic {
   //template<int NEWTON_BOND>
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &ebond, const F_FLOAT &fbond, const F_FLOAT &delx,
-                  const F_FLOAT &dely, const F_FLOAT &delz) const;
+      const KK_FLOAT &ebond, const KK_FLOAT &fbond, const KK_FLOAT &delx,
+                  const KK_FLOAT &dely, const KK_FLOAT &delz) const;
 
  protected:
 
   class NeighborKokkos *neighborKK;
 
-  typedef ArrayTypes<DeviceType> AT;
-  typename AT::t_x_array_randomread x;
-  typename Kokkos::View<double*[3],typename AT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic> > f;
+  typedef ArrayTypes<Space> AT;
+  typename AT::t_float_1d_3_randomread x;
+  typename Kokkos::View<typename AT::t_float_1d_3::data_type,typename AT::t_float_1d_3::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic> > f;
   typename AT::t_int_2d bondlist;
 
   typedef typename KKDevice<DeviceType>::value KKDeviceType;
-  Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,KKDeviceType> k_eatom;
-  Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,KKDeviceType> k_vatom;
-  Kokkos::View<E_FLOAT*,Kokkos::LayoutRight,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_eatom;
-  Kokkos::View<F_FLOAT*[6],Kokkos::LayoutRight,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_vatom;
+  DAT::tdual_float_1d k_eatom;
+  DAT::tdual_float_1d_6 k_vatom;
+  Kokkos::View<typename AT::t_float_1d::data_type,typename AT::t_float_1d::array_layout,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_eatom;
+  Kokkos::View<typename AT::t_float_1d_6::data_type,typename AT::t_float_1d_6::array_layout,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_vatom;
 
   int nlocal,newton_bond;
   int eflag,vflag;
 
-  typename AT::t_ffloat_1d d_k;
-  typename AT::t_ffloat_1d d_r0;
+  typename AT::t_float_1d d_k;
+  typename AT::t_float_1d d_r0;
 
   void allocate();
 };

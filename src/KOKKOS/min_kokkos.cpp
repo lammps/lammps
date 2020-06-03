@@ -589,13 +589,13 @@ void MinKokkos::force_clear()
 double MinKokkos::fnorm_sqr()
 {
 
-  double local_norm2_sqr = 0.0;
+  KK_FLOAT local_norm2_sqr = 0.0;
   {
     // local variables for lambda capture
 
     auto l_fvec = fvec;
 
-    Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(int i, double& local_norm2_sqr) {
+    Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(int i, KK_FLOAT& local_norm2_sqr) {
       local_norm2_sqr += l_fvec[i]*l_fvec[i];
     },local_norm2_sqr);
   }
@@ -613,15 +613,15 @@ double MinKokkos::fnorm_sqr()
 double MinKokkos::fnorm_inf()
 {
 
-  double local_norm_inf = 0.0;
+  KK_FLOAT local_norm_inf = 0.0;
   {
     // local variables for lambda capture
 
     auto l_fvec = fvec;
 
-    Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(int i, double& local_norm_inf) {
+    Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(int i, KK_FLOAT& local_norm_inf) {
       local_norm_inf = MAX(l_fvec[i]*l_fvec[i],local_norm_inf);
-    },Kokkos::Max<double>(local_norm_inf));
+    },Kokkos::Max<KK_FLOAT>(local_norm_inf));
   }
 
   double norm_inf = 0.0;
@@ -637,16 +637,16 @@ double MinKokkos::fnorm_inf()
 double MinKokkos::fnorm_max()
 {
 
-  double local_norm_max = 0.0;
+  KK_FLOAT local_norm_max = 0.0;
   {
     // local variables for lambda capture
 
     auto l_fvec = fvec;
 
-    Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(int i, double& local_norm_max) {
-      double fdotf = l_fvec[i]*l_fvec[i]+l_fvec[i+1]*l_fvec[i+1]+l_fvec[i+2]*l_fvec[i+2];
+    Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(int i, KK_FLOAT& local_norm_max) {
+      KK_FLOAT fdotf = l_fvec[i]*l_fvec[i]+l_fvec[i+1]*l_fvec[i+1]+l_fvec[i+2]*l_fvec[i+2];
       local_norm_max = MAX(fdotf,local_norm_max);
-    },Kokkos::Max<double>(local_norm_max));
+    },Kokkos::Max<KK_FLOAT>(local_norm_max));
   }
 
   double norm_max = 0.0;

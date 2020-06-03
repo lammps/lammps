@@ -26,10 +26,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType, int NEWTON>
-NPairHalffullKokkos<DeviceType,NEWTON>::NPairHalffullKokkos(LAMMPS *lmp) : NPair(lmp) {
+template<ExecutionSpace Space, int NEWTON>
+NPairHalffullKokkos<Space,NEWTON>::NPairHalffullKokkos(LAMMPS *lmp) : NPair(lmp) {
   atomKK = (AtomKokkos *) atom;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  execution_space = Space;
 }
 
 /* ----------------------------------------------------------------------
@@ -41,23 +41,23 @@ NPairHalffullKokkos<DeviceType,NEWTON>::NPairHalffullKokkos(LAMMPS *lmp) : NPair
    if ghost, also store neighbors of ghost atoms & set inum,gnum correctly
 ------------------------------------------------------------------------- */
 
-template<class DeviceType, int NEWTON>
-void NPairHalffullKokkos<DeviceType,NEWTON>::build(NeighList *list)
+template<ExecutionSpace Space, int NEWTON>
+void NPairHalffullKokkos<Space,NEWTON>::build(NeighList *list)
 {
   if (NEWTON) {
-    x = atomKK->k_x.view<DeviceType>();
+    x = DualViewHelper<Space>::view(atomKK->k_x);
     atomKK->sync(execution_space,X_MASK);
   }
   nlocal = atom->nlocal;
 
-  NeighListKokkos<DeviceType>* k_list_full = static_cast<NeighListKokkos<DeviceType>*>(list->listfull);
+  NeighListKokkos<Space>* k_list_full = static_cast<NeighListKokkos<Space>*>(list->listfull);
   d_ilist_full = k_list_full->d_ilist;
   d_numneigh_full = k_list_full->d_numneigh;
   d_neighbors_full = k_list_full->d_neighbors;
   int inum_full = list->listfull->inum;
   if (list->ghost) inum_full += list->listfull->gnum;
 
-  NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
+  NeighListKokkos<Space>* k_list = static_cast<NeighListKokkos<Space>*>(list);
   k_list->maxneighs = k_list_full->maxneighs; // simple, but could be made more memory efficient
   k_list->grow(atom->nmax);
   d_ilist = k_list->d_ilist;
@@ -73,18 +73,18 @@ void NPairHalffullKokkos<DeviceType,NEWTON>::build(NeighList *list)
   list->inum = k_list_full->inum;
   list->gnum = k_list_full->gnum;
 
-  k_list->k_ilist.template modify<DeviceType>();
-  k_list->k_numneigh.template modify<DeviceType>();
-  k_list->k_neighbors.template modify<DeviceType>();
+  DualViewHelper<Space>::modify(k_list->k_ilist);
+  DualViewHelper<Space>::modify(k_list->k_numneigh);
+  DualViewHelper<Space>::modify(k_list->k_neighbors);
 }
 
-template<class DeviceType, int NEWTON>
+template<ExecutionSpace Space, int NEWTON>
 KOKKOS_INLINE_FUNCTION
-void NPairHalffullKokkos<DeviceType,NEWTON>::operator()(TagNPairHalffullCompute, const int &ii) const {
+void NPairHalffullKokkos<Space,NEWTON>::operator()(TagNPairHalffullCompute, const int &ii) const {
   int n = 0;
 
   const int i = d_ilist_full(ii);
-  F_FLOAT xtmp,ytmp,ztmp;
+  KK_FLOAT xtmp,ytmp,ztmp;
   if (NEWTON) {
     xtmp = x(i,0);
     ytmp = x(i,1);
@@ -121,10 +121,8 @@ void NPairHalffullKokkos<DeviceType,NEWTON>::operator()(TagNPairHalffullCompute,
 }
 
 namespace LAMMPS_NS {
-template class NPairHalffullKokkos<LMPDeviceType,0>;
-template class NPairHalffullKokkos<LMPDeviceType,1>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class NPairHalffullKokkos<LMPHostType,0>;
-template class NPairHalffullKokkos<LMPHostType,1>;
-#endif
+template class NPairHalffullKokkos<Device,0>;
+template class NPairHalffullKokkos<Device,1>;
+template class NPairHalffullKokkos<Host,0>;
+template class NPairHalffullKokkos<Host,1>;
 }

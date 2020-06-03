@@ -13,9 +13,9 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(table/kk,PairTableKokkos<LMPDeviceType>)
-PairStyle(table/kk/device,PairTableKokkos<LMPDeviceType>)
-PairStyle(table/kk/host,PairTableKokkos<LMPHostType>)
+PairStyle(table/kk,PairTableKokkos<Device>)
+PairStyle(table/kk/device,PairTableKokkos<Device>)
+PairStyle(table/kk/host,PairTableKokkos<Host>)
 
 #else
 
@@ -26,25 +26,27 @@ PairStyle(table/kk/host,PairTableKokkos<LMPHostType>)
 #include "pair_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "atom_kokkos.h"
+#include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
-template<class Device,int TABSTYLE>
+template<ExecutionSpace Space,int TABSTYLE>
 struct S_TableCompute {
   static constexpr int TabStyle = TABSTYLE;
 };
 
-template <class DeviceType, int NEIGHFLAG, int TABSTYLE>
+template <ExecutionSpace Space, int NEIGHFLAG, int TABSTYLE>
 class PairTableComputeFunctor;
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class PairTableKokkos : public PairTable {
  public:
 
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=0};
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
 
   PairTableKokkos(class LAMMPS *);
   virtual ~PairTableKokkos();
@@ -62,58 +64,103 @@ class PairTableKokkos : public PairTable {
 
  protected:
 
+  struct TableDual {
+    DAT::tdual_float_2d k_cutsq;
+    DAT::tdual_int_2d k_tabindex;
+    DAT::tdual_int_1d k_nshiftbits,k_nmask;
+    DAT::tdual_float_1d k_innersq,k_invdelta,k_deltasq6;
+    DAT::tdual_float_2d k_rsq,k_drsq,k_e,k_de,k_f,k_df,k_e2,k_f2;
+  };
+
   /*struct TableDeviceConst {
-    typename AT::t_ffloat_2d_randomread cutsq;
+    typename AT::t_float_2d_randomread cutsq;
     typename AT::t_int_2d_randomread tabindex;
     typename AT::t_int_1d_randomread nshiftbits,nmask;
-    typename AT::t_ffloat_1d_randomread innersq,invdelta,deltasq6;
-    typename AT::t_ffloat_2d_randomread rsq,drsq,e,de,f,df,e2,f2;
+    typename AT::t_float_1d_randomread innersq,invdelta,deltasq6;
+    typename AT::t_float_2d_randomread rsq,drsq,e,de,f,df,e2,f2;
   };*/
  //Its faster not to use texture fetch if the number of tables is less than 32!
   struct TableDeviceConst {
-    typename AT::t_ffloat_2d cutsq;
+    typename AT::t_float_2d cutsq;
     typename AT::t_int_2d tabindex;
     typename AT::t_int_1d nshiftbits,nmask;
-    typename AT::t_ffloat_1d innersq,invdelta,deltasq6;
-    typename AT::t_ffloat_2d_randomread rsq,drsq,e,de,f,df,e2,f2;
+    typename AT::t_float_1d innersq,invdelta,deltasq6;
+    typename AT::t_float_2d_randomread rsq,drsq,e,de,f,df,e2,f2;
   };
 
   struct TableDevice {
-    typename AT::t_ffloat_2d cutsq;
+    typename AT::t_float_2d cutsq;
     typename AT::t_int_2d tabindex;
     typename AT::t_int_1d nshiftbits,nmask;
-    typename AT::t_ffloat_1d innersq,invdelta,deltasq6;
-    typename AT::t_ffloat_2d rsq,drsq,e,de,f,df,e2,f2;
+    typename AT::t_float_1d innersq,invdelta,deltasq6;
+    typename AT::t_float_2d rsq,drsq,e,de,f,df,e2,f2;
+
+    TableDevice(const TableDual *rhs) {
+      cutsq = DualViewHelper<Space>::view(rhs->k_cutsq);
+      tabindex = DualViewHelper<Space>::view(rhs->k_tabindex);
+      nshiftbits = DualViewHelper<Space>::view(rhs->k_nshiftbits);
+      nmask = DualViewHelper<Space>::view(rhs->k_nmask);
+      innersq = DualViewHelper<Space>::view(rhs->k_innersq);
+      invdelta = DualViewHelper<Space>::view(rhs->k_invdelta);
+      deltasq6 = DualViewHelper<Space>::view(rhs->k_deltasq6);
+      rsq = DualViewHelper<Space>::view(rhs->k_rsq);
+      drsq = DualViewHelper<Space>::view(rhs->k_drsq);
+      e = DualViewHelper<Space>::view(rhs->k_e);
+      de = DualViewHelper<Space>::view(rhs->k_de);
+      f = DualViewHelper<Space>::view(rhs->k_f);
+      df = DualViewHelper<Space>::view(rhs->k_df);
+      e2 = DualViewHelper<Space>::view(rhs->k_e2);
+      f2 = DualViewHelper<Space>::view(rhs->k_f2);
+    }
   };
 
   struct TableHost {
-    typename ArrayTypes<LMPHostType>::t_ffloat_2d cutsq;
-    typename ArrayTypes<LMPHostType>::t_int_2d tabindex;
-    typename ArrayTypes<LMPHostType>::t_int_1d nshiftbits,nmask;
-    typename ArrayTypes<LMPHostType>::t_ffloat_1d innersq,invdelta,deltasq6;
-    typename ArrayTypes<LMPHostType>::t_ffloat_2d rsq,drsq,e,de,f,df,e2,f2;
+    HAT::t_float_2d cutsq;
+    HAT::t_int_2d tabindex;
+    HAT::t_int_1d nshiftbits,nmask;
+    HAT::t_float_1d innersq,invdelta,deltasq6;
+    HAT::t_float_2d rsq,drsq,e,de,f,df,e2,f2;
+
+    TableHost(const TableDual *rhs) {
+      cutsq = rhs->k_cutsq.h_view;
+      tabindex = rhs->k_tabindex.h_view;
+      nshiftbits = rhs->k_nshiftbits.h_view;
+      nmask = rhs->k_nmask.h_view;
+      innersq = rhs->k_innersq.h_view;
+      invdelta = rhs->k_invdelta.h_view;
+      deltasq6 = rhs->k_deltasq6.h_view;
+      rsq = rhs->k_rsq.h_view;
+      drsq = rhs->k_drsq.h_view;
+      e = rhs->k_e.h_view;
+      de = rhs->k_de.h_view;
+      f = rhs->k_f.h_view;
+      df = rhs->k_df.h_view;
+      e2 = rhs->k_e2.h_view;
+      f2 = rhs->k_f2.h_view;
+    }
   };
 
+  TableDual* k_table;
   TableDeviceConst d_table_const;
   TableDevice* d_table;
   TableHost* h_table;
 
-  F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
+  KK_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
-  typename AT::t_ffloat_2d d_cutsq;
+  typename AT::t_float_2d d_cutsq;
 
   virtual void allocate();
   void compute_table(Table *);
 
-  typename AT::t_x_array_randomread x;
-  typename AT::t_x_array_const c_x;
-  typename AT::t_f_array f;
+  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_float_1d_3_const c_x;
+  typename AT::t_float_1d_3 f;
   typename AT::t_int_1d_randomread type;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_efloat_1d d_eatom;
-  typename AT::t_virial_array d_vatom;
+  DAT::tdual_float_1d k_eatom;
+  DAT::tdual_float_1d_6 k_vatom;
+  typename AT::t_float_1d d_eatom;
+  typename AT::t_float_1d_6 d_vatom;
 
  protected:
   int nlocal,nall,eflag,vflag,neighflag,newton_pair;
@@ -124,47 +171,47 @@ class PairTableKokkos : public PairTable {
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
+  KK_FLOAT compute_fpair(const KK_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
+  KK_FLOAT compute_evdwl(const KK_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
+  KK_FLOAT compute_ecoul(const KK_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
     return 0;
   }
 
-  friend class PairComputeFunctor<PairTableKokkos,FULL,true,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,true,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableKokkos,FULL,false,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,false,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,LOOKUP> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,FULL,true,S_TableCompute<Space,LOOKUP> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,HALF,true,S_TableCompute<Space,LOOKUP> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,HALFTHREAD,true,S_TableCompute<Space,LOOKUP> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,FULL,false,S_TableCompute<Space,LOOKUP> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,HALF,false,S_TableCompute<Space,LOOKUP> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,HALFTHREAD,false,S_TableCompute<Space,LOOKUP> >;
 
-  friend class PairComputeFunctor<PairTableKokkos,FULL,true,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,true,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableKokkos,FULL,false,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,false,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,LINEAR> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,FULL,true,S_TableCompute<Space,LINEAR> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,HALF,true,S_TableCompute<Space,LINEAR> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,HALFTHREAD,true,S_TableCompute<Space,LINEAR> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,FULL,false,S_TableCompute<Space,LINEAR> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,HALF,false,S_TableCompute<Space,LINEAR> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,HALFTHREAD,false,S_TableCompute<Space,LINEAR> >;
 
-  friend class PairComputeFunctor<PairTableKokkos,FULL,true,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,true,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableKokkos,FULL,false,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,false,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,SPLINE> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,FULL,true,S_TableCompute<Space,SPLINE> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,HALF,true,S_TableCompute<Space,SPLINE> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,HALFTHREAD,true,S_TableCompute<Space,SPLINE> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,FULL,false,S_TableCompute<Space,SPLINE> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,HALF,false,S_TableCompute<Space,SPLINE> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,HALFTHREAD,false,S_TableCompute<Space,SPLINE> >;
 
-  friend class PairComputeFunctor<PairTableKokkos,FULL,true,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,true,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableKokkos,FULL,false,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,false,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,BITMAP> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,FULL,true,S_TableCompute<Space,BITMAP> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,HALF,true,S_TableCompute<Space,BITMAP> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,HALFTHREAD,true,S_TableCompute<Space,BITMAP> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,FULL,false,S_TableCompute<Space,BITMAP> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,HALF,false,S_TableCompute<Space,BITMAP> >;
+  friend class PairComputeFunctor<Space,PairTableKokkos,HALFTHREAD,false,S_TableCompute<Space,BITMAP> >;
 
-  friend void pair_virial_fdotr_compute<PairTableKokkos>(PairTableKokkos*);
+  friend void pair_virial_fdotr_compute<Space,PairTableKokkos>(PairTableKokkos*);
 };
 
 

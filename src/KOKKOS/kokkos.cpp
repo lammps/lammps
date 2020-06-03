@@ -460,34 +460,24 @@ int KokkosLMP::neigh_count(int m)
   int inum;
   int nneigh = 0;
 
-  ArrayTypes<LMPHostType>::t_int_1d h_ilist;
-  ArrayTypes<LMPHostType>::t_int_1d h_numneigh;
+  HAT::t_int_1d h_ilist;
+  HAT::t_int_1d h_numneigh;
 
   NeighborKokkos *nk = (NeighborKokkos *) neighbor;
   if (nk->lists[m]->execution_space == Host) {
-    NeighListKokkos<LMPHostType>* nlistKK = (NeighListKokkos<LMPHostType>*) nk->lists[m];
+    NeighListKokkos<Host>* nlistKK = (NeighListKokkos<Host>*) nk->lists[m];
     inum = nlistKK->inum;
-#ifndef KOKKOS_USE_CUDA_UVM
-    h_ilist = Kokkos::create_mirror_view(nlistKK->d_ilist);
-    h_numneigh = Kokkos::create_mirror_view(nlistKK->d_numneigh);
-#else
-    h_ilist = nlistKK->d_ilist;
-    h_numneigh = nlistKK->d_numneigh;
-#endif
-    Kokkos::deep_copy(h_ilist,nlistKK->d_ilist);
-    Kokkos::deep_copy(h_numneigh,nlistKK->d_numneigh);
+    DualViewHelper<Host>::sync(nlistKK->k_ilist);
+    DualViewHelper<Host>::sync(nlistKK->k_numneigh);
+    h_ilist = nlistKK->k_ilist.h_view;
+    h_numneigh = nlistKK->k_numneigh.h_view;
   } else if (nk->lists[m]->execution_space == Device) {
-    NeighListKokkos<LMPDeviceType>* nlistKK = (NeighListKokkos<LMPDeviceType>*) nk->lists[m];
+    NeighListKokkos<Device>* nlistKK = (NeighListKokkos<Device>*) nk->lists[m];
     inum = nlistKK->inum;
-#ifndef KOKKOS_USE_CUDA_UVM
-    h_ilist = Kokkos::create_mirror_view(nlistKK->d_ilist);
-    h_numneigh = Kokkos::create_mirror_view(nlistKK->d_numneigh);
-#else
-    h_ilist = nlistKK->d_ilist;
-    h_numneigh = nlistKK->d_numneigh;
-#endif
-    Kokkos::deep_copy(h_ilist,nlistKK->d_ilist);
-    Kokkos::deep_copy(h_numneigh,nlistKK->d_numneigh);
+    DualViewHelper<Host>::sync(nlistKK->k_ilist);
+    DualViewHelper<Host>::sync(nlistKK->k_numneigh);
+    h_ilist = nlistKK->k_ilist.h_view;
+    h_numneigh = nlistKK->k_numneigh.h_view;
   }
 
   for (int i = 0; i < inum; i++) nneigh += h_numneigh[h_ilist[i]];

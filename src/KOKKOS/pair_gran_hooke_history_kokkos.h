@@ -13,9 +13,9 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(gran/hooke/history/kk,PairGranHookeHistoryKokkos<LMPDeviceType>)
-PairStyle(gran/hooke/history/kk/device,PairGranHookeHistoryKokkos<LMPDeviceType>)
-PairStyle(gran/hooke/history/kk/host,PairGranHookeHistoryKokkos<LMPHostType>)
+PairStyle(gran/hooke/history/kk,PairGranHookeHistoryKokkos<Device>)
+PairStyle(gran/hooke/history/kk/device,PairGranHookeHistoryKokkos<Device>)
+PairStyle(gran/hooke/history/kk/host,PairGranHookeHistoryKokkos<Host>)
 
 #else
 
@@ -28,7 +28,7 @@ PairStyle(gran/hooke/history/kk/host,PairGranHookeHistoryKokkos<LMPHostType>)
 
 namespace LAMMPS_NS {
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 class FixNeighHistoryKokkos;
 
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int SHEARUPDATE>
@@ -36,11 +36,12 @@ struct TagPairGranHookeHistoryCompute {};
 
 struct TagPairGranHookeHistoryReduce {};
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 class PairGranHookeHistoryKokkos : public PairGranHookeHistory {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
   typedef EV_FLOAT value_type;
 
   PairGranHookeHistoryKokkos(class LAMMPS *);
@@ -61,30 +62,30 @@ class PairGranHookeHistoryKokkos : public PairGranHookeHistory {
   template<int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
   void ev_tally_xyz(EV_FLOAT &ev, int i, int j,
-                    F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
-                    X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const;
+                    KK_FLOAT fx, KK_FLOAT fy, KK_FLOAT fz,
+                    KK_FLOAT delx, KK_FLOAT dely, KK_FLOAT delz) const;
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
   void ev_tally_xyz_atom(EV_FLOAT &ev, int i, int j,
-                         F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
-                         X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const;
+                         KK_FLOAT fx, KK_FLOAT fy, KK_FLOAT fz,
+                         KK_FLOAT delx, KK_FLOAT dely, KK_FLOAT delz) const;
 
  protected:
-  typename AT::t_x_array_randomread x;
-  typename AT::t_x_array c_x;
-  typename AT::t_v_array_randomread v;
-  typename AT::t_v_array_randomread omega;
-  typename AT::t_f_array f;
-  typename AT::t_f_array torque;
+  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_float_1d_3 c_x;
+  typename AT::t_float_1d_3_randomread v;
+  typename AT::t_float_1d_3_randomread omega;
+  typename AT::t_float_1d_3 f;
+  typename AT::t_float_1d_3 torque;
   typename AT::t_int_1d_randomread type;
   typename AT::t_int_1d_randomread mask;
   typename AT::t_float_1d_randomread rmass;
   typename AT::t_float_1d_randomread radius;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_efloat_1d d_eatom;
-  typename AT::t_virial_array d_vatom;
+  DAT::tdual_float_1d k_eatom;
+  DAT::tdual_float_1d_6 k_vatom;
+  typename AT::t_float_1d d_eatom;
+  typename AT::t_float_1d_6 d_vatom;
   typename AT::t_tagint_1d tag;
 
   typename AT::t_neighbors_2d d_neighbors;
@@ -92,20 +93,20 @@ class PairGranHookeHistoryKokkos : public PairGranHookeHistory {
   typename AT::t_int_1d_randomread d_numneigh;
 
   typename Kokkos::View<int**> d_firsttouch;
-  typename Kokkos::View<LMP_FLOAT**> d_firstshear;
+  typename Kokkos::View<typename AT::t_float_1d::data_type*> d_firstshear;
 
   typename AT::t_neighbors_2d d_neighbors_touch;
   typename AT::t_int_1d d_numneigh_touch;
 
   int newton_pair;
-  double special_lj[4];
+  KK_FLOAT special_lj[4];
 
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
-  FixNeighHistoryKokkos<DeviceType> *fix_historyKK;
+  FixNeighHistoryKokkos<Space> *fix_historyKK;
 
-  friend void pair_virial_fdotr_compute<PairGranHookeHistoryKokkos>(PairGranHookeHistoryKokkos*);
+  friend void pair_virial_fdotr_compute<Space,PairGranHookeHistoryKokkos>(PairGranHookeHistoryKokkos*);
 };
 
 }

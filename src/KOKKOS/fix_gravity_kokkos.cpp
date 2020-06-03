@@ -26,13 +26,12 @@ enum{CONSTANT,EQUAL};
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-FixGravityKokkos<DeviceType>::FixGravityKokkos(LAMMPS *lmp, int narg, char **arg) :
+template<ExecutionSpace Space>
+FixGravityKokkos<Space>::FixGravityKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixGravity(lmp, narg, arg)
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *)atom;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
   datamask_read = X_MASK | F_MASK | RMASS_MASK | MASK_MASK | TYPE_MASK;
   datamask_modify = F_MASK;
@@ -40,8 +39,8 @@ FixGravityKokkos<DeviceType>::FixGravityKokkos(LAMMPS *lmp, int narg, char **arg
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixGravityKokkos<DeviceType>::post_force(int vflag)
+template<ExecutionSpace Space>
+void FixGravityKokkos<Space>::post_force(int vflag)
 {
   // update gravity due to variables
 
@@ -62,14 +61,14 @@ void FixGravityKokkos<DeviceType>::post_force(int vflag)
   atomKK->sync(execution_space,datamask_read);
   atomKK->modified(execution_space,datamask_modify);
 
-  x = atomKK->k_x.view<DeviceType>();
-  f = atomKK->k_f.view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  f = DualViewHelper<Space>::view(atomKK->k_f);
   if (atomKK->rmass)
-    rmass = atomKK->k_rmass.view<DeviceType>();
+    rmass = DualViewHelper<Space>::view(atomKK->k_rmass);
   else
-    mass = atomKK->k_mass.view<DeviceType>();
-  type = atomKK->k_type.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
+    mass = DualViewHelper<Space>::view(atomKK->k_mass);
+  type = DualViewHelper<Space>::view(atomKK->k_type);
+  mask = DualViewHelper<Space>::view(atomKK->k_mask);
   int nlocal = atomKK->nlocal;
   if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
 
@@ -79,20 +78,20 @@ void FixGravityKokkos<DeviceType>::post_force(int vflag)
   egrav = 0.0;
 
   if (atomKK->rmass) {
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixGravityRMass>(0,nlocal), *this, egrav);
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixGravityRMass>(0,nlocal), *this, (KK_FLOAT)egrav);
   }
   else {
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixGravityMass>(0,nlocal), *this, egrav);
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixGravityMass>(0,nlocal), *this, (KK_FLOAT)egrav);
   }
   copymode = 0;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void FixGravityKokkos<DeviceType>::operator()(TagFixGravityRMass, const int i, double &eg) const
+void FixGravityKokkos<Space>::operator()(TagFixGravityRMass, const int i, KK_FLOAT &eg) const
 {
   if (mask[i] & groupbit) {
-    double massone = rmass[i];
+    KK_FLOAT massone = rmass[i];
     f(i,0) += massone*xacc;
     f(i,1) += massone*yacc;
     f(i,2) += massone*zacc;
@@ -100,12 +99,12 @@ void FixGravityKokkos<DeviceType>::operator()(TagFixGravityRMass, const int i, d
   }
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void FixGravityKokkos<DeviceType>::operator()(TagFixGravityMass, const int i, double &eg) const
+void FixGravityKokkos<Space>::operator()(TagFixGravityMass, const int i, KK_FLOAT &eg) const
 {
   if (mask[i] & groupbit) {
-    double massone = mass[type[i]];
+    KK_FLOAT massone = mass[type[i]];
     f(i,0) += massone*xacc;
     f(i,1) += massone*yacc;
     f(i,2) += massone*zacc;
@@ -114,8 +113,6 @@ void FixGravityKokkos<DeviceType>::operator()(TagFixGravityMass, const int i, do
 }
 
 namespace LAMMPS_NS {
-template class FixGravityKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class FixGravityKokkos<LMPHostType>;
-#endif
+template class FixGravityKokkos<Device>;
+template class FixGravityKokkos<Host>;
 }

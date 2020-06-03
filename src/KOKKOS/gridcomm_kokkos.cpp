@@ -26,8 +26,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-GridCommKokkos<DeviceType>::GridCommKokkos(LAMMPS *lmp, MPI_Comm gcomm, int forward, int reverse,
+template<ExecutionSpace Space>
+GridCommKokkos<Space>::GridCommKokkos(LAMMPS *lmp, MPI_Comm gcomm, int forward, int reverse,
                    int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
                    int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi,
                    int pxlo, int pxhi, int pylo, int pyhi, int pzlo, int pzhi)
@@ -74,8 +74,8 @@ GridCommKokkos<DeviceType>::GridCommKokkos(LAMMPS *lmp, MPI_Comm gcomm, int forw
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-GridCommKokkos<DeviceType>::GridCommKokkos(LAMMPS *lmp, MPI_Comm gcomm, int forward, int reverse,
+template<ExecutionSpace Space>
+GridCommKokkos<Space>::GridCommKokkos(LAMMPS *lmp, MPI_Comm gcomm, int forward, int reverse,
                    int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
                    int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi,
                    int oxlo_max, int oxhi_max, int oylo_max, int oyhi_max,
@@ -124,8 +124,8 @@ GridCommKokkos<DeviceType>::GridCommKokkos(LAMMPS *lmp, MPI_Comm gcomm, int forw
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-GridCommKokkos<DeviceType>::~GridCommKokkos()
+template<ExecutionSpace Space>
+GridCommKokkos<Space>::~GridCommKokkos()
 {
   for (int i = 0; i < nswap; i++) {
     //memoryKK->destroy_kokkos(swap[i].k_packlist,swap[i].packlist);
@@ -146,8 +146,8 @@ GridCommKokkos<DeviceType>::~GridCommKokkos()
    if no neighbor proc, value is from self
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void GridCommKokkos<DeviceType>::ghost_notify()
+template<ExecutionSpace Space>
+void GridCommKokkos<Space>::ghost_notify()
 {
   int nplanes = inxlo - outxlo;
   if (procxlo != me)
@@ -191,8 +191,8 @@ void GridCommKokkos<DeviceType>::ghost_notify()
    if yes, return 1, else return 0
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-int GridCommKokkos<DeviceType>::ghost_overlap()
+template<ExecutionSpace Space>
+int GridCommKokkos<Space>::ghost_overlap()
 {
   int nearest = 0;
   if (ghostxlo > inxhi-inxlo+1) nearest = 1;
@@ -216,8 +216,8 @@ int GridCommKokkos<DeviceType>::ghost_overlap()
    same swap list used by forward and reverse communication
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void GridCommKokkos<DeviceType>::setup()
+template<ExecutionSpace Space>
+void GridCommKokkos<Space>::setup()
 {
   int nsent,sendfirst,sendlast,recvfirst,recvlast;
   int sendplanes,recvplanes;
@@ -511,11 +511,11 @@ void GridCommKokkos<DeviceType>::setup()
    use swap list in forward order to acquire copy of all needed ghost grid pts
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void GridCommKokkos<DeviceType>::forward_comm(KSpace *kspace, int which)
+template<ExecutionSpace Space>
+void GridCommKokkos<Space>::forward_comm(KSpace *kspace, int which)
 {
-  k_packlist.sync<DeviceType>();
-  k_unpacklist.sync<DeviceType>();
+  DualViewHelper<Space>::sync(k_packlist);
+  DualViewHelper<Space>::sync(k_unpacklist);
 
   KokkosBaseFFT* kspaceKKBase = dynamic_cast<KokkosBaseFFT*>(kspace);
 
@@ -530,11 +530,11 @@ void GridCommKokkos<DeviceType>::forward_comm(KSpace *kspace, int which)
       FFT_SCALAR* buf1;
       FFT_SCALAR* buf2;
       if (lmp->kokkos->cuda_aware_flag) {
-        buf1 = k_buf1.view<DeviceType>().data();
-        buf2 = k_buf2.view<DeviceType>().data();
+        buf1 = DualViewHelper<Space>::view(k_buf1).data();
+        buf2 = DualViewHelper<Space>::view(k_buf2).data();
       } else {
-        k_buf1.modify<DeviceType>();
-        k_buf1.sync<LMPHostType>();
+        DualViewHelper<Space>::modify(k_buf1);
+        k_buf1.sync_host();
         buf1 = k_buf1.h_view.data();
         buf2 = k_buf2.h_view.data();
       }
@@ -546,8 +546,8 @@ void GridCommKokkos<DeviceType>::forward_comm(KSpace *kspace, int which)
       MPI_Wait(&request,MPI_STATUS_IGNORE);
 
       if (!lmp->kokkos->cuda_aware_flag) {
-        k_buf2.modify<LMPHostType>();
-        k_buf2.sync<DeviceType>();
+        k_buf2.modify_host();
+        DualViewHelper<Space>::sync(k_buf2);
       }
     }
 
@@ -561,11 +561,11 @@ void GridCommKokkos<DeviceType>::forward_comm(KSpace *kspace, int which)
    for each owned grid pt that some other proc has copy of as a ghost grid pt
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void GridCommKokkos<DeviceType>::reverse_comm(KSpace *kspace, int which)
+template<ExecutionSpace Space>
+void GridCommKokkos<Space>::reverse_comm(KSpace *kspace, int which)
 {
-  k_packlist.sync<DeviceType>();
-  k_unpacklist.sync<DeviceType>();
+  DualViewHelper<Space>::sync(k_packlist);
+  DualViewHelper<Space>::sync(k_unpacklist);
 
   KokkosBaseFFT* kspaceKKBase = dynamic_cast<KokkosBaseFFT*>(kspace);
 
@@ -580,11 +580,11 @@ void GridCommKokkos<DeviceType>::reverse_comm(KSpace *kspace, int which)
       FFT_SCALAR* buf1;
       FFT_SCALAR* buf2;
       if (lmp->kokkos->cuda_aware_flag) {
-        buf1 = k_buf1.view<DeviceType>().data();
-        buf2 = k_buf2.view<DeviceType>().data();
+        buf1 = DualViewHelper<Space>::view(k_buf1).data();
+        buf2 = DualViewHelper<Space>::view(k_buf2).data();
       } else {
-        k_buf1.modify<DeviceType>();
-        k_buf1.sync<LMPHostType>();
+        DualViewHelper<Space>::modify(k_buf1);
+        k_buf1.sync_host();
         buf1 = k_buf1.h_view.data();
         buf2 = k_buf2.h_view.data();
       }
@@ -596,8 +596,8 @@ void GridCommKokkos<DeviceType>::reverse_comm(KSpace *kspace, int which)
       MPI_Wait(&request,MPI_STATUS_IGNORE);
 
       if (!lmp->kokkos->cuda_aware_flag) {
-        k_buf2.modify<LMPHostType>();
-        k_buf2.sync<DeviceType>();
+        k_buf2.modify_host();
+        DualViewHelper<Space>::sync(k_buf2);
       }
     }
 
@@ -612,8 +612,8 @@ void GridCommKokkos<DeviceType>::reverse_comm(KSpace *kspace, int which)
      0:outzhi_max-outzlo_max+1)
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-int GridCommKokkos<DeviceType>::indices(DAT::tdual_int_2d &k_list, int index,
+template<ExecutionSpace Space>
+int GridCommKokkos<Space>::indices(DAT::tdual_int_2d &k_list, int index,
                        int xlo, int xhi, int ylo, int yhi, int zlo, int zhi)
 {
   int nmax = (xhi-xlo+1) * (yhi-ylo+1) * (zhi-zlo+1);
@@ -623,7 +623,7 @@ int GridCommKokkos<DeviceType>::indices(DAT::tdual_int_2d &k_list, int index,
   int nx = (outxhi_max-outxlo_max+1);
   int ny = (outyhi_max-outylo_max+1);
 
-  k_list.sync<LMPHostType>();
+  k_list.sync_host();
 
   int n = 0;
   int ix,iy,iz;
@@ -632,8 +632,8 @@ int GridCommKokkos<DeviceType>::indices(DAT::tdual_int_2d &k_list, int index,
       for (ix = xlo; ix <= xhi; ix++)
         k_list.h_view(index,n++) = (iz-outzlo_max)*ny*nx + (iy-outylo_max)*nx + (ix-outxlo_max);
 
-  k_list.modify<LMPHostType>();
-  k_list.sync<DeviceType>();
+  k_list.modify_host();
+  DualViewHelper<Space>::sync(k_list);
 
   return nmax;
 }
@@ -643,16 +643,14 @@ int GridCommKokkos<DeviceType>::indices(DAT::tdual_int_2d &k_list, int index,
    memory usage of send/recv bufs
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-double GridCommKokkos<DeviceType>::memory_usage()
+template<ExecutionSpace Space>
+double GridCommKokkos<Space>::memory_usage()
 {
   double bytes = 2*nbuf * sizeof(double);
   return bytes;
 }
 
 namespace LAMMPS_NS {
-template class GridCommKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class GridCommKokkos<LMPHostType>;
-#endif
+template class GridCommKokkos<Device>;
+template class GridCommKokkos<Host>;
 }

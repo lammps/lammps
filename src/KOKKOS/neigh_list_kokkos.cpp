@@ -19,20 +19,19 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-NeighListKokkos<DeviceType>::NeighListKokkos(class LAMMPS *lmp):NeighList(lmp)
+template<ExecutionSpace Space>
+NeighListKokkos<Space>::NeighListKokkos(class LAMMPS *lmp):NeighList(lmp)
 {
   _stride = 1;
   maxneighs = 16;
   kokkos = 1;
   maxatoms = 0;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 };
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NeighListKokkos<DeviceType>::grow(int nmax)
+template<ExecutionSpace Space>
+void NeighListKokkos<Space>::grow(int nmax)
 {
   // skip if this list is already long enough to store nmax atoms
   //  and maxneighs neighbors
@@ -41,19 +40,17 @@ void NeighListKokkos<DeviceType>::grow(int nmax)
   maxatoms = nmax;
 
   k_ilist = DAT::tdual_int_1d("neighlist:ilist",maxatoms);
-  d_ilist = k_ilist.view<DeviceType>();
+  d_ilist = DualViewHelper<Space>::view(k_ilist);
   k_numneigh = DAT::tdual_int_1d("neighlist:numneigh",maxatoms);
-  d_numneigh = k_numneigh.view<DeviceType>();
+  d_numneigh = DualViewHelper<Space>::view(k_numneigh);
   k_neighbors = DAT::tdual_neighbors_2d("neighlist:neighbors",maxatoms,maxneighs);
-  d_neighbors = k_neighbors.view<DeviceType>();
+  d_neighbors = DualViewHelper<Space>::view(k_neighbors);
 }
 
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
-template class NeighListKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class NeighListKokkos<LMPHostType>;
-#endif
+template class NeighListKokkos<Device>;
+template class NeighListKokkos<Host>;
 }
 

@@ -51,11 +51,11 @@ void FixPropertyAtomKokkos::grow_arrays(int nmax)
       memset(&atom->molecule[nmax_old],0,nbytes);
     } else if (style[m] == CHARGE) {
       memory->grow(atom->q,nmax,"atom:q");
-      size_t nbytes = (nmax-nmax_old) * sizeof(double);
+      size_t nbytes = (nmax-nmax_old) * sizeof(KK_FLOAT);
       memset(&atom->q[nmax_old],0,nbytes);
     } else if (style[m] == RMASS) {
       memory->grow(atom->rmass,nmax,"atom:rmass");
-      size_t nbytes = (nmax-nmax_old) * sizeof(double);
+      size_t nbytes = (nmax-nmax_old) * sizeof(KK_FLOAT);
       memset(&atom->rmass[nmax_old],0,nbytes);
     } else if (style[m] == INTEGER) {
       memory->grow(atom->ivector[index[m]],nmax,"atom:ivector");
@@ -67,7 +67,7 @@ void FixPropertyAtomKokkos::grow_arrays(int nmax)
                           "atom:dvector");
       atomKK->modified(Device,DVECTOR_MASK);
       //memory->grow(atom->dvector[index[m]],nmax,"atom:dvector");
-      //size_t nbytes = (nmax-nmax_old) * sizeof(double);
+      //size_t nbytes = (nmax-nmax_old) * sizeof(KK_FLOAT);
       //memset(&atom->dvector[index[m]][nmax_old],0,nbytes);
     }
   }

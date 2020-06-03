@@ -43,10 +43,10 @@ MinCGKokkos::MinCGKokkos(LAMMPS *lmp) : MinLineSearchKokkos(lmp)
 int MinCGKokkos::iterate(int maxiter)
 {
   int fail,ntimestep;
-  double beta,gg,dot[2],dotall[2],fdotf;
+  KK_FLOAT beta,gg,dot[2],dotall[2],fdotf;
 
-  fix_minimize_kk->k_vectors.sync<LMPDeviceType>();
-  fix_minimize_kk->k_vectors.modify<LMPDeviceType>();
+  fix_minimize_kk->k_vectors.sync_device();
+  fix_minimize_kk->k_vectors.modify_device();
 
   // nlimit = max # of CG iterations before restarting
   // set to ndoftotal unless too big
@@ -96,14 +96,14 @@ int MinCGKokkos::iterate(int maxiter)
 
     // force tolerance criterion
 
-    s_double2 sdot;
+    s_KK_FLOAT2 sdot;
     {
       // local variables for lambda capture
 
       auto l_g = g;
       auto l_fvec = fvec;
 
-      Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, s_double2& sdot) {
+      Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, s_KK_FLOAT2& sdot) {
         sdot.d0 += l_fvec[i]*l_fvec[i];
         sdot.d1 += l_fvec[i]*l_g[i];
       },sdot);
@@ -145,7 +145,7 @@ int MinCGKokkos::iterate(int maxiter)
 
     // reinitialize CG if new search direction h is not downhill
 
-    double dot_0 = 0.0;
+    KK_FLOAT dot_0 = 0.0;
 
     {
       // local variables for lambda capture
@@ -153,7 +153,7 @@ int MinCGKokkos::iterate(int maxiter)
       auto l_h = h;
       auto l_g = g;
 
-      Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, double& dot_0) {
+      Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, KK_FLOAT& dot_0) {
         dot_0 += l_g[i]*l_h[i];
       },dot_0);
     }

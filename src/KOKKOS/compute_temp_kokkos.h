@@ -13,9 +13,9 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(temp/kk,ComputeTempKokkos<LMPDeviceType>)
-ComputeStyle(temp/kk/device,ComputeTempKokkos<LMPDeviceType>)
-ComputeStyle(temp/kk/host,ComputeTempKokkos<LMPHostType>)
+ComputeStyle(temp/kk,ComputeTempKokkos<Device>)
+ComputeStyle(temp/kk/device,ComputeTempKokkos<Device>)
+ComputeStyle(temp/kk/host,ComputeTempKokkos<Host>)
 
 #else
 
@@ -28,7 +28,7 @@ ComputeStyle(temp/kk/host,ComputeTempKokkos<LMPHostType>)
 namespace LAMMPS_NS {
 
   struct s_CTEMP {
-    double t0, t1, t2, t3, t4, t5;
+    KK_FLOAT t0, t1, t2, t3, t4, t5;
     KOKKOS_INLINE_FUNCTION
     s_CTEMP() {
       t0 = t1 = t2 = t3 = t4 = t5 = 0.0;
@@ -62,12 +62,13 @@ struct TagComputeTempScalar{};
 template<int RMASS>
 struct TagComputeTempVector{};
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class ComputeTempKokkos : public ComputeTemp {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
   typedef CTEMP value_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
 
   ComputeTempKokkos(class LAMMPS *, int, char **);
   virtual ~ComputeTempKokkos() {}
@@ -83,11 +84,11 @@ class ComputeTempKokkos : public ComputeTemp {
   void operator()(TagComputeTempVector<RMASS>, const int&, CTEMP&) const;
 
  protected:
-  typename ArrayTypes<DeviceType>::t_v_array_randomread v;
-  typename ArrayTypes<DeviceType>::t_float_1d_randomread rmass;
-  typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread mask;
+  typename AT::t_float_1d_3_randomread v;
+  typename AT::t_float_1d_randomread rmass;
+  typename AT::t_float_1d_randomread mass;
+  typename AT::t_int_1d_randomread type;
+  typename AT::t_int_1d_randomread mask;
 };
 
 }

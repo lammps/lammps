@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(gravity/kk,FixGravityKokkos<LMPDeviceType>)
-FixStyle(gravity/kk/device,FixGravityKokkos<LMPDeviceType>)
-FixStyle(gravity/kk/host,FixGravityKokkos<LMPHostType>)
+FixStyle(gravity/kk,FixGravityKokkos<Device>)
+FixStyle(gravity/kk/device,FixGravityKokkos<Device>)
+FixStyle(gravity/kk/host,FixGravityKokkos<Host>)
 
 #else
 
@@ -30,25 +30,28 @@ namespace LAMMPS_NS {
 struct TagFixGravityRMass {};
 struct TagFixGravityMass {};
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class FixGravityKokkos : public FixGravity {
   public:
+    typedef typename GetDeviceType<Space>::value DeviceType;
+    typedef ArrayTypes<Space> AT;
+
     FixGravityKokkos(class LAMMPS *, int, char **);
     virtual ~FixGravityKokkos() {}
     void post_force(int);
 
     KOKKOS_INLINE_FUNCTION
-    void operator()(TagFixGravityRMass, const int, double &) const;
+    void operator()(TagFixGravityRMass, const int, KK_FLOAT &) const;
     KOKKOS_INLINE_FUNCTION
-    void operator()(TagFixGravityMass, const int, double &) const;
+    void operator()(TagFixGravityMass, const int, KK_FLOAT &) const;
 
   private:
-    typename ArrayTypes<DeviceType>::t_x_array x;
-    typename ArrayTypes<DeviceType>::t_f_array f;
-    typename ArrayTypes<DeviceType>::t_float_1d_randomread rmass;
-    typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
-    typename ArrayTypes<DeviceType>::t_int_1d type;
-    typename ArrayTypes<DeviceType>::t_int_1d mask;
+    typename AT::t_float_1d_3 x;
+    typename AT::t_float_1d_3 f;
+    typename AT::t_float_1d_randomread rmass;
+    typename AT::t_float_1d_randomread mass;
+    typename AT::t_int_1d type;
+    typename AT::t_int_1d mask;
 };
 
 } // namespace LAMMPS_NS

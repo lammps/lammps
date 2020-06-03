@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(qeq/reax/kk,FixQEqReaxKokkos<LMPDeviceType>)
-FixStyle(qeq/reax/kk/device,FixQEqReaxKokkos<LMPDeviceType>)
-FixStyle(qeq/reax/kk/host,FixQEqReaxKokkos<LMPHostType>)
+FixStyle(qeq/reax/kk,FixQEqReaxKokkos<Device>)
+FixStyle(qeq/reax/kk/device,FixQEqReaxKokkos<Device>)
+FixStyle(qeq/reax/kk/host,FixQEqReaxKokkos<Host>)
 
 #else
 
@@ -34,11 +34,13 @@ struct TagSparseMatvec2 {};
 struct TagSparseMatvec3 {};
 struct TagZeroQGhosts{};
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class FixQEqReaxKokkos : public FixQEqReax {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
+
   FixQEqReaxKokkos(class LAMMPS *, int, char **);
   ~FixQEqReaxKokkos();
 
@@ -104,16 +106,16 @@ class FixQEqReaxKokkos : public FixQEqReax {
   void vecsum2_item(int) const;
 
   KOKKOS_INLINE_FUNCTION
-  double norm1_item(int) const;
+  KK_FLOAT norm1_item(int) const;
 
   KOKKOS_INLINE_FUNCTION
-  double norm2_item(int) const;
+  KK_FLOAT norm2_item(int) const;
 
   KOKKOS_INLINE_FUNCTION
-  double dot1_item(int) const;
+  KK_FLOAT dot1_item(int) const;
 
   KOKKOS_INLINE_FUNCTION
-  double dot2_item(int) const;
+  KK_FLOAT dot2_item(int) const;
 
   KOKKOS_INLINE_FUNCTION
   void precon1_item(int) const;
@@ -122,26 +124,26 @@ class FixQEqReaxKokkos : public FixQEqReax {
   void precon2_item(int) const;
 
   KOKKOS_INLINE_FUNCTION
-  double precon_item(int) const;
+  KK_FLOAT precon_item(int) const;
 
   KOKKOS_INLINE_FUNCTION
-  double vecacc1_item(int) const;
+  KK_FLOAT vecacc1_item(int) const;
 
   KOKKOS_INLINE_FUNCTION
-  double vecacc2_item(int) const;
+  KK_FLOAT vecacc2_item(int) const;
 
   KOKKOS_INLINE_FUNCTION
   void calculate_q_item(int) const;
 
   KOKKOS_INLINE_FUNCTION
-  double calculate_H_k(const F_FLOAT &r, const F_FLOAT &shld) const;
+  KK_FLOAT calculate_H_k(const KK_FLOAT &r, const KK_FLOAT &shld) const;
 
   struct params_qeq{
     KOKKOS_INLINE_FUNCTION
     params_qeq(){chi=0;eta=0;gamma=0;};
     KOKKOS_INLINE_FUNCTION
     params_qeq(int i){chi=0;eta=0;gamma=0;};
-    F_FLOAT chi, eta, gamma;
+    KK_FLOAT chi, eta, gamma;
   };
 
   virtual int pack_forward_comm(int, int *, double *, int, int *);
@@ -161,47 +163,47 @@ class FixQEqReaxKokkos : public FixQEqReax {
   Kokkos::DualView<params_qeq*,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_qeq*, Kokkos::LayoutRight,DeviceType>::t_dev_const params;
 
-  typename ArrayTypes<DeviceType>::t_x_array x;
-  typename ArrayTypes<DeviceType>::t_v_array v;
-  typename ArrayTypes<DeviceType>::t_f_array_const f;
-  //typename ArrayTypes<DeviceType>::t_float_1d_randomread mass, q;
-  typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
-  typename ArrayTypes<DeviceType>::t_float_1d q;
-  typename ArrayTypes<DeviceType>::t_int_1d type, mask;
-  typename ArrayTypes<DeviceType>::t_tagint_1d tag;
+  typename AT::t_float_1d_3 x;
+  typename AT::t_float_1d_3 v;
+  typename AT::t_float_1d_3_const f;
+  //typename AT::t_float_1d_randomread mass, q;
+  typename AT::t_float_1d_randomread mass;
+  typename AT::t_float_1d q;
+  typename AT::t_int_1d type, mask;
+  typename AT::t_tagint_1d tag;
 
   DAT::tdual_float_1d k_q;
   typename AT::t_float_1d d_q;
   HAT::t_float_1d h_q;
 
-  typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread d_ilist, d_numneigh;
+  typename AT::t_neighbors_2d d_neighbors;
+  typename AT::t_int_1d_randomread d_ilist, d_numneigh;
 
-  DAT::tdual_ffloat_1d k_tap;
-  typename AT::t_ffloat_1d d_tap;
+  DAT::tdual_float_1d k_tap;
+  typename AT::t_float_1d d_tap;
 
   typename AT::t_int_1d d_firstnbr;
   typename AT::t_int_1d d_numnbrs;
   typename AT::t_int_1d d_jlist;
-  typename AT::t_ffloat_1d d_val;
+  typename AT::t_float_1d d_val;
 
-  DAT::tdual_ffloat_1d k_t, k_s;
-  typename AT::t_ffloat_1d d_Hdia_inv, d_b_s, d_b_t, d_t, d_s;
-  HAT::t_ffloat_1d h_t, h_s;
-  typename AT::t_ffloat_1d_randomread r_b_s, r_b_t, r_t, r_s;
+  DAT::tdual_float_1d k_t, k_s;
+  typename AT::t_float_1d d_Hdia_inv, d_b_s, d_b_t, d_t, d_s;
+  HAT::t_float_1d h_t, h_s;
+  typename AT::t_float_1d_randomread r_b_s, r_b_t, r_t, r_s;
 
-  DAT::tdual_ffloat_1d k_o, k_d;
-  typename AT::t_ffloat_1d d_p, d_o, d_r, d_d;
-  HAT::t_ffloat_1d h_o, h_d;
-  typename AT::t_ffloat_1d_randomread r_p, r_o, r_r, r_d;
+  DAT::tdual_float_1d k_o, k_d;
+  typename AT::t_float_1d d_p, d_o, d_r, d_d;
+  HAT::t_float_1d h_o, h_d;
+  typename AT::t_float_1d_randomread r_p, r_o, r_r, r_d;
 
-  DAT::tdual_ffloat_2d k_shield, k_s_hist, k_t_hist;
-  typename AT::t_ffloat_2d d_shield, d_s_hist, d_t_hist;
-  HAT::t_ffloat_2d h_s_hist, h_t_hist;
-  typename AT::t_ffloat_2d_randomread r_s_hist, r_t_hist;
+  DAT::tdual_float_2d k_shield, k_s_hist, k_t_hist;
+  typename AT::t_float_2d d_shield, d_s_hist, d_t_hist;
+  HAT::t_float_2d h_s_hist, h_t_hist;
+  typename AT::t_float_2d_randomread r_s_hist, r_t_hist;
 
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated> dup_o;
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated> ndup_o;
+  Kokkos::Experimental::ScatterView<typename AT::t_float_1d::data_type, typename AT::t_float_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated> dup_o;
+  Kokkos::Experimental::ScatterView<typename AT::t_float_1d::data_type, typename AT::t_float_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated> ndup_o;
 
   void init_shielding_k();
   void init_hist();
@@ -214,12 +216,12 @@ class FixQEqReaxKokkos : public FixQEqReax {
   int neighflag, pack_flag;
   int nlocal,nall,nmax,newton_pair;
   int count, isuccess;
-  double alpha, beta, delta, cutsq;
+  KK_FLOAT alpha, beta, delta, cutsq;
 
   int iswap;
   int first;
   typename AT::t_int_2d d_sendlist;
-  typename AT::t_xfloat_1d_um v_buf;
+  typename AT::t_float_1d_um v_buf;
 
   void grow_arrays(int);
   void copy_arrays(int, int, int);
@@ -227,12 +229,14 @@ class FixQEqReaxKokkos : public FixQEqReax {
   int unpack_exchange(int, double *);
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixQEqReaxKokkosNumNeighFunctor  {
-  typedef DeviceType  device_type ;
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+
   typedef int value_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  FixQEqReaxKokkosNumNeighFunctor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  FixQEqReaxKokkos<Space> c;
+  FixQEqReaxKokkosNumNeighFunctor(FixQEqReaxKokkos<Space>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -241,11 +245,13 @@ struct FixQEqReaxKokkosNumNeighFunctor  {
   }
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixQEqReaxKokkosMatVecFunctor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  FixQEqReaxKokkosMatVecFunctor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+
+  FixQEqReaxKokkos<Space> c;
+  FixQEqReaxKokkosMatVecFunctor(FixQEqReaxKokkos<Space>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -254,18 +260,21 @@ struct FixQEqReaxKokkosMatVecFunctor  {
   }
 };
 
-template <class DeviceType, int NEIGHFLAG>
+template <ExecutionSpace Space, int NEIGHFLAG>
 struct FixQEqReaxKokkosComputeHFunctor {
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+
   int atoms_per_team, vector_length;
   typedef int value_type;
   typedef Kokkos::ScratchMemorySpace<DeviceType> scratch_space;
-  FixQEqReaxKokkos<DeviceType> c;
+  FixQEqReaxKokkos<Space> c;
 
-  FixQEqReaxKokkosComputeHFunctor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  FixQEqReaxKokkosComputeHFunctor(FixQEqReaxKokkos<Space>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
 
-  FixQEqReaxKokkosComputeHFunctor(FixQEqReaxKokkos<DeviceType> *c_ptr,
+  FixQEqReaxKokkosComputeHFunctor(FixQEqReaxKokkos<Space> *c_ptr,
                                   int _atoms_per_team, int _vector_length)
       : c(*c_ptr), atoms_per_team(_atoms_per_team),
         vector_length(_vector_length) {
@@ -295,18 +304,20 @@ struct FixQEqReaxKokkosComputeHFunctor {
             shmem_size(atoms_per_team, vector_length) + // s_jtype
         Kokkos::View<int **, scratch_space, Kokkos::MemoryUnmanaged>::
             shmem_size(atoms_per_team, vector_length) + // s_j
-        Kokkos::View<F_FLOAT **, scratch_space,
+        Kokkos::View<KK_FLOAT **, scratch_space,
                      Kokkos::MemoryUnmanaged>::shmem_size(atoms_per_team,
                                                           vector_length); // s_r
     return shmem_size;
   }
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixQEqReaxKokkosZeroFunctor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  FixQEqReaxKokkosZeroFunctor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+
+  FixQEqReaxKokkos<Space> c;
+  FixQEqReaxKokkosZeroFunctor(FixQEqReaxKokkos<Space>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -315,11 +326,13 @@ struct FixQEqReaxKokkosZeroFunctor  {
   }
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixQEqReaxKokkosSparse12Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  FixQEqReaxKokkosSparse12Functor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+
+  FixQEqReaxKokkos<Space> c;
+  FixQEqReaxKokkosSparse12Functor(FixQEqReaxKokkos<Space>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -328,11 +341,13 @@ struct FixQEqReaxKokkosSparse12Functor  {
   }
 };
 
-template <class DeviceType,int NEIGHFLAG>
+template <ExecutionSpace Space,int NEIGHFLAG>
 struct FixQEqReaxKokkosSparse13Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  FixQEqReaxKokkosSparse13Functor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+
+  FixQEqReaxKokkos<Space> c;
+  FixQEqReaxKokkosSparse13Functor(FixQEqReaxKokkos<Space>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -341,11 +356,13 @@ struct FixQEqReaxKokkosSparse13Functor  {
   }
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixQEqReaxKokkosSparse22Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  FixQEqReaxKokkosSparse22Functor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+
+  FixQEqReaxKokkos<Space> c;
+  FixQEqReaxKokkosSparse22Functor(FixQEqReaxKokkos<Space>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -354,11 +371,13 @@ struct FixQEqReaxKokkosSparse22Functor  {
   }
 };
 
-template <class DeviceType,int NEIGHFLAG>
+template <ExecutionSpace Space,int NEIGHFLAG>
 struct FixQEqReaxKokkosSparse23Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  FixQEqReaxKokkosSparse23Functor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+
+  FixQEqReaxKokkos<Space> c;
+  FixQEqReaxKokkosSparse23Functor(FixQEqReaxKokkos<Space>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -367,11 +386,13 @@ struct FixQEqReaxKokkosSparse23Functor  {
   }
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixQEqReaxKokkosSparse32Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  FixQEqReaxKokkosSparse32Functor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+
+  FixQEqReaxKokkos<Space> c;
+  FixQEqReaxKokkosSparse32Functor(FixQEqReaxKokkos<Space>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -380,11 +401,13 @@ struct FixQEqReaxKokkosSparse32Functor  {
   }
 };
 
-template <class DeviceType,int NEIGHFLAG>
+template <ExecutionSpace Space,int NEIGHFLAG>
 struct FixQEqReaxKokkosSparse33Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  FixQEqReaxKokkosSparse33Functor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+
+  FixQEqReaxKokkos<Space> c;
+  FixQEqReaxKokkosSparse33Functor(FixQEqReaxKokkos<Space>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -393,11 +416,13 @@ struct FixQEqReaxKokkosSparse33Functor  {
   }
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixQEqReaxKokkosVecSum2Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  FixQEqReaxKokkosVecSum2Functor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+
+  FixQEqReaxKokkos<Space> c;
+  FixQEqReaxKokkosVecSum2Functor(FixQEqReaxKokkos<Space>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -406,12 +431,14 @@ struct FixQEqReaxKokkosVecSum2Functor  {
   }
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixQEqReaxKokkosNorm1Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  typedef double value_type;
-  FixQEqReaxKokkosNorm1Functor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+
+  FixQEqReaxKokkos<Space> c;
+  typedef KK_FLOAT value_type;
+  FixQEqReaxKokkosNorm1Functor(FixQEqReaxKokkos<Space>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -420,12 +447,14 @@ struct FixQEqReaxKokkosNorm1Functor  {
   }
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixQEqReaxKokkosNorm2Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  typedef double value_type;
-  FixQEqReaxKokkosNorm2Functor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+
+  FixQEqReaxKokkos<Space> c;
+  typedef KK_FLOAT value_type;
+  FixQEqReaxKokkosNorm2Functor(FixQEqReaxKokkos<Space>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -434,12 +463,14 @@ struct FixQEqReaxKokkosNorm2Functor  {
   }
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixQEqReaxKokkosDot1Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  typedef double value_type;
-  FixQEqReaxKokkosDot1Functor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+
+  FixQEqReaxKokkos<Space> c;
+  typedef KK_FLOAT value_type;
+  FixQEqReaxKokkosDot1Functor(FixQEqReaxKokkos<Space>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -448,12 +479,14 @@ struct FixQEqReaxKokkosDot1Functor  {
   }
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixQEqReaxKokkosDot2Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  typedef double value_type;
-  FixQEqReaxKokkosDot2Functor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+
+  FixQEqReaxKokkos<Space> c;
+  typedef KK_FLOAT value_type;
+  FixQEqReaxKokkosDot2Functor(FixQEqReaxKokkos<Space>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -462,11 +495,13 @@ struct FixQEqReaxKokkosDot2Functor  {
   }
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixQEqReaxKokkosPrecon1Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  FixQEqReaxKokkosPrecon1Functor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+
+  FixQEqReaxKokkos<Space> c;
+  FixQEqReaxKokkosPrecon1Functor(FixQEqReaxKokkos<Space>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -475,11 +510,13 @@ struct FixQEqReaxKokkosPrecon1Functor  {
   }
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixQEqReaxKokkosPrecon2Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  FixQEqReaxKokkosPrecon2Functor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+
+  FixQEqReaxKokkos<Space> c;
+  FixQEqReaxKokkosPrecon2Functor(FixQEqReaxKokkos<Space>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -488,12 +525,14 @@ struct FixQEqReaxKokkosPrecon2Functor  {
   }
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixQEqReaxKokkosPreconFunctor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  typedef double value_type;
-  FixQEqReaxKokkosPreconFunctor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+
+  FixQEqReaxKokkos<Space> c;
+  typedef KK_FLOAT value_type;
+  FixQEqReaxKokkosPreconFunctor(FixQEqReaxKokkos<Space>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -502,12 +541,14 @@ struct FixQEqReaxKokkosPreconFunctor  {
   }
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixQEqReaxKokkosVecAcc1Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  typedef double value_type;
-  FixQEqReaxKokkosVecAcc1Functor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+
+  FixQEqReaxKokkos<Space> c;
+  typedef KK_FLOAT value_type;
+  FixQEqReaxKokkosVecAcc1Functor(FixQEqReaxKokkos<Space>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -516,12 +557,14 @@ struct FixQEqReaxKokkosVecAcc1Functor  {
   }
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixQEqReaxKokkosVecAcc2Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  typedef double value_type;
-  FixQEqReaxKokkosVecAcc2Functor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+
+  FixQEqReaxKokkos<Space> c;
+  typedef KK_FLOAT value_type;
+  FixQEqReaxKokkosVecAcc2Functor(FixQEqReaxKokkos<Space>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -530,11 +573,13 @@ struct FixQEqReaxKokkosVecAcc2Functor  {
   }
 };
 
-template <class DeviceType>
+template <ExecutionSpace Space>
 struct FixQEqReaxKokkosCalculateQFunctor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  FixQEqReaxKokkosCalculateQFunctor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+
+  FixQEqReaxKokkos<Space> c;
+  FixQEqReaxKokkosCalculateQFunctor(FixQEqReaxKokkos<Space>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION

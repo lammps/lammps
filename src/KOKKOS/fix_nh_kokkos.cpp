@@ -52,12 +52,11 @@ enum{ISO,ANISO,TRICLINIC};
    NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion
  ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-FixNHKokkos<DeviceType>::FixNHKokkos(LAMMPS *lmp, int narg, char **arg) : FixNH(lmp, narg, arg)
+template<ExecutionSpace Space>
+FixNHKokkos<Space>::FixNHKokkos(LAMMPS *lmp, int narg, char **arg) : FixNH(lmp, narg, arg)
 {
   kokkosable = 1;
   domainKK = (DomainKokkos *) domain;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
@@ -65,8 +64,8 @@ FixNHKokkos<DeviceType>::FixNHKokkos(LAMMPS *lmp, int narg, char **arg) : FixNH(
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-FixNHKokkos<DeviceType>::~FixNHKokkos()
+template<ExecutionSpace Space>
+FixNHKokkos<Space>::~FixNHKokkos()
 {
 
 
@@ -74,21 +73,21 @@ FixNHKokkos<DeviceType>::~FixNHKokkos()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixNHKokkos<DeviceType>::init()
+template<ExecutionSpace Space>
+void FixNHKokkos<Space>::init()
 {
   FixNH::init();
 
-  atomKK->k_mass.modify<LMPHostType>();
-  atomKK->k_mass.sync<DeviceType>();
+  atomKK->k_mass.modify_host();
+  DualViewHelper<Space>::sync(atomKK->k_mass);
 }
 
 /* ----------------------------------------------------------------------
    compute T,P before integrator starts
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixNHKokkos<DeviceType>::setup(int vflag)
+template<ExecutionSpace Space>
+void FixNHKokkos<Space>::setup(int vflag)
 {
   // t_target is needed by NPH and NPT in compute_scalar()
   // If no thermostat or using fix nphug,
@@ -147,8 +146,8 @@ void FixNHKokkos<DeviceType>::setup(int vflag)
   // masses and initial forces on barostat variables
 
   if (pstat_flag) {
-    double kt = boltz * t_target;
-    double nkt = (atom->natoms + 1) * kt;
+    KK_FLOAT kt = boltz * t_target;
+    KK_FLOAT nkt = (atom->natoms + 1) * kt;
 
     for (int i = 0; i < 3; i++)
       if (p_flag[i])
@@ -178,8 +177,8 @@ void FixNHKokkos<DeviceType>::setup(int vflag)
    1st half of Verlet update
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixNHKokkos<DeviceType>::initial_integrate(int vflag)
+template<ExecutionSpace Space>
+void FixNHKokkos<Space>::initial_integrate(int vflag)
 {
   // update eta_press_dot
 
@@ -239,8 +238,8 @@ void FixNHKokkos<DeviceType>::initial_integrate(int vflag)
    2nd half of Verlet update
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixNHKokkos<DeviceType>::final_integrate()
+template<ExecutionSpace Space>
+void FixNHKokkos<Space>::final_integrate()
 {
   nve_v();
 
@@ -293,11 +292,11 @@ void FixNHKokkos<DeviceType>::final_integrate()
    if rigid bodies exist, scale rigid body centers-of-mass
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixNHKokkos<DeviceType>::remap()
+template<ExecutionSpace Space>
+void FixNHKokkos<Space>::remap()
 {
-  double oldlo,oldhi;
-  double expfac;
+  KK_FLOAT oldlo,oldhi;
+  KK_FLOAT expfac;
 
   int nlocal = atom->nlocal;
   double *h = domain->h;
@@ -336,9 +335,9 @@ void FixNHKokkos<DeviceType>::remap()
   //
   // Ordering of operations preserves time symmetry.
 
-  double dto2 = dto/2.0;
-  double dto4 = dto/4.0;
-  double dto8 = dto/8.0;
+  KK_FLOAT dto2 = dto/2.0;
+  KK_FLOAT dto4 = dto/4.0;
+  KK_FLOAT dto8 = dto/8.0;
 
   // off-diagonal components, first half
 
@@ -474,11 +473,11 @@ void FixNHKokkos<DeviceType>::remap()
    perform half-step barostat scaling of velocities
 -----------------------------------------------------------------------*/
 
-template<class DeviceType>
-void FixNHKokkos<DeviceType>::nh_v_press()
+template<ExecutionSpace Space>
+void FixNHKokkos<Space>::nh_v_press()
 {
-  v = atomKK->k_v.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
+  v = DualViewHelper<Space>::view(atomKK->k_v);
+  mask = DualViewHelper<Space>::view(atomKK->k_mask);
   int nlocal = atomKK->nlocal;
   if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
 
@@ -511,10 +510,10 @@ void FixNHKokkos<DeviceType>::nh_v_press()
 
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int TRICLINIC_FLAG>
 KOKKOS_INLINE_FUNCTION
-void FixNHKokkos<DeviceType>::operator()(TagFixNH_nh_v_press<TRICLINIC_FLAG>, const int &i) const {
+void FixNHKokkos<Space>::operator()(TagFixNH_nh_v_press<TRICLINIC_FLAG>, const int &i) const {
   if (mask[i] & groupbit) {
     v(i,0) *= factor[0];
     v(i,1) *= factor[1];
@@ -533,17 +532,17 @@ void FixNHKokkos<DeviceType>::operator()(TagFixNH_nh_v_press<TRICLINIC_FLAG>, co
    perform half-step update of velocities
 -----------------------------------------------------------------------*/
 
-template<class DeviceType>
-void FixNHKokkos<DeviceType>::nve_v()
+template<ExecutionSpace Space>
+void FixNHKokkos<Space>::nve_v()
 {
   atomKK->sync(execution_space,X_MASK | V_MASK | F_MASK | MASK_MASK | RMASS_MASK | TYPE_MASK);
 
-  v = atomKK->k_v.view<DeviceType>();
-  f = atomKK->k_f.view<DeviceType>();
-  rmass = atomKK->k_rmass.view<DeviceType>();
-  mass = atomKK->k_mass.view<DeviceType>();
-  type = atomKK->k_type.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
+  v = DualViewHelper<Space>::view(atomKK->k_v);
+  f = DualViewHelper<Space>::view(atomKK->k_f);
+  rmass = DualViewHelper<Space>::view(atomKK->k_rmass);
+  mass = DualViewHelper<Space>::view(atomKK->k_mass);
+  type = DualViewHelper<Space>::view(atomKK->k_type);
+  mask = DualViewHelper<Space>::view(atomKK->k_mask);
   int nlocal = atomKK->nlocal;
   if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
 
@@ -557,20 +556,20 @@ void FixNHKokkos<DeviceType>::nve_v()
   atomKK->modified(execution_space,V_MASK);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int RMASS>
 KOKKOS_INLINE_FUNCTION
-void FixNHKokkos<DeviceType>::operator()(TagFixNH_nve_v<RMASS>, const int &i) const {
+void FixNHKokkos<Space>::operator()(TagFixNH_nve_v<RMASS>, const int &i) const {
   if (RMASS) {
     if (mask[i] & groupbit) {
-      const F_FLOAT dtfm = dtf / rmass[i];
+      const KK_FLOAT dtfm = dtf / rmass[i];
       v(i,0) += dtfm*f(i,0);
       v(i,1) += dtfm*f(i,1);
       v(i,2) += dtfm*f(i,2);
     }
   } else {
     if (mask[i] & groupbit) {
-      const F_FLOAT dtfm = dtf / mass[type[i]];
+      const KK_FLOAT dtfm = dtf / mass[type[i]];
       v(i,0) += dtfm*f(i,0);
       v(i,1) += dtfm*f(i,1);
       v(i,2) += dtfm*f(i,2);
@@ -582,15 +581,15 @@ void FixNHKokkos<DeviceType>::operator()(TagFixNH_nve_v<RMASS>, const int &i) co
    perform full-step update of positions
 -----------------------------------------------------------------------*/
 
-template<class DeviceType>
-void FixNHKokkos<DeviceType>::nve_x()
+template<ExecutionSpace Space>
+void FixNHKokkos<Space>::nve_x()
 {
   atomKK->sync(execution_space,X_MASK | V_MASK | MASK_MASK);
   atomKK->modified(execution_space,X_MASK);
 
-  x = atomKK->k_x.view<DeviceType>();
-  v = atomKK->k_v.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  v = DualViewHelper<Space>::view(atomKK->k_v);
+  mask = DualViewHelper<Space>::view(atomKK->k_mask);
   int nlocal = atomKK->nlocal;
   if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
 
@@ -601,9 +600,9 @@ void FixNHKokkos<DeviceType>::nve_x()
   copymode = 0;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void FixNHKokkos<DeviceType>::operator()(TagFixNH_nve_x, const int &i) const {
+void FixNHKokkos<Space>::operator()(TagFixNH_nve_x, const int &i) const {
   if (mask[i] & groupbit) {
     x(i,0) += dtv * v(i,0);
     x(i,1) += dtv * v(i,1);
@@ -615,11 +614,11 @@ void FixNHKokkos<DeviceType>::operator()(TagFixNH_nve_x, const int &i) const {
    perform half-step thermostat scaling of velocities
 -----------------------------------------------------------------------*/
 
-template<class DeviceType>
-void FixNHKokkos<DeviceType>::nh_v_temp()
+template<ExecutionSpace Space>
+void FixNHKokkos<Space>::nh_v_temp()
 {
-  v = atomKK->k_v.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
+  v = DualViewHelper<Space>::view(atomKK->k_v);
+  mask = DualViewHelper<Space>::view(atomKK->k_mask);
   int nlocal = atomKK->nlocal;
   if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
 
@@ -644,9 +643,9 @@ void FixNHKokkos<DeviceType>::nh_v_temp()
   }
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void FixNHKokkos<DeviceType>::operator()(TagFixNH_nh_v_temp, const int &i) const {
+void FixNHKokkos<Space>::operator()(TagFixNH_nh_v_temp, const int &i) const {
   if (mask[i] & groupbit) {
     v(i,0) *= factor_eta;
     v(i,1) *= factor_eta;
@@ -670,17 +669,17 @@ void FixNHKokkos<DeviceType>::operator()(TagFixNH_nh_v_temp, const int &i) const
     image flags to new values, making eqs in doc of Domain:image_flip incorrect
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixNHKokkos<DeviceType>::pre_exchange()
+template<ExecutionSpace Space>
+void FixNHKokkos<Space>::pre_exchange()
 {
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
+  KK_FLOAT xprd = domain->xprd;
+  KK_FLOAT yprd = domain->yprd;
 
   // flip is only triggered when tilt exceeds 0.5 by DELTAFLIP
   // this avoids immediate re-flipping due to tilt oscillations
 
-  double xtiltmax = (0.5+DELTAFLIP)*xprd;
-  double ytiltmax = (0.5+DELTAFLIP)*yprd;
+  KK_FLOAT xtiltmax = (0.5+DELTAFLIP)*xprd;
+  KK_FLOAT ytiltmax = (0.5+DELTAFLIP)*yprd;
 
   int flipxy,flipxz,flipyz;
   flipxy = flipxz = flipyz = 0;
@@ -734,9 +733,7 @@ void FixNHKokkos<DeviceType>::pre_exchange()
 }
 
 namespace LAMMPS_NS {
-template class FixNHKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class FixNHKokkos<LMPHostType>;
-#endif
+template class FixNHKokkos<Device>;
+template class FixNHKokkos<Host>;
 }
 

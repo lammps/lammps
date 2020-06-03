@@ -46,13 +46,13 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-PairLJCharmmCoulLongKokkos<DeviceType>::PairLJCharmmCoulLongKokkos(LAMMPS *lmp):PairLJCharmmCoulLong(lmp)
+template<ExecutionSpace Space>
+PairLJCharmmCoulLongKokkos<Space>::PairLJCharmmCoulLongKokkos(LAMMPS *lmp):PairLJCharmmCoulLong(lmp)
 {
   respa_enable = 0;
 
   atomKK = (AtomKokkos *) atom;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  execution_space = Space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
   cutsq = NULL;
@@ -63,15 +63,15 @@ PairLJCharmmCoulLongKokkos<DeviceType>::PairLJCharmmCoulLongKokkos(LAMMPS *lmp):
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-PairLJCharmmCoulLongKokkos<DeviceType>::~PairLJCharmmCoulLongKokkos()
+template<ExecutionSpace Space>
+PairLJCharmmCoulLongKokkos<Space>::~PairLJCharmmCoulLongKokkos()
 {
   if (!copymode) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    k_cutsq = DAT::tdual_ffloat_2d();
-    k_cut_ljsq = DAT::tdual_ffloat_2d();
-    k_cut_coulsq = DAT::tdual_ffloat_2d();
+    k_cutsq = DAT::tdual_float_2d();
+    k_cut_ljsq = DAT::tdual_float_2d();
+    k_cut_coulsq = DAT::tdual_float_2d();
     memory->sfree(cutsq);
     //memory->sfree(cut_ljsq);
     //memory->sfree(cut_coulsq);
@@ -85,8 +85,8 @@ PairLJCharmmCoulLongKokkos<DeviceType>::~PairLJCharmmCoulLongKokkos()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairLJCharmmCoulLongKokkos<DeviceType>::cleanup_copy() {
+template<ExecutionSpace Space>
+void PairLJCharmmCoulLongKokkos<Space>::cleanup_copy() {
   // WHY needed: this prevents parent copy from deallocating any arrays
   allocated = 0;
   cutsq = NULL;
@@ -98,8 +98,8 @@ void PairLJCharmmCoulLongKokkos<DeviceType>::cleanup_copy() {
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairLJCharmmCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
+template<ExecutionSpace Space>
+void PairLJCharmmCoulLongKokkos<Space>::compute(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
@@ -113,27 +113,27 @@ void PairLJCharmmCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag_atom) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
-    d_eatom = k_eatom.view<DeviceType>();
+    d_eatom = DualViewHelper<Space>::view(k_eatom);
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
-    d_vatom = k_vatom.view<DeviceType>();
+    d_vatom = DualViewHelper<Space>::view(k_vatom);
   }
 
   atomKK->sync(execution_space,datamask_read);
-  k_cutsq.template sync<DeviceType>();
-  k_cut_ljsq.template sync<DeviceType>();
-  k_cut_coulsq.template sync<DeviceType>();
-  k_params.template sync<DeviceType>();
+  DualViewHelper<Space>::sync(k_cutsq);
+  DualViewHelper<Space>::sync(k_cut_ljsq);
+  DualViewHelper<Space>::sync(k_cut_coulsq);
+  DualViewHelper<Space>::sync(k_params);
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
 
-  x = atomKK->k_x.view<DeviceType>();
-  c_x = atomKK->k_x.view<DeviceType>();
-  f = atomKK->k_f.view<DeviceType>();
-  q = atomKK->k_q.view<DeviceType>();
-  type = atomKK->k_type.view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  c_x = DualViewHelper<Space>::view(atomKK->k_x);
+  f = DualViewHelper<Space>::view(atomKK->k_f);
+  q = DualViewHelper<Space>::view(atomKK->k_q);
+  type = DualViewHelper<Space>::view(atomKK->k_type);
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   special_lj[0] = force->special_lj[0];
@@ -153,11 +153,11 @@ void PairLJCharmmCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   EV_FLOAT ev;
   if(ncoultablebits)
-    ev = pair_compute<PairLJCharmmCoulLongKokkos<DeviceType>,CoulLongTable<1> >
-      (this,(NeighListKokkos<DeviceType>*)list);
+    ev = pair_compute<Space,PairLJCharmmCoulLongKokkos<Space>,CoulLongTable<1> >
+      (this,(NeighListKokkos<Space>*)list);
   else
-    ev = pair_compute<PairLJCharmmCoulLongKokkos<DeviceType>,CoulLongTable<0> >
-      (this,(NeighListKokkos<DeviceType>*)list);
+    ev = pair_compute<Space,PairLJCharmmCoulLongKokkos<Space>,CoulLongTable<0> >
+      (this,(NeighListKokkos<Space>*)list);
 
 
   if (eflag) {
@@ -174,16 +174,16 @@ void PairLJCharmmCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   if (eflag_atom) {
-    k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_eatom);
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
-    k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_vatom);
+    k_vatom.sync_host();
   }
 
-  if (vflag_fdotr) pair_virial_fdotr_compute(this);
+  if (vflag_fdotr) pair_virial_fdotr_compute<Space>(this);
 
   copymode = 0;
 }
@@ -191,15 +191,15 @@ void PairLJCharmmCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 /* ----------------------------------------------------------------------
    compute LJ CHARMM pair force between atoms i and j
    ---------------------------------------------------------------------- */
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJCharmmCoulLongKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
+KK_FLOAT PairLJCharmmCoulLongKokkos<Space>::
+compute_fpair(const KK_FLOAT& rsq, const int& i, const int&j,
               const int& itype, const int& jtype) const {
-  const F_FLOAT r2inv = 1.0/rsq;
-  const F_FLOAT r6inv = r2inv*r2inv*r2inv;
-  F_FLOAT forcelj, switch1, switch2, englj;
+  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
+  KK_FLOAT forcelj, switch1, switch2, englj;
 
   forcelj = r6inv *
     ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
@@ -221,15 +221,15 @@ compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
 /* ----------------------------------------------------------------------
    compute LJ CHARMM pair potential energy between atoms i and j
    ---------------------------------------------------------------------- */
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJCharmmCoulLongKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
+KK_FLOAT PairLJCharmmCoulLongKokkos<Space>::
+compute_evdwl(const KK_FLOAT& rsq, const int& i, const int&j,
               const int& itype, const int& jtype) const {
-  const F_FLOAT r2inv = 1.0/rsq;
-  const F_FLOAT r6inv = r2inv*r2inv*r2inv;
-  F_FLOAT englj, switch1;
+  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
+  KK_FLOAT englj, switch1;
 
   englj = r6inv *
     ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
@@ -248,34 +248,34 @@ compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
 /* ----------------------------------------------------------------------
    compute coulomb pair force between atoms i and j
    ---------------------------------------------------------------------- */
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<bool STACKPARAMS,  class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJCharmmCoulLongKokkos<DeviceType>::
-compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j,
-              const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
+KK_FLOAT PairLJCharmmCoulLongKokkos<Space>::
+compute_fcoul(const KK_FLOAT& rsq, const int& i, const int&j,
+              const int& itype, const int& jtype, const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
   if(Specialisation::DoTable && rsq > tabinnersq) {
     union_int_float_t rsq_lookup;
     rsq_lookup.f = rsq;
     const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
-    const F_FLOAT fraction = (rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
-    const F_FLOAT table = d_ftable[itable] + fraction*d_dftable[itable];
-    F_FLOAT forcecoul = qtmp*q[j] * table;
+    const KK_FLOAT fraction = (rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
+    const KK_FLOAT table = d_ftable[itable] + fraction*d_dftable[itable];
+    KK_FLOAT forcecoul = qtmp*q[j] * table;
     if (factor_coul < 1.0) {
-      const F_FLOAT table = d_ctable[itable] + fraction*d_dctable[itable];
-      const F_FLOAT prefactor = qtmp*q[j] * table;
+      const KK_FLOAT table = d_ctable[itable] + fraction*d_dctable[itable];
+      const KK_FLOAT prefactor = qtmp*q[j] * table;
       forcecoul -= (1.0-factor_coul)*prefactor;
     }
     return forcecoul/rsq;
   } else {
-    const F_FLOAT r = sqrt(rsq);
-    const F_FLOAT grij = g_ewald * r;
-    const F_FLOAT expm2 = exp(-grij*grij);
-    const F_FLOAT t = 1.0 / (1.0 + EWALD_P*grij);
-    const F_FLOAT rinv = 1.0/r;
-    const F_FLOAT erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-    const F_FLOAT prefactor = qqrd2e * qtmp*q[j]*rinv;
-    F_FLOAT forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+    const KK_FLOAT r = sqrt(rsq);
+    const KK_FLOAT grij = g_ewald * r;
+    const KK_FLOAT expm2 = exp(-grij*grij);
+    const KK_FLOAT t = 1.0 / (1.0 + EWALD_P*grij);
+    const KK_FLOAT rinv = 1.0/r;
+    const KK_FLOAT erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+    const KK_FLOAT prefactor = qqrd2e * qtmp*q[j]*rinv;
+    KK_FLOAT forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
     if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
 
     return forcecoul*rinv*rinv;
@@ -285,33 +285,33 @@ compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j,
 /* ----------------------------------------------------------------------
    compute coulomb pair potential energy between atoms i and j
    ---------------------------------------------------------------------- */
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJCharmmCoulLongKokkos<DeviceType>::
-compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
-              const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
+KK_FLOAT PairLJCharmmCoulLongKokkos<Space>::
+compute_ecoul(const KK_FLOAT& rsq, const int& i, const int&j,
+              const int& itype, const int& jtype, const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
   if(Specialisation::DoTable && rsq > tabinnersq) {
     union_int_float_t rsq_lookup;
     rsq_lookup.f = rsq;
     const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
-    const F_FLOAT fraction = (rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
-    const F_FLOAT table = d_etable[itable] + fraction*d_detable[itable];
-    F_FLOAT ecoul = qtmp*q[j] * table;
+    const KK_FLOAT fraction = (rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
+    const KK_FLOAT table = d_etable[itable] + fraction*d_detable[itable];
+    KK_FLOAT ecoul = qtmp*q[j] * table;
     if (factor_coul < 1.0) {
-      const F_FLOAT table = d_ctable[itable] + fraction*d_dctable[itable];
-      const F_FLOAT prefactor = qtmp*q[j] * table;
+      const KK_FLOAT table = d_ctable[itable] + fraction*d_dctable[itable];
+      const KK_FLOAT prefactor = qtmp*q[j] * table;
       ecoul -= (1.0-factor_coul)*prefactor;
     }
     return ecoul;
   } else {
-    const F_FLOAT r = sqrt(rsq);
-    const F_FLOAT grij = g_ewald * r;
-    const F_FLOAT expm2 = exp(-grij*grij);
-    const F_FLOAT t = 1.0 / (1.0 + EWALD_P*grij);
-    const F_FLOAT erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-    const F_FLOAT prefactor = qqrd2e * qtmp*q[j]/r;
-    F_FLOAT ecoul = prefactor * erfc;
+    const KK_FLOAT r = sqrt(rsq);
+    const KK_FLOAT grij = g_ewald * r;
+    const KK_FLOAT expm2 = exp(-grij*grij);
+    const KK_FLOAT t = 1.0 / (1.0 + EWALD_P*grij);
+    const KK_FLOAT erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+    const KK_FLOAT prefactor = qqrd2e * qtmp*q[j]/r;
+    KK_FLOAT ecoul = prefactor * erfc;
     if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
     return ecoul;
   }
@@ -321,8 +321,8 @@ compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairLJCharmmCoulLongKokkos<DeviceType>::allocate()
+template<ExecutionSpace Space>
+void PairLJCharmmCoulLongKokkos<Space>::allocate()
 {
   PairLJCharmmCoulLong::allocate();
 
@@ -330,26 +330,26 @@ void PairLJCharmmCoulLongKokkos<DeviceType>::allocate()
 
   memory->destroy(cutsq);
   memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
-  d_cutsq = k_cutsq.template view<DeviceType>();
+  d_cutsq = DualViewHelper<Space>::view(k_cutsq);
 
   //memory->destroy(cut_ljsq);
   memoryKK->create_kokkos(k_cut_ljsq,n+1,n+1,"pair:cut_ljsq");
-  d_cut_ljsq = k_cut_ljsq.template view<DeviceType>();
+  d_cut_ljsq = DualViewHelper<Space>::view(k_cut_ljsq);
 
   memoryKK->create_kokkos(k_cut_coulsq,n+1,n+1,"pair:cut_coulsq");
-  d_cut_coulsq = k_cut_coulsq.template view<DeviceType>();
+  d_cut_coulsq = DualViewHelper<Space>::view(k_cut_coulsq);
 
   k_params = Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType>("PairLJCharmmCoulLong::params",n+1,n+1);
-  params = k_params.template view<DeviceType>();
+  params = DualViewHelper<Space>::view(k_params);
 }
 
-template<class DeviceType>
-void PairLJCharmmCoulLongKokkos<DeviceType>::init_tables(double cut_coul, double *cut_respa)
+template<ExecutionSpace Space>
+void PairLJCharmmCoulLongKokkos<Space>::init_tables(double cut_coul, double *cut_respa)
 {
   Pair::init_tables(cut_coul,cut_respa);
 
-  typedef typename ArrayTypes<DeviceType>::t_ffloat_1d table_type;
-  typedef typename ArrayTypes<LMPHostType>::t_ffloat_1d host_table_type;
+  typedef typename AT::t_float_1d table_type;
+  typedef HAT::t_float_1d host_table_type;
 
   int ntable = 1;
   for (int i = 0; i < ncoultablebits; i++) ntable *= 2;
@@ -450,8 +450,8 @@ void PairLJCharmmCoulLongKokkos<DeviceType>::init_tables(double cut_coul, double
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairLJCharmmCoulLongKokkos<DeviceType>::init_style()
+template<ExecutionSpace Space>
+void PairLJCharmmCoulLongKokkos<Space>::init_style()
 {
   PairLJCharmmCoulLong::init_style();
 
@@ -471,10 +471,10 @@ void PairLJCharmmCoulLongKokkos<DeviceType>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = (Space == Host) &&
+    !(Space == Device);
   neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = (Space == Device);
 
   if (neighflag == FULL) {
     neighbor->requests[irequest]->full = 1;
@@ -491,12 +491,12 @@ void PairLJCharmmCoulLongKokkos<DeviceType>::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-double PairLJCharmmCoulLongKokkos<DeviceType>::init_one(int i, int j)
+template<ExecutionSpace Space>
+double PairLJCharmmCoulLongKokkos<Space>::init_one(int i, int j)
 {
-  double cutone = PairLJCharmmCoulLong::init_one(i,j);
-  double cut_ljsqm = cut_ljsq;
-  double cut_coulsqm = cut_coulsq;
+  KK_FLOAT cutone = PairLJCharmmCoulLong::init_one(i,j);
+  KK_FLOAT cut_ljsqm = cut_ljsq;
+  KK_FLOAT cut_coulsqm = cut_coulsq;
 
   k_params.h_view(i,j).lj1 = lj1[i][j];
   k_params.h_view(i,j).lj2 = lj2[i][j];
@@ -515,12 +515,12 @@ double PairLJCharmmCoulLongKokkos<DeviceType>::init_one(int i, int j)
   }
 
   k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
-  k_cutsq.template modify<LMPHostType>();
+  k_cutsq.modify_host();
   k_cut_ljsq.h_view(i,j) = k_cut_ljsq.h_view(j,i) = cut_ljsqm;
-  k_cut_ljsq.template modify<LMPHostType>();
+  k_cut_ljsq.modify_host();
   k_cut_coulsq.h_view(i,j) = k_cut_coulsq.h_view(j,i) = cut_coulsqm;
-  k_cut_coulsq.template modify<LMPHostType>();
-  k_params.template modify<LMPHostType>();
+  k_cut_coulsq.modify_host();
+  k_params.modify_host();
 
   return cutone;
 }
@@ -528,9 +528,7 @@ double PairLJCharmmCoulLongKokkos<DeviceType>::init_one(int i, int j)
 
 
 namespace LAMMPS_NS {
-template class PairLJCharmmCoulLongKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class PairLJCharmmCoulLongKokkos<LMPHostType>;
-#endif
+template class PairLJCharmmCoulLongKokkos<Device>;
+template class PairLJCharmmCoulLongKokkos<Host>;
 }
 

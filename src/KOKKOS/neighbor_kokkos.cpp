@@ -82,7 +82,7 @@ void NeighborKokkos::init()
   // 1st time allocation of xhold
 
   if (dist_check)
-      xhold = DAT::tdual_x_array("neigh:xhold",maxhold);
+      xhold = DAT::tdual_float_1d_3("neigh:xhold",maxhold);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -90,7 +90,7 @@ void NeighborKokkos::init()
 void NeighborKokkos::init_cutneighsq_kokkos(int n)
 {
   memoryKK->create_kokkos(k_cutneighsq,cutneighsq,n+1,n+1,"neigh:cutneighsq");
-  k_cutneighsq.modify<LMPHostType>();
+  k_cutneighsq.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -101,10 +101,10 @@ void NeighborKokkos::create_kokkos_list(int i)
     error->all(FLERR,"KOKKOS package only supports 'bin' neighbor lists");
 
   if (requests[i]->kokkos_device) {
-    lists[i] = new NeighListKokkos<LMPDeviceType>(lmp);
+    lists[i] = new NeighListKokkos<Device>(lmp);
     device_flag = 1;
   } else if (requests[i]->kokkos_host)
-    lists[i] = new NeighListKokkos<LMPHostType>(lmp);
+    lists[i] = new NeighListKokkos<Host>(lmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -112,7 +112,7 @@ void NeighborKokkos::create_kokkos_list(int i)
 void NeighborKokkos::init_ex_type_kokkos(int n)
 {
   memoryKK->create_kokkos(k_ex_type,ex_type,n+1,n+1,"neigh:ex_type");
-  k_ex_type.modify<LMPHostType>();
+  k_ex_type.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -120,9 +120,9 @@ void NeighborKokkos::init_ex_type_kokkos(int n)
 void NeighborKokkos::init_ex_bit_kokkos()
 {
   memoryKK->create_kokkos(k_ex1_bit, ex1_bit, nex_group, "neigh:ex1_bit");
-  k_ex1_bit.modify<LMPHostType>();
+  k_ex1_bit.modify_host();
   memoryKK->create_kokkos(k_ex2_bit, ex2_bit, nex_group, "neigh:ex2_bit");
-  k_ex2_bit.modify<LMPHostType>();
+  k_ex2_bit.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -130,7 +130,7 @@ void NeighborKokkos::init_ex_bit_kokkos()
 void NeighborKokkos::init_ex_mol_bit_kokkos()
 {
   memoryKK->create_kokkos(k_ex_mol_bit, ex_mol_bit, nex_mol, "neigh:ex_mol_bit");
-  k_ex_mol_bit.modify<LMPHostType>();
+  k_ex_mol_bit.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -138,7 +138,7 @@ void NeighborKokkos::init_ex_mol_bit_kokkos()
 void NeighborKokkos::grow_ex_mol_intra_kokkos()
 {
   memoryKK->grow_kokkos(k_ex_mol_intra, ex_mol_intra, maxex_mol, "neigh:ex_mol_intra");
-  k_ex_mol_intra.modify<LMPHostType>();
+  k_ex_mol_intra.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -155,18 +155,19 @@ void NeighborKokkos::grow_ex_mol_intra_kokkos()
 int NeighborKokkos::check_distance()
 {
   if (device_flag)
-    return check_distance_kokkos<LMPDeviceType>();
+    return check_distance_kokkos<Device>();
   else
-    return check_distance_kokkos<LMPHostType>();
+    return check_distance_kokkos<Host>();
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 int NeighborKokkos::check_distance_kokkos()
 {
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
 
-  double delx,dely,delz;
-  double delta,delta1,delta2;
+  KK_FLOAT delx,dely,delz;
+  KK_FLOAT delta,delta1,delta2;
 
   if (boxcheck) {
     if (triclinic == 0) {
@@ -196,15 +197,15 @@ int NeighborKokkos::check_distance_kokkos()
     }
   } else deltasq = triggersq;
 
-  atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
+  atomKK->sync(Space,X_MASK);
   x = atomKK->k_x;
-  xhold.sync<DeviceType>();
+  DualViewHelper<Space>::sync(xhold);
   int nlocal = atom->nlocal;
   if (includegroup) nlocal = atom->nfirst;
 
   int flag = 0;
   copymode = 1;
-  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighborCheckDistance<DeviceType> >(0,nlocal),*this,flag);
+  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighborCheckDistance<Space> >(0,nlocal),*this,flag);
   copymode = 0;
 
   int flagall;
@@ -213,14 +214,15 @@ int NeighborKokkos::check_distance_kokkos()
   return flagall;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void NeighborKokkos::operator()(TagNeighborCheckDistance<DeviceType>, const int &i, int &flag) const {
+void NeighborKokkos::operator()(TagNeighborCheckDistance<Space>, const int &i, int &flag) const {
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  const X_FLOAT delx = x.view<DeviceType>()(i,0) - xhold.view<DeviceType>()(i,0);
-  const X_FLOAT dely = x.view<DeviceType>()(i,1) - xhold.view<DeviceType>()(i,1);
-  const X_FLOAT delz = x.view<DeviceType>()(i,2) - xhold.view<DeviceType>()(i,2);
-  const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+  const KK_FLOAT delx = DualViewHelper<Space>::view(x)(i,0) - DualViewHelper<Space>::view(xhold)(i,0);
+  const KK_FLOAT dely = DualViewHelper<Space>::view(x)(i,1) - DualViewHelper<Space>::view(xhold)(i,1);
+  const KK_FLOAT delz = DualViewHelper<Space>::view(x)(i,2) - DualViewHelper<Space>::view(xhold)(i,2);
+  const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
   if (rsq > deltasq) flag = 1;
 }
 
@@ -234,14 +236,15 @@ void NeighborKokkos::operator()(TagNeighborCheckDistance<DeviceType>, const int 
 void NeighborKokkos::build(int topoflag)
 {
   if (device_flag)
-    build_kokkos<LMPDeviceType>(topoflag);
+    build_kokkos<Device>(topoflag);
   else
-    build_kokkos<LMPHostType>(topoflag);
+    build_kokkos<Host>(topoflag);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 void NeighborKokkos::build_kokkos(int topoflag)
 {
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
 
   int i,m;
@@ -261,18 +264,18 @@ void NeighborKokkos::build_kokkos(int topoflag)
   // store current atom positions and box size if needed
 
   if (dist_check) {
-    atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
+    atomKK->sync(Space,X_MASK);
     x = atomKK->k_x;
     if (includegroup) nlocal = atom->nfirst;
-    int maxhold_kokkos = xhold.view<DeviceType>().extent(0);
+    int maxhold_kokkos = DualViewHelper<Space>::view(xhold).extent(0);
     if (atom->nmax > maxhold || maxhold_kokkos < maxhold) {
       maxhold = atom->nmax;
-      xhold = DAT::tdual_x_array("neigh:xhold",maxhold);
+      xhold = DAT::tdual_float_1d_3("neigh:xhold",maxhold);
     }
     copymode = 1;
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagNeighborXhold<DeviceType> >(0,nlocal),*this);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagNeighborXhold<Space> >(0,nlocal),*this);
     copymode = 0;
-    xhold.modify<DeviceType>();
+    DualViewHelper<Space>::modify(xhold);
     if (boxcheck) {
       if (triclinic == 0) {
         boxlo_hold[0] = bboxlo[0];
@@ -323,42 +326,43 @@ void NeighborKokkos::build_kokkos(int topoflag)
   if (atom->molecular && topoflag) build_topology();
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void NeighborKokkos::operator()(TagNeighborXhold<DeviceType>, const int &i) const {
+void NeighborKokkos::operator()(TagNeighborXhold<Space>, const int &i) const {
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  xhold.view<DeviceType>()(i,0) = x.view<DeviceType>()(i,0);
-  xhold.view<DeviceType>()(i,1) = x.view<DeviceType>()(i,1);
-  xhold.view<DeviceType>()(i,2) = x.view<DeviceType>()(i,2);
+  DualViewHelper<Space>::view(xhold)(i,0) = DualViewHelper<Space>::view(x)(i,0);
+  DualViewHelper<Space>::view(xhold)(i,1) = DualViewHelper<Space>::view(x)(i,1);
+  DualViewHelper<Space>::view(xhold)(i,2) = DualViewHelper<Space>::view(x)(i,2);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void NeighborKokkos::modify_ex_type_grow_kokkos(){
   memoryKK->grow_kokkos(k_ex1_type,ex1_type,maxex_type,"neigh:ex1_type");
-  k_ex1_type.modify<LMPHostType>();
+  k_ex1_type.modify_host();
   memoryKK->grow_kokkos(k_ex2_type,ex2_type,maxex_type,"neigh:ex2_type");
-  k_ex2_type.modify<LMPHostType>();
+  k_ex2_type.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */
 void NeighborKokkos::modify_ex_group_grow_kokkos(){
   memoryKK->grow_kokkos(k_ex1_group,ex1_group,maxex_group,"neigh:ex1_group");
-  k_ex1_group.modify<LMPHostType>();
+  k_ex1_group.modify_host();
   memoryKK->grow_kokkos(k_ex2_group,ex2_group,maxex_group,"neigh:ex2_group");
-  k_ex2_group.modify<LMPHostType>();
+  k_ex2_group.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */
 void NeighborKokkos::modify_mol_group_grow_kokkos(){
   memoryKK->grow_kokkos(k_ex_mol_group,ex_mol_group,maxex_mol,"neigh:ex_mol_group");
-  k_ex_mol_group.modify<LMPHostType>();
+  k_ex_mol_group.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */
 void NeighborKokkos::modify_mol_intra_grow_kokkos(){
   memoryKK->grow_kokkos(k_ex_mol_intra,ex_mol_intra,maxex_mol,"neigh:ex_mol_intra");
-  k_ex_mol_intra.modify<LMPHostType>();
+  k_ex_mol_intra.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -396,13 +400,13 @@ void NeighborKokkos::build_topology() {
     // Transfer topology neighbor lists to Host for non-Kokkos styles
 
     if (force->bond && force->bond->execution_space == Host)
-      k_bondlist.sync<LMPHostType>();
+      k_bondlist.sync_host();
     if (force->angle && force->angle->execution_space == Host)
-      k_anglelist.sync<LMPHostType>();
+      k_anglelist.sync_host();
     if (force->dihedral && force->dihedral->execution_space == Host)
-      k_dihedrallist.sync<LMPHostType>();
+      k_dihedrallist.sync_host();
     if (force->improper && force->improper->execution_space == Host)
-      k_improperlist.sync<LMPHostType>();
+      k_improperlist.sync_host();
 
    } else {
     neighbond_host.build_topology_kk();

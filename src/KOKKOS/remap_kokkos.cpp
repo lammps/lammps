@@ -25,14 +25,14 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-RemapKokkos<DeviceType>::RemapKokkos(LAMMPS *lmp) : Pointers(lmp)
+template<ExecutionSpace Space>
+RemapKokkos<Space>::RemapKokkos(LAMMPS *lmp) : Pointers(lmp)
 {
   plan = NULL;
 }
 
-template<class DeviceType>
-RemapKokkos<DeviceType>::RemapKokkos(LAMMPS *lmp, MPI_Comm comm,
+template<ExecutionSpace Space>
+RemapKokkos<Space>::RemapKokkos(LAMMPS *lmp, MPI_Comm comm,
              int in_ilo, int in_ihi, int in_jlo, int in_jhi,
              int in_klo, int in_khi,
              int out_ilo, int out_ihi, int out_jlo, int out_jhi,
@@ -51,16 +51,16 @@ RemapKokkos<DeviceType>::RemapKokkos(LAMMPS *lmp, MPI_Comm comm,
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-RemapKokkos<DeviceType>::~RemapKokkos()
+template<ExecutionSpace Space>
+RemapKokkos<Space>::~RemapKokkos()
 {
   remap_3d_destroy_plan_kokkos(plan);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void RemapKokkos<DeviceType>::perform(typename FFT_AT::t_FFT_SCALAR_1d d_in, typename FFT_AT::t_FFT_SCALAR_1d d_out, typename FFT_AT::t_FFT_SCALAR_1d d_buf)
+template<ExecutionSpace Space>
+void RemapKokkos<Space>::perform(typename FFT_AT::t_FFT_SCALAR_1d d_in, typename FFT_AT::t_FFT_SCALAR_1d d_out, typename FFT_AT::t_FFT_SCALAR_1d d_buf)
 {
   remap_3d_kokkos(d_in,d_out,d_buf,plan);
 }
@@ -103,9 +103,9 @@ void RemapKokkos<DeviceType>::perform(typename FFT_AT::t_FFT_SCALAR_1d d_in, typ
    plan         plan returned by previous call to remap_3d_create_plan
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d_in, typename FFT_AT::t_FFT_SCALAR_1d d_out, typename FFT_AT::t_FFT_SCALAR_1d d_buf,
-              struct remap_plan_3d_kokkos<DeviceType> *plan)
+template<ExecutionSpace Space>
+void RemapKokkos<Space>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d_in, typename FFT_AT::t_FFT_SCALAR_1d d_out, typename FFT_AT::t_FFT_SCALAR_1d d_buf,
+              struct remap_plan_3d_kokkos<Space> *plan)
 {
   // collective flag not yet supported
 
@@ -208,13 +208,13 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
                           1 = system provides memory
    precision            precision of data
                           1 = single precision (4 bytes per datum)
-                          2 = double precision (8 bytes per datum)
+                          2 = KK_FLOAT precision (8 bytes per datum)
    usecollective        whether to use collective MPI or point-to-point
    usecuda_aware        whether to use CUDA-Aware MPI or not
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_create_plan_kokkos(
+template<ExecutionSpace Space>
+struct remap_plan_3d_kokkos<Space>* RemapKokkos<Space>::remap_3d_create_plan_kokkos(
   MPI_Comm comm,
   int in_ilo, int in_ihi, int in_jlo, int in_jhi,
   int in_klo, int in_khi,
@@ -224,7 +224,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
   int usecollective, int usecuda_aware)
 {
 
-  struct remap_plan_3d_kokkos<DeviceType> *plan;
+  struct remap_plan_3d_kokkos<Space> *plan;
   struct extent_3d *inarray, *outarray;
   struct extent_3d in,out,overlap;
   int i,iproc,nsend,nrecv,ibuf,size,me,nprocs;
@@ -236,7 +236,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
 
   // allocate memory for plan data struct
 
-  plan = new struct remap_plan_3d_kokkos<DeviceType>;
+  plan = new struct remap_plan_3d_kokkos<Space>;
   if (plan == NULL) return NULL;
   plan->usecollective = usecollective;
   plan->usecuda_aware = usecuda_aware;
@@ -291,7 +291,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
   // malloc space for send info
 
   if (nsend) {
-    plan->pack = PackKokkos<DeviceType>::pack_3d;
+    plan->pack = PackKokkos<Space>::pack_3d;
 
     plan->send_offset = (int *) malloc(nsend*sizeof(int));
     plan->send_size = (int *) malloc(nsend*sizeof(int));
@@ -355,22 +355,22 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
 
   if (nrecv) {
     if (permute == 0)
-      plan->unpack = PackKokkos<DeviceType>::unpack_3d;
+      plan->unpack = PackKokkos<Space>::unpack_3d;
     else if (permute == 1) {
       if (nqty == 1)
-        plan->unpack = PackKokkos<DeviceType>::unpack_3d_permute1_1;
+        plan->unpack = PackKokkos<Space>::unpack_3d_permute1_1;
       else if (nqty == 2)
-        plan->unpack = PackKokkos<DeviceType>::unpack_3d_permute1_2;
+        plan->unpack = PackKokkos<Space>::unpack_3d_permute1_2;
       else
-        plan->unpack = PackKokkos<DeviceType>::unpack_3d_permute1_n;
+        plan->unpack = PackKokkos<Space>::unpack_3d_permute1_n;
     }
     else if (permute == 2) {
       if (nqty == 1)
-        plan->unpack = PackKokkos<DeviceType>::unpack_3d_permute2_1;
+        plan->unpack = PackKokkos<Space>::unpack_3d_permute2_1;
       else if (nqty == 2)
-        plan->unpack = PackKokkos<DeviceType>::unpack_3d_permute2_2;
+        plan->unpack = PackKokkos<Space>::unpack_3d_permute2_2;
       else
-        plan->unpack = PackKokkos<DeviceType>::unpack_3d_permute2_n;
+        plan->unpack = PackKokkos<Space>::unpack_3d_permute2_n;
     }
 
     plan->recv_offset = (int *) malloc(nrecv*sizeof(int));
@@ -494,8 +494,8 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
    Destroy a 3d remap plan
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void RemapKokkos<DeviceType>::remap_3d_destroy_plan_kokkos(struct remap_plan_3d_kokkos<DeviceType> *plan)
+template<ExecutionSpace Space>
+void RemapKokkos<Space>::remap_3d_destroy_plan_kokkos(struct remap_plan_3d_kokkos<Space> *plan)
 {
   if (plan == NULL) return;
 
@@ -528,8 +528,6 @@ void RemapKokkos<DeviceType>::remap_3d_destroy_plan_kokkos(struct remap_plan_3d_
 }
 
 namespace LAMMPS_NS {
-template class RemapKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class RemapKokkos<LMPHostType>;
-#endif
+template class RemapKokkos<Device>;
+template class RemapKokkos<Host>;
 }

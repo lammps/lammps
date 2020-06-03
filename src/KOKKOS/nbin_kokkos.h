@@ -14,11 +14,11 @@
 #ifdef NBIN_CLASS
 
 NBinStyle(kk/host,
-          NBinKokkos<LMPHostType>,
+          NBinKokkos<Host>,
           NB_KOKKOS_HOST)
 
 NBinStyle(kk/device,
-          NBinKokkos<LMPDeviceType>,
+          NBinKokkos<Device>,
           NB_KOKKOS_DEVICE)
 
 #else
@@ -31,10 +31,11 @@ NBinStyle(kk/device,
 
 namespace LAMMPS_NS {
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class NBinKokkos : public NBinStandard {
  public:
-  typedef ArrayTypes<DeviceType> AT;
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef ArrayTypes<Space> AT;
 
   NBinKokkos(class LAMMPS *);
   ~NBinKokkos() {}
@@ -52,14 +53,14 @@ class NBinKokkos : public NBinStandard {
   typename AT::t_int_2d_const c_bins;
   typename AT::t_int_1d atom2bin;
   typename AT::t_int_scalar d_resize;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_resize;
-  typename AT::t_x_array_randomread x;
+  HAT::t_int_scalar h_resize;
+  typename AT::t_float_1d_3_randomread x;
 
   KOKKOS_INLINE_FUNCTION
   void binatomsItem(const int &i) const;
 
   KOKKOS_INLINE_FUNCTION
-  int coord2bin(const X_FLOAT & x,const X_FLOAT & y,const X_FLOAT & z) const
+  int coord2bin(const KK_FLOAT & x,const KK_FLOAT & y,const KK_FLOAT & z) const
   {
     int ix,iy,iz;
 
@@ -91,7 +92,7 @@ class NBinKokkos : public NBinStandard {
   }
 
   KOKKOS_INLINE_FUNCTION
-  int coord2bin(const X_FLOAT & x,const X_FLOAT & y,const X_FLOAT & z, int* i) const
+  int coord2bin(const KK_FLOAT & x,const KK_FLOAT & y,const KK_FLOAT & z, int* i) const
   {
     int ix,iy,iz;
 
@@ -127,16 +128,17 @@ class NBinKokkos : public NBinStandard {
   }
 
  private:
-  double bboxlo_[3],bboxhi_[3];
+  KK_FLOAT bboxlo_[3],bboxhi_[3];
 };
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 struct NPairKokkosBinAtomsFunctor {
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
 
-  const NBinKokkos<DeviceType> c;
+  const NBinKokkos<Space> c;
 
-  NPairKokkosBinAtomsFunctor(const NBinKokkos<DeviceType> &_c):
+  NPairKokkosBinAtomsFunctor(const NBinKokkos<Space> &_c):
     c(_c) {};
   ~NPairKokkosBinAtomsFunctor() {}
   KOKKOS_INLINE_FUNCTION

@@ -39,22 +39,21 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-NeighBondKokkos<DeviceType>::NeighBondKokkos(LAMMPS *lmp) : Pointers(lmp)
+template<ExecutionSpace Space>
+NeighBondKokkos<Space>::NeighBondKokkos(LAMMPS *lmp) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 
   k_nlist = DAT::tdual_int_scalar("NeighBond:nlist");
-  d_nlist = k_nlist.view<DeviceType>();
+  d_nlist = DualViewHelper<Space>::view(k_nlist);
   h_nlist = k_nlist.h_view;
 
   k_fail_flag = DAT::tdual_int_scalar("NeighBond:fail_flag");
-  d_fail_flag = k_fail_flag.view<DeviceType>();
+  d_fail_flag = DualViewHelper<Space>::view(k_fail_flag);
   h_fail_flag = k_fail_flag.h_view;
 
   maxbond = 0;
@@ -65,10 +64,11 @@ NeighBondKokkos<DeviceType>::NeighBondKokkos(LAMMPS *lmp) : Pointers(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NeighBondKokkos<DeviceType>::init_topology_kk() {
+template<ExecutionSpace Space>
+void NeighBondKokkos<Space>::init_topology_kk() {
 
   atomKK = (AtomKokkos *) atom;
+  execution_space = Space;
   atomKK->sync(Host,BOND_MASK | ANGLE_MASK | DIHEDRAL_MASK | IMPROPER_MASK);
 
   // topology lists
@@ -168,21 +168,21 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
 
   // set ptrs to topology build functions
 
-  if (atom->molecular == 2) bond_build_kk = &NeighBondKokkos<DeviceType>::bond_template;
-  else if (bond_off) bond_build_kk = &NeighBondKokkos<DeviceType>::bond_partial;
-  else bond_build_kk = &NeighBondKokkos<DeviceType>::bond_all;
+  if (atom->molecular == 2) bond_build_kk = &NeighBondKokkos<Space>::bond_template;
+  else if (bond_off) bond_build_kk = &NeighBondKokkos<Space>::bond_partial;
+  else bond_build_kk = &NeighBondKokkos<Space>::bond_all;
 
-  if (atom->molecular == 2) angle_build_kk = &NeighBondKokkos<DeviceType>::angle_template;
-  else if (angle_off) angle_build_kk = &NeighBondKokkos<DeviceType>::angle_partial;
-  else angle_build_kk = &NeighBondKokkos<DeviceType>::angle_all;
+  if (atom->molecular == 2) angle_build_kk = &NeighBondKokkos<Space>::angle_template;
+  else if (angle_off) angle_build_kk = &NeighBondKokkos<Space>::angle_partial;
+  else angle_build_kk = &NeighBondKokkos<Space>::angle_all;
 
-  if (atom->molecular == 2) dihedral_build_kk = &NeighBondKokkos<DeviceType>::dihedral_template;
-  else if (dihedral_off) dihedral_build_kk = &NeighBondKokkos<DeviceType>::dihedral_partial;
-  else dihedral_build_kk = &NeighBondKokkos<DeviceType>::dihedral_all;
+  if (atom->molecular == 2) dihedral_build_kk = &NeighBondKokkos<Space>::dihedral_template;
+  else if (dihedral_off) dihedral_build_kk = &NeighBondKokkos<Space>::dihedral_partial;
+  else dihedral_build_kk = &NeighBondKokkos<Space>::dihedral_all;
 
-  if (atom->molecular == 2) improper_build_kk = &NeighBondKokkos<DeviceType>::improper_template;
-  else if (improper_off) improper_build_kk = &NeighBondKokkos<DeviceType>::improper_partial;
-  else improper_build_kk = &NeighBondKokkos<DeviceType>::improper_all;
+  if (atom->molecular == 2) improper_build_kk = &NeighBondKokkos<Space>::improper_template;
+  else if (improper_off) improper_build_kk = &NeighBondKokkos<Space>::improper_partial;
+  else improper_build_kk = &NeighBondKokkos<Space>::improper_all;
 
   // set topology neighbor list counts to 0
   // in case all are turned off but potential is still defined
@@ -195,16 +195,16 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
    normally built with pair lists, but USER-CUDA separates them
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NeighBondKokkos<DeviceType>::build_topology_kk()
+template<ExecutionSpace Space>
+void NeighBondKokkos<Space>::build_topology_kk()
 {
   atomKK->sync(execution_space, X_MASK | TAG_MASK);
   int nall = atom->nlocal + atom->nghost;
   int nmax = atom->nmax;
 
   nlocal = atom->nlocal;
-  x = atomKK->k_x.view<DeviceType>();
-  tag = atomKK->k_tag.view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  tag = DualViewHelper<Space>::view(atomKK->k_tag);
   newton_bond = force->newton_bond;
 
   lostbond = output->thermo->lostbond;
@@ -221,18 +221,18 @@ void NeighBondKokkos<DeviceType>::build_topology_kk()
     k_map_array = DAT::tdual_int_1d("NeighBond:map_array",map_maxarray);
   for (int i=0; i<map_size; i++)
     k_map_array.h_view[i] = map_array_host[i];
-  k_map_array.template modify<LMPHostType>();
-  k_map_array.template sync<DeviceType>();
-  map_array = k_map_array.view<DeviceType>();
+  k_map_array.modify_host();
+  DualViewHelper<Space>::sync(k_map_array);
+  map_array = DualViewHelper<Space>::view(k_map_array);
 
   int* sametag_host = atomKK->sametag;
   if (nmax > k_sametag.extent(0))
     k_sametag = DAT::tdual_int_1d("NeighBond:sametag",nmax);
   for (int i=0; i<nall; i++)
     k_sametag.h_view[i] = sametag_host[i];
-  k_sametag.template modify<LMPHostType>();
-  k_sametag.template sync<DeviceType>();
-  sametag = k_sametag.view<DeviceType>();
+  k_sametag.modify_host();
+  DualViewHelper<Space>::sync(k_sametag);
+  sametag = DualViewHelper<Space>::view(k_sametag);
 
   if (force->bond) (this->*bond_build_kk)();
   if (force->angle) (this->*angle_build_kk)();
@@ -250,14 +250,14 @@ void NeighBondKokkos<DeviceType>::build_topology_kk()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NeighBondKokkos<DeviceType>::bond_all()
+template<ExecutionSpace Space>
+void NeighBondKokkos<Space>::bond_all()
 {
   atomKK->sync(execution_space, BOND_MASK);
-  v_bondlist = k_bondlist.view<DeviceType>();
-  num_bond = atomKK->k_num_bond.view<DeviceType>();
-  bond_atom = atomKK->k_bond_atom.view<DeviceType>();
-  bond_type = atomKK->k_bond_type.view<DeviceType>();
+  v_bondlist = DualViewHelper<Space>::view(k_bondlist);
+  num_bond = DualViewHelper<Space>::view(atomKK->k_num_bond);
+  bond_atom = DualViewHelper<Space>::view(atomKK->k_bond_atom);
+  bond_type = DualViewHelper<Space>::view(atomKK->k_bond_type);
 
   // Cannot grow a Kokkos view in a parallel loop, so
   //  if the capacity of the list is exceeded, count the size
@@ -268,25 +268,25 @@ void NeighBondKokkos<DeviceType>::bond_all()
     nmissing = 0;
 
     h_nlist() = 0;
-    k_nlist.template modify<LMPHostType>();
-    k_nlist.template sync<DeviceType>();
+    k_nlist.modify_host();
+    DualViewHelper<Space>::sync(k_nlist);
 
     h_fail_flag() = 0;
-    k_fail_flag.template modify<LMPHostType>();
-    k_fail_flag.template sync<DeviceType>();
+    k_fail_flag.modify_host();
+    DualViewHelper<Space>::sync(k_fail_flag);
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondBondAll>(0,nlocal),*this,nmissing);
 
-    k_nlist.template modify<DeviceType>();
-    k_nlist.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_nlist);
+    k_nlist.sync_host();
     neighbor->nbondlist = h_nlist();
 
-    k_fail_flag.template modify<DeviceType>();
-    k_fail_flag.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_fail_flag);
+    k_fail_flag.sync_host();
     if (h_fail_flag()) {
       maxbond = neighbor->nbondlist + BONDDELTA;
       memoryKK->grow_kokkos(k_bondlist,neighbor->bondlist,maxbond,3,"neighbor:neighbor->bondlist");
-      v_bondlist = k_bondlist.view<DeviceType>();
+      v_bondlist = DualViewHelper<Space>::view(k_bondlist);
     }
   } while (h_fail_flag());
 
@@ -309,12 +309,12 @@ void NeighBondKokkos<DeviceType>::bond_all()
     if (me == 0) error->warning(FLERR,str);
   }
 
-  k_bondlist.modify<DeviceType>();
+  DualViewHelper<Space>::modify(k_bondlist);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void NeighBondKokkos<DeviceType>::operator()(TagNeighBondBondAll, const int &i, int &nmissing) const {
+void NeighBondKokkos<Space>::operator()(TagNeighBondBondAll, const int &i, int &nmissing) const {
   for (int m = 0; m < num_bond[i]; m++) {
     int atom1 = map_array(bond_atom(i,m));
     if (atom1 == -1) {
@@ -337,22 +337,22 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondBondAll, const int &i, 
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NeighBondKokkos<DeviceType>::bond_template()
+template<ExecutionSpace Space>
+void NeighBondKokkos<Space>::bond_template()
 {
   error->all(FLERR,"Cannot (yet) use molecular templates with Kokkos");
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NeighBondKokkos<DeviceType>::bond_partial()
+template<ExecutionSpace Space>
+void NeighBondKokkos<Space>::bond_partial()
 {
   atomKK->sync(execution_space, BOND_MASK);
-  v_bondlist = k_bondlist.view<DeviceType>();
-  num_bond = atomKK->k_num_bond.view<DeviceType>();
-  bond_atom = atomKK->k_bond_atom.view<DeviceType>();
-  bond_type = atomKK->k_bond_type.view<DeviceType>();
+  v_bondlist = DualViewHelper<Space>::view(k_bondlist);
+  num_bond = DualViewHelper<Space>::view(atomKK->k_num_bond);
+  bond_atom = DualViewHelper<Space>::view(atomKK->k_bond_atom);
+  bond_type = DualViewHelper<Space>::view(atomKK->k_bond_type);
 
   // Cannot grow a Kokkos view in a parallel loop, so
   //  if the capacity of the list is exceeded, count the size
@@ -363,25 +363,25 @@ void NeighBondKokkos<DeviceType>::bond_partial()
     nmissing = 0;
 
     h_nlist() = 0;
-    k_nlist.template modify<LMPHostType>();
-    k_nlist.template sync<DeviceType>();
+    k_nlist.modify_host();
+    DualViewHelper<Space>::sync(k_nlist);
 
     h_fail_flag() = 0;
-    k_fail_flag.template modify<LMPHostType>();
-    k_fail_flag.template sync<DeviceType>();
+    k_fail_flag.modify_host();
+    DualViewHelper<Space>::sync(k_fail_flag);
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondBondPartial>(0,nlocal),*this,nmissing);
 
-    k_nlist.template modify<DeviceType>();
-    k_nlist.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_nlist);
+    k_nlist.sync_host();
     neighbor->nbondlist = h_nlist();
 
-    k_fail_flag.template modify<DeviceType>();
-    k_fail_flag.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_fail_flag);
+    k_fail_flag.sync_host();
     if (h_fail_flag()) {
       maxbond = neighbor->nbondlist + BONDDELTA;
       memoryKK->grow_kokkos(k_bondlist,neighbor->bondlist,maxbond,3,"neighbor:neighbor->bondlist");
-      v_bondlist = k_bondlist.view<DeviceType>();
+      v_bondlist = DualViewHelper<Space>::view(k_bondlist);
     }
   } while (h_fail_flag());
 
@@ -404,12 +404,12 @@ void NeighBondKokkos<DeviceType>::bond_partial()
     if (me == 0) error->warning(FLERR,str);
   }
 
-  k_bondlist.modify<DeviceType>();
+  DualViewHelper<Space>::modify(k_bondlist);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void NeighBondKokkos<DeviceType>::operator()(TagNeighBondBondPartial, const int &i, int &nmissing) const {
+void NeighBondKokkos<Space>::operator()(TagNeighBondBondPartial, const int &i, int &nmissing) const {
   for (int m = 0; m < num_bond[i]; m++) {
     if (bond_type(i,m) <= 0) continue;
     int atom1 = map_array(bond_atom(i,m));
@@ -433,14 +433,14 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondBondPartial, const int 
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NeighBondKokkos<DeviceType>::bond_check()
+template<ExecutionSpace Space>
+void NeighBondKokkos<Space>::bond_check()
 {
   int flag = 0;
 
   update_domain_variables();
   atomKK->sync(execution_space, X_MASK);
-  k_bondlist.sync<DeviceType>();
+  DualViewHelper<Space>::sync(k_bondlist);
 
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondBondCheck>(0,neighbor->nbondlist),*this,flag);
 
@@ -449,13 +449,13 @@ void NeighBondKokkos<DeviceType>::bond_check()
   if (flag_all) error->all(FLERR,"Bond extent > half of periodic box length");
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void NeighBondKokkos<DeviceType>::operator()(TagNeighBondBondCheck, const int &m, int &flag) const {
+void NeighBondKokkos<Space>::operator()(TagNeighBondBondCheck, const int &m, int &flag) const {
   const int i = v_bondlist(m,0);
   const int j = v_bondlist(m,1);
-  X_FLOAT dxstart,dystart,dzstart;
-  X_FLOAT dx,dy,dz;
+  KK_FLOAT dxstart,dystart,dzstart;
+  KK_FLOAT dx,dy,dz;
   dxstart = dx = x(i,0) - x(j,0);
   dystart = dy = x(i,1) - x(j,1);
   dzstart = dz = x(i,2) - x(j,2);
@@ -465,16 +465,16 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondBondCheck, const int &m
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NeighBondKokkos<DeviceType>::angle_all()
+template<ExecutionSpace Space>
+void NeighBondKokkos<Space>::angle_all()
 {
   atomKK->sync(execution_space, ANGLE_MASK);
-  v_anglelist = k_anglelist.view<DeviceType>();
-  num_angle = atomKK->k_num_angle.view<DeviceType>();
-  angle_atom1 = atomKK->k_angle_atom1.view<DeviceType>();
-  angle_atom2 = atomKK->k_angle_atom2.view<DeviceType>();
-  angle_atom3 = atomKK->k_angle_atom3.view<DeviceType>();
-  angle_type = atomKK->k_angle_type.view<DeviceType>();
+  v_anglelist = DualViewHelper<Space>::view(k_anglelist);
+  num_angle = DualViewHelper<Space>::view(atomKK->k_num_angle);
+  angle_atom1 = DualViewHelper<Space>::view(atomKK->k_angle_atom1);
+  angle_atom2 = DualViewHelper<Space>::view(atomKK->k_angle_atom2);
+  angle_atom3 = DualViewHelper<Space>::view(atomKK->k_angle_atom3);
+  angle_type = DualViewHelper<Space>::view(atomKK->k_angle_type);
 
   // Cannot grow a Kokkos view in a parallel loop, so
   //  if the capacity of the list is exceeded, count the size
@@ -485,25 +485,25 @@ void NeighBondKokkos<DeviceType>::angle_all()
     nmissing = 0;
 
     h_nlist() = 0;
-    k_nlist.template modify<LMPHostType>();
-    k_nlist.template sync<DeviceType>();
+    k_nlist.modify_host();
+    DualViewHelper<Space>::sync(k_nlist);
 
     h_fail_flag() = 0;
-    k_fail_flag.template modify<LMPHostType>();
-    k_fail_flag.template sync<DeviceType>();
+    k_fail_flag.modify_host();
+    DualViewHelper<Space>::sync(k_fail_flag);
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondAngleAll>(0,nlocal),*this,nmissing);
 
-    k_nlist.template modify<DeviceType>();
-    k_nlist.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_nlist);
+    k_nlist.sync_host();
     neighbor->nanglelist = h_nlist();
 
-    k_fail_flag.template modify<DeviceType>();
-    k_fail_flag.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_fail_flag);
+    k_fail_flag.sync_host();
     if (h_fail_flag()) {
       maxangle = neighbor->nanglelist + BONDDELTA;
       memoryKK->grow_kokkos(k_anglelist,neighbor->anglelist,maxangle,4,"neighbor:neighbor->anglelist");
-      v_anglelist = k_anglelist.view<DeviceType>();
+      v_anglelist = DualViewHelper<Space>::view(k_anglelist);
     }
   } while (h_fail_flag());
 
@@ -526,12 +526,12 @@ void NeighBondKokkos<DeviceType>::angle_all()
     if (me == 0) error->warning(FLERR,str);
   }
 
-  k_anglelist.modify<DeviceType>();
+  DualViewHelper<Space>::modify(k_anglelist);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void NeighBondKokkos<DeviceType>::operator()(TagNeighBondAngleAll, const int &i, int &nmissing) const {
+void NeighBondKokkos<Space>::operator()(TagNeighBondAngleAll, const int &i, int &nmissing) const {
   for (int m = 0; m < num_angle[i]; m++) {
     int atom1 = map_array(angle_atom1(i,m));
     int atom2 = map_array(angle_atom2(i,m));
@@ -559,24 +559,24 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondAngleAll, const int &i,
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NeighBondKokkos<DeviceType>::angle_template()
+template<ExecutionSpace Space>
+void NeighBondKokkos<Space>::angle_template()
 {
   error->all(FLERR,"Cannot (yet) use molecular templates with Kokkos");
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NeighBondKokkos<DeviceType>::angle_partial()
+template<ExecutionSpace Space>
+void NeighBondKokkos<Space>::angle_partial()
 {
   atomKK->sync(execution_space, ANGLE_MASK);
-  v_anglelist = k_anglelist.view<DeviceType>();
-  num_angle = atomKK->k_num_angle.view<DeviceType>();
-  angle_atom1 = atomKK->k_angle_atom1.view<DeviceType>();
-  angle_atom2 = atomKK->k_angle_atom2.view<DeviceType>();
-  angle_atom3 = atomKK->k_angle_atom3.view<DeviceType>();
-  angle_type = atomKK->k_angle_type.view<DeviceType>();
+  v_anglelist = DualViewHelper<Space>::view(k_anglelist);
+  num_angle = DualViewHelper<Space>::view(atomKK->k_num_angle);
+  angle_atom1 = DualViewHelper<Space>::view(atomKK->k_angle_atom1);
+  angle_atom2 = DualViewHelper<Space>::view(atomKK->k_angle_atom2);
+  angle_atom3 = DualViewHelper<Space>::view(atomKK->k_angle_atom3);
+  angle_type = DualViewHelper<Space>::view(atomKK->k_angle_type);
 
   // Cannot grow a Kokkos view in a parallel loop, so
   //  if the capacity of the list is exceeded, count the size
@@ -587,25 +587,25 @@ void NeighBondKokkos<DeviceType>::angle_partial()
     nmissing = 0;
 
     h_nlist() = 0;
-    k_nlist.template modify<LMPHostType>();
-    k_nlist.template sync<DeviceType>();
+    k_nlist.modify_host();
+    DualViewHelper<Space>::sync(k_nlist);
 
     h_fail_flag() = 0;
-    k_fail_flag.template modify<LMPHostType>();
-    k_fail_flag.template sync<DeviceType>();
+    k_fail_flag.modify_host();
+    DualViewHelper<Space>::sync(k_fail_flag);
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondAnglePartial>(0,nlocal),*this,nmissing);
 
-    k_nlist.template modify<DeviceType>();
-    k_nlist.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_nlist);
+    k_nlist.sync_host();
     neighbor->nanglelist = h_nlist();
 
-    k_fail_flag.template modify<DeviceType>();
-    k_fail_flag.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_fail_flag);
+    k_fail_flag.sync_host();
     if (h_fail_flag()) {
       maxangle = neighbor->nanglelist + BONDDELTA;
       memoryKK->grow_kokkos(k_anglelist,neighbor->anglelist,maxangle,4,"neighbor:neighbor->anglelist");
-      v_anglelist = k_anglelist.view<DeviceType>();
+      v_anglelist = DualViewHelper<Space>::view(k_anglelist);
     }
   } while (h_fail_flag());
 
@@ -628,12 +628,12 @@ void NeighBondKokkos<DeviceType>::angle_partial()
     if (me == 0) error->warning(FLERR,str);
   }
 
-  k_anglelist.modify<DeviceType>();
+  DualViewHelper<Space>::modify(k_anglelist);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void NeighBondKokkos<DeviceType>::operator()(TagNeighBondAnglePartial, const int &i, int &nmissing) const {
+void NeighBondKokkos<Space>::operator()(TagNeighBondAnglePartial, const int &i, int &nmissing) const {
   for (int m = 0; m < num_angle[i]; m++) {
     if (angle_type(i,m) <= 0) continue;
     int atom1 = map_array(angle_atom1(i,m));
@@ -662,8 +662,8 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondAnglePartial, const int
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NeighBondKokkos<DeviceType>::angle_check()
+template<ExecutionSpace Space>
+void NeighBondKokkos<Space>::angle_check()
 {
   int flag = 0;
 
@@ -672,7 +672,7 @@ void NeighBondKokkos<DeviceType>::angle_check()
 
   update_domain_variables();
   atomKK->sync(execution_space, X_MASK);
-  k_anglelist.sync<DeviceType>();
+  DualViewHelper<Space>::sync(k_anglelist);
 
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondAngleCheck>(0,neighbor->nanglelist),*this,flag);
 
@@ -681,14 +681,14 @@ void NeighBondKokkos<DeviceType>::angle_check()
   if (flag_all) error->all(FLERR,"Angle extent > half of periodic box length");
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void NeighBondKokkos<DeviceType>::operator()(TagNeighBondAngleCheck, const int &m, int &flag) const {
+void NeighBondKokkos<Space>::operator()(TagNeighBondAngleCheck, const int &m, int &flag) const {
   const int i = v_anglelist(m,0);
   const int j = v_anglelist(m,1);
   const int k = v_anglelist(m,2);
-  X_FLOAT dxstart,dystart,dzstart;
-  X_FLOAT dx,dy,dz;
+  KK_FLOAT dxstart,dystart,dzstart;
+  KK_FLOAT dx,dy,dz;
   dxstart = dx = x(i,0) - x(j,0);
   dystart = dy = x(i,1) - x(j,1);
   dzstart = dz = x(i,2) - x(j,2);
@@ -708,17 +708,17 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondAngleCheck, const int &
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NeighBondKokkos<DeviceType>::dihedral_all()
+template<ExecutionSpace Space>
+void NeighBondKokkos<Space>::dihedral_all()
 {
   atomKK->sync(execution_space, DIHEDRAL_MASK);
-  v_dihedrallist = k_dihedrallist.view<DeviceType>();
-  num_dihedral = atomKK->k_num_dihedral.view<DeviceType>();
-  dihedral_atom1 = atomKK->k_dihedral_atom1.view<DeviceType>();
-  dihedral_atom2 = atomKK->k_dihedral_atom2.view<DeviceType>();
-  dihedral_atom3 = atomKK->k_dihedral_atom3.view<DeviceType>();
-  dihedral_atom4 = atomKK->k_dihedral_atom4.view<DeviceType>();
-  dihedral_type = atomKK->k_dihedral_type.view<DeviceType>();
+  v_dihedrallist = DualViewHelper<Space>::view(k_dihedrallist);
+  num_dihedral = DualViewHelper<Space>::view(atomKK->k_num_dihedral);
+  dihedral_atom1 = DualViewHelper<Space>::view(atomKK->k_dihedral_atom1);
+  dihedral_atom2 = DualViewHelper<Space>::view(atomKK->k_dihedral_atom2);
+  dihedral_atom3 = DualViewHelper<Space>::view(atomKK->k_dihedral_atom3);
+  dihedral_atom4 = DualViewHelper<Space>::view(atomKK->k_dihedral_atom4);
+  dihedral_type = DualViewHelper<Space>::view(atomKK->k_dihedral_type);
 
   // Cannot grow a Kokkos view in a parallel loop, so
   //  if the capacity of the list is exceeded, count the size
@@ -729,25 +729,25 @@ void NeighBondKokkos<DeviceType>::dihedral_all()
     nmissing = 0;
 
     h_nlist() = 0;
-    k_nlist.template modify<LMPHostType>();
-    k_nlist.template sync<DeviceType>();
+    k_nlist.modify_host();
+    DualViewHelper<Space>::sync(k_nlist);
 
     h_fail_flag() = 0;
-    k_fail_flag.template modify<LMPHostType>();
-    k_fail_flag.template sync<DeviceType>();
+    k_fail_flag.modify_host();
+    DualViewHelper<Space>::sync(k_fail_flag);
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondDihedralAll>(0,nlocal),*this,nmissing);
 
-    k_nlist.template modify<DeviceType>();
-    k_nlist.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_nlist);
+    k_nlist.sync_host();
     neighbor->ndihedrallist = h_nlist();
 
-    k_fail_flag.template modify<DeviceType>();
-    k_fail_flag.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_fail_flag);
+    k_fail_flag.sync_host();
     if (h_fail_flag()) {
       maxdihedral = neighbor->ndihedrallist + BONDDELTA;
       memoryKK->grow_kokkos(k_dihedrallist,neighbor->dihedrallist,maxdihedral,5,"neighbor:neighbor->dihedrallist");
-      v_dihedrallist = k_dihedrallist.view<DeviceType>();
+      v_dihedrallist = DualViewHelper<Space>::view(k_dihedrallist);
     }
   } while (h_fail_flag());
 
@@ -770,12 +770,12 @@ void NeighBondKokkos<DeviceType>::dihedral_all()
     if (me == 0) error->warning(FLERR,str);
   }
 
-  k_dihedrallist.modify<DeviceType>();
+  DualViewHelper<Space>::modify(k_dihedrallist);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void NeighBondKokkos<DeviceType>::operator()(TagNeighBondDihedralAll, const int &i, int &nmissing) const {
+void NeighBondKokkos<Space>::operator()(TagNeighBondDihedralAll, const int &i, int &nmissing) const {
   for (int m = 0; m < num_dihedral[i]; m++) {
     int atom1 = map_array(dihedral_atom1(i,m));
     int atom2 = map_array(dihedral_atom2(i,m));
@@ -807,25 +807,25 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondDihedralAll, const int 
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NeighBondKokkos<DeviceType>::dihedral_template()
+template<ExecutionSpace Space>
+void NeighBondKokkos<Space>::dihedral_template()
 {
   error->all(FLERR,"Cannot (yet) use molecular templates with Kokkos");
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NeighBondKokkos<DeviceType>::dihedral_partial()
+template<ExecutionSpace Space>
+void NeighBondKokkos<Space>::dihedral_partial()
 {
   atomKK->sync(execution_space, DIHEDRAL_MASK);
-  v_dihedrallist = k_dihedrallist.view<DeviceType>();
-  num_dihedral = atomKK->k_num_dihedral.view<DeviceType>();
-  dihedral_atom1 = atomKK->k_dihedral_atom1.view<DeviceType>();
-  dihedral_atom2 = atomKK->k_dihedral_atom2.view<DeviceType>();
-  dihedral_atom3 = atomKK->k_dihedral_atom3.view<DeviceType>();
-  dihedral_atom4 = atomKK->k_dihedral_atom4.view<DeviceType>();
-  dihedral_type = atomKK->k_dihedral_type.view<DeviceType>();
+  v_dihedrallist = DualViewHelper<Space>::view(k_dihedrallist);
+  num_dihedral = DualViewHelper<Space>::view(atomKK->k_num_dihedral);
+  dihedral_atom1 = DualViewHelper<Space>::view(atomKK->k_dihedral_atom1);
+  dihedral_atom2 = DualViewHelper<Space>::view(atomKK->k_dihedral_atom2);
+  dihedral_atom3 = DualViewHelper<Space>::view(atomKK->k_dihedral_atom3);
+  dihedral_atom4 = DualViewHelper<Space>::view(atomKK->k_dihedral_atom4);
+  dihedral_type = DualViewHelper<Space>::view(atomKK->k_dihedral_type);
 
   // Cannot grow a Kokkos view in a parallel loop, so
   //  if the capacity of the list is exceeded, count the size
@@ -836,25 +836,25 @@ void NeighBondKokkos<DeviceType>::dihedral_partial()
     nmissing = 0;
 
     h_nlist() = 0;
-    k_nlist.template modify<LMPHostType>();
-    k_nlist.template sync<DeviceType>();
+    k_nlist.modify_host();
+    DualViewHelper<Space>::sync(k_nlist);
 
     h_fail_flag() = 0;
-    k_fail_flag.template modify<LMPHostType>();
-    k_fail_flag.template sync<DeviceType>();
+    k_fail_flag.modify_host();
+    DualViewHelper<Space>::sync(k_fail_flag);
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondDihedralPartial>(0,nlocal),*this,nmissing);
 
-    k_nlist.template modify<DeviceType>();
-    k_nlist.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_nlist);
+    k_nlist.sync_host();
     neighbor->ndihedrallist = h_nlist();
 
-    k_fail_flag.template modify<DeviceType>();
-    k_fail_flag.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_fail_flag);
+    k_fail_flag.sync_host();
     if (h_fail_flag()) {
       maxdihedral = neighbor->ndihedrallist + BONDDELTA;
       memoryKK->grow_kokkos(k_dihedrallist,neighbor->dihedrallist,maxdihedral,5,"neighbor:neighbor->dihedrallist");
-      v_dihedrallist = k_dihedrallist.view<DeviceType>();
+      v_dihedrallist = DualViewHelper<Space>::view(k_dihedrallist);
     }
   } while (h_fail_flag());
 
@@ -877,12 +877,12 @@ void NeighBondKokkos<DeviceType>::dihedral_partial()
     if (me == 0) error->warning(FLERR,str);
   }
 
-  k_dihedrallist.modify<DeviceType>();
+  DualViewHelper<Space>::modify(k_dihedrallist);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void NeighBondKokkos<DeviceType>::operator()(TagNeighBondDihedralPartial, const int &i, int &nmissing) const {
+void NeighBondKokkos<Space>::operator()(TagNeighBondDihedralPartial, const int &i, int &nmissing) const {
   for (int m = 0; m < num_dihedral[i]; m++) {
     if (dihedral_type(i,m) <= 0) continue;
     int atom1 = map_array(dihedral_atom1(i,m));
@@ -915,8 +915,8 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondDihedralPartial, const 
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NeighBondKokkos<DeviceType>::dihedral_check(int nlist, typename AT::t_int_2d list_in)
+template<ExecutionSpace Space>
+void NeighBondKokkos<Space>::dihedral_check(int nlist, typename AT::t_int_2d list_in)
 {
   list = list_in;
   int flag = 0;
@@ -926,7 +926,7 @@ void NeighBondKokkos<DeviceType>::dihedral_check(int nlist, typename AT::t_int_2
 
   update_domain_variables();
   atomKK->sync(execution_space, X_MASK);
-  k_dihedrallist.sync<DeviceType>();
+  DualViewHelper<Space>::sync(k_dihedrallist);
 
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondDihedralCheck>(0,nlist),*this,flag);
 
@@ -936,15 +936,15 @@ void NeighBondKokkos<DeviceType>::dihedral_check(int nlist, typename AT::t_int_2
     error->all(FLERR,"Dihedral/improper extent > half of periodic box length");
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void NeighBondKokkos<DeviceType>::operator()(TagNeighBondDihedralCheck, const int &m, int &flag) const {
+void NeighBondKokkos<Space>::operator()(TagNeighBondDihedralCheck, const int &m, int &flag) const {
   const int i = list(m,0);
   const int j = list(m,1);
   const int k = list(m,2);
   const int l = list(m,3);
-  X_FLOAT dxstart,dystart,dzstart;
-  X_FLOAT dx,dy,dz;
+  KK_FLOAT dxstart,dystart,dzstart;
+  KK_FLOAT dx,dy,dz;
   dxstart = dx = x(i,0) - x(j,0);
   dystart = dy = x(i,1) - x(j,1);
   dzstart = dz = x(i,2) - x(j,2);
@@ -979,17 +979,17 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondDihedralCheck, const in
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NeighBondKokkos<DeviceType>::improper_all()
+template<ExecutionSpace Space>
+void NeighBondKokkos<Space>::improper_all()
 {
   atomKK->sync(execution_space, IMPROPER_MASK);
-  v_improperlist = k_improperlist.view<DeviceType>();
-  num_improper = atomKK->k_num_improper.view<DeviceType>();
-  improper_atom1 = atomKK->k_improper_atom1.view<DeviceType>();
-  improper_atom2 = atomKK->k_improper_atom2.view<DeviceType>();
-  improper_atom3 = atomKK->k_improper_atom3.view<DeviceType>();
-  improper_atom4 = atomKK->k_improper_atom4.view<DeviceType>();
-  improper_type = atomKK->k_improper_type.view<DeviceType>();
+  v_improperlist = DualViewHelper<Space>::view(k_improperlist);
+  num_improper = DualViewHelper<Space>::view(atomKK->k_num_improper);
+  improper_atom1 = DualViewHelper<Space>::view(atomKK->k_improper_atom1);
+  improper_atom2 = DualViewHelper<Space>::view(atomKK->k_improper_atom2);
+  improper_atom3 = DualViewHelper<Space>::view(atomKK->k_improper_atom3);
+  improper_atom4 = DualViewHelper<Space>::view(atomKK->k_improper_atom4);
+  improper_type = DualViewHelper<Space>::view(atomKK->k_improper_type);
 
   // Cannot grow a Kokkos view in a parallel loop, so
   //  if the capacity of the list is exceeded, count the size
@@ -1000,25 +1000,25 @@ void NeighBondKokkos<DeviceType>::improper_all()
     nmissing = 0;
 
     h_nlist() = 0;
-    k_nlist.template modify<LMPHostType>();
-    k_nlist.template sync<DeviceType>();
+    k_nlist.modify_host();
+    DualViewHelper<Space>::sync(k_nlist);
 
     h_fail_flag() = 0;
-    k_fail_flag.template modify<LMPHostType>();
-    k_fail_flag.template sync<DeviceType>();
+    k_fail_flag.modify_host();
+    DualViewHelper<Space>::sync(k_fail_flag);
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondImproperAll>(0,nlocal),*this,nmissing);
 
-    k_nlist.template modify<DeviceType>();
-    k_nlist.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_nlist);
+    k_nlist.sync_host();
     neighbor->nimproperlist = h_nlist();
 
-    k_fail_flag.template modify<DeviceType>();
-    k_fail_flag.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_fail_flag);
+    k_fail_flag.sync_host();
     if (h_fail_flag()) {
       maximproper = neighbor->nimproperlist + BONDDELTA;
       memoryKK->grow_kokkos(k_improperlist,neighbor->improperlist,maximproper,5,"neighbor:neighbor->improperlist");
-      v_improperlist = k_improperlist.view<DeviceType>();
+      v_improperlist = DualViewHelper<Space>::view(k_improperlist);
     }
   } while (h_fail_flag());
 
@@ -1041,12 +1041,12 @@ void NeighBondKokkos<DeviceType>::improper_all()
     if (me == 0) error->warning(FLERR,str);
   }
 
-  k_improperlist.modify<DeviceType>();
+  DualViewHelper<Space>::modify(k_improperlist);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void NeighBondKokkos<DeviceType>::operator()(TagNeighBondImproperAll, const int &i, int &nmissing) const {
+void NeighBondKokkos<Space>::operator()(TagNeighBondImproperAll, const int &i, int &nmissing) const {
   for (int m = 0; m < num_improper[i]; m++) {
     int atom1 = map_array(improper_atom1(i,m));
     int atom2 = map_array(improper_atom2(i,m));
@@ -1078,25 +1078,25 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondImproperAll, const int 
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NeighBondKokkos<DeviceType>::improper_template()
+template<ExecutionSpace Space>
+void NeighBondKokkos<Space>::improper_template()
 {
   error->all(FLERR,"Cannot (yet) use molecular templates with Kokkos");
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NeighBondKokkos<DeviceType>::improper_partial()
+template<ExecutionSpace Space>
+void NeighBondKokkos<Space>::improper_partial()
 {
   atomKK->sync(execution_space, IMPROPER_MASK);
-  v_improperlist = k_improperlist.view<DeviceType>();
-  num_improper = atomKK->k_num_improper.view<DeviceType>();
-  improper_atom1 = atomKK->k_improper_atom1.view<DeviceType>();
-  improper_atom2 = atomKK->k_improper_atom2.view<DeviceType>();
-  improper_atom3 = atomKK->k_improper_atom3.view<DeviceType>();
-  improper_atom4 = atomKK->k_improper_atom4.view<DeviceType>();
-  improper_type = atomKK->k_improper_type.view<DeviceType>();
+  v_improperlist = DualViewHelper<Space>::view(k_improperlist);
+  num_improper = DualViewHelper<Space>::view(atomKK->k_num_improper);
+  improper_atom1 = DualViewHelper<Space>::view(atomKK->k_improper_atom1);
+  improper_atom2 = DualViewHelper<Space>::view(atomKK->k_improper_atom2);
+  improper_atom3 = DualViewHelper<Space>::view(atomKK->k_improper_atom3);
+  improper_atom4 = DualViewHelper<Space>::view(atomKK->k_improper_atom4);
+  improper_type = DualViewHelper<Space>::view(atomKK->k_improper_type);
 
   // Cannot grow a Kokkos view in a parallel loop, so
   //  if the capacity of the list is exceeded, count the size
@@ -1107,25 +1107,25 @@ void NeighBondKokkos<DeviceType>::improper_partial()
     nmissing = 0;
 
     h_nlist() = 0;
-    k_nlist.template modify<LMPHostType>();
-    k_nlist.template sync<DeviceType>();
+    k_nlist.modify_host();
+    DualViewHelper<Space>::sync(k_nlist);
 
     h_fail_flag() = 0;
-    k_fail_flag.template modify<LMPHostType>();
-    k_fail_flag.template sync<DeviceType>();
+    k_fail_flag.modify_host();
+    DualViewHelper<Space>::sync(k_fail_flag);
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondImproperPartial>(0,nlocal),*this,nmissing);
 
-    k_nlist.template modify<DeviceType>();
-    k_nlist.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_nlist);
+    k_nlist.sync_host();
     neighbor->nimproperlist = h_nlist();
 
-    k_fail_flag.template modify<DeviceType>();
-    k_fail_flag.template sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_fail_flag);
+    k_fail_flag.sync_host();
     if (h_fail_flag()) {
       maximproper = neighbor->nimproperlist + BONDDELTA;
       memoryKK->grow_kokkos(k_improperlist,neighbor->improperlist,maximproper,5,"neighbor:neighbor->improperlist");
-      v_improperlist = k_improperlist.view<DeviceType>();
+      v_improperlist = DualViewHelper<Space>::view(k_improperlist);
     }
   } while (h_fail_flag());
 
@@ -1148,12 +1148,12 @@ void NeighBondKokkos<DeviceType>::improper_partial()
     if (me == 0) error->warning(FLERR,str);
   }
 
-  k_improperlist.modify<DeviceType>();
+  DualViewHelper<Space>::modify(k_improperlist);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void NeighBondKokkos<DeviceType>::operator()(TagNeighBondImproperPartial, const int &i, int &nmissing) const {
+void NeighBondKokkos<Space>::operator()(TagNeighBondImproperPartial, const int &i, int &nmissing) const {
   for (int m = 0; m < num_improper[i]; m++) {
     if (improper_type(i,m) <= 0) continue;
     int atom1 = map_array(improper_atom1(i,m));
@@ -1186,22 +1186,22 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondImproperPartial, const 
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-int NeighBondKokkos<DeviceType>::closest_image(const int i, int j) const
+int NeighBondKokkos<Space>::closest_image(const int i, int j) const
 {
   if (j < 0) return j;
 
-  const X_FLOAT xi0 = x(i,0);
-  const X_FLOAT xi1 = x(i,1);
-  const X_FLOAT xi2 = x(i,2);
+  const KK_FLOAT xi0 = x(i,0);
+  const KK_FLOAT xi1 = x(i,1);
+  const KK_FLOAT xi2 = x(i,2);
 
   int closest = j;
-  X_FLOAT delx = xi0 - x(j,0);
-  X_FLOAT dely = xi1 - x(j,1);
-  X_FLOAT delz = xi2 - x(j,2);
-  X_FLOAT rsqmin = delx*delx + dely*dely + delz*delz;
-  X_FLOAT rsq;
+  KK_FLOAT delx = xi0 - x(j,0);
+  KK_FLOAT dely = xi1 - x(j,1);
+  KK_FLOAT delz = xi2 - x(j,2);
+  KK_FLOAT rsqmin = delx*delx + dely*dely + delz*delz;
+  KK_FLOAT rsq;
 
   while (sametag[j] >= 0) {
     j = sametag[j];
@@ -1223,9 +1223,9 @@ int NeighBondKokkos<DeviceType>::closest_image(const int i, int j) const
    for triclinic, also add/subtract tilt factors in other dims as needed
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void NeighBondKokkos<DeviceType>::minimum_image(X_FLOAT &dx, X_FLOAT &dy, X_FLOAT &dz) const
+void NeighBondKokkos<Space>::minimum_image(KK_FLOAT &dx, KK_FLOAT &dy, KK_FLOAT &dz) const
 {
   if (triclinic == 0) {
     if (xperiodic) {
@@ -1283,8 +1283,8 @@ void NeighBondKokkos<DeviceType>::minimum_image(X_FLOAT &dx, X_FLOAT &dy, X_FLOA
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NeighBondKokkos<DeviceType>::update_domain_variables()
+template<ExecutionSpace Space>
+void NeighBondKokkos<Space>::update_domain_variables()
 {
   triclinic = domain->triclinic;
   xperiodic = domain->xperiodic;
@@ -1304,9 +1304,7 @@ void NeighBondKokkos<DeviceType>::update_domain_variables()
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
-template class NeighBondKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class NeighBondKokkos<LMPHostType>;
-#endif
+template class NeighBondKokkos<Device>;
+template class NeighBondKokkos<Host>;
 }
 

@@ -123,7 +123,7 @@ void AtomKokkos::allocate_type_arrays()
     mass = k_mass.h_view.data();
     mass_setflag = new int[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) mass_setflag[itype] = 0;
-    k_mass.modify<LMPHostType>();
+    k_mass.modify_host();
   }
 }
 
@@ -163,7 +163,7 @@ void AtomKokkos::sort()
 
   for (i = 0; i < nbins; i++) binhead[i] = -1;
 
-  HAT::t_x_array_const h_x = k_x.view<LMPHostType>();
+  HAT::t_float_1d_3_const h_x = k_x.h_view;
   for (i = nlocal-1; i >= 0; i--) {
     ix = static_cast<int> ((h_x(i,0)-bboxlo[0])*bininvx);
     iy = static_cast<int> ((h_x(i,1)-bboxlo[1])*bininvy);

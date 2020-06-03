@@ -23,14 +23,14 @@ namespace MathSpecialKokkos {
 
   // support function for scaled error function complement
 
-  extern double erfcx_y100(const double y100);
+  extern KK_FLOAT erfcx_y100(const KK_FLOAT y100);
 
   // fast 2**x function without argument checks for little endian CPUs
-  extern double exp2_x86(double x);
+  extern KK_FLOAT exp2_x86(KK_FLOAT x);
 
   // scaled error function complement exp(x*x)*erfc(x) for coul/long styles
 
-  static inline double my_erfcx(const double x)
+  static inline KK_FLOAT my_erfcx(const KK_FLOAT x)
   {
     if (x >= 0.0) return erfcx_y100(400.0/(4.0+x));
     else return 2.0*exp(x*x) - erfcx_y100(400.0/(4.0-x));
@@ -38,7 +38,7 @@ namespace MathSpecialKokkos {
 
   // exp(-x*x) for coul/long styles
 
-  static inline double expmsq(double x)
+  static inline KK_FLOAT expmsq(KK_FLOAT x)
   {
     x *= x;
     x *= 1.4426950408889634074; // log_2(e)
@@ -51,22 +51,22 @@ namespace MathSpecialKokkos {
 
   // x**2, use instead of pow(x,2.0)
   KOKKOS_INLINE_FUNCTION
-  static double square(const double &x) { return x*x; }
+  static KK_FLOAT square(const KK_FLOAT &x) { return x*x; }
 
   // x**3, use instead of pow(x,3.0)
   KOKKOS_INLINE_FUNCTION
-  static double cube(const double &x) { return x*x*x; }
+  static KK_FLOAT cube(const KK_FLOAT &x) { return x*x*x; }
 
   // return -1.0 for odd n, 1.0 for even n, like pow(-1.0,n)
   KOKKOS_INLINE_FUNCTION
-  static double powsign(const int n) { return (n & 1) ? -1.0 : 1.0; }
+  static KK_FLOAT powsign(const int n) { return (n & 1) ? -1.0 : 1.0; }
 
   // optimized version of pow(x,n) with n being integer
   // up to 10x faster than pow(x,y)
 
   KOKKOS_INLINE_FUNCTION
-  static double powint(const double &x, const int n) {
-    double yy,ww;
+  static KK_FLOAT powint(const KK_FLOAT &x, const int n) {
+    KK_FLOAT yy,ww;
 
     if (x == 0.0) return 0.0;
     int nn = (n > 0) ? n : -n;
@@ -81,8 +81,8 @@ namespace MathSpecialKokkos {
   // optimized version of (sin(x)/x)**n with n being a _positive_ integer
 
   KOKKOS_INLINE_FUNCTION
-  static double powsinxx(const double &x, int n) {
-    double yy,ww;
+  static KK_FLOAT powsinxx(const KK_FLOAT &x, int n) {
+    KK_FLOAT yy,ww;
 
     if (x == 0.0) return 1.0;
 

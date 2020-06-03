@@ -13,9 +13,9 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(snap/kk,PairSNAPKokkos<LMPDeviceType>)
-PairStyle(snap/kk/device,PairSNAPKokkos<LMPDeviceType>)
-PairStyle(snap/kk/host,PairSNAPKokkos<LMPHostType>)
+PairStyle(snap/kk,PairSNAPKokkos<Device>)
+PairStyle(snap/kk/device,PairSNAPKokkos<Device>)
+PairStyle(snap/kk/host,PairSNAPKokkos<Host>)
 
 #else
 
@@ -46,13 +46,14 @@ struct TagPairSNAPComputeFusedDeidrj{};
 struct TagPairSNAPComputeDuidrjCPU{};
 struct TagPairSNAPComputeDeidrjCPU{};
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class PairSNAPKokkos : public PairSNAP {
 public:
   enum {EnabledNeighFlags=FULL|HALF|HALFTHREAD};
   enum {COUL_FLAG=0};
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
   typedef EV_FLOAT value_type;
 
   PairSNAPKokkos(class LAMMPS *);
@@ -117,24 +118,24 @@ public:
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
   void v_tally_xyz(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &fx, const F_FLOAT &fy, const F_FLOAT &fz,
-      const F_FLOAT &delx, const F_FLOAT &dely, const F_FLOAT &delz) const;
+      const KK_FLOAT &fx, const KK_FLOAT &fy, const KK_FLOAT &fz,
+      const KK_FLOAT &delx, const KK_FLOAT &dely, const KK_FLOAT &delz) const;
 
 protected:
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_efloat_1d d_eatom;
-  typename AT::t_virial_array d_vatom;
+  DAT::tdual_float_1d k_eatom;
+  DAT::tdual_float_1d_6 k_vatom;
+  typename AT::t_float_1d d_eatom;
+  typename AT::t_float_1d_6 d_vatom;
 
-  typedef Kokkos::View<F_FLOAT**> t_bvec;
+  typedef Kokkos::View<KK_FLOAT**> t_bvec;
   t_bvec bvec;
-  typedef Kokkos::View<F_FLOAT***> t_dbvec;
+  typedef Kokkos::View<KK_FLOAT***> t_dbvec;
   t_dbvec dbvec;
-  SNAKokkos<DeviceType> snaKK;
+  SNAKokkos<Space> snaKK;
 
   int inum,max_neighs,chunk_size,chunk_offset;
   int host_flag;
@@ -143,57 +144,57 @@ protected:
 
   void allocate();
   //void read_files(char *, char *);
-  /*template<class DeviceType>
-inline int equal(double* x,double* y);
-  template<class DeviceType>
-inline double dist2(double* x,double* y);
-  double extra_cutoff();
+  /*template<ExecutionSpace Space>
+inline int equal(KK_FLOAT* x,KK_FLOAT* y);
+  template<ExecutionSpace Space>
+inline KK_FLOAT dist2(KK_FLOAT* x,KK_FLOAT* y);
+  KK_FLOAT extra_cutoff();
   void load_balance();
   void set_sna_to_shared(int snaid,int i);
   void build_per_atom_arrays();*/
 
   int neighflag;
 
-  Kokkos::View<T_INT*, DeviceType> ilistmast;
-  Kokkos::View<T_INT*, DeviceType> ghostilist;
-  Kokkos::View<T_INT*, DeviceType> ghostnumneigh;
-  Kokkos::View<T_INT*, DeviceType> ghostneighs;
-  Kokkos::View<T_INT*, DeviceType> ghostfirstneigh;
+  Kokkos::View<int*, DeviceType> ilistmast;
+  Kokkos::View<int*, DeviceType> ghostilist;
+  Kokkos::View<int*, DeviceType> ghostnumneigh;
+  Kokkos::View<int*, DeviceType> ghostneighs;
+  Kokkos::View<int*, DeviceType> ghostfirstneigh;
 
-  Kokkos::View<T_INT**, Kokkos::LayoutRight, DeviceType> i_pairs;
-  Kokkos::View<T_INT***, Kokkos::LayoutRight, DeviceType> i_rij;
-  Kokkos::View<T_INT**, Kokkos::LayoutRight, DeviceType> i_inside;
-  Kokkos::View<F_FLOAT**, Kokkos::LayoutRight, DeviceType> i_wj;
-  Kokkos::View<F_FLOAT***, Kokkos::LayoutRight, DeviceType>i_rcutij;
-  Kokkos::View<T_INT*, DeviceType> i_ninside;
-  Kokkos::View<F_FLOAT****, Kokkos::LayoutRight, DeviceType> i_uarraytot_r, i_uarraytot_i;
-  Kokkos::View<F_FLOAT******, Kokkos::LayoutRight, DeviceType> i_zarray_r, i_zarray_i;
+  Kokkos::View<int**, Kokkos::LayoutRight, DeviceType> i_pairs;
+  Kokkos::View<int***, Kokkos::LayoutRight, DeviceType> i_rij;
+  Kokkos::View<int**, Kokkos::LayoutRight, DeviceType> i_inside;
+  Kokkos::View<KK_FLOAT**, Kokkos::LayoutRight, DeviceType> i_wj;
+  Kokkos::View<KK_FLOAT***, Kokkos::LayoutRight, DeviceType>i_rcutij;
+  Kokkos::View<int*, DeviceType> i_ninside;
+  Kokkos::View<KK_FLOAT****, Kokkos::LayoutRight, DeviceType> i_uarraytot_r, i_uarraytot_i;
+  Kokkos::View<KK_FLOAT******, Kokkos::LayoutRight, DeviceType> i_zarray_r, i_zarray_i;
 
-  Kokkos::View<F_FLOAT*, DeviceType> d_radelem;              // element radii
-  Kokkos::View<F_FLOAT*, DeviceType> d_wjelem;               // elements weights
-  Kokkos::View<F_FLOAT**, Kokkos::LayoutRight, DeviceType> d_coeffelem;           // element bispectrum coefficients
-  Kokkos::View<T_INT*, DeviceType> d_map;                    // mapping from atom types to elements
-  Kokkos::View<T_INT*, DeviceType> d_ninside;                // ninside for all atoms in list
-  Kokkos::View<F_FLOAT**, DeviceType> d_beta;                // betas for all atoms in list
-  Kokkos::View<F_FLOAT**, DeviceType> d_bispectrum;          // bispectrum components for all atoms in list
+  Kokkos::View<KK_FLOAT*, DeviceType> d_radelem;              // element radii
+  Kokkos::View<KK_FLOAT*, DeviceType> d_wjelem;               // elements weights
+  Kokkos::View<KK_FLOAT**, Kokkos::LayoutRight, DeviceType> d_coeffelem;           // element bispectrum coefficients
+  Kokkos::View<int*, DeviceType> d_map;                    // mapping from atom types to elements
+  Kokkos::View<int*, DeviceType> d_ninside;                // ninside for all atoms in list
+  Kokkos::View<KK_FLOAT**, DeviceType> d_beta;                // betas for all atoms in list
+  Kokkos::View<KK_FLOAT**, DeviceType> d_bispectrum;          // bispectrum components for all atoms in list
 
-  typedef Kokkos::DualView<F_FLOAT**, DeviceType> tdual_fparams;
+  typedef Kokkos::DualView<KK_FLOAT**, DeviceType> tdual_fparams;
   tdual_fparams k_cutsq;
-  typedef Kokkos::View<const F_FLOAT**, DeviceType,
+  typedef Kokkos::View<const KK_FLOAT**, DeviceType,
       Kokkos::MemoryTraits<Kokkos::RandomAccess> > t_fparams_rnd;
   t_fparams_rnd rnd_cutsq;
 
-  typename AT::t_x_array_randomread x;
-  typename AT::t_f_array f;
+  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_float_1d_3 f;
   typename AT::t_int_1d_randomread type;
 
   int need_dup;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_f;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_vatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_f;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_vatom;
+  Kokkos::Experimental::ScatterView<typename AT::t_float_1d_3::data_type, typename AT::t_float_1d_3::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_f;
+  Kokkos::Experimental::ScatterView<typename AT::t_float_1d_6::data_type, typename AT::t_float_1d_6::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_vatom;
+  Kokkos::Experimental::ScatterView<typename AT::t_float_1d_3::data_type, typename AT::t_float_1d_3::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_f;
+  Kokkos::Experimental::ScatterView<typename AT::t_float_1d_6::data_type, typename AT::t_float_1d_6::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_vatom;
 
-  friend void pair_virial_fdotr_compute<PairSNAPKokkos>(PairSNAPKokkos*);
+  friend void pair_virial_fdotr_compute<Space,PairSNAPKokkos>(PairSNAPKokkos*);
 
 };
 

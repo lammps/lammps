@@ -26,13 +26,13 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-FixNVEKokkos<DeviceType>::FixNVEKokkos(LAMMPS *lmp, int narg, char **arg) :
+template<ExecutionSpace Space>
+FixNVEKokkos<Space>::FixNVEKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixNVE(lmp, narg, arg)
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  execution_space = Space;
 
   datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK | RMASS_MASK | TYPE_MASK;
   datamask_modify = X_MASK | V_MASK;
@@ -40,50 +40,50 @@ FixNVEKokkos<DeviceType>::FixNVEKokkos(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixNVEKokkos<DeviceType>::init()
+template<ExecutionSpace Space>
+void FixNVEKokkos<Space>::init()
 {
   FixNVE::init();
 
-  atomKK->k_mass.modify<LMPHostType>();
-  atomKK->k_mass.sync<DeviceType>();
+  atomKK->k_mass.modify_host();
+  DualViewHelper<Space>::sync(atomKK->k_mass);
 }
 
 /* ----------------------------------------------------------------------
    allow for both per-type and per-atom mass
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixNVEKokkos<DeviceType>::initial_integrate(int vflag)
+template<ExecutionSpace Space>
+void FixNVEKokkos<Space>::initial_integrate(int vflag)
 {
   atomKK->sync(execution_space,datamask_read);
   atomKK->modified(execution_space,datamask_modify);
 
-  x = atomKK->k_x.view<DeviceType>();
-  v = atomKK->k_v.view<DeviceType>();
-  f = atomKK->k_f.view<DeviceType>();
-  rmass = atomKK->k_rmass.view<DeviceType>();
-  mass = atomKK->k_mass.view<DeviceType>();
-  type = atomKK->k_type.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  v = DualViewHelper<Space>::view(atomKK->k_v);
+  f = DualViewHelper<Space>::view(atomKK->k_f);
+  rmass = DualViewHelper<Space>::view(atomKK->k_rmass);
+  mass = DualViewHelper<Space>::view(atomKK->k_mass);
+  type = DualViewHelper<Space>::view(atomKK->k_type);
+  mask = DualViewHelper<Space>::view(atomKK->k_mask);
   int nlocal = atomKK->nlocal;
   if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
 
   if (rmass.data()) {
-    FixNVEKokkosInitialIntegrateFunctor<DeviceType,1> functor(this);
+    FixNVEKokkosInitialIntegrateFunctor<Space,1> functor(this);
     Kokkos::parallel_for(nlocal,functor);
   } else {
-    FixNVEKokkosInitialIntegrateFunctor<DeviceType,0> functor(this);
+    FixNVEKokkosInitialIntegrateFunctor<Space,0> functor(this);
     Kokkos::parallel_for(nlocal,functor);
   }
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void FixNVEKokkos<DeviceType>::initial_integrate_item(int i) const
+void FixNVEKokkos<Space>::initial_integrate_item(int i) const
 {
   if (mask[i] & groupbit) {
-    const double dtfm = dtf / mass[type[i]];
+    const KK_FLOAT dtfm = dtf / mass[type[i]];
     v(i,0) += dtfm * f(i,0);
     v(i,1) += dtfm * f(i,1);
     v(i,2) += dtfm * f(i,2);
@@ -93,12 +93,12 @@ void FixNVEKokkos<DeviceType>::initial_integrate_item(int i) const
   }
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void FixNVEKokkos<DeviceType>::initial_integrate_rmass_item(int i) const
+void FixNVEKokkos<Space>::initial_integrate_rmass_item(int i) const
 {
   if (mask[i] & groupbit) {
-    const double dtfm = dtf / rmass[i];
+    const KK_FLOAT dtfm = dtf / rmass[i];
     v(i,0) += dtfm * f(i,0);
     v(i,1) += dtfm * f(i,1);
     v(i,2) += dtfm * f(i,2);
@@ -110,26 +110,26 @@ void FixNVEKokkos<DeviceType>::initial_integrate_rmass_item(int i) const
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixNVEKokkos<DeviceType>::final_integrate()
+template<ExecutionSpace Space>
+void FixNVEKokkos<Space>::final_integrate()
 {
   atomKK->sync(execution_space,V_MASK | F_MASK | MASK_MASK | RMASS_MASK | TYPE_MASK);
   atomKK->modified(execution_space,V_MASK);
 
-  v = atomKK->k_v.view<DeviceType>();
-  f = atomKK->k_f.view<DeviceType>();
-  rmass = atomKK->k_rmass.view<DeviceType>();
-  mass = atomKK->k_mass.view<DeviceType>();
-  type = atomKK->k_type.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
+  v = DualViewHelper<Space>::view(atomKK->k_v);
+  f = DualViewHelper<Space>::view(atomKK->k_f);
+  rmass = DualViewHelper<Space>::view(atomKK->k_rmass);
+  mass = DualViewHelper<Space>::view(atomKK->k_mass);
+  type = DualViewHelper<Space>::view(atomKK->k_type);
+  mask = DualViewHelper<Space>::view(atomKK->k_mask);
   int nlocal = atomKK->nlocal;
   if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
 
   if (rmass.data()) {
-    FixNVEKokkosFinalIntegrateFunctor<DeviceType,1> functor(this);
+    FixNVEKokkosFinalIntegrateFunctor<Space,1> functor(this);
     Kokkos::parallel_for(nlocal,functor);
   } else {
-    FixNVEKokkosFinalIntegrateFunctor<DeviceType,0> functor(this);
+    FixNVEKokkosFinalIntegrateFunctor<Space,0> functor(this);
     Kokkos::parallel_for(nlocal,functor);
   }
 
@@ -137,24 +137,24 @@ void FixNVEKokkos<DeviceType>::final_integrate()
   //atomKK->sync(Host,datamask_read);
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void FixNVEKokkos<DeviceType>::final_integrate_item(int i) const
+void FixNVEKokkos<Space>::final_integrate_item(int i) const
 {
   if (mask[i] & groupbit) {
-    const double dtfm = dtf / mass[type[i]];
+    const KK_FLOAT dtfm = dtf / mass[type[i]];
     v(i,0) += dtfm * f(i,0);
     v(i,1) += dtfm * f(i,1);
     v(i,2) += dtfm * f(i,2);
   }
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void FixNVEKokkos<DeviceType>::final_integrate_rmass_item(int i) const
+void FixNVEKokkos<Space>::final_integrate_rmass_item(int i) const
 {
   if (mask[i] & groupbit) {
-    const double dtfm = dtf / rmass[i];
+    const KK_FLOAT dtfm = dtf / rmass[i];
     v(i,0) += dtfm * f(i,0);
     v(i,1) += dtfm * f(i,1);
     v(i,2) += dtfm * f(i,2);
@@ -163,17 +163,15 @@ void FixNVEKokkos<DeviceType>::final_integrate_rmass_item(int i) const
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixNVEKokkos<DeviceType>::cleanup_copy()
+template<ExecutionSpace Space>
+void FixNVEKokkos<Space>::cleanup_copy()
 {
   id = style = NULL;
   vatom = NULL;
 }
 
 namespace LAMMPS_NS {
-template class FixNVEKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class FixNVEKokkos<LMPHostType>;
-#endif
+template class FixNVEKokkos<Device>;
+template class FixNVEKokkos<Host>;
 }
 

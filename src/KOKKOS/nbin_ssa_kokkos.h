@@ -14,11 +14,11 @@
 #ifdef NBIN_CLASS
 
 NBinStyle(ssa/kk/host,
-          NBinSSAKokkos<LMPHostType>,
+          NBinSSAKokkos<Host>,
           NB_SSA | NB_KOKKOS_HOST)
 
 NBinStyle(ssa/kk/device,
-          NBinSSAKokkos<LMPDeviceType>,
+          NBinSSAKokkos<Device>,
           NB_SSA | NB_KOKKOS_DEVICE)
 
 #else
@@ -31,10 +31,12 @@ NBinStyle(ssa/kk/device,
 
 namespace LAMMPS_NS {
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class NBinSSAKokkos : public NBinStandard {
  public:
-  typedef ArrayTypes<DeviceType> AT;
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+  typedef ArrayTypes<Space> AT;
 
   NBinSSAKokkos(class LAMMPS *);
   ~NBinSSAKokkos() {}
@@ -61,8 +63,8 @@ class NBinSSAKokkos : public NBinStandard {
   typename AT::t_int_2d_const c_gbins;
 
   typename AT::t_int_scalar d_resize;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_resize;
-  typename AT::t_x_array_randomread x;
+  HAT::t_int_scalar h_resize;
+  typename AT::t_float_1d_3_randomread x;
 
   // Bounds of the local atoms in the bins array
   typename AT::t_int_scalar d_lbinxlo;  // lowest local bin x-dim coordinate
@@ -71,12 +73,12 @@ class NBinSSAKokkos : public NBinStandard {
   typename AT::t_int_scalar d_lbinxhi;  // highest local bin x-dim coordinate
   typename AT::t_int_scalar d_lbinyhi;  // highest local bin y-dim coordinate
   typename AT::t_int_scalar d_lbinzhi;  // highest local bin z-dim coordinate
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_lbinxlo;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_lbinylo;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_lbinzlo;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_lbinxhi;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_lbinyhi;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_lbinzhi;
+  HAT::t_int_scalar h_lbinxlo;
+  HAT::t_int_scalar h_lbinylo;
+  HAT::t_int_scalar h_lbinzlo;
+  HAT::t_int_scalar h_lbinxhi;
+  HAT::t_int_scalar h_lbinyhi;
+  HAT::t_int_scalar h_lbinzhi;
 
 
   KOKKOS_INLINE_FUNCTION
@@ -98,7 +100,7 @@ class NBinSSAKokkos : public NBinStandard {
    convert atom coords into the ssa active interaction region number
 ------------------------------------------------------------------------- */
   KOKKOS_INLINE_FUNCTION
-  int coord2ssaAIR(const X_FLOAT & x,const X_FLOAT & y,const X_FLOAT & z) const
+  int coord2ssaAIR(const KK_FLOAT & x,const KK_FLOAT & y,const KK_FLOAT & z) const
   {
     int ix, iy, iz;
     ix = iy = iz = 0;
@@ -127,7 +129,7 @@ class NBinSSAKokkos : public NBinStandard {
   }
 
   KOKKOS_INLINE_FUNCTION
-  int coord2bin(const X_FLOAT & x,const X_FLOAT & y,const X_FLOAT & z, int* i) const
+  int coord2bin(const KK_FLOAT & x,const KK_FLOAT & y,const KK_FLOAT & z, int* i) const
   {
     int ix,iy,iz;
 
@@ -163,17 +165,18 @@ class NBinSSAKokkos : public NBinStandard {
   }
 
  private:
-  double bboxlo_[3],bboxhi_[3];
-  double sublo_[3], subhi_[3];
+  KK_FLOAT bboxlo_[3],bboxhi_[3];
+  KK_FLOAT sublo_[3], subhi_[3];
 };
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 struct NPairSSAKokkosBinAtomsFunctor {
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
 
-  const NBinSSAKokkos<DeviceType> c;
+  const NBinSSAKokkos<Space> c;
 
-  NPairSSAKokkosBinAtomsFunctor(const NBinSSAKokkos<DeviceType> &_c):
+  NPairSSAKokkosBinAtomsFunctor(const NBinSSAKokkos<Space> &_c):
     c(_c) {};
   ~NPairSSAKokkosBinAtomsFunctor() {}
   KOKKOS_INLINE_FUNCTION
@@ -182,14 +185,15 @@ struct NPairSSAKokkosBinAtomsFunctor {
   }
 };
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 struct NPairSSAKokkosBinIDAtomsFunctor {
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
   typedef int value_type;
 
-  const NBinSSAKokkos<DeviceType> c;
+  const NBinSSAKokkos<Space> c;
 
-  NPairSSAKokkosBinIDAtomsFunctor(const NBinSSAKokkos<DeviceType> &_c):
+  NPairSSAKokkosBinIDAtomsFunctor(const NBinSSAKokkos<Space> &_c):
     c(_c) {};
   ~NPairSSAKokkosBinIDAtomsFunctor() {}
   KOKKOS_INLINE_FUNCTION
@@ -209,14 +213,15 @@ struct NPairSSAKokkosBinIDAtomsFunctor {
   }
 };
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 struct NPairSSAKokkosBinIDGhostsFunctor {
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
   typedef int value_type;
 
-  const NBinSSAKokkos<DeviceType> c;
+  const NBinSSAKokkos<Space> c;
 
-  NPairSSAKokkosBinIDGhostsFunctor(const NBinSSAKokkos<DeviceType> &_c):
+  NPairSSAKokkosBinIDGhostsFunctor(const NBinSSAKokkos<Space> &_c):
     c(_c) {};
   ~NPairSSAKokkosBinIDGhostsFunctor() {}
   KOKKOS_INLINE_FUNCTION

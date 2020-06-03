@@ -29,8 +29,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-NBinSSAKokkos<DeviceType>::NBinSSAKokkos(LAMMPS *lmp) : NBinStandard(lmp)
+template<ExecutionSpace Space>
+NBinSSAKokkos<Space>::NBinSSAKokkos(LAMMPS *lmp) : NBinStandard(lmp)
 {
   atoms_per_bin = ghosts_per_gbin = 16;
 
@@ -61,27 +61,27 @@ NBinSSAKokkos<DeviceType>::NBinSSAKokkos(LAMMPS *lmp) : NBinStandard(lmp)
   h_resize() = 1;
 
   k_gbincount = DAT::tdual_int_1d("NBinSSAKokkos::gbincount",8);
-  gbincount = k_gbincount.view<DeviceType>();
+  gbincount = DualViewHelper<Space>::view(k_gbincount);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NBinSSAKokkos<DeviceType>::bin_atoms_setup(int nall)
+template<ExecutionSpace Space>
+void NBinSSAKokkos<Space>::bin_atoms_setup(int nall)
 {
   if (mbins > (int) k_bins.h_view.extent(0)) {
     k_bins = DAT::tdual_int_2d("NBinSSAKokkos::bins",mbins,atoms_per_bin);
-    bins = k_bins.view<DeviceType>();
+    bins = DualViewHelper<Space>::view(k_bins);
 
     k_bincount = DAT::tdual_int_1d("NBinSSAKokkos::bincount",mbins);
-    bincount = k_bincount.view<DeviceType>();
+    bincount = DualViewHelper<Space>::view(k_bincount);
   }
 
   ghosts_per_gbin = atom->nghost / 7; // estimate needed size
 
   if (ghosts_per_gbin > (int) k_gbins.h_view.extent(1)) {
     k_gbins = DAT::tdual_int_2d("NBinSSAKokkos::gbins",8,ghosts_per_gbin);
-    gbins = k_gbins.view<DeviceType>();
+    gbins = DualViewHelper<Space>::view(k_gbins);
   }
 
   // Clear the local bin extent bounding box.
@@ -106,8 +106,8 @@ void NBinSSAKokkos<DeviceType>::bin_atoms_setup(int nall)
      ghosts which are not in an Active Interaction Region (AIR) are skipped
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NBinSSAKokkos<DeviceType>::bin_atoms()
+template<ExecutionSpace Space>
+void NBinSSAKokkos<Space>::bin_atoms()
 {
   last_bin = update->ntimestep;
 
@@ -115,8 +115,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
   int nghost = atom->nghost;
   int nall = nlocal + nghost;
 
-  atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
-  x = atomKK->k_x.view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
 
   sublo_[0] = domain->sublo[0];
   sublo_[1] = domain->sublo[1];
@@ -129,12 +128,12 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
   bboxhi_[0] = bboxhi[0]; bboxhi_[1] = bboxhi[1]; bboxhi_[2] = bboxhi[2];
 
   k_binID = DAT::tdual_int_1d("NBinSSAKokkos::binID",nall);
-  binID = k_binID.view<DeviceType>();
+  binID = DualViewHelper<Space>::view(k_binID);
 
   // find each local atom's binID
   {
     atoms_per_bin = 0;
-    NPairSSAKokkosBinIDAtomsFunctor<DeviceType> f(*this);
+    NPairSSAKokkosBinIDAtomsFunctor<Space> f(*this);
     Kokkos::parallel_reduce(nlocal, f, atoms_per_bin);
   }
   deep_copy(h_lbinxlo, d_lbinxlo);
@@ -147,28 +146,28 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
   // find each ghost's binID (AIR number)
   {
     for (int i = 0; i < 8; i++) k_gbincount.h_view(i) = 0;
-    k_gbincount.modify<LMPHostType>();
-    k_gbincount.sync<DeviceType>();
+    k_gbincount.modify_host();
+    DualViewHelper<Space>::sync(k_gbincount);
     ghosts_per_gbin = 0;
-    NPairSSAKokkosBinIDGhostsFunctor<DeviceType> f(*this);
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<LMPDeviceType>(nlocal,nall), f, ghosts_per_gbin);
+    NPairSSAKokkosBinIDGhostsFunctor<Space> f(*this);
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(nlocal,nall), f, ghosts_per_gbin);
   }
 
   // actually bin the ghost atoms
   {
     if(ghosts_per_gbin > (int) gbins.extent(1)) {
       k_gbins = DAT::tdual_int_2d("gbins", 8, ghosts_per_gbin);
-      gbins = k_gbins.view<DeviceType>();
+      gbins = DualViewHelper<Space>::view(k_gbins);
     }
     for (int i = 0; i < 8; i++) k_gbincount.h_view(i) = 0;
-    k_gbincount.modify<LMPHostType>();
-    k_gbincount.sync<DeviceType>();
+    k_gbincount.modify_host();
+    DualViewHelper<Space>::sync(k_gbincount);
 
     auto binID_ = binID;
     auto gbincount_ = gbincount;
     auto gbins_ = gbins;
 
-    Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType>(nlocal,nall),
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(nlocal,nall),
       LAMMPS_LAMBDA (const int i) {
       const int iAIR = binID_(i);
       if (iAIR > 0) { // include only ghost atoms in an AIR
@@ -176,7 +175,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
         gbins_(iAIR, ac) = i;
       }
     });
-    Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType>(1,8),
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(1,8),
       LAMMPS_LAMBDA (const int i) {
       sortBin(gbincount_, gbins_, i);
     });
@@ -188,16 +187,16 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     if ((mbins > (int) bins.extent(0)) ||
         (atoms_per_bin > (int) bins.extent(1))) {
       k_bins = DAT::tdual_int_2d("bins", mbins, atoms_per_bin);
-      bins = k_bins.view<DeviceType>();
+      bins = DualViewHelper<Space>::view(k_bins);
     }
     MemsetZeroFunctor<DeviceType> f_zero;
-    f_zero.ptr = (void*) k_bincount.view<DeviceType>().data();
+    f_zero.ptr = (void*) DualViewHelper<Space>::view(k_bincount).data();
     Kokkos::parallel_for(mbins, f_zero);
 
     auto bincount_ = bincount;
     auto bins_ = bins;
 
-    NPairSSAKokkosBinAtomsFunctor<DeviceType> f(*this);
+    NPairSSAKokkosBinAtomsFunctor<Space> f(*this);
     Kokkos::parallel_for(nlocal, f);
 
     Kokkos::parallel_for(mbins,
@@ -205,32 +204,32 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
       sortBin(bincount_, bins_, i);
     });
   }
-  k_bins.modify<DeviceType>();
-  k_bincount.modify<DeviceType>();
+  DualViewHelper<Space>::modify(k_bins);
+  DualViewHelper<Space>::modify(k_bincount);
   c_bins = bins; // bins won't change until the next bin_atoms
 
-  k_gbins.modify<DeviceType>();
-  k_gbincount.modify<DeviceType>();
+  DualViewHelper<Space>::modify(k_gbins);
+  DualViewHelper<Space>::modify(k_gbincount);
 
 //now dispose of the k_binID array
   k_binID = DAT::tdual_int_1d("NBinSSAKokkos::binID",0);
-  binID = k_binID.view<DeviceType>();
+  binID = DualViewHelper<Space>::view(k_binID);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void NBinSSAKokkos<DeviceType>::binAtomsItem(const int &i) const
+void NBinSSAKokkos<Space>::binAtomsItem(const int &i) const
 {
   const int ibin = binID(i);
   const int ac = Kokkos::atomic_fetch_add(&(bincount[ibin]), (int)1);
   bins(ibin, ac) = i;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void NBinSSAKokkos<DeviceType>::binIDAtomsItem(const int &i, int &update) const
+void NBinSSAKokkos<Space>::binIDAtomsItem(const int &i, int &update) const
 {
   int loc[3];
   const int ibin = coord2bin(x(i, 0), x(i, 1), x(i, 2), &(loc[0]));
@@ -248,9 +247,9 @@ void NBinSSAKokkos<DeviceType>::binIDAtomsItem(const int &i, int &update) const
   if (update <= ac) update = ac + 1;
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void NBinSSAKokkos<DeviceType>::binIDGhostsItem(const int &i, int &update) const
+void NBinSSAKokkos<Space>::binIDGhostsItem(const int &i, int &update) const
 {
   const int iAIR = coord2ssaAIR(x(i, 0), x(i, 1), x(i, 2));
   binID(i) = iAIR;
@@ -261,9 +260,9 @@ void NBinSSAKokkos<DeviceType>::binIDGhostsItem(const int &i, int &update) const
 }
 
 // An implementation of heapsort without recursion
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void NBinSSAKokkos<DeviceType>::sortBin(
+void NBinSSAKokkos<Space>::sortBin(
       typename AT::t_int_1d gbincount,
       typename AT::t_int_2d gbins,
       const int &ibin)
@@ -297,8 +296,6 @@ void NBinSSAKokkos<DeviceType>::sortBin(
 }
 
 namespace LAMMPS_NS {
-template class NBinSSAKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class NBinSSAKokkos<LMPHostType>;
-#endif
+template class NBinSSAKokkos<Device>;
+template class NBinSSAKokkos<Host>;
 }

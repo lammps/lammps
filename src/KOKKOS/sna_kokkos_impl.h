@@ -23,13 +23,13 @@
 
 namespace LAMMPS_NS {
 
-static const double MY_PI  = 3.14159265358979323846; // pi
+static const KK_FLOAT MY_PI  = 3.14159265358979323846; // pi
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 inline
-SNAKokkos<DeviceType>::SNAKokkos(double rfac0_in,
+SNAKokkos<Space>::SNAKokkos(KK_FLOAT rfac0_in,
          int twojmax_in,
-         double rmin0_in, int switch_flag_in, int bzero_flag_in)
+         KK_FLOAT rmin0_in, int switch_flag_in, int bzero_flag_in)
 {
   wself = 1.0;
 
@@ -52,10 +52,10 @@ SNAKokkos<DeviceType>::SNAKokkos(double rfac0_in,
   cglist = t_sna_1d("SNAKokkos::cglist",idxcg_max);
 
   if (bzero_flag) {
-    bzero = Kokkos::View<double*, Kokkos::LayoutRight, DeviceType>("sna:bzero",twojmax+1);
+    bzero = Kokkos::View<KK_FLOAT*, Kokkos::LayoutRight, DeviceType>("sna:bzero",twojmax+1);
     auto h_bzero = Kokkos::create_mirror_view(bzero);
 
-    double www = wself*wself*wself;
+    KK_FLOAT www = wself*wself*wself;
     for(int j = 0; j <= twojmax; j++)
       h_bzero[j] = www*(j+1);
     Kokkos::deep_copy(bzero,h_bzero);
@@ -64,15 +64,15 @@ SNAKokkos<DeviceType>::SNAKokkos(double rfac0_in,
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-SNAKokkos<DeviceType>::~SNAKokkos()
+SNAKokkos<Space>::~SNAKokkos()
 {
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 inline
-void SNAKokkos<DeviceType>::build_indexlist()
+void SNAKokkos<Space>::build_indexlist()
 {
   // index list for cglist
 
@@ -203,17 +203,17 @@ void SNAKokkos<DeviceType>::build_indexlist()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 inline
-void SNAKokkos<DeviceType>::init()
+void SNAKokkos<Space>::init()
 {
   init_clebsch_gordan();
   init_rootpqarray();
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 inline
-void SNAKokkos<DeviceType>::grow_rij(int newnatom, int newnmax)
+void SNAKokkos<Space>::grow_rij(int newnatom, int newnmax)
 {
   if(newnatom <= natom && newnmax <= nmax) return;
   natom = newnatom;
@@ -255,9 +255,9 @@ void SNAKokkos<DeviceType>::grow_rij(int newnatom, int newnmax)
  *    compute Ui by summing over neighbors j
  *    ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::pre_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int& iatom)
+void SNAKokkos<Space>::pre_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int& iatom)
 {
   for (int j = 0; j <= twojmax; j++) {
     const int jju = idxu_block(j);
@@ -285,9 +285,9 @@ void SNAKokkos<DeviceType>::pre_ui(const typename Kokkos::TeamPolicy<DeviceType>
    accumulating to the total. GPU only.
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int iatom, const int jnbor)
+void SNAKokkos<Space>::compute_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int iatom, const int jnbor)
 {
 
   // utot(j,ma,mb) = 0 for all j,ma,ma
@@ -301,32 +301,32 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
   const int team_rank = team.team_rank();
   const int scratch_shift = team_rank * max_m_tile;
 
-  // double buffer
+  // KK_FLOAT buffer
   SNAcomplex* buf1 = (SNAcomplex*)team.team_shmem( ).get_shmem(team.team_size()*max_m_tile*sizeof(SNAcomplex), 0) + scratch_shift;
   SNAcomplex* buf2 = (SNAcomplex*)team.team_shmem( ).get_shmem(team.team_size()*max_m_tile*sizeof(SNAcomplex), 0) + scratch_shift;
 
-  const double x = rij(iatom,jnbor,0);
-  const double y = rij(iatom,jnbor,1);
-  const double z = rij(iatom,jnbor,2);
+  const KK_FLOAT x = rij(iatom,jnbor,0);
+  const KK_FLOAT y = rij(iatom,jnbor,1);
+  const KK_FLOAT z = rij(iatom,jnbor,2);
 
-  const double wj_local = wj(iatom, jnbor);
-  const double rcut = rcutij(iatom, jnbor);
+  const KK_FLOAT wj_local = wj(iatom, jnbor);
+  const KK_FLOAT rcut = rcutij(iatom, jnbor);
 
-  const double rsq = x * x + y * y + z * z;
-  const double r = sqrt(rsq);
+  const KK_FLOAT rsq = x * x + y * y + z * z;
+  const KK_FLOAT r = sqrt(rsq);
 
-  const double theta0 = (r - rmin0) * rfac0 * MY_PI / (rcutij(iatom,jnbor) - rmin0);
+  const KK_FLOAT theta0 = (r - rmin0) * rfac0 * MY_PI / (rcutij(iatom,jnbor) - rmin0);
   //    theta0 = (r - rmin0) * rscale0;
-  const double cs = cos(theta0);
-  const double sn = sin(theta0);
-  const double z0 = r * cs / sn; // r / tan(theta0)
+  const KK_FLOAT cs = cos(theta0);
+  const KK_FLOAT sn = sin(theta0);
+  const KK_FLOAT z0 = r * cs / sn; // r / tan(theta0)
 
   // Compute cutoff function
-  const double sfac = compute_sfac(r, rcut) * wj_local;
+  const KK_FLOAT sfac = compute_sfac(r, rcut) * wj_local;
 
   // compute Cayley-Klein parameters for unit quaternion,
   // pack into complex number
-  const double r0inv = 1.0 / sqrt(r * r + z0 * z0);
+  const KK_FLOAT r0inv = 1.0 / sqrt(r * r + z0 * z0);
   const SNAcomplex a = { r0inv * z0, -r0inv * z };
   const SNAcomplex b = { r0inv * y, -r0inv * x };
 
@@ -378,13 +378,13 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
       SNAcomplex u_accum = {0., 0.};
 
       // VMK recursion relation: grab contribution which is multiplied by b*
-      const double rootpq2 = -rootpqarray(ma, j - mb);
+      const KK_FLOAT rootpq2 = -rootpqarray(ma, j - mb);
       const SNAcomplex u_up2 = (ma > 0)?rootpq2*buf1[jjup_shared_idx-1]:SNAcomplex(0.,0.);
       //const SNAcomplex u_up2 = (ma > 0)?rootpq2*ulist(jjup_index-1,iatom,jnbor):SNAcomplex(0.,0.);
       caconjxpy(b, u_up2, u_accum);
 
       // VMK recursion relation: grab contribution which is multiplied by a*
-      const double rootpq1 = rootpqarray(j - ma, j - mb);
+      const KK_FLOAT rootpq1 = rootpqarray(j - ma, j - mb);
       const SNAcomplex u_up1 = (ma < j)?rootpq1*buf1[jjup_shared_idx]:SNAcomplex(0.,0.);
       //const SNAcomplex u_up1 = (ma < j)?rootpq1*ulist(jjup_index,iatom,jnbor):SNAcomplex(0.,0.);
       caconjxpy(a, u_up1, u_accum);
@@ -422,7 +422,7 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
     // ThreadVectorRange has a __syncwarp (appropriately masked for
     // vector lengths < 32) implict at the end
 
-    // swap double buffers
+    // swap KK_FLOAT buffers
     auto tmp = buf1; buf1 = buf2; buf2 = tmp;
 
 
@@ -433,11 +433,11 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
    compute Ui by summing over bispectrum components. CPU only.
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_ui_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor)
+void SNAKokkos<Space>::compute_ui_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor)
 {
-  double rsq, r, x, y, z, z0, theta0;
+  KK_FLOAT rsq, r, x, y, z, z0, theta0;
 
   // utot(j,ma,mb) = 0 for all j,ma,ma
   // utot(j,ma,ma) = 1 for all j,ma
@@ -464,9 +464,9 @@ void SNAKokkos<DeviceType>::compute_ui_cpu(const typename Kokkos::TeamPolicy<Dev
    compute Zi by summing over products of Ui
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_zi(const int& iter)
+void SNAKokkos<Space>::compute_zi(const int& iter)
 {
   const int iatom = iter / idxz_max;
   const int jjz = iter % idxz_max;
@@ -481,7 +481,7 @@ void SNAKokkos<DeviceType>::compute_zi(const int& iter)
   const int na = idxz(jjz,7);
   const int nb = idxz(jjz,8);
 
-  const double* cgblock = cglist.data() + idxcg_block(j1,j2,j);
+  const KK_FLOAT* cgblock = cglist.data() + idxcg_block(j1,j2,j);
 
   zlist(jjz,iatom).re = 0.0;
   zlist(jjz,iatom).im = 0.0;
@@ -491,8 +491,8 @@ void SNAKokkos<DeviceType>::compute_zi(const int& iter)
   int icgb = mb1min*(j2+1) + mb2max;
   for(int ib = 0; ib < nb; ib++) {
 
-    double suma1_r = 0.0;
-    double suma1_i = 0.0;
+    KK_FLOAT suma1_r = 0.0;
+    KK_FLOAT suma1_i = 0.0;
 
     int ma1 = ma1min;
     int ma2 = ma2max;
@@ -518,9 +518,9 @@ void SNAKokkos<DeviceType>::compute_zi(const int& iter)
    compute Yi from Ui without storing Zi, looping over zlist indices
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::zero_yi(const int& idx, const int& iatom)
+void SNAKokkos<Space>::zero_yi(const int& idx, const int& iatom)
 {
   ylist(idx,iatom) = {0.0, 0.0};
 }
@@ -529,12 +529,12 @@ void SNAKokkos<DeviceType>::zero_yi(const int& idx, const int& iatom)
    compute Yi from Ui without storing Zi, looping over zlist indices
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_yi(int iter,
- const Kokkos::View<F_FLOAT**, DeviceType> &beta)
+void SNAKokkos<Space>::compute_yi(int iter,
+ const t_sna_2d &beta)
 {
-  double betaj;
+  KK_FLOAT betaj;
   const int iatom = iter / idxz_max;
   const int jjz = iter % idxz_max;
 
@@ -549,20 +549,20 @@ void SNAKokkos<DeviceType>::compute_yi(int iter,
   const int nb = idxz(jjz,8);
   const int jju = idxz(jjz,9);
 
-  const double* cgblock = cglist.data() + idxcg_block(j1,j2,j);
+  const KK_FLOAT* cgblock = cglist.data() + idxcg_block(j1,j2,j);
   //int mb = (2 * (mb1min+mb2max) - j1 - j2 + j) / 2;
   //int ma = (2 * (ma1min+ma2max) - j1 - j2 + j) / 2;
 
-  double ztmp_r = 0.0;
-  double ztmp_i = 0.0;
+  KK_FLOAT ztmp_r = 0.0;
+  KK_FLOAT ztmp_i = 0.0;
 
   int jju1 = idxu_block[j1] + (j1+1)*mb1min;
   int jju2 = idxu_block[j2] + (j2+1)*mb2max;
   int icgb = mb1min*(j2+1) + mb2max;
   for(int ib = 0; ib < nb; ib++) {
 
-    double suma1_r = 0.0;
-    double suma1_i = 0.0;
+    KK_FLOAT suma1_r = 0.0;
+    KK_FLOAT suma1_i = 0.0;
 
     int ma1 = ma1min;
     int ma2 = ma2max;
@@ -614,54 +614,54 @@ void SNAKokkos<DeviceType>::compute_yi(int iter,
    and of dEidRj. GPU only.
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_fused_deidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int iatom, const int jnbor)
+void SNAKokkos<Space>::compute_fused_deidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int iatom, const int jnbor)
 {
   // get shared memory offset
   const int max_m_tile = (twojmax+1)*(twojmax/2+1);
   const int team_rank = team.team_rank();
   const int scratch_shift = team_rank * max_m_tile;
 
-  // double buffer for ulist
+  // KK_FLOAT buffer for ulist
   SNAcomplex* ulist_buf1 = (SNAcomplex*)team.team_shmem( ).get_shmem(team.team_size()*max_m_tile*sizeof(SNAcomplex), 0) + scratch_shift;
   SNAcomplex* ulist_buf2 = (SNAcomplex*)team.team_shmem( ).get_shmem(team.team_size()*max_m_tile*sizeof(SNAcomplex), 0) + scratch_shift;
 
-  // double buffer for dulist
+  // KK_FLOAT buffer for dulist
   SNAcomplex* dulist_buf1 = (SNAcomplex*)team.team_shmem( ).get_shmem(team.team_size()*max_m_tile*sizeof(SNAcomplex), 0) + scratch_shift;
   SNAcomplex* dulist_buf2 = (SNAcomplex*)team.team_shmem( ).get_shmem(team.team_size()*max_m_tile*sizeof(SNAcomplex), 0) + scratch_shift;
 
-  const double x = rij(iatom,jnbor,0);
-  const double y = rij(iatom,jnbor,1);
-  const double z = rij(iatom,jnbor,2);
-  const double rsq = x * x + y * y + z * z;
-  const double r = sqrt(rsq);
-  const double rcut = rcutij(iatom, jnbor);
-  const double rscale0 = rfac0 * MY_PI / (rcut - rmin0);
-  const double theta0 = (r - rmin0) * rscale0;
-  const double cs = cos(theta0);
-  const double sn = sin(theta0);
-  const double z0 = r * cs / sn;
-  const double dz0dr = z0 / r - (r*rscale0) * (rsq + z0 * z0) / rsq;
+  const KK_FLOAT x = rij(iatom,jnbor,0);
+  const KK_FLOAT y = rij(iatom,jnbor,1);
+  const KK_FLOAT z = rij(iatom,jnbor,2);
+  const KK_FLOAT rsq = x * x + y * y + z * z;
+  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT rcut = rcutij(iatom, jnbor);
+  const KK_FLOAT rscale0 = rfac0 * MY_PI / (rcut - rmin0);
+  const KK_FLOAT theta0 = (r - rmin0) * rscale0;
+  const KK_FLOAT cs = cos(theta0);
+  const KK_FLOAT sn = sin(theta0);
+  const KK_FLOAT z0 = r * cs / sn;
+  const KK_FLOAT dz0dr = z0 / r - (r*rscale0) * (rsq + z0 * z0) / rsq;
 
-  const double wj_local = wj(iatom, jnbor);
-  const double sfac = wj_local * compute_sfac(r, rcut);
-  const double dsfac = wj_local * compute_dsfac(r, rcut);
+  const KK_FLOAT wj_local = wj(iatom, jnbor);
+  const KK_FLOAT sfac = wj_local * compute_sfac(r, rcut);
+  const KK_FLOAT dsfac = wj_local * compute_dsfac(r, rcut);
 
-  const double rinv = 1.0 / r;
+  const KK_FLOAT rinv = 1.0 / r;
 
   // extract a single unit vector
-  const double u = (dir == 0 ? x * rinv : dir == 1 ? y * rinv : z * rinv);
+  const KK_FLOAT u = (dir == 0 ? x * rinv : dir == 1 ? y * rinv : z * rinv);
 
   // Compute Cayley-Klein parameters for unit quaternion
-  const double r0inv = 1.0 / sqrt(r * r + z0 * z0);
+  const KK_FLOAT r0inv = 1.0 / sqrt(r * r + z0 * z0);
 
   const SNAcomplex a = { r0inv * z0, -r0inv * z };
   const SNAcomplex b = { r0inv * y, -r0inv * x };
 
-  const double dr0invdr = -r0inv * r0inv * r0inv * (r + z0 * dz0dr);
-  const double dr0inv = dr0invdr * u;
-  const double dz0 = dz0dr * u;
+  const KK_FLOAT dr0invdr = -r0inv * r0inv * r0inv * (r + z0 * dz0dr);
+  const KK_FLOAT dr0inv = dr0invdr * u;
+  const KK_FLOAT dz0 = dz0dr * u;
 
   const SNAcomplex da = { dz0 * r0inv + z0 * dr0inv,
                               - z * dr0inv + (dir == 2 ? - r0inv : 0.) };
@@ -670,11 +670,11 @@ void SNAKokkos<DeviceType>::compute_fused_deidrj(const typename Kokkos::TeamPoli
                               -x * dr0inv + (dir==0?-r0inv:0.) };
 
   // Accumulate the full contribution to dedr on the fly
-  const double du_prod = dsfac * u; // chain rule
+  const KK_FLOAT du_prod = dsfac * u; // chain rule
   const SNAcomplex y_local = ylist(0, iatom);
 
   // Symmetry factor of 0.5 b/c 0 element is on diagonal for even j==0
-  double dedr_full_sum = 0.5 * du_prod * y_local.re;
+  KK_FLOAT dedr_full_sum = 0.5 * du_prod * y_local.re;
 
   // single has a warp barrier at the end
   Kokkos::single(Kokkos::PerThread(team), [=]() {
@@ -696,11 +696,11 @@ void SNAKokkos<DeviceType>::compute_fused_deidrj(const typename Kokkos::TeamPoli
 
     const int total_iters = n_ma * n_mb;
 
-    double dedr_sum = 0.; // j-local sum
+    KK_FLOAT dedr_sum = 0.; // j-local sum
 
     //for (int m = 0; m < total_iters; m++) {
     Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, total_iters),
-      [&] (const int m, double& sum_tmp) {
+      [&] (const int m, KK_FLOAT& sum_tmp) {
 
       // ma fast, mb slow
       int ma = m % n_ma;
@@ -718,7 +718,7 @@ void SNAKokkos<DeviceType>::compute_fused_deidrj(const typename Kokkos::TeamPoli
       if (j % 2 == 0 && 2*mb == j) {
         if (ma == mb) { y_local = 0.5*y_local; }
         else if (ma > mb) { y_local = { 0., 0. }; } // can probably avoid this outright
-        // else the ma < mb gets "double counted", cancelling the 0.5.
+        // else the ma < mb gets "KK_FLOAT counted", cancelling the 0.5.
       }
 
       // index into shared memory
@@ -730,11 +730,11 @@ void SNAKokkos<DeviceType>::compute_fused_deidrj(const typename Kokkos::TeamPoli
       SNAcomplex u_accum = { 0., 0. };
       SNAcomplex du_accum = { 0., 0. };
 
-      const double rootpq2 = -rootpqarray(ma, j - mb);
+      const KK_FLOAT rootpq2 = -rootpqarray(ma, j - mb);
       const SNAcomplex u_up2 = (ma > 0)?rootpq2*ulist_buf1[jjup_shared_idx-1]:SNAcomplex(0.,0.);
       caconjxpy(b, u_up2, u_accum);
 
-      const double rootpq1 = rootpqarray(j - ma, j - mb);
+      const KK_FLOAT rootpq1 = rootpqarray(j - ma, j - mb);
       const SNAcomplex u_up1 = (ma < j)?rootpq1*ulist_buf1[jjup_shared_idx]:SNAcomplex(0.,0.);
       caconjxpy(a, u_up1, u_accum);
 
@@ -807,15 +807,15 @@ void SNAKokkos<DeviceType>::compute_fused_deidrj(const typename Kokkos::TeamPoli
 ------------------------------------------------------------------------- */
 
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_deidrj_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor)
+void SNAKokkos<Space>::compute_deidrj_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor)
 {
-  t_scalar3<double> final_sum;
+  t_scalar3<KK_FLOAT> final_sum;
 
   //for(int j = 0; j <= twojmax; j++) {
   Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team,twojmax+1),
-      [&] (const int& j, t_scalar3<double>& sum_tmp) {
+      [&] (const int& j, t_scalar3<KK_FLOAT>& sum_tmp) {
     int jju = idxu_block[j];
 
     for(int mb = 0; 2*mb < j; mb++)
@@ -858,9 +858,9 @@ void SNAKokkos<DeviceType>::compute_deidrj_cpu(const typename Kokkos::TeamPolicy
    compute Bi by summing conj(Ui)*Zi
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_bi(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom)
+void SNAKokkos<Space>::compute_bi(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom)
 {
   // for j1 = 0,...,twojmax
   //   for j2 = 0,twojmax
@@ -880,11 +880,11 @@ void SNAKokkos<DeviceType>::compute_bi(const typename Kokkos::TeamPolicy<DeviceT
 
     int jjz = idxz_block(j1,j2,j);
     int jju = idxu_block[j];
-    double sumzu = 0.0;
-    double sumzu_temp = 0.0;
+    KK_FLOAT sumzu = 0.0;
+    KK_FLOAT sumzu_temp = 0.0;
     const int bound = (j+2)/2;
     Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team,(j+1)*bound),
-        [&] (const int mbma, double& sum) {
+        [&] (const int mbma, KK_FLOAT& sum) {
         //for(int mb = 0; 2*mb < j; mb++)
           //for(int ma = 0; ma <= j; ma++) {
         const int ma = mbma%(j+1);
@@ -903,7 +903,7 @@ void SNAKokkos<DeviceType>::compute_bi(const typename Kokkos::TeamPolicy<DeviceT
     if (j%2 == 0) {
       const int mb = j/2;
       Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, mb),
-          [&] (const int ma, double& sum) {
+          [&] (const int ma, KK_FLOAT& sum) {
       //for(int ma = 0; ma < mb; ma++) {
         const int jju_index = jju+(mb-1)*(j+1)+(j+1)+ma;
         const int jjz_index = jjz+(mb-1)*(j+1)+(j+1)+ma;
@@ -940,19 +940,19 @@ void SNAKokkos<DeviceType>::compute_bi(const typename Kokkos::TeamPolicy<DeviceT
    calculate derivative of Ui w.r.t. atom j
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_duidrj_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor)
+void SNAKokkos<Space>::compute_duidrj_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor)
 {
-  double rsq, r, x, y, z, z0, theta0, cs, sn;
-  double dz0dr;
+  KK_FLOAT rsq, r, x, y, z, z0, theta0, cs, sn;
+  KK_FLOAT dz0dr;
 
   x = rij(iatom,jnbor,0);
   y = rij(iatom,jnbor,1);
   z = rij(iatom,jnbor,2);
   rsq = x * x + y * y + z * z;
   r = sqrt(rsq);
-  double rscale0 = rfac0 * MY_PI / (rcutij(iatom,jnbor) - rmin0);
+  KK_FLOAT rscale0 = rfac0 * MY_PI / (rcutij(iatom,jnbor) - rmin0);
   theta0 = (r - rmin0) * rscale0;
   cs = cos(theta0);
   sn = sin(theta0);
@@ -966,12 +966,12 @@ void SNAKokkos<DeviceType>::compute_duidrj_cpu(const typename Kokkos::TeamPolicy
    add Wigner U-functions for one neighbor to the total
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::add_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor,
-                                          double r, double wj, double rcut)
+void SNAKokkos<Space>::add_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor,
+                                          KK_FLOAT r, KK_FLOAT wj, KK_FLOAT rcut)
 {
-  const double sfac = compute_sfac(r, rcut) * wj;
+  const KK_FLOAT sfac = compute_sfac(r, rcut) * wj;
 
   Kokkos::parallel_for(Kokkos::ThreadVectorRange(team,ulisttot.extent(0)),
       [&] (const int& i) {
@@ -984,15 +984,15 @@ void SNAKokkos<DeviceType>::add_uarraytot(const typename Kokkos::TeamPolicy<Devi
    compute Wigner U-functions for one neighbor
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_uarray_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor,
-                         double x, double y, double z,
-                         double z0, double r)
+void SNAKokkos<Space>::compute_uarray_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor,
+                         KK_FLOAT x, KK_FLOAT y, KK_FLOAT z,
+                         KK_FLOAT z0, KK_FLOAT r)
 {
-  double r0inv;
-  double a_r, b_r, a_i, b_i;
-  double rootpq;
+  KK_FLOAT r0inv;
+  KK_FLOAT a_r, b_r, a_i, b_i;
+  KK_FLOAT rootpq;
 
   // compute Cayley-Klein parameters for unit quaternion
 
@@ -1076,23 +1076,23 @@ void SNAKokkos<DeviceType>::compute_uarray_cpu(const typename Kokkos::TeamPolicy
    see comments in compute_uarray_cpu()
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_duarray_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor,
-                          double x, double y, double z,
-                          double z0, double r, double dz0dr,
-                          double wj, double rcut)
+void SNAKokkos<Space>::compute_duarray_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor,
+                          KK_FLOAT x, KK_FLOAT y, KK_FLOAT z,
+                          KK_FLOAT z0, KK_FLOAT r, KK_FLOAT dz0dr,
+                          KK_FLOAT wj, KK_FLOAT rcut)
 {
-double r0inv;
-  double a_r, a_i, b_r, b_i;
-  double da_r[3], da_i[3], db_r[3], db_i[3];
-  double dz0[3], dr0inv[3], dr0invdr;
-  double rootpq;
+KK_FLOAT r0inv;
+  KK_FLOAT a_r, a_i, b_r, b_i;
+  KK_FLOAT da_r[3], da_i[3], db_r[3], db_i[3];
+  KK_FLOAT dz0[3], dr0inv[3], dr0invdr;
+  KK_FLOAT rootpq;
 
-  double rinv = 1.0 / r;
-  double ux = x * rinv;
-  double uy = y * rinv;
-  double uz = z * rinv;
+  KK_FLOAT rinv = 1.0 / r;
+  KK_FLOAT ux = x * rinv;
+  KK_FLOAT uy = y * rinv;
+  KK_FLOAT uz = z * rinv;
 
   r0inv = 1.0 / sqrt(r * r + z0 * z0);
   a_r = z0 * r0inv;
@@ -1208,8 +1208,8 @@ double r0inv;
     });
   }
 
-  double sfac = compute_sfac(r, rcut);
-  double dsfac = compute_dsfac(r, rcut);
+  KK_FLOAT sfac = compute_sfac(r, rcut);
+  KK_FLOAT dsfac = compute_dsfac(r, rcut);
 
   sfac *= wj;
   dsfac *= wj;
@@ -1240,9 +1240,9 @@ double r0inv;
    factorial n, wrapper for precomputed table
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 inline
-double SNAKokkos<DeviceType>::factorial(int n)
+KK_FLOAT SNAKokkos<Space>::factorial(int n)
 {
   //if (n < 0 || n > nmaxfactorial) {
   //  char str[128];
@@ -1257,8 +1257,8 @@ double SNAKokkos<DeviceType>::factorial(int n)
    factorial n table, size SNA::nmaxfactorial+1
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-const double SNAKokkos<DeviceType>::nfac_table[] = {
+template<ExecutionSpace Space>
+const KK_FLOAT SNAKokkos<Space>::nfac_table[] = {
   1,
   1,
   2,
@@ -1433,11 +1433,11 @@ const double SNAKokkos<DeviceType>::nfac_table[] = {
    the function delta given by VMK Eq. 8.2(1)
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 inline
-double SNAKokkos<DeviceType>::deltacg(int j1, int j2, int j)
+KK_FLOAT SNAKokkos<Space>::deltacg(int j1, int j2, int j)
 {
-  double sfaccg = factorial((j1 + j2 + j) / 2 + 1);
+  KK_FLOAT sfaccg = factorial((j1 + j2 + j) / 2 + 1);
   return sqrt(factorial((j1 + j2 - j) / 2) *
               factorial((j1 - j2 + j) / 2) *
               factorial((-j1 + j2 + j) / 2) / sfaccg);
@@ -1448,13 +1448,13 @@ double SNAKokkos<DeviceType>::deltacg(int j1, int j2, int j)
    the quasi-binomial formula VMK 8.2.1(3)
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 inline
-void SNAKokkos<DeviceType>::init_clebsch_gordan()
+void SNAKokkos<Space>::init_clebsch_gordan()
 {
   auto h_cglist = Kokkos::create_mirror_view(cglist);
 
-  double sum,dcg,sfaccg;
+  KK_FLOAT sum,dcg,sfaccg;
   int m, aa2, bb2, cc2;
   int ifac;
 
@@ -1518,23 +1518,23 @@ void SNAKokkos<DeviceType>::init_clebsch_gordan()
    the p = 0, q = 0 entries are allocated and skipped for convenience.
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 inline
-void SNAKokkos<DeviceType>::init_rootpqarray()
+void SNAKokkos<Space>::init_rootpqarray()
 {
   auto h_rootpqarray = Kokkos::create_mirror_view(rootpqarray);
   for (int p = 1; p <= twojmax; p++)
     for (int q = 1; q <= twojmax; q++)
-      h_rootpqarray(p,q) = sqrt(static_cast<double>(p)/q);
+      h_rootpqarray(p,q) = sqrt(static_cast<KK_FLOAT>(p)/q);
   Kokkos::deep_copy(rootpqarray,h_rootpqarray);
 }
 
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 inline
-int SNAKokkos<DeviceType>::compute_ncoeff()
+int SNAKokkos<Space>::compute_ncoeff()
 {
   int ncount;
 
@@ -1551,16 +1551,16 @@ int SNAKokkos<DeviceType>::compute_ncoeff()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-double SNAKokkos<DeviceType>::compute_sfac(double r, double rcut)
+KK_FLOAT SNAKokkos<Space>::compute_sfac(KK_FLOAT r, KK_FLOAT rcut)
 {
   if (switch_flag == 0) return 1.0;
   if (switch_flag == 1) {
     if(r <= rmin0) return 1.0;
     else if(r > rcut) return 0.0;
     else {
-      double rcutfac = MY_PI / (rcut - rmin0);
+      KK_FLOAT rcutfac = MY_PI / (rcut - rmin0);
       return 0.5 * (cos((r - rmin0) * rcutfac) + 1.0);
     }
   }
@@ -1569,16 +1569,16 @@ double SNAKokkos<DeviceType>::compute_sfac(double r, double rcut)
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_INLINE_FUNCTION
-double SNAKokkos<DeviceType>::compute_dsfac(double r, double rcut)
+KK_FLOAT SNAKokkos<Space>::compute_dsfac(KK_FLOAT r, KK_FLOAT rcut)
 {
   if (switch_flag == 0) return 0.0;
   if (switch_flag == 1) {
     if(r <= rmin0) return 0.0;
     else if(r > rcut) return 0.0;
     else {
-      double rcutfac = MY_PI / (rcut - rmin0);
+      KK_FLOAT rcutfac = MY_PI / (rcut - rmin0);
       return -0.5 * sin((r - rmin0) * rcutfac) * rcutfac;
     }
   }
@@ -1588,9 +1588,9 @@ double SNAKokkos<DeviceType>::compute_dsfac(double r, double rcut)
 /* ---------------------------------------------------------------------- */
 
 // efficient complex FMA (i.e., y += a x)
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_FORCEINLINE_FUNCTION
-void SNAKokkos<DeviceType>::caxpy(const SNAcomplex& a, const SNAcomplex& x, SNAcomplex& y) {
+void SNAKokkos<Space>::caxpy(const SNAcomplex& a, const SNAcomplex& x, SNAcomplex& y) {
   y.re += a.re * x.re;
   y.re -= a.im * x.im;
   y.im += a.im * x.re;
@@ -1600,9 +1600,9 @@ void SNAKokkos<DeviceType>::caxpy(const SNAcomplex& a, const SNAcomplex& x, SNAc
 /* ---------------------------------------------------------------------- */
 
 // efficient complex FMA, conjugate of scalar (i.e.) y += (a.re - i a.im) x)
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_FORCEINLINE_FUNCTION
-void SNAKokkos<DeviceType>::caconjxpy(const SNAcomplex& a, const SNAcomplex& x, SNAcomplex& y) {
+void SNAKokkos<Space>::caconjxpy(const SNAcomplex& a, const SNAcomplex& x, SNAcomplex& y) {
   y.re += a.re * x.re;
   y.re += a.im * x.im;
   y.im -= a.im * x.re;
@@ -1612,9 +1612,9 @@ void SNAKokkos<DeviceType>::caconjxpy(const SNAcomplex& a, const SNAcomplex& x, 
 /* ---------------------------------------------------------------------- */
 
 // set direction of batched Duidrj
-template<class DeviceType>
+template<ExecutionSpace Space>
 KOKKOS_FORCEINLINE_FUNCTION
-void SNAKokkos<DeviceType>::set_dir(int dir_) {
+void SNAKokkos<Space>::set_dir(int dir_) {
   dir = dir_;
 }
 
@@ -1622,33 +1622,33 @@ void SNAKokkos<DeviceType>::set_dir(int dir_) {
    memory usage of arrays
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-double SNAKokkos<DeviceType>::memory_usage()
+template<ExecutionSpace Space>
+double SNAKokkos<Space>::memory_usage()
 {
   int jdimpq = twojmax + 2;
   int jdim = twojmax + 1;
-  double bytes;
+  KK_FLOAT bytes;
 
   bytes = 0;
 
-  bytes += jdimpq*jdimpq * sizeof(double);               // pqarray
-  bytes += idxcg_max * sizeof(double);                   // cglist
+  bytes += jdimpq*jdimpq * sizeof(KK_FLOAT);               // pqarray
+  bytes += idxcg_max * sizeof(KK_FLOAT);                   // cglist
 
 #ifdef KOKKOS_ENABLE_CUDA
   if (!std::is_same<DeviceType,Kokkos::Cuda>::value) {
 #endif
-    bytes += natom * idxu_max * sizeof(double) * 2;        // ulist
-    bytes += natom * idxu_max * 3 * sizeof(double) * 2;    // dulist
+    bytes += natom * idxu_max * sizeof(KK_FLOAT) * 2;        // ulist
+    bytes += natom * idxu_max * 3 * sizeof(KK_FLOAT) * 2;    // dulist
 #ifdef KOKKOS_ENABLE_CUDA
   }
 #endif
-  bytes += natom * idxu_max * sizeof(double) * 2;        // ulisttot
+  bytes += natom * idxu_max * sizeof(KK_FLOAT) * 2;        // ulisttot
   if (!std::is_same<typename DeviceType::array_layout,Kokkos::LayoutRight>::value)
-    bytes += natom * idxu_max * sizeof(double) * 2;        // ulisttot_lr
+    bytes += natom * idxu_max * sizeof(KK_FLOAT) * 2;        // ulisttot_lr
 
-  bytes += natom * idxz_max * sizeof(double) * 2;        // zlist
-  bytes += natom * idxb_max * sizeof(double);            // blist
-  bytes += natom * idxu_max * sizeof(double) * 2;        // ylist
+  bytes += natom * idxz_max * sizeof(KK_FLOAT) * 2;        // zlist
+  bytes += natom * idxb_max * sizeof(KK_FLOAT);            // blist
+  bytes += natom * idxu_max * sizeof(KK_FLOAT) * 2;        // ylist
 
   bytes += jdim * jdim * jdim * sizeof(int);             // idxcg_block
   bytes += jdim * sizeof(int);                           // idxu_block
@@ -1658,13 +1658,13 @@ double SNAKokkos<DeviceType>::memory_usage()
   bytes += idxz_max * 10 * sizeof(int);                  // idxz
   bytes += idxb_max * 3 * sizeof(int);                   // idxb
 
-  bytes += jdim * sizeof(double);                        // bzero
+  bytes += jdim * sizeof(KK_FLOAT);                        // bzero
 
-  bytes += natom * nmax * 3 * sizeof(double);            // rij
+  bytes += natom * nmax * 3 * sizeof(KK_FLOAT);            // rij
   bytes += natom * nmax * sizeof(int);                   // inside
-  bytes += natom * nmax * sizeof(double);                // wj
-  bytes += natom * nmax * sizeof(double);                // rcutij
-  bytes += natom * nmax * idxu_max * sizeof(double) * 2; // ulist_ij
+  bytes += natom * nmax * sizeof(KK_FLOAT);                // wj
+  bytes += natom * nmax * sizeof(KK_FLOAT);                // rcutij
+  bytes += natom * nmax * idxu_max * sizeof(KK_FLOAT) * 2; // ulist_ij
 
   return bytes;
 }

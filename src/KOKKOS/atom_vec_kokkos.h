@@ -64,21 +64,21 @@ class AtomVecKokkos : public AtomVec {
 
   virtual int
     pack_comm_kokkos(const int &n, const DAT::tdual_int_2d &list,
-                     const int & iswap, const DAT::tdual_xfloat_2d &buf,
+                     const int & iswap, const DAT::tdual_float_2d &buf,
                      const int &pbc_flag, const int pbc[]);
 
   virtual void
     unpack_comm_kokkos(const int &n, const int &nfirst,
-                       const DAT::tdual_xfloat_2d &buf);
+                       const DAT::tdual_float_2d &buf);
 
   virtual int
     pack_comm_vel_kokkos(const int &n, const DAT::tdual_int_2d &list,
-                         const int & iswap, const DAT::tdual_xfloat_2d &buf,
+                         const int & iswap, const DAT::tdual_float_2d &buf,
                          const int &pbc_flag, const int pbc[]);
 
   virtual void
     unpack_comm_vel_kokkos(const int &n, const int &nfirst,
-                           const DAT::tdual_xfloat_2d &buf);
+                           const DAT::tdual_float_2d &buf);
 
   virtual int
     unpack_reverse_self(const int &n, const DAT::tdual_int_2d &list,
@@ -86,41 +86,41 @@ class AtomVecKokkos : public AtomVec {
 
   virtual int
     pack_reverse_kokkos(const int &n, const int &nfirst,
-                        const DAT::tdual_ffloat_2d &buf);
+                        const DAT::tdual_float_2d &buf);
 
   virtual void
     unpack_reverse_kokkos(const int &n, const DAT::tdual_int_2d &list,
-                          const int & iswap, const DAT::tdual_ffloat_2d &buf);
+                          const int & iswap, const DAT::tdual_float_2d &buf);
 
   virtual int
     pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
-                       DAT::tdual_xfloat_2d buf,int iswap,
+                       DAT::tdual_float_2d buf,int iswap,
                        int pbc_flag, int *pbc, ExecutionSpace space) = 0;
 
   virtual void
     unpack_border_kokkos(const int &n, const int &nfirst,
-                         const DAT::tdual_xfloat_2d &buf,
+                         const DAT::tdual_float_2d &buf,
                          ExecutionSpace space) = 0;
 
   virtual int
     pack_border_vel_kokkos(int n, DAT::tdual_int_2d k_sendlist,
-                           DAT::tdual_xfloat_2d buf,int iswap,
+                           DAT::tdual_float_2d buf,int iswap,
                            int pbc_flag, int *pbc, ExecutionSpace space) { return 0; }
 
   virtual void
     unpack_border_vel_kokkos(const int &n, const int &nfirst,
-                             const DAT::tdual_xfloat_2d &buf,
+                             const DAT::tdual_float_2d &buf,
                              ExecutionSpace space) {}
 
   virtual int
-    pack_exchange_kokkos(const int &nsend, DAT::tdual_xfloat_2d &buf,
+    pack_exchange_kokkos(const int &nsend, DAT::tdual_float_2d &buf,
                          DAT::tdual_int_1d k_sendlist,
                          DAT::tdual_int_1d k_copylist,
-                         ExecutionSpace space, int dim, X_FLOAT lo, X_FLOAT hi) = 0;
+                         ExecutionSpace space, int dim, KK_FLOAT lo, KK_FLOAT hi) = 0;
 
   virtual int
-    unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int nrecv,
-                           int nlocal, int dim, X_FLOAT lo, X_FLOAT hi,
+    unpack_exchange_kokkos(DAT::tdual_float_2d &k_buf, int nrecv,
+                           int nlocal, int dim, KK_FLOAT lo, KK_FLOAT hi,
                            ExecutionSpace space) = 0;
 
 
@@ -128,9 +128,9 @@ class AtomVecKokkos : public AtomVec {
 
  protected:
 
-  HAT::t_x_array h_x;
-  HAT::t_v_array h_v;
-  HAT::t_f_array h_f;
+  HAT::t_float_1d_3 h_x;
+  HAT::t_float_1d_3 h_v;
+  HAT::t_float_1d_3 h_f;
 
   class CommKokkos *commKK;
   size_t buffer_size;
@@ -176,7 +176,7 @@ class AtomVecKokkos : public AtomVec {
     }
     mirror_type tmp_view((typename ViewType::value_type*)buffer, src.d_view.layout());
 
-    if(space == Device) {
+    if (space == Device) {
       Kokkos::deep_copy(LMPHostType(),tmp_view,src.h_view),
       Kokkos::deep_copy(LMPHostType(),src.d_view,tmp_view);
       src.clear_sync_state();
@@ -189,10 +189,10 @@ class AtomVecKokkos : public AtomVec {
   #else
   template<class ViewType>
   void perform_async_copy(ViewType& src, unsigned int space) {
-    if(space == Device)
-      src.template sync<LMPDeviceType>();
+    if (space == Device)
+      src.sync_device();
     else
-      src.template sync<LMPHostType>();
+      src.sync_host();
   }
   #endif
 };

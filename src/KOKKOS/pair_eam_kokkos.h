@@ -14,9 +14,9 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(eam/kk,PairEAMKokkos<LMPDeviceType>)
-PairStyle(eam/kk/device,PairEAMKokkos<LMPDeviceType>)
-PairStyle(eam/kk/host,PairEAMKokkos<LMPHostType>)
+PairStyle(eam/kk,PairEAMKokkos<Device>)
+PairStyle(eam/kk/device,PairEAMKokkos<Device>)
+PairStyle(eam/kk/host,PairEAMKokkos<Host>)
 
 #else
 
@@ -46,13 +46,14 @@ struct TagPairEAMKernelAB{};
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 struct TagPairEAMKernelC{};
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class PairEAMKokkos : public PairEAM, public KokkosBase {
  public:
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=0};
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
   typedef EV_FLOAT value_type;
 
   PairEAMKokkos(class LAMMPS *);
@@ -101,12 +102,12 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
-                  const F_FLOAT &dely, const F_FLOAT &delz) const;
+      const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
+                  const KK_FLOAT &dely, const KK_FLOAT &delz) const;
 
-  int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
+  int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_float_1d&,
                        int, int *);
-  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&);
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_float_1d&);
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
   int pack_reverse_comm(int, int, double *);
@@ -115,45 +116,45 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
  protected:
   void cleanup_copy();
 
-  typename AT::t_x_array_randomread x;
-  typename AT::t_f_array f;
+  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_float_1d_3 f;
   typename AT::t_int_1d_randomread type;
   typename AT::t_tagint_1d tag;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
-  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
+  DAT::tdual_float_1d k_eatom;
+  DAT::tdual_float_1d_6 k_vatom;
+  typename AT::t_float_1d d_eatom;
+  typename AT::t_float_1d_6 d_vatom;
 
   int need_dup;
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename DAT::t_ffloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_rho;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_f;
-  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_eatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_vatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename DAT::t_ffloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_rho;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_f;
-  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_eatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_vatom;
+  Kokkos::Experimental::ScatterView<typename AT::t_float_1d::data_type, typename AT::t_float_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_rho;
+  Kokkos::Experimental::ScatterView<typename AT::t_float_1d_3::data_type, typename AT::t_float_1d_3::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_f;
+  Kokkos::Experimental::ScatterView<typename AT::t_float_1d::data_type, typename AT::t_float_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_eatom;
+  Kokkos::Experimental::ScatterView<typename AT::t_float_1d_6::data_type, typename AT::t_float_1d_6::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_vatom;
+  Kokkos::Experimental::ScatterView<typename AT::t_float_1d::data_type, typename AT::t_float_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_rho;
+  Kokkos::Experimental::ScatterView<typename AT::t_float_1d_3::data_type, typename AT::t_float_1d_3::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_f;
+  Kokkos::Experimental::ScatterView<typename AT::t_float_1d::data_type, typename AT::t_float_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_eatom;
+  Kokkos::Experimental::ScatterView<typename AT::t_float_1d_6::data_type, typename AT::t_float_1d_6::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_vatom;
 
-  DAT::tdual_ffloat_1d k_rho;
-  DAT::tdual_ffloat_1d k_fp;
-  typename AT::t_ffloat_1d d_rho;
-  typename AT::t_ffloat_1d d_fp;
-  HAT::t_ffloat_1d h_rho;
-  HAT::t_ffloat_1d h_fp;
+  DAT::tdual_float_1d k_rho;
+  DAT::tdual_float_1d k_fp;
+  typename AT::t_float_1d d_rho;
+  typename AT::t_float_1d d_fp;
+  HAT::t_float_1d h_rho;
+  HAT::t_float_1d h_fp;
 
   typename AT::t_int_1d_randomread d_type2frho;
   typename AT::t_int_2d_randomread d_type2rhor;
   typename AT::t_int_2d_randomread d_type2z2r;
 
-  typedef Kokkos::DualView<F_FLOAT**[7],Kokkos::LayoutRight,DeviceType> tdual_ffloat_2d_n7;
-  typedef typename tdual_ffloat_2d_n7::t_dev_const_randomread t_ffloat_2d_n7_randomread;
-  typedef typename tdual_ffloat_2d_n7::t_host t_host_ffloat_2d_n7;
+  typedef Kokkos::DualView<KK_FLOAT**[7],Kokkos::LayoutRight,DeviceType> tdual_float_2d_n7;
+  typedef typename tdual_float_2d_n7::t_dev_const_randomread t_float_2d_n7_randomread;
+  typedef typename tdual_float_2d_n7::t_host t_host_float_2d_n7;
 
-  t_ffloat_2d_n7_randomread d_frho_spline;
-  t_ffloat_2d_n7_randomread d_rhor_spline;
-  t_ffloat_2d_n7_randomread d_z2r_spline;
-  void interpolate(int, double, double *, t_host_ffloat_2d_n7, int);
+  t_float_2d_n7_randomread d_frho_spline;
+  t_float_2d_n7_randomread d_rhor_spline;
+  t_float_2d_n7_randomread d_z2r_spline;
+  void interpolate(int, KK_FLOAT, double *, t_host_float_2d_n7, int);
 
   void file2array();
   void array2spline();
@@ -161,18 +162,18 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
-  //NeighListKokkos<DeviceType> k_list;
+  //NeighListKokkos<Space> k_list;
 
   int iswap;
   int first;
   typename AT::t_int_2d d_sendlist;
-  typename AT::t_xfloat_1d_um v_buf;
+  typename AT::t_float_1d_um v_buf;
 
 
   int neighflag,newton_pair;
   int nlocal,nall,eflag,vflag;
 
-  friend void pair_virial_fdotr_compute<PairEAMKokkos>(PairEAMKokkos*);
+  friend void pair_virial_fdotr_compute<Space,PairEAMKokkos>(PairEAMKokkos*);
 };
 
 }

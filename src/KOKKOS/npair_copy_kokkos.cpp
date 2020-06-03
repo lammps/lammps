@@ -20,15 +20,15 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-NPairCopyKokkos<DeviceType>::NPairCopyKokkos(LAMMPS *lmp) : NPair(lmp) {}
+template<ExecutionSpace Space>
+NPairCopyKokkos<Space>::NPairCopyKokkos(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    create list which is simply a copy of parent list
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NPairCopyKokkos<DeviceType>::build(NeighList *list)
+template<ExecutionSpace Space>
+void NPairCopyKokkos<Space>::build(NeighList *list)
 {
   NeighList *listcopy = list->listcopy;
 
@@ -45,8 +45,8 @@ void NPairCopyKokkos<DeviceType>::build(NeighList *list)
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NPairCopyKokkos<DeviceType>::copy_to_kokkos(NeighList *list)
+template<ExecutionSpace Space>
+void NPairCopyKokkos<Space>::copy_to_kokkos(NeighList *list)
 {
   NeighList *listcopy = list->listcopy;
 
@@ -56,8 +56,8 @@ void NPairCopyKokkos<DeviceType>::copy_to_kokkos(NeighList *list)
   list->numneigh = listcopy->numneigh;
   list->ipage = listcopy->ipage;
 
-  NeighListKokkos<DeviceType>* list_kk = (NeighListKokkos<DeviceType>*) list;
-  NeighListKokkos<DeviceType>* listcopy_kk = (NeighListKokkos<DeviceType>*) list->listcopy;
+  NeighListKokkos<Space>* list_kk = (NeighListKokkos<Space>*) list;
+  NeighListKokkos<Space>* listcopy_kk = (NeighListKokkos<Space>*) list->listcopy;
 
   list_kk->d_ilist = listcopy_kk->d_ilist;
   list_kk->d_numneigh = listcopy_kk->d_numneigh;
@@ -66,15 +66,15 @@ void NPairCopyKokkos<DeviceType>::copy_to_kokkos(NeighList *list)
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NPairCopyKokkos<DeviceType>::copy_to_cpu(NeighList *list)
+template<ExecutionSpace Space>
+void NPairCopyKokkos<Space>::copy_to_cpu(NeighList *list)
 {
   NeighList *listcopy = list->listcopy;
-  NeighListKokkos<DeviceType>* listcopy_kk = (NeighListKokkos<DeviceType>*) listcopy;
+  NeighListKokkos<Space>* listcopy_kk = (NeighListKokkos<Space>*) listcopy;
 
-  listcopy_kk->k_ilist.template sync<LMPHostType>();
-  listcopy_kk->k_numneigh.template sync<LMPHostType>();
-  listcopy_kk->k_neighbors.template sync<LMPHostType>();
+  listcopy_kk->k_ilist.sync_host();
+  listcopy_kk->k_numneigh.sync_host();
+  listcopy_kk->k_neighbors.sync_host();
 
   int inum = listcopy->inum;
   int gnum = listcopy->gnum;
@@ -121,8 +121,6 @@ void NPairCopyKokkos<DeviceType>::copy_to_cpu(NeighList *list)
 }
 
 namespace LAMMPS_NS {
-template class NPairCopyKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class NPairCopyKokkos<LMPHostType>;
-#endif
+template class NPairCopyKokkos<Device>;
+template class NPairCopyKokkos<Host>;
 }

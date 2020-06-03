@@ -13,9 +13,9 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(coord/atom/kk,ComputeCoordAtomKokkos<LMPDeviceType>)
-ComputeStyle(coord/atom/kk/device,ComputeCoordAtomKokkos<LMPDeviceType>)
-ComputeStyle(coord/atom/kk/host,ComputeCoordAtomKokkos<LMPHostType>)
+ComputeStyle(coord/atom/kk,ComputeCoordAtomKokkos<Device>)
+ComputeStyle(coord/atom/kk/device,ComputeCoordAtomKokkos<Device>)
+ComputeStyle(coord/atom/kk/host,ComputeCoordAtomKokkos<Host>)
 
 #else
 
@@ -30,11 +30,12 @@ namespace LAMMPS_NS {
 template<int CSTYLE, int NCOL>
 struct TagComputeCoordAtom{};
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class ComputeCoordAtomKokkos : public ComputeCoordAtom {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
 
   ComputeCoordAtomKokkos(class LAMMPS *, int, char **);
   virtual ~ComputeCoordAtomKokkos();
@@ -49,9 +50,9 @@ class ComputeCoordAtomKokkos : public ComputeCoordAtom {
  private:
   int inum;
 
-  typename AT::t_x_array_randomread x;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
-  typename ArrayTypes<DeviceType>::t_int_1d mask;
+  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_int_1d_randomread type;
+  typename AT::t_int_1d mask;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;

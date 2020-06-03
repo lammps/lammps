@@ -13,9 +13,9 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(coul/debye/kk,PairCoulDebyeKokkos<LMPDeviceType>)
-PairStyle(coul/debye/kk/device,PairCoulDebyeKokkos<LMPDeviceType>)
-PairStyle(coul/debye/kk/host,PairCoulDebyeKokkos<LMPHostType>)
+PairStyle(coul/debye/kk,PairCoulDebyeKokkos<Device>)
+PairStyle(coul/debye/kk/device,PairCoulDebyeKokkos<Device>)
+PairStyle(coul/debye/kk/host,PairCoulDebyeKokkos<Host>)
 
 #else
 
@@ -28,13 +28,14 @@ PairStyle(coul/debye/kk/host,PairCoulDebyeKokkos<LMPHostType>)
 
 namespace LAMMPS_NS {
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class PairCoulDebyeKokkos : public PairCoulDebye {
  public:
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=1};
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
   PairCoulDebyeKokkos(class LAMMPS *);
   ~PairCoulDebyeKokkos();
 
@@ -49,7 +50,7 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
     params_coul(){cutsq=0,scale=0;};
     KOKKOS_INLINE_FUNCTION
     params_coul(int i){cutsq=0,scale=0;};
-    F_FLOAT cutsq, scale;
+    KK_FLOAT cutsq, scale;
   };
 
  protected:
@@ -57,27 +58,27 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
+  KK_FLOAT compute_fpair(const KK_FLOAT& rsq, const int& i, const int&j,
                         const int& itype, const int& jtype) const {
     return 0.0;
   }
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j,
-                        const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const;
+  KK_FLOAT compute_fcoul(const KK_FLOAT& rsq, const int& i, const int&j,
+                        const int& itype, const int& jtype, const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const;
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
+  KK_FLOAT compute_evdwl(const KK_FLOAT& rsq, const int& i, const int&j,
                         const int& itype, const int& jtype) const {
     return 0.0;
   }
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
-                        const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const;
+  KK_FLOAT compute_ecoul(const KK_FLOAT& rsq, const int& i, const int&j,
+                        const int& itype, const int& jtype, const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const;
 
   Kokkos::DualView<params_coul**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_coul**,
@@ -85,50 +86,50 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
   // hardwired to space for 12 atom types
   params_coul m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
-  F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
-  F_FLOAT m_cut_ljsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
-  F_FLOAT m_cut_coulsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
-  typename AT::t_x_array_randomread x;
-  typename AT::t_x_array c_x;
-  typename AT::t_f_array f;
+  KK_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
+  KK_FLOAT m_cut_ljsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
+  KK_FLOAT m_cut_coulsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
+  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_float_1d_3 c_x;
+  typename AT::t_float_1d_3 f;
   typename AT::t_int_1d_randomread type;
   typename AT::t_float_1d_randomread q;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_efloat_1d d_eatom;
-  typename AT::t_virial_array d_vatom;
+  DAT::tdual_float_1d k_eatom;
+  DAT::tdual_float_1d_6 k_vatom;
+  typename AT::t_float_1d d_eatom;
+  typename AT::t_float_1d_6 d_vatom;
 
   int newton_pair;
 
-  typename AT::tdual_ffloat_2d k_cutsq;
-  typename AT::t_ffloat_2d d_cutsq;
-  typename AT::tdual_ffloat_2d k_cut_ljsq;
-  typename AT::t_ffloat_2d d_cut_ljsq;
-  typename AT::tdual_ffloat_2d k_cut_coulsq;
-  typename AT::t_ffloat_2d d_cut_coulsq;
+  DAT::tdual_float_2d k_cutsq;
+  typename AT::t_float_2d d_cutsq;
+  DAT::tdual_float_2d k_cut_ljsq;
+  typename AT::t_float_2d d_cut_ljsq;
+  DAT::tdual_float_2d k_cut_coulsq;
+  typename AT::t_float_2d d_cut_coulsq;
 
 
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
-  double special_coul[4];
-  double special_lj[4];
-  double qqrd2e;
+  KK_FLOAT special_coul[4];
+  KK_FLOAT special_lj[4];
+  KK_FLOAT qqrd2e;
 
   void allocate();
-  friend class PairComputeFunctor<PairCoulDebyeKokkos,FULL,true>;
-  friend class PairComputeFunctor<PairCoulDebyeKokkos,HALF,true>;
-  friend class PairComputeFunctor<PairCoulDebyeKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairCoulDebyeKokkos,FULL,false>;
-  friend class PairComputeFunctor<PairCoulDebyeKokkos,HALF,false>;
-  friend class PairComputeFunctor<PairCoulDebyeKokkos,HALFTHREAD,false>;
-  friend EV_FLOAT pair_compute_neighlist<PairCoulDebyeKokkos,FULL,void>(PairCoulDebyeKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairCoulDebyeKokkos,HALF,void>(PairCoulDebyeKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairCoulDebyeKokkos,HALFTHREAD,void>(PairCoulDebyeKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute<PairCoulDebyeKokkos,void>(PairCoulDebyeKokkos*,
-                                                            NeighListKokkos<DeviceType>*);
-  friend void pair_virial_fdotr_compute<PairCoulDebyeKokkos>(PairCoulDebyeKokkos*);
+  friend class PairComputeFunctor<Space,PairCoulDebyeKokkos,FULL,true>;
+  friend class PairComputeFunctor<Space,PairCoulDebyeKokkos,HALF,true>;
+  friend class PairComputeFunctor<Space,PairCoulDebyeKokkos,HALFTHREAD,true>;
+  friend class PairComputeFunctor<Space,PairCoulDebyeKokkos,FULL,false>;
+  friend class PairComputeFunctor<Space,PairCoulDebyeKokkos,HALF,false>;
+  friend class PairComputeFunctor<Space,PairCoulDebyeKokkos,HALFTHREAD,false>;
+  friend EV_FLOAT pair_compute_neighlist<Space,PairCoulDebyeKokkos,FULL,void>(PairCoulDebyeKokkos*,NeighListKokkos<Space>*);
+  friend EV_FLOAT pair_compute_neighlist<Space,PairCoulDebyeKokkos,HALF,void>(PairCoulDebyeKokkos*,NeighListKokkos<Space>*);
+  friend EV_FLOAT pair_compute_neighlist<Space,PairCoulDebyeKokkos,HALFTHREAD,void>(PairCoulDebyeKokkos*,NeighListKokkos<Space>*);
+  friend EV_FLOAT pair_compute<Space,PairCoulDebyeKokkos,void>(PairCoulDebyeKokkos*,
+                                                            NeighListKokkos<Space>*);
+  friend void pair_virial_fdotr_compute<Space,PairCoulDebyeKokkos>(PairCoulDebyeKokkos*);
 
 };
 

@@ -13,9 +13,9 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(vashishta/kk,PairVashishtaKokkos<LMPDeviceType>)
-PairStyle(vashishta/kk/device,PairVashishtaKokkos<LMPDeviceType>)
-PairStyle(vashishta/kk/host,PairVashishtaKokkos<LMPHostType>)
+PairStyle(vashishta/kk,PairVashishtaKokkos<Device>)
+PairStyle(vashishta/kk/device,PairVashishtaKokkos<Device>)
+PairStyle(vashishta/kk/host,PairVashishtaKokkos<Host>)
 
 #else
 
@@ -38,13 +38,14 @@ struct TagPairVashishtaComputeShortNeigh{};
 
 namespace LAMMPS_NS {
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class PairVashishtaKokkos : public PairVashishta {
  public:
   enum {EnabledNeighFlags=FULL};
   enum {COUL_FLAG=0};
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
+  typedef ArrayTypes<Space> AT;
   typedef EV_FLOAT value_type;
 
   PairVashishtaKokkos(class LAMMPS *);
@@ -83,19 +84,19 @@ class PairVashishtaKokkos : public PairVashishta {
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
-                  const F_FLOAT &dely, const F_FLOAT &delz) const;
+      const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
+                  const KK_FLOAT &dely, const KK_FLOAT &delz) const;
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
   void ev_tally3(EV_FLOAT &ev, const int &i, const int &j, int &k,
-            const F_FLOAT &evdwl, const F_FLOAT &ecoul,
-                       F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drki) const;
+            const KK_FLOAT &evdwl, const KK_FLOAT &ecoul,
+                       KK_FLOAT *fj, KK_FLOAT *fk, KK_FLOAT *drji, KK_FLOAT *drki) const;
 
   KOKKOS_INLINE_FUNCTION
   void ev_tally3_atom(EV_FLOAT &ev, const int &i,
-            const F_FLOAT &evdwl, const F_FLOAT &ecoul,
-                       F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drki) const;
+            const KK_FLOAT &evdwl, const KK_FLOAT &ecoul,
+                       KK_FLOAT *fj, KK_FLOAT *fk, KK_FLOAT *drji, KK_FLOAT *drki) const;
 
  protected:
   typedef Kokkos::DualView<int***,DeviceType> tdual_int_3d;
@@ -114,25 +115,25 @@ class PairVashishtaKokkos : public PairVashishta {
   virtual void setup_params();
 
   KOKKOS_INLINE_FUNCTION
-  void twobody(const Param&, const F_FLOAT&, F_FLOAT&, const int&, F_FLOAT&) const;
+  void twobody(const Param&, const KK_FLOAT&, KK_FLOAT&, const int&, KK_FLOAT&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void threebody(const Param&, const Param&, const Param&, const F_FLOAT&, const F_FLOAT&, F_FLOAT *, F_FLOAT *,
-                 F_FLOAT *, F_FLOAT *, const int&, F_FLOAT&) const;
+  void threebody(const Param&, const Param&, const Param&, const KK_FLOAT&, const KK_FLOAT&, KK_FLOAT *, KK_FLOAT *,
+                 KK_FLOAT *, KK_FLOAT *, const int&, KK_FLOAT&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void threebodyj(const Param&, const Param&, const Param&, const F_FLOAT&, const F_FLOAT&, F_FLOAT *, F_FLOAT *,
-                 F_FLOAT *) const;
+  void threebodyj(const Param&, const Param&, const Param&, const KK_FLOAT&, const KK_FLOAT&, KK_FLOAT *, KK_FLOAT *,
+                 KK_FLOAT *) const;
 
-  typename AT::t_x_array_randomread x;
-  typename AT::t_f_array f;
+  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_float_1d_3 f;
   typename AT::t_tagint_1d tag;
   typename AT::t_int_1d_randomread type;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
-  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
+  DAT::tdual_float_1d k_eatom;
+  DAT::tdual_float_1d_6 k_vatom;
+  typename AT::t_float_1d d_eatom;
+  typename AT::t_float_1d_6 d_vatom;
 
   typename AT::t_int_1d_randomread d_type2frho;
   typename AT::t_int_2d_randomread d_type2rhor;
@@ -141,7 +142,7 @@ class PairVashishtaKokkos : public PairVashishta {
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
-  //NeighListKokkos<DeviceType> k_list;
+  //NeighListKokkos<Space> k_list;
 
   int neighflag,newton_pair;
   int nlocal,nall,eflag,vflag;
@@ -151,7 +152,7 @@ class PairVashishtaKokkos : public PairVashishta {
   Kokkos::View<int*,DeviceType> d_numneigh_short_2body;
   Kokkos::View<int**,DeviceType> d_neighbors_short_3body;
   Kokkos::View<int*,DeviceType> d_numneigh_short_3body;
-  friend void pair_virial_fdotr_compute<PairVashishtaKokkos>(PairVashishtaKokkos*);
+  friend void pair_virial_fdotr_compute<Space,PairVashishtaKokkos>(PairVashishtaKokkos*);
 };
 
 }

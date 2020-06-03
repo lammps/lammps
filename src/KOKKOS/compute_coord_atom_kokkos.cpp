@@ -35,13 +35,13 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-ComputeCoordAtomKokkos<DeviceType>::ComputeCoordAtomKokkos(LAMMPS *lmp, int narg, char **arg) :
+template<ExecutionSpace Space>
+ComputeCoordAtomKokkos<Space>::ComputeCoordAtomKokkos(LAMMPS *lmp, int narg, char **arg) :
   ComputeCoordAtom(lmp, narg, arg)
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  execution_space = Space;
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 
@@ -62,8 +62,8 @@ ComputeCoordAtomKokkos<DeviceType>::ComputeCoordAtomKokkos(LAMMPS *lmp, int narg
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-ComputeCoordAtomKokkos<DeviceType>::~ComputeCoordAtomKokkos<DeviceType>()
+template<ExecutionSpace Space>
+ComputeCoordAtomKokkos<Space>::~ComputeCoordAtomKokkos<Space>()
 {
   if (copymode) return;
 
@@ -73,8 +73,8 @@ ComputeCoordAtomKokkos<DeviceType>::~ComputeCoordAtomKokkos<DeviceType>()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void ComputeCoordAtomKokkos<DeviceType>::init()
+template<ExecutionSpace Space>
+void ComputeCoordAtomKokkos<Space>::init()
 {
   ComputeCoordAtom::init();
 
@@ -85,16 +85,16 @@ void ComputeCoordAtomKokkos<DeviceType>::init()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = (Space == Host) &&
+    !(Space == Device);
   neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = (Space == Device);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void ComputeCoordAtomKokkos<DeviceType>::compute_peratom()
+template<ExecutionSpace Space>
+void ComputeCoordAtomKokkos<Space>::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
 
@@ -106,13 +106,13 @@ void ComputeCoordAtomKokkos<DeviceType>::compute_peratom()
       nmax = atom->nmax;
       memoryKK->create_kokkos(k_cvec,cvec,nmax,"coord/atom:cvec");
       vector_atom = cvec;
-      d_cvec = k_cvec.template view<DeviceType>();
+      d_cvec = DualViewHelper<Space>::view(k_cvec);
     } else {
       memoryKK->destroy_kokkos(k_carray,carray);
       nmax = atom->nmax;
       memoryKK->create_kokkos(k_carray,carray,nmax,ncol,"coord/atom:carray");
       array_atom = carray;
-      d_carray = k_carray.template view<DeviceType>();
+      d_carray = DualViewHelper<Space>::view(k_carray);
     }
   }
 
@@ -129,17 +129,17 @@ void ComputeCoordAtomKokkos<DeviceType>::compute_peratom()
       error->all(FLERR,"Must use compute orientorder/atom/kk with compute coord/atom/kk");
 
     if (c_orientorder->execution_space == Host) {
-      ComputeOrientOrderAtomKokkos<LMPHostType>* c_orientorder_kk;
-      c_orientorder_kk = (ComputeOrientOrderAtomKokkos<LMPHostType>*) c_orientorder;
-      c_orientorder_kk->k_qnarray.modify<LMPHostType>();
-      c_orientorder_kk->k_qnarray.sync<DeviceType>();
-      d_normv = c_orientorder_kk->k_qnarray.view<DeviceType>();
+      ComputeOrientOrderAtomKokkos<Host>* c_orientorder_kk;
+      c_orientorder_kk = (ComputeOrientOrderAtomKokkos<Host>*) c_orientorder;
+      c_orientorder_kk->k_qnarray.modify_host();
+      DualViewHelper<Space>::sync(c_orientorder_kk->k_qnarray);
+      d_normv = DualViewHelper<Space>::view(c_orientorder_kk->k_qnarray);
     } else {
-      ComputeOrientOrderAtomKokkos<LMPDeviceType>* c_orientorder_kk;
-      c_orientorder_kk = (ComputeOrientOrderAtomKokkos<LMPDeviceType>*) c_orientorder;
-      c_orientorder_kk->k_qnarray.modify<LMPHostType>();
-      c_orientorder_kk->k_qnarray.sync<DeviceType>();
-      d_normv = c_orientorder_kk->k_qnarray.view<DeviceType>();
+      ComputeOrientOrderAtomKokkos<Device>* c_orientorder_kk;
+      c_orientorder_kk = (ComputeOrientOrderAtomKokkos<Device>*) c_orientorder;
+      c_orientorder_kk->k_qnarray.modify_host();
+      DualViewHelper<Space>::sync(c_orientorder_kk->k_qnarray);
+      d_normv = DualViewHelper<Space>::view(c_orientorder_kk->k_qnarray);
     }
   }
 
@@ -148,7 +148,7 @@ void ComputeCoordAtomKokkos<DeviceType>::compute_peratom()
   neighbor->build_one(list);
 
   inum = list->inum;
-  NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
+  NeighListKokkos<Space>* k_list = static_cast<NeighListKokkos<Space>*>(list);
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
@@ -157,9 +157,9 @@ void ComputeCoordAtomKokkos<DeviceType>::compute_peratom()
   // use full neighbor list to count atoms less than cutoff
 
   atomKK->sync(execution_space,X_MASK|TYPE_MASK|MASK_MASK);
-  x = atomKK->k_x.view<DeviceType>();
-  type = atomKK->k_type.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
+  x = DualViewHelper<Space>::view(atomKK->k_x);
+  type = DualViewHelper<Space>::view(atomKK->k_type);
+  mask = DualViewHelper<Space>::view(atomKK->k_mask);
 
   copymode = 1;
   if (cstyle == CUTOFF) {
@@ -177,19 +177,19 @@ void ComputeCoordAtomKokkos<DeviceType>::compute_peratom()
   copymode = 0;
 
   if (ncol == 1 || cstyle == ORIENT) {
-    k_cvec.modify<DeviceType>();
-    k_cvec.sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_cvec);
+    k_cvec.sync_host();
   } else {
-    k_carray.modify<DeviceType>();
-    k_carray.sync<LMPHostType>();
+    DualViewHelper<Space>::modify(k_carray);
+    k_carray.sync_host();
   }
 
 }
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 template<int CSTYLE, int NCOL>
 KOKKOS_INLINE_FUNCTION
-void ComputeCoordAtomKokkos<DeviceType>::operator()(TagComputeCoordAtom<CSTYLE,NCOL>, const int &ii) const
+void ComputeCoordAtomKokkos<Space>::operator()(TagComputeCoordAtom<CSTYLE,NCOL>, const int &ii) const
 {
   const int i = d_ilist[ii];
   if (NCOL == 1 || CSTYLE == ORIENT)
@@ -197,9 +197,9 @@ void ComputeCoordAtomKokkos<DeviceType>::operator()(TagComputeCoordAtom<CSTYLE,N
   else
     for (int m = 0; m < ncol; m++) d_carray(i,m) = 0.0;
   if (mask[i] & groupbit) {
-    const X_FLOAT xtmp = x(i,0);
-    const X_FLOAT ytmp = x(i,1);
-    const X_FLOAT ztmp = x(i,2);
+    const KK_FLOAT xtmp = x(i,0);
+    const KK_FLOAT ytmp = x(i,1);
+    const KK_FLOAT ztmp = x(i,2);
     const int jnum = d_numneigh[i];
 
     int n = 0;
@@ -211,10 +211,10 @@ void ComputeCoordAtomKokkos<DeviceType>::operator()(TagComputeCoordAtom<CSTYLE,N
         if (!(mask[j] & jgroupbit)) continue;
 
       const int jtype = type[j];
-      const F_FLOAT delx = x(j,0) - xtmp;
-      const F_FLOAT dely = x(j,1) - ytmp;
-      const F_FLOAT delz = x(j,2) - ztmp;
-      const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+      const KK_FLOAT delx = x(j,0) - xtmp;
+      const KK_FLOAT dely = x(j,1) - ytmp;
+      const KK_FLOAT delz = x(j,2) - ztmp;
+      const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
       if (rsq < cutsq) {
         if (CSTYLE == CUTOFF) {
           if (NCOL == 1) {
@@ -226,7 +226,7 @@ void ComputeCoordAtomKokkos<DeviceType>::operator()(TagComputeCoordAtom<CSTYLE,N
                   d_carray(i,m) += 1.0;
           }
         } else if (CSTYLE == ORIENT) {
-            double dot_product = 0.0;
+            KK_FLOAT dot_product = 0.0;
             for (int m=0; m < 2*(2*l+1); m++) {
               dot_product += d_normv(i,nqlist+m)*d_normv(j,nqlist+m);
             }
@@ -242,8 +242,6 @@ void ComputeCoordAtomKokkos<DeviceType>::operator()(TagComputeCoordAtom<CSTYLE,N
 }
 
 namespace LAMMPS_NS {
-template class ComputeCoordAtomKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
-template class ComputeCoordAtomKokkos<LMPHostType>;
-#endif
+template class ComputeCoordAtomKokkos<Device>;
+template class ComputeCoordAtomKokkos<Host>;
 }

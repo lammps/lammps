@@ -59,20 +59,23 @@ class AtomNeighborsConst
   const int _stride;
 };
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class NeighListKokkos: public NeighList {
   int _stride;
 
 public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef ArrayTypes<Space> AT;
+
   int maxneighs;
 
   void grow(int nmax);
   DAT::tdual_neighbors_2d k_neighbors;
-  typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors;
+  typename AT::t_neighbors_2d d_neighbors;
   DAT::tdual_int_1d k_ilist;   // local indices of I atoms
-  typename ArrayTypes<DeviceType>::t_int_1d d_ilist;
+  typename AT::t_int_1d d_ilist;
   DAT::tdual_int_1d k_numneigh; // # of J neighs for each I
-  typename ArrayTypes<DeviceType>::t_int_1d d_numneigh;
+  typename AT::t_int_1d d_numneigh;
 
   NeighListKokkos(class LAMMPS *lmp);
 
@@ -84,8 +87,8 @@ public:
 
   KOKKOS_INLINE_FUNCTION
   static AtomNeighborsConst static_neighbors_const(int i,
-           typename ArrayTypes<DeviceType>::t_neighbors_2d_const const& d_neighbors,
-           typename ArrayTypes<DeviceType>::t_int_1d_const const& d_numneigh) {
+           typename AT::t_neighbors_2d_const const& d_neighbors,
+           typename AT::t_int_1d_const const& d_numneigh) {
     return AtomNeighborsConst(&d_neighbors(i,0),d_numneigh(i),
                               &d_neighbors(i,1)-&d_neighbors(i,0));
   }

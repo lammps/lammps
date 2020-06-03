@@ -43,8 +43,8 @@ class MinKokkos : public Min {
  //protected: // won't compile with CUDA
   class FixMinimizeKokkos *fix_minimize_kk;  // fix that stores auxiliary data
 
-  DAT::t_ffloat_1d xvec;            // variables for atomic dof, as 1d vector
-  DAT::t_ffloat_1d fvec;            // force vector for atomic dof, as 1d vector
+  DAT::t_float_1d xvec;            // variables for atomic dof, as 1d vector
+  DAT::t_float_1d fvec;            // force vector for atomic dof, as 1d vector
 
   double energy_force(int);
   void force_clear();

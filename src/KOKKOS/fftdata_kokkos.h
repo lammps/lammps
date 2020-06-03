@@ -132,14 +132,14 @@ typedef double FFT_SCALAR;
 #endif
 
 
-template <class DeviceType>
+template <LAMMPS_NS::ExecutionSpace Space>
 struct FFTArrayTypes;
 
 template <>
-struct FFTArrayTypes<LMPDeviceType> {
+struct FFTArrayTypes<LAMMPS_NS::Device> {
 
 typedef Kokkos::
-  DualView<FFT_SCALAR*, Kokkos::LayoutRight, LMPDeviceType> tdual_FFT_SCALAR_1d;
+  DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_SCALAR_1d;
 typedef tdual_FFT_SCALAR_1d::t_dev t_FFT_SCALAR_1d;
 typedef tdual_FFT_SCALAR_1d::t_dev_um t_FFT_SCALAR_1d_um;
 
@@ -153,25 +153,22 @@ typedef Kokkos::DualView<FFT_SCALAR***,Kokkos::LayoutRight,LMPDeviceType> tdual_
 typedef tdual_FFT_SCALAR_3d::t_dev t_FFT_SCALAR_3d;
 
 typedef Kokkos::
-  DualView<FFT_DATA*, Kokkos::LayoutRight, LMPDeviceType> tdual_FFT_DATA_1d;
+  DualView<FFT_DATA*,Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_DATA_1d;
 typedef tdual_FFT_DATA_1d::t_dev t_FFT_DATA_1d;
 typedef tdual_FFT_DATA_1d::t_dev_um t_FFT_DATA_1d_um;
 
 typedef Kokkos::
-  DualView<int*, LMPDeviceType::array_layout, LMPDeviceType> tdual_int_64;
+  DualView<int*,LMPDeviceType::array_layout,LMPDeviceType> tdual_int_64;
 typedef tdual_int_64::t_dev t_int_64;
 typedef tdual_int_64::t_dev_um t_int_64_um;
 
 };
 
-#ifdef KOKKOS_ENABLE_CUDA
 template <>
-struct FFTArrayTypes<LMPHostType> {
-
-//Kspace
+struct FFTArrayTypes<LAMMPS_NS::Host> {
 
 typedef Kokkos::
-  DualView<FFT_SCALAR*, Kokkos::LayoutRight, LMPDeviceType> tdual_FFT_SCALAR_1d;
+  DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_SCALAR_1d;
 typedef tdual_FFT_SCALAR_1d::t_host t_FFT_SCALAR_1d;
 typedef tdual_FFT_SCALAR_1d::t_host_um t_FFT_SCALAR_1d_um;
 
@@ -185,20 +182,19 @@ typedef Kokkos::DualView<FFT_SCALAR***,Kokkos::LayoutRight,LMPDeviceType> tdual_
 typedef tdual_FFT_SCALAR_3d::t_host t_FFT_SCALAR_3d;
 
 typedef Kokkos::
-  DualView<FFT_DATA*, Kokkos::LayoutRight, LMPDeviceType> tdual_FFT_DATA_1d;
+  DualView<FFT_DATA*,Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_DATA_1d;
 typedef tdual_FFT_DATA_1d::t_host t_FFT_DATA_1d;
 typedef tdual_FFT_DATA_1d::t_host_um t_FFT_DATA_1d_um;
 
 typedef Kokkos::
-  DualView<int*, LMPDeviceType::array_layout, LMPDeviceType> tdual_int_64;
+  DualView<int*,LMPDeviceType::array_layout,LMPDeviceType> tdual_int_64;
 typedef tdual_int_64::t_host t_int_64;
 typedef tdual_int_64::t_host_um t_int_64_um;
 
 };
-#endif
 
-typedef struct FFTArrayTypes<LMPDeviceType> FFT_DAT;
-typedef struct FFTArrayTypes<LMPHostType> FFT_HAT;
+typedef struct FFTArrayTypes<LAMMPS_NS::Device> FFT_DAT;
+typedef struct FFTArrayTypes<LAMMPS_NS::Host> FFT_HAT;
 
 
 #if defined(FFT_KISSFFT)

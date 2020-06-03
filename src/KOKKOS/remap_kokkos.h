@@ -23,10 +23,11 @@ namespace LAMMPS_NS {
 
 // details of how to do a 3d remap
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 struct remap_plan_3d_kokkos {
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef FFTArrayTypes<DeviceType> FFT_AT;
+  typedef FFTArrayTypes<Space> FFT_AT;
   typename FFT_AT::t_FFT_SCALAR_1d d_sendbuf;                  // buffer for MPI sends
   FFT_HAT::t_FFT_SCALAR_1d h_sendbuf;                          // host buffer for MPI sends
   typename FFT_AT::t_FFT_SCALAR_1d d_scratch;                  // scratch buffer for MPI recvs
@@ -56,25 +57,26 @@ struct remap_plan_3d_kokkos {
   int usecuda_aware;                // use CUDA-Aware MPI or not
 };
 
-template<class DeviceType>
+template<ExecutionSpace Space>
 class RemapKokkos : protected Pointers {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
   typedef DeviceType device_type;
-  typedef FFTArrayTypes<DeviceType> FFT_AT;
+  typedef FFTArrayTypes<Space> FFT_AT;
   RemapKokkos(class LAMMPS *);
   RemapKokkos(class LAMMPS *, MPI_Comm,int,int,int,int,int,int,
         int,int,int,int,int,int,int,int,int,int,int,int);
   ~RemapKokkos();
   void perform(typename FFT_AT::t_FFT_SCALAR_1d, typename FFT_AT::t_FFT_SCALAR_1d, typename FFT_AT::t_FFT_SCALAR_1d);
 
-  struct remap_plan_3d_kokkos<DeviceType> *plan;
+  struct remap_plan_3d_kokkos<Space> *plan;
 
-  void remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d, typename FFT_AT::t_FFT_SCALAR_1d, typename FFT_AT::t_FFT_SCALAR_1d, struct remap_plan_3d_kokkos<DeviceType> *);
-  struct remap_plan_3d_kokkos<DeviceType> *remap_3d_create_plan_kokkos(MPI_Comm,
+  void remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d, typename FFT_AT::t_FFT_SCALAR_1d, typename FFT_AT::t_FFT_SCALAR_1d, struct remap_plan_3d_kokkos<Space> *);
+  struct remap_plan_3d_kokkos<Space> *remap_3d_create_plan_kokkos(MPI_Comm,
                                              int, int, int, int, int, int,
                                              int, int, int, int, int, int,
                                              int, int, int, int, int, int);
-  void remap_3d_destroy_plan_kokkos(struct remap_plan_3d_kokkos<DeviceType> *);
+  void remap_3d_destroy_plan_kokkos(struct remap_plan_3d_kokkos<Space> *);
 };
 
 }

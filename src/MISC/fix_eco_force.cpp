@@ -276,7 +276,7 @@ void FixECOForce::post_force(int vflag) {
       squared_distance = dx * dx + dy * dy + dz * dz;
 
       if (squared_distance < squared_cutoff) {
-        if (n >= 24) {
+        if (n >= FIX_ECO_FORCE_MAX_NEIGHBORS) {
           error->one(FLERR, "Fix eco/force maximal number of neighbors exceeded");
         }
         nbr[i].id[n] = static_cast<tagint> (j);

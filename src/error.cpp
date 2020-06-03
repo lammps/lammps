@@ -228,9 +228,8 @@ void Error::warning(const std::string &file, int line, const std::string &str, i
 
 void Error::message(const std::string &file, int line, const std::string &str, int logflag)
 {
-  std::string mesg = fmt::format("{} ({}:{})\n",
-                                 str,truncpath(file),line);
-  
+  std::string mesg = fmt::format("{} ({}:{})\n",str,truncpath(file),line);
+
   if (screen) fputs(mesg.c_str(),screen);
   if (logflag && logfile) fputs(mesg.c_str(),logfile);
 }

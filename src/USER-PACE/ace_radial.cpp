@@ -6,30 +6,31 @@
 const DOUBLE_TYPE pi = 3.14159265358979323846264338327950288419; // pi
 
 ACERadialFunctions::ACERadialFunctions(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SPECIES_TYPE nelements,
-                                       DOUBLE_TYPE cutoff) {
-    init(nradb, lmax, nradial, ntot, nelements, cutoff);
+                                       DOUBLE_TYPE cutoff, string radbasename) {
+    init(nradb, lmax, nradial, ntot, nelements, cutoff, radbasename);
 }
 
 void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SPECIES_TYPE nelements,
-                              DOUBLE_TYPE cutoff) {
+                              DOUBLE_TYPE cutoff, string radbasename) {
     this->nradbase = nradb;
     this->lmax = lmax;
     this->nradial = nradial;
     this->ntot = ntot;
     this->nelements = nelements;
     this->cutoff = cutoff;
+    this->radbasename = radbasename;
 
-    gr.init(nradbase + 1, "gr");
-    dgr.init(nradbase + 1, "dgr");
+    gr.init(nradbase, "gr");
+    dgr.init(nradbase, "dgr");
 
-    f1g.init(nradbase + 1, "f1g");
-    f1gd1.init(nradbase + 1, "f1gd1");
+    f1g.init(nradbase, "f1g");
+    f1gd1.init(nradbase, "f1gd1");
 
     fr.init(nradial, lmax + 1, "fr");
     dfr.init(nradial, lmax + 1, "dfr");
 
-    f1f.init(nradbase, lmax + 1, "f1f");
-    f1fd1.init(nradbase, lmax + 1, "f1fd1");
+    f1f.init(nradial, lmax + 1, "f1f");
+    f1fd1.init(nradial, lmax + 1, "f1fd1");
 
 
     cheb.init(nradbase + 1, "cheb");
@@ -63,8 +64,7 @@ void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int 
 }
 
 
-ACERadialFunctions::~ACERadialFunctions() {
-}
+ACERadialFunctions::~ACERadialFunctions() = default;
 
 /**
 Function that computes Chebyshev polynomials of first and second kind
@@ -112,54 +112,112 @@ Function that computes radial basis.
 */
 void ACERadialFunctions::radbase(DOUBLE_TYPE lam, DOUBLE_TYPE cut, DOUBLE_TYPE dcut, DOUBLE_TYPE r) {
     /*lam is given by the formula (24), that contains cut */
-    DOUBLE_TYPE y2, y1, x, dx;
-    DOUBLE_TYPE env, denv, fcut, dfcut;
+
     if (r < cut) {
-        /* scaled distance x and derivative*/
-        y1 = exp(-lam * r / cut);
-        y2 = exp(-lam);
-        x = 1.0 - 2.0 * ((y1 - y2) / (1 - y2));
-        dx = 2 * (lam / cut) * (y1 / (1 - y2));
-        /* calculation of Chebyshev polynomials from the recursion */
-        calcCheb(nradbase - 1, x);
-#ifdef DEBUG_RADIAL
-        for(int ii = 0; ii<nradbase; ii++)
-            printf("cheb(%d) = %f, dcheb(%d) = %f\n",ii, cheb(ii), ii, dcheb(ii));
-#endif
-        gr(0) = cheb(0);
-        dgr(0) = dcheb(0) * dx;
-        for (NS_TYPE n = 2; n <= nradbase; n++) {
-            gr(n - 1) = 0.5 - 0.5 * cheb(n - 1);
-            dgr(n - 1) = -0.5 * dcheb(n - 1) * dx;
-#ifdef DEBUG_RADIAL
-            printf("1: n %d  gr[n] %f  dgr[n] %f\n", n-1,gr(n-1), dgr(n-1));
-#endif
-        }
-        env = 0.5 * (1.0 + cos(M_PI * r / cut));
-        denv = -0.5 * sin(M_PI * r / cut) * M_PI / cut;
-        for (NS_TYPE n = 0; n < nradbase; n++) {
-            dgr(n) = gr(n) * denv + dgr(n) * env;
-            gr(n) = gr(n) * env;
-#ifdef DEBUG_RADIAL
-            printf("2: n %d  gr[n] %f  dgr[n] %f\n", n,gr(n), dgr(n));
-#endif
-        }
-        // for radtype = 3 a smooth cut is already included in the basis function
-        dx = cut - dcut;
-        if (r > dx) {
-            fcut = 0.5 * (1.0 + cos(M_PI * (r - dx) / dcut));
-            dfcut = -0.5 * sin(M_PI * (r - dx) / dcut) * M_PI / dcut;
-            for (NS_TYPE n = 0; n < nradbase; n++) {
-                dgr(n) = gr(n) * dfcut + dgr(n) * fcut;
-                gr(n) = gr(n) * fcut;
-#ifdef DEBUG_RADIAL
-                printf("3: n %d  gr[n] %f  dgr[n] %f\n", n,gr(n), dgr(n));
-#endif
-            }
+        if (radbasename == "ChebExpCos") {
+            chebExpCos(lam, cut, dcut, r);
+        } else if (radbasename == "ChebPow") {
+            chebPow(lam, cut, dcut, r);
+        }else if (radbasename=="ChebLinear"){
+            chebLinear(lam,cut, dcut,r);
+        } else {
+            throw invalid_argument("Unknown radial basis function name: " + radbasename);
         }
     } else {
         gr.fill(0);
         dgr.fill(0);
+    }
+}
+
+/***
+ *  Radial function: ChebExpCos, cheb exp scaling including cos envelope
+ * @param lam function parameter
+ * @param cut cutoff distance
+ * @param r function input argument
+ * @return fills in gr and dgr arrays
+ */
+void
+ACERadialFunctions::chebExpCos(DOUBLE_TYPE lam, DOUBLE_TYPE cut, DOUBLE_TYPE dcut, DOUBLE_TYPE r) {
+    DOUBLE_TYPE y2, y1, x, dx;
+    DOUBLE_TYPE env, denv, fcut, dfcut;
+    /* scaled distance x and derivative*/
+    y1 = exp(-lam * r / cut);
+    y2 = exp(-lam);
+    x = 1.0 - 2.0 * ((y1 - y2) / (1 - y2));
+    dx = 2 * (lam / cut) * (y1 / (1 - y2));
+    /* calculation of Chebyshev polynomials from the recursion */
+    calcCheb(nradbase - 1, x);
+    gr(0) = cheb(0);
+    dgr(0) = dcheb(0) * dx;
+    for (NS_TYPE n = 2; n <= nradbase; n++) {
+        gr(n - 1) = 0.5 - 0.5 * cheb(n - 1);
+        dgr(n - 1) = -0.5 * dcheb(n - 1) * dx;
+    }
+    env = 0.5 * (1.0 + cos(M_PI * r / cut));
+    denv = -0.5 * sin(M_PI * r / cut) * M_PI / cut;
+    for (NS_TYPE n = 0; n < nradbase; n++) {
+        dgr(n) = gr(n) * denv + dgr(n) * env;
+        gr(n) = gr(n) * env;
+    }
+    // for radtype = 3 a smooth cut is already included in the basis function
+    dx = cut - dcut;
+    if (r > dx) {
+        fcut = 0.5 * (1.0 + cos(M_PI * (r - dx) / dcut));
+        dfcut = -0.5 * sin(M_PI * (r - dx) / dcut) * M_PI / dcut;
+        for (NS_TYPE n = 0; n < nradbase; n++) {
+            dgr(n) = gr(n) * dfcut + dgr(n) * fcut;
+            gr(n) = gr(n) * fcut;
+        }
+    }
+}
+
+/***
+*  Radial function: ChebPow, Radial function: ChebPow
+* - argument of Chebyshev polynomials
+* x = 2.0*( 1.0 - (1.0 - r/rcut)^lam ) - 1.0
+* - radial function
+* gr(n) = ( 1.0 - Cheb(n) )/2.0, n = 1,...,nradbase
+* - the function fulfills:
+* gr(n) = 0 at rcut
+* dgr(n) = 0 at rcut for lam >= 1
+* second derivative zero at rcut for lam >= 2
+* -> the radial function does not require a separate cutoff function
+* - corresponds to radial basis radtype=5 in Fortran code
+*
+* @param lam function parameter
+* @param cut cutoff distance
+* @param r function input argument
+* @return fills in gr and dgr arrays
+*/
+void
+ACERadialFunctions::chebPow(DOUBLE_TYPE lam, DOUBLE_TYPE cut, DOUBLE_TYPE dcut, DOUBLE_TYPE r) {
+    DOUBLE_TYPE y, dy, x, dx;
+    /* scaled distance x and derivative*/
+    y = (1.0 - r / cut);
+    dy = pow(y, (lam - 1.0));
+    y = dy * y;
+    dy = -lam / cut * dy;
+
+    x = 2.0 * (1.0 - y) - 1.0;
+    dx = -2.0 * dy;
+    calcCheb(nradbase, x);
+    for (NS_TYPE n = 1; n <= nradbase; n++) {
+        gr(n - 1) = 0.5 - 0.5 * cheb(n);
+        dgr(n - 1) = -0.5 * dcheb(n) * dx;
+    }
+}
+
+
+void
+ACERadialFunctions::chebLinear(DOUBLE_TYPE lam, DOUBLE_TYPE cut, DOUBLE_TYPE dcut, DOUBLE_TYPE r) {
+    DOUBLE_TYPE x, dx;
+    /* scaled distance x and derivative*/
+    x = (1.0 - r / cut);
+    dx = -1/cut;
+    calcCheb(nradbase, x);
+    for (NS_TYPE n = 1; n <= nradbase; n++) {
+        gr(n - 1) = 0.5 - 0.5 * cheb(n);
+        dgr(n - 1) = -0.5 * dcheb(n) * dx;
     }
 }
 
@@ -383,11 +441,11 @@ dcr: derivative of hard core repulsion
         cr = pre * y / r;
         dcr = -pre * y * (2.0 * lr2 + 1.0) / r2;
 
-        x0 = r/cutoff;
-        env  =  0.5*( 1.0 + cos( pi*x0 ) );
-        denv = -0.5*sin( pi*x0 )*pi/cutoff;
-        dcr = cr*denv + dcr*env;
-        cr = cr*env;
+        x0 = r / cutoff;
+        env = 0.5 * (1.0 + cos(pi * x0));
+        denv = -0.5 * sin(pi * x0) * pi / cutoff;
+        dcr = cr * denv + dcr * env;
+        cr = cr * env;
     } else {
         cr = 0.0;
         dcr = 0.0;

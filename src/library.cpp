@@ -78,12 +78,12 @@ using namespace LAMMPS_NS;
     MPI_Comm_size(ae.universe, &nprocs ); \
     \
     if (nprocs > 1) { \
-      error->set_last_error(ae.message.c_str(), ERROR_ABORT); \
+      error->set_last_error(ae.message, ERROR_ABORT); \
     } else { \
-      error->set_last_error(ae.message.c_str(), ERROR_NORMAL); \
+      error->set_last_error(ae.message, ERROR_NORMAL); \
     } \
   } catch(LAMMPSException & e) { \
-    error->set_last_error(e.message.c_str(), ERROR_NORMAL); \
+    error->set_last_error(e.message, ERROR_NORMAL); \
   }
 #else
 #define BEGIN_CAPTURE
@@ -1714,9 +1714,9 @@ int lammps_config_has_exceptions() {
 ------------------------------------------------------------------------- */
 
 int lammps_has_error(void *ptr) {
-  LAMMPS *  lmp = (LAMMPS *) ptr;
-  Error * error = lmp->error;
-  return error->get_last_error() ? 1 : 0;
+  LAMMPS  *lmp = (LAMMPS *)ptr;
+  Error *error = lmp->error;
+  return (error->get_last_error() != "") ? 1 : 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -1727,12 +1727,12 @@ int lammps_has_error(void *ptr) {
 ------------------------------------------------------------------------- */
 
 int lammps_get_last_error_message(void *ptr, char * buffer, int buffer_size) {
-  LAMMPS *  lmp = (LAMMPS *) ptr;
-  Error * error = lmp->error;
+  LAMMPS  *lmp = (LAMMPS *)ptr;
+  Error *error = lmp->error;
 
-  if(error->get_last_error()) {
+  if(error->get_last_error() != "") {
     int error_type = error->get_last_error_type();
-    strncpy(buffer, error->get_last_error(), buffer_size-1);
+    strncpy(buffer, error->get_last_error().c_str(), buffer_size-1);
     error->set_last_error(NULL, ERROR_NONE);
     return error_type;
   }

@@ -161,6 +161,7 @@ public:
 
     void chebExpCos(DOUBLE_TYPE lam, DOUBLE_TYPE cut, DOUBLE_TYPE dcut, DOUBLE_TYPE r);
     void chebPow(DOUBLE_TYPE lam, DOUBLE_TYPE cut,  DOUBLE_TYPE dcut, DOUBLE_TYPE r);
+    void chebLinear(DOUBLE_TYPE lam, DOUBLE_TYPE cut,  DOUBLE_TYPE dcut, DOUBLE_TYPE r);
 };
 
 #endif

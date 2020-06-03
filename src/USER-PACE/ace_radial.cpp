@@ -118,6 +118,8 @@ void ACERadialFunctions::radbase(DOUBLE_TYPE lam, DOUBLE_TYPE cut, DOUBLE_TYPE d
             chebExpCos(lam, cut, dcut, r);
         } else if (radbasename == "ChebPow") {
             chebPow(lam, cut, dcut, r);
+        }else if (radbasename=="ChebLinear"){
+            chebLinear(lam,cut, dcut,r);
         } else {
             throw invalid_argument("Unknown radial basis function name: " + radbasename);
         }
@@ -198,6 +200,20 @@ ACERadialFunctions::chebPow(DOUBLE_TYPE lam, DOUBLE_TYPE cut, DOUBLE_TYPE dcut, 
 
     x = 2.0 * (1.0 - y) - 1.0;
     dx = -2.0 * dy;
+    calcCheb(nradbase, x);
+    for (NS_TYPE n = 1; n <= nradbase; n++) {
+        gr(n - 1) = 0.5 - 0.5 * cheb(n);
+        dgr(n - 1) = -0.5 * dcheb(n) * dx;
+    }
+}
+
+
+void
+ACERadialFunctions::chebLinear(DOUBLE_TYPE lam, DOUBLE_TYPE cut, DOUBLE_TYPE dcut, DOUBLE_TYPE r) {
+    DOUBLE_TYPE x, dx;
+    /* scaled distance x and derivative*/
+    x = (1.0 - r / cut);
+    dx = -1/cut;
     calcCheb(nradbase, x);
     for (NS_TYPE n = 1; n <= nradbase; n++) {
         gr(n - 1) = 0.5 - 0.5 * cheb(n);

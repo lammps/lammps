@@ -21,6 +21,7 @@
 #include <string>
 
 #include "pointers.h"
+#include "tokenizer.h"
 #include "text_file_reader.h"
 
 namespace LAMMPS_NS
@@ -43,6 +44,7 @@ namespace LAMMPS_NS
     void skip_line();
     char * next_line(int nparams = 0);
     void next_dvector(int n, double * list);
+    ValueTokenizer next_values(int nparams, const std::string & seperators = TOKENIZER_DEFAULT_SEPERATORS);
 
     // convenience functions
     double next_double();

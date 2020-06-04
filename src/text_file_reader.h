@@ -21,6 +21,7 @@
 #include <cstdio>
 #include <string>
 #include <exception>
+#include "tokenizer.h"
 
 namespace LAMMPS_NS
 {
@@ -39,8 +40,9 @@ namespace LAMMPS_NS
 
     void skip_line();
     char * next_line(int nparams = 0);
-
+    
     void next_dvector(int n, double * list);
+    ValueTokenizer next_values(int nparams, const std::string & seperators = TOKENIZER_DEFAULT_SEPERATORS);
   };
 
   class FileReaderException : public std::exception {

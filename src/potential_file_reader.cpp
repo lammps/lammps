@@ -83,6 +83,15 @@ void PotentialFileReader::next_dvector(int n, double * list) {
   }
 }
 
+ValueTokenizer PotentialFileReader::next_values(int nparams, const std::string & seperators) {
+  try {
+    return reader->next_values(nparams, seperators);
+  } catch (FileReaderException & e) {
+    error->one(FLERR, e.what());
+  }
+  return ValueTokenizer("");
+}
+
 double PotentialFileReader::next_double() {
   try {
     char * line = reader->next_line(1);

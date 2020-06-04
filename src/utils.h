@@ -193,6 +193,22 @@ namespace LAMMPS_NS {
      * \return true if file exists and is readable
      */
     bool file_is_readable(const std::string & path);
+
+    /**
+     * \brief Determine full path of potential file
+     *        If file is not found in current directory, search LAMMPS_POTENTIALS folder
+     * \param path file path
+     * \return full path to potential file
+     */
+    std::string get_potential_file_path(const std::string& path);
+
+    /**
+     * \brief Read potential file and return DATE field if it is present
+     * \param path file path
+     * \param potential_name name of potential that is being read
+     * \return DATE field if present
+     */
+    std::string get_potential_date(const std::string & path, const std::string & potential_name);
   }
 }
 

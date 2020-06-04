@@ -33,7 +33,6 @@ namespace LAMMPS_NS
     std::string filetype;
 
     TextFileReader * open_potential(const std::string& path);
-    std::string get_potential_date(const std::string & path);
 
   public:
     PotentialFileReader(class LAMMPS *lmp, const std::string &filename, const std::string &potential_name);

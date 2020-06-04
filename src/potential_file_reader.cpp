@@ -142,66 +142,17 @@ std::string PotentialFileReader::next_string() {
   return "";
 }
 
-/* ----------------------------------------------------------------------
-   open a potential file as specified by name
-   if fails, search in dir specified by env variable LAMMPS_POTENTIALS
-------------------------------------------------------------------------- */
-
 TextFileReader * PotentialFileReader::open_potential(const std::string& path) {
-  // attempt to open file directly
-  // if successful, return filename
-  std::string filepath = path;
-  std::string filename = utils::path_basename(path);
+  std::string filepath = utils::get_potential_file_path(path);
   std::string date;
 
-  if(utils::file_is_readable(filepath)) {
-    date = get_potential_date(filepath);
-  } else {
-    // try the environment variable directory
-    const char *path = getenv("LAMMPS_POTENTIALS");
+  if(!filepath.empty()) {
+    date = utils::get_potential_date(filepath, filetype);
 
-    if (path != nullptr){
-      std::string pot = utils::path_basename(filepath);
-      filepath = utils::path_join(path, pot);
-
-      if (utils::file_is_readable(filepath)) {
-        date = get_potential_date(filepath);
-      } else {
-        return nullptr;
-      }
-    } else {
-      return nullptr;
+    if(!date.empty()) {
+      utils::logmesg(lmp, fmt::format("Reading potential file {} with DATE: {}", filename, date));
     }
+    return new TextFileReader(filepath, filetype);
   }
-
-  if(!date.empty()) {
-    utils::logmesg(lmp, fmt::format("Reading potential file {} with DATE: {}", filename, date));
-  }
-
-  return new TextFileReader(filepath, filetype);
-}
-
-/* ----------------------------------------------------------------------
-   read first line of potential file
-   if has DATE field, print following word
-------------------------------------------------------------------------- */
-
-std::string PotentialFileReader::get_potential_date(const std::string & path) {
-  TextFileReader reader(path, filetype);
-  reader.ignore_comments = false;
-  char * line = nullptr;
-
-  while (line = reader.next_line()) {
-    ValueTokenizer values(line);
-    while (values.has_next()) {
-      std::string word = values.next_string();
-      if (word == "DATE:") {
-        if (values.has_next()) {
-          std::string date = values.next_string();
-          return date;
-        }
-      }
-    }
-  }
-  return "";
+  return nullptr;
 }

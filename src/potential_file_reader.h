@@ -38,9 +38,18 @@ namespace LAMMPS_NS
     PotentialFileReader(class LAMMPS *lmp, const std::string &filename, const std::string &potential_name);
     virtual ~PotentialFileReader();
 
+    void ignore_comments(bool value);
+
     void skip_line();
     char * next_line(int nparams = 0);
     void next_dvector(int n, double * list);
+
+    // convenience functions
+    double next_double();
+    int    next_int();
+    tagint next_tagint();
+    bigint next_bigint();
+    std::string next_string();
   };
 
 } // namespace LAMMPS_NS

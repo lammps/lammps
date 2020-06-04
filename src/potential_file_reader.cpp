@@ -51,6 +51,10 @@ PotentialFileReader::~PotentialFileReader() {
   delete reader;
 }
 
+void PotentialFileReader::ignore_comments(bool value) {
+  reader->ignore_comments = value;
+}
+
 void PotentialFileReader::skip_line() {
   try {
     reader->skip_line();
@@ -74,6 +78,56 @@ void PotentialFileReader::next_dvector(int n, double * list) {
   } catch (FileReaderException & e) {
     error->one(FLERR, e.what());
   }
+}
+
+double PotentialFileReader::next_double() {
+  try {
+    char * line = reader->next_line(1);
+    return ValueTokenizer(line).next_double();
+  } catch (FileReaderException & e) {
+    error->one(FLERR, e.what());
+  }
+  return 0.0;
+}
+
+int PotentialFileReader::next_int() {
+  try {
+    char * line = reader->next_line(1);
+    return ValueTokenizer(line).next_int();
+  } catch (FileReaderException & e) {
+    error->one(FLERR, e.what());
+  }
+  return 0;
+}
+
+tagint PotentialFileReader::next_tagint() {
+  try {
+    char * line = reader->next_line(1);
+    return ValueTokenizer(line).next_tagint();
+  } catch (FileReaderException & e) {
+    error->one(FLERR, e.what());
+  }
+  return 0;
+}
+
+bigint PotentialFileReader::next_bigint() {
+  try {
+    char * line = reader->next_line(1);
+    return ValueTokenizer(line).next_bigint();
+  } catch (FileReaderException & e) {
+    error->one(FLERR, e.what());
+  }
+  return 0;
+}
+
+std::string PotentialFileReader::next_string() {
+  try {
+    char * line = reader->next_line(1);
+    return ValueTokenizer(line).next_string();
+  } catch (FileReaderException & e) {
+    error->one(FLERR, e.what());
+  }
+  return "";
 }
 
 /* ----------------------------------------------------------------------

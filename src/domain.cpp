@@ -1762,8 +1762,7 @@ void Domain::add_region(int narg, char **arg)
 
   if (lmp->suffix_enable) {
     if (lmp->suffix) {
-      std::string estyle = arg[1];
-      estyle += std::string("/") + lmp->suffix;
+      std::string estyle = std::string(arg[1]) + "/" + lmp->suffix;
       if (region_map->find(estyle) != region_map->end()) {
         RegionCreator region_creator = (*region_map)[estyle];
         regions[nregion] = region_creator(lmp, narg, arg);
@@ -1774,8 +1773,7 @@ void Domain::add_region(int narg, char **arg)
     }
 
     if (lmp->suffix2) {
-      std::string estyle = arg[1];
-      estyle += std::string("/") + lmp->suffix2;
+      std::string estyle = std::string(arg[1]) + "/" + lmp->suffix2;
       if (region_map->find(estyle) != region_map->end()) {
         RegionCreator region_creator = (*region_map)[estyle];
         regions[nregion] = region_creator(lmp, narg, arg);

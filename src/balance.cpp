@@ -39,6 +39,8 @@
 #include "imbalance_var.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -366,12 +368,10 @@ void Balance::command(int narg, char **arg)
   bigint natoms;
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (natoms != atom->natoms) {
-    char str[128];
-    sprintf(str,"Lost atoms via balance: original " BIGINT_FORMAT
-            " current " BIGINT_FORMAT,atom->natoms,natoms);
-    error->all(FLERR,str);
-  }
+  if (natoms != atom->natoms)
+    error->all(FLERR,fmt::format("Lost atoms via balance: "
+                                 "original {}  current {}",
+                                 atom->natoms,natoms).c_str());
 
   // imbfinal = final imbalance
   // set disable = 1, so weights no longer migrate with atoms
@@ -382,60 +382,29 @@ void Balance::command(int narg, char **arg)
 
   // stats output
 
-  double stop_time = MPI_Wtime();
-
   if (me == 0) {
-    if (screen) {
-      fprintf(screen,"  rebalancing time: %g seconds\n",stop_time-start_time);
-      fprintf(screen,"  iteration count = %d\n",niter);
-      for (int i = 0; i < nimbalance; ++i) imbalances[i]->info(screen);
-      fprintf(screen,"  initial/final max load/proc = %g %g\n",
-              maxinit,maxfinal);
-      fprintf(screen,"  initial/final imbalance factor = %g %g\n",
-              imbinit,imbfinal);
-    }
-    if (logfile) {
-      fprintf(logfile,"  rebalancing time: %g seconds\n",stop_time-start_time);
-      fprintf(logfile,"  iteration count = %d\n",niter);
-      for (int i = 0; i < nimbalance; ++i) imbalances[i]->info(logfile);
-      fprintf(logfile,"  initial/final max load/proc = %g %g\n",
-              maxinit,maxfinal);
-      fprintf(logfile,"  initial/final imbalance factor = %g %g\n",
-              imbinit,imbfinal);
-    }
-  }
+    std::string mesg = fmt::format(" rebalancing time: {:.3f} seconds\n",
+                                   MPI_Wtime()-start_time);
+    mesg += fmt::format("  iteration count = {}\n",niter);
+    for (int i = 0; i < nimbalance; ++i) mesg += imbalances[i]->info();
+    mesg += fmt::format("  initial/final maximal load/proc = {} {}\n"
+                        "  initial/final imbalance factor  = {:.6g} {:.6g}\n",
+                        maxinit,maxfinal,imbinit,imbfinal);
 
-  if (style != BISECTION) {
-    if (me == 0) {
-      if (screen) {
-        fprintf(screen,"  x cuts:");
-        for (int i = 0; i <= comm->procgrid[0]; i++)
-          fprintf(screen," %g",comm->xsplit[i]);
-        fprintf(screen,"\n");
-        fprintf(screen,"  y cuts:");
-        for (int i = 0; i <= comm->procgrid[1]; i++)
-          fprintf(screen," %g",comm->ysplit[i]);
-        fprintf(screen,"\n");
-        fprintf(screen,"  z cuts:");
-        for (int i = 0; i <= comm->procgrid[2]; i++)
-          fprintf(screen," %g",comm->zsplit[i]);
-        fprintf(screen,"\n");
-      }
-      if (logfile) {
-        fprintf(logfile,"  x cuts:");
-        for (int i = 0; i <= comm->procgrid[0]; i++)
-          fprintf(logfile," %g",comm->xsplit[i]);
-        fprintf(logfile,"\n");
-        fprintf(logfile,"  y cuts:");
-        for (int i = 0; i <= comm->procgrid[1]; i++)
-          fprintf(logfile," %g",comm->ysplit[i]);
-        fprintf(logfile,"\n");
-        fprintf(logfile,"  z cuts:");
-        for (int i = 0; i <= comm->procgrid[2]; i++)
-          fprintf(logfile," %g",comm->zsplit[i]);
-        fprintf(logfile,"\n");
-      }
+    if (style != BISECTION) {
+      mesg += "  x cuts:";
+      for (int i = 0; i <= comm->procgrid[0]; i++)
+        mesg += fmt::format(" {}",comm->xsplit[i]);
+      mesg += "\n  y cuts:";
+      for (int i = 0; i <= comm->procgrid[1]; i++)
+        mesg += fmt::format(" {}",comm->ysplit[i]);
+      mesg += "\n  z cuts:";
+      for (int i = 0; i <= comm->procgrid[2]; i++)
+        mesg += fmt::format(" {}",comm->zsplit[i]);
+      mesg += "\n";
     }
+
+    utils::logmesg(lmp,mesg);
   }
 }
 

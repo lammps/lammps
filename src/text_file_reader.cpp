@@ -100,7 +100,7 @@ char *TextFileReader::next_line(int nparams) {
 void TextFileReader::next_dvector(int n, double * list) {
   int i = 0;
   while (i < n) {
-    char *ptr = fgets(line, MAXLINE, fp);
+    char *ptr = next_line();
 
     if (ptr == nullptr) {
       // EOF

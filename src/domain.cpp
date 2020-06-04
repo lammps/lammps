@@ -39,6 +39,7 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -1935,33 +1936,20 @@ void Domain::set_box(int narg, char **arg)
    print box info, orthogonal or triclinic
 ------------------------------------------------------------------------- */
 
-void Domain::print_box(const char *str)
+void Domain::print_box(const std::string &prefix)
 {
   if (comm->me == 0) {
-    if (screen) {
-      if (triclinic == 0)
-        fprintf(screen,"%sorthogonal box = (%g %g %g) to (%g %g %g)\n",
-                str,boxlo[0],boxlo[1],boxlo[2],boxhi[0],boxhi[1],boxhi[2]);
-      else {
-        char *format = (char *)
-          "%striclinic box = (%g %g %g) to (%g %g %g) with tilt (%g %g %g)\n";
-        fprintf(screen,format,
-                str,boxlo[0],boxlo[1],boxlo[2],boxhi[0],boxhi[1],boxhi[2],
-                xy,xz,yz);
-      }
+    std::string mesg = prefix;
+    if (triclinic == 0) {
+      mesg += fmt::format("orthogonal box = ({} {} {}) to ({} {} {})\n",
+                          boxlo[0],boxlo[1],boxlo[2],
+                          boxhi[0],boxhi[1],boxhi[2]);
+    } else {
+      mesg += fmt::format("triclinic box = ({} {} {}) to ({} {} {}) "
+                          "with tilt ({} {} {})\n",boxlo[0],boxlo[1],
+                          boxlo[2],boxhi[0],boxhi[1],boxhi[2],xy,xz,yz);
     }
-    if (logfile) {
-      if (triclinic == 0)
-        fprintf(logfile,"%sorthogonal box = (%g %g %g) to (%g %g %g)\n",
-                str,boxlo[0],boxlo[1],boxlo[2],boxhi[0],boxhi[1],boxhi[2]);
-      else {
-        char *format = (char *)
-          "%striclinic box = (%g %g %g) to (%g %g %g) with tilt (%g %g %g)\n";
-        fprintf(logfile,format,
-                str,boxlo[0],boxlo[1],boxlo[2],boxhi[0],boxhi[1],boxhi[2],
-                xy,xz,yz);
-      }
-    }
+    utils::logmesg(lmp,mesg);
   }
 }
 

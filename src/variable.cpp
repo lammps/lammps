@@ -269,7 +269,8 @@ void Variable::set(int narg, char **arg)
     if (universe->me == 0) {
       FILE *fp = fopen("tmp.lammps.variable","w");
       if (fp == NULL)
-        error->one(FLERR,"Cannot open temporary file for world counter.");
+        error->one(FLERR,"Cannot open temporary file for world counter: "
+                   + utils::getsyserror());
       fprintf(fp,"%d\n",universe->nworlds);
       fclose(fp);
       fp = NULL;
@@ -532,12 +533,10 @@ void Variable::set(int narg, char **arg)
   strcpy(names[nvar],arg[0]);
 
   for (int i = 0; i < n-1; i++)
-    if (!isalnum(names[nvar][i]) && names[nvar][i] != '_') {
-      char errmsg[128];
-      snprintf(errmsg,128,"Variable name '%s' must have only alphanumeric "
-              "characters or underscore",names[nvar]);
-      error->all(FLERR,errmsg);
-    }
+    if (!isalnum(names[nvar][i]) && names[nvar][i] != '_')
+      error->all(FLERR,fmt::format("Variable name '{}' must have only "
+                                   "alphanumeric characters or underscores",
+                                   names[nvar]));
   nvar++;
 }
 
@@ -590,11 +589,9 @@ int Variable::next(int narg, char **arg)
 
   for (int iarg = 0; iarg < narg; iarg++) {
     ivar = find(arg[iarg]);
-    if (ivar < 0) {
-      char errmsg[128];
-      snprintf(errmsg,128,"Invalid variable '%s' in next command",arg[iarg]);
-      error->all(FLERR,errmsg);
-    }
+    if (ivar < 0)
+      error->all(FLERR,fmt::format("Invalid variable '{}' in next command",
+                                   arg[iarg]));
     if (style[ivar] == ULOOP && style[find(arg[0])] == UNIVERSE) continue;
     else if (style[ivar] == UNIVERSE && style[find(arg[0])] == ULOOP) continue;
     else if (style[ivar] != style[find(arg[0])])
@@ -919,11 +916,9 @@ char *Variable::retrieve(char *name)
     str = data[ivar][1];
   } else if (style[ivar] == PYTHON) {
     int ifunc = python->variable_match(data[ivar][0],name,0);
-    if (ifunc < 0) {
-      char errmsg[128];
-      snprintf(errmsg,128,"Python variable '%s' does not match Python function",name);
-      error->all(FLERR,errmsg);
-    }
+    if (ifunc < 0)
+      error->all(FLERR,fmt::format("Python variable '{}' does not match "
+                                   "Python function", name));
     python->invoke_function(ifunc,data[ivar][1]);
     str = data[ivar][1];
     // if Python func returns a string longer than VALUELENGTH
@@ -1638,12 +1633,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         if (word[0] == 'F') lowercase = 0;
 
         int ifix = modify->find_fix(word+2);
-        if (ifix < 0) {
-          std::string mesg = "Invalid fix ID '";
-          mesg += (word+2);
-          mesg += "' in variable formula";
-          print_var_error(FLERR,mesg,ivar);
-        }
+        if (ifix < 0)
+          print_var_error(FLERR,fmt::format("Invalid fix ID '{}' in variable"
+                                            " formula",word+2),ivar);
         Fix *fix = modify->fix[ifix];
 
         // parse zero or one or two trailing brackets
@@ -2074,12 +2066,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
                                   argstack,nargstack,ivar));
           else if (special_function(word,contents,tree,treestack,ntreestack,
                                     argstack,nargstack,ivar));
-          else {
-            char msg[128];
-            snprintf(msg,128,"Invalid math/group/special function '%s()'"
-                     "in variable formula", word);
-            print_var_error(FLERR,msg,ivar);
-          }
+          else print_var_error(FLERR,fmt::format("Invalid math/group/special "
+                                                 "function '{}()'in variable "
+                                                 "formula", word),ivar);
           delete [] contents;
 
         // ----------------
@@ -2134,11 +2123,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
                             "simulation box is defined",ivar);
 
           int flag = output->thermo->evaluate_keyword(word,&value1);
-          if (flag) {
-            char msg[128];
-            snprintf(msg,128,"Invalid thermo keyword '%s' in variable formula",word);
-            print_var_error(FLERR,msg,ivar);
-          }
+          if (flag)
+            print_var_error(FLERR,fmt::format("Invalid thermo keyword '{}' in "
+                                              "variable formula",word),ivar);
           if (tree) {
             Tree *newtree = new Tree();
             newtree->type = VALUE;
@@ -5071,11 +5058,9 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
 
   if (me == 0) {
     fp = fopen(file,"r");
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open file variable file %s",file);
-      error->one(FLERR,str);
-    }
+    if (fp == NULL)
+      error->one(FLERR,fmt::format("Cannot open file variable file {}: {}",
+                                   file, utils::getsyserror()));
   }
 
   // if atomfile-style variable, must store per-atom values read from file

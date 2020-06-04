@@ -1723,7 +1723,8 @@ void Molecule::open(char *file)
 {
   fp = fopen(file,"r");
   if (fp == NULL)
-    error->one(FLERR,fmt::format("Cannot open molecule file {}",file));
+    error->one(FLERR,fmt::format("Cannot open molecule file {}: {}",
+                                 file, utils::getsyserror()));
 }
 
 /* ----------------------------------------------------------------------

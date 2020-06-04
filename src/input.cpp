@@ -252,7 +252,8 @@ void Input::file(const char *filename)
 
     infile = fopen(filename,"r");
     if (infile == NULL)
-      error->one(FLERR,fmt::format("Cannot open input script {}",filename));
+      error->one(FLERR,fmt::format("Cannot open input script {}: {}",
+                                   filename, utils::getsyserror()));
 
     infiles[nfile++] = infile;
   }
@@ -1036,7 +1037,8 @@ void Input::include()
 
     infile = fopen(arg[0],"r");
     if (infile == NULL)
-      error->one(FLERR,fmt::format("Cannot open input script {}",arg[0]));
+      error->one(FLERR,fmt::format("Cannot open input script {}: {}",
+                                   arg[0], utils::getsyserror()));
 
     infiles[nfile++] = infile;
   }
@@ -1069,7 +1071,8 @@ void Input::jump()
       if (infile && infile != stdin) fclose(infile);
       infile = fopen(arg[0],"r");
       if (infile == NULL)
-        error->one(FLERR,fmt::format("Cannot open input script {}",arg[0]));
+        error->one(FLERR,fmt::format("Cannot open input script {}: {}",
+                                     arg[0], utils::getsyserror()));
 
       infiles[nfile-1] = infile;
     }
@@ -1112,7 +1115,8 @@ void Input::log()
       else logfile = fopen(arg[0],"w");
 
       if (logfile == NULL)
-        error->one(FLERR,fmt::format("Cannot open logfile {}",arg[0]));
+        error->one(FLERR,fmt::format("Cannot open logfile {}: {}",
+                                     arg[0], utils::getsyserror()));
 
     }
     if (universe->nworlds == 1) universe->ulogfile = logfile;
@@ -1189,8 +1193,8 @@ void Input::print()
         if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
         else fp = fopen(arg[iarg+1],"a");
         if (fp == NULL)
-          error->one(FLERR,fmt::format("Cannot open print file {}",
-                                       arg[iarg+1]));
+          error->one(FLERR,fmt::format("Cannot open print file {}: {}",
+                                       arg[iarg+1], utils::getsyserror()));
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"screen") == 0) {

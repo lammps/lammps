@@ -38,8 +38,8 @@ PotentialFileReader::PotentialFileReader(LAMMPS *lmp,
   fp = force->open_potential(filename.c_str());
 
   if (fp == NULL)
-    error->one(FLERR,fmt::format("Cannot open {} potential file {}",
-                                 potential_name, filename));
+    error->one(FLERR,fmt::format("Cannot open {} potential file {}: {}",
+                                 potential_name, filename, utils::getsyserror()));
 }
 
 PotentialFileReader::~PotentialFileReader() {

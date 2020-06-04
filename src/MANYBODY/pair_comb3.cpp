@@ -312,84 +312,45 @@ double PairComb3::init_one(int i, int j)
 
 void PairComb3::read_lib()
 {
-  const unsigned int MAXLIB = 1024;
   int i,j,k,l,m;
   int ii,jj,kk,ll,mm,iii;
-  char s[MAXLIB];
 
   // open library file on proc 0
 
   if (comm->me == 0) {
-    const char filename[] = "lib.comb3";
-    FILE *fp = force->open_potential(filename);
-    if (fp == NULL) error->one(FLERR,"Cannot open COMB3 lib.comb3 file");
-
     try {
-      // read and store at the same time
-      utils::sfgets(FLERR, s, MAXLIB, fp, filename, error);
+      PotentialFileReader reader(lmp, "lib.comb3", "COMB3");
+      reader.next_dvector(6, ccutoff);
+      reader.next_dvector(7, ch_a);
 
-      utils::sfgets(FLERR, s, MAXLIB, fp, filename, error);
-      ValueTokenizer values(s, " \t\n\r\f");
-
-      ccutoff[0] = values.next_double();
-      ccutoff[1] = values.next_double();
-      ccutoff[2] = values.next_double();
-      ccutoff[3] = values.next_double();
-      ccutoff[4] = values.next_double();
-      ccutoff[5] = values.next_double();
-
-      utils::sfgets(FLERR, s, MAXLIB, fp, filename, error);
-      values = ValueTokenizer(s, " \t\n\r\f");
-
-      ch_a[0] = values.next_double();
-      ch_a[1] = values.next_double();
-      ch_a[2] = values.next_double();
-      ch_a[3] = values.next_double();
-      ch_a[4] = values.next_double();
-      ch_a[5] = values.next_double();
-      ch_a[6] = values.next_double();
-
-      utils::sfgets(FLERR, s, MAXLIB, fp, filename, error);
-      values = ValueTokenizer(s, " \t\n\r\f");
-
+      ValueTokenizer values = reader.next_values(3);
       nsplpcn = values.next_int();
       nsplrad = values.next_int();
       nspltor = values.next_int();
 
-      utils::sfgets(FLERR, s, MAXLIB, fp, filename, error);
-      values = ValueTokenizer(s, " \t\n\r\f");
-
+      values = reader.next_values(3);
       maxx = values.next_int();
       maxy = values.next_int();
       maxz = values.next_int();
 
-      utils::sfgets(FLERR,s,MAXLIB,fp,filename,error);
-      values = ValueTokenizer(s, " \t\n\r\f");
-
+      values = reader.next_values(3);
       maxxc   = values.next_int();
       maxyc   = values.next_int();
       maxconj = values.next_int();
 
       for (l = 0; l < nsplpcn; l++) {
-        utils::sfgets(FLERR, s, MAXLIB, fp, filename, error);
-        values = ValueTokenizer(s, " \t\n\r\f");
+        values = reader.next_values(3);
         values.skip(1);
-
         maxxcn[l]   = values.next_int();
         vmaxxcn[l]  = values.next_double();
         dvmaxxcn[l] = values.next_double();
       }
 
-      utils::sfgets(FLERR, s, MAXLIB, fp, filename, error);
-      values = ValueTokenizer(s, " \t\n\r\f");
-
-      ntab = values.next_int();
+      ntab = reader.next_int();
 
       for (i = 0; i < (ntab + 1); i++){
-        utils::sfgets(FLERR, s, MAXLIB, fp, filename, error);
-        values = ValueTokenizer(s, " \t\n\r\f");
+        values = reader.next_values(4);
         values.skip(1);
-
         pang[i]   = values.next_double();
         dpang[i]  = values.next_double();
         ddpang[i] = values.next_double();
@@ -399,8 +360,7 @@ void PairComb3::read_lib()
         for (i = 0; i < (maxx + 1); i++)
           for (j = 0; j < (maxy + 1); j++)
             for (k = 0; k < (maxz + 1); k++) {
-              utils::sfgets(FLERR, s, MAXLIB, fp, filename, error);
-              values = ValueTokenizer(s, " \t\n\r\f");
+              values = reader.next_values(8);
 
               ll = values.next_int() - 1;
               ii = values.next_int();
@@ -416,8 +376,7 @@ void PairComb3::read_lib()
         for (i = 0; i < maxx; i++)
           for (j = 0; j < maxy; j++)
             for (k = 0; k < maxz; k++) {
-              utils::sfgets(FLERR, s, MAXLIB, fp, filename, error);
-              values = ValueTokenizer(s, " \t\n\r\f");
+              values = reader.next_values(4);
 
               ll = values.next_int()-1;
               ii = values.next_int();
@@ -425,13 +384,8 @@ void PairComb3::read_lib()
               kk = values.next_int();
 
               for(iii = 0; iii < 2; iii++) {
-                utils::sfgets(FLERR, s, MAXLIB, fp, filename, error);
-                values = ValueTokenizer(s, " \t\n\r\f");
-
-                for(m = 0; m < 32 ; m++) {
-                  mm = iii*32 + m;
-                  pcn_cubs[ll][ii][jj][kk][mm] = values.next_double();
-                }
+                mm = iii*32;
+                reader.next_dvector(32, &pcn_cubs[ll][ii][jj][kk][mm]);
               }
             }
 
@@ -439,8 +393,7 @@ void PairComb3::read_lib()
         for (i = 0; i < (maxxc + 1); i++)
           for (j = 0; j < (maxyc + 1); j++)
             for (k = 0; k < maxconj; k++) {
-              utils::sfgets(FLERR, s, MAXLIB, fp, filename, error);
-              values = ValueTokenizer(s, " \t\n\r\f");
+              values = reader.next_values(8);
 
               ll = values.next_int() - 1;
               ii = values.next_int();
@@ -456,8 +409,7 @@ void PairComb3::read_lib()
         for (i = 0; i < maxxc; i++)
           for (j = 0; j < maxyc; j++)
             for (k = 0; k < (maxconj - 1); k++) {
-              utils::sfgets(FLERR, s, MAXLIB, fp, filename, error);
-              values = ValueTokenizer(s, " \t\n\r\f");
+              values = reader.next_values(4);
 
               ll = values.next_int() - 1;
               ii = values.next_int();
@@ -465,13 +417,8 @@ void PairComb3::read_lib()
               kk = values.next_int() - 1;
 
               for (iii = 0; iii < 2; iii++) {
-                utils::sfgets(FLERR, s, MAXLIB, fp, filename, error);
-                values = ValueTokenizer(s, " \t\n\r\f");
-
-                for(m = 0; m < 32 ; m++){
-                  mm = iii * 32 + m;
-                  rad_spl[ll][ii][jj][kk][mm] = values.next_double();
-                }
+                mm = iii * 32;
+                reader.next_dvector(32, &rad_spl[ll][ii][jj][kk][mm]);
               }
             }
 
@@ -479,8 +426,7 @@ void PairComb3::read_lib()
         for (i=0; i<maxxc+1; i++)
           for (j=0; j<maxyc+1; j++)
             for (k=0; k<maxconj; k++) {
-              utils::sfgets(FLERR, s, MAXLIB, fp, filename, error);
-              values = ValueTokenizer(s, " \t\n\r\f");
+              values = reader.next_values(8);
 
               ll = values.next_int() - 1;
               ii = values.next_int();
@@ -496,26 +442,21 @@ void PairComb3::read_lib()
         for (i=0; i<maxxc; i++)
           for (j=0; j<maxyc; j++)
             for (k=0; k<maxconj-1; k++) {
-              utils::sfgets(FLERR, s, MAXLIB, fp, filename, error);
-              values = ValueTokenizer(s, " \t\n\r\f");
+              values = reader.next_values(4);
 
               ll = values.next_int() - 1;
               ii = values.next_int();
               jj = values.next_int();
               kk = values.next_int() - 1;
               for(iii=0; iii<2; iii++) {
-                utils::sfgets(FLERR, s, MAXLIB, fp, filename, error);
-                values = ValueTokenizer(s, " \t\n\r\f");
-
-                for (m = 0; m < 32 ; m++){
-                  mm=iii*32+m;
-                  tor_spl[ll][ii][jj][kk][mm] = values.next_double();
-                }
+                mm=iii*32;
+                reader.next_dvector(32, &tor_spl[ll][ii][jj][kk][mm]);
               }
             }
-      fclose(fp);
+
+    } catch (FileReaderException & fre) {
+      error->one(FLERR, fre.what());
     } catch (TokenizerException & e) {
-      fclose(fp);
       error->one(FLERR, e.what());
     }
   }

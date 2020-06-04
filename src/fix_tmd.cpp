@@ -30,6 +30,7 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -73,11 +74,9 @@ nfileevery(0), fp(NULL), xf(NULL), xold(NULL)
     if (narg != 7) error->all(FLERR,"Illegal fix tmd command");
     if (me == 0) {
       fp = fopen(arg[6],"w");
-      if (fp == NULL) {
-        char str[128];
-        snprintf(str,128,"Cannot open fix tmd file %s",arg[6]);
-        error->one(FLERR,str);
-      }
+      if (fp == NULL)
+        error->one(FLERR,fmt::format("Cannot open fix tmd file {}: {}",
+                                     arg[6], utils::getsyserror()));
       fprintf(fp,"%s %s\n","# Step rho_target rho_old gamma_back",
               "gamma_forward lambda work_lambda work_analytical");
     }

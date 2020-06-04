@@ -170,11 +170,30 @@ public:
     } // end to_vector()
 
     /**
-    * Parametrized constructor from  vector<vector<...<T>> container
-    * @param vec container
-    * @param array_name array name
+    * Convert to flatten vector<T> container
+    * @return vector container
     */
-    Array1D(vector<T> vec, const string &array_name = "Array1D") {
+    vector<T> to_flatten_vector() const {
+        vector<T> res;
+
+        res.resize(size);
+        size_t vec_ind = 0;
+
+        for (int i0 = 0; i0 < dim[0]; i0++) {
+
+            res.at(vec_ind) = operator()(i0);
+            vec_ind++;
+        }
+
+
+        return res;
+    } // end to_vector()
+
+    /**
+    * Set values to vector<vector<...<T>> container
+    * @param vec container
+    */
+    void set_vector(const vector<T> &vec) {
         size_t d0 = 0;
         d0 = vec.size();
 
@@ -186,6 +205,39 @@ public:
         }
 
     }
+
+
+    /**
+    * Set values from flatten vector<T> container
+    * @param vec container
+    */
+    void set_flatten_vector(const vector<T> &vec) {
+        if (vec.size() != size)
+            throw std::invalid_argument("Flatten vector size is not consistent with expected size");
+        for (size_t i = 0; i < size; i++) {
+            data[i] = vec[i];
+        }
+    }
+
+    /**
+    * Parametrized constructor from  vector<vector<...<T>> container
+    * @param vec container
+    * @param array_name array name
+    */
+    Array1D(const vector<T> &vec, const string &array_name = "Array1D") {
+        this->set_vector(vec);
+        this->array_name = array_name;
+    }
+
+    /**
+    * operator= to vector<vector<...<T>> container
+    * @param vec container
+    */
+    Array1D &operator=(const vector<T> &vec) {
+        this->set_vector(vec);
+        return *this;
+    }
+
 
 };
 
@@ -360,11 +412,33 @@ public:
     } // end to_vector()
 
     /**
-    * Parametrized constructor from  vector<vector<...<T>> container
-    * @param vec container
-    * @param array_name array name
+    * Convert to flatten vector<T> container
+    * @return vector container
     */
-    Array2D(vector<vector<T>> vec, const string &array_name = "Array2D") {
+    vector<T> to_flatten_vector() const {
+        vector<T> res;
+
+        res.resize(size);
+        size_t vec_ind = 0;
+
+        for (int i0 = 0; i0 < dim[0]; i0++) {
+
+            for (int i1 = 0; i1 < dim[1]; i1++) {
+
+                res.at(vec_ind) = operator()(i0, i1);
+                vec_ind++;
+            }
+        }
+
+
+        return res;
+    } // end to_vector()
+
+    /**
+    * Set values to vector<vector<...<T>> container
+    * @param vec container
+    */
+    void set_vector(const vector<vector<T>> &vec) {
         size_t d0 = 0;
         size_t d1 = 0;
         d0 = vec.size();
@@ -386,6 +460,48 @@ public:
             }
         }
 
+    }
+
+
+    /**
+    * Set values from flatten vector<T> container
+    * @param vec container
+    */
+    void set_flatten_vector(const vector<T> &vec) {
+        if (vec.size() != size)
+            throw std::invalid_argument("Flatten vector size is not consistent with expected size");
+        for (size_t i = 0; i < size; i++) {
+            data[i] = vec[i];
+        }
+    }
+
+    /**
+    * Parametrized constructor from  vector<vector<...<T>> container
+    * @param vec container
+    * @param array_name array name
+    */
+    Array2D(const vector<vector<T>> &vec, const string &array_name = "Array2D") {
+        this->set_vector(vec);
+        this->array_name = array_name;
+    }
+
+    /**
+    * operator= to vector<vector<...<T>> container
+    * @param vec container
+    */
+    Array2D &operator=(const vector<vector<T>> &vec) {
+        this->set_vector(vec);
+        return *this;
+    }
+
+
+    /**
+    * operator= to flatten vector<T> container
+    * @param vec container
+    */
+    Array2D &operator=(const vector<T> &vec) {
+        this->set_flatten_vector(vec);
+        return *this;
     }
 
 };
@@ -574,11 +690,36 @@ public:
     } // end to_vector()
 
     /**
-    * Parametrized constructor from  vector<vector<...<T>> container
-    * @param vec container
-    * @param array_name array name
+    * Convert to flatten vector<T> container
+    * @return vector container
     */
-    Array3D(vector<vector<vector<T>>> vec, const string &array_name = "Array3D") {
+    vector<T> to_flatten_vector() const {
+        vector<T> res;
+
+        res.resize(size);
+        size_t vec_ind = 0;
+
+        for (int i0 = 0; i0 < dim[0]; i0++) {
+
+            for (int i1 = 0; i1 < dim[1]; i1++) {
+
+                for (int i2 = 0; i2 < dim[2]; i2++) {
+
+                    res.at(vec_ind) = operator()(i0, i1, i2);
+                    vec_ind++;
+                }
+            }
+        }
+
+
+        return res;
+    } // end to_vector()
+
+    /**
+    * Set values to vector<vector<...<T>> container
+    * @param vec container
+    */
+    void set_vector(const vector<vector<vector<T>>> &vec) {
         size_t d0 = 0;
         size_t d1 = 0;
         size_t d2 = 0;
@@ -609,6 +750,48 @@ public:
             }
         }
 
+    }
+
+
+    /**
+    * Set values from flatten vector<T> container
+    * @param vec container
+    */
+    void set_flatten_vector(const vector<T> &vec) {
+        if (vec.size() != size)
+            throw std::invalid_argument("Flatten vector size is not consistent with expected size");
+        for (size_t i = 0; i < size; i++) {
+            data[i] = vec[i];
+        }
+    }
+
+    /**
+    * Parametrized constructor from  vector<vector<...<T>> container
+    * @param vec container
+    * @param array_name array name
+    */
+    Array3D(const vector<vector<vector<T>>> &vec, const string &array_name = "Array3D") {
+        this->set_vector(vec);
+        this->array_name = array_name;
+    }
+
+    /**
+    * operator= to vector<vector<...<T>> container
+    * @param vec container
+    */
+    Array3D &operator=(const vector<vector<vector<T>>> &vec) {
+        this->set_vector(vec);
+        return *this;
+    }
+
+
+    /**
+    * operator= to flatten vector<T> container
+    * @param vec container
+    */
+    Array3D &operator=(const vector<T> &vec) {
+        this->set_flatten_vector(vec);
+        return *this;
     }
 
 };
@@ -810,11 +993,39 @@ public:
     } // end to_vector()
 
     /**
-    * Parametrized constructor from  vector<vector<...<T>> container
-    * @param vec container
-    * @param array_name array name
+    * Convert to flatten vector<T> container
+    * @return vector container
     */
-    Array4D(vector<vector<vector<vector<T>>>> vec, const string &array_name = "Array4D") {
+    vector<T> to_flatten_vector() const {
+        vector<T> res;
+
+        res.resize(size);
+        size_t vec_ind = 0;
+
+        for (int i0 = 0; i0 < dim[0]; i0++) {
+
+            for (int i1 = 0; i1 < dim[1]; i1++) {
+
+                for (int i2 = 0; i2 < dim[2]; i2++) {
+
+                    for (int i3 = 0; i3 < dim[3]; i3++) {
+
+                        res.at(vec_ind) = operator()(i0, i1, i2, i3);
+                        vec_ind++;
+                    }
+                }
+            }
+        }
+
+
+        return res;
+    } // end to_vector()
+
+    /**
+    * Set values to vector<vector<...<T>> container
+    * @param vec container
+    */
+    void set_vector(const vector<vector<vector<vector<T>>>> &vec) {
         size_t d0 = 0;
         size_t d1 = 0;
         size_t d2 = 0;
@@ -854,6 +1065,48 @@ public:
             }
         }
 
+    }
+
+
+    /**
+    * Set values from flatten vector<T> container
+    * @param vec container
+    */
+    void set_flatten_vector(const vector<T> &vec) {
+        if (vec.size() != size)
+            throw std::invalid_argument("Flatten vector size is not consistent with expected size");
+        for (size_t i = 0; i < size; i++) {
+            data[i] = vec[i];
+        }
+    }
+
+    /**
+    * Parametrized constructor from  vector<vector<...<T>> container
+    * @param vec container
+    * @param array_name array name
+    */
+    Array4D(const vector<vector<vector<vector<T>>>> &vec, const string &array_name = "Array4D") {
+        this->set_vector(vec);
+        this->array_name = array_name;
+    }
+
+    /**
+    * operator= to vector<vector<...<T>> container
+    * @param vec container
+    */
+    Array4D &operator=(const vector<vector<vector<vector<T>>>> &vec) {
+        this->set_vector(vec);
+        return *this;
+    }
+
+
+    /**
+    * operator= to flatten vector<T> container
+    * @param vec container
+    */
+    Array4D &operator=(const vector<T> &vec) {
+        this->set_flatten_vector(vec);
+        return *this;
     }
 
 };
@@ -1068,11 +1321,42 @@ public:
     } // end to_vector()
 
     /**
-    * Parametrized constructor from  vector<vector<...<T>> container
-    * @param vec container
-    * @param array_name array name
+    * Convert to flatten vector<T> container
+    * @return vector container
     */
-    Array5D(vector<vector<vector<vector<vector<T>>>>> vec, const string &array_name = "Array5D") {
+    vector<T> to_flatten_vector() const {
+        vector<T> res;
+
+        res.resize(size);
+        size_t vec_ind = 0;
+
+        for (int i0 = 0; i0 < dim[0]; i0++) {
+
+            for (int i1 = 0; i1 < dim[1]; i1++) {
+
+                for (int i2 = 0; i2 < dim[2]; i2++) {
+
+                    for (int i3 = 0; i3 < dim[3]; i3++) {
+
+                        for (int i4 = 0; i4 < dim[4]; i4++) {
+
+                            res.at(vec_ind) = operator()(i0, i1, i2, i3, i4);
+                            vec_ind++;
+                        }
+                    }
+                }
+            }
+        }
+
+
+        return res;
+    } // end to_vector()
+
+    /**
+    * Set values to vector<vector<...<T>> container
+    * @param vec container
+    */
+    void set_vector(const vector<vector<vector<vector<vector<T>>>>> &vec) {
         size_t d0 = 0;
         size_t d1 = 0;
         size_t d2 = 0;
@@ -1121,6 +1405,48 @@ public:
             }
         }
 
+    }
+
+
+    /**
+    * Set values from flatten vector<T> container
+    * @param vec container
+    */
+    void set_flatten_vector(const vector<T> &vec) {
+        if (vec.size() != size)
+            throw std::invalid_argument("Flatten vector size is not consistent with expected size");
+        for (size_t i = 0; i < size; i++) {
+            data[i] = vec[i];
+        }
+    }
+
+    /**
+    * Parametrized constructor from  vector<vector<...<T>> container
+    * @param vec container
+    * @param array_name array name
+    */
+    Array5D(const vector<vector<vector<vector<vector<T>>>>> &vec, const string &array_name = "Array5D") {
+        this->set_vector(vec);
+        this->array_name = array_name;
+    }
+
+    /**
+    * operator= to vector<vector<...<T>> container
+    * @param vec container
+    */
+    Array5D &operator=(const vector<vector<vector<vector<vector<T>>>>> &vec) {
+        this->set_vector(vec);
+        return *this;
+    }
+
+
+    /**
+    * operator= to flatten vector<T> container
+    * @param vec container
+    */
+    Array5D &operator=(const vector<T> &vec) {
+        this->set_flatten_vector(vec);
+        return *this;
     }
 
 };
@@ -1348,11 +1674,45 @@ public:
     } // end to_vector()
 
     /**
-    * Parametrized constructor from  vector<vector<...<T>> container
-    * @param vec container
-    * @param array_name array name
+    * Convert to flatten vector<T> container
+    * @return vector container
     */
-    Array6D(vector<vector<vector<vector<vector<vector<T>>>>>> vec, const string &array_name = "Array6D") {
+    vector<T> to_flatten_vector() const {
+        vector<T> res;
+
+        res.resize(size);
+        size_t vec_ind = 0;
+
+        for (int i0 = 0; i0 < dim[0]; i0++) {
+
+            for (int i1 = 0; i1 < dim[1]; i1++) {
+
+                for (int i2 = 0; i2 < dim[2]; i2++) {
+
+                    for (int i3 = 0; i3 < dim[3]; i3++) {
+
+                        for (int i4 = 0; i4 < dim[4]; i4++) {
+
+                            for (int i5 = 0; i5 < dim[5]; i5++) {
+
+                                res.at(vec_ind) = operator()(i0, i1, i2, i3, i4, i5);
+                                vec_ind++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+        return res;
+    } // end to_vector()
+
+    /**
+    * Set values to vector<vector<...<T>> container
+    * @param vec container
+    */
+    void set_vector(const vector<vector<vector<vector<vector<vector<T>>>>>> &vec) {
         size_t d0 = 0;
         size_t d1 = 0;
         size_t d2 = 0;
@@ -1410,6 +1770,48 @@ public:
             }
         }
 
+    }
+
+
+    /**
+    * Set values from flatten vector<T> container
+    * @param vec container
+    */
+    void set_flatten_vector(const vector<T> &vec) {
+        if (vec.size() != size)
+            throw std::invalid_argument("Flatten vector size is not consistent with expected size");
+        for (size_t i = 0; i < size; i++) {
+            data[i] = vec[i];
+        }
+    }
+
+    /**
+    * Parametrized constructor from  vector<vector<...<T>> container
+    * @param vec container
+    * @param array_name array name
+    */
+    Array6D(const vector<vector<vector<vector<vector<vector<T>>>>>> &vec, const string &array_name = "Array6D") {
+        this->set_vector(vec);
+        this->array_name = array_name;
+    }
+
+    /**
+    * operator= to vector<vector<...<T>> container
+    * @param vec container
+    */
+    Array6D &operator=(const vector<vector<vector<vector<vector<vector<T>>>>>> &vec) {
+        this->set_vector(vec);
+        return *this;
+    }
+
+
+    /**
+    * operator= to flatten vector<T> container
+    * @param vec container
+    */
+    Array6D &operator=(const vector<T> &vec) {
+        this->set_flatten_vector(vec);
+        return *this;
     }
 
 };

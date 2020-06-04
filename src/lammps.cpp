@@ -436,11 +436,9 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     if (universe->me == 0) {
       if (inflag == 0) infile = stdin;
       else infile = fopen(arg[inflag],"r");
-      if (infile == NULL) {
-        char str[128];
-        snprintf(str,128,"Cannot open input script %s",arg[inflag]);
-        error->one(FLERR,str);
-      }
+      if (infile == NULL)
+        error->one(FLERR,fmt::format("Cannot open input script {}",
+                                     arg[inflag]));
     }
 
     if ((universe->me == 0) && !helpflag)

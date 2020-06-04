@@ -22,6 +22,7 @@
 #include "potential_file_reader.h"
 #include "utils.h"
 #include "tokenizer.h"
+#include "fmt/format.h"
 
 #include <cstring>
 
@@ -36,11 +37,9 @@ PotentialFileReader::PotentialFileReader(LAMMPS *lmp,
 
   fp = force->open_potential(filename.c_str());
 
-  if (fp == NULL) {
-    char str[128];
-    snprintf(str, 128, "cannot open %s potential file %s", potential_name.c_str(), filename.c_str());
-    error->one(FLERR, str);
-  }
+  if (fp == NULL)
+    error->one(FLERR,fmt::format("Cannot open {} potential file {}",
+                                 potential_name, filename));
 }
 
 PotentialFileReader::~PotentialFileReader() {
@@ -49,12 +48,9 @@ PotentialFileReader::~PotentialFileReader() {
 
 void PotentialFileReader::skip_line() {
   char *ptr = fgets(line, MAXLINE, fp);
-  if (ptr == nullptr) {
-    // EOF
-    char str[128];
-    snprintf(str, 128, "Missing line in %s potential file!", potential_name.c_str());
-    error->one(FLERR, str);
-  }
+  if (ptr == nullptr)
+    error->one(FLERR,fmt::format("Missing line in {} potential file!",
+                                 potential_name));
 }
 
 char *PotentialFileReader::next_line(int nparams) {
@@ -83,15 +79,12 @@ char *PotentialFileReader::next_line(int nparams) {
 
     if (ptr == nullptr) {
       // EOF
-      if (nwords > 0 && nwords < nparams) {
-        char str[128];
-        snprintf(str, 128, "Incorrect format in %s potential file! %d/%d parameters", potential_name.c_str(), nwords, nparams);
-        error->one(FLERR, str);
-      }
-
+      if (nwords > 0 && nwords < nparams)
+        error->one(FLERR,fmt::format("Incorrect format in {} potential "
+                                     "file! {}/{} parameters",
+                                     potential_name, nwords, nparams));
       return nullptr;
     }
-
 
     // strip comment
     if ((ptr = strchr(line, '#'))) *ptr = '\0';
@@ -114,11 +107,9 @@ void PotentialFileReader::next_dvector(int n, double * list) {
 
     if (ptr == nullptr) {
       // EOF
-      if (i < n) {
-        char str[128];
-        snprintf(str, 128, "Incorrect format in %s potential file! %d/%d values", potential_name.c_str(), i, n);
-        error->one(FLERR, str);
-      }
+      if (i < n)
+        error->one(FLERR,fmt::format("Incorrect format in {} potential file! "
+                                     "{}/{} values", potential_name, i, n));
     }
 
     ValueTokenizer values(line);

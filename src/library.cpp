@@ -41,6 +41,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "fmt/format.h"
 
 #if defined(LAMMPS_EXCEPTIONS)
 #include "exceptions.h"
@@ -1582,14 +1583,11 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
 
     // warn if new natoms is not correct
 
-    if (lmp->atom->natoms != natoms_prev + n) {
-      char str[128];
-      snprintf(str, 128, "Library warning in lammps_create_atoms, "
-              "invalid total atoms " BIGINT_FORMAT " " BIGINT_FORMAT,
-              lmp->atom->natoms,natoms_prev+n);
-      if (lmp->comm->me == 0)
-        lmp->error->warning(FLERR,str);
-    }
+    if ((lmp->atom->natoms != natoms_prev + n) && (lmp->comm->me == 0))
+      lmp->error->warning(FLERR,fmt::format("Library warning in "
+                                            "lammps_create_atoms: "
+                                            "invalid total atoms {} vs. {}",
+                                            lmp->atom->natoms,natoms_prev+n));
   }
   END_CAPTURE
 }
@@ -1607,19 +1605,13 @@ void lammps_set_fix_external_callback(void *ptr, char *id, FixExternalFnPtr call
   BEGIN_CAPTURE
   {
     int ifix = lmp->modify->find_fix(id);
-    if (ifix < 0) {
-      char str[128];
-      snprintf(str, 128, "Can not find fix with ID '%s'!", id);
-      lmp->error->all(FLERR,str);
-    }
+    if (ifix < 0)
+      lmp->error->all(FLERR,fmt::format("Can not find fix with ID '{}'!", id));
 
     Fix *fix = lmp->modify->fix[ifix];
 
-    if (strcmp("external",fix->style) != 0){
-      char str[128];
-      snprintf(str, 128, "Fix '%s' is not of style external!", id);
-      lmp->error->all(FLERR,str);
-    }
+    if (strcmp("external",fix->style) != 0)
+      lmp->error->all(FLERR,fmt::format("Fix '{}' is not of style external!", id));
 
     FixExternal * fext = (FixExternal*) fix;
     fext->set_callback(callback, caller);

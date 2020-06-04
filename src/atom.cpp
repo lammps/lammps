@@ -1089,7 +1089,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
   next = strchr(buf,'\n');
   *next = '\0';
-  int nwords = utils::count_words(buf);
+  int nwords = utils::trim_and_count_words(buf);
   *next = '\n';
 
   if (nwords != avec->size_data_atom && nwords != avec->size_data_atom + 3)
@@ -1239,7 +1239,7 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
 
   next = strchr(buf,'\n');
   *next = '\0';
-  int nwords = utils::count_words(buf);
+  int nwords = utils::trim_and_count_words(buf);
   *next = '\n';
 
   if (nwords != avec->size_data_vel)
@@ -1591,7 +1591,7 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
 
   next = strchr(buf,'\n');
   *next = '\0';
-  int nwords = utils::count_words(buf);
+  int nwords = utils::trim_and_count_words(buf);
   *next = '\n';
 
   if (nwords != avec_bonus->size_data_bonus)

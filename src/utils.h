@@ -143,12 +143,20 @@ namespace LAMMPS_NS {
     std::string trim_comment(const std::string & line);
 
     /**
+     * \brief Count words in string
+     * \param text string that should be searched
+     * \param seperators string containing characters that will be treated as whitespace
+     * \return number of words found
+     */
+    size_t count_words(const std::string & text, const std::string & seperators = " \t\r\n\f");
+
+    /**
      * \brief Count words in a single line, trim anything from '#' onward
      * \param text string that should be trimmed and searched
      * \param seperators string containing characters that will be treated as whitespace
      * \return number of words found
      */
-    size_t count_words(const std::string & text, const std::string & seperators = " \t\r\n\f");
+    size_t trim_and_count_words(const std::string & text, const std::string & seperators = " \t\r\n\f");
 
     /**
      * \brief Check if string can be converted to valid integer

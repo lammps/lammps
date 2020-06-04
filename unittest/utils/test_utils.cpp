@@ -25,7 +25,11 @@ TEST(Utils, trim_comment) {
 }
 
 TEST(Utils, count_words) {
-    ASSERT_EQ(utils::count_words("some text # comment"), 2);
+    ASSERT_EQ(utils::count_words("some text # comment"), 4);
+}
+
+TEST(Utils, trim_and_count_words) {
+    ASSERT_EQ(utils::trim_and_count_words("some text # comment"), 2);
 }
 
 TEST(Utils, valid_integer1) {

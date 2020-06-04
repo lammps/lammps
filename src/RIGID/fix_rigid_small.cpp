@@ -2489,7 +2489,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
     buf = buffer;
     next = strchr(buf,'\n');
     *next = '\0';
-    int nwords = utils::count_words(buf);
+    int nwords = utils::trim_and_count_words(buf);
     *next = '\n';
 
     if (nwords != ATTRIBUTE_PERBODY)

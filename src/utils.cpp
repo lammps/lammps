@@ -355,12 +355,20 @@ std::string utils::trim_comment(const std::string & line) {
 }
 
 /* ----------------------------------------------------------------------
-   Trim comment from string and return number of words
+   Return number of words
 ------------------------------------------------------------------------- */
 
 size_t utils::count_words(const std::string & text, const std::string & seperators) {
-  Tokenizer words(utils::trim_comment(text), seperators);
+  ValueTokenizer words(text, seperators);
   return words.count();
+}
+
+/* ----------------------------------------------------------------------
+   Trim comment from string and return number of words
+------------------------------------------------------------------------- */
+
+size_t utils::trim_and_count_words(const std::string & text, const std::string & seperators) {
+  return utils::count_words(utils::trim_comment(text), seperators);
 }
 
 /* ----------------------------------------------------------------------

@@ -29,7 +29,7 @@
 using namespace LAMMPS_NS;
 
 TextFileReader::TextFileReader(const std::string &filename, const std::string &filetype)
-  : filename(filename), filetype(filetype)
+  : filename(filename), filetype(filetype), ignore_comments(true)
 {
   fp = fopen(filename.c_str(), "r");
 

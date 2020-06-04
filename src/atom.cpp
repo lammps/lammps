@@ -16,6 +16,7 @@
 #include <climits>
 #include <cstdlib>
 #include <cstring>
+#include <string>
 #include "style_atom.h"
 #include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"
@@ -681,7 +682,7 @@ void Atom::set_atomflag_defaults()
    called from lammps.cpp, input script, restart file, replicate
 ------------------------------------------------------------------------- */
 
-void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
+void Atom::create_avec(const std::string &style, int narg, char **arg, int trysuffix)
 {
   delete [] atom_style;
   if (avec) delete avec;
@@ -704,16 +705,14 @@ void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
   avec->grow(1);
 
   if (sflag) {
-    char estyle[256];
-    if (sflag == 1) snprintf(estyle,256,"%s/%s",style,lmp->suffix);
-    else snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
-    int n = strlen(estyle) + 1;
-    atom_style = new char[n];
-    strcpy(atom_style,estyle);
+    std::string estyle = style + "/";
+    if (sflag == 1) estyle += lmp->suffix;
+    else estyle += lmp->suffix2;
+    atom_style = new char[estyle.size()+1];
+    strcpy(atom_style,estyle.c_str());
   } else {
-    int n = strlen(style) + 1;
-    atom_style = new char[n];
-    strcpy(atom_style,style);
+    atom_style = new char[style.size()+1];
+    strcpy(atom_style,style.c_str());
   }
 
   // if molecular system:
@@ -731,13 +730,12 @@ void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
    generate an AtomVec class, first with suffix appended
 ------------------------------------------------------------------------- */
 
-AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
+AtomVec *Atom::new_avec(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
       sflag = 1;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
+      std::string estyle = style + "/" + lmp->suffix;
       if (avec_map->find(estyle) != avec_map->end()) {
         AtomVecCreator avec_creator = (*avec_map)[estyle];
         return avec_creator(lmp);
@@ -746,8 +744,7 @@ AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
 
     if (lmp->suffix2) {
       sflag = 2;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
+      std::string estyle = style + "/" + lmp->suffix2;
       if (avec_map->find(estyle) != avec_map->end()) {
         AtomVecCreator avec_creator = (*avec_map)[estyle];
         return avec_creator(lmp);

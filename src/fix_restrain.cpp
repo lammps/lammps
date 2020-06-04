@@ -29,6 +29,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -82,8 +83,8 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+6 > narg) error->all(FLERR,"Illegal fix restrain command");
       rstyle[nrestrain] = BOND;
-      ids[nrestrain][0] = force->inumeric(FLERR,arg[iarg+1]);
-      ids[nrestrain][1] = force->inumeric(FLERR,arg[iarg+2]);
+      ids[nrestrain][0] = force->tnumeric(FLERR,arg[iarg+1]);
+      ids[nrestrain][1] = force->tnumeric(FLERR,arg[iarg+2]);
       kstart[nrestrain] = force->numeric(FLERR,arg[iarg+3]);
       kstop[nrestrain] = force->numeric(FLERR,arg[iarg+4]);
       deqstart[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
@@ -97,8 +98,8 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"lbound") == 0) {
       if (iarg+6 > narg) error->all(FLERR,"Illegal fix restrain command");
       rstyle[nrestrain] = LBOUND;
-      ids[nrestrain][0] = force->inumeric(FLERR,arg[iarg+1]);
-      ids[nrestrain][1] = force->inumeric(FLERR,arg[iarg+2]);
+      ids[nrestrain][0] = force->tnumeric(FLERR,arg[iarg+1]);
+      ids[nrestrain][1] = force->tnumeric(FLERR,arg[iarg+2]);
       kstart[nrestrain] = force->numeric(FLERR,arg[iarg+3]);
       kstop[nrestrain] = force->numeric(FLERR,arg[iarg+4]);
       deqstart[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
@@ -112,9 +113,9 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"angle") == 0) {
       if (iarg+7 > narg) error->all(FLERR,"Illegal fix restrain command");
       rstyle[nrestrain] = ANGLE;
-      ids[nrestrain][0] = force->inumeric(FLERR,arg[iarg+1]);
-      ids[nrestrain][1] = force->inumeric(FLERR,arg[iarg+2]);
-      ids[nrestrain][2] = force->inumeric(FLERR,arg[iarg+3]);
+      ids[nrestrain][0] = force->tnumeric(FLERR,arg[iarg+1]);
+      ids[nrestrain][1] = force->tnumeric(FLERR,arg[iarg+2]);
+      ids[nrestrain][2] = force->tnumeric(FLERR,arg[iarg+3]);
       kstart[nrestrain] = force->numeric(FLERR,arg[iarg+4]);
       kstop[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
       target[nrestrain] = force->numeric(FLERR,arg[iarg+6]);
@@ -124,10 +125,10 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+8 > narg) error->all(FLERR,"Illegal fix restrain command");
       rstyle[nrestrain] = DIHEDRAL;
       mult[nrestrain]   = 1;
-      ids[nrestrain][0] = force->inumeric(FLERR,arg[iarg+1]);
-      ids[nrestrain][1] = force->inumeric(FLERR,arg[iarg+2]);
-      ids[nrestrain][2] = force->inumeric(FLERR,arg[iarg+3]);
-      ids[nrestrain][3] = force->inumeric(FLERR,arg[iarg+4]);
+      ids[nrestrain][0] = force->tnumeric(FLERR,arg[iarg+1]);
+      ids[nrestrain][1] = force->tnumeric(FLERR,arg[iarg+2]);
+      ids[nrestrain][2] = force->tnumeric(FLERR,arg[iarg+3]);
+      ids[nrestrain][3] = force->tnumeric(FLERR,arg[iarg+4]);
       kstart[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
       kstop[nrestrain] = force->numeric(FLERR,arg[iarg+6]);
       target[nrestrain] = force->numeric(FLERR,arg[iarg+7]);
@@ -271,24 +272,16 @@ void FixRestrain::restrain_bond(int m)
 
   if (newton_bond) {
     if (i2 == -1 || i2 >= nlocal) return;
-    if (i1 == -1) {
-      char str[128];
-      sprintf(str,
-              "Restrain atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
-              ids[m][0],ids[m][1],
-              comm->me,update->ntimestep);
-      error->one(FLERR,str);
-    }
+    if (i1 == -1)
+      error->one(FLERR,fmt::format("Restrain atoms {} {} missing on "
+                                   "proc {} at step {}", ids[m][0],ids[m][1],
+                                   comm->me,update->ntimestep));
   } else {
     if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal)) return;
-    if (i1 == -1 || i2 == -1)  {
-      char str[128];
-      sprintf(str,
-              "Restrain atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
-              ids[m][0],ids[m][1],
-              comm->me,update->ntimestep);
-      error->one(FLERR,str);
-    }
+    if (i1 == -1 || i2 == -1)
+      error->one(FLERR,fmt::format("Restrain atoms {} {} missing on "
+                                   "proc {} at step {}", ids[m][0],ids[m][1],
+                                   comm->me,update->ntimestep));
   }
 
   delx = x[i1][0] - x[i2][0];
@@ -352,24 +345,16 @@ void FixRestrain::restrain_lbound(int m)
 
   if (newton_bond) {
     if (i2 == -1 || i2 >= nlocal) return;
-    if (i1 == -1) {
-      char str[128];
-      sprintf(str,
-              "Restrain atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
-              ids[m][0],ids[m][1],
-              comm->me,update->ntimestep);
-      error->one(FLERR,str);
-    }
+    if (i1 == -1)
+      error->one(FLERR,fmt::format("Restrain atoms {} {} missing on "
+                                   "proc {} at step {}",ids[m][0],ids[m][1],
+                                   comm->me,update->ntimestep));
   } else {
     if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal)) return;
-    if (i1 == -1 || i2 == -1)  {
-      char str[128];
-      sprintf(str,
-              "Restrain atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
-              ids[m][0],ids[m][1],
-              comm->me,update->ntimestep);
-      error->one(FLERR,str);
-    }
+    if (i1 == -1 || i2 == -1)
+      error->one(FLERR,fmt::format("Restrain atoms {} {} missing on "
+                                   "proc {} at step {}",ids[m][0],ids[m][1],
+                                   comm->me,update->ntimestep));
   }
 
   delx = x[i1][0] - x[i2][0];
@@ -442,27 +427,17 @@ void FixRestrain::restrain_angle(int m)
 
   if (newton_bond) {
     if (i2 == -1 || i2 >= nlocal) return;
-    if (i1 == -1 || i3 == -1) {
-      char str[128];
-      sprintf(str,
-              "Restrain atoms %d %d %d missing on proc %d at step "
-              BIGINT_FORMAT,
-              ids[m][0],ids[m][1],ids[m][2],
-              comm->me,update->ntimestep);
-      error->one(FLERR,str);
-    }
+    if (i1 == -1 || i3 == -1)
+      error->one(FLERR,fmt::format("Restrain atoms {} {} {} missing on "
+                                   "proc {} at step {}",ids[m][0],ids[m][1],
+                                   ids[m][2],comm->me,update->ntimestep));
   } else {
     if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal) &&
         (i3 == -1 || i3 >= nlocal)) return;
-    if (i1 == -1 || i2 == -1 || i3 == -1) {
-      char str[128];
-      sprintf(str,
-              "Restrain atoms %d %d %d missing on proc %d at step "
-              BIGINT_FORMAT,
-              ids[m][0],ids[m][1],ids[m][2],
-              comm->me,update->ntimestep);
-      error->one(FLERR,str);
-    }
+    if (i1 == -1 || i2 == -1 || i3 == -1)
+      error->one(FLERR,fmt::format("Restrain atoms {} {} {} missing on "
+                                   "proc {} at step {}",ids[m][0],ids[m][1],
+                                   ids[m][2],comm->me,update->ntimestep));
   }
 
   // 1st bond
@@ -572,27 +547,19 @@ void FixRestrain::restrain_dihedral(int m)
 
   if (newton_bond) {
     if (i2 == -1 || i2 >= nlocal) return;
-    if (i1 == -1 || i3 == -1 || i4 == -1) {
-      char str[128];
-      sprintf(str,
-              "Restrain atoms %d %d %d %d missing on proc %d at step "
-              BIGINT_FORMAT,
-              ids[m][0],ids[m][1],ids[m][2],ids[m][3],
-              comm->me,update->ntimestep);
-      error->one(FLERR,str);
-    }
+    if (i1 == -1 || i3 == -1 || i4 == -1)
+      error->one(FLERR,fmt::format("Restrain atoms {} {} {} {} missing on "
+                                   "proc {} at step {}",ids[m][0],ids[m][1],
+                                   ids[m][2],ids[m][3],comm->me,
+                                   update->ntimestep));
   } else {
     if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal) &&
         (i3 == -1 || i3 >= nlocal) && (i4 == -1 || i3 >= nlocal)) return;
-    if (i1 == -1 || i2 == -1 || i3 == -1 || i4 == -1) {
-      char str[128];
-      sprintf(str,
-              "Restrain atoms %d %d %d %d missing on proc %d at step "
-              BIGINT_FORMAT,
-              ids[m][0],ids[m][1],ids[m][2],ids[m][3],
-              comm->me,update->ntimestep);
-      error->one(FLERR,str);
-    }
+    if (i1 == -1 || i2 == -1 || i3 == -1 || i4 == -1)
+      error->one(FLERR,fmt::format("Restrain atoms {} {} {} {} missing on "
+                                   "proc {} at step {}",ids[m][0],ids[m][1],
+                                   ids[m][2],ids[m][3],comm->me,
+                                   update->ntimestep));
   }
 
   // 1st bond
@@ -648,21 +615,18 @@ void FixRestrain::restrain_dihedral(int m)
     int me;
     MPI_Comm_rank(world,&me);
     if (screen) {
-      char str[128];
-      sprintf(str,"Restrain problem: %d " BIGINT_FORMAT " "
-              TAGINT_FORMAT " " TAGINT_FORMAT " "
-              TAGINT_FORMAT " " TAGINT_FORMAT,
-              me,update->ntimestep,
-              atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
+      std::string str = fmt::format("Restrain problem: {} {} {} {} {} {}",
+                                    me,update->ntimestep,atom->tag[i1],
+                                    atom->tag[i2],atom->tag[i3],atom->tag[i4]);
       error->warning(FLERR,str);
-      fprintf(screen,"  1st atom: %d %g %g %g\n",
-              me,x[i1][0],x[i1][1],x[i1][2]);
-      fprintf(screen,"  2nd atom: %d %g %g %g\n",
-              me,x[i2][0],x[i2][1],x[i2][2]);
-      fprintf(screen,"  3rd atom: %d %g %g %g\n",
-              me,x[i3][0],x[i3][1],x[i3][2]);
-      fprintf(screen,"  4th atom: %d %g %g %g\n",
-              me,x[i4][0],x[i4][1],x[i4][2]);
+      fmt::print(screen,"  1st atom: {} {} {} {}\n"
+                 "  2nd atom: {} {} {} {}\n"
+                 "  3rd atom: {} {} {} {}\n"
+                 "  4th atom: {} {} {} {}\n",
+                  comm->me,x[i1][0],x[i1][1],x[i1][2],
+                  comm->me,x[i2][0],x[i2][1],x[i2][2],
+                  comm->me,x[i3][0],x[i3][1],x[i3][2],
+                  comm->me,x[i4][0],x[i4][1],x[i4][2]);
     }
   }
 

@@ -14,6 +14,7 @@
 #include "output.h"
 #include <mpi.h>
 #include <cstring>
+#include <string>
 #include "style_dump.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -31,6 +32,7 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -331,13 +333,14 @@ void Output::write(bigint ntimestep)
 
   if (next_restart == ntimestep) {
     if (next_restart_single == ntimestep) {
-      char *file = new char[strlen(restart1) + 16];
-      char *ptr = strchr(restart1,'*');
-      *ptr = '\0';
-      sprintf(file,"%s" BIGINT_FORMAT "%s",restart1,ntimestep,ptr+1);
-      *ptr = '*';
+
+      std::string file = restart1;
+      std::size_t found = file.find("*");
+      if (found != std::string::npos)
+        file.replace(found,1,fmt::format("{}",update->ntimestep));
+
       if (last_restart != ntimestep) restart->write(file);
-      delete [] file;
+
       if (restart_every_single) next_restart_single += restart_every_single;
       else {
         modify->clearstep_compute();
@@ -419,13 +422,11 @@ void Output::write_dump(bigint ntimestep)
 void Output::write_restart(bigint ntimestep)
 {
   if (restart_flag_single) {
-    char *file = new char[strlen(restart1) + 16];
-    char *ptr = strchr(restart1,'*');
-    *ptr = '\0';
-    sprintf(file,"%s" BIGINT_FORMAT "%s",restart1,ntimestep,ptr+1);
-    *ptr = '*';
+    std::string file = restart1;
+    std::size_t found = file.find("*");
+    if (found != std::string::npos)
+      file.replace(found,1,fmt::format("{}",update->ntimestep));
     restart->write(file);
-    delete [] file;
   }
 
   if (restart_flag_double) {

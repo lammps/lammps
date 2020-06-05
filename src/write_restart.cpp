@@ -113,10 +113,7 @@ void WriteRestart::command(int narg, char **arg)
 
   // write single restart file
 
-  char *fname = new char[file.size()+1];
-  strcpy(fname,file.c_str());
-  write(fname);
-  delete[] fname;
+  write(file);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -211,7 +208,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
    file = final file name to write, except may contain a "%"
 ------------------------------------------------------------------------- */
 
-void WriteRestart::write(char *file)
+void WriteRestart::write(std::string file)
 {
   // special case where reneighboring is not done in integrator
   //   on timestep restart file is written (due to build_once being set)
@@ -233,21 +230,12 @@ void WriteRestart::write(char *file)
   // open single restart file or base file for multiproc case
 
   if (me == 0) {
-    char *hfile;
-    if (multiproc) {
-      hfile = new char[strlen(file) + 16];
-      char *ptr = strchr(file,'%');
-      *ptr = '\0';
-      sprintf(hfile,"%s%s%s",file,"base",ptr+1);
-      *ptr = '%';
-    } else hfile = file;
-    fp = fopen(hfile,"wb");
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open restart file %s",hfile);
-      error->one(FLERR,str);
-    }
-    if (multiproc) delete [] hfile;
+    std::string base = file;
+    if (multiproc) base.replace(base.find("%"),1,"base");
+    
+    fp = fopen(base.c_str(),"wb");
+    if (fp == NULL)
+      error->one(FLERR,fmt::format("Cannot open restart file {}",base).c_str());
   }
 
   // proc 0 writes magic string, endian flag, numeric version
@@ -302,23 +290,18 @@ void WriteRestart::write(char *file)
       fp = NULL;
     }
 
-    char *multiname = new char[strlen(file) + 16];
-    char *ptr = strchr(file,'%');
-    *ptr = '\0';
-    sprintf(multiname,"%s%d%s",file,icluster,ptr+1);
-    *ptr = '%';
+    std::string multiname = file;
+    multiname.replace(multiname.find("%"),1,fmt::format("{}",icluster));
+    fp = fopen(multiname.c_str(),"wb");
+    if (fp == NULL)
+      error->one(FLERR,fmt::format("Cannot open restart file {}",multiname).c_str());
 
     if (filewriter) {
-      fp = fopen(multiname,"wb");
-      if (fp == NULL) {
-        char str[128];
-        snprintf(str,128,"Cannot open restart file %s",multiname);
-        error->one(FLERR,str);
-      }
+      fp = fopen(multiname.c_str(),"wb");
+      if (fp == NULL)
+        error->one(FLERR,fmt::format("Cannot open restart file {}",multiname).c_str());
       write_int(PROCSPERFILE,nclusterprocs);
     }
-
-    delete [] multiname;
   }
 
   // pack my atom data into buf
@@ -385,7 +368,7 @@ void WriteRestart::write(char *file)
       fclose(fp);
       fp = NULL;
     }
-    mpiio->openForWrite(file);
+    mpiio->openForWrite(file.c_str());
     mpiio->write(headerOffset,send_size,buf);
     mpiio->close();
   } else {
@@ -435,7 +418,7 @@ void WriteRestart::write(char *file)
 
   for (int ifix = 0; ifix < modify->nfix; ifix++)
     if (modify->fix[ifix]->restart_file)
-      modify->fix[ifix]->write_restart_file(file);
+      modify->fix[ifix]->write_restart_file(file.c_str());
 }
 
 /* ----------------------------------------------------------------------

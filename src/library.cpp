@@ -145,9 +145,8 @@ void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
     if (ptr) *ptr = (void *) lmp;
   }
   catch(LAMMPSException & e) {
-    fprintf(stderr, "LAMMPS Exception: %s", e.message.c_str());
-    if (ptr) *ptr = (void *) NULL;
-    return NULL;
+    fmt::print(stderr, "LAMMPS Exception: {}", e.message);
+    *ptr = (void *) NULL;
   }
 #else
   lmp = new LAMMPS(argc, argv, comm);

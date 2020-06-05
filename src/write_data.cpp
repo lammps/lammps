@@ -137,7 +137,7 @@ void WriteData::command(int narg, char **arg)
     if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   }
 
-  write(file.c_str());
+  write(file);
 }
 
 /* might later be directly called within run/minimize loop */
@@ -151,7 +151,7 @@ void WriteData::command(int narg, char **arg)
  *
  * \param file name of the data file to write
  */
-void WriteData::write(const char *file)
+void WriteData::write(const std::string &file)
 {
   // special case where reneighboring is not done in integrator
   //   on timestep data file is written (due to build_once being set)
@@ -207,7 +207,7 @@ void WriteData::write(const char *file)
   // open data file
 
   if (me == 0) {
-    fp = fopen(file,"w");
+    fp = fopen(file.c_str(),"w");
     if (fp == NULL)
       error->one(FLERR,fmt::format("Cannot open data file {}: {}",
                                    file, utils::getsyserror()));

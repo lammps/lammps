@@ -814,36 +814,18 @@ void ReadData::command(int narg, char **arg)
     }
 
     if (me == 0) {
-      if (atom->nbonds) {
-        if (screen)
-          fprintf(screen,"  " BIGINT_FORMAT " template bonds\n",atom->nbonds);
-        if (logfile)
-          fprintf(logfile,"  " BIGINT_FORMAT " template bonds\n",atom->nbonds);
-      }
-      if (atom->nangles) {
-        if (screen)
-          fprintf(screen,"  " BIGINT_FORMAT " template angles\n",
-                  atom->nangles);
-        if (logfile)
-          fprintf(logfile,"  " BIGINT_FORMAT " template angles\n",
-                  atom->nangles);
-      }
-      if (atom->ndihedrals) {
-        if (screen)
-          fprintf(screen,"  " BIGINT_FORMAT " template dihedrals\n",
-                  atom->nbonds);
-        if (logfile)
-          fprintf(logfile,"  " BIGINT_FORMAT " template bonds\n",
-                  atom->ndihedrals);
-      }
-      if (atom->nimpropers) {
-        if (screen)
-          fprintf(screen,"  " BIGINT_FORMAT " template impropers\n",
-                  atom->nimpropers);
-        if (logfile)
-          fprintf(logfile,"  " BIGINT_FORMAT " template impropers\n",
-                  atom->nimpropers);
-      }
+      std::string mesg;
+
+      if (atom->nbonds)
+        mesg += fmt::format("  {} template bonds\n",atom->nbonds);
+      if (atom->nangles)
+        mesg += fmt::format("  {} template angles\n",atom->nangles);
+      if (atom->ndihedrals)
+        mesg += fmt::format("  {} template dihedrals\n",atom->ndihedrals);
+      if (atom->nimpropers)
+        mesg += fmt::format("  {} template impropers\n",atom->nimpropers);
+
+      utils::logmesg(lmp,mesg);
     }
   }
 
@@ -913,14 +895,10 @@ void ReadData::command(int narg, char **arg)
   // total time
 
   MPI_Barrier(world);
-  double time2 = MPI_Wtime();
 
-  if (comm->me == 0) {
-    if (screen)
-      fprintf(screen,"  read_data CPU = %g secs\n",time2-time1);
-    if (logfile)
-      fprintf(logfile,"  read_data CPU = %g secs\n",time2-time1);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,fmt::format("  read_data CPU = {:.3f} secs\n",
+                                   MPI_Wtime()-time1));
 }
 
 /* ----------------------------------------------------------------------
@@ -1224,10 +1202,7 @@ void ReadData::atoms()
 {
   int nchunk,eof;
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  reading atoms ...\n");
-    if (logfile) fprintf(logfile,"  reading atoms ...\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"  reading atoms ...\n");
 
   bigint nread = 0;
 
@@ -1246,10 +1221,7 @@ void ReadData::atoms()
   MPI_Allreduce(&n,&sum,1,MPI_LMP_BIGINT,MPI_SUM,world);
   bigint nassign = sum - (atom->natoms - natoms);
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  " BIGINT_FORMAT " atoms\n",nassign);
-    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " atoms\n",nassign);
-  }
+  if (me == 0) utils::logmesg(lmp,fmt::format("  {} atoms\n",nassign));
 
   if (sum != atom->natoms)
     error->all(FLERR,"Did not assign all atoms correctly");
@@ -1279,10 +1251,7 @@ void ReadData::velocities()
 {
   int nchunk,eof;
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  reading velocities ...\n");
-    if (logfile) fprintf(logfile,"  reading velocities ...\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"  reading velocities ...\n");
 
   int mapflag = 0;
   if (atom->map_style == 0) {
@@ -1306,10 +1275,7 @@ void ReadData::velocities()
     atom->map_style = 0;
   }
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  " BIGINT_FORMAT " velocities\n",natoms);
-    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " velocities\n",natoms);
-  }
+  if (me == 0) utils::logmesg(lmp,fmt::format("  {} velocities\n",natoms));
 }
 
 /* ----------------------------------------------------------------------
@@ -1321,13 +1287,8 @@ void ReadData::bonds(int firstpass)
   int nchunk,eof;
 
   if (me == 0) {
-    if (firstpass) {
-      if (screen) fprintf(screen,"  scanning bonds ...\n");
-      if (logfile) fprintf(logfile,"  scanning bonds ...\n");
-    } else {
-      if (screen) fprintf(screen,"  reading bonds ...\n");
-      if (logfile) fprintf(logfile,"  reading bonds ...\n");
-    }
+    if (firstpass) utils::logmesg(lmp,"  scanning bonds ...\n");
+    else utils::logmesg(lmp,"  reading bonds ...\n");
   }
 
   // allocate count if firstpass
@@ -1362,10 +1323,8 @@ void ReadData::bonds(int firstpass)
     MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
     if (addflag == NONE) maxall += atom->extra_bond_per_atom;
 
-    if (me == 0) {
-      if (screen) fprintf(screen,"  %d = max bonds/atom\n",maxall);
-      if (logfile) fprintf(logfile,"  %d = max bonds/atom\n",maxall);
-    }
+    if (me == 0)
+      utils::logmesg(lmp,fmt::format("  {} = max bonds/atom\n",maxall));
 
     if (addflag != NONE) {
       if (maxall > atom->bond_per_atom)
@@ -1386,10 +1345,8 @@ void ReadData::bonds(int firstpass)
   int factor = 1;
   if (!force->newton_bond) factor = 2;
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  " BIGINT_FORMAT " bonds\n",sum/factor);
-    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " bonds\n",sum/factor);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,fmt::format("  {} bonds\n",sum/factor));
 
   if (sum != factor*nbonds)
     error->all(FLERR,"Bonds assigned incorrectly");
@@ -1404,13 +1361,8 @@ void ReadData::angles(int firstpass)
   int nchunk,eof;
 
   if (me == 0) {
-    if (firstpass) {
-      if (screen) fprintf(screen,"  scanning angles ...\n");
-      if (logfile) fprintf(logfile,"  scanning angles ...\n");
-    } else {
-      if (screen) fprintf(screen,"  reading angles ...\n");
-      if (logfile) fprintf(logfile,"  reading angles ...\n");
-    }
+    if (firstpass) utils::logmesg(lmp,"  scanning angles ...\n");
+    else utils::logmesg(lmp,"  reading angles ...\n");
   }
 
   // allocate count if firstpass
@@ -1445,10 +1397,8 @@ void ReadData::angles(int firstpass)
     MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
     if (addflag == NONE) maxall += atom->extra_angle_per_atom;
 
-    if (me == 0) {
-      if (screen) fprintf(screen,"  %d = max angles/atom\n",maxall);
-      if (logfile) fprintf(logfile,"  %d = max angles/atom\n",maxall);
-    }
+    if (me == 0)
+      utils::logmesg(lmp,fmt::format("  {} = max angles/atom\n",maxall));
 
     if (addflag != NONE) {
       if (maxall > atom->angle_per_atom)
@@ -1469,10 +1419,8 @@ void ReadData::angles(int firstpass)
   int factor = 1;
   if (!force->newton_bond) factor = 3;
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  " BIGINT_FORMAT " angles\n",sum/factor);
-    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " angles\n",sum/factor);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,fmt::format("  {} angles\n",sum/factor));
 
   if (sum != factor*nangles)
     error->all(FLERR,"Angles assigned incorrectly");
@@ -1487,13 +1435,8 @@ void ReadData::dihedrals(int firstpass)
   int nchunk,eof;
 
   if (me == 0) {
-    if (firstpass) {
-      if (screen) fprintf(screen,"  scanning dihedrals ...\n");
-      if (logfile) fprintf(logfile,"  scanning dihedrals ...\n");
-    } else {
-      if (screen) fprintf(screen,"  reading dihedrals ...\n");
-      if (logfile) fprintf(logfile,"  reading dihedrals ...\n");
-    }
+    if (firstpass) utils::logmesg(lmp,"  scanning dihedrals ...\n");
+    else utils::logmesg(lmp,"  reading dihedrals ...\n");
   }
 
   // allocate count if firstpass
@@ -1528,10 +1471,8 @@ void ReadData::dihedrals(int firstpass)
     MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
     if (addflag == NONE) maxall += atom->extra_dihedral_per_atom;
 
-    if (me == 0) {
-      if (screen) fprintf(screen,"  %d = max dihedrals/atom\n",maxall);
-      if (logfile) fprintf(logfile,"  %d = max dihedrals/atom\n",maxall);
-    }
+    if (me == 0)
+      utils::logmesg(lmp,fmt::format("  {} = max dihedrals/atom\n",maxall));
 
     if (addflag != NONE) {
       if (maxall > atom->dihedral_per_atom)
@@ -1552,10 +1493,8 @@ void ReadData::dihedrals(int firstpass)
   int factor = 1;
   if (!force->newton_bond) factor = 4;
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  " BIGINT_FORMAT " dihedrals\n",sum/factor);
-    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " dihedrals\n",sum/factor);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,fmt::format("  {} dihedrals\n",sum/factor));
 
   if (sum != factor*ndihedrals)
     error->all(FLERR,"Dihedrals assigned incorrectly");
@@ -1570,13 +1509,8 @@ void ReadData::impropers(int firstpass)
   int nchunk,eof;
 
   if (me == 0) {
-    if (firstpass) {
-      if (screen) fprintf(screen,"  scanning impropers ...\n");
-      if (logfile) fprintf(logfile,"  scanning impropers ...\n");
-    } else {
-      if (screen) fprintf(screen,"  reading impropers ...\n");
-      if (logfile) fprintf(logfile,"  reading impropers ...\n");
-    }
+    if (firstpass) utils::logmesg(lmp,"  scanning impropers ...\n");
+    else utils::logmesg(lmp,"  reading impropers ...\n");
   }
 
   // allocate count if firstpass
@@ -1611,10 +1545,8 @@ void ReadData::impropers(int firstpass)
     MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
     if (addflag == NONE) maxall += atom->extra_improper_per_atom;
 
-    if (me == 0) {
-      if (screen) fprintf(screen,"  %d = max impropers/atom\n",maxall);
-      if (logfile) fprintf(logfile,"  %d = max impropers/atom\n",maxall);
-    }
+    if (me == 0)
+      utils::logmesg(lmp,fmt::format("  {} = max impropers/atom\n",maxall));
 
     if (addflag != NONE) {
       if (maxall > atom->improper_per_atom)
@@ -1635,10 +1567,8 @@ void ReadData::impropers(int firstpass)
   int factor = 1;
   if (!force->newton_bond) factor = 4;
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  " BIGINT_FORMAT " impropers\n",sum/factor);
-    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " impropers\n",sum/factor);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,fmt::format("  {} impropers\n",sum/factor));
 
   if (sum != factor*nimpropers)
     error->all(FLERR,"Impropers assigned incorrectly");
@@ -1676,10 +1606,8 @@ void ReadData::bonus(bigint nbonus, AtomVec *ptr, const char *type)
     atom->map_style = 0;
   }
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  " BIGINT_FORMAT " %s\n",natoms,type);
-    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " %s\n",natoms,type);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,fmt::format("  {} {}\n",natoms,type));
 }
 
 /* ----------------------------------------------------------------------
@@ -1782,10 +1710,8 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
     atom->map_style = 0;
   }
 
-  if (me == 0 && firstpass) {
-    if (screen) fprintf(screen,"  " BIGINT_FORMAT " bodies\n",natoms);
-    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " bodies\n",natoms);
-  }
+  if (me == 0 && firstpass)
+    utils::logmesg(lmp,fmt::format("  {} bodies\n",natoms));
 }
 
 /* ---------------------------------------------------------------------- */

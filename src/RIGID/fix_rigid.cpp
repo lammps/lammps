@@ -2406,7 +2406,7 @@ void FixRigid::readfile(int which, double *vec,
    only proc 0 writes list of global bodies to file
 ------------------------------------------------------------------------- */
 
-void FixRigid::write_restart_file(char *file)
+void FixRigid::write_restart_file(const char *file)
 {
   if (me) return;
 

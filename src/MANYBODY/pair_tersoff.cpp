@@ -524,10 +524,14 @@ void PairTersoff::setup_params()
     params[m].cut = params[m].bigr + params[m].bigd;
     params[m].cutsq = params[m].cut*params[m].cut;
 
-    params[m].c1 = pow(2.0*params[m].powern*1.0e-16,-1.0/params[m].powern);
-    params[m].c2 = pow(2.0*params[m].powern*1.0e-8,-1.0/params[m].powern);
-    params[m].c3 = 1.0/params[m].c2;
-    params[m].c4 = 1.0/params[m].c1;
+    if (params[m].powern > 0.0) {
+      params[m].c1 = pow(2.0*params[m].powern*1.0e-16,-1.0/params[m].powern);
+      params[m].c2 = pow(2.0*params[m].powern*1.0e-8,-1.0/params[m].powern);
+      params[m].c3 = 1.0/params[m].c2;
+      params[m].c4 = 1.0/params[m].c1;
+    } else {
+      params[m].c1 = params[m].c2 = params[m].c3 = params[m].c4 = 0.0;
+    }
   }
 
   // set cutmax to max of all params

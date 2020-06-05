@@ -137,7 +137,7 @@ void lammps_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
     *ptr = (void *) lmp;
   }
   catch(LAMMPSException & e) {
-    fprintf(stderr, "LAMMPS Exception: %s", e.message.c_str());
+    fmt::print(stderr, "LAMMPS Exception: {}", e.message);
     *ptr = (void *) NULL;
   }
 #else
@@ -172,7 +172,7 @@ void lammps_open_no_mpi(int argc, char **argv, void **ptr)
     *ptr = (void *) lmp;
   }
   catch(LAMMPSException & e) {
-    fprintf(stderr, "LAMMPS Exception: %s", e.message.c_str());
+    fmt::print(stderr, "LAMMPS Exception: {}", e.message);
     *ptr = (void*) NULL;
   }
 #else

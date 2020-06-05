@@ -16,7 +16,7 @@
      Axel Kohlmeyer (Temple U), Iain Bethune (EPCC)
 ------------------------------------------------------------------------- */
 
-//#define BALANCE_DEBUG 1
+// #define BALANCE_DEBUG 1
 
 #include "balance.h"
 #include <mpi.h>
@@ -1160,8 +1160,7 @@ void Balance::dumpout(bigint tstep)
   double *boxlo = domain->boxlo;
   double *boxhi = domain->boxhi;
 
-  fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,BIGINT_FORMAT "\n",tstep);
+  fmt::print(fp,"ITEM: TIMESTEP\n{}\n",tstep);
   fprintf(fp,"ITEM: NUMBER OF NODES\n");
   if (dimension == 2) fprintf(fp,"%d\n",4*nprocs);
   else fprintf(fp,"%d\n",8*nprocs);
@@ -1236,8 +1235,7 @@ void Balance::dumpout(bigint tstep)
 
   // write out one square/cube per processor for 2d/3d
 
-  fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,BIGINT_FORMAT "\n",tstep);
+  fmt::print(fp,"ITEM: TIMESTEP\n{}\n",tstep);
   if (dimension == 2) fprintf(fp,"ITEM: NUMBER OF SQUARES\n");
   else fprintf(fp,"ITEM: NUMBER OF CUBES\n");
   fprintf(fp,"%d\n",nprocs);
@@ -1281,14 +1279,11 @@ void Balance::debug_shift_output(int idim, int m, int np, double *split)
   else if (bdim[idim] == Z) dim = "Z";
   fprintf(stderr,"Dimension %s, Iteration %d\n",dim,m);
 
-  fprintf(stderr,"  Count:");
-  for (i = 0; i < np; i++) fprintf(stderr," " BIGINT_FORMAT,count[i]);
-  fprintf(stderr,"\n");
   fprintf(stderr,"  Sum:");
-  for (i = 0; i <= np; i++) fprintf(stderr," " BIGINT_FORMAT,sum[i]);
+  for (i = 0; i <= np; i++) fmt::print(stderr," {}",sum[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Target:");
-  for (i = 0; i <= np; i++) fprintf(stderr," " BIGINT_FORMAT,target[i]);
+  for (i = 0; i <= np; i++) fmt::print(stderr," {}",target[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Actual cut:");
   for (i = 0; i <= np; i++)
@@ -1301,20 +1296,16 @@ void Balance::debug_shift_output(int idim, int m, int np, double *split)
   for (i = 0; i <= np; i++) fprintf(stderr," %g",lo[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Low-sum:");
-  for (i = 0; i <= np; i++) fprintf(stderr," " BIGINT_FORMAT,losum[i]);
+  for (i = 0; i <= np; i++) fmt::print(stderr," {}",losum[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Hi:");
   for (i = 0; i <= np; i++) fprintf(stderr," %g",hi[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Hi-sum:");
-  for (i = 0; i <= np; i++) fprintf(stderr," " BIGINT_FORMAT,hisum[i]);
+  for (i = 0; i <= np; i++) fmt::print(stderr," {}",hisum[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Delta:");
   for (i = 0; i < np; i++) fprintf(stderr," %g",split[i+1]-split[i]);
   fprintf(stderr,"\n");
-
-  bigint max = 0;
-  for (i = 0; i < np; i++) max = MAX(max,count[i]);
-  fprintf(stderr,"  Imbalance factor: %g\n",1.0*max*np/target[np]);
 }
 #endif

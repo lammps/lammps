@@ -54,17 +54,17 @@ class AtomVecBondKokkos : public AtomVecKokkos {
 
   void grow_pointers();
   int pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
-                         DAT::tdual_float_2d buf,int iswap,
+                         DAT::tdual_double_2d_lr buf,int iswap,
                          int pbc_flag, int *pbc, ExecutionSpace space);
   void unpack_border_kokkos(const int &n, const int &nfirst,
-                            const DAT::tdual_float_2d &buf,
+                            const DAT::tdual_double_2d_lr &buf,
                             ExecutionSpace space);
-  int pack_exchange_kokkos(const int &nsend,DAT::tdual_float_2d &buf,
+  int pack_exchange_kokkos(const int &nsend,DAT::tdual_double_2d_lr &buf,
                            DAT::tdual_int_1d k_sendlist,
                            DAT::tdual_int_1d k_copylist,
                            ExecutionSpace space, int dim,
                            KK_FLOAT lo, KK_FLOAT hi);
-  int unpack_exchange_kokkos(DAT::tdual_float_2d &k_buf, int nrecv,
+  int unpack_exchange_kokkos(DAT::tdual_double_2d_lr &k_buf, int nrecv,
                              int nlocal, int dim, KK_FLOAT lo, KK_FLOAT hi,
                              ExecutionSpace space);
 

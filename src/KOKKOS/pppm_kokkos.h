@@ -122,8 +122,8 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   void setup_grid();
   virtual void settings(int, char **);
   virtual void compute(int, int);
-  virtual int timing_1d(int, KK_FLOAT &);
-  virtual int timing_3d(int, KK_FLOAT &);
+  virtual int timing_1d(int, double &);
+  virtual int timing_3d(int, double &);
   virtual double memory_usage();
 
   KOKKOS_INLINE_FUNCTION

@@ -581,7 +581,6 @@ template<ExecutionSpace Space>
 void CommKokkos::exchange_device()
 {
   typedef typename GetDeviceType<Space>::value DeviceType;
-  MPI_Datatype MPI_KK_TYPE = GetFloatType<Space>::GetMPIType();
 
   int i,nsend,nrecv,nrecv1,nrecv2,nlocal;
   KK_FLOAT lo,hi;
@@ -671,7 +670,7 @@ void CommKokkos::exchange_device()
         nsend = k_count.h_view();
         if (nsend > maxsend) grow_send_kokkos(nsend,1);
         nsend =
-          avec->pack_exchange_kokkos(k_count.h_view(),k_buf_send,
+          avec->pack_exchange_kokkos(k_count.h_view(),k_doublebuf_send,
                                      k_exchange_sendlist,k_exchange_copylist,
                                      Space,
                                      dim,lo,hi);
@@ -697,7 +696,7 @@ void CommKokkos::exchange_device()
         nrecv = nsend;
         if (nrecv) {
           atom->nlocal=avec->
-            unpack_exchange_kokkos(k_buf_send,nrecv,atom->nlocal,dim,lo,hi,Space);
+            unpack_exchange_kokkos(k_doublebuf_send,nrecv,atom->nlocal,dim,lo,hi,Space);
           DeviceType().fence();
         }
       } else {
@@ -711,25 +710,25 @@ void CommKokkos::exchange_device()
         }
         if (nrecv > maxrecv) grow_recv_kokkos(nrecv);
 
-        MPI_Irecv(DualViewHelper<Space>::view(k_buf_recv).data(),nrecv1,
-                  MPI_KK_TYPE,procneigh[dim][1],0,
+        MPI_Irecv(DualViewHelper<Space>::view(k_doublebuf_recv).data(),nrecv1,
+                  MPI_DOUBLE,procneigh[dim][1],0,
                   world,&request);
-        MPI_Send(DualViewHelper<Space>::view(k_buf_send).data(),nsend,
-                 MPI_KK_TYPE,procneigh[dim][0],0,world);
+        MPI_Send(DualViewHelper<Space>::view(k_doublebuf_send).data(),nsend,
+                 MPI_DOUBLE,procneigh[dim][0],0,world);
         MPI_Wait(&request,MPI_STATUS_IGNORE);
 
         if (procgrid[dim] > 2) {
-          MPI_Irecv(DualViewHelper<Space>::view(k_buf_recv).data()+nrecv1,
-                    nrecv2,MPI_KK_TYPE,procneigh[dim][0],0,
+          MPI_Irecv(DualViewHelper<Space>::view(k_doublebuf_recv).data()+nrecv1,
+                    nrecv2,MPI_DOUBLE,procneigh[dim][0],0,
                     world,&request);
-          MPI_Send(DualViewHelper<Space>::view(k_buf_send).data(),nsend,
-                   MPI_KK_TYPE,procneigh[dim][1],0,world);
+          MPI_Send(DualViewHelper<Space>::view(k_doublebuf_send).data(),nsend,
+                   MPI_DOUBLE,procneigh[dim][1],0,world);
           MPI_Wait(&request,MPI_STATUS_IGNORE);
         }
 
         if (nrecv) {
           atom->nlocal = avec->
-            unpack_exchange_kokkos(k_buf_recv,nrecv,atom->nlocal,dim,lo,hi,Space);
+            unpack_exchange_kokkos(k_doublebuf_recv,nrecv,atom->nlocal,dim,lo,hi,Space);
           DeviceType().fence();
         }
       }
@@ -847,7 +846,6 @@ struct BuildBorderListFunctor {
 template<ExecutionSpace Space>
 void CommKokkos::borders_device() {
   typedef typename GetDeviceType<Space>::value DeviceType;
-  MPI_Datatype MPI_KK_TYPE = GetFloatType<Space>::GetMPIType();
 
   int i,n,itype,iswap,dim,ineed,twoneed,smax,rmax;
   int nsend,nrecv,sendflag,nfirst,nlast,ngroup;
@@ -998,13 +996,13 @@ void CommKokkos::borders_device() {
         grow_send_kokkos(nsend*size_border,0);
       if (ghost_velocity) {
         n = avec->
-          pack_border_vel_kokkos(nsend,k_sendlist,k_buf_send,iswap,
+          pack_border_vel_kokkos(nsend,k_sendlist,k_doublebuf_send,iswap,
                                  pbc_flag[iswap],pbc[iswap],Space);
         DeviceType().fence();
       }
       else {
         n = avec->
-          pack_border_kokkos(nsend,k_sendlist,k_buf_send,iswap,
+          pack_border_kokkos(nsend,k_sendlist,k_doublebuf_send,iswap,
                              pbc_flag[iswap],pbc[iswap],Space);
         DeviceType().fence();
       }
@@ -1018,11 +1016,11 @@ void CommKokkos::borders_device() {
         MPI_Sendrecv(&nsend,1,MPI_INT,sendproc[iswap],0,
                      &nrecv,1,MPI_INT,recvproc[iswap],0,world,MPI_STATUS_IGNORE);
         if (nrecv*size_border > maxrecv) grow_recv_kokkos(nrecv*size_border);
-        if (nrecv) MPI_Irecv(DualViewHelper<Space>::view(k_buf_recv).data(),
-                             nrecv*size_border,MPI_KK_TYPE,
+        if (nrecv) MPI_Irecv(DualViewHelper<Space>::view(k_doublebuf_recv).data(),
+                             nrecv*size_border,MPI_DOUBLE,
                              recvproc[iswap],0,world,&request);
-        if (n) MPI_Send(DualViewHelper<Space>::view(k_buf_send).data(),n,
-                        MPI_KK_TYPE,sendproc[iswap],0,world);
+        if (n) MPI_Send(DualViewHelper<Space>::view(k_doublebuf_send).data(),n,
+                        MPI_DOUBLE,sendproc[iswap],0,world);
         if (nrecv) MPI_Wait(&request,MPI_STATUS_IGNORE);
         buf = buf_recv;
       } else {
@@ -1035,21 +1033,21 @@ void CommKokkos::borders_device() {
       if (ghost_velocity) {
         if (sendproc[iswap] != me) {
           avec->unpack_border_vel_kokkos(nrecv,atom->nlocal+atom->nghost,
-                                         k_buf_recv,Space);
+                                         k_doublebuf_recv,Space);
           DeviceType().fence();
         } else {
           avec->unpack_border_vel_kokkos(nrecv,atom->nlocal+atom->nghost,
-                                         k_buf_send,Space);
+                                         k_doublebuf_send,Space);
           DeviceType().fence();
         }
       } else {
         if (sendproc[iswap] != me) {
           avec->unpack_border_kokkos(nrecv,atom->nlocal+atom->nghost,
-                                     k_buf_recv,Space);
+                                     k_doublebuf_recv,Space);
           DeviceType().fence();
         } else {
           avec->unpack_border_kokkos(nrecv,atom->nlocal+atom->nghost,
-                                     k_buf_send,Space);
+                                     k_doublebuf_send,Space);
           DeviceType().fence();
         }
       }
@@ -1190,14 +1188,23 @@ void CommKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
     buf_send = k_buf_send.h_view.data();
   }
   else {
-    if (ghost_velocity)
+    if (ghost_velocity) {
       k_buf_send = DAT::
         tdual_float_2d("comm:k_buf_send",
                         maxsend_border,
                         atom->avec->size_border + atom->avec->size_velocity);
-    else
+
+      k_doublebuf_send = DAT::
+        tdual_double_2d_lr("comm:k_doublebuf_send",
+                        maxsend_border,
+                        atom->avec->size_border + atom->avec->size_velocity);
+    } else {
       k_buf_send = DAT::
         tdual_float_2d("comm:k_buf_send",maxsend_border,atom->avec->size_border);
+
+      k_doublebuf_send = DAT::
+        tdual_double_2d_lr("comm:k_doublebuf_send",maxsend_border,atom->avec->size_border);
+    }
     buf_send = k_buf_send.h_view.data();
   }
 }
@@ -1212,6 +1219,9 @@ void CommKokkos::grow_recv_kokkos(int n, ExecutionSpace space)
   int maxrecv_border = (maxrecv+BUFEXTRA+5)/atom->avec->size_border + 2;
   k_buf_recv = DAT::
     tdual_float_2d("comm:k_buf_recv",maxrecv_border,atom->avec->size_border);
+
+  k_doublebuf_recv = DAT::
+    tdual_double_2d_lr("comm:k_doublebuf_recv",maxrecv_border,atom->avec->size_border);
   buf_recv = k_buf_recv.h_view.data();
 }
 

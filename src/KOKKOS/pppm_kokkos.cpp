@@ -2976,7 +2976,7 @@ void PPPMKokkos<Space>::operator()(TagPPPM_slabcorr4, const int &i) const
 ------------------------------------------------------------------------- */
 
 template<ExecutionSpace Space>
-int PPPMKokkos<Space>::timing_1d(int n, KK_FLOAT &time1d)
+int PPPMKokkos<Space>::timing_1d(int n, double &time1d)
 {
   KK_FLOAT time1,time2;
 
@@ -3013,7 +3013,7 @@ void PPPMKokkos<Space>::operator()(TagPPPM_timing_zero, const int &i) const
 ------------------------------------------------------------------------- */
 
 template<ExecutionSpace Space>
-int PPPMKokkos<Space>::timing_3d(int n, KK_FLOAT &time3d)
+int PPPMKokkos<Space>::timing_3d(int n, double &time3d)
 {
   KK_FLOAT time1,time2;
 

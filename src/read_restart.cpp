@@ -113,11 +113,9 @@ void ReadRestart::command(int narg, char **arg)
       *ptr = '%';
     } else hfile = file;
     fp = fopen(hfile,"rb");
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open restart file %s",hfile);
-      error->one(FLERR,str);
-    }
+    if (fp == NULL)
+      error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
+                                   hfile, utils::getsyserror()));
     if (multiproc) delete [] hfile;
   }
 
@@ -282,12 +280,9 @@ void ReadRestart::command(int narg, char **arg)
       sprintf(procfile,"%s%d%s",file,iproc,ptr+1);
       *ptr = '%';
       fp = fopen(procfile,"rb");
-      if (fp == NULL) {
-        char str[128];
-        snprintf(str,128,"Cannot open restart file %s",procfile);
-        error->one(FLERR,str);
-      }
-
+      if (fp == NULL)
+        error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
+                                     procfile, utils::getsyserror()));
       utils::sfread(FLERR,&flag,sizeof(int),1,fp,NULL,error);
       if (flag != PROCSPERFILE)
         error->one(FLERR,"Invalid flag in peratom section of restart file");
@@ -354,11 +349,9 @@ void ReadRestart::command(int narg, char **arg)
       sprintf(procfile,"%s%d%s",file,icluster,ptr+1);
       *ptr = '%';
       fp = fopen(procfile,"rb");
-      if (fp == NULL) {
-        char str[128];
-        snprintf(str,128,"Cannot open restart file %s",procfile);
-        error->one(FLERR,str);
-      }
+      if (fp == NULL)
+        error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
+                                     procfile, utils::getsyserror()));
       delete [] procfile;
     }
 
@@ -718,12 +711,10 @@ void ReadRestart::header()
 
     } else if (flag == NPROCS) {
       nprocs_file = read_int();
-      if (nprocs_file != comm->nprocs && me == 0) {
-        char msg[128];
-        snprintf(msg,128,"Restart file used different # of processors: %d vs. %d",
-                 nprocs_file,comm->nprocs);
-        error->warning(FLERR,msg);
-      }
+      if (nprocs_file != comm->nprocs && me == 0)
+        error->warning(FLERR,fmt::format("Restart file used different # of "
+                                         "processors: {} vs. {}",nprocs_file,
+                                         comm->nprocs));
 
     // don't set procgrid, warn if different
 

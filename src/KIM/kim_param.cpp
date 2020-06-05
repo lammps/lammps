@@ -163,7 +163,7 @@ void KimParam::command(int narg, char **arg)
   if (!kim_param_get && !kim_param_set) {
     std::string msg("Incorrect arguments in kim_param command.\n");
     msg += "'kim_param get/set' is mandatory.";
-    error->all(FLERR, msg.c_str());
+    error->all(FLERR, msg);
   }
 
   // Check if we called a kim_init command
@@ -225,7 +225,7 @@ void KimParam::command(int narg, char **arg)
       msg += "To set the new parameter values, pair style must be assigned.\n";
       msg += "Must use 'kim_interactions' or";
       msg += "'pair_style kim ' before 'kim_param set'";
-      error->all(FLERR, msg.c_str());
+      error->all(FLERR, msg);
     } else {
       KIM_LengthUnit lengthUnit;
       KIM_EnergyUnit energyUnit;
@@ -296,7 +296,7 @@ void KimParam::command(int narg, char **arg)
           msg += "This Model does not have the requested '";
           msg += paramname;
           msg += "' parameter.";
-          error->all(FLERR, msg.c_str());
+          error->all(FLERR, msg);
         }
 
         // Get the index_range for the requested parameter
@@ -313,7 +313,7 @@ void KimParam::command(int narg, char **arg)
             msg += "Expected integer parameter(s) instead of '";
             msg += argtostr;
             msg += "' in index_range.";
-            error->all(FLERR, msg.c_str());
+            error->all(FLERR, msg);
           }
 
           std::string::size_type npos = argtostr.find(':');
@@ -330,7 +330,7 @@ void KimParam::command(int narg, char **arg)
               msg += "' parameter with extent of '";
               msg += SNUM(extent);
               msg += "' .";
-              error->all(FLERR, msg.c_str());
+              error->all(FLERR, msg);
             }
           } else {
             std::stringstream str(argtostr);
@@ -342,7 +342,7 @@ void KimParam::command(int narg, char **arg)
               msg += "' with the extent of '";
               msg += SNUM(extent);
               msg += "' .";
-              error->all(FLERR, msg.c_str());
+              error->all(FLERR, msg);
             }
             nubound = nlbound;
           }
@@ -350,7 +350,7 @@ void KimParam::command(int narg, char **arg)
           std::string msg("Wrong number of arguments in ");
           msg += "kim_param get command.\n";
           msg += "Index range after parameter name is mandatory.";
-          error->all(FLERR, msg.c_str());
+          error->all(FLERR, msg);
         }
 
         int const nvars = nubound - nlbound + 1;
@@ -363,7 +363,7 @@ void KimParam::command(int narg, char **arg)
           std::string msg("Wrong number of arguments in ");
           msg += "kim_param get command.\n";
           msg += "The LAMMPS variable name is mandatory.";
-          error->all(FLERR, msg.c_str());
+          error->all(FLERR, msg);
         }
 
         // indicator flag for list request
@@ -400,7 +400,7 @@ void KimParam::command(int narg, char **arg)
               msg += "' variable names or '";
               msg += varname;
               msg += " split' is mandatory.";
-              error->all(FLERR, msg.c_str());
+              error->all(FLERR, msg);
             }
           } else {
             std::string msg("Wrong number of arguments in ");
@@ -410,7 +410,7 @@ void KimParam::command(int narg, char **arg)
             msg += "' variable names or '";
             msg += varname;
             msg += " split/list' is mandatory.";
-            error->all(FLERR, msg.c_str());
+            error->all(FLERR, msg);
           }
         } else {
           varsname = new char *[1];
@@ -524,7 +524,7 @@ void KimParam::command(int narg, char **arg)
         set_cmd += " ";
         set_cmd += arg[i];
       }
-      input->one(set_cmd.c_str());
+      input->one(set_cmd);
     }
   } else
     error->all(FLERR, "This model has No mutable parameters.");

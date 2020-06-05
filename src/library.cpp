@@ -42,6 +42,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "fmt/format.h"
 
 #if defined(LAMMPS_EXCEPTIONS)
 #include "exceptions.h"
@@ -79,12 +80,12 @@ using namespace LAMMPS_NS;
     MPI_Comm_size(ae.universe, &nprocs ); \
     \
     if (nprocs > 1) { \
-      error->set_last_error(ae.message.c_str(), ERROR_ABORT); \
+      error->set_last_error(ae.message, ERROR_ABORT); \
     } else { \
-      error->set_last_error(ae.message.c_str(), ERROR_NORMAL); \
+      error->set_last_error(ae.message, ERROR_NORMAL); \
     } \
   } catch(LAMMPSException & e) { \
-    error->set_last_error(e.message.c_str(), ERROR_NORMAL); \
+    error->set_last_error(e.message, ERROR_NORMAL); \
   }
 #else
 #define BEGIN_CAPTURE
@@ -2450,19 +2451,13 @@ void lammps_fix_external_set_energy_global(void *handle, char *id,
   BEGIN_CAPTURE
   {
     int ifix = lmp->modify->find_fix(id);
-    if (ifix < 0) {
-      char str[128];
-      snprintf(str, 128, "Can not find fix with ID '%s'!", id);
-      lmp->error->all(FLERR,str);
-    }
+    if (ifix < 0)
+      lmp->error->all(FLERR,fmt::format("Can not find fix with ID '{}'!", id));
 
     Fix *fix = lmp->modify->fix[ifix];
 
-    if (strcmp("external",fix->style) != 0){
-      char str[128];
-      snprintf(str, 128, "Fix '%s' is not of style external!", id);
-      lmp->error->all(FLERR,str);
-    }
+    if (strcmp("external",fix->style) != 0)
+      lmp->error->all(FLERR,fmt::format("Fix '{}' is not of style external!", id));
 
     FixExternal * fext = (FixExternal*) fix;
     fext->set_energy_global(energy);
@@ -2479,19 +2474,13 @@ void lammps_fix_external_set_virial_global(void *handle, char *id,
   BEGIN_CAPTURE
   {
     int ifix = lmp->modify->find_fix(id);
-    if (ifix < 0) {
-      char str[128];
-      snprintf(str, 128, "Can not find fix with ID '%s'!", id);
-      lmp->error->all(FLERR,str);
-    }
+    if (ifix < 0)
+      lmp->error->all(FLERR,fmt::format("Can not find fix with ID '{}'!", id));
 
     Fix *fix = lmp->modify->fix[ifix];
 
-    if (strcmp("external",fix->style) != 0){
-      char str[128];
-      snprintf(str, 128, "Fix '%s' is not of style external!", id);
-      lmp->error->all(FLERR,str);
-    }
+    if (strcmp("external",fix->style) != 0)
+      lmp->error->all(FLERR,fmt::format("Fix '{}' is not of style external!", id));
 
     FixExternal * fext = (FixExternal*) fix;
     fext->set_virial_global(virial);

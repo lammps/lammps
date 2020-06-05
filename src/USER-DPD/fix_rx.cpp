@@ -124,7 +124,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
     else {
       std::string errmsg = "Illegal command " + std::string(word)
                              + " expected \"sparse\" or \"dense\"\n";
-      error->all(FLERR, errmsg.c_str());
+      error->all(FLERR, errmsg);
     }
 
     if (comm->me == 0 and Verbosity > 1){
@@ -134,7 +134,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
       else
          msg += std::string("dense");
 
-      error->message(FLERR, msg.c_str());
+      error->message(FLERR, msg);
     }
   }
 
@@ -149,7 +149,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
       odeIntegrationFlag = ODE_LAMMPS_RKF45;
     else {
       std::string errmsg = "Illegal ODE integration type: " + std::string(word);
-      error->all(FLERR, errmsg.c_str());
+      error->all(FLERR, errmsg);
     }
   }
 

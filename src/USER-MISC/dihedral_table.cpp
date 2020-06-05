@@ -832,13 +832,13 @@ void DihedralTable::coeff(int narg, char **arg)
     string err_msg;
     err_msg = string("Invalid dihedral table length (")
       + string(arg[2]) + string(").");
-    error->one(FLERR,err_msg.c_str());
+    error->one(FLERR,err_msg);
   }
   else if ((tb->ninput == 2) && (tabstyle == SPLINE)) {
     string err_msg;
     err_msg = string("Invalid dihedral spline table length. (Try linear)\n (")
       + string(arg[2]) + string(").");
-    error->one(FLERR,err_msg.c_str());
+    error->one(FLERR,err_msg);
   }
 
   // check for monotonicity
@@ -851,7 +851,7 @@ void DihedralTable::coeff(int narg, char **arg)
         string(arg[2]) + string(", ")+i_str.str()+string("th entry)");
       if (i==0)
         err_msg += string("\n(This is probably a mistake with your table format.)\n");
-      error->all(FLERR,err_msg.c_str());
+      error->all(FLERR,err_msg);
     }
   }
 
@@ -863,7 +863,7 @@ void DihedralTable::coeff(int narg, char **arg)
       string err_msg;
       err_msg = string("Dihedral table angle range must be < 360 degrees (")
         +string(arg[2]) + string(").");
-      error->all(FLERR,err_msg.c_str());
+      error->all(FLERR,err_msg);
     }
   }
   else {
@@ -871,7 +871,7 @@ void DihedralTable::coeff(int narg, char **arg)
       string err_msg;
       err_msg = string("Dihedral table angle range must be < 2*PI radians (")
         + string(arg[2]) + string(").");
-      error->all(FLERR,err_msg.c_str());
+      error->all(FLERR,err_msg);
     }
   }
 
@@ -1214,7 +1214,7 @@ void DihedralTable::spline_table(Table *tb)
 
     if ((num_disagreements > tb->ninput/2) && (num_disagreements > 2)) {
       string msg("Dihedral table has inconsistent forces and energies. (Try \"NOF\".)\n");
-      error->all(FLERR,msg.c_str());
+      error->all(FLERR, msg);
     }
 
   } // check for consistency if (! tb->f_unspecified)
@@ -1344,7 +1344,7 @@ void DihedralTable::param_extract(Table *tb, char *line)
       //}
       else {
         string err_msg = fmt::format("Invalid keyword in dihedral angle table parameters ({})", word);
-        error->one(FLERR,err_msg.c_str());
+        error->one(FLERR,err_msg);
       }
     }
   } catch (TokenizerException & e) {

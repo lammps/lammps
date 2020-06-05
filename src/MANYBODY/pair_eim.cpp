@@ -29,6 +29,7 @@
 #include "utils.h"
 #include "tokenizer.h"
 #include "potential_file_reader.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -1059,9 +1060,7 @@ EIMPotentialFileReader::EIMPotentialFileReader(LAMMPS * lmp, const std::string &
   FILE * fp = force->open_potential(filename.c_str());
 
   if (fp == NULL) {
-    char str[128];
-    snprintf(str, 128, "cannot open EIM potential file %s", filename.c_str());
-    error->one(FLERR, str);
+    error->one(FLERR, fmt::format("cannot open EIM potential file {}", filename));
   }
 
   parse(fp);

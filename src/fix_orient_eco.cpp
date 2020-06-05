@@ -15,33 +15,30 @@
    Contributing authors: Adrian A. Schratt and Volker Mohles (ICAMS)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
-#include "mpi.h"
-#include "fix_eco_force.h"
+#include "fix_orient_eco.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
-#include "update.h"
-#include "domain.h"
-#include "respa.h"
-#include "force.h"
-#include "pair.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "citeme.h"
 #include "comm.h"
-#include "output.h"
+#include "error.h"
+#include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "respa.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-static const char cite_fix_eco_force[] =
-  "fix eco/force command:\n\n"
+static const char cite_fix_orient_eco[] =
+  "fix orient/eco command:\n\n"
   "@Article{Schratt20,\n"
   " author = {A. A. Schratt, V. Mohles},\n"
   " title = {Efficient calculation of the ECO driving force for atomistic simulations of grain boundary motion},\n"
@@ -52,20 +49,34 @@ static const char cite_fix_eco_force[] =
   " doi = {j.commatsci.2020.109774},\n"
   " url = {https://doi.org/10.1016/j.commatsci.2020.109774}\n"
   "}\n\n";
+  
+#define FIX_ORIENT_ECO_MAX_NEIGH 24
+  
+struct FixOrientECO::Nbr {
+  public:
+    int n;                                      // # of neighbors
+    tagint id[FIX_ORIENT_ECO_MAX_NEIGH];        // IDs of each neighbor
+                                                // if center atom is owned, these are local IDs
+                                                // if center atom is ghost, these are global IDs
+    double duchi;                               // potential derivative
+    double delta[FIX_ORIENT_ECO_MAX_NEIGH][3];  // difference vectors
+    double real_phi[2][3];                      // real part of wave function
+    double imag_phi[2][3];                      // imaginary part of wave function
+};
 
 /* ---------------------------------------------------------------------- */
 
-FixECOForce::FixECOForce(LAMMPS *lmp, int narg, char **arg) :
+FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg),
     dir_filename(NULL), order(NULL), nbr(NULL), list(NULL)
 {
-  if (lmp->citeme) lmp->citeme->add(cite_fix_eco_force);
+  if (lmp->citeme) lmp->citeme->add(cite_fix_orient_eco);
 
   // get rank of this processor
   MPI_Comm_rank(world, &me);
 
   // check for illegal command
-  if (narg != 7) error->all(FLERR, "Illegal fix eco/force command");
+  if (narg != 7) error->all(FLERR, "Illegal fix orient/eco command");
 
   // set fix flags
   scalar_flag = 1;          // computes scalar
@@ -76,10 +87,10 @@ FixECOForce::FixECOForce(LAMMPS *lmp, int narg, char **arg) :
   peratom_freq = 1;         //
 
   // parse input parameters
-  u_0 = atof(arg[3]);
+  u_0 = force->numeric(FLERR, arg[3]);
   sign = (u_0 >= 0.0 ? 1 : -1);
-  eta = atof(arg[4]);
-  r_cut = atof(arg[5]);
+  eta = force->numeric(FLERR, arg[4]);
+  r_cut = force->numeric(FLERR, arg[5]);
 
   // read reference orientations from file
   // work on rank 0 only
@@ -91,13 +102,13 @@ FixECOForce::FixECOForce(LAMMPS *lmp, int narg, char **arg) :
     char *result;
     int count;
 
-    FILE *infile = fopen(dir_filename, "r");
-    if (infile == NULL) error->one(FLERR, "Fix eco/force file open failed");
+    FILE *infile = force->open_potential(dir_filename);
+    if (infile == NULL) error->one(FLERR, "Fix orient/eco file open failed");
     for (int i = 0; i < 6; ++i) {
       result = fgets(line, IMGMAX, infile);
-      if (!result) error->one(FLERR, "Fix eco/force file read failed");
+      if (!result) error->one(FLERR, "Fix orient/eco file read failed");
       count = sscanf(line, "%lg %lg %lg", &dir_vec[i][0], &dir_vec[i][1], &dir_vec[i][2]);
-      if (count != 3) error->one(FLERR, "Fix eco/force file read failed");
+      if (count != 3) error->one(FLERR, "Fix orient/eco file read failed");
     }
     fclose(infile);
 
@@ -119,14 +130,14 @@ FixECOForce::FixECOForce(LAMMPS *lmp, int narg, char **arg) :
   MPI_Bcast(&inv_eta, 1, MPI_DOUBLE, 0, world);                         // communicate inverse threshold
 
   // set comm size needed by this Fix
-  if (u_0 != 0.0) comm_forward = 110;
-  else comm_forward = 98;
+  if (u_0 != 0.0) comm_forward = 14 + 4 * FIX_ORIENT_ECO_MAX_NEIGH;     // needed for communication of full Nbr struct
+  else comm_forward = 2 + 4 * FIX_ORIENT_ECO_MAX_NEIGH;                 // real_phi and imag_phi not needed for communication
 
-  added_energy = 0.0;                                   // initial energy
+  added_energy = 0.0;  // initial energy
 
   nmax = atom->nmax;
-  nbr = (Nbr *) memory->smalloc(nmax * sizeof(Nbr), "eco/force:nbr");
-  memory->create(order, nmax, 2, "eco/force:order");
+  nbr = (Nbr *) memory->smalloc(nmax * sizeof(Nbr), "orient/eco:nbr");
+  memory->create(order, nmax, 2, "orient/eco:order");
   array_atom = order;
 
   // zero the array since a variable may access it before first run
@@ -135,7 +146,7 @@ FixECOForce::FixECOForce(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixECOForce::~FixECOForce() {
+FixOrientECO::~FixOrientECO() {
   memory->destroy(order);
   memory->sfree(nbr);
   delete[] dir_filename;
@@ -143,7 +154,7 @@ FixECOForce::~FixECOForce() {
 
 /* ---------------------------------------------------------------------- */
 
-int FixECOForce::setmask() {
+int FixOrientECO::setmask() {
   int mask = 0;
   mask |= POST_FORCE;
   mask |= THERMO_ENERGY;
@@ -153,7 +164,7 @@ int FixECOForce::setmask() {
 
 /* ---------------------------------------------------------------------- */
 
-void FixECOForce::init() {
+void FixOrientECO::init() {
   // get this processors rank
   MPI_Comm_rank(world, &me);
 
@@ -161,14 +172,19 @@ void FixECOForce::init() {
   if (me == 0) {
     int neigh;
     get_norm(neigh);
-    printf("fix eco/force: cutoff=%f norm_fac=%f neighbors=%i\n", r_cut, norm_fac, neigh);
+    if (screen) {
+      fprintf(screen, "  fix orient/eco: cutoff=%f norm_fac=%f neighbors=%i\n", r_cut, norm_fac, neigh); 
+    }
+    if (logfile) {
+      fprintf(logfile, "  fix orient/eco: cutoff=%f norm_fac=%f neighbors=%i\n", r_cut, norm_fac, neigh); 
+    }
   }
   
   inv_norm_fac = 1.0 / norm_fac;
 
   // check parameters
   if (r_cut > force->pair->cutforce) {
-    error->all(FLERR, "Pair cutoff too small: use 'hybrid/overlay' to set the pair cutoff larger than the fix eco/force cutoff");
+    error->all(FLERR, "Cutoff radius used by fix orient/eco must be smaller than force cutoff");
   }
 
   // communicate normalization factor
@@ -188,18 +204,17 @@ void FixECOForce::init() {
   neighbor->requests[irequest]->fix = 1;
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->ghost = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixECOForce::init_list(int id, NeighList *ptr) {
+void FixOrientECO::init_list(int id, NeighList *ptr) {
   list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixECOForce::setup(int vflag) {
+void FixOrientECO::setup(int vflag) {
   if (strstr(update->integrate_style, "verlet"))
     post_force(vflag);
   else {
@@ -211,7 +226,7 @@ void FixECOForce::setup(int vflag) {
 
 /* ---------------------------------------------------------------------- */
 
-void FixECOForce::post_force(int vflag) {
+void FixOrientECO::post_force(int vflag) {
   // set local variables
   int ii, i, jj, j;                                             // loop variables and atom IDs
   int k;                                                        // variable to loop over 3 reciprocal directions
@@ -250,8 +265,8 @@ void FixECOForce::post_force(int vflag) {
     nmax = nall;
     memory->destroy(nbr);
     memory->destroy(order);
-    nbr = (Nbr *) memory->smalloc(nmax * sizeof(Nbr), "eco/force:nbr");
-    memory->create(order, nmax, 2, "eco/force:order");
+    nbr = (Nbr *) memory->smalloc(nmax * sizeof(Nbr), "orient/eco:nbr");
+    memory->create(order, nmax, 2, "orient/eco:order");
     array_atom = order;
   }
 
@@ -276,8 +291,8 @@ void FixECOForce::post_force(int vflag) {
       squared_distance = dx * dx + dy * dy + dz * dz;
 
       if (squared_distance < squared_cutoff) {
-        if (n >= FIX_ECO_FORCE_MAX_NEIGHBORS) {
-          error->one(FLERR, "Fix eco/force maximal number of neighbors exceeded");
+        if (n >= FIX_ORIENT_ECO_MAX_NEIGH) {
+          error->one(FLERR, "Fix orient/eco maximal number of neighbors exceeded");
         }
         nbr[i].id[n] = static_cast<tagint> (j);
         nbr[i].delta[n][0] = dx;
@@ -444,13 +459,13 @@ void FixECOForce::post_force(int vflag) {
 
 /* ---------------------------------------------------------------------- */
 
-void FixECOForce::post_force_respa(int vflag, int ilevel, int iloop) {
+void FixOrientECO::post_force_respa(int vflag, int ilevel, int iloop) {
   if (ilevel == ilevel_respa) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-double FixECOForce::compute_scalar() {
+double FixOrientECO::compute_scalar() {
   double added_energy_total;
   MPI_Allreduce(&added_energy, &added_energy_total, 1, MPI_DOUBLE, MPI_SUM, world);
   return added_energy_total;
@@ -458,7 +473,7 @@ double FixECOForce::compute_scalar() {
 
 /* ---------------------------------------------------------------------- */
 
-int FixECOForce::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc) {
+int FixOrientECO::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc) {
   int ii, i, jj, j, k, num;
   tagint id;
 
@@ -490,8 +505,8 @@ int FixECOForce::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, 
       // if k is a local atom, it stores local IDs, so convert to global
       // if k is a ghost atom (already comm'd), its IDs are already global
 
-      id = nbr[k].id[j];
-      if (k < nlocal) id = tag[id];
+      id = ubuf(nbr[k].id[j]).i;
+      if (k < nlocal) id = ubuf(tag[id]).i;
       buf[m++] = id;
     }
   }
@@ -501,7 +516,7 @@ int FixECOForce::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, 
 
 /* ---------------------------------------------------------------------- */
 
-void FixECOForce::unpack_forward_comm(int n, int first, double *buf) {
+void FixOrientECO::unpack_forward_comm(int n, int first, double *buf) {
   int ii, i, jj, j, num;
   int last = first + n;
   int m = 0;
@@ -523,7 +538,7 @@ void FixECOForce::unpack_forward_comm(int n, int first, double *buf) {
       nbr[i].delta[j][0] = buf[m++];
       nbr[i].delta[j][1] = buf[m++];
       nbr[i].delta[j][2] = buf[m++];
-      nbr[i].id[j] = static_cast<tagint> (buf[m++]);
+      nbr[i].id[j] = ubuf(buf[m++]).i;
     }
   }
 }
@@ -532,7 +547,7 @@ void FixECOForce::unpack_forward_comm(int n, int first, double *buf) {
  memory usage of local atom-based arrays
  ------------------------------------------------------------------------- */
 
-double FixECOForce::memory_usage() {
+double FixOrientECO::memory_usage() {
   double bytes = nmax * sizeof(Nbr);
   bytes += 2 * nmax * sizeof(double);
   return bytes;
@@ -542,7 +557,7 @@ double FixECOForce::memory_usage() {
  reciprocal lattice vectors from file input
  ------------------------------------------------------------------------- */
 
-void FixECOForce::get_reciprocal() {
+void FixOrientECO::get_reciprocal() {
   // volume of unit cell A
   double vol = 0.5 * (dir_vec[0][0] * (dir_vec[1][1] * dir_vec[2][2] - dir_vec[2][1] * dir_vec[1][2]) + dir_vec[1][0] * (dir_vec[2][1] * dir_vec[0][2] - dir_vec[0][1] * dir_vec[2][2]) + dir_vec[2][0] * (dir_vec[0][1] * dir_vec[1][2] - dir_vec[1][1] * dir_vec[0][2])) / MY_PI;
   double i_vol = 1.0 / vol;
@@ -586,7 +601,7 @@ void FixECOForce::get_reciprocal() {
  normalization factor
  ------------------------------------------------------------------------- */
 
-void FixECOForce::get_norm(int &neigh) {
+void FixOrientECO::get_norm(int &neigh) {
   // set up local variables
   double delta[3];                        // relative position
   double squared_distance;                           // squared distance of atoms i and j

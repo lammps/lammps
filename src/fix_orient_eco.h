@@ -13,34 +13,21 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(eco/force,FixECOForce)
+FixStyle(orient/eco,FixOrientECO)
 
 #else
 
-#ifndef LMP_FIX_ECO_FORCE_H
-#define LMP_FIX_ECO_FORCE_H
+#ifndef LMP_FIX_ORIENT_ECO_H
+#define LMP_FIX_ORIENT_ECO_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-#define FIX_ECO_FORCE_MAX_NEIGHBORS 24
-
-class FixECOForce : public Fix {
+class FixOrientECO : public Fix {
   public:
-    struct Nbr {
-      int n;                    // # of neighbors
-      tagint id[FIX_ECO_FORCE_MAX_NEIGHBORS];       // IDs of each neighbor
-                                // if center atom is owned, these are local IDs
-                                // if center atom is ghost, these are global IDs
-      double duchi;             // potential derivative
-      double delta[FIX_ECO_FORCE_MAX_NEIGHBORS][3]; // difference vectors
-      double real_phi[2][3];    // real part of wave function
-      double imag_phi[2][3];    // imaginary part of wave function
-    };
-
-    FixECOForce(class LAMMPS *, int, char **);
-    ~FixECOForce();
+    FixOrientECO(class LAMMPS *, int, char **);
+    ~FixOrientECO();
     int setmask();
     void init();
     void init_list(int, class NeighList *);
@@ -53,6 +40,8 @@ class FixECOForce : public Fix {
     double memory_usage();
 
   private:
+    struct Nbr;                         // private struct for managing precomputed terms
+    
     int me;                             // this processors rank
     int nmax;                           // maximal # of owned + ghost atoms on this processor
     int ilevel_respa;                   // used for RESPA integrator only
@@ -86,6 +75,6 @@ class FixECOForce : public Fix {
 
 }
 
-#endif // LMP_FIX_ECO_FORCE_H
+#endif // LMP_FIX_ORIENT_ECO_H
 #endif // FIX_CLASS
 

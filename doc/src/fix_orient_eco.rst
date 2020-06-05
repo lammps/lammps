@@ -1,26 +1,26 @@
-..  index:: fix eco/force
+..  index:: fix orient/eco
 
-fix eco/force command
-=====================
+fix orient/eco command
+======================
 
 
 .. parsed-literal::
 
-   fix ID group-ID eco/force u0 eta rcut file
+   fix ID group-ID orient/eco u0 eta rcut orientationsFile
 
 
 * ID, group-ID are documented in fix command
 * u0 = energy added to each atom (energy units)
 * eta = cutoff value (usually 0.25)
 * rcut = cutoff radius for orientation parameter calculation 
-* file = file that specifies orientation of each grain
+* orientationsFile = file that specifies orientation of each grain
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   fix gb all eco/force 0.08 0.25 3.524 sigma5.ori 
+   fix gb all orient/eco 0.08 0.25 3.524 sigma5.ori 
 
 
 Description
@@ -76,36 +76,37 @@ depends on the surrounding of this atom. An atom far from the grain boundary doe
 experience a synthetic force as its surrounding is that of an oriented single crystal 
 and thermal fluctuations are masked by the parameter eta. Near the grain boundary 
 however, the gradient is nonzero and synthetic force terms are computed. 
-The orientation file specifies the perfect oriented crystal basis vectors for the 
-two adjoining crystals. The first three lines for the energetically penalized and the 
+The orientationsFile specifies the perfect oriented crystal basis vectors for the 
+two adjoining crystals. The first three lines (line=row vector) for the energetically penalized and the 
 last three lines for the energetically favored grain assuming u0 is positive. For 
-negative u0 this is reversed. With the rcut parameter, the size of the region around 
-each atom which is used in the order parameter computation is defined. It should at 
+negative u0, this is reversed. With the rcut parameter, the size of the region around 
+each atom which is used in the order parameter computation is defined. rcut must be 
+smaller than the interaction range of the MD potential. It should at 
 least include the nearest neighbor shell. For high temperatures or low angle 
 grain boundaries, it might be beneficial to increase rcut in order to get a more 
 precise identification of the atoms surrounding. However, computation time will 
-increase as more atoms considered in the order parameter and force computation. 
+increase as more atoms are considered in the order parameter and force computation. 
 It is also worth noting that the cutoff radius must not exceed the communication 
 distance for ghost atoms in LAMMPS. Currently however, the method stores results 
 for order parameter and force computations in statically allocated arrays to 
 increase efficiency such that the user is limited to 24 nearest neighbors. 
-This is more than enough in most applications. With file, the input file for 
-the 6 oriented crystal basis vectors is specified. Each line of the input file 
+This is more than enough in most applications. With orientationsFile, the  
+6 oriented crystal basis vectors is specified. Each line of the input file 
 contains the three components of a primitive lattice vector oriented according to 
 the grain orientation in the simulation box. The first (last) three lines correspond 
 to the primitive lattice vectors of the first (second) grain. An example for 
 a :math:`\Sigma\langle001\rangle` misorientation is given at the end.
 
 If no synthetic energy difference between the grains is created, u0=0, the 
-force computation is omitted. In this case, the order parameter of the 
-driving force can be used to track the grain boundary motion throughout the 
+force computation is omitted. In this case, still, the order parameter of the 
+driving force is computed and can be used to track the grain boundary motion throughout the 
 simulation.
 
 
 
 **Restart, fix_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc: `binary restart files`.
+No information about this fix is written to :doc: `binary restart files <restart>`.
  
 The :doc:`fix_modify <fix_modify>` *energy* option is supported by this fix to 
 add the potential energy of atom interactions with the grain boundary 
@@ -113,7 +114,7 @@ driving force to the system's potential energy as part of thermodynamic output.
 The total sum of added synthetic potential energy is computed and can be accessed 
 by various output options. The order parameter as well as the thermally masked 
 output parameter are stored in per-atom arrays and can also be accessed by various 
-output commands. 
+:doc:`output commands <Howto_output>`. 
 
 No parameter of this fix can be used with the start/stop keywords of the run command. This fix is
 not invoked during energy minimization.
@@ -123,7 +124,7 @@ not invoked during energy minimization.
 Restrictions
 """"""""""""
 
-This fix is part of the MISC package. It is only enabled if LAMMPS was
+This fix is part of the USER-MISC package. It is only enabled if LAMMPS was
 built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
 
@@ -132,6 +133,8 @@ Related commands
 """"""""""""""""
 
 :doc:`fix_modify <fix_modify>`
+
+:doc:`fix_orient <fix_orient>` 
 
 **Default:** none
 

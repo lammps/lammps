@@ -364,7 +364,7 @@ void Info::command(int narg, char **arg)
     fmt::print(out,"\nCommunication information:\n"
                "MPI library level: MPI v{}.{}\n"
                "MPI version: {}\n",major,minor,version);
-    
+
     fmt::print(out,"Comm style = {},  Comm layout = {}\n"
                "Communicate velocities for ghost atoms = {}\n",
                commstyles[comm->style], commlayout[comm->layout],

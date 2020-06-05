@@ -1029,13 +1029,13 @@ void PairEAMAlloyKokkos<DeviceType>::read_file(char *filename)
         values.next_int(); // ignore
         file->mass[i] = values.next_double();
 
-        reader.next_dvector(file->nrho, &file->frho[i][1]);
-        reader.next_dvector(file->nr, &file->rhor[i][1]);
+        reader.next_dvector(&file->frho[i][1], file->nrho);
+        reader.next_dvector(&file->rhor[i][1], file->nr);
       }
 
       for (int i = 0; i < file->nelements; i++) {
         for (int j = 0; j <= i; j++) {
-          reader.next_dvector(file->nr, &file->z2r[i][j][1]);
+          reader.next_dvector(&file->z2r[i][j][1], file->nr);
         }
       }
     } catch (TokenizerException & e) {

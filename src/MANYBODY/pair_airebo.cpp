@@ -3500,14 +3500,14 @@ void PairAIREBO::read_file(char *filename)
       // number-1 = # of domains for the spline
 
       int limit = reader.next_int();
-      reader.next_dvector(limit, gCdom);
+      reader.next_dvector(gCdom, limit);
 
       for (int i = 0; i < limit-1; i++) {
-        reader.next_dvector(6, &gC1[i][0]);
+        reader.next_dvector(&gC1[i][0], 6);
       }
 
       for (int i = 0; i < limit-1; i++) {
-        reader.next_dvector(6, &gC2[i][0]);
+        reader.next_dvector(&gC2[i][0], 6);
       }
 
       /////////////////////////////////////////////////////////////////////////
@@ -3515,10 +3515,10 @@ void PairAIREBO::read_file(char *filename)
       current_section = "gH spline";
 
       limit = reader.next_int();
-      reader.next_dvector(limit, gHdom);
+      reader.next_dvector(gHdom, limit);
 
       for (int i = 0; i < limit-1; i++) {
-        reader.next_dvector(6, &gH[i][0]);
+        reader.next_dvector(&gH[i][0], 6);
       }
 
       /////////////////////////////////////////////////////////////////////////
@@ -3528,12 +3528,12 @@ void PairAIREBO::read_file(char *filename)
       limit = reader.next_int();
 
       for (int i = 0; i < limit/2; i++) {
-        reader.next_dvector(limit/2, &pCCdom[i][0]);
+        reader.next_dvector(&pCCdom[i][0], limit/2);
       }
 
       for (int i = 0; i < (int) pCCdom[0][1]; i++) {
         for (int j = 0; j < (int) pCCdom[1][1]; j++) {
-          reader.next_dvector(16, &pCC[i][j][0]);
+          reader.next_dvector(&pCC[i][j][0], 16);
         }
       }
 
@@ -3551,7 +3551,7 @@ void PairAIREBO::read_file(char *filename)
 
       for (int i = 0; i < (int) pCHdom[0][1]; i++) {
         for (int j = 0; j < (int) pCHdom[1][1]; j++) {
-          reader.next_dvector(16, &pCH[i][j][0]);
+          reader.next_dvector(&pCH[i][j][0], 16);
         }
       }
 
@@ -3570,7 +3570,7 @@ void PairAIREBO::read_file(char *filename)
       for (int i = 0; i < (int) piCCdom[0][1]; i++) {
         for (int j = 0; j < (int) piCCdom[1][1]; j++) {
           for (int k = 0; k < (int) piCCdom[2][1]; k++) {
-            reader.next_dvector(64, &piCC[i][j][k][0]);
+            reader.next_dvector(&piCC[i][j][k][0], 64);
           }
         }
       }
@@ -3590,7 +3590,7 @@ void PairAIREBO::read_file(char *filename)
       for (int i = 0; i < (int) piCHdom[0][1]; i++) {
         for (int j = 0; j < (int) piCHdom[1][1]; j++) {
           for (int k = 0; k < (int) piCHdom[2][1]; k++) {
-            reader.next_dvector(64, &piCH[i][j][k][0]);
+            reader.next_dvector(&piCH[i][j][k][0], 64);
           }
         }
       }
@@ -3610,7 +3610,7 @@ void PairAIREBO::read_file(char *filename)
       for (int i = 0; i < (int) piHHdom[0][1]; i++) {
         for (int j = 0; j < (int) piHHdom[1][1]; j++) {
           for (int k = 0; k < (int) piHHdom[2][1]; k++) {
-            reader.next_dvector(64, &piHH[i][j][k][0]);
+            reader.next_dvector(&piHH[i][j][k][0], 64);
           }
         }
       }
@@ -3630,7 +3630,7 @@ void PairAIREBO::read_file(char *filename)
       for (int i = 0; i < (int) Tijdom[0][1]; i++) {
         for (int j = 0; j < (int) Tijdom[1][1]; j++) {
           for (int k = 0; k < (int) Tijdom[2][1]; k++) {
-            reader.next_dvector(64, &Tijc[i][j][k][0]);
+            reader.next_dvector(&Tijc[i][j][k][0], 64);
           }
         }
       }
@@ -3638,13 +3638,13 @@ void PairAIREBO::read_file(char *filename)
       std::string msg = fmt::format("ERROR reading {} section in {} file\n"
                                     "REASON: {}\n",
                                     current_section, potential_name, e.what());
-      error->one(FLERR, msg.c_str());
+      error->one(FLERR, msg);
     } catch (FileReaderException & fre) {
       error->one(FLERR, fre.what());
       std::string msg = fmt::format("ERROR reading {} section in {} file\n"
                                     "REASON: {}\n",
                                     current_section, potential_name, fre.what());
-      error->one(FLERR, msg.c_str());
+      error->one(FLERR, msg);
     }
 
     // store read-in values in arrays

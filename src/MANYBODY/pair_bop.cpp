@@ -5017,34 +5017,34 @@ void _noopt PairBOP::read_table(char *filename)
           for(int j = 0; j < bop_types; j++)
             for(int k = j; k < bop_types; k++) {
               if(npower <= 2) {
-                reader.next_dvector(ntheta, &gfunc[j][i][k][0]);
+                reader.next_dvector(&gfunc[j][i][k][0], ntheta);
               } else {
-                reader.next_dvector(npower+1, &gpara[j][i][k][0]);
+                reader.next_dvector(&gpara[j][i][k][0], npower+1);
               }
             }
       } else {
         for(int i = 0; i < bop_types; i++)
           for(int j = 0; j < bop_types; j++)
             for(int k = 0; k < bop_types; k++) {
-              reader.next_dvector(3, &gpara[i][j][k][0]);
+              reader.next_dvector(&gpara[i][j][k][0], 3);
               gpara[j][i][k][3] = 0;
             }
       }
 
       for(int i = 0; i < npairs; i++) {
-        reader.next_dvector(nr, &pRepul[i][0]);
+        reader.next_dvector(&pRepul[i][0], nr);
       }
 
       for(int i = 0; i < npairs; i++) {
-        reader.next_dvector(nr, &pBetaS[i][0]);
+        reader.next_dvector(&pBetaS[i][0], nr);
       }
 
       for(int i = 0; i < npairs; i++) {
-        reader.next_dvector(nr, &pBetaP[i][0]);
+        reader.next_dvector(&pBetaP[i][0], nr);
       }
 
       for(int i = 0; i < npairs; i++) {
-        reader.next_dvector(nBOt, &FsigBO[i][0]);
+        reader.next_dvector(&FsigBO[i][0], nBOt);
       }
 
       for(int i = 0; i < bop_types; i++) {
@@ -5064,7 +5064,7 @@ void _noopt PairBOP::read_table(char *filename)
           rcut3[i] = reader.next_double();
         }
         for(int i = 0; i < npairs; i++) {
-          reader.next_dvector(nr, &pLong[i][0]);
+          reader.next_dvector(&pLong[i][0], nr);
         }
       }
 

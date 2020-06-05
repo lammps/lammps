@@ -75,9 +75,9 @@ char *PotentialFileReader::next_line(int nparams) {
   return nullptr;
 }
 
-void PotentialFileReader::next_dvector(int n, double * list) {
+void PotentialFileReader::next_dvector(double * list, int n) {
   try {
-    return reader->next_dvector(n, list);
+    return reader->next_dvector(list, n);
   } catch (FileReaderException & e) {
     error->one(FLERR, e.what());
   }

@@ -97,7 +97,7 @@ char *TextFileReader::next_line(int nparams) {
   return line;
 }
 
-void TextFileReader::next_dvector(int n, double * list) {
+void TextFileReader::next_dvector(double * list, int n) {
   int i = 0;
   while (i < n) {
     char *ptr = next_line();

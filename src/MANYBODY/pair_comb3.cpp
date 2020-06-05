@@ -320,8 +320,8 @@ void PairComb3::read_lib()
   if (comm->me == 0) {
     try {
       PotentialFileReader reader(lmp, "lib.comb3", "COMB3");
-      reader.next_dvector(6, ccutoff);
-      reader.next_dvector(7, ch_a);
+      reader.next_dvector(ccutoff, 6);
+      reader.next_dvector(ch_a, 7);
 
       ValueTokenizer values = reader.next_values(3);
       nsplpcn = values.next_int();
@@ -385,7 +385,7 @@ void PairComb3::read_lib()
 
               for(iii = 0; iii < 2; iii++) {
                 mm = iii*32;
-                reader.next_dvector(32, &pcn_cubs[ll][ii][jj][kk][mm]);
+                reader.next_dvector(&pcn_cubs[ll][ii][jj][kk][mm], 32);
               }
             }
 
@@ -418,7 +418,7 @@ void PairComb3::read_lib()
 
               for (iii = 0; iii < 2; iii++) {
                 mm = iii * 32;
-                reader.next_dvector(32, &rad_spl[ll][ii][jj][kk][mm]);
+                reader.next_dvector(&rad_spl[ll][ii][jj][kk][mm], 32);
               }
             }
 
@@ -450,7 +450,7 @@ void PairComb3::read_lib()
               kk = values.next_int() - 1;
               for(iii=0; iii<2; iii++) {
                 mm=iii*32;
-                reader.next_dvector(32, &tor_spl[ll][ii][jj][kk][mm]);
+                reader.next_dvector(&tor_spl[ll][ii][jj][kk][mm], 32);
               }
             }
 

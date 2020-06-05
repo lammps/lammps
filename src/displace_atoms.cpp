@@ -357,7 +357,7 @@ void DisplaceAtoms::command(int narg, char **arg)
   if (natoms != atom->natoms && comm->me == 0)
     error->warning(FLERR,fmt::format("Lost atoms via displace_atoms: "
                                      "original {} current {}",
-                                     atom->natoms,natoms);
+                                     atom->natoms,natoms));
 }
 
 /* ----------------------------------------------------------------------

@@ -1242,7 +1242,7 @@ KK_FLOAT r0inv;
 
 template<ExecutionSpace Space>
 inline
-KK_FLOAT SNAKokkos<Space>::factorial(int n)
+double SNAKokkos<Space>::factorial(int n)
 {
   //if (n < 0 || n > nmaxfactorial) {
   //  char str[128];
@@ -1258,7 +1258,7 @@ KK_FLOAT SNAKokkos<Space>::factorial(int n)
 ------------------------------------------------------------------------- */
 
 template<ExecutionSpace Space>
-const KK_FLOAT SNAKokkos<Space>::nfac_table[] = {
+const double SNAKokkos<Space>::nfac_table[] = {
   1,
   1,
   2,
@@ -1437,7 +1437,7 @@ template<ExecutionSpace Space>
 inline
 KK_FLOAT SNAKokkos<Space>::deltacg(int j1, int j2, int j)
 {
-  KK_FLOAT sfaccg = factorial((j1 + j2 + j) / 2 + 1);
+  double sfaccg = factorial((j1 + j2 + j) / 2 + 1);
   return sqrt(factorial((j1 + j2 - j) / 2) *
               factorial((j1 - j2 + j) / 2) *
               factorial((-j1 + j2 + j) / 2) / sfaccg);

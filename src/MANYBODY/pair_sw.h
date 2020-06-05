@@ -36,7 +36,6 @@ class PairSW : public Pair {
 
   static const int NPARAMS_PER_LINE = 14;
 
- protected:
   struct Param {
     double epsilon,sigma;
     double littlea,lambda,gamma,costheta;
@@ -49,6 +48,7 @@ class PairSW : public Pair {
     int ielement,jelement,kelement;
   };
 
+ protected:
   double cutmax;                // max cutoff for all elements
   int nelements;                // # of unique elements
   char **elements;              // names of unique elements

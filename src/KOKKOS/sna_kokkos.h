@@ -172,9 +172,9 @@ private:
   t_sna_2d rootpqarray;
 
   static const int nmaxfactorial = 167;
-  static const KK_FLOAT nfac_table[];
+  static const double nfac_table[];
   inline
-  KK_FLOAT factorial(int);
+  double factorial(int);
 
   KOKKOS_INLINE_FUNCTION
   void create_team_scratch_arrays(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team); // SNAKokkos()

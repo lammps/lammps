@@ -30,16 +30,16 @@ enum{FULL=1u,HALFTHREAD=2u,HALF=4u};
 #define ISFINITE(x) std::isfinite(x)
 #endif
 
-//#ifndef PRECISION
-//#define PRECISION 2
+//#ifndef LMP_KOKKOS_PRECISION
+//#define LMP_KOKKOS_PRECISION 2
 //#endif
 
-//#if PRECISION==1
-typedef float KK_FLOAT;
-#define MPI_KK_FLOAT MPI_FLOAT
+//#if LMP_KOKKOS_PRECISION==1
+//typedef float KK_FLOAT;
+//#define MPI_KK_FLOAT MPI_FLOAT
 //#else
-//typedef double KK_FLOAT;
-//#define MPI_KK_FLOAT MPI_DOUBLE;
+typedef double KK_FLOAT;
+#define MPI_KK_FLOAT MPI_DOUBLE
 //#endif
 
 #define MAX_TYPES_STACKPARAMS 12
@@ -831,10 +831,12 @@ KOKKOS_FORCEINLINE_FUNCTION SNAComplex<real> operator*(const real& r, const SNAC
   return SNAComplex<real>(r*self.re, r*self.im);
 }
 
-template <typename real>
-KOKKOS_FORCEINLINE_FUNCTION SNAComplex<real> operator*(const double& r, const SNAComplex<real>& self) {
-  return SNAComplex<real>(r*self.re, r*self.im);
-}
+//#if LMP_KOKKOS_PRECISION==1
+//template <typename real>
+//KOKKOS_FORCEINLINE_FUNCTION SNAComplex<real> operator*(const double& r, const SNAComplex<real>& self) {
+//  return SNAComplex<real>(r*self.re, r*self.im);
+//}
+//#endif
 
 typedef SNAComplex<SNAreal> SNAcomplex;
 
@@ -845,7 +847,7 @@ typedef SNAComplex<SNAreal> SNAcomplex;
 #endif
 
 #ifdef KOKKOS_ENABLE_CUDA
-#define LAMMPS_LAMBDA [=] __device__
+#define LAMMPS_LAMBDA [=] __host__ __device__
 #else
 #define LAMMPS_LAMBDA [=]
 #endif

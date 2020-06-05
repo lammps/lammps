@@ -40,7 +40,7 @@ namespace LAMMPS_NS
 
     void skip_line();
     char * next_line(int nparams = 0);
-    
+
     void next_dvector(double * list, int n);
     ValueTokenizer next_values(int nparams, const std::string & seperators = TOKENIZER_DEFAULT_SEPERATORS);
   };

@@ -3492,7 +3492,7 @@ void PairAIREBO::read_file(char *filename)
         *params[i] = reader.next_double();
       }
 
-      
+
       /////////////////////////////////////////////////////////////////////////
       // gC spline
       current_section = "gC spline";

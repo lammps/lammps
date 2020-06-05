@@ -35,6 +35,8 @@
 #include "mpiio.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 #include "lmprestart.h"
 
@@ -242,11 +244,9 @@ void WriteRestart::write(char *file)
       *ptr = '%';
     } else hfile = file;
     fp = fopen(hfile,"wb");
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open restart file %s",hfile);
-      error->one(FLERR,str);
-    }
+    if (fp == NULL)
+      error->one(FLERR, fmt::format("Cannot open restart file {}: {}",
+                                    hfile, utils::getsyserror()));
     if (multiproc) delete [] hfile;
   }
 
@@ -310,11 +310,9 @@ void WriteRestart::write(char *file)
 
     if (filewriter) {
       fp = fopen(multiname,"wb");
-      if (fp == NULL) {
-        char str[128];
-        snprintf(str,128,"Cannot open restart file %s",multiname);
-        error->one(FLERR,str);
-      }
+      if (fp == NULL)
+        error->one(FLERR, fmt::format("Cannot open restart file {}: {}",
+                                      multiname, utils::getsyserror()));
       write_int(PROCSPERFILE,nclusterprocs);
     }
 

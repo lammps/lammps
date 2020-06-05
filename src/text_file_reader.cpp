@@ -77,7 +77,7 @@ char *TextFileReader::next_line(int nparams) {
     if (ptr == nullptr) {
       // EOF
       if (nwords > 0 && nwords < nparams) {
-        throw EOFException(fmt::format("Incorrect format in {} file! {}/{} parameters", filetype.c_str(), nwords, nparams));
+        throw EOFException(fmt::format("Incorrect format in {} file! {}/{} parameters", filetype, nwords, nparams));
       }
       return nullptr;
     }

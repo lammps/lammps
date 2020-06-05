@@ -14,6 +14,7 @@
 #include "utils.h"
 #include <cstring>
 #include <cstdlib>
+#include <cerrno>
 #include "lammps.h"
 #include "error.h"
 #include "tokenizer.h"
@@ -98,6 +99,14 @@ void utils::logmesg(LAMMPS *lmp, const std::string &mesg)
 {
   if (lmp->screen)  fputs(mesg.c_str(), lmp->screen);
   if (lmp->logfile) fputs(mesg.c_str(), lmp->logfile);
+}
+
+/* define this here, so we won't have to include the headers
+   everywhere and utils.h will more likely be included anyway. */
+
+std::string utils::getsyserror()
+{
+  return std::string(strerror(errno));
 }
 
 /** \brief try to detect pathname from FILE pointer. Currently only supported on Linux, otherwise will report "(unknown)".

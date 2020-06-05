@@ -293,9 +293,6 @@ void WriteRestart::write(std::string file)
 
     std::string multiname = file;
     multiname.replace(multiname.find("%"),1,fmt::format("{}",icluster));
-    fp = fopen(multiname.c_str(),"wb");
-    if (fp == NULL)
-      error->one(FLERR,fmt::format("Cannot open restart file {}",multiname).c_str());
 
     if (filewriter) {
       fp = fopen(multiname.c_str(),"wb");

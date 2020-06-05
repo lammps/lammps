@@ -155,7 +155,7 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size,
     errmsg += filename;
     errmsg += "'";
 
-    if (error) error->one(srcname,srcline,errmsg.c_str());
+    if (error) error->one(srcname,srcline,errmsg);
     if (s) *s = '\0'; // truncate string to empty in case error is NULL
   }
   return;
@@ -184,7 +184,7 @@ void utils::sfread(const char *srcname, int srcline, void *s, size_t size,
     errmsg += filename;
     errmsg += "'";
 
-    if (error) error->one(srcname,srcline,errmsg.c_str());
+    if (error) error->one(srcname,srcline,errmsg);
   }
   return;
 }
@@ -238,9 +238,9 @@ double utils::numeric(const char *file, int line, const char *str,
     msg += str;
     msg += "' in input script or data file";
     if (do_abort)
-      lmp->error->one(file,line,msg.c_str());
+      lmp->error->one(file,line,msg);
     else
-      lmp->error->all(file,line,msg.c_str());
+      lmp->error->all(file,line,msg);
   }
 
   return atof(str);
@@ -273,9 +273,9 @@ int utils::inumeric(const char *file, int line, const char *str,
     msg += str;
     msg += "' in input script or data file";
     if (do_abort)
-      lmp->error->one(file,line,msg.c_str());
+      lmp->error->one(file,line,msg);
     else
-      lmp->error->all(file,line,msg.c_str());
+      lmp->error->all(file,line,msg);
   }
 
   return atoi(str);
@@ -308,9 +308,9 @@ bigint utils::bnumeric(const char *file, int line, const char *str,
     msg += str;
     msg += "' in input script or data file";
     if (do_abort)
-      lmp->error->one(file,line,msg.c_str());
+      lmp->error->one(file,line,msg);
     else
-      lmp->error->all(file,line,msg.c_str());
+      lmp->error->all(file,line,msg);
   }
 
   return ATOBIGINT(str);
@@ -343,9 +343,9 @@ tagint utils::tnumeric(const char *file, int line, const char *str,
     msg += str;
     msg += "' in input script or data file";
     if (do_abort)
-      lmp->error->one(file,line,msg.c_str());
+      lmp->error->one(file,line,msg);
     else
-      lmp->error->all(file,line,msg.c_str());
+      lmp->error->all(file,line,msg);
   }
 
   return ATOTAGINT(str);

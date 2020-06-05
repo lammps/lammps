@@ -5183,11 +5183,13 @@ void _noopt PairBOP::read_table(char *filename)
       if(rcut3[i]>rcutall)
         rcutall=rcut3[i];
       rcutsq[i]=rcut[i]*rcut[i];
-      rcutsq3[i]=rcut3[i]*rcut3[i];
       dr[i]=rcut[i]/((double)nr-1.0);
       rdr[i]=1.0/dr[i];
-      dr3[i]=rcut3[i]/((double)nr-1.0);
-      rdr3[i]=1.0/dr3[i];
+      if (nws==3) {
+        rcutsq3[i]=rcut3[i]*rcut3[i];
+        dr3[i]=rcut3[i]/((double)nr-1.0);
+        rdr3[i]=1.0/dr3[i];
+      }
     }
     rctroot=rcutall;
     dtheta=2.0/((double)ntheta-1.0);
@@ -5273,9 +5275,11 @@ void _noopt PairBOP::read_table(char *filename)
         pRepul4[i][k]=pRepul1[i][k]/dr[i];
         pRepul5[i][k]=2.0*pRepul2[i][k]/dr[i];
         pRepul6[i][k]=3.0*pRepul3[i][k]/dr[i];
-        pLong4[i][k]=pLong1[i][k]/dr3[i];
-        pLong5[i][k]=2.0*pLong2[i][k]/dr3[i];
-        pLong6[i][k]=3.0*pLong3[i][k]/dr3[i];
+        if (nws==3) {
+          pLong4[i][k]=pLong1[i][k]/dr3[i];
+          pLong5[i][k]=2.0*pLong2[i][k]/dr3[i];
+          pLong6[i][k]=3.0*pLong3[i][k]/dr3[i];
+        }
       }
       for(k=0;k<nBOt;k++) {
         FsigBO4[i][k]=FsigBO1[i][k]/dBO;

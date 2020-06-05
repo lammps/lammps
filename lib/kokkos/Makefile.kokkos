@@ -4,7 +4,11 @@
 ifndef KOKKOS_PATH
   KOKKOS_PATH=../../lib/kokkos
 endif
+
 CXXFLAGS=$(CCFLAGS)
+ifeq ($(mode),shared)
+CXXFLAGS += $(SHFLAGS)
+endif
 
 KOKKOS_VERSION_MAJOR = 3
 KOKKOS_VERSION_MINOR = 1

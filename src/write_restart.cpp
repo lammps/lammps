@@ -232,7 +232,7 @@ void WriteRestart::write(std::string file)
   if (me == 0) {
     std::string base = file;
     if (multiproc) base.replace(base.find("%"),1,"base");
-    
+
     fp = fopen(base.c_str(),"wb");
     if (fp == NULL)
       error->one(FLERR,fmt::format("Cannot open restart file {}",base).c_str());

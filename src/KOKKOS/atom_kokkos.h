@@ -74,7 +74,7 @@ class AtomKokkos : public Atom {
   virtual void deallocate_topology();
   void sync_modify(ExecutionSpace, unsigned int, unsigned int);
  private:
-   class AtomVec *new_avec(const char *, int, int &);
+  class AtomVec *new_avec(const std::string &, int, int &);
 };
 
 template<class ViewType, class IndexView>

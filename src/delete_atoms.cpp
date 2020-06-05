@@ -34,8 +34,11 @@
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 #include <map>
+#include <string>
 
 using namespace LAMMPS_NS;
 
@@ -176,53 +179,23 @@ void DeleteAtoms::command(int narg, char **arg)
   bigint ndelete_impropers = nimpropers_previous - atom->nimpropers;
 
   if (comm->me == 0) {
-    if (screen) {
-      fprintf(screen,"Deleted " BIGINT_FORMAT
-              " atoms, new total = " BIGINT_FORMAT "\n",
-              ndelete,atom->natoms);
-      if (bond_flag || mol_flag) {
-        if (nbonds_previous)
-          fprintf(screen,"Deleted " BIGINT_FORMAT
-                  " bonds, new total = " BIGINT_FORMAT "\n",
-                  ndelete_bonds,atom->nbonds);
-        if (nangles_previous)
-          fprintf(screen,"Deleted " BIGINT_FORMAT
-                  " angles, new total = " BIGINT_FORMAT "\n",
-                  ndelete_angles,atom->nangles);
-        if (ndihedrals_previous)
-          fprintf(screen,"Deleted " BIGINT_FORMAT
-                  " dihedrals, new total = " BIGINT_FORMAT "\n",
-                  ndelete_dihedrals,atom->ndihedrals);
-        if (nimpropers_previous)
-          fprintf(screen,"Deleted " BIGINT_FORMAT
-                  " impropers, new total = " BIGINT_FORMAT "\n",
-                  ndelete_impropers,atom->nimpropers);
-      }
+    std::string mesg = fmt::format("Deleted {} atoms, new total = {}\n",
+                                   ndelete,atom->natoms);
+    if (bond_flag || mol_flag) {
+      if (nbonds_previous)
+        mesg += fmt::format("Deleted {} bonds, new total = {}\n",
+                            ndelete_bonds,atom->nbonds);
+      if (nangles_previous)
+        mesg += fmt::format("Deleted {} angles, new total = {}\n",
+                            ndelete_angles,atom->nangles);
+      if (ndihedrals_previous)
+        mesg += fmt::format("Deleted {} dihedrals, new total = {}\n",
+                            ndelete_dihedrals,atom->ndihedrals);
+      if (nimpropers_previous)
+        mesg += fmt::format("Deleted {} impropers, new total = {}\n",
+                            ndelete_impropers,atom->nimpropers);
     }
-
-    if (logfile) {
-      fprintf(logfile,"Deleted " BIGINT_FORMAT
-              " atoms, new total = " BIGINT_FORMAT "\n",
-              ndelete,atom->natoms);
-      if (bond_flag || mol_flag) {
-        if (nbonds_previous)
-          fprintf(logfile,"Deleted " BIGINT_FORMAT
-                  " bonds, new total = " BIGINT_FORMAT "\n",
-                  ndelete_bonds,atom->nbonds);
-        if (nangles_previous)
-          fprintf(logfile,"Deleted " BIGINT_FORMAT
-                  " angles, new total = " BIGINT_FORMAT "\n",
-                  ndelete_angles,atom->nangles);
-        if (ndihedrals_previous)
-          fprintf(logfile,"Deleted " BIGINT_FORMAT
-                  " dihedrals, new total = " BIGINT_FORMAT "\n",
-                  ndelete_dihedrals,atom->ndihedrals);
-        if (nimpropers_previous)
-          fprintf(logfile,"Deleted " BIGINT_FORMAT
-                  " impropers, new total = " BIGINT_FORMAT "\n",
-                  ndelete_impropers,atom->nimpropers);
-      }
-    }
+    utils::logmesg(lmp,mesg);
   }
 }
 

@@ -275,7 +275,7 @@ void KimInit::determine_model_type_and_units(char * model_name,
       std::string mesg("Incompatible units for KIM Simulator Model, "
                        "required units = ");
       mesg += *model_units;
-      error->all(FLERR,mesg.c_str());
+      error->all(FLERR,mesg);
     }
   }
 }
@@ -328,8 +328,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
       mesg += "\n";
       mesg += "#\n";
 
-      if (screen) fputs(mesg.c_str(),screen);
-      if (logfile) fputs(mesg.c_str(),logfile);
+      utils::logmesg(lmp,mesg);
     }
 
     fix_store->setptr("simulator_model", (void *) simulatorModel);
@@ -346,7 +345,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
 
   std::string cmd("units ");
   cmd += model_units;
-  input->one(cmd.c_str());
+  input->one(cmd);
 
   if (model_type == SM) {
     int sim_fields, sim_lines;
@@ -519,7 +518,7 @@ void KimInit::do_variables(char *user_units, char *model_units)
                         "unit = " + units[i] + "; "
                         "from = " + from + "; "
                         "to = " + to + ".";
-      error->all(FLERR,err.c_str());
+      error->all(FLERR,err);
     }
     variable->internal_set(v_unit,conversion_factor);
     if (comm->me == 0) {

@@ -2562,7 +2562,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
    each proc contributes info for rigid bodies it owns
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::write_restart_file(char *file)
+void FixRigidSmall::write_restart_file(const char *file)
 {
   FILE *fp;
 

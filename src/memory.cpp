@@ -14,6 +14,7 @@
 #include "memory.h"
 #include <cstdlib>
 #include "error.h"
+#include "fmt/format.h"
 
 #if defined(LMP_USER_INTEL) && defined(__INTEL_COMPILER)
 #ifndef LMP_INTEL_NO_TBB
@@ -56,12 +57,9 @@ void *Memory::smalloc(bigint nbytes, const char *name)
 #else
   void *ptr = malloc(nbytes);
 #endif
-  if (ptr == NULL) {
-    char str[128];
-    sprintf(str,"Failed to allocate " BIGINT_FORMAT " bytes for array %s",
-            nbytes,name);
-    error->one(FLERR,str);
-  }
+  if (ptr == NULL)
+    error->one(FLERR,fmt::format("Failed to allocate {} bytes for array {}",
+                                 nbytes,name));
   return ptr;
 }
 
@@ -92,12 +90,9 @@ void *Memory::srealloc(void *ptr, bigint nbytes, const char *name)
 #else
   ptr = realloc(ptr,nbytes);
 #endif
-  if (ptr == NULL) {
-    char str[128];
-    sprintf(str,"Failed to reallocate " BIGINT_FORMAT " bytes for array %s",
-            nbytes,name);
-    error->one(FLERR,str);
-  }
+  if (ptr == NULL)
+    error->one(FLERR,fmt::format("Failed to reallocate {} bytes for array {}",
+                                 nbytes,name));
   return ptr;
 }
 
@@ -121,8 +116,6 @@ void Memory::sfree(void *ptr)
 
 void Memory::fail(const char *name)
 {
-  char str[128];
-  snprintf(str,128,
-           "Cannot create/grow a vector/array of pointers for %s",name);
-  error->one(FLERR,str);
+  error->one(FLERR,fmt::format("Cannot create/grow a vector/array of "
+                               "pointers for {}",name));
 }

@@ -39,6 +39,8 @@
 #include "imbalance_var.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -506,7 +508,9 @@ void Balance::options(int iarg, int narg, char **arg)
 
   if (outflag && comm->me == 0) {
     fp = fopen(arg[outarg],"w");
-    if (fp == NULL) error->one(FLERR,"Cannot open (fix) balance output file");
+    if (fp == NULL)
+      error->one(FLERR,fmt::format("Cannot open (fix) balance output file {}: {}",
+                                   arg[outarg], utils::getsyserror()));
   }
 }
 

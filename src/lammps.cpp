@@ -400,20 +400,25 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     else {
       universe->uscreen = fopen(arg[screenflag],"w");
       if (universe->uscreen == NULL)
-        error->universe_one(FLERR,"Cannot open universe screen file");
+        error->universe_one(FLERR,fmt::format("Cannot open universe screen "
+                                              "file {}: {}",arg[screenflag],
+                                              utils::getsyserror()));
     }
     if (logflag == 0) {
       if (helpflag == 0) {
         universe->ulogfile = fopen("log.lammps","w");
         if (universe->ulogfile == NULL)
-          error->universe_warn(FLERR,"Cannot open log.lammps for writing");
+          error->universe_warn(FLERR,"Cannot open log.lammps for writing: "
+                               + utils::getsyserror());
       }
     } else if (strcmp(arg[logflag],"none") == 0)
       universe->ulogfile = NULL;
     else {
       universe->ulogfile = fopen(arg[logflag],"w");
       if (universe->ulogfile == NULL)
-        error->universe_one(FLERR,"Cannot open universe log file");
+        error->universe_one(FLERR,fmt::format("Cannot open universe log "
+                                              "file {}: {}",arg[logflag],
+                                              utils::getsyserror()));
     }
   }
 
@@ -436,11 +441,9 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     if (universe->me == 0) {
       if (inflag == 0) infile = stdin;
       else infile = fopen(arg[inflag],"r");
-      if (infile == NULL) {
-        char str[128];
-        snprintf(str,128,"Cannot open input script %s",arg[inflag]);
-        error->one(FLERR,str);
-      }
+      if (infile == NULL)
+        error->one(FLERR,fmt::format("Cannot open input script {}: {}",
+                                     arg[inflag], utils::getsyserror()));
     }
 
     if ((universe->me == 0) && !helpflag)
@@ -463,47 +466,58 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         if (screenflag == 0) {
           str = fmt::format("screen.{}",universe->iworld);
           screen = fopen(str.c_str(),"w");
-          if (screen == NULL) error->one(FLERR,"Cannot open screen file");
+          if (screen == NULL)
+            error->one(FLERR,fmt::format("Cannot open screen file {}: {}",
+                                         str,utils::getsyserror()));
         } else if (strcmp(arg[screenflag],"none") == 0) {
           screen = NULL;
         } else {
           str = fmt::format("{}.{}",arg[screenflag],universe->iworld);
           screen = fopen(str.c_str(),"w");
-          if (screen == NULL) error->one(FLERR,"Cannot open screen file");
+          if (screen == NULL)
+            error->one(FLERR,fmt::format("Cannot open screen file {}: {}",
+                                         arg[screenflag],utils::getsyserror()));
         }
       } else if (strcmp(arg[partscreenflag],"none") == 0) {
         screen = NULL;
       } else {
         str = fmt::format("{}.{}",arg[partscreenflag],universe->iworld);
         screen = fopen(str.c_str(),"w");
-        if (screen == NULL) error->one(FLERR,"Cannot open screen file");
+        if (screen == NULL)
+          error->one(FLERR,fmt::format("Cannot open screen file {}: {}",
+                                       str,utils::getsyserror()));
       }
 
       if (partlogflag == 0) {
         if (logflag == 0) {
           str = fmt::format("log.lammps.{}",universe->iworld);
           logfile = fopen(str.c_str(),"w");
-          if (logfile == NULL) error->one(FLERR,"Cannot open logfile");
+          if (logfile == NULL)
+            error->one(FLERR,fmt::format("Cannot open logfile {}: {}",
+                                         str, utils::getsyserror()));
         } else if (strcmp(arg[logflag],"none") == 0) {
           logfile = NULL;
         } else {
           str = fmt::format("{}.{}",arg[logflag],universe->iworld);
           logfile = fopen(str.c_str(),"w");
-          if (logfile == NULL) error->one(FLERR,"Cannot open logfile");
+          if (logfile == NULL)
+            error->one(FLERR,fmt::format("Cannot open logfile {}: {}",
+                                         str, utils::getsyserror()));
         }
       } else if (strcmp(arg[partlogflag],"none") == 0) {
         logfile = NULL;
       } else {
         str = fmt::format("{}.{}",arg[partlogflag],universe->iworld);
         logfile = fopen(str.c_str(),"w");
-        if (logfile == NULL) error->one(FLERR,"Cannot open logfile");
+        if (logfile == NULL)
+          error->one(FLERR,fmt::format("Cannot open logfile {}: {}",
+                                       str, utils::getsyserror()));
       }
 
       infile = fopen(arg[inflag],"r");
-      if (infile == NULL) {
-        str = fmt::format("Cannot open input script {}",arg[inflag]);
-        error->one(FLERR,str.c_str());
-      }
+      if (infile == NULL)
+        error->one(FLERR,fmt::format("Cannot open input script {}: {}",
+                                     arg[inflag], utils::getsyserror()));
     }
 
     // screen and logfile messages for universe and world
@@ -614,13 +628,13 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   if (restart2data || restart2dump) {
     std::string cmd = fmt::format("read_restart {}",restartfile);
     if (restartremap) cmd += " remap\n";
-    input->one(cmd.c_str());
+    input->one(cmd);
     if (restart2data) cmd = "write_data ";
     else cmd = "write_dump";
     for (iarg = wfirst; iarg < wlast; iarg++)
        cmd += fmt::format(" {}", arg[iarg]);
     if (restart2data) cmd += " noinit";
-    input->one(cmd.c_str());
+    input->one(cmd);
     error->done(0);
   }
 }

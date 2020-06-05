@@ -26,6 +26,7 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -1721,11 +1722,9 @@ void Molecule::deallocate()
 void Molecule::open(char *file)
 {
   fp = fopen(file,"r");
-  if (fp == NULL) {
-    char str[128];
-    snprintf(str,128,"Cannot open molecule file %s",file);
-    error->one(FLERR,str);
-  }
+  if (fp == NULL)
+    error->one(FLERR,fmt::format("Cannot open molecule file {}: {}",
+                                 file, utils::getsyserror()));
 }
 
 /* ----------------------------------------------------------------------

@@ -43,6 +43,14 @@ namespace LAMMPS_NS {
      */
     void logmesg(LAMMPS *lmp, const std::string &mesg);
 
+    /** \brief return a string representing the current system error status
+     *
+     *  This is a wrapper around calling strerror(errno).
+     *
+     *  \return  error string
+     */
+    std::string getsyserror();
+
     /** \brief safe wrapper around fgets() which aborts on errors
      *  or EOF and prints a suitable error message to help debugging
      *

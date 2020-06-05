@@ -3378,7 +3378,7 @@ void PairAIREBO::read_file(char *filename)
       break;
 
     default:
-      error->one(FLERR, fmt::format("Unknown REBO style variant %d",variant));
+      error->one(FLERR, fmt::format("Unknown REBO style variant {}",variant));
     }
 
     PotentialFileReader reader(lmp, filename, potential_name);

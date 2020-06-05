@@ -22,6 +22,14 @@
 
 using namespace LAMMPS_NS;
 
+// the (rather old) version of ROMIO in MPICH for Windows
+// uses "char *" instead of "const char *". This works around it.
+#if defined(_WIN32)
+#define ROMIO_COMPAT_CAST (char *)
+#else
+#define ROMIO_COMPAT_CAST
+#endif
+
 /* ---------------------------------------------------------------------- */
 
 RestartMPIIO::RestartMPIIO(LAMMPS *lmp) : Pointers(lmp)
@@ -38,7 +46,7 @@ RestartMPIIO::RestartMPIIO(LAMMPS *lmp) : Pointers(lmp)
 
 void RestartMPIIO::openForRead(const char *filename)
 {
-  int err = MPI_File_open(world, filename, MPI_MODE_RDONLY ,
+  int err = MPI_File_open(world, ROMIO_COMPAT_CAST filename, MPI_MODE_RDONLY,
                           MPI_INFO_NULL, &mpifh);
   if (err != MPI_SUCCESS) {
     char str[MPI_MAX_ERROR_STRING+128];
@@ -58,7 +66,7 @@ void RestartMPIIO::openForRead(const char *filename)
 
 void RestartMPIIO::openForWrite(const char *filename)
 {
-  int err = MPI_File_open(world, filename, MPI_MODE_WRONLY,
+  int err = MPI_File_open(world, ROMIO_COMPAT_CAST filename, MPI_MODE_WRONLY,
                           MPI_INFO_NULL, &mpifh);
   if (err != MPI_SUCCESS) {
     char str[MPI_MAX_ERROR_STRING+128];

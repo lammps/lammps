@@ -679,23 +679,19 @@ double Comm::get_comm_cutoff()
   if (!force->pair && (cutghostuser == 0.0)) {
     maxcommcutoff = MAX(maxcommcutoff,maxbondcutoff);
   } else {
-    if ((me == 0) && (maxbondcutoff > maxcommcutoff)) {
-      char mesg[256];
-      snprintf(mesg,256,"Communication cutoff %g is shorter than a bond "
-               "length based estimate of %g. This may lead to errors.",
-               maxcommcutoff,maxbondcutoff);
-      error->warning(FLERR,mesg);
-    }
+    if ((me == 0) && (maxbondcutoff > maxcommcutoff))
+      error->warning(FLERR,fmt::format("Communication cutoff {} is shorter "
+                                       "than a bond length based estimate of "
+                                       "{}. This may lead to errors.",
+                                       maxcommcutoff,maxbondcutoff));
   }
 
   // print warning if neighborlist cutoff overrides user cutoff
 
   if ((me == 0) && (update->setupflag == 1)) {
-    if ((cutghostuser > 0.0) && (maxcommcutoff > cutghostuser)) {
-      char mesg[128];
-      snprintf(mesg,128,"Communication cutoff adjusted to %g",maxcommcutoff);
-      error->warning(FLERR,mesg);
-    }
+    if ((cutghostuser > 0.0) && (maxcommcutoff > cutghostuser))
+      error->warning(FLERR,fmt::format("Communication cutoff adjusted to {}",
+                                       maxcommcutoff));
   }
 
   return maxcommcutoff;

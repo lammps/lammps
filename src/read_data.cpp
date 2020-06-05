@@ -18,6 +18,7 @@
 #include "read_data.h"
 #include <mpi.h>
 #include <cstring>
+#include <string>
 #include <cctype>
 #include "atom.h"
 #include "atom_vec.h"
@@ -710,11 +711,8 @@ void ReadData::command(int narg, char **arg)
         if (firstpass) impropercoeffs(1);
         else skip_lines(nimpropertypes);
 
-      } else {
-        char str[128];
-        snprintf(str,128,"Unknown identifier in data file: %s",keyword);
-        error->all(FLERR,str);
-      }
+      } else error->all(FLERR,fmt::format("Unknown identifier in data file: {}",
+                                          keyword));
 
       parse_keyword(0);
     }
@@ -1940,25 +1938,21 @@ void ReadData::open(char *file)
   if (!compressed) fp = fopen(file,"r");
   else {
 #ifdef LAMMPS_GZIP
-    char gunzip[128];
-    snprintf(gunzip,128,"gzip -c -d %s",file);
-
+    std::string gunzip = fmt::format("gzip -c -d {}",file);
 #ifdef _WIN32
-    fp = _popen(gunzip,"rb");
+    fp = _popen(gunzip.c_str(),"rb");
 #else
-    fp = popen(gunzip,"r");
+    fp = popen(gunzip.c_str(),"r");
 #endif
 
 #else
-    error->one(FLERR,"Cannot open gzipped file");
+    error->one(FLERR,"Cannot open gzipped file: " + utils::getsyserror());
 #endif
   }
 
-  if (fp == NULL) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",file);
-    error->one(FLERR,str);
-  }
+  if (fp == NULL)
+    error->one(FLERR,fmt::format("Cannot open file {}: {}",
+                                 file, utils::getsyserror()));
 }
 
 /* ----------------------------------------------------------------------

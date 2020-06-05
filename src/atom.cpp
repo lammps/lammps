@@ -758,7 +758,7 @@ AtomVec *Atom::new_avec(const std::string &style, int trysuffix, int &sflag)
     return avec_creator(lmp);
   }
 
-  error->all(FLERR,utils::check_packages_for_style("atom",style,lmp).c_str());
+  error->all(FLERR,utils::check_packages_for_style("atom",style,lmp));
   return NULL;
 }
 

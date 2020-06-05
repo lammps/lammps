@@ -188,11 +188,9 @@ void WriteData::write(const char *file)
 
   if (me == 0) {
     fp = fopen(file,"w");
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open data file %s",file);
-      error->one(FLERR,str);
-    }
+    if (fp == NULL)
+      error->one(FLERR,fmt::format("Cannot open data file {}: {}",
+                                   file, utils::getsyserror()));
   }
 
   // proc 0 writes header, ntype-length arrays, force fields

@@ -31,6 +31,7 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -249,11 +250,9 @@ void PairCoulStreitz::read_file(char *file)
   FILE *fp;
   if (comm->me == 0) {
     fp = fopen(file,"r");
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open coul/streitz potential file %s",file);
-      error->one(FLERR,str);
-    }
+    if (fp == NULL)
+      error->one(FLERR,fmt::format("Cannot open coul/streitz potential "
+                                   "file {}",file));
   }
 
   // read each line out of file, skipping blank lines or leading '#'

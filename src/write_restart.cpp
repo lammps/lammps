@@ -235,7 +235,8 @@ void WriteRestart::write(std::string file)
 
     fp = fopen(base.c_str(),"wb");
     if (fp == NULL)
-      error->one(FLERR,fmt::format("Cannot open restart file {}",base).c_str());
+      error->one(FLERR, fmt::format("Cannot open restart file {}: {}",
+                                    base, utils::getsyserror()));
   }
 
   // proc 0 writes magic string, endian flag, numeric version
@@ -299,7 +300,8 @@ void WriteRestart::write(std::string file)
     if (filewriter) {
       fp = fopen(multiname.c_str(),"wb");
       if (fp == NULL)
-        error->one(FLERR,fmt::format("Cannot open restart file {}",multiname).c_str());
+        error->one(FLERR, fmt::format("Cannot open restart file {}: {}",
+                                      multiname, utils::getsyserror()));
       write_int(PROCSPERFILE,nclusterprocs);
     }
   }

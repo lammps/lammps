@@ -158,7 +158,7 @@ void Domain::init()
   std::string mesg = "Must not have multiple fixes change box parameter ";
 
 #define CHECK_BOX_FIX_ERROR(par)                                        \
-  if (box_change_ ## par > 1) error->all(FLERR,(mesg + #par).c_str())
+  if (box_change_ ## par > 1) error->all(FLERR,(mesg + #par))
 
   CHECK_BOX_FIX_ERROR(x);
   CHECK_BOX_FIX_ERROR(y);
@@ -1787,7 +1787,7 @@ void Domain::add_region(int narg, char **arg)
   if (region_map->find(arg[1]) != region_map->end()) {
     RegionCreator region_creator = (*region_map)[arg[1]];
     regions[nregion] = region_creator(lmp, narg, arg);
-  } else error->all(FLERR,utils::check_packages_for_style("region",arg[1],lmp).c_str());
+  } else error->all(FLERR,utils::check_packages_for_style("region",arg[1],lmp));
 
   // initialize any region variables via init()
   // in case region is used between runs, e.g. to print a variable

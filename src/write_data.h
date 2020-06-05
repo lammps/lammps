@@ -28,7 +28,7 @@ class WriteData : protected Pointers {
  public:
   WriteData(class LAMMPS *);
   void command(int, char **);
-  void write(char *);
+  void write(const char *);
 
  private:
   int me,nprocs;

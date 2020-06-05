@@ -14,6 +14,7 @@
 #include "write_restart.h"
 #include <mpi.h>
 #include <cstring>
+#include <string>
 #include "atom.h"
 #include "atom_vec.h"
 #include "group.h"
@@ -35,6 +36,8 @@
 #include "mpiio.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 #include "lmprestart.h"
 
@@ -63,15 +66,10 @@ void WriteRestart::command(int narg, char **arg)
 
   // if filename contains a "*", replace with current timestep
 
-  char *ptr;
-  int n = strlen(arg[0]) + 16;
-  char *file = new char[n];
-
-  if ((ptr = strchr(arg[0],'*'))) {
-    *ptr = '\0';
-    sprintf(file,"%s" BIGINT_FORMAT "%s",arg[0],update->ntimestep,ptr+1);
-    *ptr = '*'; // must restore arg[0] so it can be correctly parsed below
-  } else strcpy(file,arg[0]);
+  std::string file = arg[0];
+  std::size_t found = file.find("*");
+  if (found != std::string::npos)
+    file.replace(found,1,fmt::format("{}",update->ntimestep));
 
   // check for multiproc output and an MPI-IO filename
 
@@ -115,8 +113,10 @@ void WriteRestart::command(int narg, char **arg)
 
   // write single restart file
 
-  write(file);
-  delete [] file;
+  char *fname = new char[file.size()+1];
+  strcpy(fname,file.c_str());
+  write(fname);
+  delete[] fname;
 }
 
 /* ---------------------------------------------------------------------- */

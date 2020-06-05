@@ -14,6 +14,7 @@
 #include "write_restart.h"
 #include <mpi.h>
 #include <cstring>
+#include <string>
 #include "atom.h"
 #include "atom_vec.h"
 #include "group.h"
@@ -65,15 +66,10 @@ void WriteRestart::command(int narg, char **arg)
 
   // if filename contains a "*", replace with current timestep
 
-  char *ptr;
-  int n = strlen(arg[0]) + 16;
-  char *file = new char[n];
-
-  if ((ptr = strchr(arg[0],'*'))) {
-    *ptr = '\0';
-    sprintf(file,"%s" BIGINT_FORMAT "%s",arg[0],update->ntimestep,ptr+1);
-    *ptr = '*'; // must restore arg[0] so it can be correctly parsed below
-  } else strcpy(file,arg[0]);
+  std::string file = arg[0];
+  std::size_t found = file.find("*");
+  if (found != std::string::npos)
+    file.replace(found,1,fmt::format("{}",update->ntimestep));
 
   // check for multiproc output and an MPI-IO filename
 
@@ -118,7 +114,6 @@ void WriteRestart::command(int narg, char **arg)
   // write single restart file
 
   write(file);
-  delete [] file;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -213,7 +208,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
    file = final file name to write, except may contain a "%"
 ------------------------------------------------------------------------- */
 
-void WriteRestart::write(char *file)
+void WriteRestart::write(std::string file)
 {
   // special case where reneighboring is not done in integrator
   //   on timestep restart file is written (due to build_once being set)
@@ -235,19 +230,13 @@ void WriteRestart::write(char *file)
   // open single restart file or base file for multiproc case
 
   if (me == 0) {
-    char *hfile;
-    if (multiproc) {
-      hfile = new char[strlen(file) + 16];
-      char *ptr = strchr(file,'%');
-      *ptr = '\0';
-      sprintf(hfile,"%s%s%s",file,"base",ptr+1);
-      *ptr = '%';
-    } else hfile = file;
-    fp = fopen(hfile,"wb");
+    std::string base = file;
+    if (multiproc) base.replace(base.find("%"),1,"base");
+
+    fp = fopen(base.c_str(),"wb");
     if (fp == NULL)
       error->one(FLERR, fmt::format("Cannot open restart file {}: {}",
-                                    hfile, utils::getsyserror()));
-    if (multiproc) delete [] hfile;
+                                    base, utils::getsyserror()));
   }
 
   // proc 0 writes magic string, endian flag, numeric version
@@ -302,21 +291,19 @@ void WriteRestart::write(char *file)
       fp = NULL;
     }
 
-    char *multiname = new char[strlen(file) + 16];
-    char *ptr = strchr(file,'%');
-    *ptr = '\0';
-    sprintf(multiname,"%s%d%s",file,icluster,ptr+1);
-    *ptr = '%';
+    std::string multiname = file;
+    multiname.replace(multiname.find("%"),1,fmt::format("{}",icluster));
+    fp = fopen(multiname.c_str(),"wb");
+    if (fp == NULL)
+      error->one(FLERR,fmt::format("Cannot open restart file {}",multiname).c_str());
 
     if (filewriter) {
-      fp = fopen(multiname,"wb");
+      fp = fopen(multiname.c_str(),"wb");
       if (fp == NULL)
         error->one(FLERR, fmt::format("Cannot open restart file {}: {}",
                                       multiname, utils::getsyserror()));
       write_int(PROCSPERFILE,nclusterprocs);
     }
-
-    delete [] multiname;
   }
 
   // pack my atom data into buf
@@ -383,7 +370,7 @@ void WriteRestart::write(char *file)
       fclose(fp);
       fp = NULL;
     }
-    mpiio->openForWrite(file);
+    mpiio->openForWrite(file.c_str());
     mpiio->write(headerOffset,send_size,buf);
     mpiio->close();
   } else {
@@ -433,7 +420,7 @@ void WriteRestart::write(char *file)
 
   for (int ifix = 0; ifix < modify->nfix; ifix++)
     if (modify->fix[ifix]->restart_file)
-      modify->fix[ifix]->write_restart_file(file);
+      modify->fix[ifix]->write_restart_file(file.c_str());
 }
 
 /* ----------------------------------------------------------------------

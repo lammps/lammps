@@ -25,6 +25,7 @@
 #include "error.h"
 #include "utils.h"
 #include "tokenizer.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -1837,7 +1838,7 @@ void AtomVec::write_data(FILE *fp, int n, double **buf)
   int i,j,m,nn,datatype,cols;
 
   for (i = 0; i < n; i++) {
-    fprintf(fp,TAGINT_FORMAT,(tagint) ubuf(buf[i][0]).i);
+    fmt::print(fp,"{}",(tagint) ubuf(buf[i][0]).i);
 
     j = 1;
     for (nn = 1; nn < ndata_atom; nn++) {
@@ -1859,10 +1860,10 @@ void AtomVec::write_data(FILE *fp, int n, double **buf)
         }
       } else if (datatype == BIGINT) {
         if (cols == 0) {
-          fprintf(fp," " BIGINT_FORMAT,(bigint) ubuf(buf[i][j++]).i);
+          fmt::print(fp," {}",(bigint) ubuf(buf[i][j++]).i);
         } else {
           for (m = 0; m < cols; m++)
-            fprintf(fp," " BIGINT_FORMAT,(bigint) ubuf(buf[i][j++]).i);
+            fmt::print(fp," {}",(bigint) ubuf(buf[i][j++]).i);
         }
       }
     }
@@ -1985,7 +1986,7 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
   int i,j,m,nn,datatype,cols;
 
   for (i = 0; i < n; i++) {
-    fprintf(fp,TAGINT_FORMAT,(tagint) ubuf(buf[i][0]).i);
+    fmt::print(fp,"{}",(tagint) ubuf(buf[i][0]).i);
 
     j = 1;
     for (nn = 1; nn < ndata_vel; nn++) {
@@ -2007,10 +2008,10 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
         }
       } else if (datatype == BIGINT) {
         if (cols == 0) {
-          fprintf(fp," " BIGINT_FORMAT,(bigint) ubuf(buf[i][j++]).i);
+          fmt::print(fp," {}",(bigint) ubuf(buf[i][j++]).i);
         } else {
           for (m = 0; m < cols; m++)
-            fprintf(fp," " BIGINT_FORMAT,(bigint) ubuf(buf[i][j++]).i);
+            fmt::print(fp," {}",(bigint) ubuf(buf[i][j++]).i);
         }
       }
     }

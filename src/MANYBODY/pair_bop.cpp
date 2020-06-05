@@ -4932,13 +4932,11 @@ void _noopt PairBOP::read_table(char *filename)
   if (comm->me == 0) {
     try {
       PotentialFileReader reader(lmp, filename, "BOP");
-      char * line = nullptr;
 
       bop_types = reader.next_int();
       elements = new char*[bop_types];
       for(int i=0; i < bop_types; i++) {
-        line = reader.next_line(3);
-        ValueTokenizer values(line);
+        ValueTokenizer values = reader.next_values(3);
         values.next_int();
         values.next_double();
         std::string name = values.next_string();
@@ -4947,8 +4945,7 @@ void _noopt PairBOP::read_table(char *filename)
         strcpy(elements[i], name.c_str());
       }
 
-      line = reader.next_line();
-      ValueTokenizer values(line);
+      ValueTokenizer values = reader.next_values(2);
       int format = values.count();
 
       switch(format) {
@@ -4978,8 +4975,7 @@ void _noopt PairBOP::read_table(char *filename)
       allocate_tables();
       allocate();
 
-      line = reader.next_line(7);
-      values = ValueTokenizer(line);
+      values = reader.next_values(7);
 
       small1  = values.next_double();
       small2  = values.next_double();
@@ -5000,20 +4996,17 @@ void _noopt PairBOP::read_table(char *filename)
         if (rcut[i] > cutmax)
           cutmax = rcut[i];
 
-        line = reader.next_line(4);
-        values = ValueTokenizer(line);
+        values = reader.next_values(4);
         sigma_c[i] = values.next_double();
         sigma_a[i] = values.next_double();
         pi_c[i]    = values.next_double();
         pi_a[i]    = values.next_double();
 
-        line = reader.next_line(2);
-        values = ValueTokenizer(line);
+        values = reader.next_values(2);
         sigma_delta[i] = values.next_double();
         pi_delta[i]    = values.next_double();
 
-        line = reader.next_line(3);
-        values = ValueTokenizer(line);
+        values = reader.next_values(3);
         sigma_f[i] = values.next_double();
         sigma_k[i] = values.next_double();
         small3[i]  = values.next_double();

@@ -129,8 +129,7 @@ void PairEAMFS::read_file(char *filename)
       reader.skip_line();
 
       // extract element names from nelements line
-      line = reader.next_line(1);
-      ValueTokenizer values(line);
+      ValueTokenizer values = reader.next_values(1);
       file->nelements = values.next_int();
 
       if (values.count() != file->nelements + 1)
@@ -146,8 +145,7 @@ void PairEAMFS::read_file(char *filename)
 
       //
 
-      line = reader.next_line(5);
-      values = ValueTokenizer(line);
+      values = reader.next_values(5);
       file->nrho = values.next_int();
       file->drho = values.next_double();
       file->nr   = values.next_int();
@@ -163,8 +161,7 @@ void PairEAMFS::read_file(char *filename)
       memory->create(file->z2r, file->nelements, file->nelements, file->nr + 1, "pair:z2r");
 
       for (int i = 0; i < file->nelements; i++) {
-        line = reader.next_line(2);
-        values = ValueTokenizer(line);
+        values = reader.next_values(2);
         values.next_int(); // ignore
         file->mass[i] = values.next_double();
 

@@ -1109,16 +1109,12 @@ void DihedralTable::read_table(Table *tb, char *file, char *keyword)
   for (int i = 0; i < tb->ninput; i++) {
     try {
       if (tb->f_unspecified) {
-        line = reader.next_line(3);
-
-        ValueTokenizer values(line);
+        ValueTokenizer values = reader.next_values(3);
         values.next_int();
         tb->phifile[i] = values.next_double();
         tb->efile[i] = values.next_double();
       } else {
-        line = reader.next_line(4);
-
-        ValueTokenizer values(line);
+        ValueTokenizer values = reader.next_values(4);
         values.next_int();
         tb->phifile[i] = values.next_double();
         tb->efile[i] = values.next_double();

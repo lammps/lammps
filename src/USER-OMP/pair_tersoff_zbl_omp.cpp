@@ -97,7 +97,7 @@ void PairTersoffZBLOMP::read_file(char *file)
 
     while((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
-        ValueTokenizer values(line, " \t\n\r\f");
+        ValueTokenizer values(line);
 
         std::string iname = values.next_string();
         std::string jname = values.next_string();

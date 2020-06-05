@@ -1141,7 +1141,7 @@ void EIMPotentialFileReader::parse(FILE * fp)
   bool found_global = false;
 
   while((line = next_line(fp))) {
-    ValueTokenizer values(line, " \t\r\n\f");
+    ValueTokenizer values(line);
     std::string type = values.next_string();
 
     if (type == "global:") {

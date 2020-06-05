@@ -473,13 +473,11 @@ void PairEAM::read_file(char *filename)
 
       reader.skip_line();
 
-      line = reader.next_line(2);
-      ValueTokenizer values(line);
+      ValueTokenizer values = reader.next_values(2);
       values.next_int(); // ignore
       file->mass = values.next_double();
 
-      line = reader.next_line(5);
-      values = ValueTokenizer(line);
+      values = reader.next_values(5);
       file->nrho = values.next_int();
       file->drho = values.next_double();
       file->nr   = values.next_int();

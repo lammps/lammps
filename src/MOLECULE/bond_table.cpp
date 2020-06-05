@@ -378,18 +378,15 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
   }
 
   if (ferror) {
-    std::string str = fmt::format("%d of %d force values in table are inconsistent with -dE/dr.\n"
-                                  "  Should only be flagged at inflection points",ferror,tb->ninput);
-    error->warning(FLERR, str);
+    error->warning(FLERR, fmt::format("{} of {} force values in table are inconsistent with -dE/dr.\n"
+                                      "  Should only be flagged at inflection points",ferror,tb->ninput));
   }
 
   // warn if data was read incompletely, e.g. columns were missing
 
   if (cerror) {
-    char str[128];
-    sprintf(str,"%d of %d lines in table were incomplete or could not be"
-            " parsed completely",cerror,tb->ninput);
-    error->warning(FLERR,str);
+    error->warning(FLERR, fmt::format("{} of {} lines in table were incomplete or could not be"
+                                      " parsed completely",cerror,tb->ninput));
   }
 }
 

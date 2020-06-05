@@ -137,7 +137,7 @@ class Fix : protected Pointers {
   virtual void end_of_step() {}
   virtual void post_run() {}
   virtual void write_restart(FILE *) {}
-  virtual void write_restart_file(char *) {}
+  virtual void write_restart_file(const char *) {}
   virtual void restart(char *) {}
 
   virtual void grow_arrays(int) {}

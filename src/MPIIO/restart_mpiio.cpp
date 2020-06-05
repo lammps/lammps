@@ -36,7 +36,7 @@ RestartMPIIO::RestartMPIIO(LAMMPS *lmp) : Pointers(lmp)
    for some file servers it is most efficient to only read or only write
 ------------------------------------------------------------------------- */
 
-void RestartMPIIO::openForRead(char *filename)
+void RestartMPIIO::openForRead(const char *filename)
 {
   int err = MPI_File_open(world, filename, MPI_MODE_RDONLY ,
                           MPI_INFO_NULL, &mpifh);
@@ -56,7 +56,7 @@ void RestartMPIIO::openForRead(char *filename)
    for some file servers it is most efficient to only read or only write
 ------------------------------------------------------------------------- */
 
-void RestartMPIIO::openForWrite(char *filename)
+void RestartMPIIO::openForWrite(const char *filename)
 {
   int err = MPI_File_open(world, filename, MPI_MODE_WRONLY,
                           MPI_INFO_NULL, &mpifh);

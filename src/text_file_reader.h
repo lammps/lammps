@@ -15,42 +15,54 @@
    Contributing authors: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_POTENTIAL_FILE_READER_H
-#define LMP_POTENTIAL_FILE_READER_H
+#ifndef LMP_TEXT_FILE_READER_H
+#define LMP_TEXT_FILE_READER_H
 
+#include <cstdio>
 #include <string>
-
-#include "pointers.h"
+#include <exception>
 #include "tokenizer.h"
-#include "text_file_reader.h"
 
 namespace LAMMPS_NS
 {
-  class PotentialFileReader : protected Pointers {
-  protected:
-    TextFileReader * reader;
+  class TextFileReader {
     std::string filename;
     std::string filetype;
-
-    TextFileReader * open_potential(const std::string& path);
+    static const int MAXLINE = 1024;
+    char line[MAXLINE];
+    FILE *fp;
 
   public:
-    PotentialFileReader(class LAMMPS *lmp, const std::string &filename, const std::string &potential_name);
-    virtual ~PotentialFileReader();
+    bool ignore_comments;
 
-    void ignore_comments(bool value);
+    TextFileReader(const std::string &filename, const std::string &filetype);
+    ~TextFileReader();
 
     void skip_line();
     char * next_line(int nparams = 0);
+
     void next_dvector(double * list, int n);
     ValueTokenizer next_values(int nparams, const std::string & seperators = TOKENIZER_DEFAULT_SEPERATORS);
+  };
 
-    // convenience functions
-    double next_double();
-    int    next_int();
-    tagint next_tagint();
-    bigint next_bigint();
-    std::string next_string();
+  class FileReaderException : public std::exception {
+    std::string message;
+  public:
+    FileReaderException(const std::string & msg) : message(msg) {
+    }
+
+    ~FileReaderException() throw() {
+    }
+
+    virtual const char * what() const throw() {
+      return message.c_str();
+    }
+  };
+
+  class EOFException : public FileReaderException {
+  public:
+    EOFException(const std::string & msg) : FileReaderException(msg) {
+    }
   };
 
 } // namespace LAMMPS_NS

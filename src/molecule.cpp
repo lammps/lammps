@@ -1402,7 +1402,7 @@ void Molecule::body(int flag, int pflag, char *line)
   while (nword < nparam) {
     readline(line);
 
-    ncount = utils::count_words(line);
+    ncount = utils::trim_and_count_words(line);
     if (ncount == 0)
       error->one(FLERR,"Too few values in body section of molecule file");
     if (nword+ncount > nparam)

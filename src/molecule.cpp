@@ -25,6 +25,8 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -1400,7 +1402,7 @@ void Molecule::body(int flag, int pflag, char *line)
   while (nword < nparam) {
     readline(line);
 
-    ncount = atom->count_words(line);
+    ncount = utils::count_words(line);
     if (ncount == 0)
       error->one(FLERR,"Too few values in body section of molecule file");
     if (nword+ncount > nparam)
@@ -1720,11 +1722,9 @@ void Molecule::deallocate()
 void Molecule::open(char *file)
 {
   fp = fopen(file,"r");
-  if (fp == NULL) {
-    char str[128];
-    snprintf(str,128,"Cannot open molecule file %s",file);
-    error->one(FLERR,str);
-  }
+  if (fp == NULL)
+    error->one(FLERR,fmt::format("Cannot open molecule file {}: {}",
+                                 file, utils::getsyserror()));
 }
 
 /* ----------------------------------------------------------------------

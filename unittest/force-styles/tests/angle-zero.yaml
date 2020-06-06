@@ -1,7 +1,7 @@
 ---
 lammps_version: 5 May 2020
-date_generated: Mon May 18 18:18:26 202
-epsilon: 1.0e-14
+date_generated: Sat May 30 17:49:20 202
+epsilon: 1e-14
 prerequisites: ! |
   atom full
   angle zero
@@ -14,6 +14,7 @@ angle_coeff: ! |
   2 111
   3 120
   4 108.5
+equilibrium: 4 1.92161 1.93732 2.0944 1.89368
 extract: ! ""
 natoms: 29
 init_energy: 0

@@ -631,7 +631,6 @@ dipolar
 dir
 Direc
 dirname
-disarmmd
 discoverable
 discretization
 discretized
@@ -2462,6 +2461,7 @@ rdc
 rdf
 RDideal
 rdx
+reacter
 README
 realtime
 reamin

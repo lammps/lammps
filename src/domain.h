@@ -131,7 +131,7 @@ class Domain : protected Pointers {
   int find_region(char *);
   void set_boundary(int, char **, int);
   void set_box(int, char **);
-  void print_box(const char *);
+  void print_box(const std::string &);
   void boundary_string(char *);
 
   virtual void lamda2x(int);

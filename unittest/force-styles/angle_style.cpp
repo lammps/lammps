@@ -207,14 +207,11 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
     for (auto& angle_coeff : cfg.angle_coeff) {
         command("angle_coeff " + angle_coeff);
     }
-
     for (auto& post_command : cfg.post_commands) {
         command(post_command);
     }
-
     command("run 0 post no");
 }
-
 
 // re-generate yaml file with current settings.
 
@@ -287,6 +284,14 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         block += angle_coeff + "\n";
     }
     writer.emit_block("angle_coeff", block);
+
+    // equilibrium angle
+    std::stringstream eqstr;
+    eqstr << lmp->atom->nangletypes;
+    for (std::size_t i=0; i < lmp->atom->nangletypes; ++i) {
+        eqstr << " " << lmp->force->angle->equilibrium_angle(i+1);
+    }
+    writer.emit("equilibrium", eqstr.str());
 
     // extract
     block.clear();
@@ -445,67 +450,71 @@ TEST(AngleStyle, plain) {
     lmp = init_lammps(argc,argv,test_config,false);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f=lmp->atom->f;
-    tag=lmp->atom->tag;
-    stats.reset();
-    for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
+    // skip over these tests if newton bond is forced to be on
+    if (lmp->force->newton_bond == 0) {
+
+        f=lmp->atom->f;
+        tag=lmp->atom->tag;
+        stats.reset();
+        for (int i=0; i < nlocal; ++i) {
+            EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
+            EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
+            EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
+        }
+        if (print_stats)
+            std::cerr << "init_forces stats, newton off:" << stats << std::endl;
+
+        angle = lmp->force->angle;
+        stress = angle->virial;
+        stats.reset();
+        EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 2*epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 2*epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 2*epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 2*epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 2*epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 2*epsilon);
+        if (print_stats)
+            std::cerr << "init_stress stats, newton off:" << stats << std::endl;
+
+        stats.reset();
+        EXPECT_FP_LE_WITH_EPS(angle->energy, test_config.init_energy, epsilon);
+        if (print_stats)
+            std::cerr << "init_energy stats, newton off:" << stats << std::endl;
+
+        if (!verbose) ::testing::internal::CaptureStdout();
+        run_lammps(lmp);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+
+        f = lmp->atom->f;
+        stress = angle->virial;
+        stats.reset();
+        for (int i=0; i < nlocal; ++i) {
+            EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10*epsilon);
+            EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 10*epsilon);
+            EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 10*epsilon);
+        }
+        if (print_stats)
+            std::cerr << "run_forces  stats, newton off:" << stats << std::endl;
+
+        stress = angle->virial;
+        stats.reset();
+        EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
+        if (print_stats)
+            std::cerr << "run_stress  stats, newton off:" << stats << std::endl;
+
+        stats.reset();
+        id = lmp->modify->find_compute("sum");
+        energy = lmp->modify->compute[id]->compute_scalar();
+        EXPECT_FP_LE_WITH_EPS(angle->energy, test_config.run_energy, epsilon);
+        EXPECT_FP_LE_WITH_EPS(angle->energy, energy, epsilon);
+        if (print_stats)
+            std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
     }
-    if (print_stats)
-        std::cerr << "init_forces stats, newton off:" << stats << std::endl;
-
-    angle = lmp->force->angle;
-    stress = angle->virial;
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 2*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 2*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 2*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 2*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 2*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 2*epsilon);
-    if (print_stats)
-        std::cerr << "init_stress stats, newton off:" << stats << std::endl;
-
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(angle->energy, test_config.init_energy, epsilon);
-    if (print_stats)
-        std::cerr << "init_energy stats, newton off:" << stats << std::endl;
-
-    if (!verbose) ::testing::internal::CaptureStdout();
-    run_lammps(lmp);
-    if (!verbose) ::testing::internal::GetCapturedStdout();
-
-    f = lmp->atom->f;
-    stress = angle->virial;
-    stats.reset();
-    for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10*epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 10*epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 10*epsilon);
-    }
-    if (print_stats)
-        std::cerr << "run_forces  stats, newton off:" << stats << std::endl;
-
-    stress = angle->virial;
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
-    if (print_stats)
-        std::cerr << "run_stress  stats, newton off:" << stats << std::endl;
-
-    stats.reset();
-    id = lmp->modify->find_compute("sum");
-    energy = lmp->modify->compute[id]->compute_scalar();
-    EXPECT_FP_LE_WITH_EPS(angle->energy, test_config.run_energy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(angle->energy, energy, epsilon);
-    if (print_stats)
-        std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
 
     if (!verbose) ::testing::internal::CaptureStdout();
     restart_lammps(lmp, test_config);
@@ -588,6 +597,7 @@ TEST(AngleStyle, omp) {
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = init_lammps(argc,argv,test_config,true);
     std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
 
     if (!lmp) {
         std::cerr << "One or more prerequisite styles with /omp suffix\n"
@@ -683,72 +693,225 @@ TEST(AngleStyle, omp) {
     lmp = init_lammps(argc,argv,test_config,false);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f=lmp->atom->f;
-    tag=lmp->atom->tag;
-    stats.reset();
-    for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
+    // skip over these tests if newton bond is forced to be on
+    if (lmp->force->newton_bond == 0) {
+
+        f=lmp->atom->f;
+        tag=lmp->atom->tag;
+        stats.reset();
+        for (int i=0; i < nlocal; ++i) {
+            EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
+            EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
+            EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
+        }
+        if (print_stats)
+            std::cerr << "init_forces stats, newton off:" << stats << std::endl;
+
+        angle = lmp->force->angle;
+        stress = angle->virial;
+        stats.reset();
+        EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10*epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10*epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 10*epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 10*epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 10*epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 10*epsilon);
+        if (print_stats)
+            std::cerr << "init_stress stats, newton off:" << stats << std::endl;
+
+        stats.reset();
+        EXPECT_FP_LE_WITH_EPS(angle->energy, test_config.init_energy, epsilon);
+        if (print_stats)
+            std::cerr << "init_energy stats, newton off:" << stats << std::endl;
+
+        if (!verbose) ::testing::internal::CaptureStdout();
+        run_lammps(lmp);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+
+        f = lmp->atom->f;
+        stats.reset();
+        for (int i=0; i < nlocal; ++i) {
+            EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10*epsilon);
+            EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 10*epsilon);
+            EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 10*epsilon);
+        }
+        if (print_stats)
+            std::cerr << "run_forces  stats, newton off:" << stats << std::endl;
+
+        stress = angle->virial;
+        stats.reset();
+        EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 10*epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 10*epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, 10*epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, 10*epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, 10*epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, 10*epsilon);
+        if (print_stats)
+            std::cerr << "run_stress  stats, newton off:" << stats << std::endl;
+
+        stats.reset();
+        id = lmp->modify->find_compute("sum");
+        energy = lmp->modify->compute[id]->compute_scalar();
+        EXPECT_FP_LE_WITH_EPS(angle->energy, test_config.run_energy, epsilon);
+        // TODO: this is currently broken for USER-OMP with angle style hybrid
+        // needs to be fixed in the main code somewhere. Not sure where, though.
+        if (test_config.angle_style.substr(0,6) != "hybrid")
+            EXPECT_FP_LE_WITH_EPS(angle->energy, energy, epsilon);
+        if (print_stats)
+            std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
     }
-    if (print_stats)
-        std::cerr << "init_forces stats, newton off:" << stats << std::endl;
-
-    angle = lmp->force->angle;
-    stress = angle->virial;
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 10*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 10*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 10*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 10*epsilon);
-    if (print_stats)
-        std::cerr << "init_stress stats, newton off:" << stats << std::endl;
-
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(angle->energy, test_config.init_energy, epsilon);
-    if (print_stats)
-        std::cerr << "init_energy stats, newton off:" << stats << std::endl;
-
-    if (!verbose) ::testing::internal::CaptureStdout();
-    run_lammps(lmp);
-    if (!verbose) ::testing::internal::GetCapturedStdout();
-
-    f = lmp->atom->f;
-    stats.reset();
-    for (int i=0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10*epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 10*epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 10*epsilon);
-    }
-    if (print_stats)
-        std::cerr << "run_forces  stats, newton off:" << stats << std::endl;
-
-    stress = angle->virial;
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 10*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 10*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, 10*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, 10*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, 10*epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, 10*epsilon);
-    if (print_stats)
-        std::cerr << "run_stress  stats, newton off:" << stats << std::endl;
-
-    stats.reset();
-    id = lmp->modify->find_compute("sum");
-    energy = lmp->modify->compute[id]->compute_scalar();
-    EXPECT_FP_LE_WITH_EPS(angle->energy, test_config.run_energy, epsilon);
-    // TODO: this is currently broken for USER-OMP with angle style hybrid
-    // needs to be fixed in the main code somewhere. Not sure where, though.
-    if (test_config.angle_style.substr(0,6) != "hybrid")
-        EXPECT_FP_LE_WITH_EPS(angle->energy, energy, epsilon);
-    if (print_stats)
-        std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp,test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 };
 
+TEST(AngleStyle, single) {
+    const char *args[] = {"AngleStyle", "-log", "none", "-echo", "screen", "-nocite" };
+    char **argv = (char **)args;
+    int argc = sizeof(args)/sizeof(char *);
+
+    // create a LAMMPS instance with standard settings to detect the number of atom types
+    if (!verbose) ::testing::internal::CaptureStdout();
+    LAMMPS *lmp = init_lammps(argc,argv,test_config);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    if (!lmp) {
+        std::cerr << "One or more prerequisite styles are not available "
+            "in this LAMMPS configuration:\n";
+        for (auto& prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style "
+                      << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+
+    // gather some information and skip if unsupported
+    int nangletypes = lmp->atom->nangletypes;
+    int molecular = lmp->atom->molecular;
+    if (molecular != 1) {
+        std::cerr << "Only simple molecular atom styles are supported\n";
+        if (!verbose) ::testing::internal::CaptureStdout();
+        cleanup_lammps(lmp,test_config);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        GTEST_SKIP();
+    }
+
+    // utility lambda to improve readability
+    auto command = [&](const std::string & line) {
+        lmp->input->one(line.c_str());
+    };
+
+    // now start over
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("clear");
+    command("variable newton_bond delete");
+    command("variable newton_bond index on");
+
+    command("variable input_dir index " + INPUT_FOLDER);
+
+    for (auto& pre_command : test_config.pre_commands) {
+        command(pre_command);
+    }
+
+    command("atom_style molecular");
+    command("units ${units}");
+    command("boundary p p p");
+    command("newton ${newton_pair} ${newton_bond}");
+    command("special_bonds lj/coul "
+            "${bond_factor} ${angle_factor} ${dihedral_factor}");
+
+    command("atom_modify map array");
+    command("region box block -10.0 10.0 -10.0 10.0 -10.0 10.0 units box");
+
+    char buf[10];
+    std::string cmd("create_box 1 box");
+    cmd += " angle/types ";
+    snprintf(buf,10,"%d",nangletypes);
+    cmd += buf;
+    cmd += " extra/angle/per/atom 2";
+    cmd += " extra/special/per/atom 2";
+    command(cmd);
+
+    command("pair_style zero 8.0");
+    command("pair_coeff * *");
+
+    command("angle_style " + test_config.angle_style);
+    Angle *angle = lmp->force->angle;
+
+    for (auto& angle_coeff : test_config.angle_coeff) {
+        command("angle_coeff " + angle_coeff);
+    }
+
+    // create (only) three atoms and one angle
+    command("mass * 1.0");
+    command("create_atoms 1 single  5.0 -0.75  0.4 units box");
+    command("create_atoms 1 single  5.5  0.25 -0.1 units box");
+    command("create_atoms 1 single  5.0  0.75  0.4 units box");
+    command("create_bonds single/angle 1 1 2 3");
+
+    for (auto& post_command : test_config.post_commands) {
+        command(post_command);
+    }
+
+    command("run 0 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    int idx1 = lmp->atom->map(1);
+    int idx2 = lmp->atom->map(2);
+    int idx3 = lmp->atom->map(3);
+    double epsilon = test_config.epsilon;
+    double eangle[4], esingle[4];
+
+    eangle[0] = angle->energy;
+    esingle[0] = angle->single(1, idx1, idx2, idx3);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("displace_atoms all random 0.5 0.5 0.5 23456");
+    command("run 0 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    idx1 = lmp->atom->map(1);
+    idx2 = lmp->atom->map(2);
+    idx3 = lmp->atom->map(3);
+    eangle[1] = angle->energy;
+    esingle[1] = angle->single(1, idx1, idx2, idx3);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("displace_atoms all random 0.5 0.5 0.5 456963");
+    command("run 0 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    idx1 = lmp->atom->map(1);
+    idx2 = lmp->atom->map(2);
+    idx3 = lmp->atom->map(3);
+    eangle[2] = angle->energy;
+    esingle[2] = angle->single(1, idx1, idx2, idx3);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("displace_atoms all random 0.5 0.5 0.5 9726532");
+    command("run 0 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    idx1 = lmp->atom->map(1);
+    idx2 = lmp->atom->map(2);
+    idx3 = lmp->atom->map(3);
+    eangle[3] = angle->energy;
+    esingle[3] = angle->single(1, idx1, idx2, idx3);
+
+    ErrorStats stats;
+    EXPECT_FP_LE_WITH_EPS(eangle[0], esingle[0], epsilon);
+    EXPECT_FP_LE_WITH_EPS(eangle[1], esingle[1], epsilon);
+    EXPECT_FP_LE_WITH_EPS(eangle[2], esingle[2], epsilon);
+    EXPECT_FP_LE_WITH_EPS(eangle[3], esingle[3], epsilon);
+    if (print_stats)
+        std::cerr << "single_energy  stats:" << stats << std::endl;
+
+    int i = 0;
+    for (auto &dist : test_config.equilibrium)
+        EXPECT_NEAR(dist,angle->equilibrium_angle(++i),0.00001);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp,test_config);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+}

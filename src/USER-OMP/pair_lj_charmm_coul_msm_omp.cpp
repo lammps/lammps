@@ -137,7 +137,7 @@ void PairLJCharmmCoulMSMOMP::eval(int iifrom, int iito, ThrData * const thr)
             const double prefactor = qqrd2e * qtmp*q[j]/r;
             const double egamma = 1.0 - (r/cut_coul)*force->kspace->gamma(r/cut_coul);
             const double fgamma = 1.0 + (rsq/cut_coulsq)*force->kspace->dgamma(r/cut_coul);
-            forcecoul = prefactor * (fgamma - 1.0);
+            forcecoul = prefactor * fgamma;
 
             if (EFLAG) ecoul = prefactor*egamma;
             if (sbindex) {

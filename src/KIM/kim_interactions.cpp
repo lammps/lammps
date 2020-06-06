@@ -192,7 +192,7 @@ void KimInteractions::do_setup(int narg, char **arg)
           std::string msg("Species '");
           msg += strword;
           msg += "' is not supported by this KIM Simulator Model";
-          error->all(FLERR,msg.c_str());
+          error->all(FLERR,msg);
         }
         strword = strtok(NULL," \t");
       }
@@ -276,8 +276,8 @@ void KimInteractions::do_setup(int narg, char **arg)
       cmd2 += " ";
     }
 
-    input->one(cmd1.c_str());
-    input->one(cmd2.c_str());
+    input->one(cmd1);
+    input->one(cmd2);
   }
 
   // End output to log file

@@ -51,7 +51,8 @@ struct DoCoul<1> {
 
 //Specialisation for Neighborlist types Half, HalfThread, Full
 template <class PairStyle, int NEIGHFLAG, bool STACKPARAMS, class Specialisation = void>
-struct PairComputeFunctor  {
+class PairComputeFunctor  {
+ public:
   typedef typename PairStyle::device_type device_type ;
   typedef ArrayTypes<device_type> AT;
 

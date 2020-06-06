@@ -313,7 +313,7 @@ void PairHybrid::settings(int narg, char **arg)
   iarg = 0;
   nstyles = 0;
   while (iarg < narg) {
-    if (strncmp(arg[iarg],"hybrid",6) == 0)
+    if (utils::strmatch(arg[iarg],"^hybrid"))
       error->all(FLERR,"Pair style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[iarg],"none") == 0)
       error->all(FLERR,"Pair style hybrid cannot have none as an argument");
@@ -323,8 +323,14 @@ void PairHybrid::settings(int narg, char **arg)
     special_lj[nstyles] = special_coul[nstyles] = NULL;
     compute_tally[nstyles] = 1;
 
+    // determine list of arguments for pair style settings
+    // by looking for the next known pair style name.
+
     jarg = iarg + 1;
-    while (jarg < narg && !force->pair_map->count(arg[jarg])) jarg++;
+    while ((jarg < narg)
+           && !force->pair_map->count(arg[jarg])
+           && !lmp->match_style("pair",arg[jarg])) jarg++;
+
     styles[nstyles]->settings(jarg-iarg-1,&arg[iarg+1]);
     iarg = jarg;
     nstyles++;

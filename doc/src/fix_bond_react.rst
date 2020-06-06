@@ -300,7 +300,8 @@ either 'none' or 'charges.' Further details are provided in the
 discussion of the 'update_edges' keyword. The fifth optional section
 begins with the keyword 'Constraints' and lists additional criteria
 that must be satisfied in order for the reaction to occur. Currently,
-there are four types of constraints available, as discussed below.
+there are four types of constraints available, as discussed below:
+'distance', 'angle', 'dihedral', and 'arrhenius'.
 
 A sample map file is given below:
 
@@ -353,8 +354,9 @@ has syntax as follows:
    distance *ID1* *ID2* *rmin* *rmax*
 
 where 'distance' is the required keyword, *ID1* and *ID2* are
-pre-reaction atom IDs, and these two atoms must be separated by a
-distance between *rmin* and *rmax* for the reaction to occur.
+pre-reaction atom IDs (or molecule-fragment IDs, see below), and these
+two atoms must be separated by a distance between *rmin* and *rmax*
+for the reaction to occur.
 
 The constraint of type 'angle' has the following syntax:
 
@@ -363,11 +365,11 @@ The constraint of type 'angle' has the following syntax:
    angle *ID1* *ID2* *ID3* *amin* *amax*
 
 where 'angle' is the required keyword, *ID1*\ , *ID2* and *ID3* are
-pre-reaction atom IDs, and these three atoms must form an angle
-between *amin* and *amax* for the reaction to occur (where *ID2* is
-the central atom). Angles must be specified in degrees. This
-constraint can be used to enforce a certain orientation between
-reacting molecules.
+pre-reaction atom IDs (or molecule-fragment IDs, see below), and these
+three atoms must form an angle between *amin* and *amax* for the
+reaction to occur (where *ID2* is the central atom). Angles must be
+specified in degrees. This constraint can be used to enforce a certain
+orientation between reacting molecules.
 
 The constraint of type 'dihedral' has the following syntax:
 
@@ -376,15 +378,23 @@ The constraint of type 'dihedral' has the following syntax:
    dihedral *ID1* *ID2* *ID3* *ID4* *amin* *amax* *amin2* *amax2*
 
 where 'dihedral' is the required keyword, and *ID1*\ , *ID2*\ , *ID3*
-and *ID4* are pre-reaction atom IDs. Dihedral angles are calculated in
-the interval (-180,180]. Refer to the :doc:`dihedral style <dihedral_style>`
-documentation for further details on convention. If *amin* is less
-than *amax*, these four atoms must form a dihedral angle greater than
-*amin* **and** less than *amax* for the reaction to occur. If *amin*
-is greater than *amax*, these four atoms must form a dihedral angle
-greater than *amin* **or** less than *amax* for the reaction to occur.
-Angles must be specified in degrees. Optionally, a second range of
-permissible angles *amin2*-*amax2* can be specified.
+and *ID4* are pre-reaction atom IDs (or molecule-fragment IDs, see
+below). Dihedral angles are calculated in the interval (-180,180].
+Refer to the :doc:`dihedral style <dihedral_style>` documentation for
+further details on convention. If *amin* is less than *amax*, these
+four atoms must form a dihedral angle greater than *amin* **and** less
+than *amax* for the reaction to occur. If *amin* is greater than
+*amax*, these four atoms must form a dihedral angle greater than
+*amin* **or** less than *amax* for the reaction to occur. Angles must
+be specified in degrees. Optionally, a second range of permissible
+angles *amin2*-*amax2* can be specified.
+
+For the 'distance', 'angle', and 'dihedral' constraints (explained
+above), atom IDs can be replaced by pre-reaction molecule-fragment
+IDs. The molecule-fragment ID must begin with a letter. The location
+of the ID is the geometric center of all atom positions in the
+fragment. The molecule fragment must have been defined in the
+:doc:`molecule <molecule>` command for the pre-reaction template.
 
 The constraint of type 'arrhenius' imposes an additional reaction
 probability according to the temperature-dependent Arrhenius equation:

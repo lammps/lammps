@@ -57,9 +57,7 @@ static const char cite_fix_orient_eco[] =
 struct FixOrientECO::Nbr {
   public:
     int n;                                      // # of neighbors
-    tagint id[FIX_ORIENT_ECO_MAX_NEIGH];        // IDs of each neighbor
-                                                // if center atom is owned, these are local IDs
-                                                // if center atom is ghost, these are global IDs
+    int id[FIX_ORIENT_ECO_MAX_NEIGH];           // IDs of each neighbor
     double duchi;                               // potential derivative
     double delta[FIX_ORIENT_ECO_MAX_NEIGH][3];  // difference vectors
     double real_phi[2][3];                      // real part of wave function
@@ -203,6 +201,7 @@ void FixOrientECO::init() {
   neighbor->requests[irequest]->fix = 1;
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
+  neighbor->requests[irequest]->ghost = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -293,7 +292,7 @@ void FixOrientECO::post_force(int /* vflag */) {
         if (n >= FIX_ORIENT_ECO_MAX_NEIGH) {
           error->one(FLERR, "Fix orient/eco maximal number of neighbors exceeded");
         }
-        nbr[i].id[n] = static_cast<tagint> (j);
+        nbr[i].id[n] = j;
         nbr[i].delta[n][0] = dx;
         nbr[i].delta[n][1] = dy;
         nbr[i].delta[n][2] = dz;
@@ -372,7 +371,7 @@ void FixOrientECO::post_force(int /* vflag */) {
   double gradient_ii_sin[2][3][3];      // gradient ii sine term
   double gradient_ij_vec[2][3][3];      // gradient ij vector term
   double gradient_ij_sca[2][3];         // gradient ij scalar term
-  tagint idj;                           // stores id of neighbor j
+  int    idj;                           // stores id of neighbor j
   double weight_gradient_prefactor;     // gradient prefactor
   double weight_gradient[3];            // gradient of weight
   double cos_scalar_product;            // cosine of scalar product
@@ -475,7 +474,6 @@ double FixOrientECO::compute_scalar() {
 int FixOrientECO::pack_forward_comm(int n, int *list, double *buf,
                                     int /* pbc_flag */, int * /* pbc */) {
   int ii, i, jj, j, k, num;
-  tagint id;
 
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
@@ -502,12 +500,8 @@ int FixOrientECO::pack_forward_comm(int n, int *list, double *buf,
       buf[m++] = nbr[k].delta[j][2];
 
       // id stored in buf needs to be global ID
-      // if k is a local atom, it stores local IDs, so convert to global
-      // if k is a ghost atom (already comm'd), its IDs are already global
 
-      id = ubuf(nbr[k].id[j]).i;
-      if (k < nlocal) id = ubuf(tag[id]).i;
-      buf[m++] = id;
+      buf[m++] =ubuf(tag[nbr[k].id[j]]).i;
     }
   }
 
@@ -538,7 +532,8 @@ void FixOrientECO::unpack_forward_comm(int n, int first, double *buf) {
       nbr[i].delta[j][0] = buf[m++];
       nbr[i].delta[j][1] = buf[m++];
       nbr[i].delta[j][2] = buf[m++];
-      nbr[i].id[j] = ubuf(buf[m++]).i;
+      // convert from global to local id
+      nbr[i].id[j] = atom->map(ubuf(buf[m++]).i);
     }
   }
 }

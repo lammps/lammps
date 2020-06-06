@@ -107,7 +107,7 @@ FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
     FILE *infile = force->open_potential(dir_filename);
     if (infile == NULL)
       error->one(FLERR,fmt::format("Cannot open fix orient/eco file {}: {}",
-                                   infile,utils::getsyserror()));
+                                   dir_filename, utils::getsyserror()));
     for (int i = 0; i < 6; ++i) {
       result = fgets(line, IMGMAX, infile);
       if (!result) error->one(FLERR, "Fix orient/eco file read failed");

@@ -1661,7 +1661,7 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
         while (nword < ninteger) {
           eof = fgets(&buffer[m],MAXLINE,fp);
           if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-          ncount = utils::count_words(&buffer[m]);
+          ncount = utils::trim_and_count_words(&buffer[m]);
           if (ncount == 0)
             error->one(FLERR,"Too few values in body lines in data file");
           nword += ncount;
@@ -1675,7 +1675,7 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
         while (nword < ndouble) {
           eof = fgets(&buffer[m],MAXLINE,fp);
           if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-          ncount = utils::count_words(&buffer[m]);
+          ncount = utils::trim_and_count_words(&buffer[m]);
           if (ncount == 0)
             error->one(FLERR,"Too few values in body lines in data file");
           nword += ncount;

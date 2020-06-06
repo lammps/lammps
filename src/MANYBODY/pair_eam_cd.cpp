@@ -514,7 +514,7 @@ void PairEAMCD::read_h_coeff(char *filename)
       strcpy(line, nextline);
     }
 
-    ValueTokenizer values(line, " \t\n\r\f");
+    ValueTokenizer values(line);
     int degree = values.next_int();
     nhcoeff = degree+1;
 

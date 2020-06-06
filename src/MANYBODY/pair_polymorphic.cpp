@@ -571,8 +571,7 @@ void PairPolymorphic::read_file(char *file)
     try {
       reader = new PotentialFileReader(lmp, file, "polymorphic");
 
-      char * line = reader->next_line(2);
-      ValueTokenizer values(line);
+      ValueTokenizer values = reader->next_values(2);
 
       int ntypes = values.next_int();
 
@@ -585,8 +584,7 @@ void PairPolymorphic::read_file(char *file)
       match = new int[nelements];
 
       for (int i = 0; i < nelements; i++) {
-        line = reader->next_line(3);
-        values = ValueTokenizer(line);
+        values = reader->next_values(3);
         values.next_double(); // atomic number
         values.next_double(); // atomic mass
         std::string name = values.next_string();
@@ -602,9 +600,8 @@ void PairPolymorphic::read_file(char *file)
       // sizes
       // Note: the format of this line has changed between the
       // 2015-06-06 and 2015-12-09 versions of the pair style.
-      line = reader->next_line(4);
       try {
-        values = ValueTokenizer(line);
+        values = reader->next_values(4);
         nr = ng = nx = 0;
         nr = values.next_int();
         ng = values.next_int();
@@ -625,8 +622,7 @@ void PairPolymorphic::read_file(char *file)
 
       for (int i = 0; i < npair; i++) {
         PairParameters & p = pairParameters[i];
-        line = reader->next_line(2);
-        values = ValueTokenizer(line);
+        values = reader->next_values(2);
         p.cut = values.next_double();
         p.cutsq = p.cut*p.cut;
         p.xi = values.next_double();
@@ -658,7 +654,7 @@ void PairPolymorphic::read_file(char *file)
   for (int i = 0; i < npair; i++) { // U
     PairParameters & p = pairParameters[i];
     if (comm->me == 0) {
-      reader->next_dvector(nr, singletable);
+      reader->next_dvector(singletable, nr);
     }
     MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
     p.U = new tabularFunction(nr,0.0,p.cut);
@@ -667,7 +663,7 @@ void PairPolymorphic::read_file(char *file)
   for (int i = 0; i < npair; i++) { // V
     PairParameters & p = pairParameters[i];
     if (comm->me == 0) {
-      reader->next_dvector(nr, singletable);
+      reader->next_dvector(singletable, nr);
     }
     MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
     p.V = new tabularFunction(nr,0.0,p.cut);
@@ -676,7 +672,7 @@ void PairPolymorphic::read_file(char *file)
   for (int i = 0; i < npair; i++) { // W
     PairParameters & p = pairParameters[i];
     if (comm->me == 0) {
-      reader->next_dvector(nr, singletable);
+      reader->next_dvector(singletable, nr);
     }
     MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
     p.W = new tabularFunction(nr,0.0,p.cut);
@@ -693,7 +689,7 @@ void PairPolymorphic::read_file(char *file)
   if (eta != 3) {
     for (int j = 0; j < nelements; j++) { // P
       if (comm->me == 0) {
-        reader->next_dvector(nr, singletable);
+        reader->next_dvector(singletable, nr);
       }
       MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
       for (int i = 0; i < nelements; i++) {
@@ -705,7 +701,7 @@ void PairPolymorphic::read_file(char *file)
     for (int j = 0; j < nelements-1; j++) { // P
     for (int k = j+1; k < nelements; k++) {
       if (comm->me == 0) {
-        reader->next_dvector(nr, singletable);
+        reader->next_dvector(singletable, nr);
       }
       MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
       for (int i = 0; i < nelements; i++) {
@@ -723,7 +719,7 @@ void PairPolymorphic::read_file(char *file)
     for (int i = 0; i < ntriple; i++) { // P
       TripletParameters & p = tripletParameters[i];
       if (comm->me == 0) {
-        reader->next_dvector(nr, singletable);
+        reader->next_dvector(singletable, nr);
       }
       MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
       p.P = new tabularFunction(nr,-cutmax,cutmax);
@@ -735,7 +731,7 @@ void PairPolymorphic::read_file(char *file)
   for (int i = 0; i < ntriple; i++) { // G
     TripletParameters & p = tripletParameters[i];
     if (comm->me == 0) {
-      reader->next_dvector(ng, singletable);
+      reader->next_dvector(singletable, ng);
     }
     MPI_Bcast(singletable,ng,MPI_DOUBLE,0,world);
     p.G = new tabularFunction(ng,-1.0,1.0);
@@ -746,7 +742,7 @@ void PairPolymorphic::read_file(char *file)
   for (int i = 0; i < npair; i++) { // F
     PairParameters & p = pairParameters[i];
     if (comm->me == 0) {
-      reader->next_dvector(nx, singletable);
+      reader->next_dvector(singletable, nx);
     }
     MPI_Bcast(singletable,nx,MPI_DOUBLE,0,world);
     p.F = new tabularFunction(nx,0.0,maxX);

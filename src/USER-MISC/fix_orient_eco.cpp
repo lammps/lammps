@@ -32,6 +32,8 @@
 #include "pair.h"
 #include "respa.h"
 #include "update.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -103,7 +105,9 @@ FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
     int count;
 
     FILE *infile = force->open_potential(dir_filename);
-    if (infile == NULL) error->one(FLERR, "Fix orient/eco file open failed");
+    if (infile == NULL)
+      error->one(FLERR,fmt::format("Cannot open fix orient/eco file {}: {}",
+                                   infile,utils::getsyserror()));
     for (int i = 0; i < 6; ++i) {
       result = fgets(line, IMGMAX, infile);
       if (!result) error->one(FLERR, "Fix orient/eco file read failed");
@@ -208,7 +212,7 @@ void FixOrientECO::init() {
 
 /* ---------------------------------------------------------------------- */
 
-void FixOrientECO::init_list(int id, NeighList *ptr) {
+void FixOrientECO::init_list(int /* id */, NeighList *ptr) {
   list = ptr;
 }
 
@@ -226,7 +230,7 @@ void FixOrientECO::setup(int vflag) {
 
 /* ---------------------------------------------------------------------- */
 
-void FixOrientECO::post_force(int vflag) {
+void FixOrientECO::post_force(int /* vflag */) {
   // set local variables
   int ii, i, jj, j;                                             // loop variables and atom IDs
   int k;                                                        // variable to loop over 3 reciprocal directions
@@ -459,7 +463,7 @@ void FixOrientECO::post_force(int vflag) {
 
 /* ---------------------------------------------------------------------- */
 
-void FixOrientECO::post_force_respa(int vflag, int ilevel, int iloop) {
+void FixOrientECO::post_force_respa(int vflag, int ilevel, int /* iloop */) {
   if (ilevel == ilevel_respa) post_force(vflag);
 }
 
@@ -473,7 +477,8 @@ double FixOrientECO::compute_scalar() {
 
 /* ---------------------------------------------------------------------- */
 
-int FixOrientECO::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc) {
+int FixOrientECO::pack_forward_comm(int n, int *list, double *buf,
+                                    int /* pbc_flag */, int * /* pbc */) {
   int ii, i, jj, j, k, num;
   tagint id;
 

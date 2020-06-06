@@ -41,7 +41,7 @@ class FixOrientECO : public Fix {
 
   private:
     struct Nbr;                         // private struct for managing precomputed terms
-    
+
     int me;                             // this processors rank
     int nmax;                           // maximal # of owned + ghost atoms on this processor
     int ilevel_respa;                   // used for RESPA integrator only
@@ -70,7 +70,7 @@ class FixOrientECO : public Fix {
     class NeighList *list;      // LAMMPS' neighbor list
 
     void get_reciprocal();      // calculate reciprocal lattice vectors
-    void get_norm(int &);       // compute normalization factor
+    int get_norm();             // compute normalization factor
 };
 
 }

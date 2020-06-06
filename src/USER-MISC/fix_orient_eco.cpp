@@ -51,9 +51,9 @@ static const char cite_fix_orient_eco[] =
   " doi = {j.commatsci.2020.109774},\n"
   " url = {https://doi.org/10.1016/j.commatsci.2020.109774}\n"
   "}\n\n";
-  
+
 #define FIX_ORIENT_ECO_MAX_NEIGH 24
-  
+
 struct FixOrientECO::Nbr {
   public:
     int n;                                      // # of neighbors
@@ -173,17 +173,12 @@ void FixOrientECO::init() {
   MPI_Comm_rank(world, &me);
 
   // compute normalization factor
+  int neigh = get_norm();
   if (me == 0) {
-    int neigh;
-    get_norm(neigh);
-    if (screen) {
-      fprintf(screen, "  fix orient/eco: cutoff=%f norm_fac=%f neighbors=%i\n", r_cut, norm_fac, neigh); 
-    }
-    if (logfile) {
-      fprintf(logfile, "  fix orient/eco: cutoff=%f norm_fac=%f neighbors=%i\n", r_cut, norm_fac, neigh); 
-    }
+    utils::logmesg(lmp,fmt::format("  fix orient/eco: cutoff={} norm_fac={} "
+                                   "neighbors={}\n", r_cut, norm_fac, neigh));
   }
-  
+
   inv_norm_fac = 1.0 / norm_fac;
 
   // check parameters
@@ -384,7 +379,7 @@ void FixOrientECO::post_force(int /* vflag */) {
   double sin_scalar_product;            // sine of scalar product
   double gcos_scalar_product;           // gradient weight function * cosine of scalar product
   double gsin_scalar_product;           // gradient weight function * sine of scalar product
-  
+
   // compute force only if synthetic
   // potential is not zero
   if (u_0 != 0.0) {
@@ -417,7 +412,7 @@ void FixOrientECO::post_force(int /* vflag */) {
       // loop over all neighbors of atom i
       for (j = 0; j < n; ++j) {
         idj = nbr[i].id[j];
-        
+
         // compute force on atom i if it is close to boundary
         if ((nbr[idj].duchi != 0.0) || boundary_atom) {
           delta = &nbr[i].delta[j][0];
@@ -606,7 +601,7 @@ void FixOrientECO::get_reciprocal() {
  normalization factor
  ------------------------------------------------------------------------- */
 
-void FixOrientECO::get_norm(int &neigh) {
+int FixOrientECO::get_norm() {
   // set up local variables
   double delta[3];                        // relative position
   double squared_distance;                           // squared distance of atoms i and j
@@ -618,7 +613,7 @@ void FixOrientECO::get_norm(int &neigh) {
 
   int max_co = 4;                       // will produce wrong results for rcut > 3 * lattice constant
 
-  neigh = 0;                            // count number of neighbors used
+  int neigh = 0;                            // count number of neighbors used
 
   // loop over ideal lattice positions
   int i, k, idx[3];
@@ -656,6 +651,7 @@ void FixOrientECO::get_norm(int &neigh) {
   for (k = 0; k < 3; ++k) {
     norm_fac -= reesum[k] * reesum[k] + imesum[k] * imesum[k];
   }
+  return neigh;
 }
 
 

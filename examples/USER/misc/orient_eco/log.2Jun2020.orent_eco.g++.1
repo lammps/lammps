@@ -1,19 +1,18 @@
-LAMMPS (5 May 2020)
+LAMMPS (2 Jun 2020)
   using 1 OpenMP thread(s) per MPI task
 
 units           metal
 atom_style      atomic
 read_data       data.sigma5
-  orthogonal box = (-90.272 -4.42719e-07 0) to (90.272 88.5438 17.5)
+  orthogonal box = (-90.27200752837744 -4.427188724235731e-07 0.0) to (90.27200752837744 88.54377448471462 17.5)
   1 by 1 by 1 MPI processor grid
   reading atoms ...
   25600 atoms
-  read_data CPU = 0.0209658 secs
+  read_data CPU = 0.028 secs
 
 pair_style      eam
 pair_coeff      * * Ni_u3.eam
-Reading potential file Ni_u3.eam with DATE: 2007-06-11
-timestep        0.001
+Reading potential file Ni_u3.eam with DATE: 2007-06-11timestep        0.001
 
 fix integrator  all npt temp 750 750 0.1 iso 0 0 0.1
 fix eco         all orient/eco 0.08 0.25 3.6 sigma5.ori
@@ -26,7 +25,7 @@ velocity        all create 750 18527782
 #dump_modify     save sort id
 
 run             1000
-  fix orient/eco: cutoff=3.600000 norm_fac=30.012844 neighbors=18
+  fix orient/eco: cutoff=3.6 norm_fac=30.012843706295556 neighbors=18
 Neighbor list info ...
   update every 1 steps, delay 10 steps, check yes
   max neighbors/atom: 2000, page size: 100000
@@ -57,20 +56,20 @@ Step Temp TotEng Press Volume f_eco
      800    664.91881   -109021.02   -62.347415    289323.84   -6.1930838 
      900    704.83039   -108741.73     365.8898    289827.26   -9.8340949 
     1000    734.71441   -108502.96    1119.6572       290190   -12.049805 
-Loop time of 114.325 on 1 procs for 1000 steps with 25600 atoms
+Loop time of 116.807 on 1 procs for 1000 steps with 25600 atoms
 
-Performance: 0.756 ns/day, 31.757 hours/ns, 8.747 timesteps/s
-99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 0.740 ns/day, 32.446 hours/ns, 8.561 timesteps/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 27.174     | 27.174     | 27.174     |   0.0 | 23.77
-Neigh   | 0.82192    | 0.82192    | 0.82192    |   0.0 |  0.72
-Comm    | 0.12876    | 0.12876    | 0.12876    |   0.0 |  0.11
-Output  | 0.00077987 | 0.00077987 | 0.00077987 |   0.0 |  0.00
-Modify  | 86.114     | 86.114     | 86.114     |   0.0 | 75.32
-Other   |            | 0.0853     |            |       |  0.07
+Pair    | 27.131     | 27.131     | 27.131     |   0.0 | 23.23
+Neigh   | 0.83119    | 0.83119    | 0.83119    |   0.0 |  0.71
+Comm    | 0.13038    | 0.13038    | 0.13038    |   0.0 |  0.11
+Output  | 0.00079226 | 0.00079226 | 0.00079226 |   0.0 |  0.00
+Modify  | 88.626     | 88.626     | 88.626     |   0.0 | 75.87
+Other   |            | 0.08717    |            |       |  0.07
 
 Nlocal:    25600 ave 25600 max 25600 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -88,4 +87,4 @@ Dangerous builds = 0
 
 Please see the log.cite file for references relevant to this simulation
 
-Total wall time: 0:01:54
+Total wall time: 0:01:57

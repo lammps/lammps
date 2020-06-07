@@ -520,30 +520,31 @@ void FixQBMSST::initial_integrate(int /*vflag*/)
   // decide if the qtb temperature need to be updated or not
   if (counter_l == 0) {
     t_current -= dtv*fric_coef*eta*beta*(old_eavg-e0)/(3*ntotal*boltz);
-    if (t_current <= 0.0) break;
-    old_eavg = 0;//clear old energy average
+    if (t_current > 0.0) {
+      old_eavg = 0;//clear old energy average
 
-    // load omega_H with calculated spectrum at a specific temperature (corrected spectrum), omega_H is the Fourier transformation of time_H
-    for (int k = 0; k < 2*N_f; k++) {
-      double f_k=(k-N_f)/(2*N_f*h_timestep);  //\omega_k=\frac{2\pi}{\delta{}h}\frac{k}{2N_f} for k from -N_f to N_f-1
-      if(k == N_f) {
-        omega_H[k]=sqrt(force->boltz * t_current);
-      } else {
-        double energy_k= force->hplanck * fabs(f_k);
-        omega_H[k]=sqrt( energy_k * (0.5+1.0/( exp(energy_k/(force->boltz * t_current)) - 1.0 )) );
-        omega_H[k]*=alpha*sin((k-N_f)*MY_PI/(2*alpha*N_f))/sin((k-N_f)*MY_PI/(2*N_f));
-      }
-    }
-
-    // construct the signal filter H, filter has the unit of of sqrt(energy) \sqrt{2N_f}^{-1}H\left(t_n\right)
-    for (int n = 0; n < 2*N_f; n++) {
-      time_H[n] = 0;
-      double t_n=(n-N_f);
+      // load omega_H with calculated spectrum at a specific temperature (corrected spectrum), omega_H is the Fourier transformation of time_H
       for (int k = 0; k < 2*N_f; k++) {
-        double omega_k=(k-N_f)*MY_PI/N_f;
-        time_H[n] += omega_H[k]*(cos(omega_k*t_n));
+        double f_k=(k-N_f)/(2*N_f*h_timestep);  //\omega_k=\frac{2\pi}{\delta{}h}\frac{k}{2N_f} for k from -N_f to N_f-1
+        if(k == N_f) {
+          omega_H[k]=sqrt(force->boltz * t_current);
+        } else {
+          double energy_k= force->hplanck * fabs(f_k);
+          omega_H[k]=sqrt( energy_k * (0.5+1.0/( exp(energy_k/(force->boltz * t_current)) - 1.0 )) );
+          omega_H[k]*=alpha*sin((k-N_f)*MY_PI/(2*alpha*N_f))/sin((k-N_f)*MY_PI/(2*N_f));
+        }
       }
-      time_H[n]/=(2.0*N_f);
+
+      // construct the signal filter H, filter has the unit of of sqrt(energy) \sqrt{2N_f}^{-1}H\left(t_n\right)
+      for (int n = 0; n < 2*N_f; n++) {
+        time_H[n] = 0;
+        double t_n=(n-N_f);
+        for (int k = 0; k < 2*N_f; k++) {
+          double omega_k=(k-N_f)*MY_PI/N_f;
+          time_H[n] += omega_H[k]*(cos(omega_k*t_n));
+        }
+        time_H[n]/=(2.0*N_f);
+      }
     }
   }
 

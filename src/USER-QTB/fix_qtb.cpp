@@ -32,6 +32,8 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -163,14 +165,17 @@ void FixQTB::init()
 
   //set up the h time step for updating the random force \delta{}h=\frac{\pi}{\Omega_{max}}
   if (int(1.0/(2*f_max*dtv)) == 0) {
-    if (comm->me == 0) printf ("Warning: Either f_max is too high or the time step is too big, setting f_max to be 1/timestep!\n");
+    if (comm->me == 0) error->warning(FLERR,"Either f_max is too high or the time step "
+                                      "is too big, setting f_max to be 1/timestep!\n");
     h_timestep=dtv;
     alpha=1;
   } else {
     alpha=int(1.0/(2*f_max*dtv));
     h_timestep=alpha*dtv;
   }
-  if (comm->me == 0) printf ("The effective maximum frequncy is now %f inverse time unit with alpha value as %d!\n", 0.5/h_timestep, alpha);
+  if (comm->me == 0 && screen)
+    fmt::print(screen,"The effective maximum frequency is now {} inverse time unit "
+               "with alpha value as {}!\n", 0.5/h_timestep, alpha);
 
   // set force prefactors
   if (!atom->rmass) {

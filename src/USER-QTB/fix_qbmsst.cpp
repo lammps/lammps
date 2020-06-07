@@ -173,11 +173,11 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
   if (domain->nonperiodic) error->all(FLERR,"Fix qbmsst requires a periodic box");
 
   maxexchange = 6*N_f+3;
-  
+
   // comments
   if (comm->me == 0) {
     std::string msg = "QBMSST parameters:\n";
-    
+
     if (direction == 0)      msg += "  Shock in x direction\n";
     else if (direction == 1) msg += "  Shock in y direction\n";
     else if (direction == 2) msg += "  Shock in z direction\n";

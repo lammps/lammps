@@ -48,8 +48,6 @@ using namespace MathConst;
 #define DELTA_PERATOM 64
 #define EPSILON 1.0e-6
 
-enum{DOUBLE,INT,BIGINT};
-
 /* ---------------------------------------------------------------------- */
 
 /** \class LAMMPS_NS::Atom

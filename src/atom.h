@@ -24,6 +24,7 @@ class Atom : protected Pointers {
  public:
   char *atom_style;             //!< Name of the current atom style, "atomic" by default
   class AtomVec *avec;          //!< Class instance managing the current atom style
+  enum{DOUBLE,INT,BIGINT};
 
   // atom counts
 

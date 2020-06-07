@@ -3,6 +3,7 @@ From: ubuntu:18.04
 
 %post
     export DEBIAN_FRONTEND=noninteractive
+    add-apt-repository ppa:openkim/latest
     apt-get update
     apt-get upgrade --no-install-recommends -y
     apt-get install --no-install-recommends -y \
@@ -66,7 +67,9 @@ From: ubuntu:18.04
         wget \
         xxd \
         valgrind \
-        gdb
+        gdb \
+        libkim-api-dev \
+        openkim-models
 
     # clean cache
     rm -rf /var/lib/apt/lists/*

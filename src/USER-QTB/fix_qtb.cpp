@@ -62,26 +62,33 @@ FixQTB::FixQTB(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qtb command");
-      t_target = atof(arg[iarg+1]); if (t_target < 0.0) error->all(FLERR,"Fix qtb temp must be >= 0.0");
+      t_target = force->numeric(FLERR,arg[iarg+1]);
+      if (t_target < 0.0) error->all(FLERR,"Fix qtb temp must be >= 0.0");
       iarg += 2;
     } else if (strcmp(arg[iarg],"damp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qtb command");
-      t_period = atof(arg[iarg+1]); if (t_period <= 0.0) error->all(FLERR,"Fix qtb damp must be > 0.0"); fric_coef = 1/t_period;
+      t_period = force->numeric(FLERR,arg[iarg+1]);
+      if (t_period <= 0.0) error->all(FLERR,"Fix qtb damp must be > 0.0"); fric_coef = 1/t_period;
       iarg += 2;
     } else if (strcmp(arg[iarg],"seed") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qtb command");
-      seed = atof(arg[iarg+1]); if (seed <= 0) error->all(FLERR,"Illegal fix qtb command");
+      seed = force->inumeric(FLERR,arg[iarg+1]);
+      if (seed <= 0) error->all(FLERR,"Illegal fix qtb command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"f_max") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qtb command");
-      f_max = atof(arg[iarg+1]); if (f_max <= 0) error->all(FLERR,"Illegal fix qtb command");
+      f_max = force->numeric(FLERR,arg[iarg+1]);
+      if (f_max <= 0) error->all(FLERR,"Illegal fix qtb command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"N_f") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qtb command");
-      N_f = atof(arg[iarg+1]); if (N_f <= 0) error->all(FLERR,"Illegal fix qtb command");
+      N_f = force->inumeric(FLERR,arg[iarg+1]);
+      if (N_f <= 0) error->all(FLERR,"Illegal fix qtb command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix qtb command");
   }
+
+  maxexchange = 6*N_f+3;
 
   // allocate qtb
   gfactor1 = NULL;
@@ -105,10 +112,6 @@ FixQTB::FixQTB(LAMMPS *lmp, int narg, char **arg) :
   // allocate random-arrays and fran
   grow_arrays(atom->nmax);
   atom->add_callback(0);
-  // memory->create(random_array_0,atom->nmax+300,2*N_f,"qtb:random_array_0");
-  // memory->create(random_array_1,atom->nmax+300,2*N_f,"qtb:random_array_1");
-  // memory->create(random_array_2,atom->nmax+300,2*N_f,"qtb:random_array_2");
-  // memory->create(fran,atom->nmax+300,3,"qtb:fran");
 
   // allocate omega_H and time_H
   memory->create(omega_H,2*N_f,"qtb:omega_H");
@@ -404,11 +407,12 @@ void FixQTB::copy_arrays(int i, int j, int /*delflag*/)
 ------------------------------------------------------------------------- */
 int FixQTB::pack_exchange(int i, double *buf)
 {
-  for (int m = 0; m < 2*N_f; m++) buf[m] = random_array_0[i][m];
-  for (int m = 0; m < 2*N_f; m++) buf[m+2*N_f] = random_array_1[i][m];
-  for (int m = 0; m < 2*N_f; m++) buf[m+4*N_f] = random_array_2[i][m];
-  for (int m = 0; m < 3; m++) buf[m+6*N_f] = fran[i][m];
-  return 6*N_f+3;
+  int n = 0;
+  for (int m = 0; m < 2*N_f; m++) buf[n++] = random_array_0[i][m];
+  for (int m = 0; m < 2*N_f; m++) buf[n++] = random_array_1[i][m];
+  for (int m = 0; m < 2*N_f; m++) buf[n++] = random_array_2[i][m];
+  for (int m = 0; m < 3; m++) buf[n++] = fran[i][m];
+  return n;
 }
 
 /* ----------------------------------------------------------------------
@@ -416,9 +420,10 @@ int FixQTB::pack_exchange(int i, double *buf)
 ------------------------------------------------------------------------- */
 int FixQTB::unpack_exchange(int nlocal, double *buf)
 {
-  for (int m = 0; m < 2*N_f; m++) random_array_0[nlocal][m] = buf[m];
-  for (int m = 0; m < 2*N_f; m++) random_array_1[nlocal][m] = buf[m+2*N_f];
-  for (int m = 0; m < 2*N_f; m++) random_array_2[nlocal][m] = buf[m+4*N_f];
-  for (int m = 0; m < 3; m++) fran[nlocal][m] = buf[m+6*N_f];
-  return 6*N_f+3;
+  int n = 0;
+  for (int m = 0; m < 2*N_f; m++) random_array_0[nlocal][m] = buf[n++];
+  for (int m = 0; m < 2*N_f; m++) random_array_1[nlocal][m] = buf[n++];
+  for (int m = 0; m < 2*N_f; m++) random_array_2[nlocal][m] = buf[n++];
+  for (int m = 0; m < 3; m++) fran[nlocal][m] = buf[n++];
+  return n;
 }

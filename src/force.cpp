@@ -1019,7 +1019,8 @@ FILE *Force::open_potential(const char *name)
     date = utils::get_potential_date(filepath, "potential");
 
     if(!date.empty()) {
-      utils::logmesg(lmp, fmt::format("Reading potential file {} with DATE: {}", name, date));
+      utils::logmesg(lmp, fmt::format("Reading potential file {} "
+                                      "with DATE: {}\n", name, date));
     }
     return fopen(filepath.c_str(), "r");
   }

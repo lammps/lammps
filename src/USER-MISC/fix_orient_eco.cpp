@@ -22,6 +22,7 @@
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
+#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
@@ -530,8 +531,8 @@ void FixOrientECO::unpack_forward_comm(int n, int first, double *buf) {
       nbr[i].delta[j][0] = buf[m++];
       nbr[i].delta[j][1] = buf[m++];
       nbr[i].delta[j][2] = buf[m++];
-      // convert from global to local id
-      nbr[i].id[j] = atom->map(ubuf(buf[m++]).i);
+      // convert from global to closest local id
+      nbr[i].id[j] = domain->closest_image(i,atom->map(ubuf(buf[m++]).i));
     }
   }
 }

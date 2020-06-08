@@ -55,7 +55,6 @@ static const char cite_fix_orient_eco[] =
 #define FIX_ORIENT_ECO_MAX_NEIGH 24
 
 struct FixOrientECO::Nbr {
-  public:
     int n;                                      // # of neighbors
     int id[FIX_ORIENT_ECO_MAX_NEIGH];           // IDs of each neighbor
     double duchi;                               // potential derivative

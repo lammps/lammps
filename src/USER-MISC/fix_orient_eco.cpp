@@ -200,7 +200,6 @@ void FixOrientECO::init() {
   neighbor->requests[irequest]->fix = 1;
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->ghost = 1;
 }
 
 /* ---------------------------------------------------------------------- */

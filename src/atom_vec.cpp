@@ -237,7 +237,7 @@ void AtomVec::grow(int n)
         memory->grow(*((bigint ***) pdata),nmax*nthreads,cols,"atom:barray");
       else {
         maxcols = *(mgrow.maxcols[i]);
-        memory->grow(*((int ***) pdata),nmax*nthreads,maxcols,"atom:barray");
+        memory->grow(*((bigint ***) pdata),nmax*nthreads,maxcols,"atom:barray");
       }
     }
   }

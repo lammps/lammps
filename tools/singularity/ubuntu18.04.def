@@ -3,6 +3,8 @@ From: ubuntu:18.04
 
 %post
     export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get install --no-install-recommends -y software-properties-common
     add-apt-repository ppa:openkim/latest
     apt-get update
     apt-get upgrade --no-install-recommends -y

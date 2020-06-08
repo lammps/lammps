@@ -648,7 +648,7 @@ void AtomVec::unpack_comm_vel(int n, int first, double *buf)
         if (cols == 0) {
           int *vec = *((int **) pdata);
           for (i = first; i < last; i++)
-            vec[i] = ubuf(buf[m++]).i;
+            vec[i] = (int) ubuf(buf[m++]).i;
         } else {
           int **array = *((int ***) pdata);
           for (i = first; i < last; i++)
@@ -779,14 +779,14 @@ void AtomVec::unpack_reverse(int n, int *list, double *buf)
           int *vec = *((int **) pdata);
           for (i = 0; i < n; i++) {
             j = list[i];
-            vec[j] += buf[m++];
+            vec[j] += (int) ubuf(buf[m++]).i;
           }
         } else {
           int **array = *((int ***) pdata);
           for (i = 0; i < n; i++) {
             j = list[i];
             for (mm = 0; mm < cols; mm++)
-              array[j][mm] += buf[m++];
+              array[j][mm] += (int) ubuf(buf[m++]).i;
           }
         }
       } else if (datatype == Atom::BIGINT) {
@@ -794,14 +794,14 @@ void AtomVec::unpack_reverse(int n, int *list, double *buf)
           bigint *vec = *((bigint **) pdata);
           for (i = 0; i < n; i++) {
             j = list[i];
-            vec[j] += buf[m++];
+            vec[j] += (bigint) ubuf(buf[m++]).i;
           }
         } else {
           bigint **array = *((bigint ***) pdata);
           for (i = 0; i < n; i++) {
             j = list[i];
             for (mm = 0; mm < cols; mm++)
-              array[j][mm] += buf[m++];
+              array[j][mm] += (bigint) ubuf(buf[m++]).i;
           }
         }
       }
@@ -1157,7 +1157,7 @@ void AtomVec::unpack_border_vel(int n, int first, double *buf)
         if (cols == 0) {
           int *vec = *((int **) pdata);
           for (i = first; i < last; i++)
-            vec[i] = ubuf(buf[m++]).i;
+            vec[i] = (int) ubuf(buf[m++]).i;
         } else {
           int **array = *((int ***) pdata);
           for (i = first; i < last; i++)
@@ -1326,7 +1326,7 @@ int AtomVec::unpack_exchange(double *buf)
       } else if (datatype == Atom::INT) {
         if (cols == 0) {
           int *vec = *((int **) pdata);
-          vec[nlocal] = ubuf(buf[m++]).i;
+          vec[nlocal] = (int) ubuf(buf[m++]).i;
         } else if (cols > 0) {
           int **array = *((int ***) pdata);
           for (mm = 0; mm < cols; mm++)
@@ -1569,7 +1569,7 @@ int AtomVec::unpack_restart(double *buf)
     } else if (datatype == Atom::INT) {
       if (cols == 0) {
         int *vec = *((int **) pdata);
-        vec[nlocal] = ubuf(buf[m++]).i;
+        vec[nlocal] = (int) ubuf(buf[m++]).i;
       } else if (cols > 0) {
         int **array = *((int ***) pdata);
         for (mm = 0; mm < cols; mm++)
@@ -1592,7 +1592,7 @@ int AtomVec::unpack_restart(double *buf)
         for (mm = 0; mm < cols; mm++)
           array[nlocal][mm] = (bigint) ubuf(buf[m++]).i;
       } else {
-        int **array = *((int ***) pdata);
+        bigint **array = *((bigint ***) pdata);
         collength = mexchange.collength[nn];
         plength = mexchange.plength[nn];
         if (collength) ncols = (*((int ***) plength))[nlocal][collength-1];

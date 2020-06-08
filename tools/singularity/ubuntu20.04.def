@@ -70,6 +70,21 @@ From: ubuntu:20.04
     # clean cache
     rm -rf /var/lib/apt/lists/*
 
+        # manually install Plumed
+        mkdir plumed
+        cd plumed
+        version=2.6.0
+        curl -L -o plumed.tar.gz https://github.com/plumed/plumed2/releases/download/v${version}/plumed-src-${version}.tgz
+        tar -xzf plumed.tar.gz
+        cd plumed-${version}
+        ./configure --disable-doc --prefix=/usr
+        make
+        make install
+        # fix up installation for CentOS and Fedora
+        # mv -v /usr/lib/pkgconfig/plumed* /usr/share/pkgconfig/
+        cd ../../
+        rm -rvf plumed
+
     # set custom prompt indicating the container name
     CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
     cat >$CUSTOM_PROMPT_ENV <<EOF

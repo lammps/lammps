@@ -38,23 +38,9 @@ From: fedora:32
                blas-devel lapack-devel libyaml-devel openkim-models kim-api-devel
         dnf clean all
 
-        # we need to reset any module variables
-        # inherited from the host.
-        unset __LMOD_REF_COUNT__LMFILES_
-        unset __LMOD_REF_COUNT_PATH
-        unset __LMOD_REF_COUNT_LD_LIBRARY_PATH
-        unset __LMOD_REF_COUNT_MANPATH
-        unset __LMOD_REF_COUNT_MODULEPATH
-        unset __LMOD_REF_COUNT_LOADEDMODULES
-        unset _LMFILES_
-        unset MODULEPATH
-        unset MODULESHOME
-        unset MODULEPATH_ROOT
-        unset LOADEDMODULES
-        unset LMOD_SYSTEM_DEFAULT_MODULES
-
-        # load MPI by default
-        . /etc/profile
+        # enable Lmod and load MPI
+        source /usr/share/lmod/lmod/init/profile
+        module purge
         module load mpi
 
         # manually install Plumed
@@ -68,7 +54,7 @@ From: fedora:32
         make
         make install
         # fix up installation for CentOS and Fedora
-        mv -v /usr/lib/pkgconfig/plumed* /usr/share/pkgconfig/
+        mv -v /usr/lib64/pkgconfig/plumed* /usr/share/pkgconfig/
         cd ../../
         rm -rvf plumed
 

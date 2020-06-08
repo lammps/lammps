@@ -49,7 +49,7 @@ From: centos:8
         make
         make install
         # fix up installation for CentOS and Fedora
-        mv -v /usr/lib/pkgconfig/plumed* /usr/share/pkgconfig/
+        mv -v /usr/lib64/pkgconfig/plumed* /usr/share/pkgconfig/
         cd ../../
         rm -rvf plumed
 

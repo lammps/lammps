@@ -42,6 +42,9 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
 
   double rfac0, rmin0;
   int twojmax, switchflag, bzeroflag;
+  radelem = NULL;
+  wjelem = NULL;
+
   int ntypes = atom->ntypes;
   int nargmin = 6+2*ntypes;
 

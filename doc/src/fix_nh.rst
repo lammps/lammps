@@ -214,23 +214,23 @@ The relaxation rate of the barostat is set by its inertia :math:`W`:
 
 .. math::
 
-   W = (N + 1) k T_\mbox{target} P_\mbox{damp}^2
-  
-where :math:`N` is the number of atoms, :math:`k` is the Boltzmann constant, 
-and :math:`T_\mbox{target}` is the target temperature of the barostat :ref:`(Martyna) <nh-Martyna>`. 
-If a thermostat is defined, :math:`T_\mbox{target}` is the target temperature 
-of the thermostat. If a thermostat is not defined, :math:`T_\mbox{target}` 
-is set to the current temperature of the system when the barostat is initialized. 
-If this temperature is too low the simulation will quit with an error. 
-Note: in previous versions of LAMMPS, :math:`T_\mbox{target}` would default to 
-a value of 1.0 for *lj* units and 300.0 otherwise if the system had a temperature 
-of exactly zero. 
+   W = (N + 1) k T_{target} P_{damp}^2
 
-If a thermostat is not specified by this fix, :math:`T_\mbox{target}` can be 
-manually specified using the *Ptemp* parameter. This may be useful if the 
-barostat is initialized when the current temperature does not reflect the 
-steady state temperature of the system. This keyword may also be useful in 
-athermal simulations where the temperature is not well defined. 
+where :math:`N` is the number of atoms, :math:`k` is the Boltzmann constant,
+and :math:`T_{target}` is the target temperature of the barostat :ref:`(Martyna) <nh-Martyna>`.
+If a thermostat is defined, :math:`T_{target}` is the target temperature
+of the thermostat. If a thermostat is not defined, :math:`T_{target}`
+is set to the current temperature of the system when the barostat is initialized.
+If this temperature is too low the simulation will quit with an error.
+Note: in previous versions of LAMMPS, :math:`T_{target}` would default to
+a value of 1.0 for *lj* units and 300.0 otherwise if the system had a temperature
+of exactly zero.
+
+If a thermostat is not specified by this fix, :math:`T_{target}` can be
+manually specified using the *Ptemp* parameter. This may be useful if the
+barostat is initialized when the current temperature does not reflect the
+steady state temperature of the system. This keyword may also be useful in
+athermal simulations where the temperature is not well defined.
 
 Regardless of what atoms are in the fix group (the only atoms which
 are time integrated), a global pressure or stress tensor is computed

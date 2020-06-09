@@ -363,13 +363,13 @@ void PairEAMAlloyKokkos<Space>::array2spline()
   rdr = 1.0/dr;
   rdrho = 1.0/drho;
 
-  tdual_float_2d_n7 k_frho_spline = tdual_float_2d_n7("pair:frho",nfrho,nrho+1);
-  tdual_float_2d_n7 k_rhor_spline = tdual_float_2d_n7("pair:rhor",nrhor,nr+1);
-  tdual_float_2d_n7 k_z2r_spline = tdual_float_2d_n7("pair:z2r",nz2r,nr+1);
+  DAT::tdual_float_2d_7 k_frho_spline = DAT::tdual_float_2d_7("pair:frho",nfrho,nrho+1);
+  DAT::tdual_float_2d_7 k_rhor_spline = DAT::tdual_float_2d_7("pair:rhor",nrhor,nr+1);
+  DAT::tdual_float_2d_7 k_z2r_spline = DAT::tdual_float_2d_7("pair:z2r",nz2r,nr+1);
 
-  t_host_float_2d_n7 h_frho_spline = k_frho_spline.h_view;
-  t_host_float_2d_n7 h_rhor_spline = k_rhor_spline.h_view;
-  t_host_float_2d_n7 h_z2r_spline = k_z2r_spline.h_view;
+  HAT::t_float_2d_7 h_frho_spline = k_frho_spline.h_view;
+  HAT::t_float_2d_7 h_rhor_spline = k_rhor_spline.h_view;
+  HAT::t_float_2d_7 h_z2r_spline = k_z2r_spline.h_view;
 
   for (int i = 0; i < nfrho; i++)
     interpolate(nrho,drho,frho[i],h_frho_spline,i);
@@ -394,7 +394,7 @@ void PairEAMAlloyKokkos<Space>::array2spline()
 /* ---------------------------------------------------------------------- */
 
 template<ExecutionSpace Space>
-void PairEAMAlloyKokkos<Space>::interpolate(int n, KK_FLOAT delta, double *f, t_host_float_2d_n7 h_spline, int i)
+void PairEAMAlloyKokkos<Space>::interpolate(int n, KK_FLOAT delta, double *f, HAT::t_float_2d_7 h_spline, int i)
 {
   for (int m = 1; m <= n; m++) h_spline(i,m,6) = f[m];
 

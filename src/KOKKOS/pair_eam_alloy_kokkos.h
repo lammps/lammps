@@ -150,18 +150,15 @@ class PairEAMAlloyKokkos : public PairEAM, public KokkosBase {
   typename AT::t_int_2d_randomread d_type2rhor;
   typename AT::t_int_2d_randomread d_type2z2r;
 
-  typedef Kokkos::DualView<KK_FLOAT**[7],Kokkos::LayoutRight,DeviceType> tdual_float_2d_n7;
-  typedef typename tdual_float_2d_n7::t_dev_const_randomread t_float_2d_n7_randomread;
-  typedef typename tdual_float_2d_n7::t_host t_host_float_2d_n7;
 
-  t_float_2d_n7_randomread d_frho_spline;
-  t_float_2d_n7_randomread d_rhor_spline;
-  t_float_2d_n7_randomread d_z2r_spline;
+  typename AT::t_float_2d_7_randomread d_frho_spline;
+  typename AT::t_float_2d_7_randomread d_rhor_spline;
+  typename AT::t_float_2d_7_randomread d_z2r_spline;
 
   void file2array();
   void file2array_alloy();
   void array2spline();
-  void interpolate(int, KK_FLOAT, double *, t_host_float_2d_n7, int);
+  void interpolate(int, KK_FLOAT, double *, HAT::t_float_2d_7, int);
   void read_file(char *);
 
   typename AT::t_neighbors_2d d_neighbors;

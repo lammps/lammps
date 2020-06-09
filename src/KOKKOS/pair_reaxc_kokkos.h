@@ -411,9 +411,6 @@ class PairReaxCKokkos : public PairReaxC {
 
   int need_dup;
 
-  typedef Kokkos::DualView<KK_FLOAT**[7],typename DeviceType::array_layout,DeviceType> tdual_float_2d_n7;
-  typedef typename tdual_float_2d_n7::t_dev_const_randomread t_float_2d_n7_randomread;
-  typedef typename tdual_float_2d_n7::t_host t_host_float_2d_n7;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;

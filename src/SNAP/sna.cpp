@@ -557,7 +557,7 @@ void SNA::compute_deidrj(double* dedr)
   for(int k = 0; k < 3; k++)
     dedr[k] = 0.0;
 
-  int ielem = elem_duarray;
+  int jelem = elem_duarray;
   for(int j = 0; j <= twojmax; j++) {
     int jju = idxu_block[j];
 
@@ -566,8 +566,8 @@ void SNA::compute_deidrj(double* dedr)
 
         double* dudr_r = dulist_r[jju];
         double* dudr_i = dulist_i[jju];
-        double jjjmambyarray_r = ylist_r[ielem*idxu_max+jju];
-        double jjjmambyarray_i = ylist_i[ielem*idxu_max+jju];
+        double jjjmambyarray_r = ylist_r[jelem*idxu_max+jju];
+        double jjjmambyarray_i = ylist_i[jelem*idxu_max+jju];
 
         for(int k = 0; k < 3; k++)
           dedr[k] +=
@@ -584,8 +584,8 @@ void SNA::compute_deidrj(double* dedr)
       for(int ma = 0; ma < mb; ma++) {
         double* dudr_r = dulist_r[jju];
         double* dudr_i = dulist_i[jju];
-        double jjjmambyarray_r = ylist_r[ielem*idxu_max+jju];
-        double jjjmambyarray_i = ylist_i[ielem*idxu_max+jju];
+        double jjjmambyarray_r = ylist_r[jelem*idxu_max+jju];
+        double jjjmambyarray_i = ylist_i[jelem*idxu_max+jju];
 
         for(int k = 0; k < 3; k++)
           dedr[k] +=
@@ -596,8 +596,8 @@ void SNA::compute_deidrj(double* dedr)
 
       double* dudr_r = dulist_r[jju];
       double* dudr_i = dulist_i[jju];
-      double jjjmambyarray_r = ylist_r[ielem*idxu_max+jju];
-      double jjjmambyarray_i = ylist_i[ielem*idxu_max+jju];
+      double jjjmambyarray_r = ylist_r[jelem*idxu_max+jju];
+      double jjjmambyarray_i = ylist_i[jelem*idxu_max+jju];
 
       for(int k = 0; k < 3; k++)
         dedr[k] +=
@@ -991,7 +991,7 @@ void SNA::zero_uarraytot(int ielem)
    add Wigner U-functions for one neighbor to the total
 ------------------------------------------------------------------------- */
 
-void SNA::add_uarraytot(double r, double wj, double rcut, int jj, int ielem)
+void SNA::add_uarraytot(double r, double wj, double rcut, int jj, int jelem)
 {
   double sfac;
 
@@ -1006,9 +1006,9 @@ void SNA::add_uarraytot(double r, double wj, double rcut, int jj, int ielem)
     int jju = idxu_block[j];
     for (int mb = 0; mb <= j; mb++)
       for (int ma = 0; ma <= j; ma++) {
-        ulisttot_r[ielem*idxu_max+jju] +=
+        ulisttot_r[jelem*idxu_max+jju] +=
           sfac * ulist_r[jju];
-        ulisttot_i[ielem*idxu_max+jju] +=
+        ulisttot_i[jelem*idxu_max+jju] +=
           sfac * ulist_i[jju];
         jju++;
       }

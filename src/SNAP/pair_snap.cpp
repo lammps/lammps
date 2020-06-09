@@ -173,9 +173,6 @@ void PairSNAP::compute(int eflag, int vflag)
     // add to Fi, subtract from Fj
 
     snaptr->compute_yi(beta[ii]);
-    //for (int q=0; q<snaptr->idxu_max*2; q++){
-    //  fprintf(screen, "%i %f\n",q, snaptr->ylist_r[q]);
-    //}
 
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
@@ -203,7 +200,6 @@ void PairSNAP::compute(int eflag, int vflag)
                      -snaptr->rij[jj][0],-snaptr->rij[jj][1],
                      -snaptr->rij[jj][2]);
     }
-    //fprintf(screen, "%f %f %f\n",f[i][0],f[i][1],f[i][2]);
 
     // tally energy contribution
 

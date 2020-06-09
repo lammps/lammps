@@ -1,0 +1,45 @@
+name: CI
+on: 
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  CI:
+    continue-on-error: true 
+    strategy:
+      matrix:
+        set: ["all_off", "most", "minimal", "nolib", "kokkos-serial", "kokkos-openmp"]
+        cxx: ["g++", "g++-8", "g++-9","clang++"]
+        cmake_build_type: ["Release", "Debug"]
+    runs-on: ubuntu-latest
+    env:
+      CCACHE_HASH: ccache-${{ matrix.set }}-${{ matrix.cxx }}-${{ matrix.cmake_build_type }}
+    steps:
+      - name: Get time
+        id: time
+        run: echo "::set-output name=time::$(date +%s)"
+      - uses: actions/cache@v2
+        with:
+          path: ~/.ccache
+          key: ${{ env.CCACHE_HASH }}-${{ steps.time.outputs.time }}
+          restore-keys: ${{ env.CCACHE_HASH }}
+      - uses: actions/checkout@master
+      - name: Install Deps
+        run: |
+          sudo apt-get install -y ccache
+          echo "::add-path::/usr/lib/ccache"
+      - name: CMake
+        run: cmake -B builddir -C cmake/presets/${{ matrix.set }}.cmake -DENABLE_TESTING=ON -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} cmake
+      - name: Build
+        run: |
+          ccache -z
+          cmake --build builddir --parallel 3 
+          ccache -s
+      - name: Tests
+        run: cd builddir && ctest --output-on-failure
+      - name: Install
+        run: cmake --install builddir

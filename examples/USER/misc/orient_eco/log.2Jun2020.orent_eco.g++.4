@@ -8,11 +8,12 @@ read_data       data.sigma5
   4 by 1 by 1 MPI processor grid
   reading atoms ...
   25600 atoms
-  read_data CPU = 0.038 secs
+  read_data CPU = 0.025 secs
 
 pair_style      eam
 pair_coeff      * * Ni_u3.eam
-Reading potential file Ni_u3.eam with DATE: 2007-06-11timestep        0.001
+Reading potential file Ni_u3.eam with DATE: 2007-06-11
+timestep        0.001
 
 fix integrator  all npt temp 750 750 0.1 iso 0 0 0.1
 fix eco         all orient/eco 0.08 0.25 3.6 sigma5.ori
@@ -56,20 +57,20 @@ Step Temp TotEng Press Volume f_eco
      800    666.09015   -109018.62    38.120383    289305.37   -8.4745641 
      900    705.03939   -108738.66    263.39673    289867.87     -12.4514 
     1000    735.59866   -108500.52    242.46405    290353.65   -15.427653 
-Loop time of 30.0111 on 4 procs for 1000 steps with 25600 atoms
+Loop time of 29.6634 on 4 procs for 1000 steps with 25600 atoms
 
-Performance: 2.879 ns/day, 8.336 hours/ns, 33.321 timesteps/s
-98.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 2.913 ns/day, 8.240 hours/ns, 33.712 timesteps/s
+98.6% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 7.1139     | 7.1437     | 7.1983     |   1.2 | 23.80
-Neigh   | 0.2101     | 0.21208    | 0.21316    |   0.3 |  0.71
-Comm    | 0.15491    | 0.20327    | 0.23586    |   6.8 |  0.68
-Output  | 0.00033617 | 0.00064594 | 0.0015616  |   0.0 |  0.00
-Modify  | 22.39      | 22.403     | 22.431     |   0.3 | 74.65
-Other   |            | 0.04802    |            |       |  0.16
+Pair    | 7.0794     | 7.1053     | 7.1325     |   0.7 | 23.95
+Neigh   | 0.20947    | 0.21088    | 0.21231    |   0.2 |  0.71
+Comm    | 0.15708    | 0.18471    | 0.22338    |   6.7 |  0.62
+Output  | 0.00032616 | 0.00064683 | 0.0015936  |   0.0 |  0.00
+Modify  | 22.105     | 22.118     | 22.139     |   0.3 | 74.56
+Other   |            | 0.0437     |            |       |  0.15
 
 Nlocal:    6400 ave 6421 max 6384 min
 Histogram: 1 1 0 0 0 1 0 0 0 1
@@ -87,4 +88,4 @@ Dangerous builds = 0
 
 Please see the log.cite file for references relevant to this simulation
 
-Total wall time: 0:00:30
+Total wall time: 0:00:29

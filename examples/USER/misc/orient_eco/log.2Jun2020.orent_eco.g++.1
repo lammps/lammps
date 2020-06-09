@@ -8,11 +8,12 @@ read_data       data.sigma5
   1 by 1 by 1 MPI processor grid
   reading atoms ...
   25600 atoms
-  read_data CPU = 0.021 secs
+  read_data CPU = 0.020 secs
 
 pair_style      eam
 pair_coeff      * * Ni_u3.eam
-Reading potential file Ni_u3.eam with DATE: 2007-06-11timestep        0.001
+Reading potential file Ni_u3.eam with DATE: 2007-06-11
+timestep        0.001
 
 fix integrator  all npt temp 750 750 0.1 iso 0 0 0.1
 fix eco         all orient/eco 0.08 0.25 3.6 sigma5.ori
@@ -56,20 +57,20 @@ Step Temp TotEng Press Volume f_eco
      800    666.09015   -109018.62    38.120383    289305.37   -8.4745641 
      900    705.03939   -108738.66    263.39673    289867.87     -12.4514 
     1000    735.59866   -108500.52    242.46405    290353.65   -15.427653 
-Loop time of 110.19 on 1 procs for 1000 steps with 25600 atoms
+Loop time of 109.966 on 1 procs for 1000 steps with 25600 atoms
 
-Performance: 0.784 ns/day, 30.608 hours/ns, 9.075 timesteps/s
-99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 0.786 ns/day, 30.546 hours/ns, 9.094 timesteps/s
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 27.143     | 27.143     | 27.143     |   0.0 | 24.63
-Neigh   | 0.83015    | 0.83015    | 0.83015    |   0.0 |  0.75
-Comm    | 0.12639    | 0.12639    | 0.12639    |   0.0 |  0.11
-Output  | 0.00078273 | 0.00078273 | 0.00078273 |   0.0 |  0.00
-Modify  | 82.003     | 82.003     | 82.003     |   0.0 | 74.42
-Other   |            | 0.08703    |            |       |  0.08
+Pair    | 27.002     | 27.002     | 27.002     |   0.0 | 24.55
+Neigh   | 0.83228    | 0.83228    | 0.83228    |   0.0 |  0.76
+Comm    | 0.12623    | 0.12623    | 0.12623    |   0.0 |  0.11
+Output  | 0.00080323 | 0.00080323 | 0.00080323 |   0.0 |  0.00
+Modify  | 81.917     | 81.917     | 81.917     |   0.0 | 74.49
+Other   |            | 0.08839    |            |       |  0.08
 
 Nlocal:    25600 ave 25600 max 25600 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

@@ -21,23 +21,36 @@
 #include <string>
 
 #include "pointers.h"
+#include "tokenizer.h"
+#include "text_file_reader.h"
 
 namespace LAMMPS_NS
 {
   class PotentialFileReader : protected Pointers {
-    std::string potential_name;
+  protected:
+    TextFileReader * reader;
     std::string filename;
-    static const int MAXLINE = 1024;
-    char line[MAXLINE];
-    FILE *fp;
+    std::string filetype;
+
+    TextFileReader * open_potential(const std::string& path);
 
   public:
     PotentialFileReader(class LAMMPS *lmp, const std::string &filename, const std::string &potential_name);
-    ~PotentialFileReader();
+    virtual ~PotentialFileReader();
+
+    void ignore_comments(bool value);
 
     void skip_line();
-    char * next_line(int nparams);
-    void next_dvector(int n, double * list);
+    char * next_line(int nparams = 0);
+    void next_dvector(double * list, int n);
+    ValueTokenizer next_values(int nparams, const std::string & seperators = TOKENIZER_DEFAULT_SEPERATORS);
+
+    // convenience functions
+    double next_double();
+    int    next_int();
+    tagint next_tagint();
+    bigint next_bigint();
+    std::string next_string();
   };
 
 } // namespace LAMMPS_NS

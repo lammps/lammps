@@ -288,7 +288,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     // equilibrium angle
     std::stringstream eqstr;
     eqstr << lmp->atom->nangletypes;
-    for (std::size_t i=0; i < lmp->atom->nangletypes; ++i) {
+    for (int i=0; i < lmp->atom->nangletypes; ++i) {
         eqstr << " " << lmp->force->angle->equilibrium_angle(i+1);
     }
     writer.emit("equilibrium", eqstr.str());

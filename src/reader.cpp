@@ -14,6 +14,8 @@
 #include "reader.h"
 #include <cstring>
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -41,25 +43,21 @@ void Reader::open_file(const char *file)
   if (!compressed) fp = fopen(file,"r");
   else {
 #ifdef LAMMPS_GZIP
-    char gunzip[1024];
-    snprintf(gunzip,1024,"gzip -c -d %s",file);
-
+    std::string gunzip = fmt::format("gzip -c -d {}",file);
 #ifdef _WIN32
-    fp = _popen(gunzip,"rb");
+    fp = _popen(gunzip.c_str(),"rb");
 #else
-    fp = popen(gunzip,"r");
+    fp = popen(gunzip.c_str(),"r");
 #endif
 
 #else
-    error->one(FLERR,"Cannot open gzipped file");
+    error->one(FLERR,"Cannot open gzipped file: " + utils::getsyserror());
 #endif
   }
 
-  if (fp == NULL) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",file);
-    error->one(FLERR,str);
-  }
+  if (fp == NULL)
+    error->one(FLERR,fmt::format("Cannot open file {}: {}",
+                                 file, utils::getsyserror()));
 }
 
 /* ----------------------------------------------------------------------

@@ -473,13 +473,11 @@ void PairEAM::read_file(char *filename)
 
       reader.skip_line();
 
-      line = reader.next_line(2);
-      ValueTokenizer values(line);
+      ValueTokenizer values = reader.next_values(2);
       values.next_int(); // ignore
       file->mass = values.next_double();
 
-      line = reader.next_line(5);
-      values = ValueTokenizer(line);
+      values = reader.next_values(5);
       file->nrho = values.next_int();
       file->drho = values.next_double();
       file->nr   = values.next_int();
@@ -493,9 +491,9 @@ void PairEAM::read_file(char *filename)
       memory->create(file->rhor, (file->nr+1), "pair:rhor");
       memory->create(file->zr, (file->nr+1), "pair:zr");
 
-      reader.next_dvector(file->nrho, &file->frho[1]);
-      reader.next_dvector(file->nr, &file->zr[1]);
-      reader.next_dvector(file->nr, &file->rhor[1]);
+      reader.next_dvector(&file->frho[1], file->nrho);
+      reader.next_dvector(&file->zr[1], file->nr);
+      reader.next_dvector(&file->rhor[1], file->nr);
     } catch (TokenizerException & e) {
       error->one(FLERR, e.what());
     }

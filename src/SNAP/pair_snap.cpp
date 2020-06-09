@@ -586,7 +586,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     MPI_Bcast(&n,1,MPI_INT,0,world);
     MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-    nwords = utils::count_words(line);
+    nwords = utils::trim_and_count_words(line);
     if (nwords != 3)
       error->all(FLERR,"Incorrect format in SNAP coefficient file");
 
@@ -628,7 +628,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-      nwords = utils::count_words(line);
+      nwords = utils::trim_and_count_words(line);
       if (nwords != 1)
         error->all(FLERR,"Incorrect format in SNAP coefficient file");
 

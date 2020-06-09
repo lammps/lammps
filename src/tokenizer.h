@@ -25,13 +25,19 @@
 
 namespace LAMMPS_NS {
 
+#define TOKENIZER_DEFAULT_SEPERATORS " \t\r\n\f"
+
 class Tokenizer {
     std::vector<std::string> tokens;
 public:
     typedef std::vector<std::string>::iterator iterator;
     typedef std::vector<std::string>::const_iterator const_iterator;
 
-    Tokenizer(const std::string & str, const std::string & seperators = " \t\r\n\f");
+    Tokenizer(const std::string & str, const std::string & seperators = TOKENIZER_DEFAULT_SEPERATORS);
+    Tokenizer(Tokenizer &&);
+    Tokenizer(const Tokenizer &);
+    Tokenizer& operator=(const Tokenizer&) = default;
+    Tokenizer& operator=(Tokenizer&&) = default;
 
     iterator begin();
     iterator end();
@@ -72,7 +78,11 @@ class ValueTokenizer {
     Tokenizer tokens;
     Tokenizer::const_iterator current;
 public:
-    ValueTokenizer(const std::string & str, const std::string & seperators = " \t\r\n\f");
+    ValueTokenizer(const std::string & str, const std::string & seperators = TOKENIZER_DEFAULT_SEPERATORS);
+    ValueTokenizer(const ValueTokenizer &);
+    ValueTokenizer(ValueTokenizer &&);
+    ValueTokenizer& operator=(const ValueTokenizer&) = default;
+    ValueTokenizer& operator=(ValueTokenizer&&) = default;
 
     std::string next_string();
     tagint next_tagint();

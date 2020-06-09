@@ -290,6 +290,7 @@ accelerated styles exist.
 * :doc:`oneway <fix_oneway>` - constrain particles on move in one direction
 * :doc:`orient/bcc <fix_orient>` - add grain boundary migration force for BCC
 * :doc:`orient/fcc <fix_orient>` - add grain boundary migration force for FCC
+* :doc:`orient/eco <fix_orient_eco>` - add generalized grain boundary migration force
 * :doc:`phonon <fix_phonon>` - calculate dynamical matrix from MD simulations
 * :doc:`pimd <fix_pimd>` - Feynman path integral molecular dynamics
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane

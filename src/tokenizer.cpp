@@ -37,6 +37,12 @@ Tokenizer::Tokenizer(const std::string & str, const std::string & seperators) {
     } while(end != std::string::npos);
 }
 
+Tokenizer::Tokenizer(const Tokenizer & rhs) : tokens(rhs.tokens) {
+}
+
+Tokenizer::Tokenizer(Tokenizer && rhs) : tokens(std::move(rhs.tokens)) {
+}
+
 Tokenizer::iterator Tokenizer::begin() {
     return tokens.begin();
 }
@@ -63,6 +69,14 @@ size_t Tokenizer::count() const {
 
 
 ValueTokenizer::ValueTokenizer(const std::string & str, const std::string & seperators) : tokens(str, seperators) {
+    current  = tokens.begin();
+}
+
+ValueTokenizer::ValueTokenizer(const ValueTokenizer & rhs) : tokens(rhs.tokens) {
+    current  = tokens.begin();
+}
+
+ValueTokenizer::ValueTokenizer(ValueTokenizer && rhs) : tokens(std::move(rhs.tokens)) {
     current  = tokens.begin();
 }
 

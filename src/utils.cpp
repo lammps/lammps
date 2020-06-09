@@ -14,9 +14,11 @@
 #include "utils.h"
 #include <cstring>
 #include <cstdlib>
+#include <cerrno>
 #include "lammps.h"
 #include "error.h"
 #include "tokenizer.h"
+#include "text_file_reader.h"
 #include "fmt/format.h"
 
 #if defined(__linux__)
@@ -99,6 +101,14 @@ void utils::logmesg(LAMMPS *lmp, const std::string &mesg)
   if (lmp->logfile) fputs(mesg.c_str(), lmp->logfile);
 }
 
+/* define this here, so we won't have to include the headers
+   everywhere and utils.h will more likely be included anyway. */
+
+std::string utils::getsyserror()
+{
+  return std::string(strerror(errno));
+}
+
 /** \brief try to detect pathname from FILE pointer. Currently only supported on Linux, otherwise will report "(unknown)".
  *
  *  \param buf  storage buffer for pathname. output will be truncated if not large enough
@@ -146,7 +156,7 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size,
     errmsg += filename;
     errmsg += "'";
 
-    if (error) error->one(srcname,srcline,errmsg.c_str());
+    if (error) error->one(srcname,srcline,errmsg);
     if (s) *s = '\0'; // truncate string to empty in case error is NULL
   }
   return;
@@ -175,7 +185,7 @@ void utils::sfread(const char *srcname, int srcline, void *s, size_t size,
     errmsg += filename;
     errmsg += "'";
 
-    if (error) error->one(srcname,srcline,errmsg.c_str());
+    if (error) error->one(srcname,srcline,errmsg);
   }
   return;
 }
@@ -229,9 +239,9 @@ double utils::numeric(const char *file, int line, const char *str,
     msg += str;
     msg += "' in input script or data file";
     if (do_abort)
-      lmp->error->one(file,line,msg.c_str());
+      lmp->error->one(file,line,msg);
     else
-      lmp->error->all(file,line,msg.c_str());
+      lmp->error->all(file,line,msg);
   }
 
   return atof(str);
@@ -264,9 +274,9 @@ int utils::inumeric(const char *file, int line, const char *str,
     msg += str;
     msg += "' in input script or data file";
     if (do_abort)
-      lmp->error->one(file,line,msg.c_str());
+      lmp->error->one(file,line,msg);
     else
-      lmp->error->all(file,line,msg.c_str());
+      lmp->error->all(file,line,msg);
   }
 
   return atoi(str);
@@ -299,9 +309,9 @@ bigint utils::bnumeric(const char *file, int line, const char *str,
     msg += str;
     msg += "' in input script or data file";
     if (do_abort)
-      lmp->error->one(file,line,msg.c_str());
+      lmp->error->one(file,line,msg);
     else
-      lmp->error->all(file,line,msg.c_str());
+      lmp->error->all(file,line,msg);
   }
 
   return ATOBIGINT(str);
@@ -334,9 +344,9 @@ tagint utils::tnumeric(const char *file, int line, const char *str,
     msg += str;
     msg += "' in input script or data file";
     if (do_abort)
-      lmp->error->one(file,line,msg.c_str());
+      lmp->error->one(file,line,msg);
     else
-      lmp->error->all(file,line,msg.c_str());
+      lmp->error->all(file,line,msg);
   }
 
   return ATOTAGINT(str);
@@ -355,12 +365,20 @@ std::string utils::trim_comment(const std::string & line) {
 }
 
 /* ----------------------------------------------------------------------
-   Trim comment from string and return number of words
+   Return number of words
 ------------------------------------------------------------------------- */
 
 size_t utils::count_words(const std::string & text, const std::string & seperators) {
-  Tokenizer words(utils::trim_comment(text), seperators);
+  ValueTokenizer words(text, seperators);
   return words.count();
+}
+
+/* ----------------------------------------------------------------------
+   Trim comment from string and return number of words
+------------------------------------------------------------------------- */
+
+size_t utils::trim_and_count_words(const std::string & text, const std::string & seperators) {
+  return utils::count_words(utils::trim_comment(text), seperators);
 }
 
 /* ----------------------------------------------------------------------
@@ -395,6 +413,104 @@ bool utils::is_double(const std::string & str) {
     return false;
   }
   return true;
+}
+
+/* ----------------------------------------------------------------------
+   strip off leading part of path, return just the filename
+------------------------------------------------------------------------- */
+
+std::string utils::path_basename(const std::string & path) {
+#if defined(_WIN32)
+  size_t start = path.find_last_of('/\\');
+#else
+  size_t start = path.find_last_of('/');
+#endif
+
+  if (start == std::string::npos) {
+    start = 0;
+  } else {
+    start += 1;
+  }
+
+  return path.substr(start);
+}
+
+/* ----------------------------------------------------------------------
+   join two paths
+------------------------------------------------------------------------- */
+
+std::string utils::path_join(const std::string & a, const std::string & b) {
+  #if defined(_WIN32)
+    return fmt::format("{}\\{}", a, b);
+  #else
+    return fmt::format("{}/{}", a, b);
+  #endif
+}
+
+/* ----------------------------------------------------------------------
+   try to open file for reading
+------------------------------------------------------------------------- */
+
+bool utils::file_is_readable(const std::string & path) {
+  FILE * fp = fopen(path.c_str(), "r");
+  if(fp) {
+    fclose(fp);
+    return true;
+  }
+  return false;
+}
+
+/* ----------------------------------------------------------------------
+   try to find potential file as specified by name
+   search current directory and the LAMMPS_POTENTIALS directory if
+   specified
+------------------------------------------------------------------------- */
+
+std::string utils::get_potential_file_path(const std::string& path) {
+  std::string filepath = path;
+  std::string filename = utils::path_basename(path);
+
+  if(utils::file_is_readable(filepath)) {
+    return filepath;
+  } else {
+    // try the environment variable directory
+    const char *path = getenv("LAMMPS_POTENTIALS");
+
+    if (path != nullptr){
+      std::string pot = utils::path_basename(filepath);
+      filepath = utils::path_join(path, pot);
+
+      if (utils::file_is_readable(filepath)) {
+        return filepath;
+      }
+    }
+  }
+  return "";
+}
+
+/* ----------------------------------------------------------------------
+   read first line of potential file
+   if has DATE field, print following word
+------------------------------------------------------------------------- */
+
+std::string utils::get_potential_date(const std::string & path, const std::string & potential_name) {
+  TextFileReader reader(path, potential_name);
+  reader.ignore_comments = false;
+  char * line = nullptr;
+
+  while (line = reader.next_line()) {
+    ValueTokenizer values(line);
+    while (values.has_next()) {
+      std::string word = values.next_string();
+      if (word == "DATE:") {
+        if (values.has_next()) {
+          std::string date = values.next_string();
+          return date;
+        }
+      }
+    }
+  }
+  return "";
 }
 
 /* ------------------------------------------------------------------ */

@@ -775,7 +775,7 @@ void FixNH::setup(int /*vflag*/)
     // set equal to either ptemp or the current temperature
     // cannot be done in init() b/c temperature cannot be called there
     // is b/c Modify::init() inits computes after fixes due to dof dependence
-    // error if T less than 1e-6 
+    // error if T less than 1e-6
     // if it was read in from a restart file, leave it be
 
     if (t0 == 0.0) {

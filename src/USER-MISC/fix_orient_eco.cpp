@@ -350,15 +350,15 @@ void FixOrientECO::post_force(int /* vflag */) {
   if (u_0 != 0.0) {
     // communicate to acquire nbr data for ghost atoms
     comm->forward_comm_fix(this);
-    
+
     // loop over all atoms
     for (ii = 0; ii < inum; ++ii) {
       i = ilist[ii];
       jlist = firstneigh[i];
       jnum = numneigh[i];
-      
+
       const bool no_boundary_atom = (nbr[i].duchi == 0.0);
-      
+
       // skip atoms not in group
       if (!(mask[i] & groupbit)) continue;
 
@@ -378,16 +378,16 @@ void FixOrientECO::post_force(int /* vflag */) {
       for (jj = 0; jj < jnum; ++jj) {
         j = jlist[jj];
         j &= NEIGHMASK;
-        
+
         // do not compute force on atom i if it is far from boundary
         if ((nbr[j].duchi == 0.0) && no_boundary_atom) continue;
-  
+
         // vector difference
         dx = x[i][0] - x[j][0];
         dy = x[i][1] - x[j][1];
         dz = x[i][2] - x[j][2];
         squared_distance = dx * dx + dy * dy + dz * dz;
-  
+
         if (squared_distance < squared_cutoff) {
           // compute force on atom i
           // need weight and its gradient
@@ -397,7 +397,7 @@ void FixOrientECO::post_force(int /* vflag */) {
           weight_gradient[0] = weight_gradient_prefactor * dx;
           weight_gradient[1] = weight_gradient_prefactor * dy;
           weight_gradient[2] = weight_gradient_prefactor * dz;
-  
+
           // (1) compute scalar product and sine and cosine of it
           // (2) compute product of sine and cosine with gradient of weight function
           // (3) compute gradient_ii_cos and gradient_ii_sin by summing up result of (2)

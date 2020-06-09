@@ -40,7 +40,7 @@ class FixOrientECO : public Fix {
     double memory_usage();
 
   private:
-    struct Nbr;                         // private struct for managing precomputed terms
+    struct Nbr;                         // forward declaration. private struct for managing precomputed terms
 
     int me;                             // this processors rank
     int nmax;                           // maximal # of owned + ghost atoms on this processor
@@ -66,7 +66,7 @@ class FixOrientECO : public Fix {
     double norm_fac;            // normalization constant
     double inv_norm_fac;        // inverse normalization constant
 
-    Nbr *nbr;                   // pointer on array of Nbr structs
+    Nbr *nbr;                   // pointer on array of precomputed terms
     class NeighList *list;      // LAMMPS' neighbor list
 
     void get_reciprocal();      // calculate reciprocal lattice vectors

@@ -53,15 +53,10 @@ static const char cite_fix_orient_eco[] =
   " url = {https://doi.org/10.1016/j.commatsci.2020.109774}\n"
   "}\n\n";
 
-#define FIX_ORIENT_ECO_MAX_NEIGH 24
-
 struct FixOrientECO::Nbr {
-    int n;                                      // # of neighbors
-    int id[FIX_ORIENT_ECO_MAX_NEIGH];           // IDs of each neighbor
-    double duchi;                               // potential derivative
-    double delta[FIX_ORIENT_ECO_MAX_NEIGH][3];  // difference vectors
-    double real_phi[2][3];                      // real part of wave function
-    double imag_phi[2][3];                      // imaginary part of wave function
+  double duchi;            // potential derivative
+  double real_phi[2][3];   // real part of wave function
+  double imag_phi[2][3];   // imaginary part of wave function
 };
 
 /* ---------------------------------------------------------------------- */
@@ -132,8 +127,7 @@ FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
   MPI_Bcast(&inv_eta, 1, MPI_DOUBLE, 0, world);                         // communicate inverse threshold
 
   // set comm size needed by this Fix
-  comm_forward = 2 + 4 * FIX_ORIENT_ECO_MAX_NEIGH;                      // data of Nbr struct that needs to be communicated in any case
-  if (u_0 != 0) comm_forward += 12;                                     // real_phi and imag_phi needed for force computation
+  if (u_0 != 0) comm_forward = sizeof(Nbr) / sizeof(double);
 
   added_energy = 0.0;  // initial energy
 
@@ -229,11 +223,9 @@ void FixOrientECO::post_force(int /* vflag */) {
   int k;                                                        // variable to loop over 3 reciprocal directions
   int lambda;                                                   // variable to loop over 2 crystals
   int dim;                                                      // variable to loop over 3 spatial components
-  int n;                                                        // stores current number of neighbors
   double dx, dy, dz;                                            // stores current interatomic vector
   double squared_distance;                                      // stores current squared distance
   double chi;                                                   // stores current order parameter
-  double *delta;                                                // pointer to current interatomic vector (POSSIBLY OMIT)
   double weight;                                                // stores current weight function
   double scalar_product;                                        // stores current scalar product
   double omega;                                                 // phase of sine transition
@@ -267,16 +259,20 @@ void FixOrientECO::post_force(int /* vflag */) {
     array_atom = order;
   }
 
-  // loop over owned atoms and build Nbr data structure of neighbors
-  // use full neighbor list
+  // loop over owned atoms and compute order parameter
   for (ii = 0; ii < inum; ++ii) {
     i = ilist[ii];
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
+    // initializations
+    chi = 0.0;
+    for (k = 0; k < 3; ++k) {
+      nbr[i].real_phi[0][k] = nbr[i].real_phi[1][k] = 0.0;
+      nbr[i].imag_phi[0][k] = nbr[i].imag_phi[1][k] = 0.0;
+    }
+
     // loop over all neighbors of atom i
-    // for those within squared_cutoff, store id and delta vectors
-    n = 0;
     for (jj = 0; jj < jnum; ++jj) {
       j = jlist[jj];
       j &= NEIGHMASK;
@@ -288,43 +284,15 @@ void FixOrientECO::post_force(int /* vflag */) {
       squared_distance = dx * dx + dy * dy + dz * dz;
 
       if (squared_distance < squared_cutoff) {
-        if (n >= FIX_ORIENT_ECO_MAX_NEIGH) {
-          error->one(FLERR, "Fix orient/eco maximal number of neighbors exceeded");
-        }
-        nbr[i].id[n] = j;
-        nbr[i].delta[n][0] = dx;
-        nbr[i].delta[n][1] = dy;
-        nbr[i].delta[n][2] = dz;
-        ++n;
-      }
-    }
-    nbr[i].n = n;
-  }
+        squared_distance *= inv_squared_cutoff;
+        weight = squared_distance * (squared_distance - 2.0) + 1.0;
 
-  // loop over owned atoms and compute order parameter
-  // use short neighbor lists
-  for (ii = 0; ii < inum; ++ii) {
-    i = ilist[ii];
-
-    // initializations
-    n = nbr[i].n;
-    chi = 0.0;
-    for (k = 0; k < 3; ++k) {
-      nbr[i].real_phi[0][k] = nbr[i].real_phi[1][k] = 0.0;
-      nbr[i].imag_phi[0][k] = nbr[i].imag_phi[1][k] = 0.0;
-    }
-
-    // loop over all neighbors of atom i
-    for (j = 0; j < n; ++j) {
-      delta = &nbr[i].delta[j][0];
-      squared_distance = (delta[0] * delta[0] + delta[1] * delta[1] + delta[2] * delta[2]) * inv_squared_cutoff;
-      weight = squared_distance * (squared_distance - 2.0) + 1.0;
-
-      for (k = 0; k < 3; ++k) {
         for (lambda = 0; lambda < 2; ++lambda) {
-          scalar_product = reciprocal_vectors[lambda][k][0] * delta[0] + reciprocal_vectors[lambda][k][1] * delta[1] + reciprocal_vectors[lambda][k][2] * delta[2];
-          nbr[i].real_phi[lambda][k] += weight * cos(scalar_product);
-          nbr[i].imag_phi[lambda][k] += weight * sin(scalar_product);
+          for (k = 0; k < 3; ++k) {
+            scalar_product = reciprocal_vectors[lambda][k][0] * dx + reciprocal_vectors[lambda][k][1] * dy + reciprocal_vectors[lambda][k][2] * dz;
+            nbr[i].real_phi[lambda][k] += weight * cos(scalar_product);
+            nbr[i].imag_phi[lambda][k] += weight * sin(scalar_product);
+          }
         }
       }
     }
@@ -370,7 +338,6 @@ void FixOrientECO::post_force(int /* vflag */) {
   double gradient_ii_sin[2][3][3];      // gradient ii sine term
   double gradient_ij_vec[2][3][3];      // gradient ij vector term
   double gradient_ij_sca[2][3];         // gradient ij scalar term
-  int    idj;                           // stores id of neighbor j
   double weight_gradient_prefactor;     // gradient prefactor
   double weight_gradient[3];            // gradient of weight
   double cos_scalar_product;            // cosine of scalar product
@@ -383,12 +350,15 @@ void FixOrientECO::post_force(int /* vflag */) {
   if (u_0 != 0.0) {
     // communicate to acquire nbr data for ghost atoms
     comm->forward_comm_fix(this);
-
-    // loop over owned atoms and compute force
-    // use short neighbor lists
+    
+    // loop over all atoms
     for (ii = 0; ii < inum; ++ii) {
       i = ilist[ii];
-
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
+      
+      const bool no_boundary_atom = (nbr[i].duchi == 0.0);
+      
       // skip atoms not in group
       if (!(mask[i] & groupbit)) continue;
 
@@ -403,41 +373,46 @@ void FixOrientECO::post_force(int /* vflag */) {
           gradient_ij_sca[lambda][k] = 0.0;
         }
       }
-
-      n = nbr[i].n;
-      const bool boundary_atom = (nbr[i].duchi != 0.0);
-
       // loop over all neighbors of atom i
-      for (j = 0; j < n; ++j) {
-        idj = nbr[i].id[j];
-
-        // compute force on atom i if it is close to boundary
-        if ((nbr[idj].duchi != 0.0) || boundary_atom) {
-          delta = &nbr[i].delta[j][0];
-          squared_distance = (delta[0] * delta[0] + delta[1] * delta[1] + delta[2] * delta[2]) * inv_squared_cutoff;
-
+      // for those within squared_cutoff, compute force
+      for (jj = 0; jj < jnum; ++jj) {
+        j = jlist[jj];
+        j &= NEIGHMASK;
+        
+        // do not compute force on atom i if it is far from boundary
+        if ((nbr[j].duchi == 0.0) && no_boundary_atom) continue;
+  
+        // vector difference
+        dx = x[i][0] - x[j][0];
+        dy = x[i][1] - x[j][1];
+        dz = x[i][2] - x[j][2];
+        squared_distance = dx * dx + dy * dy + dz * dz;
+  
+        if (squared_distance < squared_cutoff) {
+          // compute force on atom i
           // need weight and its gradient
+          squared_distance *= inv_squared_cutoff;
           weight = squared_distance * (squared_distance - 2.0) + 1.0;
           weight_gradient_prefactor = 4.0 * (squared_distance - 1.0) * inv_squared_cutoff;
-          for (dim = 0; dim < 3; ++dim) {
-            weight_gradient[dim] = weight_gradient_prefactor * delta[dim];
-          }
-
+          weight_gradient[0] = weight_gradient_prefactor * dx;
+          weight_gradient[1] = weight_gradient_prefactor * dy;
+          weight_gradient[2] = weight_gradient_prefactor * dz;
+  
           // (1) compute scalar product and sine and cosine of it
           // (2) compute product of sine and cosine with gradient of weight function
           // (3) compute gradient_ii_cos and gradient_ii_sin by summing up result of (2)
           // (4) compute gradient_ij_vec and gradient_ij_sca
-          for (k = 0; k < 3; ++k) {
-            for (lambda = 0; lambda < 2; ++lambda) {
-              scalar_product = reciprocal_vectors[lambda][k][0] * delta[0] + reciprocal_vectors[lambda][k][1] * delta[1] + reciprocal_vectors[lambda][k][2] * delta[2];
+          for (lambda = 0; lambda < 2; ++lambda) {
+            for (k = 0; k < 3; ++k) {
+              scalar_product = reciprocal_vectors[lambda][k][0] * dx + reciprocal_vectors[lambda][k][1] * dy + reciprocal_vectors[lambda][k][2] * dz;
               cos_scalar_product = cos(scalar_product);
               sin_scalar_product = sin(scalar_product);
               for (dim = 0; dim < 3; ++dim) {
                 gradient_ii_cos[lambda][k][dim] += (gcos_scalar_product = weight_gradient[dim] * cos_scalar_product);
                 gradient_ii_sin[lambda][k][dim] += (gsin_scalar_product = weight_gradient[dim] * sin_scalar_product);
-                gradient_ij_vec[lambda][k][dim] += (nbr[idj].real_phi[lambda][k] * gcos_scalar_product - nbr[idj].imag_phi[lambda][k] * gsin_scalar_product);
+                gradient_ij_vec[lambda][k][dim] += (nbr[j].real_phi[lambda][k] * gcos_scalar_product - nbr[j].imag_phi[lambda][k] * gsin_scalar_product);
               }
-              gradient_ij_sca[lambda][k] += weight * (nbr[idj].real_phi[lambda][k] * sin_scalar_product + nbr[idj].imag_phi[lambda][k] * cos_scalar_product);
+              gradient_ij_sca[lambda][k] += weight * (nbr[j].real_phi[lambda][k] * sin_scalar_product + nbr[j].imag_phi[lambda][k] * cos_scalar_product);
             }
           }
         }
@@ -470,38 +445,14 @@ double FixOrientECO::compute_scalar() {
 
 /* ---------------------------------------------------------------------- */
 
-int FixOrientECO::pack_forward_comm(int n, int *list, double *buf,
-                                    int /* pbc_flag */, int * /* pbc */) {
-  int ii, i, jj, j, k, num;
-
-  tagint *tag = atom->tag;
-  int nlocal = atom->nlocal;
+int FixOrientECO::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int */*pbc*/) {
+  int i, j;
   int m = 0;
 
   for (i = 0; i < n; ++i) {
-    k = list[i];
-    num = nbr[k].n;
-    buf[m++] = num;
-    buf[m++] = nbr[k].duchi;
-
-    if (u_0 != 0.0) {
-      for (ii = 0; ii < 2; ++ii) {
-        for (jj = 0; jj < 3; ++jj) {
-          buf[m++] = nbr[i].real_phi[ii][jj];
-          buf[m++] = nbr[i].imag_phi[ii][jj];
-        }
-      }
-    }
-
-    for (j = 0; j < num; ++j) {
-      buf[m++] = nbr[k].delta[j][0];
-      buf[m++] = nbr[k].delta[j][1];
-      buf[m++] = nbr[k].delta[j][2];
-
-      // id stored in buf needs to be global ID
-
-      buf[m++] =ubuf(tag[nbr[k].id[j]]).i;
-    }
+    j = list[i];
+    *((Nbr*)&buf[m]) = nbr[j];
+    m += sizeof(Nbr)/sizeof(double);
   }
 
   return m;
@@ -510,30 +461,13 @@ int FixOrientECO::pack_forward_comm(int n, int *list, double *buf,
 /* ---------------------------------------------------------------------- */
 
 void FixOrientECO::unpack_forward_comm(int n, int first, double *buf) {
-  int ii, i, jj, j, num;
+  int i;
   int last = first + n;
   int m = 0;
 
   for (i = first; i < last; ++i) {
-    nbr[i].n = num = static_cast<int> (buf[m++]);
-    nbr[i].duchi = buf[m++];
-
-    if (u_0 != 0.0) {
-      for (ii = 0; ii < 2; ++ii) {
-        for (jj = 0; jj < 3; ++jj) {
-          nbr[i].real_phi[ii][jj] = buf[m++];
-          nbr[i].imag_phi[ii][jj] = buf[m++];
-        }
-      }
-    }
-
-    for (j = 0; j < num; ++j) {
-      nbr[i].delta[j][0] = buf[m++];
-      nbr[i].delta[j][1] = buf[m++];
-      nbr[i].delta[j][2] = buf[m++];
-      // convert from global to closest local id
-      nbr[i].id[j] = domain->closest_image(i,atom->map(ubuf(buf[m++]).i));
-    }
+    nbr[i] = *((Nbr*) &buf[m]);
+    m += sizeof(Nbr) / sizeof(double);
   }
 }
 

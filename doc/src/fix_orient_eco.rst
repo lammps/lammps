@@ -76,10 +76,7 @@ grain boundaries, it might be beneficial to increase the cutoff in order to get 
 precise identification of the atoms surrounding. However, computation time will
 increase as more atoms are considered in the order parameter and force computation.
 It is also worth noting that the cutoff radius must not exceed the communication
-distance for ghost atoms in LAMMPS. Currently however, the method stores results
-for order parameter and force computations in statically allocated arrays to
-increase efficiency such that the user is limited to 24 nearest neighbors.
-This is more than enough in most applications. With orientationsFile, the
+distance for ghost atoms in LAMMPS. With orientationsFile, the
 6 oriented crystal basis vectors is specified. Each line of the input file
 contains the three components of a primitive lattice vector oriented according to
 the grain orientation in the simulation box. The first (last) three lines correspond

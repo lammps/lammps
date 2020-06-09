@@ -150,7 +150,7 @@ TextFileReader * PotentialFileReader::open_potential(const std::string& path) {
     date = utils::get_potential_date(filepath, filetype);
 
     if(!date.empty()) {
-      utils::logmesg(lmp, fmt::format("Reading potential file {} with DATE: {}", filename, date));
+      utils::logmesg(lmp, fmt::format("Reading potential file {} with DATE: {}\n", filename, date));
     }
     return new TextFileReader(filepath, filetype);
   }

@@ -17,6 +17,7 @@
 
 #include "tokenizer.h"
 #include "utils.h"
+#include <algorithm>
 
 using namespace LAMMPS_NS;
 
@@ -82,6 +83,10 @@ ValueTokenizer::ValueTokenizer(ValueTokenizer && rhs) : tokens(std::move(rhs.tok
 
 bool ValueTokenizer::has_next() const {
     return current != tokens.cend();
+}
+
+bool ValueTokenizer::contains(const std::string & value) const {
+    return std::find(tokens.cbegin(), tokens.cend(), value) != tokens.cend();
 }
 
 std::string ValueTokenizer::next_string() {

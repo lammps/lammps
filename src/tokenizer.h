@@ -91,6 +91,7 @@ public:
     double next_double();
 
     bool has_next() const;
+    bool contains(const std::string & value) const;
     void skip(int ntokens);
 
     size_t count() const;

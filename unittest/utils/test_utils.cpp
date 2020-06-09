@@ -1,5 +1,18 @@
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#include "gtest/gtest.h"
+#include "gmock/gmock.h"
 #include "utils.h"
 #include <string>
 
@@ -12,7 +25,11 @@ TEST(Utils, trim_comment) {
 }
 
 TEST(Utils, count_words) {
-    ASSERT_EQ(utils::count_words("some text # comment"), 2);
+    ASSERT_EQ(utils::count_words("some text # comment"), 4);
+}
+
+TEST(Utils, trim_and_count_words) {
+    ASSERT_EQ(utils::trim_and_count_words("some text # comment"), 2);
 }
 
 TEST(Utils, valid_integer1) {
@@ -181,4 +198,20 @@ TEST(Utils, strmatch_char_range) {
 
 TEST(Utils, strmatch_opt_range) {
     ASSERT_TRUE(utils::strmatch("rigid","^[0-9]*[p-s]igid"));
+}
+
+TEST(Utils, path_join) {
+#if defined(_WIN32)
+    ASSERT_THAT(utils::path_join("c:\\parent\\folder", "filename"), Eq("c:\\parent\\folder\\filename"));
+#else
+    ASSERT_THAT(utils::path_join("/parent/folder", "filename"), Eq("/parent/folder/filename"));
+#endif
+}
+
+TEST(Utils, path_basename) {
+#if defined(_WIN32)
+    ASSERT_THAT(utils::path_basename("c:\\parent\\folder\\filename"), Eq("filename"));
+#else
+    ASSERT_THAT(utils::path_basename("/parent/folder/filename"), Eq("filename"));
+#endif
 }

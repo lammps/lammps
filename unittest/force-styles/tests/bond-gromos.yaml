@@ -1,7 +1,7 @@
 ---
 lammps_version: 5 May 2020
 date_generated: Sat May 30 17:49:16 202
-epsilon: 2.5e-13
+epsilon: 5e-13
 prerequisites: ! |
   atom full
   bond gromos

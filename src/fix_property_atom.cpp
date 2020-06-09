@@ -219,7 +219,7 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
 
   next = strchr(buf,'\n');
   *next = '\0';
-  int nwords = utils::count_words(buf);
+  int nwords = utils::trim_and_count_words(buf);
   *next = '\n';
 
   if (nwords != nvalue+1)

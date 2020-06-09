@@ -151,12 +151,20 @@ namespace LAMMPS_NS {
     std::string trim_comment(const std::string & line);
 
     /**
+     * \brief Count words in string
+     * \param text string that should be searched
+     * \param seperators string containing characters that will be treated as whitespace
+     * \return number of words found
+     */
+    size_t count_words(const std::string & text, const std::string & seperators = " \t\r\n\f");
+
+    /**
      * \brief Count words in a single line, trim anything from '#' onward
      * \param text string that should be trimmed and searched
      * \param seperators string containing characters that will be treated as whitespace
      * \return number of words found
      */
-    size_t count_words(const std::string & text, const std::string & seperators = " \t\r\n\f");
+    size_t trim_and_count_words(const std::string & text, const std::string & seperators = " \t\r\n\f");
 
     /**
      * \brief Check if string can be converted to valid integer
@@ -171,6 +179,44 @@ namespace LAMMPS_NS {
      * \return true, if string contains valid floating-point number, false otherwise
      */
     bool is_double(const std::string & str);
+
+    /**
+     * \brief Strip off leading part of path, return just the filename
+     * \param path file path
+     * \return file name
+     */
+    std::string path_basename(const std::string & path);
+
+    /**
+     * \brief Join two paths
+     * \param a first path
+     * \param b second path
+     * \return combined path
+     */
+    std::string path_join(const std::string & a, const std::string & b);
+
+    /**
+     * \brief Check if file exists and is readable
+     * \param path file path
+     * \return true if file exists and is readable
+     */
+    bool file_is_readable(const std::string & path);
+
+    /**
+     * \brief Determine full path of potential file
+     *        If file is not found in current directory, search LAMMPS_POTENTIALS folder
+     * \param path file path
+     * \return full path to potential file
+     */
+    std::string get_potential_file_path(const std::string& path);
+
+    /**
+     * \brief Read potential file and return DATE field if it is present
+     * \param path file path
+     * \param potential_name name of potential that is being read
+     * \return DATE field if present
+     */
+    std::string get_potential_date(const std::string & path, const std::string & potential_name);
   }
 }
 

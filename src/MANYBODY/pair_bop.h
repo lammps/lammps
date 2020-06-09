@@ -41,7 +41,6 @@ class PairBOP : public Pair {
   double memory_usage();
 
  private:
-  int me;
   int maxneigh;                 // maximum size of neighbor list on this processor
   int maxneigh3;                // maximum size of neighbor list on this processor
   int update_list;              // check for changing maximum size of neighbor list
@@ -207,6 +206,7 @@ class PairBOP : public Pair {
 
   void read_table(char *);
   void allocate();
+  void allocate_tables();
   void create_pi(int);
   void create_sigma(int);
   void destroy_pi();

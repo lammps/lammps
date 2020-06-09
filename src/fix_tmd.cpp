@@ -446,12 +446,12 @@ void FixTMD::readfile(char *file)
           zprd = hi - lo;
           bufptr = next + 1;
           continue;
-        } else if (utils::count_words(bufptr) == 4) {
+        } else if (utils::trim_and_count_words(bufptr) == 4) {
           if (xprd >= 0.0 || yprd >= 0.0 || zprd >= 0.0)
             error->all(FLERR,"Incorrect format in TMD target file");
           imageflag = 0;
           firstline = 0;
-        } else if (utils::count_words(bufptr) == 7) {
+        } else if (utils::trim_and_count_words(bufptr) == 7) {
           if (xprd < 0.0 || yprd < 0.0 || zprd < 0.0)
             error->all(FLERR,"Incorrect format in TMD target file");
           imageflag = 1;

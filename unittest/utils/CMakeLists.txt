@@ -5,3 +5,7 @@ add_test(Tokenizer test_tokenizer)
 add_executable(test_utils test_utils.cpp)
 target_link_libraries(test_utils PRIVATE lammps GTest::GMockMain GTest::GMock GTest::GTest)
 add_test(Utils test_utils)
+
+add_executable(test_fmtlib test_fmtlib.cpp)
+target_link_libraries(test_fmtlib PRIVATE lammps GTest::GMockMain GTest::GMock GTest::GTest)
+add_test(FmtLib test_fmtlib)

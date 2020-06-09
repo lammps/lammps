@@ -57,6 +57,8 @@
 ------------------------------------------------------------------------- */
 
 #include "kim_init.h"
+#include "fix_store_kim.h"
+#include "kim_units.h"
 #include <cstring>
 #include <string>
 #include <sstream>
@@ -71,8 +73,7 @@
 #include "input.h"
 #include "variable.h"
 #include "citeme.h"
-#include "fix_store_kim.h"
-#include "kim_units.h"
+#include "utils.h"
 
 extern "C" {
 #include "KIM_SimulatorHeaders.h"

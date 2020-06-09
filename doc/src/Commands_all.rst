@@ -94,6 +94,7 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`package <package>`
    * :doc:`pair_coeff <pair_coeff>`
    * :doc:`pair_modify <pair_modify>`
+   * :doc:`pair_style <pair_style>`
    * :doc:`pair_write <pair_write>`
    * :doc:`partition <partition>`
    * :doc:`prd <prd>`

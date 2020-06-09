@@ -1012,102 +1012,19 @@ tagint Force::tnumeric(const char *file, int line, char *str)
 
 FILE *Force::open_potential(const char *name)
 {
-  FILE *fp;
+  std::string filepath = utils::get_potential_file_path(name);
+  std::string date;
 
-  if (name == NULL) return NULL;
+  if(!filepath.empty()) {
+    date = utils::get_potential_date(filepath, "potential");
 
-  // attempt to open file directly
-  // if successful, return ptr
-
-  fp = fopen(name,"r");
-  if (fp) {
-    if (comm->me == 0) potential_date(fp,name);
-    rewind(fp);
-    return fp;
-  }
-
-  // try the environment variable directory
-
-  const char *path = getenv("LAMMPS_POTENTIALS");
-  if (path == NULL) return NULL;
-
-  const char *pot = potential_name(name);
-  if (pot == NULL) return NULL;
-
-  size_t len1 = strlen(path);
-  size_t len2 = strlen(pot);
-  char *newpath = new char[len1+len2+2];
-
-  strcpy(newpath,path);
-#if defined(_WIN32)
-  newpath[len1] = '\\';
-  newpath[len1+1] = 0;
-#else
-  newpath[len1] = '/';
-  newpath[len1+1] = 0;
-#endif
-  strcat(newpath,pot);
-
-  fp = fopen(newpath,"r");
-  if (fp) {
-    if (comm->me == 0) potential_date(fp,name);
-    rewind(fp);
-  }
-
-  delete [] newpath;
-  return fp;
-}
-
-/* ----------------------------------------------------------------------
-   strip off leading part of path, return just the filename
-------------------------------------------------------------------------- */
-
-const char *Force::potential_name(const char *path)
-{
-  const char *pot;
-
-  if (path == NULL) return NULL;
-
-#if defined(_WIN32)
-  // skip over the disk drive part of windows pathnames
-  if (isalpha(path[0]) && path[1] == ':')
-    path += 2;
-#endif
-
-  for (pot = path; *path != '\0'; ++path) {
-#if defined(_WIN32)
-    if ((*path == '\\') || (*path == '/')) pot = path + 1;
-#else
-    if (*path == '/') pot = path + 1;
-#endif
-  }
-
-  return pot;
-}
-
-/* ----------------------------------------------------------------------
-   read first line of potential file
-   if has DATE field, print following word
-------------------------------------------------------------------------- */
-
-void Force::potential_date(FILE *fp, const char *name)
-{
-  char line[MAXLINE];
-  char *ptr = fgets(line,MAXLINE,fp);
-  if (ptr == NULL) return;
-
-  char *word;
-  word = strtok(line," \t\n\r\f");
-  while (word) {
-    if (strcmp(word,"DATE:") == 0) {
-      word = strtok(NULL," \t\n\r\f");
-      if (word == NULL) return;
-      utils::logmesg(lmp,fmt::format("Reading potential "
-                     "file {} with DATE: {}",name,word));
-      return;
+    if(!date.empty()) {
+      utils::logmesg(lmp, fmt::format("Reading potential file {} "
+                                      "with DATE: {}\n", name, date));
     }
-    word = strtok(NULL," \t\n\r\f");
+    return fopen(filepath.c_str(), "r");
   }
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------

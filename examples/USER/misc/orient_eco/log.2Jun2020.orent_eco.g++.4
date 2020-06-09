@@ -8,7 +8,7 @@ read_data       data.sigma5
   4 by 1 by 1 MPI processor grid
   reading atoms ...
   25600 atoms
-  read_data CPU = 0.022 secs
+  read_data CPU = 0.038 secs
 
 pair_style      eam
 pair_coeff      * * Ni_u3.eam
@@ -33,58 +33,58 @@ Neighbor list info ...
   ghost atom cutoff = 6.8
   binsize = 3.4, bins = 54 27 6
   2 neighbor lists, perpetual/occasional/extra = 2 0 0
-  (1) pair eam, perpetual
+  (1) pair eam, perpetual, half/full from (2)
       attributes: half, newton on
-      pair build: half/bin/atomonly/newton
-      stencil: half/bin/3d/newton
-      bin: standard
+      pair build: halffull/newton
+      stencil: none
+      bin: none
   (2) fix orient/eco, perpetual
-      attributes: full, newton on, ghost
-      pair build: full/bin/ghost
-      stencil: full/ghost/bin/3d
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 33.73 | 33.82 | 33.92 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 11.69 | 11.7 | 11.72 Mbytes
 Step Temp TotEng Press Volume f_eco 
        0          750   -111027.95    15148.458    279755.85 8.749339e-10 
-     100     422.2681   -110928.91    213.80039    285331.89  -0.89527716 
-     200    388.81794   -110721.17   -481.38349    286440.76  -0.58341827 
-     300    441.89999   -110478.99   -175.70299    286638.58  -0.74804169 
-     400    486.69333   -110212.01    61.917355    287023.71  -0.83525384 
-     500    530.62012   -109924.46     96.49276       287552   -1.7328841 
-     600    569.89036    -109624.5   -78.252217    288224.25   -2.3216775 
-     700    615.71719   -109319.76   -61.072041    288795.44   -3.7080665 
-     800    664.86797   -109021.92   -52.316387    289313.22    -4.603192 
-     900    703.88411   -108742.88    329.87308    289838.93   -8.1835743 
-    1000    734.57012   -108504.44    1032.3825     290208.8   -9.5778417 
-Loop time of 36.3118 on 4 procs for 1000 steps with 25600 atoms
+     100     422.2475   -110928.85    214.27204    285332.91   -1.0089186 
+     200    388.79514   -110721.02    -481.9574    286443.13  -0.78446905 
+     300    441.87285   -110478.56   -174.88288    286640.75   -1.1348357 
+     400    486.71094    -110211.6    65.075638    287023.56    -1.495318 
+     500    531.12815   -109923.33    97.309245    287552.73   -2.9498072 
+     600    569.82126   -109622.61    -85.73157    288229.35   -4.2855812 
+     700    615.84724   -109317.16   -52.508824    288799.86   -6.5214427 
+     800    666.09015   -109018.62    38.120383    289305.37   -8.4745641 
+     900    705.03939   -108738.66    263.39673    289867.87     -12.4514 
+    1000    735.59866   -108500.52    242.46405    290353.65   -15.427653 
+Loop time of 30.0111 on 4 procs for 1000 steps with 25600 atoms
 
-Performance: 2.379 ns/day, 10.087 hours/ns, 27.539 timesteps/s
-96.5% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 2.879 ns/day, 8.336 hours/ns, 33.321 timesteps/s
+98.0% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 7.2322     | 7.2862     | 7.3582     |   1.7 | 20.07
-Neigh   | 0.50594    | 0.50825    | 0.51098    |   0.3 |  1.40
-Comm    | 0.20657    | 0.29868    | 0.37614    |  11.6 |  0.82
-Output  | 0.00052929 | 0.00080693 | 0.0016012  |   0.0 |  0.00
-Modify  | 28.13      | 28.154     | 28.185     |   0.5 | 77.53
-Other   |            | 0.06384    |            |       |  0.18
+Pair    | 7.1139     | 7.1437     | 7.1983     |   1.2 | 23.80
+Neigh   | 0.2101     | 0.21208    | 0.21316    |   0.3 |  0.71
+Comm    | 0.15491    | 0.20327    | 0.23586    |   6.8 |  0.68
+Output  | 0.00033617 | 0.00064594 | 0.0015616  |   0.0 |  0.00
+Modify  | 22.39      | 22.403     | 22.431     |   0.3 | 74.65
+Other   |            | 0.04802    |            |       |  0.16
 
-Nlocal:    6400 ave 6429 max 6369 min
-Histogram: 1 1 0 0 0 0 0 0 0 2
-Nghost:    9867.75 ave 9885 max 9846 min
-Histogram: 1 0 0 0 1 0 0 1 0 1
-Neighs:    397746 ave 402254 max 393369 min
-Histogram: 1 1 0 0 0 0 0 1 0 1
-FullNghs:  795492 ave 802928 max 788138 min
-Histogram: 1 1 0 0 0 0 0 0 1 1
+Nlocal:    6400 ave 6421 max 6384 min
+Histogram: 1 1 0 0 0 1 0 0 0 1
+Nghost:    9872.5 ave 9892 max 9855 min
+Histogram: 1 0 0 1 0 1 0 0 0 1
+Neighs:    398314 ave 400737 max 395743 min
+Histogram: 1 0 0 1 0 0 0 1 0 1
+FullNghs:  796628 ave 801194 max 792566 min
+Histogram: 1 0 1 0 0 0 1 0 0 1
 
-Total # of neighbors = 3181966
-Ave neighs/atom = 124.296
+Total # of neighbors = 3186510
+Ave neighs/atom = 124.473
 Neighbor list builds = 10
 Dangerous builds = 0
 
 Please see the log.cite file for references relevant to this simulation
 
-Total wall time: 0:00:36
+Total wall time: 0:00:30

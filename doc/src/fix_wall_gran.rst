@@ -8,7 +8,7 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID wall/gran fstyle fstyle_params wallstyle args keyword values ... [store_contacts]
+   fix ID group-ID wall/gran fstyle fstyle_params wallstyle args keyword values ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * wall/gran = style name of this fix command
@@ -45,7 +45,7 @@ Syntax
          radius = cylinder radius (distance units)
 
 * zero or more keyword/value pairs may be appended to args
-* keyword = *wiggle* or *shear* or *store_contacts*
+* keyword = *wiggle* or *shear* or *contacts*
 
   .. parsed-literal::
 
@@ -56,7 +56,8 @@ Syntax
        *shear* values = dim vshear
          dim = *x* or *y* or *z*
          vshear = magnitude of shear velocity (velocity units)
-      *store_contacts* = store contact information for each particle colliding with wall
+      *contacts* value = none
+         store contact information for each particle colliding with wall
 
 
 Examples
@@ -70,7 +71,7 @@ Examples
    fix 3 all wall/gran/region granular hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 damping velocity region myBox
    fix 4 all wall/gran/region granular jkr 1e5 1500.0 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall region myCone
    fix 5 all wall/gran/region granular dmt 1e5 0.2 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall damping tsuji region myCone
-   fix 6 all wall/gran hooke  200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0 store_contacts
+   fix 6 all wall/gran hooke  200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0 contacts
 
 Description
 """""""""""
@@ -185,30 +186,29 @@ info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
-If the :code:`store_contacts` option is used, this fix will store the contact
-information for each atom that interacts with the wall. The following table
-summarizes which values are available as per-atom quantities
-(:code:`f_FIXID[Index]`) to access by various :doc:`output commands <Howto_output>`:
+If the :code:`contacts` option is used, this fix will store the contact
+information for each atom that interacts with the wall as per-atom array with 8
+columns. The values of these columns are listed in the following table:
 
-+-------+----------------------------------------------------+
-| Index | Value                                              |
-+=======+====================================================+
-|     1 | Atom ID                                            |
-+-------+----------------------------------------------------+
-|     2 | Force :math:`f_x` exerted on the wall              |
-+-------+----------------------------------------------------+
-|     3 | Force :math:`f_y` exerted on the wall              |
-+-------+----------------------------------------------------+
-|     4 | Force :math:`f_z` exerted on the wall              |
-+-------+----------------------------------------------------+
-|     5 | :math:`\Delta x` between wall surface and particle |
-+-------+----------------------------------------------------+
-|     6 | :math:`\Delta y` between wall surface and particle |
-+-------+----------------------------------------------------+
-|     7 | :math:`\Delta z` between wall surface and particle |
-+-------+----------------------------------------------------+
-|     8 | Radius :math:`r` of atom                           |
-+-------+----------------------------------------------------+
++-------+----------------------------------------------------+----------------+
+| Index | Value                                              | Units          |
++=======+====================================================+================+
+|     1 | Atom ID                                            |                |
++-------+----------------------------------------------------+----------------+
+|     2 | Force :math:`f_x` exerted on the wall              | force units    |
++-------+----------------------------------------------------+----------------+
+|     3 | Force :math:`f_y` exerted on the wall              | force units    |
++-------+----------------------------------------------------+----------------+
+|     4 | Force :math:`f_z` exerted on the wall              | force units    |
++-------+----------------------------------------------------+----------------+
+|     5 | :math:`\Delta x` between wall surface and particle | distance units |
++-------+----------------------------------------------------+----------------+
+|     6 | :math:`\Delta y` between wall surface and particle | distance units |
++-------+----------------------------------------------------+----------------+
+|     7 | :math:`\Delta z` between wall surface and particle | distance units |
++-------+----------------------------------------------------+----------------+
+|     8 | Radius :math:`r` of atom                           | distance units |
++-------+----------------------------------------------------+----------------+
 
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this fix.
 No parameter of this fix can be used with the *start/stop* keywords of the

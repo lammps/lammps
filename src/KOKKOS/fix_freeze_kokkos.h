@@ -30,6 +30,10 @@ namespace LAMMPS_NS {
 template<ExecutionSpace Space>
 class FixFreezeKokkos : public FixFreeze {
  public:
+  typedef typename GetDeviceType<Space>::value DeviceType;
+  typedef DeviceType device_type;
+  typedef ArrayTypes<Space> AT;
+
   struct OriginalForce {
     KK_FLOAT values[3];
 

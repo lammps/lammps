@@ -285,7 +285,7 @@ void SNAKokkos<DeviceType>::pre_ui(const typename Kokkos::TeamPolicy<DeviceType>
       // if m is on the "diagonal", initialize it with the self energy.
       // Otherwise zero it out
       SNAcomplex init = {0., 0.};
-      if (m % (j+2) == 0 && (ielem == jelem || wselfall_flag)) { init = {wself, 0.0}; } //need to map iatom to element
+      if (m % (j+2) == 0 && (!alloy_flag || ielem == jelem || wselfall_flag)) { init = {wself, 0.0}; } //need to map iatom to element
 
       ulisttot(jelem*idxu_max+jjup, iatom) = init;
     });

@@ -370,7 +370,7 @@ RegisterStyles(${LAMMPS_SOURCE_DIR})
 ########################################################
 foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
   if(PKG_${PKG})
-    FetchPotentials(${${PKG}_SOURCES_DIR} ${LAMMPS_POTENTIALS_DIR})
+    FetchPotentials(${LAMMPS_SOURCE_DIR}/${PKG} ${LAMMPS_POTENTIALS_DIR})
   endif()
 endforeach()
 

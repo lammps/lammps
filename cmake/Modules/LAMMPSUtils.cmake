@@ -96,7 +96,7 @@ function(FetchPotentials pkgfolder potfolder)
       math(EXPR plusone "${blank}+1")
       string(SUBSTRING ${line} 0 ${blank} pot)
       string(SUBSTRING ${line} ${plusone} -1 sum)
-      message("Checking whether to download external potential ${pot} from ${LAMMPS_POTENTIALS_URL}")
+      message(STATUS "Checking external potential ${pot} from ${LAMMPS_POTENTIALS_URL}")
       file(DOWNLOAD "${LAMMPS_POTENTIALS_URL}/${pot}.${sum}" "${LAMMPS_POTENTIALS_DIR}/${pot}"
         EXPECTED_HASH MD5=${sum} SHOW_PROGRESS)
     endforeach()

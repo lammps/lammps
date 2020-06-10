@@ -95,7 +95,6 @@ void PairCoulCutKokkos<Space>::compute(int eflag_in, int vflag_in)
   else atomKK->modified(execution_space,F_MASK);
 
   x = DualViewHelper<Space>::view(atomKK->k_x);
-  c_x = DualViewHelper<Space>::view(atomKK->k_x);
   f = DualViewHelper<Space>::view(atomKK->k_f);
   q = DualViewHelper<Space>::view(atomKK->k_q);
   type = DualViewHelper<Space>::view(atomKK->k_type);

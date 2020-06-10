@@ -184,7 +184,7 @@ inline KK_FLOAT dist2(KK_FLOAT* x,KK_FLOAT* y);
       Kokkos::MemoryTraits<Kokkos::RandomAccess> > t_fparams_rnd;
   t_fparams_rnd rnd_cutsq;
 
-  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_float_1d_3_lr_randomread x;
   typename AT::t_float_1d_3 f;
   typename AT::t_int_1d_randomread type;
 

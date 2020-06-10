@@ -46,7 +46,7 @@ class FixNVESphereKokkos : public FixNVESphere {
     void final_integrate_item(const int i) const;
 
   private:
-    typename AT::t_float_1d_3 x;
+    typename AT::t_float_1d_3_lr x;
     typename AT::t_float_1d_3 v;
     typename AT::t_float_1d_3 omega;
     typename AT::t_float_1d_3 f;

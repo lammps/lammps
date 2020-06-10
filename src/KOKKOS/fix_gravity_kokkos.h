@@ -46,7 +46,7 @@ class FixGravityKokkos : public FixGravity {
     void operator()(TagFixGravityMass, const int, KK_FLOAT &) const;
 
   private:
-    typename AT::t_float_1d_3 x;
+    typename AT::t_float_1d_3_lr x;
     typename AT::t_float_1d_3 f;
     typename AT::t_float_1d_randomread rmass;
     typename AT::t_float_1d_randomread mass;

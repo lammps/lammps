@@ -24,7 +24,7 @@ class AtomKokkos : public Atom {
   DAT::tdual_tagint_1d k_tag;
   DAT::tdual_int_1d k_type, k_mask;
   DAT::tdual_imageint_1d k_image;
-  DAT::tdual_float_1d_3 k_x;
+  DAT::tdual_float_1d_3_lr k_x;
   DAT::tdual_float_1d_3 k_v;
   DAT::tdual_float_1d_3 k_f;
 

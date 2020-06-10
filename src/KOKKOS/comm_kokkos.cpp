@@ -540,7 +540,7 @@ struct BuildExchangeListFunctor {
   typedef ArrayTypes<Space> AT;
 
   KK_FLOAT _lo,_hi;
-  typename AT::t_float_1d_3 _x;
+  typename AT::t_float_1d_3_lr _x;
 
   int _nlocal,_dim;
   typename AT::t_int_scalar _nsend;
@@ -549,7 +549,7 @@ struct BuildExchangeListFunctor {
 
 
   BuildExchangeListFunctor(
-      const DAT::tdual_float_1d_3 x,
+      const DAT::tdual_float_1d_3_lr x,
       const DAT::tdual_int_1d sendlist,
       DAT::tdual_int_scalar nsend,
       DAT::tdual_int_1d sendflag,int nlocal, int dim,
@@ -797,13 +797,13 @@ struct BuildBorderListFunctor {
   typedef ArrayTypes<Space> AT;
 
   KK_FLOAT lo,hi;
-  typename AT::t_float_1d_3 x;
+  typename AT::t_float_1d_3_lr x;
   int iswap,maxsendlist;
   int nfirst,nlast,dim;
   typename AT::t_int_2d sendlist;
   typename AT::t_int_scalar nsend;
 
-  BuildBorderListFunctor(DAT::tdual_float_1d_3 _x,
+  BuildBorderListFunctor(DAT::tdual_float_1d_3_lr _x,
                          DAT::tdual_int_2d _sendlist,
                          DAT::tdual_int_scalar _nsend,int _nfirst,
                          int _nlast, int _dim,

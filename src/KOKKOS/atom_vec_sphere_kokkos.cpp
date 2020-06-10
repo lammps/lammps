@@ -210,7 +210,7 @@ struct AtomVecSphereKokkos_PackComm {
   typedef DeviceType device_type;
   typedef ArrayTypes<Space> AT;
 
-  typename AT::t_float_1d_3_randomread _x;
+  typename AT::t_float_1d_3_lr_randomread _x;
   typename AT::t_float_1d _radius,_rmass;
   typename AT::t_float_2d_um _buf;
   typename AT::t_int_2d_const _list;
@@ -219,7 +219,7 @@ struct AtomVecSphereKokkos_PackComm {
   KK_FLOAT _pbc[6];
 
   AtomVecSphereKokkos_PackComm(
-    const typename DAT::tdual_float_1d_3 &x,
+    const typename DAT::tdual_float_1d_3_lr &x,
     const typename DAT::tdual_float_1d &radius,
     const typename DAT::tdual_float_1d &rmass,
     const typename DAT::tdual_float_2d &buf,
@@ -368,7 +368,7 @@ struct AtomVecSphereKokkos_PackCommVel {
   typedef DeviceType device_type;
   typedef ArrayTypes<Space> AT;
 
-  typename AT::t_float_1d_3_randomread _x;
+  typename AT::t_float_1d_3_lr_randomread _x;
   typename AT::t_int_1d _mask;
   typename AT::t_float_1d _radius,_rmass;
   typename AT::t_float_1d_3 _v, _omega;
@@ -381,7 +381,7 @@ struct AtomVecSphereKokkos_PackCommVel {
   const int _deform_vremap;
 
   AtomVecSphereKokkos_PackCommVel(
-    const typename DAT::tdual_float_1d_3 &x,
+    const typename DAT::tdual_float_1d_3_lr &x,
     const typename DAT::tdual_int_1d &mask,
     const typename DAT::tdual_float_1d &radius,
     const typename DAT::tdual_float_1d &rmass,
@@ -741,8 +741,8 @@ struct AtomVecSphereKokkos_PackCommSelf {
   typedef DeviceType device_type;
   typedef ArrayTypes<Space> AT;
 
-  typename AT::t_float_1d_3_randomread _x;
-  typename AT::t_float_1d_3 _xw;
+  typename AT::t_float_1d_3_lr_randomread _x;
+  typename AT::t_float_1d_3_lr _xw;
   typename AT::t_float_1d _radius,_rmass;
   int _nfirst;
   typename AT::t_int_2d_const _list;
@@ -751,7 +751,7 @@ struct AtomVecSphereKokkos_PackCommSelf {
   KK_FLOAT _pbc[6];
 
   AtomVecSphereKokkos_PackCommSelf(
-    const typename DAT::tdual_float_1d_3 &x,
+    const typename DAT::tdual_float_1d_3_lr &x,
     const typename DAT::tdual_float_1d &radius,
     const typename DAT::tdual_float_1d &rmass,
     const int &nfirst,
@@ -892,13 +892,13 @@ struct AtomVecSphereKokkos_UnpackComm {
   typedef DeviceType device_type;
   typedef ArrayTypes<Space> AT;
 
-  typename AT::t_float_1d_3 _x;
+  typename AT::t_float_1d_3_lr _x;
   typename AT::t_float_1d _radius,_rmass;
   typename AT::t_float_2d_const_um _buf;
   int _first;
 
   AtomVecSphereKokkos_UnpackComm(
-    const typename DAT::tdual_float_1d_3 &x,
+    const typename DAT::tdual_float_1d_3_lr &x,
     const typename DAT::tdual_float_1d &radius,
     const typename DAT::tdual_float_1d &rmass,
     const typename DAT::tdual_float_2d &buf,
@@ -958,14 +958,14 @@ struct AtomVecSphereKokkos_UnpackCommVel {
   typedef DeviceType device_type;
   typedef ArrayTypes<Space> AT;
 
-  typename AT::t_float_1d_3 _x;
+  typename AT::t_float_1d_3_lr _x;
   typename AT::t_float_1d _radius,_rmass;
   typename AT::t_float_1d_3 _v, _omega;
   typename AT::t_float_2d_const _buf;
   int _first;
 
   AtomVecSphereKokkos_UnpackCommVel(
-    const typename DAT::tdual_float_1d_3 &x,
+    const typename DAT::tdual_float_1d_3_lr &x,
     const typename DAT::tdual_float_1d &radius,
     const typename DAT::tdual_float_1d &rmass,
     const typename DAT::tdual_float_1d_3 &v,
@@ -1446,7 +1446,7 @@ struct AtomVecSphereKokkos_PackBorder {
   typename AT::t_double_2d_lr_um _buf;
   const typename AT::t_int_2d_const _list;
   const int _iswap;
-  const typename AT::t_float_1d_3_randomread _x;
+  const typename AT::t_float_1d_3_lr_randomread _x;
   const typename AT::t_tagint_1d _tag;
   const typename AT::t_int_1d _type;
   const typename AT::t_int_1d _mask;
@@ -1457,7 +1457,7 @@ struct AtomVecSphereKokkos_PackBorder {
     const typename AT::t_double_2d_lr &buf,
     const typename AT::t_int_2d_const &list,
     const int &iswap,
-    const typename AT::t_float_1d_3 &x,
+    const typename AT::t_float_1d_3_lr &x,
     const typename AT::t_tagint_1d &tag,
     const typename AT::t_int_1d &type,
     const typename AT::t_int_1d &mask,
@@ -1617,7 +1617,7 @@ struct AtomVecSphereKokkos_PackBorderVel {
   typename AT::t_double_2d_lr_um _buf;
   const typename AT::t_int_2d_const _list;
   const int _iswap;
-  const typename AT::t_float_1d_3_randomread _x;
+  const typename AT::t_float_1d_3_lr_randomread _x;
   const typename AT::t_tagint_1d _tag;
   const typename AT::t_int_1d _type;
   const typename AT::t_int_1d _mask;
@@ -1630,7 +1630,7 @@ struct AtomVecSphereKokkos_PackBorderVel {
     const typename AT::t_double_2d_lr &buf,
     const typename AT::t_int_2d_const &list,
     const int &iswap,
-    const typename AT::t_float_1d_3 &x,
+    const typename AT::t_float_1d_3_lr &x,
     const typename AT::t_tagint_1d &tag,
     const typename AT::t_int_1d &type,
     const typename AT::t_int_1d &mask,
@@ -1900,7 +1900,7 @@ struct AtomVecSphereKokkos_UnpackBorder {
   typedef ArrayTypes<Space> AT;
 
   typename AT::t_double_2d_lr_const_um _buf;
-  typename AT::t_float_1d_3 _x;
+  typename AT::t_float_1d_3_lr _x;
   typename AT::t_tagint_1d _tag;
   typename AT::t_int_1d _type;
   typename AT::t_int_1d _mask;
@@ -1909,7 +1909,7 @@ struct AtomVecSphereKokkos_UnpackBorder {
 
   AtomVecSphereKokkos_UnpackBorder(
     const typename AT::t_double_2d_lr &buf,
-    const typename AT::t_float_1d_3 &x,
+    const typename AT::t_float_1d_3_lr &x,
     const typename AT::t_tagint_1d &tag,
     const typename AT::t_int_1d &type,
     const typename AT::t_int_1d &mask,
@@ -1998,7 +1998,7 @@ struct AtomVecSphereKokkos_UnpackBorderVel {
   typedef ArrayTypes<Space> AT;
 
   typename AT::t_double_2d_lr_const_um _buf;
-  typename AT::t_float_1d_3 _x;
+  typename AT::t_float_1d_3_lr _x;
   typename AT::t_tagint_1d _tag;
   typename AT::t_int_1d _type;
   typename AT::t_int_1d _mask;
@@ -2009,7 +2009,7 @@ struct AtomVecSphereKokkos_UnpackBorderVel {
 
   AtomVecSphereKokkos_UnpackBorderVel(
     const typename AT::t_double_2d_lr_const &buf,
-    const typename AT::t_float_1d_3 &x,
+    const typename AT::t_float_1d_3_lr &x,
     const typename AT::t_tagint_1d &tag,
     const typename AT::t_int_1d &type,
     const typename AT::t_int_1d &mask,
@@ -2128,7 +2128,7 @@ struct AtomVecSphereKokkos_PackExchangeFunctor {
   typedef DeviceType device_type;
   typedef ArrayTypes<Space> AT;
 
-  typename AT::t_float_1d_3_randomread _x;
+  typename AT::t_float_1d_3_lr_randomread _x;
   typename AT::t_float_1d_3_randomread _v;
   typename AT::t_tagint_1d_randomread _tag;
   typename AT::t_int_1d_randomread _type;
@@ -2136,7 +2136,7 @@ struct AtomVecSphereKokkos_PackExchangeFunctor {
   typename AT::t_imageint_1d_randomread _image;
   typename AT::t_float_1d_randomread _radius,_rmass;
   typename AT::t_float_1d_3_randomread _omega;
-  typename AT::t_float_1d_3 _xw;
+  typename AT::t_float_1d_3_lr _xw;
   typename AT::t_float_1d_3 _vw;
   typename AT::t_tagint_1d _tagw;
   typename AT::t_int_1d _typew;
@@ -2298,7 +2298,7 @@ struct AtomVecSphereKokkos_UnpackExchangeFunctor {
   typedef DeviceType device_type;
   typedef ArrayTypes<Space> AT;
 
-  typename AT::t_float_1d_3 _x;
+  typename AT::t_float_1d_3_lr _x;
   typename AT::t_float_1d_3 _v;
   typename AT::t_tagint_1d _tag;
   typename AT::t_int_1d _type;
@@ -2846,7 +2846,7 @@ void AtomVecSphereKokkos::sync_overlapping_device(ExecutionSpace space, unsigned
 {
   if (space == Device) {
     if ((mask & X_MASK) && atomKK->k_x.need_sync_device())
-      perform_async_copy<DAT::tdual_float_1d_3>(atomKK->k_x,space);
+      perform_async_copy<DAT::tdual_float_1d_3_lr>(atomKK->k_x,space);
     if ((mask & V_MASK) && atomKK->k_v.need_sync_device())
       perform_async_copy<DAT::tdual_float_1d_3>(atomKK->k_v,space);
     if ((mask & F_MASK) && atomKK->k_f.need_sync_device())
@@ -2869,7 +2869,7 @@ void AtomVecSphereKokkos::sync_overlapping_device(ExecutionSpace space, unsigned
       perform_async_copy<DAT::tdual_float_1d_3>(atomKK->k_torque,space);
   } else {
     if ((mask & X_MASK) && atomKK->k_x.need_sync_host())
-      perform_async_copy<DAT::tdual_float_1d_3>(atomKK->k_x,space);
+      perform_async_copy<DAT::tdual_float_1d_3_lr>(atomKK->k_x,space);
     if ((mask & V_MASK) && atomKK->k_v.need_sync_host())
       perform_async_copy<DAT::tdual_float_1d_3>(atomKK->k_v,space);
     if ((mask & F_MASK) && atomKK->k_f.need_sync_host())

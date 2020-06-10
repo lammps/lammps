@@ -64,7 +64,7 @@ class DomainKokkos : public Domain {
  private:
   KK_FLOAT lo[3],hi[3],period[3];
   int n_flip, m_flip, p_flip;
-  DAT::t_float_1d_3 x;
+  DAT::t_float_1d_3_lr x;
   DAT::t_imageint_1d image;
 };
 

@@ -192,7 +192,7 @@ class NeighborKokkosExecute
 
   // data from Atom class
 
-  const typename AT::t_float_1d_3_randomread x;
+  const typename AT::t_float_1d_3_lr_randomread x;
   const typename AT::t_float_1d radius;
   const typename AT::t_int_1d_const type,mask;
   const typename AT::t_tagint_1d_const molecule;
@@ -233,7 +233,7 @@ class NeighborKokkosExecute
                         const typename AT::t_int_1d &_d_stencil,
                         const typename AT::t_int_1d_3 &_d_stencilxyz,
                         const int _nlocal,
-                        const typename AT::t_float_1d_3_randomread &_x,
+                        const typename AT::t_float_1d_3_lr_randomread &_x,
                         const typename AT::t_float_1d &_radius,
                         const typename AT::t_int_1d_const &_type,
                         const typename AT::t_int_1d_const &_mask,

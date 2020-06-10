@@ -119,7 +119,7 @@ class PairEAMFSKokkos : public PairEAM, public KokkosBase {
  protected:
   void cleanup_copy();
 
-  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_float_1d_3_lr_randomread x;
   typename AT::t_float_1d_3 f;
   typename AT::t_int_1d_randomread type;
   typename AT::t_tagint_1d tag;

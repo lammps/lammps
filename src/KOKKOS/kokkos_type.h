@@ -30,7 +30,6 @@ enum{FULL=1u,HALFTHREAD=2u,HALF=4u};
 #define ISFINITE(x) std::isfinite(x)
 #endif
 
-
 #if defined(LMP_KOKKOS_SINGLE)
 typedef float KK_FLOAT;
 #define MPI_KK_FLOAT MPI_FLOAT
@@ -577,6 +576,13 @@ typedef tdual_float_1d_3::t_dev_um t_float_1d_3_um;
 typedef tdual_float_1d_3::t_dev_const_um t_float_1d_3_const_um;
 typedef tdual_float_1d_3::t_dev_const_randomread t_float_1d_3_randomread;
 
+typedef Kokkos::TransformDualView<KK_FLOAT*[3], Kokkos::LayoutRight, LMPDeviceType, void, double*[3], Kokkos::LayoutRight> tdual_float_1d_3_lr;
+typedef tdual_float_1d_3_lr::t_dev t_float_1d_3_lr;
+typedef tdual_float_1d_3_lr::t_dev_const t_float_1d_3_lr_const;
+typedef tdual_float_1d_3_lr::t_dev_um t_float_1d_3_lr_um;
+typedef tdual_float_1d_3_lr::t_dev_const_um t_float_1d_3_lr_const_um;
+typedef tdual_float_1d_3_lr::t_dev_const_randomread t_float_1d_3_lr_randomread;
+
 typedef Kokkos::TransformDualView<KK_FLOAT*[6], device_array_layout, LMPDeviceType, void, double*[6], Kokkos::LayoutRight> tdual_float_1d_6;
 typedef tdual_float_1d_6::t_dev t_float_1d_6;
 typedef tdual_float_1d_6::t_dev_const t_float_1d_6_const;
@@ -727,6 +733,13 @@ typedef tdual_float_1d_3::t_host_const t_float_1d_3_const;
 typedef tdual_float_1d_3::t_host_um t_float_1d_3_um;
 typedef tdual_float_1d_3::t_host_const_um t_float_1d_3_const_um;
 typedef tdual_float_1d_3::t_host_const_randomread t_float_1d_3_randomread;
+
+typedef Kokkos::TransformDualView<KK_FLOAT*[3], Kokkos::LayoutRight, LMPDeviceType, void, double*[3], Kokkos::LayoutRight> tdual_float_1d_3_lr;
+typedef tdual_float_1d_3_lr::t_host t_float_1d_3_lr;
+typedef tdual_float_1d_3_lr::t_host_const t_float_1d_3_lr_const;
+typedef tdual_float_1d_3_lr::t_host_um t_float_1d_3_lr_um;
+typedef tdual_float_1d_3_lr::t_host_const_um t_float_1d_3_lr_const_um;
+typedef tdual_float_1d_3_lr::t_host_const_randomread t_float_1d_3_lr_randomread;
 
 typedef Kokkos::TransformDualView<KK_FLOAT*[6], device_array_layout, LMPDeviceType, void, double*[6], Kokkos::LayoutRight> tdual_float_1d_6;
 typedef tdual_float_1d_6::t_host t_float_1d_6;

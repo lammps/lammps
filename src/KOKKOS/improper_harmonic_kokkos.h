@@ -65,7 +65,7 @@ class ImproperHarmonicKokkos : public ImproperHarmonic {
   class NeighborKokkos *neighborKK;
 
   typedef typename KKDevice<DeviceType>::value KKDeviceType;
-  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_float_1d_3_lr_randomread x;
   typename Kokkos::View<typename AT::t_float_1d_3::data_type,typename AT::t_float_1d_3::array_layout,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > f;
   typename AT::t_int_2d improperlist;
 

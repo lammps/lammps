@@ -789,11 +789,11 @@ struct PairVirialFDotRCompute {
   typedef DeviceType device_type;
   typedef ArrayTypes<Space> AT;
   typedef EV_FLOAT value_type;
-  typename AT::t_float_1d_3_const_um x;
+  typename AT::t_float_1d_3_lr_const_um x;
   typename AT::t_float_1d_3_const_um f;
   const int offset;
 
-  PairVirialFDotRCompute(  typename AT::t_float_1d_3_const_um x_,
+  PairVirialFDotRCompute(  typename AT::t_float_1d_3_lr_const_um x_,
   typename AT::t_float_1d_3_const_um f_,
   const int offset_):x(x_),f(f_),offset(offset_) {}
 

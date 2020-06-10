@@ -163,7 +163,7 @@ class FixQEqReaxKokkos : public FixQEqReax {
   Kokkos::DualView<params_qeq*,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_qeq*, Kokkos::LayoutRight,DeviceType>::t_dev_const params;
 
-  typename AT::t_float_1d_3 x;
+  typename AT::t_float_1d_3_lr x;
   typename AT::t_float_1d_3 v;
   typename AT::t_float_1d_3_const f;
   //typename AT::t_float_1d_randomread mass, q;

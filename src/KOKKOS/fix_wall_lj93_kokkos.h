@@ -47,7 +47,7 @@ class FixWallLJ93Kokkos : public FixWallLJ93 {
   int dim,side;
   KK_FLOAT coord;
 
-  typename AT::t_float_1d_3 x;
+  typename AT::t_float_1d_3_lr x;
   typename AT::t_float_1d_3 f;
   typename AT::t_int_1d mask;
   typename AT::t_int_scalar d_oneflag;

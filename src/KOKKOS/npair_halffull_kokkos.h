@@ -148,7 +148,7 @@ class NPairHalffullKokkos : public NPair {
  private:
   int nlocal;
 
-  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_float_1d_3_lr_randomread x;
 
   typename AT::t_neighbors_2d_const d_neighbors_full;
   typename AT::t_int_1d_const d_ilist_full;

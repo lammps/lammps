@@ -65,7 +65,7 @@ class PairCoulWolfKokkos : public PairCoulWolf {
 
  protected:
 
-  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_float_1d_3_lr_randomread x;
   typename AT::t_float_1d_3 f;
   typename AT::t_float_1d_randomread q;
 

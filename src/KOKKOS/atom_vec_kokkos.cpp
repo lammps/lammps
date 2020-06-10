@@ -40,7 +40,7 @@ struct AtomVecKokkos_PackComm {
   typedef DeviceType device_type;
   typedef ArrayTypes<Space> AT;
 
-  typename AT::t_float_1d_3_randomread _x;
+  typename AT::t_float_1d_3_lr_randomread _x;
   typename AT::t_float_2d_um _buf;
   typename AT::t_int_2d_const _list;
   const int _iswap;
@@ -48,7 +48,7 @@ struct AtomVecKokkos_PackComm {
   KK_FLOAT _pbc[6];
 
   AtomVecKokkos_PackComm(
-      const typename DAT::tdual_float_1d_3 &x,
+      const typename DAT::tdual_float_1d_3_lr &x,
       const typename DAT::tdual_float_2d &buf,
       const typename DAT::tdual_int_2d &list,
       const int & iswap,
@@ -164,8 +164,8 @@ struct AtomVecKokkos_PackCommSelf {
   typedef DeviceType device_type;
   typedef ArrayTypes<Space> AT;
 
-  typename AT::t_float_1d_3_randomread _x;
-  typename AT::t_float_1d_3 _xw;
+  typename AT::t_float_1d_3_lr_randomread _x;
+  typename AT::t_float_1d_3_lr _xw;
   int _nfirst;
   typename AT::t_int_2d_const _list;
   const int _iswap;
@@ -173,7 +173,7 @@ struct AtomVecKokkos_PackCommSelf {
   KK_FLOAT _pbc[6];
 
   AtomVecKokkos_PackCommSelf(
-      const typename DAT::tdual_float_1d_3 &x,
+      const typename DAT::tdual_float_1d_3_lr &x,
       const int &nfirst,
       const typename DAT::tdual_int_2d &list,
       const int & iswap,
@@ -281,8 +281,8 @@ struct AtomVecKokkos_PackCommSelfFused {
   typedef DeviceType device_type;
   typedef ArrayTypes<Space> AT;
 
-  typename AT::t_float_1d_3_randomread _x;
-  typename AT::t_float_1d_3 _xw;
+  typename AT::t_float_1d_3_lr_randomread _x;
+  typename AT::t_float_1d_3_lr _xw;
   typename AT::t_int_2d_const _list;
   typename AT::t_int_2d_const _pbc;
   typename AT::t_int_1d_const _pbc_flag;
@@ -292,7 +292,7 @@ struct AtomVecKokkos_PackCommSelfFused {
   KK_FLOAT _xprd,_yprd,_zprd,_xy,_xz,_yz;
 
   AtomVecKokkos_PackCommSelfFused(
-      const typename DAT::tdual_float_1d_3 &x,
+      const typename DAT::tdual_float_1d_3_lr &x,
       const typename DAT::tdual_int_2d &list,
       const typename DAT::tdual_int_2d &pbc,
       const typename DAT::tdual_int_1d &pbc_flag,
@@ -390,12 +390,12 @@ struct AtomVecKokkos_UnpackComm {
   typedef DeviceType device_type;
   typedef ArrayTypes<Space> AT;
 
-  typename AT::t_float_1d_3 _x;
+  typename AT::t_float_1d_3_lr _x;
   typename AT::t_float_2d_const _buf;
   int _first;
 
   AtomVecKokkos_UnpackComm(
-      const typename DAT::tdual_float_1d_3 &x,
+      const typename DAT::tdual_float_1d_3_lr &x,
       const typename DAT::tdual_float_2d &buf,
       const int& first):_x(DualViewHelper<Space>::view(x)),_buf(DualViewHelper<Space>::view(buf)),
                         _first(first) {};
@@ -434,7 +434,7 @@ struct AtomVecKokkos_PackCommVel {
   typedef DeviceType device_type;
   typedef ArrayTypes<Space> AT;
 
-  typename AT::t_float_1d_3_randomread _x;
+  typename AT::t_float_1d_3_lr_randomread _x;
   typename AT::t_int_1d _mask;
   typename AT::t_float_1d_3 _v;
   typename AT::t_float_2d_um _buf;
@@ -446,7 +446,7 @@ struct AtomVecKokkos_PackCommVel {
   const int _deform_vremap;
 
   AtomVecKokkos_PackCommVel(
-    const typename DAT::tdual_float_1d_3 &x,
+    const typename DAT::tdual_float_1d_3_lr &x,
     const typename DAT::tdual_int_1d &mask,
     const typename DAT::tdual_float_1d_3 &v,
     const typename DAT::tdual_float_2d &buf,
@@ -653,13 +653,13 @@ struct AtomVecKokkos_UnpackCommVel {
   typedef DeviceType device_type;
   typedef ArrayTypes<Space> AT;
 
-  typename AT::t_float_1d_3 _x;
+  typename AT::t_float_1d_3_lr _x;
   typename AT::t_float_1d_3 _v;
   typename AT::t_float_2d_const _buf;
   int _first;
 
   AtomVecKokkos_UnpackCommVel(
-    const typename DAT::tdual_float_1d_3 &x,
+    const typename DAT::tdual_float_1d_3_lr &x,
     const typename DAT::tdual_float_1d_3 &v,
     const typename DAT::tdual_float_2d &buf,
     const int& first):

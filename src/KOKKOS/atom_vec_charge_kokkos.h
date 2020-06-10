@@ -90,7 +90,7 @@ class AtomVecChargeKokkos : public AtomVecKokkos {
   DAT::t_imageint_1d d_image;
   HAT::t_imageint_1d h_image;
 
-  DAT::t_float_1d_3 d_x;
+  DAT::t_float_1d_3_lr d_x;
   DAT::t_float_1d_3 d_v;
   DAT::t_float_1d_3 d_f;
 

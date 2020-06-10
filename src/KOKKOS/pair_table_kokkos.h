@@ -152,8 +152,8 @@ class PairTableKokkos : public PairTable {
   virtual void allocate();
   void compute_table(Table *);
 
-  typename AT::t_float_1d_3_randomread x;
-  typename AT::t_float_1d_3_const c_x;
+  typename AT::t_float_1d_3_lr_randomread x;
+  typename AT::t_float_1d_3_lr_const c_x;
   typename AT::t_float_1d_3 f;
   typename AT::t_int_1d_randomread type;
 

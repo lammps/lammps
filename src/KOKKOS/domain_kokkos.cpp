@@ -49,13 +49,13 @@ public:
   typedef DeviceType device_type;
   typedef ArrayTypes<Space> AT;
 
-  typename AT::t_float_1d_3 x;
+  typename AT::t_float_1d_3_lr x;
 
   struct value_type {
     KK_FLOAT value[3][2] ;
   };
 
-  DomainResetBoxFunctor(DAT::tdual_float_1d_3 _x):
+  DomainResetBoxFunctor(DAT::tdual_float_1d_3_lr _x):
     x(DualViewHelper<Space>::view(_x)) {}
 
   KOKKOS_INLINE_FUNCTION
@@ -225,7 +225,7 @@ struct DomainPBCFunctor {
   typedef ArrayTypes<Space> AT;
 
   double lo[3],hi[3],period[3];
-  typename AT::t_float_1d_3 x;
+  typename AT::t_float_1d_3_lr x;
   typename AT::t_float_1d_3 v;
   typename AT::t_int_1d mask;
   typename AT::t_imageint_1d image;
@@ -234,7 +234,7 @@ struct DomainPBCFunctor {
   int xperiodic,yperiodic,zperiodic;
 
   DomainPBCFunctor(double* _lo, double* _hi, double* _period,
-                   DAT::tdual_float_1d_3 _x, DAT::tdual_float_1d_3 _v,
+                   DAT::tdual_float_1d_3_lr _x, DAT::tdual_float_1d_3 _v,
                    DAT::tdual_int_1d _mask, DAT::tdual_imageint_1d _image,
                    int _deform_groupbit, double* _h_rate,
                    int _xperiodic, int _yperiodic, int _zperiodic):

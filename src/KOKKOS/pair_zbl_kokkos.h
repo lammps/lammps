@@ -50,7 +50,7 @@ class PairZBLKokkos : public PairZBL {
   typename AT::t_float_1d d_z;
   typename AT::t_float_2d_dl d_d1a,d_d2a,d_d3a,d_d4a,d_zze,d_sw1,d_sw2,d_sw3,d_sw4,d_sw5;
 
-  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_float_1d_3_lr_randomread x;
   typename AT::t_float_1d_3 f;
   typename AT::t_int_1d_randomread type;
 

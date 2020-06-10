@@ -107,7 +107,6 @@ void PairTableKokkos<Space>::compute_style(int eflag_in, int vflag_in)
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
 
-  x = c_x = DualViewHelper<Space>::view(atomKK->k_x);
   f = DualViewHelper<Space>::view(atomKK->k_f);
   type = DualViewHelper<Space>::view(atomKK->k_type);
   nlocal = atom->nlocal;

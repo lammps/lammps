@@ -361,7 +361,7 @@ class PairReaxCKokkos : public PairReaxC {
   Kokkos::DualView<params_fbp****,typename DeviceType::array_layout,DeviceType> k_params_fbp;
   typename Kokkos::DualView<params_fbp****,typename DeviceType::array_layout,DeviceType>::t_dev_const paramsfbp;
 
-  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_float_1d_3_lr_randomread x;
   typename AT::t_float_1d_3 f;
   typename AT::t_int_1d_randomread type;
   typename AT::t_tagint_1d_randomread tag;

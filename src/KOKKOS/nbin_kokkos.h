@@ -54,7 +54,7 @@ class NBinKokkos : public NBinStandard {
   typename AT::t_int_1d atom2bin;
   typename AT::t_int_scalar d_resize;
   HAT::t_int_scalar h_resize;
-  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_float_1d_3_lr_randomread x;
 
   KOKKOS_INLINE_FUNCTION
   void binatomsItem(const int &i) const;

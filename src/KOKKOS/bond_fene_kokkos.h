@@ -62,7 +62,7 @@ class BondFENEKokkos : public BondFENE {
 
   class NeighborKokkos *neighborKK;
 
-  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_float_1d_3_lr_randomread x;
   typename AT::t_float_1d_3 f;
   typename AT::t_int_2d bondlist;
 

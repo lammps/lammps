@@ -153,7 +153,7 @@ void FixMomentumKokkos<Space>::end_of_step()
     // must use unwrapped coords to compute r_i correctly
 
     atomKK->sync(Space, X_MASK | IMAGE_MASK);
-    typename AT::t_float_1d_3_randomread x = DualViewHelper<Space>::view(atomKK->k_x);
+    typename AT::t_float_1d_3_lr_randomread x = DualViewHelper<Space>::view(atomKK->k_x);
     typename AT::t_imageint_1d_randomread image = DualViewHelper<Space>::view(atomKK->k_image);
     int nlocal = atom->nlocal;
 

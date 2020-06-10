@@ -141,7 +141,6 @@ void PairGranHookeHistoryKokkos<Space>::compute(int eflag_in, int vflag_in)
   x = DualViewHelper<Space>::view(atomKK->k_x);
   v = DualViewHelper<Space>::view(atomKK->k_v);
   omega = DualViewHelper<Space>::view(atomKK->k_omega);
-  c_x = DualViewHelper<Space>::view(atomKK->k_x);
   f = DualViewHelper<Space>::view(atomKK->k_f);
   torque = DualViewHelper<Space>::view(atomKK->k_torque);
   type = DualViewHelper<Space>::view(atomKK->k_type);

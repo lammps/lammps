@@ -66,8 +66,8 @@ class NeighborKokkos : public Neighbor {
 
  private:
 
-  DAT::tdual_float_1d_3 x;
-  DAT::tdual_float_1d_3 xhold;
+  DAT::tdual_float_1d_3_lr x;
+  DAT::tdual_float_1d_3_lr xhold;
 
   KK_FLOAT deltasq;
   int device_flag;

@@ -50,7 +50,7 @@ class RegBlockKokkos : public RegBlock, public KokkosBase {
   int groupbit;
   typename AT::t_int_1d d_match;
 
-  typename AT::t_float_1d_3_randomread x;
+  typename AT::t_float_1d_3_lr_randomread x;
   typename AT::t_int_1d_randomread mask;
 
   KOKKOS_INLINE_FUNCTION

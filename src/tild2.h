@@ -136,6 +136,10 @@ class TILD : public KSpace{
   int subtract_rho0, normalize_by_rho0, mix_flag, sub_flag, norm_flag;
   int *total_counter, specified_all_group, start_group_ind, total_groups; 
 
+  int write_grid_flag, grid_data_output_freq;
+  FILE *otp ;
+  char *grid_data_filename = new char[50];
+
   double *fkx,*fky,*fkz;
   double *fkx2, *fky2, *fkz2;
   FFT_SCALAR *work1,*work2;
@@ -215,6 +219,8 @@ class TILD : public KSpace{
   void accumulate_gradient();
   void force_field_grad();
   void vir_func_init();
+  void write_grid_data();
+  void pack_grid_data(double **);
 
   FFT_SCALAR ****density_brick_types;
   FFT_SCALAR *kappa_density;

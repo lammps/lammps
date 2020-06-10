@@ -64,7 +64,8 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   thermo_virial = 1;
   create_attribute = 1;
   dof_flag = 1;
-
+  stores_ids = 1;
+  
   // error check
 
   molecular = atom->molecular;

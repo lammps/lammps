@@ -69,6 +69,7 @@ if (test $1 = "DIPOLE") then
 fi
 
 if (test $1 = "GRANULAR") then
+  depend KOKKOS
   depend USER-OMP
 fi
 

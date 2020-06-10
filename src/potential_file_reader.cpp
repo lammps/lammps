@@ -22,6 +22,7 @@
 #include "potential_file_reader.h"
 #include "utils.h"
 #include "tokenizer.h"
+#include "fmt/format.h"
 
 #include <cstring>
 
@@ -29,101 +30,129 @@ using namespace LAMMPS_NS;
 
 PotentialFileReader::PotentialFileReader(LAMMPS *lmp,
                                          const std::string &filename,
-                                         const std::string &potential_name) : Pointers(lmp), filename(filename) {
+                                         const std::string &potential_name) :
+  Pointers(lmp),
+  reader(nullptr),
+  filename(filename),
+  filetype(potential_name + " potential")
+{
   if (comm->me != 0) {
-    error->one(FLERR, "PotentialFileReader should only be called by proc 0!");
+    error->one(FLERR, "FileReader should only be called by proc 0!");
   }
 
-  fp = force->open_potential(filename.c_str());
-
-  if (fp == NULL) {
-    char str[128];
-    snprintf(str, 128, "cannot open %s potential file %s", potential_name.c_str(), filename.c_str());
-    error->one(FLERR, str);
+  try {
+    reader = open_potential(filename);
+    if(!reader) {
+      error->one(FLERR, fmt::format("cannot open {} potential file {}", potential_name, filename));
+    }
+  } catch (FileReaderException & e) {
+    error->one(FLERR, e.what());
   }
 }
 
 PotentialFileReader::~PotentialFileReader() {
-  fclose(fp);
+  delete reader;
+}
+
+void PotentialFileReader::ignore_comments(bool value) {
+  reader->ignore_comments = value;
 }
 
 void PotentialFileReader::skip_line() {
-  char *ptr = fgets(line, MAXLINE, fp);
-  if (ptr == nullptr) {
-    // EOF
-    char str[128];
-    snprintf(str, 128, "Missing line in %s potential file!", potential_name.c_str());
-    error->one(FLERR, str);
+  try {
+    reader->skip_line();
+  } catch (FileReaderException & e) {
+    error->one(FLERR, e.what());
   }
 }
 
 char *PotentialFileReader::next_line(int nparams) {
-  // concatenate lines until have nparams words
-  int n = 0;
-  int nwords = 0;
-
-  char *ptr = fgets(line, MAXLINE, fp);
-
-  if (ptr == nullptr) {
-    // EOF
-    return nullptr;
+  try {
+    return reader->next_line(nparams);
+  } catch (FileReaderException & e) {
+    error->one(FLERR, e.what());
   }
-
-  // strip comment
-  if ((ptr = strchr(line, '#'))) *ptr = '\0';
-
-  nwords = utils::count_words(line);
-
-  if (nwords > 0) {
-    n = strlen(line);
-  }
-
-  while(nwords < nparams) {
-    char *ptr = fgets(&line[n], MAXLINE - n, fp);
-
-    if (ptr == nullptr) {
-      // EOF
-      if (nwords > 0 && nwords < nparams) {
-        char str[128];
-        snprintf(str, 128, "Incorrect format in %s potential file! %d/%d parameters", potential_name.c_str(), nwords, nparams);
-        error->one(FLERR, str);
-      }
-
-      return nullptr;
-    }
-
-
-    // strip comment
-    if ((ptr = strchr(line, '#'))) *ptr = '\0';
-
-    nwords = utils::count_words(line);
-
-    // skip line if blank
-    if (nwords > 0) {
-      n = strlen(line);
-    }
-  }
-
-  return line;
+  return nullptr;
 }
 
-void PotentialFileReader::next_dvector(int n, double * list) {
-  int i = 0;
-  while (i < n) {
-    char *ptr = fgets(line, MAXLINE, fp);
-
-    if (ptr == nullptr) {
-      // EOF
-      if (i < n) {
-        char str[128];
-        snprintf(str, 128, "Incorrect format in %s potential file! %d/%d values", potential_name.c_str(), i, n);
-        error->one(FLERR, str);
-      }
-    }
-
-    ValueTokenizer values(line);
-    while(values.has_next()) {
-      list[i++] = values.next_double();
-    }
+void PotentialFileReader::next_dvector(double * list, int n) {
+  try {
+    return reader->next_dvector(list, n);
+  } catch (FileReaderException & e) {
+    error->one(FLERR, e.what());
   }
+}
+
+ValueTokenizer PotentialFileReader::next_values(int nparams, const std::string & seperators) {
+  try {
+    return reader->next_values(nparams, seperators);
+  } catch (FileReaderException & e) {
+    error->one(FLERR, e.what());
+  }
+  return ValueTokenizer("");
+}
+
+double PotentialFileReader::next_double() {
+  try {
+    char * line = reader->next_line(1);
+    return ValueTokenizer(line).next_double();
+  } catch (FileReaderException & e) {
+    error->one(FLERR, e.what());
+  }
+  return 0.0;
+}
+
+int PotentialFileReader::next_int() {
+  try {
+    char * line = reader->next_line(1);
+    return ValueTokenizer(line).next_int();
+  } catch (FileReaderException & e) {
+    error->one(FLERR, e.what());
+  }
+  return 0;
+}
+
+tagint PotentialFileReader::next_tagint() {
+  try {
+    char * line = reader->next_line(1);
+    return ValueTokenizer(line).next_tagint();
+  } catch (FileReaderException & e) {
+    error->one(FLERR, e.what());
+  }
+  return 0;
+}
+
+bigint PotentialFileReader::next_bigint() {
+  try {
+    char * line = reader->next_line(1);
+    return ValueTokenizer(line).next_bigint();
+  } catch (FileReaderException & e) {
+    error->one(FLERR, e.what());
+  }
+  return 0;
+}
+
+std::string PotentialFileReader::next_string() {
+  try {
+    char * line = reader->next_line(1);
+    return ValueTokenizer(line).next_string();
+  } catch (FileReaderException & e) {
+    error->one(FLERR, e.what());
+  }
+  return "";
+}
+
+TextFileReader * PotentialFileReader::open_potential(const std::string& path) {
+  std::string filepath = utils::get_potential_file_path(path);
+  std::string date;
+
+  if(!filepath.empty()) {
+    date = utils::get_potential_date(filepath, filetype);
+
+    if(!date.empty()) {
+      utils::logmesg(lmp, fmt::format("Reading potential file {} with DATE: {}\n", filename, date));
+    }
+    return new TextFileReader(filepath, filetype);
+  }
+  return nullptr;
 }

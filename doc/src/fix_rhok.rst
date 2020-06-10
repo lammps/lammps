@@ -3,6 +3,9 @@
 fix rhok command
 ================
 
+Syntax
+""""""
+
 .. parsed-literal::
 
    fix ID group-ID rhok nx ny nz K a

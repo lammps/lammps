@@ -160,7 +160,7 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // allocate per-field memory
   // process line of keywords
 
-  nfield_initial = utils::count_words(line);
+  nfield_initial = utils::trim_and_count_words(line);
   allocate();
   parse_fields(line);
 

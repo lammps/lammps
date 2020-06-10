@@ -126,7 +126,7 @@ if(GPU_API STREQUAL "CUDA")
 elseif(GPU_API STREQUAL "OPENCL")
   if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     # download and unpack support binaries for compilation of windows binaries.
-    set(LAMMPS_THIRDPARTY_URL "http://download.lammps.org/thirdparty")
+    set(LAMMPS_THIRDPARTY_URL "https://download.lammps.org/thirdparty")
     file(DOWNLOAD "${LAMMPS_THIRDPARTY_URL}/opencl-win-devel.tar.gz" "${CMAKE_CURRENT_BINARY_DIR}/opencl-win-devel.tar.gz"
             EXPECTED_MD5 2c00364888d5671195598b44c2e0d44d)
     execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf opencl-win-devel.tar.gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

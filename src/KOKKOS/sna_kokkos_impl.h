@@ -324,7 +324,7 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
 
   const double wj_local = wj(iatom, jnbor);
   const double rcut = rcutij(iatom, jnbor);
-  const int jelem = element(iatom, jnbor);
+  const int jpos = element(iatom, jnbor)*idxu_max;
 
   const double rsq = x * x + y * y + z * z;
   const double r = sqrt(rsq);
@@ -351,7 +351,7 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
   Kokkos::single(Kokkos::PerThread(team), [=]() {
     //ulist(0,iatom,jnbor) = { 1.0, 0.0 };
     buf1[0] = {1.,0.};
-    Kokkos::atomic_add(&(ulisttot(0,iatom).re), sfac);
+    Kokkos::atomic_add(&(ulisttot(jpos,iatom).re), sfac);
   });
 
   for (int j = 1; j <= twojmax; j++) {
@@ -380,7 +380,7 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
       int mb = m / n_ma;
 
       // index into global memory array
-      const int jju_index = jju+m;
+      const int jju_index = jju+m+jpos;
       //const int jjup_index = jjup+mb*j+ma;
 
       // index into shared memory buffer for this level
@@ -407,8 +407,8 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
       // back up into shared memory for next iter
       buf2[jju_shared_idx] = u_accum;
 
-      Kokkos::atomic_add(&(ulisttot(jelem*idxu_max+jju_index,iatom).re), sfac * u_accum.re);
-      Kokkos::atomic_add(&(ulisttot(jelem*idxu_max+jju_index,iatom).im), sfac * u_accum.im);
+      Kokkos::atomic_add(&(ulisttot(jju_index,iatom).re), sfac * u_accum.re);
+      Kokkos::atomic_add(&(ulisttot(jju_index,iatom).im), sfac * u_accum.im);
 
       // copy left side to right side with inversion symmetry VMK 4.4(2)
       // u[ma-j,mb-j] = (-1)^(ma-mb)*Conj([u[ma,mb))
@@ -417,7 +417,7 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
       if (m < total_iters - 1 || j % 2 == 1) {
         const int sign_factor = (((ma+mb)%2==0)?1:-1);
         const int jju_shared_flip = (j+1-mb)*(j+1)-(ma+1);
-        const int jjup_flip = jju + jju_shared_flip; // jju+(j+1-mb)*(j+1)-(ma+1);
+        const int jjup_flip = jju + jju_shared_flip + jpos; // jju+(j+1-mb)*(j+1)-(ma+1);
 
 
         if (sign_factor == 1) {
@@ -428,8 +428,8 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
         //ulist(jjup_flip,iatom,jnbor) = u_accum;
         buf2[jju_shared_flip] = u_accum;
 
-        Kokkos::atomic_add(&(ulisttot(jelem*idxu_max+jjup_flip,iatom).re), sfac * u_accum.re);
-        Kokkos::atomic_add(&(ulisttot(jelem*idxu_max+jjup_flip,iatom).im), sfac * u_accum.im);
+        Kokkos::atomic_add(&(ulisttot(jjup_flip,iatom).re), sfac * u_accum.re);
+        Kokkos::atomic_add(&(ulisttot(jjup_flip,iatom).im), sfac * u_accum.im);
       }
     });
     // In CUDA backend,
@@ -722,7 +722,7 @@ void SNAKokkos<DeviceType>::compute_fused_deidrj(const typename Kokkos::TeamPoli
 
   // Accumulate the full contribution to dedr on the fly
   const double du_prod = dsfac * u; // chain rule
-  const SNAcomplex y_local = ylist(0, iatom);
+  const SNAcomplex y_local = ylist(jpos, iatom);
 
   // Symmetry factor of 0.5 b/c 0 element is on diagonal for even j==0
   double dedr_full_sum = 0.5 * du_prod * y_local.re;
@@ -1047,7 +1047,6 @@ void SNAKokkos<DeviceType>::add_uarraytot(const typename Kokkos::TeamPolicy<Devi
                                           double r, double wj, double rcut, int jelem)
 {
   const double sfac = compute_sfac(r, rcut) * wj;
-  // I think this for loop is the problem
   Kokkos::parallel_for(Kokkos::ThreadVectorRange(team,idxu_max),
       [&] (const int& i) {
     Kokkos::atomic_add(&(ulisttot(jelem*idxu_max+i,iatom).re), sfac * ulist(i,iatom,jnbor).re);

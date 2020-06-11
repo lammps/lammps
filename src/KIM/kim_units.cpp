@@ -1370,9 +1370,9 @@ double get_unit_conversion_factor(unit_type &unit_type_enum,
 
 //  Wrapper to the routine that gets the unit conversion. Translates strings
 //  to enumerations and then call get_unit_conversion_factor()
-int lammps_unit_conversion(string const &unit_type_str,
-                           string const &from_system_str,
-                           string const &to_system_str,
+int lammps_unit_conversion(const string &unit_type_str,
+                           const string &from_system_str,
+                           const string &to_system_str,
                            double &conversion_factor)
 {
     // initialize

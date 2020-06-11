@@ -53,7 +53,7 @@
    Designed for use with the kim-api-2.0.2 (and newer) package
 ------------------------------------------------------------------------- */
 
-int lammps_unit_conversion(std::string const &unit_type_str,
-                           std::string const &from_system_str,
-                           std::string const &to_system_str,
+int lammps_unit_conversion(const std::string &unit_type_str,
+                           const std::string &from_system_str,
+                           const std::string &to_system_str,
                            double &conversion_factor);

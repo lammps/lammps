@@ -309,11 +309,11 @@ char *Input::one(const std::string &single)
 /* ----------------------------------------------------------------------
    Send text to active echo file pointers
 ------------------------------------------------------------------------- */
-void Input::write_echo(const char *txt)
+void Input::write_echo(const std::string &txt)
 {
   if (me == 0) {
-    if (echo_screen && screen) fputs(txt,screen);
-    if (echo_log && logfile) fputs(txt,logfile);
+    if (echo_screen && screen) fputs(txt.c_str(),screen);
+    if (echo_log && logfile) fputs(txt.c_str(),logfile);
   }
 }
 

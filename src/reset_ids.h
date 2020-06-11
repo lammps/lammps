@@ -53,17 +53,6 @@ class ResetIDs : protected Pointers {
   static int sort_bins(int, char *, int &, int *&, char *&, void *);
   
   void sort();
-  
-  // union data struct for packing 32-bit and 64-bit ints into double bufs
-  // see atom_vec.h for documentation
-
-  union ubuf {
-    double d;
-    int64_t i;
-    ubuf(double arg) : d(arg) {}
-    ubuf(int64_t arg) : i(arg) {}
-    ubuf(int arg) : i(arg) {}
-  };
 };
 
 }

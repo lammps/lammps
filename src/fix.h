@@ -242,17 +242,6 @@ class Fix : protected Pointers {
   void v_tally(int, int *, double, double *);
   void v_tally(int, double *);
   void v_tally(int, int, double);
-
-  // union data struct for packing 32-bit and 64-bit ints into double bufs
-  // see atom_vec.h for documentation
-
-  union ubuf {
-    double d;
-    int64_t i;
-    ubuf(double arg) : d(arg) {}
-    ubuf(int64_t arg) : i(arg) {}
-    ubuf(int arg) : i(arg) {}
-  };
 };
 
 namespace FixConst {

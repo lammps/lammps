@@ -32,6 +32,10 @@ TEST(Utils, trim_and_count_words) {
     ASSERT_EQ(utils::trim_and_count_words("some text # comment"), 2);
 }
 
+TEST(Utils, count_words_with_extra_spaces) {
+    ASSERT_EQ(utils::count_words("   some text # comment   "), 4);
+}
+
 TEST(Utils, valid_integer1) {
     ASSERT_TRUE(utils::is_integer("10"));
 }

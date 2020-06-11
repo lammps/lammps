@@ -514,8 +514,8 @@ char *AtomVecHybrid::merge_fields(int inum, char *root,
 
   // identify unique words in concatenated string
 
-  Tokenizer words(concat, " ");
-  int nwords = words.count();
+  std::vector<std::string> words = Tokenizer(concat, " ").as_vector();
+  int nwords = words.size();
 
   int *unique = new int[nwords];
 

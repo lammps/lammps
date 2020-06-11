@@ -369,8 +369,20 @@ std::string utils::trim_comment(const std::string & line) {
 ------------------------------------------------------------------------- */
 
 size_t utils::count_words(const std::string & text, const std::string & seperators) {
-  ValueTokenizer words(text, seperators);
-  return words.count();
+  size_t count = 0;
+  size_t start = text.find_first_not_of(seperators);
+
+  while (start != std::string::npos) {
+    size_t end = text.find_first_of(seperators, start);
+    ++count;
+
+    if(end == std::string::npos) {
+      return count;
+    } else {
+      start = text.find_first_not_of(seperators, end + 1);
+    }
+  }
+  return count;
 }
 
 /* ----------------------------------------------------------------------

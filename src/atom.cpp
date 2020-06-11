@@ -2050,7 +2050,7 @@ void Atom::setup_sort_bins()
 
 void Atom::add_callback(int flag)
 {
-  int ifix;
+  int ifix, i, j;
 
   // find the fix
   // if find NULL ptr:
@@ -2062,28 +2062,63 @@ void Atom::add_callback(int flag)
   for (ifix = 0; ifix < modify->nfix; ifix++)
     if (modify->fix[ifix] == NULL) break;
 
-  // add callback to lists, reallocating if necessary
+  // insert callback into sorted lists, reallocating if necessary
+  // sorting is required in cases where fixes were replaced as it ensures atom
+  // data is read/written/transfered in the same order that fixes are called
 
   if (flag == 0) {
     if (nextra_grow == nextra_grow_max) {
       nextra_grow_max += DELTA;
       memory->grow(extra_grow,nextra_grow_max,"atom:extra_grow");
     }
-    extra_grow[nextra_grow] = ifix;
+
+    for(i = 0; i < nextra_grow; i ++)
+        if(ifix < extra_grow[i]) break;
+
+    if(i == nextra_grow) {
+      extra_grow[nextra_grow] = ifix;
+    } else {
+      for(j = nextra_grow-1; j >= i; j --)
+          extra_grow[j+1] = extra_grow[j];
+      extra_grow[i] = ifix;
+    }
+
     nextra_grow++;
   } else if (flag == 1) {
     if (nextra_restart == nextra_restart_max) {
       nextra_restart_max += DELTA;
       memory->grow(extra_restart,nextra_restart_max,"atom:extra_restart");
     }
-    extra_restart[nextra_restart] = ifix;
+
+    for(i = 0; i < nextra_restart; i ++)
+        if(ifix < extra_restart[i]) break;
+
+    if(i == nextra_restart) {
+      extra_restart[nextra_restart] = ifix;
+    } else {
+      for(j = nextra_restart-1; j >= i; j --)
+          extra_restart[j+1] = extra_restart[j];
+      extra_restart[i] = ifix;
+    }     
+
     nextra_restart++;
   } else if (flag == 2) {
     if (nextra_border == nextra_border_max) {
       nextra_border_max += DELTA;
       memory->grow(extra_border,nextra_border_max,"atom:extra_border");
     }
-    extra_border[nextra_border] = ifix;
+
+    for(i = 0; i < nextra_border; i ++)
+        if(ifix < extra_border[i]) break;
+
+    if(i == nextra_border) {
+      extra_border[nextra_border] = ifix;
+    } else {
+      for(j = nextra_border-1; j >= i; j --)
+          extra_border[j+1] = extra_border[j];
+      extra_border[i] = ifix;
+    }
+
     nextra_border++;
   }
 }

@@ -24,7 +24,7 @@ KOKKOS_DEVICES ?= "OpenMP"
 # ARM:      ARMv80,ARMv81,ARMv8-ThunderX,ARMv8-TX2
 # IBM:      BGQ,Power7,Power8,Power9
 # AMD-GPUS: Vega900,Vega906
-# AMD-CPUS: AMDAVX,Ryzen,EPYC
+# AMD-CPUS: AMDAVX,EPYC
 KOKKOS_ARCH ?= ""
 # Options: yes,no
 KOKKOS_DEBUG ?= "no"
@@ -394,7 +394,6 @@ KOKKOS_INTERNAL_USE_ARCH_IBM := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_
 
 # AMD based.
 KOKKOS_INTERNAL_USE_ARCH_AMDAVX := $(call kokkos_has_string,$(KOKKOS_ARCH),AMDAVX)
-KOKKOS_INTERNAL_USE_ARCH_RYZEN := $(call kokkos_has_string,$(KOKKOS_ARCH),Ryzen)
 KOKKOS_INTERNAL_USE_ARCH_EPYC := $(call kokkos_has_string,$(KOKKOS_ARCH),EPYC)
 KOKKOS_INTERNAL_USE_ARCH_VEGA900 := $(call kokkos_has_string,$(KOKKOS_ARCH),Vega900)
 KOKKOS_INTERNAL_USE_ARCH_VEGA906 := $(call kokkos_has_string,$(KOKKOS_ARCH),Vega906)

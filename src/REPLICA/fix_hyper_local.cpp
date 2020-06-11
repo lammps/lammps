@@ -509,7 +509,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
       }
       m++;
     }
-    
+
     maxhalf[iold] = ijhalf;
     maxhalfstrain[iold] = halfstrain;
   }
@@ -569,7 +569,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
       eligible[iold] = 0;
       continue;
     }
-    
+
     jlist = firstneigh[iold];
     jnum = numneigh[iold];
 

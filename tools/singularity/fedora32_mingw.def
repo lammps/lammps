@@ -4,7 +4,7 @@ From: fedora:32
 %post
         dnf -y update
         dnf -y install vim-enhanced git file make cmake patch which file Lmod \
-               ninja-build clang libomp-devel libubsan libasan libtsan \
+               ninja-build clang libomp-devel libubsan libasan libtsan diffutils \
                dos2unix findutils rsync python-devel libjpeg-devel libpng-devel \
                ccache gcc-c++ gcc-gfortran gdb valgrind eigen3-devel openblas-devel \
                openmpi-devel mpich-devel fftw-devel voro++-devel gsl-devel hdf5-devel \
@@ -35,8 +35,36 @@ From: fedora:32
                texlive-latex-bin texlive-lualatex-math texlive-fncychap texlive-tabulary \
                texlive-framed texlive-wrapfig texlive-upquote texlive-capt-of \
                texlive-needspace texlive-titlesec texlive-anysize texlive-dvipng \
-               blas-devel lapack-devel diffutils
+               blas-devel lapack-devel libyaml-devel openkim-models kim-api-devel
         dnf clean all
+
+        # enable Lmod and load MPI
+        source /usr/share/lmod/lmod/init/profile
+        module purge
+        module load mpi
+
+        # manually install Plumed
+        mkdir plumed
+        cd plumed
+        version=2.6.0
+        curl -L -o plumed.tar.gz https://github.com/plumed/plumed2/releases/download/v${version}/plumed-src-${version}.tgz
+        tar -xzf plumed.tar.gz
+        cd plumed-${version}
+        ./configure --disable-doc --prefix=/usr
+        make
+        make install
+        # fix up installation for CentOS and Fedora
+        mv -v /usr/lib64/pkgconfig/plumed* /usr/share/pkgconfig/
+        cd ../../
+        rm -rvf plumed
+
+        # set custom prompt indicating the container name
+        CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
+        cat >$CUSTOM_PROMPT_ENV <<EOF
+#!/bin/bash
+PS1="[fedora32:\u@\h] \W> "
+EOF
+        chmod 755 $CUSTOM_PROMPT_ENV
 
 %environment
         # we need to reset any module variables
@@ -57,6 +85,11 @@ From: fedora:32
         # load MPI by default
         . /etc/profile
         module load mpi
+        # restrict OpenMPI to shared memory comm by default
+        OMPI_MCA_btl="tcp,self"
+        # do not warn about unused components as this messes up testing
+        OMPI_MCA_btl_base_warn_component_unused="0"
+        export OMPI_MCA_btl OMPI_MCA_btl_base_warn_component_unused
 
 %labels
         Author akohlmey, rbberger

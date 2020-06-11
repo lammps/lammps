@@ -8,7 +8,7 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID wall/gran/region fstyle fstyle_params wallstyle regionID
+   fix ID group-ID wall/gran/region fstyle fstyle_params wallstyle regionID keyword values ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * wall/region = style name of this fix command
@@ -36,6 +36,12 @@ Syntax
 
 * wallstyle = region (see :doc:`fix wall/gran <fix_wall_gran>` for options for other kinds of walls)
 * region-ID = region whose boundary will act as wall
+* keyword = *contacts*
+
+  .. parsed-literal::
+
+      *contacts* value = none
+         generate contact information for each particle
 
 Examples
 """"""""
@@ -46,6 +52,7 @@ Examples
    fix 3 all wall/gran/region granular hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 damping velocity region myBox
    fix 4 all wall/gran/region granular jkr 1e5 1500.0 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall region myCone
    fix 5 all wall/gran/region granular dmt 1e5 0.2 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall damping tsuji region myCone
+   fix wall all wall/gran/region hooke/history 1000.0 200.0 200.0 100.0 0.5 1 region myCone contacts
 
 Description
 """""""""""
@@ -215,11 +222,37 @@ uninterrupted fashion.
    use the same fix ID for fix wall/gran/region, but assign it a region
    with a different region ID.
 
-None of the :doc:`fix_modify <fix_modify>` options are relevant to this
-fix.  No global or per-atom quantities are stored by this fix for
-access by various :doc:`output commands <Howto_output>`.  No parameter
-of this fix can be used with the *start/stop* keywords of the
-:doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+If the :code:`contacts` option is used, this fix generates a per-atom array
+with 8 columns as output, containing the contact information for owned
+particles (nlocal on each processor). All columns in this per-atom array will
+be zero if no contact has occurred. The values of these columns are listed in
+the following table:
+
++-------+----------------------------------------------------+----------------+
+| Index | Value                                              | Units          |
++=======+====================================================+================+
+|     1 | 1.0 if particle is in contact with wall,           |                |
+|       | 0.0 otherwise                                      |                |
++-------+----------------------------------------------------+----------------+
+|     2 | Force :math:`f_x` exerted on the wall              | force units    |
++-------+----------------------------------------------------+----------------+
+|     3 | Force :math:`f_y` exerted on the wall              | force units    |
++-------+----------------------------------------------------+----------------+
+|     4 | Force :math:`f_z` exerted on the wall              | force units    |
++-------+----------------------------------------------------+----------------+
+|     5 | :math:`\Delta x` between wall surface and particle | distance units |
++-------+----------------------------------------------------+----------------+
+|     6 | :math:`\Delta y` between wall surface and particle | distance units |
++-------+----------------------------------------------------+----------------+
+|     7 | :math:`\Delta z` between wall surface and particle | distance units |
++-------+----------------------------------------------------+----------------+
+|     8 | Radius :math:`r` of atom                           | distance units |
++-------+----------------------------------------------------+----------------+
+
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this fix.
+No parameter of this fix can be used with the *start/stop* keywords of the
+:doc:`run <run>` command. This fix is not invoked during :doc:`energy
+minimization <minimize>`.
 
 Restrictions
 """"""""""""

@@ -29,6 +29,7 @@
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -251,7 +252,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
 
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     ptr = strtok(line," \t\n\r\f");
@@ -323,7 +324,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
 
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
 
-      nwords = atom->count_words(line);
+      nwords = utils::count_words(line);
       if (nwords == 0) continue;
 
       ptr = strtok(line," \t\n\r\f");

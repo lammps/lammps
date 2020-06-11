@@ -34,6 +34,8 @@ class PairSW : public Pair {
   virtual double init_one(int, int);
   virtual void init_style();
 
+  static const int NPARAMS_PER_LINE = 14;
+
   struct Param {
     double epsilon,sigma;
     double littlea,lambda,gamma,costheta;

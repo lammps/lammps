@@ -95,9 +95,7 @@ OPT.
    * :doc:`lb/viscous <fix_lb_viscous>`
    * :doc:`lineforce <fix_lineforce>`
    * :doc:`manifoldforce <fix_manifoldforce>`
-   * :doc:`meso <fix_meso>`
    * :doc:`meso/move <fix_meso_move>`
-   * :doc:`meso/stationary <fix_meso_stationary>`
    * :doc:`momentum (k) <fix_momentum>`
    * :doc:`move <fix_move>`
    * :doc:`mscg <fix_mscg>`
@@ -149,6 +147,7 @@ OPT.
    * :doc:`oneway <fix_oneway>`
    * :doc:`orient/bcc <fix_orient>`
    * :doc:`orient/fcc <fix_orient>`
+   * :doc:`orient/eco <fix_orient_eco>`
    * :doc:`phonon <fix_phonon>`
    * :doc:`pimd <fix_pimd>`
    * :doc:`planeforce <fix_planeforce>`
@@ -202,6 +201,8 @@ OPT.
    * :doc:`smd/move_tri_surf <fix_smd_move_triangulated_surface>`
    * :doc:`smd/setvel <fix_smd_setvel>`
    * :doc:`smd/wall_surface <fix_smd_wall_surface>`
+   * :doc:`sph <fix_sph>`
+   * :doc:`sph/stationary <fix_sph_stationary>`
    * :doc:`spring <fix_spring>`
    * :doc:`spring/chunk <fix_spring_chunk>`
    * :doc:`spring/rg <fix_spring_rg>`

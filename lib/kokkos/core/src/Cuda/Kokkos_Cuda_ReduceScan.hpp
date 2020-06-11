@@ -97,7 +97,9 @@ __device__ inline
   // Depending on the ValueType _shared__ memory must be aligned up to 8byte
   // boundaries The reason not to use ValueType directly is that for types with
   // constructors it could lead to race conditions
-  __shared__ double sh_result[(sizeof(ValueType) + 7) / 8 * STEP_WIDTH];
+  alignas(alignof(ValueType) > alignof(double) ? alignof(ValueType)
+                                               : alignof(double))
+      __shared__ double sh_result[(sizeof(ValueType) + 7) / 8 * STEP_WIDTH];
   ValueType* result = (ValueType*)&sh_result;
   const int step    = 32 / blockDim.x;
   int shift         = STEP_WIDTH;
@@ -282,7 +284,9 @@ __device__ inline
   // Depending on the ValueType _shared__ memory must be aligned up to 8byte
   // boundaries The reason not to use ValueType directly is that for types with
   // constructors it could lead to race conditions
-  __shared__ double sh_result[(sizeof(ValueType) + 7) / 8 * STEP_WIDTH];
+  alignas(alignof(ValueType) > alignof(double) ? alignof(ValueType)
+                                               : alignof(double))
+      __shared__ double sh_result[(sizeof(ValueType) + 7) / 8 * STEP_WIDTH];
   ValueType* result = (ValueType*)&sh_result;
   const int step    = 32 / blockDim.x;
   int shift         = STEP_WIDTH;

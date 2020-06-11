@@ -57,53 +57,252 @@ variable during configuration. Examples:
 
 .. _testing:
 
-Code Coverage and Testing
----------------------------------------
+Code Coverage and Unit Testing
+------------------------------
 
-We do extensive regression testing of the LAMMPS code base on a continuous
-basis. Some of the logic to do this has been added to the CMake build so
-developers can run the tests directly on their workstation.
+The LAMMPS code is subject to multiple levels of automated testing
+during development: integration testing (i.e. whether the code compiles
+on various platforms and with a variety of settings), unit testing
+(i.e. whether certain individual parts of the code produce the expected
+results for given inputs), run testing (whether selected complete input
+decks run without crashing for multiple configurations), and regression
+testing (i.e. whether selected input examples reproduce the same
+results over a given number of steps and operations within a given
+error margin).  The status of this automated testing can be viewed on
+`https://ci.lammps.org <https://ci.lammps.org>`_.
+
+The unit testing facility is integrated into the CMake build process
+of the LAMMPS source code distribution itself.  It can be enabled by
+setting ``-D ENABLE_TESTING=on`` during the CMake configuration step.
+It requires the `YAML <http://pyyaml.org/>`_ library and development
+headers to compile and will download and compile a recent version of the
+`Googletest <https://github.com/google/googletest/>`_ C++ test framework
+for implementing the tests.
+
+After compilation is complete, the unit testing is started in the build
+folder using the ``ctest`` command, which is part of the CMake software.
+The output of this command will be looking something like this::
+
+   [...]$ ctest
+   Test project /home/akohlmey/compile/lammps/build-testing
+         Start  1: MolPairStyle:hybrid-overlay
+    1/26 Test  #1: MolPairStyle:hybrid-overlay .........   Passed    0.02 sec
+         Start  2: MolPairStyle:hybrid
+    2/26 Test  #2: MolPairStyle:hybrid .................   Passed    0.01 sec
+         Start  3: MolPairStyle:lj_class2
+    [...]
+         Start 25: AngleStyle:harmonic
+   25/26 Test #25: AngleStyle:harmonic .................   Passed    0.01 sec
+         Start 26: AngleStyle:zero
+   26/26 Test #26: AngleStyle:zero .....................   Passed    0.01 sec
+   
+   100% tests passed, 0 tests failed out of 26
+   
+   Total Test time (real) =   0.27 sec
+
+
+The ``ctest`` command has many options, the most important ones are:
+
+.. list-table::
+
+   * - Option
+     - Function
+   * - -V
+     - verbose output: display output of individual test runs
+   * - -j <num>
+     - parallel run: run <num> tests in parallel
+   * - -R <regex>
+     - run subset of tests matching the regular expression <regex>
+   * - -E <regex>
+     - exclude subset of tests matching the regular expression <regex>
+   * - -N
+     - dry-run: display list of tests without running them
+
+In its full implementation, the unit test framework will consist of multiple
+kinds of tests implemented in different programming languages (C++, C, Python,
+Fortran) and testing different aspects of the LAMMPS software and its features.
+At the moment only tests for "force styles" are implemented. More on those
+in the next section.
 
 .. note::
 
-   this is incomplete and only represents a small subset of tests that we run
+   This unit test framework is new and still under development.
+   The coverage is only minimal and will be expanded over time.
+   Tests styles of the same kind of style (e.g. pair styles or
+   bond styles) are performed with the same executable using
+   different input files in YAML format.  So to add a test for
+   another pair style can be done by copying the YAML file and
+   editing the style settings and then running the individual test
+   program with a flag to update the computed reference data.
+   Detailed documentation about how to add new test program and
+   the contents of the YAML files for existing test programs
+   will be provided in time as well.
+
+Unit tests for force styles
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A large part of LAMMPS are different "styles" for computing non-bonded
+and bonded interactions selected through the :doc:`pair_style`,
+:doc:`bond_style`, :doc:`angle_style`, :doc:`dihedral_style`,
+:doc:`improper_style`, and :doc:`kspace_style`.  Since these all share
+common interfaces, it is possible to write generic test programs that
+will call those common interfaces for small test systems with less than
+100 atoms and compare the results with pre-recorded reference results.
+A test run is then a a collection multiple individual test runs each
+with many comparisons to reference results based on template input
+files, individual command settings, relative error margins, and
+reference data stored in a YAML format file with ``.yaml``
+suffix. Currently the programs ``pair_style``, ``bond_style``, and
+``angle_style`` are implemented.  They will compare forces, energies and
+(global) stress for all atoms after a ``run 0`` calculation and after a
+few steps of MD with :doc:`fix nve <fix_nve>`, each in multiple variants
+with different settings and also for multiple accelerated styles. If a
+prerequisite style or package is missing, the individual tests are
+skipped.  All tests will be executed on a single MPI process, so using
+the CMake option ``-D BUILD_MPI=off`` can significantly speed up testing,
+since this will skip the MPI initialization for each test run.
+Below is an example command and output:
+
+.. parsed-literal::
+
+   [tests]$ pair_style mol-pair-lj_cut.yaml
+   [==========] Running 6 tests from 1 test suite.
+   [----------] Global test environment set-up.
+   [----------] 6 tests from PairStyle
+   [ RUN      ] PairStyle.plain
+   [       OK ] PairStyle.plain (24 ms)
+   [ RUN      ] PairStyle.omp
+   [       OK ] PairStyle.omp (18 ms)
+   [ RUN      ] PairStyle.intel
+   [       OK ] PairStyle.intel (6 ms)
+   [ RUN      ] PairStyle.opt
+   [  SKIPPED ] PairStyle.opt (0 ms)
+   [ RUN      ] PairStyle.single
+   [       OK ] PairStyle.single (7 ms)
+   [ RUN      ] PairStyle.extract
+   [       OK ] PairStyle.extract (6 ms)
+   [----------] 6 tests from PairStyle (62 ms total)
+
+   [----------] Global test environment tear-down
+   [==========] 6 tests from 1 test suite ran. (63 ms total)
+   [  PASSED  ] 5 tests.
+   [  SKIPPED ] 1 test, listed below:
+   [  SKIPPED ] PairStyle.opt
+
+In this particular case, 5 out of 6 sets of tests were conducted, the
+tests for the ``lj/cut/opt`` pair style was skipped, since the tests
+executable did not include it.  To learn what individual tests are performed,
+you (currently) need to read the source code.  You can use code coverage
+recording (see next section) to confirm how well the tests cover the individual
+source files.
+
+The force style test programs have a common set of options:
+
+.. list-table::
+
+   * - Option
+     - Function
+   * - -g <newfile>
+     - regenerate reference data in new YAML file
+   * - -u
+     - update reference data in the original YAML file
+   * - -s
+     - print error statistics for each group of comparisons
+   * - -v
+     - verbose output: also print the executed LAMMPS commands
+
+To add a test for a style that is not yet covered, it is usually best
+to copy a YAML file for a similar style to a new file, edit the details
+of the style (how to call it, how to set its coefficients) and then
+run test command with either the *-g* and the replace the initial
+test file with the regenerated one or the *-u* option.  The *-u* option
+will destroy the original file, if the generation run does not complete,
+so using *-g* is recommended unless the YAML file is fully tested
+and working.
+
+.. admonition:: Recommendations and notes for YAML files
+   :class: note
+
+   - The reference results should be recorded without any code
+     optimization or related compiler flags enabled.
+   - The ``epsilon`` parameter defines the relative precision with which
+     the reference results must be met.  The test geometries often have
+     high and low energy parts and thus a significant impact from
+     floating-point math truncation errors is to be expected. Some
+     functional forms and potentials are more noisy than others, so this
+     parameter needs to be adjusted. Typically a value around 1.0e-13
+     can be used, but it may need to be as large as 1.0e-8 in some
+     cases.
+   - The tests for pair styles from OPT, USER-OMP and USER-INTEL are
+     performed with automatically rescaled epsilon to account for
+     additional loss of precision from code optimizations and different
+     summation orders.
+   - When compiling with aggressive compiler optimization, some tests
+     are likely to fail.  It is recommended to inspect the individual
+     tests in detail to decide whether the specific error for a specific
+     property is acceptable (it often is), or this may be an indication
+     of mis-compiled code (or undesired large of precision due to
+     reordering of operations).
+
+Collect and visualize code coverage metrics
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can also collect code coverage metrics while running LAMMPS or the
+tests by enabling code coverage support during the CMake configuration:
 
 .. code-block:: bash
 
-   -D ENABLE_TESTING=value               # enable simple run tests of LAMMPS, value = no (default) or yes
-   -D LAMMPS_TESTING_SOURCE_DIR=path     # path to lammps-testing repository (option if in custom location)
-   -D LAMMPS_TESTING_GIT_TAG=value       # version of lammps-testing repository that should be used, value = master (default) or custom git commit or tag
+   -D ENABLE_COVERAGE=on  # enable coverage measurements (off by default)
 
-If you enable testing in the CMake build it will create an additional
-target called "test". You can run them with:
+This will instrument all object files to write information about which
+lines of code were accessed during execution in files next to the
+corresponding object files.  These can be post-processed to visually
+show the degree of coverage and which code paths are accessed and which
+are not taken.  When working on unit tests (see above), this can be
+extremely helpful to determine which parts of the code are not executed
+and thus what kind of tests are still missing. The coverage data is
+cumulative, i.e. new data is added with each new run.
 
-.. code-block:: bash
-
-   cmake --build . test
-
-The test cases used come from the lammps-testing repository. They are
-derivatives of the examples folder with some modifications to make the
-run faster.
-
-You can also collect code coverage metrics while running the tests by
-enabling coverage support during building.
+Enabling code coverage will also add the following build targets to
+generate coverage reports after running the LAMMPS executable or the
+unit tests:
 
 .. code-block:: bash
 
-   -D ENABLE_COVERAGE=value  # enable coverage measurements, value = no (default) or yes
+   make gen_coverage_html   # generate coverage report in HTML format
+   make gen_coverage_xml    # generate coverage report in XML format
+   make clean_coverage_html # delete folder with HTML format coverage report
+   make reset_coverage      # delete all collected coverage data and HTML output
 
-This will also add the following targets to generate coverage reports
-after running the LAMMPS executable:
-
-.. code-block:: bash
-
-   make test               # run tests first!
-   make gen_coverage_html  # generate coverage report in HTML format
-   make gen_coverage_xml   # generate coverage report in XML format
-
-These reports require GCOVR to be installed. The easiest way to do this
-to install it via pip:
+These reports require `GCOVR <https://gcovr.com/>`_ to be installed. The easiest way
+to do this to install it via pip:
 
 .. code-block:: bash
 
    pip install git+https://github.com/gcovr/gcovr.git
+
+After post-processing with ``gen_coverage_html`` the results are in
+a folder ``coverage_html`` and can be viewed with a web browser.
+The images below illustrate how the data is presented.
+
+.. list-table::
+
+      * - .. figure:: JPG/coverage-overview-top.png
+             :target: JPG/coverage-overview-top.png
+
+          Top of the overview page
+
+        - .. figure:: JPG/coverage-overview-manybody.png
+             :target: JPG/coverage-overview-manybody.png
+
+          Styles with good coverage
+
+        - .. figure:: JPG/coverage-file-top.png
+             :target: JPG/coverage-file-top.png
+
+          Top of individual source page
+
+        - .. figure:: JPG/coverage-file-branches.png
+             :target: JPG/coverage-file-branches.png
+
+          Source page with branches

@@ -73,8 +73,7 @@ class KimQuery : protected Pointers {
   KimQuery(class LAMMPS *lmp) : Pointers(lmp) {};
   void command(int, char **);
  private:
-  void kim_query_log_delimiter(std::string const begin_end) const;
-  void echo_var_assign(std::string const & name, std::string const & value)
+  void echo_var_assign(const std::string &name, const std::string &value)
   const;
 };
 

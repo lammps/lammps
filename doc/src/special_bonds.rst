@@ -28,7 +28,8 @@ Syntax
        *angle* value = *yes* or *no*
        *dihedral* value = *yes* or *no*
 
-Examples:
+Examples
+""""""""
 
 .. code-block:: LAMMPS
 

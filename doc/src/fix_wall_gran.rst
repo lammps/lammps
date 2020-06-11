@@ -45,7 +45,7 @@ Syntax
          radius = cylinder radius (distance units)
 
 * zero or more keyword/value pairs may be appended to args
-* keyword = *wiggle* or *shear*
+* keyword = *wiggle* or *shear* or *contacts*
 
   .. parsed-literal::
 
@@ -56,6 +56,9 @@ Syntax
        *shear* values = dim vshear
          dim = *x* or *y* or *z*
          vshear = magnitude of shear velocity (velocity units)
+      *contacts* value = none
+         generate contact information for each particle
+
 
 Examples
 """"""""
@@ -68,6 +71,7 @@ Examples
    fix 3 all wall/gran/region granular hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 damping velocity region myBox
    fix 4 all wall/gran/region granular jkr 1e5 1500.0 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall region myCone
    fix 5 all wall/gran/region granular dmt 1e5 0.2 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall damping tsuji region myCone
+   fix 6 all wall/gran hooke  200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0 contacts
 
 Description
 """""""""""
@@ -171,6 +175,7 @@ the clockwise direction for *vshear* > 0 or counter-clockwise for
 *vshear* < 0.  In this case, *vshear* is the tangential velocity of
 the wall at whatever *radius* has been defined.
 
+
 **Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the shear friction state of atoms interacting with the
@@ -181,11 +186,37 @@ info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
-None of the :doc:`fix_modify <fix_modify>` options are relevant to this
-fix.  No global or per-atom quantities are stored by this fix for
-access by various :doc:`output commands <Howto_output>`.  No parameter
-of this fix can be used with the *start/stop* keywords of the
-:doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+If the :code:`contacts` option is used, this fix generates a per-atom array
+with 8 columns as output, containing the contact information for owned
+particles (nlocal on each processor). All columns in this per-atom array will
+be zero if no contact has occurred.  The values of these columns are listed in
+the following table:
+
++-------+----------------------------------------------------+----------------+
+| Index | Value                                              | Units          |
++=======+====================================================+================+
+|     1 | 1.0 if particle is in contact with wall,           |                |
+|       | 0.0 otherwise                                      |                |
++-------+----------------------------------------------------+----------------+
+|     2 | Force :math:`f_x` exerted on the wall              | force units    |
++-------+----------------------------------------------------+----------------+
+|     3 | Force :math:`f_y` exerted on the wall              | force units    |
++-------+----------------------------------------------------+----------------+
+|     4 | Force :math:`f_z` exerted on the wall              | force units    |
++-------+----------------------------------------------------+----------------+
+|     5 | :math:`\Delta x` between wall surface and particle | distance units |
++-------+----------------------------------------------------+----------------+
+|     6 | :math:`\Delta y` between wall surface and particle | distance units |
++-------+----------------------------------------------------+----------------+
+|     7 | :math:`\Delta z` between wall surface and particle | distance units |
++-------+----------------------------------------------------+----------------+
+|     8 | Radius :math:`r` of atom                           | distance units |
++-------+----------------------------------------------------+----------------+
+
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this fix.
+No parameter of this fix can be used with the *start/stop* keywords of the
+:doc:`run <run>` command. This fix is not invoked during :doc:`energy
+minimization <minimize>`.
 
 Restrictions
 """"""""""""

@@ -1286,8 +1286,8 @@ struct ViewOffset<
   /* Span of the range space */
   KOKKOS_INLINE_FUNCTION
   constexpr size_type span() const {
-    return m_stride * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 * m_dim.N5 *
-           m_dim.N6 * m_dim.N7;
+    return (m_dim.N0 > size_type(0) ? m_stride : size_type(0)) * m_dim.N1 *
+           m_dim.N2 * m_dim.N3 * m_dim.N4 * m_dim.N5 * m_dim.N6 * m_dim.N7;
   }
 
   KOKKOS_INLINE_FUNCTION constexpr bool span_is_contiguous() const {
@@ -1882,7 +1882,9 @@ struct ViewOffset<
 
   /* Span of the range space */
   KOKKOS_INLINE_FUNCTION
-  constexpr size_type span() const { return m_dim.N0 * m_stride; }
+  constexpr size_type span() const {
+    return size() > 0 ? m_dim.N0 * m_stride : 0;
+  }
 
   KOKKOS_INLINE_FUNCTION constexpr bool span_is_contiguous() const {
     return m_stride == m_dim.N7 * m_dim.N6 * m_dim.N5 * m_dim.N4 * m_dim.N3 *
@@ -2398,14 +2400,16 @@ struct ViewOffset<Dimension, Kokkos::LayoutStride, void> {
   /* Span of the range space, largest stride * dimension */
   KOKKOS_INLINE_FUNCTION
   constexpr size_type span() const {
-    return Max(m_dim.N0 * m_stride.S0,
-               Max(m_dim.N1 * m_stride.S1,
-                   Max(m_dim.N2 * m_stride.S2,
-                       Max(m_dim.N3 * m_stride.S3,
-                           Max(m_dim.N4 * m_stride.S4,
-                               Max(m_dim.N5 * m_stride.S5,
-                                   Max(m_dim.N6 * m_stride.S6,
-                                       m_dim.N7 * m_stride.S7)))))));
+    return size() == size_type(0)
+               ? size_type(0)
+               : Max(m_dim.N0 * m_stride.S0,
+                     Max(m_dim.N1 * m_stride.S1,
+                         Max(m_dim.N2 * m_stride.S2,
+                             Max(m_dim.N3 * m_stride.S3,
+                                 Max(m_dim.N4 * m_stride.S4,
+                                     Max(m_dim.N5 * m_stride.S5,
+                                         Max(m_dim.N6 * m_stride.S6,
+                                             m_dim.N7 * m_stride.S7)))))));
   }
 
   KOKKOS_INLINE_FUNCTION constexpr bool span_is_contiguous() const {

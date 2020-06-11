@@ -206,10 +206,13 @@ typedef int bigint;
 #define _noalias
 #endif
 
-// declaration to turn off optimization for specific functions
-// and avoid compiler warnings about variable tracking
+// Declaration to turn off optimization for specific noncritical
+// functions and avoid compiler warnings about variable tracking.
+// Disable for broken -D_FORTIFY_SOURCE feature.
 
-#if defined(__clang__)
+#if defined(_FORTIFY_SOURCE) && (_FORTIFY_SOURCE > 0)
+#define _noopt
+#elif defined(__clang__)
 #  define _noopt __attribute__((optnone))
 #elif defined(__INTEL_COMPILER)
 #  define _noopt

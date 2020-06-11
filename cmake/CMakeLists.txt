@@ -3,16 +3,24 @@
 # This file is part of LAMMPS
 # Created by Christoph Junghans and Richard Berger
 cmake_minimum_required(VERSION 3.10)
+# set policy to silence warnings about ignoring <PackageName>_ROOT but use it
+if(POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif()
+########################################
 
 project(lammps CXX)
 set(SOVERSION 0)
-get_filename_component(LAMMPS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src ABSOLUTE)
-get_filename_component(LAMMPS_LIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../lib ABSOLUTE)
+
+get_filename_component(LAMMPS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/.. ABSOLUTE)
 get_filename_component(LAMMPS_LIB_BINARY_DIR ${CMAKE_BINARY_DIR}/lib ABSOLUTE)
-get_filename_component(LAMMPS_DOC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../doc ABSOLUTE)
-get_filename_component(LAMMPS_TOOLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../tools ABSOLUTE)
-get_filename_component(LAMMPS_PYTHON_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../python ABSOLUTE)
-get_filename_component(LAMMPS_POTENTIALS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../potentials ABSOLUTE)
+
+set(LAMMPS_SOURCE_DIR     ${LAMMPS_DIR}/src)
+set(LAMMPS_LIB_SOURCE_DIR ${LAMMPS_DIR}/lib)
+set(LAMMPS_DOC_DIR        ${LAMMPS_DIR}/doc)
+set(LAMMPS_TOOLS_DIR      ${LAMMPS_DIR}/tools)
+set(LAMMPS_PYTHON_DIR     ${LAMMPS_DIR}/python)
+set(LAMMPS_POTENTIALS_DIR ${LAMMPS_DIR}/potentials)
 
 find_package(Git)
 
@@ -23,6 +31,12 @@ endif()
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Modules)
+
+# make sure LIBRARY_PATH is set if environment variable is set
+if (DEFINED ENV{LIBRARY_PATH})
+  list(APPEND CMAKE_LIBRARY_PATH "$ENV{LIBRARY_PATH}")
+  message(STATUS "Appending $ENV{LIBRARY_PATH} to CMAKE_LIBRARY_PATH: ${CMAKE_LIBRARY_PATH}")
+endif()
 
 include(LAMMPSUtils)
 
@@ -57,11 +71,11 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  set(CMAKE_TUNE_DEFAULT "-ffast-math -march=native")
+  set(CMAKE_TUNE_DEFAULT "-march=native")
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-  set(CMAKE_TUNE_DEFAULT "-ffast-math -march=native")
+  set(CMAKE_TUNE_DEFAULT "-march=native")
 endif()
 
 # we require C++11 without extensions
@@ -491,7 +505,7 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${LAMMPS_STYLE_HE
 # Generate lmpgitversion.h
 ######################################
 add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
-  -DCMAKE_CURRENT_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+  -DLAMMPS_DIR="${LAMMPS_DIR}"
   -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
   -DGIT_FOUND="${GIT_FOUND}"
   -DLAMMPS_STYLE_HEADERS_DIR="${LAMMPS_STYLE_HEADERS_DIR}"
@@ -538,8 +552,6 @@ if(BUILD_SHARED_LIBS)
   configure_file(pkgconfig/liblammps.pc.in ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_MACHINE}.pc @ONLY)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_MACHINE}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
   install(EXPORT LAMMPS_Targets FILE LAMMPS_Targets.cmake NAMESPACE LAMMPS:: DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LAMMPS)
-  file(GLOB MODULE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Modules/Find*.cmake)
-  install(FILES ${MODULE_FILES} DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LAMMPS)
   include(CMakePackageConfigHelpers)
   configure_file(LAMMPSConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/LAMMPSConfig.cmake @ONLY)
   write_basic_package_version_file("LAMMPSConfigVersion.cmake" VERSION ${PROJECT_VERSION} COMPATIBILITY ExactVersion)

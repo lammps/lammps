@@ -225,7 +225,7 @@ uninterrupted fashion.
 If the :code:`contacts` option is used, this fix generates a per-atom vector
 with 8 columns as output, containing the contact information for owned
 particles (nlocal on each processor). All columns in this per-atom vector will
-be zero if no contact has occured.  The values of these columns are listed in
+be zero if no contact has occurred. The values of these columns are listed in
 the following table:
 
 +-------+----------------------------------------------------+----------------+

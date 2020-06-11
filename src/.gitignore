@@ -637,6 +637,8 @@
 /fix_oneway.h
 /fix_orient_bcc.cpp
 /fix_orient_bcc.h
+/fix_orient_eco.cpp
+/fix_orient_eco.h
 /fix_orient_fcc.cpp
 /fix_orient_fcc.h
 /fix_peri_neigh.cpp

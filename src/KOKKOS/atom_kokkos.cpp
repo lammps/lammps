@@ -340,7 +340,8 @@ void AtomKokkos::sync_modify(ExecutionSpace execution_space,
   modified(execution_space,datamask_modify);
 }
 
-AtomVec *AtomKokkos::new_avec(const char *style, int trysuffix, int &sflag)
+AtomVec *AtomKokkos::new_avec(const std::string &style,
+                              int trysuffix, int &sflag)
 {
   AtomVec* avec = Atom::new_avec(style,trysuffix,sflag);
   if (!avec->kokkosable)

@@ -135,6 +135,7 @@ atan
 atc
 AtC
 ATC
+athermal
 athomps
 atm
 atomeye
@@ -223,6 +224,7 @@ Bfrac
 bgq
 Bh
 Bialke
+bicrystal
 Biersack
 bigbig
 bigint
@@ -284,6 +286,7 @@ br
 Branduardi
 Branicio
 brennan
+Brien
 Brilliantov
 Broadwell
 Broglie
@@ -720,6 +723,7 @@ ebook
 ebt
 ec
 Ec
+eco
 ecoul
 ecp
 Ecut
@@ -1822,6 +1826,7 @@ Modine
 mofff
 MOFFF
 Mohd
+Mohles
 mol
 Mol
 molfile
@@ -2163,6 +2168,7 @@ optimizations
 orangered
 organometallic
 orientational
+orientationsFile
 orientorder
 Orlikowski
 ornl
@@ -2628,6 +2634,7 @@ Schimansky
 Schiotz
 Schlitter
 Schmid
+Schratt
 Schoen
 Schotte
 Schulten
@@ -3040,6 +3047,7 @@ ul
 ulb
 Uleft
 uloop
+Ulomek
 ulsph
 uMech
 umin

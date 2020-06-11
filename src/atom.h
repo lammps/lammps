@@ -24,6 +24,7 @@ class Atom : protected Pointers {
  public:
   char *atom_style;
   class AtomVec *avec;
+  enum{DOUBLE,INT,BIGINT};
 
   // atom counts
 
@@ -262,8 +263,8 @@ class Atom : protected Pointers {
   void add_peratom_change_columns(const char *, int);
   void add_peratom_vary(const char *, void *, int, int *,
                         void *, int collength=0);
-  void create_avec(const char *, int, char **, int);
-  virtual class AtomVec *new_avec(const char *, int, int &);
+  void create_avec(const std::string &, int, char **, int);
+  virtual class AtomVec *new_avec(const std::string &, int, int &);
 
   void init();
   void setup();

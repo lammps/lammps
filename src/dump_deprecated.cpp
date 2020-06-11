@@ -12,29 +12,25 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_deprecated.h"
-#include <cstring>
+#include <string>
 #include "comm.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
-
-static void writemsg(LAMMPS *lmp, const char *msg, int abend=1)
-{
-  if (lmp->comm->me == 0) {
-    if (lmp->screen) fputs(msg,lmp->screen);
-    if (lmp->logfile) fputs(msg,lmp->logfile);
-  }
-  if (abend)
-    lmp->error->all(FLERR,"This dump style is no longer available");
-}
 
 /* ---------------------------------------------------------------------- */
 
 DumpDeprecated::DumpDeprecated(LAMMPS *lmp, int narg, char **arg) :
   Dump(lmp, narg, arg)
 {
-  if (strcmp(style,"DEPRECATED") == 0) {
-    writemsg(lmp,"\nDump style 'DEPRECATED' is a dummy style\n\n",0);
+  std::string my_style = style;
 
+  if (my_style == "DEPRECATED") {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp,"\nDump style 'DEPRECATED' is a dummy style\n\n");
+    return;
   }
+
+  lmp->error->all(FLERR,"This dump style is no longer available");
 }

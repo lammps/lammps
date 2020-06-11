@@ -227,7 +227,7 @@ void NPairKokkos<Space,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
         if (SIZE) {
           NPairKokkosBuildFunctorSize<Space,TRI?0:HALF_NEIGH,1,TRI> f(data,atoms_per_bin * 5 * sizeof(KK_FLOAT) * factor);
 #ifdef KOKKOS_ENABLE_CUDA
-          if (Space == Device) {
+          if (std::is_same<DeviceType,Kokkos::Cuda>::value) {
             int team_size = atoms_per_bin*factor;
             int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
             if (team_size <= team_size_max) {
@@ -245,7 +245,7 @@ void NPairKokkos<Space,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
         } else {
           NPairKokkosBuildFunctor<Space,TRI?0:HALF_NEIGH,1,TRI> f(data,atoms_per_bin * 5 * sizeof(KK_FLOAT) * factor);
 #ifdef KOKKOS_ENABLE_CUDA
-          if (Space == Device) {
+          if (std::is_same<DeviceType,Kokkos::Cuda>::value) {
             int team_size = atoms_per_bin*factor;
             int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
             if (team_size <= team_size_max) {
@@ -265,7 +265,7 @@ void NPairKokkos<Space,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
         if (SIZE) {
           NPairKokkosBuildFunctorSize<Space,HALF_NEIGH,0,0> f(data,atoms_per_bin * 5 * sizeof(KK_FLOAT) * factor);
 #ifdef KOKKOS_ENABLE_CUDA
-          if (Space == Device) {
+          if (std::is_same<DeviceType,Kokkos::Cuda>::value) {
             int team_size = atoms_per_bin*factor;
             int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
             if (team_size <= team_size_max) {
@@ -283,7 +283,7 @@ void NPairKokkos<Space,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
         } else {
           NPairKokkosBuildFunctor<Space,HALF_NEIGH,0,0> f(data,atoms_per_bin * 5 * sizeof(KK_FLOAT) * factor);
 #ifdef KOKKOS_ENABLE_CUDA
-          if (Space == Device) {
+          if (std::is_same<DeviceType,Kokkos::Cuda>::value) {
             int team_size = atoms_per_bin*factor;
             int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
             if (team_size <= team_size_max) {

@@ -62,6 +62,11 @@ FixQEqReaxKokkos(LAMMPS *lmp, int narg, char **arg) :
   grow_arrays(atom->nmax);
 
   d_mfill_offset = typename AT::t_int_scalar("qeq/kk:mfill_offset");
+
+  cuda_flag = 0;
+#ifdef KOKKOS_ENABLE_CUDA
+  cuda_flag = (std::is_same<DeviceType,Kokkos::Cuda>::value); 
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,7 +85,7 @@ FixQEqReaxKokkos<Space>::~FixQEqReaxKokkos()
 template<ExecutionSpace Space>
 void FixQEqReaxKokkos<Space>::init()
 {
-  atomKK->k_q.modify_host();
+
   DualViewHelper<Space>::sync(atomKK->k_q);
 
   FixQEqReax::init();
@@ -221,7 +226,7 @@ void FixQEqReaxKokkos<Space>::pre_force(int vflag)
 
   // compute_H
 
-  if (execution_space == Host) { // CPU
+  if (!cuda_flag) { // CPU
     if (neighflag == FULL) {
       FixQEqReaxKokkosComputeHFunctor<Space, FULL> computeH_functor(this);
       Kokkos::parallel_scan(inum,computeH_functor);
@@ -725,7 +730,7 @@ void FixQEqReaxKokkos<Space>::cg_solve1()
   KK_FLOAT tmp, sig_old, b_norm;
 
   int teamsize;
-  if (execution_space == Host) teamsize = 1;
+  if (!cuda_flag) teamsize = 1;
   else teamsize = 128;
 
   // sparse_matvec( &H, x, q );
@@ -862,7 +867,7 @@ void FixQEqReaxKokkos<Space>::cg_solve2()
   KK_FLOAT tmp, sig_old, b_norm;
 
   int teamsize;
-  if (execution_space == Host) teamsize = 1;
+  if (!cuda_flag) teamsize = 1;
   else teamsize = 128;
 
   // sparse_matvec( &H, x, q );

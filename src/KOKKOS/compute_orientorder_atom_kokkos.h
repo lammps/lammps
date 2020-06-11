@@ -93,7 +93,7 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
 
  private:
   int inum,chunk_size,chunk_offset;
-  int host_flag;
+  int cuda_flag;
 
   typename AT::t_float_1d_3_lr_randomread x;
   typename AT::t_int_1d mask;

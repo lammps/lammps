@@ -58,7 +58,10 @@ ComputeOrientOrderAtomKokkos<Space>::ComputeOrientOrderAtomKokkos(LAMMPS *lmp, i
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 
-  host_flag = (execution_space == Host);
+  cuda_flag = 0;
+#ifdef KOKKOS_ENABLE_CUDA
+  cuda_flag = (std::is_same<DeviceType,Kokkos::Cuda>::value);
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -179,7 +182,7 @@ void ComputeOrientOrderAtomKokkos<Space>::compute_peratom()
 
   int vector_length_default = 1;
   int team_size_default = 1;
-  if (!host_flag)
+  if (cuda_flag)
     team_size_default = 32;//max_neighs;
 
   while (chunk_offset < inum) { // chunk up loop to prevent running out of memory

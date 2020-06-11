@@ -138,7 +138,7 @@ protected:
   SNAKokkos<Space> snaKK;
 
   int inum,max_neighs,chunk_size,chunk_offset;
-  int host_flag;
+  int cuda_flag;
 
   int eflag,vflag;
 

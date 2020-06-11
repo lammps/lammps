@@ -62,7 +62,10 @@ PairSNAPKokkos<Space>::PairSNAPKokkos(LAMMPS *lmp) : PairSNAP(lmp)
   auto d_cutsq = DualViewHelper<Space>::view(k_cutsq);
   rnd_cutsq = d_cutsq;
 
-  host_flag = (execution_space == Host);
+  cuda_flag = 0;
+#ifdef KOKKOS_ENABLE_CUDA
+  cuda_flag = (std::is_same<DeviceType,Kokkos::Cuda>::value);
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -189,7 +192,7 @@ void PairSNAPKokkos<Space>::compute(int eflag_in, int vflag_in)
 
   int vector_length_default = 1;
   int team_size_default = 1;
-  if (!host_flag)
+  if (cuda_flag)
     team_size_default = 32;//max_neighs;
 
   if (beta_max < inum) {
@@ -227,7 +230,7 @@ void PairSNAPKokkos<Space>::compute(int eflag_in, int vflag_in)
     {
       int vector_length = vector_length_default;
       int team_size = team_size_default;
-      if (!host_flag)
+      if (cuda_flag)
         vector_length = 32;
       check_team_size_for<TagPairSNAPPreUi>(chunk_size,team_size,vector_length);
       typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPPreUi> policy_preui((chunk_size+team_size-1)/team_size,team_size,vector_length);
@@ -238,7 +241,7 @@ void PairSNAPKokkos<Space>::compute(int eflag_in, int vflag_in)
     {
       int vector_length = vector_length_default;
       int team_size = team_size_default;
-      if (host_flag) { // CPU
+      if (!cuda_flag) { // CPU
         // Run a fused calculation of ulist and accumulation into ulisttot using atomics
 
         typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeUiCPU> policy_ui_cpu(((chunk_size+team_size-1)/team_size)*max_neighs,team_size,vector_length);
@@ -292,7 +295,7 @@ void PairSNAPKokkos<Space>::compute(int eflag_in, int vflag_in)
     {
       int vector_length = vector_length_default;
       int team_size = team_size_default;
-      if (!host_flag)
+      if (cuda_flag)
         team_size = 128;
       check_team_size_for<TagPairSNAPZeroYi>(chunk_size,team_size,vector_length);
       typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPZeroYi> policy_zero_yi(((idxu_max+team_size-1)/team_size)*chunk_size,team_size,vector_length);
@@ -308,7 +311,7 @@ void PairSNAPKokkos<Space>::compute(int eflag_in, int vflag_in)
     {
       int team_size = team_size_default;
       int vector_length = vector_length_default;
-      if (host_flag) { // CPU
+      if (!cuda_flag) { // CPU
 
         typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeDuidrjCPU> policy_duidrj_cpu(((chunk_size+team_size-1)/team_size)*max_neighs,team_size,vector_length);
         snaKK.set_dir(-1); // technically doesn't do anything

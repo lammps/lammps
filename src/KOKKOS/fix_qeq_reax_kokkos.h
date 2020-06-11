@@ -155,7 +155,7 @@ class FixQEqReaxKokkos : public FixQEqReax {
  private:
   int inum;
   int allocated_flag;
-  int need_dup;
+  int need_dup, cuda_flag;
 
   typename AT::t_int_scalar d_mfill_offset;
 

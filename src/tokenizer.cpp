@@ -35,13 +35,13 @@ Tokenizer::Tokenizer(const std::string & str, const std::string & separators) :
     reset();
 }
 
-Tokenizer::Tokenizer(const Tokenizer & rhs) : 
+Tokenizer::Tokenizer(const Tokenizer & rhs) :
     text(rhs.text), separators(rhs.separators), ntokens(rhs.ntokens)
 {
     reset();
 }
 
-Tokenizer::Tokenizer(Tokenizer && rhs) : 
+Tokenizer::Tokenizer(Tokenizer && rhs) :
     text(std::move(rhs.text)), separators(std::move(rhs.separators)), ntokens(rhs.ntokens)
 {
     reset();
@@ -55,13 +55,13 @@ void Tokenizer::skip(int n) {
     for(int i = 0; i < n; ++i) {
         if(!has_next()) throw TokenizerException("No more tokens", "");
 
-        size_t end = text.find_first_of(separators, start);      
+        size_t end = text.find_first_of(separators, start);
 
         if(end == std::string::npos) {
             start = end;
         } else {
             start = text.find_first_not_of(separators, end+1);
-        } 
+        }
     }
 }
 
@@ -78,7 +78,7 @@ std::string Tokenizer::next() {
         std::string token = text.substr(start);
         start = end;
         return token;
-    } 
+    }
 
     std::string token = text.substr(start, end-start);
     start = text.find_first_not_of(separators, end+1);

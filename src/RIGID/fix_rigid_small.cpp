@@ -73,7 +73,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   dof_flag = 1;
   enforce2d_flag = 1;
   stores_ids = 1;
-  
+
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 

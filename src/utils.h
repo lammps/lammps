@@ -156,7 +156,15 @@ namespace LAMMPS_NS {
      * \param separators string containing characters that will be treated as whitespace
      * \return number of words found
      */
-    size_t count_words(const std::string & text, const std::string & separators = " \t\r\n\f");
+    size_t count_words(const std::string & text, const std::string & separators);
+
+    /**
+     * \brief Count words in string, ignore any whitespace matching " \t\r\n\f"
+     * \param text string that should be searched
+     * \param separators string containing characters that will be treated as whitespace
+     * \return number of words found
+     */
+    size_t count_words(const std::string & text);
 
     /**
      * \brief Count words in a single line, trim anything from '#' onward

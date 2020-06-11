@@ -368,6 +368,35 @@ std::string utils::trim_comment(const std::string & line) {
    Return number of words
 ------------------------------------------------------------------------- */
 
+size_t utils::count_words(const std::string & text) {
+  size_t count = 0;
+  const char * buf = text.c_str();
+  char c = *buf;
+
+  while (c) {
+    if (c == ' ' || c == '\t' || c == '\r' ||  c == '\n' || c == '\f') {
+      c = *++buf;
+      continue;
+    };
+
+    ++count;
+    c = *++buf;
+
+    while (c) {
+      if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f') {
+        break;
+      }
+      c = *++buf;
+    }
+  }
+
+  return count;
+}
+
+/* ----------------------------------------------------------------------
+   Return number of words
+------------------------------------------------------------------------- */
+
 size_t utils::count_words(const std::string & text, const std::string & separators) {
   size_t count = 0;
   size_t start = text.find_first_not_of(separators);

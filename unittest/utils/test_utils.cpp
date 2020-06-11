@@ -28,6 +28,10 @@ TEST(Utils, count_words) {
     ASSERT_EQ(utils::count_words("some text # comment"), 4);
 }
 
+TEST(Utils, count_words_non_default) {
+    ASSERT_EQ(utils::count_words("some text # comment", " #"), 3);
+}
+
 TEST(Utils, trim_and_count_words) {
     ASSERT_EQ(utils::trim_and_count_words("some text # comment"), 2);
 }

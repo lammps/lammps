@@ -38,12 +38,12 @@ TEST(Tokenizer, two_words) {
     ASSERT_EQ(t.count(), 2);
 }
 
-TEST(Tokenizer, prefix_seperators) {
+TEST(Tokenizer, prefix_separators) {
     Tokenizer t("  test word", " ");
     ASSERT_EQ(t.count(), 2);
 }
 
-TEST(Tokenizer, postfix_seperators) {
+TEST(Tokenizer, postfix_separators) {
     Tokenizer t("test word   ", " ");
     ASSERT_EQ(t.count(), 2);
 }
@@ -55,7 +55,7 @@ TEST(Tokenizer, iterate_words) {
     ASSERT_EQ(t.count(), 2);
 }
 
-TEST(Tokenizer, default_seperators) {
+TEST(Tokenizer, default_separators) {
     Tokenizer t(" \r\n test \t word \f");
     ASSERT_THAT(t.next(), Eq("test"));
     ASSERT_THAT(t.next(), Eq("word"));

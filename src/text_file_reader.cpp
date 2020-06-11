@@ -116,6 +116,6 @@ void TextFileReader::next_dvector(double * list, int n) {
   }
 }
 
-ValueTokenizer TextFileReader::next_values(int nparams, const std::string & seperators) {
-  return ValueTokenizer(next_line(nparams), seperators);
+ValueTokenizer TextFileReader::next_values(int nparams, const std::string & separators) {
+  return ValueTokenizer(next_line(nparams), separators);
 }

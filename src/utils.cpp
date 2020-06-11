@@ -368,18 +368,18 @@ std::string utils::trim_comment(const std::string & line) {
    Return number of words
 ------------------------------------------------------------------------- */
 
-size_t utils::count_words(const std::string & text, const std::string & seperators) {
+size_t utils::count_words(const std::string & text, const std::string & separators) {
   size_t count = 0;
-  size_t start = text.find_first_not_of(seperators);
+  size_t start = text.find_first_not_of(separators);
 
   while (start != std::string::npos) {
-    size_t end = text.find_first_of(seperators, start);
+    size_t end = text.find_first_of(separators, start);
     ++count;
 
     if(end == std::string::npos) {
       return count;
     } else {
-      start = text.find_first_not_of(seperators, end + 1);
+      start = text.find_first_not_of(separators, end + 1);
     }
   }
   return count;
@@ -389,8 +389,8 @@ size_t utils::count_words(const std::string & text, const std::string & seperato
    Trim comment from string and return number of words
 ------------------------------------------------------------------------- */
 
-size_t utils::trim_and_count_words(const std::string & text, const std::string & seperators) {
-  return utils::count_words(utils::trim_comment(text), seperators);
+size_t utils::trim_and_count_words(const std::string & text, const std::string & separators) {
+  return utils::count_words(utils::trim_comment(text), separators);
 }
 
 /* ----------------------------------------------------------------------

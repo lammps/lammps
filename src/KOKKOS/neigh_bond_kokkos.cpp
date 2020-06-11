@@ -45,6 +45,7 @@ NeighBondKokkos<Space>::NeighBondKokkos(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
+  ExecutionSpace execution_space = Space;
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 

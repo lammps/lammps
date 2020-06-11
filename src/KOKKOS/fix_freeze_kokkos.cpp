@@ -24,7 +24,8 @@ FixFreezeKokkos<Space>::FixFreezeKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixFreeze(lmp, narg, arg)
 {
   kokkosable = 1;
-  atomKK = (AtomKokkos *)atom;
+  atomKK = (AtomKokkos *) atom;
+  execution_space = Space;
 
   datamask_read = F_MASK | MASK_MASK;
   datamask_modify = F_MASK | TORQUE_MASK;

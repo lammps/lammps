@@ -22,6 +22,7 @@ using namespace LAMMPS_NS;
 template<ExecutionSpace Space>
 NeighListKokkos<Space>::NeighListKokkos(class LAMMPS *lmp):NeighList(lmp)
 {
+  ExecutionSpace execution_space = Space;
   _stride = 1;
   maxneighs = 16;
   kokkos = 1;

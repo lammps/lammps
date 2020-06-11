@@ -27,7 +27,8 @@ FixNVESphereKokkos<Space>::FixNVESphereKokkos(LAMMPS *lmp, int narg, char **arg)
   FixNVESphere(lmp, narg, arg)
 {
   kokkosable = 1;
-  atomKK = (AtomKokkos *)atom;
+  atomKK = (AtomKokkos *) atom;
+  execution_space = Space;
 
   datamask_read = F_MASK | TORQUE_MASK | RMASS_MASK | RADIUS_MASK | MASK_MASK;
   datamask_modify = X_MASK | V_MASK | OMEGA_MASK;

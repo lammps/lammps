@@ -57,7 +57,8 @@ FixNHKokkos<Space>::FixNHKokkos(LAMMPS *lmp, int narg, char **arg) : FixNH(lmp, 
 {
   kokkosable = 1;
   domainKK = (DomainKokkos *) domain;
-
+  atomKK = (AtomKokkos *) atom;
+  execution_space = Space; 
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 }

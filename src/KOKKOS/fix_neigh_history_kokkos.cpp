@@ -29,7 +29,8 @@ FixNeighHistoryKokkos<Space>::FixNeighHistoryKokkos(LAMMPS *lmp, int narg, char 
   FixNeighHistory(lmp, narg, arg)
 {
   kokkosable = 1;
-  atomKK = (AtomKokkos *)atom;
+  atomKK = (AtomKokkos *) atom;
+  execution_space = Space;
 
   memory->destroy(npartner);
   memory->sfree(partner);

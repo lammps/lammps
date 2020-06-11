@@ -31,7 +31,8 @@ FixGravityKokkos<Space>::FixGravityKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixGravity(lmp, narg, arg)
 {
   kokkosable = 1;
-  atomKK = (AtomKokkos *)atom;
+  atomKK = (AtomKokkos *) atom;
+  execution_space = Space;
 
   datamask_read = X_MASK | F_MASK | RMASS_MASK | MASK_MASK | TYPE_MASK;
   datamask_modify = F_MASK;

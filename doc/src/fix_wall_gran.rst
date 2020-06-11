@@ -57,7 +57,7 @@ Syntax
          dim = *x* or *y* or *z*
          vshear = magnitude of shear velocity (velocity units)
       *contacts* value = none
-         store contact information for each particle colliding with wall
+         generate contact information for each particle
 
 
 Examples

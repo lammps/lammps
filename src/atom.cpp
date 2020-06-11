@@ -16,6 +16,7 @@
 #include <climits>
 #include <cstdlib>
 #include <cstring>
+#include <algorithm>
 #include "style_atom.h"
 #include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"
@@ -2050,7 +2051,7 @@ void Atom::setup_sort_bins()
 
 void Atom::add_callback(int flag)
 {
-  int ifix, i, j;
+  int ifix;
 
   // find the fix
   // if find NULL ptr:
@@ -2062,7 +2063,7 @@ void Atom::add_callback(int flag)
   for (ifix = 0; ifix < modify->nfix; ifix++)
     if (modify->fix[ifix] == NULL) break;
 
-  // insert callback into sorted lists, reallocating if necessary
+  // add callback to lists and sort, reallocating if necessary
   // sorting is required in cases where fixes were replaced as it ensures atom
   // data is read/written/transfered in the same order that fixes are called
 
@@ -2071,55 +2072,25 @@ void Atom::add_callback(int flag)
       nextra_grow_max += DELTA;
       memory->grow(extra_grow,nextra_grow_max,"atom:extra_grow");
     }
-
-    for(i = 0; i < nextra_grow; i++)
-        if(ifix < extra_grow[i]) break;
-
-    if(i == nextra_grow) {
-      extra_grow[nextra_grow] = ifix;
-    } else {
-      for(j = nextra_grow; j > i; j--)
-          extra_grow[j] = extra_grow[j-1];
-      extra_grow[i] = ifix;
-    }
-
+    extra_grow[nextra_grow] = ifix;
     nextra_grow++;
+    std::sort(extra_grow, extra_grow + nextra_grow);     
   } else if (flag == 1) {
     if (nextra_restart == nextra_restart_max) {
       nextra_restart_max += DELTA;
       memory->grow(extra_restart,nextra_restart_max,"atom:extra_restart");
     }
-
-    for(i = 0; i < nextra_restart; i++)
-        if(ifix < extra_restart[i]) break;
-
-    if(i == nextra_restart) {
-      extra_restart[nextra_restart] = ifix;
-    } else {
-      for(j = nextra_restart; j > i; j--)
-          extra_restart[j] = extra_restart[j-1];
-      extra_restart[i] = ifix;
-    }     
-
+    extra_restart[nextra_restart] = ifix;
     nextra_restart++;
+    std::sort(extra_restart, extra_restart + nextra_restart);     
   } else if (flag == 2) {
     if (nextra_border == nextra_border_max) {
       nextra_border_max += DELTA;
       memory->grow(extra_border,nextra_border_max,"atom:extra_border");
     }
-
-    for(i = 0; i < nextra_border; i++)
-        if(ifix < extra_border[i]) break;
-
-    if(i == nextra_border) {
-      extra_border[nextra_border] = ifix;
-    } else {
-      for(j = nextra_border; j > i; j--)
-          extra_border[j] = extra_border[j-1];
-      extra_border[i] = ifix;
-    }
-
+    extra_border[nextra_border] = ifix;
     nextra_border++;
+    std::sort(extra_border, extra_border + nextra_border);     
   }
 }
 

@@ -86,7 +86,7 @@ char *TextFileReader::next_line(int nparams) {
     // strip comment
     if (ignore_comments && (ptr = strchr(line, '#'))) *ptr = '\0';
 
-    nwords = utils::count_words(line);
+    nwords += utils::count_words(&line[n]);
 
     // skip line if blank
     if (nwords > 0) {

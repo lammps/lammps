@@ -312,7 +312,7 @@ double PairComb3::init_one(int i, int j)
 
 void PairComb3::read_lib()
 {
-  int i,j,k,l,m;
+  int i,j,k,l;
   int ii,jj,kk,ll,mm,iii;
 
   // open library file on proc 0

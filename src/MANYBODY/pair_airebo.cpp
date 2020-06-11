@@ -3488,7 +3488,7 @@ void PairAIREBO::read_file(char *filename)
       // global parameters
       current_section = "global parameters";
 
-      for(int i = 0; i < params.size(); i++) {
+      for(int i = 0; i < (int)params.size(); i++) {
         *params[i] = reader.next_double();
       }
 

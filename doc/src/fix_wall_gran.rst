@@ -186,14 +186,17 @@ info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
-If the :code:`contacts` option is used, this fix will store the contact
-information for each atom that interacts with the wall as per-atom array with 8
-columns. The values of these columns are listed in the following table:
+If the :code:`contacts` option is used, this fix generates a per-atom vector
+with 8 columns as output, containing the contact information for owned
+particles (nlocal on each processor). All columns in this per-atom vector will
+be zero if no contact has occured.  The values of these columns are listed in
+the following table:
 
 +-------+----------------------------------------------------+----------------+
 | Index | Value                                              | Units          |
 +=======+====================================================+================+
-|     1 | Atom ID                                            |                |
+|     1 | 1.0 if particle is in contact with wall,           |                |
+|       | 0.0 otherwise                                      |                |
 +-------+----------------------------------------------------+----------------+
 |     2 | Force :math:`f_x` exerted on the wall              | force units    |
 +-------+----------------------------------------------------+----------------+

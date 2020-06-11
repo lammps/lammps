@@ -222,9 +222,9 @@ uninterrupted fashion.
    use the same fix ID for fix wall/gran/region, but assign it a region
    with a different region ID.
 
-If the :code:`contacts` option is used, this fix generates a per-atom vector
+If the :code:`contacts` option is used, this fix generates a per-atom array
 with 8 columns as output, containing the contact information for owned
-particles (nlocal on each processor). All columns in this per-atom vector will
+particles (nlocal on each processor). All columns in this per-atom array will
 be zero if no contact has occurred. The values of these columns are listed in
 the following table:
 

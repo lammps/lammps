@@ -365,12 +365,12 @@ std::string utils::trim_comment(const std::string & line) {
 }
 
 /* ----------------------------------------------------------------------
-   Return number of words
+   return number of words
 ------------------------------------------------------------------------- */
 
-size_t utils::count_words(const std::string & text) {
+size_t utils::count_words(const char * text) {
   size_t count = 0;
-  const char * buf = text.c_str();
+  const char * buf = text;
   char c = *buf;
 
   while (c) {
@@ -391,6 +391,14 @@ size_t utils::count_words(const std::string & text) {
   }
 
   return count;
+}
+
+/* ----------------------------------------------------------------------
+   return number of words
+------------------------------------------------------------------------- */
+
+size_t utils::count_words(const std::string & text) {
+  return utils::count_words(text.c_str());
 }
 
 /* ----------------------------------------------------------------------

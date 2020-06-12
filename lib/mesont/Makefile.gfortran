@@ -19,7 +19,7 @@ OBJ =   $(SRC:.f90=.o)
 # ------ SETTINGS ------
 
 F90 =           gfortran
-F90FLAGS =      -O3 -fPIC -ftree-vectorize -g -Wall
+F90FLAGS =      -O3 -fPIC -ftree-vectorize -g
 ARCHIVE =	ar
 ARCHFLAG =	-rc
 USRLIB =

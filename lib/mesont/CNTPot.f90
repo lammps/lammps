@@ -134,7 +134,7 @@ implicit none
         real(c_double)                          :: CNTSTRUl, CNTSTRUf           ! 
        
         ! Axial buckling - hysteresis approach
-        real(c_double)                          :: CNTSTREc	= -0.0142d+00   ! The minimum buckling strain    
+        real(c_double)                          :: CNTSTREc     = -0.0142d+00   ! The minimum buckling strain    
         real(c_double)                          :: CNTSTREc1    = -0.04d+00     ! Critical axial buckling strain 
         real(c_double)                          :: CNTSTREc2    = -0.45d+00     ! Maximum buckling strain
         
@@ -249,7 +249,7 @@ contains !**********************************************************************
         
         integer(c_int) function CNTSTRH1BCalc ( U, dUdL, L, R0, L0 ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
         ! Young's modulus depends on R, see [4].
-	! Axial buckling without hysteresis.
+        ! Axial buckling without hysteresis.
         !-------------------------------------------------------------------------------------------  
         real(c_double), intent(out)     :: U, dUdL
         real(c_double), intent(in)      :: L, R0, L0
@@ -275,7 +275,7 @@ contains !**********************************************************************
                         U = 0.5d+00 * L0 *  (d+E-CNTSTREc2) * dUdL + dUbcl - Ud
                         CNTSTRH1BCalc = CNTPOT_STRETCHING
                 end if        
-	end function CNTSTRH1BCalc !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        end function CNTSTRH1BCalc !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         !
         ! Stretching without fracture, harmonic potential, with axial buckling with hysteresis
@@ -289,49 +289,49 @@ contains !**********************************************************************
         integer(c_int), intent(in)   :: ABF
         !-------------------------------------------------------------------------------------------
         real(c_double)                  :: E, K, dUbcl, Ebcl, Kbcl, Edu
-	real(c_double)			:: C, DE, t
+        real(c_double)                  :: C, DE, t
         !------------------------------------------------------------------------------------------- 
                 E = ( L - L0 ) / L0
-		K = 86.64d+00 + 100.56d+00 * R0
-		Kbcl = -10.98d+00 * L0
-	        if ( E .gt. CNTSTREc ) then ! Harmonic potential - no buckling
- 	                dUdL = K * E
+                K = 86.64d+00 + 100.56d+00 * R0
+                Kbcl = -10.98d+00 * L0
+                if ( E .gt. CNTSTREc ) then ! Harmonic potential - no buckling
+                        dUdL = K * E
                         U = 0.5d+00 * L0 * E * dUdL
                         CNTSTRH1BHCalc = CNTPOT_STRETCHING
                         Ebuc = 0.0d+00
-	        else if ( E .gt. CNTSTREc1 ) then  ! Above minimal buckling strain, but not at critical strain
-		        if ( ABF .eq. 0 ) then ! Not buckled. Continue harmonic potential
-	    	                dUdL = K * E
-            	                U = 0.5d+00 * L0 * E * dUdL
-            	                CNTSTRH1BHCalc = CNTPOT_STRETCHING
-            	                Ebuc = 0.0d+00
-		        else   ! Relaxing from buckled state. Use buckling potential
-                    	        dUbcl = 0.5d+00 * L0 * K * CNTSTREc * CNTSTREc - Kbcl * CNTSTREc
-            	                U = Kbcl * E + dUbcl
-            	                dUdL = Kbcl / L0
-            	                CNTSTRH1BHCalc = CNTPOT_SBUCKLING
-            	                Ebuc = 0.0d+00
-		        end if
-        	else if( E .gt. CNTSTREc2 ) then ! Axial buckling strain region
-	        	if ( ABF .eq. 0 ) then ! Newly buckled
-        		        dUbcl = 0.5d+00 * L0 * K * CNTSTREc * CNTSTREc - Kbcl * CNTSTREc
-                    	        U = Kbcl * E + dUbcl
-            	                dUdL = Kbcl / L0
-            	                CNTSTRH1BHCalc = CNTPOT_SBUCKLING
-            	                Ebuc = 0.5d+00 * L0 * K * CNTSTREc1 * CNTSTREc1 - Kbcl * CNTSTREc1 - dUbcl
-	        	else ! Already buckled 
-            	                dUbcl = 0.5d+00 * L0 * K * CNTSTREc * CNTSTREc - Kbcl * CNTSTREc
-            	                U = Kbcl * E + dUbcl
-            	                dUdL = Kbcl / L0
-            	                CNTSTRH1BHCalc = CNTPOT_SBUCKLING
-            	                Ebuc = 0.0d+00
-		        end if
-	        else  ! Maximum strain and return to harmonic potential
- 	    	        dUdL = K * E
-            	        U = 0.5d+00 * L0 * E * dUdL
-            	        CNTSTRH1BHCalc = CNTPOT_STRETCHING
-            	        Ebuc = 0.0d+00
-	        end if	 
+                else if ( E .gt. CNTSTREc1 ) then  ! Above minimal buckling strain, but not at critical strain
+                        if ( ABF .eq. 0 ) then ! Not buckled. Continue harmonic potential
+                                dUdL = K * E
+                                U = 0.5d+00 * L0 * E * dUdL
+                                CNTSTRH1BHCalc = CNTPOT_STRETCHING
+                                Ebuc = 0.0d+00
+                        else   ! Relaxing from buckled state. Use buckling potential
+                                dUbcl = 0.5d+00 * L0 * K * CNTSTREc * CNTSTREc - Kbcl * CNTSTREc
+                                U = Kbcl * E + dUbcl
+                                dUdL = Kbcl / L0
+                                CNTSTRH1BHCalc = CNTPOT_SBUCKLING
+                                Ebuc = 0.0d+00
+                        end if
+                else if( E .gt. CNTSTREc2 ) then ! Axial buckling strain region
+                        if ( ABF .eq. 0 ) then ! Newly buckled
+                                dUbcl = 0.5d+00 * L0 * K * CNTSTREc * CNTSTREc - Kbcl * CNTSTREc
+                                U = Kbcl * E + dUbcl
+                                dUdL = Kbcl / L0
+                                CNTSTRH1BHCalc = CNTPOT_SBUCKLING
+                                Ebuc = 0.5d+00 * L0 * K * CNTSTREc1 * CNTSTREc1 - Kbcl * CNTSTREc1 - dUbcl
+                        else ! Already buckled 
+                                dUbcl = 0.5d+00 * L0 * K * CNTSTREc * CNTSTREc - Kbcl * CNTSTREc
+                                U = Kbcl * E + dUbcl
+                                dUdL = Kbcl / L0
+                                CNTSTRH1BHCalc = CNTPOT_SBUCKLING
+                                Ebuc = 0.0d+00
+                        end if
+                else  ! Maximum strain and return to harmonic potential
+                        dUdL = K * E
+                        U = 0.5d+00 * L0 * E * dUdL
+                        CNTSTRH1BHCalc = CNTPOT_STRETCHING
+                        Ebuc = 0.0d+00
+                end if   
         end function CNTSTRH1BHCalc !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         !
@@ -449,7 +449,7 @@ contains !**********************************************************************
                 CNTSTRUl = 0.5d+00 * CNTSTRFl * CNTSTREl
                 CNTSTRUf = CNTSTRUl + ( CNTSTRFl + CNTSTRAA ) * ( CNTSTREf - CNTSTREl ) - CNTSTRAA * dlog ( C ) / CNTSTRBB
         end subroutine CNTSTRNH1Init !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		
+                
         !
         ! General
         !
@@ -457,9 +457,9 @@ contains !**********************************************************************
         integer(c_int) function CNTSTRCalc ( U, dUdL, L, R0, L0 , ABF, Ebuc ) !!!!!!!!!!!!!!!!!!!!!!!
         real(c_double), intent(out)     :: U, dUdL, Ebuc
         real(c_double), intent(in)      :: L, R0, L0
-        integer(c_int), intent(in)	:: ABF
+        integer(c_int), intent(in)      :: ABF
         !-------------------------------------------------------------------------------------------
-		Ebuc = 0.0d+00
+                Ebuc = 0.0d+00
                 select case ( CNTSTRModel )
                         case ( CNTSTRMODEL_H0 )
                                 CNTSTRCalc = CNTSTRH0Calc ( U, dUdL, L, R0, L0 )
@@ -471,9 +471,9 @@ contains !**********************************************************************
                                 CNTSTRCalc = CNTSTRNH1Calc ( U, dUdL, L, R0, L0 )
                         case ( CNTSTRMODEL_NH1F )
                                 CNTSTRCalc = CNTSTRNH1FCalc ( U, dUdL, L, R0, L0 )
-			case ( CNTSTRMODEL_H1B )
+                        case ( CNTSTRMODEL_H1B )
                                 CNTSTRCalc = CNTSTRH1BCalc ( U, dUdL, L, R0, L0 )
-			case ( CNTSTRMODEL_H1BH )
+                        case ( CNTSTRMODEL_H1BH )
                                 CNTSTRCalc = CNTSTRH1BHCalc ( U, dUdL, L, R0, L0, ABF, Ebuc )
                 end select
         end function CNTSTRCalc !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -601,7 +601,7 @@ contains !**********************************************************************
                         CNTBNDHBFCalc = CNTPOT_BENDING
                 end if
         end function CNTBNDHBFCalc !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		
+                
         integer(c_int) function CNTBNDHBHCalc ( U, dUdC, C, R0, L0, BBF, Ebuc ) !!!!!!!!!!!!!!!!!!!!
         ! Bending model of type 1: Harmonic bending potential with buckling with hysteresis approach.
         !-------------------------------------------------------------------------------------------
@@ -610,9 +610,9 @@ contains !**********************************************************************
         integer(c_int), intent(in)           :: BBF
         real(c_double)                          :: E1, E2, C2, Kbnd, Kbcl,Theta,DUbcl, Ubcl, Cmin,Rmax
         !-------------------------------------------------------------------------------------------
-		Rmax = 340.0d+00
-		Cmin = 1.0/(Rmax*Rmax) 		
-	        E1 = 1.0d+00 - C
+                Rmax = 340.0d+00
+                Cmin = 1.0/(Rmax*Rmax)          
+                E1 = 1.0d+00 - C
                 E2 = 1.0d+00 + C      
                 ! Calculate the square of curvature
                 C2 = 4.0d+00 * E2 / ( L0 * L0 * E1 )
@@ -625,21 +625,21 @@ contains !**********************************************************************
                         Ebuc = 0.0
                 else if ( C2 .ge. Cmin .and. C2 .lt. CNTBNDC2 ) then  ! Potential depends on buckling flag of a node
                         if ( BBF .eq. 0 ) then ! Not buckled yet. Continue harmonic bending
-				Kbnd = 2.0d+00 * ( 63.8d+00 * R0**2.93d+00 ) / L0
-                        	U    = Kbnd * E2 / E1
-                        	dUdC = 2.0d+00 * Kbnd / ( E1 * E1 )
-                        	CNTBNDHBHCalc = CNTPOT_BENDING
-                        	Ebuc = 0.0d+00
+                                Kbnd = 2.0d+00 * ( 63.8d+00 * R0**2.93d+00 ) / L0
+                                U    = Kbnd * E2 / E1
+                                dUdC = 2.0d+00 * Kbnd / ( E1 * E1 )
+                                CNTBNDHBHCalc = CNTPOT_BENDING
+                                Ebuc = 0.0d+00
                         else ! Already has been buckled or is buckled. Use buckling potential until Cmin.
-			        Theta= M_PI - acos ( C )
-                        	Kbnd = 63.8d+00 * R0**2.93d+00
-                        	Kbcl = CNTBNDB * Kbnd / CNTBNDR
-                        	DUbcl= 2.0d+00*Kbnd * &
+                                Theta= M_PI - acos ( C )
+                                Kbnd = 63.8d+00 * R0**2.93d+00
+                                Kbcl = CNTBNDB * Kbnd / CNTBNDR
+                                DUbcl= 2.0d+00*Kbnd * &
                                         (1.0d+00+cos(l0/Rmax+M_PI))/(1.0d+00-cos(l0/Rmax+M_PI))/L0-Kbcl*abs(l0/Rmax)**CNTBNDN
-                        	U    = Kbcl * abs( Theta )**CNTBNDN + DUbcl
-                        	dUdC = Kbcl * CNTBNDN * abs( Theta )**CNTBNDN1 / sqrt ( 1.0d+00 - C * C )
-                        	Ebuc = 0.0d+00
-				CNTBNDHBHCalc = CNTPOT_BBUCKLING
+                                U    = Kbcl * abs( Theta )**CNTBNDN + DUbcl
+                                dUdC = Kbcl * CNTBNDN * abs( Theta )**CNTBNDN1 / sqrt ( 1.0d+00 - C * C )
+                                Ebuc = 0.0d+00
+                                CNTBNDHBHCalc = CNTPOT_BBUCKLING
                         end if                      
                    else ! Greater than buckling critical point
                         if ( BBF .eq. 1 ) then ! Already buckled
@@ -663,8 +663,8 @@ contains !**********************************************************************
                                 Ebuc = 2.0d+00*Kbnd * (1.0d+00+cos(l0/CNTBNDR+M_PI)) / (1.0d+00-cos(l0/CNTBNDR+M_PI))/L0 &
                                         - Kbcl * abs ( l0 / CNTBNDR ) ** CNTBNDN - dUbcl
                                 CNTBNDHBHCalc = CNTPOT_BBUCKLING
-			end if
-		end if
+                        end if
+                end if
         end function CNTBNDHBHCalc !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         !

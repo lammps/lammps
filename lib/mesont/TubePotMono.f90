@@ -1677,9 +1677,9 @@ contains !**********************************************************************
                         call fdate( PDate )
                         write ( unit = TPMUnitID, fmt = '(a,a)' ) 'DATE ', PDate 
                         write ( unit = TPMUnitID, fmt = '(a,i3,a,i3,a)' ) &
-						  'Tabulated data of the tubular potential for (', ChiIndM, ',', ChiIndN, ') CNTs'
+                              'Tabulated data of the tubular potential for (', ChiIndM, ',', ChiIndN, ') CNTs'
                         write ( unit = TPMUnitID, fmt = '(a)' ) &
-						  'A. N. Volkov, L. V. Zhigilei, J. Phys. Chem. C 114, 5513-5531, 2010. doi: 10.1021/jp906142h'
+                              'A. N. Volkov, L. V. Zhigilei, J. Phys. Chem. C 114, 5513-5531, 2010. doi: 10.1021/jp906142h'
                 end if
                 
                 call TPMSSTPInit ()

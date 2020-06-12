@@ -41,7 +41,7 @@ contains !**********************************************************************
         !-------------------------------------------------------------------------------------------
         real(c_double)                                  :: Qa, Ua, Fd, L2
         real(c_double), dimension(0:2)                  :: F1_1a, F1_2a, F2_1a, F2_2a, R2_3, R2, Laxis2, F
-        integer(c_int)				:: IntSign
+        integer(c_int)                          :: IntSign
         !-------------------------------------------------------------------------------------------
                 R2 = 0.5d+00 * ( R2_1 + R2_2 )
                 Laxis2 = R2_2 - R2_1
@@ -51,34 +51,34 @@ contains !**********************************************************************
                         TPMInteractionFSS = TPMInteractionF ( Q, U, F1_1, F1_2, F2_1, F2_2, Fd, R1_1, R1_2, R2_1, R2_2, 1 ) 
                         R2_3 = R2_2 + R2_2 - R2_1
                         IntSign = TPMInteractionF ( Qa, Ua, F1_1a, F1_2a, F2_1a, F2_2a, Fd, R1_1, R1_2, R2_2, R2_3, 1 ) 
-			if ( IntSign > 0 ) then
-				TPMInteractionFSS = 1
-	                        call TPMSegmentForces ( F2_1a, F2_2a, F1_1a, F1_2a, R1_1, R1_2, R2, Laxis2, L2 )
-        	                F = ( Fd - S_V3xV3 ( F2_2a, Laxis2 ) ) * Laxis2
-                	        F2_2a = F2_2a + F
-                        	F2_1a = F2_1a - F
-			end if
+                        if ( IntSign > 0 ) then
+                                TPMInteractionFSS = 1
+                                call TPMSegmentForces ( F2_1a, F2_2a, F1_1a, F1_2a, R1_1, R1_2, R2, Laxis2, L2 )
+                                F = ( Fd - S_V3xV3 ( F2_2a, Laxis2 ) ) * Laxis2
+                                F2_2a = F2_2a + F
+                                F2_1a = F2_1a - F
+                        end if
                 else
                         TPMInteractionFSS = TPMInteractionF ( Q, U, F1_1, F1_2, F2_1, F2_2, Fd, R1_1, R1_2, R2_1, R2_2, 2 ) 
                         R2_3 = R2_1 + R2_1 - R2_2
                         IntSign = TPMInteractionF ( Qa, Ua, F1_1a, F1_2a, F2_1a, F2_2a, Fd, R1_1, R1_2, R2_1, R2_3, 1 )
-			if ( IntSign > 0 ) then
-				TPMInteractionFSS = 1
-	                        call TPMSegmentForces ( F2_1a, F2_2a, F1_1a, F1_2a, R1_1, R1_2, R2, Laxis2, L2 )
-        	                F = ( - Fd - S_V3xV3 ( F2_1a, Laxis2 ) ) * Laxis2
-                	        F2_1a = F2_1a + F
-                        	F2_2a = F2_2a - F
-			end if
+                        if ( IntSign > 0 ) then
+                                TPMInteractionFSS = 1
+                                call TPMSegmentForces ( F2_1a, F2_2a, F1_1a, F1_2a, R1_1, R1_2, R2, Laxis2, L2 )
+                                F = ( - Fd - S_V3xV3 ( F2_1a, Laxis2 ) ) * Laxis2
+                                F2_1a = F2_1a + F
+                                F2_2a = F2_2a - F
+                        end if
                 end if
-		if ( IntSign > 0 ) then
-	                Q = Q - Qa
+                if ( IntSign > 0 ) then
+                        Q = Q - Qa
                         if ( Q < 0.0d+00 ) Q = 0.0d+00
-	                U = U - Ua
-        	        F2_1 = F2_1 - F2_1a 
-                	F2_2 = F2_2 - F2_2a 
-                	F1_1 = F1_1 - F1_1a
-	                F1_2 = F1_2 - F1_2a
-		end if
+                        U = U - Ua
+                        F2_1 = F2_1 - F2_1a 
+                        F2_2 = F2_2 - F2_2a 
+                        F1_1 = F1_1 - F1_1a
+                        F1_2 = F1_2 - F1_2a
+                end if
         end function TPMInteractionFSS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         integer(c_int) function TPMInteractionFW0 ( QQ, U, U1, U2, UU, F1, F2, F, G1, G2, R1, R2, N, NMAX, R )
@@ -174,20 +174,20 @@ contains !**********************************************************************
                         
                         if ( TPMInteractionFSS ( QQ(i), Ua, F1_1a, F1_2a, F2_1a, F2_2a, R1, R2, R(0:2,i), R(0:2,i+1), & 
                         EType ) > 0 ) then
-							TPMInteractionFW0 = 1
-	                        U = U + Ua
-        	                Ua = 0.25d+00 * Ua 
-                	        U1 = U1 + Ua 
-                        	U2 = U2 + Ua 
-	                        UU(i) = UU(i) + Ua
-        	                UU(i+1) = UU(i+1) + Ua
-                        	F1 = F1 + F1_1a
-                	        F2 = F2 + F1_2a
-	                        F(0:2,i) = F(0:2,i) + F2_1a
-        	                F(0:2,i+1) = F(0:2,i+1) + F2_2a
-                	        G2(0:2,i) = F2_1a
-                        	G1(0:2,i+1) = F2_2a
-			end if
+                                                        TPMInteractionFW0 = 1
+                                U = U + Ua
+                                Ua = 0.25d+00 * Ua 
+                                U1 = U1 + Ua 
+                                U2 = U2 + Ua 
+                                UU(i) = UU(i) + Ua
+                                UU(i+1) = UU(i+1) + Ua
+                                F1 = F1 + F1_1a
+                                F2 = F2 + F1_2a
+                                F(0:2,i) = F(0:2,i) + F2_1a
+                                F(0:2,i+1) = F(0:2,i+1) + F2_2a
+                                G2(0:2,i) = F2_1a
+                                G1(0:2,i+1) = F2_2a
+                        end if
                 end do
         end function TPMInteractionFW0 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         

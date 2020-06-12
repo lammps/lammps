@@ -6,7 +6,6 @@ variable nsteps index 100
 variable nrep equal 4
 variable a equal 5.83
 units           metal
-atom_style      charge
 
 # generate the box and atom positions using a FCC lattice
 

@@ -21,12 +21,12 @@ kspace_style    tild 1.0e-4
 kspace_modify   mesh 25 25 25
 kspace_modify   order 1 # 1
 kspace_modify   order/disp 1
-# kspace_modify   set_rho0 yes 2.276
-kspace_modify   subtract_rho0 no #yes
-kspace_modify   normalize_by_rho0 yes
+kspace_modify   tild/set_rho0 yes 2.276
+kspace_modify   tild/subtract_rho0 no #yes
+kspace_modify   tild/normalize_by_rho0 yes
 kspace_modify   tild/kappa 25
 kspace_modify   tild/coeff 1 1 gaussian 0.5 
-kspace_modify   mix convolution
+kspace_modify   tild/mix convolution
 kspace_modify   tild/chi 1 1 0.0
 
 

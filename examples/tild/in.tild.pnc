@@ -1,13 +1,12 @@
 # polymers and grafted nanoparticles
 units           lj
 atom_style      molecular
-processors      * 1 1
 boundary        p p p
 read_data       output.data
 
-comm_modify     cutoff 5.6
-# neighbor        2.5 bin
-neigh_modify    every 01 delay 0 check yes exclude molecule/intra all one 120000 page 1200000
+comm_modify     cutoff 6 # take care with cut offs
+#neighbor        15 bin
+neigh_modify    every 1 delay 0 check yes exclude molecule/intra all #one 120000 page 1200000
 
 velocity        all zero linear
 
@@ -29,61 +28,37 @@ bond_coeff      * 1.5 0
 
 # Mesh parameters
 kspace_style    tild 1.0e-4
-kspace_modify   mesh 25 25 128
-#kspace_modify   mesh 25 25 320
-kspace_modify   order 2 #1
-kspace_modify   order/disp 2 #1
+kspace_modify   mesh 7 7 11
+kspace_modify   order 2 
+kspace_modify   order/disp 2
 
 # TILD interaction parameters
-kspace_modify   tild/kappa 25
+kspace_modify   tild/kappa 2.
 kspace_modify   tild/coeff 1 1 gaussian 0.5 
 kspace_modify   tild/coeff 2 2 gaussian 0.5 
 kspace_modify   tild/coeff 3 3 erfc 3.5 0.25 
 kspace_modify   tild/coeff 4 4 none
-kspace_modify   mix convolution
+kspace_modify   tild/mix convolution
 kspace_modify   tild/chi * * 0.0
-kspace_modify   tild/chi 1 2 0.0175
-kspace_modify   tild/chi 2 3 0.0175
-kspace_modify   set_rho0 2.276
-kspace_modify   subtract_rho0 no #yes
-kspace_modify   normalize_by_rho0 yes
+kspace_modify   tild/chi 1 2 1.5
+kspace_modify   tild/chi 2 3 1.5
+kspace_modify   tild/set_rho0 1.5
+kspace_modify   tild/subtract_rho0 no #yes
+kspace_modify   tild/normalize_by_rho0 yes
+kspace_modify   tild/write_grid_data 100 rho.grid
+kspace_modify   tild/ave/grid 2 6 100 avg_rho.grid
 
 # integrators
 fix             1 nonRigid nve 
 fix             2 NP rigid molecule
-fix             3 all langevin 1.0 1.0 100.0 12345 gjf yes zero yes
+fix             3 all langevin 1.0 1.0 1.0 12345 gjf yes zero yes
 
 # Output
-dump            trj all custom 1 diblock-mpi.lammpstrj id type mol x y z
+dump            trj all custom 100 diblock-mpi.lammpstrj id type mol x y z
 
-thermo          1
+thermo          100
 thermo_style    custom step ebond epair ecoul pe temp press pxx pyy pzz pxy pxz pyz 
 thermo_modify   norm no
 
 timestep        0.02
-run             0
-
-
-# the last atom id that corresponds to 
-#group           blocks molecule <= 51322
-#group           homoA  molecule <> 51322 51322
-#group           homoB  molecule <> 51322 51322
-#group           solvent union blocks homoA homoB
-#group           gNP subtract all solvent
-#group           NP union P anchors
-#group           tethers subtract gNP NP
-#group           testpair1 id 267143 267144
-#group           testpair2 id 264397 264447
-#group           testpair3 id 264397 264397
-#variable a1 equal x[267143]-x[267144]
-#variable a2 equal y[267143]-y[267144]
-#variable a3 equal z[267143]-z[267144]
-#variable b1 equal x[264398]-x[264397]
-#variable b2 equal y[264398]-y[264397]
-#variable b3 equal z[264398]-z[264397]
-#variable c1 equal x[264398]-x[264447]
-#variable c2 equal y[264398]-y[264447]
-#variable c3 equal z[264398]-z[264447]
-#variable dist_sq_a equal v_a1*v_a1+v_a2*v_a2+v_a3*v_a3
-#variable dist_sq_b equal v_b1*v_b1+v_b2*v_b2+v_b3*v_b3
-#variable dist_sq_c equal v_c1*v_c1+v_c2*v_c2+v_c3*v_c3
+run             200

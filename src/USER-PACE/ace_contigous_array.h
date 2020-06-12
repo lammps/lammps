@@ -22,6 +22,7 @@ protected:
     T *data = nullptr; ///< pointer to contiguous data
     size_t size = 0; ///< total array size
     string array_name = "Array"; ///<array name
+    bool is_proxy = false; ///< array is proxy (wrapper) and not owner of the memory
 public:
 
     /**
@@ -40,14 +41,18 @@ public:
      * Copy constructor
      * @param other other ContiguousArrayND
      */
-    ContiguousArrayND(const ContiguousArrayND &other) : array_name(other.array_name), size(other.size) {
+    ContiguousArrayND(const ContiguousArrayND &other) : array_name(other.array_name), size(other.size), is_proxy(other.is_proxy) {
 #ifdef MULTIARRAY_LIFE_CYCLE
         cout<<array_name<<"::copy constructor"<<endl;
 #endif
-        if (size > 0) {
-            data = new T[size];
-            for (size_t ind = 0; ind < size; ind++)
-                data[ind] = other.data[ind];
+        if(!is_proxy) { //if not the proxy, then copy the values
+            if (size > 0) {
+                data = new T[size];
+                for (size_t ind = 0; ind < size; ind++)
+                    data[ind] = other.data[ind];
+            }
+        } else { //is proxy, then copy the pointer
+            data = other.data;
         }
     }
 
@@ -64,10 +69,18 @@ public:
         if (this != &other) {
             array_name = other.array_name;
             size = other.size;
-            if (size > 0) {
-                data = new T[size];
-                for (size_t ind = 0; ind < size; ind++)
-                    data[ind] = other.data[ind];
+            is_proxy = other.is_proxy;
+            if(!is_proxy) { //if not the proxy, then copy the values
+                if (size > 0) {
+
+                    if(data!=nullptr) delete[] data;
+                    data = new T[size];
+
+                    for (size_t ind = 0; ind < size; ind++)
+                        data[ind] = other.data[ind];
+                }
+            } else { //is proxy, then copy the pointer
+                data = other.data;
             }
         }
         return *this;
@@ -83,7 +96,9 @@ public:
 #ifdef MULTIARRAY_LIFE_CYCLE
         cout<<array_name<<"::~destructor"<<endl;
 #endif
-        if (data != nullptr) delete[] data;
+        if(! is_proxy) {
+            delete[] data;
+        }
         data = nullptr;
     }
 
@@ -143,6 +158,14 @@ public:
     }
 
     /**
+     * Get array data pointer
+     * @return data array pointer
+     */
+    inline const T* get_data() const {
+        return data;
+    }
+
+    /**
      * Overload comparison operator==
      * Compare the total size and array values elementwise.
      *
@@ -159,6 +182,37 @@ public:
 
         return true;
     }
+
+
+    /**
+    * Convert to flatten vector<T> container
+    * @return vector container
+    */
+    vector<T> to_flatten_vector() const {
+        vector<T> res;
+
+        res.resize(size);
+        size_t vec_ind = 0;
+
+        for (int vec_ind = 0; vec_ind < size; vec_ind++)
+                res.at(vec_ind) = data[vec_ind];
+
+        return res;
+    } // end to_flatten_vector()
+
+
+    /**
+    * Set values from flatten vector<T> container
+    * @param vec container
+    */
+    void set_flatten_vector(const vector<T> &vec) {
+        if (vec.size() != size)
+            throw std::invalid_argument("Flatten vector size is not consistent with expected size");
+        for (size_t i = 0; i < size; i++) {
+            data[i] = vec[i];
+        }
+    }
+
 };
 
 

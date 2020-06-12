@@ -165,7 +165,7 @@ void vector_union(std::vector<T>& v1, std::vector<T>& v2,
   }
 }
 
-MESONTList::MESONTList(const Atom* atom, const NeighList* nblist, double rc2){
+MESONTList::MESONTList(const Atom* atom, const NeighList* nblist, double /* rc2 */){
   if (atom == NULL || nblist == NULL) return;
   //number of local atoms at the node
   int nlocal = atom->nlocal;
@@ -274,7 +274,6 @@ MESONTList::MESONTList(const Atom* atom, const NeighList* nblist, double rc2){
         int idx_next = chain_list[index_list[nb_list[j]]][1];
         if ((j == nnb - 1) || (nb_list[j] + 1 != nb_list[j+1]) ||
          (idx_next == cnt_end) || (idx_next == domain_end)) {
-          int idx_f = nb_list[j];
           array2003<int, 2> chain;
           chain[0] = idx_s;
           chain[1] = nb_list[j];
@@ -337,6 +336,7 @@ PairMESONTTPM::~PairMESONTTPM()
 /* ---------------------------------------------------------------------- */
 
 void PairMESONTTPM::compute(int eflag, int vflag){
+  ev_init(eflag,vflag);
   //total number of atoms in the node and ghost shell
   int nall = list->inum + list->gnum;
   int ntot = atom->nlocal + atom->nghost;
@@ -347,11 +347,9 @@ void PairMESONTTPM::compute(int eflag, int vflag){
   double **x = atom->x;
   double **f = atom->f;
   double *r = atom->radius;
-  double *m = atom->rmass;
   double *l = atom->length;
   int *buckling = atom->buckling;
   tagint *g_id = atom->tag;
-  tagint **bonds = atom->bond_nt;
 
   //check if cutoff is chosen correctly
   double RT = mesont_lib_get_R();
@@ -458,7 +456,7 @@ void PairMESONTTPM::compute(int eflag, int vflag){
     mesont_lib_TubeStretchingForceField(U1s, U2s, F1, F2, S1, S2, X1, X2,
      R12, L12);
 
-    for (int nc = 0; nc < ntlist.get_nbs()[i].size(); nc++){
+    for (int nc = 0; nc < (int)ntlist.get_nbs()[i].size(); nc++){
       //id of the beginning and end of the chain in the sorted representation
       const array2003<int,2>& chain = ntlist.get_nbs()[i][nc];
       int N = chain[1] - chain[0] + 1;  //number of elements in the chain
@@ -466,7 +464,6 @@ void PairMESONTTPM::compute(int eflag, int vflag){
       int end2 = ntlist.get_idx(chain[1]);
       double* X = &(x_sort[3*chain[0]]);
       double* Ut = &(u_tt_sort[chain[0]]);
-      double* Us = &(u_ts_sort[chain[0]]);
       double* F = &(f_sort[3*chain[0]]);
       double* S = &(s_sort[9*chain[0]]);
       double R = r[end1];
@@ -611,7 +608,7 @@ void PairMESONTTPM::settings(int narg, char **arg){
     if ((BendingMode < 0) || (BendingMode > 1))
       error->all(FLERR,"Incorrect BendingMode");
   }
-  if (narg > 3){
+  if (narg > 3) {
     TPMType = force->numeric(FLERR,arg[3]);
     if ((TPMType < 0) || (TPMType > 1))
       error->all(FLERR,"Incorrect TPMType");

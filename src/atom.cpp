@@ -2290,7 +2290,7 @@ void Atom::add_callback(int flag)
     }
     extra_grow[nextra_grow] = ifix;
     nextra_grow++;
-    std::sort(extra_grow, extra_grow + nextra_grow);     
+    std::sort(extra_grow, extra_grow + nextra_grow);
   } else if (flag == 1) {
     if (nextra_restart == nextra_restart_max) {
       nextra_restart_max += DELTA;
@@ -2298,7 +2298,7 @@ void Atom::add_callback(int flag)
     }
     extra_restart[nextra_restart] = ifix;
     nextra_restart++;
-    std::sort(extra_restart, extra_restart + nextra_restart);     
+    std::sort(extra_restart, extra_restart + nextra_restart);
   } else if (flag == 2) {
     if (nextra_border == nextra_border_max) {
       nextra_border_max += DELTA;
@@ -2306,7 +2306,7 @@ void Atom::add_callback(int flag)
     }
     extra_border[nextra_border] = ifix;
     nextra_border++;
-    std::sort(extra_border, extra_border + nextra_border);     
+    std::sort(extra_border, extra_border + nextra_border);
   }
 }
 

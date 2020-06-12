@@ -21,6 +21,8 @@
 #include "memory.h"
 #include "error.h"
 #include "force.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -65,11 +67,9 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
       if (me == 0) {
         if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
         else fp = fopen(arg[iarg+1],"a");
-        if (fp == NULL) {
-          char str[128];
-          snprintf(str,128,"Cannot open fix print file %s",arg[iarg+1]);
-          error->one(FLERR,str);
-        }
+        if (fp == NULL)
+          error->one(FLERR,fmt::format("Cannot open fix print file {}: {}",
+                                       arg[iarg+1], utils::getsyserror()));
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"screen") == 0) {

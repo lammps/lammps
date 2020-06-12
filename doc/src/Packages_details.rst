@@ -2098,7 +2098,7 @@ molecules, and chiral-sensitive reactions.
 * examples/USER/reaction
 * `2017 LAMMPS Workshop <https://lammps.sandia.gov/workshops/Aug17/pdf/gissinger.pdf>`_
 * `2019 LAMMPS Workshop <https://lammps.sandia.gov/workshops/Aug19/talk_gissinger.pdf>`_
-* disarmmd.org
+* reacter.org
 
 ----------
 

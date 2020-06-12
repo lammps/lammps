@@ -284,13 +284,8 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
 
     //Compute beta = dE_i/dB_i for all i in list
-    {
-      int vector_length = vector_length_default;
-      int team_size = team_size_default;
-      check_team_size_for<TagPairSNAPBeta>(chunk_size,team_size,vector_length);
-      typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPBeta> policy_beta(chunk_size,team_size,vector_length);
-      Kokkos::parallel_for("ComputeBeta",policy_beta,*this);
-    }
+    typename Kokkos::RangePolicy<DeviceType,TagPairSNAPBeta> policy_beta(0,chunk_size);
+    Kokkos::parallel_for("ComputeBeta",policy_beta,*this);
 
     //ZeroYi
     {
@@ -424,10 +419,8 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPBeta,const typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPBeta>::member_type& team) const {
+void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPBeta,const int& ii) const {
 
-  // TODO: use RangePolicy instead, or thread over ncoeff?
-  int ii = team.league_rank();
   const int i = d_ilist[ii + chunk_offset];
   const int itype = type[i];
   const int ielem = d_map[itype];

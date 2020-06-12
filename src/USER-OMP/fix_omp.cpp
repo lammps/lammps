@@ -63,7 +63,8 @@ static int get_tid()
 FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
   :  Fix(lmp, narg, arg),
      thr(NULL), last_omp_style(NULL), last_pair_hybrid(NULL),
-     _nthr(-1), _neighbor(true), _mixed(false), _reduced(true)
+     _nthr(-1), _neighbor(true), _mixed(false), _reduced(true),
+     _pair_compute_flag(false), _kspace_compute_flag(false)
 {
   if (narg < 4) error->all(FLERR,"Illegal package omp command");
 
@@ -207,6 +208,11 @@ void FixOMP::init()
       && (strstr(update->integrate_style,"respa/omp") == NULL))
     error->all(FLERR,"Need to use respa/omp for r-RESPA with /omp styles");
 
+  if (force->pair && force->pair->compute_flag) _pair_compute_flag = true;
+  else _pair_compute_flag = false;
+  if (force->kspace && force->kspace->compute_flag) _kspace_compute_flag = true;
+  else _kspace_compute_flag = false;
+
   int check_hybrid, kspace_split;
   last_pair_hybrid = NULL;
   last_omp_style = NULL;
@@ -254,7 +260,7 @@ void FixOMP::init()
     }                                                         \
   }
 
-  if (kspace_split <= 0) {
+  if (_pair_compute_flag && (kspace_split <= 0)) {
     CheckStyleForOMP(pair);
     CheckHybridForOMP(pair,Pair);
     if (check_hybrid) {
@@ -275,7 +281,7 @@ void FixOMP::init()
     CheckHybridForOMP(improper,Improper);
   }
 
-  if (kspace_split >= 0) {
+  if (_kspace_compute_flag && (kspace_split >= 0)) {
     CheckStyleForOMP(kspace);
   }
 

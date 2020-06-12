@@ -92,8 +92,8 @@ OPT.
    * :doc:`drip <pair_drip>`
    * :doc:`eam (gikot) <pair_eam>`
    * :doc:`eam/alloy (gikot) <pair_eam>`
-   * :doc:`eam/cd (o) <pair_eam>`
-   * :doc:`eam/cd/old (o) <pair_eam>`
+   * :doc:`eam/cd <pair_eam>`
+   * :doc:`eam/cd/old <pair_eam>`
    * :doc:`eam/fs (gikot) <pair_eam>`
    * :doc:`edip (o) <pair_edip>`
    * :doc:`edip/multi <pair_edip>`

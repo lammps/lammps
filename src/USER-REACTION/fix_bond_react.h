@@ -147,12 +147,13 @@ class FixBondReact : public Fix {
   int glove_counter; // used to determine when to terminate Superimpose Algorithm
 
   void read(int);
-  void EdgeIDs(char *,int);
-  void Equivalences(char *,int);
-  void CustomEdges(char *,int);
-  void DeleteAtoms(char *,int);
-  void ChiralCenters(char *,int);
-  void Constraints(char *,int);
+  void EdgeIDs(char *, int);
+  void Equivalences(char *, int);
+  void CustomEdges(char *, int);
+  void DeleteAtoms(char *, int);
+  void ChiralCenters(char *, int);
+  void Constraints(char *, int);
+  void readID(char *, int, int, int);
 
   void make_a_guess ();
   void neighbor_loop();
@@ -161,6 +162,7 @@ class FixBondReact : public Fix {
   void inner_crosscheck_loop();
   void ring_check();
   int check_constraints();
+  void get_IDcoords(int, int, double *);
   double get_temperature();
   int get_chirality(double[12]); // get handedness given an ordered set of coordinates
 
@@ -285,6 +287,10 @@ E: Bond/react: Variable name does not exist
 Self-explanatory.
 
 E: Bond/react: Variable is not equal-style
+
+Self-explanatory.
+
+E: Bond/react: Molecule fragment does not exist
 
 Self-explanatory.
 

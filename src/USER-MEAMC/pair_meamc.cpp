@@ -28,6 +28,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -383,7 +384,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
       // strip comment, skip line if blank
 
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      int nwords = atom->count_words(line);
+      int nwords = utils::count_words(line);
       if (nwords == 0) continue;
 
       // concatenate additional lines until have params_per_line words
@@ -396,7 +397,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
           break;
         }
         if ((ptr = strchr(line,'#'))) *ptr = '\0';
-        nwords = atom->count_words(line);
+        nwords = utils::count_words(line);
       }
 
       if (nwords != params_per_line)
@@ -561,7 +562,7 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    if (atom->count_words(line) == 0) continue;
+    if (utils::count_words(line) == 0) continue;
 
     // params = ptrs to all fields in line
 

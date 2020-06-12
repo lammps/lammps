@@ -30,6 +30,8 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "tokenizer.h"
+#include "potential_file_reader.h"
 
 using namespace LAMMPS_NS;
 
@@ -562,108 +564,97 @@ double PairPolymorphic::init_one(int i, int j)
 
 void PairPolymorphic::read_file(char *file)
 {
-  char line[MAXLINE],*ptr;
-  int n;
+  PotentialFileReader * reader = nullptr;
 
-  // open file on proc 0
-  FILE *fp=NULL;
+  // read potential
   if (comm->me == 0) {
-    fp = force->open_potential(file);
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open polymorphic potential file %s",file);
-      error->one(FLERR,str);
+    try {
+      reader = new PotentialFileReader(lmp, file, "polymorphic");
+
+      ValueTokenizer values = reader->next_values(2);
+
+      int ntypes = values.next_int();
+
+      if (ntypes != nelements)
+        error->one(FLERR,"Incorrect number of elements in potential file");
+
+      eta = values.next_int();
+
+      // map the elements in the potential file to LAMMPS atom types
+      match = new int[nelements];
+
+      for (int i = 0; i < nelements; i++) {
+        values = reader->next_values(3);
+        values.next_double(); // atomic number
+        values.next_double(); // atomic mass
+        std::string name = values.next_string();
+
+        int j;
+        for (j = 0; j < nelements; j++) {
+          if (name == elements[j]) break;
+        }
+        if (j == nelements) error->one(FLERR,"Element not defined in potential file");
+        match[i] = j;
+      }
+
+      // sizes
+      // Note: the format of this line has changed between the
+      // 2015-06-06 and 2015-12-09 versions of the pair style.
+      try {
+        values = reader->next_values(4);
+        nr = ng = nx = 0;
+        nr = values.next_int();
+        ng = values.next_int();
+        nx = values.next_int();
+        maxX = values.next_double();
+
+        if ((ng == 0) || (nr == 0) || (nx == 0))
+          error->one(FLERR,"Error reading potential file header");
+      } catch (TokenizerException & e) {
+        error->one(FLERR,"Potential file incompatible with this pair style version");
+      }
+
+      // cutoffs
+      npair = nelements*(nelements+1)/2;
+      ntriple = nelements*nelements*nelements;
+      pairParameters = (PairParameters*) memory->srealloc(pairParameters,npair*sizeof(PairParameters), "pair:pairParameters");
+      tripletParameters = (TripletParameters*) memory->srealloc(tripletParameters,ntriple*sizeof(TripletParameters), "pair:tripletParameters");
+
+      for (int i = 0; i < npair; i++) {
+        PairParameters & p = pairParameters[i];
+        values = reader->next_values(2);
+        p.cut = values.next_double();
+        p.cutsq = p.cut*p.cut;
+        p.xi = values.next_double();
+      }
+    } catch (TokenizerException & e) {
+      error->one(FLERR, e.what());
     }
-    // move past comments to first data line
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-    while (line == strchr(line,'#')) utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-    n = strlen(line) + 1;
-  }
-  MPI_Bcast(&n,1,MPI_INT,0,world);
-  MPI_Bcast(line,n,MPI_CHAR,0,world);
-  ptr = strtok(line," \t\n\r\f"); // 1st line, 1st token
-  int ntypes = atoi(ptr);
-  if (ntypes != nelements)
-    error->all(FLERR,"Incorrect number of elements in potential file");
-  match = new int[nelements];
-  ptr = strtok(NULL," \t\n\r\f"); // 1st line, 2nd token
-  eta = atoi(ptr);
-
-  // map the elements in the potential file to LAMMPS atom types
-  for (int i = 0; i < nelements; i++) {
-    if (comm->me == 0) {
-      utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-      n = strlen(line) + 1;
-    }
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
-    ptr = strtok(line," \t\n\r\f"); // 1st token
-    ptr = strtok(NULL," \t\n\r\f"); // 2st token
-    ptr = strtok(NULL," \t\n\r\f"); // 3st token
-    int j;
-    for (j = 0; j < nelements; j++) {
-      if (strcmp(ptr,elements[j]) == 0) break;
-    }
-    if (j == nelements)
-      error->all(FLERR,"Element not defined in potential file");
-    match[i] = j;
-  }
-  // sizes
-  if (comm->me == 0) {
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-    n = strlen(line) + 1;
   }
 
-  // Note: the format of this line has changed between the
-  // 2015-06-06 and 2015-12-09 versions of the pair style.
+  MPI_Bcast(&nr, 1, MPI_INT, 0, world);
+  MPI_Bcast(&ng, 1, MPI_INT, 0, world);
+  MPI_Bcast(&nx, 1, MPI_INT, 0, world);
+  MPI_Bcast(&maxX, 1, MPI_DOUBLE, 0, world);
 
-  MPI_Bcast(&n,1,MPI_INT,0,world);
-  MPI_Bcast(line,n,MPI_CHAR,0,world);
-  nr = ng = nx = 0;
-  ptr = strtok(line," \t\n\r\f"); // 1st token
-  if (ptr) nr = atoi(ptr);
-  ptr = strtok(NULL," \t\n\r\f"); // 2nd token
-  if (ptr) ng = atoi(ptr);
-  ptr = strtok(NULL," \t\n\r\f"); // 3rd token
-  if (ptr) nx = atoi(ptr);
-  ptr = strtok(NULL," \t\n\r\f"); // 4th token
-  if (ptr) maxX = atof(ptr);
-  if (ptr == NULL)
-    error->all(FLERR,"Potential file incompatible with this pair style version");
-  if ((ng == 0) || (nr == 0) || (nx == 0))
-    error->all(FLERR,"Error reading potential file header");
+  MPI_Bcast(&npair, 1, MPI_INT, 0, world);
+  MPI_Bcast(&ntriple, 1, MPI_INT, 0, world);
 
-  npair = nelements*(nelements+1)/2;
-  ntriple = nelements*nelements*nelements;
-  pairParameters = (PairParameters*)
-    memory->srealloc(pairParameters,npair*sizeof(PairParameters),
-    "pair:pairParameters");
-  tripletParameters = (TripletParameters*)
-    memory->srealloc(tripletParameters,ntriple*sizeof(TripletParameters),
-    "pair:tripletParameters");
-
-  // cutoffs
-  for (int i = 0; i < npair; i++) {
-    PairParameters & p = pairParameters[i];
-    if (comm->me == 0) {
-      utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-      n = strlen(line) + 1;
-    }
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
-    ptr = strtok(line," \t\n\r\f"); // 1st token
-    p.cut = atof(ptr);
-    p.cutsq = p.cut*p.cut;
-    ptr = strtok(NULL," \t\n\r\f"); // 2nd token
-    p.xi = atof(ptr);
+  if(comm->me != 0) {
+    match = new int[nelements];
+    pairParameters = (PairParameters*) memory->srealloc(pairParameters,npair*sizeof(PairParameters), "pair:pairParameters");
+    tripletParameters = (TripletParameters*) memory->srealloc(tripletParameters,ntriple*sizeof(TripletParameters), "pair:tripletParameters");
   }
+
+  MPI_Bcast(match, nelements, MPI_INT, 0, world);
+  MPI_Bcast(pairParameters, npair*sizeof(PairParameters), MPI_BYTE, 0, world);
 
   // start reading tabular functions
   double * singletable = new double[nr];
   for (int i = 0; i < npair; i++) { // U
     PairParameters & p = pairParameters[i];
     if (comm->me == 0) {
-      grab(fp,nr,singletable);
+      reader->next_dvector(singletable, nr);
     }
     MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
     p.U = new tabularFunction(nr,0.0,p.cut);
@@ -672,7 +663,7 @@ void PairPolymorphic::read_file(char *file)
   for (int i = 0; i < npair; i++) { // V
     PairParameters & p = pairParameters[i];
     if (comm->me == 0) {
-      grab(fp,nr,singletable);
+      reader->next_dvector(singletable, nr);
     }
     MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
     p.V = new tabularFunction(nr,0.0,p.cut);
@@ -681,7 +672,7 @@ void PairPolymorphic::read_file(char *file)
   for (int i = 0; i < npair; i++) { // W
     PairParameters & p = pairParameters[i];
     if (comm->me == 0) {
-      grab(fp,nr,singletable);
+      reader->next_dvector(singletable, nr);
     }
     MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
     p.W = new tabularFunction(nr,0.0,p.cut);
@@ -698,7 +689,7 @@ void PairPolymorphic::read_file(char *file)
   if (eta != 3) {
     for (int j = 0; j < nelements; j++) { // P
       if (comm->me == 0) {
-        grab(fp,nr,singletable);
+        reader->next_dvector(singletable, nr);
       }
       MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
       for (int i = 0; i < nelements; i++) {
@@ -710,7 +701,7 @@ void PairPolymorphic::read_file(char *file)
     for (int j = 0; j < nelements-1; j++) { // P
     for (int k = j+1; k < nelements; k++) {
       if (comm->me == 0) {
-        grab(fp,nr,singletable);
+        reader->next_dvector(singletable, nr);
       }
       MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
       for (int i = 0; i < nelements; i++) {
@@ -728,7 +719,7 @@ void PairPolymorphic::read_file(char *file)
     for (int i = 0; i < ntriple; i++) { // P
       TripletParameters & p = tripletParameters[i];
       if (comm->me == 0) {
-        grab(fp,nr,singletable);
+        reader->next_dvector(singletable, nr);
       }
       MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
       p.P = new tabularFunction(nr,-cutmax,cutmax);
@@ -740,7 +731,7 @@ void PairPolymorphic::read_file(char *file)
   for (int i = 0; i < ntriple; i++) { // G
     TripletParameters & p = tripletParameters[i];
     if (comm->me == 0) {
-      grab(fp,ng,singletable);
+      reader->next_dvector(singletable, ng);
     }
     MPI_Bcast(singletable,ng,MPI_DOUBLE,0,world);
     p.G = new tabularFunction(ng,-1.0,1.0);
@@ -751,7 +742,7 @@ void PairPolymorphic::read_file(char *file)
   for (int i = 0; i < npair; i++) { // F
     PairParameters & p = pairParameters[i];
     if (comm->me == 0) {
-      grab(fp,nx,singletable);
+      reader->next_dvector(singletable, nx);
     }
     MPI_Bcast(singletable,nx,MPI_DOUBLE,0,world);
     p.F = new tabularFunction(nx,0.0,maxX);
@@ -759,7 +750,7 @@ void PairPolymorphic::read_file(char *file)
   }
   delete[] singletable;
   if (comm->me == 0) {
-    fclose(fp);
+    delete reader;
   }
 
   // recalculate cutoffs of all params
@@ -903,27 +894,6 @@ void PairPolymorphic::costheta_d(double *rij_hat, double rij,
   vec3_scale(1.0/rik,drk,drk);
   vec3_add(drj,drk,dri);
   vec3_scale(-1.0,dri,dri);
-}
-
-/* ----------------------------------------------------------------------
- *    grab n values from file fp and put them in list
- *       values can be several to a line
- *          only called by proc 0
- *          ------------------------------------------------------------------------- */
-
-void PairPolymorphic::grab(FILE *fp, int n, double *list)
-{
-  char *ptr;
-  char line[MAXLINE];
-
-  int i = 0;
-  while (i < n) {
-    utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
-    ptr = strtok(line," \t\n\r\f");
-    list[i++] = atof(ptr);
-    while ((ptr = strtok(NULL," \t\n\r\f")))
-      list[i++] = atof(ptr);
-  }
 }
 
 /* ---------------------------------------------------------------------- */

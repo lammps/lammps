@@ -3,6 +3,11 @@
 # This file is part of LAMMPS
 # Created by Christoph Junghans and Richard Berger
 cmake_minimum_required(VERSION 3.10)
+# set policy to silence warnings about ignoring <PackageName>_ROOT but use it
+if(POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif()
+########################################
 
 project(lammps CXX)
 set(SOVERSION 0)
@@ -26,6 +31,12 @@ endif()
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Modules)
+
+# make sure LIBRARY_PATH is set if environment variable is set
+if (DEFINED ENV{LIBRARY_PATH})
+  list(APPEND CMAKE_LIBRARY_PATH "$ENV{LIBRARY_PATH}")
+  message(STATUS "Appending $ENV{LIBRARY_PATH} to CMAKE_LIBRARY_PATH: ${CMAKE_LIBRARY_PATH}")
+endif()
 
 include(LAMMPSUtils)
 
@@ -60,11 +71,11 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  set(CMAKE_TUNE_DEFAULT "-ffast-math -march=native")
+  set(CMAKE_TUNE_DEFAULT "-march=native")
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-  set(CMAKE_TUNE_DEFAULT "-ffast-math -march=native")
+  set(CMAKE_TUNE_DEFAULT "-march=native")
 endif()
 
 # we require C++11 without extensions
@@ -547,8 +558,6 @@ if(BUILD_SHARED_LIBS)
   configure_file(pkgconfig/liblammps.pc.in ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_MACHINE}.pc @ONLY)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_MACHINE}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
   install(EXPORT LAMMPS_Targets FILE LAMMPS_Targets.cmake NAMESPACE LAMMPS:: DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LAMMPS)
-  file(GLOB MODULE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Modules/Find*.cmake)
-  install(FILES ${MODULE_FILES} DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LAMMPS)
   include(CMakePackageConfigHelpers)
   configure_file(LAMMPSConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/LAMMPSConfig.cmake @ONLY)
   write_basic_package_version_file("LAMMPSConfigVersion.cmake" VERSION ${PROJECT_VERSION} COMPATIBILITY ExactVersion)

@@ -3,7 +3,8 @@
 fix poems command
 =================
 
-Syntax:
+Syntax
+""""""
 
 .. parsed-literal::
 

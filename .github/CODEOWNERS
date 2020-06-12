@@ -117,6 +117,9 @@ tools/msi2lmp/*       @akohlmey
 tools/emacs/*         @HaoZeke
 tools/singularity/*   @akohlmey @rbberger
 
+# tests
+unittest/*            @akohlmey @rbberger
+
 # cmake
 cmake/*               @junghans @rbberger
 cmake/Modules/Packages/USER-COLVARS.cmake @junghans @rbberger @giacomofiorin

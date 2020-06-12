@@ -103,7 +103,7 @@ void BondGromosOMP::eval(int nfrom, int nto, ThrData * const thr)
 
     fbond = -4.0 * kdr;
 
-    if (EFLAG) ebond = kdr;
+    if (EFLAG) ebond = kdr*dr;
 
     // apply force to each of 2 atoms
 

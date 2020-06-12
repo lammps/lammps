@@ -46,7 +46,7 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *dilate* or *scalexy* or *scaleyz* or *scalexz* or *flip* or *fixedpoint* or *update*
+     keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *ptemp* or *dilate* or *scalexy* or *scaleyz* or *scalexz* or *flip* or *fixedpoint* or *update*
        *temp* values = Tstart Tstop Tdamp
          Tstart,Tstop = external temperature at start/end of run
          Tdamp = temperature damping parameter (time units)
@@ -69,6 +69,8 @@ Syntax
        *nreset* value = reset reference cell every this many timesteps
        *drag* value = Df
          Df = drag factor added to barostat/thermostat (0.0 = no drag)
+       *ptemp* value = Ttarget
+         Ttarget = target temperature for barostat
        *dilate* value = dilate-group-ID
          dilate-group-ID = only dilate atoms in this group due to barostat volume changes
        *scalexy* value = *yes* or *no* = scale xy with ly
@@ -137,8 +139,8 @@ description below.  The desired temperature at each timestep is a
 ramped value during the run from *Tstart* to *Tstop*\ .  The *Tdamp*
 parameter is specified in time units and determines how rapidly the
 temperature is relaxed.  For example, a value of 10.0 means to relax
-the temperature in a timespan of (roughly) 10 time units (e.g. tau or
-fmsec or psec - see the :doc:`units <units>` command).  The atoms in the
+the temperature in a timespan of (roughly) 10 time units (e.g. :math:`\tau`
+or fs or ps - see the :doc:`units <units>` command).  The atoms in the
 fix group are the only ones whose velocities and positions are updated
 by the velocity/position update portion of the integration.
 
@@ -195,8 +197,8 @@ simulation box must be triclinic, even if its initial tilt factors are
 For all barostat keywords, the *Pdamp* parameter operates like the
 *Tdamp* parameter, determining the time scale on which pressure is
 relaxed.  For example, a value of 10.0 means to relax the pressure in
-a timespan of (roughly) 10 time units (e.g. tau or fmsec or psec - see
-the :doc:`units <units>` command).
+a timespan of (roughly) 10 time units (e.g. :math:`\tau` or fs or ps
+- see the :doc:`units <units>` command).
 
 .. note::
 
@@ -207,6 +209,28 @@ the :doc:`units <units>` command).
    of around 1000 timesteps.  However, note that *Pdamp* is specified in
    time units, and that timesteps are NOT the same as time units for most
    :doc:`units <units>` settings.
+
+The relaxation rate of the barostat is set by its inertia :math:`W`:
+
+.. math::
+
+   W = (N + 1) k T_{\rm target} P_{\rm damp}^2
+
+where :math:`N` is the number of atoms, :math:`k` is the Boltzmann constant,
+and :math:`T_{\rm target}` is the target temperature of the barostat :ref:`(Martyna) <nh-Martyna>`.
+If a thermostat is defined, :math:`T_{\rm target}` is the target temperature
+of the thermostat. If a thermostat is not defined, :math:`T_{\rm target}`
+is set to the current temperature of the system when the barostat is initialized.
+If this temperature is too low the simulation will quit with an error.
+Note: in previous versions of LAMMPS, :math:`T_{\rm target}` would default to
+a value of 1.0 for *lj* units and 300.0 otherwise if the system had a temperature
+of exactly zero.
+
+If a thermostat is not specified by this fix, :math:`T_{\rm target}` can be
+manually specified using the *Ptemp* parameter. This may be useful if the
+barostat is initialized when the current temperature does not reflect the
+steady state temperature of the system. This keyword may also be useful in
+athermal simulations where the temperature is not well defined.
 
 Regardless of what atoms are in the fix group (the only atoms which
 are time integrated), a global pressure or stress tensor is computed

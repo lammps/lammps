@@ -38,6 +38,7 @@ class BondZero : public Bond {
   void write_data(FILE *);
 
   double single(int, double, int, int, double &);
+  virtual void *extract(const char *, int &);
 
  protected:
   double *r0;

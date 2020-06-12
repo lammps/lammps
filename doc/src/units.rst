@@ -203,7 +203,7 @@ For style *nano*\ , these are the units:
 The units command also sets the timestep size and neighbor skin
 distance to default values for each style:
 
-* For style *lj* these are dt = 0.005 tau and skin = 0.3 sigma.
+* For style *lj* these are dt = 0.005 :math:`\tau` and skin = 0.3 :math:`\sigma`.
 * For style *real* these are dt = 1.0 femtoseconds and skin = 2.0 Angstroms.
 * For style *metal* these are dt = 0.001 picoseconds and skin = 2.0 Angstroms.
 * For style *si* these are dt = 1.0e-8 seconds and skin = 0.001 meters.

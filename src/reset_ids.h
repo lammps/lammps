@@ -47,13 +47,13 @@ class ResetIDs : protected Pointers {
 
  private:
   bigint binlo,binhi;
-  
+
   // callback functions for rendezvous communication
 
   static int sort_bins(int, char *, int &, int *&, char *&, void *);
-  
+
   void sort();
-  
+
   // union data struct for packing 32-bit and 64-bit ints into double bufs
   // see atom_vec.h for documentation
 

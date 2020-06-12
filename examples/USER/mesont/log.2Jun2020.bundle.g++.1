@@ -1,5 +1,4 @@
-LAMMPS (3 Mar 2020)
-  using 1 OpenMP thread(s) per MPI task
+LAMMPS (5 May 2020)
 processors      1 1 *
 newton          on
 units           metal
@@ -11,19 +10,18 @@ neigh_modify    every 5 delay 0 check yes
 
 atom_style      mesont
 #               cut, path, BendingMode, TPMType
-pair_style      mesont/tpm 45.0 ../../../potentials/MESONT-TABTP_10_10.xrs 0 0
+pair_style      mesont/tpm 45.0 MESONT-TABTP_10_10.xrs 0 0
 read_data       data.bundle
   orthogonal box = (-143.89 -143.89 0) to (143.89 143.89 220)
   1 by 1 by 1 MPI processor grid
   reading atoms ...
   77 atoms
-  read_data CPU = 0.025475 secs
+  read_data CPU = 0.000613213 secs
 pair_coeff      * *
 
 velocity        all create 6000.0 2019
 timestep        0.005
 fix             1 all nve
-thermo_modify   flush yes
 thermo          10
 reset_timestep  0
 
@@ -33,7 +31,6 @@ compute         Et all mesont etube
 compute         B all property/atom buckling
 
 thermo_style    custom step time temp etotal ke pe c_Es c_Eb c_Et
-WARNING: New thermo_style command, previous thermo_modify settings will be lost (../output.cpp:708)
 #dump            out_dump all custom 50 dump.bundle id type x y z c_Es c_Eb c_Et c_B ix iy iz
 
 run             100
@@ -62,20 +59,20 @@ Step Time Temp TotEng KinEng PotEng c_Es c_Eb c_Et
       80          0.4    3849.9855    -201.8635    37.821376   -239.68487    7.9899173    6.4332848   -254.10807 
       90         0.45    3618.1311   -201.85967    35.543692   -237.40336    9.2616931    7.0452637   -253.71032 
      100          0.5    2866.2722   -201.85273    28.157602   -230.01033    12.204916    10.284525   -252.49977 
-Loop time of 0.457417 on 1 procs for 100 steps with 77 atoms
+Loop time of 0.419735 on 1 procs for 100 steps with 77 atoms
 
-Performance: 94.443 ns/day, 0.254 hours/ns, 218.619 timesteps/s
-99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 102.922 ns/day, 0.233 hours/ns, 238.245 timesteps/s
+99.8% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.45698    | 0.45698    | 0.45698    |   0.0 | 99.90
-Neigh   | 5.6982e-05 | 5.6982e-05 | 5.6982e-05 |   0.0 |  0.01
-Comm    | 4.4584e-05 | 4.4584e-05 | 4.4584e-05 |   0.0 |  0.01
-Output  | 0.00019693 | 0.00019693 | 0.00019693 |   0.0 |  0.04
-Modify  | 7.4863e-05 | 7.4863e-05 | 7.4863e-05 |   0.0 |  0.02
-Other   |            | 6.318e-05  |            |       |  0.01
+Pair    | 0.41922    | 0.41922    | 0.41922    |   0.0 | 99.88
+Neigh   | 5.8174e-05 | 5.8174e-05 | 5.8174e-05 |   0.0 |  0.01
+Comm    | 7.0333e-05 | 7.0333e-05 | 7.0333e-05 |   0.0 |  0.02
+Output  | 0.00017667 | 0.00017667 | 0.00017667 |   0.0 |  0.04
+Modify  | 0.00011945 | 0.00011945 | 0.00011945 |   0.0 |  0.03
+Other   |            | 8.702e-05  |            |       |  0.02
 
 Nlocal:    77 ave 77 max 77 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

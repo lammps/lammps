@@ -280,7 +280,7 @@ install-python:
 tar:
 	@cd STUBS; $(MAKE) clean
 	@cd ..; tar cvzf src/$(ROOT)_src.tar.gz \
-	  src/Make* src/Package.sh src/Depend.sh src/Install.sh \
+	  src/Make* src/Package.sh src/Depend.sh src/Install.sh src/Fetch.sh \
 	  src/MAKE src/DEPEND src/*.cpp src/*.h src/STUBS \
 	  $(patsubst %,src/%,$(PACKAGEUC)) $(patsubst %,src/%,$(PACKUSERUC)) \
           --exclude=*/.svn
@@ -369,6 +369,7 @@ yes-%:
 	  cd $(YESDIR); $(SHELL) ../Install.sh 1; cd ..; \
 		$(SHELL) Depend.sh $(YESDIR) 1; \
 	fi;
+	@$(SHELL) Fetch.sh $(YESDIR)
 
 no-%:
 	@if [ ! -e $(NODIR) ]; then \

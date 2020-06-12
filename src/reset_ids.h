@@ -47,11 +47,11 @@ class ResetIDs : protected Pointers {
 
  private:
   bigint binlo,binhi;
-  
+
   // callback functions for rendezvous communication
 
   static int sort_bins(int, char *, int &, int *&, char *&, void *);
-  
+
   void sort();
 };
 

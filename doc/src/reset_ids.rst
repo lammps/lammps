@@ -13,11 +13,11 @@ Syntax
 * zero or more keyword/value pairs may be appended
 * keyword = *sort*
 
-  .. parsed-literal::
+.. parsed-literal::
 
-        *sort* value = *yes* or *no*
+   *sort* value = *yes* or *no*
 
-   Examples
+Examples
 """"""""
 
 .. code-block:: LAMMPS

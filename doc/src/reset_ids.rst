@@ -10,8 +10,8 @@ Syntax
 
    reset_ids keyword values ...
 
-* zero or more keyword/value pairs may be appended
-* keyword = *sort*
+   * zero or more keyword/value pairs may be appended
+   * keyword = *sort*
 
 .. parsed-literal::
 

@@ -86,7 +86,7 @@ char *TextFileReader::next_line(int nparams) {
     // strip comment
     if (ignore_comments && (ptr = strchr(line, '#'))) *ptr = '\0';
 
-    nwords = utils::count_words(line);
+    nwords += utils::count_words(&line[n]);
 
     // skip line if blank
     if (nwords > 0) {
@@ -116,6 +116,6 @@ void TextFileReader::next_dvector(double * list, int n) {
   }
 }
 
-ValueTokenizer TextFileReader::next_values(int nparams, const std::string & seperators) {
-  return ValueTokenizer(next_line(nparams), seperators);
+ValueTokenizer TextFileReader::next_values(int nparams, const std::string & separators) {
+  return ValueTokenizer(next_line(nparams), separators);
 }

@@ -24,14 +24,11 @@ class Array1D : public ContiguousArrayND<T> {
     using ContiguousArrayND<T>::array_name;
     using ContiguousArrayND<T>::data;
     using ContiguousArrayND<T>::size;
+    using ContiguousArrayND<T>::is_proxy_;
 
     size_t dim[1] = {0}; ///< dimensions
-
-
     size_t s[1] = {0}; ///< strides
-
     int ndim = 1; ///< number of dimensions
-
 public:
 
     /**
@@ -50,31 +47,50 @@ public:
     * @param d0,... array sizes for different dimensions
     * @param array_name string name of the array
     */
-    Array1D(size_t d0, const string &array_name = "Array1D") {
-        init(d0, array_name);
+    Array1D(size_t d0, const string &array_name = "Array1D", T *new_data = nullptr) {
+        init(d0, array_name, new_data);
     }
+
+    /**
+    * Setup the dimensions and strides of array
+    * @param d0,... array sizes for different dimensions
+    */
+    void set_dimensions(size_t d0) {
+
+        dim[0] = d0;
+
+        s[0] = 1;
+
+        size = s[0] * dim[0];
+    };
 
     /**
     * Initialize array storage, dimensions and strides
     * @param d0,... array sizes for different dimensions
     * @param array_name string name of the array
     */
-    void init(size_t d0, const string &array_name = "Array1D") {
+    void init(size_t d0, const string &array_name = "Array1D", T *new_data = nullptr) {
         this->array_name = array_name;
 
+        size_t old_size = size;
+        set_dimensions(d0);
 
-        dim[0] = d0;
+        bool new_is_proxy = (new_data != nullptr);
 
-        s[0] = 1;
-
-        if (size != s[0] * dim[0]) {
-            size = s[0] * dim[0];
-            if (data) delete[] data;
-            data = new T[size];
-            memset(data, 0, size * sizeof(T));
+        if (new_is_proxy) {
+            if (!is_proxy_) delete[] data;
+            data = new_data;
         } else {
-            memset(data, 0, size * sizeof(T));
+            if (size != old_size) {
+                if (!is_proxy_) delete[] data;
+                data = new T[size];
+                memset(data, 0, size * sizeof(T));
+            } else {
+                memset(data, 0, size * sizeof(T));
+            }
         }
+
+        is_proxy_ = new_is_proxy;
     }
 
     /**
@@ -86,6 +102,18 @@ public:
     }
 
     /**
+    * Reshape array without reset the data
+    * @param d0,... array sizes for different dimensions
+    */
+    void reshape(size_t d0) {
+        //check data size consistency
+        size_t new_size = d0;
+        if (new_size != size)
+            throw invalid_argument("Couldn't reshape array when the size is not conserved");
+        set_dimensions(d0);
+    }
+
+    /**
     * Get array size in dimension "d"
     * @param d dimension index
     */
@@ -94,6 +122,7 @@ public:
     }
 
 #ifdef MULTIARRAY_INDICES_CHECK
+
     /**
     * Check indices validity. If preprocessor macro MULTIARRAY_INDICES_CHECK is defined, then the check of index will
     * be performed before accessing memory. By default this is turned off.
@@ -101,13 +130,14 @@ public:
     */
     void check_indices(size_t i0) const {
 
-        if((i0<0)|(i0>=dim[0])){
+        if ((i0 < 0) | (i0 >= dim[0])) {
             char buf[1024];
-            sprintf(buf,"%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
+            sprintf(buf, "%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0] - 1);
             throw std::out_of_range(buf);
         }
 
     }
+
 #endif
 
     /**
@@ -169,25 +199,6 @@ public:
         return res;
     } // end to_vector()
 
-    /**
-    * Convert to flatten vector<T> container
-    * @return vector container
-    */
-    vector<T> to_flatten_vector() const {
-        vector<T> res;
-
-        res.resize(size);
-        size_t vec_ind = 0;
-
-        for (int i0 = 0; i0 < dim[0]; i0++) {
-
-            res.at(vec_ind) = operator()(i0);
-            vec_ind++;
-        }
-
-
-        return res;
-    } // end to_vector()
 
     /**
     * Set values to vector<vector<...<T>> container
@@ -204,19 +215,6 @@ public:
 
         }
 
-    }
-
-
-    /**
-    * Set values from flatten vector<T> container
-    * @param vec container
-    */
-    void set_flatten_vector(const vector<T> &vec) {
-        if (vec.size() != size)
-            throw std::invalid_argument("Flatten vector size is not consistent with expected size");
-        for (size_t i = 0; i < size; i++) {
-            data[i] = vec[i];
-        }
     }
 
     /**
@@ -253,14 +251,11 @@ class Array2D : public ContiguousArrayND<T> {
     using ContiguousArrayND<T>::array_name;
     using ContiguousArrayND<T>::data;
     using ContiguousArrayND<T>::size;
+    using ContiguousArrayND<T>::is_proxy_;
 
     size_t dim[2] = {0}; ///< dimensions
-
-
     size_t s[2] = {0}; ///< strides
-
     int ndim = 2; ///< number of dimensions
-
 public:
 
     /**
@@ -279,18 +274,15 @@ public:
     * @param d0,... array sizes for different dimensions
     * @param array_name string name of the array
     */
-    Array2D(size_t d0, size_t d1, const string &array_name = "Array2D") {
-        init(d0, d1, array_name);
+    Array2D(size_t d0, size_t d1, const string &array_name = "Array2D", T *new_data = nullptr) {
+        init(d0, d1, array_name, new_data);
     }
 
     /**
-    * Initialize array storage, dimensions and strides
+    * Setup the dimensions and strides of array
     * @param d0,... array sizes for different dimensions
-    * @param array_name string name of the array
     */
-    void init(size_t d0, size_t d1, const string &array_name = "Array2D") {
-        this->array_name = array_name;
-
+    void set_dimensions(size_t d0, size_t d1) {
 
         dim[0] = d0;
         dim[1] = d1;
@@ -298,14 +290,36 @@ public:
         s[1] = 1;
         s[0] = s[1] * dim[1];
 
-        if (size != s[0] * dim[0]) {
-            size = s[0] * dim[0];
-            if (data) delete[] data;
-            data = new T[size];
-            memset(data, 0, size * sizeof(T));
+        size = s[0] * dim[0];
+    };
+
+    /**
+    * Initialize array storage, dimensions and strides
+    * @param d0,... array sizes for different dimensions
+    * @param array_name string name of the array
+    */
+    void init(size_t d0, size_t d1, const string &array_name = "Array2D", T *new_data = nullptr) {
+        this->array_name = array_name;
+
+        size_t old_size = size;
+        set_dimensions(d0, d1);
+
+        bool new_is_proxy = (new_data != nullptr);
+
+        if (new_is_proxy) {
+            if (!is_proxy_) delete[] data;
+            data = new_data;
         } else {
-            memset(data, 0, size * sizeof(T));
+            if (size != old_size) {
+                if (!is_proxy_) delete[] data;
+                data = new T[size];
+                memset(data, 0, size * sizeof(T));
+            } else {
+                memset(data, 0, size * sizeof(T));
+            }
         }
+
+        is_proxy_ = new_is_proxy;
     }
 
     /**
@@ -317,6 +331,18 @@ public:
     }
 
     /**
+    * Reshape array without reset the data
+    * @param d0,... array sizes for different dimensions
+    */
+    void reshape(size_t d0, size_t d1) {
+        //check data size consistency
+        size_t new_size = d0 * d1;
+        if (new_size != size)
+            throw invalid_argument("Couldn't reshape array when the size is not conserved");
+        set_dimensions(d0, d1);
+    }
+
+    /**
     * Get array size in dimension "d"
     * @param d dimension index
     */
@@ -325,6 +351,7 @@ public:
     }
 
 #ifdef MULTIARRAY_INDICES_CHECK
+
     /**
     * Check indices validity. If preprocessor macro MULTIARRAY_INDICES_CHECK is defined, then the check of index will
     * be performed before accessing memory. By default this is turned off.
@@ -332,19 +359,20 @@ public:
     */
     void check_indices(size_t i0, size_t i1) const {
 
-        if((i0<0)|(i0>=dim[0])){
+        if ((i0 < 0) | (i0 >= dim[0])) {
             char buf[1024];
-            sprintf(buf,"%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
+            sprintf(buf, "%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i1<0)|(i1>=dim[1])){
+        if ((i1 < 0) | (i1 >= dim[1])) {
             char buf[1024];
-            sprintf(buf,"%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1]-1);
+            sprintf(buf, "%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1] - 1);
             throw std::out_of_range(buf);
         }
 
     }
+
 #endif
 
     /**
@@ -411,28 +439,6 @@ public:
         return res;
     } // end to_vector()
 
-    /**
-    * Convert to flatten vector<T> container
-    * @return vector container
-    */
-    vector<T> to_flatten_vector() const {
-        vector<T> res;
-
-        res.resize(size);
-        size_t vec_ind = 0;
-
-        for (int i0 = 0; i0 < dim[0]; i0++) {
-
-            for (int i1 = 0; i1 < dim[1]; i1++) {
-
-                res.at(vec_ind) = operator()(i0, i1);
-                vec_ind++;
-            }
-        }
-
-
-        return res;
-    } // end to_vector()
 
     /**
     * Set values to vector<vector<...<T>> container
@@ -460,19 +466,6 @@ public:
             }
         }
 
-    }
-
-
-    /**
-    * Set values from flatten vector<T> container
-    * @param vec container
-    */
-    void set_flatten_vector(const vector<T> &vec) {
-        if (vec.size() != size)
-            throw std::invalid_argument("Flatten vector size is not consistent with expected size");
-        for (size_t i = 0; i < size; i++) {
-            data[i] = vec[i];
-        }
     }
 
     /**
@@ -518,14 +511,11 @@ class Array3D : public ContiguousArrayND<T> {
     using ContiguousArrayND<T>::array_name;
     using ContiguousArrayND<T>::data;
     using ContiguousArrayND<T>::size;
+    using ContiguousArrayND<T>::is_proxy_;
 
     size_t dim[3] = {0}; ///< dimensions
-
-
     size_t s[3] = {0}; ///< strides
-
     int ndim = 3; ///< number of dimensions
-
 public:
 
     /**
@@ -544,18 +534,15 @@ public:
     * @param d0,... array sizes for different dimensions
     * @param array_name string name of the array
     */
-    Array3D(size_t d0, size_t d1, size_t d2, const string &array_name = "Array3D") {
-        init(d0, d1, d2, array_name);
+    Array3D(size_t d0, size_t d1, size_t d2, const string &array_name = "Array3D", T *new_data = nullptr) {
+        init(d0, d1, d2, array_name, new_data);
     }
 
     /**
-    * Initialize array storage, dimensions and strides
+    * Setup the dimensions and strides of array
     * @param d0,... array sizes for different dimensions
-    * @param array_name string name of the array
     */
-    void init(size_t d0, size_t d1, size_t d2, const string &array_name = "Array3D") {
-        this->array_name = array_name;
-
+    void set_dimensions(size_t d0, size_t d1, size_t d2) {
 
         dim[0] = d0;
         dim[1] = d1;
@@ -565,14 +552,36 @@ public:
         s[1] = s[2] * dim[2];
         s[0] = s[1] * dim[1];
 
-        if (size != s[0] * dim[0]) {
-            size = s[0] * dim[0];
-            if (data) delete[] data;
-            data = new T[size];
-            memset(data, 0, size * sizeof(T));
+        size = s[0] * dim[0];
+    };
+
+    /**
+    * Initialize array storage, dimensions and strides
+    * @param d0,... array sizes for different dimensions
+    * @param array_name string name of the array
+    */
+    void init(size_t d0, size_t d1, size_t d2, const string &array_name = "Array3D", T *new_data = nullptr) {
+        this->array_name = array_name;
+
+        size_t old_size = size;
+        set_dimensions(d0, d1, d2);
+
+        bool new_is_proxy = (new_data != nullptr);
+
+        if (new_is_proxy) {
+            if (!is_proxy_) delete[] data;
+            data = new_data;
         } else {
-            memset(data, 0, size * sizeof(T));
+            if (size != old_size) {
+                if (!is_proxy_) delete[] data;
+                data = new T[size];
+                memset(data, 0, size * sizeof(T));
+            } else {
+                memset(data, 0, size * sizeof(T));
+            }
         }
+
+        is_proxy_ = new_is_proxy;
     }
 
     /**
@@ -584,6 +593,18 @@ public:
     }
 
     /**
+    * Reshape array without reset the data
+    * @param d0,... array sizes for different dimensions
+    */
+    void reshape(size_t d0, size_t d1, size_t d2) {
+        //check data size consistency
+        size_t new_size = d0 * d1 * d2;
+        if (new_size != size)
+            throw invalid_argument("Couldn't reshape array when the size is not conserved");
+        set_dimensions(d0, d1, d2);
+    }
+
+    /**
     * Get array size in dimension "d"
     * @param d dimension index
     */
@@ -592,6 +613,7 @@ public:
     }
 
 #ifdef MULTIARRAY_INDICES_CHECK
+
     /**
     * Check indices validity. If preprocessor macro MULTIARRAY_INDICES_CHECK is defined, then the check of index will
     * be performed before accessing memory. By default this is turned off.
@@ -599,25 +621,26 @@ public:
     */
     void check_indices(size_t i0, size_t i1, size_t i2) const {
 
-        if((i0<0)|(i0>=dim[0])){
+        if ((i0 < 0) | (i0 >= dim[0])) {
             char buf[1024];
-            sprintf(buf,"%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
+            sprintf(buf, "%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i1<0)|(i1>=dim[1])){
+        if ((i1 < 0) | (i1 >= dim[1])) {
             char buf[1024];
-            sprintf(buf,"%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1]-1);
+            sprintf(buf, "%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i2<0)|(i2>=dim[2])){
+        if ((i2 < 0) | (i2 >= dim[2])) {
             char buf[1024];
-            sprintf(buf,"%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2]-1);
+            sprintf(buf, "%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2] - 1);
             throw std::out_of_range(buf);
         }
 
     }
+
 #endif
 
     /**
@@ -689,31 +712,6 @@ public:
         return res;
     } // end to_vector()
 
-    /**
-    * Convert to flatten vector<T> container
-    * @return vector container
-    */
-    vector<T> to_flatten_vector() const {
-        vector<T> res;
-
-        res.resize(size);
-        size_t vec_ind = 0;
-
-        for (int i0 = 0; i0 < dim[0]; i0++) {
-
-            for (int i1 = 0; i1 < dim[1]; i1++) {
-
-                for (int i2 = 0; i2 < dim[2]; i2++) {
-
-                    res.at(vec_ind) = operator()(i0, i1, i2);
-                    vec_ind++;
-                }
-            }
-        }
-
-
-        return res;
-    } // end to_vector()
 
     /**
     * Set values to vector<vector<...<T>> container
@@ -750,19 +748,6 @@ public:
             }
         }
 
-    }
-
-
-    /**
-    * Set values from flatten vector<T> container
-    * @param vec container
-    */
-    void set_flatten_vector(const vector<T> &vec) {
-        if (vec.size() != size)
-            throw std::invalid_argument("Flatten vector size is not consistent with expected size");
-        for (size_t i = 0; i < size; i++) {
-            data[i] = vec[i];
-        }
     }
 
     /**
@@ -808,14 +793,11 @@ class Array4D : public ContiguousArrayND<T> {
     using ContiguousArrayND<T>::array_name;
     using ContiguousArrayND<T>::data;
     using ContiguousArrayND<T>::size;
+    using ContiguousArrayND<T>::is_proxy_;
 
     size_t dim[4] = {0}; ///< dimensions
-
-
     size_t s[4] = {0}; ///< strides
-
     int ndim = 4; ///< number of dimensions
-
 public:
 
     /**
@@ -834,18 +816,15 @@ public:
     * @param d0,... array sizes for different dimensions
     * @param array_name string name of the array
     */
-    Array4D(size_t d0, size_t d1, size_t d2, size_t d3, const string &array_name = "Array4D") {
-        init(d0, d1, d2, d3, array_name);
+    Array4D(size_t d0, size_t d1, size_t d2, size_t d3, const string &array_name = "Array4D", T *new_data = nullptr) {
+        init(d0, d1, d2, d3, array_name, new_data);
     }
 
     /**
-    * Initialize array storage, dimensions and strides
+    * Setup the dimensions and strides of array
     * @param d0,... array sizes for different dimensions
-    * @param array_name string name of the array
     */
-    void init(size_t d0, size_t d1, size_t d2, size_t d3, const string &array_name = "Array4D") {
-        this->array_name = array_name;
-
+    void set_dimensions(size_t d0, size_t d1, size_t d2, size_t d3) {
 
         dim[0] = d0;
         dim[1] = d1;
@@ -857,14 +836,36 @@ public:
         s[1] = s[2] * dim[2];
         s[0] = s[1] * dim[1];
 
-        if (size != s[0] * dim[0]) {
-            size = s[0] * dim[0];
-            if (data) delete[] data;
-            data = new T[size];
-            memset(data, 0, size * sizeof(T));
+        size = s[0] * dim[0];
+    };
+
+    /**
+    * Initialize array storage, dimensions and strides
+    * @param d0,... array sizes for different dimensions
+    * @param array_name string name of the array
+    */
+    void init(size_t d0, size_t d1, size_t d2, size_t d3, const string &array_name = "Array4D", T *new_data = nullptr) {
+        this->array_name = array_name;
+
+        size_t old_size = size;
+        set_dimensions(d0, d1, d2, d3);
+
+        bool new_is_proxy = (new_data != nullptr);
+
+        if (new_is_proxy) {
+            if (!is_proxy_) delete[] data;
+            data = new_data;
         } else {
-            memset(data, 0, size * sizeof(T));
+            if (size != old_size) {
+                if (!is_proxy_) delete[] data;
+                data = new T[size];
+                memset(data, 0, size * sizeof(T));
+            } else {
+                memset(data, 0, size * sizeof(T));
+            }
         }
+
+        is_proxy_ = new_is_proxy;
     }
 
     /**
@@ -876,6 +877,18 @@ public:
     }
 
     /**
+    * Reshape array without reset the data
+    * @param d0,... array sizes for different dimensions
+    */
+    void reshape(size_t d0, size_t d1, size_t d2, size_t d3) {
+        //check data size consistency
+        size_t new_size = d0 * d1 * d2 * d3;
+        if (new_size != size)
+            throw invalid_argument("Couldn't reshape array when the size is not conserved");
+        set_dimensions(d0, d1, d2, d3);
+    }
+
+    /**
     * Get array size in dimension "d"
     * @param d dimension index
     */
@@ -884,6 +897,7 @@ public:
     }
 
 #ifdef MULTIARRAY_INDICES_CHECK
+
     /**
     * Check indices validity. If preprocessor macro MULTIARRAY_INDICES_CHECK is defined, then the check of index will
     * be performed before accessing memory. By default this is turned off.
@@ -891,31 +905,32 @@ public:
     */
     void check_indices(size_t i0, size_t i1, size_t i2, size_t i3) const {
 
-        if((i0<0)|(i0>=dim[0])){
+        if ((i0 < 0) | (i0 >= dim[0])) {
             char buf[1024];
-            sprintf(buf,"%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
+            sprintf(buf, "%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i1<0)|(i1>=dim[1])){
+        if ((i1 < 0) | (i1 >= dim[1])) {
             char buf[1024];
-            sprintf(buf,"%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1]-1);
+            sprintf(buf, "%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i2<0)|(i2>=dim[2])){
+        if ((i2 < 0) | (i2 >= dim[2])) {
             char buf[1024];
-            sprintf(buf,"%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2]-1);
+            sprintf(buf, "%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i3<0)|(i3>=dim[3])){
+        if ((i3 < 0) | (i3 >= dim[3])) {
             char buf[1024];
-            sprintf(buf,"%s: index i3=%ld out of range (0, %ld)\n", array_name.c_str(), i3, dim[3]-1);
+            sprintf(buf, "%s: index i3=%ld out of range (0, %ld)\n", array_name.c_str(), i3, dim[3] - 1);
             throw std::out_of_range(buf);
         }
 
     }
+
 #endif
 
     /**
@@ -992,34 +1007,6 @@ public:
         return res;
     } // end to_vector()
 
-    /**
-    * Convert to flatten vector<T> container
-    * @return vector container
-    */
-    vector<T> to_flatten_vector() const {
-        vector<T> res;
-
-        res.resize(size);
-        size_t vec_ind = 0;
-
-        for (int i0 = 0; i0 < dim[0]; i0++) {
-
-            for (int i1 = 0; i1 < dim[1]; i1++) {
-
-                for (int i2 = 0; i2 < dim[2]; i2++) {
-
-                    for (int i3 = 0; i3 < dim[3]; i3++) {
-
-                        res.at(vec_ind) = operator()(i0, i1, i2, i3);
-                        vec_ind++;
-                    }
-                }
-            }
-        }
-
-
-        return res;
-    } // end to_vector()
 
     /**
     * Set values to vector<vector<...<T>> container
@@ -1067,19 +1054,6 @@ public:
 
     }
 
-
-    /**
-    * Set values from flatten vector<T> container
-    * @param vec container
-    */
-    void set_flatten_vector(const vector<T> &vec) {
-        if (vec.size() != size)
-            throw std::invalid_argument("Flatten vector size is not consistent with expected size");
-        for (size_t i = 0; i < size; i++) {
-            data[i] = vec[i];
-        }
-    }
-
     /**
     * Parametrized constructor from  vector<vector<...<T>> container
     * @param vec container
@@ -1123,14 +1097,11 @@ class Array5D : public ContiguousArrayND<T> {
     using ContiguousArrayND<T>::array_name;
     using ContiguousArrayND<T>::data;
     using ContiguousArrayND<T>::size;
+    using ContiguousArrayND<T>::is_proxy_;
 
     size_t dim[5] = {0}; ///< dimensions
-
-
     size_t s[5] = {0}; ///< strides
-
     int ndim = 5; ///< number of dimensions
-
 public:
 
     /**
@@ -1149,18 +1120,16 @@ public:
     * @param d0,... array sizes for different dimensions
     * @param array_name string name of the array
     */
-    Array5D(size_t d0, size_t d1, size_t d2, size_t d3, size_t d4, const string &array_name = "Array5D") {
-        init(d0, d1, d2, d3, d4, array_name);
+    Array5D(size_t d0, size_t d1, size_t d2, size_t d3, size_t d4, const string &array_name = "Array5D",
+            T *new_data = nullptr) {
+        init(d0, d1, d2, d3, d4, array_name, new_data);
     }
 
     /**
-    * Initialize array storage, dimensions and strides
+    * Setup the dimensions and strides of array
     * @param d0,... array sizes for different dimensions
-    * @param array_name string name of the array
     */
-    void init(size_t d0, size_t d1, size_t d2, size_t d3, size_t d4, const string &array_name = "Array5D") {
-        this->array_name = array_name;
-
+    void set_dimensions(size_t d0, size_t d1, size_t d2, size_t d3, size_t d4) {
 
         dim[0] = d0;
         dim[1] = d1;
@@ -1174,14 +1143,37 @@ public:
         s[1] = s[2] * dim[2];
         s[0] = s[1] * dim[1];
 
-        if (size != s[0] * dim[0]) {
-            size = s[0] * dim[0];
-            if (data) delete[] data;
-            data = new T[size];
-            memset(data, 0, size * sizeof(T));
+        size = s[0] * dim[0];
+    };
+
+    /**
+    * Initialize array storage, dimensions and strides
+    * @param d0,... array sizes for different dimensions
+    * @param array_name string name of the array
+    */
+    void init(size_t d0, size_t d1, size_t d2, size_t d3, size_t d4, const string &array_name = "Array5D",
+              T *new_data = nullptr) {
+        this->array_name = array_name;
+
+        size_t old_size = size;
+        set_dimensions(d0, d1, d2, d3, d4);
+
+        bool new_is_proxy = (new_data != nullptr);
+
+        if (new_is_proxy) {
+            if (!is_proxy_) delete[] data;
+            data = new_data;
         } else {
-            memset(data, 0, size * sizeof(T));
+            if (size != old_size) {
+                if (!is_proxy_) delete[] data;
+                data = new T[size];
+                memset(data, 0, size * sizeof(T));
+            } else {
+                memset(data, 0, size * sizeof(T));
+            }
         }
+
+        is_proxy_ = new_is_proxy;
     }
 
     /**
@@ -1193,6 +1185,18 @@ public:
     }
 
     /**
+    * Reshape array without reset the data
+    * @param d0,... array sizes for different dimensions
+    */
+    void reshape(size_t d0, size_t d1, size_t d2, size_t d3, size_t d4) {
+        //check data size consistency
+        size_t new_size = d0 * d1 * d2 * d3 * d4;
+        if (new_size != size)
+            throw invalid_argument("Couldn't reshape array when the size is not conserved");
+        set_dimensions(d0, d1, d2, d3, d4);
+    }
+
+    /**
     * Get array size in dimension "d"
     * @param d dimension index
     */
@@ -1201,6 +1205,7 @@ public:
     }
 
 #ifdef MULTIARRAY_INDICES_CHECK
+
     /**
     * Check indices validity. If preprocessor macro MULTIARRAY_INDICES_CHECK is defined, then the check of index will
     * be performed before accessing memory. By default this is turned off.
@@ -1208,37 +1213,38 @@ public:
     */
     void check_indices(size_t i0, size_t i1, size_t i2, size_t i3, size_t i4) const {
 
-        if((i0<0)|(i0>=dim[0])){
+        if ((i0 < 0) | (i0 >= dim[0])) {
             char buf[1024];
-            sprintf(buf,"%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
+            sprintf(buf, "%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i1<0)|(i1>=dim[1])){
+        if ((i1 < 0) | (i1 >= dim[1])) {
             char buf[1024];
-            sprintf(buf,"%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1]-1);
+            sprintf(buf, "%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i2<0)|(i2>=dim[2])){
+        if ((i2 < 0) | (i2 >= dim[2])) {
             char buf[1024];
-            sprintf(buf,"%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2]-1);
+            sprintf(buf, "%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i3<0)|(i3>=dim[3])){
+        if ((i3 < 0) | (i3 >= dim[3])) {
             char buf[1024];
-            sprintf(buf,"%s: index i3=%ld out of range (0, %ld)\n", array_name.c_str(), i3, dim[3]-1);
+            sprintf(buf, "%s: index i3=%ld out of range (0, %ld)\n", array_name.c_str(), i3, dim[3] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i4<0)|(i4>=dim[4])){
+        if ((i4 < 0) | (i4 >= dim[4])) {
             char buf[1024];
-            sprintf(buf,"%s: index i4=%ld out of range (0, %ld)\n", array_name.c_str(), i4, dim[4]-1);
+            sprintf(buf, "%s: index i4=%ld out of range (0, %ld)\n", array_name.c_str(), i4, dim[4] - 1);
             throw std::out_of_range(buf);
         }
 
     }
+
 #endif
 
     /**
@@ -1320,37 +1326,6 @@ public:
         return res;
     } // end to_vector()
 
-    /**
-    * Convert to flatten vector<T> container
-    * @return vector container
-    */
-    vector<T> to_flatten_vector() const {
-        vector<T> res;
-
-        res.resize(size);
-        size_t vec_ind = 0;
-
-        for (int i0 = 0; i0 < dim[0]; i0++) {
-
-            for (int i1 = 0; i1 < dim[1]; i1++) {
-
-                for (int i2 = 0; i2 < dim[2]; i2++) {
-
-                    for (int i3 = 0; i3 < dim[3]; i3++) {
-
-                        for (int i4 = 0; i4 < dim[4]; i4++) {
-
-                            res.at(vec_ind) = operator()(i0, i1, i2, i3, i4);
-                            vec_ind++;
-                        }
-                    }
-                }
-            }
-        }
-
-
-        return res;
-    } // end to_vector()
 
     /**
     * Set values to vector<vector<...<T>> container
@@ -1407,19 +1382,6 @@ public:
 
     }
 
-
-    /**
-    * Set values from flatten vector<T> container
-    * @param vec container
-    */
-    void set_flatten_vector(const vector<T> &vec) {
-        if (vec.size() != size)
-            throw std::invalid_argument("Flatten vector size is not consistent with expected size");
-        for (size_t i = 0; i < size; i++) {
-            data[i] = vec[i];
-        }
-    }
-
     /**
     * Parametrized constructor from  vector<vector<...<T>> container
     * @param vec container
@@ -1463,14 +1425,11 @@ class Array6D : public ContiguousArrayND<T> {
     using ContiguousArrayND<T>::array_name;
     using ContiguousArrayND<T>::data;
     using ContiguousArrayND<T>::size;
+    using ContiguousArrayND<T>::is_proxy_;
 
     size_t dim[6] = {0}; ///< dimensions
-
-
     size_t s[6] = {0}; ///< strides
-
     int ndim = 6; ///< number of dimensions
-
 public:
 
     /**
@@ -1489,18 +1448,16 @@ public:
     * @param d0,... array sizes for different dimensions
     * @param array_name string name of the array
     */
-    Array6D(size_t d0, size_t d1, size_t d2, size_t d3, size_t d4, size_t d5, const string &array_name = "Array6D") {
-        init(d0, d1, d2, d3, d4, d5, array_name);
+    Array6D(size_t d0, size_t d1, size_t d2, size_t d3, size_t d4, size_t d5, const string &array_name = "Array6D",
+            T *new_data = nullptr) {
+        init(d0, d1, d2, d3, d4, d5, array_name, new_data);
     }
 
     /**
-    * Initialize array storage, dimensions and strides
+    * Setup the dimensions and strides of array
     * @param d0,... array sizes for different dimensions
-    * @param array_name string name of the array
     */
-    void init(size_t d0, size_t d1, size_t d2, size_t d3, size_t d4, size_t d5, const string &array_name = "Array6D") {
-        this->array_name = array_name;
-
+    void set_dimensions(size_t d0, size_t d1, size_t d2, size_t d3, size_t d4, size_t d5) {
 
         dim[0] = d0;
         dim[1] = d1;
@@ -1516,14 +1473,37 @@ public:
         s[1] = s[2] * dim[2];
         s[0] = s[1] * dim[1];
 
-        if (size != s[0] * dim[0]) {
-            size = s[0] * dim[0];
-            if (data) delete[] data;
-            data = new T[size];
-            memset(data, 0, size * sizeof(T));
+        size = s[0] * dim[0];
+    };
+
+    /**
+    * Initialize array storage, dimensions and strides
+    * @param d0,... array sizes for different dimensions
+    * @param array_name string name of the array
+    */
+    void init(size_t d0, size_t d1, size_t d2, size_t d3, size_t d4, size_t d5, const string &array_name = "Array6D",
+              T *new_data = nullptr) {
+        this->array_name = array_name;
+
+        size_t old_size = size;
+        set_dimensions(d0, d1, d2, d3, d4, d5);
+
+        bool new_is_proxy = (new_data != nullptr);
+
+        if (new_is_proxy) {
+            if (!is_proxy_) delete[] data;
+            data = new_data;
         } else {
-            memset(data, 0, size * sizeof(T));
+            if (size != old_size) {
+                if (!is_proxy_) delete[] data;
+                data = new T[size];
+                memset(data, 0, size * sizeof(T));
+            } else {
+                memset(data, 0, size * sizeof(T));
+            }
         }
+
+        is_proxy_ = new_is_proxy;
     }
 
     /**
@@ -1535,6 +1515,18 @@ public:
     }
 
     /**
+    * Reshape array without reset the data
+    * @param d0,... array sizes for different dimensions
+    */
+    void reshape(size_t d0, size_t d1, size_t d2, size_t d3, size_t d4, size_t d5) {
+        //check data size consistency
+        size_t new_size = d0 * d1 * d2 * d3 * d4 * d5;
+        if (new_size != size)
+            throw invalid_argument("Couldn't reshape array when the size is not conserved");
+        set_dimensions(d0, d1, d2, d3, d4, d5);
+    }
+
+    /**
     * Get array size in dimension "d"
     * @param d dimension index
     */
@@ -1543,6 +1535,7 @@ public:
     }
 
 #ifdef MULTIARRAY_INDICES_CHECK
+
     /**
     * Check indices validity. If preprocessor macro MULTIARRAY_INDICES_CHECK is defined, then the check of index will
     * be performed before accessing memory. By default this is turned off.
@@ -1550,43 +1543,44 @@ public:
     */
     void check_indices(size_t i0, size_t i1, size_t i2, size_t i3, size_t i4, size_t i5) const {
 
-        if((i0<0)|(i0>=dim[0])){
+        if ((i0 < 0) | (i0 >= dim[0])) {
             char buf[1024];
-            sprintf(buf,"%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
+            sprintf(buf, "%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i1<0)|(i1>=dim[1])){
+        if ((i1 < 0) | (i1 >= dim[1])) {
             char buf[1024];
-            sprintf(buf,"%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1]-1);
+            sprintf(buf, "%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i2<0)|(i2>=dim[2])){
+        if ((i2 < 0) | (i2 >= dim[2])) {
             char buf[1024];
-            sprintf(buf,"%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2]-1);
+            sprintf(buf, "%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i3<0)|(i3>=dim[3])){
+        if ((i3 < 0) | (i3 >= dim[3])) {
             char buf[1024];
-            sprintf(buf,"%s: index i3=%ld out of range (0, %ld)\n", array_name.c_str(), i3, dim[3]-1);
+            sprintf(buf, "%s: index i3=%ld out of range (0, %ld)\n", array_name.c_str(), i3, dim[3] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i4<0)|(i4>=dim[4])){
+        if ((i4 < 0) | (i4 >= dim[4])) {
             char buf[1024];
-            sprintf(buf,"%s: index i4=%ld out of range (0, %ld)\n", array_name.c_str(), i4, dim[4]-1);
+            sprintf(buf, "%s: index i4=%ld out of range (0, %ld)\n", array_name.c_str(), i4, dim[4] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i5<0)|(i5>=dim[5])){
+        if ((i5 < 0) | (i5 >= dim[5])) {
             char buf[1024];
-            sprintf(buf,"%s: index i5=%ld out of range (0, %ld)\n", array_name.c_str(), i5, dim[5]-1);
+            sprintf(buf, "%s: index i5=%ld out of range (0, %ld)\n", array_name.c_str(), i5, dim[5] - 1);
             throw std::out_of_range(buf);
         }
 
     }
+
 #endif
 
     /**
@@ -1673,40 +1667,6 @@ public:
         return res;
     } // end to_vector()
 
-    /**
-    * Convert to flatten vector<T> container
-    * @return vector container
-    */
-    vector<T> to_flatten_vector() const {
-        vector<T> res;
-
-        res.resize(size);
-        size_t vec_ind = 0;
-
-        for (int i0 = 0; i0 < dim[0]; i0++) {
-
-            for (int i1 = 0; i1 < dim[1]; i1++) {
-
-                for (int i2 = 0; i2 < dim[2]; i2++) {
-
-                    for (int i3 = 0; i3 < dim[3]; i3++) {
-
-                        for (int i4 = 0; i4 < dim[4]; i4++) {
-
-                            for (int i5 = 0; i5 < dim[5]; i5++) {
-
-                                res.at(vec_ind) = operator()(i0, i1, i2, i3, i4, i5);
-                                vec_ind++;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-
-        return res;
-    } // end to_vector()
 
     /**
     * Set values to vector<vector<...<T>> container
@@ -1770,19 +1730,6 @@ public:
             }
         }
 
-    }
-
-
-    /**
-    * Set values from flatten vector<T> container
-    * @param vec container
-    */
-    void set_flatten_vector(const vector<T> &vec) {
-        if (vec.size() != size)
-            throw std::invalid_argument("Flatten vector size is not consistent with expected size");
-        for (size_t i = 0; i < size; i++) {
-            data[i] = vec[i];
-        }
     }
 
     /**

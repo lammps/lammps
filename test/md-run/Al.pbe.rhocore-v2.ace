@@ -1,4 +1,5 @@
 lmax=4
+radbasename=ChebExpCos
 nradbase=8
 nradmax=4
 nelements=1

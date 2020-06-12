@@ -547,7 +547,7 @@ std::string utils::get_potential_date(const std::string & path, const std::strin
   reader.ignore_comments = false;
   char * line = nullptr;
 
-  while (line = reader.next_line()) {
+  while ((line = reader.next_line())) {
     ValueTokenizer values(line);
     while (values.has_next()) {
       std::string word = values.next_string();

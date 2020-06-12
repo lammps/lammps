@@ -26,10 +26,33 @@ namespace LAMMPS_NS {
 
 class ResetIDs : protected Pointers {
  public:
+  struct AtomRvous {
+    bigint ibin;
+    int proc,ilocal;
+    double x[3];
+  };
+
+  struct IDRvous {
+    tagint newID;
+    int ilocal;
+  };
+
+  #if defined(LMP_QSORT)
+  // static variable across all ResetID objects, for qsort callback
+  static AtomRvous *sortrvous;
+#endif
+
   ResetIDs(class LAMMPS *);
   void command(int, char **);
 
  private:
+  bigint binlo,binhi;
+
+  // callback functions for rendezvous communication
+
+  static int sort_bins(int, char *, int &, int *&, char *&, void *);
+
+  void sort();
 };
 
 }

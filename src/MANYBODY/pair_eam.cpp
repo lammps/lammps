@@ -469,8 +469,6 @@ void PairEAM::read_file(char *filename)
     PotentialFileReader reader(lmp, filename, "EAM");
 
     try {
-      char * line = nullptr;
-
       reader.skip_line();
 
       ValueTokenizer values = reader.next_values(2);

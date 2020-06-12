@@ -38,7 +38,7 @@ TableFileReader::~TableFileReader() {
 
 char * TableFileReader::find_section_start(const std::string & keyword) {
   char * line = nullptr;
-  while (line = reader->next_line()) {
+  while ((line = reader->next_line())) {
     ValueTokenizer values(line);
     std::string word = values.next_string();
 

@@ -57,7 +57,7 @@ can be useful for debugging or comparing output from two different
 runs.
 
 Note that the spatial sort requires communication of atom IDs and
-coordinates bewteen processors in an all-to-all manner.  This is done
+coordinates between processors in an all-to-all manner.  This is done
 efficiently in LAMMPS, but it is more expensive than how atom IDs are
 reset without sorting.
 

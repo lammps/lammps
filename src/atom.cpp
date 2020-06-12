@@ -16,6 +16,7 @@
 #include <climits>
 #include <cstdlib>
 #include <cstring>
+#include <algorithm>
 #include <string>
 #include "style_atom.h"
 #include "atom_vec.h"
@@ -2278,7 +2279,9 @@ void Atom::add_callback(int flag)
   for (ifix = 0; ifix < modify->nfix; ifix++)
     if (modify->fix[ifix] == NULL) break;
 
-  // add callback to lists, reallocating if necessary
+  // add callback to lists and sort, reallocating if necessary
+  // sorting is required in cases where fixes were replaced as it ensures atom
+  // data is read/written/transfered in the same order that fixes are called
 
   if (flag == 0) {
     if (nextra_grow == nextra_grow_max) {
@@ -2287,6 +2290,7 @@ void Atom::add_callback(int flag)
     }
     extra_grow[nextra_grow] = ifix;
     nextra_grow++;
+    std::sort(extra_grow, extra_grow + nextra_grow);     
   } else if (flag == 1) {
     if (nextra_restart == nextra_restart_max) {
       nextra_restart_max += DELTA;
@@ -2294,6 +2298,7 @@ void Atom::add_callback(int flag)
     }
     extra_restart[nextra_restart] = ifix;
     nextra_restart++;
+    std::sort(extra_restart, extra_restart + nextra_restart);     
   } else if (flag == 2) {
     if (nextra_border == nextra_border_max) {
       nextra_border_max += DELTA;
@@ -2301,6 +2306,7 @@ void Atom::add_callback(int flag)
     }
     extra_border[nextra_border] = ifix;
     nextra_border++;
+    std::sort(extra_border, extra_border + nextra_border);     
   }
 }
 

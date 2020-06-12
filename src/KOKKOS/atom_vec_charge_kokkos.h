@@ -74,31 +74,10 @@ class AtomVecChargeKokkos : public AtomVecKokkos {
   void sync_overlapping_device(ExecutionSpace space, unsigned int mask);
 
  protected:
-  tagint *tag;
-  int *type,*mask;
-  imageint *image;
-  double **x,**v,**f;
-
   double *q;
 
-  DAT::t_tagint_1d d_tag;
-  HAT::t_tagint_1d h_tag;
-
-  DAT::t_int_1d d_type, d_mask;
-  HAT::t_int_1d h_type, h_mask;
-
-  DAT::t_imageint_1d d_image;
-  HAT::t_imageint_1d h_image;
-
-  DAT::t_float_1d_3_lr d_x;
-  DAT::t_float_1d_3 d_v;
-  DAT::t_float_1d_3 d_f;
-
   DAT::t_float_1d d_q;
-
   HAT::t_float_1d h_q;
-
-  DAT::tdual_int_1d k_count;
 };
 
 }

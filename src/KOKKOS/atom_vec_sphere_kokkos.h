@@ -112,24 +112,10 @@ class AtomVecSphereKokkos : public AtomVecKokkos {
   void sync_overlapping_device(ExecutionSpace space, unsigned int mask);
 
  private:
-  tagint *tag;
-  int *type,*mask;
-  imageint *image;
-  double **x,**v,**f;
   double *radius,*rmass;
   double **omega,**torque;
   int radvary;
 
-  DAT::t_tagint_1d d_tag;
-  HAT::t_tagint_1d h_tag;
-  DAT::t_imageint_1d d_image;
-  HAT::t_imageint_1d h_image;
-  DAT::t_int_1d d_type, d_mask;
-  HAT::t_int_1d h_type, h_mask;
-
-  DAT::t_float_1d_3_lr d_x;
-  DAT::t_float_1d_3 d_v;
-  DAT::t_float_1d_3 d_f;
   DAT::t_float_1d d_radius;
   HAT::t_float_1d h_radius;
   DAT::t_float_1d d_rmass;
@@ -138,8 +124,6 @@ class AtomVecSphereKokkos : public AtomVecKokkos {
   HAT::t_float_1d_3 h_omega;
   DAT::t_float_1d_3 d_torque;
   HAT::t_float_1d_3 h_torque;
-
-  DAT::tdual_int_1d k_count;
 };
 
 }

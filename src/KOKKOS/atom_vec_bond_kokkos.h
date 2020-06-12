@@ -73,30 +73,12 @@ class AtomVecBondKokkos : public AtomVecKokkos {
   void sync_overlapping_device(ExecutionSpace space, unsigned int mask);
 
  protected:
-
-  tagint *tag;
-  int *type,*mask;
-  imageint *image;
-  double **x,**v,**f;
-
   tagint *molecule;
   int **nspecial;
   tagint **special;
   int *num_bond;
   int **bond_type;
   tagint **bond_atom;
-
-  DAT::t_tagint_1d d_tag;
-  DAT::t_int_1d d_type, d_mask;
-  HAT::t_tagint_1d h_tag;
-  HAT::t_int_1d h_type, h_mask;
-
-  DAT::t_imageint_1d d_image;
-  HAT::t_imageint_1d h_image;
-
-  DAT::t_float_1d_3_lr d_x;
-  DAT::t_float_1d_3 d_v;
-  DAT::t_float_1d_3 d_f;
 
   DAT::t_tagint_1d d_molecule;
   DAT::t_int_2d d_nspecial;
@@ -111,9 +93,6 @@ class AtomVecBondKokkos : public AtomVecKokkos {
   HAT::t_int_1d h_num_bond;
   HAT::t_int_2d h_bond_type;
   HAT::t_tagint_2d h_bond_atom;
-
-  DAT::tdual_int_1d k_count;
-
 };
 
 }

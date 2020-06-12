@@ -127,10 +127,26 @@ class AtomVecKokkos : public AtomVec {
   int no_comm_vel_flag,no_border_vel_flag;
 
  protected:
+  tagint *tag;
+  imageint *image;
+  int *type,*mask;
+  double **x,**v,**f;
 
-  HAT::t_float_1d_3 h_x;
+  DAT::t_tagint_1d d_tag;
+  HAT::t_tagint_1d h_tag;
+  DAT::t_imageint_1d d_image;
+  HAT::t_imageint_1d h_image;
+  DAT::t_int_1d d_type, d_mask;
+  HAT::t_int_1d h_type, h_mask;
+
+  DAT::t_float_1d_3_lr d_x;
+  HAT::t_float_1d_3_lr h_x;
+  DAT::t_float_1d_3 d_v;
   HAT::t_float_1d_3 h_v;
+  DAT::t_float_1d_3 d_f;
   HAT::t_float_1d_3 h_f;
+
+  DAT::tdual_int_1d k_count;
 
   class CommKokkos *commKK;
   size_t buffer_size;

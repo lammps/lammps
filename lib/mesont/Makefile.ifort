@@ -19,7 +19,7 @@ OBJ =   $(SRC:.f90=.o)
 # ------ SETTINGS ------
 
 F90 =           ifort
-F90FLAGS =      -Ofast -fPIC -ipo
+F90FLAGS =      -O3 -fPIC -g
 ARCHIVE =	ar
 ARCHFLAG =	-rc
 USRLIB =
@@ -33,15 +33,9 @@ lib: 	$(OBJ)
 
 # ------ COMPILE RULES ------
 
-%.o:%.F
-	$(F90) $(F90FLAGS) -c $<
-
 %.o:%.f90
 	$(F90) $(F90FLAGS) -c $<
 	
-%.o:%.c
-	$(CC) $(F90FLAGS) -c $<
-
 include .depend
 # ------ CLEAN ------
 

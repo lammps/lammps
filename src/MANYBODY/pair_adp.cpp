@@ -554,7 +554,7 @@ void PairADP::read_file(char *filename)
       ValueTokenizer values = reader.next_values(1);
       file->nelements = values.next_int();
 
-      if (values.count() != file->nelements + 1)
+      if ((int)values.count() != file->nelements + 1)
         error->one(FLERR,"Incorrect element names in ADP potential file");
 
       file->elements = new char*[file->nelements];

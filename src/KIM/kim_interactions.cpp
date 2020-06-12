@@ -99,24 +99,6 @@ void KimInteractions::command(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void KimInteractions::kim_interactions_log_delimiter(
-    std::string const begin_end) const
-{
-  if (comm->me == 0) {
-    std::string mesg;
-    if (begin_end == "begin")
-      mesg =
-          "#=== BEGIN kim_interactions ==================================\n";
-    else if (begin_end == "end")
-      mesg =
-          "#=== END kim_interactions ====================================\n\n";
-
-    input->write_echo(mesg.c_str());
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
 void KimInteractions::do_setup(int narg, char **arg)
 {
   bool fixed_types;
@@ -145,7 +127,7 @@ void KimInteractions::do_setup(int narg, char **arg)
   } else error->all(FLERR,"Must use 'kim_init' before 'kim_interactions'");
 
   // Begin output to log file
-  kim_interactions_log_delimiter("begin");
+  input->write_echo("#=== BEGIN kim_interactions ==================================\n");
 
   if (simulatorModel) {
 
@@ -167,7 +149,7 @@ void KimInteractions::do_setup(int narg, char **arg)
           simulatorModel,"atom-type-num-list",atom_type_num_list.c_str());
       KIM_SimulatorModel_CloseTemplateMap(simulatorModel);
 
-      int len = strlen(atom_type_sym_list.c_str())+1;
+      int len = atom_type_sym_list.size()+1;
       char *strbuf = new char[len];
       char *strword;
 
@@ -281,8 +263,7 @@ void KimInteractions::do_setup(int narg, char **arg)
   }
 
   // End output to log file
-  kim_interactions_log_delimiter("end");
-
+  input->write_echo("#=== END kim_interactions ====================================\n\n");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -377,7 +358,7 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(char const *const input_line) cons
 
 /* ---------------------------------------------------------------------- */
 
-int KimInteractions::species_to_atomic_no(std::string const species) const
+int KimInteractions::species_to_atomic_no(const std::string &species) const
 {
   if (species == "H") return 1;
   else if (species == "He") return 2;

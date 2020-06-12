@@ -8,7 +8,14 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   reset_ids
+   reset_ids keyword values ...
+
+   * zero or more keyword/value pairs may be appended
+   * keyword = *sort*
+
+.. parsed-literal::
+
+   *sort* value = *yes* or *no*
 
 Examples
 """"""""
@@ -16,6 +23,7 @@ Examples
 .. code-block:: LAMMPS
 
    reset_ids
+   reset_ids sort yes
 
 Description
 """""""""""
@@ -33,11 +41,32 @@ e.g. due to atoms moving outside a simulation box with fixed
 boundaries (see the "boundary command"), or due to evaporation (see
 the "fix evaporate" command).
 
-Note that the resetting of IDs is not really a compression, where gaps
-in atom IDs are removed by decrementing atom IDs that are larger.
-Instead the IDs for all atoms are erased, and new IDs are assigned so
-that the atoms owned by an individual processor have consecutive IDs,
-as the :doc:`create_atoms <create_atoms>` command explains.
+If the *sort* keyword is used with a setting of *yes*, then the
+assignment of new atom IDs will be the same no matter how many
+processors LAMMPS is running on.  This is done by first doing a
+spatial sort of all the atoms into bins and sorting them within each
+bin.  Because the set of bins is independent of the number of
+processors, this enables a consistent assignment of new IDs to each
+atom.
+
+This can be useful to do after using the "create_atoms" command and/or
+"replicate" command.  In general those commands do not guarantee
+assignment of the same atom ID to the same physical atom when LAMMPS
+is run on different numbers of processors.  Enforcing consistent IDs
+can be useful for debugging or comparing output from two different
+runs.
+
+Note that the spatial sort requires communication of atom IDs and
+coordinates between processors in an all-to-all manner.  This is done
+efficiently in LAMMPS, but it is more expensive than how atom IDs are
+reset without sorting.
+
+Note that whether sorting or not, the resetting of IDs is not a
+compression, where gaps in atom IDs are removed by decrementing atom
+IDs that are larger.  Instead the IDs for all atoms are erased, and
+new IDs are assigned so that the atoms owned by an individual
+processor have consecutive IDs, as the :doc:`create_atoms
+<create_atoms>` command explains.
 
 .. note::
 
@@ -59,4 +88,7 @@ Related commands
 
 :doc:`delete_atoms <delete_atoms>`
 
-**Default:** none
+Default
+"""""""
+
+By default, *sort* is no.

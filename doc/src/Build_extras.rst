@@ -44,6 +44,7 @@ This is the list of packages that may require additional steps.
    * :ref:`USER-COLVARS <user-colvars>`
    * :ref:`USER-H5MD <user-h5md>`
    * :ref:`USER-INTEL <user-intel>`
+   * :ref:`USER-MESONT <user-mesont>`
    * :ref:`USER-MOLFILE <user-molfile>`
    * :ref:`USER-NETCDF <user-netcdf>`
    * :ref:`USER-PLUMED <user-plumed>`
@@ -1272,6 +1273,45 @@ For KNLs:
    CCFLAGS =       -g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload -fno-alias -ansi-alias -restrict $(OPTFLAGS)
    LINKFLAGS =     -g -qopenmp $(OPTFLAGS)
    LIB =           -ltbbmalloc
+
+----------
+
+.. _user-mesont:
+
+USER-MESONT package
+-------------------------
+
+This package includes a library written in Fortran 90 in the
+``lib/mesont`` folder, so a working Fortran 90 compiler is required to
+compile it.  Also, the files with the force field data for running the
+bundled examples are not included in the source distribution. Instead
+they will be downloaded the first time this package is installed.
+
+**CMake build**\ :
+
+No additional settings are needed besides ``-D PKG_USER-MESONT=yes``
+
+**Traditional make**\ :
+
+Before building LAMMPS, you must build the *mesont* library in ``lib/mesont``\ .
+You can also do it in one step from the ``lammps/src`` dir, using a command like
+these, which simply invoke the ``lib/mesont/Install.py`` script with the specified
+args:
+
+.. code-block:: bash
+
+  $ make lib-mesont                    # print help message
+  $ make lib-mesont args="-m gfortran" # build with GNU g++ compiler (settings as with "make serial")
+  $ make lib-mesont args="-m ifort"    # build with Intel icc compiler
+
+The build should produce two files: ``lib/mesont/libmesont.a`` and
+``lib/mesont/Makefile.lammps``\ .  The latter is copied from an existing
+``Makefile.lammps.\*`` and has settings needed to build LAMMPS with the
+*mesont* library (though typically the settings contain only the Fortran
+runtime library).  If necessary, you can edit/create a new
+``lib/mesont/Makefile.machine`` file for your system, which should
+define an ``EXTRAMAKE`` variable to specify a corresponding
+``Makefile.lammps.machine`` file.
 
 ----------
 

@@ -1434,6 +1434,7 @@ kk
 Klahn
 Klapp
 Kloss
+Kloza
 kmax
 Kmax
 KMP
@@ -2277,6 +2278,7 @@ Pettifor
 pfactor
 pgi
 ph
+Philipp
 Phillpot
 Philos
 phiphi

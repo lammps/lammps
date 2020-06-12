@@ -47,7 +47,7 @@ void FixWallLJ93Kokkos<Space>::wall_particle(int m_in, int which, double coord_i
   m = m_in;
   coord = coord_in;
 
-  atomKK->sync(execution_space, X_MASK|F_MASK|MASK_MASK);
+  atomKK->sync(Space, X_MASK|F_MASK|MASK_MASK);
   x = DualViewHelper<Space>::view(atomKK->k_x);
   f = DualViewHelper<Space>::view(atomKK->k_f);
   mask = DualViewHelper<Space>::view(atomKK->k_mask);
@@ -65,7 +65,7 @@ void FixWallLJ93Kokkos<Space>::wall_particle(int m_in, int which, double coord_i
   Kokkos::parallel_reduce(nlocal,wp_functor,ewall);
   copymode = 0;
 
-  atomKK->modified(execution_space, F_MASK);
+  atomKK->modified(Space, F_MASK);
 
   DualViewHelper<Space>::modify(k_oneflag);
   k_oneflag.sync_host();

@@ -628,7 +628,7 @@ void FixShardlowKokkos<Space>::initial_integrate(int vflag)
   DualViewHelper<Space>::sync(k_params);
 
   // process neighbors in the local AIR
-  atomKK->sync(execution_space,X_MASK | V_MASK | TYPE_MASK | RMASS_MASK | UCOND_MASK | UMECH_MASK | DPDTHETA_MASK);
+  atomKK->sync(Space,X_MASK | V_MASK | TYPE_MASK | RMASS_MASK | UCOND_MASK | UMECH_MASK | DPDTHETA_MASK);
   for (workPhase = 0; workPhase < ssa_phaseCt; ++workPhase) {
     int workItemCt = h_ssa_phaseLen[workPhase];
 
@@ -637,7 +637,7 @@ void FixShardlowKokkos<Space>::initial_integrate(int vflag)
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixShardlowSSAUpdateDPDE<true> >(0,workItemCt),*this);
   }
-  atomKK->modified(execution_space,V_MASK | UCOND_MASK | UMECH_MASK);
+  atomKK->modified(Space,V_MASK | UCOND_MASK | UMECH_MASK);
 
   //Loop over all 13 outward directions (7 stages)
   for (workPhase = 0; workPhase < ssa_gphaseCt; ++workPhase) {
@@ -655,23 +655,23 @@ void FixShardlowKokkos<Space>::initial_integrate(int vflag)
 //      memset(&(atom->uMech[nlocal]), 0, sizeof(KK_FLOAT)*nghost);
 
       // must capture local variables, not class variables
-      atomKK->sync(execution_space,UCOND_MASK | UMECH_MASK);
+      atomKK->sync(Space,UCOND_MASK | UMECH_MASK);
       auto l_uCond = uCond;
       auto l_uMech = uMech;
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(nlocal,nlocal+nghost), LAMMPS_LAMBDA (const int i) {
         l_uCond(i) = 0.0;
         l_uMech(i) = 0.0;
       });
-      atomKK->modified(execution_space,UCOND_MASK | UMECH_MASK);
+      atomKK->modified(Space,UCOND_MASK | UMECH_MASK);
     }
 
     // process neighbors in this AIR
-    atomKK->sync(execution_space,X_MASK | V_MASK | TYPE_MASK | RMASS_MASK | UCOND_MASK | UMECH_MASK | DPDTHETA_MASK);
+    atomKK->sync(Space,X_MASK | V_MASK | TYPE_MASK | RMASS_MASK | UCOND_MASK | UMECH_MASK | DPDTHETA_MASK);
     if(atom->ntypes > MAX_TYPES_STACKPARAMS)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixShardlowSSAUpdateDPDEGhost<false> >(0,workItemCt),*this);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixShardlowSSAUpdateDPDEGhost<true> >(0,workItemCt),*this);
-    atomKK->modified(execution_space,V_MASK | UCOND_MASK | UMECH_MASK);
+    atomKK->modified(Space,V_MASK | UCOND_MASK | UMECH_MASK);
 
     // Communicate the ghost deltas to the atom owners
     atomKK->sync(Host,V_MASK | UCOND_MASK | UMECH_MASK);

@@ -56,8 +56,8 @@ void FixNVEKokkos<Space>::init()
 template<ExecutionSpace Space>
 void FixNVEKokkos<Space>::initial_integrate(int vflag)
 {
-  atomKK->sync(execution_space,datamask_read);
-  atomKK->modified(execution_space,datamask_modify);
+  atomKK->sync(Space,datamask_read);
+  atomKK->modified(Space,datamask_modify);
 
   x = DualViewHelper<Space>::view(atomKK->k_x);
   v = DualViewHelper<Space>::view(atomKK->k_v);
@@ -113,8 +113,8 @@ void FixNVEKokkos<Space>::initial_integrate_rmass_item(int i) const
 template<ExecutionSpace Space>
 void FixNVEKokkos<Space>::final_integrate()
 {
-  atomKK->sync(execution_space,V_MASK | F_MASK | MASK_MASK | RMASS_MASK | TYPE_MASK);
-  atomKK->modified(execution_space,V_MASK);
+  atomKK->sync(Space,V_MASK | F_MASK | MASK_MASK | RMASS_MASK | TYPE_MASK);
+  atomKK->modified(Space,V_MASK);
 
   v = DualViewHelper<Space>::view(atomKK->k_v);
   f = DualViewHelper<Space>::view(atomKK->k_f);

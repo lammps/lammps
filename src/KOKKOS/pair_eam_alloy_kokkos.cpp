@@ -88,9 +88,9 @@ void PairEAMAlloyKokkos<Space>::compute(int eflag_in, int vflag_in)
     d_vatom = DualViewHelper<Space>::view(k_vatom);
   }
 
-  atomKK->sync(execution_space,datamask_read);
-  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
-  else atomKK->modified(execution_space,F_MASK);
+  atomKK->sync(Space,datamask_read);
+  if (eflag || vflag) atomKK->modified(Space,datamask_modify);
+  else atomKK->modified(Space,F_MASK);
 
   // grow energy and fp arrays if necessary
   // need to be atom->nmax in length

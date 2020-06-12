@@ -176,9 +176,9 @@ void PairExp6rxKokkos<Space>::compute(int eflag_in, int vflag_in)
   special_lj[3] = force->special_lj[3];
   newton_pair = force->newton_pair;
 
-  atomKK->sync(execution_space,X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK | UCG_MASK | UCGNEW_MASK | DVECTOR_MASK);
-  if (evflag) atomKK->modified(execution_space,F_MASK | ENERGY_MASK | VIRIAL_MASK | UCG_MASK | UCGNEW_MASK);
-  else atomKK->modified(execution_space,F_MASK | UCG_MASK | UCGNEW_MASK);
+  atomKK->sync(Space,X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK | UCG_MASK | UCGNEW_MASK | DVECTOR_MASK);
+  if (evflag) atomKK->modified(Space,F_MASK | ENERGY_MASK | VIRIAL_MASK | UCG_MASK | UCGNEW_MASK);
+  else atomKK->modified(Space,F_MASK | UCG_MASK | UCGNEW_MASK);
   DualViewHelper<Space>::sync(k_cutsq);
 
   // Initialize the Exp6 parameter data for both the local

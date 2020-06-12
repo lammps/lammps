@@ -80,8 +80,8 @@ void BondHarmonicKokkos<Space>::compute(int eflag_in, int vflag_in)
     //}
   }
 
-//  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
-//  else atomKK->modified(execution_space,F_MASK);
+//  if (eflag || vflag) atomKK->modified(Space,datamask_modify);
+//  else atomKK->modified(Space,F_MASK);
 
   x = DualViewHelper<Space>::view(atomKK->k_x);
   f = DualViewHelper<Space>::view(atomKK->k_f);

@@ -46,7 +46,7 @@ void NPairHalffullKokkos<Space,NEWTON>::build(NeighList *list)
 {
   if (NEWTON) {
     x = DualViewHelper<Space>::view(atomKK->k_x);
-    atomKK->sync(execution_space,X_MASK);
+    atomKK->sync(Space,X_MASK);
   }
   nlocal = atom->nlocal;
 

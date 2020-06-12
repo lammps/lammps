@@ -60,8 +60,8 @@ void FixNVESphereKokkos<Space>::init()
 template<ExecutionSpace Space>
 void FixNVESphereKokkos<Space>::initial_integrate(int vflag)
 {
-  atomKK->sync(execution_space,datamask_read);
-  atomKK->modified(execution_space,datamask_modify);
+  atomKK->sync(Space,datamask_read);
+  atomKK->modified(Space,datamask_modify);
 
   x = DualViewHelper<Space>::view(atomKK->k_x);
   v = DualViewHelper<Space>::view(atomKK->k_v);
@@ -108,8 +108,8 @@ void FixNVESphereKokkos<Space>::initial_integrate_item(const int i) const
 template<ExecutionSpace Space>
 void FixNVESphereKokkos<Space>::final_integrate()
 {
-  atomKK->sync(execution_space,datamask_read);
-  atomKK->modified(execution_space,datamask_modify);
+  atomKK->sync(Space,datamask_read);
+  atomKK->modified(Space,datamask_modify);
 
   v = DualViewHelper<Space>::view(atomKK->k_v);
   omega = DualViewHelper<Space>::view(atomKK->k_omega);

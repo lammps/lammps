@@ -98,11 +98,11 @@ void PairLJSDKKokkos<Space>::compute(int eflag_in, int vflag_in)
     d_vatom = DualViewHelper<Space>::view(k_vatom);
   }
 
-  atomKK->sync(execution_space,datamask_read);
+  atomKK->sync(Space,datamask_read);
   DualViewHelper<Space>::sync(k_cutsq);
   DualViewHelper<Space>::sync(k_params);
-  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
-  else atomKK->modified(execution_space,F_MASK);
+  if (eflag || vflag) atomKK->modified(Space,datamask_modify);
+  else atomKK->modified(Space,F_MASK);
 
   x = DualViewHelper<Space>::view(atomKK->k_x);
   f = DualViewHelper<Space>::view(atomKK->k_f);

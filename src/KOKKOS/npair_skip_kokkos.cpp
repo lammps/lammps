@@ -40,7 +40,7 @@ NPairSkipKokkos<Space>::NPairSkipKokkos(LAMMPS *lmp) : NPair(lmp) {
 template<ExecutionSpace Space>
 void NPairSkipKokkos<Space>::build(NeighList *list)
 {
-  atomKK->sync(execution_space,TYPE_MASK);
+  atomKK->sync(Space,TYPE_MASK);
   type = DualViewHelper<Space>::view(atomKK->k_type);
   nlocal = atom->nlocal;
 

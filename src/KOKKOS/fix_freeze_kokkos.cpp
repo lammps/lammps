@@ -60,8 +60,8 @@ void FixFreezeKokkos<Space>::setup(int vflag)
 template<ExecutionSpace Space>
 void FixFreezeKokkos<Space>::post_force(int vflag)
 {
-  atomKK->sync(execution_space,datamask_read);
-  atomKK->modified(execution_space,datamask_modify);
+  atomKK->sync(Space,datamask_read);
+  atomKK->modified(Space,datamask_modify);
 
   f = DualViewHelper<Space>::view(atomKK->k_f);
   torque = DualViewHelper<Space>::view(atomKK->k_torque);

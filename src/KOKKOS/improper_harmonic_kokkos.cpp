@@ -84,11 +84,11 @@ void ImproperHarmonicKokkos<Space>::compute(int eflag_in, int vflag_in)
     //}
   }
 
-  //atomKK->sync(execution_space,datamask_read);
+  //atomKK->sync(Space,datamask_read);
   DualViewHelper<Space>::sync(k_k);
   DualViewHelper<Space>::sync(k_chi);
-  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
-  else atomKK->modified(execution_space,F_MASK);
+  if (eflag || vflag) atomKK->modified(Space,datamask_modify);
+  else atomKK->modified(Space,F_MASK);
 
   x = DualViewHelper<Space>::view(atomKK->k_x);
   f = DualViewHelper<Space>::view(atomKK->k_f);

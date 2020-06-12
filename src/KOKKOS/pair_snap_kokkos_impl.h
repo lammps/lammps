@@ -160,7 +160,7 @@ void PairSNAPKokkos<Space>::compute(int eflag_in, int vflag_in)
   if (newton_pair == false)
     error->all(FLERR,"PairSNAPKokkos requires 'newton on'");
 
-  atomKK->sync(execution_space,X_MASK|F_MASK|TYPE_MASK);
+  atomKK->sync(Space,X_MASK|F_MASK|TYPE_MASK);
   x = DualViewHelper<Space>::view(atomKK->k_x);
   f = DualViewHelper<Space>::view(atomKK->k_f);
   type = DualViewHelper<Space>::view(atomKK->k_type);
@@ -408,7 +408,7 @@ void PairSNAPKokkos<Space>::compute(int eflag_in, int vflag_in)
     k_vatom.sync_host();
   }
 
-  atomKK->modified(execution_space,F_MASK);
+  atomKK->modified(Space,F_MASK);
 
   copymode = 0;
 

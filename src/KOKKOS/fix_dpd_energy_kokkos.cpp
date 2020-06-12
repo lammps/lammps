@@ -46,9 +46,9 @@ void FixDPDenergyKokkos<Space>::take_half_step()
 
   using AT = ArrayTypes<Space>;
 
-  atomKK->sync(execution_space, UCOND_MASK);
+  atomKK->sync(Space, UCOND_MASK);
   typename AT::t_float_1d uCond = DualViewHelper<Space>::view(atomKK->k_uCond);
-  atomKK->sync(execution_space, UMECH_MASK);
+  atomKK->sync(Space, UMECH_MASK);
   typename AT::t_float_1d uMech = DualViewHelper<Space>::view(atomKK->k_uMech);
 
   DualViewHelper<Space>::sync(pairDPDEKK->k_duCond);
@@ -63,8 +63,8 @@ void FixDPDenergyKokkos<Space>::take_half_step()
     uMech(i) += 0.5*dt*duMech(i);
   });
 
-  atomKK->modified(execution_space, UCOND_MASK);
-  atomKK->modified(execution_space, UMECH_MASK);
+  atomKK->modified(Space, UCOND_MASK);
+  atomKK->modified(Space, UMECH_MASK);
 }
 
 /* ---------------------------------------------------------------------- */

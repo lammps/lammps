@@ -190,7 +190,7 @@ void FixQEqReaxKokkos<Space>::pre_force(int vflag)
 {
   if (update->ntimestep % nevery) return;
 
-  atomKK->sync(execution_space,datamask_read);
+  atomKK->sync(Space,datamask_read);
 
   x = DualViewHelper<Space>::view(atomKK->k_x);
   v = DualViewHelper<Space>::view(atomKK->k_v);
@@ -308,7 +308,7 @@ void FixQEqReaxKokkos<Space>::pre_force(int vflag)
   if (need_dup)
     dup_o = decltype(dup_o)();
 
-  atomKK->modified(execution_space,datamask_modify);
+  atomKK->modified(Space,datamask_modify);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -156,7 +156,7 @@ void ComputeCoordAtomKokkos<Space>::compute_peratom()
   // compute coordination number(s) for each atom in group
   // use full neighbor list to count atoms less than cutoff
 
-  atomKK->sync(execution_space,X_MASK|TYPE_MASK|MASK_MASK);
+  atomKK->sync(Space,X_MASK|TYPE_MASK|MASK_MASK);
   x = DualViewHelper<Space>::view(atomKK->k_x);
   type = DualViewHelper<Space>::view(atomKK->k_type);
   mask = DualViewHelper<Space>::view(atomKK->k_mask);

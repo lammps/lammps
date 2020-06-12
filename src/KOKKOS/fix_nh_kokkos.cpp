@@ -492,7 +492,7 @@ void FixNHKokkos<Space>::nh_v_press()
     atomKK->modified(temperature->execution_space,temperature->datamask_modify);
   }
 
-  atomKK->sync(execution_space,V_MASK | MASK_MASK);
+  atomKK->sync(Space,V_MASK | MASK_MASK);
 
   copymode = 1;
   if (pstyle == TRICLINIC)
@@ -501,7 +501,7 @@ void FixNHKokkos<Space>::nh_v_press()
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixNH_nh_v_press<0> >(0,nlocal),*this);
   copymode = 0;
 
-  atomKK->modified(execution_space,V_MASK);
+  atomKK->modified(Space,V_MASK);
 
   if (which == BIAS) {
     atomKK->sync(temperature->execution_space,temperature->datamask_read);
@@ -536,7 +536,7 @@ void FixNHKokkos<Space>::operator()(TagFixNH_nh_v_press<TRICLINIC_FLAG>, const i
 template<ExecutionSpace Space>
 void FixNHKokkos<Space>::nve_v()
 {
-  atomKK->sync(execution_space,X_MASK | V_MASK | F_MASK | MASK_MASK | RMASS_MASK | TYPE_MASK);
+  atomKK->sync(Space,X_MASK | V_MASK | F_MASK | MASK_MASK | RMASS_MASK | TYPE_MASK);
 
   v = DualViewHelper<Space>::view(atomKK->k_v);
   f = DualViewHelper<Space>::view(atomKK->k_f);
@@ -554,7 +554,7 @@ void FixNHKokkos<Space>::nve_v()
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixNH_nve_v<0> >(0,nlocal),*this);
   copymode = 0;
 
-  atomKK->modified(execution_space,V_MASK);
+  atomKK->modified(Space,V_MASK);
 }
 
 template<ExecutionSpace Space>
@@ -585,8 +585,8 @@ void FixNHKokkos<Space>::operator()(TagFixNH_nve_v<RMASS>, const int &i) const {
 template<ExecutionSpace Space>
 void FixNHKokkos<Space>::nve_x()
 {
-  atomKK->sync(execution_space,X_MASK | V_MASK | MASK_MASK);
-  atomKK->modified(execution_space,X_MASK);
+  atomKK->sync(Space,X_MASK | V_MASK | MASK_MASK);
+  atomKK->modified(Space,X_MASK);
 
   x = DualViewHelper<Space>::view(atomKK->k_x);
   v = DualViewHelper<Space>::view(atomKK->k_v);
@@ -629,13 +629,13 @@ void FixNHKokkos<Space>::nh_v_temp()
     atomKK->modified(temperature->execution_space,temperature->datamask_modify);
   }
 
-  atomKK->sync(execution_space,V_MASK | MASK_MASK);
+  atomKK->sync(Space,V_MASK | MASK_MASK);
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixNH_nh_v_temp>(0,nlocal),*this);
   copymode = 0;
 
-  atomKK->modified(execution_space,V_MASK);
+  atomKK->modified(Space,V_MASK);
 
   if (which == BIAS) {
     atomKK->sync(temperature->execution_space,temperature->datamask_read);

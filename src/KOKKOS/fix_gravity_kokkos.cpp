@@ -59,8 +59,8 @@ void FixGravityKokkos<Space>::post_force(int vflag)
     set_acceleration();
   }
 
-  atomKK->sync(execution_space,datamask_read);
-  atomKK->modified(execution_space,datamask_modify);
+  atomKK->sync(Space,datamask_read);
+  atomKK->modified(Space,datamask_modify);
 
   x = DualViewHelper<Space>::view(atomKK->k_x);
   f = DualViewHelper<Space>::view(atomKK->k_f);

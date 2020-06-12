@@ -119,9 +119,9 @@ void FixEOStableRXKokkos<Space>::setup(int vflag)
   dvector = DualViewHelper<Space>::view(atomKK->k_dvector);
 
   if (!this->restart_reset) {
-    atomKK->sync(execution_space,MASK_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
+    atomKK->sync(Space,MASK_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXSetup>(0,nlocal),*this);
-    atomKK->modified(execution_space,UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
+    atomKK->modified(Space,UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
   }
 
   // Communicate the updated momenta and velocities to all nodes
@@ -129,9 +129,9 @@ void FixEOStableRXKokkos<Space>::setup(int vflag)
   comm->forward_comm_fix(this);
   atomKK->modified(Host,UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
 
-  atomKK->sync(execution_space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | DVECTOR_MASK);
+  atomKK->sync(Space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | DVECTOR_MASK);
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXTemperatureLookup>(0,nlocal),*this);
-  atomKK->modified(execution_space,DPDTHETA_MASK);
+  atomKK->modified(Space,DPDTHETA_MASK);
 
   error_check();
 
@@ -176,13 +176,13 @@ void FixEOStableRXKokkos<Space>::init()
   dvector = DualViewHelper<Space>::view(atomKK->k_dvector);
 
   if (this->restart_reset) {
-    atomKK->sync(execution_space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | DVECTOR_MASK);
+    atomKK->sync(Space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | DVECTOR_MASK);
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXTemperatureLookup>(0,nlocal),*this);
-    atomKK->modified(execution_space,DPDTHETA_MASK);
+    atomKK->modified(Space,DPDTHETA_MASK);
   } else {
-    atomKK->sync(execution_space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | DVECTOR_MASK);
+    atomKK->sync(Space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | DVECTOR_MASK);
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXInit>(0,nlocal),*this);
-    atomKK->modified(execution_space,UCOND_MASK | UMECH_MASK | UCHEM_MASK);
+    atomKK->modified(Space,UCOND_MASK | UMECH_MASK | UCHEM_MASK);
   }
 
   error_check();
@@ -223,9 +223,9 @@ void FixEOStableRXKokkos<Space>::post_integrate()
   dpdTheta= DualViewHelper<Space>::view(atomKK->k_dpdTheta);
   dvector = DualViewHelper<Space>::view(atomKK->k_dvector);
 
-  atomKK->sync(execution_space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | DVECTOR_MASK);
+  atomKK->sync(Space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | DVECTOR_MASK);
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXTemperatureLookup2>(0,nlocal),*this);
-  atomKK->modified(execution_space,DPDTHETA_MASK);
+  atomKK->modified(Space,DPDTHETA_MASK);
 
   error_check();
 
@@ -269,18 +269,18 @@ void FixEOStableRXKokkos<Space>::end_of_step()
   comm->reverse_comm_fix(this);
   atomKK->modified(Host,UCG_MASK | UCGNEW_MASK);
 
-  atomKK->sync(execution_space,MASK_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
+  atomKK->sync(Space,MASK_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXSetup>(0,nlocal),*this);
-  atomKK->modified(execution_space,UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
+  atomKK->modified(Space,UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
 
   // Communicate the updated momenta and velocities to all nodes
   atomKK->sync(Host,UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
   comm->forward_comm_fix(this);
   atomKK->modified(Host,UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
 
-  atomKK->sync(execution_space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | DVECTOR_MASK);
+  atomKK->sync(Space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | DVECTOR_MASK);
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXTemperatureLookup2>(0,nlocal),*this);
-  atomKK->modified(execution_space,DPDTHETA_MASK);
+  atomKK->modified(Space,DPDTHETA_MASK);
 
   error_check();
 

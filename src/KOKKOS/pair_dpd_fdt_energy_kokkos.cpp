@@ -184,9 +184,9 @@ void PairDPDfdtEnergyKokkos<Space>::compute(int eflag_in, int vflag_in)
 
   DualViewHelper<Space>::sync(k_cutsq);
   DualViewHelper<Space>::sync(k_params);
-  atomKK->sync(execution_space,X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK);
-  if (evflag) atomKK->modified(execution_space,F_MASK | ENERGY_MASK | VIRIAL_MASK);
-  else atomKK->modified(execution_space,F_MASK);
+  atomKK->sync(Space,X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK);
+  if (evflag) atomKK->modified(Space,F_MASK | ENERGY_MASK | VIRIAL_MASK);
+  else atomKK->modified(Space,F_MASK);
 
   special_lj[0] = force->special_lj[0];
   special_lj[1] = force->special_lj[1];
@@ -282,7 +282,7 @@ void PairDPDfdtEnergyKokkos<Space>::compute(int eflag_in, int vflag_in)
     h_duMech = k_duMech.h_view;
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyZero>(0,nlocal+nghost),*this);
 
-    atomKK->sync(execution_space,V_MASK | DPDTHETA_MASK | RMASS_MASK);
+    atomKK->sync(Space,V_MASK | DPDTHETA_MASK | RMASS_MASK);
     DualViewHelper<Space>::sync(atomKK->k_mass);
 
     // loop over neighbors of my atoms

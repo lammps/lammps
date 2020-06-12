@@ -84,7 +84,7 @@ void DihedralClass2Kokkos<Space>::compute(int eflag_in, int vflag_in)
     d_vatom = DualViewHelper<Space>::view(k_vatom);
   }
 
-  //atomKK->sync(execution_space,datamask_read);
+  //atomKK->sync(Space,datamask_read);
   DualViewHelper<Space>::sync(k_k1);
   DualViewHelper<Space>::sync(k_k2);
   DualViewHelper<Space>::sync(k_k3);
@@ -124,8 +124,8 @@ void DihedralClass2Kokkos<Space>::compute(int eflag_in, int vflag_in)
   DualViewHelper<Space>::sync(k_setflag_aat);
   DualViewHelper<Space>::sync(k_setflag_bb13t);
 
-  //if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
-  //else atomKK->modified(execution_space,F_MASK);
+  //if (eflag || vflag) atomKK->modified(Space,datamask_modify);
+  //else atomKK->modified(Space,F_MASK);
 
   x = DualViewHelper<Space>::view(atomKK->k_x);
   f = DualViewHelper<Space>::view(atomKK->k_f);

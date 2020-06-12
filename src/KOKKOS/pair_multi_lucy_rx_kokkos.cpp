@@ -168,7 +168,7 @@ void PairMultiLucyRXKokkos<Space>::compute_style(int eflag_in, int vflag_in)
   uCGnew = DualViewHelper<Space>::view(atomKK->k_uCGnew);
   dvector = DualViewHelper<Space>::view(atomKK->k_dvector);
 
-  atomKK->sync(execution_space,X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK | DPDRHO_MASK | UCG_MASK | UCGNEW_MASK | DVECTOR_MASK);
+  atomKK->sync(Space,X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK | DPDRHO_MASK | UCG_MASK | UCGNEW_MASK | DVECTOR_MASK);
   DualViewHelper<Space>::sync(k_cutsq);
 
   nlocal = atom->nlocal;
@@ -225,8 +225,8 @@ void PairMultiLucyRXKokkos<Space>::compute_style(int eflag_in, int vflag_in)
     }
   }
 
-  if (evflag) atomKK->modified(execution_space,F_MASK | ENERGY_MASK | VIRIAL_MASK | UCG_MASK | UCGNEW_MASK);
-  else atomKK->modified(execution_space,F_MASK | UCG_MASK | UCGNEW_MASK);
+  if (evflag) atomKK->modified(Space,F_MASK | ENERGY_MASK | VIRIAL_MASK | UCG_MASK | UCGNEW_MASK);
+  else atomKK->modified(Space,F_MASK | UCG_MASK | UCGNEW_MASK);
 
   DualViewHelper<Space>::modify(k_error_flag);
   k_error_flag.sync_host();
@@ -450,7 +450,7 @@ void PairMultiLucyRXKokkos<Space>::computeLocalDensity()
   h_rho = atomKK->k_rho.h_view;
   nlocal = atom->nlocal;
 
-  atomKK->sync(execution_space,X_MASK | TYPE_MASK | DPDRHO_MASK);
+  atomKK->sync(Space,X_MASK | TYPE_MASK | DPDRHO_MASK);
 
   const int inum = list->inum;
   NeighListKokkos<Space>* k_list = static_cast<NeighListKokkos<Space>*>(list);
@@ -511,7 +511,7 @@ void PairMultiLucyRXKokkos<Space>::computeLocalDensity()
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXComputeLocalDensity<FULL,0,false> >(0,inum),*this);
   }
 
-  atomKK->modified(execution_space,DPDRHO_MASK);
+  atomKK->modified(Space,DPDRHO_MASK);
 
   // communicate and sum densities (on the host)
 
@@ -664,7 +664,7 @@ template<ExecutionSpace Space>
 int PairMultiLucyRXKokkos<Space>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist, int iswap_in, DAT::tdual_float_1d &buf,
                                int pbc_flag, int *pbc)
 {
-  atomKK->sync(execution_space,DPDRHO_MASK);
+  atomKK->sync(Space,DPDRHO_MASK);
 
   d_sendlist = DualViewHelper<Space>::view(k_sendlist);
   iswap = iswap_in;
@@ -689,7 +689,7 @@ void PairMultiLucyRXKokkos<Space>::unpack_forward_comm_kokkos(int n, int first_i
   v_buf = DualViewHelper<Space>::view(buf);
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXUnpackForwardComm>(0,n),*this);
 
-  atomKK->modified(execution_space,DPDRHO_MASK);
+  atomKK->modified(Space,DPDRHO_MASK);
 }
 
 template<ExecutionSpace Space>

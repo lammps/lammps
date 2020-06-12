@@ -55,8 +55,8 @@ void FixWallReflectKokkos<Space>::post_integrate()
   // coord = current position of wall
   // evaluate variable if necessary, wrap with clear/add
 
-  atomKK->sync(execution_space,datamask_read);
-  atomKK->modified(execution_space,datamask_modify);
+  atomKK->sync(Space,datamask_read);
+  atomKK->modified(Space,datamask_modify);
 
   x = DualViewHelper<Space>::view(atomKK->k_x);
   v = DualViewHelper<Space>::view(atomKK->k_v);

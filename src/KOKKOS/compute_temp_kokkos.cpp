@@ -44,7 +44,7 @@ ComputeTempKokkos<Space>::ComputeTempKokkos(LAMMPS *lmp, int narg, char **arg) :
 template<ExecutionSpace Space>
 double ComputeTempKokkos<Space>::compute_scalar()
 {
-  atomKK->sync(execution_space,datamask_read);
+  atomKK->sync(Space,datamask_read);
   DualViewHelper<Space>::sync(atomKK->k_mass);
 
   invoked_scalar = update->ntimestep;
@@ -98,7 +98,7 @@ void ComputeTempKokkos<Space>::operator()(TagComputeTempScalar<RMASS>, const int
 template<ExecutionSpace Space>
 void ComputeTempKokkos<Space>::compute_vector()
 {
-  atomKK->sync(execution_space,datamask_read);
+  atomKK->sync(Space,datamask_read);
 
   int i;
 

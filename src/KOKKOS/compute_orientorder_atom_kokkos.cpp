@@ -174,7 +174,7 @@ void ComputeOrientOrderAtomKokkos<Space>::compute_peratom()
   // compute order parameter for each atom in group
   // use full neighbor list to count atoms less than cutoff
 
-  atomKK->sync(execution_space,X_MASK|MASK_MASK);
+  atomKK->sync(Space,X_MASK|MASK_MASK);
   x = DualViewHelper<Space>::view(atomKK->k_x);
   mask = DualViewHelper<Space>::view(atomKK->k_mask);
 

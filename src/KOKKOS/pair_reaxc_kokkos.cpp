@@ -663,15 +663,15 @@ void PairReaxCKokkos<Space>::compute(int eflag_in, int vflag_in)
 
   ev_init(eflag,vflag);
 
-  atomKK->sync(execution_space,datamask_read);
+  atomKK->sync(Space,datamask_read);
   DualViewHelper<Space>::sync(k_params_sing);
   DualViewHelper<Space>::sync(k_params_twbp);
   DualViewHelper<Space>::sync(k_params_thbp);
   DualViewHelper<Space>::sync(k_params_fbp);
   DualViewHelper<Space>::sync(k_params_hbp);
 
-  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
-  else atomKK->modified(execution_space,F_MASK);
+  if (eflag || vflag) atomKK->modified(Space,datamask_modify);
+  else atomKK->modified(Space,F_MASK);
 
   x = DualViewHelper<Space>::view(atomKK->k_x);
   f = DualViewHelper<Space>::view(atomKK->k_f);
@@ -3785,7 +3785,7 @@ void PairReaxCKokkos<Space>::FindBond(int &numbonds)
 
   bo_cut_bond = control->bg_cut;
 
-  atomKK->sync(execution_space,TAG_MASK);
+  atomKK->sync(Space,TAG_MASK);
   tag = DualViewHelper<Space>::view(atomKK->k_tag);
 
   const int inum = list->inum;
@@ -3841,7 +3841,7 @@ void PairReaxCKokkos<Space>::PackBondBuffer(DAT::tdual_float_1d k_buf, int &nbuf
 {
   d_buf = DualViewHelper<Space>::view(k_buf);
   DualViewHelper<Space>::sync(k_params_sing);
-  atomKK->sync(execution_space,TAG_MASK|TYPE_MASK|Q_MASK|MOLECULE_MASK);
+  atomKK->sync(Space,TAG_MASK|TYPE_MASK|Q_MASK|MOLECULE_MASK);
 
   tag = DualViewHelper<Space>::view(atomKK->k_tag);
   type = DualViewHelper<Space>::view(atomKK->k_type);

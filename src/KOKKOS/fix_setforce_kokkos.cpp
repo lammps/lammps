@@ -75,7 +75,7 @@ void FixSetForceKokkos<Space>::init()
 template<ExecutionSpace Space>
 void FixSetForceKokkos<Space>::post_force(int vflag)
 {
-  atomKK->sync(execution_space, X_MASK | F_MASK | MASK_MASK);
+  atomKK->sync(Space, X_MASK | F_MASK | MASK_MASK);
 
   x = DualViewHelper<Space>::view(atomKK->k_x);
   f = DualViewHelper<Space>::view(atomKK->k_f);
@@ -144,7 +144,7 @@ void FixSetForceKokkos<Space>::post_force(int vflag)
     copymode = 0;
   }
 
-  atomKK->modified(execution_space, F_MASK);
+  atomKK->modified(Space, F_MASK);
 
   foriginal[0] = foriginal_kk.d0;
   foriginal[1] = foriginal_kk.d1;

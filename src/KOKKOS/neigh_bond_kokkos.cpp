@@ -199,7 +199,7 @@ void NeighBondKokkos<Space>::init_topology_kk() {
 template<ExecutionSpace Space>
 void NeighBondKokkos<Space>::build_topology_kk()
 {
-  atomKK->sync(execution_space, X_MASK | TAG_MASK);
+  atomKK->sync(Space, X_MASK | TAG_MASK);
   int nall = atom->nlocal + atom->nghost;
   int nmax = atom->nmax;
 
@@ -254,7 +254,7 @@ void NeighBondKokkos<Space>::build_topology_kk()
 template<ExecutionSpace Space>
 void NeighBondKokkos<Space>::bond_all()
 {
-  atomKK->sync(execution_space, BOND_MASK);
+  atomKK->sync(Space, BOND_MASK);
   v_bondlist = DualViewHelper<Space>::view(k_bondlist);
   num_bond = DualViewHelper<Space>::view(atomKK->k_num_bond);
   bond_atom = DualViewHelper<Space>::view(atomKK->k_bond_atom);
@@ -349,7 +349,7 @@ void NeighBondKokkos<Space>::bond_template()
 template<ExecutionSpace Space>
 void NeighBondKokkos<Space>::bond_partial()
 {
-  atomKK->sync(execution_space, BOND_MASK);
+  atomKK->sync(Space, BOND_MASK);
   v_bondlist = DualViewHelper<Space>::view(k_bondlist);
   num_bond = DualViewHelper<Space>::view(atomKK->k_num_bond);
   bond_atom = DualViewHelper<Space>::view(atomKK->k_bond_atom);
@@ -440,7 +440,7 @@ void NeighBondKokkos<Space>::bond_check()
   int flag = 0;
 
   update_domain_variables();
-  atomKK->sync(execution_space, X_MASK);
+  atomKK->sync(Space, X_MASK);
   DualViewHelper<Space>::sync(k_bondlist);
 
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondBondCheck>(0,neighbor->nbondlist),*this,flag);
@@ -469,7 +469,7 @@ void NeighBondKokkos<Space>::operator()(TagNeighBondBondCheck, const int &m, int
 template<ExecutionSpace Space>
 void NeighBondKokkos<Space>::angle_all()
 {
-  atomKK->sync(execution_space, ANGLE_MASK);
+  atomKK->sync(Space, ANGLE_MASK);
   v_anglelist = DualViewHelper<Space>::view(k_anglelist);
   num_angle = DualViewHelper<Space>::view(atomKK->k_num_angle);
   angle_atom1 = DualViewHelper<Space>::view(atomKK->k_angle_atom1);
@@ -571,7 +571,7 @@ void NeighBondKokkos<Space>::angle_template()
 template<ExecutionSpace Space>
 void NeighBondKokkos<Space>::angle_partial()
 {
-  atomKK->sync(execution_space, ANGLE_MASK);
+  atomKK->sync(Space, ANGLE_MASK);
   v_anglelist = DualViewHelper<Space>::view(k_anglelist);
   num_angle = DualViewHelper<Space>::view(atomKK->k_num_angle);
   angle_atom1 = DualViewHelper<Space>::view(atomKK->k_angle_atom1);
@@ -672,7 +672,7 @@ void NeighBondKokkos<Space>::angle_check()
   // in case angle potential computes any of them
 
   update_domain_variables();
-  atomKK->sync(execution_space, X_MASK);
+  atomKK->sync(Space, X_MASK);
   DualViewHelper<Space>::sync(k_anglelist);
 
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondAngleCheck>(0,neighbor->nanglelist),*this,flag);
@@ -712,7 +712,7 @@ void NeighBondKokkos<Space>::operator()(TagNeighBondAngleCheck, const int &m, in
 template<ExecutionSpace Space>
 void NeighBondKokkos<Space>::dihedral_all()
 {
-  atomKK->sync(execution_space, DIHEDRAL_MASK);
+  atomKK->sync(Space, DIHEDRAL_MASK);
   v_dihedrallist = DualViewHelper<Space>::view(k_dihedrallist);
   num_dihedral = DualViewHelper<Space>::view(atomKK->k_num_dihedral);
   dihedral_atom1 = DualViewHelper<Space>::view(atomKK->k_dihedral_atom1);
@@ -819,7 +819,7 @@ void NeighBondKokkos<Space>::dihedral_template()
 template<ExecutionSpace Space>
 void NeighBondKokkos<Space>::dihedral_partial()
 {
-  atomKK->sync(execution_space, DIHEDRAL_MASK);
+  atomKK->sync(Space, DIHEDRAL_MASK);
   v_dihedrallist = DualViewHelper<Space>::view(k_dihedrallist);
   num_dihedral = DualViewHelper<Space>::view(atomKK->k_num_dihedral);
   dihedral_atom1 = DualViewHelper<Space>::view(atomKK->k_dihedral_atom1);
@@ -926,7 +926,7 @@ void NeighBondKokkos<Space>::dihedral_check(int nlist, typename AT::t_int_2d lis
   // in case dihedral/improper potential computes any of them
 
   update_domain_variables();
-  atomKK->sync(execution_space, X_MASK);
+  atomKK->sync(Space, X_MASK);
   DualViewHelper<Space>::sync(k_dihedrallist);
 
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondDihedralCheck>(0,nlist),*this,flag);
@@ -983,7 +983,7 @@ void NeighBondKokkos<Space>::operator()(TagNeighBondDihedralCheck, const int &m,
 template<ExecutionSpace Space>
 void NeighBondKokkos<Space>::improper_all()
 {
-  atomKK->sync(execution_space, IMPROPER_MASK);
+  atomKK->sync(Space, IMPROPER_MASK);
   v_improperlist = DualViewHelper<Space>::view(k_improperlist);
   num_improper = DualViewHelper<Space>::view(atomKK->k_num_improper);
   improper_atom1 = DualViewHelper<Space>::view(atomKK->k_improper_atom1);
@@ -1090,7 +1090,7 @@ void NeighBondKokkos<Space>::improper_template()
 template<ExecutionSpace Space>
 void NeighBondKokkos<Space>::improper_partial()
 {
-  atomKK->sync(execution_space, IMPROPER_MASK);
+  atomKK->sync(Space, IMPROPER_MASK);
   v_improperlist = DualViewHelper<Space>::view(k_improperlist);
   num_improper = DualViewHelper<Space>::view(atomKK->k_num_improper);
   improper_atom1 = DualViewHelper<Space>::view(atomKK->k_improper_atom1);

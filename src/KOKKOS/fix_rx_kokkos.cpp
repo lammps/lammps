@@ -1515,7 +1515,7 @@ void FixRxKokkos<Space>::solve_reactions(const int vflag, const bool isPreForce)
   this->d_mask     = DualViewHelper<Space>::view(atomKK->k_mask);
 
   // Get up-to-date data.
-  atomKK->sync(execution_space, MASK_MASK | DVECTOR_MASK | DPDTHETA_MASK);
+  atomKK->sync(Space, MASK_MASK | DVECTOR_MASK | DPDTHETA_MASK);
 
   // Set some constants outside of the parallel_for
   //const KK_FLOAT boltz = force->boltz;
@@ -1673,7 +1673,7 @@ void FixRxKokkos<Space>::solve_reactions(const int vflag, const bool isPreForce)
     error->one(FLERR,"Computed concentration in RK solver is < -1.0e-10");
 
   // Signal that dvector has been modified on this execution space.
-  atomKK->modified(execution_space, DVECTOR_MASK);
+  atomKK->modified(Space, DVECTOR_MASK);
 
   // Communicate the updated species data to all nodes
   atomKK->sync (Host, DVECTOR_MASK);
@@ -2019,7 +2019,7 @@ void FixRxKokkos<Space>::computeLocalTemperature()
   d_type     = DualViewHelper<Space>::view(atomKK->k_type);
   d_dpdTheta = DualViewHelper<Space>::view(atomKK->k_dpdTheta);
 
-  atomKK->sync(execution_space, X_MASK | TYPE_MASK | DPDTHETA_MASK);
+  atomKK->sync(Space, X_MASK | TYPE_MASK | DPDTHETA_MASK);
 
   //const int nlocal = atom->nlocal;
   nlocal = atom->nlocal;

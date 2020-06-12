@@ -139,8 +139,8 @@ void FixLangevinKokkos<Space>::grow_arrays(int nmax)
 template<ExecutionSpace Space>
 void FixLangevinKokkos<Space>::initial_integrate(int vflag)
 {
-  atomKK->sync(execution_space,datamask_read);
-  atomKK->modified(execution_space,datamask_modify);
+  atomKK->sync(Space,datamask_read);
+  atomKK->modified(Space,datamask_modify);
 
   v = DualViewHelper<Space>::view(atomKK->k_v);
   f = DualViewHelper<Space>::view(atomKK->k_f);
@@ -171,7 +171,7 @@ template<ExecutionSpace Space>
 void FixLangevinKokkos<Space>::post_force(int vflag)
 {
   // sync the device views which might have been modified on host
-  atomKK->sync(execution_space,datamask_read);
+  atomKK->sync(Space,datamask_read);
   rmass = DualViewHelper<Space>::view(atomKK->k_rmass);
   f = DualViewHelper<Space>::view(atomKK->k_f);
   v = DualViewHelper<Space>::view(atomKK->k_v);
@@ -222,7 +222,7 @@ void FixLangevinKokkos<Space>::post_force(int vflag)
     temperature->remove_bias_all(); // modifies velocities
     // if temeprature compute is kokkosized host-device comm won't be needed
     atomKK->modified(temperature->execution_space,temperature->datamask_modify);
-    atomKK->sync(execution_space,temperature->datamask_modify);
+    atomKK->sync(Space,temperature->datamask_modify);
   }
 
   // compute langevin force in parallel on the device
@@ -519,7 +519,7 @@ void FixLangevinKokkos<Space>::post_force(int vflag)
     atomKK->sync(temperature->execution_space,temperature->datamask_read);
     temperature->restore_bias_all(); // modifies velocities
     atomKK->modified(temperature->execution_space,temperature->datamask_modify);
-    atomKK->sync(execution_space,temperature->datamask_modify);
+    atomKK->sync(Space,temperature->datamask_modify);
   }
 
   // set modify flags for the views modified in post_force functor
@@ -541,7 +541,7 @@ void FixLangevinKokkos<Space>::post_force(int vflag)
     Kokkos::parallel_for(nlocal,zero_functor);
   }
   // f is modified by both post_force and zero_force functors
-  atomKK->modified(execution_space,datamask_modify);
+  atomKK->modified(Space,datamask_modify);
 
   // thermostat omega and angmom
   //  if (oflag) omega_thermostat();
@@ -743,7 +743,7 @@ double FixLangevinKokkos<Space>::compute_scalar()
 
   if (update->ntimestep == update->beginstep) {
     energy_onestep = 0.0;
-    atomKK->sync(execution_space,V_MASK | MASK_MASK);
+    atomKK->sync(Space,V_MASK | MASK_MASK);
     int nlocal = atomKK->nlocal;
     DualViewHelper<Space>::sync(k_flangevin);
     FixLangevinKokkosTallyEnergyFunctor<Space> scalar_functor(this);
@@ -784,7 +784,7 @@ void FixLangevinKokkos<Space>::end_of_step()
   f = DualViewHelper<Space>::view(atomKK->k_f);
   mask = DualViewHelper<Space>::view(atomKK->k_mask);
 
-  atomKK->sync(execution_space,V_MASK | MASK_MASK);
+  atomKK->sync(Space,V_MASK | MASK_MASK);
   int nlocal = atomKK->nlocal;
 
   energy_onestep = 0.0;

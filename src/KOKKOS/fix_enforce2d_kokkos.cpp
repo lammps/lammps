@@ -51,7 +51,7 @@ void FixEnforce2DKokkos<Space>::setup(int vflag)
 template <ExecutionSpace Space>
 void FixEnforce2DKokkos<Space>::post_force(int vflag)
 {
-  atomKK->sync(execution_space,datamask_read);
+  atomKK->sync(Space,datamask_read);
 
   v = DualViewHelper<Space>::view(atomKK->k_v);
   f = DualViewHelper<Space>::view(atomKK->k_f);
@@ -123,7 +123,7 @@ void FixEnforce2DKokkos<Space>::post_force(int vflag)
   }
   copymode = 0;
 
-  atomKK->modified(execution_space,datamask_modify);
+  atomKK->modified(Space,datamask_modify);
 
   for (int m = 0; m < nfixlist; m++) {
     atomKK->sync(flist[m]->execution_space,flist[m]->datamask_read);

@@ -94,6 +94,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   nyhi_in = nylo_in = nyhi_out = nylo_out = 0;
   nzhi_in = nzlo_in = nzhi_out = nzlo_out = 0;
   density_brick_types = NULL;
+  avg_density_brick_types = NULL;
   density_fft_types = NULL;
   density_hat_fft_types = NULL;
   kappa_density = NULL;
@@ -134,6 +135,13 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   nmax = 0;
   sub_flag  = 1;
   mix_flag  = 1;
+  ave_grid_flag  = 0;
+  nvalid_last = -1;
+  nvalid = 0;
+  nevery = 0;
+  irepeat = 0;
+  nrepeat = 0;
+  peratom_freq = 0;
   write_grid_flag  = 0;
   set_rho0 = 1.0;
   subtract_rho0 = 0;
@@ -558,7 +566,12 @@ void TILD::compute(int eflag, int vflag){
 
   fieldforce_param();
 
-  if ( write_grid_flag == 1 ) write_grid_data();
+  if ( write_grid_flag == 1 ) {
+    if ( (update->ntimestep % grid_data_output_freq) ==  0) {
+      write_grid_data(grid_data_filename, 0);
+    }
+  }
+  if ( ave_grid_flag == 1 ) ave_grid();
 
 /*
   if (eflag_global){
@@ -612,6 +625,9 @@ void TILD::allocate()
   memory->create4d_offset(density_brick_types,ntypes+1,
                           nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"tild:density_brick_types");
+  memory->create4d_offset(avg_density_brick_types,ntypes+1,
+                          nzlo_out,nzhi_out,nylo_out,nyhi_out,
+                          nxlo_out,nxhi_out,"tild:avg_density_brick_types");
   memory->create5d_offset(gradWtype,ntypes+1, 0, Dim-1,
                           nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"tild:gradWtype");
@@ -713,6 +729,7 @@ void TILD::deallocate()
   //memory->destroy(potent_type_map);
 
   memory->destroy4d_offset(density_brick_types,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy4d_offset(avg_density_brick_types,nzlo_out,nylo_out,nxlo_out);
   memory->destroy(kappa_density);
   memory->destroy(density_fft_types);
   memory->destroy(density_hat_fft_types);
@@ -1414,32 +1431,45 @@ int TILD::modify_param(int narg, char** arg)
         }
       } else error->all(FLERR, "Illegal kspace_modify tild/coeff density function argument");
 
-  } else if (strcmp(arg[0], "mix") == 0) {
+  } else if (strcmp(arg[0], "tild/mix") == 0) {
       if (narg != 2) error->all(FLERR, "Illegal kspace_modify tild command");
       mix_flag = 1;
       if (strcmp(arg[1], "convolution") == 0)  mix_flag = 1;
       else if (strcmp(arg[1], "define") == 0) mix_flag = 0;
       else error->all(FLERR, "Illegal kspace_modify tild mix argument");
- } else if (strcmp(arg[0], "set_rho0") == 0) {
+ } else if (strcmp(arg[0], "tild/set_rho0") == 0) {
      if (narg < 2 ) error->all(FLERR, "Illegal kspace_modify tild command");
      set_rho0 = force->numeric(FLERR,arg[1]);
-  } else if (strcmp(arg[0], "subtract_rho0") == 0) {
+  } else if (strcmp(arg[0], "tild/subtract_rho0") == 0) {
       if (narg != 2) error->all(FLERR, "Illegal kspace_modify tild command");
       if (strcmp(arg[1], "yes") == 0) sub_flag = 1;
       else if (strcmp(arg[1], "no") == 0) sub_flag = 0;
       else error->all(FLERR, "Illegal kspace_modify tild subtract_rho0 argument");
-  } else if (strcmp(arg[0], "normalize_by_rho0") == 0) {
+  } else if (strcmp(arg[0], "tild/normalize_by_rho0") == 0) {
       if (narg != 2) error->all(FLERR, "Illegal kspace_modify tild command");
       if (strcmp(arg[1], "yes") == 0) norm_flag = 1;
       else if (strcmp(arg[1], "no") == 0) norm_flag = 0;
       else 
         error->all(FLERR, "Illegal kspace_modify tild normalize_by_rho0 argument");
 
-  } else if (strcmp(arg[0], "write_grid_data") == 0) {
+  } else if (strcmp(arg[0], "tild/write_grid_data") == 0) {
       if (narg != 3) error->all(FLERR, "Illegal kspace_modify tild command");
       write_grid_flag = 1;
       grid_data_output_freq = force->inumeric(FLERR,arg[1]);
       strcpy(grid_data_filename,arg[2]);
+
+  } else if (strcmp(arg[0], "tild/ave/grid") == 0) {
+      if (narg != 5) error->all(FLERR, "Illegal kspace_modify tild command");
+      ave_grid_flag = 1;
+      nevery = force->inumeric(FLERR,arg[1]);
+      nrepeat = force->inumeric(FLERR,arg[2]);
+      peratom_freq = force->inumeric(FLERR,arg[3]);
+      strcpy(ave_grid_filename,arg[4]);
+      nvalid = nextvalid();
+      if (nevery <= 0 || nrepeat <= 0 || peratom_freq <= 0)
+        error->all(FLERR,"Illegal fix tild/ave/grid command");
+      if (peratom_freq % nevery || nrepeat*nevery > peratom_freq)
+        error->all(FLERR,"Illegal kspace_modify tild/ave/grid command");
   } else
     error->all(FLERR, "Illegal kspace_modify tild command");
 
@@ -2203,45 +2233,10 @@ double TILD::calculate_rho0(){
   return rho0;
 }
 
-void TILD::write_grid_data( ) {
-/*
-  int ntypes = atom->ntypes;
-  //if (comm->me == 0) {
-    otp = fopen( grid_data_filename, "w" ) ;
-
-    // header
-    fprintf( otp, "# x y z") ;
-    for (int itype = 1; itype <= ntypes; itype++)
-      fprintf( otp, " rho_%d", itype) ;
-    fprintf( otp, "\n") ;
-  //}
-
-  // density
-  double x = 0.0;
-  double y = 0.0;
-  double z = 0.0;
-  double fx = domain->xprd/nx_pppm;
-  double fy = domain->yprd/ny_pppm;
-  double fz = domain->zprd/nz_pppm;
-  for (int iz = nzlo_in; iz <= nzhi_in; iz++) {
-    z = iz * fz;
-    for (int iy = nylo_in; iy <= nyhi_in; iy++) {
-      y = iy * fy;
-      for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
-        x = ix * fx;
-        fprintf( otp, "%lf %lf %lf", x, y, z ) ;
-        for (int itype = 1; itype <= ntypes; itype++) {
-          fprintf( otp, " %1.16e", density_brick_types[itype][iz][iy][ix]);
-        }
-        fprintf( otp, "\n" ) ;
-      }
-    }
-  }
-*/
-
+void TILD::write_grid_data( char *filename, const int avg ) {
   int ntypes = atom->ntypes;
   if (comm->me == 0) {
-    otp = fopen( grid_data_filename, "w" ) ;
+    otp = fopen( filename, "w" ) ;
 
     // header
     fprintf( otp, "# x y z") ;
@@ -2252,7 +2247,7 @@ void TILD::write_grid_data( ) {
   // communication buffer for all my Atom info
   // max_size = largest buffer needed by any proc
 
-  int ncol = ntypes + 3 + 1;
+  int ncol = ntypes + 3;
 
   int sendrow = nfft_both;
   int maxrow;
@@ -2264,7 +2259,8 @@ void TILD::write_grid_data( ) {
 
   // pack my atom data into buf
 
-  pack_grid_data(buf);
+  if (avg == 1) pack_avg_grid_data(buf);
+  else pack_grid_data(buf);
 
   // write one chunk of atoms per proc to file
   // proc 0 pings each proc, receives its chunk, writes to file
@@ -2285,29 +2281,13 @@ void TILD::write_grid_data( ) {
         recvrow /= ncol;
       } else recvrow = sendrow;
 
-
-/*
-      int n = 0;
-      for (int iz = nzlo_in; iz <= nzhi_in; iz++) {
-        n += iz;
-        for (int iy = nylo_in; iy <= nyhi_in; iy++) {
-          n += iy;
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
-            n += ix;
-*/
-        for (int n = 0; n < recvrow; n++) {
-            fprintf( otp, "%lf %lf %lf", buf[n][0], buf[n][1], buf[n][2]);
-            for (int itype = 1; itype <= ntypes; itype++) {
-              fprintf( otp, " %1.16e", buf[n][2+itype]);
-            }
-            fprintf( otp, "\n" ) ;
-          }
-/*
-        }
-      }
-    }
-*/
-
+     for (int n = 0; n < recvrow; n++) {
+         fprintf( otp, "%lf %lf %lf", buf[n][0], buf[n][1], buf[n][2]);
+         for (int itype = 1; itype <= ntypes; itype++) {
+           fprintf( otp, " %1.16e", buf[n][2+itype]);
+         }
+         fprintf( otp, "\n" ) ;
+       }
     } 
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
@@ -2324,21 +2304,128 @@ void TILD::pack_grid_data(double **buf)
   double fx = domain->xprd/nx_pppm;
   double fy = domain->yprd/ny_pppm;
   double fz = domain->zprd/nz_pppm;
-  int n = 0;
+  int n = nzlo_in + nylo_in + nxlo_in;
   for (int iz = nzlo_in; iz <= nzhi_in; iz++) {
-    n += iz;
     for (int iy = nylo_in; iy <= nyhi_in; iy++) {
-      n += iy;
       for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
-        n += ix;
         buf[n][0] = ix * fx;
         buf[n][1] = iy * fy;
         buf[n][2] = iz * fz;
         for (int itype = 1; itype <= ntypes; itype++) {
           buf[n][2+itype] = density_brick_types[itype][iz][iy][ix];
         }
+        n++;
       }
     }
   }  
+}
+
+void TILD::pack_avg_grid_data(double **buf)
+{
+  int ntypes = atom->ntypes;
+  double fx = domain->xprd/nx_pppm;
+  double fy = domain->yprd/ny_pppm;
+  double fz = domain->zprd/nz_pppm;
+  int n = nzlo_in + nylo_in + nxlo_in;
+  for (int iz = nzlo_in; iz <= nzhi_in; iz++) {
+    for (int iy = nylo_in; iy <= nyhi_in; iy++) {
+      for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+        buf[n][0] = ix * fx;
+        buf[n][1] = iy * fy;
+        buf[n][2] = iz * fz;
+        for (int itype = 1; itype <= ntypes; itype++) {
+          buf[n][2+itype] = avg_density_brick_types[itype][iz][iy][ix];
+        }
+        n++;
+      }
+    }
+  }  
+}
+
+void TILD::sum_grid_data()
+{
+  int ntypes = atom->ntypes;
+  for (int iz = nzlo_in; iz <= nzhi_in; iz++) {
+    for (int iy = nylo_in; iy <= nyhi_in; iy++) {
+      for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+        for (int itype = 1; itype <= ntypes; itype++) {
+          avg_density_brick_types[itype][iz][iy][ix] += density_brick_types[itype][iz][iy][ix];
+        }
+      }
+    }
+  }  
+}
+
+void TILD::multiply_ave_grid_data(const double factor)
+{
+  int ntypes = atom->ntypes;
+  for (int iz = nzlo_in; iz <= nzhi_in; iz++) {
+    for (int iy = nylo_in; iy <= nyhi_in; iy++) {
+      for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+        for (int itype = 1; itype <= ntypes; itype++) {
+          avg_density_brick_types[itype][iz][iy][ix] *= factor;
+        }
+      }
+    }
+  }  
+}
+
+/* ----------------------------------------------------------------------
+   calculate nvalid = next step on which end_of_step does something
+   can be this timestep if multiple of nfreq and nrepeat = 1
+   else backup from next multiple of nfreq
+------------------------------------------------------------------------- */
+
+bigint TILD::nextvalid()
+{
+  bigint nvalid = (update->ntimestep/peratom_freq)*peratom_freq + peratom_freq;
+  if (nvalid-peratom_freq == update->ntimestep && nrepeat == 1)
+    nvalid = update->ntimestep;
+  else
+    nvalid -= (nrepeat-1)*nevery;
+  if (nvalid < update->ntimestep) nvalid += peratom_freq;
+  return nvalid;
+}
+
+void TILD::ave_grid()
+{
+  // skip if not step which requires doing something
+  // error check if timestep was reset in an invalid manner
+
+  bigint ntimestep = update->ntimestep;
+  if (ntimestep < nvalid_last || ntimestep > nvalid)
+    error->all(FLERR,"Invalid timestep reset for fix ave/atom");
+  if (ntimestep != nvalid) return;
+  nvalid_last = nvalid;
+
+  // zero if first step
+
+  if (irepeat == 0)
+    multiply_ave_grid_data( 0.0 ); 
+
+  // accumulate results of attributes,computes,fixes,variables to local copy
+  // compute/fix/variable may invoke computes so wrap with clear/add
+
+  sum_grid_data(); 
+
+  // done if irepeat < nrepeat
+  // else reset irepeat and nvalid
+
+  irepeat++;
+
+  if (irepeat < nrepeat) {
+    nvalid += nevery;
+    return;
+  }
+
+  irepeat = 0;
+  nvalid = ntimestep+peratom_freq - (nrepeat-1)*nevery;
+
+  // average the final result for the Nfreq timestep
+
+  double repeat = nrepeat;
+  
+  multiply_ave_grid_data( 1.0 / repeat );
+  write_grid_data(ave_grid_filename, 1);
 }
 

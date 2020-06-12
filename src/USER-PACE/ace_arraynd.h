@@ -24,7 +24,7 @@ class Array1D : public ContiguousArrayND<T> {
     using ContiguousArrayND<T>::array_name;
     using ContiguousArrayND<T>::data;
     using ContiguousArrayND<T>::size;
-    using ContiguousArrayND<T>::is_proxy;
+    using ContiguousArrayND<T>::is_proxy_;
 
     size_t dim[1] = {0}; ///< dimensions
     size_t s[1] = {0}; ///< strides
@@ -78,11 +78,11 @@ public:
         bool new_is_proxy = (new_data != nullptr);
 
         if (new_is_proxy) {
-            if (!is_proxy) delete[] data;
+            if (!is_proxy_) delete[] data;
             data = new_data;
         } else {
             if (size != old_size) {
-                if (!is_proxy) delete[] data;
+                if (!is_proxy_) delete[] data;
                 data = new T[size];
                 memset(data, 0, size * sizeof(T));
             } else {
@@ -90,7 +90,7 @@ public:
             }
         }
 
-        is_proxy = new_is_proxy;
+        is_proxy_ = new_is_proxy;
     }
 
     /**
@@ -251,7 +251,7 @@ class Array2D : public ContiguousArrayND<T> {
     using ContiguousArrayND<T>::array_name;
     using ContiguousArrayND<T>::data;
     using ContiguousArrayND<T>::size;
-    using ContiguousArrayND<T>::is_proxy;
+    using ContiguousArrayND<T>::is_proxy_;
 
     size_t dim[2] = {0}; ///< dimensions
     size_t s[2] = {0}; ///< strides
@@ -307,11 +307,11 @@ public:
         bool new_is_proxy = (new_data != nullptr);
 
         if (new_is_proxy) {
-            if (!is_proxy) delete[] data;
+            if (!is_proxy_) delete[] data;
             data = new_data;
         } else {
             if (size != old_size) {
-                if (!is_proxy) delete[] data;
+                if (!is_proxy_) delete[] data;
                 data = new T[size];
                 memset(data, 0, size * sizeof(T));
             } else {
@@ -319,7 +319,7 @@ public:
             }
         }
 
-        is_proxy = new_is_proxy;
+        is_proxy_ = new_is_proxy;
     }
 
     /**
@@ -511,7 +511,7 @@ class Array3D : public ContiguousArrayND<T> {
     using ContiguousArrayND<T>::array_name;
     using ContiguousArrayND<T>::data;
     using ContiguousArrayND<T>::size;
-    using ContiguousArrayND<T>::is_proxy;
+    using ContiguousArrayND<T>::is_proxy_;
 
     size_t dim[3] = {0}; ///< dimensions
     size_t s[3] = {0}; ///< strides
@@ -569,11 +569,11 @@ public:
         bool new_is_proxy = (new_data != nullptr);
 
         if (new_is_proxy) {
-            if (!is_proxy) delete[] data;
+            if (!is_proxy_) delete[] data;
             data = new_data;
         } else {
             if (size != old_size) {
-                if (!is_proxy) delete[] data;
+                if (!is_proxy_) delete[] data;
                 data = new T[size];
                 memset(data, 0, size * sizeof(T));
             } else {
@@ -581,7 +581,7 @@ public:
             }
         }
 
-        is_proxy = new_is_proxy;
+        is_proxy_ = new_is_proxy;
     }
 
     /**
@@ -793,7 +793,7 @@ class Array4D : public ContiguousArrayND<T> {
     using ContiguousArrayND<T>::array_name;
     using ContiguousArrayND<T>::data;
     using ContiguousArrayND<T>::size;
-    using ContiguousArrayND<T>::is_proxy;
+    using ContiguousArrayND<T>::is_proxy_;
 
     size_t dim[4] = {0}; ///< dimensions
     size_t s[4] = {0}; ///< strides
@@ -853,11 +853,11 @@ public:
         bool new_is_proxy = (new_data != nullptr);
 
         if (new_is_proxy) {
-            if (!is_proxy) delete[] data;
+            if (!is_proxy_) delete[] data;
             data = new_data;
         } else {
             if (size != old_size) {
-                if (!is_proxy) delete[] data;
+                if (!is_proxy_) delete[] data;
                 data = new T[size];
                 memset(data, 0, size * sizeof(T));
             } else {
@@ -865,7 +865,7 @@ public:
             }
         }
 
-        is_proxy = new_is_proxy;
+        is_proxy_ = new_is_proxy;
     }
 
     /**
@@ -1097,7 +1097,7 @@ class Array5D : public ContiguousArrayND<T> {
     using ContiguousArrayND<T>::array_name;
     using ContiguousArrayND<T>::data;
     using ContiguousArrayND<T>::size;
-    using ContiguousArrayND<T>::is_proxy;
+    using ContiguousArrayND<T>::is_proxy_;
 
     size_t dim[5] = {0}; ///< dimensions
     size_t s[5] = {0}; ///< strides
@@ -1161,11 +1161,11 @@ public:
         bool new_is_proxy = (new_data != nullptr);
 
         if (new_is_proxy) {
-            if (!is_proxy) delete[] data;
+            if (!is_proxy_) delete[] data;
             data = new_data;
         } else {
             if (size != old_size) {
-                if (!is_proxy) delete[] data;
+                if (!is_proxy_) delete[] data;
                 data = new T[size];
                 memset(data, 0, size * sizeof(T));
             } else {
@@ -1173,7 +1173,7 @@ public:
             }
         }
 
-        is_proxy = new_is_proxy;
+        is_proxy_ = new_is_proxy;
     }
 
     /**
@@ -1425,7 +1425,7 @@ class Array6D : public ContiguousArrayND<T> {
     using ContiguousArrayND<T>::array_name;
     using ContiguousArrayND<T>::data;
     using ContiguousArrayND<T>::size;
-    using ContiguousArrayND<T>::is_proxy;
+    using ContiguousArrayND<T>::is_proxy_;
 
     size_t dim[6] = {0}; ///< dimensions
     size_t s[6] = {0}; ///< strides
@@ -1491,11 +1491,11 @@ public:
         bool new_is_proxy = (new_data != nullptr);
 
         if (new_is_proxy) {
-            if (!is_proxy) delete[] data;
+            if (!is_proxy_) delete[] data;
             data = new_data;
         } else {
             if (size != old_size) {
-                if (!is_proxy) delete[] data;
+                if (!is_proxy_) delete[] data;
                 data = new T[size];
                 memset(data, 0, size * sizeof(T));
             } else {
@@ -1503,7 +1503,7 @@ public:
             }
         }
 
-        is_proxy = new_is_proxy;
+        is_proxy_ = new_is_proxy;
     }
 
     /**

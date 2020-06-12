@@ -22,7 +22,7 @@ protected:
     T *data = nullptr; ///< pointer to contiguous data
     size_t size = 0; ///< total array size
     string array_name = "Array"; ///<array name
-    bool is_proxy = false; ///< array is proxy (wrapper) and not owner of the memory
+    bool is_proxy_ = false; ///< array is proxy (wrapper) and not owner of the memory
 public:
 
     /**
@@ -41,11 +41,11 @@ public:
      * Copy constructor
      * @param other other ContiguousArrayND
      */
-    ContiguousArrayND(const ContiguousArrayND &other) : array_name(other.array_name), size(other.size), is_proxy(other.is_proxy) {
+    ContiguousArrayND(const ContiguousArrayND &other) : array_name(other.array_name), size(other.size), is_proxy_(other.is_proxy_) {
 #ifdef MULTIARRAY_LIFE_CYCLE
         cout<<array_name<<"::copy constructor"<<endl;
 #endif
-        if(!is_proxy) { //if not the proxy, then copy the values
+        if(!is_proxy_) { //if not the proxy, then copy the values
             if (size > 0) {
                 data = new T[size];
                 for (size_t ind = 0; ind < size; ind++)
@@ -69,8 +69,8 @@ public:
         if (this != &other) {
             array_name = other.array_name;
             size = other.size;
-            is_proxy = other.is_proxy;
-            if(!is_proxy) { //if not the proxy, then copy the values
+            is_proxy_ = other.is_proxy_;
+            if(!is_proxy_) { //if not the proxy, then copy the values
                 if (size > 0) {
 
                     if(data!=nullptr) delete[] data;
@@ -96,7 +96,7 @@ public:
 #ifdef MULTIARRAY_LIFE_CYCLE
         cout<<array_name<<"::~destructor"<<endl;
 #endif
-        if(! is_proxy) {
+        if(! is_proxy_) {
             delete[] data;
         }
         data = nullptr;
@@ -211,6 +211,10 @@ public:
         for (size_t i = 0; i < size; i++) {
             data[i] = vec[i];
         }
+    }
+
+    bool is_proxy(){
+        return is_proxy_;
     }
 
 };

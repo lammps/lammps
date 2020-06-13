@@ -24,27 +24,30 @@ Examples
 Description
 """""""""""
 
-Pair style *snap* computes interactions using the spectral
-neighbor analysis potential (SNAP) :ref:`(Thompson) <Thompson20142>`.
-Like the GAP framework of Bartok et al. :ref:`(Bartok2010) <Bartok20102>`,
-:ref:`(Bartok2013) <Bartok2013>` which uses bispectrum components
+Pair style *snap* defines the spectral
+neighbor analysis potential (SNAP), a machine-learning 
+interatomic potential :ref:`(Thompson) <Thompson20142>`.
+Like the GAP framework of Bartok et al. :ref:`(Bartok2010) <Bartok20102>`, 
+SNAP uses bispectrum components
 to characterize the local neighborhood of each atom
 in a very general way. The mathematical definition of the
-bispectrum calculation used by SNAP is identical
-to that used by :doc:`compute sna/atom <compute_sna_atom>`.
+bispectrum calculation and its derivatives w.r.t. atom positions
+is identical to that used by :doc:`compute snap <compute_sna_atom>`,
+which is used to fit SNAP potentials to *ab initio* energy, force,
+and stress data.
 In SNAP, the total energy is decomposed into a sum over
 atom energies. The energy of atom *i* is
 expressed as a weighted sum over bispectrum components.
 
 .. math::
 
-   E^i_{SNAP}(B_1^i,...,B_K^i) = \beta^{\alpha_i}_0 + \sum_{k=1}^K \beta_k^{\alpha_i} B_k^i
+   E^i_{SNAP}(B_1^i,...,B_K^i) = \beta^{\mu_i}_0 + \sum_{k=1}^K \beta_k^{\mu_i} B_k^i
 
 where :math:`B_k^i` is the *k*\ -th bispectrum component of atom *i*\ ,
-and :math:`\beta_k^{\alpha_i}` is the corresponding linear coefficient
-that depends on :math:\alpha_i`, the SNAP element of atom *i*\ . The
+and :math:`\beta_k^{\mu_i}` is the corresponding linear coefficient
+that depends on :math:`\mu_i`, the SNAP element of atom *i*\ . The
 number of bispectrum components used and their definitions
-depend on the value of *twojmax*
+depend on the value of *twojmax* and other parameters
 defined in the SNAP parameter file described below.
 The bispectrum calculation is described in more detail
 in :doc:`compute sna/atom <compute_sna_atom>`.
@@ -136,16 +139,50 @@ The SNAP parameter file can contain blank and comment lines (start
 with #) anywhere. Each non-blank non-comment line must contain one
 keyword/value pair. The required keywords are *rcutfac* and
 *twojmax*\ . Optional keywords are *rfac0*\ , *rmin0*\ ,
-*switchflag*\ , *bzeroflag*\, and *chunksize*\.
+*switchflag*\ , *bzeroflag*\ , *quadraticflag*\ , *chemflag*\ , 
+*bnormflag*\ , *wselfallflag*\ , and *chunksize*\ .
 
 The default values for these keywords are
 
 * *rfac0* = 0.99363
 * *rmin0* = 0.0
-* *switchflag* = 0
+* *switchflag* = 1
 * *bzeroflag* = 1
-* *quadraticflag* = 1
+* *quadraticflag* = 0
+* *chemflag* = 0
+* *bnormflag* = 0
+* *wselfallflag* = 0
 * *chunksize* = 2000
+
+If *quadraticflag* is set to 1, then the SNAP energy expression includes additional quadratic terms 
+that have been shown to increase the overall accuracy of the potential without much increase
+in computational cost :ref:`(Wood) <Wood20182>`. 
+
+.. math::
+
+   E^i_{SNAP}(\mathbf{B}^i) = \beta^{\mu_i}_0 + \boldsymbol{\beta}^{\mu_i} \cdot \mathbf{B}_i + \frac{1}{2}\mathbf{B}^t_i \cdot \boldsymbol{\alpha}^{\mu_i} \cdot \mathbf{B}_i
+
+where :math:`\mathbf{B}_i` is the *K*-vector of bispectrum components, 
+:math:`\boldsymbol{\beta}^{\mu_i}` is the *K*-vector of linear coefficients 
+for element :math:`\mu_i`, and :math:`\boldsymbol{\alpha}^{\mu_i}` 
+is the symmetric *K* by *K* matrix of quadratic coefficients.
+The SNAP element file should contain *K*\ (\ *K*\ +1)/2 additional coefficients
+for each element, the upper-triangular elements of :math:`\boldsymbol{\alpha}^{\mu_i}`.
+
+If *chemflag* is set to 1, then the energy expression is written in terms of explicit multi-element bispectrum
+components indexed on ordered triplets of elements, which has been shown to increase the ability of the SNAP
+potential to capture energy differences in chemically complex systems, 
+at the expense of a significant increase in computational cost :ref:`(Cusentino) <Cusentino20202>`.
+
+.. math::
+
+   E^i_{SNAP}(\mathbf{B}^i) = \beta^{\mu_i}_0 + \sum_{\kappa,\lambda,\mu} \boldsymbol{\beta}^{\kappa\lambda\mu}_{\mu_i} \cdot \mathbf{B}^{\kappa\lambda\mu}_i 
+
+where :math:`\mathbf{B}^{\kappa\lambda\mu}_i` is the *K*-vector of bispectrum components 
+for neighbors of elements :math:`\kappa`, :math:`\lambda`, and :math:`\mu` and 
+:math:`\boldsymbol{\beta}^{\kappa\lambda\mu}_{\mu_i}` is the corresponding *K*-vector 
+of linear coefficients for element :math:`\mu_i`. The SNAP element file should contain 
+a total of :math:`K N_{elem}^3` coefficients for each of the :math:`N_{elem}` elements.
 
 The keyword *chunksize* is only applicable when using the
 pair style *snap* with the KOKKOS package and is ignored otherwise.
@@ -158,10 +195,6 @@ into two passes.
 
 Detailed definitions for all the other keywords
 are given on the :doc:`compute sna/atom <compute_sna_atom>` doc page.
-
-If *quadraticflag* is set to 1, then the SNAP energy expression includes the quadratic term, 0.5\*B\^t.alpha.B, where alpha is a symmetric *K* by *K* matrix.
-The SNAP element file should contain *K*\ (\ *K*\ +1)/2 additional coefficients
-for each element, the upper-triangular elements of alpha.
 
 .. note::
 
@@ -221,7 +254,8 @@ Related commands
 
 :doc:`compute sna/atom <compute_sna_atom>`,
 :doc:`compute snad/atom <compute_sna_atom>`,
-:doc:`compute snav/atom <compute_sna_atom>`
+:doc:`compute snav/atom <compute_sna_atom>`,
+:doc:`compute snap <compute_sna_atom>`
 
 **Default:** none
 
@@ -235,6 +269,10 @@ Related commands
 
 **(Bartok2010)** Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).
 
-.. _Bartok2013:
+.. _Wood20182:
 
-**(Bartok2013)** Bartok, Gillan, Manby, Csanyi, Phys Rev B 87, 184115 (2013).
+**(Wood)** Wood and Thompson, J Chem Phys, 148, 241721, (2018)
+
+.. _Cusentino20202:
+
+**(Cusentino)** Cusentino, Wood, and Thompson, J Phys Chem A, xxx, xxxxx, (2020)

@@ -16,9 +16,19 @@ if (Python3_EXECUTABLE)
           WORKING_DIRECTORY  ${LAMMPS_DIR}
           COMMENT "Check for whitespace errors")
         add_custom_target(
+          check-permissions
+          ${Python3_EXECUTABLE} ${LAMMPS_TOOLS_DIR}/coding_standard/permissions.py .
+          WORKING_DIRECTORY  ${LAMMPS_DIR}
+          COMMENT "Check for permission errors")
+        add_custom_target(
           fix-whitespace
           ${Python3_EXECUTABLE} ${LAMMPS_TOOLS_DIR}/coding_standard/whitespace.py -f .
           WORKING_DIRECTORY  ${LAMMPS_DIR}
           COMMENT "Fix whitespace errors")
+        add_custom_target(
+          fix-permissions
+          ${Python3_EXECUTABLE} ${LAMMPS_TOOLS_DIR}/coding_standard/permission.py -f .
+          WORKING_DIRECTORY  ${LAMMPS_DIR}
+          COMMENT "Fix permission errors")
     endif()
 endif()

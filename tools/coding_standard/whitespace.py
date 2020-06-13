@@ -17,18 +17,19 @@ include:
     - doc/src/**
     - python
     - src/**
+    - tools/coding_standard
 patterns:
+    - "*.c"
+    - "*.cmake"
+    - "*.cpp"
+    - "*.h"
+    - "*.md"
+    - "*.py"
+    - "*.rst"
+    - "*.sh"
     - ".gitignore"
     - "README"
     - "requirements.txt"
-    - "*.c"
-    - "*.cpp"
-    - "*.h"
-    - "*.sh"
-    - "*.py"
-    - "*.md"
-    - "*.rst"
-    - "*.cmake"
 """
 
 def check_trailing_whitespace(f):

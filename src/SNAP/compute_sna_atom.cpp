@@ -117,7 +117,6 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
       nelements = force->inumeric(FLERR,arg[iarg+1]);
       for(int i = 0; i < ntypes; i++) {
         int jelem = force->inumeric(FLERR,arg[iarg+2+i]);
-        printf("%d %d %d %d\n",ntypes,nelements,i,jelem);
         if (jelem < 0 || jelem >= nelements)
           error->all(FLERR,"Illegal compute sna/atom command");
         map[i+1] = jelem;
@@ -128,7 +127,7 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute sna/atom command");
       bnormflag = atoi(arg[iarg+1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"wselfall") == 0) {
+    } else if (strcmp(arg[iarg],"wselfallflag") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute sna/atom command");
       wselfallflag = atoi(arg[iarg+1]);

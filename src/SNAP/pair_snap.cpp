@@ -652,7 +652,6 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   rmin0 = 0.0;
   switchflag = 1;
   bzeroflag = 1;
-  bnormflag = 0;
   quadraticflag = 0;
   chemflag = 0;
   bnormflag = 0;

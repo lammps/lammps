@@ -121,7 +121,6 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
       nelements = force->inumeric(FLERR,arg[iarg+1]);
       for(int i = 0; i < ntypes; i++) {
         int jelem = force->inumeric(FLERR,arg[iarg+2+i]);
-        if (screen && comm->me==0) fprintf(screen, "%d %d %d %d\n",ntypes,nelements,i,jelem);
         if (jelem < 0 || jelem >= nelements)
           error->all(FLERR,"Illegal compute snap command");
         map[i+1] = jelem;

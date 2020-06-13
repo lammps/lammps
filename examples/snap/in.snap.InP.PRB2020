@@ -25,7 +25,7 @@ mass 2 30.98
 
 # choose potential
 
-include InP_Cusentino_PRB2020.snap
+include InP_JCPA2020.snap
 
 # Setup output
 

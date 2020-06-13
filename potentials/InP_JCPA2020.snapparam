@@ -10,5 +10,6 @@
     bzeroflag 1
     quadraticflag 0
     wselfallflag 1
-    alloyflag 1
+    chemflag 1
+    bnormflag 1
     

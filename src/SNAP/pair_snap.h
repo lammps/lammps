@@ -59,7 +59,7 @@ protected:
   double** bispectrum;          // bispectrum components for all atoms in list
   int *map;                     // mapping from atom types to elements
   int twojmax, switchflag, bzeroflag, bnormflag;
-  int alloyflag, wselfallflag;
+  int chemflag, wselfallflag;
   int chunksize;
   double rfac0, rmin0, wj1, wj2;
   int rcutfacflag, twojmaxflag; // flags for required parameters

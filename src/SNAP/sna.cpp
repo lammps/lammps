@@ -109,7 +109,7 @@ using namespace MathConst;
 
 SNA::SNA(LAMMPS* lmp, double rfac0_in, int twojmax_in,
          double rmin0_in, int switch_flag_in, int bzero_flag_in,
-         int alloy_flag_in, int wselfall_flag_in, int nelements_in) : Pointers(lmp)
+         int chem_flag_in, int bnorm_flag_in, int wselfall_flag_in, int nelements_in) : Pointers(lmp)
 {
   wself = 1.0;
 
@@ -117,11 +117,15 @@ SNA::SNA(LAMMPS* lmp, double rfac0_in, int twojmax_in,
   rmin0 = rmin0_in;
   switch_flag = switch_flag_in;
   bzero_flag = bzero_flag_in;
-  bnorm_flag = alloy_flag_in;
-  alloy_flag = alloy_flag_in;
+  chem_flag = chem_flag_in;
+  bnorm_flag = bnorm_flag_in;
   wselfall_flag = wselfall_flag_in;
 
-  if (alloy_flag)
+  if (bnorm_flag != chem_flag)
+    lmp->error->warning(FLERR, "bnormflag and chemflag are not equal."
+                        "This is probably not what you intended");
+
+  if (chem_flag)
     nelements = nelements_in;
   else
     nelements = 1;
@@ -351,7 +355,7 @@ void SNA::compute_ui(int jnum, int ielem)
     z0 = r / tan(theta0);
 
     compute_uarray(x, y, z, z0, r, j);
-    if (alloy_flag)
+    if (chem_flag)
       add_uarraytot(r, wj[j], rcutij[j], j, element[j]);
     else
       add_uarraytot(r, wj[j], rcutij[j], j, 0);
@@ -1688,7 +1692,7 @@ void SNA::compute_ncoeff()
 
   ndoubles = nelements*nelements;
   ntriples = nelements*nelements*nelements;
-  if (alloy_flag)
+  if (chem_flag)
     ncoeff = ncount*ntriples;
   else
     ncoeff = ncount;

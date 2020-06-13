@@ -74,7 +74,8 @@ SNAP keyword rmin0 0.0
 SNAP keyword bzeroflag 1 
 SNAP keyword quadraticflag 0 
 SNAP keyword wselfallflag 1 
-SNAP keyword alloyflag 1 
+SNAP keyword chemflag 1 
+SNAP keyword bnormflag 1 
 
 # Setup output
 
@@ -123,20 +124,20 @@ Step Temp E_pair E_mol TotEng Press
       80    151.50217   -3.4614195            0   -3.4418745    3840.7205 
       90    177.67607    -3.464797            0   -3.4418754    3527.9794 
      100    195.30359   -3.4670717            0   -3.4418761    3300.3795 
-Loop time of 18.1983 on 1 procs for 100 steps with 512 atoms
+Loop time of 18.0803 on 1 procs for 100 steps with 512 atoms
 
-Performance: 0.237 ns/day, 101.102 hours/ns, 5.495 timesteps/s
+Performance: 0.239 ns/day, 100.446 hours/ns, 5.531 timesteps/s
 99.8% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 18.196     | 18.196     | 18.196     |   0.0 | 99.99
+Pair    | 18.078     | 18.078     | 18.078     |   0.0 | 99.99
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.00104    | 0.00104    | 0.00104    |   0.0 |  0.01
-Output  | 0.000262   | 0.000262   | 0.000262   |   0.0 |  0.00
-Modify  | 0.000576   | 0.000576   | 0.000576   |   0.0 |  0.00
-Other   |            | 0.000486   |            |       |  0.00
+Comm    | 0.000979   | 0.000979   | 0.000979   |   0.0 |  0.01
+Output  | 0.000243   | 0.000243   | 0.000243   |   0.0 |  0.00
+Modify  | 0.000591   | 0.000591   | 0.000591   |   0.0 |  0.00
+Other   |            | 0.000469   |            |       |  0.00
 
 Nlocal:    512 ave 512 max 512 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

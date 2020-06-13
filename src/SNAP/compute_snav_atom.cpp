@@ -33,7 +33,7 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
   radelem(NULL), wjelem(NULL)
 {
   double rfac0, rmin0;
-  int twojmax, switchflag, bzeroflag, bnormflag;
+  int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
   radelem = NULL;
   wjelem = NULL;
 
@@ -49,7 +49,8 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
   bzeroflag = 1;
   bnormflag = 0;
   quadraticflag = 0;
-  alloyflag = 0;
+  chemflag = 0;
+  bnormflag = 0;
   wselfallflag = 0;
   nelements = 1;
 
@@ -101,11 +102,10 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute snav/atom command");
       quadraticflag = atoi(arg[iarg+1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"alloy") == 0) {
+    } else if (strcmp(arg[iarg],"chem") == 0) {
       if (iarg+2+ntypes > narg)
         error->all(FLERR,"Illegal compute sna/atom command");
-      alloyflag = 1;
-      bnormflag = alloyflag;
+      chemflag = 1;
       memory->create(map,ntypes+1,"compute_sna_atom:map");
       nelements = force->inumeric(FLERR,arg[iarg+1]);
       for(int i = 0; i < ntypes; i++) {
@@ -126,7 +126,7 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
 
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
-                   alloyflag, wselfallflag, nelements);
+                   chemflag, bnormflag, wselfallflag, nelements);
 
   ncoeff = snaptr->ncoeff;
   nperdim = ncoeff;
@@ -236,7 +236,7 @@ void ComputeSNAVAtom::compute_peratom()
       const double ztmp = x[i][2];
       const int itype = type[i];
       int ielem = 0;
-      if (alloyflag)
+      if (chemflag)
         ielem = map[itype];
       const double radi = radelem[itype];
 
@@ -265,7 +265,7 @@ void ComputeSNAVAtom::compute_peratom()
         const double rsq = delx*delx + dely*dely + delz*delz;
         int jtype = type[j];
         int jelem = 0;
-        if (alloyflag)
+        if (chemflag)
           jelem = map[jtype];
         if (rsq < cutsq[itype][jtype]&&rsq>1e-20) {
           snaptr->rij[ninside][0] = delx;

@@ -33,7 +33,7 @@ struct SNA_BINDICES {
 class SNA : protected Pointers {
 
 public:
-  SNA(LAMMPS*, double, int, double, int, int, int, int, int);
+  SNA(LAMMPS*, double, int, double, int, int, int, int, int, int);
 
   SNA(LAMMPS* lmp) : Pointers(lmp) {};
   ~SNA();
@@ -129,7 +129,7 @@ private:
   int bzero_flag; // 1 if bzero subtracted from barray
   double* bzero;  // array of B values for isolated atoms
   int bnorm_flag; // 1 if barray divided by j+1
-  int alloy_flag; // 1 for multi-element bispectrum components
+  int chem_flag; // 1 for multi-element bispectrum components
   int wselfall_flag; // 1 for adding wself to all element labelings
   int nelements;  // number of elements
   int ndoubles;   // number of multi-element pairs

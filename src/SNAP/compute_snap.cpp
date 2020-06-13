@@ -41,7 +41,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   extarray = 0;
 
   double rfac0, rmin0;
-  int twojmax, switchflag, bzeroflag;
+  int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
   radelem = NULL;
   wjelem = NULL;
 
@@ -56,7 +56,8 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   switchflag = 1;
   bzeroflag = 1;
   quadraticflag = 0;
-  alloyflag = 0;
+  chemflag = 0;
+  bnormflag = 0;
   wselfallflag = 0;
   nelements = 1;
 
@@ -112,10 +113,10 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute snap command");
       quadraticflag = atoi(arg[iarg+1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"alloyflag") == 0) {
+    } else if (strcmp(arg[iarg],"chem") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute snap command");
-      alloyflag = 1;
+      chemflag = 1;
       memory->create(map,ntypes+1,"compute_snap:map");
       nelements = force->inumeric(FLERR,arg[iarg+1]);
       for(int i = 0; i < ntypes; i++) {
@@ -126,6 +127,11 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
         map[i+1] = jelem;
       }
       iarg += 2+ntypes;
+    } else if (strcmp(arg[iarg],"bnormflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute snap command");
+      bnormflag = atoi(arg[iarg+1]);
+      iarg += 2;
     } else if (strcmp(arg[iarg],"wselfallflag") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute snap command");
@@ -136,7 +142,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
 
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
-                   alloyflag, wselfallflag, nelements);
+                   chemflag, bnormflag, wselfallflag, nelements);
 
   ncoeff = snaptr->ncoeff;
   nperdim = ncoeff;
@@ -168,7 +174,7 @@ ComputeSnap::~ComputeSnap()
   memory->destroy(cutsq);
   delete snaptr;
 
-  if (alloyflag) memory->destroy(map);
+  if (chemflag) memory->destroy(map);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -300,7 +306,7 @@ void ComputeSnap::compute_array()
       const double ztmp = x[i][2];
       const int itype = type[i];
       int ielem = 0;
-      if (alloyflag)
+      if (chemflag)
         ielem = map[itype];
       const double radi = radelem[itype];
       const int* const jlist = firstneigh[i];
@@ -328,7 +334,7 @@ void ComputeSnap::compute_array()
         const double rsq = delx*delx + dely*dely + delz*delz;
         int jtype = type[j];
         int jelem = 0;
-        if (alloyflag)
+        if (chemflag)
           jelem = map[jtype];
         if (rsq < cutsq[itype][jtype]&&rsq>1e-20) {
           snaptr->rij[ninside][0] = delx;

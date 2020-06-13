@@ -15,6 +15,11 @@ else()
   target_link_libraries(style_tests PUBLIC mpi_stubs)
 endif()
 
+# unit test for error stats class
+add_executable(test_error_stats test_error_stats.cpp)
+target_link_libraries(test_error_stats PRIVATE GTest::GTestMain GTest::GTest)
+add_test(NAME ErrorStats COMMAND test_error_stats)
+
 # pair style tester
 add_executable(pair_style pair_style.cpp)
 target_link_libraries(pair_style PRIVATE lammps style_tests)

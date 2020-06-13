@@ -1,21 +1,24 @@
 if(CMAKE_VERSION VERSION_LESS 3.12)
-    find_package(PythonInterp) # Deprecated since version 3.12
+    find_package(PythonInterp 3.5 QUIET) # Deprecated since version 3.12
     if(PYTHONINTERP_FOUND)
-        set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
+        set(Python3_EXECUTABLE ${PYTHON_EXECUTABLE})
+        set(Python3_VERSION ${PYTHON_VERSION_STRING})
     endif()
 else()
-    find_package(Python COMPONENTS Interpreter)
+    find_package(Python3 COMPONENTS Interpreter QUIET)
 endif()
 
-if (Python_EXECUTABLE)
-    add_custom_target(
-      check-whitespace
-      ${Python_EXECUTABLE} ${LAMMPS_TOOLS_DIR}/coding_standard/whitespace.py .
-      WORKING_DIRECTORY  ${LAMMPS_DIR}
-      COMMENT "Check for whitespace errors")
-    add_custom_target(
-      fix-whitespace
-      ${Python_EXECUTABLE} ${LAMMPS_TOOLS_DIR}/coding_standard/whitespace.py -f .
-      WORKING_DIRECTORY  ${LAMMPS_DIR}
-      COMMENT "Fix whitespace errors")
+if (Python3_EXECUTABLE)
+    if(Python3_VERSION VERSION_GREATER_EQUAL 3.5)
+        add_custom_target(
+          check-whitespace
+          ${Python3_EXECUTABLE} ${LAMMPS_TOOLS_DIR}/coding_standard/whitespace.py .
+          WORKING_DIRECTORY  ${LAMMPS_DIR}
+          COMMENT "Check for whitespace errors")
+        add_custom_target(
+          fix-whitespace
+          ${Python3_EXECUTABLE} ${LAMMPS_TOOLS_DIR}/coding_standard/whitespace.py -f .
+          WORKING_DIRECTORY  ${LAMMPS_DIR}
+          COMMENT "Fix whitespace errors")
+    endif()
 endif()

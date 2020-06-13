@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #include "error_stats.h"
+#include "fmt/format.h"
 #include <cmath>
 #include <iostream>
 #include <string>
 
 void ErrorStats::reset()
 {
-    num = 0;
+    num    = 0;
     maxidx = -1;
     sum = sumsq = maxerr = 0.0;
 }
@@ -47,8 +48,8 @@ double ErrorStats::dev() const
 std::ostream &operator<<(std::ostream &out, const ErrorStats &stats)
 {
     const std::ios_base::fmtflags flags = out.flags();
-    const std::streamsize width = out.width(10);
-    const std::streamsize prec = out.precision(3);
+    const std::streamsize width         = out.width(10);
+    const std::streamsize prec          = out.precision(3);
 
     out << std::scientific << "Average: " << stats.avg() << " StdDev: " << stats.dev()
         << " MaxErr: " << stats.max();

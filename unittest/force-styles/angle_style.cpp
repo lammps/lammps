@@ -72,7 +72,7 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
 
     // check if prerequisite styles are available
     Info *info = new Info(lmp);
-    int nfail = 0;
+    int nfail  = 0;
     for (auto &prerequisite : cfg.prerequisites) {
         std::string style = prerequisite.second;
 
@@ -217,8 +217,9 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 {
     // initialize system geometry
     const char *args[] = {"AngleStyle", "-log", "none", "-echo", "screen", "-nocite"};
+
     char **argv = (char **)args;
-    int argc = sizeof(args) / sizeof(char *);
+    int argc    = sizeof(args) / sizeof(char *);
     LAMMPS *lmp = init_lammps(argc, argv, config);
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
@@ -229,7 +230,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         return;
     }
 
-    const int natoms = lmp->atom->natoms;
+    const int natoms  = lmp->atom->natoms;
     const int bufsize = 256;
     char buf[bufsize];
     std::string block("");
@@ -241,8 +242,8 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // date_generated
     std::time_t now = time(NULL);
-    block = ctime(&now);
-    block = block.substr(0, block.find("\n") - 1);
+    block           = ctime(&now);
+    block           = block.substr(0, block.find("\n") - 1);
     writer.emit("date_generated", block);
 
     // epsilon
@@ -312,7 +313,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // init_forces
     block.clear();
-    double **f = lmp->atom->f;
+    double **f  = lmp->atom->f;
     tagint *tag = lmp->atom->tag;
     for (int i = 0; i < natoms; ++i) {
         snprintf(buf, bufsize, "% 3d % 23.16e % 23.16e % 23.16e\n", (int)tag[i], f[i][0], f[i][1],
@@ -334,7 +335,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     writer.emit_block("run_stress", buf);
 
     block.clear();
-    f = lmp->atom->f;
+    f   = lmp->atom->f;
     tag = lmp->atom->tag;
     for (int i = 0; i < natoms; ++i) {
         snprintf(buf, bufsize, "% 3d % 23.16e % 23.16e % 23.16e\n", (int)tag[i], f[i][0], f[i][1],
@@ -350,11 +351,13 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 TEST(AngleStyle, plain)
 {
     const char *args[] = {"AngleStyle", "-log", "none", "-echo", "screen", "-nocite"};
+
     char **argv = (char **)args;
-    int argc = sizeof(args) / sizeof(char *);
+    int argc    = sizeof(args) / sizeof(char *);
 
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = init_lammps(argc, argv, test_config, true);
+
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -375,8 +378,8 @@ TEST(AngleStyle, plain)
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
     double epsilon = test_config.epsilon;
-    double **f = lmp->atom->f;
-    tagint *tag = lmp->atom->tag;
+    double **f     = lmp->atom->f;
+    tagint *tag    = lmp->atom->tag;
     ErrorStats stats;
     stats.reset();
     const std::vector<coord_t> &f_ref = test_config.init_forces;
@@ -388,7 +391,7 @@ TEST(AngleStyle, plain)
     }
     if (print_stats) std::cerr << "init_forces stats, newton on: " << stats << std::endl;
 
-    Angle *angle = lmp->force->angle;
+    Angle *angle   = lmp->force->angle;
     double *stress = angle->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
@@ -407,8 +410,8 @@ TEST(AngleStyle, plain)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f = lmp->atom->f;
-    stress = angle->virial;
+    f                                 = lmp->atom->f;
+    stress                            = angle->virial;
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal + 1, f_run.size());
     stats.reset();
@@ -430,7 +433,7 @@ TEST(AngleStyle, plain)
     if (print_stats) std::cerr << "run_stress  stats, newton on: " << stats << std::endl;
 
     stats.reset();
-    int id = lmp->modify->find_compute("sum");
+    int id        = lmp->modify->find_compute("sum");
     double energy = lmp->modify->compute[id]->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(angle->energy, test_config.run_energy, epsilon);
     EXPECT_FP_LE_WITH_EPS(angle->energy, energy, epsilon);
@@ -444,7 +447,7 @@ TEST(AngleStyle, plain)
     // skip over these tests if newton bond is forced to be on
     if (lmp->force->newton_bond == 0) {
 
-        f = lmp->atom->f;
+        f   = lmp->atom->f;
         tag = lmp->atom->tag;
         stats.reset();
         for (int i = 0; i < nlocal; ++i) {
@@ -454,7 +457,7 @@ TEST(AngleStyle, plain)
         }
         if (print_stats) std::cerr << "init_forces stats, newton off:" << stats << std::endl;
 
-        angle = lmp->force->angle;
+        angle  = lmp->force->angle;
         stress = angle->virial;
         stats.reset();
         EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 2 * epsilon);
@@ -473,7 +476,7 @@ TEST(AngleStyle, plain)
         run_lammps(lmp);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
-        f = lmp->atom->f;
+        f      = lmp->atom->f;
         stress = angle->virial;
         stats.reset();
         for (int i = 0; i < nlocal; ++i) {
@@ -494,7 +497,7 @@ TEST(AngleStyle, plain)
         if (print_stats) std::cerr << "run_stress  stats, newton off:" << stats << std::endl;
 
         stats.reset();
-        id = lmp->modify->find_compute("sum");
+        id     = lmp->modify->find_compute("sum");
         energy = lmp->modify->compute[id]->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(angle->energy, test_config.run_energy, epsilon);
         EXPECT_FP_LE_WITH_EPS(angle->energy, energy, epsilon);
@@ -505,7 +508,7 @@ TEST(AngleStyle, plain)
     restart_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f = lmp->atom->f;
+    f   = lmp->atom->f;
     tag = lmp->atom->tag;
     stats.reset();
     ASSERT_EQ(nlocal + 1, f_ref.size());
@@ -516,7 +519,7 @@ TEST(AngleStyle, plain)
     }
     if (print_stats) std::cerr << "restart_forces stats:" << stats << std::endl;
 
-    angle = lmp->force->angle;
+    angle  = lmp->force->angle;
     stress = angle->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
@@ -535,7 +538,7 @@ TEST(AngleStyle, plain)
     data_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f = lmp->atom->f;
+    f   = lmp->atom->f;
     tag = lmp->atom->tag;
     stats.reset();
     ASSERT_EQ(nlocal + 1, f_ref.size());
@@ -546,7 +549,7 @@ TEST(AngleStyle, plain)
     }
     if (print_stats) std::cerr << "data_forces stats:" << stats << std::endl;
 
-    angle = lmp->force->angle;
+    angle  = lmp->force->angle;
     stress = angle->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
@@ -571,11 +574,13 @@ TEST(AngleStyle, omp)
     if (!LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
     const char *args[] = {"AngleStyle", "-log", "none", "-echo", "screen", "-nocite",
                           "-pk",        "omp",  "4",    "-sf",   "omp"};
+
     char **argv = (char **)args;
-    int argc = sizeof(args) / sizeof(char *);
+    int argc    = sizeof(args) / sizeof(char *);
 
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = init_lammps(argc, argv, test_config, true);
+
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -596,9 +601,9 @@ TEST(AngleStyle, omp)
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
     // relax error a bit for USER-OMP package
-    double epsilon = 5.0 * test_config.epsilon;
-    double **f = lmp->atom->f;
-    tagint *tag = lmp->atom->tag;
+    double epsilon                    = 5.0 * test_config.epsilon;
+    double **f                        = lmp->atom->f;
+    tagint *tag                       = lmp->atom->tag;
     const std::vector<coord_t> &f_ref = test_config.init_forces;
     ErrorStats stats;
     stats.reset();
@@ -609,7 +614,7 @@ TEST(AngleStyle, omp)
     }
     if (print_stats) std::cerr << "init_forces stats, newton on: " << stats << std::endl;
 
-    Angle *angle = lmp->force->angle;
+    Angle *angle   = lmp->force->angle;
     double *stress = angle->virial;
 
     stats.reset();
@@ -629,8 +634,8 @@ TEST(AngleStyle, omp)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f = lmp->atom->f;
-    stress = angle->virial;
+    f                                 = lmp->atom->f;
+    stress                            = angle->virial;
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal + 1, f_run.size());
     stats.reset();
@@ -652,7 +657,7 @@ TEST(AngleStyle, omp)
     if (print_stats) std::cerr << "run_stress  stats, newton on: " << stats << std::endl;
 
     stats.reset();
-    int id = lmp->modify->find_compute("sum");
+    int id        = lmp->modify->find_compute("sum");
     double energy = lmp->modify->compute[id]->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(angle->energy, test_config.run_energy, epsilon);
     // TODO: this is currently broken for USER-OMP with angle style hybrid
@@ -669,7 +674,7 @@ TEST(AngleStyle, omp)
     // skip over these tests if newton bond is forced to be on
     if (lmp->force->newton_bond == 0) {
 
-        f = lmp->atom->f;
+        f   = lmp->atom->f;
         tag = lmp->atom->tag;
         stats.reset();
         for (int i = 0; i < nlocal; ++i) {
@@ -679,7 +684,7 @@ TEST(AngleStyle, omp)
         }
         if (print_stats) std::cerr << "init_forces stats, newton off:" << stats << std::endl;
 
-        angle = lmp->force->angle;
+        angle  = lmp->force->angle;
         stress = angle->virial;
         stats.reset();
         EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
@@ -718,7 +723,7 @@ TEST(AngleStyle, omp)
         if (print_stats) std::cerr << "run_stress  stats, newton off:" << stats << std::endl;
 
         stats.reset();
-        id = lmp->modify->find_compute("sum");
+        id     = lmp->modify->find_compute("sum");
         energy = lmp->modify->compute[id]->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(angle->energy, test_config.run_energy, epsilon);
         // TODO: this is currently broken for USER-OMP with angle style hybrid
@@ -736,8 +741,9 @@ TEST(AngleStyle, omp)
 TEST(AngleStyle, single)
 {
     const char *args[] = {"AngleStyle", "-log", "none", "-echo", "screen", "-nocite"};
+
     char **argv = (char **)args;
-    int argc = sizeof(args) / sizeof(char *);
+    int argc    = sizeof(args) / sizeof(char *);
 
     // create a LAMMPS instance with standard settings to detect the number of atom types
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -755,7 +761,7 @@ TEST(AngleStyle, single)
 
     // gather some information and skip if unsupported
     int nangletypes = lmp->atom->nangletypes;
-    int molecular = lmp->atom->molecular;
+    int molecular   = lmp->atom->molecular;
     if (molecular != 1) {
         std::cerr << "Only simple molecular atom styles are supported\n";
         if (!verbose) ::testing::internal::CaptureStdout();
@@ -824,13 +830,13 @@ TEST(AngleStyle, single)
     command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    int idx1 = lmp->atom->map(1);
-    int idx2 = lmp->atom->map(2);
-    int idx3 = lmp->atom->map(3);
+    int idx1       = lmp->atom->map(1);
+    int idx2       = lmp->atom->map(2);
+    int idx3       = lmp->atom->map(3);
     double epsilon = test_config.epsilon;
     double eangle[4], esingle[4];
 
-    eangle[0] = angle->energy;
+    eangle[0]  = angle->energy;
     esingle[0] = angle->single(1, idx1, idx2, idx3);
 
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -838,10 +844,10 @@ TEST(AngleStyle, single)
     command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    idx1 = lmp->atom->map(1);
-    idx2 = lmp->atom->map(2);
-    idx3 = lmp->atom->map(3);
-    eangle[1] = angle->energy;
+    idx1       = lmp->atom->map(1);
+    idx2       = lmp->atom->map(2);
+    idx3       = lmp->atom->map(3);
+    eangle[1]  = angle->energy;
     esingle[1] = angle->single(1, idx1, idx2, idx3);
 
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -849,10 +855,10 @@ TEST(AngleStyle, single)
     command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    idx1 = lmp->atom->map(1);
-    idx2 = lmp->atom->map(2);
-    idx3 = lmp->atom->map(3);
-    eangle[2] = angle->energy;
+    idx1       = lmp->atom->map(1);
+    idx2       = lmp->atom->map(2);
+    idx3       = lmp->atom->map(3);
+    eangle[2]  = angle->energy;
     esingle[2] = angle->single(1, idx1, idx2, idx3);
 
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -860,10 +866,10 @@ TEST(AngleStyle, single)
     command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    idx1 = lmp->atom->map(1);
-    idx2 = lmp->atom->map(2);
-    idx3 = lmp->atom->map(3);
-    eangle[3] = angle->energy;
+    idx1       = lmp->atom->map(1);
+    idx2       = lmp->atom->map(2);
+    idx3       = lmp->atom->map(3);
+    eangle[3]  = angle->energy;
     esingle[3] = angle->single(1, idx1, idx2, idx3);
 
     ErrorStats stats;

@@ -32,33 +32,33 @@ protected:
         const char *args[] = {
             "PotentialFileReaderTest", "-log", "none", "-echo", "screen", "-nocite"};
         char **argv = (char **)args;
-        int argc = sizeof(args) / sizeof(char *);
+        int argc    = sizeof(args) / sizeof(char *);
         ::testing::internal::CaptureStdout();
         lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
         ::testing::internal::GetCapturedStdout();
 
-        int npair = nelements * (nelements + 1) / 2;
-        setfl.ielement = new int[nelements];
-        setfl.mass = new double[nelements];
+        int npair        = nelements * (nelements + 1) / 2;
+        setfl.ielement   = new int[nelements];
+        setfl.mass       = new double[nelements];
         setfl.negativity = new double[nelements];
-        setfl.ra = new double[nelements];
-        setfl.ri = new double[nelements];
-        setfl.Ec = new double[nelements];
-        setfl.q0 = new double[nelements];
-        setfl.rcutphiA = new double[npair];
-        setfl.rcutphiR = new double[npair];
-        setfl.Eb = new double[npair];
-        setfl.r0 = new double[npair];
-        setfl.alpha = new double[npair];
-        setfl.beta = new double[npair];
-        setfl.rcutq = new double[npair];
-        setfl.Asigma = new double[npair];
-        setfl.rq = new double[npair];
-        setfl.rcutsigma = new double[npair];
-        setfl.Ac = new double[npair];
-        setfl.zeta = new double[npair];
-        setfl.rs = new double[npair];
-        setfl.tp = new int[npair];
+        setfl.ra         = new double[nelements];
+        setfl.ri         = new double[nelements];
+        setfl.Ec         = new double[nelements];
+        setfl.q0         = new double[nelements];
+        setfl.rcutphiA   = new double[npair];
+        setfl.rcutphiR   = new double[npair];
+        setfl.Eb         = new double[npair];
+        setfl.r0         = new double[npair];
+        setfl.alpha      = new double[npair];
+        setfl.beta       = new double[npair];
+        setfl.rcutq      = new double[npair];
+        setfl.Asigma     = new double[npair];
+        setfl.rq         = new double[npair];
+        setfl.rcutsigma  = new double[npair];
+        setfl.Ac         = new double[npair];
+        setfl.zeta       = new double[npair];
+        setfl.rs         = new double[npair];
+        setfl.tp         = new int[npair];
     }
 
     void TearDown() override

@@ -26,21 +26,21 @@ using ::testing::Eq;
 TEST(FmtLib, insert_string)
 {
     const char val[] = "word";
-    auto text = fmt::format("word {}", val);
+    auto text        = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word word"));
 }
 
 TEST(FmtLib, insert_int)
 {
     const int val = 333;
-    auto text = fmt::format("word {}", val);
+    auto text     = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word 333"));
 }
 
 TEST(FmtLib, insert_neg_int)
 {
     const int val = -333;
-    auto text = fmt::format("word {}", val);
+    auto text     = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word -333"));
 }
 
@@ -48,7 +48,7 @@ TEST(FmtLib, insert_bigint)
 {
 #if defined(LAMMPS_BIGBIG) || defined(LAMMPS_SMALLBIG)
     const bigint val = 9945234592L;
-    auto text = fmt::format("word {}", val);
+    auto text        = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word 9945234592"));
 #else
     GTEST_SKIP();
@@ -59,7 +59,7 @@ TEST(FmtLib, insert_neg_bigint)
 {
 #if defined(LAMMPS_BIGBIG) || defined(LAMMPS_SMALLBIG)
     const bigint val = -9945234592L;
-    auto text = fmt::format("word {}", val);
+    auto text        = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word -9945234592"));
 #else
     GTEST_SKIP();
@@ -70,7 +70,7 @@ TEST(FmtLib, insert_tagint)
 {
 #if defined(LAMMPS_BIGBIG)
     const tagint val = 9945234592L;
-    auto text = fmt::format("word {}", val);
+    auto text        = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word 9945234592"));
 #else
     GTEST_SKIP();
@@ -81,7 +81,7 @@ TEST(FmtLib, insert_neg_tagint)
 {
 #if defined(LAMMPS_BIGBIG)
     const tagint val = -9945234592L;
-    auto text = fmt::format("word {}", val);
+    auto text        = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word -9945234592"));
 #else
     GTEST_SKIP();
@@ -92,7 +92,7 @@ TEST(FmtLib, insert_imageint)
 {
 #if defined(LAMMPS_BIGBIG)
     const imageint val = 9945234592L;
-    auto text = fmt::format("word {}", val);
+    auto text          = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word 9945234592"));
 #else
     GTEST_SKIP();
@@ -103,7 +103,7 @@ TEST(FmtLib, insert_neg_imageint)
 {
 #if defined(LAMMPS_BIGBIG)
     const imageint val = -9945234592L;
-    auto text = fmt::format("word {}", val);
+    auto text          = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word -9945234592"));
 #else
     GTEST_SKIP();
@@ -113,14 +113,14 @@ TEST(FmtLib, insert_neg_imageint)
 TEST(FmtLib, insert_double)
 {
     const double val = 1.5;
-    auto text = fmt::format("word {}", val);
+    auto text        = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word 1.5"));
 }
 
 TEST(FmtLib, insert_neg_double)
 {
     const double val = -1.5;
-    auto text = fmt::format("word {}", val);
+    auto text        = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word -1.5"));
 }
 

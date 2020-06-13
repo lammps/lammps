@@ -54,7 +54,7 @@ protected:
         const char *args[] = {
             "PotentialFileReaderTest", "-log", "none", "-echo", "screen", "-nocite"};
         char **argv = (char **)args;
-        int argc = sizeof(args) / sizeof(char *);
+        int argc    = sizeof(args) / sizeof(char *);
         ::testing::internal::CaptureStdout();
         lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
         ::testing::internal::GetCapturedStdout();

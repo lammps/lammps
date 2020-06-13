@@ -48,7 +48,7 @@ public:
 
     int parse_file(const std::string &infile)
     {
-        basename = infile;
+        basename          = infile;
         std::size_t found = basename.rfind(".yaml");
         if (found > 0) basename = basename.substr(0, found);
         found = basename.find_last_of("/\\");
@@ -92,7 +92,7 @@ public:
 protected:
     bool consume_key_value(const std::string &key, const yaml_event_t &event)
     {
-        auto it = consumers.find(key);
+        auto it                 = consumers.find(key);
         ConsumerClass *consumer = dynamic_cast<ConsumerClass *>(this);
 
         if (consumer) {
@@ -139,7 +139,7 @@ protected:
             case ACCEPT_KEY:
                 switch (event.type) {
                     case YAML_SCALAR_EVENT:
-                        key = (char *)event.data.scalar.value;
+                        key   = (char *)event.data.scalar.value;
                         state = ACCEPT_VALUE;
                         break;
                     case YAML_MAPPING_END_EVENT:
@@ -157,7 +157,7 @@ protected:
                 switch (event.type) {
                     case YAML_SCALAR_EVENT:
                         accepted = true;
-                        state = ACCEPT_KEY;
+                        state    = ACCEPT_KEY;
                         break;
                     default:
                         std::cerr << "UNHANDLED YAML EVENT (value): " << event.type

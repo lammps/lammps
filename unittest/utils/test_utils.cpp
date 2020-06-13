@@ -280,7 +280,7 @@ TEST(Utils, path_basename)
 TEST(Utils, getsyserror)
 {
 #if defined(__linux__)
-    errno = ENOENT;
+    errno               = ENOENT;
     std::string errmesg = utils::getsyserror();
     ASSERT_THAT(errmesg, Eq("No such file or directory"));
 #else

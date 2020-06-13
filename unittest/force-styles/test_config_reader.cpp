@@ -29,31 +29,31 @@ TestConfigReader::TestConfigReader(TestConfig &config) : YamlReader(), config(co
 {
     consumers["lammps_version"] = &TestConfigReader::lammps_version;
     consumers["date_generated"] = &TestConfigReader::date_generated;
-    consumers["epsilon"] = &TestConfigReader::epsilon;
-    consumers["prerequisites"] = &TestConfigReader::prerequisites;
-    consumers["pre_commands"] = &TestConfigReader::pre_commands;
-    consumers["post_commands"] = &TestConfigReader::post_commands;
-    consumers["input_file"] = &TestConfigReader::input_file;
-    consumers["extract"] = &TestConfigReader::extract;
-    consumers["natoms"] = &TestConfigReader::natoms;
-    consumers["init_stress"] = &TestConfigReader::init_stress;
-    consumers["run_stress"] = &TestConfigReader::run_stress;
-    consumers["init_forces"] = &TestConfigReader::init_forces;
-    consumers["run_forces"] = &TestConfigReader::run_forces;
+    consumers["epsilon"]        = &TestConfigReader::epsilon;
+    consumers["prerequisites"]  = &TestConfigReader::prerequisites;
+    consumers["pre_commands"]   = &TestConfigReader::pre_commands;
+    consumers["post_commands"]  = &TestConfigReader::post_commands;
+    consumers["input_file"]     = &TestConfigReader::input_file;
+    consumers["extract"]        = &TestConfigReader::extract;
+    consumers["natoms"]         = &TestConfigReader::natoms;
+    consumers["init_stress"]    = &TestConfigReader::init_stress;
+    consumers["run_stress"]     = &TestConfigReader::run_stress;
+    consumers["init_forces"]    = &TestConfigReader::init_forces;
+    consumers["run_forces"]     = &TestConfigReader::run_forces;
 
     consumers["pair_style"] = &TestConfigReader::pair_style;
     consumers["pair_coeff"] = &TestConfigReader::pair_coeff;
-    consumers["init_vdwl"] = &TestConfigReader::init_vdwl;
-    consumers["init_coul"] = &TestConfigReader::init_coul;
-    consumers["run_vdwl"] = &TestConfigReader::run_vdwl;
-    consumers["run_coul"] = &TestConfigReader::run_coul;
+    consumers["init_vdwl"]  = &TestConfigReader::init_vdwl;
+    consumers["init_coul"]  = &TestConfigReader::init_coul;
+    consumers["run_vdwl"]   = &TestConfigReader::run_vdwl;
+    consumers["run_coul"]   = &TestConfigReader::run_coul;
 
-    consumers["bond_style"] = &TestConfigReader::bond_style;
-    consumers["bond_coeff"] = &TestConfigReader::bond_coeff;
+    consumers["bond_style"]  = &TestConfigReader::bond_style;
+    consumers["bond_coeff"]  = &TestConfigReader::bond_coeff;
     consumers["angle_style"] = &TestConfigReader::angle_style;
     consumers["angle_coeff"] = &TestConfigReader::angle_coeff;
     consumers["init_energy"] = &TestConfigReader::init_energy;
-    consumers["run_energy"] = &TestConfigReader::run_energy;
+    consumers["run_energy"]  = &TestConfigReader::run_energy;
     consumers["equilibrium"] = &TestConfigReader::equilibrium;
 }
 

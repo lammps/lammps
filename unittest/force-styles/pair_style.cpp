@@ -72,7 +72,7 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
 
     // check if prerequisite styles are available
     Info *info = new Info(lmp);
-    int nfail = 0;
+    int nfail  = 0;
     for (auto &prerequisite : cfg.prerequisites) {
         std::string style = prerequisite.second;
 
@@ -216,8 +216,9 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 {
     // initialize system geometry
     const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite"};
+
     char **argv = (char **)args;
-    int argc = sizeof(args) / sizeof(char *);
+    int argc    = sizeof(args) / sizeof(char *);
     LAMMPS *lmp = init_lammps(argc, argv, config);
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
@@ -228,7 +229,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         return;
     }
 
-    const int natoms = lmp->atom->natoms;
+    const int natoms  = lmp->atom->natoms;
     const int bufsize = 256;
     char buf[bufsize];
     std::string block("");
@@ -240,8 +241,8 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // date_generated
     std::time_t now = time(NULL);
-    block = ctime(&now);
-    block = block.substr(0, block.find("\n") - 1);
+    block           = ctime(&now);
+    block           = block.substr(0, block.find("\n") - 1);
     writer.emit("date_generated", block);
 
     // epsilon
@@ -306,7 +307,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // init_forces
     block.clear();
-    double **f = lmp->atom->f;
+    double **f  = lmp->atom->f;
     tagint *tag = lmp->atom->tag;
     for (int i = 0; i < natoms; ++i) {
         snprintf(buf, bufsize, "% 3d % 23.16e % 23.16e % 23.16e\n", (int)tag[i], f[i][0], f[i][1],
@@ -331,7 +332,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     writer.emit_block("run_stress", buf);
 
     block.clear();
-    f = lmp->atom->f;
+    f   = lmp->atom->f;
     tag = lmp->atom->tag;
     for (int i = 0; i < natoms; ++i) {
         snprintf(buf, bufsize, "% 3d % 23.16e % 23.16e % 23.16e\n", (int)tag[i], f[i][0], f[i][1],
@@ -347,11 +348,13 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 TEST(PairStyle, plain)
 {
     const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite"};
+
     char **argv = (char **)args;
-    int argc = sizeof(args) / sizeof(char *);
+    int argc    = sizeof(args) / sizeof(char *);
 
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = init_lammps(argc, argv, test_config, true);
+
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -372,8 +375,8 @@ TEST(PairStyle, plain)
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
     double epsilon = test_config.epsilon;
-    double **f = lmp->atom->f;
-    tagint *tag = lmp->atom->tag;
+    double **f     = lmp->atom->f;
+    tagint *tag    = lmp->atom->tag;
     ErrorStats stats;
     stats.reset();
     const std::vector<coord_t> &f_ref = test_config.init_forces;
@@ -385,7 +388,7 @@ TEST(PairStyle, plain)
     }
     if (print_stats) std::cerr << "init_forces stats, newton on: " << stats << std::endl;
 
-    Pair *pair = lmp->force->pair;
+    Pair *pair     = lmp->force->pair;
     double *stress = pair->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
@@ -405,8 +408,8 @@ TEST(PairStyle, plain)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f = lmp->atom->f;
-    stress = pair->virial;
+    f                                 = lmp->atom->f;
+    stress                            = pair->virial;
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal + 1, f_run.size());
     stats.reset();
@@ -428,7 +431,7 @@ TEST(PairStyle, plain)
     if (print_stats) std::cerr << "run_stress  stats, newton on: " << stats << std::endl;
 
     stats.reset();
-    int id = lmp->modify->find_compute("sum");
+    int id        = lmp->modify->find_compute("sum");
     double energy = lmp->modify->compute[id]->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
     EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
@@ -443,7 +446,7 @@ TEST(PairStyle, plain)
     // skip over these tests if newton pair is forced to be on
     if (lmp->force->newton_pair == 0) {
 
-        f = lmp->atom->f;
+        f   = lmp->atom->f;
         tag = lmp->atom->tag;
         stats.reset();
         for (int i = 0; i < nlocal; ++i) {
@@ -453,7 +456,7 @@ TEST(PairStyle, plain)
         }
         if (print_stats) std::cerr << "init_forces stats, newton off:" << stats << std::endl;
 
-        pair = lmp->force->pair;
+        pair   = lmp->force->pair;
         stress = pair->virial;
         stats.reset();
         EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 3 * epsilon);
@@ -473,7 +476,7 @@ TEST(PairStyle, plain)
         run_lammps(lmp);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
-        f = lmp->atom->f;
+        f      = lmp->atom->f;
         stress = pair->virial;
         stats.reset();
         for (int i = 0; i < nlocal; ++i) {
@@ -494,7 +497,7 @@ TEST(PairStyle, plain)
         if (print_stats) std::cerr << "run_stress  stats, newton off:" << stats << std::endl;
 
         stats.reset();
-        id = lmp->modify->find_compute("sum");
+        id     = lmp->modify->find_compute("sum");
         energy = lmp->modify->compute[id]->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
         EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
@@ -506,7 +509,7 @@ TEST(PairStyle, plain)
     restart_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f = lmp->atom->f;
+    f   = lmp->atom->f;
     tag = lmp->atom->tag;
     stats.reset();
     ASSERT_EQ(nlocal + 1, f_ref.size());
@@ -517,7 +520,7 @@ TEST(PairStyle, plain)
     }
     if (print_stats) std::cerr << "restart_forces stats:" << stats << std::endl;
 
-    pair = lmp->force->pair;
+    pair   = lmp->force->pair;
     stress = pair->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
@@ -537,7 +540,7 @@ TEST(PairStyle, plain)
     data_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f = lmp->atom->f;
+    f   = lmp->atom->f;
     tag = lmp->atom->tag;
     stats.reset();
     ASSERT_EQ(nlocal + 1, f_ref.size());
@@ -548,7 +551,7 @@ TEST(PairStyle, plain)
     }
     if (print_stats) std::cerr << "data_forces stats:" << stats << std::endl;
 
-    pair = lmp->force->pair;
+    pair   = lmp->force->pair;
     stress = pair->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
@@ -577,8 +580,8 @@ TEST(PairStyle, plain)
         // and compute_middle() so we get a significant deviation.
         if (pair->ncoultablebits) epsilon *= 1.0e6;
 
-        f = lmp->atom->f;
-        tag = lmp->atom->tag;
+        f    = lmp->atom->f;
+        tag  = lmp->atom->tag;
         pair = lmp->force->pair;
         stats.reset();
         for (int i = 0; i < nlocal; ++i) {
@@ -599,7 +602,7 @@ TEST(PairStyle, plain)
         if (print_stats) std::cerr << "run_stress  stats, r-RESPA:" << stats << std::endl;
 
         stats.reset();
-        id = lmp->modify->find_compute("sum");
+        id     = lmp->modify->find_compute("sum");
         energy = lmp->modify->compute[id]->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
         EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
@@ -616,11 +619,13 @@ TEST(PairStyle, omp)
     if (!LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
     const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
                           "-pk",       "omp",  "4",    "-sf",   "omp"};
+
     char **argv = (char **)args;
-    int argc = sizeof(args) / sizeof(char *);
+    int argc    = sizeof(args) / sizeof(char *);
 
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = init_lammps(argc, argv, test_config, true);
+
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -641,9 +646,9 @@ TEST(PairStyle, omp)
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
     // relax error a bit for USER-OMP package
-    double epsilon = 5.0 * test_config.epsilon;
-    double **f = lmp->atom->f;
-    tagint *tag = lmp->atom->tag;
+    double epsilon                    = 5.0 * test_config.epsilon;
+    double **f                        = lmp->atom->f;
+    tagint *tag                       = lmp->atom->tag;
     const std::vector<coord_t> &f_ref = test_config.init_forces;
     ErrorStats stats;
     stats.reset();
@@ -654,7 +659,7 @@ TEST(PairStyle, omp)
     }
     if (print_stats) std::cerr << "init_forces stats, newton on: " << stats << std::endl;
 
-    Pair *pair = lmp->force->pair;
+    Pair *pair     = lmp->force->pair;
     double *stress = pair->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
@@ -674,8 +679,8 @@ TEST(PairStyle, omp)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f = lmp->atom->f;
-    stress = pair->virial;
+    f                                 = lmp->atom->f;
+    stress                            = pair->virial;
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal + 1, f_run.size());
     stats.reset();
@@ -697,7 +702,7 @@ TEST(PairStyle, omp)
     if (print_stats) std::cerr << "run_stress  stats, newton on: " << stats << std::endl;
 
     stats.reset();
-    int id = lmp->modify->find_compute("sum");
+    int id        = lmp->modify->find_compute("sum");
     double energy = lmp->modify->compute[id]->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
     EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
@@ -712,7 +717,7 @@ TEST(PairStyle, omp)
     // skip over these tests if newton pair is forced to be on
     if (lmp->force->newton_pair == 0) {
 
-        f = lmp->atom->f;
+        f   = lmp->atom->f;
         tag = lmp->atom->tag;
         stats.reset();
         for (int i = 0; i < nlocal; ++i) {
@@ -722,7 +727,7 @@ TEST(PairStyle, omp)
         }
         if (print_stats) std::cerr << "init_forces stats, newton off:" << stats << std::endl;
 
-        pair = lmp->force->pair;
+        pair   = lmp->force->pair;
         stress = pair->virial;
         stats.reset();
         EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
@@ -762,7 +767,7 @@ TEST(PairStyle, omp)
         if (print_stats) std::cerr << "run_stress  stats, newton off:" << stats << std::endl;
 
         stats.reset();
-        id = lmp->modify->find_compute("sum");
+        id     = lmp->modify->find_compute("sum");
         energy = lmp->modify->compute[id]->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
         EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
@@ -780,11 +785,13 @@ TEST(PairStyle, intel)
     const char *args[] = {"PairStyle", "-log",  "none", "-echo", "screen", "-nocite",
                           "-pk",       "intel", "0",    "mode",  "double", "omp",
                           "4",         "lrt",   "no",   "-sf",   "intel"};
+
     char **argv = (char **)args;
-    int argc = sizeof(args) / sizeof(char *);
+    int argc    = sizeof(args) / sizeof(char *);
 
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = init_lammps(argc, argv, test_config);
+
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -823,8 +830,8 @@ TEST(PairStyle, intel)
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
-    double **f = lmp->atom->f;
-    tagint *tag = lmp->atom->tag;
+    double **f                        = lmp->atom->f;
+    tagint *tag                       = lmp->atom->tag;
     const std::vector<coord_t> &f_ref = test_config.init_forces;
     ErrorStats stats;
     stats.reset();
@@ -835,7 +842,7 @@ TEST(PairStyle, intel)
     }
     if (print_stats) std::cerr << "init_forces stats:" << stats << std::endl;
 
-    Pair *pair = lmp->force->pair;
+    Pair *pair     = lmp->force->pair;
     double *stress = pair->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
@@ -855,8 +862,8 @@ TEST(PairStyle, intel)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f = lmp->atom->f;
-    stress = pair->virial;
+    f                                 = lmp->atom->f;
+    stress                            = pair->virial;
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal + 1, f_run.size());
     stats.reset();
@@ -878,7 +885,7 @@ TEST(PairStyle, intel)
     if (print_stats) std::cerr << "run_stress  stats:" << stats << std::endl;
 
     stats.reset();
-    int id = lmp->modify->find_compute("sum");
+    int id        = lmp->modify->find_compute("sum");
     double energy = lmp->modify->compute[id]->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
     EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
@@ -898,13 +905,15 @@ TEST(PairStyle, opt)
 {
     if (!LAMMPS::is_installed_pkg("OPT")) GTEST_SKIP();
     const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite", "-sf", "opt"};
+
     char **argv = (char **)args;
-    int argc = sizeof(args) / sizeof(char *);
+    int argc    = sizeof(args) / sizeof(char *);
 
     if (!verbose) ::testing::internal::CaptureStdout();
     LAMMPS *lmp = init_lammps(argc, argv, test_config);
-    std::string output;
-    if (!verbose) output = ::testing::internal::GetCapturedStdout();
+
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
 
     if (!lmp) {
         std::cerr << "One or more prerequisite styles with /opt suffix\n"
@@ -923,9 +932,9 @@ TEST(PairStyle, opt)
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
     // relax error a bit for OPT package
-    double epsilon = 2.0 * test_config.epsilon;
-    double **f = lmp->atom->f;
-    tagint *tag = lmp->atom->tag;
+    double epsilon                    = 2.0 * test_config.epsilon;
+    double **f                        = lmp->atom->f;
+    tagint *tag                       = lmp->atom->tag;
     const std::vector<coord_t> &f_ref = test_config.init_forces;
     ErrorStats stats;
     stats.reset();
@@ -936,7 +945,7 @@ TEST(PairStyle, opt)
     }
     if (print_stats) std::cerr << "init_forces stats:" << stats << std::endl;
 
-    Pair *pair = lmp->force->pair;
+    Pair *pair     = lmp->force->pair;
     double *stress = pair->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
@@ -956,8 +965,8 @@ TEST(PairStyle, opt)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f = lmp->atom->f;
-    stress = pair->virial;
+    f                                 = lmp->atom->f;
+    stress                            = pair->virial;
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal + 1, f_run.size());
     stats.reset();
@@ -979,7 +988,7 @@ TEST(PairStyle, opt)
     if (print_stats) std::cerr << "run_stress  stats:" << stats << std::endl;
 
     stats.reset();
-    int id = lmp->modify->find_compute("sum");
+    int id        = lmp->modify->find_compute("sum");
     double energy = lmp->modify->compute[id]->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
     EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
@@ -994,8 +1003,9 @@ TEST(PairStyle, opt)
 TEST(PairStyle, single)
 {
     const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite"};
+
     char **argv = (char **)args;
-    int argc = sizeof(args) / sizeof(char *);
+    int argc    = sizeof(args) / sizeof(char *);
 
     // create a LAMMPS instance with standard settings to detect the number of atom types
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -1012,7 +1022,7 @@ TEST(PairStyle, single)
     }
 
     // gather some information and skip if unsupported
-    int ntypes = lmp->atom->ntypes;
+    int ntypes    = lmp->atom->ntypes;
     int molecular = lmp->atom->molecular;
     if (molecular > 1) {
         std::cerr << "Only atomic and simple molecular atom styles are supported\n";
@@ -1115,15 +1125,15 @@ TEST(PairStyle, single)
     command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    int idx1 = lmp->atom->map(1);
-    int idx2 = lmp->atom->map(2);
+    int idx1       = lmp->atom->map(1);
+    int idx2       = lmp->atom->map(2);
     double epsilon = test_config.epsilon;
-    double **f = lmp->atom->f;
-    double **x = lmp->atom->x;
-    double delx = x[idx2][0] - x[idx1][0];
-    double dely = x[idx2][1] - x[idx1][1];
-    double delz = x[idx2][2] - x[idx1][2];
-    double rsq = delx * delx + dely * dely + delz * delz;
+    double **f     = lmp->atom->f;
+    double **x     = lmp->atom->x;
+    double delx    = x[idx2][0] - x[idx1][0];
+    double dely    = x[idx2][1] - x[idx1][1];
+    double delz    = x[idx2][2] - x[idx1][2];
+    double rsq     = delx * delx + dely * dely + delz * delz;
     double fsingle = 0.0;
     double epair[4], esngl[4];
     double splj = lmp->force->special_lj[1];
@@ -1144,14 +1154,14 @@ TEST(PairStyle, single)
     command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f = lmp->atom->f;
-    x = lmp->atom->x;
-    idx1 = lmp->atom->map(1);
-    idx2 = lmp->atom->map(2);
-    delx = x[idx2][0] - x[idx1][0];
-    dely = x[idx2][1] - x[idx1][1];
-    delz = x[idx2][2] - x[idx1][2];
-    rsq = delx * delx + dely * dely + delz * delz;
+    f       = lmp->atom->f;
+    x       = lmp->atom->x;
+    idx1    = lmp->atom->map(1);
+    idx2    = lmp->atom->map(2);
+    delx    = x[idx2][0] - x[idx1][0];
+    dely    = x[idx2][1] - x[idx1][1];
+    delz    = x[idx2][2] - x[idx1][2];
+    rsq     = delx * delx + dely * dely + delz * delz;
     fsingle = 0.0;
 
     epair[1] = pair->eng_vdwl + pair->eng_coul;
@@ -1168,14 +1178,14 @@ TEST(PairStyle, single)
     command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f = lmp->atom->f;
-    x = lmp->atom->x;
-    idx1 = lmp->atom->map(1);
-    idx2 = lmp->atom->map(2);
-    delx = x[idx2][0] - x[idx1][0];
-    dely = x[idx2][1] - x[idx1][1];
-    delz = x[idx2][2] - x[idx1][2];
-    rsq = delx * delx + dely * dely + delz * delz;
+    f       = lmp->atom->f;
+    x       = lmp->atom->x;
+    idx1    = lmp->atom->map(1);
+    idx2    = lmp->atom->map(2);
+    delx    = x[idx2][0] - x[idx1][0];
+    dely    = x[idx2][1] - x[idx1][1];
+    delz    = x[idx2][2] - x[idx1][2];
+    rsq     = delx * delx + dely * dely + delz * delz;
     fsingle = 0.0;
 
     epair[2] = pair->eng_vdwl + pair->eng_coul;
@@ -1192,14 +1202,14 @@ TEST(PairStyle, single)
     command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f = lmp->atom->f;
-    x = lmp->atom->x;
-    idx1 = lmp->atom->map(1);
-    idx2 = lmp->atom->map(2);
-    delx = x[idx2][0] - x[idx1][0];
-    dely = x[idx2][1] - x[idx1][1];
-    delz = x[idx2][2] - x[idx1][2];
-    rsq = delx * delx + dely * dely + delz * delz;
+    f       = lmp->atom->f;
+    x       = lmp->atom->x;
+    idx1    = lmp->atom->map(1);
+    idx2    = lmp->atom->map(2);
+    delx    = x[idx2][0] - x[idx1][0];
+    dely    = x[idx2][1] - x[idx1][1];
+    delz    = x[idx2][2] - x[idx1][2];
+    rsq     = delx * delx + dely * dely + delz * delz;
     fsingle = 0.0;
 
     epair[3] = pair->eng_vdwl + pair->eng_coul;
@@ -1231,8 +1241,9 @@ TEST(PairStyle, single)
 TEST(PairStyle, extract)
 {
     const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite"};
+
     char **argv = (char **)args;
-    int argc = sizeof(args) / sizeof(char *);
+    int argc    = sizeof(args) / sizeof(char *);
 
     if (!verbose) ::testing::internal::CaptureStdout();
     LAMMPS *lmp = init_lammps(argc, argv, test_config, true);
@@ -1247,8 +1258,8 @@ TEST(PairStyle, extract)
         GTEST_SKIP();
     }
     Pair *pair = lmp->force->pair;
-    void *ptr = nullptr;
-    int dim = 0;
+    void *ptr  = nullptr;
+    int dim    = 0;
     for (auto &extract : test_config.extract) {
         ptr = pair->extract(extract.first.c_str(), dim);
         EXPECT_NE(ptr, nullptr);

@@ -72,7 +72,7 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
 
     // check if prerequisite styles are available
     Info *info = new Info(lmp);
-    int nfail = 0;
+    int nfail  = 0;
     for (auto &prerequisite : cfg.prerequisites) {
         std::string style = prerequisite.second;
 
@@ -217,8 +217,9 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 {
     // initialize system geometry
     const char *args[] = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite"};
+
     char **argv = (char **)args;
-    int argc = sizeof(args) / sizeof(char *);
+    int argc    = sizeof(args) / sizeof(char *);
     LAMMPS *lmp = init_lammps(argc, argv, config);
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
@@ -229,7 +230,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         return;
     }
 
-    const int natoms = lmp->atom->natoms;
+    const int natoms  = lmp->atom->natoms;
     const int bufsize = 256;
     char buf[bufsize];
     std::string block("");
@@ -241,8 +242,8 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // date_generated
     std::time_t now = time(NULL);
-    block = ctime(&now);
-    block = block.substr(0, block.find("\n") - 1);
+    block           = ctime(&now);
+    block           = block.substr(0, block.find("\n") - 1);
     writer.emit("date_generated", block);
 
     // epsilon
@@ -312,7 +313,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // init_forces
     block.clear();
-    double **f = lmp->atom->f;
+    double **f  = lmp->atom->f;
     tagint *tag = lmp->atom->tag;
     for (int i = 0; i < natoms; ++i) {
         snprintf(buf, bufsize, "% 3d % 23.16e % 23.16e % 23.16e\n", (int)tag[i], f[i][0], f[i][1],
@@ -334,7 +335,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     writer.emit_block("run_stress", buf);
 
     block.clear();
-    f = lmp->atom->f;
+    f   = lmp->atom->f;
     tag = lmp->atom->tag;
     for (int i = 0; i < natoms; ++i) {
         snprintf(buf, bufsize, "% 3d % 23.16e % 23.16e % 23.16e\n", (int)tag[i], f[i][0], f[i][1],
@@ -350,11 +351,13 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 TEST(BondStyle, plain)
 {
     const char *args[] = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite"};
+
     char **argv = (char **)args;
-    int argc = sizeof(args) / sizeof(char *);
+    int argc    = sizeof(args) / sizeof(char *);
 
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = init_lammps(argc, argv, test_config, true);
+
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -375,8 +378,8 @@ TEST(BondStyle, plain)
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
     double epsilon = test_config.epsilon;
-    double **f = lmp->atom->f;
-    tagint *tag = lmp->atom->tag;
+    double **f     = lmp->atom->f;
+    tagint *tag    = lmp->atom->tag;
     ErrorStats stats;
     stats.reset();
     const std::vector<coord_t> &f_ref = test_config.init_forces;
@@ -388,7 +391,7 @@ TEST(BondStyle, plain)
     }
     if (print_stats) std::cerr << "init_forces stats, newton on: " << stats << std::endl;
 
-    Bond *bond = lmp->force->bond;
+    Bond *bond     = lmp->force->bond;
     double *stress = bond->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
@@ -407,8 +410,8 @@ TEST(BondStyle, plain)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f = lmp->atom->f;
-    stress = bond->virial;
+    f                                 = lmp->atom->f;
+    stress                            = bond->virial;
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal + 1, f_run.size());
     stats.reset();
@@ -430,7 +433,7 @@ TEST(BondStyle, plain)
     if (print_stats) std::cerr << "run_stress  stats, newton on: " << stats << std::endl;
 
     stats.reset();
-    int id = lmp->modify->find_compute("sum");
+    int id        = lmp->modify->find_compute("sum");
     double energy = lmp->modify->compute[id]->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.run_energy, epsilon);
     EXPECT_FP_LE_WITH_EPS(bond->energy, energy, epsilon);
@@ -444,7 +447,7 @@ TEST(BondStyle, plain)
     // skip over these tests if newton bond is forced to be on
     if (lmp->force->newton_bond == 0) {
 
-        f = lmp->atom->f;
+        f   = lmp->atom->f;
         tag = lmp->atom->tag;
         stats.reset();
         for (int i = 0; i < nlocal; ++i) {
@@ -454,7 +457,7 @@ TEST(BondStyle, plain)
         }
         if (print_stats) std::cerr << "init_forces stats, newton off:" << stats << std::endl;
 
-        bond = lmp->force->bond;
+        bond   = lmp->force->bond;
         stress = bond->virial;
         stats.reset();
         EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 2 * epsilon);
@@ -473,7 +476,7 @@ TEST(BondStyle, plain)
         run_lammps(lmp);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
-        f = lmp->atom->f;
+        f      = lmp->atom->f;
         stress = bond->virial;
         stats.reset();
         for (int i = 0; i < nlocal; ++i) {
@@ -494,7 +497,7 @@ TEST(BondStyle, plain)
         if (print_stats) std::cerr << "run_stress  stats, newton off:" << stats << std::endl;
 
         stats.reset();
-        id = lmp->modify->find_compute("sum");
+        id     = lmp->modify->find_compute("sum");
         energy = lmp->modify->compute[id]->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.run_energy, epsilon);
         EXPECT_FP_LE_WITH_EPS(bond->energy, energy, epsilon);
@@ -505,7 +508,7 @@ TEST(BondStyle, plain)
     restart_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f = lmp->atom->f;
+    f   = lmp->atom->f;
     tag = lmp->atom->tag;
     stats.reset();
     ASSERT_EQ(nlocal + 1, f_ref.size());
@@ -516,7 +519,7 @@ TEST(BondStyle, plain)
     }
     if (print_stats) std::cerr << "restart_forces stats:" << stats << std::endl;
 
-    bond = lmp->force->bond;
+    bond   = lmp->force->bond;
     stress = bond->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
@@ -535,7 +538,7 @@ TEST(BondStyle, plain)
     data_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f = lmp->atom->f;
+    f   = lmp->atom->f;
     tag = lmp->atom->tag;
     stats.reset();
     ASSERT_EQ(nlocal + 1, f_ref.size());
@@ -546,7 +549,7 @@ TEST(BondStyle, plain)
     }
     if (print_stats) std::cerr << "data_forces stats:" << stats << std::endl;
 
-    bond = lmp->force->bond;
+    bond   = lmp->force->bond;
     stress = bond->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
@@ -571,11 +574,13 @@ TEST(BondStyle, omp)
     if (!LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
     const char *args[] = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite",
                           "-pk",       "omp",  "4",    "-sf",   "omp"};
+
     char **argv = (char **)args;
-    int argc = sizeof(args) / sizeof(char *);
+    int argc    = sizeof(args) / sizeof(char *);
 
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = init_lammps(argc, argv, test_config, true);
+
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -596,9 +601,9 @@ TEST(BondStyle, omp)
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
     // relax error a bit for USER-OMP package
-    double epsilon = 5.0 * test_config.epsilon;
-    double **f = lmp->atom->f;
-    tagint *tag = lmp->atom->tag;
+    double epsilon                    = 5.0 * test_config.epsilon;
+    double **f                        = lmp->atom->f;
+    tagint *tag                       = lmp->atom->tag;
     const std::vector<coord_t> &f_ref = test_config.init_forces;
     ErrorStats stats;
     stats.reset();
@@ -609,7 +614,7 @@ TEST(BondStyle, omp)
     }
     if (print_stats) std::cerr << "init_forces stats, newton on: " << stats << std::endl;
 
-    Bond *bond = lmp->force->bond;
+    Bond *bond     = lmp->force->bond;
     double *stress = bond->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
@@ -628,8 +633,8 @@ TEST(BondStyle, omp)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f = lmp->atom->f;
-    stress = bond->virial;
+    f                                 = lmp->atom->f;
+    stress                            = bond->virial;
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal + 1, f_run.size());
     stats.reset();
@@ -651,7 +656,7 @@ TEST(BondStyle, omp)
     if (print_stats) std::cerr << "run_stress  stats, newton on: " << stats << std::endl;
 
     stats.reset();
-    int id = lmp->modify->find_compute("sum");
+    int id        = lmp->modify->find_compute("sum");
     double energy = lmp->modify->compute[id]->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.run_energy, epsilon);
     // TODO: this is currently broken for USER-OMP with bond style hybrid
@@ -668,7 +673,7 @@ TEST(BondStyle, omp)
     // skip over these tests if newton bond is forced to be on
     if (lmp->force->newton_bond == 0) {
 
-        f = lmp->atom->f;
+        f   = lmp->atom->f;
         tag = lmp->atom->tag;
         stats.reset();
         for (int i = 0; i < nlocal; ++i) {
@@ -678,7 +683,7 @@ TEST(BondStyle, omp)
         }
         if (print_stats) std::cerr << "init_forces stats, newton off:" << stats << std::endl;
 
-        bond = lmp->force->bond;
+        bond   = lmp->force->bond;
         stress = bond->virial;
         stats.reset();
         EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
@@ -717,7 +722,7 @@ TEST(BondStyle, omp)
         if (print_stats) std::cerr << "run_stress  stats, newton off:" << stats << std::endl;
 
         stats.reset();
-        id = lmp->modify->find_compute("sum");
+        id     = lmp->modify->find_compute("sum");
         energy = lmp->modify->compute[id]->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.run_energy, epsilon);
         // TODO: this is currently broken for USER-OMP with bond style hybrid
@@ -735,8 +740,9 @@ TEST(BondStyle, omp)
 TEST(BondStyle, single)
 {
     const char *args[] = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite"};
+
     char **argv = (char **)args;
-    int argc = sizeof(args) / sizeof(char *);
+    int argc    = sizeof(args) / sizeof(char *);
 
     // create a LAMMPS instance with standard settings to detect the number of atom types
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -754,7 +760,7 @@ TEST(BondStyle, single)
 
     // gather some information and skip if unsupported
     int nbondtypes = lmp->atom->nbondtypes;
-    int molecular = lmp->atom->molecular;
+    int molecular  = lmp->atom->molecular;
     if (molecular != 1) {
         std::cerr << "Only simple molecular atom styles are supported\n";
         if (!verbose) ::testing::internal::CaptureStdout();
@@ -825,21 +831,21 @@ TEST(BondStyle, single)
     command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    int idx1 = lmp->atom->map(1);
-    int idx2 = lmp->atom->map(2);
-    int idx3 = lmp->atom->map(3);
-    int idx4 = lmp->atom->map(4);
+    int idx1       = lmp->atom->map(1);
+    int idx2       = lmp->atom->map(2);
+    int idx3       = lmp->atom->map(3);
+    int idx4       = lmp->atom->map(4);
     double epsilon = test_config.epsilon;
-    double **f = lmp->atom->f;
-    double **x = lmp->atom->x;
-    double delx1 = x[idx2][0] - x[idx1][0];
-    double dely1 = x[idx2][1] - x[idx1][1];
-    double delz1 = x[idx2][2] - x[idx1][2];
-    double rsq1 = delx1 * delx1 + dely1 * dely1 + delz1 * delz1;
-    double delx2 = x[idx4][0] - x[idx3][0];
-    double dely2 = x[idx4][1] - x[idx3][1];
-    double delz2 = x[idx4][2] - x[idx3][2];
-    double rsq2 = delx2 * delx2 + dely2 * dely2 + delz2 * delz2;
+    double **f     = lmp->atom->f;
+    double **x     = lmp->atom->x;
+    double delx1   = x[idx2][0] - x[idx1][0];
+    double dely1   = x[idx2][1] - x[idx1][1];
+    double delz1   = x[idx2][2] - x[idx1][2];
+    double rsq1    = delx1 * delx1 + dely1 * dely1 + delz1 * delz1;
+    double delx2   = x[idx4][0] - x[idx3][0];
+    double dely2   = x[idx4][1] - x[idx3][1];
+    double delz2   = x[idx4][2] - x[idx3][2];
+    double rsq2    = delx2 * delx2 + dely2 * dely2 + delz2 * delz2;
     double fsingle = 0.0;
     double ebond[4], esngl[4];
     ErrorStats stats;
@@ -866,20 +872,20 @@ TEST(BondStyle, single)
     command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f = lmp->atom->f;
-    x = lmp->atom->x;
-    idx1 = lmp->atom->map(1);
-    idx2 = lmp->atom->map(2);
-    idx3 = lmp->atom->map(3);
-    idx4 = lmp->atom->map(4);
-    delx1 = x[idx2][0] - x[idx1][0];
-    dely1 = x[idx2][1] - x[idx1][1];
-    delz1 = x[idx2][2] - x[idx1][2];
-    rsq1 = delx1 * delx1 + dely1 * dely1 + delz1 * delz1;
-    delx2 = x[idx4][0] - x[idx3][0];
-    dely2 = x[idx4][1] - x[idx3][1];
-    delz2 = x[idx4][2] - x[idx3][2];
-    rsq2 = delx2 * delx2 + dely2 * dely2 + delz2 * delz2;
+    f       = lmp->atom->f;
+    x       = lmp->atom->x;
+    idx1    = lmp->atom->map(1);
+    idx2    = lmp->atom->map(2);
+    idx3    = lmp->atom->map(3);
+    idx4    = lmp->atom->map(4);
+    delx1   = x[idx2][0] - x[idx1][0];
+    dely1   = x[idx2][1] - x[idx1][1];
+    delz1   = x[idx2][2] - x[idx1][2];
+    rsq1    = delx1 * delx1 + dely1 * dely1 + delz1 * delz1;
+    delx2   = x[idx4][0] - x[idx3][0];
+    dely2   = x[idx4][1] - x[idx3][1];
+    delz2   = x[idx4][2] - x[idx3][2];
+    rsq2    = delx2 * delx2 + dely2 * dely2 + delz2 * delz2;
     fsingle = 0.0;
 
     ebond[1] = bond->energy;
@@ -904,20 +910,20 @@ TEST(BondStyle, single)
     command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f = lmp->atom->f;
-    x = lmp->atom->x;
-    idx1 = lmp->atom->map(1);
-    idx2 = lmp->atom->map(2);
-    idx3 = lmp->atom->map(3);
-    idx4 = lmp->atom->map(4);
-    delx1 = x[idx2][0] - x[idx1][0];
-    dely1 = x[idx2][1] - x[idx1][1];
-    delz1 = x[idx2][2] - x[idx1][2];
-    rsq1 = delx1 * delx1 + dely1 * dely1 + delz1 * delz1;
-    delx2 = x[idx4][0] - x[idx3][0];
-    dely2 = x[idx4][1] - x[idx3][1];
-    delz2 = x[idx4][2] - x[idx3][2];
-    rsq2 = delx2 * delx2 + dely2 * dely2 + delz2 * delz2;
+    f       = lmp->atom->f;
+    x       = lmp->atom->x;
+    idx1    = lmp->atom->map(1);
+    idx2    = lmp->atom->map(2);
+    idx3    = lmp->atom->map(3);
+    idx4    = lmp->atom->map(4);
+    delx1   = x[idx2][0] - x[idx1][0];
+    dely1   = x[idx2][1] - x[idx1][1];
+    delz1   = x[idx2][2] - x[idx1][2];
+    rsq1    = delx1 * delx1 + dely1 * dely1 + delz1 * delz1;
+    delx2   = x[idx4][0] - x[idx3][0];
+    dely2   = x[idx4][1] - x[idx3][1];
+    delz2   = x[idx4][2] - x[idx3][2];
+    rsq2    = delx2 * delx2 + dely2 * dely2 + delz2 * delz2;
     fsingle = 0.0;
 
     ebond[2] = bond->energy;
@@ -942,20 +948,20 @@ TEST(BondStyle, single)
     command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f = lmp->atom->f;
-    x = lmp->atom->x;
-    idx1 = lmp->atom->map(1);
-    idx2 = lmp->atom->map(2);
-    idx3 = lmp->atom->map(3);
-    idx4 = lmp->atom->map(4);
-    delx1 = x[idx2][0] - x[idx1][0];
-    dely1 = x[idx2][1] - x[idx1][1];
-    delz1 = x[idx2][2] - x[idx1][2];
-    rsq1 = delx1 * delx1 + dely1 * dely1 + delz1 * delz1;
-    delx2 = x[idx4][0] - x[idx3][0];
-    dely2 = x[idx4][1] - x[idx3][1];
-    delz2 = x[idx4][2] - x[idx3][2];
-    rsq2 = delx2 * delx2 + dely2 * dely2 + delz2 * delz2;
+    f       = lmp->atom->f;
+    x       = lmp->atom->x;
+    idx1    = lmp->atom->map(1);
+    idx2    = lmp->atom->map(2);
+    idx3    = lmp->atom->map(3);
+    idx4    = lmp->atom->map(4);
+    delx1   = x[idx2][0] - x[idx1][0];
+    dely1   = x[idx2][1] - x[idx1][1];
+    delz1   = x[idx2][2] - x[idx1][2];
+    rsq1    = delx1 * delx1 + dely1 * dely1 + delz1 * delz1;
+    delx2   = x[idx4][0] - x[idx3][0];
+    dely2   = x[idx4][1] - x[idx3][1];
+    delz2   = x[idx4][2] - x[idx3][2];
+    rsq2    = delx2 * delx2 + dely2 * dely2 + delz2 * delz2;
     fsingle = 0.0;
 
     ebond[3] = bond->energy;
@@ -995,8 +1001,9 @@ TEST(BondStyle, single)
 TEST(BondStyle, extract)
 {
     const char *args[] = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite"};
+
     char **argv = (char **)args;
-    int argc = sizeof(args) / sizeof(char *);
+    int argc    = sizeof(args) / sizeof(char *);
 
     if (!verbose) ::testing::internal::CaptureStdout();
     LAMMPS *lmp = init_lammps(argc, argv, test_config, true);
@@ -1011,8 +1018,8 @@ TEST(BondStyle, extract)
         GTEST_SKIP();
     }
     Bond *bond = lmp->force->bond;
-    void *ptr = nullptr;
-    int dim = 0;
+    void *ptr  = nullptr;
+    int dim    = 0;
     for (auto extract : test_config.extract) {
         ptr = bond->extract(extract.first.c_str(), dim);
         EXPECT_NE(ptr, nullptr);

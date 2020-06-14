@@ -2345,6 +2345,7 @@ precession
 prefactor
 prefactors
 prepend
+prepended
 preprint
 printf
 printflag
@@ -2753,6 +2754,7 @@ sp
 spacings
 Spearot
 specular
+spellcheck
 Spellmeyer
 sph
 SPH

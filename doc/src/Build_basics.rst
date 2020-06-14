@@ -372,7 +372,8 @@ it.  The build step will also create generic soft links, named
 ``liblammps.a`` and ``liblammps.so``\ , which point to the specific
 ``liblammps_machine.a/so`` files.
 
-**CMake and make info**\ :
+CMake and make info
+^^^^^^^^^^^^^^^^^^^
 
 Note that for creating a shared library, all the libraries it depends on
 must be compiled to be compatible with shared libraries.  This should be
@@ -462,7 +463,8 @@ tool.  The actual translation is then done via make commands.
 .. _rst: https://docutils.readthedocs.io/en/sphinx-docs/user/rst/quickstart.html
 .. _sphinx: https://sphinx-doc.org
 
-**Documentation make option**\ :
+Documentation make option
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The following make commands can be issued in the doc folder of the
 LAMMPS source distribution.
@@ -489,7 +491,8 @@ your system.
    current LAMMPS version (HTML and PDF files), from the website
    `download page <https://lammps.sandia.gov/download.html>`_.
 
-**CMake build option**\ :
+CMake build option
+^^^^^^^^^^^^^^^^^^
 
 It is also possible to create the HTML version of the manual within
 the :doc:`CMake build directory <Build_cmake>`.  The reason for this
@@ -512,7 +515,8 @@ Build LAMMPS tools
 Some tools described in :doc:`Auxiliary tools <Tools>` can be built directly
 using CMake or Make.
 
-**CMake build3**\ :
+CMake build
+^^^^^^^^^^^
 
 .. code-block:: bash
 
@@ -521,7 +525,8 @@ using CMake or Make.
 The generated binaries will also become part of the LAMMPS installation
 (see below).
 
-**Traditional make**\ :
+Traditional make
+^^^^^^^^^^^^^^^^
 
 .. code-block:: bash
 
@@ -545,7 +550,8 @@ a globally visible place on your system, for others to access.  Note
 that you may need super-user privileges (e.g. sudo) if the directory
 you want to copy files to is protected.
 
-**CMake build**\ :
+CMake build
+^^^^^^^^^^^
 
 .. code-block:: bash
 
@@ -553,7 +559,8 @@ you want to copy files to is protected.
    make                        # perform make after CMake command
    make install                # perform the installation into prefix
 
-**Traditional make**\ :
+Traditional make
+^^^^^^^^^^^^^^^^
 
 There is no "install" option in the ``src/Makefile`` for LAMMPS.  If
 you wish to do this you will need to first build LAMMPS, then manually

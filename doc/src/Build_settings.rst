@@ -44,7 +44,8 @@ require use of an FFT library to compute 1d FFTs.  The KISS FFT
 library is included with LAMMPS but other libraries can be faster.
 LAMMPS can use them if they are available on your system.
 
-**CMake variables**\ :
+CMake build
+^^^^^^^^^^^
 
 .. code-block:: bash
 
@@ -74,7 +75,12 @@ to assist:
    -D FFT_MKL_THREADS=on       # enable using threaded FFTs with MKL libraries
    -D MKL_LIBRARIES=path
 
-**Makefile.machine settings**\ :
+Traditional make
+^^^^^^^^^^^^^^^^
+
+To change the FFT library to be used and its options, you have to edit
+your machine Makefile. Below are examples how the makefile variables
+could be changed.
 
 .. code-block:: make
 
@@ -104,7 +110,8 @@ As with CMake, you do not need to set paths in ``FFT_INC`` or ``FFT_PATH``, if
 the compiler can find the FFT header and library files in its default search path.
 You must specify ``FFT_LIB`` with the appropriate FFT libraries to include in the link.
 
-**CMake and make info**\ :
+CMake build
+^^^^^^^^^^^
 
 The `KISS FFT library <http://kissfft.sf.net>`_ is included in the LAMMPS
 distribution.  It is portable across all platforms.  Depending on the size
@@ -127,7 +134,7 @@ download it from `www.fftw.org <http://www.fftw.org>`_.  LAMMPS requires
 version 3.X; the legacy version 2.1.X is no longer supported.
 
 Building FFTW for your box should be as simple as ``./configure; make;
-make install``\ .  The install command typically requires root privileges
+make install``.  The install command typically requires root privileges
 (e.g. invoke it via sudo), unless you specify a local directory with
 the "--prefix" option of configure.  Type ``./configure --help`` to see
 various options.
@@ -176,13 +183,18 @@ LAMMPS has a few integer data types which can be defined as either
 4-byte (= 32-bit) or 8-byte (= 64-bit) integers at compile time.
 The default setting of "smallbig" is almost always adequate.
 
-**CMake variable**\ :
+CMake build
+^^^^^^^^^^^
 
 .. code-block:: bash
 
    -D LAMMPS_SIZES=value   # smallbig (default) or bigbig or smallsmall
 
-**Makefile.machine setting**\ :
+Traditional build
+^^^^^^^^^^^^^^^^^
+
+If you want a setting different from the default, you need to edit your
+machine Makefile.
 
 .. code-block:: make
 
@@ -190,7 +202,8 @@ The default setting of "smallbig" is almost always adequate.
 
 The default setting is ``-DLAMMPS_SMALLBIG`` if nothing is specified
 
-**CMake and make info**\ :
+CMake and make info
+^^^^^^^^^^^^^^^^^^^
 
 The default "smallbig" setting allows for simulations with:
 
@@ -251,7 +264,8 @@ PNG image files.  Likewise the :doc:`dump movie <dump_image>` command
 outputs movie files in MPEG format.  Using these options requires the
 following settings:
 
-**CMake variables**\ :
+CMake build
+^^^^^^^^^^^
 
 .. code-block:: bash
 
@@ -276,7 +290,8 @@ variables:
    -D ZLIB_LIBRARIES=path      # path to libz.a (.so) file
    -D FFMPEG_EXECUTABLE=path   # path to ffmpeg executable
 
-**Makefile.machine settings**\ :
+Traditional make
+^^^^^^^^^^^^^^^^
 
 .. code-block:: make
 
@@ -295,7 +310,8 @@ with a list of graphics libraries to include in the link.  You must
 insure ffmpeg is in a directory where LAMMPS can find it at runtime,
 that is a directory in your PATH environment variable.
 
-**CMake and make info**\ :
+CMake and make info
+^^^^^^^^^^^^^^^^^^^
 
 Using ``ffmpeg`` to output movie files requires that your machine
 supports the "popen" function in the standard runtime library.
@@ -318,7 +334,8 @@ If this option is enabled, large files can be read or written with
 gzip compression by several LAMMPS commands, including
 :doc:`read_data <read_data>`, :doc:`rerun <rerun>`, and :doc:`dump <dump>`.
 
-**CMake variables**\ :
+CMake build
+^^^^^^^^^^^
 
 .. code-block:: bash
 
@@ -326,13 +343,15 @@ gzip compression by several LAMMPS commands, including
                             # default is yes if CMake can find gzip, else no
    -D GZIP_EXECUTABLE=path  # path to gzip executable if CMake cannot find it
 
-**Makefile.machine setting**\ :
+Traditional make
+^^^^^^^^^^^^^^^^
 
 .. code-block:: make
 
    LMP_INC = -DLAMMPS_GZIP
 
-**CMake and make info**\ :
+CMake and make info
+^^^^^^^^^^^^^^^^^^^
 
 This option requires that your machine supports the "popen()" function
 in the standard runtime library and that a gzip executable can be
@@ -363,7 +382,8 @@ pointers that are aligned to 16-byte boundaries. Using SSE vector
 instructions efficiently, however, requires memory blocks being
 aligned on 64-byte boundaries.
 
-**CMake variable**\ :
+CMake build
+^^^^^^^^^^^
 
 .. code-block:: bash
 
@@ -374,7 +394,8 @@ and revert to using the malloc() C-library function instead.  When
 compiling LAMMPS for Windows systems, malloc() will always be used
 and this setting ignored.
 
-**Makefile.machine setting**\ :
+Traditional make
+^^^^^^^^^^^^^^^^
 
 .. code-block:: make
 
@@ -398,13 +419,15 @@ types, the following setting will be needed.  It converts "long long"
 to a "long" data type, which should be the desired 8-byte integer on
 those systems:
 
-**CMake variable**\ :
+CMake build
+^^^^^^^^^^^
 
 .. code-block:: bash
 
    -D LAMMPS_LONGLONG_TO_LONG=value     # yes or no (default)
 
-**Makefile.machine setting**\ :
+Traditional make
+^^^^^^^^^^^^^^^^
 
 .. code-block:: make
 
@@ -423,13 +446,15 @@ Instead, the call stack is unwound and control returns to the caller,
 e.g. to Python. Of course, the calling code has to be set up to
 *catch* exceptions thrown from within LAMMPS.
 
-**CMake variable**\ :
+CMake build
+^^^^^^^^^^^
 
 .. code-block:: bash
 
    -D LAMMPS_EXCEPTIONS=value        # yes or no (default)
 
-**Makefile.machine setting**\ :
+Traditional make
+^^^^^^^^^^^^^^^^
 
 .. code-block:: make
 

@@ -46,7 +46,7 @@ Syntax
           *1* = generate quadratic terms
        *chem* values = *nelements* *elementlist*
           *nelements* = number of SNAP elements
-          *elementlist* = *ntypes* element indices [0, *nelements* ) 
+          *elementlist* = *ntypes* integers in range [0, *nelements*) 
        *bnormflag* value = *0* or *1*
           *0* = do not normalize
           *1* = normalize bispectrum components
@@ -63,6 +63,7 @@ Examples
    compute db all sna/atom 1.4 0.95 6 2.0 1.0
    compute vb all sna/atom 1.4 0.95 6 2.0 1.0
    compute snap all snap 1.4 0.95 6 2.0 1.0
+   compute snap all snap 1.0 0.99363 6 3.81 3.83 1.0 0.93 chem 2 0 1
 
 Description
 """""""""""
@@ -80,19 +81,19 @@ mathematical definition is given in the paper by Thompson et
 al. :ref:`(Thompson) <Thompson20141>`
 
 The position of a neighbor atom *i'* relative to a central atom *i* is
-a point within the 3D ball of radius :math:`R_{ii'} = rcutfac (R_i + R_i')`
+a point within the 3D ball of radius :math:`R_{ii'}` = *rcutfac* :math:`(R_i + R_i')`
 
 Bartok et al. :ref:`(Bartok) <Bartok20101>`, proposed mapping this 3D ball
 onto the 3-sphere, the surface of the unit ball in a four-dimensional
-space.  The radial distance *r* within *R_ii'* is mapped on to a third
-polar angle *theta0* defined by,
+space.  The radial distance *r*  within *R_ii'* is mapped on to a third
+polar angle :math:`\theta_0` defined by,
 
 .. math::
 
-  \theta_0 = rfac0 \frac{r-r_{min0}}{R_{ii'}-r_{min0}} \pi
+  \theta_0 = {\sf rfac0} \frac{r-r_{min0}}{R_{ii'}-r_{min0}} \pi
 
 In this way, all possible neighbor positions are mapped on to a subset
-of the 3-sphere.  Points south of the latitude :math:`\theta_0=rfac0 \pi`
+of the 3-sphere.  Points south of the latitude :math:`\theta_0` = *rfac0* :math:`\pi`
 are excluded.
 
 The natural basis for functions on the 3-sphere is formed by the 
@@ -100,7 +101,6 @@ representatives of *SU(2)*, the matrices :math:`U^j_{m,m'}(\theta, \phi, \theta_
 These functions are better known as :math:`D^j_{m,m'}`, the elements of the Wigner
 *D*\ -matrices :ref:`(Meremianin <Meremianin2006>`,
 :ref:`Varshalovich <Varshalovich1987>`, :ref:`Mason) <Mason2009>`
-
 The density of neighbors on the 3-sphere can be written as a sum of
 Dirac-delta functions, one for each neighbor, weighted by species and
 radial distance. Expanding this density function as a generalized
@@ -174,7 +174,7 @@ Again, the sum is over all atoms *i'* of atom type *I*\ .  For each atom
 virial components, each atom type, and each bispectrum component.  See
 section below on output for a detailed explanation.
 
-Compute *snap* calculates a global array contains information related
+Compute *snap* calculates a global array containing information related
 to all three of the above per-atom computes *sna/atom*\ , *snad/atom*\ ,
 and *snav/atom*\ . The first row of the array contains the summation of
 *sna/atom* over all atoms, but broken out by type. The last six rows
@@ -210,7 +210,7 @@ The argument *rcutfac* is a scale factor that controls the ratio of
 atomic radius to radial cutoff distance.
 
 The argument *rfac0* and the optional keyword *rmin0* define the
-linear mapping from radial distance to polar angle *theta0* on the
+linear mapping from radial distance to polar angle :math:`theta_0` on the
 3-sphere, given above.
 
 The argument *twojmax* defines which
@@ -228,7 +228,7 @@ normally only affects compute *sna/atom*\ . However, when
 *quadraticflag* is on, it also affects *snad/atom* and *snav/atom*\ .
 
 The keyword *quadraticflag* determines whether or not the
-quadratic analogs to the bispectrum quantities are generated.
+quadratic combinations of bispectrum quantities are generated.
 These are formed by taking the outer product of the vector
 of bispectrum components with itself.
 See section below on output for a
@@ -249,9 +249,9 @@ to elements is one-to-one.
 The explicit multi-element variant invoked by the *chem* keyword
 partitions the density of neighbors into partial densities
 for each chemical element.  This is described in detail in the 
-paper by :ref:`(Cusentino et al.) <Cusentino2020>`.
+paper by :ref:`Cusentino et al. <Cusentino2020>`
 The bispectrum components are indexed on 
-ordered triplets of elements.
+ordered triplets of elements:
 
 .. math::
 
@@ -262,7 +262,7 @@ ordered triplets of elements.
         {j_2} {m_2} {m'_2} \end{array}}
         u^{\kappa}_{j_1,m_1,m'_1} u^{\lambda}_{j_2,m_2,m'_2}
 
-Where :math:`u^{\mu}_{j,m,m'}` is an expansion coefficient for the partial density of neighbors 
+where :math:`u^{\mu}_{j,m,m'}` is an expansion coefficient for the partial density of neighbors 
 of element :math:`\mu`
 
 .. math::
@@ -282,17 +282,17 @@ of :math:`{\mu_{i}=\mu}`, when :math:`w^{self}_{\mu_{i}\mu}` = 1.
 When the *chem* keyword is not used, this keyword has no effect.
 
 The keyword *bnormflag* determines whether or not the bispectrum
-component :math:`B_{j_1,j_2,j}`is divided by a factor of :math:`2j+1`.
+component :math:`B_{j_1,j_2,j}` is divided by a factor of :math:`2j+1`.
 This normalization simplifies force calculations because of the
 following symmetry relation
 
 .. math::
 
-\frac{B_{j_1,j_2,j}}{2j+1} = \frac{B_{j,j_2,j_1}}{2j_1+1} = \frac{B_{j_1,j,j_2}}{2j_2+1}
+ \frac{B_{j_1,j_2,j}}{2j+1} = \frac{B_{j,j_2,j_1}}{2j_1+1} = \frac{B_{j_1,j,j_2}}{2j_2+1}
  
 This option is typically used in conjunction with the *chem* keyword, 
 and LAMMPS will generate a warning if both *chem* and *bnormflag*
-are not both set or both unset.
+are not both set or not both unset.
 
 .. note::
 
@@ -325,11 +325,8 @@ described by the following piece of python code:
            for j in range(j1-j2,min(twojmax,j1+j2)+1,2):
                if (j>=j1): print j1/2.,j2/2.,j/2.
 
-The total number of bispectrum components is given by the following expression
-
-.. math::
-
-  K = \frac{(twojmax+2)(twojmax+3)(twojmax+4)}{24}
+The total number of bispectrum components is :math:`K = (J+2)(J+3)(J+4)/24`
+where *J* is equal to *twojmax*\ .
 
 .. note::
 
@@ -385,13 +382,13 @@ of linear terms i.e. linear and quadratic terms are contiguous.
 So the nesting order from inside to outside is bispectrum component,
 linear then quadratic, vector/tensor component, type.
 
-if the *chem* keyword is used, then the data is arranged into :math:`nelements^3`
+If the *chem* keyword is used, then the data is arranged into :math:`N_{elem}^3`
 sub-blocks, each sub-block corresponding to a particular chemical labelling 
 :math:`\kappa\lambda\mu` with the last label changing fastest.
-Each sub-block contains the *K* bispectrum components. For the purposes
+Each sub-block contains *K* bispectrum components. For the purposes
 of handling contributions to force, virial, and quadratic combinations,
-these :math:`nelements^3` sub-blocks are treated as a single block
-of :math:`nelements^3 K` columns.
+these :math:`N_{elem}^3` sub-blocks are treated as a single block
+of :math:`K N_{elem}^3` columns.
 
 These values can be accessed by any command that uses per-atom values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc
@@ -401,7 +398,8 @@ Restrictions
 """"""""""""
 
 These computes are part of the SNAP package.  They are only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` 
+doc page for more info.
 
 Related commands
 """"""""""""""""

@@ -74,7 +74,7 @@ phophorous, the pair_coeff command would look like this:
 
    pair_coeff * * snap InP.snapcoeff InP.snapparam In In P P
 
-The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The two filenames are for the coefficient and parameter files, respectively.
 The two trailing 'In' arguments map LAMMPS atom types 1 and 2 to the
 SNAP 'In' element. The two trailing 'P' arguments map LAMMPS atom types

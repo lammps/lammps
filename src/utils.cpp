@@ -545,17 +545,15 @@ std::string utils::get_potential_file_path(const std::string& path) {
 std::string utils::get_potential_date(const std::string & path, const std::string & potential_name) {
   TextFileReader reader(path, potential_name);
   reader.ignore_comments = false;
-  char * line = nullptr;
 
-  while ((line = reader.next_line())) {
-    ValueTokenizer values(line);
-    while (values.has_next()) {
-      std::string word = values.next_string();
-      if (word == "DATE:") {
-        if (values.has_next()) {
-          std::string date = values.next_string();
-          return date;
-        }
+  char *line = reader.next_line();
+  ValueTokenizer values(line);
+  while (values.has_next()) {
+    std::string word = values.next_string();
+    if (word == "DATE:") {
+      if (values.has_next()) {
+        std::string date = values.next_string();
+        return date;
       }
     }
   }
@@ -570,17 +568,15 @@ std::string utils::get_potential_date(const std::string & path, const std::strin
 std::string utils::get_potential_units(const std::string & path, const std::string & potential_name) {
   TextFileReader reader(path, potential_name);
   reader.ignore_comments = false;
-  char * line = nullptr;
 
-  while ((line = reader.next_line())) {
-    ValueTokenizer values(line);
-    while (values.has_next()) {
-      std::string word = values.next_string();
-      if (word == "UNITS:") {
-        if (values.has_next()) {
-          std::string units = values.next_string();
-          return units;
-        }
+  char *line = reader.next_line();
+  ValueTokenizer values(line);
+  while (values.has_next()) {
+    std::string word = values.next_string();
+    if (word == "UNITS:") {
+      if (values.has_next()) {
+        std::string units = values.next_string();
+        return units;
       }
     }
   }

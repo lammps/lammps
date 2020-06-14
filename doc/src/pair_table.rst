@@ -124,11 +124,14 @@ best effect:
 
 ----------
 
-The format of a tabulated file is a series of one or more sections,
-defined as follows (without the parenthesized comments):
+The format of a tabulated file has an (optional) header followed by a
+series of one or more sections, defined as follows (without the
+parenthesized comments). The header must start with a `#` character
+and the DATE: and UNITS: tags will be parsed and used:
 
 .. parsed-literal::
 
+   # DATE: 2020-06-10  UNITS: real  CONTRIBUTOR: ... (header line)
    # Morse potential for Fe   (one or more comment or blank lines)
 
    MORSE_FE                   (keyword is first text on line)

@@ -325,8 +325,7 @@ described by the following piece of python code:
            for j in range(j1-j2,min(twojmax,j1+j2)+1,2):
                if (j>=j1): print j1/2.,j2/2.,j/2.
 
-The total number of bispectrum components is :math:`K = (J+2)(J+3)(J+4)/24`
-where *J* is equal to *twojmax*\ .
+For even twojmax = 2(*m*\ -1), :math:`K = m(m+1)(2m+1)/6`, the *m*\ -th pyramidal number. For odd twojmax = 2 *m*\ -1, :math:`K = m(m+1)(m+2)/3`, twice the *m*\ -th tetrahedral number.
 
 .. note::
 

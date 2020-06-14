@@ -21,6 +21,8 @@
 #include <climits>   // IWYU pragma: keep
 #include <cmath>
 #include <cstring>
+#include <ctime>
+#include <string>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -33,6 +35,7 @@
 #include "memory.h"
 #include "math_const.h"
 #include "error.h"
+#include "update.h"
 #include "utils.h"
 #include "fmt/format.h"
 
@@ -1633,17 +1636,43 @@ void Pair::write_file(int narg, char **arg)
   if (inner <= 0.0 || inner >= outer)
     error->all(FLERR,"Invalid cutoffs in pair_write command");
 
-  // open file in append mode
+  // open file in append mode if exists
+  // add line with DATE: and UNITS: tag when creating new file
   // print header in format used by pair_style table
 
-  int me;
-  MPI_Comm_rank(world,&me);
-  FILE *fp;
-  if (me == 0) {
-    fp = fopen(arg[6],"a");
+  FILE *fp = nullptr;
+  if (comm->me == 0) {
+    std::string table_file = arg[6];
+
+    // units sanity check:
+    // - if this is the first time we write to this potential file,
+    //   write out a line with "DATE:" and "UNITS:" tags
+    // - if the file already exists, print a message about appending
+    //   while printing the date and check that units are consistent.
+    if (utils::file_is_readable(table_file)) {
+      std::string units = utils::get_potential_units(table_file,"table");
+      if (!units.empty() && (units != update->unit_style)) {
+        error->one(FLERR,fmt::format("Trying to append to a table file "
+                                     "with UNITS: {} while units are {}",
+                                     units, update->unit_style));
+      }
+      std::string date = utils::get_potential_date(table_file,"table");
+      utils::logmesg(lmp,fmt::format("Appending to table file {} with "
+                                     "DATE: {}\n", table_file, date));
+      fp = fopen(table_file.c_str(),"a");
+    } else {
+      char datebuf[16];
+      time_t tv = time(NULL);
+      strftime(datebuf,15,"%Y-%m-%d",localtime(&tv));
+      utils::logmesg(lmp,fmt::format("Creating table file {} with "
+                                     "DATE: {}\n", table_file, datebuf));
+      fp = fopen(table_file.c_str(),"w");
+      if (fp) fmt::print(fp,"# DATE: {} UNITS: {} Created by pair_write\n",
+                         datebuf, update->unit_style);
+    }
     if (fp == NULL)
       error->one(FLERR,fmt::format("Cannot open pair_write file {}: {}",
-                                   arg[6], utils::getsyserror()));
+                                   table_file, utils::getsyserror()));
     fprintf(fp,"# Pair potential %s for atom types %d %d: i,r,energy,force\n",
             force->pair_style,itype,jtype);
     if (style == RLINEAR)
@@ -1692,7 +1721,7 @@ void Pair::write_file(int narg, char **arg)
   if (style == BMP) {
     init_bitmap(inner,outer,n,masklo,maskhi,nmask,nshiftbits);
     int ntable = 1 << n;
-    if (me == 0)
+    if (comm->me == 0)
       fprintf(fp,"\n%s\nN %d BITMAP %.15g %.15g\n\n",arg[7],ntable,inner,outer);
     n = ntable;
   }
@@ -1722,7 +1751,7 @@ void Pair::write_file(int narg, char **arg)
       e = single(0,1,itype,jtype,rsq,1.0,1.0,f);
       f *= r;
     } else e = f = 0.0;
-    if (me == 0) fprintf(fp,"%d %.15g %.15g %.15g\n",i+1,r,e,f);
+    if (comm->me == 0) fprintf(fp,"%d %.15g %.15g %.15g\n",i+1,r,e,f);
   }
 
   // restore original vecs that were swapped in for
@@ -1731,7 +1760,7 @@ void Pair::write_file(int narg, char **arg)
   if (epair) epair->swap_eam(eamfp_hold,&tmp);
   if (atom->q) atom->q = q_hold;
 
-  if (me == 0) fclose(fp);
+  if (comm->me == 0) fclose(fp);
 }
 
 /* ----------------------------------------------------------------------

@@ -73,8 +73,8 @@ and its parameterization are given in :ref:`(O'Conner) <OConnor>`.
 
 The *rebo* pair style computes the Reactive Empirical Bond Order (REBO)
 Potential of :ref:`(Brenner) <Brenner>`. Note that this is the so-called
-2nd generation REBO from 2002, not the original REBO from 1990.
-As discussed below, 2nd generation REBO is closely related to the
+second generation REBO from 2002, not the original REBO from 1990.
+As discussed below, second generation REBO is closely related to the
 initial AIREBO; it is just a subset of the potential energy terms
 with a few slightly different parameters
 
@@ -90,7 +90,7 @@ By default, all three terms are included.  For the *airebo* style, if
 the first two optional flag arguments to the pair_style command are
 included, the LJ and torsional terms can be turned off.  Note that
 both or neither of the flags must be included.  If both of the LJ an
-torsional terms are turned off, it becomes the 2nd-generation REBO
+torsional terms are turned off, it becomes the second-generation REBO
 potential, with a small caveat on the spline fitting procedure
 mentioned below.  This can be specified directly as pair_style *rebo*
 with no additional arguments.
@@ -150,14 +150,14 @@ See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
 to specify the path for the potential file.
 
 As an example, if your LAMMPS simulation has 4 atom types and you want
-the 1st 3 to be C, and the 4th to be H, you would use the following
+the first 3 to be C, and the fourth to be H, you would use the following
 pair_coeff command:
 
 .. code-block:: LAMMPS
 
    pair_coeff * * CH.airebo C C C H
 
-The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three C arguments map LAMMPS atom types 1,2,3 to the C
 element in the AIREBO file.  The final H argument maps LAMMPS atom
 type 4 to the H element in the SW file.  If a mapping value is

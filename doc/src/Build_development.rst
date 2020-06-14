@@ -126,7 +126,7 @@ in the next section.
 
 .. note::
 
-   This unit test framework is new and still under development.
+   The unit test framework is new and still under development.
    The coverage is only minimal and will be expanded over time.
    Tests styles of the same kind of style (e.g. pair styles or
    bond styles) are performed with the same executable using
@@ -237,12 +237,12 @@ and working.
      performed with automatically rescaled epsilon to account for
      additional loss of precision from code optimizations and different
      summation orders.
-   - When compiling with aggressive compiler optimization, some tests
+   - When compiling with (aggressive) compiler optimization, some tests
      are likely to fail.  It is recommended to inspect the individual
-     tests in detail to decide whether the specific error for a specific
+     tests in detail to decide, whether the specific error for a specific
      property is acceptable (it often is), or this may be an indication
-     of mis-compiled code (or undesired large of precision due to
-     reordering of operations).
+     of mis-compiled code (or an undesired large loss of precision due
+     to significant reordering of operations and thus less error cancellation).
 
 Collect and visualize code coverage metrics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

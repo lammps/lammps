@@ -123,7 +123,7 @@ interpolated manner.  This is done by using the current position of
 the atom as the starting point and the read-in position as the final
 point.  The distance between them is calculated, and the new position
 is assigned to be a fraction of the distance.  E.g. if there are 10
-replicas, the 2nd replica will assign a position that is 10% of the
+replicas, the second replica will assign a position that is 10% of the
 distance along a line between the starting and final point, and the
 9th replica will assign a position that is 90% of the distance along
 the line.  Note that for this procedure to produce consistent

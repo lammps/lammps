@@ -162,7 +162,7 @@ the restraint is
 .. math::
 
    E = 0 \qquad\quad\quad ,if\;r \ge r_0
-   
+
 with the following coefficients:
 
 * :math:`K` (energy/distance\^2)

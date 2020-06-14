@@ -43,14 +43,14 @@ The polynomial coefficients C1, C2, C3, C4 are computed by LAMMPS to
 cause the force to vary smoothly from the inner cutoff :math:`r_{in}` to the
 outer cutoff :math:`r_c`.
 
-At the inner cutoff the force and its 1st derivative
+At the inner cutoff the force and its first derivative
 will match the non-smoothed LJ formula.  At the outer cutoff the force
-and its 1st derivative will be 0.0.  The inner cutoff cannot be 0.0.
+and its first derivative will be 0.0.  The inner cutoff cannot be 0.0.
 
 .. note::
 
    this force smoothing causes the energy to be discontinuous both
-   in its values and 1st derivative.  This can lead to poor energy
+   in its values and first derivative.  This can lead to poor energy
    conservation and may require the use of a thermostat.  Plot the energy
    and force resulting from this formula via the
    :doc:`pair_write <pair_write>` command to see the effect.

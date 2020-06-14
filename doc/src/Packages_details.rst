@@ -489,7 +489,7 @@ interactions.  These include Ewald, particle-particle particle-mesh
 
 Building with this package requires a 1d FFT library be present on
 your system for use by the PPPM solvers.  This can be the KISS FFT
-library provided with LAMMPS, 3rd party libraries like FFTW, or a
+library provided with LAMMPS, third party libraries like FFTW, or a
 vendor-supplied FFT library.  See the :doc:`Build settings <Build_settings>` doc page for details on how to select
 different FFT options for your LAMPMS build.
 

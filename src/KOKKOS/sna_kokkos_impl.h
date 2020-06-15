@@ -258,7 +258,7 @@ void SNAKokkos<DeviceType>::grow_rij(int newnatom, int newnmax)
 #endif
 
   //ylist = t_sna_2c_lr("sna:ylist",natom,idxu_max);
-  ylist = t_sna_2c_ll("sna:ylist",idxu_max,natom);
+  ylist = t_sna_2c_ll("sna:ylist",idxu_max*nelements,natom);
 }
 
 /* ----------------------------------------------------------------------

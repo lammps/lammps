@@ -20,6 +20,7 @@
 #include "error.h"
 #include "comm.h"
 #include "potential_file_reader.h"
+#include "update.h"
 #include "utils.h"
 #include "tokenizer.h"
 #include "fmt/format.h"
@@ -144,14 +145,21 @@ std::string PotentialFileReader::next_string() {
 
 TextFileReader * PotentialFileReader::open_potential(const std::string& path) {
   std::string filepath = utils::get_potential_file_path(path);
-  std::string date;
 
-  if(!filepath.empty()) {
-    date = utils::get_potential_date(filepath, filetype);
+  if (!filepath.empty()) {
+    std::string unit_style = lmp->update->unit_style;
+    std::string date       = utils::get_potential_date(filepath, filetype);
+    std::string units      = utils::get_potential_units(filepath, filetype);
 
-    if(!date.empty()) {
+    if (!date.empty()) {
       utils::logmesg(lmp, fmt::format("Reading potential file {} with DATE: {}\n", filename, date));
     }
+
+    if (!units.empty() && (units != unit_style)) {
+      lmp->error->one(FLERR, fmt::format("Potential file {} requires {} units "
+                                         "but {} units are in use",filename, units, unit_style));
+    }
+
     return new TextFileReader(filepath, filetype);
   }
   return nullptr;

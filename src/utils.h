@@ -142,7 +142,6 @@ namespace LAMMPS_NS {
     tagint tnumeric(const char *file, int line, const char *str,
                     bool do_abort, LAMMPS *lmp);
 
-
     /**
      * \brief Trim anything from '#' onward
      * \param line string that should be trimmed
@@ -233,6 +232,14 @@ namespace LAMMPS_NS {
      * \return DATE field if present
      */
     std::string get_potential_date(const std::string & path, const std::string & potential_name);
+
+    /**
+     * \brief Read potential file and return UNITS field if it is present
+     * \param path file path
+     * \param potential_name name of potential that is being read
+     * \return UNITS field if present
+     */
+    std::string get_potential_units(const std::string & path, const std::string & potential_name);
   }
 }
 

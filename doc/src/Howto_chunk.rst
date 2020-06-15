@@ -197,7 +197,7 @@ compress individual polymer chains (molecules) in a mixture, is
 explained on the :doc:`compute chunk/spread/atom <compute_chunk_spread_atom>` command doc page.
 
 (7) An example for using one set of per-chunk values for molecule
-chunks, to create a 2nd set of micelle-scale chunks (clustered
+chunks, to create a second set of micelle-scale chunks (clustered
 molecules, due to hydrophobicity), is explained on the :doc:`compute chunk/reduce <compute_reduce_chunk>` command doc page.
 
 (8) An example for using one set of per-chunk values (dipole moment

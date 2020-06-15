@@ -45,7 +45,7 @@ AtomVecSPH::AtomVecSPH(LAMMPS *lmp) : AtomVec(lmp)
   fields_border_vel = (char *) "rho esph cv vest";
   fields_exchange = (char *) "rho esph cv vest";
   fields_restart = (char * ) "rho esph cv vest";
-  fields_create = (char *) "rho esph cv vest de drho";
+  fields_create = (char *) "rho esph cv vest desph drho";
   fields_data_atom = (char *) "id type rho esph cv x";
   fields_data_vel = (char *) "id v";
 

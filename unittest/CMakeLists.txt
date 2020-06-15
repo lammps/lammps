@@ -6,7 +6,7 @@ add_subdirectory(utils)
 
 add_subdirectory(formats)
 
-find_package(ClangFormat)
+find_package(ClangFormat 8.0)
 
 if(ClangFormat_FOUND)
   set(UNITTEST_SOURCES)

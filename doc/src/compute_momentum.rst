@@ -6,7 +6,6 @@ compute momentum command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID momentum
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all momentum
 
@@ -43,7 +41,6 @@ value will be in mass\*velocity :doc:`units <units>`.
 
 Restrictions
 """"""""""""
-
 
 This compute is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

@@ -8,9 +8,13 @@
  * (VC11 has _MSC_VER=1700).
  */
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__MINGW32__)
+#if !defined(M_PI)
 #define M_PI 3.14159265358979323846264338327950288
+#endif
+#endif
 
+#if defined(_MSC_VER)
 #if _MSC_VER <= 1700 // 1700 is VC11, 1800 is VC12
 /***************************
 *   erf.cpp

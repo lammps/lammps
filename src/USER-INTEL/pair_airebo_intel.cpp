@@ -49,8 +49,10 @@
 #include "kspace.h"
 #include "modify.h"
 #include "suffix.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #ifdef __INTEL_OFFLOAD
 #pragma offload_attribute(push, target(mic))
@@ -637,8 +639,6 @@ namespace overloaded {
     compared to original code.
    ---------------------------------------------------------------------- */
 
-#define M_PI           3.14159265358979323846  /* pi */
-
 #define CARBON 0
 #define HYDROGEN 1
 #define TOL 1.0e-9
@@ -662,8 +662,8 @@ inline flt_t Sp(flt_t r, flt_t lo, flt_t hi, flt_t * del) {
     if (del) *del = 0;
     return 0;
   } else {
-    t *= static_cast<flt_t>(M_PI);
-    if (del) *del = static_cast<flt_t>(-0.5 * M_PI)
+    t *= static_cast<flt_t>(MY_PI);
+    if (del) *del = static_cast<flt_t>(-0.5 * MY_PI)
                   * overloaded::sin(t) / (hi - lo);
     return static_cast<flt_t>(0.5) * (1 + overloaded::cos(t));
   }
@@ -2248,7 +2248,7 @@ static fvec aut_Sp_deriv(fvec r, fvec lo, fvec hi, fvec * d) {
   fvec c_1 = fvec::set1(1);
   fvec c_0_5 = fvec::set1(0.5);
   fvec c_m0_5 = fvec::set1(-0.5);
-  fvec c_PI = fvec::set1(M_PI);
+  fvec c_PI = fvec::set1(MY_PI);
   bvec m_lo = fvec::cmple(r, lo);
   bvec m_hi = fvec::cmpnlt(r, hi); // nlt == ge
   bvec m_tr = bvec::kandn(m_lo, ~ m_hi);
@@ -2273,7 +2273,7 @@ static fvec aut_Sp_deriv(fvec r, fvec lo, fvec hi, fvec * d) {
 static fvec aut_mask_Sp(bvec mask, fvec r, fvec lo, fvec hi) {
   fvec c_1 = fvec::set1(1);
   fvec c_0_5 = fvec::set1(0.5);
-  fvec c_PI = fvec::set1(M_PI);
+  fvec c_PI = fvec::set1(MY_PI);
   bvec m_lo = fvec::mask_cmple(mask, r, lo);
   bvec m_hi = fvec::mask_cmpnlt(mask, r, hi); // nlt == ge
   bvec m_tr = bvec::kandn(m_lo, bvec::kandn(m_hi, mask));
@@ -4480,7 +4480,7 @@ exceed_limits:
  * Calculate the lennard-jones interaction.
  * Uses the above hash-map, and outlines the calculation if the bondorder is
  *  needed.
- * Agressively compresses to get the most values calculated.
+ * Aggressively compresses to get the most values calculated.
  */
 template<int MORSEFLAG>
 static void aut_lennard_jones(KernelArgsAIREBOT<flt_t,acc_t> * ka) {

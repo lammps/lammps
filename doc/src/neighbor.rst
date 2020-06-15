@@ -6,7 +6,6 @@ neighbor command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    neighbor skin style
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    neighbor 0.3 bin
    neighbor 2.0 nsq
@@ -86,5 +84,5 @@ Default
 | 0.3 bin for units = lj, skin = 0.3 sigma
 | 2.0 bin for units = real or metal, skin = 2.0 Angstroms
 | 0.001 bin for units = si, skin = 0.001 meters = 1.0 mm
-| 0.1 bin for units = cgs, skin = 0.1 cm = 1.0 mm 
-| 
+| 0.1 bin for units = cgs, skin = 0.1 cm = 1.0 mm
+|

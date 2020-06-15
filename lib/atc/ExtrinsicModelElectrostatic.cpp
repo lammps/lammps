@@ -144,7 +144,7 @@ namespace ATC {
       }
     }
 
-    /** switch to account for short range interaces */
+    /** switch to account for short range interfaces */
     else if (strcmp(arg[argIndx],"short_range")==0) {
       argIndx++;
       if (strcmp(arg[argIndx],"on")==0) {

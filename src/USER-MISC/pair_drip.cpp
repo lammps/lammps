@@ -33,6 +33,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -116,8 +117,8 @@ void PairDRIP::allocate()
 void PairDRIP::settings(int narg, char ** /* arg */)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
-  if (strcmp(force->pair_style,"hybrid/overlay")!=0)
-    error->all(FLERR,"ERROR: requires hybrid/overlay pair_style");
+  if (!utils::strmatch(force->pair_style,"^hybrid/overlay"))
+    error->all(FLERR,"Pair style drip must be used as sub-style with hybrid/overlay");
 }
 
 /* ----------------------------------------------------------------------
@@ -253,7 +254,7 @@ void PairDRIP::read_file(char *filename)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // concatenate additional lines until have params_per_line words
@@ -272,7 +273,7 @@ void PairDRIP::read_file(char *filename)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+      nwords = utils::count_words(line);
     }
 
     if (nwords != params_per_line)
@@ -405,7 +406,7 @@ void PairDRIP::compute(int eflag, int vflag)
       Param& p = params[iparam_ij];
       double rcutsq = p.rcutsq;
 
-      // only include the interation between different layers
+      // only include the interaction between different layers
       if (rsq < rcutsq && atom->molecule[i] != atom->molecule[j]) {
 
         double fj[DIM] = {0., 0., 0.};

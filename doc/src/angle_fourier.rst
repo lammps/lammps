@@ -9,7 +9,6 @@ angle_style fourier/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    angle_style fourier
@@ -31,7 +30,6 @@ The *fourier* angle style uses the potential
 
    E = K [C_0 + C_1 \cos ( \theta) + C_2 \cos( 2 \theta) ]
 
-
 The following coefficients must be defined for each angle type via the
 :doc:`angle_coeff <angle_coeff>` command as in the example above, or in
 the data file or restart files read by the :doc:`read_data <read_data>`
@@ -42,9 +40,7 @@ or :doc:`read_restart <read_restart>` commands:
 * :math:`C_1` (real)
 * :math:`C_2` (real)
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -64,16 +60,13 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
 
-
 This angle style can only be used if LAMMPS was built with the
-USER\_MISC package.  See the :doc:`Build package <Build_package>` doc
+USER_MISC package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 Related commands

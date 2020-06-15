@@ -6,7 +6,6 @@ compute com command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID com
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all com
 

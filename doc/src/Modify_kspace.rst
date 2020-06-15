@@ -17,5 +17,5 @@ class.  See kspace.h for details.
 +---------------+----------------------------------------------+
 | compute       | every-timestep computation                   |
 +---------------+----------------------------------------------+
-| memory\_usage | tally of memory usage                        |
+| memory_usage  | tally of memory usage                        |
 +---------------+----------------------------------------------+

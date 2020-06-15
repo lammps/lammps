@@ -115,7 +115,7 @@ int colvarbias_abf::init(std::string const &conf)
     if (colvars[i]->value().type() != colvarvalue::type_scalar) {
       cvm::error("Error: ABF bias can only use scalar-type variables.\n");
     }
-    colvars[i]->enable(f_cv_grid);
+    colvars[i]->enable(f_cv_grid); // Could be a child dependency of a f_cvb_use_grids feature
     if (hide_Jacobian) {
       colvars[i]->enable(f_cv_hide_Jacobian);
     }

@@ -1,31 +1,30 @@
-.. index:: pair\_style dpd
+.. index:: pair_style dpd
 
-pair\_style dpd command
-=======================
+pair_style dpd command
+======================
 
-pair\_style dpd/gpu command
-===========================
+pair_style dpd/gpu command
+==========================
 
-pair\_style dpd/intel command
-=============================
+pair_style dpd/intel command
+============================
 
-pair\_style dpd/omp command
-===========================
+pair_style dpd/omp command
+==========================
 
-pair\_style dpd/tstat command
-=============================
+pair_style dpd/tstat command
+============================
 
-pair\_style dpd/tstat/gpu command
-=================================
+pair_style dpd/tstat/gpu command
+================================
 
-pair\_style dpd/tstat/omp command
-=================================
+pair_style dpd/tstat/omp command
+================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style dpd T cutoff seed
    pair_style dpd/tstat Tstart Tstop cutoff seed
@@ -38,15 +37,14 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style dpd 1.0 2.5 34387
-   pair_coeff \* \* 3.0 1.0
+   pair_coeff * * 3.0 1.0
    pair_coeff 1 1 3.0 1.0 1.0
 
    pair_style dpd/tstat 1.0 1.0 2.5 34387
-   pair_coeff \* \* 1.0
+   pair_coeff * * 1.0
    pair_coeff 1 1 1.0 1.0
 
 Description
@@ -67,17 +65,24 @@ pair interaction and the thermostat for each pair of particles.
 For style *dpd*\ , the force on atom I due to atom J is given as a sum
 of 3 terms
 
-.. image:: Eqs/pair_dpd.jpg
-   :align: center
+.. math::
 
-where Fc is a conservative force, Fd is a dissipative force, and Fr is
-a random force.  Rij is a unit vector in the direction Ri - Rj, Vij is
-the vector difference in velocities of the two atoms = Vi - Vj, alpha
-is a Gaussian random number with zero mean and unit variance, dt is
-the timestep size, and w(r) is a weighting factor that varies between
-0 and 1.  Rc is the cutoff.  Sigma is set equal to sqrt(2 Kb T gamma),
-where Kb is the Boltzmann constant and T is the temperature parameter
-in the pair\_style command.
+   \vec{f}  = & (F^C + F^D + F^R) \hat{r_{ij}} \qquad \qquad r < r_c \\
+   F^C      = & A w(r) \\
+   F^D      = & - \gamma w^2(r) (\hat{r_{ij}} \bullet \vec{v_{ij}}) \\
+   F^R      = & \sigma w(r) \alpha (\Delta t)^{-1/2} \\
+   w(r)     = & 1 - r/r_c
+
+where :math:`F^C` is a conservative force, :math:`F^D` is a dissipative
+force, and :math:`F^R` is a random force.  :math:`r_{ij}` is a unit
+vector in the direction :math:`r_i - r_j`, :math:`V_{ij} is the vector
+difference in velocities of the two atoms :math:`= \vec{v}_i -
+\vec{v}_j, :math:`\alpha` is a Gaussian random number with zero mean and
+unit variance, dt is the timestep size, and w(r) is a weighting factor
+that varies between 0 and 1.  :math:`r_c` is the cutoff.  :math:`\sigma`
+is set equal to :math:`\sqrt{2 k_B T \gamma}`, where :math:`k_B` is the
+Boltzmann constant and T is the temperature parameter in the pair_style
+command.
 
 For style *dpd/tstat*\ , the force on atom I due to atom J is the same
 as the above equation, except that the conservative Fc term is
@@ -97,7 +102,7 @@ the examples above, or in the data file or restart files read by the
 commands:
 
 * A (force units)
-* gamma (force/velocity units)
+* :math:`\gamma` (force/velocity units)
 * cutoff (distance units)
 
 The last coefficient is optional.  If not specified, the global DPD
@@ -121,13 +126,16 @@ the work of :ref:`(Afshar) <Afshar>` and :ref:`(Phillips) <Phillips>`.
 
 .. note::
 
-   The virial calculation for pressure when using this pair style
+   The virial calculation for pressure when using these pair styles
    includes all the components of force listed above, including the
-   random force.
-
+   random force.  Since the random force depends on random numbers,
+   everything that changes the order of atoms in the neighbor list
+   (e.g. different number of MPI ranks or a different neighbor list
+   skin distance) will also change the sequence in which the random
+   numbers are applied and thus the individual forces and therefore
+   also the virial/pressure.
 
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -147,9 +155,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -168,7 +174,7 @@ These pair style do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-These pair styles writes their information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+These pair styles writes their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.  Note
 that the user-specified random number seed is stored in the restart
 file, so when a simulation is restarted, each processor will
@@ -186,13 +192,10 @@ runs, using the *start* and *stop* keywords of the :doc:`run <run>`
 command.  See the :doc:`run <run>` command for details of how to do
 this.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The default frequency for rebuilding neighbor lists is every 10 steps
 (see the :doc:`neigh_modify <neigh_modify>` command). This may be too
@@ -218,26 +221,18 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Groot1:
-
-
 
 **(Groot)** Groot and Warren, J Chem Phys, 107, 4423-35 (1997).
 
 .. _Afshar:
 
-
-
 **(Afshar)** Afshar, F. Schmid, A. Pishevar, S. Worley, Comput Phys
 Comm, 184, 1119-1128 (2013).
 
 .. _Phillips:
-
-
 
 **(Phillips)** C. L. Phillips, J. A. Anderson, S. C. Glotzer, Comput
 Phys Comm, 230, 7191-7201 (2011).

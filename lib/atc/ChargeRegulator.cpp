@@ -214,7 +214,7 @@ namespace ATC {
     qV2e_ = lammpsInterface_->qv2e();
     qqrd2e_ = lammpsInterface_->qqrd2e();
 
-    // note derived method set intialized to true
+    // note derived method set initialized to true
   }
 
   
@@ -327,7 +327,7 @@ namespace ATC {
 
 
 //
-    if (nInfluenceNodes_ < nControlNodes_) throw ATC_Error(" least square not implmented ");
+    if (nInfluenceNodes_ < nControlNodes_) throw ATC_Error(" least square not implemented ");
     if (nInfluenceNodes_ > nControlNodes_) throw ATC_Error(" solve not possible ");
     DENS_MAT G(nInfluenceNodes_,nControlNodes_); 
     DENS_VEC G_I;

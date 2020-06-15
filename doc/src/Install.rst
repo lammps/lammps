@@ -8,7 +8,6 @@ have more flexibility as to what features to include or exclude in the
 build.  If you plan to :doc:`modify or extend LAMMPS <Modify>`, then you
 need the source code.
 
-
 .. toctree::
    :maxdepth: 1
 
@@ -19,7 +18,6 @@ need the source code.
 
    Install_tarball
    Install_git
-   Install_svn
    Install_patch
 
 These are the files and sub-directories in the LAMMPS distribution:

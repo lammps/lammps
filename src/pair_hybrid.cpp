@@ -313,7 +313,7 @@ void PairHybrid::settings(int narg, char **arg)
   iarg = 0;
   nstyles = 0;
   while (iarg < narg) {
-    if (strncmp(arg[iarg],"hybrid",6) == 0)
+    if (utils::strmatch(arg[iarg],"^hybrid"))
       error->all(FLERR,"Pair style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[iarg],"none") == 0)
       error->all(FLERR,"Pair style hybrid cannot have none as an argument");
@@ -323,8 +323,14 @@ void PairHybrid::settings(int narg, char **arg)
     special_lj[nstyles] = special_coul[nstyles] = NULL;
     compute_tally[nstyles] = 1;
 
+    // determine list of arguments for pair style settings
+    // by looking for the next known pair style name.
+
     jarg = iarg + 1;
-    while (jarg < narg && !force->pair_map->count(arg[jarg])) jarg++;
+    while ((jarg < narg)
+           && !force->pair_map->count(arg[jarg])
+           && !lmp->match_style("pair",arg[jarg])) jarg++;
+
     styles[nstyles]->settings(jarg-iarg-1,&arg[iarg+1]);
     iarg = jarg;
     nstyles++;
@@ -742,7 +748,7 @@ void PairHybrid::read_restart(FILE *fp)
     keywords[m] = new char[n];
     if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,NULL,error);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
-    styles[m] = force->new_pair(keywords[m],0,dummy);
+    styles[m] = force->new_pair(keywords[m],1,dummy);
     styles[m]->read_restart_settings(fp);
     // read back per style special settings, if present
     special_lj[m] = special_coul[m] = NULL;
@@ -1007,7 +1013,7 @@ void *PairHybrid::extract(const char *str, int &dim)
   for (int m = 0; m < nstyles; m++) {
     ptr = styles[m]->extract(str,dim);
     if (ptr && strcmp(str,"cut_coul") == 0) {
-      if (cutptr && dim != couldim)
+      if (couldim != -1 && dim != couldim)
         error->all(FLERR,
                    "Coulomb styles of pair hybrid sub-styles do not match");
       double *p_newvalue = (double *) ptr;

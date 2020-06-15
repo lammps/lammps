@@ -9,7 +9,6 @@ fix reax/c/bonds/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID reaxc/bonds Nevery filename
@@ -22,8 +21,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all reax/c/bonds 100 bonds.reaxc
 
@@ -45,11 +43,11 @@ The meaning of the column header abbreviations is as follows:
 * id = atom id
 * type = atom type
 * nb = number of bonds
-* id\_1 = atom id of first bond
-* id\_nb = atom id of Nth bond
+* id_1 = atom id of first bond
+* id_nb = atom id of Nth bond
 * mol = molecule id
-* bo\_1 = bond order of first bond
-* bo\_nb = bond order of Nth bond
+* bo_1 = bond order of first bond
+* bo_nb = bond order of Nth bond
 * abo = atom bond order (sum of all bonds)
 * nlp = number of lone pairs
 * q = atomic charge
@@ -58,11 +56,9 @@ If the filename ends with ".gz", the output file is written in gzipped
 format.  A gzipped dump file will be about 3x smaller than the text
 version, but will also take longer to write.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -70,9 +66,7 @@ by this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -93,13 +87,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See :doc:`Speed <Speed>` of the manual for
 more instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 The fix reax/c/bonds command requires that the :doc:`pair_style reax/c <pair_reaxc>` is invoked.  This fix is part of the
 USER-REAXC package.  It is only enabled if LAMMPS was built with that
@@ -107,7 +98,7 @@ package.  See the :doc:`Build package <Build_package>` doc page for more
 info.
 
 To write gzipped bond files, you must compile LAMMPS with the
--DLAMMPS\_GZIP option.
+-DLAMMPS_GZIP option.
 
 Related commands
 """"""""""""""""

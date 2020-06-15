@@ -11,6 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifndef LAMMPS_LIBRARY_H
+#define LAMMPS_LIBRARY_H
+
 /*
    C or Fortran style library interface to LAMMPS
    new LAMMPS-specific functions can be added
@@ -86,6 +89,10 @@ int lammps_config_has_jpeg_support();
 int lammps_config_has_ffmpeg_support();
 int lammps_config_has_exceptions();
 
+int lammps_has_style(void* ptr, char * category, char * name);
+int lammps_style_count(void* ptr, char * category);
+int lammps_style_name(void*ptr, char * category, int index, char * buffer, int max_size);
+
 int lammps_find_pair_neighlist(void* ptr, char * style, int exact, int nsub, int request);
 int lammps_find_fix_neighlist(void* ptr, char * id, int request);
 int lammps_find_compute_neighlist(void* ptr, char * id, int request);
@@ -114,6 +121,7 @@ int lammps_get_last_error_message(void *, char *, int);
 }
 #endif
 
+#endif /* LAMMPS_LIBRARY_H */
 /* ERROR/WARNING messages:
 
 E: Library error: issuing LAMMPS command during run

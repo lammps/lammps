@@ -8,7 +8,6 @@ methods that can be invoked on that object.  The sample Python code
 below assumes you have first imported the "lammps" module in your
 Python script, as follows:
 
-
 .. code-block:: Python
 
    from lammps import lammps
@@ -21,7 +20,6 @@ from a C++ or C or Fortran program, and which are described on the
 
 The python/examples directory has Python scripts which show how Python
 can run LAMMPS, grab data, change it, and put it back into LAMMPS.
-
 
 .. code-block:: Python
 
@@ -93,12 +91,9 @@ can run LAMMPS, grab data, change it, and put it back into LAMMPS.
 
    lmp.create_atoms(n,ids,types,x,v,image,shrinkexceed)   # create N atoms with IDs, types, x, v, and image flags
 
-
 ----------
 
-
 The lines
-
 
 .. code-block:: Python
 
@@ -116,7 +111,6 @@ prompt.
 
 If the ptr argument is set like this:
 
-
 .. code-block:: Python
 
    lmp = lammps(ptr=lmpptr)
@@ -133,7 +127,6 @@ instance "lmp" to make calls to that instance of LAMMPS.  See the
 Note that you can create multiple LAMMPS objects in your Python
 script, and coordinate and run multiple simulations, e.g.
 
-
 .. code-block:: Python
 
    from lammps import lammps
@@ -142,21 +135,21 @@ script, and coordinate and run multiple simulations, e.g.
    lmp1.file("in.file1")
    lmp2.file("in.file2")
 
-The file(), command(), commands\_list(), commands\_string() methods
+The file(), command(), commands_list(), commands_string() methods
 allow an input script, a single command, or multiple commands to be
 invoked.
 
-The extract\_setting(), extract\_global(), extract\_box(),
-extract\_atom(), extract\_compute(), extract\_fix(), and
-extract\_variable() methods return values or pointers to data
+The extract_setting(), extract_global(), extract_box(),
+extract_atom(), extract_compute(), extract_fix(), and
+extract_variable() methods return values or pointers to data
 structures internal to LAMMPS.
 
-For extract\_global() see the src/library.cpp file for the list of
+For extract_global() see the src/library.cpp file for the list of
 valid names.  New names could easily be added.  A double or integer is
 returned.  You need to specify the appropriate data type via the type
 argument.
 
-For extract\_atom(), a pointer to internal LAMMPS atom-based data is
+For extract_atom(), a pointer to internal LAMMPS atom-based data is
 returned, which you can use via normal Python subscripting.  See the
 extract() method in the src/atom.cpp file for a list of valid names.
 Again, new names could easily be added if the property you want is not
@@ -164,7 +157,7 @@ listed.  A pointer to a vector of doubles or integers, or a pointer to
 an array of doubles (double \*\*) or integers (int \*\*) is returned.  You
 need to specify the appropriate data type via the type argument.
 
-For extract\_compute() and extract\_fix(), the global, per-atom, or
+For extract_compute() and extract_fix(), the global, per-atom, or
 local data calculated by the compute or fix can be accessed.  What is
 returned depends on whether the compute or fix calculates a scalar or
 vector or array.  For a scalar, a single double value is returned.  If
@@ -180,7 +173,7 @@ data types.  See the doc pages for individual :doc:`computes <compute>`
 and :doc:`fixes <fix>` for a description of what they calculate and
 store.
 
-For extract\_variable(), an :doc:`equal-style or atom-style variable <variable>` is evaluated and its result returned.
+For extract_variable(), an :doc:`equal-style or atom-style variable <variable>` is evaluated and its result returned.
 
 For equal-style variables a single double value is returned and the
 group argument is ignored.  For atom-style variables, a vector of
@@ -188,17 +181,17 @@ doubles is returned, one value per atom, which you can use via normal
 Python subscripting. The values will be zero for atoms not in the
 specified group.
 
-The get\_thermo() method returns the current value of a thermo
+The get_thermo() method returns the current value of a thermo
 keyword as a float.
 
-The get\_natoms() method returns the total number of atoms in the
+The get_natoms() method returns the total number of atoms in the
 simulation, as an int.
 
-The set\_variable() method sets an existing string-style variable to a
+The set_variable() method sets an existing string-style variable to a
 new string value, so that subsequent LAMMPS commands can access the
 variable.
 
-The reset\_box() method resets the size and shape of the simulation
+The reset_box() method resets the size and shape of the simulation
 box, e.g. as part of restoring a previously extracted and saved state
 of a simulation.
 
@@ -210,25 +203,24 @@ passed by all calling processors, to individual atoms, which may be
 owned by different processors.
 
 Note that the data returned by the gather methods,
-e.g. gather\_atoms("x"), is different from the data structure returned
-by extract\_atom("x") in four ways.  (1) Gather\_atoms() returns a
-vector which you index as x[i]; extract\_atom() returns an array
-which you index as x[i][j].  (2) Gather\_atoms() orders the atoms
-by atom ID while extract\_atom() does not.  (3) Gather\_atoms() returns
-a list of all atoms in the simulation; extract\_atoms() returns just
-the atoms local to each processor.  (4) Finally, the gather\_atoms()
+e.g. gather_atoms("x"), is different from the data structure returned
+by extract_atom("x") in four ways.  (1) Gather_atoms() returns a
+vector which you index as x[i]; extract_atom() returns an array
+which you index as x[i][j].  (2) Gather_atoms() orders the atoms
+by atom ID while extract_atom() does not.  (3) Gather_atoms() returns
+a list of all atoms in the simulation; extract_atoms() returns just
+the atoms local to each processor.  (4) Finally, the gather_atoms()
 data structure is a copy of the atom coords stored internally in
-LAMMPS, whereas extract\_atom() returns an array that effectively
+LAMMPS, whereas extract_atom() returns an array that effectively
 points directly to the internal data.  This means you can change
 values inside LAMMPS from Python by assigning a new values to the
-extract\_atom() array.  To do this with the gather\_atoms() vector, you
-need to change values in the vector, then invoke the scatter\_atoms()
+extract_atom() array.  To do this with the gather_atoms() vector, you
+need to change values in the vector, then invoke the scatter_atoms()
 method.
 
 For the scatter methods, the array of coordinates passed to must be a
 ctypes vector of ints or doubles, allocated and initialized something
 like this:
-
 
 .. code-block:: Python
 
@@ -247,9 +239,7 @@ like this:
 Alternatively, you can just change values in the vector returned by
 the gather methods, since they are also ctypes vectors.
 
-
 ----------
-
 
 As noted above, these Python class methods correspond one-to-one with
 the functions in the LAMMPS library interface in src/library.cpp and
@@ -263,7 +253,6 @@ following steps:
   function.
 * You should now be able to invoke the new interface function from a
   Python script.
-
 
 ----------
 

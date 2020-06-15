@@ -6,7 +6,6 @@ molecule command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    molecule ID file1 keyword values ... file2 keyword values ... fileN ...
@@ -15,9 +14,9 @@ Syntax
 * file1,file2,... = names of files containing molecule descriptions
 * zero or more keyword/value pairs may be appended after each file
 * keyword = *offset* or *toff* or *boff* or *aoff* or *doff* or *ioff* or *scale*
-  
+
   .. parsed-literal::
-  
+
        *offset* values = Toff Boff Aoff Doff Ioff
          Toff = offset to add to atom types
          Boff = offset to add to bond types
@@ -37,13 +36,10 @@ Syntax
        *scale* value = sfactor
          sfactor = scale factor to apply to the size and mass of the molecule
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    molecule 1 mymol.txt
    molecule 1 co2.txt h2o.txt
@@ -64,6 +60,7 @@ templates include:
 * :doc:`fix rigid/small <fix_rigid>`
 * :doc:`fix shake <fix_shake>`
 * :doc:`fix gcmc <fix_gcmc>`
+* :doc:`fix bond/react <fix_bond_react>`
 * :doc:`create_atoms <create_atoms>`
 * :doc:`atom_style template <atom_style>`
 
@@ -127,7 +124,7 @@ a description of the file.  Then lines are read one at a time.  Lines
 can have a trailing comment starting with '#' that is ignored.  If the
 line is blank (only white-space after comment is deleted), it is
 skipped.  If the line contains a header keyword, the corresponding
-value(s) is read from the line.  If it doesn't contain a header
+value(s) is read from the line.  If it does not contain a header
 keyword, the line begins the body of the file.
 
 The body of the file contains zero or more sections.  The first line
@@ -148,6 +145,7 @@ appear if the value(s) are different than the default.
 * Na *angles* = # of angles Na in molecule, default = 0
 * Nd *dihedrals* = # of dihedrals Nd in molecule, default = 0
 * Ni *impropers* = # of impropers Ni in molecule, default = 0
+* Nf *fragments* = # of fragments in molecule, default = 0
 * Mtotal *mass* = total mass of molecule
 * Xc Yc Zc *com* = coordinates of center-of-mass of molecule
 * Ixx Iyy Izz Ixy Ixz Iyz *inertia* = 6 components of inertia tensor of molecule
@@ -170,7 +168,7 @@ internally.
 
 These are the allowed section keywords for the body of the file.
 
-* *Coords, Types, Charges, Diameters, Masses* = atom-property sections
+* *Coords, Types, Molecules, Fragments, Charges, Diameters, Masses* = atom-property sections
 * *Bonds, Angles, Dihedrals, Impropers* = molecular topology sections
 * *Special Bond Counts, Special Bonds* = special neighbor info
 * *Shake Flags, Shake Atoms, Shake Bond Types* = SHAKE info
@@ -209,9 +207,7 @@ should be a number from 1 to Nlines for the section, indicating which
 atom (or bond, etc) the entry applies to.  The lines are assumed to be
 listed in order from 1 to Nlines, but LAMMPS does not check for this.
 
-
 ----------
-
 
 *Coords* section:
 
@@ -219,9 +215,7 @@ listed in order from 1 to Nlines, but LAMMPS does not check for this.
 * line syntax: ID x y z
 * x,y,z = coordinate of atom
 
-
 ----------
-
 
 *Types* section:
 
@@ -229,9 +223,27 @@ listed in order from 1 to Nlines, but LAMMPS does not check for this.
 * line syntax: ID type
 * type = atom type of atom
 
+----------
+
+*Molecules* section:
+
+* one line per atom
+* line syntax: ID molecule-ID
+* molecule-ID = molecule ID of atom
 
 ----------
 
+*Fragments* section:
+
+* one line per fragment
+* line syntax: ID a b c d ...
+* a,b,c,d,... = IDs of atoms in fragment
+
+The ID of a fragment can only contain alphanumeric characters and
+underscores.  The atom IDs should be values from 1 to Natoms, where
+Natoms = # of atoms in the molecule.
+
+----------
 
 *Charges* section:
 
@@ -243,9 +255,7 @@ This section is only allowed for :doc:`atom styles <atom_style>` that
 support charge.  If this section is not included, the default charge
 on each atom in the molecule is 0.0.
 
-
 ----------
-
 
 *Diameters* section:
 
@@ -254,12 +264,10 @@ on each atom in the molecule is 0.0.
 * diam = diameter of atom
 
 This section is only allowed for :doc:`atom styles <atom_style>` that
-support finite-size spherical particles, e.g. atom\_style sphere.  If
+support finite-size spherical particles, e.g. atom_style sphere.  If
 not listed, the default diameter of each atom in the molecule is 1.0.
 
-
 ----------
-
 
 *Masses* section:
 
@@ -274,9 +282,7 @@ included, the default mass for each atom is derived from its volume
 (see Diameters section) and a default density of 1.0, in
 :doc:`units <units>` of mass/volume.
 
-
 ----------
-
 
 *Bonds* section:
 
@@ -288,9 +294,7 @@ included, the default mass for each atom is derived from its volume
 The IDs for the two atoms in each bond should be values
 from 1 to Natoms, where Natoms = # of atoms in the molecule.
 
-
 ----------
-
 
 *Angles* section:
 
@@ -304,9 +308,7 @@ Natoms, where Natoms = # of atoms in the molecule.  The 3 atoms are
 ordered linearly within the angle.  Thus the central atom (around
 which the angle is computed) is the atom2 in the list.
 
-
 ----------
-
 
 *Dihedrals* section:
 
@@ -319,9 +321,7 @@ The IDs for the four atoms in each dihedral should be values from 1 to
 Natoms, where Natoms = # of atoms in the molecule.  The 4 atoms are
 ordered linearly within the dihedral.
 
-
 ----------
-
 
 *Impropers* section:
 
@@ -336,9 +336,7 @@ the 4 atoms determines the definition of the improper angle used in
 the formula for the defined :doc:`improper style <improper_style>`.  See
 the doc pages for individual styles for details.
 
-
 ----------
-
 
 *Special Bond Counts* section:
 
@@ -358,9 +356,7 @@ As explained above, LAMMPS will auto-generate this information if this
 section is not specified.  If specified, this section will
 override what would be auto-generated.
 
-
 ----------
-
 
 *Special Bonds* section:
 
@@ -381,9 +377,7 @@ As explained above, LAMMPS will auto-generate this information if this
 section is not specified.  If specified, this section will override
 what would be auto-generated.
 
-
 ----------
-
 
 *Shake Flags* section:
 
@@ -404,9 +398,7 @@ clusters.
 * 3 = part of a 3-atom SHAKE cluster with two bonds
 * 4 = part of a 4-atom SHAKE cluster with three bonds
 
-
 ----------
-
 
 *Shake Atoms* section:
 
@@ -442,9 +434,7 @@ and b,c,d = IDs of other three atoms bonded to the central atom.
 See the :doc:`fix shake <fix_shake>` doc page for a further description
 of SHAKE clusters.
 
-
 ----------
-
 
 *Shake Bond Types* section:
 
@@ -489,13 +479,10 @@ atom (value d in the Shake Atoms section).
 See the :doc:`fix shake <fix_shake>` doc page for a further description
 of SHAKE clusters.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command must come after the simulation box is define by a
 :doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or

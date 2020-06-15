@@ -6,7 +6,6 @@ compute temp/com command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/com
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all temp/com
    compute myTemp mobile temp/com

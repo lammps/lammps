@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -44,7 +45,7 @@
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#else
+#elif !defined(__APPLE__)
 #include <unistd.h>
 #endif
 #include <cstdio>
@@ -55,33 +56,14 @@
 namespace Kokkos {
 namespace Impl {
 
-//The following function (processors_per_node) is copied from here:
-// https://lists.gnu.org/archive/html/autoconf/2002-08/msg00126.html
-// Philip Willoughby
-
 int processors_per_node() {
-  int nprocs = -1;
-  int nprocs_max = -1;
-#ifdef _WIN32
-#ifndef _SC_NPROCESSORS_ONLN
-SYSTEM_INFO info;
-GetSystemInfo(&info);
-#define sysconf(a) info.dwNumberOfProcessors
-#define _SC_NPROCESSORS_ONLN
-#endif
-#endif
 #ifdef _SC_NPROCESSORS_ONLN
-  nprocs = sysconf(_SC_NPROCESSORS_ONLN);
-  if (nprocs < 1)
-  {
+  int const num_procs     = sysconf(_SC_NPROCESSORS_ONLN);
+  int const num_procs_max = sysconf(_SC_NPROCESSORS_CONF);
+  if ((num_procs < 1) || (num_procs_max < 1)) {
     return -1;
   }
-  nprocs_max = sysconf(_SC_NPROCESSORS_CONF);
-  if (nprocs_max < 1)
-  {
-    return -1;
-  }
-  return nprocs;
+  return num_procs;
 #else
   return -1;
 #endif
@@ -90,25 +72,25 @@ GetSystemInfo(&info);
 int mpi_ranks_per_node() {
   char *str;
   int ppn = 1;
-  //if ((str = getenv("SLURM_TASKS_PER_NODE"))) {
+  // if ((str = getenv("SLURM_TASKS_PER_NODE"))) {
   //  ppn = atoi(str);
   //  if(ppn<=0) ppn = 1;
   //}
   if ((str = getenv("MV2_COMM_WORLD_LOCAL_SIZE"))) {
     ppn = atoi(str);
-    if(ppn<=0) ppn = 1;
+    if (ppn <= 0) ppn = 1;
   }
   if ((str = getenv("OMPI_COMM_WORLD_LOCAL_SIZE"))) {
     ppn = atoi(str);
-    if(ppn<=0) ppn = 1;
+    if (ppn <= 0) ppn = 1;
   }
   return ppn;
 }
 
 int mpi_local_rank_on_node() {
   char *str;
-  int local_rank=0;
-  //if ((str = getenv("SLURM_LOCALID"))) {
+  int local_rank = 0;
+  // if ((str = getenv("SLURM_LOCALID"))) {
   //  local_rank = atoi(str);
   //}
   if ((str = getenv("MV2_COMM_WORLD_LOCAL_RANK"))) {
@@ -120,6 +102,5 @@ int mpi_local_rank_on_node() {
   return local_rank;
 }
 
-}
-}
-
+}  // namespace Impl
+}  // namespace Kokkos

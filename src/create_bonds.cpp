@@ -20,6 +20,7 @@
 #include "create_bonds.h"
 #include <mpi.h>
 #include <cstring>
+#include <string>
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
@@ -30,6 +31,8 @@
 #include "group.h"
 #include "special.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -318,19 +321,9 @@ void CreateBonds::many()
 
   bigint nadd_bonds = atom->nbonds - nbonds_previous;
 
-  if (comm->me == 0) {
-    if (screen) {
-      fprintf(screen,"Added " BIGINT_FORMAT
-              " bonds, new total = " BIGINT_FORMAT "\n",
-              nadd_bonds,atom->nbonds);
-    }
-
-    if (logfile) {
-      fprintf(logfile,"Added " BIGINT_FORMAT
-              " bonds, new total = " BIGINT_FORMAT "\n",
-              nadd_bonds,atom->nbonds);
-    }
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,fmt::format("Added {} bonds, new total = {}\n",
+                                   nadd_bonds,atom->nbonds));
 }
 
 /* ---------------------------------------------------------------------- */

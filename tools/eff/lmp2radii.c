@@ -1759,7 +1759,7 @@ PyMODINIT_FUNC PyInit_lmp2radii(void)
   Py_ssize_t __pyx_5 = 0;
   PyObject *__pyx_6 = 0;
   __pyx_empty_tuple = PyTuple_New(0); if (unlikely(!__pyx_empty_tuple)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  /*--- Libary function declarations ---*/
+  /*--- Library function declarations ---*/
   __pyx_init_filenames();
   /*--- Initialize various global constants etc. ---*/
   if (unlikely(__Pyx_InitGlobals() < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}

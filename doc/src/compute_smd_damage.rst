@@ -6,7 +6,6 @@ compute smd/damage command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID smd/damage
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all smd/damage
 
@@ -42,13 +40,12 @@ The per-particle values are dimensionless an in the range of zero to one.
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package.  See the "Build
 
 Related commands
 """"""""""""""""
 
-:doc:`smd/plastic\_strain <compute_smd_plastic_strain>`, :doc:`smd/tlsph\_stress <compute_smd_tlsph_stress>`
+:doc:`smd/plastic_strain <compute_smd_plastic_strain>`, :doc:`smd/tlsph_stress <compute_smd_tlsph_stress>`
 
 **Default:** none

@@ -9,14 +9,12 @@ bond_style morse/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    bond_style morse
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -32,7 +30,6 @@ The *morse* bond style uses the potential
 
    E = D \left[ 1 - e^{-\alpha (r - r_0)} \right]^2
 
-
 where :math:`r_0` is the equilibrium bond distance, :math:`\alpha` is a stiffness
 parameter, and :math:`D` determines the depth of the potential well.
 
@@ -45,9 +42,7 @@ or :doc:`read_restart <read_restart>` commands:
 * :math:`\alpha` (inverse distance)
 * :math:`r_0` (distance)
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -67,13 +62,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This bond style can only be used if LAMMPS was built with the MOLECULE
 package.  See the :doc:`Build package <Build_package>` doc page for more

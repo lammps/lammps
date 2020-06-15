@@ -15,7 +15,7 @@
    Contributing authors: Koenraad Janssens and David Olmsted (SNL)
    Modification for bcc provided by: Tegar Wicaksono (UBC)
    For a tutorial, please see "Order parameters of crystals in LAMMPS"
-            (https://dx.doi.org/10.6084/m9.figshare.1488628.v1
+            (https://doi.org/10.6084/m9.figshare.1488628.v1
 ------------------------------------------------------------------------- */
 
 #include "fix_orient_bcc.h"

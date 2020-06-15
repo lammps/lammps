@@ -1,5 +1,5 @@
 processors         * 1 1 # manually assign processors to spatial regions
-atom_style         meso
+atom_style         sph
 dimension          2
 newton             on
 boundary           f f p
@@ -22,8 +22,8 @@ pair_coeff         1 1 sph/rhosum ${h}
 fix                gfix water gravity -9.81 vector 0 1 0 # add gravity. This fix also computes potential energy of mass in gravity field.
 fix                2d_fix all enforce2d
 
-compute            rho_peratom all meso/rho/atom
-compute            e_peratom all meso/e/atom
+compute            rho_peratom all sph/rho/atom
+compute            e_peratom all sph/e/atom
 compute            esph all reduce sum c_e_peratom
 compute            ke all ke
 variable           etot equal c_esph+c_ke+f_gfix
@@ -32,10 +32,10 @@ variable           etot equal c_esph+c_ke+f_gfix
 fix                dtfix all dt/reset 1               NULL              ${dt}             0.0005 units box # use a variable timestep
 
 # time-integrate position, velocities, internal energy and density of water particles
-fix                integrate_water_fix water meso
+fix                integrate_water_fix water sph
 
 # time-integrate only internal energy and density of boundary particles
-fix                integrate_bc_fix bc meso/stationary
+fix                integrate_bc_fix bc sph/stationary
 dump               dump_id all custom 100 dump.lammpstrj id type xs ys zs c_rho_peratom c_e_peratom fx fy
 dump_modify        dump_id first yes
 thermo             10

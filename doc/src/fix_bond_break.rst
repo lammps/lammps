@@ -6,7 +6,6 @@ fix bond/break command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID bond/break Nevery bondtype Rmax keyword values ...
@@ -18,20 +17,17 @@ Syntax
 * Rmax = bond longer than Rmax can break (distance units)
 * zero or more keyword/value pairs may be appended to args
 * keyword = *prob*
-  
+
   .. parsed-literal::
-  
+
        *prob* values = fraction seed
          fraction = break a bond with this probability if otherwise eligible
          seed = random number seed (positive integer)
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 5 all bond/break 10 2 1.2
    fix 5 polymer bond/break 1 1 2.0 prob 0.5 49829
@@ -117,11 +113,9 @@ You can dump out snapshots of the current bond topology via the :doc:`dump local
    may need to thermostat your system to compensate for energy changes
    resulting from broken bonds (and angles, dihedrals, impropers).
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -140,7 +134,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`

@@ -9,7 +9,6 @@ fix momentum/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID momentum N keyword values ...
@@ -19,25 +18,21 @@ Syntax
 * N = adjust the momentum every this many timesteps
   one or more keyword/value pairs may be appended
 * keyword = *linear* or *angular* or *rescale*
-  
+
   .. parsed-literal::
-  
+
        *linear* values = xflag yflag zflag
          xflag,yflag,zflag = 0/1 to exclude/include each dimension
        *angular* values = none
 
-  
   .. parsed-literal::
-  
+
        *rescale* values = none
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all momentum 1 linear 1 1 0
    fix 1 all momentum 1 linear 1 1 1 rescale
@@ -70,9 +65,7 @@ of atoms by rescaling the velocities after the momentum was removed.
 Note that the :doc:`velocity <velocity>` command can be used to create
 initial velocities with zero aggregate linear and/or angular momentum.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -92,7 +85,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored

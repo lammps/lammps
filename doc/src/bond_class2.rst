@@ -12,14 +12,12 @@ bond_style class2/kk command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    bond_style class2
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -35,7 +33,6 @@ The *class2* bond style uses the potential
 
    E = K_2 (r - r_0)^2 + K_3 (r - r_0)^3 + K_4 (r - r_0)^4
 
-
 where :math:`r_0` is the equilibrium bond distance.
 
 See :ref:`(Sun) <bond-Sun>` for a description of the COMPASS class2 force field.
@@ -50,9 +47,7 @@ or :doc:`read_restart <read_restart>` commands:
 * :math:`K_3` (energy/distance\^3)
 * :math:`K_4` (energy/distance\^4)
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -72,13 +67,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This bond style can only be used if LAMMPS was built with the CLASS2
 package.  See the :doc:`Build package <Build_package>` doc page for more
@@ -91,12 +83,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _bond-Sun:
-
-
 
 **(Sun)** Sun, J Phys Chem B 102, 7338-7364 (1998).

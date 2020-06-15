@@ -6,7 +6,6 @@ fix balance command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID balance Nfreq thresh style args keyword args ...
@@ -16,9 +15,9 @@ Syntax
 * Nfreq = perform dynamic load balancing every this many steps
 * thresh = imbalance threshold that must be exceeded to perform a re-balance
 * style = *shift* or *rcb*
-  
+
   .. parsed-literal::
-  
+
        shift args = dimstr Niter stopthresh
          dimstr = sequence of letters containing "x" or "y" or "z", each not more than once
          Niter = # of times to iterate within each dimension of dimstr sequence
@@ -27,9 +26,9 @@ Syntax
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *weight* or *out*
-  
+
   .. parsed-literal::
-  
+
        *weight* style args = use weighted particle counts for the balancing
          *style* = *group* or *neigh* or *time* or *var* or *store*
            *group* args = Ngroup group1 weight1 group2 weight2 ...
@@ -47,13 +46,10 @@ Syntax
        *out* arg = filename
          filename = write each processor's sub-domain to a file, at each re-balancing
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 2 all balance 1000 1.05 shift x 10 1.05
    fix 2 all balance 100 0.9 shift xy 20 1.1 out tmp.balance
@@ -147,9 +143,7 @@ forced even if the current balance is perfect (1.0) be specifying a
    :doc:`kspace_style <kspace_style>` command.  Thus you should benchmark
    the run times of a simulation before and after balancing.
 
-
 ----------
-
 
 The method used to perform a load balance is specified by one of the
 listed styles, which are described in detail below.  There are 2 kinds
@@ -160,24 +154,27 @@ of processors.  It operates by changing the cutting planes (or lines)
 between processors in 3d (or 2d), to adjust the volume (area in 2d)
 assigned to each processor, as in the following 2d diagram where
 processor sub-domains are shown and atoms are colored by the processor
-that owns them.  The leftmost diagram is the default partitioning of
-the simulation box across processors (one sub-box for each of 16
-processors); the middle diagram is after a "grid" method has been
-applied.
+that owns them.
 
-.. image:: JPG/balance_uniform_small.jpg
-   :target: JPG/balance_uniform.jpg
-.. image:: JPG/balance_nonuniform_small.jpg
-   :target: JPG/balance_nonuniform.jpg
-.. image:: JPG/balance_rcb_small.jpg
-   :target: JPG/balance_rcb.jpg
+.. list-table::
 
+   * - .. figure:: JPG/balance_uniform_small.jpg
+          :target: JPG/balance_uniform.jpg
 
-The *rcb* style is a "tiling" method which does not produce a logical
-3d grid of processors.  Rather it tiles the simulation domain with
-rectangular sub-boxes of varying size and shape in an irregular
-fashion so as to have equal numbers of particles (or weight) in each
-sub-box, as in the rightmost diagram above.
+     - .. figure:: JPG/balance_nonuniform_small.jpg
+          :target: JPG/balance_nonuniform.jpg
+
+     - .. figure:: JPG/balance_rcb_small.jpg
+          :target: JPG/balance_rcb.jpg
+
+The leftmost diagram is the default partitioning of the simulation box
+across processors (one sub-box for each of 16 processors); the middle
+diagram is after a "grid" method has been applied. The *rcb* style is a
+"tiling" method which does not produce a logical 3d grid of processors.
+Rather it tiles the simulation domain with rectangular sub-boxes of
+varying size and shape in an irregular fashion so as to have equal
+numbers of particles (or weight) in each sub-box, as in the rightmost
+diagram above.
 
 The "grid" methods can be used with either of the
 :doc:`comm_style <comm_style>` command options, *brick* or *tiled*\ .  The
@@ -195,9 +192,7 @@ When a "tiling" method is specified, the current domain partitioning
 ("grid" or "tiled") is ignored, and a new partitioning is computed
 from scratch.
 
-
 ----------
-
 
 The *group-ID* is ignored.  However the impact of balancing on
 different groups of atoms can be affected by using the *group* weight
@@ -214,9 +209,7 @@ command settings.
 On re-balance steps, re-balancing will only be attempted if the current
 imbalance factor, as defined above, exceeds the *thresh* setting.
 
-
 ----------
-
 
 The *shift* style invokes a "grid" method for balancing, as described
 above.  It changes the positions of cutting planes between processors
@@ -282,9 +275,7 @@ the normal reneighboring procedure.
    the threshold accuracy is reached (in a dimension) is less iterations
    than *Niter* and exit early.
 
-
 ----------
-
 
 The *rcb* style invokes a "tiled" method for balancing, as described
 above.  It performs a recursive coordinate bisectioning (RCB) of the
@@ -311,9 +302,7 @@ the box in two.  The recursion continues until every processor is
 assigned a sub-box of the entire simulation domain, and owns the atoms
 in that sub-box.
 
-
 ----------
-
 
 The *out* keyword writes text to the specified *filename* with the
 results of each re-balancing operation.  The file contains the bounds
@@ -322,7 +311,6 @@ completes.  The format of the file is compatible with the
 `Pizza.py <pizza_>`_ *mdump* tool which has support for manipulating and
 visualizing mesh files.  An example is shown here for a balancing by 4
 processors for a 2d problem:
-
 
 .. parsed-literal::
 
@@ -371,11 +359,9 @@ rectangle for each processor (1 to 4).
 For a 3d problem, the syntax is similar with 8 vertices listed for
 each processor, instead of 4, and "SQUARES" replaced by "CUBES".
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -399,13 +385,10 @@ by this fix are "intensive".
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 For 2d simulations, the *z* style cannot be used.  Nor can a "z"
 appear in *dimstr* for the *shift* style.
@@ -419,6 +402,6 @@ Related commands
 :doc:`group <group>`, :doc:`processors <processors>`, :doc:`balance <balance>`,
 :doc:`comm_style <comm_style>`
 
-.. _pizza: http://pizza.sandia.gov
+.. _pizza: https://pizza.sandia.gov
 
 **Default:** none

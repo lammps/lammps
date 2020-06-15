@@ -1,13 +1,12 @@
-.. index:: comm\_style
+.. index:: comm_style
 
-comm\_style command
-===================
+comm_style command
+==================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    comm_style style
 
@@ -16,8 +15,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    comm_style brick
    comm_style tiled
@@ -56,7 +54,6 @@ commands.  The decomposition can be changed via the
 
 Restrictions
 """"""""""""
-
 
 Communication style *tiled* cannot be used with *triclinic* simulation
 cells.

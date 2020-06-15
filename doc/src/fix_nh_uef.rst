@@ -9,19 +9,18 @@ fix npt/uef command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID style_name erate edot_x edot_y temp Tstart Tstop Tdamp keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* style\_name = *nvt/uef* or *npt/uef*
+* style_name = *nvt/uef* or *npt/uef*
 * *Tstart*\ , *Tstop*\ , and *Tdamp* are documented in the :doc:`fix npt <fix_nh>` command
-* *edot\_x* and *edot\_y* are the strain rates in the x and y directions (1/(time units))
+* *edot_x* and *edot_y* are the strain rates in the x and y directions (1/(time units))
 * one or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      keyword = *ext* or *strain* or *iso* or *x* or *y* or *z* or *tchain* or *pchain* or *tloop* or *ploop* or *mtk*
        *ext* value = *x* or *y* or *z* or *xy* or *yz* or *xz* = external dimensions
          sets the external dimensions used to calculate the scalar pressure
@@ -30,13 +29,10 @@ Syntax
        *iso*\ , *x*\ , *y*\ , *z*\ , *tchain*\ , *pchain*\ , *tloop*\ , *ploop*\ , *mtk* keywords
          documented by the :doc:`fix npt <fix_nh>` command
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix uniax_nvt all nvt/uef temp 400 400 100 erate 0.00001 -0.000005
    fix biax_nvt all nvt/uef temp 400 400 100 erate 0.000005 0.000005
@@ -61,10 +57,10 @@ Note that NEMD simulations of a continuously strained system can be
 performed using the :doc:`fix deform <fix_deform>`, :doc:`fix nvt/sllod <fix_nvt_sllod>`, and :doc:`compute temp/deform <compute_temp_deform>` commands.
 
 The applied flow field is set by the *eps* keyword. The values
-*edot\_x* and *edot\_y* correspond to the strain rates in the xx and yy
+*edot_x* and *edot_y* correspond to the strain rates in the xx and yy
 directions.  It is implicitly assumed that the flow field is
 traceless, and therefore the strain rate in the zz direction is eqal
-to -(*edot\_x* + *edot\_y*).
+to -(*edot_x* + *edot_y*).
 
 .. note::
 
@@ -98,9 +94,7 @@ during all of the output steps, and therefore trajectory files made
 using the dump command will be in the LAMMPS frame unless the
 :doc:`dump cfg/uef <dump_cfg_uef>` command is used.
 
-
 ----------
-
 
 Temperature control is achieved with the default Nose-Hoover style
 thermostat documented in :doc:`fix npt <fix_nh>`. When this fix is
@@ -122,8 +116,7 @@ pressure (Pxx+Pyy)/2 will be controlled.
 This example command will control the total hydrostatic pressure under
 uniaxial tension:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix f1 all npt/uef temp 0.7 0.7 0.5 iso 1 1 5 erate -0.5 -0.5 ext xyz
 
@@ -131,8 +124,7 @@ This example command will control the average stress in compression
 directions, which would typically correspond to free surfaces under
 drawing with uniaxial tension:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix f2 all npt/uef temp 0.7 0.7 0.5 iso 1 1 5 erate -0.5 -0.5 ext xy
 
@@ -148,31 +140,26 @@ method.
 
 For example, the following commands will work:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix f3 all npt/uef temp 0.7 0.7 0.5 x 1 1 5 y 1 1 5 erate -0.5 -0.5
    fix f4 all npt/uef temp 0.7 0.7 0.5 z 1 1 5 erate 0.5 0.5
 
 The following commands will not work:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix f5 all npt/uef temp 0.7 0.7 0.5 x 1 1 5 z 1 1 5 erate -0.5 -0.5
    fix f6 all npt/uef temp 0.7 0.7 0.5 x 1 1 5 z 2 2 5 erate 0.5 0.5
 
-
 ----------
-
 
 These fix computes a temperature and pressure each timestep.  To do
 this, it creates its own computes of style "temp/uef" and
 "pressure/uef", as if one of these two sets of commands had been
 issued:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp group-ID temp/uef
    compute fix-ID_press group-ID pressure/uef fix-ID_temp
@@ -182,9 +169,9 @@ issued:
 
 See the :doc:`compute temp/uef <compute_temp_uef>` and :doc:`compute pressure/uef <compute_pressure_uef>` commands for details.  Note
 that the IDs of the new computes are the fix-ID + underscore + "temp"
-or fix\_ID + underscore + "press".
+or fix_ID + underscore + "press".
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 The fix writes the state of all the thermostat and barostat variables,
 as well as the cumulative strain applied, to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>` command
@@ -210,7 +197,6 @@ The fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-UEF package. It is only enabled if LAMMPS
 was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -235,40 +221,28 @@ Default
 
 The default keyword values specific to this fix are exy = xyz, strain
 = 0 0.  The remaining defaults are the same as for *fix
-npt*\ \_fix\_nh.html except tchain = 1.  The reason for this change is
+npt*\ _fix_nh.html except tchain = 1.  The reason for this change is
 given in :doc:`fix nvt/sllod <fix_nvt_sllod>`.
-
 
 ----------
 
-
 .. _Dobson:
-
-
 
 **(Dobson)** Dobson, J Chem Phys, 141, 184103 (2014).
 
 .. _Hunt:
 
-
-
 **(Hunt)** Hunt, Mol Simul, 42, 347 (2016).
 
 .. _Semaev:
-
-
 
 **(Semaev)** Semaev, Cryptography and Lattices, 181 (2001).
 
 .. _Sllod:
 
-
-
 **(Evans and Morriss)** Evans and Morriss, Phys Rev A, 30, 1528 (1984).
 
 .. _Nicholson:
-
-
 
 **(Nicholson and Rutledge)** Nicholson and Rutledge, J Chem Phys, 145,
 244903 (2016).

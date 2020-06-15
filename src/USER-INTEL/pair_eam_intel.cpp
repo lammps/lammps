@@ -711,6 +711,8 @@ void PairEAMIntel::pack_force_const(ForceConst<flt_t> &fc,
       if (type2rhor[i][j] >= 0) {
         const int joff = ioff + j * fc.rhor_jstride();
         for (int k = 0; k < nr + 1; k++) {
+          if ((type2rhor[j][i] < 0) || (type2rhor[i][j] < 0))
+            continue;
           if (type2rhor[j][i] != type2rhor[i][j])
             _onetype = 0;
           else if (_onetype < 0)

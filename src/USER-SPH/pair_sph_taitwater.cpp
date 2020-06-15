@@ -64,7 +64,7 @@ void PairSPHTaitwater::compute(int eflag, int vflag) {
   double **f = atom->f;
   double *rho = atom->rho;
   double *mass = atom->mass;
-  double *de = atom->de;
+  double *desph = atom->desph;
   double *drho = atom->drho;
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -176,13 +176,13 @@ void PairSPHTaitwater::compute(int eflag, int vflag) {
         drho[i] += jmass * delVdotDelR * wfd;
 
         // change in thermal energy
-        de[i] += deltaE;
+        desph[i] += deltaE;
 
         if (newton_pair || j < nlocal) {
           f[j][0] -= delx * fpair;
           f[j][1] -= dely * fpair;
           f[j][2] -= delz * fpair;
-          de[j] += deltaE;
+          desph[j] += deltaE;
           drho[j] += imass * delVdotDelR * wfd;
         }
 

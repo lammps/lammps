@@ -5,7 +5,7 @@ Classes that perform energy minimization derived from the Min class.
 New styles can be created to add new minimization algorithms to
 LAMMPS.
 
-Min\_cg.cpp is an example of conjugate gradient minimization.
+Min_cg.cpp is an example of conjugate gradient minimization.
 
 Here is a brief description of methods you define in your new derived
 class.  See min.h for details.
@@ -15,5 +15,5 @@ class.  See min.h for details.
 +---------------+------------------------------------------+
 | run           | perform the minimization                 |
 +---------------+------------------------------------------+
-| memory\_usage | tally of memory usage                    |
+| memory_usage  | tally of memory usage                    |
 +---------------+------------------------------------------+

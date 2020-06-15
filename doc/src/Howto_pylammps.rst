@@ -6,19 +6,23 @@ PyLammps Tutorial
 Overview
 --------
 
-PyLammps is a Python wrapper class which can be created on its own or
-use an existing lammps Python object.  It creates a simpler,
-Python-like interface to common LAMMPS functionality, in contrast to
-the lammps.py wrapper on the C-style LAMMPS library interface which is
-written using Python ctypes.  The lammps.py wrapper is discussed on
-the :doc:`Python library <Python_library>` doc page.
+``PyLammps`` is a Python wrapper class for LAMMPS which can be created
+on its own or use an existing lammps Python object.  It creates a simpler,
+more "pythonic" interface to common LAMMPS functionality, in contrast to
+the ``lammps.py`` wrapper for the C-style LAMMPS library interface which
+is written using `Python ctypes <ctypes_>`_.  The ``lammps.py`` wrapper
+is discussed on the :doc:`Python library <Python_library>` doc page.
 
-Unlike the flat ctypes interface, PyLammps exposes a discoverable API.
-It no longer requires knowledge of the underlying C++ code
-implementation.  Finally, the IPyLammps wrapper builds on top of
-PyLammps and adds some additional features for IPython integration
-into IPython notebooks, e.g. for embedded visualization output from
-dump/image.
+Unlike the flat ``ctypes`` interface, PyLammps exposes a discoverable
+API.  It no longer requires knowledge of the underlying C++ code
+implementation.  Finally, the ``IPyLammps`` wrapper builds on top of
+``PyLammps`` and adds some additional features for
+`IPython integration <ipython_>`_ into `Jupyter notebooks <jupyter_>`_,
+e.g. for embedded visualization output from :doc:`dump style image <dump_image>`.
+
+.. _ctypes: https://docs.python.org/3/library/ctypes.html
+.. _ipython: https://ipython.org/
+.. _jupyter: https://jupyter.org/
 
 Comparison of lammps and PyLammps interfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -26,7 +30,7 @@ Comparison of lammps and PyLammps interfaces
 lammps.lammps
 """""""""""""
 
-* uses C-Types
+* uses ``ctypes``
 * direct memory access to native C++ data
 * provides functions to send and receive data to LAMMPS
 * requires knowledge of how LAMMPS internally works (C pointers, etc)
@@ -34,7 +38,7 @@ lammps.lammps
 lammps.PyLammps
 """""""""""""""
 
-* higher-level abstraction built on top of original C-Types interface
+* higher-level abstraction built on top of original ctypes interface
 * manipulation of Python objects
 * communication with LAMMPS is hidden from API user
 * shorter, more concise Python
@@ -56,7 +60,6 @@ output support enabled.
 
 Step 1a: For the CMake based build system, the steps are:
 
-
 .. code-block:: bash
 
    mkdir $LAMMPS_DIR/build-shared
@@ -67,7 +70,6 @@ Step 1a: For the CMake based build system, the steps are:
    make
 
 Step 1b: For the legacy, make based build system, the steps are:
-
 
 .. code-block:: bash
 
@@ -84,7 +86,6 @@ Step 2: Installing the LAMMPS Python package
 
 PyLammps is part of the lammps Python package. To install it simply install
 that package into your current Python installation with:
-
 
 .. code-block:: bash
 
@@ -110,14 +111,12 @@ Benefits of using a virtualenv
 
 **Prerequisite (e.g. on Ubuntu)**
 
-
 .. code-block:: bash
 
    apt-get install python-virtualenv
 
 Creating a virtualenv with lammps installed
 """""""""""""""""""""""""""""""""""""""""""
-
 
 .. code-block:: bash
 
@@ -131,7 +130,6 @@ Now configure and compile the LAMMPS shared library as outlined above.
 When using CMake and the shared library has already been build, you
 need to re-run CMake to update the location of the python executable
 to the location in the virtual environment with:
-
 
 .. code-block:: bash
 
@@ -154,14 +152,12 @@ Creating a new instance of PyLammps
 To create a PyLammps object you need to first import the class from the lammps
 module. By using the default constructor, a new *lammps* instance is created.
 
-
 .. code-block:: Python
 
    from lammps import PyLammps
    L = PyLammps()
 
 You can also initialize PyLammps on top of this existing *lammps* object:
-
 
 .. code-block:: Python
 
@@ -177,7 +173,6 @@ the command method of the lammps object instance.
 
 For instance, let's take the following LAMMPS command:
 
-
 .. code-block:: LAMMPS
 
    region box block 0 10 0 5 -0.5 0.5
@@ -185,14 +180,12 @@ For instance, let's take the following LAMMPS command:
 In the original interface this command can be executed with the following
 Python code if *L* was a lammps instance:
 
-
 .. code-block:: Python
 
    L.command("region box block 0 10 0 5 -0.5 0.5")
 
 With the PyLammps interface, any command can be split up into arbitrary parts
 separated by white-space, passed as individual arguments to a region method.
-
 
 .. code-block:: Python
 
@@ -206,14 +199,12 @@ The benefit of this approach is avoiding redundant command calls and easier
 parameterization. In the original interface parameterization needed to be done
 manually by creating formatted strings.
 
-
 .. code-block:: Python
 
    L.command("region box block %f %f %f %f %f %f" % (xlo, xhi, ylo, yhi, zlo, zhi))
 
 In contrast, methods of PyLammps accept parameters directly and will convert
 them automatically to a final command string.
-
 
 .. code-block:: Python
 
@@ -224,8 +215,6 @@ System state
 
 In addition to dispatching commands directly through the PyLammps object, it
 also provides several properties which allow you to query the system state.
-
-
 
 L.system
    Is a dictionary describing the system such as the bounding box or number of atoms
@@ -260,15 +249,12 @@ L.dump
 L.groups
    List of groups present in the current system
 
-
-
 Working with LAMMPS variables
 -----------------------------
 
 LAMMPS variables can be both defined and accessed via the PyLammps interface.
 
 To define a variable you can use the :doc:`variable <variable>` command:
-
 
 .. code-block:: Python
 
@@ -279,14 +265,12 @@ A dictionary of all variables is returned by L.variables
 you can access an individual variable by retrieving a variable object from the
 L.variables dictionary by name
 
-
 .. code-block:: Python
 
    a = L.variables['a']
 
 The variable value can then be easily read and written by accessing the value
 property of this object.
-
 
 .. code-block:: Python
 
@@ -299,7 +283,6 @@ Retrieving the value of an arbitrary LAMMPS expressions
 LAMMPS expressions can be immediately evaluated by using the eval method. The
 passed string parameter can be any expression containing global thermo values,
 variables, compute or fix data.
-
 
 .. code-block:: Python
 
@@ -315,7 +298,6 @@ All atoms in the current simulation can be accessed by using the L.atoms list.
 Each element of this list is an object which exposes its properties (id, type,
 position, velocity, force, etc.).
 
-
 .. code-block:: Python
 
    # access first atom
@@ -328,7 +310,6 @@ position, velocity, force, etc.).
    L.atoms[1].force
 
 Some properties can also be used to set:
-
 
 .. code-block:: Python
 
@@ -347,7 +328,6 @@ after a run via the L.runs list. This list contains a growing list of run data.
 The first element is the output of the first run, the second element that of
 the second run.
 
-
 .. code-block:: Python
 
    L.run(1000)
@@ -359,14 +339,12 @@ the second run.
 Each run contains a dictionary of all trajectories. Each trajectory is
 accessible through its thermo name:
 
-
 .. code-block:: Python
 
    L.runs[0].thermo.Step # list of time steps in first run
    L.runs[0].thermo.Ke   # list of kinetic energy values in first run
 
 Together with matplotlib plotting data out of LAMMPS becomes simple:
-
 
 .. code-block:: Python
 
@@ -406,7 +384,6 @@ tutorials and showcasing your latest research.
 To launch an instance of Jupyter simply run the following command inside your
 Python environment (this assumes you followed the Quick Start instructions):
 
-
 .. code-block:: bash
 
    jupyter notebook
@@ -428,7 +405,6 @@ LAMMPS simulation of a harmonic dihedral potential to its analytical solution.
 Four atoms are placed in the simulation and the dihedral potential is applied on
 them using a datafile. Then one of the atoms is rotated along the central axis by
 setting its position from Python, which changes the dihedral angle.
-
 
 .. code-block:: Python
 
@@ -463,7 +439,6 @@ Initially, a 2D system is created in a state with minimal energy.
 
 It is then disordered by moving each atom by a random delta.
 
-
 .. code-block:: Python
 
    random.seed(27848)
@@ -482,7 +457,6 @@ It is then disordered by moving each atom by a random delta.
 
 Finally, the Monte Carlo algorithm is implemented in Python. It continuously
 moves random atoms by a random delta and only accepts certain moves.
-
 
 .. code-block:: Python
 
@@ -536,14 +510,12 @@ Using PyLammps and mpi4py (Experimental)
 
 PyLammps can be run in parallel using mpi4py. This python package can be installed using
 
-
 .. code-block:: bash
 
    pip install mpi4py
 
 The following is a short example which reads in an existing LAMMPS input file and
 executes it in parallel.  You can find in.melt in the examples/melt folder.
-
 
 .. code-block:: Python
 
@@ -560,7 +532,6 @@ executes it in parallel.  You can find in.melt in the examples/melt folder.
 
 To run this script (melt.py) in parallel using 4 MPI processes we invoke the
 following mpirun command:
-
 
 .. code-block:: bash
 

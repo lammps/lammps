@@ -1,30 +1,28 @@
-.. index:: dihedral\_style opls
+.. index:: dihedral_style opls
 
-dihedral\_style opls command
-============================
+dihedral_style opls command
+===========================
 
-dihedral\_style opls/intel command
-==================================
+dihedral_style opls/intel command
+=================================
 
-dihedral\_style opls/kk command
+dihedral_style opls/kk command
+==============================
+
+dihedral_style opls/omp command
 ===============================
-
-dihedral\_style opls/omp command
-================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style opls
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style opls
    dihedral_coeff 1 1.740 -0.157 0.279 0.00   # CT-CT-CT-CT
@@ -38,9 +36,8 @@ The *opls* dihedral style uses the potential
 
 .. math::
 
-  E = & \frac{1}{2} K_1 [1 + \cos(\phi)] + \frac{1}{2} K_2 [1 - \cos(2 \phi)] + \\
-      & \frac{1}{2} K_3 [1 + \cos(3 \phi)] + \frac{1}{2} K_4 [1 - \cos(4 \phi)]
-
+   E = & \frac{1}{2} K_1 [1 + \cos(\phi)] + \frac{1}{2} K_2 [1 - \cos(2 \phi)] + \\
+       & \frac{1}{2} K_3 [1 + \cos(3 \phi)] + \frac{1}{2} K_4 [1 - \cos(4 \phi)]
 
 Note that the usual 1/2 factor is not included in the K values.
 
@@ -57,9 +54,7 @@ or :doc:`read_restart <read_restart>` commands:
 * :math:`K_3` (energy)
 * :math:`K_4` (energy)
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -79,13 +74,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This dihedral style can only be used if LAMMPS was built with the
 MOLECULE package.  See the :doc:`Build package <Build_package>` doc page
@@ -98,12 +90,8 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Watkins:
-
-
 
 **(Watkins)** Watkins and Jorgensen, J Phys Chem A, 105, 4118-4125 (2001).

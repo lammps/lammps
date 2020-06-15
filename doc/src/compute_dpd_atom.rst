@@ -6,7 +6,6 @@ compute dpd/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID dpd/atom
@@ -17,7 +16,9 @@ Syntax
 Examples
 """"""""
 
-compute 1 all dpd/atom
+.. code-block:: LAMMPS
+
+   compute 1 all dpd/atom
 
 Description
 """""""""""
@@ -48,7 +49,6 @@ and temperature (:math:`theta`) :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-
 This command is part of the USER-DPD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -62,13 +62,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Larentzos2:
-
-
 
 **(Larentzos)** J.P. Larentzos, J.K. Brennan, J.D. Moore, and
 W.D. Mattson, "LAMMPS Implementation of Constant Energy Dissipative

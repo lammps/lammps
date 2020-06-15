@@ -6,7 +6,6 @@ pair_style body/nparticle command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style body/nparticle cutoff
@@ -15,7 +14,6 @@ cutoff = global cutoff for interactions (distance units)
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -73,7 +71,6 @@ interaction, using the standard formula
                        \left(\frac{\sigma}{r}\right)^6 \right]
                        \qquad r < R_c \\
 
-
 where :math:`R_c` is the cutoff.  As explained above, an interaction involving
 one or two body sub-particles may be computed even for :math:`r > R_c`.
 
@@ -90,9 +87,7 @@ commands:
 The last coefficient is optional.  If not specified, the global cutoff
 is used.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -110,13 +105,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This style is part of the BODY package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.

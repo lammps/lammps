@@ -12,7 +12,6 @@ fix mvv/tdpd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID mvv/dpd lambda
@@ -28,8 +27,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all mvv/dpd
    fix 1 all mvv/dpd 0.5
@@ -66,21 +64,19 @@ standard velocity-Verlet (VV) scheme.  For more details, see
 :ref:`Groot <Groot2>`.
 
 Fix *mvv/dpd* updates the position and velocity of each atom.  It can
-be used with the :doc:`pair_style mdpd <pair_meso>` command or other
+be used with the :doc:`pair_style mdpd <pair_mesodpd>` command or other
 pair styles such as :doc:`pair dpd <pair_dpd>`.
 
 Fix *mvv/edpd* updates the per-atom temperature, in addition to
-position and velocity, and must be used with the :doc:`pair_style edpd <pair_meso>` command.
+position and velocity, and must be used with the :doc:`pair_style edpd <pair_mesodpd>` command.
 
 Fix *mvv/tdpd* updates the per-atom chemical concentration, in
 addition to position and velocity, and must be used with the
-:doc:`pair_style tdpd <pair_meso>` command.
-
+:doc:`pair_style tdpd <pair_mesodpd>` command.
 
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -91,28 +87,23 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-
-This fix is part of the USER-MESO package. It is only enabled if
+This fix is part of the USER-MESODPD package. It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair_style mdpd <pair_meso>`, :doc:`pair_style edpd <pair_meso>`,
-:doc:`pair_style tdpd <pair_meso>`
+:doc:`pair_style mdpd <pair_mesodpd>`, :doc:`pair_style edpd <pair_mesodpd>`,
+:doc:`pair_style tdpd <pair_mesodpd>`
 
 Default
 """""""
 
 The default value for the optional *lambda* parameter is 0.5.
 
-
 ----------
 
-
 .. _Groot2:
-
-
 
 **(Groot)** Groot and Warren, J Chem Phys, 107: 4423-4435 (1997).  DOI:
 10.1063/1.474784

@@ -15,6 +15,7 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "comm.h"
 #include "domain.h"
 #include "timer.h"
@@ -263,7 +264,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
     }
 
     #if defined(_OPENMP)
-    #pragma omp parallel default(none) \
+    #pragma omp parallel LMP_DEFAULT_NONE \
       shared(overflow, nstencilp, binstart, binend)
     #endif
     {

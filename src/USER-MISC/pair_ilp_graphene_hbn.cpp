@@ -34,6 +34,7 @@
 #include "my_page.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -286,7 +287,7 @@ void PairILPGrapheneHBN::read_file(char *filename)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // concatenate additional lines until have params_per_line words
@@ -305,7 +306,7 @@ void PairILPGrapheneHBN::read_file(char *filename)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+      nwords = utils::count_words(line);
     }
 
     if (nwords != params_per_line)
@@ -500,7 +501,7 @@ void PairILPGrapheneHBN::calc_FvdW(int eflag, int /* vflag */)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
-      // only include the interation between different layers
+      // only include the interaction between different layers
       if (rsq < cutsq[itype][jtype] && atom->molecule[i] != atom->molecule[j]) {
 
         int iparam_ij = elem2param[map[itype]][map[jtype]];
@@ -593,7 +594,7 @@ void PairILPGrapheneHBN::calc_FRep(int eflag, int /* vflag */)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
-      // only include the interation between different layers
+      // only include the interaction between different layers
       if (rsq < cutsq[itype][jtype] && atom->molecule[i] != atom->molecule[j]) {
 
         int iparam_ij = elem2param[map[itype]][map[jtype]];
@@ -675,7 +676,7 @@ void PairILPGrapheneHBN::calc_FRep(int eflag, int /* vflag */)
 }
 
 /* ----------------------------------------------------------------------
-   create ILP neighbor list from main neighbor list to calcualte normals
+   create ILP neighbor list from main neighbor list to calculate normals
 ------------------------------------------------------------------------- */
 
 void PairILPGrapheneHBN::ILP_neigh()

@@ -1,24 +1,22 @@
-.. index:: improper\_style fourier
+.. index:: improper_style fourier
 
-improper\_style fourier command
-===============================
+improper_style fourier command
+==============================
 
-improper\_style fourier/omp command
-===================================
+improper_style fourier/omp command
+==================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style fourier
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style fourier
    improper_coeff 1 100.0 0.0 1.0 0.5 1
@@ -30,8 +28,7 @@ The *fourier* improper style uses the following potential:
 
 .. math::
 
-   E = K [C_0 + C_1 \cos ( \omega) + C_2 \cos( 2 \omega) ] 
-
+   E = K [C_0 + C_1 \cos ( \omega) + C_2 \cos( 2 \omega) ]
 
 where K is the force constant, C0, C1, C2 are dimensionless coefficients,
 and omega is the angle between the IL axis and the IJK plane:
@@ -53,9 +50,7 @@ commands:
 * :math:`C_2` (unitless)
 * all  (0 or 1, optional)
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -75,16 +70,13 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
 
-
 This angle style can only be used if LAMMPS was built with the
-USER\_MISC package.  See the :doc:`Build package <Build_package>` doc
+USER_MISC package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 Related commands

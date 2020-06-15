@@ -6,7 +6,6 @@ compute reduce/chunk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID reduce/chunk chunkID mode input1 input2 ...
@@ -16,23 +15,20 @@ Syntax
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 * mode = *sum* or *min* or *max*
 * one or more inputs can be listed
-* input = c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_ID
-  
+* input = c_ID, c_ID[N], f_ID, f_ID[N], v_ID
+
   .. parsed-literal::
-  
+
        c_ID = per-atom vector calculated by a compute with ID
        c_ID[I] = Ith column of per-atom array calculated by a compute with ID, I can include wildcard (see below)
        f_ID = per-atom vector calculated by a fix with ID
        f_ID[I] = Ith column of per-atom array calculated by a fix with ID, I can include wildcard (see below)
        v_name = per-atom vector calculated by an atom-style variable with name
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all reduce/chunk/atom mychunk min c_cluster
 
@@ -91,16 +87,13 @@ had been listed one by one.  E.g. these 2 compute reduce/chunk
 commands are equivalent, since the :doc:`compute property/chunk <compute_property_chunk>` command creates a per-atom
 array with 3 columns:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute prop all property/atom vx vy vz
-   compute 10 all reduce/chunk mychunk max c_prop[\*]
+   compute 10 all reduce/chunk mychunk max c_prop[*]
    compute 10 all reduce/chunk mychunk max c_prop[1] c_prop[2] c_prop[3]
 
-
 ----------
-
 
 Here is an example of using this compute, in conjunction with the
 compute chunk/spread/atom command to identify self-assembled micelles.
@@ -118,8 +111,7 @@ attraction induced by the hydrophobicity.  The output of the
 chunk/reduce command will be a cluster ID per chunk (molecule).
 Molecules with the same cluster ID are in the same micelle.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    group phobic type 4     # specific to in.micelle model
    compute cluster phobic cluster/atom 2.0
@@ -128,8 +120,7 @@ Molecules with the same cluster ID are in the same micelle.
 
 This per-chunk info could be output in at least two ways:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 10 all ave/time 1000 1 1000 c_reduce file tmp.phobic mode vector
 
@@ -147,8 +138,7 @@ The result from compute chunk/spread/atom can be used to define a new
 set of chunks, where all the atoms in all the molecules in the same
 micelle are assigned to the same chunk, i.e. one chunk per micelle.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute micelle all chunk/atom c_spread compress yes
 
@@ -158,8 +148,7 @@ doc page.  E.g. count the number of atoms in each micelle, calculate
 its center or mass, shape (moments of inertia), radius of gyration,
 etc.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute prop all property/chunk micelle count
    fix 20 all ave/time 1000 1 1000 c_prop file tmp.micelle mode vector
@@ -169,9 +158,7 @@ with its count of atoms, plus a first line for a chunk with all the
 solvent atoms.  By the time 50000 steps have elapsed there are a
 handful of large micelles.
 
-
 ----------
-
 
 **Output info:**
 

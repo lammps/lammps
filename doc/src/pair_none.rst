@@ -1,21 +1,19 @@
-.. index:: pair\_style none
+.. index:: pair_style none
 
-pair\_style none command
-========================
+pair_style none command
+=======================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style none
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style none
 
@@ -43,7 +41,7 @@ building of a neighbor lists, but compute no pairwise interactions.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

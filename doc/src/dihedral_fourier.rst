@@ -1,27 +1,25 @@
-.. index:: dihedral\_style fourier
+.. index:: dihedral_style fourier
 
-dihedral\_style fourier command
-===============================
+dihedral_style fourier command
+==============================
 
-dihedral\_style fourier/intel command
-=====================================
+dihedral_style fourier/intel command
+====================================
 
-dihedral\_style fourier/omp command
-===================================
+dihedral_style fourier/omp command
+==================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style fourier
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style fourier
    dihedral_coeff 1 3 -0.846200 3 0.0 7.578800 1 0 0.138000 2 -180.0
@@ -33,8 +31,7 @@ The *fourier* dihedral style uses the potential:
 
 .. math::
 
-  E = \sum_{i=1,m} K_i  [ 1.0 + \cos ( n_i \phi - d_i ) ]
-
+   E = \sum_{i=1,m} K_i  [ 1.0 + \cos ( n_i \phi - d_i ) ]
 
 The following coefficients must be defined for each dihedral type via the
 :doc:`dihedral_coeff <dihedral_coeff>` command as in the example above, or in
@@ -70,16 +67,13 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
 
-
 This angle style can only be used if LAMMPS was built with the
-USER\_MISC package.  See the :doc:`Build package <Build_package>` doc
+USER_MISC package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 Related commands

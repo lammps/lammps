@@ -11,21 +11,21 @@
 //
 //    begin                : Tue March 26, 2013
 //    email                : brownw@ornl.gov
-// ***************************************************************************/
+// ***************************************************************************
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_aux_fun1.h"
 
 #ifndef _DOUBLE_DOUBLE
-texture<float4> pos_tex;
-texture<float4> sw1_tex;
-texture<float4> sw2_tex;
-texture<float4> sw3_tex;
+_texture( pos_tex,float4);
+_texture( sw1_tex,float4);
+_texture( sw2_tex,float4);
+_texture( sw3_tex,float4);
 #else
-texture<int4,1> pos_tex;
-texture<int4> sw1_tex;
-texture<int4> sw2_tex;
-texture<int4> sw3_tex;
+_texture_2d( pos_tex,int4);
+_texture( sw1_tex,int4);
+_texture( sw2_tex,int4);
+_texture( sw3_tex,int4);
 #endif
 
 #else

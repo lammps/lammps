@@ -142,7 +142,7 @@ void ComputeCNAAtom::compute_peratom()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // find the neigbours of each atom within cutoff using full neighbor list
+  // find the neighbors of each atom within cutoff using full neighbor list
   // nearest[] = atom indices of nearest neighbors, up to MAXNEAR
   // do this for all atoms, not just compute group
   // since CNA calculation requires neighbors of neighbors

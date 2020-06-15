@@ -162,7 +162,7 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
 
   char *labelline = &line[strlen("ITEM: ATOMS ")];
 
-  nwords = atom->count_words(labelline);
+  nwords = utils::trim_and_count_words(labelline);
   char **labels = new char*[nwords];
   labels[0] = strtok(labelline," \t\n\r\f");
   if (labels[0] == NULL) {

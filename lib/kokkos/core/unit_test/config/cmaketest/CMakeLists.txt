@@ -19,7 +19,6 @@ set(KOKKOS_CMAKEFILE kokkos_generated_settings.cmake)
 set(KOKKOS_INTERNAL_CONFIG_TMP KokkosCore_config.tmp)
 set(KOKKOS_CONFIG_HEADER KokkosCore_config.h)
 
-set(KOKKOS_CMAKE_VERBOSE False)
 include(${KOKKOS_SRCDIR}/cmake/kokkos_options.cmake)
 foreach(KOKKOS_DEV ${KOKKOS_DEVICES_LIST})
 # Do some initialization: Want to turn everything off for testing
@@ -57,20 +56,20 @@ foreach(KOKKOS_HOST_ARCH ${KOKKOS_HOST_ARCH_LIST})
     set(NEWCONFH ${PREFIX}${KOKKOS_CONFIG_HEADER})
     file(RENAME ${KOKKOS_CMAKEFILE} ${NEWCMAKE})
     file(RENAME ${KOKKOS_CONFIG_HEADER} ${NEWCONFH})
-      
-    add_test(NAME ${NEWCMAKE}-test 
+
+    add_test(NAME ${NEWCMAKE}-test
         COMMAND ${KOKKOS_TESTDIR}/testmake.sh ${NEWCMAKE}  ${KOKKOS_HOST_ARCH} ${KOKKOS_DEV}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       )
-    set_tests_properties(${NEWCMAKE}-test 
+    set_tests_properties(${NEWCMAKE}-test
         PROPERTIES PASS_REGULAR_EXPRESSION Passed
         TIMEOUT 15
       )
-   add_test(NAME ${NEWCONFH}-test 
-        COMMAND ${KOKKOS_TESTDIR}/diffconfig.sh ${NEWCONFH} 
+   add_test(NAME ${NEWCONFH}-test
+        COMMAND ${KOKKOS_TESTDIR}/diffconfig.sh ${NEWCONFH}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       )
-   set_tests_properties(${NEWCONFH}-test 
+   set_tests_properties(${NEWCONFH}-test
         PROPERTIES PASS_REGULAR_EXPRESSION Passed
         TIMEOUT 15
       )

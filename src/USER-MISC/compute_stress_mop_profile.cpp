@@ -333,7 +333,7 @@ void ComputeStressMopProfile::compute_pairs()
               pos = coord[ibin][0];
               pos1 = coordp[ibin][0];
 
-              //check if ij pair is accross plane, add contribution to pressure
+              //check if ij pair is across plane, add contribution to pressure
 
               if ( ((xi[dir]>pos) && (xj[dir]<pos))
                    || ((xi[dir]>pos1) && (xj[dir]<pos1)) ) {
@@ -360,7 +360,7 @@ void ComputeStressMopProfile::compute_pairs()
               pos = coord[ibin][0];
               pos1 = coordp[ibin][0];
 
-              //check if ij pair is accross plane, add contribution to pressure
+              //check if ij pair is across plane, add contribution to pressure
 
               if ( ((xi[dir]>pos) && (xj[dir]<pos))
                    || ((xi[dir]>pos1) && (xj[dir]<pos1)) ) {

@@ -271,7 +271,7 @@ MEAM::get_Zij(const lattice_t latt)
       return 12;
     case B2:
       return 8;
-    case CH4: // DYNAMO currenly implemented this way while it needs two Z values, 4 and 1
+    case CH4: // DYNAMO currently implemented this way while it needs two Z values, 4 and 1
       return 4;
     case LIN:
     case ZIG:

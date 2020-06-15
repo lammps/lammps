@@ -6,7 +6,6 @@ compute heat/flux command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID heat/flux ke-ID pe-ID stress-ID
@@ -20,8 +19,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myFlux all heat/flux myKE myPE myStress
 
@@ -88,7 +86,6 @@ included in the calculation.
    or :doc:`compute centroid/stress/atom virial <compute_stress_atom>`
    so as not to include a kinetic energy term in the heat flux.
 
-
 .. warning::
 
    The compute *heat/flux* has been reported to produce unphysical
@@ -106,9 +103,7 @@ to the thermal conductivity :math:`\kappa`:
 .. math::
    \kappa  = \frac{V}{k_B T^2} \int_0^\infty \langle J_x(0)  J_x(t) \rangle \, \mathrm{d} t = \frac{V}{3 k_B T^2} \int_0^\infty \langle \mathbf{J}(0) \cdot  \mathbf{J}(t)  \rangle \, \mathrm{d}t
 
-
 ----------
-
 
 The heat flux can be output every so many timesteps (e.g. via the
 :doc:`thermo_style custom <thermo_style>` command).  Then as a
@@ -122,9 +117,7 @@ the auto-correlation.  The trap() function in the
 An example LAMMPS input script for solid Ar is appended below.  The
 result should be: average conductivity ~0.29 in W/mK.
 
-
 ----------
-
 
 **Output info:**
 
@@ -166,12 +159,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    # Sample LAMMPS input script for thermal conductivity of solid Ar
 
@@ -181,7 +171,7 @@ Related commands
    variable    dt equal 4.0
    variable    p equal 200     # correlation length
    variable    s equal 10      # sample interval
-   variable    d equal $p\*$s   # dump interval
+   variable    d equal $p*$s   # dump interval
 
    # convert from LAMMPS real units to SI
 
@@ -189,7 +179,7 @@ Related commands
    variable    kCal2J equal 4186.0/6.02214e23
    variable    A2m equal 1.0e-10
    variable    fs2s equal 1.0e-15
-   variable    convert equal ${kCal2J}\*${kCal2J}/${fs2s}/${A2m}
+   variable    convert equal ${kCal2J}*${kCal2J}/${fs2s}/${A2m}
 
    # setup problem
 
@@ -201,7 +191,7 @@ Related commands
    create_atoms 1 box
    mass         1 39.948
    pair_style   lj/cut 13.0
-   pair_coeff   \* \* 0.2381 3.405
+   pair_coeff   * * 0.2381 3.405
    timestep     ${dt}
    thermo       $d
 
@@ -226,28 +216,22 @@ Related commands
    variable     Jz equal c_flux[3]/vol
    fix          JJ all ave/correlate $s $p $d &
                 c_flux[1] c_flux[2] c_flux[3] type auto file J0Jt.dat ave running
-   variable     scale equal ${convert}/${kB}/$T/$T/$V\*$s\*${dt}
-   variable     k11 equal trap(f_JJ[3])\*${scale}
-   variable     k22 equal trap(f_JJ[4])\*${scale}
-   variable     k33 equal trap(f_JJ[5])\*${scale}
+   variable     scale equal ${convert}/${kB}/$T/$T/$V*$s*${dt}
+   variable     k11 equal trap(f_JJ[3])*${scale}
+   variable     k22 equal trap(f_JJ[4])*${scale}
+   variable     k33 equal trap(f_JJ[5])*${scale}
    thermo_style custom step temp v_Jx v_Jy v_Jz v_k11 v_k22 v_k33
    run          100000
    variable     k equal (v_k11+v_k22+v_k33)/3.0
    variable     ndens equal count(all)/vol
    print        "average conductivity: $k[W/mK] @ $T K, ${ndens} /A\^3"
 
-
 ----------
 
-
 .. _Surblys2:
-
-
 
 **(Surblys)** Surblys, Matsubara, Kikugawa, Ohara, Phys Rev E, 99, 051301(R) (2019).
 
 .. _Boone:
-
-
 
 **(Boone)** Boone, Babaei, Wilmer, J Chem Theory Comput, 15, 5579--5587 (2019).

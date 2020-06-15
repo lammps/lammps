@@ -39,6 +39,7 @@
 #include "memory.h"
 #include "error.h"
 #include "rigid_const.h"
+#include "utils.h"
 
 #include <map>
 
@@ -71,6 +72,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   create_attribute = 1;
   dof_flag = 1;
   enforce2d_flag = 1;
+  stores_ids = 1;
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -1091,7 +1093,7 @@ void FixRigidSmall::final_integrate_respa(int ilevel, int /*iloop*/)
      when unwrapped by true image flags
    then set_xv() will compute huge displacements every step to reset coords of
      all the body atoms to be back inside the box, ditto for triclinic box flip
-     note: so just want to avoid that numeric probem?
+     note: so just want to avoid that numeric problem?
 ------------------------------------------------------------------------- */
 
 void FixRigidSmall::pre_neighbor()
@@ -2320,7 +2322,7 @@ void FixRigidSmall::setup_bodies_static()
 /* ----------------------------------------------------------------------
    one-time initialization of dynamic rigid body attributes
    vcm and angmom, computed explicitly from constituent particles
-   not done if body properites read from file, e.g. for overlapping particles
+   not done if body properties read from file, e.g. for overlapping particles
 ------------------------------------------------------------------------- */
 
 void FixRigidSmall::setup_bodies_dynamic()
@@ -2426,7 +2428,7 @@ void FixRigidSmall::setup_bodies_dynamic()
 
 /* ----------------------------------------------------------------------
    read per rigid body info from user-provided file
-   which = 0 to read everthing except 6 moments of inertia
+   which = 0 to read everything except 6 moments of inertia
    which = 1 to read just 6 moments of inertia
    flag inbody = 0 for local bodies this proc initializes from file
    nlines = # of lines of rigid body info, 0 is OK
@@ -2488,7 +2490,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
     buf = buffer;
     next = strchr(buf,'\n');
     *next = '\0';
-    int nwords = atom->count_words(buf);
+    int nwords = utils::trim_and_count_words(buf);
     *next = '\n';
 
     if (nwords != ATTRIBUTE_PERBODY)
@@ -2561,7 +2563,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
    each proc contributes info for rigid bodies it owns
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::write_restart_file(char *file)
+void FixRigidSmall::write_restart_file(const char *file)
 {
   FILE *fp;
 

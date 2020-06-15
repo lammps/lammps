@@ -1,16 +1,15 @@
-.. index:: pair\_style multi/lucy/rx
+.. index:: pair_style multi/lucy/rx
 
-pair\_style multi/lucy/rx command
-=================================
+pair_style multi/lucy/rx command
+================================
 
-pair\_style multi/lucy/rx/kk command
-====================================
+pair_style multi/lucy/rx/kk command
+===================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style multi/lucy/rx style N keyword ...
 
@@ -21,14 +20,13 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style multi/lucy/rx linear 1000
    pair_style multi/lucy/rx linear 1000 fractional
    pair_style multi/lucy/rx linear 1000 molecular
-   pair_coeff \* \* multibody.table ENTRY1 h2o h2o 7.0
-   pair_coeff \* \* multibody.table ENTRY1 h2o 1fluid 7.0
+   pair_coeff * * multibody.table ENTRY1 h2o h2o 7.0
+   pair_coeff * * multibody.table ENTRY1 h2o 1fluid 7.0
 
 Description
 """""""""""
@@ -43,29 +41,34 @@ particle through a site-site interaction potential model.  Style
 following from the many-body form described in :ref:`(Moore) <Moore2>` and
 :ref:`(Warren) <Warren2>` as
 
-.. image:: Eqs/pair_multi_lucy.jpg
-   :align: center
+.. math::
 
-which consists of a density-dependent function, A(rho), and a
-radial-dependent weight function, omegaDD(rij).  The radial-dependent
-weight function, omegaDD(rij), is taken as the Lucy function:
+   F_{i}^{DD}(\rho_i,\rho_j,r_{ij}) = \frac{1}{2} \omega_{DD}\left(r_{ij}\right)
+   \left[A\left(\rho_i\right) + A\left(\rho_j\right)\right]e_{ij}
 
-.. image:: Eqs/pair_multi_lucy2.jpg
-   :align: center
+which consists of a density-dependent function, :math:`A(\rho)`, and a
+radial-dependent weight function, :math:`\omega_{DD}(r_{ij})`.  The
+radial-dependent weight function, :math:`\omega_{DD}(r_{ij})`, is taken
+as the Lucy function:
+
+.. math::
+
+   \omega_{DD}\left(r_{ij}\right) = \left(1+\frac{3r_{ij}}{r_{cut}}\right)\left(1+\frac{r_{ij}}{r_{cut}}\right)^3
 
 The density-dependent energy for a given particle is given by:
 
-.. image:: Eqs/pair_multi_lucy_energy.jpg
-   :align: center
+.. math::
+
+   u_{i}^{DD}\left(\rho_{i}\right) = \frac{\pi r_{cut}^4}{84} \int_{\rho_0}^{\rho_i} A\left(\rho'\right) d\rho'
 
 See the supporting information of :ref:`(Brennan) <Brennan2>` or the
 publication by :ref:`(Moore) <Moore2>` for more details on the functional
 form.
 
-An interpolation table is used to evaluate the density-dependent
-energy (Integral(A(rho)drho) and force (A(rho)).  Note that the
-pre-factor to the energy is computed after the interpolation, thus the
-Integral(A(rho)drho will have units of energy / length\^4.
+An interpolation table is used to evaluate the density-dependent energy
+(:math:`\int A(\rho') d \rho'`) and force (:math:`A(\rho')`).  Note that
+the pre-factor to the energy is computed after the interpolation, thus
+the :math:`\int A(\rho') d\rho'` will have units of energy / length\^4.
 
 The interpolation table is created as a pre-computation by fitting
 cubic splines to the file values and interpolating the
@@ -114,13 +117,10 @@ associated with the interacting coarse-grained particles (see the
 stored before and after the reaction kinetics solver is applied, where
 the difference is defined to be the internal chemical energy (uChem).
 
-
 ----------
-
 
 The format of a tabulated file is a series of one or more sections,
 defined as follows (without the parenthesized comments):
-
 
 .. parsed-literal::
 
@@ -138,7 +138,7 @@ A section begins with a non-blank line whose 1st character is not a
 "#"; blank lines or lines starting with "#" can be used as comments
 between sections.  The first line begins with a keyword which
 identifies the section.  The line can contain additional text, but the
-initial text must match the argument specified in the pair\_coeff
+initial text must match the argument specified in the pair_coeff
 command.  The next line lists (in any order) one or more parameters
 for the table.  Each parameter is a keyword followed by one or more
 numeric values.
@@ -146,7 +146,7 @@ numeric values.
 The parameter "N" is required and its value is the number of table
 entries that follow.  Note that this may be different than the *N*
 specified in the :doc:`pair_style multi/lucy/rx <pair_multi_lucy_rx>`
-command.  Let Ntable = *N* in the pair\_style command, and Nfile = "N"
+command.  Let Ntable = *N* in the pair_style command, and Nfile = "N"
 in the tabulated file.  What LAMMPS does is a preliminary
 interpolation by creating splines using the Nfile tabulated values as
 nodal points.  It uses these to interpolate the density-dependent
@@ -194,9 +194,7 @@ Note that one file can contain many sections, each with a tabulated
 potential.  LAMMPS reads the file section by section until it finds
 one that matches the specified keyword.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -206,20 +204,18 @@ I,J pairs must be specified explicitly.
 The :doc:`pair_modify <pair_modify>` shift, table, and tail options are
 not relevant for this pair style.
 
-This pair style writes the settings for the "pair\_style multi/lucy/rx" command
-to :doc:`binary restart files <restart>`, so a pair\_style command does
+This pair style writes the settings for the "pair_style multi/lucy/rx" command
+to :doc:`binary restart files <restart>`, so a pair_style command does
 not need to specified in an input script that reads a restart file.
 However, the coefficient information is not stored in the restart
-file, since it is tabulated in the potential files.  Thus, pair\_coeff
+file, since it is tabulated in the potential files.  Thus, pair_coeff
 commands do need to be specified in the restart input script.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -239,13 +235,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command is part of the USER-DPD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -257,24 +250,16 @@ Related commands
 
 **Default:** fractional weighting
 
-
 ----------
 
-
 .. _Warren2:
-
-
 
 **(Warren)** Warren, Phys Rev E, 68, 066702 (2003).
 
 .. _Brennan2:
 
-
-
 **(Brennan)** Brennan, J Chem Phys Lett, 5, 2144-2149 (2014).
 
 .. _Moore2:
-
-
 
 **(Moore)** Moore, J Chem Phys, 144, 104501 (2016).

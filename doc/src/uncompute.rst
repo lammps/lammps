@@ -6,7 +6,6 @@ uncompute command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    uncompute compute-ID
@@ -16,8 +15,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    uncompute 2
    uncompute lower-boundary

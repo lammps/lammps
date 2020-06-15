@@ -54,6 +54,7 @@
 #include "pair_dpd_fdt_energy.h"
 #include "npair_half_bin_newton_ssa.h"
 #include "citeme.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -155,12 +156,13 @@ void FixShardlow::setup(int /*vflag*/)
   bool fixShardlow = false;
 
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"nvt",3) == 0 || strncmp(modify->fix[i]->style,"npt",3) == 0)
-      error->all(FLERR,"Cannot use constant temperature integration routines with DPD.");
+    if (strstr(modify->fix[i]->style,"nvt") || strstr(modify->fix[i]->style,"npt") ||
+        strstr(modify->fix[i]->style,"gle") || strstr(modify->fix[i]->style,"gld"))
+      error->all(FLERR,"Cannot use constant temperature integration routines with USER-DPD.");
 
   for (int i = 0; i < modify->nfix; i++){
-    if (strncmp(modify->fix[i]->style,"shardlow",3) == 0) fixShardlow = true;
-    if (strncmp(modify->fix[i]->style,"nve",3) == 0 || (strncmp(modify->fix[i]->style,"nph",3) == 0)){
+    if (utils::strmatch(modify->fix[i]->style,"^shardlow")) fixShardlow = true;
+    if (utils::strmatch(modify->fix[i]->style,"^nve") || utils::strmatch(modify->fix[i]->style,"^nph")){
       if(fixShardlow) break;
       else error->all(FLERR,"The deterministic integrator must follow fix shardlow in the input file.");
     }

@@ -6,7 +6,6 @@ compute smd/tlsph/defgrad command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID smd/tlsph/defgrad
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all smd/tlsph/defgrad
 
@@ -47,7 +45,6 @@ entry is the determinant of the deformation gradient.
 
 Restrictions
 """"""""""""
-
 
 This compute is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info. TThis compute can

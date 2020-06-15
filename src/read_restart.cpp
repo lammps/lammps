@@ -36,36 +36,11 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
+
+#include "lmprestart.h"
 
 using namespace LAMMPS_NS;
-
-// same as write_restart.cpp
-
-#define MAGIC_STRING "LammpS RestartT"
-#define ENDIAN 0x0001
-#define ENDIANSWAP 0x1000
-#define VERSION_NUMERIC 0
-
-enum{VERSION,SMALLINT,TAGINT,BIGINT,
-     UNITS,NTIMESTEP,DIMENSION,NPROCS,PROCGRID,
-     NEWTON_PAIR,NEWTON_BOND,
-     XPERIODIC,YPERIODIC,ZPERIODIC,BOUNDARY,
-     ATOM_STYLE,NATOMS,NTYPES,
-     NBONDS,NBONDTYPES,BOND_PER_ATOM,
-     NANGLES,NANGLETYPES,ANGLE_PER_ATOM,
-     NDIHEDRALS,NDIHEDRALTYPES,DIHEDRAL_PER_ATOM,
-     NIMPROPERS,NIMPROPERTYPES,IMPROPER_PER_ATOM,
-     TRICLINIC,BOXLO,BOXHI,XY,XZ,YZ,
-     SPECIAL_LJ,SPECIAL_COUL,
-     MASS,PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER,
-     MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
-     IMAGEINT,BOUNDMIN,TIMESTEP,
-     ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
-     COMM_MODE,COMM_CUTOFF,COMM_VEL,NO_PAIR,
-     EXTRA_BOND_PER_ATOM,EXTRA_ANGLE_PER_ATOM,EXTRA_DIHEDRAL_PER_ATOM,
-     EXTRA_IMPROPER_PER_ATOM,EXTRA_SPECIAL_PER_ATOM,ATOM_MAXSPECIAL};
-
-#define LB_FACTOR 1.1
 
 /* ---------------------------------------------------------------------- */
 
@@ -138,23 +113,21 @@ void ReadRestart::command(int narg, char **arg)
       *ptr = '%';
     } else hfile = file;
     fp = fopen(hfile,"rb");
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open restart file %s",hfile);
-      error->one(FLERR,str);
-    }
+    if (fp == NULL)
+      error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
+                                   hfile, utils::getsyserror()));
     if (multiproc) delete [] hfile;
   }
 
-  // read magic string, endian flag, numeric version
+  // read magic string, endian flag, format revision
 
   magic_string();
   endian();
-  int incompatible = version_numeric();
+  format_revision();
 
   // read header info which creates simulation box
 
-  header(incompatible);
+  header();
   domain->box_exist = 1;
 
   // problem setup using info from header
@@ -307,12 +280,9 @@ void ReadRestart::command(int narg, char **arg)
       sprintf(procfile,"%s%d%s",file,iproc,ptr+1);
       *ptr = '%';
       fp = fopen(procfile,"rb");
-      if (fp == NULL) {
-        char str[128];
-        snprintf(str,128,"Cannot open restart file %s",procfile);
-        error->one(FLERR,str);
-      }
-
+      if (fp == NULL)
+        error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
+                                     procfile, utils::getsyserror()));
       utils::sfread(FLERR,&flag,sizeof(int),1,fp,NULL,error);
       if (flag != PROCSPERFILE)
         error->one(FLERR,"Invalid flag in peratom section of restart file");
@@ -379,11 +349,9 @@ void ReadRestart::command(int narg, char **arg)
       sprintf(procfile,"%s%d%s",file,icluster,ptr+1);
       *ptr = '%';
       fp = fopen(procfile,"rb");
-      if (fp == NULL) {
-        char str[128];
-        snprintf(str,128,"Cannot open restart file %s",procfile);
-        error->one(FLERR,str);
-      }
+      if (fp == NULL)
+        error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
+                                     procfile, utils::getsyserror()));
       delete [] procfile;
     }
 
@@ -524,36 +492,24 @@ void ReadRestart::command(int narg, char **arg)
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  " BIGINT_FORMAT " atoms\n",natoms);
-    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " atoms\n",natoms);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,fmt::format("  {} atoms\n",natoms));
 
   if (natoms != atom->natoms)
     error->all(FLERR,"Did not assign all restart atoms correctly");
 
   if (me == 0) {
     if (atom->nbonds) {
-      if (screen) fprintf(screen,"  " BIGINT_FORMAT " bonds\n",atom->nbonds);
-      if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " bonds\n",atom->nbonds);
+      utils::logmesg(lmp,fmt::format("  {} bonds\n",atom->nbonds));
     }
     if (atom->nangles) {
-      if (screen) fprintf(screen,"  " BIGINT_FORMAT " angles\n",
-                          atom->nangles);
-      if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " angles\n",
-                           atom->nangles);
+      utils::logmesg(lmp,fmt::format("  {} angles\n",atom->nangles));
     }
     if (atom->ndihedrals) {
-      if (screen) fprintf(screen,"  " BIGINT_FORMAT " dihedrals\n",
-                          atom->ndihedrals);
-      if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " dihedrals\n",
-                           atom->ndihedrals);
+      utils::logmesg(lmp,fmt::format("  {} dihedrals\n",atom->ndihedrals));
     }
     if (atom->nimpropers) {
-      if (screen) fprintf(screen,"  " BIGINT_FORMAT " impropers\n",
-                          atom->nimpropers);
-      if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " impropers\n",
-                           atom->nimpropers);
+      utils::logmesg(lmp,fmt::format("  {} impropers\n",atom->nimpropers));
     }
   }
 
@@ -681,7 +637,7 @@ void ReadRestart::file_search(char *inpfile, char *outfile)
    read header of restart file
 ------------------------------------------------------------------------- */
 
-void ReadRestart::header(int incompatible)
+void ReadRestart::header()
 {
   int xperiodic(-1),yperiodic(-1),zperiodic(-1);
 
@@ -698,9 +654,19 @@ void ReadRestart::header(int incompatible)
         if (screen) fprintf(screen,"  restart file = %s, LAMMPS = %s\n",
                             version,universe->version);
       }
-      if (incompatible)
-        error->all(FLERR,"Restart file incompatible with current version");
       delete [] version;
+
+      // we have no forward compatibility, thus exit with error
+
+      if (revision > FORMAT_REVISION)
+        error->all(FLERR,"Restart file format revision incompatible "
+                   "with current LAMMPS version");
+
+      // warn when attempting to read older format revision
+
+      if ((me == 0) && (revision < FORMAT_REVISION))
+        error->warning(FLERR,"Old restart file format revision. "
+                       "Switching to compatibility mode.");
 
     // check lmptype.h sizes, error if different
 
@@ -745,12 +711,10 @@ void ReadRestart::header(int incompatible)
 
     } else if (flag == NPROCS) {
       nprocs_file = read_int();
-      if (nprocs_file != comm->nprocs && me == 0) {
-        char msg[128];
-        snprintf(msg,128,"Restart file used different # of processors: %d vs. %d",
-                 nprocs_file,comm->nprocs);
-        error->warning(FLERR,msg);
-      }
+      if (nprocs_file != comm->nprocs && me == 0)
+        error->warning(FLERR,fmt::format("Restart file used different # of "
+                                         "processors: {} vs. {}",nprocs_file,
+                                         comm->nprocs));
 
     // don't set procgrid, warn if different
 
@@ -1242,11 +1206,36 @@ void ReadRestart::endian()
 /* ----------------------------------------------------------------------
 ------------------------------------------------------------------------- */
 
-int ReadRestart::version_numeric()
+void ReadRestart::format_revision()
 {
-  int vn = read_int();
-  if (vn != VERSION_NUMERIC) return 1;
-  return 0;
+  revision = read_int();
+}
+
+/* ----------------------------------------------------------------------
+------------------------------------------------------------------------- */
+
+void ReadRestart::check_eof_magic()
+{
+  // no check for revision 0 restart files
+  if (revision < 1) return;
+
+  int n = strlen(MAGIC_STRING) + 1;
+  char *str = new char[n];
+
+  // read magic string at end of file and restore file pointer
+
+  if (me == 0) {
+    long curpos = ftell(fp);
+    fseek(fp,(long)-n,SEEK_END);
+    fread(str,sizeof(char),n,fp);
+    fseek(fp,curpos,SEEK_SET);
+  }
+
+  MPI_Bcast(str,n,MPI_CHAR,0,world);
+  if (strcmp(str,MAGIC_STRING) != 0)
+    error->all(FLERR,"Incomplete or corrupted LAMMPS restart file");
+
+  delete [] str;
 }
 
 /* ----------------------------------------------------------------------

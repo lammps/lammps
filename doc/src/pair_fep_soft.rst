@@ -1,76 +1,74 @@
-.. index:: pair\_style lj/cut/soft
+.. index:: pair_style lj/cut/soft
 
-pair\_style lj/cut/soft command
-===============================
+pair_style lj/cut/soft command
+==============================
 
-pair\_style lj/cut/soft/omp command
-===================================
-
-pair\_style lj/cut/coul/cut/soft command
-========================================
-
-pair\_style lj/cut/coul/cut/soft/omp command
-============================================
-
-pair\_style lj/cut/coul/long/soft command
-=========================================
-
-pair\_style lj/cut/coul/long/soft/omp command
-=============================================
-
-pair\_style lj/cut/tip4p/long/soft command
-==========================================
-
-pair\_style lj/cut/tip4p/long/soft/omp command
-==============================================
-
-pair\_style lj/charmm/coul/long/soft command
-============================================
-
-pair\_style lj/charmm/coul/long/soft/omp command
-================================================
-
-pair\_style lj/class2/soft command
+pair_style lj/cut/soft/omp command
 ==================================
 
-pair\_style lj/class2/coul/cut/soft command
-===========================================
-
-pair\_style lj/class2/coul/long/soft command
-============================================
-
-pair\_style coul/cut/soft command
-=================================
-
-pair\_style coul/cut/soft/omp command
-=====================================
-
-pair\_style coul/long/soft command
-==================================
-
-pair\_style coul/long/soft/omp command
-======================================
-
-pair\_style tip4p/long/soft command
-===================================
-
-pair\_style tip4p/long/soft/omp command
+pair_style lj/cut/coul/cut/soft command
 =======================================
 
-pair\_style morse/soft command
+pair_style lj/cut/coul/cut/soft/omp command
+===========================================
+
+pair_style lj/cut/coul/long/soft command
+========================================
+
+pair_style lj/cut/coul/long/soft/omp command
+============================================
+
+pair_style lj/cut/tip4p/long/soft command
+==========================================
+
+pair_style lj/cut/tip4p/long/soft/omp command
+==============================================
+
+pair_style lj/charmm/coul/long/soft command
+============================================
+
+pair_style lj/charmm/coul/long/soft/omp command
+================================================
+
+pair_style lj/class2/soft command
+==================================
+
+pair_style lj/class2/coul/cut/soft command
+===========================================
+
+pair_style lj/class2/coul/long/soft command
+============================================
+
+pair_style coul/cut/soft command
+=================================
+
+pair_style coul/cut/soft/omp command
+=====================================
+
+pair_style coul/long/soft command
+==================================
+
+pair_style coul/long/soft/omp command
+======================================
+
+pair_style tip4p/long/soft command
+===================================
+
+pair_style tip4p/long/soft/omp command
+=======================================
+
+pair_style morse/soft command
 ==============================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *lj/cut/soft* or *lj/cut/coul/cut/soft* or *lj/cut/coul/long/soft* or *lj/cut/tip4p/long/soft* or *lj/charmm/coul/long/soft* or *lj/class2/soft* or *lj/class2/coul/cut/soft* or *lj/class2/coul/long/soft* or *coul/cut/soft* or *coul/long/soft* or *tip4p/long/soft* or *morse/soft*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -127,51 +125,50 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style lj/cut/soft 2.0 0.5 9.5
-   pair_coeff \* \* 0.28 3.1 1.0
+   pair_coeff * * 0.28 3.1 1.0
    pair_coeff 1 1 0.28 3.1 1.0 9.5
 
    pair_style lj/cut/coul/cut/soft 2.0 0.5 10.0 9.5
    pair_style lj/cut/coul/cut/soft 2.0 0.5 10.0 9.5 9.5
-   pair_coeff \* \* 0.28 3.1 1.0
+   pair_coeff * * 0.28 3.1 1.0
    pair_coeff 1 1 0.28 3.1 0.5 10.0
    pair_coeff 1 1 0.28 3.1 0.5 10.0 9.5
 
    pair_style lj/cut/coul/long/soft 2.0 0.5 10.0 9.5
    pair_style lj/cut/coul/long/soft 2.0 0.5 10.0 9.5 9.5
-   pair_coeff \* \* 0.28 3.1 1.0
+   pair_coeff * * 0.28 3.1 1.0
    pair_coeff 1 1 0.28 3.1 0.0 10.0
    pair_coeff 1 1 0.28 3.1 0.0 10.0 9.5
 
    pair_style lj/cut/tip4p/long/soft 1 2 7 8 0.15 2.0 0.5 10.0 9.8
    pair_style lj/cut/tip4p/long/soft 1 2 7 8 0.15 2.0 0.5 10.0 9.8 9.5
-   pair_coeff \* \* 0.155 3.1536 1.0
+   pair_coeff * * 0.155 3.1536 1.0
    pair_coeff 1 1 0.155 3.1536 1.0 9.5
 
    pair_style lj/charmm/coul/long 2.0 0.5 10.0 8.0 10.0
    pair_style lj/charmm/coul/long 2.0 0.5 10.0 8.0 10.0 9.0
-   pair_coeff \* \* 0.28 3.1 1.0
+   pair_coeff * * 0.28 3.1 1.0
    pair_coeff 1 1 0.28 3.1 1.0 0.14 3.1
 
    pair_style lj/class2/coul/long/soft 2.0 0.5 10.0 9.5
    pair_style lj/class2/coul/long/soft 2.0 0.5 10.0 9.5 9.5
-   pair_coeff \* \* 0.28 3.1 1.0
+   pair_coeff * * 0.28 3.1 1.0
    pair_coeff 1 1 0.28 3.1 0.0 10.0
    pair_coeff 1 1 0.28 3.1 0.0 10.0 9.5
 
    pair_style coul/long/soft 1.0 10.0 9.5
-   pair_coeff \* \* 1.0
+   pair_coeff * * 1.0
    pair_coeff 1 1 1.0 9.5
 
    pair_style tip4p/long/soft 1 2 7 8 0.15 2.0 0.5 10.0 9.8
-   pair_coeff \* \* 1.0
+   pair_coeff * * 1.0
    pair_coeff 1 1 1.0 9.5
 
    pair_style morse/soft 4 0.9 10.0
-   pair_coeff \* \* 100.0 2.0 1.5 1.0
+   pair_coeff * * 100.0 2.0 1.5 1.0
    pair_coeff 1 1 100.0 2.0 1.5 1.0 3.0
 
 Description
@@ -231,7 +228,6 @@ every 0.1.
 .. image:: JPG/lj_soft.jpg
 .. image:: JPG/coul_soft.jpg
 
-
 For the *lj/cut/coul/cut/soft* or *lj/cut/coul/long/soft* pair styles, as well
 as for the equivalent *class2* versions, the following coefficients must be
 defined for each pair of atoms types via the :doc:`pair_coeff <pair_coeff>`
@@ -246,7 +242,7 @@ or by mixing as described below:
 * cutoff2 (distance units)
 
 The latter two coefficients are optional.  If not specified, the global
-LJ and Coulombic cutoffs specified in the pair\_style command are used.
+LJ and Coulombic cutoffs specified in the pair_style command are used.
 If only one cutoff is specified, it is used as the cutoff for both LJ
 and Coulombic interactions for this type pair.  If both coefficients
 are specified, they are used as the LJ and Coulombic cutoffs for this
@@ -313,9 +309,7 @@ example hydrogen atoms in several water models).
    the *coul/long/soft* or similar sub-style can be used via the
    :doc:`pair_style hybrid/overlay <pair_hybrid>` command.
 
-
 ----------
-
 
 The *morse/soft* variant modifies the :doc:`pair_morse <pair_morse>` style at
 short range to have a soft core. The functional form differs from that of the
@@ -345,9 +339,7 @@ The *morse/soft* style requires the following pair coefficients:
 The last coefficient is optional. If not specified, the global morse cutoff is
 used.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -368,9 +360,7 @@ command in your input script.
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, tail correction, restart info**\ :
 
@@ -416,16 +406,13 @@ The *morse/soft* pair style does not support the :doc:`pair_modify
 pressure.
 
 All of these pair styles write information to :doc:`binary restart files
-<restart>`, so pair\_style and pair\_coeff commands do not need to be specified
+<restart>`, so pair_style and pair_coeff commands do not need to be specified
 in an input script that reads a restart file.
-
 
 ----------
 
-
 Restrictions
 """"""""""""
-
 
 The pair styles with soft core are only enabled if LAMMPS was built with the
 USER-FEP package. The *long* versions also require the KSPACE package to be
@@ -442,13 +429,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Beutler:
-
-
 
 **(Beutler)** Beutler, Mark, van Schaik, Gerber, van Gunsteren, Chem
 Phys Lett, 222, 529 (1994).

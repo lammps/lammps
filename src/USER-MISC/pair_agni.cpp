@@ -31,6 +31,7 @@
 #include "citeme.h"
 #include "math_special.h"
 #include "math_const.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
@@ -387,7 +388,7 @@ void PairAGNI::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     if (nwords > MAXWORD)

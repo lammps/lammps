@@ -33,6 +33,7 @@ under
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
+#include "group.h"
 
 #include "ptm_functions.h"
 
@@ -61,7 +62,7 @@ static const char cite_user_ptm_package[] =
 
 ComputePTMAtom::ComputePTMAtom(LAMMPS *lmp, int narg, char **arg)
     : Compute(lmp, narg, arg), list(NULL), output(NULL) {
-  if (narg != 5)
+  if (narg < 5 || narg > 6)
     error->all(FLERR, "Illegal compute ptm/atom command");
 
   char *structures = arg[3];
@@ -122,6 +123,14 @@ ComputePTMAtom::ComputePTMAtom(LAMMPS *lmp, int narg, char **arg)
   if (rmsd_threshold == 0)
     rmsd_threshold = INFINITY;
 
+  char* group_name = (char *)"all";
+  if (narg > 5) {
+    group_name = arg[5];
+  }
+  int igroup = group->find(group_name);
+  if (igroup == -1) error->all(FLERR,"Could not find fix group ID");
+  group2bit = group->bitmask[igroup];
+
   peratom_flag = 1;
   size_peratom_cols = NUM_COLUMNS;
   create_attribute = 1;
@@ -168,6 +177,8 @@ typedef struct
   int **firstneigh;
   int *ilist;
   int nlocal;
+  int *mask;
+  int group2bit;
 
 } ptmnbrdata_t;
 
@@ -184,6 +195,8 @@ static bool sorthelper_compare(ptmnbr_t const &a, ptmnbr_t const &b) {
 static int get_neighbours(void* vdata, size_t central_index, size_t atom_index, int num, size_t* nbr_indices, int32_t* numbers, double (*nbr_pos)[3])
 {
   ptmnbrdata_t* data = (ptmnbrdata_t*)vdata;
+  int *mask = data->mask;
+  int group2bit = data->group2bit;
 
   double **x = data->x;
   double *pos = x[atom_index];
@@ -203,6 +216,9 @@ static int get_neighbours(void* vdata, size_t central_index, size_t atom_index, 
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = jlist[jj];
+    if (!(mask[j] & group2bit))
+      continue;
+
     j &= NEIGHMASK;
     if (j == atom_index)
       continue;
@@ -265,7 +281,11 @@ void ComputePTMAtom::compute_peratom() {
 
   double **x = atom->x;
   int *mask = atom->mask;
-  ptmnbrdata_t nbrlist = {x, numneigh, firstneigh, ilist, atom->nlocal};
+  ptmnbrdata_t nbrlist = {x, numneigh, firstneigh, ilist, atom->nlocal, mask, group2bit};
+
+  // zero output
+
+  memset(output,0,nmax*NUM_COLUMNS*sizeof(double));
 
   for (int ii = 0; ii < inum; ii++) {
 

@@ -91,7 +91,6 @@ void PPPM_GPU_API(forces)(double **f);
 
 PPPMGPU::PPPMGPU(LAMMPS *lmp) : PPPM(lmp)
 {
-  triclinic_support = 0;
   density_brick_gpu = vd_brick = NULL;
   kspace_split = false;
   im_real_space = false;
@@ -210,15 +209,17 @@ void PPPMGPU::compute(int eflag, int vflag)
     cg_peratom->setup();
   }
 
-  bool success = true;
-  int flag=PPPM_GPU_API(spread)(nago, atom->nlocal, atom->nlocal +
-                             atom->nghost, atom->x, atom->type, success,
-                             atom->q, domain->boxlo, delxinv, delyinv,
-                             delzinv);
-  if (!success)
-    error->one(FLERR,"Insufficient memory on accelerator");
-  if (flag != 0)
-    error->one(FLERR,"Out of range atoms - cannot compute PPPM");
+  if (triclinic == 0) {
+    bool success = true;
+    int flag=PPPM_GPU_API(spread)(nago, atom->nlocal, atom->nlocal +
+                              atom->nghost, atom->x, atom->type, success,
+                              atom->q, domain->boxlo, delxinv, delyinv,
+                              delzinv);
+    if (!success)
+      error->one(FLERR,"Insufficient memory on accelerator");
+    if (flag != 0)
+      error->one(FLERR,"Out of range atoms - cannot compute PPPM");
+  }
 
   // convert atoms from box to lamda coords
 
@@ -229,9 +230,10 @@ void PPPMGPU::compute(int eflag, int vflag)
   }
 
   // If need per-atom energies/virials, also do particle map on host
-  // concurrently with GPU calculations
+  // concurrently with GPU calculations,
+  // or if the box is triclinic, particle map is done on host
 
-  if (evflag_atom) {
+  if (evflag_atom || triclinic) {
 
     // extend size of per-atom arrays if necessary
 
@@ -244,14 +246,24 @@ void PPPMGPU::compute(int eflag, int vflag)
     particle_map();
   }
 
+  // if the box is triclinic,
+  // map my particle charge onto my local 3d density grid on the host
+
+  if (triclinic) make_rho();
+
   double t3 = MPI_Wtime();
 
   // all procs communicate density values from their ghost cells
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  cg->reverse_comm(this,REVERSE_RHO_GPU);
-  brick2fft_gpu();
+  if (triclinic == 0) {
+    cg->reverse_comm(this,REVERSE_RHO_GPU);
+    brick2fft_gpu();
+  } else {
+    cg->reverse_comm(this,REVERSE_RHO);
+    PPPM::brick2fft();
+  }
 
   // compute potential gradient on my FFT grid and
   //   portion of e_long on this proc's FFT grid
@@ -279,7 +291,8 @@ void PPPMGPU::compute(int eflag, int vflag)
   // calculate the force on my particles
 
   FFT_SCALAR qscale = force->qqrd2e * scale;
-  PPPM_GPU_API(interp)(qscale);
+  if (triclinic == 0) PPPM_GPU_API(interp)(qscale);
+  else fieldforce();
 
   // per-atom energy/virial
   // energy includes self-energy correction

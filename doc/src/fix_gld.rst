@@ -6,7 +6,6 @@ fix gld command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID gld Tstart Tstop N_k seed series c_1 tau_1 ... c_N_k tau_N_k keyword values ...
@@ -14,15 +13,15 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * gld = style name of this fix command
 * Tstart,Tstop = desired temperature at start/end of run (temperature units)
-* N\_k = number of terms in the Prony series representation of the memory kernel
+* N_k = number of terms in the Prony series representation of the memory kernel
 * seed = random number seed to use for white noise (positive integer)
 * series = *pprony* is presently the only available option
-* c\_k = the weight of the kth term in the Prony series (mass per time units)
-* tau\_k = the time constant of the kth term in the Prony series (time units)
+* c_k = the weight of the kth term in the Prony series (mass per time units)
+* tau_k = the time constant of the kth term in the Prony series (time units)
 * zero or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      keyword = *frozen* or *zero*
        *frozen* value = *no* or *yes*
          *no* = initialize extended variables using values drawn from equilibrium distribution at Tstart
@@ -31,13 +30,10 @@ Syntax
          *no* = do not set total random force to zero
          *yes* = set total random force to zero
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all gld 1.0 1.0 2 82885 pprony 0.5 1.0 1.0 2.0 frozen yes zero yes
    fix 3 rouse gld 7.355 7.355 4 48823 pprony 107.1 0.02415 186.0 0.04294 428.6 0.09661 1714 0.38643
@@ -65,9 +61,8 @@ With this fix active, the force on the *j*\ th atom is given as
 .. math::
 
    {\bf F}_{j}(t) = & {\bf F}^C_j(t)-\int \limits_{0}^{t} \Gamma_j(t-s) {\bf v}_j(s)~\text{d}s + {\bf F}^R_j(t) \\
-   \Gamma_j(t-s) = & \sum \limits_{k=1}^{N_k} \frac{c_k}{\tau_k} e^{-(t-s)/\tau_k} \\ 
+   \Gamma_j(t-s) = & \sum \limits_{k=1}^{N_k} \frac{c_k}{\tau_k} e^{-(t-s)/\tau_k} \\
    \langle{\bf F}^R_j(t),{\bf F}^R_j(s)\rangle = & \text{k$_\text{B}$T} ~\Gamma_j(t-s)
-
 
 Here, the first term is representative of all conservative (pairwise,
 bonded, etc) forces external to this fix, the second is the temporally
@@ -105,9 +100,7 @@ generate its own unique seed and its own stream of random
 numbers. Thus the dynamics of the system will not be identical on two
 runs on different numbers of processors.
 
-
 ----------
-
 
 The keyword/value option pairs are used in the following ways.
 
@@ -128,9 +121,7 @@ to zero by subtracting off an equal part of it from each atom in the
 group. As a result, the center-of-mass of a system with zero initial
 momentum will not drift over time.
 
-
 ----------
-
 
 **Restart, run start/stop, minimize info:**
 
@@ -154,7 +145,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
 This fix is part of the MISC package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -169,12 +159,8 @@ Default
 
 The option defaults are frozen = no, zero = no.
 
-
 ----------
 
-
 .. _Baczewski:
-
-
 
 **(Baczewski)** A.D. Baczewski and S.D. Bond, J. Chem. Phys. 139, 044107 (2013).

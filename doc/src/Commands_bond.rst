@@ -99,7 +99,6 @@ have accelerated versions.  This is indicated by additional letters in
 parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
 OPT.
 
-
 .. table_from_list::
    :columns: 4
 

@@ -6,16 +6,15 @@ group command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    group ID style args
 
 * ID = user-defined name of the group
 * style = *delete* or *clear* or *empty* or *region* or         *type* or *id* or *molecule* or *variable* or         *include* or *subtract* or *union* or *intersect* or         *dynamic* or *static*
-  
+
   .. parsed-literal::
-  
+
        *delete* = no args
        *clear* = no args
        *empty* = no args
@@ -46,13 +45,10 @@ Syntax
            *every* value = N = update group every this many timesteps
        *static* = no args
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    group edge region regstrip
    group water type 3 4
@@ -159,8 +155,7 @@ For example, these lines define a variable "eatom" that calculates the
 potential energy of each atom and includes it in the group if its
 potential energy is above the threshold value -3.0.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute         1 all pe/atom
    compute         2 all reduce sum c_1
@@ -172,8 +167,7 @@ potential energy is above the threshold value -3.0.
 
 Note that these lines
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute         2 all reduce sum c_1
    thermo_style    custom step temp pe c_2
@@ -224,9 +218,7 @@ The *intersect* style takes a list of two or more existing group names
 as arguments.  Atoms that belong to every one of the listed groups are
 added to the specified group.
 
-
 ----------
-
 
 The *dynamic* style flags an existing or new group as dynamic.  This
 means atoms will be (re)assigned to the group periodically as a
@@ -274,8 +266,7 @@ used to model a quench of the system, freezing atoms outside the
 shrinking sphere, then converting the remaining atoms to a static
 group and running further.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable        nsteps equal 5000
    variable        rad equal 18-(step/v_nsteps)\*(18-5)
@@ -298,13 +289,10 @@ The *static* style removes the setting for a dynamic group, converting
 it to a static group (the default).  The atoms in the static group are
 those currently in the dynamic group.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 There can be no more than 32 groups defined at one time, including
 "all".

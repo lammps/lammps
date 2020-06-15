@@ -1,25 +1,23 @@
-.. index:: pair\_style thole
+.. index:: pair_style thole
 
-pair\_style thole command
-=========================
+pair_style thole command
+========================
 
-pair\_style lj/cut/thole/long command
-=====================================
+pair_style lj/cut/thole/long command
+====================================
 
-pair\_style lj/cut/thole/long/omp command
-=========================================
+pair_style lj/cut/thole/long/omp command
+========================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style style args
 
 * style = *thole* or *lj/cut/thole/long* or *lj/cut/thole/long/omp*
 * args = list of arguments for a particular style
-
 
 .. parsed-literal::
 
@@ -34,13 +32,12 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style hybrid/overlay ... thole 2.6 12.0
    pair_coeff 1 1 thole 1.0
    pair_coeff 1 2 thole 1.0 2.6 10.0
-   pair_coeff \* 2 thole 1.0 2.6
+   pair_coeff * 2 thole 1.0 2.6
 
    pair_style lj/cut/thole/long 2.6 12.0
 
@@ -59,7 +56,7 @@ containing *coul/cut* or *coul/long* in its style name.
 
 The *lj/cut/thole/long* pair style is equivalent to, but more convenient that
 the frequent combination *hybrid/overlay lj/cut/coul/long cutoff thole damp
-cutoff2*\ . It is not only a shorthand for this pair\_style combination, but
+cutoff2*\ . It is not only a shorthand for this pair_style combination, but
 it also allows for mixing pair coefficients instead of listing them all.
 The *lj/cut/thole/long* pair style is also a bit faster because it avoids an
 overlay and can benefit from OMP acceleration. Moreover, it uses a more
@@ -70,12 +67,11 @@ Drude particles.
 The *thole* pair styles compute the Coulomb interaction damped at
 short distances by a function
 
-
 .. math::
 
-   \begin{equation} T_{ij}(r_{ij}) = 1 - \left( 1 +
+   T_{ij}(r_{ij}) = 1 - \left( 1 +
    \frac{s_{ij} r_{ij} }{2} \right)
-   \exp \left( - s_{ij} r_{ij} \right) \end{equation}
+   \exp \left( - s_{ij} r_{ij} \right)
 
 This function results from an adaptation to point charges
 :ref:`(Noskov) <Noskov1>` of the dipole screening scheme originally proposed
@@ -87,12 +83,11 @@ the atom types. The mixing rule for Thole damping parameters is the
 arithmetic average, and for polarizabilities the geometric average
 between the atom-specific values.
 
-
 .. math::
 
-   \begin{equation} s_{ij} = \frac{ a_{ij} }{
+   s_{ij} = \frac{ a_{ij} }{
    (\alpha_{ij})^{1/3} } = \frac{ (a_i + a_j)/2 }{
-   [(\alpha_i\alpha_j)^{1/2}]^{1/3} } \end{equation}
+   [(\alpha_i\alpha_j)^{1/2}]^{1/3} }
 
 The damping function is only applied to the interactions between the
 point charges representing the induced dipoles on polarizable sites,
@@ -109,16 +104,16 @@ non-polarizable atoms are also subject to these weighting factors. The
 Drude particles inherit the 1-2, 1-3 and 1-4 neighbor relations from
 their respective cores.
 
-For pair\_style *thole*\ , the following coefficients must be defined for
+For pair_style *thole*\ , the following coefficients must be defined for
 each pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command
 as in the example above.
 
-* alpha (distance units\^3)
+* :math:`\alpha` (distance units\^3)
 * damp
 * cutoff (distance units)
 
 The last two coefficients are optional.  If not specified the global
-Thole damping parameter or global cutoff specified in the pair\_style
+Thole damping parameter or global cutoff specified in the pair_style
 command are used. In order to specify a cutoff (third argument) a damp
 parameter (second argument) must also be specified.
 
@@ -126,18 +121,16 @@ For pair style *lj/cut/thole/long*\ , the following coefficients must be
 defined for each pair of atoms types via the :doc:`pair_coeff <pair_coeff>`
 command.
 
-* epsilon (energy units)
-* sigma (length units)
-* alpha (distance units\^3)
-* damps
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (length units)
+* :math:`\alpha` (distance units\^3)
+* damp
 * LJ cutoff (distance units)
 
 The last two coefficients are optional and default to the global values from
-the *pair\_style* command line.
-
+the *pair_style* command line.
 
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -165,24 +158,19 @@ for all I,J pairs must be specified explicitly.
 The *lj/cut/thole/long* pair style does support mixing. Mixed coefficients
 are defined using
 
-
 .. math::
 
-   \begin{equation} \alpha_{ij} = \sqrt{\alpha_i\alpha_j}\end{equation}
-
-
-.. math::
-
-   \begin{equation} a_{ij} = \frac 1 2 (a_i + a_j)\end{equation}
+   \alpha_{ij} = & \sqrt{\alpha_i\alpha_j} \\
+   & \\
+   a_{ij} = & \frac 1 2 (a_i + a_j)
 
 Restrictions
 """"""""""""
 
-
 These pair styles are part of the USER-DRUDE package. They are only
 enabled if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
-This pair\_style should currently not be used with the :doc:`charmm dihedral style <dihedral_charmm>` if the latter has non-zero 1-4 weighting
+This pair_style should currently not be used with the :doc:`charmm dihedral style <dihedral_charmm>` if the latter has non-zero 1-4 weighting
 factors. This is because the *thole* pair style does not know which
 pairs are 1-4 partners of which dihedrals.
 
@@ -198,18 +186,12 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Noskov1:
-
-
 
 **(Noskov)** Noskov, Lamoureux and Roux, J Phys Chem B, 109, 6705 (2005).
 
 .. _Thole1:
-
-
 
 **(Thole)** Chem Phys, 59, 341 (1981).

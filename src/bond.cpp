@@ -21,6 +21,8 @@
 #include "atom_masks.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -254,7 +256,9 @@ void Bond::write_file(int narg, char **arg)
   FILE *fp;
   if (me == 0) {
     fp = fopen(arg[4],"a");
-    if (fp == NULL) error->one(FLERR,"Cannot open bond_write file");
+    if (fp == NULL)
+      error->one(FLERR,fmt::format("Cannot open bond_write file {}: {}",
+                                   arg[4], utils::getsyserror()));
   }
 
   // initialize potentials before evaluating bond potential

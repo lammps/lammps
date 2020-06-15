@@ -1,18 +1,19 @@
-.. index:: improper\_style distance
+.. index:: improper_style distance
 
-improper\_style distance command
-================================
+improper_style distance command
+===============================
 
 Syntax
 """"""
 
-improper\_style distance
+.. code-block:: LAMMPS
+
+   improper_style distance
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style distance
    improper_coeff 1 80.0 100.0
@@ -26,8 +27,7 @@ The *distance* improper style uses the potential
 
    E = K_2 d^2 + K_4 d^4
 
-
-where d is the distance between the central atom and the plane formed
+where :math:`d` is the distance between the central atom and the plane formed
 by the other three atoms.  If the 4 atoms in an improper quadruplet
 (listed in the data file read by the :doc:`read_data <read_data>`
 command) are ordered I,J,K,L then the I-atom is assumed to be the
@@ -42,19 +42,16 @@ linear dihedral. Normally, the bonds I-J, I-K, I-L would exist for an
 improper to be defined between the 4 atoms.
 
 The following coefficients must be defined for each improper type via
-the improper\_coeff command as in the example above, or in the data
-file or restart files read by the read\_data or read\_restart commands:
+the improper_coeff command as in the example above, or in the data
+file or restart files read by the read_data or read_restart commands:
 
 * :math:`K_2` (energy/distance\^2)
 * :math:`K_4` (energy/distance\^4)
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This improper style can only be used if LAMMPS was built with the
 USER-MISC package.  See the :doc:`Build package <Build_package>` doc

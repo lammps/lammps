@@ -6,7 +6,6 @@ temper/grem command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    temper/grem N M lambda fix-ID thermostat-ID seed1 seed2 index
@@ -23,11 +22,10 @@ Syntax
 Examples
 """"""""
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   temper/grem 100000 1000 $\ *lambda* fxgREM fxnvt 0 58728
-   temper/grem 40000 100 $\ *lambda* fxgREM fxnpt 0 32285 $\ *walkers*
+   temper/grem 100000 1000 ${lambda} fxgREM fxnvt 0 58728
+   temper/grem 40000 100 ${lambda} fxgREM fxnpt 0 32285 ${walkers}
 
 Description
 """""""""""
@@ -49,18 +47,18 @@ has the same dependencies, restraints, and input variables which are
 discussed there in greater detail.
 
 Instead of temperature, this command performs replica exchanges in
-lambda as per the generalized ensemble enforced by :doc:`fix grem <fix_grem>`.  The desired lambda is specified by *lambda*\ ,
-which is typically a variable previously set in the input script, so
-that each partition is assigned a different temperature.  See the
-:doc:`variable <variable>` command for more details.  For example:
+lambda as per the generalized ensemble enforced by :doc:`fix grem
+<fix_grem>`.  The desired lambda is specified by *lambda*\ , which is
+typically a variable previously set in the input script, so that each
+partition is assigned a different temperature.  See the :doc:`variable
+<variable>` command for more details.  For example:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable lambda world 400 420 440 460
    fix fxnvt all nvt temp 300.0 300.0 100.0
-   fix fxgREM all grem $\ *lambda* -0.05 -50000 fxnvt
-   temper 100000 100 $\ *lambda* fxgREM fxnvt 3847 58382
+   fix fxgREM all grem ${lambda} -0.05 -50000 fxnvt
+   temper/grem 100000 100 ${lambda} fxgREM fxnvt 3847 58382
 
 would define 4 lambdas with constant kinetic temperature but unique
 generalized temperature, and assign one of them to :doc:`fix grem <fix_grem>` used by each replica, and to the grem command.
@@ -84,29 +82,24 @@ replica) which had previously swapped to new lambda.  This is done
 using a variable. For example if the log file listed the following for
 a simulation with 5 replicas:
 
-
 .. parsed-literal::
 
    500000 2 4 0 1 3
 
 then a setting of
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable walkers world 2 4 0 1 3
 
 would be used to restart the run with a grem command like the example
-above with $\ *walkers* as the last argument. This functionality is
+above with ${walkers} as the last argument. This functionality is
 identical to :doc:`temper <temper>`.
-
 
 ----------
 
-
 Restrictions
 """"""""""""
-
 
 This command can only be used if LAMMPS was built with the USER-MISC
 package.  See the :doc:`Build package <Build_package>` doc
@@ -122,7 +115,5 @@ Related commands
 **Default:** none
 
 .. _KimStraub:
-
-
 
 **(Kim)** Kim, Keyes, Straub, J Chem Phys, 132, 224107 (2010).

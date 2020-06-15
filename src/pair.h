@@ -258,17 +258,6 @@ class Pair : protected Pointers {
                       double, double, double, double, double, double);
   void virial_fdotr_compute();
 
-  // union data struct for packing 32-bit and 64-bit ints into double bufs
-  // see atom_vec.h for documentation
-
-  union ubuf {
-    double d;
-    int64_t i;
-    ubuf(double arg) : d(arg) {}
-    ubuf(int64_t arg) : i(arg) {}
-    ubuf(int arg) : i(arg) {}
-  };
-
   inline int sbmask(int j) const {
     return j >> SBBITS & 3;
   }

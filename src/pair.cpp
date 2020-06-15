@@ -33,6 +33,8 @@
 #include "memory.h"
 #include "math_const.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -1639,7 +1641,9 @@ void Pair::write_file(int narg, char **arg)
   FILE *fp;
   if (me == 0) {
     fp = fopen(arg[6],"a");
-    if (fp == NULL) error->one(FLERR,"Cannot open pair_write file");
+    if (fp == NULL)
+      error->one(FLERR,fmt::format("Cannot open pair_write file {}: {}",
+                                   arg[6], utils::getsyserror()));
     fprintf(fp,"# Pair potential %s for atom types %d %d: i,r,energy,force\n",
             force->pair_style,itype,jtype);
     if (style == RLINEAR)

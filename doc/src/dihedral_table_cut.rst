@@ -1,13 +1,12 @@
-.. index:: dihedral\_style table/cut
+.. index:: dihedral_style table/cut
 
-dihedral\_style table/cut command
-=================================
+dihedral_style table/cut command
+================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style table/cut style Ntable
 
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style table/cut spline 400
    dihedral_style table/cut linear 1000
@@ -68,9 +66,8 @@ cutoff function:
 
 .. math::
 
-        f(\theta) & = K \qquad\qquad\qquad\qquad\qquad\qquad \theta < \theta_1 \\
-        f(\theta) & = K \left(1-\frac{(\theta - \theta_1)^2}{(\theta_2 - \theta_1)^2}\right) \qquad \theta_1 < \theta < \theta_2
-
+   f(\theta) & = K \qquad\qquad\qquad\qquad\qquad\qquad \theta < \theta_1 \\
+   f(\theta) & = K \left(1-\frac{(\theta - \theta_1)^2}{(\theta_2 - \theta_1)^2}\right) \qquad \theta_1 < \theta < \theta_2
 
 The cutoff specifies an prefactor to the cutoff function.  While this value
 would ordinarily equal 1 there may be situations where the value should change.
@@ -86,14 +83,11 @@ The filename specifies a file containing tabulated energy and
 derivative values. The keyword specifies a section of the file.  The
 format of this file is described below.
 
-
 ----------
-
 
 The format of a tabulated file is as follows (without the
 parenthesized comments).  It can begin with one or more comment
 or blank lines.
-
 
 .. parsed-literal::
 
@@ -154,7 +148,7 @@ strange numerical behavior can occur in the large remaining gap.
 The parameter "N" is required and its value is the number of table
 entries that follow. Note that this may be different than the N
 specified in the :doc:`dihedral_style table <dihedral_style>` command.
-Let *Ntable* is the number of table entries requested dihedral\_style
+Let *Ntable* is the number of table entries requested dihedral_style
 command, and let *Nfile* be the parameter following "N" in the
 tabulated file ("30" in the sparse example above).  What LAMMPS does
 is a preliminary interpolation by creating splines using the *Nfile*
@@ -204,17 +198,16 @@ that matches the specified keyword.
 
 **Restart info:**
 
-This dihedral style writes the settings for the "dihedral\_style table/cut"
-command to :doc:`binary restart files <restart>`, so a dihedral\_style
+This dihedral style writes the settings for the "dihedral_style table/cut"
+command to :doc:`binary restart files <restart>`, so a dihedral_style
 command does not need to specified in an input script that reads a
 restart file.  However, the coefficient information is not stored in
 the restart file, since it is tabulated in the potential files.  Thus,
-dihedral\_coeff commands do need to be specified in the restart input
+dihedral_coeff commands do need to be specified in the restart input
 script.
 
 Restrictions
 """"""""""""
-
 
 This dihedral style can only be used if LAMMPS was built with the
 USER-MISC package.  See the :doc:`Build package <Build_package>` doc
@@ -228,7 +221,5 @@ Related commands
 **Default:** none
 
 .. _dihedralcut-Salerno:
-
-
 
 **(Salerno)** Salerno, Bernstein, J Chem Theory Comput, --, ---- (2018).

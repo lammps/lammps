@@ -6,7 +6,6 @@ fix nvt/body command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nvt/body keyword value ...
@@ -18,8 +17,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nvt/body temp 300.0 300.0 100.0
    fix 1 all nvt/body temp 300.0 300.0 100.0 drag 0.2
@@ -52,8 +50,7 @@ This fix computes a temperature each timestep.  To do this, the fix
 creates its own compute of style "temp/body", as if this command
 had been issued:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute fix-ID_temp group-ID temp/body
 
@@ -63,12 +60,12 @@ underscore + "temp", and the group for the new compute is the same as
 the fix group.
 
 Note that this is NOT the compute used by thermodynamic output (see
-the :doc:`thermo_style <thermo_style>` command) with ID = *thermo\_temp*.
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo_temp*.
 This means you can change the attributes of this fix's temperature
 (e.g. its degrees-of-freedom) via the
 :doc:`compute_modify <compute_modify>` command or print this temperature
 during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` command using the appropriate compute-ID.
-It also means that changing attributes of *thermo\_temp* will have no
+It also means that changing attributes of *thermo_temp* will have no
 effect on this fix.
 
 Like other fixes that perform thermostatting, this fix can be used
@@ -85,9 +82,7 @@ temperature is calculated taking the bias into account, bias is
 removed from each atom, thermostatting is performed on the remaining
 thermal degrees of freedom, and the bias is added back in.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -107,7 +102,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the state of the Nose/Hoover thermostat to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>`
 command for info on how to re-specify a fix in an input script that
@@ -135,7 +130,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
 This fix is part of the BODY package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -146,6 +140,6 @@ command.
 Related commands
 """"""""""""""""
 
-:doc:`fix nvt <fix_nh>`, :doc:`fix nve\_body <fix_nve_body>`, :doc:`fix npt\_body <fix_npt_body>`, :doc:`fix_modify <fix_modify>`
+:doc:`fix nvt <fix_nh>`, :doc:`fix nve_body <fix_nve_body>`, :doc:`fix npt_body <fix_npt_body>`, :doc:`fix_modify <fix_modify>`
 
 **Default:** none

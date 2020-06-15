@@ -11,7 +11,6 @@ distribution.  The :doc:`Build package <Build_package>` doc page gives
 general info on how to install and un-install packages as part of the
 LAMMPS build process.
 
-
 .. toctree::
    :maxdepth: 1
 

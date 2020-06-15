@@ -6,7 +6,6 @@ compute fep command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID fep temp attribute args ... keyword value ...
@@ -16,9 +15,9 @@ Syntax
 * temp = external temperature (as specified for constant-temperature run)
 * one or more attributes with args may be appended
 * attribute = *pair* or *atom*
-  
+
   .. parsed-literal::
-  
+
        *pair* args = pstyle pparam I J v_delta
          pstyle = pair style name, e.g. lj/cut
          pparam = parameter to perturb
@@ -31,9 +30,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *tail* or *volume*
-  
+
   .. parsed-literal::
-  
+
        *tail* value = *no* or *yes*
          *no* = ignore tail correction to pair energies (usually small in fep)
          *yes* = include tail correction to pair energies
@@ -41,15 +40,12 @@ Syntax
          *no* = ignore volume changes (e.g. in *NVE* or *NVT* trajectories)
          *yes* = include volume changes (e.g. in *NpT* trajectories)
 
-
-
 Examples
 """"""""
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   compute 1 all fep 298 pair lj/cut epsilon 1 \* v_delta pair lj/cut sigma 1 \* v_delta volume yes
+   compute 1 all fep 298 pair lj/cut epsilon 1 * v_delta pair lj/cut sigma 1 * v_delta volume yes
    compute 1 all fep 300 atom charge 2 v_delta
 
 Description
@@ -151,9 +147,7 @@ the reference and perturbed states, or along the alchemical
 transformation route.  This compute command does not change bond
 lengths or other internal coordinates :ref:`(Boresch, Karplus) <BoreschKarplus>`.
 
-
 ----------
-
 
 The *pair* attribute enables various parameters of potentials defined
 by the :doc:`pair_style <pair_style>` and :doc:`pair_coeff <pair_coeff>`
@@ -247,14 +241,12 @@ used, then the *pstyle* will be a sub-style name.  You must specify
 I,J arguments that correspond to type pair values defined (via the
 :doc:`pair_coeff <pair_coeff>` command) for that sub-style.
 
-The *v\_name* argument for keyword *pair* is the name of an
+The *v_name* argument for keyword *pair* is the name of an
 :doc:`equal-style variable <variable>` which will be evaluated each time
-this compute is invoked.  It should be specified as v\_name, where name
+this compute is invoked.  It should be specified as v_name, where name
 is the variable name.
 
-
 ----------
-
 
 The *atom* attribute enables atom properties to be changed.  The
 *aparam* argument is the name of the parameter to change.  This is the
@@ -262,14 +254,12 @@ current list of atom parameters that can be used with this compute:
 
 * charge = charge on particle
 
-The *v\_name* argument for keyword *pair* is the name of an
+The *v_name* argument for keyword *pair* is the name of an
 :doc:`equal-style variable <variable>` which will be evaluated each time
-this compute is invoked.  It should be specified as v\_name, where name
+this compute is invoked.  It should be specified as v_name, where name
 is the variable name.
 
-
 ----------
-
 
 The *tail* keyword controls the calculation of the tail correction to
 "van der Waals" pair energies beyond the cutoff, if this has been
@@ -289,14 +279,13 @@ trajectories during which the volume fluctuates or changes :ref:`(Allen and Tild
 
 ----------
 
-
 **Output info:**
 
 This compute calculates a global vector of length 3 which contains the
-energy difference ( :math:`U_1-U_0` ) as c\_ID[1], the
+energy difference ( :math:`U_1-U_0` ) as c_ID[1], the
 Boltzmann factor :math:`\exp(-(U_1-U_0)/kT)`, or
-:math:`V \exp(-(U_1-U_0)/kT)`, as c\_ID[2] and the
-volume of the simulation box :math:`V` as c\_ID[3]. :math:`U_1` is the
+:math:`V \exp(-(U_1-U_0)/kT)`, as c_ID[2] and the
+volume of the simulation box :math:`V` as c_ID[3]. :math:`U_1` is the
 pair potential energy obtained with the perturbed parameters and
 :math:`U_0` is the pair potential energy obtained with the
 unperturbed parameters. The energies include kspace terms if these
@@ -310,7 +299,6 @@ The values calculated by this compute are "extensive".
 
 Restrictions
 """"""""""""
-
 
 This compute is distributed as the USER-FEP package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -326,9 +314,7 @@ Default
 
 The option defaults are *tail* = *no*\ , *volume* = *no*\ .
 
-
 ----------
-
 
 .. _Pearlman:
 

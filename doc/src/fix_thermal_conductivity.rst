@@ -6,7 +6,6 @@ fix thermal/conductivity command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID thermal/conductivity N edim Nbin keyword value ...
@@ -18,18 +17,15 @@ Syntax
 * Nbin = # of layers in edim direction (must be even number)
 * zero or more keyword/value pairs may be appended
 * keyword = *swap*
-  
+
   .. parsed-literal::
-  
+
        *swap* value = Nswap = number of swaps to perform every N steps
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all thermal/conductivity 100 z 20
    fix 1 all thermal/conductivity 50 z 20 swap 2
@@ -67,8 +63,7 @@ this induces a temperature gradient in the system which can be
 measured using commands such as the following, which writes the
 temperature profile (assuming z = edim) to the file tmp.profile:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute   ke all ke/atom
    variable  temp atom c_ke/1.5
@@ -113,7 +108,7 @@ fluid, in appropriate units.  See the :ref:`Muller-Plathe paper <Muller-Plathe1>
    accurately infer a thermal conductivity and should try increasing the
    Nevery parameter.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -132,7 +127,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the MISC package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -165,19 +159,13 @@ Default
 
 The option defaults are swap = 1.
 
-
 ----------
 
-
 .. _Muller-Plathe1:
-
-
 
 **(Muller-Plathe)** Muller-Plathe, J Chem Phys, 106, 6082 (1997).
 
 .. _Zhang2:
-
-
 
 **(Zhang)** Zhang, Lussetti, de Souza, Muller-Plathe, J Phys Chem B,
 109, 15060-15067 (2005).

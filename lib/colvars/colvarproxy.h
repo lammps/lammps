@@ -334,7 +334,7 @@ class colvarproxy_atom_groups {
 
 public:
 
-  /// Contructor
+  /// Constructor
   colvarproxy_atom_groups();
 
   /// Destructor

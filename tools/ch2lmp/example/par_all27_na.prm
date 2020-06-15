@@ -124,7 +124,7 @@ ON2  P3     300.0       1.68    !PPI2, from nad/ppi, adm jr. 7/01
 ON3  P3     480.0       1.53    !PPI2, from nad/ppi, adm jr. 7/01
 ON4  P3     237.0       1.58    !PPI2, from MP_1, ADM Jr.
 NN5  HN1    460.0       1.01    !sugar model, adm jr.
-!@@@@@@@@@ Begining of endocyclic bonds for deoxy-ribose @@@@@@@@@
+!@@@@@@@@@ Beginning of endocyclic bonds for deoxy-ribose @@@@@@@@@
 CN7B ON6    260.0       1.420   ! From exp  
 CN7B CN8    200.0       1.518   ! From exp 
 CN7  ON6    240.0       1.446   ! Fom exp.
@@ -135,21 +135,21 @@ CN7  HN7    309.0       1.111   !Alkanes, sacred
 CN8  HN8    309.0       1.111   !Alkanes, sacred
 CN7B HN7    309.0       1.111   ! From CN8  HN7 (NF)
 !@@@@@@@@@ End of endocyclic bonds for deoxy-ribose @@@@@@@@@
-!@@@@@@@@@ Begining of endocyclic bonds for ribose @@@@@@@@@
+!@@@@@@@@@ Beginning of endocyclic bonds for ribose @@@@@@@@@
 CN7B ON6B   260.0       1.420   ! From CN7B ON6
 CN7  ON6B   240.0       1.480   ! From CN7  ON6
 CN7B CN7B   200.0       1.450   ! 
 CN7  CN7B   222.5       1.460   ! Specific to RNA 
 !@@@@@@@@@ End of endocyclic bonds for ribose @@@@@@@@@
 
-!@@@@@@@@@ Begining of endocyclic bonds for arabinose @@@@@@@@@
-! Transfered from DNA
+!@@@@@@@@@ Beginning of endocyclic bonds for arabinose @@@@@@@@@
+! Transferred from DNA
 CN7B CN7C   200.0       1.518   ! For arabinose, from CN7B CN8
 CN7  CN7C   222.5       1.516   ! For arabinose, from CN7  CN8
 CN7C HN7    309.0       1.111   ! From CN8  HN7
 !@@@@@@@@@ End of endocyclic bonds for arabinose @@@@@@@@@
 
-!@@@@@@@@@ Begining of exocyclic bonds for deoxy-ribose @@@@@@@@@
+!@@@@@@@@@ Beginning of exocyclic bonds for deoxy-ribose @@@@@@@@@
 CN7  CN8B   222.5       1.512   ! From exp. 
 CN8B ON2    320.0       1.44    ! From exp
 !CN8B ON5    250.0       1.44    ! From CN8B ON2
@@ -169,19 +169,19 @@ CN8B  HN8    309.0       1.111  !Alkanes, sacred
 ON5   HN5    545.0       0.960  !RIBOSE, MeOH
 !@@@@@@@@@ End of exocyclic bonds for deoxy-ribose @@@@@@@@@
 
-!@@@@@@@@@ Begining of exocyclic bonds for ribose @@@@@@@@@
+!@@@@@@@@@ Beginning of exocyclic bonds for ribose @@@@@@@@@
 !CN7B ON5    250.0       1.400   ! From CN7  ON5
 CN7B ON5    428.0       1.400   ! check adm jr., 
 !FC should be 428.000 based on Meoh
 !@@@@@@@@@ End of exocyclic bonds for ribose @@@@@@@@@
 
-!@@@@@@@@@ Begining of exocyclic bonds for arabinose @@@@@@@@@
+!@@@@@@@@@ Beginning of exocyclic bonds for arabinose @@@@@@@@@
 !CN7C ON5    250.0       1.400   ! From CN7  ON5
 CN7C ON5    428.0       1.400   ! check adm jr.,
 !FC should be 428.000 based on Meoh
 !@@@@@@@@@ End of exocyclic bonds for arabinose @@@@@@@@@
 
-!@@@@@@@@@ Begining of bonds for nucleotide analogue @@@@@@@@@
+!@@@@@@@@@ Beginning of bonds for nucleotide analogue @@@@@@@@@
 CN8  ON2    340.0       1.44    !
 !@@@@@@@@@ End of bonds for nucleotide analogue @@@@@@@@@
 
@@ -1075,9 +1075,9 @@ CN7  ON6  CN7B NR1      0.0     3     0.0
 CN7  ON6B CN7B NR1      0.0     3     0.0 ! RNUS
 NR1  CN7B CN8  CN7      0.0     3     0.0
 !%%%%%%% new terms for dna and the deoxyribose-based model compounds %%%%%%
-! The following is for: THF3P (model for espilon), THFM3P (model for puckering),
+! The following is for: THF3P (model for epsilon), THFM3P (model for puckering),
 ! THF5P (model for gamma and beta), THFCH3IM (model for chi), nucleotide analogue
-!@@@@@@ Begining of chi
+!@@@@@@ Beginning of chi
 !============= added for torsion about chi in adenine ============
 !For link from sugar to base:
 CN7B NN2  CN4  HN3       0.3     2       180.0 ! NF
@@ -1214,7 +1214,7 @@ HN7  CN7B CN7B NN2B      0.0     3         0.0
 HN7  CN7C CN7B NN2       0.0     3         0.0
 HN7  CN7C CN7B NN2B      0.0     3         0.0
 
-!@@@@@@ Begining of torsions involving exocyclic sugar atoms:
+!@@@@@@ Beginning of torsions involving exocyclic sugar atoms:
 !======= CN7  CN8B  ON2  P = C4'-C5'-O5'-P 
 CN7  CN8B ON2  P        0.2     1       120.0 !bet C4'-C5'-O5'-P, adm jr.
 ! the following differ significantly from the alcohols
@@ -1354,7 +1354,7 @@ HN7  CN7  CN7  ON5       0.195   3         0.0
 !======== CN7 CN7 ON2 P = C4'-C3'-O3'-P 
 CN7  CN7  ON2  P         0.6     5         0.0 !eps
 CN7  CN7  ON2  P         0.2     4         0.0 !eps, locat of 200 mimima
-CN7  CN7  ON2  P         0.0     3       180.0 !eps, barE beteen minima
+CN7  CN7  ON2  P         0.0     3       180.0 !eps, barE between minima
 CN7  CN7  ON2  P         0.4     2         0.0 !eps, relE of 200 vs 275 min
 CN7  CN7  ON2  P         1.9     1       180.0 !eps
 !======== CN8 CN7 ON2 P = C2'-C3'-O3'-P 
@@ -1378,20 +1378,20 @@ CN7B CN7  ON5  HN5       0.8     3         0.0 ! RNA
 CN7B CN7  ON5  HN5       0.5     1         0.0 ! RNA
 CN7C CN7  ON5  HN5       0.8     3         0.0 ! Arabinose (from DNA)
 CN7C CN7  ON5  HN5       0.5     1         0.0 ! Arabinose (from DNA)
-! Was simply transfered from HN7  CN7  ON2  P
+! Was simply transferred from HN7  CN7  ON2  P
 ! adm jr. should convert to alcohol term (see ribose etc)
 HN7  CN7  ON5  HN5       0.0     3         0.0
 HN7  CN7  CN8B HN8       0.195   3         0.0 !gam H-C4'-C5'-H
 HN7  CN7  CN7  CN8B      0.195   3         0.0 !gam H-C3'-C4'-C5'
 !@@@@@@ End of torsions involving exocyclic atoms:
-!@@@@@@ Begining of torsions for endocyclic atoms only:
+!@@@@@@ Beginning of torsions for endocyclic atoms only:
 CN8  CN7B ON6  CN7       0.6     6       180.0 !C2'-C1'-O4'-C4'
 CN8  CN7  CN7  ON6       0.0     3         0.0 !C2'-C3'-C4'-O4'
 CN7B CN7B ON6B CN7       0.0     6         0.0 ! RNA, Lowers barrier
 CN7B CN7  CN7  ON6B      0.0     3         0.0 ! RNA
 CN7C CN7B ON6  CN7       0.6     6       180.0 ! Arabinose (from DNA)
 CN7C CN7  CN7  ON6       0.0     3         0.0 ! Arabinose (from DNA)
-!======== CN7 CN8 CN7B ON6 for nucleosides, transfered from =========
+!======== CN7 CN8 CN7B ON6 for nucleosides, transferred from =========
 !======== CN7 CN8  CN8  ON6 from thfoh ==============================
 CN7  CN8  CN7B ON6       0.6     6         0.0 ! C3'-C2'-C1'-O4', adjust barrier
 CN7  CN7B CN7B ON6B      0.4     6         0.0 ! RNA
@@ -1402,7 +1402,7 @@ CN7B CN8  CN7  CN7       0.4      6        0.0 ! good for amplitudes
 CN7B CN7B CN7  CN7       0.0      6        0.0 ! RNA
 CN7B CN7B CN8  CN7       0.0      6        0.0 ! RNA, 25P1
 CN7B CN7C CN7  CN7       0.4      6        0.0 ! Arabinose (from DNA)
-!======== CN7 CN7 ON6 CN7B for nucleosides, transfered from ========
+!======== CN7 CN7 ON6 CN7B for nucleosides, transferred from ========
 !======== CN7 CN7 ON6 CN8 from thfohch3 ============================
 CN7  CN7  ON6  CN7B      0.6      6      180.0 ! C3'-C4'-O4'-C1'
 CN7  CN7  ON6B CN7B      0.0      6      180.0 ! RNA
@@ -1438,7 +1438,7 @@ HN7  CN7  CN7C HN7       0.195    3       0.0 !Arabinose (from DNA), H-C3'-C2'-H
 HN7  CN7C CN7  CN7       0.195    3       0.0 !Arabinose (from DNA), useful *cccc*
 !@@@@@@ End of torsions for endocyclic atoms only
 
-!@@@@@@ Begining of torsions specifically defined for RNA @@@@@@
+!@@@@@@ Beginning of torsions specifically defined for RNA @@@@@@
 ! N9-C1'-C2'-O2':
 NN2  CN7B CN7B ON5       0.000    3       0.0 ! Adenine and cytosine
 NN2B CN7B CN7B ON5       0.000    3       0.0 ! Guanine and uracil
@@ -1461,7 +1461,7 @@ HN5  ON5  CN7B CN7       0.300    3       0.0 ! 030298
 HN5  ON5  CN7B CN7       0.000    1       0.0 ! 030298
 !@@@@@@ End of torsions specifically defined for RNA @@@@@@
 
-!@@@@@@ Begining of torsions specifically defined for arabinose @@@@@@
+!@@@@@@ Beginning of torsions specifically defined for arabinose @@@@@@
 ON6  CN7B CN7C ON5       0.000   3       0.0
 ! the following differ significantly from the protein based
 ! alcohol parameters (based on ethanol, see above)

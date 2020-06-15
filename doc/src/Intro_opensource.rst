@@ -15,15 +15,9 @@ distribution.
 
 .. _gnu: http://www.gnu.org/copyleft/gpl.html
 
-
-
 .. _gnuorg: http://www.gnu.org
 
-
-
 .. _opensource: http://www.opensource.org
-
-
 
 Here is a summary of what the GPL means for LAMMPS users:
 

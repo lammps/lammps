@@ -71,7 +71,7 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
 
 
   seedfix = force->inumeric(FLERR,arg[4]);
-  if (seedfix <= 0) error->all(FLERR,"Random seed must be a postive number");
+  if (seedfix <= 0) error->all(FLERR,"Random seed must be a positive number");
 
   int iarg = 5;
   while (iarg < narg) {
@@ -114,7 +114,7 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
         if ((wallvel[nwall][dir] !=0) & (dir == dim))
           error->all(FLERR,"The wall velocity must be tangential");
 
-        // DIFFUSIVE = no accomodation coeffs
+        // DIFFUSIVE = no accommodation coeffs
         // MAXWELL = one for all dimensions
         // CCL = one for each dimension
 

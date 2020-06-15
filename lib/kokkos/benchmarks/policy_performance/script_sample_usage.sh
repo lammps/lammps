@@ -2,7 +2,7 @@
 
 # Sample script for benchmarking policy performance 
 
-# Suggested enviroment variables to export prior to executing script:
+# Suggested environment variables to export prior to executing script:
 # KNL: 
 # OMP_NUM_THREADS=256 KMP_AFFINITY=compact
 # Power:

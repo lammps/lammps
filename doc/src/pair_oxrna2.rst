@@ -21,7 +21,6 @@ pair_style oxrna2/dh command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style style1
@@ -33,7 +32,6 @@ Syntax
 * style2 = *oxrna2/excv* or *oxrna2/stk* or *oxrna2/hbond* or *oxrna2/xstk* or *oxrna2/coaxstk* or *oxrna2/dh*
 * args = list of arguments for these particular styles
 
-
 .. parsed-literal::
 
      *oxrna2/stk* args = seq T xi kappa 6.0 0.43 0.93 0.35 0.78 0.9 0 0.95 0.9 0 0.95 1.3 0 0.8 1.3 0 0.8 2.0 0.65 2.0 0.65
@@ -41,7 +39,7 @@ Syntax
        T = temperature (oxDNA units, 0.1 = 300 K)
        xi = 1.40206 (temperature-independent coefficient in stacking strength)
        kappa = 2.77 (coefficient of linear temperature dependence in stacking strength)
-     *oxrna2/hbond* args = seq eps 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45 
+     *oxrna2/hbond* args = seq eps 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
        seq = seqav (for average sequence base-pairing strength) or seqdep (for sequence-dependent base-pairing strength)
        eps = 0.870439 (between base pairs A-T, C-G and G-T) or 0 (all other pairs)
      *oxrna2/dh* args = T rhos qeff
@@ -51,7 +49,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -75,9 +72,9 @@ excluded volume interaction *oxrna2/excv*\ , the stacking *oxrna2/stk*\ , cross-
 and coaxial stacking interaction *oxrna2/coaxstk*\ , electrostatic Debye-Hueckel interaction *oxrna2/dh*
 as well as the hydrogen-bonding interaction *oxrna2/hbond* between complementary pairs of nucleotides on
 opposite strands. Average sequence or sequence-dependent stacking and base-pairing strengths
-are supported :ref:`(Sulc2) <Sulc32>`. Quasi-unique base-pairing between nucleotides can be achieved by using 
-more complementary pairs of atom types like 5-8 and 6-7, 9-12 and 10-11, 13-16 and 14-15, etc. 
-This prevents the hybridization of in principle complementary bases within Ntypes/4 bases 
+are supported :ref:`(Sulc2) <Sulc32>`. Quasi-unique base-pairing between nucleotides can be achieved by using
+more complementary pairs of atom types like 5-8 and 6-7, 9-12 and 10-11, 13-16 and 14-15, etc.
+This prevents the hybridization of in principle complementary bases within Ntypes/4 bases
 up and down along the backbone.
 
 The exact functional form of the pair styles is rather complex.
@@ -113,10 +110,8 @@ Please cite also the relevant oxRNA2 publications
 
 ----------
 
-
 Restrictions
 """"""""""""
-
 
 These pair styles can only be used if LAMMPS was built with the
 USER-CGDNA package and the MOLECULE and ASPHERE package.  See the
@@ -133,7 +128,6 @@ Related commands
 **Default:**
 
 none
-
 
 ----------
 

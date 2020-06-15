@@ -1,16 +1,15 @@
-.. index:: dihedral\_style table
+.. index:: dihedral_style table
 
-dihedral\_style table command
-=============================
+dihedral_style table command
+============================
 
-dihedral\_style table/omp command
-=================================
+dihedral_style table/omp command
+================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style table style Ntable
 
@@ -20,8 +19,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style table spline 400
    dihedral_style table linear 1000
@@ -64,14 +62,11 @@ The filename specifies a file containing tabulated energy and
 derivative values. The keyword specifies a section of the file.  The
 format of this file is described below.
 
-
 ----------
-
 
 The format of a tabulated file is as follows (without the
 parenthesized comments).  It can begin with one or more comment
 or blank lines.
-
 
 .. parsed-literal::
 
@@ -132,7 +127,7 @@ strange numerical behavior can occur in the large remaining gap.
 The parameter "N" is required and its value is the number of table
 entries that follow. Note that this may be different than the N
 specified in the :doc:`dihedral_style table <dihedral_style>` command.
-Let *Ntable* is the number of table entries requested dihedral\_style
+Let *Ntable* is the number of table entries requested dihedral_style
 command, and let *Nfile* be the parameter following "N" in the
 tabulated file ("30" in the sparse example above).  What LAMMPS does
 is a preliminary interpolation by creating splines using the *Nfile*
@@ -180,9 +175,7 @@ Note that one file can contain many sections, each with a tabulated
 potential. LAMMPS reads the file section by section until it finds one
 that matches the specified keyword.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -204,17 +197,16 @@ instructions on how to use the accelerated styles effectively.
 
 **Restart info:**
 
-This dihedral style writes the settings for the "dihedral\_style table"
-command to :doc:`binary restart files <restart>`, so a dihedral\_style
+This dihedral style writes the settings for the "dihedral_style table"
+command to :doc:`binary restart files <restart>`, so a dihedral_style
 command does not need to specified in an input script that reads a
 restart file.  However, the coefficient information is not stored in
 the restart file, since it is tabulated in the potential files.  Thus,
-dihedral\_coeff commands do need to be specified in the restart input
+dihedral_coeff commands do need to be specified in the restart input
 script.
 
 Restrictions
 """"""""""""
-
 
 This dihedral style can only be used if LAMMPS was built with the
 USER-MISC package.  See the :doc:`Build package <Build_package>` doc

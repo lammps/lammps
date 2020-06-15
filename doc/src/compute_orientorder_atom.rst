@@ -3,9 +3,11 @@
 compute orientorder/atom command
 ================================
 
+compute orientorder/atom/kk command
+===================================
+
 Syntax
 """"""
-
 
 .. parsed-literal::
 
@@ -14,24 +16,22 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * orientorder/atom = style name of this compute command
 * one or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
-     keyword = *cutoff* or *nnn* or *degrees* or *components*
+
+     keyword = *cutoff* or *nnn* or *degrees* or *components* or *chunksize*
        *cutoff* value = distance cutoff
        *nnn* value = number of nearest neighbors
        *degrees* values = nlvalues, l1, l2,...
        *wl* value = yes or no
        *wl/hat* value = yes or no
        *components* value = ldegree
-
-
+       *chunksize* value = number of atoms in each pass 
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all orientorder/atom
    compute 1 all orientorder/atom degrees 5 4 6 8 10 12 nnn NULL cutoff 1.5
@@ -104,9 +104,17 @@ can be reproduced with this keyword.
 The optional keyword *components* will output the components of the
 normalized complex vector :math:`\bar{Y}_{lm}` of degree *ldegree*\ , which must be
 explicitly included in the keyword *degrees*\ . This option can be used
-in conjunction with :doc:`compute coord\_atom <compute_coord_atom>` to
+in conjunction with :doc:`compute coord_atom <compute_coord_atom>` to
 calculate the ten Wolde's criterion to identify crystal-like
 particles, as discussed in :ref:`ten Wolde <tenWolde2>`.
+
+The optional keyword *chunksize* is only applicable when using the
+the KOKKOS package and is ignored otherwise. This keyword controls
+the number of atoms in each pass used to compute the bond-orientational
+order parameters and is used to avoid running out of memory. For example
+if there are 4000 atoms in the simulation and the *chunksize*
+is set to 2000, the parameter calculation will be broken up
+into two passes.
 
 The value of :math:`Q_l` is set to zero for atoms not in the
 specified compute group, as well as for atoms that have less than
@@ -131,6 +139,30 @@ too frequently.
    snapshots in the dump file.  The rerun script can use a
    :doc:`special_bonds <special_bonds>` command that includes all pairs in
    the neighbor list.
+
+----------
+
+
+Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
+page.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.
+
+These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
+USER-OMP and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
+
+You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
+:doc:`suffix <suffix>` command in your input script.
+
+See the :doc:`Speed packages <Speed_packages>` doc page for more
+instructions on how to use the accelerated styles effectively.
+
+
+----------
 
 **Output info:**
 
@@ -169,11 +201,9 @@ Default
 
 The option defaults are *cutoff* = pair style cutoff, *nnn* = 12,
 *degrees* = 5 4 6 8 10 12 i.e. :math:`Q_4`, :math:`Q_6`, :math:`Q_8`, :math:`Q_{10}`, and :math:`Q_{12}`,
-*wl* = no, *wl/hat* = no, and *components* off
-
+*wl* = no, *wl/hat* = no, *components* off, and *chunksize* = 2000
 
 ----------
-
 
 .. _Steinhardt:
 
@@ -186,7 +216,6 @@ Phys. Rev. B 28, 784 (1983).
 J. Chem. Phys. 138, 044501 (2013).
 
 .. _tenWolde2:
-
 
 **(tenWolde)** P. R. ten Wolde, M. J. Ruiz-Montero, D. Frenkel,
 J. Chem. Phys. 104, 9932 (1996).

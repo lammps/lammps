@@ -6,7 +6,6 @@ compute contact/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID contact/atom
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all contact/atom
 
@@ -48,7 +46,6 @@ above.
 
 Restrictions
 """"""""""""
-
 
 This compute requires that atoms store a radius as defined by the
 :doc:`atom_style sphere <atom_style>` command.

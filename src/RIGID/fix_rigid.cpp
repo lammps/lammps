@@ -35,6 +35,7 @@
 #include "memory.h"
 #include "error.h"
 #include "rigid_const.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -2185,7 +2186,7 @@ void FixRigid::setup_bodies_static()
 /* ----------------------------------------------------------------------
    one-time initialization of dynamic rigid body attributes
    set vcm and angmom, computed explicitly from constituent particles
-   not done if body properites read from file, e.g. for overlapping particles
+   not done if body properties read from file, e.g. for overlapping particles
 ------------------------------------------------------------------------- */
 
 void FixRigid::setup_bodies_dynamic()
@@ -2279,7 +2280,7 @@ void FixRigid::setup_bodies_dynamic()
 
 /* ----------------------------------------------------------------------
    read per rigid body info from user-provided file
-   which = 0 to read everthing except 6 moments of inertia
+   which = 0 to read everything except 6 moments of inertia
    which = 1 to read 6 moments of inertia
    flag inbody = 0 for bodies whose info is read from file
    nlines = # of lines of rigid body info
@@ -2330,7 +2331,7 @@ void FixRigid::readfile(int which, double *vec,
     buf = buffer;
     next = strchr(buf,'\n');
     *next = '\0';
-    int nwords = atom->count_words(buf);
+    int nwords = utils::count_words(utils::trim_comment(buf));
     *next = '\n';
 
     if (nwords != ATTRIBUTE_PERBODY)
@@ -2405,7 +2406,7 @@ void FixRigid::readfile(int which, double *vec,
    only proc 0 writes list of global bodies to file
 ------------------------------------------------------------------------- */
 
-void FixRigid::write_restart_file(char *file)
+void FixRigid::write_restart_file(const char *file)
 {
   if (me) return;
 

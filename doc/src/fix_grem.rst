@@ -6,7 +6,6 @@ fix grem command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID grem lambda eta H0 thermostat-ID
@@ -21,8 +20,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix             fxgREM all grem 400 -0.01 -30000 fxnpt
    thermo_modify   press fxgREM_press
@@ -41,7 +39,6 @@ dependent effective temperature
 .. math::
 
   T_{eff} = \lambda + \eta (H - H_0)
-
 
 with :math:`\eta` negative and steep enough to only intersect the
 characteristic microcanonical temperature (Ts) of the system once,
@@ -84,11 +81,9 @@ insight to Ts.  Initially using an evenly-spaced :math:`\lambda`
 distribution identifies regions where small changes in enthalpy lead
 to large temperature changes. Replicas are easily added where needed.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -98,7 +93,6 @@ by this fix to add the rescaled kinetic pressure as part of
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-MISC package. It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
@@ -110,19 +104,13 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Kim2010:
-
-
 
 **(Kim)** Kim, Keyes, Straub, J Chem. Phys, 132, 224107 (2010).
 
 .. _Malolepsza:
-
-
 
 **(Malolepsza)** Malolepsza, Secor, Keyes, J Phys Chem B 119 (42),
 13379-13384 (2015).

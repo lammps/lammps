@@ -15,6 +15,7 @@
 #include <mpi.h>
 #include <cstdlib>
 #include <cstring>
+#include <string>
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
@@ -23,6 +24,8 @@
 #include "group.h"
 #include "special.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -535,50 +538,25 @@ void DeleteBonds::command(int narg, char **arg)
   }
 
   if (comm->me == 0) {
-    if (atom->avec->bonds_allow) {
-      if (screen) fprintf(screen,
-                          "  " BIGINT_FORMAT " total bonds, " BIGINT_FORMAT
-                          " turned on, " BIGINT_FORMAT " turned off\n",
-                          atom->nbonds,bond_on,bond_off);
-      if (logfile) fprintf(logfile,
-                           "  " BIGINT_FORMAT " total bonds, " BIGINT_FORMAT
-                           " turned on, " BIGINT_FORMAT " turned off\n",
-                           atom->nbonds,bond_on,bond_off);
-    }
-    if (atom->avec->angles_allow) {
-      if (screen) fprintf(screen,
-                          "  " BIGINT_FORMAT " total angles, " BIGINT_FORMAT
-                          " turned on, " BIGINT_FORMAT " turned off\n",
-                          atom->nangles,angle_on,angle_off);
-      if (logfile) fprintf(logfile,
-                          "  " BIGINT_FORMAT " total angles, " BIGINT_FORMAT
-                           " turned on, " BIGINT_FORMAT " turned off\n",
-                           atom->nangles,angle_on,angle_off);
-    }
-    if (atom->avec->dihedrals_allow) {
-      if (screen) fprintf(screen,
-                          "  " BIGINT_FORMAT " total dihedrals, "
-                          BIGINT_FORMAT " turned on, " BIGINT_FORMAT
-                          " turned off\n",
-                          atom->ndihedrals,dihedral_on,dihedral_off);
-      if (logfile) fprintf(logfile,
-                          "  " BIGINT_FORMAT " total dihedrals, "
-                          BIGINT_FORMAT " turned on, " BIGINT_FORMAT
-                          " turned off\n",
-                          atom->ndihedrals,dihedral_on,dihedral_off);
-    }
-    if (atom->avec->impropers_allow) {
-      if (screen) fprintf(screen,
-                          "  " BIGINT_FORMAT " total impropers, "
-                          BIGINT_FORMAT " turned on, " BIGINT_FORMAT
-                          " turned off\n",
-                          atom->nimpropers,improper_on,improper_off);
-      if (logfile) fprintf(logfile,
-                          "  " BIGINT_FORMAT " total impropers, "
-                          BIGINT_FORMAT " turned on, " BIGINT_FORMAT
-                          " turned off\n",
-                          atom->nimpropers,improper_on,improper_off);
-    }
+    if (atom->avec->bonds_allow)
+      utils::logmesg(lmp,fmt::format("  {} total bonds, "
+                                     "{} turned on, {} turned off\n",
+                                     atom->nbonds,bond_on,bond_off));
+
+    if (atom->avec->angles_allow)
+      utils::logmesg(lmp,fmt::format("  {} total angles, "
+                                     "{} turned on, {} turned off\n",
+                                     atom->nangles,angle_on,angle_off));
+
+    if (atom->avec->dihedrals_allow)
+      utils::logmesg(lmp,fmt::format("  {} total dihedrals, "
+                                     "{} turned on, {} turned off\n",
+                                     atom->ndihedrals,dihedral_on,dihedral_off));
+
+    if (atom->avec->impropers_allow)
+      utils::logmesg(lmp,fmt::format("  {} total impropers, "
+                                     "{} turned on, {} turned off\n",
+                                     atom->nimpropers,improper_on,improper_off));
   }
 
   // re-compute special list if requested

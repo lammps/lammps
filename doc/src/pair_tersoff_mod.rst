@@ -1,28 +1,27 @@
-.. index:: pair\_style tersoff/mod
+.. index:: pair_style tersoff/mod
 
-pair\_style tersoff/mod command
-===============================
+pair_style tersoff/mod command
+==============================
 
-pair\_style tersoff/mod/c command
-=================================
+pair_style tersoff/mod/c command
+================================
 
-pair\_style tersoff/mod/gpu command
-===================================
-
-pair\_style tersoff/mod/kk command
+pair_style tersoff/mod/gpu command
 ==================================
 
-pair\_style tersoff/mod/omp command
-===================================
+pair_style tersoff/mod/kk command
+=================================
 
-pair\_style tersoff/mod/c/omp command
-=====================================
+pair_style tersoff/mod/omp command
+==================================
+
+pair_style tersoff/mod/c/omp command
+====================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style tersoff/mod
 
@@ -31,54 +30,51 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style tersoff/mod
-   pair_coeff \* \* Si.tersoff.mod Si Si
+   pair_coeff * * Si.tersoff.mod Si Si
 
    pair_style tersoff/mod/c
-   pair_coeff \* \* Si.tersoff.modc Si Si
+   pair_coeff * * Si.tersoff.modc Si Si
 
 Description
 """""""""""
 
 The *tersoff/mod* and *tersoff/mod/c* styles computes a bond-order type
 interatomic potential :ref:`(Kumagai) <Kumagai>` based on a 3-body Tersoff
-potential :ref:`(Tersoff\_1) <Tersoff_12>`, :ref:`(Tersoff\_2) <Tersoff_22>` with
+potential :ref:`(Tersoff_1) <Tersoff_12>`, :ref:`(Tersoff_2) <Tersoff_22>` with
 modified cutoff function and angular-dependent term, giving the energy
 E of a system of atoms as
 
 .. math::
 
-  E & = \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
-  V_{ij} & = f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) \right] \\
-  f_C(r) & = \left\{ \begin{array} {r@{\quad:\quad}l}
-    1 & r < R - D \\
-    \frac{1}{2} - \frac{9}{16} \sin \left( \frac{\pi}{2} \frac{r-R}{D} \right) - \frac{1}{16} \sin \left( \frac{3\pi}{2} \frac{r-R}{D} \right) &
-      R-D < r < R + D \\
-    0 & r > R + D
-    \end{array} \right. \\
-  f_R(r) & = A \exp (-\lambda_1 r) \\
-  f_A(r) & = -B \exp (-\lambda_2 r) \\
-  b_{ij} & = \left( 1 + {\zeta_{ij}}^\eta \right)^{-\frac{1}{2n}} \\
-  \zeta_{ij} & = \sum_{k \neq i,j} f_C(r_{ik}) g(\theta_{ijk})
-                   \exp \left[ \alpha (r_{ij} - r_{ik})^\beta \right] \\
-  g(\theta) & = c_1 + g_o(\theta) g_a(\theta) \\
-  g_o(\theta) & = \frac{c_2 (h - \cos \theta)^2}{c_3 + (h - \cos \theta)^2} \\
-  g_a(\theta) & = 1 + c_4 \exp \left[ -c_5 (h - \cos \theta)^2 \right] \\
-
+   E & = \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
+   V_{ij} & = f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) \right] \\
+   f_C(r) & = \left\{ \begin{array} {r@{\quad:\quad}l}
+     1 & r < R - D \\
+     \frac{1}{2} - \frac{9}{16} \sin \left( \frac{\pi}{2} \frac{r-R}{D} \right) - \frac{1}{16} \sin \left( \frac{3\pi}{2} \frac{r-R}{D} \right) &
+       R-D < r < R + D \\
+     0 & r > R + D
+     \end{array} \right. \\
+   f_R(r) & = A \exp (-\lambda_1 r) \\
+   f_A(r) & = -B \exp (-\lambda_2 r) \\
+   b_{ij} & = \left( 1 + {\zeta_{ij}}^\eta \right)^{-\frac{1}{2n}} \\
+   \zeta_{ij} & = \sum_{k \neq i,j} f_C(r_{ik}) g(\theta_{ijk})
+                    \exp \left[ \alpha (r_{ij} - r_{ik})^\beta \right] \\
+   g(\theta) & = c_1 + g_o(\theta) g_a(\theta) \\
+   g_o(\theta) & = \frac{c_2 (h - \cos \theta)^2}{c_3 + (h - \cos \theta)^2} \\
+   g_a(\theta) & = 1 + c_4 \exp \left[ -c_5 (h - \cos \theta)^2 \right] \\
 
 where :math:`f_R` is a two-body term and :math:`f_A` includes three-body interactions.
 The summations in the formula are over all neighbors J and K of atom I
 within a cutoff distance = R + D.
 The *tersoff/mod/c* style differs from *tersoff/mod* only in the
-formulation of the V\_ij term, where it contains an additional c0 term.
+formulation of the V_ij term, where it contains an additional c0 term.
 
 .. math::
 
-  V_{ij}  & = f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) + c_0 \right]
-
+   V_{ij}  & = f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) + c_0 \right]
 
 The modified cutoff function :math:`f_C` proposed by :ref:`(Murty) <Murty>` and
 having a continuous second-order differential is employed. The
@@ -91,23 +87,22 @@ form in which the angular-dependent term is improved. The model
 performs extremely well in describing the crystalline, liquid, and
 amorphous phases :ref:`(Schelling) <Schelling>`.
 
-Only a single pair\_coeff command is used with the *tersoff/mod* style
+Only a single pair_coeff command is used with the *tersoff/mod* style
 which specifies a Tersoff/MOD potential file with parameters for all
 needed elements.  These are mapped to LAMMPS atom types by specifying
-N additional arguments after the filename in the pair\_coeff command,
+N additional arguments after the filename in the pair_coeff command,
 where N is the number of LAMMPS atom types:
 
 * filename
 * N element names = mapping of Tersoff/MOD elements to atom types
 
-As an example, imagine the Si.tersoff\_mod file has Tersoff values for Si.
+As an example, imagine the Si.tersoff_mod file has Tersoff values for Si.
 If your LAMMPS simulation has 3 Si atoms types, you would use the following
-pair\_coeff command:
+pair_coeff command:
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   pair_coeff \* \* Si.tersoff_mod Si Si Si
+   pair_coeff * * Si.tersoff_mod Si Si Si
 
 The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The three Si arguments map LAMMPS atom types 1,2,3 to the Si element
@@ -154,7 +149,7 @@ The c0 term applies to *tersoff/mod/c* only. The non-annotated
 parameters are unitless.
 
 The Tersoff/MOD potential file must contain entries for all the elements
-listed in the pair\_coeff command.  It can also contain entries for
+listed in the pair_coeff command.  It can also contain entries for
 additional elements not being used in a particular simulation; LAMMPS
 ignores those entries.
 
@@ -164,9 +159,7 @@ the center atom in a three-body interaction and it is bonded to the
 2nd atom and the bond is influenced by the 3rd atom.  Thus an entry
 for SiSiSi means Si bonded to a Si with another Si atom influencing the bond.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -186,9 +179,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -196,20 +187,17 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-need to re-specify the pair\_style and pair\_coeff commands in an input
+need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This pair style is part of the MANYBODY package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -221,7 +209,7 @@ The Tersoff/MOD potential files provided with LAMMPS (see the potentials
 directory) are parameterized for metal :doc:`units <units>`.  You can
 use the Tersoff/MOD potential with any LAMMPS units, but you would need to
 create your own Tersoff/MOD potential file with coefficients listed in the
-appropriate units if your simulation doesn't use "metal" units.
+appropriate units if your simulation does not use "metal" units.
 
 Related commands
 """"""""""""""""
@@ -230,37 +218,25 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Kumagai:
-
-
 
 **(Kumagai)** T. Kumagai, S. Izumi, S. Hara, S. Sakai,
 Comp. Mat. Science, 39, 457 (2007).
 
-.. _Tersoff\_12:
+.. _Tersoff_12:
 
+**(Tersoff_1)** J. Tersoff, Phys Rev B, 37, 6991 (1988).
 
+.. _Tersoff_22:
 
-**(Tersoff\_1)** J. Tersoff, Phys Rev B, 37, 6991 (1988).
-
-.. _Tersoff\_22:
-
-
-
-**(Tersoff\_2)** J. Tersoff, Phys Rev B, 38, 9902 (1988).
+**(Tersoff_2)** J. Tersoff, Phys Rev B, 38, 9902 (1988).
 
 .. _Murty:
-
-
 
 **(Murty)** M.V.R. Murty, H.A. Atwater, Phys Rev B, 51, 4889 (1995).
 
 .. _Schelling:
-
-
 
 **(Schelling)** Patrick K. Schelling, Comp. Mat. Science, 44, 274 (2008).

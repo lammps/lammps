@@ -1,19 +1,18 @@
-.. index:: pair\_style resquared
+.. index:: pair_style resquared
 
-pair\_style resquared command
-=============================
+pair_style resquared command
+============================
 
-pair\_style resquared/gpu command
-=================================
+pair_style resquared/gpu command
+================================
 
-pair\_style resquared/omp command
-=================================
+pair_style resquared/omp command
+================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style resquared cutoff
 
@@ -22,11 +21,10 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style resquared 10.0
-   pair_coeff \* \* 1.0 1.0 1.7 3.4 3.4 1.0 1.0 1.0
+   pair_coeff * * 1.0 1.0 1.7 3.4 3.4 1.0 1.0 1.0
 
 Description
 """""""""""
@@ -35,8 +33,8 @@ Style *resquared* computes the RE-squared anisotropic interaction
 :ref:`(Everaers) <Everaers3>`, :ref:`(Babadi) <Babadi>` between pairs of
 ellipsoidal and/or spherical Lennard-Jones particles.  For ellipsoidal
 interactions, the potential considers the ellipsoid as being comprised
-of small spheres of size sigma.  LJ particles are a single sphere of
-size sigma.  The distinction is made to allow the pair style to make
+of small spheres of size :math:`\sigma`.  LJ particles are a single sphere of
+size :math:`\sigma`.  The distinction is made to allow the pair style to make
 efficient calculations of ellipsoid/solvent interactions.
 
 Details for the equations used are given in the references below and
@@ -54,20 +52,21 @@ above, or in the data file or restart files read by the
 commands:
 
 * A12 = Energy Prefactor/Hamaker constant (energy units)
-* sigma = atomic interaction diameter (distance units)
-* epsilon\_i_a = relative well depth of type I for side-to-side interactions
-* epsilon\_i_b = relative well depth of type I for face-to-face interactions
-* epsilon\_i_c = relative well depth of type I for end-to-end interactions
-* epsilon\_j_a = relative well depth of type J for side-to-side interactions
-* epsilon\_j_b = relative well depth of type J for face-to-face interactions
-* epsilon\_j_c = relative well depth of type J for end-to-end interactions
+* :math:`\sigma` = atomic interaction diameter (distance units)
+* :math:`\epsilon_{i,a}` = relative well depth of type I for side-to-side interactions
+* :math:`\epsilon_{i,b}` = relative well depth of type I for face-to-face interactions
+* :math:`\epsilon_{i,c}` = relative well depth of type I for end-to-end interactions
+* :math:`\epsilon_{j,a}` = relative well depth of type J for side-to-side interactions
+* :math:`\epsilon_{j,b}` = relative well depth of type J for face-to-face interactions
+* :math:`\epsilon_{j,c}` = relative well depth of type J for end-to-end interactions
 * cutoff (distance units)
 
 The parameters used depend on the type of the interacting particles,
 i.e. ellipsoids or LJ spheres.  The type of a particle is determined
 by the diameters specified for its 3 shape parameters.  If all 3 shape
 parameters = 0.0, then the particle is treated as an LJ sphere.  The
-epsilon\_i_\* or epsilon\_j_\* parameters are ignored for LJ spheres.  If
+:math:`\epsilon_{i,*}` or :math:`\epsilon_{j,*}` parameters are ignored
+for LJ spheres.  If
 the 3 shape parameters are > 0.0, then the particle is treated as an
 ellipsoid (even if the 3 parameters are equal to each other).
 
@@ -79,20 +78,22 @@ the formulas in the supplementary document referenced above.  A12 is
 the Hamaker constant as described in :ref:`(Everaers) <Everaers3>`. In LJ
 units:
 
-.. image:: Eqs/pair_resquared.jpg
-   :align: center
+.. math::
 
-where rho gives the number density of the spherical particles
-composing the ellipsoids and epsilon\_LJ determines the interaction
-strength of the spherical particles.
+   A_{12} = 4\pi^2\epsilon_{\mathrm{LJ}}(\rho\sigma^3)^2
+
+where :math:`\rho` gives the number density of the spherical particles
+composing the ellipsoids and :math:`\epsilon_{\mathrm{LJ}}` determines
+the interaction strength of the spherical particles.
 
 For ellipsoid/LJ sphere interactions, the interaction is also computed
 by the formulas in the supplementary document referenced above.  A12
 has a modified form (see `here <PDF/pair_resquared_extra.pdf>`_ for
 details):
 
-.. image:: Eqs/pair_resquared2.jpg
-   :align: center
+.. math::
+
+   A_{12} = 4\pi^2\epsilon_{\mathrm{LJ}}(\rho\sigma^3)
 
 For ellipsoid/LJ sphere interactions, a correction to the distance-
 of-closest approach equation has been implemented to reduce the error
@@ -103,56 +104,59 @@ using the standard Lennard-Jones formula, which is much cheaper to
 compute than the ellipsoidal formulas.  A12 is used as epsilon in the
 standard LJ formula:
 
-.. image:: Eqs/pair_resquared3.jpg
-   :align: center
+.. math::
 
-and the specified *sigma* is used as the sigma in the standard LJ
-formula.
+   A_{12} = \epsilon_{\mathrm{LJ}}
+
+and the specified :math:`\sigma` is used as the :math:`\sigma` in the
+standard LJ formula.
 
 When one of both of the interacting particles are ellipsoids, then
-*sigma* specifies the diameter of the continuous distribution of
-constituent particles within each ellipsoid used to model the
-RE-squared potential.  Note that this is a different meaning for
-*sigma* than the :doc:`pair_style gayberne <pair_gayberne>` potential
-uses.
+:math:`\sigma` specifies the diameter of the continuous distribution of
+constituent particles within each ellipsoid used to model the RE-squared
+potential.  Note that this is a different meaning for :math:`\sigma`
+than the :doc:`pair_style gayberne <pair_gayberne>` potential uses.
 
-The epsilon\_i and epsilon\_j coefficients are defined for atom types,
-not for pairs of atom types.  Thus, in a series of pair\_coeff
-commands, they only need to be specified once for each atom type.
+The :math:`\epsilon_i` and :math:`\epsilon_j` coefficients are defined
+for atom types, not for pairs of atom types.  Thus, in a series of
+pair_coeff commands, they only need to be specified once for each atom
+type.
 
-Specifically, if any of epsilon\_i_a, epsilon\_i_b, epsilon\_i_c are
-non-zero, the three values are assigned to atom type I.  If all the
-epsilon\_i values are zero, they are ignored.  If any of epsilon\_j_a,
-epsilon\_j_b, epsilon\_j_c are non-zero, the three values are assigned
-to atom type J.  If all three epsilon\_i values are zero, they are
-ignored.  Thus the typical way to define the epsilon\_i and epsilon\_j
-coefficients is to list their values in "pair\_coeff I J" commands when
-I = J, but set them to 0.0 when I != J.  If you do list them when I !=
-J, you should insure they are consistent with their values in other
-pair\_coeff commands.
+Specifically, if any of :math:`\epsilon_{i,a}`, :math:`\epsilon_{i,b}`,
+:math:`\epsilon_{i,c}` are non-zero, the three values are assigned to
+atom type I.  If all the :math:`\epsilon_i` values are zero, they are
+ignored.  If any of :math:`\epsilon_{j,a}`, :math:`\epsilon_{j,b}`,
+:math:`\epsilon_{j,c}` are non-zero, the three values are assigned to
+atom type J.  If all three :math:`\epsilon_i` values are zero, they are
+ignored.  Thus the typical way to define the :math:`\epsilon_i` and
+:math:`\epsilon_j` coefficients is to list their values in "pair_coeff
+I J" commands when I = J, but set them to 0.0 when I != J.  If you do
+list them when I != J, you should insure they are consistent with their
+values in other pair_coeff commands.
 
 Note that if this potential is being used as a sub-style of
-:doc:`pair_style hybrid <pair_hybrid>`, and there is no "pair\_coeff I I"
+:doc:`pair_style hybrid <pair_hybrid>`, and there is no "pair_coeff I I"
 setting made for RE-squared for a particular type I (because I-I
 interactions are computed by another hybrid pair potential), then you
 still need to insure the epsilon a,b,c coefficients are assigned to
-that type in a "pair\_coeff I J" command.
+that type in a "pair_coeff I J" command.
 
-For large uniform molecules it has been shown that the epsilon\_\*\_\*
+For large uniform molecules it has been shown that the :math:`\epsilon_{*,*}`
 energy parameters are approximately representable in terms of local
 contact curvatures :ref:`(Everaers) <Everaers3>`:
 
-.. image:: Eqs/pair_resquared4.jpg
-   :align: center
+.. math::
+
+   \epsilon_a = \sigma \cdot { \frac{a}{ b \cdot c } }; \epsilon_b =
+   \sigma \cdot { \frac{b}{ a \cdot c } }; \epsilon_c = \sigma \cdot {
+   \frac{c}{ a \cdot b } }
 
 where a, b, and c give the particle diameters.
 
 The last coefficient is optional.  If not specified, the global cutoff
-specified in the pair\_style command is used.
-
+specified in the pair_style command is used.
 
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -172,15 +176,13 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance can be mixed, but only for sphere pairs.  The
-default mix value is *geometric*\ .  See the "pair\_modify" command for
+default mix value is *geometric*\ .  See the "pair_modify" command for
 details.  Other type pairs cannot be mixed, due to the different
 meanings of the energy prefactors used to calculate the interactions
 and the implicit dependence of the ellipsoid-sphere interaction on the
@@ -201,20 +203,17 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords of the :doc:`run_style command <run_style>`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This style is part of the ASPHERE package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -238,18 +237,12 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Everaers3:
-
-
 
 **(Everaers)** Everaers and Ejtehadi, Phys Rev E, 67, 041710 (2003).
 
 .. _Babadi:
-
-
 
 **(Berardi)** Babadi, Ejtehadi, Everaers, J Comp Phys, 219, 770-779 (2006).

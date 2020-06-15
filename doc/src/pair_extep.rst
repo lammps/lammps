@@ -1,24 +1,22 @@
-.. index:: pair\_style extep
+.. index:: pair_style extep
 
-pair\_style extep command
-=========================
+pair_style extep command
+========================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style extep
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style extep
-   pair_coeff \* \* BN.extep B N
+   pair_coeff * * BN.extep B N
 
 Description
 """""""""""
@@ -26,28 +24,22 @@ Description
 Style *extep* computes the Extended Tersoff Potential (ExTeP)
 interactions as described in :ref:`(Los2017) <Los2017>`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""
 
-"pair\_tersoff" pair\_tersoff.html
+"pair_tersoff" pair_tersoff.html
 
 **Default:** none
 
-
 ----------
 
-
 .. _Los2017:
-
-
 
 **(Los2017)** J. H. Los et al. "Extended Tersoff potential for boron nitride:
 Energetics and elastic properties of pristine and defective h-BN",

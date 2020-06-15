@@ -4,21 +4,21 @@ Dump styles
 Classes that dump per-atom info to files are derived from the Dump
 class.  To dump new quantities or in a new format, a new derived dump
 class can be added, but it is typically simpler to modify the
-DumpCustom class contained in the dump\_custom.cpp file.
+DumpCustom class contained in the dump_custom.cpp file.
 
-Dump\_atom.cpp is a simple example of a derived dump class.
+Dump_atom.cpp is a simple example of a derived dump class.
 
 Here is a brief description of methods you define in your new derived
 class.  See dump.h for details.
 
 +---------------+---------------------------------------------------+
-| write\_header | write the header section of a snapshot of atoms   |
+| write_header  | write the header section of a snapshot of atoms   |
 +---------------+---------------------------------------------------+
 | count         | count the number of lines a processor will output |
 +---------------+---------------------------------------------------+
 | pack          | pack a proc's output data into a buffer           |
 +---------------+---------------------------------------------------+
-| write\_data   | write a proc's data to a file                     |
+| write_data    | write a proc's data to a file                     |
 +---------------+---------------------------------------------------+
 
 See the :doc:`dump <dump>` command and its *custom* style for a list of

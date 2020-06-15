@@ -1,47 +1,44 @@
-.. index:: pair\_style buck/long/coul/long
+.. index:: pair_style buck/long/coul/long
 
-pair\_style buck/long/coul/long command
+pair_style buck/long/coul/long command
 =======================================
 
-pair\_style buck/long/coul/long/omp command
+pair_style buck/long/coul/long/omp command
 ===========================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style buck/long/coul/long flag_buck flag_coul cutoff (cutoff2)
 
-* flag\_buck = *long* or *cut*
-  
+* flag_buck = *long* or *cut*
+
   .. parsed-literal::
-  
+
        *long* = use Kspace long-range summation for the dispersion term 1/r\^6
        *cut* = use a cutoff
 
-* flag\_coul = *long* or *off*
-  
+* flag_coul = *long* or *off*
+
   .. parsed-literal::
-  
+
        *long* = use Kspace long-range summation for the Coulombic term 1/r
        *off* = omit the Coulombic term
 
 * cutoff = global cutoff for Buckingham (and Coulombic if only 1 cutoff) (distance units)
 * cutoff2 = global cutoff for Coulombic (optional) (distance units)
 
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style buck/long/coul/long cut off 2.5
    pair_style buck/long/coul/long cut long 2.5 4.0
    pair_style buck/long/coul/long long long 4.0
-   pair_coeff \* \* 1 1
+   pair_coeff * * 1 1
    pair_coeff 1 1 1 3 4
 
 Description
@@ -50,40 +47,39 @@ Description
 The *buck/long/coul/long* style computes a Buckingham potential (exp/6
 instead of Lennard-Jones 12/6) and Coulombic potential, given by
 
-.. image:: Eqs/pair_buck.jpg
-   :align: center
+.. math::
 
-.. image:: Eqs/pair_coulomb.jpg
-   :align: center
+   E = & A e^{-r / \rho} - \frac{C}{r^6} \qquad r < r_c \\
+   E = & \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
 
-Rc is the cutoff.  If one cutoff is specified in the pair\_style
+:math:`r_c` is the cutoff.  If one cutoff is specified in the pair_style
 command, it is used for both the Buckingham and Coulombic terms.  If
 two cutoffs are specified, they are used as cutoffs for the Buckingham
 and Coulombic terms respectively.
 
 The purpose of this pair style is to capture long-range interactions
 resulting from both attractive 1/r\^6 Buckingham and Coulombic 1/r
-interactions.  This is done by use of the *flag\_buck* and *flag\_coul*
+interactions.  This is done by use of the *flag_buck* and *flag_coul*
 settings.  The :ref:`Ismail <Ismail>` paper has more details on when it is
 appropriate to include long-range 1/r\^6 interactions, using this
 potential.
 
-If *flag\_buck* is set to *long*\ , no cutoff is used on the Buckingham
+If *flag_buck* is set to *long*\ , no cutoff is used on the Buckingham
 1/r\^6 dispersion term.  The long-range portion can be calculated by
 using the :doc:`kspace_style ewald/disp or pppm/disp <kspace_style>`
 commands.  The specified Buckingham cutoff then determines which
 portion of the Buckingham interactions are computed directly by the
 pair potential versus which part is computed in reciprocal space via
-the Kspace style.  If *flag\_buck* is set to *cut*\ , the Buckingham
+the Kspace style.  If *flag_buck* is set to *cut*\ , the Buckingham
 interactions are simply cutoff, as with :doc:`pair_style buck <pair_buck>`.
 
-If *flag\_coul* is set to *long*\ , no cutoff is used on the Coulombic
+If *flag_coul* is set to *long*\ , no cutoff is used on the Coulombic
 interactions.  The long-range portion can calculated by using any of
 several :doc:`kspace_style <kspace_style>` command options such as
-*pppm* or *ewald*\ .  Note that if *flag\_buck* is also set to long, then
+*pppm* or *ewald*\ .  Note that if *flag_buck* is also set to long, then
 the *ewald/disp* or *pppm/disp* Kspace style needs to be used to
 perform the long-range calculations for both the Buckingham and
-Coulombic interactions.  If *flag\_coul* is set to *off*\ , Coulombic
+Coulombic interactions.  If *flag_coul* is set to *off*\ , Coulombic
 interactions are not computed.
 
 The following coefficients must be defined for each pair of atoms
@@ -101,20 +97,18 @@ commands:
 The second coefficient, rho, must be greater than zero.
 
 The latter 2 coefficients are optional.  If not specified, the global
-Buckingham and Coulombic cutoffs specified in the pair\_style command
+Buckingham and Coulombic cutoffs specified in the pair_style command
 are used.  If only one cutoff is specified, it is used as the cutoff
 for both Buckingham and Coulombic interactions for this type pair.  If
 both coefficients are specified, they are used as the Buckingham and
 Coulombic cutoffs for this type pair.  Note that if you are using
-*flag\_buck* set to *long*\ , you cannot specify a Buckingham cutoff for
+*flag_buck* set to *long*\ , you cannot specify a Buckingham cutoff for
 an atom type pair, since only one global Buckingham cutoff is allowed.
-Similarly, if you are using *flag\_coul* set to *long*\ , you cannot
+Similarly, if you are using *flag_coul* set to *long*\ , you cannot
 specify a Coulombic cutoff for an atom type pair, since only one
 global Coulombic cutoff is allowed.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -134,9 +128,7 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
@@ -145,7 +137,7 @@ I,J pairs must be specified explicitly.
 
 This pair style supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the exp() and 1/r\^6 portion of the pair
-interaction, assuming *flag\_buck* is *cut*\ .
+interaction, assuming *flag_buck* is *cut*\ .
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the Buckingham portion of the pair
@@ -155,7 +147,7 @@ This pair style supports the :doc:`pair_modify <pair_modify>` table and
 table/disp options since they can tabulate the short-range portion of
 the long-range Coulombic and dispersion interactions.
 
-This pair style write its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
+This pair style write its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style supports the use of the *inner*\ , *middle*\ , and *outer*
@@ -164,13 +156,10 @@ pairwise forces can be partitioned by distance at different levels of
 the rRESPA hierarchy.  See the :doc:`run_style <run_style>` command for
 details.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This style is part of the KSPACE package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -182,13 +171,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Ismail:
-
-
 
 **(Ismail)** Ismail, Tsige, In 't Veld, Grest, Molecular Physics
 (accepted) (2007).

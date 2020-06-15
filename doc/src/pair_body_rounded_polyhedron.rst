@@ -6,7 +6,6 @@ pair_style body/rounded/polyhedron command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    pair_style body/rounded/polyhedron c_n c_t mu delta_ua cutoff
@@ -21,7 +20,6 @@ Syntax
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -56,7 +54,7 @@ and energies between two particles are defined with respect to the
 separation of their respective rounded surfaces, not by the separation
 of the vertices, edges, and faces themselves.
 
-This means that the specified cutoff in the pair\_style command is the
+This means that the specified cutoff in the pair_style command is the
 cutoff distance, :math:`r_c`, for the surface separation, :math:`\delta_n` (see figure
 below).  This is the distance at which two particles no longer
 interact.  If :math:`r_c` is specified as 0.0, then it is a contact-only
@@ -118,7 +116,7 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart files <restart>`.
-Thus, you need to re-specify the pair\_style and pair\_coeff
+Thus, you need to re-specify the pair_style and pair_coeff
 commands in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
@@ -127,7 +125,6 @@ This pair style can only be used via the *pair* keyword of the
 
 Restrictions
 """"""""""""
-
 
 These pair styles are part of the BODY package.  They are only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -143,8 +140,6 @@ Related commands
 **Default:** none
 
 .. _pair-Wang:
-
-
 
 **(Wang)** J. Wang, H. S. Yu, P. A. Langston, F. Y. Fraige, Granular
 Matter, 13, 1 (2011).

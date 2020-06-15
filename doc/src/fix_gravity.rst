@@ -12,7 +12,6 @@ fix gravity/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group gravity magnitude style args
@@ -22,9 +21,9 @@ Syntax
 * magnitude = size of acceleration (force/mass units)
 * magnitude can be a variable (see below)
 * style = *chute* or *spherical* or *gradient* or *vector*
-  
+
   .. parsed-literal::
-  
+
        *chute* args = angle
          angle = angle in +x away from -z or -y axis in 3d/2d (in degrees)
          angle can be a variable (see below)
@@ -36,13 +35,10 @@ Syntax
          x y z = vector direction to apply the acceleration
          x or y or z can be a variable (see below)
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all gravity 1.0 chute 24.0
    fix 1 all gravity v_increase chute 24.0
@@ -86,7 +82,7 @@ length is ignored.  For 2d systems, the *z* component is ignored.
 Any of the quantities *magnitude*\ , *angle*\ , *phi*\ , *theta*\ , *x*\ , *y*\ ,
 *z* which define the gravitational magnitude and direction, can be
 specified as an equal-style :doc:`variable <variable>`.  If the value is
-a variable, it should be specified as v\_name, where name is the
+a variable, it should be specified as v_name, where name is the
 variable name.  In this case, the variable will be evaluated each
 timestep, and its value used to determine the quantity.  You should
 insure that the variable calculates a result in the appropriate units,
@@ -98,9 +94,7 @@ keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent gravitational
 field.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -120,11 +114,9 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

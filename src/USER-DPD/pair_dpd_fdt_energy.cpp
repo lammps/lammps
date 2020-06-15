@@ -409,7 +409,7 @@ void PairDPDfdtEnergy::init_style()
   splitFDT_flag = false;
   neighbor->request(this,instance_me);
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"shardlow", 8) == 0){
+    if (utils::strmatch(modify->fix[i]->style,"^shardlow")) {
       splitFDT_flag = true;
     }
 
@@ -420,8 +420,8 @@ void PairDPDfdtEnergy::init_style()
 
   bool eos_flag = false;
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"eos",3) == 0) eos_flag = true;
-  if(!eos_flag) error->all(FLERR,"pair_style dpd/fdt/energy requires an EOS to be specified");
+    if (utils::strmatch(modify->fix[i]->style,"^eos")) eos_flag = true;
+  if(!eos_flag) error->all(FLERR,"pair_style dpd/fdt/energy requires an EOS fix to be specified");
 }
 
 /* ----------------------------------------------------------------------

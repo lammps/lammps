@@ -21,7 +21,7 @@
 /// system. They may be enabled or disabled depending on dependencies.
 /// 2. User features may be enabled based on user input (they may trigger a failure upon dependency resolution, though)
 /// 3. Static features are static properties of the object, determined
-///   programatically at initialization time.
+///   programmatically at initialization time.
 ///
 /// The following diagram summarizes the dependency tree at the bias, colvar, and colvarcomp levels.
 /// Isolated and atom group features are not shown to save space.
@@ -229,6 +229,8 @@ public:
     f_cvb_awake,
     /// \brief will apply forces
     f_cvb_apply_force,
+    /// \brief force this bias to act on actual value for extended-Lagrangian coordinates
+    f_cvb_bypass_ext_lagrangian,
     /// \brief requires total forces
     f_cvb_get_total_force,
     /// \brief whether this bias should record the accumulated work

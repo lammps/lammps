@@ -9,14 +9,12 @@ bond_style quartic/omp command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    bond_style quartic
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -50,7 +48,7 @@ or :doc:`read_restart <read_restart>` commands:
 This potential was constructed to mimic the FENE bond potential for
 coarse-grained polymer chains.  When monomers with :math:`\sigma = \epsilon = 1.0`
 are used, the following choice of parameters gives a quartic potential that
-looks nearly like the FENE potential: 
+looks nearly like the FENE potential:
 
 .. math::
 
@@ -59,7 +57,7 @@ looks nearly like the FENE potential:
    B_2 &= 0.25 \\
    R_c &= 1.3 \\
    U_0 &= 34.6878
-   
+
 Different parameters can be specified using the :doc:`bond_coeff <bond_coeff>`
 command, but you will need to choose them carefully so they form a suitable
 bond potential.
@@ -83,15 +81,12 @@ Note that when bonds are dumped to a file via the :doc:`dump local <dump>` comma
 :doc:`delete_bonds <delete_bonds>` command can also be used to query the
 status of broken bonds or permanently delete them, e.g.:
 
-
 .. code-block:: LAMMPS
 
    delete_bonds all stats
    delete_bonds all bond 0 remove
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -111,13 +106,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This bond style can only be used if LAMMPS was built with the MOLECULE
 package.  See the :doc:`Build package <Build_package>` doc page for more

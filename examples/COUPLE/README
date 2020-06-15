@@ -27,6 +27,7 @@ These are the sub-directories included in this directory:
 
 simple		    simple example of driver code calling LAMMPS as a lib
 multiple	    example of driver code calling multiple instances of LAMMPS
+plugin              example for loading LAMMPS at runtime from a shared library
 lammps_mc           client/server coupling of Monte Carlo client 
                       with LAMMPS server for energy evaluation
 lammps_nwchem       client/server coupling of LAMMPS client with 

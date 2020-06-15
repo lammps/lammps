@@ -6,8 +6,7 @@ compute smd/ulsph/num/neighs command
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID smd/ulsph/num/neighs
 
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all smd/ulsph/num/neighs
 
@@ -43,7 +41,6 @@ The per-particle values will be given dimensionless, see :doc:`units <units>`.
 
 Restrictions
 """"""""""""
-
 
 This compute is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.  This compute can

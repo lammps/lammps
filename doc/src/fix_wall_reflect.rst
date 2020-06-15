@@ -9,7 +9,6 @@ fix wall/reflect/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID wall/reflect face arg ... keyword value ...
@@ -18,9 +17,9 @@ Syntax
 * wall/reflect = style name of this fix command
 * one or more face/arg pairs may be appended
 * face = *xlo* or *xhi* or *ylo* or *yhi* or *zlo* or *zhi*
-  
+
   .. parsed-literal::
-  
+
        arg = EDGE or constant or variable
          EDGE = current lo edge of simulation box
          constant = number like 0.0 or 30.0 (distance units)
@@ -28,20 +27,17 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *units*
-  
+
   .. parsed-literal::
-  
+
        *units* value = *lattice* or *box*
          *lattice* = the wall position is defined in lattice units
          *box* = the wall position is defined in simulation box units
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix xwalls all wall/reflect xlo EDGE xhi EDGE
    fix walls all wall/reflect xlo 0.0 ylo 10.0 units box
@@ -78,7 +74,7 @@ EDGE is used, then the corresponding boundary of the current
 simulation box is used.  If a numeric constant is specified then the
 wall is placed at that position in the appropriate dimension (x, y, or
 z).  In both the EDGE and constant cases, the wall will never move.
-If the wall position is a variable, it should be specified as v\_name,
+If the wall position is a variable, it should be specified as v_name,
 where name is an :doc:`equal-style variable <variable>` name.  In this
 case the variable is evaluated each timestep and the result becomes
 the current position of the reflecting wall.  Equal-style variables
@@ -99,16 +95,13 @@ A *lattice* value means the distance units are in lattice spacings.
 The :doc:`lattice <lattice>` command must have been previously used to
 define the lattice spacings.
 
-
 ----------
-
 
 Here are examples of variable definitions that move the wall position
 in a time-dependent fashion using equal-style
 :doc:`variables <variable>`.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable ramp equal ramp(0,10)
    fix 1 all wall/reflect xlo v_ramp
@@ -122,33 +115,29 @@ in a time-dependent fashion using equal-style
    variable wiggle equal cwiggle(0.0,5.0,3.0)
    fix 1 all wall/reflect xlo v_wiggle
 
-The ramp(lo,hi) function adjusts the wall position linearly from lo to
-hi over the course of a run.  The vdisplace(c0,velocity) function does
-something similar using the equation position = c0 + velocity\*delta,
-where delta is the elapsed time.
+The *ramp(lo,hi)* function adjusts the wall position linearly from *lo* to
+*hi* over the course of a run.  The *vdisplace(c0,velocity)* function does
+something similar using the equation *position = c0 + velocity\*delta*\ ,
+where *delta* is the elapsed time.
 
-The swiggle(c0,A,period) function causes the wall position to
-oscillate sinusoidally according to this equation, where omega = 2 PI
-/ period:
-
+The *swiggle(c0,A,period)* function causes the wall position to
+oscillate sinusoidally according to this equation, where *omega = 2 PI
+/ period*\ :
 
 .. parsed-literal::
 
    position = c0 + A sin(omega\*delta)
 
-The cwiggle(c0,A,period) function causes the wall position to
+The *cwiggle(c0,A,period)* function causes the wall position to
 oscillate sinusoidally according to this equation, which will have an
 initial wall velocity of 0.0, and thus may impose a gentler
 perturbation on the particles:
-
 
 .. parsed-literal::
 
    position = c0 + A (1 - cos(omega\*delta))
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -170,11 +159,9 @@ use the :doc:`suffix <suffix>` command in your input script.
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files
 <restart>`.  None of the :doc:`fix_modify <fix_modify>` options are
@@ -186,7 +173,6 @@ the :doc:`run <run>` command.  This fix is not invoked during
 
 Restrictions
 """"""""""""
-
 
 Any dimension (xyz) that has a reflecting wall must be non-periodic.
 
@@ -208,9 +194,6 @@ The default for the units keyword is lattice.
 
 ----------
 
-
 .. _Bond1:
-
-
 
 **(Bond)** Bond and Leimkuhler, SIAM J Sci Comput, 30, p 134 (2007).

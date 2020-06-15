@@ -53,3 +53,12 @@ include (FindPackageHandleStandardArgs)
 find_package_handle_standard_args (PNetCDF DEFAULT_MSG PNETCDF_LIBRARIES PNETCDF_INCLUDES)
 
 mark_as_advanced (PNETCDF_LIBRARIES PNETCDF_INCLUDES)
+
+if(PNetCDF_FOUND)
+  if(NOT TARGET PNetCDF::PNetCDF)
+    add_library(PNetCDF::PNetCDF UNKNOWN IMPORTED)
+    set_target_properties(PNetCDF::PNetCDF PROPERTIES
+      IMPORTED_LOCATION "${PNETCDF_LIBRARIES}"
+      INTERFACE_INCLUDE_DIRECTORIES "${PNETCDF_INCLUDES}")
+  endif()
+endif()

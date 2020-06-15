@@ -14,6 +14,7 @@
 #ifndef TEST_CONFIG_READER_H
 #define TEST_CONFIG_READER_H
 
+#include "test_config.h"
 #include "yaml_reader.h"
 
 class TestConfigReader : public YamlReader<TestConfigReader> {

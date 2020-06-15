@@ -95,9 +95,9 @@ The output of this command will be looking something like this::
    25/26 Test #25: AngleStyle:harmonic .................   Passed    0.01 sec
          Start 26: AngleStyle:zero
    26/26 Test #26: AngleStyle:zero .....................   Passed    0.01 sec
-   
+
    100% tests passed, 0 tests failed out of 26
-   
+
    Total Test time (real) =   0.27 sec
 
 

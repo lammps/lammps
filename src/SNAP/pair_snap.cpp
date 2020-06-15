@@ -156,14 +156,14 @@ void PairSNAP::compute(int eflag, int vflag)
         snaptr->inside[ninside] = j;
         snaptr->wj[ninside] = wjelem[jelem];
         snaptr->rcutij[ninside] = (radi + radelem[jelem])*rcutfac;
-        snaptr->element[ninside] = jelem; // element index for alloy snap
+        snaptr->element[ninside] = jelem;
         ninside++;
       }
     }
 
     // compute Ui, Yi for atom I
 
-    if (alloyflag)
+    if (chemflag)
       snaptr->compute_ui(ninside, ielem);
     else
       snaptr->compute_ui(ninside, 0);
@@ -176,7 +176,7 @@ void PairSNAP::compute(int eflag, int vflag)
 
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
-      if(alloyflag)
+      if(chemflag)
         snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
                                snaptr->rcutij[jj],jj, snaptr->element[jj]);
       else
@@ -328,17 +328,17 @@ void PairSNAP::compute_bispectrum()
         snaptr->inside[ninside] = j;
         snaptr->wj[ninside] = wjelem[jelem];
         snaptr->rcutij[ninside] = (radi + radelem[jelem])*rcutfac;
-        snaptr->element[ninside] = jelem; // element index for alloy snap
+        snaptr->element[ninside] = jelem;
         ninside++;
       }
     }
 
-    if (alloyflag)
+    if (chemflag)
       snaptr->compute_ui(ninside, ielem);
     else
       snaptr->compute_ui(ninside, 0);
     snaptr->compute_zi();
-    if (alloyflag)
+    if (chemflag)
       snaptr->compute_bi(ielem);
     else
       snaptr->compute_bi(0);
@@ -418,7 +418,6 @@ void PairSNAP::coeff(int narg, char **arg)
     ncoeffq = (ncoeff*(ncoeff+1))/2;
     int ntmp = 1+ncoeff+ncoeffq;
     if (ntmp != ncoeffall) {
-      printf("ncoeffall = %d ntmp = %d ncoeff = %d \n",ncoeffall,ntmp,ncoeff);
       error->all(FLERR,"Incorrect SNAP coeff file");
     }
   }
@@ -461,7 +460,7 @@ void PairSNAP::coeff(int narg, char **arg)
 
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
-                   alloyflag, wselfallflag, nelements);
+                   chemflag, bnormflag, wselfallflag, nelements);
 
   if (ncoeff != snaptr->ncoeff) {
     if (comm->me == 0)
@@ -653,9 +652,9 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   rmin0 = 0.0;
   switchflag = 1;
   bzeroflag = 1;
-  bnormflag = 0;
   quadraticflag = 0;
-  alloyflag = 0;
+  chemflag = 0;
+  bnormflag = 0;
   wselfallflag = 0;
   chunksize = 2000;
 
@@ -721,8 +720,10 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       bzeroflag = atoi(keyval);
     else if (strcmp(keywd,"quadraticflag") == 0)
       quadraticflag = atoi(keyval);
-    else if (strcmp(keywd,"alloyflag") == 0)
-      alloyflag = atoi(keyval);
+    else if (strcmp(keywd,"chemflag") == 0)
+      chemflag = atoi(keyval);
+    else if (strcmp(keywd,"bnormflag") == 0)
+      bnormflag = atoi(keyval);
     else if (strcmp(keywd,"wselfallflag") == 0)
       wselfallflag = atoi(keyval);
     else if (strcmp(keywd,"chunksize") == 0)
@@ -730,8 +731,6 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     else
       error->all(FLERR,"Incorrect SNAP parameter file");
   }
-
-  bnormflag = alloyflag;
 
   if (rcutfacflag == 0 || twojmaxflag == 0)
     error->all(FLERR,"Incorrect SNAP parameter file");

@@ -29,7 +29,7 @@ template<class DeviceType>
 inline
 SNAKokkos<DeviceType>::SNAKokkos(double rfac0_in,
          int twojmax_in, double rmin0_in, int switch_flag_in, int bzero_flag_in,
-         int alloy_flag_in, int wselfall_flag_in, int nelements_in)
+         int chem_flag_in, int bnorm_flag_in, int wselfall_flag_in, int nelements_in)
 {
   wself = 1.0;
 
@@ -38,13 +38,13 @@ SNAKokkos<DeviceType>::SNAKokkos(double rfac0_in,
   switch_flag = switch_flag_in;
   bzero_flag = bzero_flag_in;
 
-  alloy_flag = alloy_flag_in;
-  wselfall_flag = wselfall_flag_in;
-  if (alloy_flag)
+  chem_flag = chem_flag_in;
+  if (chem_flag)
     nelements = nelements_in;
   else
     nelements = 1;
-  bnorm_flag = alloy_flag_in;
+  bnorm_flag = bnorm_flag_in;
+  wselfall_flag = wselfall_flag_in;
 
   twojmax = twojmax_in;
 
@@ -283,7 +283,7 @@ void SNAKokkos<DeviceType>::pre_ui(const typename Kokkos::TeamPolicy<DeviceType>
       // if m is on the "diagonal", initialize it with the self energy.
       // Otherwise zero it out
       SNAcomplex init = {0., 0.};
-      if (m % (j+2) == 0 && (!alloy_flag || ielem == jelem || wselfall_flag)) { init = {wself, 0.0}; } //need to map iatom to element
+      if (m % (j+2) == 0 && (!chem_flag || ielem == jelem || wselfall_flag)) { init = {wself, 0.0}; } //need to map iatom to element
 
       ulisttot(jelem*idxu_max+jjup, iatom) = init;
     });
@@ -1620,7 +1620,7 @@ int SNAKokkos<DeviceType>::compute_ncoeff()
 
   ndoubles = nelements*nelements;
   ntriples = nelements*nelements*nelements;
-  if (alloy_flag) ncount *= ntriples;
+  if (chem_flag) ncount *= ntriples;
 
   return ncount;
 }

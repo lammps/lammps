@@ -515,7 +515,7 @@ void PairSNAPKokkos<DeviceType>::coeff(int narg, char **arg)
   Kokkos::deep_copy(d_map,h_map);
 
   snaKK = SNAKokkos<DeviceType>(rfac0,twojmax,
-                  rmin0,switchflag,bzeroflag,alloyflag,wselfallflag,nelements);
+                  rmin0,switchflag,bzeroflag,chemflag,bnormflag,wselfallflag,nelements);
   snaKK.grow_rij(0,0);
   snaKK.init();
 }
@@ -584,7 +584,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeNeigh,const typen
         my_sna.inside(ii,offset) = j;
         my_sna.wj(ii,offset) = d_wjelem[elem_j];
         my_sna.rcutij(ii,offset) = (radi + d_radelem[elem_j])*rcutfac;
-        if (alloyflag)
+        if (chemflag)
           my_sna.element(ii,offset) = elem_j;
         else
           my_sna.element(ii,offset) = 0;

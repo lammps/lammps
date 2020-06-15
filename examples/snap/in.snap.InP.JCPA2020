@@ -6,7 +6,6 @@ variable nsteps index 100
 variable nrep equal 4
 variable a equal 5.83
 units           metal
-atom_style      charge
 
 # generate the box and atom positions using a FCC lattice
 
@@ -26,7 +25,7 @@ mass 2 30.98
 
 # choose potential
 
-include InP_Cusentino_PRB2020.snap
+include InP_JCPA2020.snap
 
 # Setup output
 

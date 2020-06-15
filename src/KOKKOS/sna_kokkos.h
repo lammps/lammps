@@ -210,7 +210,7 @@ inline
   int switch_flag;
 
   // Chem snap flags
-  int alloy_flag;
+  int chem_flag;
   int bnorm_flag;
   int nelements;
   int ndoubles;

@@ -45,7 +45,7 @@ class ComputeSNAVAtom : public Compute {
   double *radelem;
   double *wjelem;
   int *map;  // map types to [0,nelements)
-  int nelements, alloyflag, wselfallflag;
+  int nelements, chemflag;
   class SNA* snaptr;
   int quadraticflag;
 };

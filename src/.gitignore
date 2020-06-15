@@ -197,6 +197,14 @@
 /pair_spin_neel.cpp
 /pair_spin_neel.h
 
+/atom_vec_mesont.cpp
+/atom_vec_mesont.h
+/compute_mesont.cpp
+/compute_mesont.h
+/export_mesont.h
+/pair_mesont_tpm.cpp
+/pair_mesont_tpm.h
+
 /angle_cg_cmm.cpp
 /angle_cg_cmm.h
 /angle_charmm.cpp

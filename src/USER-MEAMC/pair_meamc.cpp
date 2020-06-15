@@ -19,6 +19,7 @@
 #include <mpi.h>
 #include <cstdlib>
 #include <cstring>
+#include <string>
 #include "meam.h"
 #include "atom.h"
 #include "force.h"
@@ -29,11 +30,11 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
-#define ERRFMT(errfn,format,...) do { char _strbuf[128]; snprintf(_strbuf,sizeof(_strbuf),format,__VA_ARGS__); errfn(FLERR,_strbuf); } while (0)
 
 static const int nkeywords = 22;
 static const char *keywords[] = {
@@ -148,9 +149,8 @@ void PairMEAMC::compute(int eflag, int vflag)
 
   meam_inst->meam_dens_final(nlocal,eflag_either,eflag_global,eflag_atom,
                    &eng_vdwl,eatom,ntype,type,map,scale,errorflag);
-  if (errorflag) {
-    ERRFMT(error->one,"MEAM library error %d",errorflag);
-  }
+  if (errorflag)
+    error->one(FLERR,fmt::format("MEAM library error {}",errorflag));
 
   comm->forward_comm_pair(this);
 
@@ -216,7 +216,35 @@ void PairMEAMC::coeff(int narg, char **arg)
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // read MEAM element names between 2 filenames
+  // check for presence of first meam file
+
+  std::string lib_file = utils::get_potential_file_path(arg[2]);
+  if (lib_file.empty())
+    error->all(FLERR,fmt::format("Cannot open MEAM library file {}",lib_file));
+
+  // find meam parameter file in arguments:
+  // first word that is a file or "NULL" after the MEAM library file
+  // we need to extract at least one element, so start from index 4
+
+  int paridx=-1;
+  std::string par_file;
+  for (int i = 4; i < narg; ++i) {
+    if (strcmp(arg[i],"NULL") == 0) {
+      par_file = "NULL";
+      paridx = i;
+      break;
+    }
+    par_file = utils::get_potential_file_path(arg[i]);
+    if (!par_file.empty()) {
+      paridx=i;
+      break;
+    }
+  }
+  if (paridx < 0) error->all(FLERR,"No MEAM parameter file in pair coefficients");
+  if ((narg - paridx - 1) != atom->ntypes)
+    error->all(FLERR,"Incorrect args for pair coefficients");
+
+  // MEAM element names between 2 filenames
   // nelements = # of MEAM elements
   // elements = list of unique element names
 
@@ -225,11 +253,13 @@ void PairMEAMC::coeff(int narg, char **arg)
     delete [] elements;
     delete [] mass;
   }
-  nelements = narg - 4 - atom->ntypes;
+
+  nelements = paridx - 3;
   if (nelements < 1) error->all(FLERR,"Incorrect args for pair coefficients");
   if (nelements > maxelt)
-    ERRFMT(error->all, "Too many elements extracted from MEAM library (current limit: %d)."
-                       " Increase 'maxelt' in meam.h and recompile.", maxelt);
+    error->all(FLERR,fmt::format("Too many elements extracted from MEAM "
+                                 "library (current limit: {}). Increase "
+                                 "'maxelt' in meam.h and recompile.", maxelt));
   elements = new char*[nelements];
   mass = new double[nelements];
 
@@ -243,7 +273,7 @@ void PairMEAMC::coeff(int narg, char **arg)
   // pass all parameters to MEAM package
   // tell MEAM package that setup is done
 
-  read_files(arg[2],arg[2+nelements+1]);
+  read_files(lib_file,par_file);
   meam_inst->meam_setup_done(&cutmax);
 
   // read args that map atom types to MEAM elements
@@ -327,15 +357,17 @@ double PairMEAMC::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAMC::read_files(char *globalfile, char *userfile)
+void PairMEAMC::read_files(const std::string &globalfile,
+                           const std::string &userfile)
 {
   // open global meamf file on proc 0
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(globalfile);
+    fp = force->open_potential(globalfile.c_str());
     if (fp == NULL)
-      ERRFMT(error->one, "Cannot open MEAM potential file %s", globalfile);
+      error->one(FLERR,fmt::format("Cannot open MEAM potential file {}",
+                                   globalfile));
   }
 
   // allocate parameter arrays
@@ -425,7 +457,8 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
       // map lat string to an integer
 
       if (!MEAM::str_to_lat(words[1], true, lat[index]))
-        ERRFMT(error->one, "Unrecognized lattice type in MEAM library file: %s", words[1]);
+        error->one(FLERR,fmt::format("Unrecognized lattice type in MEAM "
+                                     "library file: {}", words[1]));
 
       // store parameters
 
@@ -525,14 +558,15 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
 
   // done if user param file is NULL
 
-  if (strcmp(userfile,"NULL") == 0) return;
+  if (userfile == "NULL") return;
 
   // open user param file on proc 0
 
   if (comm->me == 0) {
-    fp = force->open_potential(userfile);
+    fp = force->open_potential(userfile.c_str());
     if (fp == NULL)
-      ERRFMT(error->one, "Cannot open MEAM potential file %s", userfile);
+      error->one(FLERR,fmt::format("Cannot open MEAM potential file {}",
+                                   userfile));
   }
 
   // read settings
@@ -576,7 +610,8 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     for (which = 0; which < nkeywords; which++)
       if (strcmp(params[0],keywords[which]) == 0) break;
     if (which == nkeywords)
-      ERRFMT(error->all, "Keyword %s in MEAM parameter file not recognized", params[0]);
+      error->all(FLERR,fmt::format("Keyword {} in MEAM parameter file not "
+                                   "recognized", params[0]));
 
     nindex = nparams - 2;
     for (int i = 0; i < nindex; i++) index[i] = atoi(params[i+1]) - 1;
@@ -586,7 +621,8 @@ void PairMEAMC::read_files(char *globalfile, char *userfile)
     if (which == 4) {
       lattice_t latt;
       if (!MEAM::str_to_lat(params[nparams-1], false, latt))
-        ERRFMT(error->all, "Unrecognized lattice type in MEAM parameter file: %s", params[nparams-1]);
+        error->all(FLERR, fmt::format("Unrecognized lattice type in MEAM "
+                                      "parameter file: {}", params[nparams-1]));
       value = latt;
     }
     else value = atof(params[nparams-1]);

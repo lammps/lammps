@@ -473,14 +473,14 @@ void FixIntel::pair_init_check(const bool cdmessage)
   char kmode[80];
   if (_precision_mode == PREC_MODE_SINGLE) {
     strcpy(kmode, "single");
+    get_single_buffers()->need_tag(need_tag);
   } else if (_precision_mode == PREC_MODE_MIXED) {
     strcpy(kmode, "mixed");
+    get_mixed_buffers()->need_tag(need_tag);
   } else {
     strcpy(kmode, "double");
+    get_double_buffers()->need_tag(need_tag);
   }
-  get_double_buffers()->need_tag(need_tag);
-  get_mixed_buffers()->need_tag(need_tag);
-  get_single_buffers()->need_tag(need_tag);
 
   _pair_intel_count++;
 

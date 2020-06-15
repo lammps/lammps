@@ -110,7 +110,7 @@ PairEAM::~PairEAM()
   if (setfl) {
     for (int i = 0; i < setfl->nelements; i++) delete [] setfl->elements[i];
     delete [] setfl->elements;
-    delete [] setfl->mass;
+    memory->destroy(setfl->mass);
     memory->destroy(setfl->frho);
     memory->destroy(setfl->rhor);
     memory->destroy(setfl->z2r);
@@ -121,7 +121,7 @@ PairEAM::~PairEAM()
   if (fs) {
     for (int i = 0; i < fs->nelements; i++) delete [] fs->elements[i];
     delete [] fs->elements;
-    delete [] fs->mass;
+    memory->destroy(fs->mass);
     memory->destroy(fs->frho);
     memory->destroy(fs->rhor);
     memory->destroy(fs->z2r);

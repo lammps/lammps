@@ -578,11 +578,11 @@ TEST(PairStyle, plain)
         // need to relax error by a large amount with tabulation, since
         // coul/long styles do not use tabulation in compute_inner()
         // and compute_middle() so we get a significant deviation.
+        pair = lmp->force->pair;
         if (pair->ncoultablebits) epsilon *= 1.0e6;
 
-        f    = lmp->atom->f;
-        tag  = lmp->atom->tag;
-        pair = lmp->force->pair;
+        f   = lmp->atom->f;
+        tag = lmp->atom->tag;
         stats.reset();
         for (int i = 0; i < nlocal; ++i) {
             EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 5 * epsilon);

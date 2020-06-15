@@ -1708,7 +1708,7 @@ int lammps_config_has_exceptions() {
 int lammps_has_error(void *ptr) {
   LAMMPS  *lmp = (LAMMPS *)ptr;
   Error *error = lmp->error;
-  return (error->get_last_error() != "") ? 1 : 0;
+  return (error->get_last_error().empty()) ? 0 : 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -1722,7 +1722,7 @@ int lammps_get_last_error_message(void *ptr, char * buffer, int buffer_size) {
   LAMMPS  *lmp = (LAMMPS *)ptr;
   Error *error = lmp->error;
 
-  if(error->get_last_error() != "") {
+  if(!error->get_last_error().empty()) {
     int error_type = error->get_last_error_type();
     strncpy(buffer, error->get_last_error().c_str(), buffer_size-1);
     error->set_last_error(NULL, ERROR_NONE);

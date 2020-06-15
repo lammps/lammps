@@ -539,23 +539,44 @@ std::string utils::get_potential_file_path(const std::string& path) {
 
 /* ----------------------------------------------------------------------
    read first line of potential file
-   if has DATE field, print following word
+   if it has a DATE field, return the following word
 ------------------------------------------------------------------------- */
 
 std::string utils::get_potential_date(const std::string & path, const std::string & potential_name) {
   TextFileReader reader(path, potential_name);
   reader.ignore_comments = false;
-  char * line = nullptr;
 
-  while ((line = reader.next_line())) {
-    ValueTokenizer values(line);
-    while (values.has_next()) {
-      std::string word = values.next_string();
-      if (word == "DATE:") {
-        if (values.has_next()) {
-          std::string date = values.next_string();
-          return date;
-        }
+  char *line = reader.next_line();
+  ValueTokenizer values(line);
+  while (values.has_next()) {
+    std::string word = values.next_string();
+    if (word == "DATE:") {
+      if (values.has_next()) {
+        std::string date = values.next_string();
+        return date;
+      }
+    }
+  }
+  return "";
+}
+
+/* ----------------------------------------------------------------------
+   read first line of potential file
+   if it has UNITS field, return following word
+------------------------------------------------------------------------- */
+
+std::string utils::get_potential_units(const std::string & path, const std::string & potential_name) {
+  TextFileReader reader(path, potential_name);
+  reader.ignore_comments = false;
+
+  char *line = reader.next_line();
+  ValueTokenizer values(line);
+  while (values.has_next()) {
+    std::string word = values.next_string();
+    if (word == "UNITS:") {
+      if (values.has_next()) {
+        std::string units = values.next_string();
+        return units;
       }
     }
   }

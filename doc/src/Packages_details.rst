@@ -81,6 +81,7 @@ page gives those details.
    * :ref:`USER-MANIFOLD <PKG-USER-MANIFOLD>`
    * :ref:`USER-MEAMC <PKG-USER-MEAMC>`
    * :ref:`USER-MESODPD <PKG-USER-MESODPD>`
+   * :ref:`USER-MESONT <PKG-USER-MESONT>`
    * :ref:`USER-MGPT <PKG-USER-MGPT>`
    * :ref:`USER-MISC <PKG-USER-MISC>`
    * :ref:`USER-MOFFF <PKG-USER-MOFFF>`
@@ -1711,6 +1712,56 @@ algorithm.
 * :doc:`fix mvv/dpd <fix_mvv_dpd>`
 * examples/USER/mesodpd
 * https://lammps.sandia.gov/movies.html#mesodpd
+
+* examples/USER/meso
+* http://lammps.sandia.gov/movies.html#mesodpd
+
+----------
+
+.. _PKG-USER-MESONT:
+
+USER-MESONT package
+-------------------
+
+**Contents:**
+
+USER-MESONT is a LAMMPS package for simulation of nanomechanics of
+nanotubes (NTs). The model is based on a coarse-grained representation
+of NTs as "flexible cylinders" consisting of a variable number of
+segments. Internal interactions within a NT and the van der Waals
+interaction between the tubes are described by a mesoscopic force field
+designed and parameterized based on the results of atomic-level
+molecular dynamics simulations. The description of the force field is
+provided in the papers listed below. This package contains two
+independent implementations of this model: :doc:`pair_style mesocnt
+<pair_mesocnt>` is a (minimal) C++ implementation, and :doc:`pair_style
+mesont/tpm <pair_mesont_tpm>` is a more general and feature rich
+implementation based on a Fortran library in the ``lib/mesont`` folder.
+
+**Download of potential files:**
+
+The potential files for these pair styles are *very* large and thus
+are not included in the regular downloaded packages of LAMMPS or the
+git repositories.  Instead, they will be automatically downloaded
+from a web server when the package is installed for the first time.
+
+**Authors of the *mesont* styles:**
+
+Maxim V. Shugaev (University of Virginia), Alexey N. Volkov (University of Alabama), Leonid V. Zhigilei (University of Virginia)
+
+**Author of the *mesocnt* pair style:**
+Philipp Kloza (U Cambridge)
+
+**Supporting info:**
+
+* src/USER-MESONT: filenames -> commands
+* src/USER-MESONT/README
+* :doc:`atom_style mesont <atom_style>`
+* :doc:`pair_style mesont/tpm <pair_mesont_tpm>`
+* :doc:`compute mesont <compute_mesont>`
+* :doc:`pair_style mesocnt <pair_mesocnt>`
+* examples/USER/mesont
+* tools/mesont
 
 ----------
 

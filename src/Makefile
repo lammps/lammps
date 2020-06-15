@@ -14,7 +14,7 @@ SHLIB =  liblammps_$@.so
 ARLINK = liblammps.a
 SHLINK = liblammps.so
 TMPNAME= tmp_$@_name
-LMPLINK=$(shell echo $(ARLIB) | sed -e 's,lib\([+0-9a-z_-]\+\)\.a$$,-L. -l\1,')
+LMPLINK= -L. -llammps_$@
 
 OBJDIR =   Obj_$@
 OBJSHDIR = Obj_shared_$@
@@ -63,11 +63,11 @@ PACKLIB = compress gpu kim kokkos latte message mpiio mscg poems \
 	  python voronoi \
 	  user-adios user-atc user-awpmd user-colvars user-h5md user-lb user-molfile \
 	  user-netcdf user-plumed user-qmmm user-quip user-scafacos \
-	  user-smd user-vtk
+	  user-smd user-vtk user-mesont
 
 PACKSYS = compress mpiio python user-lb
 
-PACKINT = gpu kokkos message poems user-atc user-awpmd user-colvars
+PACKINT = gpu kokkos message poems user-atc user-awpmd user-colvars user-mesont
 
 PACKEXT = kim latte mscg voronoi \
 	  user-adios user-h5md user-molfile user-netcdf user-plumed user-qmmm user-quip \
@@ -75,13 +75,18 @@ PACKEXT = kim latte mscg voronoi \
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 
-PACKAGEUC = $(shell echo $(PACKAGE) | tr a-z A-Z)
-PACKUSERUC = $(shell echo $(PACKUSER) | tr a-z A-Z)
+# Helper GNU make function for conversion to upper case without using shell commands
+uppercase_TABLE:=a,A b,B c,C d,D e,E f,F g,G h,H i,I j,J k,K l,L m,M n,N o,O p,P q,Q r,R s,S t,T u,U v,V w,W x,X y,Y z,Z
+uppercase_internal=$(if $1,$$(subst $(firstword $1),$(call uppercase_internal,$(wordlist 2,$(words $1),$1),$2)),$2)
+uppercase=$(eval uppercase_RESULT:=$(call uppercase_internal,$(uppercase_TABLE),$1))$(uppercase_RESULT)
 
-YESDIR = $(shell echo $(@:yes-%=%) | tr a-z A-Z)
-NODIR  = $(shell echo $(@:no-%=%) | tr a-z A-Z)
-LIBDIR = $(shell echo $(@:lib-%=%))
-LIBUSERDIR = $(shell echo $(@:lib-user-%=%))
+PACKAGEUC = $(call uppercase,$(PACKAGE))
+PACKUSERUC = $(call uppercase,$(PACKUSER))
+
+YESDIR = $(call uppercase,$(@:yes-%=%))
+NODIR  = $(call uppercase,$(@:no-%=%))
+LIBDIR = $($(@:lib-%=%))
+LIBUSERDIR = $($(@:lib-user-%=%))
 
 # List of all targets
 

@@ -585,7 +585,7 @@ void AtomVec::unpack_comm(int n, int first, double *buf)
         if (cols == 0) {
           int *vec = *((int **) pdata);
           for (i = first; i < last; i++)
-            vec[i] = ubuf(buf[m++]).i;
+            vec[i] = (int) ubuf(buf[m++]).i;
         } else {
           int **array = *((int ***) pdata);
           for (i = first; i < last; i++)
@@ -1085,7 +1085,7 @@ void AtomVec::unpack_border(int n, int first, double *buf)
         if (cols == 0) {
           int *vec = *((int **) pdata);
           for (i = first; i < last; i++)
-            vec[i] = ubuf(buf[m++]).i;
+            vec[i] = (int) ubuf(buf[m++]).i;
         } else {
           int **array = *((int ***) pdata);
           for (i = first; i < last; i++)

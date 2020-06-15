@@ -85,8 +85,8 @@ EOF
         # load MPI by default
         . /etc/profile
         module load mpi
-        # restrict OpenMPI to shared memory comm by default
-        OMPI_MCA_btl="tcp,self"
+        # tell OpenMPI to not try using Infiniband
+        OMPI_MCA_btl="^openib"
         # do not warn about unused components as this messes up testing
         OMPI_MCA_btl_base_warn_component_unused="0"
         export OMPI_MCA_btl OMPI_MCA_btl_base_warn_component_unused

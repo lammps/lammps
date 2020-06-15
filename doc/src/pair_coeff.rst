@@ -35,7 +35,7 @@ pair style.  Pair coefficients can also be set in the data file read
 by the :doc:`read_data <read_data>` command or in a restart file.
 
 I and J can be specified in one of two ways.  Explicit numeric values
-can be used for each, as in the 1st example above.  I <= J is
+can be used for each, as in the first example above.  I <= J is
 required.  LAMMPS sets the coefficients for the symmetric J,I
 interaction to the same values.
 
@@ -66,7 +66,7 @@ specified, which sets the coefficients for type I interacting with
 type I.  This is because the section has exactly N lines, where N =
 the number of atom types.  For this reason, the wild-card asterisk
 should also not be used as part of the I argument.  Thus in a data
-file, the line corresponding to the 1st example above would be listed
+file, the line corresponding to the first example above would be listed
 as
 
 .. parsed-literal::

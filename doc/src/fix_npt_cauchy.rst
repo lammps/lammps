@@ -354,7 +354,7 @@ equilibrium liquids can not support a shear stress and that
 equilibrium solids can not support shear stresses that exceed the
 yield stress.
 
-One exception to this rule is if the 1st dimension in the tilt factor
+One exception to this rule is if the first dimension in the tilt factor
 (x for xy) is non-periodic.  In that case, the limits on the tilt
 factor are not enforced, since flipping the box in that dimension does
 not change the atom positions due to non-periodicity.  In this mode,
@@ -555,7 +555,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 
 *X*\ , *y*\ , *z* cannot be barostatted if the associated dimension is not
 periodic.  *Xy*\ , *xz*\ , and *yz* can only be barostatted if the
-simulation domain is triclinic and the 2nd dimension in the keyword
+simulation domain is triclinic and the second dimension in the keyword
 (\ *y* dimension in *xy*\ ) is periodic.  *Z*\ , *xz*\ , and *yz*\ , cannot be
 barostatted for 2D simulations.  The :doc:`create_box <create_box>`,
 :doc:`read data <read_data>`, and :doc:`read_restart <read_restart>`
@@ -569,7 +569,7 @@ is not allowed in the Nose/Hoover formulation.
 
 The *scaleyz yes* and *scalexz yes* keyword/value pairs can not be used
 for 2D simulations. *scaleyz yes*\ , *scalexz yes*\ , and *scalexy yes* options
-can only be used if the 2nd dimension in the keyword is periodic,
+can only be used if the second dimension in the keyword is periodic,
 and if the tilt factor is not coupled to the barostat via keywords
 *tri*\ , *yz*\ , *xz*\ , and *xy*\ .
 
@@ -626,7 +626,7 @@ Default
 The keyword defaults are tchain = 3, pchain = 3, mtk = yes, tloop =
 ploop = 1, nreset = 0, drag = 0.0, dilate = all, couple = none,
 cauchystat = no,
-scaleyz = scalexz = scalexy = yes if periodic in 2nd dimension and
+scaleyz = scalexz = scalexy = yes if periodic in second dimension and
 not coupled to barostat, otherwise no.
 
 ----------

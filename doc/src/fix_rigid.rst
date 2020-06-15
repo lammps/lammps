@@ -248,7 +248,7 @@ differences may accumulate to produce divergent trajectories.
    will be built only at the very first *run* command and maintained for
    as long as the rigid fix is defined. For example, you might think you
    could displace the atoms in a body or add a large velocity to each atom
-   in a body to make it move in a desired direction before a 2nd run is
+   in a body to make it move in a desired direction before a second run is
    performed, using the :doc:`set <set>` or
    :doc:`displace_atoms <displace_atoms>` or :doc:`velocity <velocity>`
    commands.  But these commands will not affect the internal attributes
@@ -727,7 +727,7 @@ In all case, the rigid bodies and non-rigid particles both contribute
 to the global pressure and the box is scaled the same by any of the
 barostatting fixes.
 
-You could even use the 2nd and 3rd options for a non-hybrid simulation
+You could even use the second and third options for a non-hybrid simulation
 consisting of only rigid bodies, assuming you give :doc:`fix npt <fix_nh>` an empty group, though it's an odd thing to do.  The
 barostatting fixes (:doc:`fix npt <fix_nh>` and :doc:`fix press/berensen <fix_press_berendsen>`) will monitor the pressure
 and change the box dimensions, but not time integrate any particles.

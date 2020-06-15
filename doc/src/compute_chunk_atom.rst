@@ -218,8 +218,8 @@ into ellipses.
 The created bins (and hence the chunk IDs) are numbered consecutively
 from 1 to the number of bins = *Nchunk*\ .  For *bin2d* and *bin3d*\ , the
 numbering varies most rapidly in the first dimension (which could be
-x, y, or z), next rapidly in the 2nd dimension, and most slowly in the
-3rd dimension.  For *bin/sphere*\ , the bin with smallest radii is chunk
+x, y, or z), next rapidly in the second dimension, and most slowly in the
+third dimension.  For *bin/sphere*\ , the bin with smallest radii is chunk
 1 and the bni with largest radii is chunk Nchunk = *ncbin*\ .  For
 *bin/cylinder*\ , the numbering varies most rapidly in the dimension
 along the cylinder axis and most slowly in the radial direction.
@@ -614,7 +614,7 @@ Note that for the *bin/sphere* style, the radii *srmin* and *srmax* are
 scaled by the lattice spacing or reduced value of the *x* dimension.
 
 Note that for the *bin/cylinder* style, the radii *crmin* and *crmax*
-are scaled by the lattice spacing or reduced value of the 1st
+are scaled by the lattice spacing or reduced value of the first
 dimension perpendicular to the cylinder axis.  E.g. y for an x-axis
 cylinder, x for a y-axis cylinder, and x for a z-axis cylinder.
 

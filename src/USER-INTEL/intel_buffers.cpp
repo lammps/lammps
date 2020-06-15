@@ -203,6 +203,8 @@ void IntelBuffers<flt_t, acc_t>::free_nmax()
 template <class flt_t, class acc_t>
 void IntelBuffers<flt_t, acc_t>::_grow_nmax(const int offload_end)
 {
+  if (lmp->atom->molecular) _need_tag = 1;
+  else _need_tag = 0;
   #ifdef _LMP_INTEL_OFFLOAD
   free_nmax();
   int size = lmp->atom->nmax;

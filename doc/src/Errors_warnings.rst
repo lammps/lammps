@@ -43,17 +43,17 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    Self-explanatory.
 
 *Bond atom missing in box size check*
-   The 2nd atoms needed to compute a particular bond is missing on this
+   The second atom needed to compute a particular bond is missing on this
    processor.  Typically this is because the pairwise cutoff is set too
    short or the bond has blown apart and an atom is too far away.
 
 *Bond atom missing in image check*
-   The 2nd atom in a particular bond is missing on this processor.
+   The second atom in a particular bond is missing on this processor.
    Typically this is because the pairwise cutoff is set too short or the
    bond has blown apart and an atom is too far away.
 
 *Bond atoms missing at step %ld*
-   The 2nd atom needed to compute a particular bond is missing on this
+   The second atom needed to compute a particular bond is missing on this
    processor.  Typically this is because the pairwise cutoff is set too
    short or the bond has blown apart and an atom is too far away.
 
@@ -486,7 +486,7 @@ This will most likely cause errors in kinetic fluctuations.
    a new style.
 
 *No Kspace calculation with verlet/split*
-   The 2nd partition performs a kspace calculation so the kspace_style
+   The second partition performs a kspace calculation so the kspace_style
    command must be used.
 
 *No automatic unit conversion to XTC file format conventions possible for units lj*

@@ -106,7 +106,7 @@ defined as follows (without the parenthesized comments):
    ...
    500 10.0 0.001 0.003
 
-A section begins with a non-blank line whose 1st character is not a
+A section begins with a non-blank line whose first character is not a
 "#"; blank lines or lines starting with "#" can be used as comments
 between sections.  The first line begins with a keyword which
 identifies the section.  The line can contain additional text, but the
@@ -157,9 +157,9 @@ between *rlo\*rlo* and *rhi\*rhi* are computed.
    warn if this is occurring.
 
 Following a blank line, the next N lines list the tabulated values.
-On each line, the 1st value is the index from 1 to N, the 2nd value is
-r (in density units), the 3rd value is the density-dependent function value
-(in energy units / length\^4), and the 4th is the force (in force units).  The
+On each line, the first value is the index from 1 to N, the second value is
+r (in density units), the third value is the density-dependent function value
+(in energy units / length\^4), and the fourth is the force (in force units).  The
 density values must increase from one line to the next.
 
 Note that one file can contain many sections, each with a tabulated

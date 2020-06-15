@@ -638,7 +638,7 @@ void BuildRyMatrix(double R[3][3], const double angle)
 }
 
 /* ----------------------------------------------------------------------
- Build rotation matrix for a small angle rotation around the Y axis
+ Build rotation matrix for a small angle rotation around the Z axis
  ------------------------------------------------------------------------- */
 
 void BuildRzMatrix(double R[3][3], const double angle)

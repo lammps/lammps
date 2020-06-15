@@ -178,7 +178,7 @@ processing the rest of its input script after client/server
 communication terminates.
 
 If both codes cooperate in this manner, a new round of client/server
-messaging can be initiated after termination by re-using a 2nd message
+messaging can be initiated after termination by re-using a second message
 command in your LAMMPS input script, followed by a new fix client or
 server command, followed by another message quit command (if LAMMPS is
 the client).  As an example, this can be performed in a loop to use a

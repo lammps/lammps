@@ -154,13 +154,13 @@ of type *angletype*\ , with parameters assigned by the corresponding
 .. note::
 
    LAMMPS stores and maintains a data structure with a list of the
-   1st, 2nd, and 3rd neighbors of each atom (within the bond topology of
+   first, second, and third neighbors of each atom (within the bond topology of
    the system) for use in weighting pairwise interactions for bonded
-   atoms.  Note that adding a single bond always adds a new 1st neighbor
-   but may also induce \*many\* new 2nd and 3rd neighbors, depending on the
+   atoms.  Note that adding a single bond always adds a new first neighbor
+   but may also induce \*many\* new second and third neighbors, depending on the
    molecular topology of your system.  The "extra special per atom"
    parameter must typically be set to allow for the new maximum total
-   size (1st + 2nd + 3rd neighbors) of this per-atom list.  There are 2
+   size (first + second + third neighbors) of this per-atom list.  There are 2
    ways to do this.  See the :doc:`read_data <read_data>` or
    :doc:`create_box <create_box>` commands for details.
 
@@ -172,12 +172,12 @@ of type *angletype*\ , with parameters assigned by the corresponding
    considered for pairwise interactions, using the weighting rules set by
    the :doc:`special_bonds <special_bonds>` command.  Consider a new bond
    created between atoms I,J.  If J has a bonded neighbor K, then K
-   becomes a 2nd neighbor of I.  Even if the *atype* keyword is not used
+   becomes a second neighbor of I.  Even if the *atype* keyword is not used
    to create angle I-J-K, the pairwise interaction between I and K will
    be potentially turned off or weighted by the 1-3 weighting specified
    by the :doc:`special_bonds <special_bonds>` command.  This is the case
    even if the "angle yes" option was used with that command.  The same
-   is true for 3rd neighbors (1-4 interactions), the *dtype* keyword, and
+   is true for third neighbors (1-4 interactions), the *dtype* keyword, and
    the "dihedral yes" option used with the
    :doc:`special_bonds <special_bonds>` command.
 

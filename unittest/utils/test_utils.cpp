@@ -239,22 +239,34 @@ TEST(Utils, getsyserror) {
 
 TEST(Utils, potential_file) {
     FILE *fp;
-    fp = fopen("ctest.txt","w");
+    fp = fopen("ctest1.txt","w");
     ASSERT_NE(fp,nullptr);
-    fputs("# DATE: 2020-02-20 CONTRIBUTOR: Nessuno\n",fp);
+    fputs("# DATE: 2020-02-20 CONTRIBUTOR: Nessuno UNITS: real\n",fp);
+    fclose(fp);
+    fp = fopen("ctest2.txt","w");
+    ASSERT_NE(fp,nullptr);
+    fputs("# CONTRIBUTOR: Pippo\n",fp);
     fclose(fp);
 
-    EXPECT_TRUE(utils::file_is_readable("ctest.txt"));
-    EXPECT_FALSE(utils::file_is_readable("no_such_file.txt"));
+    ASSERT_TRUE(utils::file_is_readable("ctest1.txt"));
+    ASSERT_TRUE(utils::file_is_readable("ctest2.txt"));
+    ASSERT_FALSE(utils::file_is_readable("no_such_file.txt"));
 
-    EXPECT_THAT(utils::get_potential_file_path("ctest.txt"),Eq("ctest.txt"));
+    ASSERT_THAT(utils::get_potential_file_path("ctest1.txt"),Eq("ctest1.txt"));
+    ASSERT_THAT(utils::get_potential_file_path("no_such_file.txt"),Eq(""));
+
     const char *folder = getenv("LAMMPS_POTENTIALS");
     if (folder != nullptr) {
       std::string path=utils::path_join(folder,"Cu_u3.eam");
       EXPECT_THAT(utils::get_potential_file_path("Cu_u3.eam"),Eq(path));
+      EXPECT_THAT(utils::get_potential_units(path,"EAM"),Eq("metal"));
     }
 
-    EXPECT_THAT(utils::get_potential_date("ctest.txt","Test"),Eq("2020-02-20"));
+    ASSERT_THAT(utils::get_potential_date("ctest1.txt","Test"),Eq("2020-02-20"));
+    ASSERT_THAT(utils::get_potential_units("ctest1.txt","Test"),Eq("real"));
+    ASSERT_THAT(utils::get_potential_date("ctest2.txt","Test"),Eq(""));
+    ASSERT_THAT(utils::get_potential_units("ctest2.txt","Test"),Eq(""));
 
-    remove("ctest.txt");
+    remove("ctest1.txt");
+    remove("ctest2.txt");
 }

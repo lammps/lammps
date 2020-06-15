@@ -1,4 +1,4 @@
-# DATE: 2017-01-25 CONTRIBUTOR: Aidan Thompson, athomps@sandia.gov,  CITATION: Lee, Baskes, Kim, Cho. Phys. Rev. B, 64, 184102 (2001) 
+# DATE: 2017-01-25 UNITS: metal CONTRIBUTOR: Aidan Thompson, athomps@sandia.gov,  CITATION: Lee, Baskes, Kim, Cho. Phys. Rev. B, 64, 184102 (2001) 
 rc = 3.8
 delr = 0.1
 augt1 = 0

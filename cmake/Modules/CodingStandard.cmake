@@ -27,7 +27,7 @@ if (Python3_EXECUTABLE)
           COMMENT "Fix whitespace errors")
         add_custom_target(
           fix-permissions
-          ${Python3_EXECUTABLE} ${LAMMPS_TOOLS_DIR}/coding_standard/permission.py -f .
+          ${Python3_EXECUTABLE} ${LAMMPS_TOOLS_DIR}/coding_standard/permissions.py -f .
           WORKING_DIRECTORY  ${LAMMPS_DIR}
           COMMENT "Fix permission errors")
     endif()

@@ -53,7 +53,7 @@ PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 
 PACKUSER = user-adios user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
-	   user-intel user-lb user-manifold user-meamc user-mesodpd \
+	   user-intel user-lb user-manifold user-meamc user-mesodpd user-mesont \
 	   user-mgpt user-misc user-mofff user-molfile \
 	   user-netcdf user-omp user-phonon user-plumed user-ptm user-qmmm \
 	   user-qtb user-quip user-reaction user-reaxc user-scafacos user-smd user-smtbq \
@@ -280,7 +280,7 @@ install-python:
 tar:
 	@cd STUBS; $(MAKE) clean
 	@cd ..; tar cvzf src/$(ROOT)_src.tar.gz \
-	  src/Make* src/Package.sh src/Depend.sh src/Install.sh \
+	  src/Make* src/Package.sh src/Depend.sh src/Install.sh src/Fetch.sh \
 	  src/MAKE src/DEPEND src/*.cpp src/*.h src/STUBS \
 	  $(patsubst %,src/%,$(PACKAGEUC)) $(patsubst %,src/%,$(PACKUSERUC)) \
           --exclude=*/.svn
@@ -369,6 +369,7 @@ yes-%:
 	  cd $(YESDIR); $(SHELL) ../Install.sh 1; cd ..; \
 		$(SHELL) Depend.sh $(YESDIR) 1; \
 	fi;
+	@$(SHELL) Fetch.sh $(YESDIR)
 
 no-%:
 	@if [ ! -e $(NODIR) ]; then \

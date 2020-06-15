@@ -16,6 +16,8 @@
 #include <climits>
 #include <cstdlib>
 #include <cstring>
+#include <algorithm>
+#include <string>
 #include "style_atom.h"
 #include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"
@@ -46,8 +48,6 @@ using namespace MathConst;
 #define DELTA 1
 #define DELTA_PERATOM 64
 #define EPSILON 1.0e-6
-
-enum{DOUBLE,INT,BIGINT};
 
 /* ---------------------------------------------------------------------- */
 
@@ -681,7 +681,7 @@ void Atom::set_atomflag_defaults()
    called from lammps.cpp, input script, restart file, replicate
 ------------------------------------------------------------------------- */
 
-void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
+void Atom::create_avec(const std::string &style, int narg, char **arg, int trysuffix)
 {
   delete [] atom_style;
   if (avec) delete avec;
@@ -704,16 +704,14 @@ void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
   avec->grow(1);
 
   if (sflag) {
-    char estyle[256];
-    if (sflag == 1) snprintf(estyle,256,"%s/%s",style,lmp->suffix);
-    else snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
-    int n = strlen(estyle) + 1;
-    atom_style = new char[n];
-    strcpy(atom_style,estyle);
+    std::string estyle = style + "/";
+    if (sflag == 1) estyle += lmp->suffix;
+    else estyle += lmp->suffix2;
+    atom_style = new char[estyle.size()+1];
+    strcpy(atom_style,estyle.c_str());
   } else {
-    int n = strlen(style) + 1;
-    atom_style = new char[n];
-    strcpy(atom_style,style);
+    atom_style = new char[style.size()+1];
+    strcpy(atom_style,style.c_str());
   }
 
   // if molecular system:
@@ -731,13 +729,12 @@ void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
    generate an AtomVec class, first with suffix appended
 ------------------------------------------------------------------------- */
 
-AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
+AtomVec *Atom::new_avec(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
       sflag = 1;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
+      std::string estyle = style + "/" + lmp->suffix;
       if (avec_map->find(estyle) != avec_map->end()) {
         AtomVecCreator avec_creator = (*avec_map)[estyle];
         return avec_creator(lmp);
@@ -746,8 +743,7 @@ AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
 
     if (lmp->suffix2) {
       sflag = 2;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
+      std::string estyle = style + "/" + lmp->suffix2;
       if (avec_map->find(estyle) != avec_map->end()) {
         AtomVecCreator avec_creator = (*avec_map)[estyle];
         return avec_creator(lmp);
@@ -761,7 +757,7 @@ AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
     return avec_creator(lmp);
   }
 
-  error->all(FLERR,utils::check_packages_for_style("atom",style,lmp).c_str());
+  error->all(FLERR,utils::check_packages_for_style("atom",style,lmp));
   return NULL;
 }
 
@@ -1089,7 +1085,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
   next = strchr(buf,'\n');
   *next = '\0';
-  int nwords = utils::count_words(buf);
+  int nwords = utils::trim_and_count_words(buf);
   *next = '\n';
 
   if (nwords != avec->size_data_atom && nwords != avec->size_data_atom + 3)
@@ -1239,7 +1235,7 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
 
   next = strchr(buf,'\n');
   *next = '\0';
-  int nwords = utils::count_words(buf);
+  int nwords = utils::trim_and_count_words(buf);
   *next = '\n';
 
   if (nwords != avec->size_data_vel)
@@ -1591,7 +1587,7 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
 
   next = strchr(buf,'\n');
   *next = '\0';
-  int nwords = utils::count_words(buf);
+  int nwords = utils::trim_and_count_words(buf);
   *next = '\n';
 
   if (nwords != avec_bonus->size_data_bonus)
@@ -2265,7 +2261,9 @@ void Atom::add_callback(int flag)
   for (ifix = 0; ifix < modify->nfix; ifix++)
     if (modify->fix[ifix] == NULL) break;
 
-  // add callback to lists, reallocating if necessary
+  // add callback to lists and sort, reallocating if necessary
+  // sorting is required in cases where fixes were replaced as it ensures atom
+  // data is read/written/transfered in the same order that fixes are called
 
   if (flag == 0) {
     if (nextra_grow == nextra_grow_max) {
@@ -2274,6 +2272,7 @@ void Atom::add_callback(int flag)
     }
     extra_grow[nextra_grow] = ifix;
     nextra_grow++;
+    std::sort(extra_grow, extra_grow + nextra_grow);     
   } else if (flag == 1) {
     if (nextra_restart == nextra_restart_max) {
       nextra_restart_max += DELTA;
@@ -2281,6 +2280,7 @@ void Atom::add_callback(int flag)
     }
     extra_restart[nextra_restart] = ifix;
     nextra_restart++;
+    std::sort(extra_restart, extra_restart + nextra_restart);     
   } else if (flag == 2) {
     if (nextra_border == nextra_border_max) {
       nextra_border_max += DELTA;
@@ -2288,6 +2288,7 @@ void Atom::add_callback(int flag)
     }
     extra_border[nextra_border] = ifix;
     nextra_border++;
+    std::sort(extra_border, extra_border + nextra_border);     
   }
 }
 

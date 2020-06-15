@@ -514,11 +514,11 @@ void PairEAMCD::read_h_coeff(char *filename)
       strcpy(line, nextline);
     }
 
-    ValueTokenizer values(line, " \t\n\r\f");
+    ValueTokenizer values(line);
     int degree = values.next_int();
     nhcoeff = degree+1;
 
-    if (values.count() != nhcoeff + 1 || nhcoeff < 1)
+    if ((int)values.count() != nhcoeff + 1 || nhcoeff < 1)
       error->one(FLERR, "Failed to read h(x) function coefficients in EAM file.");
 
     hcoeff = new double[nhcoeff];

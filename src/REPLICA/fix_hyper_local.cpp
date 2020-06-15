@@ -473,7 +473,6 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
 
   // compute estrain = current abs value strain of each owned bond
   // blist = bondlist from last event
-  // mark atom I ineligible if it has no bonds
   // also store:
   //   maxhalf = which owned bond is maxstrain for each old atom I
   //   maxhalfstrain = abs value strain of that bond for each old atom I
@@ -486,12 +485,10 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
 
   m = 0;
   for (iold = 0; iold < nlocal_old; iold++) {
-    nbond = numbond[iold];
-    if (!nbond) {
-      eligible[iold] = 0;
-      continue;
-    }
     halfstrain = 0.0;
+    ijhalf = -1;
+    nbond = numbond[iold];
+
     for (ibond = 0; ibond < nbond; ibond++) {
       i = blist[m].i;
       j = blist[m].j;
@@ -512,6 +509,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
       }
       m++;
     }
+
     maxhalf[iold] = ijhalf;
     maxhalfstrain[iold] = halfstrain;
   }
@@ -542,6 +540,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
   //   if J is unknown (drifted ghost),
   //     assume it was part of an event and its strain = qfactor
   // mark atom I ineligible for biasing if:
+  //   its maxstrain = 0.0, b/c it is in no bonds (typically not in LHD group)
   //   its maxhalfstrain < maxstrain (J atom owns the IJ bond)
   //   its maxstrain < maxstrain_domain
   //   ncount > 1 (break tie by making all atoms with tie value ineligible)
@@ -564,7 +563,13 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
 
   for (ii = 0; ii < inum; ii++) {
     iold = ilist[ii];
-    if (eligible[iold] == 0) continue;
+    i = old2now[iold];
+
+    if (maxstrain[i] == 0.0) {
+      eligible[iold] = 0;
+      continue;
+    }
+
     jlist = firstneigh[iold];
     jnum = numneigh[iold];
 
@@ -574,7 +579,6 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     // in that case, assume it performed an event, its strain = qfactor
     // this assumes cutghost is sufficiently longer than Dcut
 
-    i = old2now[iold];
     emax = selfstrain = maxstrain[i];
     ncount = 0;
 

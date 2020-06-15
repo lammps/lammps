@@ -1,5 +1,18 @@
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#include "gtest/gtest.h"
+#include "gmock/gmock.h"
 #include "tokenizer.h"
 
 using namespace LAMMPS_NS;
@@ -25,37 +38,33 @@ TEST(Tokenizer, two_words) {
     ASSERT_EQ(t.count(), 2);
 }
 
-TEST(Tokenizer, prefix_seperators) {
+TEST(Tokenizer, prefix_separators) {
     Tokenizer t("  test word", " ");
     ASSERT_EQ(t.count(), 2);
 }
 
-TEST(Tokenizer, postfix_seperators) {
+TEST(Tokenizer, postfix_separators) {
     Tokenizer t("test word   ", " ");
     ASSERT_EQ(t.count(), 2);
 }
 
 TEST(Tokenizer, iterate_words) {
     Tokenizer t("  test word   ", " ");
-    ASSERT_THAT(t[0], Eq("test"));
-    ASSERT_THAT(t[1], Eq("word"));
+    ASSERT_THAT(t.next(), Eq("test"));
+    ASSERT_THAT(t.next(), Eq("word"));
     ASSERT_EQ(t.count(), 2);
 }
 
-TEST(Tokenizer, default_seperators) {
+TEST(Tokenizer, default_separators) {
     Tokenizer t(" \r\n test \t word \f");
-    ASSERT_THAT(t[0], Eq("test"));
-    ASSERT_THAT(t[1], Eq("word"));
+    ASSERT_THAT(t.next(), Eq("test"));
+    ASSERT_THAT(t.next(), Eq("word"));
     ASSERT_EQ(t.count(), 2);
 }
 
-TEST(Tokenizer, for_loop) {
+TEST(Tokenizer, as_vector) {
     Tokenizer t(" \r\n test \t word \f");
-    std::vector<std::string> list;
-
-    for(auto word : t) {
-        list.push_back(word);
-    }
+    std::vector<std::string> list = t.as_vector();
     ASSERT_THAT(list[0], Eq("test"));
     ASSERT_THAT(list[1], Eq("word"));
 }

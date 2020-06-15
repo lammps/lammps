@@ -1,7 +1,23 @@
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#include "gtest/gtest.h"
+#include "gmock/gmock.h"
 #include "utils.h"
 #include <string>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
 
 using namespace LAMMPS_NS;
 using ::testing::Eq;
@@ -12,7 +28,19 @@ TEST(Utils, trim_comment) {
 }
 
 TEST(Utils, count_words) {
-    ASSERT_EQ(utils::count_words("some text # comment"), 2);
+    ASSERT_EQ(utils::count_words("some text # comment"), 4);
+}
+
+TEST(Utils, count_words_non_default) {
+    ASSERT_EQ(utils::count_words("some text # comment", " #"), 3);
+}
+
+TEST(Utils, trim_and_count_words) {
+    ASSERT_EQ(utils::trim_and_count_words("some text # comment"), 2);
+}
+
+TEST(Utils, count_words_with_extra_spaces) {
+    ASSERT_EQ(utils::count_words("   some text # comment   "), 4);
 }
 
 TEST(Utils, valid_integer1) {
@@ -181,4 +209,52 @@ TEST(Utils, strmatch_char_range) {
 
 TEST(Utils, strmatch_opt_range) {
     ASSERT_TRUE(utils::strmatch("rigid","^[0-9]*[p-s]igid"));
+}
+
+TEST(Utils, path_join) {
+#if defined(_WIN32)
+    ASSERT_THAT(utils::path_join("c:\\parent\\folder", "filename"), Eq("c:\\parent\\folder\\filename"));
+#else
+    ASSERT_THAT(utils::path_join("/parent/folder", "filename"), Eq("/parent/folder/filename"));
+#endif
+}
+
+TEST(Utils, path_basename) {
+#if defined(_WIN32)
+    ASSERT_THAT(utils::path_basename("c:\\parent\\folder\\filename"), Eq("filename"));
+#else
+    ASSERT_THAT(utils::path_basename("/parent/folder/filename"), Eq("filename"));
+#endif
+}
+
+TEST(Utils, getsyserror) {
+#if defined(__linux__)
+    errno = ENOENT;
+    std::string errmesg = utils::getsyserror();
+    ASSERT_THAT(errmesg, Eq("No such file or directory"));
+#else
+    GTEST_SKIP();
+#endif
+}
+
+TEST(Utils, potential_file) {
+    FILE *fp;
+    fp = fopen("ctest.txt","w");
+    ASSERT_NE(fp,nullptr);
+    fputs("# DATE: 2020-02-20 CONTRIBUTOR: Nessuno\n",fp);
+    fclose(fp);
+
+    EXPECT_TRUE(utils::file_is_readable("ctest.txt"));
+    EXPECT_FALSE(utils::file_is_readable("no_such_file.txt"));
+
+    EXPECT_THAT(utils::get_potential_file_path("ctest.txt"),Eq("ctest.txt"));
+    const char *folder = getenv("LAMMPS_POTENTIALS");
+    if (folder != nullptr) {
+      std::string path=utils::path_join(folder,"Cu_u3.eam");
+      EXPECT_THAT(utils::get_potential_file_path("Cu_u3.eam"),Eq(path));
+    }
+
+    EXPECT_THAT(utils::get_potential_date("ctest.txt","Test"),Eq("2020-02-20"));
+
+    remove("ctest.txt");
 }

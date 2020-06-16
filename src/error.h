@@ -27,20 +27,20 @@ class Error : protected Pointers {
  public:
   Error(class LAMMPS *);
 
-  void universe_all(const std::string &, int, const std::string &);
-  void universe_one(const std::string &, int, const std::string &);
+  [[ noreturn ]] void universe_all(const std::string &, int, const std::string &);
+  [[ noreturn ]] void universe_one(const std::string &, int, const std::string &);
   void universe_warn(const std::string &, int, const std::string &);
 
-  void all(const std::string &, int, const std::string &);
-  void one(const std::string &, int, const std::string &);
+  [[ noreturn ]] void all(const std::string &, int, const std::string &);
+  [[ noreturn ]] void one(const std::string &, int, const std::string &);
   void warning(const std::string &, int, const std::string &, int = 1);
   void message(const std::string &, int, const std::string &, int = 1);
-  void done(int = 0); // 1 would be fully backwards compatible
+  [[ noreturn ]] void done(int = 0); // 1 would be fully backwards compatible
 
 #ifdef LAMMPS_EXCEPTIONS
   std::string get_last_error() const;
   ErrorType get_last_error_type() const;
-  void   set_last_error(const std::string &msg, ErrorType type = ERROR_NORMAL);
+  void set_last_error(const std::string &msg, ErrorType type = ERROR_NORMAL);
 
  private:
   std::string last_error_message;

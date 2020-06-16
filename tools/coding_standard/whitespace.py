@@ -34,7 +34,7 @@ patterns:
 """
 
 def check_trailing_whitespace(f):
-    pattern = re.compile(r'\s+\n$')
+    pattern = re.compile(r'[^\n]*\s+\n$')
     last_line = "\n"
     lineno = 1
     errors = set()

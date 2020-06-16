@@ -32,7 +32,7 @@ action fix_gpu.cpp
 action fix_gpu.h
 action gpu_extra.h
 action pair_beck_gpu.cpp
-action pair_beck_gpu.h 
+action pair_beck_gpu.h
 action pair_born_coul_long_gpu.cpp pair_born_coul_long.cpp
 action pair_born_coul_long_gpu.h pair_born_coul_long.cpp
 action pair_born_coul_long_cs_gpu.cpp pair_born_coul_long_cs.cpp
@@ -71,9 +71,9 @@ action pair_lj_sf_dipole_sf_gpu.cpp pair_lj_sf_dipole_sf.cpp
 action pair_lj_sf_dipole_sf_gpu.h pair_lj_sf_dipole_sf.cpp
 action pair_eam_alloy_gpu.cpp pair_eam.cpp
 action pair_eam_alloy_gpu.h pair_eam.cpp
-action pair_eam_fs_gpu.cpp pair_eam.cpp 
+action pair_eam_fs_gpu.cpp pair_eam.cpp
 action pair_eam_fs_gpu.h pair_eam.cpp
-action pair_eam_gpu.cpp pair_eam.cpp 
+action pair_eam_gpu.cpp pair_eam.cpp
 action pair_eam_gpu.h pair_eam.cpp
 action pair_gauss_gpu.cpp
 action pair_gauss_gpu.h
@@ -112,7 +112,7 @@ action pair_lj_sdk_coul_long_gpu.h pair_lj_sdk_coul_long.cpp
 action pair_lj_sdk_gpu.cpp pair_lj_sdk.cpp
 action pair_lj_sdk_gpu.h pair_lj_sdk.cpp
 action pair_mie_cut_gpu.cpp
-action pair_mie_cut_gpu.h 
+action pair_mie_cut_gpu.h
 action pair_morse_gpu.cpp
 action pair_morse_gpu.h
 action pair_resquared_gpu.cpp pair_resquared.cpp

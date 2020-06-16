@@ -1,6 +1,6 @@
 lmax=6
-nradbase=15
 radbasename=ChebPow
+nradbase=15
 nradmax=5
 nelements=1
 rankmax=6

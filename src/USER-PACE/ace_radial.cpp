@@ -73,7 +73,6 @@ void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int 
 }
 
 
-ACERadialFunctions::~ACERadialFunctions() = default;
 
 /**
 Function that computes Chebyshev polynomials of first and second kind
@@ -254,41 +253,21 @@ void ACERadialFunctions::radfunc(SPECIES_TYPE elei, SPECIES_TYPE elej) {
 }
 
 
-void ACERadialFunctions::all_radfunc(SPECIES_TYPE elei, SPECIES_TYPE elej, DOUBLE_TYPE r) {
-    DOUBLE_TYPE lam = lambda(elei, elej);
-    DOUBLE_TYPE r_cut = cut(elei, elej);
-    DOUBLE_TYPE dr_cut = dcut(elei, elej);
+void ACERadialFunctions::all_radfunc(SPECIES_TYPE mu_i, SPECIES_TYPE mu_j, DOUBLE_TYPE r) {
+    DOUBLE_TYPE lam = lambda(mu_i, mu_j);
+    DOUBLE_TYPE r_cut = cut(mu_i, mu_j);
+    DOUBLE_TYPE dr_cut = dcut(mu_i, mu_j);
     // set up radial functions
     radbase(lam, r_cut, dr_cut, r); //update gr, dgr
-    radfunc(elei, elej); // update fr(nr, l),  dfr(nr, l)
+    radfunc(mu_i, mu_j); // update fr(nr, l),  dfr(nr, l)
 }
 
 
 void ACERadialFunctions::setuplookupRadspline() {
     using namespace std::placeholders;
-//    SPECIES_TYPE elei, elej;
-//    int n, l, idx;
-//    NS_TYPE nr;
-    DOUBLE_TYPE r, lam, r_cut, dr_cut;
+    DOUBLE_TYPE lam, r_cut, dr_cut;
     DOUBLE_TYPE cr_c, dcr_c, pre, lamhc;
-//    DOUBLE_TYPE c[4];
-//    nlut = ntot;
-    // cutoff is global cutoff
-//    rscalelookup = (DOUBLE_TYPE) nlut / cutoff;
 
-//    invrscalelookup = 1.0 / rscalelookup;
-
-
-//    Array2D<DOUBLE_TYPE> f1f= Array2D<DOUBLE_TYPE>(nradial, lmax + 1, "f1f");  ///< shape: [nradbase][lmax+1]
-//    Array2D<DOUBLE_TYPE> f1fd1= Array2D<DOUBLE_TYPE>(nradial, lmax + 1, "f1fd1"); ///< shape: [nradbase][lmax+1]
-
-//    Array1D<DOUBLE_TYPE> f1g  = Array1D<DOUBLE_TYPE>(nradbase,"f1g"); ///< shape: [nradbase+1]
-//    Array1D<DOUBLE_TYPE> f1gd1  = Array1D<DOUBLE_TYPE>(nradbase,"f1gd1"); ///< shape: [nradbase+1]
-
-//    lutfrs.fill(0.0);
-//    lutgrs.fill(0.0);
-    // core repulsion
-//    luthcs.fill(0.0);
     // at r = rcut + eps the function and its derivatives is zero
     for (SPECIES_TYPE elei = 0; elei < nelements; elei++) {
         for (SPECIES_TYPE elej = 0; elej < nelements; elej++) {
@@ -297,17 +276,17 @@ void ACERadialFunctions::setuplookupRadspline() {
             r_cut = cut(elei, elej);
             dr_cut = dcut(elei, elej);
 
-            RadialFunctions radbase_func = std::bind(&ACERadialFunctions::radbase, this, lam, r_cut, dr_cut,
-                                                     _1);//update gr, dgr
+//            RadialFunctions radbase_func = std::bind(&ACERadialFunctions::radbase, this, lam, r_cut, dr_cut, _1);//update gr, dgr
             splines_gk(elei, elej).setupSplines(gr.get_size(),
-                                                radbase_func,
+                                                std::bind(&ACERadialFunctions::radbase, this, lam, r_cut, dr_cut,
+                                                          _1),//update gr, dgr
                                                 gr.get_data(),
                                                 dgr.get_data(), ntot, cutoff);
 
-            RadialFunctions rad_func = std::bind(&ACERadialFunctions::all_radfunc, this, elei, elej,
-                                                 _1); // update fr(nr, l),  dfr(nr, l)
+//            RadialFunctions rad_func = std::bind(&ACERadialFunctions::all_radfunc, this,elei, elej,_1); // update fr(nr, l),  dfr(nr, l)
             splines_rnl(elei, elej).setupSplines(fr.get_size(),
-                                                 rad_func,
+                                                 std::bind(&ACERadialFunctions::all_radfunc, this, elei, elej,
+                                                           _1), // update fr(nr, l),  dfr(nr, l)
                                                  fr.get_data(),
                                                  dfr.get_data(), ntot, cutoff);
 
@@ -315,129 +294,46 @@ void ACERadialFunctions::setuplookupRadspline() {
             pre = prehc(elei, elej);
             lamhc = lambdahc(elei, elej);
 //            radcore(r, pre, lamhc, cutoff, cr_c, dcr_c);
-
-            RadialFunctions hardcore_func = std::bind(&ACERadialFunctions::radcore, _1, pre, lamhc, cutoff,
-                                                      std::ref(cr_c), std::ref(dcr_c));
+//            RadialFunctions hardcore_func = std::bind(&ACERadialFunctions::radcore, _1, pre, lamhc, cutoff, std::ref(cr_c), std::ref(dcr_c));
             splines_hc(elei, elej).setupSplines(1,
-                                                hardcore_func,
+                                                std::bind(&ACERadialFunctions::radcore, _1, pre, lamhc, cutoff,
+                                                          std::ref(cr_c), std::ref(dcr_c)),
                                                 &cr_c,
                                                 &dcr_c, ntot, cutoff);
         }
     }
 
-
-//    for (elei = 0; elei < nelements; elei++) {
-//        for (elej = 0; elej < nelements; elej++) {
-//            lam = lambda(elei, elej);
-//            r_cut = cut(elei, elej);
-//            dr_cut = dcut(elei, elej);
-
-    // moved this here for several elements
-//            f1g.fill(0);
-//            f1gd1.fill(0);
-    // this appeared to be missing
-//            f1f.fill(0);
-//            f1fd1.fill(0);
-    // core repulsion
-//            f1hc = 0.0;
-//            f1hcd1 = 0.0;
-//            for (n = nlut; n >= 1; n--) {
-//                r = invrscalelookup * DOUBLE_TYPE(n);
-//
-//                // set up radial functions
-//                radbase(lam, r_cut, dr_cut, r); //update g, dg
-//                radfunc(elei, elej); // update fr(nr, l),  dfr(nr, l)
-//
-//                for (nr = 0; nr < nradbase; nr++) {
-//                    f0 = gr(nr);
-//                    f1 = f1g(nr);
-//                    f0d1 = dgr(nr) * invrscalelookup;
-//                    f1d1 = f1gd1(nr);
-//                    // evaluate coefficients
-//                    c[0] = f0;
-//                    c[1] = f0d1;
-//                    c[2] = 3.0 * (f1 - f0) - f1d1 - 2.0 * f0d1;
-//                    c[3] = -2.0 * (f1 - f0) + f1d1 + f0d1;
-//                    // store coefficients
-//                    for (idx = 0; idx <= 3; idx++) {
-//                        lutgrs(elei, elej, n, nr, idx) = c[idx];
-//                    }
-//                    // evaluate function values and derivatives at current position
-//                    f1g(nr) = c[0];
-//                    f1gd1(nr) = c[1];
-//                }
-//                for (nr = 0; nr < nradial; nr++) {
-//                    for (l = 0; l <= lmax; l++) {
-//                        f0 = fr(nr, l);
-//                        f1 = f1f(nr, l);
-//                        f0d1 = dfr(nr, l) * invrscalelookup;
-//                        f1d1 = f1fd1(nr, l);
-//                        // evaluate coefficients
-//                        c[0] = f0;
-//                        c[1] = f0d1;
-//                        c[2] = 3.0 * (f1 - f0) - f1d1 - 2.0 * f0d1;
-//                        c[3] = -2.0 * (f1 - f0) + f1d1 + f0d1;
-//                        // store coefficients
-//                        for (idx = 0; idx <= 3; idx++)
-//                            lutfrs(elei, elej, n, l, nr, idx) = c[idx];
-//
-//                        // evalute and store function values and derivatives at current position
-//                        f1f(nr, l) = c[0];
-//                        f1fd1(nr, l) = c[1];
-//                    }
-//                }
-
-    // core repulsion (prehc and lambdahc need to be read from input)
-//                pre = prehc(elei, elej);
-//                lamhc = lambdahc(elei, elej);
-//                radcore(r, pre, lamhc, cutoff, cr_c, dcr_c);
-//                f0 = cr_c;
-//                f1 = f1hc;
-//                f0d1 = dcr_c * invrscalelookup;
-//                f1d1 = f1hcd1;
-//                // evaluate coefficients
-//                c[0] = f0;
-//                c[1] = f0d1;
-//                c[2] = 3.0 * (f1 - f0) - f1d1 - 2.0 * f0d1;
-//                c[3] = -2.0 * (f1 - f0) + f1d1 + f0d1;
-//                // store coefficients
-//                for (idx = 0; idx <= 3; idx++)
-//                    luthcs(elei, elej, n, idx) = c[idx];
-//
-//                // evalute and store function values and derivatives at current position
-//                f1hc = c[0];
-//                f1hcd1 = c[1];
-//            }
-//        }
-//    }
 }
 
 /**
 Function that gets radial function from look-up table using splines.
 
-@param r, nradbase_c, nradial_c, lmax, elei, elej
+@param r, nradbase_c, nradial_c, lmax, mu_i, mu_j
 
 @returns fr, dfr, gr, dgr, cr, dcr
 */
 void
-ACERadialFunctions::lookupRadspline(DOUBLE_TYPE r, NS_TYPE nradbase_c, NS_TYPE nradial_c, SPECIES_TYPE elei,
-                                    SPECIES_TYPE elej) {
-    splines_gk(elei, elej).calcSplines(r); // populate  splines_gk.values, splines_gk.derivatives;
-    splines_rnl(elei, elej).calcSplines(r);
-    splines_hc(elei, elej).calcSplines(r);
+ACERadialFunctions::evaluate(DOUBLE_TYPE r, NS_TYPE nradbase_c, NS_TYPE nradial_c, SPECIES_TYPE mu_i,
+                             SPECIES_TYPE mu_j) {
+    auto &spline_gk = splines_gk(mu_i, mu_j);
+    auto &spline_rnl = splines_rnl(mu_i, mu_j);
+    auto &spline_hc = splines_hc(mu_i, mu_j);
 
+    spline_gk.calcSplines(r); // populate  splines_gk.values, splines_gk.derivatives;
     for (NS_TYPE nr = 0; nr < nradbase_c; nr++) {
-        gr(nr) = splines_gk(elei, elej).values(nr);
-        dgr(nr) = splines_gk(elei, elej).derivatives(nr);
+        gr(nr) = spline_gk.values(nr);
+        dgr(nr) = spline_gk.derivatives(nr);
     }
 
+    spline_rnl.calcSplines(r);
     for (size_t ind = 0; ind < fr.get_size(); ind++) {
-        fr.get_data(ind) = splines_rnl(elei, elej).values.get_data(ind);
-        dfr.get_data(ind) = splines_rnl(elei, elej).derivatives.get_data(ind);
+        fr.get_data(ind) = spline_rnl.values.get_data(ind);
+        dfr.get_data(ind) = spline_rnl.derivatives.get_data(ind);
     }
 
-    cr = splines_hc(elei, elej).values(0);
-    dcr = splines_hc(elei, elej).derivatives(0);
+    spline_hc.calcSplines(r);
+    cr = spline_hc.values(0);
+    dcr = spline_hc.derivatives(0);
 }
 
 

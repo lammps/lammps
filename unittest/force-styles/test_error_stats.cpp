@@ -5,8 +5,9 @@
 
 // include the implementation since ErrorStats is a standalone class
 // this way we don't have to link against the style_tests and lammps libs
-
 #include "error_stats.cpp"
+#include "fmtlib_format.cpp"
+#include "fmtlib_os.cpp"
 
 TEST(ErrorStats, test)
 {
@@ -25,7 +26,7 @@ TEST(ErrorStats, test)
 
     std::stringstream out;
     out << stats;
-    ASSERT_EQ(out.str(), " Average: 5.800e-01 StdDev: 7.305e-01 MaxErr: 2.000e+00 @ item: 3");
+    ASSERT_EQ(out.str(), "Average:  5.800e-01 StdDev:  7.305e-01 MaxErr:  2.000e+00 @ item: 3.0");
 
     stats.reset();
     ASSERT_DOUBLE_EQ(stats.avg(), 0.0);

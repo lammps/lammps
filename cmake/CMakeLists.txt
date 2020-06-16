@@ -684,6 +684,7 @@ endif()
 
 include(Testing)
 include(CodeCoverage)
+include(CodingStandard)
 
 ###############################################################################
 # Print package summary

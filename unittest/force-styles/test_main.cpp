@@ -16,16 +16,15 @@
 #include "test_config_reader.h"
 #include "gtest/gtest.h"
 
-#include <mpi.h>
 #include <cstring>
 #include <iostream>
+#include <mpi.h>
 
 // common read_yaml_file function
 bool read_yaml_file(const char *infile, TestConfig &config)
 {
     auto reader = TestConfigReader(config);
-    if (reader.parse_file(infile))
-        return false;
+    if (reader.parse_file(infile)) return false;
 
     config.basename = reader.get_basename();
     return true;
@@ -76,32 +75,32 @@ int main(int argc, char **argv)
         return 2;
     }
 
-    int iarg=2;
+    int iarg = 2;
     while (iarg < argc) {
 
-        if (strcmp(argv[iarg],"-g") == 0) {
-            if (iarg+1 < argc) {
-                generate_yaml_file(argv[iarg+1], test_config);
+        if (strcmp(argv[iarg], "-g") == 0) {
+            if (iarg + 1 < argc) {
+                generate_yaml_file(argv[iarg + 1], test_config);
                 return 0;
             } else {
-                usage(std::cerr,argv[0]);
+                usage(std::cerr, argv[0]);
                 return 1;
             }
-        } else if (strcmp(argv[iarg],"-u") == 0) {
+        } else if (strcmp(argv[iarg], "-u") == 0) {
             generate_yaml_file(argv[1], test_config);
             return 0;
-        } else if (strcmp(argv[iarg],"-d") == 0) {
-            if (iarg+1 < argc) {
-                INPUT_FOLDER = argv[iarg+1];
+        } else if (strcmp(argv[iarg], "-d") == 0) {
+            if (iarg + 1 < argc) {
+                INPUT_FOLDER = argv[iarg + 1];
                 iarg += 2;
             } else {
-                usage(std::cerr,argv[0]);
+                usage(std::cerr, argv[0]);
                 return 1;
             }
-        } else if (strcmp(argv[iarg],"-s") == 0) {
+        } else if (strcmp(argv[iarg], "-s") == 0) {
             print_stats = true;
             ++iarg;
-        } else if (strcmp(argv[iarg],"-v") == 0) {
+        } else if (strcmp(argv[iarg], "-v") == 0) {
             verbose = true;
             ++iarg;
         } else {

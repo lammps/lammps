@@ -74,6 +74,7 @@ def fix_file(path, check_result):
         with open(path, 'r', encoding=check_result['encoding']) as src:
             for line in src:
                 print(line.rstrip(), file=out)
+    shutil.copymode(path, newfile)
     shutil.move(newfile, path)
 
 def check_folder(directory, config, fix=False, verbose=False):

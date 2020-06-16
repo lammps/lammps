@@ -2,10 +2,10 @@
  
 # Definition of SNAP+ZBL potential.
 
-variable zblcutinner equal 4
-variable zblcutouter equal 4.2
-variable zblz1 equal 49
-variable zblz2 equal 15
+variable zblcutinner index 4
+variable zblcutouter index 4.2
+variable zblz1 index 49
+variable zblz2 index 15
 
 # Specify hybrid with SNAP and ZBL
 

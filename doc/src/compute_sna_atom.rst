@@ -46,12 +46,12 @@ Syntax
           *1* = generate quadratic terms
        *chem* values = *nelements* *elementlist*
           *nelements* = number of SNAP elements
-          *elementlist* = *ntypes* integers in range [0, *nelements*) 
+          *elementlist* = *ntypes* integers in range [0, *nelements*)
        *bnormflag* value = *0* or *1*
           *0* = do not normalize
           *1* = normalize bispectrum components
        *wselfallflag* value = *0* or *1*
-          *0* = self-contribution only for element of central atom 
+          *0* = self-contribution only for element of central atom
           *1* = self-contribution for all elements
 
 Examples
@@ -96,8 +96,8 @@ In this way, all possible neighbor positions are mapped on to a subset
 of the 3-sphere.  Points south of the latitude :math:`\theta_0` = *rfac0* :math:`\pi`
 are excluded.
 
-The natural basis for functions on the 3-sphere is formed by the 
-representatives of *SU(2)*, the matrices :math:`U^j_{m,m'}(\theta, \phi, \theta_0)`.  
+The natural basis for functions on the 3-sphere is formed by the
+representatives of *SU(2)*, the matrices :math:`U^j_{m,m'}(\theta, \phi, \theta_0)`.
 These functions are better known as :math:`D^j_{m,m'}`, the elements of the Wigner
 *D*\ -matrices :ref:`(Meremianin <Meremianin2006>`,
 :ref:`Varshalovich <Varshalovich1987>`, :ref:`Mason) <Mason2009>`
@@ -111,7 +111,7 @@ coefficient as
 
   u^j_{m,m'} = U^j_{m,m'}(0,0,0) + \sum_{r_{ii'} < R_{ii'}}{f_c(r_{ii'}) w_{\mu_{i'}} U^j_{m,m'}(\theta_0,\theta,\phi)}
 
-The :math:`w_{\mu_{i'}}` neighbor weights are dimensionless numbers that depend on 
+The :math:`w_{\mu_{i'}}` neighbor weights are dimensionless numbers that depend on
 :math:`\mu_{i'}`, the SNAP element of atom *i'*, while the central atom is
 arbitrarily assigned a unit weight.  The function :math:`f_c(r)` ensures that
 the contribution of each neighbor atom goes smoothly to zero at
@@ -137,7 +137,7 @@ real-valued and invariant under rotation :ref:`(Bartok) <Bartok20101>`.
         {j_2} {m_2} {m'_2} \end{array}}
         u^{j_1}_{m_1,m'_1} u^{j_2}_{m_2,m'_2}
 
-The constants :math:`H^{jmm'}_{j_1 m_1 m_{1'},j_2 m_ 2m_{2'}}` 
+The constants :math:`H^{jmm'}_{j_1 m_1 m_{1'},j_2 m_ 2m_{2'}}`
 are coupling coefficients,
 analogous to Clebsch-Gordan coefficients for rotations on the
 2-sphere. These invariants are the components of the bispectrum and
@@ -243,14 +243,14 @@ length *ntypes*, with values in the range [0, *nelements* ),
 which maps each LAMMPS type to one of the SNAP elements.
 Note that multiple LAMMPS types can be mapped to the same element,
 and some elements may be mapped by no LAMMPS type. However, in typical
-use cases (training SNAP potentials) the mapping from LAMMPS types 
-to elements is one-to-one. 
+use cases (training SNAP potentials) the mapping from LAMMPS types
+to elements is one-to-one.
 
 The explicit multi-element variant invoked by the *chem* keyword
 partitions the density of neighbors into partial densities
-for each chemical element.  This is described in detail in the 
+for each chemical element.  This is described in detail in the
 paper by :ref:`Cusentino et al. <Cusentino2020>`
-The bispectrum components are indexed on 
+The bispectrum components are indexed on
 ordered triplets of elements:
 
 .. math::
@@ -262,18 +262,18 @@ ordered triplets of elements:
         {j_2} {m_2} {m'_2} \end{array}}
         u^{\kappa}_{j_1,m_1,m'_1} u^{\lambda}_{j_2,m_2,m'_2}
 
-where :math:`u^{\mu}_{j,m,m'}` is an expansion coefficient for the partial density of neighbors 
+where :math:`u^{\mu}_{j,m,m'}` is an expansion coefficient for the partial density of neighbors
 of element :math:`\mu`
 
 .. math::
 
   u^{\mu}_{j,m,m'} =  w^{self}_{\mu_{i}\mu} U^{j,m,m'}(0,0,0) + \sum_{r_{ii'} < R_{ii'}}{\delta_{\mu\mu_{i'}}f_c(r_{ii'}) w_{\mu_{i'}} U^{j,m,m'}(\theta_0,\theta,\phi)}
 
-where :math:`w^{self}_{\mu_{i}\mu}` is the self-contribution, which is either 1 or 0 
-(see keyword *wselfallflag* below), :math:`\delta_{\mu\mu_{i'}}` indicates 
+where :math:`w^{self}_{\mu_{i}\mu}` is the self-contribution, which is either 1 or 0
+(see keyword *wselfallflag* below), :math:`\delta_{\mu\mu_{i'}}` indicates
 that the sum is only over neighbor atoms of element :math:`\mu`,
-and all other quantities are the same as those appearing in the 
-original equation for :math:`u^j_{m,m'}` given above.  
+and all other quantities are the same as those appearing in the
+original equation for :math:`u^j_{m,m'}` given above.
 
 The keyword *wselfallflag* defines the rule used for the self-contribution.
 If *wselfallflag* is on, then :math:`w^{self}_{\mu_{i}\mu}` = 1. If it is
@@ -289,8 +289,8 @@ following symmetry relation
 .. math::
 
  \frac{B_{j_1,j_2,j}}{2j+1} = \frac{B_{j,j_2,j_1}}{2j_1+1} = \frac{B_{j_1,j,j_2}}{2j_2+1}
- 
-This option is typically used in conjunction with the *chem* keyword, 
+
+This option is typically used in conjunction with the *chem* keyword,
 and LAMMPS will generate a warning if both *chem* and *bnormflag*
 are not both set or not both unset.
 
@@ -382,7 +382,7 @@ So the nesting order from inside to outside is bispectrum component,
 linear then quadratic, vector/tensor component, type.
 
 If the *chem* keyword is used, then the data is arranged into :math:`N_{elem}^3`
-sub-blocks, each sub-block corresponding to a particular chemical labeling 
+sub-blocks, each sub-block corresponding to a particular chemical labeling
 :math:`\kappa\lambda\mu` with the last label changing fastest.
 Each sub-block contains *K* bispectrum components. For the purposes
 of handling contributions to force, virial, and quadratic combinations,
@@ -397,7 +397,7 @@ Restrictions
 """"""""""""
 
 These computes are part of the SNAP package.  They are only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` 
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
 Related commands

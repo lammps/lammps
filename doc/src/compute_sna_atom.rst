@@ -269,7 +269,7 @@ of element :math:`\mu`
 
   u^{\mu}_{j,m,m'} =  w^{self}_{\mu_{i}\mu} U^{j,m,m'}(0,0,0) + \sum_{r_{ii'} < R_{ii'}}{\delta_{\mu\mu_{i'}}f_c(r_{ii'}) w_{\mu_{i'}} U^{j,m,m'}(\theta_0,\theta,\phi)}
 
-where :math:`w^{self}_{\mu_{i}\mu}` is the self-conribution, which is either 1 or 0 
+where :math:`w^{self}_{\mu_{i}\mu}` is the self-contribution, which is either 1 or 0 
 (see keyword *wselfallflag* below), :math:`\delta_{\mu\mu_{i'}}` indicates 
 that the sum is only over neighbor atoms of element :math:`\mu`,
 and all other quantities are the same as those appearing in the 
@@ -382,7 +382,7 @@ So the nesting order from inside to outside is bispectrum component,
 linear then quadratic, vector/tensor component, type.
 
 If the *chem* keyword is used, then the data is arranged into :math:`N_{elem}^3`
-sub-blocks, each sub-block corresponding to a particular chemical labelling 
+sub-blocks, each sub-block corresponding to a particular chemical labeling 
 :math:`\kappa\lambda\mu` with the last label changing fastest.
 Each sub-block contains *K* bispectrum components. For the purposes
 of handling contributions to force, virial, and quadratic combinations,

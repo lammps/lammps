@@ -487,6 +487,7 @@ Critchley
 crossterm
 Crowson
 Crozier
+Cryst
 Crystallogr
 Csanyi
 csh
@@ -510,6 +511,7 @@ CuH
 cuFFT
 Cummins
 Curk
+Cusentino
 customIDs
 cutbond
 cuthi
@@ -3296,6 +3298,7 @@ xsu
 xtc
 xu
 Xu
+xxxxx
 xy
 xyz
 xz

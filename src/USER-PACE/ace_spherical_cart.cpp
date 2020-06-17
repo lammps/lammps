@@ -15,8 +15,8 @@ void ACECartesianSphericalHarmonics::init(LS_TYPE lm) {
 
     alm.init(lmax, "alm");
     blm.init(lmax, "blm");
-    cl.init(lmax + 1);
-    dl.init(lmax + 1);
+    cl.init(lmax + 1, "cl");
+    dl.init(lmax + 1, "dl");
 
     plm.init(lmax, "plm");
     dplm.init(lmax, "dplm");

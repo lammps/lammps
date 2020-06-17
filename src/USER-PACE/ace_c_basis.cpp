@@ -247,22 +247,41 @@ void fwrite_c_tilde_b_basis_func(FILE *fptr, ACECTildeBasisFunction &func) {
 void ACECTildeBasisSet::save(const string &filename) {
     FILE *fptr;
     fptr = fopen(filename.c_str(), "w");
-    fprintf(fptr, "lmax=%d\n", lmax);
-    fprintf(fptr, "radbasename=%s\n", radial_functions->radbasename.c_str());
-    fprintf(fptr, "nradbase=%d\n", nradbase);
-    fprintf(fptr, "nradmax=%d\n", nradmax);
+
     fprintf(fptr, "nelements=%d\n", nelements);
-    fprintf(fptr, "rankmax=%d\n", rankmax);
-    fprintf(fptr, "ndensitymax=%d\n", ndensitymax);
-    fprintf(fptr, "cutoffmax=%f\n", cutoffmax);
 
-    fprintf(fptr, "ntot=%d\n", ntot);
+    //elements mapping
+    fprintf(fptr, "elements:");
+    for (SPECIES_TYPE mu = 0; mu < nelements; ++mu)
+        fprintf(fptr, " %s", elements_name[mu].c_str());
+    fprintf(fptr, "\n\n");
 
-    fprintf(fptr, "%ld parameters: ", FS_parameters.size());
+    fprintf(fptr, "lmax=%d\n\n", lmax);
+
+    fprintf(fptr, "%ld FS parameters: ", FS_parameters.size());
     for (int i = 0; i < FS_parameters.size(); ++i) {
         fprintf(fptr, " %f", FS_parameters.at(i));
     }
     fprintf(fptr, "\n");
+
+    //hard-core energy cutoff repulsion
+    fprintf(fptr, "core energy-cutoff parameters: ");
+    for (SPECIES_TYPE mu_i = 0; mu_i < nelements; ++mu_i)
+        fprintf(fptr, "%.18f %.18f\n", rho_core_cutoffs(mu_i), drho_core_cutoffs(mu_i));
+
+    fprintf(fptr, "\n");
+
+
+    fprintf(fptr, "radbasename=%s\n", radial_functions->radbasename.c_str());
+    fprintf(fptr, "nradbase=%d\n", nradbase);
+    fprintf(fptr, "nradmax=%d\n", nradmax);
+
+
+    fprintf(fptr, "cutoffmax=%f\n", cutoffmax);
+
+    fprintf(fptr, "ntot=%d\n", ntot);
+
+
 
     //hard-core repulsion
     fprintf(fptr, "core repulsion parameters: ");
@@ -270,16 +289,9 @@ void ACECTildeBasisSet::save(const string &filename) {
         for (SPECIES_TYPE mu_j = 0; mu_j < nelements; ++mu_j)
             fprintf(fptr, "%.18f %.18f\n", radial_functions->prehc(mu_i, mu_j), radial_functions->lambdahc(mu_j, mu_j));
 
-    //hard-core energy cutoff repulsion
-    fprintf(fptr, "core energy-cutoff parameters: ");
-    for (SPECIES_TYPE mu_i = 0; mu_i < nelements; ++mu_i)
-        fprintf(fptr, "%.18f %.18f\n", rho_core_cutoffs(mu_i), drho_core_cutoffs(mu_i));
 
-    //elements mapping
-    fprintf(fptr, "elements:");
-    for (SPECIES_TYPE mu = 0; mu < nelements; ++mu)
-        fprintf(fptr, " %s", elements_name[mu].c_str());
-    fprintf(fptr, "\n");
+
+
 
     //TODO: radial functions
     //radparameter
@@ -314,6 +326,10 @@ void ACECTildeBasisSet::save(const string &filename) {
             }
         }
 
+    fprintf(fptr, "\n");
+
+    fprintf(fptr, "rankmax=%d\n", rankmax);
+    fprintf(fptr, "ndensitymax=%d\n", ndensitymax);
     fprintf(fptr, "\n");
 
     //num_c_tilde_max
@@ -430,31 +446,90 @@ void ACECTildeBasisSet::load(const string filename) {
     if (fptr == NULL)
         throw invalid_argument("Could not open file " + filename);
 
+    //read number of elements
+    res = fscanf(fptr, " nelements=");
+    res = fscanf(fptr, "%s", buffer);
+    if (res != 1)
+        throw invalid_argument(("File '" + filename + "': couldn't read nelements").c_str());
+    nelements = stoi(buffer);
+
+    //elements mapping
+    elements_name = new string[nelements];
+    res = fscanf(fptr, " elements:");
+    for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
+        res = fscanf(fptr, "%s", buffer);
+        if (res != 1)
+            throw invalid_argument(("File '" + filename + "': couldn't read elements name").c_str());
+        elements_name[mu] = buffer;
+    }
+
     // load angular basis - only need spherical harmonics parameter 
-    res = fscanf(fptr, "lmax=%s\n", buffer);
+    res = fscanf(fptr, " lmax=%s\n", buffer);
     if (res != 1)
         throw invalid_argument(("File '" + filename + "': couldn't read lmax").c_str());
     lmax = stoi(buffer);
     spherical_harmonics.init(lmax);
 
+    int parameters_size;
+    res = fscanf(fptr, "%s FS parameters:", buffer);
+    if (res != 1)
+        throw invalid_argument(("File '" + filename + "': couldn't read number of FS_parameters").c_str());
+    parameters_size = stoi(buffer);
+    FS_parameters.resize(parameters_size);
+    for (int i = 0; i < FS_parameters.size(); ++i) {
+        res = fscanf(fptr, "%s", buffer);
+        if (res != 1)
+            throw invalid_argument(("File '" + filename + "': couldn't read  FS_parameters").c_str());
+        FS_parameters[i] = stof(buffer);
+    }
+
+    //hard-core energy cutoff repulsion
+    res = fscanf(fptr, " core energy-cutoff parameters:");
+    if (res != 0)
+        throw invalid_argument(("File '" + filename + "': couldn't read core energy-cutoff parameters").c_str());
+
+    rho_core_cutoffs.init(nelements, "rho_core_cutoffs");
+    drho_core_cutoffs.init(nelements, "drho_core_cutoffs");
+    for (SPECIES_TYPE mu_i = 0; mu_i < nelements; ++mu_i) {
+        res = fscanf(fptr, "%s %s", buffer, buffer2);
+        if (res != 2)
+            throw invalid_argument(
+                    ("File '" + filename + "': couldn't read core energy-cutoff parameters (values)").c_str());
+        rho_core_cutoffs(mu_i) = stod(buffer);
+        drho_core_cutoffs(mu_i) = stod(buffer2);
+    }
+
     // check which radial basis we need to load 
-    res = fscanf(fptr, "radbasename=%s\n", buffer);
+    res = fscanf(fptr, " radbasename=%s\n", buffer);
     if (res != 1) {
-//        throw invalid_argument(("File '" + filename + "': couldn't read radbasename").c_str());
-        printf(("File '" + filename + "': couldn't read radbasename, assuming radbasename = %s\n").c_str(),
-               radbasename.c_str());
+        throw invalid_argument(("File '" + filename + "': couldn't read radbasename").c_str());
+//        printf(("File '" + filename + "': couldn't read radbasename, assuming radbasename = %s\n").c_str(),
+//               radbasename.c_str());
     } else {
         radbasename = buffer;
     }
+
     printf("radbasename = `%s`\n", radbasename.c_str());
     if (radbasename == "ChebExpCos" | radbasename == "ChebPow") {
-        _load_radial_ChebExpCos(fptr, filename, radbasename);
+        _load_radial_ACERadial(fptr, filename, radbasename);
     } else if (radbasename == "SHIPsBasic") {
         _load_radial_SHIPsBasic(fptr, filename, radbasename);
     } else {
         throw invalid_argument(
                 ("File '" + filename + "': I don't know how to read radbasename = " + radbasename).c_str());
     }
+
+    res = fscanf(fptr, " rankmax=");
+    res = fscanf(fptr, "%s", buffer);
+    if (res != 1)
+        throw invalid_argument(("File '" + filename + "': couldn't read rankmax").c_str());
+    rankmax = stoi(buffer);
+
+    res = fscanf(fptr, " ndensitymax=");
+    res = fscanf(fptr, "%s", buffer);
+    if (res != 1)
+        throw invalid_argument(("File '" + filename + "': couldn't read ndensitymax").c_str());
+    ndensitymax = stoi(buffer);
 
     // read the list of correlations to be put into the basis 
     //num_c_tilde_max
@@ -507,7 +582,7 @@ void ACECTildeBasisSet::load(const string filename) {
 
     fclose(fptr);
 
-    radial_functions->radbasename = radbasename;
+//    radial_functions->radbasename = radbasename;
     radial_functions->setuplookupRadspline();
     pack_flatten_basis();
 }
@@ -631,9 +706,9 @@ void ACECTildeBasisSet::flatten_basis(C_tilde_full_basis_vector2d &mu0_ctilde_ba
 }
 
 
-void ACECTildeBasisSet::_load_radial_ChebExpCos(FILE *fptr,
-                                                const string filename,
-                                                const string radbasename) {
+void ACECTildeBasisSet::_load_radial_ACERadial(FILE *fptr,
+                                               const string filename,
+                                               const string radbasename) {
     int res;
     char buffer[1024], buffer2[1024];
 
@@ -649,25 +724,6 @@ void ACECTildeBasisSet::_load_radial_ChebExpCos(FILE *fptr,
         throw invalid_argument(("File '" + filename + "': couldn't read nradmax").c_str());
     nradmax = stoi(buffer);
 
-    res = fscanf(fptr, " nelements=");
-    res = fscanf(fptr, "%s", buffer);
-    if (res != 1)
-        throw invalid_argument(("File '" + filename + "': couldn't read nelements").c_str());
-    nelements = stoi(buffer);
-
-    res = fscanf(fptr, " rankmax=");
-    res = fscanf(fptr, "%s", buffer);
-    if (res != 1)
-        throw invalid_argument(("File '" + filename + "': couldn't read rankmax").c_str());
-    rankmax = stoi(buffer);
-
-    res = fscanf(fptr, " ndensitymax=");
-    res = fscanf(fptr, "%s", buffer);
-    if (res != 1)
-        throw invalid_argument(("File '" + filename + "': couldn't read ndensitymax").c_str());
-    ndensitymax = stoi(buffer);
-
-
     res = fscanf(fptr, " cutoffmax=");
     res = fscanf(fptr, "%s", buffer);
     if (res != 1)
@@ -682,12 +738,6 @@ void ACECTildeBasisSet::_load_radial_ChebExpCos(FILE *fptr,
     ntot = stoi(buffer);
 
 
-    int parameters_size;
-    res = fscanf(fptr, "%s parameters:", buffer);
-    if (res != 1)
-        throw invalid_argument(("File '" + filename + "': couldn't read number of FS_parameters").c_str());
-    parameters_size = stoi(buffer);
-    FS_parameters.resize(parameters_size);
 
     if (radial_functions == nullptr)
         radial_functions = new ACERadialFunctions(nradbase, lmax, nradmax,
@@ -699,20 +749,13 @@ void ACECTildeBasisSet::_load_radial_ChebExpCos(FILE *fptr,
                                ntot,
                                nelements,
                                cutoffmax, radbasename);
-    rho_core_cutoffs.init(nelements, "rho_core_cutoffs");
-    drho_core_cutoffs.init(nelements, "drho_core_cutoffs");
 
-    for (int i = 0; i < FS_parameters.size(); ++i) {
-        res = fscanf(fptr, "%s", buffer);
-        if (res != 1)
-            throw invalid_argument(("File '" + filename + "': couldn't read  FS_parameters").c_str());
-        FS_parameters[i] = stof(buffer);
-    }
 
     //hard-core repulsion
     res = fscanf(fptr, " core repulsion parameters:");
     if (res != 0)
         throw invalid_argument(("File '" + filename + "': couldn't read core repulsion parameters").c_str());
+
     for (SPECIES_TYPE mu_i = 0; mu_i < nelements; ++mu_i)
         for (SPECIES_TYPE mu_j = 0; mu_j < nelements; ++mu_j) {
             res = fscanf(fptr, "%s %s", buffer, buffer2);
@@ -723,32 +766,9 @@ void ACECTildeBasisSet::_load_radial_ChebExpCos(FILE *fptr,
             radial_functions->lambdahc(mu_i, mu_j) = stod(buffer2);
         }
 
-    //hard-core energy cutoff repulsion
-    res = fscanf(fptr, " core energy-cutoff parameters:");
-    if (res != 0)
-        throw invalid_argument(("File '" + filename + "': couldn't read core energy-cutoff parameters").c_str());
-    for (SPECIES_TYPE mu_i = 0; mu_i < nelements; ++mu_i) {
-        res = fscanf(fptr, "%s %s", buffer, buffer2);
-        if (res != 2)
-            throw invalid_argument(
-                    ("File '" + filename + "': couldn't read core energy-cutoff parameters (values)").c_str());
-        rho_core_cutoffs(mu_i) = stod(buffer);
-        drho_core_cutoffs(mu_i) = stod(buffer2);
-    }
 
-
-    //elements mapping
-    elements_name = new string[nelements];
-    res = fscanf(fptr, " elements:");
-    for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
-        res = fscanf(fptr, "%s", buffer);
-        if (res != 1)
-            throw invalid_argument(("File '" + filename + "': couldn't read elements name").c_str());
-        elements_name[mu] = buffer;
-    }
 
     //read radial functions parameter
-
     res = fscanf(fptr, " radparameter=");
     for (SPECIES_TYPE mu_i = 0; mu_i < nelements; ++mu_i)
         for (SPECIES_TYPE mu_j = 0; mu_j < nelements; ++mu_j) {
@@ -796,9 +816,39 @@ void ACECTildeBasisSet::_load_radial_SHIPsBasic(FILE *fptr,
                                                 const string filename,
                                                 const string radbasename) {
     // create a radial basis object, and read it from the file pointer 
-//    SHIPsRadialFunctions rbasis = SHIPsRadialFunctions();
-//    rbasis.fread(fptr);
+//    SHIPsRadialFunctions *ships_radial_functions = new SHIPsRadialFunctions();
+//    ships_radial_functions->fread(fptr);
+//
+//    //mimic ships_radial_functions to ACERadialFunctions
+//    ships_radial_functions->nradial = ships_radial_functions->maxn;
+//    ships_radial_functions->nradbase = ships_radial_functions->maxn;
+//
+//    nradbase = ships_radial_functions->maxn;
+//    nradmax = ships_radial_functions->maxn;
+//    cutoffmax = ships_radial_functions->rcut;
+//    ntot = 10000;
+//
+//    ships_radial_functions->init(nradbase, lmax, nradmax,
+//                                 ntot,
+//                                 nelements,
+//                                 cutoffmax, radbasename);
+//
+//
+//    if (radial_functions) delete radial_functions;
+//    radial_functions = ships_radial_functions;
+//    radial_functions->prehc.fill(0);
+//    radial_functions->lambdahc.fill(1);
+//    radial_functions->lambda.fill(0);
+//
+//
+//    radial_functions->cut.fill(ships_radial_functions->rcut);
+//    radial_functions->dcut.fill(0);
+//
+//    radial_functions->crad.fill(0);
+
+
 
     // convert it to splines!
     // YURY -- THIS IS WHERE I REALLY NEED SOME HELP NOW!
+
 }

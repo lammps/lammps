@@ -5,10 +5,8 @@
 #ifndef ACE_EVALUATOR_ACE_ABSTRACT_BASIS_H
 #define ACE_EVALUATOR_ACE_ABSTRACT_BASIS_H
 
-#include <memory>
 #include <vector>
 #include <string>
-
 
 #include "ace_c_basisfunction.h"
 #include "ace_contigous_array.h"

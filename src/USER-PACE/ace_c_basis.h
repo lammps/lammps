@@ -85,9 +85,9 @@ public:
     /**
      * Load the ACE type radial basis
      */
-    void _load_radial_ChebExpCos(FILE *fptr,
-                                 const string filename,
-                                 const string radbasename);
+    void _load_radial_ACERadial(FILE *fptr,
+                                const string filename,
+                                const string radbasename);
 
     void _load_radial_SHIPsBasic(FILE *fptr,
                                  const string filename,

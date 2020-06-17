@@ -24,28 +24,15 @@ void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int 
     gr.init(nradbase, "gr");
     dgr.init(nradbase, "dgr");
 
-//    all_radbase_values.init(nelements, nelements, nradbase, "all_radbase_values");
-//    all_radbase_derivatives.init(nelements, nelements, nradbase, "all_radbase_derivatives");
-
-//    f1g.init(nradbase, "f1g");
-//    f1gd1.init(nradbase, "f1gd1");
-
 
     fr.init(nradial, lmax + 1, "fr");
     dfr.init(nradial, lmax + 1, "dfr");
-
-//    f1f.init(nradial, lmax + 1, "f1f");
-//    f1fd1.init(nradial, lmax + 1, "f1fd1");
 
 
     cheb.init(nradbase + 1, "cheb");
     dcheb.init(nradbase + 1, "dcheb");
     cheb2.init(nradbase + 1, "cheb2");
 
-
-//    lutfrs.init(nelements, nelements, ntot + 1, lmax + 1, nradial, 4, "lutfrs");
-//    lutgrs.init(nelements, nelements, ntot + 1, nradbase, 4, "lutgrs");
-//    luthcs.init(nelements, nelements, ntot + 1, 4, "luthcs");
 
     splines_gk.init(nelements, nelements, "splines_gk");
     splines_rnl.init(nelements, nelements, "splines_rnl");

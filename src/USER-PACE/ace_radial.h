@@ -59,7 +59,9 @@ public:
     void calcSplines(DOUBLE_TYPE r, SHORT_INT_TYPE func_ind);
 };
 
-
+/**
+ * Interface class for radial basis functions with rank=1 (g_k), R_nl (rank>1) and hard-core repulsion radial functions
+ */
 class AbstractRadialBasis {
 public:
     SPECIES_TYPE nelements = 0; ///< number of elements
@@ -173,12 +175,12 @@ public:
      * @param radbasename  type of radial basis function \f$ g_k(r) \f$ (default: "ChebExpCos")
      */
     void init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SPECIES_TYPE nelements, DOUBLE_TYPE cutoff,
-              string radbasename = "ChebExpCos") override;
+              string radbasename = "ChebExpCos") final;
 
     /**
      * Destructor
      */
-    ~ACERadialFunctions() override = default;
+    ~ACERadialFunctions() final = default;
 
     /**
     * Function that computes Chebyshev polynomials of first and second kind
@@ -219,7 +221,7 @@ public:
     /**
      * Function that sets up the look-up tables for spline-representation of radial functions.
      */
-    void setuplookupRadspline() override;
+    void setuplookupRadspline() final;
 
     /**
      * Function that computes radial functions \f$ R_{nl}(r)\f$  (see Eq. 27 from PRB paper)
@@ -243,7 +245,7 @@ public:
      *
      * @return update gr(k), dgr(k), fr(n,l), dfr(n,l), cr, dcr
      */
-    void evaluate(DOUBLE_TYPE r, NS_TYPE nradbase_c, NS_TYPE nradial_c, SPECIES_TYPE mu_i, SPECIES_TYPE mu_j) override;
+    void evaluate(DOUBLE_TYPE r, NS_TYPE nradbase_c, NS_TYPE nradial_c, SPECIES_TYPE mu_i, SPECIES_TYPE mu_j) final;
 
     void chebExpCos(DOUBLE_TYPE lam, DOUBLE_TYPE cut, DOUBLE_TYPE dcut, DOUBLE_TYPE r);
 

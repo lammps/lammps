@@ -139,17 +139,13 @@ set(ACCEL_PACKAGES USER-OMP KOKKOS OPT USER-INTEL GPU)
 
 #set(DEFAULT_PACKAGES SNAP USER-PACE MANYBODY)
 #set(ACCEL_PACKAGES)
-
 foreach (PKG ${DEFAULT_PACKAGES} ${ACCEL_PACKAGES})
   option(PKG_${PKG} "Build ${PKG} Package" OFF)
 endforeach ()
 
 ##### USER-PACE ######
-#set(PACE_PATH ${LAMMPS_SOURCE_DIR}/USER-PACE)
-#FILE(GLOB PACE_CPP ${PACE_PATH}/*.cpp)
-#FILE(GLOB PACE_PAIR_STYLE_CPP ${LAMMPS_SOURCE_DIR}/pair_pace.cpp)
-#FILE(GLOB PACE_INCLUDE ${PACE_PATH})
-
+# for debugging
+#add_definitions(-DMULTIARRAY_INDICES_CHECK)
 ######################################################
 # download and unpack support binaries for compilation
 # of windows binaries.
@@ -159,7 +155,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   file(DOWNLOAD "${LAMMPS_THIRDPARTY_URL}/opencl-win-devel.tar.gz" "${CMAKE_CURRENT_BINARY_DIR}/opencl-win-devel.tar.gz"
           EXPECTED_MD5 2c00364888d5671195598b44c2e0d44d)
   execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf opencl-win-devel.tar.gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86")
+  if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86")
     set(OpenCL_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/OpenCL/lib_win32/libOpenCL.dll")
   elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
     set(OpenCL_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/OpenCL/lib_win64/libOpenCL.dll")

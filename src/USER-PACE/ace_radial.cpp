@@ -1,4 +1,5 @@
 #include <cmath>
+#include <functional>
 #include <stdexcept>
 
 #include "ace_radial.h"
@@ -23,14 +24,9 @@ void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int 
     gr.init(nradbase, "gr");
     dgr.init(nradbase, "dgr");
 
-    f1g.init(nradbase, "f1g");
-    f1gd1.init(nradbase, "f1gd1");
 
     fr.init(nradial, lmax + 1, "fr");
     dfr.init(nradial, lmax + 1, "dfr");
-
-    f1f.init(nradial, lmax + 1, "f1f");
-    f1fd1.init(nradial, lmax + 1, "f1fd1");
 
 
     cheb.init(nradbase + 1, "cheb");
@@ -38,9 +34,9 @@ void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int 
     cheb2.init(nradbase + 1, "cheb2");
 
 
-    lutfrs.init(nelements, nelements, ntot + 1, lmax + 1, nradial, 4, "lutfrs");
-    lutgrs.init(nelements, nelements, ntot + 1, nradbase, 4, "lutgrs");
-    luthcs.init(nelements, nelements, ntot + 1, 4, "luthcs");
+    splines_gk.init(nelements, nelements, "splines_gk");
+    splines_rnl.init(nelements, nelements, "splines_rnl");
+    splines_hc.init(nelements, nelements, "splines_hc");
 
     lambda.init(nelements, nelements, "lambda");
     lambda.fill(1.);
@@ -64,7 +60,6 @@ void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int 
 }
 
 
-ACERadialFunctions::~ACERadialFunctions() = default;
 
 /**
 Function that computes Chebyshev polynomials of first and second kind
@@ -118,8 +113,8 @@ void ACERadialFunctions::radbase(DOUBLE_TYPE lam, DOUBLE_TYPE cut, DOUBLE_TYPE d
             chebExpCos(lam, cut, dcut, r);
         } else if (radbasename == "ChebPow") {
             chebPow(lam, cut, dcut, r);
-        }else if (radbasename=="ChebLinear"){
-            chebLinear(lam,cut, dcut,r);
+        } else if (radbasename == "ChebLinear") {
+            chebLinear(lam, cut, dcut, r);
         } else {
             throw invalid_argument("Unknown radial basis function name: " + radbasename);
         }
@@ -213,7 +208,7 @@ ACERadialFunctions::chebLinear(DOUBLE_TYPE lam, DOUBLE_TYPE cut, DOUBLE_TYPE dcu
     DOUBLE_TYPE x, dx;
     /* scaled distance x and derivative*/
     x = (1.0 - r / cut);
-    dx = -1/cut;
+    dx = -1 / cut;
     calcCheb(nradbase, x);
     for (NS_TYPE n = 1; n <= nradbase; n++) {
         gr(n - 1) = 0.5 - 0.5 * cheb(n);
@@ -230,183 +225,102 @@ Function that computes radial functions.
 */
 void ACERadialFunctions::radfunc(SPECIES_TYPE elei, SPECIES_TYPE elej) {
     DOUBLE_TYPE frval, dfrval;
-    for (NS_TYPE nr = 0; nr < nradial; nr++) {
+    for (NS_TYPE n = 0; n < nradial; n++) {
         for (LS_TYPE l = 0; l <= lmax; l++) {
             frval = 0.0;
             dfrval = 0.0;
-            for (NS_TYPE idx = 0; idx < nradbase; idx++) {
-                frval += crad(elei, elej, l, nr, idx) * gr(idx);
-                dfrval += crad(elei, elej, l, nr, idx) * dgr(idx);
+            for (NS_TYPE k = 0; k < nradbase; k++) {
+                frval += crad(elei, elej, l, n, k) * gr(k);
+                dfrval += crad(elei, elej, l, n, k) * dgr(k);
             }
-            fr(nr, l) = frval;
-            dfr(nr, l) = dfrval;
+            fr(n, l) = frval;
+            dfr(n, l) = dfrval;
         }
     }
 }
 
+
+void ACERadialFunctions::all_radfunc(SPECIES_TYPE mu_i, SPECIES_TYPE mu_j, DOUBLE_TYPE r) {
+    DOUBLE_TYPE lam = lambda(mu_i, mu_j);
+    DOUBLE_TYPE r_cut = cut(mu_i, mu_j);
+    DOUBLE_TYPE dr_cut = dcut(mu_i, mu_j);
+    // set up radial functions
+    radbase(lam, r_cut, dr_cut, r); //update gr, dgr
+    radfunc(mu_i, mu_j); // update fr(nr, l),  dfr(nr, l)
+}
+
+
 void ACERadialFunctions::setuplookupRadspline() {
-    SPECIES_TYPE elei, elej;
-    int n, l, idx;
-    NS_TYPE nr;
-    DOUBLE_TYPE r, lam, r_cut, dr_cut, f0, f1, f1d1, f0d1;
-    DOUBLE_TYPE cr_c, dcr_c, f1hc, f1hcd1, pre, lamhc;
-    DOUBLE_TYPE c[4];
-    nlut = ntot;
-    // cutoff is global cutoff
-    rscalelookup = (DOUBLE_TYPE) nlut / cutoff;
-#ifdef DEBUG_RADIAL
-    printf("rscalelookup=%f\n", rscalelookup);
-#endif
-    invrscalelookup = 1.0 / rscalelookup;
-    lutfrs.fill(0.0);
-    lutgrs.fill(0.0);
-    // core repulsion
-    luthcs.fill(0.0);
+    using namespace std::placeholders;
+    DOUBLE_TYPE lam, r_cut, dr_cut;
+    DOUBLE_TYPE cr_c, dcr_c, pre, lamhc;
+
     // at r = rcut + eps the function and its derivatives is zero
+    for (SPECIES_TYPE elei = 0; elei < nelements; elei++) {
+        for (SPECIES_TYPE elej = 0; elej < nelements; elej++) {
 
-    for (elei = 0; elei < nelements; elei++) {
-        for (elej = 0; elej < nelements; elej++) {
-            // moved this here for several elements
-            f1g.fill(0);
-            f1gd1.fill(0);
-            // this appeared to be missing
-            f1f.fill(0);
-            f1fd1.fill(0);
-            // core repulsion
-            f1hc = 0.0;
-            f1hcd1 = 0.0;
-            for (n = nlut; n >= 1; n--) {
-                r = invrscalelookup * DOUBLE_TYPE(n);
-                lam = lambda(elei, elej);
-                r_cut = cut(elei, elej);
-                dr_cut = dcut(elei, elej);
-                // set up radial functions
-                radbase(lam, r_cut, dr_cut, r); //update g, dg
-                radfunc(elei, elej); // update fr(nr, l),  dfr(nr, l)
+            lam = lambda(elei, elej);
+            r_cut = cut(elei, elej);
+            dr_cut = dcut(elei, elej);
 
-                for (nr = 0; nr < nradbase; nr++) {
-                    f0 = gr(nr);
-                    f1 = f1g(nr);
-                    f0d1 = dgr(nr) * invrscalelookup;
-                    f1d1 = f1gd1(nr);
-                    // evaluate coefficients
-                    c[0] = f0;
-                    c[1] = f0d1;
-                    c[2] = 3.0 * (f1 - f0) - f1d1 - 2.0 * f0d1;
-                    c[3] = -2.0 * (f1 - f0) + f1d1 + f0d1;
-                    // store coefficients
-                    for (idx = 0; idx <= 3; idx++) {
-                        lutgrs(elei, elej, n, nr, idx) = c[idx];
-                    }
-                    // evaluate function values and derivatives at current position
-                    f1g(nr) = c[0];
-                    f1gd1(nr) = c[1];
-                }
-                for (nr = 0; nr < nradial; nr++) {
-                    for (l = 0; l <= lmax; l++) {
-                        f0 = fr(nr, l);
-                        f1 = f1f(nr, l);
-                        f0d1 = dfr(nr, l) * invrscalelookup;
-                        f1d1 = f1fd1(nr, l);
-                        // evaluate coefficients
-                        c[0] = f0;
-                        c[1] = f0d1;
-                        c[2] = 3.0 * (f1 - f0) - f1d1 - 2.0 * f0d1;
-                        c[3] = -2.0 * (f1 - f0) + f1d1 + f0d1;
-                        // store coefficients
-                        for (idx = 0; idx <= 3; idx++) {
-                            lutfrs(elei, elej, n, l, nr, idx) = c[idx];
-                        }
-                        // evalute and store function values and derivatives at current position
-                        f1f(nr, l) = c[0];
-                        f1fd1(nr, l) = c[1];
-                    }
-                }
+//            RadialFunctions radbase_func = std::bind(&ACERadialFunctions::radbase, this, lam, r_cut, dr_cut, _1);//update gr, dgr
+            splines_gk(elei, elej).setupSplines(gr.get_size(),
+                                                std::bind(&ACERadialFunctions::radbase, this, lam, r_cut, dr_cut,
+                                                          _1),//update gr, dgr
+                                                gr.get_data(),
+                                                dgr.get_data(), ntot, cutoff);
 
-                // core repulsion (prehc and lambdahc need to be read from input)
-                pre = prehc(elei, elej);
-                lamhc = lambdahc(elei, elej);
-                radcore(r, pre, lamhc, cutoff, cr_c, dcr_c);
-                f0 = cr_c;
-                f1 = f1hc;
-                f0d1 = dcr_c * invrscalelookup;
-                f1d1 = f1hcd1;
-                // evaluate coefficients
-                c[0] = f0;
-                c[1] = f0d1;
-                c[2] = 3.0 * (f1 - f0) - f1d1 - 2.0 * f0d1;
-                c[3] = -2.0 * (f1 - f0) + f1d1 + f0d1;
-                // store coefficients
-                for (idx = 0; idx <= 3; idx++) {
-                    luthcs(elei, elej, n, idx) = c[idx];
-                }
-                // evalute and store function values and derivatives at current position
-                f1hc = c[0];
-                f1hcd1 = c[1];
-            }
+//            RadialFunctions rad_func = std::bind(&ACERadialFunctions::all_radfunc, this,elei, elej,_1); // update fr(nr, l),  dfr(nr, l)
+            splines_rnl(elei, elej).setupSplines(fr.get_size(),
+                                                 std::bind(&ACERadialFunctions::all_radfunc, this, elei, elej,
+                                                           _1), // update fr(nr, l),  dfr(nr, l)
+                                                 fr.get_data(),
+                                                 dfr.get_data(), ntot, cutoff);
+
+
+            pre = prehc(elei, elej);
+            lamhc = lambdahc(elei, elej);
+//            radcore(r, pre, lamhc, cutoff, cr_c, dcr_c);
+//            RadialFunctions hardcore_func = std::bind(&ACERadialFunctions::radcore, _1, pre, lamhc, cutoff, std::ref(cr_c), std::ref(dcr_c));
+            splines_hc(elei, elej).setupSplines(1,
+                                                std::bind(&ACERadialFunctions::radcore, _1, pre, lamhc, cutoff,
+                                                          std::ref(cr_c), std::ref(dcr_c)),
+                                                &cr_c,
+                                                &dcr_c, ntot, cutoff);
         }
     }
+
 }
 
 /**
 Function that gets radial function from look-up table using splines.
 
-@param r, nradbase_c, nradial_c, lmax, elei, elej
+@param r, nradbase_c, nradial_c, lmax, mu_i, mu_j
 
-@returns fr, dfr, gr, dgr
+@returns fr, dfr, gr, dgr, cr, dcr
 */
 void
-ACERadialFunctions::lookupRadspline(DOUBLE_TYPE r, NS_TYPE nradbase_c, NS_TYPE nradial_c, SPECIES_TYPE elei,
-                                    SPECIES_TYPE elej) {
-    DOUBLE_TYPE x;
-    int nr, nl, l, idx;
-    DOUBLE_TYPE wl, wl2, wl3, w2l1, w3l2;
-    DOUBLE_TYPE c[4];
-    x = r * rscalelookup;
-    nl = static_cast<int>(floor(x));
-    if (nl <= 0) {
-        char s[1024];
-        sprintf(s, "Encountered very small distance.\n Stopping.");
-        throw std::invalid_argument(s);
-    }
-    if (nl < nlut) {
-        wl = x - DOUBLE_TYPE(nl);
-        wl2 = wl * wl;
-        wl3 = wl2 * wl;
-        w2l1 = 2.0 * wl;
-        w3l2 = 3.0 * wl2;
-        for (nr = 0; nr < nradbase_c; nr++) {
-            for (idx = 0; idx <= 3; idx++) {
-                c[idx] = lutgrs(elei, elej, nl, nr, idx);
-            }
-            gr(nr) = c[0] + c[1] * wl + c[2] * wl2 + c[3] * wl3;
-            dgr(nr) = (c[1] + c[2] * w2l1 + c[3] * w3l2) * rscalelookup;
-        }
-        for (nr = 0; nr < nradial_c; nr++) {
-            for (l = 0; l <= lmax; l++) {
-                for (idx = 0; idx <= 3; idx++) {
-                    c[idx] = lutfrs(elei, elej, nl, l, nr, idx);
-                }
-                fr(nr, l) = c[0] + c[1] * wl + c[2] * wl2 + c[3] * wl3;
-                dfr(nr, l) = (c[1] + c[2] * w2l1 + c[3] * w3l2) * rscalelookup;
-            }
-        }
+ACERadialFunctions::evaluate(DOUBLE_TYPE r, NS_TYPE nradbase_c, NS_TYPE nradial_c, SPECIES_TYPE mu_i,
+                             SPECIES_TYPE mu_j) {
+    auto &spline_gk = splines_gk(mu_i, mu_j);
+    auto &spline_rnl = splines_rnl(mu_i, mu_j);
+    auto &spline_hc = splines_hc(mu_i, mu_j);
 
-        // core repulsion
-        for (idx = 0; idx <= 3; idx++) {
-            c[idx] = luthcs(elei, elej, nl, idx);
-        }
-        cr = c[0] + c[1] * wl + c[2] * wl2 + c[3] * wl3;
-        dcr = (c[1] + c[2] * w2l1 + c[3] * w3l2) * rscalelookup;
-    } else {
-        gr.fill(0);
-        dgr.fill(0);
-        fr.fill(0);
-        dfr.fill(0);
-        // core repulsion
-        cr = 0.0;
-        dcr = 0.0;
+    spline_gk.calcSplines(r); // populate  splines_gk.values, splines_gk.derivatives;
+    for (NS_TYPE nr = 0; nr < nradbase_c; nr++) {
+        gr(nr) = spline_gk.values(nr);
+        dgr(nr) = spline_gk.derivatives(nr);
     }
+
+    spline_rnl.calcSplines(r);
+    for (size_t ind = 0; ind < fr.get_size(); ind++) {
+        fr.get_data(ind) = spline_rnl.values.get_data(ind);
+        dfr.get_data(ind) = spline_rnl.derivatives.get_data(ind);
+    }
+
+    spline_hc.calcSplines(r);
+    cr = spline_hc.values(0);
+    dcr = spline_hc.derivatives(0);
 }
 
 
@@ -451,4 +365,118 @@ dcr: derivative of hard core repulsion
         dcr = 0.0;
     }
 
+}
+
+void SplineInterpolator::setupSplines(int num_of_functions, RadialFunctions func,
+                                      DOUBLE_TYPE *values,
+                                      DOUBLE_TYPE *dvalues, int ntot, DOUBLE_TYPE cutoff) {
+
+    DOUBLE_TYPE r, c[4];
+    this->num_of_functions = num_of_functions;
+    this->values.init(num_of_functions);
+    this->derivatives.init(num_of_functions);
+
+    Array1D<DOUBLE_TYPE> f1g(num_of_functions);
+    Array1D<DOUBLE_TYPE> f1gd1(num_of_functions);
+    f1g.fill(0);
+    f1gd1.fill(0);
+
+    nlut = ntot;
+    this->cutoff = cutoff;
+    DOUBLE_TYPE f0, f1, f0d1, f1d1;
+    int idx;
+
+    // cutoff is global cutoff
+    rscalelookup = (DOUBLE_TYPE) nlut / cutoff;
+    invrscalelookup = 1.0 / rscalelookup;
+
+    lookupTable.init(ntot + 1, num_of_functions, 4);
+    if (values == nullptr & num_of_functions > 0)
+        throw invalid_argument("SplineInterpolator::setupSplines: values could not be null");
+    if (dvalues == nullptr & num_of_functions > 0)
+        throw invalid_argument("SplineInterpolator::setupSplines: dvalues could not be null");
+
+    for (int n = nlut; n >= 1; n--) {
+        r = invrscalelookup * DOUBLE_TYPE(n);
+        func(r); //populate values and dvalues arrays
+        for (int func_id = 0; func_id < num_of_functions; func_id++) {
+            f0 = values[func_id];
+            f1 = f1g(func_id);
+            f0d1 = dvalues[func_id] * invrscalelookup;
+            f1d1 = f1gd1(func_id);
+            // evaluate coefficients
+            c[0] = f0;
+            c[1] = f0d1;
+            c[2] = 3.0 * (f1 - f0) - f1d1 - 2.0 * f0d1;
+            c[3] = -2.0 * (f1 - f0) + f1d1 + f0d1;
+            // store coefficients
+            for (idx = 0; idx <= 3; idx++)
+                lookupTable(n, func_id, idx) = c[idx];
+
+            // evaluate function values and derivatives at current position
+            f1g(func_id) = c[0];
+            f1gd1(func_id) = c[1];
+        }
+    }
+
+
+}
+
+
+void SplineInterpolator::calcSplines(DOUBLE_TYPE r) {
+    DOUBLE_TYPE wl, wl2, wl3, w2l1, w3l2;
+    DOUBLE_TYPE c[4];
+    int func_id, idx;
+    DOUBLE_TYPE x = r * rscalelookup;
+    int nl = static_cast<int>(floor(x));
+
+    if (nl <= 0)
+        throw std::invalid_argument("Encountered very small distance. Stopping.");
+
+    if (nl < nlut) {
+        wl = x - DOUBLE_TYPE(nl);
+        wl2 = wl * wl;
+        wl3 = wl2 * wl;
+        w2l1 = 2.0 * wl;
+        w3l2 = 3.0 * wl2;
+        for (func_id = 0; func_id < num_of_functions; func_id++) {
+            for (idx = 0; idx <= 3; idx++) {
+                c[idx] = lookupTable(nl, func_id, idx);
+            }
+            values(func_id) = c[0] + c[1] * wl + c[2] * wl2 + c[3] * wl3;
+            derivatives(func_id) = (c[1] + c[2] * w2l1 + c[3] * w3l2) * rscalelookup;
+        }
+    } else { // fill with zeroes
+        values.fill(0);
+        derivatives.fill(0);
+    }
+}
+
+void SplineInterpolator::calcSplines(DOUBLE_TYPE r, SHORT_INT_TYPE func_ind) {
+    DOUBLE_TYPE wl, wl2, wl3, w2l1, w3l2;
+    DOUBLE_TYPE c[4];
+    int idx;
+    DOUBLE_TYPE x = r * rscalelookup;
+    int nl = static_cast<int>(floor(x));
+
+    if (nl <= 0)
+        throw std::invalid_argument("Encountered very small distance. Stopping.");
+
+    if (nl < nlut) {
+        wl = x - DOUBLE_TYPE(nl);
+        wl2 = wl * wl;
+        wl3 = wl2 * wl;
+        w2l1 = 2.0 * wl;
+        w3l2 = 3.0 * wl2;
+
+        for (idx = 0; idx <= 3; idx++) {
+            c[idx] = lookupTable(nl, func_ind, idx);
+        }
+        values(func_ind) = c[0] + c[1] * wl + c[2] * wl2 + c[3] * wl3;
+        derivatives(func_ind) = (c[1] + c[2] * w2l1 + c[3] * w3l2) * rscalelookup;
+
+    } else { // fill with zeroes
+        values(func_ind) = 0;
+        derivatives(func_ind) = 0;
+    }
 }

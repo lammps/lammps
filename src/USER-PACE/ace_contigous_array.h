@@ -150,7 +150,7 @@ public:
     inline T &get_data(size_t ind) {
 #ifdef MULTIARRAY_INDICES_CHECK
         if ((ind < 0) | (ind >= size)) {
-            printf("%s: get_data ind=%d out of range (0, %d)\n", array_name, ind, size);
+            printf("%s: get_data ind=%ld out of range (0, %ld)\n", array_name.c_str(), ind, size);
             exit(EXIT_FAILURE);
         }
 #endif
@@ -161,7 +161,7 @@ public:
      * Get array data pointer
      * @return data array pointer
      */
-    inline const T* get_data() const {
+    inline T* get_data() const {
         return data;
     }
 

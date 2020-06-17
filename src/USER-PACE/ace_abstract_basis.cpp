@@ -2,7 +2,6 @@
 // Created by Lysogorskiy Yury on 28.04.2020.
 //
 
-
 #include "ace_abstract_basis.h"
 
 //embedding function
@@ -72,6 +71,8 @@ void ACEAbstractBasisSet::_clean() {
 
     delete[] elements_name;
     elements_name = nullptr;
+    delete radial_functions;
+    radial_functions = nullptr;
 }
 
 ACEAbstractBasisSet::ACEAbstractBasisSet(const ACEAbstractBasisSet &other) {
@@ -107,7 +108,6 @@ void ACEAbstractBasisSet::_copy_scalar_memory(const ACEAbstractBasisSet &src) {
     nradmax = src.nradmax;
     cutoffmax = src.cutoffmax;
 
-    radial_functions = src.radial_functions;
     spherical_harmonics = src.spherical_harmonics;
 
     rho_core_cutoffs = src.rho_core_cutoffs;
@@ -124,6 +124,7 @@ void ACEAbstractBasisSet::_copy_dynamic_memory(const ACEAbstractBasisSet &src) {
     for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
         elements_name[mu] = src.elements_name[mu];
     }
+    radial_functions = src.radial_functions->clone();
 }
 
 SPECIES_TYPE ACEAbstractBasisSet::get_species_index_by_name(const string &elemname) {

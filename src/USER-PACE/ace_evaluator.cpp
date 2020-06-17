@@ -201,11 +201,11 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
     const Array2DLM<ACEComplex> &ylm = basis_set->spherical_harmonics.ylm;
     const Array2DLM<ACEDYcomponent> &dylm = basis_set->spherical_harmonics.dylm;
 
-    const Array2D<DOUBLE_TYPE> &fr = basis_set->radial_functions.fr;
-    const Array2D<DOUBLE_TYPE> &dfr = basis_set->radial_functions.dfr;
+    const Array2D<DOUBLE_TYPE> &fr = basis_set->radial_functions->fr;
+    const Array2D<DOUBLE_TYPE> &dfr = basis_set->radial_functions->dfr;
 
-    const Array1D<DOUBLE_TYPE> &gr = basis_set->radial_functions.gr;
-    const Array1D<DOUBLE_TYPE> &dgr = basis_set->radial_functions.dgr;
+    const Array1D<DOUBLE_TYPE> &gr = basis_set->radial_functions->gr;
+    const Array1D<DOUBLE_TYPE> &dgr = basis_set->radial_functions->dgr;
 
     loop_over_neighbour_timer.start();
 
@@ -225,7 +225,7 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
         else
             mu_j = type_j;
 
-        DOUBLE_TYPE current_cutoff = basis_set->radial_functions.cut(mu_i, mu_j);
+        DOUBLE_TYPE current_cutoff = basis_set->radial_functions->cut(mu_i, mu_j);
         r_xyz = sqrt(xn * xn + yn * yn + zn * zn);
 
         if (r_xyz >= current_cutoff)
@@ -256,7 +256,7 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
         Array2DLM<ACEDYcomponent> &DY_jj = DY_cache(jj);
 
 
-        basis_set->radial_functions.lookupRadspline(r_norm, basis_set->nradbase, nradiali, mu_i, mu_j);
+        basis_set->radial_functions->evaluate(r_norm, basis_set->nradbase, nradiali, mu_i, mu_j);
         basis_set->spherical_harmonics.compute_ylm(r_hat[0], r_hat[1], r_hat[2], lmaxi);
         //loop for computing A's
         //rank = 1
@@ -296,8 +296,8 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
         }
 
         //hard-core repulsion
-        rho_core += basis_set->radial_functions.cr;
-        DCR_cache(jj) = basis_set->radial_functions.dcr;
+        rho_core += basis_set->radial_functions->cr;
+        DCR_cache(jj) = basis_set->radial_functions->dcr;
 
     } //end loop over neighbours
 

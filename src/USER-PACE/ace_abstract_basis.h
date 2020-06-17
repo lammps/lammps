@@ -32,7 +32,7 @@ public:
 
     string *elements_name = nullptr; ///< Array of elements name for mapping from index (0..nelements-1) to element symbol (string)
 
-    ACERadialFunctions radial_functions; ///< object to work with radial functions
+    AbstractRadialBasis *radial_functions = nullptr; ///< object to work with radial functions
     ACECartesianSphericalHarmonics spherical_harmonics; ///< object to work with spherical harmonics in Cartesian representation
 
 

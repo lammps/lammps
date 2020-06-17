@@ -199,5 +199,8 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
-    return RUN_ALL_TESTS();
+
+    int rv = RUN_ALL_TESTS();
+    MPI_Finalize();
+    return rv;
 }

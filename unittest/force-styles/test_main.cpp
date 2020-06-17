@@ -110,5 +110,8 @@ int main(int argc, char **argv)
             return 1;
         }
     }
-    return RUN_ALL_TESTS();
+
+    int rv = RUN_ALL_TESTS();
+    MPI_Finalize();
+    return rv;
 }

@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "MANYBODY/pair_eim.h"
+#include "info.h"
 #include "input.h"
 #include "lammps.h"
 #include "utils.h"
@@ -42,6 +43,11 @@ protected:
         lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
         lmp->input->one("units metal");
         if (!verbose) ::testing::internal::GetCapturedStdout();
+        ASSERT_NE(lmp, nullptr);
+
+        // check if the prerequisite eim pair style is available
+        Info *info = new Info(lmp);
+        ASSERT_TRUE(info->has_style("pair", "eim"));
 
         int npair        = nelements * (nelements + 1) / 2;
         setfl.ielement   = new int[nelements];

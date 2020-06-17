@@ -40,6 +40,13 @@ protected:
         if (!verbose) ::testing::internal::CaptureStdout();
         lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
         if (!verbose) ::testing::internal::GetCapturedStdout();
+        ASSERT_NE(lmp, nullptr);
+        if (!verbose) ::testing::internal::CaptureStdout();
+        lmp->input->one("units real");
+        lmp->input->one("dimension 3");
+        lmp->input->one("pair_style zero 4.0");
+        lmp->input->one("region box block -4 4 -4 4 -4 4");
+        if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 
     void TearDown() override
@@ -47,6 +54,7 @@ protected:
         if (!verbose) ::testing::internal::CaptureStdout();
         delete lmp;
         if (!verbose) ::testing::internal::GetCapturedStdout();
+        remove("test_atom_styles.data");
     }
 };
 
@@ -432,6 +440,87 @@ TEST_F(AtomStyleTest, atomic)
     ASSERT_EQ(lmp->atom->map_style, 0);
     ASSERT_EQ(lmp->atom->map_user, 0);
     ASSERT_EQ(lmp->atom->map_tag_max, -1);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("atom_modify map hash");
+    lmp->input->one("create_box 2 box");
+    lmp->input->one("create_atoms 1 single -2.0  2.0  0.1");
+    lmp->input->one("create_atoms 1 single -2.0 -2.0 -0.1");
+    lmp->input->one("create_atoms 2 single  2.0  2.0 -0.1");
+    lmp->input->one("create_atoms 2 single  2.0 -2.0  0.1");
+    lmp->input->one("mass 1 4.0");
+    lmp->input->one("mass 2 2.4");
+    lmp->input->one("pair_coeff * *");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
+    ASSERT_NE(lmp->atom->avec, nullptr);
+    ASSERT_EQ(lmp->atom->natoms, 4);
+    ASSERT_EQ(lmp->atom->nlocal, 4);
+    ASSERT_EQ(lmp->atom->nghost, 0);
+    ASSERT_NE(lmp->atom->nmax, -1);
+    ASSERT_EQ(lmp->atom->tag_enable, 1);
+    ASSERT_EQ(lmp->atom->molecular, 0);
+    ASSERT_EQ(lmp->atom->ntypes, 2);
+
+    ASSERT_NE(lmp->atom->mass, nullptr);
+    ASSERT_NE(lmp->atom->mass_setflag, nullptr);
+    ASSERT_NE(lmp->atom->sametag, nullptr);
+    ASSERT_EQ(lmp->atom->map_style, 2);
+    ASSERT_EQ(lmp->atom->map_user, 2);
+    ASSERT_EQ(lmp->atom->map_tag_max, 4);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("write_data test_atom_styles.data nocoeff");
+    lmp->input->one("clear");
+    lmp->input->one("atom_style atomic");
+    lmp->input->one("pair_style zero 4.0");
+    lmp->input->one("atom_modify map array");
+    lmp->input->one("units real");
+    lmp->input->one("read_data test_atom_styles.data");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
+    ASSERT_NE(lmp->atom->avec, nullptr);
+    ASSERT_EQ(lmp->atom->natoms, 4);
+    ASSERT_EQ(lmp->atom->nlocal, 4);
+    ASSERT_EQ(lmp->atom->nghost, 0);
+    ASSERT_NE(lmp->atom->nmax, -1);
+    ASSERT_EQ(lmp->atom->tag_enable, 1);
+    ASSERT_EQ(lmp->atom->molecular, 0);
+    ASSERT_EQ(lmp->atom->ntypes, 2);
+
+    double **x = lmp->atom->x;
+    double **v = lmp->atom->v;
+    ASSERT_DOUBLE_EQ(x[0][0],-2.0);
+    ASSERT_DOUBLE_EQ(x[0][1],2.0);
+    ASSERT_DOUBLE_EQ(x[0][2],0.1);
+    ASSERT_DOUBLE_EQ(x[1][0],-2.0);
+    ASSERT_DOUBLE_EQ(x[1][1],-2.0);
+    ASSERT_DOUBLE_EQ(x[1][2],-0.1);
+    ASSERT_DOUBLE_EQ(x[2][0],2.0);
+    ASSERT_DOUBLE_EQ(x[2][1],2.0);
+    ASSERT_DOUBLE_EQ(x[2][2],-0.1);
+    ASSERT_DOUBLE_EQ(x[3][0],2.0);
+    ASSERT_DOUBLE_EQ(x[3][1],-2.0);
+    ASSERT_DOUBLE_EQ(x[3][2],0.1);
+    ASSERT_DOUBLE_EQ(v[0][0],0.0);
+    ASSERT_DOUBLE_EQ(v[0][1],0.0);
+    ASSERT_DOUBLE_EQ(v[0][2],0.0);
+    ASSERT_DOUBLE_EQ(v[1][0],0.0);
+    ASSERT_DOUBLE_EQ(v[1][1],0.0);
+    ASSERT_DOUBLE_EQ(v[1][2],0.0);
+    ASSERT_DOUBLE_EQ(v[2][0],0.0);
+    ASSERT_DOUBLE_EQ(v[2][1],0.0);
+    ASSERT_DOUBLE_EQ(v[2][2],0.0);
+    ASSERT_DOUBLE_EQ(v[3][0],0.0);
+    ASSERT_DOUBLE_EQ(v[3][1],0.0);
+    ASSERT_DOUBLE_EQ(v[3][2],0.0);
+
+    ASSERT_DOUBLE_EQ(lmp->atom->mass[1], 4.0);
+    ASSERT_DOUBLE_EQ(lmp->atom->mass[2], 2.4);
+    ASSERT_EQ(lmp->atom->mass_setflag[1], 1);
+    ASSERT_EQ(lmp->atom->mass_setflag[2], 1);
+    ASSERT_EQ(lmp->atom->map_style, 1);
+    ASSERT_EQ(lmp->atom->map_user, 1);
+    ASSERT_EQ(lmp->atom->map_tag_max, 4);
 }
 
 TEST_F(AtomStyleTest, charge)

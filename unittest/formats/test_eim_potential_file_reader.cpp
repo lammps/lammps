@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
+#include "MANYBODY/pair_eim.h"
 #include "lammps.h"
 #include "utils.h"
-#include "MANYBODY/pair_eim.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 #include <mpi.h>
 
@@ -23,64 +23,67 @@ using namespace LAMMPS_NS;
 
 class EIMPotentialFileReaderTest : public ::testing::Test {
 protected:
-    LAMMPS * lmp;
+    LAMMPS *lmp;
     PairEIM::Setfl setfl;
     static const int nelements = 9;
 
-    void SetUp() override {
-        const char *args[] = {"PotentialFileReaderTest", "-log", "none", "-echo", "screen", "-nocite" };
+    void SetUp() override
+    {
+        const char *args[] = {
+            "PotentialFileReaderTest", "-log", "none", "-echo", "screen", "-nocite"};
         char **argv = (char **)args;
-        int argc = sizeof(args)/sizeof(char *);
+        int argc    = sizeof(args) / sizeof(char *);
         ::testing::internal::CaptureStdout();
         lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
         ::testing::internal::GetCapturedStdout();
 
-        int npair = nelements*(nelements+1)/2;
-        setfl.ielement = new int[nelements];
-        setfl.mass = new double[nelements];
+        int npair        = nelements * (nelements + 1) / 2;
+        setfl.ielement   = new int[nelements];
+        setfl.mass       = new double[nelements];
         setfl.negativity = new double[nelements];
-        setfl.ra = new double[nelements];
-        setfl.ri = new double[nelements];
-        setfl.Ec = new double[nelements];
-        setfl.q0 = new double[nelements];
-        setfl.rcutphiA = new double[npair];
-        setfl.rcutphiR = new double[npair];
-        setfl.Eb = new double[npair];
-        setfl.r0 = new double[npair];
-        setfl.alpha = new double[npair];
-        setfl.beta = new double[npair];
-        setfl.rcutq = new double[npair];
-        setfl.Asigma = new double[npair];
-        setfl.rq = new double[npair];
-        setfl.rcutsigma = new double[npair];
-        setfl.Ac = new double[npair];
-        setfl.zeta = new double[npair];
-        setfl.rs = new double[npair];
-        setfl.tp = new int[npair];
+        setfl.ra         = new double[nelements];
+        setfl.ri         = new double[nelements];
+        setfl.Ec         = new double[nelements];
+        setfl.q0         = new double[nelements];
+        setfl.rcutphiA   = new double[npair];
+        setfl.rcutphiR   = new double[npair];
+        setfl.Eb         = new double[npair];
+        setfl.r0         = new double[npair];
+        setfl.alpha      = new double[npair];
+        setfl.beta       = new double[npair];
+        setfl.rcutq      = new double[npair];
+        setfl.Asigma     = new double[npair];
+        setfl.rq         = new double[npair];
+        setfl.rcutsigma  = new double[npair];
+        setfl.Ac         = new double[npair];
+        setfl.zeta       = new double[npair];
+        setfl.rs         = new double[npair];
+        setfl.tp         = new int[npair];
     }
 
-    void TearDown() override {
-        delete [] setfl.ielement;
-        delete [] setfl.mass;
-        delete [] setfl.negativity;
-        delete [] setfl.ra;
-        delete [] setfl.ri;
-        delete [] setfl.Ec;
-        delete [] setfl.q0;
-        delete [] setfl.rcutphiA;
-        delete [] setfl.rcutphiR;
-        delete [] setfl.Eb;
-        delete [] setfl.r0;
-        delete [] setfl.alpha;
-        delete [] setfl.beta;
-        delete [] setfl.rcutq;
-        delete [] setfl.Asigma;
-        delete [] setfl.rq;
-        delete [] setfl.rcutsigma;
-        delete [] setfl.Ac;
-        delete [] setfl.zeta;
-        delete [] setfl.rs;
-        delete [] setfl.tp;
+    void TearDown() override
+    {
+        delete[] setfl.ielement;
+        delete[] setfl.mass;
+        delete[] setfl.negativity;
+        delete[] setfl.ra;
+        delete[] setfl.ri;
+        delete[] setfl.Ec;
+        delete[] setfl.q0;
+        delete[] setfl.rcutphiA;
+        delete[] setfl.rcutphiR;
+        delete[] setfl.Eb;
+        delete[] setfl.r0;
+        delete[] setfl.alpha;
+        delete[] setfl.beta;
+        delete[] setfl.rcutq;
+        delete[] setfl.Asigma;
+        delete[] setfl.rq;
+        delete[] setfl.rcutsigma;
+        delete[] setfl.Ac;
+        delete[] setfl.zeta;
+        delete[] setfl.rs;
+        delete[] setfl.tp;
 
         ::testing::internal::CaptureStdout();
         delete lmp;
@@ -88,7 +91,8 @@ protected:
     }
 };
 
-TEST_F(EIMPotentialFileReaderTest, global_line) {
+TEST_F(EIMPotentialFileReaderTest, global_line)
+{
     ::testing::internal::CaptureStdout();
     EIMPotentialFileReader reader(lmp, "ffield.eim");
     ::testing::internal::GetCapturedStdout();
@@ -99,7 +103,8 @@ TEST_F(EIMPotentialFileReaderTest, global_line) {
     ASSERT_DOUBLE_EQ(setfl.rsmall, 1.645);
 }
 
-TEST_F(EIMPotentialFileReaderTest, element_line_sequential) {
+TEST_F(EIMPotentialFileReaderTest, element_line_sequential)
+{
     ::testing::internal::CaptureStdout();
     EIMPotentialFileReader reader(lmp, "ffield.eim");
     ::testing::internal::GetCapturedStdout();
@@ -123,7 +128,8 @@ TEST_F(EIMPotentialFileReaderTest, element_line_sequential) {
     ASSERT_DOUBLE_EQ(setfl.q0[1], 0.0000e+00);
 }
 
-TEST_F(EIMPotentialFileReaderTest, element_line_random) {
+TEST_F(EIMPotentialFileReaderTest, element_line_random)
+{
     ::testing::internal::CaptureStdout();
     EIMPotentialFileReader reader(lmp, "ffield.eim");
     ::testing::internal::GetCapturedStdout();
@@ -138,7 +144,8 @@ TEST_F(EIMPotentialFileReaderTest, element_line_random) {
     ASSERT_DOUBLE_EQ(setfl.q0[0], 0.0000e+00);
 }
 
-TEST_F(EIMPotentialFileReaderTest, pair_line) {
+TEST_F(EIMPotentialFileReaderTest, pair_line)
+{
     ::testing::internal::CaptureStdout();
     EIMPotentialFileReader reader(lmp, "ffield.eim");
     ::testing::internal::GetCapturedStdout();
@@ -147,7 +154,7 @@ TEST_F(EIMPotentialFileReaderTest, pair_line) {
     ASSERT_DOUBLE_EQ(setfl.rcutphiA[0], 6.0490e+00);
     ASSERT_DOUBLE_EQ(setfl.rcutphiR[0], 6.0490e+00);
     ASSERT_DOUBLE_EQ(setfl.Eb[0], -2.5330e-01);
-    ASSERT_DOUBLE_EQ(setfl.r0[0],  3.6176e+00);
+    ASSERT_DOUBLE_EQ(setfl.r0[0], 3.6176e+00);
     ASSERT_DOUBLE_EQ(setfl.alpha[0], 7.5536e+00);
     ASSERT_DOUBLE_EQ(setfl.beta[0], 3.5017e+00);
     ASSERT_DOUBLE_EQ(setfl.rcutq[0], 0.0000e+00);
@@ -160,7 +167,8 @@ TEST_F(EIMPotentialFileReaderTest, pair_line) {
     ASSERT_EQ(setfl.tp[0], 1);
 }
 
-TEST_F(EIMPotentialFileReaderTest, pair_identical) {
+TEST_F(EIMPotentialFileReaderTest, pair_identical)
+{
     ::testing::internal::CaptureStdout();
     EIMPotentialFileReader reader(lmp, "ffield.eim");
     ::testing::internal::GetCapturedStdout();

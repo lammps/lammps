@@ -420,13 +420,19 @@ endforeach()
 ##############################################
 # add lib sources of (simple) enabled packages
 ############################################
-foreach(SIMPLE_LIB POEMS USER-ATC USER-AWPMD USER-H5MD)
+foreach(SIMPLE_LIB POEMS USER-ATC USER-AWPMD USER-H5MD USER-MESONT)
   if(PKG_${SIMPLE_LIB})
     string(REGEX REPLACE "^USER-" "" PKG_LIB "${SIMPLE_LIB}")
     string(TOLOWER "${PKG_LIB}" PKG_LIB)
-    file(GLOB_RECURSE ${PKG_LIB}_SOURCES
-      ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.c
-      ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.cpp)
+    if(PKG_LIB STREQUAL mesont)
+      enable_language(Fortran)
+      file(GLOB_RECURSE ${PKG_LIB}_SOURCES
+        ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.f90)
+    else()
+      file(GLOB_RECURSE ${PKG_LIB}_SOURCES
+        ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.c
+        ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.cpp)
+    endif()
     add_library(${PKG_LIB} STATIC ${${PKG_LIB}_SOURCES})
     set_target_properties(${PKG_LIB} PROPERTIES OUTPUT_NAME lammps_${PKG_LIB}${LAMMPS_MACHINE})
     target_link_libraries(lammps PRIVATE ${PKG_LIB})
@@ -625,6 +631,8 @@ install(
 ###############################################################################
 if(BUILD_SHARED_LIBS)
   if(CMAKE_VERSION VERSION_LESS 3.12)
+    # adjust so we find Python 3 versions before Python 2 on old systems with old CMake
+    set(Python_ADDITIONAL_VERSIONS 3.8 3.7 3.6 3.5)
     find_package(PythonInterp) # Deprecated since version 3.12
     if(PYTHONINTERP_FOUND)
         set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
@@ -676,6 +684,7 @@ endif()
 
 include(Testing)
 include(CodeCoverage)
+include(CodingStandard)
 
 ###############################################################################
 # Print package summary
@@ -779,4 +788,7 @@ if(PKG_KSPACE)
       message(STATUS "Kokkos FFT: ${FFT}")
     endif()
   endif()
+endif()
+if(BUILD_DOC)
+  message(STATUS "<<< Building HTML Manual >>>")
 endif()

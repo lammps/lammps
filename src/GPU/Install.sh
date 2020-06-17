@@ -172,7 +172,7 @@ elif (test $1 = 0) then
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*gpu[^ \t]* //' ../Makefile.package
   fi
-  
+
   if (test -e ../Makefile.package.settings) then
     sed -i -e '/^include.*gpu.*$/d' ../Makefile.package.settings
   fi

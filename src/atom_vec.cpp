@@ -2507,31 +2507,21 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
 
     for (match = 0; match < nperatom; match++)
       if (strcmp(field, peratom[match].name) == 0) break;
-    if (match == nperatom) {
-      char str[128];
-      sprintf(str,"Peratom field %s not recognized", field);
-      error->all(FLERR,str);
-    }
+    if (match == nperatom)
+      error->all(FLERR,fmt::format("Peratom field {} not recognized", field));
     index[i] = match;
 
     // error if field appears multiple times
 
     for (match = 0; match < i; match++)
-      if (index[i] == index[match]) {
-        char str[128];
-        sprintf(str,"Peratom field %s is repeated", field);
-        error->all(FLERR,str);
-      }
+      if (index[i] == index[match])
+        error->all(FLERR,fmt::format("Peratom field {} is repeated", field));
 
     // error if field is in default str
 
     for (match = 0; match < ndef; match++)
-      if (strcmp(field, def_words[match].c_str()) == 0) {
-        char str[128];
-        sprintf(str,"Peratom field %s is a default", field);
-        error->all(FLERR,str);
-      }
-
+      if (strcmp(field, def_words[match].c_str()) == 0)
+        error->all(FLERR,fmt::format("Peratom field {} is a default", field));
   }
 
   method->index = index;

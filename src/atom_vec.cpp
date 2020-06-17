@@ -2373,9 +2373,9 @@ void AtomVec::setup_fields()
 {
   int n,cols;
 
-  if (strstr(fields_data_atom,"id ") != fields_data_atom)
+  if (!utils::strmatch(fields_data_atom,"^id "))
     error->all(FLERR,"Atom style fields_data_atom must have id as first field");
-  if (strstr(fields_data_vel,"id v") != fields_data_vel)
+  if (!utils::strmatch(fields_data_vel,"^id v"))
     error->all(FLERR,"Atom style fields_data_vel must have "
                "'id v' as first fields");
 

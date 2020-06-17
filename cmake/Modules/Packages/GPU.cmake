@@ -269,7 +269,7 @@ elseif(GPU_API STREQUAL "HIP")
         configure_file(${CU_FILE} ${CU_CPP_FILE} COPYONLY)
 
         add_custom_command(OUTPUT ${CUBIN_FILE}
-          VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco -t="${HIP_ARCH}" -f=\"-O3 -ffast-math -DUSE_HIP -D_${GPU_PREC_SETTING} -I${LAMMPS_LIB_SOURCE_DIR}/gpu\" -o ${CUBIN_FILE} ${CU_CPP_FILE}
+          VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco --offload-arch=${HIP_ARCH} -O3 -ffast-math -DUSE_HIP -D_${GPU_PREC_SETTING} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_CPP_FILE}
           DEPENDS ${CU_CPP_FILE}
           COMMENT "Generating ${CU_NAME}.cubin")
     elseif(HIP_PLATFORM STREQUAL "nvcc")
@@ -298,6 +298,8 @@ elseif(GPU_API STREQUAL "HIP")
     # add hipCUB
     target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
     target_compile_definitions(gpu PRIVATE -DUSE_HIP_DEVICE_SORT)
+    find_package(rocprim REQUIRED CONFIG PATHS "/opt/rocm/rocprim")
+    find_package(hipcub REQUIRED CONFIG PATHS "/opt/rocm/hipcub")
 
     if(HIP_PLATFORM STREQUAL "nvcc")
       find_package(CUB)

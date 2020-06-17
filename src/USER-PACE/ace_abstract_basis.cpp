@@ -97,7 +97,7 @@ ACEAbstractBasisSet::~ACEAbstractBasisSet() {
 }
 
 void ACEAbstractBasisSet::_copy_scalar_memory(const ACEAbstractBasisSet &src) {
-    ntot = src.ntot;
+    deltaSplineBins = src.deltaSplineBins;
     FS_parameters = src.FS_parameters;
 
     nelements = src.nelements;

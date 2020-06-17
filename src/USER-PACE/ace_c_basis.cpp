@@ -279,9 +279,7 @@ void ACECTildeBasisSet::save(const string &filename) {
 
     fprintf(fptr, "cutoffmax=%f\n", cutoffmax);
 
-    fprintf(fptr, "ntot=%d\n", ntot);
-
-
+    fprintf(fptr, "deltaSplineBins=%f\n", deltaSplineBins);
 
     //hard-core repulsion
     fprintf(fptr, "core repulsion parameters: ");
@@ -775,22 +773,22 @@ void ACECTildeBasisSet::_load_radial_ACERadial(FILE *fptr,
     cutoffmax = stod_err(buffer, filename, "cutoffmax", "cutoffmax=[number]");
 
 
-    res = fscanf(fptr, " ntot=");
+    res = fscanf(fptr, " deltaSplineBins=");
     res = fscanf(fptr, "%s", buffer);
     if (res != 1)
-        throw_error(filename, "ntot", "ntot=[number of spline nodes]");
+        throw_error(filename, "deltaSplineBins", "deltaSplineBins=[spline density, Angstroms]");
 //        throw invalid_argument(("File '" + filename + "': couldn't read ntot").c_str());
-    ntot = stoi_err(buffer, filename, "ntot", "ntot=[number of spline nodes]");
+    deltaSplineBins = stod_err(buffer, filename, "deltaSplineBins", "deltaSplineBins=[spline density, Angstroms]");
 
 
     if (radial_functions == nullptr)
         radial_functions = new ACERadialFunctions(nradbase, lmax, nradmax,
-                                                  ntot,
+                                                  deltaSplineBins,
                                                   nelements,
                                                   cutoffmax, radbasename);
     else
         radial_functions->init(nradbase, lmax, nradmax,
-                               ntot,
+                               deltaSplineBins,
                                nelements,
                                cutoffmax, radbasename);
 
@@ -875,10 +873,10 @@ void ACECTildeBasisSet::_load_radial_SHIPsBasic(FILE *fptr,
     nradbase = ships_radial_functions->maxn;
     nradmax = ships_radial_functions->maxn;
     cutoffmax = ships_radial_functions->rcut;
-    ntot = 10000;
+    deltaSplineBins = 0.001;
 
     ships_radial_functions->init(nradbase, lmax, nradmax,
-                                 ntot,
+                                 deltaSplineBins,
                                  nelements,
                                  cutoffmax, radbasename);
 

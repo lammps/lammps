@@ -28,7 +28,7 @@ public:
     LS_TYPE lmax = 0;  ///< \f$ l_\textrm{max} \f$ - maximum value of orbital moment \f$ l \f$
     NS_TYPE nradmax = 0;  ///< maximum number \f$ n \f$ of radial function \f$ R_{nl}(r) \f$
     DOUBLE_TYPE cutoffmax = 0;  ///< maximum value of cutoff distance among all species in basis set
-    int ntot = 0; ///< Number of spline points to represent radial functions
+    DOUBLE_TYPE deltaSplineBins = 0;  ///< Spline interpolation density
 
     string *elements_name = nullptr; ///< Array of elements name for mapping from index (0..nelements-1) to element symbol (string)
 

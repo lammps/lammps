@@ -16,15 +16,16 @@ typedef  std::function<void(DOUBLE_TYPE)> RadialFunctions;
 class SplineInterpolator {
 public:
     DOUBLE_TYPE cutoff = 0; ///< cutoff
+    DOUBLE_TYPE deltaSplineBins = 0.001;
     int ntot = 10000; ///< Number of bins for look-up tables.
-    int nlut; ///< number of nodes in look-up table
+    int nlut = 10000; ///< number of nodes in look-up table
     DOUBLE_TYPE invrscalelookup; ///< inverse of conversion coefficient from distance to lookup table within cutoff range
     DOUBLE_TYPE rscalelookup; ///< conversion coefficient from distance to lookup table within cutoff range
     int num_of_functions;///< number of functions to spline-interpolation
 
-    Array1D<DOUBLE_TYPE> values=Array1D<DOUBLE_TYPE>("values"); ///< shape: [func_ind]
-    Array1D<DOUBLE_TYPE> derivatives=Array1D<DOUBLE_TYPE>("derivatives");///< shape: [func_ind]
-    Array3D<DOUBLE_TYPE> lookupTable=Array3D<DOUBLE_TYPE>("lookupTable");///< shape: [ntot+1][func_ind][4]
+    Array1D<DOUBLE_TYPE> values = Array1D<DOUBLE_TYPE>("values"); ///< shape: [func_ind]
+    Array1D<DOUBLE_TYPE> derivatives = Array1D<DOUBLE_TYPE>("derivatives");///< shape: [func_ind]
+    Array3D<DOUBLE_TYPE> lookupTable = Array3D<DOUBLE_TYPE>("lookupTable");///< shape: [ntot+1][func_ind][4]
 
     /**
      * Setup splines
@@ -36,7 +37,7 @@ public:
      */
     void setupSplines(int num_of_functions, RadialFunctions func,
                       DOUBLE_TYPE *values,
-                      DOUBLE_TYPE *dvalues, int ntot, DOUBLE_TYPE cutoff);
+                      DOUBLE_TYPE *dvalues, DOUBLE_TYPE deltaSplineBins, DOUBLE_TYPE cutoff);
 
     /**
      * Populate `values` and `derivatives` arrays with a spline-interpolation for
@@ -69,7 +70,8 @@ public:
     Array2D<DOUBLE_TYPE> dcut = Array2D<DOUBLE_TYPE>("dcut"); ///< decay of cutoff, shape: [nelements][nelements]
     DOUBLE_TYPE cutoff = 0; ///< cutoff
 
-    int ntot = 10000; ///< Number of bins for look-up tables.
+//    int ntot = 10000; ///< Number of bins for look-up tables.
+    DOUBLE_TYPE deltaSplineBins;
     LS_TYPE lmax = 0; ///< maximum value of `l`
     NS_TYPE nradial = 0;  ///< maximum number `n` of radial functions \f$ R_{nl}(r) \f$
     NS_TYPE nradbase = 0; ///< number of radial basis functions \f$ g_k(r) \f$
@@ -110,7 +112,8 @@ public:
     evaluate(DOUBLE_TYPE r, NS_TYPE nradbase_c, NS_TYPE nradial_c, SPECIES_TYPE mu_i, SPECIES_TYPE mu_j) = 0;
 
     virtual void
-    init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SPECIES_TYPE nelements, DOUBLE_TYPE cutoff,
+    init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, DOUBLE_TYPE deltaSplineBins, SPECIES_TYPE nelements,
+         DOUBLE_TYPE cutoff,
          string radbasename = "ChebExpCos") = 0;
 
     /**
@@ -160,7 +163,8 @@ public:
      * @param cutoff cutoff
      * @param radbasename  type of radial basis function \f$ g_k(r) \f$ (default: "ChebExpCos")
      */
-    ACERadialFunctions(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SPECIES_TYPE nelements,
+    ACERadialFunctions(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, DOUBLE_TYPE deltaSplineBins,
+                       SPECIES_TYPE nelements,
                        DOUBLE_TYPE cutoff, string radbasename = "ChebExpCos");
 
     /**
@@ -174,7 +178,8 @@ public:
      * @param cutoff cutoff
      * @param radbasename  type of radial basis function \f$ g_k(r) \f$ (default: "ChebExpCos")
      */
-    void init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SPECIES_TYPE nelements, DOUBLE_TYPE cutoff,
+    void init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, DOUBLE_TYPE deltaSplineBins, SPECIES_TYPE nelements,
+              DOUBLE_TYPE cutoff,
               string radbasename = "ChebExpCos") final;
 
     /**

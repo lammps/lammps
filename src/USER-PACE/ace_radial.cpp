@@ -6,17 +6,19 @@
 
 const DOUBLE_TYPE pi = 3.14159265358979323846264338327950288419; // pi
 
-ACERadialFunctions::ACERadialFunctions(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SPECIES_TYPE nelements,
+ACERadialFunctions::ACERadialFunctions(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, DOUBLE_TYPE deltaSplineBins,
+                                       SPECIES_TYPE nelements,
                                        DOUBLE_TYPE cutoff, string radbasename) {
-    init(nradb, lmax, nradial, ntot, nelements, cutoff, radbasename);
+    init(nradb, lmax, nradial, deltaSplineBins, nelements, cutoff, radbasename);
 }
 
-void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, int ntot, SPECIES_TYPE nelements,
+void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, DOUBLE_TYPE deltaSplineBins,
+                              SPECIES_TYPE nelements,
                               DOUBLE_TYPE cutoff, string radbasename) {
     this->nradbase = nradb;
     this->lmax = lmax;
     this->nradial = nradial;
-    this->ntot = ntot;
+    this->deltaSplineBins = deltaSplineBins;
     this->nelements = nelements;
     this->cutoff = cutoff;
     this->radbasename = radbasename;
@@ -263,30 +265,27 @@ void ACERadialFunctions::setuplookupRadspline() {
             r_cut = cut(elei, elej);
             dr_cut = dcut(elei, elej);
 
-//            RadialFunctions radbase_func = std::bind(&ACERadialFunctions::radbase, this, lam, r_cut, dr_cut, _1);//update gr, dgr
             splines_gk(elei, elej).setupSplines(gr.get_size(),
                                                 std::bind(&ACERadialFunctions::radbase, this, lam, r_cut, dr_cut,
                                                           _1),//update gr, dgr
                                                 gr.get_data(),
-                                                dgr.get_data(), ntot, cutoff);
+                                                dgr.get_data(), deltaSplineBins, cutoff);
 
-//            RadialFunctions rad_func = std::bind(&ACERadialFunctions::all_radfunc, this,elei, elej,_1); // update fr(nr, l),  dfr(nr, l)
             splines_rnl(elei, elej).setupSplines(fr.get_size(),
                                                  std::bind(&ACERadialFunctions::all_radfunc, this, elei, elej,
                                                            _1), // update fr(nr, l),  dfr(nr, l)
                                                  fr.get_data(),
-                                                 dfr.get_data(), ntot, cutoff);
+                                                 dfr.get_data(), deltaSplineBins, cutoff);
 
 
             pre = prehc(elei, elej);
             lamhc = lambdahc(elei, elej);
 //            radcore(r, pre, lamhc, cutoff, cr_c, dcr_c);
-//            RadialFunctions hardcore_func = std::bind(&ACERadialFunctions::radcore, _1, pre, lamhc, cutoff, std::ref(cr_c), std::ref(dcr_c));
             splines_hc(elei, elej).setupSplines(1,
                                                 std::bind(&ACERadialFunctions::radcore, _1, pre, lamhc, cutoff,
                                                           std::ref(cr_c), std::ref(dcr_c)),
                                                 &cr_c,
-                                                &dcr_c, ntot, cutoff);
+                                                &dcr_c, deltaSplineBins, cutoff);
         }
     }
 
@@ -369,7 +368,11 @@ dcr: derivative of hard core repulsion
 
 void SplineInterpolator::setupSplines(int num_of_functions, RadialFunctions func,
                                       DOUBLE_TYPE *values,
-                                      DOUBLE_TYPE *dvalues, int ntot, DOUBLE_TYPE cutoff) {
+                                      DOUBLE_TYPE *dvalues, DOUBLE_TYPE deltaSplineBins, DOUBLE_TYPE cutoff) {
+
+    this->deltaSplineBins = deltaSplineBins;
+    this->cutoff = cutoff;
+    this->ntot = static_cast<int>(cutoff / deltaSplineBins);
 
     DOUBLE_TYPE r, c[4];
     this->num_of_functions = num_of_functions;
@@ -382,7 +385,6 @@ void SplineInterpolator::setupSplines(int num_of_functions, RadialFunctions func
     f1gd1.fill(0);
 
     nlut = ntot;
-    this->cutoff = cutoff;
     DOUBLE_TYPE f0, f1, f0d1, f1d1;
     int idx;
 

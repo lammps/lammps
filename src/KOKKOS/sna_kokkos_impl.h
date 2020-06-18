@@ -582,81 +582,81 @@ void SNAKokkos<DeviceType>::compute_yi(int iter,
 
   int itriple;
   for(int elem1 = 0; elem1 < nelements; elem1++)
-  for (int elem2 = 0; elem2 < nelements; elem2++) {
+    for (int elem2 = 0; elem2 < nelements; elem2++) {
 
-  double ztmp_r = 0.0;
-  double ztmp_i = 0.0;
+    double ztmp_r = 0.0;
+    double ztmp_i = 0.0;
 
-  int jju1 = elem1 * idxu_max + idxu_block[j1] + (j1 + 1) * mb1min;
-  int jju2 = elem2 * idxu_max + idxu_block[j2] + (j2 + 1) * mb2max;
-  int icgb = mb1min * (j2 + 1) + mb2max;
-  for (int ib = 0; ib < nb; ib++) {
+    int jju1 = elem1 * idxu_max + idxu_block[j1] + (j1 + 1) * mb1min;
+    int jju2 = elem2 * idxu_max + idxu_block[j2] + (j2 + 1) * mb2max;
+    int icgb = mb1min * (j2 + 1) + mb2max;
+    for (int ib = 0; ib < nb; ib++) {
 
-    double suma1_r = 0.0;
-    double suma1_i = 0.0;
+      double suma1_r = 0.0;
+      double suma1_i = 0.0;
 
-    int ma1 = ma1min;
-    int ma2 = ma2max;
-    int icga = ma1min * (j2 + 1) + ma2max;
+      int ma1 = ma1min;
+      int ma2 = ma2max;
+      int icga = ma1min * (j2 + 1) + ma2max;
 
-    for (int ia = 0; ia < na; ia++) {
-      suma1_r += cgblock[icga] * (ulisttot(jju1 + ma1, iatom).re *
-                                  ulisttot(jju2 + ma2, iatom).re -
-                                  ulisttot(jju1 + ma1, iatom).im *
-                                  ulisttot(jju2 + ma2, iatom).im);
-      suma1_i += cgblock[icga] * (ulisttot(jju1 + ma1, iatom).re *
-                                  ulisttot(jju2 + ma2, iatom).im +
-                                  ulisttot(jju1 + ma1, iatom).im *
-                                  ulisttot(jju2 + ma2, iatom).re);
-      ma1++;
-      ma2--;
-      icga += j2;
-    } // end loop over ia
+      for (int ia = 0; ia < na; ia++) {
+        suma1_r += cgblock[icga] * (ulisttot(jju1 + ma1, iatom).re *
+                                    ulisttot(jju2 + ma2, iatom).re -
+                                    ulisttot(jju1 + ma1, iatom).im *
+                                    ulisttot(jju2 + ma2, iatom).im);
+        suma1_i += cgblock[icga] * (ulisttot(jju1 + ma1, iatom).re *
+                                    ulisttot(jju2 + ma2, iatom).im +
+                                    ulisttot(jju1 + ma1, iatom).im *
+                                    ulisttot(jju2 + ma2, iatom).re);
+        ma1++;
+        ma2--;
+        icga += j2;
+      } // end loop over ia
 
-    ztmp_r += cgblock[icgb] * suma1_r;
-    ztmp_i += cgblock[icgb] * suma1_i;
-    jju1 += j1 + 1;
-    jju2 -= j2 + 1;
-    icgb += j2;
-  } // end loop over ib
+      ztmp_r += cgblock[icgb] * suma1_r;
+      ztmp_i += cgblock[icgb] * suma1_i;
+      jju1 += j1 + 1;
+      jju2 -= j2 + 1;
+      icgb += j2;
+    } // end loop over ib
 
-  if (bnorm_flag) {
-    ztmp_i /= j + 1;
-    ztmp_r /= j + 1;
-  }
-
-  // apply to z(j1,j2,j,ma,mb) to unique element of y(j)
-  // find right y_list[jju] and beta(iatom,jjb) entries
-  // multiply and divide by j+1 factors
-  // account for multiplicity of 1, 2, or 3
-
-  // pick out right beta value
-  for (int elem3 = 0; elem3 < nelements; elem3++) {
-    const int jjuy = elem3 * idxu_max + jju;
-    if (j >= j1) {
-      const int jjb = idxb_block(j1, j2, j);
-      itriple = ((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb;
-      if (j1 == j) {
-        if (j2 == j) betaj = 3 * beta(itriple, iatom);
-        else betaj = 2 * beta(itriple, iatom);
-      } else betaj = beta(itriple, iatom);
-    } else if (j >= j2) {
-      const int jjb = idxb_block(j, j2, j1);
-      itriple = ((elem3 * nelements + elem2) * nelements + elem1) * idxb_max + jjb;
-      if (j2 == j) betaj = 2 * beta(itriple, iatom);
-      else betaj = beta(itriple, iatom);
-    } else {
-      const int jjb = idxb_block(j2, j, j1);
-      itriple = ((elem2 * nelements + elem3) * nelements + elem1) * idxb_max + jjb;
-      betaj = beta(itriple, iatom);
+    if (bnorm_flag) {
+      ztmp_i /= j + 1;
+      ztmp_r /= j + 1;
     }
 
-    if (!bnorm_flag && j1 > j)
-      betaj *= (j1 + 1) / (j + 1.0);
+    // apply to z(j1,j2,j,ma,mb) to unique element of y(j)
+    // find right y_list[jju] and beta(iatom,jjb) entries
+    // multiply and divide by j+1 factors
+    // account for multiplicity of 1, 2, or 3
 
-    Kokkos::atomic_add(&(ylist(jjuy, iatom).re), betaj * ztmp_r);
-    Kokkos::atomic_add(&(ylist(jjuy, iatom).im), betaj * ztmp_i);
-  }
+    // pick out right beta value
+    for (int elem3 = 0; elem3 < nelements; elem3++) {
+      const int jjuy = elem3 * idxu_max + jju;
+      if (j >= j1) {
+        const int jjb = idxb_block(j1, j2, j);
+        itriple = ((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb;
+        if (j1 == j) {
+          if (j2 == j) betaj = 3 * beta(itriple, iatom);
+          else betaj = 2 * beta(itriple, iatom);
+        } else betaj = beta(itriple, iatom);
+      } else if (j >= j2) {
+        const int jjb = idxb_block(j, j2, j1);
+        itriple = ((elem3 * nelements + elem2) * nelements + elem1) * idxb_max + jjb;
+        if (j2 == j) betaj = 2 * beta(itriple, iatom);
+        else betaj = beta(itriple, iatom);
+      } else {
+        const int jjb = idxb_block(j2, j, j1);
+        itriple = ((elem2 * nelements + elem3) * nelements + elem1) * idxb_max + jjb;
+        betaj = beta(itriple, iatom);
+      }
+
+      if (!bnorm_flag && j1 > j)
+        betaj *= (j1 + 1) / (j + 1.0);
+
+      Kokkos::atomic_add(&(ylist(jjuy, iatom).re), betaj * ztmp_r);
+      Kokkos::atomic_add(&(ylist(jjuy, iatom).im), betaj * ztmp_i);
+    }
   }
 }
 
@@ -931,87 +931,87 @@ void SNAKokkos<DeviceType>::compute_bi(const typename Kokkos::TeamPolicy<DeviceT
   int idouble = 0;
   int jalloy = 0;
   for (int elem1 = 0; elem1 < nelements; elem1++)
-  for (int elem2 = 0; elem2 < nelements; elem2++) {
-  jalloy = idouble*idxz_max;
-  for (int elem3 = 0; elem3 < nelements; elem3++) {
-  Kokkos::parallel_for(Kokkos::TeamThreadRange(team, idxb_max),
-                       [&](const int &jjb) {
-                         //for(int jjb = 0; jjb < idxb_max; jjb++) {
-                         const int jjballoy = itriple*idxb_max+jjb;
-                         const int j1 = idxb(jjb, 0);
-                         const int j2 = idxb(jjb, 1);
-                         const int j = idxb(jjb, 2);
+    for (int elem2 = 0; elem2 < nelements; elem2++) {
+      jalloy = idouble*idxz_max;
+      for (int elem3 = 0; elem3 < nelements; elem3++) {
+        Kokkos::parallel_for(Kokkos::TeamThreadRange(team, idxb_max),
+        [&](const int &jjb) {
+        //for(int jjb = 0; jjb < idxb_max; jjb++) {
+          const int jjballoy = itriple*idxb_max+jjb;
+          const int j1 = idxb(jjb, 0);
+          const int j2 = idxb(jjb, 1);
+          const int j = idxb(jjb, 2);
 
-                         int jjz = idxz_block(j1, j2, j);
-                         int jju = idxu_block[j];
-                         double sumzu = 0.0;
-                         double sumzu_temp = 0.0;
-                         const int bound = (j + 2) / 2;
-                         Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, (j + 1) * bound),
-                                                 [&](const int mbma, double &sum) {
-                                                   //for(int mb = 0; 2*mb < j; mb++)
-                                                   //for(int ma = 0; ma <= j; ma++) {
-                                                   const int ma = mbma % (j + 1);
-                                                   const int mb = mbma / (j + 1);
-                                                   const int jju_index = elem3 * idxu_max + jju + mb * (j + 1) + ma;
-                                                   const int jjz_index = jalloy + jjz + mb * (j + 1) + ma;
-                                                   if (2 * mb == j) return;
-                                                   sum +=
-                                                       ulisttot(jju_index, iatom).re *
-                                                       zlist(jjz_index, iatom).re +
-                                                       ulisttot(jju_index, iatom).im *
-                                                       zlist(jjz_index, iatom).im;
-                                                 }, sumzu_temp); // end loop over ma, mb
-                         sumzu += sumzu_temp;
+          int jjz = idxz_block(j1, j2, j);
+          int jju = idxu_block[j];
+          double sumzu = 0.0;
+          double sumzu_temp = 0.0;
+          const int bound = (j + 2) / 2;
+          Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, (j + 1) * bound),
+          [&](const int mbma, double &sum) {
+            //for(int mb = 0; 2*mb < j; mb++)
+            //for(int ma = 0; ma <= j; ma++) {
+            const int ma = mbma % (j + 1);
+            const int mb = mbma / (j + 1);
+            const int jju_index = elem3 * idxu_max + jju + mb * (j + 1) + ma;
+            const int jjz_index = jalloy + jjz + mb * (j + 1) + ma;
+            if (2 * mb == j) return;
+            sum +=
+                ulisttot(jju_index, iatom).re *
+                zlist(jjz_index, iatom).re +
+                ulisttot(jju_index, iatom).im *
+                zlist(jjz_index, iatom).im;
+          }, sumzu_temp); // end loop over ma, mb
+          sumzu += sumzu_temp;
 
-                         // For j even, special treatment for middle column
+          // For j even, special treatment for middle column
 
-                         if (j % 2 == 0) {
-                           const int mb = j / 2;
-                           Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, mb),
-                                                   [&](const int ma, double &sum) {
-                                                     //for(int ma = 0; ma < mb; ma++) {
-                                                     const int jju_index =
-                                                         elem3 * idxu_max + jju + (mb - 1) * (j + 1) + (j + 1) + ma;
-                                                     const int jjz_index =
-                                                         jalloy + jjz + (mb - 1) * (j + 1) + (j + 1) + ma;
-                                                     sum +=
-                                                         ulisttot(jju_index, iatom).re *
-                                                         zlist(jjz_index, iatom).re +
-                                                         ulisttot(jju_index, iatom).im *
-                                                         zlist(jjz_index, iatom).im;
-                                                   }, sumzu_temp); // end loop over ma
-                           sumzu += sumzu_temp;
+          if (j % 2 == 0) {
+            const int mb = j / 2;
+            Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, mb),
+            [&](const int ma, double &sum) {
+              //for(int ma = 0; ma < mb; ma++) {
+              const int jju_index =
+                  elem3 * idxu_max + jju + (mb - 1) * (j + 1) + (j + 1) + ma;
+              const int jjz_index =
+                  jalloy + jjz + (mb - 1) * (j + 1) + (j + 1) + ma;
+              sum +=
+                  ulisttot(jju_index, iatom).re *
+                  zlist(jjz_index, iatom).re +
+                  ulisttot(jju_index, iatom).im *
+                  zlist(jjz_index, iatom).im;
+            }, sumzu_temp); // end loop over ma
+            sumzu += sumzu_temp;
 
-                           const int ma = mb;
-                           const int jju_index = elem3 * idxu_max + jju + (mb - 1) * (j + 1) + (j + 1) + ma;
-                           const int jjz_index = jalloy + jjz + (mb - 1) * (j + 1) + (j + 1) + ma;
-                           sumzu += 0.5 *
-                                    (ulisttot(jju_index, iatom).re *
-                                     zlist(jjz_index, iatom).re +
-                                     ulisttot(jju_index, iatom).im *
-                                     zlist(jjz_index, iatom).im);
-                         } // end if jeven
+            const int ma = mb;
+            const int jju_index = elem3 * idxu_max + jju + (mb - 1) * (j + 1) + (j + 1) + ma;
+            const int jjz_index = jalloy + jjz + (mb - 1) * (j + 1) + (j + 1) + ma;
+            sumzu += 0.5 *
+                     (ulisttot(jju_index, iatom).re *
+                      zlist(jjz_index, iatom).re +
+                      ulisttot(jju_index, iatom).im *
+                      zlist(jjz_index, iatom).im);
+          } // end if jeven
 
-                         Kokkos::single(Kokkos::PerThread(team), [&]() {
-                           sumzu *= 2.0;
+          Kokkos::single(Kokkos::PerThread(team), [&]() {
+            sumzu *= 2.0;
 
-                           // apply bzero shift
+            // apply bzero shift
 
-                           if (bzero_flag){
-                             if (!wselfall_flag) {
-                               if (elem1 == elem2 && elem1 == elem3)
-                                 sumzu -= bzero[j];
-                             } else sumzu -= bzero[j];
-                           }
+            if (bzero_flag){
+              if (!wselfall_flag) {
+                if (elem1 == elem2 && elem1 == elem3)
+                  sumzu -= bzero[j];
+              } else sumzu -= bzero[j];
+            }
 
-                           blist(jjballoy, iatom) = sumzu;
-                         });
-                       });
-  itriple++;
-  }
-  idouble++;
-  }
+            blist(jjballoy, iatom) = sumzu;
+          });
+        });
+        itriple++;
+      }
+      idouble++;
+    }
     //} // end loop over j
   //} // end loop over j1, j2
 }

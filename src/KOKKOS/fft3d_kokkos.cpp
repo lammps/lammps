@@ -44,8 +44,9 @@ FFT3dKokkos<Space>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int nmid,
 {
   int nthreads = lmp->kokkos->nthreads;
   int ngpus = lmp->kokkos->ngpus;
+  int cuda_flag = 0;
 #ifdef KOKKOS_ENABLE_CUDA
-  int cuda_flag = (std::is_same<DeviceType,Kokkos::Cuda>::value);
+  cuda_flag = (std::is_same<DeviceType,Kokkos::Cuda>::value);
 #endif
 
 #if defined(FFT_MKL)

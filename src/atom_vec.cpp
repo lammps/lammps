@@ -90,7 +90,7 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
 
 AtomVec::~AtomVec()
 {
-  int datatype,cols,maxcols;
+  int datatype,cols;
   void *pdata;
 
   for (int i = 0; i < nargcopy; i++) delete [] argcopy[i];
@@ -100,14 +100,12 @@ AtomVec::~AtomVec()
     pdata = mgrow.pdata[i];
     datatype = mgrow.datatype[i];
     cols = mgrow.cols[i];
-    const int nthreads = threads[i] ? comm->nthreads : 1;
     if (datatype == Atom::DOUBLE) {
       if (cols == 0)
         memory->destroy(*((double **) pdata));
       else if (cols > 0)
         memory->destroy(*((double ***) pdata));
       else {
-        maxcols = *(mgrow.maxcols[i]);
         memory->destroy(*((double ***) pdata));
       }
     } else if (datatype == Atom::INT) {
@@ -116,7 +114,6 @@ AtomVec::~AtomVec()
       else if (cols > 0)
         memory->destroy(*((int ***) pdata));
       else {
-        maxcols = *(mgrow.maxcols[i]);
         memory->destroy(*((int ***) pdata));
       }
     } else if (datatype == Atom::BIGINT) {
@@ -125,7 +122,6 @@ AtomVec::~AtomVec()
       else if (cols > 0)
         memory->destroy(*((bigint ***) pdata));
       else {
-        maxcols = *(mgrow.maxcols[i]);
         memory->destroy(*((bigint ***) pdata));
       }
     }

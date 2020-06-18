@@ -65,7 +65,7 @@ Header files will typically contain the definition of a (single) class.
 These header files should have as few include statements as possible.
 This is particularly important for classes that implement a "style" and
 thus use a macro of the kind `SomeStyle(some/name,SomeName)`. These will
-all be included in the auto-generated `"some_style.h"` files which 
+all be included in the auto-generated `"some_style.h"` files which
 results in a high potential for direct or indirect symbol name clashes.
 
 In the ideal case, the header would only include one file defining the

@@ -25,10 +25,10 @@ In the interest of consistency, ONLY ONE of the core LAMMPS developers
 should doing the merging itself.  This is currently
 [@akohlmey](https://github.com/akohlmey) (Axel Kohlmeyer).
 If this assignment needs to be changed, it shall be done right after a
-stable release.  If the currently assigned developer cannot merge outstanding pull 
-requests in a timely manner, or in other extenuating circumstances, 
+stable release.  If the currently assigned developer cannot merge outstanding pull
+requests in a timely manner, or in other extenuating circumstances,
 other core LAMMPS developers with merge rights can merge pull requests,
-when necessary. 
+when necessary.
 
 ## Pull Requests
 

@@ -3,6 +3,7 @@
 #
 # Written by Richard Berger (Temple University)
 import os
+import sys
 import glob
 import re
 import yaml
@@ -33,7 +34,7 @@ patterns:
 """
 
 def check_trailing_whitespace(f):
-    pattern = re.compile(r'\s+\n$')
+    pattern = re.compile(r'[^\n]*\s+\n$')
     last_line = "\n"
     lineno = 1
     errors = set()
@@ -73,9 +74,11 @@ def fix_file(path, check_result):
         with open(path, 'r', encoding=check_result['encoding']) as src:
             for line in src:
                 print(line.rstrip(), file=out)
+    shutil.copymode(path, newfile)
     shutil.move(newfile, path)
 
 def check_folder(directory, config, fix=False, verbose=False):
+    success = True
     files = []
 
     for base_path in config['include']:
@@ -104,14 +107,19 @@ def check_folder(directory, config, fix=False, verbose=False):
         if result['encoding'] == 'unknown':
             print("[Error] Unknown text encoding @ {}".format(path))
             has_resolvable_errors = False
+            success = False
         elif result['encoding'] == 'ISO-8859-1':
             print("[Error] Found ISO-8859-1 encoding instead of UTF-8 @ {}".format(path))
             has_resolvable_errors = True
 
-        if has_resolvable_errors and fix:
-            print("Applying automatic fixes to file:", path)
-            fix_file(path, result)
+        if has_resolvable_errors:
+            if fix:
+                print("Applying automatic fixes to file:", path)
+                fix_file(path, result)
+            else:
+                success = False
 
+    return success
 
 def main():
     parser = argparse.ArgumentParser(description='Utility for detecting and fixing whitespace issues in LAMMPS')
@@ -127,7 +135,8 @@ def main():
     else:
         config = yaml.load(DEFAULT_CONFIG, Loader=yaml.FullLoader)
 
-    check_folder(args.DIRECTORY, config, args.fix, args.verbose)
+    if not check_folder(args.DIRECTORY, config, args.fix, args.verbose):
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

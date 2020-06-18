@@ -26,7 +26,7 @@ Syntax
        *wl* value = yes or no
        *wl/hat* value = yes or no
        *components* value = ldegree
-       *chunksize* value = number of atoms in each pass 
+       *chunksize* value = number of atoms in each pass
 
 Examples
 """"""""

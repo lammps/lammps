@@ -10,7 +10,7 @@ radbasename=ChebExpCos
 nradbase=8
 nradmax=4
 cutoffmax=8.700000
-ntot=8700
+deltaSplineBins=0.001
 core repulsion parameters: 90.978224016403132168 0.512369903010061689
 radparameter= 5.000000000000000000
 cutoff= 8.699999999999999289

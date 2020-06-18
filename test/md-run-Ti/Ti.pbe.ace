@@ -10,7 +10,7 @@ radbasename=ChebPow
 nradbase=15
 nradmax=5
 cutoffmax=7.500000
-ntot=7500
+deltaSplineBins=0.001
 core repulsion parameters: 0.000000000000000000 5.000000000000000000
 radparameter= 2.000000000000000000
 cutoff= 7.500000000000000000

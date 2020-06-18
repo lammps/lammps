@@ -33,10 +33,8 @@ HIP_HOST_OPTS += -DMPI_GERYON -DUCL_NO_EXIT
 # this settings should match LAMMPS Makefile
 MPI_COMP_OPTS = $(shell mpicxx --showme:compile)
 MPI_LINK_OPTS = $(shell mpicxx --showme:link)
-#MPI_COMP_OPTS += -I/usr/include/mpi  -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1
 
 HIP_PATH ?= $(wildcard /opt/rocm/hip)
-#HIP_PLATFORM=$(shell $(HIP_PATH)/bin/hipconfig --compiler)
 
 ifeq (hcc,$(HIP_PLATFORM))
 	HIP_OPTS  += -ffast-math

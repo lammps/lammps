@@ -64,7 +64,7 @@ Syntax
            end12x, end12y, end12z = end points of line segment
            corner123x, corner123y, corner123z = corner points of triangle
            nbonds = number of bonds assigned to an atom
-           buckling = buckling flag used in mesoscopic simulation of nanotubes 
+           buckling = buckling flag used in mesoscopic simulation of nanotubes
 
   .. parsed-literal::
 

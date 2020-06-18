@@ -9,7 +9,7 @@ Syntax
 
 .. parsed-literal::
 
-   pair_style mesont/tpm cut table_path BendingMode TPMType 
+   pair_style mesont/tpm cut table_path BendingMode TPMType
 
 * cut = the cutoff distance
 * table_path = the path to the potential table
@@ -114,7 +114,7 @@ study the thermal transport properties of carbon nanotube films
 The methods for modeling of
 the mechanical energy dissipation into heat (energy exchange between the
 dynamic degrees of freedom of the mesoscopic model and the energy of atomic
-vibrations that are not explicitly represented in the model) 
+vibrations that are not explicitly represented in the model)
 :ref:`(Zhigilei10) <Zhigilei10>` and mesoscopic description of covalent cross-links
 between nanotubes :ref:`(Banna) <Banna>` have also been developed but are not
 included in this first release of the LAMMPS implementation of the force field.
@@ -144,7 +144,7 @@ pair interactions.
 The cutoff distance should be set to be at least :math:`max\left[2L,\sqrt{L^2/2+(2R+T_{cut})^2}\right]` ,
 where L is the maximum segment length, R is the maximum tube radius, and
 :math:`T_{cut}` = 10.2 A is the maximum distance between the surfaces of interacting
-segments. Because of the use of extended chain concept at CNT ends, the recommended 
+segments. Because of the use of extended chain concept at CNT ends, the recommended
 cutoff is 3L.
 
 The MESONT-TABTP_10_10.xrs potential file provided with LAMMPS (see the

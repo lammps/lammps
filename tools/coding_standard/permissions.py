@@ -3,6 +3,7 @@
 #
 # Written by Richard Berger (Temple University)
 import os
+import sys
 import glob
 import yaml
 import argparse
@@ -70,6 +71,7 @@ def generate_permission_mask(line):
     return mask
 
 def check_folder(directory, config, fix=False, verbose=False):
+    success = True
     files = []
 
     for base_path in config['include']:
@@ -96,6 +98,10 @@ def check_folder(directory, config, fix=False, verbose=False):
                     os.chmod(path, mask)
                 else:
                     print("[Error] Can not write permissions of file {}".format(path))
+                    success = False
+            else:
+                success = False
+    return success
 
 
 def main():
@@ -112,7 +118,8 @@ def main():
     else:
         config = yaml.load(DEFAULT_CONFIG, Loader=yaml.FullLoader)
 
-    check_folder(args.DIRECTORY, config, args.fix, args.verbose)
+    if not check_folder(args.DIRECTORY, config, args.fix, args.verbose):
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

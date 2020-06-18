@@ -48,6 +48,7 @@ protected:
         // check if the prerequisite eim pair style is available
         Info *info = new Info(lmp);
         ASSERT_TRUE(info->has_style("pair", "eim"));
+        delete info;
 
         int npair        = nelements * (nelements + 1) / 2;
         setfl.ielement   = new int[nelements];

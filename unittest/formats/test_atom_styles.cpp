@@ -22,6 +22,20 @@
 #include <cstring>
 #include <mpi.h>
 
+#if !defined(_FORTIFY_SOURCE) || (_FORTIFY_SOURCE == 0)
+#  if defined(__INTEL_COMPILER)
+#    define _do_nothing
+#  elif defined(__GNUC__)
+#    if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 9))
+#      pragma GCC optimize ("no-var-tracking-assignments","O0")
+#    else
+#      pragma GCC optimize ("no-var-tracking-assignments")
+#    endif
+#  else
+#    define _do_nothing
+#  endif
+#endif
+
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 

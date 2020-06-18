@@ -685,7 +685,7 @@ void MSM::allocate()
                         nxlo_out[n],nxhi_out[n],nylo_out[n],nyhi_out[n],nzlo_out[n],nzhi_out[n],
                         procneigh[0][0],procneigh[0][1],procneigh[1][0],
                         procneigh[1][1],procneigh[2][0],procneigh[2][1]);
-    }
+    } else cg[n] = nullptr;
   }
 }
 

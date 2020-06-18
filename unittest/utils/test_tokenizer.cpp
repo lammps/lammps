@@ -38,37 +38,33 @@ TEST(Tokenizer, two_words) {
     ASSERT_EQ(t.count(), 2);
 }
 
-TEST(Tokenizer, prefix_seperators) {
+TEST(Tokenizer, prefix_separators) {
     Tokenizer t("  test word", " ");
     ASSERT_EQ(t.count(), 2);
 }
 
-TEST(Tokenizer, postfix_seperators) {
+TEST(Tokenizer, postfix_separators) {
     Tokenizer t("test word   ", " ");
     ASSERT_EQ(t.count(), 2);
 }
 
 TEST(Tokenizer, iterate_words) {
     Tokenizer t("  test word   ", " ");
-    ASSERT_THAT(t[0], Eq("test"));
-    ASSERT_THAT(t[1], Eq("word"));
+    ASSERT_THAT(t.next(), Eq("test"));
+    ASSERT_THAT(t.next(), Eq("word"));
     ASSERT_EQ(t.count(), 2);
 }
 
-TEST(Tokenizer, default_seperators) {
+TEST(Tokenizer, default_separators) {
     Tokenizer t(" \r\n test \t word \f");
-    ASSERT_THAT(t[0], Eq("test"));
-    ASSERT_THAT(t[1], Eq("word"));
+    ASSERT_THAT(t.next(), Eq("test"));
+    ASSERT_THAT(t.next(), Eq("word"));
     ASSERT_EQ(t.count(), 2);
 }
 
-TEST(Tokenizer, for_loop) {
+TEST(Tokenizer, as_vector) {
     Tokenizer t(" \r\n test \t word \f");
-    std::vector<std::string> list;
-
-    for(auto word : t) {
-        list.push_back(word);
-    }
+    std::vector<std::string> list = t.as_vector();
     ASSERT_THAT(list[0], Eq("test"));
     ASSERT_THAT(list[1], Eq("word"));
 }

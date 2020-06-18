@@ -18,13 +18,13 @@ KOKKOS_VERSION = $(shell echo $(KOKKOS_VERSION_MAJOR)*10000+$(KOKKOS_VERSION_MIN
 # Options: Cuda,HIP,ROCm,OpenMP,Pthread,Serial
 KOKKOS_DEVICES ?= "OpenMP"
 #KOKKOS_DEVICES ?= "Pthread"
-# Options: 
+# Options:
 # Intel:    KNC,KNL,SNB,HSW,BDW,SKX
 # NVIDIA:   Kepler,Kepler30,Kepler32,Kepler35,Kepler37,Maxwell,Maxwell50,Maxwell52,Maxwell53,Pascal60,Pascal61,Volta70,Volta72,Turing75
 # ARM:      ARMv80,ARMv81,ARMv8-ThunderX,ARMv8-TX2
 # IBM:      BGQ,Power7,Power8,Power9
 # AMD-GPUS: Vega900,Vega906
-# AMD-CPUS: AMDAVX,Ryzen,EPYC
+# AMD-CPUS: AMDAVX,EPYC
 KOKKOS_ARCH ?= ""
 # Options: yes,no
 KOKKOS_DEBUG ?= "no"
@@ -51,11 +51,15 @@ KOKKOS_HIP_OPTIONS ?= ""
 # Options: enable_async_dispatch
 KOKKOS_HPX_OPTIONS ?= ""
 
+# Helper functions for conversion to upper case
+uppercase_TABLE:=a,A b,B c,C d,D e,E f,F g,G h,H i,I j,J k,K l,L m,M n,N o,O p,P q,Q r,R s,S t,T u,U v,V w,W x,X y,Y z,Z
+uppercase_internal=$(if $1,$$(subst $(firstword $1),$(call uppercase_internal,$(wordlist 2,$(words $1),$1),$2)),$2)
+uppercase=$(eval uppercase_RESULT:=$(call uppercase_internal,$(uppercase_TABLE),$1))$(uppercase_RESULT)
 # Return a 1 if a string contains a substring and 0 if not
 # Note the search string should be without '"'
 # Example: $(call kokkos_has_string,"hwloc,librt",hwloc)
 #   Will return a 1
-kokkos_has_string=$(if $(findstring $2,$1),1,0)
+kokkos_has_string=$(if $(findstring $(call uppercase,$2),$(call uppercase,$1)),1,0)
 # Returns 1 if the path exists, 0 otherwise
 # Example: $(call kokkos_path_exists,/path/to/file)
 #   Will return a 1 if /path/to/file exists
@@ -340,9 +344,9 @@ KOKKOS_INTERNAL_USE_ARCH_NVIDIA := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_KEPLE
                                               + $(KOKKOS_INTERNAL_USE_ARCH_KEPLER37)  \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_PASCAL61)  \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_PASCAL60)  \
-											  + $(KOKKOS_INTERNAL_USE_ARCH_VOLTA70) \
-											  + $(KOKKOS_INTERNAL_USE_ARCH_VOLTA72) \
-											  + $(KOKKOS_INTERNAL_USE_ARCH_TURING75) \
+                                              + $(KOKKOS_INTERNAL_USE_ARCH_VOLTA70)   \
+                                              + $(KOKKOS_INTERNAL_USE_ARCH_VOLTA72)   \
+                                              + $(KOKKOS_INTERNAL_USE_ARCH_TURING75)  \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL50) \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL52) \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL53))
@@ -357,9 +361,9 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_NVIDIA), 0)
                                                 + $(KOKKOS_INTERNAL_USE_ARCH_KEPLER37)  \
                                                 + $(KOKKOS_INTERNAL_USE_ARCH_PASCAL61)  \
                                                 + $(KOKKOS_INTERNAL_USE_ARCH_PASCAL60)  \
-												+ $(KOKKOS_INTERNAL_USE_ARCH_VOLTA70) \
-												+ $(KOKKOS_INTERNAL_USE_ARCH_VOLTA72) \
-												+ $(KOKKOS_INTERNAL_USE_ARCH_TURING75) \
+                                                + $(KOKKOS_INTERNAL_USE_ARCH_VOLTA70)   \
+                                                + $(KOKKOS_INTERNAL_USE_ARCH_VOLTA72)   \
+                                                + $(KOKKOS_INTERNAL_USE_ARCH_TURING75)  \
                                                 + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL50) \
                                                 + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL52) \
                                                 + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL53))
@@ -390,7 +394,6 @@ KOKKOS_INTERNAL_USE_ARCH_IBM := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_
 
 # AMD based.
 KOKKOS_INTERNAL_USE_ARCH_AMDAVX := $(call kokkos_has_string,$(KOKKOS_ARCH),AMDAVX)
-KOKKOS_INTERNAL_USE_ARCH_RYZEN := $(call kokkos_has_string,$(KOKKOS_ARCH),Ryzen)
 KOKKOS_INTERNAL_USE_ARCH_EPYC := $(call kokkos_has_string,$(KOKKOS_ARCH),EPYC)
 KOKKOS_INTERNAL_USE_ARCH_VEGA900 := $(call kokkos_has_string,$(KOKKOS_ARCH),Vega900)
 KOKKOS_INTERNAL_USE_ARCH_VEGA906 := $(call kokkos_has_string,$(KOKKOS_ARCH),Vega906)
@@ -470,7 +473,7 @@ tmp := $(call kokkos_append_header,'\#endif')
 tmp := $(call kokkos_append_header,"")
 tmp := $(call kokkos_append_header,"\#define KOKKOS_VERSION $(KOKKOS_VERSION)")
 tmp := $(call kokkos_append_header,"")
-	
+
 tmp := $(call kokkos_append_header,"/* Execution Spaces */")
 
 ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
@@ -1019,8 +1022,8 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA_ARCH), 1)
   ifeq ($(KOKKOS_INTERNAL_COMPILER_NVCC), 1)
     KOKKOS_INTERNAL_CUDA_ARCH_FLAG=-arch
   else ifeq ($(KOKKOS_INTERNAL_COMPILER_CLANG), 1)
-		KOKKOS_INTERNAL_CUDA_ARCH_FLAG=--cuda-gpu-arch
-		KOKKOS_CXXFLAGS += -x cuda
+    KOKKOS_INTERNAL_CUDA_ARCH_FLAG=--cuda-gpu-arch
+    KOKKOS_CXXFLAGS += -x cuda
   else
     $(error Makefile.kokkos: CUDA is enabled but the compiler is neither NVCC nor Clang (got version string $(KOKKOS_CXX_VERSION)) )
   endif

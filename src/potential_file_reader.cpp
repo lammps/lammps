@@ -83,9 +83,9 @@ void PotentialFileReader::next_dvector(double * list, int n) {
   }
 }
 
-ValueTokenizer PotentialFileReader::next_values(int nparams, const std::string & seperators) {
+ValueTokenizer PotentialFileReader::next_values(int nparams, const std::string & separators) {
   try {
-    return reader->next_values(nparams, seperators);
+    return reader->next_values(nparams, separators);
   } catch (FileReaderException & e) {
     error->one(FLERR, e.what());
   }

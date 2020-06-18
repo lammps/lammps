@@ -17,77 +17,118 @@
 
 #include "tokenizer.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
-Tokenizer::Tokenizer(const std::string & str, const std::string & seperators) {
-    size_t end = -1;
+TokenizerException::TokenizerException(const std::string & msg, const std::string & token){
+    if(token.empty()) {
+        message = msg;
+    } else {
+        message = fmt::format("{}: '{}'", msg, token);
+    }
+}
 
-    do {
-        size_t start = str.find_first_not_of(seperators, end + 1);
-        if(start == std::string::npos) break;
+Tokenizer::Tokenizer(const std::string & str, const std::string & separators) :
+    text(str), separators(separators), start(0), ntokens(std::string::npos)
+{
+    reset();
+}
 
-        end = str.find_first_of(seperators, start);
+Tokenizer::Tokenizer(const Tokenizer & rhs) :
+    text(rhs.text), separators(rhs.separators), ntokens(rhs.ntokens)
+{
+    reset();
+}
+
+Tokenizer::Tokenizer(Tokenizer && rhs) :
+    text(std::move(rhs.text)), separators(std::move(rhs.separators)), ntokens(rhs.ntokens)
+{
+    reset();
+}
+
+void Tokenizer::reset() {
+    start = text.find_first_not_of(separators);
+}
+
+void Tokenizer::skip(int n) {
+    for(int i = 0; i < n; ++i) {
+        if(!has_next()) throw TokenizerException("No more tokens", "");
+
+        size_t end = text.find_first_of(separators, start);
 
         if(end == std::string::npos) {
-            tokens.push_back(str.substr(start));
+            start = end;
         } else {
-            tokens.push_back(str.substr(start, end-start));
+            start = text.find_first_not_of(separators, end+1);
         }
-    } while(end != std::string::npos);
+    }
 }
 
-Tokenizer::Tokenizer(const Tokenizer & rhs) : tokens(rhs.tokens) {
+bool Tokenizer::has_next() const {
+    return start != std::string::npos;
 }
 
-Tokenizer::Tokenizer(Tokenizer && rhs) : tokens(std::move(rhs.tokens)) {
+std::string Tokenizer::next() {
+    if(!has_next()) throw TokenizerException("No more tokens", "");
+
+    size_t end = text.find_first_of(separators, start);
+
+    if(end == std::string::npos) {
+        std::string token = text.substr(start);
+        start = end;
+        return token;
+    }
+
+    std::string token = text.substr(start, end-start);
+    start = text.find_first_not_of(separators, end+1);
+    return token;
 }
 
-Tokenizer::iterator Tokenizer::begin() {
-    return tokens.begin();
+size_t Tokenizer::count() {
+    // lazy evaluation
+    if (ntokens == std::string::npos) {
+      ntokens = utils::count_words(text, separators);
+    }
+    return ntokens;
 }
 
-Tokenizer::iterator Tokenizer::end() {
-    return tokens.end();
+std::vector<std::string> Tokenizer::as_vector() {
+  // store current state
+  size_t current = start;
+
+  reset();
+
+  // generate vector
+  std::vector<std::string> tokens;
+
+  while(has_next()) {
+    tokens.emplace_back(next());
+  }
+
+  // restore state
+  start = current;
+
+  return tokens;
 }
 
-Tokenizer::const_iterator Tokenizer::cbegin() const {
-    return tokens.cbegin();
-}
 
-Tokenizer::const_iterator Tokenizer::cend() const {
-    return tokens.cend();
-}
-
-std::string & Tokenizer::operator[](size_t index) {
-    return tokens[index];
-}
-
-size_t Tokenizer::count() const {
-    return tokens.size();
-}
-
-
-ValueTokenizer::ValueTokenizer(const std::string & str, const std::string & seperators) : tokens(str, seperators) {
-    current  = tokens.begin();
+ValueTokenizer::ValueTokenizer(const std::string & str, const std::string & separators) : tokens(str, separators) {
 }
 
 ValueTokenizer::ValueTokenizer(const ValueTokenizer & rhs) : tokens(rhs.tokens) {
-    current  = tokens.begin();
 }
 
 ValueTokenizer::ValueTokenizer(ValueTokenizer && rhs) : tokens(std::move(rhs.tokens)) {
-    current  = tokens.begin();
 }
 
 bool ValueTokenizer::has_next() const {
-    return current != tokens.cend();
+    return tokens.has_next();
 }
 
 std::string ValueTokenizer::next_string() {
     if (has_next()) {
-        std::string value = *current;
-        ++current;
+        std::string value = tokens.next();
         return value;
     }
     return "";
@@ -95,11 +136,11 @@ std::string ValueTokenizer::next_string() {
 
 int ValueTokenizer::next_int() {
     if (has_next()) {
-        if(!utils::is_integer(*current)) {
-            throw InvalidIntegerException(*current);
+        std::string current = tokens.next();
+        if(!utils::is_integer(current)) {
+            throw InvalidIntegerException(current);
         }
-        int value = atoi(current->c_str());
-        ++current;
+        int value = atoi(current.c_str());
         return value;
     }
     return 0;
@@ -107,45 +148,44 @@ int ValueTokenizer::next_int() {
 
 bigint ValueTokenizer::next_bigint() {
     if (has_next()) {
-        if(!utils::is_integer(*current)) {
-            throw InvalidIntegerException(*current);
+        std::string current = tokens.next();
+        if(!utils::is_integer(current)) {
+            throw InvalidIntegerException(current);
         }
-        bigint value = ATOBIGINT(current->c_str());
-        ++current;
+        bigint value = ATOBIGINT(current.c_str());
         return value;
     }
     return 0;
 }
 
 tagint ValueTokenizer::next_tagint() {
-    if (current != tokens.end()) {
-        if(!utils::is_integer(*current)) {
-            throw InvalidIntegerException(*current);
+    if (has_next()) {
+        std::string current = tokens.next();
+        if(!utils::is_integer(current)) {
+            throw InvalidIntegerException(current);
         }
-        tagint value = ATOTAGINT(current->c_str());
-        ++current;
+        tagint value = ATOTAGINT(current.c_str());
         return value;
     }
     return 0;
 }
 
 double ValueTokenizer::next_double() {
-    if (current != tokens.end()) {
-        if(!utils::is_double(*current)) {
-            throw InvalidFloatException(*current);
+    if (has_next()) {
+        std::string current = tokens.next();
+        if(!utils::is_double(current)) {
+            throw InvalidFloatException(current);
         }
-
-        double value = atof(current->c_str());
-        ++current;
+        double value = atof(current.c_str());
         return value;
     }
     return 0.0;
 }
 
-void ValueTokenizer::skip(int ntokens) {
-    current = std::next(current, ntokens);
+void ValueTokenizer::skip(int n) {
+    tokens.skip(n);
 }
 
-size_t ValueTokenizer::count() const {
+size_t ValueTokenizer::count() {
     return tokens.count();
 }

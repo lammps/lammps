@@ -256,7 +256,6 @@ void Comm::init_exchange()
   int nfix = modify->nfix;
   Fix **fix = modify->fix;
 
-  int onefix;
   maxexchange_fix = 0;
   for (int i = 0; i < nfix; i++)
     maxexchange_fix += fix[i]->maxexchange;

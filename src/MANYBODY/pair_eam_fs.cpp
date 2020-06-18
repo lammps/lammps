@@ -122,8 +122,6 @@ void PairEAMFS::read_file(char *filename)
     PotentialFileReader reader(lmp, filename, "EAM");
 
     try {
-      char * line = nullptr;
-
       reader.skip_line();
       reader.skip_line();
       reader.skip_line();
@@ -132,7 +130,7 @@ void PairEAMFS::read_file(char *filename)
       ValueTokenizer values = reader.next_values(1);
       file->nelements = values.next_int();
 
-      if (values.count() != file->nelements + 1)
+      if ((int)values.count() != file->nelements + 1)
         error->one(FLERR,"Incorrect element names in EAM potential file");
 
       file->elements = new char*[file->nelements];

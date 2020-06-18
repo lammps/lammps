@@ -56,6 +56,8 @@
 ------------------------------------------------------------------------- */
 
 #include "kim_param.h"
+#include "fix_store_kim.h"
+#include "pair_kim.h"
 #include <mpi.h>
 #include <cstring>
 #include <string>
@@ -66,8 +68,7 @@
 #include "modify.h"
 #include "variable.h"
 #include "force.h"
-#include "fix_store_kim.h"
-#include "pair_kim.h"
+#include "fmt/format.h"
 
 extern "C"
 {
@@ -157,10 +158,9 @@ void KimParam::command(int narg, char **arg)
   if (narg < 4)
     error->all(FLERR, "Illegal kim_param command");
 
-  kim_param_get = (strcmp(arg[0], "get") == 0);
-  kim_param_set = (strcmp(arg[0], "set") == 0);
+  std::string kim_param_get_set = arg[0];
 
-  if (!kim_param_get && !kim_param_set) {
+  if ((kim_param_get_set != "get") && (kim_param_get_set != "set")) {
     std::string msg("Incorrect arguments in kim_param command.\n");
     msg += "'kim_param get/set' is mandatory.";
     error->all(FLERR, msg);
@@ -193,7 +193,8 @@ void KimParam::command(int narg, char **arg)
   else
     error->all(FLERR, "Must use 'kim_init' before 'kim_param'");
 
-  kim_param_log_delimiter("begin");
+  input->write_echo(fmt::format("#=== BEGIN kim-param {} ==================="
+                                "==================\n",kim_param_get_set));
 
   KIM_Model *pkim = NULL;
 
@@ -211,7 +212,7 @@ void KimParam::command(int narg, char **arg)
       if (!pkim)
         error->all(FLERR, "Unable to get the KIM Portable Model.");
 
-      if (kim_param_set) {
+      if (kim_param_get_set == "set") {
         atom_type_list = pairKIM->get_atom_type_list();
         if (atom_type_list.empty())
           error->all(FLERR, "The requested atom type list is empty.");
@@ -220,7 +221,7 @@ void KimParam::command(int narg, char **arg)
       error->all(FLERR, "Pair style is defined,"
                         " but there is no match for kim style in lammps.");
   } else {
-    if (kim_param_set) {
+    if (kim_param_get_set == "set") {
       std::string msg("Wrong kim_param set command.\n");
       msg += "To set the new parameter values, pair style must be assigned.\n";
       msg += "Must use 'kim_interactions' or";
@@ -259,7 +260,7 @@ void KimParam::command(int narg, char **arg)
   KIM_Model_GetNumberOfParameters(pkim, &numberOfParameters);
   if (numberOfParameters) {
     // Get the parameters
-    if (kim_param_get) {
+    if (kim_param_get_set == "get") {
       // Parameter name
       char *paramname = NULL;
       // Variable name
@@ -532,38 +533,17 @@ void KimParam::command(int narg, char **arg)
   if (!isPairStyleAssigned)
     KIM_Model_Destroy(&pkim);
 
-  kim_param_log_delimiter("end");
+  input->write_echo(fmt::format("#=== END kim-param {} ====================="
+                                "==================\n",kim_param_get_set));
 }
 
 /* ---------------------------------------------------------------------- */
 
-void KimParam::kim_param_log_delimiter(std::string const &begin_end) const
+void KimParam::echo_var_assign(const std::string &name,
+                               const std::string &value) const
 {
-  if (comm->me == 0) {
-    std::string msg;
-    if (begin_end == "begin") {
-      msg = "#=== BEGIN kim-param ";
-      msg += kim_param_get ? "get " : "set ";
-      msg += "=====================================\n";
-    } else if (begin_end == "end") {
-      msg = "#=== END kim-param ";
-      msg += kim_param_get ? "get " : "set ";
-      msg += "=======================================\n\n";
-    }
-    input->write_echo(msg.c_str());
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void KimParam::echo_var_assign(std::string const &name,
-                               std::string const &value) const
-{
-  if (comm->me == 0) {
-    std::string msg;
-    msg += "variable " + name + " string " + value + "\n";
-    input->write_echo(msg.c_str());
-  }
+  input->write_echo(fmt::format("variable {} string {}\n",
+                                name, value));
 }
 
 #undef SNUM

@@ -64,6 +64,7 @@ class Fix : protected Pointers {
   int maxexchange;               // max # of per-atom values for Comm::exchange()
   int maxexchange_dynamic;       // 1 if fix sets maxexchange dynamically
   int pre_exchange_migrate;      // 1 if fix migrates atoms in pre_exchange()
+  int stores_ids;                 // 1 if fix stores atom IDs
 
   int scalar_flag;               // 0/1 if compute_scalar() function exists
   int vector_flag;               // 0/1 if compute_vector() function exists
@@ -241,17 +242,6 @@ class Fix : protected Pointers {
   void v_tally(int, int *, double, double *);
   void v_tally(int, double *);
   void v_tally(int, int, double);
-
-  // union data struct for packing 32-bit and 64-bit ints into double bufs
-  // see atom_vec.h for documentation
-
-  union ubuf {
-    double d;
-    int64_t i;
-    ubuf(double arg) : d(arg) {}
-    ubuf(int64_t arg) : i(arg) {}
-    ubuf(int arg) : i(arg) {}
-  };
 };
 
 namespace FixConst {

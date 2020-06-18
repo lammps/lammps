@@ -80,10 +80,7 @@ public:
   void command(int, char **);
 
 private:
-  void kim_param_log_delimiter(std::string const &begin_end) const;
-
-  void echo_var_assign(std::string const &name, std::string const &value)
-      const;
+  void echo_var_assign(const std::string &name, const std::string &value) const;
 
 private:
   bool kim_param_get;

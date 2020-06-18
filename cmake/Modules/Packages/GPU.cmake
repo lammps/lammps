@@ -298,8 +298,6 @@ elseif(GPU_API STREQUAL "HIP")
     # add hipCUB
     target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
     target_compile_definitions(gpu PRIVATE -DUSE_HIP_DEVICE_SORT)
-    find_package(rocprim REQUIRED CONFIG PATHS "/opt/rocm/rocprim")
-    find_package(hipcub REQUIRED CONFIG PATHS "/opt/rocm/hipcub")
 
     if(HIP_PLATFORM STREQUAL "nvcc")
       find_package(CUB)

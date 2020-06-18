@@ -376,7 +376,7 @@ void PairPACE::init_style() {
 double PairPACE::init_one(int i, int j) {
     if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
     //cutoff from the basis set's radial functions settings
-    return basis_set->radial_functions.cut(map[i], map[j]);
+    return basis_set->radial_functions->cut(map[i], map[j]);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -57,7 +57,6 @@ check_for_autogen_files(${LAMMPS_SOURCE_DIR})
 # compiler tests
 # these need ot be done early (before further tests).
 #####################################################################
-include(CheckCCompilerFlag)
 include(CheckIncludeFileCXX)
 
 # set required compiler flags and compiler/CPU arch specific optimizations
@@ -82,15 +81,6 @@ endif()
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
-# GNU compiler specific features for testing
-if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  option(ENABLE_COVERAGE "Enable collecting code coverage data" OFF)
-  mark_as_advanced(ENABLE_COVERAGE)
-  if(ENABLE_COVERAGE)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
-  endif()
-endif()
 
 ########################################################################
 # User input options                                                   #
@@ -246,6 +236,28 @@ if(BUILD_OMP)
     target_compile_definitions(lammps PRIVATE -DLAMMPS_OMP_COMPAT=3)
   endif()
   target_link_libraries(lammps PRIVATE OpenMP::OpenMP_CXX)
+endif()
+
+# Compiler specific features for testing
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  option(ENABLE_COVERAGE "Enable collecting code coverage data" OFF)
+  mark_as_advanced(ENABLE_COVERAGE)
+  if(ENABLE_COVERAGE)
+    target_compile_options(lammps PUBLIC --coverage)
+    target_link_options(lammps PUBLIC --coverage)
+  endif()
+endif()
+if((${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU") OR (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
+  set(ENABLE_SANITIZER "none" CACHE STRING "Select a code sanitizer option (none (default), address, thread, undefined)")
+  mark_as_advanced(ENABLE_SANITIZER)
+  set(ENABLE_SANITIZER_VALUES none address thread undefined)
+  set_property(CACHE ENABLE_SANITIZER PROPERTY STRINGS ${ENABLE_SANITIZER_VALUES})
+  validate_option(ENABLE_SANITIZER ENABLE_SANITIZER_VALUES)
+  string(TOLOWER ${ENABLE_SANITIZER} ENABLE_SANITIZER)
+  if (NOT ENABLE_SANITIZER STREQUAL "none")
+    target_compile_options(lammps PUBLIC -fsanitize=${ENABLE_SANITIZER})
+    target_link_options(lammps PUBLIC -fsanitize=${ENABLE_SANITIZER})
+  endif()
 endif()
 
 if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)

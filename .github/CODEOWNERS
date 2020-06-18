@@ -10,6 +10,7 @@ lib/molfile/*         @akohlmey
 lib/qmmm/*            @akohlmey
 lib/vtk/*             @rbberger
 lib/kim/*             @ellio167
+lib/mesont/*          @iafoss
 
 # whole packages
 src/COMPRESS/*        @akohlmey
@@ -25,6 +26,7 @@ src/USER-COLVARS/*    @giacomofiorin
 src/USER-INTEL/*      @wmbrownintel
 src/USER-MANIFOLD/*   @Pakketeretet2
 src/USER-MEAMC/*      @martok
+src/USER-MESONT/*     @iafoss
 src/USER-MOFFF/*      @hheenen
 src/USER-MOLFILE/*    @akohlmey
 src/USER-NETCDF/*     @pastewka
@@ -111,6 +113,7 @@ src/fix_nh.*              @athomps
 src/info.*                @akohlmey @rbberger
 src/timer.*               @akohlmey
 src/min*                  @sjplimp @stanmoore1
+src/utils.*               @akohlmey @rbberger
 
 # tools
 tools/msi2lmp/*       @akohlmey
@@ -123,6 +126,8 @@ unittest/*            @akohlmey @rbberger
 # cmake
 cmake/*               @junghans @rbberger
 cmake/Modules/Packages/USER-COLVARS.cmake @junghans @rbberger @giacomofiorin
+cmake/Modules/Packages/KIM.cmake @junghans @rbberger @ellio167
+cmake/presets/*.cmake @junghans @rbberger @akohlmey
 
 # python
 python/*              @rbberger

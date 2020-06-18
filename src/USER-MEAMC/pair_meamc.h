@@ -22,6 +22,7 @@ PairStyle(meam,PairMEAMC)
 #define LMP_PAIR_MEAMC_H
 
 #include "pair.h"
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -54,7 +55,7 @@ class PairMEAMC : public Pair {
   double **scale;               // scaling factor for adapt
 
   void allocate();
-  void read_files(char *, char *);
+  void read_files(const std::string &, const std::string &);
   void neigh_strip(int, int *, int *, int **);
 };
 

@@ -35,7 +35,7 @@ pair style.  Pair coefficients can also be set in the data file read
 by the :doc:`read_data <read_data>` command or in a restart file.
 
 I and J can be specified in one of two ways.  Explicit numeric values
-can be used for each, as in the 1st example above.  I <= J is
+can be used for each, as in the first example above.  I <= J is
 required.  LAMMPS sets the coefficients for the symmetric J,I
 interaction to the same values.
 
@@ -66,7 +66,7 @@ specified, which sets the coefficients for type I interacting with
 type I.  This is because the section has exactly N lines, where N =
 the number of atom types.  For this reason, the wild-card asterisk
 should also not be used as part of the I argument.  Thus in a data
-file, the line corresponding to the 1st example above would be listed
+file, the line corresponding to the first example above would be listed
 as
 
 .. parsed-literal::
@@ -86,7 +86,17 @@ Potential files provided with LAMMPS are in the potentials directory
 of the distribution.  For some potentials, such as EAM, other archives
 of suitable files can be found on the Web.  They can be used with
 LAMMPS so long as they are in the format LAMMPS expects, as discussed
-on the individual doc pages.
+on the individual doc pages.  The first line of potential files may
+contain metadata with upper case tags followed their value. These may
+be parsed and used by LAMMPS.  Currently supported are the "DATE:"
+tag and the "UNITS:" tag.  For pair styles that have been programmed
+to support the metadata, the value of the "DATE:" tag is printed to
+the screen and logfile so that the version of a potential file can be
+later identified.  The "UNITS:" tag indicates the :doc:`units <units>`
+setting required for this particular potential file.  If the potential
+file ware created for a different sets of units, LAMMPS will terminate
+with an error.  If the potential file does not contain the tag, no
+check will be made.
 
 When a pair_coeff command using a potential file is specified, LAMMPS
 looks for the potential file in 2 places.  First it looks in the

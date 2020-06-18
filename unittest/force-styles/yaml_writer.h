@@ -20,7 +20,7 @@
 
 class YamlWriter {
 public:
-    YamlWriter(const char * outfile);
+    YamlWriter(const char *outfile);
     virtual ~YamlWriter();
 
     // emitters
@@ -33,11 +33,11 @@ public:
 private:
     FILE *fp;
     yaml_emitter_t emitter;
-    yaml_event_t   event;
+    yaml_event_t event;
 
 private:
-    YamlWriter() {};
-    YamlWriter(const YamlWriter &) {};
+    YamlWriter(){};
+    YamlWriter(const YamlWriter &){};
 };
 
 #endif

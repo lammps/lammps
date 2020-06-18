@@ -247,6 +247,7 @@ void PairSNAPKokkos<Space>::compute(int eflag_in, int vflag_in)
         typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeUiCPU> policy_ui_cpu(((chunk_size+team_size-1)/team_size)*max_neighs,team_size,vector_length);
 
         Kokkos::parallel_for("ComputeUiCPU",policy_ui_cpu,*this);
+
       } else { // GPU, vector parallelism, shared memory, separate ulist and ulisttot to avoid atomics
 
         vector_length = 32;
@@ -518,7 +519,7 @@ void PairSNAPKokkos<Space>::coeff(int narg, char **arg)
   Kokkos::deep_copy(d_map,h_map);
 
   snaKK = SNAKokkos<Space>(rfac0,twojmax,
-                  rmin0,switchflag,bzeroflag);
+                  rmin0,switchflag,bzeroflag,chemflag,bnormflag,wselfallflag,nelements);
   snaKK.grow_rij(0,0);
   snaKK.init();
 }
@@ -558,7 +559,6 @@ void PairSNAPKokkos<Space>::operator() (TagPairSNAPComputeNeigh,const typename K
 
       const int jtype = type(j);
       const KK_FLOAT rsq = dx*dx + dy*dy + dz*dz;
-      const int elem_j = d_map[jtype];
 
       if ( rsq < rnd_cutsq(itype,jtype) )
        count++;
@@ -588,6 +588,10 @@ void PairSNAPKokkos<Space>::operator() (TagPairSNAPComputeNeigh,const typename K
         my_sna.inside(ii,offset) = j;
         my_sna.wj(ii,offset) = d_wjelem[elem_j];
         my_sna.rcutij(ii,offset) = (radi + d_radelem[elem_j])*rcutfac;
+        if (chemflag)
+          my_sna.element(ii,offset) = elem_j;
+        else
+          my_sna.element(ii,offset) = 0;
       }
       offset++;
     }
@@ -602,8 +606,10 @@ void PairSNAPKokkos<Space>::operator() (TagPairSNAPPreUi,const typename Kokkos::
   // Extract the atom number
   const int ii = team.team_rank() + team.team_size() * (team.league_rank() % ((chunk_size+team.team_size()-1)/team.team_size()));
   if (ii >= chunk_size) return;
+  int itype = type(ii);
+  int ielem = d_map[itype];
 
-  my_sna.pre_ui(team,ii);
+  my_sna.pre_ui(team,ii,ielem);
 }
 
 template<ExecutionSpace Space>
@@ -653,7 +659,8 @@ void PairSNAPKokkos<Space>::operator() (TagPairSNAPZeroYi,const typename Kokkos:
   const int ii = team.league_rank() / ((my_sna.idxu_max+team.team_size()-1)/team.team_size());
   if (ii >= chunk_size) return;
 
-  my_sna.zero_yi(idx,ii);
+  for(int ielem = 0; ielem < nelements; ielem++)
+    my_sna.zero_yi(idx,ii,ielem);
 }
 
 template<ExecutionSpace Space>

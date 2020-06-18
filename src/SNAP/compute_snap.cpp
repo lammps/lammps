@@ -41,7 +41,10 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   extarray = 0;
 
   double rfac0, rmin0;
-  int twojmax, switchflag, bzeroflag;
+  int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
+  radelem = NULL;
+  wjelem = NULL;
+
   int ntypes = atom->ntypes;
   int nargmin = 6+2*ntypes;
 
@@ -53,6 +56,10 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   switchflag = 1;
   bzeroflag = 1;
   quadraticflag = 0;
+  chemflag = 0;
+  bnormflag = 0;
+  wselfallflag = 0;
+  nelements = 1;
 
   // process required arguments
 
@@ -106,11 +113,35 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute snap command");
       quadraticflag = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"chem") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute snap command");
+      chemflag = 1;
+      memory->create(map,ntypes+1,"compute_snap:map");
+      nelements = force->inumeric(FLERR,arg[iarg+1]);
+      for(int i = 0; i < ntypes; i++) {
+        int jelem = force->inumeric(FLERR,arg[iarg+2+i]);
+        if (jelem < 0 || jelem >= nelements)
+          error->all(FLERR,"Illegal compute snap command");
+        map[i+1] = jelem;
+      }
+      iarg += 2+ntypes;
+    } else if (strcmp(arg[iarg],"bnormflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute snap command");
+      bnormflag = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"wselfallflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute snap command");
+      wselfallflag = atoi(arg[iarg+1]);
+      iarg += 2;
     } else error->all(FLERR,"Illegal compute snap command");
   }
 
-  snaptr = new SNA(lmp,rfac0,twojmax,
-                   rmin0,switchflag,bzeroflag);
+  snaptr = new SNA(lmp, rfac0, twojmax,
+                   rmin0, switchflag, bzeroflag,
+                   chemflag, bnormflag, wselfallflag, nelements);
 
   ncoeff = snaptr->ncoeff;
   nperdim = ncoeff;
@@ -141,6 +172,8 @@ ComputeSnap::~ComputeSnap()
   memory->destroy(wjelem);
   memory->destroy(cutsq);
   delete snaptr;
+
+  if (chemflag) memory->destroy(map);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -271,6 +304,9 @@ void ComputeSnap::compute_array()
       const double ytmp = x[i][1];
       const double ztmp = x[i][2];
       const int itype = type[i];
+      int ielem = 0;
+      if (chemflag)
+        ielem = map[itype];
       const double radi = radelem[itype];
       const int* const jlist = firstneigh[i];
       const int jnum = numneigh[i];
@@ -296,6 +332,9 @@ void ComputeSnap::compute_array()
         const double delz = x[j][2] - ztmp;
         const double rsq = delx*delx + dely*dely + delz*delz;
         int jtype = type[j];
+        int jelem = 0;
+        if (chemflag)
+          jelem = map[jtype];
         if (rsq < cutsq[itype][jtype]&&rsq>1e-20) {
           snaptr->rij[ninside][0] = delx;
           snaptr->rij[ninside][1] = dely;
@@ -303,19 +342,19 @@ void ComputeSnap::compute_array()
           snaptr->inside[ninside] = j;
           snaptr->wj[ninside] = wjelem[jtype];
           snaptr->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
+          snaptr->element[ninside] = jelem; // element index for multi-element snap
           ninside++;
         }
       }
 
-      snaptr->compute_ui(ninside);
+      snaptr->compute_ui(ninside, ielem);
       snaptr->compute_zi();
-      snaptr->compute_bi();
+      snaptr->compute_bi(ielem);
 
       for (int jj = 0; jj < ninside; jj++) {
         const int j = snaptr->inside[jj];
-        snaptr->compute_duidrj(snaptr->rij[jj],
-                                    snaptr->wj[jj],
-                                    snaptr->rcutij[jj],jj);
+        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
+                                    snaptr->rcutij[jj], jj, snaptr->element[jj]);
         snaptr->compute_dbidrj();
 
         // Accumulate dBi/dRi, -dBi/dRj
@@ -507,6 +546,8 @@ double ComputeSnap::memory_usage()
     sizeof(double);                                     // snapall
   bytes += nmax*size_peratom * sizeof(double);          // snap_peratom
   bytes += snaptr->memory_usage();                      // SNA object
+  int n = atom->ntypes+1;
+  bytes += n*sizeof(int);        // map
 
   return bytes;
 }

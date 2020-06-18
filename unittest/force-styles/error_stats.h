@@ -20,9 +20,7 @@ class ErrorStats {
 public:
     friend std::ostream &operator<<(std::ostream &out, const ErrorStats &stats);
 
-    ErrorStats() {
-            reset();
-    }
+    ErrorStats() { reset(); }
     virtual ~ErrorStats() {}
 
     void reset();
@@ -33,8 +31,8 @@ public:
     double idx() const { return maxidx; }
 
 private:
-    double sum,sumsq,maxerr;
-    int num,maxidx;
+    double sum, sumsq, maxerr;
+    int num, maxidx;
 };
 
 extern std::ostream &operator<<(std::ostream &out, const ErrorStats &stats);

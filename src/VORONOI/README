@@ -20,8 +20,8 @@ you can test it using an input file from the examples dir:
 
 ./lmp_serial < lammps/examples/voronoi/in.voronoi | grep '^TEST_'
 
-The output should conclude with 'TEST_DONE' and every line should 
-report an error of 0%. 
+The output should conclude with 'TEST_DONE' and every line should
+report an error of 0%.
 
 == Credits and license ==
 

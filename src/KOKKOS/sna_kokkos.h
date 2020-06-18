@@ -61,7 +61,7 @@ inline
   SNAKokkos(const SNAKokkos<Space>& sna, const typename Kokkos::TeamPolicy<DeviceType>::member_type& team);
 
 inline
-  SNAKokkos(KK_FLOAT, int, KK_FLOAT, int, int);
+  SNAKokkos(KK_FLOAT, int, KK_FLOAT, int, int, int, int, int, int);
 
   KOKKOS_INLINE_FUNCTION
   ~SNAKokkos();
@@ -78,7 +78,7 @@ inline
 
   // functions for bispectrum coefficients
   KOKKOS_INLINE_FUNCTION
-  void pre_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team,const int&); // ForceSNAP
+  void pre_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team,const int&, int); // ForceSNAP
   KOKKOS_INLINE_FUNCTION
   void compute_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int, const int); // ForceSNAP
   KOKKOS_INLINE_FUNCTION
@@ -86,7 +86,7 @@ inline
   KOKKOS_INLINE_FUNCTION
   void compute_zi(const int&);    // ForceSNAP
   KOKKOS_INLINE_FUNCTION
-  void zero_yi(const int&,const int&); // ForceSNAP
+  void zero_yi(const int&, const int&, int); // ForceSNAP
   KOKKOS_INLINE_FUNCTION
   void compute_yi(int,
    const t_sna_2d &beta); // ForceSNAP
@@ -134,6 +134,7 @@ inline
   t_sna_2i inside;
   t_sna_2d wj;
   t_sna_2d rcutij;
+  t_sna_2i element;
   t_sna_3d dedr;
   int natom, nmax;
 
@@ -188,7 +189,7 @@ inline
   void init_rootpqarray();    // init()
 
   KOKKOS_INLINE_FUNCTION
-  void add_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int, KK_FLOAT, KK_FLOAT, KK_FLOAT); // compute_ui
+  void add_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int, KK_FLOAT, KK_FLOAT, KK_FLOAT, int); // compute_ui
 
   KOKKOS_INLINE_FUNCTION
   void compute_uarray_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int,
@@ -211,8 +212,16 @@ inline
   // 1 = cosine
   int switch_flag;
 
+  // Chem snap flags
+  int chem_flag;
+  int bnorm_flag;
+  int nelements;
+  int ndoubles;
+  int ntriples;
+
   // Self-weight
   KK_FLOAT wself;
+  int wselfall_flag;
 
   int bzero_flag; // 1 if bzero subtracted from barray
   Kokkos::View<KK_FLOAT*, DeviceType> bzero; // array of B values for isolated atoms

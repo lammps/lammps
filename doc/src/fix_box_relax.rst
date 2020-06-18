@@ -371,7 +371,7 @@ the meaning of the xy,xz,yz tilt factors.
 
 The *scaleyz yes* and *scalexz yes* keyword/value pairs can not be used
 for 2D simulations. *scaleyz yes*\ , *scalexz yes*\ , and *scalexy yes* options
-can only be used if the 2nd dimension in the keyword is periodic,
+can only be used if the second dimension in the keyword is periodic,
 and if the tilt factor is not coupled to the barostat via keywords
 *tri*\ , *yz*\ , *xz*\ , and *xy*\ .
 

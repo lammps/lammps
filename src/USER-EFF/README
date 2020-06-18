@@ -46,7 +46,7 @@ Chemistry and Chemical Engineering, 139-74
 Phone: (626) 395-3591
 e-mail: ajaramil@wag.caltech.edu
 
-Co-Authors: 
+Co-Authors:
 Julius Su (jsu@wag.caltech.edu)
 William A. Goddard III (wag@wag.caltech.edu)
 
@@ -57,11 +57,11 @@ LAMMPS architecture and for their help in customizing some of the
 required LAMMPS core modules.
 
 Version 01/2010: Special thanks to:
-- Hai Xiao (Caltech) for reviewing the fixed-core implementation and 
+- Hai Xiao (Caltech) for reviewing the fixed-core implementation and
   providing useful insights to improve it, and for his work on the effective core pseudopotential.
-- Vaclav Cvicek (Caltech) for thoroughly revising the units, for finding a bug in the 
+- Vaclav Cvicek (Caltech) for thoroughly revising the units, for finding a bug in the
   fix_langevin_eff radial scaling factors, and for suggesting changes to clean-up the code.
-- Patrick Theofanis (Caltech) for providing an optimized set of parameters for the Si ECP 
+- Patrick Theofanis (Caltech) for providing an optimized set of parameters for the Si ECP
   (default) and for providing basic cases.
 - Qi An (Caltech) for providing feedback on usage, application cases, and testing.
 
@@ -76,16 +76,16 @@ different eFF energy components (eke, epauli, ecoul and errestrain),
 fixed radial scaling factors in the eff langevin thermostat.
 
 12/2011: Added support for "zero" option in fix langevin/eff (see doc), and
-adjusted fix_langevin_eff.cpp to correctly thermostat between nuclear and electronic dof 
+adjusted fix_langevin_eff.cpp to correctly thermostat between nuclear and electronic dof
 (required additional scaling of friction term in the Langevin equations of motion).
 Radial electron mass now scales as a function of system dimension.
 
 Bug fixes:
 (10-2011): Thanks to Christian Chenard-Lemire (U Montreal) for reporting a bug in the
 fixed pair_eff_cut.cpp fixedcore-pseudocore interactions (an incorrect index and a missing
-elec-core call to account for the 2 electrons from the fixed core.)     
-(12-2011): Corrected undefined natom variable in fix_langevin_eff (recent changes in 
-main fix_langevin class caused compilation error in user-eff).  
+elec-core call to account for the 2 electrons from the fixed core.)
+(12-2011): Corrected undefined natom variable in fix_langevin_eff (recent changes in
+main fix_langevin class caused compilation error in user-eff).
 Corrected thermostat in fix langevin/eff as described in version 12/2011.
 
 

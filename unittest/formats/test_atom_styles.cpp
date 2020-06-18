@@ -23,17 +23,17 @@
 #include <mpi.h>
 
 #if !defined(_FORTIFY_SOURCE) || (_FORTIFY_SOURCE == 0)
-#  if defined(__INTEL_COMPILER)
-#    define _do_nothing
-#  elif defined(__GNUC__)
-#    if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 9))
-#      pragma GCC optimize ("no-var-tracking-assignments","O0")
-#    else
-#      pragma GCC optimize ("no-var-tracking-assignments")
-#    endif
-#  else
-#    define _do_nothing
-#  endif
+#if defined(__INTEL_COMPILER)
+#define _do_nothing
+#elif defined(__GNUC__)
+#if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 9))
+#pragma GCC optimize("no-var-tracking-assignments", "O0")
+#else
+#pragma GCC optimize("no-var-tracking-assignments")
+#endif
+#else
+#define _do_nothing
+#endif
 #endif
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
@@ -691,7 +691,7 @@ TEST_F(AtomStyleTest, charge)
     ASSERT_DOUBLE_EQ(q[0], -0.5);
     ASSERT_DOUBLE_EQ(q[1], 0.5);
     ASSERT_DOUBLE_EQ(q[2], -1.0);
-    ASSERT_DOUBLE_EQ(q[3],  1.0);
+    ASSERT_DOUBLE_EQ(q[3], 1.0);
 
     ASSERT_DOUBLE_EQ(lmp->atom->mass[1], 4.0);
     ASSERT_DOUBLE_EQ(lmp->atom->mass[2], 2.4);

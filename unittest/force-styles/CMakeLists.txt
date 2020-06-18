@@ -15,6 +15,11 @@ if(BUILD_MPI)
 else()
   target_link_libraries(style_tests PUBLIC mpi_stubs)
 endif()
+# propagate sanitizer options to test tools
+if (NOT ENABLE_SANITIZER STREQUAL "none")
+   target_compile_options(style_tests PUBLIC -fsanitize=${ENABLE_SANITIZER})
+   target_link_options(style_tests PUBLIC -fsanitize=${ENABLE_SANITIZER})
+endif()
 
 # unit test for error stats class
 add_executable(test_error_stats test_error_stats.cpp)

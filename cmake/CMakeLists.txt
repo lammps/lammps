@@ -335,15 +335,8 @@ endforeach()
 
 set(CMAKE_TUNE_FLAGS "${CMAKE_TUNE_DEFAULT}" CACHE STRING "Compiler specific optimization or instrumentation")
 separate_arguments(CMAKE_TUNE_FLAGS)
-include(CheckCXXCompilerFlag)
 foreach(_FLAG ${CMAKE_TUNE_FLAGS})
-  string(REGEX REPLACE "[=\"]" "" _FLAGX ${_FLAG})
-  check_cxx_compiler_flag("${_FLAG}" COMPILER_SUPPORTS${_FLAGX})
-  if(COMPILER_SUPPORTS${_FLAGX})
-    target_compile_options(lammps PRIVATE ${_FLAG})
-  else()
-    message(WARNING "${_FLAG} found in CMAKE_TUNE_FLAGS, but not supported by the compiler, skipping")
-  endif()
+  target_compile_options(lammps PRIVATE ${_FLAG})
 endforeach()
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #

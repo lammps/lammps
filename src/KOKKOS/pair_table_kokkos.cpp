@@ -57,7 +57,6 @@ PairTableKokkos<Space>::~PairTableKokkos()
   h_table = nullptr;
   delete d_table;
   d_table = nullptr;
-  copymode = true; //prevents base class destructor from running
 }
 
 /* ---------------------------------------------------------------------- */
@@ -65,6 +64,8 @@ PairTableKokkos<Space>::~PairTableKokkos()
 template<ExecutionSpace Space>
 void PairTableKokkos<Space>::compute(int eflag_in, int vflag_in)
 {
+  copymode = 1;
+
   if(update_table)
     create_kokkos_tables();
   if(tabstyle == LOOKUP)
@@ -75,6 +76,8 @@ void PairTableKokkos<Space>::compute(int eflag_in, int vflag_in)
     compute_style<SPLINE>(eflag_in,vflag_in);
   if(tabstyle == BITMAP)
     compute_style<BITMAP>(eflag_in,vflag_in);
+
+  copymode = 0;
 }
 
 template<ExecutionSpace Space>
@@ -107,6 +110,7 @@ void PairTableKokkos<Space>::compute_style(int eflag_in, int vflag_in)
   if (eflag || vflag) atomKK->modified(Space,datamask_modify);
   else atomKK->modified(Space,F_MASK);
 
+  x = DualViewHelper<Space>::view(atomKK->k_x);
   f = DualViewHelper<Space>::view(atomKK->k_f);
   type = DualViewHelper<Space>::view(atomKK->k_type);
   nlocal = atom->nlocal;

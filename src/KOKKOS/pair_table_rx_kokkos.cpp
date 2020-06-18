@@ -186,6 +186,8 @@ PairTableRXKokkos<Space>::~PairTableRXKokkos()
 template<ExecutionSpace Space>
 void PairTableRXKokkos<Space>::compute(int eflag_in, int vflag_in)
 {
+  copymode = 1;
+
   if(update_table)
     create_kokkos_tables();
   if(tabstyle == LOOKUP)
@@ -196,6 +198,8 @@ void PairTableRXKokkos<Space>::compute(int eflag_in, int vflag_in)
     compute_style<SPLINE>(eflag_in,vflag_in);
   if(tabstyle == BITMAP)
     compute_style<BITMAP>(eflag_in,vflag_in);
+
+  copymode = 0;
 }
 
 KOKKOS_INLINE_FUNCTION static int sbmask(const int& j)

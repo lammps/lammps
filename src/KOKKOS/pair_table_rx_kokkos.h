@@ -74,7 +74,7 @@ class PairTableRXKokkos : public PairTable {
     typename AT::t_float_1d innersq,invdelta,deltasq6;
     typename AT::t_float_2d rsq,drsq,e,de,f,df,e2,f2;
 
-    TableDevice(const TableDual *rhs) {
+    void copy(const TableDual *rhs) {
       cutsq = DualViewHelper<Space>::view(rhs->k_cutsq);
       tabindex = DualViewHelper<Space>::view(rhs->k_tabindex);
       nshiftbits = DualViewHelper<Space>::view(rhs->k_nshiftbits);
@@ -100,7 +100,7 @@ class PairTableRXKokkos : public PairTable {
     HAT::t_float_1d innersq,invdelta,deltasq6;
     HAT::t_float_2d rsq,drsq,e,de,f,df,e2,f2;
 
-    TableHost(const TableDual *rhs) {
+    void copy(const TableDual *rhs) {
       cutsq = rhs->k_cutsq.h_view;
       tabindex = rhs->k_tabindex.h_view;
       nshiftbits = rhs->k_nshiftbits.h_view;

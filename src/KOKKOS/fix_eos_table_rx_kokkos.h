@@ -100,7 +100,7 @@ class FixEOStableRXKokkos : public FixEOStableRX {
     typename AT::t_float_1d invdelta;
     typename AT::t_float_2d r,e,de;
 
-    TableDevice(const TableDual *rhs) {
+    void copy(const TableDual *rhs) {
       lo = DualViewHelper<Space>::view(rhs->k_lo);
       hi = DualViewHelper<Space>::view(rhs->k_hi);
       invdelta = DualViewHelper<Space>::view(rhs->k_invdelta);
@@ -115,7 +115,7 @@ class FixEOStableRXKokkos : public FixEOStableRX {
     HAT::t_float_1d invdelta;
     HAT::t_float_2d r,e,de;
 
-    TableHost(const TableDual *rhs) {
+    void copy(const TableDual *rhs) {
       lo = rhs->k_lo.h_view;
       hi = rhs->k_hi.h_view;
       invdelta = rhs->k_invdelta.h_view;

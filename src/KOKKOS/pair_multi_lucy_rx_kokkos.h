@@ -144,7 +144,7 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
     typename AT::t_float_1d innersq,invdelta;
     typename AT::t_float_2d rsq,e,de,f,df;
 
-    TableDevice(const TableDual *rhs) {
+    void copy(const TableDual *rhs) {
       tabindex = DualViewHelper<Space>::view(rhs->k_tabindex);
       innersq = DualViewHelper<Space>::view(rhs->k_innersq);
       invdelta = DualViewHelper<Space>::view(rhs->k_invdelta);
@@ -161,7 +161,7 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
     HAT::t_float_1d innersq,invdelta;
     HAT::t_float_2d rsq,e,de,f,df;
 
-    TableHost(const TableDual *rhs) {
+    void copy(const TableDual *rhs) {
       tabindex = rhs->k_tabindex.h_view;
       innersq = rhs->k_innersq.h_view;
       invdelta = rhs->k_invdelta.h_view;

@@ -147,8 +147,8 @@ PairTableRXKokkos<Space>::PairTableRXKokkos(LAMMPS *lmp) : PairTable(lmp)
                   DVECTOR_MASK | UCG_MASK | UCGNEW_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK | UCG_MASK | UCGNEW_MASK;
   k_table = new TableDual();
-  h_table = new TableHost(k_table);
-  d_table = new TableDevice(k_table);
+  h_table = new TableHost();
+  d_table = new TableDevice();
   fractionalWeighting = true;
 
   site1 = nullptr;
@@ -839,7 +839,8 @@ void PairTableRXKokkos<Space>::create_kokkos_tables()
     memoryKK->create_kokkos(k_table->k_drsq,ntables,ntable,"Table::drsq");
   }
 
-
+  h_table->copy(k_table);
+  d_table->copy(k_table);
 
   for(int i=0; i < ntables; i++) {
     Table* tb = &tables[i];
@@ -974,6 +975,8 @@ void PairTableRXKokkos<Space>::allocate()
   memory->create(setflag,nt,nt,"pair:setflag");
   memoryKK->create_kokkos(k_table->k_cutsq,cutsq,nt,nt,"pair:cutsq");
   memoryKK->create_kokkos(k_table->k_tabindex,tabindex,nt,nt,"pair:tabindex");
+  h_table->copy(k_table);
+  d_table->copy(k_table);
   d_table_const.cutsq = d_table->cutsq;
   d_table_const.tabindex = d_table->tabindex;
 

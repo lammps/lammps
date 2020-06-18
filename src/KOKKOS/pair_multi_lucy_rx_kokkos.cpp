@@ -64,8 +64,8 @@ PairMultiLucyRXKokkos<Space>::PairMultiLucyRXKokkos(LAMMPS *lmp) : PairMultiLucy
 
   update_table = 1;
   k_table = new TableDual();
-  h_table = new TableHost(k_table);
-  d_table = new TableDevice(k_table);
+  h_table = new TableHost();
+  d_table = new TableDevice();
 
   k_error_flag = DAT::tdual_int_scalar("pair:error_flag");
 }
@@ -877,6 +877,9 @@ void PairMultiLucyRXKokkos<Space>::create_kokkos_tables()
     memoryKK->create_kokkos(k_table->k_df,ntables,tlm1,"Table::df");
   }
 
+  h_table->copy(k_table);
+  d_table->copy(k_table);
+
   for(int i=0; i < ntables; i++) {
     Table* tb = &tables[i];
 
@@ -941,6 +944,8 @@ void PairMultiLucyRXKokkos<Space>::allocate()
   k_cutsq.modify_host();
 
   memoryKK->create_kokkos(k_table->k_tabindex,tabindex,nt,nt,"pair:tabindex");
+  h_table->copy(k_table);
+  d_table->copy(k_table);
   d_table_const.tabindex = d_table->tabindex;
 
   memset(&setflag[0][0],0,nt*nt*sizeof(int));

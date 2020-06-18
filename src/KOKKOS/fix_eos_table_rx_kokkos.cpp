@@ -51,8 +51,8 @@ FixEOStableRXKokkos<Space>::FixEOStableRXKokkos(LAMMPS *lmp, int narg, char **ar
 
   update_table = 1;
   k_table = new TableDual();
-  h_table = new TableHost(k_table);
-  d_table = new TableDevice(k_table);
+  h_table = new TableHost();
+  d_table = new TableDevice();
 
   k_error_flag = DAT::tdual_int_scalar("fix:error_flag");
   k_warning_flag = DAT::tdual_int_scalar("fix:warning_flag");
@@ -526,6 +526,9 @@ void FixEOStableRXKokkos<Space>::create_kokkos_tables()
     memoryKK->create_kokkos(k_table->k_e,ntables,tablength,"Table::e");
     memoryKK->create_kokkos(k_table->k_de,ntables,tlm1,"Table::de");
   }
+
+  h_table->copy(k_table);
+  d_table->copy(k_table);
 
   for(int i=0; i < ntables; i++) {
     Table* tb = &tables[i];

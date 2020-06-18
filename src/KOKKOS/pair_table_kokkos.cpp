@@ -57,6 +57,13 @@ PairTableKokkos<Space>::~PairTableKokkos()
   h_table = nullptr;
   delete d_table;
   d_table = nullptr;
+
+  if (allocated) {
+    memory->destroy(setflag);
+    setflag = nullptr;
+    cutsq = nullptr;
+    tabindex = nullptr;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

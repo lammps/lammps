@@ -25,10 +25,12 @@ void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, DOUB
 
     gr.init(nradbase, "gr");
     dgr.init(nradbase, "dgr");
+    d2gr.init(nradbase, "d2gr");
 
 
     fr.init(nradial, lmax + 1, "fr");
     dfr.init(nradial, lmax + 1, "dfr");
+    d2fr.init(nradial, lmax + 1, "d2fr");
 
 
     cheb.init(nradbase + 1, "cheb");
@@ -60,7 +62,6 @@ void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, DOUB
     lambdahc.fill(1.);
 
 }
-
 
 
 /**
@@ -300,26 +301,32 @@ Function that gets radial function from look-up table using splines.
 */
 void
 ACERadialFunctions::evaluate(DOUBLE_TYPE r, NS_TYPE nradbase_c, NS_TYPE nradial_c, SPECIES_TYPE mu_i,
-                             SPECIES_TYPE mu_j) {
+                             SPECIES_TYPE mu_j, bool calc_second_derivatives) {
     auto &spline_gk = splines_gk(mu_i, mu_j);
     auto &spline_rnl = splines_rnl(mu_i, mu_j);
     auto &spline_hc = splines_hc(mu_i, mu_j);
 
-    spline_gk.calcSplines(r); // populate  splines_gk.values, splines_gk.derivatives;
+    spline_gk.calcSplines(r, calc_second_derivatives); // populate  splines_gk.values, splines_gk.derivatives;
     for (NS_TYPE nr = 0; nr < nradbase_c; nr++) {
         gr(nr) = spline_gk.values(nr);
         dgr(nr) = spline_gk.derivatives(nr);
+        if (calc_second_derivatives)
+            d2gr(nr) = spline_gk.second_derivatives(nr);
     }
 
-    spline_rnl.calcSplines(r);
+    spline_rnl.calcSplines(r, calc_second_derivatives);
     for (size_t ind = 0; ind < fr.get_size(); ind++) {
         fr.get_data(ind) = spline_rnl.values.get_data(ind);
         dfr.get_data(ind) = spline_rnl.derivatives.get_data(ind);
+        if (calc_second_derivatives)
+            d2fr.get_data(ind) = spline_rnl.second_derivatives.get_data(ind);
     }
 
-    spline_hc.calcSplines(r);
+    spline_hc.calcSplines(r, calc_second_derivatives);
     cr = spline_hc.values(0);
     dcr = spline_hc.derivatives(0);
+    if (calc_second_derivatives)
+        d2cr = spline_hc.second_derivatives(0);
 }
 
 
@@ -366,6 +373,47 @@ dcr: derivative of hard core repulsion
 
 }
 
+void
+ACERadialFunctions::evaluate_range(vector<DOUBLE_TYPE> r_vec, NS_TYPE nradbase_c, NS_TYPE nradial_c, SPECIES_TYPE mu_i,
+                                   SPECIES_TYPE mu_j) {
+    if (nradbase_c > nradbase)
+        throw invalid_argument("nradbase_c couldn't be larger than nradbase");
+    if (nradial_c > nradial)
+        throw invalid_argument("nradial_c couldn't be larger than nradial");
+    if (mu_i > nelements)
+        throw invalid_argument("mu_i couldn't be larger than nelements");
+    if (mu_j > nelements)
+        throw invalid_argument("mu_j couldn't be larger than nelements");
+
+    gr_vec.resize(r_vec.size(), nradbase_c);
+    dgr_vec.resize(r_vec.size(), nradbase_c);
+    d2gr_vec.resize(r_vec.size(), nradbase_c);
+
+    fr_vec.resize(r_vec.size(), fr.get_dim(0), fr.get_dim(1));
+    dfr_vec.resize(r_vec.size(), fr.get_dim(0), fr.get_dim(1));
+    d2fr_vec.resize(r_vec.size(), fr.get_dim(0), fr.get_dim(1));
+
+    for (size_t i = 0; i < r_vec.size(); i++) {
+        DOUBLE_TYPE r = r_vec[i];
+        this->evaluate(r, nradbase_c, nradial_c, mu_i, mu_j, true);
+        for (NS_TYPE nr = 0; nr < nradbase_c; nr++) {
+            gr_vec(i, nr) = gr(nr);
+            dgr_vec(i, nr) = dgr(nr);
+            d2gr_vec(i, nr) = d2gr(nr);
+        }
+
+        for (NS_TYPE nr = 0; nr < nradial_c; nr++) {
+            for (LS_TYPE l = 0; l <= lmax; l++) {
+                fr_vec(i, nr, l) = fr(nr, l);
+                dfr_vec(i, nr, l) = dfr(nr, l);
+                d2fr_vec(i, nr, l) = d2fr(nr, l);
+
+            }
+        }
+    }
+
+}
+
 void SplineInterpolator::setupSplines(int num_of_functions, RadialFunctions func,
                                       DOUBLE_TYPE *values,
                                       DOUBLE_TYPE *dvalues, DOUBLE_TYPE deltaSplineBins, DOUBLE_TYPE cutoff) {
@@ -376,8 +424,9 @@ void SplineInterpolator::setupSplines(int num_of_functions, RadialFunctions func
 
     DOUBLE_TYPE r, c[4];
     this->num_of_functions = num_of_functions;
-    this->values.init(num_of_functions);
-    this->derivatives.init(num_of_functions);
+    this->values.resize(num_of_functions);
+    this->derivatives.resize(num_of_functions);
+    this->second_derivatives.resize(num_of_functions);
 
     Array1D<DOUBLE_TYPE> f1g(num_of_functions);
     Array1D<DOUBLE_TYPE> f1gd1(num_of_functions);
@@ -425,8 +474,8 @@ void SplineInterpolator::setupSplines(int num_of_functions, RadialFunctions func
 }
 
 
-void SplineInterpolator::calcSplines(DOUBLE_TYPE r) {
-    DOUBLE_TYPE wl, wl2, wl3, w2l1, w3l2;
+void SplineInterpolator::calcSplines(DOUBLE_TYPE r, bool calc_second_derivatives) {
+    DOUBLE_TYPE wl, wl2, wl3, w2l1, w3l2, w4l2;
     DOUBLE_TYPE c[4];
     int func_id, idx;
     DOUBLE_TYPE x = r * rscalelookup;
@@ -441,16 +490,21 @@ void SplineInterpolator::calcSplines(DOUBLE_TYPE r) {
         wl3 = wl2 * wl;
         w2l1 = 2.0 * wl;
         w3l2 = 3.0 * wl2;
+        w4l2 = 6.0 * wl;
         for (func_id = 0; func_id < num_of_functions; func_id++) {
             for (idx = 0; idx <= 3; idx++) {
                 c[idx] = lookupTable(nl, func_id, idx);
             }
             values(func_id) = c[0] + c[1] * wl + c[2] * wl2 + c[3] * wl3;
             derivatives(func_id) = (c[1] + c[2] * w2l1 + c[3] * w3l2) * rscalelookup;
+            if (calc_second_derivatives)
+                second_derivatives(func_id) = (c[2] + c[3] * w4l2) * rscalelookup * rscalelookup * 2;
         }
     } else { // fill with zeroes
         values.fill(0);
         derivatives.fill(0);
+        if (calc_second_derivatives)
+            second_derivatives.fill(0);
     }
 }
 

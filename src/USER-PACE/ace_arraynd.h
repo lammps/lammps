@@ -237,6 +237,26 @@ public:
     }
 
 
+    vector<size_t> get_shape() const {
+        vector<size_t> sh(ndim);
+        for (int d = 0; d < ndim; d++)
+            sh[d] = dim[d];
+        return sh;
+    }
+
+    vector<size_t> get_strides() const {
+        vector<size_t> sh(ndim);
+        for (int d = 0; d < ndim; d++)
+            sh[d] = s[d];
+        return sh;
+    }
+
+    vector<size_t> get_memory_strides() const {
+        vector<size_t> sh(ndim);
+        for (int d = 0; d < ndim; d++)
+            sh[d] = s[d] * sizeof(T);
+        return sh;
+    }
 };
 
 
@@ -497,6 +517,27 @@ public:
         return *this;
     }
 
+
+    vector<size_t> get_shape() const {
+        vector<size_t> sh(ndim);
+        for (int d = 0; d < ndim; d++)
+            sh[d] = dim[d];
+        return sh;
+    }
+
+    vector<size_t> get_strides() const {
+        vector<size_t> sh(ndim);
+        for (int d = 0; d < ndim; d++)
+            sh[d] = s[d];
+        return sh;
+    }
+
+    vector<size_t> get_memory_strides() const {
+        vector<size_t> sh(ndim);
+        for (int d = 0; d < ndim; d++)
+            sh[d] = s[d] * sizeof(T);
+        return sh;
+    }
 };
 
 
@@ -779,6 +820,27 @@ public:
         return *this;
     }
 
+
+    vector<size_t> get_shape() const {
+        vector<size_t> sh(ndim);
+        for (int d = 0; d < ndim; d++)
+            sh[d] = dim[d];
+        return sh;
+    }
+
+    vector<size_t> get_strides() const {
+        vector<size_t> sh(ndim);
+        for (int d = 0; d < ndim; d++)
+            sh[d] = s[d];
+        return sh;
+    }
+
+    vector<size_t> get_memory_strides() const {
+        vector<size_t> sh(ndim);
+        for (int d = 0; d < ndim; d++)
+            sh[d] = s[d] * sizeof(T);
+        return sh;
+    }
 };
 
 
@@ -1083,6 +1145,27 @@ public:
         return *this;
     }
 
+
+    vector<size_t> get_shape() const {
+        vector<size_t> sh(ndim);
+        for (int d = 0; d < ndim; d++)
+            sh[d] = dim[d];
+        return sh;
+    }
+
+    vector<size_t> get_strides() const {
+        vector<size_t> sh(ndim);
+        for (int d = 0; d < ndim; d++)
+            sh[d] = s[d];
+        return sh;
+    }
+
+    vector<size_t> get_memory_strides() const {
+        vector<size_t> sh(ndim);
+        for (int d = 0; d < ndim; d++)
+            sh[d] = s[d] * sizeof(T);
+        return sh;
+    }
 };
 
 
@@ -1411,6 +1494,27 @@ public:
         return *this;
     }
 
+
+    vector<size_t> get_shape() const {
+        vector<size_t> sh(ndim);
+        for (int d = 0; d < ndim; d++)
+            sh[d] = dim[d];
+        return sh;
+    }
+
+    vector<size_t> get_strides() const {
+        vector<size_t> sh(ndim);
+        for (int d = 0; d < ndim; d++)
+            sh[d] = s[d];
+        return sh;
+    }
+
+    vector<size_t> get_memory_strides() const {
+        vector<size_t> sh(ndim);
+        for (int d = 0; d < ndim; d++)
+            sh[d] = s[d] * sizeof(T);
+        return sh;
+    }
 };
 
 
@@ -1761,6 +1865,27 @@ public:
         return *this;
     }
 
+
+    vector<size_t> get_shape() const {
+        vector<size_t> sh(ndim);
+        for (int d = 0; d < ndim; d++)
+            sh[d] = dim[d];
+        return sh;
+    }
+
+    vector<size_t> get_strides() const {
+        vector<size_t> sh(ndim);
+        for (int d = 0; d < ndim; d++)
+            sh[d] = s[d];
+        return sh;
+    }
+
+    vector<size_t> get_memory_strides() const {
+        vector<size_t> sh(ndim);
+        for (int d = 0; d < ndim; d++)
+            sh[d] = s[d] * sizeof(T);
+        return sh;
+    }
 };
 
 

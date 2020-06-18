@@ -19,12 +19,14 @@ public:
     DOUBLE_TYPE deltaSplineBins = 0.001;
     int ntot = 10000; ///< Number of bins for look-up tables.
     int nlut = 10000; ///< number of nodes in look-up table
-    DOUBLE_TYPE invrscalelookup; ///< inverse of conversion coefficient from distance to lookup table within cutoff range
-    DOUBLE_TYPE rscalelookup; ///< conversion coefficient from distance to lookup table within cutoff range
-    int num_of_functions;///< number of functions to spline-interpolation
+    DOUBLE_TYPE invrscalelookup = 1; ///< inverse of conversion coefficient from distance to lookup table within cutoff range
+    DOUBLE_TYPE rscalelookup = 1; ///< conversion coefficient from distance to lookup table within cutoff range
+    int num_of_functions = 0;///< number of functions to spline-interpolation
 
-    Array1D<DOUBLE_TYPE> values = Array1D<DOUBLE_TYPE>("values"); ///< shape: [func_ind]
-    Array1D<DOUBLE_TYPE> derivatives = Array1D<DOUBLE_TYPE>("derivatives");///< shape: [func_ind]
+    Array1D<DOUBLE_TYPE> values;// = Array1D<DOUBLE_TYPE>("values"); ///< shape: [func_ind]
+    Array1D<DOUBLE_TYPE> derivatives;// = Array1D<DOUBLE_TYPE>("derivatives");///< shape: [func_ind]
+    Array1D<DOUBLE_TYPE> second_derivatives;// = Array1D<DOUBLE_TYPE>("second_derivatives");///< shape: [func_ind]
+
     Array3D<DOUBLE_TYPE> lookupTable = Array3D<DOUBLE_TYPE>("lookupTable");///< shape: [ntot+1][func_ind][4]
 
     /**
@@ -47,7 +49,7 @@ public:
      *
      * @return: populate 'values' and 'derivatives'
      */
-    void calcSplines(DOUBLE_TYPE r);
+    void calcSplines(DOUBLE_TYPE r, bool calc_second_derivatives = false);
 
     /**
      * Populate `values` and `derivatives` arrays with a spline-interpolation for
@@ -89,14 +91,19 @@ public:
    */
     Array1D<DOUBLE_TYPE> gr = Array1D<DOUBLE_TYPE>("gr"); ///< g_k(r) functions, shape: [nradbase]
     Array1D<DOUBLE_TYPE> dgr = Array1D<DOUBLE_TYPE>("dgr"); ///< derivatives of g_k(r) functions, shape: [nradbase]
+    Array1D<DOUBLE_TYPE> d2gr = Array1D<DOUBLE_TYPE>("d2gr"); ///< derivatives of g_k(r) functions, shape: [nradbase]
+
     Array2D<DOUBLE_TYPE> fr = Array2D<DOUBLE_TYPE>("fr");  ///< R_nl(r) functions, shape: [nradial][lmax+1]
     Array2D<DOUBLE_TYPE> dfr = Array2D<DOUBLE_TYPE>(
             "dfr"); ///< derivatives of R_nl(r) functions, shape: [nradial][lmax+1]
+    Array2D<DOUBLE_TYPE> d2fr = Array2D<DOUBLE_TYPE>(
+            "d2fr"); ///< derivatives of R_nl(r) functions, shape: [nradial][lmax+1]
 
 
 
     DOUBLE_TYPE cr; ///< hard-core repulsion
     DOUBLE_TYPE dcr; ///< derivative of hard-core repulsion
+    DOUBLE_TYPE d2cr; ///< derivative of hard-core repulsion
 
     Array5D<DOUBLE_TYPE> crad = Array5D<DOUBLE_TYPE>(
             "crad"); ///< expansion coefficients of radial functions into radial basis function, see Eq. (27) of PRB, shape:  [nelements][nelements][lmax + 1][nradial][nradbase]
@@ -109,7 +116,8 @@ public:
             "lambdahc");; ///< hard-core repulsion coefficients (lambdahc), shape: [nelements][nelements]
 
     virtual void
-    evaluate(DOUBLE_TYPE r, NS_TYPE nradbase_c, NS_TYPE nradial_c, SPECIES_TYPE mu_i, SPECIES_TYPE mu_j) = 0;
+    evaluate(DOUBLE_TYPE r, NS_TYPE nradbase_c, NS_TYPE nradial_c, SPECIES_TYPE mu_i, SPECIES_TYPE mu_j,
+             bool calc_second_derivatives = false) = 0;
 
     virtual void
     init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, DOUBLE_TYPE deltaSplineBins, SPECIES_TYPE nelements,
@@ -147,6 +155,14 @@ public:
 
     //--------------------------------------------------------------------------
 
+    Array2D<DOUBLE_TYPE> gr_vec;
+    Array2D<DOUBLE_TYPE> dgr_vec;
+    Array2D<DOUBLE_TYPE> d2gr_vec;
+
+    Array3D<DOUBLE_TYPE> fr_vec;
+    Array3D<DOUBLE_TYPE> dfr_vec;
+    Array3D<DOUBLE_TYPE> d2fr_vec;
+    //------------------------------------------------------------------------
     /**
      * Default constructor
      */
@@ -250,7 +266,13 @@ public:
      *
      * @return update gr(k), dgr(k), fr(n,l), dfr(n,l), cr, dcr
      */
-    void evaluate(DOUBLE_TYPE r, NS_TYPE nradbase_c, NS_TYPE nradial_c, SPECIES_TYPE mu_i, SPECIES_TYPE mu_j) final;
+    void evaluate(DOUBLE_TYPE r, NS_TYPE nradbase_c, NS_TYPE nradial_c, SPECIES_TYPE mu_i, SPECIES_TYPE mu_j,
+                  bool calc_second_derivatives = false) final;
+
+
+    void
+    evaluate_range(vector<DOUBLE_TYPE> r_vec, NS_TYPE nradbase_c, NS_TYPE nradial_c, SPECIES_TYPE mu_i,
+                   SPECIES_TYPE mu_j);
 
     void chebExpCos(DOUBLE_TYPE lam, DOUBLE_TYPE cut, DOUBLE_TYPE dcut, DOUBLE_TYPE r);
 

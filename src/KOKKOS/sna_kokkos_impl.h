@@ -28,8 +28,8 @@ static const double MY_PI  = 3.14159265358979323846; // pi
 template<class DeviceType>
 inline
 SNAKokkos<DeviceType>::SNAKokkos(double rfac0_in,
-         int twojmax_in,
-         double rmin0_in, int switch_flag_in, int bzero_flag_in)
+         int twojmax_in, double rmin0_in, int switch_flag_in, int bzero_flag_in,
+         int chem_flag_in, int bnorm_flag_in, int wselfall_flag_in, int nelements_in)
 {
   wself = 1.0;
 
@@ -37,6 +37,14 @@ SNAKokkos<DeviceType>::SNAKokkos(double rfac0_in,
   rmin0 = rmin0_in;
   switch_flag = switch_flag_in;
   bzero_flag = bzero_flag_in;
+
+  chem_flag = chem_flag_in;
+  if (chem_flag)
+    nelements = nelements_in;
+  else
+    nelements = 1;
+  bnorm_flag = bnorm_flag_in;
+  wselfall_flag = wselfall_flag_in;
 
   twojmax = twojmax_in;
 
@@ -57,7 +65,10 @@ SNAKokkos<DeviceType>::SNAKokkos(double rfac0_in,
 
     double www = wself*wself*wself;
     for(int j = 0; j <= twojmax; j++)
-      h_bzero[j] = www*(j+1);
+      if (bnorm_flag)
+        h_bzero[j] = www;
+      else
+        h_bzero[j] = www*(j+1);
     Kokkos::deep_copy(bzero,h_bzero);
   }
 }
@@ -223,13 +234,14 @@ void SNAKokkos<DeviceType>::grow_rij(int newnatom, int newnmax)
   inside = t_sna_2i("sna:inside",natom,nmax);
   wj = t_sna_2d("sna:wj",natom,nmax);
   rcutij = t_sna_2d("sna:rcutij",natom,nmax);
+  element = t_sna_2i("sna:rcutij",natom,nmax);
   dedr = t_sna_3d("sna:dedr",natom,nmax,3);
 
-  blist = t_sna_2d_ll("sna:blist",idxb_max,natom);
+  blist = t_sna_2d_ll("sna:blist",idxb_max*ntriples,natom);
   //ulisttot = t_sna_2c("sna:ulisttot",natom,idxu_max);
-  ulisttot = t_sna_2c_ll("sna:ulisttot",idxu_max,natom);
+  ulisttot = t_sna_2c_ll("sna:ulisttot",idxu_max*nelements,natom);
 
-  zlist = t_sna_2c_ll("sna:zlist",idxz_max,natom);
+  zlist = t_sna_2c_ll("sna:zlist",idxz_max*ndoubles,natom);
 
   //ulist = t_sna_3c("sna:ulist",natom,nmax,idxu_max);
 #ifdef KOKKOS_ENABLE_CUDA
@@ -246,7 +258,7 @@ void SNAKokkos<DeviceType>::grow_rij(int newnatom, int newnmax)
 #endif
 
   //ylist = t_sna_2c_lr("sna:ylist",natom,idxu_max);
-  ylist = t_sna_2c_ll("sna:ylist",idxu_max,natom);
+  ylist = t_sna_2c_ll("sna:ylist",idxu_max*nelements,natom);
 }
 
 /* ----------------------------------------------------------------------
@@ -255,8 +267,9 @@ void SNAKokkos<DeviceType>::grow_rij(int newnatom, int newnmax)
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::pre_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int& iatom)
+void SNAKokkos<DeviceType>::pre_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int& iatom, int ielem)
 {
+  for(int jelem = 0; jelem < nelements; jelem++)
   for (int j = 0; j <= twojmax; j++) {
     const int jju = idxu_block(j);
 
@@ -270,9 +283,9 @@ void SNAKokkos<DeviceType>::pre_ui(const typename Kokkos::TeamPolicy<DeviceType>
       // if m is on the "diagonal", initialize it with the self energy.
       // Otherwise zero it out
       SNAcomplex init = {0., 0.};
-      if (m % (j+2) == 0) { init = {wself, 0.0}; }
+      if (m % (j+2) == 0 && (!chem_flag || ielem == jelem || wselfall_flag)) { init = {wself, 0.0}; } //need to map iatom to element
 
-      ulisttot(jjup, iatom) = init;
+      ulisttot(jelem*idxu_max+jjup, iatom) = init;
     });
   }
 
@@ -309,6 +322,7 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
 
   const double wj_local = wj(iatom, jnbor);
   const double rcut = rcutij(iatom, jnbor);
+  const int jpos = element(iatom, jnbor)*idxu_max;
 
   const double rsq = x * x + y * y + z * z;
   const double r = sqrt(rsq);
@@ -335,7 +349,7 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
   Kokkos::single(Kokkos::PerThread(team), [=]() {
     //ulist(0,iatom,jnbor) = { 1.0, 0.0 };
     buf1[0] = {1.,0.};
-    Kokkos::atomic_add(&(ulisttot(0,iatom).re), sfac);
+    Kokkos::atomic_add(&(ulisttot(jpos,iatom).re), sfac);
   });
 
   for (int j = 1; j <= twojmax; j++) {
@@ -364,7 +378,7 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
       int mb = m / n_ma;
 
       // index into global memory array
-      const int jju_index = jju+m;
+      const int jju_index = jju+m+jpos;
       //const int jjup_index = jjup+mb*j+ma;
 
       // index into shared memory buffer for this level
@@ -401,7 +415,7 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
       if (m < total_iters - 1 || j % 2 == 1) {
         const int sign_factor = (((ma+mb)%2==0)?1:-1);
         const int jju_shared_flip = (j+1-mb)*(j+1)-(ma+1);
-        const int jjup_flip = jju + jju_shared_flip; // jju+(j+1-mb)*(j+1)-(ma+1);
+        const int jjup_flip = jju + jju_shared_flip + jpos; // jju+(j+1-mb)*(j+1)-(ma+1);
 
 
         if (sign_factor == 1) {
@@ -454,7 +468,7 @@ void SNAKokkos<DeviceType>::compute_ui_cpu(const typename Kokkos::TeamPolicy<Dev
   z0 = r / tan(theta0);
 
   compute_uarray_cpu(team, iatom, jnbor, x, y, z, z0, r);
-  add_uarraytot(team, iatom, jnbor, r, wj(iatom,jnbor), rcutij(iatom,jnbor));
+  add_uarraytot(team, iatom, jnbor, r, wj(iatom,jnbor), rcutij(iatom,jnbor), element(iatom, jnbor));
 
 }
 
@@ -469,47 +483,62 @@ void SNAKokkos<DeviceType>::compute_zi(const int& iter)
   const int iatom = iter / idxz_max;
   const int jjz = iter % idxz_max;
 
-  const int j1 = idxz(jjz,0);
-  const int j2 = idxz(jjz,1);
-  const int j = idxz(jjz,2);
-  const int ma1min = idxz(jjz,3);
-  const int ma2max = idxz(jjz,4);
-  const int mb1min = idxz(jjz,5);
-  const int mb2max = idxz(jjz,6);
-  const int na = idxz(jjz,7);
-  const int nb = idxz(jjz,8);
+  const int j1 = idxz(jjz, 0);
+  const int j2 = idxz(jjz, 1);
+  const int j = idxz(jjz, 2);
+  const int ma1min = idxz(jjz, 3);
+  const int ma2max = idxz(jjz, 4);
+  const int mb1min = idxz(jjz, 5);
+  const int mb2max = idxz(jjz, 6);
+  const int na = idxz(jjz, 7);
+  const int nb = idxz(jjz, 8);
 
-  const double* cgblock = cglist.data() + idxcg_block(j1,j2,j);
+  const double *cgblock = cglist.data() + idxcg_block(j1, j2, j);
 
-  zlist(jjz,iatom).re = 0.0;
-  zlist(jjz,iatom).im = 0.0;
+  int idouble = 0;
+  for(int elem1 = 0; elem1 < nelements; elem1++)
+  for(int elem2 = 0; elem2 < nelements; elem2++) {
 
-  int jju1 = idxu_block[j1] + (j1+1)*mb1min;
-  int jju2 = idxu_block[j2] + (j2+1)*mb2max;
-  int icgb = mb1min*(j2+1) + mb2max;
-  for(int ib = 0; ib < nb; ib++) {
+  const int jjza = idouble*idxz_max + jjz;
+
+  zlist(jjza, iatom).re = 0.0;
+  zlist(jjza, iatom).im = 0.0;
+
+  int jju1 = elem1 * idxu_max + idxu_block[j1] + (j1 + 1) * mb1min;
+  int jju2 = elem2 * idxu_max + idxu_block[j2] + (j2 + 1) * mb2max;
+  int icgb = mb1min * (j2 + 1) + mb2max;
+  for (int ib = 0; ib < nb; ib++) {
 
     double suma1_r = 0.0;
     double suma1_i = 0.0;
 
     int ma1 = ma1min;
     int ma2 = ma2max;
-    int icga = ma1min*(j2+1) + ma2max;
-    for(int ia = 0; ia < na; ia++) {
-      suma1_r += cgblock[icga] * (ulisttot(jju1+ma1,iatom).re * ulisttot(jju2+ma2,iatom).re - ulisttot(jju1+ma1,iatom).im * ulisttot(jju2+ma2,iatom).im);
-      suma1_i += cgblock[icga] * (ulisttot(jju1+ma1,iatom).re * ulisttot(jju2+ma2,iatom).im + ulisttot(jju1+ma1,iatom).im * ulisttot(jju2+ma2,iatom).re);
+    int icga = ma1min * (j2 + 1) + ma2max;
+    for (int ia = 0; ia < na; ia++) {
+      suma1_r += cgblock[icga] * (ulisttot(jju1 + ma1, iatom).re * ulisttot(jju2 + ma2, iatom).re -
+                                  ulisttot(jju1 + ma1, iatom).im * ulisttot(jju2 + ma2, iatom).im);
+      suma1_i += cgblock[icga] * (ulisttot(jju1 + ma1, iatom).re * ulisttot(jju2 + ma2, iatom).im +
+                                  ulisttot(jju1 + ma1, iatom).im * ulisttot(jju2 + ma2, iatom).re);
       ma1++;
       ma2--;
       icga += j2;
     } // end loop over ia
 
-    zlist(jjz,iatom).re += cgblock[icgb] * suma1_r;
-    zlist(jjz,iatom).im += cgblock[icgb] * suma1_i;
+    zlist(jjza, iatom).re += cgblock[icgb] * suma1_r;
+    zlist(jjza, iatom).im += cgblock[icgb] * suma1_i;
 
-    jju1 += j1+1;
-    jju2 -= j2+1;
+    jju1 += j1 + 1;
+    jju2 -= j2 + 1;
     icgb += j2;
+
   } // end loop over ib
+  if (bnorm_flag) {
+    zlist(jjza, iatom).re /= (j+1);
+    zlist(jjza, iatom).im /= (j+1);
+  }
+  idouble++;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -518,9 +547,9 @@ void SNAKokkos<DeviceType>::compute_zi(const int& iter)
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::zero_yi(const int& idx, const int& iatom)
+void SNAKokkos<DeviceType>::zero_yi(const int& idx, const int& iatom, int ielem)
 {
-  ylist(idx,iatom) = {0.0, 0.0};
+  ylist(ielem*idxu_max+idx,iatom) = {0.0, 0.0};
 }
 
 /* ----------------------------------------------------------------------
@@ -536,75 +565,99 @@ void SNAKokkos<DeviceType>::compute_yi(int iter,
   const int iatom = iter / idxz_max;
   const int jjz = iter % idxz_max;
 
-  const int j1 = idxz(jjz,0);
-  const int j2 = idxz(jjz,1);
-  const int j = idxz(jjz,2);
-  const int ma1min = idxz(jjz,3);
-  const int ma2max = idxz(jjz,4);
-  const int mb1min = idxz(jjz,5);
-  const int mb2max = idxz(jjz,6);
-  const int na = idxz(jjz,7);
-  const int nb = idxz(jjz,8);
-  const int jju = idxz(jjz,9);
+  const int j1 = idxz(jjz, 0);
+  const int j2 = idxz(jjz, 1);
+  const int j = idxz(jjz, 2);
+  const int ma1min = idxz(jjz, 3);
+  const int ma2max = idxz(jjz, 4);
+  const int mb1min = idxz(jjz, 5);
+  const int mb2max = idxz(jjz, 6);
+  const int na = idxz(jjz, 7);
+  const int nb = idxz(jjz, 8);
+  const int jju = idxz(jjz, 9);
 
-  const double* cgblock = cglist.data() + idxcg_block(j1,j2,j);
+  const double *cgblock = cglist.data() + idxcg_block(j1, j2, j);
   //int mb = (2 * (mb1min+mb2max) - j1 - j2 + j) / 2;
   //int ma = (2 * (ma1min+ma2max) - j1 - j2 + j) / 2;
 
-  double ztmp_r = 0.0;
-  double ztmp_i = 0.0;
+  int itriple;
+  for(int elem1 = 0; elem1 < nelements; elem1++)
+    for (int elem2 = 0; elem2 < nelements; elem2++) {
 
-  int jju1 = idxu_block[j1] + (j1+1)*mb1min;
-  int jju2 = idxu_block[j2] + (j2+1)*mb2max;
-  int icgb = mb1min*(j2+1) + mb2max;
-  for(int ib = 0; ib < nb; ib++) {
+    double ztmp_r = 0.0;
+    double ztmp_i = 0.0;
 
-    double suma1_r = 0.0;
-    double suma1_i = 0.0;
+    int jju1 = elem1 * idxu_max + idxu_block[j1] + (j1 + 1) * mb1min;
+    int jju2 = elem2 * idxu_max + idxu_block[j2] + (j2 + 1) * mb2max;
+    int icgb = mb1min * (j2 + 1) + mb2max;
+    for (int ib = 0; ib < nb; ib++) {
 
-    int ma1 = ma1min;
-    int ma2 = ma2max;
-    int icga = ma1min*(j2+1) + ma2max;
+      double suma1_r = 0.0;
+      double suma1_i = 0.0;
 
-    for(int ia = 0; ia < na; ia++) {
-      suma1_r += cgblock[icga] * (ulisttot(jju1+ma1,iatom).re * ulisttot(jju2+ma2,iatom).re - ulisttot(jju1+ma1,iatom).im * ulisttot(jju2+ma2,iatom).im);
-      suma1_i += cgblock[icga] * (ulisttot(jju1+ma1,iatom).re * ulisttot(jju2+ma2,iatom).im + ulisttot(jju1+ma1,iatom).im * ulisttot(jju2+ma2,iatom).re);
-      ma1++;
-      ma2--;
-      icga += j2;
-    } // end loop over ia
+      int ma1 = ma1min;
+      int ma2 = ma2max;
+      int icga = ma1min * (j2 + 1) + ma2max;
 
-    ztmp_r += cgblock[icgb] * suma1_r;
-    ztmp_i += cgblock[icgb] * suma1_i;
-    jju1 += j1+1;
-    jju2 -= j2+1;
-    icgb += j2;
-  } // end loop over ib
+      for (int ia = 0; ia < na; ia++) {
+        suma1_r += cgblock[icga] * (ulisttot(jju1 + ma1, iatom).re *
+                                    ulisttot(jju2 + ma2, iatom).re -
+                                    ulisttot(jju1 + ma1, iatom).im *
+                                    ulisttot(jju2 + ma2, iatom).im);
+        suma1_i += cgblock[icga] * (ulisttot(jju1 + ma1, iatom).re *
+                                    ulisttot(jju2 + ma2, iatom).im +
+                                    ulisttot(jju1 + ma1, iatom).im *
+                                    ulisttot(jju2 + ma2, iatom).re);
+        ma1++;
+        ma2--;
+        icga += j2;
+      } // end loop over ia
 
-  // apply to z(j1,j2,j,ma,mb) to unique element of y(j)
-  // find right y_list[jju] and beta(iatom,jjb) entries
-  // multiply and divide by j+1 factors
-  // account for multiplicity of 1, 2, or 3
+      ztmp_r += cgblock[icgb] * suma1_r;
+      ztmp_i += cgblock[icgb] * suma1_i;
+      jju1 += j1 + 1;
+      jju2 -= j2 + 1;
+      icgb += j2;
+    } // end loop over ib
 
-  // pick out right beta value
+    if (bnorm_flag) {
+      ztmp_i /= j + 1;
+      ztmp_r /= j + 1;
+    }
 
-  if (j >= j1) {
-    const int jjb = idxb_block(j1,j2,j);
-    if (j1 == j) {
-      if (j2 == j) betaj = 3*beta(jjb,iatom);
-      else betaj = 2*beta(jjb,iatom);
-    } else betaj = beta(jjb,iatom);
-  } else if (j >= j2) {
-    const int jjb = idxb_block(j,j2,j1);
-    if (j2 == j) betaj = 2*beta(jjb,iatom)*(j1+1)/(j+1.0);
-    else betaj = beta(jjb,iatom)*(j1+1)/(j+1.0);
-  } else {
-    const int jjb = idxb_block(j2,j,j1);
-    betaj = beta(jjb,iatom)*(j1+1)/(j+1.0);
+    // apply to z(j1,j2,j,ma,mb) to unique element of y(j)
+    // find right y_list[jju] and beta(iatom,jjb) entries
+    // multiply and divide by j+1 factors
+    // account for multiplicity of 1, 2, or 3
+
+    // pick out right beta value
+    for (int elem3 = 0; elem3 < nelements; elem3++) {
+      const int jjuy = elem3 * idxu_max + jju;
+      if (j >= j1) {
+        const int jjb = idxb_block(j1, j2, j);
+        itriple = ((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb;
+        if (j1 == j) {
+          if (j2 == j) betaj = 3 * beta(itriple, iatom);
+          else betaj = 2 * beta(itriple, iatom);
+        } else betaj = beta(itriple, iatom);
+      } else if (j >= j2) {
+        const int jjb = idxb_block(j, j2, j1);
+        itriple = ((elem3 * nelements + elem2) * nelements + elem1) * idxb_max + jjb;
+        if (j2 == j) betaj = 2 * beta(itriple, iatom);
+        else betaj = beta(itriple, iatom);
+      } else {
+        const int jjb = idxb_block(j2, j, j1);
+        itriple = ((elem2 * nelements + elem3) * nelements + elem1) * idxb_max + jjb;
+        betaj = beta(itriple, iatom);
+      }
+
+      if (!bnorm_flag && j1 > j)
+        betaj *= (j1 + 1) / (j + 1.0);
+
+      Kokkos::atomic_add(&(ylist(jjuy, iatom).re), betaj * ztmp_r);
+      Kokkos::atomic_add(&(ylist(jjuy, iatom).im), betaj * ztmp_i);
+    }
   }
-
-  Kokkos::atomic_add(&(ylist(jju,iatom).re), betaj*ztmp_r);
-  Kokkos::atomic_add(&(ylist(jju,iatom).im), betaj*ztmp_i);
 }
 
 /* ----------------------------------------------------------------------
@@ -620,6 +673,7 @@ void SNAKokkos<DeviceType>::compute_fused_deidrj(const typename Kokkos::TeamPoli
   const int max_m_tile = (twojmax+1)*(twojmax/2+1);
   const int team_rank = team.team_rank();
   const int scratch_shift = team_rank * max_m_tile;
+  const int jpos = element(iatom, jnbor)*idxu_max;
 
   // double buffer for ulist
   SNAcomplex* ulist_buf1 = (SNAcomplex*)team.team_shmem( ).get_shmem(team.team_size()*max_m_tile*sizeof(SNAcomplex), 0) + scratch_shift;
@@ -669,7 +723,7 @@ void SNAKokkos<DeviceType>::compute_fused_deidrj(const typename Kokkos::TeamPoli
 
   // Accumulate the full contribution to dedr on the fly
   const double du_prod = dsfac * u; // chain rule
-  const SNAcomplex y_local = ylist(0, iatom);
+  const SNAcomplex y_local = ylist(jpos, iatom);
 
   // Symmetry factor of 0.5 b/c 0 element is on diagonal for even j==0
   double dedr_full_sum = 0.5 * du_prod * y_local.re;
@@ -704,7 +758,7 @@ void SNAKokkos<DeviceType>::compute_fused_deidrj(const typename Kokkos::TeamPoli
       int ma = m % n_ma;
       int mb = m / n_ma;
 
-      const int jju_index = jju+m;
+      const int jju_index = jpos+jju+m;
 
       // Load y_local, apply the symmetry scaling factor
       // The "secret" of the shared memory optimization is it eliminates
@@ -810,18 +864,21 @@ KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType>::compute_deidrj_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor)
 {
   t_scalar3<double> final_sum;
+  const int jelem = element(iatom, jnbor);
 
   //for(int j = 0; j <= twojmax; j++) {
   Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team,twojmax+1),
       [&] (const int& j, t_scalar3<double>& sum_tmp) {
     int jju = idxu_block[j];
+    int jjuy = idxu_block[j] + jelem*idxu_max;
 
     for(int mb = 0; 2*mb < j; mb++)
       for(int ma = 0; ma <= j; ma++) {
-        sum_tmp.x += dulist(jju,iatom,jnbor,0).re * ylist(jju,iatom).re + dulist(jju,iatom,jnbor,0).im * ylist(jju,iatom).im;
-        sum_tmp.y += dulist(jju,iatom,jnbor,1).re * ylist(jju,iatom).re + dulist(jju,iatom,jnbor,1).im * ylist(jju,iatom).im;
-        sum_tmp.z += dulist(jju,iatom,jnbor,2).re * ylist(jju,iatom).re + dulist(jju,iatom,jnbor,2).im * ylist(jju,iatom).im;
+        sum_tmp.x += dulist(jju,iatom,jnbor,0).re * ylist(jjuy,iatom).re + dulist(jju,iatom,jnbor,0).im * ylist(jjuy,iatom).im;
+        sum_tmp.y += dulist(jju,iatom,jnbor,1).re * ylist(jjuy,iatom).re + dulist(jju,iatom,jnbor,1).im * ylist(jjuy,iatom).im;
+        sum_tmp.z += dulist(jju,iatom,jnbor,2).re * ylist(jjuy,iatom).re + dulist(jju,iatom,jnbor,2).im * ylist(jjuy,iatom).im;
         jju++;
+        jjuy++;
       } //end loop over ma mb
 
     // For j even, handle middle column
@@ -830,16 +887,17 @@ void SNAKokkos<DeviceType>::compute_deidrj_cpu(const typename Kokkos::TeamPolicy
 
       int mb = j/2;
       for(int ma = 0; ma < mb; ma++) {
-        sum_tmp.x += dulist(jju,iatom,jnbor,0).re * ylist(jju,iatom).re + dulist(jju,iatom,jnbor,0).im * ylist(jju,iatom).im;
-        sum_tmp.y += dulist(jju,iatom,jnbor,1).re * ylist(jju,iatom).re + dulist(jju,iatom,jnbor,1).im * ylist(jju,iatom).im;
-        sum_tmp.z += dulist(jju,iatom,jnbor,2).re * ylist(jju,iatom).re + dulist(jju,iatom,jnbor,2).im * ylist(jju,iatom).im;
+        sum_tmp.x += dulist(jju,iatom,jnbor,0).re * ylist(jjuy,iatom).re + dulist(jju,iatom,jnbor,0).im * ylist(jjuy,iatom).im;
+        sum_tmp.y += dulist(jju,iatom,jnbor,1).re * ylist(jjuy,iatom).re + dulist(jju,iatom,jnbor,1).im * ylist(jjuy,iatom).im;
+        sum_tmp.z += dulist(jju,iatom,jnbor,2).re * ylist(jjuy,iatom).re + dulist(jju,iatom,jnbor,2).im * ylist(jjuy,iatom).im;
         jju++;
+        jjuy++;
       }
 
       //int ma = mb;
-      sum_tmp.x += (dulist(jju,iatom,jnbor,0).re * ylist(jju,iatom).re + dulist(jju,iatom,jnbor,0).im * ylist(jju,iatom).im)*0.5;
-      sum_tmp.y += (dulist(jju,iatom,jnbor,1).re * ylist(jju,iatom).re + dulist(jju,iatom,jnbor,1).im * ylist(jju,iatom).im)*0.5;
-      sum_tmp.z += (dulist(jju,iatom,jnbor,2).re * ylist(jju,iatom).re + dulist(jju,iatom,jnbor,2).im * ylist(jju,iatom).im)*0.5;
+      sum_tmp.x += (dulist(jju,iatom,jnbor,0).re * ylist(jjuy,iatom).re + dulist(jju,iatom,jnbor,0).im * ylist(jjuy,iatom).im)*0.5;
+      sum_tmp.y += (dulist(jju,iatom,jnbor,1).re * ylist(jjuy,iatom).re + dulist(jju,iatom,jnbor,1).im * ylist(jjuy,iatom).im)*0.5;
+      sum_tmp.z += (dulist(jju,iatom,jnbor,2).re * ylist(jjuy,iatom).re + dulist(jju,iatom,jnbor,2).im * ylist(jjuy,iatom).im)*0.5;
     } // end if jeven
 
   },final_sum); // end loop over j
@@ -869,69 +927,93 @@ void SNAKokkos<DeviceType>::compute_bi(const typename Kokkos::TeamPolicy<DeviceT
   //            b(j1,j2,j) +=
   //              2*Conj(u(j,ma,mb))*z(j1,j2,j,ma,mb)
 
-  Kokkos::parallel_for(Kokkos::TeamThreadRange(team,idxb_max),
-      [&] (const int& jjb) {
-  //for(int jjb = 0; jjb < idxb_max; jjb++) {
-    const int j1 = idxb(jjb,0);
-    const int j2 = idxb(jjb,1);
-    const int j = idxb(jjb,2);
+  int itriple = 0;
+  int idouble = 0;
+  int jalloy = 0;
+  for (int elem1 = 0; elem1 < nelements; elem1++)
+    for (int elem2 = 0; elem2 < nelements; elem2++) {
+      jalloy = idouble*idxz_max;
+      for (int elem3 = 0; elem3 < nelements; elem3++) {
+        Kokkos::parallel_for(Kokkos::TeamThreadRange(team, idxb_max),
+        [&](const int &jjb) {
+        //for(int jjb = 0; jjb < idxb_max; jjb++) {
+          const int jjballoy = itriple*idxb_max+jjb;
+          const int j1 = idxb(jjb, 0);
+          const int j2 = idxb(jjb, 1);
+          const int j = idxb(jjb, 2);
 
-    int jjz = idxz_block(j1,j2,j);
-    int jju = idxu_block[j];
-    double sumzu = 0.0;
-    double sumzu_temp = 0.0;
-    const int bound = (j+2)/2;
-    Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team,(j+1)*bound),
-        [&] (const int mbma, double& sum) {
-        //for(int mb = 0; 2*mb < j; mb++)
-          //for(int ma = 0; ma <= j; ma++) {
-        const int ma = mbma%(j+1);
-        const int mb = mbma/(j+1);
-        const int jju_index = jju+mb*(j+1)+ma;
-        const int jjz_index = jjz+mb*(j+1)+ma;
-        if (2*mb == j) return;
-        sum +=
-          ulisttot(jju_index,iatom).re * zlist(jjz_index,iatom).re +
-          ulisttot(jju_index,iatom).im * zlist(jjz_index,iatom).im;
-      },sumzu_temp); // end loop over ma, mb
-      sumzu += sumzu_temp;
+          int jjz = idxz_block(j1, j2, j);
+          int jju = idxu_block[j];
+          double sumzu = 0.0;
+          double sumzu_temp = 0.0;
+          const int bound = (j + 2) / 2;
+          Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, (j + 1) * bound),
+          [&](const int mbma, double &sum) {
+            //for(int mb = 0; 2*mb < j; mb++)
+            //for(int ma = 0; ma <= j; ma++) {
+            const int ma = mbma % (j + 1);
+            const int mb = mbma / (j + 1);
+            const int jju_index = elem3 * idxu_max + jju + mb * (j + 1) + ma;
+            const int jjz_index = jalloy + jjz + mb * (j + 1) + ma;
+            if (2 * mb == j) return;
+            sum +=
+                ulisttot(jju_index, iatom).re *
+                zlist(jjz_index, iatom).re +
+                ulisttot(jju_index, iatom).im *
+                zlist(jjz_index, iatom).im;
+          }, sumzu_temp); // end loop over ma, mb
+          sumzu += sumzu_temp;
 
-    // For j even, special treatment for middle column
+          // For j even, special treatment for middle column
 
-    if (j%2 == 0) {
-      const int mb = j/2;
-      Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, mb),
-          [&] (const int ma, double& sum) {
-      //for(int ma = 0; ma < mb; ma++) {
-        const int jju_index = jju+(mb-1)*(j+1)+(j+1)+ma;
-        const int jjz_index = jjz+(mb-1)*(j+1)+(j+1)+ma;
-        sum +=
-          ulisttot(jju_index,iatom).re * zlist(jjz_index,iatom).re +
-          ulisttot(jju_index,iatom).im * zlist(jjz_index,iatom).im;
-      },sumzu_temp); // end loop over ma
-      sumzu += sumzu_temp;
+          if (j % 2 == 0) {
+            const int mb = j / 2;
+            Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, mb),
+            [&](const int ma, double &sum) {
+              //for(int ma = 0; ma < mb; ma++) {
+              const int jju_index =
+                  elem3 * idxu_max + jju + (mb - 1) * (j + 1) + (j + 1) + ma;
+              const int jjz_index =
+                  jalloy + jjz + (mb - 1) * (j + 1) + (j + 1) + ma;
+              sum +=
+                  ulisttot(jju_index, iatom).re *
+                  zlist(jjz_index, iatom).re +
+                  ulisttot(jju_index, iatom).im *
+                  zlist(jjz_index, iatom).im;
+            }, sumzu_temp); // end loop over ma
+            sumzu += sumzu_temp;
 
-      const int ma = mb;
-      const int jju_index = jju+(mb-1)*(j+1)+(j+1)+ma;
-      const int jjz_index = jjz+(mb-1)*(j+1)+(j+1)+ma;
-      sumzu += 0.5*
-        (ulisttot(jju_index,iatom).re * zlist(jjz_index,iatom).re +
-         ulisttot(jju_index,iatom).im * zlist(jjz_index,iatom).im);
-    } // end if jeven
+            const int ma = mb;
+            const int jju_index = elem3 * idxu_max + jju + (mb - 1) * (j + 1) + (j + 1) + ma;
+            const int jjz_index = jalloy + jjz + (mb - 1) * (j + 1) + (j + 1) + ma;
+            sumzu += 0.5 *
+                     (ulisttot(jju_index, iatom).re *
+                      zlist(jjz_index, iatom).re +
+                      ulisttot(jju_index, iatom).im *
+                      zlist(jjz_index, iatom).im);
+          } // end if jeven
 
-    Kokkos::single(Kokkos::PerThread(team), [&] () {
-      sumzu *= 2.0;
+          Kokkos::single(Kokkos::PerThread(team), [&]() {
+            sumzu *= 2.0;
 
-      // apply bzero shift
+            // apply bzero shift
 
-      if (bzero_flag)
-        sumzu -= bzero[j];
+            if (bzero_flag){
+              if (!wselfall_flag) {
+                if (elem1 == elem2 && elem1 == elem3)
+                  sumzu -= bzero[j];
+              } else sumzu -= bzero[j];
+            }
 
-      blist(jjb,iatom) = sumzu;
-    });
-  });
-      //} // end loop over j
-    //} // end loop over j1, j2
+            blist(jjballoy, iatom) = sumzu;
+          });
+        });
+        itriple++;
+      }
+      idouble++;
+    }
+    //} // end loop over j
+  //} // end loop over j1, j2
 }
 
 /* ----------------------------------------------------------------------
@@ -967,14 +1049,13 @@ void SNAKokkos<DeviceType>::compute_duidrj_cpu(const typename Kokkos::TeamPolicy
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType>::add_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor,
-                                          double r, double wj, double rcut)
+                                          double r, double wj, double rcut, int jelem)
 {
   const double sfac = compute_sfac(r, rcut) * wj;
-
-  Kokkos::parallel_for(Kokkos::ThreadVectorRange(team,ulisttot.extent(0)),
+  Kokkos::parallel_for(Kokkos::ThreadVectorRange(team,idxu_max),
       [&] (const int& i) {
-    Kokkos::atomic_add(&(ulisttot(i,iatom).re), sfac * ulist(i,iatom,jnbor).re);
-    Kokkos::atomic_add(&(ulisttot(i,iatom).im), sfac * ulist(i,iatom,jnbor).im);
+    Kokkos::atomic_add(&(ulisttot(jelem*idxu_max+i,iatom).re), sfac * ulist(i,iatom,jnbor).re);
+    Kokkos::atomic_add(&(ulisttot(jelem*idxu_max+i,iatom).im), sfac * ulist(i,iatom,jnbor).im);
   });
 }
 
@@ -1081,7 +1162,7 @@ void SNAKokkos<DeviceType>::compute_duarray_cpu(const typename Kokkos::TeamPolic
                           double z0, double r, double dz0dr,
                           double wj, double rcut)
 {
-double r0inv;
+  double r0inv;
   double a_r, a_i, b_r, b_i;
   double da_r[3], da_i[3], db_r[3], db_i[3];
   double dz0[3], dr0inv[3], dr0invdr;
@@ -1544,6 +1625,10 @@ int SNAKokkos<DeviceType>::compute_ncoeff()
            j <= MIN(twojmax, j1 + j2); j += 2)
         if (j >= j1) ncount++;
 
+  ndoubles = nelements*nelements;
+  ntriples = nelements*nelements*nelements;
+  if (chem_flag) ncount *= ntriples;
+
   return ncount;
 }
 
@@ -1640,13 +1725,13 @@ double SNAKokkos<DeviceType>::memory_usage()
 #ifdef KOKKOS_ENABLE_CUDA
   }
 #endif
-  bytes += natom * idxu_max * sizeof(double) * 2;        // ulisttot
+  bytes += natom * idxu_max * nelements * sizeof(double) * 2;        // ulisttot
   if (!std::is_same<typename DeviceType::array_layout,Kokkos::LayoutRight>::value)
-    bytes += natom * idxu_max * sizeof(double) * 2;        // ulisttot_lr
+    bytes += natom * idxu_max * nelements * sizeof(double) * 2;        // ulisttot_lr
 
-  bytes += natom * idxz_max * sizeof(double) * 2;        // zlist
-  bytes += natom * idxb_max * sizeof(double);            // blist
-  bytes += natom * idxu_max * sizeof(double) * 2;        // ylist
+  bytes += natom * idxz_max * ndoubles * sizeof(double) * 2;        // zlist
+  bytes += natom * idxb_max * ntriples * sizeof(double);            // blist
+  bytes += natom * idxu_max * nelements * sizeof(double) * 2;        // ylist
 
   bytes += jdim * jdim * jdim * sizeof(int);             // idxcg_block
   bytes += jdim * sizeof(int);                           // idxu_block

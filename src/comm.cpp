@@ -977,7 +977,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
     memory->create(procs_a2a,nprocs,"rendezvous:procs");
     inbuf_a2a = (char *) memory->smalloc((bigint) n*insize,
                                          "rendezvous:inbuf");
-    memset(inbuf_a2a,0,(bigint)n*insize*sizeof(char));
+    memset(inbuf_a2a,0,(bigint)(n+1)*insize*sizeof(char));
     memory->create(offsets,nprocs,"rendezvous:offsets");
 
     for (int i = 0; i < nprocs; i++) procs_a2a[i] = 0;
@@ -1039,7 +1039,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
   // all2all comm of inbuf from caller decomp to rendezvous decomp
 
-  char *inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize,
+  char *inbuf_rvous = (char *) memory->smalloc((bigint) (nrvous+1)*insize,
                                                "rendezvous:inbuf");
   memset(inbuf_rvous,0,(bigint) nrvous*insize*sizeof(char));
 
@@ -1079,7 +1079,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   if (!outorder) {
     memory->create(procs_a2a,nprocs,"rendezvous_a2a:procs");
 
-    outbuf_a2a = (char *) memory->smalloc((bigint) nrvous_out*outsize,
+    outbuf_a2a = (char *) memory->smalloc((bigint) (nrvous_out+1)*outsize,
                                           "rendezvous:outbuf");
     memory->create(offsets,nprocs,"rendezvous:offsets");
 
@@ -1139,7 +1139,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   // all2all comm of outbuf from rendezvous decomp back to caller decomp
   // caller will free outbuf
 
-  outbuf = (char *) memory->smalloc((bigint) nout*outsize,"rendezvous:outbuf");
+  outbuf = (char *) memory->smalloc((bigint)(nout+1)*outsize,"rendezvous:outbuf");
 
   MPI_Alltoallv(outbuf_a2a,sendcount,sdispls,MPI_CHAR,
                 outbuf,recvcount,rdispls,MPI_CHAR,world);

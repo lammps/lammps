@@ -1,7 +1,7 @@
 ---
 lammps_version: 5 May 2020
 date_generated: Wed May 27 10:29:02 202
-epsilon: 5e-12
+epsilon: 5e-11
 prerequisites: ! |
   pair tersoff/zbl
 pre_commands: ! |

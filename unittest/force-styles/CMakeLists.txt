@@ -17,8 +17,10 @@ else()
 endif()
 # propagate sanitizer options to test tools
 if (NOT ENABLE_SANITIZER STREQUAL "none")
-   target_compile_options(style_tests PUBLIC -fsanitize=${ENABLE_SANITIZER})
-   target_link_options(style_tests PUBLIC -fsanitize=${ENABLE_SANITIZER})
+  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
+    target_compile_options(style_tests PUBLIC -fsanitize=${ENABLE_SANITIZER})
+    target_link_options(style_tests PUBLIC -fsanitize=${ENABLE_SANITIZER})
+  endif()
 endif()
 
 # unit test for error stats class

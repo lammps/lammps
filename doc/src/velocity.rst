@@ -225,8 +225,8 @@ body defined by the fix, as described above.
 The *units* keyword is used by *set* and *ramp*\ .  If units = box,
 the velocities and coordinates specified in the velocity command are
 in the standard units described by the :doc:`units <units>` command
-(e.g. Angstroms/fmsec for real units).  If units = lattice, velocities
-are in units of lattice spacings per time (e.g. spacings/fmsec) and
+(e.g. Angstroms/fs for real units).  If units = lattice, velocities
+are in units of lattice spacings per time (e.g. spacings/fs) and
 coordinates are in lattice spacings.  The :doc:`lattice <lattice>`
 command must have been previously used to define the lattice spacing.
 

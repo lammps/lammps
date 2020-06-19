@@ -49,6 +49,8 @@
 
 #if defined(KOKKOS_ENABLE_CUDA)
 #include <Cuda/Kokkos_Cuda_Vectorization.hpp>
+#elif defined(KOKKOS_ENABLE_HIP)
+#include <HIP/Kokkos_HIP_Vectorization.hpp>
 #endif
 
 #endif

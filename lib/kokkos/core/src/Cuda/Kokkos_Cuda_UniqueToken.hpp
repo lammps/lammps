@@ -76,41 +76,17 @@ class UniqueToken<Cuda, UniqueTokenScope::Global> {
   explicit UniqueToken(execution_space const& = execution_space());
 #endif
 
-#ifdef KOKKOS_CUDA_9_DEFAULTED_BUG_WORKAROUND
-  KOKKOS_INLINE_FUNCTION
-  UniqueToken(const UniqueToken& rhs)
-      : m_buffer(rhs.m_buffer), m_count(rhs.m_count) {}
-
-  KOKKOS_INLINE_FUNCTION
-  UniqueToken(UniqueToken&& rhs)
-      : m_buffer(std::move(rhs.m_buffer)), m_count(std::move(rhs.m_count)) {}
-
-  KOKKOS_INLINE_FUNCTION
-  UniqueToken& operator=(const UniqueToken& rhs) {
-    m_buffer = rhs.m_buffer;
-    m_count  = rhs.m_count;
-    return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  UniqueToken& operator=(UniqueToken&& rhs) {
-    m_buffer = std::move(rhs.m_buffer);
-    m_count  = std::move(rhs.m_count);
-    return *this;
-  }
-#else
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   UniqueToken(const UniqueToken&) = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   UniqueToken(UniqueToken&&) = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   UniqueToken& operator=(const UniqueToken&) = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   UniqueToken& operator=(UniqueToken&&) = default;
-#endif
 
   /// \brief upper bound for acquired values, i.e. 0 <= value < size()
   KOKKOS_INLINE_FUNCTION

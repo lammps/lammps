@@ -136,12 +136,6 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
       else Kokkos::parallel_for(list->inum,f);
       f.contribute();
-    } else if (neighflag == N2) {
-      PairComputeFunctor<PairTableKokkos<DeviceType>,N2,false,S_TableCompute<DeviceType,TABSTYLE> >
-        f(this,(NeighListKokkos<DeviceType>*) list);
-      if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
-      else Kokkos::parallel_for(list->inum,f);
-      f.contribute();
     }
   } else {
     if (neighflag == FULL) {
@@ -158,12 +152,6 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
       f.contribute();
     } else if (neighflag == HALF) {
       PairComputeFunctor<PairTableKokkos<DeviceType>,HALF,true,S_TableCompute<DeviceType,TABSTYLE> >
-        f(this,(NeighListKokkos<DeviceType>*) list);
-      if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
-      else Kokkos::parallel_for(list->inum,f);
-      f.contribute();
-    } else if (neighflag == N2) {
-      PairComputeFunctor<PairTableKokkos<DeviceType>,N2,true,S_TableCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
       else Kokkos::parallel_for(list->inum,f);
@@ -525,9 +513,6 @@ void PairTableKokkos<DeviceType>::init_style()
   } else if (neighflag == HALF || neighflag == HALFTHREAD) {
     neighbor->requests[irequest]->full = 0;
     neighbor->requests[irequest]->half = 1;
-  } else if (neighflag == N2) {
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 0;
   } else {
     error->all(FLERR,"Cannot use chosen neighbor list style with lj/cut/kk");
   }

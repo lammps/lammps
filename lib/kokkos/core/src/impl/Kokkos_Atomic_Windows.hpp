@@ -52,6 +52,8 @@
 #include <winsock2.h>
 #include <windows.h>
 
+#undef VOID
+
 namespace Kokkos {
 namespace Impl {
 #ifdef _MSC_VER
@@ -74,12 +76,41 @@ __attribute__((aligned(16)))
 template <typename T>
 KOKKOS_INLINE_FUNCTION T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
-    typename Kokkos::Impl::enable_if<sizeof(T) == sizeof(LONG), const T&>::type
-        val) {
+    typename std::enable_if<sizeof(T) == sizeof(CHAR), const T&>::type val) {
+  union U {
+    CHAR i;
+    T t;
+    KOKKOS_INLINE_FUNCTION U(){};
+  } tmp;
+
+  tmp.i = _InterlockedCompareExchange8((CHAR*)dest, *((CHAR*)&val),
+                                       *((CHAR*)&compare));
+  return tmp.t;
+}
+
+template <typename T>
+KOKKOS_INLINE_FUNCTION T atomic_compare_exchange(
+    volatile T* const dest, const T& compare,
+    typename std::enable_if<sizeof(T) == sizeof(SHORT), const T&>::type val) {
+  union U {
+    SHORT i;
+    T t;
+    KOKKOS_INLINE_FUNCTION U(){};
+  } tmp;
+
+  tmp.i = _InterlockedCompareExchange16((SHORT*)dest, *((SHORT*)&val),
+                                        *((SHORT*)&compare));
+  return tmp.t;
+}
+
+template <typename T>
+KOKKOS_INLINE_FUNCTION T atomic_compare_exchange(
+    volatile T* const dest, const T& compare,
+    typename std::enable_if<sizeof(T) == sizeof(LONG), const T&>::type val) {
   union U {
     LONG i;
     T t;
-    KOKKOS_INLINE_FUNCTION U(){};
+    KOKKOS_INLINE_FUNCTION U() {}
   } tmp;
 
   tmp.i = _InterlockedCompareExchange((LONG*)dest, *((LONG*)&val),
@@ -90,12 +121,12 @@ KOKKOS_INLINE_FUNCTION T atomic_compare_exchange(
 template <typename T>
 KOKKOS_INLINE_FUNCTION T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
-    typename Kokkos::Impl::enable_if<sizeof(T) == sizeof(LONGLONG),
-                                     const T&>::type val) {
+    typename std::enable_if<sizeof(T) == sizeof(LONGLONG), const T&>::type
+        val) {
   union U {
     LONGLONG i;
     T t;
-    KOKKOS_INLINE_FUNCTION U(){};
+    KOKKOS_INLINE_FUNCTION U() {}
   } tmp;
 
   tmp.i = _InterlockedCompareExchange64((LONGLONG*)dest, *((LONGLONG*)&val),
@@ -106,18 +137,19 @@ KOKKOS_INLINE_FUNCTION T atomic_compare_exchange(
 template <typename T>
 KOKKOS_INLINE_FUNCTION T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
-    typename Kokkos::Impl::enable_if<sizeof(T) == sizeof(Impl::cas128_t),
-                                     const T&>::type val) {
+    typename std::enable_if<sizeof(T) == sizeof(Impl::cas128_t), const T&>::type
+        val) {
+  T compare_and_result(compare);
   union U {
     Impl::cas128_t i;
     T t;
     KOKKOS_INLINE_FUNCTION U(){};
-  } tmp, newval;
+  } newval;
   newval.t = val;
   _InterlockedCompareExchange128((LONGLONG*)dest, newval.i.upper,
-                                 newval.i.lower, ((LONGLONG*)&compare));
-  tmp.t = dest;
-  return tmp.t;
+                                 newval.i.lower,
+                                 ((LONGLONG*)&compare_and_result));
+  return compare_and_result;
 }
 
 template <typename T>
@@ -125,117 +157,6 @@ KOKKOS_INLINE_FUNCTION T atomic_compare_exchange_strong(volatile T* const dest,
                                                         const T& compare,
                                                         const T& val) {
   return atomic_compare_exchange(dest, compare, val);
-}
-
-template <typename T>
-T atomic_fetch_or(volatile T* const dest, const T val) {
-  T oldval = *dest;
-  T assume;
-  do {
-    assume   = oldval;
-    T newval = val | oldval;
-    oldval   = atomic_compare_exchange(dest, assume, newval);
-  } while (assume != oldval);
-
-  return oldval;
-}
-
-template <typename T>
-T atomic_fetch_and(volatile T* const dest, const T val) {
-  T oldval = *dest;
-  T assume;
-  do {
-    assume   = oldval;
-    T newval = val & oldval;
-    oldval   = atomic_compare_exchange(dest, assume, newval);
-  } while (assume != oldval);
-
-  return oldval;
-}
-
-template <typename T>
-T atomic_fetch_add(volatile T* const dest, const T val) {
-  T oldval = *dest;
-  T assume;
-  do {
-    assume   = oldval;
-    T newval = val + oldval;
-    oldval   = atomic_compare_exchange(dest, assume, newval);
-  } while (assume != oldval);
-
-  return oldval;
-}
-
-template <typename T>
-T atomic_fetch_sub(volatile T* const dest, const T val) {
-  T oldval = *dest;
-  T assume;
-  do {
-    assume   = oldval;
-    T newval = val - oldval;
-    oldval   = atomic_compare_exchange(dest, assume, newval);
-  } while (assume != oldval);
-
-  return oldval;
-}
-
-template <typename T>
-T atomic_exchange(volatile T* const dest, const T val) {
-  T oldval = *dest;
-  T assume;
-  do {
-    assume = oldval;
-    oldval = atomic_compare_exchange(dest, assume, val);
-  } while (assume != oldval);
-
-  return oldval;
-}
-
-template <typename T>
-void atomic_or(volatile T* const dest, const T val) {
-  atomic_fetch_or(dest, val);
-}
-
-template <typename T>
-void atomic_and(volatile T* const dest, const T val) {
-  atomic_fetch_and(dest, val);
-}
-
-template <typename T>
-void atomic_add(volatile T* const dest, const T val) {
-  atomic_fetch_add(dest, val);
-}
-
-template <typename T>
-void atomic_sub(volatile T* const dest, const T val) {
-  atomic_fetch_sub(dest, val);
-}
-
-template <typename T>
-void atomic_assign(volatile T* const dest, const T val) {
-  atomic_fetch_exchange(dest, val);
-}
-
-template <typename T>
-T atomic_increment(volatile T* const dest) {
-  T oldval = *dest;
-  T assume;
-  do {
-    assume   = oldval;
-    T newval = assume++;
-    oldval   = atomic_compare_exchange(dest, assume, newval);
-  } while (assume != oldval);
-}
-
-template <typename T>
-T atomic_decrement(volatile T* const dest) {
-  T oldval = *dest;
-  T assume;
-  do {
-    assume   = oldval;
-    T newval = assume--;
-    oldval   = atomic_compare_exchange(dest, assume, newval);
-  } while (assume != oldval);
 }
 
 }  // namespace Kokkos

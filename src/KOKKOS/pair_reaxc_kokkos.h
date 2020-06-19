@@ -64,9 +64,6 @@ struct PairReaxBuildListsFull{};
 template<int NEIGHFLAG>
 struct PairReaxBuildListsHalf{};
 
-template<int NEIGHFLAG>
-struct PairReaxBuildListsHalf_LessAtomics{};
-
 struct PairReaxZero{};
 
 struct PairReaxZeroEAtom{};
@@ -74,8 +71,6 @@ struct PairReaxZeroEAtom{};
 struct PairReaxZeroVAtom{};
 
 struct PairReaxBondOrder1{};
-
-struct PairReaxBondOrder1_LessAtomics{};
 
 struct PairReaxBondOrder2{};
 
@@ -164,10 +159,6 @@ class PairReaxCKokkos : public PairReaxC {
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxBuildListsHalf<NEIGHFLAG>, const int&) const;
 
-  template<int NEIGHFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxBuildListsHalf_LessAtomics<NEIGHFLAG>, const int&) const;
-
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxZero, const int&) const;
 
@@ -179,9 +170,6 @@ class PairReaxCKokkos : public PairReaxC {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxBondOrder1, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxBondOrder1_LessAtomics, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxBondOrder2, const int&) const;
@@ -437,7 +425,7 @@ class PairReaxCKokkos : public PairReaxC {
   typename AT::t_ffloat_2d_dl d_sum_ovun;
   typename AT::t_ffloat_2d_dl d_dBOpx, d_dBOpy, d_dBOpz;
 
-  int neighflag,newton_pair, maxnumneigh, maxhb, maxbo;
+  int neighflag, newton_pair, maxnumneigh, maxhb, maxbo;
   int nlocal,nall,eflag,vflag;
   F_FLOAT cut_nbsq, cut_hbsq, cut_bosq, bo_cut, thb_cut, thb_cutsq;
   F_FLOAT bo_cut_bond;

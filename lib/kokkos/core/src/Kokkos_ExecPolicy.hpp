@@ -193,6 +193,7 @@ class RangePolicy : public Impl::PolicyTraits<Properties...> {
   inline void set(const ChunkSize& chunksize, Args... args) {
     m_granularity      = chunksize.value;
     m_granularity_mask = m_granularity - 1;
+    set(args...);
   }
 
  public:
@@ -210,8 +211,8 @@ class RangePolicy : public Impl::PolicyTraits<Properties...> {
  private:
   /** \brief finalize chunk_size if it was set to AUTO*/
   inline void set_auto_chunk_size() {
-    typename traits::index_type concurrency =
-        traits::execution_space::concurrency();
+    int64_t concurrency =
+        static_cast<int64_t>(traits::execution_space::concurrency());
     if (concurrency == 0) concurrency = 1;
 
     if (m_granularity > 0) {
@@ -219,12 +220,14 @@ class RangePolicy : public Impl::PolicyTraits<Properties...> {
         Kokkos::abort("RangePolicy blocking granularity must be power of two");
     }
 
-    member_type new_chunk_size = 1;
-    while (new_chunk_size * 100 * concurrency < m_end - m_begin)
+    int64_t new_chunk_size = 1;
+    while (new_chunk_size * 100 * concurrency <
+           static_cast<int64_t>(m_end - m_begin))
       new_chunk_size *= 2;
     if (new_chunk_size < 128) {
       new_chunk_size = 1;
-      while ((new_chunk_size * 40 * concurrency < m_end - m_begin) &&
+      while ((new_chunk_size * 40 * concurrency <
+              static_cast<int64_t>(m_end - m_begin)) &&
              (new_chunk_size < 128))
         new_chunk_size *= 2;
     }
@@ -483,7 +486,6 @@ struct ScratchRequest {
     level      = level_;
     per_team   = 0;
     per_thread = thread_value.value;
-    ;
   }
 
   inline ScratchRequest(const int& level_, const Impl::PerTeamValue& team_value,
@@ -491,7 +493,6 @@ struct ScratchRequest {
     level      = level_;
     per_team   = team_value.value;
     per_thread = thread_value.value;
-    ;
   }
 
   inline ScratchRequest(const int& level_,
@@ -500,7 +501,6 @@ struct ScratchRequest {
     level      = level_;
     per_team   = team_value.value;
     per_thread = thread_value.value;
-    ;
   }
 };
 

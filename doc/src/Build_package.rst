@@ -45,7 +45,8 @@ packages:
 The mechanism for including packages is simple but different for CMake
 versus make.
 
-**CMake build**\ :
+CMake build
+^^^^^^^^^^^
 
 .. code-block:: csh
 
@@ -72,7 +73,8 @@ once with CMake.
    invoke cmake.  CMake will give an error if that is not the case,
    indicating how you can un-install all packages in the src dir.
 
-**Traditional make**\ :
+Traditional make
+^^^^^^^^^^^^^^^^
 
 .. code-block:: bash
 
@@ -108,7 +110,8 @@ once with make.
    within the same command.  You can include or exclude multiple packages
    in a single make command, e.g. make yes-colloid no-manybody.
 
-**CMake and make info**\ :
+CMake and make info
+^^^^^^^^^^^^^^^^^^^
 
 Any package can be included or excluded in a LAMMPS build, independent
 of all other packages.  However, some packages include files derived
@@ -132,7 +135,7 @@ src directory.
 
 .. _cmake_presets:
 
-**CMake shortcuts for installing many packages**\ :
+CMake presets for installing many packages
 
 Instead of specifying all the CMake options via the command-line,
 CMake allows initializing its settings cache using script files.
@@ -148,13 +151,14 @@ one of them as a starting point and customize it to your needs.
 
 .. code-block:: bash
 
-    cmake -C ../cmake/presets/minimal.cmake [OPTIONS] ../cmake  # enable just a few core packages
-    cmake -C ../cmake/presets/most.cmake    [OPTIONS] ../cmake  # enable most packages
-    cmake -C ../cmake/presets/nolib.cmake   [OPTIONS] ../cmake  # disable packages that do require extra libraries or tools
-    cmake -C ../cmake/presets/clang.cmake   [OPTIONS] ../cmake  # change settings to use the Clang compilers by default
-    cmake -C ../cmake/presets/intel.cmake   [OPTIONS] ../cmake  # change settings to use the Intel compilers by default
-    cmake -C ../cmake/presets/all_on.cmake  [OPTIONS] ../cmake  # enable all packages
-    cmake -C ../cmake/presets/all_off.cmake [OPTIONS] ../cmake  # disable all packages
+    cmake -C ../cmake/presets/minimal.cmake  [OPTIONS] ../cmake  # enable just a few core packages
+    cmake -C ../cmake/presets/most.cmake     [OPTIONS] ../cmake  # enable most packages
+    cmake -C ../cmake/presets/download.cmake [OPTIONS] ../cmake  # enable packages which download sources or potential files
+    cmake -C ../cmake/presets/nolib.cmake    [OPTIONS] ../cmake  # disable packages that do require extra libraries or tools
+    cmake -C ../cmake/presets/clang.cmake    [OPTIONS] ../cmake  # change settings to use the Clang compilers by default
+    cmake -C ../cmake/presets/intel.cmake    [OPTIONS] ../cmake  # change settings to use the Intel compilers by default
+    cmake -C ../cmake/presets/all_on.cmake   [OPTIONS] ../cmake  # enable all packages
+    cmake -C ../cmake/presets/all_off.cmake  [OPTIONS] ../cmake  # disable all packages
     mingw64-cmake -C ../cmake/presets/mingw-cross.cmake [OPTIONS] ../cmake  #  compile with MinGW cross compilers
 
 .. note::
@@ -184,7 +188,8 @@ one of them as a starting point and customize it to your needs.
 
 ----------
 
-**Make shortcuts for installing many packages**\ :
+Make shortcuts for installing many packages
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The following commands are useful for managing package source files
 and their installation when building LAMMPS via traditional make.

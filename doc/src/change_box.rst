@@ -299,6 +299,12 @@ match what is stored in the restart file.  So if you wish to change
 them, you should use the change_box command after the read_restart
 command.
 
+.. note::
+
+   Changing a periodic boundary to a non-periodic one will also
+   cause the image flag for that dimension to be reset to 0 for
+   all atoms.  LAMMPS will print a warning message, if that happens.
+
 ----------
 
 The *ortho* and *triclinic* keywords convert the simulation box to be

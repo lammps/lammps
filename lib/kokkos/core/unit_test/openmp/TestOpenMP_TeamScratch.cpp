@@ -58,7 +58,6 @@ TEST(TEST_CATEGORY, team_scratch_request) {
 }
 
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
 TEST(TEST_CATEGORY, team_lambda_shared_request) {
   TestLambdaSharedTeam<Kokkos::HostSpace, TEST_EXECSPACE,
                        Kokkos::Schedule<Kokkos::Static> >();
@@ -66,7 +65,6 @@ TEST(TEST_CATEGORY, team_lambda_shared_request) {
                        Kokkos::Schedule<Kokkos::Dynamic> >();
 }
 TEST(TEST_CATEGORY, scratch_align) { TestScratchAlignment<TEST_EXECSPACE>(); }
-#endif
 #endif
 
 TEST(TEST_CATEGORY, shmem_size) { TestShmemSize<TEST_EXECSPACE>(); }

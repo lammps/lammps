@@ -78,7 +78,7 @@ OPT.
    * :doc:`coul/long/soft (o) <pair_fep_soft>`
    * :doc:`coul/msm (o) <pair_coul>`
    * :doc:`coul/slater/cut <pair_coul_slater>`
-   * :doc:`coul/slater/long <pair_coul_slater>`   
+   * :doc:`coul/slater/long <pair_coul_slater>`
    * :doc:`coul/shield <pair_coul_shield>`
    * :doc:`coul/streitz <pair_coul>`
    * :doc:`coul/wolf (ko) <pair_coul>`
@@ -92,8 +92,8 @@ OPT.
    * :doc:`drip <pair_drip>`
    * :doc:`eam (gikot) <pair_eam>`
    * :doc:`eam/alloy (gikot) <pair_eam>`
-   * :doc:`eam/cd (o) <pair_eam>`
-   * :doc:`eam/cd/old (o) <pair_eam>`
+   * :doc:`eam/cd <pair_eam>`
+   * :doc:`eam/cd/old <pair_eam>`
    * :doc:`eam/fs (gikot) <pair_eam>`
    * :doc:`edip (o) <pair_edip>`
    * :doc:`edip/multi <pair_edip>`
@@ -180,6 +180,7 @@ OPT.
    * :doc:`meam/spline (o) <pair_meam_spline>`
    * :doc:`meam/sw/spline <pair_meam_sw_spline>`
    * :doc:`mesocnt <pair_mesocnt>`
+   * :doc:`mesont/tpm <pair_mesont_tpm>`
    * :doc:`mgpt <pair_mgpt>`
    * :doc:`mie/cut (g) <pair_mie>`
    * :doc:`mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>`

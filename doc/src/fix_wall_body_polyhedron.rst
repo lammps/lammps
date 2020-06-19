@@ -15,15 +15,14 @@ Syntax
 * k_n = normal repulsion strength (force/distance units or pressure units - see discussion below)
 * c_n = normal damping coefficient (force/distance units or pressure units - see discussion below)
 * c_t = tangential damping coefficient (force/distance units or pressure units - see discussion below)
-* wallstyle = *xplane* or *yplane* or *zplane* or *zcylinder*
+* wallstyle = *xplane* or *yplane* or *zplane*
 * args = list of arguments for a particular style
 
   .. parsed-literal::
 
-       *xplane* or *yplane* args = lo hi
+       *xplane* or *yplane* or *zplane* args = lo hi
          lo,hi = position of lower and upper plane (distance units), either can be NULL)
-       *zcylinder* args = radius
-         radius = cylinder radius (distance units)
+
 
 * zero or more keyword/value pairs may be appended to args
 * keyword = *wiggle*
@@ -60,8 +59,7 @@ those specified with the :doc:`pair_style body/rounded/polyhedron <pair_body_rou
 The *wallstyle* can be planar or cylindrical.  The 3 planar options
 specify a pair of walls in a dimension.  Wall positions are given by
 *lo* and *hi*\ .  Either of the values can be specified as NULL if a
-single wall is desired.  For a *zcylinder* wallstyle, the cylinder's
-axis is at x = y = 0.0, and the radius of the cylinder is specified.
+single wall is desired.
 
 Optionally, the wall can be moving, if the *wiggle* keyword is appended.
 
@@ -71,8 +69,7 @@ particles.  The arguments to the *wiggle* keyword specify a dimension
 for the motion, as well as it's *amplitude* and *period*\ .  Note that
 if the dimension is in the plane of the wall, this is effectively a
 shearing motion.  If the dimension is perpendicular to the wall, it is
-more of a shaking motion.  A *zcylinder* wall can only be wiggled in
-the z dimension.
+more of a shaking motion.
 
 Each timestep, the position of a wiggled wall in the appropriate *dim*
 is set according to this equation:

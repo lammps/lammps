@@ -104,7 +104,7 @@ pair_coeff command:
 
    pair_coeff * * Si.tersoff_mod Si Si Si
 
-The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The three Si arguments map LAMMPS atom types 1,2,3 to the Si element
 in the Tersoff/MOD file. If a mapping value is specified as NULL, the
 mapping is not performed.  This can be used when a *tersoff/mod*
@@ -156,7 +156,7 @@ ignores those entries.
 For a single-element simulation, only a single entry is required
 (e.g. SiSiSi). As annotated above, the first element in the entry is
 the center atom in a three-body interaction and it is bonded to the
-2nd atom and the bond is influenced by the 3rd atom.  Thus an entry
+second atom and the bond is influenced by the third atom.  Thus an entry
 for SiSiSi means Si bonded to a Si with another Si atom influencing the bond.
 
 ----------

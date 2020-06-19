@@ -14,16 +14,30 @@ endif()
 option(EXTERNAL_KOKKOS "Build against external kokkos library" OFF)
 option(DOWNLOAD_KOKKOS "Download the KOKKOS library instead of using the bundled one" OFF)
 if(DOWNLOAD_KOKKOS)
+  # extract Kokkos-related variables and values so we can forward them to the Kokkos library build
+  get_cmake_property(_VARS VARIABLES)
+  list(FILTER _VARS INCLUDE REGEX ^Kokkos_)
+  foreach(_VAR IN LISTS _VARS)
+    list(APPEND KOKKOS_LIB_BUILD_ARGS "-D${_VAR}=${${_VAR}}")
+  endforeach()
   message(STATUS "KOKKOS download requested - we will build our own")
-  file(DOWNLOAD https://github.com/kokkos/kokkos/compare/3.0.00...stanmoore1:lammps.diff ${CMAKE_CURRENT_BINARY_DIR}/kokkos-lammps.patch)
+  list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>")
+  if(CMAKE_REQUEST_PIC)
+    list(APPEND KOKKOS_LIB_BUILD_ARGS ${CMAKE_REQUEST_PIC})
+  endif()
+  # append other CMake variables that need to be forwarded to CMAKE_ARGS
+  list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
+  list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_INSTALL_LIBDIR=lib")
+  list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}")
+  list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
+  list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}")
+  list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_CXX_EXTENSIONS=${CMAKE_CXX_EXTENSIONS}")
+  list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
   include(ExternalProject)
   ExternalProject_Add(kokkos_build
-    URL https://github.com/kokkos/kokkos/archive/3.0.00.tar.gz
-    URL_MD5 281c7093aa3a603276e93abdf4be23b9
-    PATCH_COMMAND patch -p1 < ${CMAKE_CURRENT_BINARY_DIR}/kokkos-lammps.patch
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> ${CMAKE_REQUEST_PIC}
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_LIBDIR=lib
-    -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM} -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+    URL https://github.com/kokkos/kokkos/archive/3.1.01.tar.gz
+    URL_MD5 3ccb2100f7fc316891e7dad3bc33fa37
+    CMAKE_ARGS ${KOKKOS_LIB_BUILD_ARGS}
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libkokkoscore.a
   )
   ExternalProject_get_property(kokkos_build INSTALL_DIR)
@@ -35,14 +49,8 @@ if(DOWNLOAD_KOKKOS)
     INTERFACE_LINK_LIBRARIES ${CMAKE_DL_LIBS})
   target_link_libraries(lammps PRIVATE LAMMPS::KOKKOS)
   add_dependencies(LAMMPS::KOKKOS kokkos_build)
-  if(NOT BUILD_SHARED_LIBS)
-    install(CODE "MESSAGE(FATAL_ERROR \"Installing liblammps with downloaded libraries is currently not supported.\")")
-  endif()
 elseif(EXTERNAL_KOKKOS)
-  find_package(Kokkos 3)
-  if(NOT Kokkos_FOUND)
-    message(FATAL_ERROR "KOKKOS library not found, help CMake to find it by setting KOKKOS_LIBRARY, or set DOWNLOAD_KOKKOS=ON to download it")
-  endif()
+  find_package(Kokkos 3.1.01 REQUIRED CONFIG)
   target_link_libraries(lammps PRIVATE Kokkos::kokkos)
 else()
   set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)

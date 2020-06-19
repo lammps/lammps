@@ -50,9 +50,13 @@
 #include <Kokkos_Core.hpp>
 #include <Kokkos_ErrorReporter.hpp>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 namespace Test {
 
-// Just save the data in the report.  Informative text goies in the
+// Just save the data in the report.  Informative text goes in the
 // operator<<(..).
 template <typename DataType1, typename DataType2, typename DataType3>
 struct ThreeValReport {
@@ -85,7 +89,7 @@ struct ErrorReporterDriverBase {
       error_reporter_type;
   error_reporter_type m_errorReporter;
 
-  ErrorReporterDriverBase(int reporter_capacity, int test_size)
+  ErrorReporterDriverBase(int reporter_capacity, int /*test_size*/)
       : m_errorReporter(reporter_capacity) {}
 
   KOKKOS_INLINE_FUNCTION bool error_condition(const int work_idx) const {
@@ -176,7 +180,8 @@ struct ErrorReporterDriver : public ErrorReporterDriverBase<DeviceType> {
   }
 };
 
-#if defined(KOKKOS_CLASS_LAMBDA)
+#if defined(KOKKOS_CLASS_LAMBDA) && \
+    (!defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_CUDA_LAMBDA))
 template <typename DeviceType>
 struct ErrorReporterDriverUseLambda
     : public ErrorReporterDriverBase<DeviceType> {
@@ -225,7 +230,8 @@ struct ErrorReporterDriverNativeOpenMP
 };
 #endif
 
-#if defined(KOKKOS_CLASS_LAMBDA)
+#if defined(KOKKOS_CLASS_LAMBDA) && \
+    (!defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_CUDA_LAMBDA))
 TEST(TEST_CATEGORY, ErrorReporterViaLambda) {
   TestErrorReporter<ErrorReporterDriverUseLambda<TEST_EXECSPACE>>();
 }

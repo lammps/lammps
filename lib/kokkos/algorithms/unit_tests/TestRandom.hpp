@@ -140,7 +140,7 @@ struct test_random_functor {
         density_3d(d3d) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(int i, RandomProperties& prop) const {
+  void operator()(int /*i*/, RandomProperties& prop) const {
     using Kokkos::atomic_fetch_add;
 
     rnd_type rand_gen = rand_pool.get_state();

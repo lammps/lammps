@@ -97,6 +97,8 @@ class CudaInternal {
   int m_maxThreadsPerSM;
   int m_maxThreadsPerBlock;
 
+  cudaDeviceProp m_deviceProp;
+
   mutable size_type m_scratchSpaceCount;
   mutable size_type m_scratchFlagsCount;
   mutable size_type m_scratchUnifiedCount;

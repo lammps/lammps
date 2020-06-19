@@ -60,7 +60,7 @@ class Timer {
  public:
   inline void reset() { m_old = std::chrono::high_resolution_clock::now(); }
 
-  inline ~Timer() {}
+  inline ~Timer() = default;
 
   inline Timer() { reset(); }
 

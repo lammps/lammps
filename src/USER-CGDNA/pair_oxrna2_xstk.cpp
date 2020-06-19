@@ -112,7 +112,6 @@ void PairOxrna2Xstk::compute(int eflag, int vflag)
   double theta1,t1dir[3],cost1;
   double theta2,t2dir[3],cost2;
   double theta3,t3dir[3],cost3;
-  double theta4,theta4p,t4dir[3],cost4;
   double theta7,theta7p,t7dir[3],cost7;
   double theta8,theta8p,t8dir[3],cost8;
 

@@ -119,7 +119,7 @@ void AtomVecSphereKokkos::grow(int n)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
 
-  grow_reset();
+  grow_pointers();
   atomKK->sync(Host,ALL_MASK);
 }
 
@@ -127,7 +127,7 @@ void AtomVecSphereKokkos::grow(int n)
    reset local array ptrs
 ------------------------------------------------------------------------- */
 
-void AtomVecSphereKokkos::grow_reset()
+void AtomVecSphereKokkos::grow_pointers()
 {
   tag = atomKK->tag;
   d_tag = atomKK->k_tag.d_view;

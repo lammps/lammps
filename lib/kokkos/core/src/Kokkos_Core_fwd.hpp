@@ -99,10 +99,6 @@ class HBWSpace;  /// Memory space for hbw_malloc from memkind (e.g. for KNL
 class Serial;  ///< Execution space main process on CPU.
 #endif
 
-#if defined(KOKKOS_ENABLE_QTHREADS)
-class Qthreads;  ///< Execution space with Qthreads back-end.
-#endif
-
 #if defined(KOKKOS_ENABLE_HPX)
 namespace Experimental {
 class HPX;  ///< Execution space with HPX back-end.
@@ -124,13 +120,6 @@ class OpenMPTargetSpace;
 }  // namespace Experimental
 #endif
 
-#if defined(KOKKOS_ENABLE_CUDA)
-class CudaSpace;            ///< Memory space on Cuda GPU
-class CudaUVMSpace;         ///< Memory space on Cuda GPU with UVM
-class CudaHostPinnedSpace;  ///< Memory space on Host accessible to Cuda GPU
-class Cuda;                 ///< Execution space for Cuda GPU
-#endif
-
 #if defined(KOKKOS_ENABLE_ROCM)
 namespace Experimental {
 class ROCmSpace;  ///< Memory space on ROCm GPU
@@ -138,10 +127,19 @@ class ROCm;       ///< Execution space for ROCm GPU
 }  // namespace Experimental
 #endif
 
+#if defined(KOKKOS_ENABLE_HIP)
+namespace Experimental {
+class HIPSpace;  ///< Memory space on HIP GPU
+class HIP;       ///< Execution space for HIP GPU
+}  // namespace Experimental
+#endif
+
 template <class ExecutionSpace, class MemorySpace>
 struct Device;
 
 }  // namespace Kokkos
+
+#include "Cuda/Kokkos_Cuda_fwd.hpp"
 
 //----------------------------------------------------------------------------
 // Set the default execution space.
@@ -157,44 +155,42 @@ namespace Kokkos {
 typedef Cuda DefaultExecutionSpace;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMPTARGET)
 typedef Experimental::OpenMPTarget DefaultExecutionSpace;
+#elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_HIP)
+typedef Experimental::HIP DefaultExecutionSpace;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_ROCM)
 typedef Experimental::ROCm DefaultExecutionSpace;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP)
 typedef OpenMP DefaultExecutionSpace;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS)
 typedef Threads DefaultExecutionSpace;
-//#elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_QTHREADS )
-//  typedef Qthreads DefaultExecutionSpace;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_HPX)
 typedef Kokkos::Experimental::HPX DefaultExecutionSpace;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SERIAL)
 typedef Serial DefaultExecutionSpace;
 #else
 #error \
-    "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::Cuda, Kokkos::Experimental::OpenMPTarget, Kokkos::OpenMP, Kokkos::Threads, Kokkos::Qthreads, or Kokkos::Serial."
+    "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::Cuda, Kokkos::Experimental::HIP, Kokkos::Experimental::OpenMPTarget, Kokkos::OpenMP, Kokkos::Threads, Kokkos::Experimental::HPX, or Kokkos::Serial."
 #endif
 
 #if defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP)
 typedef OpenMP DefaultHostExecutionSpace;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS)
 typedef Threads DefaultHostExecutionSpace;
-//#elif defined( KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_QTHREADS )
-//  typedef Qthreads DefaultHostExecutionSpace;
+#elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_HPX)
+typedef Kokkos::Experimental::HPX DefaultHostExecutionSpace;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SERIAL)
 typedef Serial DefaultHostExecutionSpace;
 #elif defined(KOKKOS_ENABLE_OPENMP)
 typedef OpenMP DefaultHostExecutionSpace;
 #elif defined(KOKKOS_ENABLE_THREADS)
 typedef Threads DefaultHostExecutionSpace;
-//#elif defined( KOKKOS_ENABLE_QTHREADS )
-//  typedef Qthreads DefaultHostExecutionSpace;
 #elif defined(KOKKOS_ENABLE_HPX)
 typedef Kokkos::Experimental::HPX DefaultHostExecutionSpace;
 #elif defined(KOKKOS_ENABLE_SERIAL)
 typedef Serial DefaultHostExecutionSpace;
 #else
 #error \
-    "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::OpenMP, Kokkos::Threads, Kokkos::Qthreads, or Kokkos::Serial."
+    "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::OpenMP, Kokkos::Threads, Kokkos::Experimental::HPX, or Kokkos::Serial."
 #endif
 
 }  // namespace Kokkos
@@ -213,6 +209,8 @@ namespace Impl {
 typedef Kokkos::CudaSpace ActiveExecutionMemorySpace;
 #elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_ROCM_GPU)
 typedef Kokkos::HostSpace ActiveExecutionMemorySpace;
+#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HIP_GPU)
+typedef Kokkos::Experimental::HIPSpace ActiveExecutionMemorySpace;
 #elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
 typedef Kokkos::HostSpace ActiveExecutionMemorySpace;
 #else

@@ -47,7 +47,7 @@ DihedralNHarmonic::~DihedralNHarmonic()
   if (allocated) {
     memory->destroy(setflag);
     for (int i = 1; i <= atom->ndihedraltypes; i++)
-      delete [] a[i];
+      if ( a[i] ) delete [] a[i];
     delete [] a;
     delete [] nterms;
   }
@@ -261,8 +261,9 @@ void DihedralNHarmonic::allocate()
   allocated = 1;
   int n = atom->ndihedraltypes;
 
-  memory->create(nterms,n+1,"dihedral:nt");
-  a = new double * [n+1];
+  nterms = new int[n+1];
+  a = new double *[n+1];
+  for (int i = 1; i <= n; i++) a[i] = 0;
 
   memory->create(setflag,n+1,"dihedral:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;

@@ -20,16 +20,38 @@ KOKKOS_ADD_TEST_LIBRARY(
   HEADERS ${GTEST_SOURCE_DIR}/gtest/gtest.h
   SOURCES ${GTEST_SOURCE_DIR}/gtest/gtest-all.cc
 )
-KOKKOS_TARGET_COMPILE_DEFINITIONS(kokkosalgorithms_gtest PUBLIC "-DGTEST_HAS_PTHREAD=0")
+# WORKAROUND FOR HIPCC
+IF(Kokkos_ENABLE_HIP)
+  TARGET_COMPILE_DEFINITIONS(kokkosalgorithms_gtest PUBLIC "-DGTEST_HAS_PTHREAD=0 --amdgpu-target=gfx906")
+ELSE()
+  TARGET_COMPILE_DEFINITIONS(kokkosalgorithms_gtest PUBLIC "-DGTEST_HAS_PTHREAD=0")
+ENDIF()
+
+TARGET_COMPILE_FEATURES(kokkosalgorithms_gtest PUBLIC cxx_std_11)
 
 SET(SOURCES
-  UnitTestMain.cpp 
-  TestCuda.cpp
-  )
+  UnitTestMain.cpp
+)
 
 IF(Kokkos_ENABLE_OPENMP)
   LIST( APPEND SOURCES
     TestOpenMP.cpp
+    TestOpenMP_Sort1D.cpp
+    TestOpenMP_Sort3D.cpp
+    TestOpenMP_SortDynamicView.cpp
+    TestOpenMP_Random.cpp
+  )
+ENDIF()
+
+IF(Kokkos_ENABLE_HIP)
+  LIST( APPEND SOURCES
+    TestHIP.cpp
+  )
+ENDIF()
+
+IF(Kokkos_ENABLE_CUDA)
+  LIST( APPEND SOURCES
+    TestCuda.cpp
   )
 ENDIF()
 

@@ -88,6 +88,7 @@ void FixMvvEDPD::initial_integrate(int /*vflag*/)
   double *edpd_flux = atom->edpd_flux;
   double *edpd_cv = atom->edpd_cv;
   double **vest = atom->vest;
+  double *vest_temp = atom->vest_temp;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
@@ -105,7 +106,7 @@ void FixMvvEDPD::initial_integrate(int /*vflag*/)
      vest[i][0] = v[i][0] + dtfm * f[i][0];
      vest[i][1] = v[i][1] + dtfm * f[i][1];
      vest[i][2] = v[i][2] + dtfm * f[i][2];
-     vest[i][3] = edpd_temp[i] + dtT * edpd_flux[i];
+     vest_temp[i] = edpd_temp[i] + dtT * edpd_flux[i];
 
      x[i][0] += dtv * vest[i][0];
      x[i][1] += dtv * vest[i][1];
@@ -131,6 +132,7 @@ void FixMvvEDPD::final_integrate()
   double *edpd_flux = atom->edpd_flux;
   double *edpd_cv = atom->edpd_cv;
   double **vest = atom->vest;
+  double *vest_temp = atom->vest_temp;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
@@ -148,7 +150,7 @@ void FixMvvEDPD::final_integrate()
      v[i][0] = vest[i][0] + dtfm * f[i][0];
      v[i][1] = vest[i][1] + dtfm * f[i][1];
      v[i][2] = vest[i][2] + dtfm * f[i][2];
-     edpd_temp[i] = vest[i][3] + dtT * edpd_flux[i];
+     edpd_temp[i] = vest_temp[i] + dtT * edpd_flux[i];
   }
 }
 

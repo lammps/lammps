@@ -665,8 +665,6 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
       nspecies, isite1, isite2, fractionalWeighting,
       mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2);
 
-  if (neighflag == N2) error->all(FLERR,"pair table/rx/kk can't handle N2 yet\n");
-
   NeighListKokkos<DeviceType>* l =
     dynamic_cast<NeighListKokkos<DeviceType>*>(list);
 
@@ -1282,9 +1280,6 @@ void PairTableRXKokkos<DeviceType>::init_style()
   } else if (neighflag == HALF || neighflag == HALFTHREAD) {
     neighbor->requests[irequest]->full = 0;
     neighbor->requests[irequest]->half = 1;
-  } else if (neighflag == N2) {
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 0;
   } else {
     error->all(FLERR,"Cannot use chosen neighbor list style with lj/cut/kk");
   }

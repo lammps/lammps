@@ -34,11 +34,11 @@ class Input : protected Pointers {
   ~Input();
   void file();                   // process all input
   void file(const char *);       // process an input script
-  char *one(const char *);       // process a single command
+  char *one(const std::string&); // process a single command
   void substitute(char *&, char *&, int &, int &, int);
                                  // substitute for variables in a string
   int expand_args(int, char **, int, char **&);  // expand args due to wildcard
-  void write_echo(const char *); // send text to active echo file pointers
+  void write_echo(const std::string &); // send text to active echo file pointers
 
  protected:
   char *command;               // ptr to current command

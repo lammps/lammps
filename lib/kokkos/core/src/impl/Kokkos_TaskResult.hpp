@@ -113,20 +113,20 @@ struct TaskResult<void> {
   using reference_type = void;
 
   template <class TaskQueueTraits>
-  KOKKOS_INLINE_FUNCTION static void* ptr(TaskNode<TaskQueueTraits>* task) {
+  KOKKOS_INLINE_FUNCTION static void* ptr(TaskNode<TaskQueueTraits>* /*task*/) {
     return nullptr;
   }
 
-  KOKKOS_INLINE_FUNCTION static void* ptr(TaskBase*) { return (void*)nullptr; }
+  KOKKOS_INLINE_FUNCTION static void* ptr(TaskBase*) { return nullptr; }
 
   template <class TaskQueueTraits>
   KOKKOS_INLINE_FUNCTION static reference_type get(
-      TaskNode<TaskQueueTraits>* task) { /* Should never be called */
+      TaskNode<TaskQueueTraits>* /*task*/) { /* Should never be called */
   }
 
   KOKKOS_INLINE_FUNCTION static reference_type get(TaskBase*) {}
 
-  KOKKOS_INLINE_FUNCTION static void destroy(TaskBase* task) {}
+  KOKKOS_INLINE_FUNCTION static void destroy(TaskBase* /*task*/) {}
 
   // template <class TaskQueueTraits>
   // KOKKOS_INLINE_FUNCTION static

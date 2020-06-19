@@ -62,6 +62,11 @@ class TeamPolicyInternal<Kokkos::OpenMP, Properties...>
 
   typedef PolicyTraits<Properties...> traits;
 
+  const typename traits::execution_space& space() const {
+    static typename traits::execution_space m_space;
+    return m_space;
+  }
+
   TeamPolicyInternal& operator=(const TeamPolicyInternal& p) {
     m_league_size            = p.m_league_size;
     m_team_size              = p.m_team_size;

@@ -48,6 +48,7 @@ rfix(NULL), irregular(NULL), set(NULL)
 
   no_change_box = 1;
   restart_global = 1;
+  pre_exchange_migrate = 1;
 
   nevery = force->inumeric(FLERR,arg[3]);
   if (nevery <= 0) error->all(FLERR,"Illegal fix deform command");

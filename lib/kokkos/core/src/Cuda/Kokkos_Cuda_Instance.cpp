@@ -115,10 +115,14 @@ __global__ void query_cuda_kernel_arch(int *d_arch) {
 
 /** Query what compute capability is actually launched to the device: */
 int cuda_kernel_arch() {
-  int *d_arch = 0;
+  int arch    = 0;
+  int *d_arch = nullptr;
+
   cudaMalloc((void **)&d_arch, sizeof(int));
+  cudaMemcpy(d_arch, &arch, sizeof(int), cudaMemcpyDefault);
+
   query_cuda_kernel_arch<<<1, 1>>>(d_arch);
-  int arch = 0;
+
   cudaMemcpy(&arch, d_arch, sizeof(int), cudaMemcpyDefault);
   cudaFree(d_arch);
   return arch;
@@ -313,6 +317,7 @@ void CudaInternal::initialize(int cuda_device_id, cudaStream_t stream) {
 
   enum { WordSize = sizeof(size_type) };
 
+#ifndef KOKKOS_IMPL_TURN_OFF_CUDA_HOST_INIT_CHECK
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE
   if (!HostSpace::execution_space::is_initialized()) {
 #else
@@ -323,6 +328,7 @@ void CudaInternal::initialize(int cuda_device_id, cudaStream_t stream) {
         "initialized");
     throw_runtime_exception(msg);
   }
+#endif
 
   const CudaInternalDevices &dev_info = CudaInternalDevices::singleton();
 
@@ -340,7 +346,8 @@ void CudaInternal::initialize(int cuda_device_id, cudaStream_t stream) {
   if (ok_init && ok_dev) {
     const struct cudaDeviceProp &cudaProp = dev_info.m_cudaProp[cuda_device_id];
 
-    m_cudaDev = cuda_device_id;
+    m_cudaDev    = cuda_device_id;
+    m_deviceProp = cudaProp;
 
     CUDA_SAFE_CALL(cudaSetDevice(m_cudaDev));
     Kokkos::Impl::cuda_device_synchronize();
@@ -348,17 +355,24 @@ void CudaInternal::initialize(int cuda_device_id, cudaStream_t stream) {
     // Query what compute capability architecture a kernel executes:
     m_cudaArch = cuda_kernel_arch();
 
+    if (m_cudaArch == 0) {
+      std::stringstream ss;
+      ss << "Kokkos::Cuda::initialize ERROR: likely mismatch of architecture"
+         << std::endl;
+      std::string msg = ss.str();
+      Kokkos::abort(msg.c_str());
+    }
+
     int compiled_major = m_cudaArch / 100;
     int compiled_minor = (m_cudaArch % 100) / 10;
 
-    if (compiled_major < 5 && cudaProp.major >= 5) {
+    if (compiled_major != cudaProp.major || compiled_minor < cudaProp.minor) {
       std::stringstream ss;
       ss << "Kokkos::Cuda::initialize ERROR: running kernels compiled for "
             "compute capability "
          << compiled_major << "." << compiled_minor
-         << " (< 5.0) on device with compute capability " << cudaProp.major
-         << "." << cudaProp.minor
-         << " (>=5.0), this would give incorrect results!" << std::endl;
+         << " on device with compute capability " << cudaProp.major << "."
+         << cudaProp.minor << " is not supported by CUDA!" << std::endl;
       std::string msg = ss.str();
       Kokkos::abort(msg.c_str());
     }
@@ -742,7 +756,7 @@ int Cuda::impl_is_initialized()
 void Cuda::initialize(const Cuda::SelectDevice config, size_t num_instances)
 #else
 void Cuda::impl_initialize(const Cuda::SelectDevice config,
-                           size_t num_instances)
+                           size_t /*num_instances*/)
 #endif
 {
   Impl::CudaInternal::singleton().initialize(config.cuda_device_id, 0);
@@ -826,6 +840,9 @@ const char *Cuda::name() { return "Cuda"; }
 
 cudaStream_t Cuda::cuda_stream() const { return m_space_instance->m_stream; }
 int Cuda::cuda_device() const { return m_space_instance->m_cudaDev; }
+const cudaDeviceProp &Cuda::cuda_device_prop() const {
+  return m_space_instance->m_deviceProp;
+}
 
 }  // namespace Kokkos
 

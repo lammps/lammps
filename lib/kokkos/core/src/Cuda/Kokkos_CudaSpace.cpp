@@ -147,7 +147,7 @@ void CudaSpace::access_error(const void *const) {
 /*--------------------------------------------------------------------------*/
 
 bool CudaUVMSpace::available() {
-#if defined(CUDA_VERSION) && (6000 <= CUDA_VERSION) && !defined(__APPLE__)
+#if defined(CUDA_VERSION) && !defined(__APPLE__)
   enum { UVM_available = true };
 #else
   enum { UVM_available = false };
@@ -219,18 +219,9 @@ void *CudaSpace::allocate(const size_t arg_alloc_size) const {
 void *CudaUVMSpace::allocate(const size_t arg_alloc_size) const {
   void *ptr = nullptr;
 
-  enum { max_uvm_allocations = 65536 };
-
   Cuda::impl_static_fence();
   if (arg_alloc_size > 0) {
     Kokkos::Impl::num_uvm_allocations++;
-
-    if (Kokkos::Impl::num_uvm_allocations.load() > max_uvm_allocations) {
-      throw Experimental::CudaRawMemoryAllocationFailure(
-          arg_alloc_size, 1,
-          Experimental::RawMemoryAllocationFailure::FailureMode::
-              MaximumCudaUVMAllocationsExceeded);
-    }
 
     auto error_code =
         cudaMallocManaged(&ptr, arg_alloc_size, cudaMemAttachGlobal);
@@ -360,7 +351,8 @@ SharedAllocationRecord<Kokkos::CudaSpace, void>::attach_texture_object(
   resDesc.res.linear.sizeInBytes = alloc_size;
   resDesc.res.linear.devPtr      = alloc_ptr;
 
-  CUDA_SAFE_CALL(cudaCreateTextureObject(&tex_obj, &resDesc, &texDesc, NULL));
+  CUDA_SAFE_CALL(
+      cudaCreateTextureObject(&tex_obj, &resDesc, &texDesc, nullptr));
 
   return tex_obj;
 }
@@ -797,6 +789,8 @@ SharedAllocationRecord<Kokkos::CudaHostPinnedSpace, void>
 // Iterate records to print orphaned memory ...
 void SharedAllocationRecord<Kokkos::CudaSpace, void>::print_records(
     std::ostream &s, const Kokkos::CudaSpace &, bool detail) {
+  (void)s;
+  (void)detail;
 #ifdef KOKKOS_DEBUG
   SharedAllocationRecord<void, void> *r = &s_root_record;
 
@@ -869,6 +863,8 @@ void SharedAllocationRecord<Kokkos::CudaSpace, void>::print_records(
 
 void SharedAllocationRecord<Kokkos::CudaUVMSpace, void>::print_records(
     std::ostream &s, const Kokkos::CudaUVMSpace &, bool detail) {
+  (void)s;
+  (void)detail;
 #ifdef KOKKOS_DEBUG
   SharedAllocationRecord<void, void>::print_host_accessible_records(
       s, "CudaUVM", &s_root_record, detail);
@@ -881,6 +877,8 @@ void SharedAllocationRecord<Kokkos::CudaUVMSpace, void>::print_records(
 
 void SharedAllocationRecord<Kokkos::CudaHostPinnedSpace, void>::print_records(
     std::ostream &s, const Kokkos::CudaHostPinnedSpace &, bool detail) {
+  (void)s;
+  (void)detail;
 #ifdef KOKKOS_DEBUG
   SharedAllocationRecord<void, void>::print_host_accessible_records(
       s, "CudaHostPinned", &s_root_record, detail);
@@ -895,7 +893,7 @@ void SharedAllocationRecord<Kokkos::CudaHostPinnedSpace, void>::print_records(
 //==============================================================================
 
 void *cuda_resize_scratch_space(std::int64_t bytes, bool force_shrink) {
-  static void *ptr                 = NULL;
+  static void *ptr                 = nullptr;
   static std::int64_t current_size = 0;
   if (current_size == 0) {
     current_size = bytes;
@@ -915,6 +913,27 @@ void *cuda_resize_scratch_space(std::int64_t bytes, bool force_shrink) {
                                                    current_size);
   }
   return ptr;
+}
+
+void cuda_prefetch_pointer(const Cuda &space, const void *ptr, size_t bytes,
+                           bool to_device) {
+  if ((ptr == nullptr) || (bytes == 0)) return;
+  cudaPointerAttributes attr;
+  CUDA_SAFE_CALL(cudaPointerGetAttributes(&attr, ptr));
+  // I measured this and it turns out prefetching towards the host slows
+  // DualView syncs down. Probably because the latency is not too bad in the
+  // first place for the pull down. If we want to change that provde
+  // cudaCpuDeviceId as the device if to_device is false
+#if CUDA_VERSION < 10000
+  bool is_managed = attr.isManaged;
+#else
+  bool is_managed = attr.type == cudaMemoryTypeManaged;
+#endif
+  if (to_device && is_managed &&
+      space.cuda_device_prop().concurrentManagedAccess) {
+    CUDA_SAFE_CALL(cudaMemPrefetchAsync(ptr, bytes, space.cuda_device(),
+                                        space.cuda_stream()));
+  }
 }
 
 }  // namespace Impl

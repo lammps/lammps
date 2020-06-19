@@ -92,8 +92,7 @@ __inline__ __device__ unsigned long long int atomic_compare_exchange(
 template <typename T>
 __inline__ __device__ T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
-    typename Kokkos::Impl::enable_if<sizeof(T) == sizeof(int), const T&>::type
-        val) {
+    typename std::enable_if<sizeof(T) == sizeof(int), const T&>::type val) {
   const int tmp = atomicCAS((int*)dest, *((int*)&compare), *((int*)&val));
   return *((T*)&tmp);
 }
@@ -101,9 +100,9 @@ __inline__ __device__ T atomic_compare_exchange(
 template <typename T>
 __inline__ __device__ T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
-    typename Kokkos::Impl::enable_if<
-        sizeof(T) != sizeof(int) && sizeof(T) == sizeof(unsigned long long int),
-        const T&>::type val) {
+    typename std::enable_if<sizeof(T) != sizeof(int) &&
+                                sizeof(T) == sizeof(unsigned long long int),
+                            const T&>::type val) {
   typedef unsigned long long int type;
   const type tmp = atomicCAS((type*)dest, *((type*)&compare), *((type*)&val));
   return *((T*)&tmp);
@@ -112,8 +111,8 @@ __inline__ __device__ T atomic_compare_exchange(
 template <typename T>
 __inline__ __device__ T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
-    typename Kokkos::Impl::enable_if<(sizeof(T) != 4) && (sizeof(T) != 8),
-                                     const T>::type& val) {
+    typename std::enable_if<(sizeof(T) != 4) && (sizeof(T) != 8),
+                            const T>::type& val) {
   T return_val;
   // This is a way to (hopefully) avoid dead lock in a warp
   int done = 0;
@@ -147,7 +146,7 @@ __inline__ __device__ T atomic_compare_exchange(
 //----------------------------------------------------------------------------
 // GCC native CAS supports int, long, unsigned int, unsigned long.
 // Intel native CAS support int and long with the same interface as GCC.
-#if !defined(KOKKOS_ENABLE_ROCM_ATOMICS)
+#if !defined(KOKKOS_ENABLE_ROCM_ATOMICS) || !defined(KOKKOS_ENABLE_HIP_ATOMICS)
 #if !defined(__CUDA_ARCH__) || defined(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND)
 #if defined(KOKKOS_ENABLE_GNU_ATOMICS) || defined(KOKKOS_ENABLE_INTEL_ATOMICS)
 
@@ -188,12 +187,11 @@ inline unsigned long atomic_compare_exchange(volatile unsigned long* const dest,
 template <typename T>
 inline T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
-    typename Kokkos::Impl::enable_if<sizeof(T) == sizeof(int), const T&>::type
-        val) {
+    typename std::enable_if<sizeof(T) == sizeof(int), const T&>::type val) {
   union U {
     int i;
     T t;
-    KOKKOS_INLINE_FUNCTION U(){};
+    KOKKOS_INLINE_FUNCTION U() {}
   } tmp;
 
 #if defined(KOKKOS_ENABLE_RFO_PREFETCH)
@@ -208,13 +206,13 @@ inline T atomic_compare_exchange(
 template <typename T>
 inline T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
-    typename Kokkos::Impl::enable_if<sizeof(T) != sizeof(int) &&
-                                         sizeof(T) == sizeof(long),
-                                     const T&>::type val) {
+    typename std::enable_if<sizeof(T) != sizeof(int) &&
+                                sizeof(T) == sizeof(long),
+                            const T&>::type val) {
   union U {
     long i;
     T t;
-    KOKKOS_INLINE_FUNCTION U(){};
+    KOKKOS_INLINE_FUNCTION U() {}
   } tmp;
 
 #if defined(KOKKOS_ENABLE_RFO_PREFETCH)
@@ -230,14 +228,14 @@ inline T atomic_compare_exchange(
 template <typename T>
 inline T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
-    typename Kokkos::Impl::enable_if<sizeof(T) != sizeof(int) &&
-                                         sizeof(T) != sizeof(long) &&
-                                         sizeof(T) == sizeof(Impl::cas128_t),
-                                     const T&>::type val) {
+    typename std::enable_if<sizeof(T) != sizeof(int) &&
+                                sizeof(T) != sizeof(long) &&
+                                sizeof(T) == sizeof(Impl::cas128_t),
+                            const T&>::type val) {
   union U {
     Impl::cas128_t i;
     T t;
-    KOKKOS_INLINE_FUNCTION U(){};
+    KOKKOS_INLINE_FUNCTION U() {}
   } tmp;
 
 #if defined(KOKKOS_ENABLE_RFO_PREFETCH)
@@ -253,12 +251,12 @@ inline T atomic_compare_exchange(
 template <typename T>
 inline T atomic_compare_exchange(
     volatile T* const dest, const T compare,
-    typename Kokkos::Impl::enable_if<(sizeof(T) != 4) && (sizeof(T) != 8)
+    typename std::enable_if<(sizeof(T) != 4) && (sizeof(T) != 8)
 #if defined(KOKKOS_ENABLE_ASM) && defined(KOKKOS_ENABLE_ISA_X86_64)
-                                         && (sizeof(T) != 16)
+                                && (sizeof(T) != 16)
 #endif
-                                         ,
-                                     const T>::type& val) {
+                                ,
+                            const T>::type& val) {
 #if defined(KOKKOS_ENABLE_RFO_PREFETCH)
   _mm_prefetch((const char*)dest, _MM_HINT_ET0);
 #endif

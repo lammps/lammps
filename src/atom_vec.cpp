@@ -96,6 +96,14 @@ AtomVec::~AtomVec()
   for (int i = 0; i < nargcopy; i++) delete [] argcopy[i];
   delete [] argcopy;
 
+  memory->destroy(atom->tag);
+  memory->destroy(atom->type);
+  memory->destroy(atom->mask);
+  memory->destroy(atom->image);
+  memory->destroy(atom->x);
+  memory->destroy(atom->v);
+  memory->destroy(atom->f);
+
   for (int i = 0; i < ngrow; i++) {
     pdata = mgrow.pdata[i];
     datatype = mgrow.datatype[i];

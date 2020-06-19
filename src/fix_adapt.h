@@ -49,7 +49,7 @@ class FixAdapt : public Fix {
   int nlevels_respa;
   char *id_fix_diam,*id_fix_chg;
   class FixStore *fix_diam,*fix_chg;
-  double diam_scale,chg_scale;
+  double previous_diam_scale,previous_chg_scale;
   int discflag;
 
   struct Adapt {

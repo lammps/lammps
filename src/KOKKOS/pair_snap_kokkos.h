@@ -30,19 +30,31 @@ PairStyle(snap/kk/host,PairSNAPKokkos<LMPHostType>)
 
 namespace LAMMPS_NS {
 
+// Routines for both the CPU and GPU backend
 template<int NEIGHFLAG, int EVFLAG>
 struct TagPairSNAPComputeForce{};
-
-struct TagPairSNAPBeta{};
 struct TagPairSNAPComputeNeigh{};
+
+// GPU backend only
 struct TagPairSNAPPreUi{};
 struct TagPairSNAPComputeUi{};
-struct TagPairSNAPComputeUiCPU{};
+struct TagPairSNAPTransformUi{}; // re-order ulisttot from SoA to AoSoA, zero ylist
 struct TagPairSNAPComputeZi{};
+struct TagPairSNAPBeta{};
 struct TagPairSNAPComputeBi{};
-struct TagPairSNAPZeroYi{};
+struct TagPairSNAPTransformBi{}; // re-order blist from AoSoA to AoS
 struct TagPairSNAPComputeYi{};
+struct TagPairSNAPTransformYi{}; // re-order ylist from AoSoA to AoS
 struct TagPairSNAPComputeFusedDeidrj{};
+
+// CPU backend only
+struct TagPairSNAPPreUiCPU{};
+struct TagPairSNAPComputeUiCPU{};
+struct TagPairSNAPComputeZiCPU{};
+struct TagPairSNAPBetaCPU{};
+struct TagPairSNAPComputeBiCPU{};
+struct TagPairSNAPZeroYiCPU{};
+struct TagPairSNAPComputeYiCPU{};
 struct TagPairSNAPComputeDuidrjCPU{};
 struct TagPairSNAPComputeDeidrjCPU{};
 
@@ -82,37 +94,63 @@ public:
   void operator() (TagPairSNAPComputeNeigh,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeNeigh>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPBetaCPU,const int& ii) const;
+
+  // GPU backend only
+  KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPPreUi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPPreUi>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeUi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUi>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAPComputeUiCPU,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUiCPU>::member_type& team) const;
+  void operator() (TagPairSNAPTransformUi,const int iatom_mod, const int idxu, const int iatom_div) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAPComputeZi,const int& ii) const;
+  void operator() (TagPairSNAPComputeZi,const int iatom_mod, const int idxz, const int iatom_div) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAPComputeBi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeBi>::member_type& team) const;
+  void operator() (TagPairSNAPBeta, const int& ii) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAPZeroYi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPZeroYi>::member_type& team) const;
+  void operator() (TagPairSNAPComputeBi,const int iatom_mod, const int idxb, const int iatom_div) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAPComputeYi,const int& ii) const;
+  void operator() (TagPairSNAPTransformBi,const int iatom_mod, const int idxb, const int iatom_div) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeYi,const int iatom_mod, const int idxz, const int iatom_div) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPTransformYi,const int iatom_mod, const int idxu, const int iatom_div) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeFusedDeidrj,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeFusedDeidrj>::member_type& team) const;
+
+  // CPU backend only
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPPreUiCPU,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPPreUiCPU>::member_type& team) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeUiCPU,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUiCPU>::member_type& team) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeZiCPU,const int& ii) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeBiCPU,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeBiCPU>::member_type& team) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPZeroYiCPU,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPZeroYiCPU>::member_type& team) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeYiCPU,const int& ii) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeDuidrjCPU,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDuidrjCPU>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeDeidrjCPU,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeDeidrjCPU>::member_type& team) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAPBeta,const int& ii) const;
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -175,6 +213,7 @@ inline double dist2(double* x,double* y);
   Kokkos::View<T_INT*, DeviceType> d_map;                    // mapping from atom types to elements
   Kokkos::View<T_INT*, DeviceType> d_ninside;                // ninside for all atoms in list
   Kokkos::View<F_FLOAT**, DeviceType> d_beta;                // betas for all atoms in list
+  Kokkos::View<F_FLOAT***, Kokkos::LayoutLeft, DeviceType> d_beta_pack;          // betas for all atoms in list, GPU
   Kokkos::View<F_FLOAT**, DeviceType> d_bispectrum;          // bispectrum components for all atoms in list
 
   typedef Kokkos::DualView<F_FLOAT**, DeviceType> tdual_fparams;

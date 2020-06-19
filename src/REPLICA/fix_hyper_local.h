@@ -72,9 +72,9 @@ class FixHyperLocal : public FixHyper {
   double cutbondsq,dcutsq;
   double beta,invvmax,invqfactorsq;
 
-  // DEBUG - 2 lines
-  int overcount;
-  double myboost;
+  // two DEBUG quantities
+  // double myboost;
+  // int overcount;
 
   // flags
 
@@ -95,14 +95,14 @@ class FixHyperLocal : public FixHyper {
   double time_bondbuild;     // CPU time for bond builds
 
   bigint allbonds;           // current total # of bonds
-  int nnewbond;              // running tally of # of new bonds created
   int maxbondperatom;        // max # of bonds any atom ever has
   int nevent;                // # of events that trigger bond rebuild
   int nevent_atom;           // # of atoms that experienced an event
 
-  int nbias_running;         // running count of biased bonds
-  int nobias_running;        // ditto for bonds with bias = 0, b/c too long
-  int negstrain_running;     // ditto for bonds with negative strain
+  bigint nnewbond;           // running tally of # of new bonds created
+  bigint nbias_running;      // running count of biased bonds
+  bigint nobias_running;     // ditto for bonds with bias = 0, b/c too long
+  bigint negstrain_running;  // ditto for bonds with negative strain
 
   double mybias;             // sum of bias potentials for biased bonds
   double maxbondlen;         // cummulative max length of any bond

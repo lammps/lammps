@@ -1,4 +1,5 @@
-LAMMPS (2 Jun 2020)
+LAMMPS (15 Jun 2020)
+  using 1 OpenMP thread(s) per MPI task
 # Demonstrate SNAP InP potential
 
 # Initialize simulation
@@ -31,7 +32,7 @@ Created orthogonal box = (0.0 0.0 0.0) to (23.32 23.32 23.32)
   1 by 2 by 2 MPI processor grid
 create_atoms    1 box basis 5 2 basis 6 2 basis 7 2 basis 8 2
 Created 512 atoms
-  create_atoms CPU = 0.001 seconds
+  create_atoms CPU = 0.000 seconds
 
 mass 1 114.76
 mass 2 30.98
@@ -43,10 +44,10 @@ include InP_JCPA2020.snap
 
 # Definition of SNAP+ZBL potential.
 
-variable zblcutinner equal 4
-variable zblcutouter equal 4.2
-variable zblz1 equal 49
-variable zblz2 equal 15
+variable zblcutinner index 4
+variable zblcutouter index 4.2
+variable zblz1 index 49
+variable zblz2 index 15
 
 # Specify hybrid with SNAP and ZBL
 
@@ -90,7 +91,7 @@ neigh_modify once no every 1 delay 0 check yes
 
 # Run MD
 
-velocity all create 300.0 4928459
+velocity all create 300.0 4928459 loop geom
 fix 1 all nve
 run             ${nsteps}
 run             100
@@ -114,30 +115,30 @@ Neighbor list info ...
 Per MPI rank memory allocation (min/avg/max) = 4.587 | 4.587 | 4.587 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0          300   -3.4805794            0   -3.4418771    1353.5968 
-      10    286.58246    -3.478848            0   -3.4418767     1582.995 
-      20    250.70996   -3.4742192            0   -3.4418757    2207.7507 
-      30    203.58199   -3.4681382            0   -3.4418746    2968.5206 
-      40    158.84622    -3.462366            0   -3.4418736    3619.0285 
-      50    128.30488   -3.4584254            0   -3.4418731     4047.173 
-      60    118.40349   -3.4571481            0   -3.4418731    4203.3421 
-      70    128.48973   -3.4584499            0   -3.4418737    4109.0296 
-      80    151.54241   -3.4614247            0   -3.4418746    3847.4617 
-      90    176.92084   -3.4646996            0   -3.4418755    3548.7811 
-     100     193.9555   -3.4668978            0   -3.4418761    3342.8083 
-Loop time of 4.99339 on 4 procs for 100 steps with 512 atoms
+      10    285.84677   -3.4787531            0   -3.4418766    1611.7131 
+      20    248.14649   -3.4738884            0   -3.4418756    2312.0308 
+      30    198.94136   -3.4675394            0   -3.4418744    3168.1543 
+      40    152.74831   -3.4615791            0   -3.4418734    3903.5749 
+      50     121.9796   -3.4576091            0   -3.4418728    4387.1254 
+      60    113.27555   -3.4564863            0   -3.4418729    4556.3003 
+      70    125.68089   -3.4580873            0   -3.4418735    4431.2083 
+      80    151.47475   -3.4614159            0   -3.4418745    4107.2369 
+      90    179.18708   -3.4649919            0   -3.4418754    3739.5881 
+     100    197.50662   -3.4673559            0    -3.441876    3492.7778 
+Loop time of 3.73974 on 4 procs for 100 steps with 512 atoms
 
-Performance: 0.865 ns/day, 27.741 hours/ns, 20.026 timesteps/s
-99.5% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 1.155 ns/day, 20.776 hours/ns, 26.740 timesteps/s
+98.3% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 4.8898     | 4.907      | 4.9329     |   0.8 | 98.27
+Pair    | 3.4687     | 3.5182     | 3.5985     |   2.7 | 94.07
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.058815   | 0.084739   | 0.1019     |   6.1 |  1.70
-Output  | 0.000252   | 0.00038775 | 0.000777   |   0.0 |  0.01
-Modify  | 0.000262   | 0.00026675 | 0.000272   |   0.0 |  0.01
-Other   |            | 0.001039   |            |       |  0.02
+Comm    | 0.13897    | 0.21952    | 0.26888    |  10.7 |  5.87
+Output  | 0.00018191 | 0.00047094 | 0.0012944  |   0.0 |  0.01
+Modify  | 0.00013065 | 0.00013524 | 0.00014186 |   0.0 |  0.00
+Other   |            | 0.001456   |            |       |  0.04
 
 Nlocal:    128 ave 128 max 128 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -153,4 +154,4 @@ Ave neighs/atom = 122
 Neighbor list builds = 0
 Dangerous builds = 0
 
-Total wall time: 0:00:05
+Total wall time: 0:00:03

@@ -47,26 +47,26 @@ PairPolymorphic::PairPolymorphic(LAMMPS *lmp) : Pair(lmp)
   one_coeff = 1;
 
   nelements = 0;
-  elements = NULL;
-  match = NULL;
-  pairParameters = NULL;
-  tripletParameters = NULL;
-  elem2param = NULL;
-  elem3param = NULL;
-  map = NULL;
+  elements = nullptr;
+  match = nullptr;
+  pairParameters = nullptr;
+  tripletParameters = nullptr;
+  elem2param = nullptr;
+  elem3param = nullptr;
+  map = nullptr;
   epsilon = 0.0;
   neighsize = 0;
-  firstneighV = NULL;
-  firstneighW = NULL;
-  firstneighW1 = NULL;
-  delxV = NULL;
-  delyV = NULL;
-  delzV = NULL;
-  drV = NULL;
-  delxW = NULL;
-  delyW = NULL;
-  delzW = NULL;
-  drW = NULL;
+  firstneighV = nullptr;
+  firstneighW = nullptr;
+  firstneighW1 = nullptr;
+  delxV = nullptr;
+  delyV = nullptr;
+  delzV = nullptr;
+  drV = nullptr;
+  delxW = nullptr;
+  delyW = nullptr;
+  delzW = nullptr;
+  drW = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -79,8 +79,10 @@ PairPolymorphic::~PairPolymorphic()
     for (int i = 0; i < nelements; i++) delete [] elements[i];
   delete [] elements;
   delete [] match;
-  memory->destroy(pairParameters);
-  memory->destroy(tripletParameters);
+
+  delete [] pairParameters;
+  delete [] tripletParameters;
+
   memory->destroy(elem2param);
   memory->destroy(elem3param);
   if (allocated) {
@@ -487,7 +489,7 @@ void PairPolymorphic::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -581,6 +583,7 @@ void PairPolymorphic::read_file(char *file)
       eta = values.next_int();
 
       // map the elements in the potential file to LAMMPS atom types
+      delete [] match;
       match = new int[nelements];
 
       for (int i = 0; i < nelements; i++) {
@@ -617,8 +620,10 @@ void PairPolymorphic::read_file(char *file)
       // cutoffs
       npair = nelements*(nelements+1)/2;
       ntriple = nelements*nelements*nelements;
-      pairParameters = (PairParameters*) memory->srealloc(pairParameters,npair*sizeof(PairParameters), "pair:pairParameters");
-      tripletParameters = (TripletParameters*) memory->srealloc(tripletParameters,ntriple*sizeof(TripletParameters), "pair:tripletParameters");
+      delete [] pairParameters;
+      delete [] tripletParameters;
+      pairParameters = new PairParameters[npair];
+      tripletParameters = new TripletParameters[ntriple];
 
       for (int i = 0; i < npair; i++) {
         PairParameters & p = pairParameters[i];
@@ -641,9 +646,12 @@ void PairPolymorphic::read_file(char *file)
   MPI_Bcast(&ntriple, 1, MPI_INT, 0, world);
 
   if(comm->me != 0) {
+    delete [] match;
     match = new int[nelements];
-    pairParameters = (PairParameters*) memory->srealloc(pairParameters,npair*sizeof(PairParameters), "pair:pairParameters");
-    tripletParameters = (TripletParameters*) memory->srealloc(tripletParameters,ntriple*sizeof(TripletParameters), "pair:tripletParameters");
+    delete [] pairParameters;
+    delete [] tripletParameters;
+    pairParameters = new PairParameters[npair];
+    tripletParameters = new TripletParameters[ntriple];
   }
 
   MPI_Bcast(match, nelements, MPI_INT, 0, world);

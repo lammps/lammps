@@ -12,14 +12,20 @@
 ------------------------------------------------------------------------- */
 
 #include "MANYBODY/pair_eim.h"
+#include "info.h"
+#include "input.h"
 #include "lammps.h"
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <cstring>
 #include <mpi.h>
 
 using namespace LAMMPS_NS;
+
+// whether to print verbose output (i.e. not capturing LAMMPS screen output).
+bool verbose = false;
 
 class EIMPotentialFileReaderTest : public ::testing::Test {
 protected:
@@ -33,9 +39,16 @@ protected:
             "PotentialFileReaderTest", "-log", "none", "-echo", "screen", "-nocite"};
         char **argv = (char **)args;
         int argc    = sizeof(args) / sizeof(char *);
-        ::testing::internal::CaptureStdout();
+        if (!verbose) ::testing::internal::CaptureStdout();
         lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
-        ::testing::internal::GetCapturedStdout();
+        lmp->input->one("units metal");
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        ASSERT_NE(lmp, nullptr);
+
+        // check if the prerequisite eim pair style is available
+        Info *info = new Info(lmp);
+        ASSERT_TRUE(info->has_style("pair", "eim"));
+        delete info;
 
         int npair        = nelements * (nelements + 1) / 2;
         setfl.ielement   = new int[nelements];
@@ -85,17 +98,17 @@ protected:
         delete[] setfl.rs;
         delete[] setfl.tp;
 
-        ::testing::internal::CaptureStdout();
+        if (!verbose) ::testing::internal::CaptureStdout();
         delete lmp;
-        ::testing::internal::GetCapturedStdout();
+        if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 };
 
 TEST_F(EIMPotentialFileReaderTest, global_line)
 {
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     EIMPotentialFileReader reader(lmp, "ffield.eim");
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     reader.get_global(&setfl);
     ASSERT_DOUBLE_EQ(setfl.division, 2.0);
@@ -105,9 +118,9 @@ TEST_F(EIMPotentialFileReaderTest, global_line)
 
 TEST_F(EIMPotentialFileReaderTest, element_line_sequential)
 {
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     EIMPotentialFileReader reader(lmp, "ffield.eim");
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     reader.get_element(&setfl, 0, "Li");
     ASSERT_EQ(setfl.ielement[0], 3);
@@ -130,9 +143,9 @@ TEST_F(EIMPotentialFileReaderTest, element_line_sequential)
 
 TEST_F(EIMPotentialFileReaderTest, element_line_random)
 {
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     EIMPotentialFileReader reader(lmp, "ffield.eim");
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     reader.get_element(&setfl, 0, "Id");
     ASSERT_EQ(setfl.ielement[0], 53);
@@ -146,9 +159,9 @@ TEST_F(EIMPotentialFileReaderTest, element_line_random)
 
 TEST_F(EIMPotentialFileReaderTest, pair_line)
 {
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     EIMPotentialFileReader reader(lmp, "ffield.eim");
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     reader.get_pair(&setfl, 0, "Li", "Li");
     ASSERT_DOUBLE_EQ(setfl.rcutphiA[0], 6.0490e+00);
@@ -169,9 +182,9 @@ TEST_F(EIMPotentialFileReaderTest, pair_line)
 
 TEST_F(EIMPotentialFileReaderTest, pair_identical)
 {
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     EIMPotentialFileReader reader(lmp, "ffield.eim");
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     reader.get_pair(&setfl, 0, "Li", "Na");
     reader.get_pair(&setfl, 1, "Na", "Li");
@@ -195,5 +208,9 @@ int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
-    return RUN_ALL_TESTS();
+    if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
+
+    int rv = RUN_ALL_TESTS();
+    MPI_Finalize();
+    return rv;
 }

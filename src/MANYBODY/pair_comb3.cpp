@@ -2258,6 +2258,26 @@ void PairComb3::tables()
 
   int n = nelements;
 
+  memory->destroy(intype);
+  memory->destroy(erpaw);
+  memory->destroy(fafb);
+  memory->destroy(dfafb);
+  memory->destroy(ddfafb);
+  memory->destroy(phin);
+  memory->destroy(dphin);
+  memory->destroy(afb);
+  memory->destroy(dafb);
+  memory->destroy(vvdw);
+  memory->destroy(vdvdw);
+  memory->destroy(dpl);
+  memory->destroy(bbij);
+  memory->destroy(xcctmp);
+  memory->destroy(xchtmp);
+  memory->destroy(xcotmp);
+  memory->destroy(NCo);
+  memory->destroy(sht_num);
+  memory->sfree(sht_first);
+
   dra  = 0.001;
   drin = 0.100;
   drbuf = 0.100;

@@ -1,7 +1,7 @@
 ---
 lammps_version: 5 May 2020
 date_generated: Wed May 27 16:13:46 202
-epsilon: 2e-7
+epsilon: 5e-6
 prerequisites: ! |
   pair airebo
 pre_commands: ! |

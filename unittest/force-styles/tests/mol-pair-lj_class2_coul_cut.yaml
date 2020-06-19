@@ -1,7 +1,7 @@
 ---
 lammps_version: 5 May 2020
 date_generated: Sat May 30 18:04:12 202
-epsilon: 5e-13
+epsilon: 5e-12
 prerequisites: ! |
   atom full
   pair lj/class2/coul/cut

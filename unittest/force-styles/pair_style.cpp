@@ -87,8 +87,8 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
 
         if (!info->has_style(prerequisite.first, style)) ++nfail;
     }
+    delete info;
     if (nfail > 0) {
-        delete info;
         cleanup_lammps(lmp, cfg);
         return nullptr;
     }

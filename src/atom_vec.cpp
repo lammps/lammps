@@ -90,8 +90,50 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
 
 AtomVec::~AtomVec()
 {
+  int datatype,cols;
+  void *pdata;
+
   for (int i = 0; i < nargcopy; i++) delete [] argcopy[i];
   delete [] argcopy;
+
+  memory->destroy(atom->tag);
+  memory->destroy(atom->type);
+  memory->destroy(atom->mask);
+  memory->destroy(atom->image);
+  memory->destroy(atom->x);
+  memory->destroy(atom->v);
+  memory->destroy(atom->f);
+
+  for (int i = 0; i < ngrow; i++) {
+    pdata = mgrow.pdata[i];
+    datatype = mgrow.datatype[i];
+    cols = mgrow.cols[i];
+    if (datatype == Atom::DOUBLE) {
+      if (cols == 0)
+        memory->destroy(*((double **) pdata));
+      else if (cols > 0)
+        memory->destroy(*((double ***) pdata));
+      else {
+        memory->destroy(*((double ***) pdata));
+      }
+    } else if (datatype == Atom::INT) {
+      if (cols == 0)
+        memory->destroy(*((int **) pdata));
+      else if (cols > 0)
+        memory->destroy(*((int ***) pdata));
+      else {
+        memory->destroy(*((int ***) pdata));
+      }
+    } else if (datatype == Atom::BIGINT) {
+      if (cols == 0)
+        memory->destroy(*((bigint **) pdata));
+      else if (cols > 0)
+        memory->destroy(*((bigint ***) pdata));
+      else {
+        memory->destroy(*((bigint ***) pdata));
+      }
+    }
+  }
 
   destroy_method(&mgrow);
   destroy_method(&mcopy);
@@ -2335,9 +2377,9 @@ void AtomVec::setup_fields()
 {
   int n,cols;
 
-  if (strstr(fields_data_atom,"id ") != fields_data_atom)
+  if (!utils::strmatch(fields_data_atom,"^id "))
     error->all(FLERR,"Atom style fields_data_atom must have id as first field");
-  if (strstr(fields_data_vel,"id v") != fields_data_vel)
+  if (!utils::strmatch(fields_data_vel,"^id v"))
     error->all(FLERR,"Atom style fields_data_vel must have "
                "'id v' as first fields");
 
@@ -2469,31 +2511,21 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
 
     for (match = 0; match < nperatom; match++)
       if (strcmp(field, peratom[match].name) == 0) break;
-    if (match == nperatom) {
-      char str[128];
-      sprintf(str,"Peratom field %s not recognized", field);
-      error->all(FLERR,str);
-    }
+    if (match == nperatom)
+      error->all(FLERR,fmt::format("Peratom field {} not recognized", field));
     index[i] = match;
 
     // error if field appears multiple times
 
     for (match = 0; match < i; match++)
-      if (index[i] == index[match]) {
-        char str[128];
-        sprintf(str,"Peratom field %s is repeated", field);
-        error->all(FLERR,str);
-      }
+      if (index[i] == index[match])
+        error->all(FLERR,fmt::format("Peratom field {} is repeated", field));
 
     // error if field is in default str
 
     for (match = 0; match < ndef; match++)
-      if (strcmp(field, def_words[match].c_str()) == 0) {
-        char str[128];
-        sprintf(str,"Peratom field %s is a default", field);
-        error->all(FLERR,str);
-      }
-
+      if (strcmp(field, def_words[match].c_str()) == 0)
+        error->all(FLERR,fmt::format("Peratom field {} is a default", field));
   }
 
   method->index = index;

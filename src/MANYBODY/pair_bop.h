@@ -58,8 +58,6 @@ class PairBOP : public Pair {
   int ***elem2param;
   int nparams;
   int bop_step;
-  int allocate_pi;
-  int allocate_sigma;
   int allocate_neigh;
   int nb_pi,nb_sg;
   int ago1;

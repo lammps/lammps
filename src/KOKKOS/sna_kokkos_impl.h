@@ -337,7 +337,7 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
 
   const double wj_local = wj(iatom, jnbor);
   const double rcut = rcutij(iatom, jnbor);
-  const int jpos = element(iatom, jnbor);
+  const int jelem = element(iatom, jnbor);
 
   const double rsq = x * x + y * y + z * z;
   const double r = sqrt(rsq);
@@ -363,7 +363,7 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
   // so we can avoid all global memory reads
   Kokkos::single(Kokkos::PerThread(team), [=]() {
     buf1[0] = {1.,0.};
-    Kokkos::atomic_add(&(ulisttot_re(0,jpos,iatom)), sfac);
+    Kokkos::atomic_add(&(ulisttot_re(0,jelem,iatom)), sfac);
   });
 
   for (int j = 1; j <= twojmax; j++) {
@@ -418,8 +418,8 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
       // back up into shared memory for next iter
       buf2[jju_shared_idx] = u_accum;
 
-      Kokkos::atomic_add(&(ulisttot_re(jju_index,jpos,iatom)), sfac * u_accum.re);
-      Kokkos::atomic_add(&(ulisttot_im(jju_index,jpos,iatom)), sfac * u_accum.im);
+      Kokkos::atomic_add(&(ulisttot_re(jju_index,jelem,iatom)), sfac * u_accum.re);
+      Kokkos::atomic_add(&(ulisttot_im(jju_index,jelem,iatom)), sfac * u_accum.im);
 
       // copy left side to right side with inversion symmetry VMK 4.4(2)
       // u[ma-j,mb-j] = (-1)^(ma-mb)*Conj([u[ma,mb))
@@ -440,8 +440,8 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
         buf2[jju_shared_flip] = u_accum;
 
         // split re, im to get fully coalesced atomic add
-        Kokkos::atomic_add(&(ulisttot_re(jjup_flip,jpos,iatom)), sfac * u_accum.re);
-        Kokkos::atomic_add(&(ulisttot_im(jjup_flip,jpos,iatom)), sfac * u_accum.im);
+        Kokkos::atomic_add(&(ulisttot_re(jjup_flip,jelem,iatom)), sfac * u_accum.re);
+        Kokkos::atomic_add(&(ulisttot_im(jjup_flip,jelem,iatom)), sfac * u_accum.im);
       }
     });
     // In CUDA backend,

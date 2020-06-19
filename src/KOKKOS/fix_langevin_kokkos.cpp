@@ -514,6 +514,7 @@ void FixLangevinKokkos<Space>::post_force(int vflag)
               Kokkos::parallel_for(nlocal,post_functor);
             }
 
+  atomKK->modified(Space,datamask_modify);
 
   if(tbiasflag == BIAS){
     atomKK->sync(temperature->execution_space,temperature->datamask_read);

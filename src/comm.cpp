@@ -901,6 +901,8 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
   if (inorder) nrvous = irregular->create_data_grouped(n,procs);
   else nrvous = irregular->create_data(n,procs);
 
+  // add 1 item to the allocated buffer size, so the returned pointer is not NULL
+
   char *inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize+1,
                                                "rendezvous:inbuf");
   irregular->exchange_data(inbuf,insize,inbuf_rvous);
@@ -935,6 +937,8 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
   if (outorder)
     nout = irregular->create_data_grouped(nrvous_out,procs_rvous);
   else nout = irregular->create_data(nrvous_out,procs_rvous);
+
+  // add 1 item to the allocated buffer size, so the returned pointer is not NULL
 
   outbuf = (char *) memory->smalloc((bigint) nout*outsize+1,
                                     "rendezvous:outbuf");
@@ -975,6 +979,9 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
   if (!inorder) {
     memory->create(procs_a2a,nprocs,"rendezvous:procs");
+
+    // add 1 item to the allocated buffer size, so the returned pointer is not NULL
+
     inbuf_a2a = (char *) memory->smalloc((bigint) n*insize+1,
                                          "rendezvous:inbuf");
     memset(inbuf_a2a,0,(bigint)n*insize*sizeof(char));
@@ -1038,6 +1045,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   }
 
   // all2all comm of inbuf from caller decomp to rendezvous decomp
+  // add 1 item to the allocated buffer size, so the returned pointer is not NULL
 
   char *inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize+1,
                                                "rendezvous:inbuf");
@@ -1078,6 +1086,8 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
   if (!outorder) {
     memory->create(procs_a2a,nprocs,"rendezvous_a2a:procs");
+
+    // add 1 item to the allocated buffer size, so the returned pointer is not NULL
 
     outbuf_a2a = (char *) memory->smalloc((bigint) nrvous_out*outsize+1,
                                           "rendezvous:outbuf");
@@ -1138,6 +1148,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
   // all2all comm of outbuf from rendezvous decomp back to caller decomp
   // caller will free outbuf
+  // add 1 item to the allocated buffer size, so the returned pointer is not NULL
 
   outbuf = (char *) memory->smalloc((bigint) nout*outsize+1,"rendezvous:outbuf");
 

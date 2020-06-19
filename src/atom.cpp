@@ -321,7 +321,7 @@ void Atom::peratom_create()
   nperatom = maxperatom = 0;
 
   // --------------------------------------------------------------------
-  // 3rd customization section: add peratom variables here, order does not matter
+  // 2nd customization section: add peratom variables here, order does not matter
   // register tagint & imageint variables as INT or BIGINT
 
   int tagintsize = INT;
@@ -562,7 +562,7 @@ void Atom::add_peratom_vary(const char *name, void *address,
 void Atom::set_atomflag_defaults()
 {
   // --------------------------------------------------------------------
-  // 4th customization section: customize by adding new flag
+  // 3rd customization section: customize by adding new flag
   // identical list as 2nd customization in atom.h
 
   sphere_flag = ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
@@ -2353,7 +2353,7 @@ void Atom::remove_custom(int flag, int index)
 void *Atom::extract(char *name)
 {
   // --------------------------------------------------------------------
-  // 5th customization section: customize by adding new variable name
+  // 4th customization section: customize by adding new variable name
 
   if (strcmp(name,"mass") == 0) return (void *) mass;
 

@@ -655,8 +655,11 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPZeroYi,const typename Ko
   const int ii = team.league_rank() / ((my_sna.idxu_max+team.team_size()-1)/team.team_size());
   if (ii >= chunk_size) return;
 
-  for(int ielem = 0; ielem < nelements; ielem++)
-    my_sna.zero_yi(idx,ii,ielem);
+  if (chemflag)
+    for(int ielem = 0; ielem < nelements; ielem++)
+      my_sna.zero_yi(idx,ii,ielem);
+  else
+    my_sna.zero_yi(idx,ii,0);
 }
 
 template<class DeviceType>

@@ -35,6 +35,8 @@ MPI_COMP_OPTS = $(shell mpicxx --showme:compile)
 MPI_LINK_OPTS = $(shell mpicxx --showme:link)
 
 HIP_PATH ?= $(wildcard /opt/rocm/hip)
+HIP_PLATFORM=$(shell $(HIP_PATH)/bin/hipconfig --platform)
+HIP_COMPILER=$(shell $(HIP_PATH)/bin/hipconfig --compiler)
 
 ifeq (hcc,$(HIP_PLATFORM))
 	HIP_OPTS  += -ffast-math
@@ -62,7 +64,7 @@ BSH = /bin/sh
 HIP_OPTS += -DUSE_HIP $(HIP_PRECISION)
 HIP_GPU_OPTS += $(HIP_OPTS) -I./
 
-ifeq (hcc,$(HIP_PLATFORM))
+ifeq (clang,$(HIP_COMPILER))
 	HIP_HOST_OPTS += -fPIC
 	HIP_GPU_CC  = $(HIP_PATH)/bin/hipcc --genco
 	HIP_GPU_OPTS_S = --offload-arch=$(HIP_ARCH)
@@ -70,6 +72,14 @@ ifeq (hcc,$(HIP_PLATFORM))
 	HIP_KERNEL_SUFFIX = .cpp
 	HIP_LIBS_TARGET = export HCC_AMDGPU_TARGET := $(HIP_ARCH)
 	export HCC_AMDGPU_TARGET := $(HIP_ARCH)
+else ifeq (hcc,$(HIP_COMPILER))
+	HIP_HOST_OPTS += -fPIC
+	HIP_GPU_CC  = $(HIP_PATH)/bin/hipcc --genco
+	HIP_GPU_OPTS_S = -t="$(HIP_ARCH)" -f=\"
+	HIP_GPU_OPTS_E = \"
+	HIP_KERNEL_SUFFIX = .cpp
+	HIP_LIBS_TARGET = export HCC_AMDGPU_TARGET := $(HIP_ARCH)
+	export HCC_AMDGPU_TARGET := $(HIP_ARCH) 
 else ifeq (nvcc,$(HIP_PLATFORM))
 	HIP_GPU_CC  = $(HIP_PATH)/bin/hipcc --fatbin
 	HIP_GPU_OPTS += $(HIP_ARCH)

@@ -79,7 +79,7 @@ else ifeq (hcc,$(HIP_COMPILER))
 	HIP_GPU_OPTS_E = \"
 	HIP_KERNEL_SUFFIX = .cpp
 	HIP_LIBS_TARGET = export HCC_AMDGPU_TARGET := $(HIP_ARCH)
-	export HCC_AMDGPU_TARGET := $(HIP_ARCH) 
+	export HCC_AMDGPU_TARGET := $(HIP_ARCH)
 else ifeq (nvcc,$(HIP_PLATFORM))
 	HIP_GPU_CC  = $(HIP_PATH)/bin/hipcc --fatbin
 	HIP_GPU_OPTS += $(HIP_ARCH)

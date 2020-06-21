@@ -1,0 +1,18 @@
+# required
+
+rcutfac 4.8123
+twojmax 8
+
+# elements
+
+nelems 2
+elems W Be 
+radelems 0.5 0.417932 
+welems 1 0.959049
+
+# optional
+
+rfac0 0.99363
+rmin0 0
+bzeroflag 1
+

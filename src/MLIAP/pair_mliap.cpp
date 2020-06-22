@@ -124,6 +124,11 @@ void PairMLIAP::settings(int narg, char ** arg)
   if (narg < 4)
     error->all(FLERR,"Illegal pair_style command");
 
+  // set flags for required keywords
+
+  int modelflag = 0;
+  int descriptorflag = 0;
+
   // process keywords
 
   int iarg = 0;
@@ -140,6 +145,7 @@ void PairMLIAP::settings(int narg, char ** arg)
         model = new MLIAPModelQuadratic(lmp,arg[iarg+2]);
         iarg += 3;
       } else error->all(FLERR,"Illegal pair_style mliap command");
+      modelflag = 1;
     } else if (strcmp(arg[iarg],"descriptor") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style mliap command");
       if (strcmp(arg[iarg+1],"sna") == 0) {
@@ -147,8 +153,14 @@ void PairMLIAP::settings(int narg, char ** arg)
         descriptor = new MLIAPDescriptorSNAP(lmp,arg[iarg+2]);
         iarg += 3;
       } else error->all(FLERR,"Illegal pair_style mliap command");
-    }
+      descriptorflag = 1;
+    } else
+      error->all(FLERR,"Illegal pair_style mliap command");
   }
+
+  if (modelflag == 0 || descriptorflag == 0)
+    error->all(FLERR,"Illegal pair_style command");
+
 }
 
 /* ----------------------------------------------------------------------

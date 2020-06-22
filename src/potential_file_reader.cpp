@@ -31,11 +31,13 @@ using namespace LAMMPS_NS;
 
 PotentialFileReader::PotentialFileReader(LAMMPS *lmp,
                                          const std::string &filename,
-                                         const std::string &potential_name) :
+                                         const std::string &potential_name,
+                                         const int auto_convert) :
   Pointers(lmp),
   reader(nullptr),
   filename(filename),
-  filetype(potential_name + " potential")
+  filetype(potential_name + " potential"),
+  unit_convert(auto_convert)
 {
   if (comm->me != 0) {
     error->one(FLERR, "FileReader should only be called by proc 0!");
@@ -155,9 +157,21 @@ TextFileReader * PotentialFileReader::open_potential(const std::string& path) {
       utils::logmesg(lmp, fmt::format("Reading potential file {} with DATE: {}\n", filename, date));
     }
 
-    if (!units.empty() && (units != unit_style)) {
-      lmp->error->one(FLERR, fmt::format("Potential file {} requires {} units "
-                                         "but {} units are in use",filename, units, unit_style));
+    if (units.empty()) {
+      unit_convert == utils::NOCONVERT;
+    } else {
+      if (units == unit_style) {
+        unit_convert = utils::NOCONVERT;
+      } else {
+        if ((units == "metal") && (unit_style == "real") && (unit_convert | utils::METAL2REAL)) {
+          unit_convert = utils::METAL2REAL;
+        } else if ((units == "real") && (unit_style == "metal") && (unit_convert | utils::REAL2METAL)) {
+          unit_convert = utils::REAL2METAL;
+        } else {
+          lmp->error->one(FLERR, fmt::format("Potential file {} requires {} units "
+                                             "but {} units are in use",filename, units, unit_style));
+        }
+      }
     }
 
     return new TextFileReader(filepath, filetype);

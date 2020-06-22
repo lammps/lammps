@@ -44,6 +44,7 @@ page gives those details.
    * :ref:`MC <PKG-MC>`
    * :ref:`MESSAGE <PKG-MESSAGE>`
    * :ref:`MISC <PKG-MISC>`
+   * :ref:`MLIAP <PKG-MLIAP>`
    * :ref:`MOLECULE <PKG-MOLECULE>`
    * :ref:`MPIIO <PKG-MPIIO>`
    * :ref:`MSCG <PKG-MSCG>`
@@ -649,6 +650,25 @@ listing, "ls src/MISC", to see the list of commands.
 * examples/VISCOSITY
 * https://lammps.sandia.gov/pictures.html#ttm
 * https://lammps.sandia.gov/movies.html#evaporation
+
+----------
+
+.. _PKG-MLIAP:
+
+MLIAP package
+------------
+
+**Contents:**
+
+A general interface for machine-learning interatomic potentials.
+
+**Author:** Aidan Thompson (Sandia).
+
+**Supporting info:**
+
+* src/MLIAP: filenames -> commands
+* :doc:`pair_style mliap <pair_mliap>`
+* examples/mliap
 
 ----------
 

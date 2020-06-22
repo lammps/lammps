@@ -656,7 +656,7 @@ listing, "ls src/MISC", to see the list of commands.
 .. _PKG-MLIAP:
 
 MLIAP package
-------------
+-------------
 
 **Contents:**
 

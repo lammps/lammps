@@ -28,8 +28,6 @@
 #include "domain.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
 
 #include "math_const.h"
 
@@ -65,6 +63,9 @@ MSM::MSM(LAMMPS *lmp) : KSpace(lmp),
   factors[0] = 2;
 
   MPI_Comm_rank(world,&me);
+  procneigh_levels = NULL;
+  world_levels = NULL;
+  active_flag = NULL;
 
   phi1d = dphi1d = NULL;
 
@@ -80,7 +81,15 @@ MSM::MSM(LAMMPS *lmp) : KSpace(lmp),
   v0_direct_top = v1_direct_top = v2_direct_top = NULL;
   v3_direct_top = v4_direct_top = v5_direct_top = NULL;
 
+  cg_all = cg_peratom_all = NULL;
+  cg = cg_peratom = NULL;
+
   ngrid = NULL;
+  cg = NULL;
+  cg_peratom = NULL;
+  procneigh_levels = NULL;
+  world_levels = NULL;
+  active_flag = NULL;
 
   alpha = betax = betay = betaz = NULL;
   nx_msm = ny_msm = nz_msm = NULL;
@@ -141,7 +150,10 @@ MSM::~MSM()
 
 void MSM::init()
 {
-  if (me == 0) utils::logmesg(lmp,"MSM initialization ...\n");
+  if (me == 0) {
+    if (screen) fprintf(screen,"MSM initialization ...\n");
+    if (logfile) fprintf(logfile,"MSM initialization ...\n");
+  }
 
   // error check
 
@@ -157,8 +169,13 @@ void MSM::init()
   if ((slabflag == 1) && (me == 0))
     error->warning(FLERR,"Slab correction not needed for MSM");
 
-  if ((order < 4) || (order > 10) || (order%2 != 0))
-    error->all(FLERR,"MSM order must be 4, 6, 8, or 10");
+  if (order < 4 || order > 10) {
+    char str[128];
+    sprintf(str,"MSM order must be 4, 6, 8, or 10");
+    error->all(FLERR,str);
+  }
+
+  if (order%2 != 0) error->all(FLERR,"MSM order must be 4, 6, 8, or 10");
 
   if (sizeof(FFT_SCALAR) != 8)
     error->all(FLERR,"Cannot (yet) use single precision with MSM "
@@ -204,14 +221,33 @@ void MSM::init()
   MPI_Allreduce(&ngrid[0],&ngrid_max,1,MPI_INT,MPI_MAX,world);
 
   if (me == 0) {
-    std::string mesg = fmt::format("  3d grid size/proc = {}\n", ngrid_max);
-    mesg += fmt::format("  estimated absolute RMS force accuracy = {}\n",
-                        estimated_error);
-    mesg += fmt::format("  estimated relative force accuracy = {}\n",
-                        estimated_error/two_charge_force);
-    mesg += fmt::format("  grid = {} {} {}\n",nx_msm[0],ny_msm[0],nz_msm[0]);
-    mesg += fmt::format("  order = {}\n",order);
-    utils::logmesg(lmp,mesg);
+    if (screen) {
+      fprintf(screen,"  3d grid size/proc = %d\n",
+                        ngrid_max);
+      fprintf(screen,"  estimated absolute RMS force accuracy = %g\n",
+              estimated_error);
+      fprintf(screen,"  estimated relative force accuracy = %g\n",
+              estimated_error/two_charge_force);
+    }
+    if (logfile) {
+      fprintf(logfile,"  3d grid size/proc = %d\n",
+                         ngrid_max);
+      fprintf(logfile,"  estimated absolute RMS force accuracy = %g\n",
+              estimated_error);
+      fprintf(logfile,"  estimated relative force accuracy = %g\n",
+              estimated_error/two_charge_force);
+    }
+  }
+
+  if (me == 0) {
+    if (screen) {
+      fprintf(screen,"  grid = %d %d %d\n",nx_msm[0],ny_msm[0],nz_msm[0]);
+      fprintf(screen,"  order = %d\n",order);
+    }
+    if (logfile) {
+      fprintf(logfile,"  grid = %d %d %d\n",nx_msm[0],ny_msm[0],nz_msm[0]);
+      fprintf(logfile,"  order = %d\n",order);
+    }
   }
 }
 
@@ -362,6 +398,7 @@ void MSM::setup()
 
   nmax_direct = 8*(nxhi_direct+1)*(nyhi_direct+1)*(nzhi_direct+1);
 
+  deallocate();
   if (peratom_allocate_flag) deallocate_peratom();
 
   // compute direct sum interaction weights
@@ -612,8 +649,6 @@ void MSM::compute(int eflag, int vflag)
 
 void MSM::allocate()
 {
-  deallocate();
-
   // interpolation coeffs
 
   order_allocated = order;
@@ -635,9 +670,9 @@ void MSM::allocate()
   // allocate memory for each grid level
 
   for (int n=0; n<levels; n++) {
-
     memory->create3d_offset(qgrid[n],nzlo_out[n],nzhi_out[n],
             nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:qgrid");
+
     memory->create3d_offset(egrid[n],nzlo_out[n],nzhi_out[n],
             nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:egrid");
 
@@ -660,23 +695,24 @@ void MSM::allocate()
 
 void MSM::deallocate()
 {
-  delete cg_all;
-  cg_all = nullptr;
-
   memory->destroy2d_offset(phi1d,-order_allocated);
   memory->destroy2d_offset(dphi1d,-order_allocated);
 
+  if (cg_all) delete cg_all;
+
   for (int n=0; n<levels; n++) {
-    memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
-    memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
+    if (qgrid[n])
+      memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
 
-    if (world_levels[n] != MPI_COMM_NULL)
-      MPI_Comm_free(&world_levels[n]);
-    world_levels[n] = MPI_COMM_NULL;
-    active_flag[n] = 0;
+    if (egrid[n])
+      memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
 
-    delete cg[n];
-    cg[n] = nullptr;
+    if (world_levels)
+      if (world_levels[n] != MPI_COMM_NULL)
+          MPI_Comm_free(&world_levels[n]);
+
+    if (cg)
+      if (cg[n]) delete cg[n];
   }
 }
 
@@ -765,7 +801,6 @@ void MSM::deallocate_peratom()
 
 void MSM::allocate_levels()
 {
-  deallocate_levels();
   ngrid = new int[levels];
 
   cg = new GridComm*[levels];
@@ -815,21 +850,21 @@ void MSM::allocate_levels()
   v5grid = new double***[levels];
 
   for (int n=0; n<levels; n++) {
-    cg[n] = nullptr;
+    cg[n] = NULL;
     world_levels[n] = MPI_COMM_NULL;
-    active_flag[n] = 0;
-    cg_peratom[n] = nullptr;
+    cg_peratom[n] = NULL;
 
-    qgrid[n] = nullptr;
-    egrid[n] = nullptr;
+    qgrid[n] = NULL;
+    egrid[n] = NULL;
 
-    v0grid[n] = nullptr;
-    v1grid[n] = nullptr;
-    v2grid[n] = nullptr;
-    v3grid[n] = nullptr;
-    v4grid[n] = nullptr;
-    v5grid[n] = nullptr;
+    v0grid[n] = NULL;
+    v1grid[n] = NULL;
+    v2grid[n] = NULL;
+    v3grid[n] = NULL;
+    v4grid[n] = NULL;
+    v5grid[n] = NULL;
   }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -838,9 +873,7 @@ void MSM::allocate_levels()
 
 void MSM::deallocate_levels()
 {
-  if (cg) deallocate();
   delete [] ngrid;
-  ngrid = nullptr;
 
   memory->destroy(procneigh_levels);
   delete [] world_levels;
@@ -886,50 +919,6 @@ void MSM::deallocate_levels()
   delete [] v3grid;
   delete [] v4grid;
   delete [] v5grid;
-
-  world_levels = nullptr;
-  active_flag = nullptr;
-  cg = nullptr;
-  cg_peratom = nullptr;
-
-  alpha = nullptr;
-  betax = nullptr;
-  betay = nullptr;
-  betaz = nullptr;
-
-  nx_msm = nullptr;
-  ny_msm = nullptr;
-  nz_msm = nullptr;
-
-  nxlo_in = nullptr;
-  nylo_in = nullptr;
-  nzlo_in = nullptr;
-
-  nxhi_in = nullptr;
-  nyhi_in = nullptr;
-  nzhi_in = nullptr;
-
-  nxlo_out = nullptr;
-  nylo_out = nullptr;
-  nzlo_out = nullptr;
-
-  nxhi_out = nullptr;
-  nyhi_out = nullptr;
-  nzhi_out = nullptr;
-
-  delxinv = nullptr;
-  delyinv = nullptr;
-  delzinv = nullptr;
-
-  qgrid = nullptr;
-  egrid = nullptr;
-
-  v0grid = nullptr;
-  v1grid = nullptr;
-  v2grid = nullptr;
-  v3grid = nullptr;
-  v4grid = nullptr;
-  v5grid = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1064,9 +1053,9 @@ void MSM::set_grid_global()
     double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
     *p_cutoff = cutoff;
 
-    if (me == 0)
-      error->warning(FLERR,fmt::format("Adjusting Coulombic cutoff for "
-                                       "MSM, new cutoff = {}", cutoff));
+    char str[128];
+    sprintf(str,"Adjusting Coulombic cutoff for MSM, new cutoff = %g",cutoff);
+    if (me == 0) error->warning(FLERR,str);
   }
 
   if (triclinic == 0) {
@@ -1105,6 +1094,7 @@ void MSM::set_grid_global()
 
   if (!domain->nonperiodic) levels -= 1;
 
+  deallocate_levels();
   allocate_levels();
 
   // find number of grid levels in each direction
@@ -1328,8 +1318,8 @@ void MSM::set_grid_local()
 
 void MSM::set_proc_grid(int n)
 {
-  for (int i=0; i<3; i++)
-    myloc[i] = comm->myloc[i];
+    for (int i=0; i<3; i++)
+      myloc[i] = comm->myloc[i];
 
   // size of inner MSM grid owned by this proc
 
@@ -1372,7 +1362,6 @@ void MSM::set_proc_grid(int n)
 
   // define a new MPI communicator for this grid level that only includes active procs
 
-  if(world_levels[n] != MPI_COMM_NULL) MPI_Comm_free(&world_levels[n]);
   MPI_Comm_split(world,color,me,&world_levels[n]);
 
   if (!active_flag[n]) return;
@@ -1490,13 +1479,16 @@ void MSM::particle_map()
 
 void MSM::make_rho()
 {
+  //fprintf(screen,"MSM aninterpolation\n\n");
+
   int i,l,m,n,nx,ny,nz,mx,my,mz;
   double dx,dy,dz,x0,y0,z0;
 
   // clear 3d density array
 
-  double ***qgrid0 = qgrid[0];
-  memset(&(qgrid0[nzlo_out[0]][nylo_out[0]][nxlo_out[0]]),0,ngrid[0]*sizeof(double));
+  double ***qgridn = qgrid[0];
+
+  memset(&(qgridn[nzlo_out[0]][nylo_out[0]][nxlo_out[0]]),0,ngrid[0]*sizeof(double));
 
   // loop over my charges, add their contribution to nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
@@ -1527,7 +1519,7 @@ void MSM::make_rho()
         x0 = y0*phi1d[1][m];
         for (l = nlower; l <= nupper; l++) {
           mx = l+nx;
-          qgrid0[mz][my][mx] += x0*phi1d[0][l];
+          qgridn[mz][my][mx] += x0*phi1d[0][l];
         }
       }
     }
@@ -1542,6 +1534,8 @@ void MSM::make_rho()
 
 void MSM::direct(int n)
 {
+  //fprintf(screen,"Direct contribution on level %i\n\n",n);
+
   double ***qgridn = qgrid[n];
   double ***egridn = egrid[n];
   double ***v0gridn = v0grid[n];
@@ -1774,6 +1768,8 @@ void MSM::direct(int n)
 
 void MSM::direct_peratom(int n)
 {
+  //fprintf(screen,"Direct contribution on level %i\n\n",n);
+
   double ***qgridn = qgrid[n];
   double ***v0gridn = v0grid[n];
   double ***v1gridn = v1grid[n];
@@ -1896,6 +1892,8 @@ void MSM::direct_peratom(int n)
 
 void MSM::direct_top(int n)
 {
+  //fprintf(screen,"Direct contribution on level %i\n\n",n);
+
   double ***qgridn = qgrid[n];
   double ***egridn = egrid[n];
   double ***v0gridn = v0grid[n];
@@ -2259,6 +2257,8 @@ void MSM::direct_peratom_top(int n)
 
 void MSM::restriction(int n)
 {
+  //fprintf(screen,"Restricting from level %i to %i\n\n",n,n+1);
+
   const int p = order-1;
 
   double ***qgrid1 = qgrid[n];
@@ -2281,7 +2281,8 @@ void MSM::restriction(int n)
 
   // zero out charge on coarser grid
 
-  memset(&(qgrid2[nzlo_out[n+1]][nylo_out[n+1]][nxlo_out[n+1]]),0,ngrid[n+1]*sizeof(double));
+  memset(&(qgrid2[nzlo_out[n+1]][nylo_out[n+1]][nxlo_out[n+1]]),0,
+         ngrid[n+1]*sizeof(double));
 
   for (kp = nzlo_in[n+1]; kp <= nzhi_in[n+1]; kp++)
     for (jp = nylo_in[n+1]; jp <= nyhi_in[n+1]; jp++)
@@ -2330,6 +2331,8 @@ void MSM::restriction(int n)
 
 void MSM::prolongation(int n)
 {
+  //fprintf(screen,"Prolongating from level %i to %i\n\n",n+1,n);
+
   const int p = order-1;
 
   double ***egrid1 = egrid[n];
@@ -2718,6 +2721,8 @@ void MSM::unpack_reverse(int flag, double *buf, int nlist, int *list)
 
 void MSM::fieldforce()
 {
+  //fprintf(screen,"MSM interpolation\n\n");
+
   double ***egridn = egrid[0];
 
   int i,l,m,n,nx,ny,nz,mx,my,mz;

@@ -9,8 +9,8 @@ import numpy as np
 """ LAMMPS  VARIABLES """
 
 # data files
-infile = "silicon_input_file.lmp"
-ff_file = "ff-silicon.lmp"
+infile = "../Silicon/silicon_input_file.lmp"
+ff_file = "../Silicon/ff-silicon.lmp"
 
 # full output useful for testing
 lmp = lammps()
@@ -38,5 +38,5 @@ dynmat = dynmat.reshape((dynlen, dynlen))
 eigvals, eigvecs = np.linalg.eig(dynmat)
 
 # frequencies in THz
-omegas = np.sqrt(np.abs(eigvals))
+omegas = np.sqrt(np.abs(eigvals))/2/np.pi
 print(omegas)

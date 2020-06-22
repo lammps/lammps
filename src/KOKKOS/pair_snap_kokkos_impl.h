@@ -261,10 +261,8 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         Kokkos::parallel_for("ComputeBiCPU",policy_bi_cpu,*this);
       }
 
-
       //ZeroYi,ComputeYi
       {
-
         int vector_length = vector_length_default;
         int team_size = team_size_default;
 

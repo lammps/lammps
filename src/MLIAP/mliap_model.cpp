@@ -17,6 +17,7 @@
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
+#include "utils.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
@@ -89,7 +90,7 @@ void MLIAPModel::read_coeffs(char *coefffilename)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
   }
   if (nwords != 2)
     error->all(FLERR,"Incorrect format in MLIAPModel coefficient file");
@@ -128,7 +129,7 @@ void MLIAPModel::read_coeffs(char *coefffilename)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-      nwords = atom->count_words(line);
+      nwords = utils::trim_and_count_words(line);
       if (nwords != 1)
         error->all(FLERR,"Incorrect format in  coefficient file");
 

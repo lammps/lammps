@@ -39,8 +39,8 @@ protected:
 
   double *radelem;              // element radii
   double *wjelem;               // elements weights
-  int twojmax, switchflag, bzeroflag, bnormflag;
-  int alloyflag, wselfallflag;
+  int twojmax, switchflag, bzeroflag;
+  int chemflag, bnormflag, wselfallflag;
   double rfac0, rmin0;
 };
 

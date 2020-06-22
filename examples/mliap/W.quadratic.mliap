@@ -1,3 +1,5 @@
+# DATE: 2020-06-21 UNITS: metal CONTRIBUTOR: Aidan Thompson athomps@sandia.gov CITATION: none
+
 # Definition of SNAP+ZBL potential.
 variable zblcutinner equal 4
 variable zblcutouter equal 4.8

@@ -20,6 +20,7 @@
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
+#include "utils.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -119,17 +120,17 @@ void MLIAPDescriptorSNAP::forward(int* map, NeighList* list, double **descriptor
         snaptr->inside[ninside] = j;
         snaptr->wj[ninside] = wjelem[jelem];
         snaptr->rcutij[ninside] = (radi + radelem[jelem])*rcutfac;
-        snaptr->element[ninside] = jelem; // element index for alloy snap
+        snaptr->element[ninside] = jelem; // element index for chem snap
         ninside++;
       }
     }
 
-    if (alloyflag)
+    if (chemflag)
       snaptr->compute_ui(ninside, ielem);
     else
       snaptr->compute_ui(ninside, 0);
     snaptr->compute_zi();
-    if (alloyflag)
+    if (chemflag)
       snaptr->compute_bi(ielem);
     else
       snaptr->compute_bi(0);
@@ -201,14 +202,14 @@ void MLIAPDescriptorSNAP::backward(PairMLIAP* pairmliap, NeighList* list, double
         snaptr->inside[ninside] = j;
         snaptr->wj[ninside] = wjelem[jelem];
         snaptr->rcutij[ninside] = (radi + radelem[jelem])*rcutfac;
-        snaptr->element[ninside] = jelem; // element index for alloy snap
+        snaptr->element[ninside] = jelem; // element index for chem snap
         ninside++;
       }
     }
 
     // compute Ui, Yi for atom I
 
-    if (alloyflag)
+    if (chemflag)
       snaptr->compute_ui(ninside, ielem);
     else
       snaptr->compute_ui(ninside, 0);
@@ -224,7 +225,7 @@ void MLIAPDescriptorSNAP::backward(PairMLIAP* pairmliap, NeighList* list, double
 
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
-      if(alloyflag)
+      if(chemflag)
         snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
                                snaptr->rcutij[jj],jj, snaptr->element[jj]);
       else
@@ -263,7 +264,7 @@ void MLIAPDescriptorSNAP::init()
 
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
-                   alloyflag, wselfallflag, nelements);
+                   chemflag, bnormflag, wselfallflag, nelements);
 
   snaptr->init();
 
@@ -291,8 +292,8 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
   rmin0 = 0.0;
   switchflag = 1;
   bzeroflag = 1;
+  chemflag = 0;
   bnormflag = 0;
-  alloyflag = 0;
   wselfallflag = 0;
 
   // open SNAP parameter file on proc 0
@@ -327,7 +328,7 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // words = ptrs to all words in line
@@ -400,8 +401,10 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
         switchflag = atoi(keyval);
       else if (strcmp(keywd,"bzeroflag") == 0)
         bzeroflag = atoi(keyval);
-      else if (strcmp(keywd,"alloyflag") == 0)
-        alloyflag = atoi(keyval);
+      else if (strcmp(keywd,"chemflag") == 0)
+        chemflag = atoi(keyval);
+      else if (strcmp(keywd,"bnormflag") == 0)
+        bnormflag = atoi(keyval);
       else if (strcmp(keywd,"wselfallflag") == 0)
         wselfallflag = atoi(keyval);
       else
@@ -410,8 +413,6 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
     }
   }
   
-  bnormflag = alloyflag;
-
   if (!rcutfacflag || !twojmaxflag || !nelementsflag || 
       !elementsflag || !radelemflag || !wjelemflag)
     error->all(FLERR,"Incorrect SNAP parameter file");

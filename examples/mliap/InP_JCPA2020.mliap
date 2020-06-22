@@ -11,8 +11,9 @@ variable zblz2 index 15
 
 pair_style hybrid/overlay &
 zbl ${zblcutinner} ${zblcutouter} &
-snap
+mliap model linear InP_JCPA2020.mliap.model descriptor sna InP_JCPA2020.mliap.descriptor
 pair_coeff 1 1 zbl ${zblz1} ${zblz1}
 pair_coeff 1 2 zbl ${zblz1} ${zblz2}
 pair_coeff 2 2 zbl ${zblz2} ${zblz2}
-pair_coeff * * snap InP_JCPA2020.snapcoeff InP_JCPA2020.snapparam In P
+pair_coeff * * mliap   In P
+

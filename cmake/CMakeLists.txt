@@ -200,6 +200,7 @@ endif()
 
 # "hard" dependencies between packages resulting
 # in an error instead of skipping over files
+pkg_depends(MLIAP SNAP)
 pkg_depends(MPIIO MPI)
 pkg_depends(USER-ATC MANYBODY)
 pkg_depends(USER-LB MPI)

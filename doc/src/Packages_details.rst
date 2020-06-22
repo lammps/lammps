@@ -662,6 +662,10 @@ MLIAP package
 
 A general interface for machine-learning interatomic potentials.
 
+**Install:**
+
+To use this package, also the :ref:`SNAP package<PKG-SNAP>` needs to be installed.
+
 **Author:** Aidan Thompson (Sandia).
 
 **Supporting info:**

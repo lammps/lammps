@@ -64,7 +64,7 @@ This is followed by one block for each of the *nelem* elements.
 Each block consists of *ncoeff* coefficients, one per line.
 Note that this format is similar, but not identical to that used
 for the :doc:`pair_style snap <pair_snap>` coefficient file.
-Specifically, the line containing the element weight and radius is ommitted, 
+Specifically, the line containing the element weight and radius is omitted, 
 since these are handled by the *descriptor*.
 
 The *descriptor* keyword is followed by a descriptor style, and additional arguments.
@@ -125,7 +125,7 @@ Restrictions
 
 This style is part of the MLIAP package.  It is only enabled if LAMMPS
 was built with that package. In addition, building LAMMPS with the MLIAP package
-requires bulding LAMMPS with the SNAP package.
+requires building LAMMPS with the SNAP package.
 See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands

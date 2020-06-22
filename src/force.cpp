@@ -34,6 +34,7 @@
 #include "improper.h"
 #include "kspace.h"
 #include "error.h"
+#include "update.h"
 #include "utils.h"
 #include "fmt/format.h"
 
@@ -1013,14 +1014,19 @@ tagint Force::tnumeric(const char *file, int line, char *str)
 FILE *Force::open_potential(const char *name)
 {
   std::string filepath = utils::get_potential_file_path(name);
-  std::string date;
 
   if(!filepath.empty()) {
-    date = utils::get_potential_date(filepath, "potential");
+    std::string unit_style = update->unit_style;
+    std::string date       = utils::get_potential_date(filepath, "potential");
+    std::string units      = utils::get_potential_units(filepath, "potential");
 
     if(!date.empty()) {
       utils::logmesg(lmp, fmt::format("Reading potential file {} "
                                       "with DATE: {}\n", name, date));
+    }
+    if (!units.empty() && (units != unit_style)) {
+      error->one(FLERR, fmt::format("Potential file {} requires {} units "
+                                    "but {} units are in use", name, units, unit_style));
     }
     return fopen(filepath.c_str(), "r");
   }

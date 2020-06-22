@@ -1,7 +1,7 @@
 ---
 lammps_version: 5 May 2020
 date_generated: Fri May 15 19:08:06 202
-epsilon: 5.0e-13
+epsilon: 5.0e-12
 prerequisites: ! |
   atom full
   pair lj/class2/coul/long

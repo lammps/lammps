@@ -24,6 +24,7 @@ class Input : protected Pointers {
   friend class Info;
   friend class Error;
   friend class Deprecated;
+  friend class SimpleCommandsTest_Echo_Test;
 
  public:
   int narg;                    // # of command args

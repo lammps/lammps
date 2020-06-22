@@ -61,14 +61,21 @@ PairTersoffTable::PairTersoffTable(LAMMPS *lmp) : Pair(lmp)
   manybody_flag = 1;
 
   nelements = 0;
-  elements = NULL;
+  elements = nullptr;
   nparams = maxparam = 0;
-  params = NULL;
-  elem2param = NULL;
+  params = nullptr;
+  elem2param = nullptr;
   allocated = 0;
 
-  preGtetaFunction = preGtetaFunctionDerived = NULL;
-  preCutoffFunction = preCutoffFunctionDerived = NULL;
+  preGtetaFunction = preGtetaFunctionDerived = nullptr;
+  preCutoffFunction = preCutoffFunctionDerived = nullptr;
+  exponential = nullptr;
+  gtetaFunction = nullptr;
+  gtetaFunctionDerived = nullptr;
+  cutoffFunction = nullptr;
+  cutoffFunctionDerived = nullptr;
+  betaZetaPower = nullptr;
+  betaZetaPowerDerived = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -88,9 +95,9 @@ PairTersoffTable::~PairTersoffTable()
     memory->destroy(cutsq);
     delete [] map;
 
-    deallocateGrids();
-    deallocatePreLoops();
   }
+  deallocateGrids();
+  deallocatePreLoops();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -525,13 +532,15 @@ void PairTersoffTable::deallocatePreLoops(void)
 
 void PairTersoffTable::allocatePreLoops(void)
 {
-  memory->create(preGtetaFunction,leadingDimensionInteractionList,leadingDimensionInteractionList,"tersofftable:preGtetaFunction");
-
-  memory->create(preGtetaFunctionDerived,leadingDimensionInteractionList,leadingDimensionInteractionList,"tersofftable:preGtetaFunctionDerived");
-
-  memory->create(preCutoffFunction,leadingDimensionInteractionList,"tersofftable:preCutoffFunction");
-
-  memory->create(preCutoffFunctionDerived,leadingDimensionInteractionList,"tersofftable:preCutoffFunctionDerived");
+  deallocatePreLoops();
+  memory->create(preGtetaFunction,leadingDimensionInteractionList,
+                 leadingDimensionInteractionList,"tersofftable:preGtetaFunction");
+  memory->create(preGtetaFunctionDerived,leadingDimensionInteractionList,
+                 leadingDimensionInteractionList,"tersofftable:preGtetaFunctionDerived");
+  memory->create(preCutoffFunction,leadingDimensionInteractionList,
+                 "tersofftable:preCutoffFunction");
+  memory->create(preCutoffFunctionDerived,leadingDimensionInteractionList,
+                 "tersofftable:preCutoffFunctionDerived");
 }
 
 void PairTersoffTable::deallocateGrids()
@@ -557,6 +566,8 @@ void PairTersoffTable::allocateGrids(void)
   double  r, minMu, maxLambda, maxCutoff;
   double const PI=acos(-1.0);
 
+  deallocateGrids();
+
   // exponential
 
   // find min and max argument
@@ -569,9 +580,7 @@ void PairTersoffTable::allocateGrids(void)
   maxCutoff=cutmax;
 
   minArgumentExponential=minMu*GRIDSTART;
-
   numGridPointsExponential=(int)((maxLambda*maxCutoff-minArgumentExponential)*GRIDDENSITY_EXP)+2;
-
   memory->create(exponential,numGridPointsExponential,"tersofftable:exponential");
 
   r = minArgumentExponential;

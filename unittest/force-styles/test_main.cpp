@@ -14,6 +14,7 @@
 #include "test_main.h"
 #include "test_config.h"
 #include "test_config_reader.h"
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 #include <cstring>
@@ -63,7 +64,7 @@ std::string INPUT_FOLDER = STRINGIFY(TEST_INPUT_FOLDER);
 int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
-    ::testing::InitGoogleTest(&argc, argv);
+    ::testing::InitGoogleMock(&argc, argv);
 
     if (argc < 2) {
         usage(std::cerr, argv[0]);
@@ -109,5 +110,8 @@ int main(int argc, char **argv)
             return 1;
         }
     }
-    return RUN_ALL_TESTS();
+
+    int rv = RUN_ALL_TESTS();
+    MPI_Finalize();
+    return rv;
 }

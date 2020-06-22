@@ -1335,6 +1335,18 @@ void PairComb::sm_table()
 
   // allocate arrays
 
+  memory->sfree(sht_first);
+  memory->destroy(intype);
+  memory->destroy(fafb);
+  memory->destroy(dfafb);
+  memory->destroy(ddfafb);
+  memory->destroy(phin);
+  memory->destroy(dphin);
+  memory->destroy(erpaw);
+  memory->destroy(NCo);
+  memory->destroy(bbij);
+  memory->destroy(sht_num);
+
   memory->create(intype,n,n,"pair:intype");
   memory->create(fafb,ncoul,nntypes,"pair:fafb");
   memory->create(dfafb,ncoul,nntypes,"pair:dfafb");

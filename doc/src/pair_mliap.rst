@@ -1,7 +1,7 @@
 .. index:: pair_style mliap
 
 pair_style mliap command
-=======================
+========================
 
 Syntax
 """"""
@@ -134,6 +134,3 @@ Related commands
 :doc:`pair_style snap  <pair_snap>`,
 
 **Default:** none
-
-----------
-

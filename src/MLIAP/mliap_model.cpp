@@ -13,6 +13,7 @@
 
 #include "mliap_model.h"
 #include "pair_mliap.h"
+#include <cstring>
 #include <cmath>
 #include "atom.h"
 #include "force.h"

@@ -27,6 +27,7 @@
 #include "sna.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -338,8 +339,7 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
     char* keyval = strtok(NULL,"' \t\n\r\f");
 
     if (comm->me == 0) {
-      if (screen) fprintf(screen,"SNAP keyword %s %s \n",keywd,keyval);
-      if (logfile) fprintf(logfile,"SNAP keyword %s %s \n",keywd,keyval);
+      utils::logmesg(lmp, fmt::format("SNAP keyword {} {} \n", keywd, keyval));
     }
 
     // check for keywords with one value per element 

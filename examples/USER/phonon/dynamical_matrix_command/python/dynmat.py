@@ -9,8 +9,8 @@ import numpy as np
 """ LAMMPS  VARIABLES """
 
 # data files
-infile = "../Silicon/silicon_input_file.lmp"
-ff_file = "../Silicon/ff-silicon.lmp"
+infile = "silicon_input_file.lmp"
+ff_file = "ff-silicon.lmp"
 
 # full output useful for testing
 lmp = lammps()

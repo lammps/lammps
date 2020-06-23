@@ -167,6 +167,7 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
 
   resetflag = 0;
   scaleflag = 0;
+  massflag = 1;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"reset") == 0) {
@@ -179,6 +180,12 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt command");
       if (strcmp(arg[iarg+1],"no") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) scaleflag = 1;
+      else error->all(FLERR,"Illegal fix adapt command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"mass") == 0) {
+      if (iarg+2 > narg)error->all(FLERR,"Illegal fix adapt command");
+      if (strcmp(arg[iarg+1],"no") == 0) massflag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) massflag = 1;
       else error->all(FLERR,"Illegal fix adapt command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix adapt command");
@@ -598,17 +605,19 @@ void FixAdapt::change_settings()
         int nlocal = atom->nlocal;
         int nall = nlocal + atom->nghost;
 
-	if (scaleflag) scale = value / previous_diam_scale;
-	
-	for (i = 0; i < nall; i++) {
-	  if (mask[i] & groupbit) {
-      if(!scaleflag) scale = 0.5*value / radius[i];
-	    if (scaleflag) radius[i] *= scale;
-	    else radius[i] = 0.5*value;
-	    if (discflag) rmass[i] *= scale*scale;
-	    else rmass[i] *= scale*scale*scale;
-	  }
-	}
+        if (scaleflag) scale = value / previous_diam_scale;
+
+        for (i = 0; i < nall; i++) {
+          if (mask[i] & groupbit) {
+            if (massflag) {
+              if (!scaleflag) scale = 0.5*value / radius[i];
+              if (discflag) rmass[i] *= scale*scale;
+              else rmass[i] *= scale*scale*scale;
+            }
+            if (scaleflag) radius[i] *= scale;
+            else radius[i] = 0.5*value;
+          }
+        }
 	  
         if (scaleflag) previous_diam_scale = value;
 
@@ -704,10 +713,12 @@ void FixAdapt::restore_settings()
 
         for (int i = 0; i < nlocal; i++)
           if (mask[i] & groupbit) {
-            if(!scaleflag) scale = vec[i] / radius[i];
+            if (massflag) {
+              if (!scaleflag) scale = vec[i] / radius[i];
+              if (discflag) rmass[i] *= scale*scale;
+              else rmass[i] *= scale*scale*scale;
+            }
             radius[i] = vec[i];
-            if (discflag) rmass[i] *= scale*scale;
-            else rmass[i] *= scale*scale*scale;
           }
       }
       if (chgflag) {

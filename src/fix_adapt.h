@@ -44,7 +44,7 @@ class FixAdapt : public Fix {
   void restart(char *);
 
  private:
-  int nadapt,resetflag,scaleflag;
+  int nadapt,resetflag,scaleflag,massflag;
   int anypair, anybond;
   int nlevels_respa;
   char *id_fix_diam,*id_fix_chg;

@@ -35,7 +35,7 @@ Syntax
          v_name = variable with name that calculates value of aparam
 
 * zero or more keyword/value pairs may be appended
-* keyword = *scale* or *reset*
+* keyword = *scale* or *reset* or *mass*
 
   .. parsed-literal::
 
@@ -45,6 +45,9 @@ Syntax
        *reset* value = *no* or *yes*
          *no* = values will remain altered at the end of a run
          *yes* = reset altered values to their original values at the end of a run
+       *mass* value = *no* or *yes*
+         *no* = mass is not altered by changes in diameter
+         *yes* = mass is altenred by changes in diameter
 
 Examples
 """"""""
@@ -334,13 +337,16 @@ corresponding attribute for all atoms in the fix group.
 
 If the atom parameter is *diameter* and per-atom density and per-atom
 mass are defined for particles (e.g. :doc:`atom_style granular
-<atom_style>`), then the mass of each particle is also changed when
-the diameter changes. The mass is set from the particle volume for 3d
-systems (density is assumed to stay constant). For 2d, the default is
-for LAMMPS to model particles with a radius attribute as spheres.
-However, if the atom parameter is *diameter/disc*, then the mass is
-set from the particle area (the density is assumed to be in
-mass/distance^2 units).
+<atom_style>`), then the mass of each particle is, by default, also
+changed when the diameter changes. The mass is set from the particle
+volume for 3d systems (density is assumed to stay constant). For 2d,
+the default is for LAMMPS to model particles with a radius attribute
+as spheres. However, if the atom parameter is *diameter/disc*, then the
+mass is set from the particle area (the density is assumed to be in
+mass/distance^2 units). The mass of the particle may also be kept constant
+if the *mass* keyword is set to *no*. This can be useful to account for
+diameter changes that do not involve mass changes, e.g., thermal expansion.
+
 
 For example, these commands would shrink the diameter of all granular
 particles in the "center" group from 1.0 to 0.1 in a linear fashion
@@ -426,4 +432,4 @@ Related commands
 Default
 """""""
 
-The option defaults are scale = no, reset = no.
+The option defaults are scale = no, reset = no, mass = yes.

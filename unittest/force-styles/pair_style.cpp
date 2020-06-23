@@ -32,7 +32,6 @@
 #include "modify.h"
 #include "pair.h"
 #include "universe.h"
-#include "utils.h"
 
 #include <cctype>
 #include <cstdio>
@@ -160,8 +159,7 @@ void restart_lammps(LAMMPS *lmp, const TestConfig &cfg)
     command("clear");
     command("read_restart " + cfg.basename + ".restart");
 
-    // need to re-issue pair style with non-restartable and hybrid pair styles
-    if ((!lmp->force->pair) || (utils::strmatch(cfg.pair_style,"^hybrid"))) {
+    if (!lmp->force->pair) {
         command("pair_style " + cfg.pair_style);
     }
     if (!lmp->force->pair->restartinfo || !lmp->force->pair->writedata) {

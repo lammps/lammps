@@ -34,6 +34,19 @@ AtomVecKokkos::AtomVecKokkos(LAMMPS *lmp) : AtomVec(lmp)
 
 /* ---------------------------------------------------------------------- */
 
+AtomVecKokkos::~AtomVecKokkos()
+{
+  atom->tag = NULL;
+  atom->type = NULL;
+  atom->mask = NULL;
+  atom->image = NULL;
+  atom->x = NULL;
+  atom->v = NULL;
+  atom->f = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType,int PBC_FLAG,int TRICLINIC>
 struct AtomVecKokkos_PackComm {
   typedef DeviceType device_type;

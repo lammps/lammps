@@ -34,7 +34,7 @@ union d_ubuf {
 class AtomVecKokkos : public AtomVec {
  public:
   AtomVecKokkos(class LAMMPS *);
-  virtual ~AtomVecKokkos() {}
+  virtual ~AtomVecKokkos();
   virtual int pack_comm(int, int *, double *, int, int *);
   virtual int pack_comm_vel(int, int *, double *, int, int *);
   virtual void unpack_comm(int, int, double *);

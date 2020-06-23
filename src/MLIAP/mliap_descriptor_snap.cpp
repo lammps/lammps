@@ -441,6 +441,7 @@ double MLIAPDescriptorSNAP::get_cutmax()
     if (cut > cutmax) cutmax = cut;
     return cutmax;
   }
+  return cutmax;
 }
 
 /* ----------------------------------------------------------------------

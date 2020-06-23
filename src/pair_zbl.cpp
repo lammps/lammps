@@ -32,7 +32,9 @@ using namespace PairZBLConstants;
 
 /* ---------------------------------------------------------------------- */
 
-PairZBL::PairZBL(LAMMPS *lmp) : Pair(lmp) {}
+PairZBL::PairZBL(LAMMPS *lmp) : Pair(lmp) {
+  restartinfo = 0;
+}
 
 /* ---------------------------------------------------------------------- */
 

@@ -47,7 +47,7 @@ Syntax
          *yes* = reset altered values to their original values at the end of a run
        *mass* value = *no* or *yes*
          *no* = mass is not altered by changes in diameter
-         *yes* = mass is altenred by changes in diameter
+         *yes* = mass is altered by changes in diameter
 
 Examples
 """"""""
@@ -114,7 +114,7 @@ overrides the parameters.
 The *pstyle* argument is the name of the pair style.  If
 :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` is used,
 *pstyle* should be a sub-style name.  If there are multiple
-sub-stylesusing the same pair style, then *pstyle* should be specified
+sub-styles using the same pair style, then *pstyle* should be specified
 as "style:N" where N is which instance of the pair style you wish to
 adapt, e.g. the first, second, etc.  For example, *pstyle* could be
 specified as "soft" or "lubricate" or "lj/cut:1" or "lj/cut:2".  The

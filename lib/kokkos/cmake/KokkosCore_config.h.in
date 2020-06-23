@@ -5,11 +5,19 @@
 #define KOKKOS_CORE_CONFIG_H
 #endif
 
+// KOKKOS_VERSION % 100 is the patch level
+// KOKKOS_VERSION / 100 % 100 is the minor version
+// KOKKOS_VERSION / 10000 is the major version
+#cmakedefine KOKKOS_VERSION @KOKKOS_VERSION@
+
+
 /* Execution Spaces */
 #cmakedefine KOKKOS_ENABLE_SERIAL
 #cmakedefine KOKKOS_ENABLE_OPENMP
+#cmakedefine KOKKOS_ENABLE_OPENMPTARGET
 #cmakedefine KOKKOS_ENABLE_THREADS
 #cmakedefine KOKKOS_ENABLE_CUDA
+#cmakedefine KOKKOS_ENABLE_HIP
 #cmakedefine KOKKOS_ENABLE_HPX
 #cmakedefine KOKKOS_ENABLE_MEMKIND
 #cmakedefine KOKKOS_ENABLE_LIBRT
@@ -33,6 +41,7 @@
 #cmakedefine KOKKOS_ENABLE_CUDA_LAMBDA
 #cmakedefine KOKKOS_ENABLE_CUDA_CONSTEXPR
 #cmakedefine KOKKOS_ENABLE_CUDA_LDG_INTRINSIC
+#cmakedefine KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE
 #cmakedefine KOKKOS_ENABLE_HPX_ASYNC_DISPATCH
 #cmakedefine KOKKOS_ENABLE_DEBUG
 #cmakedefine KOKKOS_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK

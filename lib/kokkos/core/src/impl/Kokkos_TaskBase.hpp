@@ -167,11 +167,7 @@ class TaskBase {
   TaskBase& operator=(TaskBase&&) = delete;
   TaskBase& operator=(const TaskBase&) = delete;
 
-#ifdef KOKKOS_CUDA_9_DEFAULTED_BUG_WORKAROUND
-  KOKKOS_INLINE_FUNCTION ~TaskBase(){};
-#else
-  KOKKOS_INLINE_FUNCTION ~TaskBase() = default;
-#endif
+  KOKKOS_DEFAULTED_FUNCTION ~TaskBase() = default;
 
   KOKKOS_INLINE_FUNCTION constexpr TaskBase()
       : m_apply(nullptr),
@@ -211,7 +207,7 @@ class TaskBase {
       Kokkos::abort("TaskScheduler ERROR: resetting task dependence");
     }
 
-    if (0 != dep) {
+    if (nullptr != dep) {
       // The future may be destroyed upon returning from this call
       // so increment reference count to track this assignment.
       Kokkos::atomic_increment(&(dep->m_ref_count));
@@ -226,7 +222,44 @@ class TaskBase {
   }
 };
 
-static_assert(sizeof(TaskBase) == 48, "Verifying expected sizeof(TaskBase)");
+//------------------------------------------------------------------------------
+// <editor-fold desc="Verify the size of TaskBase is as expected"> {{{2
+
+// Workaround: some compilers implement int16_t as 4 bytes, so the size might
+// not actually be 48 bytes.
+// There's not a lot of reason to keep checking this here; the program will
+// work fine if this isn't true. I think this check was originally here to
+// emphasize the fact that adding to the size of TaskBase could have a
+// significant performance penalty, since doing so could substantially decrease
+// the number of full task types that fit into a cache line.  We'll leave it
+// here for now, though, since we're probably going to be ripping all of the
+// old TaskBase stuff out eventually anyway.
+constexpr size_t unpadded_task_base_size = 44 + 2 * sizeof(int16_t);
+// don't forget padding:
+constexpr size_t task_base_misalignment =
+    unpadded_task_base_size % alignof(void*);
+constexpr size_t task_base_padding_size =
+    (alignof(void*) - task_base_misalignment) % alignof(void*);
+constexpr size_t expected_task_base_size =
+    unpadded_task_base_size + task_base_padding_size;
+
+// Produce a more readable compiler error message than the plain static assert
+template <size_t Size>
+struct verify_task_base_size_is_48_note_actual_size_is_ {};
+template <>
+struct verify_task_base_size_is_48_note_actual_size_is_<
+    expected_task_base_size> {
+  using type = int;
+};
+static constexpr
+    typename verify_task_base_size_is_48_note_actual_size_is_<sizeof(
+        TaskBase)>::type verify = {};
+
+static_assert(sizeof(TaskBase) == expected_task_base_size,
+              "Verifying expected sizeof(TaskBase)");
+
+// </editor-fold> end Verify the size of TaskBase is as expected }}}2
+//------------------------------------------------------------------------------
 
 } /* namespace Impl */
 } /* namespace Kokkos */

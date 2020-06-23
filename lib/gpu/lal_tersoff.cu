@@ -11,7 +11,7 @@
 //
 //       begin                : Thu April 17, 2014
 //       email                : ndactrung@gmail.com
-// ***************************************************************************/
+// ***************************************************************************
 
 #if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_tersoff_extra.h"

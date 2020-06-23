@@ -60,20 +60,25 @@ PairGranHookeHistoryKokkos<DeviceType>::~PairGranHookeHistoryKokkos()
 template<class DeviceType>
 void PairGranHookeHistoryKokkos<DeviceType>::init_style()
 {
+  // if history is stored and first init, create Fix to store history
+  // it replaces FixDummy, created in the constructor
+  // this is so its order in the fix list is preserved
+
   if (history && fix_history == NULL) {
     char dnumstr[16];
     sprintf(dnumstr,"%d",3);
     char **fixarg = new char*[4];
-    fixarg[0] = (char *) "NEIGH_HISTORY";
+    fixarg[0] = (char *) "NEIGH_HISTORY_HH";
     fixarg[1] = (char *) "all";
     if (execution_space == Device)
       fixarg[2] = (char *) "NEIGH_HISTORY/KK/DEVICE";
     else
       fixarg[2] = (char *) "NEIGH_HISTORY/KK/HOST";
     fixarg[3] = dnumstr;
-    modify->add_fix(4,fixarg,1);
+    modify->replace_fix("NEIGH_HISTORY_HH_DUMMY",4,fixarg,1);
     delete [] fixarg;
-    fix_history = (FixNeighHistory *) modify->fix[modify->nfix-1];
+    int ifix = modify->find_fix("NEIGH_HISTORY_HH");
+    fix_history = (FixNeighHistory *) modify->fix[ifix];
     fix_history->pair = this;
     fix_historyKK = (FixNeighHistoryKokkos<DeviceType> *)fix_history;
   }
@@ -95,7 +100,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::init_style()
     neighbor->requests[irequest]->full = 0;
     neighbor->requests[irequest]->half = 1;
   } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with gran/hooke/history/kk");
+    error->all(FLERR,"Must use half neighbor list with gran/hooke/history/kk");
   }
 }
 

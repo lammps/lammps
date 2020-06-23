@@ -2538,7 +2538,7 @@ void FixNPTCauchy::CauchyStat_init()
   invH0(2,1)=0.0;       invH0(2,2)=h_inv[1];  invH0(2,3)=h_inv[3];
   invH0(3,1)=0.0;       invH0(3,2)=0.0;       invH0(3,3)=h_inv[2];
 
-  CSvol0 = abs(MathExtra::det3(H0));   //find reference volume
+  CSvol0 = fabs(MathExtra::det3(H0));   //find reference volume
 
 #undef H0
 #undef invH0

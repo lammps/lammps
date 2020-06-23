@@ -91,6 +91,7 @@ KOKKOS_INLINE_FUNCTION void atomic_increment<short>(volatile short* a) {
 #endif
 }
 
+#ifndef _WIN32
 template <>
 KOKKOS_INLINE_FUNCTION void atomic_increment<int>(volatile int* a) {
 #if defined(KOKKOS_ENABLE_ASM) && defined(KOKKOS_ENABLE_ISA_X86_64) && \
@@ -109,6 +110,7 @@ KOKKOS_INLINE_FUNCTION void atomic_increment<int>(volatile int* a) {
   Kokkos::atomic_fetch_add(a, int(1));
 #endif
 }
+#endif
 
 template <>
 KOKKOS_INLINE_FUNCTION void atomic_increment<long long int>(

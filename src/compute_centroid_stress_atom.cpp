@@ -177,7 +177,7 @@ void ComputeCentroidStressAtom::compute_peratom()
 
   // per-atom virial and per-atom centroid virial are the same for two-body
   // many-body pair styles not yet implemented
-  if (pairflag && force->pair) {
+  if (pairflag && force->pair && force->pair->compute_flag) {
     if (force->pair->centroidstressflag & 2) {
       double **cvatom = force->pair->cvatom;
       for (i = 0; i < npair; i++)
@@ -226,7 +226,7 @@ void ComputeCentroidStressAtom::compute_peratom()
         stress[i][j] += cvatom[i][j];
   }
 
-  if (kspaceflag && force->kspace) {
+  if (kspaceflag && force->kspace && force->kspace->compute_flag) {
     double **vatom = force->kspace->vatom;
     for (i = 0; i < nkspace; i++) {
       for (j = 0; j < 6; j++)
@@ -258,7 +258,7 @@ void ComputeCentroidStressAtom::compute_peratom()
 
   // communicate ghost virials between neighbor procs
 
-  if (force->newton || (force->kspace && force->kspace->tip4pflag))
+  if (force->newton || (force->kspace && force->kspace->tip4pflag && force->kspace->compute_flag))
     comm->reverse_comm_compute(this);
 
   // zero virial of atoms not in group

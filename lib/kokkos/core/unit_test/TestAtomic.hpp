@@ -527,7 +527,19 @@ TEST(TEST_CATEGORY, atomics) {
   ASSERT_TRUE((TestAtomic::Loop<float, TEST_EXECSPACE>(100, 3)));
 
 #ifndef KOKKOS_ENABLE_OPENMPTARGET
-#ifndef KOKKOS_ENABLE_ROCM  // ROCM doesn't yet support atomics for >64bit types
+  ASSERT_TRUE((TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(1, 1)));
+  ASSERT_TRUE((TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(1, 2)));
+  ASSERT_TRUE((TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(1, 3)));
+
+  ASSERT_TRUE(
+      (TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(100, 1)));
+  ASSERT_TRUE(
+      (TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(100, 2)));
+  ASSERT_TRUE(
+      (TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(100, 3)));
+
+  // FIXME_HIP HIP doesn't yet support atomics for >64bit types properly
+#ifndef KOKKOS_ENABLE_HIP
   ASSERT_TRUE(
       (TestAtomic::Loop<Kokkos::complex<double>, TEST_EXECSPACE>(1, 1)));
   ASSERT_TRUE(
@@ -542,23 +554,15 @@ TEST(TEST_CATEGORY, atomics) {
   ASSERT_TRUE(
       (TestAtomic::Loop<Kokkos::complex<double>, TEST_EXECSPACE>(100, 3)));
 
-  ASSERT_TRUE((TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(1, 1)));
-  ASSERT_TRUE((TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(1, 2)));
-  ASSERT_TRUE((TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(1, 3)));
-
-  ASSERT_TRUE(
-      (TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(100, 1)));
-  ASSERT_TRUE(
-      (TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(100, 2)));
-  ASSERT_TRUE(
-      (TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(100, 3)));
-
+// WORKAROUND MSVC
+#ifndef _WIN32
   ASSERT_TRUE(
       (TestAtomic::Loop<TestAtomic::SuperScalar<4>, TEST_EXECSPACE>(100, 1)));
   ASSERT_TRUE(
       (TestAtomic::Loop<TestAtomic::SuperScalar<4>, TEST_EXECSPACE>(100, 2)));
   ASSERT_TRUE(
       (TestAtomic::Loop<TestAtomic::SuperScalar<4>, TEST_EXECSPACE>(100, 3)));
+#endif
 #endif
 #endif
 }

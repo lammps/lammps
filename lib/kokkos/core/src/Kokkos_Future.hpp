@@ -296,7 +296,8 @@ class BasicFuture {
 
   task_base* m_task;
 
-  KOKKOS_INLINE_FUNCTION explicit BasicFuture(task_base* task) : m_task(0) {
+  KOKKOS_INLINE_FUNCTION explicit BasicFuture(task_base* task)
+      : m_task(nullptr) {
     if (task) queue_type::assign(&m_task, task);
   }
 
@@ -306,7 +307,7 @@ class BasicFuture {
   //----------------------------------------
 
   KOKKOS_INLINE_FUNCTION
-  bool is_null() const { return 0 == m_task; }
+  bool is_null() const { return nullptr == m_task; }
 
   KOKKOS_INLINE_FUNCTION
   int reference_count() const {
@@ -317,7 +318,7 @@ class BasicFuture {
 
   KOKKOS_INLINE_FUNCTION
   void clear() {
-    if (m_task) queue_type::assign(&m_task, (task_base*)0);
+    if (m_task) queue_type::assign(&m_task, nullptr);
   }
 
   //----------------------------------------
@@ -332,11 +333,11 @@ class BasicFuture {
 
   KOKKOS_INLINE_FUNCTION
   BasicFuture(BasicFuture&& rhs) noexcept : m_task(rhs.m_task) {
-    rhs.m_task = 0;
+    rhs.m_task = nullptr;
   }
 
   KOKKOS_INLINE_FUNCTION
-  BasicFuture(const BasicFuture& rhs) : m_task(0) {
+  BasicFuture(const BasicFuture& rhs) : m_task(nullptr) {
     if (rhs.m_task) queue_type::assign(&m_task, rhs.m_task);
   }
 
@@ -344,7 +345,7 @@ class BasicFuture {
   BasicFuture& operator=(BasicFuture&& rhs) noexcept {
     clear();
     m_task     = rhs.m_task;
-    rhs.m_task = 0;
+    rhs.m_task = nullptr;
     return *this;
   }
 
@@ -420,13 +421,13 @@ class BasicFuture {
 
   KOKKOS_INLINE_FUNCTION
   int is_ready() const noexcept {
-    return (0 == m_task) ||
+    return (nullptr == m_task) ||
            (((task_base*)task_base::LockTag) == m_task->m_wait);
   }
 
   KOKKOS_INLINE_FUNCTION
   const typename Impl::TaskResult<ValueType>::reference_type get() const {
-    if (0 == m_task) {
+    if (nullptr == m_task) {
       Kokkos::abort("Kokkos:::Future::get ERROR: is_null()");
     }
     return Impl::TaskResult<ValueType>::get(m_task);

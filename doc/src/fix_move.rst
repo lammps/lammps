@@ -193,7 +193,7 @@ The *units* keyword determines the meaning of the distance units used
 to define the *linear* velocity and *wiggle* amplitude and *rotate*
 origin.  This setting is ignored for the *variable* style.  A *box*
 value selects standard units as defined by the :doc:`units <units>`
-command, e.g. velocity in Angstroms/fmsec and amplitude and position
+command, e.g. velocity in Angstroms/fs and amplitude and position
 in Angstroms for units = real.  A *lattice* value means the velocity
 units are in lattice spacings per time and the amplitude and position
 are in lattice spacings.  The :doc:`lattice <lattice>` command must have

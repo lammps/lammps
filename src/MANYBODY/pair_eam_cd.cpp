@@ -28,6 +28,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "tokenizer.h"
 
 using namespace LAMMPS_NS;
 
@@ -61,7 +62,7 @@ PairEAMCD::~PairEAMCD()
 {
   memory->destroy(rhoB);
   memory->destroy(D_values);
-  if (hcoeff) delete[] hcoeff;
+  delete[] hcoeff;
 }
 
 void PairEAMCD::compute(int eflag, int vflag)
@@ -512,16 +513,21 @@ void PairEAMCD::read_h_coeff(char *filename)
     while(fgets(nextline, MAXLINE, fptr) != NULL) {
       strcpy(line, nextline);
     }
-    char* ptr = strtok(line, " \t\n\r\f");
-    int degree = atoi(ptr);
+
+    ValueTokenizer values(line);
+    int degree = values.next_int();
     nhcoeff = degree+1;
+
+    if ((int)values.count() != nhcoeff + 1 || nhcoeff < 1)
+      error->one(FLERR, "Failed to read h(x) function coefficients in EAM file.");
+
+    delete[] hcoeff;
     hcoeff = new double[nhcoeff];
+
     int i = 0;
-    while((ptr = strtok(NULL," \t\n\r\f")) != NULL && i < nhcoeff) {
-      hcoeff[i++] = atof(ptr);
+    while(values.has_next()) {
+      hcoeff[i++] = values.next_double();
     }
-    if (i != nhcoeff || nhcoeff < 1)
-      error->one(FLERR,"Failed to read h(x) function coefficients from EAM file.");
 
     // Close the potential file.
 
@@ -529,7 +535,10 @@ void PairEAMCD::read_h_coeff(char *filename)
   }
 
   MPI_Bcast(&nhcoeff, 1, MPI_INT, 0, world);
-  if (comm->me != 0) hcoeff = new double[nhcoeff];
+  if (comm->me != 0) {
+    delete[] hcoeff;
+    hcoeff = new double[nhcoeff];
+  }
   MPI_Bcast(hcoeff, nhcoeff, MPI_DOUBLE, 0, world);
 }
 

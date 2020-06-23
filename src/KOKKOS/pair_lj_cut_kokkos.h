@@ -31,7 +31,7 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 class PairLJCutKokkos : public PairLJCut {
  public:
-  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2};
+  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -99,15 +99,12 @@ class PairLJCutKokkos : public PairLJCut {
   friend class PairComputeFunctor<PairLJCutKokkos,FULL,true>;
   friend class PairComputeFunctor<PairLJCutKokkos,HALF,true>;
   friend class PairComputeFunctor<PairLJCutKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairLJCutKokkos,N2,true>;
   friend class PairComputeFunctor<PairLJCutKokkos,FULL,false>;
   friend class PairComputeFunctor<PairLJCutKokkos,HALF,false>;
   friend class PairComputeFunctor<PairLJCutKokkos,HALFTHREAD,false>;
-  friend class PairComputeFunctor<PairLJCutKokkos,N2,false>;
   friend EV_FLOAT pair_compute_neighlist<PairLJCutKokkos,FULL,void>(PairLJCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJCutKokkos,HALF,void>(PairLJCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJCutKokkos,HALFTHREAD,void>(PairLJCutKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJCutKokkos,N2,void>(PairLJCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairLJCutKokkos,void>(PairLJCutKokkos*,NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairLJCutKokkos>(PairLJCutKokkos*);
 };

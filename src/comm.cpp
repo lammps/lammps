@@ -35,6 +35,7 @@
 #include "memory.h"
 #include "error.h"
 #include "update.h"
+#include "fmt/format.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -255,12 +256,9 @@ void Comm::init_exchange()
   int nfix = modify->nfix;
   Fix **fix = modify->fix;
 
-  int onefix;
   maxexchange_fix = 0;
-  for (int i = 0; i < nfix; i++) {
-    onefix = fix[i]->maxexchange;
-    maxexchange_fix = MAX(maxexchange_fix,onefix);
-  }
+  for (int i = 0; i < nfix; i++)
+    maxexchange_fix += fix[i]->maxexchange;
 
   maxexchange = maxexchange_atom + maxexchange_fix;
   bufextra = maxexchange + BUFEXTRA;
@@ -678,23 +676,19 @@ double Comm::get_comm_cutoff()
   if (!force->pair && (cutghostuser == 0.0)) {
     maxcommcutoff = MAX(maxcommcutoff,maxbondcutoff);
   } else {
-    if ((me == 0) && (maxbondcutoff > maxcommcutoff)) {
-      char mesg[256];
-      snprintf(mesg,256,"Communication cutoff %g is shorter than a bond "
-               "length based estimate of %g. This may lead to errors.",
-               maxcommcutoff,maxbondcutoff);
-      error->warning(FLERR,mesg);
-    }
+    if ((me == 0) && (maxbondcutoff > maxcommcutoff))
+      error->warning(FLERR,fmt::format("Communication cutoff {} is shorter "
+                                       "than a bond length based estimate of "
+                                       "{}. This may lead to errors.",
+                                       maxcommcutoff,maxbondcutoff));
   }
 
   // print warning if neighborlist cutoff overrides user cutoff
 
   if ((me == 0) && (update->setupflag == 1)) {
-    if ((cutghostuser > 0.0) && (maxcommcutoff > cutghostuser)) {
-      char mesg[128];
-      snprintf(mesg,128,"Communication cutoff adjusted to %g",maxcommcutoff);
-      error->warning(FLERR,mesg);
-    }
+    if ((cutghostuser > 0.0) && (maxcommcutoff > cutghostuser))
+      error->warning(FLERR,fmt::format("Communication cutoff adjusted to {}",
+                                       maxcommcutoff));
   }
 
   return maxcommcutoff;
@@ -907,7 +901,9 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
   if (inorder) nrvous = irregular->create_data_grouped(n,procs);
   else nrvous = irregular->create_data(n,procs);
 
-  char *inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize,
+  // add 1 item to the allocated buffer size, so the returned pointer is not NULL
+
+  char *inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize+1,
                                                "rendezvous:inbuf");
   irregular->exchange_data(inbuf,insize,inbuf_rvous);
 
@@ -942,7 +938,9 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
     nout = irregular->create_data_grouped(nrvous_out,procs_rvous);
   else nout = irregular->create_data(nrvous_out,procs_rvous);
 
-  outbuf = (char *) memory->smalloc((bigint) nout*outsize,
+  // add 1 item to the allocated buffer size, so the returned pointer is not NULL
+
+  outbuf = (char *) memory->smalloc((bigint) nout*outsize+1,
                                     "rendezvous:outbuf");
   irregular->exchange_data(outbuf_rvous,outsize,outbuf);
 
@@ -981,7 +979,10 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
   if (!inorder) {
     memory->create(procs_a2a,nprocs,"rendezvous:procs");
-    inbuf_a2a = (char *) memory->smalloc((bigint) n*insize,
+
+    // add 1 item to the allocated buffer size, so the returned pointer is not NULL
+
+    inbuf_a2a = (char *) memory->smalloc((bigint) n*insize+1,
                                          "rendezvous:inbuf");
     memset(inbuf_a2a,0,(bigint)n*insize*sizeof(char));
     memory->create(offsets,nprocs,"rendezvous:offsets");
@@ -1044,8 +1045,9 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   }
 
   // all2all comm of inbuf from caller decomp to rendezvous decomp
+  // add 1 item to the allocated buffer size, so the returned pointer is not NULL
 
-  char *inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize,
+  char *inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize+1,
                                                "rendezvous:inbuf");
   memset(inbuf_rvous,0,(bigint) nrvous*insize*sizeof(char));
 
@@ -1085,7 +1087,9 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   if (!outorder) {
     memory->create(procs_a2a,nprocs,"rendezvous_a2a:procs");
 
-    outbuf_a2a = (char *) memory->smalloc((bigint) nrvous_out*outsize,
+    // add 1 item to the allocated buffer size, so the returned pointer is not NULL
+
+    outbuf_a2a = (char *) memory->smalloc((bigint) nrvous_out*outsize+1,
                                           "rendezvous:outbuf");
     memory->create(offsets,nprocs,"rendezvous:offsets");
 
@@ -1144,8 +1148,9 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
   // all2all comm of outbuf from rendezvous decomp back to caller decomp
   // caller will free outbuf
+  // add 1 item to the allocated buffer size, so the returned pointer is not NULL
 
-  outbuf = (char *) memory->smalloc((bigint) nout*outsize,"rendezvous:outbuf");
+  outbuf = (char *) memory->smalloc((bigint) nout*outsize+1,"rendezvous:outbuf");
 
   MPI_Alltoallv(outbuf_a2a,sendcount,sdispls,MPI_CHAR,
                 outbuf,recvcount,rdispls,MPI_CHAR,world);
@@ -1220,35 +1225,31 @@ void Comm::rendezvous_stats(int n, int nout, int nrvous, int nrvous_out,
   if (me == 0) {
     if (screen) {
       fprintf(screen,"Rendezvous balance and memory info: (tot,ave,max,min) \n");
-      fprintf(screen,"  input datum count: "
-              BIGINT_FORMAT " %g " BIGINT_FORMAT " " BIGINT_FORMAT "\n",
-              size_in_all/insize,1.0*size_in_all/nprocs/insize,
-              size_in_max/insize,size_in_min/insize);
+      fmt::print(screen,"  input datum count: {} {} {} {}\n",
+                 size_in_all/insize,1.0*size_in_all/nprocs/insize,
+                 size_in_max/insize,size_in_min/insize);
       fprintf(screen,"  input data (MB): %g %g %g %g\n",
               1.0*size_in_all/mbytes,1.0*size_in_all/nprocs/mbytes,
               1.0*size_in_max/mbytes,1.0*size_in_min/mbytes);
       if (outsize)
-        fprintf(screen,"  output datum count: "
-                BIGINT_FORMAT " %g " BIGINT_FORMAT " " BIGINT_FORMAT "\n",
-                size_out_all/outsize,1.0*size_out_all/nprocs/outsize,
-                size_out_max/outsize,size_out_min/outsize);
+        fmt::print(screen,"  output datum count: {} {} {} {}\n",
+                   size_out_all/outsize,1.0*size_out_all/nprocs/outsize,
+                   size_out_max/outsize,size_out_min/outsize);
       else
         fprintf(screen,"  output datum count: %d %g %d %d\n",0,0.0,0,0);
       fprintf(screen,"  output data (MB): %g %g %g %g\n",
               1.0*size_out_all/mbytes,1.0*size_out_all/nprocs/mbytes,
               1.0*size_out_max/mbytes,1.0*size_out_min/mbytes);
-      fprintf(screen,"  input rvous datum count: "
-              BIGINT_FORMAT " %g " BIGINT_FORMAT " " BIGINT_FORMAT "\n",
-              size_inrvous_all/insize,1.0*size_inrvous_all/nprocs/insize,
-              size_inrvous_max/insize,size_inrvous_min/insize);
+      fmt::print(screen,"  input rvous datum count: {} {} {} {}\n",
+                 size_inrvous_all/insize,1.0*size_inrvous_all/nprocs/insize,
+                 size_inrvous_max/insize,size_inrvous_min/insize);
       fprintf(screen,"  input rvous data (MB): %g %g %g %g\n",
               1.0*size_inrvous_all/mbytes,1.0*size_inrvous_all/nprocs/mbytes,
               1.0*size_inrvous_max/mbytes,1.0*size_inrvous_min/mbytes);
       if (outsize)
-        fprintf(screen,"  output rvous datum count: "
-                BIGINT_FORMAT " %g " BIGINT_FORMAT " " BIGINT_FORMAT "\n",
-                size_outrvous_all/outsize,1.0*size_outrvous_all/nprocs/outsize,
-                size_outrvous_max/outsize,size_outrvous_min/outsize);
+        fmt::print(screen,"  output rvous datum count: {} {} {} {}\n",
+                   size_outrvous_all/outsize,1.0*size_outrvous_all/nprocs/outsize,
+                   size_outrvous_max/outsize,size_outrvous_min/outsize);
       else
         fprintf(screen,"  output rvous datum count: %d %g %d %d\n",0,0.0,0,0);
       fprintf(screen,"  output rvous data (MB): %g %g %g %g\n",

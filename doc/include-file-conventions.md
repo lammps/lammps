@@ -49,22 +49,15 @@ include files provided with LAMMPS are included with double quotes
 
 For headers declaring functions of the C-library, the corresponding
 C++ versions should be included (examples: `#include <cstdlib>` or
-`#include <cctypes>`).  However, these includes are limited to those defined
-in the C++98 standard.  Some files thus must use the older style until
-the minimum C++ standard requirement of LAMMPS is lifted to C++11 or
-even beyond (examples: `#include <stdint.h>` versus `#include <cstdint>`
-or `#include <inttypes.h>` versus `#include <cinttypes>`).
+`#include <cctypes>` instead of `#include <stdlib.h>` or
+`#include<ctypes.h>` ).
 
 ### C++ Standard Compliance
 
-LAMMPS core files currently correspond to the C++98 standard. Files
-requiring C++11 or later are only permitted in (optional) packages
-and particularly packages that are not part of the list of commonly
-used packages such as MOLECULE, KSPACE, MANYBODY, or RIGID.
-
-Also, LAMMPS uses the C-style stdio library for I/O instead of iostreams.
-Since using both at the same time can cause problems, iostreams should
-be avoided where possible.
+LAMMPS core files use standard conforming C++ compatible with the
+C++11 standard, unless explicitly noted.  Also, LAMMPS uses the C-style
+stdio library for I/O instead of iostreams.  Since using both at the
+same time can cause problems, iostreams should be avoided where possible.
 
 ### Lean Header Files
 
@@ -72,7 +65,7 @@ Header files will typically contain the definition of a (single) class.
 These header files should have as few include statements as possible.
 This is particularly important for classes that implement a "style" and
 thus use a macro of the kind `SomeStyle(some/name,SomeName)`. These will
-all be included in the auto-generated `"some_style.h"` files which 
+all be included in the auto-generated `"some_style.h"` files which
 results in a high potential for direct or indirect symbol name clashes.
 
 In the ideal case, the header would only include one file defining the

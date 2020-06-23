@@ -34,7 +34,7 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
   radelem(NULL), wjelem(NULL)
 {
   double rmin0, rfac0;
-  int twojmax, switchflag, bzeroflag;
+  int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
   radelem = NULL;
   wjelem = NULL;
 
@@ -48,7 +48,12 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
   rmin0 = 0.0;
   switchflag = 1;
   bzeroflag = 1;
+  bnormflag = 0;
   quadraticflag = 0;
+  chemflag = 0;
+  bnormflag = 0;
+  wselfallflag = 0;
+  nelements = 1;
 
   // offset by 1 to match up with types
 
@@ -104,11 +109,35 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute sna/atom command");
       quadraticflag = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"chem") == 0) {
+      if (iarg+2+ntypes > narg)
+        error->all(FLERR,"Illegal compute sna/atom command");
+      chemflag = 1;
+      memory->create(map,ntypes+1,"compute_sna_atom:map");
+      nelements = force->inumeric(FLERR,arg[iarg+1]);
+      for(int i = 0; i < ntypes; i++) {
+        int jelem = force->inumeric(FLERR,arg[iarg+2+i]);
+        if (jelem < 0 || jelem >= nelements)
+          error->all(FLERR,"Illegal compute sna/atom command");
+        map[i+1] = jelem;
+      }
+      iarg += 2+ntypes;
+    } else if (strcmp(arg[iarg],"bnormflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute sna/atom command");
+      bnormflag = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"wselfallflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute sna/atom command");
+      wselfallflag = atoi(arg[iarg+1]);
+      iarg += 2;
     } else error->all(FLERR,"Illegal compute sna/atom command");
   }
 
-  snaptr = new SNA(lmp,rfac0,twojmax,
-                   rmin0,switchflag,bzeroflag);
+  snaptr = new SNA(lmp, rfac0, twojmax,
+                   rmin0, switchflag, bzeroflag,
+                   chemflag, bnormflag, wselfallflag, nelements);
 
   ncoeff = snaptr->ncoeff;
   size_peratom_cols = ncoeff;
@@ -203,6 +232,9 @@ void ComputeSNAAtom::compute_peratom()
       const double ytmp = x[i][1];
       const double ztmp = x[i][2];
       const int itype = type[i];
+      int ielem = 0;
+      if (chemflag)
+        ielem = map[itype];
       const double radi = radelem[itype];
       const int* const jlist = firstneigh[i];
       const int jnum = numneigh[i];
@@ -225,6 +257,9 @@ void ComputeSNAAtom::compute_peratom()
         const double delz = ztmp - x[j][2];
         const double rsq = delx*delx + dely*dely + delz*delz;
         int jtype = type[j];
+        int jelem = 0;
+        if (chemflag)
+          int jelem = map[jtype];
         if (rsq < cutsq[itype][jtype] && rsq>1e-20) {
           snaptr->rij[ninside][0] = delx;
           snaptr->rij[ninside][1] = dely;
@@ -232,13 +267,14 @@ void ComputeSNAAtom::compute_peratom()
           snaptr->inside[ninside] = j;
           snaptr->wj[ninside] = wjelem[jtype];
           snaptr->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
+          snaptr->element[ninside] = jelem; // element index for multi-element snap
           ninside++;
         }
       }
 
-      snaptr->compute_ui(ninside);
+      snaptr->compute_ui(ninside, ielem);
       snaptr->compute_zi();
-      snaptr->compute_bi();
+      snaptr->compute_bi(ielem);
       for (int icoeff = 0; icoeff < ncoeff; icoeff++)
         sna[i][icoeff] = snaptr->blist[icoeff];
       if (quadraticflag) {
@@ -261,6 +297,7 @@ void ComputeSNAAtom::compute_peratom()
         sna[i][icoeff] = 0.0;
     }
   }
+
 }
 
 /* ----------------------------------------------------------------------

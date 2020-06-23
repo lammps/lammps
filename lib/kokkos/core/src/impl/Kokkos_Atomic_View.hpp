@@ -347,7 +347,7 @@ class AtomicViewDataHandle {
   typename ViewTraits::value_type* ptr;
 
   KOKKOS_INLINE_FUNCTION
-  AtomicViewDataHandle() : ptr(NULL) {}
+  AtomicViewDataHandle() : ptr(nullptr) {}
 
   KOKKOS_INLINE_FUNCTION
   AtomicViewDataHandle(typename ViewTraits::value_type* ptr_) : ptr(ptr_) {}

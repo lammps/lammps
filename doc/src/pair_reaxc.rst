@@ -21,12 +21,13 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *checkqeq* or *lgvdw* or *safezone* or *mincap*
+     keyword = *checkqeq* or *lgvdw* or *safezone* or *mincap* or *minhbonds*
        *checkqeq* value = *yes* or *no* = whether or not to require qeq/reax fix
        *enobonds* value = *yes* or *no* = whether or not to tally energy of atoms with no bonds
        *lgvdw* value = *yes* or *no* = whether or not to use a low gradient vdW correction
        *safezone* = factor used for array allocation
        *mincap* = minimum size for array allocation
+       *minhbonds* = minimum size use for storing hydrogen bonds
 
 Examples
 """"""""
@@ -146,11 +147,11 @@ zero.  The latter behavior is usual not desired, as it causes
 discontinuities in the potential energy when the bonding of an atom
 drops to zero.
 
-Optional keywords *safezone* and *mincap* are used for allocating
-reax/c arrays.  Increasing these values can avoid memory problems,
-such as segmentation faults and bondchk failed errors, that could
-occur under certain conditions. These keywords are not used by the
-Kokkos version, which instead uses a more robust memory allocation
+Optional keywords *safezone*\ , *mincap*\ , and *minhbonds* are used
+for allocating reax/c arrays.  Increasing these values can avoid memory
+problems, such as segmentation faults and bondchk failed errors, that
+could occur under certain conditions. These keywords are not used by
+the Kokkos version, which instead uses a more robust memory allocation
 scheme that checks if the sizes of the arrays have been exceeded and
 automatically allocates more memory.
 
@@ -352,7 +353,7 @@ Default
 """""""
 
 The keyword defaults are checkqeq = yes, enobonds = yes, lgvdw = no,
-safezone = 1.2, mincap = 50.
+safezone = 1.2, mincap = 50, minhbonds = 25.
 
 ----------
 

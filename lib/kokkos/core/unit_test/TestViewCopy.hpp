@@ -52,124 +52,446 @@ namespace Test {
 
 namespace {
 
-template <typename ExecSpace>
-struct TestViewCopy {
-  using InExecSpace = ExecSpace;
-
-  static void test_view_copy(const int dim0, const int dim1, const int dim2) {
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_ROCM)
-    // ExecSpace = CudaUVM, CudaHostPinned
-    // This test will fail at runtime with an illegal memory access if something
-    // goes wrong Test 1: deep_copy from host_mirror_space to ExecSpace and
-    // ExecSpace back to host_mirror_space
-    {
-      typedef Kokkos::View<double****, InExecSpace> Rank4ViewType;
-      Rank4ViewType view_4;
-      view_4 = Rank4ViewType("view_4", dim0, dim1, dim2, dim2);
-
-      typedef typename Kokkos::Impl::is_space<
-          InExecSpace>::host_mirror_space::execution_space host_space_type;
-      Kokkos::View<double**, Kokkos::LayoutLeft, host_space_type> srcView(
-          "srcView", dim2, dim2);
-
-      // Strided dst view
-      auto dstView =
-          Kokkos::subview(view_4, 0, 0, Kokkos::ALL(), Kokkos::ALL());
-
-      // host_mirror_space to ExecSpace
-      Kokkos::deep_copy(dstView, srcView);
-      Kokkos::fence();
-
-      // ExecSpace to host_mirror_space
-      Kokkos::deep_copy(srcView, dstView);
-      Kokkos::fence();
+template <class ViewType>
+struct CheckResult {
+  using value_type = typename ViewType::non_const_value_type;
+  ViewType v;
+  value_type value;
+  CheckResult(ViewType v_, value_type value_) : v(v_), value(value_){};
+  KOKKOS_FUNCTION
+  void operator()(const int i, int& lsum) const {
+    for (int j = 0; j < static_cast<int>(v.extent(1)); j++) {
+      if (v.access(i, j) != value) lsum++;
     }
+  }
+};
 
-    // Test 2: deep_copy from Cuda to ExecSpace and ExecSpace back to Cuda
-    {
-      typedef Kokkos::View<double****, InExecSpace> Rank4ViewType;
-      Rank4ViewType view_4;
-      view_4 = Rank4ViewType("view_4", dim0, dim1, dim2, dim2);
-
-#if defined(KOKKOS_ENABLE_CUDA)
-      typedef typename std::conditional<
-          Kokkos::Impl::MemorySpaceAccess<
-              Kokkos::CudaSpace,
-              typename InExecSpace::memory_space>::accessible,
-          Kokkos::CudaSpace, InExecSpace>::type space_type;
-#endif
-#if defined(KOKKOS_ENABLE_ROCM)
-      typedef typename std::conditional<
-          Kokkos::Impl::MemorySpaceAccess<
-              Kokkos::ROCmSpace,
-              typename InExecSpace::memory_space>::accessible,
-          Kokkos::ROCmSpace, InExecSpace>::type space_type;
-#endif
-      Kokkos::View<double**, Kokkos::LayoutLeft, space_type> srcView(
-          "srcView", dim2, dim2);
-
-      // Strided dst view
-      auto dstView =
-          Kokkos::subview(view_4, 0, 0, Kokkos::ALL(), Kokkos::ALL());
-
-      // Cuda to ExecSpace
-      Kokkos::deep_copy(dstView, srcView);
-      Kokkos::fence();
-
-      // ExecSpace to Cuda
-      Kokkos::deep_copy(srcView, dstView);
-      Kokkos::fence();
-    }
-
-    // Test 3: deep_copy from host_space to ExecSpace and ExecSpace back to
-    // host_space
-    {
-      typedef Kokkos::View<double****, InExecSpace> Rank4ViewType;
-      Rank4ViewType view_4;
-      view_4 = Rank4ViewType("view_4", dim0, dim1, dim2, dim2);
-
-      typedef Kokkos::HostSpace host_space_type;
-      Kokkos::View<double**, Kokkos::LayoutLeft, host_space_type> srcView(
-          "srcView", dim2, dim2);
-
-      // Strided dst view
-      auto dstView =
-          Kokkos::subview(view_4, 0, 0, Kokkos::ALL(), Kokkos::ALL());
-
-      // host_space to ExecSpace
-      Kokkos::deep_copy(dstView, srcView);
-      Kokkos::fence();
-
-      // ExecSpace to host_space
-      Kokkos::deep_copy(srcView, dstView);
-      Kokkos::fence();
-    }
-#endif
-  }  // end test_view_copy
-
-};  // end struct
+template <class ViewType>
+bool run_check(ViewType v, typename ViewType::value_type value) {
+  using exec_space = typename ViewType::memory_space::execution_space;
+  int errors       = 0;
+  Kokkos::fence();
+  Kokkos::parallel_reduce(Kokkos::RangePolicy<exec_space>(0, v.extent(0)),
+                          CheckResult<ViewType>(v, value), errors);
+  return errors == 0;
+}
 
 }  // namespace
 
 TEST(TEST_CATEGORY, view_copy_tests) {
-  // Only include this file to be compiled with CudaUVM and CudaHostPinned
-  TestViewCopy<TEST_EXECSPACE>::test_view_copy(4, 2, 3);
-  TestViewCopy<TEST_EXECSPACE>::test_view_copy(4, 2, 0);
+  int N = 10000;
+  int M = 10;
+
+  Kokkos::View<int**, Kokkos::LayoutRight, TEST_EXECSPACE> defaulted;
+  Kokkos::View<int**, Kokkos::LayoutRight, TEST_EXECSPACE> a("A", N, M);
+  Kokkos::View<int**, Kokkos::LayoutRight, TEST_EXECSPACE> b("B", N, M);
+  auto h_a  = Kokkos::create_mirror(a);
+  auto h_b  = Kokkos::create_mirror(b);
+  auto m_a  = Kokkos::create_mirror_view(a);
+  auto s_a  = Kokkos::subview(a, Kokkos::ALL, 1);
+  auto s_b  = Kokkos::subview(b, Kokkos::ALL, 1);
+  auto hs_a = Kokkos::subview(h_a, Kokkos::ALL, 1);
+  auto hs_b = Kokkos::subview(h_b, Kokkos::ALL, 1);
+  auto dev  = typename TEST_EXECSPACE::execution_space();
+  auto host = Kokkos::DefaultHostExecutionSpace();
+
+  constexpr bool DevExecCanAccessHost =
+      Kokkos::Impl::SpaceAccessibility<typename TEST_EXECSPACE::execution_space,
+                                       Kokkos::HostSpace>::accessible;
+
+  constexpr bool HostExecCanAccessDev = Kokkos::Impl::SpaceAccessibility<
+      typename Kokkos::HostSpace::execution_space,
+      typename TEST_EXECSPACE::memory_space>::accessible;
+
+  // Contiguous copies
+  { Kokkos::deep_copy(defaulted, defaulted); }
+  {
+    Kokkos::deep_copy(a, 1);
+    ASSERT_TRUE(run_check(a, 1));
+  }
+  {
+    Kokkos::deep_copy(a, a);
+    ASSERT_TRUE(run_check(a, 1));
+  }
+  {
+    Kokkos::deep_copy(m_a, a);
+    ASSERT_TRUE(run_check(m_a, 1));
+  }
+  {
+    Kokkos::deep_copy(m_a, 2);
+    ASSERT_TRUE(run_check(m_a, 2));
+  }
+  {
+    Kokkos::deep_copy(a, m_a);
+    ASSERT_TRUE(run_check(a, 2));
+  }
+  {
+    Kokkos::deep_copy(b, 3);
+    ASSERT_TRUE(run_check(b, 3));
+  }
+  {
+    Kokkos::deep_copy(h_a, 4);
+    ASSERT_TRUE(run_check(h_a, 4));
+  }
+  {
+    Kokkos::deep_copy(a, b);
+    ASSERT_TRUE(run_check(a, 3));
+  }
+  {
+    Kokkos::deep_copy(h_b, h_a);
+    ASSERT_TRUE(run_check(h_b, 4));
+  }
+  {
+    Kokkos::deep_copy(h_a, a);
+    ASSERT_TRUE(run_check(h_a, 3));
+  }
+  {
+    Kokkos::deep_copy(b, h_b);
+    ASSERT_TRUE(run_check(b, 4));
+  }
+  // Non contiguous copies
+  {
+    Kokkos::deep_copy(s_a, 5);
+    ASSERT_TRUE(run_check(s_a, 5));
+  }
+  {
+    Kokkos::deep_copy(hs_a, 6);
+    ASSERT_TRUE(run_check(hs_a, 6));
+  }
+  {
+    Kokkos::deep_copy(s_b, s_a);
+    ASSERT_TRUE(run_check(s_b, 5));
+  }
+  {
+    Kokkos::deep_copy(hs_b, hs_a);
+    ASSERT_TRUE(run_check(hs_b, 6));
+  }
+  if (DevExecCanAccessHost || HostExecCanAccessDev) {
+    {
+      Kokkos::deep_copy(hs_b, s_b);
+      ASSERT_TRUE(run_check(hs_b, 5));
+    }
+    {
+      Kokkos::deep_copy(s_a, hs_a);
+      ASSERT_TRUE(run_check(s_a, 6));
+    }
+  }
+
+  // Contiguous copies
+  { Kokkos::deep_copy(dev, defaulted, defaulted); }
+  {
+    Kokkos::deep_copy(dev, a, 1);
+    ASSERT_TRUE(run_check(a, 1));
+  }
+  {
+    Kokkos::deep_copy(dev, a, a);
+    ASSERT_TRUE(run_check(a, 1));
+  }
+  {
+    Kokkos::deep_copy(dev, m_a, a);
+    ASSERT_TRUE(run_check(m_a, 1));
+  }
+  {
+    Kokkos::deep_copy(dev, m_a, 2);
+    ASSERT_TRUE(run_check(m_a, 2));
+  }
+  {
+    Kokkos::deep_copy(dev, a, m_a);
+    ASSERT_TRUE(run_check(a, 2));
+  }
+  {
+    Kokkos::deep_copy(dev, b, 3);
+    ASSERT_TRUE(run_check(b, 3));
+  }
+  {
+    Kokkos::deep_copy(dev, h_a, 4);
+    ASSERT_TRUE(run_check(h_a, 4));
+  }
+  {
+    Kokkos::deep_copy(dev, a, b);
+    ASSERT_TRUE(run_check(a, 3));
+  }
+  {
+    Kokkos::deep_copy(dev, h_b, h_a);
+    ASSERT_TRUE(run_check(h_b, 4));
+  }
+  {
+    Kokkos::deep_copy(dev, h_a, a);
+    ASSERT_TRUE(run_check(h_a, 3));
+  }
+  {
+    Kokkos::deep_copy(dev, b, h_b);
+    ASSERT_TRUE(run_check(b, 4));
+  }
+  // Non contiguous copies
+  {
+    Kokkos::deep_copy(dev, s_a, 5);
+    ASSERT_TRUE(run_check(s_a, 5));
+  }
+  {
+    Kokkos::deep_copy(dev, hs_a, 6);
+    ASSERT_TRUE(run_check(hs_a, 6));
+  }
+  {
+    Kokkos::deep_copy(dev, s_b, s_a);
+    ASSERT_TRUE(run_check(s_b, 5));
+  }
+  {
+    Kokkos::deep_copy(dev, hs_b, hs_a);
+    ASSERT_TRUE(run_check(hs_b, 6));
+  }
+  if (DevExecCanAccessHost || HostExecCanAccessDev) {
+    {
+      Kokkos::deep_copy(dev, hs_b, s_b);
+      ASSERT_TRUE(run_check(hs_b, 5));
+    }
+    {
+      Kokkos::deep_copy(dev, s_a, hs_a);
+      ASSERT_TRUE(run_check(s_a, 6));
+    }
+  }
+
+  // Contiguous copies
+  { Kokkos::deep_copy(host, defaulted, defaulted); }
+  {
+    Kokkos::deep_copy(host, a, 1);
+    ASSERT_TRUE(run_check(a, 1));
+  }
+  {
+    Kokkos::deep_copy(host, a, a);
+    ASSERT_TRUE(run_check(a, 1));
+  }
+  {
+    Kokkos::deep_copy(host, m_a, a);
+    ASSERT_TRUE(run_check(m_a, 1));
+  }
+  {
+    Kokkos::deep_copy(host, m_a, 2);
+    ASSERT_TRUE(run_check(m_a, 2));
+  }
+  {
+    Kokkos::deep_copy(host, a, m_a);
+    ASSERT_TRUE(run_check(a, 2));
+  }
+  {
+    Kokkos::deep_copy(host, b, 3);
+    ASSERT_TRUE(run_check(b, 3));
+  }
+  {
+    Kokkos::deep_copy(host, h_a, 4);
+    ASSERT_TRUE(run_check(h_a, 4));
+  }
+  {
+    Kokkos::deep_copy(host, a, b);
+    ASSERT_TRUE(run_check(a, 3));
+  }
+  {
+    Kokkos::deep_copy(host, h_b, h_a);
+    ASSERT_TRUE(run_check(h_b, 4));
+  }
+  {
+    Kokkos::deep_copy(host, h_a, a);
+    ASSERT_TRUE(run_check(h_a, 3));
+  }
+  {
+    Kokkos::deep_copy(host, b, h_b);
+    ASSERT_TRUE(run_check(b, 4));
+  }
+  // Non contiguous copies
+  {
+    Kokkos::deep_copy(host, s_a, 5);
+    ASSERT_TRUE(run_check(s_a, 5));
+  }
+  {
+    Kokkos::deep_copy(host, hs_a, 6);
+    ASSERT_TRUE(run_check(hs_a, 6));
+  }
+  {
+    Kokkos::deep_copy(host, s_b, s_a);
+    ASSERT_TRUE(run_check(s_b, 5));
+  }
+  {
+    Kokkos::deep_copy(host, hs_b, hs_a);
+    ASSERT_TRUE(run_check(hs_b, 6));
+  }
+  if (DevExecCanAccessHost || HostExecCanAccessDev) {
+    {
+      Kokkos::deep_copy(host, hs_b, s_b);
+      ASSERT_TRUE(run_check(hs_b, 5));
+    }
+    {
+      Kokkos::deep_copy(host, s_a, hs_a);
+      ASSERT_TRUE(run_check(s_a, 6));
+    }
+  }
+}
+
+TEST(TEST_CATEGORY, view_copy_tests_rank_0) {
+  Kokkos::View<int, TEST_EXECSPACE> defaulted;
+  Kokkos::View<int, TEST_EXECSPACE> a("A");
+  Kokkos::View<int, TEST_EXECSPACE> b("B");
+  auto h_a  = Kokkos::create_mirror(a);
+  auto h_b  = Kokkos::create_mirror(b);
+  auto m_a  = Kokkos::create_mirror_view(a);
+  auto dev  = typename TEST_EXECSPACE::execution_space();
+  auto host = Kokkos::DefaultHostExecutionSpace();
+
+  // No execution space
+  { Kokkos::deep_copy(defaulted, defaulted); }
+  {
+    Kokkos::deep_copy(a, 1);
+    ASSERT_TRUE(run_check(a, 1));
+  }
+  {
+    Kokkos::deep_copy(a, a);
+    ASSERT_TRUE(run_check(a, 1));
+  }
+  {
+    Kokkos::deep_copy(m_a, a);
+    ASSERT_TRUE(run_check(m_a, 1));
+  }
+  {
+    Kokkos::deep_copy(m_a, 2);
+    ASSERT_TRUE(run_check(m_a, 2));
+  }
+  {
+    Kokkos::deep_copy(a, m_a);
+    ASSERT_TRUE(run_check(a, 2));
+  }
+  {
+    Kokkos::deep_copy(b, 3);
+    ASSERT_TRUE(run_check(b, 3));
+  }
+  {
+    Kokkos::deep_copy(h_a, 4);
+    ASSERT_TRUE(run_check(h_a, 4));
+  }
+  {
+    Kokkos::deep_copy(a, b);
+    ASSERT_TRUE(run_check(a, 3));
+  }
+  {
+    Kokkos::deep_copy(h_b, h_a);
+    ASSERT_TRUE(run_check(h_b, 4));
+  }
+  {
+    Kokkos::deep_copy(h_a, a);
+    ASSERT_TRUE(run_check(h_a, 3));
+  }
+  {
+    Kokkos::deep_copy(b, h_b);
+    ASSERT_TRUE(run_check(b, 4));
+  }
+
+  // Device
+  { Kokkos::deep_copy(dev, defaulted, defaulted); }
+  {
+    Kokkos::deep_copy(dev, a, 1);
+    ASSERT_TRUE(run_check(a, 1));
+  }
+  {
+    Kokkos::deep_copy(dev, a, a);
+    ASSERT_TRUE(run_check(a, 1));
+  }
+  {
+    Kokkos::deep_copy(dev, m_a, a);
+    ASSERT_TRUE(run_check(m_a, 1));
+  }
+  {
+    Kokkos::deep_copy(dev, m_a, 2);
+    ASSERT_TRUE(run_check(m_a, 2));
+  }
+  {
+    Kokkos::deep_copy(dev, a, m_a);
+    ASSERT_TRUE(run_check(a, 2));
+  }
+  {
+    Kokkos::deep_copy(dev, b, 3);
+    ASSERT_TRUE(run_check(b, 3));
+  }
+  {
+    Kokkos::deep_copy(dev, h_a, 4);
+    ASSERT_TRUE(run_check(h_a, 4));
+  }
+  {
+    Kokkos::deep_copy(dev, a, b);
+    ASSERT_TRUE(run_check(a, 3));
+  }
+  {
+    Kokkos::deep_copy(dev, h_b, h_a);
+    ASSERT_TRUE(run_check(h_b, 4));
+  }
+  {
+    Kokkos::deep_copy(dev, h_a, a);
+    ASSERT_TRUE(run_check(h_a, 3));
+  }
+  {
+    Kokkos::deep_copy(dev, b, h_b);
+    ASSERT_TRUE(run_check(b, 4));
+  }
+
+  // Host
+  { Kokkos::deep_copy(host, defaulted, defaulted); }
+  {
+    Kokkos::deep_copy(host, a, 1);
+    ASSERT_TRUE(run_check(a, 1));
+  }
+  {
+    Kokkos::deep_copy(host, a, a);
+    ASSERT_TRUE(run_check(a, 1));
+  }
+  {
+    Kokkos::deep_copy(host, m_a, a);
+    ASSERT_TRUE(run_check(m_a, 1));
+  }
+  {
+    Kokkos::deep_copy(host, m_a, 2);
+    ASSERT_TRUE(run_check(m_a, 2));
+  }
+  {
+    Kokkos::deep_copy(host, a, m_a);
+    ASSERT_TRUE(run_check(a, 2));
+  }
+  {
+    Kokkos::deep_copy(host, b, 3);
+    ASSERT_TRUE(run_check(b, 3));
+  }
+  {
+    Kokkos::deep_copy(host, h_a, 4);
+    ASSERT_TRUE(run_check(h_a, 4));
+  }
+  {
+    Kokkos::deep_copy(host, a, b);
+    ASSERT_TRUE(run_check(a, 3));
+  }
+  {
+    Kokkos::deep_copy(host, h_b, h_a);
+    ASSERT_TRUE(run_check(h_b, 4));
+  }
+  {
+    Kokkos::deep_copy(host, h_a, a);
+    ASSERT_TRUE(run_check(h_a, 3));
+  }
+  {
+    Kokkos::deep_copy(host, b, h_b);
+    ASSERT_TRUE(run_check(b, 4));
+  }
 }
 
 TEST(TEST_CATEGORY, view_copy_degenerated) {
-  // Only include this file to be compiled with CudaUVM and CudaHostPinned
-  Kokkos::View<int*, Kokkos::MemoryTraits<Kokkos::Unmanaged>> v_um_def_1;
-  Kokkos::View<int*, Kokkos::MemoryTraits<Kokkos::Unmanaged>> v_um_1(
-      reinterpret_cast<int*>(-1), 0);
-  Kokkos::View<int*> v_m_def_1;
-  Kokkos::View<int*> v_m_1("v_m_1", 0);
+  Kokkos::View<int*, TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::Unmanaged>>
+      v_um_def_1;
+  Kokkos::View<int*, TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::Unmanaged>>
+  v_um_1(reinterpret_cast<int*>(-1), 0);
+  Kokkos::View<int*, TEST_EXECSPACE> v_m_def_1;
+  Kokkos::View<int*, TEST_EXECSPACE> v_m_1("v_m_1", 0);
 
-  Kokkos::View<int*, Kokkos::MemoryTraits<Kokkos::Unmanaged>> v_um_def_2;
-  Kokkos::View<int*, Kokkos::MemoryTraits<Kokkos::Unmanaged>> v_um_2(
-      reinterpret_cast<int*>(-1), 0);
-  Kokkos::View<int*> v_m_def_2;
-  Kokkos::View<int*> v_m_2("v_m_2", 0);
+  Kokkos::View<int*, TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::Unmanaged>>
+      v_um_def_2;
+  Kokkos::View<int*, TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::Unmanaged>>
+  v_um_2(reinterpret_cast<int*>(-1), 0);
+  Kokkos::View<int*, TEST_EXECSPACE> v_m_def_2;
+  Kokkos::View<int*, TEST_EXECSPACE> v_m_2("v_m_2", 0);
 
   Kokkos::deep_copy(v_um_def_1, v_um_def_2);
   Kokkos::deep_copy(v_um_def_1, v_um_2);

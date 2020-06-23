@@ -106,7 +106,7 @@ parenthesized comments):
    ...
    500 10.0 0.500 ... 1.0000
 
-A section begins with a non-blank line whose 1st character is not a
+A section begins with a non-blank line whose first character is not a
 "#"; blank lines or lines starting with "#" can be used as comments
 between sections.  The first line begins with a keyword which
 identifies the section.  The line can contain additional text, but the
@@ -121,8 +121,8 @@ What LAMMPS does is a preliminary interpolation by creating splines
 using the Nfile tabulated values as nodal points.
 
 Following a blank line, the next N lines list the tabulated values.
-On each line, the 1st value is the index from 1 to N, the 2nd value is
-the internal temperature (in temperature units), the 3rd value until
+On each line, the first value is the index from 1 to N, the second value is
+the internal temperature (in temperature units), the third value until
 the *m+3* value are the internal energies of the m species (in energy units).
 
 Note that all internal temperature and internal energy values must

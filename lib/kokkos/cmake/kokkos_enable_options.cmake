@@ -21,6 +21,7 @@ ENDFUNCTION()
 
 # Certain defaults will depend on knowing the enabled devices
 KOKKOS_CFG_DEPENDS(OPTIONS DEVICES)
+KOKKOS_CFG_DEPENDS(OPTIONS COMPILER_ID)
 
 # Put a check in just in case people are using this option
 KOKKOS_DEPRECATED_LIST(OPTIONS ENABLE)
@@ -28,8 +29,10 @@ KOKKOS_DEPRECATED_LIST(OPTIONS ENABLE)
 KOKKOS_ENABLE_OPTION(CUDA_RELOCATABLE_DEVICE_CODE  OFF "Whether to enable relocatable device code (RDC) for CUDA")
 KOKKOS_ENABLE_OPTION(CUDA_UVM             OFF "Whether to use unified memory (UM) for CUDA by default")
 KOKKOS_ENABLE_OPTION(CUDA_LDG_INTRINSIC   OFF "Whether to use CUDA LDG intrinsics")
+KOKKOS_ENABLE_OPTION(HIP_RELOCATABLE_DEVICE_CODE  OFF "Whether to enable relocatable device code (RDC) for HIP")
 KOKKOS_ENABLE_OPTION(HPX_ASYNC_DISPATCH   OFF "Whether HPX supports asynchronous dispatch")
 KOKKOS_ENABLE_OPTION(TESTS         OFF  "Whether to build the unit tests")
+KOKKOS_ENABLE_OPTION(EXAMPLES      OFF  "Whether to build the examples")
 STRING(TOUPPER "${CMAKE_BUILD_TYPE}" UPPERCASE_CMAKE_BUILD_TYPE)
 IF(UPPERCASE_CMAKE_BUILD_TYPE STREQUAL "DEBUG")
   KOKKOS_ENABLE_OPTION(DEBUG                ON "Whether to activate extra debug features - may increase compile times")
@@ -51,12 +54,14 @@ IF (KOKKOS_ENABLE_CUDA)
   SET(KOKKOS_COMPILER_CUDA_VERSION "${KOKKOS_COMPILER_VERSION_MAJOR}${KOKKOS_COMPILER_VERSION_MINOR}")
 ENDIF()
 
-IF (Trilinos_ENABLE_Kokkos AND TPL_ENABLE_CUDA AND DEFINED KOKKOS_COMPILER_CUDA_VERSION AND KOKKOS_COMPILER_CUDA_VERSION GREATER 70)
-  SET(LAMBDA_DEFAULT ON)
+IF (Trilinos_ENABLE_Kokkos AND TPL_ENABLE_CUDA)
+  SET(CUDA_LAMBDA_DEFAULT ON)
+ELSEIF (KOKKOS_ENABLE_CUDA AND (KOKKOS_CXX_COMPILER_ID STREQUAL Clang))
+  SET(CUDA_LAMBDA_DEFAULT ON)
 ELSE()
-  SET(LAMBDA_DEFAULT OFF)
+  SET(CUDA_LAMBDA_DEFAULT OFF)
 ENDIF()
-KOKKOS_ENABLE_OPTION(CUDA_LAMBDA ${LAMBDA_DEFAULT} "Whether to activate experimental lambda features")
+KOKKOS_ENABLE_OPTION(CUDA_LAMBDA ${CUDA_LAMBDA_DEFAULT} "Whether to activate experimental lambda features")
 IF (Trilinos_ENABLE_Kokkos)
   SET(COMPLEX_ALIGN_DEFAULT OFF)
 ELSE()
@@ -64,7 +69,13 @@ ELSE()
 ENDIF()
 KOKKOS_ENABLE_OPTION(COMPLEX_ALIGN ${COMPLEX_ALIGN_DEFAULT}  "Whether to align Kokkos::complex to 2*alignof(RealType)")
 
-KOKKOS_ENABLE_OPTION(CUDA_CONSTEXPR OFF "Whether to activate experimental relaxed constexpr functions")
+
+IF (KOKKOS_ENABLE_CUDA AND (KOKKOS_CXX_COMPILER_ID STREQUAL Clang))
+  SET(CUDA_CONSTEXPR_DEFAULT ON)
+ELSE()
+  SET(CUDA_CONSTEXPR_DEFAULT OFF)
+ENDIF()
+KOKKOS_ENABLE_OPTION(CUDA_CONSTEXPR ${CUDA_CONSTEXPR_DEFAULT} "Whether to activate experimental relaxed constexpr functions")
 
 FUNCTION(check_device_specific_options)
   CMAKE_PARSE_ARGUMENTS(SOME "" "DEVICE" "OPTIONS" ${ARGN})
@@ -84,9 +95,18 @@ FUNCTION(check_device_specific_options)
 ENDFUNCTION()
 
 CHECK_DEVICE_SPECIFIC_OPTIONS(DEVICE CUDA OPTIONS CUDA_UVM CUDA_RELOCATABLE_DEVICE_CODE CUDA_LAMBDA CUDA_CONSTEXPR CUDA_LDG_INTRINSIC)
+CHECK_DEVICE_SPECIFIC_OPTIONS(DEVICE HIP OPTIONS HIP_RELOCATABLE_DEVICE_CODE)
 CHECK_DEVICE_SPECIFIC_OPTIONS(DEVICE HPX OPTIONS HPX_ASYNC_DISPATCH)
 
 # Needed due to change from deprecated name to new header define name
 IF (KOKKOS_ENABLE_AGGRESSIVE_VECTORIZATION)
   SET(KOKKOS_OPT_RANGE_AGGRESSIVE_VECTORIZATION ON)
+ENDIF()
+
+# This is known to occur with Clang 9. We would need to use nvcc as the linker
+# http://lists.llvm.org/pipermail/cfe-dev/2018-June/058296.html
+# TODO: Through great effort we can use a different linker by hacking
+# CMAKE_CXX_LINK_EXECUTABLE in a future release
+IF (KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE AND KOKKOS_CXX_COMPILER_ID STREQUAL Clang)
+  MESSAGE(FATAL_ERROR "Relocatable device code is currently not supported with Clang - must use nvcc_wrapper or turn off RDC")
 ENDIF()

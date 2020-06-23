@@ -103,19 +103,19 @@ class Bitset {
     }
   }
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   Bitset(const Bitset<Device>&) = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   Bitset& operator=(const Bitset<Device>&) = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   Bitset(Bitset<Device>&&) = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   Bitset& operator=(Bitset<Device>&&) = default;
 
-  KOKKOS_INLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   ~Bitset() = default;
 
   /// number of bits in the set

@@ -403,10 +403,10 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
 
   // grid communication
 
-  void pack_forward_kspace_kokkos(int, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &, int, DAT::tdual_int_2d &, int);
-  void unpack_forward_kspace_kokkos(int, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &, int, DAT::tdual_int_2d &, int);
-  void pack_reverse_kspace_kokkos(int, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &, int, DAT::tdual_int_2d &, int);
-  void unpack_reverse_kspace_kokkos(int, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &, int, DAT::tdual_int_2d &, int);
+  void pack_forward_kspace_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int);
+  void unpack_forward_kspace_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int);
+  void pack_reverse_kspace_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int);
+  void unpack_reverse_kspace_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int);
 
   // triclinic
 

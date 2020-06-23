@@ -199,6 +199,8 @@ class WorkGraphPolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
     if (0 == count_queue[w]) push_work(w);
   }
 
+  execution_space space() const { return execution_space(); }
+
   WorkGraphPolicy(const graph_type& arg_graph)
       : m_graph(arg_graph),
         m_queue(view_alloc("queue", WithoutInitializing),

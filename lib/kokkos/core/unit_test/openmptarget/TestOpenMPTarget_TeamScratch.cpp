@@ -47,18 +47,17 @@
 
 namespace Test {
 
-TEST_F(TEST_CATEGORY, team_shared_request) {
+TEST(TEST_CATEGORY, team_shared_request) {
   TestSharedTeam<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >();
   TestSharedTeam<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >();
 }
 
-TEST_F(TEST_CATEGORY, team_scratch_request) {
+TEST(TEST_CATEGORY, team_scratch_request) {
   TestScratchTeam<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >();
   TestScratchTeam<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >();
 }
 
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-#if !defined(KOKKOS_ENABLE_CUDA) || (8000 <= CUDA_VERSION)
 TEST_F(TEST_CATEGORY, team_lambda_shared_request) {
   TestLambdaSharedTeam<Kokkos::HostSpace, TEST_EXECSPACE,
                        Kokkos::Schedule<Kokkos::Static> >();
@@ -66,11 +65,10 @@ TEST_F(TEST_CATEGORY, team_lambda_shared_request) {
                        Kokkos::Schedule<Kokkos::Dynamic> >();
 }
 #endif
-#endif
 
-TEST_F(TEST_CATEGORY, shmem_size) { TestShmemSize<TEST_EXECSPACE>(); }
+TEST(TEST_CATEGORY, shmem_size) { TestShmemSize<TEST_EXECSPACE>(); }
 
-TEST_F(TEST_CATEGORY, multi_level_scratch) {
+TEST(TEST_CATEGORY, multi_level_scratch) {
   TestMultiLevelScratchTeam<TEST_EXECSPACE,
                             Kokkos::Schedule<Kokkos::Static> >();
   TestMultiLevelScratchTeam<TEST_EXECSPACE,

@@ -28,6 +28,7 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -245,21 +246,15 @@ void Modify::init()
   // error if any fix or compute is using a dynamic group when not allowed
 
   for (i = 0; i < nfix; i++)
-    if (!fix[i]->dynamic_group_allow && group->dynamic[fix[i]->igroup]) {
-      char str[128];
-      snprintf(str,128,
-               "Fix %s does not allow use of dynamic group",fix[i]->id);
-      error->all(FLERR,str);
-    }
+    if (!fix[i]->dynamic_group_allow && group->dynamic[fix[i]->igroup])
+      error->all(FLERR,fmt::format("Fix {} does not allow use with a "
+                                   "dynamic group",fix[i]->id));
 
   for (i = 0; i < ncompute; i++)
     if (!compute[i]->dynamic_group_allow &&
-        group->dynamic[compute[i]->igroup]) {
-      char str[128];
-      snprintf(str,128,"Compute %s does not allow use of dynamic group",
-               fix[i]->id);
-      error->all(FLERR,str);
-    }
+        group->dynamic[compute[i]->igroup])
+      error->all(FLERR,fmt::format("Compute {} does not allow use with a "
+                                   "dynamic group",compute[i]->id));
 
   // warn if any particle is time integrated more than once
 
@@ -904,7 +899,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
   }
 
   if (fix[ifix] == NULL)
-    error->all(FLERR,utils::check_packages_for_style("fix",arg[2],lmp).c_str());
+    error->all(FLERR,utils::check_packages_for_style("fix",arg[2],lmp));
 
   // check if Fix is in restart_global list
   // if yes, pass state info to the Fix so it can reset itself
@@ -957,6 +952,46 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
   if (newflag) nfix++;
   fmask[ifix] = fix[ifix]->setmask();
   fix[ifix]->post_constructor();
+}
+
+/* ----------------------------------------------------------------------
+   replace replaceID fix with a new fix
+   this is used by callers to preserve ordering of fixes
+   e.g. create replaceID as a FixDummy instance early in the input script
+        replace it later with the desired Fix instance
+------------------------------------------------------------------------- */
+
+void Modify::replace_fix(const char *replaceID,
+                         int narg, char **arg, int trysuffix)
+{
+  int ifix = find_fix(replaceID);
+  if (ifix < 0) error->all(FLERR,"Modify replace_fix ID could not be found");
+
+  // change ID, igroup, style of fix being replaced to match new fix
+  // requires some error checking on arguments for new fix
+
+  if (narg < 3) error->all(FLERR,"Illegal replace_fix invocation");
+  int jfix = find_fix(arg[0]);
+  if (jfix >= 0) error->all(FLERR,"Replace_fix ID is already in use");
+
+  delete [] fix[ifix]->id;
+  int n = strlen(arg[0]) + 1;
+  fix[ifix]->id = new char[n];
+  strcpy(fix[ifix]->id,arg[0]);
+
+  int jgroup = group->find(arg[1]);
+  if (jgroup == -1) error->all(FLERR,"Could not find replace_fix group ID");
+  fix[ifix]->igroup = jgroup;
+
+  delete [] fix[ifix]->style;
+  n = strlen(arg[2]) + 1;
+  fix[ifix]->style = new char[n];
+  strcpy(fix[ifix]->style,arg[2]);
+
+  // invoke add_fix
+  // it will find and overwrite the replaceID fix
+
+  add_fix(narg,arg,trysuffix);
 }
 
 /* ----------------------------------------------------------------------
@@ -1203,7 +1238,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
   }
 
   if (compute[ncompute] == NULL)
-    error->all(FLERR,utils::check_packages_for_style("compute",arg[2],lmp).c_str());
+    error->all(FLERR,utils::check_packages_for_style("compute",arg[2],lmp));
 
   ncompute++;
 }

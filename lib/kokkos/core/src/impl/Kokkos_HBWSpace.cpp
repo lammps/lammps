@@ -136,8 +136,8 @@ void *HBWSpace::allocate(const size_t arg_alloc_size) const {
       case STD_MALLOC: msg << "STD_MALLOC"; break;
     }
     msg << " ]( " << arg_alloc_size << " ) FAILED";
-    if (ptr == NULL) {
-      msg << " NULL";
+    if (ptr == nullptr) {
+      msg << " nullptr";
     } else {
       msg << " NOT ALIGNED " << ptr;
     }
@@ -181,7 +181,12 @@ void SharedAllocationRecord<Kokkos::Experimental::HBWSpace, void>::deallocate(
 }
 
 SharedAllocationRecord<Kokkos::Experimental::HBWSpace,
-                       void>::~SharedAllocationRecord() {
+                       void>::~SharedAllocationRecord()
+#if defined( \
+    KOKKOS_IMPL_INTEL_WORKAROUND_NOEXCEPT_SPECIFICATION_VIRTUAL_FUNCTION)
+    noexcept
+#endif
+{
 #if defined(KOKKOS_ENABLE_PROFILING)
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::deallocateData(

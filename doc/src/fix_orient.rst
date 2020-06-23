@@ -6,6 +6,9 @@ fix orient/fcc command
 fix orient/bcc command
 ======================
 
+Syntax
+""""""
+
 .. parsed-literal::
 
    fix ID group-ID orient/fcc nstats dir alat dE cutlo cuthi file0 file1

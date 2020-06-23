@@ -39,7 +39,7 @@ element of the vector is the total squared dx,dy,dz displacements
 drsquared = (dx\*dx + dy\*dy + dz\*dz) of atoms, and the second is the
 fourth power of these displacements drfourth = (dx\*dx + dy\*dy +
 dz\*dz)\*(dx\*dx + dy\*dy + dz\*dz), summed and averaged over atoms in the
-group.  The 3rd component is the nonGaussian diffusion parameter NGP =
+group.  The third component is the nonGaussian diffusion parameter NGP =
 3\*drfourth/(5\*drsquared\*drsquared), i.e.
 
 .. math::
@@ -68,7 +68,7 @@ page for an overview of LAMMPS output options.
 
 The vector values are "intensive".  The first vector value will be in
 distance\^2 :doc:`units <units>`, the second is in distance\^4 units, and
-the 3rd is dimensionless.
+the third is dimensionless.
 
 Restrictions
 """"""""""""

@@ -655,7 +655,7 @@ dissipative potentials.  It also returns only the normal component of
 the pairwise interaction force.  However, the single() function also
 calculates 12 extra pairwise quantities.  The first 3 are the
 components of the tangential force between particles I and J, acting
-on particle I.  The 4th is the magnitude of this tangential force.
+on particle I.  The fourth is the magnitude of this tangential force.
 The next 3 (5-7) are the components of the rolling torque acting on
 particle I. The next entry (8) is the magnitude of the rolling torque.
 The next entry (9) is the magnitude of the twisting torque acting

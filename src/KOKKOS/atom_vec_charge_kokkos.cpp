@@ -79,7 +79,7 @@ void AtomVecChargeKokkos::grow(int n)
 
   memoryKK->grow_kokkos(atomKK->k_q,atomKK->q,nmax,"atom:q");
 
-  grow_reset();
+  grow_pointers();
   atomKK->sync(Host,ALL_MASK);
 
   if (atom->nextra_grow)
@@ -91,7 +91,7 @@ void AtomVecChargeKokkos::grow(int n)
    reset local array ptrs
 ------------------------------------------------------------------------- */
 
-void AtomVecChargeKokkos::grow_reset()
+void AtomVecChargeKokkos::grow_pointers()
 {
   tag = atomKK->tag;
   d_tag = atomKK->k_tag.d_view;

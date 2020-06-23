@@ -28,6 +28,8 @@
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -1043,11 +1045,9 @@ void FixAveTime::options(int iarg, int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
       if (me == 0) {
         fp = fopen(arg[iarg+1],"w");
-        if (fp == NULL) {
-          char str[128];
-          snprintf(str,128,"Cannot open fix ave/time file %s",arg[iarg+1]);
-          error->one(FLERR,str);
-        }
+        if (fp == NULL)
+          error->one(FLERR,fmt::format("Cannot open fix ave/time file {}: {}",
+                                       arg[iarg+1], utils::getsyserror()));
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {

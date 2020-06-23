@@ -178,6 +178,10 @@ void FixWallGranRegion::post_force(int /*vflag*/)
     region->set_velocity();
   }
 
+  if (peratom_flag) {
+    clear_stored_contacts();
+  }
+
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (!region->match(x[i][0],x[i][1],x[i][2])) continue;

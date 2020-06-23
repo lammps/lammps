@@ -43,7 +43,7 @@ FixRigidMeso::FixRigidMeso (LAMMPS *lmp, int narg, char **arg) :
 FixRigid (lmp, narg, arg) {
   scalar_flag = 0;
   size_array_cols = 28;
-  if ((atom->e_flag != 1) || (atom->rho_flag != 1))
+  if ((atom->esph_flag != 1) || (atom->rho_flag != 1))
     error->all (FLERR, "fix rigid/meso command requires atom_style with"
                 " both energy and density");
 
@@ -247,8 +247,8 @@ void FixRigidMeso::set_xv () {
   double **v = atom->v;
   double **vest = atom->vest;
   double **f = atom->f;
-  double *e = atom->e;
-  double *de = atom->de;
+  double *esph = atom->esph;
+  double *desph = atom->desph;
   double *rho = atom->rho;
   double *drho = atom->drho;
   double *rmass = atom->rmass;
@@ -272,7 +272,7 @@ void FixRigidMeso::set_xv () {
     if (body[i] < 0) continue;
 
     // half-step update of particle internal energy and density
-    e[i] += dtf * de[i];
+    esph[i] += dtf * desph[i];
     rho[i] += dtf * drho[i];
 
     ibody = body[i];
@@ -377,8 +377,8 @@ void FixRigidMeso::set_v () {
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
-  double *e = atom->e;
-  double *de = atom->de;
+  double *esph = atom->esph;
+  double *desph = atom->desph;
   double *rho = atom->rho;
   double *drho = atom->drho;
   double *rmass = atom->rmass;
@@ -401,7 +401,7 @@ void FixRigidMeso::set_v () {
     if (body[i] < 0) continue;
 
     // half-step update of particle internal energy and density
-    e[i] += dtf * de[i];
+    esph[i] += dtf * desph[i];
     rho[i] += dtf * drho[i];
 
     const int ibody = body[i];

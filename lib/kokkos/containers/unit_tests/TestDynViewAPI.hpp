@@ -706,8 +706,6 @@ class TestDynViewAPI {
 
   typedef typename View0::host_mirror_space host_view_space;
 
-  TestDynViewAPI() {}
-
   static void run_tests() {
     run_test_resize_realloc();
     run_test_mirror();
@@ -1078,12 +1076,12 @@ class TestDynViewAPI {
     ASSERT_TRUE(Kokkos::is_dyn_rank_view<dView0>::value);
     ASSERT_FALSE(Kokkos::is_dyn_rank_view<Kokkos::View<double> >::value);
 
-    ASSERT_TRUE(dx.data() == 0);  // Okay with UVM
-    ASSERT_TRUE(dy.data() == 0);  // Okay with UVM
-    ASSERT_TRUE(dz.data() == 0);  // Okay with UVM
-    ASSERT_TRUE(hx.data() == 0);
-    ASSERT_TRUE(hy.data() == 0);
-    ASSERT_TRUE(hz.data() == 0);
+    ASSERT_TRUE(dx.data() == nullptr);  // Okay with UVM
+    ASSERT_TRUE(dy.data() == nullptr);  // Okay with UVM
+    ASSERT_TRUE(dz.data() == nullptr);  // Okay with UVM
+    ASSERT_TRUE(hx.data() == nullptr);
+    ASSERT_TRUE(hy.data() == nullptr);
+    ASSERT_TRUE(hz.data() == nullptr);
     ASSERT_EQ(dx.extent(0), 0u);  // Okay with UVM
     ASSERT_EQ(dy.extent(0), 0u);  // Okay with UVM
     ASSERT_EQ(dz.extent(0), 0u);  // Okay with UVM
@@ -1154,11 +1152,11 @@ class TestDynViewAPI {
 
     ASSERT_EQ(dx.use_count(), size_t(2));
 
-    ASSERT_FALSE(dx.data() == 0);
-    ASSERT_FALSE(const_dx.data() == 0);
-    ASSERT_FALSE(unmanaged_dx.data() == 0);
-    ASSERT_FALSE(unmanaged_from_ptr_dx.data() == 0);
-    ASSERT_FALSE(dy.data() == 0);
+    ASSERT_FALSE(dx.data() == nullptr);
+    ASSERT_FALSE(const_dx.data() == nullptr);
+    ASSERT_FALSE(unmanaged_dx.data() == nullptr);
+    ASSERT_FALSE(unmanaged_from_ptr_dx.data() == nullptr);
+    ASSERT_FALSE(dy.data() == nullptr);
     ASSERT_NE(dx, dy);
 
     ASSERT_EQ(dx.extent(0), unsigned(N0));
@@ -1318,17 +1316,17 @@ class TestDynViewAPI {
     ASSERT_NE(dx, dz);
 
     dx = dView0();
-    ASSERT_TRUE(dx.data() == 0);
-    ASSERT_FALSE(dy.data() == 0);
-    ASSERT_FALSE(dz.data() == 0);
+    ASSERT_TRUE(dx.data() == nullptr);
+    ASSERT_FALSE(dy.data() == nullptr);
+    ASSERT_FALSE(dz.data() == nullptr);
     dy = dView0();
-    ASSERT_TRUE(dx.data() == 0);
-    ASSERT_TRUE(dy.data() == 0);
-    ASSERT_FALSE(dz.data() == 0);
+    ASSERT_TRUE(dx.data() == nullptr);
+    ASSERT_TRUE(dy.data() == nullptr);
+    ASSERT_FALSE(dz.data() == nullptr);
     dz = dView0();
-    ASSERT_TRUE(dx.data() == 0);
-    ASSERT_TRUE(dy.data() == 0);
-    ASSERT_TRUE(dz.data() == 0);
+    ASSERT_TRUE(dx.data() == nullptr);
+    ASSERT_TRUE(dy.data() == nullptr);
+    ASSERT_TRUE(dz.data() == nullptr);
 
     // View - DynRankView Interoperability tests
     // deep_copy from view to dynrankview

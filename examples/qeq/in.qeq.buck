@@ -24,7 +24,7 @@ compute   	charge2 type2 property/atom q
 compute   	q2 type2 reduce ave c_charge2
 variable   	qtot equal count(type1)*c_q1+count(type2)*c_q2
 
-thermo_style  	custom step pe c_q1 c_q2 v_qtot spcpu
+thermo_style  	custom step pe c_q1 c_q2 v_qtot
 thermo 		10
 
 timestep 	0.0001

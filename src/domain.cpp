@@ -39,6 +39,7 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -157,7 +158,7 @@ void Domain::init()
   std::string mesg = "Must not have multiple fixes change box parameter ";
 
 #define CHECK_BOX_FIX_ERROR(par)                                        \
-  if (box_change_ ## par > 1) error->all(FLERR,(mesg + #par).c_str())
+  if (box_change_ ## par > 1) error->all(FLERR,(mesg + #par))
 
   CHECK_BOX_FIX_ERROR(x);
   CHECK_BOX_FIX_ERROR(y);
@@ -1761,8 +1762,7 @@ void Domain::add_region(int narg, char **arg)
 
   if (lmp->suffix_enable) {
     if (lmp->suffix) {
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",arg[1],lmp->suffix);
+      std::string estyle = std::string(arg[1]) + "/" + lmp->suffix;
       if (region_map->find(estyle) != region_map->end()) {
         RegionCreator region_creator = (*region_map)[estyle];
         regions[nregion] = region_creator(lmp, narg, arg);
@@ -1773,8 +1773,7 @@ void Domain::add_region(int narg, char **arg)
     }
 
     if (lmp->suffix2) {
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",arg[1],lmp->suffix2);
+      std::string estyle = std::string(arg[1]) + "/" + lmp->suffix2;
       if (region_map->find(estyle) != region_map->end()) {
         RegionCreator region_creator = (*region_map)[estyle];
         regions[nregion] = region_creator(lmp, narg, arg);
@@ -1788,7 +1787,7 @@ void Domain::add_region(int narg, char **arg)
   if (region_map->find(arg[1]) != region_map->end()) {
     RegionCreator region_creator = (*region_map)[arg[1]];
     regions[nregion] = region_creator(lmp, narg, arg);
-  } else error->all(FLERR,utils::check_packages_for_style("region",arg[1],lmp).c_str());
+  } else error->all(FLERR,utils::check_packages_for_style("region",arg[1],lmp));
 
   // initialize any region variables via init()
   // in case region is used between runs, e.g. to print a variable
@@ -1874,6 +1873,12 @@ void Domain::set_boundary(int narg, char **arg, int flag)
   if (boundary[2][0] == 0) zperiodic = 1;
   else zperiodic = 0;
 
+  // record if we changed a periodic boundary to a non-periodic one
+  int pflag=0;
+  if ((periodicity[0] && !xperiodic)
+      || (periodicity[1] && !yperiodic)
+      || (periodicity[2] && !zperiodic)) pflag = 1;
+
   periodicity[0] = xperiodic;
   periodicity[1] = yperiodic;
   periodicity[2] = zperiodic;
@@ -1884,6 +1889,24 @@ void Domain::set_boundary(int narg, char **arg, int flag)
     if (boundary[0][0] >= 2 || boundary[0][1] >= 2 ||
         boundary[1][0] >= 2 || boundary[1][1] >= 2 ||
         boundary[2][0] >= 2 || boundary[2][1] >= 2) nonperiodic = 2;
+  }
+  if (pflag) {
+    pflag = 0;
+    for (int i=0; i < atom->nlocal; ++i) {
+      int xbox = (atom->image[i] & IMGMASK) - IMGMAX;
+      int ybox = (atom->image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      int zbox = (atom->image[i] >> IMG2BITS) - IMGMAX;
+      if (!xperiodic) { xbox = 0; pflag = 1; }
+      if (!yperiodic) { ybox = 0; pflag = 1; }
+      if (!zperiodic) { zbox = 0; pflag = 1; }
+      atom->image[i] = ((imageint) (xbox + IMGMAX) & IMGMASK) |
+        (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
+        (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
+    }
+    int flag_all;
+    MPI_Allreduce(&flag,&flag_all, 1, MPI_INT, MPI_SUM, world);
+    if ((flag_all > 0) && (comm->me == 0))
+      error->warning(FLERR,"Reset image flags for non-periodic boundary");
   }
 }
 
@@ -1911,33 +1934,20 @@ void Domain::set_box(int narg, char **arg)
    print box info, orthogonal or triclinic
 ------------------------------------------------------------------------- */
 
-void Domain::print_box(const char *str)
+void Domain::print_box(const std::string &prefix)
 {
   if (comm->me == 0) {
-    if (screen) {
-      if (triclinic == 0)
-        fprintf(screen,"%sorthogonal box = (%g %g %g) to (%g %g %g)\n",
-                str,boxlo[0],boxlo[1],boxlo[2],boxhi[0],boxhi[1],boxhi[2]);
-      else {
-        char *format = (char *)
-          "%striclinic box = (%g %g %g) to (%g %g %g) with tilt (%g %g %g)\n";
-        fprintf(screen,format,
-                str,boxlo[0],boxlo[1],boxlo[2],boxhi[0],boxhi[1],boxhi[2],
-                xy,xz,yz);
-      }
+    std::string mesg = prefix;
+    if (triclinic == 0) {
+      mesg += fmt::format("orthogonal box = ({} {} {}) to ({} {} {})\n",
+                          boxlo[0],boxlo[1],boxlo[2],
+                          boxhi[0],boxhi[1],boxhi[2]);
+    } else {
+      mesg += fmt::format("triclinic box = ({} {} {}) to ({} {} {}) "
+                          "with tilt ({} {} {})\n",boxlo[0],boxlo[1],
+                          boxlo[2],boxhi[0],boxhi[1],boxhi[2],xy,xz,yz);
     }
-    if (logfile) {
-      if (triclinic == 0)
-        fprintf(logfile,"%sorthogonal box = (%g %g %g) to (%g %g %g)\n",
-                str,boxlo[0],boxlo[1],boxlo[2],boxhi[0],boxhi[1],boxhi[2]);
-      else {
-        char *format = (char *)
-          "%striclinic box = (%g %g %g) to (%g %g %g) with tilt (%g %g %g)\n";
-        fprintf(logfile,format,
-                str,boxlo[0],boxlo[1],boxlo[2],boxhi[0],boxhi[1],boxhi[2],
-                xy,xz,yz);
-      }
-    }
+    utils::logmesg(lmp,mesg);
   }
 }
 

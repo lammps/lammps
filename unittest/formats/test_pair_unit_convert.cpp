@@ -192,6 +192,44 @@ TEST_F(PairUnitConvertTest, tersoff)
             EXPECT_NEAR(ev_convert * fold[i][j], f[i][j], fabs(f[i][j] * rel_error));
 }
 
+TEST_F(PairUnitConvertTest, sw)
+{
+    // check if the prerequisite pair style is available
+    if (!info->has_style("pair", "sw")) GTEST_SKIP();
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("units metal");
+    lmp->input->one("read_data test_pair_unit_convert.data");
+    lmp->input->one("pair_style sw");
+    lmp->input->one("pair_coeff * * GaN.sw Ga N");
+    lmp->input->one("run 0 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    // copy energy and force from first step
+    double eold = lmp->force->pair->eng_vdwl + lmp->force->pair->eng_coul;
+    double **f  = lmp->atom->f;
+    for (int i = 0; i < 4; ++i)
+        for (int j = 0; j < 3; ++j)
+            fold[i][j] = f[i][j];
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("units real");
+    lmp->input->one("read_data test_pair_unit_convert.data");
+    lmp->input->one("pair_style sw");
+    lmp->input->one("pair_coeff * * GaN.sw Ga N");
+    lmp->input->one("run 0 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    double enew = lmp->force->pair->eng_vdwl + lmp->force->pair->eng_coul;
+    EXPECT_NEAR(ev_convert * eold, enew, fabs(enew * rel_error));
+
+    f = lmp->atom->f;
+    for (int i = 0; i < 4; ++i)
+        for (int j = 0; j < 3; ++j)
+            EXPECT_NEAR(ev_convert * fold[i][j], f[i][j], fabs(f[i][j] * rel_error));
+}
+
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

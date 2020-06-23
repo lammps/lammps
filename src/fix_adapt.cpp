@@ -602,13 +602,11 @@ void FixAdapt::change_settings()
 	
 	for (i = 0; i < nall; i++) {
 	  if (mask[i] & groupbit) {
-	    if (discflag) density = rmass[i] / (MY_PI * radius[i]*radius[i]);
-	    else density = rmass[i] / (4.0*MY_PI/3.0 *
-				       radius[i]*radius[i]*radius[i]);
+      if(!scaleflag) scale = 0.5*value / radius[i];
 	    if (scaleflag) radius[i] *= scale;
 	    else radius[i] = 0.5*value;
-	    if (discflag) rmass[i] = MY_PI * radius[i]*radius[i] * density;
-	    else rmass[i] = 4.0*MY_PI/3.0 * radius[i]*radius[i]*radius[i] * density;
+	    if (discflag) rmass[i] *= scale*scale;
+	    else rmass[i] *= scale*scale*scale;
 	  }
 	}
 	  
@@ -618,7 +616,7 @@ void FixAdapt::change_settings()
       // for scaleflag, previous_chg_scale is the scale factor on previous step
 
       } else if (ad->aparam == CHARGE) {
-	double scale;
+        double scale;
         double *q = atom->q;
         int *mask = atom->mask;
         int nlocal = atom->nlocal;
@@ -694,23 +692,22 @@ void FixAdapt::restore_settings()
 
     } else if (ad->which == ATOM) {
       if (diamflag) {
-        double density;
+        double density,scale;
 
         double *vec = fix_diam->vstore;
         double *radius = atom->radius;
         double *rmass = atom->rmass;
         int *mask = atom->mask;
         int nlocal = atom->nlocal;
+        
+        if (scaleflag) scale = previous_diam_scale;
 
         for (int i = 0; i < nlocal; i++)
           if (mask[i] & groupbit) {
-            if (discflag) density = rmass[i] / (MY_PI * radius[i]*radius[i]);
-            else density = rmass[i] / (4.0*MY_PI/3.0 *
-                                       radius[i]*radius[i]*radius[i]);
+            if(!scaleflag) scale = vec[i] / radius[i];
             radius[i] = vec[i];
-            if (discflag) rmass[i] = MY_PI * radius[i]*radius[i] * density;
-            else rmass[i] = 4.0*MY_PI/3.0 *
-                            radius[i]*radius[i]*radius[i] * density;
+            if (discflag) rmass[i] *= scale*scale;
+            else rmass[i] *= scale*scale*scale;
           }
       }
       if (chgflag) {

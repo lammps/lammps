@@ -209,6 +209,10 @@ class AtomVec : protected Pointers {
 
   bool *threads;
 
+  // counter for atom vec instances
+
+  static int num_atom_vecs;
+
   // local methods
 
   void grow_nmax();

@@ -362,6 +362,7 @@ void MSM::setup()
 
   nmax_direct = 8*(nxhi_direct+1)*(nyhi_direct+1)*(nzhi_direct+1);
 
+  deallocate();
   if (peratom_allocate_flag) deallocate_peratom();
 
   // compute direct sum interaction weights
@@ -612,8 +613,6 @@ void MSM::compute(int eflag, int vflag)
 
 void MSM::allocate()
 {
-  deallocate();
-
   // interpolation coeffs
 
   order_allocated = order;
@@ -635,9 +634,9 @@ void MSM::allocate()
   // allocate memory for each grid level
 
   for (int n=0; n<levels; n++) {
-
     memory->create3d_offset(qgrid[n],nzlo_out[n],nzhi_out[n],
             nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:qgrid");
+
     memory->create3d_offset(egrid[n],nzlo_out[n],nzhi_out[n],
             nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:egrid");
 
@@ -660,23 +659,29 @@ void MSM::allocate()
 
 void MSM::deallocate()
 {
-  delete cg_all;
-  cg_all = nullptr;
-
   memory->destroy2d_offset(phi1d,-order_allocated);
   memory->destroy2d_offset(dphi1d,-order_allocated);
 
+  if (cg_all) delete cg_all;
+  cg_all = nullptr;
+
   for (int n=0; n<levels; n++) {
-    memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
-    memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
+    if (qgrid[n])
+      memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
 
-    if (world_levels[n] != MPI_COMM_NULL)
-      MPI_Comm_free(&world_levels[n]);
-    world_levels[n] = MPI_COMM_NULL;
-    active_flag[n] = 0;
+    if (egrid[n])
+      memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
 
-    delete cg[n];
-    cg[n] = nullptr;
+    if (world_levels)
+      if (world_levels[n] != MPI_COMM_NULL)
+          MPI_Comm_free(&world_levels[n]);
+
+    if (cg) {
+      if (cg[n]) {
+        delete cg[n];
+        cg[n] = nullptr;
+      }
+    }
   }
 }
 
@@ -765,7 +770,6 @@ void MSM::deallocate_peratom()
 
 void MSM::allocate_levels()
 {
-  deallocate_levels();
   ngrid = new int[levels];
 
   cg = new GridComm*[levels];
@@ -815,21 +819,21 @@ void MSM::allocate_levels()
   v5grid = new double***[levels];
 
   for (int n=0; n<levels; n++) {
-    cg[n] = nullptr;
+    cg[n] = NULL;
     world_levels[n] = MPI_COMM_NULL;
-    active_flag[n] = 0;
-    cg_peratom[n] = nullptr;
+    cg_peratom[n] = NULL;
 
-    qgrid[n] = nullptr;
-    egrid[n] = nullptr;
+    qgrid[n] = NULL;
+    egrid[n] = NULL;
 
-    v0grid[n] = nullptr;
-    v1grid[n] = nullptr;
-    v2grid[n] = nullptr;
-    v3grid[n] = nullptr;
-    v4grid[n] = nullptr;
-    v5grid[n] = nullptr;
+    v0grid[n] = NULL;
+    v1grid[n] = NULL;
+    v2grid[n] = NULL;
+    v3grid[n] = NULL;
+    v4grid[n] = NULL;
+    v5grid[n] = NULL;
   }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -1105,6 +1109,7 @@ void MSM::set_grid_global()
 
   if (!domain->nonperiodic) levels -= 1;
 
+  deallocate_levels();
   allocate_levels();
 
   // find number of grid levels in each direction

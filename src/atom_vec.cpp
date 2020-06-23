@@ -33,6 +33,8 @@ using namespace MathConst;
 #define DELTA 16384
 #define DELTA_BONUS 8192
 
+int AtomVec::num_atom_vecs = 0;
+
 /* ---------------------------------------------------------------------- */
 
 AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
@@ -53,6 +55,8 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   argcopy = NULL;
 
   threads = NULL;
+
+  ++num_atom_vecs;
 
   // peratom variables auto-included in corresponding child style fields string
   // these fields cannot be specified in the fields string
@@ -93,44 +97,48 @@ AtomVec::~AtomVec()
   int datatype,cols;
   void *pdata;
 
+  --num_atom_vecs;
+
   for (int i = 0; i < nargcopy; i++) delete [] argcopy[i];
   delete [] argcopy;
 
-  memory->destroy(atom->tag);
-  memory->destroy(atom->type);
-  memory->destroy(atom->mask);
-  memory->destroy(atom->image);
-  memory->destroy(atom->x);
-  memory->destroy(atom->v);
-  memory->destroy(atom->f);
+  if (num_atom_vecs == 0) {
+    memory->destroy(atom->tag);
+    memory->destroy(atom->type);
+    memory->destroy(atom->mask);
+    memory->destroy(atom->image);
+    memory->destroy(atom->x);
+    memory->destroy(atom->v);
+    memory->destroy(atom->f);
 
-  for (int i = 0; i < ngrow; i++) {
-    pdata = mgrow.pdata[i];
-    datatype = mgrow.datatype[i];
-    cols = mgrow.cols[i];
-    if (datatype == Atom::DOUBLE) {
-      if (cols == 0)
-        memory->destroy(*((double **) pdata));
-      else if (cols > 0)
-        memory->destroy(*((double ***) pdata));
-      else {
-        memory->destroy(*((double ***) pdata));
-      }
-    } else if (datatype == Atom::INT) {
-      if (cols == 0)
-        memory->destroy(*((int **) pdata));
-      else if (cols > 0)
-        memory->destroy(*((int ***) pdata));
-      else {
-        memory->destroy(*((int ***) pdata));
-      }
-    } else if (datatype == Atom::BIGINT) {
-      if (cols == 0)
-        memory->destroy(*((bigint **) pdata));
-      else if (cols > 0)
-        memory->destroy(*((bigint ***) pdata));
-      else {
-        memory->destroy(*((bigint ***) pdata));
+    for (int i = 0; i < ngrow; i++) {
+      pdata = mgrow.pdata[i];
+      datatype = mgrow.datatype[i];
+      cols = mgrow.cols[i];
+      if (datatype == Atom::DOUBLE) {
+        if (cols == 0)
+          memory->destroy(*((double **) pdata));
+        else if (cols > 0)
+          memory->destroy(*((double ***) pdata));
+        else {
+          memory->destroy(*((double ***) pdata));
+        }
+      } else if (datatype == Atom::INT) {
+        if (cols == 0)
+          memory->destroy(*((int **) pdata));
+        else if (cols > 0)
+          memory->destroy(*((int ***) pdata));
+        else {
+          memory->destroy(*((int ***) pdata));
+        }
+      } else if (datatype == Atom::BIGINT) {
+        if (cols == 0)
+          memory->destroy(*((bigint **) pdata));
+        else if (cols > 0)
+          memory->destroy(*((bigint ***) pdata));
+        else {
+          memory->destroy(*((bigint ***) pdata));
+        }
       }
     }
   }

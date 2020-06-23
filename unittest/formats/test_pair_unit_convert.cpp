@@ -125,7 +125,7 @@ TEST_F(PairUnitConvertTest, lj_cut)
     lmp->input->one("units metal");
     lmp->input->one("read_data test_pair_unit_convert.data");
     lmp->input->one("pair_style lj/cut 6.0");
-    lmp->input->one("pair_coeff * * 0.01014286346782117 3.504");
+    lmp->input->one("pair_coeff * * 0.01014286346782117 2.0");
     lmp->input->one("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
@@ -141,7 +141,7 @@ TEST_F(PairUnitConvertTest, lj_cut)
     lmp->input->one("units real");
     lmp->input->one("read_data test_pair_unit_convert.data");
     lmp->input->one("pair_style lj/cut 6.0");
-    lmp->input->one("pair_coeff * * 0.2339 3.504");
+    lmp->input->one("pair_coeff * * 0.2339 2.0");
     lmp->input->one("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 

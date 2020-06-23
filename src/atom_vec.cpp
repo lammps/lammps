@@ -38,6 +38,7 @@ using namespace MathConst;
 AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
 {
   nmax = 0;
+  ngrow = 0;
 
   molecular = 0;
   bonds_allow = angles_allow = dihedrals_allow = impropers_allow = 0;

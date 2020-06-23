@@ -16,7 +16,9 @@
 #include "info.h"
 #include "input.h"
 #include "lammps.h"
+#include "output.h"
 #include "pair.h"
+#include "thermo.h"
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -33,7 +35,10 @@ using ::testing::Eq;
 
 // eV to kcal/mol conversion constant (CODATA 2018)
 const double ev_convert = utils::get_conversion_factor(utils::ENERGY, utils::METAL2REAL);
-const double rel_error  = 1.0e-13;
+// 1atm in bar
+const double p_convert = 1.01325;
+// relative error for comparing numbers
+const double rel_error = 1.0e-7;
 
 class PairUnitConvertTest : public ::testing::Test {
 protected:
@@ -91,7 +96,9 @@ TEST_F(PairUnitConvertTest, zero)
     lmp->input->one("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    // copy energy and force from first step
+    // copy pressure, energy, and force from first step
+    double pold;
+    lmp->output->thermo->evaluate_keyword("press", &pold);
     double eold = lmp->force->pair->eng_vdwl + lmp->force->pair->eng_coul;
     double **f  = lmp->atom->f;
     for (int i = 0; i < 4; ++i)
@@ -107,6 +114,9 @@ TEST_F(PairUnitConvertTest, zero)
     lmp->input->one("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
+    double pnew;
+    lmp->output->thermo->evaluate_keyword("press", &pnew);
+    EXPECT_NEAR(pold, p_convert * pnew, fabs(pnew * rel_error));
     double enew = lmp->force->pair->eng_vdwl + lmp->force->pair->eng_coul;
     EXPECT_NEAR(ev_convert * eold, enew, fabs(enew * rel_error));
 
@@ -129,7 +139,9 @@ TEST_F(PairUnitConvertTest, lj_cut)
     lmp->input->one("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    // copy energy and force from first step
+    // copy pressure, energy, and force from first step
+    double pold;
+    lmp->output->thermo->evaluate_keyword("press", &pold);
     double eold = lmp->force->pair->eng_vdwl + lmp->force->pair->eng_coul;
     double **f  = lmp->atom->f;
     for (int i = 0; i < 4; ++i)
@@ -145,6 +157,9 @@ TEST_F(PairUnitConvertTest, lj_cut)
     lmp->input->one("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
+    double pnew;
+    lmp->output->thermo->evaluate_keyword("press", &pnew);
+    EXPECT_NEAR(pold, p_convert * pnew, fabs(pnew * rel_error));
     double enew = lmp->force->pair->eng_vdwl + lmp->force->pair->eng_coul;
     EXPECT_NEAR(ev_convert * eold, enew, fabs(enew * rel_error));
 
@@ -167,7 +182,9 @@ TEST_F(PairUnitConvertTest, tersoff)
     lmp->input->one("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    // copy energy and force from first step
+    // copy pressure, energy, and force from first step
+    double pold;
+    lmp->output->thermo->evaluate_keyword("press", &pold);
     double eold = lmp->force->pair->eng_vdwl + lmp->force->pair->eng_coul;
     double **f  = lmp->atom->f;
     for (int i = 0; i < 4; ++i)
@@ -183,6 +200,9 @@ TEST_F(PairUnitConvertTest, tersoff)
     lmp->input->one("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
+    double pnew;
+    lmp->output->thermo->evaluate_keyword("press", &pnew);
+    EXPECT_NEAR(pold, p_convert * pnew, fabs(pnew * rel_error));
     double enew = lmp->force->pair->eng_vdwl + lmp->force->pair->eng_coul;
     EXPECT_NEAR(ev_convert * eold, enew, fabs(enew * rel_error));
 
@@ -205,7 +225,9 @@ TEST_F(PairUnitConvertTest, sw)
     lmp->input->one("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    // copy energy and force from first step
+    // copy pressure, energy, and force from first step
+    double pold;
+    lmp->output->thermo->evaluate_keyword("press", &pold);
     double eold = lmp->force->pair->eng_vdwl + lmp->force->pair->eng_coul;
     double **f  = lmp->atom->f;
     for (int i = 0; i < 4; ++i)
@@ -221,6 +243,9 @@ TEST_F(PairUnitConvertTest, sw)
     lmp->input->one("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
+    double pnew;
+    lmp->output->thermo->evaluate_keyword("press", &pnew);
+    EXPECT_NEAR(pold, p_convert * pnew, fabs(pnew * rel_error));
     double enew = lmp->force->pair->eng_vdwl + lmp->force->pair->eng_coul;
     EXPECT_NEAR(ev_convert * eold, enew, fabs(enew * rel_error));
 

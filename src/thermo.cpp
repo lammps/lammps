@@ -1070,7 +1070,7 @@ int Thermo::add_variable(const char *id)
    customize a new keyword by adding to if statement
 ------------------------------------------------------------------------- */
 
-int Thermo::evaluate_keyword(char *word, double *answer)
+int Thermo::evaluate_keyword(const char *word, double *answer)
 {
   // turn off normflag if natoms = 0 to avoid divide by 0
   // normflag must be set for lo-level thermo routines that may be invoked

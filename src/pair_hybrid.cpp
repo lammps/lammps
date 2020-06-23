@@ -381,9 +381,11 @@ void PairHybrid::flags()
   single_enable = 0;
   compute_flag = 0;
   respa_enable = 0;
+  restartinfo = 0;
   for (m = 0; m < nstyles; m++) {
     if (styles[m]->single_enable) ++single_enable;
     if (styles[m]->respa_enable) ++respa_enable;
+    if (styles[m]->restartinfo) ++restartinfo;
     if (styles[m]->manybody_flag) manybody_flag = 1;
     if (styles[m]->no_virial_fdotr_compute) no_virial_fdotr_compute = 1;
     if (styles[m]->ghostneigh) ghostneigh = 1;
@@ -399,6 +401,7 @@ void PairHybrid::flags()
   }
   single_enable = (single_enable == nstyles) ? 1 : 0;
   respa_enable = (respa_enable == nstyles) ? 1 : 0;
+  restartinfo = (restartinfo == nstyles) ? 1 : 0;
   init_svector();
 }
 

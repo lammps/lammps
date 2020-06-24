@@ -17,9 +17,11 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <mpi.h>
+#include <vector>
 
 // common read_yaml_file function
 bool read_yaml_file(const char *infile, TestConfig &config)
@@ -74,6 +76,19 @@ int main(int argc, char **argv)
     if (!read_yaml_file(argv[1], test_config)) {
         std::cerr << "Error parsing yaml file: " << argv[1] << std::endl;
         return 2;
+    }
+
+    // handle arguments passed via environment variable
+    std::vector<std::string> env = utils::split_words(getenv("TEST_ARGS"));
+    for (auto arg : env) {
+        if (arg == "-u") {
+            generate_yaml_file(argv[1], test_config);
+            return 0;
+        } else if (arg == "-s") {
+            print_stats = true;
+        } else if (arg == "-v") {
+            verbose = true;
+        }
     }
 
     int iarg = 2;

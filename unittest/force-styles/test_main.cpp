@@ -14,6 +14,7 @@
 #include "test_main.h"
 #include "test_config.h"
 #include "test_config_reader.h"
+#include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -22,6 +23,8 @@
 #include <iostream>
 #include <mpi.h>
 #include <vector>
+
+using LAMMPS_NS::utils::split_words;
 
 // common read_yaml_file function
 bool read_yaml_file(const char *infile, TestConfig &config)
@@ -79,7 +82,7 @@ int main(int argc, char **argv)
     }
 
     // handle arguments passed via environment variable
-    std::vector<std::string> env = utils::split_words(getenv("TEST_ARGS"));
+    std::vector<std::string> env = split_words(getenv("TEST_ARGS"));
     for (auto arg : env) {
         if (arg == "-u") {
             generate_yaml_file(argv[1], test_config);

@@ -52,6 +52,7 @@ compilation and linking stages.  This is done through setting the
 
    -D ENABLE_SANITIZER=none       # no sanitizer active (default)
    -D ENABLE_SANITIZER=address    # enable address sanitizer / memory leak checker
+   -D ENABLE_SANITIZER=leak       # enable memory leak checker (only)
    -D ENABLE_SANITIZER=undefined  # enable undefined behavior sanitizer
    -D ENABLE_SANITIZER=thread     # enable thread sanitizer
 

@@ -1,8 +1,8 @@
 # DATE: 2019-09-18 UNITS: metal CONTRIBUTOR: Mary Alice Cusentino mcusent@sandia.gov CITATION: M.A. Wood, M.A. Cusentino, B.D. Wirth, and A.P. Thompson, "Data-driven material models for atomistic simulation", Physical Review B 99, 184305 (2019) 
 # LAMMPS SNAP coefficients for WBe
 
+# nelements ncoeff
 2 56
-W 0.5 1
  -0.000000000000 # B[0] 
  -0.001487061994 # B[1, 0, 0, 0] 
   0.075808306870 # B[2, 1, 0, 1] 
@@ -59,7 +59,6 @@ W 0.5 1
   0.003210129646 # B[53, 8, 4, 8] 
  -0.013088799947 # B[54, 8, 6, 8] 
   0.001465970755 # B[55, 8, 8, 8] 
-Be 0.417932 0.959049
   0.000000000000 # B[0] 
  -0.000112143918 # B[1, 0, 0, 0] 
   0.002449805180 # B[2, 1, 0, 1] 

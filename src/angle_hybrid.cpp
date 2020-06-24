@@ -108,6 +108,18 @@ void AngleHybrid::compute(int eflag, int vflag)
 
   ev_init(eflag,vflag);
 
+  // need to clear per-thread storage here, when using multiple threads
+  // with thread-enabled substyles to avoid uninitlialized data access.
+
+  const int nthreads = comm->nthreads;
+  if (comm->nthreads > 1) {
+    const int nall = atom->nlocal + atom->nghost;
+    if (eflag_atom)
+      memset(&eatom[0],0,nall*nthreads*sizeof(double));
+    if (vflag_atom)
+      memset(&vatom[0][0],0,6*nall*nthreads*sizeof(double));
+  }
+
   for (m = 0; m < nstyles; m++) {
     neighbor->nanglelist = nanglelist[m];
     neighbor->anglelist = anglelist[m];

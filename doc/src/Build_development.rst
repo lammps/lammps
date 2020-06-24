@@ -219,7 +219,7 @@ The force style test programs have a common set of options:
      - verbose output: also print the executed LAMMPS commands
 
 The ``ctest`` tool has no mechanism to directly pass flags to the individual
-test programs, but a workaround has been implmented where these flags can be
+test programs, but a workaround has been implemented where these flags can be
 set in an environment variable ``TEST_ARGS``. Example:
 
 .. code-block:: bash

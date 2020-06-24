@@ -82,15 +82,17 @@ int main(int argc, char **argv)
     }
 
     // handle arguments passed via environment variable
-    std::vector<std::string> env = split_words(getenv("TEST_ARGS"));
-    for (auto arg : env) {
-        if (arg == "-u") {
-            generate_yaml_file(argv[1], test_config);
-            return 0;
-        } else if (arg == "-s") {
-            print_stats = true;
-        } else if (arg == "-v") {
-            verbose = true;
+    if (const char *var = getenv("TEST_ARGS")) {
+        std::vector<std::string> env = split_words(var);
+        for (auto arg : env) {
+            if (arg == "-u") {
+                generate_yaml_file(argv[1], test_config);
+                return 0;
+            } else if (arg == "-s") {
+                print_stats = true;
+            } else if (arg == "-v") {
+                verbose = true;
+            }
         }
     }
 

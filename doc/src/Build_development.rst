@@ -122,6 +122,8 @@ The ``ctest`` command has many options, the most important ones are:
      - exclude subset of tests matching the regular expression <regex>
    * - -N
      - dry-run: display list of tests without running them
+   * - -T memcheck
+     - run tests with valgrind memory checker (if available)
 
 In its full implementation, the unit test framework will consist of multiple
 kinds of tests implemented in different programming languages (C++, C, Python,

@@ -4,11 +4,14 @@
 option(ENABLE_TESTING "Enable testing" OFF)
 if(ENABLE_TESTING)
   find_program(VALGRIND_BINARY NAMES valgrind)
-  set(VALGRIND_DEFAULT_OPTIONS "--leak-check=full --show-leak-kinds=all --track-origins=yes")
+  # generate custom suppression file
+  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/lammps.supp "\n")
   file(GLOB VALGRIND_SUPPRESSION_FILES ${LAMMPS_TOOLS_DIR}/valgrind/[^.]*.supp)
-  foreach(SUPP ${VALLGRIND_SUPPRESSION_FILES})
-    set(VALGRIND_DEFAULT_OPTIONS "${VALGRIND_DEFAULT_OPTIONS} --suppressions=${SUPP}")
+  foreach(SUPP ${VALGRIND_SUPPRESSION_FILES})
+    file(READ ${SUPP} SUPPRESSIONS)
+    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/lammps.supp "${SUPPRESSIONS}")
   endforeach()
+  set(VALGRIND_DEFAULT_OPTIONS "--leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=${CMAKE_BINARY_DIR}/lammps.supp")
 
   set(MEMORYCHECK_COMMAND "${VALGRIND_BINARY}" CACHE FILEPATH "Memory Check Command")
   set(MEMORYCHECK_COMMAND_OPTIONS "${VALGRIND_DEFAULT_OPTIONS}" CACHE STRING "Memory Check Command Options")

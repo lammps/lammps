@@ -369,7 +369,7 @@ their original values at the end of the last restarted run.
 Note that all the parameters changed by this fix are written into a
 restart file in their current changed state.  A new restarted
 simulation does not know their original time=0 values, unless the
-input script explicity resets the parameters (after the restart file
+input script explicitly resets the parameters (after the restart file
 is read), to their original values.
 
 Also note, that the time-dependent variable(s) used in the restart
@@ -379,7 +379,7 @@ the original simulation began.
 With this in mind, if the *scale* keyword is set to *no* (the default)
 in a restarted simulation, original parameters are not needed.  The
 adapted parameters should seamlessly continue their variation relative
-to the preceeding simulation.
+to the preceding simulation.
 
 If the *scale* keyword is set to *yes*, then the input script should
 typically reset the parameters being adapted to their original values,

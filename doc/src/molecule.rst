@@ -458,7 +458,7 @@ If flag = 0, no a,b,c values are listed on the line, just the
 If flag = 1, a,b,c are listed, where a = bondtype of the bond between
 the central atom and the first non-central atom (value b in the Shake
 Atoms section), b = bondtype of the bond between the central atom and
-the 2nd non-central atom (value c in the Shake Atoms section), and c =
+the second non-central atom (value c in the Shake Atoms section), and c =
 the angle type (1 to Nangletypes) of the angle between the 3 atoms.
 
 If flag = 2, only a is listed, where a = bondtype of the bond between
@@ -467,13 +467,13 @@ the 2 atoms in the cluster.
 If flag = 3, a,b are listed, where a = bondtype of the bond between
 the central atom and the first non-central atom (value b in the Shake
 Atoms section), and b = bondtype of the bond between the central atom
-and the 2nd non-central atom (value c in the Shake Atoms section).
+and the second non-central atom (value c in the Shake Atoms section).
 
 If flag = 4, a,b,c are listed, where a = bondtype of the bond between
 the central atom and the first non-central atom (value b in the Shake
 Atoms section), b = bondtype of the bond between the central atom and
-the 2nd non-central atom (value c in the Shake Atoms section), and c =
-bondtype of the bond between the central atom and the 3rd non-central
+the second non-central atom (value c in the Shake Atoms section), and c =
+bondtype of the bond between the central atom and the third non-central
 atom (value d in the Shake Atoms section).
 
 See the :doc:`fix shake <fix_shake>` doc page for a further description

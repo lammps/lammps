@@ -306,7 +306,7 @@ must enclose in quotes if it is more than one field.  The *int* and
 *float* keywords take a single format argument and are applied to all
 integer or floating-point quantities output.  The setting for *M
 string* also takes a single format argument which is used for the Mth
-value output in each line, e.g. the 5th column is output in high
+value output in each line, e.g. the fifth column is output in high
 precision for "format 5 %20.15g".
 
 .. note::
@@ -419,7 +419,7 @@ be written, by processors 0,25,50,75.  Each will collect information
 from itself and the next 24 processors and write it to a dump file.
 
 For the *fileper* keyword, the specified value of Np means write one
-file for every Np processors.  For example, if Np = 4, every 4th
+file for every Np processors.  For example, if Np = 4, every fourth
 processor (0,4,8,12,etc) will collect information from itself and the
 next 3 processors and write it to a dump file.
 
@@ -552,9 +552,9 @@ when writing to XTC files.  By default they are initialized for
 whatever :doc:`units <units>` style is being used, to write out
 coordinates in nanometers and time in picoseconds.  I.e. for *real*
 units, LAMMPS defines *sfactor* = 0.1 and *tfactor* = 0.001, since the
-Angstroms and fmsec used by *real* units are 0.1 nm and 0.001 psec
+Angstroms and fs used by *real* units are 0.1 nm and 0.001 ps
 respectively.  If you are using a units system with distance and time
-units far from nm and psec, you may wish to write XTC files with
+units far from nm and ps, you may wish to write XTC files with
 different units, since the compression algorithm used in XTC files is
 most effective when the typical magnitude of position data is between
 10.0 and 0.1.
@@ -790,7 +790,7 @@ for the sequential style; otherwise the value is ignored.  It
 specifies the bin size to use within the range for assigning
 consecutive colors to.  For example, if the range is from -10.0 to
 10.0 and a *delta* of 1.0 is used, then 20 colors will be assigned to
-the range.  The first will be from -10.0 <= color1 < -9.0, then 2nd
+the range.  The first will be from -10.0 <= color1 < -9.0, then second
 from -9.0 <= color2 < -8.0, etc.
 
 The *N* setting is how many entries follow.  The format of the entries

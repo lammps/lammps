@@ -16,6 +16,8 @@
 #include <climits>
 #include <cstdlib>
 #include <cstring>
+#include <algorithm>
+#include <string>
 #include "style_atom.h"
 #include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"
@@ -46,8 +48,6 @@ using namespace MathConst;
 #define DELTA 1
 #define DELTA_PERATOM 64
 #define EPSILON 1.0e-6
-
-enum{DOUBLE,INT,BIGINT};
 
 /* ---------------------------------------------------------------------- */
 
@@ -148,6 +148,12 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   cc = cc_flux = NULL;
   edpd_temp = edpd_flux = edpd_cv = NULL;
 
+  // USER-MESONT package
+
+  length = NULL;
+  buckling = NULL;
+  bond_nt = NULL;
+
   // USER-SMD package
 
   contact_radius = NULL;
@@ -243,110 +249,6 @@ Atom::~Atom()
     delete [] peratom[i].name;
   memory->sfree(peratom);
 
-  // --------------------------------------------------------------------
-  // 2nd customization section: customize by adding new per-atom variables
-  // delete atom arrays
-
-  memory->destroy(tag);
-  memory->destroy(type);
-  memory->destroy(mask);
-  memory->destroy(image);
-  memory->destroy(x);
-  memory->destroy(v);
-  memory->destroy(f);
-
-  memory->destroy(molecule);
-  memory->destroy(molindex);
-  memory->destroy(molatom);
-
-  memory->destroy(q);
-  memory->destroy(mu);
-  memory->destroy(omega);
-  memory->destroy(angmom);
-  memory->destroy(torque);
-  memory->destroy(radius);
-  memory->destroy(rmass);
-  memory->destroy(ellipsoid);
-  memory->destroy(line);
-  memory->destroy(tri);
-  memory->destroy(body);
-
-  memory->destroy(sp);
-  memory->destroy(fm);
-  memory->destroy(fm_long);
-
-  memory->destroy(vfrac);
-  memory->destroy(s0);
-  memory->destroy(x0);
-
-  memory->destroy(spin);
-  memory->destroy(eradius);
-  memory->destroy(ervel);
-  memory->destroy(erforce);
-  memory->destroy(ervelforce);
-  memory->destroy(cs);
-  memory->destroy(csforce);
-  memory->destroy(vforce);
-  memory->destroy(etag);
-
-  memory->destroy(rho);
-  memory->destroy(drho);
-  memory->destroy(esph);
-  memory->destroy(desph);
-  memory->destroy(cv);
-  memory->destroy(vest);
-
-  memory->destroy(contact_radius);
-  memory->destroy(smd_data_9);
-  memory->destroy(smd_stress);
-  memory->destroy(eff_plastic_strain);
-  memory->destroy(eff_plastic_strain_rate);
-  memory->destroy(damage);
-
-  memory->destroy(dpdTheta);
-  memory->destroy(uCond);
-  memory->destroy(uMech);
-  memory->destroy(uChem);
-  memory->destroy(uCG);
-  memory->destroy(uCGnew);
-  memory->destroy(duChem);
-
-  memory->destroy(cc);
-  memory->destroy(cc_flux);
-  memory->destroy(edpd_temp);
-  memory->destroy(edpd_flux);
-  memory->destroy(edpd_cv);
-
-  memory->destroy(nspecial);
-  memory->destroy(special);
-
-  memory->destroy(num_bond);
-  memory->destroy(bond_type);
-  memory->destroy(bond_atom);
-
-  memory->destroy(num_angle);
-  memory->destroy(angle_type);
-  memory->destroy(angle_atom1);
-  memory->destroy(angle_atom2);
-  memory->destroy(angle_atom3);
-
-  memory->destroy(num_dihedral);
-  memory->destroy(dihedral_type);
-  memory->destroy(dihedral_atom1);
-  memory->destroy(dihedral_atom2);
-  memory->destroy(dihedral_atom3);
-  memory->destroy(dihedral_atom4);
-
-  memory->destroy(num_improper);
-  memory->destroy(improper_type);
-  memory->destroy(improper_atom1);
-  memory->destroy(improper_atom2);
-  memory->destroy(improper_atom3);
-  memory->destroy(improper_atom4);
-
-  // end of customization section
-  // --------------------------------------------------------------------
-
   // delete custom atom arrays
 
   for (int i = 0; i < nivector; i++) {
@@ -419,7 +321,7 @@ void Atom::peratom_create()
   nperatom = maxperatom = 0;
 
   // --------------------------------------------------------------------
-  // 3rd customization section: add peratom variables here, order does not matter
+  // 2nd customization section: add peratom variables here, order does not matter
   // register tagint & imageint variables as INT or BIGINT
 
   int tagintsize = INT;
@@ -545,6 +447,12 @@ void Atom::peratom_create()
   add_peratom("cc",&cc,DOUBLE,1);
   add_peratom("cc_flux",&cc_flux,DOUBLE,1,1);         // set per-thread flag
 
+  // USER-MESONT package
+
+  add_peratom("length",&length,DOUBLE,0);
+  add_peratom("buckling",&buckling,INT,0);
+  add_peratom("bond_nt",&bond_nt,tagintsize,2);
+
   // USER-SPH package
 
   add_peratom("rho",&rho,DOUBLE,0);
@@ -654,7 +562,7 @@ void Atom::add_peratom_vary(const char *name, void *address,
 void Atom::set_atomflag_defaults()
 {
   // --------------------------------------------------------------------
-  // 4th customization section: customize by adding new flag
+  // 3rd customization section: customize by adding new flag
   // identical list as 2nd customization in atom.h
 
   sphere_flag = ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
@@ -670,6 +578,7 @@ void Atom::set_atomflag_defaults()
   sp_flag = 0;
   x0_flag = 0;
   smd_flag = damage_flag = 0;
+  mesont_flag = 0;
   contact_radius_flag = smd_data_9_flag = smd_stress_flag = 0;
   eff_plastic_strain_flag = eff_plastic_strain_rate_flag = 0;
 
@@ -681,7 +590,7 @@ void Atom::set_atomflag_defaults()
    called from lammps.cpp, input script, restart file, replicate
 ------------------------------------------------------------------------- */
 
-void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
+void Atom::create_avec(const std::string &style, int narg, char **arg, int trysuffix)
 {
   delete [] atom_style;
   if (avec) delete avec;
@@ -704,16 +613,14 @@ void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
   avec->grow(1);
 
   if (sflag) {
-    char estyle[256];
-    if (sflag == 1) snprintf(estyle,256,"%s/%s",style,lmp->suffix);
-    else snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
-    int n = strlen(estyle) + 1;
-    atom_style = new char[n];
-    strcpy(atom_style,estyle);
+    std::string estyle = style + "/";
+    if (sflag == 1) estyle += lmp->suffix;
+    else estyle += lmp->suffix2;
+    atom_style = new char[estyle.size()+1];
+    strcpy(atom_style,estyle.c_str());
   } else {
-    int n = strlen(style) + 1;
-    atom_style = new char[n];
-    strcpy(atom_style,style);
+    atom_style = new char[style.size()+1];
+    strcpy(atom_style,style.c_str());
   }
 
   // if molecular system:
@@ -731,13 +638,12 @@ void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
    generate an AtomVec class, first with suffix appended
 ------------------------------------------------------------------------- */
 
-AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
+AtomVec *Atom::new_avec(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
       sflag = 1;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
+      std::string estyle = style + "/" + lmp->suffix;
       if (avec_map->find(estyle) != avec_map->end()) {
         AtomVecCreator avec_creator = (*avec_map)[estyle];
         return avec_creator(lmp);
@@ -746,8 +652,7 @@ AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
 
     if (lmp->suffix2) {
       sflag = 2;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
+      std::string estyle = style + "/" + lmp->suffix2;
       if (avec_map->find(estyle) != avec_map->end()) {
         AtomVecCreator avec_creator = (*avec_map)[estyle];
         return avec_creator(lmp);
@@ -761,7 +666,7 @@ AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
     return avec_creator(lmp);
   }
 
-  error->all(FLERR,utils::check_packages_for_style("atom",style,lmp).c_str());
+  error->all(FLERR,utils::check_packages_for_style("atom",style,lmp));
   return NULL;
 }
 
@@ -1032,56 +937,6 @@ void Atom::bonus_check()
 }
 
 /* ----------------------------------------------------------------------
-   count and return words in a single line
-   make copy of line before using strtok so as not to change line
-   trim anything from '#' onward
-------------------------------------------------------------------------- */
-
-int Atom::count_words(const char *line)
-{
-  int n = strlen(line) + 1;
-  char *copy;
-  memory->create(copy,n,"atom:copy");
-  strcpy(copy,line);
-
-  char *ptr;
-  if ((ptr = strchr(copy,'#'))) *ptr = '\0';
-
-  if (strtok(copy," \t\n\r\f") == NULL) {
-    memory->destroy(copy);
-    return 0;
-  }
-  n = 1;
-  while (strtok(NULL," \t\n\r\f")) n++;
-
-  memory->destroy(copy);
-  return n;
-}
-
-/* ----------------------------------------------------------------------
-   count and return words in a single line using provided copy buf
-   make copy of line before using strtok so as not to change line
-   trim anything from '#' onward
-------------------------------------------------------------------------- */
-
-int Atom::count_words(const char *line, char *copy)
-{
-  strcpy(copy,line);
-
-  char *ptr;
-  if ((ptr = strchr(copy,'#'))) *ptr = '\0';
-
-  if (strtok(copy," \t\n\r\f") == NULL) {
-    memory->destroy(copy);
-    return 0;
-  }
-  int n = 1;
-  while (strtok(NULL," \t\n\r\f")) n++;
-
-  return n;
-}
-
-/* ----------------------------------------------------------------------
    deallocate molecular topology arrays
    done before realloc with (possibly) new 2nd dimension set to
      correctly initialized per-atom values, e.g. bond_per_atom
@@ -1139,7 +994,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
   next = strchr(buf,'\n');
   *next = '\0';
-  int nwords = count_words(buf);
+  int nwords = utils::trim_and_count_words(buf);
   *next = '\n';
 
   if (nwords != avec->size_data_atom && nwords != avec->size_data_atom + 3)
@@ -1289,7 +1144,7 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
 
   next = strchr(buf,'\n');
   *next = '\0';
-  int nwords = count_words(buf);
+  int nwords = utils::trim_and_count_words(buf);
   *next = '\n';
 
   if (nwords != avec->size_data_vel)
@@ -1641,7 +1496,7 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
 
   next = strchr(buf,'\n');
   *next = '\0';
-  int nwords = count_words(buf);
+  int nwords = utils::trim_and_count_words(buf);
   *next = '\n';
 
   if (nwords != avec_bonus->size_data_bonus)
@@ -2315,7 +2170,9 @@ void Atom::add_callback(int flag)
   for (ifix = 0; ifix < modify->nfix; ifix++)
     if (modify->fix[ifix] == NULL) break;
 
-  // add callback to lists, reallocating if necessary
+  // add callback to lists and sort, reallocating if necessary
+  // sorting is required in cases where fixes were replaced as it ensures atom
+  // data is read/written/transfered in the same order that fixes are called
 
   if (flag == 0) {
     if (nextra_grow == nextra_grow_max) {
@@ -2324,6 +2181,7 @@ void Atom::add_callback(int flag)
     }
     extra_grow[nextra_grow] = ifix;
     nextra_grow++;
+    std::sort(extra_grow, extra_grow + nextra_grow);
   } else if (flag == 1) {
     if (nextra_restart == nextra_restart_max) {
       nextra_restart_max += DELTA;
@@ -2331,6 +2189,7 @@ void Atom::add_callback(int flag)
     }
     extra_restart[nextra_restart] = ifix;
     nextra_restart++;
+    std::sort(extra_restart, extra_restart + nextra_restart);
   } else if (flag == 2) {
     if (nextra_border == nextra_border_max) {
       nextra_border_max += DELTA;
@@ -2338,6 +2197,7 @@ void Atom::add_callback(int flag)
     }
     extra_border[nextra_border] = ifix;
     nextra_border++;
+    std::sort(extra_border, extra_border + nextra_border);
   }
 }
 
@@ -2493,7 +2353,7 @@ void Atom::remove_custom(int flag, int index)
 void *Atom::extract(char *name)
 {
   // --------------------------------------------------------------------
-  // 5th customization section: customize by adding new variable name
+  // 4th customization section: customize by adding new variable name
 
   if (strcmp(name,"mass") == 0) return (void *) mass;
 
@@ -2536,6 +2396,11 @@ void *Atom::extract(char *name)
   if (strcmp(name,"desph") == 0) return (void *) desph;
   if (strcmp(name,"cv") == 0) return (void *) cv;
   if (strcmp(name,"vest") == 0) return (void *) vest;
+
+  // USER-MESONT package
+  if (strcmp(name,"length") == 0) return (void *) length;
+  if (strcmp(name,"buckling") == 0) return (void *) buckling;
+  if (strcmp(name,"bond_nt") == 0) return (void *) bond_nt;
 
   if (strcmp(name, "contact_radius") == 0) return (void *) contact_radius;
   if (strcmp(name, "smd_data_9") == 0) return (void *) smd_data_9;

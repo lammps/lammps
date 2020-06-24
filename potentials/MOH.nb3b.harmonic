@@ -1,4 +1,4 @@
-# DATE: 2016-07-29 CONTRIBUTOR: Todd Zeitler, tzeitle@sandia.gov CITATION: none 
+# DATE: 2016-07-29 UNITS: metal CONTRIBUTOR: Todd Zeitler, tzeitle@sandia.gov CITATION: none 
 # nb3b/harmonic (nonbonded 3-body harmonic) parameters for various elements
 #
 # multiple entries can be added to this file, LAMMPS reads the ones it needs

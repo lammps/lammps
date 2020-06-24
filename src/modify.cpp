@@ -28,6 +28,7 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -245,21 +246,15 @@ void Modify::init()
   // error if any fix or compute is using a dynamic group when not allowed
 
   for (i = 0; i < nfix; i++)
-    if (!fix[i]->dynamic_group_allow && group->dynamic[fix[i]->igroup]) {
-      char str[128];
-      snprintf(str,128,
-               "Fix %s does not allow use of dynamic group",fix[i]->id);
-      error->all(FLERR,str);
-    }
+    if (!fix[i]->dynamic_group_allow && group->dynamic[fix[i]->igroup])
+      error->all(FLERR,fmt::format("Fix {} does not allow use with a "
+                                   "dynamic group",fix[i]->id));
 
   for (i = 0; i < ncompute; i++)
     if (!compute[i]->dynamic_group_allow &&
-        group->dynamic[compute[i]->igroup]) {
-      char str[128];
-      snprintf(str,128,"Compute %s does not allow use of dynamic group",
-               fix[i]->id);
-      error->all(FLERR,str);
-    }
+        group->dynamic[compute[i]->igroup])
+      error->all(FLERR,fmt::format("Compute {} does not allow use with a "
+                                   "dynamic group",compute[i]->id));
 
   // warn if any particle is time integrated more than once
 
@@ -904,7 +899,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
   }
 
   if (fix[ifix] == NULL)
-    error->all(FLERR,utils::check_packages_for_style("fix",arg[2],lmp).c_str());
+    error->all(FLERR,utils::check_packages_for_style("fix",arg[2],lmp));
 
   // check if Fix is in restart_global list
   // if yes, pass state info to the Fix so it can reset itself
@@ -1244,7 +1239,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
   }
 
   if (compute[ncompute] == NULL)
-    error->all(FLERR,utils::check_packages_for_style("compute",arg[2],lmp).c_str());
+    error->all(FLERR,utils::check_packages_for_style("compute",arg[2],lmp));
 
   ncompute++;
 }

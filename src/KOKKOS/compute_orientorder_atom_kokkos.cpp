@@ -462,27 +462,31 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop1(int ncount, int ii, in
   for (int il = 0; il < nqlist; il++) {
     const int l = d_qlist[il];
 
+    // calculate spherical harmonics
+    // Ylm, -l <= m <= l
+    // sign convention: sign(Yll(0,0)) = (-1)^l
+
     //d_qnm(ii,il,l).re += polar_prefactor(l, 0, costheta);
     const double polar_pf = polar_prefactor(l, 0, costheta);
     Kokkos::atomic_add(&(d_qnm(ii,il,l).re), polar_pf);
     SNAcomplex expphim = {expphi.re,expphi.im};
     for(int m = 1; m <= +l; m++) {
       const double prefactor = polar_prefactor(l, m, costheta);
-      SNAcomplex c = {prefactor * expphim.re, prefactor * expphim.im};
-      //d_qnm(ii,il,m+l).re += c.re;
-      //d_qnm(ii,il,m+l).im += c.im;
-      Kokkos::atomic_add(&(d_qnm(ii,il,m+l).re), c.re);
-      Kokkos::atomic_add(&(d_qnm(ii,il,m+l).im), c.im);
+      SNAcomplex ylm = {prefactor * expphim.re, prefactor * expphim.im};
+      //d_qnm(ii,il,m+l).re += ylm.re;
+      //d_qnm(ii,il,m+l).im += ylm.im;
+      Kokkos::atomic_add(&(d_qnm(ii,il,m+l).re), ylm.re);
+      Kokkos::atomic_add(&(d_qnm(ii,il,m+l).im), ylm.im);
       if(m & 1) {
-        //d_qnm(ii,il,-m+l).re -= c.re;
-        //d_qnm(ii,il,-m+l).im += c.im;
-        Kokkos::atomic_add(&(d_qnm(ii,il,-m+l).re), -c.re);
-        Kokkos::atomic_add(&(d_qnm(ii,il,-m+l).im), c.im);
+        //d_qnm(ii,il,-m+l).re -= ylm.re;
+        //d_qnm(ii,il,-m+l).im += ylm.im;
+        Kokkos::atomic_add(&(d_qnm(ii,il,-m+l).re), -ylm.re);
+        Kokkos::atomic_add(&(d_qnm(ii,il,-m+l).im), ylm.im);
       } else {
-        //d_qnm(ii,il,-m+l).re += c.re;
-        //d_qnm(ii,il,-m+l).im -= c.im;
-        Kokkos::atomic_add(&(d_qnm(ii,il,-m+l).re), c.re);
-        Kokkos::atomic_add(&(d_qnm(ii,il,-m+l).im), -c.im);
+        //d_qnm(ii,il,-m+l).re += ylm.re;
+        //d_qnm(ii,il,-m+l).im -= ylm.im;
+        Kokkos::atomic_add(&(d_qnm(ii,il,-m+l).re), ylm.re);
+        Kokkos::atomic_add(&(d_qnm(ii,il,-m+l).im), -ylm.im);
       }
       SNAcomplex tmp;
       tmp.re = expphim.re*expphi.re - expphim.im*expphi.im;
@@ -565,7 +569,6 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
           idxcg_count++;
         }
       }
-  //      Whats = [w/(q/np.sqrt(np.pi * 4 / (2 * l + 1)))**3 if abs(q) > 1.0e-6 else 0.0 for l,q,w in zip(range(1,max_l+1),Qs,Ws)]
       if (d_qnarray(i,il) < QEPSILON)
         d_qnarray(i,jj++) = 0.0;
       else {
@@ -576,7 +579,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
     }
   }
 
-  // Calculate components of Q_l, for l=qlcomp
+  // Calculate components of Q_l/|Q_l|, for l=qlcomp
 
   if (qlcompflag) {
     const int il = iqlcomp;
@@ -623,6 +626,7 @@ double ComputeOrientOrderAtomKokkos<DeviceType>::polar_prefactor(int l, int m, d
 
 /* ----------------------------------------------------------------------
    associated legendre polynomial
+   sign convention: P(l,l) = (2l-1)!!(-sqrt(1-x^2))^l
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -634,9 +638,9 @@ double ComputeOrientOrderAtomKokkos<DeviceType>::associated_legendre(int l, int 
   double p(1.0), pm1(0.0), pm2(0.0);
 
   if (m != 0) {
-    const double sqx = sqrt(1.0-x*x);
+    const double msqx = -sqrt(1.0-x*x);
     for (int i=1; i < m+1; ++i)
-      p *= static_cast<double>(2*i-1) * sqx;
+      p *= static_cast<double>(2*i-1) * msqx;
   }
 
   for (int i=m+1; i < l+1; ++i) {

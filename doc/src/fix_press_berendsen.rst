@@ -90,7 +90,7 @@ although you have the option to change that dimension via the :doc:`fix deform <
 For all barostat keywords, the *Pdamp* parameter determines the time
 scale on which pressure is relaxed.  For example, a value of 10.0
 means to relax the pressure in a timespan of (roughly) 10 time units
-(tau or fmsec or psec - see the :doc:`units <units>` command).
+(tau or fs or ps - see the :doc:`units <units>` command).
 
 .. note::
 

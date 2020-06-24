@@ -38,6 +38,8 @@ class PairComb : public Pair {
   virtual double yasu_char(double *, int &);
   double enegtot;
 
+  static const int NPARAMS_PER_LINE = 49;
+
  protected:
   struct Param {
     double lam11,lam12,lam21,lam22;

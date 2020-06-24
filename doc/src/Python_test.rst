@@ -10,7 +10,7 @@ and type:
    >>> lmp = lammps()
 
 If you get no errors, you're ready to use LAMMPS from Python.  If the
-2nd command fails, the most common error to see is
+second command fails, the most common error to see is
 
 .. parsed-literal::
 

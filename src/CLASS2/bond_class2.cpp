@@ -224,7 +224,7 @@ double BondClass2::single(int type, double rsq, int /*i*/, int /*j*/, double &ff
 
 /* ---------------------------------------------------------------------- */
 
-void *BondClass2::extract( char *str, int &dim )
+void *BondClass2::extract(const char *str, int &dim)
 {
   dim = 1;
   if (strcmp(str,"r0")==0) return (void*) r0;

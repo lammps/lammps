@@ -34,6 +34,9 @@ BondHybrid::BondHybrid(LAMMPS *lmp) : Bond(lmp)
   writedata = 0;
   nstyles = 0;
   has_quartic = -1;
+  nbondlist = nullptr;
+  maxbond = nullptr;
+  bondlist = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

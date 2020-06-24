@@ -33,6 +33,9 @@ AngleHybrid::AngleHybrid(LAMMPS *lmp) : Angle(lmp)
 {
   writedata = 0;
   nstyles = 0;
+  nanglelist = nullptr;
+  maxangle = nullptr;
+  anglelist = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

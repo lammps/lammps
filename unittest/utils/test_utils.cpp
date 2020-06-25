@@ -341,3 +341,25 @@ TEST(Utils, potential_file)
     remove("ctest1.txt");
     remove("ctest2.txt");
 }
+
+TEST(Utils, unit_conversion)
+{
+    double factor;
+    int flag;
+
+    flag = utils::get_supported_conversions(utils::UNKNOWN);
+    ASSERT_EQ(flag, utils::NOCONVERT);
+    flag = utils::get_supported_conversions(utils::ENERGY);
+    ASSERT_EQ(flag, utils::METAL2REAL | utils::REAL2METAL);
+
+    factor = utils::get_conversion_factor(utils::UNKNOWN, 1 << 30 - 1);
+    ASSERT_DOUBLE_EQ(factor, 0.0);
+    factor = utils::get_conversion_factor(utils::UNKNOWN, utils::NOCONVERT);
+    ASSERT_DOUBLE_EQ(factor, 0.0);
+    factor = utils::get_conversion_factor(utils::ENERGY, utils::NOCONVERT);
+    ASSERT_DOUBLE_EQ(factor, 1.0);
+    factor = utils::get_conversion_factor(utils::ENERGY, utils::METAL2REAL);
+    ASSERT_DOUBLE_EQ(factor, 23.060549);
+    factor = utils::get_conversion_factor(utils::ENERGY, utils::REAL2METAL);
+    ASSERT_DOUBLE_EQ(factor, 1.0 / 23.060549);
+}

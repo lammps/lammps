@@ -76,7 +76,7 @@ protected:
     }
 };
 
-TEST_F(PotentialFileReaderTest, Si)
+TEST_F(PotentialFileReaderTest, Sw)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("units metal");
@@ -206,6 +206,49 @@ TEST_F(PotentialFileReaderTest, Vashishta)
 
     auto line = reader.next_line(PairVashishta::NPARAMS_PER_LINE);
     ASSERT_EQ(utils::count_words(line), PairVashishta::NPARAMS_PER_LINE);
+}
+
+TEST_F(PotentialFileReaderTest, UnitConvert)
+{
+    PotentialFileReader *reader;
+    int unit_convert, flag;
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("units metal");
+    reader = new PotentialFileReader(lmp, "Si.sw", "Stillinger-Weber");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    unit_convert = reader->get_unit_convert();
+    ASSERT_EQ(unit_convert, 0);
+    delete reader;
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    flag   = utils::get_supported_conversions(utils::UNKNOWN);
+    reader = new PotentialFileReader(lmp, "Si.sw", "Stillinger-Weber", flag);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    unit_convert = reader->get_unit_convert();
+    ASSERT_EQ(unit_convert, 0);
+    delete reader;
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    flag   = utils::get_supported_conversions(utils::ENERGY);
+    reader = new PotentialFileReader(lmp, "Si.sw", "Stillinger-Weber", flag);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    unit_convert = reader->get_unit_convert();
+    ASSERT_EQ(unit_convert, 0);
+    delete reader;
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    flag   = utils::get_supported_conversions(utils::ENERGY);
+    lmp->input->one("units real");
+    reader = new PotentialFileReader(lmp, "Si.sw", "Stillinger-Weber", flag);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    unit_convert = reader->get_unit_convert();
+    ASSERT_EQ(unit_convert, utils::METAL2REAL);
+    delete reader;
 }
 
 int main(int argc, char **argv)

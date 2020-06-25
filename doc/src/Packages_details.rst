@@ -656,11 +656,15 @@ listing, "ls src/MISC", to see the list of commands.
 .. _PKG-MLIAP:
 
 MLIAP package
-------------
+-------------
 
 **Contents:**
 
 A general interface for machine-learning interatomic potentials.
+
+**Install:**
+
+To use this package, also the :ref:`SNAP package<PKG-SNAP>` needs to be installed.
 
 **Author:** Aidan Thompson (Sandia).
 

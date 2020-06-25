@@ -909,6 +909,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
         strcmp(style_restart_global[i],fix[ifix]->style) == 0) {
       fix[ifix]->restart(state_restart_global[i]);
       used_restart_global[i] = 1;
+      fix[ifix]->restart_reset = 1;
       if (comm->me == 0) {
         if (screen)
           fprintf(screen,"Resetting global fix info from restart file:\n");

@@ -35,7 +35,7 @@ Syntax
          v_name = variable with name that calculates value of aparam
 
 * zero or more keyword/value pairs may be appended
-* keyword = *scale* or *reset*
+* keyword = *scale* or *reset* or *mass*
 
   .. parsed-literal::
 
@@ -45,6 +45,9 @@ Syntax
        *reset* value = *no* or *yes*
          *no* = values will remain altered at the end of a run
          *yes* = reset altered values to their original values at the end of a run
+       *mass* value = *no* or *yes*
+         *no* = mass is not altered by changes in diameter
+         *yes* = mass is altered by changes in diameter
 
 Examples
 """"""""
@@ -53,7 +56,7 @@ Examples
 
    fix 1 all adapt 1 pair soft a 1 1 v_prefactor
    fix 1 all adapt 1 pair soft a 2* 3 v_prefactor
-   fix 1 all adapt 1 pair lj/cut epsilon * * v_scale1 coul/cut scale 3 3 v_scale2 scale yes reset yes
+   fix 1 all adapt 1 pair lj/cut epsilon * * v_scale1 pair coul/cut scale 3 3 v_scale2 scale yes reset yes
    fix 1 all adapt 10 atom diameter v_size
 
    variable ramp_up equal "ramp(0.01,0.5)"
@@ -86,12 +89,13 @@ the end of a simulation.  Even if *reset* is specified as *yes*\ , a
 restart file written during a simulation will contain the modified
 settings.
 
-If the *scale* keyword is set to *no*\ , then the value of the altered
-parameter will be whatever the variable generates.  If the *scale*
-keyword is set to *yes*\ , then the value of the altered parameter will
-be the initial value of that parameter multiplied by whatever the
-variable generates.  I.e. the variable is now a "scale factor" applied
-in (presumably) a time-varying fashion to the parameter.
+If the *scale* keyword is set to *no*\ , which is the default, then
+the value of the altered parameter will be whatever the variable
+generates.  If the *scale* keyword is set to *yes*\ , then the value
+of the altered parameter will be the initial value of that parameter
+multiplied by whatever the variable generates.  I.e. the variable is
+now a "scale factor" applied in (presumably) a time-varying fashion to
+the parameter.
 
 Note that whether scale is *no* or *yes*\ , internally, the parameters
 themselves are actually altered by this fix.  Make sure you use the
@@ -107,16 +111,17 @@ style supports it.  Note that the :doc:`pair_style <pair_style>` and
 to specify these parameters initially; the fix adapt command simply
 overrides the parameters.
 
-The *pstyle* argument is the name of the pair style.  If :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` is used, *pstyle* should be
-a sub-style name.  If there are multiple sub-styles using the same
-pair style, then *pstyle* should be specified as "style:N" where N is
-which instance of the pair style you wish to adapt, e.g. the first,
-second, etc.  For example, *pstyle* could be specified as "soft" or
-"lubricate" or "lj/cut:1" or "lj/cut:2".  The *pparam* argument is the
-name of the parameter to change.  This is the current list of pair
-styles and parameters that can be varied by this fix.  See the doc
-pages for individual pair styles and their energy formulas for the
-meaning of these parameters:
+The *pstyle* argument is the name of the pair style.  If
+:doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` is used,
+*pstyle* should be a sub-style name.  If there are multiple
+sub-styles using the same pair style, then *pstyle* should be specified
+as "style:N" where N is which instance of the pair style you wish to
+adapt, e.g. the first, second, etc.  For example, *pstyle* could be
+specified as "soft" or "lubricate" or "lj/cut:1" or "lj/cut:2".  The
+*pparam* argument is the name of the parameter to change.  This is the
+current list of pair styles and parameters that can be varied by this
+fix.  See the doc pages for individual pair styles and their energy
+formulas for the meaning of these parameters:
 
 +---------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`born <pair_born>`                                             | a,b,c                                            | type pairs  |
@@ -234,31 +239,32 @@ the coefficients for the symmetric J,I interaction to the same values.
 
 A wild-card asterisk can be used in place of or in conjunction with
 the I,J arguments to set the coefficients for multiple pairs of atom
-types.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  If N = the
-number of atom types, then an asterisk with no numeric values means
-all types from 1 to N.  A leading asterisk means all types from 1 to n
-(inclusive).  A trailing asterisk means all types from n to N
+types.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  If N =
+the number of atom types, then an asterisk with no numeric values
+means all types from 1 to N.  A leading asterisk means all types from
+1 to n (inclusive).  A trailing asterisk means all types from n to N
 (inclusive).  A middle asterisk means all types from m to n
 (inclusive).  Note that only type pairs with I <= J are considered; if
 asterisks imply type pairs where J < I, they are ignored.
 
-IMPROTANT NOTE: If :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` is being used, then the *pstyle* will
-be a sub-style name.  You must specify I,J arguments that correspond
-to type pair values defined (via the :doc:`pair_coeff <pair_coeff>`
-command) for that sub-style.
+IMPROTANT NOTE: If :doc:`pair_style hybrid or hybrid/overlay
+<pair_hybrid>` is being used, then the *pstyle* will be a sub-style
+name.  You must specify I,J arguments that correspond to type pair
+values defined (via the :doc:`pair_coeff <pair_coeff>` command) for
+that sub-style.
 
 The *v_name* argument for keyword *pair* is the name of an
-:doc:`equal-style variable <variable>` which will be evaluated each time
-this fix is invoked to set the parameter to a new value.  It should be
-specified as v_name, where name is the variable name.  Equal-style
-variables can specify formulas with various mathematical functions,
-and include :doc:`thermo_style <thermo_style>` command keywords for the
-simulation box parameters and timestep and elapsed time.  Thus it is
-easy to specify parameters that change as a function of time or span
-consecutive runs in a continuous fashion.  For the latter, see the
-*start* and *stop* keywords of the :doc:`run <run>` command and the
-*elaplong* keyword of :doc:`thermo_style custom <thermo_style>` for
-details.
+:doc:`equal-style variable <variable>` which will be evaluated each
+time this fix is invoked to set the parameter to a new value.  It
+should be specified as v_name, where name is the variable name.
+Equal-style variables can specify formulas with various mathematical
+functions, and include :doc:`thermo_style <thermo_style>` command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify parameters that change as a function
+of time or span consecutive runs in a continuous fashion.  For the
+latter, see the *start* and *stop* keywords of the :doc:`run <run>`
+command and the *elaplong* keyword of :doc:`thermo_style custom
+<thermo_style>` for details.
 
 For example, these commands would change the prefactor coefficient of
 the :doc:`pair_style soft <pair_soft>` potential from 10.0 to 30.0 in a
@@ -319,23 +325,28 @@ The *atom* keyword enables various atom properties to be changed.  The
 current list of atom parameters that can be varied by this fix:
 
 * charge = charge on particle
-* diameter, or, diameter/disc = diameter of particle
+* diameter or diameter/disc = diameter of particle
 
 The *v_name* argument of the *atom* keyword is the name of an
-:doc:`equal-style variable <variable>` which will be evaluated each time
-this fix is invoked to set, or scale the parameter to a new value.
-It should be specified as v_name, where name is the variable name.  See the
-discussion above describing the formulas associated with equal-style
-variables.  The new value is assigned to the corresponding attribute
-for all atoms in the fix group.
+:doc:`equal-style variable <variable>` which will be evaluated each
+time this fix is invoked to set, or scale the parameter to a new
+value.  It should be specified as v_name, where name is the variable
+name.  See the discussion above describing the formulas associated
+with equal-style variables.  The new value is assigned to the
+corresponding attribute for all atoms in the fix group.
 
 If the atom parameter is *diameter* and per-atom density and per-atom
-mass are defined for particles (e.g. :doc:`atom_style granular <atom_style>`), then the mass of each particle is also
-changed when the diameter changes. The mass is set from the particle volume
-for 3d systems (density is assumed to stay constant). For 2d, the default is
-for LAMMPS to model particles with a radius attribute as spheres.
-However, if the atom parameter is *diameter/disc*, then the mass is
-set from the particle area (the density is assumed to be in mass/distance^2 units).
+mass are defined for particles (e.g. :doc:`atom_style granular
+<atom_style>`), then the mass of each particle is, by default, also
+changed when the diameter changes. The mass is set from the particle
+volume for 3d systems (density is assumed to stay constant). For 2d,
+the default is for LAMMPS to model particles with a radius attribute
+as spheres. However, if the atom parameter is *diameter/disc*, then the
+mass is set from the particle area (the density is assumed to be in
+mass/distance^2 units). The mass of the particle may also be kept constant
+if the *mass* keyword is set to *no*. This can be useful to account for
+diameter changes that do not involve mass changes, e.g., thermal expansion.
+
 
 For example, these commands would shrink the diameter of all granular
 particles in the "center" group from 1.0 to 0.1 in a linear fashion
@@ -348,13 +359,63 @@ over the course of a 1000-step simulation:
 
 ----------
 
+This fix can be used in long simulations which are restarted one or
+more times to continuously adapt simulation parameters, but it must be
+done carefully.  There are two issues to consider.  The first is how
+to adapt the parameters in a continuous manner from one simulation to
+the next.  The second is how, if desired, to reset the parameters to
+their original values at the end of the last restarted run.
+
+Note that all the parameters changed by this fix are written into a
+restart file in their current changed state.  A new restarted
+simulation does not know their original time=0 values, unless the
+input script explicitly resets the parameters (after the restart file
+is read), to their original values.
+
+Also note, that the time-dependent variable(s) used in the restart
+script should typically be written as a function of time elapsed since
+the original simulation began.
+
+With this in mind, if the *scale* keyword is set to *no* (the default)
+in a restarted simulation, original parameters are not needed.  The
+adapted parameters should seamlessly continue their variation relative
+to the preceding simulation.
+
+If the *scale* keyword is set to *yes*, then the input script should
+typically reset the parameters being adapted to their original values,
+so that the scaling formula specified by the variable will operate
+correctly.  An exception is if the *atom* keyword is being used with
+*scale yes*.  In this case, information is added to the restart file
+so that per-atom properties in the new run will automatically be
+scaled relative to their original values.  This will only work if the
+fix adapt command specified in the restart script has the same ID as
+the one used in the original script.
+
+In a restarted run, if the *reset* keyword is set to *yes*, and the
+run ends in this script (as opposed to just writing more restart
+files, parameters will be restored to the values they were at the
+beginning of the run command in the restart script.  Which as
+explained above, may or may not be the original values of the
+parameters.  Again, an exception is if the *atom* keyword is being
+used with *reset yes* (in all the runs). In that case, the original
+per-atom parameters are stored in the restart file, and will be
+restored when the restarted run finally completes.
+
+----------
+
 **Restart, fix_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
-are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various :doc:`output commands <Howto_output>`.
-No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+If the *atom* keyword is used and the *scale* or *reset* keyword is
+set to *yes*, then this fix writes information to a restart file so
+that in a restarted run scaling can continue in a seamless manner
+and/or the per-atom values can be restored, as explained above.
+
+None of the :doc:`fix_modify <fix_modify>` options are relevant to
+this fix.  No global or per-atom quantities are stored by this fix for
+access by various :doc:`output commands <Howto_output>`.  No parameter
+of this fix can be used with the *start/stop* keywords of the
+:doc:`run <run>` command.  This fix is not invoked during :doc:`energy
+minimization <minimize>`.
 
 For :doc:`rRESPA time integration <run_style>`, this fix changes
 parameters on the outermost rRESPA level.
@@ -371,4 +432,4 @@ Related commands
 Default
 """""""
 
-The option defaults are scale = no, reset = no.
+The option defaults are scale = no, reset = no, mass = yes.

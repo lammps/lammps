@@ -14,11 +14,17 @@
 #include "test_main.h"
 #include "test_config.h"
 #include "test_config_reader.h"
+#include "utils.h"
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <mpi.h>
+#include <vector>
+
+using LAMMPS_NS::utils::split_words;
 
 // common read_yaml_file function
 bool read_yaml_file(const char *infile, TestConfig &config)
@@ -63,7 +69,7 @@ std::string INPUT_FOLDER = STRINGIFY(TEST_INPUT_FOLDER);
 int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
-    ::testing::InitGoogleTest(&argc, argv);
+    ::testing::InitGoogleMock(&argc, argv);
 
     if (argc < 2) {
         usage(std::cerr, argv[0]);
@@ -73,6 +79,21 @@ int main(int argc, char **argv)
     if (!read_yaml_file(argv[1], test_config)) {
         std::cerr << "Error parsing yaml file: " << argv[1] << std::endl;
         return 2;
+    }
+
+    // handle arguments passed via environment variable
+    if (const char *var = getenv("TEST_ARGS")) {
+        std::vector<std::string> env = split_words(var);
+        for (auto arg : env) {
+            if (arg == "-u") {
+                generate_yaml_file(argv[1], test_config);
+                return 0;
+            } else if (arg == "-s") {
+                print_stats = true;
+            } else if (arg == "-v") {
+                verbose = true;
+            }
+        }
     }
 
     int iarg = 2;
@@ -109,5 +130,8 @@ int main(int argc, char **argv)
             return 1;
         }
     }
-    return RUN_ALL_TESTS();
+
+    int rv = RUN_ALL_TESTS();
+    MPI_Finalize();
+    return rv;
 }

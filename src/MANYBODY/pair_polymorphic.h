@@ -50,14 +50,14 @@ class PairPolymorphic : public Pair {
       xmax = 0.0;
       xmaxsq = xmax*xmax;
       vmax = 0.0;
-      xs = NULL;
-      ys = NULL;
-      ys1 = NULL;
-      ys2 = NULL;
-      ys3 = NULL;
-      ys4 = NULL;
-      ys5 = NULL;
-      ys6 = NULL;
+      xs = nullptr;
+      ys = nullptr;
+      ys1 = nullptr;
+      ys2 = nullptr;
+      ys3 = nullptr;
+      ys4 = nullptr;
+      ys5 = nullptr;
+      ys6 = nullptr;
     }
     tabularFunction(int n) {
       size = n;
@@ -88,14 +88,14 @@ class PairPolymorphic : public Pair {
       ys6 = new double[n];
     }
     virtual ~tabularFunction() {
-      if (xs) delete [] xs;
-      if (ys) delete [] ys;
-      if (ys1) delete [] ys1;
-      if (ys2) delete [] ys2;
-      if (ys3) delete [] ys3;
-      if (ys4) delete [] ys4;
-      if (ys5) delete [] ys5;
-      if (ys6) delete [] ys6;
+      delete [] xs;
+      delete [] ys;
+      delete [] ys1;
+      delete [] ys2;
+      delete [] ys3;
+      delete [] ys4;
+      delete [] ys5;
+      delete [] ys6;
     }
     void set_xrange(double x1, double x2) {
       xmin = x1;
@@ -198,21 +198,21 @@ class PairPolymorphic : public Pair {
     void resize(int n) {
       if (n != size) {
         size = n;
-        if (xs) delete [] xs;
+        delete [] xs;
         xs = new double[n];
-        if (ys) delete [] ys;
+        delete [] ys;
         ys = new double[n];
-        if (ys1) delete [] ys1;
+        delete [] ys1;
         ys1 = new double[n];
-        if (ys2) delete [] ys2;
+        delete [] ys2;
         ys2 = new double[n];
-        if (ys3) delete [] ys3;
+        delete [] ys3;
         ys3 = new double[n];
-        if (ys4) delete [] ys4;
+        delete [] ys4;
         ys4 = new double[n];
-        if (ys5) delete [] ys5;
+        delete [] ys5;
         ys5 = new double[n];
-        if (ys6) delete [] ys6;
+        delete [] ys6;
         ys6 = new double[n];
       }
     }
@@ -248,35 +248,45 @@ class PairPolymorphic : public Pair {
     }
     int size;
     double xmin,xmax,xmaxsq,rdx,vmax;
-    double * ys, * ys1, * ys2, * ys3, * ys4, * ys5, * ys6;
-    double * xs;
+    double *ys, *ys1, *ys2, *ys3, *ys4, *ys5, *ys6;
+    double *xs;
   };
 
   struct PairParameters {
     double cut;
     double cutsq;
     double xi;
-    class tabularFunction * U;
-    class tabularFunction * V;
-    class tabularFunction * W;
-    class tabularFunction * F;
+    class tabularFunction *U;
+    class tabularFunction *V;
+    class tabularFunction *W;
+    class tabularFunction *F;
     PairParameters() {
       cut = 0.0;
       cutsq = 0.0;
       xi =  1.0;
-      U = NULL;
-      V = NULL;
-      W = NULL;
-      F = NULL;
+      U = nullptr;
+      V = nullptr;
+      W = nullptr;
+      F = nullptr;
     };
+    ~PairParameters() {
+      delete U;
+      delete V;
+      delete W;
+      delete F;
+    }
   };
   struct TripletParameters {
-    class tabularFunction * P;
-    class tabularFunction * G;
+    class tabularFunction *P;
+    class tabularFunction *G;
     TripletParameters() {
-      P = NULL;
-      G = NULL;
+      P = nullptr;
+      G = nullptr;
     };
+    ~TripletParameters() {
+      delete P;
+      delete G;
+    }
   };
 
   double epsilon;

@@ -313,15 +313,9 @@ void Thermo::header()
 {
   if (lineflag == MULTILINE) return;
 
-  int loc = 0;
-  for (int i = 0; i < nfield; i++)
-    loc += sprintf(&line[loc],"%s ",keyword[i]);
-  sprintf(&line[loc],"\n");
-
-  if (me == 0) {
-    if (screen) fprintf(screen,"%s",line);
-    if (logfile) fprintf(logfile,"%s",line);
-  }
+  std::string hdr;
+  for (int i = 0; i < nfield; i++) hdr +=  keyword[i] + std::string(" ");
+  if (me == 0) utils::logmesg(lmp,hdr);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -385,11 +379,8 @@ void Thermo::compute(int flag)
   // print line to screen and logfile
 
   if (me == 0) {
-    if (screen) fprintf(screen,"%s",line);
-    if (logfile) {
-      fprintf(logfile,"%s",line);
-      if (flushflag) fflush(logfile);
-    }
+    utils::logmesg(lmp,line);
+    if (logfile && flushflag) fflush(logfile);
   }
 
   // set to 1, so that subsequent invocations of CPU time will be non-zero

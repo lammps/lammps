@@ -85,7 +85,8 @@ standard 12-6 Lennard-Jones written in the epsilon/sigma form:
 
 .. math::
 
-   E(r) = 4\epsilon\biggl[\bigl(\frac{\sigma}{r}\bigr)^{12} - \bigl(\frac{\sigma}{r}\bigr)^6\biggr]
+   E(r) = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
+                            \left(\frac{\sigma}{r}\right)^6 \right]
 
 Either the first two or all of the following coefficients must be
 defined for each pair of atoms types via the pair_coeff command as in
@@ -141,7 +142,7 @@ given or both left out:
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 For atom type pairs I,J and I != J, the :math:`\epsilon` and
-:math:`sigma` coefficients and cutoff distances for the lj/mdf pair
+:math:`\sigma` coefficients and cutoff distances for the lj/mdf pair
 style can be mixed.  The default mix value is *geometric*\ .  See the
 "pair_modify" command for details. The other two pair styles buck/mdf
 and lennard/mdf do not support mixing, so all I,J pairs of coefficients

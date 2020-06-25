@@ -909,7 +909,7 @@ TEST(PairStyle, opt)
     char **argv = (char **)args;
     int argc    = sizeof(args) / sizeof(char *);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    ::testing::internal::CaptureStdout();
     LAMMPS *lmp = init_lammps(argc, argv, test_config);
 
     std::string output = ::testing::internal::GetCapturedStdout();

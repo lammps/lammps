@@ -214,6 +214,91 @@ TEST_F(PairUnitConvertTest, tersoff)
             EXPECT_NEAR(ev_convert * fold[i][j], f[i][j], fabs(f[i][j] * rel_error));
 }
 
+TEST_F(PairUnitConvertTest, tersoff_mod)
+{
+    // check if the prerequisite pair style is available
+    if (!info->has_style("pair", "tersoff/mod")) GTEST_SKIP();
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("units metal");
+    lmp->input->one("read_data test_pair_unit_convert.data");
+    lmp->input->one("pair_style tersoff/mod");
+    lmp->input->one("pair_coeff * * Si.tersoff.mod Si Si");
+    lmp->input->one("run 0 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    // copy pressure, energy, and force from first step
+    double pold;
+    lmp->output->thermo->evaluate_keyword("press", &pold);
+    double eold = lmp->force->pair->eng_vdwl + lmp->force->pair->eng_coul;
+    double **f  = lmp->atom->f;
+    for (int i = 0; i < 4; ++i)
+        for (int j = 0; j < 3; ++j)
+            fold[i][j] = f[i][j];
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("units real");
+    lmp->input->one("read_data test_pair_unit_convert.data");
+    lmp->input->one("pair_style tersoff/mod");
+    lmp->input->one("pair_coeff * * Si.tersoff.mod Si Si");
+    lmp->input->one("run 0 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    double pnew;
+    lmp->output->thermo->evaluate_keyword("press", &pnew);
+    EXPECT_NEAR(pold, p_convert * pnew, fabs(pnew * rel_error));
+    double enew = lmp->force->pair->eng_vdwl + lmp->force->pair->eng_coul;
+    EXPECT_NEAR(ev_convert * eold, enew, fabs(enew * rel_error));
+
+    f = lmp->atom->f;
+    for (int i = 0; i < 4; ++i)
+        for (int j = 0; j < 3; ++j)
+            EXPECT_NEAR(ev_convert * fold[i][j], f[i][j], fabs(f[i][j] * rel_error));
+}
+TEST_F(PairUnitConvertTest, tersoff_mod_c)
+{
+    // check if the prerequisite pair style is available
+    if (!info->has_style("pair", "tersoff/mod/c")) GTEST_SKIP();
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("units metal");
+    lmp->input->one("read_data test_pair_unit_convert.data");
+    lmp->input->one("pair_style tersoff/mod/c");
+    lmp->input->one("pair_coeff * * Si.tersoff.modc Si Si");
+    lmp->input->one("run 0 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    // copy pressure, energy, and force from first step
+    double pold;
+    lmp->output->thermo->evaluate_keyword("press", &pold);
+    double eold = lmp->force->pair->eng_vdwl + lmp->force->pair->eng_coul;
+    double **f  = lmp->atom->f;
+    for (int i = 0; i < 4; ++i)
+        for (int j = 0; j < 3; ++j)
+            fold[i][j] = f[i][j];
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("units real");
+    lmp->input->one("read_data test_pair_unit_convert.data");
+    lmp->input->one("pair_style tersoff/mod/c");
+    lmp->input->one("pair_coeff * * Si.tersoff.modc Si Si");
+    lmp->input->one("run 0 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    double pnew;
+    lmp->output->thermo->evaluate_keyword("press", &pnew);
+    EXPECT_NEAR(pold, p_convert * pnew, fabs(pnew * rel_error));
+    double enew = lmp->force->pair->eng_vdwl + lmp->force->pair->eng_coul;
+    EXPECT_NEAR(ev_convert * eold, enew, fabs(enew * rel_error));
+
+    f = lmp->atom->f;
+    for (int i = 0; i < 4; ++i)
+        for (int j = 0; j < 3; ++j)
+            EXPECT_NEAR(ev_convert * fold[i][j], f[i][j], fabs(f[i][j] * rel_error));
+}
+
 TEST_F(PairUnitConvertTest, tersoff_table)
 {
     // check if the prerequisite pair style is available

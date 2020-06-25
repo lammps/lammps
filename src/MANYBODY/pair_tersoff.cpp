@@ -409,7 +409,6 @@ void PairTersoff::read_file(char *file)
     int unit_convert = reader.get_unit_convert();
     double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
                                                             unit_convert);
-
     while((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
         ValueTokenizer values(line);

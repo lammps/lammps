@@ -1,7 +1,7 @@
 ---
 lammps_version: 15 Jun 2020
 date_generated: Thu Jun 25 11:40:47 202
-epsilon: 5e-12
+epsilon: 7.5e-12
 prerequisites: ! |
   pair eam/alloy
 pre_commands: ! |

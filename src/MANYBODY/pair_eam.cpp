@@ -44,7 +44,6 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
   manybody_flag = 1;
   embedstep = -1;
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
-  unit_convert_factor = 1.0;
 
   nmax = 0;
   rho = NULL;
@@ -243,7 +242,7 @@ void PairEAM::compute(int eflag, int vflag)
     if (eflag) {
       phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
       if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
-      phi *= scale[type[i]][type[i]] * unit_convert_factor;
+      phi *= scale[type[i]][type[i]];
       if (eflag_global) eng_vdwl += phi;
       if (eflag_atom) eatom[i] += phi;
     }
@@ -310,7 +309,7 @@ void PairEAM::compute(int eflag, int vflag)
         phi = z2*recip;
         phip = z2p*recip - phi*recip;
         psip = fp[i]*rhojp + fp[j]*rhoip + phip;
-        fpair = -scale[itype][jtype]*psip*recip*unit_convert_factor;
+        fpair = -scale[itype][jtype]*psip*recip;
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -321,7 +320,7 @@ void PairEAM::compute(int eflag, int vflag)
           f[j][2] -= delz*fpair;
         }
 
-        if (eflag) evdwl = scale[itype][jtype]*phi*unit_convert_factor;
+        if (eflag) evdwl = scale[itype][jtype]*phi;
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
                              evdwl,0.0,fpair,delx,dely,delz);
       }
@@ -472,9 +471,9 @@ void PairEAM::read_file(char *filename)
 
     // transparently convert units for supported conversions
 
-    unit_convert_factor
-      = utils::get_conversion_factor(utils::ENERGY, reader.get_unit_convert());
-
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                            unit_convert);
     try {
       reader.skip_line();
 
@@ -500,6 +499,13 @@ void PairEAM::read_file(char *filename)
       reader.next_dvector(&file->zr[1], file->nr);
       reader.next_dvector(&file->rhor[1], file->nr);
 
+      if (unit_convert) {
+        const double sqrt_conv = sqrt(conversion_factor);
+        for (int i = 1; i <= file->nrho; ++i)
+          file->frho[i] *= conversion_factor;
+        for (int j = 1; j <= file->nr; ++j)
+          file->zr[j] *= sqrt_conv;
+      }
     } catch (TokenizerException & e) {
       error->one(FLERR, e.what());
     }
@@ -842,9 +848,9 @@ double PairEAM::single(int i, int j, int itype, int jtype,
   phi += z2*recip;
   phip = z2p*recip - phi*recip;
   psip = fp[i]*rhojp + fp[j]*rhoip + phip;
-  fforce = -psip*recip*scale[i][j]*unit_convert_factor;
+  fforce = -psip*recip;
 
-  return phi*scale[i][j]*unit_convert_factor;
+  return phi;
 }
 
 /* ---------------------------------------------------------------------- */

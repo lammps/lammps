@@ -435,7 +435,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
             const int ptr_off=itype*ntypes + itype;
             oscale = scale_f[ptr_off];
           }
-          phi *= oscale * unit_convert_factor;
+          phi *= oscale;
           tevdwl += phi;
           if (eatom) f[i].w += phi;
         }
@@ -549,7 +549,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
           const flt_t psip = fp_f[i]*rhojp + fp_f[j]*rhoip + phip;
           if (!ONETYPE)
             oscale = scale_fi[jtype];
-          const flt_t fpair = -oscale*psip*recip*unit_convert_factor;
+          const flt_t fpair = -oscale*psip*recip;
 
           const flt_t fpx = fpair * tdelx[jj];
           fxtmp += fpx;
@@ -562,7 +562,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
           if (NEWTON_PAIR) f[j].z -= fpz;
 
           if (EFLAG) {
-            const flt_t evdwl = oscale*phi*unit_convert_factor;
+            const flt_t evdwl = oscale*phi;
             sevdwl += evdwl;
             if (eatom) {
               fwtmp += (flt_t)0.5 * evdwl;

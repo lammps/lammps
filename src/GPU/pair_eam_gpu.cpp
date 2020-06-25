@@ -31,7 +31,6 @@
 #include "neigh_request.h"
 #include "gpu_extra.h"
 #include "suffix.h"
-#include "utils.h"
 
 #define MAXLINE 1024
 
@@ -73,7 +72,6 @@ PairEAMGPU::PairEAMGPU(LAMMPS *lmp) : PairEAM(lmp), gpu_mode(GPU_FORCE)
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
-  unit_convert_flag = utils::NOCONVERT;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }

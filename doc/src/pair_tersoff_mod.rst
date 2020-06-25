@@ -74,7 +74,7 @@ formulation of the V_ij term, where it contains an additional c0 term.
 
 .. math::
 
-   V_{ij}  & = f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) + c_0 \right]
+   V_{ij}  = f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) + c_0 \right]
 
 The modified cutoff function :math:`f_C` proposed by :ref:`(Murty) <Murty>` and
 having a continuous second-order differential is employed. The

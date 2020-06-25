@@ -66,6 +66,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   no_virial_fdotr_compute = 0;
   writedata = 0;
   ghostneigh = 0;
+  unit_convert_flag = utils::NOCONVERT;
 
   nextra = 0;
   pvector = NULL;

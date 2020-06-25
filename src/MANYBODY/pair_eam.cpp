@@ -43,6 +43,7 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   manybody_flag = 1;
   embedstep = -1;
+  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
   nmax = 0;
   rho = NULL;
@@ -466,8 +467,13 @@ void PairEAM::read_file(char *filename)
 
   // read potential file
   if(comm->me == 0) {
-    PotentialFileReader reader(lmp, filename, "EAM");
+    PotentialFileReader reader(lmp, filename, "EAM", unit_convert_flag);
 
+    // transparently convert units for supported conversions
+
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                            unit_convert);
     try {
       reader.skip_line();
 
@@ -492,6 +498,14 @@ void PairEAM::read_file(char *filename)
       reader.next_dvector(&file->frho[1], file->nrho);
       reader.next_dvector(&file->zr[1], file->nr);
       reader.next_dvector(&file->rhor[1], file->nr);
+
+      if (unit_convert) {
+        const double sqrt_conv = sqrt(conversion_factor);
+        for (int i = 1; i <= file->nrho; ++i)
+          file->frho[i] *= conversion_factor;
+        for (int j = 1; j <= file->nr; ++j)
+          file->zr[j] *= sqrt_conv;
+      }
     } catch (TokenizerException & e) {
       error->one(FLERR, e.what());
     }

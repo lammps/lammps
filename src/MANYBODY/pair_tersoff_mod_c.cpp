@@ -44,9 +44,14 @@ void PairTersoffMODC::read_file(char *file)
   // open file on proc 0
 
   if (comm->me == 0) {
-    PotentialFileReader reader(lmp, file, "Tersoff");
+    PotentialFileReader reader(lmp, file, "TersoffModC", unit_convert_flag);
     char * line;
 
+    // transparently convert units for supported conversions
+
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                            unit_convert);
     while((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
         ValueTokenizer values(line);
@@ -101,6 +106,12 @@ void PairTersoffMODC::read_file(char *file)
         params[nparams].c5         = values.next_double();
         params[nparams].c0         = values.next_double();
         params[nparams].powermint = int(params[nparams].powerm);
+
+        if (unit_convert) {
+          params[nparams].biga *= conversion_factor;
+          params[nparams].bigb *= conversion_factor;
+          params[nparams].c0   *= conversion_factor;
+        }
       } catch (TokenizerException & e) {
         error->one(FLERR, e.what());
       }

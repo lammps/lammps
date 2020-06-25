@@ -135,7 +135,7 @@ class Force : protected Pointers {
   bigint bnumeric(const char *, int, char *);
   tagint tnumeric(const char *, int, char *);
 
-  FILE *open_potential(const char *);
+  FILE *open_potential(const char *, int *auto_convert = nullptr);
 
   bigint memory_usage();
 

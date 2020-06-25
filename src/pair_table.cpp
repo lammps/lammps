@@ -44,6 +44,7 @@ PairTable::PairTable(LAMMPS *lmp) : Pair(lmp)
 {
   ntables = 0;
   tables = NULL;
+  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -358,9 +359,14 @@ double PairTable::init_one(int i, int j)
 
 void PairTable::read_table(Table *tb, char *file, char *keyword)
 {
-  TableFileReader reader(lmp, file, "pair");
+  TableFileReader reader(lmp, file, "pair", unit_convert_flag);
 
-  char * line = reader.find_section_start(keyword);
+  // transparently convert units for supported conversions
+
+  int unit_convert = reader.get_unit_convert();
+  double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                          unit_convert);
+  char *line = reader.find_section_start(keyword);
 
   if (!line) {
     error->one(FLERR,"Did not find keyword in table file");
@@ -370,7 +376,7 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
   // allocate table arrays for file values
 
   line = reader.next_line();
-  param_extract(tb,line);
+  param_extract(tb, line);
   memory->create(tb->rfile,tb->ninput,"pair:rfile");
   memory->create(tb->efile,tb->ninput,"pair:efile");
   memory->create(tb->ffile,tb->ninput,"pair:ffile");
@@ -404,8 +410,8 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
       ValueTokenizer values(line);
       values.next_int();
       rfile = values.next_double();
-      tb->efile[i] = values.next_double();
-      tb->ffile[i] = values.next_double();
+      tb->efile[i] = conversion_factor * values.next_double();
+      tb->ffile[i] = conversion_factor * values.next_double();
     } catch (TokenizerException & e) {
       ++cerror;
     }
@@ -461,29 +467,26 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
     }
   }
 
-  if (ferror) {
-    std::string str = fmt::format("{} of {} force values in table are inconsistent with -dE/dr.\n"
-                                  "  Should only be flagged at inflection points",ferror,tb->ninput);
-    error->warning(FLERR,str.c_str());
-  }
+  if (ferror)
+    error->warning(FLERR,fmt::format("{} of {} force values in table are "
+                                     "inconsistent with -dE/dr.\n  Should "
+                                     "only be flagged at inflection points",
+                                     ferror,tb->ninput));
 
   // warn if re-computed distance values differ from file values
 
-  if (rerror) {
-    char str[128];
-    sprintf(str,"%d of %d distance values in table with relative error\n"
-            "  over %g to re-computed values",rerror,tb->ninput,EPSILONR);
-    error->warning(FLERR,str);
-  }
+  if (rerror)
+    error->warning(FLERR,fmt::format("{} of {} distance values in table with "
+                                     "relative error\n  over {} to "
+                                     "re-computed values",
+                                     rerror,tb->ninput,EPSILONR));
 
   // warn if data was read incompletely, e.g. columns were missing
 
-  if (cerror) {
-    char str[128];
-    sprintf(str,"%d of %d lines in table were incomplete\n"
-            "  or could not be parsed completely",cerror,tb->ninput);
-    error->warning(FLERR,str);
-  }
+  if (cerror)
+    error->warning(FLERR,fmt::format("{} of {} lines in table were "
+                                     "incomplete\n  or could not be parsed "
+                                     "completely",cerror,tb->ninput));
 }
 
 /* ----------------------------------------------------------------------

@@ -76,7 +76,7 @@ Examples
 
    pair_style eam
    pair_coeff * * cuu3
-   pair_coeff 1*3 1\*3 niu3.eam
+   pair_coeff 1*3 1*3 niu3.eam
 
    pair_style eam/alloy
    pair_coeff * * ../potentials/NiAlH_jea.eam.alloy Ni Al Ni Ni

@@ -119,7 +119,13 @@ void PairEAMFSOMP::read_file(char *filename)
 
   // read potential file
   if(comm->me == 0) {
-    PotentialFileReader reader(PairEAM::lmp, filename, "EAM");
+    PotentialFileReader reader(PairEAM::lmp, filename,
+                               "EAMFS", unit_convert_flag);
+
+    // transparently convert units for supported conversions
+
+    unit_convert_factor
+      = utils::get_conversion_factor(utils::ENERGY, reader.get_unit_convert());
 
     try {
       reader.skip_line();

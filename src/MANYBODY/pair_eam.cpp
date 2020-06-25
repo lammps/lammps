@@ -43,6 +43,8 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   manybody_flag = 1;
   embedstep = -1;
+  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
+  unit_convert_factor = 1.0;
 
   nmax = 0;
   rho = NULL;
@@ -241,7 +243,7 @@ void PairEAM::compute(int eflag, int vflag)
     if (eflag) {
       phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
       if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
-      phi *= scale[type[i]][type[i]];
+      phi *= scale[type[i]][type[i]] * unit_convert_factor;
       if (eflag_global) eng_vdwl += phi;
       if (eflag_atom) eatom[i] += phi;
     }
@@ -308,7 +310,7 @@ void PairEAM::compute(int eflag, int vflag)
         phi = z2*recip;
         phip = z2p*recip - phi*recip;
         psip = fp[i]*rhojp + fp[j]*rhoip + phip;
-        fpair = -scale[itype][jtype]*psip*recip;
+        fpair = -scale[itype][jtype]*psip*recip*unit_convert_factor;
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -319,7 +321,7 @@ void PairEAM::compute(int eflag, int vflag)
           f[j][2] -= delz*fpair;
         }
 
-        if (eflag) evdwl = scale[itype][jtype]*phi;
+        if (eflag) evdwl = scale[itype][jtype]*phi*unit_convert_factor;
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
                              evdwl,0.0,fpair,delx,dely,delz);
       }
@@ -466,7 +468,12 @@ void PairEAM::read_file(char *filename)
 
   // read potential file
   if(comm->me == 0) {
-    PotentialFileReader reader(lmp, filename, "EAM");
+    PotentialFileReader reader(lmp, filename, "EAM", unit_convert_flag);
+
+    // transparently convert units for supported conversions
+
+    unit_convert_factor
+      = utils::get_conversion_factor(utils::ENERGY, reader.get_unit_convert());
 
     try {
       reader.skip_line();
@@ -492,6 +499,7 @@ void PairEAM::read_file(char *filename)
       reader.next_dvector(&file->frho[1], file->nrho);
       reader.next_dvector(&file->zr[1], file->nr);
       reader.next_dvector(&file->rhor[1], file->nr);
+
     } catch (TokenizerException & e) {
       error->one(FLERR, e.what());
     }
@@ -834,9 +842,9 @@ double PairEAM::single(int i, int j, int itype, int jtype,
   phi += z2*recip;
   phip = z2p*recip - phi*recip;
   psip = fp[i]*rhojp + fp[j]*rhoip + phip;
-  fforce = -psip*recip;
+  fforce = -psip*recip*scale[i][j]*unit_convert_factor;
 
-  return phi;
+  return phi*scale[i][j]*unit_convert_factor;
 }
 
 /* ---------------------------------------------------------------------- */

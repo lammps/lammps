@@ -204,7 +204,8 @@ void PairEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
     if (EFLAG) {
       phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
       if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
-      e_tally_thr(this, i, i, nlocal, NEWTON_PAIR, scale[type[i]][type[i]]*phi, 0.0, thr);
+      e_tally_thr(this, i, i, nlocal, NEWTON_PAIR,
+                  unit_convert_factor*scale[type[i]][type[i]]*phi, 0.0, thr);
     }
   }
 
@@ -278,7 +279,7 @@ void PairEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
         phi = z2*recip;
         phip = z2p*recip - phi*recip;
         psip = fp[i]*rhojp + fp[j]*rhoip + phip;
-        fpair = -scale_i[jtype]*psip*recip;
+        fpair = -scale_i[jtype]*psip*recip*unit_convert_factor;
 
         fxtmp += delx*fpair;
         fytmp += dely*fpair;
@@ -289,7 +290,7 @@ void PairEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
           f[j].z -= delz*fpair;
         }
 
-        if (EFLAG) evdwl = scale_i[jtype]*phi;
+        if (EFLAG) evdwl = scale_i[jtype]*phi*unit_convert_factor;
         if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
                                  evdwl,0.0,fpair,delx,dely,delz,thr);
       }

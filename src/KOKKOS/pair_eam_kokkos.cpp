@@ -28,6 +28,7 @@
 #include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -38,6 +39,7 @@ PairEAMKokkos<DeviceType>::PairEAMKokkos(LAMMPS *lmp) : PairEAM(lmp)
 {
   respa_enable = 0;
   single_enable = 0;
+  unit_convert_flag = utils::NOCONVERT;
 
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;

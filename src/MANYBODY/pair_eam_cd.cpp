@@ -182,7 +182,7 @@ void PairEAMCD::compute(int eflag, int vflag)
     EAMTableIndex index = rhoToTableIndex(rho[i]);
     fp[i] = FPrimeOfRho(index, type[i]);
     if (eflag) {
-      phi = FofRho(index, type[i]);
+      phi = FofRho(index, type[i]) * unit_convert_factor;
       if (eflag_global) eng_vdwl += phi;
       if (eflag_atom) eatom[i] += phi;
     }
@@ -427,7 +427,7 @@ void PairEAMCD::compute(int eflag, int vflag)
 
         // Divide by r_ij and negate to get forces from gradient.
 
-        fpair /= -r;
+        fpair *= -unit_convert_factor/r;
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -438,7 +438,7 @@ void PairEAMCD::compute(int eflag, int vflag)
           f[j][2] -= delz*fpair;
         }
 
-        if (eflag) evdwl = phi;
+        if (eflag) evdwl = phi*unit_convert_factor;
         if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
       }
     }

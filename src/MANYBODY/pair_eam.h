@@ -67,6 +67,7 @@ class PairEAM : public Pair {
   double cutforcesq;
   double **scale;
   bigint embedstep;           // timestep, the embedding term was computed
+  double unit_convert_factor; // multiplier for converting units transparently
 
   // per-atom arrays
 

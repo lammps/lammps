@@ -359,14 +359,13 @@ double PairTable::init_one(int i, int j)
 
 void PairTable::read_table(Table *tb, char *file, char *keyword)
 {
-  TableFileReader reader(lmp, file, "pair");
+  TableFileReader reader(lmp, file, "pair", unit_convert_flag);
 
   // transparently convert units for supported conversions
 
   int unit_convert = reader.get_unit_convert();
   double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
                                                           unit_convert);
-
   char *line = reader.find_section_start(keyword);
 
   if (!line) {

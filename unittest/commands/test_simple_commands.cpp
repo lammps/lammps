@@ -26,6 +26,8 @@
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
+using LAMMPS_NS::utils::split_words;
+
 namespace LAMMPS_NS {
 using ::testing::Eq;
 
@@ -127,6 +129,17 @@ int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
+
+    // handle arguments passed via environment variable
+    if (const char *var = getenv("TEST_ARGS")) {
+        std::vector<std::string> env = split_words(var);
+        for (auto arg : env) {
+            if (arg == "-v") {
+                verbose = true;
+            }
+        }
+    }
+
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();

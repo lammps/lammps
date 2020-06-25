@@ -52,6 +52,7 @@ compilation and linking stages.  This is done through setting the
 
    -D ENABLE_SANITIZER=none       # no sanitizer active (default)
    -D ENABLE_SANITIZER=address    # enable address sanitizer / memory leak checker
+   -D ENABLE_SANITIZER=leak       # enable memory leak checker (only)
    -D ENABLE_SANITIZER=undefined  # enable undefined behavior sanitizer
    -D ENABLE_SANITIZER=thread     # enable thread sanitizer
 
@@ -121,6 +122,8 @@ The ``ctest`` command has many options, the most important ones are:
      - exclude subset of tests matching the regular expression <regex>
    * - -N
      - dry-run: display list of tests without running them
+   * - -T memcheck
+     - run tests with valgrind memory checker (if available)
 
 In its full implementation, the unit test framework will consist of multiple
 kinds of tests implemented in different programming languages (C++, C, Python,

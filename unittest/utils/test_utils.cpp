@@ -18,6 +18,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <vector>
 
 using namespace LAMMPS_NS;
 using ::testing::Eq;
@@ -46,6 +47,24 @@ TEST(Utils, trim_and_count_words)
 TEST(Utils, count_words_with_extra_spaces)
 {
     ASSERT_EQ(utils::count_words("   some text # comment   "), 4);
+}
+
+TEST(Utils, split_words_simple)
+{
+    std::vector<std::string> list = utils::split_words("one two three");
+    ASSERT_EQ(list.size(), 3);
+}
+
+TEST(Utils, split_words_quoted)
+{
+    std::vector<std::string> list = utils::split_words("one 'two' \"three\"");
+    ASSERT_EQ(list.size(), 3);
+}
+
+TEST(Utils, split_words_escaped)
+{
+    std::vector<std::string> list = utils::split_words("1\\' '\"two\"' 3\\\"");
+    ASSERT_EQ(list.size(), 3);
 }
 
 TEST(Utils, valid_integer1)

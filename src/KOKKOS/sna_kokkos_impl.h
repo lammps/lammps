@@ -1078,7 +1078,7 @@ void SNAKokkos<DeviceType>::compute_bi_cpu(const typename Kokkos::TeamPolicy<Dev
   int idouble = 0;
   for (int elem1 = 0; elem1 < nelements; elem1++) {
     for (int elem2 = 0; elem2 < nelements; elem2++) {
-      const auto jalloy = idouble;
+      auto jalloy = idouble; // must be non-const to work around gcc compiler bug
       for (int elem3 = 0; elem3 < nelements; elem3++) {
         Kokkos::parallel_for(Kokkos::TeamThreadRange(team,idxb_max),
           [&] (const int& jjb) {

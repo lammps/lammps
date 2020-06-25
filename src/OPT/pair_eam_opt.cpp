@@ -243,7 +243,7 @@ void PairEAMOpt::eval()
     if (EFLAG) {
       double phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
       if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
-      phi *= scale[type[i]][type[i]];
+      phi *= scale[type[i]][type[i]] * unit_convert_factor;
       if (eflag_global) eng_vdwl += phi;
       if (eflag_atom) eatom[i] += phi;
     }
@@ -322,7 +322,7 @@ void PairEAMOpt::eval()
         double phi = z2*recip;
         double phip = z2p*recip - phi*recip;
         double psip = fp[i]*rhojp + fp[j]*rhoip + phip;
-        double fpair = -scale_i[jtype]*psip*recip;
+        double fpair = -scale_i[jtype]*psip*recip*unit_convert_factor;
 
         tmpfx += delx*fpair;
         tmpfy += dely*fpair;
@@ -333,7 +333,7 @@ void PairEAMOpt::eval()
           ff[j].z -= delz*fpair;
         }
 
-        if (EFLAG) evdwl = scale_i[jtype]*phi;
+        if (EFLAG) evdwl = scale_i[jtype]*phi*unit_convert_factor;
 
         if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
                              evdwl,0.0,fpair,delx,dely,delz);

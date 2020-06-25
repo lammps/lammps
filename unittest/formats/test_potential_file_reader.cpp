@@ -23,6 +23,7 @@
 #include "MANYBODY/pair_tersoff_mod_c.h"
 #include "MANYBODY/pair_tersoff_zbl.h"
 #include "MANYBODY/pair_vashishta.h"
+#include "USER-MISC/pair_tersoff_table.h"
 #include "input.h"
 #include "lammps.h"
 #include "potential_file_reader.h"
@@ -50,6 +51,7 @@ const int LAMMPS_NS::PairGW::NPARAMS_PER_LINE;
 const int LAMMPS_NS::PairGWZBL::NPARAMS_PER_LINE;
 const int LAMMPS_NS::PairNb3bHarmonic::NPARAMS_PER_LINE;
 const int LAMMPS_NS::PairVashishta::NPARAMS_PER_LINE;
+const int LAMMPS_NS::PairTersoffTable::NPARAMS_PER_LINE;
 
 class PotentialFileReaderTest : public ::testing::Test {
 protected:
@@ -138,6 +140,17 @@ TEST_F(PotentialFileReaderTest, TersoffModC)
 
     auto line = reader.next_line(PairTersoffMODC::NPARAMS_PER_LINE);
     ASSERT_EQ(utils::count_words(line), PairTersoffMODC::NPARAMS_PER_LINE);
+}
+
+TEST_F(PotentialFileReaderTest, TersoffTable)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("units metal");
+    PotentialFileReader reader(lmp, "Si.tersoff", "TersoffTable");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    auto line = reader.next_line(PairTersoffTable::NPARAMS_PER_LINE);
+    ASSERT_EQ(utils::count_words(line), PairTersoffTable::NPARAMS_PER_LINE);
 }
 
 TEST_F(PotentialFileReaderTest, TersoffZBL)

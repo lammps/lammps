@@ -52,6 +52,7 @@ compilation and linking stages.  This is done through setting the
 
    -D ENABLE_SANITIZER=none       # no sanitizer active (default)
    -D ENABLE_SANITIZER=address    # enable address sanitizer / memory leak checker
+   -D ENABLE_SANITIZER=leak       # enable memory leak checker (only)
    -D ENABLE_SANITIZER=undefined  # enable undefined behavior sanitizer
    -D ENABLE_SANITIZER=thread     # enable thread sanitizer
 
@@ -121,6 +122,8 @@ The ``ctest`` command has many options, the most important ones are:
      - exclude subset of tests matching the regular expression <regex>
    * - -N
      - dry-run: display list of tests without running them
+   * - -T memcheck
+     - run tests with valgrind memory checker (if available)
 
 In its full implementation, the unit test framework will consist of multiple
 kinds of tests implemented in different programming languages (C++, C, Python,
@@ -216,7 +219,7 @@ The force style test programs have a common set of options:
      - verbose output: also print the executed LAMMPS commands
 
 The ``ctest`` tool has no mechanism to directly pass flags to the individual
-test programs, but a workaround has been implmented where these flags can be
+test programs, but a workaround has been implemented where these flags can be
 set in an environment variable ``TEST_ARGS``. Example:
 
 .. code-block:: bash

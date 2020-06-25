@@ -39,6 +39,7 @@ enum{NONE,LINEAR,SPLINE};
 Bond::Bond(LAMMPS *lmp) : Pointers(lmp)
 {
   energy = 0.0;
+  virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
   writedata = 1;
 
   allocated = 0;

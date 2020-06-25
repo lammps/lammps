@@ -183,6 +183,7 @@ OPT.
    * :doc:`mesont/tpm <pair_mesont_tpm>`
    * :doc:`mgpt <pair_mgpt>`
    * :doc:`mie/cut (g) <pair_mie>`
+   * :doc:`mliap <pair_mliap>`
    * :doc:`mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>`
    * :doc:`momb <pair_momb>`
    * :doc:`morse (gkot) <pair_morse>`
@@ -227,7 +228,6 @@ OPT.
    * :doc:`smd/tri_surface <pair_smd_triangulated_surface>`
    * :doc:`smd/ulsph <pair_smd_ulsph>`
    * :doc:`smtbq <pair_smtbq>`
-   * :doc:`snap (k) <pair_snap>`
    * :doc:`snap (k) <pair_snap>`
    * :doc:`soft (go) <pair_soft>`
    * :doc:`sph/heatconduction <pair_sph_heatconduction>`

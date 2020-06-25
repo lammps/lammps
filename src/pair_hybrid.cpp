@@ -369,8 +369,8 @@ void PairHybrid::flags()
                                           styles[m]->comm_reverse_off);
   }
 
-  // single_enable = 1 if any sub-style is set
-  // respa_enable = 1 if any sub-style is set
+  // single_enable = 1 if all sub-styles are set
+  // respa_enable = 1 if all sub-styles are set
   // manybody_flag = 1 if any sub-style is set
   // no_virial_fdotr_compute = 1 if any sub-style is set
   // ghostneigh = 1 if any sub-style is set
@@ -380,9 +380,12 @@ void PairHybrid::flags()
 
   single_enable = 0;
   compute_flag = 0;
+  respa_enable = 0;
+  restartinfo = 0;
   for (m = 0; m < nstyles; m++) {
-    if (styles[m]->single_enable) single_enable = 1;
-    if (styles[m]->respa_enable) respa_enable = 1;
+    if (styles[m]->single_enable) ++single_enable;
+    if (styles[m]->respa_enable) ++respa_enable;
+    if (styles[m]->restartinfo) ++restartinfo;
     if (styles[m]->manybody_flag) manybody_flag = 1;
     if (styles[m]->no_virial_fdotr_compute) no_virial_fdotr_compute = 1;
     if (styles[m]->ghostneigh) ghostneigh = 1;
@@ -396,6 +399,9 @@ void PairHybrid::flags()
     if (styles[m]->compute_flag) compute_flag = 1;
     if (styles[m]->centroidstressflag & 4) centroidstressflag |= 4;
   }
+  single_enable = (single_enable == nstyles) ? 1 : 0;
+  respa_enable = (respa_enable == nstyles) ? 1 : 0;
+  restartinfo = (restartinfo == nstyles) ? 1 : 0;
   init_svector();
 }
 

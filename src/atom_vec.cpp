@@ -33,13 +33,12 @@ using namespace MathConst;
 #define DELTA 16384
 #define DELTA_BONUS 8192
 
-int AtomVec::num_atom_vecs = 0;
-
 /* ---------------------------------------------------------------------- */
 
 AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
 {
   nmax = 0;
+  ngrow = 0;
 
   molecular = 0;
   bonds_allow = angles_allow = dihedrals_allow = impropers_allow = 0;
@@ -52,11 +51,14 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   kokkosable = 0;
 
   nargcopy = 0;
-  argcopy = NULL;
+  argcopy = nullptr;
 
-  threads = NULL;
+  tag = nullptr;
+  type = mask = nullptr;
+  image = nullptr;
+  x = v = f = nullptr;
 
-  ++num_atom_vecs;
+  threads = nullptr;
 
   // peratom variables auto-included in corresponding child style fields string
   // these fields cannot be specified in the fields string
@@ -97,48 +99,36 @@ AtomVec::~AtomVec()
   int datatype,cols;
   void *pdata;
 
-  --num_atom_vecs;
-
   for (int i = 0; i < nargcopy; i++) delete [] argcopy[i];
   delete [] argcopy;
 
-  if (num_atom_vecs == 0) {
-    memory->destroy(atom->tag);
-    memory->destroy(atom->type);
-    memory->destroy(atom->mask);
-    memory->destroy(atom->image);
-    memory->destroy(atom->x);
-    memory->destroy(atom->v);
-    memory->destroy(atom->f);
-
-    for (int i = 0; i < ngrow; i++) {
-      pdata = mgrow.pdata[i];
-      datatype = mgrow.datatype[i];
-      cols = mgrow.cols[i];
-      if (datatype == Atom::DOUBLE) {
-        if (cols == 0)
-          memory->destroy(*((double **) pdata));
-        else if (cols > 0)
-          memory->destroy(*((double ***) pdata));
-        else {
-          memory->destroy(*((double ***) pdata));
-        }
-      } else if (datatype == Atom::INT) {
-        if (cols == 0)
-          memory->destroy(*((int **) pdata));
-        else if (cols > 0)
-          memory->destroy(*((int ***) pdata));
-        else {
-          memory->destroy(*((int ***) pdata));
-        }
-      } else if (datatype == Atom::BIGINT) {
-        if (cols == 0)
-          memory->destroy(*((bigint **) pdata));
-        else if (cols > 0)
-          memory->destroy(*((bigint ***) pdata));
-        else {
-          memory->destroy(*((bigint ***) pdata));
-        }
+  for (int i = 0; i < ngrow; i++) {
+    pdata = mgrow.pdata[i];
+    datatype = mgrow.datatype[i];
+    cols = mgrow.cols[i];
+    if (datatype == Atom::DOUBLE) {
+      if (cols == 0)
+        memory->destroy(*((double **) pdata));
+      else if (cols > 0)
+        memory->destroy(*((double ***) pdata));
+      else {
+        memory->destroy(*((double ***) pdata));
+      }
+    } else if (datatype == Atom::INT) {
+      if (cols == 0)
+        memory->destroy(*((int **) pdata));
+      else if (cols > 0)
+        memory->destroy(*((int ***) pdata));
+      else {
+        memory->destroy(*((int ***) pdata));
+      }
+    } else if (datatype == Atom::BIGINT) {
+      if (cols == 0)
+        memory->destroy(*((bigint **) pdata));
+      else if (cols > 0)
+        memory->destroy(*((bigint ***) pdata));
+      else {
+        memory->destroy(*((bigint ***) pdata));
       }
     }
   }
@@ -194,7 +184,7 @@ void AtomVec::init()
   deform_groupbit = domain->deform_groupbit;
   h_rate = domain->h_rate;
 
-  if (lmp->kokkos != NULL && !kokkosable)
+  if (lmp->kokkos != nullptr && !kokkosable)
     error->all(FLERR,"KOKKOS package requires a kokkos enabled atom_style");
 }
 
@@ -2492,8 +2482,8 @@ void AtomVec::setup_fields()
 
 int AtomVec::process_fields(char *str, const char *default_str, Method *method)
 {
-  if (str == NULL) {
-    method->index = NULL;
+  if (str == nullptr) {
+    method->index = nullptr;
     return 0;
   }
 
@@ -2572,13 +2562,13 @@ void AtomVec::create_method(int nfield, Method *method)
 
 void AtomVec::init_method(Method *method)
 {
-  method->pdata = NULL;
-  method->datatype = NULL;
-  method->cols = NULL;
-  method->maxcols = NULL;
-  method->collength = NULL;
-  method->plength = NULL;
-  method->index = NULL;
+  method->pdata = nullptr;
+  method->datatype = nullptr;
+  method->cols = nullptr;
+  method->maxcols = nullptr;
+  method->collength = nullptr;
+  method->plength = nullptr;
+  method->index = nullptr;
 }
 
 /* ----------------------------------------------------------------------

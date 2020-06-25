@@ -37,20 +37,15 @@ target_link_libraries(pair_style PRIVATE lammps style_tests)
 file(GLOB MOL_PAIR_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/mol-pair-*.yaml)
 foreach(TEST ${MOL_PAIR_TESTS})
   string(REGEX REPLACE "^.*mol-pair-(.*)\.yaml" "MolPairStyle:\\1" TNAME ${TEST})
-  add_test(NAME ${TNAME}
-    COMMAND ${CMAKE_COMMAND} -DTEST_EXECUTABLE=$<TARGET_FILE:pair_style>
-    -DTEST_INPUT=${TEST} -DTEST_NAME=${TNAME} -P ${CMAKE_CURRENT_SOURCE_DIR}/TestRunner.cmake
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  add_test(NAME ${TNAME} COMMAND pair_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 endforeach()
 
 # tests for metal-like atomic systems and related pair styles
 file(GLOB ATOMIC_PAIR_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/atomic-pair-*.yaml)
 foreach(TEST ${ATOMIC_PAIR_TESTS})
   string(REGEX REPLACE "^.*atomic-pair-(.*)\.yaml" "AtomicPairStyle:\\1" TNAME ${TEST})
-  add_test(NAME ${TNAME}
-    COMMAND ${CMAKE_COMMAND} -DTEST_EXECUTABLE=$<TARGET_FILE:pair_style>
-    -DTEST_INPUT=${TEST} -DTEST_NAME=${TNAME} -P ${CMAKE_CURRENT_SOURCE_DIR}/TestRunner.cmake
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  add_test(NAME ${TNAME} COMMAND pair_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 endforeach()
 
@@ -58,10 +53,7 @@ endforeach()
 file(GLOB MANYBODY_PAIR_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/manybody-pair-*.yaml)
 foreach(TEST ${MANYBODY_PAIR_TESTS})
   string(REGEX REPLACE "^.*manybody-pair-(.*)\.yaml" "ManybodyPairStyle:\\1" TNAME ${TEST})
-  add_test(NAME ${TNAME}
-    COMMAND ${CMAKE_COMMAND} -DTEST_EXECUTABLE=$<TARGET_FILE:pair_style>
-    -DTEST_INPUT=${TEST} -DTEST_NAME=${TNAME} -P ${CMAKE_CURRENT_SOURCE_DIR}/TestRunner.cmake
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  add_test(NAME ${TNAME} COMMAND pair_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 endforeach()
 
@@ -72,10 +64,8 @@ target_link_libraries(bond_style PRIVATE lammps style_tests)
 file(GLOB BOND_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/bond-*.yaml)
 foreach(TEST ${BOND_TESTS})
   string(REGEX REPLACE "^.*bond-(.*)\.yaml" "BondStyle:\\1" TNAME ${TEST})
-  add_test(NAME ${TNAME}
-    COMMAND ${CMAKE_COMMAND} -DTEST_EXECUTABLE=$<TARGET_FILE:bond_style>
-    -DTEST_INPUT=${TEST} -DTEST_NAME=${TNAME} -P ${CMAKE_CURRENT_SOURCE_DIR}/TestRunner.cmake
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  add_test(NAME ${TNAME} COMMAND bond_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 endforeach()
 
 # angle style tester
@@ -85,8 +75,6 @@ target_link_libraries(angle_style PRIVATE lammps style_tests)
 file(GLOB ANGLE_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/angle-*.yaml)
 foreach(TEST ${ANGLE_TESTS})
   string(REGEX REPLACE "^.*angle-(.*)\.yaml" "AngleStyle:\\1" TNAME ${TEST})
-  add_test(NAME ${TNAME}
-    COMMAND ${CMAKE_COMMAND} -DTEST_EXECUTABLE=$<TARGET_FILE:angle_style>
-    -DTEST_INPUT=${TEST} -DTEST_NAME=${TNAME} -P ${CMAKE_CURRENT_SOURCE_DIR}/TestRunner.cmake
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  add_test(NAME ${TNAME} COMMAND angle_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 endforeach()

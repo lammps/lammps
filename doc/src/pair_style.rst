@@ -291,6 +291,7 @@ accelerated styles exist.
 * :doc:`smd/tri_surface <pair_smd_triangulated_surface>` -
 * :doc:`smd/ulsph <pair_smd_ulsph>` -
 * :doc:`smtbq <pair_smtbq>` -
+* :doc:`mliap <pair_mliap>` - Multiple styles of machine-learning potential
 * :doc:`snap <pair_snap>` - SNAP quantum-accurate potential
 * :doc:`soft <pair_soft>` - Soft (cosine) potential
 * :doc:`sph/heatconduction <pair_sph_heatconduction>` -

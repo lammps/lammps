@@ -18,6 +18,7 @@
 
 #include "lmptype.h"
 #include <string>
+#include <vector>
 #include <cstdio>
 
 namespace LAMMPS_NS {
@@ -180,6 +181,20 @@ namespace LAMMPS_NS {
      * \return number of words found
      */
     size_t trim_and_count_words(const std::string & text, const std::string & separators = " \t\r\n\f");
+
+    /**
+     * \brief Take text and split into non-whitespace words.
+     *
+     * This can handle single and double quotes, escaped quotes,
+     * and escaped codes within quotes, but due to using an STL
+     * container and STL strings is rather slow because of making
+     * copies. Designed for parsing command lines and similar text
+     * and not for time critical processing. Use a tokenizer for that.
+     *
+     * \param text string that should be split
+     * \return STL vector with the words
+     */
+    std::vector<std::string> split_words(const std::string &text);
 
     /**
      * \brief Check if string can be converted to valid integer

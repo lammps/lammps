@@ -433,7 +433,6 @@ void PairTersoff::read_file(char *file)
           if (kname == elements[kelement]) break;
         if (kelement == nelements) continue;
 
-
         // load up parameter settings and error check their values
 
         if (nparams == maxparam) {

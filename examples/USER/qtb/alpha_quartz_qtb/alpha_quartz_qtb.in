@@ -70,7 +70,7 @@ neigh_modify		check yes every 1 delay 0 page 100000 one 2000
 
 ## This part equilibrates your crystal to a pressure of ${pressure}(unit pressure) and a temperature of ${temperature}(unit temperatureture) with quantum nuclear effects
 variable		p_damp equal ${delta_t}*1000								#Recommended pressure damping parameter in fix nph
-fix			scapegoat_qtb all nph iso ${pressure} ${pressure} ${p_damp}				#NPH does the time integration
+fix			scapegoat_qtb all nph iso ${pressure} ${pressure} ${p_damp} ptemp ${temperature}				#NPH does the time integration
 fix			quartz_qtb all qtb temp ${temperature} damp ${damp_qtb} seed 35082 f_max 120.00 N_f 100	#Change f_max (THz) if your Debye frequency is higher
 thermo_style		custom step temp press etotal vol lx ly lz pxx pyy pzz pxy pyz pxz
 thermo			100

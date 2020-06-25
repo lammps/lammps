@@ -687,7 +687,7 @@ double utils::get_conversion_factor(const int property, const int conversion)
     } else if (conversion == METAL2REAL) {
       return 23.060549;
     } else if (conversion == REAL2METAL) {
-      return 0.04336410204284381954;
+      return 1.0/23.060549;
     }
   }
   return 0.0;

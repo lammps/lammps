@@ -69,7 +69,7 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
 
   dynamic_group_allow = 0;
   vector_flag = 1;
-  size_vector = 4;
+  size_vector = 5;
   global_freq = 1;
   extvector = 0;
   od_flag = 0;
@@ -79,7 +79,7 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
   int n = strlen(arg[3])+1;
   computename = new char[n];
   strcpy(computename,&arg[3][0]);
-  
+
   icompute = modify->find_compute(computename);
   if (icompute == -1)
     error->all(FLERR,"Compute ID for fix pafi does not exist");
@@ -130,11 +130,11 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
     c_v[i] = 0.;
     c_v_all[i] = 0.;
   }
-  for(int i=0; i<5; i++) {
+  for(int i=0; i<6; i++) {
     proj[i] = 0.0;
     proj_all[i] = 0.0;
   }
-  for(int i=0; i<4; i++) {
+  for(int i=0; i<5; i++) {
     results[i] = 0.0;
     results_all[i] = 0.0;
   }
@@ -249,7 +249,7 @@ void FixPAFI::post_force(int vflag)
     c_v[i] = 0.;
     c_v_all[i] = 0.;
   }
-  for(int i = 0; i < 5; i++) {
+  for(int i = 0; i < 6; i++) {
     proj[i] = 0.;
     proj_all[i] = 0.;
   }
@@ -290,6 +290,10 @@ void FixPAFI::post_force(int vflag)
       proj[4] += path[i][4]*deviation[1]; // (x-path).n
       proj[4] += path[i][5]*deviation[2]; // (x-path).n
 
+      proj[5] += f[i][3]*deviation[0]; // (x-path).f
+      proj[5] += f[i][4]*deviation[1]; // (x-path).f
+      proj[5] += f[i][5]*deviation[2]; // (x-path).f
+
     }
   }
 
@@ -314,13 +318,15 @@ void FixPAFI::post_force(int vflag)
         c_v[9] += 1.0;
       }
   }
-  MPI_Allreduce(proj,proj_all,5,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(proj,proj_all,6,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(c_v,c_v_all,10,MPI_DOUBLE,MPI_SUM,world);
 
+  // results - f.n*(1-psi), (f.n)^2*(1-psi)^2, 1-psi, dX.n
   results_all[0] = proj_all[0] * (1.-proj_all[3]);
   results_all[1] = results_all[0] * results_all[0];
   results_all[2] = 1.-proj_all[3];
   results_all[3] = fabs(proj_all[4]);
+  results_all[4] = proj_all[5]; // dX.f
   force_flag = 1;
 
   for (int i = 0; i < nlocal; i++){
@@ -417,7 +423,7 @@ void FixPAFI::min_post_force(int vflag)
     c_v[i] = 0.;
     c_v_all[i] = 0.;
   }
-  for(int i = 0; i < 5; i++) {
+  for(int i = 0; i < 6; i++) {
     proj[i] = 0.;
     proj_all[i] = 0.;
   }
@@ -455,6 +461,10 @@ void FixPAFI::min_post_force(int vflag)
       proj[4] += path[i][4]*deviation[1]; // (x-path).n
       proj[4] += path[i][5]*deviation[2]; // (x-path).n
 
+      proj[5] += f[i][3]*deviation[0]; // (x-path).f
+      proj[5] += f[i][4]*deviation[1]; // (x-path).f
+      proj[5] += f[i][5]*deviation[2]; // (x-path).f
+
     }
   }
 
@@ -479,15 +489,16 @@ void FixPAFI::min_post_force(int vflag)
         c_v[9] += 1.0;
       }
   }
-  MPI_Allreduce(proj,proj_all,5,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(proj,proj_all,6,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(c_v,c_v_all,10,MPI_DOUBLE,MPI_SUM,world);
 
   results_all[0] = proj_all[0] * (1.-proj_all[3]); // f.n * psi
   results_all[1] = results_all[0] * results_all[0]; // (f.n * psi)^2
   results_all[2] = 1.-proj_all[3]; // psi
-  results_all[3] = proj_all[4]; // dX.n
+  results_all[3] = fabs(proj_all[4]); // dX.n
+  results_all[4] = proj_all[5]; // dX.f
 
-  MPI_Bcast(results_all,4,MPI_DOUBLE,0,world);
+  MPI_Bcast(results_all,5,MPI_DOUBLE,0,world);
   force_flag = 1;
 
   for (int i = 0; i < nlocal; i++){
@@ -536,7 +547,7 @@ void FixPAFI::initial_integrate(int vflag)
     c_v[i] = 0.;
     c_v_all[i] = 0.;
   }
-  for(int i = 0; i < 5; i++) {
+  for(int i = 0; i < 6; i++) {
     proj[i] = 0.;
     proj_all[i] = 0.;
   }
@@ -648,7 +659,7 @@ void FixPAFI::final_integrate()
     c_v[i] = 0.;
     c_v_all[i] = 0.;
   }
-  for(int i = 0; i < 5; i++) {
+  for(int i = 0; i < 6; i++) {
     proj[i] = 0.;
     proj_all[i] = 0.;
   }

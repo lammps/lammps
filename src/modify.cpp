@@ -942,6 +942,23 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 }
 
 /* ----------------------------------------------------------------------
+   convenience function to allow adding a fix from a single string
+------------------------------------------------------------------------- */
+
+void Modify::add_fix(const std::string &fixcmd, int trysuffix)
+{
+  std::vector<std::string> args = utils::split_words(fixcmd);
+  char **newarg = new char*[args.size()];
+  int i=0;
+  for (const auto &arg : args) {
+    newarg[i++] = (char *)arg.c_str();
+  }
+  add_fix(args.size(),newarg,trysuffix);
+  delete[] newarg;
+}
+
+
+/* ----------------------------------------------------------------------
    replace replaceID fix with a new fix
    this is used by callers to preserve ordering of fixes
    e.g. create replaceID as a FixDummy instance early in the input script
@@ -1227,6 +1244,23 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
 
   ncompute++;
 }
+
+/* ----------------------------------------------------------------------
+   convenience function to allow adding a compute from a single string
+------------------------------------------------------------------------- */
+
+void Modify::add_compute(const std::string &computecmd, int trysuffix)
+{
+  std::vector<std::string> args = utils::split_words(computecmd);
+  char **newarg = new char*[args.size()];
+  int i=0;
+  for (const auto &arg : args) {
+    newarg[i++] = (char *)arg.c_str();
+  }
+  add_compute(args.size(),newarg,trysuffix);
+  delete[] newarg;
+}
+
 
 /* ----------------------------------------------------------------------
    one instance per compute in style_compute.h

@@ -24,6 +24,7 @@
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -72,21 +73,9 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   // create a new fix STORE style
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
 
-  int n = strlen(id) + strlen("_COMPUTE_STORE") + 1;
-  id_fix = new char[n];
-  strcpy(id_fix,id);
-  strcat(id_fix,"_COMPUTE_STORE");
-
-  char **newarg = new char*[6];
-  newarg[0] = id_fix;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "STORE";
-  newarg[3] = (char *) "peratom";
-  newarg[4] = (char *) "1";
-  newarg[5] = (char *) "3";
-  modify->add_fix(6,newarg);
+  modify->add_fix(fmt::format("{}_COMPUTE_STORE {} STORE peratom 1 3",
+                              id,group->names[igroup]));
   fix = (FixStore *) modify->fix[modify->nfix-1];
-  delete [] newarg;
 
   // calculate xu,yu,zu for fix store array
   // skip if reset from restart file

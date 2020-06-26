@@ -36,6 +36,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -581,21 +582,9 @@ void ComputeChunkAtom::init()
   // fixstore initializes all values to 0.0
 
   if ((idsflag == ONCE || lockcount) && !fixstore) {
-    int n = strlen(id) + strlen("_COMPUTE_STORE") + 1;
-    id_fix = new char[n];
-    strcpy(id_fix,id);
-    strcat(id_fix,"_COMPUTE_STORE");
-
-    char **newarg = new char*[6];
-    newarg[0] = id_fix;
-    newarg[1] = group->names[igroup];
-    newarg[2] = (char *) "STORE";
-    newarg[3] = (char *) "peratom";
-    newarg[4] = (char *) "1";
-    newarg[5] = (char *) "1";
-    modify->add_fix(6,newarg);
+    modify->add_fix(fmt::format("{}_COMPUTE_STORE {} STORE peratom 1 1",
+                                id,group->names[igroup]));
     fixstore = (FixStore *) modify->fix[modify->nfix-1];
-    delete [] newarg;
   }
 
   if ((idsflag != ONCE && !lockcount) && fixstore) {

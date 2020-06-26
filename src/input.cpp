@@ -1243,10 +1243,10 @@ void Input::quit()
 
 char *shell_failed_message(const char* cmd, int errnum)
 {
-  const char *errmsg = strerror(errnum);
-  int len = strlen(cmd)+strlen(errmsg)+64;
-  char *msg = new char[len];
-  snprintf(msg, len, "Shell command '%s' failed with error '%s'", cmd, errmsg);
+  std::string errmsg = fmt::format("Shell command '{}' failed with error '{}'",
+                                   cmd, strerror(errnum));
+  char *msg = new char[errmsg.size()+1];
+  strcpy(msg, errmsg.c_str());
   return msg;
 }
 

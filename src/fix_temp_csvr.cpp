@@ -32,6 +32,7 @@
 #include "compute.h"
 #include "random_mars.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -161,7 +162,7 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
   id_temp = new char[cmd.size()+1];
   strcpy(id_temp,cmd.c_str());
 
-  cmd += group->names[igroup] + std::string(" temp");
+  cmd += fmt::format(" {} temp",group->names[igroup]);
   modify->add_compute(cmd);
   tflag = 1;
 

@@ -32,6 +32,8 @@
 #include "error.h"
 #include "timer.h"
 #include "universe.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 #ifdef LMP_USER_OMP
 #include "modify.h"
@@ -121,12 +123,9 @@ void Finish::end(int flag)
 
     if (me == 0) {
       int ntasks = nprocs * nthreads;
-      const char fmt1[] = "Loop time of %g on %d procs "
-        "for %d steps with " BIGINT_FORMAT " atoms\n\n";
-      if (screen) fprintf(screen,fmt1,time_loop,ntasks,update->nsteps,
-                          atom->natoms);
-      if (logfile) fprintf(logfile,fmt1,time_loop,ntasks,update->nsteps,
-                           atom->natoms);
+      utils::logmesg(lmp,fmt::format("Loop time of {:.6g} on {} procs for "
+                                     "{} steps with {} atoms\n\n",time_loop,
+                                     ntasks,update->nsteps,atom->natoms));
 
       // Gromacs/NAMD-style performance metric for suitable unit settings
 
@@ -144,24 +143,20 @@ void Finish::end(int flag)
 
         if (strcmp(update->unit_style,"lj") == 0) {
           double tau_day = 24.0*3600.0 / t_step * update->dt / one_fs;
-          const char perf[] = "Performance: %.3f tau/day, %.3f timesteps/s\n";
-          if (screen) fprintf(screen,perf,tau_day,step_t);
-          if (logfile) fprintf(logfile,perf,tau_day,step_t);
+          utils::logmesg(lmp,fmt::format("Performance: {:.3f} tau/day, {:.3f} "
+                                         "timesteps/s\n",tau_day,step_t));
         } else if (strcmp(update->unit_style,"electron") == 0) {
           double hrs_fs = t_step / update->dt * one_fs / 3600.0;
           double fs_day = 24.0*3600.0 / t_step * update->dt / one_fs;
-          const char perf[] =
-            "Performance: %.3f fs/day, %.3f hours/fs, %.3f timesteps/s\n";
-          if (screen) fprintf(screen,perf,fs_day,hrs_fs,step_t);
-          if (logfile) fprintf(logfile,perf,fs_day,hrs_fs,step_t);
-
+          utils::logmesg(lmp,fmt::format("Performance: {:.3f} fs/day, {:.3f} "
+                                         "hours/fs, {:.3f} timesteps/s\n",
+                                         fs_day,hrs_fs,step_t));
         } else {
           double hrs_ns = t_step / update->dt * 1000000.0 * one_fs / 3600.0;
           double ns_day = 24.0*3600.0 / t_step * update->dt / one_fs/1000000.0;
-          const char perf[] =
-            "Performance: %.3f ns/day, %.3f hours/ns, %.3f timesteps/s\n";
-          if (screen) fprintf(screen,perf,ns_day,hrs_ns,step_t);
-          if (logfile) fprintf(logfile,perf,ns_day,hrs_ns,step_t);
+          utils::logmesg(lmp,fmt::format("Performance: {:.3f} ns/day, {:.3f} "
+                                         "hours/ns, {:.3f} timesteps/s\n",
+                                         ns_day,hrs_ns,step_t));
         }
       }
 
@@ -169,23 +164,17 @@ void Finish::end(int flag)
 
       if (timeflag) {
         if (lmp->kokkos) {
-          const char fmt2[] =
-            "%.1f%% CPU use with %d MPI tasks x %d OpenMP threads\n";
-          if (screen) fprintf(screen,fmt2,cpu_loop,nprocs,
-                              lmp->kokkos->nthreads);
-          if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs,
-                               lmp->kokkos->nthreads);
+          utils::logmesg(lmp,fmt::format("{:.1f}% CPU use with {} MPI tasks "
+                                         "x {} OpenMP threads\n",cpu_loop,nprocs,
+                                         lmp->kokkos->nthreads));
         } else {
 #if defined(_OPENMP)
-          const char fmt2[] =
-            "%.1f%% CPU use with %d MPI tasks x %d OpenMP threads\n";
-          if (screen) fprintf(screen,fmt2,cpu_loop,nprocs,nthreads);
-          if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs,nthreads);
+          utils::logmesg(lmp,fmt::format("{:.1f}% CPU use with {} MPI tasks "
+                                         "x {} OpenMP threads\n",
+                                         cpu_loop,nprocs,nthreads));
 #else
-          const char fmt2[] =
-            "%.1f%% CPU use with %d MPI tasks x no OpenMP threads\n";
-          if (screen) fprintf(screen,fmt2,cpu_loop,nprocs);
-          if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs);
+          utils::logmesg(lmp,fmt::format("{:.1f}% CPU use with {} MPI tasks "
+                                         "x no OpenMP threads\n",cpu_loop,nprocs));
 #endif
         }
       }

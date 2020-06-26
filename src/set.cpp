@@ -46,7 +46,7 @@ enum{TYPE,TYPE_FRACTION,MOLECULE,X,Y,Z,CHARGE,MASS,SHAPE,LENGTH,TRI,
      THETA,THETA_RANDOM,ANGMOM,OMEGA,
      DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
      MESO_E,MESO_CV,MESO_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
-     SMD_CONTACT_RADIUS,DPDTHETA,INAME,DNAME,VX,VY,VZ};
+     SMD_CONTACT_RADIUS,DPDTHETA,INAME,DNAME,VX,VY,VZ,CAC_CHARGE};
 
 #define BIG INT_MAX
 
@@ -169,7 +169,16 @@ void Set::command(int narg, char **arg)
       set(CHARGE);
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"mass") == 0) {
+    } else if (strcmp(arg[iarg],"cac/charge") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+      else dvalue = force->numeric(FLERR,arg[iarg+1]);
+      if (!atom->CAC_flag)
+        error->all(FLERR,"Cannot set this attribute for this atom style");
+      set(CAC_CHARGE);
+      iarg += 2;
+
+    }  else if (strcmp(arg[iarg],"mass") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
       else dvalue = force->numeric(FLERR,arg[iarg+1]);
@@ -755,6 +764,11 @@ void Set::set(int keyword)
     else if (keyword == VY) atom->v[i][1] = dvalue;
     else if (keyword == VZ) atom->v[i][2] = dvalue;
     else if (keyword == CHARGE) atom->q[i] = dvalue;
+    else if (keyword == CAC_CHARGE) {
+      int *poly_count = atom->poly_count;
+      for(int ipoly=0; ipoly < poly_count[i]; ipoly++)
+      atom->node_charges[i][ipoly] = dvalue;
+    }
     else if (keyword == MASS) {
       if (dvalue <= 0.0) error->one(FLERR,"Invalid mass in set command");
       atom->rmass[i] = dvalue;

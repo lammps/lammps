@@ -135,6 +135,7 @@ class Fix : protected Pointers {
   virtual void restart(char *) {}
 
   virtual void grow_arrays(int) {}
+  virtual void shrink_arrays(int) {}
   virtual void copy_arrays(int, int, int) {}
   virtual void set_arrays(int) {}
   virtual void update_arrays(int, int) {}

@@ -101,7 +101,7 @@ class Min : protected Pointers {
 
   int neigh_every,neigh_delay,neigh_dist_check;  // neighboring params
 
-  double energy_force(int);
+  virtual double energy_force(int);
   void force_clear();
 
   double compute_force_norm_sqr();

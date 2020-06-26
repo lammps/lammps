@@ -16,6 +16,7 @@ From: ubuntu:18.04
 
     apt-get update
     apt-get install --no-install-recommends -y \
+        kmod \
         file \
         sudo \
         libelf1 \

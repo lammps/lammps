@@ -46,28 +46,13 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
 {
   // create default computes for temp,pressure,pe
 
-  char **newarg = new char*[4];
-  newarg[0] = (char *) "thermo_temp";
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp";
-  modify->add_compute(3,newarg);
-
-  newarg[0] = (char *) "thermo_press";
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pressure";
-  newarg[3] = (char *) "thermo_temp";
-  modify->add_compute(4,newarg);
-
-  newarg[0] = (char *) "thermo_pe";
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pe";
-  modify->add_compute(3,newarg);
-
-  delete [] newarg;
+  modify->add_compute("thermo_temp all temp");
+  modify->add_compute("thermo_press all pressure thermo_temp");
+  modify->add_compute("thermo_pe all pe");
 
   // create default Thermo class
 
-  newarg = new char*[1];
+  char **newarg = new char*[1];
   newarg[0] = (char *) "one";
   thermo = new Thermo(lmp,1,newarg);
   delete [] newarg;

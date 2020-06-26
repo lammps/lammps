@@ -96,6 +96,7 @@ class Modify : protected Pointers {
   virtual int min_reset_ref();
 
   void add_fix(int, char **, int trysuffix=1);
+  void add_fix(const std::string &, int trysuffix=1);
   void replace_fix(const char *, int, char **, int trysuffix=1);
   void modify_fix(int, char **);
   void delete_fix(const char *);
@@ -108,6 +109,7 @@ class Modify : protected Pointers {
   int check_rigid_list_overlap(int *);
 
   void add_compute(int, char **, int trysuffix=1);
+  void add_compute(const std::string &, int trysuffix=1);
   void modify_compute(int, char **);
   void delete_compute(const char *);
   int find_compute(const char *);

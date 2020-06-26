@@ -848,16 +848,12 @@ bool Info::is_active(const char *category, const char *name)
 
   if (!match && lmp->suffix_enable) {
     if (lmp->suffix) {
-      char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix)];
-      sprintf(name_w_suffix,"%s/%s",name,lmp->suffix);
-      if (strcmp(style,name_w_suffix) == 0) match = 1;
-      delete[] name_w_suffix;
+      std::string name_w_suffix = name + std::string("/") + lmp->suffix;
+      if (name_w_suffix == style) match = 1;
     }
     if (!match && lmp->suffix2) {
-      char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix2)];
-      sprintf(name_w_suffix,"%s/%s",name,lmp->suffix2);
-      if (strcmp(style,name_w_suffix) == 0) match = 1;
-      delete[] name_w_suffix;
+      std::string name_w_suffix = name + std::string("/") + lmp->suffix2;
+      if (name_w_suffix == style) match = 1;
     }
   }
   return match ? true : false;

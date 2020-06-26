@@ -47,6 +47,7 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace NeighConst;
@@ -1439,7 +1440,6 @@ void Neighbor::print_pairwise_info()
 {
   int i,m;
   NeighRequest *rq;
-  FILE *out;
 
   const double cutghost = MAX(cutneighmax,comm->cutghostuser);
 
@@ -1461,110 +1461,90 @@ void Neighbor::print_pairwise_info()
     else nperpetual++;
   }
 
-  for (m = 0; m < 2; m++) {
-    if (m == 0) out = screen;
-    else out = logfile;
+  std::string out = "Neighbor list info ...\n";
+  out += fmt::format("  update every {} steps, delay {} steps, check {}\n",
+                     every,delay,dist_check ? "yes" : "no");
+  out += fmt::format("  max neighbors/atom: {}, page size: {}\n",
+                     oneatom, pgsize);
+  out += fmt::format("  master list distance cutoff = {}\n",cutneighmax);
+  out += fmt::format("  ghost atom cutoff = {}\n",cutghost);
+  if (style != Neighbor::NSQ)
+    out += fmt::format("  binsize = {}, bins = {} {} {}\n",binsize,
+                       ceil(bbox[0]/binsize), ceil(bbox[1]/binsize),
+                       ceil(bbox[2]/binsize));
 
-    if (out) {
-      fprintf(out,"Neighbor list info ...\n");
-      fprintf(out,"  update every %d steps, delay %d steps, check %s\n",
-              every,delay,dist_check ? "yes" : "no");
-      fprintf(out,"  max neighbors/atom: %d, page size: %d\n",
-              oneatom, pgsize);
-      fprintf(out,"  master list distance cutoff = %g\n",cutneighmax);
-      fprintf(out,"  ghost atom cutoff = %g\n",cutghost);
-      if (style != Neighbor::NSQ)
-        fprintf(out,"  binsize = %g, bins = %g %g %g\n",binsize,
-                ceil(bbox[0]/binsize), ceil(bbox[1]/binsize),
-                ceil(bbox[2]/binsize));
+  out += fmt::format("  {} neighbor lists, perpetual/occasional/extra = {} {} {}\n",
+                     nlist,nperpetual,noccasional,nextra);
 
-      fprintf(out,"  %d neighbor lists, "
-              "perpetual/occasional/extra = %d %d %d\n",
-              nlist,nperpetual,noccasional,nextra);
-
-      for (i = 0; i < nlist; i++) {
-        rq = requests[i];
-        if (rq->pair) {
-          char *pname = force->pair_match_ptr((Pair *) rq->requestor);
-          fprintf(out,"  (%d) pair %s",i+1,pname);
-        } else if (rq->fix) {
-          fprintf(out,"  (%d) fix %s",i+1,((Fix *) rq->requestor)->style);
-        } else if (rq->compute) {
-          fprintf(out,"  (%d) compute %s",i+1,
-                  ((Compute *) rq->requestor)->style);
-        } else if (rq->command) {
-          fprintf(out,"  (%d) command %s",i+1,rq->command_style);
-        } else if (rq->neigh) {
-          fprintf(out,"  (%d) neighbor class addition",i+1);
-        }
-
-        if (rq->occasional) fprintf(out,", occasional");
-        else fprintf(out,", perpetual");
-
-        // order these to get single output of most relevant
-
-        if (rq->copy)
-          fprintf(out,", copy from (%d)",rq->copylist+1);
-        else if (rq->halffull)
-          fprintf(out,", half/full from (%d)",rq->halffulllist+1);
-        else if (rq->skip)
-          fprintf(out,", skip from (%d)",rq->skiplist+1);
-
-        fprintf(out,"\n");
-
-        // list of neigh list attributes
-
-        fprintf(out,"      attributes: ");
-        if (rq->half) fprintf(out,"half");
-        else if (rq->full) fprintf(out,"full");
-
-        if (rq->newton == 0) {
-          if (force->newton_pair) fprintf(out,", newton on");
-          else fprintf(out,", newton off");
-        } else if (rq->newton == 1) fprintf(out,", newton on");
-        else if (rq->newton == 2) fprintf(out,", newton off");
-
-        if (rq->ghost) fprintf(out,", ghost");
-        if (rq->size) fprintf(out,", size");
-        if (rq->history) fprintf(out,", history");
-        if (rq->granonesided) fprintf(out,", onesided");
-        if (rq->respamiddle) fprintf(out,", respa outer/middle/inner");
-        else if (rq->respainner) fprintf(out,", respa outer/inner");
-        if (rq->bond) fprintf(out,", bond");
-        if (rq->omp) fprintf(out,", omp");
-        if (rq->intel) fprintf(out,", intel");
-        if (rq->kokkos_device) fprintf(out,", kokkos_device");
-        if (rq->kokkos_host) fprintf(out,", kokkos_host");
-        if (rq->ssa) fprintf(out,", ssa");
-        if (rq->cut) fprintf(out,", cut %g",rq->cutoff);
-        if (rq->off2on) fprintf(out,", off2on");
-        fprintf(out,"\n");
-
-        fprintf(out,"      ");
-        if (lists[i]->pair_method == 0) fprintf(out,"pair build: none\n");
-        else fprintf(out,"pair build: %s\n",pairnames[lists[i]->pair_method-1]);
-
-        fprintf(out,"      ");
-        if (lists[i]->stencil_method == 0) fprintf(out,"stencil: none\n");
-        else fprintf(out,"stencil: %s\n",
-                     stencilnames[lists[i]->stencil_method-1]);
-
-        fprintf(out,"      ");
-        if (lists[i]->bin_method == 0) fprintf(out,"bin: none\n");
-        else fprintf(out,"bin: %s\n",binnames[lists[i]->bin_method-1]);
-      }
-
-      /*
-      fprintf(out,"  %d stencil methods\n",nstencil);
-      for (i = 0; i < nstencil; i++)
-        fprintf(out,"    (%d) %s\n",
-        i+1,stencilnames[neigh_stencil[i]->istyle-1]);
-
-      fprintf(out,"  %d bin methods\n",nbin);
-      for (i = 0; i < nbin; i++)
-        fprintf(out,"    (%d) %s\n",i+1,binnames[neigh_bin[i]->istyle-1]);
-      */
+  for (i = 0; i < nlist; i++) {
+    rq = requests[i];
+    if (rq->pair) {
+      char *pname = force->pair_match_ptr((Pair *) rq->requestor);
+      out += fmt::format("  ({}) pair {}",i+1,pname);
+    } else if (rq->fix) {
+      out += fmt::format("  ({}) fix {}",i+1,((Fix *) rq->requestor)->style);
+    } else if (rq->compute) {
+      out += fmt::format("  ({}) compute {}",i+1,((Compute *) rq->requestor)->style);
+    } else if (rq->command) {
+      out += fmt::format("  ({}) command {}",i+1,rq->command_style);
+    } else if (rq->neigh) {
+      out += fmt::format("  ({}) neighbor class addition",i+1);
     }
+
+    if (rq->occasional) out += ", occasional";
+    else out += ", perpetual";
+
+    // order these to get single output of most relevant
+
+    if (rq->copy)
+      out += fmt::format(", copy from ({})",rq->copylist+1);
+    else if (rq->halffull)
+      out += fmt::format(", half/full from ({})",rq->halffulllist+1);
+    else if (rq->skip)
+      out += fmt::format(", skip from ({})",rq->skiplist+1);
+    out += "\n";
+
+    // list of neigh list attributes
+
+    out += "      attributes: ";
+    if (rq->half) out += "half";
+    else if (rq->full) out += "full";
+
+    if (rq->newton == 0) {
+      if (force->newton_pair) out += ", newton on";
+      else out += ", newton off";
+    } else if (rq->newton == 1) out += ", newton on";
+    else if (rq->newton == 2) out += ", newton off";
+
+    if (rq->ghost) out += ", ghost";
+    if (rq->size) out += ", size";
+    if (rq->history) out += ", history";
+    if (rq->granonesided) out += ", onesided";
+    if (rq->respamiddle) out += ", respa outer/middle/inner";
+    else if (rq->respainner) out += ", respa outer/inner";
+    if (rq->bond) out += ", bond";
+    if (rq->omp) out += ", omp";
+    if (rq->intel) out += ", intel";
+    if (rq->kokkos_device) out += ", kokkos_device";
+    if (rq->kokkos_host) out += ", kokkos_host";
+    if (rq->ssa) out += ", ssa";
+    if (rq->cut) out += fmt::format(", cut {}",rq->cutoff);
+    if (rq->off2on) out += ", off2on";
+    out += "\n";
+
+    out += "      ";
+    if (lists[i]->pair_method == 0) out += "pair build: none\n";
+    else out += fmt::format("pair build: {}\n",pairnames[lists[i]->pair_method-1]);
+
+    out += "      ";
+    if (lists[i]->stencil_method == 0) out += "stencil: none\n";
+    else out += fmt::format("stencil: {}\n",stencilnames[lists[i]->stencil_method-1]);
+
+    out += "      ";
+    if (lists[i]->bin_method == 0) out += "bin: none\n";
+    else out += fmt::format("bin: {}\n",binnames[lists[i]->bin_method-1]);
+
+    utils::logmesg(lmp,out);
   }
 }
 

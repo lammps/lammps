@@ -45,6 +45,7 @@
 #include "error.h"
 #include "math_const.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -423,21 +424,15 @@ bigint Thermo::lost_check()
 
   // error message
 
-  if (lostflag == Thermo::ERROR) {
-    char str[64];
-    sprintf(str,
-            "Lost atoms: original " BIGINT_FORMAT " current " BIGINT_FORMAT,
-            atom->natoms,ntotal);
-    error->all(FLERR,str);
-  }
+  if (lostflag == Thermo::ERROR)
+    error->all(FLERR,fmt::format("Lost atoms: original {} current {}",
+                                 atom->natoms,ntotal));
 
   // warning message
 
-  char str[64];
-  sprintf(str,
-          "Lost atoms: original " BIGINT_FORMAT " current " BIGINT_FORMAT,
-          atom->natoms,ntotal);
-  if (me == 0) error->warning(FLERR,str,0);
+  if (me == 0)
+    error->warning(FLERR,fmt::format("Lost atoms: original {} current {}",
+                                     atom->natoms,ntotal),0);
 
   // reset total atom count
 

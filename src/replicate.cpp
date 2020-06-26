@@ -777,12 +777,8 @@ void Replicate::command(int narg, char **arg)
   // total time
 
   MPI_Barrier(world);
-  double time2 = MPI_Wtime();
 
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,"  replicate CPU = %g secs\n",time2-time1);
-    if (logfile)
-      fprintf(logfile,"  replicate CPU = %g secs\n",time2-time1);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,fmt::format("  replicate CPU = {:.3f} secs\n",
+                                   MPI_Wtime()-time1));
 }

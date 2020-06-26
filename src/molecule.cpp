@@ -146,24 +146,17 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
 
   // stats
 
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,"Read molecule template %s:\n  %d molecules\n"
-              "  %d atoms with max type %d\n  %d bonds with max type %d\n"
-              "  %d angles with max type %d\n  %d dihedrals with max type %d\n"
-              "  %d impropers with max type %d\n",
-              id,nmolecules,natoms,ntypes,
-              nbonds,nbondtypes,nangles,nangletypes,
-              ndihedrals,ndihedraltypes,nimpropers,nimpropertypes);
-    if (logfile)
-      fprintf(logfile,"Read molecule template %s:\n  %d molecules\n"
-              "  %d atoms with max type %d\n  %d bonds with max type %d\n"
-              "  %d angles with max type %d\n  %d dihedrals with max type %d\n"
-              "  %d impropers with max type %d\n",
-              id,nmolecules,natoms,ntypes,
-              nbonds,nbondtypes,nangles,nangletypes,
-              ndihedrals,ndihedraltypes,nimpropers,nimpropertypes);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,fmt::format("Read molecule template {}:\n"
+                                   "  {} molecules\n"
+                                   "  {} atoms with max type {}\n"
+                                   "  {} bonds with max type {}\n"
+                                   "  {} angles with max type {}\n"
+                                   "  {} dihedrals with max type {}\n"
+                                   "  {} impropers with max type {}\n",
+                                   id,nmolecules,natoms,ntypes,
+                                   nbonds,nbondtypes,nangles,nangletypes,
+                                   ndihedrals,ndihedraltypes,nimpropers,nimpropertypes));
 }
 
 /* ---------------------------------------------------------------------- */

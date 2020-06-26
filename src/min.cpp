@@ -210,8 +210,8 @@ void Min::init()
 void Min::setup(int flag)
 {
   if (comm->me == 0 && screen) {
-    fprintf(screen,"Setting up %s style minimization ...\n",
-            update->minimize_style);
+    fmt::print(screen,"Setting up {} style minimization ...\n",
+               update->minimize_style);
     if (flag) {
       fmt::print(screen,"  Unit style    : {}\n", update->unit_style);
       fmt::print(screen,"  Current step  : {}\n", update->ntimestep);

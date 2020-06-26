@@ -669,6 +669,7 @@ void PairEAM::file2array()
 
   // create a z2r array for each file against other files, only for I >= J
   // interpolate zri and zrj to a single grid and cutoff
+  // final z2r includes unit conversion of 27.2 eV/Hartree and 0.529 Ang/Bohr
 
   double zri,zrj;
 

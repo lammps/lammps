@@ -18,6 +18,7 @@
 #include "memory.h"
 #include "error.h"
 #include "tokenizer.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -215,12 +216,9 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   for (int idup = 0; idup < ndupfield; idup++) {
     char *dup = (char *) dupfield[idup];
     ptr = strstr(concat_grow,dup);
-    if (ptr && strstr(ptr+1,dup)) {
-      char str[128];
-      sprintf(str,"Peratom %s is in multiple sub-styles - "
-              "must be used consistently",dup);
-      if (comm->me == 0) error->warning(FLERR,str);
-    }
+    if ((ptr && strstr(ptr+1,dup)) && (comm->me == 0))
+      error->warning(FLERR,fmt::format("Peratom {} is in multiple sub-styles "
+                                       "- must be used consistently",dup));
   }
 
   delete [] concat_grow;

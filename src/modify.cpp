@@ -13,6 +13,7 @@
 
 #include "modify.h"
 #include <cstring>
+#include <string>
 #include "style_compute.h"
 #include "style_fix.h"
 #include "atom.h"
@@ -836,18 +837,17 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
     int match = 0;
     if (strcmp(arg[2],fix[ifix]->style) == 0) match = 1;
     if (!match && trysuffix && lmp->suffix_enable) {
-      char estyle[256];
       if (lmp->suffix) {
-        sprintf(estyle,"%s/%s",arg[2],lmp->suffix);
-        if (strcmp(estyle,fix[ifix]->style) == 0) match = 1;
+        std::string estyle = arg[2] + std::string("/") + lmp->suffix;
+        if (estyle == fix[ifix]->style) match = 1;
       }
       if (lmp->suffix2) {
-        sprintf(estyle,"%s/%s",arg[2],lmp->suffix2);
-        if (strcmp(estyle,fix[ifix]->style) == 0) match = 1;
+        std::string estyle = arg[2] + std::string("/") + lmp->suffix2;
+        if (estyle == fix[ifix]->style) match = 1;
       }
     }
-    if (!match) error->all(FLERR,
-                           "Replacing a fix, but new style != old style");
+    if (!match)
+      error->all(FLERR,"Replacing a fix, but new style != old style");
 
     if (fix[ifix]->igroup != igroup && comm->me == 0)
       error->warning(FLERR,"Replacing a fix, but new group != old group");
@@ -870,26 +870,24 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
-      int n = strlen(arg[2])+strlen(lmp->suffix)+2;
-      char *estyle = new char[n];
-      sprintf(estyle,"%s/%s",arg[2],lmp->suffix);
+      std::string estyle = arg[2] + std::string("/") + lmp->suffix;
       if (fix_map->find(estyle) != fix_map->end()) {
         FixCreator fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
         delete[] fix[ifix]->style;
-        fix[ifix]->style = estyle;
-      } else delete[] estyle;
+        fix[ifix]->style = new char[estyle.size()+1];
+        strcpy(fix[ifix]->style,estyle.c_str());
+      }
     }
     if (fix[ifix] == NULL && lmp->suffix2) {
-      int n = strlen(arg[2])+strlen(lmp->suffix2)+2;
-      char *estyle = new char[n];
-      sprintf(estyle,"%s/%s",arg[2],lmp->suffix2);
+      std::string estyle = arg[2] + std::string("/") + lmp->suffix2;
       if (fix_map->find(estyle) != fix_map->end()) {
         FixCreator fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
         delete[] fix[ifix]->style;
-        fix[ifix]->style = estyle;
-      } else delete[] estyle;
+        fix[ifix]->style = new char[estyle.size()+1];
+        strcpy(fix[ifix]->style,estyle.c_str());
+      }
     }
   }
 
@@ -910,16 +908,10 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
       fix[ifix]->restart(state_restart_global[i]);
       used_restart_global[i] = 1;
       fix[ifix]->restart_reset = 1;
-      if (comm->me == 0) {
-        if (screen)
-          fprintf(screen,"Resetting global fix info from restart file:\n");
-        if (logfile)
-          fprintf(logfile,"Resetting global fix info from restart file:\n");
-        if (screen) fprintf(screen,"  fix style: %s, fix ID: %s\n",
-                            fix[ifix]->style,fix[ifix]->id);
-        if (logfile) fprintf(logfile,"  fix style: %s, fix ID: %s\n",
-                             fix[ifix]->style,fix[ifix]->id);
-      }
+      if (comm->me == 0)
+        utils::logmesg(lmp,fmt::format("Resetting global fix info from restart file:\n"
+                                       "  fix style: {}, fix ID: {}\n",
+                                       fix[ifix]->style,fix[ifix]->id));
     }
 
   // check if Fix is in restart_peratom list
@@ -932,16 +924,10 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
       for (int j = 0; j < atom->nlocal; j++)
         fix[ifix]->unpack_restart(j,index_restart_peratom[i]);
       fix[ifix]->restart_reset = 1;
-      if (comm->me == 0) {
-        if (screen)
-          fprintf(screen,"Resetting peratom fix info from restart file:\n");
-        if (logfile)
-          fprintf(logfile,"Resetting peratom fix info from restart file:\n");
-        if (screen) fprintf(screen,"  fix style: %s, fix ID: %s\n",
-                            fix[ifix]->style,fix[ifix]->id);
-        if (logfile) fprintf(logfile,"  fix style: %s, fix ID: %s\n",
-                             fix[ifix]->style,fix[ifix]->id);
-      }
+      if (comm->me == 0)
+        utils::logmesg(lmp,fmt::format("Resetting peratom fix info from restart file:\n"
+                                       "  fix style: {}, fix ID: {}\n",
+                                       fix[ifix]->style,fix[ifix]->id));
     }
 
   // increment nfix (if new)
@@ -1164,7 +1150,7 @@ int Modify::check_rigid_list_overlap(int *select)
 
   int n = 0;
   for (int ifix = 0; ifix < nfix; ifix++) {
-    if (strncmp("rigid",fix[ifix]->style,5) == 0) {
+    if (utils::strmatch(fix[ifix]->style,"^rigid")) {
       const int * const body = (const int *)fix[ifix]->extract("body",dim);
       if ((body == NULL) || (dim != 1)) break;
 
@@ -1209,26 +1195,24 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
 
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
-      int n = strlen(arg[2])+strlen(lmp->suffix)+2;
-      char *estyle = new char[n];
-      sprintf(estyle,"%s/%s",arg[2],lmp->suffix);
+      std::string estyle = arg[2] + std::string("/") + lmp->suffix;
       if (compute_map->find(estyle) != compute_map->end()) {
         ComputeCreator compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
         delete[] compute[ncompute]->style;
-        compute[ncompute]->style = estyle;
-      } else delete[] estyle;
+        compute[ncompute]->style = new char[estyle.size()+1];
+        strcpy(compute[ncompute]->style,estyle.c_str());
+      }
     }
     if (compute[ncompute] == NULL && lmp->suffix2) {
-      int n = strlen(arg[2])+strlen(lmp->suffix2)+2;
-      char *estyle = new char[n];
-      sprintf(estyle,"%s/%s",arg[2],lmp->suffix2);
+      std::string estyle = arg[2] + std::string("/") + lmp->suffix2;
       if (compute_map->find(estyle) != compute_map->end()) {
         ComputeCreator compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
         delete[] compute[ncompute]->style;
-        compute[ncompute]->style = estyle;
-      } else delete[] estyle;
+        compute[ncompute]->style = new char[estyle.size()+1];
+        strcpy(compute[ncompute]->style,estyle.c_str());
+      }
     }
   }
 
@@ -1509,21 +1493,13 @@ void Modify::restart_deallocate(int flag)
       for (i = 0; i < nfix_restart_global; i++)
         if (used_restart_global[i] == 0) break;
       if (i == nfix_restart_global) {
-        if (screen)
-          fprintf(screen,"All restart file global fix info "
-                  "was re-assigned\n");
-        if (logfile)
-          fprintf(logfile,"All restart file global fix info "
-                  "was re-assigned\n");
+        utils::logmesg(lmp,"All restart file global fix info was re-assigned\n");
       } else {
-        if (screen) fprintf(screen,"Unused restart file global fix info:\n");
-        if (logfile) fprintf(logfile,"Unused restart file global fix info:\n");
+        utils::logmesg(lmp,"Unused restart file global fix info:\n");
         for (i = 0; i < nfix_restart_global; i++) {
           if (used_restart_global[i]) continue;
-          if (screen) fprintf(screen,"  fix style: %s, fix ID: %s\n",
-                              style_restart_global[i],id_restart_global[i]);
-          if (logfile) fprintf(logfile,"  fix style: %s, fix ID: %s\n",
-                               style_restart_global[i],id_restart_global[i]);
+          utils::logmesg(lmp,fmt::format("  fix style: {}, fix ID: {}\n",
+                                         style_restart_global[i],id_restart_global[i]));
         }
       }
     }
@@ -1545,21 +1521,13 @@ void Modify::restart_deallocate(int flag)
       for (i = 0; i < nfix_restart_peratom; i++)
         if (used_restart_peratom[i] == 0) break;
       if (i == nfix_restart_peratom) {
-        if (screen)
-          fprintf(screen,"All restart file peratom fix info "
-                  "was re-assigned\n");
-        if (logfile)
-          fprintf(logfile,"All restart file peratom fix info "
-                  "was re-assigned\n");
+        utils::logmesg(lmp,"All restart file peratom fix info was re-assigned\n");
       } else {
-        if (screen) fprintf(screen,"Unused restart file peratom fix info:\n");
-        if (logfile) fprintf(logfile,"Unused restart file peratom fix info:\n");
+        utils::logmesg(lmp,"Unused restart file peratom fix info:\n");
         for (i = 0; i < nfix_restart_peratom; i++) {
           if (used_restart_peratom[i]) continue;
-          if (screen) fprintf(screen,"  fix style: %s, fix ID: %s\n",
-                              style_restart_peratom[i],id_restart_peratom[i]);
-          if (logfile) fprintf(logfile,"  fix style: %s, fix ID: %s\n",
-                               style_restart_peratom[i],id_restart_peratom[i]);
+          utils::logmesg(lmp,fmt::format("  fix style: {}, fix ID: {}\n",
+                                         style_restart_peratom[i],id_restart_peratom[i]));
         }
       }
     }

@@ -121,11 +121,10 @@ static const char *guesspath(char *buf, int len, FILE *fp)
   memset(buf,0,len);
 
 #if defined(__linux__)
-  char procpath[32];
   int fd = fileno(fp);
-  snprintf(procpath,32,"/proc/self/fd/%d",fd);
   // get pathname from /proc or copy (unknown)
-  if (readlink(procpath,buf,len-1) <= 0) strcpy(buf,"(unknown)");
+  if (readlink(fmt::format("/proc/self/fd/{}",fd).c_str(),buf,len-1) <= 0)
+    strcpy(buf,"(unknown)");
 #else
   strcpy(buf,"(unknown)");
 #endif

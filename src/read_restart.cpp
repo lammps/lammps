@@ -104,19 +104,14 @@ void ReadRestart::command(int narg, char **arg)
 
   if (me == 0) {
     if (screen) fprintf(screen,"Reading restart file ...\n");
-    char *hfile;
+    std::string hfile = file;
     if (multiproc) {
-      hfile = new char[strlen(file) + 16];
-      char *ptr = strchr(file,'%');
-      *ptr = '\0';
-      sprintf(hfile,"%s%s%s",file,"base",ptr+1);
-      *ptr = '%';
-    } else hfile = file;
-    fp = fopen(hfile,"rb");
+      hfile.replace(hfile.find("%"),1,"base");
+    }
+    fp = fopen(hfile.c_str(),"rb");
     if (fp == NULL)
       error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
                                    hfile, utils::getsyserror()));
-    if (multiproc) delete [] hfile;
   }
 
   // read magic string, endian flag, format revision
@@ -272,14 +267,10 @@ void ReadRestart::command(int narg, char **arg)
 
   else if (nprocs <= multiproc_file) {
 
-    char *procfile = new char[strlen(file) + 16];
-    char *ptr = strchr(file,'%');
-
     for (int iproc = me; iproc < multiproc_file; iproc += nprocs) {
-      *ptr = '\0';
-      sprintf(procfile,"%s%d%s",file,iproc,ptr+1);
-      *ptr = '%';
-      fp = fopen(procfile,"rb");
+      std::string procfile = file;
+      procfile.replace(procfile.find("%"),1,fmt::format("{}",iproc));
+      fp = fopen(procfile.c_str(),"rb");
       if (fp == NULL)
         error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
                                      procfile, utils::getsyserror()));
@@ -309,8 +300,6 @@ void ReadRestart::command(int narg, char **arg)
       fclose(fp);
       fp = NULL;
     }
-
-    delete [] procfile;
   }
 
   // input of multiple native files with procs > files
@@ -343,16 +332,12 @@ void ReadRestart::command(int narg, char **arg)
     MPI_Comm_split(world,icluster,0,&clustercomm);
 
     if (filereader) {
-      char *procfile = new char[strlen(file) + 16];
-      char *ptr = strchr(file,'%');
-      *ptr = '\0';
-      sprintf(procfile,"%s%d%s",file,icluster,ptr+1);
-      *ptr = '%';
-      fp = fopen(procfile,"rb");
+      std::string procfile = file;
+      procfile.replace(procfile.find("%"),1,fmt::format("{}",icluster));
+      fp = fopen(procfile.c_str(),"rb");
       if (fp == NULL)
         error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
                                      procfile, utils::getsyserror()));
-      delete [] procfile;
     }
 
     int flag,procsperfile;
@@ -534,14 +519,10 @@ void ReadRestart::command(int narg, char **arg)
   // total time
 
   MPI_Barrier(world);
-  double time2 = MPI_Wtime();
 
-  if (comm->me == 0) {
-    if (screen)
-      fprintf(screen,"  read_restart CPU = %g secs\n",time2-time1);
-    if (logfile)
-      fprintf(logfile,"  read_restart CPU = %g secs\n",time2-time1);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,fmt::format("  read_restart CPU = {:.3f} secs\n",
+                                   MPI_Wtime()-time1));
 }
 
 /* ----------------------------------------------------------------------
@@ -618,10 +599,9 @@ void ReadRestart::file_search(char *inpfile, char *outfile)
   // create outfile with maxint substituted for "*"
   // use original inpfile, not pattern, since need to retain "%" in filename
 
-  ptr = strchr(inpfile,'*');
-  *ptr = '\0';
-  sprintf(outfile,"%s" BIGINT_FORMAT "%s",inpfile,maxnum,ptr+1);
-  *ptr = '*';
+  std::string newoutfile = inpfile;
+  newoutfile.replace(newoutfile.find("*"),1,fmt::format("{}",maxnum));
+  strcpy(outfile,newoutfile.c_str());
 
   // clean up
 
@@ -826,12 +806,8 @@ void ReadRestart::header()
       for (int i = 0; i < nargcopy; i++)
         argcopy[i] = read_string();
       atom->create_avec(style,nargcopy,argcopy,1);
-      if (comm->me ==0) {
-        if (screen) fprintf(screen,"  restoring atom style %s from "
-                            "restart\n", style);
-        if (logfile) fprintf(logfile,"  restoring atom style %s from "
-                             "restart\n", style);
-      }
+      if (comm->me ==0)
+        utils::logmesg(lmp,fmt::format("  restoring atom style {} from restart\n",style));
       for (int i = 0; i < nargcopy; i++) delete [] argcopy[i];
       delete [] argcopy;
       delete [] style;
@@ -963,22 +939,16 @@ void ReadRestart::force_fields()
       style = read_string();
       force->create_pair(style,1);
       delete [] style;
-      if (comm->me ==0) {
-        if (screen) fprintf(screen,"  restoring pair style %s from "
-                            "restart\n", force->pair_style);
-        if (logfile) fprintf(logfile,"  restoring pair style %s from "
-                             "restart\n", force->pair_style);
-      }
+      if (comm->me ==0)
+        utils::logmesg(lmp,fmt::format("  restoring pair style {} from "
+                                       "restart\n", force->pair_style));
       force->pair->read_restart(fp);
 
     } else if (flag == NO_PAIR) {
       style = read_string();
-      if (comm->me ==0) {
-        if (screen) fprintf(screen,"  pair style %s stores no "
-                            "restart info\n", style);
-        if (logfile) fprintf(logfile,"  pair style %s stores no "
-                             "restart info\n", style);
-      }
+      if (comm->me ==0)
+        utils::logmesg(lmp,fmt::format("  pair style {} stores no "
+                                       "restart info\n", style));
       force->create_pair("none",0);
       force->pair_restart = style;
 
@@ -986,48 +956,36 @@ void ReadRestart::force_fields()
       style = read_string();
       force->create_bond(style,1);
       delete [] style;
-      if (comm->me ==0) {
-        if (screen) fprintf(screen,"  restoring bond style %s from "
-                            "restart\n", force->bond_style);
-        if (logfile) fprintf(logfile,"  restoring bond style %s from "
-                             "restart\n", force->bond_style);
-      }
+      if (comm->me ==0)
+        utils::logmesg(lmp,fmt::format("  restoring bond style {} from "
+                                       "restart\n", force->bond_style));
       force->bond->read_restart(fp);
 
     } else if (flag == ANGLE) {
       style = read_string();
       force->create_angle(style,1);
       delete [] style;
-      if (comm->me ==0) {
-        if (screen) fprintf(screen,"  restoring angle style %s from "
-                            "restart\n", force->angle_style);
-        if (logfile) fprintf(logfile,"  restoring angle style %s from "
-                             "restart\n", force->angle_style);
-      }
+      if (comm->me ==0)
+        utils::logmesg(lmp,fmt::format("  restoring angle style {} from "
+                                       "restart\n", force->angle_style));
       force->angle->read_restart(fp);
 
     } else if (flag == DIHEDRAL) {
       style = read_string();
       force->create_dihedral(style,1);
       delete [] style;
-      if (comm->me ==0) {
-        if (screen) fprintf(screen,"  restoring dihedral style %s from "
-                            "restart\n", force->dihedral_style);
-        if (logfile) fprintf(logfile,"  restoring dihedral style %s from "
-                             "restart\n", force->dihedral_style);
-      }
+      if (comm->me ==0)
+        utils::logmesg(lmp,fmt::format("  restoring dihedral style {} from "
+                                       "restart\n", force->dihedral_style));
       force->dihedral->read_restart(fp);
 
     } else if (flag == IMPROPER) {
       style = read_string();
       force->create_improper(style,1);
       delete [] style;
-      if (comm->me ==0) {
-        if (screen) fprintf(screen,"  restoring improper style %s from "
-                            "restart\n", force->improper_style);
-        if (logfile) fprintf(logfile,"  restoring improper style %s from "
-                             "restart\n", force->improper_style);
-      }
+      if (comm->me ==0)
+        utils::logmesg(lmp,fmt::format("  restoring improper style {} from "
+                                       "restart\n", force->improper_style));
       force->improper->read_restart(fp);
 
     } else error->all(FLERR,

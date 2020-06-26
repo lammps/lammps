@@ -1314,6 +1314,6 @@ void Special::fix_alteration()
 void Special::timer_output(double time1)
 {
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("  special bonds CPU = {:<.3g} secs\n",
+    utils::logmesg(lmp,fmt::format("  special bonds CPU = {:.3f} secs\n",
                                    MPI_Wtime()-time1));
 }

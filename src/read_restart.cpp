@@ -519,14 +519,10 @@ void ReadRestart::command(int narg, char **arg)
   // total time
 
   MPI_Barrier(world);
-  double time2 = MPI_Wtime();
 
-  if (comm->me == 0) {
-    if (screen)
-      fprintf(screen,"  read_restart CPU = %g secs\n",time2-time1);
-    if (logfile)
-      fprintf(logfile,"  read_restart CPU = %g secs\n",time2-time1);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,fmt::format("  read_restart CPU = {:.3f} secs\n",
+                                   MPI_Wtime()-time1));
 }
 
 /* ----------------------------------------------------------------------
@@ -810,12 +806,8 @@ void ReadRestart::header()
       for (int i = 0; i < nargcopy; i++)
         argcopy[i] = read_string();
       atom->create_avec(style,nargcopy,argcopy,1);
-      if (comm->me ==0) {
-        if (screen) fprintf(screen,"  restoring atom style %s from "
-                            "restart\n", style);
-        if (logfile) fprintf(logfile,"  restoring atom style %s from "
-                             "restart\n", style);
-      }
+      if (comm->me ==0)
+        utils::logmesg(lmp,fmt::format("  restoring atom style {} from restart\n",style));
       for (int i = 0; i < nargcopy; i++) delete [] argcopy[i];
       delete [] argcopy;
       delete [] style;
@@ -947,22 +939,16 @@ void ReadRestart::force_fields()
       style = read_string();
       force->create_pair(style,1);
       delete [] style;
-      if (comm->me ==0) {
-        if (screen) fprintf(screen,"  restoring pair style %s from "
-                            "restart\n", force->pair_style);
-        if (logfile) fprintf(logfile,"  restoring pair style %s from "
-                             "restart\n", force->pair_style);
-      }
+      if (comm->me ==0)
+        utils::logmesg(lmp,fmt::format("  restoring pair style {} from "
+                                       "restart\n", force->pair_style));
       force->pair->read_restart(fp);
 
     } else if (flag == NO_PAIR) {
       style = read_string();
-      if (comm->me ==0) {
-        if (screen) fprintf(screen,"  pair style %s stores no "
-                            "restart info\n", style);
-        if (logfile) fprintf(logfile,"  pair style %s stores no "
-                             "restart info\n", style);
-      }
+      if (comm->me ==0)
+        utils::logmesg(lmp,fmt::format("  pair style {} stores no "
+                                       "restart info\n", style));
       force->create_pair("none",0);
       force->pair_restart = style;
 
@@ -970,48 +956,36 @@ void ReadRestart::force_fields()
       style = read_string();
       force->create_bond(style,1);
       delete [] style;
-      if (comm->me ==0) {
-        if (screen) fprintf(screen,"  restoring bond style %s from "
-                            "restart\n", force->bond_style);
-        if (logfile) fprintf(logfile,"  restoring bond style %s from "
-                             "restart\n", force->bond_style);
-      }
+      if (comm->me ==0)
+        utils::logmesg(lmp,fmt::format("  restoring bond style {} from "
+                                       "restart\n", force->bond_style));
       force->bond->read_restart(fp);
 
     } else if (flag == ANGLE) {
       style = read_string();
       force->create_angle(style,1);
       delete [] style;
-      if (comm->me ==0) {
-        if (screen) fprintf(screen,"  restoring angle style %s from "
-                            "restart\n", force->angle_style);
-        if (logfile) fprintf(logfile,"  restoring angle style %s from "
-                             "restart\n", force->angle_style);
-      }
+      if (comm->me ==0)
+        utils::logmesg(lmp,fmt::format("  restoring angle style {} from "
+                                       "restart\n", force->angle_style));
       force->angle->read_restart(fp);
 
     } else if (flag == DIHEDRAL) {
       style = read_string();
       force->create_dihedral(style,1);
       delete [] style;
-      if (comm->me ==0) {
-        if (screen) fprintf(screen,"  restoring dihedral style %s from "
-                            "restart\n", force->dihedral_style);
-        if (logfile) fprintf(logfile,"  restoring dihedral style %s from "
-                             "restart\n", force->dihedral_style);
-      }
+      if (comm->me ==0)
+        utils::logmesg(lmp,fmt::format("  restoring dihedral style {} from "
+                                       "restart\n", force->dihedral_style));
       force->dihedral->read_restart(fp);
 
     } else if (flag == IMPROPER) {
       style = read_string();
       force->create_improper(style,1);
       delete [] style;
-      if (comm->me ==0) {
-        if (screen) fprintf(screen,"  restoring improper style %s from "
-                            "restart\n", force->improper_style);
-        if (logfile) fprintf(logfile,"  restoring improper style %s from "
-                             "restart\n", force->improper_style);
-      }
+      if (comm->me ==0)
+        utils::logmesg(lmp,fmt::format("  restoring improper style {} from "
+                                       "restart\n", force->improper_style));
       force->improper->read_restart(fp);
 
     } else error->all(FLERR,

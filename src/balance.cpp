@@ -489,32 +489,21 @@ void Balance::options(int iarg, int narg, char **arg)
 
 void Balance::weight_storage(char *prefix)
 {
-  char *fixargs[6];
+  std::string cmd = "";
 
-  if (prefix) {
-    int n = strlen(prefix) + 32;
-    fixargs[0] = new char[n];
-    strcpy(fixargs[0],prefix);
-    strcat(fixargs[0],"IMBALANCE_WEIGHTS");
-  } else fixargs[0] = (char *) "IMBALANCE_WEIGHTS";
+  if (prefix) cmd = prefix;
+  cmd += "IMBALANCE_WEIGHTS";
 
-  fixargs[1] = (char *) "all";
-  fixargs[2] = (char *) "STORE";
-  fixargs[3] = (char *) "peratom";
-  fixargs[4] = (char *) "0";
-  fixargs[5] = (char *) "1";
-
-  int ifix = modify->find_fix(fixargs[0]);
+  int ifix = modify->find_fix(cmd.c_str());
   if (ifix < 1) {
-    modify->add_fix(6,fixargs);
+    cmd += " all STORE peratom 0 1";
+    modify->add_fix(cmd);
     fixstore = (FixStore *) modify->fix[modify->nfix-1];
   } else fixstore = (FixStore *) modify->fix[ifix];
 
   // do not carry weights with atoms during normal atom migration
 
   fixstore->disable = 1;
-
-  if (prefix) delete [] fixargs[0];
 }
 
 /* ----------------------------------------------------------------------

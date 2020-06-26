@@ -1544,8 +1544,8 @@ void Neighbor::print_pairwise_info()
     if (lists[i]->bin_method == 0) out += "bin: none\n";
     else out += fmt::format("bin: {}\n",binnames[lists[i]->bin_method-1]);
 
-    utils::logmesg(lmp,out);
   }
+  utils::logmesg(lmp,out);
 }
 
 /* ----------------------------------------------------------------------

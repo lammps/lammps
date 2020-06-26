@@ -268,10 +268,17 @@ elseif(GPU_API STREQUAL "HIP")
     if(HIP_PLATFORM STREQUAL "hcc")
         configure_file(${CU_FILE} ${CU_CPP_FILE} COPYONLY)
 
-        add_custom_command(OUTPUT ${CUBIN_FILE}
-          VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco -t="${HIP_ARCH}" -f=\"-O3 -ffast-math -DUSE_HIP -D_${GPU_PREC_SETTING} -I${LAMMPS_LIB_SOURCE_DIR}/gpu\" -o ${CUBIN_FILE} ${CU_CPP_FILE}
-          DEPENDS ${CU_CPP_FILE}
-          COMMENT "Generating ${CU_NAME}.cubin")
+        if(HIP_COMPILER STREQUAL "clang")
+          add_custom_command(OUTPUT ${CUBIN_FILE}
+            VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco --offload-arch=${HIP_ARCH} -O3 -ffast-math -DUSE_HIP -D_${GPU_PREC_SETTING} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_CPP_FILE}
+            DEPENDS ${CU_CPP_FILE}
+            COMMENT "Generating ${CU_NAME}.cubin")
+        else()
+          add_custom_command(OUTPUT ${CUBIN_FILE}
+            VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco -t="${HIP_ARCH}" -f=\"-O3 -ffast-math -DUSE_HIP -D_${GPU_PREC_SETTING} -I${LAMMPS_LIB_SOURCE_DIR}/gpu\" -o ${CUBIN_FILE} ${CU_CPP_FILE}
+            DEPENDS ${CU_CPP_FILE}
+            COMMENT "Generating ${CU_NAME}.cubin")
+        endif()
     elseif(HIP_PLATFORM STREQUAL "nvcc")
         add_custom_command(OUTPUT ${CUBIN_FILE}
           VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --fatbin --use_fast_math -DUSE_HIP -D_${GPU_PREC_SETTING} ${HIP_CUDA_GENCODE} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_FILE}

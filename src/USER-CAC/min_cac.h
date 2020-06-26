@@ -10,51 +10,30 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-#ifdef MINIMIZE_CLASS
 
-MinimizeStyle(cac/fire,CACMinFire)
+#ifndef LMP_CAC_MIN_H
+#define LMP_CAC_MIN_H
 
-#else
-
-#ifndef LMP_CAC_MIN_FIRE_H
-#define LMP_CAC_MIN_FIRE_H
-
-#include "min_cac.h"
+#include "min.h"
 
 namespace LAMMPS_NS {
 
-class CACMinFire : public CACMin {
+class CACMin : public Min {
  public:
-  CACMinFire(class LAMMPS *);
-  ~CACMinFire() {}
-  void init();
-  void setup_style();
-  void reset_vectors();
-  virtual int iterate(int);
- protected:
-  int densemax;               // bounds arrays size for continuous x,v,f nodal arrays
+  CACMin(class LAMMPS *);
+  virtual ~CACMin();
+  virtual void init();
 
-  virtual void copy_vectors();
-  virtual void copy_force();
- private:
-  double dt,dtmax;
-  double alpha;
-  bigint last_negative;
+ protected:
+  class FixCACMinimize *fix_cac_minimize;  // fix that stores auxiliary data
+  
+  double energy_force(int);
 };
 
 }
 
 #endif
-#endif
 
 /* ERROR/WARNING messages:
-
-E: CAC min styles require a CAC atom style
-
-Self Explanatory
-
-E: CAC min styles require a CAC pair style
-
-Self Explanatory
 
 */

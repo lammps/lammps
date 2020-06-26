@@ -28,6 +28,7 @@
 #include "neighbor.h"
 #include "domain.h"
 #include "modify.h"
+#include "fix_cac_minimize.h"
 #include "fix_minimize.h"
 #include "pair.h"
 #include "output.h"
@@ -56,13 +57,14 @@ using namespace LAMMPS_NS;
 #define EPS_ENERGY 1.0e-8
 /* ---------------------------------------------------------------------- */
 
-CACMinCG::CACMinCG(LAMMPS *lmp) : Min(lmp)
+CACMinCG::CACMinCG(LAMMPS *lmp) : CACMin(lmp)
 {
   searchflag = 1;
   gextra = hextra = NULL;
   x0extra_atom = gextra_atom = hextra_atom = NULL;
   copy_flag = force_copy_flag = 1;
   densemax=0;
+  x0 = g = h = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -81,6 +83,7 @@ CACMinCG::~CACMinCG()
 void CACMinCG::init()
 {
   Min::init();
+  CACMin::init();
   if (!atom->CAC_flag) error->all(FLERR,"CAC min styles require a CAC atom style");
   if (!atom->CAC_pair_flag) error->all(FLERR,"CAC min styles require a CAC pair style");
   if (linestyle == 0) linemin = &CACMinCG::linemin_backtrack;
@@ -101,12 +104,10 @@ void CACMinCG::init()
 
 void CACMinCG::setup_style()
 {
-  // memory for x0,g,h for atomic dof
-  // original values for the add_vectors was 3
-  // changed to maxpoly*nodes_per_element since thats the quantity of nodal values per element
-  fix_minimize->add_vector(3*atom->maxpoly*atom->nodes_per_element);
-  fix_minimize->add_vector(3*atom->maxpoly*atom->nodes_per_element);
-  fix_minimize->add_vector(3*atom->maxpoly*atom->nodes_per_element);
+  // memory for x0,g,h for nodal dof
+  fix_cac_minimize->add_vector(3);
+  fix_cac_minimize->add_vector(3);
+  fix_cac_minimize->add_vector(3);
 
   // memory for g,h for extra global dof, fix stores x0
   //I think those flags for extra evaluate to zero when CAC runs usually unless you put something
@@ -153,19 +154,24 @@ void CACMinCG::reset_vectors()
   for(int element_counter=0; element_counter < atom->nlocal; element_counter++){
      atom->dense_count+=3*npoly[element_counter]*nodes_per_element_list[element_type[element_counter]];
   }
+
+  nodal_x0 = fix_cac_minimize->request_vector(0);
+  nodal_g = fix_cac_minimize->request_vector(1);
+  nodal_h = fix_cac_minimize->request_vector(2);
+
   //copy nodal arrays to the continuous arrays for the min algorithm
   copy_force();
   nvec=atom->dense_count;
   if (nvec) xvec = atom->min_x;
   if (nvec) fvec = atom->min_f;
   
-  x0 = fix_minimize->request_vector(0);
-  g = fix_minimize->request_vector(1);
-  h = fix_minimize->request_vector(2);
+  
 
   // extra per-atom dof
 
   if (nextra_atom) {
+    //not imeplemented yet
+    error->all(FLERR,"CAC min styles do not yet support extra dofs");
     int n = 3;
     for (int m = 0; m < nextra_atom; m++) {
       extra_nlen[m] = extra_peratom[m] * atom->nlocal;
@@ -182,7 +188,7 @@ void CACMinCG::reset_vectors()
 ------------------------------------------------------------------------- */
 
 void CACMinCG::copy_vectors(){
-int *npoly = atom->poly_count;
+  int *npoly = atom->poly_count;
   int *nodes_per_element_list = atom->nodes_per_element_list;
   int *element_type = atom->element_type;
   double ****nodal_positions = atom->nodal_positions;
@@ -195,6 +201,9 @@ int *npoly = atom->poly_count;
   //copy contents to these vectors
   int dense_count_x=0;
   int dense_count_f=0;
+  int dense_count_x0=0;
+  int dense_count_g=0;
+  int dense_count_h=0;
   for(int element_counter=0; element_counter < atom->nlocal; element_counter++){
     for(int poly_counter=0; poly_counter < npoly[element_counter]; poly_counter++){
       for(int node_counter=0; node_counter < nodes_per_element_list[element_type[element_counter]]; node_counter++){
@@ -204,6 +213,15 @@ int *npoly = atom->poly_count;
          nodal_forces[element_counter][poly_counter][node_counter][0] = min_f[dense_count_f++];
          nodal_forces[element_counter][poly_counter][node_counter][1] = min_f[dense_count_f++];
          nodal_forces[element_counter][poly_counter][node_counter][2] = min_f[dense_count_f++];
+         nodal_x0[element_counter][poly_counter][node_counter][0] = x0[dense_count_x0++];
+         nodal_x0[element_counter][poly_counter][node_counter][1] = x0[dense_count_x0++];
+         nodal_x0[element_counter][poly_counter][node_counter][2] = x0[dense_count_x0++];
+         nodal_g[element_counter][poly_counter][node_counter][0] = g[dense_count_g++];
+         nodal_g[element_counter][poly_counter][node_counter][1] = g[dense_count_g++];
+         nodal_g[element_counter][poly_counter][node_counter][2] = g[dense_count_g++];
+         nodal_h[element_counter][poly_counter][node_counter][0] = h[dense_count_h++];
+         nodal_h[element_counter][poly_counter][node_counter][1] = h[dense_count_h++];
+         nodal_h[element_counter][poly_counter][node_counter][2] = h[dense_count_h++];
        }
      }
   }
@@ -251,12 +269,18 @@ void CACMinCG::copy_force(){
   int dense_count_x=0;
   int dense_count_v=0;
   int dense_count_f=0;
+  int dense_count_x0=0;
+  int dense_count_g=0;
+  int dense_count_h=0;
   
   //grow the dense aligned vectors
   if(atom->dense_count>densemax){
   min_x = memory->grow(atom->min_x,atom->dense_count,"min_CAC_cg:min_x");
   min_v = memory->grow(atom->min_v,atom->dense_count,"min_CAC_cg:min_x");
   min_f = memory->grow(atom->min_f,atom->dense_count,"min_CAC_cg:min_f");
+  memory->grow(x0,atom->dense_count,"min_CAC_cg:x0");
+  memory->grow(g,atom->dense_count,"min_CAC_cg:g");
+  memory->grow(h,atom->dense_count,"min_CAC_cg:h");
   densemax=atom->dense_count;
   }
 
@@ -272,6 +296,15 @@ void CACMinCG::copy_force(){
          min_f[dense_count_f++] = nodal_forces[element_counter][poly_counter][node_counter][0];
          min_f[dense_count_f++] = nodal_forces[element_counter][poly_counter][node_counter][1];
          min_f[dense_count_f++] = nodal_forces[element_counter][poly_counter][node_counter][2];
+         x0[dense_count_x0++] = nodal_x0[element_counter][poly_counter][node_counter][0];
+         x0[dense_count_x0++] = nodal_x0[element_counter][poly_counter][node_counter][1];
+         x0[dense_count_x0++] = nodal_x0[element_counter][poly_counter][node_counter][2];
+         g[dense_count_g++] = nodal_g[element_counter][poly_counter][node_counter][0];
+         g[dense_count_g++] = nodal_g[element_counter][poly_counter][node_counter][1];
+         g[dense_count_g++] = nodal_g[element_counter][poly_counter][node_counter][2];
+         h[dense_count_h++] = nodal_h[element_counter][poly_counter][node_counter][0];
+         h[dense_count_h++] = nodal_h[element_counter][poly_counter][node_counter][1];
+         h[dense_count_h++] = nodal_h[element_counter][poly_counter][node_counter][2];
        }
      }
   }
@@ -513,7 +546,7 @@ int CACMinCG::linemin_backtrack(double eoriginal, double &alpha)
 
   // store box and values of all dof at start of linesearch
 
-  fix_minimize->store_box();
+  fix_cac_minimize->store_box();
   for (i = 0; i < nvec; i++) x0[i] = xvec[i];
   if (nextra_atom)
     for (m = 0; m < nextra_atom; m++) {
@@ -545,7 +578,6 @@ int CACMinCG::linemin_backtrack(double eoriginal, double &alpha)
     if (de <= de_ideal) {
       if (nextra_global) {
         int itmp = modify->min_reset_ref();
-        //if (itmp) copy_vectors();
         if (itmp) ecurrent = energy_force(1);
       }
       return 0;
@@ -667,7 +699,7 @@ int CACMinCG::linemin_quadratic(double eoriginal, double &alpha)
 
   // store box and values of all dof at start of linesearch
 
-  fix_minimize->store_box();
+  fix_cac_minimize->store_box();
   for (i = 0; i < nvec; i++) x0[i] = xvec[i];
   if (nextra_atom)
     for (m = 0; m < nextra_atom; m++) {
@@ -749,7 +781,6 @@ int CACMinCG::linemin_quadratic(double eoriginal, double &alpha)
       if (ecurrent - eoriginal < EMACH) {
         if (nextra_global) {
           int itmp = modify->min_reset_ref();
-          //if (itmp) copy_vectors();
           if (itmp) ecurrent = energy_force(1);
         }
         return 0;
@@ -764,7 +795,6 @@ int CACMinCG::linemin_quadratic(double eoriginal, double &alpha)
     if (de <= de_ideal) {
       if (nextra_global) {
         int itmp = modify->min_reset_ref();
-        //if (itmp) copy_vectors();
         if (itmp) ecurrent = energy_force(1);
       }
       return 0;
@@ -952,7 +982,7 @@ int CACMinCG::linemin_forcezero(double eoriginal, double &alpha)
 
   // store box and values of all dof at start of linesearch
 
-  fix_minimize->store_box();
+  fix_cac_minimize->store_box();
 
   for (i = 0; i < nvec; i++) x0[i] = xvec[i];
   if (nextra_atom)
@@ -1009,7 +1039,6 @@ int CACMinCG::linemin_forcezero(double eoriginal, double &alpha)
       alpha -= alpha_del;
       if (nextra_global) {
         int itmp = modify->min_reset_ref();
-        //if (itmp) copy_vectors();
         if (itmp) ecurrent = energy_force(1);
       }
 
@@ -1046,7 +1075,6 @@ int CACMinCG::linemin_forcezero(double eoriginal, double &alpha)
     if ((!backtrack) && (fabs(fhCurr/fhoriginal) <= GRAD_TOL)) {
       if (nextra_global) {
         int itmp = modify->min_reset_ref();
-        //if (itmp) copy_vectors();
         if (itmp) ecurrent = energy_force(1);
       }
 
@@ -1161,7 +1189,6 @@ double CACMinCG::alpha_step(double alpha, int resetflag)
   //
   // compute and return new energy
   neval++;
-  //copy_vectors();
   return energy_force(resetflag);
 }
 

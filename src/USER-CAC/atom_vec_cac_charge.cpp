@@ -1491,7 +1491,9 @@ void AtomVecCAC_Charge::create_atom(int itype, double *coord)
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
   element_type[nlocal] = 0;
-
+  element_scale[nlocal][0] = 1;
+  element_scale[nlocal][1] = 1;
+  element_scale[nlocal][2] = 1;
   poly_count[nlocal] =1;
   allocate_element(nlocal,1,poly_count[nlocal]);
   for (int type_map = 0; type_map < poly_count[nlocal]; type_map++) {

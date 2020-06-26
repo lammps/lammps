@@ -20,11 +20,11 @@ MinimizeStyle(cac/cg,CACMinCG)
 #ifndef LMP_CAC_MIN_CG_H
 #define LMP_CAC_MIN_CG_H
 
-#include "min.h"
+#include "min_cac.h"
 
 namespace LAMMPS_NS {
 
-class CACMinCG : public Min {
+class CACMinCG : public CACMin {
  public:
 	 CACMinCG(class LAMMPS *);
   ~CACMinCG();
@@ -37,9 +37,9 @@ class CACMinCG : public Min {
   // allocated and stored by fix_minimize
   // x,f are stored by parent or Atom class or Pair class
 
-  double *x0;                 // coords at start of linesearch
-  double *g;                  // old gradient vector
-  double *h;                  // search direction vector
+  double *x0, ****nodal_x0;                 // coords at start of linesearch
+  double *g, ****nodal_g;                  // old gradient vector
+  double *h, ****nodal_h;                  // search direction vector
 
   double *gextra;             // g,h for extra global dof, x0 is stored by fix
   double *hextra;

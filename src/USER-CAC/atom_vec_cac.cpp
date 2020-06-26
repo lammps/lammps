@@ -292,7 +292,6 @@ void AtomVecCAC::allocate_element(int element_index, int node_count, int poly_co
   memory->create(nodal_forces[element_index], poly_count, node_count, 3, "atom:nodal_forces");
   memory->create(nodal_virial[element_index], poly_count, node_count, 6, "atom:nodal_virial");
 
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1504,8 +1503,11 @@ void AtomVecCAC::create_atom(int itype, double *coord)
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
   element_type[nlocal] = 0;
-
   poly_count[nlocal] =1;
+  element_scale[nlocal][0] = 1;
+  element_scale[nlocal][1] = 1;
+  element_scale[nlocal][2] = 1;
+  
   allocate_element(nlocal,1,1);
   for (int type_map = 0; type_map < 1; type_map++) {
     node_types[nlocal][type_map] = itype;

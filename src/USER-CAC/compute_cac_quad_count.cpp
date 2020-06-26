@@ -96,11 +96,11 @@ void ComputeCACQuadCount::compute_peratom()
   int n1, n2, n3;
   //enable passing quadrature rank that is not 2
   int quad = atom->quadrature_node_count;
-  if(nlocal!=atom->weight_count&&atom->neigh_weight_flag!=0)
-  error->one(FLERR, "weight_counts don't match nlocal");
+  /*its possible when create atoms is used, or some other mechanism has added atoms/elements,
+  that the algorithm must revert back to counting quadrature points in this case*/
   for (int i = 0; i < nlocal; i++) {
     //preliminary balancing metric if called before the first neighboring
-    if(atom->neigh_weight_flag==0){
+    if(atom->neigh_weight_flag==0||nlocal!=atom->weight_count){
       //if(1){
     current_element_scale = element_scale[i];
     current_element_type = element_type[i];

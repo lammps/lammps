@@ -10,7 +10,6 @@ import argparse
 import stat
 
 DEFAULT_CONFIG = """
-permission: "rw-r--r--"
 recursive: true
 include:
     - cmake/**
@@ -36,39 +35,14 @@ patterns:
     - "requirements.txt"
 """
 
-def check_permission(path, mask):
+def has_executable_bit(path):
     st = os.stat(path)
-    return bool(stat.S_IMODE(st.st_mode) == mask)
+    return bool(st.st_mode & (stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH))
 
-def generate_permission_mask(line):
-    assert(len(line) == 9)
-    mask = 0
 
-    # USER
-    if line[0] == "r":
-        mask |= stat.S_IRUSR
-    if line[1] == "w":
-        mask |= stat.S_IWUSR
-    if line[2] == "x":
-        mask |= stat.S_IXUSR
-
-    # GROUP
-    if line[3] == "r":
-        mask |= stat.S_IRGRP
-    if line[4] == "w":
-        mask |= stat.S_IWGRP
-    if line[5] == "x":
-        mask |= stat.S_IXGRP
-
-    # OTHER
-    if line[6] == "r":
-        mask |= stat.S_IROTH
-    if line[7] == "w":
-        mask |= stat.S_IWOTH
-    if line[8] == "x":
-        mask |= stat.S_IXOTH
-
-    return mask
+def get_non_exec_mask(path):
+    st = os.stat(path)
+    return st.st_mode & ~(stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
 def check_folder(directory, config, fix=False, verbose=False):
     success = True
@@ -79,23 +53,20 @@ def check_folder(directory, config, fix=False, verbose=False):
             path = os.path.join(directory, base_path, pattern)
             files += glob.glob(path, recursive=config['recursive'])
 
-    mask = generate_permission_mask(config['permission'])
-
     for f in files:
         path = os.path.normpath(f)
 
         if verbose:
             print("Checking file:", path)
 
-        ok = check_permission(path, mask)
-
-        if not ok:
+        if has_executable_bit(path):
             print("[Error] Wrong file permissions @ {}".format(path))
 
             if fix:
                 if os.access(path, os.W_OK):
-                    print("Changing permissions of file {} to '{}'".format(path, config['permission']))
-                    os.chmod(path, mask)
+                    print("Removing executable bit of file {}".format(path))
+                    new_mask = get_non_exec_mask(path)
+                    os.chmod(path, new_mask)
                 else:
                     print("[Error] Can not write permissions of file {}".format(path))
                     success = False

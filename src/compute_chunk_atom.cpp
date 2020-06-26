@@ -582,8 +582,12 @@ void ComputeChunkAtom::init()
   // fixstore initializes all values to 0.0
 
   if ((idsflag == ONCE || lockcount) && !fixstore) {
-    modify->add_fix(fmt::format("{}_COMPUTE_STORE {} STORE peratom 1 1",
-                                id,group->names[igroup]));
+    std::string cmd = id + std::string("_COMPUTE_STORE");
+    id_fix = new char[cmd.size()+1];
+    strcpy(id_fix,cmd.c_str());
+
+    cmd += fmt::format(" {} STORE peratom 1 1", group->names[igroup]);
+    modify->add_fix(cmd);
     fixstore = (FixStore *) modify->fix[modify->nfix-1];
   }
 

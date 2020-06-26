@@ -73,8 +73,12 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   // create a new fix STORE style
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
 
-  modify->add_fix(fmt::format("{}_COMPUTE_STORE {} STORE peratom 1 3",
-                              id,group->names[igroup]));
+  std::string cmd = id + std::string("_COMPUTE_STORE");
+  id_fix = new char[cmd.size()+1];
+  strcpy(id_fix,cmd.c_str());
+
+  cmd += fmt::format(" {} STORE peratom 1 3", group->names[igroup]);
+  modify->add_fix(cmd);
   fix = (FixStore *) modify->fix[modify->nfix-1];
 
   // calculate xu,yu,zu for fix store array

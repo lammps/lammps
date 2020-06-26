@@ -104,19 +104,14 @@ void ReadRestart::command(int narg, char **arg)
 
   if (me == 0) {
     if (screen) fprintf(screen,"Reading restart file ...\n");
-    char *hfile;
+    std::string hfile = file;
     if (multiproc) {
-      hfile = new char[strlen(file) + 16];
-      char *ptr = strchr(file,'%');
-      *ptr = '\0';
-      sprintf(hfile,"%s%s%s",file,"base",ptr+1);
-      *ptr = '%';
-    } else hfile = file;
-    fp = fopen(hfile,"rb");
+      hfile.replace(hfile.find("%"),1,"base");
+    }
+    fp = fopen(hfile.c_str(),"rb");
     if (fp == NULL)
       error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
                                    hfile, utils::getsyserror()));
-    if (multiproc) delete [] hfile;
   }
 
   // read magic string, endian flag, format revision
@@ -272,14 +267,10 @@ void ReadRestart::command(int narg, char **arg)
 
   else if (nprocs <= multiproc_file) {
 
-    char *procfile = new char[strlen(file) + 16];
-    char *ptr = strchr(file,'%');
-
     for (int iproc = me; iproc < multiproc_file; iproc += nprocs) {
-      *ptr = '\0';
-      sprintf(procfile,"%s%d%s",file,iproc,ptr+1);
-      *ptr = '%';
-      fp = fopen(procfile,"rb");
+      std::string procfile = file;
+      procfile.replace(procfile.find("%"),1,fmt::format("{}",iproc));
+      fp = fopen(procfile.c_str(),"rb");
       if (fp == NULL)
         error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
                                      procfile, utils::getsyserror()));
@@ -309,8 +300,6 @@ void ReadRestart::command(int narg, char **arg)
       fclose(fp);
       fp = NULL;
     }
-
-    delete [] procfile;
   }
 
   // input of multiple native files with procs > files
@@ -343,16 +332,12 @@ void ReadRestart::command(int narg, char **arg)
     MPI_Comm_split(world,icluster,0,&clustercomm);
 
     if (filereader) {
-      char *procfile = new char[strlen(file) + 16];
-      char *ptr = strchr(file,'%');
-      *ptr = '\0';
-      sprintf(procfile,"%s%d%s",file,icluster,ptr+1);
-      *ptr = '%';
-      fp = fopen(procfile,"rb");
+      std::string procfile = file;
+      procfile.replace(procfile.find("%"),1,fmt::format("{}",icluster));
+      fp = fopen(procfile.c_str(),"rb");
       if (fp == NULL)
         error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
                                      procfile, utils::getsyserror()));
-      delete [] procfile;
     }
 
     int flag,procsperfile;
@@ -618,10 +603,9 @@ void ReadRestart::file_search(char *inpfile, char *outfile)
   // create outfile with maxint substituted for "*"
   // use original inpfile, not pattern, since need to retain "%" in filename
 
-  ptr = strchr(inpfile,'*');
-  *ptr = '\0';
-  sprintf(outfile,"%s" BIGINT_FORMAT "%s",inpfile,maxnum,ptr+1);
-  *ptr = '*';
+  std::string newoutfile = inpfile;
+  newoutfile.replace(newoutfile.find("*"),1,fmt::format("{}",maxnum));
+  strcpy(outfile,newoutfile.c_str());
 
   // clean up
 

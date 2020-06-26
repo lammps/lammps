@@ -16,6 +16,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <string>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -25,6 +26,7 @@
 #include "error.h"
 #include "suffix.h"
 #include "domain.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -307,10 +309,10 @@ void KSpace::qsum_qsq(int warning_flag)
   // so issue warning or error
 
   if (fabs(qsum) > SMALL) {
-    char str[128];
-    sprintf(str,"System is not charge neutral, net charge = %g",qsum);
-    if (!warn_nonneutral) error->all(FLERR,str);
-    if (warn_nonneutral == 1 && comm->me == 0) error->warning(FLERR,str);
+    std::string message = fmt::format("System is not charge neutral, net "
+                                      "charge = {}",qsum);
+    if (!warn_nonneutral) error->all(FLERR,message);
+    if (warn_nonneutral == 1 && comm->me == 0) error->warning(FLERR,message);
     warn_nonneutral = 2;
   }
 }
@@ -324,12 +326,10 @@ double KSpace::estimate_table_accuracy(double q2_over_sqrt, double spr)
   double table_accuracy = 0.0;
   int nctb = force->pair->ncoultablebits;
   if (comm->me == 0) {
-    char str[128];
     if (nctb)
-      sprintf(str,"  using %d-bit tables for long-range coulomb",nctb);
+      error->message(FLERR,fmt::format("  using {}-bit tables for long-range coulomb",nctb));
     else
-      sprintf(str,"  using polynomial approximation for long-range coulomb");
-    error->message(FLERR,str);
+      error->message(FLERR,"  using polynomial approximation for long-range coulomb");
   }
 
   if (nctb) {

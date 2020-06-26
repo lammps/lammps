@@ -116,37 +116,28 @@ void PairTable::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
         tb = &tables[tabindex[itype][jtype]];
-        if (rsq < tb->innersq) {
-          sprintf(estr,"Pair distance < table inner cutoff: "
-                  "ijtype %d %d dist %g",itype,jtype,sqrt(rsq));
-          error->one(FLERR,estr);
-        }
-
+        if (rsq < tb->innersq)
+          error->one(FLERR,fmt::format("Pair distance < table inner cutoff: "
+                                       "ijtype {} {} dist {}",itype,jtype,sqrt(rsq)));
         if (tabstyle == LOOKUP) {
           itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-          if (itable >= tlm1) {
-            sprintf(estr,"Pair distance > table outer cutoff: "
-                    "ijtype %d %d dist %g",itype,jtype,sqrt(rsq));
-            error->one(FLERR,estr);
-          }
+          if (itable >= tlm1)
+            error->one(FLERR,fmt::format("Pair distance > table outer cutoff: "
+                                         "ijtype {} {} dist {}",itype,jtype,sqrt(rsq)));
           fpair = factor_lj * tb->f[itable];
         } else if (tabstyle == LINEAR) {
           itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-          if (itable >= tlm1) {
-            sprintf(estr,"Pair distance > table outer cutoff: "
-                    "ijtype %d %d dist %g",itype,jtype,sqrt(rsq));
-            error->one(FLERR,estr);
-          }
+          if (itable >= tlm1)
+            error->one(FLERR,fmt::format("Pair distance > table outer cutoff: "
+                                         "ijtype {} {} dist {}",itype,jtype,sqrt(rsq)));
           fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
           value = tb->f[itable] + fraction*tb->df[itable];
           fpair = factor_lj * value;
         } else if (tabstyle == SPLINE) {
           itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-          if (itable >= tlm1) {
-            sprintf(estr,"Pair distance > table outer cutoff: "
-                    "ijtype %d %d dist %g",itype,jtype,sqrt(rsq));
-            error->one(FLERR,estr);
-          }
+          if (itable >= tlm1)
+            error->one(FLERR,fmt::format("Pair distance > table outer cutoff: "
+                                         "ijtype {} {} dist {}",itype,jtype,sqrt(rsq)));
           b = (rsq - tb->rsq[itable]) * tb->invdelta;
           a = 1.0 - b;
           value = a * tb->f[itable] + b * tb->f[itable+1] +

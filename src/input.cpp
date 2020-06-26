@@ -227,11 +227,8 @@ void Input::file()
 
     // execute the command
 
-    if (execute_command()) {
-      char *str = new char[maxline+32];
-      sprintf(str,"Unknown command: %s",line);
-      error->all(FLERR,str);
-    }
+    if (execute_command())
+      error->all(FLERR,fmt::format("Unknown command: {}",line));
   }
 }
 
@@ -1249,7 +1246,7 @@ char *shell_failed_message(const char* cmd, int errnum)
   const char *errmsg = strerror(errnum);
   int len = strlen(cmd)+strlen(errmsg)+64;
   char *msg = new char[len];
-  sprintf(msg,"Shell command '%s' failed with error '%s'", cmd, errmsg);
+  snprintf(msg, len, "Shell command '%s' failed with error '%s'", cmd, errmsg);
   return msg;
 }
 

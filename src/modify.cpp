@@ -13,6 +13,7 @@
 
 #include "modify.h"
 #include <cstring>
+#include <string>
 #include "style_compute.h"
 #include "style_fix.h"
 #include "atom.h"
@@ -836,18 +837,17 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
     int match = 0;
     if (strcmp(arg[2],fix[ifix]->style) == 0) match = 1;
     if (!match && trysuffix && lmp->suffix_enable) {
-      char estyle[256];
       if (lmp->suffix) {
-        sprintf(estyle,"%s/%s",arg[2],lmp->suffix);
-        if (strcmp(estyle,fix[ifix]->style) == 0) match = 1;
+        std::string estyle = arg[2] + std::string("/") + lmp->suffix;
+        if (estyle == fix[ifix]->style) match = 1;
       }
       if (lmp->suffix2) {
-        sprintf(estyle,"%s/%s",arg[2],lmp->suffix2);
-        if (strcmp(estyle,fix[ifix]->style) == 0) match = 1;
+        std::string estyle = arg[2] + std::string("/") + lmp->suffix2;
+        if (estyle == fix[ifix]->style) match = 1;
       }
     }
-    if (!match) error->all(FLERR,
-                           "Replacing a fix, but new style != old style");
+    if (!match)
+      error->all(FLERR,"Replacing a fix, but new style != old style");
 
     if (fix[ifix]->igroup != igroup && comm->me == 0)
       error->warning(FLERR,"Replacing a fix, but new group != old group");
@@ -870,26 +870,24 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
-      int n = strlen(arg[2])+strlen(lmp->suffix)+2;
-      char *estyle = new char[n];
-      sprintf(estyle,"%s/%s",arg[2],lmp->suffix);
+      std::string estyle = arg[2] + std::string("/") + lmp->suffix;
       if (fix_map->find(estyle) != fix_map->end()) {
         FixCreator fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
         delete[] fix[ifix]->style;
-        fix[ifix]->style = estyle;
-      } else delete[] estyle;
+        fix[ifix]->style = new char[estyle.size()+1];
+        strcpy(fix[ifix]->style,estyle.c_str());
+      }
     }
     if (fix[ifix] == NULL && lmp->suffix2) {
-      int n = strlen(arg[2])+strlen(lmp->suffix2)+2;
-      char *estyle = new char[n];
-      sprintf(estyle,"%s/%s",arg[2],lmp->suffix2);
+      std::string estyle = arg[2] + std::string("/") + lmp->suffix2;
       if (fix_map->find(estyle) != fix_map->end()) {
         FixCreator fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
         delete[] fix[ifix]->style;
-        fix[ifix]->style = estyle;
-      } else delete[] estyle;
+        fix[ifix]->style = new char[estyle.size()+1];
+        strcpy(fix[ifix]->style,estyle.c_str());
+      }
     }
   }
 
@@ -1164,7 +1162,7 @@ int Modify::check_rigid_list_overlap(int *select)
 
   int n = 0;
   for (int ifix = 0; ifix < nfix; ifix++) {
-    if (strncmp("rigid",fix[ifix]->style,5) == 0) {
+    if (utils::strmatch(fix[ifix]->style,"^rigid")) {
       const int * const body = (const int *)fix[ifix]->extract("body",dim);
       if ((body == NULL) || (dim != 1)) break;
 
@@ -1209,26 +1207,24 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
 
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
-      int n = strlen(arg[2])+strlen(lmp->suffix)+2;
-      char *estyle = new char[n];
-      sprintf(estyle,"%s/%s",arg[2],lmp->suffix);
+      std::string estyle = arg[2] + std::string("/") + lmp->suffix;
       if (compute_map->find(estyle) != compute_map->end()) {
         ComputeCreator compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
         delete[] compute[ncompute]->style;
-        compute[ncompute]->style = estyle;
-      } else delete[] estyle;
+        compute[ncompute]->style = new char[estyle.size()+1];
+        strcpy(compute[ncompute]->style,estyle.c_str());
+      }
     }
     if (compute[ncompute] == NULL && lmp->suffix2) {
-      int n = strlen(arg[2])+strlen(lmp->suffix2)+2;
-      char *estyle = new char[n];
-      sprintf(estyle,"%s/%s",arg[2],lmp->suffix2);
+      std::string estyle = arg[2] + std::string("/") + lmp->suffix2;
       if (compute_map->find(estyle) != compute_map->end()) {
         ComputeCreator compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
         delete[] compute[ncompute]->style;
-        compute[ncompute]->style = estyle;
-      } else delete[] estyle;
+        compute[ncompute]->style = new char[estyle.size()+1];
+        strcpy(compute[ncompute]->style,estyle.c_str());
+      }
     }
   }
 

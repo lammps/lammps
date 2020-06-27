@@ -158,7 +158,9 @@ The following comments pertain to each *react* argument (in other
 words, can be customized for each reaction, or reaction step):
 
 A check for possible new reaction sites is performed every *Nevery*
-timesteps.
+timesteps. *Nevery* can be specified with an equal-style
+:doc:`variable <variable>`, whose value is rounded up to the nearest
+integer.
 
 Three physical conditions must be met for a reaction to occur. First,
 a bonding atom pair must be identified within the reaction distance
@@ -171,19 +173,29 @@ modified to match the post-reaction template.
 A bonding atom pair will be identified if several conditions are met.
 First, a pair of atoms I,J within the specified react-group-ID of type
 itype and jtype must be separated by a distance between *Rmin* and
-*Rmax*\ . It is possible that multiple bonding atom pairs are
-identified: if the bonding atoms in the pre-reacted template are  1-2
-neighbors, i.e. directly bonded, the farthest bonding atom partner is
-set as its bonding partner; otherwise, the closest potential partner
-is chosen. Then, if both an atom I and atom J have each other as their
-bonding partners, these two atoms are identified as the bonding atom
-pair of the reaction site. Once this unique bonding atom pair is
-identified for each reaction, there could two or more reactions that
-involve a given atom on the same timestep. If this is the case, only
-one such reaction is permitted to occur. This reaction is chosen
-randomly from all potential reactions. This capability allows e.g. for
-different reaction pathways to proceed from identical reaction sites
-with user-specified probabilities.
+*Rmax*\ . *Rmin* and *Rmax* can be specified with equal-style
+:doc:`variables <variable>`. For example, these reaction cutoffs can
+be a function of the reaction conversion using the following commands:
+
+.. code-block:: LAMMPS
+
+   variable rmax equal 0 # initialize variable before bond/react
+   fix myrxn all bond/react react myrxn1 all 1 0 v_rmax mol1 mol2 map_file.txt
+   variable rmax equal 3+f_myrxn[1]/100 # arbitrary function of reaction count
+
+It is possible that multiple bonding atom pairs are identified: if the
+bonding atoms in the pre-reacted template are  1-2 neighbors, i.e.
+directly bonded, the farthest bonding atom partner is set as its
+bonding partner; otherwise, the closest potential partner is chosen.
+Then, if both an atom I and atom J have each other as their bonding
+partners, these two atoms are identified as the bonding atom pair of
+the reaction site. Once this unique bonding atom pair is identified
+for each reaction, there could two or more reactions that involve a
+given atom on the same timestep. If this is the case, only one such
+reaction is permitted to occur. This reaction is chosen randomly from
+all potential reactions. This capability allows e.g. for different
+reaction pathways to proceed from identical reaction sites with
+user-specified probabilities.
 
 The pre-reacted molecule template is specified by a molecule command.
 This molecule template file contains a sample reaction site and its
@@ -288,7 +300,8 @@ either 'none' or 'charges.' Further details are provided in the
 discussion of the 'update_edges' keyword. The fifth optional section
 begins with the keyword 'Constraints' and lists additional criteria
 that must be satisfied in order for the reaction to occur. Currently,
-there are four types of constraints available, as discussed below.
+there are four types of constraints available, as discussed below:
+'distance', 'angle', 'dihedral', and 'arrhenius'.
 
 A sample map file is given below:
 
@@ -341,8 +354,9 @@ has syntax as follows:
    distance *ID1* *ID2* *rmin* *rmax*
 
 where 'distance' is the required keyword, *ID1* and *ID2* are
-pre-reaction atom IDs, and these two atoms must be separated by a
-distance between *rmin* and *rmax* for the reaction to occur.
+pre-reaction atom IDs (or molecule-fragment IDs, see below), and these
+two atoms must be separated by a distance between *rmin* and *rmax*
+for the reaction to occur.
 
 The constraint of type 'angle' has the following syntax:
 
@@ -351,11 +365,11 @@ The constraint of type 'angle' has the following syntax:
    angle *ID1* *ID2* *ID3* *amin* *amax*
 
 where 'angle' is the required keyword, *ID1*\ , *ID2* and *ID3* are
-pre-reaction atom IDs, and these three atoms must form an angle
-between *amin* and *amax* for the reaction to occur (where *ID2* is
-the central atom). Angles must be specified in degrees. This
-constraint can be used to enforce a certain orientation between
-reacting molecules.
+pre-reaction atom IDs (or molecule-fragment IDs, see below), and these
+three atoms must form an angle between *amin* and *amax* for the
+reaction to occur (where *ID2* is the central atom). Angles must be
+specified in degrees. This constraint can be used to enforce a certain
+orientation between reacting molecules.
 
 The constraint of type 'dihedral' has the following syntax:
 
@@ -364,15 +378,23 @@ The constraint of type 'dihedral' has the following syntax:
    dihedral *ID1* *ID2* *ID3* *ID4* *amin* *amax* *amin2* *amax2*
 
 where 'dihedral' is the required keyword, and *ID1*\ , *ID2*\ , *ID3*
-and *ID4* are pre-reaction atom IDs. Dihedral angles are calculated in
-the interval (-180,180]. Refer to the :doc:`dihedral style <dihedral_style>`
-documentation for further details on convention. If *amin* is less
-than *amax*, these four atoms must form a dihedral angle greater than
-*amin* **and** less than *amax* for the reaction to occur. If *amin*
-is greater than *amax*, these four atoms must form a dihedral angle
-greater than *amin* **or** less than *amax* for the reaction to occur.
-Angles must be specified in degrees. Optionally, a second range of
-permissible angles *amin2*-*amax2* can be specified.
+and *ID4* are pre-reaction atom IDs (or molecule-fragment IDs, see
+below). Dihedral angles are calculated in the interval (-180,180].
+Refer to the :doc:`dihedral style <dihedral_style>` documentation for
+further details on convention. If *amin* is less than *amax*, these
+four atoms must form a dihedral angle greater than *amin* **and** less
+than *amax* for the reaction to occur. If *amin* is greater than
+*amax*, these four atoms must form a dihedral angle greater than
+*amin* **or** less than *amax* for the reaction to occur. Angles must
+be specified in degrees. Optionally, a second range of permissible
+angles *amin2*-*amax2* can be specified.
+
+For the 'distance', 'angle', and 'dihedral' constraints (explained
+above), atom IDs can be replaced by pre-reaction molecule-fragment
+IDs. The molecule-fragment ID must begin with a letter. The location
+of the ID is the geometric center of all atom positions in the
+fragment. The molecule fragment must have been defined in the
+:doc:`molecule <molecule>` command for the pre-reaction template.
 
 The constraint of type 'arrhenius' imposes an additional reaction
 probability according to the temperature-dependent Arrhenius equation:
@@ -419,7 +441,8 @@ it occurs:
 
 The *prob* keyword can affect whether or not an eligible reaction
 actually occurs. The fraction setting must be a value between 0.0 and
-1.0. A uniform random number between 0.0 and 1.0 is generated and the
+1.0, and can be specified with an equal-style :doc:`variable <variable>`.
+A uniform random number between 0.0 and 1.0 is generated and the
 eligible reaction only occurs if the random number is less than the
 fraction. Up to N reactions are permitted to occur, as optionally
 specified by the *max_rxn* keyword.
@@ -489,10 +512,11 @@ local command.
 
 **Restart, fix_modify, output, run start/stop, minimize info:**
 
-Cumulative reaction counts for each reaction are written to :doc:`binary restart files <restart>`. These values are associated with the
-reaction name (react-ID). Additionally, internally-created per-atom
-properties are stored to allow for smooth restarts. None of the
-:doc:`fix_modify <fix_modify>` options are relevant to this fix.
+Cumulative reaction counts for each reaction are written to :doc:`binary restart files <restart>`.
+These values are associated with the reaction name (react-ID).
+Additionally, internally-created per-atom properties are stored to
+allow for smooth restarts. None of the :doc:`fix_modify <fix_modify>`
+options are relevant to this fix.
 
 This fix computes one statistic for each *react* argument that it
 stores in a global vector, of length 'number of react arguments', that

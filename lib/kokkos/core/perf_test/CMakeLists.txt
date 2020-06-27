@@ -48,6 +48,14 @@ SET(SOURCES
   PerfTest_ViewResize_8.cpp
   )
 
+IF(Kokkos_ENABLE_HIP)
+# FIXME requires TeamPolicy
+  LIST(REMOVE_ITEM SOURCES
+    PerfTest_CustomReduction.cpp
+    PerfTest_ExecSpacePartitioning.cpp
+    )
+ENDIF()
+
 # Per #374, we always want to build this test, but we only want to run
 # it as a PERFORMANCE test.  That's why we separate building the test
 # from running the test.
@@ -58,11 +66,14 @@ KOKKOS_INCLUDE_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/../../algorithms/src")
 KOKKOS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 KOKKOS_INCLUDE_DIRECTORIES(REQUIRED_DURING_INSTALLATION_TESTING ${CMAKE_CURRENT_SOURCE_DIR})
 
-KOKKOS_ADD_EXECUTABLE_AND_TEST(
-  PerfTestExec
-  SOURCES ${SOURCES}
-  CATEGORIES PERFORMANCE
-)
+# This test currently times out for MSVC
+IF(NOT KOKKOS_CXX_COMPILER_ID STREQUAL "MSVC")
+  KOKKOS_ADD_EXECUTABLE_AND_TEST(
+    PerfTestExec
+    SOURCES ${SOURCES}
+    CATEGORIES PERFORMANCE
+  )
+ENDIF()
 
 KOKKOS_ADD_EXECUTABLE_AND_TEST(
   PerformanceTest_TaskDag

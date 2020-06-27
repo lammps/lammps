@@ -54,7 +54,7 @@
 
 namespace Kokkos {
 
-// Atomic increment
+// Atomic decrement
 template <>
 KOKKOS_INLINE_FUNCTION void atomic_decrement<char>(volatile char* a) {
 #if defined(KOKKOS_ENABLE_ASM) && defined(KOKKOS_ENABLE_ISA_X86_64) && \

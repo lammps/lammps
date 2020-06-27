@@ -1,13 +1,14 @@
 /* ----------------------------------------------------------------------
-http://lammps.sandia.gov, Sandia National Laboratories
-Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
-Copyright (2003) Sandia Corporation.  Under the terms of Contract
-DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-certain rights in this software.  This software is distributed under
-the GNU General Public License.
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
 
-See the README file in the top-level LAMMPS directory.
+   See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -25,6 +26,7 @@ See the README file in the top-level LAMMPS directory.
 #include "update.h"
 #include "modify.h"
 #include "fix.h"
+#include "fix_dummy.h"
 #include "fix_neigh_history.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -62,7 +64,6 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 1;
   no_virial_fdotr_compute = 1;
-  fix_history = NULL;
 
   single_extra = 12;
   svector = new double[single_extra];
@@ -90,6 +91,19 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   nondefault_history_transfer = 0;
   tangential_history_index = 0;
   roll_history_index = twist_history_index = 0;
+
+  // create dummy fix as placeholder for FixNeighHistory
+  // this is so final order of Modify:fix will conform to input script
+
+  fix_history = NULL;
+
+  char **fixarg = new char*[3];
+  fixarg[0] = (char *) "NEIGH_HISTORY_GRANULAR_DUMMY";
+  fixarg[1] = (char *) "all";
+  fixarg[2] = (char *) "DUMMY";
+  modify->add_fix(3,fixarg,1);
+  delete [] fixarg;
+  fix_dummy = (FixDummy *) modify->fix[modify->nfix-1];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -97,7 +111,9 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
 PairGranular::~PairGranular()
 {
   delete [] svector;
-  if (fix_history) modify->delete_fix("NEIGH_HISTORY");
+
+  if (!fix_history) modify->delete_fix("NEIGH_HISTORY_GRANULAR_DUMMY");
+  else modify->delete_fix("NEIGH_HISTORY_GRANULAR");
 
   if (allocated) {
     memory->destroy(setflag);
@@ -1021,20 +1037,22 @@ void PairGranular::init_style()
 
   dt = update->dt;
 
-  // if history is stored:
-  // if first init, create Fix needed for storing history
+  // if history is stored and first init, create Fix to store history
+  // it replaces FixDummy, created in the constructor
+  // this is so its order in the fix list is preserved
 
   if (use_history && fix_history == NULL) {
     char dnumstr[16];
     sprintf(dnumstr,"%d",size_history);
     char **fixarg = new char*[4];
-    fixarg[0] = (char *) "NEIGH_HISTORY";
+    fixarg[0] = (char *) "NEIGH_HISTORY_GRANULAR";
     fixarg[1] = (char *) "all";
     fixarg[2] = (char *) "NEIGH_HISTORY";
     fixarg[3] = dnumstr;
-    modify->add_fix(4,fixarg,1);
+    modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY",4,fixarg,1);
     delete [] fixarg;
-    fix_history = (FixNeighHistory *) modify->fix[modify->nfix-1];
+    int ifix = modify->find_fix("NEIGH_HISTORY_GRANULAR");
+    fix_history = (FixNeighHistory *) modify->fix[ifix];
     fix_history->pair = this;
   }
 
@@ -1104,7 +1122,7 @@ void PairGranular::init_style()
   // set fix which stores history info
 
   if (size_history > 0) {
-    int ifix = modify->find_fix("NEIGH_HISTORY");
+    int ifix = modify->find_fix("NEIGH_HISTORY_GRANULAR");
     if (ifix < 0) error->all(FLERR,"Could not find pair fix neigh history ID");
     fix_history = (FixNeighHistory *) modify->fix[ifix];
   }

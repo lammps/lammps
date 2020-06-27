@@ -49,18 +49,19 @@
 #include "update.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 #ifdef _WIN32
 #define PSAPI_VERSION 1
 #include <windows.h>
-#include <stdint.h> // <cstdint> requires C++-11
+#include <cstdint>
 #include <psapi.h>
 #else
 #include <sys/resource.h>
 #include <sys/utsname.h>
 #endif
 
-#if defined(__linux)
+#if defined(__linux__)
 #include <malloc.h>
 #endif
 
@@ -267,27 +268,24 @@ void Info::command(int narg, char **arg)
   fprintf(out,"Printed on %s\n",ctime(&now));
 
   if (flags & CONFIG) {
-    if (lmp->has_git_info) {
-      fprintf(out,"\nLAMMPS version: %s / %s\nGit info: %s / %s / %s\n\n",
-              universe->version, universe->num_ver,lmp->git_branch,
-              lmp->git_descriptor,lmp->git_commit);
-    } else {
-      fprintf(out,"\nLAMMPS version: %s / %s\n\n",
-              universe->version, universe->num_ver);
-    }
-    const char *infobuf = get_os_info();
-    fprintf(out,"OS information: %s\n\n",infobuf);
-    delete[] infobuf;
+    fmt::print(out,"\nLAMMPS version: {} / {}\n",
+               universe->version, universe->num_ver);
 
-    fprintf(out,"sizeof(smallint): %3d-bit\n",(int)sizeof(smallint)*8);
-    fprintf(out,"sizeof(imageint): %3d-bit\n",(int)sizeof(imageint)*8);
-    fprintf(out,"sizeof(tagint):   %3d-bit\n",(int)sizeof(tagint)*8);
-    fprintf(out,"sizeof(bigint):   %3d-bit\n",(int)sizeof(bigint)*8);
+    if (lmp->has_git_info)
+      fmt::print(out,"Git info: {} / {} / {}\n",
+                 lmp->git_branch, lmp->git_descriptor,lmp->git_commit);
 
-    infobuf = get_compiler_info();
-    fprintf(out,"\nCompiler: %s with %s\n",infobuf,get_openmp_info());
-    delete[] infobuf;
-    fprintf(out,"C++ standard: %s\n",get_cxx_info());
+    fmt::print(out,"\nOS information: {}\n\n",get_os_info());
+
+    fmt::print(out,"sizeof(smallint): {}-bit\n"
+               "sizeof(imageint): {}-bit\n"
+               "sizeof(tagint):   {}-bit\n"
+               "sizeof(bigint):   {}-bit\n",
+               sizeof(smallint)*8, sizeof(imageint)*8,
+               sizeof(tagint)*8, sizeof(bigint)*8);
+
+    fmt::print(out,"\nCompiler: {} with {}\nC++ standard: {}\n",
+               get_compiler_info(),get_openmp_info(),get_cxx_info());
 
     fputs("\nActive compile time flags:\n\n",out);
     if (has_gzip_support()) fputs("-DLAMMPS_GZIP\n",out);
@@ -345,7 +343,7 @@ void Info::command(int narg, char **arg)
     fprintf(out,"Maximum working set size: %.4g Mbyte\n",
             (double)pmc.PeakWorkingSetSize/1048576.0);
 #else
-#if defined(__linux)
+#if defined(__linux__)
     struct mallinfo mi;
     mi = mallinfo();
     fprintf(out,"Current reserved memory pool size: %.4g Mbyte\n",
@@ -361,21 +359,21 @@ void Info::command(int narg, char **arg)
 
   if (flags & COMM) {
     int major,minor;
-    const char *version = get_mpi_info(major,minor);
+    string version = get_mpi_info(major,minor);
 
-    fprintf(out,"\nCommunication information:\n");
-    fprintf(out,"MPI library level: MPI v%d.%d\n",major,minor);
-    fprintf(out,"MPI version: %s\n",version);
-    fprintf(out,"Comm style = %s,  Comm layout = %s\n",
-            commstyles[comm->style], commlayout[comm->layout]);
-    fprintf(out,"Communicate velocities for ghost atoms = %s\n",
-            comm->ghost_velocity ? "yes" : "no");
+    fmt::print(out,"\nCommunication information:\n"
+               "MPI library level: MPI v{}.{}\n"
+               "MPI version: {}\n",major,minor,version);
 
-    if (comm->mode == 0) {
-      fprintf(out,"Communication mode = single\n");
-      fprintf(out,"Communication cutoff = %g\n",
-              comm->get_comm_cutoff());
-    }
+    fmt::print(out,"Comm style = {},  Comm layout = {}\n"
+               "Communicate velocities for ghost atoms = {}\n",
+               commstyles[comm->style], commlayout[comm->layout],
+               comm->ghost_velocity ? "yes" : "no");
+
+    if (comm->mode == 0)
+      fmt::print(out,"Communication mode = single\n"
+                 "Communication cutoff = {}\n",
+                 comm->get_comm_cutoff());
 
     if (comm->mode == 1) {
       fprintf(out,"Communication mode = multi\n");
@@ -395,7 +393,7 @@ void Info::command(int narg, char **arg)
 
   if (flags & SYSTEM) {
     fprintf(out,"\nSystem information:\n");
-    fprintf(out,"Units      = %s\n",update->unit_style);
+    fprintf(out,"Units      = %s\n", update->unit_style);
     fprintf(out,"Atom style = %s\n", atom->atom_style);
     fprintf(out,"Atom map   = %s\n", mapstyles[atom->map_style]);
     if (atom->molecular > 0) {
@@ -850,16 +848,12 @@ bool Info::is_active(const char *category, const char *name)
 
   if (!match && lmp->suffix_enable) {
     if (lmp->suffix) {
-      char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix)];
-      sprintf(name_w_suffix,"%s/%s",name,lmp->suffix);
-      if (strcmp(style,name_w_suffix) == 0) match = 1;
-      delete[] name_w_suffix;
+      std::string name_w_suffix = name + std::string("/") + lmp->suffix;
+      if (name_w_suffix == style) match = 1;
     }
     if (!match && lmp->suffix2) {
-      char *name_w_suffix = new char [len + 2 + strlen(lmp->suffix2)];
-      sprintf(name_w_suffix,"%s/%s",name,lmp->suffix2);
-      if (strcmp(style,name_w_suffix) == 0) match = 1;
-      delete[] name_w_suffix;
+      std::string name_w_suffix = name + std::string("/") + lmp->suffix2;
+      if (name_w_suffix == style) match = 1;
     }
   }
   return match ? true : false;
@@ -987,7 +981,7 @@ bool Info::has_style(const string & category, const string & name)
   return false;
 }
 
-vector<std::string> Info::get_available_styles(const string & category)
+vector<string> Info::get_available_styles(const string & category)
 {
   if ( category == "atom" ) {
     return get_style_names(atom->avec_map);
@@ -1153,9 +1147,9 @@ bool Info::has_package(const char * package_name) {
 /* ---------------------------------------------------------------------- */
 #define _INFOBUF_SIZE 256
 
-char *Info::get_os_info()
+string Info::get_os_info()
 {
-  char *buf = new char[_INFOBUF_SIZE];
+  string buf;
 
 #if defined(_WIN32)
   DWORD fullversion,majorv,minorv,buildv=0;
@@ -1166,92 +1160,91 @@ char *Info::get_os_info()
   if (fullversion < 0x80000000)
     buildv = (DWORD) (HIWORD(fullversion));
 
+  buf = fmt::format("Windows {}.{} ({}) on ",majorv,minorv,buildv);
+
   SYSTEM_INFO si;
   GetSystemInfo(&si);
 
-  const char *machine;
   switch (si.wProcessorArchitecture) {
   case PROCESSOR_ARCHITECTURE_AMD64:
-    machine = (const char *) "x86_64";
+    buf += "x86_64";
     break;
   case PROCESSOR_ARCHITECTURE_ARM:
-    machine = (const char *) "arm";
+    buf += "arm";
     break;
   case PROCESSOR_ARCHITECTURE_IA64:
-    machine = (const char *) "ia64";
+    buf += "ia64";
     break;
   case PROCESSOR_ARCHITECTURE_INTEL:
-    machine = (const char *) "i386";
+    buf += "i386";
     break;
   default:
-    machine = (const char *) "(unknown)";
+    buf += "(unknown)";
   }
-  snprintf(buf,_INFOBUF_SIZE,"Windows %d.%d (%d) on %s",
-           majorv,minorv,buildv,machine);
 #else
   struct utsname ut;
   uname(&ut);
-  snprintf(buf,_INFOBUF_SIZE,"%s %s on %s",
-           ut.sysname, ut.release, ut.machine);
+  buf = fmt::format("{} {} on {}", ut.sysname, ut.release, ut.machine);
 #endif
   return buf;
 }
 
-char *Info::get_compiler_info()
+string Info::get_compiler_info()
 {
-  char *buf = new char[_INFOBUF_SIZE];
+  string buf;
 #if __clang__
-  snprintf(buf,_INFOBUF_SIZE,"Clang C++ %s", __VERSION__);
+  buf = fmt::format("Clang C++ {}", __VERSION__);
 #elif __INTEL_COMPILER
   double version = static_cast<double>(__INTEL_COMPILER)*0.01;
-  snprintf(buf,_INFOBUF_SIZE,"Intel C++ %5.2f.%d / %s", version, __INTEL_COMPILER_UPDATE, __VERSION__);
+  buf = fmt::format("Intel C++ {:.2f}.{} / {}", version,
+                    __INTEL_COMPILER_UPDATE, __VERSION__);
 #elif __GNUC__
-  snprintf(buf,_INFOBUF_SIZE,"GNU C++ %s",   __VERSION__);
+  buf = fmt::format("GNU C++ {}",   __VERSION__);
 #else
-  snprintf(buf,_INFOBUF_SIZE,"(Unknown)");
+  buf = "(Unknown)";
 #endif
   return buf;
 }
 
-const char *Info::get_openmp_info()
+string Info::get_openmp_info()
 {
 
 #if !defined(_OPENMP)
-  return (const char *)"OpenMP not enabled";
+  return "OpenMP not enabled";
 #else
 
 // Supported OpenMP version corresponds to the release date of the
 // specifications as posted at https://www.openmp.org/specifications/
 
 #if _OPENMP > 201811
-  return (const char *)"OpenMP newer than version 5.0";
+  return "OpenMP newer than version 5.0";
 #elif _OPENMP == 201811
-  return (const char *)"OpenMP 5.0";
+  return "OpenMP 5.0";
 #elif _OPENMP == 201611
-  return (const char *)"OpenMP 5.0 preview 1";
+  return "OpenMP 5.0 preview 1";
 #elif _OPENMP == 201511
-  return (const char *)"OpenMP 4.5";
+  return "OpenMP 4.5";
 #elif _OPENMP == 201307
-  return (const char *)"OpenMP 4.0";
+  return "OpenMP 4.0";
 #elif _OPENMP == 201107
-  return (const char *)"OpenMP 3.1";
+  return "OpenMP 3.1";
 #elif _OPENMP == 200805
-  return (const char *)"OpenMP 3.0";
+  return "OpenMP 3.0";
 #elif _OPENMP == 200505
-  return (const char *)"OpenMP 2.5";
+  return "OpenMP 2.5";
 #elif _OPENMP == 200203
-  return (const char *)"OpenMP 2.0";
+  return "OpenMP 2.0";
 #else
-  return (const char *)"unknown OpenMP version";
+  return "unknown OpenMP version";
 #endif
 
 #endif
 }
 
-const char *Info::get_mpi_info(int &major, int &minor)
+string Info::get_mpi_info(int &major, int &minor)
 {
   int len;
-  #if (defined(MPI_VERSION) && (MPI_VERSION > 2)) || defined(MPI_STUBS)
+#if (defined(MPI_VERSION) && (MPI_VERSION > 2)) || defined(MPI_STUBS)
   static char version[MPI_MAX_LIBRARY_VERSION_STRING];
   MPI_Get_library_version(version,&len);
 #else
@@ -1264,23 +1257,23 @@ const char *Info::get_mpi_info(int &major, int &minor)
     char *ptr = strchr(version+80,'\n');
     if (ptr) *ptr = '\0';
   }
-  return version;
+  return string(version);
 }
 
-const char *Info::get_cxx_info()
+string Info::get_cxx_info()
 {
 #if __cplusplus > 201703L
-  return (const char *)"newer than C++17";
+  return "newer than C++17";
 #elif __cplusplus == 201703L
-  return (const char *)"C++17";
+  return "C++17";
 #elif __cplusplus == 201402L
-  return (const char *)"C++14";
+  return "C++14";
 #elif __cplusplus == 201103L
-  return (const char *)"C++11";
+  return "C++11";
 #elif __cplusplus == 199711L
-  return (const char *)"C++98";
+  return "C++98";
 #else
-  return (const char *)"unknown";
+  return "unknown";
 #endif
 }
 

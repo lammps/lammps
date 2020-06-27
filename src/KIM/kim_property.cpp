@@ -100,13 +100,13 @@ void kimProperty::command(int narg, char **arg)
     std::string msg("Error incorrect arguments in kim_property command.\n");
     msg += "`kim_property create/destroy/modify/remove/dump` ";
     msg += "is mandatory.";
-    error->all(FLERR, msg.c_str());
+    error->all(FLERR, msg);
   }
 
   if (comm->me == 0) {
     std::string msg;
     msg = "#=== kim-property ===========================================\n";
-    input->write_echo(msg.c_str());
+    input->write_echo(msg);
   }
 
   // Get the kim_str ptr to the data associated with a kim_property_str
@@ -464,7 +464,8 @@ void kimProperty::command(int narg, char **arg)
         error->one(FLERR, "Error Python `kim_property_dump` function "
                           "evaluation failed!");
       }
-    }
+    } else
+      pValue = NULL;
 
     // Destroy the variable
     kim_str_cmd[1] = const_cast<char *>("delete");

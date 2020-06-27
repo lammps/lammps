@@ -1,5 +1,11 @@
-#ifndef _WIN32
+#if !defined(_WIN32)
+
+#if defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#include <cstdlib>
+#else
 #include <alloca.h>
+#endif
+
 #endif
 #include "Function.h"
 #include "ATC_Error.h"

@@ -441,7 +441,7 @@ void NEBSpin::readfile(char *file, int flag)
     buf = buffer;
     next = strchr(buf,'\n');
     *next = '\0';
-    int nwords = atom->count_words(buf);
+    int nwords = utils::trim_and_count_words(buf);
     *next = '\n';
 
     if (nwords != ATTRIBUTE_PERLINE)

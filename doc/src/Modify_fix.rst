@@ -27,7 +27,7 @@ derived class.  See fix.h for details.
 +---------------------------+--------------------------------------------------------------------------------------------+
 | setup_pre_force           | called before force computation in setup (optional)                                        |
 +---------------------------+--------------------------------------------------------------------------------------------+
-| setup                     | called immediately before the 1st timestep and after forces are computed (optional)        |
+| setup                     | called immediately before the first timestep and after forces are computed (optional)      |
 +---------------------------+--------------------------------------------------------------------------------------------+
 | min_setup_pre_force       | like setup_pre_force, but for minimizations instead of MD runs (optional)                  |
 +---------------------------+--------------------------------------------------------------------------------------------+

@@ -1,12 +1,12 @@
 Link LAMMPS as a library to another code
 ========================================
 
-LAMMPS is designed as a library of C++ objects and can thus be
+LAMMPS is designed as a library of C++ objects that can be
 integrated into other applications including Python scripts.
 The files ``src/library.cpp`` and ``src/library.h`` define a
 C-style API for using LAMMPS as a library.  See the :doc:`Howto
-library <Howto_library>` doc page for a description of the interface
-and how to extend it for your needs.
+library <Howto_library>` page for a description of the interface
+and how to use it for your needs.
 
 The :doc:`Build basics <Build_basics>` doc page explains how to build
 LAMMPS as either a shared or static library.  This results in a file
@@ -31,18 +31,18 @@ the suffix ``.so.0`` (or some other number).
    communicator with a subset of MPI ranks to the function creating the
    LAMMPS instance.
 
-----------
-
-**Link with LAMMPS as a static library**\ :
+Link with LAMMPS as a static library
+------------------------------------
 
 The calling application can link to LAMMPS as a static library with
 compilation and link commands as in the examples shown below.  These
-are examples for a code written in C in the file *caller.c*.
+are examples for a code written in C in the file ``caller.c``.
 The benefit of linking to a static library is, that the resulting
 executable is independent of that library since all required
 executable code from the library is copied into the calling executable.
 
-*CMake build*\ :
+CMake build
+^^^^^^^^^^^
 
 This assumes that LAMMPS has been configured without setting a
 ``LAMMPS_MACHINE`` name, installed with "make install", and the
@@ -55,7 +55,8 @@ The commands to compile and link a coupled executable are then:
    mpicc -c -O $(pkgconf liblammps --cflags) caller.c
    mpicxx -o caller caller.o -$(pkgconf liblammps --libs)
 
-*Traditional make*\ :
+Traditional make
+^^^^^^^^^^^^^^^^
 
 This assumes that LAMMPS has been compiled in the folder
 ``${HOME}/lammps/src`` with "make mpi". The commands to compile and link
@@ -83,20 +84,20 @@ LAMMPS library without any optional packages that depend on libraries
 need to include all flags, libraries, and paths for the coupled
 executable, that are also required to link the LAMMPS executable.
 
-*CMake build*\ :
+CMake build
+^^^^^^^^^^^
 
 When using CMake, additional libraries with sources in the lib folder
 are built, but not included in ``liblammps.a`` and (currently) not
-installed with "make install" and not included in the *pkgconfig*
+installed with ``make install`` and not included in the ``pkgconfig``
 configuration file.  They can be found in the top level build folder,
 but you have to determine the necessary link flags manually.  It is
 therefore recommended to either use the traditional make procedure to
 build and link with a static library or build and link with a shared
 library instead.
 
-.. TODO: this needs to be updated to reflect that latest CMake changes after they are complete.
-
-*Traditional make*\ :
+Traditional make
+^^^^^^^^^^^^^^^^
 
 After you have compiled a static LAMMPS library using the conventional
 build system for example with "make mode=static serial". And you also
@@ -110,10 +111,10 @@ change to:
    g++ -o caller caller.o -L${HOME}/lammps/lib/poems \
      -L${HOME}/lammps/src/STUBS -L${HOME}/lammps/src -llammps_serial -lpoems -lmpi_stubs
 
-Note, that you need to link with "g++" instead of "gcc", since the
-LAMMPS library is C++ code.  You can display the currently applied
-settings for building LAMMPS for the "serial" machine target by using
-the command:
+Note, that you need to link with ``g++`` instead of ``gcc`` even if you have
+written your code in C, since LAMMPS itself is C++ code.  You can display the
+currently applied settings for building LAMMPS for the "serial" machine target
+by using the command:
 
 .. code-block:: bash
 
@@ -123,25 +124,24 @@ Which should output something like:
 
 .. code-block:: bash
 
-   # Compiler: 
+   # Compiler:
    CXX=g++
-   # Linker: 
+   # Linker:
    LD=g++
-   # Compilation: 
+   # Compilation:
    CXXFLAGS=-g -O3 -DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64 -I${HOME}/compile/lammps/lib/poems -I${HOME}/compile/lammps/src/STUBS
-   # Linking: 
+   # Linking:
    LDFLAGS=-g -O
-   # Libraries: 
+   # Libraries:
    LDLIBS=-L${HOME}/compile/lammps/src -llammps_serial -L${HOME}/compile/lammps/lib/poems -L${HOME}/compile/lammps/src/STUBS -lpoems -lmpi_stubs
 
 From this you can gather the necessary paths and flags.  With
 makefiles for other *machine* configurations you need to do the
-equivalent and replace "serial" with the corresponding *machine* name
+equivalent and replace "serial" with the corresponding "machine" name
 of the makefile.
 
-----------
-
-**Link with LAMMPS as a shared library**\ :
+Link with LAMMPS as a shared library
+------------------------------------
 
 When linking to LAMMPS built as a shared library, the situation becomes
 much simpler, as all dependent libraries and objects are either included
@@ -151,7 +151,8 @@ linking the calling executable.  Only the *-I* flags are needed.  So the
 example case from above of the serial version static LAMMPS library with
 the POEMS package installed becomes:
 
-*CMake build*\ :
+CMake build
+^^^^^^^^^^^
 
 The commands with a shared LAMMPS library compiled with the CMake
 build process are the same as for the static library.
@@ -161,10 +162,11 @@ build process are the same as for the static library.
    mpicc -c -O $(pkgconf liblammps --cflags) caller.c
    mpicxx -o caller caller.o -$(pkgconf --libs)
 
-*Traditional make*\ :
+Traditional make
+^^^^^^^^^^^^^^^^
 
 The commands with a shared LAMMPS library compiled with the
-traditional make build using "make mode=shared serial" becomes:
+traditional make build using ``make mode=shared serial`` becomes:
 
 .. code-block:: bash
 
@@ -231,29 +233,3 @@ If a required library is missing, you would get a 'not found' entry:
         libc.so.6 => /usr/lib64/libc.so.6 (0x00007fb7c7b5d000)
         /lib64/ld-linux-x86-64.so.2 (0x00007fb7c80a2000)
 
-----------
-
-**Calling the LAMMPS library**\ :
-
-Either flavor of library (static or shared) allows one or more LAMMPS
-objects to be instantiated from the calling program. When used from a
-C++ program, most of the symbols and functions in LAMMPS are wrapped
-in a ``LAMMPS_NS`` namespace; you can safely use any of its classes and
-methods from within the calling code, as needed, and you will not incur
-conflicts with functions and variables in your code that share the name.
-This, however, does not extend to all additional libraries bundled with
-LAMMPS in the lib folder and some of the low-level code of some packages.
-
-To be compatible with C, Fortran, Python programs, the library has a simple
-C-style interface, provided in ``src/library.cpp`` and ``src/library.h``.
-
-See the :doc:`Python library <Python_library>` doc page for a
-description of the Python interface to LAMMPS, which wraps the C-style
-interface from a shared library through the `ctypes python module <ctypes_>`_.
-
-See the sample codes in ``examples/COUPLE/simple`` for examples of C++ and
-C and Fortran codes that invoke LAMMPS through its library interface.
-Other examples in the COUPLE directory use coupling ideas discussed on
-the :doc:`Howto couple <Howto_couple>` doc page.
-
-.. _ctypes: https://docs.python.org/3/library/ctypes.html

@@ -353,7 +353,7 @@ int MPI_Get_count(MPI_Status *status, MPI_Datatype datatype, int *count)
 
 int MPI_Comm_split(MPI_Comm comm, int color, int key, MPI_Comm *comm_out)
 {
-  *comm_out = comm;
+  *comm_out = comm+1;
   return 0;
 }
 
@@ -361,7 +361,7 @@ int MPI_Comm_split(MPI_Comm comm, int color, int key, MPI_Comm *comm_out)
 
 int MPI_Comm_dup(MPI_Comm comm, MPI_Comm *comm_out)
 {
-  *comm_out = comm;
+  *comm_out = comm+1;
   return 0;
 }
 
@@ -377,7 +377,7 @@ MPI_Fint MPI_Comm_c2f(MPI_Comm comm) { return comm; };
 
 MPI_Comm MPI_Comm_f2c(MPI_Fint comm) { return comm; };
 
-//* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 int MPI_Comm_group(MPI_Comm comm, MPI_Group *group)
 {

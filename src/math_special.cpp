@@ -1,6 +1,6 @@
 #include "math_special.h"
 #include <cmath>
-#include <stdint.h> // IWYU pragma: keep
+#include <cstdint> // IWYU pragma: keep
 
 using namespace LAMMPS_NS;
 

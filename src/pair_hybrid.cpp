@@ -313,7 +313,7 @@ void PairHybrid::settings(int narg, char **arg)
   iarg = 0;
   nstyles = 0;
   while (iarg < narg) {
-    if (strncmp(arg[iarg],"hybrid",6) == 0)
+    if (utils::strmatch(arg[iarg],"^hybrid"))
       error->all(FLERR,"Pair style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[iarg],"none") == 0)
       error->all(FLERR,"Pair style hybrid cannot have none as an argument");
@@ -323,8 +323,14 @@ void PairHybrid::settings(int narg, char **arg)
     special_lj[nstyles] = special_coul[nstyles] = NULL;
     compute_tally[nstyles] = 1;
 
+    // determine list of arguments for pair style settings
+    // by looking for the next known pair style name.
+
     jarg = iarg + 1;
-    while (jarg < narg && !force->pair_map->count(arg[jarg])) jarg++;
+    while ((jarg < narg)
+           && !force->pair_map->count(arg[jarg])
+           && !lmp->match_style("pair",arg[jarg])) jarg++;
+
     styles[nstyles]->settings(jarg-iarg-1,&arg[iarg+1]);
     iarg = jarg;
     nstyles++;
@@ -363,8 +369,8 @@ void PairHybrid::flags()
                                           styles[m]->comm_reverse_off);
   }
 
-  // single_enable = 1 if any sub-style is set
-  // respa_enable = 1 if any sub-style is set
+  // single_enable = 1 if all sub-styles are set
+  // respa_enable = 1 if all sub-styles are set
   // manybody_flag = 1 if any sub-style is set
   // no_virial_fdotr_compute = 1 if any sub-style is set
   // ghostneigh = 1 if any sub-style is set
@@ -374,9 +380,12 @@ void PairHybrid::flags()
 
   single_enable = 0;
   compute_flag = 0;
+  respa_enable = 0;
+  restartinfo = 0;
   for (m = 0; m < nstyles; m++) {
-    if (styles[m]->single_enable) single_enable = 1;
-    if (styles[m]->respa_enable) respa_enable = 1;
+    if (styles[m]->single_enable) ++single_enable;
+    if (styles[m]->respa_enable) ++respa_enable;
+    if (styles[m]->restartinfo) ++restartinfo;
     if (styles[m]->manybody_flag) manybody_flag = 1;
     if (styles[m]->no_virial_fdotr_compute) no_virial_fdotr_compute = 1;
     if (styles[m]->ghostneigh) ghostneigh = 1;
@@ -390,6 +399,9 @@ void PairHybrid::flags()
     if (styles[m]->compute_flag) compute_flag = 1;
     if (styles[m]->centroidstressflag & 4) centroidstressflag |= 4;
   }
+  single_enable = (single_enable == nstyles) ? 1 : 0;
+  respa_enable = (respa_enable == nstyles) ? 1 : 0;
+  restartinfo = (restartinfo == nstyles) ? 1 : 0;
   init_svector();
 }
 
@@ -1007,7 +1019,7 @@ void *PairHybrid::extract(const char *str, int &dim)
   for (int m = 0; m < nstyles; m++) {
     ptr = styles[m]->extract(str,dim);
     if (ptr && strcmp(str,"cut_coul") == 0) {
-      if (cutptr && dim != couldim)
+      if (couldim != -1 && dim != couldim)
         error->all(FLERR,
                    "Coulomb styles of pair hybrid sub-styles do not match");
       double *p_newvalue = (double *) ptr;

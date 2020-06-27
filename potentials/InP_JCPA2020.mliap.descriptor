@@ -1,0 +1,20 @@
+# DATE: 2020-06-01 UNITS: metal CONTRIBUTOR: Mary Alice Cusentino mcusent@sandia.gov CITATION: M.A. Cusentino, M. A. Wood, and A.P. Thompson, "Explicit Multi-element Extension of the Spectral Neighbor Analysis Potential for Chemically Complex Systems", J. Phys. Chem. A, xxxxxx (2020)
+
+# required
+rcutfac 1.0
+twojmax 6
+
+# elements
+
+nelems 2
+elems In P 
+radelems 3.81205 3.82945 
+welems 1 0.929316
+
+#  optional
+rfac0 0.99363
+rmin0 0.0
+bzeroflag 1
+wselfallflag 1
+chemflag 1
+bnormflag 1

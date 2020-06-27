@@ -125,8 +125,7 @@ __device__ __inline__ T _relaxed_atomic_load_impl(
                                     void const**>::type = nullptr) {
   T rv{};
   // TODO remove a copy operation here?
-  Kokkos::Impl::atomic_oper_fetch(NoOpOper<T>{}, &rv, rv);
-  return rv;
+  return Kokkos::Impl::atomic_oper_fetch(NoOpOper<T>{}, ptr, rv);
 }
 
 template <class T>
@@ -168,6 +167,14 @@ inline T _atomic_load(T* ptr, MemoryOrder) {
   return *ptr;
 }
 
+#elif defined(KOKKOS_ENABLE_WINDOWS_ATOMICS)
+
+template <class T, class MemoryOrder>
+inline T _atomic_load(T* ptr, MemoryOrder) {
+  atomic_compare_exchange(ptr, 0, 0);
+  return *ptr;
+}
+
 #endif  // end of all atomic implementations
 
 template <class T>
@@ -189,7 +196,7 @@ KOKKOS_FORCEINLINE_FUNCTION T atomic_load(T* ptr,
 }
 
 template <class T>
-KOKKOS_FORCEINLINE_FUNCTION T atomic_load(T* ptr,
+KOKKOS_FORCEINLINE_FUNCTION T atomic_load(T* /*ptr*/,
                                           Impl::memory_order_release_t) {
   static_assert(
       sizeof(T) == 0,  // just something that will always be false, but only on
@@ -198,7 +205,7 @@ KOKKOS_FORCEINLINE_FUNCTION T atomic_load(T* ptr,
 }
 
 template <class T>
-KOKKOS_FORCEINLINE_FUNCTION T atomic_load(T* ptr,
+KOKKOS_FORCEINLINE_FUNCTION T atomic_load(T* /*ptr*/,
                                           Impl::memory_order_acq_rel_t) {
   static_assert(
       sizeof(T) == 0,  // just something that will always be false, but only on

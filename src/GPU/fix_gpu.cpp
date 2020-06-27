@@ -225,12 +225,6 @@ void FixGPU::init()
     error->all(FLERR,"GPU package does not (yet) work with "
                "atom_style template");
 
-  // neighbor list builds on the GPU with triclinic box is not yet supported
-
-  if ((_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH) &&
-      domain->triclinic)
-    error->all(FLERR,"Cannot use package gpu neigh yes with triclinic box");
-
   // give a warning if no pair style is defined
 
   if (!force->pair)

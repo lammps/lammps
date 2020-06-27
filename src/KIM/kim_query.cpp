@@ -56,6 +56,7 @@
 ------------------------------------------------------------------------- */
 
 #include "kim_query.h"
+#include "fix_store_kim.h"
 #include <mpi.h>
 #include <cstring>
 #include <string>
@@ -67,7 +68,7 @@
 #include "variable.h"
 #include "version.h"
 #include "info.h"
-#include "fix_store_kim.h"
+#include "fmt/format.h"
 
 #if defined(LMP_KIM_CURL)
 #include <sys/types.h>
@@ -153,7 +154,7 @@ void KimQuery::command(int narg, char **arg)
     error->all(FLERR,errmsg);
   }
 
-  kim_query_log_delimiter("begin");
+  input->write_echo("#=== BEGIN kim-query =========================================\n");
   char **varcmd = new char*[3];
   varcmd[1] = (char *) "string";
 
@@ -186,7 +187,7 @@ void KimQuery::command(int narg, char **arg)
     input->variable->set(3,varcmd);
     echo_var_assign(varname, value_string);
   }
-  kim_query_log_delimiter("end");
+  input->write_echo("#=== END kim-query ===========================================\n\n");
 
   delete[] varcmd;
   delete[] value;
@@ -342,29 +343,8 @@ char *do_query(char *qfunction, char * model_name, int narg, char **arg,
 
 /* ---------------------------------------------------------------------- */
 
-void KimQuery::kim_query_log_delimiter(std::string const begin_end) const
+void KimQuery::echo_var_assign(const std::string & name,
+                               const std::string & value) const
 {
-  if (comm->me == 0) {
-    std::string mesg;
-    if (begin_end == "begin")
-      mesg =
-          "#=== BEGIN kim-query =========================================\n";
-    else if (begin_end == "end")
-      mesg =
-          "#=== END kim-query ===========================================\n\n";
-
-    input->write_echo(mesg.c_str());
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void KimQuery::echo_var_assign(std::string const & name,
-                               std::string const & value) const
-{
-  if (comm->me == 0) {
-    std::string mesg;
-    mesg += "variable " + name + " string " + value + "\n";
-    input->write_echo(mesg.c_str());
-  }
+  input->write_echo(fmt::format("variable {} string {}\n",name,value));
 }

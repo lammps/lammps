@@ -27,6 +27,7 @@
 #include "error.h"
 #include "domain.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -50,16 +51,15 @@ void WriteCoeff::command(int narg, char **arg)
   strcat(file,arg[0]);
 
   // initialize relevant styles
-  force->init();
+  lmp->init();
 
   if (comm->me == 0) {
     char str[256], coeff[256];
     FILE *one = fopen(file,"wb+");
 
-    if (one == NULL) {
-      snprintf(str,256,"Cannot open coeff file %s",file);
-      error->one(FLERR,str);
-    }
+    if (one == NULL)
+      error->one(FLERR,fmt::format("Cannot open coeff file {}: {}",
+                                   file, utils::getsyserror()));
 
     if (force->pair && force->pair->writedata) {
       fprintf(one,"# pair_style %s\npair_coeff\n",force->pair_style);
@@ -91,10 +91,10 @@ void WriteCoeff::command(int narg, char **arg)
     rewind(one);
 
     FILE *two = fopen(file+4,"w");
-    if (two == NULL) {
-      snprintf(str,256,"Cannot open coeff file %s",file+4);
-      error->one(FLERR,str);
-    }
+    if (two == NULL)
+      error->one(FLERR,fmt::format("Cannot open coeff file {}: {}",
+                                   file+4, utils::getsyserror()));
+
     fprintf(two,"# LAMMPS coeff file via write_coeff, version %s\n",
             universe->version);
 

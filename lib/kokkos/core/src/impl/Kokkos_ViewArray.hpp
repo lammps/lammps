@@ -338,7 +338,7 @@ class ViewMapping<Traits, Kokkos::Array<> > {
 
   //----------------------------------------
 
-  KOKKOS_INLINE_FUNCTION ~ViewMapping() {}
+  KOKKOS_DEFAULTED_FUNCTION ~ViewMapping() = default;
   KOKKOS_INLINE_FUNCTION ViewMapping()
       : m_impl_handle(), m_impl_offset(), m_stride(0) {}
   KOKKOS_INLINE_FUNCTION ViewMapping(const ViewMapping &rhs)
@@ -349,7 +349,6 @@ class ViewMapping<Traits, Kokkos::Array<> > {
     m_impl_handle = rhs.m_impl_handle;
     m_impl_offset = rhs.m_impl_offset;
     m_stride      = rhs.m_stride;
-    ;
     return *this;
   }
 
@@ -469,7 +468,7 @@ class ViewMapping<
 
   KOKKOS_INLINE_FUNCTION
   static void assign(DstType &dst, const SrcType &src,
-                     const TrackType &src_track) {
+                     const TrackType & /*src_track*/) {
     static_assert(is_assignable, "Can only convert to array_type");
 
     typedef typename DstType::offset_type dst_offset_type;

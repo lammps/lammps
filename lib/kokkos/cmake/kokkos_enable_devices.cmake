@@ -31,6 +31,41 @@ ELSE()
   SET(OMP_DEFAULT OFF)
 ENDIF()
 KOKKOS_DEVICE_OPTION(OPENMP ${OMP_DEFAULT} HOST "Whether to build OpenMP backend")
+IF(KOKKOS_ENABLE_OPENMP)
+  SET(ClangOpenMPFlag -fopenmp=libomp)
+  IF(KOKKOS_CLANG_IS_CRAY)
+    SET(ClangOpenMPFlag -fopenmp)
+  ENDIF()
+  COMPILER_SPECIFIC_FLAGS(
+    Clang      ${ClangOpenMPFlag}
+    AppleClang -Xpreprocessor -fopenmp
+    PGI        -mp
+    NVIDIA     -Xcompiler -fopenmp
+    Cray       NO-VALUE-SPECIFIED
+    XL         -qsmp=omp
+    DEFAULT    -fopenmp
+  )
+  COMPILER_SPECIFIC_LIBS(
+    AppleClang -lomp
+  )
+ENDIF()
+
+KOKKOS_DEVICE_OPTION(OPENMPTARGET OFF DEVICE "Whether to build the OpenMP target backend")
+IF (KOKKOS_ENABLE_OPENMPTARGET)
+  COMPILER_SPECIFIC_FLAGS(
+    Clang      -fopenmp -fopenmp=libomp
+    XL         -qsmp=omp -qoffload -qnoeh
+    DEFAULT    -fopenmp
+  )
+  COMPILER_SPECIFIC_DEFS(
+    XL    KOKKOS_IBM_XL_OMP45_WORKAROUND
+    Clang KOKKOS_WORKAROUND_OPENMPTARGET_CLANG
+  )
+# Are there compilers which identify as Clang and need this library?
+#  COMPILER_SPECIFIC_LIBS(
+#    Clang -lopenmptarget
+#  )
+ENDIF()
 
 IF(Trilinos_ENABLE_Kokkos AND TPL_ENABLE_CUDA)
   SET(CUDA_DEFAULT ON)
@@ -59,3 +94,5 @@ ENDIF()
 KOKKOS_DEVICE_OPTION(SERIAL ${SERIAL_DEFAULT} HOST "Whether to build serial backend")
 
 KOKKOS_DEVICE_OPTION(HPX OFF HOST "Whether to build HPX backend (experimental)")
+
+KOKKOS_DEVICE_OPTION(HIP OFF DEVICE "Whether to build HIP backend")

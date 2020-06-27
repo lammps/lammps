@@ -39,8 +39,6 @@ using namespace FixConst;
 #define SMALL 0.0001
 #define EV_TO_KCAL_PER_MOL 14.4
 
-#define TEAMSIZE 128
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -726,7 +724,9 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
   const int inum = list->inum;
   F_FLOAT tmp, sig_old, b_norm;
 
-  const int teamsize = TEAMSIZE;
+  int teamsize;
+  if (execution_space == Host) teamsize = 1;
+  else teamsize = 128;
 
   // sparse_matvec( &H, x, q );
   FixQEqReaxKokkosSparse12Functor<DeviceType> sparse12_functor(this);
@@ -861,7 +861,9 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
   const int inum = list->inum;
   F_FLOAT tmp, sig_old, b_norm;
 
-  const int teamsize = TEAMSIZE;
+  int teamsize;
+  if (execution_space == Host) teamsize = 1;
+  else teamsize = 128;
 
   // sparse_matvec( &H, x, q );
   FixQEqReaxKokkosSparse32Functor<DeviceType> sparse32_functor(this);

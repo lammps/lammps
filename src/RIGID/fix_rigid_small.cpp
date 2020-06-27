@@ -39,6 +39,7 @@
 #include "memory.h"
 #include "error.h"
 #include "rigid_const.h"
+#include "utils.h"
 
 #include <map>
 
@@ -71,6 +72,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   create_attribute = 1;
   dof_flag = 1;
   enforce2d_flag = 1;
+  stores_ids = 1;
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -2488,7 +2490,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
     buf = buffer;
     next = strchr(buf,'\n');
     *next = '\0';
-    int nwords = atom->count_words(buf);
+    int nwords = utils::trim_and_count_words(buf);
     *next = '\n';
 
     if (nwords != ATTRIBUTE_PERBODY)
@@ -2561,7 +2563,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
    each proc contributes info for rigid bodies it owns
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::write_restart_file(char *file)
+void FixRigidSmall::write_restart_file(const char *file)
 {
   FILE *fp;
 

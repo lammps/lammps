@@ -169,7 +169,10 @@ class ThreadsExecTeamMember {
   KOKKOS_INLINE_FUNCTION void team_broadcast(ValueType& value,
                                              const int& thread_id) const {
 #if !defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-    {}
+    {
+      (void)value;
+      (void)thread_id;
+    }
 #else
     // Make sure there is enough scratch space:
     typedef typename if_c<sizeof(ValueType) < TEAM_REDUCE_SIZE, ValueType,
@@ -177,6 +180,8 @@ class ThreadsExecTeamMember {
 
     if (m_team_base) {
       type* const local_value = ((type*)m_team_base[0]->scratch_memory());
+      memory_fence();
+      team_barrier();
       if (team_rank() == thread_id) *local_value = value;
       memory_fence();
       team_barrier();
@@ -189,7 +194,11 @@ class ThreadsExecTeamMember {
   KOKKOS_INLINE_FUNCTION void team_broadcast(Closure const& f, ValueType& value,
                                              const int& thread_id) const {
 #if !defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-    {}
+    {
+      (void)f;
+      (void)value;
+      (void)thread_id;
+    }
 #else
     // Make sure there is enough scratch space:
     typedef typename if_c<sizeof(ValueType) < TEAM_REDUCE_SIZE, ValueType,
@@ -197,6 +206,8 @@ class ThreadsExecTeamMember {
     f(value);
     if (m_team_base) {
       type* const local_value = ((type*)m_team_base[0]->scratch_memory());
+      memory_fence();
+      team_barrier();
       if (team_rank() == thread_id) *local_value = value;
       memory_fence();
       team_barrier();
@@ -211,7 +222,7 @@ class ThreadsExecTeamMember {
       team_reduce(const Type& value) const
 #if !defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
   {
-    return Type();
+    return value;
   }
 #else
   {
@@ -221,13 +232,15 @@ class ThreadsExecTeamMember {
 
     if (0 == m_exec) return value;
 
-    *((volatile type*)m_exec->scratch_memory()) = value;
+    if (team_rank() != team_size() - 1)
+      *((volatile type*)m_exec->scratch_memory()) = value;
 
     memory_fence();
 
     type& accum = *((type*)m_team_base[0]->scratch_memory());
 
     if (team_fan_in()) {
+      accum = value;
       for (int i = 1; i < m_team_size; ++i) {
         accum += *((type*)m_team_base[i]->scratch_memory());
       }
@@ -267,7 +280,7 @@ class ThreadsExecTeamMember {
     type* const local_value = ((type*)m_exec->scratch_memory());
 
     // Set this thread's contribution
-    *local_value = contribution;
+    if (team_rank() != team_size() - 1) *local_value = contribution;
 
     // Fence to make sure the base team member has access:
     memory_fence();
@@ -277,6 +290,7 @@ class ThreadsExecTeamMember {
       // team_fan_out()
       type* const team_value = ((type*)m_team_base[0]->scratch_memory());
 
+      *team_value = contribution;
       // Join to the team value:
       for (int i = 1; i < m_team_size; ++i) {
         reducer.join(*team_value, *((type*)m_team_base[i]->scratch_memory()));
@@ -313,7 +327,8 @@ class ThreadsExecTeamMember {
                                            ArgType* const global_accum) const
 #if !defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
   {
-    return ArgType();
+    (void)global_accum;
+    return value;
   }
 #else
   {
@@ -606,6 +621,11 @@ class TeamPolicyInternal<Kokkos::Threads, Properties...>
   typedef TeamPolicyInternal execution_policy;
 
   typedef PolicyTraits<Properties...> traits;
+
+  const typename traits::execution_space& space() const {
+    static typename traits::execution_space m_space;
+    return m_space;
+  }
 
   TeamPolicyInternal& operator=(const TeamPolicyInternal& p) {
     m_league_size            = p.m_league_size;
@@ -1167,7 +1187,8 @@ namespace Kokkos {
 
 template <class FunctorType>
 KOKKOS_INLINE_FUNCTION void single(
-    const Impl::VectorSingleStruct<Impl::ThreadsExecTeamMember>& single_struct,
+    const Impl::VectorSingleStruct<
+        Impl::ThreadsExecTeamMember>& /*single_struct*/,
     const FunctorType& lambda) {
   lambda();
 }
@@ -1181,7 +1202,8 @@ KOKKOS_INLINE_FUNCTION void single(
 
 template <class FunctorType, class ValueType>
 KOKKOS_INLINE_FUNCTION void single(
-    const Impl::VectorSingleStruct<Impl::ThreadsExecTeamMember>& single_struct,
+    const Impl::VectorSingleStruct<
+        Impl::ThreadsExecTeamMember>& /*single_struct*/,
     const FunctorType& lambda, ValueType& val) {
   lambda(val);
 }

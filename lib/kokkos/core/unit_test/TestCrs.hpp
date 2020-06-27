@@ -53,7 +53,7 @@ namespace {
 template <class ExecSpace>
 struct CountFillFunctor {
   KOKKOS_INLINE_FUNCTION
-  std::int32_t operator()(std::int32_t row, std::int32_t *fill) const {
+  std::int32_t operator()(std::int32_t row, float *fill) const {
     auto n = (row % 4) + 1;
     if (fill) {
       for (std::int32_t j = 0; j < n; ++j) {
@@ -153,7 +153,7 @@ struct RunUpdateCrsTest {
 
 template <class ExecSpace>
 void test_count_fill(std::int32_t nrows) {
-  Kokkos::Crs<std::int32_t, ExecSpace, void, std::int32_t> graph;
+  Kokkos::Crs<float, ExecSpace, void, std::int32_t> graph;
   Kokkos::count_and_fill_crs(graph, nrows, CountFillFunctor<ExecSpace>());
   ASSERT_EQ(graph.numRows(), nrows);
   auto row_map = Kokkos::create_mirror_view(graph.row_map);
@@ -176,12 +176,12 @@ void test_count_fill(std::int32_t nrows) {
 template <class ExecSpace>
 void test_constructor(std::int32_t nrows) {
   for (int nTest = 1; nTest < 5; nTest++) {
-    typedef Kokkos::Crs<std::int32_t, ExecSpace, void, std::int32_t> crs_int32;
-    crs_int32 graph;
+    typedef Kokkos::Crs<float, ExecSpace, void, std::int32_t> crs_type;
+    crs_type graph;
     Kokkos::count_and_fill_crs(graph, nrows, CountFillFunctor<ExecSpace>());
     ASSERT_EQ(graph.numRows(), nrows);
 
-    RunUpdateCrsTest<crs_int32, ExecSpace, std::int32_t> crstest(graph);
+    RunUpdateCrsTest<crs_type, ExecSpace, std::int32_t> crstest(graph);
     crstest.run_test(nTest);
 
     auto row_map = Kokkos::create_mirror_view(graph.row_map);

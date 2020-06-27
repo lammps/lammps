@@ -114,7 +114,7 @@ struct FunctorPolicyExecutionSpace<
     Functor, Policy,
     typename enable_if_type<typename Functor::device_type>::type,
     EnablePolicy> {
-  typedef typename Functor::device_type execution_space;
+  typedef typename Functor::device_type::execution_space execution_space;
 };
 
 template <class Functor, class Policy, class EnablePolicy>
@@ -158,16 +158,21 @@ template <class ExecPolicy, class FunctorType>
 inline void parallel_for(
     const ExecPolicy& policy, const FunctorType& functor,
     const std::string& str = "",
-    typename Impl::enable_if<
-        Kokkos::Impl::is_execution_policy<ExecPolicy>::value>::type* = 0) {
+    typename std::enable_if<
+        Kokkos::Impl::is_execution_policy<ExecPolicy>::value>::type* =
+        nullptr) {
 #if defined(KOKKOS_ENABLE_PROFILING)
   uint64_t kpID = 0;
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Impl::ParallelConstructName<FunctorType,
                                         typename ExecPolicy::work_tag>
         name(str);
-    Kokkos::Profiling::beginParallelFor(name.get(), 0, &kpID);
+    Kokkos::Profiling::beginParallelFor(
+        name.get(), Kokkos::Profiling::Experimental::device_id(policy.space()),
+        &kpID);
   }
+#else
+  (void)str;
 #endif
 
   Kokkos::Impl::shared_allocation_tracking_disable();
@@ -194,8 +199,12 @@ inline void parallel_for(const size_t work_count, const FunctorType& functor,
   uint64_t kpID = 0;
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Impl::ParallelConstructName<FunctorType, void> name(str);
-    Kokkos::Profiling::beginParallelFor(name.get(), 0, &kpID);
+    Kokkos::Profiling::beginParallelFor(
+        name.get(),
+        Kokkos::Profiling::Experimental::device_id(policy().space()), &kpID);
   }
+#else
+  (void)str;
 #endif
 
   Kokkos::Impl::shared_allocation_tracking_disable();
@@ -403,16 +412,21 @@ template <class ExecutionPolicy, class FunctorType>
 inline void parallel_scan(
     const ExecutionPolicy& policy, const FunctorType& functor,
     const std::string& str = "",
-    typename Impl::enable_if<
-        Kokkos::Impl::is_execution_policy<ExecutionPolicy>::value>::type* = 0) {
+    typename std::enable_if<
+        Kokkos::Impl::is_execution_policy<ExecutionPolicy>::value>::type* =
+        nullptr) {
 #if defined(KOKKOS_ENABLE_PROFILING)
   uint64_t kpID = 0;
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Impl::ParallelConstructName<FunctorType,
                                         typename ExecutionPolicy::work_tag>
         name(str);
-    Kokkos::Profiling::beginParallelScan(name.get(), 0, &kpID);
+    Kokkos::Profiling::beginParallelScan(
+        name.get(), Kokkos::Profiling::Experimental::device_id(policy.space()),
+        &kpID);
   }
+#else
+  (void)str;
 #endif
 
   Kokkos::Impl::shared_allocation_tracking_disable();
@@ -440,8 +454,12 @@ inline void parallel_scan(const size_t work_count, const FunctorType& functor,
   uint64_t kpID = 0;
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Impl::ParallelConstructName<FunctorType, void> name(str);
-    Kokkos::Profiling::beginParallelScan(name.get(), 0, &kpID);
+    Kokkos::Profiling::beginParallelScan(
+        name.get(),
+        Kokkos::Profiling::Experimental::device_id(policy().space()), &kpID);
   }
+#else
+  (void)str;
 #endif
 
   Kokkos::Impl::shared_allocation_tracking_disable();
@@ -479,16 +497,21 @@ template <class ExecutionPolicy, class FunctorType, class ReturnType>
 inline void parallel_scan(
     const ExecutionPolicy& policy, const FunctorType& functor,
     ReturnType& return_value, const std::string& str = "",
-    typename Impl::enable_if<
-        Kokkos::Impl::is_execution_policy<ExecutionPolicy>::value>::type* = 0) {
+    typename std::enable_if<
+        Kokkos::Impl::is_execution_policy<ExecutionPolicy>::value>::type* =
+        nullptr) {
 #if defined(KOKKOS_ENABLE_PROFILING)
   uint64_t kpID = 0;
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Impl::ParallelConstructName<FunctorType,
                                         typename ExecutionPolicy::work_tag>
         name(str);
-    Kokkos::Profiling::beginParallelScan(name.get(), 0, &kpID);
+    Kokkos::Profiling::beginParallelScan(
+        name.get(), Kokkos::Profiling::Experimental::device_id(policy.space()),
+        &kpID);
   }
+#else
+  (void)str;
 #endif
 
   Kokkos::Impl::shared_allocation_tracking_disable();
@@ -503,7 +526,7 @@ inline void parallel_scan(
     Kokkos::Profiling::endParallelScan(kpID);
   }
 #endif
-  Kokkos::fence();
+  policy.space().fence();
 }
 
 template <class FunctorType, class ReturnType>
@@ -519,8 +542,12 @@ inline void parallel_scan(const size_t work_count, const FunctorType& functor,
   uint64_t kpID = 0;
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Impl::ParallelConstructName<FunctorType, void> name(str);
-    Kokkos::Profiling::beginParallelScan(name.get(), 0, &kpID);
+    Kokkos::Profiling::beginParallelScan(
+        name.get(),
+        Kokkos::Profiling::Experimental::device_id(policy().space()), &kpID);
   }
+#else
+  (void)str;
 #endif
 
   Kokkos::Impl::shared_allocation_tracking_disable();
@@ -535,7 +562,7 @@ inline void parallel_scan(const size_t work_count, const FunctorType& functor,
     Kokkos::Profiling::endParallelScan(kpID);
   }
 #endif
-  Kokkos::fence();
+  execution_space().fence();
 }
 
 template <class ExecutionPolicy, class FunctorType, class ReturnType>
@@ -564,7 +591,10 @@ inline void parallel_scan(const std::string& str, const ExecutionPolicy& policy,
 namespace Kokkos {
 namespace Impl {
 
-template <class FunctorType, class Enable = void>
+template <class FunctorType,
+          bool HasTeamShmemSize =
+              has_member_team_shmem_size<FunctorType>::value,
+          bool HasShmemSize = has_member_shmem_size<FunctorType>::value>
 struct FunctorTeamShmemSize {
   KOKKOS_INLINE_FUNCTION static size_t value(const FunctorType&, int) {
     return 0;
@@ -572,20 +602,25 @@ struct FunctorTeamShmemSize {
 };
 
 template <class FunctorType>
-struct FunctorTeamShmemSize<
-    FunctorType,
-    typename Impl::enable_if<0 < sizeof(&FunctorType::team_shmem_size)>::type> {
+struct FunctorTeamShmemSize<FunctorType, true, false> {
   static inline size_t value(const FunctorType& f, int team_size) {
     return f.team_shmem_size(team_size);
   }
 };
 
 template <class FunctorType>
-struct FunctorTeamShmemSize<
-    FunctorType,
-    typename Impl::enable_if<0 < sizeof(&FunctorType::shmem_size)>::type> {
+struct FunctorTeamShmemSize<FunctorType, false, true> {
   static inline size_t value(const FunctorType& f, int team_size) {
     return f.shmem_size(team_size);
+  }
+};
+template <class FunctorType>
+struct FunctorTeamShmemSize<FunctorType, true, true> {
+  static inline size_t value(const FunctorType& /*f*/, int /*team_size*/) {
+    Kokkos::abort(
+        "Functor with both team_shmem_size and shmem_size defined is "
+        "not allowed");
+    return 0;
   }
 };
 

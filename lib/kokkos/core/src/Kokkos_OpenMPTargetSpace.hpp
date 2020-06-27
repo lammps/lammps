@@ -128,6 +128,8 @@ class OpenMPTargetSpace {
   /**\brief  Deallocate untracked memory in the space */
   void deallocate(void* const arg_alloc_ptr, const size_t arg_alloc_size) const;
 
+  static constexpr const char* name() { return "OpenMPTargetSpace"; }
+
  private:
   friend class Kokkos::Impl::SharedAllocationRecord<
       Kokkos::Experimental::OpenMPTargetSpace, void>;
@@ -174,7 +176,13 @@ class SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>
 
   KOKKOS_INLINE_FUNCTION static SharedAllocationRecord* allocate(
       const Kokkos::Experimental::OpenMPTargetSpace& arg_space,
-      const std::string& arg_label, const size_t arg_alloc_size);
+      const std::string& arg_label, const size_t arg_alloc_size) {
+#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
+    return new SharedAllocationRecord(arg_space, arg_label, arg_alloc_size);
+#else
+    return nullptr;
+#endif
+  }
 
   /**\brief  Allocate tracked memory in the space */
   static void* allocate_tracked(

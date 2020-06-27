@@ -164,6 +164,13 @@ inline void _atomic_store(T* ptr, T val, MemoryOrder) {
   *ptr = val;
 }
 
+#elif defined(KOKKOS_ENABLE_WINDOWS_ATOMICS)
+
+template <class T, class MemoryOrder>
+inline void _atomic_store(T* ptr, T val, MemoryOrder) {
+  atomic_exchange(ptr, val);
+}
+
 #endif  // end of all atomic implementations
 
 template <class T>
@@ -185,7 +192,7 @@ KOKKOS_FORCEINLINE_FUNCTION void atomic_store(T* ptr, T val,
 }
 
 template <class T>
-KOKKOS_FORCEINLINE_FUNCTION void atomic_store(T* ptr, T val,
+KOKKOS_FORCEINLINE_FUNCTION void atomic_store(T* /*ptr*/, T /*val*/,
                                               Impl::memory_order_acquire_t) {
   static_assert(
       sizeof(T) == 0,  // just something that will always be false, but only on
@@ -194,7 +201,7 @@ KOKKOS_FORCEINLINE_FUNCTION void atomic_store(T* ptr, T val,
 }
 
 template <class T>
-KOKKOS_FORCEINLINE_FUNCTION void atomic_store(T* ptr, T val,
+KOKKOS_FORCEINLINE_FUNCTION void atomic_store(T* /*ptr*/, T /*val*/,
                                               Impl::memory_order_acq_rel_t) {
   static_assert(
       sizeof(T) == 0,  // just something that will always be false, but only on
@@ -205,7 +212,7 @@ KOKKOS_FORCEINLINE_FUNCTION void atomic_store(T* ptr, T val,
 template <class T>
 KOKKOS_FORCEINLINE_FUNCTION void atomic_store(T* ptr, T val) {
   // relaxed by default!
-  _atomic_store(ptr, Impl::memory_order_relaxed);
+  _atomic_store(ptr, val, Impl::memory_order_relaxed);
 }
 
 }  // end namespace Impl

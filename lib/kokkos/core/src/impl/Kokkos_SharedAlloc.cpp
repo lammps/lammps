@@ -47,7 +47,8 @@
 namespace Kokkos {
 namespace Impl {
 
-__thread int SharedAllocationRecord<void, void>::t_tracking_enabled = 1;
+KOKKOS_THREAD_LOCAL int SharedAllocationRecord<void, void>::t_tracking_enabled =
+    1;
 
 #ifdef KOKKOS_DEBUG
 bool SharedAllocationRecord<void, void>::is_sane(
@@ -100,7 +101,7 @@ bool SharedAllocationRecord<void, void>::is_sane(
                 reinterpret_cast<uintptr_t>(rec->m_next),
                 reinterpret_cast<uintptr_t>(rec->m_prev),
                 reinterpret_cast<uintptr_t>(
-                    rec->m_next != NULL ? rec->m_next->m_prev : NULL),
+                    rec->m_next != nullptr ? rec->m_next->m_prev : nullptr),
                 reinterpret_cast<uintptr_t>(rec->m_prev != rec->m_root
                                                 ? rec->m_prev->m_next
                                                 : root_next));
@@ -186,7 +187,7 @@ SharedAllocationRecord<void, void>::SharedAllocationRecord(
 #endif
       ,
       m_count(0) {
-  if (0 != arg_alloc_ptr) {
+  if (nullptr != arg_alloc_ptr) {
 #ifdef KOKKOS_DEBUG
     // Insert into the root double-linked list for tracking
     //
@@ -197,7 +198,7 @@ SharedAllocationRecord<void, void>::SharedAllocationRecord(
     m_prev                                        = m_root;
     static constexpr SharedAllocationRecord* zero = nullptr;
 
-    // Read root->m_next and lock by setting to NULL
+    // Read root->m_next and lock by setting to nullptr
     while ((m_next = Kokkos::atomic_exchange(&m_root->m_next, zero)) == nullptr)
       ;
 
@@ -214,7 +215,7 @@ SharedAllocationRecord<void, void>::SharedAllocationRecord(
 
   } else {
     Kokkos::Impl::throw_runtime_exception(
-        "Kokkos::Impl::SharedAllocationRecord given NULL allocation");
+        "Kokkos::Impl::SharedAllocationRecord given nullptr allocation");
   }
 }
 
@@ -288,7 +289,7 @@ SharedAllocationRecord<void, void>* SharedAllocationRecord<
 
     function_type d = arg_record->m_dealloc;
     (*d)(arg_record);
-    arg_record = 0;
+    arg_record = nullptr;
   } else if (old_count < 1) {  // Error
     fprintf(stderr,
             "Kokkos::Impl::SharedAllocationRecord '%s' failed decrement count "

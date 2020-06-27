@@ -22,7 +22,9 @@ Syntax
 * flagHI (optional) = 0/1 to exclude/include 1/r hydrodynamic interactions
 * flagVF (optional) = 0/1 to exclude/include volume fraction corrections in the long-range isotropic terms
 
-**Examples:** (all assume radius = 1)
+Examples
+""""""""
+(all assume radius = 1)
 
 .. code-block:: LAMMPS
 

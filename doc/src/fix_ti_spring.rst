@@ -88,7 +88,7 @@ time:
 
   \lambda(\tau) = \tau
 
-where tau is the scaled time variable *t/t_s*. The option *2* performs
+where :math:`\tau` is the scaled time variable *t/t_s*. The option *2* performs
 the lambda switching at a rate defined by the following switching
 function
 

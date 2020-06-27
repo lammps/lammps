@@ -577,11 +577,9 @@ FixBondReact::~FixBondReact()
   delete [] set;
 
   if (group) {
-    std::string cmd = fmt::format("{} delete",master_group);
-    group->assign(cmd);
+    group->assign(std::string(master_group) + " delete");
     if (stabilization_flag == 1) {
-      cmd = fmt::format("{} delete",exclude_group);
-      group->assign(cmd);
+      group->assign(std::string(exclude_group) + " delete");
       delete [] exclude_group;
     }
   }

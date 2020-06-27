@@ -93,7 +93,7 @@ on particle *i* due to contact with particle *j* is given by:
 
 .. math::
 
-   \mathbf{F}_{ne, Hooke} = k_N \delta_{ij} \mathbf{n}
+   \mathbf{F}_{ne, Hooke} = k_n \delta_{ij} \mathbf{n}
 
 Where :math:`\delta_{ij} = R_i + R_j - \|\mathbf{r}_{ij}\|` is the particle
 overlap, :math:`R_i, R_j` are the particle radii, :math:`\mathbf{r}_{ij} = \mathbf{r}_i - \mathbf{r}_j` is the vector separating the two
@@ -106,7 +106,7 @@ For the *hertz* model, the normal component of force is given by:
 
 .. math::
 
-   \mathbf{F}_{ne, Hertz} = k_N R_{eff}^{1/2}\delta_{ij}^{3/2} \mathbf{n}
+   \mathbf{F}_{ne, Hertz} = k_n R_{eff}^{1/2}\delta_{ij}^{3/2} \mathbf{n}
 
 Here, :math:`R_{eff} = \frac{R_i R_j}{R_i + R_j}` is the effective
 radius, denoted for simplicity as *R* from here on.  For *hertz*\ , the
@@ -123,7 +123,7 @@ Here, :math:`E_{eff} = E = \left(\frac{1-\nu_i^2}{E_i} + \frac{1-\nu_j^2}{E_j}\r
 modulus, with :math:`\nu_i, \nu_j` the Poisson ratios of the particles of
 types *i* and *j*\ . Note that if the elastic modulus and the shear
 modulus of the two particles are the same, the *hertz/material* model
-is equivalent to the *hertz* model with :math:`k_N = 4/3 E_{eff}`
+is equivalent to the *hertz* model with :math:`k_n = 4/3 E_{eff}`
 
 The *dmt* model corresponds to the
 :ref:`(Derjaguin-Muller-Toporov) <DMT1975>` cohesive model, where the force
@@ -268,7 +268,7 @@ coefficient, and :math:`k_t` is the tangential stiffness coefficient.
 
 For *tangential linear_nohistory*, a simple velocity-dependent Coulomb
 friction criterion is used, which mimics the behavior of the *pair
-gran/hooke* style. The tangential force (\mathbf{F}_t\) is given by:
+gran/hooke* style. The tangential force :math:`\mathbf{F}_t` is given by:
 
 .. math::
 
@@ -294,8 +294,8 @@ keyword also affects the tangential damping.  The parameter
 literature use :math:`x_{\gamma,t} = 1` (:ref:`Marshall <Marshall2009>`,
 :ref:`Tsuji et al <Tsuji1992>`, :ref:`Silbert et al <Silbert2001>`).  The relative
 tangential velocity at the point of contact is given by
-:math:`\mathbf{v}_{t, rel} = \mathbf{v}_{t} - (R_i\Omega_i + R_j\Omega_j) \times \mathbf{n}`, where :math:`\mathbf{v}_{t} = \mathbf{v}_r - \mathbf{v}_r\cdot\mathbf{n}{n}`,
-:math:`\mathbf{v}_r = \mathbf{v}_j - \mathbf{v}_i`.
+:math:`\mathbf{v}_{t, rel} = \mathbf{v}_{t} - (R_i\mathbf{\Omega}_i + R_j\mathbf{\Omega}_j) \times \mathbf{n}`, where :math:`\mathbf{v}_{t} = \mathbf{v}_r - \mathbf{v}_r\cdot\mathbf{n}\mathbf{n}`,
+:math:`\mathbf{v}_r = \mathbf{v}_j - \mathbf{v}_i` .
 The direction of the applied force is :math:`\mathbf{t} = \mathbf{v_{t,rel}}/\|\mathbf{v_{t,rel}}\|` .
 
 The normal force value :math:`F_{n0}` used to compute the critical force
@@ -319,10 +319,11 @@ form:
 Where :math:`F_{pulloff} = 3\pi \gamma R` for *jkr*\ , and
 :math:`F_{pulloff} = 4\pi \gamma R` for *dmt*\ .
 
-The remaining tangential options all use accumulated tangential
-displacement (i.e. contact history). This is discussed below in the
-context of the *linear_history* option, but the same treatment of the
-accumulated displacement applies to the other options as well.
+The remaining tangential options all use accumulated tangential displacement,
+or accumulated tangential force (i.e. contact history). This is discussed
+in details below for accumulated tangential displacement in the context
+of the *linear_history* option. The same treatment of the accumulated 
+displacement, or accumulated force, applies to the other options as well.
 
 For *tangential linear_history*, the tangential force is given by:
 
@@ -372,7 +373,7 @@ discussion):
 
 .. math::
 
-   \mathbf{\xi} = -\frac{1}{k_t}\left(\mu_t F_{n0}\mathbf{t} + \mathbf{F}_{t,damp}\right)
+   \mathbf{\xi} = -\frac{1}{k_t}\left(\mu_t F_{n0}\mathbf{t} - \mathbf{F}_{t,damp}\right)
 
 The tangential force is added to the total normal force (elastic plus
 damping) to produce the total force on the particle. The tangential
@@ -387,35 +388,51 @@ overlap region) to induce a torque on each particle according to:
 
    \mathbf{\tau}_j = -(R_j - 0.5 \delta) \mathbf{n} \times \mathbf{F}_t
 
-For *tangential mindlin*\ , the :ref:`Mindlin <Mindlin1949>` no-slip solution is used, which differs from the *linear_history*
-option by an additional factor of *a*\ , the radius of the contact region. The tangential force is given by:
+For *tangential mindlin*\ , the :ref:`Mindlin <Mindlin1949>` no-slip solution
+is used which differs from the *linear_history* option by an additional factor
+of *a*\ , the radius of the contact region. The tangential stiffness depends
+on the radius of the contact region and the force must therefore be computed
+incrementally. The accumulated tangential force characterizes the contact history.
+The increment of the elastic component of the tangential force :math:`\mathbf{F}_{te}`
+is given by:
 
 .. math::
 
-   \mathbf{F}_t =  -min(\mu_t F_{n0}, \|-k_t a \mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
+   \mathrm{d}\mathbf{F}_{te} = -k_t a \mathbf{v}_{t,rel} \mathrm{d}\tau
+   
+The tangential force is given by:
+
+.. math::
+
+   \mathbf{F}_t =  -min(\mu_t F_{n0}, \|\mathbf{F}_{te} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
 
 Here, *a* is the radius of the contact region, given by :math:`a =\sqrt{R\delta}`
 for all normal contact models, except for *jkr*\ , where it is given
 implicitly by :math:`\delta = a^2/R - 2\sqrt{\pi \gamma a/E}`, see
-discussion above. To match the Mindlin solution, one should set :math:`k_t = 4G/(2-\nu)`, where :math:`G` is the shear modulus, related to Young's modulus
-:math:`E` by :math:`G = E/(2(1+\nu))`, where :math:`\nu` is Poisson's ratio. This
-can also be achieved by specifying *NULL* for :math:`k_t`, in which case a
-normal contact model that specifies material parameters :math:`E` and
-:math:`\nu` is required (e.g. *hertz/material*\ , *dmt* or *jkr*\ ). In this
-case, mixing of the shear modulus for different particle types *i* and
-*j* is done according to:
+discussion above. To match the Mindlin solution, one should set
+:math:`k_t = 8G_{eff}`, where :math:`G` is the effective shear modulus given by:
 
 .. math::
 
-   1/G = 2(2-\nu_i)(1+\nu_i)/E_i + 2(2-\nu_j)(1+\nu_j)/E_j
+   G_{eff} = \left(\frac{2-\nu_i}{G_i} + \frac{2-\nu_j}{G_j}\right)^{-1}
+   
+where :math:`G` is the shear modulus, related to Young's modulus :math:`E`
+and Poisson's ratio :math:`\nu` by :math:`G = E/(2(1+\nu))`. This can also be
+achieved by specifying *NULL* for :math:`k_t`, in which case a
+normal contact model that specifies material parameters :math:`E` and
+:math:`\nu` is required (e.g. *hertz/material*\ , *dmt* or *jkr*\ ). In this
+case, mixing of the shear modulus for different particle types *i* and
+*j* is done according to the formula above.
+
+
 
 The *mindlin_rescale* option uses the same form as *mindlin*\ , but the
-magnitude of the tangential displacement is re-scaled as the contact
+magnitude of the tangential force is re-scaled as the contact
 unloads, i.e. if :math:`a < a_{t_{n-1}}`:
 
 .. math::
 
-   \mathbf{\xi} = \mathbf{\xi_{t_{n-1}}} \frac{a}{a_{t_{n-1}}}
+   \mathbf{F}_{te} = \mathbf{F}_{te, t_{n-1}} \frac{a}{a_{t_{n-1}}}
 
 Here, :math:`t_{n-1}` indicates the value at the previous time
 step. This rescaling accounts for the fact that a decrease in the

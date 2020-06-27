@@ -377,6 +377,9 @@ void PairGranular::compute(int eflag, int vflag)
         // tangential force, including history effects
         //****************************************
 
+        // For linear forces, history = cumulative tangential displacement
+        // For nonlinear forces, history = cumulative elastic tangential force
+
         // tangential component
         vt1 = vr1 - vn1;
         vt2 = vr2 - vn2;
@@ -424,7 +427,7 @@ void PairGranular::compute(int eflag, int vflag)
           } else if (tangential_model[itype][jtype] ==
                      TANGENTIAL_MINDLIN_RESCALE) {
             k_tangential *= a;
-            // on unloading, rescale the shear displacements
+            // on unloading, rescale the shear force
             if (a < history[3]) {
               double factor = a/history[3];
               history[0] *= factor;
@@ -432,11 +435,11 @@ void PairGranular::compute(int eflag, int vflag)
               history[2] *= factor;
             }
           }
-          // rotate and update displacements.
+          // rotate and update displacements / force
           // see e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
           if (historyupdate) {
             rsht = history[0]*nx + history[1]*ny + history[2]*nz;
-            if (fabs(rsht) < EPSILON) rsht = 0;
+            if (fabs(rsht) < EPSILON) rsht = 0; // EPSILON still valid when history is a force???
             if (rsht > 0) {
               shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
                                                history[2]*history[2]);
@@ -451,18 +454,30 @@ void PairGranular::compute(int eflag, int vflag)
               history[1] *= scalefac;
               history[2] *= scalefac;
             }
-            // update history
-            history[0] += vtr1*dt;
-            history[1] += vtr2*dt;
-            history[2] += vtr3*dt;
-            if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE)
-              history[3] = a;
+            // update tangential displacement / force history
+            if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY) {
+              history[0] += vtr1*dt;
+              history[1] += vtr2*dt;
+              history[2] += vtr3*dt;
+            } else { // Eq. (18) Thornton et al., 2013 (http://dx.doi.org/10.1016/j.powtec.2012.08.012)
+              history[0] -= k_tangential*vtr1*dt;
+              history[1] -= k_tangential*vtr2*dt;
+              history[2] -= k_tangential*vtr3*dt;
+              if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE)
+                history[3] = a;
+            }
           }
 
           // tangential forces = history + tangential velocity damping
-          fs1 = -k_tangential*history[0] - damp_tangential*vtr1;
-          fs2 = -k_tangential*history[1] - damp_tangential*vtr2;
-          fs3 = -k_tangential*history[2] - damp_tangential*vtr3;
+          if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY) {
+            fs1 = -k_tangential*history[0] - damp_tangential*vtr1;
+            fs2 = -k_tangential*history[1] - damp_tangential*vtr2;
+            fs3 = -k_tangential*history[2] - damp_tangential*vtr3;
+          } else {
+            fs1 = history[0] - damp_tangential*vtr1;
+            fs2 = history[1] - damp_tangential*vtr2;
+            fs3 = history[2] - damp_tangential*vtr3;
+          }
 
           // rescale frictional displacements and forces if needed
           fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
@@ -470,12 +485,18 @@ void PairGranular::compute(int eflag, int vflag)
             shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
                                     history[2]*history[2]);
             if (shrmag != 0.0) {
-              history[0] = -1.0/k_tangential*(Fscrit*fs1/fs +
-                                              damp_tangential*vtr1);
-              history[1] = -1.0/k_tangential*(Fscrit*fs2/fs +
-                                              damp_tangential*vtr2);
-              history[2] = -1.0/k_tangential*(Fscrit*fs3/fs +
-                                              damp_tangential*vtr3);
+              if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY) {
+                history[0] = -1.0/k_tangential*(Fscrit*fs1/fs +
+                                                damp_tangential*vtr1);
+                history[1] = -1.0/k_tangential*(Fscrit*fs2/fs +
+                                                damp_tangential*vtr2);
+                history[2] = -1.0/k_tangential*(Fscrit*fs3/fs +
+                                                damp_tangential*vtr3);
+              } else {
+                history[0] = Fscrit*fs1/fs + damp_tangential*vtr1;
+                history[1] = Fscrit*fs2/fs + damp_tangential*vtr2;
+                history[2] = Fscrit*fs3/fs + damp_tangential*vtr3;
+              }
               fs1 *= Fscrit/fs;
               fs2 *= Fscrit/fs;
               fs3 *= Fscrit/fs;
@@ -1534,9 +1555,15 @@ double PairGranular::single(int i, int j, int itype, int jtype,
         history[2]*history[2]);
 
     // tangential forces = history + tangential velocity damping
-    fs1 = -k_tangential*history[0] - damp_tangential*vtr1;
-    fs2 = -k_tangential*history[1] - damp_tangential*vtr2;
-    fs3 = -k_tangential*history[2] - damp_tangential*vtr3;
+    if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY) {
+      fs1 = -k_tangential*history[0] - damp_tangential*vtr1;
+      fs2 = -k_tangential*history[1] - damp_tangential*vtr2;
+      fs3 = -k_tangential*history[2] - damp_tangential*vtr3;
+    } else {
+      fs1 = history[0] - damp_tangential*vtr1;
+      fs2 = history[1] - damp_tangential*vtr2;
+      fs3 = history[2] - damp_tangential*vtr3;
+    }
 
     // rescale frictional forces if needed
     fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);

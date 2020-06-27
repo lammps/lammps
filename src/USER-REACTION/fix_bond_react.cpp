@@ -19,6 +19,7 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
+#include <string>
 #include "update.h"
 #include "modify.h"
 #include "respa.h"

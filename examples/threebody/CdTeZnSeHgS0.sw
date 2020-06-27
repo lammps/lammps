@@ -1,0 +1,1 @@
+../../potentials/CdTeZnSeHgS0.sw

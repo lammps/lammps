@@ -570,7 +570,6 @@ __kernel void k_tersoff_mod_three_center(const __global numtyp4 *restrict x_,
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
       jtype=map[jtype];
-      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
 
       // Compute r12
       numtyp delr1[3];
@@ -759,7 +758,6 @@ __kernel void k_tersoff_mod_three_end(const __global numtyp4 *restrict x_,
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
       jtype=map[jtype];
-      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
 
       // Compute r12
       numtyp delr1[3];
@@ -814,12 +812,8 @@ __kernel void k_tersoff_mod_three_end(const __global numtyp4 *restrict x_,
 
       numtyp r1 = ucl_sqrt(rsq1);
       numtyp r1inv = ucl_rsqrt(rsq1);
-      int offset_kf;
-      if (ijnum >= 0) {
-        offset_kf = offset_k;
-      } else {
+      if (ijnum < 0) {
         ijnum = red_acc[2*m+0];
-        offset_kf = red_acc[2*m+1];
       }
 
       // idx to zetaij is shifted by n_stride relative to ijnum in dev_short_nbor
@@ -1005,7 +999,6 @@ __kernel void k_tersoff_mod_three_end_vatom(const __global numtyp4 *restrict x_,
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
       jtype=map[jtype];
-      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
 
       // Compute r12
       numtyp delr1[3];
@@ -1060,12 +1053,8 @@ __kernel void k_tersoff_mod_three_end_vatom(const __global numtyp4 *restrict x_,
 
       numtyp r1 = ucl_sqrt(rsq1);
       numtyp r1inv = ucl_rsqrt(rsq1);
-      int offset_kf;
-      if (ijnum >= 0) {
-        offset_kf = offset_k;
-      } else {
+      if (ijnum < 0) {
         ijnum = red_acc[2*m+0];
-        offset_kf = red_acc[2*m+1];
       }
 
       // idx to zetaij is shifted by n_stride relative to ijnum in dev_short_nbor

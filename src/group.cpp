@@ -551,9 +551,9 @@ void Group::assign(int narg, char **arg)
    convenience function to allow assigning to groups from a single string
 ------------------------------------------------------------------------- */
 
-void Group::assign(const std::string &fixcmd)
+void Group::assign(const std::string &groupcmd)
 {
-  std::vector<std::string> args = utils::split_words(fixcmd);
+  std::vector<std::string> args = utils::split_words(groupcmd);
   char **newarg = new char*[args.size()];
   int i=0;
   for (const auto &arg : args) {

@@ -300,8 +300,8 @@ either 'none' or 'charges.' Further details are provided in the
 discussion of the 'update_edges' keyword. The fifth optional section
 begins with the keyword 'Constraints' and lists additional criteria
 that must be satisfied in order for the reaction to occur. Currently,
-there are four types of constraints available, as discussed below:
-'distance', 'angle', 'dihedral', and 'arrhenius'.
+there are five types of constraints available, as discussed below:
+'distance', 'angle', 'dihedral', 'arrhenius', and 'RMSD'.
 
 A sample map file is given below:
 
@@ -420,6 +420,24 @@ options for additional temperature averaging or velocity-biased
 temperature calculations. A uniform random number between 0 and 1 is
 generated using *seed*\ ; if this number is less than the result of the
 Arrhenius equation above, the reaction is permitted to occur.
+
+The constraint of type 'RMSD' has the following syntax:
+
+.. parsed-literal::
+
+   RMSD *RMSDmax* *molfragment*
+
+where 'RMSD' is the required keyword, and *RMSDmax* is the maximum
+root-mean-square deviation between atom positions of the pre-reaction
+template and the local reaction site, after optimal translation and
+rotation of the pre-reaction template. Optionally, a molecule fragment
+(of the pre-reaction template) can be specified by *molfragment*\ .
+Only atoms that are part of this molecule fragment are used to
+determine the RMSD. A molecule fragment must have been defined in the
+:doc:`molecule <molecule>` command for the pre-reaction template. For
+example, the molecule fragment could consist of only the backbone
+atoms of a polymer chain. This constraint can be used to enforce a
+specific relative position and orientation between reacting molecules.
 
 Once a reaction site has been successfully identified, data structures
 within LAMMPS that store bond topology are updated to reflect the

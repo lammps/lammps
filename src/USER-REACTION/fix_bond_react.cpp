@@ -576,17 +576,13 @@ FixBondReact::~FixBondReact()
   delete [] set;
 
   if (group) {
-    char **newarg;
-    newarg = new char*[2];
-    newarg[0] = master_group;
-    newarg[1] = (char *) "delete";
-    group->assign(2,newarg);
+    std::string cmd = fmt::format("{} delete",master_group);
+    group->assign(cmd);
     if (stabilization_flag == 1) {
-      newarg[0] = exclude_group;
-      group->assign(2,newarg);
+      cmd = fmt::format("{} delete",exclude_group);
+      group->assign(cmd);
       delete [] exclude_group;
     }
-    delete [] newarg;
   }
 }
 
@@ -624,15 +620,8 @@ void FixBondReact::post_constructor()
   // create master_group if not already existing
   // NOTE: limit_tags and react_tags automaticaly intitialized to zero (unless read from restart)
   group->find_or_create(master_group);
-  char **newarg;
-  newarg = new char*[5];
-  newarg[0] = master_group;
-  newarg[1] = (char *) "dynamic";
-  newarg[2] = (char *) "all";
-  newarg[3] = (char *) "property";
-  newarg[4] = (char *) "limit_tags";
-  group->assign(5,newarg);
-  delete [] newarg;
+  cmd = fmt::format("{} dynamic all property limit_tags",master_group);
+  group->assign(cmd);
 
   if (stabilization_flag == 1) {
     int igroup = group->find(exclude_group);
@@ -667,16 +656,11 @@ void FixBondReact::post_constructor()
       strcat(exclude_group,"_REACT");
 
       group->find_or_create(exclude_group);
-      char **newarg;
-      newarg = new char*[5];
-      newarg[0] = exclude_group;
-      newarg[1] = (char *) "dynamic";
-      if (igroup == -1) newarg[2] = (char *) "all";
-      else newarg[2] = (char *) exclude_PARENT_group;
-      newarg[3] = (char *) "property";
-      newarg[4] = (char *) "statted_tags";
-      group->assign(5,newarg);
-      delete [] newarg;
+      if (igroup == -1)
+        cmd = fmt::format("{} dynamic all property statted_tags",exclude_group);
+      else
+        cmd = fmt::format("{} dynamic {} property statted_tags",exclude_group,exclude_PARENT_group);
+      group->assign(cmd);
       delete [] exclude_PARENT_group;
 
       // on to statted_tags (system-wide thermostat)

@@ -113,18 +113,13 @@ Min::~Min()
 void Min::init()
 {
   if (lmp->kokkos && !kokkosable)
-    error->all(FLERR,"Must use a Kokkos-enabled min style (e.g. min_style cg/kk) "
-     "with Kokkos minimize");
+    error->all(FLERR,"Must use a Kokkos-enabled min style "
+               "(e.g. min_style cg/kk) with Kokkos minimize");
 
   // create fix needed for storing atom-based quantities
   // will delete it at end of run
 
-  char **fixarg = new char*[3];
-  fixarg[0] = (char *) "MINIMIZE";
-  fixarg[1] = (char *) "all";
-  fixarg[2] = (char *) "MINIMIZE";
-  modify->add_fix(3,fixarg);
-  delete [] fixarg;
+  modify->add_fix("MINIMIZE all MINIMIZE");
   fix_minimize = (FixMinimize *) modify->fix[modify->nfix-1];
 
   // clear out extra global and per-atom dof

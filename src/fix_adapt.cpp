@@ -31,6 +31,7 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -265,20 +266,12 @@ void FixAdapt::post_constructor()
   id_fix_diam = NULL;
   id_fix_chg = NULL;
 
-  char **newarg = new char*[6];
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "STORE";
-  newarg[3] = (char *) "peratom";
-  newarg[4] = (char *) "1";
-  newarg[5] = (char *) "1";
-
   if (diamflag && atom->radius_flag) {
-    int n = strlen(id) + strlen("_FIX_STORE_DIAM") + 1;
-    id_fix_diam = new char[n];
-    strcpy(id_fix_diam,id);
-    strcat(id_fix_diam,"_FIX_STORE_DIAM");
-    newarg[0] = id_fix_diam;
-    modify->add_fix(6,newarg);
+    std::string fixcmd = id + std::string("_FIX_STORE_DIAM");
+    id_fix_diam = new char[fixcmd.size()+1];
+    strcpy(id_fix_diam,fixcmd.c_str());
+    fixcmd += fmt::format(" {} STORE peratom 1 1",group->names[igroup]);
+    modify->add_fix(fixcmd);
     fix_diam = (FixStore *) modify->fix[modify->nfix-1];
 
     if (fix_diam->restart_reset) fix_diam->restart_reset = 0;
@@ -296,12 +289,11 @@ void FixAdapt::post_constructor()
   }
 
   if (chgflag && atom->q_flag) {
-    int n = strlen(id) + strlen("_FIX_STORE_CHG") + 1;
-    id_fix_chg = new char[n];
-    strcpy(id_fix_chg,id);
-    strcat(id_fix_chg,"_FIX_STORE_CHG");
-    newarg[0] = id_fix_chg;
-    modify->add_fix(6,newarg);
+    std::string fixcmd = id + std::string("_FIX_STORE_CHG");
+    id_fix_chg = new char[fixcmd.size()+1];
+    strcpy(id_fix_chg,fixcmd.c_str());
+    fixcmd += fmt::format(" {} STORE peratom 1 1",group->names[igroup]);
+    modify->add_fix(fixcmd);
     fix_chg = (FixStore *) modify->fix[modify->nfix-1];
 
     if (fix_chg->restart_reset) fix_chg->restart_reset = 0;
@@ -317,8 +309,6 @@ void FixAdapt::post_constructor()
       }
     }
   }
-
-  delete [] newarg;
 }
 
 /* ---------------------------------------------------------------------- */

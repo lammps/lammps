@@ -226,12 +226,7 @@ void Ndx2Group::create(char *name, bigint num, tagint *tags)
 {
   // wipe out all members if the group exists. gid==0 is group "all"
   int gid = group->find(name);
-  if (gid > 0) {
-    char *cmd[2];
-    cmd[0] = name;
-    cmd[1] = (char *)"clear";
-    group->assign(2,cmd);
-  }
+  if (gid > 0) group->assign(std::string(name) + " clear");
 
   // map from global to local
   const int nlocal = atom->nlocal;

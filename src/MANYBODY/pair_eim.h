@@ -98,17 +98,21 @@ class EIMPotentialFileReader : protected Pointers {
   std::string filename;
   static const int MAXLINE = 1024;
   char line[MAXLINE];
+  double conversion_factor;
 
-  void parse(FILE * fp);
-  char * next_line(FILE * fp);
-  std::pair<std::string, std::string> get_pair(const std::string & a, const std::string & b);
+  void parse(FILE *fp);
+  char *next_line(FILE *fp);
+  std::pair<std::string, std::string> get_pair(const std::string &a,
+                                               const std::string &b);
 
 public:
-  EIMPotentialFileReader(class LAMMPS* lmp, const std::string & filename);
+  EIMPotentialFileReader(class LAMMPS* lmp, const std::string &filename,
+                         const int auto_convert=0);
 
-  void get_global(PairEIM::Setfl * setfl);
-  void get_element(PairEIM::Setfl * setfl, int i, const std::string & name);
-  void get_pair(PairEIM::Setfl * setfl, int ij, const std::string & elemA, const std::string & elemB);
+  void get_global(PairEIM::Setfl *setfl);
+  void get_element(PairEIM::Setfl *setfl, int i, const std::string &name);
+  void get_pair(PairEIM::Setfl *setfl, int ij,
+                const std::string &elemA, const std::string &elemB);
 
 private:
   // potential parameters

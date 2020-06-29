@@ -48,7 +48,7 @@ and :math:`sigma_i` are calculated as
    \sigma_i  = & \sum_{j=i_1}^{i_N} q_j \cdot \psi_{ij} \left(r_{ij}\right) \\
    E_i\left(q_i,\sigma_i\right)  = & \frac{1}{2} \cdot q_i \cdot \sigma_i
 
-where :math:`\eta_{ji} is a pairwise function describing electron flow from atom
+where :math:`\eta_{ji}` is a pairwise function describing electron flow from atom
 I to atom J, and :math:`\psi_{ij}` is another pairwise function.  The multi-body
 nature of the EIM potential is a result of the embedding energy term.
 A complete list of all the pair functions used in EIM is summarized
@@ -63,7 +63,7 @@ below
    \right.\\
    \eta_{ji} = & A_{\eta,ij}\left(\chi_j-\chi_i\right)f_c\left(r,r_{s,\eta,ij},r_{c,\eta,ij}\right) \\
    \psi_{ij}\left(r\right) = & A_{\psi,ij}\exp\left(-\zeta_{ij}r\right)f_c\left(r,r_{s,\psi,ij},r_{c,\psi,ij}\right) \\
-   f_{c}\left(r,r_p,r_c\right) = & 0.510204 \mathrm{erfc}\left[\frac{1.64498\left(2r-r_p-r_c\right)}{r_c-r_p}\right] - 0.010204
+   f_{c}\left(r,r_p,r_c\right) = & 0.510204 \cdot \mathrm{erfc}\left[\frac{1.64498\left(2r-r_p-r_c\right)}{r_c-r_p}\right] - 0.010204
 
 Here :math:`E_b, r_e, r_(c,\phi), \alpha, \beta, A_(\psi), \zeta, r_(s,\psi),
 r_(c,\psi), A_(\eta), r_(s,\eta), r_(c,\eta), \chi,` and pair function type

@@ -47,6 +47,7 @@ PairNb3bHarmonic::PairNb3bHarmonic(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
   nelements = 0;
   elements = NULL;
@@ -291,9 +292,14 @@ void PairNb3bHarmonic::read_file(char *file)
   // open file on proc 0
 
   if (comm->me == 0) {
-    PotentialFileReader reader(lmp, file, "nb3b/harmonic");
+    PotentialFileReader reader(lmp, file, "nb3b/harmonic", unit_convert_flag);
     char * line;
 
+    // transparently convert units for supported conversions
+
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                            unit_convert);
     while((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
         ValueTokenizer values(line);
@@ -331,6 +337,8 @@ void PairNb3bHarmonic::read_file(char *file)
         params[nparams].k_theta  = values.next_double();
         params[nparams].theta0   = values.next_double();
         params[nparams].cutoff   = values.next_double();
+
+        if (unit_convert) params[nparams].k_theta *= conversion_factor;
       } catch (TokenizerException & e) {
         error->one(FLERR, e.what());
       }

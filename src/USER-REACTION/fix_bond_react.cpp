@@ -19,6 +19,7 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
+#include <string>
 #include "update.h"
 #include "modify.h"
 #include "respa.h"
@@ -41,6 +42,7 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 #include "error.h"
 #include "input.h"
 #include "variable.h"
+#include "fmt/format.h"
 
 #include <algorithm>
 
@@ -575,17 +577,11 @@ FixBondReact::~FixBondReact()
   delete [] set;
 
   if (group) {
-    char **newarg;
-    newarg = new char*[2];
-    newarg[0] = master_group;
-    newarg[1] = (char *) "delete";
-    group->assign(2,newarg);
+    group->assign(std::string(master_group) + " delete");
     if (stabilization_flag == 1) {
-      newarg[0] = exclude_group;
-      group->assign(2,newarg);
+      group->assign(std::string(exclude_group) + " delete");
       delete [] exclude_group;
     }
-    delete [] newarg;
   }
 }
 
@@ -608,59 +604,38 @@ it will have the name 'i_limit_tags' and will be intitialized to 0 (not in group
 
 void FixBondReact::post_constructor()
 {
+  int len;
   // let's add the limit_tags per-atom property fix
-  int len = strlen("bond_react_props_internal") + 1;
-  id_fix2 = new char[len];
-  strcpy(id_fix2,"bond_react_props_internal");
+  std::string cmd = std::string("bond_react_props_internal");
+  id_fix2 = new char[cmd.size()+1];
+  strcpy(id_fix2,cmd.c_str());
 
   int ifix = modify->find_fix(id_fix2);
   if (ifix == -1) {
-    char **newarg = new char*[7];
-    newarg[0] = (char *) "bond_react_props_internal";
-    newarg[1] = (char *) "all"; // group ID is ignored
-    newarg[2] = (char *) "property/atom";
-    newarg[3] = (char *) "i_limit_tags";
-    newarg[4] = (char *) "i_react_tags";
-    newarg[5] = (char *) "ghost";
-    newarg[6] = (char *) "yes";
-    modify->add_fix(7,newarg);
-    delete [] newarg;
+    cmd += std::string(" all property/atom i_limit_tags i_react_tags ghost yes");
+    modify->add_fix(cmd);
   }
 
   // create master_group if not already existing
   // NOTE: limit_tags and react_tags automaticaly intitialized to zero (unless read from restart)
   group->find_or_create(master_group);
-  char **newarg;
-  newarg = new char*[5];
-  newarg[0] = master_group;
-  newarg[1] = (char *) "dynamic";
-  newarg[2] = (char *) "all";
-  newarg[3] = (char *) "property";
-  newarg[4] = (char *) "limit_tags";
-  group->assign(5,newarg);
-  delete [] newarg;
+  cmd = fmt::format("{} dynamic all property limit_tags",master_group);
+  group->assign(cmd);
 
   if (stabilization_flag == 1) {
     int igroup = group->find(exclude_group);
     // create exclude_group if not already existing, or use as parent group if static
     if (igroup == -1 || group->dynamic[igroup] == 0) {
       // create stabilization per-atom property
-      len = strlen("bond_react_stabilization_internal") + 1;
-      id_fix3 = new char[len];
-      strcpy(id_fix3,"bond_react_stabilization_internal");
+      cmd = std::string("bond_react_stabilization_internal");
+      id_fix3 = new char[cmd.size()+1];
+      strcpy(id_fix3,cmd.c_str());
 
       ifix = modify->find_fix(id_fix3);
       if (ifix == -1) {
-        char **newarg = new char*[6];
-        newarg[0] = (char *) id_fix3;
-        newarg[1] = (char *) "all"; // group ID is ignored
-        newarg[2] = (char *) "property/atom";
-        newarg[3] = (char *) "i_statted_tags";
-        newarg[4] = (char *) "ghost";
-        newarg[5] = (char *) "yes";
-        modify->add_fix(6,newarg);
+        cmd += std::string(" all property/atom i_statted_tags ghost yes");
+        modify->add_fix(cmd);
         fix3 = modify->fix[modify->nfix-1];
-        delete [] newarg;
       }
 
       len = strlen("statted_tags") + 1;
@@ -680,16 +655,11 @@ void FixBondReact::post_constructor()
       strcat(exclude_group,"_REACT");
 
       group->find_or_create(exclude_group);
-      char **newarg;
-      newarg = new char*[5];
-      newarg[0] = exclude_group;
-      newarg[1] = (char *) "dynamic";
-      if (igroup == -1) newarg[2] = (char *) "all";
-      else newarg[2] = (char *) exclude_PARENT_group;
-      newarg[3] = (char *) "property";
-      newarg[4] = (char *) "statted_tags";
-      group->assign(5,newarg);
-      delete [] newarg;
+      if (igroup == -1)
+        cmd = fmt::format("{} dynamic all property statted_tags",exclude_group);
+      else
+        cmd = fmt::format("{} dynamic {} property statted_tags",exclude_group,exclude_PARENT_group);
+      group->assign(cmd);
       delete [] exclude_PARENT_group;
 
       // on to statted_tags (system-wide thermostat)
@@ -737,21 +707,16 @@ void FixBondReact::post_constructor()
 
 
     // let's create a new nve/limit fix to limit newly reacted atoms
-    len = strlen("bond_react_MASTER_nve_limit") + 1;
-    id_fix1 = new char[len];
-    strcpy(id_fix1,"bond_react_MASTER_nve_limit");
+    cmd = std::string("bond_react_MASTER_nve_limit");
+    id_fix1 = new char[cmd.size()+1];
+    strcpy(id_fix1,cmd.c_str());
 
     ifix = modify->find_fix(id_fix1);
 
     if (ifix == -1) {
-      char **newarg = new char*[4];
-      newarg[0] = id_fix1;
-      newarg[1] = master_group;
-      newarg[2] = (char *) "nve/limit";
-      newarg[3] = nve_limit_xmax;
-      modify->add_fix(4,newarg);
+      cmd += fmt::format(" {} nve/limit  {}",master_group,nve_limit_xmax);
+      modify->add_fix(cmd);
       fix1 = modify->fix[modify->nfix-1];
-      delete [] newarg;
     }
   }
 }

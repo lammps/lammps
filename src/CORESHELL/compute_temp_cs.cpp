@@ -70,7 +70,7 @@ ComputeTempCS::ComputeTempCS(LAMMPS *lmp, int narg, char **arg) :
 
   std::string fixcmd = id + std::string("_COMPUTE_STORE");
   id_fix = new char[fixcmd.size()+1];
-  strcpy(id_fix,fix_cmd.c_str());
+  strcpy(id_fix,fixcmd.c_str());
 
   fixcmd += fmt::format(" {} STORE peratom 0 1", group->names[igroup]);
   modify->add_fix(fixcmd);

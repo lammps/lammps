@@ -48,6 +48,7 @@
 #include "utils.h"
 #include "tokenizer.h"
 #include "potential_file_reader.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -689,12 +690,9 @@ void PairBOP::init_style()
 
   // check that user sets comm->cutghostuser to 3x the max BOP cutoff
 
-  if (comm->cutghostuser < 3.0*cutmax - EPSILON) {
-    char str[128];
-    sprintf(str,"Pair style bop requires comm ghost cutoff "
-            "at least 3x larger than %g",cutmax);
-    error->all(FLERR,str);
-  }
+  if (comm->cutghostuser < 3.0*cutmax - EPSILON)
+    error->all(FLERR,fmt::format("Pair style bop requires comm ghost cutoff "
+                                 "at least 3x larger than {}",cutmax));
 
   // need a full neighbor list and neighbors of ghosts
 

@@ -189,7 +189,7 @@ TEST_F(PotentialFileReaderTest, GWZBL)
 TEST_F(PotentialFileReaderTest, Nb3bHarmonic)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
+    lmp->input->one("units real");
     PotentialFileReader reader(lmp, "MOH.nb3b.harmonic", "NB3B Harmonic");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 

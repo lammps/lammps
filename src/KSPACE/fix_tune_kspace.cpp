@@ -19,6 +19,8 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <string>
+#include "comm.h"
 #include "update.h"
 #include "force.h"
 #include "kspace.h"
@@ -29,6 +31,8 @@
 #include "neighbor.h"
 #include "modify.h"
 #include "compute.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 #define SWAP(a,b) {temp=(a);(a)=(b);(b)=temp;}
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
@@ -145,11 +149,12 @@ void FixTuneKspace::pre_exchange()
     update_pair_style(new_pair_style,pair_cut_coul);
     update_kspace_style(new_kspace_style,new_acc_str);
   } else if (niter == 4) {
-    store_old_kspace_settings();
-    if (screen) fprintf(screen,"ewald_time = %g\npppm_time = %g\nmsm_time = %g",
-                        ewald_time, pppm_time, msm_time);
-    if (logfile) fprintf(logfile,"ewald_time = %g\npppm_time = %g\nmsm_time = %g",
-                         ewald_time, pppm_time, msm_time);
+    store_old_kspace_settings();    
+    if (comm->me == 0)
+      utils::logmesg(lmp,fmt::format("ewald_time = {}\n"
+                                     "pppm_time = {}\n"
+                                     "msm_time = {}\n",
+                                     ewald_time, pppm_time, msm_time));
     // switch to fastest one
     strcpy(new_kspace_style,"ewald");
     snprintf(new_pair_style,64,"%s/long",base_pair_style);
@@ -240,8 +245,8 @@ void FixTuneKspace::update_pair_style(char *new_pair_style,
   p_pair_settings_file = tmpfile();
   force->pair->write_restart(p_pair_settings_file);
   rewind(p_pair_settings_file);
-  if (screen) fprintf(screen,"Creating new pair style: %s\n",new_pair_style);
-  if (logfile) fprintf(logfile,"Creating new pair style: %s\n",new_pair_style);
+  if (comm->me == 0)
+    utils::logmesg(lmp,fmt::format("Creating new pair style: {}\n",new_pair_style));
   // delete old pair style and create new one
   force->create_pair(new_pair_style,1);
 
@@ -250,8 +255,9 @@ void FixTuneKspace::update_pair_style(char *new_pair_style,
 
   double *pcutoff = (double *) force->pair->extract("cut_coul",itmp);
   double current_cutoff = *pcutoff;
-  if (screen) fprintf(screen,"Coulomb cutoff for real space: %g\n", current_cutoff);
-  if (logfile) fprintf(logfile,"Coulomb cutoff for real space: %g\n", current_cutoff);
+  if (comm->me == 0)
+    utils::logmesg(lmp,fmt::format("Coulomb cutoff for real space: {}\n",
+                                   current_cutoff));
 
   // close temporary file
   fclose(p_pair_settings_file);
@@ -319,8 +325,9 @@ void FixTuneKspace::adjust_rcut(double time)
   int itmp;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   double current_cutoff = *p_cutoff;
-  if (screen) fprintf(screen,"Old Coulomb cutoff for real space: %g\n",current_cutoff);
-  if (logfile) fprintf(logfile,"Old Coulomb cutoff for real space: %g\n",current_cutoff);
+  if (comm->me == 0)
+    utils::logmesg(lmp,fmt::format("Old Coulomb cutoff for real space: {}\n",
+                                   current_cutoff));
 
   // use Brent's method from Numerical Recipes to find optimal real space cutoff
 
@@ -390,8 +397,8 @@ void FixTuneKspace::adjust_rcut(double time)
   // report the new cutoff
   double *new_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   current_cutoff = *new_cutoff;
-  if (screen) fprintf(screen,"Adjusted Coulomb cutoff for real space: %g\n", current_cutoff);
-  if (logfile) fprintf(logfile,"Adjusted Coulomb cutoff for real space: %g\n", current_cutoff);
+  if (comm->me == 0)
+    utils::logmesg(lmp,fmt::format("Adjusted Coulomb cutoff for real space: {}\n", current_cutoff));
 
   store_old_kspace_settings();
   update_pair_style(new_pair_style,pair_cut_coul);

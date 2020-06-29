@@ -571,7 +571,7 @@ TEST(PairStyle, plain)
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
         lmp = init_lammps(argc, argv, test_config, false);
-        lmp->input->one("run_style respa 2 1 inner 1 4.0 5.0 outer 2");
+        lmp->input->one("run_style respa 2 1 inner 1 4.8 5.5 outer 2");
         run_lammps(lmp);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
@@ -579,7 +579,7 @@ TEST(PairStyle, plain)
         // coul/long styles do not use tabulation in compute_inner()
         // and compute_middle() so we get a significant deviation.
         pair = lmp->force->pair;
-        if (pair->ncoultablebits) epsilon *= 1.0e6;
+        if (pair->ncoultablebits) epsilon *= 5.0e6;
 
         f   = lmp->atom->f;
         tag = lmp->atom->tag;

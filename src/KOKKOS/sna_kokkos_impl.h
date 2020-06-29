@@ -552,10 +552,7 @@ void SNAKokkos<DeviceType>::compute_bi(const int& iatom_mod, const int& jjb, con
   int idouble = 0;
   for (int elem1 = 0; elem1 < nelements; elem1++) {
     for (int elem2 = 0; elem2 < nelements; elem2++) {
-      const int jalloy = idouble;
-
       for (int elem3 = 0; elem3 < nelements; elem3++) {
-        const int jjballoy = itriple;
 
         double sumzu = 0.0;
         double sumzu_temp = 0.0;
@@ -566,7 +563,7 @@ void SNAKokkos<DeviceType>::compute_bi(const int& iatom_mod, const int& jjb, con
             const int jjz_index = jjz+mb*(j+1)+ma;
             if (2*mb == j) return; // I think we can remove this?
             const auto utot = ulisttot_pack(iatom_mod, jju_index, elem3, iatom_div);
-            const auto zloc = zlist_pack(iatom_mod, jjz_index, jalloy, iatom_div);
+            const auto zloc = zlist_pack(iatom_mod, jjz_index, idouble, iatom_div);
             sumzu_temp += utot.re * zloc.re + utot.im * zloc.im;
           }
         }
@@ -582,7 +579,7 @@ void SNAKokkos<DeviceType>::compute_bi(const int& iatom_mod, const int& jjb, con
             const int jjz_index = jjz+(mb-1)*(j+1)+(j+1)+ma;
 
             const auto utot = ulisttot_pack(iatom_mod, jju_index, elem3, iatom_div);
-            const auto zloc = zlist_pack(iatom_mod, jjz_index, jalloy, iatom_div);
+            const auto zloc = zlist_pack(iatom_mod, jjz_index, idouble, iatom_div);
             sumzu_temp += utot.re * zloc.re + utot.im * zloc.im;
 
           }
@@ -593,7 +590,7 @@ void SNAKokkos<DeviceType>::compute_bi(const int& iatom_mod, const int& jjb, con
           const int jjz_index = jjz+(mb-1)*(j+1)+(j+1)+ma;
 
           const auto utot = ulisttot_pack(iatom_mod, jju_index, elem3, iatom_div);
-          const auto zloc = zlist_pack(iatom_mod, jjz_index, jalloy, iatom_div);
+          const auto zloc = zlist_pack(iatom_mod, jjz_index, idouble, iatom_div);
           sumzu += 0.5 * (utot.re * zloc.re + utot.im * zloc.im);
         } // end if jeven
 
@@ -607,7 +604,7 @@ void SNAKokkos<DeviceType>::compute_bi(const int& iatom_mod, const int& jjb, con
             sumzu -= bzero[j];
           }
         }
-        blist_pack(iatom_mod, jjb, jjballoy, iatom_div) = sumzu;
+        blist_pack(iatom_mod, jjb, itriple, iatom_div) = sumzu;
             //} // end loop over j
           //} // end loop over j1, j2
         itriple++; 
@@ -1078,7 +1075,7 @@ void SNAKokkos<DeviceType>::compute_bi_cpu(const typename Kokkos::TeamPolicy<Dev
   int idouble = 0;
   for (int elem1 = 0; elem1 < nelements; elem1++) {
     for (int elem2 = 0; elem2 < nelements; elem2++) {
-      const auto jalloy = idouble;
+      auto jalloy = idouble; // must be non-const to work around gcc compiler bug
       for (int elem3 = 0; elem3 < nelements; elem3++) {
         Kokkos::parallel_for(Kokkos::TeamThreadRange(team,idxb_max),
           [&] (const int& jjb) {
@@ -1146,7 +1143,7 @@ void SNAKokkos<DeviceType>::compute_bi_cpu(const typename Kokkos::TeamPolicy<Dev
               }
             }
 
-            blist(jjb, jjballoy, iatom) = sumzu;
+            blist(jjb, itriple, iatom) = sumzu;
           });
         });
           //} // end loop over j

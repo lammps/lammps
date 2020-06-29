@@ -27,9 +27,7 @@
 #ifndef __VECTOR_H_
 #define __VECTOR_H_
 
-#include "pair.h"
 #include "reaxc_types.h"
-#include "reaxc_defs.h"
 
 void rvec_Copy( rvec, rvec );
 void rvec_Scale( rvec, double, rvec );

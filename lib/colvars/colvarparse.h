@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -12,10 +12,10 @@
 
 #include <cstring>
 #include <string>
-#include <map>
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
+#include "colvarparams.h"
 
 
 /// \file colvarparse.h Parsing functions for collective variables
@@ -23,37 +23,24 @@
 
 /// \brief Base class containing parsing functions; all objects which
 /// need to parse input inherit from this
-class colvarparse {
+class colvarparse : public colvarparams {
 
 public:
 
   /// Default constructor
-  inline colvarparse()
-  {
-    init();
-  }
+  colvarparse();
 
   /// Constructor that stores the object's config string
-  inline colvarparse(const std::string& conf)
-  {
-    init(conf);
-  }
+  colvarparse(const std::string& conf);
 
   /// Set the object ready to parse a new configuration string
-  inline void init()
-  {
-    config_string.clear();
-    clear_keyword_registry();
-  }
+  void init();
 
   /// Set a new config string for this object
-  inline void init(std::string const &conf)
-  {
-    if (! config_string.size()) {
-      init();
-      config_string = conf;
-    }
-  }
+  void init(std::string const &conf);
+
+  /// Default destructor
+  virtual ~colvarparse();
 
   /// Get the configuration string (includes comments)
   inline std::string const & get_config() const
@@ -212,6 +199,10 @@ protected:
   bool get_key_string_value(std::string const &conf,
                             char const *key, std::string &data);
 
+  /// Get multiple strings from repeated instances of a same keyword
+  bool get_key_string_multi_value(std::string const &conf,
+                                  char const *key, std::vector<std::string>& data);
+
   /// Template for single-value keyword parsers
   template<typename TYPE>
   bool _get_keyval_scalar_(std::string const &conf,
@@ -281,14 +272,18 @@ public:
   /// skipping other blocks
   class read_block {
 
-    std::string const   key;
+    /// The keyword that identifies the block
+    std::string const key;
+
+    /// Where to keep the data (may be NULL)
     std::string * const data;
 
   public:
-    inline read_block(std::string const &key_in, std::string &data_in)
-      : key(key_in), data(&data_in)
-    {}
-    inline ~read_block() {}
+
+    read_block(std::string const &key_in, std::string *data_in = NULL);
+
+    ~read_block();
+
     friend std::istream & operator >> (std::istream &is, read_block const &rb);
   };
 
@@ -321,6 +316,12 @@ public:
   /// \param conf The configuration string \param start_pos Start the count
   /// from this position
   static int check_braces(std::string const &conf, size_t const start_pos);
+
+  /// \brief Split a string with a specified delimiter into a vector
+  /// \param data The string to be splitted
+  /// \param delim A delimiter
+  /// \param dest A destination vector to store the splitted results
+  static void split_string(const std::string& data, const std::string& delim, std::vector<std::string>& dest);
 
 protected:
 

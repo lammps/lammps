@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "ntopo_dihedral_all.h"
+#include <mpi.h>
 #include "atom.h"
 #include "force.h"
 #include "domain.h"
@@ -21,6 +21,7 @@
 #include "thermo.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -60,17 +61,12 @@ void NTopoDihedralAll::build()
       atom4 = atom->map(dihedral_atom4[i][m]);
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
         nmissing++;
-        if (lostbond == Thermo::ERROR) {
-          char str[128];
-          sprintf(str,"Dihedral atoms "
-                  TAGINT_FORMAT " " TAGINT_FORMAT " "
-                  TAGINT_FORMAT " " TAGINT_FORMAT
-                  " missing on proc %d at step " BIGINT_FORMAT,
-                  dihedral_atom1[i][m],dihedral_atom2[i][m],
-                  dihedral_atom3[i][m],dihedral_atom4[i][m],
-                  me,update->ntimestep);
-          error->one(FLERR,str);
-        }
+        if (lostbond == Thermo::ERROR)
+          error->one(FLERR,fmt::format("Dihedral atoms {} {} {} {} missing on "
+                                       "proc {} at step {}",
+                                       dihedral_atom1[i][m],dihedral_atom2[i][m],
+                                       dihedral_atom3[i][m],dihedral_atom4[i][m],
+                                       me,update->ntimestep));
         continue;
       }
       atom1 = domain->closest_image(i,atom1);
@@ -97,10 +93,7 @@ void NTopoDihedralAll::build()
 
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
-  if (all) {
-    char str[128];
-    sprintf(str,
-            "Dihedral atoms missing at step " BIGINT_FORMAT,update->ntimestep);
-    if (me == 0) error->warning(FLERR,str);
-  }
+  if (all && (me == 0))
+    error->warning(FLERR,fmt::format("Dihedral atoms missing at step {}",
+                                     update->ntimestep));
 }

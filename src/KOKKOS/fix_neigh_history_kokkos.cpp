@@ -18,6 +18,7 @@
 #include "neigh_list_kokkos.h"
 #include "pair_kokkos.h"
 #include "comm.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 
@@ -69,6 +70,17 @@ void FixNeighHistoryKokkos<DeviceType>::init()
 {
   if (atomKK->tag_enable == 0)
     error->all(FLERR,"Neighbor history requires atoms have IDs");
+
+  // this fix must come before any fix which migrates atoms in its pre_exchange()
+  // b/c this fix's pre_exchange() creates per-atom data structure
+  // that data must be current for atom migration to carry it along
+
+  for (int i = 0; i < modify->nfix; i++) {
+    if (modify->fix[i] == this) break;
+    if (modify->fix[i]->pre_exchange_migrate)
+      error->all(FLERR,"Fix neigh_history comes after a fix which "
+                 "migrates atoms in pre_exchange");
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -99,18 +111,20 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange()
 
   copymode = 0;
 
-  comm->maxexchange_fix = MAX(comm->maxexchange_fix,(dnum+1)*maxpartner+1);
+  maxexchange = (dnum+1)*maxpartner+1;
 }
 
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
+KOKKOS_INLINE_FUNCTION
 void FixNeighHistoryKokkos<DeviceType>::zero_partner_count_item(const int &i) const
 {
   d_npartner[i] = 0;
 }
 
 template <class DeviceType>
+KOKKOS_INLINE_FUNCTION
 void FixNeighHistoryKokkos<DeviceType>::pre_exchange_item(const int &ii) const
 {
   const int i = d_ilist[ii];
@@ -122,21 +136,21 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange_item(const int &ii) const
       j &= NEIGHMASK;
       int m = Kokkos::atomic_fetch_add(&d_npartner[i],1);
       if (m < maxpartner) {
-	d_partner(i,m) = tag[j];
-	for (int k = 0; k < dnum; k++)
-	  d_valuepartner(i,dnum*m+k) = d_firstvalue(i,dnum*jj+k);
+        d_partner(i,m) = tag[j];
+        for (int k = 0; k < dnum; k++)
+          d_valuepartner(i,dnum*m+k) = d_firstvalue(i,dnum*jj+k);
       } else {
-	d_resize() = 1;
+        d_resize() = 1;
       }
       if (j < nlocal_neigh) {
-	m = Kokkos::atomic_fetch_add(&d_npartner[j],1);
-	if (m < maxpartner) {
-	  d_partner(j,m) = tag[i];
-	  for (int k = 0; k < dnum; k++)
-	    d_valuepartner(j,dnum*m+k) = d_firstvalue(i,dnum*jj+k);
-	} else {
-	  d_resize() = 1;
-	}
+        m = Kokkos::atomic_fetch_add(&d_npartner[j],1);
+        if (m < maxpartner) {
+          d_partner(j,m) = tag[i];
+          for (int k = 0; k < dnum; k++)
+            d_valuepartner(j,dnum*m+k) = d_firstvalue(i,dnum*jj+k);
+        } else {
+          d_resize() = 1;
+        }
       }
     }
   }
@@ -205,22 +219,22 @@ void FixNeighHistoryKokkos<DeviceType>::post_neighbor_item(const int &ii) const
     if (rflag) {
       int jtag = tag(j);
       for (m = 0; m < np; m++)
-	if (d_partner(i, m) == jtag) break;
+        if (d_partner(i, m) == jtag) break;
       if (m < np) {
-	d_firstflag(i,jj) = 1;
-	for (int k = 0; k < dnum; k++) {
-	  d_firstvalue(i, dnum*jj+k) = d_valuepartner(i, dnum*m+k);
-	}
+        d_firstflag(i,jj) = 1;
+        for (int k = 0; k < dnum; k++) {
+          d_firstvalue(i, dnum*jj+k) = d_valuepartner(i, dnum*m+k);
+        }
       } else {
-	d_firstflag(i,jj) = 0;
-	for (int k = 0; k < dnum; k++) {
-	  d_firstvalue(i, dnum*jj+k) = 0;
-	}
+        d_firstflag(i,jj) = 0;
+        for (int k = 0; k < dnum; k++) {
+          d_firstvalue(i, dnum*jj+k) = 0;
+        }
       }
     } else {
       d_firstflag(i,jj) = 0;
       for (int k = 0; k < dnum; k++) {
-	d_firstvalue(i, dnum*jj+k) = 0;
+        d_firstvalue(i, dnum*jj+k) = 0;
       }
     }
   }

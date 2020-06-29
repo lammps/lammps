@@ -14,9 +14,8 @@
 #ifndef LMP_VARIABLE_H
 #define LMP_VARIABLE_H
 
-#include <cstdlib>
 #include "pointers.h"
-#include "input.h"
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -125,7 +124,8 @@ class Variable : protected Pointers {
   double constant(char *);
   int parse_args(char *, char **);
   char *find_next_comma(char *);
-  void print_var_error(const char *, int, const char *, int, int global=1);
+  void print_var_error(const std::string &, int, const std::string &,
+                       int, int global=1);
   void print_tree(Tree *, int);
 };
 

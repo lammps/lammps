@@ -16,10 +16,11 @@
    Original MSM class by: Paul Crozier, Stan Moore, Stephen Bond, (all SNL)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
+#include "msm_cg_omp.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
 
 #include "atom.h"
@@ -29,12 +30,14 @@
 #include "force.h"
 #include "neighbor.h"
 #include "memory.h"
-#include "msm_cg_omp.h"
+#include "thr_omp.h"
+#include "timer.h"
 
-#include "math_const.h"
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define OFFSET 16384
 #define SMALLQ 0.00001
@@ -197,7 +200,7 @@ void MSMCGOMP::compute(int eflag, int vflag)
   }
 
 
-  // compute direct interation for top grid level for non-periodic
+  // compute direct interaction for top grid level for non-periodic
   //   and for second from top grid level for periodic
 
   if (active_flag[levels-1]) {
@@ -308,7 +311,7 @@ void MSMCGOMP::compute(int eflag, int vflag)
   }
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
 #if defined(_OPENMP)

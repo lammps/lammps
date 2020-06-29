@@ -20,7 +20,6 @@ AngleStyle(dipole,AngleDipole)
 #ifndef LMP_ANGLE_DIPOLE_H
 #define LMP_ANGLE_DIPOLE_H
 
-#include <cstdio>
 #include "angle.h"
 
 namespace LAMMPS_NS {

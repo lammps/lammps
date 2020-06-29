@@ -15,9 +15,9 @@
    Contributing authors: Mike Parks (SNL), Ezwanur Rahman, J.T. Foster (UTSA)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "fix_peri_neigh.h"
-#include "pair_peri_pmb.h"
+#include <mpi.h>
+#include <cmath>
 #include "pair_peri_lps.h"
 #include "pair_peri_ves.h"
 #include "pair_peri_eps.h"
@@ -25,7 +25,6 @@
 #include "domain.h"
 #include "force.h"
 #include "comm.h"
-#include "update.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"

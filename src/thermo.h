@@ -18,9 +18,6 @@
 
 namespace LAMMPS_NS {
 
-class DumpNetCDF;
-class DumpNetCDFMPIIO;
-
 class Thermo : protected Pointers {
   friend class MinCG;                  // accesses compute_pe
   friend class DumpNetCDF;             // accesses thermo properties
@@ -42,7 +39,7 @@ class Thermo : protected Pointers {
   void modify_params(int, char **);
   void header();
   void compute(int);
-  int evaluate_keyword(char *, double *);
+  int evaluate_keyword(const char *, double *);
 
  private:
   char *line;

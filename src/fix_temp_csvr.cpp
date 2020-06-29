@@ -16,13 +16,13 @@
    Based on code by Paolo Raiteri (Curtin U) and Giovanni Bussi (SISSA)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "fix_temp_csvr.h"
+#include <mpi.h>
+#include <cstring>
+#include <cmath>
+#include <string>
 #include "atom.h"
 #include "force.h"
-#include "memory.h"
 #include "comm.h"
 #include "input.h"
 #include "variable.h"
@@ -32,6 +32,7 @@
 #include "compute.h"
 #include "random_mars.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -157,17 +158,12 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
   // create a new compute temp style
   // id = fix-ID + temp, compute group = fix group
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
+  std::string cmd = id + std::string("_temp");
+  id_temp = new char[cmd.size()+1];
+  strcpy(id_temp,cmd.c_str());
 
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "temp";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  cmd += fmt::format(" {} temp",group->names[igroup]);
+  modify->add_compute(cmd);
   tflag = 1;
 
   nmax = -1;

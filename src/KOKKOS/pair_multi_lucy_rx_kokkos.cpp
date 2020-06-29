@@ -21,21 +21,16 @@
    The Journal of Chemical Physics, 2016, 144, 104501.
 ------------------------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include "math_const.h"
-#include <cstdlib>
-#include <cstring>
 #include "pair_multi_lucy_rx_kokkos.h"
+#include <cmath>
+#include <cstring>
+#include "math_const.h"
 #include "atom_kokkos.h"
 #include "force.h"
 #include "comm.h"
 #include "neigh_list.h"
 #include "memory_kokkos.h"
 #include "error.h"
-#include "citeme.h"
-#include "modify.h"
-#include "fix.h"
 #include "atom_masks.h"
 #include "neigh_request.h"
 #include "kokkos.h"
@@ -104,10 +99,10 @@ void PairMultiLucyRXKokkos<DeviceType>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
+    !std::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
 
   if (neighflag == FULL) {
     neighbor->requests[irequest]->full = 1;
@@ -159,7 +154,7 @@ void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
     d_vatom = k_vatom.template view<DeviceType>();
   }
 
@@ -275,7 +270,7 @@ KOKKOS_INLINE_FUNCTION
 void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,TABSTYLE>, const int &ii, EV_FLOAT& ev) const {
 
   // The f array is atomic for Half/Thread neighbor style
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
 
   int i,jj,jnum,itype,jtype,itable;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwlOld,fpair;
@@ -537,7 +532,7 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXComputeLoca
 
 
   // The rho array is atomic for Half/Thread neighbor style
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_rho = rho;
+  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_rho = rho;
 
   const int i = d_ilist[ii];
 
@@ -776,8 +771,8 @@ void PairMultiLucyRXKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, con
   const int VFLAG = vflag_either;
 
   // The eatom and vatom arrays are atomic for Half/Thread neighbor style
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = k_eatom.view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
+  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = k_eatom.view<DeviceType>();
+  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
 
   if (EFLAG) {
     if (eflag_atom) {

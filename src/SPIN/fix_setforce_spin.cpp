@@ -21,20 +21,15 @@
    and molecular dynamics. Journal of Computational Physics.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "fix_setforce_spin.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
 #include "domain.h"
 #include "region.h"
-#include "respa.h"
 #include "input.h"
 #include "variable.h"
 #include "memory.h"
-#include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -145,7 +140,7 @@ void FixSetForceSpin::single_setforce_spin(int i, double fmi[3])
 
   foriginal[0] = foriginal[1] = foriginal[2] = 0.0;
   force_flag = 0;
- 
+
   // constant force
 
   if (varflag == CONSTANT) {

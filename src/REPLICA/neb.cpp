@@ -11,16 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// lmptype.h must be first b/c this file uses MAXBIGINT and includes mpi.h
-// due to OpenMPI bug which sets INT64_MAX via its mpi.h
-//   before lmptype.h can set flags to insure it is done correctly
-
-#include "lmptype.h"
+#include "neb.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "neb.h"
 #include "universe.h"
 #include "atom.h"
 #include "update.h"
@@ -38,6 +33,7 @@
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -452,7 +448,7 @@ void NEB::readfile(char *file, int flag)
     buf = buffer;
     next = strchr(buf,'\n');
     *next = '\0';
-    int nwords = atom->count_words(buf);
+    int nwords = utils::count_words(utils::trim_comment(buf));
     *next = '\n';
 
     if (nwords != ATTRIBUTE_PERLINE)

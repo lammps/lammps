@@ -12,8 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "nstencil_half_bin_2d_newton_tri.h"
-#include "neighbor.h"
-#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 

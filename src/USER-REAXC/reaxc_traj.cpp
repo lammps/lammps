@@ -24,10 +24,13 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc.h"
 #include "reaxc_traj.h"
+#include <mpi.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include "reaxc_defs.h"
 #include "reaxc_list.h"
-#include "reaxc_tool_box.h"
 
 #include "error.h"
 
@@ -36,11 +39,11 @@ int Reallocate_Output_Buffer( LAMMPS_NS::Error *error_ptr, output_controls *out_
   if (out_control->buffer_len > 0)
     free( out_control->buffer );
 
-  out_control->buffer_len = (int)(req_space*SAFE_ZONE);
+  out_control->buffer_len = (int)(req_space*REAX_SAFE_ZONE);
   out_control->buffer = (char*) malloc(out_control->buffer_len*sizeof(char));
   if (out_control->buffer == NULL) {
     char errmsg[256];
-    snprintf(errmsg, 256, "Insufficient memory for required buffer size %d", (int) (req_space*SAFE_ZONE));
+    snprintf(errmsg, 256, "Insufficient memory for required buffer size %d", (int) (req_space*REAX_SAFE_ZONE));
     error_ptr->one(FLERR,errmsg);
   }
 

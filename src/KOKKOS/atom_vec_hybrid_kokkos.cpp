@@ -11,12 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "atom_vec_hybrid_kokkos.h"
+#include <cstring>
 #include "atom_kokkos.h"
 #include "domain.h"
-#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "memory_kokkos.h"
@@ -165,7 +163,7 @@ void AtomVecHybridKokkos::grow(int n)
   // for sub-styles, do this in case
   //   multiple sub-style reallocs of same array occurred
 
-  grow_reset();
+  grow_pointers();
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -176,7 +174,7 @@ void AtomVecHybridKokkos::grow(int n)
    reset local array ptrs
 ------------------------------------------------------------------------- */
 
-void AtomVecHybridKokkos::grow_reset()
+void AtomVecHybridKokkos::grow_pointers()
 {
   tag = atomKK->tag;
   d_tag = atomKK->k_tag.d_view;
@@ -218,7 +216,7 @@ void AtomVecHybridKokkos::grow_reset()
   d_angmom = atomKK->k_angmom.d_view;
   h_angmom = atomKK->k_angmom.h_view;
 
-  for (int k = 0; k < nstyles; k++) styles[k]->grow_reset();
+  for (int k = 0; k < nstyles; k++) styles[k]->grow_pointers();
 }
 
 /* ----------------------------------------------------------------------

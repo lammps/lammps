@@ -11,10 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
 #include "compute_contact_atom.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -22,7 +20,6 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "force.h"
-#include "pair.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"

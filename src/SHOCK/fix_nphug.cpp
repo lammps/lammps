@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "fix_nphug.h"
+#include <cstring>
+#include <cmath>
 #include "modify.h"
 #include "error.h"
 #include "update.h"
@@ -22,8 +21,6 @@
 #include "force.h"
 #include "domain.h"
 #include "group.h"
-#include "memory.h"
-#include "comm.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

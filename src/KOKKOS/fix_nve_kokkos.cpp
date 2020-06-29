@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_nve_kokkos.h"
 #include <cstdio>
 #include <cstring>
-#include "fix_nve_kokkos.h"
 #include "atom_masks.h"
 #include "atom_kokkos.h"
 #include "force.h"
@@ -98,7 +98,7 @@ KOKKOS_INLINE_FUNCTION
 void FixNVEKokkos<DeviceType>::initial_integrate_rmass_item(int i) const
 {
   if (mask[i] & groupbit) {
-    const double dtfm = dtf / rmass[type[i]];
+    const double dtfm = dtf / rmass[i];
     v(i,0) += dtfm * f(i,0);
     v(i,1) += dtfm * f(i,1);
     v(i,2) += dtfm * f(i,2);
@@ -154,7 +154,7 @@ KOKKOS_INLINE_FUNCTION
 void FixNVEKokkos<DeviceType>::final_integrate_rmass_item(int i) const
 {
   if (mask[i] & groupbit) {
-    const double dtfm = dtf / rmass[type[i]];
+    const double dtfm = dtf / rmass[i];
     v(i,0) += dtfm * f(i,0);
     v(i,1) += dtfm * f(i,1);
     v(i,2) += dtfm * f(i,2);

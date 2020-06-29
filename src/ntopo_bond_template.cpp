@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "ntopo_bond_template.h"
+#include <mpi.h>
 #include "atom.h"
 #include "atom_vec.h"
 #include "force.h"
@@ -23,6 +23,7 @@
 #include "molecule.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -72,13 +73,11 @@ void NTopoBondTemplate::build()
       atom1 = atom->map(bond_atom[iatom][m]+tagprev);
       if (atom1 == -1) {
         nmissing++;
-        if (lostbond == Thermo::ERROR) {
-          char str[128];
-          sprintf(str,"Bond atoms " TAGINT_FORMAT " " TAGINT_FORMAT
-                  " missing on proc %d at step " BIGINT_FORMAT,
-                  tag[i],bond_atom[iatom][m]+tagprev,me,update->ntimestep);
-          error->one(FLERR,str);
-        }
+        if (lostbond == Thermo::ERROR)
+          error->one(FLERR,fmt::format("Bond atoms {} {} missing on "
+                                       "proc {} at step {}",tag[i],
+                                       bond_atom[iatom][m]+tagprev,
+                                       me,update->ntimestep));
         continue;
       }
       atom1 = domain->closest_image(i,atom1);
@@ -100,10 +99,7 @@ void NTopoBondTemplate::build()
 
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
-  if (all) {
-    char str[128];
-    sprintf(str,
-            "Bond atoms missing at step " BIGINT_FORMAT,update->ntimestep);
-    if (me == 0) error->warning(FLERR,str);
-  }
+  if (all && (me == 0))
+    error->warning(FLERR,fmt::format("Bond atoms missing at step {}",
+                                     update->ntimestep));
 }

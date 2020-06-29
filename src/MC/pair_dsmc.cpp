@@ -15,12 +15,10 @@
    Contributing authors: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <climits>
 #include "pair_dsmc.h"
+#include <mpi.h>
+#include <cmath>
+#include <climits>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -29,6 +27,8 @@
 #include "domain.h"
 #include "update.h"
 #include "random_mars.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -284,12 +284,9 @@ void PairDSMC::init_style()
   celly = (domain->boxhi[1] - domain->boxlo[1])/ncellsy;
   cellz = (domain->boxhi[2] - domain->boxlo[2])/ncellsz;
 
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,"DSMC cell size = %g x %g x %g\n",
-                        cellx,celly,cellz);
-    if (logfile) fprintf(logfile,"DSMC cell size = %g x %g x %g\n",
-                         cellx,celly,cellz);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,fmt::format("DSMC cell size = {} x {} x {}\n",
+                                   cellx,celly,cellz));
 
   total_ncells = ncellsx*ncellsy*ncellsz;
   vol = cellx*celly*cellz;
@@ -347,12 +344,12 @@ void PairDSMC::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&sigma[i][j],sizeof(double),1,fp);
-          fread(&cut[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
@@ -380,11 +377,11 @@ void PairDSMC::write_restart_settings(FILE *fp)
 void PairDSMC::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&max_cell_size,sizeof(double),1,fp);
-    fread(&seed,sizeof(int),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&max_cell_size,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&seed,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
   }
 
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);

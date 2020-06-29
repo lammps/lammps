@@ -11,12 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "atom_vec_full_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm_kokkos.h"
 #include "domain.h"
-#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "atom_masks.h"
@@ -75,9 +73,9 @@ void AtomVecFullKokkos::grow(int n)
   memoryKK->grow_kokkos(atomKK->k_mask,atomKK->mask,nmax,"atom:mask");
   memoryKK->grow_kokkos(atomKK->k_image,atomKK->image,nmax,"atom:image");
 
-  memoryKK->grow_kokkos(atomKK->k_x,atomKK->x,nmax,3,"atom:x");
-  memoryKK->grow_kokkos(atomKK->k_v,atomKK->v,nmax,3,"atom:v");
-  memoryKK->grow_kokkos(atomKK->k_f,atomKK->f,nmax,3,"atom:f");
+  memoryKK->grow_kokkos(atomKK->k_x,atomKK->x,nmax,"atom:x");
+  memoryKK->grow_kokkos(atomKK->k_v,atomKK->v,nmax,"atom:v");
+  memoryKK->grow_kokkos(atomKK->k_f,atomKK->f,nmax,"atom:f");
 
   memoryKK->grow_kokkos(atomKK->k_q,atomKK->q,nmax,"atom:q");
   memoryKK->grow_kokkos(atomKK->k_molecule,atomKK->molecule,nmax,"atom:molecule");
@@ -125,7 +123,7 @@ void AtomVecFullKokkos::grow(int n)
   memoryKK->grow_kokkos(atomKK->k_improper_atom4,atomKK->improper_atom4,nmax,
                       atomKK->improper_per_atom,"atom:improper_atom4");
 
-  grow_reset();
+  grow_pointers();
   atomKK->sync(Host,ALL_MASK);
 
   if (atom->nextra_grow)
@@ -137,7 +135,7 @@ void AtomVecFullKokkos::grow(int n)
    reset local array ptrs
 ------------------------------------------------------------------------- */
 
-void AtomVecFullKokkos::grow_reset()
+void AtomVecFullKokkos::grow_pointers()
 {
   tag = atomKK->tag;
   d_tag = atomKK->k_tag.d_view;

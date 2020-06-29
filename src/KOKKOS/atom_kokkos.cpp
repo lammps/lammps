@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "atom_kokkos.h"
+#include <mpi.h>
 #include "atom_vec.h"
 #include "atom_vec_kokkos.h"
 #include "comm_kokkos.h"
@@ -237,7 +237,7 @@ void AtomKokkos::grow(unsigned int mask){
     sync(Device, mask);
     modified(Device, mask);
     memoryKK->grow_kokkos(k_special,special,nmax,maxspecial,"atom:special");
-    avec->grow_reset();
+    avec->grow_pointers();
     sync(Host, mask);
   }
 }
@@ -340,7 +340,8 @@ void AtomKokkos::sync_modify(ExecutionSpace execution_space,
   modified(execution_space,datamask_modify);
 }
 
-AtomVec *AtomKokkos::new_avec(const char *style, int trysuffix, int &sflag)
+AtomVec *AtomKokkos::new_avec(const std::string &style,
+                              int trysuffix, int &sflag)
 {
   AtomVec* avec = Atom::new_avec(style,trysuffix,sflag);
   if (!avec->kokkosable)

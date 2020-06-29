@@ -34,7 +34,7 @@ class GayBerne : public BaseEllipsoid<numtyp, acctyp> {
     * \return false if there is not sufficient memory or device init prob
     *
     * Returns:
-    * -  0 if successfull
+    * -  0 if successful
     * - -1 if fix gpu not found
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU

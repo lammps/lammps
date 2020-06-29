@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_coord_atom.h"
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "compute_coord_atom.h"
 #include "compute_orientorder_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -28,6 +27,7 @@
 #include "group.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -94,7 +94,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
     int iorientorder = modify->find_compute(id_orientorder);
     if (iorientorder < 0)
       error->all(FLERR,"Could not find compute coord/atom compute ID");
-    if (strcmp(modify->compute[iorientorder]->style,"orientorder/atom") != 0)
+    if (!utils::strmatch(modify->compute[iorientorder]->style,"^orientorder/atom"))
       error->all(FLERR,"Compute coord/atom compute ID is not orientorder/atom");
 
     threshold = force->numeric(FLERR,arg[5]);
@@ -120,6 +120,8 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeCoordAtom::~ComputeCoordAtom()
 {
+  if (copymode) return;
+
   delete [] group2;
   delete [] typelo;
   delete [] typehi;
@@ -139,7 +141,7 @@ void ComputeCoordAtom::init()
     l = c_orientorder->qlcomp;
     //  communicate real and imaginary 2*l+1 components of the normalized vector
     comm_forward = 2*(2*l+1);
-    if (c_orientorder->iqlcomp < 0)
+    if (!(c_orientorder->qlcompflag))
       error->all(FLERR,"Compute coord/atom requires components "
                  "option in compute orientorder/atom");
   }

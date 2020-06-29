@@ -15,10 +15,10 @@
    Contributing author:  Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include <complex>
-#include <cstring>
-#include <cstdlib>
 #include "compute_hexorder_atom.h"
+#include <cmath>
+#include <cstring>
+#include <complex>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -239,7 +239,7 @@ void ComputeHexOrderAtom::compute_peratom()
       }
       qn[0] = usum/nnn;
       qn[1] = vsum/nnn;
-    }
+    } else qn[0] = qn[1] = 0.0;
   }
 }
 

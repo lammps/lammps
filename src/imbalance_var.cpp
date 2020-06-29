@@ -11,17 +11,16 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "imbalance_var.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "group.h"
 #include "input.h"
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
-
-// DEBUG
-#include "update.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -90,7 +89,7 @@ void ImbalanceVar::compute(double *weight)
 
 /* -------------------------------------------------------------------- */
 
-void ImbalanceVar::info(FILE *fp)
+std::string ImbalanceVar::info()
 {
-  fprintf(fp,"  weight variable: %s\n",name);
+  return fmt::format("  weight variable: {}\n",name);
 }

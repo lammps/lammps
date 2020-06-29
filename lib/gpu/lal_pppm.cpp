@@ -35,12 +35,17 @@ PPPMT::PPPM() : _allocated(false), _compiled(false),
                                   _max_bytes(0) {
   device=&global_device;
   ans=new Answer<numtyp,acctyp>();
+  pppm_program=NULL;
 }
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
 PPPMT::~PPPM() {
   clear(0.0);
   delete ans;
+  k_particle_map.clear();
+  k_make_rho.clear();
+  k_interp.clear();
+  if (pppm_program) delete pppm_program;
 }
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
@@ -192,14 +197,6 @@ void PPPMT::clear(const double cpu_time) {
                               *ans,_max_bytes+_max_an_bytes,cpu_time,
                               _cpu_idle_time,screen);
 
-  if (_compiled) {
-    k_particle_map.clear();
-    k_make_rho.clear();
-    k_interp.clear();
-    delete pppm_program;
-    _compiled=false;
-  }
-
   time_in.clear();
   time_out.clear();
   time_map.clear();
@@ -207,7 +204,6 @@ void PPPMT::clear(const double cpu_time) {
   time_interp.clear();
 
   ans->clear();
-  device->clear();
 }
 
 // ---------------------------------------------------------------------------
@@ -380,6 +376,7 @@ void PPPMT::compile_kernels(UCL_Device &dev) {
          ucl_template_name<grdtyp>()+"4";
   #endif
 
+  if (pppm_program) delete pppm_program;
   pppm_program=new UCL_Program(dev);
 
   #ifdef USE_OPENCL

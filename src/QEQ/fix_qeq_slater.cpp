@@ -15,14 +15,12 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "fix_qeq_slater.h"
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "fix_qeq_slater.h"
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -33,7 +31,6 @@
 #include "kspace.h"
 #include "respa.h"
 #include "math_const.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;

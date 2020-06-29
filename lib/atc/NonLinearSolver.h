@@ -20,7 +20,7 @@ class TangentOperator {
  public:
   TangentOperator(){};
   virtual ~TangentOperator(){};
-  virtual void function(const VECTOR & x, DENS_VEC & f) {}; // =0;
+  virtual void function(const VECTOR & /* x */, DENS_VEC & /* f */) {}; // =0;
   virtual void tangent(const VECTOR & x, DENS_VEC & f, MATRIX & dfdx) =0;
   //virtual void function(const VECTOR & x, VECTOR & f) {}; // =0;
   //virtual void tangent(const VECTOR & x, VECTOR & f, MATRIX & dfdx) {}; // =0;

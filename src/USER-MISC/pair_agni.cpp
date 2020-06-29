@@ -15,24 +15,23 @@
    Contributing authors: Axel Kohlmeyer (Temple U), Venkatesh Botu
 ------------------------------------------------------------------------- */
 
+#include "pair_agni.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_agni.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "force.h"
 #include "comm.h"
-#include "memory.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
 #include "citeme.h"
 #include "math_special.h"
 #include "math_const.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
@@ -245,7 +244,7 @@ void PairAGNI::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairAGNI::settings(int narg, char **/*arg*/)
+void PairAGNI::settings(int narg, char ** /* arg */)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -389,7 +388,7 @@ void PairAGNI::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     if (nwords > MAXWORD)

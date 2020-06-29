@@ -20,8 +20,9 @@ PairStyle(eim,PairEIM)
 #ifndef LMP_PAIR_EIM_H
 #define LMP_PAIR_EIM_H
 
-#include <cstdio>
 #include "pair.h"
+#include <string>
+#include <map>
 
 namespace LAMMPS_NS {
 
@@ -41,16 +42,6 @@ class PairEIM : public Pair {
   void unpack_reverse_comm(int, int *, double *);
   double memory_usage();
 
- protected:
-  double **cutforcesq,cutmax;
-  int nmax;
-  double *rho,*fp;
-  int rhofp;
-  int *map;                   // which element each atom type maps to
-
-  int nelements;              // # of elements to read from potential file
-  char **elements;            // element names
-
   struct Setfl {
     double division,rbig,rsmall;
     int nr;
@@ -63,6 +54,17 @@ class PairEIM : public Pair {
     double ***Fij,***Gij,***phiij;
     double **cuts;
   };
+
+ protected:
+  double **cutforcesq,cutmax;
+  int nmax;
+  double *rho,*fp;
+  int rhofp;
+  int *map;                   // which element each atom type maps to
+
+  int nelements;              // # of elements to read from potential file
+  char **elements;            // element names
+
   Setfl *setfl;
 
   // potentials as array data
@@ -81,9 +83,6 @@ class PairEIM : public Pair {
   void allocate();
   void array2spline();
   void interpolate(int, double, double *, double **, double);
-  int grabglobal(FILE *);
-  int grabsingle(FILE *, int);
-  int grabpair(FILE *, int, int);
 
   double funccutoff(double, double, double);
   double funcphi(int, int, double);
@@ -93,6 +92,63 @@ class PairEIM : public Pair {
   void read_file(char *);
   void deallocate_setfl();
   void file2array();
+};
+
+class EIMPotentialFileReader : protected Pointers {
+  std::string filename;
+  static const int MAXLINE = 1024;
+  char line[MAXLINE];
+  double conversion_factor;
+
+  void parse(FILE *fp);
+  char *next_line(FILE *fp);
+  std::pair<std::string, std::string> get_pair(const std::string &a,
+                                               const std::string &b);
+
+public:
+  EIMPotentialFileReader(class LAMMPS* lmp, const std::string &filename,
+                         const int auto_convert=0);
+
+  void get_global(PairEIM::Setfl *setfl);
+  void get_element(PairEIM::Setfl *setfl, int i, const std::string &name);
+  void get_pair(PairEIM::Setfl *setfl, int ij,
+                const std::string &elemA, const std::string &elemB);
+
+private:
+  // potential parameters
+  double division;
+  double rbig;
+  double rsmall;
+
+  struct ElementData {
+    int ielement;
+    double mass;
+    double negativity;
+    double ra;
+    double ri;
+    double Ec;
+    double q0;
+  };
+
+  struct PairData {
+    double rcutphiA;
+    double rcutphiR;
+    double Eb;
+    double r0;
+    double alpha;
+    double beta;
+    double rcutq;
+    double Asigma;
+    double rq;
+    double rcutsigma;
+    double Ac;
+    double zeta;
+    double rs;
+    int tp;
+  };
+
+  std::map<std::string, ElementData> elements;
+  std::map<std::pair<std::string,std::string>, PairData> pairs;
 };
 
 }

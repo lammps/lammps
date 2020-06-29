@@ -158,7 +158,7 @@ namespace ATC {
   //    parses and adjusts controller state based on
   //    user input, in the style of LAMMPS user input
   //--------------------------------------------------------
-  bool AtomicRegulator::modify(int narg, char **arg)
+  bool AtomicRegulator::modify(int /* narg */, char **arg)
   {
     bool foundMatch = false;
 

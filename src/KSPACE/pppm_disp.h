@@ -20,8 +20,7 @@ KSpaceStyle(pppm/disp,PPPMDisp)
 #ifndef LMP_PPPM_DISP_H
 #define LMP_PPPM_DISP_H
 
-#include "lmptype.h"
-#include <mpi.h>
+#include "kspace.h"
 
 #if defined(FFT_FFTW3)
 #define LMP_FFT_LIB "FFTW3"
@@ -40,8 +39,6 @@ typedef double FFT_SCALAR;
 #define LMP_FFT_PREC "double"
 #define MPI_FFT_SCALAR MPI_DOUBLE
 #endif
-
-#include "kspace.h"
 
 namespace LAMMPS_NS {
 

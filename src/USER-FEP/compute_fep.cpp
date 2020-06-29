@@ -15,7 +15,7 @@
    Contributing author: Agilio Padua (Univ Blaise Pascal & CNRS)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
+#include "compute_fep.h"
 #include <cstring>
 #include <cmath>
 #include <mpi.h>
@@ -34,7 +34,6 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
-#include "compute_fep.h"
 
 using namespace LAMMPS_NS;
 

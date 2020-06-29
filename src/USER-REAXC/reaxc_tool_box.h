@@ -28,7 +28,7 @@
 #define __TOOL_BOX_H_
 
 #include "reaxc_types.h"
-#include "reaxc_defs.h"
+namespace LAMMPS_NS { class Error; }
 
 /* from system_props.h */
 double Get_Time( );

@@ -1,10 +1,11 @@
 QM/MM support library
+=====================
 
 Axel Kohlmeyer, akohlmey@gmail.com
 Temple University, Philadelphia and ICTP, Trieste
 
 with contributions by
-Carlo Cavazzoni & Mariella Ippolito
+Mariella Ippolito & Carlo Cavazzoni
 Cineca, Italy
 
 This library provides  the basic glue code to combine LAMMPS with the
@@ -13,28 +14,27 @@ performing QM/MM molecular dynamics simulations.  More information on
 Quantum ESPRESSO can be found at: http://www.quantum-espresso.org
 
 The interface code itself is designed so it can also be combined with
-other QM codes, however only support for Quantum ESPRESSO is currently
-the only option. Adding support for a different QM code will require
-to write a new version of the top-level wrapper code, pwqmmm.c, and
-also an interface layer into the QM code similar to the one in QE.
+other QM codes, however coupling to Quantum ESPRESSO is currently the
+only available option. Adding support for a different QM code will
+require to write a new version of the top-level wrapper code, pwqmmm.c,
+and also an interface layer into the QM code similar to the one in QE.
 
-You can type "make lib-qmmm" from the src directory to see help on how
-to build this library (steps 1 and 2 below) via make commands, or you
-can do the same thing by typing "python Install.py" from within this
-directory, or you can do it manually by following the instructions
-below.
+LAMMPS has support for two build systems, the traditional make based
+one and a newer one based on CMake.  You have to build LAMMPS as a
+library with the USER-QMMM package included and for that you need to
+also build the libqmmm.a library in this folder.
 
-However you perform steps 1 and 2, you will need to perform steps 3
-and 4 manually, as outlined below.
+Below you will find some description of the steps needed in either case.
+However you build LAMMPS and the liblammps and libqmmm libraries, you
+will need to perform the remaining steps manually, as outlined below.
 
 -------------------------------------------------
 
-WARNING: This is experimental code under developement and is provided
-at this early stage to encourage others to write interfaces to other
-QM codes. Please test *very* carefully before using this software for
-production calculations. At the time of the last update of this README
-(July 2016) you have to download a QE snapshot (revision 12611) from
-the QE subversion repository.
+WARNING: This is code depending on two software packages that are
+independently maitained and are under continuous active development.
+It is thus much easier to break the QM/MM interface without noticing.
+Thus please test *very* carefully before using this software for
+production calculations. 
 
 At this point, both mechanical and multipole based electrostatic
 coupling have been successfully tested on a cluster of water
@@ -42,17 +42,92 @@ molecules as included in the two example folders.
 
 -------------------------------------------------
 
-Building the QM/MM executable has to be done in multiple stages.
+Building the QM/MM executable has to be done in multiple stages
+
+Building with CMake for LAMMPS
+==============================
+
+Step 1)
+
+Go to the top-level folder of the LAMMPS source code and create
+a custom build folder (e.g. build-qmmm) and create a suitable
+build configuration with CMake:
+
+  mkdir build-qmmm
+  cd build-qmmm
+  cmake -C ../cmake/presets/minimal.cmake -D PKG_USER-QMMM=yes \
+           -D BUILD_LIB=yes -DBUILD_SHARED_LIBS=yes ../cmake
+  make
+  make install
+
+This will build a LAMMPS executable "lmp" and a shared library
+"liblammps.so" and install them and additional configuration and
+supporting files into the ${HOME}/.local directory tree (unless
+you set -D CMAKE_INSTALL_PREFIX to a different location).  If the
+installation is not into a system folder, you need to update
+the LD_LIBRARY_PATH and PKG_CONFIG_PATH environment variables.
+
+  LD_LIBRARY_PATH=${LD_LIBRARY_PATH-/usr/lib64}:${HOME}/.local/lib64
+  PKG_CONFIG_PATH=${PKG_CONFIG_PATH-/usr/lib64/pkgconfig}:${HOME}/.local/lib64/pkgconfig
+  export LD_LIBRARY_PATH PKG_CONFIG_PATH
+
+The standalone LAMMPS executable is not capable of doing QM/MM
+calculations itself, but it will be needed to run all MM calculations
+for equilibration and testing and also to confirm that the classical
+part of the code is set up correctly.
+
+Step 2)
+
+Build a standalone pw.x executable from source code in the Quantum
+ESPRESSO directory and also make the "couple" target. This is typically
+done with:
+
+  ./configure
+  make pw couple
+
+You may need to review and edit the make.inc file created by configure.
+Make certain, that both LAMMPS and QE use the same MPI library and
+compatible compilers. In the examples here we assume GNU compilers
+(gfortran, gcc, g++) and OpenMPI.
+
+Building the standalone pw.x binary is needed to confirm that
+corresponding QM input is working correctly and to run test calculations
+on the QM atoms only.
+
+Step 3)
+
+Go back to this folder (lib/qmmm) and now review the file
+Makefile.gfortran-cmake and make adjustments to the makefile variables
+according to the comments in the file.  You probably need to adjust
+the QETOPDIR variable to point to the location of your QE
+compilation/installation.
+Please also check that the command "pkgconf liblammps --libs" works.
+Then you should be able to compile the QM/MM executable with:
+
+  make -f Makefile.gfortran-cmake pwqmmm.x
+
+If this is successful, you should be able to run a QM/MM calculation
+and can try the examples in the example-mc and example-ec folders:
+
+  mpirun -np 4 ../pwqmmm.x qmmm.inp 2
+
+
+Building with traditional make for LAMMPS
+=========================================
+
 
 Step 1) 
-Build the qmmm coupling library in this directory using one of the
-provided Makefile.<compiler> files or create your own, specific to
-your compiler and system.  For example with:
 
-make -f Makefile.gfortran
+Go to src folder under the top-level folder of the LAMMPS source code
+and build the qmmm coupling library in this directory using one of
+the provided Makefile.<compiler> files. E.g. for use with GNU fortran:
 
+  make lib-qmmm args="-m gfortran"
+
+This file is specific to your compiler and system. You may need to
+create a specific one for your choice of compilers, MPI, and OS.
 When you are done building this library, two new files should
-exist in this directory:
+exist in this directory (lib/qmmm):
 
 libqmmm.a		the library LAMMPS will link against
 Makefile.lammps		settings the LAMMPS Makefile will import
@@ -62,26 +137,42 @@ Makefile.lammps.empty file. Currently no additional dependencies for
 this library exist.
 
 Step 2)
+
 Build a standalone LAMMPS executable as described in the LAMMPS 
 documentation and include the USER-QMMM package. This executable
 is not functional for QM/MM, but it will usually be needed to
 run all MM calculations for equilibration and testing and also
 to confirm that the classical part of the code is set up correctly.
+Also build a the LAMMPS library.  This can be a static library
+or a shared library.  For example for a static library with the
+minimum set of packages required for the examples here:
+
+  make yes-molecule yes-kspace yes-rigid yes-user-qmmm
+  make mpi
+  make mode=lib mpi
 
 Step 3)
-Build a standalone pw.x executable in the Quantum ESPRESSO directory
-and also make the "couple" target. At the time of this writing 
-(July 2016) you have to download a QE snapshot (revision 12611)
-from the SVN repository, since no official release with the
-completed QM/MM support code has been made available yet. The current
-plan is to have a usable QM/MM interface released with the next
-Quantum ESPRESSO release version 6.0. Building the standalone pw.x
-binary is also needed to confirm that corresponding QM input is
-working correctly and to run test calculations on QM atoms only.
+
+Build a standalone pw.x executable from source code in the Quantum
+ESPRESSO directory and also make the "couple" target. This is typically
+done with:
+
+  ./configure
+  make pw couple
+
+You may need to review and edit the make.inc file created by configure.
+Make certain, that both LAMMPS and QE use the same MPI library and
+compatible compilers. In the examples here we assume GNU compilers
+(gfortran, gcc, g++) and OpenMPI.
+
+Building the standalone pw.x binary is needed to confirm that
+corresponding QM input is working correctly and to run test calculations
+on the QM atoms only.
 
 Step 4)
+
 To compile and link the final QM/MM executable, which combines the
-compiled sources from both packages, you have to return to the lib/qmmm
+compiled code from both packages, you have to return to the lib/qmmm
 directory and now edit the Makefile.<compiler> for the Makefile 
 configuration used to compile LAMMPS and also update the directory
 and library settings for the Quantum ESPRESSO installation.

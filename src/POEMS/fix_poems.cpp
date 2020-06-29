@@ -17,25 +17,25 @@
                   Kurt Anderson (anderk5@rpi.edu)
 ------------------------------------------------------------------------- */
 
+#include "fix_poems.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstring>
 #include <cstdlib>
 #include "workspace.h"
-#include "fix_poems.h"
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
 #include "respa.h"
 #include "modify.h"
 #include "force.h"
-#include "output.h"
 #include "group.h"
 #include "comm.h"
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -277,14 +277,9 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   for (ibody = 0; ibody < nbody; ibody++) nsum += nrigid[ibody];
   nsum -= njoint;
 
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,"%d clusters, %d bodies, %d joints, %d atoms\n",
-              ncluster,nbody,njoint,nsum);
-    if (logfile)
-      fprintf(logfile,"%d clusters, %d bodies, %d joints, %d atoms\n",
-              ncluster,nbody,njoint,nsum);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,fmt::format("{} clusters, {} bodies, {} joints, {} atoms\n",
+                                   ncluster,nbody,njoint,nsum));
 }
 
 /* ----------------------------------------------------------------------
@@ -368,9 +363,9 @@ void FixPOEMS::init()
       if (strcmp(modify->fix[i]->style,"poems") == 0) pflag = 1;
       if (pflag && (modify->fmask[i] & POST_FORCE) &&
           !modify->fix[i]->rigid_flag) {
-        char str[128];
-        snprintf(str,128,"Fix %s alters forces after fix poems",modify->fix[i]->id);
-        error->warning(FLERR,str);
+        if (comm->me == 0)
+          error->warning(FLERR,std::string("Fix ") + modify->fix[i]->id
+                         + std::string(" alters forces after fix poems"));
       }
     }
   }

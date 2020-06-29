@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "fix_press_berendsen.h"
+#include <cstring>
+#include <cmath>
+#include <string>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -23,7 +23,6 @@
 #include "compute.h"
 #include "kspace.h"
 #include "update.h"
-#include "respa.h"
 #include "domain.h"
 #include "error.h"
 
@@ -41,8 +40,6 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
   id_temp(NULL), id_press(NULL), tflag(0), pflag(0)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix press/berendsen command");
-
-  box_change_size = 1;
 
   // Berendsen barostat applied every step
 
@@ -206,6 +203,10 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
       (p_flag[2] && p_period[2] <= 0.0))
     error->all(FLERR,"Fix press/berendsen damping parameters must be > 0.0");
 
+  if (p_flag[0]) box_change |= BOX_CHANGE_X;
+  if (p_flag[1]) box_change |= BOX_CHANGE_Y;
+  if (p_flag[2]) box_change |= BOX_CHANGE_Z;
+
   // pstyle = ISO if XYZ coupling or XY coupling in 2d -> 1 dof
   // else pstyle = ANISO -> 3 dof
 
@@ -217,35 +218,24 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
   // compute group = all since pressure is always global (group all)
   //   and thus its KE/temperature contribution should use group all
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
+  std::string tcmd = id + std::string("_temp");
+  id_temp = new char[tcmd.size()+1];
+  strcpy(id_temp,tcmd.c_str());
 
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  tcmd += " all temp";
+  modify->add_compute(tcmd);
   tflag = 1;
 
   // create a new compute pressure style
   // id = fix-ID + press, compute group = all
   // pass id_temp as 4th arg to pressure constructor
 
-  n = strlen(id) + 7;
-  id_press = new char[n];
-  strcpy(id_press,id);
-  strcat(id_press,"_press");
+  std::string pcmd = id + std::string("_press");
+  id_press = new char[pcmd.size()+1];
+  strcpy(id_press,pcmd.c_str());
 
-  newarg = new char*[4];
-  newarg[0] = id_press;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pressure";
-  newarg[3] = id_temp;
-  modify->add_compute(4,newarg);
-  delete [] newarg;
+  pcmd += " all pressure " + std::string(id_temp);
+  modify->add_compute(pcmd);
   pflag = 1;
 
   nrigid = 0;

@@ -24,6 +24,10 @@ using namespace ucl_opencl;
 #include "geryon/nvc_kernel.h"
 #include "geryon/nvc_texture.h"
 using namespace ucl_cudart;
+#elif defined(USE_HIP)
+#include "geryon/hip_kernel.h"
+#include "geryon/hip_texture.h"
+using namespace ucl_hip;
 #else
 #include "geryon/nvd_kernel.h"
 #include "geryon/nvd_texture.h"

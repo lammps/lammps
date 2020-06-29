@@ -31,8 +31,6 @@ PairStyle(drip, PairDRIP)
 #define LMP_PAIR_DRIP_H
 
 #include "pair.h"
-#include "my_page.h"
-#include <cmath>
 
 namespace LAMMPS_NS {
 

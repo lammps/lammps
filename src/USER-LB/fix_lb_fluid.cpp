@@ -20,15 +20,14 @@
 #include <cmath>
 #include <mpi.h>
 #include <cstdlib>
-#include <cstdio>
 #include <cstring>
+#include <algorithm>
+#include <utility>
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
 #include "domain.h"
 #include "atom.h"
-#include <iostream>
-#include <iomanip>
 #include "group.h"
 #include "random_mars.h"
 #include "update.h"

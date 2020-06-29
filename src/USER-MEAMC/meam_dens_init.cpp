@@ -1,4 +1,6 @@
 #include "meam.h"
+#include <cmath>
+#include "memory.h"
 #include "math_special.h"
 
 using namespace LAMMPS_NS;
@@ -195,7 +197,7 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double**
     //     Now compute derivatives
     dscrfcn[jn] = 0.0;
     sfcij = sij * fcij;
-    if (!iszero(sfcij) && !iszero(sfcij - 1.0)) {
+    if (!iszero(sfcij) && !isone(sfcij)) {
       for (kn = 0; kn < numneigh_full; kn++) {
         k = firstneigh_full[kn];
         if (k == j) continue;

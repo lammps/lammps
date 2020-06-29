@@ -15,18 +15,17 @@
    Contributing authors: Leo Silbert (SNL), Gary Grest (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_gran_hooke_history.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
+#include <string>
 #include "atom.h"
-#include "atom_vec.h"
-#include "domain.h"
 #include "force.h"
 #include "update.h"
 #include "modify.h"
 #include "fix.h"
+#include "fix_dummy.h"
 #include "fix_neigh_history.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -34,6 +33,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -45,7 +45,6 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   no_virial_fdotr_compute = 1;
   history = 1;
   size_history = 3;
-  fix_history = NULL;
 
   single_extra = 10;
   svector = new double[10];
@@ -62,6 +61,13 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   // keep default behavior of history[i][j] = -history[j][i]
 
   nondefault_history_transfer = 0;
+
+  // create dummy fix as placeholder for FixNeighHistory
+  // this is so final order of Modify:fix will conform to input script
+
+  fix_history = NULL;
+  modify->add_fix("NEIGH_HISTORY_HH_DUMMY all DUMMY");
+  fix_dummy = (FixDummy *) modify->fix[modify->nfix-1];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -71,7 +77,9 @@ PairGranHookeHistory::~PairGranHookeHistory()
   if (copymode) return;
 
   delete [] svector;
-  if (fix_history) modify->delete_fix("NEIGH_HISTORY");
+
+  if (!fix_history) modify->delete_fix("NEIGH_HISTORY_HH_DUMMY");
+  else modify->delete_fix("NEIGH_HISTORY_HH");
 
   if (allocated) {
     memory->destroy(setflag);
@@ -414,19 +422,22 @@ void PairGranHookeHistory::init_style()
 
   dt = update->dt;
 
-  // if first init, create Fix needed for storing shear history
+  // if history is stored and first init, create Fix to store history
+  // it replaces FixDummy, created in the constructor
+  // this is so its order in the fix list is preserved
 
   if (history && fix_history == NULL) {
     char dnumstr[16];
     sprintf(dnumstr,"%d",size_history);
     char **fixarg = new char*[4];
-    fixarg[0] = (char *) "NEIGH_HISTORY";
+    fixarg[0] = (char *) "NEIGH_HISTORY_HH";
     fixarg[1] = (char *) "all";
     fixarg[2] = (char *) "NEIGH_HISTORY";
     fixarg[3] = dnumstr;
-    modify->add_fix(4,fixarg,1);
+    modify->replace_fix("NEIGH_HISTORY_HH_DUMMY",4,fixarg,1);
     delete [] fixarg;
-    fix_history = (FixNeighHistory *) modify->fix[modify->nfix-1];
+    int ifix = modify->find_fix("NEIGH_HISTORY_HH");
+    fix_history = (FixNeighHistory *) modify->fix[ifix];
     fix_history->pair = this;
   }
 
@@ -493,7 +504,7 @@ void PairGranHookeHistory::init_style()
   // set fix which stores history info
 
   if (history) {
-    int ifix = modify->find_fix("NEIGH_HISTORY");
+    int ifix = modify->find_fix("NEIGH_HISTORY_HH");
     if (ifix < 0) error->all(FLERR,"Could not find pair fix neigh history ID");
     fix_history = (FixNeighHistory *) modify->fix[ifix];
   }
@@ -543,7 +554,7 @@ void PairGranHookeHistory::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
     }
 }
@@ -569,12 +580,12 @@ void PairGranHookeHistory::write_restart_settings(FILE *fp)
 void PairGranHookeHistory::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&kn,sizeof(double),1,fp);
-    fread(&kt,sizeof(double),1,fp);
-    fread(&gamman,sizeof(double),1,fp);
-    fread(&gammat,sizeof(double),1,fp);
-    fread(&xmu,sizeof(double),1,fp);
-    fread(&dampflag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&kn,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&kt,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&gamman,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&gammat,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&xmu,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&dampflag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&kn,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&kt,1,MPI_DOUBLE,0,world);

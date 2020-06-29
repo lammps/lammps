@@ -15,17 +15,16 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "bond_gromos.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -168,8 +167,8 @@ void BondGromos::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&r0[1],sizeof(double),atom->nbondtypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
   }
   MPI_Bcast(&k[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&r0[1],atom->nbondtypes,MPI_DOUBLE,0,world);
@@ -190,7 +189,7 @@ void BondGromos::write_data(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double BondGromos::single(int type, double rsq, int /*i*/, int /*j*/,
-                        double &fforce)
+                          double &fforce)
 {
   double dr = rsq - r0[type]*r0[type];
   fforce = -4.0*k[type] * dr;
@@ -200,7 +199,7 @@ double BondGromos::single(int type, double rsq, int /*i*/, int /*j*/,
 /* ----------------------------------------------------------------------
     Return ptr to internal members upon request.
 ------------------------------------------------------------------------ */
-void *BondGromos::extract( char *str, int &dim )
+void *BondGromos::extract(const char *str, int &dim)
 {
   dim = 1;
   if (strcmp(str,"kappa")==0) return (void*) k;

@@ -29,7 +29,6 @@ authors for more details.
 #ifndef INTEL_SIMD_H
 #define INTEL_SIMD_H
 
-#include <cstdio>
 #include "intel_preprocess.h"
 #include "immintrin.h"
 

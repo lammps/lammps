@@ -55,7 +55,6 @@ class PairCoulStreitz : public Pair {
   // Kspace parameters
   int kspacetype;
   double cut_coul, cut_coulsq;
-  double *cut_respa;
   double **scale;
 
   // Wolf

@@ -11,23 +11,21 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "pair_snap.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "pair_snap.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "force.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "sna.h"
-#include "domain.h"
 #include "memory.h"
 #include "error.h"
-
-#include <cmath>
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -93,7 +91,6 @@ void PairSNAP::compute(int eflag, int vflag)
   double delx,dely,delz,evdwl,rsq;
   double fij[3];
   int *jlist,*numneigh,**firstneigh;
-  evdwl = 0.0;
 
   ev_init(eflag,vflag);
 
@@ -111,7 +108,7 @@ void PairSNAP::compute(int eflag, int vflag)
 
   // compute dE_i/dB_i = beta_i for all i in list
 
-  if (quadraticflag || eflag) 
+  if (quadraticflag || eflag)
     compute_bispectrum();
   compute_beta();
 
@@ -159,24 +156,32 @@ void PairSNAP::compute(int eflag, int vflag)
         snaptr->inside[ninside] = j;
         snaptr->wj[ninside] = wjelem[jelem];
         snaptr->rcutij[ninside] = (radi + radelem[jelem])*rcutfac;
+        snaptr->element[ninside] = jelem;
         ninside++;
       }
     }
 
     // compute Ui, Yi for atom I
 
-    snaptr->compute_ui(ninside);
+    if (chemflag)
+      snaptr->compute_ui(ninside, ielem);
+    else
+      snaptr->compute_ui(ninside, 0);
 
     // for neighbors of I within cutoff:
-    // compute Fij = dEi/dRj = -dEi/dRi 
+    // compute Fij = dEi/dRj = -dEi/dRi
     // add to Fi, subtract from Fj
 
     snaptr->compute_yi(beta[ii]);
 
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
-      snaptr->compute_duidrj(snaptr->rij[jj],
-                             snaptr->wj[jj],snaptr->rcutij[jj],jj);
+      if(chemflag)
+        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
+                               snaptr->rcutij[jj],jj, snaptr->element[jj]);
+      else
+        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
+                               snaptr->rcutij[jj],jj, 0);
 
       snaptr->compute_deidrj(fij);
 
@@ -204,6 +209,7 @@ void PairSNAP::compute(int eflag, int vflag)
 
       double* coeffi = coeffelem[ielem];
       evdwl = coeffi[0];
+      // snaptr->copy_bi2bvec();
 
       // E = beta.B + 0.5*B^t.alpha.B
 
@@ -276,7 +282,7 @@ void PairSNAP::compute_bispectrum()
 {
   int i,j,jnum,ninside;
   double delx,dely,delz,rsq;
-  int *jlist,*numneigh,**firstneigh;
+  int *jlist;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -322,17 +328,26 @@ void PairSNAP::compute_bispectrum()
         snaptr->inside[ninside] = j;
         snaptr->wj[ninside] = wjelem[jelem];
         snaptr->rcutij[ninside] = (radi + radelem[jelem])*rcutfac;
+        snaptr->element[ninside] = jelem;
         ninside++;
       }
     }
 
-    snaptr->compute_ui(ninside);
+    if (chemflag)
+      snaptr->compute_ui(ninside, ielem);
+    else
+      snaptr->compute_ui(ninside, 0);
     snaptr->compute_zi();
-    snaptr->compute_bi();
+    if (chemflag)
+      snaptr->compute_bi(ielem);
+    else
+      snaptr->compute_bi(0);
 
-    for (int icoeff = 0; icoeff < ncoeff; icoeff++)
+    for (int icoeff = 0; icoeff < ncoeff; icoeff++){
       bispectrum[ii][icoeff] = snaptr->blist[icoeff];
+    }
   }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -353,9 +368,9 @@ void PairSNAP::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairSNAP::settings(int narg, char **arg)
+void PairSNAP::settings(int narg, char ** /* arg */)
 {
-  for (int i=0; i < narg; i++)
+  if (narg > 0)
     error->all(FLERR,"Illegal pair_style command");
 }
 
@@ -403,7 +418,6 @@ void PairSNAP::coeff(int narg, char **arg)
     ncoeffq = (ncoeff*(ncoeff+1))/2;
     int ntmp = 1+ncoeff+ncoeffq;
     if (ntmp != ncoeffall) {
-      printf("ncoeffall = %d ntmp = %d ncoeff = %d \n",ncoeffall,ntmp,ncoeff);
       error->all(FLERR,"Incorrect SNAP coeff file");
     }
   }
@@ -444,8 +458,9 @@ void PairSNAP::coeff(int narg, char **arg)
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 
-  snaptr = new SNA(lmp,rfac0,twojmax,
-                   rmin0,switchflag,bzeroflag);
+  snaptr = new SNA(lmp, rfac0, twojmax,
+                   rmin0, switchflag, bzeroflag,
+                   chemflag, bnormflag, wselfallflag, nelements);
 
   if (ncoeff != snaptr->ncoeff) {
     if (comm->me == 0)
@@ -529,7 +544,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
   }
   if (nwords != 2)
     error->all(FLERR,"Incorrect format in SNAP coefficient file");
@@ -570,7 +585,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     MPI_Bcast(&n,1,MPI_INT,0,world);
     MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-    nwords = atom->count_words(line);
+    nwords = utils::trim_and_count_words(line);
     if (nwords != 3)
       error->all(FLERR,"Incorrect format in SNAP coefficient file");
 
@@ -612,7 +627,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-      nwords = atom->count_words(line);
+      nwords = utils::trim_and_count_words(line);
       if (nwords != 1)
         error->all(FLERR,"Incorrect format in SNAP coefficient file");
 
@@ -638,6 +653,10 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   switchflag = 1;
   bzeroflag = 1;
   quadraticflag = 0;
+  chemflag = 0;
+  bnormflag = 0;
+  wselfallflag = 0;
+  chunksize = 2000;
 
   // open SNAP parameter file on proc 0
 
@@ -668,7 +687,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     if (nwords != 2)
@@ -701,6 +720,14 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       bzeroflag = atoi(keyval);
     else if (strcmp(keywd,"quadraticflag") == 0)
       quadraticflag = atoi(keyval);
+    else if (strcmp(keywd,"chemflag") == 0)
+      chemflag = atoi(keyval);
+    else if (strcmp(keywd,"bnormflag") == 0)
+      bnormflag = atoi(keyval);
+    else if (strcmp(keywd,"wselfallflag") == 0)
+      wselfallflag = atoi(keyval);
+    else if (strcmp(keywd,"chunksize") == 0)
+      chunksize = atoi(keyval);
     else
       error->all(FLERR,"Incorrect SNAP parameter file");
   }

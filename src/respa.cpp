@@ -15,14 +15,15 @@
    Contributing authors: Mark Stevens (SNL), Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "respa.h"
+#include <cstring>
+#include <string>
 #include "neighbor.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
 #include "comm.h"
+#include "fix.h"
 #include "force.h"
 #include "pair.h"
 #include "bond.h"
@@ -33,13 +34,12 @@
 #include "output.h"
 #include "update.h"
 #include "modify.h"
-#include "compute.h"
 #include "fix_respa.h"
 #include "timer.h"
-#include "memory.h"
 #include "error.h"
 #include "utils.h"
 #include "pair_hybrid.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -194,44 +194,23 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) :
   // print respa levels
 
   if (comm->me == 0) {
-    if (screen) {
-      fprintf(screen,"Respa levels:\n");
-      for (int i = 0; i < nlevels; i++) {
-        fprintf(screen,"  %d =",i+1);
-        if (level_bond == i) fprintf(screen," bond");
-        if (level_angle == i) fprintf(screen," angle");
-        if (level_dihedral == i) fprintf(screen," dihedral");
-        if (level_improper == i) fprintf(screen," improper");
-        if (level_pair == i) fprintf(screen," pair");
-        if (level_inner == i) fprintf(screen," pair-inner");
-        if (level_middle == i) fprintf(screen," pair-middle");
-        if (level_outer == i) fprintf(screen," pair-outer");
-        for (int j=0;j<nhybrid_styles;j++) {
-          if (hybrid_level[j] == i) fprintf(screen, " hybrid-%d",j+1);
-        }
-        if (level_kspace == i) fprintf(screen," kspace");
-        fprintf(screen,"\n");
-      }
+    std::string mesg = "Respa levels:\n";
+    for (int i = 0; i < nlevels; i++) {
+      mesg += fmt::format("  {} =",i+1);
+      if (level_bond == i)      mesg += " bond";
+      if (level_angle == i)     mesg += " angle";
+      if (level_dihedral == i)  mesg += " dihedral";
+      if (level_improper == i)  mesg += " improper";
+      if (level_pair == i)      mesg += " pair";
+      if (level_inner == i)     mesg += " pair-inner";
+      if (level_middle == i)    mesg += " pair-middle";
+      if (level_outer == i)     mesg += " pair-outer";
+      for (int j=0; j < nhybrid_styles; j++)
+        if (hybrid_level[j] == i) mesg += fmt::format(" hybrid-{}",j+1);
+      if (level_kspace == i)    mesg += " kspace";
+      mesg += "\n";
     }
-    if (logfile) {
-      fprintf(logfile,"Respa levels:\n");
-      for (int i = 0; i < nlevels; i++) {
-        fprintf(logfile,"  %d =",i+1);
-        if (level_bond == i) fprintf(logfile," bond");
-        if (level_angle == i) fprintf(logfile," angle");
-        if (level_dihedral == i) fprintf(logfile," dihedral");
-        if (level_improper == i) fprintf(logfile," improper");
-        if (level_pair == i) fprintf(logfile," pair");
-        if (level_inner == i) fprintf(logfile," pair-inner");
-        if (level_middle == i) fprintf(logfile," pair-middle");
-        if (level_outer == i) fprintf(logfile," pair-outer");
-        for (int j=0;j<nhybrid_styles;j++) {
-          if (hybrid_level[j] == i) fprintf(logfile, " hybrid-%d",j+1);
-        }
-        if (level_kspace == i) fprintf(logfile," kspace");
-        fprintf(logfile,"\n");
-      }
-    }
+    utils::logmesg(lmp,mesg);
   }
 
   // check that levels are in correct order
@@ -320,22 +299,11 @@ void Respa::init()
 
   // create fix needed for storing atom-based respa level forces
   // will delete it at end of run
-
-  char **fixarg = new char*[5];
-  fixarg[0] = (char *) "RESPA";
-  fixarg[1] = (char *) "all";
-  fixarg[2] = (char *) "RESPA";
-  fixarg[3] = new char[8];
-  sprintf(fixarg[3],"%d",nlevels);
   // if supported, we also store torques on a per-level basis
-  if (atom->torque_flag) {
-    fixarg[4] = (char *) "torque";
-    modify->add_fix(5,fixarg);
-  } else {
-    modify->add_fix(4,fixarg);
-  }
-  delete [] fixarg[3];
-  delete [] fixarg;
+
+  std::string cmd = fmt::format("RESPA all RESPA {}",nlevels);
+  if (atom->torque_flag) modify->add_fix(cmd + " torque");
+  else modify->add_fix(cmd);
   fix_respa = (FixRespa *) modify->fix[modify->nfix-1];
 
   // insure respa inner/middle/outer is using Pair class that supports it
@@ -402,22 +370,25 @@ void Respa::init()
 void Respa::setup(int flag)
 {
   if (comm->me == 0 && screen) {
-    fprintf(screen,"Setting up r-RESPA run ...\n");
+    std::string mesg = "Setting up r-RESPA run ...\n";
     if (flag) {
-      fprintf(screen,"  Unit style    : %s\n", update->unit_style);
-      fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n",
-              update->ntimestep);
-      fprintf(screen,"  Time steps    :");
+      mesg += fmt::format("  Unit style    : {}\n",update->unit_style);
+      mesg += fmt::format("  Current step  : {}\n", update->ntimestep);
+
+      mesg += "  Time steps    :";
       for (int ilevel=0; ilevel < nlevels; ++ilevel)
-        fprintf(screen," %d:%g",ilevel+1, step[ilevel]);
-      fprintf(screen,"\n  r-RESPA fixes :");
+        mesg += fmt::format(" {}:{}",ilevel+1, step[ilevel]);
+
+      mesg += "\n  r-RESPA fixes :";
       for (int l=0; l < modify->n_post_force_respa; ++l) {
         Fix *f = modify->fix[modify->list_post_force_respa[l]];
         if (f->respa_level >= 0)
-          fprintf(screen," %d:%s[%s]",
-                  MIN(f->respa_level+1,nlevels),f->style,f->id);
+          mesg += fmt::format(" {}:{}[{}]",
+                              MIN(f->respa_level+1,nlevels),
+                              f->style,f->id);
       }
-      fprintf(screen,"\n");
+      mesg += "\n";
+      fputs(mesg.c_str(),screen);
       timer->print_timeout(screen);
     }
   }

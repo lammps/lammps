@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_pe_tally.h"
+#include <mpi.h>
 #include "atom.h"
 #include "group.h"
 #include "pair.h"

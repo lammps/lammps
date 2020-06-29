@@ -15,12 +15,14 @@
    Contributing author: Trung Dac Nguyen (ndactrung@gmail.com)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "body_rounded_polyhedron.h"
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
+#include "my_pool_chunk.h"
 #include "atom_vec_body.h"
 #include "atom.h"
 #include "force.h"
-#include "domain.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
@@ -61,6 +63,7 @@ BodyRoundedPolyhedron::BodyRoundedPolyhedron(LAMMPS *lmp, int narg, char **arg) 
   icp = new MyPoolChunk<int>(1,3);
   dcp = new MyPoolChunk<double>(3*nmin+2+1+1,
                                 3*nmax+2*nmax+MAX_FACE_SIZE*nmax+1+1);
+  maxexchange = 3 + 3*nmax+2*nmax+MAX_FACE_SIZE*nmax+1+1;  // icp max + dcp max
 
   memory->create(imflag,2*nmax,"body/rounded/polyhedron:imflag");
   memory->create(imdata,2*nmax,7,"body/polyhedron:imdata");
@@ -131,7 +134,7 @@ double BodyRoundedPolyhedron::enclosing_radius(struct AtomVecBody::Bonus *bonus)
 {
   int nvertices = bonus->ivalue[0];
   if (nvertices == 1 || nvertices == 2)
-  	return *(bonus->dvalue+3*nsub(bonus)+2);
+        return *(bonus->dvalue+3*nsub(bonus)+2);
   return *(bonus->dvalue+3*nsub(bonus) + 2*nedges(bonus) +
            MAX_FACE_SIZE*nfaces(bonus));
 }
@@ -382,7 +385,7 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
 ------------------------------------------------------------------------- */
 
 double BodyRoundedPolyhedron::radius_body(int /*ninteger*/, int ndouble,
-				       int *ifile, double *dfile)
+                                       int *ifile, double *dfile)
 {
   int nsub = ifile[0];
   int ned = ifile[1];

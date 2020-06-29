@@ -16,26 +16,19 @@
                           Kamesh Arumugam (NVIDIA)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_qeq_reax_kokkos.h"
+#include <cmath>
 #include "kokkos.h"
 #include "atom.h"
 #include "atom_masks.h"
 #include "atom_kokkos.h"
 #include "comm.h"
 #include "force.h"
-#include "group.h"
-#include "modify.h"
 #include "neighbor.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
 #include "update.h"
 #include "integrate.h"
-#include "respa.h"
-#include "math_const.h"
 #include "memory_kokkos.h"
 #include "error.h"
 #include "pair_reaxc_kokkos.h"
@@ -45,8 +38,6 @@ using namespace FixConst;
 
 #define SMALL 0.0001
 #define EV_TO_KCAL_PER_MOL 14.4
-
-#define TEAMSIZE 128
 
 /* ---------------------------------------------------------------------- */
 
@@ -98,10 +89,10 @@ void FixQEqReaxKokkos<DeviceType>::init()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
+    !std::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
 
   if (neighflag == FULL) {
     neighbor->requests[irequest]->fix = 1;
@@ -230,7 +221,7 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
 
   // compute_H
 
-  if (lmp->kokkos->ngpus == 0) { // CPU
+  if (execution_space == Host) { // CPU
     if (neighflag == FULL) {
       FixQEqReaxKokkosComputeHFunctor<DeviceType, FULL> computeH_functor(this);
       Kokkos::parallel_scan(inum,computeH_functor);
@@ -733,7 +724,9 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
   const int inum = list->inum;
   F_FLOAT tmp, sig_old, b_norm;
 
-  const int teamsize = TEAMSIZE;
+  int teamsize;
+  if (execution_space == Host) teamsize = 1;
+  else teamsize = 128;
 
   // sparse_matvec( &H, x, q );
   FixQEqReaxKokkosSparse12Functor<DeviceType> sparse12_functor(this);
@@ -868,7 +861,9 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
   const int inum = list->inum;
   F_FLOAT tmp, sig_old, b_norm;
 
-  const int teamsize = TEAMSIZE;
+  int teamsize;
+  if (execution_space == Host) teamsize = 1;
+  else teamsize = 128;
 
   // sparse_matvec( &H, x, q );
   FixQEqReaxKokkosSparse32Functor<DeviceType> sparse32_functor(this);

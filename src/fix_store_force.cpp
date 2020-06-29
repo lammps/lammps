@@ -11,11 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_store_force.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
-#include "group.h"
 #include "respa.h"
 #include "memory.h"
 #include "error.h"

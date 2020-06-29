@@ -15,11 +15,9 @@
    Contributing authors: Leo Silbert (SNL), Gary Grest (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
 #include "pair_gran_hertz_history.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "force.h"

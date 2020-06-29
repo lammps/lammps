@@ -15,19 +15,20 @@
    Contributing author: Eric Simon (Cray)
 ------------------------------------------------------------------------- */
 
+#include "dihedral_class2.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "dihedral_class2.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "update.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -182,6 +183,11 @@ void DihedralClass2::compute(int eflag, int vflag)
     costh13 = c0;
     costh23 = (vb2xm*vb3x + vb2ym*vb3y + vb2zm*vb3z) * r12c2;
 
+    costh12 = MAX(MIN(costh12, 1.0), -1.0);
+    costh13 = MAX(MIN(costh13, 1.0), -1.0);
+    costh23 = MAX(MIN(costh23, 1.0), -1.0);
+    c0 = costh13;
+
     // cos and sin of 2 angles and final c
 
     sin2 = MAX(1.0 - costh12*costh12,0.0);
@@ -202,24 +208,16 @@ void DihedralClass2::compute(int eflag, int vflag)
     // error check
 
     if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
-      int me;
-      MPI_Comm_rank(world,&me);
+      int me = comm->me;
       if (screen) {
-        char str[128];
-        sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " "
-                TAGINT_FORMAT " " TAGINT_FORMAT " "
-                TAGINT_FORMAT " " TAGINT_FORMAT,
-                me,update->ntimestep,
-                atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-        error->warning(FLERR,str,0);
-        fprintf(screen,"  1st atom: %d %g %g %g\n",
-                me,x[i1][0],x[i1][1],x[i1][2]);
-        fprintf(screen,"  2nd atom: %d %g %g %g\n",
-                me,x[i2][0],x[i2][1],x[i2][2]);
-        fprintf(screen,"  3rd atom: %d %g %g %g\n",
-                me,x[i3][0],x[i3][1],x[i3][2]);
-        fprintf(screen,"  4th atom: %d %g %g %g\n",
-                me,x[i4][0],x[i4][1],x[i4][2]);
+        error->warning(FLERR,fmt::format("Dihedral problem: {} {} {} {} {} {}",
+                                         me,update->ntimestep,
+                                         atom->tag[i1],atom->tag[i2],
+                                         atom->tag[i3],atom->tag[i4]));
+        fmt::print(screen,"  1st atom: {} {} {} {}\n",me,x[i1][0],x[i1][1],x[i1][2]);
+        fmt::print(screen,"  2nd atom: {} {} {} {}\n",me,x[i2][0],x[i2][1],x[i2][2]);
+        fmt::print(screen,"  3rd atom: {} {} {} {}\n",me,x[i3][0],x[i3][1],x[i3][2]);
+        fmt::print(screen,"  4th atom: {} {} {} {}\n",me,x[i4][0],x[i4][1],x[i4][2]);
       }
     }
 
@@ -836,45 +834,45 @@ void DihedralClass2::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&k2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&k3[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&phi1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&phi2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&phi3[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&k1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&k2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&k3[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&phi1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&phi2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&phi3[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
 
-    fread(&mbt_f1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&mbt_f2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&mbt_f3[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&mbt_r0[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&mbt_f1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&mbt_f2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&mbt_f3[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&mbt_r0[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
 
-    fread(&ebt_f1_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&ebt_f2_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&ebt_f3_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&ebt_r0_1[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&ebt_f1_1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&ebt_f2_1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&ebt_f3_1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&ebt_r0_1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
 
-    fread(&ebt_f1_2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&ebt_f2_2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&ebt_f3_2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&ebt_r0_2[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&ebt_f1_2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&ebt_f2_2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&ebt_f3_2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&ebt_r0_2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
 
-    fread(&at_f1_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&at_f2_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&at_f3_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&at_theta0_1[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&at_f1_1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&at_f2_1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&at_f3_1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&at_theta0_1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
 
-    fread(&at_f1_2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&at_f2_2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&at_f3_2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&at_theta0_2[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&at_f1_2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&at_f2_2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&at_f3_2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&at_theta0_2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
 
-    fread(&aat_k[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&aat_theta0_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&aat_theta0_2[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&aat_k[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&aat_theta0_1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&aat_theta0_2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
 
-    fread(&bb13t_k[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&bb13t_r10[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&bb13t_r30[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&bb13t_k[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&bb13t_r10[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&bb13t_r30[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
   }
 
   MPI_Bcast(&k1[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);

@@ -3,7 +3,6 @@
 
 #include <climits>
 #include <cstdio>
-#include <cstdlib>
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,7 +59,7 @@ extern "C" {
 
 typedef int bool_t;
 
-#if defined(__MINGW32__) || defined(__APPLE__)
+#if defined(__MINGW32__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__NetBSD__)
 typedef char * caddr_t;
 typedef unsigned int u_int;
 #endif

@@ -21,8 +21,6 @@
 #include "update.h"
 #include "group.h"
 #include "domain.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

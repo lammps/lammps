@@ -16,25 +16,23 @@
    Based on tabulated dihedral (dihedral_table.cpp) by Andrew Jewett
 ------------------------------------------------------------------------- */
 
+#include "dihedral_table_cut.h"
+#include <mpi.h>
+#include <cctype>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include <cassert>
 #include <string>
-#include <fstream>
-#include <iostream>
-#include <sstream>
+#include <fstream>  // IWYU pragma: keep
+#include <sstream>  // IWYU pragma: keep
 
-#include "dihedral_table_cut.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "update.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "citeme.h"
 #include "math_const.h"
-#include "math_extra.h"
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
@@ -42,8 +40,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace std;
-using namespace MathExtra;
-
 
 static const char cite_dihedral_tablecut[] =
   "dihedral_style  table/cut  command:\n\n"
@@ -828,13 +824,13 @@ void DihedralTableCut::coeff(int narg, char **arg)
     string err_msg;
     err_msg = string("Invalid dihedral table length (")
       + string(arg[5]) + string(").");
-    error->one(FLERR,err_msg.c_str());
+    error->one(FLERR,err_msg);
   }
   else if ((tb->ninput == 2) && (tabstyle == SPLINE)) {
     string err_msg;
     err_msg = string("Invalid dihedral spline table length. (Try linear)\n (")
       + string(arg[5]) + string(").");
-    error->one(FLERR,err_msg.c_str());
+    error->one(FLERR,err_msg);
   }
 
   // check for monotonicity
@@ -847,7 +843,7 @@ void DihedralTableCut::coeff(int narg, char **arg)
         string(arg[5]) + string(", ")+i_str.str()+string("th entry)");
       if (i==0)
         err_msg += string("\n(This is probably a mistake with your table format.)\n");
-      error->all(FLERR,err_msg.c_str());
+      error->all(FLERR,err_msg);
     }
   }
 
@@ -859,7 +855,7 @@ void DihedralTableCut::coeff(int narg, char **arg)
       string err_msg;
       err_msg = string("Dihedral table angle range must be < 360 degrees (")
         +string(arg[5]) + string(").");
-      error->all(FLERR,err_msg.c_str());
+      error->all(FLERR,err_msg);
     }
   }
   else {
@@ -867,7 +863,7 @@ void DihedralTableCut::coeff(int narg, char **arg)
       string err_msg;
       err_msg = string("Dihedral table angle range must be < 2*PI radians (")
         + string(arg[5]) + string(").");
-      error->all(FLERR,err_msg.c_str());
+      error->all(FLERR,err_msg);
     }
   }
 
@@ -1003,8 +999,7 @@ void DihedralTableCut::coeff(int narg, char **arg)
 
 void DihedralTableCut::write_restart(FILE *fp)
 {
-  fwrite(&tabstyle,sizeof(int),1,fp);
-  fwrite(&tablength,sizeof(int),1,fp);
+  write_restart_settings(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1013,11 +1008,29 @@ void DihedralTableCut::write_restart(FILE *fp)
 
 void DihedralTableCut::read_restart(FILE *fp)
 {
+  read_restart_settings(fp);
   allocate();
+}
 
+/* ----------------------------------------------------------------------
+   proc 0 writes out coeffs to restart file
+------------------------------------------------------------------------- */
+
+void DihedralTableCut::write_restart_settings(FILE *fp)
+{
+  fwrite(&tabstyle,sizeof(int),1,fp);
+  fwrite(&tablength,sizeof(int),1,fp);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 reads coeffs from restart file, bcasts them
+------------------------------------------------------------------------- */
+
+void DihedralTableCut::read_restart_settings(FILE *fp)
+{
   if (comm->me == 0) {
-    fread(&tabstyle,sizeof(int),1,fp);
-    fread(&tablength,sizeof(int),1,fp);
+    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,NULL,error);
   }
 
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
@@ -1068,7 +1081,7 @@ void DihedralTableCut::read_table(Table *tb, char *file, char *keyword)
   FILE *fp = force->open_potential(file);
   if (fp == NULL) {
     string err_msg = string("Cannot open file ") + string(file);
-    error->one(FLERR,err_msg.c_str());
+    error->one(FLERR,err_msg);
   }
 
   // loop until section found with matching keyword
@@ -1077,7 +1090,7 @@ void DihedralTableCut::read_table(Table *tb, char *file, char *keyword)
     if (fgets(line,MAXLINE,fp) == NULL) {
       string err_msg=string("Did not find keyword \"")
         +string(keyword)+string("\" in dihedral table file.");
-      error->one(FLERR, err_msg.c_str());
+      error->one(FLERR, err_msg);
     }
     if (strspn(line," \t\n\r") == strlen(line)) continue;  // blank line
     if (line[0] == '#') continue;                          // comment
@@ -1127,7 +1140,7 @@ void DihedralTableCut::read_table(Table *tb, char *file, char *keyword)
       if (! line_ss) {
         stringstream err_msg;
         err_msg << "Read error in table "<< keyword<<", near line "<<i+1<<"\n"
-                << "   (Check to make sure the number of colums is correct.)";
+                << "   (Check to make sure the number of columns is correct.)";
         if ((! tb->f_unspecified) && (i==0))
           err_msg << "\n   (This sometimes occurs if users forget to specify the \"NOF\" option.)\n";
         error->one(FLERR, err_msg.str().c_str());
@@ -1363,7 +1376,7 @@ void DihedralTableCut::param_extract(Table *tb, char *line)
     else {
       string err_msg("Invalid keyword in dihedral angle table parameters");
       err_msg += string(" (") + string(word) + string(")");
-      error->one(FLERR,err_msg.c_str());
+      error->one(FLERR, err_msg);
     }
     word = strtok(NULL," \t\n\r\f");
   }

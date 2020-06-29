@@ -32,7 +32,7 @@ action fix_gpu.cpp
 action fix_gpu.h
 action gpu_extra.h
 action pair_beck_gpu.cpp
-action pair_beck_gpu.h 
+action pair_beck_gpu.h
 action pair_born_coul_long_gpu.cpp pair_born_coul_long.cpp
 action pair_born_coul_long_gpu.h pair_born_coul_long.cpp
 action pair_born_coul_long_cs_gpu.cpp pair_born_coul_long_cs.cpp
@@ -71,9 +71,9 @@ action pair_lj_sf_dipole_sf_gpu.cpp pair_lj_sf_dipole_sf.cpp
 action pair_lj_sf_dipole_sf_gpu.h pair_lj_sf_dipole_sf.cpp
 action pair_eam_alloy_gpu.cpp pair_eam.cpp
 action pair_eam_alloy_gpu.h pair_eam.cpp
-action pair_eam_fs_gpu.cpp pair_eam.cpp 
+action pair_eam_fs_gpu.cpp pair_eam.cpp
 action pair_eam_fs_gpu.h pair_eam.cpp
-action pair_eam_gpu.cpp pair_eam.cpp 
+action pair_eam_gpu.cpp pair_eam.cpp
 action pair_eam_gpu.h pair_eam.cpp
 action pair_gauss_gpu.cpp
 action pair_gauss_gpu.h
@@ -112,7 +112,7 @@ action pair_lj_sdk_coul_long_gpu.h pair_lj_sdk_coul_long.cpp
 action pair_lj_sdk_gpu.cpp pair_lj_sdk.cpp
 action pair_lj_sdk_gpu.h pair_lj_sdk.cpp
 action pair_mie_cut_gpu.cpp
-action pair_mie_cut_gpu.h 
+action pair_mie_cut_gpu.h
 action pair_morse_gpu.cpp
 action pair_morse_gpu.h
 action pair_resquared_gpu.cpp pair_resquared.cpp
@@ -143,6 +143,8 @@ action pair_ufm_gpu.cpp
 action pair_ufm_gpu.h
 action pair_lj_cut_dipole_long_gpu.cpp pair_lj_cut_dipole_long.cpp
 action pair_lj_cut_dipole_long_gpu.h pair_lj_cut_dipole_long.cpp
+action pair_lj_cut_tip4p_long_gpu.h pair_lj_cut_tip4p_long.cpp
+action pair_lj_cut_tip4p_long_gpu.cpp pair_lj_cut_tip4p_long.cpp
 
 # edit 2 Makefile.package files to include/exclude package info
 
@@ -170,7 +172,7 @@ elif (test $1 = 0) then
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*gpu[^ \t]* //' ../Makefile.package
   fi
-  
+
   if (test -e ../Makefile.package.settings) then
     sed -i -e '/^include.*gpu.*$/d' ../Makefile.package.settings
   fi

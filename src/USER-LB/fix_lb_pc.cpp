@@ -15,17 +15,14 @@
    Contributing authors: Frances Mackay, Santtu Ollila, Colin Denniston (UWO)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "fix_lb_pc.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
-#include "respa.h"
 #include "error.h"
 #include "memory.h"
-#include "comm.h"
 #include "domain.h"
 #include "fix_lb_fluid.h"
 #include "modify.h"

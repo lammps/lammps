@@ -15,27 +15,13 @@
    Contributing author: Hendrik Heenen (hendrik.heenen@mytum.de)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lj_cut_coul_long_cs.h"
+#include <cmath>
 #include "atom.h"
-#include "comm.h"
 #include "force.h"
-#include "kspace.h"
-#include "update.h"
-#include "integrate.h"
-#include "respa.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define EWALD_F   1.12837917
 #define EWALD_P   9.95473818e-1
@@ -55,7 +41,7 @@ using namespace MathConst;
 PairLJCutCoulLongCS::PairLJCutCoulLongCS(LAMMPS *lmp) : PairLJCutCoulLong(lmp)
 {
   ewaldflag = pppmflag = 1;
-  respa_enable = 1;
+  respa_enable = 0;  // TODO: r-RESPA handling is inconsistent and thus disabled until fixed
   writedata = 1;
   ftable = NULL;
   qdist = 0.0;
@@ -187,7 +173,6 @@ void PairLJCutCoulLongCS::compute(int eflag, int vflag)
             }
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           } else ecoul = 0.0;
-
           if (rsq < cut_ljsq[itype][jtype]) {
             evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
               offset[itype][jtype];
@@ -447,7 +432,6 @@ void PairLJCutCoulLongCS::compute_outer(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
         r2inv = 1.0/rsq;
 
         if (rsq < cut_coulsq) {
@@ -456,9 +440,8 @@ void PairLJCutCoulLongCS::compute_outer(int eflag, int vflag)
             grij = g_ewald * r;
             expm2 = exp(-grij*grij);
             t = 1.0 / (1.0 + EWALD_P*grij);
-                u = 1. - t;
+            u = 1. - t;
             erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
-            //erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
             prefactor = qqrd2e * qtmp*q[j]/r;
             forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - 1.0);
             if (rsq > cut_in_off_sq) {
@@ -557,7 +540,6 @@ void PairLJCutCoulLongCS::compute_outer(int eflag, int vflag)
             r6inv = r2inv*r2inv*r2inv;
             forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
           }
-
           fpair = (forcecoul + factor_lj*forcelj) * r2inv;
         }
 

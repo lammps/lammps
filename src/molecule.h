@@ -30,7 +30,7 @@ class Molecule : protected Pointers {
 
   int natoms;
   int nbonds,nangles,ndihedrals,nimpropers;
-  int ntypes;
+  int ntypes,nmolecules,nfragments;
   int nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
   int nibody,ndbody;
 
@@ -41,7 +41,7 @@ class Molecule : protected Pointers {
 
   // 1 if attribute defined in file, 0 if not
 
-  int xflag,typeflag,qflag,radiusflag,rmassflag;
+  int xflag,typeflag,moleculeflag,fragmentflag,qflag,radiusflag,rmassflag;
   int bondflag,angleflag,dihedralflag,improperflag;
   int nspecialflag,specialflag;
   int shakeflag,shakeflagflag,shakeatomflag,shaketypeflag;
@@ -59,6 +59,7 @@ class Molecule : protected Pointers {
 
   double **x;          // displacement of each atom from origin
   int *type;           // type of each atom
+  tagint *molecule;    // molecule of each atom
   double *q;           // charge on each atom
   double *radius;      // radius of each atom
   double *rmass;       // mass of each atom
@@ -90,6 +91,11 @@ class Molecule : protected Pointers {
   int *ibodyparams;         // integer and double body params
   double *dbodyparams;
 
+  // fragment info
+
+  int **fragmentmask;       // nfragments by natoms
+  char **fragmentnames;
+
   double center[3];         // geometric center of molecule
   double masstotal;         // total mass of molecule
   double com[3];            // center of mass of molecule
@@ -118,6 +124,7 @@ class Molecule : protected Pointers {
   void compute_mass();
   void compute_com();
   void compute_inertia();
+  int findfragment(const char *);
   void check_attributes(int);
 
  private:
@@ -131,6 +138,8 @@ class Molecule : protected Pointers {
   void read(int);
   void coords(char *);
   void types(char *);
+  void molecules(char *);
+  void fragments(char *);
   void charges(char *);
   void diameters(char *);
   void masses(char *);
@@ -360,6 +369,18 @@ E: Invalid atom ID in impropers section of molecule file
 Self-explanatory.
 
 E: Invalid improper type in impropers section of molecule file
+
+Self-explanatory.
+
+E: Invalid molecule ID in molecule file
+
+Molecule ID must be a non-zero positive integer.
+
+E: Invalid Molecules section in molecule file
+
+Self-explanatory.
+
+E: Invalid atom ID in Fragments section of molecule file
 
 Self-explanatory.
 

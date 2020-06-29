@@ -15,20 +15,17 @@
    Contributing authors: Aidan P. Thompson (SNL)
 ------------------------------------------------------------------------- */
 
+#include "compute_adf.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "compute_adf.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"
 #include "pair.h"
-#include "domain.h"
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "neigh_list.h"
-#include "group.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"

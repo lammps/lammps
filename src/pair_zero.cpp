@@ -15,16 +15,15 @@
    Contributing author: Carsten Svaneborg (SDU)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_zero.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -33,6 +32,8 @@ using namespace LAMMPS_NS;
 PairZero::PairZero(LAMMPS *lmp) : Pair(lmp) {
   coeffflag=1;
   writedata=1;
+  single_enable=1;
+  respa_enable=1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -51,8 +52,14 @@ PairZero::~PairZero()
 void PairZero::compute(int eflag, int vflag)
 {
  ev_init(eflag,vflag);
-
  if (vflag_fdotr) virial_fdotr_compute();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairZero::compute_outer(int eflag, int vflag)
+{
+ ev_init(eflag,vflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -172,11 +179,11 @@ void PairZero::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&cut[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
@@ -201,8 +208,8 @@ void PairZero::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&coeffflag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&coeffflag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&coeffflag,1,MPI_INT,0,world);
@@ -229,4 +236,13 @@ void PairZero::write_data_all(FILE *fp)
       fprintf(fp,"%d %d %g\n",i,j,cut[i][j]);
 }
 
+/* ---------------------------------------------------------------------- */
+
+double PairZero::single(int /*i*/, int /*j*/, int /* itype */, int /* jtype */,
+                        double /* rsq */, double /*factor_coul*/,
+                        double /* factor_lj */, double &fforce)
+{
+  fforce = 0.0;
+  return 0.0;
+}
 

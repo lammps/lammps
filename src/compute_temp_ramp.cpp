@@ -11,15 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
 #include "compute_temp_ramp.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "force.h"
 #include "group.h"
-#include "fix.h"
 #include "domain.h"
 #include "lattice.h"
 #include "memory.h"

@@ -14,16 +14,14 @@
    contact: stevene.strong at gmail dot com
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-
 #include "pair_e3b.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
+#include <algorithm>
 
 #include "atom.h"
 #include "neighbor.h"
-#include "neigh_request.h"
 #include "neigh_list.h"
 #include "force.h"
 #include "comm.h"
@@ -33,7 +31,7 @@
 #include "domain.h"
 #include "citeme.h"
 
-//these are defined here to avoid confusing hardcoded indicies, but
+//these are defined here to avoid confusing hardcoded indices, but
 //they do not allow flexibility. If they are changed the code will break
 #define DIM 3
 #define NUMH 2  //number of hydrogen atoms per water molecule
@@ -541,7 +539,7 @@ void PairE3B::presetParam(const int flag,bool &repeatFlag,double &bondL) {
       bondL!=0.0 || rs!=0.0 || rc3!=0.0 || rc2!=0.0 )
     error->all(FLERR,"Preset keyword will overwrite another keyword setting");
 
-  double econv,lconv;
+  double econv=1.0,lconv=1.0;
   if (strcmp(update->unit_style,"real") == 0) {
     econv=1.0/4.184;
     lconv=1.0;

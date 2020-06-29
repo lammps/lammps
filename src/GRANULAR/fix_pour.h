@@ -70,7 +70,7 @@ class FixPour : public Fix {
 
   void find_maxid();
   int overlap(int);
-  int outside(int, double, double, double);
+  bool outside(int, double, double, double);
   void xyz_random(double, double *);
   double radius_sample();
   void options(int, char **);

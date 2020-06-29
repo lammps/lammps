@@ -15,15 +15,12 @@
    Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "pppm_stagger.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdio>
-#include <cstdlib>
 #include <cmath>
-#include "pppm_stagger.h"
 #include "atom.h"
 #include "gridcomm.h"
-#include "force.h"
 #include "domain.h"
 #include "memory.h"
 #include "error.h"
@@ -879,7 +876,7 @@ void PPPMStagger::fieldforce_ad()
     eky *= hy_inv;
     ekz *= hz_inv;
 
-    // convert E-field to force and substract self forces
+    // convert E-field to force and subtract self forces
 
     const double qfactor = qqrd2e * scale / float(nstagger);
 

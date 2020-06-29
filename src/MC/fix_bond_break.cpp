@@ -11,19 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
+#include "fix_bond_break.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdlib>
-#include "fix_bond_break.h"
 #include "update.h"
 #include "respa.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "force.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
@@ -37,7 +33,8 @@ using namespace FixConst;
 
 FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  partner(NULL), finalpartner(NULL), distsq(NULL), probability(NULL), broken(NULL), copy(NULL), random(NULL)
+  partner(NULL), finalpartner(NULL), distsq(NULL), probability(NULL),
+  broken(NULL), copy(NULL), random(NULL)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix bond/break command");
 

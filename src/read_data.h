@@ -20,7 +20,6 @@ CommandStyle(read_data,ReadData)
 #ifndef LMP_READ_DATA_H
 #define LMP_READ_DATA_H
 
-#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -33,7 +32,7 @@ class ReadData : protected Pointers {
 
  private:
   int me,compressed;
-  char *line,*copy,*keyword,*buffer,*style;
+  char *line,*keyword,*buffer,*style;
   FILE *fp;
   char **arg;
   int narg,maxarg;
@@ -98,7 +97,7 @@ class ReadData : protected Pointers {
   void impropers(int);
 
   void bonus(bigint, class AtomVec *, const char *);
-  void bodies(int);
+  void bodies(int, class AtomVec *);
 
   void mass();
   void paircoeffs();

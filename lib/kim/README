@@ -1,11 +1,11 @@
-This directory contains build settings for the KIM API library which
-is required to use the KIM package and its pair_style kim command in a
-LAMMPS input script.
+This directory contains build settings for the KIM API library which is
+required to use the KIM package and its kim_init, kim_interactions, kim_query,
+and pair_kim commands in a LAMMPS input script.
 
 Information about the KIM project can be found at https://openkim.org.
 The KIM project is lead by Ellad Tadmor and Ryan Elliott (U Minn).
 Ryan Elliott is the main developer for the KIM API and he also
-maintains the code that implements the pair_style kim command.
+maintains the code that implements the KIM commands.
 
 You can type "make lib-kim" from the src directory to see help on
 how to download and build this library via make commands, or you can
@@ -13,11 +13,9 @@ do the same thing by typing "python Install.py" from within this
 directory, or you can do it manually by following the instructions
 below.
 
-As of KIM API version 2, the KIM package also provides a LAMMPS command
-to perform queries through the OpenKIM web API. This feature requires
-that the CURL library (libcurl) development package and its configuration
-query tool, curl-config, are installed. The provided Makefile.lammps
-is set up to automatically detect this.
+Use of the kim_query command requires that the CURL library (libcurl)
+development package and its configuration query tool, curl-config, are
+installed. The provided Makefile.lammps is set up to automatically detect this.
 
 -----------------
 
@@ -40,8 +38,8 @@ $ cmake ..  -DCMAKE_INSTALL_PREFIX=${PWD}/../../installed-kim-api-X.Y.Z
 
 3. Build and install the kim-api and model
 
-$ make
-$ make install
+$ make -j2
+$ make -j2 install
 
 4. Remove source and build files
 
@@ -53,7 +51,7 @@ $ rm -rf kim-api-X.Y.Z.txz
    desired value)
 
 $ source ${PWD}/kim-api-X.Y.Z/bin/kim-api-activate
-$ kim-api-collections-management install system Pair_Johnson_Fe__MO_857282754307_002
+$ kim-api-collections-management install system EAM_ErcolessiAdams_1994_Al__MO_324507536345_002
 
 
 -----------------

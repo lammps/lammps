@@ -13,21 +13,14 @@
    Contributing author: David Nicholson (MIT)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
-#include <cstdlib>
 #include "compute_pressure_uef.h"
+#include <cstring>
 #include "fix_nh_uef.h"
 #include "update.h"
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
 #include "force.h"
-#include "pair.h"
-#include "bond.h"
-#include "angle.h"
-#include "dihedral.h"
-#include "improper.h"
 #include "kspace.h"
 #include "error.h"
 

@@ -16,18 +16,14 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_list.h"
-#include "atom.h"
-#include "comm.h"
-#include "domain.h"
-#include "force.h"
-#include "memory.h"
-
-#include "error.h"
-
-#include <cstdio>
-#include <cstdlib>
+#include <mpi.h>
 #include <cstring>
 #include <cmath>
+#include "atom.h"
+#include "comm.h"
+#include "force.h"
+#include "memory.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 

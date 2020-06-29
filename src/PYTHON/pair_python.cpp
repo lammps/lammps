@@ -15,13 +15,11 @@
    Contributing authors: Axel Kohlmeyer and Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <Python.h>
-#include <cstdio>
+#include "pair_python.h"
+#include <Python.h>  // IWYU pragma: keep
 #include <cstdlib>
 #include <cstring>
-#include "pair_python.h"
 #include "atom.h"
-#include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "update.h"
@@ -42,6 +40,7 @@ PairPython::PairPython(LAMMPS *lmp) : Pair(lmp) {
   one_coeff = 1;
   reinitflag = 0;
   cut_global = 0.0;
+  centroidstressflag = 1;
 
   py_potential = NULL;
   skip_types = NULL;

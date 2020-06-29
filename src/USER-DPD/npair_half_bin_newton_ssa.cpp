@@ -17,7 +17,6 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_half_bin_newton_ssa.h"
-#include "neighbor.h"
 #include "nstencil_ssa.h"
 #include "nbin_ssa.h"
 #include "neigh_list.h"
@@ -25,7 +24,6 @@
 #include "atom_vec.h"
 #include "molecule.h"
 #include "domain.h"
-#include "group.h"
 #include "memory.h"
 #include "my_page.h"
 #include "error.h"
@@ -66,7 +64,7 @@ NPairHalfBinNewtonSSA::~NPairHalfBinNewtonSSA()
 
 /* ----------------------------------------------------------------------
    binned neighbor list construction with full Newton's 3rd law
-   for use by Shardlow Spliting Algorithm
+   for use by Shardlow Splitting Algorithm
    each owned atom i checks its own bin and other bins in Newton stencil
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */

@@ -15,8 +15,6 @@
    Contributing author: James Larentzos (U.S. Army Research Laboratory)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "fix_eos_cv.h"
 #include "atom.h"
 #include "error.h"

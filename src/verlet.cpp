@@ -11,8 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "verlet.h"
+#include <cstring>
+#include <string>
 #include "neighbor.h"
 #include "domain.h"
 #include "comm.h"
@@ -28,11 +29,9 @@
 #include "output.h"
 #include "update.h"
 #include "modify.h"
-#include "compute.h"
-#include "fix.h"
 #include "timer.h"
-#include "memory.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -90,9 +89,10 @@ void Verlet::setup(int flag)
   if (comm->me == 0 && screen) {
     fprintf(screen,"Setting up Verlet run ...\n");
     if (flag) {
-      fprintf(screen,"  Unit style    : %s\n",update->unit_style);
-      fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n",update->ntimestep);
-      fprintf(screen,"  Time step     : %g\n",update->dt);
+      fmt::print(screen,"  Unit style    : {}\n"
+                        "  Current step  : {}\n"
+                        "  Time step     : {}\n",
+                 update->unit_style,update->ntimestep,update->dt);
       timer->print_timeout(screen);
     }
   }

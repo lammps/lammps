@@ -20,8 +20,8 @@ CommandStyle(write_restart,WriteRestart)
 #ifndef LMP_WRITE_RESTART_H
 #define LMP_WRITE_RESTART_H
 
-#include <cstdio>
 #include "pointers.h"
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -30,7 +30,7 @@ class WriteRestart : protected Pointers {
   WriteRestart(class LAMMPS *);
   void command(int, char **);
   void multiproc_options(int, int, int, char **);
-  void write(char *);
+  void write(std::string);
 
  private:
   int me,nprocs;

@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -46,41 +47,33 @@
 
 namespace Test {
 
-TEST_F( TEST_CATEGORY, team_shared_request )
-{
-  TestSharedTeam< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >();
-  TestSharedTeam< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >();
+TEST(TEST_CATEGORY, team_shared_request) {
+  TestSharedTeam<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >();
+  TestSharedTeam<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >();
 }
 
-TEST_F( TEST_CATEGORY, team_scratch_request )
-{
-  TestScratchTeam< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >();
-  TestScratchTeam< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >();
+TEST(TEST_CATEGORY, team_scratch_request) {
+  TestScratchTeam<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >();
+  TestScratchTeam<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >();
 }
 
-#if defined( KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA )
-#if !defined(KOKKOS_ENABLE_CUDA) || ( 8000 <= CUDA_VERSION )
-TEST_F( TEST_CATEGORY, team_lambda_shared_request )
-{
-  TestLambdaSharedTeam< Kokkos::HostSpace, TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >();
-  TestLambdaSharedTeam< Kokkos::HostSpace, TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >();
+#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
+TEST(TEST_CATEGORY, team_lambda_shared_request) {
+  TestLambdaSharedTeam<Kokkos::HostSpace, TEST_EXECSPACE,
+                       Kokkos::Schedule<Kokkos::Static> >();
+  TestLambdaSharedTeam<Kokkos::HostSpace, TEST_EXECSPACE,
+                       Kokkos::Schedule<Kokkos::Dynamic> >();
 }
-TEST_F( TEST_CATEGORY, scratch_align) {
-  TestScratchAlignment< TEST_EXECSPACE >();
-}
-#endif
+TEST(TEST_CATEGORY, scratch_align) { TestScratchAlignment<TEST_EXECSPACE>(); }
 #endif
 
-TEST_F( TEST_CATEGORY, shmem_size )
-{
-  TestShmemSize< TEST_EXECSPACE >();
+TEST(TEST_CATEGORY, shmem_size) { TestShmemSize<TEST_EXECSPACE>(); }
+
+TEST(TEST_CATEGORY, multi_level_scratch) {
+  TestMultiLevelScratchTeam<TEST_EXECSPACE,
+                            Kokkos::Schedule<Kokkos::Static> >();
+  TestMultiLevelScratchTeam<TEST_EXECSPACE,
+                            Kokkos::Schedule<Kokkos::Dynamic> >();
 }
 
-TEST_F( TEST_CATEGORY, multi_level_scratch )
-{
-  TestMultiLevelScratchTeam< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> >();
-  TestMultiLevelScratchTeam< TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >();
-}
-
-} // namespace Test
-
+}  // namespace Test

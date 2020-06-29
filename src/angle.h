@@ -14,8 +14,7 @@
 #ifndef LMP_ANGLE_H
 #define LMP_ANGLE_H
 
-#include <cstdio>
-#include "pointers.h"
+#include "pointers.h"  // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -29,6 +28,7 @@ class Angle : protected Pointers {
   double energy;                  // accumulated energies
   double virial[6];               // accumulated virial
   double *eatom,**vatom;          // accumulated per-atom energy/virial
+  double **cvatom;                // accumulated per-atom centroid virial
 
   // KOKKOS host/device flag and data masks
 
@@ -46,6 +46,8 @@ class Angle : protected Pointers {
   virtual double equilibrium_angle(int) = 0;
   virtual void write_restart(FILE *) = 0;
   virtual void read_restart(FILE *) = 0;
+  virtual void write_restart_settings(FILE *) {};
+  virtual void read_restart_settings(FILE *) {};
   virtual void write_data(FILE *) {}
   virtual double single(int, int, int, int) = 0;
   virtual double memory_usage();
@@ -55,12 +57,12 @@ class Angle : protected Pointers {
 
   int evflag;
   int eflag_either,eflag_global,eflag_atom;
-  int vflag_either,vflag_global,vflag_atom;
-  int maxeatom,maxvatom;
+  int vflag_either,vflag_global,vflag_atom,cvflag_atom;
+  int maxeatom,maxvatom,maxcvatom;
 
   void ev_init(int eflag, int vflag, int alloc = 1) {
     if (eflag||vflag) ev_setup(eflag, vflag, alloc);
-    else evflag = eflag_either = eflag_global = eflag_atom = vflag_either = vflag_global = vflag_atom = 0;
+    else evflag = eflag_either = eflag_global = eflag_atom = vflag_either = vflag_global = vflag_atom = cvflag_atom = 0;
   }
   void ev_setup(int, int, int alloc = 1);
   void ev_tally(int, int, int, int, int, double, double *, double *,

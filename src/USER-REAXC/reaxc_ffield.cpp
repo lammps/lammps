@@ -24,11 +24,15 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc.h"
-#include "error.h"
 #include "reaxc_ffield.h"
+#include <mpi.h>
+#include <cctype>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include "reaxc_defs.h"
+#include "error.h"
 #include "reaxc_tool_box.h"
-
 
 char Read_Force_Field( FILE *fp, reax_interaction *reax,
                        control_params *control )
@@ -150,7 +154,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
     /* Sanity checks */
     if (c == 2 && !lgflag)
-        control->error_ptr->all(FLERR, "Force field file requires using 'lgvdw yes'");	
+        control->error_ptr->all(FLERR, "Force field file requires using 'lgvdw yes'");
 
     if (c < 9) {
       snprintf (errmsg, 1024, "Missing parameter(s) in line %s", s);
@@ -333,6 +337,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
     j = atoi(tmp[0]) - 1;
     k = atoi(tmp[1]) - 1;
+    if ((c < 10) || (j < 0) || (k < 0))
+      control->error_ptr->all(FLERR, "Inconsistent force field file");
 
     if (j < reax->num_atom_types && k < reax->num_atom_types) {
 
@@ -357,6 +363,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
       /* line 2 */
       fgets(s,MAX_LINE,fp);
       c=Tokenize(s,&tmp);
+      if (c < 8)
+        control->error_ptr->all(FLERR, "Inconsistent force field file");
 
       val = atof(tmp[0]); reax->tbp[j][k].p_be2     = val;
       reax->tbp[k][j].p_be2     = val;
@@ -487,6 +495,9 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
     j = atoi(tmp[0]) - 1;
     k = atoi(tmp[1]) - 1;
 
+    if ((c < (lgflag ? 9 : 8)) || (j < 0) || (k < 0))
+      control->error_ptr->all(FLERR, "Inconsistent force field file");
+
     if (j < reax->num_atom_types && k < reax->num_atom_types)        {
       val = atof(tmp[2]);
       if (val > 0.0) {
@@ -524,10 +535,12 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
         reax->tbp[k][j].r_pp = val;
       }
 
-      val = atof(tmp[8]);
-      if (val >= 0.0) {
-        reax->tbp[j][k].lgcij = val;
-        reax->tbp[k][j].lgcij = val;
+      if (lgflag) {
+        val = atof(tmp[8]);
+        if (val >= 0.0) {
+          reax->tbp[j][k].lgcij = val;
+          reax->tbp[k][j].lgcij = val;
+        }
       }
     }
   }
@@ -548,6 +561,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
     j = atoi(tmp[0]) - 1;
     k = atoi(tmp[1]) - 1;
     m = atoi(tmp[2]) - 1;
+    if ((c < 10) || (j < 0) || (k < 0) || (m < 0))
+      control->error_ptr->all(FLERR, "Inconsistent force field file");
 
     if (j < reax->num_atom_types && k < reax->num_atom_types &&
         m < reax->num_atom_types) {
@@ -607,6 +622,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
     k = atoi(tmp[1]) - 1;
     m = atoi(tmp[2]) - 1;
     n = atoi(tmp[3]) - 1;
+    if ((c < 9) || (k < 0) || (m < 0))
+      control->error_ptr->all(FLERR, "Inconsistent force field file");
 
     if (j >= 0 && n >= 0) { // this means the entry is not in compact form
       if (j < reax->num_atom_types && k < reax->num_atom_types &&
@@ -663,8 +680,6 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
     }
   }
 
-
-
   /* next line is number of hydrogen bond params and some comments */
   fgets( s, MAX_LINE, fp );
   c = Tokenize( s, &tmp );
@@ -682,7 +697,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
     j = atoi(tmp[0]) - 1;
     k = atoi(tmp[1]) - 1;
     m = atoi(tmp[2]) - 1;
-
+    if ((c < 7) || (j < 0) || (k < 0) || (m < 0))
+      control->error_ptr->all(FLERR, "Inconsistent force field file");
 
     if (j < reax->num_atom_types && m < reax->num_atom_types) {
       val = atof(tmp[3]);

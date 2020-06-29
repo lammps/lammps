@@ -15,16 +15,10 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-// lmptype.h must be first b/c this file uses MAXBIGINT and includes mpi.h
-// due to OpenMPI bug which sets INT64_MAX via its mpi.h
-//   before lmptype.h can set flags to insure it is done correctly
-
-#include "lmptype.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "prd.h"
+#include <mpi.h>
+#include <cstring>
+#include <string>
 #include "universe.h"
 #include "update.h"
 #include "atom.h"
@@ -40,15 +34,14 @@
 #include "fix.h"
 #include "fix_event_prd.h"
 #include "force.h"
-#include "pair.h"
 #include "random_park.h"
 #include "random_mars.h"
 #include "output.h"
-#include "dump.h"
 #include "finish.h"
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -155,11 +148,7 @@ void PRD::command(int narg, char **arg)
 
   // create ComputeTemp class to monitor temperature
 
-  char **args = new char*[3];
-  args[0] = (char *) "prd_temp";
-  args[1] = (char *) "all";
-  args[2] = (char *) "temp";
-  modify->add_compute(3,args);
+  modify->add_compute("prd_temp all temp");
   temperature = modify->compute[modify->ncompute-1];
 
   // create Velocity class for velocity creation in dephasing
@@ -169,6 +158,7 @@ void PRD::command(int narg, char **arg)
   velocity = new Velocity(lmp);
   velocity->init_external("all");
 
+  char *args[2];
   args[0] = (char *) "temp";
   args[1] = (char *) "prd_temp";
   velocity->options(2,args);
@@ -181,10 +171,7 @@ void PRD::command(int narg, char **arg)
 
   // create FixEventPRD class to store event and pre-quench states
 
-  args[0] = (char *) "prd_event";
-  args[1] = (char *) "all";
-  args[2] = (char *) "EVENT/PRD";
-  modify->add_fix(3,args);
+  modify->add_fix("prd_event all EVENT/PRD");
   fix_event = (FixEventPRD *) modify->fix[modify->nfix-1];
 
   // create Finish for timing output
@@ -193,7 +180,6 @@ void PRD::command(int narg, char **arg)
 
   // string clean-up
 
-  delete [] args;
   delete [] loop_setting;
   delete [] dist_setting;
 
@@ -449,10 +435,7 @@ void PRD::command(int narg, char **arg)
               nsteps,atom->natoms);
   }
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"\nPRD done\n");
-    if (logfile) fprintf(logfile,"\nPRD done\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"\nPRD done\n");
 
   finish->end(2);
 
@@ -617,7 +600,7 @@ void PRD::quench()
    if replica_num is non-negative only check for event on replica_num
    if multiple events, choose one at random
    return -1 if no event
-   else return ireplica = world in which event occured
+   else return ireplica = world in which event occurred
 ------------------------------------------------------------------------- */
 
 int PRD::check_event(int replica_num)

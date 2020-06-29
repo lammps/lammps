@@ -12,6 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include <cmath>
 #include "pair_airebo_omp.h"
 #include "atom.h"
@@ -58,7 +59,7 @@ void PairAIREBOOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag) reduction(+:pv0,pv1,pv2)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag) reduction(+:pv0,pv1,pv2)
 #endif
   {
     int ifrom, ito, tid;
@@ -66,7 +67,7 @@ void PairAIREBOOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
 
     FREBO_thr(ifrom,ito,evflag,eflag,vflag_atom,&pv0,thr);
     if (ljflag) FLJ_thr(ifrom,ito,evflag,eflag,vflag_atom,&pv1,thr);
@@ -104,7 +105,7 @@ void PairAIREBOOMP::REBO_neigh_thr()
   }
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     int i,j,ii,jj,n,jnum,itype,jtype;
@@ -1848,9 +1849,9 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
 
 This function calculates S(t_b(b_ij*)) as specified in the AIREBO paper.
 To do so, it needs to compute b_ij*, i.e. the bondorder given that the
-atoms i and j are placed a ficticious distance rijmag_mod apart.
+atoms i and j are placed a fictitious distance rijmag_mod apart.
 Now there are two approaches to calculate the resulting forces:
-1. Carry through the ficticious distance and corresponding vector
+1. Carry through the fictitious distance and corresponding vector
    rij_mod, correcting afterwards using the derivative of r/|r|.
 2. Perform all the calculations using the real distance, and do not
    use a correction, only using rijmag_mod where necessary.

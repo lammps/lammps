@@ -11,8 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "body_nparticle.h"
+#include <cstring>
+#include <cstdlib>
+#include "my_pool_chunk.h"
 #include "math_extra.h"
 #include "atom_vec_body.h"
 #include "atom.h"
@@ -44,6 +46,7 @@ BodyNparticle::BodyNparticle(LAMMPS *lmp, int narg, char **arg) :
 
   icp = new MyPoolChunk<int>(1,1);
   dcp = new MyPoolChunk<double>(3*nmin,3*nmax);
+  maxexchange = 1 + 3*nmax;        // icp max + dcp max
 
   memory->create(imflag,nmax,"body/nparticle:imflag");
   memory->create(imdata,nmax,4,"body/nparticle:imdata");

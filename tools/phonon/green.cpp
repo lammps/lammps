@@ -140,7 +140,7 @@ return;
 }
 
 /*------------------------------------------------------------------------------
- * Private method to compute the LDOS via the recusive method for system with
+ * Private method to compute the LDOS via the recursive method for system with
  * many atoms
  *----------------------------------------------------------------------------*/
 void Green::Recursion()
@@ -217,7 +217,7 @@ return;
 }
 
 /*------------------------------------------------------------------------------
- * Private method to compute the LDOS via the recusive method for system with
+ * Private method to compute the LDOS via the recursive method for system with
  * a few atoms (less than NMAX)
  *----------------------------------------------------------------------------*/
 void Green::recursion()

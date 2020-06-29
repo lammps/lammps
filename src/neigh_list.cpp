@@ -12,15 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "neigh_list.h"
+#include "my_page.h"    // IWYU pragma: keep
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "pair.h"
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "my_page.h"
 #include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -82,11 +80,15 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
   // Kokkos package
 
   kokkos = 0;
+  kk2cpu = 0;
   execution_space = Host;
 
   // USER-DPD package
 
   np = NULL;
+
+  requestor = NULL;
+  requestor_type = NeighList::NONE;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -142,8 +144,11 @@ void NeighList::post_constructor(NeighRequest *nq)
   respainner = nq->respainner;
   copy = nq->copy;
 
-  if (nq->copy)
+  if (nq->copy) {
     listcopy = neighbor->lists[nq->copylist];
+    if (listcopy->kokkos && !this->kokkos)
+      kk2cpu = 1;
+  }
 
   if (nq->skip) {
     listskip = neighbor->lists[nq->skiplist];

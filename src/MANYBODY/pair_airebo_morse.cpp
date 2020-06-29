@@ -12,8 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_airebo_morse.h"
-#include "force.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

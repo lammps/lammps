@@ -2223,7 +2223,9 @@ public:
   }
 
   VEC_INLINE static ivec unpackloepi32(const fvec &a) {
-    return reinterpret_cast<const int*>(&a.val_)[0];
+    union { int i; flt_t f; } atype;
+    atype.f = a.val_;
+    return ivec(atype.i);
   }
 
   VEC_INLINE static fvec mask_sincos(

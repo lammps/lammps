@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -34,10 +34,9 @@ FixStyle(colvars,FixColvars)
 #define LMP_FIX_COLVARS_H
 
 #include "fix.h"
+#include <mpi.h>
 
-// forward declaration
 class colvarproxy_lammps;
-struct commdata;
 
 namespace LAMMPS_NS {
 
@@ -64,7 +63,7 @@ class FixColvars : public Fix {
   virtual void restart(char *);
 
  protected:
-  class colvarproxy_lammps *proxy; // pointer to the colvars proxy class
+  colvarproxy_lammps *proxy; // pointer to the colvars proxy class
   char *conf_file;     // name of colvars config file
   char *inp_name;      // name/prefix of colvars restart file
   char *out_name;      // prefix string for all output files

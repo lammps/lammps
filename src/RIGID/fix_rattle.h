@@ -20,7 +20,6 @@ FixStyle(rattle,FixRattle)
 #ifndef LMP_FIX_RATTLE_H
 #define LMP_FIX_RATTLE_H
 
-#include "fix.h"
 #include "fix_shake.h"
 
 namespace LAMMPS_NS {

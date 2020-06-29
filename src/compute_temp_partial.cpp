@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
 #include "compute_temp_partial.h"
+#include <mpi.h>
 #include "atom.h"
 #include "update.h"
 #include "force.h"

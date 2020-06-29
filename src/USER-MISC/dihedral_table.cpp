@@ -17,25 +17,28 @@
                           the "tridiag.c" written by Gerard Jungman for GSL
 ------------------------------------------------------------------------- */
 
+#include <mpi.h>
+#include <cctype>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include <cassert>
 #include <string>
-#include <fstream>
-#include <iostream>
-#include <sstream>
+#include <sstream>  // IWYU pragma: keep
+#include <fstream>  // IWYU pragma: keep
 
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "domain.h"
 #include "force.h"
-#include "update.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 #include "dihedral_table.h"
 #include "utils.h"
+#include "tokenizer.h"
+#include "table_file_reader.h"
+#include "fmt/format.h"
 
 #include "math_const.h"
 #include "math_extra.h"
@@ -458,8 +461,7 @@ static double Phi(double const *x1, //array holding x,y,z coords atom 1
 DihedralTable::DihedralTable(LAMMPS *lmp) : Dihedral(lmp)
 {
   ntables = 0;
-  tables = NULL;
-  checkU_fname = checkF_fname = NULL;
+  tables = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -468,8 +470,6 @@ DihedralTable::~DihedralTable()
 {
   for (int m = 0; m < ntables; m++) free_table(&tables[m]);
   memory->sfree(tables);
-  memory->sfree(checkU_fname);
-  memory->sfree(checkF_fname);
 
   if (allocated) {
     memory->destroy(setflag);
@@ -832,13 +832,13 @@ void DihedralTable::coeff(int narg, char **arg)
     string err_msg;
     err_msg = string("Invalid dihedral table length (")
       + string(arg[2]) + string(").");
-    error->one(FLERR,err_msg.c_str());
+    error->one(FLERR,err_msg);
   }
   else if ((tb->ninput == 2) && (tabstyle == SPLINE)) {
     string err_msg;
     err_msg = string("Invalid dihedral spline table length. (Try linear)\n (")
       + string(arg[2]) + string(").");
-    error->one(FLERR,err_msg.c_str());
+    error->one(FLERR,err_msg);
   }
 
   // check for monotonicity
@@ -851,7 +851,7 @@ void DihedralTable::coeff(int narg, char **arg)
         string(arg[2]) + string(", ")+i_str.str()+string("th entry)");
       if (i==0)
         err_msg += string("\n(This is probably a mistake with your table format.)\n");
-      error->all(FLERR,err_msg.c_str());
+      error->all(FLERR,err_msg);
     }
   }
 
@@ -863,7 +863,7 @@ void DihedralTable::coeff(int narg, char **arg)
       string err_msg;
       err_msg = string("Dihedral table angle range must be < 360 degrees (")
         +string(arg[2]) + string(").");
-      error->all(FLERR,err_msg.c_str());
+      error->all(FLERR,err_msg);
     }
   }
   else {
@@ -871,7 +871,7 @@ void DihedralTable::coeff(int narg, char **arg)
       string err_msg;
       err_msg = string("Dihedral table angle range must be < 2*PI radians (")
         + string(arg[2]) + string(").");
-      error->all(FLERR,err_msg.c_str());
+      error->all(FLERR,err_msg);
     }
   }
 
@@ -940,7 +940,7 @@ void DihedralTable::coeff(int narg, char **arg)
   // Optional: allow the user to print out the interpolated spline tables
 
   if (me == 0) {
-    if (checkU_fname && (strlen(checkU_fname) != 0))
+    if (!checkU_fname.empty())
     {
       ofstream checkU_file;
       checkU_file.open(checkU_fname, ios::out);
@@ -953,7 +953,7 @@ void DihedralTable::coeff(int narg, char **arg)
       }
       checkU_file.close();
     }
-    if (checkF_fname && (strlen(checkF_fname) != 0))
+    if (!checkF_fname.empty())
     {
       ofstream checkF_file;
       checkF_file.open(checkF_fname, ios::out);
@@ -1012,8 +1012,7 @@ void DihedralTable::coeff(int narg, char **arg)
 
 void DihedralTable::write_restart(FILE *fp)
 {
-  fwrite(&tabstyle,sizeof(int),1,fp);
-  fwrite(&tablength,sizeof(int),1,fp);
+  write_restart_settings(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1022,15 +1021,34 @@ void DihedralTable::write_restart(FILE *fp)
 
 void DihedralTable::read_restart(FILE *fp)
 {
+  read_restart_settings(fp);
+  allocate();
+}
+
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to restart file
+ ------------------------------------------------------------------------- */
+
+void DihedralTable::write_restart_settings(FILE *fp)
+{
+  fwrite(&tabstyle,sizeof(int),1,fp);
+  fwrite(&tablength,sizeof(int),1,fp);
+}
+
+/* ----------------------------------------------------------------------
+    proc 0 reads from restart file, bcasts
+ ------------------------------------------------------------------------- */
+
+void DihedralTable::read_restart_settings(FILE *fp)
+{
   if (comm->me == 0) {
-    fread(&tabstyle,sizeof(int),1,fp);
-    fread(&tablength,sizeof(int),1,fp);
+    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,NULL,error);
   }
 
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);
-
-  allocate();
 }
 
 
@@ -1066,42 +1084,21 @@ void DihedralTable::free_table(Table *tb)
 /* ----------------------------------------------------------------------
    read table file, only called by proc 0
 ------------------------------------------------------------------------- */
-static const int MAXLINE=2048;
 void DihedralTable::read_table(Table *tb, char *file, char *keyword)
 {
-  char line[MAXLINE];
+  TableFileReader reader(lmp, file, "dihedral");
 
-  // open file
+  char * line = reader.find_section_start(keyword);
 
-  FILE *fp = force->open_potential(file);
-  if (fp == NULL) {
-    string err_msg = string("Cannot open file ") + string(file);
-    error->one(FLERR,err_msg.c_str());
+  if (!line) {
+    error->one(FLERR,"Did not find keyword in table file");
   }
 
-  // loop until section found with matching keyword
-
-  while (1) {
-    if (fgets(line,MAXLINE,fp) == NULL) {
-      string err_msg=string("Did not find keyword \"")
-        +string(keyword)+string("\" in dihedral table file.");
-      error->one(FLERR, err_msg.c_str());
-    }
-    if (strspn(line," \t\n\r") == strlen(line)) continue;  // blank line
-    if (line[0] == '#') continue;                          // comment
-    char *word = strtok(line," \t\n\r");
-    if (strcmp(word,keyword) == 0) break;            // matching keyword
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error); // no match, skip section
-    param_extract(tb,line);
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-    for (int i = 0; i < tb->ninput; i++)
-      utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-  }
 
   // read args on 2nd line of section
   // allocate table arrays for file values
 
-  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
+  line = reader.next_line();
   param_extract(tb,line);
   memory->create(tb->phifile,tb->ninput,"dihedral:phifile");
   memory->create(tb->efile,tb->ninput,"dihedral:efile");
@@ -1109,41 +1106,24 @@ void DihedralTable::read_table(Table *tb, char *file, char *keyword)
 
   // read a,e,f table values from file
 
-  int itmp;
   for (int i = 0; i < tb->ninput; i++) {
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-
-    // Skip blank lines and delete text following a '#' character
-    char *pe = strchr(line, '#');
-    if (pe != NULL) *pe = '\0'; //terminate string at '#' character
-    char *pc = line;
-    while ((*pc != '\0') && isspace(*pc))
-      pc++;
-    if (*pc != '\0') { //If line is not a blank line
-      stringstream line_ss(line);
+    try {
       if (tb->f_unspecified) {
-        line_ss >> itmp;
-        line_ss >> tb->phifile[i];
-        line_ss >> tb->efile[i];
+        ValueTokenizer values = reader.next_values(3);
+        values.next_int();
+        tb->phifile[i] = values.next_double();
+        tb->efile[i] = values.next_double();
       } else {
-        line_ss >> itmp;
-        line_ss >> tb->phifile[i];
-        line_ss >> tb->efile[i];
-        line_ss >> tb->ffile[i];
+        ValueTokenizer values = reader.next_values(4);
+        values.next_int();
+        tb->phifile[i] = values.next_double();
+        tb->efile[i] = values.next_double();
+        tb->ffile[i] = values.next_double();
       }
-      if (! line_ss) {
-        stringstream err_msg;
-        err_msg << "Read error in table "<< keyword<<", near line "<<i+1<<"\n"
-                << "   (Check to make sure the number of colums is correct.)";
-        if ((! tb->f_unspecified) && (i==0))
-          err_msg << "\n   (This sometimes occurs if users forget to specify the \"NOF\" option.)\n";
-        error->one(FLERR, err_msg.str().c_str());
-      }
-    } else //if it is a blank line, then skip it.
-      i--;
+    } catch (TokenizerException & e) {
+      error->one(FLERR, e.what());
+    }
   } //for (int i = 0; (i < tb->ninput) && fp; i++) {
-
-  fclose(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1234,7 +1214,7 @@ void DihedralTable::spline_table(Table *tb)
 
     if ((num_disagreements > tb->ninput/2) && (num_disagreements > 2)) {
       string msg("Dihedral table has inconsistent forces and energies. (Try \"NOF\".)\n");
-      error->all(FLERR,msg.c_str());
+      error->all(FLERR, msg);
     }
 
   } // check for consistency if (! tb->f_unspecified)
@@ -1335,44 +1315,40 @@ void DihedralTable::param_extract(Table *tb, char *line)
   tb->f_unspecified = false; //default
   tb->use_degrees   = true;  //default
 
-  char *word = strtok(line," \t\n\r\f");
-  while (word) {
-    if (strcmp(word,"N") == 0) {
-      word = strtok(NULL," \t\n\r\f");
-      tb->ninput = atoi(word);
+  try {
+    ValueTokenizer values(line);
+
+    while (values.has_next()) {
+      std::string word = values.next_string();
+      if (word == "N") {
+        tb->ninput = values.next_int();
+      }
+      else if (word == "NOF") {
+        tb->f_unspecified = true;
+      }
+      else if ((word == "DEGREES") || (word == "degrees")) {
+        tb->use_degrees = true;
+      }
+      else if ((word == "RADIANS") || (word == "radians")) {
+        tb->use_degrees = false;
+      }
+      else if (word == "CHECKU") {
+        checkU_fname = values.next_string();
+      }
+      else if (word == "CHECKF") {
+        checkF_fname = values.next_string();
+      }
+      // COMMENTING OUT:  equilibrium angles are not supported
+      //else if (word == "EQ") {
+      //  tb->theta0 = values.next_double();
+      //}
+      else {
+        string err_msg = fmt::format("Invalid keyword in dihedral angle table parameters ({})", word);
+        error->one(FLERR,err_msg);
+      }
     }
-    else if (strcmp(word,"NOF") == 0) {
-      tb->f_unspecified = true;
-    }
-    else if ((strcmp(word,"DEGREES") == 0) || (strcmp(word,"degrees") == 0)) {
-      tb->use_degrees = true;
-    }
-    else if ((strcmp(word,"RADIANS") == 0) || (strcmp(word,"radians") == 0)) {
-      tb->use_degrees = false;
-    }
-    else if (strcmp(word,"CHECKU") == 0) {
-      word = strtok(NULL," \t\n\r\f");
-      memory->sfree(checkU_fname);
-      memory->create(checkU_fname,strlen(word)+1,"dihedral_table:checkU");
-      strcpy(checkU_fname, word);
-    }
-    else if (strcmp(word,"CHECKF") == 0) {
-      word = strtok(NULL," \t\n\r\f");
-      memory->sfree(checkF_fname);
-      memory->create(checkF_fname,strlen(word)+1,"dihedral_table:checkF");
-      strcpy(checkF_fname, word);
-    }
-    // COMMENTING OUT:  equilibrium angles are not supported
-    //else if (strcmp(word,"EQ") == 0) {
-    //  word = strtok(NULL," \t\n\r\f");
-    //  tb->theta0 = atof(word);
-    //}
-    else {
-      string err_msg("Invalid keyword in dihedral angle table parameters");
-      err_msg += string(" (") + string(word) + string(")");
-      error->one(FLERR,err_msg.c_str());
-    }
-    word = strtok(NULL," \t\n\r\f");
+  } catch (TokenizerException & e) {
+    error->one(FLERR, e.what());
   }
 
   if (tb->ninput == 0)

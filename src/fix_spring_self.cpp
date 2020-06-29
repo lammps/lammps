@@ -15,9 +15,9 @@
    Contributing author: Naveen Michaud-Agrawal (Johns Hopkins University)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "fix_spring_self.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "domain.h"

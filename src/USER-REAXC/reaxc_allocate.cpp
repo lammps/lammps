@@ -24,14 +24,13 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc.h"
 #include "reaxc_allocate.h"
+#include <cstdlib>
+#include "reaxc_defs.h"
 #include "reaxc_list.h"
-#include "reaxc_reset_tools.h"
 #include "reaxc_tool_box.h"
-#include "reaxc_vector.h"
 
-#if defined(_OPENMP)
+#if defined(LMP_USER_OMP) && defined(_OPENMP)
 #include <omp.h>
 #endif
 
@@ -341,7 +340,7 @@ static int Reallocate_HBonds_List( reax_system *system, reax_list *hbonds )
     if ((system->my_atoms[i].Hindex) >= 0) {
       total_hbonds += system->my_atoms[i].num_hbonds;
     }
-  total_hbonds = (int)(MAX( total_hbonds*saferzone, mincap*MIN_HBONDS ));
+  total_hbonds = (int)(MAX(total_hbonds*saferzone, mincap*system->minhbonds));
 
   Delete_List( hbonds);
   if (!Make_List( system->Hcap, total_hbonds, TYP_HBOND, hbonds )) {
@@ -457,7 +456,7 @@ void ReAllocate( reax_system *system, control_params *control,
       }
 
       newsize = static_cast<int>
-        (MAX( realloc->num_far*safezone, mincap*MIN_NBRS ));
+        (MAX( realloc->num_far*safezone, mincap*REAX_MIN_NBRS));
 
       Reallocate_Neighbor_List( far_nbrs, system->total_cap, newsize);
       realloc->num_far = 0;

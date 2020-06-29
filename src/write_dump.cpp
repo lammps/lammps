@@ -15,15 +15,13 @@
    Contributing author:  Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "write_dump.h"
+#include <cstring>
+#include <string>
 #include "style_dump.h"
 #include "dump.h"
 #include "dump_image.h"
-#include "atom.h"
 #include "comm.h"
-#include "group.h"
-#include "input.h"
 #include "update.h"
 #include "error.h"
 #include "utils.h"
@@ -65,7 +63,7 @@ void WriteDump::command(int narg, char **arg)
 #include "style_dump.h"
 #undef DUMP_CLASS
 
-  else error->all(FLERR,utils::check_packages_for_style("dump",arg[1],lmp).c_str());
+  else error->all(FLERR,utils::check_packages_for_style("dump",arg[1],lmp));
 
   if (modindex < narg) dump->modify_params(narg-modindex-1,&arg[modindex+1]);
 

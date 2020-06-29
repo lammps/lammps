@@ -20,7 +20,6 @@ FixStyle(tune/kspace,FixTuneKspace)
 #ifndef LMP_FIX_TUNE_KSPACE_H
 #define LMP_FIX_TUNE_KSPACE_H
 
-#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -52,10 +51,10 @@ class FixTuneKspace : public Fix {
 
   double ewald_time,pppm_time,msm_time;
   double pair_cut_coul;
-  char new_acc_str[12];
-  char new_kspace_style[20];
-  char new_pair_style[20];
-  char base_pair_style[20];
+  char new_acc_str[16];
+  char new_kspace_style[64];
+  char new_pair_style[64];
+  char base_pair_style[64];
 
   int old_differentiation_flag;
   int old_slabflag;

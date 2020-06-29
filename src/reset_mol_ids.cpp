@@ -98,11 +98,6 @@ void ResetMolIDs::command(int narg, char ** /* arg */)
     if (nspecial[i][0] > max_onetwo) max_onetwo = nspecial[i][0];
   MPI_Allreduce(MPI_IN_PLACE,&max_onetwo,1,MPI_INT,MPI_MAX,world);
 
-  // arrays used in gather_molIDs
-  memory->create(allnpion,nprocs,"reset_mol_ids:allnpion");
-  memory->create(allstarts,nprocs,"reset_mol_ids:allstarts");
-  memory->create(global_pion,100,"reset_mol_ids:global_pion");
-
   // xspecials are first neighs, also listed for ghosts (unlike specials)
   double **nxspecial; // N first-neighbors (includes ghosts)
   double **xspecial; // first-neighbor list (includes ghosts)
@@ -314,6 +309,12 @@ void ResetMolIDs::command(int narg, char ** /* arg */)
     // globally walk each molecule, via molIDs
     // all proc keep master list of 'growing' mol
     // if IDs added, send just added IDs out for next iteration
+
+    // arrays used in gather_molIDs
+    memory->create(allnpion,nprocs,"reset_mol_ids:allnpion");
+    memory->create(allstarts,nprocs,"reset_mol_ids:allstarts");
+    memory->create(global_pion,100,"reset_mol_ids:global_pion");
+    
     maxmolID = maxnpion = 100;
     memory->create(pionIDs,maxnpion,"reset_mol_ids:pionIDs");
     memory->create(molIDlist,maxmolID,"reset_mol_ids:molIDlist");
@@ -399,6 +400,11 @@ void ResetMolIDs::command(int narg, char ** /* arg */)
     memory->destroy(ghostly);
     memory->destroy(local_l2l);
     memory->destroy(alln);
+    memory->destroy(allnpion);
+    memory->destroy(allstarts);
+    memory->destroy(global_pion);
+    memory->destroy(pionIDs);
+    memory->destroy(molIDlist);
   }
 
   // delete temporary atom map
@@ -409,9 +415,6 @@ void ResetMolIDs::command(int narg, char ** /* arg */)
   }
 
   // clean up
-  memory->destroy(allnpion);
-  memory->destroy(allstarts);
-  memory->destroy(global_pion);
   memory->destroy(nxspecial);
   memory->destroy(xspecial);
   memory->destroy(remapped);

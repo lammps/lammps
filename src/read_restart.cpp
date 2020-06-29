@@ -423,19 +423,9 @@ void ReadRestart::command(int narg, char **arg)
     // create a temporary fix to hold and migrate extra atom info
     // necessary b/c irregular will migrate atoms
 
-    if (nextra) {
-      char cextra[8],fixextra[8];
-      sprintf(cextra,"%d",nextra);
-      sprintf(fixextra,"%d",modify->nfix_restart_peratom);
-      char **newarg = new char*[5];
-      newarg[0] = (char *) "_read_restart";
-      newarg[1] = (char *) "all";
-      newarg[2] = (char *) "READ_RESTART";
-      newarg[3] = cextra;
-      newarg[4] = fixextra;
-      modify->add_fix(5,newarg);
-      delete [] newarg;
-    }
+    if (nextra)
+      modify->add_fix(fmt::format("_read_restart all READ_RESTART {} {}",
+                                  nextra,modify->nfix_restart_peratom));
 
     // move atoms to new processors via irregular()
     // turn sorting on in migrate_atoms() to avoid non-reproducible restarts

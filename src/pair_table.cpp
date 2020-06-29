@@ -1033,11 +1033,15 @@ void *PairTable::extract(const char *str, int &dim)
   if (strcmp(str,"cut_coul") != 0) return NULL;
   if (ntables == 0) error->all(FLERR,"All pair coeffs are not set");
 
-  double cut_coul = tables[0].cut;
-  for (int m = 1; m < ntables; m++)
-    if (tables[m].cut != cut_coul)
-      error->all(FLERR,
-                 "Pair table cutoffs must all be equal to use with KSpace");
-  dim = 0;
-  return &tables[0].cut;
+  // only check for cutoff consistency if claiming to be KSpace compatible
+
+  if (ewaldflag || pppmflag || msmflag || dispersionflag || tip4pflag) {
+    double cut_coul = tables[0].cut;
+    for (int m = 1; m < ntables; m++)
+      if (tables[m].cut != cut_coul)
+        error->all(FLERR,
+                   "Pair table cutoffs must all be equal to use with KSpace");
+    dim = 0;
+    return &tables[0].cut;
+  } else return NULL;
 }

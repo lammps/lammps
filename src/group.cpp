@@ -124,11 +124,8 @@ void Group::assign(int narg, char **arg)
     int bits = inversemask[igroup];
     for (i = 0; i < nlocal; i++) mask[i] &= bits;
 
-    if (dynamic[igroup]) {
-      std::string fixID = "GROUP_";
-      fixID += names[igroup];
-      modify->delete_fix(fixID.c_str());
-    }
+    if (dynamic[igroup])
+      modify->delete_fix(std::string("GROUP_") + names[igroup]);
 
     delete [] names[igroup];
     names[igroup] = NULL;
@@ -491,24 +488,15 @@ void Group::assign(int narg, char **arg)
 
     // if group is already dynamic, delete existing FixGroup
 
-    if (dynamic[igroup]) {
-      std::string fixID = "GROUP_";
-      fixID += names[igroup];
-      modify->delete_fix(fixID.c_str());
-    }
+    if (dynamic[igroup])
+      modify->delete_fix(std::string("GROUP_") + names[igroup]);
 
     dynamic[igroup] = 1;
 
-    std::string fixID = "GROUP_";
-    fixID += names[igroup];
-
-    char **newarg = new char*[narg];
-    newarg[0] = (char *)fixID.c_str();
-    newarg[1] = arg[2];
-    newarg[2] = (char *) "GROUP";
-    for (int i = 3; i < narg; i++) newarg[i] = arg[i];
-    modify->add_fix(narg,newarg);
-    delete [] newarg;
+    std::string fixcmd = "GROUP_";
+    fixcmd += fmt::format("{} {} GROUP",names[igroup],arg[2]);
+    for (int i = 3; i < narg; i++) fixcmd += std::string(" ") + arg[i];
+    modify->add_fix(fixcmd);
 
   // style = static
   // remove dynamic FixGroup if necessary
@@ -517,11 +505,8 @@ void Group::assign(int narg, char **arg)
 
     if (narg != 2) error->all(FLERR,"Illegal group command");
 
-    if (dynamic[igroup]) {
-      std::string fixID = "GROUP_";
-      fixID += names[igroup];
-      modify->delete_fix(fixID.c_str());
-    }
+    if (dynamic[igroup])
+      modify->delete_fix(std::string("GROUP_") + names[igroup]);
 
     dynamic[igroup] = 0;
 
@@ -545,6 +530,22 @@ void Group::assign(int narg, char **arg)
     else
       utils::logmesg(lmp,fmt::format("{:.15g} atoms in group {}\n",all,names[igroup]));
   }
+}
+
+/* ----------------------------------------------------------------------
+   convenience function to allow assigning to groups from a single string
+------------------------------------------------------------------------- */
+
+void Group::assign(const std::string &groupcmd)
+{
+  std::vector<std::string> args = utils::split_words(groupcmd);
+  char **newarg = new char*[args.size()];
+  int i=0;
+  for (const auto &arg : args) {
+    newarg[i++] = (char *)arg.c_str();
+  }
+  assign(args.size(),newarg);
+  delete[] newarg;
 }
 
 /* ----------------------------------------------------------------------

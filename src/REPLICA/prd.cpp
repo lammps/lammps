@@ -18,6 +18,7 @@
 #include "prd.h"
 #include <mpi.h>
 #include <cstring>
+#include <string>
 #include "universe.h"
 #include "update.h"
 #include "atom.h"
@@ -147,11 +148,7 @@ void PRD::command(int narg, char **arg)
 
   // create ComputeTemp class to monitor temperature
 
-  char **args = new char*[3];
-  args[0] = (char *) "prd_temp";
-  args[1] = (char *) "all";
-  args[2] = (char *) "temp";
-  modify->add_compute(3,args);
+  modify->add_compute("prd_temp all temp");
   temperature = modify->compute[modify->ncompute-1];
 
   // create Velocity class for velocity creation in dephasing
@@ -161,6 +158,7 @@ void PRD::command(int narg, char **arg)
   velocity = new Velocity(lmp);
   velocity->init_external("all");
 
+  char *args[2];
   args[0] = (char *) "temp";
   args[1] = (char *) "prd_temp";
   velocity->options(2,args);
@@ -173,10 +171,7 @@ void PRD::command(int narg, char **arg)
 
   // create FixEventPRD class to store event and pre-quench states
 
-  args[0] = (char *) "prd_event";
-  args[1] = (char *) "all";
-  args[2] = (char *) "EVENT/PRD";
-  modify->add_fix(3,args);
+  modify->add_fix("prd_event all EVENT/PRD");
   fix_event = (FixEventPRD *) modify->fix[modify->nfix-1];
 
   // create Finish for timing output
@@ -185,7 +180,6 @@ void PRD::command(int narg, char **arg)
 
   // string clean-up
 
-  delete [] args;
   delete [] loop_setting;
   delete [] dist_setting;
 

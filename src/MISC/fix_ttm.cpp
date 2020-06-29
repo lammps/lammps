@@ -29,6 +29,8 @@
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -66,25 +68,22 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   nynodes = force->inumeric(FLERR,arg[11]);
   nznodes = force->inumeric(FLERR,arg[12]);
 
-  fpr = fopen(arg[13],"r");
-  if (fpr == NULL) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",arg[13]);
-    error->one(FLERR,str);
+  if (comm->me == 0) {
+    fpr = fopen(arg[13],"r");
+    if (fpr == NULL)
+      error->all(FLERR,fmt::format("Cannot open input file {}: {}",
+                                   arg[13], utils::getsyserror()));
   }
 
   nfileevery = force->inumeric(FLERR,arg[14]);
 
   if (nfileevery) {
     if (narg != 16) error->all(FLERR,"Illegal fix ttm command");
-    MPI_Comm_rank(world,&me);
-    if (me == 0) {
+    if (comm->me == 0) {
       fp = fopen(arg[15],"w");
-      if (fp == NULL) {
-        char str[128];
-        snprintf(str,128,"Cannot open fix ttm file %s",arg[15]);
-        error->one(FLERR,str);
-      }
+      if (fp == NULL)
+        error->one(FLERR,fmt::format("Cannot open output file {}: {}",
+                                     arg[15], utils::getsyserror()));
     }
   }
 

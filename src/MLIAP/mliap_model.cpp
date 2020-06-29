@@ -22,6 +22,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -63,11 +64,9 @@ void MLIAPModel::read_coeffs(char *coefffilename)
   FILE *fpcoeff;
   if (comm->me == 0) {
     fpcoeff = force->open_potential(coefffilename);
-    if (fpcoeff == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open MLIAPModel coefficient file %s",coefffilename);
-      error->one(FLERR,str);
-    }
+    if (fpcoeff == NULL)
+      error->one(FLERR,fmt::format("Cannot open MLIAPModel coeff file {}: {}",
+                                   coefffilename,utils::getsyserror()));
   }
 
   char line[MAXLINE],*ptr;

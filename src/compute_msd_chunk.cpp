@@ -14,6 +14,7 @@
 #include "compute_msd_chunk.h"
 #include <mpi.h>
 #include <cstring>
+#include <string>
 #include "atom.h"
 #include "group.h"
 #include "update.h"
@@ -23,6 +24,7 @@
 #include "fix_store.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -56,21 +58,13 @@ ComputeMSDChunk::ComputeMSDChunk(LAMMPS *lmp, int narg, char **arg) :
   //   potentially re-populate the fix array (and change it to correct size)
   // otherwise size reset and init will be done in setup()
 
-  n = strlen(id) + strlen("_COMPUTE_STORE") + 1;
-  id_fix = new char[n];
-  strcpy(id_fix,id);
-  strcat(id_fix,"_COMPUTE_STORE");
+  std::string fixcmd = id + std::string("_COMPUTE_STORE");
+  id_fix = new char[fixcmd.size()+1];
+  strcpy(id_fix,fixcmd.c_str());
 
-  char **newarg = new char*[6];
-  newarg[0] = id_fix;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "STORE";
-  newarg[3] = (char *) "global";
-  newarg[4] = (char *) "1";
-  newarg[5] = (char *) "1";
-  modify->add_fix(6,newarg);
+  fixcmd += fmt::format(" {} STORE global 1 1",group->names[igroup]);
+  modify->add_fix(fixcmd);
   fix = (FixStore *) modify->fix[modify->nfix-1];
-  delete [] newarg;
 }
 
 /* ---------------------------------------------------------------------- */

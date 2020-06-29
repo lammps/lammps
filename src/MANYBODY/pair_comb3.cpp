@@ -36,6 +36,7 @@
 #include "utils.h"
 #include "tokenizer.h"
 #include "potential_file_reader.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -165,17 +166,13 @@ void PairComb3::settings(int narg, char **arg)
 
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
-  if (strcmp(arg[0],"polar_on") == 0) {
-    pol_flag = 1;
-    if (comm->me == 0 && screen) fprintf(screen,
-                    "   PairComb3: polarization is on \n");
-  } else if (strcmp(arg[0],"polar_off") == 0) {
-    pol_flag = 0;
-    if (comm->me == 0 && screen) fprintf(screen,
-                    "   PairComb3: polarization is off \n");
-  } else {
-    error->all(FLERR,"Illegal pair_style command");
-  }
+  if (strcmp(arg[0],"polar_on") == 0) pol_flag = 1;
+  else if (strcmp(arg[0],"polar_off") == 0) pol_flag = 0;
+  else error->all(FLERR,"Illegal pair_style command");
+
+  if (comm->me == 0 && screen)
+    fmt::print(screen,"   PairComb3: polarization is {} \n",
+               pol_flag ? "on" : "off");
 }
 
 /* ----------------------------------------------------------------------
@@ -210,8 +207,8 @@ void PairComb3::coeff(int narg, char **arg)
   nelements = 0;
   for (i = 3; i < narg; i++) {
     if ((strcmp(arg[i],"C") == 0) && (cflag == 0)) {
-      if (comm->me == 0 && screen) fprintf(screen,
-      " PairComb3: Found C: reading additional library file\n");
+      if (comm->me == 0 && screen)
+        fputs(" PairComb3: Found C: reading additional library file\n",screen);
     read_lib();
     cflag = 1;
     }

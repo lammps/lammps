@@ -220,11 +220,8 @@ void PPPM::init()
       error->all(FLERR,"Incorrect boundaries with slab PPPM");
   }
 
-  if (order < 2 || order > MAXORDER) {
-    char str[128];
-    sprintf(str,"PPPM order cannot be < 2 or > than %d",MAXORDER);
-    error->all(FLERR,str);
-  }
+  if (order < 2 || order > MAXORDER)
+    error->all(FLERR,fmt::format("PPPM order cannot be < 2 or > {}",MAXORDER));
 
   // compute two charge force
 
@@ -1275,10 +1272,7 @@ void PPPM::adjust_gewald()
     g_ewald -= dx;
     if (fabs(newton_raphson_f()) < SMALL) return;
   }
-
-  char str[128];
-  sprintf(str, "Could not compute g_ewald");
-  error->all(FLERR, str);
+  error->all(FLERR, "Could not compute g_ewald");
 }
 
 /* ----------------------------------------------------------------------

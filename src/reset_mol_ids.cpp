@@ -24,10 +24,11 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 #include "special.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
-#define DELTA_MSPEC 8 // max for molID first-neigh list
+#define DELTA 100
 
 /* ---------------------------------------------------------------------- */
 
@@ -57,7 +58,6 @@ void ResetMolIDs::command(int narg, char ** /* arg */)
   MPI_Comm_rank(world,&me);
 
   l2l_nlocal = 0;
-  l2l_nglobal = 0;
 
   // create an atom map if one doesn't exist already
 
@@ -97,6 +97,11 @@ void ResetMolIDs::command(int narg, char ** /* arg */)
   for (int i = 0; i < nlocal; i++)
     if (nspecial[i][0] > max_onetwo) max_onetwo = nspecial[i][0];
   MPI_Allreduce(MPI_IN_PLACE,&max_onetwo,1,MPI_INT,MPI_MAX,world);
+
+  // arrays used in gather_molIDs
+  memory->create(allnpion,nprocs,"reset_mol_ids:allnpion");
+  memory->create(allstarts,nprocs,"reset_mol_ids:allstarts");
+  memory->create(global_pion,100,"reset_mol_ids:global_pion");
 
   // xspecials are first neighs, also listed for ghosts (unlike specials)
   double **nxspecial; // N first-neighbors (includes ghosts)
@@ -192,8 +197,7 @@ void ResetMolIDs::command(int narg, char ** /* arg */)
 
     // in parallel, there's more...
     // first step: each proc runs through its ghosts to determine equiv. molIDs
-    // second step: proc 0 creates master list of equivalent molIDs
-    // final step: broadcast master list, each proc updates its local atoms
+    // second step: globally walk equivalent molIDs
 
     int maxID = molIDincr; // max local molID
     int *ghostly;
@@ -264,7 +268,7 @@ void ResetMolIDs::command(int narg, char ** /* arg */)
     comm->forward_comm_array(1,ghostlymolID);
 
     // run through ghosts
-    int max_equiv = DELTA_MSPEC;
+    int max_equiv = DELTA;
     int *nequiv_molIDs;
     memory->create(nequiv_molIDs,nghostly,"reset_mol_ids:nequiv_molIDs"); // diff. lengths on each proc
     tagint **equiv_molIDs;
@@ -289,7 +293,7 @@ void ResetMolIDs::command(int narg, char ** /* arg */)
 
       if (addflag == 1) {
         if (nequiv_molIDs[imolID] == max_equiv) {
-          max_equiv += DELTA_MSPEC;
+          max_equiv += DELTA;
           memory->grow(equiv_molIDs,max_equiv,nghostly,"reset_mol_ids:equiv_molIDs");
         }
         equiv_molIDs[nequiv_molIDs[imolID]++][imolID] = static_cast<tagint> (ghostlymolID[i][0]);
@@ -307,156 +311,83 @@ void ResetMolIDs::command(int narg, char ** /* arg */)
       }
     }
 
-    // okay we need to send info to root (variable-gather)
-    gather_molIDs();
+    // globally walk each molecule, via molIDs
+    // all proc keep master list of 'growing' mol
+    // if IDs added, send just added IDs out for next iteration
+    maxmolID = maxnpion = 100;
+    memory->create(pionIDs,maxnpion,"reset_mol_ids:pionIDs");
+    memory->create(molIDlist,maxmolID,"reset_mol_ids:molIDlist");
 
-    tagint *global_molIDs;
-    if (me == 0) {
-      // build special list (mspecials)
-      int *nmspecial;
-      tagint **mspecial;
-      memory->create(nmspecial,total_nghostly,"reset_mol_ids:nmspecial");
-      for (int i = 0; i < total_nghostly; i++)
-        nmspecial[i] = 0;
-      int max_mspec = DELTA_MSPEC;
-      memory->create(mspecial,max_mspec,total_nghostly,"reset_mol_ids:mspecial");
-
-      // to convert from molID to its index, subtract total_nstrict+1 (goffset)
-      tagint mol1,mol2;
-      int imol1,imol2;
-      for (int i = 0; i < l2l_nglobal; i++) {
-        mol1 = global_l2l[0][i];
-        imol1 = mol1 - goffset;
-        mol2 = global_l2l[1][i];
-        imol2 = mol2 - goffset;
-        // mol1
-        addflag = 1;
-        for (int j = 0; j < nmspecial[imol1]; j++) {
-          if (mspecial[j][imol1] == mol2) {
-            addflag = 0;
+    for (int thisproc = 0; thisproc < nprocs; thisproc++) {
+      int quitflag = 0;
+      while (1) {
+        if (me == thisproc) {
+          for (int i = 0; i < l2l_nlocal; i++) {
+            if (local_l2l[0][i] == 0) {
+              if (i < l2l_nlocal-1) continue;
+              else {
+                quitflag = 1;
+                break;
+              }
+            }
+            // else, initialize with first two equivs
+            molIDlist[0] = local_l2l[0][i];
+            molIDlist[1] = local_l2l[1][i];
             break;
           }
         }
-        if (addflag == 1) {
-          if (nmspecial[imol1] == max_mspec) {
-            max_mspec += DELTA_MSPEC;
-            memory->grow(mspecial,max_mspec,total_nghostly,"reset_mol_ids:mspecial");
+        MPI_Bcast(&quitflag, 1, MPI_INT, thisproc, world);
+        if (quitflag) break;
+        nmolID = 2;
+        MPI_Bcast(&molIDlist[0], nmolID, MPI_INT, thisproc, world);
+
+        nadd = 2;
+        while (nadd > 0) {
+          npion = 0;
+          for (int i = 0; i < l2l_nlocal; i++) {
+            if (local_l2l[0][i] == 0) continue;
+            for (int j = 0; j < 2; j++) {
+              for (int k = 0; k < nadd; k++) {
+                if (local_l2l[j][i] == molIDlist[nmolID-k-1]) {
+                  if (npion == maxnpion) {
+                    maxnpion += DELTA;
+                    memory->grow(pionIDs,maxnpion,"reset_mol_ids:pionIDs");
+                  }
+                  pionIDs[npion++] = local_l2l[!j][i];
+                }
+              }
+            }
           }
-          mspecial[nmspecial[imol1]++][imol1] = mol2;
+
+          // gather pioneers
+          gather_molIDs();
         }
-        // mol2
-        addflag = 1;
-        for (int j = 0; j < nmspecial[imol2]; j++) {
-          if (mspecial[j][imol2] == mol1) {
-            addflag = 0;
-            break;
-          }
-        }
-        if (addflag == 1) {
-          if (nmspecial[imol2] == max_mspec) {
-            max_mspec += DELTA_MSPEC;
-            memory->grow(mspecial,max_mspec,total_nghostly,"reset_mol_ids:mspecial");
-          }
-          mspecial[nmspecial[imol2]++][imol2] = mol1;
-        }
-      }
 
-      // walk mspecial
-      memory->create(global_molIDs,total_nghostly,"reset_mol_ids:global_molIDs");
-      for (int i = 0; i < total_nghostly; i++)
-        global_molIDs[i] = 0;
-
-      // remapped == 1 if mol ID has already been reset
-      memory->destroy(remapped);
-      memory->create(remapped,total_nghostly,"reset_mol_ids:remapped");
-      for (int i = 0; i < total_nghostly; i++)
-        remapped[i] = 0;
-
-      // pioneers: atoms at edge of bondwalk
-      // next_pioneers: holder for next set of pioneers
-      int max_npioneers = pow(DELTA_MSPEC,2);
-      memory->destroy(pioneers);
-      memory->create(pioneers,max_npioneers,"reset_mol_ids:pioneers");
-      memory->destroy(next_pioneers);
-      memory->create(next_pioneers,max_npioneers,"reset_mol_ids:next_pioneers");
-
-      // initialize algorithm with first molID
-      molIDincr = goffset; // index global molIDs starting with nstrict_local+1
-      npioneers = 1;
-      next_npioneers = 0;
-      nmapped = 1; // number of molIDs successfully remapped so far
-      pioneers[0] = 0; // molID indices starting with 0
-      global_molIDs[0] = molIDincr;
-      remapped[0] = 1;
-
-      // walk molID list (via mspecials) to reassign mol IDs
-      localscan = 1;
-      while (nmapped < total_nghostly) {
-
-        // if reached end of molecule, npioneers will be zero
-        // efficiency could be improved for single atoms...
-        if (npioneers == 0) {
-          for (int i = localscan; i < total_nghostly; i++) { // only need nlocal
-            if (remapped[i] == 0) {
-              npioneers = 1;
-              pioneers[0] = i;
-              global_molIDs[i] = ++molIDincr;
-              remapped[i] = 1;
-              nmapped++;
-              localscan = i + 1;
+        total_nstrict++;
+        for (int i = 0; i < nlocal; i++) {
+          if (localmolID[i] < total_nstrict) continue;
+          for (int j = 0; j < nmolID; j++) {
+            if (localmolID[i] == molIDlist[j]) {
+              localmolID[i] = total_nstrict; // wait, can we do this?
               break;
             }
           }
         }
 
-
-        next_npioneers = 0;
-        for (int i = 0; i < npioneers; i++) {
-          for (int j = 0; j < nmspecial[(int) pioneers[i]]; j++) {
-            int ispec = (int) mspecial[j][(int) pioneers[i]] - goffset;
-            if (remapped[ispec] == 0) {
-              if (next_npioneers == max_npioneers) {
-                max_npioneers += DELTA_MSPEC;
-                memory->grow(pioneers,max_npioneers,"reset_mol_ids:pioneers");
-                memory->grow(next_pioneers,max_npioneers,"reset_mol_ids:next_pioneers");
-              }
-              global_molIDs[ispec] = molIDincr;
-              next_pioneers[next_npioneers++] = ispec;
-              remapped[ispec] = 1;
-              nmapped++;
+        // zero out already remapped molIDs
+        for (int i = 0; i < l2l_nlocal; i++) {
+          if (local_l2l[0][i] == 0) continue;
+          for (int j = 0; j < nmolID; j++) {
+            if (local_l2l[0][i] == molIDlist[j]) {
+              local_l2l[0][i] = 0;
+              break;
             }
           }
         }
-
-        npioneers = next_npioneers;
-        for (int i = 0; i < next_npioneers; i++) {
-          pioneers[i] = next_pioneers[i];
-        }
       }
-
-      // me cleanup
-      memory->destroy(nmspecial);
-      memory->destroy(mspecial);
     }
 
-    // okay proc 0 now knows the new global molIDs
-    // let's tell the others
-    // reuse local_l2l locally for new global equivs to local_l2l
-    memory->destroy(local_l2l);
-    memory->create(local_l2l,nghostly,1,"reset_mol_ids:local_l2l");
-    // recall gstart: tells us which undeduped molIDs belong to each proc
-    int *allgstarts;
-    memory->create(allgstarts,nprocs,"reset_mol_ids:allgstarts");
-    MPI_Allgather(&gstart, 1, MPI_INT, allgstarts, 1, MPI_INT, world);
-    MPI_Scatterv(&(global_molIDs[0]), alln, allgstarts, MPI_INT,
-                 &(local_l2l[0][0]), nghostly, MPI_INT, 0, world);
-
-    // finally, update localmolID
-    for (int i = 0; i < nlocal; i++)
-      if (localmolID[i] > total_nstrict)
-        localmolID[i] = local_l2l[localmolID[i]-gstart-goffset][0];
-
-    // done
+    // we're done
     for (int i = 0; i < nlocal; i++)
       molecule[i] = localmolID[i]; // assumes forward_comm elsewhere...
 
@@ -467,10 +398,7 @@ void ResetMolIDs::command(int narg, char ** /* arg */)
     memory->destroy(equiv_molIDs);
     memory->destroy(ghostly);
     memory->destroy(local_l2l);
-    memory->destroy(global_l2l);
     memory->destroy(alln);
-    memory->destroy(allgstarts);
-    if (me == 0) memory->destroy(global_molIDs);
   }
 
   // delete temporary atom map
@@ -481,6 +409,9 @@ void ResetMolIDs::command(int narg, char ** /* arg */)
   }
 
   // clean up
+  memory->destroy(allnpion);
+  memory->destroy(allstarts);
+  memory->destroy(global_pion);
   memory->destroy(nxspecial);
   memory->destroy(xspecial);
   memory->destroy(remapped);
@@ -490,69 +421,44 @@ void ResetMolIDs::command(int narg, char ** /* arg */)
 }
 
 /* ----------------------------------------------------------------------
-gather locally-determined molID equivalences
+gather locally-determined molID equivalences, dedup, and add to molIDlist
 ------------------------------------------------------------------------- */
 
 void ResetMolIDs::gather_molIDs()
 {
-#if !defined(MPI_STUBS)
-  l2l_nglobal = 0;
-
-  int *allncols;
-  memory->create(allncols,nprocs,"reset_mol_ids:allncols");
+  MPI_Allgather(&npion, 1, MPI_INT, allnpion, 1, MPI_INT, world);
+  int npion_global = 0;
   for (int i = 0; i < nprocs; i++)
-    allncols[i] = 0;
-  MPI_Allgather(&l2l_nlocal, 1, MPI_INT, allncols, 1, MPI_INT, world);
-  for (int i = 0; i < nprocs; i++)
-    l2l_nglobal = l2l_nglobal + allncols[i];
+    npion_global += allnpion[i];
 
-  if (l2l_nglobal == 0) {
-    delete [] allncols;
-    return;
+  if (npion_global == 0) return;
+
+  allstarts[0] = 0;
+  for (int i = 1; i < nprocs; i++)
+    allstarts[i] = allstarts[i-1] + allnpion[i-1];
+
+  memory->grow(global_pion,npion_global,"reset_mol_ids:global_pion");
+  MPI_Allgatherv(&pionIDs[0], npion, MPI_INT, &global_pion[0],
+                 allnpion, allstarts, MPI_INT, world);
+
+  nadd = 0;
+  int addflag;
+  for (int i = 0; i < npion_global; i++) {
+    addflag = 1;
+    for (int j = 0; j < nmolID; j++) {
+      if (global_pion[i] == molIDlist[j]) {
+        addflag = 0;
+        break;
+      }
+    }
+
+    if (addflag == 1) {
+      if (nmolID == maxmolID) {
+        maxmolID += DELTA;
+        memory->grow(molIDlist,maxmolID,"reset_mol_ids:molIDlist");
+      }
+      nadd++;
+      molIDlist[nmolID++] = global_pion[i];
+    }
   }
-
-  int *allstarts; // indices for molID equivs sorted by processor
-  memory->create(allstarts,nprocs,"reset_mol_ids:allstarts");
-
-  int start = 0;
-  for (int i = 0; i < me; i++)
-    start += allncols[i];
-  MPI_Allgather(&start, 1, MPI_INT, allstarts, 1, MPI_INT, world);
-  MPI_Datatype columnunsized, column;
-  int sizes[2]    = {2, l2l_nglobal};
-  int subsizes[2] = {2, 1};
-  int starts[2]   = {0,0};
-  MPI_Type_create_subarray (2, sizes, subsizes, starts, MPI_ORDER_C,
-                            MPI_LMP_TAGINT, &columnunsized);
-  MPI_Type_create_resized (columnunsized, 0, sizeof(tagint), &column);
-  MPI_Type_commit(&column);
-
-  memory->create(global_l2l,2,l2l_nglobal,"reset_mol_ids:global_l2l");
-
-  for (int i = 0; i < 2; i++)
-    for (int j = 0; j < l2l_nglobal; j++)
-      global_l2l[i][j] = 0;
-
-  if (l2l_nlocal > 0)
-    for (int i = 0; i < 2; i++)
-      for (int j = 0; j < l2l_nlocal; j++)
-        global_l2l[i][j+start] = local_l2l[i][j];
-
-  // let's send to root
-  if (me == 0) {
-    MPI_Gatherv(MPI_IN_PLACE, l2l_nlocal, column, // Note: some values ignored for MPI_IN_PLACE
-                &(global_l2l[0][0]), allncols, allstarts,
-                column, 0, world);
-  } else {
-    MPI_Gatherv(&(global_l2l[0][start]), l2l_nlocal, column,
-                &(global_l2l[0][0]), allncols, allstarts,
-                column, 0, world);
-  }
-
-  memory->destroy(allncols);
-  memory->destroy(allstarts);
-
-  MPI_Type_free(&column);
-  MPI_Type_free(&columnunsized);
-#endif
 }

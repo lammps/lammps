@@ -32,9 +32,12 @@ class ResetMolIDs : protected Pointers {
  private:
    int me,nprocs;
    int l2l_nlocal; // local num of local-to-local molID equivs
-   int l2l_nglobal; // total num of local-to-local molID equivs
    tagint **local_l2l; // list local to local equiv molIDs
-   tagint **global_l2l; // global consolidation of local_l2l
+
+   int nadd,npion,nmolID;
+   int maxmolID,maxnpion;
+   tagint *global_pion,*pionIDs,*molIDlist;
+   int *allnpion,*allstarts;
    void gather_molIDs();
 };
 

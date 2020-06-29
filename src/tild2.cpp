@@ -97,7 +97,6 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   avg_density_brick_types = NULL;
   density_fft_types = NULL;
   density_hat_fft_types = NULL;
-  kappa_density = NULL;
   gradWtype = NULL;
   potent = NULL;
   potent_hat = NULL;
@@ -645,7 +644,6 @@ void TILD::allocate()
   memory->create(vg_hat,ntypecross+1,6,2*nfft_both,"tild:vg_hat");
   memory->create(density_fft_types,ntypes+1, nfft_both, "tild:density_fft_types");
   memory->create(density_hat_fft_types,ntypes+1, 2*nfft_both, "tild:density_hat_fft_types");
-  memory->create(kappa_density, nfft_both, "tild:kappa_density");
   memory->create(potent,ntypecross+1,nfft_both,"tild:potent"); // Voignot 
   memory->create(potent_hat,ntypecross+1,2*nfft_both,"tild:potent_hat");
   memory->create(grad_potent,ntypecross+1,domain->dimension,nfft_both,"tild:grad_potent");
@@ -730,7 +728,6 @@ void TILD::deallocate()
 
   memory->destroy4d_offset(density_brick_types,nzlo_out,nylo_out,nxlo_out);
   memory->destroy4d_offset(avg_density_brick_types,nzlo_out,nylo_out,nxlo_out);
-  memory->destroy(kappa_density);
   memory->destroy(density_fft_types);
   memory->destroy(density_hat_fft_types);
   memory->destroy(ktmp);
@@ -1385,10 +1382,6 @@ int TILD::modify_param(int narg, char** arg)
         }
       }
  
-  } else if (strcmp(arg[0], "tild/kappa") == 0) {
-    if (narg < 2) error->all(FLERR, "Illegal kspace_modify tild command");
-      kappa = atof(arg[1]);
- 
   } else if (strcmp(arg[0], "tild/coeff") == 0) {
       if (narg < 3) error->all(FLERR, "Illegal kspace_modify tild command");
 
@@ -1877,16 +1870,9 @@ void TILD::accumulate_gradient() {
   // This part is for the specified chi interactions.
   // Kappa (incompressibility) is later
 
-  double tmp_kappa = kappa;
-  double tmp2_kappa;
-
   FFT_SCALAR tmp_sub = 0.0;
   if (subtract_rho0 == 1)
     tmp_sub = rho0;
-
-  if (normalize_by_rho0 == 1) {
-    tmp_kappa = kappa/rho0;
-  }
 
   int loc = 0;
   for (int itype = 1; itype <= ntypes; itype++) {
@@ -1897,18 +1883,11 @@ void TILD::accumulate_gradient() {
       double tmp_chi = chi[itype][jtype];
       if (normalize_by_rho0 == 1) tmp_chi /= rho0;
 
-      if ( tmp_chi == 0 && tmp_kappa == 0 ) continue;
+      if ( tmp_chi == 0 ) continue;
 
-      int calc_kappa_rho0 = 0;
       int diff_type = 1;
       if (itype == jtype) {
         diff_type = 0;
-        tmp2_kappa = tmp_kappa/2.0;
-      } else {
-        tmp2_kappa = tmp_kappa;
-        if ( subtract_rho0 == 1 ) {
-          calc_kappa_rho0 = 1;
-        }
       }
 
       if (eflag_global || vflag_global) {
@@ -1932,12 +1911,8 @@ void TILD::accumulate_gradient() {
         for (int k = nzlo_in; k <= nzhi_in; k++)  {
           for (int m = nylo_in; m <= nyhi_in; m++) {
             for (int o = nxlo_in; o <= nxhi_in; o++) {
-              gradWtype[jtype][i][k][m][o] += ktmpi[n] * (tmp_chi + tmp_kappa);
-              if (diff_type) gradWtype[itype][i][k][m][o] += ktmpj[n] * (tmp_chi + tmp_kappa);
-              if (calc_kappa_rho0 == 1) {
-                gradWtype[itype][i][k][m][o] -= grad_potent[loc][i][j] * rho0 * tmp_kappa;
-                if (diff_type) gradWtype[jtype][i][k][m][o] -= grad_potent[loc][i][j] * rho0 * tmp_kappa;
-              }
+              gradWtype[jtype][i][k][m][o] += ktmpi[n] * tmp_chi;
+              if (diff_type) gradWtype[itype][i][k][m][o] += ktmpj[n] * tmp_chi;
               n += 2;
               j++;
             }
@@ -2113,16 +2088,6 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
   double tmp_rho_div = 1.0;
   if (normalize_by_rho0 == 1) tmp_rho_div = rho0;
 
-  double tmp_kappa = kappa;
-  int calc_kappa_rho0 = 0;
-  if (itype == jtype) {
-    tmp_kappa /= 2.0;
-  } else {
-    if ( subtract_rho0 == 1 ) {
-      calc_kappa_rho0 = 1;
-    }
-  }
- 
   double factor = scale_inv / tmp_rho_div;
   if (eflag_global) {
     // convolve itype-jtype interaction potential and itype density
@@ -2141,15 +2106,9 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
     for (int k = 0; k < nfft; k++) {
       // rho_i * u_ij * rho_j * chi * prefactor
       eng += ktmp2i[n] * density_fft_types[jtype][k];
-      if ( calc_kappa_rho0 == 1 ) engk -= ktmp2i[n];
       n += 2;
     }
-    energy += eng * factor * (chi[itype][jtype] + tmp_kappa) * V; 
-    //fprintf(screen,"ene %d %d %f %f\n", itype, jtype, eng * factor * (tmp_kappa) * V, eng * factor * (chi[itype][jtype]) * V);
-    if ( calc_kappa_rho0 == 1 ) { 
-      energy += engk * rho0 * factor * kappa;
-      energy += kappa * rho0 * rho0 * factor * nfft / 2.0;
-    }
+    energy += eng * factor * chi[itype][jtype] * V; 
   }
 
   // pressure tensor calculation
@@ -2168,17 +2127,11 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
       n=0;
       for (int k = 0; k < nfft; k++) {
         vtmp += ktmpi[n] * density_fft_types[jtype][k];
-        if ( calc_kappa_rho0 == 1 ) vtmpk -= ktmpi[n];
-        n+=2;
+        n += 2;
       }
-      //fprintf(screen,"virial %d %d %d %f\n", i, itype, jtype, vtmp * (chi[itype][jtype] + tmp_kappa) * factor2);
-      virial[i] += vtmp * (chi[itype][jtype] + tmp_kappa) * factor2;
-      if ( i < 3 ) { // if diagonal member of the matrix, not sure why
-        if ( calc_kappa_rho0 == 1 ) {
-          virial[i] += vtmpk * rho0 * tmp_kappa * factor2;
-          virial[i] += rho0 * kappa;
-        }
-      }
+      virial[i] += vtmp * chi[itype][jtype] * factor2;
+  //    if ( i < 3 ) { // if diagonal member of the matrix, not sure why
+  //    }
     }
     //fprintf(screen,"virial %d %d %f %f %f %f %f %f\n", itype, jtype, virial[0], virial[1], virial[2], virial[3], virial[4], virial[5]);
   }

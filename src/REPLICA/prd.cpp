@@ -40,6 +40,7 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -440,10 +441,7 @@ void PRD::command(int narg, char **arg)
               nsteps,atom->natoms);
   }
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"\nPRD done\n");
-    if (logfile) fprintf(logfile,"\nPRD done\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"\nPRD done\n");
 
   finish->end(2);
 

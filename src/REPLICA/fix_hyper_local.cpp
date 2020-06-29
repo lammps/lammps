@@ -15,6 +15,7 @@
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
+#include <string>
 #include "atom.h"
 #include "update.h"
 #include "group.h"
@@ -29,6 +30,7 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -858,12 +860,11 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
       int allcount;
       MPI_Allreduce(&checkbias_count,&allcount,1,MPI_INT,MPI_SUM,world);
       if (allcount) {
-        char str[128];
-        sprintf(str,"Fix hyper/local biased bonds too close: "
-                "cumulative atom count %d",allcount);
+        std::string mesg = fmt::format("Fix hyper/local biased bonds too close: "
+                                       "cumulative atom count {}",allcount);
         if (checkbias_flag == WARN) {
-          if (me == 0) error->warning(FLERR,str);
-        } else error->all(FLERR,str);
+          if (me == 0) error->warning(FLERR,mesg);
+        } else error->all(FLERR,mesg);
       }
     }
   }

@@ -291,11 +291,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
 
   int ifix = modify->find_fix("KIM_MODEL_STORE");
   if (ifix >= 0) modify->delete_fix(ifix);
-  char *fixarg[3];
-  fixarg[0] = (char *)"KIM_MODEL_STORE";
-  fixarg[1] = (char *)"all";
-  fixarg[2] = (char *)"STORE/KIM";
-  modify->add_fix(3,fixarg);
+  modify->add_fix("KIM_MODEL_STORE all STORE/KIM");
   ifix = modify->find_fix("KIM_MODEL_STORE");
 
   FixStoreKIM *fix_store = (FixStoreKIM *) modify->fix[ifix];

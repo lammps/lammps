@@ -1033,7 +1033,7 @@ FILE *Force::open_potential(const char *name, int *auto_convert)
         return nullptr;
       }
     } else {
-      if (units == unit_style) {
+      if (units.empty() || units == unit_style) {
         *auto_convert = utils::NOCONVERT;
       } else {
         if ((units == "metal") && (unit_style == "real")

@@ -494,7 +494,7 @@ void Balance::weight_storage(char *prefix)
   if (prefix) cmd = prefix;
   cmd += "IMBALANCE_WEIGHTS";
 
-  int ifix = modify->find_fix(cmd.c_str());
+  int ifix = modify->find_fix(cmd);
   if (ifix < 1) {
     cmd += " all STORE peratom 0 1";
     modify->add_fix(cmd);

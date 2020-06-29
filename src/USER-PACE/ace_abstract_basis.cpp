@@ -11,39 +11,38 @@
 // d exp(-w*x**2)/dx = -2*w*x*exp(-w*x**2) *
 void Fexp(DOUBLE_TYPE x, DOUBLE_TYPE m, DOUBLE_TYPE &F, DOUBLE_TYPE &DF) {
     DOUBLE_TYPE w = 10.0;
-//    DOUBLE_TYPE eps = 1e-15;
+    DOUBLE_TYPE eps = 1e-15;
 
-//    if (abs(x) > eps) {
-    DOUBLE_TYPE g, a, omg, y1, y2, delta = 1e-20;
-    DOUBLE_TYPE wx2 = w * x * x;
-    DOUBLE_TYPE sign_factor = (signbit(x) ? -1 : 1);
-//        if (wx2 > 30.0)
-//            g = 0;
-//        else
-    g = exp(-wx2);
+    if (abs(x) > eps) {
+        DOUBLE_TYPE g, a, omg, y1, y2, delta = 1e-20;
+        DOUBLE_TYPE wx2 = w * x * x;
+        DOUBLE_TYPE sign_factor = (signbit(x) ? -1 : 1);
+        if (wx2 > 30.0)
+            g = 0;
+        else
+            g = exp(-wx2);
 
-    omg = 1. - g;
-    a = abs(x);
-    y1 = pow(omg * a + delta, m); //+delta
-    y2 = m * g * a;
-    F = sign_factor * (y1 + y2);
+        omg = 1. - g;
+        a = abs(x);
+        y1 = pow(omg * a, m); //+delta
+        y2 = m * g * a;
+        F = sign_factor * (y1 + y2);
 
-    DOUBLE_TYPE dg, da, dy, dy1, dy2;
-    dg = -2.0 * w * x * g;
-    da = sign_factor;
-//        if (abs(y1) < eps) dy = 0.;
-//        else
-    dy = m * y1 / (omg * a + delta); // + delta
+        DOUBLE_TYPE dg, da, dy, dy1, dy2;
+        dg = -2.0 * w * x * g;
+        da = sign_factor;
+        if (abs(y1) < eps) dy = 0.;
+        else
+            dy = m * y1 / (omg * a); // + delta
 
+        dy1 = dy * (-dg * a + omg * da);
+        dy2 = m * (dg * a + g * da);
+        DF = sign_factor * (dy1 + dy2);
 
-    dy1 = dy * (-dg * a + omg * da);
-    dy2 = m * (dg * a + g * da);
-    DF = sign_factor * (dy1 + dy2);
-
-//    } else {
-//        F = m * x;
-//        DF = m;
-//    }
+    } else {
+        F = m * x;
+        DF = m;
+    }
 }
 
 void ACEAbstractBasisSet::inner_cutoff(DOUBLE_TYPE rho_core, DOUBLE_TYPE rho_cut, DOUBLE_TYPE drho_cut,

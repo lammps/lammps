@@ -35,7 +35,7 @@ class ResetMolIDs : protected Pointers {
    tagint **local_l2l; // list local to local equiv molIDs
 
    int nadd,npion,nmolID;
-   int maxmolID,maxnpion;
+   int maxnglobal,maxnpion,maxmolID;
    tagint *global_pion,*pionIDs,*molIDlist;
    int *allnpion,*allstarts;
    void gather_molIDs();

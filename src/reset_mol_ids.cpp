@@ -313,9 +313,9 @@ void ResetMolIDs::command(int narg, char ** /* arg */)
     // arrays used in gather_molIDs
     memory->create(allnpion,nprocs,"reset_mol_ids:allnpion");
     memory->create(allstarts,nprocs,"reset_mol_ids:allstarts");
-    memory->create(global_pion,100,"reset_mol_ids:global_pion");
-    
-    maxmolID = maxnpion = 100;
+
+    maxnglobal = maxnpion = maxmolID = 100;
+    memory->create(global_pion,maxnglobal,"reset_mol_ids:global_pion");
     memory->create(pionIDs,maxnpion,"reset_mol_ids:pionIDs");
     memory->create(molIDlist,maxmolID,"reset_mol_ids:molIDlist");
 
@@ -343,6 +343,7 @@ void ResetMolIDs::command(int narg, char ** /* arg */)
         MPI_Bcast(&molIDlist[0], nmolID, MPI_INT, thisproc, world);
 
         nadd = 2;
+        int skipflag;
         while (nadd > 0) {
           npion = 0;
           for (int i = 0; i < l2l_nlocal; i++) {
@@ -350,6 +351,15 @@ void ResetMolIDs::command(int narg, char ** /* arg */)
             for (int j = 0; j < 2; j++) {
               for (int k = 0; k < nadd; k++) {
                 if (local_l2l[j][i] == molIDlist[nmolID-k-1]) {
+                  skipflag = 0;
+                  for (int m = 0; m < nmolID; m++) {
+                    if (local_l2l[!j][i] == molIDlist[m]) {
+                      skipflag = 1;
+                      break;
+                    }
+                  }
+                  if (skipflag == 1) continue;
+
                   if (npion == maxnpion) {
                     maxnpion += DELTA;
                     memory->grow(pionIDs,maxnpion,"reset_mol_ids:pionIDs");
@@ -434,17 +444,20 @@ void ResetMolIDs::gather_molIDs()
   for (int i = 0; i < nprocs; i++)
     npion_global += allnpion[i];
 
+  nadd = 0;
   if (npion_global == 0) return;
 
   allstarts[0] = 0;
   for (int i = 1; i < nprocs; i++)
     allstarts[i] = allstarts[i-1] + allnpion[i-1];
 
-  memory->grow(global_pion,npion_global,"reset_mol_ids:global_pion");
+  if (npion_global > maxnglobal) {
+    maxnglobal = npion_global + DELTA;
+    memory->grow(global_pion,maxnglobal,"reset_mol_ids:global_pion");
+  }
   MPI_Allgatherv(&pionIDs[0], npion, MPI_INT, &global_pion[0],
                  allnpion, allstarts, MPI_INT, world);
 
-  nadd = 0;
   int addflag;
   for (int i = 0; i < npion_global; i++) {
     addflag = 1;

@@ -236,7 +236,7 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
         edge[jefirst+nj][4] = 0;
       }
 
-      int interact, num_contacts, done;
+      int num_contacts, done;
       double delta_a, j_a;
       Contact contact_list[MAX_CONTACTS];
 
@@ -244,15 +244,13 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
 
       // check interaction between i's vertices and j' edges
 
-      interact = vertex_against_edge(i, j, k_nij, k_naij,
-                                     x, f, torque, tag, contact_list,
-                                     num_contacts, evdwl, facc);
+      vertex_against_edge(i, j, k_nij, k_naij, x, f, torque, tag,
+                          contact_list, num_contacts, evdwl, facc);
 
       // check interaction between j's vertices and i' edges
 
-      interact = vertex_against_edge(j, i, k_nij, k_naij,
-                                     x, f, torque, tag, contact_list,
-                                     num_contacts, evdwl, facc);
+      vertex_against_edge(j, i, k_nij, k_naij, x, f, torque, tag,
+                          contact_list, num_contacts, evdwl, facc);
 
       if (num_contacts >= 2) {
 

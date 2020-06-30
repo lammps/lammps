@@ -31,9 +31,9 @@ does something different than this sequence:
    run      100
 
 In the first case, the specified timestep (0.5 fs) is used for two
-simulations of 100 timesteps each.  In the 2nd case, the default
-timestep (1.0 fs) is used for the 1st 100 step simulation and a 0.5 fs
-timestep is used for the 2nd one.
+simulations of 100 timesteps each.  In the second case, the default
+timestep (1.0 fs) is used for the first 100 step simulation and a 0.5 fs
+timestep is used for the second one.
 
 (2) Some commands are only valid when they follow other commands.  For
 example you cannot set the temperature of a group of atoms until atoms

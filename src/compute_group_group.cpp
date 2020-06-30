@@ -147,12 +147,9 @@ void ComputeGroupGroup::init()
 
   if (kspaceflag) {
     kspace_correction();
-    if (fabs(e_correction) > SMALL && comm->me == 0) {
-      char str[128];
-      sprintf(str,"Both groups in compute group/group have a net charge; "
-              "the Kspace boundary correction to energy will be non-zero");
-      error->warning(FLERR,str);
-    }
+    if ((fabs(e_correction) > SMALL) && (comm->me == 0))
+      error->warning(FLERR,"Both groups in compute group/group have a net charge; "
+                     "the Kspace boundary correction to energy will be non-zero");
   }
 
   // recheck that group 2 has not been deleted

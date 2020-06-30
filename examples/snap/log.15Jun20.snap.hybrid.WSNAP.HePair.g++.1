@@ -1,0 +1,180 @@
+LAMMPS (15 Jun 2020)
+  using 1 OpenMP thread(s) per MPI task
+# Demonstrate SNAP W with tabulated He-He and W-He using hybrid pair style
+
+# Initialize simulation
+
+variable nsteps index 100
+variable nrep equal 4
+variable a equal 3.1803
+units           metal
+
+# generate the box and atom positions using a BCC lattice
+
+variable nx equal ${nrep}
+variable nx equal 4
+variable ny equal ${nrep}
+variable ny equal 4
+variable nz equal ${nrep}
+variable nz equal 4
+
+boundary        p p p
+
+lattice         bcc $a
+lattice         bcc 3.1803
+Lattice spacing in x,y,z = 3.1803 3.1803 3.1803
+region          box block 0 ${nx} 0 ${ny} 0 ${nz}
+region          box block 0 4 0 ${ny} 0 ${nz}
+region          box block 0 4 0 4 0 ${nz}
+region          box block 0 4 0 4 0 4
+create_box      2 box
+Created orthogonal box = (0.0 0.0 0.0) to (12.7212 12.7212 12.7212)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 128 atoms
+  create_atoms CPU = 0.001 seconds
+mass 1 183.84
+mass 2 4.0026
+
+set     group all type/fraction 2 0.05 3590153 # Change 5% of W to He
+  5 settings made for type/fractiongroup   tungsten type 1
+123 atoms in group tungsten
+group   helium  type 2
+5 atoms in group helium
+# choose potential
+
+include W_2940_2017_2_He_JW2013.snap
+# DATE: 2017-02-20 UNITS: metal CONTRIBUTOR: Mitchell Wood mitwood@sandia.gov CITATION: Wood, M. A. and Thompson, A. P. "Quantum-Accurate Molecular Dynamics Potential for Tungsten" arXiv:1702.07042 [physics.comp-ph]
+#
+# Definition of SNAP+ZBL+Tabulated potential.
+variable zblcutinner equal 4
+variable zblcutouter equal 4.8
+variable zblz equal 74
+
+# Specify hybrid with SNAP and ZBL
+
+pair_style hybrid/overlay zbl ${zblcutinner} ${zblcutouter} snap table spline 10000 table spline 10000
+pair_style hybrid/overlay zbl 4 ${zblcutouter} snap table spline 10000 table spline 10000
+pair_style hybrid/overlay zbl 4 4.8 snap table spline 10000 table spline 10000
+pair_coeff 	1 1 zbl ${zblz} ${zblz}
+pair_coeff 	1 1 zbl 74 ${zblz}
+pair_coeff 	1 1 zbl 74 74
+pair_coeff 	* * snap W_2940_2017_2.snapcoeff W_2940_2017_2.snapparam W NULL
+Reading potential file W_2940_2017_2.snapcoeff with DATE: 2017-02-20
+SNAP Element = W, Radius 0.5, Weight 1 
+Reading potential file W_2940_2017_2.snapparam with DATE: 2017-02-20
+SNAP keyword rcutfac 4.73442 
+SNAP keyword twojmax 8 
+SNAP keyword rfac0 0.99363 
+SNAP keyword rmin0 0 
+SNAP keyword bzeroflag 0 
+SNAP keyword quadraticflag 0 
+pair_coeff      2 2 table 1 He_He_JW2013.table HeHe
+Reading potential file He_He_JW2013.table with DATE: 2017-02-20
+WARNING: 1 of 4999 force values in table are inconsistent with -dE/dr.
+  Should only be flagged at inflection points (src/pair_table.cpp:467)
+pair_coeff      1 2 table 2 W_He_JW2013.table WHe
+Reading potential file W_He_JW2013.table with DATE: 2017-02-20
+WARNING: 3 of 325 force values in table are inconsistent with -dE/dr.
+  Should only be flagged at inflection points (src/pair_table.cpp:467)
+#Hybrid/overlay will take all pair styles and add their contributions equally, order of pair_coeff doesnt matter here
+#This is not the case for pair_style hybrid ... where only one pair_coeff is read for each type combination, order matters here.
+
+
+# Setup output
+
+thermo          10
+thermo_modify norm yes
+
+# Set up NVE run
+
+timestep 0.5e-3
+neighbor 1.0 bin
+neigh_modify once no every 1 delay 0 check yes
+
+# Run MD
+
+velocity all create 300.0 4928459 loop geom
+fix 1 all nve
+run             ${nsteps}
+run             100
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.8
+  ghost atom cutoff = 5.8
+  binsize = 2.9, bins = 5 5 5
+  6 neighbor lists, perpetual/occasional/extra = 6 0 0
+  (1) pair zbl, perpetual, half/full from (2)
+      attributes: half, newton on
+      pair build: halffull/newton/skip
+      stencil: none
+      bin: none
+  (2) pair snap, perpetual, skip from (6)
+      attributes: full, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (3) pair table, perpetual, skip from (5)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (4) pair table, perpetual, skip from (5)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (5) neighbor class addition, perpetual, half/full from (6)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (6) neighbor class addition, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.789 | 6.789 | 6.789 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0          300   -10.438105            0    -10.39963   -5445.2808 
+      10    292.90716   -10.437195            0    -10.39963   -5400.8323 
+      20    275.59696   -10.434975            0   -10.399629    -5055.199 
+      30    250.28699   -10.431729            0   -10.399629   -4317.4619 
+      40    218.58148   -10.427662            0   -10.399629   -3069.0256 
+      50    182.80754   -10.423074            0   -10.399629   -1514.9501 
+      60    144.77789   -10.418197            0   -10.399629     134.6083 
+      70    108.06164   -10.413487            0   -10.399628    1747.8913 
+      80    79.630821   -10.409841            0   -10.399628    2913.2733 
+      90    62.795831   -10.407682            0   -10.399628    3646.2528 
+     100    57.450965   -10.406996            0   -10.399628    4022.2665 
+Loop time of 2.15336 on 1 procs for 100 steps with 128 atoms
+
+Performance: 2.006 ns/day, 11.963 hours/ns, 46.439 timesteps/s
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.1524     | 2.1524     | 2.1524     |   0.0 | 99.96
+Neigh   | 0.00030732 | 0.00030732 | 0.00030732 |   0.0 |  0.01
+Comm    | 0.00026202 | 0.00026202 | 0.00026202 |   0.0 |  0.01
+Output  | 0.00013041 | 0.00013041 | 0.00013041 |   0.0 |  0.01
+Modify  | 0.00010085 | 0.00010085 | 0.00010085 |   0.0 |  0.00
+Other   |            | 0.0001643  |            |       |  0.01
+
+Nlocal:    128 ave 128 max 128 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    727 ave 727 max 727 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    3425 ave 3425 max 3425 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  6850 ave 6850 max 6850 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 6850
+Ave neighs/atom = 53.5156
+Neighbor list builds = 1
+Dangerous builds = 0
+
+Total wall time: 0:00:02

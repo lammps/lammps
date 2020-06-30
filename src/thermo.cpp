@@ -44,6 +44,8 @@
 #include "memory.h"
 #include "error.h"
 #include "math_const.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -159,7 +161,7 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // allocate per-field memory
   // process line of keywords
 
-  nfield_initial = atom->count_words(line);
+  nfield_initial = utils::trim_and_count_words(line);
   allocate();
   parse_fields(line);
 
@@ -312,15 +314,9 @@ void Thermo::header()
 {
   if (lineflag == MULTILINE) return;
 
-  int loc = 0;
-  for (int i = 0; i < nfield; i++)
-    loc += sprintf(&line[loc],"%s ",keyword[i]);
-  sprintf(&line[loc],"\n");
-
-  if (me == 0) {
-    if (screen) fprintf(screen,"%s",line);
-    if (logfile) fprintf(logfile,"%s",line);
-  }
+  std::string hdr;
+  for (int i = 0; i < nfield; i++) hdr +=  keyword[i] + std::string(" ");
+  if (me == 0) utils::logmesg(lmp,hdr+"\n");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -384,11 +380,8 @@ void Thermo::compute(int flag)
   // print line to screen and logfile
 
   if (me == 0) {
-    if (screen) fprintf(screen,"%s",line);
-    if (logfile) {
-      fprintf(logfile,"%s",line);
-      if (flushflag) fflush(logfile);
-    }
+    utils::logmesg(lmp,line);
+    if (logfile && flushflag) fflush(logfile);
   }
 
   // set to 1, so that subsequent invocations of CPU time will be non-zero
@@ -430,21 +423,15 @@ bigint Thermo::lost_check()
 
   // error message
 
-  if (lostflag == Thermo::ERROR) {
-    char str[64];
-    sprintf(str,
-            "Lost atoms: original " BIGINT_FORMAT " current " BIGINT_FORMAT,
-            atom->natoms,ntotal);
-    error->all(FLERR,str);
-  }
+  if (lostflag == Thermo::ERROR)
+    error->all(FLERR,fmt::format("Lost atoms: original {} current {}",
+                                 atom->natoms,ntotal));
 
   // warning message
 
-  char str[64];
-  sprintf(str,
-          "Lost atoms: original " BIGINT_FORMAT " current " BIGINT_FORMAT,
-          atom->natoms,ntotal);
-  if (me == 0) error->warning(FLERR,str,0);
+  if (me == 0)
+    error->warning(FLERR,fmt::format("Lost atoms: original {} current {}",
+                                     atom->natoms,ntotal),0);
 
   // reset total atom count
 
@@ -496,7 +483,7 @@ void Thermo::modify_params(int narg, char **arg)
         icompute = modify->find_compute(id_compute[index_press_vector]);
         if (icompute < 0) error->all(FLERR,
                                      "Pressure ID for thermo does not exist");
-      } else icompute = modify->find_compute((char *) "thermo_press");
+      } else icompute = modify->find_compute("thermo_press");
 
       modify->compute[icompute]->reset_extra_compute_fix(arg[iarg+1]);
 
@@ -1069,7 +1056,7 @@ int Thermo::add_variable(const char *id)
    customize a new keyword by adding to if statement
 ------------------------------------------------------------------------- */
 
-int Thermo::evaluate_keyword(char *word, double *answer)
+int Thermo::evaluate_keyword(const char *word, double *answer)
 {
   // turn off normflag if natoms = 0 to avoid divide by 0
   // normflag must be set for lo-level thermo routines that may be invoked

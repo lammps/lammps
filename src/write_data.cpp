@@ -14,6 +14,7 @@
 #include "write_data.h"
 #include <mpi.h>
 #include <cstring>
+#include <string>
 #include "atom.h"
 #include "atom_vec.h"
 #include "force.h"
@@ -32,6 +33,8 @@
 #include "thermo.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -58,14 +61,10 @@ void WriteData::command(int narg, char **arg)
 
   // if filename contains a "*", replace with current timestep
 
-  char *ptr;
-  int n = strlen(arg[0]) + 16;
-  char *file = new char[n];
-
-  if ((ptr = strchr(arg[0],'*'))) {
-    *ptr = '\0';
-    sprintf(file,"%s" BIGINT_FORMAT "%s",arg[0],update->ntimestep,ptr+1);
-  } else strcpy(file,arg[0]);
+  std::string file = arg[0];
+  std::size_t found = file.find("*");
+  if (found != std::string::npos)
+    file.replace(found,1,fmt::format("{}",update->ntimestep));
 
   // read optional args
   // noinit is a hidden arg, only used by -r command-line switch
@@ -125,8 +124,6 @@ void WriteData::command(int narg, char **arg)
   }
 
   write(file);
-
-  delete [] file;
 }
 
 /* ----------------------------------------------------------------------
@@ -134,7 +131,7 @@ void WriteData::command(int narg, char **arg)
    might later let it be directly called within run/minimize loop
 ------------------------------------------------------------------------- */
 
-void WriteData::write(char *file)
+void WriteData::write(const std::string &file)
 {
   // special case where reneighboring is not done in integrator
   //   on timestep data file is written (due to build_once being set)
@@ -190,12 +187,10 @@ void WriteData::write(char *file)
   // open data file
 
   if (me == 0) {
-    fp = fopen(file,"w");
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open data file %s",file);
-      error->one(FLERR,str);
-    }
+    fp = fopen(file.c_str(),"w");
+    if (fp == NULL)
+      error->one(FLERR,fmt::format("Cannot open data file {}: {}",
+                                   file, utils::getsyserror()));
   }
 
   // proc 0 writes header, ntype-length arrays, force fields
@@ -235,34 +230,26 @@ void WriteData::write(char *file)
 
 void WriteData::header()
 {
-  fprintf(fp,"LAMMPS data file via write_data, version %s, "
-          "timestep = " BIGINT_FORMAT "\n",
-          universe->version,update->ntimestep);
+  fmt::print(fp,"LAMMPS data file via write_data, version {}, "
+             "timestep = {}\n\n",universe->version,update->ntimestep);
 
-  fprintf(fp,"\n");
-
-  fprintf(fp,BIGINT_FORMAT " atoms\n",atom->natoms);
-  fprintf(fp,"%d atom types\n",atom->ntypes);
+  fmt::print(fp,"{} atoms\n{} atom types\n",atom->natoms,atom->ntypes);
 
   // do not write molecular topology info for atom_style template
 
   if (atom->molecular == 1) {
-    if (atom->nbonds || atom->nbondtypes) {
-      fprintf(fp,BIGINT_FORMAT " bonds\n",nbonds);
-      fprintf(fp,"%d bond types\n",atom->nbondtypes);
-    }
-    if (atom->nangles || atom->nangletypes) {
-      fprintf(fp,BIGINT_FORMAT " angles\n",nangles);
-      fprintf(fp,"%d angle types\n",atom->nangletypes);
-    }
-    if (atom->ndihedrals || atom->ndihedraltypes) {
-      fprintf(fp,BIGINT_FORMAT " dihedrals\n",ndihedrals);
-      fprintf(fp,"%d dihedral types\n",atom->ndihedraltypes);
-    }
-    if (atom->nimpropers || atom->nimpropertypes) {
-      fprintf(fp,BIGINT_FORMAT " impropers\n",nimpropers);
-      fprintf(fp,"%d improper types\n",atom->nimpropertypes);
-    }
+    if (atom->nbonds || atom->nbondtypes)
+      fmt::print(fp,"{} bonds\n{} bond types\n",
+                 nbonds,atom->nbondtypes);
+    if (atom->nangles || atom->nangletypes)
+      fmt::print(fp,"{} angles\n{} angle types\n",
+                 nangles,atom->nangletypes);
+    if (atom->ndihedrals || atom->ndihedraltypes)
+      fmt::print(fp,"{} dihedrals\n{} dihedral types\n",
+                 ndihedrals,atom->ndihedraltypes);
+    if (atom->nimpropers || atom->nimpropertypes)
+      fmt::print(fp,"{} impropers\n{} improper types\n",
+                 nimpropers,atom->nimpropertypes);
   }
 
   if (fixflag)

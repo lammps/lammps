@@ -44,7 +44,7 @@ Field (eFF) potential currently under development at Caltech, as
 described in :ref:`(Jaramillo-Botero) <Jaramillo-Botero>`.  The eFF for Z<6
 was first introduced by :ref:`(Su) <Su>` in 2007. It has been extended to
 higher Zs by using effective core potentials (ECPs) that now cover up
-to 2nd and 3rd row p-block elements of the periodic table.
+to second and third row p-block elements of the periodic table.
 
 eFF can be viewed as an approximation to QM wave packet dynamics and
 Fermionic molecular dynamics, combining the ability of electronic
@@ -210,7 +210,7 @@ representations, after the "ecp" keyword.
    for systems containing nuclei from Z = 1-6 in "all electron"
    representations.  For systems with increasingly non-spherical
    electrons, Users should use the ECP representations.  ECPs are now
-   supported and validated for most of the 2nd and 3rd row elements of
+   supported and validated for most of the second and third row elements of
    the p-block.  Predefined parameters are provided for C, N, O, Al, and
    Si.  The ECP captures the orbital overlap between the core and valence
    electrons (i.e. Pauli repulsion) with one of the functional forms:
@@ -220,8 +220,8 @@ representations, after the "ecp" keyword.
    E_{Pauli(ECP_s)} = & p_1\exp\left(-\frac{p_2r^2}{p_3+s^2} \right) \\
    E_{Pauli(ECP_p)} = & p_1\left( \frac{2}{p_2/s+s/p_2} \right)\left( r-p_3s\right)^2\exp \left[ -\frac{p_4\left( r-p_3s \right)^2}{p_5+s^2} \right]
 
-Where the 1st form correspond to core interactions with s-type valence
-electrons and the 2nd to core interactions with p-type valence
+Where the first form correspond to core interactions with s-type valence
+electrons and the second to core interactions with p-type valence
 electrons.
 
 The current version adds full support for models with fixed-core and

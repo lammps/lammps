@@ -57,6 +57,8 @@
 ------------------------------------------------------------------------- */
 
 #include "kim_init.h"
+#include "fix_store_kim.h"
+#include "kim_units.h"
 #include <cstring>
 #include <string>
 #include <sstream>
@@ -71,8 +73,8 @@
 #include "input.h"
 #include "variable.h"
 #include "citeme.h"
-#include "fix_store_kim.h"
-#include "kim_units.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 extern "C" {
 #include "KIM_SimulatorHeaders.h"
@@ -275,7 +277,7 @@ void KimInit::determine_model_type_and_units(char * model_name,
       std::string mesg("Incompatible units for KIM Simulator Model, "
                        "required units = ");
       mesg += *model_units;
-      error->all(FLERR,mesg.c_str());
+      error->all(FLERR,mesg);
     }
   }
 }
@@ -289,11 +291,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
 
   int ifix = modify->find_fix("KIM_MODEL_STORE");
   if (ifix >= 0) modify->delete_fix(ifix);
-  char *fixarg[3];
-  fixarg[0] = (char *)"KIM_MODEL_STORE";
-  fixarg[1] = (char *)"all";
-  fixarg[2] = (char *)"STORE/KIM";
-  modify->add_fix(3,fixarg);
+  modify->add_fix("KIM_MODEL_STORE all STORE/KIM");
   ifix = modify->find_fix("KIM_MODEL_STORE");
 
   FixStoreKIM *fix_store = (FixStoreKIM *) modify->fix[ifix];
@@ -302,7 +300,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
   fix_store->setptr("model_units", (void *) model_units);
 
   // Begin output to log file
-  kim_init_log_delimiter("begin");
+  input->write_echo("#=== BEGIN kim-init ==========================================\n");
 
   int kimerror;
   KIM_SimulatorModel * simulatorModel;
@@ -328,8 +326,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
       mesg += "\n";
       mesg += "#\n";
 
-      if (screen) fputs(mesg.c_str(),screen);
-      if (logfile) fputs(mesg.c_str(),logfile);
+      utils::logmesg(lmp,mesg);
     }
 
     fix_store->setptr("simulator_model", (void *) simulatorModel);
@@ -346,7 +343,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
 
   std::string cmd("units ");
   cmd += model_units;
-  input->one(cmd.c_str());
+  input->one(cmd);
 
   if (model_type == SM) {
     int sim_fields, sim_lines;
@@ -423,37 +420,14 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
         mesg += "\n";
       }
     }
-    else
-      mesg += "No mutable parameters. \n";
+    else mesg += "No mutable parameters. \n";
 
     KIM_Model_Destroy(&pkim);
-
-    if (comm->me == 0)
-    {
-      input->write_echo(mesg.c_str());
-    }
+    input->write_echo(mesg);
   }
 
   // End output to log file
-  kim_init_log_delimiter("end");
-
-}
-
-/* ---------------------------------------------------------------------- */
-
-void KimInit::kim_init_log_delimiter(std::string const &begin_end) const
-{
-  if (comm->me == 0) {
-    std::string mesg;
-    if (begin_end == "begin")
-      mesg =
-          "#=== BEGIN kim-init ==========================================\n";
-    else if (begin_end == "end")
-      mesg =
-          "#=== END kim-init ============================================\n\n";
-
-    input->write_echo(mesg.c_str());
-  }
+  input->write_echo("#=== END kim-init ============================================\n\n");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -493,14 +467,8 @@ void KimInit::do_variables(char *user_units, char *model_units)
                          (char *)"efield",
                          (char *)"density"};
 
-  if (comm->me == 0) {
-    std::string mesg("# Conversion factors from ");
-    mesg += from;
-    mesg += " to ";
-    mesg += to;
-    mesg += ":\n";
-    input->write_echo(mesg.c_str());
-  }
+  input->write_echo(fmt::format("# Conversion factors from {} to {}:\n",
+                                from,to));
 
   for (int i = 0; i < nunits; i++) {
     var_str = std::string("_u_") + std::string(units[i]);
@@ -514,58 +482,43 @@ void KimInit::do_variables(char *user_units, char *model_units)
                                  from,
                                  to,
                                  conversion_factor);
-    if (ier != 0) {
-      std::string err = std::string("Unable to obtain conversion factor: ") +
-                        "unit = " + units[i] + "; "
-                        "from = " + from + "; "
-                        "to = " + to + ".";
-      error->all(FLERR,err.c_str());
-    }
+    if (ier != 0)
+      error->all(FLERR,fmt::format("Unable to obtain conversion factor: "
+                                   "unit = {}; from = {}; to = {}.",
+                                   units[i], from, to));
+
     variable->internal_set(v_unit,conversion_factor);
-    if (comm->me == 0) {
-      std::stringstream mesg;
-      mesg << "variable " << std::setw(15) << std::left << var_str
-           << " internal "
-           << std::setprecision(12) << std::scientific << conversion_factor
-           << std::endl;
-      input->write_echo(mesg.str().c_str());
-    }
+    input->write_echo(fmt::format("variable {:<15s} internal {:<15.12e}\n",
+                                  var_str, conversion_factor));
   }
-  if (comm->me == 0) input->write_echo("#\n");
+  input->write_echo("#\n");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void KimInit::write_log_cite(char * model_name)
+void KimInit::write_log_cite(const std::string &model_name)
 {
   KIM_Collections * coll;
   int err = KIM_Collections_Create(&coll);
   if (err) return;
 
   int extent;
-  if (model_type == MO)
-  {
+  if (model_type == MO) {
     err = KIM_Collections_CacheListOfItemMetadataFiles(
-        coll,KIM_COLLECTION_ITEM_TYPE_portableModel,model_name,&extent);
-  }
-  else if (model_type == SM)
-  {
+      coll,KIM_COLLECTION_ITEM_TYPE_portableModel,model_name.c_str(),&extent);
+  } else if (model_type == SM) {
     err = KIM_Collections_CacheListOfItemMetadataFiles(
-        coll,KIM_COLLECTION_ITEM_TYPE_simulatorModel,model_name,&extent);
-  }
-  else
-  {
+      coll,KIM_COLLECTION_ITEM_TYPE_simulatorModel,model_name.c_str(),&extent);
+  } else {
     error->all(FLERR,"Unknown model type.");
   }
 
-  if (err)
-  {
+  if (err) {
     KIM_Collections_Destroy(&coll);
     return;
   }
 
-  for (int i = 0; i < extent;++i)
-  {
+  for (int i = 0; i < extent;++i) {
     char const * fileName;
     int availableAsString;
     char const * fileString;
@@ -573,8 +526,7 @@ void KimInit::write_log_cite(char * model_name)
         coll,i,&fileName,NULL,NULL,&availableAsString,&fileString);
     if (err) continue;
 
-    if (0 == strncmp("kimcite",fileName,7))
-    {
+    if (0 == strncmp("kimcite",fileName,7)) {
       if ((lmp->citeme) && (availableAsString)) lmp->citeme->add(fileString);
     }
   }

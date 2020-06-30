@@ -126,7 +126,7 @@ displacement).
 
 The force is the total force on the group of atoms by the spring.  In
 the case of the *couple* style, it is the force on the fix group
-(group-ID) or the negative of the force on the 2nd group (group-ID2).
+(group-ID) or the negative of the force on the second group (group-ID2).
 The vector values calculated by this fix are "extensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of

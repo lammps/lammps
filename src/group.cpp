@@ -15,6 +15,7 @@
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
+#include <string>
 #include <utility>
 #include "domain.h"
 #include "atom.h"
@@ -32,6 +33,7 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 #include <map>
 
@@ -122,13 +124,8 @@ void Group::assign(int narg, char **arg)
     int bits = inversemask[igroup];
     for (i = 0; i < nlocal; i++) mask[i] &= bits;
 
-    if (dynamic[igroup]) {
-      int n = strlen("GROUP_") + strlen(names[igroup]) + 1;
-      char *fixID = new char[n];
-      sprintf(fixID,"GROUP_%s",names[igroup]);
-      modify->delete_fix(fixID);
-      delete [] fixID;
-    }
+    if (dynamic[igroup])
+      modify->delete_fix(std::string("GROUP_") + names[igroup]);
 
     delete [] names[igroup];
     names[igroup] = NULL;
@@ -491,28 +488,15 @@ void Group::assign(int narg, char **arg)
 
     // if group is already dynamic, delete existing FixGroup
 
-    if (dynamic[igroup]) {
-      int n = strlen("GROUP_") + strlen(names[igroup]) + 1;
-      char *fixID = new char[n];
-      sprintf(fixID,"GROUP_%s",names[igroup]);
-      modify->delete_fix(fixID);
-      delete [] fixID;
-    }
+    if (dynamic[igroup])
+      modify->delete_fix(std::string("GROUP_") + names[igroup]);
 
     dynamic[igroup] = 1;
 
-    int n = strlen("GROUP_") + strlen(names[igroup]) + 1;
-    char *fixID = new char[n];
-    sprintf(fixID,"GROUP_%s",names[igroup]);
-
-    char **newarg = new char*[narg];
-    newarg[0] = fixID;
-    newarg[1] = arg[2];
-    newarg[2] = (char *) "GROUP";
-    for (int i = 3; i < narg; i++) newarg[i] = arg[i];
-    modify->add_fix(narg,newarg);
-    delete [] newarg;
-    delete [] fixID;
+    std::string fixcmd = "GROUP_";
+    fixcmd += fmt::format("{} {} GROUP",names[igroup],arg[2]);
+    for (int i = 3; i < narg; i++) fixcmd += std::string(" ") + arg[i];
+    modify->add_fix(fixcmd);
 
   // style = static
   // remove dynamic FixGroup if necessary
@@ -521,13 +505,8 @@ void Group::assign(int narg, char **arg)
 
     if (narg != 2) error->all(FLERR,"Illegal group command");
 
-    if (dynamic[igroup]) {
-      int n = strlen("GROUP_") + strlen(names[igroup]) + 1;
-      char *fixID = new char[n];
-      sprintf(fixID,"GROUP_%s",names[igroup]);
-      modify->delete_fix(fixID);
-      delete [] fixID;
-    }
+    if (dynamic[igroup])
+      modify->delete_fix(std::string("GROUP_") + names[igroup]);
 
     dynamic[igroup] = 0;
 
@@ -546,16 +525,27 @@ void Group::assign(int narg, char **arg)
   MPI_Allreduce(&rlocal,&all,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (me == 0) {
-    if (dynamic[igroup]) {
-      if (screen) fprintf(screen,"dynamic group %s defined\n",names[igroup]);
-      if (logfile) fprintf(logfile,"dynamic group %s defined\n",names[igroup]);
-    } else {
-      if (screen)
-        fprintf(screen,"%.15g atoms in group %s\n",all,names[igroup]);
-      if (logfile)
-        fprintf(logfile,"%.15g atoms in group %s\n",all,names[igroup]);
-    }
+    if (dynamic[igroup])
+      utils::logmesg(lmp,fmt::format("dynamic group {} defined\n",names[igroup]));
+    else
+      utils::logmesg(lmp,fmt::format("{:.15g} atoms in group {}\n",all,names[igroup]));
   }
+}
+
+/* ----------------------------------------------------------------------
+   convenience function to allow assigning to groups from a single string
+------------------------------------------------------------------------- */
+
+void Group::assign(const std::string &groupcmd)
+{
+  std::vector<std::string> args = utils::split_words(groupcmd);
+  char **newarg = new char*[args.size()];
+  int i=0;
+  for (const auto &arg : args) {
+    newarg[i++] = (char *)arg.c_str();
+  }
+  assign(args.size(),newarg);
+  delete[] newarg;
 }
 
 /* ----------------------------------------------------------------------

@@ -33,6 +33,7 @@
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -447,7 +448,7 @@ void NEB::readfile(char *file, int flag)
     buf = buffer;
     next = strchr(buf,'\n');
     *next = '\0';
-    int nwords = atom->count_words(buf);
+    int nwords = utils::count_words(utils::trim_comment(buf));
     *next = '\n';
 
     if (nwords != ATTRIBUTE_PERLINE)

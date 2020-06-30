@@ -16,7 +16,7 @@
      Axel Kohlmeyer (Temple U), Iain Bethune (EPCC)
 ------------------------------------------------------------------------- */
 
-//#define BALANCE_DEBUG 1
+// #define BALANCE_DEBUG 1
 
 #include "balance.h"
 #include <mpi.h>
@@ -39,6 +39,8 @@
 #include "imbalance_var.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -366,12 +368,10 @@ void Balance::command(int narg, char **arg)
   bigint natoms;
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (natoms != atom->natoms) {
-    char str[128];
-    sprintf(str,"Lost atoms via balance: original " BIGINT_FORMAT
-            " current " BIGINT_FORMAT,atom->natoms,natoms);
-    error->all(FLERR,str);
-  }
+  if (natoms != atom->natoms)
+    error->all(FLERR,fmt::format("Lost atoms via balance: "
+                                 "original {}  current {}",
+                                 atom->natoms,natoms).c_str());
 
   // imbfinal = final imbalance
   // set disable = 1, so weights no longer migrate with atoms
@@ -382,60 +382,29 @@ void Balance::command(int narg, char **arg)
 
   // stats output
 
-  double stop_time = MPI_Wtime();
-
   if (me == 0) {
-    if (screen) {
-      fprintf(screen,"  rebalancing time: %g seconds\n",stop_time-start_time);
-      fprintf(screen,"  iteration count = %d\n",niter);
-      for (int i = 0; i < nimbalance; ++i) imbalances[i]->info(screen);
-      fprintf(screen,"  initial/final max load/proc = %g %g\n",
-              maxinit,maxfinal);
-      fprintf(screen,"  initial/final imbalance factor = %g %g\n",
-              imbinit,imbfinal);
-    }
-    if (logfile) {
-      fprintf(logfile,"  rebalancing time: %g seconds\n",stop_time-start_time);
-      fprintf(logfile,"  iteration count = %d\n",niter);
-      for (int i = 0; i < nimbalance; ++i) imbalances[i]->info(logfile);
-      fprintf(logfile,"  initial/final max load/proc = %g %g\n",
-              maxinit,maxfinal);
-      fprintf(logfile,"  initial/final imbalance factor = %g %g\n",
-              imbinit,imbfinal);
-    }
-  }
+    std::string mesg = fmt::format(" rebalancing time: {:.3f} seconds\n",
+                                   MPI_Wtime()-start_time);
+    mesg += fmt::format("  iteration count = {}\n",niter);
+    for (int i = 0; i < nimbalance; ++i) mesg += imbalances[i]->info();
+    mesg += fmt::format("  initial/final maximal load/proc = {} {}\n"
+                        "  initial/final imbalance factor  = {:.6g} {:.6g}\n",
+                        maxinit,maxfinal,imbinit,imbfinal);
 
-  if (style != BISECTION) {
-    if (me == 0) {
-      if (screen) {
-        fprintf(screen,"  x cuts:");
-        for (int i = 0; i <= comm->procgrid[0]; i++)
-          fprintf(screen," %g",comm->xsplit[i]);
-        fprintf(screen,"\n");
-        fprintf(screen,"  y cuts:");
-        for (int i = 0; i <= comm->procgrid[1]; i++)
-          fprintf(screen," %g",comm->ysplit[i]);
-        fprintf(screen,"\n");
-        fprintf(screen,"  z cuts:");
-        for (int i = 0; i <= comm->procgrid[2]; i++)
-          fprintf(screen," %g",comm->zsplit[i]);
-        fprintf(screen,"\n");
-      }
-      if (logfile) {
-        fprintf(logfile,"  x cuts:");
-        for (int i = 0; i <= comm->procgrid[0]; i++)
-          fprintf(logfile," %g",comm->xsplit[i]);
-        fprintf(logfile,"\n");
-        fprintf(logfile,"  y cuts:");
-        for (int i = 0; i <= comm->procgrid[1]; i++)
-          fprintf(logfile," %g",comm->ysplit[i]);
-        fprintf(logfile,"\n");
-        fprintf(logfile,"  z cuts:");
-        for (int i = 0; i <= comm->procgrid[2]; i++)
-          fprintf(logfile," %g",comm->zsplit[i]);
-        fprintf(logfile,"\n");
-      }
+    if (style != BISECTION) {
+      mesg += "  x cuts:";
+      for (int i = 0; i <= comm->procgrid[0]; i++)
+        mesg += fmt::format(" {}",comm->xsplit[i]);
+      mesg += "\n  y cuts:";
+      for (int i = 0; i <= comm->procgrid[1]; i++)
+        mesg += fmt::format(" {}",comm->ysplit[i]);
+      mesg += "\n  z cuts:";
+      for (int i = 0; i <= comm->procgrid[2]; i++)
+        mesg += fmt::format(" {}",comm->zsplit[i]);
+      mesg += "\n";
     }
+
+    utils::logmesg(lmp,mesg);
   }
 }
 
@@ -506,7 +475,9 @@ void Balance::options(int iarg, int narg, char **arg)
 
   if (outflag && comm->me == 0) {
     fp = fopen(arg[outarg],"w");
-    if (fp == NULL) error->one(FLERR,"Cannot open (fix) balance output file");
+    if (fp == NULL)
+      error->one(FLERR,fmt::format("Cannot open (fix) balance output file {}: {}",
+                                   arg[outarg], utils::getsyserror()));
   }
 }
 
@@ -518,32 +489,21 @@ void Balance::options(int iarg, int narg, char **arg)
 
 void Balance::weight_storage(char *prefix)
 {
-  char *fixargs[6];
+  std::string cmd = "";
 
-  if (prefix) {
-    int n = strlen(prefix) + 32;
-    fixargs[0] = new char[n];
-    strcpy(fixargs[0],prefix);
-    strcat(fixargs[0],"IMBALANCE_WEIGHTS");
-  } else fixargs[0] = (char *) "IMBALANCE_WEIGHTS";
+  if (prefix) cmd = prefix;
+  cmd += "IMBALANCE_WEIGHTS";
 
-  fixargs[1] = (char *) "all";
-  fixargs[2] = (char *) "STORE";
-  fixargs[3] = (char *) "peratom";
-  fixargs[4] = (char *) "0";
-  fixargs[5] = (char *) "1";
-
-  int ifix = modify->find_fix(fixargs[0]);
+  int ifix = modify->find_fix(cmd);
   if (ifix < 1) {
-    modify->add_fix(6,fixargs);
+    cmd += " all STORE peratom 0 1";
+    modify->add_fix(cmd);
     fixstore = (FixStore *) modify->fix[modify->nfix-1];
   } else fixstore = (FixStore *) modify->fix[ifix];
 
   // do not carry weights with atoms during normal atom migration
 
   fixstore->disable = 1;
-
-  if (prefix) delete [] fixargs[0];
 }
 
 /* ----------------------------------------------------------------------
@@ -1191,8 +1151,7 @@ void Balance::dumpout(bigint tstep)
   double *boxlo = domain->boxlo;
   double *boxhi = domain->boxhi;
 
-  fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,BIGINT_FORMAT "\n",tstep);
+  fmt::print(fp,"ITEM: TIMESTEP\n{}\n",tstep);
   fprintf(fp,"ITEM: NUMBER OF NODES\n");
   if (dimension == 2) fprintf(fp,"%d\n",4*nprocs);
   else fprintf(fp,"%d\n",8*nprocs);
@@ -1267,8 +1226,7 @@ void Balance::dumpout(bigint tstep)
 
   // write out one square/cube per processor for 2d/3d
 
-  fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,BIGINT_FORMAT "\n",tstep);
+  fmt::print(fp,"ITEM: TIMESTEP\n{}\n",tstep);
   if (dimension == 2) fprintf(fp,"ITEM: NUMBER OF SQUARES\n");
   else fprintf(fp,"ITEM: NUMBER OF CUBES\n");
   fprintf(fp,"%d\n",nprocs);
@@ -1312,14 +1270,11 @@ void Balance::debug_shift_output(int idim, int m, int np, double *split)
   else if (bdim[idim] == Z) dim = "Z";
   fprintf(stderr,"Dimension %s, Iteration %d\n",dim,m);
 
-  fprintf(stderr,"  Count:");
-  for (i = 0; i < np; i++) fprintf(stderr," " BIGINT_FORMAT,count[i]);
-  fprintf(stderr,"\n");
   fprintf(stderr,"  Sum:");
-  for (i = 0; i <= np; i++) fprintf(stderr," " BIGINT_FORMAT,sum[i]);
+  for (i = 0; i <= np; i++) fmt::print(stderr," {}",sum[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Target:");
-  for (i = 0; i <= np; i++) fprintf(stderr," " BIGINT_FORMAT,target[i]);
+  for (i = 0; i <= np; i++) fmt::print(stderr," {}",target[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Actual cut:");
   for (i = 0; i <= np; i++)
@@ -1332,20 +1287,16 @@ void Balance::debug_shift_output(int idim, int m, int np, double *split)
   for (i = 0; i <= np; i++) fprintf(stderr," %g",lo[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Low-sum:");
-  for (i = 0; i <= np; i++) fprintf(stderr," " BIGINT_FORMAT,losum[i]);
+  for (i = 0; i <= np; i++) fmt::print(stderr," {}",losum[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Hi:");
   for (i = 0; i <= np; i++) fprintf(stderr," %g",hi[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Hi-sum:");
-  for (i = 0; i <= np; i++) fprintf(stderr," " BIGINT_FORMAT,hisum[i]);
+  for (i = 0; i <= np; i++) fmt::print(stderr," {}",hisum[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Delta:");
   for (i = 0; i < np; i++) fprintf(stderr," %g",split[i+1]-split[i]);
   fprintf(stderr,"\n");
-
-  bigint max = 0;
-  for (i = 0; i < np; i++) max = MAX(max,count[i]);
-  fprintf(stderr,"  Imbalance factor: %g\n",1.0*max*np/target[np]);
 }
 #endif

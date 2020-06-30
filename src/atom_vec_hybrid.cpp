@@ -17,6 +17,8 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "tokenizer.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -214,12 +216,9 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   for (int idup = 0; idup < ndupfield; idup++) {
     char *dup = (char *) dupfield[idup];
     ptr = strstr(concat_grow,dup);
-    if (ptr && strstr(ptr+1,dup)) {
-      char str[128];
-      sprintf(str,"Peratom %s is in multiple sub-styles - "
-              "must be used consistently",dup);
-      if (comm->me == 0) error->warning(FLERR,str);
-    }
+    if ((ptr && strstr(ptr+1,dup)) && (comm->me == 0))
+      error->warning(FLERR,fmt::format("Peratom {} is in multiple sub-styles "
+                                       "- must be used consistently",dup));
   }
 
   delete [] concat_grow;
@@ -513,15 +512,15 @@ char *AtomVecHybrid::merge_fields(int inum, char *root,
 
   // identify unique words in concatenated string
 
-  char *copystr;
-  char **words;
-  int nwords = tokenize(concat,words,copystr);
+  std::vector<std::string> words = Tokenizer(concat, " ").as_vector();
+  int nwords = words.size();
+
   int *unique = new int[nwords];
 
   for (int i = 0; i < nwords; i++) {
     unique[i] = 1;
     for (int j = 0; j < i; j++)
-      if (strcmp(words[i],words[j]) == 0) unique[i] = 0;
+      if (words[i] == words[j]) unique[i] = 0;
   }
 
   // construct a new deduped string
@@ -531,7 +530,7 @@ char *AtomVecHybrid::merge_fields(int inum, char *root,
 
   for (int i = 0; i < nwords; i++) {
     if (!unique[i]) continue;
-    strcat(dedup,words[i]);
+    strcat(dedup,words[i].c_str());
     if (i < nwords-1) strcat(dedup," ");
   }
 
@@ -542,8 +541,6 @@ char *AtomVecHybrid::merge_fields(int inum, char *root,
 
   // clean up
 
-  delete [] copystr;
-  delete [] words;
   delete [] unique;
 
   // return final concatenated, deduped string

@@ -18,6 +18,7 @@
 #include "pppm_dipole.h"
 #include <mpi.h>
 #include <cstring>
+#include <string>
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
@@ -30,6 +31,8 @@
 #include "memory.h"
 #include "error.h"
 #include "update.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 #include "math_const.h"
 #include "math_special.h"
@@ -102,10 +105,7 @@ PPPMDipole::~PPPMDipole()
 
 void PPPMDipole::init()
 {
-  if (me == 0) {
-    if (screen) fprintf(screen,"PPPMDipole initialization ...\n");
-    if (logfile) fprintf(logfile,"PPPMDipole initialization ...\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"PPPMDipole initialization ...\n");
 
   // error check
 
@@ -143,11 +143,9 @@ void PPPMDipole::init()
       error->all(FLERR,"Incorrect boundaries with slab PPPMDipole");
   }
 
-  if (order < 2 || order > MAXORDER) {
-    char str[128];
-    sprintf(str,"PPPMDipole order cannot be < 2 or > than %d",MAXORDER);
-    error->all(FLERR,str);
-  }
+  if (order < 2 || order > MAXORDER)
+    error->all(FLERR,fmt::format("PPPMDipole order cannot be < 2 or > {}",
+                                 MAXORDER));
 
   // compute two charge force
 
@@ -246,37 +244,17 @@ void PPPMDipole::init()
   MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
 
   if (me == 0) {
-
-#ifdef FFT_SINGLE
-    const char fft_prec[] = "single";
-#else
-    const char fft_prec[] = "double";
-#endif
-
-    if (screen) {
-      fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(screen,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
-      fprintf(screen,"  stencil order = %d\n",order);
-      fprintf(screen,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(screen,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(screen,"  using %s precision FFTs\n",fft_prec);
-      fprintf(screen,"  3d grid and FFT values/proc = %d %d\n",
-              ngrid_max,nfft_both_max);
-    }
-    if (logfile) {
-      fprintf(logfile,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(logfile,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
-      fprintf(logfile,"  stencil order = %d\n",order);
-      fprintf(logfile,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(logfile,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
-      fprintf(logfile,"  3d grid and FFT values/proc = %d %d\n",
-              ngrid_max,nfft_both_max);
-    }
+    std::string mesg = fmt::format("  G vector (1/distance) = {}\n",g_ewald);
+    mesg += fmt::format("  grid = {} {} {}\n",nx_pppm,ny_pppm,nz_pppm);
+    mesg += fmt::format("  stencil order = {}\n",order);
+    mesg += fmt::format("  estimated absolute RMS force accuracy = {}\n",
+                       estimated_accuracy);
+    mesg += fmt::format("  estimated relative force accuracy = {}\n",
+                       estimated_accuracy/two_charge_force);
+    mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
+    mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
+                       ngrid_max,nfft_both_max);
+    utils::logmesg(lmp,mesg);
   }
 
   // allocate K-space dependent memory

@@ -88,7 +88,7 @@ GPUs/node to 1.
 
 Using the "-pk" switch explicitly allows for setting of the number of
 GPUs/node to use and additional options.  Its syntax is the same as
-same as the "package gpu" command.  See the :doc:`package <package>`
+the "package gpu" command.  See the :doc:`package <package>`
 command doc page for details, including the default values used for
 all its options if it is not specified.
 

@@ -171,6 +171,46 @@ typedef int bigint;
 
 #endif
 
+  /// Data structe for packing 32-bit and 64-bit integers
+  /// into double (communication) buffers
+  ///
+  /// Using this union avoids aliasing issues by having member types
+  /// (double, int) referencing the same buffer memory location.
+  ///
+  /// The explicit constructor for 32-bit integers prevents compilers
+  /// from (incorrectly) calling the double constructor when storing
+  ///  an int into a double buffer.
+  /*
+\verbatim embed:rst
+**Usage:**
+
+To copy an integer into a double buffer:
+
+.. code-block: c++
+
+   double buf[2];
+   int    foo =   1;
+   tagint bar = 2<<40;
+   buf[1] = ubuf(foo).d;
+   buf[2] = ubuf(bar).d;
+
+To copy from a double buffer back to an int:
+
+.. code-block: c++
+
+   foo = (int)    ubuf(buf[1]).i;
+   bar = (tagint) ubuf(buf[2]).i;
+
+The typecast prevents compiler warnings about possible truncations.
+\endverbatim
+  */
+  union ubuf {
+    double  d;
+    int64_t i;
+    ubuf(const double  &arg) : d(arg) {}
+    ubuf(const int64_t &arg) : i(arg) {}
+    ubuf(const int     &arg) : i(arg) {}
+  };
 }
 
 // preprocessor macros for compiler specific settings

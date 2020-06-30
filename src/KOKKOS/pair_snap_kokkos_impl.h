@@ -632,8 +632,8 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeNeigh,const typen
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPBeta,const int& ii) const {
-  
-  if (ii >= chunk_size) return; 
+
+  if (ii >= chunk_size) return;
 
   const int iatom_mod = ii % 32;
   const int iatom_div = ii / 32;

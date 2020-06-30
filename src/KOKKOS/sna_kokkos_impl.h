@@ -295,7 +295,7 @@ void SNAKokkos<DeviceType>::pre_ui(const typename Kokkos::TeamPolicy<DeviceType>
 
         // if m is on the "diagonal", initialize it with the self energy.
         // Otherwise zero it out
-        double re_part = 0.; 
+        double re_part = 0.;
         if (m % (j+2) == 0 && (!chem_flag || ielem == jelem || wselfall_flag)) { re_part = wself; }
 
         ulisttot_re(jjup, jelem, iatom) = re_part;
@@ -436,7 +436,7 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
         } else {
           u_accum.re = -u_accum.re;
         }
-        
+
         buf2[jju_shared_flip] = u_accum;
 
         // split re, im to get fully coalesced atomic add
@@ -607,7 +607,7 @@ void SNAKokkos<DeviceType>::compute_bi(const int& iatom_mod, const int& jjb, con
         blist_pack(iatom_mod, jjb, itriple, iatom_div) = sumzu;
             //} // end loop over j
           //} // end loop over j1, j2
-        itriple++; 
+        itriple++;
       } // end loop over elem3
       idouble++;
     } // end loop over elem2
@@ -788,7 +788,7 @@ void SNAKokkos<DeviceType>::compute_fused_deidrj(const typename Kokkos::TeamPoli
 
   // single has a warp barrier at the end
   Kokkos::single(Kokkos::PerThread(team), [=]() {
-    
+
     ulist_buf1[0] = {1., 0.};
     dulist_buf1[0] = {0., 0.};
   });
@@ -878,7 +878,7 @@ void SNAKokkos<DeviceType>::compute_fused_deidrj(const typename Kokkos::TeamPoli
       // u[ma-j][mb-j] = (-1)^(ma-mb)*Conj([u[ma][mb])
       if (j%2==1 && mb+1==n_mb) {
         int sign_factor = (((ma+mb)%2==0)?1:-1);
-        
+
         const int jju_shared_flip = (j+1-mb)*(j+1)-(ma+1);
 
         if (sign_factor == 1) {
@@ -1138,7 +1138,7 @@ void SNAKokkos<DeviceType>::compute_bi_cpu(const typename Kokkos::TeamPolicy<Dev
                 if (elem1 == elem2 && elem1 == elem3) {
                   sumzu -= bzero[j];
                 }
-              } else { 
+              } else {
                 sumzu -= bzero[j];
               }
             }
@@ -1153,7 +1153,7 @@ void SNAKokkos<DeviceType>::compute_bi_cpu(const typename Kokkos::TeamPolicy<Dev
       idouble++;
     } // end loop over elem2
   } // end loop over elem1
-  
+
 }
 
 /* ----------------------------------------------------------------------
@@ -2036,7 +2036,7 @@ double SNAKokkos<DeviceType>::memory_usage()
 
 #ifdef KOKKOS_ENABLE_CUDA
   if (std::is_same<DeviceType,Kokkos::Cuda>::value) {
-    
+
     bytes += natom * idxu_max * nelements * sizeof(double);          // ulisttot_re
     bytes += natom * idxu_max * nelements * sizeof(double);          // ulisttot_im
     bytes += natom_pad * idxu_max * nelements * sizeof(double) * 2;  // ulisttot_pack

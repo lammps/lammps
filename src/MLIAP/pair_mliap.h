@@ -45,7 +45,7 @@ protected:
 
   double** beta;                // betas for all atoms in list
   double** descriptors;         // descriptors for all atoms in list
-  int ndescriptors;             // number of descriptors 
+  int ndescriptors;             // number of descriptors
   int beta_max;                 // number of atoms allocated for beta, descriptors
 
   class MLIAPModel* model;

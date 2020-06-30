@@ -1683,7 +1683,7 @@ double FixHyperLocal::compute_vector(int i)
     return (double) allovercount;
   }
   */
-  
+
   return 0.0;
 }
 

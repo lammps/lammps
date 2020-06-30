@@ -852,7 +852,7 @@ void PairTersoffTable::read_file(char *file)
   if (comm->me == 0) {
     PotentialFileReader reader(lmp, file, "TersoffTable", unit_convert_flag);
     char *line;
-    
+
     // transparently convert units for supported conversions
 
     int unit_convert = reader.get_unit_convert();

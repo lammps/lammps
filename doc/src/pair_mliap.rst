@@ -16,19 +16,19 @@ Examples
 .. code-block:: LAMMPS
 
    pair_style mliap model linear InP.mliap.model descriptor sna InP.mliap.descriptor
-   pair_style mliap model quadratic W.mliap.model descriptor sna W.mliap.descriptor 
+   pair_style mliap model quadratic W.mliap.model descriptor sna W.mliap.descriptor
    pair_coeff * * In P
 
 Description
 """""""""""
 
-Pair style *mliap* provides a general interface to families of 
-machine-learning interatomic potentials. It provides separate 
+Pair style *mliap* provides a general interface to families of
+machine-learning interatomic potentials. It provides separate
 definitions of the interatomic potential functional form (*model*)
 and the geometric quantities that characterize the atomic positions
-(*descriptor*). By defining *model* and *descriptor* separately, 
+(*descriptor*). By defining *model* and *descriptor* separately,
 it is possible to use many different models with a given descriptor,
-or many different descriptors with a given model. Currently, the pair_style 
+or many different descriptors with a given model. Currently, the pair_style
 supports just two models, *linear* and *quadratic*,
 and one descriptor, *sna*, the SNAP descriptor used by :doc:`pair_style snap <pair_snap>`, including the linear, quadratic,
 and chem variants. Work is currently underway to extend
@@ -37,23 +37,23 @@ and it is also straightforward to add new descriptor styles.
 
 The pair_style *mliap* command must be followed by two keywords
 *model* and *descriptor* in either order. A single
-*pair_coeff* command is also required. The first 2 arguments 
+*pair_coeff* command is also required. The first 2 arguments
 must be \* \* so as to span all LAMMPS atom types.
 This is followed by a list of N arguments
 that specify the mapping of MLIAP
-element names to LAMMPS atom types, 
+element names to LAMMPS atom types,
 where N is the number of LAMMPS atom types.
 
 The *model* keyword is followed by a model style, currently limited to
 either *linear* or *quadratic*. In both cases,
-this is followed by a single argument specifying the model filename containing the 
-linear or quadratic coefficients for a set of elements. 
+this is followed by a single argument specifying the model filename containing the
+linear or quadratic coefficients for a set of elements.
 The model filename usually ends in the *.mliap.model* extension.
 It may contain coefficients for many elements. The only requirement is that it
 contain at least those element names appearing in the
 *pair_coeff* command.
 
-The top of the model file can contain any number of blank and comment lines (start with #), 
+The top of the model file can contain any number of blank and comment lines (start with #),
 but follows a strict format after that. The first non-blank non-comment
 line must contain two integers:
 
@@ -64,20 +64,20 @@ This is followed by one block for each of the *nelem* elements.
 Each block consists of *ncoeff* coefficients, one per line.
 Note that this format is similar, but not identical to that used
 for the :doc:`pair_style snap <pair_snap>` coefficient file.
-Specifically, the line containing the element weight and radius is omitted, 
+Specifically, the line containing the element weight and radius is omitted,
 since these are handled by the *descriptor*.
 
 The *descriptor* keyword is followed by a descriptor style, and additional arguments.
-Currently the only descriptor style is *sna*, indicating the bispectrum component 
-descriptors used by the Spectral Neighbor Analysis Potential (SNAP) potentials of 
+Currently the only descriptor style is *sna*, indicating the bispectrum component
+descriptors used by the Spectral Neighbor Analysis Potential (SNAP) potentials of
 :doc:`pair_style snap <pair_snap>`.
-The \'p\' in SNAP is dropped, because keywords that match pair_styles are silently stripped 
-out by the LAMMPS command parser. A single additional argument specifies the descriptor filename 
-containing the parameters and setting used by the SNAP descriptor. 
+The \'p\' in SNAP is dropped, because keywords that match pair_styles are silently stripped
+out by the LAMMPS command parser. A single additional argument specifies the descriptor filename
+containing the parameters and setting used by the SNAP descriptor.
 The descriptor filename usually ends in the *.mliap.descriptor* extension.
 
-The SNAP descriptor file closely follows the format of the 
-:doc:`pair_style snap <pair_snap>` parameter file. 
+The SNAP descriptor file closely follows the format of the
+:doc:`pair_style snap <pair_snap>` parameter file.
 The file can contain blank and comment lines (start
 with #) anywhere. Each non-blank non-comment line must contain one
 keyword/value pair. The required keywords are *rcutfac* and
@@ -87,7 +87,7 @@ In addition, the SNAP descriptor file must contain
 the *nelems*, *elems*, *radelems*, and *welems* keywords.
 The *nelems* keyword specifies the number of elements
 provided in the other three keywords.
-The *elems* keyword is followed by a list of *nelems* 
+The *elems* keyword is followed by a list of *nelems*
 element names that must include the element
 names appearing in the *pair_coeff* command,
 but can contain other names too.

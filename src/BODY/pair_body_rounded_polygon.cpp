@@ -619,22 +619,6 @@ void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
   fy = dely*fpair/rij;
   fz = delz*fpair/rij;
 
-  if (R <= EPSILON) { // in contact
-
-    // relative translational velocity
-
-    vr1 = v[i][0] - v[j][0];
-    vr2 = v[i][1] - v[j][1];
-    vr3 = v[i][2] - v[j][2];
-
-    // normal component
-
-    vnnr = vr1*delx + vr2*dely + vr3*delz;
-    vn1 = delx*vnnr * rsqinv;
-    vn2 = dely*vnnr * rsqinv;
-    vn3 = delz*vnnr * rsqinv;
-  }
-
   f[i][0] += fx;
   f[i][1] += fy;
   f[i][2] += fz;

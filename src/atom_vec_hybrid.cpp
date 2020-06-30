@@ -57,8 +57,6 @@ AtomVecHybrid::~AtomVecHybrid()
   delete [] styles;
   for (int k = 0; k < nstyles; k++) delete [] keywords[k];
   delete [] keywords;
-
-  for (int k = 0; k < nstyles_bonus; k++) delete styles_bonus[k];
   delete [] styles_bonus;
 
   if (!fields_allocated) return;

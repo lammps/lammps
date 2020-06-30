@@ -592,7 +592,7 @@ void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
                        double** f, int evflag)
 {
   double rradi,rradj;
-  double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
+  double vr1,vr2,vr3,vnnr,vn1,vn2,vn3;
   double rij,rsqinv,R,fx,fy,fz,fpair,shift,energy;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
@@ -633,12 +633,6 @@ void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
     vn1 = delx*vnnr * rsqinv;
     vn2 = dely*vnnr * rsqinv;
     vn3 = delz*vnnr * rsqinv;
-
-    // tangential component
-
-    vt1 = vr1 - vn1;
-    vt2 = vr2 - vn2;
-    vt3 = vr3 - vn3;
   }
 
   f[i][0] += fx;
@@ -1347,4 +1341,3 @@ void PairBodyRoundedPolygon::distance(const double* x2, const double* x1,
     + (x2[1] - x1[1]) * (x2[1] - x1[1])
     + (x2[2] - x1[2]) * (x2[2] - x1[2]));
 }
-

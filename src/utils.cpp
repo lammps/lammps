@@ -549,9 +549,9 @@ bool utils::is_double(const std::string & str) {
 
 std::string utils::path_basename(const std::string & path) {
 #if defined(_WIN32)
-  size_t start = path.find_last_of('/\\');
+  size_t start = path.find_last_of("/\\");
 #else
-  size_t start = path.find_last_of('/');
+  size_t start = path.find_last_of("/");
 #endif
 
   if (start == std::string::npos) {

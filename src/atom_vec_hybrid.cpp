@@ -233,8 +233,11 @@ void AtomVecHybrid::process_args(int narg, char **arg)
     styles_bonus = new AtomVec*[nstyles_bonus];
     nstyles_bonus = 0;
     for (int k = 0; k < nstyles; k++) {
-      if (styles[k]->bonus_flag)
+      if (styles[k]->bonus_flag) {
         styles_bonus[nstyles_bonus++] = styles[k];
+        size_forward_bonus += styles[k]->size_forward_bonus;
+        size_border_bonus += styles[k]->size_border_bonus;
+      }
     }
   }
 

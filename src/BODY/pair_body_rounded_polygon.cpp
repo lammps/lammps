@@ -588,19 +588,17 @@ void PairBodyRoundedPolygon::body2space(int i)
 
 void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
                        double delx, double dely, double delz, double rsq,
-                       double k_n, double k_na, double** /*x*/, double** v,
+                       double k_n, double k_na, double** /*x*/, double** /*v*/,
                        double** f, int evflag)
 {
   double rradi,rradj;
-  double vr1,vr2,vr3,vnnr,vn1,vn2,vn3;
-  double rij,rsqinv,R,fx,fy,fz,fpair,shift,energy;
+  double rij,R,fx,fy,fz,fpair,shift,energy;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
   rradi = rounded_radius[i];
   rradj = rounded_radius[j];
 
-  rsqinv = 1.0/rsq;
   rij = sqrt(rsq);
   R = rij - (rradi + rradj);
   shift = k_na * cut_inner;

@@ -779,6 +779,6 @@ void Replicate::command(int narg, char **arg)
   MPI_Barrier(world);
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  replicate CPU = {:.3f} secs\n",
+    utils::logmesg(lmp,fmt::format("  replicate CPU = {:.3f} seconds\n",
                                    MPI_Wtime()-time1));
 }

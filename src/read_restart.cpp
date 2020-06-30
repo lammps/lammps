@@ -511,7 +511,7 @@ void ReadRestart::command(int narg, char **arg)
   MPI_Barrier(world);
 
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("  read_restart CPU = {:.3f} secs\n",
+    utils::logmesg(lmp,fmt::format("  read_restart CPU = {:.3f} seconds\n",
                                    MPI_Wtime()-time1));
 }
 

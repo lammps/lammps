@@ -1438,7 +1438,7 @@ void Neighbor::init_topology()
 
 void Neighbor::print_pairwise_info()
 {
-  int i,m;
+  int i;
   NeighRequest *rq;
 
   const double cutghost = MAX(cutneighmax,comm->cutghostuser);

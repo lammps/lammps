@@ -149,15 +149,13 @@ void MLIAPDescriptorSNAP::forward(int* map, NeighList* list, double **descriptor
 void MLIAPDescriptorSNAP::backward(PairMLIAP* pairmliap, NeighList* list, double **beta, int vflag)
 {
   int i,j,jnum,ninside;
-  double delx,dely,delz,evdwl,rsq;
+  double delx,dely,delz,rsq;
   double fij[3];
   int *jlist,*numneigh,**firstneigh;
 
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int newton_pair = force->newton_pair;
 
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;

@@ -793,7 +793,6 @@ bool Info::is_active(const char *category, const char *name)
 {
   if ((category == NULL) || (name == NULL)) return false;
   const char *style = "none";
-  const int len = strlen(name);
 
   if (strcmp(category,"package") == 0) {
     if (strcmp(name,"gpu") == 0) {

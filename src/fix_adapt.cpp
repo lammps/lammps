@@ -586,9 +586,9 @@ void FixAdapt::change_settings()
       // reset radius to new value, for both owned and ghost atoms
       // also reset rmass to new value assuming density remains constant
       // for scaleflag, previous_diam_scale is the scale factor on previous step
-      
+
       if (ad->aparam == DIAMETER) {
-        double density,scale;
+        double scale;
         double *radius = atom->radius;
         double *rmass = atom->rmass;
         int *mask = atom->mask;
@@ -691,14 +691,14 @@ void FixAdapt::restore_settings()
 
     } else if (ad->which == ATOM) {
       if (diamflag) {
-        double density,scale;
+        double scale;
 
         double *vec = fix_diam->vstore;
         double *radius = atom->radius;
         double *rmass = atom->rmass;
         int *mask = atom->mask;
         int nlocal = atom->nlocal;
-        
+
         if (scaleflag) scale = previous_diam_scale;
 
         for (int i = 0; i < nlocal; i++)

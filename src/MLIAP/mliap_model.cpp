@@ -142,7 +142,6 @@ void MLIAPModel::read_coeffs(char *coefffilename)
   }
 
   if (comm->me == 0) fclose(fpcoeff);
-
 }
 
 /* ----------------------------------------------------------------------
@@ -153,9 +152,7 @@ double MLIAPModel::memory_usage()
 {
   double bytes = 0;
 
-  int n = atom->ntypes+1;
   bytes += nelements*nparams*sizeof(double);  // coeffelem
-
   return bytes;
 }
 

@@ -37,18 +37,21 @@ class ComputeMLIAP : public Compute {
   int natoms, nmax, size_peratom, lastcol;
   int nperdim, yoffset, zoffset;
   int ndims_peratom, ndims_force, ndims_virial;
-  double **cutsq;
   class NeighList *list;
   double **mliap, **mliapall;
   double **mliap_peratom;
   int *map;  // map types to [0,nelements)
   int nelements;
 
-  double*** gamma;             // gammas for all atoms in list
   double** descriptors;        // descriptors for all atoms in list
   int ndescriptors;            // number of descriptors 
   int gamma_max;               // number of atoms allocated for beta, descriptors
   int nparams;                 // number of model paramters per element
+  int gamma_nnz;               // number of non-zero entries in gamma
+  double** gamma;              // gamma element
+  int** gamma_row_index;       // row (parameter) index 
+  int** gamma_col_index;       // column (descriptor) index 
+  double* egradient;           // energy gradient w.r.t. parameters
 
   class MLIAPModel* model;
   class MLIAPDescriptor* descriptor;

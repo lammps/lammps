@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 enum{SCALAR,VECTOR,ARRAY};
 
 ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), cutsq(NULL), list(NULL), mliap(NULL),
+  Compute(lmp, narg, arg), list(NULL), mliap(NULL),
   mliap_peratom(NULL), mliapall(NULL)
 {
 
@@ -45,6 +45,11 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
 
   if (narg < 4)
     error->all(FLERR,"Illegal compute mliap command");
+
+  // set flags for required keywords
+
+  int modelflag = 0;
+  int descriptorflag = 0;
 
   // process keywords
 
@@ -62,6 +67,7 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
         model = new MLIAPModelQuadratic(lmp,arg[iarg+2]);
         iarg += 3;
       } else error->all(FLERR,"Illegal compute mliap command");
+      modelflag = 1;
     } else if (strcmp(arg[iarg],"descriptor") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute mliap command");
       if (strcmp(arg[iarg+1],"sna") == 0) {
@@ -69,10 +75,17 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
         descriptor = new MLIAPDescriptorSNAP(lmp,arg[iarg+2]);
         iarg += 3;
       } else error->all(FLERR,"Illegal compute mliap command");
-    }
+      descriptorflag = 1;
+    } else
+      error->all(FLERR,"Illegal compute mliap command");
   }
 
+  if (modelflag == 0 || descriptorflag == 0)
+    error->all(FLERR,"Illegal compute_style command");
+
   nparams = model->nparams;
+  nelements = model->nelements;
+  gamma_nnz = model->get_gamma_nnz();
   nperdim = nparams;
   ndims_force = 3;
   ndims_virial = 6;
@@ -96,9 +109,17 @@ ComputeMLIAP::~ComputeMLIAP()
   memory->destroy(mliap);
   memory->destroy(mliapall);
   memory->destroy(mliap_peratom);
-  memory->destroy(cutsq);
 
   memory->destroy(map);
+
+  memory->destroy(descriptors);
+  memory->destroy(gamma_row_index);
+  memory->destroy(gamma_col_index);
+  memory->destroy(gamma);
+  memory->destroy(egradient);
+
+  delete model;
+  delete descriptor;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -108,7 +129,7 @@ void ComputeMLIAP::init()
   if (force->pair == NULL)
     error->all(FLERR,"Compute mliap requires a pair style be defined");
 
-  if (descriptor->get_cutmax() > force->pair->cutforce)
+  if (descriptor->cutmax > force->pair->cutforce)
     error->all(FLERR,"Compute mliap cutoff is longer than pairwise cutoff");
 
   // need an occasional full neighbor list
@@ -187,8 +208,11 @@ void ComputeMLIAP::compute_array()
   }
 
   if (gamma_max < list->inum) {
-    memory->grow(descriptors,list->inum,ndescriptors,"PairMLIAP:descriptors");
-    memory->grow(gamma,nparams,list->inum,ndescriptors,"PairMLIAP:gamma");
+    memory->grow(descriptors,list->inum,ndescriptors,"ComputeMLIAP:descriptors");
+    memory->grow(gamma_row_index,list->inum,gamma_nnz,"ComputeMLIAP:gamma_row_index");
+    memory->grow(gamma_col_index,list->inum,gamma_nnz,"ComputeMLIAP:gamma_col_index");
+    memory->grow(gamma,list->inum,gamma_nnz,"ComputeMLIAP:gamma");
+    memory->grow(egradient,nelements*nparams,"ComputeMLIAP:egradient");
     gamma_max = list->inum;
   }
 
@@ -214,19 +238,12 @@ void ComputeMLIAP::compute_array()
   if (model->nonlinearflag)
     descriptor->forward(map, list, descriptors);
 
-  // ***********THIS IS NOT RIGHT**********************
-  // This whole idea is flawed. The gamma matrix is too big to
-  // store. Instead, we should generate the A matrix,
-  // just as ComputeSNAP does, and then pass it to 
-  // the model, which can evaluate gradients of E, F, sigma,
-  // w.r.t. model parameters.
-
   // calculate descriptor contributions to parameter gradients
   // and gamma = double gradient w.r.t. parameters and descriptors
 
-  // i.e. gamma = d2E/d\sigma.dB_i
-  // sigma is a parameter and B_i is a descriptor of atom i
-  // for SNAP, this is a sparse nparams*natoms*ndescriptors matrix,
+  // i.e. gamma = d2E/dsigma_l.dB_k
+  // sigma_l is a parameter and B_k is a descriptor of atom i
+  // for SNAP, this is a sparse natoms*nparams*ndescriptors matrix,
   // but in general it could be fully dense. 
  
   // *******Not implemented yet*****************
@@ -237,15 +254,22 @@ void ComputeMLIAP::compute_array()
   // For the quadratic model, the energy row will be similar,
   // while gamma will be 1's, 0's and Bi's  
 
-  //   model->param_gradient(list, descriptors, mliap[0], gamma);
+  model->param_gradient(map, list, descriptors, gamma_row_index, 
+                        gamma_col_index, gamma, egradient);
+
 
   // calculate descriptor gradient contributions to parameter gradients
 
   // *******Not implemented yet*****************
   // This will just take gamma and multiply it with
   // descriptor gradient contributions i.e. dblist
-  // this will resemble snadi accumualation in ComputeSNAP
+  // this will resemble snadi accumulation in ComputeSNAP
+
   // descriptor->param_backward(list, gamma, snadi);
+
+  descriptor->param_backward(map, list, gamma_nnz, gamma_row_index, 
+                             gamma_col_index, gamma, mliap_peratom,
+                             yoffset, zoffset);
 
   // accumulate descriptor gradient contributions to global array
 

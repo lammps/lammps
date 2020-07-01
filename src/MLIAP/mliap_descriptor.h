@@ -24,15 +24,16 @@ public:
   ~MLIAPDescriptor();
   virtual void forward(int*, class NeighList*, double**)=0;
   virtual void backward(class PairMLIAP*, class NeighList*, double**, int)=0;
+  virtual void param_backward(int*, class NeighList*, int, int**, int**, double**, 
+                              double**, int, int)=0;
   virtual void init()=0;
-  virtual double get_cutoff(int, int)=0;
-  virtual double get_cutmax()=0;
   virtual double memory_usage()=0;
 
   int ndescriptors;              // number of descriptors
   int nelements;                 // # of unique elements
   char **elements;               // names of unique elements
-
+  double **cutsq;                // nelem x nelem rcutsq values 
+  double cutmax;                 // maximum cutoff needed
 protected:
 
 };

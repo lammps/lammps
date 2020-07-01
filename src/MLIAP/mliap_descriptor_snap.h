@@ -24,9 +24,9 @@ public:
   ~MLIAPDescriptorSNAP();
   virtual void forward(int*, class NeighList*, double**);
   virtual void backward(class PairMLIAP*, class NeighList*, double**, int);
+  virtual void param_backward(int*, class NeighList*, int, int**, int**, double**, 
+                              double**, int, int);
   virtual void init();
-  virtual double get_cutoff(int, int);
-  virtual double get_cutmax();
   virtual double memory_usage();
 
   double rcutfac;                // declared public to workaround gcc 4.9

@@ -140,12 +140,12 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
       } else error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 2;
-      
+
     } else if (strcmp(arg[iarg],"atom") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix adapt command");
       adapt[nadapt].which = ATOM;
       if (strcmp(arg[iarg+1],"diameter") == 0 ||
-	  strcmp(arg[iarg+1],"diameter/disc") == 0) {
+          strcmp(arg[iarg+1],"diameter/disc") == 0) {
         adapt[nadapt].aparam = DIAMETER;
         diamflag = 1;
         discflag = 0;
@@ -195,10 +195,10 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
   // if scaleflag set with diameter or charge adaptation,
   // then previous step scale factors are written to restart file
   // initialize them here in case one is used and other is never defined
-  
+
   if (scaleflag && (diamflag || chgflag)) restart_global = 1;
   previous_diam_scale = previous_chg_scale = 1.0;
-  
+
   // allocate pair style arrays
 
   int n = atom->ntypes;
@@ -452,7 +452,7 @@ void FixAdapt::init()
       }
     }
   }
-    
+
   if (restart_reset) restart_reset = 0;
 
   // make copy of original pair/bond array values
@@ -586,9 +586,9 @@ void FixAdapt::change_settings()
       // reset radius to new value, for both owned and ghost atoms
       // also reset rmass to new value assuming density remains constant
       // for scaleflag, previous_diam_scale is the scale factor on previous step
-      
+
       if (ad->aparam == DIAMETER) {
-        double density,scale;
+        double scale;
         double *radius = atom->radius;
         double *rmass = atom->rmass;
         int *mask = atom->mask;
@@ -608,7 +608,7 @@ void FixAdapt::change_settings()
             else radius[i] = 0.5*value;
           }
         }
-	  
+
         if (scaleflag) previous_diam_scale = value;
 
       // reset charge to new value, for both owned and ghost atoms
@@ -621,15 +621,15 @@ void FixAdapt::change_settings()
         int nlocal = atom->nlocal;
         int nall = nlocal + atom->nghost;
 
-	if (scaleflag) scale = value / previous_chg_scale;
-	
+        if (scaleflag) scale = value / previous_chg_scale;
+
         for (i = 0; i < nall; i++) {
           if (mask[i] & groupbit) {
             if (scaleflag) q[i] *= scale;
             else q[i] = value;
           }
-	}
-	
+        }
+
         if (scaleflag) previous_chg_scale = value;
       }
     }
@@ -691,14 +691,14 @@ void FixAdapt::restore_settings()
 
     } else if (ad->which == ATOM) {
       if (diamflag) {
-        double density,scale;
+        double scale;
 
         double *vec = fix_diam->vstore;
         double *radius = atom->radius;
         double *rmass = atom->rmass;
         int *mask = atom->mask;
         int nlocal = atom->nlocal;
-        
+
         if (scaleflag) scale = previous_diam_scale;
 
         for (int i = 0; i < nlocal; i++)
@@ -745,7 +745,7 @@ void FixAdapt::set_arrays(int i)
 void FixAdapt::write_restart(FILE *fp)
 {
   int size = 2*sizeof(double);
-  
+
   fwrite(&size,sizeof(int),1,fp);
   fwrite(&previous_diam_scale,sizeof(double),1,fp);
   fwrite(&previous_chg_scale,sizeof(double),1,fp);
@@ -758,7 +758,7 @@ void FixAdapt::write_restart(FILE *fp)
 void FixAdapt::restart(char *buf)
 {
   double *dbuf = (double *) buf;
-  
+
   previous_diam_scale = dbuf[0];
   previous_chg_scale = dbuf[1];
 }

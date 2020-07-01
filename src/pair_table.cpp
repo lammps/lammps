@@ -70,7 +70,6 @@ void PairTable::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype,itable;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,factor_lj,fraction,value,a,b;
-  char estr[128];
   int *ilist,*jlist,*numneigh,**firstneigh;
   Table *tb;
 

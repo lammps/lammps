@@ -1939,12 +1939,13 @@ void Domain::print_box(const std::string &prefix)
   if (comm->me == 0) {
     std::string mesg = prefix;
     if (triclinic == 0) {
-      mesg += fmt::format("orthogonal box = ({} {} {}) to ({} {} {})\n",
-                          boxlo[0],boxlo[1],boxlo[2],
-                          boxhi[0],boxhi[1],boxhi[2]);
+      mesg += fmt::format("orthogonal box = ({:.8g} {:.8g} {:.8g}) to "
+                          "({:.8g} {:.8g} {:.8g})\n",boxlo[0],boxlo[1],
+                          boxlo[2],boxhi[0],boxhi[1],boxhi[2]);
     } else {
-      mesg += fmt::format("triclinic box = ({} {} {}) to ({} {} {}) "
-                          "with tilt ({} {} {})\n",boxlo[0],boxlo[1],
+      mesg += fmt::format("triclinic box = ({:.8g} {:.8g} {:.8g}) to "
+                          "({:.8g} {:.8g} {:.8g}) with tilt "
+                          "({:.8g} {:.8g} {:.8g})\n",boxlo[0],boxlo[1],
                           boxlo[2],boxhi[0],boxhi[1],boxhi[2],xy,xz,yz);
     }
     utils::logmesg(lmp,mesg);

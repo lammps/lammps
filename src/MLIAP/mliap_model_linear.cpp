@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPModelLinear::MLIAPModelLinear(LAMMPS* lmp, char* coefffilename) : 
+MLIAPModelLinear::MLIAPModelLinear(LAMMPS* lmp, char* coefffilename) :
   MLIAPModel(lmp, coefffilename)
 {
   nonlinearflag = 0;
@@ -71,7 +71,7 @@ void MLIAPModelLinear::gradient(PairMLIAP* pairmliap, NeighList* list, double **
 
       for (int icoeff = 0; icoeff < ndescriptors; icoeff++)
         etmp += coeffi[icoeff+1]*descriptors[ii][icoeff];
-      
+
       pairmliap->e_tally(i,etmp);
     }
   }

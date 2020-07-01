@@ -1007,6 +1007,9 @@ TEST(PairStyle, single)
     char **argv = (char **)args;
     int argc    = sizeof(args) / sizeof(char *);
 
+    // need to add this dependency
+    test_config.prerequisites.push_back(std::make_pair("atom", "full"));
+
     // create a LAMMPS instance with standard settings to detect the number of atom types
     if (!verbose) ::testing::internal::CaptureStdout();
     LAMMPS *lmp = init_lammps(argc, argv, test_config);
@@ -1018,8 +1021,10 @@ TEST(PairStyle, single)
         for (auto prerequisite : test_config.prerequisites) {
             std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
         }
+        test_config.prerequisites.pop_back();
         GTEST_SKIP();
     }
+    test_config.prerequisites.pop_back();
 
     // gather some information and skip if unsupported
     int ntypes    = lmp->atom->ntypes;

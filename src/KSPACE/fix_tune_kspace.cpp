@@ -149,7 +149,7 @@ void FixTuneKspace::pre_exchange()
     update_pair_style(new_pair_style,pair_cut_coul);
     update_kspace_style(new_kspace_style,new_acc_str);
   } else if (niter == 4) {
-    store_old_kspace_settings();    
+    store_old_kspace_settings();
     if (comm->me == 0)
       utils::logmesg(lmp,fmt::format("ewald_time = {}\n"
                                      "pppm_time = {}\n"

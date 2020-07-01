@@ -57,8 +57,6 @@ AtomVecHybrid::~AtomVecHybrid()
   delete [] styles;
   for (int k = 0; k < nstyles; k++) delete [] keywords[k];
   delete [] keywords;
-
-  for (int k = 0; k < nstyles_bonus; k++) delete styles_bonus[k];
   delete [] styles_bonus;
 
   if (!fields_allocated) return;
@@ -225,6 +223,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
 
   // set bonus_flag if any substyle has bonus data
   // set nstyles_bonus & styles_bonus
+  // sum two sizes over contributions from each substyle with bonus data.
 
   nstyles_bonus = 0;
   for (int k = 0; k < nstyles; k++)
@@ -234,9 +233,14 @@ void AtomVecHybrid::process_args(int narg, char **arg)
     bonus_flag = 1;
     styles_bonus = new AtomVec*[nstyles_bonus];
     nstyles_bonus = 0;
+    size_forward_bonus = 0;
+    size_border_bonus = 0;
     for (int k = 0; k < nstyles; k++) {
-      if (styles[k]->bonus_flag)
+      if (styles[k]->bonus_flag) {
         styles_bonus[nstyles_bonus++] = styles[k];
+        size_forward_bonus += styles[k]->size_forward_bonus;
+        size_border_bonus += styles[k]->size_border_bonus;
+      }
     }
   }
 

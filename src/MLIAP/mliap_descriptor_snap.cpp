@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPDescriptorSNAP::MLIAPDescriptorSNAP(LAMMPS *lmp, char *paramfilename): 
+MLIAPDescriptorSNAP::MLIAPDescriptorSNAP(LAMMPS *lmp, char *paramfilename):
   MLIAPDescriptor(lmp)
 {
   nelements = 0;
@@ -149,15 +149,13 @@ void MLIAPDescriptorSNAP::forward(int* map, NeighList* list, double **descriptor
 void MLIAPDescriptorSNAP::backward(PairMLIAP* pairmliap, NeighList* list, double **beta, int vflag)
 {
   int i,j,jnum,ninside;
-  double delx,dely,delz,evdwl,rsq;
+  double delx,dely,delz,rsq;
   double fij[3];
   int *jlist,*numneigh,**firstneigh;
 
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int newton_pair = force->newton_pair;
 
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
@@ -244,13 +242,13 @@ void MLIAPDescriptorSNAP::backward(PairMLIAP* pairmliap, NeighList* list, double
 
       // add in gloabl and per-atom virial contributions
       // this is optional and has no effect on force calculation
-      
+
       if (vflag)
         pairmliap->v_tally(i,j,
                      fij[0],fij[1],fij[2],
                      -snaptr->rij[jj][0],-snaptr->rij[jj][1],
                      -snaptr->rij[jj][2]);
-      
+
     }
   }
 
@@ -340,8 +338,8 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
       utils::logmesg(lmp, fmt::format("SNAP keyword {} {} \n", keywd, keyval));
     }
 
-    // check for keywords with one value per element 
-    
+    // check for keywords with one value per element
+
     if (strcmp(keywd,"elems") == 0 ||
         strcmp(keywd,"radelems") == 0 ||
         strcmp(keywd,"welems") == 0) {
@@ -374,9 +372,9 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
 
     } else {
 
-    // all other keywords take one value 
+    // all other keywords take one value
 
-      if (nwords != 2) 
+      if (nwords != 2)
         error->all(FLERR,"Incorrect SNAP parameter file");
 
       if (strcmp(keywd,"nelems") == 0) {
@@ -410,8 +408,8 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
 
     }
   }
-  
-  if (!rcutfacflag || !twojmaxflag || !nelementsflag || 
+
+  if (!rcutfacflag || !twojmaxflag || !nelementsflag ||
       !elementsflag || !radelemflag || !wjelemflag)
     error->all(FLERR,"Incorrect SNAP parameter file");
 

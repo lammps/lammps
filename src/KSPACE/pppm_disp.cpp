@@ -316,7 +316,6 @@ void PPPMDisp::init()
   for (int i=0; i<=EWALD_MAXORDER; ++i)                 // transcribe order
     if (ewald_order&(1<<i)) {                           // from pair_style
       int  k=0;
-      char str[128];
       switch (i) {
         case 1:
           k = 0; break;

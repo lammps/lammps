@@ -160,17 +160,17 @@ inline
 
   t_sna_3c_ll ulist;
   t_sna_3c_ll ylist;
-  
+
   // derivatives of data
   t_sna_4c3_ll dulist;
-  
+
   // Modified structures for GPU backend
   t_sna_3d_ll ulisttot_re; // split real,
   t_sna_3d_ll ulisttot_im; // imag
   t_sna_4c_ll ulisttot_pack; // AoSoA layout
   t_sna_4c_ll zlist_pack; // AoSoA layout
   t_sna_4d_ll blist_pack;
-  t_sna_4d_ll ylist_pack_re; // split real, 
+  t_sna_4d_ll ylist_pack_re; // split real,
   t_sna_4d_ll ylist_pack_im; // imag AoSoA layout
 
   int idxcg_max, idxu_max, idxz_max, idxb_max;

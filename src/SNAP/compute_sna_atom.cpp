@@ -259,7 +259,7 @@ void ComputeSNAAtom::compute_peratom()
         int jtype = type[j];
         int jelem = 0;
         if (chemflag)
-          int jelem = map[jtype];
+          jelem = map[jtype];
         if (rsq < cutsq[itype][jtype] && rsq>1e-20) {
           snaptr->rij[ninside][0] = delx;
           snaptr->rij[ninside][1] = dely;

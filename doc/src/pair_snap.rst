@@ -25,9 +25,9 @@ Description
 """""""""""
 
 Pair style *snap* defines the spectral
-neighbor analysis potential (SNAP), a machine-learning 
+neighbor analysis potential (SNAP), a machine-learning
 interatomic potential :ref:`(Thompson) <Thompson20142>`.
-Like the GAP framework of Bartok et al. :ref:`(Bartok2010) <Bartok20102>`, 
+Like the GAP framework of Bartok et al. :ref:`(Bartok2010) <Bartok20102>`,
 SNAP uses bispectrum components
 to characterize the local neighborhood of each atom
 in a very general way. The mathematical definition of the
@@ -139,7 +139,7 @@ The SNAP parameter file can contain blank and comment lines (start
 with #) anywhere. Each non-blank non-comment line must contain one
 keyword/value pair. The required keywords are *rcutfac* and
 *twojmax*\ . Optional keywords are *rfac0*\ , *rmin0*\ ,
-*switchflag*\ , *bzeroflag*\ , *quadraticflag*\ , *chemflag*\ , 
+*switchflag*\ , *bzeroflag*\ , *quadraticflag*\ , *chemflag*\ ,
 *bnormflag*\ , *wselfallflag*\ , and *chunksize*\ .
 
 The default values for these keywords are
@@ -154,34 +154,34 @@ The default values for these keywords are
 * *wselfallflag* = 0
 * *chunksize* = 2000
 
-If *quadraticflag* is set to 1, then the SNAP energy expression includes additional quadratic terms 
+If *quadraticflag* is set to 1, then the SNAP energy expression includes additional quadratic terms
 that have been shown to increase the overall accuracy of the potential without much increase
-in computational cost :ref:`(Wood) <Wood20182>`. 
+in computational cost :ref:`(Wood) <Wood20182>`.
 
 .. math::
 
    E^i_{SNAP}(\mathbf{B}^i) = \beta^{\mu_i}_0 + \boldsymbol{\beta}^{\mu_i} \cdot \mathbf{B}_i + \frac{1}{2}\mathbf{B}^t_i \cdot \boldsymbol{\alpha}^{\mu_i} \cdot \mathbf{B}_i
 
-where :math:`\mathbf{B}_i` is the *K*-vector of bispectrum components, 
-:math:`\boldsymbol{\beta}^{\mu_i}` is the *K*-vector of linear coefficients 
-for element :math:`\mu_i`, and :math:`\boldsymbol{\alpha}^{\mu_i}` 
+where :math:`\mathbf{B}_i` is the *K*-vector of bispectrum components,
+:math:`\boldsymbol{\beta}^{\mu_i}` is the *K*-vector of linear coefficients
+for element :math:`\mu_i`, and :math:`\boldsymbol{\alpha}^{\mu_i}`
 is the symmetric *K* by *K* matrix of quadratic coefficients.
 The SNAP element file should contain *K*\ (\ *K*\ +1)/2 additional coefficients
 for each element, the upper-triangular elements of :math:`\boldsymbol{\alpha}^{\mu_i}`.
 
 If *chemflag* is set to 1, then the energy expression is written in terms of explicit multi-element bispectrum
 components indexed on ordered triplets of elements, which has been shown to increase the ability of the SNAP
-potential to capture energy differences in chemically complex systems, 
+potential to capture energy differences in chemically complex systems,
 at the expense of a significant increase in computational cost :ref:`(Cusentino) <Cusentino20202>`.
 
 .. math::
 
-   E^i_{SNAP}(\mathbf{B}^i) = \beta^{\mu_i}_0 + \sum_{\kappa,\lambda,\mu} \boldsymbol{\beta}^{\kappa\lambda\mu}_{\mu_i} \cdot \mathbf{B}^{\kappa\lambda\mu}_i 
+   E^i_{SNAP}(\mathbf{B}^i) = \beta^{\mu_i}_0 + \sum_{\kappa,\lambda,\mu} \boldsymbol{\beta}^{\kappa\lambda\mu}_{\mu_i} \cdot \mathbf{B}^{\kappa\lambda\mu}_i
 
-where :math:`\mathbf{B}^{\kappa\lambda\mu}_i` is the *K*-vector of bispectrum components 
-for neighbors of elements :math:`\kappa`, :math:`\lambda`, and :math:`\mu` and 
-:math:`\boldsymbol{\beta}^{\kappa\lambda\mu}_{\mu_i}` is the corresponding *K*-vector 
-of linear coefficients for element :math:`\mu_i`. The SNAP element file should contain 
+where :math:`\mathbf{B}^{\kappa\lambda\mu}_i` is the *K*-vector of bispectrum components
+for neighbors of elements :math:`\kappa`, :math:`\lambda`, and :math:`\mu` and
+:math:`\boldsymbol{\beta}^{\kappa\lambda\mu}_{\mu_i}` is the corresponding *K*-vector
+of linear coefficients for element :math:`\mu_i`. The SNAP element file should contain
 a total of :math:`K N_{elem}^3` coefficients for each of the :math:`N_{elem}` elements.
 
 The keyword *chunksize* is only applicable when using the

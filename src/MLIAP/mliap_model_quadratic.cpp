@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPModelQuadratic::MLIAPModelQuadratic(LAMMPS* lmp, char* coefffilename) : 
+MLIAPModelQuadratic::MLIAPModelQuadratic(LAMMPS* lmp, char* coefffilename) :
   MLIAPModel(lmp, coefffilename)
 {
   nonlinearflag = 1;
@@ -72,7 +72,7 @@ void MLIAPModelQuadratic::gradient(PairMLIAP* pairmliap, NeighList* list, double
 
     // add in contributions to global and per-atom energy
     // this is optional and has no effect on force calculation
- 
+
     if (eflag) {
 
       // energy of atom I

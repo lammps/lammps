@@ -1438,7 +1438,7 @@ void Neighbor::init_topology()
 
 void Neighbor::print_pairwise_info()
 {
-  int i,m;
+  int i;
   NeighRequest *rq;
 
   const double cutghost = MAX(cutneighmax,comm->cutghostuser);
@@ -1466,10 +1466,10 @@ void Neighbor::print_pairwise_info()
                      every,delay,dist_check ? "yes" : "no");
   out += fmt::format("  max neighbors/atom: {}, page size: {}\n",
                      oneatom, pgsize);
-  out += fmt::format("  master list distance cutoff = {}\n",cutneighmax);
-  out += fmt::format("  ghost atom cutoff = {}\n",cutghost);
+  out += fmt::format("  master list distance cutoff = {:.8g}\n",cutneighmax);
+  out += fmt::format("  ghost atom cutoff = {:.8g}\n",cutghost);
   if (style != Neighbor::NSQ)
-    out += fmt::format("  binsize = {}, bins = {} {} {}\n",binsize,
+    out += fmt::format("  binsize = {:.8g}, bins = {:g} {:g} {:g}\n",binsize,
                        ceil(bbox[0]/binsize), ceil(bbox[1]/binsize),
                        ceil(bbox[2]/binsize));
 

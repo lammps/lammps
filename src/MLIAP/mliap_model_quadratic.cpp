@@ -37,6 +37,15 @@ MLIAPModelQuadratic::MLIAPModelQuadratic(LAMMPS* lmp, char* coefffilename) :
 
 /* ---------------------------------------------------------------------- */
 
+MLIAPModelQuadratic::MLIAPModelQuadratic(LAMMPS* lmp, int nelements_in, int nparams_in) : 
+  MLIAPModel(lmp, nelements_in, nparams_in)
+{
+  nonlinearflag = 1;
+  ndescriptors = sqrt(2*nparams)-1;
+}
+
+/* ---------------------------------------------------------------------- */
+
 MLIAPModelQuadratic::~MLIAPModelQuadratic(){}
 
 /* ----------------------------------------------------------------------

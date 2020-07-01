@@ -31,7 +31,14 @@ using namespace LAMMPS_NS;
 MLIAPModelLinear::MLIAPModelLinear(LAMMPS* lmp, char* coefffilename) : 
   MLIAPModel(lmp, coefffilename)
 {
-  nonlinearflag = 0;
+  ndescriptors = nparams - 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+MLIAPModelLinear::MLIAPModelLinear(LAMMPS* lmp, int nelements_in, int nparams_in) : 
+  MLIAPModel(lmp, nelements_in, nparams_in)
+{
   ndescriptors = nparams - 1;
 }
 
@@ -110,7 +117,9 @@ void MLIAPModelLinear::param_gradient(int *map, NeighList* list,
 
     i = list->ilist[ii];
     const int itype = type[i];
-    const int ielem = map[itype];
+    // element map not yet implemented
+    // const int ielem = map[itype];
+    const int ielem = itype-1;
     const int elemoffset = nparams*ielem;
 
     int l = elemoffset+1;

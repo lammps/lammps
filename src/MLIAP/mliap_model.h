@@ -21,6 +21,7 @@ namespace LAMMPS_NS {
 class MLIAPModel : protected Pointers {
 public:
   MLIAPModel(LAMMPS*, char*);
+  MLIAPModel(LAMMPS*, int, int);
   ~MLIAPModel();
   virtual void gradient(class PairMLIAP*, class NeighList*, double**, double**, int)=0;
   virtual void param_gradient(int*, class NeighList*, double**, int**, int**, double**, double*)=0;

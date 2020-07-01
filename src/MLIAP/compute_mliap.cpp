@@ -35,13 +35,12 @@ enum{SCALAR,VECTOR,ARRAY};
 
 ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), list(NULL), mliap(NULL),
-  mliap_peratom(NULL), mliapall(NULL)
+  mliap_peratom(NULL), mliapall(NULL), map(NULL), 
+  descriptors(NULL), gamma_row_index(NULL), gamma_col_index(NULL),
+  gamma(NULL), egradient(NULL), model(NULL), descriptor(NULL)
 {
-
   array_flag = 1;
   extarray = 0;
-
-  int ntypes = atom->ntypes;
 
   if (narg < 4)
     error->all(FLERR,"Illegal compute mliap command");
@@ -53,19 +52,23 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
 
   // process keywords
 
-  int iarg = 0;
+  int iarg = 3;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"model") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute mliap command");
       if (strcmp(arg[iarg+1],"linear") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal compute mliap command");
-        model = new MLIAPModelLinear(lmp,arg[iarg+2]);
-        iarg += 3;
+	if (iarg+4 > narg) error->all(FLERR,"Illegal compute mliap command");
+	int ntmp1 = atoi(arg[iarg+2]);
+	int ntmp2 = atoi(arg[iarg+3]);
+        model = new MLIAPModelLinear(lmp,ntmp1,ntmp2);
+        iarg += 4;
       } else if (strcmp(arg[iarg+1],"quadratic") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal compute mliap command");
-        model = new MLIAPModelQuadratic(lmp,arg[iarg+2]);
-        iarg += 3;
+	if (iarg+4 > narg) error->all(FLERR,"Illegal compute mliap command");
+	int ntmp1 = atoi(arg[iarg+2]);
+	int ntmp2 = atoi(arg[iarg+3]);
+        model = new MLIAPModelQuadratic(lmp,ntmp1,ntmp2);
+        iarg += 4;
       } else error->all(FLERR,"Illegal compute mliap command");
       modelflag = 1;
     } else if (strcmp(arg[iarg],"descriptor") == 0) {
@@ -83,6 +86,7 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
   if (modelflag == 0 || descriptorflag == 0)
     error->all(FLERR,"Illegal compute_style command");
 
+  ndescriptors = descriptor->ndescriptors;
   nparams = model->nparams;
   nelements = model->nelements;
   gamma_nnz = model->get_gamma_nnz();
@@ -100,6 +104,8 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
   size_peratom = ndims_peratom*nperdim*atom->ntypes;
 
   nmax = 0;
+  gamma_max = 0;
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -147,13 +153,31 @@ void ComputeMLIAP::init()
   if (count > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute mliap");
 
+  // initialize model and descriptor
+
+  model->init();
+  descriptor->init();
+
+  // consistency checks
+
+  if (descriptor->ndescriptors != model->ndescriptors)
+    error->all(FLERR,"Incompatible model and descriptor definitions");
+  if (descriptor->nelements != model->nelements)
+    error->all(FLERR,"Incompatible model and descriptor definitions");
+  if (nelements != atom->ntypes)
+    error->all(FLERR,"nelements must equal ntypes");
+
   // allocate memory for global array
 
+  printf("size_array_rows = %d size_array_cols = %d\n",size_array_rows,size_array_cols);
   memory->create(mliap,size_array_rows,size_array_cols,
                  "mliap:mliap");
   memory->create(mliapall,size_array_rows,size_array_cols,
                  "mliap:mliapall");
   array = mliapall;
+
+  printf("nelements = %d nparams = %d\n",nelements,nparams);
+  memory->create(egradient,nelements*nparams,"ComputeMLIAP:egradient");
 
   // find compute for reference energy
 
@@ -203,17 +227,9 @@ void ComputeMLIAP::compute_array()
   if (atom->nmax > nmax) {
     memory->destroy(mliap_peratom);
     nmax = atom->nmax;
+    printf("nmax = %d size_peratom = %d\n",nmax,size_peratom);
     memory->create(mliap_peratom,nmax,size_peratom,
                    "mliap:mliap_peratom");
-  }
-
-  if (gamma_max < list->inum) {
-    memory->grow(descriptors,list->inum,ndescriptors,"ComputeMLIAP:descriptors");
-    memory->grow(gamma_row_index,list->inum,gamma_nnz,"ComputeMLIAP:gamma_row_index");
-    memory->grow(gamma_col_index,list->inum,gamma_nnz,"ComputeMLIAP:gamma_col_index");
-    memory->grow(gamma,list->inum,gamma_nnz,"ComputeMLIAP:gamma");
-    memory->grow(egradient,nelements*nparams,"ComputeMLIAP:egradient");
-    gamma_max = list->inum;
   }
 
   // clear global array
@@ -232,6 +248,15 @@ void ComputeMLIAP::compute_array()
   // invoke full neighbor list (will copy or build if necessary)
 
   neighbor->build_one(list);
+
+  if (gamma_max < list->inum) {
+    memory->grow(descriptors,list->inum,ndescriptors,"ComputeMLIAP:descriptors");
+    memory->grow(gamma_row_index,list->inum,gamma_nnz,"ComputeMLIAP:gamma_row_index");
+    memory->grow(gamma_col_index,list->inum,gamma_nnz,"ComputeMLIAP:gamma_col_index");
+    memory->grow(gamma,list->inum,gamma_nnz,"ComputeMLIAP:gamma");
+    gamma_max = list->inum;
+  }
+  printf("gamma_max %d %d %d %d %d %d %p\n",gamma_max, ndescriptors, gamma_nnz, nelements, nparams, list->inum, list);
 
   // compute descriptors, if needed
 
@@ -312,6 +337,7 @@ void ComputeMLIAP::compute_array()
   int irow = 0;
   double reference_energy = c_pe->compute_scalar();
   mliapall[irow++][lastcol] = reference_energy;
+  printf("Reference energy = %g %g %g %d %d\n",reference_energy,mliapall[irow-1][lastcol],array[irow-1][lastcol],irow-1,lastcol);
 
   // assign virial stress to last column
   // switch to Voigt notation

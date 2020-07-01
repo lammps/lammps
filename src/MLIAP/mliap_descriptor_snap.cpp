@@ -45,6 +45,13 @@ MLIAPDescriptorSNAP::MLIAPDescriptorSNAP(LAMMPS *lmp, char *paramfilename):
   wjelem = NULL;
   snaptr = NULL;
   read_paramfile(paramfilename);
+
+  snaptr = new SNA(lmp, rfac0, twojmax,
+                   rmin0, switchflag, bzeroflag,
+                   chemflag, bnormflag, wselfallflag, nelements);
+
+  ndescriptors = snaptr->ncoeff;
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -85,8 +92,9 @@ void MLIAPDescriptorSNAP::forward(int* map, NeighList* list, double **descriptor
     const double ytmp = x[i][1];
     const double ztmp = x[i][2];
     const int itype = type[i];
-    const int ielem = map[itype];
-    const double radi = radelem[ielem];
+    // element map not yet implemented
+    // const int ielem = map[itype];
+    const int ielem = itype-1;
 
     jlist = list->firstneigh[i];
     jnum = list->numneigh[i];
@@ -110,16 +118,18 @@ void MLIAPDescriptorSNAP::forward(int* map, NeighList* list, double **descriptor
       delz = x[j][2] - ztmp;
       rsq = delx*delx + dely*dely + delz*delz;
       int jtype = type[j];
-      int jelem = map[jtype];
+      // element map not yet implemented
+      // const int jelem = map[jtype];
+      const int jelem = jtype-1;
 
       if (rsq < cutsq[ielem][jelem]) {
         snaptr->rij[ninside][0] = delx;
         snaptr->rij[ninside][1] = dely;
         snaptr->rij[ninside][2] = delz;
         snaptr->inside[ninside] = j;
-        snaptr->wj[ninside] = wjelem[jelem];
-        snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
-        snaptr->element[ninside] = jelem; // element index for chem snap
+	snaptr->wj[ninside] = wjelem[jelem];
+	snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
+	snaptr->element[ninside] = jelem; // element index for chem snap
         ninside++;
       }
     }
@@ -129,6 +139,7 @@ void MLIAPDescriptorSNAP::forward(int* map, NeighList* list, double **descriptor
     else
       snaptr->compute_ui(ninside, 0);
     snaptr->compute_zi();
+
     if (chemflag)
       snaptr->compute_bi(ielem);
     else
@@ -168,7 +179,6 @@ void MLIAPDescriptorSNAP::backward(PairMLIAP* pairmliap, NeighList* list, double
     const double ztmp = x[i][2];
     const int itype = type[i];
     const int ielem = pairmliap->map[itype];
-    const double radi = radelem[ielem];
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -194,7 +204,7 @@ void MLIAPDescriptorSNAP::backward(PairMLIAP* pairmliap, NeighList* list, double
       int jtype = type[j];
       int jelem = pairmliap->map[jtype];
 
-      if (rsq < cutsq[itype][jtype]) {
+      if (rsq < cutsq[ielem][jelem]) {
         snaptr->rij[ninside][0] = delx;
         snaptr->rij[ninside][1] = dely;
         snaptr->rij[ninside][2] = delz;
@@ -286,8 +296,9 @@ void MLIAPDescriptorSNAP::param_backward(int *map, NeighList* list,
     const int itype = type[i];
     int ielem = 0;
     if (chemflag)
-      ielem = map[itype];
-    const double radi = radelem[ielem];
+    // element map not yet implemented
+    //   ielem = map[itype];
+      const int ielem = itype-1;
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -311,28 +322,43 @@ void MLIAPDescriptorSNAP::param_backward(int *map, NeighList* list,
       delz = x[j][2] - ztmp;
       rsq = delx*delx + dely*dely + delz*delz;
       int jtype = type[j];
-      int jelem = map[jtype];
-
-      if (rsq < cutsq[itype][jtype]) {
+      // element map not yet implemented
+      // int jelem = map[jtype];
+      const int jelem = jtype-1;
+      if (rsq < cutsq[ielem][jelem]) {
         snaptr->rij[ninside][0] = delx;
         snaptr->rij[ninside][1] = dely;
         snaptr->rij[ninside][2] = delz;
         snaptr->inside[ninside] = j;
-        snaptr->wj[ninside] = wjelem[jelem];
-        snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
+	snaptr->wj[ninside] = wjelem[jelem];
+	snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
         snaptr->element[ninside] = jelem; // element index for chem snap
         ninside++;
       }
     }
 
-    snaptr->compute_ui(ninside, ielem);
+    if(chemflag)
+      snaptr->compute_ui(ninside, ielem);
+    else
+      snaptr->compute_ui(ninside, 0);
+
+
     snaptr->compute_zi();
-    snaptr->compute_bi(ielem);
+    if(chemflag)
+      snaptr->compute_bi(ielem);
+    else
+      snaptr->compute_bi(0);
 
     for (int jj = 0; jj < ninside; jj++) {
       const int j = snaptr->inside[jj];
+
+    if(chemflag)
       snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
                              snaptr->rcutij[jj], jj, snaptr->element[jj]);
+    else
+      snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
+                             snaptr->rcutij[jj], jj, 0);
+
       snaptr->compute_dbidrj();
 
       // Accumulate gamma_lk*dB_k/dRi, -gamma_lk**dB_k/dRj
@@ -359,14 +385,7 @@ void MLIAPDescriptorSNAP::param_backward(int *map, NeighList* list,
 
 void MLIAPDescriptorSNAP::init()
 {
-
-  snaptr = new SNA(lmp, rfac0, twojmax,
-                   rmin0, switchflag, bzeroflag,
-                   chemflag, bnormflag, wselfallflag, nelements);
-
   snaptr->init();
-
-  ndescriptors = snaptr->ncoeff;
 }
 
 /* ---------------------------------------------------------------------- */

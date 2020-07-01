@@ -368,7 +368,6 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
 
   for (int j = 1; j <= twojmax; j++) {
     const int jju = idxu_block[j];
-    const int jjup = idxu_block[j-1];
 
     // fill in left side of matrix layer from previous layer
 
@@ -1080,7 +1079,6 @@ void SNAKokkos<DeviceType>::compute_bi_cpu(const typename Kokkos::TeamPolicy<Dev
         Kokkos::parallel_for(Kokkos::TeamThreadRange(team,idxb_max),
           [&] (const int& jjb) {
         //for(int jjb = 0; jjb < idxb_max; jjb++) {
-          const auto jjballoy = itriple;
           const int j1 = idxb(jjb, 0);
           const int j2 = idxb(jjb, 1);
           const int j = idxb(jjb, 2);
@@ -2024,7 +2022,6 @@ double SNAKokkos<DeviceType>::memory_usage()
 {
   int jdimpq = twojmax + 2;
   int jdim = twojmax + 1;
-  int natom_pad = ((natom + 32 - 1) / 32) * 32; // for AoSoA layouts
   double bytes;
 
   bytes = 0;
@@ -2032,10 +2029,9 @@ double SNAKokkos<DeviceType>::memory_usage()
   bytes += jdimpq*jdimpq * sizeof(double);               // pqarray
   bytes += idxcg_max * sizeof(double);                   // cglist
 
-
-
 #ifdef KOKKOS_ENABLE_CUDA
   if (std::is_same<DeviceType,Kokkos::Cuda>::value) {
+    int natom_pad = ((natom + 32 - 1) / 32) * 32; // for AoSoA layouts
 
     bytes += natom * idxu_max * nelements * sizeof(double);          // ulisttot_re
     bytes += natom * idxu_max * nelements * sizeof(double);          // ulisttot_im

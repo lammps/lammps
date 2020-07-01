@@ -272,7 +272,7 @@ template<typename T1, typename T2>
 class ScatterViewHelper<Kokkos::Experimental::ScatterDuplicated,T1,T2> {
 public:
   KOKKOS_INLINE_FUNCTION
-  static T1 get(const T1 &dup, const T2 &nondup) {
+  static T1 get(const T1 &dup, const T2 & /*nondup*/) {
     return dup;
   }
 };

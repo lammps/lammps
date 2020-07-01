@@ -260,8 +260,7 @@ void ComputeMLIAP::compute_array()
 
   // compute descriptors, if needed
 
-  if (model->nonlinearflag)
-    descriptor->forward(map, list, descriptors);
+  descriptor->forward(map, list, descriptors);
 
   // calculate descriptor contributions to parameter gradients
   // and gamma = double gradient w.r.t. parameters and descriptors
@@ -271,26 +270,11 @@ void ComputeMLIAP::compute_array()
   // for SNAP, this is a sparse natoms*nparams*ndescriptors matrix,
   // but in general it could be fully dense. 
  
-  // *******Not implemented yet*****************
-  // This should populate the energy row and gamma
-  // For the linear model energy row will look just like the Bi accumulation
-  // in ComputeSNAP i.e. accumulating the intput descriptors vector, 
-  // while gamma will be just 1's and 0's
-  // For the quadratic model, the energy row will be similar,
-  // while gamma will be 1's, 0's and Bi's  
-
   model->param_gradient(map, list, descriptors, gamma_row_index, 
                         gamma_col_index, gamma, egradient);
 
 
   // calculate descriptor gradient contributions to parameter gradients
-
-  // *******Not implemented yet*****************
-  // This will just take gamma and multiply it with
-  // descriptor gradient contributions i.e. dblist
-  // this will resemble snadi accumulation in ComputeSNAP
-
-  // descriptor->param_backward(list, gamma, snadi);
 
   descriptor->param_backward(map, list, gamma_nnz, gamma_row_index, 
                              gamma_col_index, gamma, mliap_peratom,
@@ -328,6 +312,14 @@ void ComputeMLIAP::compute_array()
 
   dbdotr_compute();
 
+  // copy descriptor gradient contributions to global array
+
+  for (int itype = 0; itype < atom->ntypes; itype++) {
+    const int typeoffset_global = nperdim*itype;
+    for (int icoeff = 0; icoeff < nperdim; icoeff++)
+      mliap[0][icoeff+typeoffset_global] = egradient[icoeff+typeoffset_global];
+  }
+
   // sum up over all processes
 
   MPI_Allreduce(&mliap[0][0],&mliapall[0][0],size_array_rows*size_array_cols,MPI_DOUBLE,MPI_SUM,world);
@@ -337,7 +329,6 @@ void ComputeMLIAP::compute_array()
   int irow = 0;
   double reference_energy = c_pe->compute_scalar();
   mliapall[irow++][lastcol] = reference_energy;
-  printf("Reference energy = %g %g %g %d %d\n",reference_energy,mliapall[irow-1][lastcol],array[irow-1][lastcol],irow-1,lastcol);
 
   // assign virial stress to last column
   // switch to Voigt notation

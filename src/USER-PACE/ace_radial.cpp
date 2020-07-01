@@ -51,7 +51,7 @@ void ACERadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, DOUB
     dcut.init(nelements, nelements, "dcut");
     dcut.fill(1.);
 
-    crad.init(nelements, nelements, (lmax + 1), nradial, nradbase, "crad");
+    crad.init(nelements, nelements, nradial, (lmax + 1), nradbase, "crad");
     crad.fill(0.);
 
     //hard-core repulsion
@@ -233,8 +233,8 @@ void ACERadialFunctions::radfunc(SPECIES_TYPE elei, SPECIES_TYPE elej) {
             frval = 0.0;
             dfrval = 0.0;
             for (NS_TYPE k = 0; k < nradbase; k++) {
-                frval += crad(elei, elej, l, n, k) * gr(k);
-                dfrval += crad(elei, elej, l, n, k) * dgr(k);
+                frval += crad(elei, elej, n, l, k) * gr(k);
+                dfrval += crad(elei, elej, n, l, k) * dgr(k);
             }
             fr(n, l) = frval;
             dfr(n, l) = dfrval;

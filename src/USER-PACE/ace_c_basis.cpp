@@ -314,10 +314,10 @@ void ACECTildeBasisSet::save(const string &filename) {
     fprintf(fptr, "crad=");
     for (SPECIES_TYPE mu_i = 0; mu_i < nelements; ++mu_i)
         for (SPECIES_TYPE mu_j = 0; mu_j < nelements; ++mu_j) {
-            for (NS_TYPE idx = 1; idx <= nradbase; idx++) {
-                for (NS_TYPE nr = 1; nr <= nradmax; nr++) {
+            for (NS_TYPE k = 0; k < nradbase; k++) {
+                for (NS_TYPE n = 0; n < nradmax; n++) {
                     for (LS_TYPE l = 0; l <= lmax; l++) {
-                        fprintf(fptr, " %.18f", radial_functions->crad(mu_i, mu_j, l, nr - 1, idx - 1));
+                        fprintf(fptr, " %.18f", radial_functions->crad(mu_i, mu_j, n, l, k));
                     }
                     fprintf(fptr, "\n");
                 }
@@ -523,7 +523,6 @@ void ACECTildeBasisSet::load(const string filename) {
     res = fscanf(fptr, " core energy-cutoff parameters:");
     if (res != 0)
         throw_error(filename, "core energy-cutoff parameters", "core energy-cutoff parameters: [par1] [par2]");
-//        throw invalid_argument(("File '" + filename + "': couldn't read core energy-cutoff parameters").c_str());
 
     rho_core_cutoffs.init(nelements, "rho_core_cutoffs");
     drho_core_cutoffs.init(nelements, "drho_core_cutoffs");
@@ -848,14 +847,14 @@ void ACECTildeBasisSet::_load_radial_ACERadial(FILE *fptr,
     res = fscanf(fptr, " crad=");
     for (SPECIES_TYPE mu_i = 0; mu_i < nelements; ++mu_i)
         for (SPECIES_TYPE mu_j = 0; mu_j < nelements; ++mu_j)
-            for (NS_TYPE idx = 1; idx <= nradbase; idx++)
-                for (NS_TYPE nr = 1; nr <= nradmax; nr++)
+            for (NS_TYPE k = 0; k < nradbase; k++)
+                for (NS_TYPE n = 0; n < nradmax; n++)
                     for (LS_TYPE l = 0; l <= lmax; l++) {
                         res = fscanf(fptr, "%s", buffer);
                         if (res != 1)
                             throw_error(filename, "crad", "crad=[crad_]...[crad_knl]: nradbase*nrad*(l+1) times");
-                        radial_functions->crad(mu_i, mu_j, l, nr - 1, idx - 1) = stod_err(buffer, filename, "crad",
-                                                                                          "crad=[crad_]...[crad_knl]: nradbase*nrad*(l+1) times");
+                        radial_functions->crad(mu_i, mu_j, n, l, k) = stod_err(buffer, filename, "crad",
+                                                                               "crad=[crad_]...[crad_knl]: nradbase*nrad*(l+1) times");
                     }
 }
 

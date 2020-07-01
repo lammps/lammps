@@ -2,43 +2,46 @@
 // Created by Lysogorskiy Yury on 28.04.2020.
 //
 
-
 #include "ace_abstract_basis.h"
 
 //embedding function
 //case nemb = 1 only implementation
 //F = sign(x)*(  ( ( 1 - exp(-w*x**2) )*abs(x) )^m +  m*exp(-w*x**2)*abs(x) )
 // !! no prefactor wpre
-void Fexp(DOUBLE_TYPE rho, DOUBLE_TYPE mexp, DOUBLE_TYPE &F, DOUBLE_TYPE &DF) {
+// d exp(-w*x**2)/dx = -2*w*x*exp(-w*x**2) *
+void Fexp(DOUBLE_TYPE x, DOUBLE_TYPE m, DOUBLE_TYPE &F, DOUBLE_TYPE &DF) {
     DOUBLE_TYPE w = 10.0;
-    DOUBLE_TYPE eps = 1e-10;
+    DOUBLE_TYPE eps = 1e-15;
 
-    if (abs(rho) > eps) {
-        DOUBLE_TYPE g, a, omg, y2, y1 = w * rho * rho;
-        DOUBLE_TYPE sign_factor = (signbit(rho) ? -1 : 1);
-        if (y1 > 30.0) g = 0;
-        else g = exp(-y1);
+    if (abs(x) > eps) {
+        DOUBLE_TYPE g, a, omg, y1, y2, delta = 1e-20;
+        DOUBLE_TYPE wx2 = w * x * x;
+        DOUBLE_TYPE sign_factor = (signbit(x) ? -1 : 1);
+        if (wx2 > 30.0)
+            g = 0;
+        else
+            g = exp(-wx2);
 
         omg = 1. - g;
-        a = abs(rho);
-        y1 = pow(omg * a, mexp);
-        y2 = mexp * g * a;
+        a = abs(x);
+        y1 = pow(omg * a, m); //+delta
+        y2 = m * g * a;
         F = sign_factor * (y1 + y2);
 
         DOUBLE_TYPE dg, da, dy, dy1, dy2;
-        dg = -2.0 * w * rho * g;
+        dg = -2.0 * w * x * g;
         da = sign_factor;
         if (abs(y1) < eps) dy = 0.;
-        else dy = mexp * y1 / (omg * a);
-
+        else
+            dy = m * y1 / (omg * a); // + delta
 
         dy1 = dy * (-dg * a + omg * da);
-        dy2 = mexp * (dg * a + g * da);
+        dy2 = m * (dg * a + g * da);
         DF = sign_factor * (dy1 + dy2);
 
     } else {
-        F = mexp * rho;
-        DF = mexp;
+        F = m * x;
+        DF = m;
     }
 }
 
@@ -72,6 +75,8 @@ void ACEAbstractBasisSet::_clean() {
 
     delete[] elements_name;
     elements_name = nullptr;
+    delete radial_functions;
+    radial_functions = nullptr;
 }
 
 ACEAbstractBasisSet::ACEAbstractBasisSet(const ACEAbstractBasisSet &other) {
@@ -96,7 +101,7 @@ ACEAbstractBasisSet::~ACEAbstractBasisSet() {
 }
 
 void ACEAbstractBasisSet::_copy_scalar_memory(const ACEAbstractBasisSet &src) {
-    ntot = src.ntot;
+    deltaSplineBins = src.deltaSplineBins;
     FS_parameters = src.FS_parameters;
 
     nelements = src.nelements;
@@ -107,7 +112,6 @@ void ACEAbstractBasisSet::_copy_scalar_memory(const ACEAbstractBasisSet &src) {
     nradmax = src.nradmax;
     cutoffmax = src.cutoffmax;
 
-    radial_functions = src.radial_functions;
     spherical_harmonics = src.spherical_harmonics;
 
     rho_core_cutoffs = src.rho_core_cutoffs;
@@ -124,6 +128,7 @@ void ACEAbstractBasisSet::_copy_dynamic_memory(const ACEAbstractBasisSet &src) {
     for (SPECIES_TYPE mu = 0; mu < nelements; ++mu) {
         elements_name[mu] = src.elements_name[mu];
     }
+    radial_functions = src.radial_functions->clone();
 }
 
 SPECIES_TYPE ACEAbstractBasisSet::get_species_index_by_name(const string &elemname) {

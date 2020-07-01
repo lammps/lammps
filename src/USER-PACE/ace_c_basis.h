@@ -83,6 +83,17 @@ public:
     void load(const string filename) override;
 
     /**
+     * Load the ACE type radial basis
+     */
+    void _load_radial_ACERadial(FILE *fptr,
+                                const string filename,
+                                const string radbasename);
+
+    void _load_radial_SHIPsBasic(FILE * fptr, 
+                                 const string filename, 
+                                 const string radbasename ); 
+
+    /**
      * Re-pack the constituent dynamic arrays of all basis functions in contiguous arrays
      */
     void pack_flatten_basis() override;

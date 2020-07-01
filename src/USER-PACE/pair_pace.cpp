@@ -302,7 +302,7 @@ void PairPACE::coeff(int narg, char **arg) {
     // map[0] is not used
 
     ace = new ACECTildeEvaluator();
-    ace->element_type_mapping.init(atom->ntypes);
+    ace->element_type_mapping.init(atom->ntypes + 1);
 
     for (int i = 1; i <= atom->ntypes; i++) {
         char *elemname = elemtypes[i - 1];
@@ -376,7 +376,7 @@ void PairPACE::init_style() {
 double PairPACE::init_one(int i, int j) {
     if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
     //cutoff from the basis set's radial functions settings
-    return basis_set->radial_functions.cut(map[i], map[j]);
+    return basis_set->radial_functions->cut(map[i], map[j]);
 }
 
 /* ---------------------------------------------------------------------- */

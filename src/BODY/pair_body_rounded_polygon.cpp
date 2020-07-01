@@ -588,17 +588,19 @@ void PairBodyRoundedPolygon::body2space(int i)
 
 void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
                        double delx, double dely, double delz, double rsq,
-                       double k_n, double k_na, double** /*x*/, double** /*v*/,
+                       double k_n, double k_na, double** /*x*/, double** v,
                        double** f, int evflag)
 {
   double rradi,rradj;
-  double rij,R,fx,fy,fz,fpair,shift,energy;
+  double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
+  double rij,rsqinv,R,fx,fy,fz,fn[3],ft[3],fpair,shift,energy;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
   rradi = rounded_radius[i];
   rradj = rounded_radius[j];
 
+  rsqinv = 1.0/rsq;
   rij = sqrt(rsq);
   R = rij - (rradi + rradj);
   shift = k_na * cut_inner;
@@ -616,6 +618,45 @@ void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
   fx = delx*fpair/rij;
   fy = dely*fpair/rij;
   fz = delz*fpair/rij;
+
+  if (R <= EPSILON) { // in contact
+
+    // relative translational velocity
+
+    vr1 = v[i][0] - v[j][0];
+    vr2 = v[i][1] - v[j][1];
+    vr3 = v[i][2] - v[j][2];
+
+    // normal component
+
+    vnnr = vr1*delx + vr2*dely + vr3*delz;
+    vn1 = delx*vnnr * rsqinv;
+    vn2 = dely*vnnr * rsqinv;
+    vn3 = delz*vnnr * rsqinv;
+
+    // tangential component
+
+    vt1 = vr1 - vn1;
+    vt2 = vr2 - vn2;
+    vt3 = vr3 - vn3;
+
+    // normal friction term at contact
+
+    fn[0] = -c_n * vn1;
+    fn[1] = -c_n * vn2;
+    fn[2] = -c_n * vn3;
+
+    // tangential friction term at contact,
+    // excluding the tangential deformation term for now
+
+    ft[0] = -c_t * vt1;
+    ft[1] = -c_t * vt2;
+    ft[2] = -c_t * vt3;
+
+    fx += fn[0] + ft[0];
+    fy += fn[1] + ft[1];
+    fz += fn[2] + ft[2];
+  }
 
   f[i][0] += fx;
   f[i][1] += fy;

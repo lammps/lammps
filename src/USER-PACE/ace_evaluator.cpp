@@ -337,6 +337,7 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
         double A_cur = A_rank1(func->mus[0], func->ns[0] - 1);
 #ifdef DEBUG_ENERGY_CALCULATIONS
         printf("A_r=1(x=%d, n=%d)=(%f)\n", func->mus[0], func->ns[0], A_cur);
+        printf("     coeff[0] = %f\n", func->ctildes[0]);
 #endif
         for (DENSITY_TYPE p = 0; p < ndensity; ++p) {
             //for rank=1 (r=0) only 1 ms-combination exists (ms_ind=0), so index of func.ctildes is 0..ndensity-1

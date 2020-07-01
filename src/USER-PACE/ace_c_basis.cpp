@@ -1,5 +1,5 @@
 #include "ace_c_basis.h"
-//#include "ships_radial.h"
+#include "ships_radial.h"
 
 using namespace std;
 
@@ -861,35 +861,35 @@ void ACECTildeBasisSet::_load_radial_ACERadial(FILE *fptr,
 void ACECTildeBasisSet::_load_radial_SHIPsBasic(FILE *fptr,
                                                 const string filename,
                                                 const string radbasename) {
-//    // create a radial basis object, and read it from the file pointer
-//    SHIPsRadialFunctions *ships_radial_functions = new SHIPsRadialFunctions();
-//    ships_radial_functions->fread(fptr);
-//
-//    //mimic ships_radial_functions to ACERadialFunctions
-//    ships_radial_functions->nradial = ships_radial_functions->maxn;
-//    ships_radial_functions->nradbase = ships_radial_functions->maxn;
-//
-//    nradbase = ships_radial_functions->maxn;
-//    nradmax = ships_radial_functions->maxn;
-//    cutoffmax = ships_radial_functions->rcut;
-//    deltaSplineBins = 0.001;
-//
-//    ships_radial_functions->init(nradbase, lmax, nradmax,
-//                                 deltaSplineBins,
-//                                 nelements,
-//                                 cutoffmax, radbasename);
-//
-//
-//    if (radial_functions) delete radial_functions;
-//    radial_functions = ships_radial_functions;
-//    radial_functions->prehc.fill(0);
-//    radial_functions->lambdahc.fill(1);
-//    radial_functions->lambda.fill(0);
-//
-//
-//    radial_functions->cut.fill(ships_radial_functions->rcut);
-//    radial_functions->dcut.fill(0);
-//
-//    radial_functions->crad.fill(0);
-//
+    // create a radial basis object, and read it from the file pointer
+    SHIPsRadialFunctions *ships_radial_functions = new SHIPsRadialFunctions();
+    ships_radial_functions->fread(fptr);
+
+    //mimic ships_radial_functions to ACERadialFunctions
+    ships_radial_functions->nradial = ships_radial_functions->maxn;
+    ships_radial_functions->nradbase = ships_radial_functions->maxn;
+
+    nradbase = ships_radial_functions->maxn;
+    nradmax = ships_radial_functions->maxn;
+    cutoffmax = ships_radial_functions->rcut;
+    deltaSplineBins = 0.001;
+
+    ships_radial_functions->init(nradbase, lmax, nradmax,
+                                 deltaSplineBins,
+                                 nelements,
+                                 cutoffmax, radbasename);
+
+
+    if (radial_functions) delete radial_functions;
+    radial_functions = ships_radial_functions;
+    radial_functions->prehc.fill(0);
+    radial_functions->lambdahc.fill(1);
+    radial_functions->lambda.fill(0);
+
+
+    radial_functions->cut.fill(ships_radial_functions->rcut);
+    radial_functions->dcut.fill(0);
+
+    radial_functions->crad.fill(0);
+
 }

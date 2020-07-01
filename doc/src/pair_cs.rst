@@ -120,7 +120,7 @@ the "/cs" in the name:
 * :doc:`pair_style buck/coul/long <pair_buck>`
 * :doc:`pair_style coul/long <pair_coul>`
 * :doc:`pair_style coul/wolf <pair_coul>`
-* :doc:`pair_style lj/cut/coul/long <pair_lj>`
+* :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`
 * :doc:`pair_style lj/class2/coul/long <pair_class2>`
 
 except that they correctly treat the special case where the distance

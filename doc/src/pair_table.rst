@@ -98,7 +98,7 @@ more of the optional keywords listed above for the pair_style command.
 These are *ewald* or *pppm* or *msm* or *dispersion* or *tip4p*\ .  This
 is so LAMMPS can insure the short-range potential and long-range
 solver are compatible with each other, as it does for other
-short-range pair styles, such as :doc:`pair_style lj/cut/coul/long <pair_lj>`.  Note that it is up to you to insure
+short-range pair styles, such as :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`.  Note that it is up to you to insure
 the tabulated values for each pair of atom types has the correct
 functional form to be compatible with the matching long-range solver.
 

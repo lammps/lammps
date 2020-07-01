@@ -124,12 +124,10 @@ the pair_style command.
 
 ----------
 
-A version of these styles with a soft core, *lj/cut/soft*\ , suitable
+A version of these styles with a soft core, *lj/cut/tip4p/long/soft*\ , suitable
 for use in free energy calculations, is part of the USER-FEP package and
 is documented with the :doc:`pair_style */soft <pair_fep_soft>`
-styles. The version with soft core is only available if LAMMPS was built
-with that package. See the :doc:`Build package <Build_package>` doc page
-for more info.
+styles.
 
 ----------
 

@@ -133,7 +133,7 @@ given by
        \left(\frac{\sigma}{r}\right)^6 \right]
                        \qquad r < r_c
 
-Rc is the cutoff.
+:math:`r_c` is the cutoff.
 
 Style *lj/cut/coul/cut* adds a Coulombic pairwise interaction given by
 
@@ -243,12 +243,9 @@ the pair_style command.
 
 ----------
 
-A version of these styles with a soft core, *lj/cut/soft*\ , suitable
-for use in free energy calculations, is part of the USER-FEP package and
-is documented with the :doc:`pair_style */soft <pair_fep_soft>`
-styles. The version with soft core is only available if LAMMPS was built
-with that package. See the :doc:`Build package <Build_package>` doc page
-for more info.
+A version of these styles with a soft core, *lj/cut/coul/soft*\ and
+*lj/cut/coul/long/soft*\ , suitable for use in free energy calculations, is
+part of the USER-FEP package and is documented with the :doc:`pair_style */soft <pair_fep_soft>` styles.
 
 ----------
 

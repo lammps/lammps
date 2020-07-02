@@ -19,3 +19,7 @@ if (PKG_MANYBODY)
     add_test(NAME EIMPotentialFileReader COMMAND test_eim_potential_file_reader WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     set_tests_properties(EIMPotentialFileReader PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 endif()
+
+add_executable(test_file_operations test_file_operations.cpp)
+target_link_libraries(test_file_operations PRIVATE lammps GTest::GMock GTest::GTest)
+add_test(NAME FileOperations COMMAND test_file_operations WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

@@ -33,6 +33,9 @@ void PairHybridOverlay::coeff(int narg, char **arg)
   if (narg < 3) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
+  if (lmp->kokkos)
+    error->all(FLERR,"Must use pair_style hybrid/overlay/kk with Kokkos");
+
   int ilo,ihi,jlo,jhi;
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
   force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);

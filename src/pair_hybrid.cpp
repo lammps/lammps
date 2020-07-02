@@ -434,7 +434,7 @@ void PairHybrid::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (lmp->kokkos)
-    error->all(FLERR,"Cannot yet use pair hybrid with Kokkos");
+    error->all(FLERR,"Must use pair_style hybrid/kk with Kokkos");
 
   int ilo,ihi,jlo,jhi;
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);

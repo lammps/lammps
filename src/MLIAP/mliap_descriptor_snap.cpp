@@ -228,9 +228,6 @@ void MLIAPDescriptorSNAP::backward(PairMLIAP* pairmliap, NeighList* list, double
     // add to Fi, subtract from Fj
 
     snaptr->compute_yi(beta[ii]);
-    //for (int q=0; q<snaptr->idxu_max*2; q++){
-    //  fprintf(screen, "%i %f\n",q, snaptr->ylist_r[q]);
-    //}
 
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
@@ -294,11 +291,11 @@ void MLIAPDescriptorSNAP::param_backward(int *map, NeighList* list,
     const double ytmp = x[i][1];
     const double ztmp = x[i][2];
     const int itype = type[i];
-    int ielem = 0;
-    if (chemflag)
+    int ielem = itype-1;
+    // element map not yet implemented
+    // if (chemflag)
     // element map not yet implemented
     //   ielem = map[itype];
-      const int ielem = itype-1;
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -322,14 +319,17 @@ void MLIAPDescriptorSNAP::param_backward(int *map, NeighList* list,
       delz = x[j][2] - ztmp;
       rsq = delx*delx + dely*dely + delz*delz;
       int jtype = type[j];
+      int jelem = jtype-1;
       // element map not yet implemented
-      // int jelem = map[jtype];
-      const int jelem = jtype-1;
+      // if (chemflag)
+      // jelem = map[jtype];
+
       if (rsq < cutsq[ielem][jelem]) {
         snaptr->rij[ninside][0] = delx;
         snaptr->rij[ninside][1] = dely;
         snaptr->rij[ninside][2] = delz;
         snaptr->inside[ninside] = j;
+      // element map not yet implemented
 	snaptr->wj[ninside] = wjelem[jelem];
 	snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
         snaptr->element[ninside] = jelem; // element index for chem snap
@@ -337,14 +337,13 @@ void MLIAPDescriptorSNAP::param_backward(int *map, NeighList* list,
       }
     }
 
-    if(chemflag)
+    if (chemflag)
       snaptr->compute_ui(ninside, ielem);
     else
       snaptr->compute_ui(ninside, 0);
 
-
     snaptr->compute_zi();
-    if(chemflag)
+    if (chemflag)
       snaptr->compute_bi(ielem);
     else
       snaptr->compute_bi(0);
@@ -352,12 +351,12 @@ void MLIAPDescriptorSNAP::param_backward(int *map, NeighList* list,
     for (int jj = 0; jj < ninside; jj++) {
       const int j = snaptr->inside[jj];
 
-    if(chemflag)
-      snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-                             snaptr->rcutij[jj], jj, snaptr->element[jj]);
-    else
-      snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-                             snaptr->rcutij[jj], jj, 0);
+      if(chemflag)
+        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
+                               snaptr->rcutij[jj],jj, snaptr->element[jj]);
+      else
+        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
+                               snaptr->rcutij[jj],jj, 0);
 
       snaptr->compute_dbidrj();
 
@@ -541,11 +540,9 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
     cut = 2.0*radelem[ielem]*rcutfac;
     if (cut > cutmax) cutmax = cut;
     cutsq[ielem][ielem] = cut*cut;
-    printf("ielem = %d ielem = %d cutsq[i][i] = %g\n",ielem, ielem, cutsq[ielem][ielem]);
     for(int jelem = ielem+1; jelem < nelements; jelem++) {
       cut = (radelem[ielem]+radelem[jelem])*rcutfac;
       cutsq[ielem][jelem] = cutsq[jelem][ielem] = cut*cut;
-      printf("ielem = %d jelem = %d cutsq[i][j] = %g\n",ielem, jelem, cutsq[ielem][jelem]);
     }
   }
 }

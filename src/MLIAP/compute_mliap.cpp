@@ -93,8 +93,8 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
   nperdim = nparams;
   ndims_force = 3;
   ndims_virial = 6;
-  yoffset = nperdim;
-  zoffset = 2*nperdim;
+  yoffset = nperdim*atom->ntypes;
+  zoffset = 2*yoffset;
   natoms = atom->natoms;
   size_array_rows = 1+ndims_force*natoms+ndims_virial;
   size_array_cols = nperdim*atom->ntypes+1;
@@ -169,14 +169,12 @@ void ComputeMLIAP::init()
 
   // allocate memory for global array
 
-  printf("size_array_rows = %d size_array_cols = %d\n",size_array_rows,size_array_cols);
   memory->create(mliap,size_array_rows,size_array_cols,
                  "mliap:mliap");
   memory->create(mliapall,size_array_rows,size_array_cols,
                  "mliap:mliapall");
   array = mliapall;
 
-  printf("nelements = %d nparams = %d\n",nelements,nparams);
   memory->create(egradient,nelements*nparams,"ComputeMLIAP:egradient");
 
   // find compute for reference energy
@@ -227,7 +225,6 @@ void ComputeMLIAP::compute_array()
   if (atom->nmax > nmax) {
     memory->destroy(mliap_peratom);
     nmax = atom->nmax;
-    printf("nmax = %d size_peratom = %d\n",nmax,size_peratom);
     memory->create(mliap_peratom,nmax,size_peratom,
                    "mliap:mliap_peratom");
   }
@@ -256,7 +253,6 @@ void ComputeMLIAP::compute_array()
     memory->grow(gamma,list->inum,gamma_nnz,"ComputeMLIAP:gamma");
     gamma_max = list->inum;
   }
-  printf("gamma_max %d %d %d %d %d %d %p\n",gamma_max, ndescriptors, gamma_nnz, nelements, nparams, list->inum, list);
 
   // compute descriptors, if needed
 
@@ -283,7 +279,7 @@ void ComputeMLIAP::compute_array()
   // accumulate descriptor gradient contributions to global array
 
   for (int itype = 0; itype < atom->ntypes; itype++) {
-    const int typeoffset_local = ndims_peratom*nperdim*itype;
+    const int typeoffset_local = nperdim*itype;
     const int typeoffset_global = nperdim*itype;
     for (int icoeff = 0; icoeff < nperdim; icoeff++) {
       int irow = 1;
@@ -360,7 +356,7 @@ void ComputeMLIAP::dbdotr_compute()
   int nall = atom->nlocal + atom->nghost;
   for (int i = 0; i < nall; i++)
     for (int itype = 0; itype < atom->ntypes; itype++) {
-      const int typeoffset_local = ndims_peratom*nperdim*itype;
+      const int typeoffset_local = nperdim*itype;
       const int typeoffset_global = nperdim*itype;
       double *snadi = mliap_peratom[i]+typeoffset_local;
       for (int icoeff = 0; icoeff < nperdim; icoeff++) {

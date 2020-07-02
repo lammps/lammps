@@ -52,12 +52,9 @@ class FixBondCreate : public Fix {
   int btype,seed;
   int imaxbond,jmaxbond;
   int inewtype,jnewtype;
-  int constrainflag,constrainpass;
-  double amin,amax;
   double cutsq,fraction;
   int atype,dtype,itype;
   int angleflag,dihedralflag,improperflag;
-
   int overflow;
   tagint lastcheck;
 
@@ -86,8 +83,6 @@ class FixBondCreate : public Fix {
   void create_dihedrals(int);
   void create_impropers(int);
   int dedup(int, int, tagint *);
-
-  virtual int constrain(int, int, double, double);
 
   // DEBUG
 

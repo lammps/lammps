@@ -22,6 +22,7 @@
 
 using namespace LAMMPS_NS;
 using ::testing::Eq;
+using ::testing::EndsWith;
 
 TEST(Utils, trim_comment)
 {
@@ -275,6 +276,20 @@ TEST(Utils, strmatch_char_range)
 TEST(Utils, strmatch_opt_range)
 {
     ASSERT_TRUE(utils::strmatch("rigid", "^[0-9]*[p-s]igid"));
+}
+
+TEST(Utils, guesspath)
+{
+    char buf[128];
+    FILE *fp = fopen("test_guesspath.txt","w");
+#if defined(__linux__)
+    const char *path = utils::guesspath(buf,sizeof(buf),fp);
+    ASSERT_THAT(path,EndsWith("test_guesspath.txt"));
+#else
+    const char *path = utils::guesspath(buf,sizeof(buf),fp);
+    ASSERT_THAT(path,EndsWith("(unknown)"));
+#endif
+    fclose(fp);
 }
 
 TEST(Utils, path_join)

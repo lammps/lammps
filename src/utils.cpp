@@ -109,14 +109,11 @@ std::string utils::getsyserror()
   return std::string(strerror(errno));
 }
 
-/** \brief try to detect pathname from FILE pointer. Currently only supported on Linux, otherwise will report "(unknown)".
- *
- *  \param buf  storage buffer for pathname. output will be truncated if not large enough
- *  \param len  size of storage buffer. output will be truncated to this length - 1
- *  \param fp   FILE pointer structe from STDIO library for which we want to detect the name
- *  \return pointer to the storage buffer, i.e. buf
+/*
+ * On Linux the folder /proc/self/fd holds symbolic links to the actual
+ * pathnames associated with each open file descriptor of the current process.
  */
-static const char *guesspath(char *buf, int len, FILE *fp)
+const char *utils::guesspath(char *buf, int len, FILE *fp)
 {
   memset(buf,0,len);
 
@@ -124,9 +121,9 @@ static const char *guesspath(char *buf, int len, FILE *fp)
   int fd = fileno(fp);
   // get pathname from /proc or copy (unknown)
   if (readlink(fmt::format("/proc/self/fd/{}",fd).c_str(),buf,len-1) <= 0)
-    strcpy(buf,"(unknown)");
+    strncpy(buf,"(unknown)",len-1);
 #else
-  strcpy(buf,"(unknown)");
+  strncpy(buf,"(unknown)",len-1);
 #endif
   return buf;
 }

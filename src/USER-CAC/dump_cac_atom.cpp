@@ -30,19 +30,30 @@ using namespace LAMMPS_NS;
 DumpCACAtom::DumpCACAtom(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
   typenames(NULL)
 {
-  if (narg != 5) error->all(FLERR,"Illegal dump cac/atom command");
+  if (narg != 5 && narg!=6) error->all(FLERR,"Illegal dump cac/atom command");
   if (binary || multiproc) error->all(FLERR,"Invalid dump cac/atom filename");
 
-  size_one = 11;
+  
 
   buffer_allow = 1;
   buffer_flag = 1;
   sort_flag = 0;
   sortcol = 0;
+  charge_flag = 0;
+  if (narg==6 && strcmp(arg[5], "charge") == 0) charge_flag = 1;
+  else if(narg==6) error->all(FLERR, "Unexpected argument in dump cac/atom command");
 
   if (format_default) delete [] format_default;
-
-  char *str = (char *) "%d %d %g %g %g %g %g %g %g %g %g";
+  char *str;
+  if(charge_flag==1){ 
+    size_one = 12;
+    str = (char *) "%d %d %g %g %g %g %g %g %g %g %g %g";
+    }
+  else {
+    size_one = 11;
+    str = (char *) "%d %d %g %g %g %g %g %g %g %g %g";
+    }
+  
   int n = strlen(str) + 1;
   format_default = new char[n];
   strcpy(format_default,str);
@@ -74,6 +85,10 @@ void DumpCACAtom::init_style()
   if(!atom->CAC_flag)
   error->all(FLERR, "CAC dump styles require a CAC atom style");
   // format = copy of default or user-specified line format
+
+  //check charge existence
+  if(charge_flag&&!atom->q_flag)
+  error->all(FLERR, "outputting charge in dump cac/atom requires a cac atom style with charge");
 
   delete [] format;
   char *str;
@@ -224,6 +239,7 @@ void DumpCACAtom::pack(tagint *ids)
   int *poly_count = atom->poly_count;
   int *element_type = atom->element_type;
   int **node_types = atom->node_types;
+  double **node_charges = atom->node_charges;
   int **element_scale = atom->element_scale;
   double ****nodal_positions = atom->nodal_positions;
   double ****nodal_velocities = atom->nodal_velocities;
@@ -238,6 +254,7 @@ void DumpCACAtom::pack(tagint *ids)
       if(element_type[i]==0){
       buf[m++] = tag[i];
       buf[m++] = node_types[i][0];
+      if(charge_flag) buf[m++] = node_charges[i][0];
       buf[m++] = x[i][0];
       buf[m++] = x[i][1];
       buf[m++] = x[i][2];
@@ -301,6 +318,7 @@ void DumpCACAtom::pack(tagint *ids)
               }   
               buf[m++] = tag[i];
               buf[m++] = node_types[i][polyscan];
+              if(charge_flag) buf[m++] = node_charges[i][0];
               buf[m++] = xmap[0];
               buf[m++] = xmap[1];
               buf[m++] = xmap[2];
@@ -336,7 +354,11 @@ int DumpCACAtom::convert_string(int n, double *mybuf)
       maxsbuf += DELTA;
       memory->grow(sbuf,maxsbuf,"dump:sbuf");
     }
-
+    if(charge_flag)
+    offset += sprintf(&sbuf[offset],format, static_cast<int> (mybuf[m]),
+                      static_cast<int> (mybuf[m+1]),mybuf[m+2],mybuf[m+3],mybuf[m+4],
+            mybuf[m+5],mybuf[m+6],mybuf[m+7],mybuf[m+8],mybuf[m+9],mybuf[m+10],mybuf[m+11]);
+    else
     offset += sprintf(&sbuf[offset],format, static_cast<int> (mybuf[m]),
                       static_cast<int> (mybuf[m+1]),mybuf[m+2],mybuf[m+3],mybuf[m+4],
             mybuf[m+5],mybuf[m+6],mybuf[m+7],mybuf[m+8],mybuf[m+9],mybuf[m+10]);
@@ -366,6 +388,11 @@ void DumpCACAtom::write_lines(int n, double *mybuf)
 {
   int m = 0;
   for (int i = 0; i < n; i++) {
+    if(charge_flag)
+    fprintf(fp,format,static_cast<int> (mybuf[m]),
+            static_cast<int> (mybuf[m+1]),mybuf[m+2],mybuf[m+3],mybuf[m+4],
+            mybuf[m+5],mybuf[m+6],mybuf[m+7],mybuf[m+8],mybuf[m+9],mybuf[m+10],mybuf[m+11]);
+    else
     fprintf(fp,format,static_cast<int> (mybuf[m]),
             static_cast<int> (mybuf[m+1]),mybuf[m+2],mybuf[m+3],mybuf[m+4],
             mybuf[m+5],mybuf[m+6],mybuf[m+7],mybuf[m+8],mybuf[m+9],mybuf[m+10]);

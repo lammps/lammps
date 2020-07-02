@@ -176,12 +176,16 @@ void CommCAC::init()
     memory->destroy(cutghostmulti);
   }
 
-
-
-
   //CAC atom style check
   if (!atom->CAC_flag)
   error->all(FLERR,"Cannot use comm_style cac with non CAC atom style");
+
+  //check for newton flag
+  if(force->newton = 1){
+  if(comm->me==0)
+  error->warning(FLERR,"Cannot use cac styles with newton on; newton being turned off");
+  force->newton = 0;
+  }
 
   atom->CAC_comm_flag=1;
 

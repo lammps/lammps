@@ -21,7 +21,7 @@ args = same as arguments for "dump_style custom"_dump.html :ul
 
 [Examples:]
 
-dump initmesh all cac/initial/nodes 1 initial_CACmesh.txt
+dump initmesh all cac/initial/nodes 1 initial_CACmesh.txt :pre
 
 [Description:]
 

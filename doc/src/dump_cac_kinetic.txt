@@ -21,7 +21,7 @@ args = same as arguments for "dump_style custom"_dump.html :ul
 
 [Examples:]
 
-dump meshvel all cac/kinetic/energy 1000 CACmeshvel.txt
+dump meshvel all cac/kinetic/energy 1000 CACmeshvel.txt :pre
 
 [Description:]
 

@@ -1551,7 +1551,7 @@ void AtomVecCAC::data_atom(double *coord, imageint imagetmp, char **values)
   tag[nlocal] = ATOTAGINT(values[0]);
   char* element_type_read;
   element_type_read = values[1];
-  type[nlocal] = 1;
+  type[nlocal] = 0;
 
   npoly = force->inumeric(FLERR,values[2]);
   if (npoly > maxpoly)
@@ -1644,6 +1644,10 @@ void AtomVecCAC::data_atom(double *coord, imageint imagetmp, char **values)
     nodal_forces[nlocal][poly_index][node_index][2] = 0;
     }
   }
+  
+  //set type equal to node_type in the case of atoms
+  if(element_type[nlocal]==0)
+  type[nlocal] = node_types[nlocal][0];
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
@@ -1670,9 +1674,9 @@ void AtomVecCAC::pack_data(double **buf)
   int nlocal = atom->nlocal;
   int *nodes_count_list = atom->nodes_per_element_list;
   for (int i = 0; i < nlocal; i++) {
-       int m=0;
-    buf[i][m++] = ubuf(tag[i]).d;
-    buf[i][m++] = ubuf(type[i]).d;
+  int m=0;
+  buf[i][m++] = ubuf(tag[i]).d;
+  buf[i][m++] = ubuf(type[i]).d;
   buf[i][m++] = element_type[i];
   buf[i][m++] = element_scale[i][0];
   buf[i][m++] = element_scale[i][1];

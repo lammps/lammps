@@ -52,10 +52,9 @@ compute Ntemp all cac/nodal/temp
 thermo_style custom step time 
 thermo	     100
 
-#required to weight the elements and load balance non-uniform meshes
+#required to weight the elements and load balance multiresolution models
 compute Eweight all cac/quad/count
 variable Eweights atom c_Eweight
-
 fix comm all balance 100 1.00 rcb weight var Eweights
 
 #usual lammps output routine; outputs nodal temp and load balancing 

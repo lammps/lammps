@@ -153,9 +153,9 @@ dimension.html
 displace_atoms.html
 dump.html
 dump_adios.html
+dump_cac_atom.html
 dump_cac_initial_nodes.html
 dump_cac_kinetic.html
-dump_cac_nodal_displacements.html
 dump_cac_nodal_positions.html
 dump_cac_nodal_velocities.html
 dump_cac_nodal_forces.html
@@ -208,7 +208,6 @@ region.html
 replicate.html
 rerun.html
 reset_ids.html
-reset_initial_nodes.html
 reset_timestep.html
 restart.html
 run.html
@@ -591,6 +590,7 @@ pair_cac_coul_wolf.html
 pair_cac_eam.html
 pair_cac_lj.html
 pair_cac_sw.html
+pair_cac_tersoff.html
 pair_charmm.html
 pair_class2.html
 pair_colloid.html

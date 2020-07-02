@@ -421,6 +421,8 @@ void PairCACSW::setup_params()
   cut_global_s=cutmax;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void PairCACSW::twobody(Param *param, double rsq, double &fforce,
   int eflag, double &eng)
 {

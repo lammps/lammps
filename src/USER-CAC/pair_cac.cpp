@@ -35,7 +35,7 @@
 #define MAXESHAPE  10 //maximum number of shape functions per element
 #define MAXNEIGHOUT  500
 #define MAXNEIGHIN  10
-#define MAXNEIGHBUFF 600
+#define MAXNEIGHBUFF 1400
 #define EXPAND 20
 #define MAXLINE 1024
 #define DELTA 4

@@ -21,7 +21,7 @@ args = same as arguments for "dump_style custom"_dump.html :ul
 
 [Examples:]
 
-dump meshforce all cac/nodal/forces 1000 CACmeshforce.txt
+dump meshforce all cac/nodal/forces 1000 CACmeshforce.txt :pre
 
 [Description:]
 

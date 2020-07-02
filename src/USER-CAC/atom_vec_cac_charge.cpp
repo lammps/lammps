@@ -1542,7 +1542,7 @@ void AtomVecCAC_Charge::data_atom(double *coord, imageint imagetmp, char **value
   tag[nlocal] = ATOTAGINT(values[0]);
   char* element_type_read;
   element_type_read = values[1];
-  type[nlocal] = 1;
+  type[nlocal] = 0;
 
   npoly = force->inumeric(FLERR,values[2]);
   if (npoly > maxpoly)
@@ -1638,8 +1638,9 @@ void AtomVecCAC_Charge::data_atom(double *coord, imageint imagetmp, char **value
   }
   }
 
-
-
+  //set type equal to node_type in the case of atoms
+  if(element_type[nlocal]==0)
+  type[nlocal] = node_types[nlocal][0];
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];

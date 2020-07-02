@@ -1128,6 +1128,7 @@ src/USER-CAC: filenames -> commands
 "pair_style cac/coul/wolf"_pair_cac_coul_wolf.html
 "pair_style cac/buck"_pair_cac_buck.html
 "pair_style cac/sw"_pair_cac_sw.html
+"pair_style cac/tersoff"_pair_cac_tersoff.html
 "pair_style cac/eam"_pair_cac_eam.html
 "min_style cac/cg"_min_style.html
 "min_style cac/fire"_min_style.html
@@ -1142,8 +1143,6 @@ src/USER-CAC: filenames -> commands
 "compute cac/nodal/temp"_compute_cac_nodal_temp.html
 "compute cac/ke"_compute_cac_ke.html
 "compute cac/ke/atom"_compute_cac_ke_atom.html
-"reset_initial_nodes"_reset_initial_nodes.html
-"dump cac/nodal/displacements"_dump_cac_nodal_displacements.html
 "dump cac/nodal/positions"_dump_cac_nodal_positions.html
 "dump cac/initial/nodes"_dump_cac_initial_nodes.html
 "dump cac/nodal/velocities"_dump_cac_nodal_velocities.html

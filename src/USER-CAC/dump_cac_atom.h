@@ -32,6 +32,7 @@ class DumpCACAtom : public Dump {
  protected:
   int ntypes;
   char **typenames;
+  int charge_flag;
 
   void init_style();
   void write_header(bigint);

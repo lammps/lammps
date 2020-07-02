@@ -429,6 +429,10 @@ Related commands
 **Default:** none
 
 ----------
+.. _Wolf1:
+
+**(Wolf)** D. Wolf, P. Keblinski, S. R. Phillpot, J. Eggebrecht, J Chem
+Phys, 110, 8254 (1999).
 
 .. _Jorgensen2:
 

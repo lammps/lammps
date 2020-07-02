@@ -84,7 +84,7 @@ thermo 		100
 
 thermo_style	custom &
 		pe            pxy            c_bsum2[20]   c_vbsum[220]    v_db_2_100 &
-		c_snap[1][43] c_snap[13][43] c_snap[1][42] c_snap[12][42] c_snap[6][37] 
+		c_snap[1][43] c_snap[13][43] c_snap[1][42] c_snap[12][42] c_snap[6][42] 
 thermo_modify 	norm no
 
 # dump 		mydump_db all custom 1000 dump_db id c_db[*]

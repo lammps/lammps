@@ -143,7 +143,9 @@ void MLIAPModelQuadratic::param_gradient(int *map, NeighList* list,
 
     i = list->ilist[ii];
     const int itype = type[i];
-    const int ielem = map[itype];
+    // element map not yet implemented
+    // const int ielem = map[itype];
+    const int ielem = itype-1;
     const int elemoffset = nparams*ielem;
 
     // linear contributions

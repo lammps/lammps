@@ -35,6 +35,11 @@ TEST(Utils, count_words)
     ASSERT_EQ(utils::count_words("some text # comment"), 4);
 }
 
+TEST(Utils, count_words_string)
+{
+    ASSERT_EQ(utils::count_words(std::string("some text # comment")), 4);
+}
+
 TEST(Utils, count_words_non_default)
 {
     ASSERT_EQ(utils::count_words("some text # comment", " #"), 3);
@@ -65,6 +70,12 @@ TEST(Utils, split_words_quoted)
 TEST(Utils, split_words_escaped)
 {
     std::vector<std::string> list = utils::split_words("1\\' '\"two\"' 3\\\"");
+    ASSERT_EQ(list.size(), 3);
+}
+
+TEST(Utils, split_words_quote_in_quoted)
+{
+    std::vector<std::string> list = utils::split_words("one 't\\'wo' \"th\\\"ree\"");
     ASSERT_EQ(list.size(), 3);
 }
 
@@ -273,9 +284,51 @@ TEST(Utils, strmatch_char_range)
     ASSERT_TRUE(utils::strmatch("rigid", "^[ip-s]+gid"));
 }
 
+TEST(Utils, strmatch_notchar_range)
+{
+    ASSERT_TRUE(utils::strmatch("rigid", "^[^a-g]+gid"));
+}
+
+TEST(Utils, strmatch_backslash)
+{
+    ASSERT_TRUE(utils::strmatch("\\rigid", "^\\W\\w+gid"));
+}
+
 TEST(Utils, strmatch_opt_range)
 {
-    ASSERT_TRUE(utils::strmatch("rigid", "^[0-9]*[p-s]igid"));
+    ASSERT_TRUE(utils::strmatch("rigid", "^[0-9]*[\\Wp-s]igid"));
+}
+
+TEST(Utils, strmatch_opt_char)
+{
+    ASSERT_TRUE(utils::strmatch("rigid", "^r?igid"));
+    ASSERT_TRUE(utils::strmatch("igid", "^r?igid"));
+}
+
+TEST(Utils, strmatch_dot)
+{
+    ASSERT_TRUE(utils::strmatch("rigid", ".igid"));
+    ASSERT_TRUE(utils::strmatch("Rigid", ".igid"));
+}
+
+TEST(Utils, strmatch_digit_nondigit)
+{
+    ASSERT_TRUE(utils::strmatch(" 5  angles\n", "^\\s*\\d+\\s+\\D+\\s"));
+}
+
+TEST(Utils, strmatch_integer_noninteger)
+{
+    ASSERT_TRUE(utils::strmatch(" -5  angles\n", "^\\s*\\i+\\s+\\I+\\s"));
+}
+
+TEST(Utils, strmatch_float_nonfloat)
+{
+    ASSERT_TRUE(utils::strmatch(" 5.0  angls\n", "^\\s*\\f+\\s+\\F+\\s"));
+}
+
+TEST(Utils, strmatch_whitespace_nonwhitespace)
+{
+    ASSERT_TRUE(utils::strmatch(" 5.0  angles\n", "^\\s*\\S+\\s+\\S+\\s"));
 }
 
 TEST(Utils, guesspath)

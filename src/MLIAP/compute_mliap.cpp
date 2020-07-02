@@ -106,6 +106,13 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
   nmax = 0;
   gamma_max = 0;
 
+  // create a minimal map, placeholder for more general map
+
+  memory->create(map,atom->ntypes+1,"compute_mliap:map");
+
+  for (int i = 1; i <= atom->ntypes; i++)
+    map[i] = i-1;
+
 }
 
 /* ---------------------------------------------------------------------- */

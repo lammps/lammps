@@ -92,9 +92,7 @@ void MLIAPDescriptorSNAP::forward(int* map, NeighList* list, double **descriptor
     const double ytmp = x[i][1];
     const double ztmp = x[i][2];
     const int itype = type[i];
-    // element map not yet implemented
-    // const int ielem = map[itype];
-    const int ielem = itype-1;
+    const int ielem = map[itype];
 
     jlist = list->firstneigh[i];
     jnum = list->numneigh[i];
@@ -118,9 +116,7 @@ void MLIAPDescriptorSNAP::forward(int* map, NeighList* list, double **descriptor
       delz = x[j][2] - ztmp;
       rsq = delx*delx + dely*dely + delz*delz;
       int jtype = type[j];
-      // element map not yet implemented
-      // const int jelem = map[jtype];
-      const int jelem = jtype-1;
+      const int jelem = map[jtype];
 
       if (rsq < cutsq[ielem][jelem]) {
         snaptr->rij[ninside][0] = delx;
@@ -291,11 +287,7 @@ void MLIAPDescriptorSNAP::param_backward(int *map, NeighList* list,
     const double ytmp = x[i][1];
     const double ztmp = x[i][2];
     const int itype = type[i];
-    int ielem = itype-1;
-    // element map not yet implemented
-    // if (chemflag)
-    // element map not yet implemented
-    //   ielem = map[itype];
+    const int ielem = map[itype];
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -319,17 +311,13 @@ void MLIAPDescriptorSNAP::param_backward(int *map, NeighList* list,
       delz = x[j][2] - ztmp;
       rsq = delx*delx + dely*dely + delz*delz;
       int jtype = type[j];
-      int jelem = jtype-1;
-      // element map not yet implemented
-      // if (chemflag)
-      // jelem = map[jtype];
+      const int jelem = map[jtype];
 
       if (rsq < cutsq[ielem][jelem]) {
         snaptr->rij[ninside][0] = delx;
         snaptr->rij[ninside][1] = dely;
         snaptr->rij[ninside][2] = delz;
         snaptr->inside[ninside] = j;
-      // element map not yet implemented
 	snaptr->wj[ninside] = wjelem[jelem];
 	snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
         snaptr->element[ninside] = jelem; // element index for chem snap

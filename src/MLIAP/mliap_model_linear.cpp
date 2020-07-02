@@ -117,9 +117,7 @@ void MLIAPModelLinear::param_gradient(int *map, NeighList* list,
 
     i = list->ilist[ii];
     const int itype = type[i];
-    // element map not yet implemented
-    // const int ielem = map[itype];
-    const int ielem = itype-1;
+    const int ielem = map[itype];
     const int elemoffset = nparams*ielem;
 
     int l = elemoffset+1;

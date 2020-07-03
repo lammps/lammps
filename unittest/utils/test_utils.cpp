@@ -333,7 +333,7 @@ TEST(Utils, strmatch_whitespace_nonwhitespace)
 
 TEST(Utils, guesspath)
 {
-    char buf[128];
+    char buf[256];
     FILE *fp = fopen("test_guesspath.txt","w");
 #if defined(__linux__)
     const char *path = utils::guesspath(buf,sizeof(buf),fp);

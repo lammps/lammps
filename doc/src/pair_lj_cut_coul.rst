@@ -141,7 +141,7 @@ Style *lj/cut/coul/cut* adds a Coulombic pairwise interaction given by
 
    E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
 
-where C is an energy-conversion constant, :math:`q_i` and :math:`q_j`
+where :math:`C` is an energy-conversion constant, :math:`q_i` and :math:`q_j`
 are the charges on the 2 atoms, and :math:`\epsilon` is the dielectric
 constant which can be set by the :doc:`dielectric <dielectric>` command.
 If one cutoff is specified in the pair_style command, it is used for
@@ -189,7 +189,7 @@ distance are computed directly; interactions outside that distance are
 computed in reciprocal space.
 
 Style *coul/wolf* adds a Coulombic pairwise interaction via the Wolf
-summation method, described in :ref:`Wolf <Wolf1>`, given by:
+summation method, described in :ref:`Wolf <Wolf3>`, given by:
 
 .. math::
 
@@ -316,6 +316,11 @@ Related commands
 **Default:** none
 
 ----------
+
+.. _Wolf3:
+
+**(Wolf)** D. Wolf, P. Keblinski, S. R. Phillpot, J. Eggebrecht, J Chem
+Phys, 110, 8254 (1999).
 
 .. _Fennell2:
 

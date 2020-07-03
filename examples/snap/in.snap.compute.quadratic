@@ -80,9 +80,9 @@ fix 		snap all ave/time 1 1 1 c_snap[*] file compute.snap.dat mode vector
 thermo 		100
 
 # test output:   1: total potential energy
-#                2: xz component of stress tensor
+#                2: xy component of stress tensor
 #                3: Sum(0.5*(B_{222}^i)^2, all i of type 2) 
-#                4: xy component of Sum(Sum(r_j*(0.5*(dB_{222}^i)^2/dR[j]), all i of type 2), all j) 
+#                4: xz component of Sum(Sum(r_j*(0.5*(dB_{222}^i)^2/dR[j]), all i of type 2), all j) 
 #                5: y component of -Sum(d(0.5*(B_{222}^i)^2/dR[2]), all i of type 2)
 #
 #                followed by 5 counterparts from compute snap

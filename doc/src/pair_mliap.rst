@@ -8,7 +8,19 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style mliap
+   pair_style mliap ... keyword values ...
+
+* two keyword/value pairs must be appended
+* keyword = *model* or *descriptor*
+
+  .. parsed-literal::
+
+       *model* values = style filename
+         style = *linear* or *quadratic*
+         filename = name of file containing model definitions
+       *descriptor* values = style filename
+         style = *sna*
+         filename = name of file containing descriptor definitions
 
 Examples
 """"""""
@@ -23,7 +35,7 @@ Description
 """""""""""
 
 Pair style *mliap* provides a general interface to families of 
-machine-learning interatomic potentials. It provides separate 
+machine-learning interatomic potentials. It allows separate 
 definitions of the interatomic potential functional form (*model*)
 and the geometric quantities that characterize the atomic positions
 (*descriptor*). By defining *model* and *descriptor* separately, 
@@ -34,6 +46,9 @@ and one descriptor, *sna*, the SNAP descriptor used by :doc:`pair_style snap <pa
 and chem variants. Work is currently underway to extend
 the interface to handle neural network energy models,
 and it is also straightforward to add new descriptor styles.
+In order to train a model, it is useful to know the gradient or derivative
+of energy, force, and stress w.r.t. model parameters. This information
+can be accessed using the related :doc:`compute mliap <compute_mliap>` command.
 
 The pair_style *mliap* command must be followed by two keywords
 *model* and *descriptor* in either order. A single
@@ -131,6 +146,6 @@ See the :doc:`Build package <Build_package>` doc page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`pair_style snap  <pair_snap>`,
+:doc:`pair_style snap  <pair_snap>`, :doc:`compute mliap <compute_mliap>`
 
 **Default:** none

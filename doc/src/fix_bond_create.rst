@@ -125,7 +125,7 @@ new bond. Without a restriction on the permissible angle, and for
 stiffer angle potentials very large energies can arise and lead to
 uncontrolled behavior.
 
-Any bond that is created is assigned a bond type of *bondtype*
+Any bond that is created is assigned a bond type of *bondtype*.
 
 When a bond is created, data structures within LAMMPS that store bond
 topology are updated to reflect the creation.  If the bond is part of

@@ -2081,6 +2081,7 @@ Novint
 np
 Npair
 Npairs
+nparams
 nparticle
 npernode
 nph

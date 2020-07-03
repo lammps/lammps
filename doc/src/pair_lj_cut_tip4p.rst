@@ -68,7 +68,31 @@ given by
        \left(\frac{\sigma}{r}\right)^6 \right]
                        \qquad r < r_c
 
-and implement the TIP4P
+:math:`r_c` is the cutoff.
+
+They add Coulombic pairwise interactions given by
+
+.. math::
+
+   E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
+
+where :math:`C` is an energy-conversion constant, :math:`q_i` and :math:`q_j`
+are the charges on the 2 atoms, and :math:`\epsilon` is the dielectric
+constant which can be set by the :doc:`dielectric <dielectric>` command.
+If one cutoff is specified in the pair_style command, it is used for
+both the LJ and Coulombic terms.  If two cutoffs are specified, they are
+used as cutoffs for the LJ and Coulombic terms respectively.
+
+Style *lj/cut/tip4p/long* compute the same
+Coulombic interactions as style *lj/cut/tip4p/cut* except that an
+additional damping factor is applied to the Coulombic term so it can
+be used in conjunction with the :doc:`kspace_style <kspace_style>`
+command and its *ewald* or *pppm* option.  The Coulombic cutoff
+specified for this style means that pairwise interactions within this
+distance are computed directly; interactions outside that distance are
+computed in reciprocal space.
+
+The *lj/cut/tip4p* styles implement the TIP4P
 water model of :ref:`(Jorgensen) <Jorgensen2>`, which introduces a massless
 site located a short distance away from the oxygen atom along the
 bisector of the HOH angle.  The atomic types of the oxygen and

@@ -27,17 +27,18 @@
 using namespace LAMMPS_NS;
 
 TableFileReader::TableFileReader(LAMMPS *lmp,
-                                         const std::string &filename,
-                                         const std::string &type) :
-  PotentialFileReader(lmp, filename, type + " table")
+                                 const std::string &filename,
+                                 const std::string &type,
+                                 const int auto_convert) :
+  PotentialFileReader(lmp, filename, type + " table", auto_convert)
 {
 }
 
 TableFileReader::~TableFileReader() {
 }
 
-char * TableFileReader::find_section_start(const std::string & keyword) {
-  char * line = nullptr;
+char *TableFileReader::find_section_start(const std::string & keyword) {
+  char *line = nullptr;
   while ((line = reader->next_line())) {
     ValueTokenizer values(line);
     std::string word = values.next_string();

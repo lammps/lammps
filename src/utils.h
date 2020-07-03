@@ -255,6 +255,24 @@ namespace LAMMPS_NS {
      * \return UNITS field if present
      */
     std::string get_potential_units(const std::string & path, const std::string & potential_name);
+
+    enum { NOCONVERT = 0, METAL2REAL = 1, REAL2METAL = 1<<1 };
+    enum { UNKNOWN = 0, ENERGY };
+
+    /**
+     * \brief Return bitmask of available conversion factors for a given propert
+     * \param property property to be converted
+     * \return bitmask indicating available conversions
+     */
+    int get_supported_conversions(const int property);
+
+    /**
+     * \brief Return unit conversion factor for given property and selected from/to units
+     * \param property property to be converted
+     * \param conversion constant indicating the conversion
+     * \return conversion factor
+     */
+    double get_conversion_factor(const int property, const int conversion);
   }
 }
 

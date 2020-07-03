@@ -309,18 +309,14 @@ void Update::create_integrate(int narg, char **arg, int trysuffix)
   int sflag;
   new_integrate(arg[0],narg-1,&arg[1],trysuffix,sflag);
 
+  std::string estyle = arg[0];
   if (sflag) {
-    char estyle[256];
-    if (sflag == 1) snprintf(estyle,256,"%s/%s",arg[0],lmp->suffix);
-    else snprintf(estyle,256,"%s/%s",arg[0],lmp->suffix2);
-    int n = strlen(estyle) + 1;
-    integrate_style = new char[n];
-    strcpy(integrate_style,estyle);
-  } else {
-    int n = strlen(arg[0]) + 1;
-    integrate_style = new char[n];
-    strcpy(integrate_style,arg[0]);
+    estyle += "/";
+    if (sflag == 1) estyle += lmp->suffix;
+    else  estyle += lmp->suffix2;
   }
+  integrate_style = new char[estyle.size()+1];
+  strcpy(integrate_style,estyle.c_str());
 }
 
 /* ----------------------------------------------------------------------
@@ -333,8 +329,7 @@ void Update::new_integrate(char *style, int narg, char **arg,
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
       sflag = 1;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
+      std::string estyle = style + std::string("/") + lmp->suffix;
       if (integrate_map->find(estyle) != integrate_map->end()) {
         IntegrateCreator integrate_creator = (*integrate_map)[estyle];
         integrate = integrate_creator(lmp, narg, arg);
@@ -344,8 +339,7 @@ void Update::new_integrate(char *style, int narg, char **arg,
 
     if (lmp->suffix2) {
       sflag = 2;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
+      std::string estyle = style + std::string("/") + lmp->suffix2;
       if (integrate_map->find(estyle) != integrate_map->end()) {
         IntegrateCreator integrate_creator = (*integrate_map)[estyle];
         integrate = integrate_creator(lmp, narg, arg);
@@ -386,18 +380,14 @@ void Update::create_minimize(int narg, char **arg, int trysuffix)
   int sflag;
   new_minimize(arg[0],narg-1,&arg[1],trysuffix,sflag);
 
+  std::string estyle = arg[0];
   if (sflag) {
-    char estyle[256];
-    if (sflag == 1) snprintf(estyle,256,"%s/%s",arg[0],lmp->suffix);
-    else snprintf(estyle,256,"%s/%s",arg[0],lmp->suffix2);
-    int n = strlen(estyle) + 1;
-    minimize_style = new char[n];
-    strcpy(minimize_style,estyle);
-  } else {
-    int n = strlen(arg[0]) + 1;
-    minimize_style = new char[n];
-    strcpy(minimize_style,arg[0]);
+    estyle += "/";
+    if (sflag == 1) estyle += lmp->suffix;
+    else estyle += lmp->suffix2;
   }
+  minimize_style = new char[estyle.size()+1];
+  strcpy(minimize_style,estyle.c_str());
 }
 
 /* ----------------------------------------------------------------------
@@ -410,8 +400,7 @@ void Update::new_minimize(char *style, int /* narg */, char ** /* arg */,
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
       sflag = 1;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
+      std::string estyle = style + std::string("/") + lmp->suffix;
       if (minimize_map->find(estyle) != minimize_map->end()) {
         MinimizeCreator minimize_creator = (*minimize_map)[estyle];
         minimize = minimize_creator(lmp);
@@ -421,8 +410,7 @@ void Update::new_minimize(char *style, int /* narg */, char ** /* arg */,
 
     if (lmp->suffix2) {
       sflag = 2;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
+      std::string estyle = style + std::string("/") + lmp->suffix2;
       if (minimize_map->find(estyle) != minimize_map->end()) {
         MinimizeCreator minimize_creator = (*minimize_map)[estyle];
         minimize = minimize_creator(lmp);

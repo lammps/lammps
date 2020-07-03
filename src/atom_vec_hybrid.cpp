@@ -18,6 +18,7 @@
 #include "memory.h"
 #include "error.h"
 #include "tokenizer.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -56,8 +57,6 @@ AtomVecHybrid::~AtomVecHybrid()
   delete [] styles;
   for (int k = 0; k < nstyles; k++) delete [] keywords[k];
   delete [] keywords;
-
-  for (int k = 0; k < nstyles_bonus; k++) delete styles_bonus[k];
   delete [] styles_bonus;
 
   if (!fields_allocated) return;
@@ -215,18 +214,16 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   for (int idup = 0; idup < ndupfield; idup++) {
     char *dup = (char *) dupfield[idup];
     ptr = strstr(concat_grow,dup);
-    if (ptr && strstr(ptr+1,dup)) {
-      char str[128];
-      sprintf(str,"Peratom %s is in multiple sub-styles - "
-              "must be used consistently",dup);
-      if (comm->me == 0) error->warning(FLERR,str);
-    }
+    if ((ptr && strstr(ptr+1,dup)) && (comm->me == 0))
+      error->warning(FLERR,fmt::format("Peratom {} is in multiple sub-styles "
+                                       "- must be used consistently",dup));
   }
 
   delete [] concat_grow;
 
   // set bonus_flag if any substyle has bonus data
   // set nstyles_bonus & styles_bonus
+  // sum two sizes over contributions from each substyle with bonus data.
 
   nstyles_bonus = 0;
   for (int k = 0; k < nstyles; k++)
@@ -236,9 +233,14 @@ void AtomVecHybrid::process_args(int narg, char **arg)
     bonus_flag = 1;
     styles_bonus = new AtomVec*[nstyles_bonus];
     nstyles_bonus = 0;
+    size_forward_bonus = 0;
+    size_border_bonus = 0;
     for (int k = 0; k < nstyles; k++) {
-      if (styles[k]->bonus_flag)
+      if (styles[k]->bonus_flag) {
         styles_bonus[nstyles_bonus++] = styles[k];
+        size_forward_bonus += styles[k]->size_forward_bonus;
+        size_border_bonus += styles[k]->size_border_bonus;
+      }
     }
   }
 

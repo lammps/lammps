@@ -89,14 +89,20 @@ LAMMPS so long as they are in the format LAMMPS expects, as discussed
 on the individual doc pages.  The first line of potential files may
 contain metadata with upper case tags followed their value. These may
 be parsed and used by LAMMPS.  Currently supported are the "DATE:"
-tag and the "UNITS:" tag.  For pair styles that have been programmed
+tag and the ``UNITS:`` tag.  For pair styles that have been programmed
 to support the metadata, the value of the "DATE:" tag is printed to
 the screen and logfile so that the version of a potential file can be
-later identified.  The "UNITS:" tag indicates the :doc:`units <units>`
+later identified.  The ``UNITS:`` tag indicates the :doc:`units <units>`
 setting required for this particular potential file.  If the potential
-file ware created for a different sets of units, LAMMPS will terminate
+file was created for a different sets of units, LAMMPS will terminate
 with an error.  If the potential file does not contain the tag, no
-check will be made.
+check will be made and it is the responsibility of the user to determine
+that the unit style is correct.
+
+In some select cases and for specific combinations of unit styles,
+LAMMPS is capable of automatically converting potential parameters
+from a file. In those cases, a warning message signaling that an
+automatic conversion has happened is printed to the screen.
 
 When a pair_coeff command using a potential file is specified, LAMMPS
 looks for the potential file in 2 places.  First it looks in the

@@ -93,10 +93,10 @@ void PairMLIAP::compute(int eflag, int vflag)
   model->gradient(this, list, descriptors, beta, eflag);
 
   // calculate force contributions beta_i*dB_i/dR_j
- 
+
   descriptor->backward(this, list, beta, vflag);
 
-  // calculate stress 
+  // calculate stress
 
   if (vflag_fdotr) virial_fdotr_compute();
 }

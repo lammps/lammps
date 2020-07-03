@@ -31,6 +31,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -286,12 +287,9 @@ void FixDeposit::init()
     } else maxradinsert = 0.5;
 
     double separation = MAX(2.0*maxradinsert,maxradall+maxradinsert);
-    if (sqrt(nearsq) < separation && comm->me == 0) {
-      char str[128];
-      sprintf(str,"Fix deposit near setting < possible overlap separation %g",
-              separation);
-      error->warning(FLERR,str);
-    }
+    if (sqrt(nearsq) < separation && comm->me == 0)
+      error->warning(FLERR,fmt::format("Fix deposit near setting < possible "
+                                       "overlap separation {}",separation));
   }
 }
 

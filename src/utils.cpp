@@ -121,11 +121,10 @@ static const char *guesspath(char *buf, int len, FILE *fp)
   memset(buf,0,len);
 
 #if defined(__linux__)
-  char procpath[32];
   int fd = fileno(fp);
-  snprintf(procpath,32,"/proc/self/fd/%d",fd);
   // get pathname from /proc or copy (unknown)
-  if (readlink(procpath,buf,len-1) <= 0) strcpy(buf,"(unknown)");
+  if (readlink(fmt::format("/proc/self/fd/{}",fd).c_str(),buf,len-1) <= 0)
+    strcpy(buf,"(unknown)");
 #else
   strcpy(buf,"(unknown)");
 #endif
@@ -550,9 +549,9 @@ bool utils::is_double(const std::string & str) {
 
 std::string utils::path_basename(const std::string & path) {
 #if defined(_WIN32)
-  size_t start = path.find_last_of('/\\');
+  size_t start = path.find_last_of("/\\");
 #else
-  size_t start = path.find_last_of('/');
+  size_t start = path.find_last_of("/");
 #endif
 
   if (start == std::string::npos) {
@@ -661,6 +660,36 @@ std::string utils::get_potential_units(const std::string & path, const std::stri
     }
   }
   return "";
+}
+
+/* ----------------------------------------------------------------------
+   return bitmask of supported conversions for a given property
+------------------------------------------------------------------------- */
+int utils::get_supported_conversions(const int property)
+{
+  if (property == ENERGY) {
+    return METAL2REAL | REAL2METAL;
+  }
+  return NOCONVERT;
+}
+
+/* ----------------------------------------------------------------------
+   return conversion factor for a given property and conversion setting
+   return 0.0 if unknown.
+------------------------------------------------------------------------- */
+
+double utils::get_conversion_factor(const int property, const int conversion)
+{
+  if (property == ENERGY) {
+    if (conversion == NOCONVERT) {
+      return 1.0;
+    } else if (conversion == METAL2REAL) {
+      return 23.060549;
+    } else if (conversion == REAL2METAL) {
+      return 1.0/23.060549;
+    }
+  }
+  return 0.0;
 }
 
 /* ------------------------------------------------------------------ */

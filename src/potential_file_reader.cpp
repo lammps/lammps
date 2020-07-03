@@ -31,11 +31,13 @@ using namespace LAMMPS_NS;
 
 PotentialFileReader::PotentialFileReader(LAMMPS *lmp,
                                          const std::string &filename,
-                                         const std::string &potential_name) :
+                                         const std::string &potential_name,
+                                         const int auto_convert) :
   Pointers(lmp),
   reader(nullptr),
   filename(filename),
-  filetype(potential_name + " potential")
+  filetype(potential_name + " potential"),
+  unit_convert(auto_convert)
 {
   if (comm->me != 0) {
     error->one(FLERR, "FileReader should only be called by proc 0!");
@@ -143,7 +145,7 @@ std::string PotentialFileReader::next_string() {
   return "";
 }
 
-TextFileReader * PotentialFileReader::open_potential(const std::string& path) {
+TextFileReader *PotentialFileReader::open_potential(const std::string &path) {
   std::string filepath = utils::get_potential_file_path(path);
 
   if (!filepath.empty()) {
@@ -151,15 +153,30 @@ TextFileReader * PotentialFileReader::open_potential(const std::string& path) {
     std::string date       = utils::get_potential_date(filepath, filetype);
     std::string units      = utils::get_potential_units(filepath, filetype);
 
-    if (!date.empty()) {
-      utils::logmesg(lmp, fmt::format("Reading potential file {} with DATE: {}\n", filename, date));
-    }
+    if (!date.empty())
+      utils::logmesg(lmp, fmt::format("Reading {} file {} with DATE: {}\n",
+                                      filetype, filename, date));
 
-    if (!units.empty() && (units != unit_style)) {
-      lmp->error->one(FLERR, fmt::format("Potential file {} requires {} units "
-                                         "but {} units are in use",filename, units, unit_style));
+    if (units.empty()) {
+      unit_convert = utils::NOCONVERT;
+    } else {
+      if (units == unit_style) {
+        unit_convert = utils::NOCONVERT;
+      } else {
+        if ((units == "metal") && (unit_style == "real") && (unit_convert & utils::METAL2REAL)) {
+          unit_convert = utils::METAL2REAL;
+        } else if ((units == "real") && (unit_style == "metal") && (unit_convert & utils::REAL2METAL)) {
+          unit_convert = utils::REAL2METAL;
+        } else {
+          lmp->error->one(FLERR, fmt::format("{} file {} requires {} units "
+                                             "but {} units are in use", filetype,
+                                             filename, units, unit_style));
+        }
+      }
     }
-
+    if (unit_convert != utils::NOCONVERT)
+      lmp->error->warning(FLERR, fmt::format("Converting {} in {} units to {} "
+                                             "units", filetype, units, unit_style));
     return new TextFileReader(filepath, filetype);
   }
   return nullptr;

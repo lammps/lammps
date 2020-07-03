@@ -14,6 +14,7 @@
 #include "dump_custom.h"
 #include <cstdlib>
 #include <cstring>
+#include <string>
 #include "atom.h"
 #include "force.h"
 #include "domain.h"
@@ -28,6 +29,7 @@
 #include "error.h"
 #include "update.h"
 #include "variable.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -1981,22 +1983,12 @@ int DumpCustom::modify_param(int narg, char **arg)
                          "dump:thresh_fixID");
       memory->grow(thresh_first,(nthreshlast+1),"dump:thresh_first");
 
-      int n = strlen(id) + strlen("_DUMP_STORE") + 8;
-      thresh_fixID[nthreshlast] = new char[n];
-      strcpy(thresh_fixID[nthreshlast],id);
-      sprintf(&thresh_fixID[nthreshlast][strlen(id)],"%d",nthreshlast);
-      strcat(thresh_fixID[nthreshlast],"_DUMP_STORE");
-
-      char **newarg = new char*[6];
-      newarg[0] = thresh_fixID[nthreshlast];
-      newarg[1] = group->names[igroup];
-      newarg[2] = (char *) "STORE";
-      newarg[3] = (char *) "peratom";
-      newarg[4] = (char *) "1";
-      newarg[5] = (char *) "1";
-      modify->add_fix(6,newarg);
+      std::string threshid = fmt::format("{}{}_DUMP_STORE",id,nthreshlast);
+      thresh_fixID[nthreshlast] = new char[threshid.size()+1];
+      strcpy(thresh_fixID[nthreshlast],threshid.c_str());
+      modify->add_fix(fmt::format("{} {} STORE peratom 1 1",threshid,
+                                  group->names[igroup]));
       thresh_fix[nthreshlast] = (FixStore *) modify->fix[modify->nfix-1];
-      delete [] newarg;
 
       thresh_last[nthreshlast] = nthreshlast;
       thresh_first[nthreshlast] = 1;

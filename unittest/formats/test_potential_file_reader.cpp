@@ -23,6 +23,7 @@
 #include "MANYBODY/pair_tersoff_mod_c.h"
 #include "MANYBODY/pair_tersoff_zbl.h"
 #include "MANYBODY/pair_vashishta.h"
+#include "USER-MISC/pair_tersoff_table.h"
 #include "input.h"
 #include "lammps.h"
 #include "potential_file_reader.h"
@@ -50,6 +51,7 @@ const int LAMMPS_NS::PairGW::NPARAMS_PER_LINE;
 const int LAMMPS_NS::PairGWZBL::NPARAMS_PER_LINE;
 const int LAMMPS_NS::PairNb3bHarmonic::NPARAMS_PER_LINE;
 const int LAMMPS_NS::PairVashishta::NPARAMS_PER_LINE;
+const int LAMMPS_NS::PairTersoffTable::NPARAMS_PER_LINE;
 
 class PotentialFileReaderTest : public ::testing::Test {
 protected:
@@ -74,7 +76,7 @@ protected:
     }
 };
 
-TEST_F(PotentialFileReaderTest, Si)
+TEST_F(PotentialFileReaderTest, Sw)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("units metal");
@@ -140,6 +142,17 @@ TEST_F(PotentialFileReaderTest, TersoffModC)
     ASSERT_EQ(utils::count_words(line), PairTersoffMODC::NPARAMS_PER_LINE);
 }
 
+TEST_F(PotentialFileReaderTest, TersoffTable)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("units metal");
+    PotentialFileReader reader(lmp, "Si.tersoff", "TersoffTable");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    auto line = reader.next_line(PairTersoffTable::NPARAMS_PER_LINE);
+    ASSERT_EQ(utils::count_words(line), PairTersoffTable::NPARAMS_PER_LINE);
+}
+
 TEST_F(PotentialFileReaderTest, TersoffZBL)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -176,7 +189,7 @@ TEST_F(PotentialFileReaderTest, GWZBL)
 TEST_F(PotentialFileReaderTest, Nb3bHarmonic)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
+    lmp->input->one("units real");
     PotentialFileReader reader(lmp, "MOH.nb3b.harmonic", "NB3B Harmonic");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
@@ -193,6 +206,49 @@ TEST_F(PotentialFileReaderTest, Vashishta)
 
     auto line = reader.next_line(PairVashishta::NPARAMS_PER_LINE);
     ASSERT_EQ(utils::count_words(line), PairVashishta::NPARAMS_PER_LINE);
+}
+
+TEST_F(PotentialFileReaderTest, UnitConvert)
+{
+    PotentialFileReader *reader;
+    int unit_convert, flag;
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("units metal");
+    reader = new PotentialFileReader(lmp, "Si.sw", "Stillinger-Weber");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    unit_convert = reader->get_unit_convert();
+    ASSERT_EQ(unit_convert, 0);
+    delete reader;
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    flag   = utils::get_supported_conversions(utils::UNKNOWN);
+    reader = new PotentialFileReader(lmp, "Si.sw", "Stillinger-Weber", flag);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    unit_convert = reader->get_unit_convert();
+    ASSERT_EQ(unit_convert, 0);
+    delete reader;
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    flag   = utils::get_supported_conversions(utils::ENERGY);
+    reader = new PotentialFileReader(lmp, "Si.sw", "Stillinger-Weber", flag);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    unit_convert = reader->get_unit_convert();
+    ASSERT_EQ(unit_convert, 0);
+    delete reader;
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    flag   = utils::get_supported_conversions(utils::ENERGY);
+    lmp->input->one("units real");
+    reader = new PotentialFileReader(lmp, "Si.sw", "Stillinger-Weber", flag);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    unit_convert = reader->get_unit_convert();
+    ASSERT_EQ(unit_convert, utils::METAL2REAL);
+    delete reader;
 }
 
 int main(int argc, char **argv)

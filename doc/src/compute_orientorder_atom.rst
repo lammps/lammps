@@ -61,8 +61,8 @@ The summation is over the *nnn* nearest
 neighbors of the central atom.
 The angles :math:`theta` and :math:`phi` are the standard spherical polar angles
 defining the direction of the bond vector :math:`r_{ij}`.
-The phase and sign of :math:`Y_{lm}` follow the standard conventions, 
-so that :math:`{\rm sign}(Y_{ll}(0,0)) = (-1)^l`.   
+The phase and sign of :math:`Y_{lm}` follow the standard conventions,
+so that :math:`{\rm sign}(Y_{ll}(0,0)) = (-1)^l`.
 The second equation defines :math:`Q_l`, which is a
 rotationally invariant non-negative amplitude obtained by summing
 over all the components of degree *l*\ .
@@ -181,13 +181,13 @@ values for each atom will be added to the output array, which are real numbers.
 
 If the keyword *components* is set, then the real and imaginary parts
 of each component of *normalized* :math:`\hat{Y}_{lm}` will be added to the
-output array in the following order: :math:`{\rm Re}(\hat{Y}_{-m}), {\rm Im}(\hat{Y}_{-m}), 
-{\rm Re}(\hat{Y}_{-m+1}), {\rm Im}(\hat{Y}_{-m+1}), \dots , {\rm Re}(\hat{Y}_m), {\rm Im}(\hat{Y}_m)`.  
+output array in the following order: :math:`{\rm Re}(\hat{Y}_{-m}), {\rm Im}(\hat{Y}_{-m}),
+{\rm Re}(\hat{Y}_{-m+1}), {\rm Im}(\hat{Y}_{-m+1}), \dots , {\rm Re}(\hat{Y}_m), {\rm Im}(\hat{Y}_m)`.
 
 In summary, the per-atom array will contain *nlvalues* columns, followed by
 an additional *nlvalues* columns if *wl* is set to yes, followed by
 an additional *nlvalues* columns if *wl/hat* is set to yes, followed
-by an additional 2\*(2\* *ldegree*\ +1) columns if the *components* 
+by an additional 2\*(2\* *ldegree*\ +1) columns if the *components*
 keyword is set.
 
 These values can be accessed by any command that uses per-atom values

@@ -897,7 +897,7 @@ void ReadData::command(int narg, char **arg)
   MPI_Barrier(world);
 
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("  read_data CPU = {:.3f} secs\n",
+    utils::logmesg(lmp,fmt::format("  read_data CPU = {:.3f} seconds\n",
                                    MPI_Wtime()-time1));
 }
 
@@ -1157,11 +1157,8 @@ void ReadData::header(int firstpass)
   parse_keyword(1);
   for (n = 0; n < NSECTIONS; n++)
     if (strcmp(keyword,section_keywords[n]) == 0) break;
-  if (n == NSECTIONS) {
-    char str[128];
-    sprintf(str,"Unknown identifier in data file: %s",keyword);
-    error->all(FLERR,str);
-  }
+  if (n == NSECTIONS)
+    error->all(FLERR,fmt::format("Unknown identifier in data file: {}",keyword));
 
   // error checks on header values
   // must be consistent with atom style and other header values

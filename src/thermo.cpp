@@ -45,6 +45,7 @@
 #include "error.h"
 #include "math_const.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -315,8 +316,8 @@ void Thermo::header()
 
   std::string hdr;
   for (int i = 0; i < nfield; i++) hdr +=  keyword[i] + std::string(" ");
-  hdr += "\n";
-  if (me == 0) utils::logmesg(lmp,hdr);
+
+  if (me == 0) utils::logmesg(lmp,hdr+"\n");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -423,21 +424,15 @@ bigint Thermo::lost_check()
 
   // error message
 
-  if (lostflag == Thermo::ERROR) {
-    char str[64];
-    sprintf(str,
-            "Lost atoms: original " BIGINT_FORMAT " current " BIGINT_FORMAT,
-            atom->natoms,ntotal);
-    error->all(FLERR,str);
-  }
+  if (lostflag == Thermo::ERROR)
+    error->all(FLERR,fmt::format("Lost atoms: original {} current {}",
+                                 atom->natoms,ntotal));
 
   // warning message
 
-  char str[64];
-  sprintf(str,
-          "Lost atoms: original " BIGINT_FORMAT " current " BIGINT_FORMAT,
-          atom->natoms,ntotal);
-  if (me == 0) error->warning(FLERR,str,0);
+  if (me == 0)
+    error->warning(FLERR,fmt::format("Lost atoms: original {} current {}",
+                                     atom->natoms,ntotal),0);
 
   // reset total atom count
 
@@ -489,7 +484,7 @@ void Thermo::modify_params(int narg, char **arg)
         icompute = modify->find_compute(id_compute[index_press_vector]);
         if (icompute < 0) error->all(FLERR,
                                      "Pressure ID for thermo does not exist");
-      } else icompute = modify->find_compute((char *) "thermo_press");
+      } else icompute = modify->find_compute("thermo_press");
 
       modify->compute[icompute]->reset_extra_compute_fix(arg[iarg+1]);
 
@@ -1062,7 +1057,7 @@ int Thermo::add_variable(const char *id)
    customize a new keyword by adding to if statement
 ------------------------------------------------------------------------- */
 
-int Thermo::evaluate_keyword(char *word, double *answer)
+int Thermo::evaluate_keyword(const char *word, double *answer)
 {
   // turn off normflag if natoms = 0 to avoid divide by 0
   // normflag must be set for lo-level thermo routines that may be invoked

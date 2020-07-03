@@ -328,29 +328,9 @@ void BondOxdnaFene::coeff(int narg, char **arg)
 
 void BondOxdnaFene::init_style()
 {
-  /* special bonds have to be lj = 0 1 1 and coul = 1 1 1 to exclude
-     the ss excluded volume interaction between nearest neighbors   */
-
-  force->special_lj[1] = 0.0;
-  force->special_lj[2] = 1.0;
-  force->special_lj[3] = 1.0;
-  force->special_coul[1] = 1.0;
-  force->special_coul[2] = 1.0;
-  force->special_coul[3] = 1.0;
-
-  fprintf(screen,"Finding 1-2 1-3 1-4 neighbors ...\n"
-                 " Special bond factors lj:   %-10g %-10g %-10g\n"
-                 " Special bond factors coul: %-10g %-10g %-10g\n",
-                 force->special_lj[1],force->special_lj[2],force->special_lj[3],
-                 force->special_coul[1],force->special_coul[2],force->special_coul[3]);
-
   if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0 ||
       force->special_coul[1] != 1.0 || force->special_coul[2] != 1.0 || force->special_coul[3] != 1.0)
-  {
-    if (comm->me == 0)
-      error->warning(FLERR,"Use special bonds lj = 0,1,1 and coul = 1,1,1 with bond style oxdna/fene");
-  }
-
+    error->all(FLERR,"Must use 'special_bonds lj 0 1 1 coul 1 1 1' with bond style oxdna/fene");
 }
 
 /* ---------------------------------------------------------------------- */

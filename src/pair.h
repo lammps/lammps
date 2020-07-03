@@ -53,6 +53,7 @@ class Pair : protected Pointers {
   int respa_enable;              // 1 if inner/middle/outer rRESPA routines
   int one_coeff;                 // 1 if allows only one coeff * * call
   int manybody_flag;             // 1 if a manybody potential
+  int unit_convert_flag;         // value != 0 indicates support for unit conversion.
   int no_virial_fdotr_compute;   // 1 if does not invoke virial_fdotr_compute()
   int writedata;                 // 1 if writes coeffs to data file
   int ghostneigh;                // 1 if pair style needs neighbors of ghosts

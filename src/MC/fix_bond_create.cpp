@@ -125,16 +125,18 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
       itype = force->inumeric(FLERR,arg[iarg+1]);
       if (itype < 0) error->all(FLERR,"Illegal fix bond/create command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"aconstrain") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/create command");
+    } else if (strcmp(arg[iarg],"aconstrain") == 0 &&
+        strcmp(arg[2],"bond/create/angle") == 0) {
+      if (iarg+3 > narg) 
+          error->all(FLERR,"Illegal fix bond/create/angle command");
       amin = force->numeric(FLERR,arg[iarg+1]);
       amax = force->inumeric(FLERR,arg[iarg+2]);
       if (amin  >= amax)
-        error->all(FLERR,"Illegal fix bond/create command");
+        error->all(FLERR,"Illegal fix bond/create/angle command");
       if (amin < 0 || amin > 180)
-        error->all(FLERR,"Illegal fix bond/create command");
+        error->all(FLERR,"Illegal fix bond/create/angle command");
       if (amax < 0 || amax > 180)
-        error->all(FLERR,"Illegal fix bond/create command");
+        error->all(FLERR,"Illegal fix bond/create/angle command");
       amin = (3.14159265358979323846/180.0) * amin;
       amax = (3.14159265358979323846/180.0) * amax;
       constrainflag = 1;

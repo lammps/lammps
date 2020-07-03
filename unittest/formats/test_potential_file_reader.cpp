@@ -24,6 +24,7 @@
 #include "MANYBODY/pair_tersoff_zbl.h"
 #include "MANYBODY/pair_vashishta.h"
 #include "USER-MISC/pair_tersoff_table.h"
+#include "info.h"
 #include "input.h"
 #include "lammps.h"
 #include "potential_file_reader.h"
@@ -35,6 +36,7 @@
 #include <mpi.h>
 
 using namespace LAMMPS_NS;
+using ::testing::MatchesRegex;
 using utils::split_words;
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
@@ -76,7 +78,8 @@ protected:
     }
 };
 
-TEST_F(PotentialFileReaderTest, Sw)
+// open for native units
+TEST_F(PotentialFileReaderTest, Sw_native)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("units metal");
@@ -85,6 +88,37 @@ TEST_F(PotentialFileReaderTest, Sw)
 
     auto line = reader.next_line(PairSW::NPARAMS_PER_LINE);
     ASSERT_EQ(utils::count_words(line), PairSW::NPARAMS_PER_LINE);
+}
+
+// open with supported conversion enabled
+TEST_F(PotentialFileReaderTest, Sw_conv)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("units real");
+    PotentialFileReader reader(lmp, "Si.sw", "Stillinger-Weber", utils::METAL2REAL);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    auto line = reader.next_line(PairSW::NPARAMS_PER_LINE);
+    ASSERT_EQ(utils::count_words(line), PairSW::NPARAMS_PER_LINE);
+}
+
+// open without conversion enabled
+TEST_F(PotentialFileReaderTest, Sw_noconv)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("units real");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ::testing::internal::CaptureStdout();
+    if (Info::has_exceptions()) {
+        ASSERT_ANY_THROW(
+            PotentialFileReader reader(lmp, "Si.sw", "Stillinger-Weber", utils::REAL2METAL););
+    } else {
+        ASSERT_DEATH(
+            { PotentialFileReader reader(lmp, "Si.sw", "Stillinger-Weber", utils::REAL2METAL); },
+            "");
+    }
+    std::string mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR on proc.*potential.*requires metal units but real.*"));
 }
 
 TEST_F(PotentialFileReaderTest, Comb)
@@ -241,7 +275,7 @@ TEST_F(PotentialFileReaderTest, UnitConvert)
     delete reader;
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    flag   = utils::get_supported_conversions(utils::ENERGY);
+    flag = utils::get_supported_conversions(utils::ENERGY);
     lmp->input->one("units real");
     reader = new PotentialFileReader(lmp, "Si.sw", "Stillinger-Weber", flag);
     if (!verbose) ::testing::internal::GetCapturedStdout();

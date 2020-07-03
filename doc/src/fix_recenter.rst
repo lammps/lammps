@@ -116,7 +116,7 @@ Restrictions
 """"""""""""
 
 This fix should not be used with an x,y,z setting that causes a large
-shift in the system on the 1st timestep, due to the requested COM
+shift in the system on the first timestep, due to the requested COM
 being very different from the initial COM.  This could cause atoms to
 be lost, especially in parallel.  Instead, use the
 :doc:`displace_atoms <displace_atoms>` command, which can be used to

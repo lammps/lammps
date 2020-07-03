@@ -21,6 +21,7 @@
 #include "pppm.h"
 #include <mpi.h>
 #include <cstring>
+#include <string>
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
@@ -35,6 +36,8 @@
 #include "remap_wrap.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 #include "math_const.h"
 #include "math_special.h"
@@ -185,10 +188,7 @@ PPPM::~PPPM()
 
 void PPPM::init()
 {
-  if (me == 0) {
-    if (screen) fprintf(screen,"PPPM initialization ...\n");
-    if (logfile) fprintf(logfile,"PPPM initialization ...\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"PPPM initialization ...\n");
 
   // error check
 
@@ -203,13 +203,14 @@ void PPPM::init()
   if (domain->triclinic && slabflag)
     error->all(FLERR,"Cannot (yet) use PPPM with triclinic box and "
                "slab correction");
-  if (domain->dimension == 2) error->all(FLERR,
-                                         "Cannot use PPPM with 2d simulation");
+  if (domain->dimension == 2)
+    error->all(FLERR,"Cannot use PPPM with 2d simulation");
   if (comm->style != 0)
     error->universe_all(FLERR,"PPPM can only currently be used with "
                         "comm_style brick");
 
-  if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
+  if (!atom->q_flag)
+    error->all(FLERR,"Kspace style requires atom attribute q");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
     error->all(FLERR,"Cannot use non-periodic boundaries with PPPM");
@@ -219,11 +220,8 @@ void PPPM::init()
       error->all(FLERR,"Incorrect boundaries with slab PPPM");
   }
 
-  if (order < 2 || order > MAXORDER) {
-    char str[128];
-    sprintf(str,"PPPM order cannot be < 2 or > than %d",MAXORDER);
-    error->all(FLERR,str);
-  }
+  if (order < 2 || order > MAXORDER)
+    error->all(FLERR,fmt::format("PPPM order cannot be < 2 or > {}",MAXORDER));
 
   // compute two charge force
 
@@ -246,10 +244,7 @@ void PPPM::init()
   qdist = 0.0;
 
   if (tip4pflag) {
-    if (me == 0) {
-      if (screen) fprintf(screen,"  extracting TIP4P info from pair style\n");
-      if (logfile) fprintf(logfile,"  extracting TIP4P info from pair style\n");
-    }
+    if (me == 0) utils::logmesg(lmp,"  extracting TIP4P info from pair style\n");
 
     double *p_qdist = (double *) force->pair->extract("qdist",itmp);
     int *p_typeO = (int *) force->pair->extract("typeO",itmp);
@@ -351,31 +346,17 @@ void PPPM::init()
   MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
 
   if (me == 0) {
-
-    if (screen) {
-      fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(screen,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
-      fprintf(screen,"  stencil order = %d\n",order);
-      fprintf(screen,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(screen,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(screen,"  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n");
-      fprintf(screen,"  3d grid and FFT values/proc = %d %d\n",
-              ngrid_max,nfft_both_max);
-    }
-    if (logfile) {
-      fprintf(logfile,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(logfile,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
-      fprintf(logfile,"  stencil order = %d\n",order);
-      fprintf(logfile,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(logfile,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(logfile,"  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n");
-      fprintf(logfile,"  3d grid and FFT values/proc = %d %d\n",
-              ngrid_max,nfft_both_max);
-    }
+    std::string mesg = fmt::format("  G vector (1/distance) = {}\n",g_ewald);
+    mesg += fmt::format("  grid = {} {} {}\n",nx_pppm,ny_pppm,nz_pppm);
+    mesg += fmt::format("  stencil order = {}\n",order);
+    mesg += fmt::format("  estimated absolute RMS force accuracy = {}\n",
+                       estimated_accuracy);
+    mesg += fmt::format("  estimated relative force accuracy = {}\n",
+                       estimated_accuracy/two_charge_force);
+    mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
+    mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
+                       ngrid_max,nfft_both_max);
+    utils::logmesg(lmp,mesg);
   }
 
   // allocate K-space dependent memory
@@ -1291,10 +1272,7 @@ void PPPM::adjust_gewald()
     g_ewald -= dx;
     if (fabs(newton_raphson_f()) < SMALL) return;
   }
-
-  char str[128];
-  sprintf(str, "Could not compute g_ewald");
-  error->all(FLERR, str);
+  error->all(FLERR, "Could not compute g_ewald");
 }
 
 /* ----------------------------------------------------------------------

@@ -193,7 +193,7 @@ void CreateAtoms::command(int narg, char **arg)
       if (iarg+5 > narg) error->all(FLERR,"Illegal create_atoms command");
       double thetaone;
       double axisone[3];
-      thetaone = force->numeric(FLERR,arg[iarg+1]);
+      thetaone = force->numeric(FLERR,arg[iarg+1]) / 180.0 * MY_PI;;
       axisone[0] = force->numeric(FLERR,arg[iarg+2]);
       axisone[1] = force->numeric(FLERR,arg[iarg+3]);
       axisone[2] = force->numeric(FLERR,arg[iarg+4]);

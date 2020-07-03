@@ -1,7 +1,7 @@
 ---
 lammps_version: 5 May 2020
 date_generated: Wed May 27 10:28:17 202
-epsilon: 5e-13
+epsilon: 1e-12
 prerequisites: ! |
   pair tersoff/mod/c
 pre_commands: ! |

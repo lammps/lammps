@@ -14,18 +14,23 @@
 #include "test_main.h"
 #include "test_config.h"
 #include "test_config_reader.h"
+#include "utils.h"
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include <mpi.h>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <mpi.h>
+#include <vector>
+
+using LAMMPS_NS::utils::split_words;
 
 // common read_yaml_file function
 bool read_yaml_file(const char *infile, TestConfig &config)
 {
     auto reader = TestConfigReader(config);
-    if (reader.parse_file(infile))
-        return false;
+    if (reader.parse_file(infile)) return false;
 
     config.basename = reader.get_basename();
     return true;
@@ -64,7 +69,7 @@ std::string INPUT_FOLDER = STRINGIFY(TEST_INPUT_FOLDER);
 int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
-    ::testing::InitGoogleTest(&argc, argv);
+    ::testing::InitGoogleMock(&argc, argv);
 
     if (argc < 2) {
         usage(std::cerr, argv[0]);
@@ -76,32 +81,47 @@ int main(int argc, char **argv)
         return 2;
     }
 
-    int iarg=2;
+    // handle arguments passed via environment variable
+    if (const char *var = getenv("TEST_ARGS")) {
+        std::vector<std::string> env = split_words(var);
+        for (auto arg : env) {
+            if (arg == "-u") {
+                generate_yaml_file(argv[1], test_config);
+                return 0;
+            } else if (arg == "-s") {
+                print_stats = true;
+            } else if (arg == "-v") {
+                verbose = true;
+            }
+        }
+    }
+
+    int iarg = 2;
     while (iarg < argc) {
 
-        if (strcmp(argv[iarg],"-g") == 0) {
-            if (iarg+1 < argc) {
-                generate_yaml_file(argv[iarg+1], test_config);
+        if (strcmp(argv[iarg], "-g") == 0) {
+            if (iarg + 1 < argc) {
+                generate_yaml_file(argv[iarg + 1], test_config);
                 return 0;
             } else {
-                usage(std::cerr,argv[0]);
+                usage(std::cerr, argv[0]);
                 return 1;
             }
-        } else if (strcmp(argv[iarg],"-u") == 0) {
+        } else if (strcmp(argv[iarg], "-u") == 0) {
             generate_yaml_file(argv[1], test_config);
             return 0;
-        } else if (strcmp(argv[iarg],"-d") == 0) {
-            if (iarg+1 < argc) {
-                INPUT_FOLDER = argv[iarg+1];
+        } else if (strcmp(argv[iarg], "-d") == 0) {
+            if (iarg + 1 < argc) {
+                INPUT_FOLDER = argv[iarg + 1];
                 iarg += 2;
             } else {
-                usage(std::cerr,argv[0]);
+                usage(std::cerr, argv[0]);
                 return 1;
             }
-        } else if (strcmp(argv[iarg],"-s") == 0) {
+        } else if (strcmp(argv[iarg], "-s") == 0) {
             print_stats = true;
             ++iarg;
-        } else if (strcmp(argv[iarg],"-v") == 0) {
+        } else if (strcmp(argv[iarg], "-v") == 0) {
             verbose = true;
             ++iarg;
         } else {
@@ -110,5 +130,8 @@ int main(int argc, char **argv)
             return 1;
         }
     }
-    return RUN_ALL_TESTS();
+
+    int rv = RUN_ALL_TESTS();
+    MPI_Finalize();
+    return rv;
 }

@@ -5073,24 +5073,16 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
 
   if (style == ATOMFILE) {
     if (atom->map_style == 0)
-      error->all(FLERR,
-                 "Cannot use atomfile-style variable unless atom map exists");
+      error->all(FLERR,"Cannot use atomfile-style "
+                 "variable unless an atom map exists");
 
-    int n = strlen(name) + strlen("_VARIABLE_STORE") + 1;
-    id_fix = new char[n];
-    strcpy(id_fix,name);
-    strcat(id_fix,"_VARIABLE_STORE");
+    std::string cmd = name + std::string("_VARIABLE_STORE");
+    id_fix = new char[cmd.size()+1];
+    strcpy(id_fix,cmd.c_str());
 
-    char **newarg = new char*[6];
-    newarg[0] = id_fix;
-    newarg[1] = (char *) "all";
-    newarg[2] = (char *) "STORE";
-    newarg[3] = (char *) "peratom";
-    newarg[4] = (char *) "0";
-    newarg[5] = (char *) "1";
-    modify->add_fix(6,newarg);
+    cmd += " all STORE peratom 0 1";
+    modify->add_fix(cmd);
     fixstore = (FixStore *) modify->fix[modify->nfix-1];
-    delete [] newarg;
 
     buffer = new char[CHUNK*MAXLINE];
   }

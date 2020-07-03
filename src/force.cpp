@@ -34,6 +34,7 @@
 #include "improper.h"
 #include "kspace.h"
 #include "error.h"
+#include "update.h"
 #include "utils.h"
 #include "fmt/format.h"
 
@@ -1010,17 +1011,48 @@ tagint Force::tnumeric(const char *file, int line, char *str)
    if fails, search in dir specified by env variable LAMMPS_POTENTIALS
 ------------------------------------------------------------------------- */
 
-FILE *Force::open_potential(const char *name)
+FILE *Force::open_potential(const char *name, int *auto_convert)
 {
   std::string filepath = utils::get_potential_file_path(name);
-  std::string date;
 
   if(!filepath.empty()) {
-    date = utils::get_potential_date(filepath, "potential");
+    std::string unit_style = update->unit_style;
+    std::string date       = utils::get_potential_date(filepath, "potential");
+    std::string units      = utils::get_potential_units(filepath, "potential");
 
     if(!date.empty()) {
       utils::logmesg(lmp, fmt::format("Reading potential file {} "
                                       "with DATE: {}\n", name, date));
+    }
+
+    if (auto_convert == nullptr) {
+      if (!units.empty() && (units != unit_style)) {
+        error->one(FLERR, fmt::format("Potential file {} requires {} units "
+                                      "but {} units are in use", name, units,
+                                      unit_style));
+        return nullptr;
+      }
+    } else {
+      if (units.empty() || units == unit_style) {
+        *auto_convert = utils::NOCONVERT;
+      } else {
+        if ((units == "metal") && (unit_style == "real")
+            && (*auto_convert & utils::METAL2REAL)) {
+          *auto_convert = utils::METAL2REAL;
+        } else if ((units == "real") && (unit_style == "metal")
+            && (*auto_convert & utils::REAL2METAL)) {
+          *auto_convert = utils::REAL2METAL;
+        } else {
+          error->one(FLERR, fmt::format("Potential file {} requires {} units "
+                                        "but {} units are in use", name,
+                                        units, unit_style));
+          return nullptr;
+        }
+      }
+      if (*auto_convert != utils::NOCONVERT)
+        lmp->error->warning(FLERR, fmt::format("Converting potential file in "
+                                               "{} units to {} units",
+                                               units, unit_style));
     }
     return fopen(filepath.c_str(), "r");
   }

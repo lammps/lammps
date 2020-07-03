@@ -44,6 +44,7 @@ PairTable::PairTable(LAMMPS *lmp) : Pair(lmp)
 {
   ntables = 0;
   tables = NULL;
+  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -69,7 +70,6 @@ void PairTable::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype,itable;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,factor_lj,fraction,value,a,b;
-  char estr[128];
   int *ilist,*jlist,*numneigh,**firstneigh;
   Table *tb;
 
@@ -115,37 +115,28 @@ void PairTable::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
         tb = &tables[tabindex[itype][jtype]];
-        if (rsq < tb->innersq) {
-          sprintf(estr,"Pair distance < table inner cutoff: "
-                  "ijtype %d %d dist %g",itype,jtype,sqrt(rsq));
-          error->one(FLERR,estr);
-        }
-
+        if (rsq < tb->innersq)
+          error->one(FLERR,fmt::format("Pair distance < table inner cutoff: "
+                                       "ijtype {} {} dist {}",itype,jtype,sqrt(rsq)));
         if (tabstyle == LOOKUP) {
           itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-          if (itable >= tlm1) {
-            sprintf(estr,"Pair distance > table outer cutoff: "
-                    "ijtype %d %d dist %g",itype,jtype,sqrt(rsq));
-            error->one(FLERR,estr);
-          }
+          if (itable >= tlm1)
+            error->one(FLERR,fmt::format("Pair distance > table outer cutoff: "
+                                         "ijtype {} {} dist {}",itype,jtype,sqrt(rsq)));
           fpair = factor_lj * tb->f[itable];
         } else if (tabstyle == LINEAR) {
           itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-          if (itable >= tlm1) {
-            sprintf(estr,"Pair distance > table outer cutoff: "
-                    "ijtype %d %d dist %g",itype,jtype,sqrt(rsq));
-            error->one(FLERR,estr);
-          }
+          if (itable >= tlm1)
+            error->one(FLERR,fmt::format("Pair distance > table outer cutoff: "
+                                         "ijtype {} {} dist {}",itype,jtype,sqrt(rsq)));
           fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
           value = tb->f[itable] + fraction*tb->df[itable];
           fpair = factor_lj * value;
         } else if (tabstyle == SPLINE) {
           itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-          if (itable >= tlm1) {
-            sprintf(estr,"Pair distance > table outer cutoff: "
-                    "ijtype %d %d dist %g",itype,jtype,sqrt(rsq));
-            error->one(FLERR,estr);
-          }
+          if (itable >= tlm1)
+            error->one(FLERR,fmt::format("Pair distance > table outer cutoff: "
+                                         "ijtype {} {} dist {}",itype,jtype,sqrt(rsq)));
           b = (rsq - tb->rsq[itable]) * tb->invdelta;
           a = 1.0 - b;
           value = a * tb->f[itable] + b * tb->f[itable+1] +
@@ -358,9 +349,14 @@ double PairTable::init_one(int i, int j)
 
 void PairTable::read_table(Table *tb, char *file, char *keyword)
 {
-  TableFileReader reader(lmp, file, "pair");
+  TableFileReader reader(lmp, file, "pair", unit_convert_flag);
 
-  char * line = reader.find_section_start(keyword);
+  // transparently convert units for supported conversions
+
+  int unit_convert = reader.get_unit_convert();
+  double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                          unit_convert);
+  char *line = reader.find_section_start(keyword);
 
   if (!line) {
     error->one(FLERR,"Did not find keyword in table file");
@@ -370,7 +366,7 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
   // allocate table arrays for file values
 
   line = reader.next_line();
-  param_extract(tb,line);
+  param_extract(tb, line);
   memory->create(tb->rfile,tb->ninput,"pair:rfile");
   memory->create(tb->efile,tb->ninput,"pair:efile");
   memory->create(tb->ffile,tb->ninput,"pair:ffile");
@@ -404,8 +400,8 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
       ValueTokenizer values(line);
       values.next_int();
       rfile = values.next_double();
-      tb->efile[i] = values.next_double();
-      tb->ffile[i] = values.next_double();
+      tb->efile[i] = conversion_factor * values.next_double();
+      tb->ffile[i] = conversion_factor * values.next_double();
     } catch (TokenizerException & e) {
       ++cerror;
     }
@@ -461,29 +457,26 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
     }
   }
 
-  if (ferror) {
-    std::string str = fmt::format("{} of {} force values in table are inconsistent with -dE/dr.\n"
-                                  "  Should only be flagged at inflection points",ferror,tb->ninput);
-    error->warning(FLERR,str.c_str());
-  }
+  if (ferror)
+    error->warning(FLERR,fmt::format("{} of {} force values in table are "
+                                     "inconsistent with -dE/dr.\n  Should "
+                                     "only be flagged at inflection points",
+                                     ferror,tb->ninput));
 
   // warn if re-computed distance values differ from file values
 
-  if (rerror) {
-    char str[128];
-    sprintf(str,"%d of %d distance values in table with relative error\n"
-            "  over %g to re-computed values",rerror,tb->ninput,EPSILONR);
-    error->warning(FLERR,str);
-  }
+  if (rerror)
+    error->warning(FLERR,fmt::format("{} of {} distance values in table with "
+                                     "relative error\n  over {} to "
+                                     "re-computed values",
+                                     rerror,tb->ninput,EPSILONR));
 
   // warn if data was read incompletely, e.g. columns were missing
 
-  if (cerror) {
-    char str[128];
-    sprintf(str,"%d of %d lines in table were incomplete\n"
-            "  or could not be parsed completely",cerror,tb->ninput);
-    error->warning(FLERR,str);
-  }
+  if (cerror)
+    error->warning(FLERR,fmt::format("{} of {} lines in table were "
+                                     "incomplete\n  or could not be parsed "
+                                     "completely",cerror,tb->ninput));
 }
 
 /* ----------------------------------------------------------------------
@@ -1039,11 +1032,15 @@ void *PairTable::extract(const char *str, int &dim)
   if (strcmp(str,"cut_coul") != 0) return NULL;
   if (ntables == 0) error->all(FLERR,"All pair coeffs are not set");
 
-  double cut_coul = tables[0].cut;
-  for (int m = 1; m < ntables; m++)
-    if (tables[m].cut != cut_coul)
-      error->all(FLERR,
-                 "Pair table cutoffs must all be equal to use with KSpace");
-  dim = 0;
-  return &tables[0].cut;
+  // only check for cutoff consistency if claiming to be KSpace compatible
+
+  if (ewaldflag || pppmflag || msmflag || dispersionflag || tip4pflag) {
+    double cut_coul = tables[0].cut;
+    for (int m = 1; m < ntables; m++)
+      if (tables[m].cut != cut_coul)
+        error->all(FLERR,
+                   "Pair table cutoffs must all be equal to use with KSpace");
+    dim = 0;
+    return &tables[0].cut;
+  } else return NULL;
 }

@@ -37,7 +37,7 @@ Examples
 Description
 """""""""""
 
-Style *comb* computes the second-generation variable charge COMB
+Style *comb* computes the second generation variable charge COMB
 (Charge-Optimized Many-Body) potential.  Style *comb3* computes the
 third-generation COMB potential.  These COMB potentials are described
 in :ref:`(COMB) <COMB>` and :ref:`(COMB3) <COMB3>`.  Briefly, the
@@ -74,8 +74,8 @@ N additional arguments after the potential file in the pair_coeff
 command, where N is the number of LAMMPS atom types.
 
 For example, if your LAMMPS simulation of a Si/SiO2/
-HfO2 interface has 4 atom types, and you want the 1st and
-last to be Si, the 2nd to be Hf, and the 3rd to be O, and you would
+HfO2 interface has 4 atom types, and you want the first and
+last to be Si, the second to be Hf, and the third to be O, and you would
 use the following pair_coeff command:
 
 .. code-block:: LAMMPS
@@ -93,10 +93,10 @@ This can be used when a *comb* potential is used as part of the
 that will be used with other potentials.
 
 For style *comb*\ , the provided potential file *ffield.comb* contains
-all currently-available 2nd generation COMB parameterizations: for Si,
+all currently-available second generation COMB parameterizations: for Si,
 Cu, Hf, Ti, O, their oxides and Zr, Zn and U metals.  For style
 *comb3*\ , the potential file *ffield.comb3* contains all
-currently-available 3rd generation COMB parameterizations: O, Cu, N, C,
+currently-available third generation COMB parameterizations: O, Cu, N, C,
 H, Ti, Zn and Zr.  The status of the optimization of the compounds, for
 example Cu2O, TiN and hydrocarbons, are given in the
 following table:

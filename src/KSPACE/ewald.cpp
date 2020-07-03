@@ -21,6 +21,7 @@
 #include "ewald.h"
 #include <mpi.h>
 #include <cmath>
+#include <string>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -29,6 +30,8 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -88,10 +91,7 @@ Ewald::~Ewald()
 
 void Ewald::init()
 {
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,"Ewald initialization ...\n");
-    if (logfile) fprintf(logfile,"Ewald initialization ...\n");
-  }
+  if (comm->me == 0) utils::logmesg(lmp,"Ewald initialization ...\n");
 
   // error check
 
@@ -185,28 +185,16 @@ void Ewald::init()
   // stats
 
   if (comm->me == 0) {
-    if (screen) {
-      fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(screen,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(screen,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(screen,"  KSpace vectors: actual max1d max3d = %d %d %d\n",
-              kcount,kmax,kmax3d);
-      fprintf(screen,"                  kxmax kymax kzmax  = %d %d %d\n",
-              kxmax,kymax,kzmax);
-    }
-    if (logfile) {
-      fprintf(logfile,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(logfile,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(logfile,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(logfile,"  KSpace vectors: actual max1d max3d = %d %d %d\n",
-              kcount,kmax,kmax3d);
-      fprintf(logfile,"                  kxmax kymax kzmax  = %d %d %d\n",
-              kxmax,kymax,kzmax);
-    }
+    std::string mesg = fmt::format("  G vector (1/distance) = {}\n",g_ewald);
+    mesg += fmt::format("  estimated absolute RMS force accuracy = {}\n",
+                       estimated_accuracy);
+    mesg += fmt::format("  estimated relative force accuracy = {}\n",
+                       estimated_accuracy/two_charge_force);
+    mesg += fmt::format("  KSpace vectors: actual max1d max3d = {} {} {}\n",
+                        kcount,kmax,kmax3d);
+    mesg += fmt::format("                  kxmax kymax kzmax  = {} {} {}\n",
+                        kxmax,kymax,kzmax);
+    utils::logmesg(lmp,mesg);
   }
 }
 

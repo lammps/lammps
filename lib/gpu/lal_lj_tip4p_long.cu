@@ -110,10 +110,8 @@ __kernel void k_lj_tip4p_long_distrib(const __global numtyp4 *restrict x_,
     const int typeO, const int typeH,
     const numtyp alpha,
     const __global numtyp *restrict q_, const __global acctyp4 *restrict ansO) {
-  int tid, ii, offset;
-  atom_info(t_per_atom,ii,tid,offset);
-  int i = BLOCK_ID_X*(BLOCK_SIZE_X)+tid;
 
+  int i = BLOCK_ID_X*(BLOCK_SIZE_X)+THREAD_ID_X;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
 
@@ -122,6 +120,8 @@ __kernel void k_lj_tip4p_long_distrib(const __global numtyp4 *restrict x_,
     int itype = ix.w;
     acctyp4 fM, vM;
     acctyp eM;
+    // placement of the virial in engv depends on eflag value
+    int engv_iter = eflag ? 2 : 0;
     if (itype == typeH) {
       int iO = hneigh[i*4];
       if (iO < inum) {
@@ -131,13 +131,13 @@ __kernel void k_lj_tip4p_long_distrib(const __global numtyp4 *restrict x_,
         f.z += fM.z * (acctyp)0.5 * alpha;
         if (vflag > 0) {
           vM = ansO[inum  +iO];
-          engv[inum*2 + i] += vM.x * (acctyp)0.5 * alpha;
-          engv[inum*3 + i] += vM.y * (acctyp)0.5 * alpha;
-          engv[inum*4 + i] += vM.z * (acctyp)0.5 * alpha;
+          engv[inum*engv_iter + i] += vM.x * (acctyp)0.5 * alpha; engv_iter++;
+          engv[inum*engv_iter + i] += vM.y * (acctyp)0.5 * alpha; engv_iter++;
+          engv[inum*engv_iter + i] += vM.z * (acctyp)0.5 * alpha; engv_iter++;
           vM = ansO[inum*2+iO];
-          engv[inum*5 + i] += vM.x * (acctyp)0.5 * alpha;
-          engv[inum*6 + i] += vM.y * (acctyp)0.5 * alpha;
-          engv[inum*7 + i] += vM.z * (acctyp)0.5 * alpha;
+          engv[inum*engv_iter + i] += vM.x * (acctyp)0.5 * alpha; engv_iter++;
+          engv[inum*engv_iter + i] += vM.y * (acctyp)0.5 * alpha; engv_iter++;
+          engv[inum*engv_iter + i] += vM.z * (acctyp)0.5 * alpha;
         }
       }
     } else {
@@ -155,13 +155,13 @@ __kernel void k_lj_tip4p_long_distrib(const __global numtyp4 *restrict x_,
       }
       if (vflag > 0) {
         vM = ansO[inum   + i];
-        engv[inum*2 + i] += vM.x * (acctyp)(1 - alpha);
-        engv[inum*3 + i] += vM.y * (acctyp)(1 - alpha);
-        engv[inum*4 + i] += vM.z * (acctyp)(1 - alpha);
+        engv[inum*engv_iter + i] += vM.x * (acctyp)(1 - alpha); engv_iter++;
+        engv[inum*engv_iter + i] += vM.y * (acctyp)(1 - alpha); engv_iter++;
+        engv[inum*engv_iter + i] += vM.z * (acctyp)(1 - alpha); engv_iter++;
         vM = ansO[inum*2 + i];
-        engv[inum*5 + i] += vM.x * (acctyp)(1 - alpha);
-        engv[inum*6 + i] += vM.y * (acctyp)(1 - alpha);
-        engv[inum*7 + i] += vM.z * (acctyp)(1 - alpha);
+        engv[inum*engv_iter + i] += vM.x * (acctyp)(1 - alpha); engv_iter++;
+        engv[inum*engv_iter + i] += vM.y * (acctyp)(1 - alpha); engv_iter++;
+        engv[inum*engv_iter + i] += vM.z * (acctyp)(1 - alpha);
       }
     }
     acctyp4 old=ans[i];
@@ -182,9 +182,8 @@ __kernel void k_lj_tip4p_reneigh(const __global numtyp4 *restrict x_,
     const int typeO, const int typeH,
     const __global tagint *restrict tag, const __global int *restrict map,
     const __global int *restrict sametag) {
-  int tid, ii, offset;
-  atom_info(t_per_atom,ii,tid,offset);
-  int i = BLOCK_ID_X*(BLOCK_SIZE_X)+tid;
+
+  int i = BLOCK_ID_X*(BLOCK_SIZE_X)+THREAD_ID_X;
 
   if (i<nall) {
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
@@ -237,13 +236,10 @@ __kernel void k_lj_tip4p_newsite(const __global numtyp4 *restrict x_,
     __global numtyp4 *restrict m,
     const int typeO, const int typeH,
     const numtyp alpha, const __global numtyp *restrict q_) {
-  int tid, ii, offset;
-  atom_info(t_per_atom,ii,tid,offset);
-  int i = BLOCK_ID_X*(BLOCK_SIZE_X)+tid;
+
+  int i = BLOCK_ID_X*(BLOCK_SIZE_X)+THREAD_ID_X;
 
   if (i<nall) {
-    int iO, iH1, iH2;
-    iO  = i;
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype = ix.w;
     if (itype == typeO) {
@@ -279,8 +275,6 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
     __global acctyp4 *restrict ansO) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
-
-  const numtyp eq_zero = 1e-6;
 
   acctyp energy = (acctyp)0;
   acctyp e_coul = (acctyp)0;
@@ -594,8 +588,6 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
     __global acctyp4 *restrict ansO) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
-
-  const numtyp eq_zero = 1e-6;
 
   __local numtyp4 lj1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp4 lj3[MAX_SHARED_TYPES*MAX_SHARED_TYPES];

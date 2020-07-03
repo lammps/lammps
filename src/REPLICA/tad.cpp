@@ -37,6 +37,7 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -398,10 +399,7 @@ void TAD::command(int narg, char **arg)
 
   if ((me_universe == 0) && ulogfile_neb) fclose(ulogfile_neb);
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"\nTAD done\n");
-    if (logfile) fprintf(logfile,"\nTAD done\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"\nTAD done\n");
 
   finish->end(3);
 

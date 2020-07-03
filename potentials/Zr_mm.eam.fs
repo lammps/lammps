@@ -1,4 +1,4 @@
-DATE: 2007-06-11 CONTRIBUTOR: MI Mendelev, mendelev@ameslab.gov CITATION: Mendelev and  Ackland, Phil Mag Lett 87, 349-359 (2007)
+DATE: 2007-06-11 UNITS: metal CONTRIBUTOR: MI Mendelev, mendelev@ameslab.gov CITATION: Mendelev and  Ackland, Phil Mag Lett 87, 349-359 (2007)
 Sunday, Jun 10, 2007  The potential was taken from v3_10_hcp (in C:\SIMULATION.MD\Zr\Results\v3_10)
 ################################################
 1  Zr  

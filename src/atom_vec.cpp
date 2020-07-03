@@ -38,6 +38,7 @@ using namespace MathConst;
 AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
 {
   nmax = 0;
+  ngrow = 0;
 
   molecular = 0;
   bonds_allow = angles_allow = dihedrals_allow = impropers_allow = 0;
@@ -50,9 +51,14 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   kokkosable = 0;
 
   nargcopy = 0;
-  argcopy = NULL;
+  argcopy = nullptr;
 
-  threads = NULL;
+  tag = nullptr;
+  type = mask = nullptr;
+  image = nullptr;
+  x = v = f = nullptr;
+
+  threads = nullptr;
 
   // peratom variables auto-included in corresponding child style fields string
   // these fields cannot be specified in the fields string
@@ -90,8 +96,42 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
 
 AtomVec::~AtomVec()
 {
+  int datatype,cols;
+  void *pdata;
+
   for (int i = 0; i < nargcopy; i++) delete [] argcopy[i];
   delete [] argcopy;
+
+  for (int i = 0; i < ngrow; i++) {
+    pdata = mgrow.pdata[i];
+    datatype = mgrow.datatype[i];
+    cols = mgrow.cols[i];
+    if (datatype == Atom::DOUBLE) {
+      if (cols == 0)
+        memory->destroy(*((double **) pdata));
+      else if (cols > 0)
+        memory->destroy(*((double ***) pdata));
+      else {
+        memory->destroy(*((double ***) pdata));
+      }
+    } else if (datatype == Atom::INT) {
+      if (cols == 0)
+        memory->destroy(*((int **) pdata));
+      else if (cols > 0)
+        memory->destroy(*((int ***) pdata));
+      else {
+        memory->destroy(*((int ***) pdata));
+      }
+    } else if (datatype == Atom::BIGINT) {
+      if (cols == 0)
+        memory->destroy(*((bigint **) pdata));
+      else if (cols > 0)
+        memory->destroy(*((bigint ***) pdata));
+      else {
+        memory->destroy(*((bigint ***) pdata));
+      }
+    }
+  }
 
   destroy_method(&mgrow);
   destroy_method(&mcopy);
@@ -144,7 +184,7 @@ void AtomVec::init()
   deform_groupbit = domain->deform_groupbit;
   h_rate = domain->h_rate;
 
-  if (lmp->kokkos != NULL && !kokkosable)
+  if (lmp->kokkos != nullptr && !kokkosable)
     error->all(FLERR,"KOKKOS package requires a kokkos enabled atom_style");
 }
 
@@ -585,7 +625,7 @@ void AtomVec::unpack_comm(int n, int first, double *buf)
         if (cols == 0) {
           int *vec = *((int **) pdata);
           for (i = first; i < last; i++)
-            vec[i] = ubuf(buf[m++]).i;
+            vec[i] = (int) ubuf(buf[m++]).i;
         } else {
           int **array = *((int ***) pdata);
           for (i = first; i < last; i++)
@@ -1085,7 +1125,7 @@ void AtomVec::unpack_border(int n, int first, double *buf)
         if (cols == 0) {
           int *vec = *((int **) pdata);
           for (i = first; i < last; i++)
-            vec[i] = ubuf(buf[m++]).i;
+            vec[i] = (int) ubuf(buf[m++]).i;
         } else {
           int **array = *((int ***) pdata);
           for (i = first; i < last; i++)
@@ -2335,9 +2375,9 @@ void AtomVec::setup_fields()
 {
   int n,cols;
 
-  if (strstr(fields_data_atom,"id ") != fields_data_atom)
+  if (!utils::strmatch(fields_data_atom,"^id "))
     error->all(FLERR,"Atom style fields_data_atom must have id as first field");
-  if (strstr(fields_data_vel,"id v") != fields_data_vel)
+  if (!utils::strmatch(fields_data_vel,"^id v"))
     error->all(FLERR,"Atom style fields_data_vel must have "
                "'id v' as first fields");
 
@@ -2442,8 +2482,8 @@ void AtomVec::setup_fields()
 
 int AtomVec::process_fields(char *str, const char *default_str, Method *method)
 {
-  if (str == NULL) {
-    method->index = NULL;
+  if (str == nullptr) {
+    method->index = nullptr;
     return 0;
   }
 
@@ -2469,31 +2509,21 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
 
     for (match = 0; match < nperatom; match++)
       if (strcmp(field, peratom[match].name) == 0) break;
-    if (match == nperatom) {
-      char str[128];
-      sprintf(str,"Peratom field %s not recognized", field);
-      error->all(FLERR,str);
-    }
+    if (match == nperatom)
+      error->all(FLERR,fmt::format("Peratom field {} not recognized", field));
     index[i] = match;
 
     // error if field appears multiple times
 
     for (match = 0; match < i; match++)
-      if (index[i] == index[match]) {
-        char str[128];
-        sprintf(str,"Peratom field %s is repeated", field);
-        error->all(FLERR,str);
-      }
+      if (index[i] == index[match])
+        error->all(FLERR,fmt::format("Peratom field {} is repeated", field));
 
     // error if field is in default str
 
     for (match = 0; match < ndef; match++)
-      if (strcmp(field, def_words[match].c_str()) == 0) {
-        char str[128];
-        sprintf(str,"Peratom field %s is a default", field);
-        error->all(FLERR,str);
-      }
-
+      if (strcmp(field, def_words[match].c_str()) == 0)
+        error->all(FLERR,fmt::format("Peratom field {} is a default", field));
   }
 
   method->index = index;
@@ -2532,13 +2562,13 @@ void AtomVec::create_method(int nfield, Method *method)
 
 void AtomVec::init_method(Method *method)
 {
-  method->pdata = NULL;
-  method->datatype = NULL;
-  method->cols = NULL;
-  method->maxcols = NULL;
-  method->collength = NULL;
-  method->plength = NULL;
-  method->index = NULL;
+  method->pdata = nullptr;
+  method->datatype = nullptr;
+  method->cols = nullptr;
+  method->maxcols = nullptr;
+  method->collength = nullptr;
+  method->plength = nullptr;
+  method->index = nullptr;
 }
 
 /* ----------------------------------------------------------------------

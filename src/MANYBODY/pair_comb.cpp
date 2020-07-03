@@ -493,15 +493,17 @@ void PairComb::coeff(int narg, char **arg)
 
   // generate streitz-mintmire direct 1/r energy look-up table
 
-  if (comm->me == 0 && screen) fprintf(screen,"Pair COMB:\n");
   if (comm->me == 0 && screen)
-    fprintf(screen,"  generating Coulomb integral lookup table ...\n");
+    fputs("Pair COMB:\n"
+          "  generating Coulomb integral lookup table ...\n",screen);
   sm_table();
 
-  if (cor_flag && comm->me == 0 && screen)
-    fprintf(screen,"  will apply over-coordination correction ...\n");
-  if (!cor_flag&& comm->me == 0 && screen)
-    fprintf(screen,"  will not apply over-coordination correction ...\n");
+  if (comm->me == 0 && screen) {
+    if (cor_flag)
+      fputs("  will apply over-coordination correction ...\n",screen);
+    else
+      fputs("  will not apply over-coordination correction ...\n",screen);
+  }
 
   // clear setflag since coeff() called once with I,J = * *
 
@@ -1334,6 +1336,18 @@ void PairComb::sm_table()
   ncoul = int((rc-drin)/dra)+1;
 
   // allocate arrays
+
+  memory->sfree(sht_first);
+  memory->destroy(intype);
+  memory->destroy(fafb);
+  memory->destroy(dfafb);
+  memory->destroy(ddfafb);
+  memory->destroy(phin);
+  memory->destroy(dphin);
+  memory->destroy(erpaw);
+  memory->destroy(NCo);
+  memory->destroy(bbij);
+  memory->destroy(sht_num);
 
   memory->create(intype,n,n,"pair:intype");
   memory->create(fafb,ncoul,nntypes,"pair:fafb");

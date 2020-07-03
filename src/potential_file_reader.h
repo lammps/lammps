@@ -28,22 +28,25 @@ namespace LAMMPS_NS
 {
   class PotentialFileReader : protected Pointers {
   protected:
-    TextFileReader * reader;
+    TextFileReader *reader;
     std::string filename;
     std::string filetype;
+    int unit_convert;
 
-    TextFileReader * open_potential(const std::string& path);
+    TextFileReader *open_potential(const std::string& path);
 
   public:
-    PotentialFileReader(class LAMMPS *lmp, const std::string &filename, const std::string &potential_name);
+    PotentialFileReader(class LAMMPS *lmp, const std::string &filename,
+                        const std::string &potential_name,
+                        const int auto_convert = 0);
     virtual ~PotentialFileReader();
 
     void ignore_comments(bool value);
 
     void skip_line();
-    char * next_line(int nparams = 0);
-    void next_dvector(double * list, int n);
-    ValueTokenizer next_values(int nparams, const std::string & separators = TOKENIZER_DEFAULT_SEPARATORS);
+    char *next_line(int nparams = 0);
+    void next_dvector(double *list, int n);
+    ValueTokenizer next_values(int nparams, const std::string &separators = TOKENIZER_DEFAULT_SEPARATORS);
 
     // convenience functions
     double next_double();
@@ -51,6 +54,9 @@ namespace LAMMPS_NS
     tagint next_tagint();
     bigint next_bigint();
     std::string next_string();
+
+    // unit conversion info
+    int get_unit_convert() const { return unit_convert; }
   };
 
 } // namespace LAMMPS_NS

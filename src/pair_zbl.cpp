@@ -18,11 +18,13 @@
 #include "pair_zbl.h"
 #include <cmath>
 #include "atom.h"
+#include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 // From J.F. Zeigler, J. P. Biersack and U. Littmark,
 // "The Stopping and Range of Ions in Matter" volume 1, Pergamon, 1985.
@@ -32,7 +34,9 @@ using namespace PairZBLConstants;
 
 /* ---------------------------------------------------------------------- */
 
-PairZBL::PairZBL(LAMMPS *lmp) : Pair(lmp) {}
+PairZBL::PairZBL(LAMMPS *lmp) : Pair(lmp) {
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -252,6 +256,101 @@ double PairZBL::init_one(int i, int j)
     set_coeff(i, j, z[i], z[j]);
 
   return cut_global;
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to restart file
+------------------------------------------------------------------------- */
+
+void PairZBL::write_restart(FILE *fp)
+{
+  write_restart_settings(fp);
+
+  int i;
+  for (i = 1; i <= atom->ntypes; i++) {
+    fwrite(&setflag[i][i],sizeof(int),1,fp);
+    if (setflag[i][i]) fwrite(&z[i],sizeof(double),1,fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 reads from restart file, bcasts
+------------------------------------------------------------------------- */
+
+void PairZBL::read_restart(FILE *fp)
+{
+  read_restart_settings(fp);
+  allocate();
+
+  int i,j;
+  int me = comm->me;
+  for (i = 1; i <= atom->ntypes; i++) {
+    if (me == 0) utils::sfread(FLERR,&setflag[i][i],sizeof(int),1,fp,NULL,error);
+    MPI_Bcast(&setflag[i][i],1,MPI_INT,0,world);
+    if (setflag[i][i]) {
+      if (me == 0) utils::sfread(FLERR,&z[i],sizeof(double),1,fp,NULL,error);
+      MPI_Bcast(&z[i],1,MPI_DOUBLE,0,world);
+    }
+  }
+
+  for (i = 1; i <= atom->ntypes; i++)
+    for (j = 1; j <= atom->ntypes; j++)
+      set_coeff(i,j,z[i],z[j]);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to restart file
+------------------------------------------------------------------------- */
+
+void PairZBL::write_restart_settings(FILE *fp)
+{
+  fwrite(&cut_global,sizeof(double),1,fp);
+  fwrite(&cut_inner,sizeof(double),1,fp);
+  fwrite(&offset_flag,sizeof(int),1,fp);
+  fwrite(&mix_flag,sizeof(int),1,fp);
+  fwrite(&tail_flag,sizeof(int),1,fp);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 reads from restart file, bcasts
+------------------------------------------------------------------------- */
+
+void PairZBL::read_restart_settings(FILE *fp)
+{
+  int me = comm->me;
+  if (me == 0) {
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_inner,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
+  }
+  MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut_inner,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&tail_flag,1,MPI_INT,0,world);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairZBL::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    fprintf(fp,"%d %g\n",i,z[i]);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairZBL::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %g %g\n",i,j,z[i],z[j]);
 }
 
 /* ---------------------------------------------------------------------- */

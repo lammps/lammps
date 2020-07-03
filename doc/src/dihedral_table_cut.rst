@@ -113,7 +113,7 @@ or blank lines.
    ...
    30 180.0 -0.707106781187
 
-A section begins with a non-blank line whose 1st character is not a
+A section begins with a non-blank line whose first character is not a
 "#"; blank lines or lines starting with "#" can be used as comments
 between sections. The first line begins with a keyword which
 identifies the section. The line can contain additional text, but the
@@ -123,10 +123,10 @@ any order) one or more parameters for the table. Each parameter is a
 keyword followed by one or more numeric values.
 
 Following a blank line, the next N lines list the tabulated values. On
-each line, the 1st value is the index from 1 to N, the 2nd value is
-the angle value, the 3rd value is the energy (in energy units), and
-the 4th is -dE/d(phi) also in energy units). The 3rd term is the
-energy of the 4-atom configuration for the specified angle.  The 4th
+each line, the first value is the index from 1 to N, the second value is
+the angle value, the third value is the energy (in energy units), and
+the fourth is -dE/d(phi) also in energy units). The third term is the
+energy of the 4-atom configuration for the specified angle.  The fourth
 term (when present) is the negative derivative of the energy with
 respect to the angle (in degrees, or radians depending on whether the
 user selected DEGREES or RADIANS).  Thus the units of the last term
@@ -168,9 +168,9 @@ choice of angle units).
 
 The optional "NOF" keyword allows the user to omit the forces
 (negative energy derivatives) from the table file (normally located in
-the 4th column).  In their place, forces will be calculated
+the fourth column).  In their place, forces will be calculated
 automatically by differentiating the potential energy function
-indicated by the 3rd column of the table (using either linear or
+indicated by the third column of the table (using either linear or
 spline interpolation).
 
 The optional "DEGREES" keyword allows the user to specify angles in
@@ -178,7 +178,7 @@ degrees instead of radians (default).
 
 The optional "RADIANS" keyword allows the user to specify angles in
 radians instead of degrees.  (Note: This changes the way the forces
-are scaled in the 4th column of the data file.)
+are scaled in the fourth column of the data file.)
 
 The optional "CHECKU" keyword is followed by a filename.  This allows
 the user to save all of the *Ntable* different entries in the

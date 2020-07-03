@@ -14,10 +14,16 @@ endif()
 option(DOWNLOAD_SCAFACOS "Download ScaFaCoS library instead of using an already installed one" ${DOWNLOAD_SCAFACOS_DEFAULT})
 if(DOWNLOAD_SCAFACOS)
   message(STATUS "ScaFaCoS download requested - we will build our own")
+
+  # version 1.0.1 needs a patch to compile and linke cleanly with GCC 10 and later.
+  file(DOWNLOAD https://download.lammps.org/thirdparty/scafacos-1.0.1-fix.diff ${CMAKE_CURRENT_BINARY_DIR}/scafacos-1.0.1.fix.diff
+          EXPECTED_HASH MD5=4baa1333bb28fcce102d505e1992d032)
+
   include(ExternalProject)
   ExternalProject_Add(scafacos_build
     URL https://github.com/scafacos/scafacos/releases/download/v1.0.1/scafacos-1.0.1.tar.gz
     URL_MD5 bd46d74e3296bd8a444d731bb10c1738
+    PATCH_COMMAND patch -p1 < ${CMAKE_CURRENT_BINARY_DIR}/scafacos-1.0.1.fix.diff
     CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --disable-doc
                                              --enable-fcs-solvers=fmm,p2nfft,direct,ewald,p3m
                                              --with-internal-fftw --with-internal-pfft

@@ -1,4 +1,4 @@
-#Potential between O,Si atoms. r ranges from 0.1 to 20.0. This file+BKS(with no shift)=alpha*(r-rs)^2(0.1<r<rs);BKS(20.0>r>rs). alpha=100, rsOO=1.43869, rsSiO=1.19362. All with metal units.
+#Potential between O,Si atoms. UNITS: metal  r ranges from 0.1 to 20.0. This file+BKS(with no shift)=alpha*(r-rs)^2(0.1<r<rs);BKS(20.0>r>rs). alpha=100, rsOO=1.43869, rsSiO=1.19362. All with metal units.
 
 Si-O
 N 39901

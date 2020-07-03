@@ -92,7 +92,7 @@ void PairTersoffZBLOMP::read_file(char *file)
   // open file on proc 0
 
   if (comm->me == 0) {
-    PotentialFileReader reader(PairTersoff::lmp, file, "TersoffZBLOMP",
+    PotentialFileReader reader(PairTersoff::lmp, file, "tersoff/zbl",
                                unit_convert_flag);
     char * line;
 

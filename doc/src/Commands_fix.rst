@@ -42,6 +42,7 @@ OPT.
    * :doc:`bocs <fix_bocs>`
    * :doc:`bond/break <fix_bond_break>`
    * :doc:`bond/create <fix_bond_create>`
+   * :doc:`bond/create/angle <fix_bond_create>`
    * :doc:`bond/react <fix_bond_react>`
    * :doc:`bond/swap <fix_bond_swap>`
    * :doc:`box/relax <fix_box_relax>`
@@ -147,7 +148,6 @@ OPT.
    * :doc:`oneway <fix_oneway>`
    * :doc:`orient/bcc <fix_orient>`
    * :doc:`orient/fcc <fix_orient>`
-   * :doc:`orient/eco <fix_orient_eco>`
    * :doc:`phonon <fix_phonon>`
    * :doc:`pimd <fix_pimd>`
    * :doc:`planeforce <fix_planeforce>`

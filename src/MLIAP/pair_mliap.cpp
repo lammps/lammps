@@ -310,8 +310,6 @@ void PairMLIAP::init_style()
 double PairMLIAP::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
-  printf("itype = %d jtype = %d map[i] = %d map[j] = %d cutsq = %g\n",
-         i,j,map[i],map[j],descriptor->cutsq[map[i]][map[j]]);
   return sqrt(descriptor->cutsq[map[i]][map[j]]);
 }
 

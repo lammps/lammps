@@ -1050,6 +1050,14 @@ TEST(PairStyle, single)
         GTEST_SKIP();
     }
 
+    if (!pair->compute_flag) {
+        std::cerr << "Pair style disabled" << std::endl;
+        if (!verbose) ::testing::internal::CaptureStdout();
+        cleanup_lammps(lmp, test_config);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        GTEST_SKIP();
+    }
+
     // The single function in EAM is different from what we assume
     // here, therefore we have to skip testing those pair styles.
     if ((test_config.pair_style.substr(0, 3) == "eam") ||
@@ -1265,7 +1273,16 @@ TEST(PairStyle, extract)
         }
         GTEST_SKIP();
     }
+
     Pair *pair = lmp->force->pair;
+    if (!pair->compute_flag) {
+        std::cerr << "Pair style disabled" << std::endl;
+        if (!verbose) ::testing::internal::CaptureStdout();
+        cleanup_lammps(lmp, test_config);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        GTEST_SKIP();
+    }
+
     void *ptr  = nullptr;
     int dim    = 0;
     for (auto &extract : test_config.extract) {

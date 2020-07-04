@@ -4205,6 +4205,9 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       if (eval_in_progress[ivar])
         print_var_error(FLERR,"Variable has circular dependency",ivar);
 
+      if ((method == AVE) && (nvec == 0))
+        print_var_error(FLERR,"Cannot compute average of empty vector",ivar);
+
       double *vec;
       nvec = compute_vector(ivar,&vec);
       nstride = 1;

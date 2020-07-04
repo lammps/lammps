@@ -50,9 +50,9 @@ int main(int argc, char **argv)
     LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);
     lammps->input->file();
     delete lammps;
-  } catch(LAMMPSAbortException & ae) {
+  } catch(LAMMPSAbortException &ae) {
     MPI_Abort(ae.universe, 1);
-  } catch(LAMMPSException & e) {
+  } catch(LAMMPSException &e) {
     MPI_Finalize();
     exit(1);
   }

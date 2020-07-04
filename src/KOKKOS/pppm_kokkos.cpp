@@ -31,6 +31,8 @@
 #include "error.h"
 #include "atom_masks.h"
 #include "kokkos.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 #include "math_const.h"
 #include "math_special_kokkos.h"
@@ -194,7 +196,7 @@ void PPPMKokkos<DeviceType>::init()
     error->universe_all(FLERR,"PPPM can only currently be used with "
                         "comm_style brick");
 
-  if (!atomKK->q_flag) error->all(FLERR,"Kspace style requires atomKK attribute q");
+  if (!atomKK->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
     error->all(FLERR,"Cannot use non-periodic boundaries with PPPM");
@@ -204,11 +206,8 @@ void PPPMKokkos<DeviceType>::init()
       error->all(FLERR,"Incorrect boundaries with slab PPPM");
   }
 
-  if (order < 2 || order > MAXORDER) {
-    char str[128];
-    sprintf(str,"PPPM order cannot be < 2 or > than %d",MAXORDER);
-    error->all(FLERR,str);
-  }
+  if (order < 2 || order > MAXORDER)
+    error->all(FLERR,fmt::format("PPPM order cannot be < 2 or > {}",MAXORDER));
 
   // compute two charge force
 
@@ -304,31 +303,17 @@ void PPPMKokkos<DeviceType>::init()
   MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
 
   if (me == 0) {
-
-    if (screen) {
-      fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(screen,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
-      fprintf(screen,"  stencil order = %d\n",order);
-      fprintf(screen,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(screen,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(screen,"  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n");
-      fprintf(screen,"  3d grid and FFT values/proc = %d %d\n",
-              ngrid_max,nfft_both_max);
-    }
-    if (logfile) {
-      fprintf(logfile,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(logfile,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
-      fprintf(logfile,"  stencil order = %d\n",order);
-      fprintf(logfile,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(logfile,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(logfile,"  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n");
-      fprintf(logfile,"  3d grid and FFT values/proc = %d %d\n",
-              ngrid_max,nfft_both_max);
-    }
+    std::string mesg = fmt::format("  G vector (1/distance) = {:.8g}\n",g_ewald);
+    mesg += fmt::format("  grid = {} {} {}\n",nx_pppm,ny_pppm,nz_pppm);
+    mesg += fmt::format("  stencil order = {}\n",order);
+    mesg += fmt::format("  estimated absolute RMS force accuracy = {:.8g}\n",
+                       estimated_accuracy);
+    mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
+                       estimated_accuracy/two_charge_force);
+    mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
+    mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
+                       ngrid_max,nfft_both_max);
+    utils::logmesg(lmp,mesg);
   }
 
   // allocate K-space dependent memory
@@ -638,7 +623,7 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   //nall = atomKK->nlocal + atomKK->nghost;
   //newton_pair = force->newton_pair;
 
-  // if atomKK count has changed, update qsum and qsqsum
+  // if atom count has changed, update qsum and qsqsum
 
   if (atomKK->natoms != natoms_original) {
     qsum_qsq();
@@ -662,7 +647,7 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
     domain->x2lamda(atomKK->nlocal);
   }
 
-  // extend size of per-atomKK arrays if necessary
+  // extend size of per-atom arrays if necessary
 
   if (atomKK->nmax > nmax) {
     //memory->destroy(part2grid);
@@ -688,7 +673,7 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   // compute potential gradient on my FFT grid and
   //   portion of e_long on this proc's FFT grid
   // return gradients (electric fields) in 3d brick decomposition
-  // also performs per-atomKK calculations via poisson_peratom()
+  // also performs per-atom calculations via poisson_peratom()
 
   poisson();
 
@@ -697,7 +682,7 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
 
   cg->forward_comm(this,FORWARD_IK);
 
-  // extra per-atomKK energy/virial communication
+  // extra per-atom energy/virial communication
 
   if (evflag_atom)
       cg_peratom->forward_comm(this,FORWARD_IK_PERATOM);
@@ -706,7 +691,7 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
 
   fieldforce();
 
-  // extra per-atomKK energy/virial communication
+  // extra per-atom energy/virial communication
 
   if (evflag_atom) fieldforce_peratom();
 
@@ -733,7 +718,7 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
     for (i = 0; i < 6; i++) virial[i] = 0.5*qscale*volume*virial_all[i];
   }
 
-  // per-atomKK energy/virial
+  // per-atom energy/virial
   // energy includes self-energy correction
   // notal accounts for TIP4P tallying d_eatom/vatom for ghost atoms
 
@@ -896,7 +881,7 @@ void PPPMKokkos<DeviceType>::deallocate()
 }
 
 /* ----------------------------------------------------------------------
-   allocate per-atomKK memory that depends on # of K-vectors and order
+   allocate per-atom memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -927,7 +912,7 @@ void PPPMKokkos<DeviceType>::allocate_peratom()
 }
 
 /* ----------------------------------------------------------------------
-   deallocate per-atomKK memory that depends on # of K-vectors and order
+   deallocate per-atom memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -1858,7 +1843,7 @@ void PPPMKokkos<DeviceType>::poisson_ik()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik4>(0,nfft),*this);
   copymode = 0;
 
-  // extra FFTs for per-atomKK energy/virial
+  // extra FFTs for per-atom energy/virial
 
   if (evflag_atom) poisson_peratom();
 
@@ -2903,7 +2888,7 @@ void PPPMKokkos<DeviceType>::slabcorr()
   MPI_Allreduce(&dipole,&dipole_all,1,MPI_DOUBLE,MPI_SUM,world);
 
   // need to make non-neutral systems and/or
-  //  per-atomKK energy translationally invariant
+  //  per-atom energy translationally invariant
 
   dipole_r2 = 0.0;
   if (eflag_atom || fabs(qsum) > SMALL) {
@@ -2926,7 +2911,7 @@ void PPPMKokkos<DeviceType>::slabcorr()
 
   if (eflag_global) energy += qscale * e_slabcorr;
 
-  // per-atomKK energy
+  // per-atom energy
 
   if (eflag_atom) {
     efact = qscale * MY_2PI/volume;

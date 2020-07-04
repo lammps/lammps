@@ -1022,6 +1022,9 @@ TEST(PairStyle, single)
             std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
         }
         test_config.prerequisites.pop_back();
+        if (!verbose) ::testing::internal::CaptureStdout();
+        cleanup_lammps(lmp, test_config);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
         GTEST_SKIP();
     }
     test_config.prerequisites.pop_back();

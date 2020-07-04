@@ -38,6 +38,10 @@ endif()
 
 # tests for a molecular systems and related pair styles
 file(GLOB MOL_PAIR_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/mol-pair-*.yaml)
+# cannot test MSM with single precision data
+if (FFT_SINGLE)
+  list(FILTER MOL_PAIR_TESTS EXCLUDE REGEX "msm")
+endif()
 foreach(TEST ${MOL_PAIR_TESTS})
   string(REGEX REPLACE "^.*mol-pair-(.*)\.yaml" "MolPairStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND pair_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
@@ -84,6 +88,10 @@ endforeach()
 
 # kspace style tester, currently uses the pair style tool
 file(GLOB KSPACE_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/kspace-*.yaml)
+# cannot test MSM with single precision data
+if (FFT_SINGLE)
+  list(FILTER KSPACE_TESTS EXCLUDE REGEX "msm")
+endif()
 foreach(TEST ${KSPACE_TESTS})
   string(REGEX REPLACE "^.*kspace-(.*)\.yaml" "KSpaceStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND pair_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

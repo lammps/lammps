@@ -5,6 +5,7 @@ epsilon: 5e-13
 prerequisites: ! |
   atom full
   pair lj/charmm/coul/long
+  kspace ewald
 pre_commands: ! ""
 post_commands: ! |
   pair_modify mix arithmetic

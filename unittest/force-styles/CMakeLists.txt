@@ -78,3 +78,11 @@ foreach(TEST ${ANGLE_TESTS})
   add_test(NAME ${TNAME} COMMAND angle_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 endforeach()
+
+# kspace style tester, currently uses the pair style tool
+file(GLOB KSPACE_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/kspace-*.yaml)
+foreach(TEST ${KSPACE_TESTS})
+  string(REGEX REPLACE "^.*kspace-(.*)\.yaml" "KSpaceStyle:\\1" TNAME ${TEST})
+  add_test(NAME ${TNAME} COMMAND pair_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+endforeach()

@@ -1,7 +1,7 @@
 ---
 lammps_version: 30 Jun 2020
 date_generated: Sat Jul  4 16:24:16 202
-epsilon: 5e-14
+epsilon: 5e-11
 prerequisites: ! |
   atom full
   pair coul/msm

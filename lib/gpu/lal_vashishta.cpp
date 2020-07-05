@@ -233,10 +233,9 @@ void VashishtaT::loop(const bool _eflag, const bool _vflag, const int evatom) {
                                (BX/this->_threads_per_atom)));
 
   this->k_short_nbor.set_size(GX,BX);
-  this->k_short_nbor.run(&this->atom->x, &param4, &map,
-                 &elem2param, &_nelements, &_nparams,
+  this->k_short_nbor.run(&this->atom->x, &elem2param, &_nelements, &_nparams,
                  &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                 &this->dev_short_nbor, &ainum,
+                 &this->dev_short_nbor, &_cutshortsq, &ainum,
                  &nbor_pitch, &this->_threads_per_atom);
 
   // this->_nbor_data == nbor->dev_packed for gpu_nbor == 0 and tpa > 1

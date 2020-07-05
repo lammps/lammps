@@ -11,9 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fmt/format.h"
 #include "info.h"
 #include "input.h"
 #include "lammps.h"
+#include "update.h"
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -30,8 +32,8 @@ bool verbose = false;
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
-using ::testing::Eq;
 using ::testing::MatchesRegex;
+using ::testing::StrEq;
 
 #define TEST_FAILURE(...)                \
     if (Info::has_exceptions()) {        \
@@ -122,7 +124,7 @@ TEST_F(SimpleCommandsTest, Log)
     in.open("simple_command_test.log");
     in >> text;
     in.close();
-    ASSERT_THAT(text, Eq("test1"));
+    ASSERT_THAT(text, StrEq("test1"));
 
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("log simple_command_test.log append");
@@ -136,11 +138,38 @@ TEST_F(SimpleCommandsTest, Log)
 
     in.open("simple_command_test.log");
     in >> text;
-    ASSERT_THAT(text, Eq("test1"));
+    ASSERT_THAT(text, StrEq("test1"));
     in >> text;
-    ASSERT_THAT(text, Eq("test2"));
+    ASSERT_THAT(text, StrEq("test2"));
     in.close();
     remove("simple_command_test.log");
+}
+
+TEST_F(SimpleCommandsTest, Units)
+{
+    const char *names[] = {"lj", "real", "metal", "si", "cgs", "electron", "micro", "nano"};
+    const double dt[]   = {0.005, 1.0, 0.001, 1.0e-8, 1.0e-8, 0.001, 2.0, 0.00045};
+    std::size_t num     = sizeof(names) / sizeof(const char *);
+    ASSERT_EQ(num, sizeof(dt) / sizeof(double));
+
+    ASSERT_THAT(lmp->update->unit_style, StrEq("lj"));
+    for (int i = 0; i < num; ++i) {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        lmp->input->one(fmt::format("units {}", names[i]));
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        ASSERT_THAT(lmp->update->unit_style, StrEq(names[i]));
+        ASSERT_EQ(lmp->update->dt, dt[i]);
+    }
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(lmp->update->unit_style, StrEq("lj"));
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("units unknown"););
+    auto mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal units command.*"));
 }
 } // namespace LAMMPS_NS
 

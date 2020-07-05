@@ -137,12 +137,10 @@ _texture( param5_tex,int4);
 #endif
 
 __kernel void k_vashishta_short_nbor(const __global numtyp4 *restrict x_,
-                                     const __global int *restrict elem2param,
-                                     const int nelements, const int nparams,
                                      const __global int * dev_nbor,
                                      const __global int * dev_packed,
                                      __global int * dev_short_nbor,
-                                     const double _cutshortsq,
+                                     const numtyp _cutshortsq,
                                      const int inum, const int nbor_pitch,
                                      const int t_per_atom) {
   __local int n_stride;

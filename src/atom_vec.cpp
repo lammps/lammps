@@ -1884,17 +1884,17 @@ void AtomVec::write_data(FILE *fp, int n, double **buf)
       cols = mdata_atom.cols[nn];
       if (datatype == Atom::DOUBLE) {
         if (cols == 0) {
-          fprintf(fp," %-1.16e",buf[i][j++]);
+          fmt::print(fp," {}",buf[i][j++]);
         } else {
           for (m = 0; m < cols; m++)
-            fprintf(fp," %-1.16e",buf[i][j++]);
+            fmt::print(fp," {}",buf[i][j++]);
         }
       } else if (datatype == Atom::INT) {
         if (cols == 0) {
-          fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
+          fmt::print(fp," {}",(int) ubuf(buf[i][j++]).i);
         } else {
           for (m = 0; m < cols; m++)
-            fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
+            fmt::print(fp," {}",(int) ubuf(buf[i][j++]).i);
         }
       } else if (datatype == Atom::BIGINT) {
         if (cols == 0) {
@@ -1906,7 +1906,7 @@ void AtomVec::write_data(FILE *fp, int n, double **buf)
       }
     }
 
-    fprintf(fp," %d %d %d\n",
+    fmt::print(fp," {} {} {}\n",
             (int) ubuf(buf[i][j]).i,
             (int) ubuf(buf[i][j+1]).i,
             (int) ubuf(buf[i][j+2]).i);
@@ -2032,17 +2032,17 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
       cols = mdata_vel.cols[nn];
       if (datatype == Atom::DOUBLE) {
         if (cols == 0) {
-          fprintf(fp," %-1.16e",buf[i][j++]);
+          fmt::print(fp," {}",buf[i][j++]);
         } else {
           for (m = 0; m < cols; m++)
-            fprintf(fp," %-1.16e",buf[i][j++]);
+            fmt::print(fp," {}",buf[i][j++]);
         }
       } else if (datatype == Atom::INT) {
         if (cols == 0) {
-          fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
+          fmt::print(fp," {}",(int) ubuf(buf[i][j++]).i);
         } else {
           for (m = 0; m < cols; m++)
-            fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
+            fmt::print(fp," {}",(int) ubuf(buf[i][j++]).i);
         }
       } else if (datatype == Atom::BIGINT) {
         if (cols == 0) {
@@ -2053,7 +2053,7 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
         }
       }
     }
-  fprintf(fp,"\n");
+    fputs("\n",fp);
   }
 }
 

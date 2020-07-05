@@ -824,6 +824,14 @@ TEST(PairStyle, intel)
         GTEST_SKIP();
     }
 
+    if (lmp->force->kspace && utils::strmatch(lmp->force->kspace_style,"^pppm/disp/intel")) {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        cleanup_lammps(lmp, test_config);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        std::cerr << "Skipping kspace style pppm/disp/intel\n";
+        GTEST_SKIP();
+    }
+
     // relax error a bit for USER-INTEL package
     double epsilon = 7.5 * test_config.epsilon;
     // relax test precision when using pppm and single precision FFTs

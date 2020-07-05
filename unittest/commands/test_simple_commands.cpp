@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "info.h"
 #include "input.h"
 #include "lammps.h"
 #include "utils.h"
@@ -30,6 +31,14 @@ using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
 using ::testing::Eq;
+using ::testing::MatchesRegex;
+
+#define TEST_FAILURE(...)                \
+    if (Info::has_exceptions()) {        \
+        ASSERT_ANY_THROW({__VA_ARGS__}); \
+    } else {                             \
+        ASSERT_DEATH({__VA_ARGS__}, ""); \
+    }
 
 class SimpleCommandsTest : public ::testing::Test {
 protected:
@@ -81,6 +90,16 @@ TEST_F(SimpleCommandsTest, Echo)
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->input->echo_screen, 0);
     ASSERT_EQ(lmp->input->echo_log, 1);
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("echo"););
+    auto mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex("^ERROR: Illegal echo command.*"));
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("echo xxx"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex("^ERROR: Illegal echo command.*"));
 }
 
 TEST_F(SimpleCommandsTest, Log)

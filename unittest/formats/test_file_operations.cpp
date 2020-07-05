@@ -29,6 +29,13 @@ using utils::sfgets;
 using utils::sfread;
 using utils::split_words;
 
+#define TEST_FAILURE(...)                \
+    if (Info::has_exceptions()) {        \
+        ASSERT_ANY_THROW({__VA_ARGS__}); \
+    } else {                             \
+        ASSERT_DEATH({__VA_ARGS__}, ""); \
+    }
+
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
@@ -93,15 +100,9 @@ TEST_F(FileOperationsTest, safe_fgets)
 
     memset(buf, 0, MAX_BUF_SIZE);
     ::testing::internal::CaptureStdout();
-    if (Info::has_exceptions()) {
-        ASSERT_ANY_THROW(
-            utils::sfgets(FLERR, buf, MAX_BUF_SIZE, fp, "safe_file_read_test.txt", lmp->error));
-    } else {
-        ASSERT_DEATH(
-            { utils::sfgets(FLERR, buf, MAX_BUF_SIZE, fp, "safe_file_read_test.txt", lmp->error); },
-            "");
-    }
-    std::string mesg = ::testing::internal::GetCapturedStdout();
+    TEST_FAILURE(
+        utils::sfgets(FLERR, buf, MAX_BUF_SIZE, fp, "safe_file_read_test.txt", lmp->error););
+    auto mesg = ::testing::internal::GetCapturedStdout();
     ASSERT_THAT(mesg, StartsWith("ERROR on proc 0: Unexpected end of file while "
                                  "reading file 'safe_file_read_test.txt'"));
 
@@ -125,14 +126,8 @@ TEST_F(FileOperationsTest, safe_fread)
     ASSERT_THAT(buf, StrEq("two_lines\n"));
 
     ::testing::internal::CaptureStdout();
-    if (Info::has_exceptions()) {
-        ASSERT_ANY_THROW(
-            utils::sfread(FLERR, buf, 1, 100, fp, "safe_file_read_test.txt", lmp->error));
-    } else {
-        ASSERT_DEATH(
-            { utils::sfread(FLERR, buf, 1, 100, fp, "safe_file_read_test.txt", lmp->error); }, "");
-    }
-    std::string mesg = ::testing::internal::GetCapturedStdout();
+    TEST_FAILURE(utils::sfread(FLERR, buf, 1, 100, fp, "safe_file_read_test.txt", lmp->error););
+    auto mesg = ::testing::internal::GetCapturedStdout();
     ASSERT_THAT(mesg, StartsWith("ERROR on proc 0: Unexpected end of file while "
                                  "reading file 'safe_file_read_test.txt'"));
 

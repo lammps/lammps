@@ -231,7 +231,7 @@ so that its energy is 0.0 at the cutoff via the
 :doc:`pair_modify <pair_modify>` command.  See the doc pages for
 individual :doc:`pair styles <pair_style>` for details.  Note that
 Coulombic potentials always have a cutoff, unless versions with a
-long-range component are used (e.g. :doc:`pair_style lj/cut/coul/long <pair_lj>`).  The CHARMM potentials go to 0.0 at
+long-range component are used (e.g. :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`).  The CHARMM potentials go to 0.0 at
 the cutoff (e.g. :doc:`pair_style lj/charmm/coul/charmm <pair_charmm>`),
 as do the GROMACS potentials (e.g. :doc:`pair_style lj/gromacs <pair_gromacs>`).
 

@@ -80,7 +80,7 @@ ReadData::ReadData(LAMMPS *lmp) : Pointers(lmp)
   fp = NULL;
 
   // customize for new sections
-  // pointers to atom styles that store extra info
+  // pointers to atom styles that store bonus info
 
   nellipsoids = 0;
   avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");

@@ -145,6 +145,10 @@ class AtomVec : protected Pointers {
   virtual int pack_improper(tagint **);
   virtual void write_improper(FILE *, int, tagint **, int);
 
+  virtual int size_data_bonus_query(int);
+  virtual int pack_data_bonus(double **, int) {return 0;}
+  virtual void write_data_bonus(FILE *, int, double **, int) {}
+
   virtual int property_atom(char *) {return -1;}
   virtual void pack_property_atom(int, double *, int, int) {}
 

@@ -25,6 +25,7 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -479,6 +480,51 @@ void AtomVecEllipsoid::pack_data_post(int ilocal)
 {
   ellipsoid[ilocal] = ellipsoid_flag;
   rmass[ilocal] = rmass_one;
+}
+
+/* ----------------------------------------------------------------------
+   pack bonus ellipsoid info for writing to data file
+   if buf is NULL, just return count of ellipsoids
+------------------------------------------------------------------------- */
+
+int AtomVecEllipsoid::pack_data_bonus(double **buf, int /*flag*/)
+{
+  int i,j;
+  
+  tagint *tag = atom->tag;
+  int nlocal = atom->nlocal;
+
+  int m = 0;
+  for (i = 0; i < nlocal; i++) {
+    if (ellipsoid[i] < 0) continue;
+    if (buf) {
+      buf[m][0] = ubuf(tag[i]).d;
+      j = ellipsoid[i];
+      buf[m][1] = bonus[j].shape[0];
+      buf[m][2] = bonus[j].shape[1];
+      buf[m][3] = bonus[j].shape[2];
+      buf[m][4] = bonus[j].quat[0];
+      buf[m][5] = bonus[j].quat[1];
+      buf[m][6] = bonus[j].quat[2];
+      buf[m][7] = bonus[j].quat[3];
+    }
+    m++;
+  }
+
+  return m;
+}
+
+/* ----------------------------------------------------------------------
+   write bonus ellipsoid info to data file
+------------------------------------------------------------------------- */
+
+void AtomVecEllipsoid::write_data_bonus(FILE *fp, int n, double **buf, int /*flag*/)
+{
+  for (int i = 0; i < n; i++) {
+    fmt::print(fp,"{} {} {} {} {} {} {} {}",
+	       (tagint) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3],
+	       buf[i][4],buf[i][5],buf[i][6],buf[i][7]);
+  }
 }
 
 /* ----------------------------------------------------------------------

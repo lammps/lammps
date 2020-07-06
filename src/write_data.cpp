@@ -39,6 +39,7 @@
 using namespace LAMMPS_NS;
 
 enum{II,IJ};
+enum{ELLIPSOID,LINE,TRIANGLE,BODY};   // also in AtomVecHybrid
 
 /* ---------------------------------------------------------------------- */
 
@@ -173,17 +174,6 @@ void WriteData::write(const std::string &file)
     MPI_Allreduce(&nimpropers_local,&nimpropers,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
 
-  // check for bonus data.
-  if (me == 0) {
-    if ((atom->nellipsoids > 0)
-        || (atom->nlines > 0)
-        || (atom->ntris > 0)
-        || (atom->nbodies > 0))
-      error->warning(FLERR,"System has ellipsoids, lines, triangles, or bodies. "
-                     "Those are not yet supported by write_data. The data file "
-                     "will thus be incomplete.");
-  }
-
   // open data file
 
   if (me == 0) {
@@ -201,19 +191,30 @@ void WriteData::write(const std::string &file)
     if (coeffflag) force_fields();
   }
 
-  // per atom info
-  // do not write molecular topology for atom_style template
+  // per atom info in Atoms and Velocities sections
 
   if (natoms) atoms();
   if (natoms) velocities();
+
+  // molecular topology info if defined
+  // do not write molecular topology for atom_style template
+  
   if (atom->molecular == 1) {
     if (atom->nbonds && nbonds) bonds();
     if (atom->nangles && nangles) angles();
     if (atom->ndihedrals) dihedrals();
     if (atom->nimpropers) impropers();
   }
+  
+  // bonus info if defined
+
+  if (natoms && atom->ellipsoid_flag) bonus(ELLIPSOID);
+  if (natoms && atom->line_flag) bonus(LINE);
+  if (natoms && atom->tri_flag) bonus(TRIANGLE);
+  if (natoms && atom->body_flag) bonus(BODY);
 
   // extra sections managed by fixes
+  
   if (fixflag)
     for (int i = 0; i < modify->nfix; i++)
       if (modify->fix[i]->wd_section)
@@ -252,6 +253,15 @@ void WriteData::header()
                  nimpropers,atom->nimpropertypes);
   }
 
+  // bonus info
+
+  if (atom->ellipsoid_flag) fmt::print(fp,"{} ellipsoids\n",atom->nellipsoids);
+  if (atom->line_flag) fmt::print(fp,"{} lines\n",atom->nlines);
+  if (atom->tri_flag) fmt::print(fp,"{} triangles\n",atom->ntris);
+  if (atom->body_flag) fmt::print(fp,"{} bodies\n",atom->nbodies);
+
+  // fix info
+  
   if (fixflag)
     for (int i = 0; i < modify->nfix; i++)
       if (modify->fix[i]->wd_header)
@@ -322,10 +332,9 @@ void WriteData::force_fields()
 void WriteData::atoms()
 {
   // communication buffer for all my Atom info
-  // max_size = largest buffer needed by any proc
+  // maxrow X ncol = largest buffer needed by any proc
 
   int ncol = atom->avec->size_data_atom + 3;
-
   int sendrow = atom->nlocal;
   int maxrow;
   MPI_Allreduce(&sendrow,&maxrow,1,MPI_INT,MPI_MAX,world);
@@ -376,10 +385,9 @@ void WriteData::atoms()
 void WriteData::velocities()
 {
   // communication buffer for all my Atom info
-  // max_size = largest buffer needed by any proc
+  // maxrow X ncol = largest buffer needed by any proc
 
   int ncol = atom->avec->size_velocity + 1;
-
   int sendrow = atom->nlocal;
   int maxrow;
   MPI_Allreduce(&sendrow,&maxrow,1,MPI_INT,MPI_MAX,world);
@@ -430,6 +438,7 @@ void WriteData::velocities()
 void WriteData::bonds()
 {
   // communication buffer for all my Bond info
+  // maxrow X ncol = largest buffer needed by any proc
 
   int ncol = 3;
   int sendrow = static_cast<int> (nbonds_local);
@@ -484,6 +493,7 @@ void WriteData::bonds()
 void WriteData::angles()
 {
   // communication buffer for all my Angle info
+  // maxrow X ncol = largest buffer needed by any proc
 
   int ncol = 4;
   int sendrow = static_cast<int> (nangles_local);
@@ -538,27 +548,10 @@ void WriteData::angles()
 void WriteData::dihedrals()
 {
   // communication buffer for all my Dihedral info
-  // max_size = largest buffer needed by any proc
+  // maxrow X ncol = largest buffer needed by any proc
 
   int ncol = 5;
-
-  tagint *tag = atom->tag;
-  int *num_dihedral = atom->num_dihedral;
-  tagint **dihedral_atom2 = atom->dihedral_atom2;
-  int nlocal = atom->nlocal;
-  int newton_bond = force->newton_bond;
-
-  int i,j;
-  int sendrow = 0;
-  if (newton_bond) {
-    for (i = 0; i < nlocal; i++)
-      sendrow += num_dihedral[i];
-  } else {
-    for (i = 0; i < nlocal; i++)
-      for (j = 0; j < num_dihedral[i]; j++)
-        if (tag[i] == dihedral_atom2[i][j]) sendrow++;
-  }
-
+  int sendrow = static_cast<int> (ndihedrals_local);
   int maxrow;
   MPI_Allreduce(&sendrow,&maxrow,1,MPI_INT,MPI_MAX,world);
 
@@ -610,29 +603,11 @@ void WriteData::dihedrals()
 void WriteData::impropers()
 {
   // communication buffer for all my Improper info
-  // max_size = largest buffer needed by any proc
+  // maxrow X ncol = largest buffer needed by any proc
 
   int ncol = 5;
-
-  tagint *tag = atom->tag;
-  int *num_improper = atom->num_improper;
-  tagint **improper_atom2 = atom->improper_atom2;
-  int nlocal = atom->nlocal;
-  int newton_bond = force->newton_bond;
-
-  int i,j;
-  int sendrow = 0;
-  if (newton_bond) {
-    for (i = 0; i < nlocal; i++)
-      sendrow += num_improper[i];
-  } else {
-    for (i = 0; i < nlocal; i++)
-      for (j = 0; j < num_improper[i]; j++)
-        if (tag[i] == improper_atom2[i][j]) sendrow++;
-  }
-
+  int sendrow = static_cast<int> (nimpropers_local);
   int maxrow;
-  MPI_Allreduce(&sendrow,&maxrow,1,MPI_INT,MPI_MAX,world);
 
   tagint **buf;
   if (me == 0) memory->create(buf,MAX(1,maxrow),ncol,"write_data:buf");
@@ -676,12 +651,71 @@ void WriteData::impropers()
 }
 
 /* ----------------------------------------------------------------------
+   write out Bonus sections of data file
+   flag indicates which bonus section it is
+------------------------------------------------------------------------- */
+
+void WriteData::bonus(int flag)
+{
+  // communication buffer for all my Bonus info
+  // maxrow X ncol = largest buffer needed by any proc
+
+  int ncol = atom->avec->size_data_bonus_query(flag);
+  int sendrow = atom->avec->pack_data_bonus(NULL,flag);
+  int maxrow;
+  MPI_Allreduce(&sendrow,&maxrow,1,MPI_INT,MPI_MAX,world);
+
+  double **buf;
+  if (me == 0) memory->create(buf,MAX(1,maxrow),ncol,"write_data:buf");
+  else memory->create(buf,MAX(1,sendrow),ncol,"write_data:buf");
+
+  // pack my bonus data into buf
+
+  atom->avec->pack_data_bonus(buf,flag);
+    
+  // write one chunk of info per proc to file
+  // proc 0 pings each proc, receives its chunk, writes to file
+  // all other procs wait for ping, send their chunk to proc 0
+
+  int tmp,recvrow;
+
+  if (me == 0) {
+    MPI_Status status;
+    MPI_Request request;
+
+    if (flag == ELLIPSOID) fprintf(fp,"\nEllipsoids\n\n");
+    if (flag == LINE) fprintf(fp,"\nLines\n\n");
+    if (flag == TRIANGLE) fprintf(fp,"\nTriangles\n\n");
+    if (flag == BODY) fprintf(fp,"\nBodies\n\n");
+    
+    for (int iproc = 0; iproc < nprocs; iproc++) {
+      if (iproc) {
+        MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_DOUBLE,iproc,0,world,&request);
+        MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
+        MPI_Wait(&request,&status);
+        MPI_Get_count(&status,MPI_DOUBLE,&recvrow);
+        recvrow /= ncol;
+      } else recvrow = sendrow;
+
+      atom->avec->write_data_bonus(fp,recvrow,buf,flag);
+    }
+
+  } else {
+    MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
+    MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_DOUBLE,0,0,world);
+  }
+
+  memory->destroy(buf);
+}
+
+/* ----------------------------------------------------------------------
    write out Mth section of data file owned by Fix ifix
 ------------------------------------------------------------------------- */
 
 void WriteData::fix(int ifix, int mth)
 {
   // communication buffer for Fix info
+  // maxrow X ncol = largest buffer needed by any proc
 
   int sendrow,ncol;
   modify->fix[ifix]->write_data_section_size(mth,sendrow,ncol);

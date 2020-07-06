@@ -80,6 +80,7 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`ke/eff <compute_ke_eff>`
    * :doc:`ke/rigid <compute_ke_rigid>`
    * :doc:`mesont <compute_mesont>`
+   * :doc:`mliap <compute_mliap>`
    * :doc:`momentum <compute_momentum>`
    * :doc:`msd <compute_msd>`
    * :doc:`msd/chunk <compute_msd_chunk>`

@@ -1,6 +1,4 @@
-LAMMPS (20 Nov 2019)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:93)
-  using 1 OpenMP thread(s) per MPI task
+LAMMPS (15 Jun 2020)
 # Demonstrate bispectrum computes
 
 # initialize simulation
@@ -30,11 +28,11 @@ region		box block 0 1 0 ${ny} 0 ${nz}
 region		box block 0 1 0 1 0 ${nz}
 region		box block 0 1 0 1 0 1
 create_box	2 box
-Created orthogonal box = (0 0 0) to (2 2 2)
+Created orthogonal box = (0.0 0.0 0.0) to (2.0 2.0 2.0)
   1 by 1 by 1 MPI processor grid
 create_atoms	2 box
 Created 2 atoms
-  create_atoms CPU = 0.000473976 secs
+  create_atoms CPU = 0.001 seconds
 
 mass 		* 180.88
 
@@ -105,7 +103,7 @@ compute         bsum2 snapgroup2 reduce sum c_b[*]
 # fix 		bsum2 all ave/time 1 1 1 c_bsum2 file bsum2.dat mode vector
 compute		vbsum all reduce sum c_vb[*]
 # fix 		vbsum all ave/time 1 1 1 c_vbsum file vbsum.dat mode vector
-variable	db_2_120 equal c_db[2][120]
+variable	db_2_100 equal c_db[2][100]
 
 # set up compute snap generating global array
 
@@ -118,12 +116,12 @@ thermo 		100
 # test output:   1: total potential energy
 #                2: xy component of stress tensor
 #                3: Sum(0.5*(B_{222}^i)^2, all i of type 2)
-#                4: xy component of Sum(Sum(r_j*(0.5*(dB_{222}^i)^2/dR[j]), all i of type 2), all j)
-#                5: z component of -Sum(d(0.5*(B_{222}^i)^2/dR[2]), all i of type 2)
+#                4: xz component of Sum(Sum(r_j*(0.5*(dB_{222}^i)^2/dR[j]), all i of type 2), all j)
+#                5: y component of -Sum(d(0.5*(B_{222}^i)^2/dR[2]), all i of type 2)
 #
 #                followed by 5 counterparts from compute snap
 
-thermo_style	custom 		pe            pxy            c_bsum2[20]   c_vbsum[240]   v_db_2_120 		c_snap[1][41] c_snap[13][41] c_snap[1][40] c_snap[13][40] c_snap[7][40]
+thermo_style	custom 		pe            pxy            c_bsum2[20]   c_vbsum[220]   v_db_2_100 		c_snap[1][41] c_snap[13][41] c_snap[1][40] c_snap[12][40] c_snap[6][40]
 thermo_modify 	norm no
 
 # dump 		mydump_db all custom 1000 dump_db id c_db[*]
@@ -166,11 +164,11 @@ Neighbor list info ...
       stencil: full/bin/3d
       bin: standard
 Per MPI rank memory allocation (min/avg/max) = 21.78 | 21.78 | 21.78 Mbytes
-PotEng Pxy c_bsum2[20] c_vbsum[240] v_db_2_120 c_snap[1][41] c_snap[13][41] c_snap[1][40] c_snap[13][40] c_snap[7][40] 
-   322.86952    1505558.1 4.2492771e+08    7860489.6    -17625699    322.86952    1505558.1 4.2492771e+08    7860489.6    -17625699 
-Loop time of 2.14577e-06 on 1 procs for 0 steps with 2 atoms
+PotEng Pxy c_bsum2[20] c_vbsum[220] v_db_2_100 c_snap[1][41] c_snap[13][41] c_snap[1][40] c_snap[12][40] c_snap[6][40] 
+   322.86952    1505558.1 4.2492771e+08     -4952473     28484035    322.86952    1505558.1 4.2492771e+08     -4952473     28484035 
+Loop time of 1e-06 on 1 procs for 0 steps with 2 atoms
 
-93.2% CPU use with 1 MPI tasks x 1 OpenMP threads
+200.0% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -180,7 +178,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 2.146e-06  |            |       |100.00
+Other   |            | 1e-06      |            |       |100.00
 
 Nlocal:    2 ave 2 max 2 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

@@ -210,32 +210,18 @@ void ComputeSnap::init()
                  "snap:snapall");
   array = snapall;
 
-  // INCOMPLETE: modify->find_compute()
-  // was called 223960 times by snappy Ta example
-  // that is over 600 times per config?
-  // how is this possible???
-
   // find compute for reference energy
 
-  char *id_pe = (char *) "thermo_pe";
-  int ipe = modify->find_compute(id_pe);
+  int ipe = modify->find_compute("thermo_pe");
   if (ipe == -1)
     error->all(FLERR,"compute thermo_pe does not exist.");
   c_pe = modify->compute[ipe];
 
   // add compute for reference virial tensor
 
-  char *id_virial = (char *) "snap_press";
-  char **newarg = new char*[5];
-  newarg[0] = id_virial;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pressure";
-  newarg[3] = (char *) "NULL";
-  newarg[4] = (char *) "virial";
-  modify->add_compute(5,newarg);
-  delete [] newarg;
+  modify->add_compute("snap_press all pressure NULL virial");
 
-  int ivirial = modify->find_compute(id_virial);
+  int ivirial = modify->find_compute("snap_press");
   if (ivirial == -1)
     error->all(FLERR,"compute snap_press does not exist.");
   c_virial = modify->compute[ivirial];

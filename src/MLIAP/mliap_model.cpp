@@ -41,6 +41,16 @@ MLIAPModel::MLIAPModel(LAMMPS* lmp, char* coefffilename) : Pointers(lmp)
 
 /* ---------------------------------------------------------------------- */
 
+MLIAPModel::MLIAPModel(LAMMPS* lmp, int nelements_in, int nparams_in) : Pointers(lmp)
+{
+  nelements = nelements_in;
+  nparams = nparams_in;
+  coeffelem = NULL;
+  nonlinearflag = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
 MLIAPModel::~MLIAPModel()
 {
   memory->destroy(coeffelem);

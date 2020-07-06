@@ -29,7 +29,6 @@ Examples
 
    compute 1 all cluster/atom 3.5
    compute 1 all fragment/atom
-
    compute 1 all aggregate/atom 3.5
 
 Description
@@ -43,13 +42,15 @@ cutoff distance from one or more other atoms in the cluster.  If an
 atom has no neighbors within the cutoff distance, then it is a 1-atom
 cluster.
 
-A fragment is similarly defined as a set of atoms, each of
-which has an explicit bond (i.e. defined via a :doc:`data file <read_data>`,
-the :doc:`create_bonds <create_bonds>` command, or through fixes like
-:doc:`fix bond/create <fix_bond_create>`, :doc:`fix bond/swap <fix_bond_swap>`,
-or :doc:`fix bond/break <fix_bond_break>`).  The cluster ID or fragment ID
-of every atom in the cluster will be set to the smallest atom ID of any atom
-in the cluster or fragment, respectively.
+A fragment is similarly defined as a set of atoms, each of which has a
+bond to another atom in the fragment, as defined initially via the
+:doc:`data file <read_data>` or :doc:`create_bonds <create_bonds>`
+commands, or by fixes which dynamically create or break bonds like
+:doc:`fix bond/react <fix_bond_react>`, :doc:`fix bond/create
+<fix_bond_create>`, :doc:`fix bond/swap <fix_bond_swap>`, or :doc:`fix
+bond/break <fix_bond_break>`.  The cluster ID or fragment ID of every
+atom in the cluster will be set to the smallest atom ID of any atom in
+the cluster or fragment, respectively.
 
 An aggregate is defined by combining the rules for clusters and
 fragments, i.e. a set of atoms, where each of it is within the cutoff
@@ -88,6 +89,14 @@ multiple compute/dump commands, each of a *cluster/atom* or
    snapshots in the dump file.  The rerun script can use a
    :doc:`special_bonds <special_bonds>` command that includes all pairs in
    the neighbor list.
+
+.. note::
+
+   For the compute fragment/atom style, each fragment is identified
+   using the current bond topology within each fragment.  This will
+   not account for bonds broken by the :doc:`bond_style quartic
+   <bond_quartic>` command because it does not perform a full update
+   of the bond topology data structures within LAMMPS.
 
 **Output info:**
 

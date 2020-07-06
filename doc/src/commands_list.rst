@@ -89,6 +89,7 @@ Commands
    replicate
    rerun
    reset_ids
+   reset_mol_ids
    reset_timestep
    restart
    run

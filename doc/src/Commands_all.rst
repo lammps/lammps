@@ -109,6 +109,7 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`replicate <replicate>`
    * :doc:`rerun <rerun>`
    * :doc:`reset_ids <reset_ids>`
+   * :doc:`reset_mol_ids <reset_mol_ids>`
    * :doc:`reset_timestep <reset_timestep>`
    * :doc:`restart <restart>`
    * :doc:`run <run>`

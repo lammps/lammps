@@ -171,7 +171,7 @@ void EwaldDisp::init()
                  "on system with no charge, dipole, or LJ particles");
   if (fabs(qsum) > SMALL && comm->me == 0)
     error->warning(FLERR,fmt::format("System is not charge neutral, "
-                                     "net charge = {}",qsum));
+                                     "net charge = {:.8g}",qsum));
 
   if (!function[1] && !function[2]) dispersionflag = 0;
   if (!function[3]) dipoleflag = 0;
@@ -227,8 +227,8 @@ void EwaldDisp::init()
     }
   }
 
-  if (!comm->me)
-    utils::logmesg(lmp,fmt::format("  G vector = {},   accuracy = {}\n",
+  if (comm->me == 0)
+    utils::logmesg(lmp,fmt::format("  G vector = {:.8g},   accuracy = {:.8g}\n",
                                    g_ewald,accuracy));
 
   g_ewald_6 = g_ewald;

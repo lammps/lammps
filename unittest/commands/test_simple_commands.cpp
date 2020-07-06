@@ -11,8 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fmt/format.h"
+#include "info.h"
 #include "input.h"
 #include "lammps.h"
+#include "output.h"
+#include "update.h"
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -29,7 +33,16 @@ bool verbose = false;
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
-using ::testing::Eq;
+using ::testing::ExitedWithCode;
+using ::testing::MatchesRegex;
+using ::testing::StrEq;
+
+#define TEST_FAILURE(...)                \
+    if (Info::has_exceptions()) {        \
+        ASSERT_ANY_THROW({__VA_ARGS__}); \
+    } else {                             \
+        ASSERT_DEATH({__VA_ARGS__}, ""); \
+    }
 
 class SimpleCommandsTest : public ::testing::Test {
 protected:
@@ -52,6 +65,14 @@ protected:
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 };
+
+TEST_F(SimpleCommandsTest, UnknownCommand)
+{
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("XXX one two three"););
+    auto mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Unknown command.*"));
+}
 
 TEST_F(SimpleCommandsTest, Echo)
 {
@@ -81,6 +102,16 @@ TEST_F(SimpleCommandsTest, Echo)
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->input->echo_screen, 0);
     ASSERT_EQ(lmp->input->echo_log, 1);
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("echo"););
+    auto mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex("^ERROR: Illegal echo command.*"));
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("echo xxx"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex("^ERROR: Illegal echo command.*"));
 }
 
 TEST_F(SimpleCommandsTest, Log)
@@ -103,7 +134,7 @@ TEST_F(SimpleCommandsTest, Log)
     in.open("simple_command_test.log");
     in >> text;
     in.close();
-    ASSERT_THAT(text, Eq("test1"));
+    ASSERT_THAT(text, StrEq("test1"));
 
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("log simple_command_test.log append");
@@ -117,11 +148,216 @@ TEST_F(SimpleCommandsTest, Log)
 
     in.open("simple_command_test.log");
     in >> text;
-    ASSERT_THAT(text, Eq("test1"));
+    ASSERT_THAT(text, StrEq("test1"));
     in >> text;
-    ASSERT_THAT(text, Eq("test2"));
+    ASSERT_THAT(text, StrEq("test2"));
     in.close();
     remove("simple_command_test.log");
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("log"););
+    auto mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal log command.*"));
+}
+
+TEST_F(SimpleCommandsTest, Quit)
+{
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("echo none");
+    TEST_FAILURE(lmp->input->one("quit xxx"););
+    auto mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Expected integer .*"));
+
+    ASSERT_EXIT(lmp->input->one("quit"), ExitedWithCode(0), "");
+    ASSERT_EXIT(lmp->input->one("quit 9"), ExitedWithCode(9), "");
+}
+
+TEST_F(SimpleCommandsTest, ResetTimestep)
+{
+    ASSERT_EQ(lmp->update->ntimestep, 0);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("reset_timestep 10");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->update->ntimestep, 10);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("reset_timestep 0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->update->ntimestep, 0);
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("reset_timestep -10"););
+    auto mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Timestep must be >= 0.*"));
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("reset_timestep"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_timestep .*"));
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("reset_timestep 10 10"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_timestep .*"));
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("reset_timestep xxx"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Expected integer .*"));
+}
+
+TEST_F(SimpleCommandsTest, Suffix)
+{
+    ASSERT_EQ(lmp->suffix_enable, 0);
+    ASSERT_EQ(lmp->suffix, nullptr);
+    ASSERT_EQ(lmp->suffix2, nullptr);
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("suffix on"););
+    auto mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: May only enable suffixes after defining one.*"));
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("suffix one");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(lmp->suffix, StrEq("one"));
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("suffix hybrid two three");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(lmp->suffix, StrEq("two"));
+    ASSERT_THAT(lmp->suffix2, StrEq("three"));
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("suffix four");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(lmp->suffix, StrEq("four"));
+    ASSERT_EQ(lmp->suffix2, nullptr);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("suffix off");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->suffix_enable, 0);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("suffix on");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->suffix_enable, 1);
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("suffix"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal suffix command.*"));
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("suffix hybrid"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal suffix command.*"));
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("suffix hybrid one"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal suffix command.*"));
+}
+
+TEST_F(SimpleCommandsTest, Thermo)
+{
+    ASSERT_EQ(lmp->output->thermo_every, 0);
+    ASSERT_EQ(lmp->output->var_thermo, nullptr);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("thermo 2");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->output->thermo_every, 2);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("variable step equal logfreq(10,3,10)");
+    lmp->input->one("thermo v_step");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(lmp->output->var_thermo, StrEq("step"));
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("thermo 10");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->output->thermo_every, 10);
+    ASSERT_EQ(lmp->output->var_thermo, nullptr);
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("thermo"););
+    auto mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal thermo command.*"));
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("thermo -1"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal thermo command.*"));
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("thermo xxx"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Expected integer.*"));
+}
+
+TEST_F(SimpleCommandsTest, TimeStep)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("timestep 1");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->update->dt, 1.0);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("timestep 0.1");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->update->dt, 0.1);
+
+    // zero timestep is legal and works (atoms don't move)
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("timestep 0.0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->update->dt, 0.0);
+
+    // negative timestep also creates a viable MD.
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("timestep -0.1");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->update->dt, -0.1);
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("timestep"););
+    auto mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal timestep command.*"));
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("timestep xxx"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Expected floating point.*"));
+}
+
+TEST_F(SimpleCommandsTest, Units)
+{
+    const char *names[] = {"lj", "real", "metal", "si", "cgs", "electron", "micro", "nano"};
+    const double dt[]   = {0.005, 1.0, 0.001, 1.0e-8, 1.0e-8, 0.001, 2.0, 0.00045};
+    std::size_t num     = sizeof(names) / sizeof(const char *);
+    ASSERT_EQ(num, sizeof(dt) / sizeof(double));
+
+    ASSERT_THAT(lmp->update->unit_style, StrEq("lj"));
+    for (int i = 0; i < num; ++i) {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        lmp->input->one(fmt::format("units {}", names[i]));
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        ASSERT_THAT(lmp->update->unit_style, StrEq(names[i]));
+        ASSERT_EQ(lmp->update->dt, dt[i]);
+    }
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(lmp->update->unit_style, StrEq("lj"));
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("units unknown"););
+    auto mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal units command.*"));
 }
 } // namespace LAMMPS_NS
 

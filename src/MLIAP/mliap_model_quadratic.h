@@ -21,8 +21,11 @@ namespace LAMMPS_NS {
 class MLIAPModelQuadratic : public MLIAPModel {
 public:
   MLIAPModelQuadratic(LAMMPS*, char*);
+  MLIAPModelQuadratic(LAMMPS*, int, int);
   ~MLIAPModelQuadratic();
   virtual void gradient(class PairMLIAP*, class NeighList*, double**, double**, int);
+  virtual void param_gradient(int*, class NeighList*, double**, int**, int**, double**, double*);
+  virtual int get_gamma_nnz();
 
 protected:
 };

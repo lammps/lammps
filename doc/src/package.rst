@@ -518,7 +518,7 @@ script are supported by the KOKKOS package. In this case data can stay
 on the GPU for many timesteps without being moved between the host and
 GPU, if you use the *device* value. If your script uses styles (e.g.
 fixes) which are not yet supported by the KOKKOS package, then data has
-to be move between the host and device anyway, so it is typically faster
+to be moved between the host and device anyway, so it is typically faster
 to let the host handle communication, by using the *host* value. Using
 *host* instead of *no* will enable use of multiple threads to
 pack/unpack communicated data. When running small systems on a GPU,

@@ -316,6 +316,7 @@ void Thermo::header()
 
   std::string hdr;
   for (int i = 0; i < nfield; i++) hdr +=  keyword[i] + std::string(" ");
+
   if (me == 0) utils::logmesg(lmp,hdr+"\n");
 }
 

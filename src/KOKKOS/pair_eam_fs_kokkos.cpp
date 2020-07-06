@@ -985,7 +985,7 @@ void PairEAMFSKokkos<DeviceType>::read_file(char *filename)
 
   // read potential file
   if(comm->me == 0) {
-    PotentialFileReader reader(lmp, filename, "EAMFS", unit_convert_flag);
+    PotentialFileReader reader(lmp, filename, "eam/fs", unit_convert_flag);
 
     // transparently convert units for supported conversions
 

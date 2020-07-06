@@ -591,7 +591,7 @@ void PairComb::read_file(char *file)
 
   // open file on proc 0
   if (comm->me == 0) {
-    PotentialFileReader reader(lmp, file, "COMB");
+    PotentialFileReader reader(lmp, file, "comb");
     char * line;
 
     while((line = reader.next_line(NPARAMS_PER_LINE))) {

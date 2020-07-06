@@ -46,13 +46,6 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`dimension <dimension>`
    * :doc:`displace_atoms <displace_atoms>`
    * :doc:`dump <dump>`
-   * :doc:`dump atom/adios <dump_adios>`
-   * :doc:`dump custom/adios <dump_adios>`
-   * :doc:`dump image <dump_image>`
-   * :doc:`dump movie <dump_image>`
-   * :doc:`dump netcdf <dump_netcdf>`
-   * :doc:`dump netcdf/mpiio <dump_netcdf>`
-   * :doc:`dump vtk <dump_vtk>`
    * :doc:`dump_modify <dump_modify>`
    * :doc:`dynamical_matrix <dynamical_matrix>`
    * :doc:`echo <echo>`

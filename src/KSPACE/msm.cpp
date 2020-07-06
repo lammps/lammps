@@ -205,9 +205,9 @@ void MSM::init()
 
   if (me == 0) {
     std::string mesg = fmt::format("  3d grid size/proc = {}\n", ngrid_max);
-    mesg += fmt::format("  estimated absolute RMS force accuracy = {}\n",
+    mesg += fmt::format("  estimated absolute RMS force accuracy = {:.8g}\n",
                         estimated_error);
-    mesg += fmt::format("  estimated relative force accuracy = {}\n",
+    mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
                         estimated_error/two_charge_force);
     mesg += fmt::format("  grid = {} {} {}\n",nx_msm[0],ny_msm[0],nz_msm[0]);
     mesg += fmt::format("  order = {}\n",order);

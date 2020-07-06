@@ -86,7 +86,7 @@ void PairMLIAP::compute(int eflag, int vflag)
   // compute descriptors, if needed
 
   if (model->nonlinearflag || eflag)
-    descriptor->forward(map, list, descriptors);
+    descriptor->compute_descriptors(map, list, descriptors);
 
   // compute E_i and beta_i = dE_i/dB_i for all i in list
 
@@ -94,7 +94,7 @@ void PairMLIAP::compute(int eflag, int vflag)
 
   // calculate force contributions beta_i*dB_i/dR_j
 
-  descriptor->backward(this, list, beta, vflag);
+  descriptor->compute_forces(this, list, beta, vflag);
 
   // calculate stress
 

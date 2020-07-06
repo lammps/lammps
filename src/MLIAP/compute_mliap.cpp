@@ -35,7 +35,7 @@ enum{SCALAR,VECTOR,ARRAY};
 
 ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), list(NULL), mliap(NULL),
-  mliap_peratom(NULL), mliapall(NULL), map(NULL), 
+  gradforce(NULL), mliapall(NULL), map(NULL), 
   descriptors(NULL), gamma_row_index(NULL), gamma_col_index(NULL),
   gamma(NULL), egradient(NULL), model(NULL), descriptor(NULL)
 {
@@ -90,18 +90,16 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
   nparams = model->nparams;
   nelements = model->nelements;
   gamma_nnz = model->get_gamma_nnz();
-  nperdim = nparams;
   ndims_force = 3;
   ndims_virial = 6;
-  yoffset = nperdim*atom->ntypes;
+  yoffset = nparams*nelements;
   zoffset = 2*yoffset;
   natoms = atom->natoms;
   size_array_rows = 1+ndims_force*natoms+ndims_virial;
-  size_array_cols = nperdim*atom->ntypes+1;
+  size_array_cols = nparams*nelements+1;
   lastcol = size_array_cols-1;
 
-  ndims_peratom = ndims_force;
-  size_peratom = ndims_peratom*nperdim*atom->ntypes;
+  size_gradforce = ndims_force*nparams*nelements;
 
   nmax = 0;
   gamma_max = 0;
@@ -121,7 +119,7 @@ ComputeMLIAP::~ComputeMLIAP()
 {
   memory->destroy(mliap);
   memory->destroy(mliapall);
-  memory->destroy(mliap_peratom);
+  memory->destroy(gradforce);
 
   memory->destroy(map);
 
@@ -186,7 +184,7 @@ void ComputeMLIAP::init()
 
   // find compute for reference energy
 
-  char *id_pe = (char *) "thermo_pe";
+  std::string id_pe = std::string("thermo_pe");
   int ipe = modify->find_compute(id_pe);
   if (ipe == -1)
     error->all(FLERR,"compute thermo_pe does not exist.");
@@ -194,15 +192,9 @@ void ComputeMLIAP::init()
 
   // add compute for reference virial tensor
 
-  char *id_virial = (char *) "mliap_press";
-  char **newarg = new char*[5];
-  newarg[0] = id_virial;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pressure";
-  newarg[3] = (char *) "NULL";
-  newarg[4] = (char *) "virial";
-  modify->add_compute(5,newarg);
-  delete [] newarg;
+  std::string id_virial = std::string("mliap_press");
+  std::string pcmd = id_virial + " all pressure NULL virial";
+  modify->add_compute(pcmd);
 
   int ivirial = modify->find_compute(id_virial);
   if (ivirial == -1)
@@ -227,27 +219,27 @@ void ComputeMLIAP::compute_array()
 
   invoked_array = update->ntimestep;
 
-  // grow mliap_peratom array if necessary
+  // grow gradforce array if necessary
 
   if (atom->nmax > nmax) {
-    memory->destroy(mliap_peratom);
+    memory->destroy(gradforce);
     nmax = atom->nmax;
-    memory->create(mliap_peratom,nmax,size_peratom,
-                   "mliap:mliap_peratom");
+    memory->create(gradforce,nmax,size_gradforce,
+                   "mliap:gradforce");
   }
+
+  // clear gradforce array
+
+  for (int i = 0; i < ntotal; i++)
+    for (int j = 0; j < size_gradforce; j++) {
+      gradforce[i][j] = 0.0;
+    }
 
   // clear global array
 
   for (int irow = 0; irow < size_array_rows; irow++)
-    for (int icoeff = 0; icoeff < size_array_cols; icoeff++)
-      mliap[irow][icoeff] = 0.0;
-
-  // clear local peratom array
-
-  for (int i = 0; i < ntotal; i++)
-    for (int icoeff = 0; icoeff < size_peratom; icoeff++) {
-      mliap_peratom[i][icoeff] = 0.0;
-    }
+    for (int jcol = 0; jcol < size_array_cols; jcol++)
+      mliap[irow][jcol] = 0.0;
 
   // invoke full neighbor list (will copy or build if necessary)
 
@@ -261,9 +253,9 @@ void ComputeMLIAP::compute_array()
     gamma_max = list->inum;
   }
 
-  // compute descriptors, if needed
+  // compute descriptors
 
-  descriptor->forward(map, list, descriptors);
+  descriptor->compute_descriptors(map, list, descriptors);
 
   // calculate descriptor contributions to parameter gradients
   // and gamma = double gradient w.r.t. parameters and descriptors
@@ -279,29 +271,28 @@ void ComputeMLIAP::compute_array()
 
   // calculate descriptor gradient contributions to parameter gradients
 
-  descriptor->param_backward(map, list, gamma_nnz, gamma_row_index, 
-                             gamma_col_index, gamma, mliap_peratom,
+  descriptor->compute_gradients(map, list, gamma_nnz, gamma_row_index, 
+                             gamma_col_index, gamma, gradforce,
                              yoffset, zoffset);
 
   // accumulate descriptor gradient contributions to global array
 
-  for (int itype = 0; itype < atom->ntypes; itype++) {
-    const int typeoffset_local = nperdim*itype;
-    const int typeoffset_global = nperdim*itype;
-    for (int icoeff = 0; icoeff < nperdim; icoeff++) {
+  for (int ielem = 0; ielem < nelements; ielem++) {
+    const int elemoffset = nparams*ielem;
+    for (int jparam = 0; jparam < nparams; jparam++) {
       int irow = 1;
       for (int i = 0; i < ntotal; i++) {
-        double *snadi = mliap_peratom[i]+typeoffset_local;
+        double *gradforcei = gradforce[i]+elemoffset;
         int iglobal = atom->tag[i];
         int irow = 3*(iglobal-1)+1;
-        mliap[irow][icoeff+typeoffset_global] += snadi[icoeff];
-        mliap[irow+1][icoeff+typeoffset_global] += snadi[icoeff+yoffset];
-        mliap[irow+2][icoeff+typeoffset_global] += snadi[icoeff+zoffset];
+        mliap[irow][jparam+elemoffset] += gradforcei[jparam];
+        mliap[irow+1][jparam+elemoffset] += gradforcei[jparam+yoffset];
+        mliap[irow+2][jparam+elemoffset] += gradforcei[jparam+zoffset];
       }
     }
   }
 
- // accumulate forces to global array
+ // copy forces to global array
 
   for (int i = 0; i < atom->nlocal; i++) {
     int iglobal = atom->tag[i];
@@ -315,25 +306,25 @@ void ComputeMLIAP::compute_array()
 
   dbdotr_compute();
 
-  // copy descriptor gradient contributions to global array
+  // copy energy gradient contributions to global array
 
-  for (int itype = 0; itype < atom->ntypes; itype++) {
-    const int typeoffset_global = nperdim*itype;
-    for (int icoeff = 0; icoeff < nperdim; icoeff++)
-      mliap[0][icoeff+typeoffset_global] = egradient[icoeff+typeoffset_global];
+  for (int ielem = 0; ielem < nelements; ielem++) {
+    const int elemoffset = nparams*ielem;
+    for (int jparam = 0; jparam < nparams; jparam++)
+      mliap[0][jparam+elemoffset] = egradient[jparam+elemoffset];
   }
 
   // sum up over all processes
 
   MPI_Allreduce(&mliap[0][0],&mliapall[0][0],size_array_rows*size_array_cols,MPI_DOUBLE,MPI_SUM,world);
 
-  // assign energy to last column
+  // copy energy to last column
 
   int irow = 0;
   double reference_energy = c_pe->compute_scalar();
   mliapall[irow++][lastcol] = reference_energy;
 
-  // assign virial stress to last column
+  // copy virial stress to last column
   // switch to Voigt notation
 
   c_virial->compute_vector();
@@ -362,21 +353,20 @@ void ComputeMLIAP::dbdotr_compute()
 
   int nall = atom->nlocal + atom->nghost;
   for (int i = 0; i < nall; i++)
-    for (int itype = 0; itype < atom->ntypes; itype++) {
-      const int typeoffset_local = nperdim*itype;
-      const int typeoffset_global = nperdim*itype;
-      double *snadi = mliap_peratom[i]+typeoffset_local;
-      for (int icoeff = 0; icoeff < nperdim; icoeff++) {
-        double dbdx = snadi[icoeff];
-        double dbdy = snadi[icoeff+yoffset];
-        double dbdz = snadi[icoeff+zoffset];
+    for (int ielem = 0; ielem < nelements; ielem++) {
+      const int elemoffset = nparams*ielem;
+      double *gradforcei = gradforce[i]+elemoffset;
+      for (int jparam = 0; jparam < nparams; jparam++) {
+        double dbdx = gradforcei[jparam];
+        double dbdy = gradforcei[jparam+yoffset];
+        double dbdz = gradforcei[jparam+zoffset];
         int irow = irow0;
-        mliap[irow++][icoeff+typeoffset_global] += dbdx*x[i][0];
-        mliap[irow++][icoeff+typeoffset_global] += dbdy*x[i][1];
-        mliap[irow++][icoeff+typeoffset_global] += dbdz*x[i][2];
-        mliap[irow++][icoeff+typeoffset_global] += dbdz*x[i][1];
-        mliap[irow++][icoeff+typeoffset_global] += dbdz*x[i][0];
-        mliap[irow++][icoeff+typeoffset_global] += dbdy*x[i][0];
+        mliap[irow++][jparam+elemoffset] += dbdx*x[i][0];
+        mliap[irow++][jparam+elemoffset] += dbdy*x[i][1];
+        mliap[irow++][jparam+elemoffset] += dbdz*x[i][2];
+        mliap[irow++][jparam+elemoffset] += dbdz*x[i][1];
+        mliap[irow++][jparam+elemoffset] += dbdz*x[i][0];
+        mliap[irow++][jparam+elemoffset] += dbdy*x[i][0];
       }
     }
 }
@@ -392,7 +382,7 @@ double ComputeMLIAP::memory_usage()
     sizeof(double);                                     // mliap
   bytes += size_array_rows*size_array_cols *
     sizeof(double);                                     // mliapall
-  bytes += nmax*size_peratom * sizeof(double);          // mliap_peratom
+  bytes += nmax*size_gradforce * sizeof(double);          // gradforce
   int n = atom->ntypes+1;
   bytes += n*sizeof(int);        // map
 

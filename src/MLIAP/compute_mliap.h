@@ -34,12 +34,12 @@ class ComputeMLIAP : public Compute {
   double memory_usage();
 
  private:
-  int natoms, nmax, size_peratom, lastcol;
-  int nperdim, yoffset, zoffset;
-  int ndims_peratom, ndims_force, ndims_virial;
+  int natoms, nmax, size_gradforce, lastcol;
+  int yoffset, zoffset;
+  int ndims_force, ndims_virial;
   class NeighList *list;
   double **mliap, **mliapall;
-  double **mliap_peratom;
+  double **gradforce;
   int *map;  // map types to [0,nelements)
   int nelements;
 

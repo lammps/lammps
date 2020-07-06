@@ -76,7 +76,7 @@ MLIAPDescriptorSNAP::~MLIAPDescriptorSNAP()
    compute descriptors for each atom
    ---------------------------------------------------------------------- */
 
-void MLIAPDescriptorSNAP::forward(int* map, NeighList* list, double **descriptors)
+void MLIAPDescriptorSNAP::compute_descriptors(int* map, NeighList* list, double **descriptors)
 {
   int i,j,jnum,ninside;
   double delx,dely,delz,rsq;
@@ -151,7 +151,7 @@ void MLIAPDescriptorSNAP::forward(int* map, NeighList* list, double **descriptor
    compute forces for each atom
    ---------------------------------------------------------------------- */
 
-void MLIAPDescriptorSNAP::backward(PairMLIAP* pairmliap, NeighList* list, double **beta, int vflag)
+void MLIAPDescriptorSNAP::compute_forces(PairMLIAP* pairmliap, NeighList* list, double **beta, int vflag)
 {
   int i,j,jnum,ninside;
   double delx,dely,delz,rsq;
@@ -256,12 +256,121 @@ void MLIAPDescriptorSNAP::backward(PairMLIAP* pairmliap, NeighList* list, double
 }
 
 /* ----------------------------------------------------------------------
-   compute forces for each atom
+   compute force gradient for each atom
    ---------------------------------------------------------------------- */
 
-void MLIAPDescriptorSNAP::param_backward(int *map, NeighList* list, 
+void MLIAPDescriptorSNAP::compute_gradients(int *map, NeighList* list, 
                                          int gamma_nnz, int **gamma_row_index, 
-                                         int **gamma_col_index, double **gamma, double **snadi,
+                                         int **gamma_col_index, double **gamma, double **gradforce,
+                                         int yoffset, int zoffset)
+{
+  int i,j,jnum,ninside;
+  double delx,dely,delz,evdwl,rsq;
+  double fij[3];
+  int *jlist,*numneigh,**firstneigh;
+
+  double **x = atom->x;
+  double **f = atom->f;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  int newton_pair = force->newton_pair;
+
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+  for (int ii = 0; ii < list->inum; ii++) {
+    i = list->ilist[ii];
+
+    const double xtmp = x[i][0];
+    const double ytmp = x[i][1];
+    const double ztmp = x[i][2];
+    const int itype = type[i];
+    const int ielem = map[itype];
+
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    // insure rij, inside, wj, and rcutij are of size jnum
+
+    snaptr->grow_rij(jnum);
+
+    // rij[][3] = displacements between atom I and those neighbors
+    // inside = indices of neighbors of I within cutoff
+    // wj = weights for neighbors of I within cutoff
+    // rcutij = cutoffs for neighbors of I within cutoff
+    // note Rij sign convention => dU/dRij = dU/dRj = -dU/dRi
+
+    ninside = 0;
+    for (int jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      delx = x[j][0] - xtmp;
+      dely = x[j][1] - ytmp;
+      delz = x[j][2] - ztmp;
+      rsq = delx*delx + dely*dely + delz*delz;
+      int jtype = type[j];
+      const int jelem = map[jtype];
+
+      if (rsq < cutsq[ielem][jelem]) {
+        snaptr->rij[ninside][0] = delx;
+        snaptr->rij[ninside][1] = dely;
+        snaptr->rij[ninside][2] = delz;
+        snaptr->inside[ninside] = j;
+	snaptr->wj[ninside] = wjelem[jelem];
+	snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
+        snaptr->element[ninside] = jelem; // element index for chem snap
+        ninside++;
+      }
+    }
+
+    if (chemflag)
+      snaptr->compute_ui(ninside, ielem);
+    else
+      snaptr->compute_ui(ninside, 0);
+
+    snaptr->compute_zi();
+    if (chemflag)
+      snaptr->compute_bi(ielem);
+    else
+      snaptr->compute_bi(0);
+
+    for (int jj = 0; jj < ninside; jj++) {
+      const int j = snaptr->inside[jj];
+
+      if(chemflag)
+        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
+                               snaptr->rcutij[jj],jj, snaptr->element[jj]);
+      else
+        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
+                               snaptr->rcutij[jj],jj, 0);
+
+      snaptr->compute_dbidrj();
+      
+      // Accumulate gamma_lk*dB_k/dRi, -gamma_lk**dB_k/dRj
+      
+      for (int inz = 0; inz < gamma_nnz; inz++) {
+        const int l = gamma_row_index[ii][inz];
+        const int k = gamma_col_index[ii][inz];
+        gradforce[i][l]         += gamma[ii][inz]*snaptr->dblist[k][0];
+        gradforce[i][l+yoffset] += gamma[ii][inz]*snaptr->dblist[k][1];
+        gradforce[i][l+zoffset] += gamma[ii][inz]*snaptr->dblist[k][2];
+        gradforce[j][l]         -= gamma[ii][inz]*snaptr->dblist[k][0];
+        gradforce[j][l+yoffset] -= gamma[ii][inz]*snaptr->dblist[k][1];
+        gradforce[j][l+zoffset] -= gamma[ii][inz]*snaptr->dblist[k][2];
+      }
+      
+    }
+  }
+
+}
+
+/* ----------------------------------------------------------------------
+   compute descriptor gradients for each neighbor atom
+   ---------------------------------------------------------------------- */
+
+void MLIAPDescriptorSNAP::compute_descriptor_gradients(int *map, NeighList* list, 
+                                         int gamma_nnz, int **gamma_row_index, 
+                                         int **gamma_col_index, double **gamma, double **graddesc,
                                          int yoffset, int zoffset)
 {
   int i,j,jnum,ninside;
@@ -346,19 +455,16 @@ void MLIAPDescriptorSNAP::param_backward(int *map, NeighList* list,
 
       snaptr->compute_dbidrj();
 
-      // Accumulate gamma_lk*dB_k/dRi, -gamma_lk**dB_k/dRj
+      // Accumulate dB_k^i/dRi, dB_k^i/dRj
 
-        for (int inz = 0; inz < gamma_nnz; inz++) {
-          const int l = gamma_row_index[ii][inz];
-          const int k = gamma_col_index[ii][inz];
-          snadi[i][l]         += gamma[ii][inz]*snaptr->dblist[k][0];
-          snadi[i][l+yoffset] += gamma[ii][inz]*snaptr->dblist[k][1];
-          snadi[i][l+zoffset] += gamma[ii][inz]*snaptr->dblist[k][2];
-          snadi[j][l]         -= gamma[ii][inz]*snaptr->dblist[k][0];
-          snadi[j][l+yoffset] -= gamma[ii][inz]*snaptr->dblist[k][1];
-          snadi[j][l+zoffset] -= gamma[ii][inz]*snaptr->dblist[k][2];
-        }
-
+      for (int k = 0; k < ndescriptors; k++) {
+        graddesc[i][k] = snaptr->dblist[k][0];
+        graddesc[i][k] = snaptr->dblist[k][1];
+        graddesc[i][k] = snaptr->dblist[k][2];
+        graddesc[j][k] = -snaptr->dblist[k][0];
+        graddesc[j][k] = -snaptr->dblist[k][1];
+        graddesc[j][k] = -snaptr->dblist[k][2];
+      } 
     }
   }
 

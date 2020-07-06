@@ -15,6 +15,7 @@
 #include "info.h"
 #include "input.h"
 #include "lammps.h"
+#include "output.h"
 #include "update.h"
 #include "utils.h"
 #include "gmock/gmock.h"
@@ -143,6 +144,132 @@ TEST_F(SimpleCommandsTest, Log)
     ASSERT_THAT(text, StrEq("test2"));
     in.close();
     remove("simple_command_test.log");
+}
+
+TEST_F(SimpleCommandsTest, Suffix)
+{
+    ASSERT_EQ(lmp->suffix_enable, 0);
+    ASSERT_EQ(lmp->suffix, nullptr);
+    ASSERT_EQ(lmp->suffix2, nullptr);
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("suffix on"););
+    auto mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: May only enable suffixes after defining one.*"));
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("suffix one");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(lmp->suffix, StrEq("one"));
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("suffix hybrid two three");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(lmp->suffix, StrEq("two"));
+    ASSERT_THAT(lmp->suffix2, StrEq("three"));
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("suffix four");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(lmp->suffix, StrEq("four"));
+    ASSERT_EQ(lmp->suffix2, nullptr);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("suffix off");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->suffix_enable, 0);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("suffix on");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->suffix_enable, 1);
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("suffix"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal suffix command.*"));
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("suffix hybrid"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal suffix command.*"));
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("suffix hybrid one"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal suffix command.*"));
+}
+
+TEST_F(SimpleCommandsTest, Thermo)
+{
+    ASSERT_EQ(lmp->output->thermo_every, 0);
+    ASSERT_EQ(lmp->output->var_thermo, nullptr);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("thermo 2");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->output->thermo_every, 2);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("variable step equal logfreq(10,3,10)");
+    lmp->input->one("thermo v_step");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(lmp->output->var_thermo, StrEq("step"));
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("thermo 10");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->output->thermo_every, 10);
+    ASSERT_EQ(lmp->output->var_thermo, nullptr);
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("thermo"););
+    auto mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal thermo command.*"));
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("thermo -1"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal thermo command.*"));
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("thermo xxx"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Expected integer.*"));
+}
+
+TEST_F(SimpleCommandsTest, TimeStep)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("timestep 1");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->update->dt, 1.0);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("timestep 0.1");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->update->dt, 0.1);
+
+    // zero timestep is legal and works (atoms don't move)
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("timestep 0.0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->update->dt, 0.0);
+
+    // negative timestep also creates a viable MD.
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("timestep -0.1");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->update->dt, -0.1);
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("timestep"););
+    auto mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal timestep command.*"));
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("timestep xxx"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Expected floating point.*"));
 }
 
 TEST_F(SimpleCommandsTest, Units)

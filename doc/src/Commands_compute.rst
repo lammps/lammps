@@ -122,6 +122,7 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`smd/tlsph/strain/rate <compute_smd_tlsph_strain_rate>`
    * :doc:`smd/tlsph/stress <compute_smd_tlsph_stress>`
    * :doc:`smd/triangle/vertices <compute_smd_triangle_vertices>`
+   * :doc:`smd/ulsph/effm <compute_smd_ulsph_effm>`
    * :doc:`smd/ulsph/num/neighs <compute_smd_ulsph_num_neighs>`
    * :doc:`smd/ulsph/strain <compute_smd_ulsph_strain>`
    * :doc:`smd/ulsph/strain/rate <compute_smd_ulsph_strain_rate>`

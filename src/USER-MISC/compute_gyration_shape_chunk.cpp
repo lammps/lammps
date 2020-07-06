@@ -178,6 +178,7 @@ void ComputeGyrationShapeChunk::allocate()
   former_nchunks = current_nchunks;
   memory->create(shape_parameters,current_nchunks,6,"gyration/shape/chunk:shape_parameters");
   array = shape_parameters;
+  size_array_rows = current_nchunks;
 }
 
 /* ----------------------------------------------------------------------

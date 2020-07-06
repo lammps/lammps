@@ -1274,7 +1274,7 @@ void ComputePropertyAtom::pack_shapex(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
-      buf[n] = bonus[ellipsoid[i]].shape[0];
+      buf[n] = 2.0*bonus[ellipsoid[i]].shape[0];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1291,7 +1291,7 @@ void ComputePropertyAtom::pack_shapey(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
-      buf[n] = bonus[ellipsoid[i]].shape[1];
+      buf[n] = 2.0*bonus[ellipsoid[i]].shape[1];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -1308,7 +1308,7 @@ void ComputePropertyAtom::pack_shapez(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
-      buf[n] = bonus[ellipsoid[i]].shape[2];
+      buf[n] = 2.0*bonus[ellipsoid[i]].shape[2];
     else buf[n] = 0.0;
     n += nvalues;
   }

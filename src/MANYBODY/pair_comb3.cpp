@@ -316,7 +316,7 @@ void PairComb3::read_lib()
 
   if (comm->me == 0) {
     try {
-      PotentialFileReader reader(lmp, "lib.comb3", "COMB3");
+      PotentialFileReader reader(lmp, "lib.comb3", "comb3");
       reader.next_dvector(ccutoff, 6);
       reader.next_dvector(ch_a, 7);
 

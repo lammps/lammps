@@ -53,7 +53,7 @@ void PairTersoffMOD::read_file(char *file)
   // open file on proc 0
 
   if (comm->me == 0) {
-    PotentialFileReader reader(lmp, file, "TersoffMod", unit_convert_flag);
+    PotentialFileReader reader(lmp, file, "tersoff/mod", unit_convert_flag);
     char * line;
 
     // transparently convert units for supported conversions

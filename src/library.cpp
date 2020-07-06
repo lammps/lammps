@@ -1725,7 +1725,7 @@ int lammps_get_last_error_message(void *ptr, char * buffer, int buffer_size) {
   if(!error->get_last_error().empty()) {
     int error_type = error->get_last_error_type();
     strncpy(buffer, error->get_last_error().c_str(), buffer_size-1);
-    error->set_last_error(NULL, ERROR_NONE);
+    error->set_last_error("", ERROR_NONE);
     return error_type;
   }
   return 0;

@@ -71,7 +71,7 @@ void PairTersoffZBL::read_file(char *file)
   // open file on proc 0
 
   if (comm->me == 0) {
-    PotentialFileReader reader(lmp, file, "TersoffZBL", unit_convert_flag);
+    PotentialFileReader reader(lmp, file, "tersoff/zbl", unit_convert_flag);
     char * line;
 
     // transparently convert units for supported conversions

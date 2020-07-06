@@ -210,6 +210,17 @@ namespace LAMMPS_NS {
      */
     bool is_double(const std::string & str);
 
+    /** \brief try to detect pathname from FILE pointer.
+     *
+     * Currently only supported on Linux, otherwise will report "(unknown)".
+     *
+     *  \param buf  storage buffer for pathname. output will be truncated if not large enough
+     *  \param len  size of storage buffer. output will be truncated to this length - 1
+     *  \param fp   FILE pointer structe from STDIO library for which we want to detect the name
+     *  \return pointer to the storage buffer, i.e. buf
+     */
+    const char *guesspath(char *buf, int len, FILE *fp);
+
     /**
      * \brief Strip off leading part of path, return just the filename
      * \param path file path

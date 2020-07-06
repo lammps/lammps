@@ -401,7 +401,7 @@ void PairTersoff::read_file(char *file)
   // open file on proc 0
 
   if (comm->me == 0) {
-    PotentialFileReader reader(lmp, file, "Tersoff", unit_convert_flag);
+    PotentialFileReader reader(lmp, file, "tersoff", unit_convert_flag);
     char *line;
 
     // transparently convert units for supported conversions

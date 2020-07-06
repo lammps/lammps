@@ -1,4 +1,4 @@
-LAMMPS (27 Nov 2018)
+LAMMPS (30 Jun 2020)
   using 1 OpenMP thread(s) per MPI task
 # LJ test of msst shock dynamics
 
@@ -21,7 +21,7 @@ Created orthogonal box = (0 0 0) to (96.4602 96.4602 96.4602)
   1 by 2 by 2 MPI processor grid
 create_atoms    1 region box1
 Created 23328 atoms
-  Time spent = 0.00104165 secs
+  create_atoms CPU = 0.003 seconds
 
 mass		1 40.00
 
@@ -50,7 +50,7 @@ Neighbor list info ...
       pair build: half/bin/atomonly/newton
       stencil: half/bin/3d/newton
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 7.784 | 7.784 | 7.784 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 7.785 | 7.785 | 7.785 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0          600   -1943.9014            0   -134.75058    992.06384 
       10    586.47212   -1917.4465            0   -149.08565    1305.7368 
@@ -63,30 +63,30 @@ Step Temp E_pair E_mol TotEng Press
       80    299.37658   -1053.8476            0    -151.1519    8352.9467 
       90    304.24026   -1068.4941            0   -151.13319    8218.1594 
      100     301.9683   -1061.6332            0   -151.12284    8244.1277 
-Loop time of 0.978562 on 4 procs for 100 steps with 23328 atoms
+Loop time of 0.995305 on 4 procs for 100 steps with 23328 atoms
 
-Performance: 17.659 ns/day, 1.359 hours/ns, 102.191 timesteps/s
-97.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 17.362 ns/day, 1.382 hours/ns, 100.472 timesteps/s
+98.2% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.86406    | 0.88129    | 0.89922    |   1.4 | 90.06
-Neigh   | 0.019231   | 0.019453   | 0.019816   |   0.2 |  1.99
-Comm    | 0.043947   | 0.06197    | 0.079005   |   5.1 |  6.33
-Output  | 0.00057197 | 0.00082499 | 0.0015628  |   0.0 |  0.08
-Modify  | 0.0091414  | 0.0092927  | 0.0094769  |   0.1 |  0.95
-Other   |            | 0.005727   |            |       |  0.59
+Pair    | 0.88957    | 0.90144    | 0.91686    |   1.1 | 90.57
+Neigh   | 0.016824   | 0.016945   | 0.017106   |   0.1 |  1.70
+Comm    | 0.039949   | 0.054853   | 0.068734   |   4.8 |  5.51
+Output  | 0.00076342 | 0.0010425  | 0.0018687  |   1.5 |  0.10
+Modify  | 0.012839   | 0.012946   | 0.013153   |   0.1 |  1.30
+Other   |            | 0.008074   |            |       |  0.81
 
-Nlocal:    5832 ave 5850 max 5813 min
+Nlocal:    5832.0 ave 5850.0 max 5813.0 min
 Histogram: 1 0 0 0 1 1 0 0 0 1
-Nghost:    10571 ave 10590 max 10553 min
+Nghost:    10571.0 ave 10590.0 max 10553.0 min
 Histogram: 1 0 0 0 1 1 0 0 0 1
-Neighs:    545762 ave 548069 max 543643 min
+Neighs:    545761.75 ave 548069.0 max 543643.0 min
 Histogram: 1 0 0 1 0 1 0 0 0 1
 
 Total # of neighbors = 2183047
-Ave neighs/atom = 93.5805
+Ave neighs/atom = 93.58054698216735
 Neighbor list builds = 1
 Dangerous builds = 0
 unfix		 2
@@ -95,9 +95,9 @@ unfix		 2
 fix		msst all msst z 28.0 q 200 mu 3e2 tscale 0.01
 MSST parameters:
   Shock in z direction
-  Cell mass-like parameter qmass (units of mass^2/length^4) =  2.00000e+02
-  Shock velocity =  2.80000e+01
-  Artificial viscosity (units of mass/length/time) =  3.00000e+02
+  Cell mass-like parameter qmass (units of mass^2/length^4) = 200
+  Shock velocity = 28
+  Artificial viscosity (units of mass/length/time) = 300
   Initial pressure calculated on first step
   Initial volume calculated on first step
   Initial energy calculated on first step
@@ -121,11 +121,11 @@ thermo_style custom step temp ke pe lx ly lz pxx pyy pzz etotal 	     v_dhug v_d
 #dump_modify	3 pad 3
 
 run	        100
-Fix MSST v0 =  8.97521e+05
-Fix MSST p0 =  8.18624e+03
-Fix MSST e0 = to be -1.51123e+02
-Fix MSST initial strain rate of -3.19005e-02 established by reducing temperature by factor of  1.00000e-02
-Per MPI rank memory allocation (min/avg/max) = 8.534 | 8.534 | 8.534 Mbytes
+Fix MSST v0 = 897520.7
+Fix MSST p0 = 8186.2393
+Fix MSST e0 = -151.12284
+Fix MSST initial strain rate of -0.031900492 established by reducing temperature by factor of 0.01
+Per MPI rank memory allocation (min/avg/max) = 8.535 | 8.535 | 8.535 Mbytes
 Step Temp KinEng PotEng Lx Ly Lz Pxx Pyy Pzz TotEng v_dhug v_dray v_lgr_vel v_lgr_pos f_msst 
      100    298.94862    901.40524   -1052.5281      96.4602      96.4602      96.4602    8270.9151    8253.4662    8175.4946   -151.12284    1.5098415   -10.744684            0            0    9.1051034 
      110    296.49826    894.01679    -1045.224      96.4602      96.4602    96.399609    8338.4937    8340.5504    8294.9909   -151.20723    1.4327442     23.73173  0.017588167  -0.55980562    5.6560557 
@@ -138,30 +138,30 @@ Step Temp KinEng PotEng Lx Ly Lz Pxx Pyy Pzz TotEng v_dhug v_dray v_lgr_vel v_lg
      180    305.86343    922.25514   -1073.9633      96.4602      96.4602    96.023049    8345.1853    8432.5201    8461.3276   -151.70813   0.97863988   -338.30793   0.12689398   -4.4693274   -15.815462 
      190    307.44054    927.01052   -1078.7892      96.4602      96.4602      95.9747    8368.4081    8427.5109     8450.584   -151.77867   0.92329631   -416.89333    0.1409285   -5.0266346   -18.541801 
      200    308.43619    930.01265   -1081.8521      96.4602      96.4602    95.927349    8393.2058    8443.1265    8454.6733   -151.83947    0.8723277   -479.24592    0.1546734   -5.5836644    -21.20378 
-Loop time of 1.57102 on 4 procs for 100 steps with 23328 atoms
+Loop time of 2.16596 on 4 procs for 100 steps with 23328 atoms
 
-Performance: 10.999 ns/day, 2.182 hours/ns, 63.653 timesteps/s
-97.5% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 7.978 ns/day, 3.008 hours/ns, 46.169 timesteps/s
+98.5% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.2237     | 1.2543     | 1.3264     |   3.7 | 79.84
-Neigh   | 0.038648   | 0.039684   | 0.041811   |   0.6 |  2.53
-Comm    | 0.026617   | 0.10771    | 0.14194    |  14.3 |  6.86
-Output  | 0.0035126  | 0.0045422  | 0.0076261  |   2.6 |  0.29
-Modify  | 0.15787    | 0.15969    | 0.16403    |   0.6 | 10.16
-Other   |            | 0.005042   |            |       |  0.32
+Pair    | 1.7569     | 1.7822     | 1.8059     |   1.6 | 82.28
+Neigh   | 0.034235   | 0.03546    | 0.037677   |   0.7 |  1.64
+Comm    | 0.065427   | 0.091172   | 0.11833    |   7.4 |  4.21
+Output  | 0.0062776  | 0.0065615  | 0.0074117  |   0.6 |  0.30
+Modify  | 0.24069    | 0.2423     | 0.24655    |   0.5 | 11.19
+Other   |            | 0.008271   |            |       |  0.38
 
-Nlocal:    5832 ave 5874 max 5803 min
+Nlocal:    5832.0 ave 5874.0 max 5803.0 min
 Histogram: 2 0 0 0 0 1 0 0 0 1
-Nghost:    10563.8 ave 10588 max 10526 min
+Nghost:    10563.75 ave 10588.0 max 10526.0 min
 Histogram: 1 0 0 0 1 0 0 0 0 2
-Neighs:    545708 ave 550787 max 542668 min
+Neighs:    545708.5 ave 550787.0 max 542668.0 min
 Histogram: 2 0 0 0 1 0 0 0 0 1
 
 Total # of neighbors = 2182834
-Ave neighs/atom = 93.5714
+Ave neighs/atom = 93.57141632373114
 Neighbor list builds = 2
 Dangerous builds = 0
-Total wall time: 0:00:02
+Total wall time: 0:00:03

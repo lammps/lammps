@@ -7,7 +7,7 @@ endif()
 
 set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 add_library(style_tests STATIC yaml_writer.cpp error_stats.cpp test_config_reader.cpp test_main.cpp)
-target_compile_definitions(style_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
+target_compile_definitions(style_tests PRIVATE -DTEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
 target_include_directories(style_tests PRIVATE ${LAMMPS_SOURCE_DIR})
 target_link_libraries(style_tests PUBLIC GTest::GTest GTest::GMock Yaml::Yaml)
 if(BUILD_MPI)
@@ -32,9 +32,16 @@ add_test(NAME ErrorStats COMMAND test_error_stats)
 # pair style tester
 add_executable(pair_style pair_style.cpp)
 target_link_libraries(pair_style PRIVATE lammps style_tests)
+if(FFT_SINGLE)
+  target_compile_definitions(pair_style PRIVATE -DFFT_SINGLE)
+endif()
 
 # tests for a molecular systems and related pair styles
 file(GLOB MOL_PAIR_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/mol-pair-*.yaml)
+# cannot test MSM with single precision data
+if (FFT_SINGLE)
+  list(FILTER MOL_PAIR_TESTS EXCLUDE REGEX "msm")
+endif()
 foreach(TEST ${MOL_PAIR_TESTS})
   string(REGEX REPLACE "^.*mol-pair-(.*)\.yaml" "MolPairStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND pair_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
@@ -76,5 +83,17 @@ file(GLOB ANGLE_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/angle-*.yaml)
 foreach(TEST ${ANGLE_TESTS})
   string(REGEX REPLACE "^.*angle-(.*)\.yaml" "AngleStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND angle_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+endforeach()
+
+# kspace style tester, currently uses the pair style tool
+file(GLOB KSPACE_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/kspace-*.yaml)
+# cannot test MSM with single precision data
+if (FFT_SINGLE)
+  list(FILTER KSPACE_TESTS EXCLUDE REGEX "msm")
+endif()
+foreach(TEST ${KSPACE_TESTS})
+  string(REGEX REPLACE "^.*kspace-(.*)\.yaml" "KSpaceStyle:\\1" TNAME ${TEST})
+  add_test(NAME ${TNAME} COMMAND pair_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 endforeach()

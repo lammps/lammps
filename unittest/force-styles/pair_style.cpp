@@ -28,10 +28,12 @@
 #include "force.h"
 #include "info.h"
 #include "input.h"
+#include "kspace.h"
 #include "lammps.h"
 #include "modify.h"
 #include "pair.h"
 #include "universe.h"
+#include "utils.h"
 
 #include <cctype>
 #include <cstdio>
@@ -375,8 +377,13 @@ TEST(PairStyle, plain)
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
     double epsilon = test_config.epsilon;
-    double **f     = lmp->atom->f;
-    tagint *tag    = lmp->atom->tag;
+    // relax test precision when using pppm and single precision FFTs
+#if defined(FFT_SINGLE)
+    if (lmp->force->kspace && lmp->force->kspace->compute_flag)
+        if (utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;
+#endif
+    double **f  = lmp->atom->f;
+    tagint *tag = lmp->atom->tag;
     ErrorStats stats;
     stats.reset();
     const std::vector<coord_t> &f_ref = test_config.init_forces;
@@ -646,7 +653,12 @@ TEST(PairStyle, omp)
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
     // relax error a bit for USER-OMP package
-    double epsilon                    = 5.0 * test_config.epsilon;
+    double epsilon = 5.0 * test_config.epsilon;
+    // relax test precision when using pppm and single precision FFTs
+#if defined(FFT_SINGLE)
+    if (lmp->force->kspace && lmp->force->kspace->compute_flag)
+        if (utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;
+#endif
     double **f                        = lmp->atom->f;
     tagint *tag                       = lmp->atom->tag;
     const std::vector<coord_t> &f_ref = test_config.init_forces;
@@ -812,8 +824,21 @@ TEST(PairStyle, intel)
         GTEST_SKIP();
     }
 
+    if (lmp->force->kspace && utils::strmatch(lmp->force->kspace_style,"^pppm/disp/intel")) {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        cleanup_lammps(lmp, test_config);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        std::cerr << "Skipping kspace style pppm/disp/intel\n";
+        GTEST_SKIP();
+    }
+
     // relax error a bit for USER-INTEL package
     double epsilon = 7.5 * test_config.epsilon;
+    // relax test precision when using pppm and single precision FFTs
+#if defined(FFT_SINGLE)
+    if (lmp->force->kspace && lmp->force->kspace->compute_flag)
+        if (utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;
+#endif
 
     // we need to relax the epsilon a LOT for tests using long-range
     // coulomb with tabulation. seems more like mixed precision or a bug
@@ -932,7 +957,12 @@ TEST(PairStyle, opt)
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
     // relax error a bit for OPT package
-    double epsilon                    = 2.0 * test_config.epsilon;
+    double epsilon = 2.0 * test_config.epsilon;
+    // relax test precision when using pppm and single precision FFTs
+#if defined(FFT_SINGLE)
+    if (lmp->force->kspace && lmp->force->kspace->compute_flag)
+        if (utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;
+#endif
     double **f                        = lmp->atom->f;
     tagint *tag                       = lmp->atom->tag;
     const std::vector<coord_t> &f_ref = test_config.init_forces;
@@ -1022,6 +1052,9 @@ TEST(PairStyle, single)
             std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
         }
         test_config.prerequisites.pop_back();
+        if (!verbose) ::testing::internal::CaptureStdout();
+        cleanup_lammps(lmp, test_config);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
         GTEST_SKIP();
     }
     test_config.prerequisites.pop_back();
@@ -1041,6 +1074,14 @@ TEST(PairStyle, single)
     if (!pair->single_enable) {
         std::cerr << "Single method not available for pair style " << test_config.pair_style
                   << std::endl;
+        if (!verbose) ::testing::internal::CaptureStdout();
+        cleanup_lammps(lmp, test_config);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        GTEST_SKIP();
+    }
+
+    if (!pair->compute_flag) {
+        std::cerr << "Pair style disabled" << std::endl;
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
         if (!verbose) ::testing::internal::GetCapturedStdout();
@@ -1262,9 +1303,18 @@ TEST(PairStyle, extract)
         }
         GTEST_SKIP();
     }
+
     Pair *pair = lmp->force->pair;
-    void *ptr  = nullptr;
-    int dim    = 0;
+    if (!pair->compute_flag) {
+        std::cerr << "Pair style disabled" << std::endl;
+        if (!verbose) ::testing::internal::CaptureStdout();
+        cleanup_lammps(lmp, test_config);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        GTEST_SKIP();
+    }
+
+    void *ptr = nullptr;
+    int dim   = 0;
     for (auto &extract : test_config.extract) {
         ptr = pair->extract(extract.first.c_str(), dim);
         EXPECT_NE(ptr, nullptr);

@@ -33,6 +33,7 @@ bool verbose = false;
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
+using ::testing::ExitedWithCode;
 using ::testing::MatchesRegex;
 using ::testing::StrEq;
 
@@ -64,6 +65,14 @@ protected:
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 };
+
+TEST_F(SimpleCommandsTest, UnknownCommand)
+{
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("XXX one two three"););
+    auto mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Unknown command.*"));
+}
 
 TEST_F(SimpleCommandsTest, Echo)
 {
@@ -144,6 +153,58 @@ TEST_F(SimpleCommandsTest, Log)
     ASSERT_THAT(text, StrEq("test2"));
     in.close();
     remove("simple_command_test.log");
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("log"););
+    auto mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal log command.*"));
+}
+
+TEST_F(SimpleCommandsTest, Quit)
+{
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("echo none");
+    TEST_FAILURE(lmp->input->one("quit xxx"););
+    auto mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Expected integer .*"));
+
+    ASSERT_EXIT(lmp->input->one("quit"), ExitedWithCode(0), "");
+    ASSERT_EXIT(lmp->input->one("quit 9"), ExitedWithCode(9), "");
+}
+
+TEST_F(SimpleCommandsTest, ResetTimestep)
+{
+    ASSERT_EQ(lmp->update->ntimestep, 0);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("reset_timestep 10");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->update->ntimestep, 10);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("reset_timestep 0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->update->ntimestep, 0);
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("reset_timestep -10"););
+    auto mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Timestep must be >= 0.*"));
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("reset_timestep"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_timestep .*"));
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("reset_timestep 10 10"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_timestep .*"));
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("reset_timestep xxx"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Expected integer .*"));
 }
 
 TEST_F(SimpleCommandsTest, Suffix)

@@ -3,13 +3,15 @@ Output from LAMMPS (thermo, dumps, computes, fixes, variables)
 
 There are four basic kinds of LAMMPS output:
 
-* :doc:`Thermodynamic output <thermo_style>`, which is a list
-  of quantities printed every few timesteps to the screen and logfile.
+* :doc:`Thermodynamic output <thermo_style>`, which is a list of
+  quantities printed every few timesteps to the screen and logfile.
 * :doc:`Dump files <dump>`, which contain snapshots of atoms and various
   per-atom values and are written at a specified frequency.
-* Certain fixes can output user-specified quantities to files: :doc:`fix ave/time <fix_ave_time>` for time averaging, :doc:`fix ave/chunk <fix_ave_chunk>` for spatial or other averaging, and :doc:`fix print <fix_print>` for single-line output of
-  :doc:`variables <variable>`.  Fix print can also output to the
-  screen.
+* Certain fixes can output user-specified quantities to files:
+  :doc:`fix ave/time <fix_ave_time>` for time averaging,
+  :doc:`fix ave/chunk <fix_ave_chunk>` for spatial or other averaging, and
+  :doc:`fix print <fix_print>` for single-line output of
+  :doc:`variables <variable>`.  Fix print can also output to the screen.
 * :doc:`Restart files <restart>`.
 
 A simulation prints one set of thermodynamic output and (optionally)
@@ -80,6 +82,25 @@ once (vector -> scalar, array -> vector).  Using two brackets reduces
 the dimension twice (array -> scalar).  Thus a command that uses
 scalar values as input can typically also process elements of a vector
 or array.
+
+.. _disambiguation:
+
+Disambiguation
+--------------
+
+Some computes and fixes produce multiple kinds of data, e.g. a global
+scalar and a global vector, or a global scalar and a per-atom vector
+(i.e. one value per atom).  Usually the context in which those are used
+determines which datum is accessed.  Example: if a compute provides both
+a global scalar and a per-atom vector, the former will be used when
+using ``c_ID`` in an equal-style variable, while the latter will be
+referenced as ``c_ID`` in an atom-style variable.  While atom-style
+variables are otherwise also able to access global scalars, access to
+the global scalar of the compute is not directly possible in this case.
+This is resolved through first defining an equal-style variable that
+accesses the scalar property and then access that equal-style variable
+in the atom-style variable, which then may then also access the per-atom
+property.
 
 .. _thermo:
 

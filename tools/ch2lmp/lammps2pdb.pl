@@ -574,7 +574,6 @@
 
     foreach ((masses,atoms,bonds,angles,dihedrals,impropers)) { $hash{$_}=$_; }
     open(DATA, "<".$data_name);
-    for (my $i=0; $i<2; ++$i) { my $tmp = <DATA>; }	# skip first two lines
     while ($init&&!eof(DATA))				# interpret header
     {
       @tmp		= split(" ", <DATA>);

@@ -1096,7 +1096,7 @@ void Input::label()
 
 void Input::log()
 {
-  if (narg > 2) error->all(FLERR,"Illegal log command");
+  if ((narg < 1) || (narg > 2)) error->all(FLERR,"Illegal log command");
 
   int appendflag = 0;
   if (narg == 2) {

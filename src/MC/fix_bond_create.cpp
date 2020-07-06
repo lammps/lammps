@@ -27,9 +27,11 @@
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace MathConst;
 
 #define BIG 1.0e20
 #define DELTA 16
@@ -126,7 +128,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
       if (itype < 0) error->all(FLERR,"Illegal fix bond/create command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"aconstrain") == 0 &&
-        strcmp(arg[2],"bond/create/angle") == 0) {
+        strcmp(style,"bond/create/angle") == 0) {
       if (iarg+3 > narg) 
           error->all(FLERR,"Illegal fix bond/create/angle command");
       amin = force->numeric(FLERR,arg[iarg+1]);
@@ -137,8 +139,8 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal fix bond/create/angle command");
       if (amax < 0 || amax > 180)
         error->all(FLERR,"Illegal fix bond/create/angle command");
-      amin = (3.14159265358979323846/180.0) * amin;
-      amax = (3.14159265358979323846/180.0) * amax;
+      amin = (MY_PI/180.0) * amin;
+      amax = (MY_PI/180.0) * amax;
       constrainflag = 1;
       iarg += 3;
     } else error->all(FLERR,"Illegal fix bond/create command");

@@ -124,6 +124,8 @@ potentials are simultaneously introduced after the formation of the
 new bond. Without a restriction on the permissible angle, and for
 stiffer angle potentials very large energies can arise and lead to
 uncontrolled behavior.
+The *aconstrain* keyword is only available
+when LAMMPS was built with the FixBondCreateAngle class.
 
 Any bond that is created is assigned a bond type of *bondtype*.
 
@@ -254,9 +256,6 @@ Restrictions
 This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
-
-The *aconstrain* keyword is only available
-when LAMMPS was built with the FixBondCreateAngle class.
 
 Related commands
 """"""""""""""""

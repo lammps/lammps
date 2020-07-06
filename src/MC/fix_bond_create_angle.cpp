@@ -49,6 +49,8 @@ int FixBondCreateAngle::constrain(int i, int j, double amin, double amax)
   double v2y = 0.0;
   double v2z = 0.0;
 
+  double angle1,angle2;
+
   int flag = 0;
 
   // pass if both atoms have no neighbors: bond is always formed

@@ -29,7 +29,6 @@ class FixBondCreateAngle : public FixBondCreate {
   FixBondCreateAngle(class LAMMPS *, int, char **);
 
  private:
-  double angle1,angle2,amin,amax;
   int constrain(int, int, double, double);
 };
 

@@ -15,19 +15,22 @@ Syntax
 
 * group-ID = ID of group of atoms whose molecule IDs will be reset
 * zero or more keyword/value pairs may be appended
-* keyword = *offset*
+* keyword = *offset* or *singlezero*
 
   .. parsed-literal::
 
-       *offset* value = *Noffset*
-       
+       *offset* value = *Noffset* or auto
+       *singlezero* = assign molecule ID 0 to atoms without bonds
+
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
    reset_mol_ids all
+   reset_mol_ids all offset 10 singlezero
    reset_mol_ids solvent offset 1000
+   reset_mol_ids solvent offset auto
 
 Description
 """""""""""
@@ -39,7 +42,7 @@ in the specified group are reset.
 
 For purposes of this operation, molecules are identified by the bond
 topology of the system, not by the current molecule IDs.  A molecule
-is a set of atoms, each is which is bonded to one or more atoms in the
+is a set of atoms, each of which is bonded to one or more atoms in the
 set.  If an atom is not bonded to any other atom, it becomes its own
 1-atom molecule.  Once new molecules are identified, this command will
 overwrite the current molecule ID for each atom with a new ID.
@@ -54,17 +57,24 @@ has lost molecules, e.g. via the :doc:`fix evaporate <fix_evaporate>`
 command.
 
 The *offset* keyword can be used to change the range of new molecule
-IDs assigned.  If *Noffset* = 0 (the default) and the specified group
-is *all*, then new molecule IDs will be from 1 to N.  If *Noffset* = 0
-and the group is not all, then new molecule IDs will be from M+1 to
-M+N, where M is the largest molecule ID for any atom not in the group.
+IDs assigned.  If *Noffset* = auto (the default) and the specified group
+is *all*, then new molecule IDs will be from 1 to N.  If *Noffset* = auto
+and the group is **not** all, then new molecule IDs will be from M+1 to
+M+N, where M is the largest molecule ID for any atom **not** in the group.
 This insures new molecule IDs do not collide with existing molecule
 IDs that are not changed by this command.
 
-If *Noffset* is set to a value greater than 0, then new molecule IDs
+If *Noffset* is set to a number instead of 'auto', then new molecule IDs
 will be from Noffset+1 to Noffset+N.  If the group is not all, it is
 up to you to insure the choice of *Noffset* does not produce
 collisions between existing and new molecule IDs.
+
+The *singlezero* keyword turns on a special treatment for single atoms
+without bonds.  Instead of assigning each atom a different molecule ID
+those atoms will all be given the molecule ID 0.  This can be useful
+when the molecule ID is used to group atoms where atoms with a molecule
+ID of 0 will be considered as individual atoms; for example when using
+:doc:`fix rigid <fix_rigid>` with the *molecule* option.
 
 .. note::
 

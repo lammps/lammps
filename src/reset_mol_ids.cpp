@@ -25,6 +25,7 @@
 #include "modify.h"
 #include "compute_fragment_atom.h"
 #include "compute_chunk_atom.h"
+#include "compute_reduce.h"
 #include "utils.h"
 #include "error.h"
 #include "fmt/format.h"
@@ -53,15 +54,23 @@ void ResetMolIDs::command(int narg, char **arg)
   if (igroup == -1) error->all(FLERR,"Could not find reset_mol_ids group ID");
   int groupbit = group->bitmask[igroup];
 
-  tagint offset = 0;
+  tagint offset = -1;
+  int singleflag = 0;
 
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"offset") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal reset_mol_ids command");
-      offset = utils::tnumeric(FLERR,arg[iarg+1],1,lmp);
-      if (offset < 0) error->all(FLERR,"Illegal reset_mol_ids command");
+      if (strcmp(arg[iarg+1],"auto") == 0) {
+        offset = -1;
+      } else {
+        offset = utils::tnumeric(FLERR,arg[iarg+1],1,lmp);
+        if (offset < 0) error->all(FLERR,"Illegal reset_mol_ids command");
+      }
       iarg += 2;
+    } else if (strcmp(arg[iarg],"singlezero") == 0) {
+      singleflag = 1;
+      ++iarg;
     } else error->all(FLERR,"Illegal reset_mol_ids command");
   }
 
@@ -72,11 +81,18 @@ void ResetMolIDs::command(int narg, char **arg)
   MPI_Barrier(world);
   double time1 = MPI_Wtime();
 
-  // create instances of compute fragment/atom and compute chunk/atom
-  // both use the group-ID for this command
+  // create instances of compute fragment/atom, compute reduce (if needed),
+  // and compute chunk/atom.  all use the group-ID for this command
 
   const std::string idfrag = "reset_mol_ids_FRAGMENT_ATOM";
-  modify->add_compute(fmt::format("{} {} fragment/atom",idfrag,arg[0]));
+  if (singleflag)
+    modify->add_compute(fmt::format("{} {} fragment/atom singlezero",idfrag,arg[0]));
+  else
+    modify->add_compute(fmt::format("{} {} fragment/atom",idfrag,arg[0]));
+
+  const std::string idmin = "reset_mol_ids_COMPUTE_MINFRAG";
+  if (singleflag)
+    modify->add_compute(fmt::format("{} {} reduce min c_{}",idmin,arg[0],idfrag));
 
   const std::string idchunk = "reset_mol_ids_CHUNK_ATOM";
   modify->add_compute(fmt::format("{} {} chunk/atom molecule compress yes",
@@ -106,6 +122,16 @@ void ResetMolIDs::command(int narg, char **arg)
   cfa->compute_peratom();
   double *ids = cfa->vector_atom;
 
+  // when the lowest fragment ID is 0, in case the singlezero option is used
+  // we need to remove adjust the chunk ID, so that the resuling molecule ID is correct.
+
+  int adjid = 0;
+  if (singleflag) {
+    icompute = modify->find_compute(idmin);
+    ComputeReduce *crd = (ComputeReduce *) modify->compute[icompute];
+    if (crd->compute_scalar() == 0.0) adjid = 1;
+  }
+
   // copy fragmentID to molecule ID
   // only for atoms in the group
 
@@ -127,28 +153,39 @@ void ResetMolIDs::command(int narg, char **arg)
   ids = cca->vector_atom;
   int nchunk = cca->nchunk;
 
-  // if offset = 0 and group != all,
+  // if offset = -1 (i.e. "auto") and group != all,
   // reset offset to largest molID of non-group atoms
+  // otherwise set to 0.
 
-  if (offset == 0 && groupbit != 1) {
+  if (offset == -1) {
+    if (groupbit != 1) {
     tagint mymol = 0;
     for (int i = 0; i < nlocal; i++)
       if (!(mask[i] & groupbit))
         mymol = MAX(mymol,molecule[i]);
     MPI_Allreduce(&mymol,&offset,1,MPI_LMP_TAGINT,MPI_MAX,world);
+    } else offset = 0;
   }
 
   // copy chunkID to molecule ID + offset
   // only for atoms in the group
 
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
-      molecule[i] = static_cast<tagint> (ids[i]) + offset;
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      tagint newid =  static_cast<tagint>(ids[i]);
+      if (singleflag && adjid) {
+        if (newid == 1) newid = 0;
+        else newid += offset - 1;
+        molecule[i] = newid;
+      } else molecule[i] = newid + offset;
+    }
+  }
 
   // clean up
 
   modify->delete_compute(idchunk);
   modify->delete_compute(idfrag);
+  if (singleflag) modify->delete_compute(idmin);
 
   // total time
 

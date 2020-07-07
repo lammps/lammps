@@ -476,6 +476,7 @@ int AtomVecHybrid::size_data_bonus_query(int flag)
     // if (flag == BODY && strcmp(keywords[k],"body") == 0)
     //   return styles[k]->size_data_bonus;
   }
+  return 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -493,6 +494,7 @@ int AtomVecHybrid::pack_data_bonus(double **buf, int flag)
     if (flag == TRIANGLE && strcmp(keywords[k],"tri") == 0)
       return styles[k]->pack_data_bonus(buf,flag);
   }
+  return 0;
 }
 
 /* ----------------------------------------------------------------------

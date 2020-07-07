@@ -46,7 +46,7 @@ none
 Related commands
 """"""""""""""""
 
-:doc:`reset_ids <reset_ids>`, :doc:`fix bond/react <fix_bond_react>`,
+:doc:`reset_atom_ids <reset_atom_ids>`, :doc:`fix bond/react <fix_bond_react>`,
 :doc:`fix bond/create <fix_bond_create>`,
 :doc:`fix bond/break <fix_bond_break>`,
 :doc:`fix evaporate <fix_evaporate>`,

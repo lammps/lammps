@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "reset_ids.h"
+#include "reset_atom_ids.h"
 #include <mpi.h>
 #include <cstring>
 #include "atom.h"
@@ -53,11 +53,11 @@ void ResetIDs::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR,"Reset_ids command before simulation box is defined");
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Cannot use reset_ids unless atoms have IDs");
+    error->all(FLERR,"Cannot use reset_atom_ids unless atoms have IDs");
 
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->stores_ids)
-      error->all(FLERR,"Cannot use reset_ids when a fix exists that stores atom IDs");
+      error->all(FLERR,"Cannot use reset_atom_ids when a fix exists that stores atom IDs");
 
   if (comm->me == 0) utils::logmesg(lmp,"Resetting atom IDs ...\n");
 
@@ -68,12 +68,12 @@ void ResetIDs::command(int narg, char **arg)
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"sort") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal reset_ids command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal reset_atom_ids command");
       if (strcmp(arg[iarg+1],"yes") == 0) sortflag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) sortflag = 0;
-      else error->all(FLERR,"Illegal reset_ids command");
+      else error->all(FLERR,"Illegal reset_atom_ids command");
       iarg += 2;
-    } else error->all(FLERR,"Illegal reset_ids command");
+    } else error->all(FLERR,"Illegal reset_atom_ids command");
   }
 
   // create an atom map if one doesn't exist already
@@ -110,7 +110,7 @@ void ResetIDs::command(int narg, char **arg)
   int nall = nlocal + atom->nghost;
 
   tagint *oldIDs;
-  memory->create(oldIDs,nlocal,"reset_ids:oldIDs");
+  memory->create(oldIDs,nlocal,"reset_atom_ids:oldIDs");
 
   for (int i = 0; i < nlocal; i++) {
     oldIDs[i] = tag[i];
@@ -129,7 +129,7 @@ void ResetIDs::command(int narg, char **arg)
   // forward_comm_array acquires new IDs for ghost atoms
 
   double **newIDs;
-  memory->create(newIDs,nall,1,"reset_ids:newIDs");
+  memory->create(newIDs,nall,1,"reset_atom_ids:newIDs");
 
   for (int i = 0; i < nlocal; i++) {
     newIDs[i][0] = ubuf(tag[i]).d;
@@ -468,7 +468,7 @@ int ResetIDs::sort_bins(int n, char *inbuf,
     if (in[i].ibin < binlo || in[i].ibin >= binhi) {
       //printf("BAD me %d i %d %d ibin %d binlohi %d %d\n",
       //	     rptr->comm->me,i,n,in[i].ibin,binlo,binhi);
-      error->one(FLERR,"Bad spatial bin assignment in reset_ids sort");
+      error->one(FLERR,"Bad spatial bin assignment in reset_atom_ids sort");
     }
     ibin = in[i].ibin - binlo;
     if (head[ibin] < 0) head[ibin] = i;

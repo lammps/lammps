@@ -45,13 +45,13 @@ using ::testing::MatchesRegex;
 #define STRINGIFY(val) XSTR(val)
 #define XSTR(val) #val
 
-class ResetMolIDsTest : public ::testing::Test {
+class ResetIDsTest : public ::testing::Test {
 protected:
     LAMMPS *lmp;
 
     void SetUp() override
     {
-        const char *args[] = {"ResetMolIDsTest", "-log", "none", "-nocite", "-echo", "screen"};
+        const char *args[] = {"ResetIDsTest", "-log", "none", "-nocite", "-echo", "screen"};
         char **argv        = (char **)args;
         int argc           = sizeof(args) / sizeof(char *);
         if (!verbose) ::testing::internal::CaptureStdout();
@@ -72,7 +72,7 @@ protected:
     }
 };
 
-TEST_F(ResetMolIDsTest, Plain)
+TEST_F(ResetIDsTest, MolIDAll)
 {
     if (lmp->atom->natoms == 0) GTEST_SKIP();
 
@@ -144,7 +144,7 @@ TEST_F(ResetMolIDsTest, Plain)
     ASSERT_EQ(molid[GETIDX(29)], 5);
 }
 
-TEST_F(ResetMolIDsTest, DeletePlusAtomID)
+TEST_F(ResetIDsTest, DeletePlusAtomID)
 {
     if (lmp->atom->natoms == 0) GTEST_SKIP();
 
@@ -214,7 +214,7 @@ TEST_F(ResetMolIDsTest, DeletePlusAtomID)
     EXPECT_GE(GETIDX(26), 0);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_ids");
+    lmp->input->one("reset_atom_ids");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     ASSERT_EQ(lmp->atom->map_tag_max, 23);

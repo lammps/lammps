@@ -1,14 +1,14 @@
-.. index:: reset_ids
+.. index:: reset_atom_ids
 
-reset_ids command
-=================
+reset_atom_ids command
+======================
 
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   reset_ids keyword values ...
+   reset_atom_ids keyword values ...
 
    * zero or more keyword/value pairs may be appended
    * keyword = *sort*
@@ -22,8 +22,8 @@ Examples
 
 .. code-block:: LAMMPS
 
-   reset_ids
-   reset_ids sort yes
+   reset_atom_ids
+   reset_atom_ids sort yes
 
 Description
 """""""""""
@@ -77,7 +77,7 @@ processor have consecutive IDs, as the :doc:`create_atoms
    that are owned by other processors.  The :doc:`comm_modify cutoff <comm_modify>` command can be used to correct this issue.
    Or you can define a pair style before using this command.  If you do
    the former, you should unset the comm_modify cutoff after using
-   reset_ids so that subsequent communication is not inefficient.
+   reset_atom_ids so that subsequent communication is not inefficient.
 
 Restrictions
 """"""""""""

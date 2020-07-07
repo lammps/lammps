@@ -155,7 +155,7 @@ void ResetIDs::command(int narg, char **arg)
         for (j = 0; j < num_bond[i]; j++) {
           oldID = bond_atom[i][j];
           m = atom->map(oldID);
-          if (m >= 0) bond_atom[i][j] = static_cast<tagint> (newIDs[m][0]);
+          if (m >= 0) bond_atom[i][j] = (tagint) ubuf(newIDs[m][0]).i;
           else badcount++;
         }
       }

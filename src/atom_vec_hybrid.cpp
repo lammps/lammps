@@ -472,6 +472,7 @@ int AtomVecHybrid::pack_data_bonus(double *buf, int flag)
     
     return styles[k]->pack_data_bonus(buf,flag);
   }
+  return 0;
 }
 
 /* ----------------------------------------------------------------------

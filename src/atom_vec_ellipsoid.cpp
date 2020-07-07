@@ -500,9 +500,9 @@ int AtomVecEllipsoid::pack_data_bonus(double *buf, int /*flag*/)
     if (buf) {
       buf[m++] = ubuf(tag[i]).d;
       j = ellipsoid[i];
-      buf[m++] = bonus[j].shape[0];
-      buf[m++] = bonus[j].shape[1];
-      buf[m++] = bonus[j].shape[2];
+      buf[m++] = 2.0*bonus[j].shape[0];
+      buf[m++] = 2.0*bonus[j].shape[1];
+      buf[m++] = 2.0*bonus[j].shape[2];
       buf[m++] = bonus[j].quat[0];
       buf[m++] = bonus[j].quat[1];
       buf[m++] = bonus[j].quat[2];

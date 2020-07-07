@@ -53,7 +53,7 @@ void ResetMolIDs::command(int narg, char **arg)
   if (igroup == -1) error->all(FLERR,"Could not find reset_mol_ids group ID");
   int groupbit = group->bitmask[igroup];
 
-  bigint offset = 0;
+  tagint offset = 0;
   
   int iarg = 1;
   while (iarg < narg) {
@@ -119,13 +119,24 @@ void ResetMolIDs::command(int narg, char **arg)
 
   // invoke peratom method of compute chunk/atom
   // compress new molecule IDs to be contiguous 1 to Nmol
-  // NOTE: use of compute chunk/atom limits # of molecules to 32-bit int
+  // NOTE: use of compute chunk/atom limits # of molecules to a 32-bit int
   
   icompute = modify->find_compute(idchunk);
   ComputeChunkAtom *cca = (ComputeChunkAtom *) modify->compute[icompute];
   cca->compute_peratom();
   ids = cca->vector_atom;
   int nchunk = cca->nchunk;
+
+  // if offset = 0 and group != all,
+  // reset offset to largest molID of non-group atoms
+
+  if (offset == 0 && groupbit != 1) {
+    tagint mymol = 0;
+    for (int i = 0; i < nlocal; i++)
+      if (!(mask[i] & groupbit))
+	mymol = MAX(mymol,molecule[i]);
+    MPI_Allreduce(&mymol,&offset,1,MPI_LMP_TAGINT,MPI_MAX,world);
+  }
   
   // copy chunkID to molecule ID + offset
   // only for atoms in the group

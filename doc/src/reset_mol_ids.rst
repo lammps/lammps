@@ -53,6 +53,19 @@ also be useful after molecules have been deleted with the
 has lost molecules, e.g. via the :doc:`fix evaporate <fix_evaporate>`
 command.
 
+The *offset* keyword can be used to change the range of new molecule
+IDs assigned.  If *Noffset* = 0 (the default) and the specified group
+is *all*, then new molecule IDs will be from 1 to N.  If *Noffset* = 0
+and the group is not all, then new molecule IDs will be from M+1 to
+M+N, where M is the largest molecule ID for any atom not in the group.
+This insures new molecule IDs do not collide with existing molecule
+IDs that are not changed by this command.
+
+If *Noffset* is set to a value greater than 0, then new molecule IDs
+will be from Noffset+1 to Noffset+N.  If the group is not all, it is
+up to you to insure the choice of *Noffset* does not produce
+collisions between existing and new molecule IDs.
+
 .. note::
 
    The same as explained for the :doc:`compute fragment/atom
@@ -75,4 +88,7 @@ Related commands
 :doc:`fix evaporate <fix_evaporate>`,
 :doc:`delete_atoms <delete_atoms>`
 
-**Default:** none
+**Default:**
+
+The default keyword setting is offset = 0.
+

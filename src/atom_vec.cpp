@@ -1876,7 +1876,7 @@ void AtomVec::write_data(FILE *fp, int n, double **buf)
   int i,j,m,nn,datatype,cols;
 
   for (i = 0; i < n; i++) {
-    fmt::print(fp,"{}",(tagint) ubuf(buf[i][0]).i);
+    fmt::print(fp,"{}",ubuf(buf[i][0]).i);
 
     j = 1;
     for (nn = 1; nn < ndata_atom; nn++) {
@@ -2024,7 +2024,7 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
   int i,j,m,nn,datatype,cols;
 
   for (i = 0; i < n; i++) {
-    fmt::print(fp,"{}",(tagint) ubuf(buf[i][0]).i);
+    fmt::print(fp,"{}",ubuf(buf[i][0]).i);
 
     j = 1;
     for (nn = 1; nn < ndata_vel; nn++) {

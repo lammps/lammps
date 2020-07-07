@@ -502,9 +502,8 @@ int AtomVecLine::pack_data_bonus(double **buf, int /*flag*/)
 void AtomVecLine::write_data_bonus(FILE *fp, int n, double **buf, int /*flag*/)
 {
   for (int i = 0; i < n; i++) {
-    fmt::print(fp,"{} {} {} {} {}",
-	       (tagint) ubuf(buf[i][0]).i,
-	       buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
+    fmt::print(fp,"{} {} {} {} {}\n",ubuf(buf[i][0]).i,
+               buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
   }
 }
 

@@ -38,7 +38,12 @@ ComputeFragmentAtom::ComputeFragmentAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   fragmentID(NULL)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute fragment/atom command");
+  singleflag = 0;
+
+  if ((narg < 3) || (narg > 4))
+    error->all(FLERR,"Illegal compute fragment/atom command");
+  if ((narg == 4) && (strcmp(arg[3],"singlezero") == 0))
+    singleflag = 1;
 
   if (atom->avec->bonds_allow == 0)
     error->all(FLERR,"Compute fragment/atom used when bonds are not allowed");
@@ -114,6 +119,7 @@ void ComputeFragmentAtom::compute_peratom()
 
   // owned + ghost atoms start with fragmentID = atomID
   // atoms not in group have fragmentID = 0
+  // if singleflag is set atoms without bonds have fragmentID 0 as well.
 
   tagint *tag = atom->tag;
   int *mask = atom->mask;
@@ -122,9 +128,10 @@ void ComputeFragmentAtom::compute_peratom()
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   
-  for (i = 0; i < nall; i++)
+  for (i = 0; i < nall; i++) {
     if (mask[i] & groupbit) fragmentID[i] = tag[i];
     else fragmentID[i] = 0;
+  }
 
   // loop until no ghost atom fragment ID is changed
   // acquire fragmentIDs of ghost atoms
@@ -152,9 +159,16 @@ void ComputeFragmentAtom::compute_peratom()
     for (i = 0; i < nlocal; i++) {
 
       // skip atom I if not in group or already marked
+      // also skip and set fragment ID to zero if singleflag is set
+      // and the atom is an isolated atom without bonds
       
       if (!(mask[i] & groupbit)) continue;
       if (markflag[i]) continue;
+      if (singleflag && (nspecial[i][0] == 0)) {
+        fragmentID[i] = 0;
+        markflag[i] = 1;
+        continue;
+      }
 
       // find one cluster of bond-connected atoms
       // ncluster = # of owned and ghost atoms in cluster
@@ -165,44 +179,44 @@ void ComputeFragmentAtom::compute_peratom()
       stack[nstack++] = i;
 
       while (nstack) {
-	j = stack[--nstack];
-	clist[ncluster++] = j;
-	markflag[j] = 1;
+        j = stack[--nstack];
+        clist[ncluster++] = j;
+        markflag[j] = 1;
 
-	n = nspecial[j][0];
-	list = special[j];
+        n = nspecial[j][0];
+        list = special[j];
         for (m = 0; m < n; m++) {
           k = atom->map(list[m]);
 
-	  // skip bond neighbor K if not in group or already marked
-	  
-	  if (k < 0) continue;
-	  if (!(mask[k] & groupbit)) continue;
-	  if (k < nlocal && markflag[k]) continue;
+          // skip bond neighbor K if not in group or already marked
 
-	  // owned bond neighbors are added to stack for further walking
-	  // ghost bond neighbors are added directly w/out use of stack
-	  
-	  if (k < nlocal) stack[nstack++] = k;
-	  else clist[ncluster++] = k;
-	}
+          if (k < 0) continue;
+          if (!(mask[k] & groupbit)) continue;
+          if (k < nlocal && markflag[k]) continue;
+
+          // owned bond neighbors are added to stack for further walking
+          // ghost bond neighbors are added directly w/out use of stack
+
+          if (k < nlocal) stack[nstack++] = k;
+          else clist[ncluster++] = k;
+        }
       }
 
       // newID = minimum fragment ID in cluster list, including ghost atoms
 
       newID = BIG;
       for (m = 0; m < ncluster; m++) {
-	cID = fragmentID[clist[m]];
-	newID = MIN(newID,cID);
+        cID = fragmentID[clist[m]];
+        newID = MIN(newID,cID);
       }
 
       // set fragmentID = newID for all atoms in cluster, including ghost atoms
       // not done with iterations if change the fragmentID of a ghost atom
       
       for (m = 0; m < ncluster; m++) {
-	j = clist[m];
-	if (j >= nlocal && fragmentID[j] != newID) done = 0;
-	fragmentID[j] = newID;
+        j = clist[m];
+        if (j >= nlocal && fragmentID[j] != newID) done = 0;
+        fragmentID[j] = newID;
       }
     }
       

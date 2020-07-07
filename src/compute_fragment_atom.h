@@ -35,7 +35,7 @@ class ComputeFragmentAtom : public Compute {
   double memory_usage();
 
  private:
-  int nmax,commflag;
+  int nmax,commflag,singleflag;
   int *stack,*clist,*markflag;
   double *fragmentID;
 };

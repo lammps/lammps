@@ -15,12 +15,13 @@ Syntax
 .. parsed-literal::
 
    compute ID group-ID cluster/atom cutoff
-   compute ID group-ID fragment/atom
+   compute ID group-ID fragment/atom [singlezero]
    compute ID group-ID aggregate/atom cutoff
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * *cluster/atom* or *fragment/atom* or *aggregate/atom* = style name of this compute command
 * cutoff = distance within which to label atoms as part of same cluster (distance units)
+* *singlezero* = keyword to trigger assigning an ID of 0 to fragments with a single atom (optional)
 
 Examples
 """"""""
@@ -51,6 +52,12 @@ commands, or by fixes which dynamically create or break bonds like
 bond/break <fix_bond_break>`.  The cluster ID or fragment ID of every
 atom in the cluster will be set to the smallest atom ID of any atom in
 the cluster or fragment, respectively.
+
+The *singlezero* keyword turns on a special treatment for fragments,
+where all fragments within the compute group that contain only a single
+atom will have a fragment ID of 0.  This can be useful in cases where
+the fragment IDs are used as input for other commands in LAMMPS that
+treat such single atoms different.
 
 An aggregate is defined by combining the rules for clusters and
 fragments, i.e. a set of atoms, where each of it is within the cutoff

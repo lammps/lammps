@@ -2305,16 +2305,6 @@ void AtomVec::write_improper(FILE *fp, int n, tagint **buf, int index)
 }
 
 /* ----------------------------------------------------------------------
-   return size_data_bonus
-   only AtomVecHybrid overrides this, so it can select which bonus data via flag
-------------------------------------------------------------------------- */
-
-int AtomVec::size_data_bonus_query(int /*flag*/)
-{
-  return size_data_bonus;
-}
-
-/* ----------------------------------------------------------------------
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 

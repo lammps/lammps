@@ -581,28 +581,22 @@ void AtomVecBody::pack_data_pre(int ilocal)
 
 /* ----------------------------------------------------------------------
    pack bonus body info for writing to data file
-   if buf is NULL, just return count of bodies
+   if buf is NULL, just return buffer size
 ------------------------------------------------------------------------- */
 
-int AtomVecBody::pack_data_bonus(double **buf, int /*flag*/)
+int AtomVecBody::pack_data_bonus(double *buf, int /*flag*/)
 {
   int i,j;
   
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
-  // NOTE: needs to call Body sub-class to fill buffer
-
   int m = 0;
   for (i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;
-    if (buf) {
-      buf[m][0] = ubuf(tag[i]).d;
-      j = body[i];
-    }
-    m++;
+    m += bptr->pack_data_body(tag[i],body[i],buf);
   }
-
+  
   return m;
 }
 
@@ -610,11 +604,11 @@ int AtomVecBody::pack_data_bonus(double **buf, int /*flag*/)
    write bonus body info to data file
 ------------------------------------------------------------------------- */
 
-void AtomVecBody::write_data_bonus(FILE *fp, int n, double **buf, int /*flag*/)
+void AtomVecBody::write_data_bonus(FILE *fp, int n, double *buf, int /*flag*/)
 {
-  // NOTE: needs to call Body sub-class to do the write
-  
-  for (int i = 0; i < n; i++) {
+  int i = 0;
+  while (i < n) {
+    i += bptr->write_data_body(fp,&buf[i]);
   }
 }
 

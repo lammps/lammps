@@ -484,10 +484,10 @@ void AtomVecEllipsoid::pack_data_post(int ilocal)
 
 /* ----------------------------------------------------------------------
    pack bonus ellipsoid info for writing to data file
-   if buf is NULL, just return count of ellipsoids
+   if buf is NULL, just return buffer size
 ------------------------------------------------------------------------- */
 
-int AtomVecEllipsoid::pack_data_bonus(double **buf, int /*flag*/)
+int AtomVecEllipsoid::pack_data_bonus(double *buf, int /*flag*/)
 {
   int i,j;
   
@@ -498,17 +498,16 @@ int AtomVecEllipsoid::pack_data_bonus(double **buf, int /*flag*/)
   for (i = 0; i < nlocal; i++) {
     if (ellipsoid[i] < 0) continue;
     if (buf) {
-      buf[m][0] = ubuf(tag[i]).d;
+      buf[m++] = ubuf(tag[i]).d;
       j = ellipsoid[i];
-      buf[m][1] = bonus[j].shape[0];
-      buf[m][2] = bonus[j].shape[1];
-      buf[m][3] = bonus[j].shape[2];
-      buf[m][4] = bonus[j].quat[0];
-      buf[m][5] = bonus[j].quat[1];
-      buf[m][6] = bonus[j].quat[2];
-      buf[m][7] = bonus[j].quat[3];
-    }
-    m++;
+      buf[m++] = bonus[j].shape[0];
+      buf[m++] = bonus[j].shape[1];
+      buf[m++] = bonus[j].shape[2];
+      buf[m++] = bonus[j].quat[0];
+      buf[m++] = bonus[j].quat[1];
+      buf[m++] = bonus[j].quat[2];
+      buf[m++] = bonus[j].quat[3];
+    } else m += size_data_bonus;
   }
 
   return m;
@@ -518,12 +517,14 @@ int AtomVecEllipsoid::pack_data_bonus(double **buf, int /*flag*/)
    write bonus ellipsoid info to data file
 ------------------------------------------------------------------------- */
 
-void AtomVecEllipsoid::write_data_bonus(FILE *fp, int n, double **buf, int /*flag*/)
+void AtomVecEllipsoid::write_data_bonus(FILE *fp, int n, double *buf, int /*flag*/)
 {
-  for (int i = 0; i < n; i++) {
-    fmt::print(fp,"{} {} {} {} {} {} {} {}",
-	       (tagint) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3],
-	       buf[i][4],buf[i][5],buf[i][6],buf[i][7]);
+  int i = 0;
+  while (i < n) {
+    fmt::print(fp,"{} {} {} {} {} {} {} {}\n",
+	       (tagint) ubuf(buf[i]).i,
+	       buf[i+1],buf[i+2],buf[i+3],buf[i+4],buf[i+5],buf[i+6],buf[i+7]);
+    i += size_data_bonus;
   }
 }
 

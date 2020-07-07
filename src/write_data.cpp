@@ -658,16 +658,15 @@ void WriteData::impropers()
 void WriteData::bonus(int flag)
 {
   // communication buffer for all my Bonus info
-  // maxrow X ncol = largest buffer needed by any proc
+  // maxvalues = largest buffer needed by any proc
 
-  int ncol = atom->avec->size_data_bonus_query(flag);
-  int sendrow = atom->avec->pack_data_bonus(NULL,flag);
-  int maxrow;
-  MPI_Allreduce(&sendrow,&maxrow,1,MPI_INT,MPI_MAX,world);
+  int nvalues = atom->avec->pack_data_bonus(NULL,flag);
+  int maxvalues;
+  MPI_Allreduce(&nvalues,&maxvalues,1,MPI_INT,MPI_MAX,world);
 
-  double **buf;
-  if (me == 0) memory->create(buf,MAX(1,maxrow),ncol,"write_data:buf");
-  else memory->create(buf,MAX(1,sendrow),ncol,"write_data:buf");
+  double *buf;
+  if (me == 0) memory->create(buf,MAX(1,maxvalues),"write_data:buf");
+  else memory->create(buf,MAX(1,nvalues),"write_data:buf");
 
   // pack my bonus data into buf
 
@@ -690,19 +689,18 @@ void WriteData::bonus(int flag)
     
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
-        MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_DOUBLE,iproc,0,world,&request);
+        MPI_Irecv(buf,maxvalues,MPI_DOUBLE,iproc,0,world,&request);
         MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
         MPI_Wait(&request,&status);
-        MPI_Get_count(&status,MPI_DOUBLE,&recvrow);
-        recvrow /= ncol;
-      } else recvrow = sendrow;
+        MPI_Get_count(&status,MPI_DOUBLE,&nvalues);
+      }
 
-      atom->avec->write_data_bonus(fp,recvrow,buf,flag);
+      atom->avec->write_data_bonus(fp,nvalues,buf,flag);
     }
 
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
-    MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_DOUBLE,0,0,world);
+    MPI_Rsend(buf,nvalues,MPI_DOUBLE,0,0,world);
   }
 
   memory->destroy(buf);

@@ -459,55 +459,34 @@ void AtomVecHybrid::pack_data_post(int ilocal)
 }
 
 /* ----------------------------------------------------------------------
-   return size_data_bonus
-   match flag to sub-style
+   pack bonus info for writing to data file, match flag to sub-style
 ------------------------------------------------------------------------- */
 
-int AtomVecHybrid::size_data_bonus_query(int flag)
+int AtomVecHybrid::pack_data_bonus(double *buf, int flag)
 {
   for (int k = 0; k < nstyles; k++) {
-    if (flag == ELLIPSOID && strcmp(keywords[k],"ellipsoid") == 0)
-      return styles[k]->size_data_bonus;
-    if (flag == LINE && strcmp(keywords[k],"line") == 0)
-      return styles[k]->size_data_bonus;
-    if (flag == TRIANGLE && strcmp(keywords[k],"tri") == 0)
-      return styles[k]->size_data_bonus;
-    // this will not work, body style does not set size_data_bonus
-    // if (flag == BODY && strcmp(keywords[k],"body") == 0)
-    //   return styles[k]->size_data_bonus;
+    if (flag == ELLIPSOID && strcmp(keywords[k],"ellipsoid") != 0) continue;
+    if (flag == LINE && strcmp(keywords[k],"line") != 0) continue;
+    if (flag == TRIANGLE && strcmp(keywords[k],"tri") != 0) continue;
+    if (flag == BODY && strcmp(keywords[k],"body") != 0) continue;
+    
+    return styles[k]->pack_data_bonus(buf,flag);
   }
 }
 
 /* ----------------------------------------------------------------------
-   pack bonus info for writing to data file
-   match flag to sub-style
+   write bonus info to data file, match flag to sub-style
 ------------------------------------------------------------------------- */
 
-int AtomVecHybrid::pack_data_bonus(double **buf, int flag)
+void AtomVecHybrid::write_data_bonus(FILE *fp, int n, double *buf, int flag)
 {
   for (int k = 0; k < nstyles; k++) {
-    if (flag == ELLIPSOID && strcmp(keywords[k],"ellipsoid") == 0)
-      return styles[k]->pack_data_bonus(buf,flag);
-    if (flag == LINE && strcmp(keywords[k],"line") == 0)
-      return styles[k]->pack_data_bonus(buf,flag);
-    if (flag == TRIANGLE && strcmp(keywords[k],"tri") == 0)
-      return styles[k]->pack_data_bonus(buf,flag);
-  }
-}
+    if (flag == ELLIPSOID && strcmp(keywords[k],"ellipsoid") != 0) continue;
+    if (flag == LINE && strcmp(keywords[k],"line") != 0) continue;
+    if (flag == TRIANGLE && strcmp(keywords[k],"tri") != 0) continue;
+    if (flag == BODY && strcmp(keywords[k],"body") != 0) continue;
 
-/* ----------------------------------------------------------------------
-   write bonus info to data file
-------------------------------------------------------------------------- */
-
-void AtomVecHybrid::write_data_bonus(FILE *fp, int n, double **buf, int flag)
-{
-  for (int k = 0; k < nstyles; k++) { 
-    if (flag == ELLIPSOID && strcmp(keywords[k],"ellipsoid") == 0)
-      styles[k]->write_data_bonus(fp,n,buf,flag);
-    if (flag == LINE && strcmp(keywords[k],"line") == 0)
-      styles[k]->write_data_bonus(fp,n,buf,flag);
-    if (flag == TRIANGLE && strcmp(keywords[k],"tri") == 0)
-      styles[k]->write_data_bonus(fp,n,buf,flag);
+    styles[k]->write_data_bonus(fp,n,buf,flag);
   }
 }
 

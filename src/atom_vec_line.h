@@ -56,8 +56,8 @@ class AtomVecLine : public AtomVec {
   void pack_data_pre(int);
   void pack_data_post(int);
 
-  int pack_data_bonus(double **, int);
-  void write_data_bonus(FILE *, int, double **, int);
+  int pack_data_bonus(double *, int);
+  void write_data_bonus(FILE *, int, double *, int);
 
   // unique to AtomVecLine
 

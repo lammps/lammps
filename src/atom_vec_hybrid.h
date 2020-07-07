@@ -58,9 +58,8 @@ class AtomVecHybrid : public AtomVec {
   void pack_data_pre(int);
   void pack_data_post(int);
 
-  int size_data_bonus_query(int);
-  int pack_data_bonus(double **, int);
-  void write_data_bonus(FILE *, int, double **, int);
+  int pack_data_bonus(double *, int);
+  void write_data_bonus(FILE *, int, double *, int);
 
   int property_atom(char *);
   void pack_property_atom(int, double *, int, int);

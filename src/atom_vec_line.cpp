@@ -457,10 +457,10 @@ void AtomVecLine::pack_data_post(int ilocal)
 
 /* ----------------------------------------------------------------------
    pack bonus line info for writing to data file
-   if buf is NULL, just return count of lines
+   if buf is NULL, just return buffer size
 ------------------------------------------------------------------------- */
 
-int AtomVecLine::pack_data_bonus(double **buf, int /*flag*/)
+int AtomVecLine::pack_data_bonus(double *buf, int /*flag*/)
 {
   int i,j;
   double length,theta;
@@ -474,7 +474,7 @@ int AtomVecLine::pack_data_bonus(double **buf, int /*flag*/)
   for (i = 0; i < nlocal; i++) {
     if (line[i] < 0) continue;
     if (buf) {
-      buf[m][0] = ubuf(tag[i]).d;
+      buf[m++] = ubuf(tag[i]).d;
       j = line[i];
       length = bonus[j].length;
       theta = bonus[j].theta;
@@ -484,12 +484,11 @@ int AtomVecLine::pack_data_bonus(double **buf, int /*flag*/)
       y1 = yc - 0.5*sin(theta)*length;
       x2 = xc + 0.5*cos(theta)*length;
       y2 = yc + 0.5*sin(theta)*length;
-      buf[m][1] = x1;
-      buf[m][2] = y1;
-      buf[m][3] = x2;
-      buf[m][4] = y2;
-    }
-    m++;
+      buf[m++] = x1;
+      buf[m++] = y1;
+      buf[m++] = x2;
+      buf[m++] = y2;
+    } else m += size_data_bonus;
   }
 
   return m;
@@ -499,12 +498,13 @@ int AtomVecLine::pack_data_bonus(double **buf, int /*flag*/)
    write bonus line info to data file
 ------------------------------------------------------------------------- */
 
-void AtomVecLine::write_data_bonus(FILE *fp, int n, double **buf, int /*flag*/)
+void AtomVecLine::write_data_bonus(FILE *fp, int n, double *buf, int /*flag*/)
 {
-  for (int i = 0; i < n; i++) {
-    fmt::print(fp,"{} {} {} {} {}",
-	       (tagint) ubuf(buf[i][0]).i,
-	       buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
+  int i = 0;
+  while (i < n) {
+    fmt::print(fp,"{} {} {} {} {}\n",
+	       (tagint) ubuf(buf[i]).i,buf[i+1],buf[i+2],buf[i+3],buf[i+4]);
+    i += size_data_bonus;
   }
 }
 

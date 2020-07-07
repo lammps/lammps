@@ -379,6 +379,26 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
 }
 
 /* ----------------------------------------------------------------------
+   pack data struct for one body into buf for writing to data file
+   if buf is NULL, just return buffer size
+------------------------------------------------------------------------- */
+
+int BodyRoundedPolyhedron::pack_data_body(tagint atomID, int ibonus, double *buf)
+{
+  AtomVecBody::Bonus *bonus = &avec->bonus[ibonus];
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   write info for one body to data file
+------------------------------------------------------------------------- */
+
+int BodyRoundedPolyhedron::write_data_body(FILE *fp, double *buf)
+{
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
    return radius of body particle defined by ifile/dfile params
    params are ordered as in data file
    called by Molecule class which needs single body size

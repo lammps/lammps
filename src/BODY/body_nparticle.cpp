@@ -21,6 +21,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -190,6 +191,92 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
     j += 3;
     k += 3;
   }
+}
+
+/* ----------------------------------------------------------------------
+   pack data struct for one body into buf for writing to data file
+   if buf is NULL, just return buffer size
+------------------------------------------------------------------------- */
+
+int BodyNparticle::pack_data_body(tagint atomID, int ibonus, double *buf)
+{
+  int m;
+  double values[3],p[3][3],pdiag[3][3],ispace[3][3];
+
+  AtomVecBody::Bonus *bonus = &avec->bonus[ibonus];
+
+  double *quat = bonus->quat;
+  double *inertia = bonus->inertia;
+  int *ivalue = bonus->ivalue;
+  double *dvalue = bonus->dvalue;
+
+  int nsub = ivalue[0];
+
+  if (buf) {
+    
+    // ID ninteger ndouble
+
+    m = 0;
+    buf[m++] = ubuf(atomID).d;
+    buf[m++] = ubuf(1).d;
+    buf[m++] = ubuf(6 + 3*nsub).d;
+
+    // single integer Nsub
+    
+    buf[m++] = ubuf(nsub).d;
+
+    // 6 moments of inertia
+
+    MathExtra::quat_to_mat(quat,p);
+    MathExtra::times3_diag(p,inertia,pdiag);
+    MathExtra::times3_transpose(pdiag,p,ispace);
+
+    buf[m++] = ispace[0][0];
+    buf[m++] = ispace[1][1];
+    buf[m++] = ispace[2][2];
+    buf[m++] = ispace[0][1];
+    buf[m++] = ispace[0][2];
+    buf[m++] = ispace[1][2];
+
+    // 3*Nsub particle coords = displacement from COM in box frame
+    
+    for (int i = 0; i < nsub; i++) {
+      MathExtra::matvec(p,&dvalue[3*i],values);
+      buf[m++] = values[0];
+      buf[m++] = values[1];
+      buf[m++] = values[2];
+    }
+
+  } else m = 3 + 1 + 6 + 3*nsub;
+  
+  return m;
+}
+
+/* ----------------------------------------------------------------------
+   write info for one body to data file
+------------------------------------------------------------------------- */
+
+int BodyNparticle::write_data_body(FILE *fp, double *buf)
+{
+  int m = 0;
+
+  tagint atomID = (tagint) ubuf(buf[m++]).i;
+  int ninteger = (int) ubuf(buf[m++]).i;
+  int ndouble = (int) ubuf(buf[m++]).i;
+  fmt::print(fp,"{} {} {}\n",atomID,ninteger,ndouble);
+
+  int nsub = (int) ubuf(buf[m++]).i;
+  fmt::print(fp,"{}\n",nsub);
+
+  double *inertia = &buf[m];
+  fmt::print(fp,"{} {} {} {} {} {}\n",
+	     inertia[0],inertia[1],inertia[2],inertia[3],inertia[4],inertia[5]);
+  m += 6;
+  
+  for (int i = 0; i < nsub; i++)
+    fmt::print(fp,"{} {} {}\n",buf[m++],buf[m++],buf[m++]);
+  
+  return m;
 }
 
 /* ----------------------------------------------------------------------

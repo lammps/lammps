@@ -53,6 +53,15 @@ also be useful after molecules have been deleted with the
 has lost molecules, e.g. via the :doc:`fix evaporate <fix_evaporate>`
 command.
 
+.. note::
+
+   The same as explained for the :doc:`compute fragment/atom
+   <compute_cluster_atom>` command, molecules are identified using the
+   current bond topology within each fragment.  This will not account
+   for bonds broken by the :doc:`bond_style quartic <bond_quartic>`
+   command because it does not perform a full update of the bond
+   topology data structures within LAMMPS.
+
 Restrictions
 """"""""""""
 none

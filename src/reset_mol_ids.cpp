@@ -46,12 +46,26 @@ void ResetMolIDs::command(int narg, char **arg)
   if (atom->molecular != 1)
     error->all(FLERR,"Can only use reset_mol_ids on molecular systems");
 
-  if (narg != 1) error->all(FLERR,"Illegal reset_mol_ids command");
+  // process args
+  
+  if (narg < 1) error->all(FLERR,"Illegal reset_mol_ids command");
   int igroup = group->find(arg[0]);
   if (igroup == -1) error->all(FLERR,"Could not find reset_mol_ids group ID");
+  int groupbit = group->bitmask[igroup];
 
-  if (comm->me == 0)
-    utils::logmesg(lmp,"Resetting molecule IDs ...\n");
+  tagint offset = 0;
+  
+  int iarg = 1;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"offset") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal reset_mol_ids command");
+      offset = utils::tnumeric(FLERR,arg[iarg+1],1,lmp);
+      if (offset < 0) error->all(FLERR,"Illegal reset_mol_ids command");
+      iarg += 2;
+    } else error->all(FLERR,"Illegal reset_mol_ids command");
+  }
+
+  if (comm->me == 0) utils::logmesg(lmp,"Resetting molecule IDs ...\n");
 
   // record wall time for resetting molecule IDs
 
@@ -59,13 +73,14 @@ void ResetMolIDs::command(int narg, char **arg)
   double time1 = MPI_Wtime();
 
   // create instances of compute fragment/atom and compute chunk/atom
-
+  // both use the group-ID for this command
+  
   const std::string idfrag = "reset_mol_ids_FRAGMENT_ATOM";
-  modify->add_compute(fmt::format("{} {} fragment/atom",idfrag, arg[0]));
+  modify->add_compute(fmt::format("{} {} fragment/atom",idfrag,arg[0]));
 
   const std::string idchunk = "reset_mol_ids_CHUNK_ATOM";
-  modify->add_compute(fmt::format("{} all chunk/atom molecule compress yes",
-                                  idchunk));
+  modify->add_compute(fmt::format("{} {} chunk/atom molecule compress yes",
+                                  idchunk,arg[0]));
 
   // initialize system since comm->borders() will be invoked
 
@@ -92,27 +107,44 @@ void ResetMolIDs::command(int narg, char **arg)
   double *ids = cfa->vector_atom;
 
   // copy fragmentID to molecule ID
-
+  // only for atoms in the group
+  
   tagint *molecule = atom->molecule;
+  int *mask = atom->mask;
   int nlocal = atom->nlocal;
   
   for (int i = 0; i < nlocal; i++)
-    molecule[i] = static_cast<tagint> (ids[i]);
+    if (mask[i] & groupbit)
+      molecule[i] = static_cast<tagint> (ids[i]);
 
   // invoke peratom method of compute chunk/atom
-  // compresses new molecule IDs to be contiguous 1 to Nmol
-
+  // compress new molecule IDs to be contiguous 1 to Nmol
+  // NOTE: use of compute chunk/atom limits # of molecules to a 32-bit int
+  
   icompute = modify->find_compute(idchunk);
   ComputeChunkAtom *cca = (ComputeChunkAtom *) modify->compute[icompute];
   cca->compute_peratom();
   ids = cca->vector_atom;
   int nchunk = cca->nchunk;
+
+  // if offset = 0 and group != all,
+  // reset offset to largest molID of non-group atoms
+
+  if (offset == 0 && groupbit != 1) {
+    tagint mymol = 0;
+    for (int i = 0; i < nlocal; i++)
+      if (!(mask[i] & groupbit))
+	mymol = MAX(mymol,molecule[i]);
+    MPI_Allreduce(&mymol,&offset,1,MPI_LMP_TAGINT,MPI_MAX,world);
+  }
   
-  // copy chunkID to molecule ID
-
+  // copy chunkID to molecule ID + offset
+  // only for atoms in the group
+  
   for (int i = 0; i < nlocal; i++)
-    molecule[i] = static_cast<tagint> (ids[i]);
-
+    if (mask[i] & groupbit)
+      molecule[i] = static_cast<tagint> (ids[i]) + offset;
+  
   // clean up
 
   modify->delete_compute(idchunk);
@@ -122,7 +154,9 @@ void ResetMolIDs::command(int narg, char **arg)
 
   MPI_Barrier(world);
   
-  if (comm->me == 0)
+  if (comm->me == 0) {
+    utils::logmesg(lmp,fmt::format("  number of new molecule IDs = {}\n",nchunk));
     utils::logmesg(lmp,fmt::format("  reset_mol_ids CPU = {:.3f} seconds\n",
                                    MPI_Wtime()-time1));
+  }
 }

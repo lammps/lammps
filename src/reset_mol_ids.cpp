@@ -50,10 +50,8 @@ void ResetMolIDs::command(int narg, char **arg)
   int igroup = group->find(arg[0]);
   if (igroup == -1) error->all(FLERR,"Could not find reset_mol_ids group ID");
 
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,"Resetting molecule IDs ...\n");
-    if (logfile) fprintf(logfile,"Resetting molecule IDs ...\n");
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,"Resetting molecule IDs ...\n");
 
   // record wall time for resetting molecule IDs
 
@@ -62,13 +60,12 @@ void ResetMolIDs::command(int narg, char **arg)
 
   // create instances of compute fragment/atom and compute chunk/atom
 
-  std::string idfrag = "reset_mol_ids_FRAGMENT_ATOM";
-  std::string fragcmd = idfrag + fmt::format(" {} fragment/atom",arg[0]);
-  modify->add_compute(fragcmd);
+  const std::string idfrag = "reset_mol_ids_FRAGMENT_ATOM";
+  modify->add_compute(fmt::format("{} {} fragment/atom",idfrag, arg[0]));
 
-  std::string idchunk = "reset_mol_ids_CHUNK_ATOM";
-  std::string chunkcmd = idchunk + fmt::format(" all chunk/atom molecule compress yes");
-  modify->add_compute(chunkcmd);
+  const std::string idchunk = "reset_mol_ids_CHUNK_ATOM";
+  modify->add_compute(fmt::format("{} all chunk/atom molecule compress yes",
+                                  idchunk));
 
   // initialize system since comm->borders() will be invoked
 

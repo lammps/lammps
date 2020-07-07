@@ -204,7 +204,7 @@ class lammps(object):
     self.lib.lammps_neighlist_element_neighbors.argtypes = [c_void_p, c_int, c_int, POINTER(c_int), POINTER(c_int), POINTER(POINTER(c_int))]
     self.lib.lammps_neighlist_element_neighbors.restype  = None
 
-    self.lib.lammps_has_error.argtypes = [v_void_p]
+    self.lib.lammps_has_error.argtypes = [c_void_p]
     self.lib.lammps_has_error.restype = c_bool
 
     self.lib.lammps_get_last_error_message.argtypes = [c_void_p, c_char_p, c_int]

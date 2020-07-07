@@ -183,11 +183,13 @@ the restraint is
 
 with the following coefficients:
 
-* :math:`K` (energy/radian\^2)
+* :math:`K` (energy)
 * :math:`\theta_0` (degrees)
 
-:math:`K` and :math:`\theta_0` are specified with the fix.  Note that the usual 1/2
-factor is included in :math:`K`.
+:math:`K` and :math:`\theta_0` are specified with the fix.
+:math:`\theta_0` is specified in degrees, but LAMMPS converts it to
+radians internally; hence :math:`K` is effectively energy per
+radian\^2.  Note that the usual 1/2 factor is included in :math:`K`.
 
 ----------
 

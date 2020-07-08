@@ -86,8 +86,7 @@ The *descriptor* keyword is followed by a descriptor style, and additional argum
 Currently the only descriptor style is *sna*, indicating the bispectrum component
 descriptors used by the Spectral Neighbor Analysis Potential (SNAP) potentials of
 :doc:`pair_style snap <pair_snap>`.
-The \'p\' in SNAP is dropped, because keywords that match pair_styles are silently stripped
-out by the LAMMPS command parser. A single additional argument specifies the descriptor filename
+A single additional argument specifies the descriptor filename
 containing the parameters and setting used by the SNAP descriptor.
 The descriptor filename usually ends in the *.mliap.descriptor* extension.
 

@@ -106,7 +106,7 @@ void WriteData::command(int narg, char **arg)
 
   if (noinit == 0) {
     if (comm->me == 0 && screen)
-      fprintf(screen,"System init for write_data ...\n");
+      fputs("System init for write_data ...\n",screen);
     lmp->init();
 
     // move atoms to new processors before writing file
@@ -268,15 +268,18 @@ void WriteData::header()
         for (int m = 0; m < modify->fix[i]->wd_header; m++)
           modify->fix[i]->write_data_header(fp,m);
 
-  fprintf(fp,"\n");
+  // box info
 
-  fprintf(fp,"%-1.16e %-1.16e xlo xhi\n",domain->boxlo[0],domain->boxhi[0]);
-  fprintf(fp,"%-1.16e %-1.16e ylo yhi\n",domain->boxlo[1],domain->boxhi[1]);
-  fprintf(fp,"%-1.16e %-1.16e zlo zhi\n",domain->boxlo[2],domain->boxhi[2]);
-
+  auto box = fmt::format("\n{} {} xlo xhi"
+                         "\n{} {} ylo yhi"
+                         "\n{} {} zlo zhi\n",
+                         domain->boxlo[0],domain->boxhi[0],
+                         domain->boxlo[1],domain->boxhi[1],
+                         domain->boxlo[2],domain->boxhi[2]);
   if (domain->triclinic)
-    fprintf(fp,"%-1.16e %-1.16e %-1.16e xy xz yz\n",
-            domain->xy,domain->xz,domain->yz);
+    box += fmt::format("{} {} {} xy xz yz\n",
+                       domain->xy,domain->xz,domain->yz);
+  fputs(box.c_str(),fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -287,8 +290,9 @@ void WriteData::type_arrays()
 {
   if (atom->mass) {
     double *mass = atom->mass;
-    fprintf(fp,"\nMasses\n\n");
-    for (int i = 1; i <= atom->ntypes; i++) fprintf(fp,"%d %g\n",i,mass[i]);
+    fputs("\nMasses\n\n",fp);
+    for (int i = 1; i <= atom->ntypes; i++)
+      fmt::print(fp,"{} {:.16g}\n",i,mass[i]);
   }
 }
 
@@ -300,27 +304,27 @@ void WriteData::force_fields()
 {
   if (force->pair && force->pair->writedata) {
     if (pairflag == II) {
-      fprintf(fp,"\nPair Coeffs # %s\n\n", force->pair_style);
+      fmt::print(fp,"\nPair Coeffs # {}\n\n", force->pair_style);
       force->pair->write_data(fp);
     } else if (pairflag == IJ) {
-      fprintf(fp,"\nPairIJ Coeffs # %s\n\n", force->pair_style);
+      fmt::print(fp,"\nPairIJ Coeffs # {}\n\n", force->pair_style);
       force->pair->write_data_all(fp);
     }
   }
   if (force->bond && force->bond->writedata && atom->nbondtypes) {
-    fprintf(fp,"\nBond Coeffs # %s\n\n", force->bond_style);
+    fmt::print(fp,"\nBond Coeffs # {}\n\n", force->bond_style);
     force->bond->write_data(fp);
   }
   if (force->angle && force->angle->writedata && atom->nangletypes) {
-    fprintf(fp,"\nAngle Coeffs # %s\n\n", force->angle_style);
+    fmt::print(fp,"\nAngle Coeffs # {}\n\n", force->angle_style);
     force->angle->write_data(fp);
   }
   if (force->dihedral && force->dihedral->writedata && atom->ndihedraltypes) {
-    fprintf(fp,"\nDihedral Coeffs # %s\n\n", force->dihedral_style);
+    fmt::print(fp,"\nDihedral Coeffs # {}\n\n", force->dihedral_style);
     force->dihedral->write_data(fp);
   }
   if (force->improper && force->improper->writedata && atom->nimpropertypes) {
-    fprintf(fp,"\nImproper Coeffs # %s\n\n", force->improper_style);
+    fmt::print(fp,"\nImproper Coeffs # {}\n\n", force->improper_style);
     force->improper->write_data(fp);
   }
 }
@@ -357,7 +361,7 @@ void WriteData::atoms()
     MPI_Status status;
     MPI_Request request;
 
-    fprintf(fp,"\nAtoms # %s\n\n",atom->atom_style);
+    fmt::print(fp,"\nAtoms # {}\n\n",atom->atom_style);
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
         MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_DOUBLE,iproc,0,world,&request);
@@ -410,7 +414,7 @@ void WriteData::velocities()
     MPI_Status status;
     MPI_Request request;
 
-    fprintf(fp,"\nVelocities\n\n");
+    fputs("\nVelocities\n\n",fp);
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
         MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_DOUBLE,iproc,0,world,&request);
@@ -464,7 +468,7 @@ void WriteData::bonds()
     MPI_Status status;
     MPI_Request request;
 
-    fprintf(fp,"\nBonds\n\n");
+    fputs("\nBonds\n\n",fp);
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
         MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_LMP_TAGINT,iproc,0,world,&request);
@@ -519,7 +523,7 @@ void WriteData::angles()
     MPI_Status status;
     MPI_Request request;
 
-    fprintf(fp,"\nAngles\n\n");
+    fputs("\nAngles\n\n",fp);
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
         MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_LMP_TAGINT,iproc,0,world,&request);
@@ -574,7 +578,7 @@ void WriteData::dihedrals()
     MPI_Status status;
     MPI_Request request;
 
-    fprintf(fp,"\nDihedrals\n\n");
+    fputs("\nDihedrals\n\n",fp);
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
         MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_LMP_TAGINT,iproc,0,world,&request);
@@ -628,7 +632,7 @@ void WriteData::impropers()
     MPI_Status status;
     MPI_Request request;
 
-    fprintf(fp,"\nImpropers\n\n");
+    fputs("\nImpropers\n\n",fp);
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
         MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_LMP_TAGINT,iproc,0,world,&request);
@@ -676,16 +680,16 @@ void WriteData::bonus(int flag)
   // proc 0 pings each proc, receives its chunk, writes to file
   // all other procs wait for ping, send their chunk to proc 0
 
-  int tmp,recvrow;
+  int tmp;
 
   if (me == 0) {
     MPI_Status status;
     MPI_Request request;
 
-    if (flag == ELLIPSOID) fprintf(fp,"\nEllipsoids\n\n");
-    if (flag == LINE) fprintf(fp,"\nLines\n\n");
-    if (flag == TRIANGLE) fprintf(fp,"\nTriangles\n\n");
-    if (flag == BODY) fprintf(fp,"\nBodies\n\n");
+    if (flag == ELLIPSOID) fputs("\nEllipsoids\n\n",fp);
+    if (flag == LINE)      fputs("\nLines\n\n",fp);
+    if (flag == TRIANGLE)  fputs("\nTriangles\n\n",fp);
+    if (flag == BODY)      fputs("\nBodies\n\n",fp);
 
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {

@@ -587,7 +587,7 @@ void AtomVecBody::pack_data_pre(int ilocal)
 int AtomVecBody::pack_data_bonus(double *buf, int /*flag*/)
 {
   int i,j;
-  
+
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
@@ -596,7 +596,7 @@ int AtomVecBody::pack_data_bonus(double *buf, int /*flag*/)
     if (body[i] < 0) continue;
     m += bptr->pack_data_body(tag[i],body[i],buf);
   }
-  
+
   return m;
 }
 

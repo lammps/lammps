@@ -465,7 +465,7 @@ int AtomVecLine::pack_data_bonus(double *buf, int /*flag*/)
   int i,j;
   double length,theta;
   double xc,yc,x1,x2,y1,y2;
-  
+
   double **x = atom->x;
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;

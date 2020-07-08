@@ -198,14 +198,14 @@ void WriteData::write(const std::string &file)
 
   // molecular topology info if defined
   // do not write molecular topology for atom_style template
-  
+
   if (atom->molecular == 1) {
     if (atom->nbonds && nbonds) bonds();
     if (atom->nangles && nangles) angles();
     if (atom->ndihedrals) dihedrals();
     if (atom->nimpropers) impropers();
   }
-  
+
   // bonus info if defined
 
   if (natoms && atom->ellipsoid_flag) bonus(ELLIPSOID);
@@ -214,7 +214,7 @@ void WriteData::write(const std::string &file)
   if (natoms && atom->body_flag) bonus(BODY);
 
   // extra sections managed by fixes
-  
+
   if (fixflag)
     for (int i = 0; i < modify->nfix; i++)
       if (modify->fix[i]->wd_section)
@@ -261,7 +261,7 @@ void WriteData::header()
   if (atom->body_flag) fmt::print(fp,"{} bodies\n",atom->nbodies);
 
   // fix info
-  
+
   if (fixflag)
     for (int i = 0; i < modify->nfix; i++)
       if (modify->fix[i]->wd_header)
@@ -671,7 +671,7 @@ void WriteData::bonus(int flag)
   // pack my bonus data into buf
 
   atom->avec->pack_data_bonus(buf,flag);
-    
+
   // write one chunk of info per proc to file
   // proc 0 pings each proc, receives its chunk, writes to file
   // all other procs wait for ping, send their chunk to proc 0
@@ -686,7 +686,7 @@ void WriteData::bonus(int flag)
     if (flag == LINE) fprintf(fp,"\nLines\n\n");
     if (flag == TRIANGLE) fprintf(fp,"\nTriangles\n\n");
     if (flag == BODY) fprintf(fp,"\nBodies\n\n");
-    
+
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
         MPI_Irecv(buf,maxvalues,MPI_DOUBLE,iproc,0,world,&request);

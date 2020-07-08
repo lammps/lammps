@@ -34,8 +34,8 @@ Examples
 Description
 """""""""""
 
-Pair style *mliap* provides a general interface to families of 
-machine-learning interatomic potentials. It allows separate 
+Pair style *mliap* provides a general interface to families of
+machine-learning interatomic potentials. It allows separate
 definitions of the interatomic potential functional form (*model*)
 and the geometric quantities that characterize the atomic positions
 (*descriptor*). By defining *model* and *descriptor* separately,
@@ -61,8 +61,8 @@ where N is the number of LAMMPS atom types.
 
 The *model* keyword is followed by a model style, currently limited to
 either *linear* or *quadratic*. In both cases,
-this is followed by a single argument specifying the model filename containing the 
-parameters for a set of elements. 
+this is followed by a single argument specifying the model filename containing the
+parameters for a set of elements.
 The model filename usually ends in the *.mliap.model* extension.
 It may contain parameters for many elements. The only requirement is that it
 contain at least those element names appearing in the

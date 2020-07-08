@@ -490,7 +490,7 @@ void AtomVecEllipsoid::pack_data_post(int ilocal)
 int AtomVecEllipsoid::pack_data_bonus(double *buf, int /*flag*/)
 {
   int i,j;
-  
+
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 

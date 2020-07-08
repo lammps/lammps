@@ -392,7 +392,7 @@ of :math:`K N_{elem}^3` columns.
 These values can be accessed by any command that uses per-atom values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc
 page for an overview of LAMMPS output options. To see how this command
-can be used within a Python workflow to train SNAP potentials, 
+can be used within a Python workflow to train SNAP potentials,
 see the examples in `FitSNAP <https://github.com/FitSNAP/FitSNAP>`_.
 
 Restrictions

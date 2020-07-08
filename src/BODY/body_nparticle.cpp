@@ -213,7 +213,7 @@ int BodyNparticle::pack_data_body(tagint atomID, int ibonus, double *buf)
   int nsub = ivalue[0];
 
   if (buf) {
-    
+
     // ID ninteger ndouble
 
     m = 0;
@@ -222,7 +222,7 @@ int BodyNparticle::pack_data_body(tagint atomID, int ibonus, double *buf)
     buf[m++] = ubuf(6 + 3*nsub).d;
 
     // single integer Nsub
-    
+
     buf[m++] = ubuf(nsub).d;
 
     // 6 moments of inertia
@@ -239,7 +239,7 @@ int BodyNparticle::pack_data_body(tagint atomID, int ibonus, double *buf)
     buf[m++] = ispace[1][2];
 
     // 3*Nsub particle coords = displacement from COM in box frame
-    
+
     for (int i = 0; i < nsub; i++) {
       MathExtra::matvec(p,&dvalue[3*i],values);
       buf[m++] = values[0];
@@ -248,7 +248,7 @@ int BodyNparticle::pack_data_body(tagint atomID, int ibonus, double *buf)
     }
 
   } else m = 3 + 1 + 6 + 3*nsub;
-  
+
   return m;
 }
 
@@ -272,10 +272,10 @@ int BodyNparticle::write_data_body(FILE *fp, double *buf)
   fmt::print(fp,"{} {} {} {} {} {}\n",
 	     inertia[0],inertia[1],inertia[2],inertia[3],inertia[4],inertia[5]);
   m += 6;
-  
+
   for (int i = 0; i < nsub; i++)
     fmt::print(fp,"{} {} {}\n",buf[m++],buf[m++],buf[m++]);
-  
+
   return m;
 }
 

@@ -259,8 +259,8 @@ void MLIAPDescriptorSNAP::compute_forces(PairMLIAP* pairmliap, NeighList* list, 
    compute force gradient for each atom
    ---------------------------------------------------------------------- */
 
-void MLIAPDescriptorSNAP::compute_gradients(int *map, NeighList* list, 
-                                         int gamma_nnz, int **gamma_row_index, 
+void MLIAPDescriptorSNAP::compute_gradients(int *map, NeighList* list,
+                                         int gamma_nnz, int **gamma_row_index,
                                          int **gamma_col_index, double **gamma, double **gradforce,
                                          int yoffset, int zoffset)
 {
@@ -345,9 +345,9 @@ void MLIAPDescriptorSNAP::compute_gradients(int *map, NeighList* list,
                                snaptr->rcutij[jj],jj, 0);
 
       snaptr->compute_dbidrj();
-      
+
       // Accumulate gamma_lk*dB_k/dRi, -gamma_lk**dB_k/dRj
-      
+
       for (int inz = 0; inz < gamma_nnz; inz++) {
         const int l = gamma_row_index[ii][inz];
         const int k = gamma_col_index[ii][inz];
@@ -358,7 +358,7 @@ void MLIAPDescriptorSNAP::compute_gradients(int *map, NeighList* list,
         gradforce[j][l+yoffset] -= gamma[ii][inz]*snaptr->dblist[k][1];
         gradforce[j][l+zoffset] -= gamma[ii][inz]*snaptr->dblist[k][2];
       }
-      
+
     }
   }
 
@@ -368,8 +368,8 @@ void MLIAPDescriptorSNAP::compute_gradients(int *map, NeighList* list,
    compute descriptor gradients for each neighbor atom
    ---------------------------------------------------------------------- */
 
-void MLIAPDescriptorSNAP::compute_descriptor_gradients(int *map, NeighList* list, 
-                                         int gamma_nnz, int **gamma_row_index, 
+void MLIAPDescriptorSNAP::compute_descriptor_gradients(int *map, NeighList* list,
+                                         int gamma_nnz, int **gamma_row_index,
                                          int **gamma_col_index, double **gamma, double **graddesc,
                                          int yoffset, int zoffset)
 {
@@ -464,7 +464,7 @@ void MLIAPDescriptorSNAP::compute_descriptor_gradients(int *map, NeighList* list
         graddesc[j][k] = -snaptr->dblist[k][0];
         graddesc[j][k] = -snaptr->dblist[k][1];
         graddesc[j][k] = -snaptr->dblist[k][2];
-      } 
+      }
     }
   }
 

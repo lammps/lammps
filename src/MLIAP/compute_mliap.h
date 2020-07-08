@@ -44,13 +44,13 @@ class ComputeMLIAP : public Compute {
   int nelements;
 
   double** descriptors;        // descriptors for all atoms in list
-  int ndescriptors;            // number of descriptors 
+  int ndescriptors;            // number of descriptors
   int gamma_max;               // number of atoms allocated for beta, descriptors
   int nparams;                 // number of model paramters per element
   int gamma_nnz;               // number of non-zero entries in gamma
   double** gamma;              // gamma element
-  int** gamma_row_index;       // row (parameter) index 
-  int** gamma_col_index;       // column (descriptor) index 
+  int** gamma_row_index;       // row (parameter) index
+  int** gamma_col_index;       // column (descriptor) index
   double* egradient;           // energy gradient w.r.t. parameters
 
   class MLIAPModel* model;

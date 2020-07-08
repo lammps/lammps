@@ -260,21 +260,22 @@ int BodyNparticle::write_data_body(FILE *fp, double *buf)
 {
   int m = 0;
 
-  tagint atomID = (tagint) ubuf(buf[m++]).i;
-  int ninteger = (int) ubuf(buf[m++]).i;
-  int ndouble = (int) ubuf(buf[m++]).i;
-  fmt::print(fp,"{} {} {}\n",atomID,ninteger,ndouble);
+  // atomID ninteger ndouble
 
-  int nsub = (int) ubuf(buf[m++]).i;
+  fmt::print(fp,"{} {} {}\n",ubuf(buf[m]).i,ubuf(buf[m+1]).i,ubuf(buf[m+2]).i);
+  m += 3;
+
+  const int nsub = (int) ubuf(buf[m++]).i;
   fmt::print(fp,"{}\n",nsub);
 
-  double *inertia = &buf[m];
+  // inertia
+
   fmt::print(fp,"{} {} {} {} {} {}\n",
-	     inertia[0],inertia[1],inertia[2],inertia[3],inertia[4],inertia[5]);
+             buf[m+0],buf[m+1],buf[m+2],buf[m+3],buf[m+4],buf[m+5]);
   m += 6;
 
-  for (int i = 0; i < nsub; i++)
-    fmt::print(fp,"{} {} {}\n",buf[m++],buf[m++],buf[m++]);
+  for (int i = 0; i < nsub; i++, m+=3)
+    fmt::print(fp,"{} {} {}\n",buf[m],buf[m+1],buf[m+2]);
 
   return m;
 }

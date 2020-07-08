@@ -265,15 +265,11 @@ void MLIAPDescriptorSNAP::compute_gradients(int *map, NeighList* list,
                                          int yoffset, int zoffset)
 {
   int i,j,jnum,ninside;
-  double delx,dely,delz,evdwl,rsq;
-  double fij[3];
+  double delx,dely,delz,rsq;
   int *jlist,*numneigh,**firstneigh;
 
   double **x = atom->x;
-  double **f = atom->f;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int newton_pair = force->newton_pair;
 
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
@@ -369,20 +365,17 @@ void MLIAPDescriptorSNAP::compute_gradients(int *map, NeighList* list,
    ---------------------------------------------------------------------- */
 
 void MLIAPDescriptorSNAP::compute_descriptor_gradients(int *map, NeighList* list,
-                                         int gamma_nnz, int **gamma_row_index,
-                                         int **gamma_col_index, double **gamma, double **graddesc,
-                                         int yoffset, int zoffset)
+                                         int /*gamma_nnz*/, int ** /*gamma_row_index*/,
+                                         int ** /*gamma_col_index*/, double ** /*gamma*/,
+                                         double **graddesc,
+                                         int /*yoffset*/, int /*zoffset*/)
 {
   int i,j,jnum,ninside;
-  double delx,dely,delz,evdwl,rsq;
-  double fij[3];
+  double delx,dely,delz,rsq;
   int *jlist,*numneigh,**firstneigh;
 
   double **x = atom->x;
-  double **f = atom->f;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int newton_pair = force->newton_pair;
 
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;

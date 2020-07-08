@@ -612,6 +612,7 @@ void WriteData::impropers()
   int ncol = 5;
   int sendrow = static_cast<int> (nimpropers_local);
   int maxrow;
+  MPI_Allreduce(&sendrow,&maxrow,1,MPI_INT,MPI_MAX,world);
 
   tagint **buf;
   if (me == 0) memory->create(buf,MAX(1,maxrow),ncol,"write_data:buf");

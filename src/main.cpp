@@ -53,6 +53,7 @@ int main(int argc, char **argv)
   } catch(LAMMPSAbortException &ae) {
     MPI_Abort(ae.universe, 1);
   } catch(LAMMPSException &e) {
+    MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
     exit(1);
   }

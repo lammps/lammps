@@ -26,8 +26,7 @@ public:
   virtual void compute_forces(class PairMLIAP*, class NeighList*, double**, int);
   virtual void compute_gradients(int*, class NeighList*, int, int**, int**, double**, 
                               double**, int, int);
-  virtual void compute_descriptor_gradients(int*, class NeighList*, int, int**, int**, double**, 
-                              double**, int, int);
+  virtual void compute_descriptor_gradients(int*, NeighList*, double***, int*);
   virtual void init();
   virtual double memory_usage();
 

@@ -26,6 +26,8 @@ public:
   virtual void gradient(class PairMLIAP*, class NeighList*, double**, double**, int);
   virtual void param_gradient(int*, class NeighList*, double**, int**, int**, double**, double*);
   virtual int get_gamma_nnz();
+  virtual void compute_force_gradients(double**, int, int*, int*, int*, int*, 
+                                       int*, double***, int, int, double**, double*);
 
 protected:
 };

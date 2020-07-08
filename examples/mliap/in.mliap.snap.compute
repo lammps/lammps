@@ -69,7 +69,7 @@ variable	db_2_25 equal c_db[2][25]
 
 # set up compute snap generating global array
 
-compute   	snap all mliap descriptor sna compute.mliap.descriptor model linear 2 6
+compute   	snap all mliap descriptor sna compute.mliap.descriptor model linear 2 6 gradgradflag 1
 fix 		snap all ave/time 1 1 1 c_snap[*] file compute.snap.dat mode vector
 
 thermo 		100

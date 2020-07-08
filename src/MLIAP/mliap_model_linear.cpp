@@ -137,6 +137,7 @@ void MLIAPModelLinear::param_gradient(int *map, NeighList* list,
   }
 
 }
+
 /* ----------------------------------------------------------------------
    count the number of non-zero entries in gamma matrix
    ---------------------------------------------------------------------- */
@@ -145,4 +146,47 @@ int MLIAPModelLinear::get_gamma_nnz()
 {
   int inz = ndescriptors;
   return inz;
+}
+
+void MLIAPModelLinear::compute_force_gradients(double **descriptors, int numlistdesc, int *iatomdesc, int *ielemdesc, int *numneighdesc, int *jatomdesc, 
+                                               int *jelemdesc, double ***graddesc, int yoffset, int zoffset, double **gradforce, double *egradient) {
+
+
+  // zero out energy gradients
+
+  for (int l = 0; l < nelements*nparams; l++)
+    egradient[l] = 0.0;
+    
+  int ij = 0;
+  for (int ii = 0; ii < numlistdesc; ii++) {
+    const int i = iatomdesc[ii];
+    const int ielem = ielemdesc[ii];
+    const int elemoffset = nparams*ielem;
+
+    for (int jj = 0; jj < numneighdesc[ii]; jj++) {
+      const int j = jatomdesc[ij];
+      const int jelem = ielemdesc[ij];
+
+      int l = elemoffset+1;
+      for (int icoeff = 0; icoeff < ndescriptors; icoeff++) {
+        gradforce[i][l]         += graddesc[ij][icoeff][0];
+        gradforce[i][l+yoffset] += graddesc[ij][icoeff][1];
+        gradforce[i][l+zoffset] += graddesc[ij][icoeff][2];
+        gradforce[j][l]         -= graddesc[ij][icoeff][0];
+        gradforce[j][l+yoffset] -= graddesc[ij][icoeff][1];
+        gradforce[j][l+zoffset] -= graddesc[ij][icoeff][2];
+        l++;
+      }
+      ij++;
+    }
+
+    // gradient of energy of atom I w.r.t. parameters
+    
+    int l = elemoffset;
+    egradient[l++] += 1.0;
+    for (int icoeff = 0; icoeff < ndescriptors; icoeff++)
+      egradient[l++] += descriptors[ii][icoeff];
+    
+  }
+  
 }

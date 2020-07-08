@@ -369,9 +369,7 @@ void MLIAPDescriptorSNAP::compute_gradients(int *map, NeighList* list,
    ---------------------------------------------------------------------- */
 
 void MLIAPDescriptorSNAP::compute_descriptor_gradients(int *map, NeighList* list, 
-                                         int gamma_nnz, int **gamma_row_index, 
-                                         int **gamma_col_index, double **gamma, double **graddesc,
-                                         int yoffset, int zoffset)
+                                                       double ***graddesc, int *numneighdesc)
 {
   int i,j,jnum,ninside;
   double delx,dely,delz,evdwl,rsq;
@@ -387,6 +385,7 @@ void MLIAPDescriptorSNAP::compute_descriptor_gradients(int *map, NeighList* list
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  int ij = 0;
   for (int ii = 0; ii < list->inum; ii++) {
     i = list->ilist[ii];
 
@@ -431,6 +430,9 @@ void MLIAPDescriptorSNAP::compute_descriptor_gradients(int *map, NeighList* list
         ninside++;
       }
     }
+    if (ninside != numneighdesc[i])
+      error->one(FLERR,fmt::format("Screwed up neighbor count, ninside = {} jnum = {} i = {}", 
+                                   ninside, numneighdesc[i], i));
 
     if (chemflag)
       snaptr->compute_ui(ninside, ielem);
@@ -458,13 +460,11 @@ void MLIAPDescriptorSNAP::compute_descriptor_gradients(int *map, NeighList* list
       // Accumulate dB_k^i/dRi, dB_k^i/dRj
 
       for (int k = 0; k < ndescriptors; k++) {
-        graddesc[i][k] = snaptr->dblist[k][0];
-        graddesc[i][k] = snaptr->dblist[k][1];
-        graddesc[i][k] = snaptr->dblist[k][2];
-        graddesc[j][k] = -snaptr->dblist[k][0];
-        graddesc[j][k] = -snaptr->dblist[k][1];
-        graddesc[j][k] = -snaptr->dblist[k][2];
+        graddesc[ij][k][0] = snaptr->dblist[k][0];
+        graddesc[ij][k][1] = snaptr->dblist[k][1];
+        graddesc[ij][k][2] = snaptr->dblist[k][2];
       } 
+      ij++;
     }
   }
 

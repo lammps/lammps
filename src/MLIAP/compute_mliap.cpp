@@ -37,13 +37,19 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), list(NULL), mliap(NULL),
   gradforce(NULL), mliapall(NULL), map(NULL), 
   descriptors(NULL), gamma_row_index(NULL), gamma_col_index(NULL),
-  gamma(NULL), egradient(NULL), model(NULL), descriptor(NULL)
+  gamma(NULL), egradient(NULL), model(NULL), descriptor(NULL),
+  iatomdesc(NULL), ielemdesc(NULL), numneighdesc(NULL),  
+  jatomdesc(NULL), jelemdesc(NULL), graddesc(NULL)
 {
   array_flag = 1;
   extarray = 0;
 
   if (narg < 4)
     error->all(FLERR,"Illegal compute mliap command");
+
+  // default values
+
+  gradgradflag = 1;
 
   // set flags for required keywords
 
@@ -79,6 +85,12 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
         iarg += 3;
       } else error->all(FLERR,"Illegal compute mliap command");
       descriptorflag = 1;
+    } else if (strcmp(arg[iarg],"gradgradflag") == 0) {
+      if (iarg+1 > narg) error->all(FLERR,"Illegal compute mliap command");
+      gradgradflag = atoi(arg[iarg+1]);
+      if (gradgradflag != 0 && gradgradflag != 1) 
+        error->all(FLERR,"Illegal compute mliap command");
+      iarg += 2;
     } else
       error->all(FLERR,"Illegal compute mliap command");
   }
@@ -102,7 +114,8 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
   size_gradforce = ndims_force*nparams*nelements;
 
   nmax = 0;
-  gamma_max = 0;
+  numlistdesc_max = 0;
+  nneighdesc_max = 0;
 
   // create a minimal map, placeholder for more general map
 
@@ -128,6 +141,13 @@ ComputeMLIAP::~ComputeMLIAP()
   memory->destroy(gamma_col_index);
   memory->destroy(gamma);
   memory->destroy(egradient);
+
+  memory->destroy(iatomdesc);
+  memory->destroy(ielemdesc);
+  memory->destroy(numneighdesc);
+  memory->destroy(jatomdesc);
+  memory->destroy(jelemdesc);
+  memory->destroy(graddesc);
 
   delete model;
   delete descriptor;
@@ -245,35 +265,139 @@ void ComputeMLIAP::compute_array()
 
   neighbor->build_one(list);
 
-  if (gamma_max < list->inum) {
-    memory->grow(descriptors,list->inum,ndescriptors,"ComputeMLIAP:descriptors");
-    memory->grow(gamma_row_index,list->inum,gamma_nnz,"ComputeMLIAP:gamma_row_index");
-    memory->grow(gamma_col_index,list->inum,gamma_nnz,"ComputeMLIAP:gamma_col_index");
-    memory->grow(gamma,list->inum,gamma_nnz,"ComputeMLIAP:gamma");
-    gamma_max = list->inum;
+  const int numlistdesc = list->inum;
+  if (numlistdesc_max < numlistdesc) {
+    memory->grow(descriptors,numlistdesc,ndescriptors,"ComputeMLIAP:descriptors");
+    memory->grow(gamma_row_index,numlistdesc,gamma_nnz,"ComputeMLIAP:gamma_row_index");
+    memory->grow(gamma_col_index,numlistdesc,gamma_nnz,"ComputeMLIAP:gamma_col_index");
+    memory->grow(gamma,numlistdesc,gamma_nnz,"ComputeMLIAP:gamma");
+    memory->grow(iatomdesc,numlistdesc,"ComputeMLIAP:iatomdesc");
+    memory->grow(ielemdesc,numlistdesc,"ComputeMLIAP:ielemdesc");
+    memory->grow(numneighdesc,numlistdesc,"ComputeMLIAP:numneighdesc");
+    numlistdesc_max = numlistdesc;
   }
 
-  // compute descriptors
+  if (gradgradflag) {
 
-  descriptor->compute_descriptors(map, list, descriptors);
+    // compute descriptors
+    
+    descriptor->compute_descriptors(map, list, descriptors);
+    
+    // calculate descriptor contributions to parameter gradients
+    // and gamma = double gradient w.r.t. parameters and descriptors
+    
+    // i.e. gamma = d2E/dsigma_l.dB_k
+    // sigma_l is a parameter and B_k is a descriptor of atom i
+    // for SNAP, this is a sparse natoms*nparams*ndescriptors matrix,
+    // but in general it could be fully dense. 
+    
+    model->param_gradient(map, list, descriptors, gamma_row_index, 
+                          gamma_col_index, gamma, egradient);
+    
+    
+    // calculate descriptor gradient contributions to parameter gradients
+    
+    descriptor->compute_gradients(map, list, gamma_nnz, gamma_row_index, 
+                                  gamma_col_index, gamma, gradforce,
+                                  yoffset, zoffset);
+    
+  } else {
 
-  // calculate descriptor contributions to parameter gradients
-  // and gamma = double gradient w.r.t. parameters and descriptors
-
-  // i.e. gamma = d2E/dsigma_l.dB_k
-  // sigma_l is a parameter and B_k is a descriptor of atom i
-  // for SNAP, this is a sparse natoms*nparams*ndescriptors matrix,
-  // but in general it could be fully dense. 
- 
-  model->param_gradient(map, list, descriptors, gamma_row_index, 
-                        gamma_col_index, gamma, egradient);
-
-
-  // calculate descriptor gradient contributions to parameter gradients
-
-  descriptor->compute_gradients(map, list, gamma_nnz, gamma_row_index, 
-                             gamma_col_index, gamma, gradforce,
-                             yoffset, zoffset);
+    double **x = atom->x;
+    int *type = atom->type;
+    
+    int *numneigh = list->numneigh;
+    int **firstneigh = list->firstneigh;
+    
+    int nneighdesc = 0;
+    for (int ii = 0; ii < list->inum; ii++) {
+      const int i = list->ilist[ii];
+      
+      const double xtmp = x[i][0];
+      const double ytmp = x[i][1];
+      const double ztmp = x[i][2];
+      const int itype = type[i];
+      const int ielem = map[itype];
+      
+      int *jlist = firstneigh[i];
+      const int jnum = numneigh[i];
+      
+      int ninside = 0;
+      for (int jj = 0; jj < jnum; jj++) {
+        int j = jlist[jj];
+        j &= NEIGHMASK;
+        const double delx = x[j][0] - xtmp;
+        const double dely = x[j][1] - ytmp;
+        const double delz = x[j][2] - ztmp;
+        const double rsq = delx*delx + dely*dely + delz*delz;
+        int jtype = type[j];
+        const int jelem = map[jtype];
+        
+        if (rsq < descriptor->cutsq[ielem][jelem]) ninside++;
+        
+      }
+      iatomdesc[ii] = i;
+      ielemdesc[ii] = ielem;
+      numneighdesc[ii] = ninside;
+      nneighdesc += ninside;
+    }
+    
+    if (nneighdesc_max < nneighdesc) {
+      memory->grow(jatomdesc,nneighdesc,"ComputeMLIAP:jatomdesc");
+      memory->grow(jelemdesc,nneighdesc,"ComputeMLIAP:jelemdesc");
+      memory->grow(graddesc,nneighdesc,ndescriptors,3,"ComputeMLIAP:graddesc");
+      nneighdesc_max = nneighdesc;
+    }
+    
+    int ij = 0;
+    for (int ii = 0; ii < list->inum; ii++) {
+      const int i = list->ilist[ii];
+      
+      const double xtmp = x[i][0];
+      const double ytmp = x[i][1];
+      const double ztmp = x[i][2];
+      const int itype = type[i];
+      const int ielem = map[itype];
+      
+      int *jlist = firstneigh[i];
+      const int jnum = numneigh[i];
+      
+      int ninside = 0;
+      for (int jj = 0; jj < jnum; jj++) {
+        int j = jlist[jj];
+        j &= NEIGHMASK;
+        const double delx = x[j][0] - xtmp;
+        const double dely = x[j][1] - ytmp;
+        const double delz = x[j][2] - ztmp;
+        const double rsq = delx*delx + dely*dely + delz*delz;
+        int jtype = type[j];
+        const int jelem = map[jtype];
+        
+        if (rsq < descriptor->cutsq[ielem][jelem]) {
+          jatomdesc[ij] = j;
+          jelemdesc[ij] = jelem;
+        ij++;
+        }
+      }
+    }
+    
+    // compute descriptors
+    
+    descriptor->compute_descriptors(map, list, descriptors);
+    
+    // calculate descriptor gradients
+    
+    //  descriptor->compute_descriptor_gradients(iatomdesc, ielemdesc, numneighdesc, 
+    // jatomdesc, jelemdesc, graddesc, numneighdesc);
+    descriptor->compute_descriptor_gradients(map, list, graddesc, numneighdesc);
+    
+    // calculate force gradients w.r.t. parameters
+    
+    model->compute_force_gradients(descriptors, numlistdesc, iatomdesc, ielemdesc, 
+                                   numneighdesc, jatomdesc, jelemdesc, graddesc, 
+                                   yoffset, zoffset, gradforce, egradient);
+    
+  }
 
   // accumulate descriptor gradient contributions to global array
 
@@ -343,7 +467,7 @@ void ComputeMLIAP::compute_array()
    own & ghost atoms
 ------------------------------------------------------------------------- */
 
-void ComputeMLIAP::dbdotr_compute()
+  void ComputeMLIAP::dbdotr_compute()
 {
   double **x = atom->x;
   int irow0 = 1+ndims_force*natoms;

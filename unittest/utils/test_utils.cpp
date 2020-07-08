@@ -420,7 +420,7 @@ TEST(Utils, unit_conversion)
     flag = utils::get_supported_conversions(utils::ENERGY);
     ASSERT_EQ(flag, utils::METAL2REAL | utils::REAL2METAL);
 
-    factor = utils::get_conversion_factor(utils::UNKNOWN, 1 << 30 - 1);
+    factor = utils::get_conversion_factor(utils::UNKNOWN, (1 << 30) - 1);
     ASSERT_DOUBLE_EQ(factor, 0.0);
     factor = utils::get_conversion_factor(utils::UNKNOWN, utils::NOCONVERT);
     ASSERT_DOUBLE_EQ(factor, 0.0);

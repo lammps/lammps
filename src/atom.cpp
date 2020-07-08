@@ -737,7 +737,7 @@ AtomVec *Atom::style_match(const char *style)
 {
   if (strcmp(atom_style,style) == 0) return avec;
   else if (strcmp(atom_style,"hybrid") == 0) {
-    AtomVecHybrid *avec_hybrid = (AtomVecHybrid *) avec;
+    auto avec_hybrid = (AtomVecHybrid *) avec;
     for (int i = 0; i < avec_hybrid->nstyles; i++)
       if (strcmp(avec_hybrid->keywords[i],style) == 0)
         return avec_hybrid->styles[i];
@@ -1765,9 +1765,8 @@ int Atom::shape_consistency(int itype,
   double one[3] = {-1.0, -1.0, -1.0};
   double *shape;
 
-  AtomVecEllipsoid *avec_ellipsoid =
-    (AtomVecEllipsoid *) style_match("ellipsoid");
-  AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
+  auto avec_ellipsoid = (AtomVecEllipsoid *) style_match("ellipsoid");
+  auto bonus = avec_ellipsoid->bonus;
 
   int flag = 0;
   for (int i = 0; i < nlocal; i++) {

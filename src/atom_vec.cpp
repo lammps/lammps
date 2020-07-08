@@ -1891,17 +1891,17 @@ void AtomVec::write_data(FILE *fp, int n, double **buf)
         }
       } else if (datatype == Atom::INT) {
         if (cols == 0) {
-          fmt::print(fp," {}",(int) ubuf(buf[i][j++]).i);
+          fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         } else {
           for (m = 0; m < cols; m++)
-            fmt::print(fp," {}",(int) ubuf(buf[i][j++]).i);
+            fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         }
       } else if (datatype == Atom::BIGINT) {
         if (cols == 0) {
-          fmt::print(fp," {}",(bigint) ubuf(buf[i][j++]).i);
+          fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         } else {
           for (m = 0; m < cols; m++)
-            fmt::print(fp," {}",(bigint) ubuf(buf[i][j++]).i);
+            fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         }
       }
     }
@@ -2039,17 +2039,17 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
         }
       } else if (datatype == Atom::INT) {
         if (cols == 0) {
-          fmt::print(fp," {}",(int) ubuf(buf[i][j++]).i);
+          fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         } else {
           for (m = 0; m < cols; m++)
-            fmt::print(fp," {}",(int) ubuf(buf[i][j++]).i);
+            fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         }
       } else if (datatype == Atom::BIGINT) {
         if (cols == 0) {
-          fmt::print(fp," {}",(bigint) ubuf(buf[i][j++]).i);
+          fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         } else {
           for (m = 0; m < cols; m++)
-            fmt::print(fp," {}",(bigint) ubuf(buf[i][j++]).i);
+            fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         }
       }
     }
@@ -2110,8 +2110,7 @@ int AtomVec::pack_bond(tagint **buf)
 void AtomVec::write_bond(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
-            index,buf[i][0],buf[i][1],buf[i][2]);
+    fmt::print(fp,"{} {} {} {}\n",index,buf[i][0],buf[i][1],buf[i][2]);
     index++;
   }
 }
@@ -2173,9 +2172,8 @@ int AtomVec::pack_angle(tagint **buf)
 void AtomVec::write_angle(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " "
-            TAGINT_FORMAT " " TAGINT_FORMAT "\n",
-            index,buf[i][0],buf[i][1],buf[i][2],buf[i][3]);
+    fmt::print(fp,"{} {} {} {} {}\n",index,
+               buf[i][0],buf[i][1],buf[i][2],buf[i][3]);
     index++;
   }
 }
@@ -2235,9 +2233,8 @@ int AtomVec::pack_dihedral(tagint **buf)
 void AtomVec::write_dihedral(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " "
-            TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
-            index,buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
+    fmt::print(fp,"{} {} {} {} {} {}\n",index,buf[i][0],
+               buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
     index++;
   }
 }
@@ -2297,9 +2294,8 @@ int AtomVec::pack_improper(tagint **buf)
 void AtomVec::write_improper(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " "
-            TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
-            index,buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
+    fmt::print(fp,"{} {} {} {} {} {}\n",index,buf[i][0],
+               buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
     index++;
   }
 }

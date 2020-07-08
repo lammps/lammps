@@ -521,9 +521,8 @@ void AtomVecEllipsoid::write_data_bonus(FILE *fp, int n, double *buf, int /*flag
 {
   int i = 0;
   while (i < n) {
-    fmt::print(fp,"{} {} {} {} {} {} {} {}\n",
-	       (tagint) ubuf(buf[i]).i,
-	       buf[i+1],buf[i+2],buf[i+3],buf[i+4],buf[i+5],buf[i+6],buf[i+7]);
+    fmt::print(fp,"{} {} {} {} {} {} {} {}\n",ubuf(buf[i]).i,
+               buf[i+1],buf[i+2],buf[i+3],buf[i+4],buf[i+5],buf[i+6],buf[i+7]);
     i += size_data_bonus;
   }
 }

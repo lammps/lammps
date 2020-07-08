@@ -49,13 +49,14 @@ The following coefficients must be defined for each angle type via the
 the data file or restart files read by the :doc:`read_data <read_data>`
 or :doc:`read_restart <read_restart>` commands:
 
-* :math:`K` (energy/radian\^2)
+* :math:`K` (energy)
 * :math:`\theta_0` (degrees)
 * :math:`K_{ub}` (energy/distance\^2)
 * :math:`r_{ub}` (distance)
 
-:math:`\theta_0` is specified in degrees, but LAMMPS converts it to radians
-internally; hence the units of :math:`K` are in energy/radian\^2.
+:math:`\theta_0` is specified in degrees, but LAMMPS converts it to
+radians internally; hence :math:`K` is effectively energy per
+radian\^2.
 
 ----------
 

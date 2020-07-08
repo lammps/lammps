@@ -74,29 +74,31 @@ commands.
 
 These are the 2 coefficients for the :math:`E_i` formula:
 
-* :math:`K` (energy/radian\^2)
+* :math:`K` (energy)
 * :math:`\chi_0` (degrees)
 
-:math:`\chi_0` is specified in degrees, but LAMMPS converts it to radians
-internally; hence the units of K are in energy/radian\^2.
+:math:`\chi_0` is specified in degrees, but LAMMPS converts it to
+radians internally; hence :math:`K` is effectively energy per
+radian\^2.
 
-For the :math:`E_{aa}` formula, each line in a
-:doc:`improper_coeff <improper_coeff>` command in the input script lists
-7 coefficients, the first of which is *aa* to indicate they are
-AngleAngle coefficients.  In a data file, these coefficients should be
-listed under a *AngleAngle Coeffs* heading and you must leave out the
-*aa*, i.e. only list 6 coefficients after the improper type.
+For the :math:`E_{aa}` formula, each line in a :doc:`improper_coeff
+<improper_coeff>` command in the input script lists 7 coefficients,
+the first of which is *aa* to indicate they are AngleAngle
+coefficients.  In a data file, these coefficients should be listed
+under a *AngleAngle Coeffs* heading and you must leave out the *aa*,
+i.e. only list 6 coefficients after the improper type.
 
 * *aa*
-* :math:`M_1` (energy/distance)
-* :math:`M_2` (energy/distance)
-* :math:`M_3` (energy/distance)
+* :math:`M_1` (energy)
+* :math:`M_2` (energy)
+* :math:`M_3` (energy)
 * :math:`\theta_1` (degrees)
 * :math:`\theta_2` (degrees)
 * :math:`\theta_3` (degrees)
 
-The theta values are specified in degrees, but LAMMPS converts them to
-radians internally; hence the units of M are in energy/radian\^2.
+The :math:`\theta` values are specified in degrees, but LAMMPS
+converts them to radians internally; hence the hence the various
+:math:`M` are effectively energy per radian\^2.
 
 ----------
 
@@ -109,7 +111,8 @@ produce the same results, except for round-off and precision issues.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
 USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with those packages.  See the :doc:`Build package
+<Build_package>` doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the

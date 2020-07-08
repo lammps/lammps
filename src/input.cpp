@@ -1913,6 +1913,7 @@ void Input::suffix()
 
     delete [] lmp->suffix;
     delete [] lmp->suffix2;
+    lmp->suffix = lmp->suffix2 = nullptr;
 
     if (strcmp(arg[0],"hybrid") == 0) {
       if (narg != 3) error->all(FLERR,"Illegal suffix command");
@@ -1927,7 +1928,6 @@ void Input::suffix()
       int n = strlen(arg[0]) + 1;
       lmp->suffix = new char[n];
       strcpy(lmp->suffix,arg[0]);
-      lmp->suffix2 = nullptr;
     }
   }
 }

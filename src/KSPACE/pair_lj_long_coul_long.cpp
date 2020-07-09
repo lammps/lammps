@@ -34,6 +34,7 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -418,11 +419,12 @@ void PairLJLongCoulLong::read_restart_settings(FILE *fp)
 void PairLJLongCoulLong::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g\n",i,epsilon_read[i][i],sigma_read[i][i]);
+    fmt::print(fp,"{} {} {}\n",i,epsilon_read[i][i],sigma_read[i][i]);
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes all pairs to data file
+   proc 0 writes all pairs to data file. must use the "mixed" parameters.
+   also must not write out cutoff for lj = long
 ------------------------------------------------------------------------- */
 
 void PairLJLongCoulLong::write_data_all(FILE *fp)
@@ -430,11 +432,11 @@ void PairLJLongCoulLong::write_data_all(FILE *fp)
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = i; j <= atom->ntypes; j++) {
       if (ewald_order & (1<<6)) {
-        fprintf(fp,"%d %d %g %g\n",i,j,
-                epsilon_read[i][j],sigma_read[i][j]);
+        fmt::print(fp,"{} {} {} {}\n",i,j,
+                   epsilon[i][j],sigma[i][j]);
       } else {
-        fprintf(fp,"%d %d %g %g %g\n",i,j,
-                epsilon_read[i][j],sigma_read[i][j],cut_lj_read[i][j]);
+        fmt::print(fp,"{} {} {} {} {}\n",i,j,
+                   epsilon[i][j],sigma[i][j],cut_lj[i][j]);
       }
     }
   }

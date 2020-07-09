@@ -156,7 +156,8 @@ AtomVec::~AtomVec()
 void AtomVec::store_args(int narg, char **arg)
 {
   nargcopy = narg;
-  argcopy = new char*[nargcopy];
+  if (nargcopy) argcopy = new char*[nargcopy];
+  else argcopy = nullptr;
   for (int i = 0; i < nargcopy; i++) {
     int n = strlen(arg[i]) + 1;
     argcopy[i] = new char[n];
@@ -2410,7 +2411,8 @@ void AtomVec::setup_fields()
 
   // create threads data struct for grow and memory_usage to use
 
-  threads = new bool[ngrow];
+  if (ngrow) threads = new bool[ngrow];
+  else threads = nullptr;
   for (int i = 0; i < ngrow; i++) {
     Atom::PerAtom *field = &atom->peratom[mgrow.index[i]];
     threads[i] = (field->threadflag) ? true : false;
@@ -2534,12 +2536,22 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
 
 void AtomVec::create_method(int nfield, Method *method)
 {
-  method->pdata = new void*[nfield];
-  method->datatype = new int[nfield];
-  method->cols = new int[nfield];
-  method->maxcols = new int*[nfield];
-  method->collength = new int[nfield];
-  method->plength = new void*[nfield];
+  if (nfield > 0) {
+    method->pdata = new void*[nfield];
+    method->datatype = new int[nfield];
+    method->cols = new int[nfield];
+    method->maxcols = new int*[nfield];
+    method->collength = new int[nfield];
+    method->plength = new void*[nfield];
+  } else {
+    method->pdata = nullptr;
+    method->datatype = nullptr;
+    method->cols = nullptr;
+    method->maxcols = nullptr;
+    method->collength = nullptr;
+    method->plength = nullptr;
+    return;
+  }
 
   for (int i = 0; i < nfield; i++) {
     Atom::PerAtom *field = &atom->peratom[method->index[i]];

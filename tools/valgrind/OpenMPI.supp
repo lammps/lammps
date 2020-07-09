@@ -91,6 +91,25 @@
    fun:ompi_mpi_init
 }
 {
+   OpenMPI_MPI_init9
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   ...
+   fun:orte_init
+   fun:ompi_mpi_init
+   fun:PMPI_Init
+}
+{
+   OpenMPI_MPI_init10
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:malloc
+   ...
+   fun:ompi_mpi_init
+   fun:PMPI_Init
+}
+{
    OpenMPI_MPI_thread1
    Memcheck:Leak
    match-leak-kinds: definite
@@ -152,7 +171,26 @@
    match-leak-kinds: definite
    fun:malloc
    fun:strdup
-   obj:*
    ...
    fun:dlopen*
+}
+{
+   OpenMPI_dlopen_strdup2
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:strdup
+   ...
+   fun:dl_open_worker
+}
+{
+   OpenMPI_dlopen_strdup3
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:malloc
+   fun:strdup
+   ...
+   fun:event_base_loop
+   ...
+   fun:clone
 }

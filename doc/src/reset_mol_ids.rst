@@ -29,7 +29,7 @@ Examples
 .. code-block:: LAMMPS
 
    reset_mol_ids all
-   reset_mol_ids all offset 10 singlezero
+   reset_mol_ids all offset 10 single yes compress yes
    reset_mol_ids solvent offset 1000
    reset_mol_ids solvent offset auto
 
@@ -48,10 +48,11 @@ consistent with current molecule IDs.  A molecule is a set of atoms,
 each of which is bonded to one or more atoms in the set.  Once new
 molecules are identified and a molecule ID assigned to each one, this
 command will update the current molecule ID for each atom in the group
-with a (potentially) new ID.  Note that if the group is set so as to
-exclude atoms within molecules, one molecule may become several.  For
-example if the group excludes atoms in the midddle of a linear chain,
-then each end of the chain becomes an independent molecules.
+with a (potentially) new ID.  Note that if the group excludes atoms
+within molecules, one molecule may become two or more.  For
+example if the group excludes atoms in the middle of a linear chain,
+then each end of the chain is considered an independent molecule
+and will be assigned a different molecule ID.
 
 This can be a useful operation to perform after running reactive
 molecular dynamics run with :doc:`fix bond/react <fix_bond_react>`,
@@ -67,7 +68,7 @@ If the setting is *no* (the default), the molecule ID of every atom in
 the molecule will be set to the smallest atom ID of any atom in the
 molecule.  If the setting is *yes*, and there are N molecules in the
 group, the new molecule IDs will be a set of N contiguous values.  See
-the *offset* keyword for more details.
+the *offset* keyword for details on the selecting the range of these values.
 
 The *single* keyword determines whether single atoms (not bonded to
 another atom) are treated as one-atom molecules or not, based on the
@@ -81,12 +82,11 @@ The *offset* keyword is only used if the *compress* setting is *yes*.
 Its default value is *Noffset* = -1.  In that case, if the specified
 group is *all*, then the new compressed molecule IDs will range from 1
 to N.  If the specified group is not *all* and the largest molecule ID
-in the non-group atoms is M, then the new compressed molecule IDs will
-range from M+1 to M+N, so as to not collide with existing molecule
+of atoms outside that group is M, then the new compressed molecule IDs will
+range from M+1 to M+N, to avoid collision with existing molecule
 IDs.  If an *Noffset* >= 0 is specified, then the new compressed
-molecule IDs will range from *Noffset*+1 to *Noffset*+N.  If the group
-is not *all* it is up to you to insure there are no collisions with
-the molecule IDs of non-group atoms.
+molecule IDs will range from *Noffset*\ +1 to *Noffset*\ +N.  If the group
+is not *all* there may be collisions with the molecule IDs of other atoms.
 
 .. note::
 

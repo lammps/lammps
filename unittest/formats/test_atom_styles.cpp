@@ -1393,9 +1393,21 @@ TEST_F(AtomStyleTest, ellipsoid)
     ASSERT_EQ(lmp->atom->tag_enable, 1);
     ASSERT_EQ(lmp->atom->molecular, 0);
     ASSERT_EQ(lmp->atom->ntypes, 3);
+    EXPECT_EQ(lmp->atom->nextra_grow, 0);
+    EXPECT_EQ(lmp->atom->nextra_restart, 0);
+    EXPECT_EQ(lmp->atom->nextra_border, 0);
+    EXPECT_EQ(lmp->atom->nextra_grow_max, 0);
+    EXPECT_EQ(lmp->atom->nextra_restart_max, 0);
+    EXPECT_EQ(lmp->atom->nextra_border_max, 0);
+    EXPECT_EQ(lmp->atom->nextra_store, 0);
+    EXPECT_EQ(lmp->atom->extra_grow, nullptr);
+    EXPECT_EQ(lmp->atom->extra_restart, nullptr);
+    EXPECT_EQ(lmp->atom->extra_border, nullptr);
+    EXPECT_EQ(lmp->atom->extra, nullptr);
 
     ASSERT_EQ(lmp->atom->mass, nullptr);
     ASSERT_NE(lmp->atom->rmass, nullptr);
+    ASSERT_NE(lmp->atom->ellipsoid, nullptr);
     ASSERT_EQ(lmp->atom->mass_setflag, nullptr);
 
     if (!verbose) ::testing::internal::CaptureStdout();

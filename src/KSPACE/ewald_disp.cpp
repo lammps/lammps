@@ -139,14 +139,16 @@ void EwaldDisp::init()
       nsums += n[k];
     }
 
-  if (!gewaldflag) g_ewald = g_ewald_6 = 1.0;
+  if (!gewaldflag) g_ewald = 1.0;
+  if (!gewaldflag_6) g_ewald_6 = 1.0;
   pair->init();  // so B is defined
   init_coeffs();
   init_coeff_sums();
   if (function[0]) qsum_qsq();
   else qsqsum = qsum = 0.0;
   natoms_original = atom->natoms;
-  if (!gewaldflag) g_ewald = g_ewald_6 = 0.0;
+  if (!gewaldflag) g_ewald = 0.0;
+  if (!gewaldflag_6) g_ewald_6 = 0.0;
 
   // turn off coulombic if no charge
 
@@ -231,7 +233,9 @@ void EwaldDisp::init()
     utils::logmesg(lmp,fmt::format("  G vector = {:.8g},   accuracy = {:.8g}\n",
                                    g_ewald,accuracy));
 
-  g_ewald_6 = g_ewald;
+  // apply coulomb g_ewald to dispersion unless it is explicitly set
+
+  if (!gewaldflag_6) g_ewald_6 = g_ewald;
   deallocate_peratom();
   peratom_allocate_flag = 0;
 }
@@ -507,6 +511,7 @@ void EwaldDisp::init_coeffs()
   if (function[2]) {                                        // arithmetic 1/r^6
     double **epsilon = (double **) force->pair->extract("epsilon",tmp);
     double **sigma = (double **) force->pair->extract("sigma",tmp);
+    delete [] B;
     double eps_i, sigma_i, sigma_n, *bi = B = new double[7*n+7];
     double c[7] = {
       1.0, sqrt(6.0), sqrt(15.0), sqrt(20.0), sqrt(15.0), sqrt(6.0), 1.0};

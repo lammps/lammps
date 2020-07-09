@@ -38,19 +38,27 @@ ComputeFragmentAtom::ComputeFragmentAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   fragmentID(NULL)
 {
-  singleflag = 0;
-
-  if ((narg < 3) || (narg > 4))
-    error->all(FLERR,"Illegal compute fragment/atom command");
-  if ((narg == 4) && (strcmp(arg[3],"singlezero") == 0))
-    singleflag = 1;
-
   if (atom->avec->bonds_allow == 0)
     error->all(FLERR,"Compute fragment/atom used when bonds are not allowed");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
   comm_forward = 1;
+
+  // process optional args
+
+  singleflag = 0;
+  
+  int iarg = 3;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"single") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute fragment/atom command");
+      if (strcmp(arg[iarg+1],"yes") == 0) singleflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) singleflag = 0;
+      else error->all(FLERR,"Illegal compute fragment/atom command");
+      iarg += 2;
+    } else error->all(FLERR,"Illegal compute fragment/atom command");
+  }
 
   nmax = 0;
   stack = NULL;
@@ -119,7 +127,6 @@ void ComputeFragmentAtom::compute_peratom()
 
   // owned + ghost atoms start with fragmentID = atomID
   // atoms not in group have fragmentID = 0
-  // if singleflag is set atoms without bonds have fragmentID 0 as well.
 
   tagint *tag = atom->tag;
   int *mask = atom->mask;
@@ -137,6 +144,7 @@ void ComputeFragmentAtom::compute_peratom()
   // acquire fragmentIDs of ghost atoms
   // loop over clusters of atoms, which include ghost atoms
   // set fragmentIDs for each cluster to min framentID in the clusters
+  // if singleflag = 0 atoms without bonds are assigned fragmentID = 0
   // iterate until no changes to ghost atom fragmentIDs
 
   commflag = 1;
@@ -159,17 +167,15 @@ void ComputeFragmentAtom::compute_peratom()
     for (i = 0; i < nlocal; i++) {
 
       // skip atom I if not in group or already marked
-      // also skip and set fragment ID to zero if singleflag is set
-      // and the atom is an isolated atom without bonds
+      // if singleflag = 0 and atom has no bond partners, fragID = 0 and done
       
       if (!(mask[i] & groupbit)) continue;
       if (markflag[i]) continue;
-      if (singleflag && (nspecial[i][0] == 0)) {
-        fragmentID[i] = 0;
-        markflag[i] = 1;
-        continue;
+      if (!singleflag && (nspecial[i][0] == 0)) {
+	fragmentID[i] = 0.0;
+	continue;
       }
-
+      
       // find one cluster of bond-connected atoms
       // ncluster = # of owned and ghost atoms in cluster
       // clist = vector of local indices of the ncluster atoms

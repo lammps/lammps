@@ -25,7 +25,6 @@
 #include "modify.h"
 #include "compute_fragment_atom.h"
 #include "compute_chunk_atom.h"
-#include "compute_reduce.h"
 #include "utils.h"
 #include "error.h"
 #include "fmt/format.h"
@@ -54,23 +53,29 @@ void ResetMolIDs::command(int narg, char **arg)
   if (igroup == -1) error->all(FLERR,"Could not find reset_mol_ids group ID");
   int groupbit = group->bitmask[igroup];
 
-  tagint offset = -1;
+  int compressflag = 0;
   int singleflag = 0;
+  tagint offset = -1;
 
   int iarg = 1;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"offset") == 0) {
+    if (strcmp(arg[iarg],"compress") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal reset_mol_ids command");
-      if (strcmp(arg[iarg+1],"auto") == 0) {
-        offset = -1;
-      } else {
-        offset = utils::tnumeric(FLERR,arg[iarg+1],1,lmp);
-        if (offset < 0) error->all(FLERR,"Illegal reset_mol_ids command");
-      }
+      if (strcmp(arg[iarg+1],"yes") == 0) compressflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) compressflag = 0;
+      else error->all(FLERR,"Illegal reset_mol_ids command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"singlezero") == 0) {
-      singleflag = 1;
-      ++iarg;
+    } else if (strcmp(arg[iarg],"single") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal reset_mol_ids command");
+      if (strcmp(arg[iarg+1],"yes") == 0) singleflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) singleflag = 0;
+      else error->all(FLERR,"Illegal reset_mol_ids command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"offset") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal reset_mol_ids command");
+      offset = utils::tnumeric(FLERR,arg[iarg+1],1,lmp);
+      if (offset < -1) error->all(FLERR,"Illegal reset_mol_ids command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal reset_mol_ids command");
   }
 
@@ -86,17 +91,14 @@ void ResetMolIDs::command(int narg, char **arg)
 
   const std::string idfrag = "reset_mol_ids_FRAGMENT_ATOM";
   if (singleflag)
-    modify->add_compute(fmt::format("{} {} fragment/atom singlezero",idfrag,arg[0]));
+    modify->add_compute(fmt::format("{} {} fragment/atom single yes",idfrag,arg[0]));
   else
-    modify->add_compute(fmt::format("{} {} fragment/atom",idfrag,arg[0]));
-
-  const std::string idmin = "reset_mol_ids_COMPUTE_MINFRAG";
-  if (singleflag)
-    modify->add_compute(fmt::format("{} {} reduce min c_{}",idmin,arg[0],idfrag));
+    modify->add_compute(fmt::format("{} {} fragment/atom single no",idfrag,arg[0]));
 
   const std::string idchunk = "reset_mol_ids_CHUNK_ATOM";
-  modify->add_compute(fmt::format("{} {} chunk/atom molecule compress yes",
-                                  idchunk,arg[0]));
+  if (compressflag)
+    modify->add_compute(fmt::format("{} {} chunk/atom molecule compress yes",
+				    idchunk,arg[0]));
 
   // initialize system since comm->borders() will be invoked
 
@@ -116,24 +118,17 @@ void ResetMolIDs::command(int narg, char **arg)
 
   // invoke peratom method of compute fragment/atom
   // walks bond connectivity and assigns each atom a fragment ID
-
+  // if singleflag = 0, atoms w/out bonds will be assigned fragID = 0
+  
   int icompute = modify->find_compute(idfrag);
   ComputeFragmentAtom *cfa = (ComputeFragmentAtom *) modify->compute[icompute];
   cfa->compute_peratom();
-  double *ids = cfa->vector_atom;
+  double *fragIDs = cfa->vector_atom;
 
-  // when the lowest fragment ID is 0, in case the singlezero option is used
-  // we need to remove adjust the chunk ID, so that the resuling molecule ID is correct.
-
-  int adjid = 0;
-  if (singleflag) {
-    icompute = modify->find_compute(idmin);
-    ComputeReduce *crd = (ComputeReduce *) modify->compute[icompute];
-    if (crd->compute_scalar() == 0.0) adjid = 1;
-  }
-
-  // copy fragmentID to molecule ID
-  // only for atoms in the group
+  for (int i = 0; i < atom->nlocal; i++)
+    printf("FragID %d %g\n",atom->tag[i],fragIDs[i]);
+  
+  // copy fragID to molecule ID for atoms in group
 
   tagint *molecule = atom->molecule;
   int *mask = atom->mask;
@@ -141,58 +136,84 @@ void ResetMolIDs::command(int narg, char **arg)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
-      molecule[i] = static_cast<tagint> (ids[i]);
+      molecule[i] = static_cast<tagint> (fragIDs[i]);
 
-  // invoke peratom method of compute chunk/atom
-  // compress new molecule IDs to be contiguous 1 to Nmol
-  // NOTE: use of compute chunk/atom limits # of molecules to a 32-bit int
+  // if compressflag = 0, done
+  // set nchunk = -1 since cannot easily determine # of new molecule IDs
 
-  icompute = modify->find_compute(idchunk);
-  ComputeChunkAtom *cca = (ComputeChunkAtom *) modify->compute[icompute];
-  cca->compute_peratom();
-  ids = cca->vector_atom;
-  int nchunk = cca->nchunk;
+  int nchunk = -1;
+  
+  // if compressflag = 1, invoke peratom method of compute chunk/atom
+  // will compress new molecule IDs to be contiguous 1 to Nmol
+  // NOTE: use of compute chunk/atom limits Nmol to a 32-bit int
 
-  // if offset = -1 (i.e. "auto") and group != all,
-  // reset offset to largest molID of non-group atoms
-  // otherwise set to 0.
+  if (compressflag) {
+    icompute = modify->find_compute(idchunk);
+    ComputeChunkAtom *cca = (ComputeChunkAtom *) modify->compute[icompute];
+    cca->compute_peratom();
+    double *chunkIDs = cca->vector_atom;
+    nchunk = cca->nchunk;
+    
+    for (int i = 0; i < atom->nlocal; i++)
+      printf("ChunkID %d %g\n",atom->tag[i],chunkIDs[i]);
 
-  if (offset == -1) {
-    if (groupbit != 1) {
-    tagint mymol = 0;
-    for (int i = 0; i < nlocal; i++)
-      if (!(mask[i] & groupbit))
-        mymol = MAX(mymol,molecule[i]);
-    MPI_Allreduce(&mymol,&offset,1,MPI_LMP_TAGINT,MPI_MAX,world);
-    } else offset = 0;
-  }
+    // if singleflag = 0, check if any single (no-bond) atoms exist
+    // if so, they have fragID = 0, and compression just set their chunkID = 1
+    // singleexist = 0/1 if no/yes single atoms exist with chunkID = 1
+    
+    int singleexist = 0;
+    if (!singleflag) {
+      int mysingle = 0;
+      for (int i = 0; i < nlocal; i++)
+	if (mask[i] & groupbit)
+	  if (fragIDs[i] == 0.0) mysingle = 1;
+      MPI_Allreduce(&mysingle,&singleexist,1,MPI_INT,MPI_MAX,world);
+      if (singleexist) nchunk--;
+    }
 
-  // copy chunkID to molecule ID + offset
-  // only for atoms in the group
+    // if offset < 0 (default), reset it
+    // if group = all, offset = 0
+    // else offset = largest molID of non-group atoms
+    
+    if (offset < 0) {
+      if (groupbit != 1) {
+	tagint mymol = 0;
+	for (int i = 0; i < nlocal; i++)
+	  if (!(mask[i] & groupbit))
+	    mymol = MAX(mymol,molecule[i]);
+	MPI_Allreduce(&mymol,&offset,1,MPI_LMP_TAGINT,MPI_MAX,world);
+      } else offset = 0;
+    }
 
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      tagint newid =  static_cast<tagint>(ids[i]);
-      if (singleflag && adjid) {
-        if (newid == 1) newid = 0;
-        else newid += offset - 1;
-        molecule[i] = newid;
-      } else molecule[i] = newid + offset;
+    // reset molecule ID for all atoms in group
+    // newID = chunkID + offset
+    
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+	tagint newid =  static_cast<tagint>(chunkIDs[i]);
+	if (singleexist) {
+	  if (newid == 1) newid = 0;
+	  else newid += offset - 1;
+	} else newid += offset;
+	molecule[i] = newid;
+      }
     }
   }
-
+  
   // clean up
 
-  modify->delete_compute(idchunk);
   modify->delete_compute(idfrag);
-  if (singleflag) modify->delete_compute(idmin);
+  if (compressflag) modify->delete_compute(idchunk);
 
   // total time
 
   MPI_Barrier(world);
 
   if (comm->me == 0) {
-    utils::logmesg(lmp,fmt::format("  number of new molecule IDs = {}\n",nchunk));
+    if (nchunk < 0)
+      utils::logmesg(lmp,fmt::format("  number of new molecule IDs = unknown\n"));
+    else
+      utils::logmesg(lmp,fmt::format("  number of new molecule IDs = {}\n",nchunk));
     utils::logmesg(lmp,fmt::format("  reset_mol_ids CPU = {:.3f} seconds\n",
                                    MPI_Wtime()-time1));
   }

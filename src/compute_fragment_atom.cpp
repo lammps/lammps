@@ -48,7 +48,7 @@ ComputeFragmentAtom::ComputeFragmentAtom(LAMMPS *lmp, int narg, char **arg) :
   // process optional args
 
   singleflag = 0;
-  
+
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"single") == 0) {
@@ -134,7 +134,7 @@ void ComputeFragmentAtom::compute_peratom()
   int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
-  
+
   for (i = 0; i < nall; i++) {
     if (mask[i] & groupbit) fragmentID[i] = tag[i];
     else fragmentID[i] = 0;
@@ -150,7 +150,7 @@ void ComputeFragmentAtom::compute_peratom()
   commflag = 1;
 
   int iteration = 0;
-  
+
   while (1) {
     iteration++;
 
@@ -163,24 +163,24 @@ void ComputeFragmentAtom::compute_peratom()
 
     // loop over all owned atoms
     // each unmarked atom starts a cluster search
-    
+
     for (i = 0; i < nlocal; i++) {
 
       // skip atom I if not in group or already marked
       // if singleflag = 0 and atom has no bond partners, fragID = 0 and done
-      
+
       if (!(mask[i] & groupbit)) continue;
       if (markflag[i]) continue;
       if (!singleflag && (nspecial[i][0] == 0)) {
-	fragmentID[i] = 0.0;
-	continue;
+        fragmentID[i] = 0.0;
+        continue;
       }
-      
+
       // find one cluster of bond-connected atoms
       // ncluster = # of owned and ghost atoms in cluster
       // clist = vector of local indices of the ncluster atoms
       // stack is used to walk the bond topology
-      
+
       ncluster = nstack = 0;
       stack[nstack++] = i;
 
@@ -218,14 +218,14 @@ void ComputeFragmentAtom::compute_peratom()
 
       // set fragmentID = newID for all atoms in cluster, including ghost atoms
       // not done with iterations if change the fragmentID of a ghost atom
-      
+
       for (m = 0; m < ncluster; m++) {
         j = clist[m];
         if (j >= nlocal && fragmentID[j] != newID) done = 0;
         fragmentID[j] = newID;
       }
     }
-      
+
     // stop if all procs are done
 
     MPI_Allreduce(&done,&alldone,1,MPI_INT,MPI_MIN,world);

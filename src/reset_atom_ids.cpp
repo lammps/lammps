@@ -406,8 +406,8 @@ void ResetIDs::sort()
 
   char *buf;
   int nreturn = comm->rendezvous(1,nlocal,(char *) atombuf,sizeof(AtomRvous),
-				 0,proclist,
-				 sort_bins,0,buf,sizeof(IDRvous),(void *) this);
+                                 0,proclist,
+                                 sort_bins,0,buf,sizeof(IDRvous),(void *) this);
   IDRvous *outbuf = (IDRvous *) buf;
 
   memory->destroy(proclist);
@@ -432,8 +432,8 @@ void ResetIDs::sort()
 ------------------------------------------------------------------------- */
 
 int ResetIDs::sort_bins(int n, char *inbuf,
-			int &flag, int *&proclist, char *&outbuf,
-			void *ptr)
+                        int &flag, int *&proclist, char *&outbuf,
+                        void *ptr)
 {
   int i,ibin,index;
 
@@ -467,7 +467,7 @@ int ResetIDs::sort_bins(int n, char *inbuf,
   for (i = 0; i < n; i++) {
     if (in[i].ibin < binlo || in[i].ibin >= binhi) {
       //printf("BAD me %d i %d %d ibin %d binlohi %d %d\n",
-      //	     rptr->comm->me,i,n,in[i].ibin,binlo,binhi);
+      //             rptr->comm->me,i,n,in[i].ibin,binlo,binhi);
       error->one(FLERR,"Bad spatial bin assignment in reset_atom_ids sort");
     }
     ibin = in[i].ibin - binlo;

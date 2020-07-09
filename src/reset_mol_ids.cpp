@@ -98,7 +98,7 @@ void ResetMolIDs::command(int narg, char **arg)
   const std::string idchunk = "reset_mol_ids_CHUNK_ATOM";
   if (compressflag)
     modify->add_compute(fmt::format("{} {} chunk/atom molecule compress yes",
-				    idchunk,arg[0]));
+                                    idchunk,arg[0]));
 
   // initialize system since comm->borders() will be invoked
 
@@ -119,7 +119,7 @@ void ResetMolIDs::command(int narg, char **arg)
   // invoke peratom method of compute fragment/atom
   // walks bond connectivity and assigns each atom a fragment ID
   // if singleflag = 0, atoms w/out bonds will be assigned fragID = 0
-  
+
   int icompute = modify->find_compute(idfrag);
   ComputeFragmentAtom *cfa = (ComputeFragmentAtom *) modify->compute[icompute];
   cfa->compute_peratom();
@@ -127,7 +127,7 @@ void ResetMolIDs::command(int narg, char **arg)
 
   for (int i = 0; i < atom->nlocal; i++)
     printf("FragID %d %g\n",atom->tag[i],fragIDs[i]);
-  
+
   // copy fragID to molecule ID for atoms in group
 
   tagint *molecule = atom->molecule;
@@ -142,7 +142,7 @@ void ResetMolIDs::command(int narg, char **arg)
   // set nchunk = -1 since cannot easily determine # of new molecule IDs
 
   int nchunk = -1;
-  
+
   // if compressflag = 1, invoke peratom method of compute chunk/atom
   // will compress new molecule IDs to be contiguous 1 to Nmol
   // NOTE: use of compute chunk/atom limits Nmol to a 32-bit int
@@ -153,20 +153,20 @@ void ResetMolIDs::command(int narg, char **arg)
     cca->compute_peratom();
     double *chunkIDs = cca->vector_atom;
     nchunk = cca->nchunk;
-    
+
     for (int i = 0; i < atom->nlocal; i++)
       printf("ChunkID %d %g\n",atom->tag[i],chunkIDs[i]);
 
     // if singleflag = 0, check if any single (no-bond) atoms exist
     // if so, they have fragID = 0, and compression just set their chunkID = 1
     // singleexist = 0/1 if no/yes single atoms exist with chunkID = 1
-    
+
     int singleexist = 0;
     if (!singleflag) {
       int mysingle = 0;
       for (int i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit)
-	  if (fragIDs[i] == 0.0) mysingle = 1;
+        if (mask[i] & groupbit)
+          if (fragIDs[i] == 0.0) mysingle = 1;
       MPI_Allreduce(&mysingle,&singleexist,1,MPI_INT,MPI_MAX,world);
       if (singleexist) nchunk--;
     }
@@ -174,32 +174,32 @@ void ResetMolIDs::command(int narg, char **arg)
     // if offset < 0 (default), reset it
     // if group = all, offset = 0
     // else offset = largest molID of non-group atoms
-    
+
     if (offset < 0) {
       if (groupbit != 1) {
-	tagint mymol = 0;
-	for (int i = 0; i < nlocal; i++)
-	  if (!(mask[i] & groupbit))
-	    mymol = MAX(mymol,molecule[i]);
-	MPI_Allreduce(&mymol,&offset,1,MPI_LMP_TAGINT,MPI_MAX,world);
+        tagint mymol = 0;
+        for (int i = 0; i < nlocal; i++)
+          if (!(mask[i] & groupbit))
+            mymol = MAX(mymol,molecule[i]);
+        MPI_Allreduce(&mymol,&offset,1,MPI_LMP_TAGINT,MPI_MAX,world);
       } else offset = 0;
     }
 
     // reset molecule ID for all atoms in group
     // newID = chunkID + offset
-    
+
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	tagint newid =  static_cast<tagint>(chunkIDs[i]);
-	if (singleexist) {
-	  if (newid == 1) newid = 0;
-	  else newid += offset - 1;
-	} else newid += offset;
-	molecule[i] = newid;
+        tagint newid =  static_cast<tagint>(chunkIDs[i]);
+        if (singleexist) {
+          if (newid == 1) newid = 0;
+          else newid += offset - 1;
+        } else newid += offset;
+        molecule[i] = newid;
       }
     }
   }
-  
+
   // clean up
 
   modify->delete_compute(idfrag);

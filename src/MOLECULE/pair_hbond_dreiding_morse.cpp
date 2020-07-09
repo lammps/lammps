@@ -273,6 +273,11 @@ void PairHbondDreidingMorse::coeff(int narg, char **arg)
     maxparam += CHUNK;
     params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
                                         "pair:params");
+
+    // make certain all addional allocated storage is initialized
+    // to avoid false positives when checking with valgrind
+
+    memset(params + nparams, 0, CHUNK*sizeof(Param));
   }
 
   params[nparams].d0 = d0_one;

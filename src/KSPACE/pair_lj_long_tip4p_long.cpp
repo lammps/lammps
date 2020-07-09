@@ -1531,6 +1531,7 @@ void PairLJLongTIP4PLong::write_restart_settings(FILE *fp)
   fwrite(&mix_flag,sizeof(int),1,fp);
   fwrite(&ncoultablebits,sizeof(int),1,fp);
   fwrite(&tabinner,sizeof(double),1,fp);
+  fwrite(&ewald_order,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1552,6 +1553,7 @@ void PairLJLongTIP4PLong::read_restart_settings(FILE *fp)
     utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
     utils::sfread(FLERR,&ncoultablebits,sizeof(int),1,fp,NULL,error);
     utils::sfread(FLERR,&tabinner,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&ewald_order,sizeof(int),1,fp,NULL,error);
   }
 
   MPI_Bcast(&typeO,1,MPI_INT,0,world);
@@ -1566,6 +1568,7 @@ void PairLJLongTIP4PLong::read_restart_settings(FILE *fp)
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
   MPI_Bcast(&ncoultablebits,1,MPI_INT,0,world);
   MPI_Bcast(&tabinner,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&ewald_order,1,MPI_INT,0,world);
 }
 
 /* ----------------------------------------------------------------------

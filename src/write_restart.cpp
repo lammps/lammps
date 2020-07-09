@@ -504,6 +504,11 @@ void WriteRestart::header()
   write_int(EXTRA_IMPROPER_PER_ATOM,atom->extra_improper_per_atom);
   write_int(ATOM_MAXSPECIAL,atom->maxspecial);
 
+  write_bigint(NELLIPSOIDS,atom->nellipsoids);
+  write_bigint(NLINES,atom->nlines);
+  write_bigint(NTRIS,atom->ntris);
+  write_bigint(NBODIES,atom->nbodies);
+
   // -1 flag signals end of header
 
   int flag = -1;

@@ -61,7 +61,7 @@ AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp) : AtomVec(lmp)
   fields_border = (char *) "rmass";
   fields_border_vel = (char *) "rmass angmom";
   fields_exchange = (char *) "rmass angmom";
-  fields_restart = (char *) "rmass angmom ellipsoid";
+  fields_restart = (char *) "rmass angmom";
   fields_create = (char *) "rmass angmom ellipsoid";
   fields_data_atom = (char *) "id type ellipsoid rmass x";
   fields_data_vel = (char *) "id v angmom";

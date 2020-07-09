@@ -1286,17 +1286,12 @@ void PairSWIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       }
       #endif
 
-      _memory->destroy(op2);
-      _memory->destroy(op2f);
-      _memory->destroy(op2f2);
-      _memory->destroy(op2e);
-      _memory->destroy(op3);
+      memory->destroy(p2);
+      memory->destroy(p2f);
+      memory->destroy(p2f2);
+      memory->destroy(p2e);
+      memory->destroy(p3);
     }
-    memory->destroy(p2);
-    memory->destroy(p2f);
-    memory->destroy(p2f2);
-    memory->destroy(p2e);
-    memory->destroy(p3);
     if (ntypes > 0) {
       _cop = cop;
       memory->create(p2,ntypes,ntypes,"fc.p2");

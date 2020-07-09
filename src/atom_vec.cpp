@@ -2495,9 +2495,10 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
   Atom::PerAtom *peratom = atom->peratom;
   int nperatom = atom->nperatom;
 
-  int *index = new int[nfield];
+  int *index;
   int match;
 
+  if (nfield) index = new int[nfield];
   for (int i = 0; i < nfield; i++) {
     const char * field = words[i].c_str();
 
@@ -2522,7 +2523,8 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
         error->all(FLERR,fmt::format("Peratom field {} is a default", field));
   }
 
-  method->index = index;
+  if (nfield) method->index = index;
+  else method->index = nullptr;
   return nfield;
 }
 

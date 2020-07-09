@@ -188,6 +188,11 @@ void Replicate::command(int narg, char **arg)
   atom->ndihedrals = old->ndihedrals * nrep;
   atom->nimpropers = old->nimpropers * nrep;
 
+  atom->nellipsoids = old->nellipsoids * nrep;
+  atom->nlines = old->nlines * nrep;
+  atom->ntris = old->ntris * nrep;
+  atom->nbodies = old->nbodies * nrep;
+
   atom->ntypes = old->ntypes;
   atom->nbondtypes = old->nbondtypes;
   atom->nangletypes = old->nangletypes;

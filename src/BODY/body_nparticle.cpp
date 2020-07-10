@@ -221,7 +221,7 @@ int BodyNparticle::pack_data_body(tagint atomID, int ibonus, double *buf)
     buf[m++] = ubuf(1).d;
     buf[m++] = ubuf(6 + 3*nsub).d;
 
-    // single integer Nsub
+    // single integer nsub
 
     buf[m++] = ubuf(nsub).d;
 
@@ -238,7 +238,7 @@ int BodyNparticle::pack_data_body(tagint atomID, int ibonus, double *buf)
     buf[m++] = ispace[0][2];
     buf[m++] = ispace[1][2];
 
-    // 3*Nsub particle coords = displacement from COM in box frame
+    // 3*nsub particle coords = displacement from COM in box frame
 
     for (int i = 0; i < nsub; i++) {
       MathExtra::matvec(p,&dvalue[3*i],values);
@@ -273,6 +273,8 @@ int BodyNparticle::write_data_body(FILE *fp, double *buf)
   fmt::print(fp,"{} {} {} {} {} {}\n",
              buf[m+0],buf[m+1],buf[m+2],buf[m+3],buf[m+4],buf[m+5]);
   m += 6;
+
+  // nsub vertices
 
   for (int i = 0; i < nsub; i++, m+=3)
     fmt::print(fp,"{} {} {}\n",buf[m],buf[m+1],buf[m+2]);

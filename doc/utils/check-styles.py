@@ -60,7 +60,7 @@ kokkos = re.compile("(.+)/kk$")
 kokkos_skip = re.compile("(.+)/kk/(host|device)$")
 omp = re.compile("(.+)/omp$")
 opt = re.compile("(.+)/opt$")
-removed = re.compile("(.+)Deprecated$")
+removed = re.compile("(.*)Deprecated$")
 
 def register_style(list,style,info):
     if style in list.keys():

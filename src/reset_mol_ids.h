@@ -13,21 +13,20 @@
 
 #ifdef COMMAND_CLASS
 
-CommandStyle(DEPRECATED,Deprecated)
-CommandStyle(reset_ids,Deprecated)
+CommandStyle(reset_mol_ids,ResetMolIDs)
 
 #else
 
-#ifndef LMP_DEPRECATED_H
-#define LMP_DEPRECATED_H
+#ifndef LMP_RESET_MOL_IDS_H
+#define LMP_RESET_MOL_IDS_H
 
 #include "pointers.h"
 
 namespace LAMMPS_NS {
 
-class Deprecated : protected Pointers {
+class ResetMolIDs : protected Pointers {
  public:
-  Deprecated(class LAMMPS *lmp) : Pointers(lmp) {};
+  ResetMolIDs(class LAMMPS *);
   void command(int, char **);
 };
 
@@ -38,33 +37,24 @@ class Deprecated : protected Pointers {
 
 /* ERROR/WARNING messages:
 
-W: Ignoring unknown or incorrect info command flag
+E: Reset_mol_ids command before simulation box is defined
 
-Self-explanatory.  An unknown argument was given to the info command.
-Compare your input with the documentation.
+UNDOCUMENTED
 
-E: Unknown name for info package category
+E: Can only use reset_mol_ids on molecular systems
 
-Self-explanatory.
+UNDOCUMENTED
 
-E: Unknown name for info newton category
+E: Illegal ... command
 
-Self-explanatory.
+UNDOCUMENTED
 
-E: Unknown name for info pair category
+E: Cannot use reset_mol_ids unless molecules have IDs
 
-Self-explanatory.
+UNDOCUMENTED
 
-E: Unknown category for info is_active()
+E: Reset_mol_ids missing %d bond topology atom IDs - use comm_modify cutoff
 
-Self-explanatory.
-
-E: Unknown category for info is_available()
-
-Self-explanatory.
-
-E: Unknown category for info is_defined()
-
-Self-explanatory.
+UNDOCUMENTED
 
 */

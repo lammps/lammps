@@ -423,7 +423,7 @@ TEST_F(AtomStyleTest, atomic)
     ASSERT_EQ(lmp->atom->map_user, 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 3);
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_ids");
+    lmp->input->one("reset_atom_ids");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->atom->map_tag_max, 2);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
@@ -810,7 +810,7 @@ TEST_F(AtomStyleTest, charge)
     ASSERT_EQ(lmp->atom->mass_setflag[2], 1);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_ids");
+    lmp->input->one("reset_atom_ids");
     lmp->input->one("replicate 2 2 2");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->atom->map_tag_max, 16);
@@ -1137,7 +1137,7 @@ TEST_F(AtomStyleTest, sphere)
     EXPECT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
     lmp->input->one("read_restart test_atom_styles.restart");
     lmp->input->one("replicate 1 1 2");
-    lmp->input->one("reset_ids");
+    lmp->input->one("reset_atom_ids");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("sphere"));
     ASSERT_NE(lmp->atom->avec, nullptr);

@@ -227,7 +227,7 @@ void Input::file()
 
     // execute the command
 
-    if (execute_command())
+    if (execute_command() && line)
       error->all(FLERR,fmt::format("Unknown command: {}",line));
   }
 }

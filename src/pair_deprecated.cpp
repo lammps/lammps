@@ -50,6 +50,5 @@ void PairDeprecated::settings(int, char **)
       utils::logmesg(lmp,"\nPair style 'reax' has been removed from LAMMPS "
                      "after the 12 December 2018 version\n\n");
   }
-
-  lmp->error->all(FLERR,"This pair style is no longer available");
+  error->all(FLERR,"This pair style is no longer available");
 }

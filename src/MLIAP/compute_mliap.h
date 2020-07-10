@@ -21,6 +21,7 @@ ComputeStyle(mliap,ComputeMLIAP)
 #define LMP_COMPUTE_MLIAP_H
 
 #include "compute.h"
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -31,7 +32,8 @@ class ComputeMLIAP : public Compute {
   void init();
   void init_list(int, class NeighList *);
   void compute_array();
-  void compute_array_alt();
+  void generate_neigharrays();
+  void grow_neigharrays();
   double memory_usage();
 
  private:
@@ -49,28 +51,33 @@ class ComputeMLIAP : public Compute {
   int nparams;                 // number of model parameters per element
   int gamma_nnz;               // number of non-zero entries in gamma
   double** gamma;              // gamma element
+
+  // data structures for grad-grad list (gamma)
+
+  int natomgamma_max;           // allocated size of atom neighbor arrays
   int** gamma_row_index;       // row (parameter) index 
   int** gamma_col_index;       // column (descriptor) index 
   double* egradient;           // energy gradient w.r.t. parameters
 
-  // data structures for descriptor neighbor list
-  // this is for neighbors strictly inside deescriptor cutoff
+  // data structures for mliap neighbor list
+  // only neighbors strictly inside descriptor cutoff
 
-  int numlistdesc_max;         // number of atoms allocated in neighlist
-  int *numneighdesc;           // numbers of neighbors for descriptors
-  int *iatomdesc;              // list of descriptor atoms
-  int *ielemdesc;              // list of descriptor elements
-  int nneighdesc_max;          // number of ij neighbors allocated in graddesc
-  int *jatomdesc;              // list of descriptor neighbor atoms
-  int *jelemdesc;              // list of descriptor neighbor elements
-  int *neighdesc;              // list of descriptor neighbors
-  double ***graddesc;          // gradient of descriptors w.r.t. rij
+  int natomdesc_max;           // allocated size of descriptor array
+  int natomneigh_max;           // allocated size of atom neighbor arrays
+  int *numneighmliap;           // neighbors count for each atom
+  int *iatommliap;              // index of each atom
+  int *ielemmliap;              // element of each atom
+  int nneigh_max;               // number of ij neighbors allocated
+  int *jatommliap;              // index of each neighbor
+  int *jelemmliap;              // element of each neighbor
+  double ***graddesc;           // descriptor gradient w.r.t. each neighbor
 
   class MLIAPModel* model;
   class MLIAPDescriptor* descriptor;
 
   Compute *c_pe;
   Compute *c_virial;
+  std::string id_virial;
 
   void dbdotr_compute();
 };

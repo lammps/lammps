@@ -38,8 +38,8 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
   gradforce(NULL), mliapall(NULL), map(NULL), 
   descriptors(NULL), gamma_row_index(NULL), gamma_col_index(NULL),
   gamma(NULL), egradient(NULL), model(NULL), descriptor(NULL),
-  iatomdesc(NULL), ielemdesc(NULL), numneighdesc(NULL),  
-  jatomdesc(NULL), jelemdesc(NULL), graddesc(NULL)
+  iatommliap(NULL), ielemmliap(NULL), numneighmliap(NULL),  
+  jatommliap(NULL), jelemmliap(NULL), graddesc(NULL)
 {
   array_flag = 1;
   extarray = 0;
@@ -114,8 +114,10 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
   size_gradforce = ndims_force*nparams*nelements;
 
   nmax = 0;
-  numlistdesc_max = 0;
-  nneighdesc_max = 0;
+  natomdesc_max = 0;
+  natomgamma_max = 0;
+  natomneigh_max = 0;
+  nneigh_max = 0;
 
   // create a minimal map, placeholder for more general map
 
@@ -130,6 +132,9 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeMLIAP::~ComputeMLIAP()
 {
+
+  modify->delete_compute(id_virial);
+
   memory->destroy(mliap);
   memory->destroy(mliapall);
   memory->destroy(gradforce);
@@ -141,13 +146,13 @@ ComputeMLIAP::~ComputeMLIAP()
   memory->destroy(gamma_col_index);
   memory->destroy(gamma);
   memory->destroy(egradient);
-
-  memory->destroy(iatomdesc);
-  memory->destroy(ielemdesc);
-  memory->destroy(numneighdesc);
-  memory->destroy(jatomdesc);
-  memory->destroy(jelemdesc);
   memory->destroy(graddesc);
+
+  memory->destroy(iatommliap);
+  memory->destroy(ielemmliap);
+  memory->destroy(numneighmliap);
+  memory->destroy(jatommliap);
+  memory->destroy(jelemmliap);
 
   delete model;
   delete descriptor;
@@ -212,7 +217,7 @@ void ComputeMLIAP::init()
 
   // add compute for reference virial tensor
 
-  std::string id_virial = std::string("mliap_press");
+  id_virial = id + std::string("_press");
   std::string pcmd = id_virial + " all pressure NULL virial";
   modify->add_compute(pcmd);
 
@@ -236,10 +241,9 @@ void ComputeMLIAP::init_list(int /*id*/, NeighList *ptr)
 void ComputeMLIAP::compute_array()
 {
   int ntotal = atom->nlocal + atom->nghost;
-
   invoked_array = update->ntimestep;
 
-  // grow gradforce array if necessary
+  // grow nmax gradforce array if necessary
 
   if (atom->nmax > nmax) {
     memory->destroy(gradforce);
@@ -265,136 +269,57 @@ void ComputeMLIAP::compute_array()
 
   neighbor->build_one(list);
 
-  const int numlistdesc = list->inum;
-  if (numlistdesc_max < numlistdesc) {
-    memory->grow(descriptors,numlistdesc,ndescriptors,"ComputeMLIAP:descriptors");
-    memory->grow(gamma_row_index,numlistdesc,gamma_nnz,"ComputeMLIAP:gamma_row_index");
-    memory->grow(gamma_col_index,numlistdesc,gamma_nnz,"ComputeMLIAP:gamma_col_index");
-    memory->grow(gamma,numlistdesc,gamma_nnz,"ComputeMLIAP:gamma");
-    memory->grow(iatomdesc,numlistdesc,"ComputeMLIAP:iatomdesc");
-    memory->grow(ielemdesc,numlistdesc,"ComputeMLIAP:ielemdesc");
-    memory->grow(numneighdesc,numlistdesc,"ComputeMLIAP:numneighdesc");
-    numlistdesc_max = numlistdesc;
+  // grow arrays if necessary
+
+  const int natomdesc = list->inum;
+  if (natomdesc_max < natomdesc) {
+    memory->grow(descriptors,natomdesc,ndescriptors,"ComputeMLIAP:descriptors");
+    natomdesc_max = natomdesc;
   }
 
+  generate_neigharrays();
+    
+  // compute descriptors
+  
+  descriptor->compute_descriptors(natomdesc, iatommliap, ielemmliap, numneighmliap, 
+                                  jatommliap, jelemmliap, descriptors);
+    
   if (gradgradflag) {
 
-    // compute descriptors
+  // grow gamma arrays if necessary
+
+    const int natomgamma = list->inum;
+    if (natomgamma_max < natomgamma) {
+      memory->grow(gamma_row_index,natomgamma,gamma_nnz,"ComputeMLIAP:gamma_row_index");
+      memory->grow(gamma_col_index,natomgamma,gamma_nnz,"ComputeMLIAP:gamma_col_index");
+      memory->grow(gamma,natomgamma,gamma_nnz,"ComputeMLIAP:gamma");
+      natomgamma_max = natomgamma;
+    }
+
+    // calculate double gradient w.r.t. parameters and descriptors
     
-    descriptor->compute_descriptors(map, list, descriptors);
-    
-    // calculate descriptor contributions to parameter gradients
-    // and gamma = double gradient w.r.t. parameters and descriptors
-    
-    // i.e. gamma = d2E/dsigma_l.dB_k
-    // sigma_l is a parameter and B_k is a descriptor of atom i
-    // for SNAP, this is a sparse natoms*nparams*ndescriptors matrix,
-    // but in general it could be fully dense. 
-    
-    model->param_gradient(map, list, descriptors, gamma_row_index, 
+    model->param_gradient(natomdesc, iatommliap, ielemmliap, descriptors, gamma_row_index, 
                           gamma_col_index, gamma, egradient);
-    
     
     // calculate descriptor gradient contributions to parameter gradients
     
-    descriptor->compute_gradients(map, list, gamma_nnz, gamma_row_index, 
+    descriptor->compute_gradients(natomdesc, iatommliap, ielemmliap, numneighmliap, 
+                                  jatommliap, jelemmliap, 
+                                  gamma_nnz, gamma_row_index, 
                                   gamma_col_index, gamma, gradforce,
                                   yoffset, zoffset);
     
   } else {
 
-    double **x = atom->x;
-    int *type = atom->type;
-    
-    int *numneigh = list->numneigh;
-    int **firstneigh = list->firstneigh;
-    
-    int nneighdesc = 0;
-    for (int ii = 0; ii < list->inum; ii++) {
-      const int i = list->ilist[ii];
-      
-      const double xtmp = x[i][0];
-      const double ytmp = x[i][1];
-      const double ztmp = x[i][2];
-      const int itype = type[i];
-      const int ielem = map[itype];
-      
-      int *jlist = firstneigh[i];
-      const int jnum = numneigh[i];
-      
-      int ninside = 0;
-      for (int jj = 0; jj < jnum; jj++) {
-        int j = jlist[jj];
-        j &= NEIGHMASK;
-        const double delx = x[j][0] - xtmp;
-        const double dely = x[j][1] - ytmp;
-        const double delz = x[j][2] - ztmp;
-        const double rsq = delx*delx + dely*dely + delz*delz;
-        int jtype = type[j];
-        const int jelem = map[jtype];
-        
-        if (rsq < descriptor->cutsq[ielem][jelem]) ninside++;
-        
-      }
-      iatomdesc[ii] = i;
-      ielemdesc[ii] = ielem;
-      numneighdesc[ii] = ninside;
-      nneighdesc += ninside;
-    }
-    
-    if (nneighdesc_max < nneighdesc) {
-      memory->grow(jatomdesc,nneighdesc,"ComputeMLIAP:jatomdesc");
-      memory->grow(jelemdesc,nneighdesc,"ComputeMLIAP:jelemdesc");
-      memory->grow(graddesc,nneighdesc,ndescriptors,3,"ComputeMLIAP:graddesc");
-      nneighdesc_max = nneighdesc;
-    }
-    
-    int ij = 0;
-    for (int ii = 0; ii < list->inum; ii++) {
-      const int i = list->ilist[ii];
-      
-      const double xtmp = x[i][0];
-      const double ytmp = x[i][1];
-      const double ztmp = x[i][2];
-      const int itype = type[i];
-      const int ielem = map[itype];
-      
-      int *jlist = firstneigh[i];
-      const int jnum = numneigh[i];
-      
-      int ninside = 0;
-      for (int jj = 0; jj < jnum; jj++) {
-        int j = jlist[jj];
-        j &= NEIGHMASK;
-        const double delx = x[j][0] - xtmp;
-        const double dely = x[j][1] - ytmp;
-        const double delz = x[j][2] - ztmp;
-        const double rsq = delx*delx + dely*dely + delz*delz;
-        int jtype = type[j];
-        const int jelem = map[jtype];
-        
-        if (rsq < descriptor->cutsq[ielem][jelem]) {
-          jatomdesc[ij] = j;
-          jelemdesc[ij] = jelem;
-        ij++;
-        }
-      }
-    }
-    
-    // compute descriptors
-    
-    descriptor->compute_descriptors(map, list, descriptors);
-    
     // calculate descriptor gradients
     
-    //  descriptor->compute_descriptor_gradients(iatomdesc, ielemdesc, numneighdesc, 
-    // jatomdesc, jelemdesc, graddesc, numneighdesc);
-    descriptor->compute_descriptor_gradients(map, list, graddesc, numneighdesc);
-    
+    descriptor->compute_descriptor_gradients(natomdesc, iatommliap, ielemmliap, numneighmliap, 
+                                             jatommliap, jelemmliap, graddesc);
+
     // calculate force gradients w.r.t. parameters
     
-    model->compute_force_gradients(descriptors, numlistdesc, iatomdesc, ielemdesc, 
-                                   numneighdesc, jatomdesc, jelemdesc, graddesc, 
+    model->compute_force_gradients(descriptors, natomdesc, iatommliap, ielemmliap, 
+                                   numneighmliap, jatommliap, jelemmliap, graddesc, 
                                    yoffset, zoffset, gradforce, egradient);
     
   }
@@ -460,6 +385,123 @@ void ComputeMLIAP::compute_array()
   mliapall[irow++][lastcol] = c_virial->vector[4];
   mliapall[irow++][lastcol] = c_virial->vector[3];
 
+}
+
+/* ----------------------------------------------------------------------
+   generate neighbor arrays
+------------------------------------------------------------------------- */
+
+void ComputeMLIAP::generate_neigharrays()
+{
+  double **x = atom->x;
+  int *type = atom->type;
+  
+  int *numneigh = list->numneigh;
+  int **firstneigh = list->firstneigh;
+  
+  grow_neigharrays();
+  
+  int ij = 0;
+  for (int ii = 0; ii < list->inum; ii++) {
+    const int i = list->ilist[ii];
+    
+    const double xtmp = x[i][0];
+    const double ytmp = x[i][1];
+    const double ztmp = x[i][2];
+    const int itype = type[i];
+    const int ielem = map[itype];
+    
+    int *jlist = firstneigh[i];
+    const int jnum = numneigh[i];
+    
+    int ninside = 0;
+    for (int jj = 0; jj < jnum; jj++) {
+      int j = jlist[jj];
+      j &= NEIGHMASK;
+      const double delx = x[j][0] - xtmp;
+      const double dely = x[j][1] - ytmp;
+      const double delz = x[j][2] - ztmp;
+      const double rsq = delx*delx + dely*dely + delz*delz;
+      int jtype = type[j];
+      const int jelem = map[jtype];
+      
+      if (rsq < descriptor->cutsq[ielem][jelem]) {
+        jatommliap[ij] = j;
+        jelemmliap[ij] = jelem;
+        ij++;
+        ninside++;
+      }
+    }
+    iatommliap[ii] = i;
+    ielemmliap[ii] = ielem;
+    numneighmliap[ii] = ninside;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   grow neighbor arrays to handle all neighbors
+------------------------------------------------------------------------- */
+
+void ComputeMLIAP::grow_neigharrays()
+{
+
+  // grow neighbor atom arrays if necessary
+    
+  const int natomneigh = list->inum;
+  if (natomneigh_max < natomneigh) {
+    memory->grow(iatommliap,natomneigh,"ComputeMLIAP:iatommliap");
+    memory->grow(ielemmliap,natomneigh,"ComputeMLIAP:ielemmliap");
+    memory->grow(numneighmliap,natomneigh,"ComputeMLIAP:numneighmliap");
+    natomneigh_max = natomneigh;
+  }
+
+  // grow neighbor arrays if necessary
+
+  int *numneigh = list->numneigh;
+  int **firstneigh = list->firstneigh;
+  
+  int iilast = list->inum-1;
+  int ilast = list->ilist[iilast];
+  int upperbound = firstneigh[ilast] - firstneigh[0] + numneigh[ilast];
+  if (nneigh_max >= upperbound) return;
+
+  double **x = atom->x;
+  int *type = atom->type;
+  
+  int nneigh = 0;
+  for (int ii = 0; ii < list->inum; ii++) {
+    const int i = list->ilist[ii];
+    
+    const double xtmp = x[i][0];
+    const double ytmp = x[i][1];
+    const double ztmp = x[i][2];
+    const int itype = type[i];
+    const int ielem = map[itype];
+    
+    int *jlist = firstneigh[i];
+    const int jnum = numneigh[i];
+    
+    int ninside = 0;
+    for (int jj = 0; jj < jnum; jj++) {
+      int j = jlist[jj];
+      j &= NEIGHMASK;
+      const double delx = x[j][0] - xtmp;
+      const double dely = x[j][1] - ytmp;
+      const double delz = x[j][2] - ztmp;
+      const double rsq = delx*delx + dely*dely + delz*delz;
+      int jtype = type[j];
+      const int jelem = map[jtype];
+      if (rsq < descriptor->cutsq[ielem][jelem]) ninside++;
+    }
+    nneigh += ninside;
+  }
+  
+  if (nneigh_max < nneigh) {
+    memory->grow(jatommliap,nneigh,"ComputeMLIAP:jatommliap");
+    memory->grow(jelemmliap,nneigh,"ComputeMLIAP:jelemmliap");
+    memory->grow(graddesc,nneigh,ndescriptors,3,"ComputeMLIAP:graddesc");
+    nneigh_max = nneigh;
+  }
 }
 
 /* ----------------------------------------------------------------------

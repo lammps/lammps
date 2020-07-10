@@ -14,17 +14,8 @@
 #include "mliap_model_quadratic.h"
 #include "pair_mliap.h"
 #include <cmath>
-#include "atom.h"
-#include "force.h"
-#include "comm.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MAXLINE 1024
-#define MAXWORD 3
 
 /* ---------------------------------------------------------------------- */
 
@@ -52,17 +43,15 @@ MLIAPModelQuadratic::~MLIAPModelQuadratic(){}
    Calculate model gradients w.r.t descriptors for each atom dE(B_i)/dB_i
    ---------------------------------------------------------------------- */
 
-void MLIAPModelQuadratic::gradient(PairMLIAP* pairmliap, NeighList* list, double **descriptors, double **beta, int eflag)
+void MLIAPModelQuadratic::gradient(int natomdesc, int *iatomdesc, int *ielemdesc, 
+                                   double **descriptors, double **beta, 
+                                   PairMLIAP* pairmliap, int eflag)
 {
-  int i;
-  int *type = atom->type;
+  for (int ii = 0; ii < natomdesc; ii++) {
+    const int i = iatomdesc[ii];
+    const int ielem = ielemdesc[ii];
 
-  for (int ii = 0; ii < list->inum; ii++) {
-    i = list->ilist[ii];
-    const int itype = type[i];
-    const int ielem = pairmliap->map[itype];
     double* coeffi = coeffelem[ielem];
-
     for (int icoeff = 0; icoeff < ndescriptors; icoeff++)
       beta[ii][icoeff] = coeffi[icoeff+1];
 
@@ -110,7 +99,6 @@ void MLIAPModelQuadratic::gradient(PairMLIAP* pairmliap, NeighList* list, double
   }
 }
 
-
 /* ----------------------------------------------------------------------
    Calculate model double gradients w.r.t descriptors and parameters
    for each atom energy gamma_lk = d2E(B)/dB_k/dsigma_l, 
@@ -126,24 +114,19 @@ void MLIAPModelQuadratic::gradient(PairMLIAP* pairmliap, NeighList* list, double
    egradient is derivative of energy w.r.t. parameters
    ---------------------------------------------------------------------- */
 
-void MLIAPModelQuadratic::param_gradient(int *map, NeighList* list, 
+void MLIAPModelQuadratic::param_gradient(int natommliap, int *iatommliap, int *ielemmliap, 
                                          double **descriptors, 
                                          int **gamma_row_index, int **gamma_col_index, 
                                          double **gamma, double *egradient)
 {
-  int i;
-  int *type = atom->type;
-
   // zero out energy gradients
 
   for (int l = 0; l < nelements*nparams; l++)
     egradient[l] = 0.0;
     
-  for (int ii = 0; ii < list->inum; ii++) {
-
-    i = list->ilist[ii];
-    const int itype = type[i];
-    const int ielem = map[itype];
+  for (int ii = 0; ii < natommliap; ii++) {
+    const int i = iatommliap[ii];
+    const int ielem = ielemmliap[ii];
     const int elemoffset = nparams*ielem;
 
     // linear contributions
@@ -217,10 +200,12 @@ int MLIAPModelQuadratic::get_gamma_nnz()
   return inz;
 }
 
-void MLIAPModelQuadratic::compute_force_gradients(double **descriptors, int numlistdesc, int *iatomdesc, int *ielemdesc, int *numneighdesc, int *jatomdesc, 
-                                               int *jelemdesc, double ***graddesc, int yoffset, int zoffset, double **gradforce, double *egradient) {
-
-
+void MLIAPModelQuadratic::compute_force_gradients(double **descriptors, int numlistdesc, 
+                                                  int *iatomdesc, int *ielemdesc, 
+                                                  int *numneighdesc, int *jatomdesc, 
+                                                  int *jelemdesc, double ***graddesc, 
+                                                  int yoffset, int zoffset, double **gradforce, 
+                                                  double *egradient) {
   // zero out energy gradients
 
   for (int l = 0; l < nelements*nparams; l++)

@@ -13,18 +13,8 @@
 
 #include "mliap_model_linear.h"
 #include "pair_mliap.h"
-#include <cmath>
-#include "atom.h"
-#include "force.h"
-#include "comm.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MAXLINE 1024
-#define MAXWORD 3
 
 /* ---------------------------------------------------------------------- */
 
@@ -51,17 +41,14 @@ MLIAPModelLinear::~MLIAPModelLinear(){}
    for each atom beta_i = dE(B_i)/dB_i
    ---------------------------------------------------------------------- */
 
-void MLIAPModelLinear::gradient(PairMLIAP* pairmliap, NeighList* list, double **descriptors, double **beta, int eflag)
+void MLIAPModelLinear::gradient(int natomdesc, int *iatomdesc, int *ielemdesc, 
+                                double **descriptors, double **beta, PairMLIAP* pairmliap, int eflag)
 {
-  int i;
-  int *type = atom->type;
+  for (int ii = 0; ii < natomdesc; ii++) {
+    const int i = iatomdesc[ii];
+    const int ielem = ielemdesc[ii];
 
-  for (int ii = 0; ii < list->inum; ii++) {
-    i = list->ilist[ii];
-    const int itype = type[i];
-    const int ielem = pairmliap->map[itype];
     double* coeffi = coeffelem[ielem];
-
     for (int icoeff = 0; icoeff < ndescriptors; icoeff++)
       beta[ii][icoeff] = coeffi[icoeff+1];
 
@@ -100,24 +87,19 @@ void MLIAPModelLinear::gradient(PairMLIAP* pairmliap, NeighList* list, double **
    egradient is derivative of energy w.r.t. parameters
    ---------------------------------------------------------------------- */
 
-void MLIAPModelLinear::param_gradient(int *map, NeighList* list, 
+void MLIAPModelLinear::param_gradient(int natommliap, int *iatommliap, int *ielemmliap,
                                          double **descriptors, 
                                          int **gamma_row_index, int **gamma_col_index, 
                                          double **gamma, double *egradient)
 {
-  int i;
-  int *type = atom->type;
-
   // zero out energy gradients
 
   for (int l = 0; l < nelements*nparams; l++)
     egradient[l] = 0.0;
     
-  for (int ii = 0; ii < list->inum; ii++) {
-
-    i = list->ilist[ii];
-    const int itype = type[i];
-    const int ielem = map[itype];
+  for (int ii = 0; ii < natommliap; ii++) {
+    const int i = iatommliap[ii];
+    const int ielem = ielemmliap[ii];
     const int elemoffset = nparams*ielem;
 
     int l = elemoffset+1;
@@ -148,8 +130,11 @@ int MLIAPModelLinear::get_gamma_nnz()
   return inz;
 }
 
-void MLIAPModelLinear::compute_force_gradients(double **descriptors, int numlistdesc, int *iatomdesc, int *ielemdesc, int *numneighdesc, int *jatomdesc, 
-                                               int *jelemdesc, double ***graddesc, int yoffset, int zoffset, double **gradforce, double *egradient) {
+void MLIAPModelLinear::compute_force_gradients(double **descriptors, int numlistdesc, 
+                                               int *iatomdesc, int *ielemdesc, int *numneighdesc, 
+                                               int *jatomdesc, int *jelemdesc, double ***graddesc, 
+                                               int yoffset, int zoffset, double **gradforce, 
+                                               double *egradient) {
 
 
   // zero out energy gradients

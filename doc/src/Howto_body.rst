@@ -219,21 +219,19 @@ in the *Bodies* section of the data file:
    x1 y1 z1
    ...
    xN yN zN
-   i j j k k ...
    diameter
 
-where M = 6 + 3\*N + 2\*N + 1, and N is the number of vertices in the
-body particle.
+where M = 6 + 3\*N + 1, and N is the number of vertices in the body
+particle.
 
 The integer line has a single value N.  The floating point line(s)
-list 6 moments of inertia followed by the coordinates of the N
+list 6 moments of inertia, followed by the coordinates of the N
 vertices (x1 to zN) as 3N values (with z = 0.0 for each), followed by
-2N vertex indices corresponding to the end points of the N edges,
-followed by a single diameter value = the rounded diameter of the
-circle that surrounds each vertex. The diameter value can be different
-for each body particle. These floating-point values can be listed on
-as many lines as you wish; see the :doc:`read_data <read_data>` command
-for more details.
+a diameter value = the rounded diameter of the circle that surrounds
+each vertex. The diameter value can be different for each body
+particle. These floating-point values can be listed on as many lines
+as you wish; see the :doc:`read_data <read_data>` command for more
+details.
 
 The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the
 values consistent with the current orientation of the rigid body
@@ -260,10 +258,6 @@ is consistent with the 6 moments of inertia: ixx iyy izz ixy ixz iyz =
    -0.7071 0.7071 0
    0.7071 0.7071 0
    0.7071 -0.7071 0
-   0 1
-   1 2
-   2 3
-   3 0
    1.0
 
 A rod in 2D, whose length is 4.0, mass 1.0, rounded at two ends

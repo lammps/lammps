@@ -618,7 +618,7 @@ int DumpAtomMPIIO::convert_image_omp(int n, double *mybuf)
     if (mpifhStringCount > 0) {
       if (mpifhStringCount > maxsbuf) {
         if (mpifhStringCount > MAXSMALLINT) return -1;
-        maxsbuf = mpifhStringCount;
+        maxsbuf = mpifhStringCount+1;
         memory->grow(sbuf,maxsbuf,"dump:sbuf");
       }
       sbuf[0] = '\0';
@@ -708,7 +708,7 @@ int DumpAtomMPIIO::convert_noimage_omp(int n, double *mybuf)
     if (mpifhStringCount > 0) {
       if (mpifhStringCount > maxsbuf) {
         if (mpifhStringCount > MAXSMALLINT) return -1;
-        maxsbuf = mpifhStringCount;
+        maxsbuf = mpifhStringCount+1;
         memory->grow(sbuf,maxsbuf,"dump:sbuf");
       }
       sbuf[0] = '\0';

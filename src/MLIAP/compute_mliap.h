@@ -37,47 +37,25 @@ class ComputeMLIAP : public Compute {
   double memory_usage();
 
  private:
-  int natoms, nmax, size_gradforce, lastcol;
-  int yoffset, zoffset;
-  int ndims_force, ndims_virial;
+  double **mliaparray, **mliaparrayall;
   class NeighList *list;
-  double **mliap, **mliapall;
   double **gradforce;
   int *map;  // map types to [0,nelements)
-  int nelements;
-  int gradgradflag;           // 1 for graddesc, 0 for gamma
-  double** descriptors;        // descriptors for all atoms in list
   int ndescriptors;            // number of descriptors 
   int nparams;                 // number of model parameters per element
-  int gamma_nnz;               // number of non-zero entries in gamma
-  double** gamma;              // gamma element
-
-  // data structures for grad-grad list (gamma)
-
+  int nelements;
+  int gradgradflag;           // 1 for graddesc, 0 for gamma
+  int nmax;
   int natomgamma_max;           // allocated size of atom neighbor arrays
-  int** gamma_row_index;       // row (parameter) index 
-  int** gamma_col_index;       // column (descriptor) index 
-  double* egradient;           // energy gradient w.r.t. parameters
-
-  // data structures for mliap neighbor list
-  // only neighbors strictly inside descriptor cutoff
-
-  int natomdesc_max;           // allocated size of descriptor array
-  int natomneigh_max;           // allocated size of atom neighbor arrays
-  int *numneighmliap;           // neighbors count for each atom
-  int *iatommliap;              // index of each atom
-  int *ielemmliap;              // element of each atom
-  int nneigh_max;               // number of ij neighbors allocated
-  int *jatommliap;              // index of each neighbor
-  int *jelemmliap;              // element of each neighbor
-  double ***graddesc;           // descriptor gradient w.r.t. each neighbor
-
-  class MLIAPModel* model;
-  class MLIAPDescriptor* descriptor;
+  class MLIAPModel *model;
+  class MLIAPDescriptor *descriptor;
+  class MLIAP *mliap;
 
   Compute *c_pe;
   Compute *c_virial;
   std::string id_virial;
+
+  int lastcol;
 
   void dbdotr_compute();
 };

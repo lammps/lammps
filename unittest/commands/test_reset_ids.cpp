@@ -61,6 +61,7 @@ protected:
             lmp->input->one("variable input_dir index " STRINGIFY(TEST_INPUT_FOLDER));
             lmp->input->one("include ${input_dir}/in.fourmol");
         }
+        delete info;
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 
@@ -499,6 +500,43 @@ TEST_F(ResetIDsTest, DeathTests)
     mesg = ::testing::internal::GetCapturedStdout();
     ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
 }
+
+TEST(ResetMolIds, CMDFail)
+{
+    LAMMPS *lmp;
+    const char *args[] = {"ResetIDsTest", "-log", "none", "-nocite", "-echo", "screen"};
+    char **argv        = (char **)args;
+    int argc           = sizeof(args) / sizeof(char *);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("reset_mol_ids all"););
+    auto mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Reset_mol_ids command before.*"));
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("atom_modify id no");
+    lmp->input->one("region box block 0 1 0 1 0 1");
+    lmp->input->one("create_box 1 box");
+    TEST_FAILURE(lmp->input->one("reset_mol_ids all"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Cannot use reset_mol_ids unl.*"));
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("region box block 0 1 0 1 0 1");
+    lmp->input->one("create_box 1 box");
+    TEST_FAILURE(lmp->input->one("reset_mol_ids all"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Can only use reset_mol_ids.*"));
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    delete lmp;
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+};
+
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

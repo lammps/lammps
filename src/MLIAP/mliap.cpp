@@ -37,7 +37,7 @@ MLIAP::MLIAP(LAMMPS *lmp, int ndescriptors_in, int nparams_in, int nelements_in,
   Pointers(lmp),
   list(NULL), 
   gradforce(NULL), 
-  descriptors(NULL), gamma_row_index(NULL), gamma_col_index(NULL),
+  beta(NULL), descriptors(NULL), gamma_row_index(NULL), gamma_col_index(NULL),
   gamma(NULL), egradient(NULL), model(NULL), descriptor(NULL),
   iatommliap(NULL), ielemmliap(NULL), numneighmliap(NULL),  
   jatommliap(NULL), jelemmliap(NULL), graddesc(NULL)
@@ -70,6 +70,7 @@ MLIAP::MLIAP(LAMMPS *lmp, int ndescriptors_in, int nparams_in, int nelements_in,
 
 MLIAP::~MLIAP()
 {
+  memory->destroy(beta);
   memory->destroy(descriptors);
   memory->destroy(gamma_row_index);
   memory->destroy(gamma_col_index);
@@ -88,7 +89,7 @@ MLIAP::~MLIAP()
 
 void MLIAP::init()
 {
-  memory->create(egradient,nelements*nparams,"ComputeMLIAP:egradient");
+  memory->create(egradient,nelements*nparams,"MLIAP:egradient");
 }
 
 /* ----------------------------------------------------------------------
@@ -108,7 +109,8 @@ void MLIAP::generate_neigharrays(NeighList* list_in)
 
   natomdesc = list->inum;
   if (natomdesc_max < natomdesc) {
-    memory->grow(descriptors,natomdesc,ndescriptors,"ComputeMLIAP:descriptors");
+    memory->grow(beta,natomdesc,ndescriptors,"MLIAP:beta");
+    memory->grow(descriptors,natomdesc,ndescriptors,"MLIAP:descriptors");
     natomdesc_max = natomdesc;
   }
 
@@ -162,9 +164,9 @@ void MLIAP::grow_neigharrays()
     
   const int natomneigh = list->inum;
   if (natomneigh_max < natomneigh) {
-    memory->grow(iatommliap,natomneigh,"ComputeMLIAP:iatommliap");
-    memory->grow(ielemmliap,natomneigh,"ComputeMLIAP:ielemmliap");
-    memory->grow(numneighmliap,natomneigh,"ComputeMLIAP:numneighmliap");
+    memory->grow(iatommliap,natomneigh,"MLIAP:iatommliap");
+    memory->grow(ielemmliap,natomneigh,"MLIAP:ielemmliap");
+    memory->grow(numneighmliap,natomneigh,"MLIAP:numneighmliap");
     natomneigh_max = natomneigh;
   }
 
@@ -210,9 +212,9 @@ void MLIAP::grow_neigharrays()
   }
   
   if (nneigh_max < nneigh) {
-    memory->grow(jatommliap,nneigh,"ComputeMLIAP:jatommliap");
-    memory->grow(jelemmliap,nneigh,"ComputeMLIAP:jelemmliap");
-    memory->grow(graddesc,nneigh,ndescriptors,3,"ComputeMLIAP:graddesc");
+    memory->grow(jatommliap,nneigh,"MLIAP:jatommliap");
+    memory->grow(jelemmliap,nneigh,"MLIAP:jelemmliap");
+    memory->grow(graddesc,nneigh,ndescriptors,3,"MLIAP:graddesc");
     nneigh_max = nneigh;
   }
 }

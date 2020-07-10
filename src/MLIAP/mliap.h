@@ -38,6 +38,7 @@ class MLIAP : protected Pointers {
   double **gradforce;
 
   int *map;  // map types to [0,nelements)
+  double** beta;                // betas for all atoms in list
   double** descriptors;        // descriptors for all atoms in list
   int ndescriptors;            // number of descriptors 
   int nparams;                 // number of model parameters per element

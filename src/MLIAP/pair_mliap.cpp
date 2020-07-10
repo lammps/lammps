@@ -15,6 +15,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include "mliap.h"
 #include "mliap_model_linear.h"
 #include "mliap_model_quadratic.h"
 #include "mliap_descriptor_snap.h"
@@ -38,16 +39,6 @@ PairMLIAP::PairMLIAP(LAMMPS *lmp) : Pair(lmp)
   one_coeff = 1;
   manybody_flag = 1;
 
-  beta = NULL;
-  descriptors = NULL;
-
-  model = NULL;
-  descriptor = NULL;
-  map = NULL;
-
-  natomdesc_max = 0;
-  natomneigh_max = 0;
-  nneigh_max = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -56,11 +47,9 @@ PairMLIAP::~PairMLIAP()
 {
   if (copymode) return;
 
-  memory->destroy(beta);
-  memory->destroy(descriptors);
-
   delete model;
   delete descriptor;
+  delete mliap;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -78,31 +67,22 @@ void PairMLIAP::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
     
-  // grow atom arrays if necessary
-
-  const int natomdesc = list->inum;
-  if (natomdesc_max < natomdesc) {
-    memory->grow(beta,natomdesc,ndescriptors,"PairMLIAP:beta");
-    memory->grow(descriptors,natomdesc,ndescriptors,"PairMLIAP:descriptors");
-    natomdesc_max = natomdesc;
-  }
-
-  generate_neigharrays();
+  mliap->generate_neigharrays(list);
     
   // compute descriptors, if needed
 
   if (model->nonlinearflag || eflag)
-    descriptor->compute_descriptors(natomdesc, iatommliap, ielemmliap, numneighmliap, 
-                                    jatommliap, jelemmliap, descriptors);
+    descriptor->compute_descriptors(mliap->natomdesc, mliap->iatommliap, mliap->ielemmliap, mliap->numneighmliap, 
+                                    mliap->jatommliap, mliap->jelemmliap, mliap->descriptors);
 
   // compute E_i and beta_i = dE_i/dB_i for all i in list
 
-  model->gradient(natomdesc, iatommliap, ielemmliap, descriptors, beta, this, eflag);
+  model->gradient(mliap->natomdesc, mliap->iatommliap, mliap->ielemmliap, mliap->descriptors, mliap->beta, this, eflag);
 
   // calculate force contributions beta_i*dB_i/dR_j
 
-  descriptor->compute_forces(natomdesc, iatommliap, ielemmliap, numneighmliap, 
-                             jatommliap, jelemmliap, beta, this, vflag);
+  descriptor->compute_forces(mliap->natomdesc, mliap->iatommliap, mliap->ielemmliap, mliap->numneighmliap, 
+                             mliap->jatommliap, mliap->jelemmliap, mliap->beta, this, vflag);
 
   // calculate stress
 
@@ -169,6 +149,10 @@ void PairMLIAP::settings(int narg, char ** arg)
   if (modelflag == 0 || descriptorflag == 0)
     error->all(FLERR,"Illegal pair_style command");
 
+  ndescriptors = descriptor->ndescriptors;
+  nparams = model->nparams;
+  nelements = model->nelements;
+
 }
 
 /* ----------------------------------------------------------------------
@@ -230,128 +214,15 @@ void PairMLIAP::coeff(int narg, char **arg)
 
   // consistency checks
 
-  ndescriptors = descriptor->ndescriptors;
   if (ndescriptors != model->ndescriptors)
     error->all(FLERR,"Incompatible model and descriptor definitions");
   if (descriptor->nelements != model->nelements)
     error->all(FLERR,"Incompatible model and descriptor definitions");
-}
 
-/* ----------------------------------------------------------------------
-   generate neighbor arrays
-------------------------------------------------------------------------- */
+  int gradgradflag = 0;
+  mliap = new MLIAP(lmp, ndescriptors, nparams, nelements, gradgradflag, map, model, descriptor);
+  mliap->init();
 
-void PairMLIAP::generate_neigharrays()
-{
-  double **x = atom->x;
-  int *type = atom->type;
-  
-  int *numneigh = list->numneigh;
-  int **firstneigh = list->firstneigh;
-  
-  grow_neigharrays();
-  
-  int ij = 0;
-  for (int ii = 0; ii < list->inum; ii++) {
-    const int i = list->ilist[ii];
-    
-    const double xtmp = x[i][0];
-    const double ytmp = x[i][1];
-    const double ztmp = x[i][2];
-    const int itype = type[i];
-    const int ielem = map[itype];
-    
-    int *jlist = firstneigh[i];
-    const int jnum = numneigh[i];
-    
-    int ninside = 0;
-    for (int jj = 0; jj < jnum; jj++) {
-      int j = jlist[jj];
-      j &= NEIGHMASK;
-      const double delx = x[j][0] - xtmp;
-      const double dely = x[j][1] - ytmp;
-      const double delz = x[j][2] - ztmp;
-      const double rsq = delx*delx + dely*dely + delz*delz;
-      int jtype = type[j];
-      const int jelem = map[jtype];
-      
-      if (rsq < descriptor->cutsq[ielem][jelem]) {
-        jatommliap[ij] = j;
-        jelemmliap[ij] = jelem;
-        ij++;
-        ninside++;
-      }
-    }
-    iatommliap[ii] = i;
-    ielemmliap[ii] = ielem;
-    numneighmliap[ii] = ninside;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   grow neighbor arrays to handle all neighbors
-------------------------------------------------------------------------- */
-
-void PairMLIAP::grow_neigharrays()
-{
-
-  // grow neighbor atom arrays if necessary
-    
-  const int natomneigh = list->inum;
-  if (natomneigh_max < natomneigh) {
-    memory->grow(iatommliap,natomneigh,"ComputeMLIAP:iatommliap");
-    memory->grow(ielemmliap,natomneigh,"ComputeMLIAP:ielemmliap");
-    memory->grow(numneighmliap,natomneigh,"ComputeMLIAP:numneighmliap");
-    natomneigh_max = natomneigh;
-  }
-
-  // grow neighbor arrays if necessary
-
-  int *numneigh = list->numneigh;
-  int **firstneigh = list->firstneigh;
-  
-  int iilast = list->inum-1;
-  int ilast = list->ilist[iilast];
-  int upperbound = firstneigh[ilast] - firstneigh[0] + numneigh[ilast];
-  if (nneigh_max >= upperbound) return;
-
-  double **x = atom->x;
-  int *type = atom->type;
-  
-  int nneigh = 0;
-  for (int ii = 0; ii < list->inum; ii++) {
-    const int i = list->ilist[ii];
-    
-    const double xtmp = x[i][0];
-    const double ytmp = x[i][1];
-    const double ztmp = x[i][2];
-    const int itype = type[i];
-    const int ielem = map[itype];
-    
-    int *jlist = firstneigh[i];
-    const int jnum = numneigh[i];
-    
-    int ninside = 0;
-    for (int jj = 0; jj < jnum; jj++) {
-      int j = jlist[jj];
-      j &= NEIGHMASK;
-      const double delx = x[j][0] - xtmp;
-      const double dely = x[j][1] - ytmp;
-      const double delz = x[j][2] - ztmp;
-      const double rsq = delx*delx + dely*dely + delz*delz;
-      int jtype = type[j];
-      const int jelem = map[jtype];
-      if (rsq < descriptor->cutsq[ielem][jelem]) ninside++;
-    }
-    nneigh += ninside;
-  }
-  
-  if (nneigh_max < nneigh) {
-    memory->grow(jatommliap,nneigh,"ComputeMLIAP:jatommliap");
-    memory->grow(jelemmliap,nneigh,"ComputeMLIAP:jelemmliap");
-    memory->grow(graddesc,nneigh,ndescriptors,3,"ComputeMLIAP:graddesc");
-    nneigh_max = nneigh;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -445,8 +316,8 @@ double PairMLIAP::memory_usage()
 
   int n = atom->ntypes+1;
   bytes += n*n*sizeof(int);      // setflag
-  bytes += natomdesc_max*ndescriptors*sizeof(double); // descriptors
-  bytes += natomdesc_max*ndescriptors*sizeof(double); // beta
+  bytes += mliap->natomdesc_max*ndescriptors*sizeof(double); // descriptors
+  bytes += mliap->natomdesc_max*ndescriptors*sizeof(double); // beta
 
   bytes += descriptor->memory_usage(); // Descriptor object
   bytes += model->memory_usage();      // Model object

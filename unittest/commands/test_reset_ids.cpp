@@ -314,7 +314,7 @@ TEST_F(ResetIDsTest, DeleteAdd)
     lmp->input->one("group twowater molecule 4:6:2");
     lmp->input->one("group nowater subtract all allwater");
     lmp->input->one("delete_atoms group twowater compress no bond yes mol yes");
-    lmp->input->one("reset_mol_ids allwater offset auto");
+    lmp->input->one("reset_mol_ids allwater");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->atom->natoms, 23);
     ASSERT_EQ(lmp->atom->map_tag_max, 26);
@@ -384,59 +384,71 @@ TEST_F(ResetIDsTest, DeleteAdd)
     lmp->input->one("reset_mol_ids nowater offset 1");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    EXPECT_EQ(molid[GETIDX(1)], 2);
-    EXPECT_EQ(molid[GETIDX(2)], 2);
-    EXPECT_EQ(molid[GETIDX(3)], 2);
-    EXPECT_EQ(molid[GETIDX(4)], 2);
-    EXPECT_EQ(molid[GETIDX(5)], 2);
-    EXPECT_EQ(molid[GETIDX(6)], 2);
-    EXPECT_EQ(molid[GETIDX(7)], 2);
-    EXPECT_EQ(molid[GETIDX(8)], 2);
-    EXPECT_EQ(molid[GETIDX(9)], 2);
-    EXPECT_EQ(molid[GETIDX(10)], 2);
-    EXPECT_EQ(molid[GETIDX(11)], 2);
-    EXPECT_EQ(molid[GETIDX(12)], 2);
-    EXPECT_EQ(molid[GETIDX(13)], 3);
-    EXPECT_EQ(molid[GETIDX(14)], 3);
-    EXPECT_EQ(molid[GETIDX(15)], 3);
-    EXPECT_EQ(molid[GETIDX(16)], 2);
-    EXPECT_EQ(molid[GETIDX(17)], 2);
-    EXPECT_EQ(molid[GETIDX(18)], 2);
-    EXPECT_EQ(molid[GETIDX(19)], 2);
-    EXPECT_EQ(molid[GETIDX(20)], 2);
-    EXPECT_EQ(molid[GETIDX(21)], 4);
-    EXPECT_EQ(molid[GETIDX(22)], 4);
-    EXPECT_EQ(molid[GETIDX(23)], 4);
+    ASSERT_EQ(molid[GETIDX(1)], 2);
+    ASSERT_EQ(molid[GETIDX(2)], 2);
+    ASSERT_EQ(molid[GETIDX(3)], 2);
+    ASSERT_EQ(molid[GETIDX(4)], 2);
+    ASSERT_EQ(molid[GETIDX(5)], 2);
+    ASSERT_EQ(molid[GETIDX(6)], 2);
+    ASSERT_EQ(molid[GETIDX(7)], 2);
+    ASSERT_EQ(molid[GETIDX(8)], 2);
+    ASSERT_EQ(molid[GETIDX(9)], 2);
+    ASSERT_EQ(molid[GETIDX(10)], 2);
+    ASSERT_EQ(molid[GETIDX(11)], 2);
+    ASSERT_EQ(molid[GETIDX(12)], 2);
+    ASSERT_EQ(molid[GETIDX(13)], 3);
+    ASSERT_EQ(molid[GETIDX(14)], 3);
+    ASSERT_EQ(molid[GETIDX(15)], 3);
+    ASSERT_EQ(molid[GETIDX(16)], 2);
+    ASSERT_EQ(molid[GETIDX(17)], 2);
+    ASSERT_EQ(molid[GETIDX(18)], 2);
+    ASSERT_EQ(molid[GETIDX(19)], 2);
+    ASSERT_EQ(molid[GETIDX(20)], 2);
+    ASSERT_EQ(molid[GETIDX(21)], 4);
+    ASSERT_EQ(molid[GETIDX(22)], 4);
+    ASSERT_EQ(molid[GETIDX(23)], 4);
 
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("create_atoms 1 single 0.0 0.0 0.0");
     lmp->input->one("create_atoms 2 single 1.0 0.0 0.0");
     lmp->input->one("create_atoms 3 single 2.0 0.0 0.0");
     lmp->input->one("create_atoms 4 single 3.0 0.0 0.0");
-    lmp->input->one("reset_mol_ids all");
+    lmp->input->one("reset_mol_ids all single yes");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    EXPECT_EQ(lmp->atom->natoms, 27);
-    EXPECT_EQ(lmp->atom->map_tag_max, 27);
+    ASSERT_EQ(lmp->atom->natoms, 27);
+    ASSERT_EQ(lmp->atom->map_tag_max, 27);
 
-    EXPECT_EQ(molid[GETIDX(21)], 3);
-    EXPECT_EQ(molid[GETIDX(22)], 3);
-    EXPECT_EQ(molid[GETIDX(23)], 3);
-    EXPECT_EQ(molid[GETIDX(24)], 4);
-    EXPECT_EQ(molid[GETIDX(25)], 5);
-    EXPECT_EQ(molid[GETIDX(26)], 6);
-    EXPECT_EQ(molid[GETIDX(27)], 7);
+    ASSERT_EQ(molid[GETIDX(21)], 3);
+    ASSERT_EQ(molid[GETIDX(22)], 3);
+    ASSERT_EQ(molid[GETIDX(23)], 3);
+    ASSERT_EQ(molid[GETIDX(24)], 4);
+    ASSERT_EQ(molid[GETIDX(25)], 5);
+    ASSERT_EQ(molid[GETIDX(26)], 6);
+    ASSERT_EQ(molid[GETIDX(27)], 7);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_mol_ids all singlezero");
+    lmp->input->one("reset_mol_ids all single no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    EXPECT_EQ(molid[GETIDX(21)], 3);
-    EXPECT_EQ(molid[GETIDX(22)], 3);
-    EXPECT_EQ(molid[GETIDX(23)], 3);
-    EXPECT_EQ(molid[GETIDX(24)], 0);
-    EXPECT_EQ(molid[GETIDX(25)], 0);
-    EXPECT_EQ(molid[GETIDX(26)], 0);
-    EXPECT_EQ(molid[GETIDX(27)], 0);
+    ASSERT_EQ(molid[GETIDX(21)], 3);
+    ASSERT_EQ(molid[GETIDX(22)], 3);
+    ASSERT_EQ(molid[GETIDX(23)], 3);
+    ASSERT_EQ(molid[GETIDX(24)], 0);
+    ASSERT_EQ(molid[GETIDX(25)], 0);
+    ASSERT_EQ(molid[GETIDX(26)], 0);
+    ASSERT_EQ(molid[GETIDX(27)], 0);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("reset_mol_ids all compress no single yes");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_EQ(molid[GETIDX(21)], 21);
+    ASSERT_EQ(molid[GETIDX(22)], 21);
+    ASSERT_EQ(molid[GETIDX(23)], 21);
+    ASSERT_EQ(molid[GETIDX(24)], 24);
+    ASSERT_EQ(molid[GETIDX(25)], 25);
+    ASSERT_EQ(molid[GETIDX(26)], 26);
+    ASSERT_EQ(molid[GETIDX(27)], 27);
 }
 
 TEST_F(ResetIDsTest, DeathTests)
@@ -462,7 +474,28 @@ TEST_F(ResetIDsTest, DeathTests)
     ASSERT_THAT(mesg, MatchesRegex(".*ERROR on proc 0: Expected integer.*"));
 
     ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("reset_mol_ids all compress yes single no offset xxx"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR on proc 0: Expected integer.*"));
+
+    ::testing::internal::CaptureStdout();
     TEST_FAILURE(lmp->input->one("reset_mol_ids all offset"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("reset_mol_ids all compress"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("reset_mol_ids all compress xxx"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("reset_mol_ids all single"););
+    mesg = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
+    ::testing::internal::CaptureStdout();
+    TEST_FAILURE(lmp->input->one("reset_mol_ids all single xxx"););
     mesg = ::testing::internal::GetCapturedStdout();
     ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
 }

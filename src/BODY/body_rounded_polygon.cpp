@@ -225,7 +225,7 @@ void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
   ez_space[0] = evectors[0][2];
   ez_space[1] = evectors[1][2];
   ez_space[2] = evectors[2][2];
-  
+
   // enforce 3 evectors as a right-handed coordinate system
   // flip 3rd vector if needed
 
@@ -243,11 +243,11 @@ void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
   int i,m;
   double rsq,erad,rrad;
   double delta[3];
-    
+
   double erad2 = 0.0;
   int j = 6;
   int k = 0;
-  
+
   for (i = 0; i < nsub; i++) {
     delta[0] = dfile[j];
     delta[1] = dfile[j+1];
@@ -264,9 +264,9 @@ void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
   // the next 2 or 2*nsub elements are edge ends
   // the final two values are the enclosing radius and rounded radius
   // set atom->radius = enclosing + rounded radii (except for spheres)
-  
+
   // spheres have just 1 edge
-  
+
   if (nsub == 1) {
     bonus->dvalue[k] = 0;
     bonus->dvalue[k+1] = 0;
@@ -282,7 +282,7 @@ void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
     atom->radius[bonus->ilocal] = erad;
 
   // rods have just 1 edge
-    
+
   } else if (nsub == 2) {
     bonus->dvalue[k] = 0;
     bonus->dvalue[k+1] = 1;
@@ -298,7 +298,7 @@ void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
     atom->radius[bonus->ilocal] = erad + rrad;
 
   // polygons have Nsub edges
-    
+
   } else {
     for (i = 0; i < nsub; i++) {
       bonus->dvalue[k] = i;
@@ -380,7 +380,7 @@ int BodyRoundedPolygon::pack_data_body(tagint atomID, int ibonus, double *buf)
     if (nsub < 3) ilast = 3*nsub + 2 + 1;
     else ilast = 3*nsub + 2*nsub + 1;
     buf[m++] = 2.0 * dvalue[ilast];
-    
+
   } else m = 3 + 1 + 6 + 3*nsub + 1;
 
   return m;
@@ -409,12 +409,12 @@ int BodyRoundedPolygon::write_data_body(FILE *fp, double *buf)
   m += 6;
 
   // nsub vertices
-  
+
   for (int i = 0; i < nsub; i++, m+=3)
     fmt::print(fp,"{} {} {}\n",buf[m],buf[m+1],buf[m+2]);
 
   // rounded diameter
-  
+
   double diameter = buf[m++];
   fmt::print(fp,"{}\n",diameter);
 

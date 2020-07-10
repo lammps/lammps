@@ -318,6 +318,15 @@ void ResetIDs::sort()
 
   if (dim == 2) mylo[2] = myhi[2] = 0.0;
 
+  // must ensure that bounding box volume is > 0.0
+
+  for (int i = 0; i < 3; ++i) {
+    if (mylo[i] == myhi[i]) {
+      mylo[i] -= 0.5;
+      myhi[i] += 0.5;
+    }
+  }
+
   MPI_Allreduce(mylo,bboxlo,3,MPI_DOUBLE,MPI_MIN,world);
   MPI_Allreduce(myhi,bboxhi,3,MPI_DOUBLE,MPI_MAX,world);
 
@@ -332,7 +341,8 @@ void ResetIDs::sort()
   // binsize = edge length of a cubic bin
   // nbin xyz = bin count in each dimension
 
-  bigint nbin_estimate = atom->natoms / PERBIN;
+  bigint nbin_estimate = atom->natoms / PERBIN + 1;
+
   double vol;
   if (dim == 2) vol = (bboxhi[0]-bboxlo[0]) * (bboxhi[1]-bboxlo[1]);
   else vol = (bboxhi[0]-bboxlo[0]) * (bboxhi[1]-bboxlo[1]) * (bboxhi[2]-bboxlo[2]);

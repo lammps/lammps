@@ -53,7 +53,7 @@ void ResetMolIDs::command(int narg, char **arg)
   if (igroup == -1) error->all(FLERR,"Could not find reset_mol_ids group ID");
   int groupbit = group->bitmask[igroup];
 
-  int compressflag = 0;
+  int compressflag = 1;
   int singleflag = 0;
   tagint offset = -1;
 

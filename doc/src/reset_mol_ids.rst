@@ -6,9 +6,6 @@ reset_mol_ids command
 Syntax
 """"""
 
-Syntax
-""""""
-
 .. parsed-literal::
 
    reset_mol_ids group-ID keyword value ...
@@ -29,9 +26,9 @@ Examples
 .. code-block:: LAMMPS
 
    reset_mol_ids all
-   reset_mol_ids all offset 10 single yes compress yes
-   reset_mol_ids solvent offset 1000
-   reset_mol_ids solvent offset auto
+   reset_mol_ids all offset 10 single yes
+   reset_mol_ids solvent compress yes offset 100
+   reset_mol_ids solvent compress no
 
 Description
 """""""""""
@@ -42,17 +39,18 @@ for atoms in the group.  Only molecule IDs for atoms in the specified
 group are reset; molecule IDs for atoms not in the group are not
 changed.
 
-For purposes of this operation, molecules are identified by the
-current bond connectivity in the system, which may or may not be
-consistent with current molecule IDs.  A molecule is a set of atoms,
-each of which is bonded to one or more atoms in the set.  Once new
-molecules are identified and a molecule ID assigned to each one, this
-command will update the current molecule ID for each atom in the group
-with a (potentially) new ID.  Note that if the group excludes atoms
-within molecules, one molecule may become two or more.  For
-example if the group excludes atoms in the middle of a linear chain,
-then each end of the chain is considered an independent molecule
-and will be assigned a different molecule ID.
+For purposes of this operation, molecules are identified by the current
+bond connectivity in the system, which may or may not be consistent with
+the current molecule IDs.  A molecule in this context is a set of atoms
+connected to each other with explicit bonds.  The specific algorithm
+used is the one of :doc:`compute fragment/atom <compute_cluster_atom>`
+Once the molecules are identified and a new molecule ID computed for
+each, this command will update the current molecule ID for all atoms in
+the group with the new molecule ID.  Note that if the group excludes
+atoms within molecules, one (physical) molecule may become two or more
+(logical) molecules.  For example if the group excludes atoms in the
+middle of a linear chain, then each end of the chain is considered an
+independent molecule and will be assigned a different molecule ID.
 
 This can be a useful operation to perform after running reactive
 molecular dynamics run with :doc:`fix bond/react <fix_bond_react>`,
@@ -63,12 +61,12 @@ also be useful after molecules have been deleted with the
 has lost molecules, e.g. via the :doc:`fix evaporate <fix_evaporate>`
 command.
 
-The *compress* keyword determines how new molecule IDs are assigned.
-If the setting is *no* (the default), the molecule ID of every atom in
-the molecule will be set to the smallest atom ID of any atom in the
-molecule.  If the setting is *yes*, and there are N molecules in the
+The *compress* keyword determines how new molecule IDs are computed.  If
+the setting is *yes* (the default) and there are N molecules in the
 group, the new molecule IDs will be a set of N contiguous values.  See
-the *offset* keyword for details on the selecting the range of these values.
+the *offset* keyword for details on selecting the range of these values.
+If the setting is *no*, the molecule ID of every atom in the molecule
+will be set to the smallest atom ID of any atom in the molecule.
 
 The *single* keyword determines whether single atoms (not bonded to
 another atom) are treated as one-atom molecules or not, based on the
@@ -108,9 +106,11 @@ Related commands
 :doc:`fix bond/create <fix_bond_create>`,
 :doc:`fix bond/break <fix_bond_break>`,
 :doc:`fix evaporate <fix_evaporate>`,
-:doc:`delete_atoms <delete_atoms>`
+:doc:`delete_atoms <delete_atoms>`,
+:doc:`compute fragment/atom <compute_cluster_atom>`
 
-**Default:**
+Default
+"""""""
 
-The default keyword settings are compress = no, single = no, and
+The default keyword settings are compress = yes, single = no, and
 offset = -1.

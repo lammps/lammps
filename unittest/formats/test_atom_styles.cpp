@@ -1613,7 +1613,7 @@ TEST_F(AtomStyleTest, ellipsoid)
     ASSERT_DOUBLE_EQ(bonus[3].quat[3], 0.25056280708573159);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_ids");
+    lmp->input->one("reset_atom_ids");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->atom->nellipsoids, 4);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
@@ -2069,7 +2069,7 @@ TEST_F(AtomStyleTest, line)
     ASSERT_DOUBLE_EQ(bonus[3].theta, MathConst::MY_PI / 6.0);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_ids");
+    lmp->input->one("reset_atom_ids");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->atom->nlines, 4);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
@@ -2466,7 +2466,7 @@ TEST_F(AtomStyleTest, bond)
     EXPECT_EQ(type[GETIDX(12)], 3);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_ids");
+    lmp->input->one("reset_atom_ids");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     EXPECT_EQ(lmp->atom->tag_consecutive(), 1);
     EXPECT_EQ(lmp->atom->map_tag_max, 8);
@@ -2961,7 +2961,7 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     EXPECT_DOUBLE_EQ(bonus[3].quat[3], 0.25056280708573159);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_ids");
+    lmp->input->one("reset_atom_ids");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     EXPECT_EQ(lmp->atom->nellipsoids, 4);
     EXPECT_EQ(lmp->atom->tag_consecutive(), 1);

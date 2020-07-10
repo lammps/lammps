@@ -31,7 +31,7 @@ class MLIAP : protected Pointers {
 
   // private:
   int size_array_rows, size_array_cols;
-  int natoms, size_gradforce, lastcol;
+  int natoms, size_gradforce;
   int yoffset, zoffset;
   int ndims_force, ndims_virial;
   class NeighList *list;

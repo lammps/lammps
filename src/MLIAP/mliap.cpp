@@ -33,7 +33,7 @@
 using namespace LAMMPS_NS;
 
 MLIAP::MLIAP(LAMMPS *lmp, int ndescriptors_in, int nparams_in, int nelements_in, 
-             int gradgradflag_in, int *map_in, class MLIAPModel*, class MLIAPDescriptor*) :
+             int gradgradflag_in, int *map_in, class MLIAPModel* model_in, class MLIAPDescriptor* descriptor_in) :
   Pointers(lmp),
   list(NULL), 
   gradforce(NULL), 
@@ -47,6 +47,8 @@ MLIAP::MLIAP(LAMMPS *lmp, int ndescriptors_in, int nparams_in, int nelements_in,
   nelements = nelements_in;
   gradgradflag = gradgradflag_in;
   map = map_in;
+  model = model_in;
+  descriptor = descriptor_in;
 
   gamma_nnz = model->get_gamma_nnz();
   ndims_force = 3;
@@ -54,7 +56,8 @@ MLIAP::MLIAP(LAMMPS *lmp, int ndescriptors_in, int nparams_in, int nelements_in,
   yoffset = nparams*nelements;
   zoffset = 2*yoffset;
   natoms = atom->natoms;
-
+  size_array_rows = 1+ndims_force*natoms+ndims_virial;
+  size_array_cols = nparams*nelements+1;
   size_gradforce = ndims_force*nparams*nelements;
 
   natomdesc_max = 0;

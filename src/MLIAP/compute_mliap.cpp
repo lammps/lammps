@@ -312,9 +312,9 @@ void ComputeMLIAP::compute_array()
   for (int i = 0; i < atom->nlocal; i++) {
     int iglobal = atom->tag[i];
     int irow = 3*(iglobal-1)+1;
-    mliaparray[irow][mliap->lastcol] = atom->f[i][0];
-    mliaparray[irow+1][mliap->lastcol] = atom->f[i][1];
-    mliaparray[irow+2][mliap->lastcol] = atom->f[i][2];
+    mliaparray[irow][lastcol] = atom->f[i][0];
+    mliaparray[irow+1][lastcol] = atom->f[i][1];
+    mliaparray[irow+2][lastcol] = atom->f[i][2];
   }
 
   // accumulate bispectrum virial contributions to global array
@@ -337,19 +337,19 @@ void ComputeMLIAP::compute_array()
 
   int irow = 0;
   double reference_energy = c_pe->compute_scalar();
-  mliaparrayall[irow++][mliap->lastcol] = reference_energy;
+  mliaparrayall[irow++][lastcol] = reference_energy;
 
   // copy virial stress to last column
   // switch to Voigt notation
 
   c_virial->compute_vector();
   irow += 3*mliap->natoms;
-  mliaparrayall[irow++][mliap->lastcol] = c_virial->vector[0];
-  mliaparrayall[irow++][mliap->lastcol] = c_virial->vector[1];
-  mliaparrayall[irow++][mliap->lastcol] = c_virial->vector[2];
-  mliaparrayall[irow++][mliap->lastcol] = c_virial->vector[5];
-  mliaparrayall[irow++][mliap->lastcol] = c_virial->vector[4];
-  mliaparrayall[irow++][mliap->lastcol] = c_virial->vector[3];
+  mliaparrayall[irow++][lastcol] = c_virial->vector[0];
+  mliaparrayall[irow++][lastcol] = c_virial->vector[1];
+  mliaparrayall[irow++][lastcol] = c_virial->vector[2];
+  mliaparrayall[irow++][lastcol] = c_virial->vector[5];
+  mliaparrayall[irow++][lastcol] = c_virial->vector[4];
+  mliaparrayall[irow++][lastcol] = c_virial->vector[3];
 
 }
 

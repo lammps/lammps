@@ -125,9 +125,6 @@ void ResetMolIDs::command(int narg, char **arg)
   cfa->compute_peratom();
   double *fragIDs = cfa->vector_atom;
 
-  for (int i = 0; i < atom->nlocal; i++)
-    printf("FragID %d %g\n",atom->tag[i],fragIDs[i]);
-
   // copy fragID to molecule ID for atoms in group
 
   tagint *molecule = atom->molecule;
@@ -153,9 +150,6 @@ void ResetMolIDs::command(int narg, char **arg)
     cca->compute_peratom();
     double *chunkIDs = cca->vector_atom;
     nchunk = cca->nchunk;
-
-    for (int i = 0; i < atom->nlocal; i++)
-      printf("ChunkID %d %g\n",atom->tag[i],chunkIDs[i]);
 
     // if singleflag = 0, check if any single (no-bond) atoms exist
     // if so, they have fragID = 0, and compression just set their chunkID = 1

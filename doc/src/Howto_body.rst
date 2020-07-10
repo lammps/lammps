@@ -400,7 +400,7 @@ by circles of diameter 0.5, is specified as follows:
 .. parsed-literal::
 
    1 3 13
-   2 0 0 
+   2 0 0
    0 1.33333 1.33333 0 0 0
    -2 0 0
    2 0 0

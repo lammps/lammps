@@ -188,7 +188,7 @@ int BodyRoundedPolyhedron::unpack_border_body(AtomVecBody::Bonus *bonus, double 
 ------------------------------------------------------------------------- */
 
 void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
-				      int *ifile, double *dfile)
+                                      int *ifile, double *dfile)
 {
   AtomVecBody::Bonus *bonus = &avec->bonus[ibonus];
 
@@ -217,10 +217,10 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
     nedges = ned; //nsub + nfac - 2;
     nentries = 6 + 3*nsub + 2*nedges + MAX_FACE_SIZE*nfac + 1;
   }
-  
+
   if (ndouble != nentries)
     error->one(FLERR,"Incorrect # of floating-point values in "
-	       "Bodies section of data file");
+               "Bodies section of data file");
 
   bonus->ninteger = 3;
   bonus->ivalue = icp->get(bonus->iindex);
@@ -340,7 +340,7 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
     atom->radius[bonus->ilocal] = erad + rrad;
 
   // polyhedra have Nedges and Nfaces
-    
+
   } else {
 
     // edges
@@ -356,7 +356,7 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
 
     for (i = 0; i < nfac; i++) {
       for (m = 0; m < MAX_FACE_SIZE; m++)
-	bonus->dvalue[k+m] = dfile[j+m];
+        bonus->dvalue[k+m] = dfile[j+m];
       k += MAX_FACE_SIZE;
       j += MAX_FACE_SIZE;
     }
@@ -439,14 +439,14 @@ int BodyRoundedPolyhedron::pack_data_body(tagint atomID, int ibonus, double *buf
     if (nsub < 3) j += 2;
     else {
       for (i = 0; i < nedge; i++) {
-	buf[m++] = static_cast<int> (dvalue[j++]);
-	buf[m++] = static_cast<int> (dvalue[j++]);
+        buf[m++] = static_cast<int> (dvalue[j++]);
+        buf[m++] = static_cast<int> (dvalue[j++]);
       }
       for (i = 0; i < nface; i++) {
-	buf[m++] = static_cast<int> (dvalue[j++]);
-	buf[m++] = static_cast<int> (dvalue[j++]);
-	buf[m++] = static_cast<int> (dvalue[j++]);
-	buf[m++] = static_cast<int> (dvalue[j++]);
+        buf[m++] = static_cast<int> (dvalue[j++]);
+        buf[m++] = static_cast<int> (dvalue[j++]);
+        buf[m++] = static_cast<int> (dvalue[j++]);
+        buf[m++] = static_cast<int> (dvalue[j++]);
       }
     }
 
@@ -454,7 +454,7 @@ int BodyRoundedPolyhedron::pack_data_body(tagint atomID, int ibonus, double *buf
     // j+1 to skip enclosing radius
 
     buf[m++] = 2.0 * dvalue[j+1];
-    
+
   } else {
     m = 3 + 3 + 6 + 3*nsub + 1;
     if (nsub > 2) m += 2*nedge + MAX_FACE_SIZE*nface;
@@ -477,7 +477,7 @@ int BodyRoundedPolyhedron::write_data_body(FILE *fp, double *buf)
   m += 3;
 
   // nvert, nedge, nface
-  
+
   const int nsub = (int) ubuf(buf[m++]).i;
   const int nedge = (int) ubuf(buf[m++]).i;
   const int nface = (int) ubuf(buf[m++]).i;
@@ -502,12 +502,12 @@ int BodyRoundedPolyhedron::write_data_body(FILE *fp, double *buf)
       fmt::print(fp,"{} {}\n",static_cast<int> (buf[m]),static_cast<int> (buf[m+1]));
     for (int i = 0; i < nface; i++, m+=4)
       fmt::print(fp,"{} {} {} {}\n",
-		 static_cast<int> (buf[m]),static_cast<int> (buf[m+1]),
-		 static_cast<int> (buf[m+2]),static_cast<int> (buf[m+3]));
+                 static_cast<int> (buf[m]),static_cast<int> (buf[m+1]),
+                 static_cast<int> (buf[m+2]),static_cast<int> (buf[m+3]));
   }
 
   // rounded diameter
-  
+
   double diameter = buf[m++];
   fmt::print(fp,"{}\n",diameter);
 

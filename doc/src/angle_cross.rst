@@ -40,14 +40,15 @@ the data file or restart files read by the :doc:`read_data <read_data>`
 or :doc:`read_restart <read_restart>` commands:
 
 * :math:`K_{SS}` (energy/distance\^2)
-* :math:`K_{BS0}` (energy/distance/rad)
-* :math:`K_{BS1}` (energy/distance/rad)
+* :math:`K_{BS0}` (energy/distance)
+* :math:`K_{BS1}` (energy/distance)
 * :math:`r_{12,0}` (distance)
 * :math:`r_{32,0}` (distance)
 * :math:`\theta_0` (degrees)
 
-:math:`\theta_0` is specified in degrees, but LAMMPS converts it to radians
-internally; hence the units of :math:`K_{BS0}` and :math:`K_{BS1}` are in energy/distance/radian.
+:math:`\theta_0` is specified in degrees, but LAMMPS converts it to
+radians internally; hence the :math:`K_{BS0}` and :math:`K_{BS1}` are
+effectively energy/distance per radian.
 
 Restrictions
 """"""""""""

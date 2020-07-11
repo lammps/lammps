@@ -39,6 +39,13 @@ using namespace LAMMPS_NS;
 using ::testing::MatchesRegex;
 using utils::split_words;
 
+#define TEST_FAILURE(...)                \
+    if (Info::has_exceptions()) {        \
+        ASSERT_ANY_THROW({__VA_ARGS__}); \
+    } else {                             \
+        ASSERT_DEATH({__VA_ARGS__}, ""); \
+    }
+
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
@@ -108,15 +115,9 @@ TEST_F(PotentialFileReaderTest, Sw_noconv)
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("units real");
     if (!verbose) ::testing::internal::GetCapturedStdout();
+
     ::testing::internal::CaptureStdout();
-    if (Info::has_exceptions()) {
-        ASSERT_ANY_THROW(
-            PotentialFileReader reader(lmp, "Si.sw", "Stillinger-Weber", utils::REAL2METAL););
-    } else {
-        ASSERT_DEATH(
-            { PotentialFileReader reader(lmp, "Si.sw", "Stillinger-Weber", utils::REAL2METAL); },
-            "");
-    }
+    TEST_FAILURE(PotentialFileReader reader(lmp, "Si.sw", "Stillinger-Weber", utils::REAL2METAL););
     std::string mesg = ::testing::internal::GetCapturedStdout();
     ASSERT_THAT(mesg, MatchesRegex(".*ERROR on proc.*potential.*requires metal units but real.*"));
 }

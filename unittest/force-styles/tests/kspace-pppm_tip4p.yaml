@@ -1,7 +1,7 @@
 ---
 lammps_version: 30 Jun 2020
 date_generated: Sat Jul  4 16:24:28 202
-epsilon: 1e-13
+epsilon: 2e-13
 prerequisites: ! |
   atom full
   pair tip4p/long

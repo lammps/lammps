@@ -44,6 +44,7 @@ IntelBuffers<flt_t, acc_t>::IntelBuffers(class LAMMPS *lmp_in) :
   _off_threads = 0;
   _off_ccache = 0;
   _off_ncache = 0;
+  _need_tag = 0;
   _host_nmax = 0;
   #endif
 }

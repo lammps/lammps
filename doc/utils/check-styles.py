@@ -52,6 +52,7 @@ minimize = {}
 pair = {}
 reader = {}
 region = {}
+total = 0
 
 upper = re.compile("[A-Z]+")
 gpu = re.compile("(.+)/gpu$")
@@ -60,7 +61,7 @@ kokkos = re.compile("(.+)/kk$")
 kokkos_skip = re.compile("(.+)/kk/(host|device)$")
 omp = re.compile("(.+)/omp$")
 opt = re.compile("(.+)/opt$")
-removed = re.compile("(.+)Deprecated$")
+removed = re.compile("(.*)Deprecated$")
 
 def register_style(list,style,info):
     if style in list.keys():
@@ -119,6 +120,7 @@ for h in headers:
 
         # skip over internal styles w/o explicit documentation
         style = m[1]
+        total += 1
         if upper.match(style):
             continue
 
@@ -197,12 +199,13 @@ print("""Parsed style names w/o suffixes from C++ tree in %s:
    Fix styles:       %3d    Improper styles:  %3d
    Integrate styles: %3d    Kspace styles:    %3d
    Minimize styles:  %3d    Pair styles:      %3d
-   Reader styles:    %3d    Region styles:    %3d""" \
+   Reader styles:    %3d    Region styles:    %3d
+----------------------------------------------------
+Total number of styles (including suffixes): %d""" \
       % (src, len(angle), len(atom), len(body), len(bond),   \
        len(command), len(compute), len(dihedral), len(dump), \
        len(fix), len(improper), len(integrate), len(kspace), \
-       len(minimize), len(pair), len(reader), len(region)))
-
+       len(minimize), len(pair), len(reader), len(region), total))
 
 counter = 0
 

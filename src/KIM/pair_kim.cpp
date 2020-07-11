@@ -285,6 +285,13 @@ void PairKIM::allocate()
 
 void PairKIM::settings(int narg, char **arg)
 {
+  // some of the code below needs to know the number of atom types,
+  // but that is not set until the simulation box is created.
+
+  if (domain->box_exist == 0)
+    error->all(FLERR,"May not use 'pair_style kim' command before "
+               "simulation box is defined");
+
   // This is called when "pair_style kim ..." is read from input
   // may be called multiple times
   ++settings_call_count;

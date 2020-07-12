@@ -442,7 +442,9 @@ TEST(PairStyle, plain)
     double energy = lmp->modify->compute[id]->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
     EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
-    EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
+    // skip comparing per-atom energy with total energy for "kim"
+    if (std::string("kim") != lmp->force->pair_style)
+        EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -508,7 +510,9 @@ TEST(PairStyle, plain)
         energy = lmp->modify->compute[id]->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
         EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
-        EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
+        // skip comparing per-atom energy with total energy for "kim"
+        if (std::string("kim") != lmp->force->pair_style)
+            EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
         if (print_stats) std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
     }
 
@@ -824,7 +828,7 @@ TEST(PairStyle, intel)
         GTEST_SKIP();
     }
 
-    if (lmp->force->kspace && utils::strmatch(lmp->force->kspace_style,"^pppm/disp/intel")) {
+    if (lmp->force->kspace && utils::strmatch(lmp->force->kspace_style, "^pppm/disp/intel")) {
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
         if (!verbose) ::testing::internal::GetCapturedStdout();

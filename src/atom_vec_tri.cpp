@@ -724,10 +724,8 @@ int AtomVecTri::pack_data_bonus(double *buf, int /*flag*/)
       buf[m++] = xc + dc3[0];
       buf[m++] = yc + dc3[1];
       buf[m++] = zc + dc3[2];
-    }
-    m++;
+    } else m += size_data_bonus;
   }
-
   return m;
 }
 
@@ -739,7 +737,7 @@ void AtomVecTri::write_data_bonus(FILE *fp, int n, double *buf, int /*flag*/)
 {
   int i = 0;
   while (i < n) {
-    fmt::print(fp,"{} {} {} {} {} {} {} {} {} {} {}\n", ubuf(buf[i]).i,
+    fmt::print(fp,"{} {} {} {} {} {} {} {} {} {}\n", ubuf(buf[i]).i,
                buf[i+1],buf[i+2],buf[i+3],buf[i+4],buf[i+5],buf[i+6],
                buf[i+7],buf[i+8],buf[i+9]);
     i += size_data_bonus;

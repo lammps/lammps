@@ -490,7 +490,6 @@ int AtomVecLine::pack_data_bonus(double *buf, int /*flag*/)
       buf[m++] = y2;
     } else m += size_data_bonus;
   }
-
   return m;
 }
 

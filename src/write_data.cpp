@@ -669,7 +669,7 @@ void WriteData::bonus(int flag)
   int maxvalues;
   MPI_Allreduce(&nvalues,&maxvalues,1,MPI_INT,MPI_MAX,world);
 
-  double *buf;
+  double *buf = nullptr;
   if (me == 0) memory->create(buf,MAX(1,maxvalues),"write_data:buf");
   else memory->create(buf,MAX(1,nvalues),"write_data:buf");
 

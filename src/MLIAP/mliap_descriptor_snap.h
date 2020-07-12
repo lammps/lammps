@@ -22,18 +22,15 @@ class MLIAPDescriptorSNAP : public MLIAPDescriptor  {
 public:
   MLIAPDescriptorSNAP(LAMMPS*, char*);
   ~MLIAPDescriptorSNAP();
-  virtual void compute_descriptors(int, int*, int*, int*, int*, int*, double**);
-  virtual void compute_forces(int, int*, int*, int*, 
-                              int*, int*, double**,
-                              class PairMLIAP*, int);
-  virtual void compute_gradients(int, int*, int*, int*, int*, int*, int, int**, int**, double**, 
-                              double**, int, int);
-  virtual void compute_descriptor_gradients(int, int*, int*, int*, int*, int*, double***);
+  virtual void compute_descriptors(class MLIAPData*);
+  virtual void compute_forces(class MLIAPData*);
+  virtual void compute_force_gradients(class MLIAPData*);
+  virtual void compute_descriptor_gradients(class MLIAPData*);
   virtual void init();
   virtual double memory_usage();
 
-  double rcutfac;                // declared public to workaround gcc 4.9
-                                 // compiler bug, manifest in KOKKOS package
+  double rcutfac;
+
 protected:
   class SNA* snaptr;
   void read_paramfile(char *);

@@ -17,10 +17,8 @@ Syntax
 
   .. parsed-literal::
 
-       *model* values = style Nelems Nparams
+       *model* values = style
          style = *linear* or *quadratic*
-         Nelems = number of elements
-         Nparams = number of parameters per element 
        *descriptor* values = style filename
          style = *sna*
          filename = name of file containing descriptor definitions
@@ -31,7 +29,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   compute mliap model linear 2 31 descriptor sna Ta06A.mliap.descriptor
+   compute mliap model linear descriptor sna Ta06A.mliap.descriptor
 
 Description
 """""""""""
@@ -58,14 +56,8 @@ The compute *mliap* command must be followed by two keywords
 *model* and *descriptor* in either order. 
 
 The *model* keyword is followed by a model style, currently limited to
-either *linear* or *quadratic*. In both cases,
-this is followed by two arguments. *nelems* is the number of elements.
-It must be equal to the number of LAMMPS atom types. *nparams*
-is the number of parameters per element for this model i.e.
-the number of parameter gradients for each element. Note these definitions
-are identical to those of *nelems* and *nparams* in the 
-:doc:`pair_style mliap <pair_mliap>` model file.
- 
+either *linear* or *quadratic*. 
+
 The *descriptor* keyword is followed by a descriptor style, and additional arguments.
 Currently the only descriptor style is *sna*, indicating the bispectrum component 
 descriptors used by the Spectral Neighbor Analysis Potential (SNAP) potentials of 

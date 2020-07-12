@@ -15,7 +15,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "mliap.h"
+#include "mliap_data.h"
 #include "mliap_model_linear.h"
 #include "mliap_model_quadratic.h"
 #include "mliap_descriptor_snap.h"
@@ -49,7 +49,7 @@ PairMLIAP::~PairMLIAP()
 
   delete model;
   delete descriptor;
-  delete mliap;
+  delete data;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -67,22 +67,20 @@ void PairMLIAP::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
     
-  mliap->generate_neigharrays(list);
+  data->generate_neighdata(list, eflag, vflag);
     
   // compute descriptors, if needed
 
   if (model->nonlinearflag || eflag)
-    descriptor->compute_descriptors(mliap->natomdesc, mliap->iatommliap, mliap->ielemmliap, mliap->numneighmliap, 
-                                    mliap->jatommliap, mliap->jelemmliap, mliap->descriptors);
+    descriptor->compute_descriptors(data);
 
   // compute E_i and beta_i = dE_i/dB_i for all i in list
 
-  model->gradient(mliap->natomdesc, mliap->iatommliap, mliap->ielemmliap, mliap->descriptors, mliap->beta, this, eflag);
+  model->compute_gradients(data);
 
   // calculate force contributions beta_i*dB_i/dR_j
 
-  descriptor->compute_forces(mliap->natomdesc, mliap->iatommliap, mliap->ielemmliap, mliap->numneighmliap, 
-                             mliap->jatommliap, mliap->jelemmliap, mliap->beta, this, vflag);
+  descriptor->compute_forces(data);
 
   // calculate stress
 
@@ -149,10 +147,6 @@ void PairMLIAP::settings(int narg, char ** arg)
   if (modelflag == 0 || descriptorflag == 0)
     error->all(FLERR,"Illegal pair_style command");
 
-  ndescriptors = descriptor->ndescriptors;
-  nparams = model->nparams;
-  nelements = model->nelements;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -209,20 +203,20 @@ void PairMLIAP::coeff(int narg, char **arg)
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 
+  // set up model, descriptor, and mliap data structures
+
   model->init();
   descriptor->init();
+  int gradgradflag = -1;
+  data = new MLIAPData(lmp, gradgradflag, map, model, descriptor, this);
+  data->init();
 
   // consistency checks
 
-  if (ndescriptors != model->ndescriptors)
+  if (data->ndescriptors != model->ndescriptors)
     error->all(FLERR,"Incompatible model and descriptor definitions");
-  if (descriptor->nelements != model->nelements)
+  if (data->nelements != model->nelements)
     error->all(FLERR,"Incompatible model and descriptor definitions");
-
-  int gradgradflag = 0;
-  mliap = new MLIAP(lmp, ndescriptors, nparams, nelements, gradgradflag, map, model, descriptor);
-  mliap->init();
-
 }
 
 /* ----------------------------------------------------------------------
@@ -315,12 +309,12 @@ double PairMLIAP::memory_usage()
   double bytes = Pair::memory_usage();
 
   int n = atom->ntypes+1;
-  bytes += n*n*sizeof(int);      // setflag
-  bytes += mliap->natomdesc_max*ndescriptors*sizeof(double); // descriptors
-  bytes += mliap->natomdesc_max*ndescriptors*sizeof(double); // beta
-
+  bytes += n*n*sizeof(int);            // setflag
+  bytes += n*n*sizeof(int);            // cutsq
+  bytes += n*sizeof(int);              // map
   bytes += descriptor->memory_usage(); // Descriptor object
   bytes += model->memory_usage();      // Model object
+  bytes += data->memory_usage();       // Data object
 
   return bytes;
 }

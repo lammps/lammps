@@ -79,7 +79,7 @@ thermo 		100
 
 # run compute mliap with gradgradflag = 1
 
-compute   	snap all mliap descriptor sna compute.mliap.descriptor model linear 2 6 gradgradflag 1
+compute   	snap all mliap descriptor sna compute.mliap.descriptor model linear gradgradflag 1
 fix 		snap all ave/time 1 1 1 c_snap[*] file compute.snap.gg1.dat mode vector
 
 thermo_style	custom &
@@ -94,7 +94,7 @@ unfix		snap
 
 # run compute mliap with gradgradflag = 0
 
-compute   	snap all mliap descriptor sna compute.mliap.descriptor model linear 2 6 gradgradflag 0
+compute   	snap all mliap descriptor sna compute.mliap.descriptor model linear gradgradflag 0
 fix 		snap all ave/time 1 1 1 c_snap[*] file compute.snap.gg0.dat mode vector
 
 thermo_style	custom &

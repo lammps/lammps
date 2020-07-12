@@ -110,7 +110,7 @@ thermo 		100
 
 # run compute mliap with gradgradflag = 1
 
-compute   	snap all mliap descriptor sna compute.mliap.descriptor model quadratic 2 21 gradgradflag 1
+compute   	snap all mliap descriptor sna compute.mliap.descriptor model quadratic gradgradflag 1
 SNAP keyword rcutfac 1.0 
 SNAP keyword twojmax 2 
 SNAP keyword nelems 2 
@@ -160,7 +160,7 @@ Neighbor list info ...
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 22.45 | 22.45 | 22.45 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 22.47 | 22.47 | 22.47 Mbytes
 PotEng Pxy c_bsum2[20] c_vbsum[220] v_db_2_100 c_snap[1][43] c_snap[13][43] c_snap[1][42] c_snap[12][42] c_snap[6][42] 
    322.86952    1505558.1 4.2492771e+08     -4952473     28484035    322.86952    1505558.1 4.2492771e+08     -4952473     28484035 
 Loop time of 1e-06 on 1 procs for 0 steps with 2 atoms
@@ -196,7 +196,7 @@ unfix		snap
 
 # run compute mliap with gradgradflag = 0
 
-compute   	snap all mliap descriptor sna compute.mliap.descriptor model quadratic 2 21 gradgradflag 0
+compute   	snap all mliap descriptor sna compute.mliap.descriptor model quadratic gradgradflag 0
 SNAP keyword rcutfac 1.0 
 SNAP keyword twojmax 2 
 SNAP keyword nelems 2 
@@ -247,12 +247,12 @@ Neighbor list info ...
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 70.2 | 70.2 | 70.2 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 70.24 | 70.24 | 70.24 Mbytes
 PotEng Pxy c_bsum2[20] c_vbsum[220] v_db_2_100 c_snap[1][43] c_snap[13][43] c_snap[1][42] c_snap[12][42] c_snap[6][42] 
    322.86952    1505558.1 4.2492771e+08     -4952473     28484035    322.86952    1505558.1 4.2492771e+08     -4952473     28484035 
-Loop time of 1e-06 on 1 procs for 0 steps with 2 atoms
+Loop time of 2e-06 on 1 procs for 0 steps with 2 atoms
 
-200.0% CPU use with 1 MPI tasks x no OpenMP threads
+50.0% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -262,7 +262,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 1e-06      |            |       |100.00
+Other   |            | 2e-06      |            |       |100.00
 
 Nlocal:    2.0 ave 2.0 max 2.0 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

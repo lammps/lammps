@@ -110,7 +110,7 @@ thermo 		100
 
 # run compute mliap with gradgradflag = 1
 
-compute   	snap all mliap descriptor sna compute.mliap.descriptor model quadratic 2 21 gradgradflag 1
+compute   	snap all mliap descriptor sna compute.mliap.descriptor model quadratic gradgradflag 1
 SNAP keyword rcutfac 1.0 
 SNAP keyword twojmax 2 
 SNAP keyword nelems 2 
@@ -161,12 +161,12 @@ Neighbor list info ...
       stencil: full/bin/3d
       bin: standard
 WARNING: Proc sub-domain size < neighbor skin, could lead to lost atoms (../domain.cpp:964)
-Per MPI rank memory allocation (min/avg/max) = 22.18 | 22.18 | 22.18 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 6.429 | 6.43 | 6.432 Mbytes
 PotEng Pxy c_bsum2[20] c_vbsum[220] v_db_2_100 c_snap[1][43] c_snap[13][43] c_snap[1][42] c_snap[12][42] c_snap[6][42] 
    322.86952    1505558.1 4.2492771e+08     -4952473     28484035    322.86952    1505558.1 4.2492771e+08     -4952473     28484035 
-Loop time of 3.5e-06 on 4 procs for 0 steps with 2 atoms
+Loop time of 4.25e-06 on 4 procs for 0 steps with 2 atoms
 
-92.9% CPU use with 4 MPI tasks x no OpenMP threads
+82.4% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -176,7 +176,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 3.5e-06    |            |       |100.00
+Other   |            | 4.25e-06   |            |       |100.00
 
 Nlocal:    0.5 ave 1.0 max 0.0 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -197,7 +197,7 @@ unfix		snap
 
 # run compute mliap with gradgradflag = 0
 
-compute   	snap all mliap descriptor sna compute.mliap.descriptor model quadratic 2 21 gradgradflag 0
+compute   	snap all mliap descriptor sna compute.mliap.descriptor model quadratic gradgradflag 0
 SNAP keyword rcutfac 1.0 
 SNAP keyword twojmax 2 
 SNAP keyword nelems 2 
@@ -249,12 +249,12 @@ Neighbor list info ...
       stencil: full/bin/3d
       bin: standard
 WARNING: Proc sub-domain size < neighbor skin, could lead to lost atoms (../domain.cpp:964)
-Per MPI rank memory allocation (min/avg/max) = 69.68 | 69.81 | 69.93 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 53.93 | 54.06 | 54.18 Mbytes
 PotEng Pxy c_bsum2[20] c_vbsum[220] v_db_2_100 c_snap[1][43] c_snap[13][43] c_snap[1][42] c_snap[12][42] c_snap[6][42] 
    322.86952    1505558.1 4.2492771e+08     -4952473     28484035    322.86952    1505558.1 4.2492771e+08     -4952473     28484035 
-Loop time of 2.75e-06 on 4 procs for 0 steps with 2 atoms
+Loop time of 4e-06 on 4 procs for 0 steps with 2 atoms
 
-100.0% CPU use with 4 MPI tasks x no OpenMP threads
+106.2% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -264,7 +264,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 2.75e-06   |            |       |100.00
+Other   |            | 4e-06      |            |       |100.00
 
 Nlocal:    0.5 ave 1.0 max 0.0 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

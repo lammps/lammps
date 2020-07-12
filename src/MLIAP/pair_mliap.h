@@ -41,13 +41,9 @@ public:
 protected:
   virtual void allocate();
 
-  int ndescriptors;            // number of descriptors 
-  int nparams;                 // number of model parameters per element
-  int nelements;
-
   class MLIAPModel* model;
   class MLIAPDescriptor* descriptor;
-  class MLIAP *mliap;
+  class MLIAPData *data;
 };
 
 }

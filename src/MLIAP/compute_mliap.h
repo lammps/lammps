@@ -39,17 +39,14 @@ class ComputeMLIAP : public Compute {
  private:
   double **mliaparray, **mliaparrayall;
   class NeighList *list;
-  double **gradforce;
   int *map;  // map types to [0,nelements)
   int ndescriptors;            // number of descriptors 
   int nparams;                 // number of model parameters per element
   int nelements;
   int gradgradflag;           // 1 for graddesc, 0 for gamma
-  int nmax;
-  int natomgamma_max;           // allocated size of atom neighbor arrays
   class MLIAPModel *model;
   class MLIAPDescriptor *descriptor;
-  class MLIAP *mliap;
+  class MLIAPData *data;
 
   Compute *c_pe;
   Compute *c_virial;

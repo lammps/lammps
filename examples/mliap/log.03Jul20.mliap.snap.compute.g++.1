@@ -111,7 +111,7 @@ thermo 		100
 
 # run compute mliap with gradgradflag = 1
 
-compute   	snap all mliap descriptor sna compute.mliap.descriptor model linear 2 6 gradgradflag 1
+compute   	snap all mliap descriptor sna compute.mliap.descriptor model linear gradgradflag 1
 SNAP keyword rcutfac 1.0 
 SNAP keyword twojmax 2 
 SNAP keyword nelems 2 
@@ -161,12 +161,12 @@ Neighbor list info ...
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 10.73 | 10.73 | 10.73 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 10.75 | 10.75 | 10.75 Mbytes
 PotEng Pxy c_bsum2[1] c_vbsum[55] v_db_2_25 c_snap[1][13] c_snap[13][13] c_snap[1][8] c_snap[12][12] c_snap[6][12] 
    322.86952    1505558.1    364182.88   -240.25066    1381.7961    322.86952    1505558.1    364182.88   -240.25066    1381.7961 
-Loop time of 2e-06 on 1 procs for 0 steps with 2 atoms
+Loop time of 0 on 1 procs for 0 steps with 2 atoms
 
-150.0% CPU use with 1 MPI tasks x no OpenMP threads
+0.0% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -176,7 +176,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 2e-06      |            |       |100.00
+Other   |            | 0          |            |       |  0.00
 
 Nlocal:    2.0 ave 2.0 max 2.0 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -197,7 +197,7 @@ unfix		snap
 
 # run compute mliap with gradgradflag = 0
 
-compute   	snap all mliap descriptor sna compute.mliap.descriptor model linear 2 6 gradgradflag 0
+compute   	snap all mliap descriptor sna compute.mliap.descriptor model linear gradgradflag 0
 SNAP keyword rcutfac 1.0 
 SNAP keyword twojmax 2 
 SNAP keyword nelems 2 
@@ -248,7 +248,7 @@ Neighbor list info ...
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 22.85 | 22.85 | 22.85 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 22.89 | 22.89 | 22.89 Mbytes
 PotEng Pxy c_bsum2[1] c_vbsum[55] v_db_2_25 c_snap[1][13] c_snap[13][13] c_snap[1][8] c_snap[12][12] c_snap[6][12] 
    322.86952    1505558.1    364182.88   -240.25066    1381.7961    322.86952    1505558.1    364182.88   -240.25066    1381.7961 
 Loop time of 1e-06 on 1 procs for 0 steps with 2 atoms

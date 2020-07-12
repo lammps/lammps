@@ -22,13 +22,10 @@ class MLIAPDescriptor : protected Pointers  {
 public:
   MLIAPDescriptor(LAMMPS*);
   ~MLIAPDescriptor();
-  virtual void compute_descriptors(int, int*, int*, int*, int*, int*, double**)=0;
-  virtual void compute_forces(int, int*, int*, int*, 
-                              int*, int*, double**,
-                              class PairMLIAP*, int)=0;
-  virtual void compute_gradients(int, int*, int*, int*, int*, int*, int, int**, int**, double**, 
-                              double**, int, int)=0;
-  virtual void compute_descriptor_gradients(int, int*, int*, int*, int*, int*, double***)=0;
+  virtual void compute_descriptors(class MLIAPData*)=0;
+  virtual void compute_forces(class MLIAPData*)=0;
+  virtual void compute_force_gradients(class MLIAPData*)=0;
+  virtual void compute_descriptor_gradients(class MLIAPData*)=0;
   virtual void init()=0;
   virtual double memory_usage()=0;
 

@@ -78,7 +78,7 @@ thermo 		100
 
 # run compute mliap with gradgradflag = 1
 
-compute   	snap all mliap descriptor sna compute.mliap.descriptor model quadratic 2 21 gradgradflag 1
+compute   	snap all mliap descriptor sna compute.mliap.descriptor model quadratic gradgradflag 1
 fix 		snap all ave/time 1 1 1 c_snap[*] file compute.quadratic.gg1.dat mode vector
 
 thermo_style	custom &
@@ -93,7 +93,7 @@ unfix		snap
 
 # run compute mliap with gradgradflag = 0
 
-compute   	snap all mliap descriptor sna compute.mliap.descriptor model quadratic 2 21 gradgradflag 0
+compute   	snap all mliap descriptor sna compute.mliap.descriptor model quadratic gradgradflag 0
 fix 		snap all ave/time 1 1 1 c_snap[*] file compute.quadratic.gg0.dat mode vector
 
 thermo_style	custom &

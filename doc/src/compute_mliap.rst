@@ -104,7 +104,7 @@ layout in the global array.
 The optional keyword *gradgradflag* controls how the force
 gradient is calculated. A value of 1 requires that the model provide
 the matrix of double gradients of energy w.r.t. both parameters
-and desciptors. For the linear and quadratic models this matrix is 
+and descriptors. For the linear and quadratic models this matrix is 
 sparse and so is easily calculated and stored. For other models, this
 matrix may be prohibitively expensive to calculate and store.
 A value of 0 requires that the descriptor provide the derivative 

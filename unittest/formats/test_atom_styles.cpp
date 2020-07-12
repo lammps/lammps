@@ -2357,6 +2357,11 @@ TEST_F(AtomStyleTest, bond)
     ASSERT_NE(lmp->atom->mass, nullptr);
     ASSERT_NE(lmp->atom->mass_setflag, nullptr);
 
+    // change sign on a couple of bond types. this will be undone on writing
+    // a data file and thus should be positive again after reading it
+    lmp->atom->bond_type[GETIDX(1)][0] *= -1;
+    lmp->atom->bond_type[GETIDX(5)][0] *= -1;
+
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("write_data test_atom_styles.data nocoeff");
     lmp->input->one("clear");
@@ -2446,10 +2451,11 @@ TEST_F(AtomStyleTest, bond)
     ASSERT_EQ(lmp->atom->map_user, 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 6);
 
-    auto x         = lmp->atom->x;
-    auto v         = lmp->atom->v;
-    auto type      = lmp->atom->type;
+    auto x    = lmp->atom->x;
+    auto v    = lmp->atom->v;
+    auto type = lmp->atom->type;
     num_bond  = lmp->atom->num_bond;
+    bond_type = lmp->atom->bond_type;
     bond_atom = lmp->atom->bond_atom;
 
     ASSERT_DOUBLE_EQ(x[GETIDX(1)][0], -2.0);
@@ -2500,11 +2506,20 @@ TEST_F(AtomStyleTest, bond)
     ASSERT_EQ(num_bond[GETIDX(4)], 0);
     ASSERT_EQ(num_bond[GETIDX(5)], 1);
     ASSERT_EQ(num_bond[GETIDX(6)], 0);
+    ASSERT_EQ(bond_type[GETIDX(1)][0], 1);
+    ASSERT_EQ(bond_type[GETIDX(1)][1], 1);
+    ASSERT_EQ(bond_type[GETIDX(3)][0], 2);
+    ASSERT_EQ(bond_type[GETIDX(3)][1], 2);
+    ASSERT_EQ(bond_type[GETIDX(5)][0], 2);
     ASSERT_EQ(bond_atom[GETIDX(1)][0], 5);
     ASSERT_EQ(bond_atom[GETIDX(1)][1], 3);
     ASSERT_EQ(bond_atom[GETIDX(3)][0], 5);
     ASSERT_EQ(bond_atom[GETIDX(3)][1], 6);
     ASSERT_EQ(bond_atom[GETIDX(5)][0], 6);
+
+    // change sign on bonds again. they will be toggled back in the restart
+    lmp->atom->bond_type[GETIDX(1)][0] *= -1;
+    lmp->atom->bond_type[GETIDX(5)][0] *= -1;
 
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("pair_coeff * *");
@@ -2527,7 +2542,10 @@ TEST_F(AtomStyleTest, bond)
     ASSERT_EQ(lmp->atom->tag_consecutive(), 0);
     ASSERT_EQ(lmp->atom->map_tag_max, 12);
 
-    type = lmp->atom->type;
+    type      = lmp->atom->type;
+    num_bond  = lmp->atom->num_bond;
+    bond_atom = lmp->atom->bond_atom;
+    bond_type = lmp->atom->bond_type;
     ASSERT_EQ(type[GETIDX(1)], 1);
     ASSERT_EQ(type[GETIDX(3)], 2);
     ASSERT_EQ(type[GETIDX(5)], 3);
@@ -2536,8 +2554,37 @@ TEST_F(AtomStyleTest, bond)
     ASSERT_EQ(type[GETIDX(9)], 2);
     ASSERT_EQ(type[GETIDX(11)], 3);
     ASSERT_EQ(type[GETIDX(12)], 3);
+    ASSERT_EQ(num_bond[GETIDX(1)], 2);
+    ASSERT_EQ(num_bond[GETIDX(3)], 2);
+    ASSERT_EQ(num_bond[GETIDX(5)], 1);
+    ASSERT_EQ(num_bond[GETIDX(6)], 0);
+    ASSERT_EQ(num_bond[GETIDX(7)], 2);
+    ASSERT_EQ(num_bond[GETIDX(9)], 2);
+    ASSERT_EQ(num_bond[GETIDX(11)], 1);
+    ASSERT_EQ(num_bond[GETIDX(12)], 0);
+    ASSERT_EQ(bond_atom[GETIDX(1)][0], 5);
+    ASSERT_EQ(bond_atom[GETIDX(1)][1], 3);
+    ASSERT_EQ(bond_atom[GETIDX(3)][0], 5);
+    ASSERT_EQ(bond_atom[GETIDX(3)][1], 6);
+    ASSERT_EQ(bond_atom[GETIDX(5)][0], 6);
+    ASSERT_EQ(bond_atom[GETIDX(7)][0], 11);
+    ASSERT_EQ(bond_atom[GETIDX(7)][1], 9);
+    ASSERT_EQ(bond_atom[GETIDX(9)][0], 11);
+    ASSERT_EQ(bond_atom[GETIDX(9)][1], 12);
+    ASSERT_EQ(bond_atom[GETIDX(11)][0], 12);
+    ASSERT_EQ(bond_type[GETIDX(1)][0], 1);
+    ASSERT_EQ(bond_type[GETIDX(1)][1], 1);
+    ASSERT_EQ(bond_type[GETIDX(3)][0], 2);
+    ASSERT_EQ(bond_type[GETIDX(3)][1], 2);
+    ASSERT_EQ(bond_type[GETIDX(5)][0], 2);
+    ASSERT_EQ(bond_type[GETIDX(7)][0], 1);
+    ASSERT_EQ(bond_type[GETIDX(7)][1], 1);
+    ASSERT_EQ(bond_type[GETIDX(9)][0], 2);
+    ASSERT_EQ(bond_type[GETIDX(9)][1], 2);
+    ASSERT_EQ(bond_type[GETIDX(11)][0], 2);
 
     if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("delete_bonds all bond 2");
     lmp->input->one("reset_atom_ids");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
@@ -2552,6 +2599,35 @@ TEST_F(AtomStyleTest, bond)
     ASSERT_EQ(type[GETIDX(6)], 3);
     ASSERT_EQ(type[GETIDX(7)], 2);
     ASSERT_EQ(type[GETIDX(8)], 3);
+
+    ASSERT_EQ(num_bond[GETIDX(1)], 2);
+    ASSERT_EQ(num_bond[GETIDX(2)], 0);
+    ASSERT_EQ(num_bond[GETIDX(3)], 2);
+    ASSERT_EQ(num_bond[GETIDX(4)], 1);
+    ASSERT_EQ(num_bond[GETIDX(5)], 2);
+    ASSERT_EQ(num_bond[GETIDX(6)], 0);
+    ASSERT_EQ(num_bond[GETIDX(7)], 2);
+    ASSERT_EQ(num_bond[GETIDX(8)], 1);
+    ASSERT_EQ(bond_atom[GETIDX(1)][0], 4);
+    ASSERT_EQ(bond_atom[GETIDX(1)][1], 3);
+    ASSERT_EQ(bond_atom[GETIDX(3)][0], 4);
+    ASSERT_EQ(bond_atom[GETIDX(3)][1], 2);
+    ASSERT_EQ(bond_atom[GETIDX(4)][0], 2);
+    ASSERT_EQ(bond_atom[GETIDX(5)][0], 8);
+    ASSERT_EQ(bond_atom[GETIDX(5)][1], 7);
+    ASSERT_EQ(bond_atom[GETIDX(7)][0], 8);
+    ASSERT_EQ(bond_atom[GETIDX(7)][1], 6);
+    ASSERT_EQ(bond_atom[GETIDX(8)][0], 6);
+    ASSERT_EQ(bond_type[GETIDX(1)][0], 1);
+    ASSERT_EQ(bond_type[GETIDX(1)][1], 1);
+    ASSERT_EQ(bond_type[GETIDX(3)][0], -2);
+    ASSERT_EQ(bond_type[GETIDX(3)][1], -2);
+    ASSERT_EQ(bond_type[GETIDX(4)][0], -2);
+    ASSERT_EQ(bond_type[GETIDX(5)][0], 1);
+    ASSERT_EQ(bond_type[GETIDX(5)][1], 1);
+    ASSERT_EQ(bond_type[GETIDX(7)][0], -2);
+    ASSERT_EQ(bond_type[GETIDX(7)][1], -2);
+    ASSERT_EQ(bond_type[GETIDX(8)][0], -2);
 }
 
 TEST_F(AtomStyleTest, angle)
@@ -2751,7 +2827,7 @@ TEST_F(AtomStyleTest, angle)
     ASSERT_EQ(lmp->atom->map_tag_max, -1);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("create_box 3 box bond/types 2 angle/types 1 "
+    lmp->input->one("create_box 3 box bond/types 2 angle/types 2 "
                     "extra/bond/per/atom 2 extra/angle/per/atom 1 "
                     "extra/special/per/atom 4");
     lmp->input->one("create_atoms 1 single -2.0  2.0  0.1");
@@ -2774,7 +2850,7 @@ TEST_F(AtomStyleTest, angle)
     lmp->input->one("create_bonds single/bond 2 3 6");
     lmp->input->one("create_bonds single/bond 2 5 6");
     lmp->input->one("create_bonds single/angle 1 1 3 5");
-    lmp->input->one("create_bonds single/angle 1 3 5 6");
+    lmp->input->one("create_bonds single/angle 2 3 5 6");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("angle"));
     ASSERT_NE(lmp->atom->avec, nullptr);
@@ -2782,7 +2858,7 @@ TEST_F(AtomStyleTest, angle)
     ASSERT_EQ(lmp->atom->nbonds, 5);
     ASSERT_EQ(lmp->atom->nbondtypes, 2);
     ASSERT_EQ(lmp->atom->nangles, 2);
-    ASSERT_EQ(lmp->atom->nangletypes, 1);
+    ASSERT_EQ(lmp->atom->nangletypes, 2);
     ASSERT_EQ(lmp->atom->nellipsoids, 0);
     ASSERT_EQ(lmp->atom->nlocal, 6);
     ASSERT_EQ(lmp->atom->nghost, 0);
@@ -2804,6 +2880,11 @@ TEST_F(AtomStyleTest, angle)
 
     ASSERT_NE(lmp->atom->mass, nullptr);
     ASSERT_NE(lmp->atom->mass_setflag, nullptr);
+
+    // change sign on a couple of angle types. this will be undone on writing
+    // a data file and thus should be positive again after reading it
+    lmp->atom->angle_type[GETIDX(3)][0] *= -1;
+    lmp->atom->angle_type[GETIDX(5)][0] *= -1;
 
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("write_data test_atom_styles.data nocoeff");
@@ -2837,10 +2918,11 @@ TEST_F(AtomStyleTest, angle)
     ASSERT_EQ(lmp->atom->map_user, 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 6);
 
-    auto num_bond  = lmp->atom->num_bond;
-    auto bond_type = lmp->atom->bond_type;
-    auto bond_atom = lmp->atom->bond_atom;
-    auto num_angle  = lmp->atom->num_angle;
+    auto num_bond    = lmp->atom->num_bond;
+    auto bond_type   = lmp->atom->bond_type;
+    auto bond_atom   = lmp->atom->bond_atom;
+    auto num_angle   = lmp->atom->num_angle;
+    auto angle_type  = lmp->atom->angle_type;
     auto angle_atom1 = lmp->atom->angle_atom1;
     auto angle_atom2 = lmp->atom->angle_atom2;
     auto angle_atom3 = lmp->atom->angle_atom3;
@@ -2877,6 +2959,12 @@ TEST_F(AtomStyleTest, angle)
     ASSERT_EQ(num_angle[GETIDX(4)], 0);
     ASSERT_EQ(num_angle[GETIDX(5)], 2);
     ASSERT_EQ(num_angle[GETIDX(6)], 1);
+    ASSERT_EQ(angle_type[GETIDX(1)][0], 1);
+    ASSERT_EQ(angle_type[GETIDX(3)][0], 1);
+    ASSERT_EQ(angle_type[GETIDX(3)][1], 2);
+    ASSERT_EQ(angle_type[GETIDX(5)][0], 1);
+    ASSERT_EQ(angle_type[GETIDX(5)][1], 2);
+    ASSERT_EQ(angle_type[GETIDX(6)][0], 2);
     ASSERT_EQ(angle_atom1[GETIDX(1)][0], 1);
     ASSERT_EQ(angle_atom2[GETIDX(1)][0], 3);
     ASSERT_EQ(angle_atom3[GETIDX(1)][0], 5);
@@ -2924,11 +3012,13 @@ TEST_F(AtomStyleTest, angle)
     ASSERT_EQ(lmp->atom->map_user, 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 6);
 
-    auto x         = lmp->atom->x;
-    auto v         = lmp->atom->v;
-    auto type      = lmp->atom->type;
-    num_bond  = lmp->atom->num_bond;
-    bond_atom = lmp->atom->bond_atom;
+    auto x     = lmp->atom->x;
+    auto v     = lmp->atom->v;
+    auto type  = lmp->atom->type;
+    num_bond   = lmp->atom->num_bond;
+    bond_atom  = lmp->atom->bond_atom;
+    num_angle  = lmp->atom->num_angle;
+    angle_type = lmp->atom->angle_type;
 
     ASSERT_DOUBLE_EQ(x[GETIDX(1)][0], -2.0);
     ASSERT_DOUBLE_EQ(x[GETIDX(1)][1], 2.0);
@@ -2984,6 +3074,15 @@ TEST_F(AtomStyleTest, angle)
     ASSERT_EQ(bond_atom[GETIDX(3)][1], 6);
     ASSERT_EQ(bond_atom[GETIDX(5)][0], 6);
 
+    ASSERT_EQ(num_angle[GETIDX(1)], 0);
+    ASSERT_EQ(num_angle[GETIDX(2)], 0);
+    ASSERT_EQ(num_angle[GETIDX(3)], 1);
+    ASSERT_EQ(num_angle[GETIDX(4)], 0);
+    ASSERT_EQ(num_angle[GETIDX(5)], 1);
+    ASSERT_EQ(num_angle[GETIDX(6)], 0);
+    ASSERT_EQ(angle_type[GETIDX(3)][0], 1);
+    ASSERT_EQ(angle_type[GETIDX(5)][0], 2);
+
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("pair_coeff * *");
     lmp->input->one("group two id 2:4:2");
@@ -3005,7 +3104,9 @@ TEST_F(AtomStyleTest, angle)
     ASSERT_EQ(lmp->atom->tag_consecutive(), 0);
     ASSERT_EQ(lmp->atom->map_tag_max, 12);
 
-    type = lmp->atom->type;
+    type       = lmp->atom->type;
+    num_angle  = lmp->atom->num_angle;
+    angle_type = lmp->atom->angle_type;
     ASSERT_EQ(type[GETIDX(1)], 1);
     ASSERT_EQ(type[GETIDX(3)], 2);
     ASSERT_EQ(type[GETIDX(5)], 3);
@@ -3014,8 +3115,21 @@ TEST_F(AtomStyleTest, angle)
     ASSERT_EQ(type[GETIDX(9)], 2);
     ASSERT_EQ(type[GETIDX(11)], 3);
     ASSERT_EQ(type[GETIDX(12)], 3);
+    ASSERT_EQ(num_angle[GETIDX(1)], 0);
+    ASSERT_EQ(num_angle[GETIDX(3)], 1);
+    ASSERT_EQ(num_angle[GETIDX(5)], 1);
+    ASSERT_EQ(num_angle[GETIDX(6)], 0);
+    ASSERT_EQ(num_angle[GETIDX(7)], 0);
+    ASSERT_EQ(num_angle[GETIDX(9)], 1);
+    ASSERT_EQ(num_angle[GETIDX(11)], 1);
+    ASSERT_EQ(num_angle[GETIDX(12)], 0);
+    ASSERT_EQ(angle_type[GETIDX(3)][0], 1);
+    ASSERT_EQ(angle_type[GETIDX(5)][0], 2);
+    ASSERT_EQ(angle_type[GETIDX(9)][0], 1);
+    ASSERT_EQ(angle_type[GETIDX(11)][0], 2);
 
     if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("delete_bonds all angle 2");
     lmp->input->one("reset_atom_ids");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
@@ -3030,6 +3144,18 @@ TEST_F(AtomStyleTest, angle)
     ASSERT_EQ(type[GETIDX(6)], 3);
     ASSERT_EQ(type[GETIDX(7)], 2);
     ASSERT_EQ(type[GETIDX(8)], 3);
+    ASSERT_EQ(num_angle[GETIDX(1)], 0);
+    ASSERT_EQ(num_angle[GETIDX(2)], 0);
+    ASSERT_EQ(num_angle[GETIDX(3)], 1);
+    ASSERT_EQ(num_angle[GETIDX(4)], 1);
+    ASSERT_EQ(num_angle[GETIDX(5)], 0);
+    ASSERT_EQ(num_angle[GETIDX(6)], 0);
+    ASSERT_EQ(num_angle[GETIDX(7)], 1);
+    ASSERT_EQ(num_angle[GETIDX(8)], 1);
+    ASSERT_EQ(angle_type[GETIDX(3)][0], 1);
+    ASSERT_EQ(angle_type[GETIDX(4)][0], -2);
+    ASSERT_EQ(angle_type[GETIDX(7)][0], 1);
+    ASSERT_EQ(angle_type[GETIDX(8)][0], -2);
 }
 
 TEST_F(AtomStyleTest, full_ellipsoid)

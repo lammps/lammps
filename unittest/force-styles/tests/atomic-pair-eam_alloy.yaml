@@ -1,7 +1,7 @@
 ---
-lammps_version: 5 May 2020
-date_generated: Fri May 15 23:19:20 202
-epsilon: 5.0e-12
+lammps_version: 30 Jun 2020
+date_generated: Sun Jul 12 19:14:21 202
+epsilon: 5e-12
 prerequisites: ! |
   pair eam/alloy
 pre_commands: ! ""
@@ -10,6 +10,7 @@ input_file: in.metal
 pair_style: eam/alloy
 pair_coeff: ! |
   * * CuNi.eam.alloy Cu Ni
+extract: ! ""
 natoms: 32
 init_vdwl: -118.717513292074
 init_coul: 0

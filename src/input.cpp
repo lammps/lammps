@@ -853,7 +853,7 @@ int Input::execute_command()
   // invoke commands added via style_command.h
 
   if (command_map->find(command) != command_map->end()) {
-    CommandCreator command_creator = (*command_map)[command];
+    CommandCreator &command_creator = (*command_map)[command];
     command_creator(lmp,narg,arg);
     return 0;
   }

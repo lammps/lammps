@@ -48,9 +48,10 @@ PairSpinDipoleCut::PairSpinDipoleCut(LAMMPS *lmp) : PairSpin(lmp)
 
   hbar = force->hplanck/MY_2PI;                       // eV/(rad.THz)
   mub = 9.274e-4;                             // in A.Ang^2
-  mu_0 = 785.15;                              // in eV/Ang/A^2
+  // mu_0 = 785.15;                              // in eV/Ang/A^2
+  mu_0 = 784.15;                              // in eV/Ang/A^2
   mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);   // in eV.Ang^3
-  //mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);   // in eV
+  // mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);   // in eV
   mub2mu0hbinv = mub2mu0 / hbar;              // in rad.THz
 }
 

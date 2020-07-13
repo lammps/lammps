@@ -52,7 +52,7 @@ PairSpinDipoleLong::PairSpinDipoleLong(LAMMPS *lmp) : PairSpin(lmp)
 
   hbar = force->hplanck/MY_2PI;                 // eV/(rad.THz)
   mub = 9.274e-4;                               // in A.Ang^2
-  mu_0 = 785.15;                                // in eV/Ang/A^2
+  mu_0 = 784.15;                                // in eV/Ang/A^2
   mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);     // in eV.Ang^3
   //mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);   // in eV
   mub2mu0hbinv = mub2mu0 / hbar;                // in rad.THz
@@ -136,10 +136,11 @@ void PairSpinDipoleLong::init_style()
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  if (force->kspace == NULL)
-    error->all(FLERR,"Pair style requires a KSpace style");
+  // if (force->kspace == NULL)
+  //   error->all(FLERR,"Pair style requires a KSpace style");
 
-  g_ewald = force->kspace->g_ewald;
+  // g_ewald = force->kspace->g_ewald;
+  g_ewald = 1.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -219,6 +220,9 @@ void PairSpinDipoleLong::compute(int eflag, int vflag)
     nlocal_max = nlocal;
     memory->grow(emag,nlocal_max,"pair/spin:emag");
   }
+
+
+  printf("test gewald %g \n",g_ewald);
 
   pre1 = 2.0 * g_ewald / MY_PIS;
   pre2 = 4.0 * pow(g_ewald,3.0) / MY_PIS;

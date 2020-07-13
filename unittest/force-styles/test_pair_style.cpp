@@ -64,6 +64,7 @@ void cleanup_lammps(LAMMPS *lmp, const TestConfig &cfg)
     delete_file(cfg.basename + ".data");
     delete_file(cfg.basename + "-coeffs.in");
     delete lmp;
+    lmp = nullptr;
 }
 
 LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool newton = true)

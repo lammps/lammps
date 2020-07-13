@@ -111,34 +111,34 @@ be listed under a *AngleTorsion Coeffs* heading and you must leave out
 the *at*, i.e. only list 8 coefficients after the dihedral type.
 
 * *at*
-* :math:`D_1` (energy/radian)
-* :math:`D_2` (energy/radian)
-* :math:`D_3` (energy/radian)
-* :math:`E_1` (energy/radian)
-* :math:`E_2` (energy/radian)
-* :math:`E_3` (energy/radian)
+* :math:`D_1` (energy)
+* :math:`D_2` (energy)
+* :math:`D_3` (energy)
+* :math:`E_1` (energy)
+* :math:`E_2` (energy)
+* :math:`E_3` (energy)
 * :math:`\theta_1` (degrees)
 * :math:`\theta_2` (degrees)
 
-:math:`\theta_1` and :math:`\theta_2` are specified in degrees, but LAMMPS converts
-them to radians internally; hence the units of :math:`D` and :math:`E` are in
-energy/radian.
+:math:`\theta_1` and :math:`\theta_2` are specified in degrees, but
+LAMMPS converts them to radians internally; hence the various
+:math:`D` and :math:`E` are effectively energy per radian.
 
-For the :math:`E_{aat}` formula, each line in a
-:doc:`dihedral_coeff <dihedral_coeff>` command in the input script lists
-4 coefficients, the first of which is *aat* to indicate they are
-AngleAngleTorsion coefficients.  In a data file, these coefficients
-should be listed under a *AngleAngleTorsion Coeffs* heading and you
-must leave out the *aat*, i.e. only list 3 coefficients after the
-dihedral type.
+For the :math:`E_{aat}` formula, each line in a :doc:`dihedral_coeff
+<dihedral_coeff>` command in the input script lists 4 coefficients,
+the first of which is *aat* to indicate they are AngleAngleTorsion
+coefficients.  In a data file, these coefficients should be listed
+under a *AngleAngleTorsion Coeffs* heading and you must leave out the
+*aat*, i.e. only list 3 coefficients after the dihedral type.
 
 * *aat*
-* :math:`M` (energy/radian\^2)
+* :math:`M` (energy)
 * :math:`\theta_1` (degrees)
 * :math:`\theta_2` (degrees)
 
-:math:`\theta_1` and :math:`\theta_2` are specified in degrees, but LAMMPS converts
-them to radians internally; hence the units of M are in energy/radian\^2.
+:math:`\theta_1` and :math:`\theta_2` are specified in degrees, but
+LAMMPS converts them to radians internally; hence :math:`M` is
+effectively energy per radian\^2.
 
 For the :math:`E_{bb13}` formula, each line in a
 :doc:`dihedral_coeff <dihedral_coeff>` command in the input script lists

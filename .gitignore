@@ -9,6 +9,7 @@
 *.d
 *.x
 *.exe
+*.sif
 *.dll
 *.pyc
 __pycache__
@@ -26,6 +27,7 @@ vgcore.*
 .vagrant
 \#*#
 .#*
+.vscode
 
 .DS_Store
 .DS_Store?

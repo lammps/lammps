@@ -34,6 +34,7 @@
 #include "my_page.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -287,7 +288,7 @@ void PairKolmogorovCrespiFull::read_file(char *filename)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // concatenate additional lines until have params_per_line words
@@ -306,7 +307,7 @@ void PairKolmogorovCrespiFull::read_file(char *filename)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+      nwords = utils::count_words(line);
     }
 
     if (nwords != params_per_line)
@@ -335,6 +336,11 @@ void PairKolmogorovCrespiFull::read_file(char *filename)
       maxparam += DELTA;
       params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
                                           "pair:params");
+
+      // make certain all addional allocated storage is initialized
+      // to avoid false positives when checking with valgrind
+
+      memset(params + nparams, 0, DELTA*sizeof(Param));
     }
 
     params[nparams].ielement = ielement;
@@ -444,13 +450,13 @@ void PairKolmogorovCrespiFull::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
    van der Waals forces and energy
 ------------------------------------------------------------------------- */
 
-void PairKolmogorovCrespiFull::calc_FvdW(int eflag, int vflag)
+void PairKolmogorovCrespiFull::calc_FvdW(int eflag, int /* vflag */)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype,k,l,kk,ll;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   tagint itag,jtag;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r,Rcut,r2inv,r6inv,r8inv,Tap,dTap,Vkc,fsum;
@@ -502,7 +508,7 @@ void PairKolmogorovCrespiFull::calc_FvdW(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
-      // only include the interation between different layers
+      // only include the interaction between different layers
       if (rsq < cutsq[itype][jtype] && atom->molecule[i] != atom->molecule[j]) {
 
         int iparam_ij = elem2param[map[itype]][map[jtype]];
@@ -519,11 +525,11 @@ void PairKolmogorovCrespiFull::calc_FvdW(int eflag, int vflag)
           dTap = calc_dTap(r,Rcut);
         } else {Tap = 1.0; dTap = 0.0;}
 
-	Vkc = -p.A*p.z06*r6inv;
+        Vkc = -p.A*p.z06*r6inv;
 
         // derivatives
         fpair = -6.0*p.A*p.z06*r8inv;
-	fsum = fpair*Tap - Vkc*dTap/r;
+        fsum = fpair*Tap - Vkc*dTap/r;
 
         f[i][0] += fsum*delx;
         f[i][1] += fsum*dely;
@@ -540,19 +546,19 @@ void PairKolmogorovCrespiFull::calc_FvdW(int eflag, int vflag)
   }
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
    Repulsive forces and energy
 ------------------------------------------------------------------------- */
 
-void PairKolmogorovCrespiFull::calc_FRep(int eflag, int vflag)
+void PairKolmogorovCrespiFull::calc_FRep(int eflag, int /* vflag */)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype,k,kk;
   double prodnorm1,fkcx,fkcy,fkcz;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,fpair1;
-  double rsq,r,rhosq1,exp0,exp1,r2inv,r6inv,r8inv,Tap,dTap,Vkc;
+  double rsq,r,rhosq1,exp0,exp1,Tap,dTap,Vkc;
   double frho_ij,sumC1,sumC11,sumCff,fsum,rho_ij;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  int *KC_neighs_i,*KC_neighs_j;
+  int *KC_neighs_i;
 
   evdwl = 0.0;
 
@@ -576,9 +582,6 @@ void PairKolmogorovCrespiFull::calc_FRep(int eflag, int vflag)
   // loop over neighbors of owned atoms
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (KC_numneigh[i] == -1) {
-      continue;
-    }
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -589,9 +592,6 @@ void PairKolmogorovCrespiFull::calc_FRep(int eflag, int vflag)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
-      if (KC_numneigh[j] == -1) {
-        continue;
-      }
       jtype = type[j];
 
       delx = xtmp - x[j][0];
@@ -599,21 +599,19 @@ void PairKolmogorovCrespiFull::calc_FRep(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
-      // only include the interation between different layers
+      // only include the interaction between different layers
       if (rsq < cutsq[itype][jtype] && atom->molecule[i] != atom->molecule[j]) {
 
         int iparam_ij = elem2param[map[itype]][map[jtype]];
         Param& p = params[iparam_ij];
 
         r = sqrt(rsq);
-        r2inv = 1.0/rsq;
-        r6inv = r2inv*r2inv*r2inv;
-        r8inv = r2inv*r6inv;
-	// turn on/off taper function
-	if (tap_flag) {
-	  Tap = calc_Tap(r,sqrt(cutsq[itype][jtype]));
-	  dTap = calc_dTap(r,sqrt(cutsq[itype][jtype]));
-	} else {Tap = 1.0; dTap = 0.0;}
+
+        // turn on/off taper function
+        if (tap_flag) {
+          Tap = calc_Tap(r,sqrt(cutsq[itype][jtype]));
+          dTap = calc_dTap(r,sqrt(cutsq[itype][jtype]));
+        } else {Tap = 1.0; dTap = 0.0;}
 
         // Calculate the transverse distance
         prodnorm1 = normal[i][0]*delx + normal[i][1]*dely + normal[i][2]*delz;
@@ -628,7 +626,7 @@ void PairKolmogorovCrespiFull::calc_FRep(int eflag, int vflag)
         sumC11 = (p.C2 + 2.0*p.C4*rho_ij)*p.delta2inv;
         frho_ij = exp1*sumC1;
         sumCff = 0.5*p.C + frho_ij;
-	Vkc = exp0*sumCff;
+        Vkc = exp0*sumCff;
 
         // derivatives
         fpair =  p.lambda*exp0/r*sumCff;
@@ -655,10 +653,10 @@ void PairKolmogorovCrespiFull::calc_FRep(int eflag, int vflag)
         f[j][1] -= fkcy;
         f[j][2] -= fkcz;
 
-	// calculate the forces acted on the neighbors of atom i from atom j
-	KC_neighs_i = KC_firstneigh[i];
-	for (kk = 0; kk < KC_numneigh[i]; kk++) {
-	  k = KC_neighs_i[kk];
+        // calculate the forces acted on the neighbors of atom i from atom j
+        KC_neighs_i = KC_firstneigh[i];
+        for (kk = 0; kk < KC_numneigh[i]; kk++) {
+          k = KC_neighs_i[kk];
           if (k == i) continue;
           // derivatives of the product of rij and ni respect to rk, k=0,1,2, where atom k is the neighbors of atom i
           dprodnorm1[0] = dnormal[0][0][kk][i]*delx + dnormal[1][0][kk][i]*dely + dnormal[2][0][kk][i]*delz;
@@ -674,7 +672,7 @@ void PairKolmogorovCrespiFull::calc_FRep(int eflag, int vflag)
           delkj[1] = x[k][1] - x[j][1];
           delkj[2] = x[k][2] - x[j][2];
           if (evflag) ev_tally_xyz(k,j,nlocal,newton_pair,0.0,0.0,fk[0],fk[1],fk[2],delkj[0],delkj[1],delkj[2]);
-	}
+        }
 
         if (eflag) {
           if (tap_flag) pvector[1] += evdwl = Tap*Vkc;
@@ -748,17 +746,8 @@ void PairKolmogorovCrespiFull::KC_neigh()
     }
 
     KC_firstneigh[i] = neighptr;
-    if (n == 3) {
-      KC_numneigh[i] = n;
-    }
-    else if (n < 3) {
-      if (i < inum) {
-        KC_numneigh[i] = n;
-      } else {
-        KC_numneigh[i] = -1;
-      }
-    }
-    else if (n > 3) error->one(FLERR,"There are too many neighbors for some atoms, please check your configuration");
+    KC_numneigh[i] = n;
+    if (n > 3) error->one(FLERR,"There are too many neighbors for some atoms, please check your configuration");
 
     ipage->vgot(n);
     if (ipage->status())
@@ -792,7 +781,7 @@ void PairKolmogorovCrespiFull::calc_normal()
     memory->create(dnormal,3,3,3,nmax,"KolmogorovCrespiFull:dnormal");
   }
 
-  inum = list->inum;	
+  inum = list->inum;
   ilist = list->ilist;
   //Calculate normals
   for (ii = 0; ii < inum; ii++) {
@@ -821,9 +810,6 @@ void PairKolmogorovCrespiFull::calc_normal()
       }
     }
 
-    if (KC_numneigh[i] == -1) {
-      continue;
-    }
     xtp = x[i][0];
     ytp = x[i][1];
     ztp = x[i][2];

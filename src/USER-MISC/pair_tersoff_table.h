@@ -40,8 +40,10 @@ class PairTersoffTable : public Pair {
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
-  double init_one(int, int);
   void init_style();
+  double init_one(int, int);
+
+  static const int NPARAMS_PER_LINE = 17;
 
  protected:
   struct Param {

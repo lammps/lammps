@@ -71,7 +71,7 @@ PoissonSolver::~PoissonSolver()
 //  Parser
 // --------------------------------------------------------------------
 
-bool PoissonSolver::modify(int narg, char **arg)
+  bool PoissonSolver::modify(int /* narg */, char **arg)
 {
   bool match = false;
   /*! \page man_poisson_solver fix_modify AtC poisson_solver 

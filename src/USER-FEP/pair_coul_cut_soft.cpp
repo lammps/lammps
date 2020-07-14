@@ -26,12 +26,15 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulCutSoft::PairCoulCutSoft(LAMMPS *lmp) : Pair(lmp) {}
+PairCoulCutSoft::PairCoulCutSoft(LAMMPS *lmp) : Pair(lmp) {
+  centroidstressflag = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -272,12 +275,12 @@ void PairCoulCutSoft::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&lambda[i][j],sizeof(double),1,fp);
-          fread(&cut[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&lambda[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&lambda[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
@@ -306,12 +309,12 @@ void PairCoulCutSoft::write_restart_settings(FILE *fp)
 void PairCoulCutSoft::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&nlambda,sizeof(double),1,fp);
-    fread(&alphac,sizeof(double),1,fp);
+    utils::sfread(FLERR,&nlambda,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&alphac,sizeof(double),1,fp,NULL,error);
 
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&nlambda,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&alphac,1,MPI_DOUBLE,0,world);

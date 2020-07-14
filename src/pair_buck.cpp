@@ -22,6 +22,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -31,6 +32,7 @@ using namespace MathConst;
 PairBuck::PairBuck(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
+  centroidstressflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -307,14 +309,14 @@ void PairBuck::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&a[i][j],sizeof(double),1,fp);
-          fread(&rho[i][j],sizeof(double),1,fp);
-          fread(&c[i][j],sizeof(double),1,fp);
-          fread(&cut[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&a[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&rho[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&c[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&a[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&rho[i][j],1,MPI_DOUBLE,0,world);
@@ -343,10 +345,10 @@ void PairBuck::write_restart_settings(FILE *fp)
 void PairBuck::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
-    fread(&tail_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);

@@ -78,7 +78,7 @@ if pathflag:
 if buildflag:
   print("Downloading Eigen ...")
   eigentar = os.path.join(homepath, tarball)
-  url = "http://bitbucket.org/eigen/eigen/get/%s.tar.gz" % version
+  url = "https://bitbucket.org/eigen/eigen/get/%s.tar.gz" % version
   geturl(url, eigentar)
 
   # verify downloaded archive integrity via md5 checksum, if known.

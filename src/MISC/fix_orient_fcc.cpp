@@ -20,6 +20,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <mpi.h>
+#include <string>
 #include "atom.h"
 #include "update.h"
 #include "respa.h"
@@ -32,6 +33,8 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -448,20 +451,12 @@ void FixOrientFCC::post_force(int /*vflag*/)
     MPI_Allreduce(&maxcount,&max,1,MPI_INT,MPI_MAX,world);
 
     if (me == 0) {
-      if (screen) fprintf(screen,
-                          "orient step " BIGINT_FORMAT ": " BIGINT_FORMAT
-                          " atoms have %d neighbors\n",
-                          update->ntimestep,atom->natoms,total);
-      if (logfile) fprintf(logfile,
-                           "orient step " BIGINT_FORMAT ": " BIGINT_FORMAT
-                           " atoms have %d neighbors\n",
-                           update->ntimestep,atom->natoms,total);
-      if (screen)
-        fprintf(screen,"  neighs: min = %d, max = %d, ave = %g\n",
-                min,max,ave);
-      if (logfile)
-        fprintf(logfile,"  neighs: min = %d, max = %d, ave = %g\n",
-                min,max,ave);
+      std::string mesg = fmt::format("orient step {}: {} atoms have {} "
+                                     "neighbors\n", update->ntimestep,
+                                     atom->natoms,total);
+      mesg += fmt::format("  neighs: min = {}, max ={}, ave = {}\n",
+                          min,max,ave);
+      utils::logmesg(lmp,mesg);
     }
   }
 }

@@ -16,6 +16,8 @@
                         Anupama Kurpad (Intel) - Host Affinitization
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
+#include "fix_intel.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -27,7 +29,7 @@
 #include "timer.h"
 #include "universe.h"
 #include "update.h"
-#include "fix_intel.h"
+#include "utils.h"
 
 #include <cstring>
 #include <cstdlib>
@@ -63,6 +65,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   _three_body_neighbor = 0;
   _pair_intel_count = 0;
   _hybrid_nonpair = 0;
+  _print_pkg_info = 1;
 
   _precision_mode = PREC_MODE_MIXED;
   _offload_balance = -1.0;
@@ -218,7 +221,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
     comm->nthreads = nomp;
   } else {
     int nthreads;
-    #pragma omp parallel default(none) shared(nthreads)
+    #pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(nthreads)
     nthreads = omp_get_num_threads();
     comm->nthreads = nthreads;
   }
@@ -290,6 +293,7 @@ int FixIntel::setmask()
   mask |= POST_FORCE;
   mask |= MIN_POST_FORCE;
   #endif
+  mask |= POST_RUN;
   return mask;
 }
 
@@ -310,12 +314,7 @@ void FixIntel::init()
   #endif
 
   const int nstyles = _pair_intel_count;
-  if (force->pair_match("hybrid", 1) != NULL) {
-    _pair_hybrid_flag = 1;
-    if (force->newton_pair != 0 && force->pair->no_virial_fdotr_compute)
-      error->all(FLERR,
-                 "Intel package requires fdotr virial with newton on.");
-  } else if (force->pair_match("hybrid/overlay", 1) != NULL) {
+  if (force->pair_match("^hybrid", 0) != NULL) {
     _pair_hybrid_flag = 1;
     if (force->newton_pair != 0 && force->pair->no_virial_fdotr_compute)
       error->all(FLERR,
@@ -390,6 +389,20 @@ void FixIntel::setup(int vflag)
 void FixIntel::setup_pre_reverse(int eflag, int vflag)
 {
   pre_reverse(eflag,vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+bool FixIntel::pair_hybrid_check()
+{
+  PairHybrid *ph = (PairHybrid *)force->pair;
+  bool has_intel = false;
+  int nstyles = ph->nstyles;
+
+  for (int i = 0; i < nstyles; ++i)
+    if (ph->styles[i]->suffix_flag & Suffix::INTEL) has_intel = true;
+
+  return has_intel;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -475,7 +488,7 @@ void FixIntel::pair_init_check(const bool cdmessage)
   set_offload_affinity();
   #endif
 
-  if (comm->me == 0) {
+  if (_print_pkg_info && comm->me == 0) {
     if (screen) {
       fprintf(screen,
               "----------------------------------------------------------\n");
@@ -498,6 +511,7 @@ void FixIntel::pair_init_check(const bool cdmessage)
               "----------------------------------------------------------\n");
     }
   }
+  _print_pkg_info = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -510,14 +524,11 @@ void FixIntel::bond_init_check()
       "USER-INTEL package requires same setting for newton bond and non-bond.");
 
   int intel_pair = 0;
-  if (force->pair_match("/intel", 0) != NULL)
+  if (force->pair_match("/intel$", 0) != NULL)
     intel_pair = 1;
-  else if (force->pair_match("hybrid", 1) != NULL) {
+  else if (force->pair_match("^hybrid", 0) != NULL) {
     _hybrid_nonpair = 1;
-    if (_pair_intel_count) intel_pair = 1;
-  } else if (force->pair_match("hybrid/overlay", 1) != NULL) {
-    _hybrid_nonpair = 1;
-    if (_pair_intel_count) intel_pair = 1;
+    if (pair_hybrid_check()) intel_pair = 1;
   }
 
   if (intel_pair == 0)
@@ -530,14 +541,11 @@ void FixIntel::bond_init_check()
 void FixIntel::kspace_init_check()
 {
   int intel_pair = 0;
-  if (force->pair_match("/intel", 0) != NULL)
+  if (force->pair_match("/intel$", 0) != NULL)
     intel_pair = 1;
-  else if (force->pair_match("hybrid", 1) != NULL) {
+  else if (force->pair_match("^hybrid", 0) != NULL) {
     _hybrid_nonpair = 1;
-    if (_pair_intel_count) intel_pair = 1;
-  } else if (force->pair_match("hybrid/overlay", 1) != NULL) {
-    _hybrid_nonpair = 1;
-    if (_pair_intel_count) intel_pair = 1;
+    if (pair_hybrid_check()) intel_pair = 1;
   }
 
   if (intel_pair == 0)

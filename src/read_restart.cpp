@@ -35,36 +35,12 @@
 #include "mpiio.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
+
+#include "lmprestart.h"
 
 using namespace LAMMPS_NS;
-
-// same as write_restart.cpp
-
-#define MAGIC_STRING "LammpS RestartT"
-#define ENDIAN 0x0001
-#define ENDIANSWAP 0x1000
-#define VERSION_NUMERIC 0
-
-enum{VERSION,SMALLINT,TAGINT,BIGINT,
-     UNITS,NTIMESTEP,DIMENSION,NPROCS,PROCGRID,
-     NEWTON_PAIR,NEWTON_BOND,
-     XPERIODIC,YPERIODIC,ZPERIODIC,BOUNDARY,
-     ATOM_STYLE,NATOMS,NTYPES,
-     NBONDS,NBONDTYPES,BOND_PER_ATOM,
-     NANGLES,NANGLETYPES,ANGLE_PER_ATOM,
-     NDIHEDRALS,NDIHEDRALTYPES,DIHEDRAL_PER_ATOM,
-     NIMPROPERS,NIMPROPERTYPES,IMPROPER_PER_ATOM,
-     TRICLINIC,BOXLO,BOXHI,XY,XZ,YZ,
-     SPECIAL_LJ,SPECIAL_COUL,
-     MASS,PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER,
-     MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
-     IMAGEINT,BOUNDMIN,TIMESTEP,
-     ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
-     COMM_MODE,COMM_CUTOFF,COMM_VEL,NO_PAIR,
-     EXTRA_BOND_PER_ATOM,EXTRA_ANGLE_PER_ATOM,EXTRA_DIHEDRAL_PER_ATOM,
-     EXTRA_IMPROPER_PER_ATOM,EXTRA_SPECIAL_PER_ATOM,ATOM_MAXSPECIAL};
-
-#define LB_FACTOR 1.1
 
 /* ---------------------------------------------------------------------- */
 
@@ -128,32 +104,25 @@ void ReadRestart::command(int narg, char **arg)
 
   if (me == 0) {
     if (screen) fprintf(screen,"Reading restart file ...\n");
-    char *hfile;
+    std::string hfile = file;
     if (multiproc) {
-      hfile = new char[strlen(file) + 16];
-      char *ptr = strchr(file,'%');
-      *ptr = '\0';
-      sprintf(hfile,"%s%s%s",file,"base",ptr+1);
-      *ptr = '%';
-    } else hfile = file;
-    fp = fopen(hfile,"rb");
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open restart file %s",hfile);
-      error->one(FLERR,str);
+      hfile.replace(hfile.find("%"),1,"base");
     }
-    if (multiproc) delete [] hfile;
+    fp = fopen(hfile.c_str(),"rb");
+    if (fp == NULL)
+      error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
+                                   hfile, utils::getsyserror()));
   }
 
-  // read magic string, endian flag, numeric version
+  // read magic string, endian flag, format revision
 
   magic_string();
   endian();
-  int incompatible = version_numeric();
+  format_revision();
 
   // read header info which creates simulation box
 
-  header(incompatible);
+  header();
   domain->box_exist = 1;
 
   // problem setup using info from header
@@ -164,6 +133,12 @@ void ReadRestart::command(int narg, char **arg)
 
   atom->allocate_type_arrays();
   atom->deallocate_topology();
+
+  // allocate atom arrays to size N, rounded up by AtomVec->DELTA
+
+  bigint nbig = n;
+  nbig = atom->avec->roundup(nbig);
+  n = static_cast<int> (nbig);
   atom->avec->grow(n);
   n = atom->nmax;
 
@@ -210,13 +185,17 @@ void ReadRestart::command(int narg, char **arg)
     memory->create(buf,assignedChunkSize,"read_restart:buf");
     mpiio->read((headerOffset+assignedChunkOffset),assignedChunkSize,buf);
     mpiio->close();
-    if (!nextra) { // We can actually calculate number of atoms from assignedChunkSize
+
+    // can calculate number of atoms from assignedChunkSize
+
+    if (!nextra) {
       atom->nlocal = 1; // temporarily claim there is one atom...
       int perAtomSize = avec->size_restart(); // ...so we can get its size
       atom->nlocal = 0; // restore nlocal to zero atoms
       int atomCt = (int) (assignedChunkSize / perAtomSize);
       if (atomCt > atom->nmax) avec->grow(atomCt);
     }
+
     m = 0;
     while (m < assignedChunkSize) m += avec->unpack_restart(&buf[m]);
   }
@@ -288,38 +267,31 @@ void ReadRestart::command(int narg, char **arg)
 
   else if (nprocs <= multiproc_file) {
 
-    char *procfile = new char[strlen(file) + 16];
-    char *ptr = strchr(file,'%');
-
     for (int iproc = me; iproc < multiproc_file; iproc += nprocs) {
-      *ptr = '\0';
-      sprintf(procfile,"%s%d%s",file,iproc,ptr+1);
-      *ptr = '%';
-      fp = fopen(procfile,"rb");
-      if (fp == NULL) {
-        char str[128];
-        snprintf(str,128,"Cannot open restart file %s",procfile);
-        error->one(FLERR,str);
-      }
-
-      fread(&flag,sizeof(int),1,fp);
+      std::string procfile = file;
+      procfile.replace(procfile.find("%"),1,fmt::format("{}",iproc));
+      fp = fopen(procfile.c_str(),"rb");
+      if (fp == NULL)
+        error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
+                                     procfile, utils::getsyserror()));
+      utils::sfread(FLERR,&flag,sizeof(int),1,fp,NULL,error);
       if (flag != PROCSPERFILE)
         error->one(FLERR,"Invalid flag in peratom section of restart file");
       int procsperfile;
-      fread(&procsperfile,sizeof(int),1,fp);
+      utils::sfread(FLERR,&procsperfile,sizeof(int),1,fp,NULL,error);
 
       for (int i = 0; i < procsperfile; i++) {
-        fread(&flag,sizeof(int),1,fp);
+        utils::sfread(FLERR,&flag,sizeof(int),1,fp,NULL,error);
         if (flag != PERPROC)
           error->one(FLERR,"Invalid flag in peratom section of restart file");
 
-        fread(&n,sizeof(int),1,fp);
+        utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
         if (n > maxbuf) {
           maxbuf = n;
           memory->destroy(buf);
           memory->create(buf,maxbuf,"read_restart:buf");
         }
-        fread(buf,sizeof(double),n,fp);
+        utils::sfread(FLERR,buf,sizeof(double),n,fp,NULL,error);
 
         m = 0;
         while (m < n) m += avec->unpack_restart(&buf[m]);
@@ -328,8 +300,6 @@ void ReadRestart::command(int narg, char **arg)
       fclose(fp);
       fp = NULL;
     }
-
-    delete [] procfile;
   }
 
   // input of multiple native files with procs > files
@@ -362,27 +332,21 @@ void ReadRestart::command(int narg, char **arg)
     MPI_Comm_split(world,icluster,0,&clustercomm);
 
     if (filereader) {
-      char *procfile = new char[strlen(file) + 16];
-      char *ptr = strchr(file,'%');
-      *ptr = '\0';
-      sprintf(procfile,"%s%d%s",file,icluster,ptr+1);
-      *ptr = '%';
-      fp = fopen(procfile,"rb");
-      if (fp == NULL) {
-        char str[128];
-        snprintf(str,128,"Cannot open restart file %s",procfile);
-        error->one(FLERR,str);
-      }
-      delete [] procfile;
+      std::string procfile = file;
+      procfile.replace(procfile.find("%"),1,fmt::format("{}",icluster));
+      fp = fopen(procfile.c_str(),"rb");
+      if (fp == NULL)
+        error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
+                                     procfile, utils::getsyserror()));
     }
 
     int flag,procsperfile;
 
     if (filereader) {
-      fread(&flag,sizeof(int),1,fp);
+      utils::sfread(FLERR,&flag,sizeof(int),1,fp,NULL,error);
       if (flag != PROCSPERFILE)
         error->one(FLERR,"Invalid flag in peratom section of restart file");
-      fread(&procsperfile,sizeof(int),1,fp);
+      utils::sfread(FLERR,&procsperfile,sizeof(int),1,fp,NULL,error);
     }
     MPI_Bcast(&procsperfile,1,MPI_INT,0,clustercomm);
 
@@ -391,17 +355,17 @@ void ReadRestart::command(int narg, char **arg)
 
     for (int i = 0; i < procsperfile; i++) {
       if (filereader) {
-        fread(&flag,sizeof(int),1,fp);
+        utils::sfread(FLERR,&flag,sizeof(int),1,fp,NULL,error);
         if (flag != PERPROC)
           error->one(FLERR,"Invalid flag in peratom section of restart file");
 
-        fread(&n,sizeof(int),1,fp);
+        utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
         if (n > maxbuf) {
           maxbuf = n;
           memory->destroy(buf);
           memory->create(buf,maxbuf,"read_restart:buf");
         }
-        fread(buf,sizeof(double),n,fp);
+        utils::sfread(FLERR,buf,sizeof(double),n,fp,NULL,error);
 
         if (i % nclusterprocs) {
           iproc = me + (i % nclusterprocs);
@@ -459,19 +423,9 @@ void ReadRestart::command(int narg, char **arg)
     // create a temporary fix to hold and migrate extra atom info
     // necessary b/c irregular will migrate atoms
 
-    if (nextra) {
-      char cextra[8],fixextra[8];
-      sprintf(cextra,"%d",nextra);
-      sprintf(fixextra,"%d",modify->nfix_restart_peratom);
-      char **newarg = new char*[5];
-      newarg[0] = (char *) "_read_restart";
-      newarg[1] = (char *) "all";
-      newarg[2] = (char *) "READ_RESTART";
-      newarg[3] = cextra;
-      newarg[4] = fixextra;
-      modify->add_fix(5,newarg);
-      delete [] newarg;
-    }
+    if (nextra)
+      modify->add_fix(fmt::format("_read_restart all READ_RESTART {} {}",
+                                  nextra,modify->nfix_restart_peratom));
 
     // move atoms to new processors via irregular()
     // turn sorting on in migrate_atoms() to avoid non-reproducible restarts
@@ -513,36 +467,24 @@ void ReadRestart::command(int narg, char **arg)
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  " BIGINT_FORMAT " atoms\n",natoms);
-    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " atoms\n",natoms);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,fmt::format("  {} atoms\n",natoms));
 
   if (natoms != atom->natoms)
     error->all(FLERR,"Did not assign all restart atoms correctly");
 
   if (me == 0) {
     if (atom->nbonds) {
-      if (screen) fprintf(screen,"  " BIGINT_FORMAT " bonds\n",atom->nbonds);
-      if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " bonds\n",atom->nbonds);
+      utils::logmesg(lmp,fmt::format("  {} bonds\n",atom->nbonds));
     }
     if (atom->nangles) {
-      if (screen) fprintf(screen,"  " BIGINT_FORMAT " angles\n",
-                          atom->nangles);
-      if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " angles\n",
-                           atom->nangles);
+      utils::logmesg(lmp,fmt::format("  {} angles\n",atom->nangles));
     }
     if (atom->ndihedrals) {
-      if (screen) fprintf(screen,"  " BIGINT_FORMAT " dihedrals\n",
-                          atom->ndihedrals);
-      if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " dihedrals\n",
-                           atom->ndihedrals);
+      utils::logmesg(lmp,fmt::format("  {} dihedrals\n",atom->ndihedrals));
     }
     if (atom->nimpropers) {
-      if (screen) fprintf(screen,"  " BIGINT_FORMAT " impropers\n",
-                          atom->nimpropers);
-      if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " impropers\n",
-                           atom->nimpropers);
+      utils::logmesg(lmp,fmt::format("  {} impropers\n",atom->nimpropers));
     }
   }
 
@@ -567,14 +509,10 @@ void ReadRestart::command(int narg, char **arg)
   // total time
 
   MPI_Barrier(world);
-  double time2 = MPI_Wtime();
 
-  if (comm->me == 0) {
-    if (screen)
-      fprintf(screen,"  read_restart CPU = %g secs\n",time2-time1);
-    if (logfile)
-      fprintf(logfile,"  read_restart CPU = %g secs\n",time2-time1);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,fmt::format("  read_restart CPU = {:.3f} seconds\n",
+                                   MPI_Wtime()-time1));
 }
 
 /* ----------------------------------------------------------------------
@@ -651,10 +589,9 @@ void ReadRestart::file_search(char *inpfile, char *outfile)
   // create outfile with maxint substituted for "*"
   // use original inpfile, not pattern, since need to retain "%" in filename
 
-  ptr = strchr(inpfile,'*');
-  *ptr = '\0';
-  sprintf(outfile,"%s" BIGINT_FORMAT "%s",inpfile,maxnum,ptr+1);
-  *ptr = '*';
+  std::string newoutfile = inpfile;
+  newoutfile.replace(newoutfile.find("*"),1,fmt::format("{}",maxnum));
+  strcpy(outfile,newoutfile.c_str());
 
   // clean up
 
@@ -670,7 +607,7 @@ void ReadRestart::file_search(char *inpfile, char *outfile)
    read header of restart file
 ------------------------------------------------------------------------- */
 
-void ReadRestart::header(int incompatible)
+void ReadRestart::header()
 {
   int xperiodic(-1),yperiodic(-1),zperiodic(-1);
 
@@ -687,9 +624,19 @@ void ReadRestart::header(int incompatible)
         if (screen) fprintf(screen,"  restart file = %s, LAMMPS = %s\n",
                             version,universe->version);
       }
-      if (incompatible)
-        error->all(FLERR,"Restart file incompatible with current version");
       delete [] version;
+
+      // we have no forward compatibility, thus exit with error
+
+      if (revision > FORMAT_REVISION)
+        error->all(FLERR,"Restart file format revision incompatible "
+                   "with current LAMMPS version");
+
+      // warn when attempting to read older format revision
+
+      if ((me == 0) && (revision < FORMAT_REVISION))
+        error->warning(FLERR,"Old restart file format revision. "
+                       "Switching to compatibility mode.");
 
     // check lmptype.h sizes, error if different
 
@@ -735,7 +682,9 @@ void ReadRestart::header(int incompatible)
     } else if (flag == NPROCS) {
       nprocs_file = read_int();
       if (nprocs_file != comm->nprocs && me == 0)
-        error->warning(FLERR,"Restart file used different # of processors");
+        error->warning(FLERR,fmt::format("Restart file used different # of "
+                                         "processors: {} vs. {}",nprocs_file,
+                                         comm->nprocs));
 
     // don't set procgrid, warn if different
 
@@ -847,12 +796,8 @@ void ReadRestart::header(int incompatible)
       for (int i = 0; i < nargcopy; i++)
         argcopy[i] = read_string();
       atom->create_avec(style,nargcopy,argcopy,1);
-      if (comm->me ==0) {
-        if (screen) fprintf(screen,"  restoring atom style %s from "
-                            "restart\n", style);
-        if (logfile) fprintf(logfile,"  restoring atom style %s from "
-                             "restart\n", style);
-      }
+      if (comm->me ==0)
+        utils::logmesg(lmp,fmt::format("  restoring atom style {} from restart\n",style));
       for (int i = 0; i < nargcopy; i++) delete [] argcopy[i];
       delete [] argcopy;
       delete [] style;
@@ -984,22 +929,16 @@ void ReadRestart::force_fields()
       style = read_string();
       force->create_pair(style,1);
       delete [] style;
-      if (comm->me ==0) {
-        if (screen) fprintf(screen,"  restoring pair style %s from "
-                            "restart\n", force->pair_style);
-        if (logfile) fprintf(logfile,"  restoring pair style %s from "
-                             "restart\n", force->pair_style);
-      }
+      if (comm->me ==0)
+        utils::logmesg(lmp,fmt::format("  restoring pair style {} from "
+                                       "restart\n", force->pair_style));
       force->pair->read_restart(fp);
 
     } else if (flag == NO_PAIR) {
       style = read_string();
-      if (comm->me ==0) {
-        if (screen) fprintf(screen,"  pair style %s stores no "
-                            "restart info\n", style);
-        if (logfile) fprintf(logfile,"  pair style %s stores no "
-                             "restart info\n", style);
-      }
+      if (comm->me ==0)
+        utils::logmesg(lmp,fmt::format("  pair style {} stores no "
+                                       "restart info\n", style));
       force->create_pair("none",0);
       force->pair_restart = style;
 
@@ -1007,48 +946,36 @@ void ReadRestart::force_fields()
       style = read_string();
       force->create_bond(style,1);
       delete [] style;
-      if (comm->me ==0) {
-        if (screen) fprintf(screen,"  restoring bond style %s from "
-                            "restart\n", force->bond_style);
-        if (logfile) fprintf(logfile,"  restoring bond style %s from "
-                             "restart\n", force->bond_style);
-      }
+      if (comm->me ==0)
+        utils::logmesg(lmp,fmt::format("  restoring bond style {} from "
+                                       "restart\n", force->bond_style));
       force->bond->read_restart(fp);
 
     } else if (flag == ANGLE) {
       style = read_string();
       force->create_angle(style,1);
       delete [] style;
-      if (comm->me ==0) {
-        if (screen) fprintf(screen,"  restoring angle style %s from "
-                            "restart\n", force->angle_style);
-        if (logfile) fprintf(logfile,"  restoring angle style %s from "
-                             "restart\n", force->angle_style);
-      }
+      if (comm->me ==0)
+        utils::logmesg(lmp,fmt::format("  restoring angle style {} from "
+                                       "restart\n", force->angle_style));
       force->angle->read_restart(fp);
 
     } else if (flag == DIHEDRAL) {
       style = read_string();
       force->create_dihedral(style,1);
       delete [] style;
-      if (comm->me ==0) {
-        if (screen) fprintf(screen,"  restoring dihedral style %s from "
-                            "restart\n", force->dihedral_style);
-        if (logfile) fprintf(logfile,"  restoring dihedral style %s from "
-                             "restart\n", force->dihedral_style);
-      }
+      if (comm->me ==0)
+        utils::logmesg(lmp,fmt::format("  restoring dihedral style {} from "
+                                       "restart\n", force->dihedral_style));
       force->dihedral->read_restart(fp);
 
     } else if (flag == IMPROPER) {
       style = read_string();
       force->create_improper(style,1);
       delete [] style;
-      if (comm->me ==0) {
-        if (screen) fprintf(screen,"  restoring improper style %s from "
-                            "restart\n", force->improper_style);
-        if (logfile) fprintf(logfile,"  restoring improper style %s from "
-                             "restart\n", force->improper_style);
-      }
+      if (comm->me ==0)
+        utils::logmesg(lmp,fmt::format("  restoring improper style {} from "
+                                       "restart\n", force->improper_style));
       force->improper->read_restart(fp);
 
     } else error->all(FLERR,
@@ -1101,7 +1028,7 @@ void ReadRestart::file_layout()
           memory->create(nproc_chunk_number,nprocs,
                          "write_restart:nproc_chunk_number");
 
-          fread(all_written_send_sizes,sizeof(int),nprocs_file,fp);
+          utils::sfread(FLERR,all_written_send_sizes,sizeof(int),nprocs_file,fp,NULL,error);
 
           if ((nprocs != nprocs_file) && !(atom->nextra_store)) {
             // nprocs differ, but atom sizes are fixed length, yeah!
@@ -1227,11 +1154,36 @@ void ReadRestart::endian()
 /* ----------------------------------------------------------------------
 ------------------------------------------------------------------------- */
 
-int ReadRestart::version_numeric()
+void ReadRestart::format_revision()
 {
-  int vn = read_int();
-  if (vn != VERSION_NUMERIC) return 1;
-  return 0;
+  revision = read_int();
+}
+
+/* ----------------------------------------------------------------------
+------------------------------------------------------------------------- */
+
+void ReadRestart::check_eof_magic()
+{
+  // no check for revision 0 restart files
+  if (revision < 1) return;
+
+  int n = strlen(MAGIC_STRING) + 1;
+  char *str = new char[n];
+
+  // read magic string at end of file and restore file pointer
+
+  if (me == 0) {
+    long curpos = ftell(fp);
+    fseek(fp,(long)-n,SEEK_END);
+    fread(str,sizeof(char),n,fp);
+    fseek(fp,curpos,SEEK_SET);
+  }
+
+  MPI_Bcast(str,n,MPI_CHAR,0,world);
+  if (strcmp(str,MAGIC_STRING) != 0)
+    error->all(FLERR,"Incomplete or corrupted LAMMPS restart file");
+
+  delete [] str;
 }
 
 /* ----------------------------------------------------------------------
@@ -1283,7 +1235,7 @@ char *ReadRestart::read_string()
   int n = read_int();
   if (n < 0) error->all(FLERR,"Illegal size string or corrupt restart");
   char *value = new char[n];
-  if (me == 0) fread(value,sizeof(char),n,fp);
+  if (me == 0) utils::sfread(FLERR,value,sizeof(char),n,fp,NULL,error);
   MPI_Bcast(value,n,MPI_CHAR,0,world);
   return value;
 }
@@ -1295,7 +1247,7 @@ char *ReadRestart::read_string()
 void ReadRestart::read_int_vec(int n, int *vec)
 {
   if (n < 0) error->all(FLERR,"Illegal size integer vector read requested");
-  if (me == 0) fread(vec,sizeof(int),n,fp);
+  if (me == 0) utils::sfread(FLERR,vec,sizeof(int),n,fp,NULL,error);
   MPI_Bcast(vec,n,MPI_INT,0,world);
 }
 
@@ -1306,6 +1258,6 @@ void ReadRestart::read_int_vec(int n, int *vec)
 void ReadRestart::read_double_vec(int n, double *vec)
 {
   if (n < 0) error->all(FLERR,"Illegal size double vector read requested");
-  if (me == 0) fread(vec,sizeof(double),n,fp);
+  if (me == 0) utils::sfread(FLERR,vec,sizeof(double),n,fp,NULL,error);
   MPI_Bcast(vec,n,MPI_DOUBLE,0,world);
 }

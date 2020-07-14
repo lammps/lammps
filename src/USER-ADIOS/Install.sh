@@ -52,7 +52,7 @@ if (test $1 = 1) then
          "installation directory or adios2-config should be in PATH"
   fi
 
-  if [ "$CONFIGSCRIPT" != "none" ]; then 
+  if [ "$CONFIGSCRIPT" != "none" ]; then
     ADIOS2_INC=`$CONFIGSCRIPT --cxx-flags`
     ADIOS2_LIB=`$CONFIGSCRIPT --cxx-libs`
 

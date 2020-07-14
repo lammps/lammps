@@ -32,6 +32,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -63,6 +64,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   thermo_virial = 1;
   create_attribute = 1;
   dof_flag = 1;
+  stores_ids = 1;
 
   // error check
 
@@ -227,9 +229,9 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   if (comm->me == 0) {
     if (screen)
-      fprintf(screen,"  find clusters CPU = %g secs\n",time2-time1);
+      fprintf(screen,"  find clusters CPU = %g seconds\n",time2-time1);
     if (logfile)
-      fprintf(logfile,"  find clusters CPU = %g secs\n",time2-time1);
+      fprintf(logfile,"  find clusters CPU = %g seconds\n",time2-time1);
   }
 
   // initialize list of SHAKE clusters to constrain
@@ -360,9 +362,8 @@ void FixShake::init()
   // could have changed locations in fix list since created
   // set ptrs to rRESPA variables
 
-  if (strstr(update->integrate_style,"respa")) {
-    for (i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->style,"RESPA") == 0) ifix_respa = i;
+  if (utils::strmatch(update->integrate_style,"^respa")) {
+    ifix_respa = modify->find_fix_by_style("^RESPA");
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
     loop_respa = ((Respa *) update->integrate)->loop;
     step_respa = ((Respa *) update->integrate)->step;
@@ -3059,7 +3060,7 @@ void FixShake::correct_velocities() {}
 void FixShake::correct_coordinates(int vflag) {
 
   // save current forces and velocities so that you
-  // initialise them to zero such that FixShake::unconstrained_coordinate_update has no effect
+  // initialize them to zero such that FixShake::unconstrained_coordinate_update has no effect
 
   for (int j=0; j<nlocal; j++) {
     for (int k=0; k<3; k++) {
@@ -3082,7 +3083,7 @@ void FixShake::correct_coordinates(int vflag) {
   dtfsq   = 0.5 * update->dt * update->dt * force->ftm2v;
   FixShake::post_force(vflag);
 
-  // integrate coordiantes: x' = xnp1 + dt^2/2m_i * f, where f is the constraining force
+  // integrate coordinates: x' = xnp1 + dt^2/2m_i * f, where f is the constraining force
   // NOTE: After this command, the coordinates geometry of the molecules will be correct!
 
   double dtfmsq;

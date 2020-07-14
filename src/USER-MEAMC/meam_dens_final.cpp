@@ -4,18 +4,20 @@ using namespace LAMMPS_NS;
 
 void
 MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_atom, double* eng_vdwl,
-                      double* eatom, int /*ntype*/, int* type, int* fmap, int& errorflag)
+                      double* eatom, int /*ntype*/, int* type, int* fmap, double** scale, int& errorflag)
 {
   int i, elti;
   int m;
   double rhob, G, dG, Gbar, dGbar, gam, shp[3], Z;
   double denom, rho_bkgd, Fl;
+  double scaleii;
 
   //     Complete the calculation of density
 
   for (i = 0; i < nlocal; i++) {
     elti = fmap[type[i]];
     if (elti >= 0) {
+      scaleii = scale[type[i]][type[i]];
       rho1[i] = 0.0;
       rho2[i] = -1.0 / 3.0 * arho2b[i] * arho2b[i];
       rho3[i] = 0.0;
@@ -52,12 +54,14 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
         gamma[i] = gamma[i] / (rho0[i] * rho0[i]);
       }
 
-      Z = this->Z_meam[elti];
+      Z = get_Zij(this->lattce_meam[elti][elti]);
 
       G = G_gam(gamma[i], this->ibar_meam[elti], errorflag);
       if (errorflag != 0)
         return;
-      get_shpfcn(this->lattce_meam[elti][elti], shp);
+
+      get_shpfcn(this->lattce_meam[elti][elti], this->stheta_meam[elti][elti], this->ctheta_meam[elti][elti], shp);
+
       if (this->ibar_meam[elti] <= 0) {
         Gbar = 1.0;
         dGbar = 0.0;
@@ -113,6 +117,7 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
       Fl = embedding(this->A_meam[elti], this->Ec_meam[elti][elti], rhob, frhop[i]);
 
       if (eflag_either != 0) {
+        Fl *= scaleii;
         if (eflag_global != 0) {
           *eng_vdwl = *eng_vdwl + Fl;
         }

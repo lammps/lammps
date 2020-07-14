@@ -39,7 +39,7 @@ class Thermo : protected Pointers {
   void modify_params(int, char **);
   void header();
   void compute(int);
-  int evaluate_keyword(char *, double *);
+  int evaluate_keyword(const char *, double *);
 
  private:
   char *line;

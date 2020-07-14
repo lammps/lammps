@@ -335,7 +335,7 @@ void Atom::map_delete()
       map_bucket = NULL;
       map_hash = NULL;
     }
-    map_nhash = 0;
+    map_nhash = map_nbucket = 0;
   }
 }
 

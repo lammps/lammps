@@ -11,21 +11,21 @@
 //
 //    begin                : Tue March 26, 2013
 //    email                : brownw@ornl.gov
-// ***************************************************************************/
+// ***************************************************************************
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_aux_fun1.h"
 
 #ifndef _DOUBLE_DOUBLE
-texture<float4> pos_tex;
-texture<float4> sw1_tex;
-texture<float4> sw2_tex;
-texture<float4> sw3_tex;
+_texture( pos_tex,float4);
+_texture( sw1_tex,float4);
+_texture( sw2_tex,float4);
+_texture( sw3_tex,float4);
 #else
-texture<int4,1> pos_tex;
-texture<int4> sw1_tex;
-texture<int4> sw2_tex;
-texture<int4> sw3_tex;
+_texture_2d( pos_tex,int4);
+_texture( sw1_tex,int4);
+_texture( sw2_tex,int4);
+_texture( sw3_tex,int4);
 #endif
 
 #else
@@ -308,7 +308,7 @@ __kernel void k_sw(const __global numtyp4 *restrict x_,
 
 }
 
-#define threebody(delr1x, delr1y, delr1z, eflag, energy)                     \
+#define threebody(delr1x,delr1y,delr1z,delr2x,delr2y,delr2z, eflag, energy)  \
 {                                                                            \
   numtyp r1 = ucl_sqrt(rsq1);                                                \
   numtyp rinvsq1 = ucl_recip(rsq1);                                          \
@@ -361,7 +361,7 @@ __kernel void k_sw(const __global numtyp4 *restrict x_,
   }                                                                          \
 }
 
-#define threebody_half(delr1x, delr1y, delr1z)                               \
+#define threebody_half(delr1x, delr1y, delr1z, delr2x, delr2y, delr2z)       \
 {                                                                            \
   numtyp r1 = ucl_sqrt(rsq1);                                                \
   numtyp rinvsq1 = ucl_recip(rsq1);                                          \
@@ -511,7 +511,7 @@ __kernel void k_sw_three_center(const __global numtyp4 *restrict x_,
           sw_costheta_ijk=sw3_ijkparam.z;
 
           numtyp fjx, fjy, fjz, fkx, fky, fkz;
-          threebody(delr1x,delr1y,delr1z,eflag,energy);
+          threebody(delr1x,delr1y,delr1z,delr2x,delr2y,delr2z,eflag,energy);
 
           f.x -= fjx + fkx;
           f.y -= fjy + fky;
@@ -665,12 +665,7 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
           sw_costheta_ijk=sw3_ijkparam.z;
 
           numtyp fjx, fjy, fjz;
-          //if (evatom==0) {
-            threebody_half(delr1x,delr1y,delr1z);
-          //} else {
-          //  numtyp fkx, fky, fkz;
-          //  threebody(delr1x,delr1y,delr1z,eflag,energy);
-          //}
+          threebody_half(delr1x,delr1y,delr1z,delr2x,delr2y,delr2z);
 
           f.x += fjx;
           f.y += fjy;
@@ -819,7 +814,7 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
           sw_costheta_ijk=sw3_ijkparam.z;
 
           numtyp fjx, fjy, fjz, fkx, fky, fkz;
-          threebody(delr1x,delr1y,delr1z,eflag,energy);
+          threebody(delr1x,delr1y,delr1z,delr2x,delr2y,delr2z,eflag,energy);
 
           f.x += fjx;
           f.y += fjy;

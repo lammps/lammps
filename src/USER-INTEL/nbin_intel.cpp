@@ -56,6 +56,8 @@ NBinIntel::~NBinIntel() {
       nocopy(binhead,bins,_atombin,_binpacked:alloc_if(0) free_if(1))
   }
   #endif
+  memory->destroy(_atombin);
+  memory->destroy(_binpacked);
 }
 
 /* ----------------------------------------------------------------------

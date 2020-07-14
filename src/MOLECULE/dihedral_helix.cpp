@@ -27,6 +27,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -322,9 +323,9 @@ void DihedralHelix::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&aphi[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&bphi[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&cphi[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&aphi[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&bphi[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&cphi[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
   }
   MPI_Bcast(&aphi[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&bphi[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);

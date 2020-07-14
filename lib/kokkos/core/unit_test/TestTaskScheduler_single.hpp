@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -43,50 +44,49 @@
 
 namespace Test {
 
-TEST_F( TEST_CATEGORY, KOKKOS_TEST_WITH_SUFFIX(task_fib, TEST_SCHEDULER_SUFFIX) )
-{
-  const int N = 27 ;
-  for ( int i = 0; i < N; ++i ) {
-    TestTaskScheduler::TestFib< TEST_SCHEDULER >::run( i , ( i + 1 ) * ( i + 1 ) * 64000 );
+TEST(TEST_CATEGORY, KOKKOS_TEST_WITH_SUFFIX(task_fib, TEST_SCHEDULER_SUFFIX)) {
+  const int N = 27;
+  for (int i = 0; i < N; ++i) {
+    TestTaskScheduler::TestFib<TEST_SCHEDULER>::run(i,
+                                                    (i + 1) * (i + 1) * 64000);
   }
 }
 
-TEST_F( TEST_CATEGORY, KOKKOS_TEST_WITH_SUFFIX(task_depend, TEST_SCHEDULER_SUFFIX) )
-{
-  for ( int i = 0; i < 25; ++i ) {
-    TestTaskScheduler::TestTaskDependence< TEST_SCHEDULER >::run( i );
+TEST(TEST_CATEGORY,
+     KOKKOS_TEST_WITH_SUFFIX(task_depend, TEST_SCHEDULER_SUFFIX)) {
+  for (int i = 0; i < 25; ++i) {
+    TestTaskScheduler::TestTaskDependence<TEST_SCHEDULER>::run(i);
   }
 }
 
-TEST_F( TEST_CATEGORY, KOKKOS_TEST_WITH_SUFFIX(task_team, TEST_SCHEDULER_SUFFIX) )
-{
-  TestTaskScheduler::TestTaskTeam< TEST_SCHEDULER >::run( 1000 );
-  //TestTaskScheduler::TestTaskTeamValue< TEST_EXECSPACE >::run( 1000 ); // Put back after testing.
+TEST(TEST_CATEGORY, KOKKOS_TEST_WITH_SUFFIX(task_team, TEST_SCHEDULER_SUFFIX)) {
+  TestTaskScheduler::TestTaskTeam<TEST_SCHEDULER>::run(1000);
+  // TestTaskScheduler::TestTaskTeamValue< TEST_EXECSPACE >::run( 1000 ); // Put
+  // back after testing.
 }
 
-TEST_F( TEST_CATEGORY, KOKKOS_TEST_WITH_SUFFIX(task_with_mempool, TEST_SCHEDULER_SUFFIX) )
-{
+TEST(TEST_CATEGORY,
+     KOKKOS_TEST_WITH_SUFFIX(task_with_mempool, TEST_SCHEDULER_SUFFIX)) {
   TestTaskScheduler::TestTaskSpawnWithPool<TEST_SCHEDULER>::run();
 }
 
-TEST_F( TEST_CATEGORY, KOKKOS_TEST_WITH_SUFFIX(task_multiple_depend, TEST_SCHEDULER_SUFFIX) )
-{
-  for ( int i = 2; i < 6; ++i ) {
-    TestTaskScheduler::TestMultipleDependence<TEST_SCHEDULER>::run( i );
+TEST(TEST_CATEGORY,
+     KOKKOS_TEST_WITH_SUFFIX(task_multiple_depend, TEST_SCHEDULER_SUFFIX)) {
+  for (int i = 2; i < 6; ++i) {
+    TestTaskScheduler::TestMultipleDependence<TEST_SCHEDULER>::run(i);
   }
 }
 
-TEST_F( TEST_CATEGORY, KOKKOS_TEST_WITH_SUFFIX(task_scheduler_ctors, TEST_SCHEDULER_SUFFIX) )
-{
+TEST(TEST_CATEGORY,
+     KOKKOS_TEST_WITH_SUFFIX(task_scheduler_ctors, TEST_SCHEDULER_SUFFIX)) {
   TEST_SCHEDULER sched;
   TEST_SCHEDULER sched2 = sched;
-  sched = sched2;
+  sched                 = sched2;
 }
 
-TEST_F( TEST_CATEGORY, KOKKOS_TEST_WITH_SUFFIX(task_scheduer_ctors_device, TEST_SCHEDULER_SUFFIX) )
-{
+TEST(TEST_CATEGORY, KOKKOS_TEST_WITH_SUFFIX(task_scheduer_ctors_device,
+                                            TEST_SCHEDULER_SUFFIX)) {
   TestTaskScheduler::TestTaskCtorsDevice<TEST_SCHEDULER>::run();
 }
 
-
-} // end namespace Test
+}  // end namespace Test

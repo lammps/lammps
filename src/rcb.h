@@ -14,7 +14,6 @@
 #ifndef LAMMPS_RCB_H
 #define LAMMPS_RCB_H
 
-#include <mpi.h>
 #include "pointers.h"
 
 namespace LAMMPS_NS {

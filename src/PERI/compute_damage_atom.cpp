@@ -59,11 +59,9 @@ void ComputeDamageAtom::init()
 
   // find associated PERI_NEIGH fix that must exist
 
-  ifix_peri = -1;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"PERI_NEIGH") == 0) ifix_peri = i;
+  ifix_peri = modify->find_fix_by_style("PERI_NEIGH");
   if (ifix_peri == -1)
-    error->all(FLERR,"Compute damage/atom requires peridynamic potential");
+    error->all(FLERR,"Compute damage/atom requires a peridynamic potential");
 }
 
 /* ---------------------------------------------------------------------- */

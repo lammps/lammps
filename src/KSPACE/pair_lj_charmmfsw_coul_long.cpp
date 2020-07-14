@@ -33,6 +33,7 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -54,6 +55,7 @@ PairLJCharmmfswCoulLong::PairLJCharmmfswCoulLong(LAMMPS *lmp) : Pair(lmp)
   implicit = 0;
   mix_flag = ARITHMETIC;
   writedata = 1;
+  cut_respa = NULL;
 
   // short-range/long-range flag accessed by DihedralCharmmfsw
 
@@ -737,37 +739,18 @@ void PairLJCharmmfswCoulLong::init_style()
 
   int irequest;
 
+  int respa = 0;
   if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
-    int respa = 0;
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+  }
 
-    if (respa == 0) irequest = neighbor->request(this,instance_me);
-    else if (respa == 1) {
-      irequest = neighbor->request(this,instance_me);
-      neighbor->requests[irequest]->id = 1;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respainner = 1;
-      irequest = neighbor->request(this,instance_me);
-      neighbor->requests[irequest]->id = 3;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respaouter = 1;
-    } else {
-      irequest = neighbor->request(this,instance_me);
-      neighbor->requests[irequest]->id = 1;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respainner = 1;
-      irequest = neighbor->request(this,instance_me);
-      neighbor->requests[irequest]->id = 2;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respamiddle = 1;
-      irequest = neighbor->request(this,instance_me);
-      neighbor->requests[irequest]->id = 3;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respaouter = 1;
-    }
-
-  } else irequest = neighbor->request(this,instance_me);
+  irequest = neighbor->request(this,instance_me);
+  if (respa >= 1) {
+    neighbor->requests[irequest]->respaouter = 1;
+    neighbor->requests[irequest]->respainner = 1;
+  }
+  if (respa == 2) neighbor->requests[irequest]->respamiddle = 1;
 
   // require cut_lj_inner < cut_lj
 
@@ -889,14 +872,14 @@ void PairLJCharmmfswCoulLong::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&epsilon[i][j],sizeof(double),1,fp);
-          fread(&sigma[i][j],sizeof(double),1,fp);
-          fread(&eps14[i][j],sizeof(double),1,fp);
-          fread(&sigma14[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&eps14[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&sigma14[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
@@ -928,13 +911,13 @@ void PairLJCharmmfswCoulLong::write_restart_settings(FILE *fp)
 void PairLJCharmmfswCoulLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_lj_inner,sizeof(double),1,fp);
-    fread(&cut_lj,sizeof(double),1,fp);
-    fread(&cut_coul,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
-    fread(&ncoultablebits,sizeof(int),1,fp);
-    fread(&tabinner,sizeof(double),1,fp);
+    utils::sfread(FLERR,&cut_lj_inner,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_lj,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&ncoultablebits,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tabinner,sizeof(double),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_lj_inner,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_lj,1,MPI_DOUBLE,0,world);

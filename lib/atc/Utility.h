@@ -59,10 +59,10 @@ namespace ATC_Utility
     return ( (dblL >   dblR) ||
             ((dblL <= (dblR + \
                        std::numeric_limits<double>::epsilon() * \
-                       tolMult * std::max(abs(dblL), abs(dblR)))) && 
+                       tolMult * std::max(fabs(dblL), fabs(dblR)))) && 
              (dblR <= (dblL + \
                        std::numeric_limits<double>::epsilon() * \
-                       tolMult * std::max(abs(dblL), abs(dblR))))));
+                       tolMult * std::max(fabs(dblL), fabs(dblR))))));
   }
 
   inline double tolerance(double x, double tol = parsetol_) {

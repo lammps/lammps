@@ -45,7 +45,7 @@ FixClientMD::FixClientMD(LAMMPS *lmp, int narg, char **arg) :
   if (!atom->map_style) error->all(FLERR,"Fix client/md requires atom map");
 
   if (sizeof(tagint) != 4)
-    error->all(FLERR,"Fix client/md requires 4-byte atom IDs");
+    error->all(FLERR,"Fix client/md only supports 32-bit atom IDs");
 
   if (strcmp(update->unit_style,"real") == 0) units = REAL;
   else if (strcmp(update->unit_style,"metal") == 0) units = METAL;
@@ -80,21 +80,6 @@ FixClientMD::FixClientMD(LAMMPS *lmp, int narg, char **arg) :
 FixClientMD::~FixClientMD()
 {
   memory->destroy(xpbc);
-
-  CSlib *cs = (CSlib *) lmp->cslib;
-
-  // all-done message to server
-
-  cs->send(-1,0);
-
-  int nfield;
-  int *fieldID,*fieldtype,*fieldlen;
-  cs->recv(nfield,fieldID,fieldtype,fieldlen);
-
-  // clean-up
-
-  delete cs;
-  lmp->cslib = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -29,6 +29,8 @@ class PairTersoffZBL : public PairTersoff {
   PairTersoffZBL(class LAMMPS *);
   ~PairTersoffZBL() {}
 
+  static const int NPARAMS_PER_LINE = 21;
+
  protected:
   double global_a_0;                // Bohr radius for Coulomb repulsion
   double global_epsilon_0;        // permittivity of vacuum for Coulomb repulsion

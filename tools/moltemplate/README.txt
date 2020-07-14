@@ -51,7 +51,7 @@ e.g. via:
 
 Updates to this distribution method are less frequent, than others, so if
 you need a more recent version, you can download it as a .tar.gz or .zip
-archive from the moltemplate home page or GitHub (see linke above). After
+archive from the moltemplate home page or GitHub (see link above). After
 downloading an archive and unpacking it, you should have 3 folders.
 
     moltemplate/                  <-- source code and force fields
@@ -65,7 +65,7 @@ the unpacked source archive:
     pip install . --user
 
 If you want to install into a system folder, then you need to run pip with
-superuser priviledges. e.g. with:
+superuser privileges. e.g. with:
 
     sudo pip install .
 

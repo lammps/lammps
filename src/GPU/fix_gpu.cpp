@@ -88,6 +88,12 @@ static const char cite_gpu_package[] =
   " year =    2017,\n"
   " volume =  212,\n"
   " pages =   {113--122}\n"
+  "}\n\n"
+  "@Article{Nikolskiy19,\n"
+  " author = {V. Nikolskiy, V. Stegailov},\n"
+  " title = {GPU acceleration of four-site water models in LAMMPS},\n"
+  " journal = {Proceeding of the International Conference on Parallel Computing (ParCo 2019), Prague, Czech Republic},\n"
+  " year =    2019\n"
   "}\n\n";
 
 /* ---------------------------------------------------------------------- */
@@ -218,12 +224,6 @@ void FixGPU::init()
   if (atom->molecular == 2)
     error->all(FLERR,"GPU package does not (yet) work with "
                "atom_style template");
-
-  // neighbor list builds on the GPU with triclinic box is not yet supported
-
-  if ((_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH) &&
-      domain->triclinic)
-    error->all(FLERR,"Cannot use package gpu neigh yes with triclinic box");
 
   // give a warning if no pair style is defined
 

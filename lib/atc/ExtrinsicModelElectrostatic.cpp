@@ -144,7 +144,7 @@ namespace ATC {
       }
     }
 
-    /** switch to account for short range interaces */
+    /** switch to account for short range interfaces */
     else if (strcmp(arg[argIndx],"short_range")==0) {
       argIndx++;
       if (strcmp(arg[argIndx],"on")==0) {
@@ -827,7 +827,7 @@ namespace ATC {
   //  apply_charged_surfaces
   //--------------------------------------------------------
   void ExtrinsicModelElectrostatic::apply_charged_surfaces
-    (MATRIX & potential)
+  (MATRIX & /* potential */)
   {
     //double qE2f = LammpsInterface::instance()->qe2f();
     double qV2e = LammpsInterface::instance()->qv2e();

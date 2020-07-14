@@ -1,4 +1,4 @@
-// **************************************************************************
+﻿// **************************************************************************
 //                              preprocessor.cu
 //                             -------------------
 //                           W. Michael Brown (ORNL)
@@ -60,6 +60,150 @@
 //
 //*************************************************************************/
 
+#define _texture(name, type)  texture<type> name
+#define _texture_2d(name, type) texture<type,1> name
+
+// -------------------------------------------------------------------------
+//                            HIP DEFINITIONS
+// -------------------------------------------------------------------------
+
+#ifdef USE_HIP
+  #include <hip/hip_runtime.h>
+  #ifdef __HIP_PLATFORM_HCC__
+    #define mul24(x, y) __mul24(x, y)
+    #undef _texture
+    #undef _texture_2d
+    #define _texture(name, type)  __device__ type* name
+    #define _texture_2d(name, type)  __device__ type* name
+  #endif
+  #define GLOBAL_ID_X threadIdx.x+mul24(blockIdx.x,blockDim.x)
+  #define GLOBAL_ID_Y threadIdx.y+mul24(blockIdx.y,blockDim.y)
+  #define GLOBAL_SIZE_X mul24(gridDim.x,blockDim.x);
+  #define GLOBAL_SIZE_Y mul24(gridDim.y,blockDim.y);
+  #define THREAD_ID_X threadIdx.x
+  #define THREAD_ID_Y threadIdx.y
+  #define BLOCK_ID_X blockIdx.x
+  #define BLOCK_ID_Y blockIdx.y
+  #define BLOCK_SIZE_X blockDim.x
+  #define BLOCK_SIZE_Y blockDim.y
+  #define __kernel extern "C" __global__
+  #ifdef __local
+    #undef __local
+  #endif
+  #define __local __shared__
+  #define __global
+  #define restrict __restrict__
+  #define atom_add atomicAdd
+  #define ucl_inline static __inline__ __device__
+
+  #define THREADS_PER_ATOM 4
+  #define THREADS_PER_CHARGE 8
+  #define BLOCK_NBOR_BUILD 128
+  #define BLOCK_PAIR 256
+  #define BLOCK_BIO_PAIR 256
+  #define BLOCK_ELLIPSE 128
+  #define MAX_SHARED_TYPES 11
+
+  #ifdef _SINGLE_SINGLE
+    ucl_inline double shfl_xor(double var, int laneMask, int width) {
+  #ifdef __HIP_PLATFORM_HCC__
+      return __shfl_xor(var, laneMask, width);
+  #else
+      return __shfl_xor_sync(0xffffffff, var, laneMask, width);
+  #endif
+    }
+  #else
+    ucl_inline double shfl_xor(double var, int laneMask, int width) {
+      int2 tmp;
+      tmp.x = __double2hiint(var);
+      tmp.y = __double2loint(var);
+  #ifdef __HIP_PLATFORM_HCC__
+      tmp.x = __shfl_xor(tmp.x,laneMask,width);
+      tmp.y = __shfl_xor(tmp.y,laneMask,width);
+  #else
+      tmp.x = __shfl_xor_sync(0xffffffff, tmp.x,laneMask,width);
+      tmp.y = __shfl_xor_sync(0xffffffff, tmp.y,laneMask,width);
+  #endif
+      return __hiloint2double(tmp.x,tmp.y);
+    }
+  #endif
+
+  #ifdef __HIP_PLATFORM_HCC__
+    #define ARCH 600
+    #define WARP_SIZE 64
+  #endif
+
+  #ifdef __HIP_PLATFORM_NVCC__
+    #define ARCH __CUDA_ARCH__
+    #define WARP_SIZE 32
+  #endif
+
+  #define fast_mul(X,Y) (X)*(Y)
+
+  #define MEM_THREADS WARP_SIZE
+  #define PPPM_BLOCK_1D 64
+  #define BLOCK_CELL_2D 8
+  #define BLOCK_CELL_ID 128
+  #define MAX_BIO_SHARED_TYPES 128
+
+  #ifdef __HIP_PLATFORM_NVCC__
+    #ifdef _DOUBLE_DOUBLE
+      #define fetch4(ans,i,pos_tex) {                        \
+        int4 xy = tex1Dfetch(pos_tex,i*2);                   \
+        int4 zt = tex1Dfetch(pos_tex,i*2+1);                 \
+        ans.x=__hiloint2double(xy.y, xy.x);                  \
+        ans.y=__hiloint2double(xy.w, xy.z);                  \
+        ans.z=__hiloint2double(zt.y, zt.x);                  \
+        ans.w=__hiloint2double(zt.w, zt.z);                  \
+      }
+      #define fetch(ans,i,q_tex) {                           \
+        int2 qt = tex1Dfetch(q_tex,i);                       \
+        ans=__hiloint2double(qt.y, qt.x);                    \
+      }
+    #else
+      #define fetch4(ans,i,pos_tex) ans=tex1Dfetch(pos_tex, i);
+      #define fetch(ans,i,q_tex) ans=tex1Dfetch(q_tex,i);
+    #endif
+  #else
+    #ifdef _DOUBLE_DOUBLE
+      #define fetch4(ans,i,pos_tex) (ans=*(((double4*)pos_tex) + i))
+      #define fetch(ans,i,q_tex)    (ans=*(((double *)  q_tex) + i))
+    #else
+      #define fetch4(ans,i,pos_tex) (ans=*(((float4*)pos_tex) + i))
+      #define fetch(ans,i,q_tex)    (ans=*(((float *)  q_tex) + i))
+    #endif
+  #endif
+
+  #ifdef _DOUBLE_DOUBLE
+    #define ucl_exp exp
+    #define ucl_powr pow
+    #define ucl_atan atan
+    #define ucl_cbrt cbrt
+    #define ucl_ceil ceil
+    #define ucl_abs fabs
+    #define ucl_rsqrt rsqrt
+    #define ucl_sqrt sqrt
+    #define ucl_recip(x) ((numtyp)1.0/(x))
+
+  #else
+    #define ucl_atan atanf
+    #define ucl_cbrt cbrtf
+    #define ucl_ceil ceilf
+    #define ucl_abs fabsf
+    #define ucl_recip(x) ((numtyp)1.0/(x))
+    #define ucl_rsqrt rsqrtf
+    #define ucl_sqrt sqrtf
+
+    #ifdef NO_HARDWARE_TRANSCENDENTALS
+      #define ucl_exp expf
+      #define ucl_powr powf
+    #else
+      #define ucl_exp __expf
+      #define ucl_powr __powf
+    #endif
+  #endif
+#endif
+    
 // -------------------------------------------------------------------------
 //                            CUDA DEFINITIONS
 // -------------------------------------------------------------------------

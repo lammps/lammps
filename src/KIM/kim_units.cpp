@@ -140,7 +140,7 @@ double const kcal_si = 4184.0;              // [J] kilocalorie (heat energy
                                             //   involved in warming up one
                                             //   kilogram of water by one
                                             //   degree Kelvin)
-double const ev_si = 1.6021766208e-19;      // [J] electon volt (amount of
+double const ev_si = 1.6021766208e-19;      // [J] electron volt (amount of
                                             //   energy gained or lost by the
                                             //   charge of a single electron
                                             //   moving across an electric
@@ -1370,9 +1370,9 @@ double get_unit_conversion_factor(unit_type &unit_type_enum,
 
 //  Wrapper to the routine that gets the unit conversion. Translates strings
 //  to enumerations and then call get_unit_conversion_factor()
-int lammps_unit_conversion(string const &unit_type_str,
-                           string const &from_system_str,
-                           string const &to_system_str,
+int lammps_unit_conversion(const string &unit_type_str,
+                           const string &from_system_str,
+                           const string &to_system_str,
                            double &conversion_factor)
 {
     // initialize

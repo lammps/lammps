@@ -39,6 +39,7 @@
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 #include "reaxc_defs.h"
 #include "reaxc_types.h"
@@ -243,9 +244,10 @@ void PairReaxC::settings(int narg, char **arg)
   qeqflag = 1;
   control->lgflag = 0;
   control->enobondsflag = 1;
-  system->mincap = MIN_CAP;
-  system->safezone = SAFE_ZONE;
-  system->saferzone = SAFER_ZONE;
+  system->mincap = REAX_MIN_CAP;
+  system->minhbonds = REAX_MIN_HBONDS;
+  system->safezone = REAX_SAFE_ZONE;
+  system->saferzone = REAX_SAFER_ZONE;
 
   // process optional keywords
 
@@ -264,7 +266,7 @@ void PairReaxC::settings(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"no") == 0) control->enobondsflag = 0;
       else error->all(FLERR,"Illegal pair_style reax/c command");
       iarg += 2;
-  } else if (strcmp(arg[iarg],"lgvdw") == 0) {
+    } else if (strcmp(arg[iarg],"lgvdw") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
       if (strcmp(arg[iarg+1],"yes") == 0) control->lgflag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) control->lgflag = 0;
@@ -282,6 +284,12 @@ void PairReaxC::settings(int narg, char **arg)
       system->mincap = force->inumeric(FLERR,arg[iarg+1]);
       if (system->mincap < 0)
         error->all(FLERR,"Illegal pair_style reax/c mincap command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"minhbonds") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
+      system->minhbonds = force->inumeric(FLERR,arg[iarg+1]);
+      if (system->minhbonds < 0)
+        error->all(FLERR,"Illegal pair_style reax/c minhbonds command");
       iarg += 2;
     } else error->all(FLERR,"Illegal pair_style reax/c command");
   }
@@ -372,12 +380,10 @@ void PairReaxC::init_style( )
 
   // firstwarn = 1;
 
-  int iqeq;
-  for (iqeq = 0; iqeq < modify->nfix; iqeq++)
-    if (strstr(modify->fix[iqeq]->style,"qeq/reax")
-       || strstr(modify->fix[iqeq]->style,"qeq/shielded")) break;
-  if (iqeq == modify->nfix && qeqflag == 1)
-    error->all(FLERR,"Pair reax/c requires use of fix qeq/reax");
+  bool have_qeq = ((modify->find_fix_by_style("^qeq/reax") != -1)
+                   || (modify->find_fix_by_style("^qeq/shielded") != -1));
+  if (!have_qeq && qeqflag == 1)
+    error->all(FLERR,"Pair reax/c requires use of fix qeq/reax or qeq/shielded");
 
   system->n = atom->nlocal; // my atoms
   system->N = atom->nlocal + atom->nghost; // mine + ghosts
@@ -713,7 +719,7 @@ int PairReaxC::estimate_reax_lists()
 
   free( marked );
 
-  return static_cast<int> (MAX( num_nbrs*safezone, mincap*MIN_NBRS ));
+  return static_cast<int> (MAX(num_nbrs*safezone, mincap*REAX_MIN_NBRS));
 }
 
 /* ---------------------------------------------------------------------- */

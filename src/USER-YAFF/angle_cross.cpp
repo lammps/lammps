@@ -26,6 +26,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -278,12 +279,12 @@ void AngleCross::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&kss[1],sizeof(double),atom->nangletypes,fp);
-    fread(&kbs0[1],sizeof(double),atom->nangletypes,fp);
-    fread(&kbs1[1],sizeof(double),atom->nangletypes,fp);
-    fread(&r00[1],sizeof(double),atom->nangletypes,fp);
-    fread(&r01[1],sizeof(double),atom->nangletypes,fp);
-    fread(&theta0[1],sizeof(double),atom->nangletypes,fp);
+    utils::sfread(FLERR,&kss[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&kbs0[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&kbs1[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&r00[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&r01[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,NULL,error);
   }
 
   MPI_Bcast(&kss[1],atom->nangletypes,MPI_DOUBLE,0,world);

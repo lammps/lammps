@@ -34,6 +34,7 @@
 #include "my_page.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -286,7 +287,7 @@ void PairILPGrapheneHBN::read_file(char *filename)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // concatenate additional lines until have params_per_line words
@@ -305,7 +306,7 @@ void PairILPGrapheneHBN::read_file(char *filename)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+      nwords = utils::count_words(line);
     }
 
     if (nwords != params_per_line)
@@ -334,6 +335,11 @@ void PairILPGrapheneHBN::read_file(char *filename)
       maxparam += DELTA;
       params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
                                           "pair:params");
+
+      // make certain all addional allocated storage is initialized
+      // to avoid false positives when checking with valgrind
+
+      memset(params + nparams, 0, DELTA*sizeof(Param));
     }
 
     params[nparams].ielement = ielement;
@@ -442,13 +448,13 @@ void PairILPGrapheneHBN::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
    van der Waals forces and energy
 ------------------------------------------------------------------------- */
 
-void PairILPGrapheneHBN::calc_FvdW(int eflag, int vflag)
+void PairILPGrapheneHBN::calc_FvdW(int eflag, int /* vflag */)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype,k,l,kk,ll;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   tagint itag,jtag;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r,Rcut,r2inv,r6inv,r8inv,Tap,dTap,Vilp,TSvdw,TSvdw2inv,fsum;
@@ -500,7 +506,7 @@ void PairILPGrapheneHBN::calc_FvdW(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
-      // only include the interation between different layers
+      // only include the interaction between different layers
       if (rsq < cutsq[itype][jtype] && atom->molecule[i] != atom->molecule[j]) {
 
         int iparam_ij = elem2param[map[itype]][map[jtype]];
@@ -523,7 +529,7 @@ void PairILPGrapheneHBN::calc_FvdW(int eflag, int vflag)
 
         // derivatives
         fpair = -6.0*p.C6*r8inv/TSvdw + p.C6*p.d/p.seff*(TSvdw-1.0)*TSvdw2inv*r8inv*r;
-	fsum = fpair*Tap - Vilp*dTap/r;
+        fsum = fpair*Tap - Vilp*dTap/r;
 
         f[i][0] += fsum*delx;
         f[i][1] += fsum*dely;
@@ -540,19 +546,19 @@ void PairILPGrapheneHBN::calc_FvdW(int eflag, int vflag)
   }
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
    Repulsive forces and energy
 ------------------------------------------------------------------------- */
 
-void PairILPGrapheneHBN::calc_FRep(int eflag, int vflag)
+void PairILPGrapheneHBN::calc_FRep(int eflag, int /* vflag */)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype,k,kk;
   double prodnorm1,fkcx,fkcy,fkcz;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,fpair1;
-  double rsq,r,Rcut,rhosq1,exp0,exp1,r2inv,r6inv,r8inv,Tap,dTap,Vilp;
-  double frho1,TSvdw,TSvdw2inv,Erep,fsum,rdsq1;
+  double rsq,r,Rcut,rhosq1,exp0,exp1,Tap,dTap,Vilp;
+  double frho1,Erep,fsum,rdsq1;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  int *ILP_neighs_i,*ILP_neighs_j;
+  int *ILP_neighs_i;
 
   evdwl = 0.0;
 
@@ -576,9 +582,6 @@ void PairILPGrapheneHBN::calc_FRep(int eflag, int vflag)
   // loop over neighbors of owned atoms
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (ILP_numneigh[i] == -1) {
-      continue;
-    }
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -589,9 +592,6 @@ void PairILPGrapheneHBN::calc_FRep(int eflag, int vflag)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
-      if (ILP_numneigh[j] == -1) {
-        continue;
-      }
       jtype = type[j];
 
       delx = xtmp - x[j][0];
@@ -599,7 +599,7 @@ void PairILPGrapheneHBN::calc_FRep(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
-      // only include the interation between different layers
+      // only include the interaction between different layers
       if (rsq < cutsq[itype][jtype] && atom->molecule[i] != atom->molecule[j]) {
 
         int iparam_ij = elem2param[map[itype]][map[jtype]];
@@ -634,12 +634,12 @@ void PairILPGrapheneHBN::calc_FRep(int eflag, int vflag)
         dprodnorm1[0] = dnormdri[0][0][i]*delx + dnormdri[1][0][i]*dely + dnormdri[2][0][i]*delz;
         dprodnorm1[1] = dnormdri[0][1][i]*delx + dnormdri[1][1][i]*dely + dnormdri[2][1][i]*delz;
         dprodnorm1[2] = dnormdri[0][2][i]*delx + dnormdri[1][2][i]*dely + dnormdri[2][2][i]*delz;
-  	fp1[0] = prodnorm1*normal[i][0]*fpair1;
-  	fp1[1] = prodnorm1*normal[i][1]*fpair1;
-  	fp1[2] = prodnorm1*normal[i][2]*fpair1;
-  	fprod1[0] = prodnorm1*dprodnorm1[0]*fpair1;
-  	fprod1[1] = prodnorm1*dprodnorm1[1]*fpair1;
-  	fprod1[2] = prodnorm1*dprodnorm1[2]*fpair1;
+        fp1[0] = prodnorm1*normal[i][0]*fpair1;
+        fp1[1] = prodnorm1*normal[i][1]*fpair1;
+        fp1[2] = prodnorm1*normal[i][2]*fpair1;
+        fprod1[0] = prodnorm1*dprodnorm1[0]*fpair1;
+        fprod1[1] = prodnorm1*dprodnorm1[1]*fpair1;
+        fprod1[2] = prodnorm1*dprodnorm1[2]*fpair1;
 
         fkcx = (delx*fsum - fp1[0])*Tap - Vilp*dTap*delx/r;
         fkcy = (dely*fsum - fp1[1])*Tap - Vilp*dTap*dely/r;
@@ -681,7 +681,7 @@ void PairILPGrapheneHBN::calc_FRep(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   create ILP neighbor list from main neighbor list to calcualte normals
+   create ILP neighbor list from main neighbor list to calculate normals
 ------------------------------------------------------------------------- */
 
 void PairILPGrapheneHBN::ILP_neigh()
@@ -741,17 +741,8 @@ void PairILPGrapheneHBN::ILP_neigh()
     } // loop over jj
 
     ILP_firstneigh[i] = neighptr;
-    if (n == 3) {
-      ILP_numneigh[i] = n;
-    }
-    else if (n < 3) {
-      if (i < inum) {
-        ILP_numneigh[i] = n;
-      } else {
-        ILP_numneigh[i] = -1;
-      }
-    }
-    else if (n > 3) error->one(FLERR,"There are too many neighbors for some atoms, please check your configuration");
+    ILP_numneigh[i] = n;
+    if (n > 3) error->one(FLERR,"There are too many neighbors for some atoms, please check your configuration");
 
     ipage->vgot(n);
     if (ipage->status())
@@ -814,9 +805,6 @@ void PairILPGrapheneHBN::calc_normal()
       }
     }
 
-    if (ILP_numneigh[i] == -1) {
-      continue;
-    }
     xtp = x[i][0];
     ytp = x[i][1];
     ztp = x[i][2];

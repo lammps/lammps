@@ -18,6 +18,7 @@
 #include "pppm_dipole.h"
 #include <mpi.h>
 #include <cstring>
+#include <string>
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
@@ -30,6 +31,8 @@
 #include "memory.h"
 #include "error.h"
 #include "update.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 #include "math_const.h"
 #include "math_special.h"
@@ -58,19 +61,19 @@ enum{FORWARD_MU,FORWARD_MU_PERATOM};
 /* ---------------------------------------------------------------------- */
 
 PPPMDipole::PPPMDipole(LAMMPS *lmp) : PPPM(lmp),
-  densityx_brick_dipole(NULL), densityy_brick_dipole(NULL), 
-  densityz_brick_dipole(NULL), ux_brick_dipole(NULL), 
-  uy_brick_dipole(NULL), uz_brick_dipole(NULL), vdxx_brick_dipole(NULL), 
-  vdxy_brick_dipole(NULL), vdyy_brick_dipole(NULL), 
-  vdxz_brick_dipole(NULL), vdyz_brick_dipole(NULL), 
-  vdzz_brick_dipole(NULL), v0x_brick_dipole(NULL), v1x_brick_dipole(NULL), 
-  v2x_brick_dipole(NULL), v3x_brick_dipole(NULL), v4x_brick_dipole(NULL), 
-  v5x_brick_dipole(NULL), v0y_brick_dipole(NULL), v1y_brick_dipole(NULL), 
-  v2y_brick_dipole(NULL), v3y_brick_dipole(NULL), v4y_brick_dipole(NULL), 
-  v5y_brick_dipole(NULL), v0z_brick_dipole(NULL), v1z_brick_dipole(NULL), 
-  v2z_brick_dipole(NULL), v3z_brick_dipole(NULL), v4z_brick_dipole(NULL), 
-  v5z_brick_dipole(NULL), work3(NULL), work4(NULL), 
-  densityx_fft_dipole(NULL), densityy_fft_dipole(NULL), 
+  densityx_brick_dipole(NULL), densityy_brick_dipole(NULL),
+  densityz_brick_dipole(NULL),
+  vdxx_brick_dipole(NULL), vdyy_brick_dipole(NULL), vdzz_brick_dipole(NULL),
+  vdxy_brick_dipole(NULL), vdxz_brick_dipole(NULL), vdyz_brick_dipole(NULL),
+  ux_brick_dipole(NULL), uy_brick_dipole(NULL), uz_brick_dipole(NULL),
+  v0x_brick_dipole(NULL), v1x_brick_dipole(NULL),
+  v2x_brick_dipole(NULL), v3x_brick_dipole(NULL), v4x_brick_dipole(NULL),
+  v5x_brick_dipole(NULL), v0y_brick_dipole(NULL), v1y_brick_dipole(NULL),
+  v2y_brick_dipole(NULL), v3y_brick_dipole(NULL), v4y_brick_dipole(NULL),
+  v5y_brick_dipole(NULL), v0z_brick_dipole(NULL), v1z_brick_dipole(NULL),
+  v2z_brick_dipole(NULL), v3z_brick_dipole(NULL), v4z_brick_dipole(NULL),
+  v5z_brick_dipole(NULL), work3(NULL), work4(NULL),
+  densityx_fft_dipole(NULL), densityy_fft_dipole(NULL),
   densityz_fft_dipole(NULL)
 {
   dipoleflag = 1;
@@ -102,10 +105,7 @@ PPPMDipole::~PPPMDipole()
 
 void PPPMDipole::init()
 {
-  if (me == 0) {
-    if (screen) fprintf(screen,"PPPMDipole initialization ...\n");
-    if (logfile) fprintf(logfile,"PPPMDipole initialization ...\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"PPPMDipole initialization ...\n");
 
   // error check
 
@@ -143,11 +143,13 @@ void PPPMDipole::init()
       error->all(FLERR,"Incorrect boundaries with slab PPPMDipole");
   }
 
-  if (order < 2 || order > MAXORDER) {
-    char str[128];
-    sprintf(str,"PPPMDipole order cannot be < 2 or > than %d",MAXORDER);
-    error->all(FLERR,str);
-  }
+  if (order < 2 || order > MAXORDER)
+    error->all(FLERR,fmt::format("PPPMDipole order cannot be < 2 or > {}",
+                                 MAXORDER));
+
+  // compute two charge force
+
+  two_charge();
 
   // extract short-range Coulombic cutoff from pair style
 
@@ -242,37 +244,17 @@ void PPPMDipole::init()
   MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
 
   if (me == 0) {
-
-#ifdef FFT_SINGLE
-    const char fft_prec[] = "single";
-#else
-    const char fft_prec[] = "double";
-#endif
-
-    if (screen) {
-      fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(screen,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
-      fprintf(screen,"  stencil order = %d\n",order);
-      fprintf(screen,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(screen,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(screen,"  using %s precision FFTs\n",fft_prec);
-      fprintf(screen,"  3d grid and FFT values/proc = %d %d\n",
-              ngrid_max,nfft_both_max);
-    }
-    if (logfile) {
-      fprintf(logfile,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(logfile,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
-      fprintf(logfile,"  stencil order = %d\n",order);
-      fprintf(logfile,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(logfile,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
-      fprintf(logfile,"  3d grid and FFT values/proc = %d %d\n",
-              ngrid_max,nfft_both_max);
-    }
+    std::string mesg = fmt::format("  G vector (1/distance) = {:.8g}\n",g_ewald);
+    mesg += fmt::format("  grid = {} {} {}\n",nx_pppm,ny_pppm,nz_pppm);
+    mesg += fmt::format("  stencil order = {}\n",order);
+    mesg += fmt::format("  estimated absolute RMS force accuracy = {:.8g}\n",
+                       estimated_accuracy);
+    mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
+                       estimated_accuracy/two_charge_force);
+    mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
+    mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
+                       ngrid_max,nfft_both_max);
+    utils::logmesg(lmp,mesg);
   }
 
   // allocate K-space dependent memory
@@ -534,10 +516,8 @@ void PPPMDipole::compute(int eflag, int vflag)
   // energy includes self-energy correction
 
   if (evflag_atom) {
-    double *q = atom->q;
     double **mu = atom->mu;
     int nlocal = atom->nlocal;
-    int ntotal = nlocal;
 
     if (eflag_atom) {
       for (i = 0; i < nlocal; i++) {
@@ -617,7 +597,7 @@ void PPPMDipole::allocate()
                           "pppm_dipole:drho_coeff");
 
   // create 2 FFTs and a Remap
-  // 1st FFT keeps data in FFT decompostion
+  // 1st FFT keeps data in FFT decomposition
   // 2nd FFT returns data in 3d brick decomposition
   // remap takes data from 3d brick to FFT decomposition
 
@@ -836,7 +816,7 @@ void PPPMDipole::set_grid_global()
     while (1) {
 
       // set grid dimension
-      
+
       nx_pppm = static_cast<int> (xprd/h_x);
       ny_pppm = static_cast<int> (yprd/h_y);
       nz_pppm = static_cast<int> (zprd_slab/h_z);
@@ -846,7 +826,7 @@ void PPPMDipole::set_grid_global()
       if (nz_pppm <= 1) nz_pppm = 2;
 
       // set local grid dimension
-      
+
       int npey_fft,npez_fft;
       if (nz_pppm >= nprocs) {
         npey_fft = 1;
@@ -926,11 +906,10 @@ double PPPMDipole::compute_qopt_dipole()
   const double unitkz = (MY_2PI/zprd_slab);
 
   double snx,sny,snz;
-  double cnx,cny,cnz;
   double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
   double sum1,sum2,dot1,dot2;
-  double numerator,denominator;
-  double u1,u2,u3,sqk;
+  double denominator;
+  double u1,sqk;
 
   int k,l,m,nx,ny,nz,kper,lper,mper;
 
@@ -943,22 +922,18 @@ double PPPMDipole::compute_qopt_dipole()
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
     mper = m - nz_pppm*(2*m/nz_pppm);
     snz = square(sin(0.5*unitkz*mper*zprd_slab/nz_pppm));
-    cnz = cos(0.5*unitkz*mper*zprd_slab/nz_pppm);
 
     for (l = nylo_fft; l <= nyhi_fft; l++) {
       lper = l - ny_pppm*(2*l/ny_pppm);
       sny = square(sin(0.5*unitky*lper*yprd/ny_pppm));
-      cny = cos(0.5*unitky*lper*yprd/ny_pppm);
 
       for (k = nxlo_fft; k <= nxhi_fft; k++) {
         kper = k - nx_pppm*(2*k/nx_pppm);
         snx = square(sin(0.5*unitkx*kper*xprd/nx_pppm));
-        cnx = cos(0.5*unitkx*kper*xprd/nx_pppm);
 
         sqk = square(unitkx*kper) + square(unitky*lper) + square(unitkz*mper);
 
         if (sqk != 0.0) {
-          numerator = MY_4PI/sqk;
           denominator = gf_denom(snx,sny,snz);
           sum1 = 0.0;
           sum2 = 0.0;
@@ -1021,10 +996,9 @@ void PPPMDipole::compute_gf_dipole()
   const double unitkz = (MY_2PI/zprd_slab);
 
   double snx,sny,snz;
-  double cnx,cny,cnz;
   double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
   double sum1,dot1,dot2;
-  double numerator,denominator;
+  double denominator;
   double sqk;
 
   int k,l,m,n,nx,ny,nz,kper,lper,mper;
@@ -1044,22 +1018,18 @@ void PPPMDipole::compute_gf_dipole()
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
     mper = m - nz_pppm*(2*m/nz_pppm);
     snz = square(sin(0.5*unitkz*mper*zprd_slab/nz_pppm));
-    cnz = cos(0.5*unitkz*mper*zprd_slab/nz_pppm);
 
     for (l = nylo_fft; l <= nyhi_fft; l++) {
       lper = l - ny_pppm*(2*l/ny_pppm);
       sny = square(sin(0.5*unitky*lper*yprd/ny_pppm));
-      cny = cos(0.5*unitky*lper*yprd/ny_pppm);
 
       for (k = nxlo_fft; k <= nxhi_fft; k++) {
         kper = k - nx_pppm*(2*k/nx_pppm);
         snx = square(sin(0.5*unitkx*kper*xprd/nx_pppm));
-        cnx = cos(0.5*unitkx*kper*xprd/nx_pppm);
 
         sqk = square(unitkx*kper) + square(unitky*lper) + square(unitkz*mper);
 
         if (sqk != 0.0) {
-          numerator = MY_4PI/sqk;
           denominator = gf_denom(snx,sny,snz);
           sum1 = 0.0;
 
@@ -2389,12 +2359,10 @@ void PPPMDipole::slabcorr()
 {
   // compute local contribution to global dipole moment
 
-  double **x = atom->x;
-  double zprd = domain->zprd;
-  int nlocal = atom->nlocal;
-
   double dipole = 0.0;
   double **mu = atom->mu;
+  int nlocal = atom->nlocal;
+
   for (int i = 0; i < nlocal; i++) dipole += mu[i][2];
 
   // sum local contributions to get global dipole moment
@@ -2519,7 +2487,7 @@ double PPPMDipole::memory_usage()
   int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
     (nzhi_out-nzlo_out+1);
   bytes += 6 * nfft_both * sizeof(double);   // vg
-  bytes += nfft_both * sizeof(double); 	     // greensfn
+  bytes += nfft_both * sizeof(double);       // greensfn
   bytes += nfft_both*5 * sizeof(FFT_SCALAR); // work*2*2
   bytes += 9 * nbrick * sizeof(FFT_SCALAR);  // ubrick*3 + vdbrick*6
   bytes += nfft_both*7 * sizeof(FFT_SCALAR); // density_ffx*3 + work*2*2

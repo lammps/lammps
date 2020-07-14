@@ -20,6 +20,7 @@
 #include "comm.h"
 #include "force.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -58,11 +59,9 @@ void DumpMovie::openfile()
     fp = popen(moviecmd,"w");
 #endif
 
-    if (fp == NULL) {
-      char str[128];
-      sprintf(str,"Failed to open FFmpeg pipeline to file %s",filename);
-      error->one(FLERR,str);
-    }
+    if (fp == NULL)
+      error->one(FLERR,fmt::format("Failed to open FFmpeg pipeline to "
+                                   "file {}",filename));
   }
 }
 /* ---------------------------------------------------------------------- */

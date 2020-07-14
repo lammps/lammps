@@ -32,52 +32,52 @@ class WeakEquation {
   
   /** integrand  that used to form the energy */
   virtual bool has_E_integrand(void) const {return false;}
-  virtual void E_integrand(const FIELD_MATS &fields,
-                           const GRAD_FIELD_MATS &grad_fields,
-                           const Material * material,
-                           DENS_MAT &energy ) const {};
+  virtual void E_integrand(const FIELD_MATS & /* fields */,
+                           const GRAD_FIELD_MATS & /* grad_fields */,
+                           const Material * /* material */,
+                           DENS_MAT & /* energy */ ) const {};
 
   /** density that used to form the mass matrix */
   virtual bool has_M_integrand(void) const {return false;}
-  virtual void M_integrand(const FIELD_MATS &fields,
-                           const Material * material,
-                           DENS_MAT &density ) const {}; 
+  virtual void M_integrand(const FIELD_MATS & /* fields */,
+                           const Material * /* material */,
+                           DENS_MAT & /* density */ ) const {}; 
 
   /** flux that is integrated with B = Grad N as its weight */
   virtual bool has_B_integrand(void) const {return false;}
-  virtual void B_integrand(const FIELD_MATS &fields,
-                           const GRAD_FIELD_MATS &grad_fields,
-                           const Material * material,
-                           DENS_MAT_VEC &flux) const {};
+  virtual void B_integrand(const FIELD_MATS & /* fields */,
+                           const GRAD_FIELD_MATS & /* grad_fields */,
+                           const Material * /* material */,
+                           DENS_MAT_VEC & /* flux */) const {};
 
   /** flux that is integrated with N as its weight */
   virtual bool has_N_integrand(void) const {return false;}
   // N_integrand bool is for masking in FE_Engine
-  virtual bool N_integrand(const FIELD_MATS &fields, 
-                           const GRAD_FIELD_MATS &grad_fields,
-                           const Material * material,
-                           DENS_MAT &flux) const {return false;};
+  virtual bool N_integrand(const FIELD_MATS & /* fields */, 
+                           const GRAD_FIELD_MATS & /* grad_fields */,
+                           const Material * /* material */,
+                           DENS_MAT & /* flux */) const {return false;};
 
   /** stiffness matrix */ 
 
   // linear
-  virtual void BB_tangent_coefficients(const FieldName field,
-                                       const Material * material,
-                                       DENS_MAT &coefs) const {};
-  virtual void NN_tangent_coefficients(const FieldName field,
-                                       const Material * material,
-                                       DENS_MAT &coefs) const {};
+  virtual void BB_tangent_coefficients(const FieldName /* field */,
+                                       const Material * /* material */,
+                                       DENS_MAT & /* coefs */) const {};
+  virtual void NN_tangent_coefficients(const FieldName /* field */,
+                                       const Material * /* material */,
+                                       DENS_MAT & /* coefs */) const {};
   // non-linear
   virtual bool has_BB_tangent_coefficients(void) const {return false;}
-  virtual void BB_tangent_coefficients(const FieldName field,
-                                       const FIELD_MATS &fields, 
-                                       const Material * material,
-                                       DENS_MAT &coefs) const {};
+  virtual void BB_tangent_coefficients(const FieldName /* field */,
+                                       const FIELD_MATS & /* fields */, 
+                                       const Material * /* material */,
+                                       DENS_MAT & /* coefs */) const {};
   virtual bool has_NN_tangent_coefficients(void) const {return false;}
-  virtual void NN_tangent_coefficients(const FieldName field,
-                                       const FIELD_MATS &fields, 
-                                       const Material * material,
-                                       DENS_MAT &coefs) const {};
+  virtual void NN_tangent_coefficients(const FieldName /* field */,
+                                       const FIELD_MATS & /* fields */, 
+                                       const Material * /* material */,
+                                       DENS_MAT & /* coefs */) const {};
   
   /** type of equation */
   PDE_Type type(void) const {return type_;}

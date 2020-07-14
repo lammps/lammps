@@ -37,6 +37,7 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -197,7 +198,7 @@ void TAD::command(int narg, char **arg)
   args = new char*[narg2];
   args[0] = min_style;
 
-  update->create_minimize(narg2,args);
+  update->create_minimize(narg2,args,1);
 
   delete [] args;
 
@@ -398,10 +399,7 @@ void TAD::command(int narg, char **arg)
 
   if ((me_universe == 0) && ulogfile_neb) fclose(ulogfile_neb);
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"\nTAD done\n");
-    if (logfile) fprintf(logfile,"\nTAD done\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"\nTAD done\n");
 
   finish->end(3);
 
@@ -711,7 +709,7 @@ void TAD::perform_neb(int ievent)
   args = new char*[narg2];
   args[0] = min_style_neb;
 
-  update->create_minimize(narg2,args);
+  update->create_minimize(narg2,args,1);
 
   delete [] args;
 
@@ -777,7 +775,7 @@ void TAD::perform_neb(int ievent)
   args = new char*[narg2];
   args[0] = min_style;
 
-  update->create_minimize(narg2,args);
+  update->create_minimize(narg2,args,1);
 
   update->etol = etol;
   update->ftol = ftol;

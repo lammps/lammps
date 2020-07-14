@@ -3,11 +3,11 @@ matrices from finite temperature MD simulations, which can then be
 used to compute phonon dispersion relations, directly from molecular
 dynamics simulations.
 
-It also contains a command to compute the dynamical matrix at
-pre-optimized positions through finite differences.
+It also contains commands to compute the dynamical matrix and third
+order tensor at pre-optimized positions through finite differences.
 
 See the doc page for the fix phonon command or the dynamical_matrix
-command for detailed usage instructions.
+or third_order commands for detailed usage instructions.
 
 Use of this package requires building LAMMPS with FFT suppport, as
 described in doc/Section_start.html.

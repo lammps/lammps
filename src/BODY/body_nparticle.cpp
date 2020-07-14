@@ -150,6 +150,9 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
   if (inertia[0] < EPSILON*max) inertia[0] = 0.0;
   if (inertia[1] < EPSILON*max) inertia[1] = 0.0;
   if (inertia[2] < EPSILON*max) inertia[2] = 0.0;
+  if (inertia[3] < EPSILON*max) inertia[3] = 0.0;
+  if (inertia[4] < EPSILON*max) inertia[4] = 0.0;
+  if (inertia[5] < EPSILON*max) inertia[5] = 0.0;
 
   // exyz_space = principal axes in space frame
 
@@ -209,7 +212,6 @@ int BodyNparticle::pack_data_body(tagint atomID, int ibonus, double *buf)
   double *inertia = bonus->inertia;
   int *ivalue = bonus->ivalue;
   double *dvalue = bonus->dvalue;
-
   int nsub = ivalue[0];
 
   if (buf) {
@@ -265,9 +267,8 @@ int BodyNparticle::write_data_body(FILE *fp, double *buf)
   fmt::print(fp,"{} {} {}\n",ubuf(buf[m]).i,ubuf(buf[m+1]).i,ubuf(buf[m+2]).i);
   m += 3;
 
-  const int nsub = (int) ubuf(buf[m]).i;
+  const int nsub = (int) ubuf(buf[m++]).i;
   fmt::print(fp,"{}\n",nsub);
-  m++;
 
   // inertia
 
@@ -277,8 +278,10 @@ int BodyNparticle::write_data_body(FILE *fp, double *buf)
 
   // nsub vertices
 
-  for (int i = 0; i < nsub; i++, m += 3)
+  for (int i = 0; i < nsub; i++) {
     fmt::print(fp,"{} {} {}\n",buf[m],buf[m+1],buf[m+2]);
+    m += 3;
+  }
 
   return m;
 }

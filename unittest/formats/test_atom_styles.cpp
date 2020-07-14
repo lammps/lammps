@@ -2685,7 +2685,7 @@ TEST_F(AtomStyleTest, tri)
 
 TEST_F(AtomStyleTest, body_nparticle)
 {
-    if (!LAMMPS::is_installed_pkg("ASPHERE")) GTEST_SKIP();
+    if (!LAMMPS::is_installed_pkg("BODY")) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("atom_style body nparticle 2 4");

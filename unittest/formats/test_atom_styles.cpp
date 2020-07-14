@@ -2382,14 +2382,14 @@ TEST_F(AtomStyleTest, tri)
     ASSERT_EQ(lmp->atom->map_user, 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 6);
 
-    auto x     = lmp->atom->x;
-    auto v     = lmp->atom->v;
-    auto type  = lmp->atom->type;
-    auto tri   = lmp->atom->tri;
-    auto rmass = lmp->atom->rmass;
+    auto x      = lmp->atom->x;
+    auto v      = lmp->atom->v;
+    auto type   = lmp->atom->type;
+    auto tri    = lmp->atom->tri;
+    auto rmass  = lmp->atom->rmass;
     auto radius = lmp->atom->radius;
-    auto avec  = (AtomVecTri *)lmp->atom->avec;
-    auto bonus = avec->bonus;
+    auto avec   = (AtomVecTri *)lmp->atom->avec;
+    auto bonus  = avec->bonus;
     ASSERT_DOUBLE_EQ(x[GETIDX(1)][0], -2.0);
     ASSERT_DOUBLE_EQ(x[GETIDX(1)][1], 2.0);
     ASSERT_DOUBLE_EQ(x[GETIDX(1)][2], 0.1);
@@ -2537,11 +2537,12 @@ TEST_F(AtomStyleTest, tri)
     ASSERT_EQ(lmp->atom->tag_consecutive(), 0);
     ASSERT_EQ(lmp->atom->map_tag_max, 12);
 
-    type  = lmp->atom->type;
-    tri   = lmp->atom->tri;
-    rmass = lmp->atom->rmass;
-    avec  = (AtomVecTri *)lmp->atom->avec;
-    bonus = avec->bonus;
+    type   = lmp->atom->type;
+    tri    = lmp->atom->tri;
+    rmass  = lmp->atom->rmass;
+    radius = lmp->atom->radius;
+    avec   = (AtomVecTri *)lmp->atom->avec;
+    bonus  = avec->bonus;
     ASSERT_EQ(type[GETIDX(1)], 1);
     ASSERT_EQ(type[GETIDX(3)], 2);
     ASSERT_EQ(type[GETIDX(5)], 3);

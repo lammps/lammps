@@ -265,7 +265,7 @@ int BodyNparticle::write_data_body(FILE *fp, double *buf)
   fmt::print(fp,"{} {} {}\n",ubuf(buf[m]).i,ubuf(buf[m+1]).i,ubuf(buf[m+2]).i);
   m += 3;
 
-  const int nsub  = (int) ubuf(buf[m]).i;
+  const int nsub = (int) ubuf(buf[m]).i;
   fmt::print(fp,"{}\n",nsub);
   m++;
 

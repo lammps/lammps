@@ -28,6 +28,7 @@ BaseThreeT::BaseThree() : _compiled(false), _max_bytes(0) {
   ans2=new Answer<numtyp,acctyp>();
   #endif
   pair_program=NULL;
+  ucl_device=NULL;
 }
 
 template <class numtyp, class acctyp>
@@ -37,12 +38,12 @@ BaseThreeT::~BaseThree() {
   #ifdef THREE_CONCURRENT
   delete ans2;
   #endif
-  if (pair_program) delete pair_program;
   k_three_center.clear();
   k_three_end.clear();
   k_three_end_vatom.clear();
   k_pair.clear();
   k_short_nbor.clear();
+  if (pair_program) delete pair_program;
 }
 
 template <class numtyp, class acctyp>
@@ -93,6 +94,8 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
                   max_nbors,cell_size,false,_threads_per_atom);
   if (success!=0)
     return success;
+
+  if (ucl_device!=device->gpu) _compiled=false;
 
   ucl_device=device->gpu;
   atom=&device->atom;

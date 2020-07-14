@@ -1,24 +1,22 @@
-.. index:: bond\_style morse
+.. index:: bond_style morse
 
-bond\_style morse command
-=========================
+bond_style morse command
+========================
 
-bond\_style morse/omp command
-=============================
+bond_style morse/omp command
+============================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style morse
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style morse
    bond_coeff 5 1.0 2.0 1.2
@@ -28,24 +26,23 @@ Description
 
 The *morse* bond style uses the potential
 
-.. image:: Eqs/bond_morse.jpg
-   :align: center
+.. math::
 
-where r0 is the equilibrium bond distance, alpha is a stiffness
-parameter, and D determines the depth of the potential well.
+   E = D \left[ 1 - e^{-\alpha (r - r_0)} \right]^2
+
+where :math:`r_0` is the equilibrium bond distance, :math:`\alpha` is a stiffness
+parameter, and :math:`D` determines the depth of the potential well.
 
 The following coefficients must be defined for each bond type via the
-:doc:`bond\_coeff <bond_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`bond_coeff <bond_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
-* D (energy)
-* alpha (inverse distance)
-* r0 (distance)
-
+* :math:`D` (energy)
+* :math:`\alpha` (inverse distance)
+* :math:`r_0` (distance)
 
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -65,13 +62,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This bond style can only be used if LAMMPS was built with the MOLECULE
 package.  See the :doc:`Build package <Build_package>` doc page for more
@@ -80,11 +74,6 @@ info.
 Related commands
 """"""""""""""""
 
-:doc:`bond\_coeff <bond_coeff>`, :doc:`delete\_bonds <delete_bonds>`
+:doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

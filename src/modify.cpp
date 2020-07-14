@@ -13,6 +13,7 @@
 
 #include "modify.h"
 #include <cstring>
+#include <string>
 #include "style_compute.h"
 #include "style_fix.h"
 #include "atom.h"
@@ -28,6 +29,7 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -50,6 +52,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   n_pre_force_respa = n_post_force_respa = n_final_integrate_respa = 0;
   n_min_pre_exchange = n_min_pre_force = n_min_pre_reverse = 0;
   n_min_post_force = n_min_energy = 0;
+  n_timeflag = -1;
 
   fix = NULL;
   fmask = NULL;
@@ -244,21 +247,15 @@ void Modify::init()
   // error if any fix or compute is using a dynamic group when not allowed
 
   for (i = 0; i < nfix; i++)
-    if (!fix[i]->dynamic_group_allow && group->dynamic[fix[i]->igroup]) {
-      char str[128];
-      snprintf(str,128,
-               "Fix %s does not allow use of dynamic group",fix[i]->id);
-      error->all(FLERR,str);
-    }
+    if (!fix[i]->dynamic_group_allow && group->dynamic[fix[i]->igroup])
+      error->all(FLERR,fmt::format("Fix {} does not allow use with a "
+                                   "dynamic group",fix[i]->id));
 
   for (i = 0; i < ncompute; i++)
     if (!compute[i]->dynamic_group_allow &&
-        group->dynamic[compute[i]->igroup]) {
-      char str[128];
-      snprintf(str,128,"Compute %s does not allow use of dynamic group",
-               fix[i]->id);
-      error->all(FLERR,str);
-    }
+        group->dynamic[compute[i]->igroup])
+      error->all(FLERR,fmt::format("Compute {} does not allow use with a "
+                                   "dynamic group",compute[i]->id));
 
   // warn if any particle is time integrated more than once
 
@@ -526,6 +523,11 @@ void Modify::thermo_energy_atom(int nlocal, double *energy)
 void Modify::post_run()
 {
   for (int i = 0; i < nfix; i++) fix[i]->post_run();
+
+  // must reset this to its default value, since computes may be added
+  // or removed between runs and with this change we will redirect any
+  // calls to addstep_compute() to addstep_compute_all() instead.
+  n_timeflag = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -835,18 +837,17 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
     int match = 0;
     if (strcmp(arg[2],fix[ifix]->style) == 0) match = 1;
     if (!match && trysuffix && lmp->suffix_enable) {
-      char estyle[256];
       if (lmp->suffix) {
-        sprintf(estyle,"%s/%s",arg[2],lmp->suffix);
-        if (strcmp(estyle,fix[ifix]->style) == 0) match = 1;
+        std::string estyle = arg[2] + std::string("/") + lmp->suffix;
+        if (estyle == fix[ifix]->style) match = 1;
       }
       if (lmp->suffix2) {
-        sprintf(estyle,"%s/%s",arg[2],lmp->suffix2);
-        if (strcmp(estyle,fix[ifix]->style) == 0) match = 1;
+        std::string estyle = arg[2] + std::string("/") + lmp->suffix2;
+        if (estyle == fix[ifix]->style) match = 1;
       }
     }
-    if (!match) error->all(FLERR,
-                           "Replacing a fix, but new style != old style");
+    if (!match)
+      error->all(FLERR,"Replacing a fix, but new style != old style");
 
     if (fix[ifix]->igroup != igroup && comm->me == 0)
       error->warning(FLERR,"Replacing a fix, but new group != old group");
@@ -869,26 +870,24 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
-      int n = strlen(arg[2])+strlen(lmp->suffix)+2;
-      char *estyle = new char[n];
-      sprintf(estyle,"%s/%s",arg[2],lmp->suffix);
+      std::string estyle = arg[2] + std::string("/") + lmp->suffix;
       if (fix_map->find(estyle) != fix_map->end()) {
         FixCreator fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
         delete[] fix[ifix]->style;
-        fix[ifix]->style = estyle;
-      } else delete[] estyle;
+        fix[ifix]->style = new char[estyle.size()+1];
+        strcpy(fix[ifix]->style,estyle.c_str());
+      }
     }
     if (fix[ifix] == NULL && lmp->suffix2) {
-      int n = strlen(arg[2])+strlen(lmp->suffix2)+2;
-      char *estyle = new char[n];
-      sprintf(estyle,"%s/%s",arg[2],lmp->suffix2);
+      std::string estyle = arg[2] + std::string("/") + lmp->suffix2;
       if (fix_map->find(estyle) != fix_map->end()) {
         FixCreator fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
         delete[] fix[ifix]->style;
-        fix[ifix]->style = estyle;
-      } else delete[] estyle;
+        fix[ifix]->style = new char[estyle.size()+1];
+        strcpy(fix[ifix]->style,estyle.c_str());
+      }
     }
   }
 
@@ -898,7 +897,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
   }
 
   if (fix[ifix] == NULL)
-    error->all(FLERR,utils::check_packages_for_style("fix",arg[2],lmp).c_str());
+    error->all(FLERR,utils::check_packages_for_style("fix",arg[2],lmp));
 
   // check if Fix is in restart_global list
   // if yes, pass state info to the Fix so it can reset itself
@@ -908,16 +907,11 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
         strcmp(style_restart_global[i],fix[ifix]->style) == 0) {
       fix[ifix]->restart(state_restart_global[i]);
       used_restart_global[i] = 1;
-      if (comm->me == 0) {
-        if (screen)
-          fprintf(screen,"Resetting global fix info from restart file:\n");
-        if (logfile)
-          fprintf(logfile,"Resetting global fix info from restart file:\n");
-        if (screen) fprintf(screen,"  fix style: %s, fix ID: %s\n",
-                            fix[ifix]->style,fix[ifix]->id);
-        if (logfile) fprintf(logfile,"  fix style: %s, fix ID: %s\n",
-                             fix[ifix]->style,fix[ifix]->id);
-      }
+      fix[ifix]->restart_reset = 1;
+      if (comm->me == 0)
+        utils::logmesg(lmp,fmt::format("Resetting global fix info from restart file:\n"
+                                       "  fix style: {}, fix ID: {}\n",
+                                       fix[ifix]->style,fix[ifix]->id));
     }
 
   // check if Fix is in restart_peratom list
@@ -930,16 +924,10 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
       for (int j = 0; j < atom->nlocal; j++)
         fix[ifix]->unpack_restart(j,index_restart_peratom[i]);
       fix[ifix]->restart_reset = 1;
-      if (comm->me == 0) {
-        if (screen)
-          fprintf(screen,"Resetting peratom fix info from restart file:\n");
-        if (logfile)
-          fprintf(logfile,"Resetting peratom fix info from restart file:\n");
-        if (screen) fprintf(screen,"  fix style: %s, fix ID: %s\n",
-                            fix[ifix]->style,fix[ifix]->id);
-        if (logfile) fprintf(logfile,"  fix style: %s, fix ID: %s\n",
-                             fix[ifix]->style,fix[ifix]->id);
-      }
+      if (comm->me == 0)
+        utils::logmesg(lmp,fmt::format("Resetting peratom fix info from restart file:\n"
+                                       "  fix style: {}, fix ID: {}\n",
+                                       fix[ifix]->style,fix[ifix]->id));
     }
 
   // increment nfix (if new)
@@ -951,6 +939,63 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
   if (newflag) nfix++;
   fmask[ifix] = fix[ifix]->setmask();
   fix[ifix]->post_constructor();
+}
+
+/* ----------------------------------------------------------------------
+   convenience function to allow adding a fix from a single string
+------------------------------------------------------------------------- */
+
+void Modify::add_fix(const std::string &fixcmd, int trysuffix)
+{
+  std::vector<std::string> args = utils::split_words(fixcmd);
+  char **newarg = new char*[args.size()];
+  int i=0;
+  for (const auto &arg : args) {
+    newarg[i++] = (char *)arg.c_str();
+  }
+  add_fix(args.size(),newarg,trysuffix);
+  delete[] newarg;
+}
+
+
+/* ----------------------------------------------------------------------
+   replace replaceID fix with a new fix
+   this is used by callers to preserve ordering of fixes
+   e.g. create replaceID as a FixDummy instance early in the input script
+        replace it later with the desired Fix instance
+------------------------------------------------------------------------- */
+
+void Modify::replace_fix(const char *replaceID,
+                         int narg, char **arg, int trysuffix)
+{
+  int ifix = find_fix(replaceID);
+  if (ifix < 0) error->all(FLERR,"Modify replace_fix ID could not be found");
+
+  // change ID, igroup, style of fix being replaced to match new fix
+  // requires some error checking on arguments for new fix
+
+  if (narg < 3) error->all(FLERR,"Illegal replace_fix invocation");
+  int jfix = find_fix(arg[0]);
+  if (jfix >= 0) error->all(FLERR,"Replace_fix ID is already in use");
+
+  delete [] fix[ifix]->id;
+  int n = strlen(arg[0]) + 1;
+  fix[ifix]->id = new char[n];
+  strcpy(fix[ifix]->id,arg[0]);
+
+  int jgroup = group->find(arg[1]);
+  if (jgroup == -1) error->all(FLERR,"Could not find replace_fix group ID");
+  fix[ifix]->igroup = jgroup;
+
+  delete [] fix[ifix]->style;
+  n = strlen(arg[2]) + 1;
+  fix[ifix]->style = new char[n];
+  strcpy(fix[ifix]->style,arg[2]);
+
+  // invoke add_fix
+  // it will find and overwrite the replaceID fix
+
+  add_fix(narg,arg,trysuffix);
 }
 
 /* ----------------------------------------------------------------------
@@ -986,7 +1031,7 @@ void Modify::modify_fix(int narg, char **arg)
    Atom class must update indices in its list of callbacks to fixes
 ------------------------------------------------------------------------- */
 
-void Modify::delete_fix(const char *id)
+void Modify::delete_fix(const std::string &id)
 {
   int ifix = find_fix(id);
   if (ifix < 0) error->all(FLERR,"Could not find fix ID to delete");
@@ -1010,14 +1055,12 @@ void Modify::delete_fix(int ifix)
    return index of fix or -1 if not found
 ------------------------------------------------------------------------- */
 
-int Modify::find_fix(const char *id)
+int Modify::find_fix(const std::string &id)
 {
-  if (id == NULL) return -1;
-  int ifix;
-  for (ifix = 0; ifix < nfix; ifix++)
-    if (strcmp(id,fix[ifix]->id) == 0) break;
-  if (ifix == nfix) return -1;
-  return ifix;
+  if (id.empty()) return -1;
+  for (int ifix = 0; ifix < nfix; ifix++)
+    if (id == fix[ifix]->id) return ifix;
+  return -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -1122,7 +1165,7 @@ int Modify::check_rigid_list_overlap(int *select)
 
   int n = 0;
   for (int ifix = 0; ifix < nfix; ifix++) {
-    if (strncmp("rigid",fix[ifix]->style,5) == 0) {
+    if (utils::strmatch(fix[ifix]->style,"^rigid")) {
       const int * const body = (const int *)fix[ifix]->extract("body",dim);
       if ((body == NULL) || (dim != 1)) break;
 
@@ -1167,26 +1210,24 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
 
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
-      int n = strlen(arg[2])+strlen(lmp->suffix)+2;
-      char *estyle = new char[n];
-      sprintf(estyle,"%s/%s",arg[2],lmp->suffix);
+      std::string estyle = arg[2] + std::string("/") + lmp->suffix;
       if (compute_map->find(estyle) != compute_map->end()) {
         ComputeCreator compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
         delete[] compute[ncompute]->style;
-        compute[ncompute]->style = estyle;
-      } else delete[] estyle;
+        compute[ncompute]->style = new char[estyle.size()+1];
+        strcpy(compute[ncompute]->style,estyle.c_str());
+      }
     }
     if (compute[ncompute] == NULL && lmp->suffix2) {
-      int n = strlen(arg[2])+strlen(lmp->suffix2)+2;
-      char *estyle = new char[n];
-      sprintf(estyle,"%s/%s",arg[2],lmp->suffix2);
+      std::string estyle = arg[2] + std::string("/") + lmp->suffix2;
       if (compute_map->find(estyle) != compute_map->end()) {
         ComputeCreator compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
         delete[] compute[ncompute]->style;
-        compute[ncompute]->style = estyle;
-      } else delete[] estyle;
+        compute[ncompute]->style = new char[estyle.size()+1];
+        strcpy(compute[ncompute]->style,estyle.c_str());
+      }
     }
   }
 
@@ -1197,10 +1238,27 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
   }
 
   if (compute[ncompute] == NULL)
-    error->all(FLERR,utils::check_packages_for_style("compute",arg[2],lmp).c_str());
+    error->all(FLERR,utils::check_packages_for_style("compute",arg[2],lmp));
 
   ncompute++;
 }
+
+/* ----------------------------------------------------------------------
+   convenience function to allow adding a compute from a single string
+------------------------------------------------------------------------- */
+
+void Modify::add_compute(const std::string &computecmd, int trysuffix)
+{
+  std::vector<std::string> args = utils::split_words(computecmd);
+  char **newarg = new char*[args.size()];
+  int i=0;
+  for (const auto &arg : args) {
+    newarg[i++] = (char *)arg.c_str();
+  }
+  add_compute(args.size(),newarg,trysuffix);
+  delete[] newarg;
+}
+
 
 /* ----------------------------------------------------------------------
    one instance per compute in style_compute.h
@@ -1235,7 +1293,7 @@ void Modify::modify_compute(int narg, char **arg)
    delete a Compute from list of Computes
 ------------------------------------------------------------------------- */
 
-void Modify::delete_compute(const char *id)
+void Modify::delete_compute(const std::string &id)
 {
   int icompute = find_compute(id);
   if (icompute < 0) error->all(FLERR,"Could not find compute ID to delete");
@@ -1252,14 +1310,12 @@ void Modify::delete_compute(const char *id)
    return index of compute or -1 if not found
 ------------------------------------------------------------------------- */
 
-int Modify::find_compute(const char *id)
+int Modify::find_compute(const std::string &id)
 {
-  if(id==NULL) return -1;
-  int icompute;
-  for (icompute = 0; icompute < ncompute; icompute++)
-    if (strcmp(id,compute[icompute]->id) == 0) break;
-  if (icompute == ncompute) return -1;
-  return icompute;
+  if(id.empty()) return -1;
+  for (int icompute = 0; icompute < ncompute; icompute++)
+    if (id == compute[icompute]->id) return icompute;
+  return -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -1283,6 +1339,14 @@ void Modify::clearstep_compute()
 
 void Modify::addstep_compute(bigint newstep)
 {
+  // If we are called before the first run init, n_timeflag is not yet
+  // initialized, thus defer to addstep_compute_all() instead
+
+  if (n_timeflag < 0) {
+     addstep_compute_all(newstep);
+     return;
+  }
+
   for (int icompute = 0; icompute < n_timeflag; icompute++)
     if (compute[list_timeflag[icompute]]->invoked_flag)
       compute[list_timeflag[icompute]]->addstep(newstep);
@@ -1459,21 +1523,13 @@ void Modify::restart_deallocate(int flag)
       for (i = 0; i < nfix_restart_global; i++)
         if (used_restart_global[i] == 0) break;
       if (i == nfix_restart_global) {
-        if (screen)
-          fprintf(screen,"All restart file global fix info "
-                  "was re-assigned\n");
-        if (logfile)
-          fprintf(logfile,"All restart file global fix info "
-                  "was re-assigned\n");
+        utils::logmesg(lmp,"All restart file global fix info was re-assigned\n");
       } else {
-        if (screen) fprintf(screen,"Unused restart file global fix info:\n");
-        if (logfile) fprintf(logfile,"Unused restart file global fix info:\n");
+        utils::logmesg(lmp,"Unused restart file global fix info:\n");
         for (i = 0; i < nfix_restart_global; i++) {
           if (used_restart_global[i]) continue;
-          if (screen) fprintf(screen,"  fix style: %s, fix ID: %s\n",
-                              style_restart_global[i],id_restart_global[i]);
-          if (logfile) fprintf(logfile,"  fix style: %s, fix ID: %s\n",
-                               style_restart_global[i],id_restart_global[i]);
+          utils::logmesg(lmp,fmt::format("  fix style: {}, fix ID: {}\n",
+                                         style_restart_global[i],id_restart_global[i]));
         }
       }
     }
@@ -1495,21 +1551,13 @@ void Modify::restart_deallocate(int flag)
       for (i = 0; i < nfix_restart_peratom; i++)
         if (used_restart_peratom[i] == 0) break;
       if (i == nfix_restart_peratom) {
-        if (screen)
-          fprintf(screen,"All restart file peratom fix info "
-                  "was re-assigned\n");
-        if (logfile)
-          fprintf(logfile,"All restart file peratom fix info "
-                  "was re-assigned\n");
+        utils::logmesg(lmp,"All restart file peratom fix info was re-assigned\n");
       } else {
-        if (screen) fprintf(screen,"Unused restart file peratom fix info:\n");
-        if (logfile) fprintf(logfile,"Unused restart file peratom fix info:\n");
+        utils::logmesg(lmp,"Unused restart file peratom fix info:\n");
         for (i = 0; i < nfix_restart_peratom; i++) {
           if (used_restart_peratom[i]) continue;
-          if (screen) fprintf(screen,"  fix style: %s, fix ID: %s\n",
-                              style_restart_peratom[i],id_restart_peratom[i]);
-          if (logfile) fprintf(logfile,"  fix style: %s, fix ID: %s\n",
-                               style_restart_peratom[i],id_restart_peratom[i]);
+          utils::logmesg(lmp,fmt::format("  fix style: {}, fix ID: {}\n",
+                                         style_restart_peratom[i],id_restart_peratom[i]));
         }
       }
     }

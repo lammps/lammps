@@ -15,6 +15,7 @@
    Contributing authors: Axel Kohlmeyer (Temple U),
                          Ryan S. Elliott (UMN)
                          Ellad B. Tadmor (UMN)
+                         Ronald Miller   (Carleton U)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -75,8 +76,8 @@ class KimInteractions : protected Pointers {
   void command(int, char **);
  private:
   void do_setup(int, char **);
-  int species_to_atomic_no(std::string const species) const;
-  void kim_interactions_log_delimiter(std::string const begin_end) const;
+  int species_to_atomic_no(const std::string &species) const;
+  void KIM_SET_TYPE_PARAMETERS(char const *const input_line) const;
 };
 
 }

@@ -585,7 +585,7 @@ namespace ATC {
         
   protected:
 
-    /** lumped version of the matrix governing lamda */
+    /** lumped version of the matrix governing lambda */
     DIAG_MAT lumpedMatrix_;
 
     /** set of regulated nodes */

@@ -16,8 +16,6 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_custom_adios.h"
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "compute.h"
 #include "domain.h"
@@ -32,6 +30,8 @@
 #include "universe.h"
 #include "update.h"
 #include "variable.h"
+#include <cmath>
+#include <cstring>
 
 #include "adios2.h"
 
@@ -124,7 +124,7 @@ public:
     // (individual list of 'columns' string)
     std::vector<std::string> columnNames;
 };
-}
+} // namespace LAMMPS_NS
 
 /* ---------------------------------------------------------------------- */
 
@@ -132,8 +132,15 @@ DumpCustomADIOS::DumpCustomADIOS(LAMMPS *lmp, int narg, char **arg)
 : DumpCustom(lmp, narg, arg)
 {
     internal = new DumpCustomADIOSInternal();
-    internal->ad =
-        new adios2::ADIOS("adios2_config.xml", world, adios2::DebugON);
+    try {
+        internal->ad =
+            new adios2::ADIOS("adios2_config.xml", world, adios2::DebugON);
+    } catch (std::ios_base::failure &e) {
+        char str[256];
+        snprintf(str, sizeof(str), "ADIOS initialization failed with error: %s",
+                 e.what());
+        error->one(FLERR, str);
+    }
 
     // if (screen) fprintf(screen, "DumpCustomADIOS constructor: nvariable=%d
     // id_variable=%p, variables=%p, nfield=%d, earg=%p\n", nvariable,
@@ -415,7 +422,7 @@ void DumpCustomADIOS::init_style()
         "columns", internal->columnNames.data(), nColumns);
     internal->io.DefineAttribute<std::string>("columnstr", columns);
     internal->io.DefineAttribute<std::string>("boundarystr", boundstr);
-    internal->io.DefineAttribute<std::string>("LAMMPS/dump_style", "atom");
+    internal->io.DefineAttribute<std::string>("LAMMPS/dump_style", "custom");
     internal->io.DefineAttribute<std::string>("LAMMPS/version",
                                               universe->version);
     internal->io.DefineAttribute<std::string>("LAMMPS/num_ver",

@@ -2,7 +2,7 @@
 #
 # TLSPH example:  elongate a 2d strip of aluminum py pulling its ends apart  
 #
-# unit sytem: GPa / mm / ms
+# unit system: GPa / mm / ms
 #
 ####################################################################################################
 
@@ -18,7 +18,7 @@ variable        q2 equal 0.0  # standard artificial viscosity quadratic coeffici
 variable        hg equal 10.0 # hourglass control coefficient
 variable        cp equal 1.0 # heat capacity of material -- not used here
 
-variable        JC_A equal 0.3241 # Johnson Cook arameters
+variable        JC_A equal 0.3241 # Johnson Cook parameters
 variable        JC_B equal 0.1138
 variable        JC_N equal 0.42
 variable        JC_C equal 0 #0.002

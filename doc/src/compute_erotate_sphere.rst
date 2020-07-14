@@ -6,7 +6,6 @@ compute erotate/sphere command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID erotate/sphere
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all erotate/sphere
 
@@ -50,9 +48,8 @@ scalar value will be in energy :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-
 This compute requires that atoms store a radius and angular velocity
-(omega) as defined by the :doc:`atom\_style sphere <atom_style>` command.
+(omega) as defined by the :doc:`atom_style sphere <atom_style>` command.
 
 All particles in the group must be finite-size spheres or point
 particles.  They cannot be aspherical.  Point particles will not
@@ -64,8 +61,3 @@ Related commands
 :doc:`compute erotate/asphere <compute_erotate_asphere>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

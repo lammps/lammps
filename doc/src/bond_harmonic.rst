@@ -1,30 +1,28 @@
-.. index:: bond\_style harmonic
+.. index:: bond_style harmonic
 
-bond\_style harmonic command
-============================
+bond_style harmonic command
+===========================
 
-bond\_style harmonic/intel command
-==================================
+bond_style harmonic/intel command
+=================================
 
-bond\_style harmonic/kk command
+bond_style harmonic/kk command
+==============================
+
+bond_style harmonic/omp command
 ===============================
-
-bond\_style harmonic/omp command
-================================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style harmonic
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style harmonic
    bond_coeff 5 80.0 1.2
@@ -34,23 +32,22 @@ Description
 
 The *harmonic* bond style uses the potential
 
-.. image:: Eqs/bond_harmonic.jpg
-   :align: center
+.. math::
 
-where r0 is the equilibrium bond distance.  Note that the usual 1/2
-factor is included in K.
+   E = K (r - r_0)^2
+
+where :math:`r_0` is the equilibrium bond distance.  Note that the usual 1/2
+factor is included in :math:`K`.
 
 The following coefficients must be defined for each bond type via the
-:doc:`bond\_coeff <bond_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`bond_coeff <bond_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
-* K (energy/distance\^2)
-* r0 (distance)
-
+* :math:`K` (energy/distance\^2)
+* :math:`r_0` (distance)
 
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -70,13 +67,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This bond style can only be used if LAMMPS was built with the MOLECULE
 package.  See the :doc:`Build package <Build_package>` doc page for more
@@ -85,11 +79,6 @@ info.
 Related commands
 """"""""""""""""
 
-:doc:`bond\_coeff <bond_coeff>`, :doc:`delete\_bonds <delete_bonds>`
+:doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

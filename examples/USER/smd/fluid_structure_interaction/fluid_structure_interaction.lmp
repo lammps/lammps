@@ -4,7 +4,7 @@
 #
 # A column of water is placed in a container and allowed to collapse unter the
 # influence of gravity. Several solid objects are also placed in the container.
-# The water flow pushes the solid objects around until the sytem comes to halt due to
+# The water flow pushes the solid objects around until the system comes to halt due to
 # viscous damping. The solid objects have a lower mass density than water and finally float on
 # the water surface.
 #
@@ -12,7 +12,7 @@
 # Total Lagrangian formalism. Contact forces between container, solid bodies, and water prevent
 # mutual penetration of these physical entities.
 #
-# unit sytem: GPa / mm / ms
+# unit system: GPa / mm / ms
 #
 ####################################################################################################
 

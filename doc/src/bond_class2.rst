@@ -1,27 +1,25 @@
-.. index:: bond\_style class2
+.. index:: bond_style class2
 
-bond\_style class2 command
-==========================
+bond_style class2 command
+=========================
 
-bond\_style class2/omp command
-==============================
-
-bond\_style class2/kk command
+bond_style class2/omp command
 =============================
+
+bond_style class2/kk command
+============================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style class2
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    bond_style class2
    bond_coeff 1 1.0 100.0 80.0 80.0
@@ -31,26 +29,25 @@ Description
 
 The *class2* bond style uses the potential
 
-.. image:: Eqs/bond_class2.jpg
-   :align: center
+.. math::
 
-where r0 is the equilibrium bond distance.
+   E = K_2 (r - r_0)^2 + K_3 (r - r_0)^3 + K_4 (r - r_0)^4
+
+where :math:`r_0` is the equilibrium bond distance.
 
 See :ref:`(Sun) <bond-Sun>` for a description of the COMPASS class2 force field.
 
 The following coefficients must be defined for each bond type via the
-:doc:`bond\_coeff <bond_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`bond_coeff <bond_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
-* R0 (distance)
-* K2 (energy/distance\^2)
-* K3 (energy/distance\^3)
-* K4 (energy/distance\^4)
-
+* :math:`r_0` (distance)
+* :math:`K_2` (energy/distance\^2)
+* :math:`K_3` (energy/distance\^3)
+* :math:`K_4` (energy/distance\^4)
 
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -70,13 +67,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This bond style can only be used if LAMMPS was built with the CLASS2
 package.  See the :doc:`Build package <Build_package>` doc page for more
@@ -85,21 +79,12 @@ info.
 Related commands
 """"""""""""""""
 
-:doc:`bond\_coeff <bond_coeff>`, :doc:`delete\_bonds <delete_bonds>`
+:doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
 
 **Default:** none
 
-
 ----------
-
 
 .. _bond-Sun:
 
-
-
 **(Sun)** Sun, J Phys Chem B 102, 7338-7364 (1998).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

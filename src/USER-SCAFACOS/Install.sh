@@ -46,7 +46,7 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  if (test -e ../Makefile.package) then 
+  if (test -e ../Makefile.package) then
     sed -i -e 's/`.*scafacos.*` //' ../Makefile.package
     sed -i -e 's/[^ \t]*scafacos[^ \t]* //' ../Makefile.package
   fi

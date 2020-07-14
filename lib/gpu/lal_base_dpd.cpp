@@ -26,15 +26,16 @@ BaseDPDT::BaseDPD() : _compiled(false), _max_bytes(0) {
   ans=new Answer<numtyp,acctyp>();
   nbor=new Neighbor();
   pair_program=NULL;
+  ucl_device=NULL;
 }
 
 template <class numtyp, class acctyp>
 BaseDPDT::~BaseDPD() {
   delete ans;
   delete nbor;
-  if (pair_program) delete pair_program;
   k_pair_fast.clear();
   k_pair.clear();
+  if (pair_program) delete pair_program;
 }
 
 template <class numtyp, class acctyp>
@@ -78,6 +79,8 @@ int BaseDPDT::init_atomic(const int nlocal, const int nall,
 
   if (success!=0)
     return success;
+
+  if (ucl_device!=device->gpu) _compiled=false;
 
   ucl_device=device->gpu;
   atom=&device->atom;

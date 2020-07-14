@@ -83,7 +83,7 @@ namespace ATC
 
     /** each of these is a field function computed at a set of points */
     /** if there is only one function it is in the base class 
-     ** otherwise, a subsidary class is setup */
+     ** otherwise, a subsidiary class is setup */
     /* -----------------------------------------------------------------*/
     /** densities */
     /* -----------------------------------------------------------------*/

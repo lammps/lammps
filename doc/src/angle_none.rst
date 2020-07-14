@@ -1,21 +1,19 @@
-.. index:: angle\_style none
+.. index:: angle_style none
 
-angle\_style none command
-=========================
+angle_style none command
+========================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style none
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style none
 
@@ -24,23 +22,19 @@ Description
 
 Using an angle style of none means angle forces and energies are not
 computed, even if triplets of angle atoms were listed in the data file
-read by the :doc:`read\_data <read_data>` command.
+read by the :doc:`read_data <read_data>` command.
 
-See the :doc:`angle\_style zero <angle_zero>` command for a way to
+See the :doc:`angle_style zero <angle_zero>` command for a way to
 calculate angle statistics, but compute no angle interactions.
 
 Restrictions
 """"""""""""
- none
+
+none
 
 Related commands
 """"""""""""""""
 
-:doc:`angle\_style zero <angle_zero>`
+:doc:`angle_style zero <angle_zero>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

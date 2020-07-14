@@ -19,6 +19,7 @@
 #include "improper.h"
 #include "kspace.h"
 #include "update.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "timer.h"

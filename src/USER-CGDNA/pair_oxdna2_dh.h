@@ -28,7 +28,8 @@ class PairOxdna2Dh : public Pair {
  public:
   PairOxdna2Dh(class LAMMPS *);
   virtual ~PairOxdna2Dh();
-  virtual void compute_interaction_sites(double *, double *, double *);
+  virtual void compute_interaction_sites(double *, double *, double *,
+    double *);
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);

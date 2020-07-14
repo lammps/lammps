@@ -32,6 +32,7 @@
 #include "memory.h"
 #include "error.h"
 #include "math_const.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -61,6 +62,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
   wlflag = 0;
   wlhatflag = 0;
   qlcompflag = 0;
+  chunksize = 16384;
 
   // specify which orders to request
 
@@ -143,6 +145,13 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
         error->all(FLERR,"Illegal compute orientorder/atom command");
       cutsq = cutoff*cutoff;
       iarg += 2;
+    } else if (strcmp(arg[iarg],"chunksize") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute orientorder/atom command");
+      chunksize = force->numeric(FLERR,arg[iarg+1]);
+      if (chunksize <= 0)
+        error->all(FLERR,"Illegal compute orientorder/atom command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal compute orientorder/atom command");
   }
 
@@ -162,6 +171,8 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
 
 ComputeOrientOrderAtom::~ComputeOrientOrderAtom()
 {
+  if (copymode) return;
+
   memory->destroy(qnarray);
   memory->destroy(distsq);
   memory->destroy(rlist);
@@ -456,21 +467,26 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
     for (int il = 0; il < nqlist; il++) {
       int l = qlist[il];
 
+      // calculate spherical harmonics
+      // Ylm, -l <= m <= l
+      // sign convention: sign(Yll(0,0)) = (-1)^l
+
       qnm_r[il][l] += polar_prefactor(l, 0, costheta);
       double expphim_r = expphi_r;
       double expphim_i = expphi_i;
       for(int m = 1; m <= +l; m++) {
+
         double prefactor = polar_prefactor(l, m, costheta);
-        double c_r = prefactor * expphim_r;
-        double c_i = prefactor * expphim_i;
-        qnm_r[il][m+l] += c_r;
-        qnm_i[il][m+l] += c_i;
+        double ylm_r = prefactor * expphim_r;
+        double ylm_i = prefactor * expphim_i;
+        qnm_r[il][m+l] += ylm_r;
+        qnm_i[il][m+l] += ylm_i;
         if(m & 1) {
-          qnm_r[il][-m+l] -= c_r;
-          qnm_i[il][-m+l] += c_i;
+          qnm_r[il][-m+l] -= ylm_r;
+          qnm_i[il][-m+l] += ylm_i;
         } else {
-          qnm_r[il][-m+l] += c_r;
-          qnm_i[il][-m+l] -= c_i;
+          qnm_r[il][-m+l] += ylm_r;
+          qnm_i[il][-m+l] -= ylm_i;
         }
         double tmp_r = expphim_r*expphi_r - expphim_i*expphi_i;
         double tmp_i = expphim_r*expphi_i + expphim_i*expphi_r;
@@ -504,19 +520,6 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
       qm_sum += qnm_r[il][m]*qnm_r[il][m] + qnm_i[il][m]*qnm_i[il][m];
     qn[jj++] = qnormfac * sqrt(qm_sum);
   }
-
-  // TODO:
-  // 1. [done]Need to allocate extra memory in qnarray[] for this option
-  // 2. [done]Need to add keyword option
-  // 3. [done]Need to caclulate Clebsch-Gordan/Wigner 3j coefficients
-  //     (Can try getting them from boop.py first)
-  // 5. [done]Compare to bcc values in /Users/athomps/netapp/codes/MatMiner/matminer/matminer/featurizers/boop.py
-  // 6. [done]I get the right answer for W_l, but need to make sure that factor of 1/sqrt(l+1) is right for cglist
-  // 7. Add documentation
-  // 8. [done] run valgrind
-  // 9. [done] Add Wlhat
-  // 10. Update memory_usage()
-  // 11. Add exact FCC values for W_4, W_4_hat
 
   // calculate W_l
 
@@ -554,7 +557,6 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
           idxcg_count++;
         }
       }
-  //      Whats = [w/(q/np.sqrt(np.pi * 4 / (2 * l + 1)))**3 if abs(q) > 1.0e-6 else 0.0 for l,q,w in zip(range(1,max_l+1),Qs,Ws)]
       if (qn[il] < QEPSILON)
         qn[jj++] = 0.0;
       else {
@@ -565,7 +567,7 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
     }
   }
 
-  // Calculate components of Q_l, for l=qlcomp
+  // Calculate components of Q_l/|Q_l|, for l=qlcomp
 
   if (qlcompflag) {
     int il = iqlcomp;
@@ -619,6 +621,7 @@ double ComputeOrientOrderAtom::polar_prefactor(int l, int m, double costheta)
 
 /* ----------------------------------------------------------------------
    associated legendre polynomial
+   sign convention: P(l,l) = (2l-1)!!(-sqrt(1-x^2))^l
 ------------------------------------------------------------------------- */
 
 double ComputeOrientOrderAtom::associated_legendre(int l, int m, double x)
@@ -628,9 +631,9 @@ double ComputeOrientOrderAtom::associated_legendre(int l, int m, double x)
   double p(1.0), pm1(0.0), pm2(0.0);
 
   if (m != 0) {
-    const double sqx = sqrt(1.0-x*x);
+    const double msqx = -sqrt(1.0-x*x);
     for (int i=1; i < m+1; ++i)
-      p *= static_cast<double>(2*i-1) * sqx;
+      p *= static_cast<double>(2*i-1) * msqx;
   }
 
   for (int i=m+1; i < l+1; ++i) {
@@ -713,11 +716,8 @@ void ComputeOrientOrderAtom::init_clebsch_gordan()
 
 double ComputeOrientOrderAtom::factorial(int n)
 {
-  if (n < 0 || n > nmaxfactorial) {
-    char str[128];
-    sprintf(str, "Invalid argument to factorial %d", n);
-    error->all(FLERR, str);
-  }
+  if (n < 0 || n > nmaxfactorial)
+    error->all(FLERR,fmt::format("Invalid argument to factorial {}", n));
 
   return nfac_table[n];
 }

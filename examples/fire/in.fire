@@ -1,0 +1,45 @@
+# 2d Lennard-Jones melt and subsequent energy minimization
+
+units		lj
+dimension	2
+atom_style	atomic
+
+lattice		sq2 0.8442
+region		box block 0 20 0 20 -0.1 0.1
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+
+velocity	all create 5.0 87287 loop geom
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+pair_modify	shift yes
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+fix		1 all nve
+fix		2 all enforce2d
+
+#dump		1 all atom 100 dump.min
+
+#dump		2 all image 50 image.*.jpg type type &
+#		zoom 1.6 adiam 1.5
+#dump_modify	2 pad 4
+
+#dump		3 all movie 50 movie.mpg type type &
+#		zoom 1.6 adiam 1.5
+#dump_modify	3 pad 4
+
+thermo		100
+
+run		1000
+
+neigh_modify	delay 0 every 1 check yes
+
+#dump_modify	1 every 25
+
+thermo		50
+min_style	fire
+minimize	0.0 1.0e-6 10000 10000

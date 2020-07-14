@@ -9,7 +9,6 @@ fix deform/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID deform N parameter args ... keyword value ...
@@ -18,9 +17,9 @@ Syntax
 * deform = style name of this fix command
 * N = perform box deformation every this many timesteps
 * one or more parameter/arg pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      parameter = *x* or *y* or *z* or *xy* or *xz* or *yz*
        *x*\ , *y*\ , *z* args = style value(s)
          style = *final* or *delta* or *scale* or *vel* or *erate* or *trate* or *volume* or *wiggle* or *variable*
@@ -66,9 +65,9 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *remap* or *flip* or *units*
-  
+
   .. parsed-literal::
-  
+
        *remap* value = *x* or *v* or *none*
          x = remap coords of atoms in group into deforming box
          v = remap velocities of all atoms when they cross periodic boundaries
@@ -79,13 +78,10 @@ Syntax
          lattice = distances are defined in lattice units
          box = distances are defined in simulation box units
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all deform 1 x final 0.0 9.0 z final 0.0 5.0 units box
    fix 1 all deform 1 x trate 0.1 y volume z volume
@@ -108,16 +104,16 @@ can be modeled using the :ref:`USER-UEF package <PKG-USER-UEF>` and its :doc:`fi
 
 For the *x*\ , *y*\ , *z* parameters, the associated dimension cannot be
 shrink-wrapped.  For the *xy*\ , *yz*\ , *xz* parameters, the associated
-2nd dimension cannot be shrink-wrapped.  Dimensions not varied by this
+second dimension cannot be shrink-wrapped.  Dimensions not varied by this
 command can be periodic or non-periodic.  Dimensions corresponding to
 unspecified parameters can also be controlled by a :doc:`fix npt <fix_nh>` or :doc:`fix nph <fix_nh>` command.
 
 The size and shape of the simulation box at the beginning of the
 simulation run were either specified by the
-:doc:`create\_box <create_box>` or :doc:`read\_data <read_data>` or
-:doc:`read\_restart <read_restart>` command used to setup the simulation
+:doc:`create_box <create_box>` or :doc:`read_data <read_data>` or
+:doc:`read_restart <read_restart>` command used to setup the simulation
 initially if it is the first run, or they are the values from the end
-of the previous run.  The :doc:`create\_box <create_box>`, :doc:`read data <read_data>`, and :doc:`read\_restart <read_restart>` commands
+of the previous run.  The :doc:`create_box <create_box>`, :doc:`read data <read_data>`, and :doc:`read_restart <read_restart>` commands
 specify whether the simulation box is orthogonal or non-orthogonal
 (triclinic) and explain the meaning of the xy,xz,yz tilt factors.  If
 fix deform changes the xy,xz,yz tilt factors, then the simulation box
@@ -129,9 +125,7 @@ command.  Every Nth timestep during the run, the simulation box is
 expanded, contracted, or tilted to ramped values between the initial
 and final values.
 
-
 ----------
-
 
 For the *x*\ , *y*\ , and *z* parameters, this is the meaning of their
 styles and values.
@@ -160,8 +154,8 @@ specified in units of distance/time.  This is effectively a "constant
 engineering strain rate", where rate = V/L0 and L0 is the initial box
 length.  The distance can be in lattice or box distance units.  See
 the discussion of the units keyword below.  For example, if the
-initial box length is 100 Angstroms, and V is 10 Angstroms/psec, then
-after 10 psec, the box length will have doubled.  After 20 psec, it
+initial box length is 100 Angstroms, and V is 10 Angstroms/ps, then
+after 10 ps, the box length will have doubled.  After 20 ps, it
 will have tripled.
 
 The *erate* style changes a dimension of the box at a "constant
@@ -173,7 +167,6 @@ is defined as delta/L0, where L0 is the original box length and delta
 is the change relative to the original length.  The box length L as a
 function of time will change as
 
-
 .. parsed-literal::
 
    L(t) = L0 (1 + erate\*dt)
@@ -181,7 +174,7 @@ function of time will change as
 where dt is the elapsed time (in time units).  Thus if *erate* R is
 specified as 0.1 and time units are picoseconds, this means the box
 length will increase by 10% of its original length every picosecond.
-I.e. strain after 1 psec = 0.1, strain after 2 psec = 0.2, etc.  R =
+I.e. strain after 1 ps = 0.1, strain after 2 ps = 0.2, etc.  R =
 -0.01 means the box length will shrink by 1% of its original length
 every picosecond.  Note that for an "engineering" rate the change is
 based on the original box length, so running with R = 1 for 10
@@ -201,7 +194,6 @@ is the change relative to the original length.
 
 The box length L as a function of time will change as
 
-
 .. parsed-literal::
 
    L(t) = L0 exp(trate\*dt)
@@ -209,7 +201,7 @@ The box length L as a function of time will change as
 where dt is the elapsed time (in time units).  Thus if *trate* R is
 specified as ln(1.1) and time units are picoseconds, this means the
 box length will increase by 10% of its current (not original) length
-every picosecond.  I.e. strain after 1 psec = 0.1, strain after 2 psec
+every picosecond.  I.e. strain after 1 ps = 0.1, strain after 2 ps
 = 0.21, etc.  R = ln(2) or ln(3) means the box length will double or
 triple every picosecond.  R = ln(0.99) means the box length will
 shrink by 1% of its current length every picosecond.  Note that for a
@@ -254,7 +246,6 @@ The *wiggle* style oscillates the specified box length dimension
 sinusoidally with the specified amplitude and period.  I.e. the box
 length L as a function of time is given by
 
-
 .. parsed-literal::
 
    L(t) = L0 + A sin(2\*pi t/Tp)
@@ -289,22 +280,19 @@ Here is an example of using the *variable* style to perform the same
 box deformation as the *wiggle* style formula listed above, where we
 assume that the current timestep = 0.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable A equal 5.0
    variable Tp equal 10.0
-   variable displace equal "v_A \* sin(2\*PI \* step\*dt/v_Tp)"
-   variable rate equal "2\*PI\*v_A/v_Tp \* cos(2\*PI \* step\*dt/v_Tp)"
+   variable displace equal "v_A * sin(2*PI * step*dt/v_Tp)"
+   variable rate equal "2*PI*v_A/v_Tp * cos(2*PI * step*dt/v_Tp)"
    fix 2 all deform 1 x variable v_displace v_rate remap v
 
 For the *scale*\ , *vel*\ , *erate*\ , *trate*\ , *volume*\ , *wiggle*\ , and
 *variable* styles, the box length is expanded or compressed around its
 mid point.
 
-
 ----------
-
 
 For the *xy*\ , *xz*\ , and *yz* parameters, this is the meaning of their
 styles and values.  Note that changing the tilt factors of a triclinic
@@ -329,8 +317,8 @@ specified in units of distance/time.  This is effectively an
 initial box length perpendicular to the direction of shear.  The
 distance can be in lattice or box distance units.  See the discussion
 of the units keyword below.  For example, if the initial tilt factor
-is 5 Angstroms, and the V is 10 Angstroms/psec, then after 1 psec, the
-tilt factor will be 15 Angstroms.  After 2 psec, it will be 25
+is 5 Angstroms, and the V is 10 Angstroms/ps, then after 1 ps, the
+tilt factor will be 15 Angstroms.  After 2 ps, it will be 25
 Angstroms.
 
 The *erate* style changes a tilt factor at a "constant engineering
@@ -345,7 +333,6 @@ direction for xy deformation) from the unstrained orientation.
 
 The tilt factor T as a function of time will change as
 
-
 .. parsed-literal::
 
    T(t) = T0 + L0\*erate\*dt
@@ -355,9 +342,9 @@ box perpendicular to the shear direction (e.g. y box length for xy
 deformation), and dt is the elapsed time (in time units).  Thus if
 *erate* R is specified as 0.1 and time units are picoseconds, this
 means the shear strain will increase by 0.1 every picosecond.  I.e. if
-the xy shear strain was initially 0.0, then strain after 1 psec = 0.1,
-strain after 2 psec = 0.2, etc.  Thus the tilt factor would be 0.0 at
-time 0, 0.1\*ybox at 1 psec, 0.2\*ybox at 2 psec, etc, where ybox is the
+the xy shear strain was initially 0.0, then strain after 1 ps = 0.1,
+strain after 2 ps = 0.2, etc.  Thus the tilt factor would be 0.0 at
+time 0, 0.1\*ybox at 1 ps, 0.2\*ybox at 2 ps, etc, where ybox is the
 original y box length.  R = 1 or 2 means the tilt factor will increase
 by 1 or 2 every picosecond.  R = -0.01 means a decrease in shear
 strain by 0.01 every picosecond.
@@ -378,7 +365,6 @@ from the unstrained orientation.
 
 The tilt factor T as a function of time will change as
 
-
 .. parsed-literal::
 
    T(t) = T0 exp(trate\*dt)
@@ -387,7 +373,7 @@ where T0 is the initial tilt factor and dt is the elapsed time (in
 time units).  Thus if *trate* R is specified as ln(1.1) and time units
 are picoseconds, this means the shear strain or tilt factor will
 increase by 10% every picosecond.  I.e. if the xy shear strain was
-initially 0.1, then strain after 1 psec = 0.11, strain after 2 psec =
+initially 0.1, then strain after 1 ps = 0.11, strain after 2 ps =
 0.121, etc.  R = ln(2) or ln(3) means the tilt factor will double or
 triple every picosecond.  R = ln(0.99) means the tilt factor will
 shrink by 1% every picosecond.  Note that the change is continuous, so
@@ -405,7 +391,6 @@ parameter), then this effect on the shear strain is ignored.
 The *wiggle* style oscillates the specified tilt factor sinusoidally
 with the specified amplitude and period.  I.e. the tilt factor T as a
 function of time is given by
-
 
 .. parsed-literal::
 
@@ -440,18 +425,15 @@ Here is an example of using the *variable* style to perform the same
 box deformation as the *wiggle* style formula listed above, where we
 assume that the current timestep = 0.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable A equal 5.0
    variable Tp equal 10.0
-   variable displace equal "v_A \* sin(2\*PI \* step\*dt/v_Tp)"
-   variable rate equal "2\*PI\*v_A/v_Tp \* cos(2\*PI \* step\*dt/v_Tp)"
+   variable displace equal "v_A * sin(2*PI * step*dt/v_Tp)"
+   variable rate equal "2*PI*v_A/v_Tp * cos(2*PI * step*dt/v_Tp)"
    fix 2 all deform 1 xy variable v_displace v_rate remap v
 
-
 ----------
-
 
 All of the tilt styles change the xy, xz, yz tilt factors during a
 simulation.  In LAMMPS, tilt factors (xy,xz,yz) for triclinic boxes
@@ -481,16 +463,14 @@ and the final tilt factor at the end of the simulation would be 0.0.
 During each flip event, atoms are remapped into the new box in the
 appropriate manner.
 
-The one exception to this rule is if the 1st dimension in the tilt
+The one exception to this rule is if the first dimension in the tilt
 factor (x for xy) is non-periodic.  In that case, the limits on the
 tilt factor are not enforced, since flipping the box in that dimension
 does not change the atom positions due to non-periodicity.  In this
 mode, if you tilt the system to extreme angles, the simulation will
 simply become inefficient due to the highly skewed simulation box.
 
-
 ----------
-
 
 Each time the box size or shape is changed, the *remap* keyword
 determines whether atom positions are remapped to the new box.  If
@@ -578,12 +558,10 @@ been previously used to define the lattice spacing.  Note that the
 units choice also affects the *vel* style parameters since it is
 defined in terms of distance/time.  Also note that the units keyword
 does not affect the *variable* style.  You should use the *xlat*\ ,
-*ylat*\ , *zlat* keywords of the :doc:`thermo\_style <thermo_style>`
+*ylat*\ , *zlat* keywords of the :doc:`thermo_style <thermo_style>`
 command if you want to include lattice spacings in a variable formula.
 
-
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -603,11 +581,11 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix will restore the initial box settings from :doc:`binary restart files <restart>`, which allows the fix to be properly continue
 deformation, when using the start/stop options of the :doc:`run <run>`
-command.  None of the :doc:`fix\_modify <fix_modify>` options are
+command.  None of the :doc:`fix_modify <fix_modify>` options are
 relevant to this fix.  No global or per-atom quantities are stored by
 this fix for access by various :doc:`output commands <Howto_output>`.
 
@@ -620,24 +598,18 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
 You cannot apply x, y, or z deformations to a dimension that is
 shrink-wrapped via the :doc:`boundary <boundary>` command.
 
-You cannot apply xy, yz, or xz deformations to a 2nd dimension (y in
+You cannot apply xy, yz, or xz deformations to a second dimension (y in
 xy) that is shrink-wrapped via the :doc:`boundary <boundary>` command.
 
 Related commands
 """"""""""""""""
 
-:doc:`change\_box <change_box>`
+:doc:`change_box <change_box>`
 
 Default
 """""""
 
 The option defaults are remap = x, flip = yes, and units = lattice.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

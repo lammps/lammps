@@ -6,7 +6,6 @@ compute temp/deform command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/deform
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myTemp all temp/deform
 
@@ -33,7 +31,7 @@ induced by use of the :doc:`fix deform <fix_deform>` command.  A compute
 of this style is created by the :doc:`fix nvt/sllod <fix_nvt_sllod>`
 command to compute the thermal temperature of atoms for thermostatting
 purposes.  A compute of this style can also be used by any command
-that computes a temperature, e.g. :doc:`thermo\_modify <thermo_modify>`,
+that computes a temperature, e.g. :doc:`thermo_modify <thermo_modify>`,
 :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix npt <fix_nh>`, etc.
 
 The deformation fix changes the box size and/or shape over time, so
@@ -74,7 +72,7 @@ zz, xy, xz, yz.
 
 The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the *dynamic* option of the
-:doc:`compute\_modify <compute_modify>` command if this is not the case.
+:doc:`compute_modify <compute_modify>` command if this is not the case.
 
 The removal of the box deformation velocity component by this fix is
 essentially computing the temperature after a "bias" has been removed
@@ -104,7 +102,7 @@ constrain molecular motion, such as :doc:`fix shake <fix_shake>` and
 :doc:`fix rigid <fix_rigid>`.  This means the temperature of groups of
 atoms that include these constraints will be computed correctly.  If
 needed, the subtracted degrees-of-freedom can be altered using the
-*extra* option of the :doc:`compute\_modify <compute_modify>` command.
+*extra* option of the :doc:`compute_modify <compute_modify>` command.
 
 See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform
@@ -135,8 +133,3 @@ Related commands
 :doc:`fix nvt/sllod <fix_nvt_sllod>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

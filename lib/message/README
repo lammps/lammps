@@ -2,7 +2,7 @@ This directory contains the CSlib library which is required
 to use the MESSAGE package and its client/server commands
 in a LAMMPS input script.
 
-The CSlib libary is included in the LAMMPS distribution.  A fuller
+The CSlib library is included in the LAMMPS distribution.  A fuller
 version including documentation and test programs is available at
 http://cslib.sandia.gov.  It was developed by Steve Plimpton at Sandia
 National Laboratories.

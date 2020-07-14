@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "fix_neigh_history_omp.h"
 #include <cstring>
 #include "my_page.h"
@@ -73,7 +74,7 @@ void FixNeighHistoryOMP::pre_exchange_onesided()
   maxpartner = 0;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 
@@ -199,7 +200,7 @@ void FixNeighHistoryOMP::pre_exchange_newton()
   for (int i = 0; i < nall_neigh; i++) npartner[i] = 0;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 
@@ -373,7 +374,7 @@ void FixNeighHistoryOMP::pre_exchange_no_newton()
   maxpartner = 0;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 
@@ -525,7 +526,7 @@ void FixNeighHistoryOMP::post_neighbor()
 
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 

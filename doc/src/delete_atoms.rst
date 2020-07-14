@@ -1,20 +1,19 @@
-.. index:: delete\_atoms
+.. index:: delete_atoms
 
-delete\_atoms command
-=====================
+delete_atoms command
+====================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    delete_atoms style args keyword value ...
 
 * style = *group* or *region* or *overlap* or *porosity*
-  
+
   .. parsed-literal::
-  
+
        *group* args = group-ID
        *region* args = region-ID
        *overlap* args = cutoff group1-ID group2-ID
@@ -28,20 +27,17 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *compress* or *bond* or *mol*
-  
+
   .. parsed-literal::
-  
+
        *compress* value = *no* or *yes*
        *bond* value = *no* or *yes*
        *mol* value = *no* or *yes*
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    delete_atoms group edge
    delete_atoms region sphere compress no
@@ -90,24 +86,24 @@ different numbers of processors.
 If the *compress* keyword is set to *yes*\ , then after atoms are
 deleted, then atom IDs are re-assigned so that they run from 1 to the
 number of atoms in the system.  Note that this is not done for
-molecular systems (see the :doc:`atom\_style <atom_style>` command),
+molecular systems (see the :doc:`atom_style <atom_style>` command),
 regardless of the *compress* setting, since it would foul up the bond
 connectivity that has already been assigned.  However, the
-:doc:`reset\_ids <reset_ids>` command can be used after this command to
+:doc:`reset_ids <reset_ids>` command can be used after this command to
 accomplish the same thing.
 
 Note that the re-assignment of IDs is not really a compression, where
 gaps in atom IDs are removed by decrementing atom IDs that are larger.
 Instead the IDs for all atoms are erased, and new IDs are assigned so
 that the atoms owned by individual processors have consecutive IDs, as
-the :doc:`create\_atoms <create_atoms>` command explains.
+the :doc:`create_atoms <create_atoms>` command explains.
 
 A molecular system with fixed bonds, angles, dihedrals, or improper
 interactions, is one where the topology of the interactions is
 typically defined in the data file read by the
-:doc:`read\_data <read_data>` command, and where the interactions
-themselves are defined with the :doc:`bond\_style <bond_style>`,
-:doc:`angle\_style <angle_style>`, etc commands.  If you delete atoms
+:doc:`read_data <read_data>` command, and where the interactions
+themselves are defined with the :doc:`bond_style <bond_style>`,
+:doc:`angle_style <angle_style>`, etc commands.  If you delete atoms
 from such a system, you must be careful not to end up with bonded
 interactions that are stored by remaining atoms but which include
 deleted atoms.  This will cause LAMMPS to generate a "missing atoms"
@@ -139,7 +135,6 @@ part of molecules.
 Restrictions
 """"""""""""
 
-
 The *overlap* styles requires inter-processor communication to acquire
 ghost atoms and build a neighbor list.  This means that your system
 must be ready to perform a simulation before using this command (force
@@ -149,7 +144,7 @@ find overlapping atom pairs, it also means that you must define a
 between any pair of atoms types (plus the :doc:`neighbor <neighbor>`
 skin) >= the specified overlap cutoff.
 
-If the :doc:`special\_bonds <special_bonds>` command is used with a
+If the :doc:`special_bonds <special_bonds>` command is used with a
 setting of 0, then a pair of bonded atoms (1-2, 1-3, or 1-4) will not
 appear in the neighbor list, and thus will not be considered for
 deletion by the *overlap* styles.  You probably don't want to be
@@ -157,19 +152,14 @@ deleting one atom in a bonded pair anyway.
 
 The *bond yes* option cannot be used with molecular systems defined
 using molecule template files via the :doc:`molecule <molecule>` and
-:doc:`atom\_style template <atom_style>` commands.
+:doc:`atom_style template <atom_style>` commands.
 
 Related commands
 """"""""""""""""
 
-:doc:`create\_atoms <create_atoms>`, :doc:`reset\_ids <reset_ids>`
+:doc:`create_atoms <create_atoms>`, :doc:`reset_ids <reset_ids>`
 
 Default
 """""""
 
 The option defaults are compress = yes, bond = no, mol = no.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

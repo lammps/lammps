@@ -16,6 +16,7 @@
    Original MSM class by: Paul Crozier, Stan Moore, Stephen Bond, (all SNL)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "msm_cg_omp.h"
 #include <mpi.h>
 #include <cmath>
@@ -31,10 +32,8 @@
 #include "memory.h"
 #include "thr_omp.h"
 #include "timer.h"
-
-#if defined(_OPENMP)
-#include <omp.h>
-#endif
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -147,20 +146,12 @@ void MSMCGOMP::compute(int eflag, int vflag)
     charged_frac = static_cast<double>(charged_all) * 100.0
                    / static_cast<double>(atom->natoms);
 
-    if (me == 0) {
-      if (screen)
-        fprintf(screen,
-                "  MSM/cg optimization cutoff: %g\n"
-                "  Total charged atoms: %.1f%%\n"
-                "  Min/max charged atoms/proc: %.1f%% %.1f%%\n",
-                smallq,charged_frac,charged_fmin,charged_fmax);
-      if (logfile)
-        fprintf(logfile,
-                "  MSM/cg optimization cutoff: %g\n"
-                "  Total charged atoms: %.1f%%\n"
-                "  Min/max charged atoms/proc: %.1f%% %.1f%%\n",
-                smallq,charged_frac,charged_fmin,charged_fmax);
-    }
+    if (me == 0)
+      utils::logmesg(MSM::lmp,fmt::format("  MSM/cg optimization cutoff: {:.8g}\n"
+                                          "  Total charged atoms: {:.1f}%\n"
+                                          "  Min/max charged atoms/proc: {:.1f}%"
+                                          " {:.1f}%\n",smallq,
+                                          charged_frac,charged_fmin,charged_fmax));
   }
 
   // only need to rebuild this list after a neighbor list update
@@ -199,7 +190,7 @@ void MSMCGOMP::compute(int eflag, int vflag)
   }
 
 
-  // compute direct interation for top grid level for non-periodic
+  // compute direct interaction for top grid level for non-periodic
   //   and for second from top grid level for periodic
 
   if (active_flag[levels-1]) {
@@ -310,7 +301,7 @@ void MSMCGOMP::compute(int eflag, int vflag)
   }
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
 #if defined(_OPENMP)

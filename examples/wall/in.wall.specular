@@ -1,0 +1,34 @@
+units		metal
+dimension	3
+boundary	p f p
+
+atom_style	atomic
+neighbor	2.0 bin
+
+# create geometry
+
+lattice		sc 10
+region		box block 0 10 0 10 0 10
+create_box	1 box
+create_atoms	1 box
+
+mass		1 39.95
+
+# LJ potentials
+
+pair_style	lj/cut 8.5
+pair_coeff	* * 0.01 3.4 8.5
+
+# initial velocities
+
+velocity	all create 300 482748 
+fix		1 all nve
+
+# specular reflection
+
+fix ywalls all wall/reflect ylo EDGE yhi EDGE
+
+# run
+
+thermo		1000
+run		10000

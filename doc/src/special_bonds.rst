@@ -1,21 +1,20 @@
-.. index:: special\_bonds
+.. index:: special_bonds
 
-special\_bonds command
-======================
+special_bonds command
+=====================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    special_bonds keyword values ...
 
 * one or more keyword/value pairs may be appended
 * keyword = *amber* or *charmm* or *dreiding* or *fene* or *lj/coul* or *lj* or *coul* or *angle* or *dihedral*
-  
+
   .. parsed-literal::
-  
+
        *amber* values = none
        *charmm* values = none
        *dreiding* values = none
@@ -29,12 +28,10 @@ Syntax
        *angle* value = *yes* or *no*
        *dihedral* value = *yes* or *no*
 
+Examples
+""""""""
 
-
-Examples:
-
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    special_bonds amber
    special_bonds charmm
@@ -51,8 +48,8 @@ either directly or via one or two intermediate bonds.  These weighting
 factors are used by nearly all :doc:`pair styles <pair_style>` in LAMMPS
 that compute simple pairwise interactions.  Permanent bonds between
 atoms are specified by defining the bond topology in the data file
-read by the :doc:`read\_data <read_data>` command.  Typically a
-:doc:`bond\_style <bond_style>` command is also used to define a bond
+read by the :doc:`read_data <read_data>` command.  Typically a
+:doc:`bond_style <bond_style>` command is also used to define a bond
 potential.  The rationale for using these weighting factors is that
 the interaction between a pair of bonded atoms is all (or mostly)
 specified by the bond, angle, dihedral potentials, and thus the
@@ -68,8 +65,8 @@ atoms should be excluded (or reduced by a weighting factor).
    Tersoff, COMB, AIREBO, and ReaxFF.  In fact, it generally makes no
    sense to define permanent bonds between atoms that interact via these
    potentials, though such bonds may exist elsewhere in your system,
-   e.g. when using the :doc:`pair\_style hybrid <pair_hybrid>` command.
-   Thus LAMMPS ignores special\_bonds settings when many-body potentials
+   e.g. when using the :doc:`pair_style hybrid <pair_hybrid>` command.
+   Thus LAMMPS ignores special_bonds settings when many-body potentials
    are calculated.  Please note, that the existence of explicit bonds
    for atoms that are described by a many-body potential will alter the
    neighbor list and thus can render the computation of those interactions
@@ -95,12 +92,12 @@ pre-factor on the energy and force between the pair of atoms.  A value
 of 1.0 means include the full interaction; a value of 0.0 means
 exclude it completely.
 
-The 1st of the 3 coefficients (LJ or Coulombic) is the weighting
+The first of the 3 coefficients (LJ or Coulombic) is the weighting
 factor on 1-2 atom pairs, which are pairs of atoms directly bonded to
-each other.  The 2nd coefficient is the weighting factor on 1-3 atom
+each other.  The second coefficient is the weighting factor on 1-3 atom
 pairs which are those separated by 2 bonds (e.g. the two H atoms in a
-water molecule).  The 3rd coefficient is the weighting factor on 1-4
-atom pairs which are those separated by 3 bonds (e.g. the 1st and 4th
+water molecule).  The third coefficient is the weighting factor on 1-4
+atom pairs which are those separated by 3 bonds (e.g. the first and fourth
 atoms in a dihedral interaction).  Thus if the 1-2 coefficient is set
 to 0.0, then the pairwise interaction is effectively turned off for
 all pairs of atoms bonded to each other.  If it is set to 1.0, then
@@ -112,8 +109,8 @@ that interaction will be at full strength.
    and 1-4 interactions are not defined from the list of angles or
    dihedrals used by the simulation.  Rather, they are inferred
    topologically from the set of bonds specified when the simulation is
-   defined from a data or restart file (see :doc:`read\_data <read_data>` or
-   :doc:`read\_restart <read_restart>` commands).  Thus the set of
+   defined from a data or restart file (see :doc:`read_data <read_data>` or
+   :doc:`read_restart <read_restart>` commands).  Thus the set of
    1-2,1-3,1-4 interactions that the weights apply to is the same whether
    angle and dihedral potentials are computed or not, and remains the
    same even if bonds are constrained, or turned off, or removed during a
@@ -121,9 +118,9 @@ that interaction will be at full strength.
 
 The two exceptions to this rule are (a) if the *angle* or *dihedral*
 keywords are set to *yes* (see below), or (b) if the
-:doc:`delete\_bonds <delete_bonds>` command is used with the *special*
+:doc:`delete_bonds <delete_bonds>` command is used with the *special*
 option that re-computes the 1-2,1-3,1-4 topologies after bonds are
-deleted; see the :doc:`delete\_bonds <delete_bonds>` command for more
+deleted; see the :doc:`delete_bonds <delete_bonds>` command for more
 details.
 
 The *amber* keyword sets the 3 coefficients to 0.0, 0.0, 0.5 for LJ
@@ -138,7 +135,7 @@ used version of the CHARMM force field.  Note that in pair styles
 *lj/charmm/coul/charmm* and *lj/charmm/coul/long* the 1-4 coefficients
 are defined explicitly, and these pairwise contributions are computed
 as part of the charmm dihedral style - see the
-:doc:`pair\_coeff <pair_coeff>` and :doc:`dihedral\_style <dihedral_style>`
+:doc:`pair_coeff <pair_coeff>` and :doc:`dihedral_style <dihedral_style>`
 commands for more information.  See :ref:`(MacKerell) <MacKerell>` for a
 description of the CHARMM force field.
 
@@ -187,49 +184,42 @@ interaction between atoms 2 and 5 will be unaffected (full weighting
 of 1.0).  If the *dihedral* keyword is specified as *no* which is the
 default, then the 2,5 interaction will also be weighted by 0.5.
 
-
 ----------
-
 
 .. note::
 
    LAMMPS stores and maintains a data structure with a list of the
-   1st, 2nd, and 3rd neighbors of each atom (within the bond topology of
+   first, second, and third neighbors of each atom (within the bond topology of
    the system).  If new bonds are created (or molecules added containing
    atoms with more special neighbors), the size of this list needs to
-   grow.  Note that adding a single bond always adds a new 1st neighbor
-   but may also induce \*many\* new 2nd and 3rd neighbors, depending on the
+   grow.  Note that adding a single bond always adds a new first neighbor
+   but may also induce \*many\* new second and third neighbors, depending on the
    molecular topology of your system.  Using the *extra/special/per/atom*
-   keyword to either :doc:`read\_data <read_data>` or :doc:`create\_box <create_box>`
-   reserves empty space in the list for this N additional 1st, 2nd, or 3rd
+   keyword to either :doc:`read_data <read_data>` or :doc:`create_box <create_box>`
+   reserves empty space in the list for this N additional first, second, or third
    neighbors to be added.  If you do not do this, you may get an error
    when bonds (or molecules) are added.
 
-
 ----------
-
 
 .. note::
 
    If you reuse this command in an input script, you should set all
-   the options you need each time.  This command cannot be used a 2nd
+   the options you need each time.  This command cannot be used a second
    time incrementally.  E.g. these two commands:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    special_bonds lj 0.0 1.0 1.0
    special_bonds coul 0.0 0.0 1.0
 
 are not the same as
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    special_bonds lj 0.0 1.0 1.0 coul 0.0 0.0 1.0
 
-In the first case you end up with (after the 2nd command):
-
+In the first case you end up with (after the second command):
 
 .. parsed-literal::
 
@@ -238,7 +228,6 @@ In the first case you end up with (after the 2nd command):
 
 while only in the second case, you get the desired settings of:
 
-
 .. parsed-literal::
 
    LJ: 0.0 1.0 1.0
@@ -246,16 +235,16 @@ while only in the second case, you get the desired settings of:
 
 This happens because the LJ (and Coul) settings are reset to
 their default values before modifying them, each time the
-*special\_bonds* command is issued.
+*special_bonds* command is issued.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""
 
-:doc:`delete\_bonds <delete_bonds>`, :doc:`fix bond/create <fix_bond_create>`
+:doc:`delete_bonds <delete_bonds>`, :doc:`fix bond/create <fix_bond_create>`
 
 Default
 """""""
@@ -263,38 +252,23 @@ Default
 All 3 Lennard-Jones and 3 Coulombic weighting coefficients = 0.0,
 angle = no, dihedral = no.
 
-
 ----------
 
-
 .. _Cornell:
-
-
 
 **(Cornell)** Cornell, Cieplak, Bayly, Gould, Merz, Ferguson,
 Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
 
 .. _Kremer:
 
-
-
 **(Kremer)** Kremer, Grest, J Chem Phys, 92, 5057 (1990).
 
 .. _MacKerell:
-
-
 
 **(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
 Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 
 .. _Mayo:
 
-
-
 **(Mayo)** Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
 (1990).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

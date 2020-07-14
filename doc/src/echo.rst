@@ -6,7 +6,6 @@ echo command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    echo style
@@ -16,8 +15,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    echo both
    echo log
@@ -42,12 +40,6 @@ Restrictions
 Default
 """""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    echo log
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

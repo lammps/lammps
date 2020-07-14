@@ -30,6 +30,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 #include "math_const.h"
 
@@ -619,7 +620,7 @@ void PairExTeP::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // concatenate additional lines until have params_per_line words
@@ -638,7 +639,7 @@ void PairExTeP::read_file(char *file)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+      nwords = utils::count_words(line);
     }
 
     if (nwords != params_per_line)
@@ -670,6 +671,11 @@ void PairExTeP::read_file(char *file)
       maxparam += DELTA;
       params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
                                           "pair:params");
+
+      // make certain all addional allocated storage is initialized
+      // to avoid false positives when checking with valgrind
+
+      memset(params + nparams, 0, DELTA*sizeof(Param));
     }
 
     params[nparams].ielement = ielement;
@@ -718,9 +724,9 @@ void PairExTeP::read_file(char *file)
   // reallocate with new size
   words = new char*[params_per_line+1];
 
-  // intialize F_corr_data to all zeros
-  for (int iel=0;iel<atom->ntypes;iel++)
-    for (int jel=0;jel<atom->ntypes;jel++)
+  // initialize F_corr_data to all zeros
+  for (int iel=0;iel<nelements;iel++)
+    for (int jel=0;jel<nelements;jel++)
       for (int in=0;in<4;in++)
         for (int jn=0;jn<4;jn++)
           for (int ivar=0;ivar<3;ivar++)
@@ -744,7 +750,7 @@ void PairExTeP::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // words = ptrs to all words in line

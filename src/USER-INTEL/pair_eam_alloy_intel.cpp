@@ -24,10 +24,11 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "tokenizer.h"
+#include "potential_file_reader.h"
 
 using namespace LAMMPS_NS;
-
-#define MAXLINE 1024
 
 /* ---------------------------------------------------------------------- */
 
@@ -116,94 +117,120 @@ void PairEAMAlloyIntel::read_file(char *filename)
 {
   Setfl *file = setfl;
 
-  // open potential file
+  // read potential file
+  if(comm->me == 0) {
+    PotentialFileReader reader(lmp, filename, "eam/alloy", unit_convert_flag);
 
-  int me = comm->me;
-  FILE *fptr;
-  char line[MAXLINE];
+    // transparently convert units for supported conversions
 
-  if (me == 0) {
-    fptr = force->open_potential(filename);
-    if (fptr == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open EAM potential file %s",filename);
-      error->one(FLERR,str);
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                            unit_convert);
+    try {
+      reader.skip_line();
+      reader.skip_line();
+      reader.skip_line();
+
+      // extract element names from nelements line
+      ValueTokenizer values = reader.next_values(1);
+      file->nelements = values.next_int();
+
+      if (values.count() != file->nelements + 1)
+        error->one(FLERR,"Incorrect element names in EAM potential file");
+
+      file->elements = new char*[file->nelements];
+      for (int i = 0; i < file->nelements; i++) {
+        const std::string word = values.next_string();
+        const int n = word.length() + 1;
+        file->elements[i] = new char[n];
+        strcpy(file->elements[i], word.c_str());
+      }
+
+      //
+
+      values = reader.next_values(5);
+      file->nrho = values.next_int();
+      file->drho = values.next_double();
+      file->nr   = values.next_int();
+      file->dr   = values.next_double();
+      file->cut  = values.next_double();
+
+      if ((file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
+        error->one(FLERR,"Invalid EAM potential file");
+
+      memory->create(file->mass, file->nelements, "pair:mass");
+      memory->create(file->frho, file->nelements, file->nrho + 1, "pair:frho");
+      memory->create(file->rhor, file->nelements, file->nr + 1, "pair:rhor");
+      memory->create(file->z2r, file->nelements, file->nelements, file->nr + 1, "pair:z2r");
+
+      for (int i = 0; i < file->nelements; i++) {
+        values = reader.next_values(2);
+        values.next_int(); // ignore
+        file->mass[i] = values.next_double();
+
+        reader.next_dvector(&file->frho[i][1], file->nrho);
+        reader.next_dvector(&file->rhor[i][1], file->nr);
+        if (unit_convert) {
+          for (int j = 1; j < file->nrho; ++j)
+            file->frho[i][j] *= conversion_factor;
+        }
+      }
+
+      for (int i = 0; i < file->nelements; i++) {
+        for (int j = 0; j <= i; j++) {
+          reader.next_dvector(&file->z2r[i][j][1], file->nr);
+          if (unit_convert) {
+            for (int k = 1; k < file->nr; ++k)
+              file->z2r[i][j][k] *= conversion_factor;
+          }
+        }
+      }
+    } catch (TokenizerException & e) {
+      error->one(FLERR, e.what());
     }
   }
 
-  // read and broadcast header
-  // extract element names from nelements line
+  // broadcast potential information
+  MPI_Bcast(&file->nelements, 1, MPI_INT, 0, world);
 
-  int n;
-  if (me == 0) {
-    fgets(line,MAXLINE,fptr);
-    fgets(line,MAXLINE,fptr);
-    fgets(line,MAXLINE,fptr);
-    fgets(line,MAXLINE,fptr);
-    n = strlen(line) + 1;
+  MPI_Bcast(&file->nrho, 1, MPI_INT, 0, world);
+  MPI_Bcast(&file->drho, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->nr, 1, MPI_INT, 0, world);
+  MPI_Bcast(&file->dr, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->cut, 1, MPI_DOUBLE, 0, world);
+
+  // allocate memory on other procs
+  if (comm->me != 0) {
+    file->elements = new char*[file->nelements];
+    for (int i = 0; i < file->nelements; i++) file->elements[i] = nullptr;
+    memory->create(file->mass, file->nelements, "pair:mass");
+    memory->create(file->frho, file->nelements, file->nrho + 1, "pair:frho");
+    memory->create(file->rhor, file->nelements, file->nr + 1, "pair:rhor");
+    memory->create(file->z2r, file->nelements, file->nelements, file->nr + 1, "pair:z2r");
   }
-  MPI_Bcast(&n,1,MPI_INT,0,world);
-  MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-  sscanf(line,"%d",&file->nelements);
-  int nwords = atom->count_words(line);
-  if (nwords != file->nelements + 1)
-    error->all(FLERR,"Incorrect element names in EAM potential file");
-
-  char **words = new char*[file->nelements+1];
-  nwords = 0;
-  strtok(line," \t\n\r\f");
-  while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
-
-  file->elements = new char*[file->nelements];
+  // broadcast file->elements string array
   for (int i = 0; i < file->nelements; i++) {
-    n = strlen(words[i]) + 1;
-    file->elements[i] = new char[n];
-    strcpy(file->elements[i],words[i]);
-  }
-  delete [] words;
-
-  if (me == 0) {
-    fgets(line,MAXLINE,fptr);
-    sscanf(line,"%d %lg %d %lg %lg",
-           &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
+    int n;
+    if (comm->me == 0) n = strlen(file->elements[i]) + 1;
+    MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if (comm->me != 0) file->elements[i] = new char[n];
+    MPI_Bcast(file->elements[i], n, MPI_CHAR, 0, world);
   }
 
-  MPI_Bcast(&file->nrho,1,MPI_INT,0,world);
-  MPI_Bcast(&file->drho,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&file->nr,1,MPI_INT,0,world);
-  MPI_Bcast(&file->dr,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&file->cut,1,MPI_DOUBLE,0,world);
+  // broadcast file->mass, frho, rhor
+  for (int i = 0; i < file->nelements; i++) {
+    MPI_Bcast(&file->mass[i], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&file->frho[i][1], file->nrho, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&file->rhor[i][1], file->nr, MPI_DOUBLE, 0, world);
+  }
 
-  file->mass = new double[file->nelements];
-  memory->create(file->frho,file->nelements,file->nrho+1,"pair:frho");
-  memory->create(file->rhor,file->nelements,file->nr+1,"pair:rhor");
-  memory->create(file->z2r,file->nelements,file->nelements,file->nr+1,
-                 "pair:z2r");
-
-  int i,j,tmp;
-  for (i = 0; i < file->nelements; i++) {
-    if (me == 0) {
-      fgets(line,MAXLINE,fptr);
-      sscanf(line,"%d %lg",&tmp,&file->mass[i]);
+  // broadcast file->z2r
+  for (int i = 0; i < file->nelements; i++) {
+    for (int j = 0; j <= i; j++) {
+      MPI_Bcast(&file->z2r[i][j][1], file->nr, MPI_DOUBLE, 0, world);
     }
-    MPI_Bcast(&file->mass[i],1,MPI_DOUBLE,0,world);
-
-    if (me == 0) grab(fptr,file->nrho,&file->frho[i][1]);
-    MPI_Bcast(&file->frho[i][1],file->nrho,MPI_DOUBLE,0,world);
-    if (me == 0) grab(fptr,file->nr,&file->rhor[i][1]);
-    MPI_Bcast(&file->rhor[i][1],file->nr,MPI_DOUBLE,0,world);
   }
-
-  for (i = 0; i < file->nelements; i++)
-    for (j = 0; j <= i; j++) {
-      if (me == 0) grab(fptr,file->nr,&file->z2r[i][j][1]);
-      MPI_Bcast(&file->z2r[i][j][1],file->nr,MPI_DOUBLE,0,world);
-    }
-
-  // close the potential file
-
-  if (me == 0) fclose(fptr);
 }
 
 /* ----------------------------------------------------------------------

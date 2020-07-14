@@ -26,6 +26,8 @@ KSpaceStyle(pppm,PPPM)
 #define LMP_FFT_LIB "FFTW3"
 #elif defined(FFT_MKL)
 #define LMP_FFT_LIB "MKL FFT"
+#elif defined(FFT_CUFFT)
+#define LMP_FFT_LIB "cuFFT"
 #else
 #define LMP_FFT_LIB "KISS FFT"
 #endif

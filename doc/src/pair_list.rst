@@ -1,13 +1,12 @@
-.. index:: pair\_style list
+.. index:: pair_style list
 
-pair\_style list command
-========================
+pair_style list command
+=======================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style list listfile cutoff keyword
 
@@ -18,15 +17,14 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    pair_style list restraints.txt 200.0
-   pair_coeff \* \*
+   pair_coeff * *
 
    pair_style hybrid/overlay lj/cut 1.1225 list pair_list.txt 300.0
-   pair_coeff \* \* lj/cut 1.0 1.0
-   pair_coeff 3\* 3\* list
+   pair_coeff * * lj/cut 1.0 1.0
+   pair_coeff 3* 3* list
 
 Description
 """""""""""
@@ -34,7 +32,7 @@ Description
 Style *list* computes interactions between explicitly listed pairs of
 atoms with the option to select functional form and parameters for
 each individual pair.  Because the parameters are set in the list
-file, the pair\_coeff command has no parameters (but still needs to be
+file, the pair_coeff command has no parameters (but still needs to be
 provided).  The *check* and *nocheck* keywords enable/disable a test
 that checks whether all listed bonds were present and computed.
 
@@ -50,22 +48,19 @@ The format of the list file is as follows:
 * empty lines will be ignored
 * comment text starts with a '#' character
 * line syntax: *ID1 ID2 style coeffs cutoff*
-  
+
   .. parsed-literal::
-  
+
        ID1 = atom ID of first atom
        ID2 = atom ID of second atom
        style = style of interaction
        coeffs = list of coeffs
        cutoff = cutoff for interaction (optional)
 
-
-
 The cutoff parameter is optional. If not specified, the global cutoff
 is used.
 
 Here is an example file:
-
 
 .. parsed-literal::
 
@@ -77,66 +72,64 @@ Here is an example file:
 
 The style *lj126* computes pairwise interactions with the formula
 
-.. image:: Eqs/pair_lj.jpg
-   :align: center
+.. math::
+
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - \left(\frac{\sigma}{r}\right)^6 \right] \qquad r < r_c
 
 and the coefficients:
 
-* epsilon (energy units)
-* sigma (distance units)
+* :math:`\epsilon` (energy units)
+* :math:`\sigma` (distance units)
 
 The style *morse* computes pairwise interactions with the formula
 
-.. image:: Eqs/pair_morse.jpg
-   :align: center
+.. math::
+
+   E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right] \qquad r < r_c
 
 and the coefficients:
 
-* D0 (energy units)
-* alpha (1/distance units)
-* r0 (distance units)
+* :math:`D_0` (energy units)
+* :math:`\alpha` (1/distance units)
+* :math:`r_0` (distance units)
 
 The style *harmonic* computes pairwise interactions with the formula
 
-.. image:: Eqs/bond_harmonic.jpg
-   :align: center
+.. math::
+
+   E = K (r - r_0)^2
 
 and the coefficients:
 
-* K (energy units)
-* r0 (distance units)
+* :math:`K` (energy units)
+* :math:`r_0` (distance units)
 
-Note that the usual 1/2 factor is included in K.
-
+Note that the usual 1/2 factor is included in :math:`K`.
 
 ----------
-
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
 This pair style does not support mixing since all parameters are
 explicit for each pair.
 
-The :doc:`pair\_modify <pair_modify>` shift option is supported by this
+The :doc:`pair_modify <pair_modify>` shift option is supported by this
 pair style.
 
-The :doc:`pair\_modify <pair_modify>` table and tail options are not
+The :doc:`pair_modify <pair_modify>` table and tail options are not
 relevant for this pair style.
 
-This pair style does not write its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands need
+This pair style does not write its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands need
 to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
-:doc:`run\_style respa <run_style>` command.  It does not support the
+:doc:`run_style respa <run_style>` command.  It does not support the
 *inner*\ , *middle*\ , *outer* keywords.
-
 
 ----------
 
-
 Restrictions
 """"""""""""
-
 
 This pair style does not use a neighbor list and instead identifies
 atoms by their IDs. This has two consequences: 1) The cutoff has to be
@@ -154,15 +147,10 @@ LAMMPS is build with that package. See the :doc:`Build package <Build_package>` 
 Related commands
 """"""""""""""""
 
-:doc:`pair\_coeff <pair_coeff>`,
-:doc:`pair\_style hybrid/overlay <pair_hybrid>`,
-:doc:`pair\_style lj/cut <pair_lj>`,
-:doc:`pair\_style morse <pair_morse>`,
-:doc:`bond\_style harmonic <bond_harmonic>`
+:doc:`pair_coeff <pair_coeff>`,
+:doc:`pair_style hybrid/overlay <pair_hybrid>`,
+:doc:`pair_style lj/cut <pair_lj>`,
+:doc:`pair_style morse <pair_morse>`,
+:doc:`bond_style harmonic <bond_harmonic>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

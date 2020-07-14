@@ -6,7 +6,6 @@ server command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    server protocol
@@ -16,8 +15,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    server md
 
@@ -39,7 +37,7 @@ enables the two codes to work in tandem to perform a simulation.
 When this command is invoked, LAMMPS will run in server mode in an
 endless loop, waiting for messages from the client code.  The client
 signals when it is done sending messages to LAMMPS, at which point the
-loop will exit, and the remainder of the LAMMPS script will be
+loop will exit, and the remainder of the LAMMPS input script will be
 processed.
 
 The *protocol* argument defines the format and content of messages
@@ -53,13 +51,10 @@ For protocol *md*\ , LAMMPS can be either a client (via the :doc:`fix client/md 
 
 For protocol *mc*\ , LAMMPS can be the server.  See the :doc:`server mc <server_mc>` doc page for details on the protocol.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command is part of the MESSAGE package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -74,8 +69,3 @@ Related commands
 :doc:`message <message>`, :doc:`fix client/md <fix_client_md>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

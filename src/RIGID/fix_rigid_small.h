@@ -38,7 +38,7 @@ class FixRigidSmall : public Fix {
   virtual void final_integrate();
   void initial_integrate_respa(int, int, int);
   void final_integrate_respa(int, int);
-  void write_restart_file(char *);
+  void write_restart_file(const char *);
 
   void grow_arrays(int);
   void copy_arrays(int, int, int);
@@ -163,6 +163,9 @@ class FixRigidSmall : public Fix {
   int allremap;              // remap all atoms
   int dilate_group_bit;      // mask for dilation group
   char *id_dilate;           // group name to dilate
+
+  char *id_gravity;         // ID of fix gravity command to add gravity forces
+  double *gvec;             // ptr to gravity vector inside the fix
 
   double p_current[3],p_target[3];
 

@@ -472,7 +472,7 @@ inline DiagonalMatrix<double> inv(const DiagonalMatrix<double>& A)
   return A.inv();
 }
 //-----------------------------------------------------------------------------
-// general diagonalmatrix assigment 
+// general diagonalmatrix assignment
 //-----------------------------------------------------------------------------
 template<typename T>
 void DiagonalMatrix<T>::_set_equal(const Matrix<T> &r)

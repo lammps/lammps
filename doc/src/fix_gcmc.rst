@@ -6,7 +6,6 @@ fix gcmc command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID gcmc N X M type seed T mu displace keyword values ...
@@ -22,9 +21,9 @@ Syntax
 * mu = chemical potential of the ideal gas reservoir (energy units)
 * displace = maximum Monte Carlo translation distance (length units)
 * zero or more keyword/value pairs may be appended to args
-  
+
   .. parsed-literal::
-  
+
      keyword = *mol*\ , *region*\ , *maxangle*\ , *pressure*\ , *fugacity_coeff*, *full_energy*, *charge*\ , *group*\ , *grouptype*\ , *intra_energy*, *tfac_insert*, or *overlap_cutoff*
        *mol* value = template-ID
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
@@ -54,13 +53,10 @@ Syntax
        *max* value = Maximum number of molecules allowed in the system
        *min* value = Minimum number of molecules allowed in the system
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 2 gas gcmc 10 1000 1000 2 29494 298.0 -0.5 0.01
    fix 3 water gcmc 10 100 100 0 3456543 3.0 -2.5 0.1 mol my_one_water maxangle 180 full_energy
@@ -154,8 +150,7 @@ thermal equilibrium with the simulation cell. Also, it is important
 that the temperature used by fix nvt be dynamic/dof, which can be
 achieved as follows:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute mdtemp mdatoms temp
    compute_modify mdtemp dynamic/dof yes
@@ -174,7 +169,7 @@ at a random position within the current simulation cell or region, and
 new atom velocities are randomly chosen from the specified temperature
 distribution given by T. The effective temperature for new atom
 velocities can be increased or decreased using the optional keyword
-*tfac\_insert* (see below). Relative coordinates for atoms in a
+*tfac_insert* (see below). Relative coordinates for atoms in a
 molecule are taken from the template molecule provided by the
 user. The center of mass of the molecule is placed at the insertion
 point. The orientation of the molecule is chosen at random by rotating
@@ -205,7 +200,7 @@ which also appears in your input script.
    If you wish the new rigid molecules (and other rigid molecules)
    to be thermostatted correctly via :doc:`fix rigid/small/nvt <fix_rigid>`
    or :doc:`fix rigid/small/npt <fix_rigid>`, then you need to use the
-   "fix\_modify dynamic/dof yes" command for the rigid fix.  This is to
+   "fix_modify dynamic/dof yes" command for the rigid fix.  This is to
    inform that fix that the molecule count will vary dynamically.
 
 If you wish to insert molecules via the *mol* keyword, that will have
@@ -248,46 +243,49 @@ two groups: the default group "all" and the fix group
 The chemical potential is a user-specified input parameter defined
 as:
 
-.. image:: Eqs/fix_gcmc1.jpg
-   :align: center
+.. math::
 
-The second term mu\_ex is the excess chemical potential due to
+   \mu = \mu^{id} + \mu^{ex}
+
+The second term mu_ex is the excess chemical potential due to
 energetic interactions and is formally zero for the fictitious gas
 reservoir but is non-zero for interacting systems. So, while the
 chemical potential of the reservoir and the simulation cell are equal,
-mu\_ex is not, and as a result, the densities of the two are generally
-quite different.  The first term mu\_id is the ideal gas contribution
-to the chemical potential.  mu\_id can be related to the density or
+mu_ex is not, and as a result, the densities of the two are generally
+quite different.  The first term mu_id is the ideal gas contribution
+to the chemical potential.  mu_id can be related to the density or
 pressure of the fictitious gas reservoir by:
 
-.. image:: Eqs/fix_gcmc2.jpg
-   :align: center
+.. math::
 
-where k is Boltzman's constant,
-T is the user-specified temperature, rho is the number density,
-P is the pressure, and phi is the fugacity coefficient.
-The constant Lambda is required for dimensional consistency.
-For all unit styles except *lj* it is defined as the thermal
-de Broglie wavelength
+   \mu^{id}  = & k T \ln{\rho \Lambda^3} \\
+             = & k T \ln{\frac{\phi P \Lambda^3}{k T}}
 
-.. image:: Eqs/fix_gcmc3.jpg
-   :align: center
+where *k* is Boltzman's constant, *T* is the user-specified
+temperature, :math:`\rho` is the number density, *P* is the pressure,
+and :math:`\phi` is the fugacity coefficient.  The constant
+:math:`\Lambda` is required for dimensional consistency.  For all unit
+styles except *lj* it is defined as the thermal de Broglie wavelength
 
-where h is Planck's constant, and m is the mass of the exchanged atom
-or molecule.  For unit style *lj*\ , Lambda is simply set to the
-unity. Note that prior to March 2017, lambda for unit style *lj* was
-calculated using the above formula with h set to the rather specific
+.. math::
+
+   \Lambda = \sqrt{ \frac{h^2}{2 \pi m k T}}
+
+where *h* is Planck's constant, and *m* is the mass of the exchanged atom
+or molecule.  For unit style *lj*\ , :math:`\Lambda` is simply set to
+unity. Note that prior to March 2017, :math:`\Lambda` for unit style *lj*
+was calculated using the above formula with *h* set to the rather specific
 value of 0.18292026.  Chemical potential under the old definition can
 be converted to an equivalent value under the new definition by
-subtracting 3kTln(Lambda\_old).
+subtracting :math:`3 k T \ln(\Lambda_{old})`.
 
 As an alternative to specifying mu directly, the ideal gas reservoir
-can be defined by its pressure P using the *pressure* keyword, in
+can be defined by its pressure *P* using the *pressure* keyword, in
 which case the user-specified chemical potential is ignored. The user
-may also specify the fugacity coefficient phi using the
-*fugacity\_coeff* keyword, which defaults to unity.
+may also specify the fugacity coefficient :math:`\phi` using the
+*fugacity_coeff* keyword, which defaults to unity.
 
-The *full\_energy* option means that the fix calculates the total
+The *full_energy* option means that the fix calculates the total
 potential energy of the entire simulated system, instead of just
 the energy of the part that is changed. The total system
 energy before and after the proposed GCMC exchange or MC move
@@ -298,7 +296,7 @@ in which case only
 partial energies are computed to determine the energy difference
 due to the proposed change.
 
-The *full\_energy* option is needed for systems with complicated
+The *full_energy* option is needed for systems with complicated
 potential energy calculations, including the following:
 
 * long-range electrostatics (kspace)
@@ -308,29 +306,29 @@ potential energy calculations, including the following:
 * tail corrections
 * need to include potential energy contributions from other fixes
 
-In these cases, LAMMPS will automatically apply the *full\_energy*
+In these cases, LAMMPS will automatically apply the *full_energy*
 keyword and issue a warning message.
 
-When the *mol* keyword is used, the *full\_energy* option also includes
+When the *mol* keyword is used, the *full_energy* option also includes
 the intramolecular energy of inserted and deleted molecules, whereas
-this energy is not included when *full\_energy* is not used. If this
-is not desired, the *intra\_energy* keyword can be used to define an
+this energy is not included when *full_energy* is not used. If this
+is not desired, the *intra_energy* keyword can be used to define an
 amount of energy that is subtracted from the final energy when a
 molecule is inserted, and subtracted from the initial energy when a molecule
 is deleted. For molecules that have a non-zero intramolecular energy,
 this will ensure roughly the same behavior whether or not the
-*full\_energy* option is used.
+*full_energy* option is used.
 
 Inserted atoms and molecules are assigned random velocities based on
-the specified temperature T. Because the relative velocity of all
+the specified temperature *T*. Because the relative velocity of all
 atoms in the molecule is zero, this may result in inserted molecules
 that are systematically too cold. In addition, the intramolecular
 potential energy of the inserted molecule may cause the kinetic energy
 of the molecule to quickly increase or decrease after insertion.  The
-*tfac\_insert* keyword allows the user to counteract these effects by
+*tfac_insert* keyword allows the user to counteract these effects by
 changing the temperature used to assign velocities to inserted atoms
 and molecules by a constant factor. For a particular application, some
-experimentation may be required to find a value of *tfac\_insert* that
+experimentation may be required to find a value of *tfac_insert* that
 results in inserted molecules that equilibrate quickly to the correct
 temperature.
 
@@ -343,7 +341,7 @@ include: :doc:`efield <fix_efield>`, :doc:`gravity <fix_gravity>`,
 For that energy to be included in the total potential energy of the
 system (the quantity used when performing GCMC exchange and MC moves),
 you MUST enable
-the :doc:`fix\_modify <fix_modify>` *energy* option for that fix.  The
+the :doc:`fix_modify <fix_modify>` *energy* option for that fix.  The
 doc pages for individual :doc:`fix <fix>` commands specify if this
 should be done.
 
@@ -355,12 +353,11 @@ about simulating non-neutral systems with kspace on.
 
 Use of this fix typically will cause the number of atoms to fluctuate,
 therefore, you will want to use the
-:doc:`compute\_modify dynamic/dof <compute_modify>` command to insure that the
+:doc:`compute_modify dynamic/dof <compute_modify>` command to insure that the
 current number of atoms is used as a normalizing factor each time
 temperature is computed. A simple example of this is:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute_modify thermo_temp dynamic yes
 
@@ -376,21 +373,21 @@ in the context of NVT dynamics.
    solution is to start a new simulation after the equilibrium density
    has been reached.
 
-With some pair\_styles, such as :doc:`Buckingham <pair_buck>`,
+With some pair_styles, such as :doc:`Buckingham <pair_buck>`,
 :doc:`Born-Mayer-Huggins <pair_born>` and :doc:`ReaxFF <pair_reaxc>`, two
 atoms placed close to each other may have an arbitrary large, negative
 potential energy due to the functional form of the potential.  While
 these unphysical configurations are inaccessible to typical dynamical
 trajectories, they can be generated by Monte Carlo moves. The
-*overlap\_cutoff* keyword suppresses these moves by effectively
+*overlap_cutoff* keyword suppresses these moves by effectively
 assigning an infinite positive energy to all new configurations that
 place any pair of atoms closer than the specified overlap cutoff
 distance.
 
 The *max* and *min* keywords allow for the restriction of the number
-of atoms in the simulation. They automatically reject all insertion 
+of atoms in the simulation. They automatically reject all insertion
 or deletion moves that would take the system beyond the set boundaries.
-Should the system already be beyond the boundary, only moves that bring 
+Should the system already be beyond the boundary, only moves that bring
 the system closer to the bounds may be accepted.
 
 The *group* keyword adds all inserted atoms to the
@@ -398,22 +395,22 @@ The *group* keyword adds all inserted atoms to the
 adds all inserted atoms of the specified type to the
 :doc:`group <group>` of the group-ID value.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 This fix writes the state of the fix to :doc:`binary restart files <restart>`.  This includes information about the random
 number generator seed, the next timestep for MC exchanges,  the number
 of MC step attempts and successes etc.  See
-the :doc:`read\_restart <read_restart>` command for info on how to
+the :doc:`read_restart <read_restart>` command for info on how to
 re-specify a fix in an input script that reads a restart file, so that
 the operation of the fix continues in an uninterrupted fashion.
 
 .. note::
 
    For this to work correctly, the timestep must **not** be changed
-   after reading the restart with :doc:`reset\_timestep <reset_timestep>`.
+   after reading the restart with :doc:`reset_timestep <reset_timestep>`.
    The fix will try to detect it and stop with an error.
 
-None of the :doc:`fix\_modify <fix_modify>` options are relevant to this
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.
 
 This fix computes a global vector of length 8, which can be accessed
@@ -437,12 +434,11 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-
 This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
-Do not set "neigh\_modify once yes" or else this fix will never be
+Do not set "neigh_modify once yes" or else this fix will never be
 called.  Reneighboring is required.
 
 Can be run in parallel, but aspects of the GCMC part will not scale
@@ -471,30 +467,21 @@ Related commands
 :doc:`fix atom/swap <fix_atom_swap>`,
 :doc:`fix nvt <fix_nh>`, :doc:`neighbor <neighbor>`,
 :doc:`fix deposit <fix_deposit>`, :doc:`fix evaporate <fix_evaporate>`,
-:doc:`delete\_atoms <delete_atoms>`
+:doc:`delete_atoms <delete_atoms>`
 
 Default
 """""""
 
-The option defaults are mol = no, maxangle = 10, overlap\_cutoff = 0.0,
-fugacity\_coeff = 1.0, intra\_energy = 0.0, tfac\_insert = 1.0.
+The option defaults are mol = no, maxangle = 10, overlap_cutoff = 0.0,
+fugacity_coeff = 1.0, intra_energy = 0.0, tfac_insert = 1.0.
 (Patomtrans, Pmoltrans, Pmolrotate) = (1, 0, 0) for mol = no and
-(0, 1, 1) for mol = yes. full\_energy = no,
-except for the situations where full\_energy is required, as
+(0, 1, 1) for mol = yes. full_energy = no,
+except for the situations where full_energy is required, as
 listed above.
-
 
 ----------
 
-
 .. _Frenkel:
-
-
 
 **(Frenkel)** Frenkel and Smit, Understanding Molecular Simulation,
 Academic Press, London, 2002.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

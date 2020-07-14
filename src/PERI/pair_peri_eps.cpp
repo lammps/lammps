@@ -19,6 +19,7 @@
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
+#include <string>
 #include "atom.h"
 #include "domain.h"
 #include "lattice.h"
@@ -30,10 +31,12 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "memory.h"
+#include "math_const.h"
 #include "error.h"
 #include "utils.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -272,7 +275,7 @@ void PairPeriEPS::compute(int eflag, int vflag)
     double horizon = cut[itype][itype];
     double tdnorm = compute_DeviatoricForceStateNorm(i);
     double pointwiseYieldvalue = 25.0 * yieldStress *
-                            yieldStress / 8 / M_PI / pow(horizon,5);
+                            yieldStress / 8 / MY_PI / pow(horizon,5);
 
 
     double fsurf = (tdnorm * tdnorm)/2 - pointwiseYieldvalue;
@@ -513,14 +516,7 @@ void PairPeriEPS::init_style()
 
   // if first init, create Fix needed for storing fixed neighbors
 
-  if (ifix_peri == -1) {
-    char **fixarg = new char*[3];
-    fixarg[0] = (char *) "PERI_NEIGH";
-    fixarg[1] = (char *) "all";
-    fixarg[2] = (char *) "PERI_NEIGH";
-    modify->add_fix(3,fixarg);
-    delete [] fixarg;
-  }
+  if (ifix_peri == -1) modify->add_fix("PERI_NEIGH all PERI_NEIGH");
 
   // find associated PERI_NEIGH fix that must exist
   // could have changed locations in fix list since created

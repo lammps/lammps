@@ -33,6 +33,9 @@ AngleHybrid::AngleHybrid(LAMMPS *lmp) : Angle(lmp)
 {
   writedata = 0;
   nstyles = 0;
+  nanglelist = nullptr;
+  maxangle = nullptr;
+  anglelist = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -105,6 +108,18 @@ void AngleHybrid::compute(int eflag, int vflag)
 
   ev_init(eflag,vflag);
 
+  // need to clear per-thread storage here, when using multiple threads
+  // with thread-enabled substyles to avoid uninitlialized data access.
+
+  const int nthreads = comm->nthreads;
+  if (comm->nthreads > 1) {
+    const int nall = atom->nlocal + atom->nghost;
+    if (eflag_atom)
+      memset(&eatom[0],0,nall*nthreads*sizeof(double));
+    if (vflag_atom)
+      memset(&vatom[0][0],0,6*nall*nthreads*sizeof(double));
+  }
+
   for (m = 0; m < nstyles; m++) {
     neighbor->nanglelist = nanglelist[m];
     neighbor->anglelist = anglelist[m];
@@ -127,6 +142,14 @@ void AngleHybrid::compute(int eflag, int vflag)
       for (i = 0; i < n; i++)
         for (j = 0; j < 6; j++)
           vatom[i][j] += vatom_substyle[i][j];
+    }
+    if (cvflag_atom) {
+      n = atom->nlocal;
+      if (force->newton_bond) n += atom->nghost;
+      double **cvatom_substyle = styles[m]->cvatom;
+      for (i = 0; i < n; i++)
+        for (j = 0; j < 9; j++)
+          cvatom[i][j] += cvatom_substyle[i][j];
     }
   }
 
@@ -370,6 +393,7 @@ double AngleHybrid::memory_usage()
 {
   double bytes = maxeatom * sizeof(double);
   bytes += maxvatom*6 * sizeof(double);
+  bytes += maxcvatom*9 * sizeof(double);
   for (int m = 0; m < nstyles; m++) bytes += maxangle[m]*4 * sizeof(int);
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) bytes += styles[m]->memory_usage();

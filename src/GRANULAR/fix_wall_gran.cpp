@@ -370,7 +370,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
       vshear = force->numeric(FLERR,arg[iarg+2]);
       wshear = 1;
       iarg += 3;
-    } else if (strcmp(arg[iarg],"store_contacts") == 0) {
+    } else if (strcmp(arg[iarg],"contacts") == 0) {
       peratom_flag = 1;
       size_peratom_cols = 8;
       peratom_freq = 1;
@@ -426,10 +426,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (peratom_flag) {
-    int nlocal = atom->nlocal;
-    for (int i = 0; i < nlocal; i++)
-      for (int m = 0; m < size_peratom_cols; m++)
-        array_atom[i][m] = 0.0;
+    clear_stored_contacts();
   }
 
   time_origin = update->ntimestep;
@@ -596,6 +593,10 @@ void FixWallGran::post_force(int /*vflag*/)
 
   rwall = 0.0;
 
+  if (peratom_flag) {
+    clear_stored_contacts();
+  }
+
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
 
@@ -668,7 +669,7 @@ void FixWallGran::post_force(int /*vflag*/)
 
         // store contact info
         if (peratom_flag) {
-          array_atom[i][0] = (double)atom->tag[i];
+          array_atom[i][0] = 1.0;
           array_atom[i][4] = x[i][0] - dx;
           array_atom[i][5] = x[i][1] - dy;
           array_atom[i][6] = x[i][2] - dz;
@@ -698,6 +699,15 @@ void FixWallGran::post_force(int /*vflag*/)
               omega[i],torque[i],radius[i],meff,history_one[i],
               contact);
       }
+    }
+  }
+}
+
+void FixWallGran::clear_stored_contacts() {
+  const int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) {
+    for (int m = 0; m < size_peratom_cols; m++) {
+      array_atom[i][m] = 0.0;
     }
   }
 }
@@ -1134,15 +1144,15 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
     t2 = 8*dR*dR2*E*E*E;
     t3 = 4*dR2*E;
     sqrt1 = MAX(0, t0*(t1+2*t2)); // in case sqrt(0) < 0 due to precision issues
-    t4 = cbrt(t1+t2+THREEROOT3*M_PI*sqrt(sqrt1));
+    t4 = cbrt(t1+t2+THREEROOT3*MY_PI*sqrt(sqrt1));
     t5 = t3/t4 + t4/E;
     sqrt2 = MAX(0, 2*dR + t5);
     t6 = sqrt(sqrt2);
-    sqrt3 = MAX(0, 4*dR - t5 + SIXROOT6*coh*M_PI*R2/(E*t6));
+    sqrt3 = MAX(0, 4*dR - t5 + SIXROOT6*coh*MY_PI*R2/(E*t6));
     a = INVROOT6*(t6 + sqrt(sqrt3));
     a2 = a*a;
     knfac = normal_coeffs[0]*a;
-    Fne = knfac*a2/Reff - TWOPI*a2*sqrt(4*coh*E/(M_PI*a));
+    Fne = knfac*a2/Reff - TWOPI*a2*sqrt(4*coh*E/(MY_PI*a));
   } else {
     knfac = E; //Hooke
     a = sqrt(dR);
@@ -1192,11 +1202,11 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   vrel = sqrt(vrel);
 
   if (normal_model == JKR) {
-    F_pulloff = 3*M_PI*coh*Reff;
+    F_pulloff = 3*MY_PI*coh*Reff;
     Fncrit = fabs(Fne + 2*F_pulloff);
   }
   else if (normal_model == DMT) {
-    F_pulloff = 4*M_PI*coh*Reff;
+    F_pulloff = 4*MY_PI*coh*Reff;
     Fncrit = fabs(Fne + 2*F_pulloff);
   }
   else{
@@ -1589,8 +1599,8 @@ double FixWallGran::pulloff_distance(double radius)
   double coh, E, a, dist;
   coh = normal_coeffs[3];
   E = normal_coeffs[0]*THREEQUARTERS;
-  a = cbrt(9*M_PI*coh*radius/(4*E));
-  dist = a*a/radius - 2*sqrt(M_PI*coh*a/E);
+  a = cbrt(9*MY_PI*coh*radius/(4*E));
+  dist = a*a/radius - 2*sqrt(MY_PI*coh*a/E);
   return dist;
 }
 

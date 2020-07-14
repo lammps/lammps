@@ -1,46 +1,46 @@
-.. index:: angle\_style fourier
+.. index:: angle_style fourier
 
-angle\_style fourier command
-============================
+angle_style fourier command
+===========================
 
-angle\_style fourier/omp command
-================================
+angle_style fourier/omp command
+===============================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style fourier
 
 Examples
 """"""""
 
-angle\_style fourier
-angle\_coeff 75.0 1.0 1.0 1.0
+.. code-block:: LAMMPS
+
+   angle_style fourier
+   angle_coeff 75.0 1.0 1.0 1.0
 
 Description
 """""""""""
 
 The *fourier* angle style uses the potential
 
-.. image:: Eqs/angle_fourier.jpg
-   :align: center
+.. math::
+
+   E = K [C_0 + C_1 \cos ( \theta) + C_2 \cos( 2 \theta) ]
 
 The following coefficients must be defined for each angle type via the
-:doc:`angle\_coeff <angle_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`angle_coeff <angle_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
-* K (energy)
-* C0 (real)
-* C1 (real)
-* C2 (real)
-
+* :math:`K` (energy)
+* :math:`C_0` (real)
+* :math:`C_1` (real)
+* :math:`C_2` (real)
 
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -60,26 +60,18 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
 
-
 This angle style can only be used if LAMMPS was built with the
-USER\_MISC package.  See the :doc:`Build package <Build_package>` doc
+USER_MISC package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 Related commands
 """"""""""""""""
 
-:doc:`angle\_coeff <angle_coeff>`
+:doc:`angle_coeff <angle_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

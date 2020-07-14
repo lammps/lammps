@@ -6,7 +6,6 @@ fix langevin/spin command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID langevin/spin T Tdamp seed
@@ -17,12 +16,10 @@ Syntax
 * Tdamp = transverse magnetic damping parameter (adim)
 * seed = random number seed to use for white noise (positive integer)
 
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 2 all langevin/spin 300.0 0.01 21
 
@@ -36,16 +33,19 @@ Brownian dynamics (BD).
 A random torque and a transverse dissipation are applied to each spin i according to
 the following stochastic differential equation:
 
-.. image:: Eqs/fix_langevin_spin_sLLG.jpg
-   :align: center
+.. math::
 
-with lambda the transverse damping, and eta a random vector.
+   \frac{d \vec{s}_{i}}{dt} = \frac{1}{\left(1+\lambda^2 \right)} \left( \left(
+   \vec{\omega}_{i} +\vec{\eta} \right) \times \vec{s}_{i} + \lambda\, \vec{s}_{i}
+  \times\left( \vec{\omega}_{i} \times\vec{s}_{i} \right) \right)
+
+with :math:`\lambda` the transverse damping, and :math:`\eta` a random vector.
 This equation is referred to as the stochastic Landau-Lifshitz-Gilbert (sLLG)
 equation.
 
-The components of eta are drawn from a Gaussian probability law. Their amplitude
-is defined as a proportion of the temperature of the external thermostat T (in K
-in metal units).
+The components of :math:`\eta` are drawn from a Gaussian probability
+law. Their amplitude is defined as a proportion of the temperature of
+the external thermostat T (in K in metal units).
 
 More details about this implementation are reported in :ref:`(Tranchida) <Tranchida2>`.
 
@@ -53,8 +53,7 @@ Note: due to the form of the sLLG equation, this fix has to be defined just
 before the nve/spin fix (and after all other magnetic fixes).
 As an example:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all precession/spin zeeman 0.01 0.0 0.0 1.0
    fix 2 all langevin/spin 300.0 0.01 21
@@ -69,11 +68,9 @@ generate its own unique seed and its own stream of random numbers.
 Thus the dynamics of the system will not be identical on two runs on
 different numbers of processors.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  Because the state of the random number generator
 is not saved in restart files, this means you cannot do "exact"
@@ -85,7 +82,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
-
 
 The *langevin/spin* fix is part of the SPIN package.  This style is
 only enabled if LAMMPS was built with this package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -103,24 +99,13 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Mayergoyz1:
-
-
 
 **(Mayergoyz)** I.D. Mayergoyz, G. Bertotti, C. Serpico (2009). Elsevier (2009)
 
 .. _Tranchida2:
 
-
-
 **(Tranchida)** Tranchida, Plimpton, Thibaudeau and Thompson,
 Journal of Computational Physics, 372, 406-425, (2018).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

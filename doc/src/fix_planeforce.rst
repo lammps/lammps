@@ -6,7 +6,6 @@ fix planeforce command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID planeforce x y z
@@ -18,8 +17,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix hold boundary planeforce 1.0 0.0 0.0
 
@@ -34,9 +32,9 @@ force perpendicular to the plane.
 If the initial velocity of the atom is 0.0 (or in the plane), then it
 should continue to move in the plane thereafter.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
@@ -55,8 +53,3 @@ Related commands
 :doc:`fix lineforce <fix_lineforce>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

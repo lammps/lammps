@@ -41,26 +41,23 @@ class PairBOP : public Pair {
   double memory_usage();
 
  private:
-  int me;
   int maxneigh;                 // maximum size of neighbor list on this processor
   int maxneigh3;                // maximum size of neighbor list on this processor
   int update_list;              // check for changing maximum size of neighbor list
   int maxbopn;                  // maximum size of bop neighbor list for allocation
   int maxnall;                  // maximum size of bop neighbor list for allocation
   int *map;                     // mapping from atom types to elements
-  int nelements;                // # of unique elments
+  int nelements;                // # of unique elements
   int nr;                       // increments for the BOP pair potential
   int ntheta;                   // increments for the angle function
   int npower;                   // power of the angular function
   int nBOt;                     // second BO increments
-  int bop_types;                // number of elments in potential
+  int bop_types;                // number of elements in potential
   int npairs;                   // number of element pairs
   char **elements;              // names of unique elements
   int ***elem2param;
   int nparams;
   int bop_step;
-  int allocate_pi;
-  int allocate_sigma;
   int allocate_neigh;
   int nb_pi,nb_sg;
   int ago1;
@@ -199,17 +196,15 @@ class PairBOP : public Pair {
   void setPrepul();
   void setSign();
   void gneigh();
-  void theta();
-  void theta_mod();
   double sigmaBo(int, int);
   double PiBo(int, int);
   void memory_theta_create();
   void memory_theta_destroy();
   void memory_theta_grow();
-  double cutoff(double, double, int, double);
 
   void read_table(char *);
   void allocate();
+  void allocate_tables();
   void create_pi(int);
   void create_sigma(int);
   void destroy_pi();

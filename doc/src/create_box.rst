@@ -1,13 +1,12 @@
-.. index:: create\_box
+.. index:: create_box
 
-create\_box command
-===================
+create_box command
+==================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    create_box N region-ID keyword value ...
 
@@ -15,9 +14,9 @@ Syntax
 * region-ID = ID of region to use as simulation domain
 * zero or more keyword/value pairs may be appended
 * keyword = *bond/types* or *angle/types* or *dihedral/types* or *improper/types* or *extra/bond/per/atom* or *extra/angle/per/atom* or *extra/dihedral/per/atom* or *extra/improper/per/atom*
-  
+
   .. parsed-literal::
-  
+
        *bond/types* value = # of bond types
        *angle/types* value = # of angle types
        *dihedral/types* value = # of dihedral types
@@ -28,13 +27,10 @@ Syntax
        *extra/improper/per/atom* value = # of impropers per atom
        *extra/special/per/atom* value = # of special neighbors per atom
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    create_box 2 mybox
    create_box 2 mybox bond/types 2 extra/bond/per/atom 1
@@ -67,7 +63,7 @@ positive or negative values and are called "tilt factors" because they
 are the amount of displacement applied to faces of an originally
 orthogonal box to transform it into the parallelepiped.
 
-By default, a *prism* region used with the create\_box command must
+By default, a *prism* region used with the create_box command must
 have tilt factors (xy,xz,yz) that do not skew the box more than half
 the distance of the parallel box length.  For example, if xlo = 2 and
 xhi = 12, then the x box length is 10 and the xy tilt factor must be
@@ -108,7 +104,7 @@ using the :doc:`change box <change_box>` command with its *ortho* and
    not make the lo/hi box dimensions (as defined in your
    :doc:`region <region>` command) radically smaller/larger than the extent
    of the atoms you eventually plan to create, e.g. via the
-   :doc:`create\_atoms <create_atoms>` command.  For example, if your atoms
+   :doc:`create_atoms <create_atoms>` command.  For example, if your atoms
    extend from 0 to 50, you should not specify the box bounds as -10000
    and 10000. This is because as described above, LAMMPS uses the
    specified box size to layout the 3d grid of processors.  A huge
@@ -119,52 +115,42 @@ using the :doc:`change box <change_box>` command with its *ortho* and
    a parallel simulation to lose atoms the first time that LAMMPS
    shrink-wraps the box around the atoms.
 
-
 ----------
-
 
 The optional keywords can be used to create a system that allows for
 bond (angle, dihedral, improper) interactions, or for molecules with
 special 1-2,1-3,1-4 neighbors to be added later.  These optional
 keywords serve the same purpose as the analogous keywords that can be
 used in a data file which are recognized by the
-:doc:`read\_data <read_data>` command when it sets up a system.
+:doc:`read_data <read_data>` command when it sets up a system.
 
-Note that if these keywords are not used, then the create\_box command
+Note that if these keywords are not used, then the create_box command
 creates an atomic (non-molecular) simulation that does not allow bonds
 between pairs of atoms to be defined, or a :doc:`bond potential <bond_style>` to be specified, or for molecules with
 special neighbors to be added to the system by commands such as
-:doc:`create\_atoms mol <create_atoms>`, :doc:`fix deposit <fix_deposit>`
+:doc:`create_atoms mol <create_atoms>`, :doc:`fix deposit <fix_deposit>`
 or :doc:`fix pour <fix_pour>`.
 
 As an example, see the examples/deposit/in.deposit.molecule script,
 which deposits molecules onto a substrate.  Initially there are no
-molecules in the system, but they are added later by the :doc:`fix deposit <fix_deposit>` command.  The create\_box command in the
+molecules in the system, but they are added later by the :doc:`fix deposit <fix_deposit>` command.  The create_box command in the
 script uses the bond/types and extra/bond/per/atom keywords to allow
 this.  If the added molecule contained more than 1 special bond
 (allowed by default), an extra/special/per/atom keyword would also
 need to be specified.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
 
-
-An :doc:`atom\_style <atom_style>` and :doc:`region <region>` must have
+An :doc:`atom_style <atom_style>` and :doc:`region <region>` must have
 been previously defined to use this command.
 
 Related commands
 """"""""""""""""
 
-:doc:`read\_data <read_data>`, :doc:`create\_atoms <create_atoms>`,
+:doc:`read_data <read_data>`, :doc:`create_atoms <create_atoms>`,
 :doc:`region <region>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

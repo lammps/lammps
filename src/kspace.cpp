@@ -16,6 +16,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <string>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -25,6 +26,7 @@
 #include "error.h"
 #include "suffix.h"
 #include "domain.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -39,7 +41,8 @@ KSpace::KSpace(LAMMPS *lmp) : Pointers(lmp)
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
 
   triclinic_support = 1;
-  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
+  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag =
+    dipoleflag = spinflag = 0;
   compute_flag = 1;
   group_group_enable = 0;
   stagger_flag = 0;
@@ -78,9 +81,6 @@ KSpace::KSpace(LAMMPS *lmp) : Pointers(lmp)
   accuracy_absolute = -1.0;
   accuracy_real_6 = -1.0;
   accuracy_kspace_6 = -1.0;
-  two_charge_force = force->qqr2e *
-    (force->qelectron * force->qelectron) /
-    (force->angstrom * force->angstrom);
 
   neighrequest_flag = 1;
   mixflag = 0;
@@ -156,6 +156,17 @@ KSpace::~KSpace()
   memory->destroy(vatom);
   memory->destroy(gcons);
   memory->destroy(dgcons);
+}
+
+/* ----------------------------------------------------------------------
+   calculate this in init() so that units are finalized
+------------------------------------------------------------------------- */
+
+void KSpace::two_charge()
+{
+  two_charge_force = force->qqr2e *
+    (force->qelectron * force->qelectron) /
+    (force->angstrom * force->angstrom);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -277,7 +288,7 @@ void KSpace::qsum_qsq(int warning_flag)
   double qsum_local(0.0), qsqsum_local(0.0);
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) reduction(+:qsum_local,qsqsum_local)
+#pragma omp parallel for default(shared) reduction(+:qsum_local,qsqsum_local)
 #endif
   for (int i = 0; i < nlocal; i++) {
     qsum_local += q[i];
@@ -298,10 +309,10 @@ void KSpace::qsum_qsq(int warning_flag)
   // so issue warning or error
 
   if (fabs(qsum) > SMALL) {
-    char str[128];
-    sprintf(str,"System is not charge neutral, net charge = %g",qsum);
-    if (!warn_nonneutral) error->all(FLERR,str);
-    if (warn_nonneutral == 1 && comm->me == 0) error->warning(FLERR,str);
+    std::string message = fmt::format("System is not charge neutral, net "
+                                      "charge = {}",qsum);
+    if (!warn_nonneutral) error->all(FLERR,message);
+    if (warn_nonneutral == 1 && comm->me == 0) error->warning(FLERR,message);
     warn_nonneutral = 2;
   }
 }
@@ -315,12 +326,10 @@ double KSpace::estimate_table_accuracy(double q2_over_sqrt, double spr)
   double table_accuracy = 0.0;
   int nctb = force->pair->ncoultablebits;
   if (comm->me == 0) {
-    char str[128];
     if (nctb)
-      sprintf(str,"  using %d-bit tables for long-range coulomb",nctb);
+      error->message(FLERR,fmt::format("  using {}-bit tables for long-range coulomb",nctb));
     else
-      sprintf(str,"  using polynomial approximation for long-range coulomb");
-    error->message(FLERR,str);
+      error->message(FLERR,"  using polynomial approximation for long-range coulomb");
   }
 
   if (nctb) {

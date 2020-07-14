@@ -1,30 +1,28 @@
-.. index:: angle\_style charmm
+.. index:: angle_style charmm
 
-angle\_style charmm command
-===========================
+angle_style charmm command
+==========================
 
-angle\_style charmm/intel command
-=================================
+angle_style charmm/intel command
+================================
 
-angle\_style charmm/kk command
+angle_style charmm/kk command
+=============================
+
+angle_style charmm/omp command
 ==============================
-
-angle\_style charmm/omp command
-===============================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style charmm
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    angle_style charmm
    angle_coeff 1 300.0 107.0 50.0 3.0
@@ -34,32 +32,33 @@ Description
 
 The *charmm* angle style uses the potential
 
-.. image:: Eqs/angle_charmm.jpg
-   :align: center
+.. math::
 
-with an additional Urey\_Bradley term based on the distance *r* between
-the 1st and 3rd atoms in the angle.  K, theta0, Kub, and Rub are
-coefficients defined for each angle type.
+   E = K (\theta - \theta_0)^2 + K_{ub} (r - r_{ub})^2
+
+with an additional Urey_Bradley term based on the distance :math:`r` between
+the first and third atoms in the angle.  :math:`K`, :math:`\theta_0`,
+:math:`K_{ub}`, and :math:`R_{ub}` are coefficients defined for each angle
+type.
 
 See :ref:`(MacKerell) <angle-MacKerell>` for a description of the CHARMM force
 field.
 
 The following coefficients must be defined for each angle type via the
-:doc:`angle\_coeff <angle_coeff>` command as in the example above, or in
-the data file or restart files read by the :doc:`read\_data <read_data>`
-or :doc:`read\_restart <read_restart>` commands:
+:doc:`angle_coeff <angle_coeff>` command as in the example above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands:
 
-* K (energy/radian\^2)
-* theta0 (degrees)
-* K\_ub (energy/distance\^2)
-* r\_ub (distance)
+* :math:`K` (energy)
+* :math:`\theta_0` (degrees)
+* :math:`K_{ub}` (energy/distance\^2)
+* :math:`r_{ub}` (distance)
 
-Theta0 is specified in degrees, but LAMMPS converts it to radians
-internally; hence the units of K are in energy/radian\^2.
-
+:math:`\theta_0` is specified in degrees, but LAMMPS converts it to
+radians internally; hence :math:`K` is effectively energy per
+radian\^2.
 
 ----------
-
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
@@ -79,13 +78,10 @@ by including their suffix, or you can use the :doc:`-suffix command-line switch 
 See :doc:`Speed packages <Speed_packages>` doc page for more
 instructions on how to use the accelerated styles effectively.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This angle style can only be used if LAMMPS was built with the
 MOLECULE package.  See the :doc:`Build package <Build_package>` doc page
@@ -94,22 +90,13 @@ for more info.
 Related commands
 """"""""""""""""
 
-:doc:`angle\_coeff <angle_coeff>`
+:doc:`angle_coeff <angle_coeff>`
 
 **Default:** none
 
-
 ----------
-
 
 .. _angle-MacKerell:
 
-
-
 **(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
 Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

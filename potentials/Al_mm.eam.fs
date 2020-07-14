@@ -1,4 +1,4 @@
-DATE: 2007-06-11 CONTRIBUTOR: MI Mendelev, mendelev@ameslab.gov CITATION: Unknown
+DATE: 2007-06-11 UNITS: metal CONTRIBUTOR: MI Mendelev, mendelev@ameslab.gov CITATION: Unknown
 Sunday, Jun 10, 2007  The potential was taken from v2_5_fcc (in C:\SIMULATION.MD\Al\Results\BGB_v2_5)
 ################################################
 1  Al  

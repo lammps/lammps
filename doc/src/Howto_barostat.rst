@@ -38,7 +38,7 @@ the kinetic component of the pressure.  The barostatting fixes can
 also use temperature computes that remove bias for the purpose of
 computing the kinetic component which contributes to the current
 pressure.  See the doc pages for the individual fixes and for the
-:doc:`fix\_modify <fix_modify>` command for instructions on how to assign
+:doc:`fix_modify <fix_modify>` command for instructions on how to assign
 a temperature or pressure compute to a barostatting fix.
 
 .. note::
@@ -49,20 +49,15 @@ a temperature or pressure compute to a barostatting fix.
    fixes.
 
 Thermodynamic output, which can be setup via the
-:doc:`thermo\_style <thermo_style>` command, often includes pressure
+:doc:`thermo_style <thermo_style>` command, often includes pressure
 values.  As explained on the doc page for the
-:doc:`thermo\_style <thermo_style>` command, the default pressure is
+:doc:`thermo_style <thermo_style>` command, the default pressure is
 setup by the thermo command itself.  It is NOT the pressure associated
 with any barostatting fix you have defined or with any compute you
 have defined that calculates a pressure.  The doc pages for the
 barostatting fixes explain the ID of the pressure compute they create.
 Thus if you want to view these pressures, you need to specify them
-explicitly via the :doc:`thermo\_style custom <thermo_style>` command.
-Or you can use the :doc:`thermo\_modify <thermo_modify>` command to
+explicitly via the :doc:`thermo_style custom <thermo_style>` command.
+Or you can use the :doc:`thermo_modify <thermo_modify>` command to
 re-define what pressure compute is used for default thermodynamic
 output.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

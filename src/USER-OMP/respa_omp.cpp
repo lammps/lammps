@@ -15,6 +15,7 @@
    Contributing authors: Mark Stevens (SNL), Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "respa_omp.h"
 #include "neighbor.h"
 #include "comm.h"
@@ -146,7 +147,7 @@ void RespaOMP::setup(int flag)
       const int nall = atom->nlocal + atom->nghost;
       const int nthreads = comm->nthreads;
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
       {
 #if defined(_OPENMP)
@@ -241,7 +242,7 @@ void RespaOMP::setup_minimal(int flag)
       const int nall = atom->nlocal + atom->nghost;
       const int nthreads = comm->nthreads;
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
       {
 #if defined(_OPENMP)
@@ -394,7 +395,7 @@ void RespaOMP::recurse(int ilevel)
       const int nall = atom->nlocal + atom->nghost;
       const int nthreads = comm->nthreads;
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
       {
 #if defined(_OPENMP)

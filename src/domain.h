@@ -131,7 +131,7 @@ class Domain : protected Pointers {
   int find_region(char *);
   void set_boundary(int, char **, int);
   void set_box(int, char **);
-  void print_box(const char *);
+  void print_box(const std::string &);
   void boundary_string(char *);
 
   virtual void lamda2x(int);
@@ -281,6 +281,10 @@ E: Both sides of boundary must be periodic
 
 Cannot specify a boundary as periodic only on the lo or hi side.  Must
 be periodic on both sides.
+
+E: Must not have multiple fixes change box parameter ...
+
+Self-explanatory.
 
 U: Box bounds are invalid
 

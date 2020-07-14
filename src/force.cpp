@@ -15,6 +15,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cctype>
+#include <string>
 #include "style_bond.h"
 #include "style_angle.h"
 #include "style_dihedral.h"
@@ -33,7 +34,9 @@
 #include "improper.h"
 #include "kspace.h"
 #include "error.h"
+#include "update.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -183,12 +186,9 @@ void Force::init()
 
   // check if pair style must be specified after restart
   if (pair_restart) {
-    if (!pair) {
-      char msg[128];
-      snprintf(msg,128,"Must re-specify non-restarted pair style (%s) "
-               "after read_restart", pair_restart);
-      error->all(FLERR,msg);
-    }
+    if (!pair)
+      error->all(FLERR,fmt::format("Must re-specify non-restarted pair style "
+                                   "({}) after read_restart", pair_restart));
   }
 
   if (kspace) kspace->init();         // kspace must come before pair
@@ -232,7 +232,7 @@ void Force::setup()
    create a pair style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
-void Force::create_pair(const char *style, int trysuffix)
+void Force::create_pair(const std::string &style, int trysuffix)
 {
   delete [] pair_style;
   if (pair) delete pair;
@@ -252,13 +252,12 @@ void Force::create_pair(const char *style, int trysuffix)
    return sflag = 0 for no suffix added, 1 or 2 for suffix1/2 added
 ------------------------------------------------------------------------- */
 
-Pair *Force::new_pair(const char *style, int trysuffix, int &sflag)
+Pair *Force::new_pair(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
       sflag = 1;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
+      std::string estyle = style + "/" + lmp->suffix;
       if (pair_map->find(estyle) != pair_map->end()) {
         PairCreator pair_creator = (*pair_map)[estyle];
         return pair_creator(lmp);
@@ -266,8 +265,7 @@ Pair *Force::new_pair(const char *style, int trysuffix, int &sflag)
     }
     if (lmp->suffix2) {
       sflag = 2;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
+      std::string estyle = style + "/" + lmp->suffix2;
       if (pair_map->find(estyle) != pair_map->end()) {
         PairCreator pair_creator = (*pair_map)[estyle];
         return pair_creator(lmp);
@@ -276,13 +274,13 @@ Pair *Force::new_pair(const char *style, int trysuffix, int &sflag)
   }
 
   sflag = 0;
-  if (strcmp(style,"none") == 0) return NULL;
+  if (style == "none") return NULL;
   if (pair_map->find(style) != pair_map->end()) {
     PairCreator pair_creator = (*pair_map)[style];
     return pair_creator(lmp);
   }
 
-  error->all(FLERR,utils::check_packages_for_style("pair",style,lmp).c_str());
+  error->all(FLERR,utils::check_packages_for_style("pair",style,lmp));
 
   return NULL;
 }
@@ -305,17 +303,17 @@ Pair *Force::pair_creator(LAMMPS *lmp)
    return NULL if no match or if nsub=0 and multiple sub-styles match
 ------------------------------------------------------------------------- */
 
-Pair *Force::pair_match(const char *word, int exact, int nsub)
+Pair *Force::pair_match(const std::string &word, int exact, int nsub)
 {
   int iwhich,count;
 
-  if (exact && strcmp(pair_style,word) == 0) return pair;
+  if (exact && (word == pair_style)) return pair;
   else if (!exact && utils::strmatch(pair_style,word)) return pair;
   else if (utils::strmatch(pair_style,"^hybrid")) {
     PairHybrid *hybrid = (PairHybrid *) pair;
     count = 0;
     for (int i = 0; i < hybrid->nstyles; i++)
-      if ((exact && strcmp(hybrid->keywords[i],word) == 0) ||
+      if ((exact && (word == hybrid->keywords[i])) ||
           (!exact && utils::strmatch(hybrid->keywords[i],word))) {
         iwhich = i;
         count++;
@@ -350,7 +348,7 @@ char *Force::pair_match_ptr(Pair *ptr)
    create a bond style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
-void Force::create_bond(const char *style, int trysuffix)
+void Force::create_bond(const std::string &style, int trysuffix)
 {
   delete [] bond_style;
   if (bond) delete bond;
@@ -364,13 +362,12 @@ void Force::create_bond(const char *style, int trysuffix)
    generate a bond class, fist with suffix appended
 ------------------------------------------------------------------------- */
 
-Bond *Force::new_bond(const char *style, int trysuffix, int &sflag)
+Bond *Force::new_bond(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
       sflag = 1;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
+      std::string estyle = style + "/" + lmp->suffix;
       if (bond_map->find(estyle) != bond_map->end()) {
         BondCreator bond_creator = (*bond_map)[estyle];
         return bond_creator(lmp);
@@ -379,8 +376,7 @@ Bond *Force::new_bond(const char *style, int trysuffix, int &sflag)
 
     if (lmp->suffix2) {
       sflag = 2;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
+      std::string estyle = style + "/" + lmp->suffix2;
       if (bond_map->find(estyle) != bond_map->end()) {
         BondCreator bond_creator = (*bond_map)[estyle];
         return bond_creator(lmp);
@@ -389,13 +385,13 @@ Bond *Force::new_bond(const char *style, int trysuffix, int &sflag)
   }
 
   sflag = 0;
-  if (strcmp(style,"none") == 0) return NULL;
+  if (style == "none") return NULL;
   if (bond_map->find(style) != bond_map->end()) {
     BondCreator bond_creator = (*bond_map)[style];
     return bond_creator(lmp);
   }
 
-  error->all(FLERR,utils::check_packages_for_style("bond",style,lmp).c_str());
+  error->all(FLERR,utils::check_packages_for_style("bond",style,lmp));
 
   return NULL;
 }
@@ -414,13 +410,13 @@ Bond *Force::bond_creator(LAMMPS *lmp)
    return ptr to current bond class or hybrid sub-class if matches style
 ------------------------------------------------------------------------- */
 
-Bond *Force::bond_match(const char *style)
+Bond *Force::bond_match(const std::string &style)
 {
-  if (strcmp(bond_style,style) == 0) return bond;
+  if (style == bond_style) return bond;
   else if (strcmp(bond_style,"hybrid") == 0) {
     BondHybrid *hybrid = (BondHybrid *) bond;
     for (int i = 0; i < hybrid->nstyles; i++)
-      if (strcmp(hybrid->keywords[i],style) == 0) return hybrid->styles[i];
+      if (style == hybrid->keywords[i]) return hybrid->styles[i];
   }
   return NULL;
 }
@@ -429,7 +425,7 @@ Bond *Force::bond_match(const char *style)
    create an angle style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
-void Force::create_angle(const char *style, int trysuffix)
+void Force::create_angle(const std::string &style, int trysuffix)
 {
   delete [] angle_style;
   if (angle) delete angle;
@@ -443,13 +439,12 @@ void Force::create_angle(const char *style, int trysuffix)
    generate an angle class
 ------------------------------------------------------------------------- */
 
-Angle *Force::new_angle(const char *style, int trysuffix, int &sflag)
+Angle *Force::new_angle(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
       sflag = 1;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
+      std::string estyle = style + "/" + lmp->suffix;
       if (angle_map->find(estyle) != angle_map->end()) {
         AngleCreator angle_creator = (*angle_map)[estyle];
         return angle_creator(lmp);
@@ -458,8 +453,7 @@ Angle *Force::new_angle(const char *style, int trysuffix, int &sflag)
 
     if (lmp->suffix2) {
       sflag = 2;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
+      std::string estyle = style + "/" + lmp->suffix;
       if (angle_map->find(estyle) != angle_map->end()) {
         AngleCreator angle_creator = (*angle_map)[estyle];
         return angle_creator(lmp);
@@ -468,13 +462,13 @@ Angle *Force::new_angle(const char *style, int trysuffix, int &sflag)
   }
 
   sflag = 0;
-  if (strcmp(style,"none") == 0) return NULL;
+  if (style == "none") return NULL;
   if (angle_map->find(style) != angle_map->end()) {
     AngleCreator angle_creator = (*angle_map)[style];
     return angle_creator(lmp);
   }
 
-  error->all(FLERR,utils::check_packages_for_style("angle",style,lmp).c_str());
+  error->all(FLERR,utils::check_packages_for_style("angle",style,lmp));
 
   return NULL;
 }
@@ -489,18 +483,17 @@ Angle *Force::angle_creator(LAMMPS *lmp)
   return new T(lmp);
 }
 
-
 /* ----------------------------------------------------------------------
    return ptr to current angle class or hybrid sub-class if matches style
 ------------------------------------------------------------------------- */
 
-Angle *Force::angle_match(const char *style)
+Angle *Force::angle_match(const std::string &style)
 {
-  if (strcmp(angle_style,style) == 0) return angle;
-  else if (strcmp(angle_style,"hybrid") == 0) {
+  if (style == angle_style) return angle;
+  else if (utils::strmatch(angle_style,"^hybrid")) {
     AngleHybrid *hybrid = (AngleHybrid *) angle;
     for (int i = 0; i < hybrid->nstyles; i++)
-      if (strcmp(hybrid->keywords[i],style) == 0) return hybrid->styles[i];
+      if (style == hybrid->keywords[i]) return hybrid->styles[i];
   }
   return NULL;
 }
@@ -509,7 +502,7 @@ Angle *Force::angle_match(const char *style)
    create a dihedral style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
-void Force::create_dihedral(const char *style, int trysuffix)
+void Force::create_dihedral(const std::string &style, int trysuffix)
 {
   delete [] dihedral_style;
   if (dihedral) delete dihedral;
@@ -523,13 +516,12 @@ void Force::create_dihedral(const char *style, int trysuffix)
    generate a dihedral class
 ------------------------------------------------------------------------- */
 
-Dihedral *Force::new_dihedral(const char *style, int trysuffix, int &sflag)
+Dihedral *Force::new_dihedral(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
       sflag = 1;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
+      std::string estyle = style + "/" + lmp->suffix;
       if (dihedral_map->find(estyle) != dihedral_map->end()) {
         DihedralCreator dihedral_creator = (*dihedral_map)[estyle];
         return dihedral_creator(lmp);
@@ -538,8 +530,7 @@ Dihedral *Force::new_dihedral(const char *style, int trysuffix, int &sflag)
 
     if (lmp->suffix2) {
       sflag = 2;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
+      std::string estyle = style + "/" + lmp->suffix2;
       if (dihedral_map->find(estyle) != dihedral_map->end()) {
         DihedralCreator dihedral_creator = (*dihedral_map)[estyle];
         return dihedral_creator(lmp);
@@ -548,13 +539,13 @@ Dihedral *Force::new_dihedral(const char *style, int trysuffix, int &sflag)
   }
 
   sflag = 0;
-  if (strcmp(style,"none") == 0) return NULL;
+  if (style == "none") return NULL;
   if (dihedral_map->find(style) != dihedral_map->end()) {
     DihedralCreator dihedral_creator = (*dihedral_map)[style];
     return dihedral_creator(lmp);
   }
 
-  error->all(FLERR,utils::check_packages_for_style("dihedral",style,lmp).c_str());
+  error->all(FLERR,utils::check_packages_for_style("dihedral",style,lmp));
 
   return NULL;
 }
@@ -573,13 +564,13 @@ Dihedral *Force::dihedral_creator(LAMMPS *lmp)
    return ptr to current angle class or hybrid sub-class if matches style
 ------------------------------------------------------------------------- */
 
-Dihedral *Force::dihedral_match(const char *style)
+Dihedral *Force::dihedral_match(const std::string &style)
 {
-  if (strcmp(dihedral_style,style) == 0) return dihedral;
-  else if (strcmp(dihedral_style,"hybrid") == 0) {
+  if (style == dihedral_style) return dihedral;
+  else if (utils::strmatch(dihedral_style,"^hybrid")) {
     DihedralHybrid *hybrid = (DihedralHybrid *) dihedral;
     for (int i = 0; i < hybrid->nstyles; i++)
-      if (strcmp(hybrid->keywords[i],style) == 0) return hybrid->styles[i];
+      if (style == hybrid->keywords[i]) return hybrid->styles[i];
   }
   return NULL;
 }
@@ -588,7 +579,7 @@ Dihedral *Force::dihedral_match(const char *style)
    create an improper style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
-void Force::create_improper(const char *style, int trysuffix)
+void Force::create_improper(const std::string &style, int trysuffix)
 {
   delete [] improper_style;
   if (improper) delete improper;
@@ -602,13 +593,12 @@ void Force::create_improper(const char *style, int trysuffix)
    generate a improper class
 ------------------------------------------------------------------------- */
 
-Improper *Force::new_improper(const char *style, int trysuffix, int &sflag)
+Improper *Force::new_improper(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
       sflag = 1;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
+      std::string estyle = style + "/" + lmp->suffix;
       if (improper_map->find(estyle) != improper_map->end()) {
         ImproperCreator improper_creator = (*improper_map)[estyle];
         return improper_creator(lmp);
@@ -617,8 +607,7 @@ Improper *Force::new_improper(const char *style, int trysuffix, int &sflag)
 
     if (lmp->suffix2) {
       sflag = 2;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
+      std::string estyle = style + "/" + lmp->suffix2;
       if (improper_map->find(estyle) != improper_map->end()) {
         ImproperCreator improper_creator = (*improper_map)[estyle];
         return improper_creator(lmp);
@@ -627,13 +616,13 @@ Improper *Force::new_improper(const char *style, int trysuffix, int &sflag)
   }
 
   sflag = 0;
-  if (strcmp(style,"none") == 0) return NULL;
+  if (style == "none") return NULL;
   if (improper_map->find(style) != improper_map->end()) {
     ImproperCreator improper_creator = (*improper_map)[style];
     return improper_creator(lmp);
   }
 
-  error->all(FLERR,utils::check_packages_for_style("improper",style,lmp).c_str());
+  error->all(FLERR,utils::check_packages_for_style("improper",style,lmp));
 
   return NULL;
 }
@@ -652,13 +641,13 @@ Improper *Force::improper_creator(LAMMPS *lmp)
    return ptr to current improper class or hybrid sub-class if matches style
 ------------------------------------------------------------------------- */
 
-Improper *Force::improper_match(const char *style)
+Improper *Force::improper_match(const std::string &style)
 {
-  if (strcmp(improper_style,style) == 0) return improper;
-  else if (strcmp(improper_style,"hybrid") == 0) {
+  if (style == improper_style) return improper;
+  else if (utils::strmatch(improper_style,"^hybrid")) {
     ImproperHybrid *hybrid = (ImproperHybrid *) improper;
     for (int i = 0; i < hybrid->nstyles; i++)
-      if (strcmp(hybrid->keywords[i],style) == 0) return hybrid->styles[i];
+      if (style == hybrid->keywords[i]) return hybrid->styles[i];
   }
   return NULL;
 }
@@ -667,7 +656,7 @@ Improper *Force::improper_match(const char *style)
    new kspace style
 ------------------------------------------------------------------------- */
 
-void Force::create_kspace(const char *style, int trysuffix)
+void Force::create_kspace(const std::string &style, int trysuffix)
 {
   delete [] kspace_style;
   if (kspace) delete kspace;
@@ -685,13 +674,12 @@ void Force::create_kspace(const char *style, int trysuffix)
    generate a kspace class
 ------------------------------------------------------------------------- */
 
-KSpace *Force::new_kspace(const char *style, int trysuffix, int &sflag)
+KSpace *Force::new_kspace(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
       sflag = 1;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
+      std::string estyle = style + "/" + lmp->suffix;
       if (kspace_map->find(estyle) != kspace_map->end()) {
         KSpaceCreator kspace_creator = (*kspace_map)[estyle];
         return kspace_creator(lmp);
@@ -700,8 +688,7 @@ KSpace *Force::new_kspace(const char *style, int trysuffix, int &sflag)
 
     if (lmp->suffix2) {
       sflag = 1;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
+      std::string estyle = style + "/" + lmp->suffix2;
       if (kspace_map->find(estyle) != kspace_map->end()) {
         KSpaceCreator kspace_creator = (*kspace_map)[estyle];
         return kspace_creator(lmp);
@@ -710,13 +697,13 @@ KSpace *Force::new_kspace(const char *style, int trysuffix, int &sflag)
   }
 
   sflag = 0;
-  if (strcmp(style,"none") == 0) return NULL;
+  if (style == "none") return NULL;
   if (kspace_map->find(style) != kspace_map->end()) {
     KSpaceCreator kspace_creator = (*kspace_map)[style];
     return kspace_creator(lmp);
   }
 
-  error->all(FLERR,utils::check_packages_for_style("kspace",style,lmp).c_str());
+  error->all(FLERR,utils::check_packages_for_style("kspace",style,lmp));
 
   return NULL;
 }
@@ -738,9 +725,9 @@ KSpace *Force::kspace_creator(LAMMPS *lmp)
    return NULL if no match
 ------------------------------------------------------------------------- */
 
-KSpace *Force::kspace_match(const char *word, int exact)
+KSpace *Force::kspace_match(const std::string &word, int exact)
 {
-  if (exact && strcmp(kspace_style,word) == 0) return kspace;
+  if (exact && (word == kspace_style)) return kspace;
   else if (!exact && utils::strmatch(kspace_style,word)) return kspace;
   return NULL;
 }
@@ -751,20 +738,15 @@ KSpace *Force::kspace_match(const char *word, int exact)
    if sflag = 1/2, append suffix or suffix2 to style
 ------------------------------------------------------------------------- */
 
-void Force::store_style(char *&str, const char *style, int sflag)
+void Force::store_style(char *&str, const std::string &style, int sflag)
 {
-  if (sflag) {
-    char estyle[256];
-    if (sflag == 1) snprintf(estyle,256,"%s/%s",style,lmp->suffix);
-    else snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
-    int n = strlen(estyle) + 1;
-    str = new char[n];
-    strcpy(str,estyle);
-  } else {
-    int n = strlen(style) + 1;
-    str = new char[n];
-    strcpy(str,style);
-  }
+  std::string estyle = style;
+
+  if (sflag == 1) estyle += std::string("/") + lmp->suffix;
+  else if (sflag == 2) estyle += std::string("/") + lmp->suffix2;
+
+  str = new char[estyle.size()+1];
+  strcpy(str,estyle.c_str());
 }
 
 /* ----------------------------------------------------------------------
@@ -945,10 +927,8 @@ double Force::numeric(const char *file, int line, char *str)
     if (isdigit(str[i])) continue;
     if (str[i] == '-' || str[i] == '+' || str[i] == '.') continue;
     if (str[i] == 'e' || str[i] == 'E') continue;
-    char msg[256];
-    snprintf(msg,256,"Expected floating point parameter instead of "
-                    "'%s' in input script or data file",str);
-    error->all(file,line,msg);
+    error->all(file,line,fmt::format("Expected floating point parameter "
+               "instead of '{}' in input script or data file",str));
   }
 
   return atof(str);
@@ -971,10 +951,8 @@ int Force::inumeric(const char *file, int line, char *str)
 
   for (int i = 0; i < n; i++) {
     if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    char msg[256];
-    snprintf(msg,256,"Expected integer parameter instead of "
-                    "'%s' in input script or data file",str);
-    error->all(file,line,msg);
+    error->all(file,line,fmt::format("Expected integer parameter instead "
+               "of '{}' in input script or data file",str));
   }
 
   return atoi(str);
@@ -997,10 +975,8 @@ bigint Force::bnumeric(const char *file, int line, char *str)
 
   for (int i = 0; i < n; i++) {
     if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    char msg[256];
-    snprintf(msg,256,"Expected integer parameter instead of "
-                    "'%s' in input script or data file",str);
-    error->all(file,line,msg);
+    error->all(file,line,fmt::format("Expected integer parameter instead "
+               "of '{}' in input script or data file",str));
   }
 
   return ATOBIGINT(str);
@@ -1023,10 +999,8 @@ tagint Force::tnumeric(const char *file, int line, char *str)
 
   for (int i = 0; i < n; i++) {
     if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    char msg[256];
-    snprintf(msg,256,"Expected integer parameter instead of "
-                    "'%s' in input script or data file",str);
-    error->all(file,line,msg);
+    error->all(file,line,fmt::format("Expected integer parameter instead "
+               "of '{}' in input script or data file",str));
   }
 
   return ATOTAGINT(str);
@@ -1037,106 +1011,52 @@ tagint Force::tnumeric(const char *file, int line, char *str)
    if fails, search in dir specified by env variable LAMMPS_POTENTIALS
 ------------------------------------------------------------------------- */
 
-FILE *Force::open_potential(const char *name)
+FILE *Force::open_potential(const char *name, int *auto_convert)
 {
-  FILE *fp;
+  std::string filepath = utils::get_potential_file_path(name);
 
-  if (name == NULL) return NULL;
+  if(!filepath.empty()) {
+    std::string unit_style = update->unit_style;
+    std::string date       = utils::get_potential_date(filepath, "potential");
+    std::string units      = utils::get_potential_units(filepath, "potential");
 
-  // attempt to open file directly
-  // if successful, return ptr
-
-  fp = fopen(name,"r");
-  if (fp) {
-    if (comm->me == 0) potential_date(fp,name);
-    rewind(fp);
-    return fp;
-  }
-
-  // try the environment variable directory
-
-  const char *path = getenv("LAMMPS_POTENTIALS");
-  if (path == NULL) return NULL;
-
-  const char *pot = potential_name(name);
-  if (pot == NULL) return NULL;
-
-  size_t len1 = strlen(path);
-  size_t len2 = strlen(pot);
-  char *newpath = new char[len1+len2+2];
-
-  strcpy(newpath,path);
-#if defined(_WIN32)
-  newpath[len1] = '\\';
-  newpath[len1+1] = 0;
-#else
-  newpath[len1] = '/';
-  newpath[len1+1] = 0;
-#endif
-  strcat(newpath,pot);
-
-  fp = fopen(newpath,"r");
-  if (fp) {
-    if (comm->me == 0) potential_date(fp,name);
-    rewind(fp);
-  }
-
-  delete [] newpath;
-  return fp;
-}
-
-/* ----------------------------------------------------------------------
-   strip off leading part of path, return just the filename
-------------------------------------------------------------------------- */
-
-const char *Force::potential_name(const char *path)
-{
-  const char *pot;
-
-  if (path == NULL) return NULL;
-
-#if defined(_WIN32)
-  // skip over the disk drive part of windows pathnames
-  if (isalpha(path[0]) && path[1] == ':')
-    path += 2;
-#endif
-
-  for (pot = path; *path != '\0'; ++path) {
-#if defined(_WIN32)
-    if ((*path == '\\') || (*path == '/')) pot = path + 1;
-#else
-    if (*path == '/') pot = path + 1;
-#endif
-  }
-
-  return pot;
-}
-
-/* ----------------------------------------------------------------------
-   read first line of potential file
-   if has DATE field, print following word
-------------------------------------------------------------------------- */
-
-void Force::potential_date(FILE *fp, const char *name)
-{
-  char line[MAXLINE];
-  char *ptr = fgets(line,MAXLINE,fp);
-  if (ptr == NULL) return;
-
-  char *word;
-  word = strtok(line," \t\n\r\f");
-  while (word) {
-    if (strcmp(word,"DATE:") == 0) {
-      word = strtok(NULL," \t\n\r\f");
-      if (word == NULL) return;
-      if (screen)
-        fprintf(screen,"Reading potential file %s with DATE: %s\n",name,word);
-      if (logfile)
-        fprintf(logfile,"Reading potential file %s with DATE: %s\n",name,word);
-      return;
+    if(!date.empty()) {
+      utils::logmesg(lmp, fmt::format("Reading potential file {} "
+                                      "with DATE: {}\n", name, date));
     }
-    word = strtok(NULL," \t\n\r\f");
+
+    if (auto_convert == nullptr) {
+      if (!units.empty() && (units != unit_style)) {
+        error->one(FLERR, fmt::format("Potential file {} requires {} units "
+                                      "but {} units are in use", name, units,
+                                      unit_style));
+        return nullptr;
+      }
+    } else {
+      if (units.empty() || units == unit_style) {
+        *auto_convert = utils::NOCONVERT;
+      } else {
+        if ((units == "metal") && (unit_style == "real")
+            && (*auto_convert & utils::METAL2REAL)) {
+          *auto_convert = utils::METAL2REAL;
+        } else if ((units == "real") && (unit_style == "metal")
+            && (*auto_convert & utils::REAL2METAL)) {
+          *auto_convert = utils::REAL2METAL;
+        } else {
+          error->one(FLERR, fmt::format("Potential file {} requires {} units "
+                                        "but {} units are in use", name,
+                                        units, unit_style));
+          return nullptr;
+        }
+      }
+      if (*auto_convert != utils::NOCONVERT)
+        lmp->error->warning(FLERR, fmt::format("Converting potential file in "
+                                               "{} units to {} units",
+                                               units, unit_style));
+    }
+    return fopen(filepath.c_str(), "r");
   }
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------

@@ -15,6 +15,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
@@ -82,7 +83,7 @@ void FixNHAsphereOMP::nve_v()
   // merged with FixNHOMP instead of calling it for the COM update.
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -122,7 +123,7 @@ void FixNHAsphereOMP::nve_x()
   // principal moments of inertia
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -163,7 +164,7 @@ void FixNHAsphereOMP::nh_v_temp()
 
   if (which == NOBIAS) {
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -177,7 +178,7 @@ void FixNHAsphereOMP::nh_v_temp()
     }
   } else if (which == BIAS) {
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
     for (int i = 0; i < nlocal; i++) {
       double buf[3];

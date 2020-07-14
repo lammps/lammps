@@ -180,7 +180,7 @@ void PairCosineSquared::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   init specific to this pair style (unneccesary)
+   init specific to this pair style (unnecessary)
 ------------------------------------------------------------------------- */
 
 /*

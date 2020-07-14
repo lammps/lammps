@@ -84,7 +84,7 @@ int main(int narg, char **arg)
 
   lmp->input->file(lammps_input);
 
-  // make info avaiable to callback function
+  // make info available to callback function
 
   Info info;
   info.me = me;

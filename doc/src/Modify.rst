@@ -10,7 +10,6 @@ If you add a new feature to LAMMPS and think it will be of interest to
 general users, we encourage you to submit it for inclusion in LAMMPS
 as a pull request on our `GitHub site <https://github.com/lammps/lammps>`_, after reading the :doc:`Modify contribute <Modify_contribute>` doc page.
 
-
 .. toctree::
    :maxdepth: 1
 
@@ -33,8 +32,3 @@ as a pull request on our `GitHub site <https://github.com/lammps/lammps>`_, afte
    Modify_body
    Modify_thermo
    Modify_variable
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

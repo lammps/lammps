@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -40,7 +41,6 @@
 // ************************************************************************
 //@HEADER
 */
-
 
 #ifndef KOKKOS_SPINWAIT_HPP
 #define KOKKOS_SPINWAIT_HPP
@@ -56,81 +56,76 @@ namespace Kokkos {
 namespace Impl {
 
 enum class WaitMode : int {
-    ACTIVE   // Used for tight loops to keep threads active longest
-  , PASSIVE  // Used to quickly yield the thread to quite down the system
-  , ROOT     // Never sleep or yield the root thread
+  ACTIVE  // Used for tight loops to keep threads active longest
+  ,
+  PASSIVE  // Used to quickly yield the thread to quite down the system
+  ,
+  ROOT  // Never sleep or yield the root thread
 };
 
-
-void host_thread_yield( const uint32_t i , const WaitMode mode );
+void host_thread_yield(const uint32_t i, const WaitMode mode);
 
 template <typename T>
-typename std::enable_if< std::is_integral<T>::value, void>::type
-root_spinwait_while_equal( T const volatile & flag, const T value )
-{
+typename std::enable_if<std::is_integral<T>::value, void>::type
+root_spinwait_while_equal(T const volatile& flag, const T value) {
   Kokkos::store_fence();
-  uint32_t i = 0 ;
-  while( value == flag ) {
+  uint32_t i = 0;
+  while (value == flag) {
     host_thread_yield(++i, WaitMode::ROOT);
   }
   Kokkos::load_fence();
 }
 
 template <typename T>
-typename std::enable_if< std::is_integral<T>::value, void>::type
-root_spinwait_until_equal( T const volatile & flag, const T value )
-{
+typename std::enable_if<std::is_integral<T>::value, void>::type
+root_spinwait_until_equal(T const volatile& flag, const T value) {
   Kokkos::store_fence();
-  uint32_t i = 0 ;
-  while( value != flag ) {
+  uint32_t i = 0;
+  while (value != flag) {
     host_thread_yield(++i, WaitMode::ROOT);
   }
   Kokkos::load_fence();
 }
 
 template <typename T>
-typename std::enable_if< std::is_integral<T>::value, void>::type
-spinwait_while_equal( T const volatile & flag, const T value )
-{
+typename std::enable_if<std::is_integral<T>::value, void>::type
+spinwait_while_equal(T const volatile& flag, const T value) {
   Kokkos::store_fence();
-  uint32_t i = 0 ;
-  while( value == flag ) {
+  uint32_t i = 0;
+  while (value == flag) {
     host_thread_yield(++i, WaitMode::ACTIVE);
   }
   Kokkos::load_fence();
 }
 
 template <typename T>
-typename std::enable_if< std::is_integral<T>::value, void>::type
-yield_while_equal( T const volatile & flag, const T value )
-{
+typename std::enable_if<std::is_integral<T>::value, void>::type
+yield_while_equal(T const volatile& flag, const T value) {
   Kokkos::store_fence();
-  uint32_t i = 0 ;
-  while( value == flag ) {
+  uint32_t i = 0;
+  while (value == flag) {
     host_thread_yield(++i, WaitMode::PASSIVE);
   }
   Kokkos::load_fence();
 }
 
 template <typename T>
-typename std::enable_if< std::is_integral<T>::value, void>::type
-spinwait_until_equal( T const volatile & flag, const T value )
-{
+typename std::enable_if<std::is_integral<T>::value, void>::type
+spinwait_until_equal(T const volatile& flag, const T value) {
   Kokkos::store_fence();
-  uint32_t i = 0 ;
-  while( value != flag ) {
+  uint32_t i = 0;
+  while (value != flag) {
     host_thread_yield(++i, WaitMode::ACTIVE);
   }
   Kokkos::load_fence();
 }
 
 template <typename T>
-typename std::enable_if< std::is_integral<T>::value, void>::type
-yield_until_equal( T const volatile & flag, const T value )
-{
+typename std::enable_if<std::is_integral<T>::value, void>::type
+yield_until_equal(T const volatile& flag, const T value) {
   Kokkos::store_fence();
-  uint32_t i = 0 ;
-  while( value != flag ) {
+  uint32_t i = 0;
+  while (value != flag) {
     host_thread_yield(++i, WaitMode::PASSIVE);
   }
   Kokkos::load_fence();
@@ -140,4 +135,3 @@ yield_until_equal( T const volatile & flag, const T value )
 } /* namespace Kokkos */
 
 #endif /* #ifndef KOKKOS_SPINWAIT_HPP */
-

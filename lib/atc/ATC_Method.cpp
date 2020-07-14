@@ -693,12 +693,12 @@ pecified
       /*! \page man_boundary fix_modify AtC boundary 
         \section syntax
         fix_modify AtC boundary type <atom-type-id>
-        - <atom-type-id> = type id for atoms that represent a ficticious
+        - <atom-type-id> = type id for atoms that represent a fictitious
         boundary internal to the FE mesh
         \section examples
         <TT> fix_modify AtC boundary type ghost_atoms </TT>
         \section description
-        Command to define the atoms that represent the ficticious 
+        Command to define the atoms that represent the fictitious
         boundary internal to the FE mesh. For fully overlapped MD/FE 
         domains with periodic boundary conditions no boundary atoms should
         be defined.

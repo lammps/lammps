@@ -12,14 +12,18 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_hyper.h"
+#include "update.h"
 #include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-FixHyper::FixHyper(LAMMPS *lmp, int narg, char **arg)
-        : Fix(lmp, narg, arg), hyperflag(0) {}
+FixHyper::FixHyper(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+{
+  hyperflag = 0;
+  ntimestep_initial = update->ntimestep;
+}
 
 /* ----------------------------------------------------------------------
    extract hyper flag setting for all Fixes that perform hyperdynamics

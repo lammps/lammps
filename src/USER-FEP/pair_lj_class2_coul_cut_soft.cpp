@@ -33,6 +33,7 @@ using namespace MathConst;
 PairLJClass2CoulCutSoft::PairLJClass2CoulCutSoft(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
+  centroidstressflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

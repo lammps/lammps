@@ -7,21 +7,18 @@ To run a serial (non-MPI) executable, follow these steps:
   then typing "cmd".
 * Move to the directory where you have your input script,
   (e.g. by typing: cd "Documents").
-* At the command prompt, type "lmp\_serial -in in.file", where
+* At the command prompt, type "lmp_serial -in in.file", where
   in.file is the name of your LAMMPS input script.
 
 Note that the serial executable includes support for multi-threading
 parallelization from the styles in the USER-OMP packages.  To run with
 4 threads, you can type this:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    lmp_serial -in in.lj -pk omp 4 -sf omp
 
-
 ----------
-
 
 For the MPI executable, which allows you to run LAMMPS under Windows
 in parallel, follow these steps.
@@ -46,8 +43,7 @@ into the MPICH2 installation directory, then into the sub-directory
 
 Then type something like this:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    mpiexec -localonly 4 lmp_mpi -in in.file
    mpiexec -np 4 lmp_mpi -in in.file
@@ -62,20 +58,13 @@ patient before the output shows up.
 The parallel executable can also run on a single processor by typing
 something like this:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    lmp_mpi -in in.lj
 
 Note that the parallel executable also includes OpenMP
 multi-threading, which can be combined with MPI using something like:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    mpiexec -localonly 2 lmp_mpi -in in.lj -pk omp 2 -sf omp
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

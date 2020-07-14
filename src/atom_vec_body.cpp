@@ -586,7 +586,7 @@ void AtomVecBody::pack_data_pre(int ilocal)
    if buf is NULL, just return buffer size
 ------------------------------------------------------------------------- */
 
-int AtomVecBody::pack_data_bonus(double *buf, int /*flag*/)
+int AtomVecBody::pack_data_bonus(double *buf, int flag)
 {
   int i;
 

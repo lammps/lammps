@@ -560,8 +560,10 @@ bigint AtomVecBody::memory_usage_bonus()
 
   int nall = nlocal_bonus + nghost_bonus;
   for (int i = 0; i < nall; i++) {
-    bytes += bonus[i].ninteger * sizeof(int);
-    bytes += bonus[i].ndouble * sizeof(double);
+    if (body[i] >= 0) {
+      bytes += bonus[body[i]].ninteger * sizeof(int);
+      bytes += bonus[body[i]].ndouble * sizeof(double);
+    }
   }
 
   return bytes;

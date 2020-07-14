@@ -214,18 +214,18 @@ int BodyNparticle::pack_data_body(tagint atomID, int ibonus, double *buf)
 
   if (buf) {
 
-    // ID ninteger ndouble
+    // line 1: ID ninteger ndouble
 
     m = 0;
     buf[m++] = ubuf(atomID).d;
     buf[m++] = ubuf(1).d;
     buf[m++] = ubuf(6 + 3*nsub).d;
 
-    // single integer nsub
+    // line 2: single integer nsub
 
     buf[m++] = ubuf(nsub).d;
 
-    // 6 moments of inertia
+    // line 3: 6 moments of inertia
 
     MathExtra::quat_to_mat(quat,p);
     MathExtra::times3_diag(p,inertia,pdiag);
@@ -265,8 +265,9 @@ int BodyNparticle::write_data_body(FILE *fp, double *buf)
   fmt::print(fp,"{} {} {}\n",ubuf(buf[m]).i,ubuf(buf[m+1]).i,ubuf(buf[m+2]).i);
   m += 3;
 
-  const int nsub = (int) ubuf(buf[m++]).i;
+  const int nsub  = (int) ubuf(buf[m]).i;
   fmt::print(fp,"{}\n",nsub);
+  m++;
 
   // inertia
 
@@ -276,7 +277,7 @@ int BodyNparticle::write_data_body(FILE *fp, double *buf)
 
   // nsub vertices
 
-  for (int i = 0; i < nsub; i++, m+=3)
+  for (int i = 0; i < nsub; i++, m += 3)
     fmt::print(fp,"{} {} {}\n",buf[m],buf[m+1],buf[m+2]);
 
   return m;

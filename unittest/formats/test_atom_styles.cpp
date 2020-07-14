@@ -11,13 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "MOLECULE/atom_vec_full.h"
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_hybrid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
+#include "body.h"
 #include "input.h"
 #include "lammps.h"
 #include "math_const.h"
@@ -2679,6 +2679,610 @@ TEST_F(AtomStyleTest, tri)
     ASSERT_DOUBLE_EQ(bonus[2].inertia[2], 14.017974903242481);
     ASSERT_DOUBLE_EQ(bonus[3].inertia[0], 0.23541253382609079);
     ASSERT_DOUBLE_EQ(bonus[3].inertia[1], 18.948744087979005);
+    ASSERT_DOUBLE_EQ(bonus[3].inertia[2], 19.15175691481879);
+}
+
+TEST_F(AtomStyleTest, body_nparticle)
+{
+    if (!LAMMPS::is_installed_pkg("ASPHERE")) GTEST_SKIP();
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("atom_style body nparticle 2 4");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("body"));
+
+    auto body = (AtomVecBody *)lmp->atom->avec;
+    EXPECT_NE(lmp->atom->avec, nullptr);
+    EXPECT_NE(body->bptr, nullptr);
+    EXPECT_THAT(std::string(body->bptr->style), Eq("nparticle"));
+
+    EXPECT_EQ(lmp->atom->natoms, 0);
+    EXPECT_EQ(lmp->atom->nlocal, 0);
+    EXPECT_EQ(lmp->atom->nghost, 0);
+    EXPECT_EQ(lmp->atom->nmax, 1);
+    EXPECT_EQ(lmp->atom->tag_enable, 1);
+    EXPECT_EQ(lmp->atom->molecular, 0);
+    EXPECT_EQ(lmp->atom->nellipsoids, 0);
+    EXPECT_EQ(lmp->atom->nlines, 0);
+    EXPECT_EQ(lmp->atom->ntris, 0);
+    EXPECT_EQ(lmp->atom->nbodies, 0);
+    EXPECT_EQ(lmp->atom->nbonds, 0);
+    EXPECT_EQ(lmp->atom->nangles, 0);
+    EXPECT_EQ(lmp->atom->ndihedrals, 0);
+    EXPECT_EQ(lmp->atom->nimpropers, 0);
+    EXPECT_EQ(lmp->atom->ntypes, 0);
+    EXPECT_EQ(lmp->atom->nbondtypes, 0);
+    EXPECT_EQ(lmp->atom->nangletypes, 0);
+    EXPECT_EQ(lmp->atom->ndihedraltypes, 0);
+    EXPECT_EQ(lmp->atom->nimpropertypes, 0);
+    EXPECT_EQ(lmp->atom->bond_per_atom, 0);
+    EXPECT_EQ(lmp->atom->angle_per_atom, 0);
+    EXPECT_EQ(lmp->atom->dihedral_per_atom, 0);
+    EXPECT_EQ(lmp->atom->improper_per_atom, 0);
+    EXPECT_EQ(lmp->atom->extra_bond_per_atom, 0);
+    EXPECT_EQ(lmp->atom->extra_angle_per_atom, 0);
+    EXPECT_EQ(lmp->atom->extra_dihedral_per_atom, 0);
+    EXPECT_EQ(lmp->atom->extra_improper_per_atom, 0);
+
+    EXPECT_EQ(lmp->atom->sphere_flag, 0);
+    EXPECT_EQ(lmp->atom->ellipsoid_flag, 0);
+    EXPECT_EQ(lmp->atom->line_flag, 0);
+    EXPECT_EQ(lmp->atom->tri_flag, 0);
+    EXPECT_EQ(lmp->atom->body_flag, 1);
+    EXPECT_EQ(lmp->atom->peri_flag, 0);
+    EXPECT_EQ(lmp->atom->electron_flag, 0);
+    EXPECT_EQ(lmp->atom->wavepacket_flag, 0);
+    EXPECT_EQ(lmp->atom->sph_flag, 0);
+    EXPECT_EQ(lmp->atom->molecule_flag, 0);
+    EXPECT_EQ(lmp->atom->molindex_flag, 0);
+    EXPECT_EQ(lmp->atom->molatom_flag, 0);
+    EXPECT_EQ(lmp->atom->q_flag, 0);
+    EXPECT_EQ(lmp->atom->mu_flag, 0);
+    EXPECT_EQ(lmp->atom->rmass_flag, 1);
+    EXPECT_EQ(lmp->atom->radius_flag, 1);
+    EXPECT_EQ(lmp->atom->omega_flag, 0);
+    EXPECT_EQ(lmp->atom->torque_flag, 1);
+    EXPECT_EQ(lmp->atom->angmom_flag, 1);
+    EXPECT_EQ(lmp->atom->vfrac_flag, 0);
+    EXPECT_EQ(lmp->atom->spin_flag, 0);
+    EXPECT_EQ(lmp->atom->eradius_flag, 0);
+    EXPECT_EQ(lmp->atom->ervel_flag, 0);
+    EXPECT_EQ(lmp->atom->erforce_flag, 0);
+    EXPECT_EQ(lmp->atom->cs_flag, 0);
+    EXPECT_EQ(lmp->atom->csforce_flag, 0);
+    EXPECT_EQ(lmp->atom->vforce_flag, 0);
+    EXPECT_EQ(lmp->atom->ervelforce_flag, 0);
+    EXPECT_EQ(lmp->atom->etag_flag, 0);
+    EXPECT_EQ(lmp->atom->rho_flag, 0);
+    EXPECT_EQ(lmp->atom->esph_flag, 0);
+    EXPECT_EQ(lmp->atom->cv_flag, 0);
+    EXPECT_EQ(lmp->atom->vest_flag, 0);
+    EXPECT_EQ(lmp->atom->dpd_flag, 0);
+    EXPECT_EQ(lmp->atom->edpd_flag, 0);
+    EXPECT_EQ(lmp->atom->tdpd_flag, 0);
+    EXPECT_EQ(lmp->atom->mesont_flag, 0);
+    EXPECT_EQ(lmp->atom->sp_flag, 0);
+    EXPECT_EQ(lmp->atom->x0_flag, 0);
+    EXPECT_EQ(lmp->atom->smd_flag, 0);
+    EXPECT_EQ(lmp->atom->damage_flag, 0);
+    EXPECT_EQ(lmp->atom->contact_radius_flag, 0);
+    EXPECT_EQ(lmp->atom->smd_data_9_flag, 0);
+    EXPECT_EQ(lmp->atom->smd_stress_flag, 0);
+    EXPECT_EQ(lmp->atom->eff_plastic_strain_flag, 0);
+    EXPECT_EQ(lmp->atom->eff_plastic_strain_rate_flag, 0);
+    EXPECT_EQ(lmp->atom->pdscale, 1.0);
+
+    EXPECT_NE(lmp->atom->tag, nullptr);
+    EXPECT_NE(lmp->atom->type, nullptr);
+    EXPECT_NE(lmp->atom->mask, nullptr);
+    EXPECT_NE(lmp->atom->image, nullptr);
+    EXPECT_NE(lmp->atom->x, nullptr);
+    EXPECT_NE(lmp->atom->v, nullptr);
+    EXPECT_NE(lmp->atom->f, nullptr);
+    EXPECT_EQ(lmp->atom->q, nullptr);
+    EXPECT_EQ(lmp->atom->mu, nullptr);
+    EXPECT_EQ(lmp->atom->omega, nullptr);
+    EXPECT_NE(lmp->atom->angmom, nullptr);
+    EXPECT_NE(lmp->atom->torque, nullptr);
+    EXPECT_NE(lmp->atom->radius, nullptr);
+    EXPECT_NE(lmp->atom->rmass, nullptr);
+    EXPECT_EQ(lmp->atom->ellipsoid, nullptr);
+    EXPECT_EQ(lmp->atom->line, nullptr);
+    EXPECT_EQ(lmp->atom->tri, nullptr);
+    EXPECT_NE(lmp->atom->body, nullptr);
+    EXPECT_EQ(lmp->atom->molecule, nullptr);
+    EXPECT_EQ(lmp->atom->molindex, nullptr);
+    EXPECT_EQ(lmp->atom->molatom, nullptr);
+    EXPECT_EQ(lmp->atom->num_bond, nullptr);
+    EXPECT_EQ(lmp->atom->bond_type, nullptr);
+    EXPECT_EQ(lmp->atom->bond_atom, nullptr);
+    EXPECT_EQ(lmp->atom->num_angle, nullptr);
+    EXPECT_EQ(lmp->atom->angle_type, nullptr);
+    EXPECT_EQ(lmp->atom->angle_atom1, nullptr);
+    EXPECT_EQ(lmp->atom->angle_atom2, nullptr);
+    EXPECT_EQ(lmp->atom->angle_atom3, nullptr);
+    EXPECT_EQ(lmp->atom->num_dihedral, nullptr);
+    EXPECT_EQ(lmp->atom->dihedral_type, nullptr);
+    EXPECT_EQ(lmp->atom->dihedral_atom1, nullptr);
+    EXPECT_EQ(lmp->atom->dihedral_atom2, nullptr);
+    EXPECT_EQ(lmp->atom->dihedral_atom3, nullptr);
+    EXPECT_EQ(lmp->atom->dihedral_atom4, nullptr);
+    EXPECT_EQ(lmp->atom->num_improper, nullptr);
+    EXPECT_EQ(lmp->atom->improper_type, nullptr);
+    EXPECT_EQ(lmp->atom->improper_atom1, nullptr);
+    EXPECT_EQ(lmp->atom->improper_atom2, nullptr);
+    EXPECT_EQ(lmp->atom->improper_atom3, nullptr);
+    EXPECT_EQ(lmp->atom->improper_atom4, nullptr);
+    EXPECT_EQ(lmp->atom->maxspecial, 1);
+    EXPECT_EQ(lmp->atom->nspecial, nullptr);
+    EXPECT_EQ(lmp->atom->special, nullptr);
+    EXPECT_EQ(lmp->atom->vfrac, nullptr);
+    EXPECT_EQ(lmp->atom->s0, nullptr);
+    EXPECT_EQ(lmp->atom->x0, nullptr);
+    EXPECT_EQ(lmp->atom->sp, nullptr);
+    EXPECT_EQ(lmp->atom->fm, nullptr);
+    EXPECT_EQ(lmp->atom->fm_long, nullptr);
+    EXPECT_EQ(lmp->atom->spin, nullptr);
+    EXPECT_EQ(lmp->atom->eradius, nullptr);
+    EXPECT_EQ(lmp->atom->ervel, nullptr);
+    EXPECT_EQ(lmp->atom->erforce, nullptr);
+    EXPECT_EQ(lmp->atom->ervelforce, nullptr);
+    EXPECT_EQ(lmp->atom->cs, nullptr);
+    EXPECT_EQ(lmp->atom->csforce, nullptr);
+    EXPECT_EQ(lmp->atom->vforce, nullptr);
+    EXPECT_EQ(lmp->atom->etag, nullptr);
+    EXPECT_EQ(lmp->atom->uCond, nullptr);
+    EXPECT_EQ(lmp->atom->uMech, nullptr);
+    EXPECT_EQ(lmp->atom->uChem, nullptr);
+    EXPECT_EQ(lmp->atom->uCG, nullptr);
+    EXPECT_EQ(lmp->atom->uCGnew, nullptr);
+    EXPECT_EQ(lmp->atom->duChem, nullptr);
+    EXPECT_EQ(lmp->atom->dpdTheta, nullptr);
+    EXPECT_EQ(lmp->atom->cc, nullptr);
+    EXPECT_EQ(lmp->atom->cc_flux, nullptr);
+    EXPECT_EQ(lmp->atom->edpd_temp, nullptr);
+    EXPECT_EQ(lmp->atom->edpd_flux, nullptr);
+    EXPECT_EQ(lmp->atom->edpd_cv, nullptr);
+    EXPECT_EQ(lmp->atom->length, nullptr);
+    EXPECT_EQ(lmp->atom->buckling, nullptr);
+    EXPECT_EQ(lmp->atom->bond_nt, nullptr);
+    EXPECT_EQ(lmp->atom->contact_radius, nullptr);
+    EXPECT_EQ(lmp->atom->smd_data_9, nullptr);
+    EXPECT_EQ(lmp->atom->smd_stress, nullptr);
+    EXPECT_EQ(lmp->atom->eff_plastic_strain, nullptr);
+    EXPECT_EQ(lmp->atom->eff_plastic_strain_rate, nullptr);
+    EXPECT_EQ(lmp->atom->damage, nullptr);
+    EXPECT_EQ(lmp->atom->rho, nullptr);
+    EXPECT_EQ(lmp->atom->drho, nullptr);
+    EXPECT_EQ(lmp->atom->esph, nullptr);
+    EXPECT_EQ(lmp->atom->desph, nullptr);
+    EXPECT_EQ(lmp->atom->cv, nullptr);
+    EXPECT_EQ(lmp->atom->vest, nullptr);
+    EXPECT_EQ(lmp->atom->nmolecule, 0);
+    EXPECT_EQ(lmp->atom->molecules, nullptr);
+    EXPECT_EQ(lmp->atom->nivector, 0);
+    EXPECT_EQ(lmp->atom->ndvector, 0);
+    EXPECT_EQ(lmp->atom->iname, nullptr);
+    EXPECT_EQ(lmp->atom->dname, nullptr);
+    EXPECT_EQ(lmp->atom->mass, nullptr);
+    EXPECT_EQ(lmp->atom->mass_setflag, nullptr);
+    EXPECT_EQ(lmp->atom->nextra_grow, 0);
+    EXPECT_EQ(lmp->atom->nextra_restart, 0);
+    EXPECT_EQ(lmp->atom->nextra_border, 0);
+    EXPECT_EQ(lmp->atom->nextra_grow_max, 0);
+    EXPECT_EQ(lmp->atom->nextra_restart_max, 0);
+    EXPECT_EQ(lmp->atom->nextra_border_max, 0);
+    EXPECT_EQ(lmp->atom->nextra_store, 0);
+    EXPECT_EQ(lmp->atom->extra_grow, nullptr);
+    EXPECT_EQ(lmp->atom->extra_restart, nullptr);
+    EXPECT_EQ(lmp->atom->extra_border, nullptr);
+    EXPECT_EQ(lmp->atom->extra, nullptr);
+    EXPECT_EQ(lmp->atom->sametag, nullptr);
+    EXPECT_EQ(lmp->atom->map_style, 0);
+    EXPECT_EQ(lmp->atom->map_user, 0);
+    EXPECT_EQ(lmp->atom->map_tag_max, -1);
+
+    const char data_file[] = "\n4 atoms\n"
+                             "4 bodies\n"
+                             "3 atom types\n\n"
+                             "-4.0 4.0 xlo xhi\n"
+                             "-4.0 4.0 ylo yhi\n"
+                             "-4.0 4.0 zlo zhi\n\n"
+                             "Atoms # body\n\n"
+                             "1 1 1 4.0 -2.0  2.0 0.1\n"
+                             "2 1 1 4.0 -2.0 -2.0 0.1\n"
+                             "3 2 1 2.4  2.0 -2.0 -0.1\n"
+                             "4 2 1 2.4  2.0  2.0 -0.1\n\n"
+                             "Bodies\n\n"
+                             "1 1 12\n"
+                             "2\n"
+                             "2.0 2.0 0.0 0.0 0.0 0.0\n"
+                             "-1.0 0.0 0.0\n"
+                             "1.0 0.0 0.0\n"
+                             "2 1 15\n"
+                             "3\n"
+                             "0.5 4.0 4.5 0.0 0.0 0.0\n"
+                             "1.0 -0.5 0.0\n"
+                             "1.0  0.5 0.0\n"
+                             "-1.0 0.0 0.0\n"
+                             "3 1 18\n"
+                             "4\n"
+                             "1.67188 1.46875 0.796875 0 0 0.546875\n"
+                             "0.0  0.0 1.0\n"
+                             "0.75 0.0 -0.25\n"
+                             "0.5  0.5 -0.25\n"
+                             "0.5 -0.5 -0.25\n"
+                             "4 1 12\n"
+                             "2\n"
+                             "12.0 0.0 12.0 0.0 0.0 0.0\n"
+                             "0.0 1.0 0.0\n"
+                             "0.0 -3.0 0.0\n";
+    FILE *fp = fopen("input_atom_styles.data", "w");
+    fputs(data_file, fp);
+    fclose(fp);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("read_data input_atom_styles.data");
+    lmp->input->one("create_atoms 3 single  2.0  2.0 -2.1");
+    lmp->input->one("create_atoms 3 single  2.0 -2.0  2.1");
+    lmp->input->one("set type 3 mass 4.4");
+    lmp->input->one("pair_coeff * *");
+    lmp->input->one("write_data input_check.data nocoeff");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    EXPECT_THAT(std::string(lmp->atom->atom_style), Eq("body"));
+    EXPECT_NE(lmp->atom->avec, nullptr);
+    EXPECT_EQ(lmp->atom->natoms, 6);
+    EXPECT_EQ(lmp->atom->nbodies, 4);
+    EXPECT_EQ(lmp->atom->nlocal, 6);
+    EXPECT_EQ(lmp->atom->nghost, 0);
+    EXPECT_NE(lmp->atom->nmax, -1);
+    EXPECT_EQ(lmp->atom->tag_enable, 1);
+    EXPECT_EQ(lmp->atom->molecular, 0);
+    EXPECT_EQ(lmp->atom->ntypes, 3);
+    EXPECT_EQ(lmp->atom->nextra_grow, 0);
+    EXPECT_EQ(lmp->atom->nextra_restart, 0);
+    EXPECT_EQ(lmp->atom->nextra_border, 0);
+    EXPECT_EQ(lmp->atom->nextra_grow_max, 0);
+    EXPECT_EQ(lmp->atom->nextra_restart_max, 0);
+    EXPECT_EQ(lmp->atom->nextra_border_max, 0);
+    EXPECT_EQ(lmp->atom->nextra_store, 0);
+    EXPECT_EQ(lmp->atom->extra_grow, nullptr);
+    EXPECT_EQ(lmp->atom->extra_restart, nullptr);
+    EXPECT_EQ(lmp->atom->extra_border, nullptr);
+    EXPECT_EQ(lmp->atom->extra, nullptr);
+
+    EXPECT_EQ(lmp->atom->mass, nullptr);
+    EXPECT_NE(lmp->atom->rmass, nullptr);
+    EXPECT_NE(lmp->atom->body, nullptr);
+    EXPECT_NE(lmp->atom->angmom, nullptr);
+    EXPECT_NE(lmp->atom->torque, nullptr);
+    EXPECT_NE(lmp->atom->radius, nullptr);
+    EXPECT_EQ(lmp->atom->mass_setflag, nullptr);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("write_data test_atom_styles.data nocoeff");
+    lmp->input->one("clear");
+    lmp->input->one("atom_style body nparticle 2 4");
+    lmp->input->one("pair_style zero 4.0");
+    lmp->input->one("units real");
+    lmp->input->one("atom_modify map array");
+    lmp->input->one("read_data test_atom_styles.data");
+    lmp->input->one("pair_coeff * *");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    EXPECT_THAT(std::string(lmp->atom->atom_style), Eq("tri"));
+    EXPECT_NE(lmp->atom->avec, nullptr);
+    EXPECT_EQ(lmp->atom->natoms, 6);
+    EXPECT_EQ(lmp->atom->nlocal, 6);
+    EXPECT_EQ(lmp->atom->ntris, 4);
+    EXPECT_EQ(lmp->atom->nghost, 0);
+    EXPECT_NE(lmp->atom->nmax, -1);
+    EXPECT_EQ(lmp->atom->tag_enable, 1);
+    EXPECT_EQ(lmp->atom->molecular, 0);
+    EXPECT_EQ(lmp->atom->ntypes, 3);
+    EXPECT_EQ(lmp->atom->tri_flag, 1);
+    EXPECT_NE(lmp->atom->tri, nullptr);
+    EXPECT_NE(lmp->atom->sametag, nullptr);
+    EXPECT_EQ(lmp->atom->tag_consecutive(), 1);
+    EXPECT_EQ(lmp->atom->map_style, 1);
+    EXPECT_EQ(lmp->atom->map_user, 1);
+    EXPECT_EQ(lmp->atom->map_tag_max, 6);
+
+    auto x      = lmp->atom->x;
+    auto v      = lmp->atom->v;
+    auto type   = lmp->atom->type;
+    auto tri    = lmp->atom->tri;
+    auto rmass  = lmp->atom->rmass;
+    auto radius = lmp->atom->radius;
+    auto avec   = (AtomVecTri *)lmp->atom->avec;
+    auto bonus  = avec->bonus;
+    EXPECT_DOUBLE_EQ(x[GETIDX(1)][0], -2.0);
+    EXPECT_DOUBLE_EQ(x[GETIDX(1)][1], 2.0);
+    EXPECT_DOUBLE_EQ(x[GETIDX(1)][2], 0.1);
+    EXPECT_DOUBLE_EQ(x[GETIDX(2)][0], -2.0);
+    EXPECT_DOUBLE_EQ(x[GETIDX(2)][1], -2.0);
+    EXPECT_DOUBLE_EQ(x[GETIDX(2)][2], -0.1);
+    EXPECT_DOUBLE_EQ(x[GETIDX(3)][0], 2.0);
+    EXPECT_DOUBLE_EQ(x[GETIDX(3)][1], 2.0);
+    EXPECT_DOUBLE_EQ(x[GETIDX(3)][2], -0.1);
+    EXPECT_DOUBLE_EQ(x[GETIDX(4)][0], 2.0);
+    EXPECT_DOUBLE_EQ(x[GETIDX(4)][1], -2.0);
+    EXPECT_DOUBLE_EQ(x[GETIDX(4)][2], 0.1);
+    EXPECT_DOUBLE_EQ(x[GETIDX(5)][0], 2.0);
+    EXPECT_DOUBLE_EQ(x[GETIDX(5)][1], 2.0);
+    EXPECT_DOUBLE_EQ(x[GETIDX(5)][2], -2.1);
+    EXPECT_DOUBLE_EQ(x[GETIDX(6)][0], 2.0);
+    EXPECT_DOUBLE_EQ(x[GETIDX(6)][1], -2.0);
+    EXPECT_DOUBLE_EQ(x[GETIDX(6)][2], 2.1);
+    EXPECT_DOUBLE_EQ(v[GETIDX(1)][0], 0.0);
+    EXPECT_DOUBLE_EQ(v[GETIDX(1)][1], 0.0);
+    EXPECT_DOUBLE_EQ(v[GETIDX(1)][2], 0.0);
+    EXPECT_DOUBLE_EQ(v[GETIDX(2)][0], 0.0);
+    EXPECT_DOUBLE_EQ(v[GETIDX(2)][1], 0.0);
+    EXPECT_DOUBLE_EQ(v[GETIDX(2)][2], 0.0);
+    EXPECT_DOUBLE_EQ(v[GETIDX(3)][0], 0.0);
+    EXPECT_DOUBLE_EQ(v[GETIDX(3)][1], 0.0);
+    EXPECT_DOUBLE_EQ(v[GETIDX(3)][2], 0.0);
+    EXPECT_DOUBLE_EQ(v[GETIDX(4)][0], 0.0);
+    EXPECT_DOUBLE_EQ(v[GETIDX(4)][1], 0.0);
+    EXPECT_DOUBLE_EQ(v[GETIDX(4)][2], 0.0);
+    EXPECT_DOUBLE_EQ(v[GETIDX(5)][0], 0.0);
+    EXPECT_DOUBLE_EQ(v[GETIDX(5)][1], 0.0);
+    EXPECT_DOUBLE_EQ(v[GETIDX(5)][2], 0.0);
+    EXPECT_DOUBLE_EQ(v[GETIDX(6)][0], 0.0);
+    EXPECT_DOUBLE_EQ(v[GETIDX(6)][1], 0.0);
+    EXPECT_DOUBLE_EQ(v[GETIDX(6)][2], 0.0);
+    EXPECT_EQ(type[GETIDX(1)], 1);
+    EXPECT_EQ(type[GETIDX(2)], 1);
+    EXPECT_EQ(type[GETIDX(3)], 2);
+    EXPECT_EQ(type[GETIDX(4)], 2);
+    EXPECT_EQ(type[GETIDX(5)], 3);
+    EXPECT_EQ(type[GETIDX(6)], 3);
+    EXPECT_EQ(tri[GETIDX(1)], 0);
+    EXPECT_EQ(tri[GETIDX(2)], 1);
+    EXPECT_EQ(tri[GETIDX(3)], 2);
+    EXPECT_EQ(tri[GETIDX(4)], 3);
+    EXPECT_EQ(tri[GETIDX(5)], -1);
+    EXPECT_EQ(tri[GETIDX(6)], -1);
+    EXPECT_DOUBLE_EQ(rmass[GETIDX(1)], 4);
+    EXPECT_DOUBLE_EQ(rmass[GETIDX(2)], 4);
+    EXPECT_DOUBLE_EQ(rmass[GETIDX(3)], 2.4);
+    EXPECT_DOUBLE_EQ(rmass[GETIDX(4)], 2.4);
+    EXPECT_DOUBLE_EQ(rmass[GETIDX(5)], 4.4);
+    EXPECT_DOUBLE_EQ(rmass[GETIDX(6)], 4.4);
+    EXPECT_DOUBLE_EQ(radius[GETIDX(1)], 0.5773502691896258);
+    EXPECT_DOUBLE_EQ(radius[GETIDX(2)], 0.5773502691896258);
+    EXPECT_DOUBLE_EQ(radius[GETIDX(3)], 0.8660254037844390);
+    EXPECT_DOUBLE_EQ(radius[GETIDX(4)], 0.8660254037844390);
+    EXPECT_DOUBLE_EQ(radius[GETIDX(5)], 0.5);
+    EXPECT_DOUBLE_EQ(radius[GETIDX(6)], 0.5);
+
+    EXPECT_DOUBLE_EQ(bonus[0].inertia[0], 0.072258416330334363);
+    EXPECT_DOUBLE_EQ(bonus[0].inertia[1], 13.94589575227541);
+    EXPECT_DOUBLE_EQ(bonus[0].inertia[2], 14.017974903242481);
+    EXPECT_DOUBLE_EQ(bonus[1].inertia[0], 13.982119044342252);
+    EXPECT_DOUBLE_EQ(bonus[1].inertia[1], 0.10811427523057447);
+    EXPECT_DOUBLE_EQ(bonus[1].inertia[2], 13.945895752275419);
+    EXPECT_DOUBLE_EQ(bonus[2].inertia[0], 0.23541253382609079);
+    EXPECT_DOUBLE_EQ(bonus[2].inertia[1], 18.948744087979005);
+    EXPECT_DOUBLE_EQ(bonus[2].inertia[2], 19.15175691481879);
+    EXPECT_DOUBLE_EQ(bonus[3].inertia[0], 19.018309360029388);
+    EXPECT_DOUBLE_EQ(bonus[3].inertia[1], 0.36886008861549813);
+    EXPECT_DOUBLE_EQ(bonus[3].inertia[2], 18.948744087979012);
+    EXPECT_DOUBLE_EQ(bonus[0].quat[0], 0.92373678792937974);
+    EXPECT_DOUBLE_EQ(bonus[0].quat[1], 0.0067268233964605153);
+    EXPECT_DOUBLE_EQ(bonus[0].quat[2], 0.016239988275423625);
+    EXPECT_DOUBLE_EQ(bonus[0].quat[3], -0.38262430562330857);
+    EXPECT_DOUBLE_EQ(bonus[1].quat[0], 0.92420701665838023);
+    EXPECT_DOUBLE_EQ(bonus[1].quat[1], 0.023090752704586423);
+    EXPECT_DOUBLE_EQ(bonus[1].quat[2], 0.0095209086022933816);
+    EXPECT_DOUBLE_EQ(bonus[1].quat[3], -0.38107421822833848);
+    EXPECT_DOUBLE_EQ(bonus[2].quat[0], 0.90191325590647364);
+    EXPECT_DOUBLE_EQ(bonus[2].quat[1], 0.20096813128512517);
+    EXPECT_DOUBLE_EQ(bonus[2].quat[2], 0.10027584751231088);
+    EXPECT_DOUBLE_EQ(bonus[2].quat[3], 0.36892959143125964);
+    EXPECT_DOUBLE_EQ(bonus[3].quat[0], 0.8851587738551242);
+    EXPECT_DOUBLE_EQ(bonus[3].quat[1], 0.093233030525564045);
+    EXPECT_DOUBLE_EQ(bonus[3].quat[2], -0.26735735980719261);
+    EXPECT_DOUBLE_EQ(bonus[3].quat[3], 0.36921753647848277);
+    EXPECT_DOUBLE_EQ(bonus[0].c1[0], -0.14933690186163631);
+    EXPECT_DOUBLE_EQ(bonus[0].c1[1], -0.55767753582520529);
+    EXPECT_DOUBLE_EQ(bonus[0].c1[2], -0.0052525338293288905);
+    EXPECT_DOUBLE_EQ(bonus[1].c1[0], 0.18561232929671426);
+    EXPECT_DOUBLE_EQ(bonus[1].c1[1], -0.18681344121910506);
+    EXPECT_DOUBLE_EQ(bonus[1].c1[2], 0.51379191773154387);
+    EXPECT_DOUBLE_EQ(bonus[2].c1[0], -0.78775285695558617);
+    EXPECT_DOUBLE_EQ(bonus[2].c1[1], -0.28372571379613187);
+    EXPECT_DOUBLE_EQ(bonus[2].c1[2], -0.22123552085772166);
+    EXPECT_DOUBLE_EQ(bonus[3].c1[0], -0.69845793336676587);
+    EXPECT_DOUBLE_EQ(bonus[3].c1[1], -0.47901475403318056);
+    EXPECT_DOUBLE_EQ(bonus[3].c1[2], 0.18083523090249506);
+    EXPECT_DOUBLE_EQ(bonus[0].c2[0], 0.55733290519255385);
+    EXPECT_DOUBLE_EQ(bonus[0].c2[1], 0.14942924536134222);
+    EXPECT_DOUBLE_EQ(bonus[0].c2[2], 0.019602723119529659);
+    EXPECT_DOUBLE_EQ(bonus[1].c2[0], 0.2208094914375279);
+    EXPECT_DOUBLE_EQ(bonus[1].c2[1], -0.22223836695322471);
+    EXPECT_DOUBLE_EQ(bonus[1].c2[2], -0.48496042114630089);
+    EXPECT_DOUBLE_EQ(bonus[2].c2[0], 0.6304379562181005);
+    EXPECT_DOUBLE_EQ(bonus[2].c2[1], -0.56674478453558153);
+    EXPECT_DOUBLE_EQ(bonus[2].c2[2], 0.17705460333259249);
+    EXPECT_DOUBLE_EQ(bonus[3].c2[0], 0.22007613459534958);
+    EXPECT_DOUBLE_EQ(bonus[3].c2[1], 0.15093208974463554);
+    EXPECT_DOUBLE_EQ(bonus[3].c2[2], -0.8238847002262436);
+    EXPECT_DOUBLE_EQ(bonus[0].c3[0], -0.40799600333091751);
+    EXPECT_DOUBLE_EQ(bonus[0].c3[1], 0.40824829046386302);
+    EXPECT_DOUBLE_EQ(bonus[0].c3[2], -0.014350189290200811);
+    EXPECT_DOUBLE_EQ(bonus[1].c3[0], -0.40642182073424188);
+    EXPECT_DOUBLE_EQ(bonus[1].c3[1], 0.40905180817232945);
+    EXPECT_DOUBLE_EQ(bonus[1].c3[2], -0.028831496585242929);
+    EXPECT_DOUBLE_EQ(bonus[2].c3[0], 0.15731490073748589);
+    EXPECT_DOUBLE_EQ(bonus[2].c3[1], 0.85047049833171351);
+    EXPECT_DOUBLE_EQ(bonus[2].c3[2], 0.044180917525129149);
+    EXPECT_DOUBLE_EQ(bonus[3].c3[0], 0.47838179877141634);
+    EXPECT_DOUBLE_EQ(bonus[3].c3[1], 0.32808266428854471);
+    EXPECT_DOUBLE_EQ(bonus[3].c3[2], 0.64304946932374851);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("group two id 2:4:2");
+    lmp->input->one("delete_atoms group two compress no");
+    lmp->input->one("write_restart test_atom_styles.restart");
+    lmp->input->one("clear");
+    lmp->input->one("read_restart test_atom_styles.restart");
+    lmp->input->one("replicate 1 1 2");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    EXPECT_THAT(std::string(lmp->atom->atom_style), Eq("tri"));
+    EXPECT_NE(lmp->atom->avec, nullptr);
+    EXPECT_EQ(lmp->atom->natoms, 8);
+    EXPECT_EQ(lmp->atom->nlocal, 8);
+    EXPECT_EQ(lmp->atom->nghost, 0);
+    EXPECT_EQ(lmp->atom->ntris, 4);
+    EXPECT_NE(lmp->atom->nmax, -1);
+    EXPECT_EQ(lmp->atom->tag_enable, 1);
+    EXPECT_EQ(lmp->atom->molecular, 0);
+    EXPECT_EQ(lmp->atom->ntypes, 3);
+    EXPECT_EQ(lmp->atom->tag_consecutive(), 0);
+    EXPECT_EQ(lmp->atom->map_tag_max, 12);
+
+    type   = lmp->atom->type;
+    tri    = lmp->atom->tri;
+    rmass  = lmp->atom->rmass;
+    radius = lmp->atom->radius;
+    avec   = (AtomVecTri *)lmp->atom->avec;
+    bonus  = avec->bonus;
+    EXPECT_EQ(type[GETIDX(1)], 1);
+    EXPECT_EQ(type[GETIDX(3)], 2);
+    EXPECT_EQ(type[GETIDX(5)], 3);
+    EXPECT_EQ(type[GETIDX(6)], 3);
+    EXPECT_EQ(type[GETIDX(7)], 1);
+    EXPECT_EQ(type[GETIDX(9)], 2);
+    EXPECT_EQ(type[GETIDX(11)], 3);
+    EXPECT_EQ(type[GETIDX(12)], 3);
+    EXPECT_EQ(tri[GETIDX(1)], 0);
+    EXPECT_EQ(tri[GETIDX(3)], 1);
+    EXPECT_EQ(tri[GETIDX(5)], -1);
+    EXPECT_EQ(tri[GETIDX(6)], -1);
+    EXPECT_EQ(tri[GETIDX(7)], 2);
+    EXPECT_EQ(tri[GETIDX(9)], 3);
+    EXPECT_EQ(tri[GETIDX(11)], -1);
+    EXPECT_EQ(tri[GETIDX(12)], -1);
+    EXPECT_DOUBLE_EQ(rmass[GETIDX(1)], 4);
+    EXPECT_DOUBLE_EQ(rmass[GETIDX(3)], 2.4);
+    EXPECT_DOUBLE_EQ(rmass[GETIDX(5)], 4.4);
+    EXPECT_DOUBLE_EQ(rmass[GETIDX(6)], 4.4);
+    EXPECT_DOUBLE_EQ(rmass[GETIDX(7)], 4);
+    EXPECT_DOUBLE_EQ(rmass[GETIDX(9)], 2.4);
+    EXPECT_DOUBLE_EQ(rmass[GETIDX(11)], 4.4);
+    EXPECT_DOUBLE_EQ(rmass[GETIDX(12)], 4.4);
+    EXPECT_DOUBLE_EQ(radius[GETIDX(1)], 0.5773502691896258);
+    EXPECT_DOUBLE_EQ(radius[GETIDX(3)], 0.8660254037844390);
+    EXPECT_DOUBLE_EQ(radius[GETIDX(5)], 0.5);
+    EXPECT_DOUBLE_EQ(radius[GETIDX(6)], 0.5);
+    EXPECT_DOUBLE_EQ(radius[GETIDX(7)], 0.5773502691896258);
+    EXPECT_DOUBLE_EQ(radius[GETIDX(9)], 0.8660254037844390);
+    EXPECT_DOUBLE_EQ(radius[GETIDX(11)], 0.5);
+    EXPECT_DOUBLE_EQ(radius[GETIDX(12)], 0.5);
+
+    EXPECT_DOUBLE_EQ(bonus[0].inertia[0], 0.072258416330334363);
+    EXPECT_DOUBLE_EQ(bonus[0].inertia[1], 13.94589575227541);
+    EXPECT_DOUBLE_EQ(bonus[0].inertia[2], 14.017974903242481);
+    EXPECT_DOUBLE_EQ(bonus[1].inertia[0], 0.23541253382609079);
+    EXPECT_DOUBLE_EQ(bonus[1].inertia[1], 18.948744087979005);
+    EXPECT_DOUBLE_EQ(bonus[1].inertia[2], 19.15175691481879);
+    EXPECT_DOUBLE_EQ(bonus[2].inertia[0], 0.072258416330334363);
+    EXPECT_DOUBLE_EQ(bonus[2].inertia[1], 13.94589575227541);
+    EXPECT_DOUBLE_EQ(bonus[2].inertia[2], 14.017974903242481);
+    EXPECT_DOUBLE_EQ(bonus[3].inertia[0], 0.23541253382609079);
+    EXPECT_DOUBLE_EQ(bonus[3].inertia[1], 18.948744087979005);
+    EXPECT_DOUBLE_EQ(bonus[3].inertia[2], 19.15175691481879);
+    EXPECT_DOUBLE_EQ(bonus[0].quat[0], 0.92373678792937974);
+    EXPECT_DOUBLE_EQ(bonus[0].quat[1], 0.0067268233964605153);
+    EXPECT_DOUBLE_EQ(bonus[0].quat[2], 0.016239988275423625);
+    EXPECT_DOUBLE_EQ(bonus[0].quat[3], -0.38262430562330857);
+    EXPECT_DOUBLE_EQ(bonus[1].quat[0], 0.90191325590647364);
+    EXPECT_DOUBLE_EQ(bonus[1].quat[1], 0.20096813128512517);
+    EXPECT_DOUBLE_EQ(bonus[1].quat[2], 0.10027584751231088);
+    EXPECT_DOUBLE_EQ(bonus[1].quat[3], 0.36892959143125964);
+    EXPECT_DOUBLE_EQ(bonus[2].quat[0], 0.92373678792937974);
+    EXPECT_DOUBLE_EQ(bonus[2].quat[1], 0.0067268233964605153);
+    EXPECT_DOUBLE_EQ(bonus[2].quat[2], 0.016239988275423625);
+    EXPECT_DOUBLE_EQ(bonus[2].quat[3], -0.38262430562330857);
+    EXPECT_DOUBLE_EQ(bonus[3].quat[0], 0.90191325590647364);
+    EXPECT_DOUBLE_EQ(bonus[3].quat[1], 0.20096813128512517);
+    EXPECT_DOUBLE_EQ(bonus[3].quat[2], 0.10027584751231088);
+    EXPECT_DOUBLE_EQ(bonus[3].quat[3], 0.36892959143125964);
+    EXPECT_DOUBLE_EQ(bonus[0].c1[0], -0.14933690186163631);
+    EXPECT_DOUBLE_EQ(bonus[0].c1[1], -0.55767753582520529);
+    EXPECT_DOUBLE_EQ(bonus[0].c1[2], -0.0052525338293288905);
+    EXPECT_DOUBLE_EQ(bonus[1].c1[0], -0.78775285695558617);
+    EXPECT_DOUBLE_EQ(bonus[1].c1[1], -0.28372571379613187);
+    EXPECT_DOUBLE_EQ(bonus[1].c1[2], -0.22123552085772166);
+    EXPECT_DOUBLE_EQ(bonus[2].c1[0], -0.14933690186163631);
+    EXPECT_DOUBLE_EQ(bonus[2].c1[1], -0.55767753582520529);
+    EXPECT_DOUBLE_EQ(bonus[2].c1[2], -0.0052525338293288905);
+    EXPECT_DOUBLE_EQ(bonus[3].c1[0], -0.78775285695558617);
+    EXPECT_DOUBLE_EQ(bonus[3].c1[1], -0.28372571379613187);
+    EXPECT_DOUBLE_EQ(bonus[3].c1[2], -0.22123552085772166);
+    EXPECT_DOUBLE_EQ(bonus[0].c2[0], 0.55733290519255385);
+    EXPECT_DOUBLE_EQ(bonus[0].c2[1], 0.14942924536134222);
+    EXPECT_DOUBLE_EQ(bonus[0].c2[2], 0.019602723119529659);
+    EXPECT_DOUBLE_EQ(bonus[1].c2[0], 0.6304379562181005);
+    EXPECT_DOUBLE_EQ(bonus[1].c2[1], -0.56674478453558153);
+    EXPECT_DOUBLE_EQ(bonus[1].c2[2], 0.17705460333259249);
+    EXPECT_DOUBLE_EQ(bonus[2].c2[0], 0.55733290519255385);
+    EXPECT_DOUBLE_EQ(bonus[2].c2[1], 0.14942924536134222);
+    EXPECT_DOUBLE_EQ(bonus[2].c2[2], 0.019602723119529659);
+    EXPECT_DOUBLE_EQ(bonus[3].c2[0], 0.6304379562181005);
+    EXPECT_DOUBLE_EQ(bonus[3].c2[1], -0.56674478453558153);
+    EXPECT_DOUBLE_EQ(bonus[3].c2[2], 0.17705460333259249);
+    EXPECT_DOUBLE_EQ(bonus[0].c3[0], -0.40799600333091751);
+    EXPECT_DOUBLE_EQ(bonus[0].c3[1], 0.40824829046386302);
+    EXPECT_DOUBLE_EQ(bonus[0].c3[2], -0.014350189290200811);
+    EXPECT_DOUBLE_EQ(bonus[1].c3[0], 0.15731490073748589);
+    EXPECT_DOUBLE_EQ(bonus[1].c3[1], 0.85047049833171351);
+    EXPECT_DOUBLE_EQ(bonus[1].c3[2], 0.044180917525129149);
+    EXPECT_DOUBLE_EQ(bonus[2].c3[0], -0.40799600333091751);
+    EXPECT_DOUBLE_EQ(bonus[2].c3[1], 0.40824829046386302);
+    EXPECT_DOUBLE_EQ(bonus[2].c3[2], -0.014350189290200811);
+    EXPECT_DOUBLE_EQ(bonus[3].c3[0], 0.15731490073748589);
+    EXPECT_DOUBLE_EQ(bonus[3].c3[1], 0.85047049833171351);
+    EXPECT_DOUBLE_EQ(bonus[3].c3[2], 0.044180917525129149);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("reset_atom_ids");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    EXPECT_EQ(lmp->atom->ntris, 4);
+    EXPECT_EQ(lmp->atom->tag_consecutive(), 1);
+    EXPECT_EQ(lmp->atom->map_tag_max, 8);
+
+    tri   = lmp->atom->tri;
+    rmass = lmp->atom->rmass;
+    avec  = (AtomVecTri *)lmp->atom->avec;
+    bonus = avec->bonus;
+    EXPECT_EQ(type[GETIDX(1)], 1);
+    EXPECT_EQ(type[GETIDX(2)], 3);
+    EXPECT_EQ(type[GETIDX(3)], 2);
+    EXPECT_EQ(type[GETIDX(4)], 3);
+    EXPECT_EQ(type[GETIDX(5)], 1);
+    EXPECT_EQ(type[GETIDX(6)], 3);
+    EXPECT_EQ(type[GETIDX(7)], 2);
+    EXPECT_EQ(type[GETIDX(8)], 3);
+    EXPECT_EQ(tri[GETIDX(1)], 0);
+    EXPECT_EQ(tri[GETIDX(2)], -1);
+    EXPECT_EQ(tri[GETIDX(3)], 1);
+    EXPECT_EQ(tri[GETIDX(4)], -1);
+    EXPECT_EQ(tri[GETIDX(5)], 2);
+    EXPECT_EQ(tri[GETIDX(6)], -1);
+    EXPECT_EQ(tri[GETIDX(7)], 3);
+    EXPECT_EQ(tri[GETIDX(8)], -1);
+    EXPECT_DOUBLE_EQ(bonus[0].inertia[0], 0.072258416330334363);
+    EXPECT_DOUBLE_EQ(bonus[0].inertia[1], 13.94589575227541);
+    EXPECT_DOUBLE_EQ(bonus[0].inertia[2], 14.017974903242481);
+    EXPECT_DOUBLE_EQ(bonus[1].inertia[0], 0.23541253382609079);
+    EXPECT_DOUBLE_EQ(bonus[1].inertia[1], 18.948744087979005);
+    EXPECT_DOUBLE_EQ(bonus[1].inertia[2], 19.15175691481879);
+    EXPECT_DOUBLE_EQ(bonus[2].inertia[0], 0.072258416330334363);
+    EXPECT_DOUBLE_EQ(bonus[2].inertia[1], 13.94589575227541);
+    EXPECT_DOUBLE_EQ(bonus[2].inertia[2], 14.017974903242481);
+    EXPECT_DOUBLE_EQ(bonus[3].inertia[0], 0.23541253382609079);
+    EXPECT_DOUBLE_EQ(bonus[3].inertia[1], 18.948744087979005);
     ASSERT_DOUBLE_EQ(bonus[3].inertia[2], 19.15175691481879);
 }
 

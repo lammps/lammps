@@ -20,6 +20,7 @@
 #include "kspace.h"
 #include "update.h"
 #include "neighbor.h"
+#include "modify.h"
 #include "pair.h"
 #include "timer.h"
 #include "finish.h"
@@ -278,6 +279,8 @@ void ThirdOrder::calculateMatrix()
     for (int alpha=0; alpha<3; alpha++){
       for (bigint j=1; j<=natoms; j++){
         local_jdx = atom->map(j);
+        if (gm[j-1] < 0 && !folded)
+          continue;
         for (int beta=0; beta<3; beta++){
           displace_atom(local_idx, alpha, 1);
           displace_atom(local_jdx, beta, 1);

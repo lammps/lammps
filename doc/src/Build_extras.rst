@@ -1255,6 +1255,15 @@ also typically :ref:`install the USER-OMP package <user-omp>`, as it can be
 used in tandem with the USER-INTEL package to good effect, as explained
 on the :doc:`Speed intel <Speed_intel>` doc page.
 
+When using Intel compilers version 16.0 or later is required.  You can
+also use the GNU or Clang compilers and they will provide performance
+improvements over regular styles and USER-OMP styles, but less so than
+with the Intel compilers.  Please also note, that some compilers have
+been found to apply memory alignment constraints incompletely or
+incorrectly and thus can cause segmentation faults in otherwise correct
+code when using features from the USER-INTEL package.
+
+
 CMake build
 ^^^^^^^^^^^
 

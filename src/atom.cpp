@@ -217,6 +217,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   map_bucket = NULL;
   map_hash = NULL;
 
+  unique_tags = nullptr;
+
   atom_style = NULL;
   avec = NULL;
 
@@ -295,6 +297,8 @@ Atom::~Atom()
   // delete mapping data structures
 
   map_delete();
+
+  delete unique_tags;
 }
 
 /* ----------------------------------------------------------------------
@@ -1554,6 +1558,8 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
   int *ivalues = NULL;
   double *dvalues = NULL;
 
+  if (!unique_tags) unique_tags = new std::set<tagint>;
+
   // loop over lines of body data
   // if I own atom tag, tokenize lines into ivalues/dvalues, call data_body()
   // else skip values
@@ -1564,6 +1570,11 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
 
     if (tagdata <= 0 || tagdata > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Bodies section of data file");
+
+    if (unique_tags->find(tagdata) == unique_tags->end())
+      unique_tags->insert(tagdata);
+    else
+      error->one(FLERR,"Duplicate atom ID in Bodies section of data file");
 
     ninteger = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
     ndouble = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));

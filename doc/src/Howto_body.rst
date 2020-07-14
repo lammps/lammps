@@ -6,16 +6,18 @@ Body particles
 In LAMMPS, body particles are generalized finite-size particles.
 Individual body particles can represent complex entities, such as
 surface meshes of discrete points, collections of sub-particles,
-deformable objects, etc.  Note that other kinds of finite-size spherical
-and aspherical particles are also supported by LAMMPS, such as spheres,
-ellipsoids, line segments, and triangles, but they are simpler entities
-than body particles.  See the :doc:`Howto spherical <Howto_spherical>`
-doc page for a general overview of all these particle types.
+deformable objects, etc.  Note that other kinds of finite-size
+spherical and aspherical particles are also supported by LAMMPS, such
+as spheres, ellipsoids, line segments, and triangles, but they are
+simpler entities that body particles.  See the :doc:`Howto spherical
+<Howto_spherical>` doc page for a general overview of all these
+particle types.
 
 Body particles are used via the :doc:`atom_style body <atom_style>`
 command.  It takes a body style as an argument.  The current body
 styles supported by LAMMPS are as follows.  The name in the first
-column is used as the *bstyle* argument for the :doc:`atom_style body <atom_style>` command.
+column is used as the *bstyle* argument for the :doc:`atom_style body
+<atom_style>` command.
 
 +----------------------+---------------------------------------------------+
 | *nparticle*          | rigid body with N sub-particles                   |
@@ -56,10 +58,10 @@ interactions, building neighbor lists, migrating particles between
 processors, output of particles to a dump file, etc.  This means that
 interactions between pairs of bodies or between a body and non-body
 (point) particle need to be encoded in an appropriate pair style.  If
-such a pair style were to mimic the :doc:`fix rigid <fix_rigid>` model,
-it would need to loop over the entire collection of interactions
-between pairs of simple particles within the two bodies, each time a
-single body/body interaction was computed.
+such a pair style were to mimic the :doc:`fix rigid <fix_rigid>`
+model, it would need to loop over the entire collection of
+interactions between pairs of simple particles within the two bodies,
+each time a single body/body interaction was computed.
 
 Thus it only makes sense to use body particles and develop such a pair
 style, when particle/particle interactions are more complex than what
@@ -213,6 +215,12 @@ particle. These floating-point values can be listed on as many lines
 as you wish; see the :doc:`read_data <read_data>` command for more
 details.
 
+.. note::
+
+  It is important that the vertices for each polygonal body particle be
+  listed in order around its perimeter, so that edges can be inferred.
+  LAMMPS does not check that this is the case.
+
 The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the
 values consistent with the current orientation of the rigid body
 around its center of mass.  The values are with respect to the
@@ -335,15 +343,23 @@ different for each body particle. These floating-point values can be
 listed on as many lines as you wish; see the :doc:`read_data
 <read_data>` command for more details.
 
-Note that vertices are numbered from 0 to N-1 inclusive.  The 2
-vertices in each edge can be in any order.  Faces can be triangles or
-quadrilaterals.  In both cases 4 vertices must be specified.  For a
+Note that vertices are numbered from 0 to N-1 inclusive.  The order of
+the 2 vertices in each edge does not matter.  Faces can be triangles
+or quadrilaterals.  In both cases 4 vertices must be specified.  For a
 triangle the 4th vertex is -1.  The 4 vertices within each triangle or
 quadrilateral face should be ordered by the right-hand rule so that
 the normal vector of the face points outwards from the center of mass.
-For polyhedron with faces with more than 4 vertices, you should
-split the complex face into multiple simple faces, each of
-which is a triangle or quadrilateral.
+For polyhedron with faces with more than 4 vertices, you should split
+the complex face into multiple simple faces, each of which is a
+triangle or quadrilateral.
+
+.. note::
+
+  If a face is a quadrilateral then its 4 vertices must be co-planar.
+  LAMMPS does not check that this is the case.  If you have a quad-face
+  of a polyhedron that is not planar (e.g. a cube whose vertices have
+  been randomly displaced), then you should represent the single quad
+  face as two triangle faces instead.
 
 The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the
 values consistent with the current orientation of the rigid body
@@ -400,7 +416,7 @@ by circles of diameter 0.5, is specified as follows:
 .. parsed-literal::
 
    1 3 13
-   2 0 0
+   2 1 1 
    0 1.33333 1.33333 0 0 0
    -2 0 0
    2 0 0
@@ -411,10 +427,13 @@ A sphere whose diameter is 3.0 and mass 1.0, is specified as follows:
 .. parsed-literal::
 
    1 3 10
-   1 0 0
+   1 1 1
    0.9 0.9 0.9 0 0 0
    0 0 0
    3.0
+
+The number of edges and faces for a rod or sphere must be listed,
+but is ignored.
 
 The :doc:`pair_style body/rounded/polhedron
 <pair_body_rounded_polyhedron>` command can be used with this body

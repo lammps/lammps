@@ -596,7 +596,9 @@ int AtomVecBody::pack_data_bonus(double *buf, int /*flag*/)
   int m = 0;
   for (i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;
-    m += bptr->pack_data_body(tag[i],body[i],buf);
+    int n = bptr->pack_data_body(tag[i],body[i],buf);
+    m += n;
+    if (buf) buf += n;
   }
 
   return m;

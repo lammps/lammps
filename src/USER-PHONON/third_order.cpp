@@ -29,7 +29,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
-enum{REGULAR,BALLISTICO};
+enum{REGULAR,ESKM};
 
 /* ---------------------------------------------------------------------- */
 
@@ -116,7 +116,7 @@ void ThirdOrder::command(int narg, char **arg)
 
   int style = -1;
   if (strcmp(arg[1],"regular") == 0) style = REGULAR;
-  else if (strcmp(arg[1],"eskm") == 0) style = BALLISTICO;
+  else if (strcmp(arg[1],"eskm") == 0) style = ESKM;
   else error->all(FLERR,"Illegal Dynamical Matrix command");
 
   // set option defaults
@@ -127,12 +127,16 @@ void ThirdOrder::command(int narg, char **arg)
   file_flag = 0;
   file_opened = 0;
   conversion = 1;
+  folded = 0;
 
   // read options from end of input line
   if (style == REGULAR) options(narg-3,&arg[3]);  //COME BACK
-  else if (style == BALLISTICO) options(narg-3,&arg[3]); //COME BACK
+  else if (style == ESKM) options(narg-3,&arg[3]); //COME BACK
   else if (comm->me == 0 && screen) fprintf(screen,"Illegal Dynamical Matrix command\n");
   del = force->numeric(FLERR, arg[2]);
+
+  if (!folded) dynlenb = dynlen;
+  if (folded) dynlenb = (atom->natoms)*3;
 
   if (atom->map_style == 0)
     error->all(FLERR,"third_order command requires an atom map, see atom_modify");
@@ -147,7 +151,7 @@ void ThirdOrder::command(int narg, char **arg)
     timer->barrier_stop();
   }
 
-  if (style == BALLISTICO) {
+  if (style == ESKM) {
     setup();
     convert_units(update->unit_style);
     conversion = conv_energy/conv_distance/conv_distance;
@@ -186,6 +190,16 @@ void ThirdOrder::options(int narg, char **arg)
       } else if (strcmp(arg[iarg+1],"yes") == 0) {
         binaryflag = 1;
       }
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"fold") == 0) {
+      if (iarg+2 > narg) error->all(FLERR, "Illegal dynamical_matrix command");
+      if (strcmp(arg[iarg+1],"yes") == 0) {
+        folded = 1;
+      }
+      else if (strcmp(arg[iarg+1],"no") == 0) {
+        folded = 0;
+      }
+      else error->all(FLERR,"Illegal input for dynamical_matrix fold option");
       iarg += 2;
     } else error->all(FLERR,"Illegal third_order command");
   }
@@ -242,23 +256,25 @@ void ThirdOrder::calculateMatrix()
   bigint *gm = groupmap;
   double **f = atom->f;
 
-  double *dynmat = new double[3*dynlen];
-  double *fdynmat = new double[3*dynlen];
-  memset(&dynmat[0],0,dynlen*sizeof(double));
-  memset(&fdynmat[0],0,dynlen*sizeof(double));
+  double *dynmat = new double[dynlenb];
+  double *fdynmat = new double[dynlenb];
+  memset(&dynmat[0],0,dynlenb*sizeof(double));
+  memset(&fdynmat[0],0,dynlenb*sizeof(double));
 
   if (comm->me == 0 && screen) {
     fprintf(screen,"Calculating Third Order ...\n");
     fprintf(screen,"  Total # of atoms = " BIGINT_FORMAT "\n", natoms);
     fprintf(screen,"  Atoms in group = " BIGINT_FORMAT "\n", gcount);
     fprintf(screen,"  Total third order elements = "
-            BIGINT_FORMAT "\n", (dynlen*dynlen*dynlen) );
+            BIGINT_FORMAT "\n", (dynlen*dynlenb*dynlenb) );
   }
 
   update->nsteps = 0;
   int prog = 0;
   for (bigint i=1; i<=natoms; i++){
     local_idx = atom->map(i);
+    if (gm[i-1] < 0)
+      continue;
     for (int alpha=0; alpha<3; alpha++){
       for (bigint j=1; j<=natoms; j++){
         local_jdx = atom->map(j);
@@ -270,9 +286,13 @@ void ThirdOrder::calculateMatrix()
             local_kdx = atom->map(k);
             for (int gamma=0; gamma<3; gamma++){
               if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
-                  && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
+                  && ((gm[j-1] >= 0 && gm[k-1] >= 0) || folded)
                   && local_kdx < nlocal) {
-                dynmat[gm[k-1]*3+gamma] += f[local_kdx][gamma];
+                if (folded) {
+                  dynmat[(k-1)*3+gamma] += f[local_kdx][gamma];
+                } else {
+                  dynmat[gm[k-1]*3+gamma] += f[local_kdx][gamma];
+                }
               }
             }
           }
@@ -282,9 +302,13 @@ void ThirdOrder::calculateMatrix()
             local_kdx = atom->map(k);
             for (int gamma=0; gamma<3; gamma++){
               if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
-                  && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
+                  && ((gm[j-1] >= 0 && gm[k-1] >= 0) || folded)
                   && local_kdx < nlocal) {
-                dynmat[gm[k-1]*3+gamma] -= f[local_kdx][gamma];
+                if (folded) {
+                  dynmat[(k-1)*3+gamma] -= f[local_kdx][gamma];
+                } else {
+                  dynmat[gm[k-1]*3+gamma] -= f[local_kdx][gamma];
+                }
               }
             }
           }
@@ -296,9 +320,13 @@ void ThirdOrder::calculateMatrix()
             local_kdx = atom->map(k);
             for (int gamma=0; gamma<3; gamma++){
               if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
-                  && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
+                  && ((gm[j-1] >= 0 && gm[k-1] >= 0) || folded)
                   && local_kdx < nlocal) {
-                dynmat[gm[k-1]*3+gamma] -= f[local_kdx][gamma];
+                if (folded) {
+                  dynmat[(k-1)*3+gamma] -= f[local_kdx][gamma];
+                } else {
+                  dynmat[gm[k-1]*3+gamma] -= f[local_kdx][gamma];
+                }
               }
             }
           }
@@ -308,20 +336,29 @@ void ThirdOrder::calculateMatrix()
             local_kdx = atom->map(k);
             for (int gamma=0; gamma<3; gamma++){
               if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
-                  && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
+                  && ((gm[j-1] >= 0 && gm[k-1] >= 0) || folded)
                   && local_kdx < nlocal) {
-                dynmat[gm[k-1]*3+gamma] += f[local_kdx][gamma];
-                dynmat[gm[k-1]*3+gamma] /= (4 * del * del);
+                if (folded) {
+                  dynmat[(k-1)*3+gamma] += f[local_kdx][gamma];
+                  dynmat[(k-1)*3+gamma] /= (4 * del * del);
+                } else {
+                  dynmat[gm[k-1]*3+gamma] += f[local_kdx][gamma];
+                  dynmat[gm[k-1]*3+gamma] /= (4 * del * del);
+                }
               }
             }
           }
           displace_atom(local_jdx, beta, 1);
           displace_atom(local_idx, alpha, 1);
-          MPI_Reduce(dynmat,fdynmat,3*dynlen,MPI_DOUBLE,MPI_SUM,0,world);
+          MPI_Reduce(dynmat,fdynmat,dynlenb,MPI_DOUBLE,MPI_SUM,0,world);
           if (me == 0){
-            writeMatrix(fdynmat, gm[i-1], alpha, gm[j-1], beta);
+            if (folded) {
+              writeMatrix(fdynmat, gm[i-1], alpha, (j-1), beta);
+            } else {
+              writeMatrix(fdynmat, gm[i-1], alpha, gm[j-1], beta);
+            }
           }
-          memset(&dynmat[0],0,dynlen*sizeof(double));
+          memset(&dynmat[0],0,dynlenb*sizeof(double));
         }
       }
     }
@@ -354,18 +391,34 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
   double norm;
   if (!binaryflag && fp) {
     clearerr(fp);
-    for (int k = 0; k < gcount; k++){
-      norm = square(dynmat[k*3])+
-        square(dynmat[k*3+1])+
-        square(dynmat[k*3+2]);
-      if (norm > 1.0e-16)
-        fprintf(fp,
-                BIGINT_FORMAT " %d " BIGINT_FORMAT " %d " BIGINT_FORMAT
-                " %7.8f %7.8f %7.8f\n",
-                i+1, a + 1, j+1, b + 1, groupmap[k]+1,
-                dynmat[k*3] * conversion,
-                dynmat[k*3+1] * conversion,
-                dynmat[k*3+2] * conversion);
+    if (folded){
+      for (int k = 0; k < atom->natoms; k++){
+        norm = square(dynmat[k*3])+
+               square(dynmat[k*3+1])+
+               square(dynmat[k*3+2]);
+        if (norm > 1.0e-16)
+          fprintf(fp,
+                  BIGINT_FORMAT " %d " BIGINT_FORMAT " %d %d"
+                      " %7.8f %7.8f %7.8f\n",
+                  i+1, a + 1, j+1, b + 1, k+1,
+                  dynmat[k*3] * conversion,
+                  dynmat[k*3+1] * conversion,
+                  dynmat[k*3+2] * conversion);
+      }
+    } else {
+      for (int k = 0; k < gcount; k++){
+        norm = square(dynmat[k*3])+
+               square(dynmat[k*3+1])+
+               square(dynmat[k*3+2]);
+        if (norm > 1.0e-16)
+          fprintf(fp,
+                  BIGINT_FORMAT " %d " BIGINT_FORMAT " %d " BIGINT_FORMAT
+                      " %7.8f %7.8f %7.8f\n",
+                  i+1, a + 1, j+1, b + 1, groupmap[k]+1,
+                  dynmat[k*3] * conversion,
+                  dynmat[k*3+1] * conversion,
+                  dynmat[k*3+2] * conversion);
+      }
     }
   } else if (binaryflag && fp){
     clearerr(fp);
@@ -406,6 +459,7 @@ void ThirdOrder::displace_atom(int local_idx, int direction, int magnitude)
 void ThirdOrder::update_force()
 {
   force_clear();
+  int n_post_force = modify->n_post_force;
 
   if (pair_compute_flag) {
     force->pair->compute(eflag,vflag);
@@ -426,6 +480,12 @@ void ThirdOrder::update_force()
     comm->reverse_comm();
     timer->stamp(Timer::COMM);
   }
+
+  // force modifications
+
+  if (n_post_force) modify->post_force(vflag);
+  timer->stamp(Timer::MODIFY);
+
   ++ update->nsteps;
 }
 

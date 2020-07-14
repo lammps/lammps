@@ -56,6 +56,7 @@ namespace LAMMPS_NS {
     double del;
     int igroup,groupbit;
     bigint dynlen;
+    bigint dynlenb;
     int scaleflag;
     int me;
     bigint gcount;  // number of atoms in group
@@ -65,6 +66,7 @@ namespace LAMMPS_NS {
     int binaryflag;            // 1 if dump file is written binary, 0 no
     int file_opened;           // 1 if openfile method has been called, 0 no
     int file_flag;             // 1 custom file name, 0 dynmat.dat
+    int folded;                // 1 if system is folded, 0 no
 
     FILE *fp;
   };

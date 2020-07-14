@@ -104,7 +104,7 @@ int BodyNparticle::unpack_border_body(AtomVecBody::Bonus *bonus, double *buf)
 void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
                               int *ifile, double *dfile)
 {
-  AtomVecBody::Bonus *bonus = &avec->bonus[ibonus];
+  auto bonus = &avec->bonus[ibonus];
 
   // set ninteger, ndouble in bonus and allocate 2 vectors of ints, doubles
 
@@ -150,9 +150,6 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
   if (inertia[0] < EPSILON*max) inertia[0] = 0.0;
   if (inertia[1] < EPSILON*max) inertia[1] = 0.0;
   if (inertia[2] < EPSILON*max) inertia[2] = 0.0;
-  if (inertia[3] < EPSILON*max) inertia[3] = 0.0;
-  if (inertia[4] < EPSILON*max) inertia[4] = 0.0;
-  if (inertia[5] < EPSILON*max) inertia[5] = 0.0;
 
   // exyz_space = principal axes in space frame
 
@@ -203,7 +200,7 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
 
 int BodyNparticle::pack_data_body(tagint atomID, int ibonus, double *buf)
 {
-  int m;
+  int m = 0;
   double values[3],p[3][3],pdiag[3][3],ispace[3][3];
 
   AtomVecBody::Bonus *bonus = &avec->bonus[ibonus];
@@ -218,7 +215,6 @@ int BodyNparticle::pack_data_body(tagint atomID, int ibonus, double *buf)
 
     // line 1: ID ninteger ndouble
 
-    m = 0;
     buf[m++] = ubuf(atomID).d;
     buf[m++] = ubuf(1).d;
     buf[m++] = ubuf(6 + 3*nsub).d;

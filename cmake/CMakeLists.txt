@@ -70,7 +70,11 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  set(CMAKE_TUNE_DEFAULT "-march=native")
+  include(CheckCXXCompilerFlag)
+  check_cxx_compiler_flag("-march=native" COMPILER_SUPPORTS_ARCH_NATIVE)
+  if(COMPILER_SUPPORTS_ARCH_NATIVE)
+    set(CMAKE_TUNE_DEFAULT "-march=native")
+  endif()
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")

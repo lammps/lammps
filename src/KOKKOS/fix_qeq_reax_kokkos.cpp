@@ -289,6 +289,8 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
 
   // calculate_Q();
 
+  k_s_hist.template sync<DeviceType>();
+  k_t_hist.template sync<DeviceType>();
   calculate_q();
   k_s_hist.template modify<DeviceType>();
   k_t_hist.template modify<DeviceType>();

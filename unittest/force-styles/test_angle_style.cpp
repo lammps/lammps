@@ -26,6 +26,7 @@
 #include "angle.h"
 #include "atom.h"
 #include "compute.h"
+#include "fmt/format.h"
 #include "force.h"
 #include "info.h"
 #include "input.h"
@@ -40,7 +41,6 @@
 #include <ctime>
 #include <mpi.h>
 
-#include <iostream>
 #include <map>
 #include <string>
 #include <utility>
@@ -230,9 +230,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         return;
     }
 
-    const int natoms  = lmp->atom->natoms;
-    const int bufsize = 256;
-    char buf[bufsize];
+    const int natoms = lmp->atom->natoms;
     std::string block("");
 
     YamlWriter writer(outfile);
@@ -284,20 +282,16 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     writer.emit_block("angle_coeff", block);
 
     // equilibrium angle
-    std::stringstream eqstr;
-    eqstr << lmp->atom->nangletypes;
-    for (int i = 0; i < lmp->atom->nangletypes; ++i) {
-        eqstr << " " << lmp->force->angle->equilibrium_angle(i + 1);
-    }
-    writer.emit("equilibrium", eqstr.str());
+    block = fmt::format("{}", lmp->atom->nangletypes);
+    for (int i = 0; i < lmp->atom->nangletypes; ++i)
+        block += fmt::format(" {}", lmp->force->angle->equilibrium_angle(i + 1));
+    writer.emit("equilibrium", block);
 
     // extract
     block.clear();
-    std::stringstream outstr;
-    for (auto &data : config.extract) {
-        outstr << data.first << " " << data.second << std::endl;
-    }
-    writer.emit_block("extract", outstr.str());
+    for (auto data : config.extract)
+        block += fmt::format("{} {}\n", data.first, data.second);
+    writer.emit_block("extract", block);
 
     // natoms
     writer.emit("natoms", natoms);
@@ -306,19 +300,18 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     writer.emit("init_energy", lmp->force->angle->energy);
 
     // init_stress
-    double *stress = lmp->force->angle->virial;
-    snprintf(buf, bufsize, "% 23.16e % 23.16e % 23.16e % 23.16e % 23.16e % 23.16e", stress[0],
-             stress[1], stress[2], stress[3], stress[4], stress[5]);
-    writer.emit_block("init_stress", buf);
+    auto stress = lmp->force->angle->virial;
+    block = fmt::format("{:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e}", stress[0],
+                        stress[1], stress[2], stress[3], stress[4], stress[5]);
+    writer.emit_block("init_stress", block);
 
     // init_forces
     block.clear();
-    double **f  = lmp->atom->f;
-    tagint *tag = lmp->atom->tag;
-    for (int i = 0; i < natoms; ++i) {
-        snprintf(buf, bufsize, "% 3d % 23.16e % 23.16e % 23.16e\n", (int)tag[i], f[i][0], f[i][1],
-                 f[i][2]);
-        block += buf;
+    auto f   = lmp->atom->f;
+    auto tag = lmp->atom->tag;
+    for (int i = 1; i <= natoms; ++i) {
+        const int j = lmp->atom->map(i);
+        block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, f[j][0], f[j][1], f[j][2]);
     }
     writer.emit_block("init_forces", block);
 
@@ -330,17 +323,16 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // run_stress
     stress = lmp->force->angle->virial;
-    snprintf(buf, bufsize, "% 23.16e % 23.16e % 23.16e % 23.16e % 23.16e % 23.16e", stress[0],
-             stress[1], stress[2], stress[3], stress[4], stress[5]);
-    writer.emit_block("run_stress", buf);
+    block  = fmt::format("{:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e}", stress[0],
+                        stress[1], stress[2], stress[3], stress[4], stress[5]);
+    writer.emit_block("run_stress", block);
 
     block.clear();
     f   = lmp->atom->f;
     tag = lmp->atom->tag;
-    for (int i = 0; i < natoms; ++i) {
-        snprintf(buf, bufsize, "% 3d % 23.16e % 23.16e % 23.16e\n", (int)tag[i], f[i][0], f[i][1],
-                 f[i][2]);
-        block += buf;
+    for (int i = 1; i <= natoms; ++i) {
+        const int j = lmp->atom->map(i);
+        block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, f[j][0], f[j][1], f[j][2]);
     }
     writer.emit_block("run_forces", block);
 
@@ -378,8 +370,9 @@ TEST(AngleStyle, plain)
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
     double epsilon = test_config.epsilon;
-    double **f     = lmp->atom->f;
-    tagint *tag    = lmp->atom->tag;
+
+    auto f   = lmp->atom->f;
+    auto tag = lmp->atom->tag;
     ErrorStats stats;
     stats.reset();
     const std::vector<coord_t> &f_ref = test_config.init_forces;
@@ -391,8 +384,8 @@ TEST(AngleStyle, plain)
     }
     if (print_stats) std::cerr << "init_forces stats, newton on: " << stats << std::endl;
 
-    Angle *angle   = lmp->force->angle;
-    double *stress = angle->virial;
+    auto angle  = lmp->force->angle;
+    auto stress = angle->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, epsilon);
@@ -410,8 +403,10 @@ TEST(AngleStyle, plain)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f                                 = lmp->atom->f;
-    stress                            = angle->virial;
+    f      = lmp->atom->f;
+    tag    = lmp->atom->tag;
+    stress = angle->virial;
+
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal + 1, f_run.size());
     stats.reset();
@@ -477,6 +472,7 @@ TEST(AngleStyle, plain)
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         f      = lmp->atom->f;
+        tag    = lmp->atom->tag;
         stress = angle->virial;
         stats.reset();
         for (int i = 0; i < nlocal; ++i) {
@@ -601,9 +597,11 @@ TEST(AngleStyle, omp)
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
     // relax error a bit for USER-OMP package
-    double epsilon                    = 5.0 * test_config.epsilon;
-    double **f                        = lmp->atom->f;
-    tagint *tag                       = lmp->atom->tag;
+    double epsilon = 5.0 * test_config.epsilon;
+
+    auto f   = lmp->atom->f;
+    auto tag = lmp->atom->tag;
+
     const std::vector<coord_t> &f_ref = test_config.init_forces;
     ErrorStats stats;
     stats.reset();
@@ -614,8 +612,8 @@ TEST(AngleStyle, omp)
     }
     if (print_stats) std::cerr << "init_forces stats, newton on: " << stats << std::endl;
 
-    Angle *angle   = lmp->force->angle;
-    double *stress = angle->virial;
+    auto angle  = lmp->force->angle;
+    auto stress = angle->virial;
 
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
@@ -634,8 +632,10 @@ TEST(AngleStyle, omp)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f                                 = lmp->atom->f;
-    stress                            = angle->virial;
+    f      = lmp->atom->f;
+    tag    = lmp->atom->tag;
+    stress = angle->virial;
+
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal + 1, f_run.size());
     stats.reset();
@@ -703,7 +703,8 @@ TEST(AngleStyle, omp)
         run_lammps(lmp);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
-        f = lmp->atom->f;
+        f   = lmp->atom->f;
+        tag = lmp->atom->tag;
         stats.reset();
         for (int i = 0; i < nlocal; ++i) {
             EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10 * epsilon);
@@ -797,14 +798,9 @@ TEST(AngleStyle, single)
     command("atom_modify map array");
     command("region box block -10.0 10.0 -10.0 10.0 -10.0 10.0 units box");
 
-    char buf[10];
-    std::string cmd("create_box 1 box");
-    cmd += " angle/types ";
-    snprintf(buf, 10, "%d", nangletypes);
-    cmd += buf;
-    cmd += " extra/angle/per/atom 2";
-    cmd += " extra/special/per/atom 2";
-    command(cmd);
+    command(fmt::format("create_box 1 box angle/types {} "
+                        "extra/angle/per/atom 2 extra/special/per/atom 2",
+                        nangletypes));
 
     command("pair_style zero 8.0");
     command("pair_coeff * *");

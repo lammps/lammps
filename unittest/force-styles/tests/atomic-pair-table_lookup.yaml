@@ -1,6 +1,6 @@
 ---
-lammps_version: 2 Jun 2020
-date_generated: Tue Jun  2 16:45:40 202
+lammps_version: 30 Jun 2020
+date_generated: Sun Jul 12 19:14:22 202
 epsilon: 5e-13
 prerequisites: ! |
   pair table

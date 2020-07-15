@@ -872,7 +872,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
     if (lmp->suffix) {
       std::string estyle = arg[2] + std::string("/") + lmp->suffix;
       if (fix_map->find(estyle) != fix_map->end()) {
-        FixCreator fix_creator = (*fix_map)[estyle];
+        FixCreator &fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
         delete[] fix[ifix]->style;
         fix[ifix]->style = new char[estyle.size()+1];
@@ -882,7 +882,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
     if (fix[ifix] == NULL && lmp->suffix2) {
       std::string estyle = arg[2] + std::string("/") + lmp->suffix2;
       if (fix_map->find(estyle) != fix_map->end()) {
-        FixCreator fix_creator = (*fix_map)[estyle];
+        FixCreator &fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
         delete[] fix[ifix]->style;
         fix[ifix]->style = new char[estyle.size()+1];
@@ -892,7 +892,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
   }
 
   if (fix[ifix] == NULL && fix_map->find(arg[2]) != fix_map->end()) {
-    FixCreator fix_creator = (*fix_map)[arg[2]];
+    FixCreator &fix_creator = (*fix_map)[arg[2]];
     fix[ifix] = fix_creator(lmp,narg,arg);
   }
 
@@ -1212,7 +1212,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
     if (lmp->suffix) {
       std::string estyle = arg[2] + std::string("/") + lmp->suffix;
       if (compute_map->find(estyle) != compute_map->end()) {
-        ComputeCreator compute_creator = (*compute_map)[estyle];
+        ComputeCreator &compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
         delete[] compute[ncompute]->style;
         compute[ncompute]->style = new char[estyle.size()+1];
@@ -1222,7 +1222,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
     if (compute[ncompute] == NULL && lmp->suffix2) {
       std::string estyle = arg[2] + std::string("/") + lmp->suffix2;
       if (compute_map->find(estyle) != compute_map->end()) {
-        ComputeCreator compute_creator = (*compute_map)[estyle];
+        ComputeCreator &compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
         delete[] compute[ncompute]->style;
         compute[ncompute]->style = new char[estyle.size()+1];
@@ -1233,7 +1233,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
 
   if (compute[ncompute] == NULL &&
       compute_map->find(arg[2]) != compute_map->end()) {
-    ComputeCreator compute_creator = (*compute_map)[arg[2]];
+    ComputeCreator &compute_creator = (*compute_map)[arg[2]];
     compute[ncompute] = compute_creator(lmp,narg,arg);
   }
 

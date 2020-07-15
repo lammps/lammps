@@ -1598,7 +1598,7 @@ void lammps_gather(void *ptr, char *name, int type, int count, void *data)
                                   " compute does not return peratom data");
         return;
       }
-      if (lmp->modify->compute[fcid]->size_peratom_cols != count) {
+      if (count>1 && lmp->modify->compute[fcid]->size_peratom_cols != count) {
         lmp->error->warning(FLERR,"lammps_gather:"
                                   " count != values peratom for compute");
         return;
@@ -1786,7 +1786,7 @@ void lammps_gather_concat(void *ptr, char *name, int type, int count, void *data
                                   " fix does not return peratom data");
         return;
       }
-      if (lmp->modify->fix[fcid]->size_peratom_cols != count) {
+      if (count>1 && lmp->modify->fix[fcid]->size_peratom_cols != count) {
         lmp->error->warning(FLERR,"lammps_gather_concat:"
                                   " count != values peratom for fix");
         return;
@@ -1818,7 +1818,7 @@ void lammps_gather_concat(void *ptr, char *name, int type, int count, void *data
                                   " compute does not return peratom data");
         return;
       }
-      if (lmp->modify->compute[fcid]->size_peratom_cols != count) {
+      if (count>1 && lmp->modify->compute[fcid]->size_peratom_cols != count) {
         lmp->error->warning(FLERR,"lammps_gather_concat:"
                                   " count != values peratom for compute");
         return;
@@ -2031,7 +2031,7 @@ void lammps_gather_subset(void *ptr, char *name,
                                   " fix does not return peratom data");
         return;
       }
-      if (lmp->modify->fix[fcid]->size_peratom_cols != count) {
+      if (count>1 && lmp->modify->fix[fcid]->size_peratom_cols != count) {
         lmp->error->warning(FLERR,"lammps_gather_subset:"
                                   " count != values peratom for fix");
         return;
@@ -2063,7 +2063,7 @@ void lammps_gather_subset(void *ptr, char *name,
                                   " compute does not return peratom data");
         return;
       }
-      if (lmp->modify->compute[fcid]->size_peratom_cols != count) {
+      if (count>1 && lmp->modify->compute[fcid]->size_peratom_cols != count) {
         lmp->error->warning(FLERR,"lammps_gather_subset:"
                                   " count != values peratom for compute");
         return;
@@ -2273,7 +2273,7 @@ void lammps_scatter(void *ptr, char *name,
                                   " fix does not return peratom data");
         return;
       }
-      if (lmp->modify->fix[fcid]->size_peratom_cols != count) {
+      if (count>1 && lmp->modify->fix[fcid]->size_peratom_cols != count) {
         lmp->error->warning(FLERR,"lammps_scatter:"
                                   " count != values peratom for fix");
         return;
@@ -2298,7 +2298,7 @@ void lammps_scatter(void *ptr, char *name,
                                   " compute does not return peratom data");
         return;
       }
-      if (lmp->modify->compute[fcid]->size_peratom_cols != count) {
+      if (count>1 && lmp->modify->compute[fcid]->size_peratom_cols != count) {
         lmp->error->warning(FLERR,"lammps_scatter:"
                                   " count != values peratom for compute");
         return;
@@ -2474,7 +2474,7 @@ void lammps_scatter_subset(void *ptr, char *name,
                                   " fix does not return peratom data");
         return;
       }
-      if (lmp->modify->fix[fcid]->size_peratom_cols != count) {
+      if (count>1 && lmp->modify->fix[fcid]->size_peratom_cols != count) {
         lmp->error->warning(FLERR,"lammps_scatter_subset:"
                                   " count != values peratom for fix");
         return;
@@ -2499,7 +2499,7 @@ void lammps_scatter_subset(void *ptr, char *name,
                                   " compute does not return peratom data");
         return;
       }
-      if (lmp->modify->compute[fcid]->size_peratom_cols != count) {
+      if (count>1 && lmp->modify->compute[fcid]->size_peratom_cols != count) {
         lmp->error->warning(FLERR,"lammps_scatter_subset:"
                                   " count != values peratom for compute");
         return;

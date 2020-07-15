@@ -13,7 +13,7 @@
 
 #ifdef COMMAND_CLASS
 
-CommandStyle(reset_ids,ResetIDs)
+CommandStyle(reset_atom_ids,ResetIDs)
 
 #else
 
@@ -70,7 +70,7 @@ E: Illegal ... command
 
 UNDOCUMENTED
 
-E: Cannot use reset_ids unless atoms have IDs
+E: Cannot use reset_atom_ids unless atoms have IDs
 
 UNDOCUMENTED
 

@@ -116,7 +116,9 @@ actually created.  The *fraction* setting must be a value between 0.0
 and 1.0.  A uniform random number between 0.0 and 1.0 is generated and
 the eligible bond is only created if the random number < fraction.
 
-The *aconstrain* keyword allows to specify a minimal and maximal angle
+The *aconstrain* keyword is only available
+when LAMMPS was built with the FixBondCreateAngle class.
+It allows to specify a minimal and maximal angle
 *amin* and *amax* between the two prospective bonding partners and a
 third particle that is already bonded to one of the two partners.
 Such a criterion can be important, for instance when new angle
@@ -124,8 +126,6 @@ potentials are simultaneously introduced after the formation of the
 new bond. Without a restriction on the permissible angle, and for
 stiffer angle potentials very large energies can arise and lead to
 uncontrolled behavior.
-The *aconstrain* keyword is only available
-when LAMMPS was built with the FixBondCreateAngle class.
 
 Any bond that is created is assigned a bond type of *bondtype*.
 

@@ -468,9 +468,11 @@ void PairReaxC::setup( )
     write_reax_atoms();
 
     int num_nbrs = estimate_reax_lists();
+    if (num_nbrs < 0)
+      error->all(FLERR,"Too many neighbors for pair style reax/c");
     if(!Make_List(system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR,
                   lists+FAR_NBRS))
-      error->one(FLERR,"Pair reax/c problem in far neighbor list");
+      error->all(FLERR,"Pair reax/c problem in far neighbor list");
     (lists+FAR_NBRS)->error_ptr=error;
 
     write_reax_lists();

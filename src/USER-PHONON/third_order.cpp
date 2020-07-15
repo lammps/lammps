@@ -20,6 +20,8 @@
 #include "kspace.h"
 #include "update.h"
 #include "neighbor.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
 #include "modify.h"
 #include "pair.h"
 #include "timer.h"
@@ -46,6 +48,8 @@ ThirdOrder::~ThirdOrder()
   if (fp && me == 0) fclose(fp);
   fp = NULL;
   memory->destroy(groupmap);
+  memory->destroy(ijnum);
+  memory->destroy(neighbortags);
 }
 
 /* ----------------------------------------------------------------------
@@ -71,6 +75,10 @@ void ThirdOrder::setup()
   domain->box_too_small_check();
   neighbor->build(1);
 
+  // build neighbor list this command needs based on earlier request
+
+  neighbor->build_one(list);
+
   // compute all forces
   external_force_clear = 0;
   eflag=0;
@@ -94,7 +102,18 @@ void ThirdOrder::command(int narg, char **arg)
     error->all(FLERR,"third_order command before simulation box is defined");
   if (narg < 2) error->all(FLERR,"Illegal third_order command");
 
+  // request a full neighbor list for use by this command
+
+  int irequest = neighbor->request(this);
+  neighbor->requests[irequest]->pair = 0;
+  neighbor->requests[irequest]->command = 1;
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->full = 1;
+  neighbor->requests[irequest]->occasional = 1;
+  neighbor->requests[irequest]->command_style = "third_order";
+
   lmp->init();
+  list = neighbor->lists[irequest];
 
   // orthogonal vs triclinic simulation box
 
@@ -129,6 +148,10 @@ void ThirdOrder::command(int narg, char **arg)
   file_opened = 0;
   conversion = 1;
   folded = 0;
+
+  // set Neigborlist attributes to NULL
+  ijnum = NULL;
+  neighbortags = NULL;
 
   // read options from end of input line
   if (style == REGULAR) options(narg-3,&arg[3]);  //COME BACK
@@ -256,11 +279,16 @@ void ThirdOrder::calculateMatrix()
   bigint natoms = atom->natoms;
   bigint *gm = groupmap;
   double **f = atom->f;
+  int inum;
+  bigint j;
+  bigint *firstneigh;
 
   double *dynmat = new double[dynlenb];
   double *fdynmat = new double[dynlenb];
   memset(&dynmat[0],0,dynlenb*sizeof(double));
   memset(&fdynmat[0],0,dynlenb*sizeof(double));
+
+  getNeighbortags();
 
   if (comm->me == 0 && screen) {
     fprintf(screen,"Calculating Third Order ...\n");
@@ -273,14 +301,17 @@ void ThirdOrder::calculateMatrix()
   update->nsteps = 0;
   int prog = 0;
   for (bigint i=1; i<=natoms; i++){
-    local_idx = atom->map(i);
     if (gm[i-1] < 0)
       continue;
+    inum = ijnum[i-1];
+    firstneigh = neighbortags[i-1];
+    local_idx = atom->map(i);
     for (int alpha=0; alpha<3; alpha++){
-      for (bigint j=1; j<=natoms; j++){
-        local_jdx = atom->map(j);
-        if (gm[j-1] < 0 && !folded)
+      for (int jj=0; jj<inum; jj++){
+        j = firstneigh[jj];
+        if (gm[j] < 0 && !folded)
           continue;
+        local_jdx = atom->map(j+1);
         for (int beta=0; beta<3; beta++){
           displace_atom(local_idx, alpha, 1);
           displace_atom(local_jdx, beta, 1);
@@ -289,7 +320,7 @@ void ThirdOrder::calculateMatrix()
             local_kdx = atom->map(k);
             for (int gamma=0; gamma<3; gamma++){
               if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
-                  && ((gm[j-1] >= 0 && gm[k-1] >= 0) || folded)
+                  && ((gm[j] >= 0 && gm[k-1] >= 0) || folded)
                   && local_kdx < nlocal) {
                 if (folded) {
                   dynmat[(k-1)*3+gamma] += f[local_kdx][gamma];
@@ -305,7 +336,7 @@ void ThirdOrder::calculateMatrix()
             local_kdx = atom->map(k);
             for (int gamma=0; gamma<3; gamma++){
               if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
-                  && ((gm[j-1] >= 0 && gm[k-1] >= 0) || folded)
+                  && ((gm[j] >= 0 && gm[k-1] >= 0) || folded)
                   && local_kdx < nlocal) {
                 if (folded) {
                   dynmat[(k-1)*3+gamma] -= f[local_kdx][gamma];
@@ -323,7 +354,7 @@ void ThirdOrder::calculateMatrix()
             local_kdx = atom->map(k);
             for (int gamma=0; gamma<3; gamma++){
               if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
-                  && ((gm[j-1] >= 0 && gm[k-1] >= 0) || folded)
+                  && ((gm[j] >= 0 && gm[k-1] >= 0) || folded)
                   && local_kdx < nlocal) {
                 if (folded) {
                   dynmat[(k-1)*3+gamma] -= f[local_kdx][gamma];
@@ -339,7 +370,7 @@ void ThirdOrder::calculateMatrix()
             local_kdx = atom->map(k);
             for (int gamma=0; gamma<3; gamma++){
               if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
-                  && ((gm[j-1] >= 0 && gm[k-1] >= 0) || folded)
+                  && ((gm[j] >= 0 && gm[k-1] >= 0) || folded)
                   && local_kdx < nlocal) {
                 if (folded) {
                   dynmat[(k-1)*3+gamma] += f[local_kdx][gamma];
@@ -356,9 +387,9 @@ void ThirdOrder::calculateMatrix()
           MPI_Reduce(dynmat,fdynmat,dynlenb,MPI_DOUBLE,MPI_SUM,0,world);
           if (me == 0){
             if (folded) {
-              writeMatrix(fdynmat, gm[i-1], alpha, (j-1), beta);
+              writeMatrix(fdynmat, gm[i-1], alpha, j, beta);
             } else {
-              writeMatrix(fdynmat, gm[i-1], alpha, gm[j-1], beta);
+              writeMatrix(fdynmat, gm[i-1], alpha, gm[j], beta);
             }
           }
           memset(&dynmat[0],0,dynlenb*sizeof(double));
@@ -635,4 +666,84 @@ void ThirdOrder::create_groupmap()
   delete[] displs;
   delete[] sub_groupmap;
   delete[] temp_groupmap;
+}
+
+void ThirdOrder::getNeighbortags() {
+  bigint natoms = atom->natoms;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+  int ii,jj,inum,jnum,sum;
+  int *temptags = (int*) malloc(natoms*sizeof(int));
+  int *ijnumproc = (int*) malloc(natoms*sizeof(int));
+  memory->create(ijnum, natoms, "thirdorder:ijnum");
+  bigint **firsttags;
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+  memset(&ijnumproc[0],0,natoms*sizeof(int));
+  for (ii = 0; ii < inum; ii++) {
+    //fprintf(screen, "i: %i on rank %i\n",atom->tag[ilist[ii] & NEIGHMASK], comm->me);
+    sum = 0;
+    memset(&temptags[0],0,natoms*sizeof(int));
+    jnum = numneigh[ii];
+    jlist = firstneigh[ii];
+    temptags[atom->tag[ilist[ii] & NEIGHMASK]-1] = 1;
+    for (jj = 0; jj < jnum; jj++) {
+      // fprintf(screen, "i: %i and j: %i on rank %i\n",atom->tag[ilist[ii] & NEIGHMASK], atom->tag[jlist[jj] & NEIGHMASK],comm->me);
+      temptags[atom->tag[jlist[jj] & NEIGHMASK]-1] = 1;
+    }
+    for (bigint i=0; i<=natoms-1; i++) {
+      sum += temptags[i];
+    }
+    ijnumproc[atom->tag[ilist[ii] & NEIGHMASK]-1] = sum;
+    // fprintf(screen, "tag %i sum %i on rank %i\n",atom->tag[ilist[ii] & NEIGHMASK], sum, comm->me);
+  }
+  MPI_Allreduce(ijnumproc,ijnum,natoms,MPI_INT,MPI_SUM,world);
+  sum = 0;
+  for (bigint i=0; i<=natoms-1; i++) {
+    sum += ijnum[i];
+  }
+
+  bigint nbytes = ((bigint) sizeof(bigint)) * sum;
+  bigint *data = (bigint *) memory->smalloc(nbytes, "thirdorder:firsttags");
+  bigint *datarecv = (bigint *) memory->smalloc(nbytes, "thirdorder:neighbortags");
+  nbytes = ((bigint) sizeof(bigint *)) * natoms;
+  firsttags = (bigint **) memory->smalloc(nbytes, "thirdorder:firsttags");
+  neighbortags = (bigint **) memory->smalloc(nbytes, "thirdorder:neighbortags");
+  memset(&data[0],0,sum*sizeof(bigint));
+  memset(&datarecv[0],0,sum*sizeof(bigint));
+
+  bigint n = 0;
+  for (bigint i = 0; i < natoms; i++) {
+    firsttags[i] = &data[n];
+    neighbortags[i] = &datarecv[n];
+    n += ijnum[i];
+  }
+
+  for (ii = 0; ii < inum; ii++) {
+    int m = 0;
+    memset(&temptags[0],0,natoms*sizeof(int));
+    jnum = numneigh[ii];
+    jlist = firstneigh[ii];
+    temptags[atom->tag[ilist[ii] & NEIGHMASK]-1] = 1;
+    for (jj = 0; jj < jnum; jj++) {
+      temptags[atom->tag[jlist[jj] & NEIGHMASK]-1] = 1;
+    }
+    for (int j=0; j < natoms; j++) {
+      if (temptags[j] == 1) {
+        firsttags[atom->tag[ilist[ii] & NEIGHMASK]-1][m] = j;
+        m += 1;
+      }
+    }
+  }
+  MPI_Allreduce(data,datarecv,sum,MPI_INT,MPI_SUM,world);
+  // for (bigint i=0; i < natoms; i++) {
+  //   jnum = ijnum[i];
+  //   for (int j=0; j < jnum; j++) {
+  //     fprintf(screen, "i: %lli and j: %i bool: %lli on rank %i\n", i, j, neighbortags[i][j], comm->me);
+  //   }
+  // }
+  free (ijnumproc);
+  free (temptags);
 }

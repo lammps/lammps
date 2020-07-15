@@ -195,7 +195,6 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
   type = atomKK->k_type.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
   nlocal = atomKK->nlocal;
-  nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
 
   k_params.template sync<DeviceType>();
@@ -207,6 +206,7 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
   inum = list->inum;
+  ignum = inum + list->gnum;
 
   copymode = 1;
 
@@ -289,6 +289,8 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
 
   // calculate_Q();
 
+  k_s_hist.template sync<DeviceType>();
+  k_t_hist.template sync<DeviceType>();
   calculate_q();
   k_s_hist.template modify<DeviceType>();
   k_t_hist.template modify<DeviceType>();
@@ -373,7 +375,6 @@ void FixQEqReaxKokkos<DeviceType>::allocate_array()
   }
 
   // init_storage
-  const int ignum = atom->nlocal + atom->nghost;
   FixQEqReaxKokkosZeroFunctor<DeviceType> zero_functor(this);
   Kokkos::parallel_for(ignum,zero_functor);
 
@@ -732,7 +733,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
   FixQEqReaxKokkosSparse12Functor<DeviceType> sparse12_functor(this);
   Kokkos::parallel_for(inum,sparse12_functor);
   if (neighflag != FULL) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(nlocal,nlocal+atom->nghost),*this);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(inum,ignum),*this);
     if (neighflag == HALF) {
       FixQEqReaxKokkosSparse13Functor<DeviceType,HALF> sparse13_functor(this);
       Kokkos::parallel_for(inum,sparse13_functor);
@@ -788,7 +789,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
     FixQEqReaxKokkosSparse22Functor<DeviceType> sparse22_functor(this);
     Kokkos::parallel_for(inum,sparse22_functor);
     if (neighflag != FULL) {
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(nlocal,nlocal+atom->nghost),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(inum,ignum),*this);
       if (need_dup)
         dup_o.reset_except(d_o);
       if (neighflag == HALF) {
@@ -869,7 +870,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
   FixQEqReaxKokkosSparse32Functor<DeviceType> sparse32_functor(this);
   Kokkos::parallel_for(inum,sparse32_functor);
   if (neighflag != FULL) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(nlocal,nlocal+atom->nghost),*this);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(inum,ignum),*this);
     if (need_dup)
       dup_o.reset_except(d_o);
     if (neighflag == HALF) {
@@ -927,7 +928,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
     FixQEqReaxKokkosSparse22Functor<DeviceType> sparse22_functor(this);
     Kokkos::parallel_for(inum,sparse22_functor);
     if (neighflag != FULL) {
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(nlocal,nlocal+atom->nghost),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(inum,ignum),*this);
       if (need_dup)
         dup_o.reset_except(d_o);
       if (neighflag == HALF) {

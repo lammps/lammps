@@ -657,7 +657,7 @@ AtomVec *Atom::new_avec(const std::string &style, int trysuffix, int &sflag)
       sflag = 1;
       std::string estyle = style + "/" + lmp->suffix;
       if (avec_map->find(estyle) != avec_map->end()) {
-        AtomVecCreator avec_creator = (*avec_map)[estyle];
+        AtomVecCreator &avec_creator = (*avec_map)[estyle];
         return avec_creator(lmp);
       }
     }
@@ -666,7 +666,7 @@ AtomVec *Atom::new_avec(const std::string &style, int trysuffix, int &sflag)
       sflag = 2;
       std::string estyle = style + "/" + lmp->suffix2;
       if (avec_map->find(estyle) != avec_map->end()) {
-        AtomVecCreator avec_creator = (*avec_map)[estyle];
+        AtomVecCreator &avec_creator = (*avec_map)[estyle];
         return avec_creator(lmp);
       }
     }
@@ -674,7 +674,7 @@ AtomVec *Atom::new_avec(const std::string &style, int trysuffix, int &sflag)
 
   sflag = 0;
   if (avec_map->find(style) != avec_map->end()) {
-    AtomVecCreator avec_creator = (*avec_map)[style];
+    AtomVecCreator &avec_creator = (*avec_map)[style];
     return avec_creator(lmp);
   }
 

@@ -350,10 +350,10 @@ void Replicate::command(int narg, char **arg)
     MPI_Allreduce(&n, &size_buf_all, 1, MPI_INT, MPI_SUM, world);
 
     if (me == 0 && screen) {
-      fprintf(screen,"  bounding box image = (%i %i %i) to (%i %i %i)\n",
+      fmt::print(screen,"  bounding box image = ({} {} {}) to ({} {} {})\n",
               _imagelo[0],_imagelo[1],_imagelo[2],
               _imagehi[0],_imagehi[1],_imagehi[2]);
-      fprintf(screen,"  bounding box extra memory = %.2f MB\n",
+      fmt::print(screen,"  bounding box extra memory = {:.2f} MB\n",
               (double)size_buf_all*sizeof(double)/1024/1024);
     }
 

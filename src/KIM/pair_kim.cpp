@@ -285,13 +285,6 @@ void PairKIM::allocate()
 
 void PairKIM::settings(int narg, char **arg)
 {
-  // some of the code below needs to know the number of atom types,
-  // but that is not set until the simulation box is created.
-
-  if (domain->box_exist == 0)
-    error->all(FLERR,"May not use 'pair_style kim' command before "
-               "simulation box is defined");
-
   // This is called when "pair_style kim ..." is read from input
   // may be called multiple times
   ++settings_call_count;
@@ -311,15 +304,6 @@ void PairKIM::settings(int narg, char **arg)
   // ensure we are in a clean state for KIM (needed on repeated call)
   // first time called will do nothing...
   kim_free();
-
-  // make sure things are allocated
-  if (allocated != 1) allocate();
-
-  // clear setflag to ensure coeff() is called after settings()
-  int n = atom->ntypes;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
 
   // set lmps_* bool flags
   set_lmps_flags();

@@ -105,10 +105,10 @@ CMake build
                                 # generic (default) or intel (Intel CPU) or fermi, kepler, cypress (NVIDIA)
    -D GPU_ARCH=value            # primary GPU hardware choice for GPU_API=cuda
                                 # value = sm_XX, see below
-                                # default is sm_30
+                                # default is sm_50
    -D HIP_ARCH=value            # primary GPU hardware choice for GPU_API=hip
                                 # value depends on selected HIP_PLATFORM
-                                # default is 'gfx906' for HIP_PLATFORM=hcc and 'sm_30' for HIP_PLATFORM=nvcc
+                                # default is 'gfx906' for HIP_PLATFORM=hcc and 'sm_50' for HIP_PLATFORM=nvcc
    -D HIP_USE_DEVICE_SORT=value # enables GPU sorting
                                 # value = yes (default) or no
    -D CUDPP_OPT=value           # optimization setting for GPU_API=cuda

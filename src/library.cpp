@@ -1567,7 +1567,7 @@ void lammps_gather(void *ptr, char *name, int type, int count, void *data)
                                   " fix does not return peratom data");
         return;
       }
-      if (lmp->modify->fix[fcid]->size_peratom_cols != count) {
+      if (count>1 && lmp->modify->fix[fcid]->size_peratom_cols != count) {
         lmp->error->warning(FLERR,"lammps_gather:"
                                   " count != values peratom for fix");
         return;

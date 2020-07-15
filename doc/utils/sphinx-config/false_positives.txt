@@ -3244,6 +3244,8 @@ whitesmoke
 whitespace
 Wi
 Wicaksono
+Widom
+widom
 Wijk
 Wikipedia
 wildcard

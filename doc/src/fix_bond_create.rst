@@ -2,6 +2,7 @@
 
 fix bond/create command
 =======================
+
 fix bond/create/angle command
 =============================
 
@@ -116,16 +117,14 @@ actually created.  The *fraction* setting must be a value between 0.0
 and 1.0.  A uniform random number between 0.0 and 1.0 is generated and
 the eligible bond is only created if the random number < fraction.
 
-The *aconstrain* keyword is only available
-when LAMMPS was built with the FixBondCreateAngle class.
-It allows to specify a minimal and maximal angle
-*amin* and *amax* between the two prospective bonding partners and a
-third particle that is already bonded to one of the two partners.
-Such a criterion can be important, for instance when new angle
-potentials are simultaneously introduced after the formation of the
-new bond. Without a restriction on the permissible angle, and for
-stiffer angle potentials very large energies can arise and lead to
-uncontrolled behavior.
+The *aconstrain* keyword is only available with the fix
+bond/create/angle command.  It allows to specify a minimal and maximal
+angle *amin* and *amax* between the two prospective bonding partners and
+a third particle that is already bonded to one of the two partners.
+Such a criterion can be important when new angles are defined together
+with the formation of a new bond.  Without a restriction on the
+permissible angle, and for stiffer angle potentials, very large energies
+can arise and lead to uncontrolled behavior.
 
 Any bond that is created is assigned a bond type of *bondtype*.
 
@@ -235,12 +234,14 @@ You can dump out snapshots of the current bond topology via the :doc:`dump local
 
 **Restart, fix_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
-are relevant to this fix.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.  None of the :doc:`fix_modify <fix_modify>` options are
+relevant to this fix.
 
 This fix computes two statistics which it stores in a global vector of
-length 2, which can be accessed by various :doc:`output commands <Howto_output>`.  The vector values calculated by this fix
-are "intensive".
+length 2, which can be accessed by various :doc:`output commands
+<Howto_output>`.  The vector values calculated by this fix are
+"intensive".
 
 These are the 2 quantities:
 

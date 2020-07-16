@@ -7,20 +7,20 @@
 .. index:: pair_style lj/cut/coul/debye/kk
 .. index:: pair_style lj/cut/coul/debye/omp
 .. index:: pair_style lj/cut/coul/dsf
-.. index:: pair_style lj/cut/coul/dsf/gpu 
-.. index:: pair_style lj/cut/coul/dsf/kk 
-.. index:: pair_style lj/cut/coul/dsf/omp 
-.. index:: pair_style lj/cut/coul/long 
-.. index:: pair_style lj/cut/coul/long/gpu 
-.. index:: pair_style lj/cut/coul/long/kk 
-.. index:: pair_style lj/cut/coul/long/intel 
-.. index:: pair_style lj/cut/coul/long/opt 
-.. index:: pair_style lj/cut/coul/long/omp 
-.. index:: pair_style lj/cut/coul/msm 
-.. index:: pair_style lj/cut/coul/msm/gpu 
-.. index:: pair_style lj/cut/coul/msm/omp 
-.. index:: pair_style lj/cut/coul/wolf 
-.. index:: pair_style lj/cut/coul/wolf/omp 
+.. index:: pair_style lj/cut/coul/dsf/gpu
+.. index:: pair_style lj/cut/coul/dsf/kk
+.. index:: pair_style lj/cut/coul/dsf/omp
+.. index:: pair_style lj/cut/coul/long
+.. index:: pair_style lj/cut/coul/long/gpu
+.. index:: pair_style lj/cut/coul/long/kk
+.. index:: pair_style lj/cut/coul/long/intel
+.. index:: pair_style lj/cut/coul/long/opt
+.. index:: pair_style lj/cut/coul/long/omp
+.. index:: pair_style lj/cut/coul/msm
+.. index:: pair_style lj/cut/coul/msm/gpu
+.. index:: pair_style lj/cut/coul/msm/omp
+.. index:: pair_style lj/cut/coul/wolf
+.. index:: pair_style lj/cut/coul/wolf/omp
 
 pair_style lj/cut/coul/cut command
 ==================================
@@ -234,7 +234,7 @@ LJ and Coulombic cutoffs specified in the pair_style command are used.
 If only one cutoff is specified, it is used as the cutoff for both LJ
 and Coulombic interactions for this type pair.  If both coefficients
 are specified, they are used as the LJ and Coulombic cutoffs for this
-type pair. 
+type pair.
 
 For *lj/cut/coul/long* and *lj/cut/coul/msm* only the LJ cutoff can be
 specified since a Coulombic cutoff cannot be specified for an individual I,J

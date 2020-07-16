@@ -34,10 +34,10 @@ using namespace LAMMPS_NS;
 enum{SCALAR,VECTOR,ARRAY};
 
 ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), list(NULL), mliap(NULL),
-  gradforce(NULL), mliapall(NULL), map(NULL), 
-  descriptors(NULL), gamma_row_index(NULL), gamma_col_index(NULL),
-  gamma(NULL), egradient(NULL), model(NULL), descriptor(NULL)
+  Compute(lmp, narg, arg), list(NULL), mliap(NULL), mliapall(NULL),
+  gradforce(NULL), map(NULL), descriptors(NULL), gamma(NULL),
+  gamma_row_index(NULL), gamma_col_index(NULL),
+  egradient(NULL), model(NULL), descriptor(NULL)
 {
   array_flag = 1;
   extarray = 0;
@@ -263,15 +263,15 @@ void ComputeMLIAP::compute_array()
   // i.e. gamma = d2E/dsigma_l.dB_k
   // sigma_l is a parameter and B_k is a descriptor of atom i
   // for SNAP, this is a sparse natoms*nparams*ndescriptors matrix,
-  // but in general it could be fully dense. 
- 
-  model->param_gradient(map, list, descriptors, gamma_row_index, 
+  // but in general it could be fully dense.
+
+  model->param_gradient(map, list, descriptors, gamma_row_index,
                         gamma_col_index, gamma, egradient);
 
 
   // calculate descriptor gradient contributions to parameter gradients
 
-  descriptor->compute_gradients(map, list, gamma_nnz, gamma_row_index, 
+  descriptor->compute_gradients(map, list, gamma_nnz, gamma_row_index,
                              gamma_col_index, gamma, gradforce,
                              yoffset, zoffset);
 
@@ -280,7 +280,6 @@ void ComputeMLIAP::compute_array()
   for (int ielem = 0; ielem < nelements; ielem++) {
     const int elemoffset = nparams*ielem;
     for (int jparam = 0; jparam < nparams; jparam++) {
-      int irow = 1;
       for (int i = 0; i < ntotal; i++) {
         double *gradforcei = gradforce[i]+elemoffset;
         int iglobal = atom->tag[i];

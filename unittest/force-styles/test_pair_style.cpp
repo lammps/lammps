@@ -25,6 +25,7 @@
 
 #include "atom.h"
 #include "compute.h"
+#include "fmt/format.h"
 #include "force.h"
 #include "info.h"
 #include "input.h"
@@ -42,7 +43,6 @@
 #include <ctime>
 #include <mpi.h>
 
-#include <iostream>
 #include <map>
 #include <string>
 #include <utility>
@@ -64,6 +64,7 @@ void cleanup_lammps(LAMMPS *lmp, const TestConfig &cfg)
     delete_file(cfg.basename + ".data");
     delete_file(cfg.basename + "-coeffs.in");
     delete lmp;
+    lmp = nullptr;
 }
 
 LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool newton = true)
@@ -231,9 +232,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         return;
     }
 
-    const int natoms  = lmp->atom->natoms;
-    const int bufsize = 256;
-    char buf[bufsize];
+    const int natoms = lmp->atom->natoms;
     std::string block("");
 
     YamlWriter writer(outfile);
@@ -252,21 +251,21 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // prerequisites
     block.clear();
-    for (auto prerequisite : config.prerequisites) {
+    for (auto &prerequisite : config.prerequisites) {
         block += prerequisite.first + " " + prerequisite.second + "\n";
     }
     writer.emit_block("prerequisites", block);
 
     // pre_commands
     block.clear();
-    for (auto command : config.pre_commands) {
+    for (auto &command : config.pre_commands) {
         block += command + "\n";
     }
     writer.emit_block("pre_commands", block);
 
     // post_commands
     block.clear();
-    for (auto command : config.post_commands) {
+    for (auto &command : config.post_commands) {
         block += command + "\n";
     }
     writer.emit_block("post_commands", block);
@@ -286,11 +285,9 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // extract
     block.clear();
-    std::stringstream outstr;
-    for (auto data : config.extract) {
-        outstr << data.first << " " << data.second << std::endl;
-    }
-    writer.emit_block("extract", outstr.str());
+    for (auto data : config.extract)
+        block += fmt::format("{} {}\n", data.first, data.second);
+    writer.emit_block("extract", block);
 
     // natoms
     writer.emit("natoms", natoms);
@@ -302,19 +299,18 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     writer.emit("init_coul", lmp->force->pair->eng_coul);
 
     // init_stress
-    double *stress = lmp->force->pair->virial;
-    snprintf(buf, bufsize, "% 23.16e % 23.16e % 23.16e % 23.16e % 23.16e % 23.16e", stress[0],
-             stress[1], stress[2], stress[3], stress[4], stress[5]);
-    writer.emit_block("init_stress", buf);
+    auto stress = lmp->force->pair->virial;
+    block = fmt::format("{:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e}", stress[0],
+                        stress[1], stress[2], stress[3], stress[4], stress[5]);
+    writer.emit_block("init_stress", block);
 
     // init_forces
     block.clear();
-    double **f  = lmp->atom->f;
-    tagint *tag = lmp->atom->tag;
-    for (int i = 0; i < natoms; ++i) {
-        snprintf(buf, bufsize, "% 3d % 23.16e % 23.16e % 23.16e\n", (int)tag[i], f[i][0], f[i][1],
-                 f[i][2]);
-        block += buf;
+    auto f   = lmp->atom->f;
+    auto tag = lmp->atom->tag;
+    for (int i = 1; i <= natoms; ++i) {
+        const int j = lmp->atom->map(i);
+        block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, f[j][0], f[j][1], f[j][2]);
     }
     writer.emit_block("init_forces", block);
 
@@ -329,17 +325,16 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // run_stress
     stress = lmp->force->pair->virial;
-    snprintf(buf, bufsize, "% 23.16e % 23.16e % 23.16e % 23.16e % 23.16e % 23.16e", stress[0],
-             stress[1], stress[2], stress[3], stress[4], stress[5]);
-    writer.emit_block("run_stress", buf);
+    block  = fmt::format("{:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e}", stress[0],
+                        stress[1], stress[2], stress[3], stress[4], stress[5]);
+    writer.emit_block("run_stress", block);
 
     block.clear();
     f   = lmp->atom->f;
     tag = lmp->atom->tag;
-    for (int i = 0; i < natoms; ++i) {
-        snprintf(buf, bufsize, "% 3d % 23.16e % 23.16e % 23.16e\n", (int)tag[i], f[i][0], f[i][1],
-                 f[i][2]);
-        block += buf;
+    for (int i = 1; i <= natoms; ++i) {
+        const int j = lmp->atom->map(i);
+        block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, f[j][0], f[j][1], f[j][2]);
     }
     writer.emit_block("run_forces", block);
 
@@ -363,7 +358,7 @@ TEST(PairStyle, plain)
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
                      "in this LAMMPS configuration:\n";
-        for (auto prerequisite : test_config.prerequisites) {
+        for (auto &prerequisite : test_config.prerequisites) {
             std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
         }
         GTEST_SKIP();
@@ -382,8 +377,8 @@ TEST(PairStyle, plain)
     if (lmp->force->kspace && lmp->force->kspace->compute_flag)
         if (utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;
 #endif
-    double **f  = lmp->atom->f;
-    tagint *tag = lmp->atom->tag;
+    auto f   = lmp->atom->f;
+    auto tag = lmp->atom->tag;
     ErrorStats stats;
     stats.reset();
     const std::vector<coord_t> &f_ref = test_config.init_forces;
@@ -395,8 +390,8 @@ TEST(PairStyle, plain)
     }
     if (print_stats) std::cerr << "init_forces stats, newton on: " << stats << std::endl;
 
-    Pair *pair     = lmp->force->pair;
-    double *stress = pair->virial;
+    auto pair   = lmp->force->pair;
+    auto stress = pair->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, epsilon);
@@ -415,8 +410,10 @@ TEST(PairStyle, plain)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f                                 = lmp->atom->f;
-    stress                            = pair->virial;
+    f      = lmp->atom->f;
+    tag    = lmp->atom->tag;
+    stress = pair->virial;
+
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal + 1, f_run.size());
     stats.reset();
@@ -442,7 +439,9 @@ TEST(PairStyle, plain)
     double energy = lmp->modify->compute[id]->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
     EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
-    EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
+    // skip comparing per-atom energy with total energy for "kim"
+    if (std::string("kim") != lmp->force->pair_style)
+        EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -484,6 +483,7 @@ TEST(PairStyle, plain)
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         f      = lmp->atom->f;
+        tag    = lmp->atom->tag;
         stress = pair->virial;
         stats.reset();
         for (int i = 0; i < nlocal; ++i) {
@@ -508,7 +508,9 @@ TEST(PairStyle, plain)
         energy = lmp->modify->compute[id]->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
         EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
-        EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
+        // skip comparing per-atom energy with total energy for "kim"
+        if (std::string("kim") != lmp->force->pair_style)
+            EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
         if (print_stats) std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
     }
 
@@ -639,7 +641,7 @@ TEST(PairStyle, omp)
     if (!lmp) {
         std::cerr << "One or more prerequisite styles with /omp suffix\n"
                      "are not available in this LAMMPS configuration:\n";
-        for (auto prerequisite : test_config.prerequisites) {
+        for (auto &prerequisite : test_config.prerequisites) {
             std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
         }
         GTEST_SKIP();
@@ -659,8 +661,9 @@ TEST(PairStyle, omp)
     if (lmp->force->kspace && lmp->force->kspace->compute_flag)
         if (utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;
 #endif
-    double **f                        = lmp->atom->f;
-    tagint *tag                       = lmp->atom->tag;
+    auto f   = lmp->atom->f;
+    auto tag = lmp->atom->tag;
+
     const std::vector<coord_t> &f_ref = test_config.init_forces;
     ErrorStats stats;
     stats.reset();
@@ -671,8 +674,8 @@ TEST(PairStyle, omp)
     }
     if (print_stats) std::cerr << "init_forces stats, newton on: " << stats << std::endl;
 
-    Pair *pair     = lmp->force->pair;
-    double *stress = pair->virial;
+    auto pair   = lmp->force->pair;
+    auto stress = pair->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10 * epsilon);
@@ -691,8 +694,10 @@ TEST(PairStyle, omp)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f                                 = lmp->atom->f;
-    stress                            = pair->virial;
+    f      = lmp->atom->f;
+    stress = pair->virial;
+    tag    = lmp->atom->tag;
+
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal + 1, f_run.size());
     stats.reset();
@@ -759,7 +764,8 @@ TEST(PairStyle, omp)
         run_lammps(lmp);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
-        f = lmp->atom->f;
+        f   = lmp->atom->f;
+        tag = lmp->atom->tag;
         stats.reset();
         for (int i = 0; i < nlocal; ++i) {
             EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 5 * epsilon);
@@ -824,7 +830,7 @@ TEST(PairStyle, intel)
         GTEST_SKIP();
     }
 
-    if (lmp->force->kspace && utils::strmatch(lmp->force->kspace_style,"^pppm/disp/intel")) {
+    if (lmp->force->kspace && utils::strmatch(lmp->force->kspace_style, "^pppm/disp/intel")) {
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
         if (!verbose) ::testing::internal::GetCapturedStdout();
@@ -855,8 +861,9 @@ TEST(PairStyle, intel)
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
-    double **f                        = lmp->atom->f;
-    tagint *tag                       = lmp->atom->tag;
+    auto f   = lmp->atom->f;
+    auto tag = lmp->atom->tag;
+
     const std::vector<coord_t> &f_ref = test_config.init_forces;
     ErrorStats stats;
     stats.reset();
@@ -887,8 +894,10 @@ TEST(PairStyle, intel)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f                                 = lmp->atom->f;
-    stress                            = pair->virial;
+    f      = lmp->atom->f;
+    tag    = lmp->atom->tag;
+    stress = pair->virial;
+
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal + 1, f_run.size());
     stats.reset();
@@ -963,8 +972,9 @@ TEST(PairStyle, opt)
     if (lmp->force->kspace && lmp->force->kspace->compute_flag)
         if (utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;
 #endif
-    double **f                        = lmp->atom->f;
-    tagint *tag                       = lmp->atom->tag;
+    auto f   = lmp->atom->f;
+    auto tag = lmp->atom->tag;
+
     const std::vector<coord_t> &f_ref = test_config.init_forces;
     ErrorStats stats;
     stats.reset();
@@ -996,6 +1006,7 @@ TEST(PairStyle, opt)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f                                 = lmp->atom->f;
+    tag                               = lmp->atom->tag;
     stress                            = pair->virial;
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal + 1, f_run.size());
@@ -1048,7 +1059,7 @@ TEST(PairStyle, single)
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
                      "in this LAMMPS configuration:\n";
-        for (auto prerequisite : test_config.prerequisites) {
+        for (auto &prerequisite : test_config.prerequisites) {
             std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
         }
         test_config.prerequisites.pop_back();
@@ -1130,11 +1141,7 @@ TEST(PairStyle, single)
     command("atom_modify map array");
     command("region box block -10.0 10.0 -10.0 10.0 -10.0 10.0 units box");
 
-    char buf[10];
-    snprintf(buf, 10, "%d", ntypes);
-    std::string cmd("create_box ");
-    cmd += buf;
-    cmd += " box";
+    auto cmd = fmt::format("create_box {} box", ntypes);
     if (molecular) {
         cmd += " bond/types 1"
                " extra/bond/per/atom 1"
@@ -1304,7 +1311,7 @@ TEST(PairStyle, extract)
         GTEST_SKIP();
     }
 
-    Pair *pair = lmp->force->pair;
+    auto pair = lmp->force->pair;
     if (!pair->compute_flag) {
         std::cerr << "Pair style disabled" << std::endl;
         if (!verbose) ::testing::internal::CaptureStdout();

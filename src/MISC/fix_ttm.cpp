@@ -515,7 +515,7 @@ void FixTTM::end_of_step()
                   total_nnodes,MPI_DOUBLE,MPI_SUM,world);
 
     if (me == 0) {
-      fprintf(fp,BIGINT_FORMAT,update->ntimestep);
+      fmt::print(fp,"{}",update->ntimestep);
 
       double T_a;
       for (int ixnode = 0; ixnode < nxnodes; ixnode++)

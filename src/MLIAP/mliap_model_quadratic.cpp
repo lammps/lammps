@@ -106,13 +106,13 @@ void MLIAPModelQuadratic::compute_gradients(MLIAPData* data)
 
 /* ----------------------------------------------------------------------
    Calculate model double gradients w.r.t descriptors and parameters
-   for each atom energy gamma_lk = d2E(B)/dB_k/dsigma_l, 
-   where sigma_l is a parameter, B_k a descriptor, 
+   for each atom energy gamma_lk = d2E(B)/dB_k/dsigma_l,
+   where sigma_l is a parameter, B_k a descriptor,
    and atom subscript i is omitted
 
    gamma is in CSR format:
       nnz = number of non-zero values
-      gamma_row_index[inz] = l indices, 0 <= l < nparams 
+      gamma_row_index[inz] = l indices, 0 <= l < nparams
       gamma_col_indexiinz] = k indices, 0 <= k < ndescriptors
       gamma[i][inz] = non-zero values, 0 <= inz < nnz
 
@@ -125,7 +125,7 @@ void MLIAPModelQuadratic::compute_gradgrads(class MLIAPData* data)
 
   for (int l = 0; l < data->nelements*data->nparams; l++)
     data->egradient[l] = 0.0;
-    
+
   for (int ii = 0; ii < data->natoms; ii++) {
     const int i = data->iatoms[ii];
     const int ielem = data->ielems[ii];
@@ -164,14 +164,14 @@ void MLIAPModelQuadratic::compute_gradgrads(class MLIAPData* data)
     }
 
     // gradient of energy of atom I w.r.t. parameters
-    
+
     l = elemoffset;
     data->egradient[l++] += 1.0;
     for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
       data->egradient[l++] += data->descriptors[ii][icoeff];
-    
+
     // quadratic contributions
-    
+
     for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++) {
       double bveci = data->descriptors[ii][icoeff];
       data->egradient[l++] += 0.5*bveci*bveci;

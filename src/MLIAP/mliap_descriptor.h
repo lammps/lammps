@@ -32,7 +32,7 @@ public:
   int ndescriptors;              // number of descriptors
   int nelements;                 // # of unique elements
   char **elements;               // names of unique elements
-  double **cutsq;                // nelem x nelem rcutsq values 
+  double **cutsq;                // nelem x nelem rcutsq values
   double cutmax;                 // maximum cutoff needed
 protected:
 

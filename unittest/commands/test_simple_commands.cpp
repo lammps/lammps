@@ -168,8 +168,10 @@ TEST_F(SimpleCommandsTest, Quit)
     auto mesg = ::testing::internal::GetCapturedStdout();
     ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Expected integer .*"));
 
+#if !defined(OMPI_MAJOR_VERSION) // this stalls with OpenMPI. skip.
     ASSERT_EXIT(lmp->input->one("quit"), ExitedWithCode(0), "");
     ASSERT_EXIT(lmp->input->one("quit 9"), ExitedWithCode(9), "");
+#endif
 }
 
 TEST_F(SimpleCommandsTest, ResetTimestep)

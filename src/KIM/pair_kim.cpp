@@ -305,15 +305,6 @@ void PairKIM::settings(int narg, char **arg)
   // first time called will do nothing...
   kim_free();
 
-  // make sure things are allocated
-  if (allocated != 1) allocate();
-
-  // clear setflag to ensure coeff() is called after settings()
-  int n = atom->ntypes;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
   // set lmps_* bool flags
   set_lmps_flags();
 

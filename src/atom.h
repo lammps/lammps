@@ -16,6 +16,7 @@
 
 #include "pointers.h"
 #include <map>
+#include <set>
 #include <string>
 
 namespace LAMMPS_NS {
@@ -241,6 +242,7 @@ class Atom : protected Pointers {
   int map_user;                   // user requested map style:
                                   // 0 = no request, 1=array, 2=hash, 3=yes
   tagint map_tag_max;             // max atom ID that map() is setup for
+  std::set<tagint> *unique_tags;  // set to ensure that bodies have unique tags
 
   // spatial sorting of atoms
 

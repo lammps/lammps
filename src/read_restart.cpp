@@ -884,6 +884,14 @@ void ReadRestart::header()
       atom->extra_improper_per_atom = read_int();
     } else if (flag == ATOM_MAXSPECIAL) {
       atom->maxspecial = read_int();
+    } else if (flag == NELLIPSOIDS) {
+      atom->nellipsoids = read_bigint();
+    } else if (flag == NLINES) {
+      atom->nlines = read_bigint();
+    } else if (flag == NTRIS) {
+      atom->ntris = read_bigint();
+    } else if (flag == NBODIES) {
+      atom->nbodies = read_bigint();
 
       // for backward compatibility
     } else if (flag == EXTRA_SPECIAL_PER_ATOM) {

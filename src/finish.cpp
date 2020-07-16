@@ -462,8 +462,8 @@ void Finish::end(int flag)
     } else fraction = flop3 = flop1 = 0.0;
 
     if (me == 0)
-      utils::logmesg(lmp,fmt::format("FFT time (% of Kspce) = {} ({})\n"
-                                     "FFT Gflps 3d (1d only) = {} {}\n",
+      utils::logmesg(lmp,fmt::format("FFT time (% of Kspce) = {:.6} ({:.4})\n"
+                                     "FFT Gflps 3d (1d only) = {:.8} {:.8}\n",
                                      time3d,fraction,flop3,flop1));
   }
 
@@ -472,7 +472,7 @@ void Finish::end(int flag)
     tmp = atom->nlocal;
     stats(1,&tmp,&ave,&max,&min,10,histo);
     if (me == 0) {
-      mesg += fmt::format("Nlocal:    {} ave {} max {} min\n",ave,max,min);
+      mesg += fmt::format("Nlocal:    {:11.6} ave {:11.6g} max {:11.6g} min\n",ave,max,min);
       mesg += "Histogram:";
       for (i = 0; i < 10; i++) mesg += fmt::format(" {}",histo[i]);
       mesg += "\n";
@@ -481,7 +481,7 @@ void Finish::end(int flag)
     tmp = atom->nghost;
     stats(1,&tmp,&ave,&max,&min,10,histo);
     if (me == 0) {
-      mesg += fmt::format("Nghost:    {} ave {} max {} min\n",ave,max,min);
+      mesg += fmt::format("Nghost:    {:11.6} ave {:11.6g} max {:11.6g} min\n",ave,max,min);
       mesg += "Histogram:";
       for (i = 0; i < 10; i++) mesg += fmt::format(" {}",histo[i]);
       mesg += "\n";
@@ -510,7 +510,7 @@ void Finish::end(int flag)
     tmp = nneigh;
     stats(1,&tmp,&ave,&max,&min,10,histo);
     if (me == 0) {
-      mesg += fmt::format("Neighs:    {} ave {} max {} min\n",ave,max,min);
+      mesg += fmt::format("Neighs:    {:11.6} ave {:11.6g} max {:11.6g} min\n",ave,max,min);
       mesg += "Histogram:";
       for (i = 0; i < 10; i++) mesg += fmt::format(" {}",histo[i]);
       mesg += "\n";
@@ -538,7 +538,7 @@ void Finish::end(int flag)
       tmp = nneighfull;
       stats(1,&tmp,&ave,&max,&min,10,histo);
       if (me == 0) {
-        mesg += fmt::format("FullNghs:  {} ave {} max {} min\n",ave,max,min);
+        mesg += fmt::format("FullNghs:  {:11.6} ave {:11.6g} max {:11.6g} min\n",ave,max,min);
         mesg += "Histogram:";
         for (i = 0; i < 10; i++) mesg += fmt::format(" {}",histo[i]);
         mesg += "\n";
@@ -584,11 +584,11 @@ void Finish::end(int flag)
     if (me == 0) {
       std::string mesg;
 
-      mesg += fmt::format("Total # of neighbors = {}\n",static_cast<bigint>(nall));
+      mesg += fmt::format("Total # of neighbors = {:.8g}\n",nall);
       if (atom->natoms > 0)
-        mesg += fmt::format("Ave neighs/atom = {}\n",nall/atom->natoms);
+        mesg += fmt::format("Ave neighs/atom = {:.8}\n",nall/atom->natoms);
       if (atom->molecular && atom->natoms > 0)
-        mesg += fmt::format("Ave special neighs/atom = {}\n",
+        mesg += fmt::format("Ave special neighs/atom = {:.8}\n",
                             nspec_all/atom->natoms);
       mesg += fmt::format("Neighbor list builds = {}\n",neighbor->ncalls);
       if (neighbor->dist_check)

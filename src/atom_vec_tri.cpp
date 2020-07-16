@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -683,6 +684,64 @@ void AtomVecTri::pack_data_post(int ilocal)
 {
   tri[ilocal] = tri_flag;
   rmass[ilocal] = rmass_one;
+}
+
+/* ----------------------------------------------------------------------
+   pack bonus tri info for writing to data file
+   if buf is NULL, just return buffer size
+------------------------------------------------------------------------- */
+
+int AtomVecTri::pack_data_bonus(double *buf, int /*flag*/)
+{
+  int i,j;
+  double xc,yc,zc;
+  double dc1[3],dc2[3],dc3[3];
+  double p[3][3];
+
+  double **x = atom->x;
+  tagint *tag = atom->tag;
+  int nlocal = atom->nlocal;
+
+  int m = 0;
+  for (i = 0; i < nlocal; i++) {
+    if (tri[i] < 0) continue;
+    if (buf) {
+      buf[m++] = ubuf(tag[i]).d;
+      j = tri[i];
+      MathExtra::quat_to_mat(bonus[j].quat,p);
+      MathExtra::matvec(p,bonus[j].c1,dc1);
+      MathExtra::matvec(p,bonus[j].c2,dc2);
+      MathExtra::matvec(p,bonus[j].c3,dc3);
+      xc = x[i][0];
+      yc = x[i][1];
+      zc = x[i][2];
+      buf[m++] = xc + dc1[0];
+      buf[m++] = yc + dc1[1];
+      buf[m++] = zc + dc1[2];
+      buf[m++] = xc + dc2[0];
+      buf[m++] = yc + dc2[1];
+      buf[m++] = zc + dc2[2];
+      buf[m++] = xc + dc3[0];
+      buf[m++] = yc + dc3[1];
+      buf[m++] = zc + dc3[2];
+    } else m += size_data_bonus;
+  }
+  return m;
+}
+
+/* ----------------------------------------------------------------------
+   write bonus tri info to data file
+------------------------------------------------------------------------- */
+
+void AtomVecTri::write_data_bonus(FILE *fp, int n, double *buf, int /*flag*/)
+{
+  int i = 0;
+  while (i < n) {
+    fmt::print(fp,"{} {} {} {} {} {} {} {} {} {}\n", ubuf(buf[i]).i,
+               buf[i+1],buf[i+2],buf[i+3],buf[i+4],buf[i+5],buf[i+6],
+               buf[i+7],buf[i+8],buf[i+9]);
+    i += size_data_bonus;
+  }
 }
 
 /* ----------------------------------------------------------------------

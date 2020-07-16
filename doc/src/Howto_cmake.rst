@@ -331,7 +331,7 @@ Some common LAMMPS specific variables
    * - ``BUILD_DOC``
      - include building the HTML format documentation for packaging/installing (default: ``off``)
    * - ``CMAKE_TUNE_FLAGS``
-     - common compiler flags, for optimization or instrumentation (default: compiler specific)
+     - common compiler flags, for optimization or instrumentation (default:)
    * - ``LAMMPS_MACHINE``
      - when set to ``name`` the LAMMPS executable and library will be called ``lmp_name`` and ``liblammps_name.a``
    * - ``LAMMPS_EXCEPTIONS``

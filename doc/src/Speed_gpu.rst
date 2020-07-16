@@ -50,6 +50,10 @@ but this can be overridden using the device option of the :doc:`package <package
 command. run lammps/lib/gpu/ocl_get_devices to get a list of available
 platforms and devices with a suitable ICD available.
 
+To compute and use this package in HIP mode, you have to have the AMD ROCm
+software installed. Versions of ROCm older than 3.5 are currently deprecated
+by AMD.
+
 **Building LAMMPS with the GPU package:**
 
 See the :ref:`Build extras <gpu>` doc page for

@@ -71,6 +71,7 @@
 #include "universe.h"
 #include "input.h"
 #include "variable.h"
+#include "utils.h"
 #include "fix_store_kim.h"
 
 extern "C" {
@@ -149,10 +150,6 @@ void KimInteractions::do_setup(int narg, char **arg)
           simulatorModel,"atom-type-num-list",atom_type_num_list.c_str());
       KIM_SimulatorModel_CloseTemplateMap(simulatorModel);
 
-      int len = atom_type_sym_list.size()+1;
-      char *strbuf = new char[len];
-      char *strword;
-
       // validate species selection
 
       int sim_num_species;
@@ -160,28 +157,21 @@ void KimInteractions::do_setup(int narg, char **arg)
       char const *sim_species;
       KIM_SimulatorModel_GetNumberOfSupportedSpecies(
           simulatorModel,&sim_num_species);
-      strcpy(strbuf,atom_type_sym_list.c_str());
-      strword = strtok(strbuf," \t");
-      while (strword) {
+
+      for (auto atom_type_sym : utils::split_words(atom_type_sym_list)) {
         species_is_supported = false;
-        if (strcmp(strword,"NULL") == 0) continue;
+        if (atom_type_sym == "NULL") continue;
         for (int i=0; i < sim_num_species; ++i) {
           KIM_SimulatorModel_GetSupportedSpecies(simulatorModel,i,&sim_species);
-          if (strcmp(sim_species,strword) == 0)
-            species_is_supported = true;
+          if (atom_type_sym == sim_species) species_is_supported = true;
         }
         if (!species_is_supported) {
-          std::string msg("Species '");
-          msg += strword;
-          msg += "' is not supported by this KIM Simulator Model";
+          std::string msg = "Species '";
+          msg += atom_type_sym + "' is not supported by this KIM Simulator Model";
           error->all(FLERR,msg);
         }
-        strword = strtok(NULL," \t");
       }
-      delete[] strbuf;
-    }
-    else
-    {
+    } else {
       KIM_SimulatorModel_CloseTemplateMap(simulatorModel);
     }
 
@@ -204,17 +194,13 @@ void KimInteractions::do_setup(int narg, char **arg)
     int sim_model_idx=-1;
     for (int i=0; i < sim_fields; ++i) {
       KIM_SimulatorModel_GetSimulatorFieldMetadata(
-          simulatorModel,i,&sim_lines,&sim_field);
+        simulatorModel,i,&sim_lines,&sim_field);
       if (0 == strcmp(sim_field,"model-defn")) {
         sim_model_idx = i;
         for (int j=0; j < sim_lines; ++j) {
           KIM_SimulatorModel_GetSimulatorFieldLine(
-              simulatorModel,sim_model_idx,j,&sim_value);
-	  char strbuf[MAXLINE];
-	  char * strword;
-	  strcpy(strbuf,sim_value);
-	  strword = strtok(strbuf," \t");
-	  if (0==strcmp(strword,"KIM_SET_TYPE_PARAMETERS")) {
+            simulatorModel,sim_model_idx,j,&sim_value);
+          if (utils::strmatch(sim_value,"^KIM_SET_TYPE_PARAMETERS")) {
             // Notes regarding the KIM_SET_TYPE_PARAMETERS command
             //  * This is an INTERNAL command.
             //  * It is intended for use only by KIM Simulator Models.
@@ -226,11 +212,11 @@ void KimInteractions::do_setup(int narg, char **arg)
             //  * The command is not documented fully as it is expected to be
             //    temporary.  Eventually it should be replaced by a more
             //    comprehensive symbolic types support in lammps.
-	    KIM_SET_TYPE_PARAMETERS(sim_value);
-	  } else {
+            KIM_SET_TYPE_PARAMETERS(sim_value);
+          } else {
             input->one(sim_value);
           }
-	}
+        }
       }
     }
 
@@ -284,7 +270,7 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(char const *const input_line) cons
     error->one(FLERR,"Parameter file not found");
   }
 
-  char *species1, *species2, *the_rest, *check;
+  char *species1, *species2, *the_rest;
   std::vector<char *> species;
   for (int i = 0; i < atom->ntypes; ++i)
   {

@@ -622,14 +622,16 @@ cylinder, x for a y-axis cylinder, and x for a z-axis cylinder.
 
 **Output info:**
 
-This compute calculates a per-atom vector, which can be accessed by
-any command that uses per-atom values from a compute as input.  See
-the :doc:`Howto output <Howto_output>` doc page for an overview of
+This compute calculates a per-atom vector (the chunk ID), which can
+be accessed by any command that uses per-atom values from a compute
+as input.  It also calculates a global scalar (the number of chunks),
+which can be similarly accessed everywhere outside of a per-atom context.
+See the :doc:`Howto output <Howto_output>` doc page for an overview of
 LAMMPS output options.
 
 The per-atom vector values are unitless chunk IDs, ranging from 1 to
 *Nchunk* (inclusive) for atoms assigned to chunks, and 0 for atoms not
-belonging to a chunk.
+belonging to a chunk.  The scalar contains the value of *Nchunk*.
 
 Restrictions
 """"""""""""

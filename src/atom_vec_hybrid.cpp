@@ -23,6 +23,7 @@
 using namespace LAMMPS_NS;
 
 #define NFIELDSTRINGS 12         // # of field strings
+enum{ELLIPSOID,LINE,TRIANGLE,BODY};   // also in WriteData
 
 /* ---------------------------------------------------------------------- */
 
@@ -272,77 +273,6 @@ void AtomVecHybrid::force_clear(int n, size_t nbytes)
     if (styles[k]->forceclearflag) styles[k]->force_clear(n,nbytes);
 }
 
-/* ----------------------------------------------------------------------
-   modify values for AtomVec::pack_restart() to pack
-------------------------------------------------------------------------- */
-
-void AtomVecHybrid::pack_restart_pre(int ilocal)
-{
-  for (int k = 0; k < nstyles; k++)
-    styles[k]->pack_restart_pre(ilocal);
-}
-
-/* ----------------------------------------------------------------------
-   unmodify values packed by AtomVec::pack_restart()
-------------------------------------------------------------------------- */
-
-void AtomVecHybrid::pack_restart_post(int ilocal)
-{
-  for (int k = 0; k < nstyles; k++)
-    styles[k]->pack_restart_post(ilocal);
-}
-
-/* ----------------------------------------------------------------------
-   initialize other atom quantities after AtomVec::unpack_restart()
-------------------------------------------------------------------------- */
-
-void AtomVecHybrid::unpack_restart_init(int ilocal)
-{
-  for (int k = 0; k < nstyles; k++)
-    styles[k]->unpack_restart_init(ilocal);
-}
-
-/* ----------------------------------------------------------------------
-   initialize non-zero atom quantities
-------------------------------------------------------------------------- */
-
-void AtomVecHybrid::create_atom_post(int ilocal)
-{
-  for (int k = 0; k < nstyles; k++)
-    styles[k]->create_atom_post(ilocal);
-}
-
-/* ----------------------------------------------------------------------
-   modify what AtomVec::data_atom() just unpacked
-   or initialize other atom quantities
-------------------------------------------------------------------------- */
-
-void AtomVecHybrid::data_atom_post(int ilocal)
-{
-  for (int k = 0; k < nstyles; k++)
-    styles[k]->data_atom_post(ilocal);
-}
-
-/* ----------------------------------------------------------------------
-   modify values for AtomVec::pack_data() to pack
-------------------------------------------------------------------------- */
-
-void AtomVecHybrid::pack_data_pre(int ilocal)
-{
-  for (int k = 0; k < nstyles; k++)
-    styles[k]->pack_data_pre(ilocal);
-}
-
-/* ----------------------------------------------------------------------
-   unmodify values packed by AtomVec::pack_data()
-------------------------------------------------------------------------- */
-
-void AtomVecHybrid::pack_data_post(int ilocal)
-{
-  for (int k = 0; k < nstyles; k++)
-    styles[k]->pack_data_post(ilocal);
-}
-
 /* ---------------------------------------------------------------------- */
 
 void AtomVecHybrid::copy_bonus(int i, int j, int delflag)
@@ -455,6 +385,110 @@ bigint AtomVecHybrid::memory_usage_bonus()
   for (int k = 0; k < nstyles_bonus; k++)
     bytes += styles_bonus[k]->memory_usage_bonus();
   return bytes;
+}
+
+/* ----------------------------------------------------------------------
+   modify values for AtomVec::pack_restart() to pack
+------------------------------------------------------------------------- */
+
+void AtomVecHybrid::pack_restart_pre(int ilocal)
+{
+  for (int k = 0; k < nstyles; k++)
+    styles[k]->pack_restart_pre(ilocal);
+}
+
+/* ----------------------------------------------------------------------
+   unmodify values packed by AtomVec::pack_restart()
+------------------------------------------------------------------------- */
+
+void AtomVecHybrid::pack_restart_post(int ilocal)
+{
+  for (int k = 0; k < nstyles; k++)
+    styles[k]->pack_restart_post(ilocal);
+}
+
+/* ----------------------------------------------------------------------
+   initialize other atom quantities after AtomVec::unpack_restart()
+------------------------------------------------------------------------- */
+
+void AtomVecHybrid::unpack_restart_init(int ilocal)
+{
+  for (int k = 0; k < nstyles; k++)
+    styles[k]->unpack_restart_init(ilocal);
+}
+
+/* ----------------------------------------------------------------------
+   initialize non-zero atom quantities
+------------------------------------------------------------------------- */
+
+void AtomVecHybrid::create_atom_post(int ilocal)
+{
+  for (int k = 0; k < nstyles; k++)
+    styles[k]->create_atom_post(ilocal);
+}
+
+/* ----------------------------------------------------------------------
+   modify what AtomVec::data_atom() just unpacked
+   or initialize other atom quantities
+------------------------------------------------------------------------- */
+
+void AtomVecHybrid::data_atom_post(int ilocal)
+{
+  for (int k = 0; k < nstyles; k++)
+    styles[k]->data_atom_post(ilocal);
+}
+
+/* ----------------------------------------------------------------------
+   modify values for AtomVec::pack_data() to pack
+------------------------------------------------------------------------- */
+
+void AtomVecHybrid::pack_data_pre(int ilocal)
+{
+  for (int k = 0; k < nstyles; k++)
+    styles[k]->pack_data_pre(ilocal);
+}
+
+/* ----------------------------------------------------------------------
+   unmodify values packed by AtomVec::pack_data()
+------------------------------------------------------------------------- */
+
+void AtomVecHybrid::pack_data_post(int ilocal)
+{
+  for (int k = 0; k < nstyles; k++)
+    styles[k]->pack_data_post(ilocal);
+}
+
+/* ----------------------------------------------------------------------
+   pack bonus info for writing to data file, match flag to sub-style
+------------------------------------------------------------------------- */
+
+int AtomVecHybrid::pack_data_bonus(double *buf, int flag)
+{
+  for (int k = 0; k < nstyles; k++) {
+    if (flag == ELLIPSOID && strcmp(keywords[k],"ellipsoid") != 0) continue;
+    if (flag == LINE && strcmp(keywords[k],"line") != 0) continue;
+    if (flag == TRIANGLE && strcmp(keywords[k],"tri") != 0) continue;
+    if (flag == BODY && strcmp(keywords[k],"body") != 0) continue;
+
+    return styles[k]->pack_data_bonus(buf,flag);
+  }
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   write bonus info to data file, match flag to sub-style
+------------------------------------------------------------------------- */
+
+void AtomVecHybrid::write_data_bonus(FILE *fp, int n, double *buf, int flag)
+{
+  for (int k = 0; k < nstyles; k++) {
+    if (flag == ELLIPSOID && strcmp(keywords[k],"ellipsoid") != 0) continue;
+    if (flag == LINE && strcmp(keywords[k],"line") != 0) continue;
+    if (flag == TRIANGLE && strcmp(keywords[k],"tri") != 0) continue;
+    if (flag == BODY && strcmp(keywords[k],"body") != 0) continue;
+
+    styles[k]->write_data_bonus(fp,n,buf,flag);
+  }
 }
 
 /* ----------------------------------------------------------------------

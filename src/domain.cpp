@@ -1764,7 +1764,7 @@ void Domain::add_region(int narg, char **arg)
     if (lmp->suffix) {
       std::string estyle = std::string(arg[1]) + "/" + lmp->suffix;
       if (region_map->find(estyle) != region_map->end()) {
-        RegionCreator region_creator = (*region_map)[estyle];
+        RegionCreator &region_creator = (*region_map)[estyle];
         regions[nregion] = region_creator(lmp, narg, arg);
         regions[nregion]->init();
         nregion++;
@@ -1775,7 +1775,7 @@ void Domain::add_region(int narg, char **arg)
     if (lmp->suffix2) {
       std::string estyle = std::string(arg[1]) + "/" + lmp->suffix2;
       if (region_map->find(estyle) != region_map->end()) {
-        RegionCreator region_creator = (*region_map)[estyle];
+        RegionCreator &region_creator = (*region_map)[estyle];
         regions[nregion] = region_creator(lmp, narg, arg);
         regions[nregion]->init();
         nregion++;
@@ -1785,7 +1785,7 @@ void Domain::add_region(int narg, char **arg)
   }
 
   if (region_map->find(arg[1]) != region_map->end()) {
-    RegionCreator region_creator = (*region_map)[arg[1]];
+    RegionCreator &region_creator = (*region_map)[arg[1]];
     regions[nregion] = region_creator(lmp, narg, arg);
   } else error->all(FLERR,utils::check_packages_for_style("region",arg[1],lmp));
 
@@ -1939,13 +1939,13 @@ void Domain::print_box(const std::string &prefix)
   if (comm->me == 0) {
     std::string mesg = prefix;
     if (triclinic == 0) {
-      mesg += fmt::format("orthogonal box = ({:.8g} {:.8g} {:.8g}) to "
-                          "({:.8g} {:.8g} {:.8g})\n",boxlo[0],boxlo[1],
+      mesg += fmt::format("orthogonal box = ({:.8} {:.8} {:.8}) to "
+                          "({:.8} {:.8} {:.8})\n",boxlo[0],boxlo[1],
                           boxlo[2],boxhi[0],boxhi[1],boxhi[2]);
     } else {
-      mesg += fmt::format("triclinic box = ({:.8g} {:.8g} {:.8g}) to "
-                          "({:.8g} {:.8g} {:.8g}) with tilt "
-                          "({:.8g} {:.8g} {:.8g})\n",boxlo[0],boxlo[1],
+      mesg += fmt::format("triclinic box = ({:.8} {:.8} {:.8}) to "
+                          "({:.8} {:.8} {:.8}) with tilt "
+                          "({:.8} {:.8} {:.8})\n",boxlo[0],boxlo[1],
                           boxlo[2],boxhi[0],boxhi[1],boxhi[2],xy,xz,yz);
     }
     utils::logmesg(lmp,mesg);

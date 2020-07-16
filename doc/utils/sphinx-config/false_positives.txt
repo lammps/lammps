@@ -870,6 +870,7 @@ evalue
 Evanseck
 evdwl
 Everaers
+Evgeny
 evirials
 ewald
 Ewald
@@ -1485,6 +1486,7 @@ Kumar
 Kuronen
 Kusters
 Kutta
+Kuznetsov
 kx
 Lackmann
 Ladd
@@ -2031,6 +2033,7 @@ nhc
 NiAlH
 Nicklas
 Niklasson
+Nikolskiy
 Nimpropertype
 Ninteger
 Nissila
@@ -2059,6 +2062,7 @@ nodeless
 nodeset
 nodesets
 Noehring
+Noffset
 noforce
 Noid
 nolib
@@ -3204,6 +3208,7 @@ Voth
 vpz
 vratio
 Vries
+Vsevolod
 Vsmall
 Vstream
 vtarget

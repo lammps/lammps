@@ -260,9 +260,9 @@ void MLIAPDescriptorSNAP::compute_force_gradients(class MLIAPData* data)
                                snaptr->rcutij[jj],jj, 0);
 
       snaptr->compute_dbidrj();
-      
+
       // Accumulate gamma_lk*dB_k/dRi, -gamma_lk**dB_k/dRj
-      
+
       for (int inz = 0; inz < data->gamma_nnz; inz++) {
         const int l = data->gamma_row_index[ii][inz];
         const int k = data->gamma_col_index[ii][inz];
@@ -273,7 +273,7 @@ void MLIAPDescriptorSNAP::compute_force_gradients(class MLIAPData* data)
         data->gradforce[j][l+data->yoffset] -= data->gamma[ii][inz]*snaptr->dblist[k][1];
         data->gradforce[j][l+data->zoffset] -= data->gamma[ii][inz]*snaptr->dblist[k][2];
       }
-      
+
     }
   }
 
@@ -345,7 +345,7 @@ void MLIAPDescriptorSNAP::compute_descriptor_gradients(class MLIAPData* data)
         data->graddesc[ij][k][0] = snaptr->dblist[k][0];
         data->graddesc[ij][k][1] = snaptr->dblist[k][1];
         data->graddesc[ij][k][2] = snaptr->dblist[k][2];
-      } 
+      }
       ij++;
     }
   }

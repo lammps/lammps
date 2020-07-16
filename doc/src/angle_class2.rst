@@ -41,27 +41,29 @@ The *class2* angle style uses the potential
    E_{bb} & = M (r_{ij} - r_1) (r_{jk} - r_2) \\
    E_{ba} & = N_1 (r_{ij} - r_1) (\theta - \theta_0) + N_2(r_{jk} - r_2)(\theta - \theta_0)
 
-where :math:`E_a` is the angle term, :math:`E_{bb}` is a bond-bond term, and :math:`E_{ba}` is a
-bond-angle term.  :math:`\theta_0` is the equilibrium angle and :math:`r_1` and :math:`r_2` are
-the equilibrium bond lengths.
+where :math:`E_a` is the angle term, :math:`E_{bb}` is a bond-bond
+term, and :math:`E_{ba}` is a bond-angle term.  :math:`\theta_0` is
+the equilibrium angle and :math:`r_1` and :math:`r_2` are the
+equilibrium bond lengths.
 
 See :ref:`(Sun) <angle-Sun>` for a description of the COMPASS class2 force field.
 
-Coefficients for the :math:`E_a`, :math:`E_{bb}`, and :math:`E_{ba}` formulas must be defined for
-each angle type via the :doc:`angle_coeff <angle_coeff>` command as in
-the example above, or in the data file or restart files read by the
-:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
-commands.
+Coefficients for the :math:`E_a`, :math:`E_{bb}`, and :math:`E_{ba}`
+formulas must be defined for each angle type via the :doc:`angle_coeff
+<angle_coeff>` command as in the example above, or in the data file or
+restart files read by the :doc:`read_data <read_data>` or
+:doc:`read_restart <read_restart>` commands.
 
 These are the 4 coefficients for the :math:`E_a` formula:
 
 * :math:`\theta_0` (degrees)
-* :math:`K_2` (energy/radian\^2)
-* :math:`K_3` (energy/radian\^3)
-* :math:`K_4` (energy/radian\^4)
+* :math:`K_2` (energy)
+* :math:`K_3` (energy)
+* :math:`K_4` (energy)
 
-:math:`\theta_0` is specified in degrees, but LAMMPS converts it to radians
-internally; hence the units of the various :math:`K` are in per-radian.
+:math:`\theta_0` is specified in degrees, but LAMMPS converts it to
+radians internally; hence the various :math:`K` are effectively energy
+per radian\^2 or radian\^3 or radian\^4.
 
 For the :math:`E_{bb}` formula, each line in a :doc:`angle_coeff <angle_coeff>`
 command in the input script lists 4 coefficients, the first of which
@@ -122,11 +124,15 @@ The *class2/p6* angle style uses the *class2* potential expanded to sixth order:
 In this expanded term 6 coefficients for the :math:`E_a` formula need to be set:
 
 * :math:`\theta_0` (degrees)
-* :math:`K_2` (energy/radian\^2)
-* :math:`K_3` (energy/radian\^3)
-* :math:`K_4` (energy/radian\^4)
-* :math:`K_5` (energy/radian\^5)
-* :math:`K_6` (energy/radian\^6)
+* :math:`K_2` (energy)
+* :math:`K_3` (energy)
+* :math:`K_4` (energy)
+* :math:`K_5` (energy)
+* :math:`K_6` (energy)
+
+:math:`\theta_0` is specified in degrees, but LAMMPS converts it to
+radians internally; hence the various :math:`K` are effectively energy
+per radian\^2 or radian\^3 or radian\^4 or radian\^5 or radian\^6.
 
 The bond-bond and bond-angle terms remain unchanged.
 

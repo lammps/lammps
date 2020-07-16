@@ -42,7 +42,7 @@ Description
 """""""""""
 
 This fix performs Widom insertions of atoms or molecules at the given
-temperature as discussed in :ref:`(Frenkel) <Frenkel>`. Specific uses
+temperature as discussed in :ref:`(Frenkel) <Frenkel1>`. Specific uses
 include computation of Henry constants of small molecules in microporous
 materials or amorphous systems.
 
@@ -221,7 +221,7 @@ above.
 
 ----------
 
-.. _Frenkel:
+.. _Frenkel1:
 
 **(Frenkel)** Frenkel and Smit, Understanding Molecular Simulation,
 Academic Press, London, 2002.

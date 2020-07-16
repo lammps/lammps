@@ -272,6 +272,7 @@ void WriteRestart::write(std::string file)
 
   double *buf;
   memory->create(buf,max_size,"write_restart:buf");
+  memset(buf,0,max_size*sizeof(buf));
 
   // all procs write file layout info which may include per-proc sizes
 

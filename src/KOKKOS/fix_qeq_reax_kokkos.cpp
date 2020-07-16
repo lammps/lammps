@@ -123,6 +123,8 @@ void FixQEqReaxKokkos<DeviceType>::init()
 
   init_shielding_k();
   init_hist();
+
+  last_allocate = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -216,8 +218,10 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
 
   // get max number of neighbor
 
-  if (!allocated_flag || update->ntimestep == neighbor->lastcall)
+  if (!allocated_flag || last_allocate < neighbor->lastcall) {
     allocate_matrix();
+    last_allocate = update->ntimestep;
+  }
 
   // compute_H
 
@@ -1504,6 +1508,9 @@ int FixQEqReaxKokkos<DeviceType>::pack_exchange(int i, double *buf)
 template<class DeviceType>
 int FixQEqReaxKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 {
+  k_s_hist.template sync<LMPHostType>();
+  k_t_hist.template sync<LMPHostType>();
+
   for (int m = 0; m < nprev; m++) s_hist[nlocal][m] = buf[m];
   for (int m = 0; m < nprev; m++) t_hist[nlocal][m] = buf[nprev+m];
 

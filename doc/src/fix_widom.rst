@@ -71,8 +71,8 @@ invoked, so you should not set N to be too small. See the :doc:`neighbor
 <neighbor>` command for details.
 
 When an atom or molecule is to be inserted, its coordinates are chosen
-at a random position within the current simulation cell or
-regionRelative coordinates for atoms in a molecule are taken from the
+at a random position within the current simulation cell or region.
+Relative coordinates for atoms in a molecule are taken from the
 template molecule provided by the user. The center of mass of the
 molecule is placed at the insertion point. The orientation of the
 molecule is chosen at random by rotating about this point.

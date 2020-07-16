@@ -738,17 +738,7 @@ void ThirdOrder::getNeighbortags() {
     }
   }
   MPI_Allreduce(data,datarecv,sum,MPI_LONG_LONG_INT,MPI_SUM,world);
-  for (bigint i=0; i < natoms; i++) {
-    jnum = ijnum[i];
-    if (comm->me==0)
-      fprintf(screen, "i: %lli : ", i);
-    for (int j=0; j < jnum; j++) {
-      if (comm->me==0)
-        fprintf(screen, "%lli ",neighbortags[i][j]);
-    }
-    if (comm->me==0)
-      fprintf(screen, "\n");
-  }
+
   free (ijnumproc);
   free (temptags);
 }

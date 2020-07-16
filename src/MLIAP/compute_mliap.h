@@ -40,7 +40,7 @@ class ComputeMLIAP : public Compute {
   double **mliaparray, **mliaparrayall;
   class NeighList *list;
   int *map;  // map types to [0,nelements)
-  int ndescriptors;            // number of descriptors 
+  int ndescriptors;            // number of descriptors
   int nparams;                 // number of model parameters per element
   int nelements;
   int gradgradflag;           // 1 for graddesc, 0 for gamma

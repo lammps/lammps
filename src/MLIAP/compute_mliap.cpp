@@ -35,7 +35,7 @@ using namespace LAMMPS_NS;
 enum{SCALAR,VECTOR,ARRAY};
 
 ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), mliaparray(NULL), 
+  Compute(lmp, narg, arg), mliaparray(NULL),
   mliaparrayall(NULL), map(NULL)
 {
   array_flag = 1;
@@ -79,7 +79,7 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"gradgradflag") == 0) {
       if (iarg+1 > narg) error->all(FLERR,"Illegal compute mliap command");
       gradgradflag = atoi(arg[iarg+1]);
-      if (gradgradflag != 0 && gradgradflag != 1) 
+      if (gradgradflag != 0 && gradgradflag != 1)
         error->all(FLERR,"Illegal compute mliap command");
       iarg += 2;
     } else
@@ -215,29 +215,29 @@ void ComputeMLIAP::compute_array()
   neighbor->build_one(list);
 
   data->generate_neighdata(list);
-    
+
   // compute descriptors
-  
+
   descriptor->compute_descriptors(data);
-    
+
   if (gradgradflag == 1) {
 
     // calculate double gradient w.r.t. parameters and descriptors
-    
+
     model->compute_gradgrads(data);
-    
+
     // calculate gradients of forces w.r.t. parameters
-    
+
     descriptor->compute_force_gradients(data);
-    
+
   } else if (gradgradflag == 0) {
 
     // calculate descriptor gradients
-    
+
     descriptor->compute_descriptor_gradients(data);
 
     // calculate gradients of forces w.r.t. parameters
-    
+
     model->compute_force_gradients(data);
 
   } else error->all(FLERR,"Invalid value for gradgradflag");

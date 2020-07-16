@@ -36,17 +36,17 @@ class MLIAPData : protected Pointers {
   double **gradforce;
   double** betas;               // betas for all atoms in list
   double** descriptors;        // descriptors for all atoms in list
-  int ndescriptors;            // number of descriptors 
+  int ndescriptors;            // number of descriptors
   int nparams;                 // number of model parameters per element
   int nelements;               // number of elements
-        
+
   // data structures for grad-grad list (gamma)
 
   int natomgamma_max;          // allocated size of gamma
   int gamma_nnz;               // number of non-zero entries in gamma
   double** gamma;              // gamma element
-  int** gamma_row_index;       // row (parameter) index 
-  int** gamma_col_index;       // column (descriptor) index 
+  int** gamma_row_index;       // row (parameter) index
+  int** gamma_col_index;       // column (descriptor) index
   double* egradient;           // energy gradient w.r.t. parameters
 
   // data structures for mliap neighbor list

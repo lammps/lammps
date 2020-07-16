@@ -66,9 +66,9 @@ PairMLIAP::~PairMLIAP()
 void PairMLIAP::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
-    
+
   data->generate_neighdata(list, eflag, vflag);
-    
+
   // compute descriptors, if needed
 
   if (model->nonlinearflag || eflag)

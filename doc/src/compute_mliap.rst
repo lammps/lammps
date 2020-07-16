@@ -57,7 +57,7 @@ The compute *mliap* command must be followed by two keywords
 *model* and *descriptor* in either order.
 
 The *model* keyword is followed by a model style, currently limited to
-either *linear* or *quadratic*. 
+either *linear* or *quadratic*.
 
 The *descriptor* keyword is followed by a descriptor style, and additional arguments.
 Currently the only descriptor style is *sna*, indicating the bispectrum component

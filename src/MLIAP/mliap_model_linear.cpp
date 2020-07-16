@@ -50,7 +50,7 @@ int MLIAPModelLinear::get_nparams()
    ---------------------------------------------------------------------- */
 
 void MLIAPModelLinear::compute_gradients(MLIAPData* data)
-{  
+{
   for (int ii = 0; ii < data->natoms; ii++) {
     const int i = data->iatoms[ii];
     const int ielem = data->ielems[ii];
@@ -129,14 +129,14 @@ void MLIAPModelLinear::compute_gradgrads(class MLIAPData* data)
    egradient is derivative of energy w.r.t. parameters
    ---------------------------------------------------------------------- */
 
-void MLIAPModelLinear::compute_force_gradients(class MLIAPData* data) 
+void MLIAPModelLinear::compute_force_gradients(class MLIAPData* data)
 {
 
   // zero out energy gradients
 
   for (int l = 0; l < data->nelements*data->nparams; l++)
     data->egradient[l] = 0.0;
-    
+
   int ij = 0;
   for (int ii = 0; ii < data->natoms; ii++) {
     const int i = data->iatoms[ii];
@@ -161,14 +161,14 @@ void MLIAPModelLinear::compute_force_gradients(class MLIAPData* data)
     }
 
     // gradient of energy of atom I w.r.t. parameters
-    
+
     int l = elemoffset;
     data->egradient[l++] += 1.0;
     for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
       data->egradient[l++] += data->descriptors[ii][icoeff];
-    
+
   }
-  
+
 }
 
 /* ----------------------------------------------------------------------

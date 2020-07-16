@@ -45,7 +45,7 @@ commands:
 :math:`\phi_0` is specified in degrees, but LAMMPS converts it to
 radians internally; hence :math:`K` is effectively energy per
 radian\^2.
-  
+
 ----------
 
 Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are

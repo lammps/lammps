@@ -207,7 +207,7 @@ void MLIAPModelQuadratic::compute_force_gradients(class MLIAPData* data) {
 
   for (int l = 0; l < data->nelements*data->nparams; l++)
     data->egradient[l] = 0.0;
-    
+
   int ij = 0;
   for (int ii = 0; ii < data->natoms; ii++) {
     const int i = data->iatoms[ii];
@@ -256,14 +256,14 @@ void MLIAPModelQuadratic::compute_force_gradients(class MLIAPData* data) {
     }
 
     // gradient of energy of atom I w.r.t. parameters
-    
+
     int l = elemoffset;
     data->egradient[l++] += 1.0;
     for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
       data->egradient[l++] += data->descriptors[ii][icoeff];
-    
+
     // quadratic contributions
-    
+
     for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++) {
       double bveci = data->descriptors[ii][icoeff];
       data->egradient[l++] += 0.5*bveci*bveci;
@@ -274,5 +274,5 @@ void MLIAPModelQuadratic::compute_force_gradients(class MLIAPData* data) {
     }
 
   }
-  
+
 }

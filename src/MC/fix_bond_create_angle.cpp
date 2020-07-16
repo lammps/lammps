@@ -54,16 +54,16 @@ int FixBondCreateAngle::constrain(int i, int j, double amin, double amax)
   int flag = 0;
 
   // pass if both atoms have no neighbors: bond is always formed
-  
+
   if (nspecial[i][0] == 0 && nspecial[j][0] == 0) flag = 1;
 
   // pass if i has at least one neighbor and angle constraint is met
-  
+
   if (nspecial[i][0] != 0 && nspecial[j][0] == 0) {
 
     // calculate first vector between i and j
     // calculate second vector between i and its first neighbor
-    
+
     v1x = x[i][0] - x[j][0];
     v1y = x[i][1] - x[j][1];
     v1z = x[i][2] - x[j][2];
@@ -73,19 +73,19 @@ int FixBondCreateAngle::constrain(int i, int j, double amin, double amax)
 
     // calculate angle between both vectors
     // set flag if the angle constraint is met
-    
+
     angle1 = acos((v1x*v2x + v1y*v2y + v1z*v2z)/
         (sqrt(v1x*v1x + v1y*v1y + v1z*v1z)*sqrt(v2x*v2x + v2y*v2y + v2z*v2z)));
     if (amin <= angle1 && angle1 <= amax) flag = 1;
   }
 
   // pass if j has at least one neighbor and angle constraint is met
-  
+
   if (nspecial[j][0] != 0 && nspecial[i][0] == 0) {
 
     // calculate first vector between j and i
     // calculate second vector between j and its first neighbor
-    
+
     v1x = x[j][0] - x[i][0];
     v1y = x[j][1] - x[i][1];
     v1z = x[j][2] - x[i][2];
@@ -108,7 +108,7 @@ int FixBondCreateAngle::constrain(int i, int j, double amin, double amax)
     // Calculate 1st angle
     // calculate first vector between i and j
     // calculate second vector between i and its first neighbor
-    
+
     v1x = x[i][0] - x[j][0];
     v1y = x[i][1] - x[j][1];
     v1z = x[i][2] - x[j][2];
@@ -117,7 +117,7 @@ int FixBondCreateAngle::constrain(int i, int j, double amin, double amax)
     v2z = x[i][2] - x[atom->map(special[i][0])][2];
 
     // calculate angle between both vectors
-    
+
     angle1 = acos((v1x*v2x + v1y*v2y + v1z*v2z) /
         (sqrt(v1x*v1x + v1y*v1y + v1z*v1z)*sqrt(v2x*v2x + v2y*v2y + v2z*v2z)));
 

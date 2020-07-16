@@ -9,7 +9,7 @@ surface meshes of discrete points, collections of sub-particles,
 deformable objects, etc.  Note that other kinds of finite-size
 spherical and aspherical particles are also supported by LAMMPS, such
 as spheres, ellipsoids, line segments, and triangles, but they are
-simpler entities that body particles.  See the :doc:`Howto spherical
+simpler entities than body particles.  See the :doc:`Howto spherical
 <Howto_spherical>` doc page for a general overview of all these
 particle types.
 

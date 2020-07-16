@@ -259,7 +259,7 @@ Pair *Force::new_pair(const std::string &style, int trysuffix, int &sflag)
       sflag = 1;
       std::string estyle = style + "/" + lmp->suffix;
       if (pair_map->find(estyle) != pair_map->end()) {
-        PairCreator pair_creator = (*pair_map)[estyle];
+        PairCreator &pair_creator = (*pair_map)[estyle];
         return pair_creator(lmp);
       }
     }
@@ -267,7 +267,7 @@ Pair *Force::new_pair(const std::string &style, int trysuffix, int &sflag)
       sflag = 2;
       std::string estyle = style + "/" + lmp->suffix2;
       if (pair_map->find(estyle) != pair_map->end()) {
-        PairCreator pair_creator = (*pair_map)[estyle];
+        PairCreator &pair_creator = (*pair_map)[estyle];
         return pair_creator(lmp);
       }
     }
@@ -276,7 +276,7 @@ Pair *Force::new_pair(const std::string &style, int trysuffix, int &sflag)
   sflag = 0;
   if (style == "none") return NULL;
   if (pair_map->find(style) != pair_map->end()) {
-    PairCreator pair_creator = (*pair_map)[style];
+    PairCreator &pair_creator = (*pair_map)[style];
     return pair_creator(lmp);
   }
 
@@ -369,7 +369,7 @@ Bond *Force::new_bond(const std::string &style, int trysuffix, int &sflag)
       sflag = 1;
       std::string estyle = style + "/" + lmp->suffix;
       if (bond_map->find(estyle) != bond_map->end()) {
-        BondCreator bond_creator = (*bond_map)[estyle];
+        BondCreator &bond_creator = (*bond_map)[estyle];
         return bond_creator(lmp);
       }
     }
@@ -378,7 +378,7 @@ Bond *Force::new_bond(const std::string &style, int trysuffix, int &sflag)
       sflag = 2;
       std::string estyle = style + "/" + lmp->suffix2;
       if (bond_map->find(estyle) != bond_map->end()) {
-        BondCreator bond_creator = (*bond_map)[estyle];
+        BondCreator &bond_creator = (*bond_map)[estyle];
         return bond_creator(lmp);
       }
     }
@@ -387,7 +387,7 @@ Bond *Force::new_bond(const std::string &style, int trysuffix, int &sflag)
   sflag = 0;
   if (style == "none") return NULL;
   if (bond_map->find(style) != bond_map->end()) {
-    BondCreator bond_creator = (*bond_map)[style];
+    BondCreator &bond_creator = (*bond_map)[style];
     return bond_creator(lmp);
   }
 
@@ -446,7 +446,7 @@ Angle *Force::new_angle(const std::string &style, int trysuffix, int &sflag)
       sflag = 1;
       std::string estyle = style + "/" + lmp->suffix;
       if (angle_map->find(estyle) != angle_map->end()) {
-        AngleCreator angle_creator = (*angle_map)[estyle];
+        AngleCreator &angle_creator = (*angle_map)[estyle];
         return angle_creator(lmp);
       }
     }
@@ -455,7 +455,7 @@ Angle *Force::new_angle(const std::string &style, int trysuffix, int &sflag)
       sflag = 2;
       std::string estyle = style + "/" + lmp->suffix;
       if (angle_map->find(estyle) != angle_map->end()) {
-        AngleCreator angle_creator = (*angle_map)[estyle];
+        AngleCreator &angle_creator = (*angle_map)[estyle];
         return angle_creator(lmp);
       }
     }
@@ -464,7 +464,7 @@ Angle *Force::new_angle(const std::string &style, int trysuffix, int &sflag)
   sflag = 0;
   if (style == "none") return NULL;
   if (angle_map->find(style) != angle_map->end()) {
-    AngleCreator angle_creator = (*angle_map)[style];
+    AngleCreator &angle_creator = (*angle_map)[style];
     return angle_creator(lmp);
   }
 
@@ -523,7 +523,7 @@ Dihedral *Force::new_dihedral(const std::string &style, int trysuffix, int &sfla
       sflag = 1;
       std::string estyle = style + "/" + lmp->suffix;
       if (dihedral_map->find(estyle) != dihedral_map->end()) {
-        DihedralCreator dihedral_creator = (*dihedral_map)[estyle];
+        DihedralCreator &dihedral_creator = (*dihedral_map)[estyle];
         return dihedral_creator(lmp);
       }
     }
@@ -532,7 +532,7 @@ Dihedral *Force::new_dihedral(const std::string &style, int trysuffix, int &sfla
       sflag = 2;
       std::string estyle = style + "/" + lmp->suffix2;
       if (dihedral_map->find(estyle) != dihedral_map->end()) {
-        DihedralCreator dihedral_creator = (*dihedral_map)[estyle];
+        DihedralCreator &dihedral_creator = (*dihedral_map)[estyle];
         return dihedral_creator(lmp);
       }
     }
@@ -541,7 +541,7 @@ Dihedral *Force::new_dihedral(const std::string &style, int trysuffix, int &sfla
   sflag = 0;
   if (style == "none") return NULL;
   if (dihedral_map->find(style) != dihedral_map->end()) {
-    DihedralCreator dihedral_creator = (*dihedral_map)[style];
+    DihedralCreator &dihedral_creator = (*dihedral_map)[style];
     return dihedral_creator(lmp);
   }
 
@@ -600,7 +600,7 @@ Improper *Force::new_improper(const std::string &style, int trysuffix, int &sfla
       sflag = 1;
       std::string estyle = style + "/" + lmp->suffix;
       if (improper_map->find(estyle) != improper_map->end()) {
-        ImproperCreator improper_creator = (*improper_map)[estyle];
+        ImproperCreator &improper_creator = (*improper_map)[estyle];
         return improper_creator(lmp);
       }
     }
@@ -609,7 +609,7 @@ Improper *Force::new_improper(const std::string &style, int trysuffix, int &sfla
       sflag = 2;
       std::string estyle = style + "/" + lmp->suffix2;
       if (improper_map->find(estyle) != improper_map->end()) {
-        ImproperCreator improper_creator = (*improper_map)[estyle];
+        ImproperCreator &improper_creator = (*improper_map)[estyle];
         return improper_creator(lmp);
       }
     }
@@ -618,7 +618,7 @@ Improper *Force::new_improper(const std::string &style, int trysuffix, int &sfla
   sflag = 0;
   if (style == "none") return NULL;
   if (improper_map->find(style) != improper_map->end()) {
-    ImproperCreator improper_creator = (*improper_map)[style];
+    ImproperCreator &improper_creator = (*improper_map)[style];
     return improper_creator(lmp);
   }
 
@@ -681,7 +681,7 @@ KSpace *Force::new_kspace(const std::string &style, int trysuffix, int &sflag)
       sflag = 1;
       std::string estyle = style + "/" + lmp->suffix;
       if (kspace_map->find(estyle) != kspace_map->end()) {
-        KSpaceCreator kspace_creator = (*kspace_map)[estyle];
+        KSpaceCreator &kspace_creator = (*kspace_map)[estyle];
         return kspace_creator(lmp);
       }
     }
@@ -690,7 +690,7 @@ KSpace *Force::new_kspace(const std::string &style, int trysuffix, int &sflag)
       sflag = 1;
       std::string estyle = style + "/" + lmp->suffix2;
       if (kspace_map->find(estyle) != kspace_map->end()) {
-        KSpaceCreator kspace_creator = (*kspace_map)[estyle];
+        KSpaceCreator &kspace_creator = (*kspace_map)[estyle];
         return kspace_creator(lmp);
       }
     }
@@ -699,7 +699,7 @@ KSpace *Force::new_kspace(const std::string &style, int trysuffix, int &sflag)
   sflag = 0;
   if (style == "none") return NULL;
   if (kspace_map->find(style) != kspace_map->end()) {
-    KSpaceCreator kspace_creator = (*kspace_map)[style];
+    KSpaceCreator &kspace_creator = (*kspace_map)[style];
     return kspace_creator(lmp);
   }
 

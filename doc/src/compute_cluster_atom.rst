@@ -15,12 +15,18 @@ Syntax
 .. parsed-literal::
 
    compute ID group-ID cluster/atom cutoff
-   compute ID group-ID fragment/atom
+   compute ID group-ID fragment/atom keyword value ...
    compute ID group-ID aggregate/atom cutoff
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * *cluster/atom* or *fragment/atom* or *aggregate/atom* = style name of this compute command
 * cutoff = distance within which to label atoms as part of same cluster (distance units)
+* zero or more keyword/value pairs may be appended to *fragment/atom*
+* keyword = *single*
+
+    .. parsed-literal::
+
+       *single* value = *yes* or *no* to treat single atoms (no bonds) as fragments
 
 Examples
 """"""""
@@ -29,27 +35,36 @@ Examples
 
    compute 1 all cluster/atom 3.5
    compute 1 all fragment/atom
-
+   compute 1 all fragment/atom single no
    compute 1 all aggregate/atom 3.5
 
 Description
 """""""""""
 
-Define a computation that assigns each atom a cluster, fragment,
-or aggregate ID.
+Define a computation that assigns each atom a cluster, fragment, or
+aggregate ID.  Only atoms in the compute group are clustered and
+assigned cluster IDs. Atoms not in the compute group are assigned an
+ID = 0.
 
 A cluster is defined as a set of atoms, each of which is within the
 cutoff distance from one or more other atoms in the cluster.  If an
 atom has no neighbors within the cutoff distance, then it is a 1-atom
 cluster.
 
-A fragment is similarly defined as a set of atoms, each of
-which has an explicit bond (i.e. defined via a :doc:`data file <read_data>`,
-the :doc:`create_bonds <create_bonds>` command, or through fixes like
-:doc:`fix bond/create <fix_bond_create>`, :doc:`fix bond/swap <fix_bond_swap>`,
-or :doc:`fix bond/break <fix_bond_break>`).  The cluster ID or fragment ID
-of every atom in the cluster will be set to the smallest atom ID of any atom
-in the cluster or fragment, respectively.
+A fragment is similarly defined as a set of atoms, each of which has a
+bond to another atom in the fragment.  Bonds can be defined initially
+via the :doc:`data file <read_data>` or :doc:`create_bonds
+<create_bonds>` commands, or dynamically by fixes which create or
+break bonds like :doc:`fix bond/react <fix_bond_react>`, :doc:`fix
+bond/create <fix_bond_create>`, :doc:`fix bond/swap <fix_bond_swap>`,
+or :doc:`fix bond/break <fix_bond_break>`.  The cluster ID or fragment
+ID of every atom in the cluster will be set to the smallest atom ID of
+any atom in the cluster or fragment, respectively.
+
+For the *fragment/atom* style, the *single* keyword determines whether
+single atoms (not bonded to another atom) are treated as one-atom
+fragments or not, based on the *yes* or *no* setting.  If the setting
+is *no* (the default), their fragment IDs are set to 0.
 
 An aggregate is defined by combining the rules for clusters and
 fragments, i.e. a set of atoms, where each of it is within the cutoff
@@ -57,19 +72,11 @@ distance from one or more atoms within a fragment that is part of
 the same cluster. This measure can be used to track molecular assemblies
 like micelles.
 
-Only atoms in the compute group are clustered and assigned cluster
-IDs. Atoms not in the compute group are assigned a cluster ID = 0.
-For fragments, only bonds where **both** atoms of the bond are included
-in the compute group are assigned to fragments, so that only fragments
-are detected where **all** atoms are in the compute group. Thus atoms
-may be included in the compute group, yes still have a fragment ID of 0.
-
-For computes *cluster/atom* and *aggregate/atom* the neighbor list needed
-to compute this quantity is constructed each time the calculation is
-performed (i.e. each time a snapshot of atoms is dumped).  Thus it can be
-inefficient to compute/dump this quantity too frequently or to have
-multiple compute/dump commands, each of a *cluster/atom* or
-*aggregate/atom* style.
+For computes *cluster/atom* and *aggregate/atom* a neighbor list
+needed to compute cluster IDs is constructed each time the compute is
+invoked.  Thus it can be inefficient to compute/dump this quantity too
+frequently or to have multiple *cluster/atom* or *aggregate/atom*
+style computes.
 
 .. note::
 
@@ -89,6 +96,14 @@ multiple compute/dump commands, each of a *cluster/atom* or
    :doc:`special_bonds <special_bonds>` command that includes all pairs in
    the neighbor list.
 
+.. note::
+
+   For the compute fragment/atom style, each fragment is identified
+   using the current bond topology.  This will not account for bonds
+   broken by the :doc:`bond_style quartic <bond_quartic>` command
+   because it does not perform a full update of the bond topology data
+   structures within LAMMPS.
+
 **Output info:**
 
 This compute calculates a per-atom vector, which can be accessed by
@@ -107,4 +122,7 @@ Related commands
 
 :doc:`compute coord/atom <compute_coord_atom>`
 
-**Default:** none
+**Default:**
+
+The default for fragment/atom is single no.
+

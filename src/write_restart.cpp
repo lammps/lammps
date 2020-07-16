@@ -612,11 +612,8 @@ void WriteRestart::file_layout(int send_size)
 
 void WriteRestart::magic_string()
 {
-  int n = strlen(MAGIC_STRING) + 1;
-  char *str = new char[n];
-  strcpy(str,MAGIC_STRING);
-  fwrite(str,sizeof(char),n,fp);
-  delete [] str;
+  std::string magic = MAGIC_STRING;
+  fwrite(magic.c_str(),sizeof(char),magic.size()+1,fp);
 }
 
 /* ---------------------------------------------------------------------- */

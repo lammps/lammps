@@ -8,7 +8,19 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style mliap
+   pair_style mliap ... keyword values ...
+
+* two keyword/value pairs must be appended
+* keyword = *model* or *descriptor*
+
+  .. parsed-literal::
+
+       *model* values = style filename
+         style = *linear* or *quadratic*
+         filename = name of file containing model definitions
+       *descriptor* values = style filename
+         style = *sna*
+         filename = name of file containing descriptor definitions
 
 Examples
 """"""""
@@ -22,8 +34,8 @@ Examples
 Description
 """""""""""
 
-Pair style *mliap* provides a general interface to families of
-machine-learning interatomic potentials. It provides separate
+Pair style *mliap* provides a general interface to families of 
+machine-learning interatomic potentials. It allows separate 
 definitions of the interatomic potential functional form (*model*)
 and the geometric quantities that characterize the atomic positions
 (*descriptor*). By defining *model* and *descriptor* separately,
@@ -34,6 +46,9 @@ and one descriptor, *sna*, the SNAP descriptor used by :doc:`pair_style snap <pa
 and chem variants. Work is currently underway to extend
 the interface to handle neural network energy models,
 and it is also straightforward to add new descriptor styles.
+In order to train a model, it is useful to know the gradient or derivative
+of energy, force, and stress w.r.t. model parameters. This information
+can be accessed using the related :doc:`compute mliap <compute_mliap>` command.
 
 The pair_style *mliap* command must be followed by two keywords
 *model* and *descriptor* in either order. A single
@@ -46,10 +61,10 @@ where N is the number of LAMMPS atom types.
 
 The *model* keyword is followed by a model style, currently limited to
 either *linear* or *quadratic*. In both cases,
-this is followed by a single argument specifying the model filename containing the
-linear or quadratic coefficients for a set of elements.
+this is followed by a single argument specifying the model filename containing the 
+parameters for a set of elements. 
 The model filename usually ends in the *.mliap.model* extension.
-It may contain coefficients for many elements. The only requirement is that it
+It may contain parameters for many elements. The only requirement is that it
 contain at least those element names appearing in the
 *pair_coeff* command.
 
@@ -58,10 +73,10 @@ but follows a strict format after that. The first non-blank non-comment
 line must contain two integers:
 
 * nelems  = Number of elements
-* ncoeff = Number of coefficients
+* nparams = Number of parameters
 
 This is followed by one block for each of the *nelem* elements.
-Each block consists of *ncoeff* coefficients, one per line.
+Each block consists of *nparams* parameters, one per line.
 Note that this format is similar, but not identical to that used
 for the :doc:`pair_style snap <pair_snap>` coefficient file.
 Specifically, the line containing the element weight and radius is omitted,
@@ -131,6 +146,6 @@ See the :doc:`Build package <Build_package>` doc page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`pair_style snap  <pair_snap>`,
+:doc:`pair_style snap  <pair_snap>`, :doc:`compute mliap <compute_mliap>`
 
 **Default:** none

@@ -63,8 +63,8 @@ void Special::build()
     const double * const special_lj   = force->special_lj;
     const double * const special_coul = force->special_coul;
     fmt::print(screen,"Finding 1-2 1-3 1-4 neighbors ...\n"
-               "  special bond factors lj:   {:<8g} {:<8g} {:<8g}\n"
-               "  special bond factors coul: {:<8g} {:<8g} {:<8g}\n",
+               "  special bond factors lj:    {:<8} {:<8} {:<8}\n"
+               "  special bond factors coul:  {:<8} {:<8} {:<8}\n",
                special_lj[1],special_lj[2],special_lj[3],
                special_coul[1],special_coul[2],special_coul[3]);
   }
@@ -93,7 +93,7 @@ void Special::build()
   // print max # of 1-2 neighbors
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  {} = max # of 1-2 neighbors\n",maxall));
+    utils::logmesg(lmp,fmt::format("{:>6} = max # of 1-2 neighbors\n",maxall));
 
   // done if special_bond weights for 1-3, 1-4 are set to 1.0
 
@@ -116,7 +116,7 @@ void Special::build()
   // print max # of 1-3 neighbors
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  {} = max # of 1-3 neighbors\n",maxall));
+    utils::logmesg(lmp,fmt::format("{:>6} = max # of 1-3 neighbors\n",maxall));
 
   // done if special_bond weights for 1-4 are set to 1.0
 
@@ -139,7 +139,7 @@ void Special::build()
   // print max # of 1-4 neighbors
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  {} = max # of 1-4 neighbors\n",maxall));
+    utils::logmesg(lmp,fmt::format("{:>6} = max # of 1-4 neighbors\n",maxall));
 
   // finish processing the onetwo, onethree, onefour lists
 
@@ -691,7 +691,7 @@ void Special::combine()
   force->special_extra = 0;
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  {} = max # of special "
+    utils::logmesg(lmp,fmt::format("{:>6} = max # of special "
                    "neighbors\n",atom->maxspecial));
 
   if (lmp->kokkos) {

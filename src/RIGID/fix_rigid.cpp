@@ -36,6 +36,7 @@
 #include "error.h"
 #include "rigid_const.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -414,9 +415,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(style,"rigid/nvt") != 0 && strcmp(style,"rigid/npt") != 0 &&
-          strcmp(style,"rigid/nvt/omp") != 0 &&
-          strcmp(style,"rigid/npt/omp") != 0)
+      if (!utils::strmatch(style,"^rigid/n.t"))
         error->all(FLERR,"Illegal fix rigid command");
       tstat_flag = 1;
       t_start = force->numeric(FLERR,arg[iarg+1]);
@@ -426,9 +425,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"iso") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(style,"rigid/npt") != 0 && strcmp(style,"rigid/nph") != 0 &&
-          strcmp(style,"rigid/npt/omp") != 0 &&
-          strcmp(style,"rigid/nph/omp") != 0)
+      if (!utils::strmatch(style,"^rigid/np."))
         error->all(FLERR,"Illegal fix rigid command");
       pcouple = XYZ;
       p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
@@ -444,9 +441,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"aniso") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(style,"rigid/npt") != 0 && strcmp(style,"rigid/nph") != 0 &&
-          strcmp(style,"rigid/npt/omp") != 0 &&
-          strcmp(style,"rigid/nph/omp") != 0)
+      if (!utils::strmatch(style,"^rigid/np."))
         error->all(FLERR,"Illegal fix rigid command");
       p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
@@ -461,9 +456,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"x") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(style,"rigid/npt") != 0 && strcmp(style,"rigid/nph") != 0 &&
-          strcmp(style,"rigid/npt/omp") != 0 &&
-          strcmp(style,"rigid/nph/omp") != 0)
+      if (!utils::strmatch(style,"^rigid/np."))
         error->all(FLERR,"Illegal fix rigid command");
       p_start[0] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[0] = force->numeric(FLERR,arg[iarg+2]);
@@ -473,9 +466,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"y") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(style,"rigid/npt") != 0 && strcmp(style,"rigid/nph") != 0 &&
-          strcmp(style,"rigid/npt/omp") != 0 &&
-          strcmp(style,"rigid/nph/omp") != 0)
+      if (!utils::strmatch(style,"^rigid/np."))
         error->all(FLERR,"Illegal fix rigid command");
       p_start[1] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[1] = force->numeric(FLERR,arg[iarg+2]);
@@ -485,9 +476,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"z") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(style,"rigid/npt") != 0 && strcmp(style,"rigid/nph") != 0 &&
-          strcmp(style,"rigid/npt/omp") != 0 &&
-          strcmp(style,"rigid/nph/omp") != 0)
+      if (!utils::strmatch(style,"^rigid/np."))
         error->all(FLERR,"Illegal fix rigid command");
       p_start[2] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
@@ -524,9 +513,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"tparam") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(style,"rigid/nvt") != 0 && strcmp(style,"rigid/npt") != 0 &&
-          strcmp(style,"rigid/nvt/omp") != 0 &&
-          strcmp(style,"rigid/npt/omp") != 0)
+      if (!utils::strmatch(style,"^rigid/n.t"))
         error->all(FLERR,"Illegal fix rigid command");
       t_chain = force->inumeric(FLERR,arg[iarg+1]);
       t_iter = force->inumeric(FLERR,arg[iarg+2]);
@@ -535,9 +522,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"pchain") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(style,"rigid/npt") != 0 && strcmp(style,"rigid/nph") != 0 &&
-          strcmp(style,"rigid/npt/omp") != 0 &&
-          strcmp(style,"rigid/nph/omp") != 0)
+      if (!utils::strmatch(style,"^rigid/np."))
         error->all(FLERR,"Illegal fix rigid command");
       p_chain = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
@@ -623,10 +608,9 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   int nsum = 0;
   for (ibody = 0; ibody < nbody; ibody++) nsum += nrigid[ibody];
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"%d rigid bodies with %d atoms\n",nbody,nsum);
-    if (logfile) fprintf(logfile,"%d rigid bodies with %d atoms\n",nbody,nsum);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,fmt::format("  {} rigid bodies with {} atoms\n",
+                                   nbody,nsum));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -720,12 +704,9 @@ void FixRigid::init()
     for (i = 0; i < modify->nfix; i++) {
       if (modify->fix[i]->rigid_flag) rflag = 1;
       if (rflag && (modify->fmask[i] & POST_FORCE) &&
-          !modify->fix[i]->rigid_flag) {
-        char str[128];
-        snprintf(str,128,"Fix %s alters forces after fix rigid",
-                 modify->fix[i]->id);
-        error->warning(FLERR,str);
-      }
+          !modify->fix[i]->rigid_flag)
+        error->warning(FLERR,fmt::format("Fix {} alters forces after fix "
+                                         "rigid",modify->fix[i]->id));
     }
   }
 
@@ -2300,12 +2281,9 @@ void FixRigid::readfile(int which, double *vec,
 
   if (me == 0) {
     fp = fopen(inpfile,"r");
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open fix rigid inpfile %s",inpfile);
-      error->one(FLERR,str);
-    }
-
+    if (fp == NULL)
+      error->one(FLERR,fmt::format("Cannot open fix rigid file {}: {}",
+                                   inpfile,utils::getsyserror()));
     while (1) {
       eof = fgets(line,MAXLINE,fp);
       if (eof == NULL) error->one(FLERR,"Unexpected end of fix rigid file");
@@ -2410,19 +2388,15 @@ void FixRigid::write_restart_file(const char *file)
 {
   if (me) return;
 
-  char outfile[128];
-  snprintf(outfile,128,"%s.rigid",file);
-  FILE *fp = fopen(outfile,"w");
-  if (fp == NULL) {
-    char str[192];
-    snprintf(str,192,"Cannot open fix rigid restart file %s",outfile);
-    error->one(FLERR,str);
-  }
+  auto outfile = std::string(file) + ".rigid";
+  FILE *fp = fopen(outfile.c_str(),"w");
+  if (fp == NULL)
+    error->one(FLERR,fmt::format("Cannot open fix rigid restart file {}: {}",
+                                 outfile,utils::getsyserror()));
 
-  fprintf(fp,"# fix rigid mass, COM, inertia tensor info for "
-          "%d bodies on timestep " BIGINT_FORMAT "\n\n",
-          nbody,update->ntimestep);
-  fprintf(fp,"%d\n",nbody);
+  fmt::print(fp,"# fix rigid mass, COM, inertia tensor info for "
+             "{} bodies on timestep {}\n\n",nbody,update->ntimestep);
+  fmt::print(fp,"{}\n",nbody);
 
   // compute I tensor against xyz axes from diagonalized I and current quat
   // Ispace = P Idiag P_transpose

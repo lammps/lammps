@@ -199,6 +199,8 @@ void PairReaxCKokkos<DeviceType>::setup()
   hbond_parameters *hbp;
 
   for (i = 1; i <= n; i++) {
+    if (map[i] == -1) continue;
+
     // general
     k_params_sing.h_view(i).mass = system->reax_param.sbp[map[i]].mass;
 
@@ -229,6 +231,8 @@ void PairReaxCKokkos<DeviceType>::setup()
     k_params_sing.h_view(i).p_hbond = system->reax_param.sbp[map[i]].p_hbond;
 
     for (j = 1; j <= n; j++) {
+      if (map[j] == -1) continue;
+
       twbp = &(system->reax_param.tbp[map[i]][map[j]]);
 
       // vdW
@@ -270,6 +274,8 @@ void PairReaxCKokkos<DeviceType>::setup()
       k_params_twbp.h_view(i,j).p_ovun1 = twbp->p_ovun1;
 
       for (k = 1; k <= n; k++) {
+        if (map[k] == -1) continue;
+
         // Angular
         thbh = &(system->reax_param.thbp[map[i]][map[j]][map[k]]);
         thbp = &(thbh->prm[0]);
@@ -290,6 +296,8 @@ void PairReaxCKokkos<DeviceType>::setup()
         k_params_hbp.h_view(i,j,k).r0_hb = hbp->r0_hb;
 
         for (m = 1; m <= n; m++) {
+          if (map[m] == -1) continue;
+
           // Torsion
           fbh = &(system->reax_param.fbp[map[i]][map[j]][map[k]][map[m]]);
           fbp = &(fbh->prm[0]);
@@ -377,7 +385,9 @@ void PairReaxCKokkos<DeviceType>::init_md()
     d_LR = k_LR.template view<DeviceType>();
 
     for (int i = 1; i <= ntypes; ++i) {
+      if (map[i] == -1) continue;
       for (int j = i; j <= ntypes; ++j) {
+        if (map[j] == -1) continue;
         int n = LR[i][j].n;
         if (n == 0) continue;
         k_LR.h_view(i,j).dx     = LR[i][j].dx;
@@ -539,7 +549,9 @@ void PairReaxCKokkos<DeviceType>::Deallocate_Lookup_Tables()
   ntypes = atom->ntypes;
 
   for( i = 0; i <= ntypes; ++i ) {
-    for( j = i; j <= ntypes; ++j )
+    if (map[i] == -1) continue;
+    for( j = i; j <= ntypes; ++j ) {
+      if (map[i] == -1) continue;
       if (LR[i][j].n) {
         sfree( control->error_ptr, LR[i][j].y, "LR[i,j].y" );
         sfree( control->error_ptr, LR[i][j].H, "LR[i,j].H" );
@@ -548,6 +560,7 @@ void PairReaxCKokkos<DeviceType>::Deallocate_Lookup_Tables()
         sfree( control->error_ptr, LR[i][j].ele, "LR[i,j].ele" );
         sfree( control->error_ptr, LR[i][j].CEclmb, "LR[i,j].CEclmb" );
       }
+    }
     sfree( control->error_ptr, LR[i], "LR[i]" );
   }
   sfree( control->error_ptr, LR, "LR" );
@@ -3657,33 +3670,6 @@ void PairReaxCKokkos<DeviceType>::v_tally3_atom(EV_FLOAT_REAX &ev, const int &i,
     d_vatom(i,0) += v[0]; d_vatom(i,1) += v[1]; d_vatom(i,2) += v[2];
     d_vatom(i,3) += v[3]; d_vatom(i,4) += v[4]; d_vatom(i,5) += v[5];
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void *PairReaxCKokkos<DeviceType>::extract(const char *str, int &dim)
-{
-  dim = 1;
-  if (strcmp(str,"chi") == 0 && chi) {
-    for (int i = 1; i <= atom->ntypes; i++)
-      if (map[i] >= 0) chi[i] = system->reax_param.sbp[map[i]].chi;
-      else chi[i] = 0.0;
-    return (void *) chi;
-  }
-  if (strcmp(str,"eta") == 0 && eta) {
-    for (int i = 1; i <= atom->ntypes; i++)
-      if (map[i] >= 0) eta[i] = system->reax_param.sbp[map[i]].eta;
-      else eta[i] = 0.0;
-    return (void *) eta;
-  }
-  if (strcmp(str,"gamma") == 0 && gamma) {
-    for (int i = 1; i <= atom->ntypes; i++)
-      if (map[i] >= 0) gamma[i] = system->reax_param.sbp[map[i]].gamma;
-      else gamma[i] = 0.0;
-    return (void *) gamma;
-  }
-  return NULL;
 }
 
 /* ----------------------------------------------------------------------

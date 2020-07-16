@@ -165,13 +165,10 @@ _texture( ts5_tex,int4);
 #endif
 
 __kernel void k_tersoff_short_nbor(const __global numtyp4 *restrict x_,
-                                   const __global numtyp *restrict cutsq,
-                                   const __global int *restrict map,
-                                   const __global int *restrict elem2param,
-                                   const int nelements, const int nparams,
                                    const __global int * dev_nbor,
                                    const __global int * dev_packed,
                                    __global int * dev_short_nbor,
+                                   const numtyp _cutshortsq,
                                    const int inum, const int nbor_pitch,
                                    const int t_per_atom) {
   __local int n_stride;
@@ -185,8 +182,6 @@ __kernel void k_tersoff_short_nbor(const __global numtyp4 *restrict x_,
               n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
-    int itype=ix.w;
-    itype=map[itype];
 
     int ncount = 0;
     int m = nbor;
@@ -200,9 +195,6 @@ __kernel void k_tersoff_short_nbor(const __global numtyp4 *restrict x_,
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
-      int jtype=jx.w;
-      jtype=map[jtype];
-      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
 
       // Compute r12
       numtyp delx = ix.x-jx.x;
@@ -210,7 +202,7 @@ __kernel void k_tersoff_short_nbor(const __global numtyp4 *restrict x_,
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
-      if (rsq<cutsq[ijparam]) {
+      if (rsq<_cutshortsq) {
         dev_short_nbor[nbor_short] = nj;
         nbor_short += n_stride;
         ncount++;
@@ -460,7 +452,8 @@ __kernel void k_tersoff_repulsive(const __global numtyp4 *restrict x_,
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
-      // rsq<cutsq[ijparam]
+      if (rsq >= cutsq[ijparam]) continue;
+
       numtyp feng[2];
       numtyp ijparam_lam1 = ts1[ijparam].x;
       numtyp4 ts2_ijparam = ts2[ijparam];
@@ -574,6 +567,7 @@ __kernel void k_tersoff_three_center(const __global numtyp4 *restrict x_,
       delr1[1] = jx.y-ix.y;
       delr1[2] = jx.z-ix.z;
       numtyp rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
+      if (rsq1 >= cutsq[ijparam]) continue;
 
       numtyp r1 = ucl_sqrt(rsq1);
       numtyp r1inv = ucl_rsqrt(rsq1);
@@ -715,7 +709,7 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
 
-  __local int red_acc[2*BLOCK_PAIR];
+  __local int red_acc[BLOCK_PAIR];
 
   __syncthreads();
 
@@ -749,7 +743,6 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
       jtype=map[jtype];
-      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
 
       // Compute r12
       numtyp delr1[3];
@@ -796,21 +789,14 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
         k &= NEIGHMASK;
         if (k == i) {
           ijnum = nbor_k;
-          red_acc[2*m+0] = ijnum;
-          red_acc[2*m+1] = offset_k;
+          red_acc[m] = ijnum;
           break;
         }
       }
 
       numtyp r1 = ucl_sqrt(rsq1);
       numtyp r1inv = ucl_rsqrt(rsq1);
-      int offset_kf;
-      if (ijnum >= 0) {
-        offset_kf = offset_k;
-      } else {
-        ijnum = red_acc[2*m+0];
-        offset_kf = red_acc[2*m+1];
-      }
+      if (ijnum < 0) ijnum = red_acc[m];
 
       // idx to zetaij is shifted by n_stride relative to ijnum in dev_short_nbor
       int idx = ijnum;
@@ -853,7 +839,6 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
         delr2[2] = kx.z-jx.z;
         numtyp rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 
-        if (rsq2 > cutsq[jikparam]) continue;
         numtyp r2 = ucl_sqrt(rsq2);
         numtyp r2inv = ucl_rsqrt(rsq2);
         numtyp4 ts1_param, ts2_param, ts4_param;
@@ -953,7 +938,7 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
 
-  __local int red_acc[2*BLOCK_PAIR];
+  __local int red_acc[BLOCK_PAIR];
 
   __syncthreads();
 
@@ -987,7 +972,6 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
       jtype=map[jtype];
-      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
 
       // Compute r12
       numtyp delr1[3];
@@ -1034,21 +1018,14 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
         k &= NEIGHMASK;
         if (k == i) {
           ijnum = nbor_k;
-          red_acc[2*m+0] = ijnum;
-          red_acc[2*m+1] = offset_k;
+          red_acc[m] = ijnum;
           break;
         }
       }
 
       numtyp r1 = ucl_sqrt(rsq1);
       numtyp r1inv = ucl_rsqrt(rsq1);
-      int offset_kf;
-      if (ijnum >= 0) {
-        offset_kf = offset_k;
-      } else {
-        ijnum = red_acc[2*m+0];
-        offset_kf = red_acc[2*m+1];
-      }
+      if (ijnum < 0) ijnum = red_acc[m];
 
       // idx to zetaij is shifted by n_stride relative to ijnum in dev_short_nbor
       int idx = ijnum;

@@ -475,14 +475,14 @@ void PPPMDisp::init()
     MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
 
     if (me == 0) {
-      std::string mesg = fmt::format("  Coulomb G vector (1/distance)= {}\n",
+      std::string mesg = fmt::format("  Coulomb G vector (1/distance)= {:.8g}\n",
                                      g_ewald);
       mesg += fmt::format("  Coulomb grid = {} {} {}\n",
                           nx_pppm,ny_pppm,nz_pppm);
       mesg += fmt::format("  Coulomb stencil order = {}\n",order);
       mesg += fmt::format("  Coulomb estimated absolute RMS force accuracy "
-                          "= {}\n",acc);
-      mesg += fmt::format("  Coulomb estimated relative force accuracy = {}\n",
+                          "= {:.8g}\n",acc);
+      mesg += fmt::format("  Coulomb estimated relative force accuracy = {:.8g}\n",
                           acc/two_charge_force);
       mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
       mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",

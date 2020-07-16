@@ -119,7 +119,7 @@ void PairEAMAlloyIntel::read_file(char *filename)
 
   // read potential file
   if(comm->me == 0) {
-    PotentialFileReader reader(lmp, filename, "EAMAlloy", unit_convert_flag);
+    PotentialFileReader reader(lmp, filename, "eam/alloy", unit_convert_flag);
 
     // transparently convert units for supported conversions
 

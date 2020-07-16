@@ -86,7 +86,7 @@ void PairMLIAP::compute(int eflag, int vflag)
   // compute descriptors, if needed
 
   if (model->nonlinearflag || eflag)
-    descriptor->forward(map, list, descriptors);
+    descriptor->compute_descriptors(map, list, descriptors);
 
   // compute E_i and beta_i = dE_i/dB_i for all i in list
 
@@ -94,7 +94,7 @@ void PairMLIAP::compute(int eflag, int vflag)
 
   // calculate force contributions beta_i*dB_i/dR_j
 
-  descriptor->backward(this, list, beta, vflag);
+  descriptor->compute_forces(this, list, beta, vflag);
 
   // calculate stress
 
@@ -310,7 +310,7 @@ void PairMLIAP::init_style()
 double PairMLIAP::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
-  return descriptor->get_cutoff(map[i],map[j]);
+  return sqrt(descriptor->cutsq[map[i]][map[j]]);
 }
 
 /* ----------------------------------------------------------------------
@@ -323,7 +323,6 @@ double PairMLIAP::memory_usage()
 
   int n = atom->ntypes+1;
   bytes += n*n*sizeof(int);      // setflag
-  bytes += n*n*sizeof(double);   // cutsq
   bytes += beta_max*ndescriptors*sizeof(double); // descriptors
   bytes += beta_max*ndescriptors*sizeof(double); // beta
 

@@ -182,7 +182,7 @@ Related commands
 """"""""""""""""
 
 :doc:`fix drude <fix_drude>`, :doc:`fix langevin/drude <fix_langevin_drude>`, :doc:`fix drude/transform <fix_drude_transform>`, :doc:`compute temp/drude <compute_temp_drude>`
-:doc:`pair_style lj/cut/coul/long <pair_lj>`
+:doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`
 
 **Default:** none
 

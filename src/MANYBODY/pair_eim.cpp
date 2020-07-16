@@ -1065,7 +1065,7 @@ EIMPotentialFileReader::EIMPotentialFileReader(LAMMPS *lmp,
   conversion_factor = utils::get_conversion_factor(utils::ENERGY,unit_convert);
 
   if (fp == NULL) {
-    error->one(FLERR, fmt::format("cannot open EIM potential file {}", filename));
+    error->one(FLERR, fmt::format("cannot open eim potential file {}", filename));
   }
 
   parse(fp);

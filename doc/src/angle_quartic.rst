@@ -39,12 +39,13 @@ the data file or restart files read by the :doc:`read_data <read_data>`
 or :doc:`read_restart <read_restart>` commands:
 
 * :math:`\theta_0` (degrees)
-* :math:`K_2` (energy/radian\^2)
-* :math:`K_3` (energy/radian\^3)
-* :math:`K_4` (energy/radian\^4)
+* :math:`K_2` (energy)
+* :math:`K_3` (energy)
+* :math:`K_4` (energy)
 
-:math:`\theta_0` is specified in degrees, but LAMMPS converts it to radians
-internally; hence the units of :math:`K` are in energy/radian\^2.
+:math:`\theta_0` is specified in degrees, but LAMMPS converts it to
+radians internally; hence the various :math:`K` are effectively energy
+per radian\^2 or radian\^3 or radian\^4.
 
 ----------
 

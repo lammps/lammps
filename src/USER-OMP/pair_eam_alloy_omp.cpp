@@ -120,7 +120,7 @@ void PairEAMAlloyOMP::read_file(char *filename)
   // read potential file
   if(comm->me == 0) {
     PotentialFileReader reader(PairEAM::lmp, filename,
-                               "EAMAlloy", unit_convert_flag);
+                               "eam/alloy", unit_convert_flag);
 
     // transparently convert units for supported conversions
 

@@ -16,6 +16,13 @@
 import sys
 import os
 
+has_enchant = False
+try:
+    import enchant
+    has_enchant = True
+except:
+    pass
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -321,7 +328,7 @@ epub_author = 'The LAMMPS Developers'
 # configure spelling extension if present
 import importlib.util
 spelling_spec = importlib.util.find_spec("sphinxcontrib.spelling")
-if spelling_spec:
+if spelling_spec and has_enchant:
     extensions.append('sphinxcontrib.spelling')
 
     spelling_lang='en_US'

@@ -33,6 +33,7 @@
 #include "citeme.h"
 #include "math_const.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -763,7 +764,7 @@ void FixTTMMod::end_of_step()
     MPI_Allreduce(&t_surface_l,&surface_l,
                   1,MPI_INT,MPI_MIN,world);
     if (me == 0) {
-      fprintf(fp,BIGINT_FORMAT,update->ntimestep);
+      fmt::print(fp,"{}",update->ntimestep);
       double T_a;
       for (int ixnode = 0; ixnode < nxnodes; ixnode++)
         for (int iynode = 0; iynode < nynodes; iynode++)

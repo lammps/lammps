@@ -297,10 +297,9 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
   // Begin output to log file
   input->write_echo("#=== BEGIN kim-init ==========================================\n");
 
-  int kimerror;
   KIM_SimulatorModel * simulatorModel;
   if (model_type == SM) {
-    kimerror = KIM_SimulatorModel_Create(model_name,&simulatorModel);
+    KIM_SimulatorModel_Create(model_name,&simulatorModel);
 
     char const *sim_name, *sim_version;
     KIM_SimulatorModel_GetSimulatorNameAndVersion(

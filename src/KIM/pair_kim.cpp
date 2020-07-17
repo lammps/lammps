@@ -325,14 +325,6 @@ void PairKIM::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-#ifdef SNUM
-#undef SNUM
-#endif
-
-#define SNUM(x)                                                \
-  static_cast<std::ostringstream const &>(std::ostringstream() \
-                                          << std::dec << x).str()
-
 void PairKIM::coeff(int narg, char **arg)
 {
   // This is called when "pair_coeff ..." is read from input
@@ -496,11 +488,11 @@ void PairKIM::coeff(int narg, char **arg)
           if (nubound < 1 || nubound > extent ||
               nlbound < 1 || nlbound > nubound) {
             std::string msg("Illegal index_range '");
-            msg += SNUM(nlbound) + "-" + SNUM(nubound);
+            msg += std::to_string(nlbound) + "-" + std::to_string(nubound);
             msg += "' for '";
             msg += paramname;
             msg += "' parameter with extent of '";
-            msg += SNUM(extent);
+            msg += std::to_string(extent);
             msg += "' .";
             error->all(FLERR, msg);
           }
@@ -509,10 +501,10 @@ void PairKIM::coeff(int narg, char **arg)
           str >> nlbound;
           if (nlbound < 1 || nlbound > extent) {
             std::string msg("Illegal index '");
-            msg += SNUM(nlbound) + "' for '";
+            msg += std::to_string(nlbound) + "' for '";
             msg += paramname;
             msg += "' parameter with extent of '";
-            msg += SNUM(extent);
+            msg += std::to_string(extent);
             msg += "' .";
             error->all(FLERR, msg);
           }
@@ -549,7 +541,7 @@ void PairKIM::coeff(int narg, char **arg)
         std::string msg =
         "Wrong number of variable values for pair coefficients.\n";
         msg += "'";
-        msg += SNUM(nubound - nlbound + 1);
+        msg += std::to_string(nubound - nlbound + 1);
         msg += "' values are requested for '";
         msg += paramname;
         msg += "' parameter.";
@@ -562,8 +554,6 @@ void PairKIM::coeff(int narg, char **arg)
       error->all(FLERR, "KIM KIM_Model_ClearThenRefresh returned error");
   }
 }
-
-#undef SNUM
 
 /* ----------------------------------------------------------------------
    init specific to this pair style

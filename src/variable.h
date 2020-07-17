@@ -29,7 +29,7 @@ class Variable : protected Pointers {
   int set_string(char *, char *);
   int next(int, char **);
 
-  int find(char *);
+  int find(const char *);
   void set_arrays(int);
   void python_command(int, char **);
 
@@ -39,7 +39,7 @@ class Variable : protected Pointers {
   char *pythonstyle(char *, char *);
   int internalstyle(int);
 
-  char *retrieve(char *);
+  char *retrieve(const char *);
   double compute_equal(int);
   double compute_equal(char *);
   void compute_atom(int, int, double *, int, int);

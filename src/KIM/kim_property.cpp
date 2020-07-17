@@ -199,7 +199,8 @@ void kimProperty::command(int narg, char **arg)
     // Python function returned a string value
     const char *pystr = PyUnicode_AsUTF8(pValue);
     if (kim_str) input->variable->set_string("kim_property_str", pystr);
-    else input->variable->set(std::string("kim_property_str string ") + pystr);
+    else input->variable->set(std::string("kim_property_str string '")
+                                          + pystr + std::string("'"));
 
     Py_XDECREF(pArgs);
     Py_XDECREF(pFunc);

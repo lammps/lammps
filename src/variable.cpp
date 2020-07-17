@@ -541,6 +541,22 @@ void Variable::set(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   convenience function to allow defining a variable from a single string
+------------------------------------------------------------------------- */
+
+void Variable::set(const std::string &setcmd)
+{
+  std::vector<std::string> args = utils::split_words(setcmd);
+  char **newarg = new char*[args.size()];
+  int i=0;
+  for (const auto &arg : args) {
+    newarg[i++] = (char *)arg.c_str();
+  }
+  set(args.size(),newarg);
+  delete[] newarg;
+}
+
+/* ----------------------------------------------------------------------
    INDEX variable created by command-line argument
    make it INDEX rather than STRING so cannot be re-defined in input script
 ------------------------------------------------------------------------- */

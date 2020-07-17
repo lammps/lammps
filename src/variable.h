@@ -24,6 +24,7 @@ class Variable : protected Pointers {
  public:
   Variable(class LAMMPS *);
   ~Variable();
+  void set(const std::string &);
   void set(int, char **);
   void set(char *, int, char **);
   int set_string(char *, char *);

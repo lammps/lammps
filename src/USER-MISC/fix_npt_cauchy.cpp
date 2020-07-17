@@ -2770,10 +2770,10 @@ void FixNPTCauchy::CauchyStat_Step(double (&Fi)[3][3], double (&Fdot)[3][3],
       n=uv(jj,2);
       dsds(ii,jj) = Fi(i,m)*Fi(j,n) + Fi(i,n)*Fi(j,m) + Fi(j,m)*Fi(i,n) + Fi(j,n)*Fi(i,m);
       for(int l = 1;l <= 3;l++) {
-	for(int k = 1;k <= 3;k++) {
-	  dsdf(ii,jj) = dsdf(ii,jj) + cauchy(k,l)*
-	    ( Fi(i,k)*Fi(j,l)*Fi(n,m) - Fi(i,m)*Fi(j,l)*Fi(n,k) - Fi(i,k)*Fi(j,m)*Fi(n,l) );
-	}
+        for(int k = 1;k <= 3;k++) {
+          dsdf(ii,jj) = dsdf(ii,jj) + cauchy(k,l)*
+            ( Fi(i,k)*Fi(j,l)*Fi(n,m) - Fi(i,m)*Fi(j,l)*Fi(n,k) - Fi(i,k)*Fi(j,m)*Fi(n,l) );
+        }
       }
     }
   }

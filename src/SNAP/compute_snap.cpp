@@ -212,16 +212,19 @@ void ComputeSnap::init()
 
   // find compute for reference energy
 
-  int ipe = modify->find_compute("thermo_pe");
+  std::string id_pe = std::string("thermo_pe");
+  int ipe = modify->find_compute(id_pe);
   if (ipe == -1)
     error->all(FLERR,"compute thermo_pe does not exist.");
   c_pe = modify->compute[ipe];
 
   // add compute for reference virial tensor
 
-  modify->add_compute("snap_press all pressure NULL virial");
+  std::string id_virial = std::string("snap_press");
+  std::string pcmd = id_virial + " all pressure NULL virial";
+  modify->add_compute(pcmd);
 
-  int ivirial = modify->find_compute("snap_press");
+  int ivirial = modify->find_compute(id_virial);
   if (ivirial == -1)
     error->all(FLERR,"compute snap_press does not exist.");
   c_virial = modify->compute[ivirial];

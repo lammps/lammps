@@ -12,25 +12,25 @@ Syntax
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * mliap = style name of this compute command
-* two keyword/value pairs must be appended
-* keyword = *model* or *descriptor*
+* two or more keyword/value pairs must be appended
+* keyword = *model* or *descriptor* or *gradgradflag*
 
   .. parsed-literal::
 
-       *model* values = style Nelems Nparams
+       *model* values = style
          style = *linear* or *quadratic*
-         Nelems = number of elements
-         Nparams = number of parameters per element
        *descriptor* values = style filename
          style = *sna*
          filename = name of file containing descriptor definitions
+       *gradgradflag* value = 0/1
+         toggle gradgrad method for force gradient
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   compute mliap model linear 2 31 descriptor sna Ta06A.mliap.descriptor
+   compute mliap model linear descriptor sna Ta06A.mliap.descriptor
 
 Description
 """""""""""
@@ -57,20 +57,13 @@ The compute *mliap* command must be followed by two keywords
 *model* and *descriptor* in either order.
 
 The *model* keyword is followed by a model style, currently limited to
-either *linear* or *quadratic*. In both cases,
-this is followed by two arguments. *nelems* is the number of elements.
-It must be equal to the number of LAMMPS atom types. *nparams*
-is the number of parameters per element for this model i.e.
-the number of parameter gradients for each element. Note these definitions
-are identical to those of *nelems* and *nparams* in the
-:doc:`pair_style mliap <pair_mliap>` model file.
+either *linear* or *quadratic*.
 
 The *descriptor* keyword is followed by a descriptor style, and additional arguments.
 Currently the only descriptor style is *sna*, indicating the bispectrum component
 descriptors used by the Spectral Neighbor Analysis Potential (SNAP) potentials of
 :doc:`pair_style snap <pair_snap>`.
-The \'p\' in SNAP is dropped, because keywords that match pair_styles are silently stripped
-out by the LAMMPS command parser. A single additional argument specifies the descriptor filename
+A single additional argument specifies the descriptor filename
 containing the parameters and setting used by the SNAP descriptor.
 The descriptor filename usually ends in the *.mliap.descriptor* extension.
 The format of this file is identical to the descriptor file in the
@@ -108,6 +101,17 @@ command:
 
 See section below on output for a detailed explanation of the data
 layout in the global array.
+
+The optional keyword *gradgradflag* controls how the force
+gradient is calculated. A value of 1 requires that the model provide
+the matrix of double gradients of energy w.r.t. both parameters
+and descriptors. For the linear and quadratic models this matrix is
+sparse and so is easily calculated and stored. For other models, this
+matrix may be prohibitively expensive to calculate and store.
+A value of 0 requires that the descriptor provide the derivative
+of the descriptors w.r.t. the position of every neighbor atom.
+This is not optimal for linear and quadratic models, but may be
+a better choice for more complex models.
 
 Atoms not in the group do not contribute to this compute.
 Neighbor atoms not in the group do not contribute to this compute.
@@ -167,4 +171,7 @@ Related commands
 
 :doc:`pair_style mliap <pair_mliap>`
 
-**Default:** none
+Default
+"""""""
+
+The keyword defaults are gradgradflag = 1

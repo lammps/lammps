@@ -80,14 +80,6 @@ extern "C" {
 #include "KIM_SimulatorHeaders.h"
 }
 
-#ifdef SNUM
-#undef SNUM
-#endif
-
-#define SNUM(x)                                                \
-  static_cast<std::ostringstream const &>(std::ostringstream() \
-                                          << std::dec << x).str()
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -381,7 +373,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
       char const *str_name = NULL;
       char const *str_desc = NULL;
 
-      mesg += SNUM(numberOfParameters);
+      mesg += std::to_string(numberOfParameters);
       mesg += " mutable parameters. \n";
 
       int max_len(0);
@@ -401,8 +393,8 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
       for (int i = 0; i < numberOfParameters; ++i) {
         KIM_Model_GetParameterMetadata(pkim, i, &kim_DataType,
         &extent, &str_name, &str_desc);
-        mesg += SNUM(i+1);
-        for (int j = SNUM(i+1).size(); j < 8; ++j)
+        mesg += std::to_string(i+1);
+        for (int j = std::to_string(i+1).size(); j < 8; ++j)
           mesg += " ";
         mesg += "| ";
         mesg += str_name;
@@ -414,7 +406,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
           mesg += "\"  | ";
         else
           mesg += "\"   | ";
-        mesg += SNUM(extent);
+        mesg += std::to_string(extent);
         mesg += "\n";
       }
     } else mesg += "No mutable parameters. \n";
@@ -530,5 +522,3 @@ void KimInit::write_log_cite(char *model_name)
 
   KIM_Collections_Destroy(&coll);
 }
-
-#undef SNUM

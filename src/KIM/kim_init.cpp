@@ -496,7 +496,7 @@ void KimInit::do_variables(char *user_units, char *model_units)
 
 /* ---------------------------------------------------------------------- */
 
-void KimInit::write_log_cite(const std::string &model_name)
+void KimInit::write_log_cite(char *model_name)
 {
   KIM_Collections * coll;
   int err = KIM_Collections_Create(&coll);
@@ -505,10 +505,10 @@ void KimInit::write_log_cite(const std::string &model_name)
   int extent;
   if (model_type == MO) {
     err = KIM_Collections_CacheListOfItemMetadataFiles(
-      coll,KIM_COLLECTION_ITEM_TYPE_portableModel,model_name.c_str(),&extent);
+      coll,KIM_COLLECTION_ITEM_TYPE_portableModel,model_name,&extent);
   } else if (model_type == SM) {
     err = KIM_Collections_CacheListOfItemMetadataFiles(
-      coll,KIM_COLLECTION_ITEM_TYPE_simulatorModel,model_name.c_str(),&extent);
+      coll,KIM_COLLECTION_ITEM_TYPE_simulatorModel,model_name,&extent);
   } else {
     error->all(FLERR,"Unknown model type.");
   }

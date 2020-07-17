@@ -67,13 +67,6 @@ compute		vbsum all reduce sum c_vb[*]
 # fix 		vbsum all ave/time 1 1 1 c_vbsum file vbsum.dat mode vector
 variable	db_2_100 equal c_db[2][100]
 
-# set up compute snap generating global array
-
-compute   	snap all mliap descriptor sna compute.mliap.descriptor model quadratic 2 21
-fix 		snap all ave/time 1 1 1 c_snap[*] file compute.quadratic.dat mode vector
-
-thermo 		100
-
 # test output:   1: total potential energy
 #                2: xy component of stress tensor
 #                3: Sum(0.5*(B_{222}^i)^2, all i of type 2) 
@@ -81,15 +74,32 @@ thermo 		100
 #                5: y component of -Sum(d(0.5*(B_{222}^i)^2/dR[2]), all i of type 2)
 #
 #                followed by 5 counterparts from compute snap
+thermo 		100
+
+# run compute mliap with gradgradflag = 1
+
+compute   	snap all mliap descriptor sna compute.mliap.descriptor model quadratic gradgradflag 1
+fix 		snap all ave/time 1 1 1 c_snap[*] file compute.quadratic.gg1.dat mode vector
 
 thermo_style	custom &
 		pe            pxy            c_bsum2[20]   c_vbsum[220]    v_db_2_100 &
 		c_snap[1][43] c_snap[13][43] c_snap[1][42] c_snap[12][42] c_snap[6][42] 
 thermo_modify 	norm no
 
-# dump 		mydump_db all custom 1000 dump_db id c_db[*]
-# dump_modify 	mydump_db sort id
+run             ${nsteps}
 
-# Run MD
+uncompute	snap
+unfix		snap
+
+# run compute mliap with gradgradflag = 0
+
+compute   	snap all mliap descriptor sna compute.mliap.descriptor model quadratic gradgradflag 0
+fix 		snap all ave/time 1 1 1 c_snap[*] file compute.quadratic.gg0.dat mode vector
+
+thermo_style	custom &
+		pe            pxy            c_bsum2[20]   c_vbsum[220]    v_db_2_100 &
+		c_snap[1][43] c_snap[13][43] c_snap[1][42] c_snap[12][42] c_snap[6][42] 
+thermo_modify 	norm no
 
 run             ${nsteps}
+

@@ -67,11 +67,6 @@ compute		vbsum all reduce sum c_vb[*]
 # fix 		vbsum all ave/time 1 1 1 c_vbsum file vbsum.dat mode vector
 variable	db_2_25 equal c_db[2][25]
 
-# set up compute snap generating global array
-
-compute   	snap all mliap descriptor sna compute.mliap.descriptor model linear 2 6
-fix 		snap all ave/time 1 1 1 c_snap[*] file compute.snap.dat mode vector
-
 thermo 		100
 
 # test output:   1: total potential energy
@@ -82,14 +77,29 @@ thermo 		100
 #
 #                followed by 5 counterparts from compute snap
 
+# run compute mliap with gradgradflag = 1
+
+compute   	snap all mliap descriptor sna compute.mliap.descriptor model linear gradgradflag 1
+fix 		snap all ave/time 1 1 1 c_snap[*] file compute.snap.gg1.dat mode vector
+
 thermo_style	custom &
 		pe            pxy            c_bsum2[1]   c_vbsum[55]    v_db_2_25 &
 		c_snap[1][13] c_snap[13][13] c_snap[1][8] c_snap[12][12] c_snap[6][12] 
 thermo_modify 	norm no
 
-# dump 		mydump_db all custom 1000 dump_db id c_db[*]
-# dump_modify 	mydump_db sort id
+run             ${nsteps}
 
-# Run MD
+uncompute	snap
+unfix		snap
+
+# run compute mliap with gradgradflag = 0
+
+compute   	snap all mliap descriptor sna compute.mliap.descriptor model linear gradgradflag 0
+fix 		snap all ave/time 1 1 1 c_snap[*] file compute.snap.gg0.dat mode vector
+
+thermo_style	custom &
+		pe            pxy            c_bsum2[1]   c_vbsum[55]    v_db_2_25 &
+		c_snap[1][13] c_snap[13][13] c_snap[1][8] c_snap[12][12] c_snap[6][12] 
+thermo_modify 	norm no
 
 run             ${nsteps}

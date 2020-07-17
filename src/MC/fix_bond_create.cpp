@@ -129,7 +129,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"aconstrain") == 0 &&
         strcmp(style,"bond/create/angle") == 0) {
-      if (iarg+3 > narg) 
+      if (iarg+3 > narg)
           error->all(FLERR,"Illegal fix bond/create/angle command");
       amin = force->numeric(FLERR,arg[iarg+1]);
       amax = force->inumeric(FLERR,arg[iarg+2]);
@@ -470,7 +470,7 @@ void FixBondCreate::post_integrate()
         partner[j] = tag[i];
         distsq[j] = rsq;
       }
-  
+
     }
   }
 

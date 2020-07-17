@@ -21,11 +21,14 @@ namespace LAMMPS_NS {
 class MLIAPModel : protected Pointers {
 public:
   MLIAPModel(LAMMPS*, char*);
-  MLIAPModel(LAMMPS*, int, int);
   ~MLIAPModel();
-  virtual void gradient(class PairMLIAP*, class NeighList*, double**, double**, int)=0;
-  virtual void param_gradient(int*, class NeighList*, double**, int**, int**, double**, double*)=0;
-  virtual int get_gamma_nnz()=0;
+  void set_ndescriptors(int);
+  void set_nelements(int);
+  virtual int get_nparams()=0;
+  virtual int get_gamma_nnz(class MLIAPData*)=0;
+  virtual void compute_gradients(class MLIAPData*)=0;
+  virtual void compute_gradgrads(class MLIAPData*)=0;
+  virtual void compute_force_gradients(class MLIAPData*)=0;
   virtual void init();
   virtual double memory_usage();
   int nelements;                 // # of unique elements

@@ -13,6 +13,7 @@
 
 #include "mliap_descriptor_snap.h"
 #include "pair_mliap.h"
+#include "mliap_data.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
@@ -21,9 +22,6 @@
 #include "force.h"
 #include "comm.h"
 #include "utils.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "sna.h"
 #include "memory.h"
 #include "error.h"
@@ -76,58 +74,36 @@ MLIAPDescriptorSNAP::~MLIAPDescriptorSNAP()
    compute descriptors for each atom
    ---------------------------------------------------------------------- */
 
-void MLIAPDescriptorSNAP::compute_descriptors(int* map, NeighList* list, double **descriptors)
+void MLIAPDescriptorSNAP::compute_descriptors(class MLIAPData* data)
 {
-  int i,j,jnum,ninside;
-  double delx,dely,delz,rsq;
-  int *jlist;
 
   double **x = atom->x;
-  int *type = atom->type;
 
-  for (int ii = 0; ii < list->inum; ii++) {
-    i = list->ilist[ii];
-
-    const double xtmp = x[i][0];
-    const double ytmp = x[i][1];
-    const double ztmp = x[i][2];
-    const int itype = type[i];
-    const int ielem = map[itype];
-
-    jlist = list->firstneigh[i];
-    jnum = list->numneigh[i];
+  int ij = 0;
+  for (int ii = 0; ii < data->natoms; ii++) {
+    const int i = data->iatoms[ii];
+    const int ielem = data->ielems[ii];
 
     // insure rij, inside, wj, and rcutij are of size jnum
 
+    const int jnum = data->numneighs[ii];
     snaptr->grow_rij(jnum);
 
-    // rij[][3] = displacements between atom I and those neighbors
-    // inside = indices of neighbors of I within cutoff
-    // wj = weights for neighbors of I within cutoff
-    // rcutij = cutoffs for neighbors of I within cutoff
-    // note Rij sign convention => dU/dRij = dU/dRj = -dU/dRi
-
-    ninside = 0;
+    int ninside = 0;
     for (int jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-      delx = x[j][0] - xtmp;
-      dely = x[j][1] - ytmp;
-      delz = x[j][2] - ztmp;
-      rsq = delx*delx + dely*dely + delz*delz;
-      int jtype = type[j];
-      const int jelem = map[jtype];
+      const int j = data->jatoms[ij];
+      const int jelem = data->jelems[ij];
+      const double *delr = data->rij[ij];
 
-      if (rsq < cutsq[ielem][jelem]) {
-        snaptr->rij[ninside][0] = delx;
-        snaptr->rij[ninside][1] = dely;
-        snaptr->rij[ninside][2] = delz;
-        snaptr->inside[ninside] = j;
-	snaptr->wj[ninside] = wjelem[jelem];
-	snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
-	snaptr->element[ninside] = jelem; // element index for chem snap
-        ninside++;
-      }
+      snaptr->rij[ninside][0] = delr[0];
+      snaptr->rij[ninside][1] = delr[1];
+      snaptr->rij[ninside][2] = delr[2];
+      snaptr->inside[ninside] = j;
+      snaptr->wj[ninside] = wjelem[jelem];
+      snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
+      snaptr->element[ninside] = jelem; // element index for chem snap
+      ninside++;
+      ij++;
     }
 
     if (chemflag)
@@ -141,8 +117,8 @@ void MLIAPDescriptorSNAP::compute_descriptors(int* map, NeighList* list, double 
     else
       snaptr->compute_bi(0);
 
-    for (int icoeff = 0; icoeff < ndescriptors; icoeff++)
-      descriptors[ii][icoeff] = snaptr->blist[icoeff];
+    for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
+      data->descriptors[ii][icoeff] = snaptr->blist[icoeff];
   }
 
 }
@@ -151,63 +127,38 @@ void MLIAPDescriptorSNAP::compute_descriptors(int* map, NeighList* list, double 
    compute forces for each atom
    ---------------------------------------------------------------------- */
 
-void MLIAPDescriptorSNAP::compute_forces(PairMLIAP* pairmliap, NeighList* list, double **beta, int vflag)
+void MLIAPDescriptorSNAP::compute_forces(class MLIAPData* data)
 {
-  int i,j,jnum,ninside;
-  double delx,dely,delz,rsq;
   double fij[3];
-  int *jlist,*numneigh,**firstneigh;
 
   double **x = atom->x;
   double **f = atom->f;
-  int *type = atom->type;
 
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-
-  for (int ii = 0; ii < list->inum; ii++) {
-    i = list->ilist[ii];
-
-    const double xtmp = x[i][0];
-    const double ytmp = x[i][1];
-    const double ztmp = x[i][2];
-    const int itype = type[i];
-    const int ielem = pairmliap->map[itype];
-
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
+  int ij = 0;
+  for (int ii = 0; ii < data->natoms; ii++) {
+    const int i = data->iatoms[ii];
+    const int ielem = data->ielems[ii];
 
     // insure rij, inside, wj, and rcutij are of size jnum
 
+    const int jnum = data->numneighs[ii];
     snaptr->grow_rij(jnum);
 
-    // rij[][3] = displacements between atom I and those neighbors
-    // inside = indices of neighbors of I within cutoff
-    // wj = weights for neighbors of I within cutoff
-    // rcutij = cutoffs for neighbors of I within cutoff
-    // note Rij sign convention => dU/dRij = dU/dRj = -dU/dRi
-
-    ninside = 0;
+    int ninside = 0;
     for (int jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-      delx = x[j][0] - xtmp;
-      dely = x[j][1] - ytmp;
-      delz = x[j][2] - ztmp;
-      rsq = delx*delx + dely*dely + delz*delz;
-      int jtype = type[j];
-      int jelem = pairmliap->map[jtype];
+      const int j = data->jatoms[ij];
+      const int jelem = data->jelems[ij];
+      const double *delr = data->rij[ij];
 
-      if (rsq < cutsq[ielem][jelem]) {
-        snaptr->rij[ninside][0] = delx;
-        snaptr->rij[ninside][1] = dely;
-        snaptr->rij[ninside][2] = delz;
-        snaptr->inside[ninside] = j;
-        snaptr->wj[ninside] = wjelem[jelem];
-        snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
-        snaptr->element[ninside] = jelem; // element index for chem snap
-        ninside++;
-      }
+      snaptr->rij[ninside][0] = delr[0];
+      snaptr->rij[ninside][1] = delr[1];
+      snaptr->rij[ninside][2] = delr[2];
+      snaptr->inside[ninside] = j;
+      snaptr->wj[ninside] = wjelem[jelem];
+      snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
+      snaptr->element[ninside] = jelem; // element index for chem snap
+      ninside++;
+      ij++;
     }
 
     // compute Ui, Yi for atom I
@@ -221,7 +172,7 @@ void MLIAPDescriptorSNAP::compute_forces(PairMLIAP* pairmliap, NeighList* list, 
     // compute Fij = dEi/dRj = -dEi/dRi
     // add to Fi, subtract from Fj
 
-    snaptr->compute_yi(beta[ii]);
+    snaptr->compute_yi(data->betas[ii]);
 
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
@@ -244,79 +195,47 @@ void MLIAPDescriptorSNAP::compute_forces(PairMLIAP* pairmliap, NeighList* list, 
       // add in global and per-atom virial contributions
       // this is optional and has no effect on force calculation
 
-      if (vflag)
-        pairmliap->v_tally(i,j,
-                     fij[0],fij[1],fij[2],
-                     -snaptr->rij[jj][0],-snaptr->rij[jj][1],
-                     -snaptr->rij[jj][2]);
-
+      if (data->vflag)
+        data->pairmliap->v_tally(i,j,fij,snaptr->rij[jj]);
     }
   }
 
 }
 
 /* ----------------------------------------------------------------------
-   compute force gradient for each atom
+   calculate gradients of forces w.r.t. parameters
    ---------------------------------------------------------------------- */
 
-void MLIAPDescriptorSNAP::compute_gradients(int *map, NeighList* list,
-                                         int gamma_nnz, int **gamma_row_index,
-                                         int **gamma_col_index, double **gamma, double **gradforce,
-                                         int yoffset, int zoffset)
+void MLIAPDescriptorSNAP::compute_force_gradients(class MLIAPData* data)
 {
-  int i,j,jnum,ninside;
-  double delx,dely,delz,rsq;
-  int *jlist,*numneigh,**firstneigh;
-
   double **x = atom->x;
-  int *type = atom->type;
 
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-
-  for (int ii = 0; ii < list->inum; ii++) {
-    i = list->ilist[ii];
-
-    const double xtmp = x[i][0];
-    const double ytmp = x[i][1];
-    const double ztmp = x[i][2];
-    const int itype = type[i];
-    const int ielem = map[itype];
-
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
+  int ij = 0;
+  for (int ii = 0; ii < data->natoms; ii++) {
+    const int i = data->iatoms[ii];
+    const int ielem = data->ielems[ii];
 
     // insure rij, inside, wj, and rcutij are of size jnum
 
+    const int jnum = data->numneighs[ii];
     snaptr->grow_rij(jnum);
 
-    // rij[][3] = displacements between atom I and those neighbors
-    // inside = indices of neighbors of I within cutoff
-    // wj = weights for neighbors of I within cutoff
-    // rcutij = cutoffs for neighbors of I within cutoff
-    // note Rij sign convention => dU/dRij = dU/dRj = -dU/dRi
-
-    ninside = 0;
+    int ninside = 0;
     for (int jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-      delx = x[j][0] - xtmp;
-      dely = x[j][1] - ytmp;
-      delz = x[j][2] - ztmp;
-      rsq = delx*delx + dely*dely + delz*delz;
-      int jtype = type[j];
-      const int jelem = map[jtype];
+      const int j = data->jatoms[ij];
+      const int jelem = data->jelems[ij];
 
-      if (rsq < cutsq[ielem][jelem]) {
-        snaptr->rij[ninside][0] = delx;
-        snaptr->rij[ninside][1] = dely;
-        snaptr->rij[ninside][2] = delz;
-        snaptr->inside[ninside] = j;
-	snaptr->wj[ninside] = wjelem[jelem];
-	snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
-        snaptr->element[ninside] = jelem; // element index for chem snap
-        ninside++;
-      }
+      const double *delr = data->rij[ij];
+
+      snaptr->rij[ninside][0] = delr[0];
+      snaptr->rij[ninside][1] = delr[1];
+      snaptr->rij[ninside][2] = delr[2];
+      snaptr->inside[ninside] = j;
+      snaptr->wj[ninside] = wjelem[jelem];
+      snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
+      snaptr->element[ninside] = jelem; // element index for chem snap
+      ninside++;
+      ij++;
     }
 
     if (chemflag)
@@ -344,15 +263,15 @@ void MLIAPDescriptorSNAP::compute_gradients(int *map, NeighList* list,
 
       // Accumulate gamma_lk*dB_k/dRi, -gamma_lk**dB_k/dRj
 
-      for (int inz = 0; inz < gamma_nnz; inz++) {
-        const int l = gamma_row_index[ii][inz];
-        const int k = gamma_col_index[ii][inz];
-        gradforce[i][l]         += gamma[ii][inz]*snaptr->dblist[k][0];
-        gradforce[i][l+yoffset] += gamma[ii][inz]*snaptr->dblist[k][1];
-        gradforce[i][l+zoffset] += gamma[ii][inz]*snaptr->dblist[k][2];
-        gradforce[j][l]         -= gamma[ii][inz]*snaptr->dblist[k][0];
-        gradforce[j][l+yoffset] -= gamma[ii][inz]*snaptr->dblist[k][1];
-        gradforce[j][l+zoffset] -= gamma[ii][inz]*snaptr->dblist[k][2];
+      for (int inz = 0; inz < data->gamma_nnz; inz++) {
+        const int l = data->gamma_row_index[ii][inz];
+        const int k = data->gamma_col_index[ii][inz];
+        data->gradforce[i][l]         += data->gamma[ii][inz]*snaptr->dblist[k][0];
+        data->gradforce[i][l+data->yoffset] += data->gamma[ii][inz]*snaptr->dblist[k][1];
+        data->gradforce[i][l+data->zoffset] += data->gamma[ii][inz]*snaptr->dblist[k][2];
+        data->gradforce[j][l]         -= data->gamma[ii][inz]*snaptr->dblist[k][0];
+        data->gradforce[j][l+data->yoffset] -= data->gamma[ii][inz]*snaptr->dblist[k][1];
+        data->gradforce[j][l+data->zoffset] -= data->gamma[ii][inz]*snaptr->dblist[k][2];
       }
 
     }
@@ -364,65 +283,36 @@ void MLIAPDescriptorSNAP::compute_gradients(int *map, NeighList* list,
    compute descriptor gradients for each neighbor atom
    ---------------------------------------------------------------------- */
 
-void MLIAPDescriptorSNAP::compute_descriptor_gradients(int *map, NeighList* list,
-                                         int /*gamma_nnz*/, int ** /*gamma_row_index*/,
-                                         int ** /*gamma_col_index*/, double ** /*gamma*/,
-                                         double **graddesc,
-                                         int /*yoffset*/, int /*zoffset*/)
+void MLIAPDescriptorSNAP::compute_descriptor_gradients(class MLIAPData* data)
 {
-  int i,j,jnum,ninside;
-  double delx,dely,delz,rsq;
-  int *jlist,*numneigh,**firstneigh;
-
   double **x = atom->x;
-  int *type = atom->type;
 
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-
-  for (int ii = 0; ii < list->inum; ii++) {
-    i = list->ilist[ii];
-
-    const double xtmp = x[i][0];
-    const double ytmp = x[i][1];
-    const double ztmp = x[i][2];
-    const int itype = type[i];
-    const int ielem = map[itype];
-
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
+  int ij = 0;
+  for (int ii = 0; ii < data->natoms; ii++) {
+    const int i = data->iatoms[ii];
+    const int ielem = data->ielems[ii];
 
     // insure rij, inside, wj, and rcutij are of size jnum
 
+    const int jnum = data->numneighs[ii];
     snaptr->grow_rij(jnum);
 
-    // rij[][3] = displacements between atom I and those neighbors
-    // inside = indices of neighbors of I within cutoff
-    // wj = weights for neighbors of I within cutoff
-    // rcutij = cutoffs for neighbors of I within cutoff
-    // note Rij sign convention => dU/dRij = dU/dRj = -dU/dRi
-
-    ninside = 0;
+    int ij0 = ij;
+    int ninside = 0;
     for (int jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-      delx = x[j][0] - xtmp;
-      dely = x[j][1] - ytmp;
-      delz = x[j][2] - ztmp;
-      rsq = delx*delx + dely*dely + delz*delz;
-      int jtype = type[j];
-      const int jelem = map[jtype];
+      const int j = data->jatoms[ij];
+      const int jelem = data->jelems[ij];
+      const double *delr = data->rij[ij];
 
-      if (rsq < cutsq[ielem][jelem]) {
-        snaptr->rij[ninside][0] = delx;
-        snaptr->rij[ninside][1] = dely;
-        snaptr->rij[ninside][2] = delz;
-        snaptr->inside[ninside] = j;
-	snaptr->wj[ninside] = wjelem[jelem];
-	snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
-        snaptr->element[ninside] = jelem; // element index for chem snap
-        ninside++;
-      }
+      snaptr->rij[ninside][0] = delr[0];
+      snaptr->rij[ninside][1] = delr[1];
+      snaptr->rij[ninside][2] = delr[2];
+      snaptr->inside[ninside] = j;
+      snaptr->wj[ninside] = wjelem[jelem];
+      snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
+      snaptr->element[ninside] = jelem; // element index for chem snap
+      ninside++;
+      ij++;
     }
 
     if (chemflag)
@@ -436,6 +326,7 @@ void MLIAPDescriptorSNAP::compute_descriptor_gradients(int *map, NeighList* list
     else
       snaptr->compute_bi(0);
 
+    ij = ij0;
     for (int jj = 0; jj < ninside; jj++) {
       const int j = snaptr->inside[jj];
 
@@ -450,14 +341,12 @@ void MLIAPDescriptorSNAP::compute_descriptor_gradients(int *map, NeighList* list
 
       // Accumulate dB_k^i/dRi, dB_k^i/dRj
 
-      for (int k = 0; k < ndescriptors; k++) {
-        graddesc[i][k] = snaptr->dblist[k][0];
-        graddesc[i][k] = snaptr->dblist[k][1];
-        graddesc[i][k] = snaptr->dblist[k][2];
-        graddesc[j][k] = -snaptr->dblist[k][0];
-        graddesc[j][k] = -snaptr->dblist[k][1];
-        graddesc[j][k] = -snaptr->dblist[k][2];
+      for (int k = 0; k < data->ndescriptors; k++) {
+        data->graddesc[ij][k][0] = snaptr->dblist[k][0];
+        data->graddesc[ij][k][1] = snaptr->dblist[k][1];
+        data->graddesc[ij][k][2] = snaptr->dblist[k][2];
       }
+      ij++;
     }
   }
 
@@ -638,7 +527,10 @@ double MLIAPDescriptorSNAP::memory_usage()
 {
   double bytes = 0;
 
-  bytes += snaptr->memory_usage(); // SNA object
+  bytes += nelements*sizeof(double);            // radelem
+  bytes += nelements*sizeof(double);            // welem
+  bytes += nelements*nelements*sizeof(int);     // cutsq
+  bytes += snaptr->memory_usage();              // SNA object
 
   return bytes;
 }

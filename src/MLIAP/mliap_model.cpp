@@ -33,19 +33,13 @@ using namespace LAMMPS_NS;
 
 MLIAPModel::MLIAPModel(LAMMPS* lmp, char* coefffilename) : Pointers(lmp)
 {
-  nelements = 0;
   coeffelem = NULL;
-  read_coeffs(coefffilename);
-  nonlinearflag = 0;
-}
-
-/* ---------------------------------------------------------------------- */
-
-MLIAPModel::MLIAPModel(LAMMPS* lmp, int nelements_in, int nparams_in) : Pointers(lmp)
-{
-  nelements = nelements_in;
-  nparams = nparams_in;
-  coeffelem = NULL;
+  if (coefffilename) read_coeffs(coefffilename);
+  else {
+    nparams = 0;
+    nelements = 0;
+    ndescriptors = 0;
+  }
   nonlinearflag = 0;
 }
 
@@ -62,6 +56,24 @@ MLIAPModel::~MLIAPModel()
 
 void MLIAPModel::init()
 {
+}
+
+/* ----------------------------------------------------------------------
+   set number of elements
+   ---------------------------------------------------------------------- */
+
+void MLIAPModel::set_nelements(int nelements_in)
+{
+  nelements = nelements_in;
+}
+
+/* ----------------------------------------------------------------------
+   set number of descriptors
+   ---------------------------------------------------------------------- */
+
+void MLIAPModel::set_ndescriptors(int ndescriptors_in)
+{
+  ndescriptors = ndescriptors_in;
 }
 
 /* ---------------------------------------------------------------------- */

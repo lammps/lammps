@@ -408,7 +408,7 @@ void PairKIM::coeff(int narg, char **arg)
   kim_particle_codes = new int[lmps_num_unique_elements];
   kim_particle_codes_ok = true;
 
-  for(int i = 0; i < lmps_num_unique_elements; i++) {
+  for (int i = 0; i < lmps_num_unique_elements; i++) {
     int supported;
     int code;
     KIM_Model_GetSpeciesSupportAndCode(
@@ -903,18 +903,14 @@ void PairKIM::set_argument_pointers()
 
   // Set KIM pointer appropriately for Energy
   if (KIM_SupportStatus_NotEqual(kim_model_support_for_energy,
-                                 KIM_SUPPORT_STATUS_notSupported))
-  {
+                                 KIM_SUPPORT_STATUS_notSupported)) {
       if (KIM_SupportStatus_Equal(kim_model_support_for_energy,
                                   KIM_SUPPORT_STATUS_required)
-        || (eflag_global == 1))
-      {
+        || (eflag_global == 1)) {
         kimerror = kimerror ||
         KIM_ComputeArguments_SetArgumentPointerDouble(
           pargs,KIM_COMPUTE_ARGUMENT_NAME_partialEnergy,&(eng_vdwl));
-      }
-      else
-      {
+      } else {
         kimerror = kimerror ||
         KIM_ComputeArguments_SetArgumentPointerDouble(
           pargs,KIM_COMPUTE_ARGUMENT_NAME_partialEnergy,

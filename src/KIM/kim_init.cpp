@@ -420,51 +420,45 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
 
 /* ---------------------------------------------------------------------- */
 
-void KimInit::do_variables(char *user_units, char *model_units)
+void KimInit::do_variables(const std::string &from, const std::string &to)
 {
-  char *from = user_units, *to = model_units;
-  Variable *variable = input->variable;
-
   // refuse conversion from or to reduced units
 
-  if ((strcmp(from,"lj") == 0) || (strcmp(to,"lj") == 0))
+  if ((from == "lj") || (to == "lj"))
     error->all(FLERR,"Cannot set up conversion variables for 'lj' units");
 
   // get index to internal style variables. create, if needed.
   // set conversion factors for newly created variables.
   double conversion_factor;
   int ier;
-  char *args[3];
   std::string var_str;
-  args[1] = (char *)"internal";
-  args[2] = (char *)"1.0";
   int v_unit;
-  int const nunits = 14;
-  char *units[nunits] = {(char *)"mass",
-                         (char *)"distance",
-                         (char *)"time",
-                         (char *)"energy",
-                         (char *)"velocity",
-                         (char *)"force",
-                         (char *)"torque",
-                         (char *)"temperature",
-                         (char *)"pressure",
-                         (char *)"viscosity",
-                         (char *)"charge",
-                         (char *)"dipole",
-                         (char *)"efield",
-                         (char *)"density"};
+  const char *units[] = {"mass",
+                         "distance",
+                         "time",
+                         "energy",
+                         "velocity",
+                         "force",
+                         "torque",
+                         "temperature",
+                         "pressure",
+                         "viscosity",
+                         "charge",
+                         "dipole",
+                         "efield",
+                         "density",
+                         nullptr};
 
   input->write_echo(fmt::format("# Conversion factors from {} to {}:\n",
                                 from,to));
 
-  for (int i = 0; i < nunits; ++i) {
-    var_str = std::string("_u_") + std::string(units[i]);
-    args[0] = (char *)var_str.c_str();
-    v_unit = variable->find(args[0]);
+  auto variable = input->variable;
+  for (int i = 0; units[i] != nullptr; ++i) {
+    var_str = std::string("_u_") + units[i];
+    v_unit = variable->find(var_str.c_str());
     if (v_unit < 0) {
-      variable->set(3,args);
-      v_unit = variable->find(args[0]);
+      variable->set(var_str + " internal 1.0");
+      v_unit = variable->find(var_str.c_str());
     }
     ier = lammps_unit_conversion(units[i],
                                  from,

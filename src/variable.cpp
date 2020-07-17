@@ -578,13 +578,14 @@ void Variable::set(char *name, int narg, char **arg)
    called via library interface, so external programs can set variables
 ------------------------------------------------------------------------- */
 
-int Variable::set_string(char *name, char *str)
+int Variable::set_string(const char *name, const char *str)
 {
   int ivar = find(name);
   if (ivar < 0) return -1;
   if (style[ivar] != STRING) return -1;
   delete [] data[ivar][0];
-  copy(1,&str,data[ivar]);
+  data[ivar][0] = new char[strlen(str)+1];
+  strcpy(data[ivar][0],str);
   return 0;
 }
 

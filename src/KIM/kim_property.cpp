@@ -111,12 +111,7 @@ void kimProperty::command(int narg, char **arg)
 
   // Get the kim_str ptr to the data associated with a kim_property_str
   // variable
-  char *kim_str =
-    input->variable->retrieve(const_cast<char *>("kim_property_str"));
-
-  char **kim_str_cmd = new char *[3];
-  kim_str_cmd[0] = const_cast<char *>("kim_property_str");
-
+  char *kim_str = input->variable->retrieve("kim_property_str");
   PyGILState_STATE gstate = PyGILState_Ensure();
 
   // kim_property module
@@ -203,15 +198,8 @@ void kimProperty::command(int narg, char **arg)
 
     // Python function returned a string value
     const char *pystr = PyUnicode_AsUTF8(pValue);
-
-    kim_str_cmd[2] = const_cast<char *>(pystr);
-
-    if (kim_str) {
-      input->variable->set_string(kim_str_cmd[0], kim_str_cmd[2]);
-    } else {
-      kim_str_cmd[1] = const_cast<char *>("string");
-      input->variable->set(3, kim_str_cmd);
-    }
+    if (kim_str) input->variable->set_string("kim_property_str", pystr);
+    else input->variable->set(std::string("kim_property_str string ") + pystr);
 
     Py_XDECREF(pArgs);
     Py_XDECREF(pFunc);
@@ -268,10 +256,7 @@ void kimProperty::command(int narg, char **arg)
 
     // Python function returned a string value
     const char *pystr = PyUnicode_AsUTF8(pValue);
-
-    kim_str_cmd[2] = const_cast<char *>(pystr);
-
-    input->variable->set_string(kim_str_cmd[0], kim_str_cmd[2]);
+    input->variable->set_string("kim_property_str", pystr);
 
     Py_XDECREF(pArgs);
     Py_XDECREF(pFunc);
@@ -335,10 +320,7 @@ void kimProperty::command(int narg, char **arg)
 
     // Python function returned a string value
     const char *pystr = PyUnicode_AsUTF8(pValue);
-
-    kim_str_cmd[2] = const_cast<char *>(pystr);
-
-    input->variable->set_string(kim_str_cmd[0], kim_str_cmd[2]);
+    input->variable->set_string("kim_property_str", pystr);
 
     Py_XDECREF(pArgs);
     Py_XDECREF(pFunc);
@@ -402,10 +384,7 @@ void kimProperty::command(int narg, char **arg)
 
     // Python function returned a string value
     const char *pystr = PyUnicode_AsUTF8(pValue);
-
-    kim_str_cmd[2] = const_cast<char *>(pystr);
-
-    input->variable->set_string(kim_str_cmd[0], kim_str_cmd[2]);
+    input->variable->set_string("kim_property_str", pystr);
 
     Py_XDECREF(pArgs);
     Py_XDECREF(pFunc);
@@ -464,8 +443,7 @@ void kimProperty::command(int narg, char **arg)
       pValue = NULL;
 
     // Destroy the variable
-    kim_str_cmd[1] = const_cast<char *>("delete");
-    input->variable->set(2, kim_str_cmd);
+    input->variable->set("kim_property_str delete");
 
     Py_XDECREF(pArgs);
     Py_XDECREF(pFunc);
@@ -474,7 +452,6 @@ void kimProperty::command(int narg, char **arg)
 
   PyGILState_Release(gstate);
 
-  delete[] kim_str_cmd;
 #endif // PY_MAJOR_VERSION
 #endif // LMP_PYTHON
 }

@@ -78,10 +78,6 @@ extern "C" {
 #include "KIM_SimulatorHeaders.h"
 }
 
-#define SNUM(x)                                                \
-  static_cast<std::ostringstream const &>(std::ostringstream() \
-                                          << std::dec << x).str()
-
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
@@ -139,7 +135,7 @@ void KimInteractions::do_setup(int narg, char **arg)
 
       for (int i = 0; i < narg; i++) {
         atom_type_sym_list += delimiter + arg[i];
-        atom_type_num_list += delimiter + SNUM(species_to_atomic_no(arg[i]));
+        atom_type_num_list += delimiter + std::to_string(species_to_atomic_no(arg[i]));
         delimiter = " ";
       }
 

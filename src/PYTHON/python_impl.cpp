@@ -410,7 +410,7 @@ int PythonImpl::create_entry(char *name)
 
   if (!format && ninput+noutput)
     error->all(FLERR,"Invalid python command");
-  else if (format && strlen(format) != ninput+noutput)
+  else if (format && ((int) strlen(format) != ninput+noutput))
     error->all(FLERR,"Invalid python command");
 
   // process inputs as values or variables

@@ -189,8 +189,7 @@ void KimParam::command(int narg, char **arg)
 
     model_name = (char *)fix_store->getptr("model_name");
     model_units = (char *)fix_store->getptr("model_units");
-  }
-  else
+  } else
     error->all(FLERR, "Must use 'kim_init' before 'kim_param'");
 
   input->write_echo(fmt::format("#=== BEGIN kim-param {} ==================="
@@ -415,10 +414,8 @@ void KimParam::command(int narg, char **arg)
           }
         } else {
           varsname = new char *[1];
-          if (i < narg)
-          {
-            if (strcmp(arg[i], "split") == 0)
-            {
+          if (i < narg) {
+            if (strcmp(arg[i], "split") == 0) {
               std::stringstream str;
               str << varname << "_" << nlbound;
               varsname[0] = const_cast<char *>(str.str().c_str());

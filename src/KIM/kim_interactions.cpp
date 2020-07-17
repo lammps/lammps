@@ -137,8 +137,7 @@ void KimInteractions::do_setup(int narg, char **arg)
       std::string atom_type_sym_list;
       std::string atom_type_num_list;
 
-      for (int i = 0; i < narg; i++)
-      {
+      for (int i = 0; i < narg; i++) {
         atom_type_sym_list += delimiter + arg[i];
         atom_type_num_list += delimiter + SNUM(species_to_atomic_no(arg[i]));
         delimiter = " ";
@@ -272,8 +271,7 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(char const *const input_line) cons
 
   char *species1, *species2, *the_rest;
   std::vector<char *> species;
-  for (int i = 0; i < atom->ntypes; ++i)
-  {
+  for (int i = 0; i < atom->ntypes; ++i) {
     char *str;
     str = strtok(NULL," \t");
     if (str == NULL)
@@ -302,40 +300,35 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(char const *const input_line) cons
 
     if(nocomment) {
       if (strcmp(key,"pair") == 0) {
-	species1 = strtok(ptr," \t");
-	species2 = strtok(NULL," \t");
-	the_rest = strtok(NULL,"\n");
+        species1 = strtok(ptr," \t");
+        species2 = strtok(NULL," \t");
+        the_rest = strtok(NULL,"\n");
 
-	for (int type_a = 0; type_a < atom->ntypes; ++type_a) {
-	  for (int type_b = type_a; type_b < atom->ntypes; ++type_b) {
-	    if(((strcmp(species[type_a],species1) == 0) &&
-		(strcmp(species[type_b],species2) == 0))
-	       ||
-	       ((strcmp(species[type_b],species1) == 0) &&
-		(strcmp(species[type_a],species2) == 0))
-	       ) {
-	      char pair_command[MAXLINE];
-	      sprintf(pair_command,"pair_coeff %i %i %s",type_a+1,type_b+1,
-		      the_rest);
-	      input->one(pair_command);
-	    }
-	  }
-	}
-      }
-      else if (strcmp(key,"charge") == 0) {
-	species1 = strtok(ptr," \t");
-	the_rest = strtok(NULL,"\n");
+        for (int type_a = 0; type_a < atom->ntypes; ++type_a) {
+          for (int type_b = type_a; type_b < atom->ntypes; ++type_b) {
+            if (((strcmp(species[type_a],species1) == 0) &&
+                (strcmp(species[type_b],species2) == 0)) ||
+                ((strcmp(species[type_b],species1) == 0) &&
+                (strcmp(species[type_a],species2) == 0))) {
+              char pair_command[MAXLINE];
+              sprintf(pair_command,"pair_coeff %i %i %s",type_a+1,type_b+1,the_rest);
+              input->one(pair_command);
+            }
+          }
+        }
+      } else if (strcmp(key,"charge") == 0) {
+        species1 = strtok(ptr," \t");
+        the_rest = strtok(NULL,"\n");
 
-	for (int type_a = 0; type_a < atom->ntypes; ++type_a) {
-	  if(strcmp(species[type_a],species1) == 0) {
-	    char pair_command[MAXLINE];
-	    sprintf(pair_command,"set type %i charge %s",type_a+1,the_rest);
-	    input->one(pair_command);
-	  }
-	}
-      }
-      else{
-	error->one(FLERR,"Unrecognized KEY for KIM_SET_TYPE_PARAMETERS command");
+        for (int type_a = 0; type_a < atom->ntypes; ++type_a) {
+          if (strcmp(species[type_a],species1) == 0) {
+            char pair_command[MAXLINE];
+            sprintf(pair_command,"set type %i charge %s",type_a+1,the_rest);
+            input->one(pair_command);
+          }
+        }
+      } else {
+        error->one(FLERR,"Unrecognized KEY for KIM_SET_TYPE_PARAMETERS command");
       }
     }
   }

@@ -216,8 +216,7 @@ void kimProperty::command(int narg, char **arg)
     Py_XDECREF(pArgs);
     Py_XDECREF(pFunc);
     Py_XDECREF(pValue);
-  }
-  else if (strcmp(arg[0], "destroy") == 0) {
+  } else if (strcmp(arg[0], "destroy") == 0) {
     if (narg != 2) {
       PyGILState_Release(gstate);
       error->all(FLERR, "Error invalid `kim_property destroy` command.");
@@ -277,8 +276,7 @@ void kimProperty::command(int narg, char **arg)
     Py_XDECREF(pArgs);
     Py_XDECREF(pFunc);
     Py_XDECREF(pValue);
-  }
-  else if (strcmp(arg[0], "modify") == 0) {
+  } else if (strcmp(arg[0], "modify") == 0) {
     if (narg < 6) {
       PyGILState_Release(gstate);
       error->all(FLERR, "Error invalid `kim_property modify` command.");
@@ -345,8 +343,7 @@ void kimProperty::command(int narg, char **arg)
     Py_XDECREF(pArgs);
     Py_XDECREF(pFunc);
     Py_XDECREF(pValue);
-  }
-  else if (strcmp(arg[0], "remove") == 0) {
+  } else if (strcmp(arg[0], "remove") == 0) {
     if (narg < 4) {
       PyGILState_Release(gstate);
       error->all(FLERR, "Error invalid `kim_property remove` command.");
@@ -413,8 +410,7 @@ void kimProperty::command(int narg, char **arg)
     Py_XDECREF(pArgs);
     Py_XDECREF(pFunc);
     Py_XDECREF(pValue);
-  }
-  else if (strcmp(arg[0], "dump") == 0) {
+  } else if (strcmp(arg[0], "dump") == 0) {
     if (narg != 2) {
       PyGILState_Release(gstate);
       error->all(FLERR, "Error invalid `kim_property dump` command.");

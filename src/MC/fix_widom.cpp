@@ -61,7 +61,7 @@ enum{EXCHATOM,EXCHMOL}; // exchmode
 
 FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  idregion(NULL), full_flag(0),  
+  idregion(NULL), full_flag(0),
   local_gas_list(NULL), molcoords(NULL), molq(NULL), molimage(NULL),
   random_equal(NULL)
 {
@@ -483,13 +483,13 @@ void FixWidom::pre_exchange()
 
   if (full_flag) {
     energy_stored = energy_full();
-    
+
     if (exchmode == EXCHATOM) {
       attempt_atomic_insertion_full();
     } else {
       attempt_molecule_insertion_full();
     }
-    
+
     if (triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     comm->exchange();
@@ -504,7 +504,7 @@ void FixWidom::pre_exchange()
     } else {
       attempt_molecule_insertion();
     }
-    
+
   }
   next_reneighbor = update->ntimestep + nevery;
 }
@@ -706,7 +706,7 @@ void FixWidom::attempt_molecule_insertion()
     double incr_chem_pot = (inst_chem_pot - ave_widom_chemical_potential);
     ave_widom_chemical_potential += incr_chem_pot / (imove + 1);
 
-   
+
     delete[] procflag;
 
   }
@@ -806,7 +806,7 @@ void FixWidom::attempt_atomic_insertion_full()
     if (proc_flag) atom->nlocal--;
     if (force->kspace) force->kspace->qsum_qsq();
     if (force->pair->tail_flag) force->pair->reinit();
-    
+
     update_gas_atoms_list();
 
   }
@@ -968,7 +968,7 @@ void FixWidom::attempt_molecule_insertion_full()
     atom->ndihedrals -= onemols[imol]->ndihedrals;
     atom->nimpropers -= onemols[imol]->nimpropers;
     atom->natoms -= natoms_per_molecule;
-    
+
     int i = 0;
     while (i < atom->nlocal) {
       if (atom->molecule[i] == insertion_molecule) {
@@ -978,7 +978,7 @@ void FixWidom::attempt_molecule_insertion_full()
     }
     if (force->kspace) force->kspace->qsum_qsq();
     if (force->pair->tail_flag) force->pair->reinit();
-    
+
     update_gas_atoms_list();
 
   }

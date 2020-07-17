@@ -41,7 +41,7 @@ FixGravityKokkos<DeviceType>::FixGravityKokkos(LAMMPS *lmp, int narg, char **arg
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixGravityKokkos<DeviceType>::post_force(int vflag)
+void FixGravityKokkos<DeviceType>::post_force(int /*vflag*/)
 {
   // update gravity due to variables
 

@@ -75,14 +75,6 @@ extern "C"
 #include "KIM_SimulatorHeaders.h"
 }
 
-#ifdef SNUM
-#undef SNUM
-#endif
-
-#define SNUM(x)                                                \
-  static_cast<std::ostringstream const &>(std::ostringstream() \
-                                          << std::dec << x).str()
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -324,11 +316,11 @@ void KimParam::command(int narg, char **arg)
             if (nubound < 1 || nubound > extent ||
                 nlbound < 1 || nlbound > nubound) {
               std::string msg("Illegal index_range '");
-              msg += SNUM(nlbound) + "-" + SNUM(nubound);
+              msg += std::to_string(nlbound) + "-" + std::to_string(nubound);
               msg += "' for '";
               msg += paramname;
               msg += "' parameter with extent of '";
-              msg += SNUM(extent);
+              msg += std::to_string(extent);
               msg += "' .";
               error->all(FLERR, msg);
             }
@@ -337,10 +329,10 @@ void KimParam::command(int narg, char **arg)
             str >> nlbound;
             if (nlbound < 1 || nlbound > extent) {
               std::string msg("Illegal index '");
-              msg += SNUM(nlbound) + "' for parameter '";
+              msg += std::to_string(nlbound) + "' for parameter '";
               msg += paramname;
               msg += "' with the extent of '";
-              msg += SNUM(extent);
+              msg += std::to_string(extent);
               msg += "' .";
               error->all(FLERR, msg);
             }
@@ -396,7 +388,7 @@ void KimParam::command(int narg, char **arg)
               std::string msg("Wrong number of arguments in ");
               msg += "kim_param get command.\n";
               msg += "The LAMMPS '";
-              msg += SNUM(nvars);
+              msg += std::to_string(nvars);
               msg += "' variable names or '";
               msg += varname;
               msg += " split' is mandatory.";
@@ -406,7 +398,7 @@ void KimParam::command(int narg, char **arg)
             std::string msg("Wrong number of arguments in ");
             msg += "kim_param get command.\n";
             msg += "The LAMMPS '";
-            msg += SNUM(nvars);
+            msg += std::to_string(nvars);
             msg += "' variable names or '";
             msg += varname;
             msg += " split/list' is mandatory.";
@@ -542,5 +534,3 @@ void KimParam::echo_var_assign(const std::string &name,
   input->write_echo(fmt::format("variable {} string {}\n",
                                 name, value));
 }
-
-#undef SNUM

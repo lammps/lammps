@@ -365,16 +365,16 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
     KIM_Model_GetNumberOfParameters(pkim, &numberOfParameters);
 
     std::string mesg = "\nThis model has ";
-    if (numberOfParameters)
-    {
+    if (numberOfParameters) {
       KIM_DataType kim_DataType;
       int extent;
       char const *str_name = NULL;
       char const *str_desc = NULL;
 
-      mesg += std::to_string(numberOfParameters);
-      mesg += " mutable parameters. \n";
+      mesg += std::to_string(numberOfParameters) + " mutable parameters. \n";
 
+      // TODO: aligned output is easy to do with fmtlib
+      // https://fmt.dev/latest/syntax.html
       int max_len(0);
       for (int i = 0; i < numberOfParameters; ++i) {
         KIM_Model_GetParameterMetadata(pkim, i, &kim_DataType,

@@ -1193,9 +1193,9 @@ void FixWidom::update_gas_atoms_list()
 
 double FixWidom::compute_vector(int n)
 {
-  
-  if (n == 0) return -log(ave_widom_chemical_potential)/beta;
-  if (n == 1) return ave_widom_chemical_potential;
+  const double pot = ave_widom_chemical_potential;
+  if (n == 0) return (pot > 0) ? -log(pot)/beta : 0.0;
+  if (n == 1) return pot;
   if (n == 2) return volume;
   return 0.0;
 }

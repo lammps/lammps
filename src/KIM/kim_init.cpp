@@ -299,7 +299,10 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
 
   KIM_SimulatorModel * simulatorModel;
   if (model_type == SM) {
-    KIM_SimulatorModel_Create(model_name,&simulatorModel);
+    int kim_error =
+      KIM_SimulatorModel_Create(model_name,&simulatorModel);
+    if (kim_error)
+      error->all(FLERR,"Unable to load KIM Simulator Model.");
 
     char const *sim_name, *sim_version;
     KIM_SimulatorModel_GetSimulatorNameAndVersion(

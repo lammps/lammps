@@ -359,7 +359,7 @@ void PythonImpl::invoke_function(int ifunc, char *result)
 
 /* ------------------------------------------------------------------ */
 
-int PythonImpl::find(char *name)
+int PythonImpl::find(const char *name)
 {
   for (int i = 0; i < nfunc; i++)
     if (strcmp(name,pfuncs[i].name) == 0) return i;
@@ -368,7 +368,8 @@ int PythonImpl::find(char *name)
 
 /* ------------------------------------------------------------------ */
 
-int PythonImpl::variable_match(char *name, char *varname, int numeric)
+int PythonImpl::variable_match(const char *name, const char *varname,
+                               int numeric)
 {
   int ifunc = find(name);
   if (ifunc < 0) return -1;

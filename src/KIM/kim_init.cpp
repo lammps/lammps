@@ -111,6 +111,11 @@ void KimInit::command(int narg, char **arg)
   char *model_units;
   KIM_Model *pkim = NULL;
 
+  if (universe->me == 0)
+    std::remove("kim.log");
+  if (universe->nprocs > 1)
+    MPI_Barrier(universe->uworld);
+
   determine_model_type_and_units(model_name, user_units, &model_units, pkim);
 
   write_log_cite(model_name);

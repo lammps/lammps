@@ -79,7 +79,7 @@ void ResetMolIDs::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"verbose") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal reset_mol_ids command");
-      verbose = utils::tnumeric(FLERR,arg[iarg+1],1,lmp);
+      verbose = utils::inumeric(FLERR,arg[iarg+1],1,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal reset_mol_ids command");
   }

@@ -61,6 +61,7 @@ class FixBondReact : public Fix {
   int *max_rxn,*nlocalskips,*nghostlyskips;
   tagint lastcheck;
   int stabilization_flag;
+  int reset_mol_ids_flag;
   int custom_exclude_flag;
   int *stabilize_steps_flag;
   int *update_edges_flag;

@@ -144,7 +144,8 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 3;
   stabilization_flag = 0;
-  int num_common_keywords = 1;
+  reset_mol_ids_flag = 1;
+  int num_common_keywords = 2;
   for (int m = 0; m < num_common_keywords; m++) {
     if (strcmp(arg[iarg],"stabilization") == 0) {
       if (strcmp(arg[iarg+1],"no") == 0) {
@@ -161,6 +162,14 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
         stabilization_flag = 1;
         nve_limit_xmax = arg[iarg+3];
         iarg += 4;
+      }
+    } else if (strcmp(arg[iarg],"reset_mol_ids") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+                                    "'reset_mol_ids' keyword has too few arguments");
+      if (strcmp(arg[iarg+1],"yes") == 0) iarg += 2; //default
+      if (strcmp(arg[iarg+1],"no") == 0) {
+        reset_mol_ids_flag = 0;
+        iarg += 2;
       }
     } else if (strcmp(arg[iarg],"react") == 0) {
       break;
@@ -2503,11 +2512,14 @@ void FixBondReact::ghost_glovecast()
 }
 
 /* ----------------------------------------------------------------------
-update charges, types, special lists and all topology
+update molecule IDs, charges, types, special lists and all topology
 ------------------------------------------------------------------------- */
 
 void FixBondReact::update_everything()
 {
+  if (reset_mol_ids_flag)
+    input->one("reset_mol_ids " + std::string(group->names[igroup]));
+
   int *type = atom->type;
 
   int nlocal = atom->nlocal;

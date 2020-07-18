@@ -26,6 +26,12 @@
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
+#if defined(OMPI_MAJOR_VERSION)
+const bool have_openmpi = true;
+#else
+const bool have_openmpi = false;
+#endif
+
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
@@ -33,11 +39,19 @@ using ::testing::ExitedWithCode;
 using ::testing::MatchesRegex;
 using ::testing::StrEq;
 
-#define TEST_FAILURE(...)                \
-    if (Info::has_exceptions()) {        \
-        ASSERT_ANY_THROW({__VA_ARGS__}); \
-    } else {                             \
-        ASSERT_DEATH({__VA_ARGS__}, ""); \
+#define TEST_FAILURE(errmsg, ...)                                 \
+    if (Info::has_exceptions()) {                                 \
+        ::testing::internal::CaptureStdout();                     \
+        ASSERT_ANY_THROW({__VA_ARGS__});                          \
+        auto mesg = ::testing::internal::GetCapturedStdout();     \
+        ASSERT_THAT(mesg, MatchesRegex(errmsg));                  \
+    } else {                                                      \
+        if (!have_openmpi) {                                      \
+            ::testing::internal::CaptureStdout();                 \
+            ASSERT_DEATH({__VA_ARGS__}, "");                      \
+            auto mesg = ::testing::internal::GetCapturedStdout(); \
+            ASSERT_THAT(mesg, MatchesRegex(errmsg));              \
+        }                                                         \
     }
 
 class KimCommandsTest : public ::testing::Test {
@@ -73,15 +87,9 @@ TEST_F(KimCommandsTest, kim_init)
     int ifix = lmp->modify->find_fix("KIM_MODEL_STORE");
     ASSERT_GE(ifix, 0);
 
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("kim_init"););
-    auto mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal kim_init command.*"));
-
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("kim_init Unknown_Model real"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: KIM Model name not found.*"));
+    TEST_FAILURE(".*ERROR: Illegal kim_init command.*", lmp->input->one("kim_init"););
+    TEST_FAILURE(".*ERROR: KIM Model name not found.*",
+                 lmp->input->one("kim_init Unknown_Model real"););
 }
 
 TEST_F(KimCommandsTest, kim_interactions_ar)
@@ -108,6 +116,10 @@ int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
+
+    if (have_openmpi && !LAMMPS_NS::Info::has_exceptions())
+        std::cout << "Warning: using OpenMPI without exceptions. "
+                     "Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

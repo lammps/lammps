@@ -84,7 +84,7 @@ void ResetMolIDs::command(int narg, char **arg)
     } else error->all(FLERR,"Illegal reset_mol_ids command");
   }
 
-  if (comm->me == 0) utils::logmesg(lmp,"Resetting molecule IDs ...\n");
+  if (verbose == 1 && comm->me == 0) utils::logmesg(lmp,"Resetting molecule IDs ...\n");
 
   // record wall time for resetting molecule IDs
 

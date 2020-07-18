@@ -28,6 +28,12 @@
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
+#if defined(OMPI_MAJOR_VERSION)
+const bool have_openmpi = true;
+#else
+const bool have_openmpi = false;
+#endif
+
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
@@ -35,11 +41,19 @@ using ::testing::MatchesRegex;
 
 #define GETIDX(i) lmp->atom->map(i)
 
-#define TEST_FAILURE(...)                \
-    if (Info::has_exceptions()) {        \
-        ASSERT_ANY_THROW({__VA_ARGS__}); \
-    } else {                             \
-        ASSERT_DEATH({__VA_ARGS__}, ""); \
+#define TEST_FAILURE(errmsg, ...)                                 \
+    if (Info::has_exceptions()) {                                 \
+        ::testing::internal::CaptureStdout();                     \
+        ASSERT_ANY_THROW({__VA_ARGS__});                          \
+        auto mesg = ::testing::internal::GetCapturedStdout();     \
+        ASSERT_THAT(mesg, MatchesRegex(errmsg));                  \
+    } else {                                                      \
+        if (!have_openmpi) {                                      \
+            ::testing::internal::CaptureStdout();                 \
+            ASSERT_DEATH({__VA_ARGS__}, "");                      \
+            auto mesg = ::testing::internal::GetCapturedStdout(); \
+            ASSERT_THAT(mesg, MatchesRegex(errmsg));              \
+        }                                                         \
     }
 
 #define STRINGIFY(val) XSTR(val)
@@ -454,51 +468,26 @@ TEST_F(ResetIDsTest, DeleteAdd)
 
 TEST_F(ResetIDsTest, DeathTests)
 {
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids"););
-    auto mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
+    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*", lmp->input->one("reset_mol_ids"););
+    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
+                 lmp->input->one("reset_mol_ids all offset 1 1"););
+    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
+                 lmp->input->one("reset_mol_ids all offset -2"););
+    TEST_FAILURE(".*ERROR on proc 0: Expected integer.*",
+                 lmp->input->one("reset_mol_ids all offset xxx"););
+    TEST_FAILURE(".*ERROR on proc 0: Expected integer.*",
+                 lmp->input->one("reset_mol_ids all compress yes single no offset xxx"););
+    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
+                 lmp->input->one("reset_mol_ids all offset"););
+    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
+                 lmp->input->one("reset_mol_ids all compress"););
 
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all offset 1 1"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
-
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all offset -2"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
-
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all offset xxx"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR on proc 0: Expected integer.*"));
-
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all compress yes single no offset xxx"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR on proc 0: Expected integer.*"));
-
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all offset"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all compress"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all compress xxx"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all single"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all single xxx"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
+    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
+                 lmp->input->one("reset_mol_ids all compress xxx"););
+    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
+                 lmp->input->one("reset_mol_ids all single"););
+    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
+                 lmp->input->one("reset_mol_ids all single xxx"););
 }
 
 TEST(ResetMolIds, CMDFail)
@@ -511,26 +500,23 @@ TEST(ResetMolIds, CMDFail)
     lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all"););
-    auto mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Reset_mol_ids command before.*"));
+    TEST_FAILURE(".*ERROR: Reset_mol_ids command before box is.*",
+                 lmp->input->one("reset_mol_ids all"););
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("atom_modify id no");
     lmp->input->one("region box block 0 1 0 1 0 1");
     lmp->input->one("create_box 1 box");
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Cannot use reset_mol_ids unl.*"));
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    TEST_FAILURE(".*ERROR: Cannot use reset_mol_ids unless.*",
+                 lmp->input->one("reset_mol_ids all"););
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("clear");
     lmp->input->one("region box block 0 1 0 1 0 1");
     lmp->input->one("create_box 1 box");
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Can only use reset_mol_ids.*"));
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    TEST_FAILURE(".*ERROR: Can only use reset_mol_ids.*", lmp->input->one("reset_mol_ids all"););
 
     if (!verbose) ::testing::internal::CaptureStdout();
     delete lmp;
@@ -543,6 +529,10 @@ int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
+
+    if (have_openmpi && !LAMMPS_NS::Info::has_exceptions())
+        std::cout << "Warning: using OpenMPI without exceptions. "
+                     "Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

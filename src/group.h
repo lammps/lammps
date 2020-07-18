@@ -33,7 +33,7 @@ class Group : protected Pointers {
   void assign(int, char **);         // assign atoms to a group
   void assign(const std::string &);  // convenience function
   void create(char *, int *);        // add flagged atoms to a group
-  int find(const char *);            // lookup name in list of groups
+  int find(const std::string &);     // lookup name in list of groups
   int find_or_create(const char *);  // lookup name or create new group
   void write_restart(FILE *);
   void read_restart(FILE *);

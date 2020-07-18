@@ -56,6 +56,7 @@ void ResetMolIDs::command(int narg, char **arg)
   int compressflag = 1;
   int singleflag = 0;
   tagint offset = -1;
+  int verbose = 1;
 
   int iarg = 1;
   while (iarg < narg) {
@@ -75,6 +76,10 @@ void ResetMolIDs::command(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal reset_mol_ids command");
       offset = utils::tnumeric(FLERR,arg[iarg+1],1,lmp);
       if (offset < -1) error->all(FLERR,"Illegal reset_mol_ids command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"verbose") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal reset_mol_ids command");
+      verbose = utils::tnumeric(FLERR,arg[iarg+1],1,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal reset_mol_ids command");
   }
@@ -203,7 +208,7 @@ void ResetMolIDs::command(int narg, char **arg)
 
   MPI_Barrier(world);
 
-  if (comm->me == 0) {
+  if (verbose == 1 && comm->me == 0) {
     if (nchunk < 0)
       utils::logmesg(lmp,fmt::format("  number of new molecule IDs = unknown\n"));
     else

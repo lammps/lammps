@@ -584,10 +584,10 @@ void Group::create(char *name, int *flag)
    return group index if name matches existing group, -1 if no such group
 ------------------------------------------------------------------------- */
 
-int Group::find(const char *name)
+int Group::find(const std::string &name)
 {
   for (int igroup = 0; igroup < MAX_GROUP; igroup++)
-    if (names[igroup] && strcmp(name,names[igroup]) == 0) return igroup;
+    if (names[igroup] && (name == names[igroup])) return igroup;
   return -1;
 }
 

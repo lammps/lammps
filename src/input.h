@@ -24,6 +24,7 @@ class Input : protected Pointers {
   friend class Info;
   friend class Error;
   friend class Deprecated;
+  friend class SimpleCommandsTest_Echo_Test;
 
  public:
   int narg;                    // # of command args
@@ -38,7 +39,7 @@ class Input : protected Pointers {
   void substitute(char *&, char *&, int &, int &, int);
                                  // substitute for variables in a string
   int expand_args(int, char **, int, char **&);  // expand args due to wildcard
-  void write_echo(const char *); // send text to active echo file pointers
+  void write_echo(const std::string &); // send text to active echo file pointers
 
  protected:
   char *command;               // ptr to current command

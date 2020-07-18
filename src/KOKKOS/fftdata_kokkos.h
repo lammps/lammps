@@ -114,11 +114,11 @@ typedef double FFT_SCALAR;
     #define kiss_fft_scalar float
   #else
     #define kiss_fft_scalar double
-    typedef struct {
-        kiss_fft_scalar re;
-        kiss_fft_scalar im;
-    } FFT_DATA;
   #endif
+  typedef struct {
+    kiss_fft_scalar re;
+    kiss_fft_scalar im;
+  } FFT_DATA;
   #ifndef FFT_KISSFFT
   #define FFT_KISSFFT
   #endif

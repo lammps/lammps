@@ -4057,7 +4057,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
                                Tree **treestack, int &ntreestack,
                                double *argstack, int &nargstack, int ivar)
 {
-  bigint sx,sxx;
+  double sx,sxx;
   double value,sy,sxy;
 
   // word not a match to any special function
@@ -4205,6 +4205,9 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       if (eval_in_progress[ivar])
         print_var_error(FLERR,"Variable has circular dependency",ivar);
 
+      if ((method == AVE) && (nvec == 0))
+        print_var_error(FLERR,"Cannot compute average of empty vector",ivar);
+
       double *vec;
       nvec = compute_vector(ivar,&vec);
       nstride = 1;
@@ -4213,10 +4216,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
                            "variable formula",ivar);
 
     value = 0.0;
-    if (method == SLOPE) {
-      sx = sxx = 0;
-      sy = sxy = 0.0;
-    }
+    if (method == SLOPE) sx = sxx = sy = sxy = 0.0;
     else if (method == XMIN) value = BIG;
     else if (method == XMAX) value = -BIG;
 
@@ -4235,10 +4235,10 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         else if (method == AVE) value += vec[j];
         else if (method == TRAP) value += vec[j];
         else if (method == SLOPE) {
-          sx += i;
+          sx += (double)i;
           sy += vec[j];
-          sxx += i*i;
-          sxy += i*vec[j];
+          sxx += (double)i * (double)i;
+          sxy += (double)i * vec[j];
         }
         j += nstride;
       }
@@ -4256,10 +4256,10 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         else if (method == AVE) value += one;
         else if (method == TRAP) value += one;
         else if (method == SLOPE) {
-          sx += i;
+          sx += (double)i;
           sy += one;
-          sxx += i*i;
-          sxy += i*one;
+          sxx += (double)i * (double)i;
+          sxy += (double)i * one;
         }
       }
       if (method == TRAP) {
@@ -4281,10 +4281,10 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         else if (method == AVE) value += one;
         else if (method == TRAP) value += one;
         else if (method == SLOPE) {
-          sx += i;
+          sx += (double) i;
           sy += one;
-          sxx += i*i;
-          sxy += i*one;
+          sxx += (double)i * (double)i;
+          sxy += (double)i * one;
         }
       }
       if (method == TRAP) value -= 0.5*vec[0] + 0.5*vec[nvec-1];
@@ -5073,24 +5073,16 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
 
   if (style == ATOMFILE) {
     if (atom->map_style == 0)
-      error->all(FLERR,
-                 "Cannot use atomfile-style variable unless atom map exists");
+      error->all(FLERR,"Cannot use atomfile-style "
+                 "variable unless an atom map exists");
 
-    int n = strlen(name) + strlen("_VARIABLE_STORE") + 1;
-    id_fix = new char[n];
-    strcpy(id_fix,name);
-    strcat(id_fix,"_VARIABLE_STORE");
+    std::string cmd = name + std::string("_VARIABLE_STORE");
+    id_fix = new char[cmd.size()+1];
+    strcpy(id_fix,cmd.c_str());
 
-    char **newarg = new char*[6];
-    newarg[0] = id_fix;
-    newarg[1] = (char *) "all";
-    newarg[2] = (char *) "STORE";
-    newarg[3] = (char *) "peratom";
-    newarg[4] = (char *) "0";
-    newarg[5] = (char *) "1";
-    modify->add_fix(6,newarg);
+    cmd += " all STORE peratom 0 1";
+    modify->add_fix(cmd);
     fixstore = (FixStore *) modify->fix[modify->nfix-1];
-    delete [] newarg;
 
     buffer = new char[CHUNK*MAXLINE];
   }

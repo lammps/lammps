@@ -1,4 +1,4 @@
-DATE: 2007-06-11 CONTRIBUTOR: MI Mendelev, mendelev@ameslab.gov CITATION: Mendelev, Han, Srolovitz, Ackland, Sun and Asta, Phil Mag A, 83, 3977-3994 (2003)
+DATE: 2007-06-11 UNITS: metal CONTRIBUTOR: MI Mendelev, mendelev@ameslab.gov CITATION: Mendelev, Han, Srolovitz, Ackland, Sun and Asta, Phil Mag A, 83, 3977-3994 (2003)
 Sunday, Jun 10, 2007  The potential was taken from v9_4_bcc (in C:\SIMULATION.MD\Fe\Results\ab_initio+Interstitials)
 ################################################
 1  Fe  

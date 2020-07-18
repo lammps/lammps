@@ -19,11 +19,11 @@
 #include <vector>
 
 struct coord_t {
-    double x,y,z;
+    double x, y, z;
 };
 
 struct stress_t {
-    double xx,yy,zz,xy,xz,yz;
+    double xx, yy, zz, xy, xz, yz;
 };
 
 class TestConfig {
@@ -32,7 +32,7 @@ public:
     std::string date_generated;
     std::string basename;
     double epsilon;
-    std::vector<std::pair<std::string,std::string>> prerequisites;
+    std::vector<std::pair<std::string, std::string>> prerequisites;
     std::vector<std::string> pre_commands;
     std::vector<std::string> post_commands;
     std::string input_file;
@@ -48,7 +48,7 @@ public:
     std::vector<std::string> dihedral_coeff;
     std::vector<std::string> improper_coeff;
     std::vector<double> equilibrium;
-    std::vector<std::pair<std::string,int>> extract;
+    std::vector<std::pair<std::string, int>> extract;
     int natoms;
     double init_energy;
     double run_energy;
@@ -61,26 +61,13 @@ public:
     std::vector<coord_t> init_forces;
     std::vector<coord_t> run_forces;
 
-    TestConfig() : lammps_version(""),
-                   date_generated(""),
-                   basename(""),
-                   epsilon(1.0e-14),
-                   input_file(""),
-                   pair_style("zero"),
-                   bond_style("zero"),
-                   angle_style("zero"),
-                   dihedral_style("zero"),
-                   improper_style("zero"),
-                   kspace_style("none"),
-                   natoms(0),
-                   init_energy(0),
-                   run_energy(0),
-                   init_vdwl(0),
-                   run_vdwl(0),
-                   init_coul(0),
-                   run_coul(0),
-                   init_stress({0,0,0,0,0,0}),
-                   run_stress({0,0,0,0,0,0}) {
+    TestConfig() :
+        lammps_version(""), date_generated(""), basename(""), epsilon(1.0e-14), input_file(""),
+        pair_style("zero"), bond_style("zero"), angle_style("zero"), dihedral_style("zero"),
+        improper_style("zero"), kspace_style("none"), natoms(0), init_energy(0), run_energy(0),
+        init_vdwl(0), run_vdwl(0), init_coul(0), run_coul(0), init_stress({0, 0, 0, 0, 0, 0}),
+        run_stress({0, 0, 0, 0, 0, 0})
+    {
         prerequisites.clear();
         pre_commands.clear();
         post_commands.clear();
@@ -93,10 +80,10 @@ public:
         init_forces.clear();
         run_forces.clear();
     }
-    virtual ~TestConfig() {};
+    virtual ~TestConfig(){};
 
 private:
-    TestConfig(const TestConfig &) {};
+    TestConfig(const TestConfig &){};
 };
 
 #endif

@@ -48,6 +48,7 @@
 #include "utils.h"
 #include "tokenizer.h"
 #include "potential_file_reader.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -257,12 +258,8 @@ PairBOP::~PairBOP()
     memory->destroy(gfunc6);
     memory->destroy(gpara);
   }
-  if(allocate_sigma) {
-    destroy_sigma();
-  }
-  if(allocate_pi) {
-    destroy_pi();
-  }
+  memory->destroy(bt_sg);
+  memory->destroy(bt_pi);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -635,8 +632,6 @@ void PairBOP::coeff(int narg, char **arg)
   bop_step=0;
   nb_pi=0;
   nb_sg=0;
-  allocate_sigma=0;
-  allocate_pi=0;
   allocate_neigh=0;
   update_list=0;
   maxnall=0;
@@ -695,12 +690,9 @@ void PairBOP::init_style()
 
   // check that user sets comm->cutghostuser to 3x the max BOP cutoff
 
-  if (comm->cutghostuser < 3.0*cutmax - EPSILON) {
-    char str[128];
-    sprintf(str,"Pair style bop requires comm ghost cutoff "
-            "at least 3x larger than %g",cutmax);
-    error->all(FLERR,str);
-  }
+  if (comm->cutghostuser < 3.0*cutmax - EPSILON)
+    error->all(FLERR,fmt::format("Pair style bop requires comm ghost cutoff "
+                                 "at least 3x larger than {}",cutmax));
 
   // need a full neighbor list and neighbors of ghosts
 
@@ -768,19 +760,18 @@ void PairBOP::gneigh()
   int *type = atom->type;
 
   if(allocate_neigh==0) {
-    memory->create (BOP_index,nall,"BOP_index");
-    memory->create (BOP_index3,nall,"BOP_index3");
-    memory->create (BOP_total,nall,"BOP_total");
-    memory->create (BOP_total3,nall,"BOP_total");
-    if (otfly==0) memory->create (cos_index,nall,"cos_index");
+    memory->create(BOP_index,nall,"BOP_index");
+    memory->create(BOP_index3,nall,"BOP_index3");
+    memory->create(BOP_total,nall,"BOP_total");
+    memory->create(BOP_total3,nall,"BOP_total");
+    if (otfly==0) memory->create(cos_index,nall,"cos_index");
     allocate_neigh=1;
-  }
-  else {
-    memory->grow (BOP_index,nall,"BOP_index");
-    memory->grow (BOP_index3,nall,"BOP_index3");
-    memory->grow (BOP_total,nall,"BOP_total");
-    memory->grow (BOP_total3,nall,"BOP_total3");
-    if (otfly==0) memory->grow (cos_index,nall,"cos_index");
+  } else {
+    memory->grow(BOP_index,nall,"BOP_index");
+    memory->grow(BOP_index3,nall,"BOP_index3");
+    memory->grow(BOP_total,nall,"BOP_total");
+    memory->grow(BOP_total3,nall,"BOP_total3");
+    if (otfly==0) memory->grow(cos_index,nall,"cos_index");
     allocate_neigh=1;
   }
   ilist = list->ilist;
@@ -1140,10 +1131,6 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
   if(nb_sg==0) {
     nb_sg=(maxneigh)*(maxneigh/2);
   }
-  if(allocate_sigma) {
-    destroy_sigma();
-  }
-
   create_sigma(nb_sg);
   sigB=0;
   if(itmp<nlocal) {
@@ -3798,9 +3785,6 @@ double PairBOP::PiBo(int itmp, int jtmp)
 
 // Loop over all local atoms for i
 
-  if(allocate_pi) {
-    destroy_pi();
-  }
   create_pi(nb_pi);
   piB=0;
     i = ilist[itmp];
@@ -4866,7 +4850,6 @@ double PairBOP::PiBo(int itmp, int jtmp)
           }
         }
       }
-  destroy_pi();
   return(piB);
 }
 
@@ -4931,7 +4914,7 @@ void _noopt PairBOP::read_table(char *filename)
 {
   if (comm->me == 0) {
     try {
-      PotentialFileReader reader(lmp, filename, "BOP");
+      PotentialFileReader reader(lmp, filename, "bop");
 
       bop_types = reader.next_int();
       elements = new char*[bop_types];
@@ -5670,26 +5653,14 @@ void PairBOP::memory_theta_destroy()
 
 void PairBOP::create_pi(int n_tot)
 {
+  memory->destroy(bt_pi);
   bt_pi = (B_PI *) memory->smalloc(n_tot*sizeof(B_PI),"BOP:bt_pi");
-  allocate_pi=1;
 }
 
 void PairBOP::create_sigma(int n_tot)
 {
-  bt_sg = (B_SG *) memory->smalloc(n_tot*sizeof(B_SG),"BOP:bt_sg");
-  allocate_sigma=1;
-}
-
-void PairBOP::destroy_pi()
-{
-  memory->destroy(bt_pi);
-  allocate_pi=0;
-}
-
-void PairBOP::destroy_sigma()
-{
   memory->destroy(bt_sg);
-  allocate_sigma=0;
+  bt_sg = (B_SG *) memory->smalloc(n_tot*sizeof(B_SG),"BOP:bt_sg");
 }
 
 /* ---------------------------------------------------------------------- */

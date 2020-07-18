@@ -103,6 +103,8 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *mdpd*       | density                                             | mDPD particles                       |
 +--------------+-----------------------------------------------------+--------------------------------------+
+| *mesont*     | mass, radius, length, buckling, connections, tube id| mesoscopic nanotubes                 |
++--------------+-----------------------------------------------------+--------------------------------------+
 | *molecular*  | bonds, angles, dihedrals, impropers                 | uncharged molecules                  |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *peri*       | mass, volume                                        | mesoscopic Peridynamic models        |
@@ -346,6 +348,8 @@ dynamics (tDPD), respectively.
 
 The *sph* style is part of the USER-SPH package for smoothed particle
 hydrodynamics (SPH).  See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
+
+The *mesont* style is part of the USER-MESONT package.
 
 The *spin* style is part of the SPIN package.
 

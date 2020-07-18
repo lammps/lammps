@@ -38,6 +38,7 @@ using namespace MathConst;
 AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
 {
   nmax = 0;
+  ngrow = 0;
 
   molecular = 0;
   bonds_allow = angles_allow = dihedrals_allow = impropers_allow = 0;
@@ -50,9 +51,14 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   kokkosable = 0;
 
   nargcopy = 0;
-  argcopy = NULL;
+  argcopy = nullptr;
 
-  threads = NULL;
+  tag = nullptr;
+  type = mask = nullptr;
+  image = nullptr;
+  x = v = f = nullptr;
+
+  threads = nullptr;
 
   // peratom variables auto-included in corresponding child style fields string
   // these fields cannot be specified in the fields string
@@ -90,8 +96,42 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
 
 AtomVec::~AtomVec()
 {
+  int datatype,cols;
+  void *pdata;
+
   for (int i = 0; i < nargcopy; i++) delete [] argcopy[i];
   delete [] argcopy;
+
+  for (int i = 0; i < ngrow; i++) {
+    pdata = mgrow.pdata[i];
+    datatype = mgrow.datatype[i];
+    cols = mgrow.cols[i];
+    if (datatype == Atom::DOUBLE) {
+      if (cols == 0)
+        memory->destroy(*((double **) pdata));
+      else if (cols > 0)
+        memory->destroy(*((double ***) pdata));
+      else {
+        memory->destroy(*((double ***) pdata));
+      }
+    } else if (datatype == Atom::INT) {
+      if (cols == 0)
+        memory->destroy(*((int **) pdata));
+      else if (cols > 0)
+        memory->destroy(*((int ***) pdata));
+      else {
+        memory->destroy(*((int ***) pdata));
+      }
+    } else if (datatype == Atom::BIGINT) {
+      if (cols == 0)
+        memory->destroy(*((bigint **) pdata));
+      else if (cols > 0)
+        memory->destroy(*((bigint ***) pdata));
+      else {
+        memory->destroy(*((bigint ***) pdata));
+      }
+    }
+  }
 
   destroy_method(&mgrow);
   destroy_method(&mcopy);
@@ -116,7 +156,8 @@ AtomVec::~AtomVec()
 void AtomVec::store_args(int narg, char **arg)
 {
   nargcopy = narg;
-  argcopy = new char*[nargcopy];
+  if (nargcopy) argcopy = new char*[nargcopy];
+  else argcopy = nullptr;
   for (int i = 0; i < nargcopy; i++) {
     int n = strlen(arg[i]) + 1;
     argcopy[i] = new char[n];
@@ -144,7 +185,7 @@ void AtomVec::init()
   deform_groupbit = domain->deform_groupbit;
   h_rate = domain->h_rate;
 
-  if (lmp->kokkos != NULL && !kokkosable)
+  if (lmp->kokkos != nullptr && !kokkosable)
     error->all(FLERR,"KOKKOS package requires a kokkos enabled atom_style");
 }
 
@@ -585,7 +626,7 @@ void AtomVec::unpack_comm(int n, int first, double *buf)
         if (cols == 0) {
           int *vec = *((int **) pdata);
           for (i = first; i < last; i++)
-            vec[i] = ubuf(buf[m++]).i;
+            vec[i] = (int) ubuf(buf[m++]).i;
         } else {
           int **array = *((int ***) pdata);
           for (i = first; i < last; i++)
@@ -1085,7 +1126,7 @@ void AtomVec::unpack_border(int n, int first, double *buf)
         if (cols == 0) {
           int *vec = *((int **) pdata);
           for (i = first; i < last; i++)
-            vec[i] = ubuf(buf[m++]).i;
+            vec[i] = (int) ubuf(buf[m++]).i;
         } else {
           int **array = *((int ***) pdata);
           for (i = first; i < last; i++)
@@ -1836,7 +1877,7 @@ void AtomVec::write_data(FILE *fp, int n, double **buf)
   int i,j,m,nn,datatype,cols;
 
   for (i = 0; i < n; i++) {
-    fmt::print(fp,"{}",(tagint) ubuf(buf[i][0]).i);
+    fmt::print(fp,"{}",ubuf(buf[i][0]).i);
 
     j = 1;
     for (nn = 1; nn < ndata_atom; nn++) {
@@ -1844,29 +1885,29 @@ void AtomVec::write_data(FILE *fp, int n, double **buf)
       cols = mdata_atom.cols[nn];
       if (datatype == Atom::DOUBLE) {
         if (cols == 0) {
-          fprintf(fp," %-1.16e",buf[i][j++]);
+          fmt::print(fp," {}",buf[i][j++]);
         } else {
           for (m = 0; m < cols; m++)
-            fprintf(fp," %-1.16e",buf[i][j++]);
+            fmt::print(fp," {}",buf[i][j++]);
         }
       } else if (datatype == Atom::INT) {
         if (cols == 0) {
-          fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
+          fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         } else {
           for (m = 0; m < cols; m++)
-            fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
+            fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         }
       } else if (datatype == Atom::BIGINT) {
         if (cols == 0) {
-          fmt::print(fp," {}",(bigint) ubuf(buf[i][j++]).i);
+          fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         } else {
           for (m = 0; m < cols; m++)
-            fmt::print(fp," {}",(bigint) ubuf(buf[i][j++]).i);
+            fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         }
       }
     }
 
-    fprintf(fp," %d %d %d\n",
+    fmt::print(fp," {} {} {}\n",
             (int) ubuf(buf[i][j]).i,
             (int) ubuf(buf[i][j+1]).i,
             (int) ubuf(buf[i][j+2]).i);
@@ -1984,7 +2025,7 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
   int i,j,m,nn,datatype,cols;
 
   for (i = 0; i < n; i++) {
-    fmt::print(fp,"{}",(tagint) ubuf(buf[i][0]).i);
+    fmt::print(fp,"{}",ubuf(buf[i][0]).i);
 
     j = 1;
     for (nn = 1; nn < ndata_vel; nn++) {
@@ -1992,28 +2033,28 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
       cols = mdata_vel.cols[nn];
       if (datatype == Atom::DOUBLE) {
         if (cols == 0) {
-          fprintf(fp," %-1.16e",buf[i][j++]);
+          fmt::print(fp," {}",buf[i][j++]);
         } else {
           for (m = 0; m < cols; m++)
-            fprintf(fp," %-1.16e",buf[i][j++]);
+            fmt::print(fp," {}",buf[i][j++]);
         }
       } else if (datatype == Atom::INT) {
         if (cols == 0) {
-          fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
+          fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         } else {
           for (m = 0; m < cols; m++)
-            fprintf(fp," %d",(int) ubuf(buf[i][j++]).i);
+            fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         }
       } else if (datatype == Atom::BIGINT) {
         if (cols == 0) {
-          fmt::print(fp," {}",(bigint) ubuf(buf[i][j++]).i);
+          fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         } else {
           for (m = 0; m < cols; m++)
-            fmt::print(fp," {}",(bigint) ubuf(buf[i][j++]).i);
+            fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         }
       }
     }
-  fprintf(fp,"\n");
+    fputs("\n",fp);
   }
 }
 
@@ -2070,8 +2111,7 @@ int AtomVec::pack_bond(tagint **buf)
 void AtomVec::write_bond(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
-            index,buf[i][0],buf[i][1],buf[i][2]);
+    fmt::print(fp,"{} {} {} {}\n",index,buf[i][0],buf[i][1],buf[i][2]);
     index++;
   }
 }
@@ -2133,9 +2173,8 @@ int AtomVec::pack_angle(tagint **buf)
 void AtomVec::write_angle(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " "
-            TAGINT_FORMAT " " TAGINT_FORMAT "\n",
-            index,buf[i][0],buf[i][1],buf[i][2],buf[i][3]);
+    fmt::print(fp,"{} {} {} {} {}\n",index,
+               buf[i][0],buf[i][1],buf[i][2],buf[i][3]);
     index++;
   }
 }
@@ -2195,9 +2234,8 @@ int AtomVec::pack_dihedral(tagint **buf)
 void AtomVec::write_dihedral(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " "
-            TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
-            index,buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
+    fmt::print(fp,"{} {} {} {} {} {}\n",index,buf[i][0],
+               buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
     index++;
   }
 }
@@ -2257,9 +2295,8 @@ int AtomVec::pack_improper(tagint **buf)
 void AtomVec::write_improper(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " "
-            TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
-            index,buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
+    fmt::print(fp,"{} {} {} {} {} {}\n",index,buf[i][0],
+               buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
     index++;
   }
 }
@@ -2335,9 +2372,9 @@ void AtomVec::setup_fields()
 {
   int n,cols;
 
-  if (strstr(fields_data_atom,"id ") != fields_data_atom)
+  if (!utils::strmatch(fields_data_atom,"^id "))
     error->all(FLERR,"Atom style fields_data_atom must have id as first field");
-  if (strstr(fields_data_vel,"id v") != fields_data_vel)
+  if (!utils::strmatch(fields_data_vel,"^id v"))
     error->all(FLERR,"Atom style fields_data_vel must have "
                "'id v' as first fields");
 
@@ -2374,7 +2411,8 @@ void AtomVec::setup_fields()
 
   // create threads data struct for grow and memory_usage to use
 
-  threads = new bool[ngrow];
+  if (ngrow) threads = new bool[ngrow];
+  else threads = nullptr;
   for (int i = 0; i < ngrow; i++) {
     Atom::PerAtom *field = &atom->peratom[mgrow.index[i]];
     threads[i] = (field->threadflag) ? true : false;
@@ -2442,26 +2480,27 @@ void AtomVec::setup_fields()
 
 int AtomVec::process_fields(char *str, const char *default_str, Method *method)
 {
-  if (str == NULL) {
-    method->index = NULL;
+  if (str == nullptr) {
+    method->index = nullptr;
     return 0;
   }
 
   // tokenize words in both strings
-  Tokenizer words(str, " ");
-  Tokenizer def_words(default_str, " ");
+  std::vector<std::string> words = Tokenizer(str, " ").as_vector();
+  std::vector<std::string> def_words = Tokenizer(default_str, " ").as_vector();
 
-  int nfield = words.count();
-  int ndef   = def_words.count();
+  int nfield = words.size();
+  int ndef   = def_words.size();
 
   // process fields one by one, add to index vector
 
   Atom::PerAtom *peratom = atom->peratom;
   int nperatom = atom->nperatom;
 
-  int *index = new int[nfield];
+  int *index;
   int match;
 
+  if (nfield) index = new int[nfield];
   for (int i = 0; i < nfield; i++) {
     const char * field = words[i].c_str();
 
@@ -2469,34 +2508,25 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
 
     for (match = 0; match < nperatom; match++)
       if (strcmp(field, peratom[match].name) == 0) break;
-    if (match == nperatom) {
-      char str[128];
-      sprintf(str,"Peratom field %s not recognized", field);
-      error->all(FLERR,str);
-    }
+    if (match == nperatom)
+      error->all(FLERR,fmt::format("Peratom field {} not recognized", field));
     index[i] = match;
 
     // error if field appears multiple times
 
     for (match = 0; match < i; match++)
-      if (index[i] == index[match]) {
-        char str[128];
-        sprintf(str,"Peratom field %s is repeated", field);
-        error->all(FLERR,str);
-      }
+      if (index[i] == index[match])
+        error->all(FLERR,fmt::format("Peratom field {} is repeated", field));
 
     // error if field is in default str
 
     for (match = 0; match < ndef; match++)
-      if (strcmp(field, def_words[match].c_str()) == 0) {
-        char str[128];
-        sprintf(str,"Peratom field %s is a default", field);
-        error->all(FLERR,str);
-      }
-
+      if (strcmp(field, def_words[match].c_str()) == 0)
+        error->all(FLERR,fmt::format("Peratom field {} is a default", field));
   }
 
-  method->index = index;
+  if (nfield) method->index = index;
+  else method->index = nullptr;
   return nfield;
 }
 
@@ -2506,12 +2536,22 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
 
 void AtomVec::create_method(int nfield, Method *method)
 {
-  method->pdata = new void*[nfield];
-  method->datatype = new int[nfield];
-  method->cols = new int[nfield];
-  method->maxcols = new int*[nfield];
-  method->collength = new int[nfield];
-  method->plength = new void*[nfield];
+  if (nfield > 0) {
+    method->pdata = new void*[nfield];
+    method->datatype = new int[nfield];
+    method->cols = new int[nfield];
+    method->maxcols = new int*[nfield];
+    method->collength = new int[nfield];
+    method->plength = new void*[nfield];
+  } else {
+    method->pdata = nullptr;
+    method->datatype = nullptr;
+    method->cols = nullptr;
+    method->maxcols = nullptr;
+    method->collength = nullptr;
+    method->plength = nullptr;
+    return;
+  }
 
   for (int i = 0; i < nfield; i++) {
     Atom::PerAtom *field = &atom->peratom[method->index[i]];
@@ -2532,13 +2572,13 @@ void AtomVec::create_method(int nfield, Method *method)
 
 void AtomVec::init_method(Method *method)
 {
-  method->pdata = NULL;
-  method->datatype = NULL;
-  method->cols = NULL;
-  method->maxcols = NULL;
-  method->collength = NULL;
-  method->plength = NULL;
-  method->index = NULL;
+  method->pdata = nullptr;
+  method->datatype = nullptr;
+  method->cols = nullptr;
+  method->maxcols = nullptr;
+  method->collength = nullptr;
+  method->plength = nullptr;
+  method->index = nullptr;
 }
 
 /* ----------------------------------------------------------------------

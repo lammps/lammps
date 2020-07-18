@@ -27,6 +27,7 @@
 #include "force.h"
 #include "neigh_list.h"
 #include "memory.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -176,8 +177,6 @@ void PairEAMOpt::eval()
   // rho = density at each atom
   // loop over neighbors of my atoms
 
-  // loop over neighbors of my atoms
-
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     double xtmp = xx[i].x;
@@ -234,10 +233,11 @@ void PairEAMOpt::eval()
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    double p = rho[i]*rdrho;
-    int m = MIN((int)p,nrho-2);
-    p -= (double)m;
-    ++m;
+    double p = rho[i]*rdrho + 1.0;
+    int m = static_cast<int> (p);
+    m = MAX(1,MIN(m,nrho-1));
+    p -= m;
+    p = MIN(p,1.0);
     coeff = frho_spline[type2frho[type[i]]][m];
     fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
     if (EFLAG) {
@@ -252,6 +252,7 @@ void PairEAMOpt::eval()
   // communicate derivative of embedding function
 
   comm->forward_comm_pair(this);
+  embedstep = update->ntimestep;
 
   // compute forces on each atom
   // loop over neighbors of my atoms
@@ -290,7 +291,9 @@ void PairEAMOpt::eval()
         double p = r*tmp_rdr;
         if ( (int)p <= nr2 ) {
           int m = (int) p + 1;
+          m = MIN(m,nr-1);
           p -= (double)((int) p);
+          p = MIN(p,1.0);
 
           fast_gamma_t& a = tabssi[jtype*nr+m];
           rhoip = (a.rhor6i*p + a.rhor5i)*p + a.rhor4i;

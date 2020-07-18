@@ -55,8 +55,8 @@ a .gz suffix).  The format of the target file1 is as follows:
 
 The first 3 lines may or may not be needed, depending on the format of
 the atoms to follow.  If image flags are included with the atoms, the
-1st 3 lo/hi lines must appear in the file.  If image flags are not
-included, the 1st 3 lines should not appear.  The 3 lines contain the
+first 3 lo/hi lines must appear in the file.  If image flags are not
+included, the first 3 lines should not appear.  The 3 lines contain the
 simulation box dimensions for the atom coordinates, in the same format
 as in a LAMMPS data file (see the :doc:`read_data <read_data>` command).
 

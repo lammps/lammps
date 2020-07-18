@@ -80,6 +80,7 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   maxexchange = 0;
   maxexchange_dynamic = 0;
   pre_exchange_migrate = 0;
+  stores_ids = 0;
 
   scalar_flag = vector_flag = array_flag = 0;
   peratom_flag = local_flag = 0;

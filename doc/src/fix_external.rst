@@ -109,19 +109,41 @@ etc.
 To use this fix during energy minimization, the energy corresponding
 to the added forces must also be set so as to be consistent with the
 added forces.  Otherwise the minimization will not converge correctly.
+Correspondingly, the global virial needs to be updated to be use this
+fix with variable cell calculations (e.g. :doc:`fix box/relax <fix_box_relax>`
+or :doc:`fix npt <fix_nh>`).
 
-This can be done from the external driver by calling this public
-method of the FixExternal class:
+This can be done from the external driver by calling these public
+methods of the FixExternal class:
 
 .. code-block:: c++
 
-   void set_energy(double eng);
+   void set_energy_global(double eng);
+   void set_virial_global(double *virial);
 
-where eng is the potential energy.  Eng is an extensive quantity,
+where *eng* is the potential energy, and *virial* an array of the 6
+stress tensor components.  Eng is an extensive quantity,
 meaning it should be the sum over per-atom energies of all affected
 atoms.  It should also be provided in :doc:`energy units <units>`
 consistent with the simulation.  See the details below for how to
 insure this energy setting is used appropriately in a minimization.
+
+Additional public methods that the caller can use to update system
+properties are:
+
+.. code-block:: c++
+
+   void set_energy_peratom(double *eng);
+   void set_virial_peratom(double **virial);
+   void set_vector_length(int n);
+   void set_vector(int idx, double val);
+
+These allow to set per-atom energy contributions, per-atom stress
+contributions, the length and individual values of a global vector
+of properties that the caller code may want to communicate  to LAMMPS
+(e.g. for use in :doc:`fix ave/time <fix_ave_time>` or in
+:doc:`equal-style variables <variable>` or for
+:doc:`custom thermo output <thermo_style>`.
 
 ----------
 

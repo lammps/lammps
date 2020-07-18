@@ -48,7 +48,7 @@ and :math:`sigma_i` are calculated as
    \sigma_i  = & \sum_{j=i_1}^{i_N} q_j \cdot \psi_{ij} \left(r_{ij}\right) \\
    E_i\left(q_i,\sigma_i\right)  = & \frac{1}{2} \cdot q_i \cdot \sigma_i
 
-where :math:`\eta_{ji} is a pairwise function describing electron flow from atom
+where :math:`\eta_{ji}` is a pairwise function describing electron flow from atom
 I to atom J, and :math:`\psi_{ij}` is another pairwise function.  The multi-body
 nature of the EIM potential is a result of the embedding energy term.
 A complete list of all the pair functions used in EIM is summarized
@@ -63,7 +63,7 @@ below
    \right.\\
    \eta_{ji} = & A_{\eta,ij}\left(\chi_j-\chi_i\right)f_c\left(r,r_{s,\eta,ij},r_{c,\eta,ij}\right) \\
    \psi_{ij}\left(r\right) = & A_{\psi,ij}\exp\left(-\zeta_{ij}r\right)f_c\left(r,r_{s,\psi,ij},r_{c,\psi,ij}\right) \\
-   f_{c}\left(r,r_p,r_c\right) = & 0.510204 \mathrm{erfc}\left[\frac{1.64498\left(2r-r_p-r_c\right)}{r_c-r_p}\right] - 0.010204
+   f_{c}\left(r,r_p,r_c\right) = & 0.510204 \cdot \mathrm{erfc}\left[\frac{1.64498\left(2r-r_p-r_c\right)}{r_c-r_p}\right] - 0.010204
 
 Here :math:`E_b, r_e, r_(c,\phi), \alpha, \beta, A_(\psi), \zeta, r_(s,\psi),
 r_(c,\psi), A_(\eta), r_(s,\eta), r_(c,\eta), \chi,` and pair function type
@@ -110,14 +110,14 @@ to specify the path for the potential file.
 
 As an example like one of those above, suppose you want to model a
 system with Na and Cl atoms.  If your LAMMPS simulation has 4 atoms
-types and you want the 1st 3 to be Na, and the 4th to be Cl, you would
+types and you want the first 3 to be Na, and the fourth to be Cl, you would
 use the following pair_coeff command:
 
 .. code-block:: LAMMPS
 
    pair_coeff * * Na Cl ffield.eim Na Na Na Cl
 
-The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The filename is the EIM potential file.  The Na and Cl arguments
 (before the file name) are the two elements for which info will be
 extracted from the potential file.  The first three trailing Na

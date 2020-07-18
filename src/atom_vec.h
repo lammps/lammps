@@ -145,6 +145,9 @@ class AtomVec : protected Pointers {
   virtual int pack_improper(tagint **);
   virtual void write_improper(FILE *, int, tagint **, int);
 
+  virtual int pack_data_bonus(double *, int) {return 0;}
+  virtual void write_data_bonus(FILE *, int, double *, int) {}
+
   virtual int property_atom(char *) {return -1;}
   virtual void pack_property_atom(int, double *, int, int) {}
 
@@ -208,25 +211,6 @@ class AtomVec : protected Pointers {
   // used by fields in grow() and memory_usage()
 
   bool *threads;
-
-  // union data struct for packing 32-bit and 64-bit ints into double bufs
-  // this avoids aliasing issues by having 2 pointers (double,int)
-  //   to same buf memory
-  // constructor for 32-bit int prevents compiler
-  //   from possibly calling the double constructor when passed an int
-  // copy to a double *buf:
-  //   buf[m++] = ubuf(foo).d, where foo is a 32-bit or 64-bit int
-  // copy from a double *buf:
-  //   foo = (int) ubuf(buf[m++]).i;, where (int) or (tagint) match foo
-  //   the cast prevents compiler warnings about possible truncation
-
-  union ubuf {
-    double d;
-    int64_t i;
-    ubuf(double arg) : d(arg) {}
-    ubuf(int64_t arg) : i(arg) {}
-    ubuf(int arg) : i(arg) {}
-  };
 
   // local methods
 

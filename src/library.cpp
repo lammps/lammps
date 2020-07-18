@@ -1667,7 +1667,7 @@ int lammps_style_name(void* ptr, char * category, int index, char * buffer, int 
   Info info(lmp);
   auto styles = info.get_available_styles(category);
 
-  if (index < styles.size()) {
+  if (index < (int)styles.size()) {
     strncpy(buffer, styles[index].c_str(), max_size);
     return true;
   }
@@ -1708,7 +1708,7 @@ int lammps_config_has_exceptions() {
 int lammps_has_error(void *ptr) {
   LAMMPS  *lmp = (LAMMPS *)ptr;
   Error *error = lmp->error;
-  return (error->get_last_error() != "") ? 1 : 0;
+  return (error->get_last_error().empty()) ? 0 : 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -1722,10 +1722,10 @@ int lammps_get_last_error_message(void *ptr, char * buffer, int buffer_size) {
   LAMMPS  *lmp = (LAMMPS *)ptr;
   Error *error = lmp->error;
 
-  if(error->get_last_error() != "") {
+  if(!error->get_last_error().empty()) {
     int error_type = error->get_last_error_type();
     strncpy(buffer, error->get_last_error().c_str(), buffer_size-1);
-    error->set_last_error(NULL, ERROR_NONE);
+    error->set_last_error("", ERROR_NONE);
     return error_type;
   }
   return 0;

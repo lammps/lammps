@@ -560,8 +560,10 @@ bigint AtomVecBody::memory_usage_bonus()
 
   int nall = nlocal_bonus + nghost_bonus;
   for (int i = 0; i < nall; i++) {
-    bytes += bonus[i].ninteger * sizeof(int);
-    bytes += bonus[i].ndouble * sizeof(double);
+    if (body[i] >= 0) {
+      bytes += bonus[body[i]].ninteger * sizeof(int);
+      bytes += bonus[body[i]].ndouble * sizeof(double);
+    }
   }
 
   return bytes;
@@ -577,6 +579,41 @@ void AtomVecBody::pack_data_pre(int ilocal)
 
   if (body_flag < 0) body[ilocal] = 0;
   else body[ilocal] = 1;
+}
+
+/* ----------------------------------------------------------------------
+   pack bonus body info for writing to data file
+   if buf is NULL, just return buffer size
+------------------------------------------------------------------------- */
+
+int AtomVecBody::pack_data_bonus(double *buf, int /*flag*/)
+{
+  int i;
+
+  tagint *tag = atom->tag;
+  int nlocal = atom->nlocal;
+
+  int m = 0;
+  for (i = 0; i < nlocal; i++) {
+    if (body[i] < 0) continue;
+    int n = bptr->pack_data_body(tag[i],body[i],buf);
+    m += n;
+    if (buf) buf += n;
+  }
+
+  return m;
+}
+
+/* ----------------------------------------------------------------------
+   write bonus body info to data file
+------------------------------------------------------------------------- */
+
+void AtomVecBody::write_data_bonus(FILE *fp, int n, double *buf, int /*flag*/)
+{
+  int i = 0;
+  while (i < n) {
+    i += bptr->write_data_body(fp,&buf[i]);
+  }
 }
 
 /* ----------------------------------------------------------------------

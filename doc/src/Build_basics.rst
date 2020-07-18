@@ -193,14 +193,17 @@ compiler and any :doc:`accelerator packages <Speed_packages>` you have
 included in the build.
 
 You can tell CMake to look for a specific compiler with setting CMake
-variable during configuration.  For a few common choices, there are also
-presets in the ``cmake/presets`` folder.  For convenience, there is a
-``CMAKE_TUNE_FLAGS`` variable that can be set to apply global compiler
-options.  More on that below, but you can also specify the corresponding
-``CMAKE_*_FLAGS`` variables individually if you want to experiment with
-alternate optimization flags.  You should specify all 3 compilers, so
-that the (few) LAMMPS source files written in C or Fortran are built
-with a compiler consistent with the one used for the C++ files:
+variables (listed below) during configuration.  For a few common
+choices, there are also presets in the ``cmake/presets`` folder.  For
+convenience, there is a ``CMAKE_TUNE_FLAGS`` variable that can be set to
+apply global compiler options (applied to compilation only), to be used
+for adding compiler or host specific optimization flags in addition to
+the "flags" variables listed below. You may also specify the
+corresponding ``CMAKE_*_FLAGS`` variables individually, if you want to
+experiment with alternate optimization flags.  You should specify all 3
+compilers, so that the (few) LAMMPS source files written in C or Fortran
+are built with a compiler consistent with the one used for the C++
+files:
 
 .. code-block:: bash
 
@@ -225,15 +228,11 @@ A few example command lines are:
 
 For compiling with the Clang/LLVM compilers a CMake preset is provided that
 can be loaded with `-C ../cmake/presets/clang.cmake`.  Similarly,
-`-C ../cmake/presets/intel.cmake` should switch the 
+`-C ../cmake/presets/intel.cmake` should switch the
 
 In addition you can set ``CMAKE_TUNE_FLAGS`` to specifically add
 compiler flags to tune for optimal performance on given hosts. By
-default these are initialized to some compiler specific flags, to
-optimize the LAMMPS executable with optimizations and instructions
-available on the host where LAMMPS is compiled. For example, for Intel
-compilers this would be ``-xHost`` and for GNU compilers this would be
-``-march=native``. To turn these flags off, do ``-D CMAKE_TUNE_FLAGS=``.
+default this variable is empty.
 
 .. note::
 
@@ -372,7 +371,8 @@ it.  The build step will also create generic soft links, named
 ``liblammps.a`` and ``liblammps.so``\ , which point to the specific
 ``liblammps_machine.a/so`` files.
 
-**CMake and make info**\ :
+CMake and make info
+^^^^^^^^^^^^^^^^^^^
 
 Note that for creating a shared library, all the libraries it depends on
 must be compiled to be compatible with shared libraries.  This should be
@@ -462,7 +462,8 @@ tool.  The actual translation is then done via make commands.
 .. _rst: https://docutils.readthedocs.io/en/sphinx-docs/user/rst/quickstart.html
 .. _sphinx: https://sphinx-doc.org
 
-**Documentation make option**\ :
+Documentation make option
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The following make commands can be issued in the doc folder of the
 LAMMPS source distribution.
@@ -489,7 +490,8 @@ your system.
    current LAMMPS version (HTML and PDF files), from the website
    `download page <https://lammps.sandia.gov/download.html>`_.
 
-**CMake build option**\ :
+CMake build option
+^^^^^^^^^^^^^^^^^^
 
 It is also possible to create the HTML version of the manual within
 the :doc:`CMake build directory <Build_cmake>`.  The reason for this
@@ -512,7 +514,8 @@ Build LAMMPS tools
 Some tools described in :doc:`Auxiliary tools <Tools>` can be built directly
 using CMake or Make.
 
-**CMake build3**\ :
+CMake build
+^^^^^^^^^^^
 
 .. code-block:: bash
 
@@ -521,7 +524,8 @@ using CMake or Make.
 The generated binaries will also become part of the LAMMPS installation
 (see below).
 
-**Traditional make**\ :
+Traditional make
+^^^^^^^^^^^^^^^^
 
 .. code-block:: bash
 
@@ -545,7 +549,8 @@ a globally visible place on your system, for others to access.  Note
 that you may need super-user privileges (e.g. sudo) if the directory
 you want to copy files to is protected.
 
-**CMake build**\ :
+CMake build
+^^^^^^^^^^^
 
 .. code-block:: bash
 
@@ -553,7 +558,8 @@ you want to copy files to is protected.
    make                        # perform make after CMake command
    make install                # perform the installation into prefix
 
-**Traditional make**\ :
+Traditional make
+^^^^^^^^^^^^^^^^
 
 There is no "install" option in the ``src/Makefile`` for LAMMPS.  If
 you wish to do this you will need to first build LAMMPS, then manually

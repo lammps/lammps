@@ -185,6 +185,7 @@ accelerated styles exist.
 * :doc:`bocs <fix_bocs>` - NPT style time integration with pressure correction
 * :doc:`bond/break <fix_bond_break>` - break bonds on the fly
 * :doc:`bond/create <fix_bond_create>` - create bonds on the fly
+* :doc:`bond/create/angle <fix_bond_create>` - create bonds on the fly with angle constraints
 * :doc:`bond/react <fix_bond_react>` - apply topology changes to model reactions
 * :doc:`bond/swap <fix_bond_swap>` - Monte Carlo bond swapping
 * :doc:`box/relax <fix_box_relax>` - relax box size during energy minimization
@@ -290,6 +291,7 @@ accelerated styles exist.
 * :doc:`oneway <fix_oneway>` - constrain particles on move in one direction
 * :doc:`orient/bcc <fix_orient>` - add grain boundary migration force for BCC
 * :doc:`orient/fcc <fix_orient>` - add grain boundary migration force for FCC
+* :doc:`orient/eco <fix_orient_eco>` - add generalized grain boundary migration force
 * :doc:`phonon <fix_phonon>` - calculate dynamical matrix from MD simulations
 * :doc:`pimd <fix_pimd>` - Feynman path integral molecular dynamics
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane

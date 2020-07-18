@@ -39,8 +39,12 @@ above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
-* :math:`K` (energy/radian\^2)
+* :math:`K` (energy)
 * :math:`\phi_0` (degrees)
+
+:math:`\phi_0` is specified in degrees, but LAMMPS converts it to
+radians internally; hence :math:`K` is effectively energy per
+radian\^2.
 
 ----------
 

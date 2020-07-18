@@ -158,6 +158,7 @@ PairKIM::~PairKIM()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     delete [] lmps_map_species_to_unique;
+    lmps_map_species_to_unique = nullptr;
   }
 
   // clean up neighborlist pointers
@@ -303,15 +304,6 @@ void PairKIM::settings(int narg, char **arg)
   // ensure we are in a clean state for KIM (needed on repeated call)
   // first time called will do nothing...
   kim_free();
-
-  // make sure things are allocated
-  if (allocated != 1) allocate();
-
-  // clear setflag to ensure coeff() is called after settings()
-  int n = atom->ntypes;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
 
   // set lmps_* bool flags
   set_lmps_flags();
@@ -792,7 +784,7 @@ int PairKIM::get_neigh(void const * const dataObject,
                        int const ** const neighborsOfParticle)
 {
   PairKIM const * const Model
-    = reinterpret_cast<PairKIM const * const>(dataObject);
+    = reinterpret_cast<PairKIM const *>(dataObject);
 
   if (numberOfNeighborLists != Model->kim_number_of_neighbor_lists)
     return true;
@@ -926,7 +918,7 @@ void PairKIM::set_argument_pointers()
         kimerror = kimerror ||
         KIM_ComputeArguments_SetArgumentPointerDouble(
           pargs,KIM_COMPUTE_ARGUMENT_NAME_partialEnergy,
-          static_cast<double * const>(NULL));
+          static_cast<double *>(NULL));
       }
   }
 
@@ -947,7 +939,7 @@ void PairKIM::set_argument_pointers()
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
       pargs,
       KIM_COMPUTE_ARGUMENT_NAME_partialParticleEnergy,
-      static_cast<double * const>(NULL));
+      static_cast<double *>(NULL));
   } else if (KIM_SupportStatus_NotEqual(kim_model_support_for_particleEnergy,
                                       KIM_SUPPORT_STATUS_notSupported)) {
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
@@ -960,7 +952,7 @@ void PairKIM::set_argument_pointers()
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
       pargs,
       KIM_COMPUTE_ARGUMENT_NAME_partialForces,
-      static_cast<double * const>(NULL));
+      static_cast<double *>(NULL));
   } else {
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
         pargs, KIM_COMPUTE_ARGUMENT_NAME_partialForces, &(atom->f[0][0]));
@@ -983,7 +975,7 @@ void PairKIM::set_argument_pointers()
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
       pargs,
       KIM_COMPUTE_ARGUMENT_NAME_partialParticleVirial,
-      static_cast<double * const>(NULL));
+      static_cast<double *>(NULL));
   } else if (KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
                                         KIM_SUPPORT_STATUS_notSupported)) {
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(

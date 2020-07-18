@@ -151,8 +151,8 @@ class FixQEqReaxKokkos : public FixQEqReax {
   double memory_usage();
 
  private:
-  int inum;
-  int allocated_flag;
+  int inum,ignum;
+  int allocated_flag, last_allocate;
   int need_dup;
 
   typename AT::t_int_scalar d_mfill_offset;

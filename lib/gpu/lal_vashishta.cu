@@ -137,13 +137,10 @@ _texture( param5_tex,int4);
 #endif
 
 __kernel void k_vashishta_short_nbor(const __global numtyp4 *restrict x_,
-                                     const __global numtyp4 *restrict param4,
-                                     const __global int *restrict map,
-                                     const __global int *restrict elem2param,
-                                     const int nelements, const int nparams,
                                      const __global int * dev_nbor,
                                      const __global int * dev_packed,
                                      __global int * dev_short_nbor,
+                                     const numtyp _cutshortsq,
                                      const int inum, const int nbor_pitch,
                                      const int t_per_atom) {
   __local int n_stride;
@@ -157,8 +154,6 @@ __kernel void k_vashishta_short_nbor(const __global numtyp4 *restrict x_,
               n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
-    int itype=ix.w;
-    itype=map[itype];
 
     int ncount = 0;
     int m = nbor;
@@ -172,9 +167,6 @@ __kernel void k_vashishta_short_nbor(const __global numtyp4 *restrict x_,
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
-      int jtype=jx.w;
-      jtype=map[jtype];
-      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
 
       // Compute r12
       numtyp delx = ix.x-jx.x;
@@ -182,7 +174,7 @@ __kernel void k_vashishta_short_nbor(const __global numtyp4 *restrict x_,
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
-      if (rsq<param4[ijparam].x) { //param4[ijparam].x = r0sq; //param4[ijparam].z=cutsq
+      if (rsq<_cutshortsq) {
         dev_short_nbor[nbor_short] = nj;
         nbor_short += n_stride;
         ncount++;

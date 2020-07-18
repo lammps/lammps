@@ -3363,17 +3363,17 @@ void PairAIREBO::read_file(char *filename)
     std::string header;
     switch (variant) {
     case AIREBO:
-      potential_name = "AIREBO";
+      potential_name = "airebo";
       header = "# AIREBO ";
       break;
 
     case REBO_2:
-      potential_name = "REBO2";
+      potential_name = "rebo";
       header = "# REBO2 ";
       break;
 
     case AIREBO_M:
-      potential_name = "Cannot open AIREBO-M";
+      potential_name = "airebo/morse";
       header = "# AIREBO-M ";
       break;
 
@@ -3488,7 +3488,7 @@ void PairAIREBO::read_file(char *filename)
       // global parameters
       current_section = "global parameters";
 
-      for(int i = 0; i < params.size(); i++) {
+      for(int i = 0; i < (int)params.size(); i++) {
         *params[i] = reader.next_double();
       }
 

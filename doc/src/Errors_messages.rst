@@ -381,7 +381,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    are defined.
 
 *Bond atom missing in box size check*
-   The 2nd atoms needed to compute a particular bond is missing on this
+   The second atom needed to compute a particular bond is missing on this
    processor.  Typically this is because the pairwise cutoff is set too
    short or the bond has blown apart and an atom is too far away.
 
@@ -391,7 +391,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    the atoms are too far apart to make a valid bond.
 
 *Bond atom missing in image check*
-   The 2nd atom in a particular bond is missing on this processor.
+   The second atom in a particular bond is missing on this processor.
    Typically this is because the pairwise cutoff is set too short or the
    bond has blown apart and an atom is too far away.
 
@@ -401,12 +401,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    are too far apart to make a valid bond.
 
 *Bond atoms %d %d missing on proc %d at step %ld*
-   The 2nd atom needed to compute a particular bond is missing on this
+   The second atom needed to compute a particular bond is missing on this
    processor.  Typically this is because the pairwise cutoff is set too
    short or the bond has blown apart and an atom is too far away.
 
 *Bond atoms missing on proc %d at step %ld*
-   The 2nd atom needed to compute a particular bond is missing on this
+   The second atom needed to compute a particular bond is missing on this
    processor.  Typically this is because the pairwise cutoff is set too
    short or the bond has blown apart and an atom is too far away.
 
@@ -1374,7 +1374,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    template does not qualify.
 
 *Cannot use fix box/relax on a 2nd non-periodic dimension*
-   When specifying an off-diagonal pressure component, the 2nd of the two
+   When specifying an off-diagonal pressure component, the second of the two
    dimensions must be periodic.  E.g. if the xy component is specified,
    then the y dimension must be periodic.
 
@@ -1388,7 +1388,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    also keyword tri or xy, this is wrong.
 
 *Cannot use fix box/relax with tilt factor scaling on a 2nd non-periodic dimension*
-   When specifying scaling on a tilt factor component, the 2nd of the two
+   When specifying scaling on a tilt factor component, the second of the two
    dimensions must be periodic.  E.g. if the xy component is specified,
    then the y dimension must be periodic.
 
@@ -1429,7 +1429,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    This would be changing the same box dimension twice.
 
 *Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension*
-   When specifying an off-diagonal pressure component, the 2nd of the two
+   When specifying an off-diagonal pressure component, the second of the two
    dimensions must be periodic.  E.g. if the xy component is specified,
    then the y dimension must be periodic.
 
@@ -1447,13 +1447,13 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Cannot use fix nvt/npt/nph with xy scaling when y is non-periodic dimension*
-   The 2nd dimension in the barostatted tilt factor must be periodic.
+   The second dimension in the barostatted tilt factor must be periodic.
 
 *Cannot use fix nvt/npt/nph with xz scaling when z is non-periodic dimension*
-   The 2nd dimension in the barostatted tilt factor must be periodic.
+   The second dimension in the barostatted tilt factor must be periodic.
 
 *Cannot use fix nvt/npt/nph with yz scaling when z is non-periodic dimension*
-   The 2nd dimension in the barostatted tilt factor must be periodic.
+   The second dimension in the barostatted tilt factor must be periodic.
 
 *Cannot use fix pour rigid and not molecule*
    Self-explanatory.
@@ -7192,7 +7192,7 @@ keyword to allow for additional bonds to be formed
    does not exist.
 
 *Replacing a fix, but new style != old style*
-   A fix ID can be used a 2nd time, but only if the style matches the
+   A fix ID can be used a second time, but only if the style matches the
    previous fix.  In this case it is assumed you with to reset a fix's
    parameters.  This error may mean you are mistakenly re-using a fix ID
    when you do not intend to.

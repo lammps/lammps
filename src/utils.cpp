@@ -109,25 +109,21 @@ std::string utils::getsyserror()
   return std::string(strerror(errno));
 }
 
-/** \brief try to detect pathname from FILE pointer. Currently only supported on Linux, otherwise will report "(unknown)".
- *
- *  \param buf  storage buffer for pathname. output will be truncated if not large enough
- *  \param len  size of storage buffer. output will be truncated to this length - 1
- *  \param fp   FILE pointer structe from STDIO library for which we want to detect the name
- *  \return pointer to the storage buffer, i.e. buf
+/*
+ * On Linux the folder /proc/self/fd holds symbolic links to the actual
+ * pathnames associated with each open file descriptor of the current process.
  */
-static const char *guesspath(char *buf, int len, FILE *fp)
+const char *utils::guesspath(char *buf, int len, FILE *fp)
 {
   memset(buf,0,len);
 
 #if defined(__linux__)
-  char procpath[32];
   int fd = fileno(fp);
-  snprintf(procpath,32,"/proc/self/fd/%d",fd);
   // get pathname from /proc or copy (unknown)
-  if (readlink(procpath,buf,len-1) <= 0) strcpy(buf,"(unknown)");
+  if (readlink(fmt::format("/proc/self/fd/{}",fd).c_str(),buf,len-1) <= 0)
+    strncpy(buf,"(unknown)",len-1);
 #else
-  strcpy(buf,"(unknown)");
+  strncpy(buf,"(unknown)",len-1);
 #endif
   return buf;
 }
@@ -365,20 +361,149 @@ std::string utils::trim_comment(const std::string & line) {
 }
 
 /* ----------------------------------------------------------------------
+   return number of words
+------------------------------------------------------------------------- */
+
+size_t utils::count_words(const char * text) {
+  size_t count = 0;
+  const char * buf = text;
+  char c = *buf;
+
+  while (c) {
+    if (c == ' ' || c == '\t' || c == '\r' ||  c == '\n' || c == '\f') {
+      c = *++buf;
+      continue;
+    };
+
+    ++count;
+    c = *++buf;
+
+    while (c) {
+      if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f') {
+        break;
+      }
+      c = *++buf;
+    }
+  }
+
+  return count;
+}
+
+/* ----------------------------------------------------------------------
+   return number of words
+------------------------------------------------------------------------- */
+
+size_t utils::count_words(const std::string & text) {
+  return utils::count_words(text.c_str());
+}
+
+/* ----------------------------------------------------------------------
    Return number of words
 ------------------------------------------------------------------------- */
 
-size_t utils::count_words(const std::string & text, const std::string & seperators) {
-  ValueTokenizer words(text, seperators);
-  return words.count();
+size_t utils::count_words(const std::string & text, const std::string & separators) {
+  size_t count = 0;
+  size_t start = text.find_first_not_of(separators);
+
+  while (start != std::string::npos) {
+    size_t end = text.find_first_of(separators, start);
+    ++count;
+
+    if(end == std::string::npos) {
+      return count;
+    } else {
+      start = text.find_first_not_of(separators, end + 1);
+    }
+  }
+  return count;
 }
 
 /* ----------------------------------------------------------------------
    Trim comment from string and return number of words
 ------------------------------------------------------------------------- */
 
-size_t utils::trim_and_count_words(const std::string & text, const std::string & seperators) {
-  return utils::count_words(utils::trim_comment(text), seperators);
+size_t utils::trim_and_count_words(const std::string & text, const std::string & separators) {
+  return utils::count_words(utils::trim_comment(text), separators);
+}
+
+/* ----------------------------------------------------------------------
+   Convert string into words on whitespace while handling single and
+   double quotes.
+------------------------------------------------------------------------- */
+std::vector<std::string> utils::split_words(const std::string &text)
+{
+  std::vector<std::string> list;
+  const char *buf = text.c_str();
+  std::size_t beg = 0;
+  std::size_t len = 0;
+  char c = *buf;
+
+  while (c) {
+    // leading whitespace
+    if (c == ' ' || c == '\t' || c == '\r' ||  c == '\n' || c == '\f') {
+      c = *++buf;
+      ++beg;
+      continue;
+    };
+    len = 0;
+
+    // handle escaped/quoted text.
+    quoted:
+
+    // handle single quote
+    if (c == '\'') {
+      c = *++buf;
+      ++len;
+      while (((c != '\'') && (c != '\0'))
+             || ((c == '\\') && (buf[1] == '\''))) {
+        if ((c == '\\') && (buf[1] == '\'')) {
+          ++buf;
+          ++len;
+        }
+        c = *++buf;
+        ++len;
+      }
+      c = *++buf;
+      ++len;
+
+      // handle double quote
+    } else if (c == '"') {
+      c = *++buf;
+      ++len;
+      while (((c != '"') && (c != '\0'))
+             || ((c == '\\') && (buf[1] == '"'))) {
+        if ((c == '\\') && (buf[1] == '"')) {
+          ++buf;
+          ++len;
+        }
+        c = *++buf;
+        ++len;
+      }
+      c = *++buf;
+      ++len;
+    }
+
+    // unquoted
+    while (1) {
+      if ((c == '\'') || (c == '"')) goto quoted;
+      // skip escaped quote
+      if ((c == '\\') && ((buf[1] == '\'') || (buf[1] == '"'))) {
+        ++buf;
+        ++len;
+        c = *++buf;
+        ++len;
+      }
+      if ((c == ' ') || (c == '\t') || (c == '\r') || (c == '\n')
+          || (c == '\f') || (c == '\0')) {
+          list.push_back(text.substr(beg,len));
+          beg += len;
+          break;
+      }
+      c = *++buf;
+      ++len;
+    }
+  }
+  return list;
 }
 
 /* ----------------------------------------------------------------------
@@ -421,9 +546,9 @@ bool utils::is_double(const std::string & str) {
 
 std::string utils::path_basename(const std::string & path) {
 #if defined(_WIN32)
-  size_t start = path.find_last_of('/\\');
+  size_t start = path.find_last_of("/\\");
 #else
-  size_t start = path.find_last_of('/');
+  size_t start = path.find_last_of("/");
 #endif
 
   if (start == std::string::npos) {
@@ -490,27 +615,78 @@ std::string utils::get_potential_file_path(const std::string& path) {
 
 /* ----------------------------------------------------------------------
    read first line of potential file
-   if has DATE field, print following word
+   if it has a DATE field, return the following word
 ------------------------------------------------------------------------- */
 
 std::string utils::get_potential_date(const std::string & path, const std::string & potential_name) {
   TextFileReader reader(path, potential_name);
   reader.ignore_comments = false;
-  char * line = nullptr;
 
-  while (line = reader.next_line()) {
-    ValueTokenizer values(line);
-    while (values.has_next()) {
-      std::string word = values.next_string();
-      if (word == "DATE:") {
-        if (values.has_next()) {
-          std::string date = values.next_string();
-          return date;
-        }
+  char *line = reader.next_line();
+  ValueTokenizer values(line);
+  while (values.has_next()) {
+    std::string word = values.next_string();
+    if (word == "DATE:") {
+      if (values.has_next()) {
+        std::string date = values.next_string();
+        return date;
       }
     }
   }
   return "";
+}
+
+/* ----------------------------------------------------------------------
+   read first line of potential file
+   if it has UNITS field, return following word
+------------------------------------------------------------------------- */
+
+std::string utils::get_potential_units(const std::string & path, const std::string & potential_name) {
+  TextFileReader reader(path, potential_name);
+  reader.ignore_comments = false;
+
+  char *line = reader.next_line();
+  ValueTokenizer values(line);
+  while (values.has_next()) {
+    std::string word = values.next_string();
+    if (word == "UNITS:") {
+      if (values.has_next()) {
+        std::string units = values.next_string();
+        return units;
+      }
+    }
+  }
+  return "";
+}
+
+/* ----------------------------------------------------------------------
+   return bitmask of supported conversions for a given property
+------------------------------------------------------------------------- */
+int utils::get_supported_conversions(const int property)
+{
+  if (property == ENERGY) {
+    return METAL2REAL | REAL2METAL;
+  }
+  return NOCONVERT;
+}
+
+/* ----------------------------------------------------------------------
+   return conversion factor for a given property and conversion setting
+   return 0.0 if unknown.
+------------------------------------------------------------------------- */
+
+double utils::get_conversion_factor(const int property, const int conversion)
+{
+  if (property == ENERGY) {
+    if (conversion == NOCONVERT) {
+      return 1.0;
+    } else if (conversion == METAL2REAL) {
+      return 23.060549;
+    } else if (conversion == REAL2METAL) {
+      return 1.0/23.060549;
+    }
+  }
+  return 0.0;
 }
 
 /* ------------------------------------------------------------------ */

@@ -34,7 +34,12 @@ the currently defined pair potential.  This is useful for plotting the
 potential function or otherwise debugging its values.  If the file
 already exists, the table of values is appended to the end of the file
 to allow multiple tables of energy and force to be included in one
-file.
+file.  In case a new file is created, the first line will be a comment
+containing a "DATE:" and "UNITS:" tag with the current date and the
+current :doc:`units <units>` setting as argument.  For subsequent
+invocations of the pair_write command, the current units setting is
+compared against the entry in the file, if present, and pair_write
+will refuse to add a table if the units are not the same.
 
 The energy and force values are computed at distances from inner to
 outer for 2 interacting atoms of type itype and jtype, using the

@@ -16,6 +16,7 @@
 
 #include "pointers.h"
 #include <map>
+#include <set>
 #include <string>
 
 namespace LAMMPS_NS {
@@ -129,6 +130,12 @@ class Atom : protected Pointers {
   double *edpd_cv;               // heat capacity
   int cc_species;
 
+  // USER-MESONT package
+
+  double *length;
+  int *buckling;
+  tagint **bond_nt;
+
   // USER-SMD package
 
   double *contact_radius;
@@ -163,6 +170,7 @@ class Atom : protected Pointers {
   int cs_flag,csforce_flag,vforce_flag,ervelforce_flag,etag_flag;
   int rho_flag,esph_flag,cv_flag,vest_flag;
   int dpd_flag,edpd_flag,tdpd_flag;
+  int mesont_flag;
 
   // SPIN package
 
@@ -234,6 +242,7 @@ class Atom : protected Pointers {
   int map_user;                   // user requested map style:
                                   // 0 = no request, 1=array, 2=hash, 3=yes
   tagint map_tag_max;             // max atom ID that map() is setup for
+  std::set<tagint> *unique_tags;  // set to ensure that bodies have unique tags
 
   // spatial sorting of atoms
 

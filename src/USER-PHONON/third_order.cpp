@@ -48,8 +48,8 @@ ThirdOrder::~ThirdOrder()
   if (fp && me == 0) fclose(fp);
   fp = NULL;
   memory->destroy(groupmap);
-  memory->destroy(ijnum);
-  memory->destroy(neighbortags);
+  // memory->destroy(ijnum);
+  // memory->destroy(neighbortags);
 }
 
 /* ----------------------------------------------------------------------
@@ -668,10 +668,13 @@ void ThirdOrder::create_groupmap()
   delete[] temp_groupmap;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void ThirdOrder::getNeighbortags() {
   bigint natoms = atom->natoms;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  int ii,jj,inum,jnum,sum;
+  bigint *Jlist,*klist;
+  int ii,jj,kk,inum,jnum,knum,sum;
   int *temptags = (int*) malloc(natoms*sizeof(int));
   int *ijnumproc = (int*) malloc(natoms*sizeof(int));
   memory->create(ijnum, natoms, "thirdorder:ijnum");
@@ -681,28 +684,26 @@ void ThirdOrder::getNeighbortags() {
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  memset(&ijnumproc[0],0,natoms*sizeof(int));
+  memset(&ijnum[0],0,natoms*sizeof(int));
   for (ii = 0; ii < inum; ii++) {
-    //fprintf(screen, "i: %i on rank %i\n",atom->tag[ilist[ii] & NEIGHMASK], comm->me);
     sum = 0;
     memset(&temptags[0],0,natoms*sizeof(int));
     jnum = numneigh[ii];
     jlist = firstneigh[ii];
     temptags[atom->tag[ilist[ii] & NEIGHMASK]-1] = 1;
     for (jj = 0; jj < jnum; jj++) {
-      // fprintf(screen, "i: %i and j: %i on rank %i\n",atom->tag[ilist[ii] & NEIGHMASK], atom->tag[jlist[jj] & NEIGHMASK],comm->me);
       temptags[atom->tag[jlist[jj] & NEIGHMASK]-1] = 1;
     }
     for (bigint i=0; i<=natoms-1; i++) {
       sum += temptags[i];
     }
-    ijnumproc[atom->tag[ilist[ii] & NEIGHMASK]-1] = sum;
-    // fprintf(screen, "tag %i sum %i on rank %i\n",atom->tag[ilist[ii] & NEIGHMASK], sum, comm->me);
+    ijnum[atom->tag[ilist[ii] & NEIGHMASK]-1] = sum;
   }
-  MPI_Allreduce(ijnumproc,ijnum,natoms,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(ijnum,ijnumproc,natoms,MPI_INT,MPI_SUM,world);
+  memset(&ijnum[0],0,natoms*sizeof(int));
   sum = 0;
   for (bigint i=0; i<=natoms-1; i++) {
-    sum += ijnum[i];
+    sum += ijnumproc[i];
   }
 
   bigint nbytes = ((bigint) sizeof(bigint)) * sum;
@@ -718,7 +719,7 @@ void ThirdOrder::getNeighbortags() {
   for (bigint i = 0; i < natoms; i++) {
     firsttags[i] = &data[n];
     neighbortags[i] = &datarecv[n];
-    n += ijnum[i];
+    n += ijnumproc[i];
   }
 
   for (ii = 0; ii < inum; ii++) {
@@ -732,13 +733,75 @@ void ThirdOrder::getNeighbortags() {
     }
     for (int j=0; j < natoms; j++) {
       if (temptags[j] == 1) {
-        firsttags[atom->tag[ilist[ii] & NEIGHMASK]-1][m] = j;
+        neighbortags[atom->tag[ilist[ii] & NEIGHMASK]-1][m] = j;
         m += 1;
       }
     }
   }
-  MPI_Allreduce(data,datarecv,sum,MPI_LONG_LONG_INT,MPI_SUM,world);
+  MPI_Allreduce(datarecv,data,sum,MPI_LONG_LONG_INT,MPI_SUM,world);
 
+  for (bigint i = 0; i < natoms; i++) {
+    ijnum[i] = 0;
+    sum = 0;
+    memset(&temptags[0],0,natoms*sizeof(int));
+    jnum = ijnumproc[i];
+    Jlist = firsttags[i];
+    temptags[i] = 1;
+    for (jj = 0; jj < jnum; jj++) {
+      temptags[Jlist[jj]] = 1;
+      klist = firsttags[Jlist[jj]];
+      knum = ijnumproc[Jlist[jj]];
+      for (kk = 0; kk < knum; kk++) {
+        temptags[klist[kk]] = 1;
+      }
+    }
+    for (bigint j=0; j<natoms; j++)
+      sum += temptags[j];
+
+    ijnum[i] = sum;
+  }
+
+  sum = 0;
+  for (bigint i=0; i<=natoms-1; i++) {
+    sum += ijnum[i];
+  }
+
+  free (neighbortags);
+  nbytes = ((bigint) sizeof(bigint)) * sum;
+  datarecv = (bigint *) memory->smalloc(nbytes, "thirdorder:firsttags");
+  nbytes = ((bigint) sizeof(bigint *)) * natoms;
+  neighbortags = (bigint **) memory->smalloc(nbytes, "thirdorder:neighbortags");
+  memset(&datarecv[0],0,sum*sizeof(bigint));
+
+  n = 0;
+  for (bigint i = 0; i < natoms; i++) {
+    neighbortags[i] = &datarecv[n];
+    n += ijnum[i];
+  }
+
+  for (bigint i = 0; i < natoms; i++) {
+    int m = 0;
+    memset(&temptags[0],0,natoms*sizeof(int));
+    jnum = ijnumproc[i];
+    Jlist = firsttags[i];
+    temptags[i] = 1;
+    for (int j = 0; j < jnum; j++) {
+      temptags[Jlist[j]] = 1;
+      klist = firsttags[Jlist[j]];
+      knum = ijnumproc[Jlist[j]];
+      for (kk = 0; kk < knum; kk++) {
+        temptags[klist[kk]] = 1;
+      }
+    }
+    for (bigint j=0; j < natoms; j++) {
+      if (temptags[j] == 1) {
+        neighbortags[i][m] = j;
+        m += 1;
+      }
+    }
+  }
+
+  free (firsttags);
   free (ijnumproc);
   free (temptags);
 }

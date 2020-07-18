@@ -29,6 +29,7 @@
 
 #define MAXNEIGH  10
 #define EXPAND 50
+#define MAXBIN 100000
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -254,11 +255,14 @@ void NPairCAC::build(NeighList *list)
   //loop over quadrature points of elements, by convention an atom is one quadrature point
   neigh_count = 0;
   nbins_searched = 0;
+  //debug check for instability
+  if(nbin_element_overlap[i] > MAXBIN) error->one(FLERR," too many bin overlaps for one element; simulation may be unstable");
   for(int ocount=0; ocount < nbin_element_overlap[i]; ocount++){
     ibin = bin_element_overlap[i][ocount];
   for (k = 0; k < nstencil; k++) {
     if(bin_scan_flags[ibin + stencil[k]]) continue;
-
+    if(ibin + stencil[k]<0) error->one(FLERR," negative bin index");
+    if(ibin + stencil[k]>=mbins) error->one(FLERR," excessive bin index");
     if(nbins_searched==maxbins_searched){
       maxbins_searched+=EXPAND;
       memory->grow(bins_searched, maxbins_searched, "NPairCAC:bins_searched");
@@ -267,8 +271,6 @@ void NPairCAC::build(NeighList *list)
     bins_searched[nbins_searched++] = ibin+stencil[k];
 
     for (int jj = 0; jj < bin_ncontent[ibin + stencil[k]]; jj++) {
-      if(ibin + stencil[k]<0) error->one(FLERR," negative bin index");
-      if(ibin + stencil[k]>=mbins) error->one(FLERR," excessive bin index");
       j = bin_content[ibin + stencil[k]][jj];
       neighbor_element_type = element_type[j];
       if (i == j) continue;
@@ -336,7 +338,7 @@ void NPairCAC::build(NeighList *list)
       //not a rigorous choice but takes care of most obvious cases that will arise; problematic
       //for models with elements that are slender in a given dimension
       if(element_scale[i][0]*element_scale[i][1]*element_scale[i][2]>2*element_scale[j][0]*element_scale[j][1]*element_scale[j][2]){
-        interface_flags[i] = 1;
+        if(atom->interface_quadrature) interface_flags[i] = 1;
         break;
       }
     }
@@ -895,7 +897,7 @@ void NPairCAC::neighbor_accumulate(double x,double y,double z,int iii,int inner_
   double scanning_unit_cell[3];
   int complete = 0;
   // asa_cg work arrays
-  double Work[100];
+  double Work[1000];
   double **coords = atom->x;
   long iWork[2];
   double min_distance;
@@ -1630,20 +1632,26 @@ void NPairCAC::compute_surface_depths(double &scalex, double &scaley, double &sc
   scalex = 1 - ds_surf;
   scaley = 1 - dt_surf;
   scalez = 1 - dw_surf;
-  if(ds_surf==1)
+  if(ds_surf>=1)
   scalex = 0.0;
-  if(dt_surf==1)
+  if(dt_surf>=1)
   scaley = 0.0;
-  if(dw_surf==1)
+  if(dw_surf>=1)
   scalez = 0.0;
 
   countx = (int)(ds_surf / unit_cell_mapped[0]);
   county = (int)(dt_surf / unit_cell_mapped[1]);
   countz = (int)(dw_surf / unit_cell_mapped[2]);
  }
-  if(countx==0) countx=1;
-  if(county==0) county=1;
-  if(countz==0) countz=1;
+  
+  //checks against numerical errors leading to extraneous cases
+  if(2*countx>current_element_scale[0]) countx = current_element_scale[0]/2;
+  if(2*county>current_element_scale[1]) county = current_element_scale[1]/2;
+  if(2*countz>current_element_scale[2]) countz = current_element_scale[2]/2;
+  if(countx==0) countx = 1;
+  if(county==0) county = 1;
+  if(countz==0) countz = 1;
+
 }
 
 /////////////////////////////////
@@ -1717,7 +1725,34 @@ int NPairCAC::compute_quad_points(int element_index){
 
   //Q8 quadrature point selection
   if (element_type[element_index]==1) {
-    if(current_element_scale[0]>2&&current_element_scale[1]>2&&current_element_scale[2]>2){
+    //check if refined numerical interface is needed
+    if(atom->full_quad_flag&&interface_flags[element_index]){
+      //loop over all possible virtual atom sites
+      for (int i = 0; i < current_element_scale[0]; i++) {
+        for (int j = 0; j < current_element_scale[1]; j++) {
+          for (int k = 0; k < current_element_scale[2]; k++) {
+            s = -1 + (i + 0.5)*unit_cell_mapped[0];
+            t = -1 + (j + 0.5)*unit_cell_mapped[1];
+            w = -1 + (k + 0.5)*unit_cell_mapped[2];
+                        
+            quadrature_point_data[qi][0]=s;
+            quadrature_point_data[qi][1]=t;
+            quadrature_point_data[qi][2]=w;
+            quadrature_point_data[qi][3]=s;
+            quadrature_point_data[qi][4]=t;
+            quadrature_point_data[qi][5]=w;
+            quadrature_point_data[qi][6]=
+            unit_cell_mapped[0] * unit_cell_mapped[1] * unit_cell_mapped[2];	
+            neigh_quad_counter = neigh_quad_counter + 1;
+            qi+=1;
+            if(qi==quadrature_point_max)
+              grow_quad_data(); 
+          }
+        }
+      }
+    }
+    else{
+    if(interior_scale[0]>0&&interior_scale[1]>0&&interior_scale[2]>0){
     for (int i = 0; i < quadrature_node_count; i++) {
       for (int j = 0; j < quadrature_node_count; j++) {
         for (int k = 0; k < quadrature_node_count; k++) {
@@ -1771,10 +1806,11 @@ int NPairCAC::compute_quad_points(int element_index){
     int sign[2];
     sign[0] = -1;
     sign[1] = 1;
+    int s_count = 2;
 
     // s axis surface contributions
-    if(current_element_scale[1]>2&&current_element_scale[2]>2){
-    for (int sc = 0; sc < 2; sc++) {
+    if(interior_scale[1]>0&&interior_scale[2]>0){
+    for (int sc = 0; sc < s_count; sc++) {
       for (int i = 0; i < isurface_counts[0]; i++) {
         for (int j = 0; j < quadrature_node_count; j++) {
           for (int k = 0; k < quadrature_node_count; k++) {
@@ -1816,9 +1852,11 @@ int NPairCAC::compute_quad_points(int element_index){
       }
     }
     }
+    
+    int t_count = 2;
     // t axis contributions
-    if(current_element_scale[0]>2&&current_element_scale[2]>2){
-    for (int sc = 0; sc < 2; sc++) {
+    if(interior_scale[0]>0&&interior_scale[2]>0){
+    for (int sc = 0; sc < t_count; sc++) {
       for (int i = 0; i < isurface_counts[1]; i++) {
         for (int j = 0; j < quadrature_node_count; j++) {
           for (int k = 0; k < quadrature_node_count; k++) {
@@ -1860,9 +1898,11 @@ int NPairCAC::compute_quad_points(int element_index){
       }
     }
     }
+
+    int w_count = 2;
     //w axis contributions
-    if(current_element_scale[0]>2&&current_element_scale[1]>2){
-    for (int sc = 0; sc < 2; sc++) {
+    if(interior_scale[0]>0&&interior_scale[1]>0){
+    for (int sc = 0; sc < w_count; sc++) {
       for (int i = 0; i < isurface_counts[2]; i++) {
         for (int j = 0; j < quadrature_node_count; j++) {
           for (int k = 0; k < quadrature_node_count; k++) {
@@ -1914,7 +1954,7 @@ int NPairCAC::compute_quad_points(int element_index){
 
     for (int sc = 0; sc < 12; sc++) {
       if (sc == 0 || sc == 1 || sc == 2 || sc == 3) {
-        if(current_element_scale[2]<=2) continue;
+        if(interior_scale[2]==0.0) continue;
         interior_scalez = interior_scale[2];
         surface_countsx = isurface_counts[0];
         surface_countsy = isurface_counts[1];
@@ -1922,7 +1962,7 @@ int NPairCAC::compute_quad_points(int element_index){
         unit_mappedy = unit_cell_mapped[1];
       }
       else if (sc == 4 || sc == 5 || sc == 6 || sc == 7) {
-        if(current_element_scale[0]<=2) continue;
+        if(interior_scale[0]==0.0) continue;
         interior_scalez = interior_scale[0];
         surface_countsx = isurface_counts[1];
         surface_countsy = isurface_counts[2];
@@ -1930,7 +1970,7 @@ int NPairCAC::compute_quad_points(int element_index){
         unit_mappedy = unit_cell_mapped[2];
       }
       else if (sc == 8 || sc == 9 || sc == 10 || sc == 11) {
-        if(current_element_scale[1]<=2) continue;
+        if(interior_scale[1]==0.0) continue;
         interior_scalez = interior_scale[1];
         surface_countsx = isurface_counts[0];
         surface_countsy = isurface_counts[2];
@@ -2108,9 +2148,9 @@ int NPairCAC::compute_quad_points(int element_index){
       }
     }
 
-
+    int corner_limit = 8;
     //compute corner contributions
-    for (int sc = 0; sc < 8; sc++) {
+    for (int sc = 0; sc < corner_limit; sc++) {
       for (int i = 0; i < isurface_counts[0]; i++) {
         for (int j = 0; j < isurface_counts[1]; j++) {
           for (int k = 0; k < isurface_counts[2]; k++) {
@@ -2175,6 +2215,209 @@ int NPairCAC::compute_quad_points(int element_index){
       }
     }
   }
+  }
+  //Q4 quadrature point selection
+  else if (element_type[element_index]==4) {
+    //check if refined numerical interface is needed
+    if(atom->full_quad_flag&&interface_flags[element_index]){
+      //loop over all possible virtual atom sites
+      for (int i = 0; i < current_element_scale[0]; i++) {
+        for (int j = 0; j < current_element_scale[1]; j++) {
+            s = -1 + (i + 0.5)*unit_cell_mapped[0];
+            t = -1 + (j + 0.5)*unit_cell_mapped[1];
+                        
+            quadrature_point_data[qi][0]=s;
+            quadrature_point_data[qi][1]=t;
+            quadrature_point_data[qi][2]=0;
+            quadrature_point_data[qi][3]=s;
+            quadrature_point_data[qi][4]=t;
+            quadrature_point_data[qi][5]=0;
+            quadrature_point_data[qi][6]=
+            unit_cell_mapped[0] * unit_cell_mapped[1];	
+            neigh_quad_counter = neigh_quad_counter + 1;
+            qi+=1;
+            if(qi==quadrature_point_max)
+              grow_quad_data(); 
+          
+
+        }
+      }
+    }
+    else{
+    if(interior_scale[0]>0&&interior_scale[1]>0){
+    for (int i = 0; i < quadrature_node_count; i++) {
+      for (int j = 0; j < quadrature_node_count; j++) {
+          sq=s = interior_scale[0] * quadrature_abcissae[i];
+          tq=t = interior_scale[1] * quadrature_abcissae[j];
+          signs=signt=1;
+          if(sq<0) signs=-1;
+          if(tq<0) signt=-1;
+          s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
+          t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
+
+          if (quadrature_abcissae[i] < 0)
+            s = s - 0.5*unit_cell_mapped[0];
+          else
+            s = s + 0.5*unit_cell_mapped[0];
+
+          if (quadrature_abcissae[j] < 0)
+            t = t - 0.5*unit_cell_mapped[1];
+          else
+            t = t + 0.5*unit_cell_mapped[1];
+
+          quadrature_point_data[qi][0]=s;
+          quadrature_point_data[qi][1]=t;
+          quadrature_point_data[qi][2]=0;
+          quadrature_point_data[qi][3]=sq;
+          quadrature_point_data[qi][4]=tq;
+          quadrature_point_data[qi][5]=0;
+          quadrature_point_data[qi][6]=
+          interior_scale[0] * interior_scale[1] *
+          quadrature_weights[i] * quadrature_weights[j];
+          neigh_quad_counter = neigh_quad_counter + 1;
+          qi+=1;
+          if(qi==quadrature_point_max)
+          grow_quad_data();
+        
+      }
+    }
+    }
+
+
+    //compute surface contributions to element
+
+    int sign[2];
+    sign[0] = -1;
+    sign[1] = 1;
+    int s_count = 2;
+    if(current_element_scale[0]==1) s_count = 1;
+
+    // s axis surface contributions
+    if(interior_scale[1]>0){
+    for (int sc = 0; sc < s_count; sc++) {
+      for (int i = 0; i < isurface_counts[0]; i++) {
+        for (int j = 0; j < quadrature_node_count; j++) {
+            s = sign[sc] - i*unit_cell_mapped[0] * sign[sc];
+            sq = s = s - 0.5*unit_cell_mapped[0] * sign[sc];
+            tq = t = interior_scale[1] * quadrature_abcissae[j];
+            signs=signt=1;
+              if(tq<0) signt=-1;
+            t = unit_cell_mapped[1] * (int((t+signt) / unit_cell_mapped[1]))-signt;
+
+            if (quadrature_abcissae[j] < 0)
+              t = t - 0.5*unit_cell_mapped[1];
+            else
+              t = t + 0.5*unit_cell_mapped[1];
+
+            quadrature_point_data[qi][0]=s;
+            quadrature_point_data[qi][1]=t;
+            quadrature_point_data[qi][2]=0;
+            quadrature_point_data[qi][3]=sq;
+            quadrature_point_data[qi][4]=tq;
+            quadrature_point_data[qi][5]=0;
+            quadrature_point_data[qi][6]=
+              unit_cell_mapped[0] * interior_scale[1] *
+              quadrature_weights[j];
+            neigh_quad_counter = neigh_quad_counter + 1;
+            qi+=1;  
+            if(qi==quadrature_point_max)
+              grow_quad_data();      
+          
+        }
+      }
+    }
+    }
+    
+    int t_count = 2;
+    if(current_element_scale[1]==1) t_count = 1;
+    // t axis contributions
+    if(interior_scale[0]>0&&interior_scale[2]>0){
+    for (int sc = 0; sc < t_count; sc++) {
+      for (int i = 0; i < isurface_counts[1]; i++) {
+        for (int j = 0; j < quadrature_node_count; j++) {
+          for (int k = 0; k < quadrature_node_count; k++) {
+            sq = s = interior_scale[0] * quadrature_abcissae[j];
+            t = sign[sc] - i*unit_cell_mapped[1] * sign[sc];
+            tq=t = t - 0.5*unit_cell_mapped[1] * sign[sc];
+            wq = w = interior_scale[2] * quadrature_abcissae[k];
+            signs=signt=signw=1;
+            if(sq<0) signs=-1;
+            if(wq<0) signw=-1;
+            s = unit_cell_mapped[0] * (int((s+signs) / unit_cell_mapped[0]))-signs;
+            w = unit_cell_mapped[2] * (int((w+signw) / unit_cell_mapped[2]))-signw;
+
+            if (quadrature_abcissae[j] < 0)
+              s = s - 0.5*unit_cell_mapped[0];
+            else
+              s = s + 0.5*unit_cell_mapped[0];
+
+            if (quadrature_abcissae[k] < 0)
+              w = w - 0.5*unit_cell_mapped[2];
+            else
+              w = w + 0.5*unit_cell_mapped[2];
+            
+            quadrature_point_data[qi][0]=s;
+            quadrature_point_data[qi][1]=t;
+            quadrature_point_data[qi][2]=w;
+            quadrature_point_data[qi][3]=sq;
+            quadrature_point_data[qi][4]=tq;
+            quadrature_point_data[qi][5]=wq;
+            quadrature_point_data[qi][6]=
+              unit_cell_mapped[1] * interior_scale[0] *
+              interior_scale[2] * quadrature_weights[j] * quadrature_weights[k];
+            neigh_quad_counter = neigh_quad_counter + 1;
+                  qi+=1;
+            if(qi==quadrature_point_max)
+              grow_quad_data(); 
+          }
+        }
+      }
+    }
+    }
+
+    int corner_limit = 4;
+    //compute corner contributions
+    for (int sc = 0; sc < corner_limit; sc++) {
+      for (int i = 0; i < isurface_counts[0]; i++) {
+        for (int j = 0; j < isurface_counts[1]; j++) {
+          
+            if (sc == 0) {
+              s = -1 + (i + 0.5)*unit_cell_mapped[0];
+              t = -1 + (j + 0.5)*unit_cell_mapped[1];
+            }
+            else if (sc == 1) {
+              s = 1 - (i + 0.5)*unit_cell_mapped[0];
+              t = -1 + (j + 0.5)*unit_cell_mapped[1];
+            }
+            else if (sc == 2) {
+              s = 1 - (i + 0.5)*unit_cell_mapped[0];
+              t = 1 - (j + 0.5)*unit_cell_mapped[1];
+            }
+            else if (sc == 3) {
+              s = -1 + (i + 0.5)*unit_cell_mapped[0];
+              t = 1 - (j + 0.5)*unit_cell_mapped[1];
+            }
+                        
+            quadrature_point_data[qi][0]=s;
+            quadrature_point_data[qi][1]=t;
+            quadrature_point_data[qi][2]=0;
+            quadrature_point_data[qi][3]=s;
+            quadrature_point_data[qi][4]=t;
+            quadrature_point_data[qi][5]=0;
+            quadrature_point_data[qi][6]=
+            unit_cell_mapped[0] * unit_cell_mapped[1] * unit_cell_mapped[2];	
+            neigh_quad_counter = neigh_quad_counter + 1;
+            qi+=1;
+            if(qi==quadrature_point_max)
+              grow_quad_data(); 
+          
+
+        }
+      }
+    }
+  }
+  }
+  
   //end of Q8 quadrature point selection
   //atom point selection is trivial; assigned to array for convenience at this point.
   else {
@@ -2201,7 +2444,7 @@ int NPairCAC::CAC_decide_element2element(int origin_element_index, int neighbor_
   double **eboxes = atom->eboxes;
   int *element_type = atom->element_type;
   int *ebox_ref=atom->ebox_ref;
-  double *cutghost = comm->cutghost;
+  double cut = neighbor->cutneighmax;
   double **x = atom->x;
   double bounding_boxlo[3], neighbounding_boxlo[3];
   double bounding_boxhi[3], neighbounding_boxhi[3];
@@ -2220,12 +2463,12 @@ int NPairCAC::CAC_decide_element2element(int origin_element_index, int neighbor_
   
   if(neighboring_element_type!=0){
   neigh_ebox = eboxes[ebox_ref[neighbor_element_index]];
-  neighbounding_boxlo[0] = neigh_ebox[0]+cutghost[0];
-  neighbounding_boxlo[1] = neigh_ebox[1]+cutghost[1];
-  neighbounding_boxlo[2] = neigh_ebox[2]+cutghost[2];
-  neighbounding_boxhi[0] = neigh_ebox[3]-cutghost[0];
-  neighbounding_boxhi[1] = neigh_ebox[4]-cutghost[1];
-  neighbounding_boxhi[2] = neigh_ebox[5]-cutghost[2];
+  neighbounding_boxlo[0] = neigh_ebox[0]+cut;
+  neighbounding_boxlo[1] = neigh_ebox[1]+cut;
+  neighbounding_boxlo[2] = neigh_ebox[2]+cut;
+  neighbounding_boxhi[0] = neigh_ebox[3]-cut;
+  neighbounding_boxhi[1] = neigh_ebox[4]-cut;
+  neighbounding_boxhi[2] = neigh_ebox[5]-cut;
   
   box_overlap_flag[2]=box_overlap_flag[1]=box_overlap_flag[0]=0;
     for(int idim=0; idim<domain->dimension; idim++){

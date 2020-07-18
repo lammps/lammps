@@ -166,6 +166,7 @@ void AtomVecCAC_Charge::shrink_array(int n)
   if(n>nmax)
   error->one(FLERR, "resize function is called to shrink atom arrays; use grow instead");
   atom->nmax=nmax=n;
+  if(nmax==0) atom->nmax = nmax = 1;
   tag = memory->grow(atom->tag,nmax,"atom:tag");
   type = memory->grow(atom->type,nmax,"atom:type");
   mask = memory->grow(atom->mask,nmax,"atom:mask");
@@ -178,7 +179,7 @@ void AtomVecCAC_Charge::shrink_array(int n)
   element_scale = memory->grow(atom->element_scale, nmax,3, "atom:element_scales");
 
   //deallocate element contents if n is smaller than the alloc counter for elements
-  for(int element_index=alloc_counter-1; element_index >= n; element_index--){
+  for(int element_index=alloc_counter-1; element_index >= nmax; element_index--){
   memory->destroy(node_types[element_index]);
   memory->destroy(node_charges[element_index]);
   memory->destroy(nodal_positions[element_index]);
@@ -188,8 +189,8 @@ void AtomVecCAC_Charge::shrink_array(int n)
   memory->destroy(nodal_forces[element_index]);
   memory->destroy(nodal_virial[element_index]);
   }
-  if(alloc_counter>n)
-  alloc_counter = n;
+  if(alloc_counter>nmax)
+  alloc_counter = nmax;
 
   //shrink pointer arrays
   atom->node_types = node_types = (int **) memory->srealloc(node_types,sizeof(int *)*nmax, "atom:node_types");
@@ -206,7 +207,7 @@ void AtomVecCAC_Charge::shrink_array(int n)
     (double ****) memory->srealloc(nodal_forces,sizeof(double ***)*nmax, "atom:nodal_forces");
   atom->nodal_virial = nodal_virial =
     (double ****) memory->srealloc(nodal_virial,sizeof(double ***)*nmax, "atom:nodal_virial");
-  CAC_nmax = n;
+  CAC_nmax = nmax;
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)

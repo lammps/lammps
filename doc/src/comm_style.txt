@@ -52,7 +52,8 @@ decomposition will be the same, as described by
 commands.  The decomposition can be changed via the
 "balance"_balance.html or "fix balance"_fix_balance.html commands.
 
-The cac style inherits the features and restrictions of comm style tiled. This
+The cac style inherits the features and restrictions of comm style tiled,
+save for the ability to enable the use of triclinic boxes. This
 style is utilized with the USER-CAC package. For more information
 about the USER-CAC package see "Howto CAC"_Howto_cac.html for details.
 

@@ -32,13 +32,13 @@ void ResetInitialNodes::command(int narg, char **/*arg*/)
 {
   //check if simulation box has been defined
   if (domain->box_exist == 0)
-    error->all(FLERR,"Reset_initial_nodes command before simulation box is defined");
+    error->all(FLERR,"reset_initial_nodes command before simulation box is defined");
   //check if atom and element data has been read in already
   if (atom->natoms == 0)
-    error->all(FLERR,"Reset_initial_nodes command before material data has been defined");
+    error->all(FLERR,"reset_initial_nodes command before material data has been defined");
   //check if CAC atom style is defined
   if(!atom->CAC_flag)
-  error->all(FLERR, "CAC dump styles require a CAC atom style");
+  error->all(FLERR, "reset_initial_nodes command requires a CAC atom style");
 
   //reset initial nodal positions with the current nodal positions
   int *type = atom->type;

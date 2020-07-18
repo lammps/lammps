@@ -29,6 +29,7 @@ enum{NSQ,BIN,MULTI};       // also in Neighbor
 #define CUT2BIN_RATIO 100
 #define MAXBINCONTENT 100  //used to bound local memory
 #define EXPAND 100
+#define BINLIMIT 10000
 #define MAXBINOVERLAP 10
 
 /* ---------------------------------------------------------------------- */
@@ -240,62 +241,50 @@ void NBinCAC::CAC_setup_bins(int style)
   hi[0] = domain->subhi_lamda[0];
   hi[1] = domain->subhi_lamda[1];
   hi[2] = domain->subhi_lamda[2];
+
+  lo[0] -= cutghost[0];
+  lo[1] -= cutghost[1];
+  lo[2] -= cutghost[2];
+  hi[0] += cutghost[0];
+  hi[1] += cutghost[1];
+  hi[2] += cutghost[2];
+  domain->bbox(lo,hi,bsubboxlo,bsubboxhi);
+
   //loop through elements to compute bounding boxes and test
   //whether they should stretch the local bounding box
-  for(int element_index=0; element_index < atom->nlocal+atom->nghost; element_index++){
+  for(int element_index=0; element_index < atom->nlocal; element_index++){
   if(element_type[element_index]){
-    nodal_positions = atom->nodal_positions[element_index];
-  //int current_poly_count = poly_count[element_index];
-    int current_poly_count = poly_count[element_index];
-    int nodes_per_element = nodes_per_element_list[element_type[element_index]];
+  nodal_positions = atom->nodal_positions[element_index];
 
-    //initialize bounding box values
-    ebounding_boxlo[0] = nodal_positions[0][0][0];
-    ebounding_boxlo[1] = nodal_positions[0][0][1];
-    ebounding_boxlo[2] = nodal_positions[0][0][2];
-    ebounding_boxhi[0] = nodal_positions[0][0][0];
-    ebounding_boxhi[1] = nodal_positions[0][0][1];
-    ebounding_boxhi[2] = nodal_positions[0][0][2];
-     //define the bounding box for the element being considered as a neighbor
+  double *current_ebox;
 
-    for (int poly_counter = 0; poly_counter < current_poly_count; poly_counter++) {
-    for (int kkk = 0; kkk < nodes_per_element; kkk++) {
+  current_ebox = eboxes[ebox_ref[element_index]];
+  //define this elements bounding box
+  ebounding_boxlo[0] = current_ebox[0];
+  ebounding_boxlo[1] = current_ebox[1];
+  ebounding_boxlo[2] = current_ebox[2];
+  ebounding_boxhi[0] = current_ebox[3];
+  ebounding_boxhi[1] = current_ebox[4];
+  ebounding_boxhi[2] = current_ebox[5];
 
-    nodal_temp[0]=nodal_positions[poly_counter][kkk][0];
-    nodal_temp[1]=nodal_positions[poly_counter][kkk][1];
-    nodal_temp[2]=nodal_positions[poly_counter][kkk][2];
-    domain->x2lamda(nodal_temp, lamda_temp);
-      //test if this node lies outside local box and stretch box
-    for(int dim=0; dim < dimension; dim++){
-      if(lamda_temp[dim]>hi[dim])
-      hi[dim]=lamda_temp[dim];
-      if(lamda_temp[dim]<lo[dim])
-      lo[dim]=lamda_temp[dim];
-    }
-    }
-  }
-
-  }
-  else if(element_index>=atom->nlocal){
-    for(int dim=0; dim < dimension; dim++){
-     if(x[element_index][dim]>hi[dim])
-     hi[dim]=x[element_index][dim];
-     if(x[element_index][dim]<lo[dim])
-     lo[dim]=x[element_index][dim];
-    }
+  //test if this bounding box exceeds local sub box
+  for(int dim=0; dim < dimension; dim++){
+  if(ebounding_boxhi[dim]>bsubboxhi[dim])
+  bsubboxhi[dim]=ebounding_boxhi[dim];
+  if(ebounding_boxlo[dim]<bsubboxlo[dim])
+  bsubboxlo[dim]=ebounding_boxlo[dim];
   }
   }
-
-    lo[0] -= cutghost[0];
-    lo[1] -= cutghost[1];
-    lo[2] -= cutghost[2];
-    hi[0] += cutghost[0];
-    hi[1] += cutghost[1];
-    hi[2] += cutghost[2];
-    domain->bbox(lo,hi,bsubboxlo,bsubboxhi);
+  else{
+  for(int dim=0; dim < dimension; dim++){
+  if(x[element_index][dim]>bsubboxhi[dim])
+  bsubboxhi[dim]=x[element_index][dim];
+  if(x[element_index][dim]<bsubboxlo[dim])
+  bsubboxlo[dim]=x[element_index][dim];
   }
-
-
+  }
+  }
+  }
 
   bbox[0] = bboxhi[0] - bboxlo[0];
   bbox[1] = bboxhi[1] - bboxlo[1];
@@ -646,7 +635,7 @@ void NBinCAC::bin_atoms()
   int *poly_count = atom->poly_count;
   double bounding_boxlo[3];
   double bounding_boxhi[3];
-  double *cutghost = comm->cutghost;
+  double cut = neighbor->cutneighmax;
 
   double **eboxes=atom->eboxes;
   double **foreign_eboxes=atom->foreign_eboxes;
@@ -709,12 +698,12 @@ if (x[2] > bsubboxhi[2])
   bounding_boxhi[2] = current_ebox[5];
 
   if(!foreign_boxes&&atom->bin_foreign){
-  bounding_boxlo[0] += cutghost[0];
-  bounding_boxlo[1] += cutghost[1];
-  bounding_boxlo[2] += cutghost[2];
-  bounding_boxhi[0] -= cutghost[0];
-  bounding_boxhi[1] -= cutghost[1];
-  bounding_boxhi[2] -= cutghost[2];
+  bounding_boxlo[0] += cut;
+  bounding_boxlo[1] += cut;
+  bounding_boxlo[2] += cut;
+  bounding_boxhi[0] -= cut;
+  bounding_boxhi[1] -= cut;
+  bounding_boxhi[2] -= cut;
   }
 
   //compute lowest overlap id for each dimension
@@ -780,6 +769,10 @@ if (x[2] > bsubboxhi[2])
   bin_overlap_limits[4]=iyh;
   bin_overlap_limits[5]=izh;
   }
+  //check if bin limits exceed error limits
+  if(bin_overlap_limits[3]-bin_overlap_limits[0]>BINLIMIT) error->one(FLERR,"bin limits are very large; simulation may be unstable");
+  if(bin_overlap_limits[4]-bin_overlap_limits[1]>BINLIMIT) error->one(FLERR,"bin limits are very large; simulation may be unstable");
+  if(bin_overlap_limits[5]-bin_overlap_limits[2]>BINLIMIT) error->one(FLERR,"bin limits are very large; simulation may be unstable");
   return (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
 }
 
@@ -793,7 +786,7 @@ if (x[2] > bsubboxhi[2])
   int *poly_count = atom->poly_count;
   double bounding_boxlo[3];
   double bounding_boxhi[3];
-  double *cutghost = comm->cutghost;
+  double cut = neighbor->cutneighmax;
 
   double **eboxes=atom->eboxes;
   double **foreign_eboxes=atom->foreign_eboxes;
@@ -815,12 +808,12 @@ if (x[2] > bsubboxhi[2])
   bounding_boxhi[0] = current_ebox[3];
   bounding_boxhi[1] = current_ebox[4];
   bounding_boxhi[2] = current_ebox[5];
-  bounding_boxlo[0] += cutghost[0];
-  bounding_boxlo[1] += cutghost[1];
-  bounding_boxlo[2] += cutghost[2];
-  bounding_boxhi[0] -= cutghost[0];
-  bounding_boxhi[1] -= cutghost[1];
-  bounding_boxhi[2] -= cutghost[2];
+  bounding_boxlo[0] += cut;
+  bounding_boxlo[1] += cut;
+  bounding_boxlo[2] += cut;
+  bounding_boxhi[0] -= cut;
+  bounding_boxhi[1] -= cut;
+  bounding_boxhi[2] -= cut;
   
 
   //compute lowest overlap id for each dimension

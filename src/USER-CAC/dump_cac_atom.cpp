@@ -84,12 +84,16 @@ void DumpCACAtom::init_style()
   //check if CAC atom style is defined
   if(!atom->CAC_flag)
   error->all(FLERR, "CAC dump styles require a CAC atom style");
-  // format = copy of default or user-specified line format
+
+  //check if sorting was used
+  if(sort_flag)
+  error->all(FLERR, "CAC dump styles cannot currently be sorted");
 
   //check charge existence
   if(charge_flag&&!atom->q_flag)
   error->all(FLERR, "outputting charge in dump cac/atom requires a cac atom style with charge");
-
+  
+  // format = copy of default or user-specified line format
   delete [] format;
   char *str;
   if (format_line_user) str = format_line_user;
@@ -304,6 +308,7 @@ void DumpCACAtom::pack(tagint *ids)
                   fmap[2] += current_nodal_forces[polyscan][kk][2] * shape_func;
                 }
               //test if mapped particle is in box and remap otherwise
+              if(!domain->triclinic){
               if(periodicity[0]){
                 if(xmap[0]>boxhi[0]) xmap[0]-=prd[0];
                 if(xmap[0]<boxlo[0]) xmap[0]+=prd[0];
@@ -315,6 +320,37 @@ void DumpCACAtom::pack(tagint *ids)
               if(periodicity[2]){
                 if(xmap[2]>boxhi[2]) xmap[2]-=prd[2];
                 if(xmap[2]<boxlo[2]) xmap[2]+=prd[2];
+              }
+              }
+              else{
+                double xlamda[3];
+                domain->x2lamda(xmap,xlamda);
+              if(periodicity[0]){
+                if(xlamda[0]>domain->boxhi_lamda[0]) xmap[0]-=domain->xprd;
+                if(xlamda[0]<domain->boxlo_lamda[0]) xmap[0]+=domain->xprd;
+              }
+              if(periodicity[1]){
+                if(xlamda[1]>domain->boxhi_lamda[1]) {
+                  xmap[0]-=domain->xy;
+                  xmap[1]-=domain->yprd;
+                }
+                if(xlamda[1]<domain->boxlo_lamda[1]) {
+                  xmap[0]+=domain->xy;
+                  xmap[1]+=domain->yprd;
+                }
+              }
+              if(periodicity[2]){
+                if(xlamda[2]>domain->boxhi_lamda[2]) {
+                  xmap[0]-=domain->xz;
+                  xmap[1]-=domain->yz;
+                  xmap[2]-=domain->zprd;
+                }
+                if(xlamda[2]<domain->boxlo_lamda[2]) {
+                  xmap[0]+=domain->xz;
+                  xmap[1]+=domain->yz;
+                  xmap[2]+=domain->zprd;
+                }
+              }
               }   
               buf[m++] = tag[i];
               buf[m++] = node_types[i][polyscan];

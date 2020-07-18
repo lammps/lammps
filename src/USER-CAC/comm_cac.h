@@ -154,6 +154,7 @@ class CommCAC : public CommTiled {
   double *prd;                 // local ptrs to Domain attributes
   double *boxlo,*boxhi;
   double *sublo,*subhi;
+  double box_epsilon[3];       //error tolerance for exchange in either distance or triclinic (0-1) units
   int dimension;
 
   // NOTE: init_buffers is called from a constructor and must not be made virtual

@@ -187,6 +187,9 @@ void FixTempRescale_CAC::end_of_step()
     if (which == NOBIAS) {
       for (int i = 0; i < nlocal; i++) {
         if (mask[i] & groupbit) {
+        v[i][0] = 0;
+        v[i][1] = 0;
+        v[i][2] = 0;
         nodes_per_element = nodes_count_list[element_type[i]];
         for (int l = 0; l < poly_count[i]; l++) {
           for (int j = 0; j < nodes_per_element; j++) {
@@ -195,6 +198,9 @@ void FixTempRescale_CAC::end_of_step()
           nodal_velocities[i][l][j][1] *= factor;
           nodal_velocities[i][l][j][2] *= factor;
           // temperature->restore_bias(i,v[i]);
+          v[i][0] += nodal_velocities[i][l][j][0];
+          v[i][1] += nodal_velocities[i][l][j][1];
+          v[i][2] += nodal_velocities[i][l][j][2];
           }
         }
         
@@ -206,6 +212,9 @@ void FixTempRescale_CAC::end_of_step()
     } else {
       for (int i = 0; i < nlocal; i++) {
         if (mask[i] & groupbit) {
+        v[i][0] = 0;
+        v[i][1] = 0;
+        v[i][2] = 0;
         nodes_per_element = nodes_count_list[element_type[i]];  
         for (int l = 0; l < poly_count[i]; l++) {
           for (int j = 0; j < nodes_per_element; j++) {
@@ -214,6 +223,9 @@ void FixTempRescale_CAC::end_of_step()
           nodal_velocities[i][l][j][1] *= factor;
           nodal_velocities[i][l][j][2] *= factor;
           // temperature->restore_bias(i,v[i]);
+          v[i][0] += nodal_velocities[i][l][j][0];
+          v[i][1] += nodal_velocities[i][l][j][1];
+          v[i][2] += nodal_velocities[i][l][j][2];
         }
       }
       

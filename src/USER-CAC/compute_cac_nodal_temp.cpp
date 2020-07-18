@@ -84,6 +84,7 @@ double ComputeNodalTemp::compute_scalar()
   int **element_scale = atom->element_scale;
   int *nodes_count_list = atom->nodes_per_element_list;
   int nodes_per_element;
+  int old_dof;
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
@@ -125,7 +126,12 @@ double ComputeNodalTemp::compute_scalar()
   }
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
+  old_dof = dof;
   if (dynamic) dof_compute();
+  else{
+    dof_compute();
+    if(old_dof!=dof) error->all(FLERR,"Temperature compute dofs are changing; use a dynamic group or check for lost atoms");
+  }
   if (dof < 0.0 && natoms_temp > 0.0)
     error->all(FLERR,"Temperature compute degrees of freedom < 0");
   scalar *= tfactor;

@@ -80,16 +80,25 @@ TEST_F(KimCommandsTest, kim_init)
 {
     if (!LAMMPS::is_installed_pkg("KIM")) GTEST_SKIP();
 
+    TEST_FAILURE(".*ERROR: Illegal kim_init command.*",
+                 lmp->input->one("kim_init"););
+    TEST_FAILURE(".*ERROR: Illegal kim_init command.*",
+                 lmp->input->one("kim_init LennardJones_Ar real si"););
+    TEST_FAILURE(".*ERROR: LAMMPS unit_style lj not supported by KIM models.*",
+                 lmp->input->one("kim_init LennardJones_Ar lj"););
+    TEST_FAILURE(".*ERROR: Unknown unit_style.*",
+                 lmp->input->one("kim_init LennardJones_Ar new_style"););
+    TEST_FAILURE(".*ERROR: KIM Model name not found.*",
+                 lmp->input->one("kim_init Unknown_Model real"););
+    TEST_FAILURE(".*ERROR: Incompatible units for KIM Simulator Model, required units = metal.*",
+                 lmp->input->one("kim_init Sim_LAMMPS_LJcut_AkersonElliott_Alchemy_PbAu real"););
+
     ::testing::internal::CaptureStdout();
     lmp->input->one("kim_init LennardJones_Ar real");
     ::testing::internal::GetCapturedStdout();
 
     int ifix = lmp->modify->find_fix("KIM_MODEL_STORE");
     ASSERT_GE(ifix, 0);
-
-    TEST_FAILURE(".*ERROR: Illegal kim_init command.*", lmp->input->one("kim_init"););
-    TEST_FAILURE(".*ERROR: KIM Model name not found.*",
-                 lmp->input->one("kim_init Unknown_Model real"););
 }
 
 TEST_F(KimCommandsTest, kim_interactions_ar)

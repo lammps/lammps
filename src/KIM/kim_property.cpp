@@ -90,15 +90,15 @@ void kimProperty::command(int narg, char **arg)
 #if LMP_PYTHON
 #if PY_MAJOR_VERSION >= 3
   if (narg < 2)
-    error->all(FLERR, "Invalid `kim_property` command.");
+    error->all(FLERR, "Invalid kim_property command.");
 
   if (!(strcmp(arg[0], "create") == 0) &&
       !(strcmp(arg[0], "destroy") == 0) &&
       !(strcmp(arg[0], "modify") == 0) &&
       !(strcmp(arg[0], "remove") == 0) &&
       !(strcmp(arg[0], "dump") == 0)) {
-    std::string msg("Incorrect arguments in `kim_property` command.\n");
-    msg += "`kim_property create/destroy/modify/remove/dump` ";
+    std::string msg("Incorrect arguments in kim_property command.\n");
+    msg += "'kim_property create/destroy/modify/remove/dump' ";
     msg += "is mandatory.";
     error->all(FLERR, msg);
   }
@@ -122,15 +122,15 @@ void kimProperty::command(int narg, char **arg)
     PyObject *obj = PyUnicode_FromString("kim_property");
     if (!obj) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Creating a `PyObject`!");
+      error->all(FLERR, "Creating a 'PyObject'!");
     }
 
     kim_property = PyImport_Import(obj);
     if (!kim_property) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Unable to import Python `kim_property` module!"
+      error->all(FLERR, "Unable to import Python kim_property module!"
                         "\nkim-property Python package can be installed "
-                        "with pip:\n`pip install kim-property`\n"
+                        "with pip:\n'pip install kim-property'\n"
                         "See the installation instructions at\n"
                         "https://github.com/openkim/kim-property#installing-kim-property\n"
                         "for detailed information.");
@@ -144,7 +144,7 @@ void kimProperty::command(int narg, char **arg)
   if (strcmp(arg[0], "create") == 0) {
     if (narg != 3) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Invalid `kim_property create` command.");
+      error->all(FLERR, "Invalid 'kim_property create' command.");
     }
 
     int const ID = utils::inumeric(FLERR, arg[1], true, lmp);
@@ -159,7 +159,7 @@ void kimProperty::command(int narg, char **arg)
     if (!pFunc) {
       PyGILState_Release(gstate);
       error->all(FLERR, "Unable to get an attribute named "
-                        "`kim_property_create` from a kim_property object!");
+                        "'kim_property_create' from a kim_property object!");
     }
 
     // Decrementing of the reference count
@@ -192,7 +192,7 @@ void kimProperty::command(int narg, char **arg)
     if (!pValue) {
       PyErr_Print();
       PyGILState_Release(gstate);
-      error->one(FLERR, "Python `kim_property_create` function "
+      error->one(FLERR, "Python 'kim_property_create' function "
                         "evaluation failed!");
     }
 
@@ -208,7 +208,7 @@ void kimProperty::command(int narg, char **arg)
   } else if (strcmp(arg[0], "destroy") == 0) {
     if (narg != 2) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Invalid `kim_property destroy` command.");
+      error->all(FLERR, "Invalid 'kim_property destroy' command.");
     }
 
     if (!kim_str) {
@@ -225,7 +225,7 @@ void kimProperty::command(int narg, char **arg)
     if (!pFunc) {
       PyGILState_Release(gstate);
       error->all(FLERR, "Unable to get an attribute named "
-                        "`kim_property_destroy` from a kim_property object!");
+                        "'kim_property_destroy' from a kim_property object!");
     }
 
     // Decrementing of the reference count
@@ -251,7 +251,7 @@ void kimProperty::command(int narg, char **arg)
     if (!pValue) {
       PyErr_Print();
       PyGILState_Release(gstate);
-      error->one(FLERR, "Python `kim_property_destroy` function "
+      error->one(FLERR, "Python 'kim_property_destroy' function "
                         "evaluation failed!");
     }
 
@@ -265,7 +265,7 @@ void kimProperty::command(int narg, char **arg)
   } else if (strcmp(arg[0], "modify") == 0) {
     if (narg < 6) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Invalid `kim_property modify` command.");
+      error->all(FLERR, "Invalid 'kim_property modify' command.");
     }
 
     if (!kim_str) {
@@ -284,7 +284,7 @@ void kimProperty::command(int narg, char **arg)
     if (!pFunc) {
       PyGILState_Release(gstate);
       error->all(FLERR, "Unable to get an attribute named "
-                        "`kim_property_modify` from a kim_property object!");
+                        "'kim_property_modify' from a kim_property object!");
     }
 
     // Decrementing of the reference count
@@ -315,7 +315,7 @@ void kimProperty::command(int narg, char **arg)
     if (!pValue) {
       PyErr_Print();
       PyGILState_Release(gstate);
-      error->one(FLERR, "Python `kim_property_modify` function "
+      error->one(FLERR, "Python 'kim_property_modify' function "
                         "evaluation failed!");
     }
 
@@ -329,7 +329,7 @@ void kimProperty::command(int narg, char **arg)
   } else if (strcmp(arg[0], "remove") == 0) {
     if (narg < 4) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Invalid `kim_property remove` command.");
+      error->all(FLERR, "Invalid 'kim_property remove' command.");
     }
 
     if (!kim_str) {
@@ -348,7 +348,7 @@ void kimProperty::command(int narg, char **arg)
     if (!pFunc) {
       PyGILState_Release(gstate);
       error->all(FLERR, "Unable to get an attribute named "
-                        "`kim_property_remove` from a kim_property object!");
+                        "'kim_property_remove' from a kim_property object!");
     }
 
     // Decrementing of the reference count
@@ -379,7 +379,7 @@ void kimProperty::command(int narg, char **arg)
     if (!pValue) {
       PyErr_Print();
       PyGILState_Release(gstate);
-      error->one(FLERR, "Python `kim_property_remove` function "
+      error->one(FLERR, "Python 'kim_property_remove' function "
                         "evaluation failed!");
     }
 
@@ -393,7 +393,7 @@ void kimProperty::command(int narg, char **arg)
   } else if (strcmp(arg[0], "dump") == 0) {
     if (narg != 2) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Invalid `kim_property dump` command.");
+      error->all(FLERR, "Invalid 'kim_property dump' command.");
     }
 
     if (!kim_str) {
@@ -410,7 +410,7 @@ void kimProperty::command(int narg, char **arg)
     if (!pFunc) {
       PyGILState_Release(gstate);
       error->all(FLERR, "Unable to get an attribute named "
-                        "`kim_property_dump` from a kim_property object!");
+                        "'kim_property_dump' from a kim_property object!");
     }
 
     // Decrementing of the reference count
@@ -437,7 +437,7 @@ void kimProperty::command(int narg, char **arg)
       if (!pValue) {
         PyErr_Print();
         PyGILState_Release(gstate);
-        error->one(FLERR, "Python `kim_property_dump` function "
+        error->one(FLERR, "Python 'kim_property_dump' function "
                           "evaluation failed!");
       }
     } else

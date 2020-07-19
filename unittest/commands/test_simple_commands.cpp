@@ -297,7 +297,7 @@ TEST_F(SimpleCommandsTest, Units)
     ASSERT_EQ(num, sizeof(dt) / sizeof(double));
 
     ASSERT_THAT(lmp->update->unit_style, StrEq("lj"));
-    for (int i = 0; i < num; ++i) {
+    for (std::size_t i = 0; i < num; ++i) {
         if (!verbose) ::testing::internal::CaptureStdout();
         lmp->input->one(fmt::format("units {}", names[i]));
         if (!verbose) ::testing::internal::GetCapturedStdout();

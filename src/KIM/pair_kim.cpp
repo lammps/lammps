@@ -293,8 +293,8 @@ void PairKIM::settings(int narg, char **arg)
   if (narg != 1) {
     if ((narg > 0) && ((0 == strcmp("KIMvirial", arg[0])) ||
                        (0 == strcmp("LAMMPSvirial", arg[0])))) {
-      error->all(FLERR,"'KIMvirial' or 'LAMMPSvirial' not supported with "
-                 "kim-api.");
+      error->all(FLERR,"'KIMvirial' or 'LAMMPSvirial' not "
+                       "supported with kim-api");
     } else error->all(FLERR,"Illegal pair_style command");
   }
   // arg[0] is the KIM Model name
@@ -424,7 +424,7 @@ void PairKIM::coeff(int narg, char **arg)
 
     if (!numberOfParameters) {
       std::string msg("Incorrect args for pair coefficients \n");
-      msg += "This model has No mutable parameters.";
+      msg += "This model has No mutable parameters";
       error->all(FLERR, msg);
     }
 
@@ -460,7 +460,7 @@ void PairKIM::coeff(int narg, char **arg)
         std::string msg("Wrong argument for pair coefficients.\n");
         msg += "This Model does not have the requested '";
         msg += paramname;
-        msg += "' parameter.";
+        msg += "' parameter";
         error->all(FLERR, msg);
       }
 
@@ -476,7 +476,7 @@ void PairKIM::coeff(int narg, char **arg)
           std::string msg("Illegal index_range.\n");
           msg += "Expected integer parameter(s) instead of '";
           msg += argtostr;
-          msg += "' in index_range.";
+          msg += "' in index_range";
           error->all(FLERR, msg);
         }
 
@@ -488,12 +488,12 @@ void PairKIM::coeff(int narg, char **arg)
           if (nubound < 1 || nubound > extent ||
               nlbound < 1 || nlbound > nubound) {
             std::string msg("Illegal index_range '");
-            msg += std::to_string(nlbound) + "-" + std::to_string(nubound);
-            msg += "' for '";
+            msg += std::to_string(nlbound) + "-" ;
+            msg += std::to_string(nubound) + "' for '";
             msg += paramname;
-            msg += "' parameter with extent of '";
+            msg += "' parameter with the extent of '";
             msg += std::to_string(extent);
-            msg += "' .";
+            msg += "'";
             error->all(FLERR, msg);
           }
         } else {
@@ -503,17 +503,17 @@ void PairKIM::coeff(int narg, char **arg)
             std::string msg("Illegal index '");
             msg += std::to_string(nlbound) + "' for '";
             msg += paramname;
-            msg += "' parameter with extent of '";
+            msg += "' parameter with the extent of '";
             msg += std::to_string(extent);
-            msg += "' .";
+            msg += "'";
             error->all(FLERR, msg);
           }
           nubound = nlbound;
         }
       } else {
         std::string msg =
-        "Wrong number of arguments for pair coefficients.\n";
-        msg += "Index range after parameter name is mandatory.";
+          "Wrong number of arguments for pair coefficients.\n";
+        msg += "Index range after parameter name is mandatory";
         error->all(FLERR, msg);
       }
 
@@ -525,7 +525,7 @@ void PairKIM::coeff(int narg, char **arg)
             kimerror = KIM_Model_SetParameterDouble(pkim, param_index,
                        nlbound - 1 + j, V);
             if (kimerror)
-              error->all(FLERR, "KIM SetParameterDouble returned error.");
+              error->all(FLERR, "KIM SetParameterDouble returned error");
           }
         } else if (KIM_DataType_Equal(kim_DataType, KIM_DATA_TYPE_Integer)) {
           for (int j = 0; j < nubound - nlbound + 1; ++j) {
@@ -533,13 +533,13 @@ void PairKIM::coeff(int narg, char **arg)
             kimerror = KIM_Model_SetParameterInteger(pkim, param_index,
                        nlbound - 1 + j, V);
             if (kimerror)
-              error->all(FLERR, "KIM SetParameterInteger returned error.");
+              error->all(FLERR, "KIM SetParameterInteger returned error");
           }
         } else
           error->all(FLERR, "Wrong parameter type to update");
       } else {
         std::string msg =
-        "Wrong number of variable values for pair coefficients.\n";
+          "Wrong number of variable values for pair coefficients.\n";
         msg += "'";
         msg += std::to_string(nubound - nlbound + 1);
         msg += "' values are requested for '";
@@ -846,7 +846,7 @@ void PairKIM::kim_init()
   kimerror = check_for_routine_compatibility();
   if (kimerror)
     error->all(FLERR,
-               "KIM Model requires unknown Routines.  Unable to proceed.");
+               "KIM Model requires unknown Routines.  Unable to proceed");
 
   kimerror = KIM_Model_ComputeArgumentsCreate(pkim, &pargs);
   if (kimerror) {

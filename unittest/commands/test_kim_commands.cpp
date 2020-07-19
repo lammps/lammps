@@ -101,11 +101,78 @@ TEST_F(KimCommandsTest, kim_init)
     ASSERT_GE(ifix, 0);
 }
 
-TEST_F(KimCommandsTest, kim_interactions_ar)
+TEST_F(KimCommandsTest, kim_interactions)
 {
     if (!LAMMPS::is_installed_pkg("KIM")) GTEST_SKIP();
 
+    TEST_FAILURE(".*ERROR: Illegal kim_interactions command.*",
+                 lmp->input->one("kim_interactions"););
+
     ::testing::internal::CaptureStdout();
+    lmp->input->one("kim_init LennardJones_Ar real");
+    ::testing::internal::GetCapturedStdout();
+
+    TEST_FAILURE(".*ERROR: Must use 'kim_interactions' command "
+                 "after simulation box is defined.*",
+                 lmp->input->one("kim_interactions Ar"););
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("kim_init LennardJones_Ar real");
+    lmp->input->one("lattice fcc 4.4300");
+    lmp->input->one("region box block 0 10 0 10 0 10");
+    lmp->input->one("create_box 1 box");
+    lmp->input->one("create_atoms 1 box");
+    ::testing::internal::GetCapturedStdout();
+
+    TEST_FAILURE(".*ERROR: Illegal kim_interactions command.*",
+                 lmp->input->one("kim_interactions Ar Ar"););
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("lattice fcc 4.4300");
+    lmp->input->one("region box block 0 10 0 10 0 10");
+    lmp->input->one("create_box 1 box");
+    lmp->input->one("create_atoms 1 box");
+    ::testing::internal::GetCapturedStdout();
+
+    TEST_FAILURE(".*ERROR: Must use 'kim_init' before 'kim_interactions'.*",
+                 lmp->input->one("kim_interactions Ar"););
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("kim_init LennardJones_Ar real");
+    lmp->input->one("lattice fcc 4.4300");
+    lmp->input->one("region box block 0 10 0 10 0 10");
+    lmp->input->one("create_box 1 box");
+    lmp->input->one("create_atoms 1 box");
+    ::testing::internal::GetCapturedStdout();
+
+    TEST_FAILURE(".*ERROR: fixed_types cannot be used with a KIM Portable Model.*",
+                 lmp->input->one("kim_interactions fixed_types"););
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("units real");
+    lmp->input->one("pair_style kim LennardJones_Ar");
+    lmp->input->one("region box block 0 1 0 1 0 1");
+    lmp->input->one("create_box 4 box");
+    lmp->input->one("pair_coeff * * Ar Ar Ar Ar");
+    ::testing::internal::GetCapturedStdout();
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("kim_init Sim_LAMMPS_LJcut_AkersonElliott_Alchemy_PbAu metal");
+    lmp->input->one("lattice fcc 4.920");
+    lmp->input->one("region box block 0 10 0 10 0 10");
+    lmp->input->one("create_box 1 box");
+    lmp->input->one("create_atoms 1 box");
+    ::testing::internal::GetCapturedStdout();
+
+    TEST_FAILURE(".*ERROR: Species 'Ar' is not supported by this KIM Simulator Model.*",
+                 lmp->input->one("kim_interactions Ar"););
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
     lmp->input->one("kim_init LennardJones_Ar real");
     lmp->input->one("lattice fcc 4.4300");
     lmp->input->one("region box block 0 10 0 10 0 10");

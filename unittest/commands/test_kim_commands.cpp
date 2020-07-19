@@ -18,6 +18,7 @@
 #include "modify.h"
 #include "utils.h"
 #include "lmppython.h"
+#include "variable.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -241,6 +242,13 @@ TEST_F(KimCommandsTest, kim_param)
                  lmp->input->one("kim_param set shift 1 2"););
 
     ::testing::internal::CaptureStdout();
+    lmp->input->one("kim_param get shift 1 shift");
+    ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FALSE(lmp->input->variable->find("shift") == -1);
+    ASSERT_TRUE(std::string(lmp->input->variable->retrieve("shift")) == std::string("1"));
+
+    ::testing::internal::CaptureStdout();
     lmp->input->one("clear");
     lmp->input->one("kim_init LennardJones612_UniversalShifted__MO_959249795837_003 real");
     lmp->input->one("lattice fcc 4.4300");
@@ -265,6 +273,14 @@ TEST_F(KimCommandsTest, kim_param)
     TEST_FAILURE(".*ERROR: Wrong argument for pair coefficients.\nThis "
                  "Model does not have the requested '0.4989030' parameter.*",
                  lmp->input->one("kim_param set sigmas 1:1 0.5523570 0.4989030"););
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("variable new_shift equal 2");
+    lmp->input->one("kim_param set shift 1 ${new_shift}");
+    lmp->input->one("kim_param get shift 1 shift");
+    ::testing::internal::GetCapturedStdout();
+
+    ASSERT_TRUE(std::string(lmp->input->variable->retrieve("shift")) == std::string("2"));
 }
 
 TEST_F(KimCommandsTest, kim_property)

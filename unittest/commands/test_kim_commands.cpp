@@ -17,6 +17,7 @@
 #include "lammps.h"
 #include "modify.h"
 #include "utils.h"
+#include "lmppython.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -265,6 +266,29 @@ TEST_F(KimCommandsTest, kim_param)
                  "Model does not have the requested '0.4989030' parameter.*",
                  lmp->input->one("kim_param set sigmas 1:1 0.5523570 0.4989030"););
 }
+
+TEST_F(KimCommandsTest, kim_property)
+{
+    if (!LAMMPS::is_installed_pkg("KIM")) GTEST_SKIP();
+    if (!LAMMPS::is_installed_pkg("PYTHON")) GTEST_SKIP();
+
+    if (!lmp->python->has_minimum_version(3, 6)) {
+        TEST_FAILURE(".*ERROR: Invalid Python version.\n"
+                     "The kim-property Python package requires Python "
+                     "3 >= 3.6 support.*",
+                     lmp->input->one("kim_property"););
+    } else {
+        TEST_FAILURE(".*ERROR: Invalid kim_property command.*",
+                     lmp->input->one("kim_property"););
+        TEST_FAILURE(".*ERROR: Invalid kim_property command.*",
+                     lmp->input->one("kim_property create"););
+        TEST_FAILURE(".*ERROR: Incorrect arguments in kim_property command.\n"
+                     "'kim_property create/destroy/modify/remove/dump' "
+                     "is mandatory.*",
+                     lmp->input->one("kim_property unknown 1 atomic-mass"););
+    }
+}
+
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

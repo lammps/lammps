@@ -2517,9 +2517,6 @@ update molecule IDs, charges, types, special lists and all topology
 
 void FixBondReact::update_everything()
 {
-  if (reset_mol_ids_flag)
-    input->one("reset_mol_ids " + std::string(group->names[igroup]) + " verbose no");
-
   int *type = atom->type;
 
   int nlocal = atom->nlocal;
@@ -3053,6 +3050,10 @@ void FixBondReact::update_everything()
 
   atom->natoms -= ndel;
   // done deleting atoms
+
+  // reset mol ids
+  if (reset_mol_ids_flag)
+    input->one("reset_mol_ids " + std::string(group->names[igroup]) + " verbose no");
 
   // something to think about: this could done much more concisely if
   // all atom-level info (bond,angles, etc...) were kinda inherited from a common data struct --JG

@@ -154,7 +154,7 @@ void KimParam::command(int narg, char **arg)
 
   if ((kim_param_get_set != "get") && (kim_param_get_set != "set")) {
     std::string msg("Incorrect arguments in kim_param command.\n");
-    msg += "'kim_param get/set' is mandatory.";
+    msg += "'kim_param get/set' is mandatory";
     error->all(FLERR, msg);
   }
 
@@ -201,16 +201,16 @@ void KimParam::command(int narg, char **arg)
 
       pkim = pairKIM->get_KIM_Model();
       if (!pkim)
-        error->all(FLERR, "Unable to get the KIM Portable Model.");
+        error->all(FLERR, "Unable to get the KIM Portable Model");
 
       if (kim_param_get_set == "set") {
         atom_type_list = pairKIM->get_atom_type_list();
         if (atom_type_list.empty())
-          error->all(FLERR, "The requested atom type list is empty.");
+          error->all(FLERR, "The requested atom type list is empty");
       }
     } else
       error->all(FLERR, "Pair style is defined, but there is "
-                        "no match for kim style in lammps.");
+                        "no match for kim style in lammps");
   } else {
     if (kim_param_get_set == "set") {
       std::string msg("Wrong 'kim_param set' command.\n");
@@ -241,7 +241,7 @@ void KimParam::command(int narg, char **arg)
                                    &units_accepted,
                                    &pkim);
       if (kim_error)
-        error->all(FLERR, "Unable to create KIM Portable Model.");
+        error->all(FLERR, "Unable to create KIM Portable Model");
     }
   }
 
@@ -277,7 +277,7 @@ void KimParam::command(int narg, char **arg)
                                                      &kim_DataType, &extent,
                                                      &str_name, &str_desc);
           if (kim_error)
-            error->all(FLERR, "KIM GetParameterMetadata returned error.");
+            error->all(FLERR, "KIM GetParameterMetadata returned error");
 
           if (strcmp(paramname, str_name) == 0)
             break;
@@ -287,7 +287,7 @@ void KimParam::command(int narg, char **arg)
           std::string msg("Wrong argument in kim_param get command.\n");
           msg += "This Model does not have the requested '";
           msg += paramname;
-          msg += "' parameter.";
+          msg += "' parameter";
           error->all(FLERR, msg);
         }
 
@@ -304,7 +304,7 @@ void KimParam::command(int narg, char **arg)
             std::string msg("Illegal index_range.\n");
             msg += "Expected integer parameter(s) instead of '";
             msg += argtostr;
-            msg += "' in index_range.";
+            msg += "' in index_range";
             error->all(FLERR, msg);
           }
 
@@ -322,7 +322,7 @@ void KimParam::command(int narg, char **arg)
               msg += paramname;
               msg += "' parameter with the extent of '";
               msg += std::to_string(extent);
-              msg += "'.";
+              msg += "'";
               error->all(FLERR, msg);
             }
           } else {
@@ -334,7 +334,7 @@ void KimParam::command(int narg, char **arg)
               msg += paramname;
               msg += "' parameter with the extent of '";
               msg += std::to_string(extent);
-              msg += "'.";
+              msg += "'";
               error->all(FLERR, msg);
             }
             nubound = nlbound;
@@ -342,7 +342,7 @@ void KimParam::command(int narg, char **arg)
         } else {
           std::string msg("Wrong number of arguments in ");
           msg += "'kim_param get' command.\n";
-          msg += "Index range after parameter name is mandatory.";
+          msg += "Index range after parameter name is mandatory";
           error->all(FLERR, msg);
         }
 
@@ -355,7 +355,7 @@ void KimParam::command(int narg, char **arg)
         } else {
           std::string msg("Wrong number of arguments in ");
           msg += "'kim_param get' command.\n";
-          msg += "The LAMMPS variable name is mandatory.";
+          msg += "The LAMMPS variable name is mandatory";
           error->all(FLERR, msg);
         }
 
@@ -387,22 +387,20 @@ void KimParam::command(int narg, char **arg)
               }
             } else {
               std::string msg("Wrong number of arguments in ");
-              msg += "'kim_param get' command.\n";
-              msg += "The LAMMPS '";
+              msg += "'kim_param get' command.\nThe LAMMPS '";
               msg += std::to_string(nvars);
               msg += "' variable names or '";
               msg += varname;
-              msg += " split' is mandatory.";
+              msg += " split' is mandatory";
               error->all(FLERR, msg);
             }
           } else {
             std::string msg("Wrong number of arguments in ");
-            msg += "'kim_param get' command.\n";
-            msg += "The LAMMPS '";
+            msg += "'kim_param get' command.\nThe LAMMPS '";
             msg += std::to_string(nvars);
             msg += "' variable names or '";
             msg += varname;
-            msg += " split/list' is mandatory.";
+            msg += " split/list' is mandatory";
             error->all(FLERR, msg);
           }
         } else {
@@ -435,14 +433,14 @@ void KimParam::command(int narg, char **arg)
               kim_error = KIM_Model_GetParameterDouble(pkim, param_index,
                                                        nlbound - 1, &V);
               if (kim_error)
-                error->all(FLERR, "KIM GetParameterDouble returned error.");
+                error->all(FLERR, "KIM GetParameterDouble returned error");
               str << V;
             }
             for (int j = 1; j < nvars; ++j) {
               kim_error = KIM_Model_GetParameterDouble(pkim, param_index,
                                                        nlbound - 1 + j, &V);
               if (kim_error)
-                error->all(FLERR, "KIM GetParameterDouble returned error.");
+                error->all(FLERR, "KIM GetParameterDouble returned error");
               str << " " << V;
             }
             varcmd[0] = varsname[0];
@@ -456,7 +454,7 @@ void KimParam::command(int narg, char **arg)
               kim_error = KIM_Model_GetParameterDouble(pkim, param_index,
                                                        nlbound - 1 + j, &V);
               if (kim_error)
-                error->all(FLERR, "KIM GetParameterDouble returned error.");
+                error->all(FLERR, "KIM GetParameterDouble returned error");
               std::stringstream str;
               str << V;
               varcmd[2] = const_cast<char *>(str.str().c_str());
@@ -472,14 +470,14 @@ void KimParam::command(int narg, char **arg)
               kim_error = KIM_Model_GetParameterInteger(pkim, param_index,
                                                         nlbound - 1, &V);
               if (kim_error)
-                error->all(FLERR, "KIM GetParameterInteger returned error.");
+                error->all(FLERR, "KIM GetParameterInteger returned error");
               str << V;
             }
             for (int j = 1; j < nvars; ++j) {
               kim_error = KIM_Model_GetParameterInteger(pkim, param_index,
                                                         nlbound - 1 + j, &V);
               if (kim_error)
-                error->all(FLERR, "KIM GetParameterInteger returned error.");
+                error->all(FLERR, "KIM GetParameterInteger returned error");
               str << " " << V;
             }
             varcmd[0] = varsname[0];
@@ -493,7 +491,7 @@ void KimParam::command(int narg, char **arg)
               kim_error = KIM_Model_GetParameterInteger(pkim, param_index,
                                                         nlbound - 1 + j, &V);
               if (kim_error)
-                error->all(FLERR, "KIM GetParameterInteger returned error.");
+                error->all(FLERR, "KIM GetParameterInteger returned error");
               std::stringstream str;
               str << V;
               varcmd[2] = const_cast<char *>(str.str().c_str());
@@ -502,7 +500,7 @@ void KimParam::command(int narg, char **arg)
             }
           }
         } else
-          error->all(FLERR, "Wrong parameter type.");
+          error->all(FLERR, "Wrong parameter type");
 
         delete[] varcmd;
         delete[] varsname;
@@ -518,7 +516,7 @@ void KimParam::command(int narg, char **arg)
       input->one(set_cmd);
     }
   } else
-    error->all(FLERR, "This model has No mutable parameters.");
+    error->all(FLERR, "This model has No mutable parameters");
 
   if (!isPairStyleAssigned)
     KIM_Model_Destroy(&pkim);

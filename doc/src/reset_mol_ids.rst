@@ -97,8 +97,10 @@ is not *all* there may be collisions with the molecule IDs of other atoms.
    within LAMMPS.
 
 The *verbose* keyword determines if this command outputs run-time
-information to the screen and log file, including the number of new
-molecule IDs and CPU time used by the command.
+information to the screen and log file. If the setting is *yes*
+(the default), the command prints out information including the number
+of new molecule IDs and CPU time used by the command. If the setting
+is *no*, no information is printed.
 
 Restrictions
 """"""""""""

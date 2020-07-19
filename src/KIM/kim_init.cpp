@@ -376,40 +376,23 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
 
       mesg += std::to_string(numberOfParameters) + " mutable parameters. \n";
 
-      // TODO: aligned output is easy to do with fmtlib
-      // https://fmt.dev/latest/syntax.html
       int max_len(0);
       for (int i = 0; i < numberOfParameters; ++i) {
         KIM_Model_GetParameterMetadata(pkim, i, &kim_DataType,
         &extent, &str_name, &str_desc);
-        max_len = MAX(max_len, strlen(str_name));
+        max_len = MAX(max_len, (int)strlen(str_name));
       }
-      ++max_len;
-      mesg += "No.     |  Parameter name  ";
-      for (int i = 18; i < max_len; ++i)
-        mesg += " ";
-      mesg += "|  data type  |  extent\n";
-      for (int i = 0; i < 8 + MAX(18, max_len); ++i)
-        mesg += "-";
-      mesg += "-----------------------\n";
+      max_len = MAX(18,max_len+1);
+      mesg += fmt::format(" No.      | {:<{}} | data type  | extent\n",
+                          "Parameter name", max_len);
+      mesg += fmt::format("{:-<{}}\n","-",max_len+35);
       for (int i = 0; i < numberOfParameters; ++i) {
         KIM_Model_GetParameterMetadata(pkim, i, &kim_DataType,
         &extent, &str_name, &str_desc);
-        mesg += std::to_string(i+1);
-        for (int j = std::to_string(i+1).size(); j < 8; ++j)
-          mesg += " ";
-        mesg += "| ";
-        mesg += str_name;
-        for (int j = strlen(str_name) + 1; j < MAX(18, strlen(str_name) + 1); ++j)
-          mesg += " ";
-        mesg += "|  \"";
-        mesg += KIM_DataType_ToString(kim_DataType);
-        if (KIM_DataType_Equal(kim_DataType, KIM_DATA_TYPE_Integer))
-          mesg += "\"  | ";
-        else
-          mesg += "\"   | ";
-        mesg += std::to_string(extent);
-        mesg += "\n";
+        auto data_type = std::string("\"");
+        data_type += KIM_DataType_ToString(kim_DataType) + std::string("\"");
+        mesg += fmt::format(" {:<8} | {:<{}} | {:<10} | {}\n",i+1,str_name,
+                            max_len,data_type,extent);
       }
     } else mesg += "No mutable parameters. \n";
 

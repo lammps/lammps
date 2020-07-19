@@ -500,7 +500,7 @@ TEST(ResetMolIds, CMDFail)
     lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    TEST_FAILURE(".*ERROR: Reset_mol_ids command before box is.*",
+    TEST_FAILURE(".*ERROR: Reset_mol_ids command before simulation box is.*",
                  lmp->input->one("reset_mol_ids all"););
 
     if (!verbose) ::testing::internal::CaptureStdout();

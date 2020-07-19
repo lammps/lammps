@@ -190,6 +190,8 @@
 /fix_cac_momentum.h
 /fix_cac_nve.cpp
 /fix_cac_nve.h
+/fix_cac_oneway.cpp
+/fix_cac_oneway.h
 /fix_cac_setforce.cpp
 /fix_cac_setforce.h
 /fix_cac_setvelocity.cpp
@@ -198,6 +200,8 @@
 /fix_cac_temp_rescale.h
 /fix_cac_viscous.cpp
 /fix_cac_viscous.h
+/fix_cac_wall_reflect.cpp
+/fix_cac_wall_reflect.h
 /min_cac_cg.cpp
 /min_cac_cg.h
 /min_cac_fire.cpp

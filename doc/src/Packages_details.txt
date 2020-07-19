@@ -1139,6 +1139,8 @@ src/USER-CAC: filenames -> commands
 "fix cac/setforce"_fix_cac_setforce.html
 "fix cac/addforce"_fix_cac_addforce.html
 "fix cac/temp/rescale"_fix_cac_temp_rescale.html
+"fix cac/oneway"_fix_cac_oneway.html
+"fix cac/wall/reflect"_fix_cac_wall_reflect.html
 "compute cac/quad/count"_compute_cac_quad_count.html
 "compute cac/nodal/temp"_compute_cac_nodal_temp.html
 "compute cac/ke"_compute_cac_ke.html

@@ -262,13 +262,15 @@ fix_bond_create.html
 fix_bond_react.html
 fix_bond_swap.html
 fix_box_relax.html
+fix_cac_addforce.html
 fix_cac_momentum.html
 fix_cac_nve.html
-fix_cac_viscous.html
+fix_cac_oneway.html
 fix_cac_setvelocity.html
 fix_cac_setforce.html
-fix_cac_addforce.html
 fix_cac_temp_rescale.html
+fix_cac_viscous.html
+fix_cac_wall_reflect.html
 fix_client_md.html
 fix_cmap.html
 fix_colvars.html

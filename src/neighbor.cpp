@@ -2078,6 +2078,7 @@ void Neighbor::build(int topoflag)
   //   leading to errors or even a crash
 
   if (style != Neighbor::NSQ) {
+    if (last_setup_bins < 0) setup_bins();
     for (int i = 0; i < nbin; i++) {
       neigh_bin[i]->bin_atoms_setup(nall);
       neigh_bin[i]->bin_atoms();

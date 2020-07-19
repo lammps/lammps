@@ -186,6 +186,85 @@ TEST_F(KimCommandsTest, kim_interactions)
     ASSERT_GE(ifix, 0);
 }
 
+TEST_F(KimCommandsTest, kim_param)
+{
+    if (!LAMMPS::is_installed_pkg("KIM")) GTEST_SKIP();
+
+    TEST_FAILURE(".*ERROR: Illegal kim_param command.*",
+                 lmp->input->one("kim_param"););
+    TEST_FAILURE(".*ERROR: Incorrect arguments in kim_param command.\n"
+                 "'kim_param get/set' is mandatory.*",
+                 lmp->input->one("kim_param unknown shift 1 shift"););
+    TEST_FAILURE(".*ERROR: Must use 'kim_init' before 'kim_param'.*",
+                 lmp->input->one("kim_param get shift 1 shift"););
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("kim_init Sim_LAMMPS_LJcut_AkersonElliott_Alchemy_PbAu metal");
+    ::testing::internal::GetCapturedStdout();
+
+    TEST_FAILURE(".*ERROR: kim_param can only be used with a KIM Portable Model.*",
+                 lmp->input->one("kim_param get shift 1 shift"););
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("kim_init LennardJones612_UniversalShifted__MO_959249795837_003 real");
+    ::testing::internal::GetCapturedStdout();
+
+    TEST_FAILURE(".*ERROR: Illegal index '0' for "
+                 "'shift' parameter with the extent of '1'.*",
+                 lmp->input->one("kim_param get shift 0 shift"););
+    TEST_FAILURE(".*ERROR: Illegal index '2' for "
+                 "'shift' parameter with the extent of '1'.*",
+                 lmp->input->one("kim_param get shift 2 shift"););
+    TEST_FAILURE(".*ERROR: Illegal index_range.\nExpected integer "
+                 "parameter\\(s\\) instead of '1.' in index_range.*",
+                 lmp->input->one("kim_param get shift 1. shift"););
+    TEST_FAILURE(".*ERROR: Illegal index_range '1-2' for 'shift' "
+                "parameter with the extent of '1'.*",
+                 lmp->input->one("kim_param get shift 1:2 shift"););
+    TEST_FAILURE(".*ERROR: Illegal index_range.\nExpected integer "
+                 "parameter\\(s\\) instead of '1-2' in index_range.*",
+                 lmp->input->one("kim_param get shift 1-2 shift"););
+    TEST_FAILURE(".*ERROR: Wrong number of arguments in 'kim_param "
+                 "get' command.\nThe LAMMPS '3' variable names or "
+                 "'s1 split' is mandatory.*",
+                 lmp->input->one("kim_param get sigmas 1:3 s1 s2"););
+    TEST_FAILURE(".*ERROR: Wrong argument in kim_param get command.\nThis "
+                 "Model does not have the requested 'unknown' parameter.*",
+                 lmp->input->one("kim_param get unknown 1 unknown"););
+    TEST_FAILURE(".*ERROR: Wrong 'kim_param set' command.\n"
+                 "To set the new parameter values, pair style must "
+                 "be assigned.\nMust use 'kim_interactions' or"
+                 "'pair_style kim' before 'kim_param set'.*",
+                 lmp->input->one("kim_param set shift 1 2"););
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("kim_init LennardJones612_UniversalShifted__MO_959249795837_003 real");
+    lmp->input->one("lattice fcc 4.4300");
+    lmp->input->one("region box block 0 10 0 10 0 10");
+    lmp->input->one("create_box 1 box");
+    lmp->input->one("create_atoms 1 box");
+    lmp->input->one("kim_interactions Ar");
+    lmp->input->one("mass 1 39.95");
+    ::testing::internal::GetCapturedStdout();
+
+    TEST_FAILURE(".*ERROR: Illegal index '2' for "
+                 "'shift' parameter with the extent of '1'.*",
+                 lmp->input->one("kim_param set shift 2 2"););
+    TEST_FAILURE(".*ERROR: Illegal index_range.\nExpected integer "
+                 "parameter\\(s\\) instead of '1.' in index_range.*",
+                 lmp->input->one("kim_param set shift 1. shift"););
+    TEST_FAILURE(".*ERROR: Illegal index_range '1-2' for "
+                 "'shift' parameter with the extent of '1'.*",
+                 lmp->input->one("kim_param set shift 1:2 2"););
+    TEST_FAILURE(".*ERROR: Wrong number of variable values for pair coefficients.*",
+                 lmp->input->one("kim_param set sigmas 1:3 0.5523570 0.4989030"););
+    TEST_FAILURE(".*ERROR: Wrong argument for pair coefficients.\nThis "
+                 "Model does not have the requested '0.4989030' parameter.*",
+                 lmp->input->one("kim_param set sigmas 1:1 0.5523570 0.4989030"););
+}
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

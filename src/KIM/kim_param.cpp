@@ -209,14 +209,14 @@ void KimParam::command(int narg, char **arg)
           error->all(FLERR, "The requested atom type list is empty.");
       }
     } else
-      error->all(FLERR, "Pair style is defined,"
-                        " but there is no match for kim style in lammps.");
+      error->all(FLERR, "Pair style is defined, but there is "
+                        "no match for kim style in lammps.");
   } else {
     if (kim_param_get_set == "set") {
-      std::string msg("Wrong kim_param set command.\n");
-      msg += "To set the new parameter values, pair style must be assigned.\n";
-      msg += "Must use 'kim_interactions' or";
-      msg += "'pair_style kim ' before 'kim_param set'";
+      std::string msg("Wrong 'kim_param set' command.\n");
+      msg += "To set the new parameter values, pair style must ";
+      msg += "be assigned.\nMust use 'kim_interactions' or";
+      msg += "'pair_style kim' before 'kim_param set'";
       error->all(FLERR, msg);
     } else {
       KIM_LengthUnit lengthUnit;
@@ -316,12 +316,13 @@ void KimParam::command(int narg, char **arg)
             if (nubound < 1 || nubound > extent ||
                 nlbound < 1 || nlbound > nubound) {
               std::string msg("Illegal index_range '");
-              msg += std::to_string(nlbound) + "-" + std::to_string(nubound);
+              msg += std::to_string(nlbound) + "-";
+              msg += std::to_string(nubound);
               msg += "' for '";
               msg += paramname;
-              msg += "' parameter with extent of '";
+              msg += "' parameter with the extent of '";
               msg += std::to_string(extent);
-              msg += "' .";
+              msg += "'.";
               error->all(FLERR, msg);
             }
           } else {
@@ -329,18 +330,18 @@ void KimParam::command(int narg, char **arg)
             str >> nlbound;
             if (nlbound < 1 || nlbound > extent) {
               std::string msg("Illegal index '");
-              msg += std::to_string(nlbound) + "' for parameter '";
+              msg += std::to_string(nlbound) + "' for '";
               msg += paramname;
-              msg += "' with the extent of '";
+              msg += "' parameter with the extent of '";
               msg += std::to_string(extent);
-              msg += "' .";
+              msg += "'.";
               error->all(FLERR, msg);
             }
             nubound = nlbound;
           }
         } else {
           std::string msg("Wrong number of arguments in ");
-          msg += "kim_param get command.\n";
+          msg += "'kim_param get' command.\n";
           msg += "Index range after parameter name is mandatory.";
           error->all(FLERR, msg);
         }
@@ -353,7 +354,7 @@ void KimParam::command(int narg, char **arg)
           varname = arg[i++];
         } else {
           std::string msg("Wrong number of arguments in ");
-          msg += "kim_param get command.\n";
+          msg += "'kim_param get' command.\n";
           msg += "The LAMMPS variable name is mandatory.";
           error->all(FLERR, msg);
         }
@@ -386,7 +387,7 @@ void KimParam::command(int narg, char **arg)
               }
             } else {
               std::string msg("Wrong number of arguments in ");
-              msg += "kim_param get command.\n";
+              msg += "'kim_param get' command.\n";
               msg += "The LAMMPS '";
               msg += std::to_string(nvars);
               msg += "' variable names or '";
@@ -396,7 +397,7 @@ void KimParam::command(int narg, char **arg)
             }
           } else {
             std::string msg("Wrong number of arguments in ");
-            msg += "kim_param get command.\n";
+            msg += "'kim_param get' command.\n";
             msg += "The LAMMPS '";
             msg += std::to_string(nvars);
             msg += "' variable names or '";

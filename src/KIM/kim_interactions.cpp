@@ -102,11 +102,9 @@ void KimInteractions::do_setup(int narg, char **arg)
   bool fixed_types;
   if ((narg == 1) && (0 == strcmp("fixed_types",arg[0]))) {
     fixed_types = true;
-  }
-  else if (narg != atom->ntypes) {
+  } else if (narg != atom->ntypes) {
     error->all(FLERR,"Illegal kim_interactions command");
-  }
-  else {
+  } else {
     fixed_types = false;
   }
 

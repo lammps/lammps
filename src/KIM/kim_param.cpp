@@ -317,8 +317,7 @@ void KimParam::command(int narg, char **arg)
                 nlbound < 1 || nlbound > nubound) {
               std::string msg("Illegal index_range '");
               msg += std::to_string(nlbound) + "-";
-              msg += std::to_string(nubound);
-              msg += "' for '";
+              msg += std::to_string(nubound) + "' for '";
               msg += paramname;
               msg += "' parameter with the extent of '";
               msg += std::to_string(extent);

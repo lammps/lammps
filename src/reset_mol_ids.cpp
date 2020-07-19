@@ -79,12 +79,14 @@ void ResetMolIDs::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"verbose") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal reset_mol_ids command");
-      verbose = utils::inumeric(FLERR,arg[iarg+1],1,lmp);
+      if (strcmp(arg[iarg+1],"yes") == 0) verbose = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) verbose = 0;
+      else error->all(FLERR,"Illegal reset_mol_ids command");
       iarg += 2;
     } else error->all(FLERR,"Illegal reset_mol_ids command");
   }
 
-  if (verbose == 1 && comm->me == 0) utils::logmesg(lmp,"Resetting molecule IDs ...\n");
+  if (verbose && (comm->me == 0)) utils::logmesg(lmp,"Resetting molecule IDs ...\n");
 
   // record wall time for resetting molecule IDs
 
@@ -208,7 +210,7 @@ void ResetMolIDs::command(int narg, char **arg)
 
   MPI_Barrier(world);
 
-  if (verbose == 1 && comm->me == 0) {
+  if (verbose && (comm->me == 0)) {
     if (nchunk < 0)
       utils::logmesg(lmp,fmt::format("  number of new molecule IDs = unknown\n"));
     else

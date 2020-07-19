@@ -2518,7 +2518,7 @@ update molecule IDs, charges, types, special lists and all topology
 void FixBondReact::update_everything()
 {
   if (reset_mol_ids_flag)
-    input->one("reset_mol_ids " + std::string(group->names[igroup]) + " verbose 0");
+    input->one("reset_mol_ids " + std::string(group->names[igroup]) + " verbose no");
 
   int *type = atom->type;
 

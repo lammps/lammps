@@ -19,6 +19,7 @@ Syntax
        *compress* value = *yes* or *no*
        *offset* value = *Noffset* >= -1
        *single* value = *yes* or *no* to treat single atoms (no bonds) as molecules
+       *verbose* value = *yes* or *no*
 
 Examples
 """"""""
@@ -95,6 +96,10 @@ is not *all* there may be collisions with the molecule IDs of other atoms.
    does not perform a full update of the bond topology data structures
    within LAMMPS.
 
+The *verbose* keyword determines if this command outputs run-time
+information to the screen and log file, including the number of new
+molecule IDs and CPU time used by the command.
+
 Restrictions
 """"""""""""
 none
@@ -112,5 +117,5 @@ Related commands
 Default
 """""""
 
-The default keyword settings are compress = yes, single = no, and
-offset = -1.
+The default keyword settings are compress = yes, single = no,
+verbose = yes, and offset = -1.

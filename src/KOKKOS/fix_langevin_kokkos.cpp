@@ -137,7 +137,7 @@ void FixLangevinKokkos<DeviceType>::grow_arrays(int nmax)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixLangevinKokkos<DeviceType>::initial_integrate(int vflag)
+void FixLangevinKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 {
   atomKK->sync(execution_space,datamask_read);
   atomKK->modified(execution_space,datamask_modify);

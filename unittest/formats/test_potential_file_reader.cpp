@@ -35,15 +35,29 @@
 #include <cstring>
 #include <mpi.h>
 
+#if defined(OMPI_MAJOR_VERSION)
+const bool have_openmpi = true;
+#else
+const bool have_openmpi = false;
+#endif
+
 using namespace LAMMPS_NS;
 using ::testing::MatchesRegex;
 using utils::split_words;
 
-#define TEST_FAILURE(...)                \
-    if (Info::has_exceptions()) {        \
-        ASSERT_ANY_THROW({__VA_ARGS__}); \
-    } else {                             \
-        ASSERT_DEATH({__VA_ARGS__}, ""); \
+#define TEST_FAILURE(errmsg, ...)                                 \
+    if (Info::has_exceptions()) {                                 \
+        ::testing::internal::CaptureStdout();                     \
+        ASSERT_ANY_THROW({__VA_ARGS__});                          \
+        auto mesg = ::testing::internal::GetCapturedStdout();     \
+        ASSERT_THAT(mesg, MatchesRegex(errmsg));                  \
+    } else {                                                      \
+        if (!have_openmpi) {                                      \
+            ::testing::internal::CaptureStdout();                 \
+            ASSERT_DEATH({__VA_ARGS__}, "");                      \
+            auto mesg = ::testing::internal::GetCapturedStdout(); \
+            ASSERT_THAT(mesg, MatchesRegex(errmsg));              \
+        }                                                         \
     }
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
@@ -116,10 +130,8 @@ TEST_F(PotentialFileReaderTest, Sw_noconv)
     lmp->input->one("units real");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(PotentialFileReader reader(lmp, "Si.sw", "Stillinger-Weber", utils::REAL2METAL););
-    std::string mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR on proc.*potential.*requires metal units but real.*"));
+    TEST_FAILURE(".*ERROR on proc.*potential.*requires metal units but real.*",
+                 PotentialFileReader reader(lmp, "Si.sw", "Stillinger-Weber", utils::REAL2METAL););
 }
 
 TEST_F(PotentialFileReaderTest, Comb)
@@ -290,6 +302,10 @@ int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
+
+    if (have_openmpi && !LAMMPS_NS::Info::has_exceptions())
+        std::cout << "Warning: using OpenMPI without exceptions. "
+                     "Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

@@ -76,12 +76,8 @@ MLIAPDescriptorSNAP::~MLIAPDescriptorSNAP()
 
 void MLIAPDescriptorSNAP::compute_descriptors(class MLIAPData* data)
 {
-
-  double **x = atom->x;
-
   int ij = 0;
   for (int ii = 0; ii < data->natoms; ii++) {
-    const int i = data->iatoms[ii];
     const int ielem = data->ielems[ii];
 
     // insure rij, inside, wj, and rcutij are of size jnum
@@ -130,8 +126,6 @@ void MLIAPDescriptorSNAP::compute_descriptors(class MLIAPData* data)
 void MLIAPDescriptorSNAP::compute_forces(class MLIAPData* data)
 {
   double fij[3];
-
-  double **x = atom->x;
   double **f = atom->f;
 
   int ij = 0;
@@ -208,8 +202,6 @@ void MLIAPDescriptorSNAP::compute_forces(class MLIAPData* data)
 
 void MLIAPDescriptorSNAP::compute_force_gradients(class MLIAPData* data)
 {
-  double **x = atom->x;
-
   int ij = 0;
   for (int ii = 0; ii < data->natoms; ii++) {
     const int i = data->iatoms[ii];
@@ -285,11 +277,8 @@ void MLIAPDescriptorSNAP::compute_force_gradients(class MLIAPData* data)
 
 void MLIAPDescriptorSNAP::compute_descriptor_gradients(class MLIAPData* data)
 {
-  double **x = atom->x;
-
   int ij = 0;
   for (int ii = 0; ii < data->natoms; ii++) {
-    const int i = data->iatoms[ii];
     const int ielem = data->ielems[ii];
 
     // insure rij, inside, wj, and rcutij are of size jnum
@@ -328,8 +317,6 @@ void MLIAPDescriptorSNAP::compute_descriptor_gradients(class MLIAPData* data)
 
     ij = ij0;
     for (int jj = 0; jj < ninside; jj++) {
-      const int j = snaptr->inside[jj];
-
       if(chemflag)
         snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
                                snaptr->rcutij[jj],jj, snaptr->element[jj]);

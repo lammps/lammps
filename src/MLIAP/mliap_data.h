@@ -68,8 +68,8 @@ class MLIAPData : protected Pointers {
   class PairMLIAP *pairmliap;   // access to pair tally functions
 
  private:
-  class MLIAPModel* model;
-  class MLIAPDescriptor* descriptor;
+  class MLIAPModel *model;
+  class MLIAPDescriptor *descriptor;
 
   int nmax;
   class NeighList *list;        // LAMMPS neighbor list

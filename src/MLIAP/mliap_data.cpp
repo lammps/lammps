@@ -32,16 +32,14 @@
 
 using namespace LAMMPS_NS;
 
-MLIAPData::MLIAPData(LAMMPS *lmp,
-                     int gradgradflag_in, int *map_in, class MLIAPModel* model_in,
-                     class MLIAPDescriptor* descriptor_in, class PairMLIAP* pairmliap_in) :
-  Pointers(lmp),
-  list(NULL),
-  gradforce(NULL),
-  betas(NULL), descriptors(NULL), gamma_row_index(NULL), gamma_col_index(NULL),
-  gamma(NULL), egradient(NULL), model(NULL), descriptor(NULL),
-  iatoms(NULL), ielems(NULL), numneighs(NULL),
-  jatoms(NULL), jelems(NULL), rij(NULL), graddesc(NULL)
+MLIAPData::MLIAPData(LAMMPS *lmp, int gradgradflag_in, int *map_in,
+                     class MLIAPModel* model_in,
+                     class MLIAPDescriptor* descriptor_in,
+                     class PairMLIAP* pairmliap_in) :
+  Pointers(lmp), gradforce(NULL), betas(NULL), descriptors(NULL), gamma(NULL),
+  gamma_row_index(NULL), gamma_col_index(NULL), egradient(NULL),
+  numneighs(NULL), iatoms(NULL), ielems(NULL), jatoms(NULL), jelems(NULL),
+  rij(NULL), graddesc(NULL), model(NULL), descriptor(NULL), list(NULL)
 {
   gradgradflag = gradgradflag_in;
   map = map_in;

@@ -265,7 +265,7 @@ void Info::command(int narg, char **arg)
 
   fputs("\nInfo-Info-Info-Info-Info-Info-Info-Info-Info-Info-Info\n",out);
   time_t now = time(NULL);
-  fprintf(out,"Printed on %s\n",ctime(&now));
+  fmt::print(out,"Printed on {}\n",ctime(&now));
 
   if (flags & CONFIG) {
     fmt::print(out,"\nLAMMPS version: {} / {}\n",
@@ -302,17 +302,15 @@ void Info::command(int narg, char **arg)
     fputs("-DLAMMPS_SMALLSMALL\n",out);
 #endif
 
-    const char *pkg;
     int ncword, ncline = 0;
-
     fputs("\nInstalled packages:\n\n",out);
-    for (int i = 0; NULL != (pkg = lmp->installed_packages[i]); ++i) {
-      ncword = strlen(pkg);
+    for (const char **pkg = lmp->installed_packages; *pkg != nullptr; ++pkg) {
+      ncword = strlen(*pkg);
       if (ncline + ncword > 78) {
         ncline = 0;
         fputs("\n",out);
       }
-      fprintf(out,"%s ",pkg);
+      fmt::print(out,"{} ",*pkg);
       ncline += ncword + 1;
     }
     fputs("\n",out);
@@ -320,7 +318,7 @@ void Info::command(int narg, char **arg)
 
   if (flags & MEMORY) {
 
-    fprintf(out,"\nMemory allocation information (MPI rank 0):\n\n");
+    fputs("\nMemory allocation information (MPI rank 0):\n\n",out);
 
     bigint bytes = 0;
     bytes += atom->memory_usage();
@@ -332,27 +330,27 @@ void Info::command(int narg, char **arg)
     for (int i = 0; i < output->ndump; i++)
       bytes += output->dump[i]->memory_usage();
     double mbytes = bytes/1024.0/1024.0;
-    fprintf(out,"Total dynamically allocated memory: %.4g Mbyte\n",mbytes);
+    fmt::print(out,"Total dynamically allocated memory: {:.4} Mbyte\n",mbytes);
 
 #if defined(_WIN32)
     HANDLE phandle = GetCurrentProcess();
     PROCESS_MEMORY_COUNTERS_EX pmc;
     GetProcessMemoryInfo(phandle,(PROCESS_MEMORY_COUNTERS *)&pmc,sizeof(pmc));
-    fprintf(out,"Non-shared memory use: %.4g Mbyte\n",
-            (double)pmc.PrivateUsage/1048576.0);
-    fprintf(out,"Maximum working set size: %.4g Mbyte\n",
-            (double)pmc.PeakWorkingSetSize/1048576.0);
+    fmt::print(out,"Non-shared memory use: {:.4} Mbyte\n",
+               (double)pmc.PrivateUsage/1048576.0);
+    fmt::print(out,"Maximum working set size: {:.4} Mbyte\n",
+               (double)pmc.PeakWorkingSetSize/1048576.0);
 #else
 #if defined(__linux__)
     struct mallinfo mi;
     mi = mallinfo();
-    fprintf(out,"Current reserved memory pool size: %.4g Mbyte\n",
-            (double)mi.uordblks/1048576.0+(double)mi.hblkhd/1048576.0);
+    fmt::print(out,"Current reserved memory pool size: {:.4} Mbyte\n",
+               (double)mi.uordblks/1048576.0+(double)mi.hblkhd/1048576.0);
 #endif
     struct rusage ru;
     if (getrusage(RUSAGE_SELF, &ru) == 0) {
-      fprintf(out,"Maximum resident set size: %.4g Mbyte\n",
-              (double)ru.ru_maxrss/1024.0);
+      fmt::print(out,"Maximum resident set size: {:.4} Mbyte\n",
+                 (double)ru.ru_maxrss/1024.0);
     }
 #endif
   }
@@ -376,86 +374,85 @@ void Info::command(int narg, char **arg)
                  comm->get_comm_cutoff());
 
     if (comm->mode == 1) {
-      fprintf(out,"Communication mode = multi\n");
+      fputs("Communication mode = multi\n",out);
       double cut;
       for (int i=1; i <= atom->ntypes && neighbor->cuttype; ++i) {
         cut = neighbor->cuttype[i];
         if (comm->cutusermulti) cut = MAX(cut,comm->cutusermulti[i]);
-        fprintf(out,"Communication cutoff for type %d = %g\n", i, cut);
+        fmt::print(out,"Communication cutoff for type {} = {:.8}\n", i, cut);
       }
     }
-    fprintf(out,"Nprocs = %d,   Nthreads = %d\n",
-            comm->nprocs, comm->nthreads);
+    fmt::print(out,"Nprocs = {},   Nthreads = {}\n",comm->nprocs,comm->nthreads);
     if (domain->box_exist)
-      fprintf(out,"Processor grid = %d x %d x %d\n",comm->procgrid[0],
-            comm->procgrid[1], comm->procgrid[2]);
+      fmt::print(out,"Processor grid = {} x {} x {}\n",comm->procgrid[0],
+                 comm->procgrid[1], comm->procgrid[2]);
   }
 
   if (flags & SYSTEM) {
-    fprintf(out,"\nSystem information:\n");
-    fprintf(out,"Units      = %s\n", update->unit_style);
-    fprintf(out,"Atom style = %s\n", atom->atom_style);
-    fprintf(out,"Atom map   = %s\n", mapstyles[atom->map_style]);
+    fputs("\nSystem information:\n",out);
+    fmt::print(out,"Units         = {}\n", update->unit_style);
+    fmt::print(out,"Atom style    = {}\n", atom->atom_style);
+    fmt::print(out,"Atom map      = {}\n", mapstyles[atom->map_style]);
     if (atom->molecular > 0) {
       const char *msg;
       msg = (atom->molecular == 2) ? "template" : "standard";
-      fprintf(out,"Molecule type = %s\n",msg);
+      fmt::print(out,"Molecule type = {}\n",msg);
     }
-    fprintf(out,"Atoms = " BIGINT_FORMAT ",  types = %d,  style = %s\n",
-            atom->natoms, atom->ntypes, force->pair_style);
+    fmt::print(out,"Atoms     = {:12},  types = {:8d},  style = {}\n",
+               atom->natoms, atom->ntypes, force->pair_style);
 
     if (force->pair && utils::strmatch(force->pair_style,"^hybrid")) {
       PairHybrid *hybrid = (PairHybrid *)force->pair;
-      fprintf(out,"Hybrid sub-styles:");
+      fmt::print(out,"Hybrid sub-styles:");
       for (int i=0; i < hybrid->nstyles; ++i)
-        fprintf(out," %s", hybrid->keywords[i]);
+        fmt::print(out," {}", hybrid->keywords[i]);
       fputc('\n',out);
     }
     if (atom->molecular > 0) {
       const char *msg;
       msg = force->bond_style ? force->bond_style : "none";
-      fprintf(out,"Bonds = " BIGINT_FORMAT ",  types = %d,  style = %s\n",
-              atom->nbonds, atom->nbondtypes, msg);
+      fmt::print(out,"Bonds    =  {:12},  types = {:8},  style = {}\n",
+                 atom->nbonds, atom->nbondtypes, msg);
 
       msg = force->angle_style ? force->angle_style : "none";
-      fprintf(out,"Angles = " BIGINT_FORMAT ",  types = %d,  style = %s\n",
-              atom->nangles, atom->nangletypes, msg);
+      fmt::print(out,"Angles    = {:12},  types = {:8},  style = {}\n",
+                 atom->nangles, atom->nangletypes, msg);
 
       msg = force->dihedral_style ? force->dihedral_style : "none";
-      fprintf(out,"Dihedrals = " BIGINT_FORMAT ",  types = %d,  style = %s\n",
-              atom->ndihedrals, atom->ndihedraltypes, msg);
+      fmt::print(out,"Dihedrals = {:12},  types = {:8},  style = {}\n",
+                 atom->ndihedrals, atom->ndihedraltypes, msg);
 
       msg = force->improper_style ? force->improper_style : "none";
-      fprintf(out,"Impropers = " BIGINT_FORMAT ",  types = %d,  style = %s\n",
-              atom->nimpropers, atom->nimpropertypes, msg);
+      fmt::print(out,"Impropers = {:12},  types = {:8},  style = {}\n",
+                 atom->nimpropers, atom->nimpropertypes, msg);
 
       const double * const special_lj   = force->special_lj;
       const double * const special_coul = force->special_coul;
 
-      fprintf(out,"Special bond factors lj =   %-10g %-10g %-10g\n"
-              "Special bond factors coul = %-10g %-10g %-10g\n",
-              special_lj[1],special_lj[2],special_lj[3],
-              special_coul[1],special_coul[2],special_coul[3]);
+      fmt::print(out,"Special bond factors lj =    {:<8} {:<8} {:<8}\n"
+                 "Special bond factors coul =  {:<8} {:<8} {:<8}\n",
+                 special_lj[1],special_lj[2],special_lj[3],
+                 special_coul[1],special_coul[2],special_coul[3]);
     }
 
-    fprintf(out,"Kspace style = %s\n",
-            force->kspace ? force->kspace_style : "none");
+    fmt::print(out,"Kspace style = {}\n",
+               force->kspace ? force->kspace_style : "none");
 
     if (domain->box_exist) {
-      fprintf(out,"\nDimensions = %d\n",domain->dimension);
-      fprintf(out,"%s box = %g x %g x %g\n",
-              domain->triclinic ? "Triclinic" : "Orthogonal",
-              domain->xprd, domain->yprd, domain->zprd);
-      fprintf(out,"Boundaries = %c,%c %c,%c %c,%c\n",
-              bstyles[domain->boundary[0][0]],bstyles[domain->boundary[0][1]],
-              bstyles[domain->boundary[1][0]],bstyles[domain->boundary[1][1]],
-              bstyles[domain->boundary[2][0]],bstyles[domain->boundary[2][1]]);
-      fprintf(out,"xlo, xhi = %g, %g\n", domain->boxlo[0], domain->boxhi[0]);
-      fprintf(out,"ylo, yhi = %g, %g\n", domain->boxlo[1], domain->boxhi[1]);
-      fprintf(out,"zlo, zhi = %g, %g\n", domain->boxlo[2], domain->boxhi[2]);
+      fmt::print(out,"\nDimensions = {}\n",domain->dimension);
+      fmt::print(out,"{} box = {:.8} x {:.8} x {:.8}\n",
+                 domain->triclinic ? "Triclinic" : "Orthogonal",
+                 domain->xprd, domain->yprd, domain->zprd);
+      fmt::print(out,"Boundaries = {},{} {},{} {},{}\n",
+                 bstyles[domain->boundary[0][0]],bstyles[domain->boundary[0][1]],
+                 bstyles[domain->boundary[1][0]],bstyles[domain->boundary[1][1]],
+                 bstyles[domain->boundary[2][0]],bstyles[domain->boundary[2][1]]);
+      fmt::print(out,"xlo, xhi = {:.8}, {:.8}\n", domain->boxlo[0], domain->boxhi[0]);
+      fmt::print(out,"ylo, yhi = {:.8}, {:.8}\n", domain->boxlo[1], domain->boxhi[1]);
+      fmt::print(out,"zlo, zhi = {:.8}, {:.8}\n", domain->boxlo[2], domain->boxhi[2]);
       if (domain->triclinic)
-          fprintf(out,"Xy, xz, yz = %g, %g, %g\n",
-                  domain->xy, domain->xz, domain->yz);
+        fmt::print(out,"Xy, xz, yz = {:.8}, {:.8}, {:.8}\n",
+                   domain->xy, domain->xz, domain->yz);
     } else {
       fputs("\nBox has not yet been created\n",out);
     }
@@ -464,23 +461,23 @@ void Info::command(int narg, char **arg)
   if (domain->box_exist && (flags & COEFFS)) {
     Pair *pair=force->pair;
 
-    fprintf(out,"\nCoeff information:\n");
+    fputs("\nCoeff status information:\n",out);
     if (pair) {
-      fprintf(out,"Pair Coeffs:\n");
+      fputs("\nPair Coeffs:\n",out);
       for (int i=1; i <= atom->ntypes; ++i)
         for (int j=i; j <= atom->ntypes; ++j) {
-          fprintf(out,"%3d %3d :",i,j);
+          fmt::print(out,"{:6d} {:6d}:",i,j);
           if (pair->allocated && pair->setflag[i][j]) fputs(" is set\n",out);
-          else fputs (" is not set\n",out);
+          else fputs(" is not set\n",out);
         }
     }
     if (force->bond) {
       Bond *bond=force->bond;
 
       if (bond) {
-        fprintf(out,"Bond Coeffs:\n");
+        fputs("\nBond Coeffs:\n",out);
         for (int i=1; i <= atom->nbondtypes; ++i) {
-          fprintf(out,"%3d :",i);
+          fmt::print(out,"{:6d}:",i);
           if (bond->allocated && bond->setflag[i]) fputs(" is set\n",out);
           else fputs (" is not set\n",out);
         }
@@ -490,9 +487,9 @@ void Info::command(int narg, char **arg)
       Angle *angle=force->angle;
 
       if (angle) {
-        fprintf(out,"Angle Coeffs:\n");
+        fputs("\nAngle Coeffs:\n",out);
         for (int i=1; i <= atom->nangletypes; ++i) {
-          fprintf(out,"%3d :",i);
+          fmt::print(out,"{:6d}:",i);
           if (angle->allocated && angle->setflag[i]) fputs(" is set\n",out);
           else fputs (" is not set\n",out);
         }
@@ -502,9 +499,9 @@ void Info::command(int narg, char **arg)
       Dihedral *dihedral=force->dihedral;
 
       if (dihedral) {
-        fprintf(out,"Dihedral Coeffs:\n");
+        fputs("\nDihedral Coeffs:\n",out);
         for (int i=1; i <= atom->ndihedraltypes; ++i) {
-          fprintf(out,"%3d :",i);
+          fmt::print(out,"{:6d}:",i);
           if (dihedral->allocated && dihedral->setflag[i]) fputs(" is set\n",out);
           else fputs (" is not set\n",out);
         }
@@ -514,9 +511,9 @@ void Info::command(int narg, char **arg)
       Improper *b=force->improper;
 
       if (b) {
-        fprintf(out,"Improper Coeffs:\n");
+        fputs("\nImproper Coeffs:\n",out);
         for (int i=1; i <= atom->nimpropertypes; ++i) {
-          fprintf(out,"%3d :",i);
+          fmt::print(out,"{:6d}:",i);
           if (b->allocated && b->setflag[i]) fputs(" is set\n",out);
           else fputs (" is not set\n",out);
         }
@@ -528,28 +525,29 @@ void Info::command(int narg, char **arg)
     int ngroup = group->ngroup;
     char **names = group->names;
     int *dynamic = group->dynamic;
-    fprintf(out,"\nGroup information:\n");
+    fputs("\nGroup information:\n",out);
     for (int i=0; i < ngroup; ++i) {
       if (names[i])
-        fprintf(out,"Group[%2d]: %s (%s)\n",
-                i, names[i], dynamic[i] ? "dynamic" : "static");
+        fmt::print(out,"Group[{:2d}]:     {:16} ({})\n",
+                   i, names[i], dynamic[i] ? "dynamic" : "static");
     }
   }
 
   if (flags & REGIONS) {
     int nreg = domain->nregion;
     Region **regs = domain->regions;
-    fprintf(out,"\nRegion information:\n");
+    fputs("\nRegion information:\n",out);
     for (int i=0; i < nreg; ++i) {
-      fprintf(out,"Region[%3d]: %s,  style = %s,  side = %s\n",
-              i, regs[i]->id, regs[i]->style,
-              regs[i]->interior ? "in" : "out");
+      fmt::print(out,"Region[{:3d}]:  {:16}  style = {:16}  side = {}\n",
+                 i, std::string(regs[i]->id)+',',
+                 std::string(regs[i]->style)+',',
+                 regs[i]->interior ? "in" : "out");
       if (regs[i]->bboxflag)
-        fprintf(out,"     Boundary: lo %g %g %g  hi %g %g %g\n",
-                regs[i]->extent_xlo, regs[i]->extent_ylo,
-                regs[i]->extent_zlo, regs[i]->extent_xhi,
-                regs[i]->extent_yhi, regs[i]->extent_zhi);
-      else fprintf(out,"     No Boundary\n");
+        fmt::print(out,"   Boundary:  lo {:.8} {:.8} {:.8}  hi {:.8} {:.8} {:.8}\n",
+                   regs[i]->extent_xlo, regs[i]->extent_ylo,
+                   regs[i]->extent_zlo, regs[i]->extent_xhi,
+                   regs[i]->extent_yhi, regs[i]->extent_zhi);
+      else fputs("   No Boundary\n",out);
     }
   }
 
@@ -557,11 +555,12 @@ void Info::command(int narg, char **arg)
     int ncompute = modify->ncompute;
     Compute **compute = modify->compute;
     char **names = group->names;
-    fprintf(out,"\nCompute information:\n");
+    fputs("\nCompute information:\n",out);
     for (int i=0; i < ncompute; ++i) {
-      fprintf(out,"Compute[%3d]: %s,  style = %s,  group = %s\n",
-              i, compute[i]->id, compute[i]->style,
-              names[compute[i]->igroup]);
+      fmt::print(out,"Compute[{:3d}]:  {:16}  style = {:16}  group = {}\n",
+                 i, std::string(compute[i]->id)+',',
+                 std::string(compute[i]->style)+',',
+                 names[compute[i]->igroup]);
     }
   }
 
@@ -571,15 +570,17 @@ void Info::command(int narg, char **arg)
     int *nevery = output->every_dump;           \
     char **vnames = output->var_dump;
     char **names = group->names;
-    fprintf(out,"\nDump information:\n");
+    fputs("\nDump information:\n",out);
     for (int i=0; i < ndump; ++i) {
-      fprintf(out,"Dump[%3d]: %s,  file = %s,  style = %s,  group = %s,  ",
-              i, dump[i]->id, dump[i]->filename,
-              dump[i]->style, names[dump[i]->igroup]);
+      fmt::print(out,"Dump[{:3d}]:     {:16}  file = {:16}  style = {:16}  group = {:16}  ",
+                 i, std::string(dump[i]->id)+',',
+                 std::string(dump[i]->filename)+',',
+                 std::string(dump[i]->style)+',',
+                 std::string(names[dump[i]->igroup])+',');
       if (nevery[i]) {
-        fprintf(out,"every = %d\n", nevery[i]);
+        fmt::print(out,"every = {}\n", nevery[i]);
       } else {
-        fprintf(out,"every = %s\n", vnames[i]);
+        fmt::print(out,"every = {}\n", vnames[i]);
       }
     }
   }
@@ -588,10 +589,12 @@ void Info::command(int narg, char **arg)
     int nfix = modify->nfix;
     Fix **fix = modify->fix;
     char **names = group->names;
-    fprintf(out,"\nFix information:\n");
+    fputs("\nFix information:\n",out);
     for (int i=0; i < nfix; ++i) {
-      fprintf(out,"Fix[%3d]: %s,  style = %s,  group = %s\n",
-              i, fix[i]->id, fix[i]->style, names[fix[i]->igroup]);
+      fmt::print(out, "Fix[{:3d}]:      {:16}  style = {:16}  group = {}\n",
+                 i,std::string(fix[i]->id)+',',
+                 std::string(fix[i]->style)+',',
+                 names[fix[i]->igroup]);
     }
   }
 
@@ -600,19 +603,20 @@ void Info::command(int narg, char **arg)
     int *style = input->variable->style;
     char **names = input->variable->names;
     char ***data = input->variable->data;
-    fprintf(out,"\nVariable information:\n");
+    fputs("\nVariable information:\n",out);
     for (int i=0; i < nvar; ++i) {
       int ndata = 1;
-      fprintf(out,"Variable[%3d]: %-10s,  style = %-10s,  def =",
-              i,names[i],varstyles[style[i]]);
+      fmt::print(out,"Variable[{:3d}]: {:16}  style = {:16}  def =",
+                 i,std::string(names[i])+',',
+                 std::string(varstyles[style[i]])+',');
       if (style[i] == INTERNAL) {
-        fprintf(out,"%g\n",input->variable->dvalue[i]);
+        fmt::print(out,"{:.8}\n",input->variable->dvalue[i]);
         continue;
       }
       if ((style[i] != LOOP) && (style[i] != ULOOP))
         ndata = input->variable->num[i];
       for (int j=0; j < ndata; ++j)
-        fprintf(out," %s",data[i][j]);
+        fmt::print(out," {}",data[i][j]);
       fputs("\n",out);
     }
   }
@@ -646,10 +650,10 @@ void Info::command(int narg, char **arg)
     wallclock = (wallclock - walls) / 60.0;
     wallm = fmod(wallclock,60.0);
     wallh = (wallclock - wallm) / 60.0;
-    fprintf(out,"\nTotal time information (MPI rank 0):\n"
-            "  CPU time: %4d:%02d:%02d\n"
-            " Wall time: %4d:%02d:%02d\n",
-            cpuh,cpum,cpus,wallh,wallm,walls);
+    fmt::print(out,"\nTotal time information (MPI rank 0):\n"
+               "  CPU time: {:4d}:{:02d}:{:02d}\n"
+               " Wall time: {:4d}:{:02d}:{:02d}\n",
+               cpuh,cpum,cpus,wallh,wallm,walls);
   }
 
   if (flags & STYLES) {
@@ -663,11 +667,10 @@ void Info::command(int narg, char **arg)
     fclose(out);
 }
 
-
 void Info::available_styles(FILE * out, int flags)
 {
 
-  fprintf(out,"\nStyles information:\n");
+  fputs("\nStyles information:\n",out);
 
   if(flags & ATOM_STYLES)      atom_styles(out);
   if(flags & INTEGRATE_STYLES) integrate_styles(out);
@@ -685,102 +688,102 @@ void Info::available_styles(FILE * out, int flags)
   if(flags & COMMAND_STYLES)   command_styles(out);
 }
 
-void Info::atom_styles(FILE * out)
+void Info::atom_styles(FILE *out)
 {
-  fprintf(out, "\nAtom styles:\n");
+  fputs("\nAtom styles:\n",out);
   print_columns(out, atom->avec_map);
-  fprintf(out, "\n\n\n");
+  fputs("\n\n\n",out);
 }
 
-void Info::integrate_styles(FILE * out)
+void Info::integrate_styles(FILE *out)
 {
-  fprintf(out, "\nIntegrate styles:\n");
+  fputs("\nIntegrate styles:\n",out);
   print_columns(out, update->integrate_map);
-  fprintf(out, "\n\n\n");
+  fputs("\n\n\n",out);
 }
 
-void Info::minimize_styles(FILE * out)
+void Info::minimize_styles(FILE *out)
 {
-  fprintf(out, "\nMinimize styles:\n");
+  fputs("\nMinimize styles:\n",out);
   print_columns(out, update->minimize_map);
-  fprintf(out, "\n\n\n");
+  fputs("\n\n\n",out);
 }
 
-void Info::pair_styles(FILE * out)
+void Info::pair_styles(FILE *out)
 {
-  fprintf(out, "\nPair styles:\n");
+  fputs("\nPair styles:\n",out);
   print_columns(out, force->pair_map);
-  fprintf(out, "\n\n\n");
+  fputs("\n\n\n",out);
 }
 
-void Info::bond_styles(FILE * out)
+void Info::bond_styles(FILE *out)
 {
-  fprintf(out, "\nBond styles:\n");
+  fputs("\nBond styles:\n",out);
   print_columns(out, force->bond_map);
-  fprintf(out, "\n\n\n");
+  fputs("\n\n\n",out);
 }
 
-void Info::angle_styles(FILE * out)
+void Info::angle_styles(FILE *out)
 {
-  fprintf(out, "\nAngle styles:\n");
+  fputs("\nAngle styles:\n",out);
   print_columns(out, force->angle_map);
-  fprintf(out, "\n\n\n");
+  fputs("\n\n\n",out);
 }
 
-void Info::dihedral_styles(FILE * out)
+void Info::dihedral_styles(FILE *out)
 {
-  fprintf(out, "\nDihedral styles:\n");
+  fputs("\nDihedral styles:\n",out);
   print_columns(out, force->dihedral_map);
-  fprintf(out, "\n\n\n");
+  fputs("\n\n\n",out);
 }
 
-void Info::improper_styles(FILE * out)
+void Info::improper_styles(FILE *out)
 {
-  fprintf(out, "\nImproper styles:\n");
+  fputs("\nImproper styles:\n",out);
   print_columns(out, force->improper_map);
-  fprintf(out, "\n\n\n");
+  fputs("\n\n\n",out);
 }
 
-void Info::kspace_styles(FILE * out)
+void Info::kspace_styles(FILE *out)
 {
-  fprintf(out, "\nKSpace styles:\n");
+  fputs("\nKSpace styles:\n",out);
   print_columns(out, force->kspace_map);
-  fprintf(out, "\n\n\n");
+  fputs("\n\n\n",out);
 }
 
-void Info::fix_styles(FILE * out)
+void Info::fix_styles(FILE *out)
 {
-  fprintf(out, "\nFix styles:\n");
+  fputs("\nFix styles:\n",out);
   print_columns(out, modify->fix_map);
-  fprintf(out, "\n\n\n");
+  fputs("\n\n\n",out);
 }
 
-void Info::compute_styles(FILE * out)
+void Info::compute_styles(FILE *out)
 {
-  fprintf(out, "\nCompute styles:\n");
+  fputs("\nCompute styles:\n",out);
   print_columns(out, modify->compute_map);
-  fprintf(out, "\n\n\n");
+  fputs("\n\n\n",out);
 }
 
-void Info::region_styles(FILE * out)
+void Info::region_styles(FILE *out)
 {
-  fprintf(out, "\nRegion styles:\n");
+  fputs("\nRegion styles:\n",out);
   print_columns(out, domain->region_map);
-  fprintf(out, "\n\n\n");
+  fputs("\n\n\n",out);
 }
 
-void Info::dump_styles(FILE * out)
+void Info::dump_styles(FILE *out)
 {
-  fprintf(out, "\nDump styles:\n");
-  print_columns(out, output->dump_map);
-  fprintf(out, "\n\n\n");
+  fputs("\nDump styles:\n",out);
+  print_columns(out,output->dump_map);
+  fputs("\n\n\n",out);
 }
 
-void Info::command_styles(FILE * out)
+void Info::command_styles(FILE *out)
 {
-  fprintf(out, "\nCommand styles (add-on input script commands):\n");
+  fputs("\nCommand styles (add-on input script commands):\n",out);
   print_columns(out, input->command_map);
-  fprintf(out, "\n\n\n");
+  fputs("\n\n\n",out);
 }
 
 

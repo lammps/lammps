@@ -906,7 +906,10 @@ void CommCAC::setup()
       //move all overlaps with me to the end of the list with their respective pbc offsets and other overlap arrays
       for(int overlap_scan=0; overlap_scan<noverlap; overlap_scan++){
         if(overlap[overlap_scan]==me){
-        while(overlap[swapindex]==me) swapindex-=1;
+        while(overlap[swapindex]==me){ 
+          swapindex-=1;
+          sendself[iswap]+=1;
+        }
         if(overlap_scan>=swapindex) break;
         tmp[0]=overlap[swapindex];
         tmp[1]=overlap_pbc[swapindex][0];
@@ -939,6 +942,7 @@ void CommCAC::setup()
         proc2box[overlap_scan][4]=tmp[8];
         proc2box[overlap_scan][5]=tmp[9];
         sendself[iswap]+=1;
+        swapindex-=1;
         }
       }
 

@@ -27,6 +27,8 @@
 #include "timer.h"
 #include "finish.h"
 #include "math_special.h"
+#include "utils.h"
+#include "fmt/format.h"
 #include <algorithm>
 #include <complex>
 
@@ -127,7 +129,7 @@ void ThirdOrder::command(int narg, char **arg)
   // group and style
 
   igroup = group->find(arg[0]);
-  if (igroup == -1) error->all(FLERR,"Could not find dynamical matrix group ID");
+  if (igroup == -1) error->all(FLERR,"Could not find third_order group ID");
   groupbit = group->bitmask[igroup];
   gcount = group->count(igroup);
   dynlen = (gcount)*3;
@@ -160,7 +162,7 @@ void ThirdOrder::command(int narg, char **arg)
   del = force->numeric(FLERR, arg[2]);
 
   if (!folded) dynlenb = dynlen;
-  if (folded) dynlenb = (atom->natoms)*3;
+  else dynlenb = (atom->natoms)*3;
 
   if (atom->map_style == 0)
     error->all(FLERR,"third_order command requires an atom map, see atom_modify");
@@ -216,14 +218,14 @@ void ThirdOrder::options(int narg, char **arg)
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"fold") == 0) {
-      if (iarg+2 > narg) error->all(FLERR, "Illegal dynamical_matrix command");
+      if (iarg+2 > narg) error->all(FLERR, "Illegal third_order command");
       if (strcmp(arg[iarg+1],"yes") == 0) {
         folded = 1;
       }
       else if (strcmp(arg[iarg+1],"no") == 0) {
         folded = 0;
       }
-      else error->all(FLERR,"Illegal input for dynamical_matrix fold option");
+      else error->all(FLERR,"Illegal input for third_order fold option");
       iarg += 2;
     } else error->all(FLERR,"Illegal third_order command");
   }
@@ -267,7 +269,7 @@ void ThirdOrder::openfile(const char* filename)
 }
 
 /* ----------------------------------------------------------------------
-   create dynamical matrix
+   create third order tensor
 ------------------------------------------------------------------------- */
 
 void ThirdOrder::calculateMatrix()
@@ -290,12 +292,11 @@ void ThirdOrder::calculateMatrix()
 
   getNeighbortags();
 
-  if (comm->me == 0 && screen) {
-    fprintf(screen,"Calculating Third Order ...\n");
-    fprintf(screen,"  Total # of atoms = " BIGINT_FORMAT "\n", natoms);
-    fprintf(screen,"  Atoms in group = " BIGINT_FORMAT "\n", gcount);
-    fprintf(screen,"  Total third order elements = "
-            BIGINT_FORMAT "\n", (dynlen*dynlenb*dynlenb) );
+  if (comm->me == 0) {
+    utils::logmesg(lmp, fmt::format("Calculating Third Order ...\n"));
+    utils::logmesg(lmp, fmt::format("  Total # of atoms = {}\n", natoms));
+    utils::logmesg(lmp, fmt::format("  Atoms in group = {}\n", gcount));
+    utils::logmesg(lmp, fmt::format("  Total third order elements = {}\n", (dynlen*dynlenb*dynlenb) ));
   }
 
   update->nsteps = 0;
@@ -414,7 +415,7 @@ void ThirdOrder::calculateMatrix()
 }
 
 /* ----------------------------------------------------------------------
-   write dynamical matrix
+   write third order tensor
 ------------------------------------------------------------------------- */
 
 void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
@@ -432,8 +433,8 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
                square(dynmat[k*3+2]);
         if (norm > 1.0e-16)
           fprintf(fp,
-                  BIGINT_FORMAT " %d " BIGINT_FORMAT " %d %d"
-                      " %7.8f %7.8f %7.8f\n",
+                  BIGINT_FORMAT " %d " BIGINT_FORMAT
+                  " %d %d %7.8f %7.8f %7.8f\n",
                   i+1, a + 1, j+1, b + 1, k+1,
                   dynmat[k*3] * conversion,
                   dynmat[k*3+1] * conversion,
@@ -446,8 +447,8 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
                square(dynmat[k*3+2]);
         if (norm > 1.0e-16)
           fprintf(fp,
-                  BIGINT_FORMAT " %d " BIGINT_FORMAT " %d " BIGINT_FORMAT
-                      " %7.8f %7.8f %7.8f\n",
+                  BIGINT_FORMAT " %d " BIGINT_FORMAT " %d "
+                  BIGINT_FORMAT " %7.8f %7.8f %7.8f\n",
                   i+1, a + 1, j+1, b + 1, groupmap[k]+1,
                   dynmat[k*3] * conversion,
                   dynmat[k*3+1] * conversion,
@@ -671,6 +672,9 @@ void ThirdOrder::create_groupmap()
 /* ---------------------------------------------------------------------- */
 
 void ThirdOrder::getNeighbortags() {
+  // Create an extended neighbor list which is indexed by atom tag and yields atom tags
+  // groupmap[global atom index-1] = global atom indices (-1) of extended neighbors
+
   bigint natoms = atom->natoms;
   int *ilist,*jlist,*numneigh,**firstneigh;
   bigint *Jlist,*klist;
@@ -738,7 +742,7 @@ void ThirdOrder::getNeighbortags() {
       }
     }
   }
-  MPI_Allreduce(datarecv,data,sum,MPI_LONG_LONG_INT,MPI_SUM,world);
+  MPI_Allreduce(datarecv,data,sum,MPI_LMP_BIGINT,MPI_SUM,world);
 
   for (bigint i = 0; i < natoms; i++) {
     ijnum[i] = 0;

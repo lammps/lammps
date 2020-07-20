@@ -24,6 +24,8 @@
 #include "pair.h"
 #include "timer.h"
 #include "finish.h"
+#include "utils.h"
+#include "fmt/format.h"
 #include <algorithm>
 
 using namespace LAMMPS_NS;
@@ -135,7 +137,7 @@ void DynamicalMatrix::command(int narg, char **arg)
     else if (comm->me == 0 && screen) fprintf(screen,"Illegal Dynamical Matrix command\n");
 
     if (!folded) dynlenb = dynlen;
-    if (folded) dynlenb = (atom->natoms)*3;
+    else dynlenb = (atom->natoms)*3;
 
     if (atom->map_style == 0)
       error->all(FLERR,"Dynamical_matrix command requires an atom map, see atom_modify");
@@ -268,11 +270,11 @@ void DynamicalMatrix::calculateMatrix()
     //initialize dynmat to all zeros
     dynmat_clear(dynmat);
 
-    if (comm->me == 0 && screen) {
-        fprintf(screen,"Calculating Dynamical Matrix ...\n");
-        fprintf(screen,"  Total # of atoms = " BIGINT_FORMAT "\n", natoms);
-        fprintf(screen,"  Atoms in group = " BIGINT_FORMAT "\n", gcount);
-        fprintf(screen,"  Total dynamical matrix elements = " BIGINT_FORMAT "\n", (dynlenb*dynlen) );
+    if (comm->me == 0) {
+        utils::logmesg(lmp,fmt::format("Calculating Dynamical Matrix ...\n"));
+        utils::logmesg(lmp,fmt::format("  Total # of atoms = {}\n", natoms));
+        utils::logmesg(lmp,fmt::format("  Atoms in group = {}\n", gcount));
+        utils::logmesg(lmp,fmt::format("  Total dynamical matrix elements = {}\n", (dynlenb*dynlen) ));
     }
 
     // emit dynlen rows of dimalpha*dynlen*dimbeta elements
@@ -308,12 +310,12 @@ void DynamicalMatrix::calculateMatrix()
                 local_jdx = atom->map(j);
                 if (local_idx >= 0 && local_jdx >= 0 && local_jdx < nlocal
                     && (gm[j-1] >= 0 || folded)){
+                    if (atom->rmass_flag == 1)
+                      imass = sqrt(m[local_idx] * m[local_jdx]);
+                    else
+                      imass = sqrt(m[type[local_idx]] * m[type[local_jdx]]);
                     if (folded){
                         for (int beta=0; beta<3; beta++){
-                            if (atom->rmass_flag == 1)
-                                imass = sqrt(m[local_idx] * m[local_jdx]);
-                            else
-                                imass = sqrt(m[type[local_idx]] * m[type[local_jdx]]);
                             dynmat[alpha][(j-1)*3+beta] -= -f[local_jdx][beta];
                             dynmat[alpha][(j-1)*3+beta] /= (2 * del * imass);
                             dynmat[alpha][(j-1)*3+beta] *= conversion;
@@ -321,10 +323,6 @@ void DynamicalMatrix::calculateMatrix()
                     }
                     else{
                         for (int beta=0; beta<3; beta++){
-                            if (atom->rmass_flag == 1)
-                                imass = sqrt(m[local_idx] * m[local_jdx]);
-                            else
-                                imass = sqrt(m[type[local_idx]] * m[type[local_jdx]]);
                             dynmat[alpha][gm[j-1]*3+beta] -= -f[local_jdx][beta];
                             dynmat[alpha][gm[j-1]*3+beta] /= (2 * del * imass);
                             dynmat[alpha][gm[j-1]*3+beta] *= conversion;

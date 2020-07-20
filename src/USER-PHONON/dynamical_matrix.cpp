@@ -76,6 +76,9 @@ void DynamicalMatrix::setup()
     vflag=0;
     update_force();
 
+    modify->setup(vflag);
+    update->setupflag = 0;
+
     //if all then skip communication groupmap population
     if (gcount == atom->natoms)
         for (bigint i=0; i<atom->natoms; i++)

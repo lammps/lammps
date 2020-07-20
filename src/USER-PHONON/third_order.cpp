@@ -87,6 +87,9 @@ void ThirdOrder::setup()
   vflag=0;
   update_force();
 
+  modify->setup(vflag);
+  update->setupflag = 0;
+
   if (gcount == atom->natoms)
     for (bigint i=0; i<atom->natoms; i++)
       groupmap[i] = i;

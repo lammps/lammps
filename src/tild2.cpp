@@ -2257,7 +2257,8 @@ void TILD::pack_grid_data(double **buf)
   double fx = domain->xprd/nx_pppm;
   double fy = domain->yprd/ny_pppm;
   double fz = domain->zprd/nz_pppm;
-  int n = nzlo_in + nylo_in + nxlo_in;
+  int n = 0;
+  //int n = nzlo_in + nylo_in + nxlo_in;
   for (int iz = nzlo_in; iz <= nzhi_in; iz++) {
     for (int iy = nylo_in; iy <= nyhi_in; iy++) {
       for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
@@ -2279,7 +2280,8 @@ void TILD::pack_avg_grid_data(double **buf)
   double fx = domain->xprd/nx_pppm;
   double fy = domain->yprd/ny_pppm;
   double fz = domain->zprd/nz_pppm;
-  int n = nzlo_in + nylo_in + nxlo_in;
+  int n = 0;
+  //int n = nzlo_in + nylo_in + nxlo_in;
   for (int iz = nzlo_in; iz <= nzhi_in; iz++) {
     for (int iy = nylo_in; iy <= nyhi_in; iy++) {
       for (int ix = nxlo_in; ix <= nxhi_in; ix++) {

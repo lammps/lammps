@@ -15,9 +15,9 @@
 #include "info.h"
 #include "input.h"
 #include "lammps.h"
+#include "lmppython.h"
 #include "modify.h"
 #include "utils.h"
-#include "lmppython.h"
 #include "variable.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -82,8 +82,7 @@ TEST_F(KimCommandsTest, kim_init)
 {
     if (!LAMMPS::is_installed_pkg("KIM")) GTEST_SKIP();
 
-    TEST_FAILURE(".*ERROR: Illegal kim_init command.*",
-                 lmp->input->one("kim_init"););
+    TEST_FAILURE(".*ERROR: Illegal kim_init command.*", lmp->input->one("kim_init"););
     TEST_FAILURE(".*ERROR: Illegal kim_init command.*",
                  lmp->input->one("kim_init LennardJones_Ar real si"););
     TEST_FAILURE(".*ERROR: LAMMPS unit_style lj not supported by KIM models.*",
@@ -95,9 +94,9 @@ TEST_F(KimCommandsTest, kim_init)
     TEST_FAILURE(".*ERROR: Incompatible units for KIM Simulator Model, required units = metal.*",
                  lmp->input->one("kim_init Sim_LAMMPS_LJcut_AkersonElliott_Alchemy_PbAu real"););
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("kim_init LennardJones_Ar real");
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     int ifix = lmp->modify->find_fix("KIM_MODEL_STORE");
     ASSERT_GE(ifix, 0);
@@ -110,70 +109,70 @@ TEST_F(KimCommandsTest, kim_interactions)
     TEST_FAILURE(".*ERROR: Illegal kim_interactions command.*",
                  lmp->input->one("kim_interactions"););
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("kim_init LennardJones_Ar real");
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     TEST_FAILURE(".*ERROR: Must use 'kim_interactions' command "
                  "after simulation box is defined.*",
                  lmp->input->one("kim_interactions Ar"););
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("kim_init LennardJones_Ar real");
     lmp->input->one("lattice fcc 4.4300");
     lmp->input->one("region box block 0 10 0 10 0 10");
     lmp->input->one("create_box 1 box");
     lmp->input->one("create_atoms 1 box");
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     TEST_FAILURE(".*ERROR: Illegal kim_interactions command.*",
                  lmp->input->one("kim_interactions Ar Ar"););
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("clear");
     lmp->input->one("lattice fcc 4.4300");
     lmp->input->one("region box block 0 10 0 10 0 10");
     lmp->input->one("create_box 1 box");
     lmp->input->one("create_atoms 1 box");
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     TEST_FAILURE(".*ERROR: Must use 'kim_init' before 'kim_interactions'.*",
                  lmp->input->one("kim_interactions Ar"););
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("clear");
     lmp->input->one("kim_init LennardJones_Ar real");
     lmp->input->one("lattice fcc 4.4300");
     lmp->input->one("region box block 0 10 0 10 0 10");
     lmp->input->one("create_box 1 box");
     lmp->input->one("create_atoms 1 box");
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     TEST_FAILURE(".*ERROR: fixed_types cannot be used with a KIM Portable Model.*",
                  lmp->input->one("kim_interactions fixed_types"););
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("clear");
     lmp->input->one("units real");
     lmp->input->one("pair_style kim LennardJones_Ar");
     lmp->input->one("region box block 0 1 0 1 0 1");
     lmp->input->one("create_box 4 box");
     lmp->input->one("pair_coeff * * Ar Ar Ar Ar");
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("clear");
     lmp->input->one("kim_init Sim_LAMMPS_LJcut_AkersonElliott_Alchemy_PbAu metal");
     lmp->input->one("lattice fcc 4.920");
     lmp->input->one("region box block 0 10 0 10 0 10");
     lmp->input->one("create_box 1 box");
     lmp->input->one("create_atoms 1 box");
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     TEST_FAILURE(".*ERROR: Species 'Ar' is not supported by this KIM Simulator Model.*",
                  lmp->input->one("kim_interactions Ar"););
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("clear");
     lmp->input->one("kim_init LennardJones_Ar real");
     lmp->input->one("lattice fcc 4.4300");
@@ -182,7 +181,7 @@ TEST_F(KimCommandsTest, kim_interactions)
     lmp->input->one("create_atoms 1 box");
     lmp->input->one("kim_interactions Ar");
     lmp->input->one("mass 1 39.95");
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     int ifix = lmp->modify->find_fix("KIM_MODEL_STORE");
     ASSERT_GE(ifix, 0);
@@ -192,26 +191,25 @@ TEST_F(KimCommandsTest, kim_param)
 {
     if (!LAMMPS::is_installed_pkg("KIM")) GTEST_SKIP();
 
-    TEST_FAILURE(".*ERROR: Illegal kim_param command.*",
-                 lmp->input->one("kim_param"););
+    TEST_FAILURE(".*ERROR: Illegal kim_param command.*", lmp->input->one("kim_param"););
     TEST_FAILURE(".*ERROR: Incorrect arguments in kim_param command.\n"
                  "'kim_param get/set' is mandatory.*",
                  lmp->input->one("kim_param unknown shift 1 shift"););
     TEST_FAILURE(".*ERROR: Must use 'kim_init' before 'kim_param'.*",
                  lmp->input->one("kim_param get shift 1 shift"););
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("clear");
     lmp->input->one("kim_init Sim_LAMMPS_LJcut_AkersonElliott_Alchemy_PbAu metal");
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     TEST_FAILURE(".*ERROR: kim_param can only be used with a KIM Portable Model.*",
                  lmp->input->one("kim_param get shift 1 shift"););
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("clear");
     lmp->input->one("kim_init LennardJones612_UniversalShifted__MO_959249795837_003 real");
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     TEST_FAILURE(".*ERROR: Illegal index '0' for "
                  "'shift' parameter with the extent of '1'.*",
@@ -223,7 +221,7 @@ TEST_F(KimCommandsTest, kim_param)
                  "parameter\\(s\\) instead of '1.' in index_range.*",
                  lmp->input->one("kim_param get shift 1. shift"););
     TEST_FAILURE(".*ERROR: Illegal index_range '1-2' for 'shift' "
-                "parameter with the extent of '1'.*",
+                 "parameter with the extent of '1'.*",
                  lmp->input->one("kim_param get shift 1:2 shift"););
     TEST_FAILURE(".*ERROR: Illegal index_range.\nExpected integer "
                  "parameter\\(s\\) instead of '1-2' in index_range.*",
@@ -241,14 +239,14 @@ TEST_F(KimCommandsTest, kim_param)
                  "'pair_style kim' before 'kim_param set'.*",
                  lmp->input->one("kim_param set shift 1 2"););
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("kim_param get shift 1 shift");
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     ASSERT_FALSE(lmp->input->variable->find("shift") == -1);
     ASSERT_TRUE(std::string(lmp->input->variable->retrieve("shift")) == std::string("1"));
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("clear");
     lmp->input->one("kim_init LennardJones612_UniversalShifted__MO_959249795837_003 real");
     lmp->input->one("lattice fcc 4.4300");
@@ -257,7 +255,7 @@ TEST_F(KimCommandsTest, kim_param)
     lmp->input->one("create_atoms 1 box");
     lmp->input->one("kim_interactions Ar");
     lmp->input->one("mass 1 39.95");
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     TEST_FAILURE(".*ERROR: Illegal index '2' for "
                  "'shift' parameter with the extent of '1'.*",
@@ -274,11 +272,11 @@ TEST_F(KimCommandsTest, kim_param)
                  "Model does not have the requested '0.4989030' parameter.*",
                  lmp->input->one("kim_param set sigmas 1:1 0.5523570 0.4989030"););
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("variable new_shift equal 2");
     lmp->input->one("kim_param set shift 1 ${new_shift}");
     lmp->input->one("kim_param get shift 1 shift");
-    ::testing::internal::GetCapturedStdout();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     ASSERT_TRUE(std::string(lmp->input->variable->retrieve("shift")) == std::string("2"));
 }
@@ -294,8 +292,7 @@ TEST_F(KimCommandsTest, kim_property)
                      "3 >= 3.6 support.*",
                      lmp->input->one("kim_property"););
     } else {
-        TEST_FAILURE(".*ERROR: Invalid kim_property command.*",
-                     lmp->input->one("kim_property"););
+        TEST_FAILURE(".*ERROR: Invalid kim_property command.*", lmp->input->one("kim_property"););
         TEST_FAILURE(".*ERROR: Invalid kim_property command.*",
                      lmp->input->one("kim_property create"););
         TEST_FAILURE(".*ERROR: Incorrect arguments in kim_property command.\n"

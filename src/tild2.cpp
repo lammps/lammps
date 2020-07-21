@@ -2088,7 +2088,11 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
   double tmp_rho_div = 1.0;
   if (normalize_by_rho0 == 1) tmp_rho_div = rho0;
 
-  double factor = scale_inv / tmp_rho_div;
+  double type_factor = 1.0;
+  if (itype == jtype) type_factor = 0.5;
+
+  double factor = scale_inv / tmp_rho_div * type_factor;
+
   if (eflag_global) {
     // convolve itype-jtype interaction potential and itype density
     n = 0;

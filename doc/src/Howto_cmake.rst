@@ -47,7 +47,7 @@ using a shell like Bash.
 
 - Linux: any Terminal window will work
 - MacOS X: launch the Terminal application.
-- Windows 10: install and run the :doc:`Windows subsystem for Linux <Howto_bash>`
+- Windows 10: install and run the :doc:`Windows Subsystem for Linux <Howto_wsl>`
 
 We also assume that you have downloaded and unpacked a recent LAMMPS source code package
 or used Git to create a clone of the LAMMPS sources on your compilation machine.

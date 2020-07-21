@@ -247,11 +247,9 @@ void ComputeMLIAP::compute_array()
   for (int ielem = 0; ielem < data->nelements; ielem++) {
     const int elemoffset = data->nparams*ielem;
     for (int jparam = 0; jparam < data->nparams; jparam++) {
-      int irow = 1;
       for (int i = 0; i < ntotal; i++) {
         double *gradforcei = data->gradforce[i]+elemoffset;
-        int iglobal = atom->tag[i];
-        int irow = 3*(iglobal-1)+1;
+        tagint irow = 3*(atom->tag[i]-1)+1;
         mliaparray[irow][jparam+elemoffset] += gradforcei[jparam];
         mliaparray[irow+1][jparam+elemoffset] += gradforcei[jparam+data->yoffset];
         mliaparray[irow+2][jparam+elemoffset] += gradforcei[jparam+data->zoffset];

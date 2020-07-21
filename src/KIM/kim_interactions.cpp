@@ -73,14 +73,11 @@
 #include "variable.h"
 #include "utils.h"
 #include "fix_store_kim.h"
+#include "fmt/format.h"
 
 extern "C" {
 #include "KIM_SimulatorHeaders.h"
 }
-
-#define SNUM(x)                                                \
-  static_cast<std::ostringstream const &>(std::ostringstream() \
-                                          << std::dec << x).str()
 
 using namespace LAMMPS_NS;
 
@@ -105,11 +102,9 @@ void KimInteractions::do_setup(int narg, char **arg)
   bool fixed_types;
   if ((narg == 1) && (0 == strcmp("fixed_types",arg[0]))) {
     fixed_types = true;
-  }
-  else if (narg != atom->ntypes) {
+  } else if (narg != atom->ntypes) {
     error->all(FLERR,"Illegal kim_interactions command");
-  }
-  else {
+  } else {
     fixed_types = false;
   }
 
@@ -137,10 +132,9 @@ void KimInteractions::do_setup(int narg, char **arg)
       std::string atom_type_sym_list;
       std::string atom_type_num_list;
 
-      for (int i = 0; i < narg; i++)
-      {
+      for (int i = 0; i < narg; i++) {
         atom_type_sym_list += delimiter + arg[i];
-        atom_type_num_list += delimiter + SNUM(species_to_atomic_no(arg[i]));
+        atom_type_num_list += delimiter + std::to_string(species_to_atomic_no(arg[i]));
         delimiter = " ";
       }
 
@@ -254,31 +248,21 @@ void KimInteractions::do_setup(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void KimInteractions::KIM_SET_TYPE_PARAMETERS(char const *const input_line) const
+void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) const
 {
-  char strbuf[MAXLINE];
-  strcpy(strbuf,input_line);
-  char *cmd, *key, *filename;
   int nocomment;
-  cmd = strtok(strbuf," \t");
-  key = strtok(NULL," \t");
-  filename = strtok(NULL," \t");
+  auto words = utils::split_words(input_line);
+
+  std::string key = words[1];
+  std::string filename = words[2];
+  std::vector<std::string> species(words.begin()+3,words.end());
+  if (species.size() != atom->ntypes)
+    error->one(FLERR,"Incorrect args for KIM_SET_TYPE_PARAMETERS command");
 
   FILE *fp;
-  fp = fopen(filename,"r");
+  fp = fopen(filename.c_str(),"r");
   if (fp == NULL) {
     error->one(FLERR,"Parameter file not found");
-  }
-
-  char *species1, *species2, *the_rest;
-  std::vector<char *> species;
-  for (int i = 0; i < atom->ntypes; ++i)
-  {
-    char *str;
-    str = strtok(NULL," \t");
-    if (str == NULL)
-      error->one(FLERR,"Incorrect args for KIM_SET_TYPE_PARAMETERS command");
-    species.push_back(str);
   }
 
   char line[MAXLINE],*ptr;
@@ -301,40 +285,19 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(char const *const input_line) cons
     nocomment = line[0] != '#';
 
     if(nocomment) {
-      if (strcmp(key,"pair") == 0) {
-        species1 = strtok(ptr," \t");
-        species2 = strtok(NULL," \t");
-        the_rest = strtok(NULL,"\n");
-
-        for (int type_a = 0; type_a < atom->ntypes; ++type_a) {
-          for (int type_b = type_a; type_b < atom->ntypes; ++type_b) {
-            if(((strcmp(species[type_a],species1) == 0) &&
-                (strcmp(species[type_b],species2) == 0))
-               ||
-               ((strcmp(species[type_b],species1) == 0) &&
-                (strcmp(species[type_a],species2) == 0))
-               ) {
-              char pair_command[MAXLINE];
-              sprintf(pair_command,"pair_coeff %i %i %s",type_a+1,type_b+1,
-                      the_rest);
-              input->one(pair_command);
-            }
-          }
+      words = utils::split_words(line);
+      if (key == "pair") {
+        for (int ia = 0; ia < atom->ntypes; ++ia) {
+          for (int ib = ia; ib < atom->ntypes; ++ib)
+            if (((species[ia] == words[0]) && (species[ib] == words[1]))
+                || ((species[ib] == words[0]) && (species[ia] == words[1])))
+              input->one(fmt::format("pair_coeff {} {} {}",ia+1,ib+1,words[2]));
         }
-      }
-      else if (strcmp(key,"charge") == 0) {
-        species1 = strtok(ptr," \t");
-        the_rest = strtok(NULL,"\n");
-
-        for (int type_a = 0; type_a < atom->ntypes; ++type_a) {
-          if(strcmp(species[type_a],species1) == 0) {
-            char pair_command[MAXLINE];
-            sprintf(pair_command,"set type %i charge %s",type_a+1,the_rest);
-            input->one(pair_command);
-          }
-        }
-      }
-      else{
+      } else if (key == "charge") {
+        for (int ia = 0; ia < atom->ntypes; ++ia)
+          if (species[ia] == words[0])
+            input->one(fmt::format("set type {} charge {}",ia+1,words[1]));
+      } else {
         error->one(FLERR,"Unrecognized KEY for KIM_SET_TYPE_PARAMETERS command");
       }
     }

@@ -78,7 +78,7 @@ above, create a test.py file containing these lines:
    pypar.finalize()
 
 To run LAMMPS in parallel, assuming you have installed the
-`mpi4py <https://bitbucket.org/mpi4py/mpi4py>`_ package as discussed
+`mpi4py <https://mpi4py.readthedocs.io>`_ package as discussed
 above, create a test.py file containing these lines:
 
 .. code-block:: python

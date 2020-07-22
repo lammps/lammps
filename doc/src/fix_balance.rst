@@ -158,14 +158,14 @@ that owns them.
 
 .. list-table::
 
-   * - .. figure:: JPG/balance_uniform_small.jpg
-          :target: JPG/balance_uniform.jpg
+   * - .. figure:: img/balance_uniform.jpg
+          :scale: 50%
 
-     - .. figure:: JPG/balance_nonuniform_small.jpg
-          :target: JPG/balance_nonuniform.jpg
+     - .. figure:: img/balance_nonuniform.jpg
+          :scale: 50%
 
-     - .. figure:: JPG/balance_rcb_small.jpg
-          :target: JPG/balance_rcb.jpg
+     - .. figure:: img/balance_rcb.jpg
+          :scale: 50%
 
 The leftmost diagram is the default partitioning of the simulation box
 across processors (one sub-box for each of 16 processors); the middle

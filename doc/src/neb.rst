@@ -395,11 +395,12 @@ neb_combine.py script run on the dump files produced by the two
 example input scripts in examples/neb.  Click on them to see a larger
 image.
 
-.. image:: JPG/hop1_small.jpg
-   :target: JPG/hop1.jpg
+.. image:: img/hop1.jpg
+   :scale: 50%
 
-.. image:: JPG/hop2_small.jpg
-   :target: JPG/hop2.jpg
+.. image:: img/hop2.jpg
+   :scale: 50%
+
 
 ----------
 

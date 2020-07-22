@@ -59,14 +59,15 @@ void Special::build()
   MPI_Barrier(world);
   double time1 = MPI_Wtime();
 
-  if (me == 0 && screen) {
+  if (me == 0) {
     const double * const special_lj   = force->special_lj;
     const double * const special_coul = force->special_coul;
-    fmt::print(screen,"Finding 1-2 1-3 1-4 neighbors ...\n"
-               "  special bond factors lj:    {:<8} {:<8} {:<8}\n"
-               "  special bond factors coul:  {:<8} {:<8} {:<8}\n",
-               special_lj[1],special_lj[2],special_lj[3],
-               special_coul[1],special_coul[2],special_coul[3]);
+    auto mesg = fmt::format("Finding 1-2 1-3 1-4 neighbors ...\n"
+                            "  special bond factors lj:    {:<8} {:<8} {:<8}\n"
+                            "  special bond factors coul:  {:<8} {:<8} {:<8}\n",
+                            special_lj[1],special_lj[2],special_lj[3],
+                            special_coul[1],special_coul[2],special_coul[3]);
+    utils::logmesg(lmp,mesg);
   }
 
   // initialize nspecial counters to 0

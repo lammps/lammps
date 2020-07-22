@@ -82,14 +82,14 @@ source code for individual scripts for comments about what they do.
 Here are screenshots of the vizplotgui_tool.py script in action for
 different visualization package options.  Click to see larger images:
 
-.. image:: JPG/screenshot_gl_small.jpg
-   :target: JPG/screenshot_gl.jpg
+.. image:: img/screenshot_gl.jpg
+   :scale: 15%
 
-.. image:: JPG/screenshot_atomeye_small.jpg
-   :target: JPG/screenshot_atomeye.jpg
+.. image:: img/screenshot_atomeye.jpg
+   :scale: 15%
 
-.. image:: JPG/screenshot_pymol_small.jpg
-   :target: JPG/screenshot_pymol.jpg
+.. image:: img/screenshot_pymol.jpg
+   :scale: 15%
 
-.. image:: JPG/screenshot_vmd_small.jpg
-   :target: JPG/screenshot_vmd.jpg
+.. image:: img/screenshot_vmd.jpg
+   :scale: 15%

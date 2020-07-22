@@ -69,11 +69,11 @@ Click on the images to see a bigger picture.  Movies of these
 simulations are `here on the Movies page <https://lammps.sandia.gov/movies.html#granregion>`_ of the LAMMPS
 web site.
 
-.. image:: JPG/gran_funnel_small.jpg
-   :target: JPG/gran_funnel.png
+.. image:: img/gran_funnel.png
+   :scale: 50%
 
-.. image:: JPG/gran_mixer_small.jpg
-   :target: JPG/gran_mixer.png
+.. image:: img/gran_mixer.png
+   :scale: 50%
 
 ----------
 

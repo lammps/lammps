@@ -275,8 +275,8 @@ larger version.
    create_atoms    1 box var v set x xx set y yy
    write_dump      all atom sinusoid.lammpstrj
 
-.. image:: JPG/sinusoid_small.jpg
-   :target: JPG/sinusoid.jpg
+.. image:: img/sinusoid.jpg
+   :scale: 50%
    :align: center
 
 The *rotate* keyword allows specification of the orientation

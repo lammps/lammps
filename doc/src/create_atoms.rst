@@ -257,8 +257,7 @@ individual lattice points being "above" or "below" the mathematical
 expression for the sinusoidal curve.  If a finer lattice were used,
 the sinusoid would appear to be "smoother".  Also note the use of the
 "xlat" and "ylat" :doc:`thermo_style <thermo_style>` keywords which
-converts lattice spacings to distance.  Click on the image for a
-larger version.
+converts lattice spacings to distance.
 
 .. code-block:: LAMMPS
 
@@ -278,6 +277,10 @@ larger version.
 .. image:: img/sinusoid.jpg
    :scale: 50%
    :align: center
+
+.. raw:: html
+
+   Click on the image for a larger version.
 
 The *rotate* keyword allows specification of the orientation
 at which molecules are inserted.  The axis of rotation is

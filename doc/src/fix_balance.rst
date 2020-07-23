@@ -156,16 +156,16 @@ assigned to each processor, as in the following 2d diagram where
 processor sub-domains are shown and atoms are colored by the processor
 that owns them.
 
-.. list-table::
+.. |balance1| image:: img/balance_uniform.jpg
+   :width: 32%
 
-   * - .. figure:: img/balance_uniform.jpg
-          :scale: 50%
+.. |balance2| image:: img/balance_nonuniform.jpg
+   :width: 32%
 
-     - .. figure:: img/balance_nonuniform.jpg
-          :scale: 50%
+.. |balance3| image:: img/balance_rcb.jpg
+   :width: 32%
 
-     - .. figure:: img/balance_rcb.jpg
-          :scale: 50%
+|balance1|  |balance2|  |balance3|
 
 The leftmost diagram is the default partitioning of the simulation box
 across processors (one sub-box for each of 16 processors); the middle

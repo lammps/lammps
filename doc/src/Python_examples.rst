@@ -80,16 +80,23 @@ See the python/README file for instructions on how to run them and the
 source code for individual scripts for comments about what they do.
 
 Here are screenshots of the vizplotgui_tool.py script in action for
-different visualization package options.  Click to see larger images:
+different visualization package options:
 
-.. image:: img/screenshot_gl.jpg
-   :scale: 15%
+.. |pyex1| image:: img/screenshot_gl.jpg
+   :width: 24%
 
-.. image:: img/screenshot_atomeye.jpg
-   :scale: 15%
+.. |pyex2| image:: img/screenshot_atomeye.jpg
+   :width: 24%
 
-.. image:: img/screenshot_pymol.jpg
-   :scale: 15%
+.. |pyex3| image:: img/screenshot_pymol.jpg
+   :width: 24%
 
-.. image:: img/screenshot_vmd.jpg
-   :scale: 15%
+.. |pyex4| image:: img/screenshot_vmd.jpg
+   :width: 24%
+
+|pyex1|  |pyex2|  |pyex3|  |pyex4|
+
+.. raw:: html
+
+   Click to see larger versions of the images.
+

@@ -71,8 +71,8 @@ reciprocal lattice nodes. The mesh spacing is defined either (a)
 by the entire simulation domain or (b) manually using selected values as
 shown in the 2D diagram below.
 
-.. image:: JPG/xrd_mesh_small.jpg
-   :target: JPG/xrd_mesh.jpg
+.. image:: img/xrd_mesh.jpg
+   :scale: 75%
    :align: center
 
 For a mesh defined by the simulation domain, a rectilinear grid is

@@ -116,18 +116,16 @@ script to generate the images/movie.
 
 Here are two sample images, rendered as 1024x1024 JPEG files.
 
-.. raw:: html
-
-   Click to see the full-size images:
-
-.. |dump1| image:: JPG/dump1_small.jpg
-   :target: JPG/dump1.jpg
+.. |dump1| image:: img/dump1.jpg
    :width: 48%
-.. |dump2| image:: JPG/dump2_small.jpg
-   :target: JPG/dump2.jpg
+.. |dump2| image:: img/dump2.jpg
    :width: 48%
 
 |dump1|  |dump2|
+
+.. raw:: html
+
+   Click to see the full-size images:
 
 Only atoms in the specified group are rendered in the image.  The
 :doc:`dump_modify region and thresh <dump_modify>` commands can also

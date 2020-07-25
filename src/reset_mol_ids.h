@@ -28,6 +28,13 @@ class ResetMolIDs : protected Pointers {
  public:
   ResetMolIDs(class LAMMPS *);
   void command(int, char **);
+  void reset(char *);
+
+private:
+  int nchunk;
+  int compressflag; // 1 = contiguous values for new IDs
+  int singleflag; // 0 = mol IDs of single atoms set to 0
+  tagint offset; // offset for contiguous mol ID values
 };
 
 }

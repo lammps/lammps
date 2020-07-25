@@ -33,6 +33,7 @@ Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "random_mars.h"
+#include "reset_mol_ids.h"
 #include "molecule.h"
 #include "group.h"
 #include "citeme.h"
@@ -92,6 +93,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   fix1 = NULL;
   fix2 = NULL;
   fix3 = NULL;
+  reset_mol_ids = NULL;
 
   if (narg < 8) error->all(FLERR,"Illegal fix bond/react command: "
                            "too few arguments");
@@ -166,7 +168,11 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"reset_mol_ids") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                     "'reset_mol_ids' keyword has too few arguments");
-      if (strcmp(arg[iarg+1],"yes") == 0) iarg += 2; //default
+      if (strcmp(arg[iarg+1],"yes") == 0) { // default
+        delete reset_mol_ids;
+        reset_mol_ids = new ResetMolIDs(lmp);
+        iarg += 2;
+      }
       if (strcmp(arg[iarg+1],"no") == 0) {
         reset_mol_ids_flag = 0;
         iarg += 2;
@@ -507,6 +513,8 @@ FixBondReact::~FixBondReact()
     delete random[i];
   }
   delete [] random;
+
+  delete reset_mol_ids;
 
   memory->destroy(partner);
   memory->destroy(finalpartner);
@@ -3052,8 +3060,7 @@ void FixBondReact::update_everything()
   // done deleting atoms
 
   // reset mol ids
-  if (reset_mol_ids_flag)
-    input->one("reset_mol_ids " + std::string(group->names[igroup]) + " verbose no");
+  if (reset_mol_ids_flag) reset_mol_ids->reset(group->names[igroup]);
 
   // something to think about: this could done much more concisely if
   // all atom-level info (bond,angles, etc...) were kinda inherited from a common data struct --JG

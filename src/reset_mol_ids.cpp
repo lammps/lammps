@@ -33,9 +33,15 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ResetMolIDs::ResetMolIDs(LAMMPS *lmp) : Pointers(lmp) {}
+ResetMolIDs::ResetMolIDs(LAMMPS *lmp) : Pointers(lmp) {
+  compressflag = 1;
+  singleflag = 0;
+  offset = -1;
+}
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   called as reset_mol_ids command in input script
+------------------------------------------------------------------------- */
 
 void ResetMolIDs::command(int narg, char **arg)
 {
@@ -49,14 +55,7 @@ void ResetMolIDs::command(int narg, char **arg)
   // process args
 
   if (narg < 1) error->all(FLERR,"Illegal reset_mol_ids command");
-  int igroup = group->find(arg[0]);
-  if (igroup == -1) error->all(FLERR,"Could not find reset_mol_ids group ID");
-  int groupbit = group->bitmask[igroup];
-
-  int compressflag = 1;
-  int singleflag = 0;
-  tagint offset = -1;
-  int verbose = 1;
+  char *groupid = arg[0];
 
   int iarg = 1;
   while (iarg < narg) {
@@ -77,39 +76,61 @@ void ResetMolIDs::command(int narg, char **arg)
       offset = utils::tnumeric(FLERR,arg[iarg+1],1,lmp);
       if (offset < -1) error->all(FLERR,"Illegal reset_mol_ids command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"verbose") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal reset_mol_ids command");
-      if (strcmp(arg[iarg+1],"yes") == 0) verbose = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) verbose = 0;
-      else error->all(FLERR,"Illegal reset_mol_ids command");
-      iarg += 2;
     } else error->all(FLERR,"Illegal reset_mol_ids command");
   }
 
-  if (verbose && (comm->me == 0)) utils::logmesg(lmp,"Resetting molecule IDs ...\n");
+  if (comm->me == 0) utils::logmesg(lmp,"Resetting molecule IDs ...\n");
 
   // record wall time for resetting molecule IDs
 
   MPI_Barrier(world);
   double time1 = MPI_Wtime();
 
+  // initialize system since comm->borders() will be invoked
+
+  lmp->init();
+
+  // reset molecule IDs
+
+  reset(groupid);
+
+  // total time
+
+  MPI_Barrier(world);
+
+  if (comm->me == 0) {
+    if (nchunk < 0)
+      utils::logmesg(lmp,fmt::format("  number of new molecule IDs = unknown\n"));
+    else
+      utils::logmesg(lmp,fmt::format("  number of new molecule IDs = {}\n",nchunk));
+    utils::logmesg(lmp,fmt::format("  reset_mol_ids CPU = {:.3f} seconds\n",
+                                   MPI_Wtime()-time1));
+  }
+}
+
+/* ----------------------------------------------------------------------
+   called from command() and directly from fixes that update molecules
+------------------------------------------------------------------------- */
+
+void ResetMolIDs::reset(char *groupid)
+{
+  int igroup = group->find(groupid);
+  if (igroup == -1) error->all(FLERR,"Could not find reset_mol_ids group ID");
+  int groupbit = group->bitmask[igroup];
+
   // create instances of compute fragment/atom, compute reduce (if needed),
   // and compute chunk/atom.  all use the group-ID for this command
 
   const std::string idfrag = "reset_mol_ids_FRAGMENT_ATOM";
   if (singleflag)
-    modify->add_compute(fmt::format("{} {} fragment/atom single yes",idfrag,arg[0]));
+    modify->add_compute(fmt::format("{} {} fragment/atom single yes",idfrag,groupid));
   else
-    modify->add_compute(fmt::format("{} {} fragment/atom single no",idfrag,arg[0]));
+    modify->add_compute(fmt::format("{} {} fragment/atom single no",idfrag,groupid));
 
   const std::string idchunk = "reset_mol_ids_CHUNK_ATOM";
   if (compressflag)
     modify->add_compute(fmt::format("{} {} chunk/atom molecule compress yes",
-                                    idchunk,arg[0]));
-
-  // initialize system since comm->borders() will be invoked
-
-  lmp->init();
+                                    idchunk,groupid));
 
   // setup domain, communication
   // exchange will clear map, borders will reset
@@ -145,7 +166,7 @@ void ResetMolIDs::command(int narg, char **arg)
   // if compressflag = 0, done
   // set nchunk = -1 since cannot easily determine # of new molecule IDs
 
-  int nchunk = -1;
+  nchunk = -1;
 
   // if compressflag = 1, invoke peratom method of compute chunk/atom
   // will compress new molecule IDs to be contiguous 1 to Nmol
@@ -205,17 +226,4 @@ void ResetMolIDs::command(int narg, char **arg)
 
   modify->delete_compute(idfrag);
   if (compressflag) modify->delete_compute(idchunk);
-
-  // total time
-
-  MPI_Barrier(world);
-
-  if (verbose && (comm->me == 0)) {
-    if (nchunk < 0)
-      utils::logmesg(lmp,fmt::format("  number of new molecule IDs = unknown\n"));
-    else
-      utils::logmesg(lmp,fmt::format("  number of new molecule IDs = {}\n",nchunk));
-    utils::logmesg(lmp,fmt::format("  reset_mol_ids CPU = {:.3f} seconds\n",
-                                   MPI_Wtime()-time1));
-  }
 }

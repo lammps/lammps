@@ -79,7 +79,8 @@ class FixTTMMod : public Fix {
   double electron_temperature_min;
   el_heat_capacity_thermal_conductivity el_properties(double);
   double el_sp_heat_integral(double);
-  void read_initial_electron_temperatures(FILE *);
+  void read_parameters(const char *);
+  void read_initial_electron_temperatures(const char *);
 };
 
 }

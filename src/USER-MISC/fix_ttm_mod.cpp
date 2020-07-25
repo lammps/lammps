@@ -34,6 +34,7 @@
 #include "math_const.h"
 #include "utils.h"
 #include "fmt/format.h"
+#include "tokenizer.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -82,26 +83,15 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   if (seed <= 0)
     error->all(FLERR,"Invalid random number seed in fix ttm/mod command");
 
-  FILE *fpr_2 = force->open_potential(arg[4]);
-  if (fpr_2 == NULL) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",arg[4]);
-    error->all(FLERR,str);
-  }
-
   nxnodes = force->inumeric(FLERR,arg[5]);
   nynodes = force->inumeric(FLERR,arg[6]);
   nznodes = force->inumeric(FLERR,arg[7]);
   if (nxnodes <= 0 || nynodes <= 0 || nznodes <= 0)
     error->all(FLERR,"Fix ttm/mod number of nodes must be > 0");
 
-  const char *filename = arg[8];
-  FILE *fpr = force->open_potential(filename);
-  if (fpr == NULL) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",filename);
-    error->all(FLERR,str);
-  }
+  total_nnodes = (bigint)nxnodes * (bigint)nynodes * (bigint)nznodes;
+  if (total_nnodes > MAXSMALLINT)
+    error->all(FLERR,"Too many nodes in fix ttm/mod");
 
   nfileevery = force->inumeric(FLERR,arg[9]);
   if (nfileevery > 0) {
@@ -116,121 +106,11 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
       }
     }
   }
-  char linee[MAXLINE];
-  double tresh_d;
-  int tresh_i;
-  // C0 (metal)
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  esheat_0 = tresh_d;
-  // C1 (metal*10^3)
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  esheat_1 = tresh_d;
-  // C2 (metal*10^6)
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  esheat_2 = tresh_d;
-  // C3 (metal*10^9)
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  esheat_3 = tresh_d;
-  // C4 (metal*10^12)
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  esheat_4 = tresh_d;
-  // C_limit
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  C_limit = tresh_d;
-  //Temperature damping factor
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  T_damp = tresh_d;
-  // rho_e
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  electronic_density = tresh_d;
-  //thermal_diffusion
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  el_th_diff = tresh_d;
-  // gamma_p
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  gamma_p = tresh_d;
-  // gamma_s
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  gamma_s = tresh_d;
-  // v0
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  v_0 = tresh_d;
-  // average intensity of pulse (source of energy) (metal units)
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  intensity = tresh_d;
-  // coordinate of 1st surface in x-direction (in box units) - constant
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%d",&tresh_i);
-  surface_l = tresh_i;
-  // coordinate of 2nd surface in x-direction (in box units) - constant
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%d",&tresh_i);
-  surface_r = tresh_i;
-  // skin_layer = intensity is reduced (I=I0*exp[-x/skin_layer])
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%d",&tresh_i);
-  skin_layer = tresh_i;
-  // width of pulse (picoseconds)
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  width = tresh_d;
-  // factor of electronic pressure (PF) Pe = PF*Ce*Te
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  pres_factor = tresh_d;
-  // effective free path of electrons (angstrom)
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  free_path = tresh_d;
-  // ionic density (ions*angstrom^{-3})
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  ionic_density = tresh_d;
-  // if movsur = 0: surface is freezed
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%d",&tresh_i);
-  movsur = tresh_i;
-  // electron_temperature_min
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  electron_temperature_min = tresh_d;
-  fclose(fpr_2);
-  //t_surface is determined by electronic temperature (not constant)
+
+  read_parameters(arg[4]);
+
+  // t_surface is determined by electronic temperature (not constant)
+
   t_surface_l = surface_l;
   mult_factor = intensity;
   duration = 0.0;
@@ -279,9 +159,8 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(0);
   atom->add_callback(1);
   // set initial electron temperatures from user input file
-  if (me == 0) read_initial_electron_temperatures(fpr);
+  if (me == 0) read_initial_electron_temperatures(arg[13]);
   MPI_Bcast(&T_electron[0][0][0],total_nnodes,MPI_DOUBLE,0,world);
-  fclose(fpr);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -489,32 +368,196 @@ void FixTTMMod::reset_dt()
 }
 
 /* ----------------------------------------------------------------------
+   read in ttm/mod parameters from a user-specified file
+   only called by proc 0
+------------------------------------------------------------------------- */
+
+void FixTTMMod::read_parameters(const char *filename)
+{
+  char line[MAXLINE];
+  std::string name = utils::get_potential_file_path(filename);
+  if (name.empty())
+    error->one(FLERR,fmt::format("Cannot open input file: {}",
+                                 filename));
+  FILE *fpr = fopen(name.c_str(),"r");
+
+  // C0 (metal)
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  esheat_0 = utils::numeric(FLERR,line,true,lmp);
+
+  // C1 (metal*10^3)
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  esheat_1 = utils::numeric(FLERR,line,true,lmp);
+
+  // C2 (metal*10^6)
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  esheat_2 = utils::numeric(FLERR,line,true,lmp);
+
+  // C3 (metal*10^9)
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  esheat_3 = utils::numeric(FLERR,line,true,lmp);
+
+  // C4 (metal*10^12)
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  esheat_4 = utils::numeric(FLERR,line,true,lmp);
+
+  // C_limit
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  C_limit = utils::numeric(FLERR,line,true,lmp);
+
+  // Temperature damping factor
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  T_damp = utils::numeric(FLERR,line,true,lmp);
+
+  // rho_e
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  electronic_density = utils::numeric(FLERR,line,true,lmp);
+
+  // thermal_diffusion
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  el_th_diff = utils::numeric(FLERR,line,true,lmp);
+
+  // gamma_p
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  gamma_p = utils::numeric(FLERR,line,true,lmp);
+
+  // gamma_s
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  gamma_s = utils::numeric(FLERR,line,true,lmp);
+
+  // v0
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  v_0 = utils::numeric(FLERR,line,true,lmp);
+
+  // average intensity of pulse (source of energy) (metal units)
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  intensity = utils::numeric(FLERR,line,true,lmp);
+
+  // coordinate of 1st surface in x-direction (in box units) - constant
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  surface_l = utils::inumeric(FLERR,line,true,lmp);
+
+  // coordinate of 2nd surface in x-direction (in box units) - constant
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  surface_r = utils::inumeric(FLERR,line,true,lmp);
+
+  // skin_layer = intensity is reduced (I=I0*exp[-x/skin_layer])
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  skin_layer = utils::inumeric(FLERR,line,true,lmp);
+
+  // width of pulse (picoseconds)
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  width = utils::numeric(FLERR,line,true,lmp);
+
+  // factor of electronic pressure (PF) Pe = PF*Ce*Te
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  pres_factor = utils::numeric(FLERR,line,true,lmp);
+
+  // effective free path of electrons (angstrom)
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  free_path = utils::numeric(FLERR,line,true,lmp);
+
+  // ionic density (ions*angstrom^{-3})
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  ionic_density = utils::numeric(FLERR,line,true,lmp);
+
+  // if movsur = 0: surface is frozen
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  movsur = utils::inumeric(FLERR,line,true,lmp);
+
+  // electron_temperature_min
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  electron_temperature_min = utils::numeric(FLERR,line,true,lmp);
+  fclose(fpr);
+}
+
+/* ----------------------------------------------------------------------
    read in initial electron temperatures from a user-specified file
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void FixTTMMod::read_initial_electron_temperatures(FILE *fpr)
+void FixTTMMod::read_initial_electron_temperatures(const char *filename)
 {
-  char line[MAXLINE];
-  for (int ixnode = 0; ixnode < nxnodes; ixnode++)
-    for (int iynode = 0; iynode < nynodes; iynode++)
-      for (int iznode = 0; iznode < nznodes; iznode++)
-        T_initial_set[ixnode][iynode][iznode] = 0;
+  memset(&T_initial_set[0][0][0],0,total_nnodes*sizeof(double));
+
+  std::string name = utils::get_potential_file_path(filename);
+  if (name.empty())
+    error->one(FLERR,fmt::format("Cannot open input file: {}",
+                                 filename));
+  FILE *fpr = fopen(name.c_str(),"r");
+
   // read initial electron temperature values from file
+
+  char line[MAXLINE];
   int ixnode,iynode,iznode;
   double T_tmp;
   while (1) {
     if (fgets(line,MAXLINE,fpr) == NULL) break;
-    sscanf(line,"%d %d %d %lg",&ixnode,&iynode,&iznode,&T_tmp);
-    if (T_tmp < 0.0) error->one(FLERR,"Fix ttm/mod electron temperatures must be >= 0.0");
+    ValueTokenizer values(line);
+    if (values.has_next()) ixnode = values.next_int();
+    if (values.has_next()) iynode = values.next_int();
+    if (values.has_next()) iznode = values.next_int();
+    if (values.has_next()) T_tmp  = values.next_double();
+    else error->one(FLERR,"Incorrect format in fix ttm input file");
+
+    // check correctness of input data
+
+    if ((ixnode < 0) || (ixnode >= nxnodes)
+        || (iynode < 0) || (iynode >= nynodes)
+        || (iznode < 0) || (iznode >= nznodes))
+      error->one(FLERR,"Fix ttm invalide node index in fix ttm input");
+
+    if (T_tmp < 0.0)
+      error->one(FLERR,"Fix ttm electron temperatures must be > 0.0");
+
     T_electron[ixnode][iynode][iznode] = T_tmp;
     T_initial_set[ixnode][iynode][iznode] = 1;
   }
-  for (int ixnode = 0; ixnode < nxnodes; ixnode++)
-    for (int iynode = 0; iynode < nynodes; iynode++)
-      for (int iznode = 0; iznode < nznodes; iznode++)
-        if (T_initial_set[ixnode][iynode][iznode] == 0)
-          error->one(FLERR,"Initial temperatures not all set in fix ttm/mod");
+  fclose(fpr);
 }
 
 /* ---------------------------------------------------------------------- */

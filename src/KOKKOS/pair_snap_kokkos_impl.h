@@ -405,7 +405,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     {
       int team_size = team_size_default;
       int vector_length = vector_length_default;
-      if (eflag) {
+      if (evflag) {
         if (neighflag == HALF) {
           check_team_size_reduce<TagPairSNAPComputeForce<HALF,1> >(chunk_size,team_size,vector_length);
           typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeForce<HALF,1> > policy_force(chunk_size,team_size,vector_length);

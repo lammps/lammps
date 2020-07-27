@@ -69,14 +69,16 @@ class CommTiled : public Comm {
   int **size_reverse_recv;      // # of values to recv in each reverse swap/proc
   int **forward_recv_offset;  // forward comm offsets in buf_recv per swap/proc
   int **reverse_recv_offset;  // reverse comm offsets in buf_recv per swap/proc
-  double **cutghostmulti;           // cutghost on a per-type basis
   int ***sendlist;              // list of atoms to send per swap/proc
   int **maxsendlist;            // max size of send list per swap/proc
   int **pbc_flag;               // general flag for sending atoms thru PBC
   int ***pbc;                   // dimension flags for PBC adjustments
 
   double ***sendbox;            // bounding box of atoms to send per swap/proc
-  double ****sendbox_multi;     // bounding box of atoms to send per swap/proc for multi comm
+  
+  double **cutghostmulti;       // cutghost on a per-type basis
+  double ****sendbox_multi;     // bounding box of atoms to send 
+                                //   per swap/proc for multi comm
 
   // exchange comm info, proc lists do not include self
 

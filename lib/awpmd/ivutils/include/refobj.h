@@ -2,9 +2,9 @@
  *
  *   Copyright (c), Ilya Valuev 2006        All Rights Reserved.
  *
- *   Author	: Ilya Valuev, MIPT, Moscow, Russia
+ *   Author     : Ilya Valuev, MIPT, Moscow, Russia
  *
- *   Project	: ivutils
+ *   Project    : ivutils
  *
  *****************************************************************************/
 /*s****************************************************************************
@@ -250,7 +250,7 @@ public:
     if(man){
       iterator it=base_t::begin();
       for(;it!=base_t::end();++it)
-        if(*it) 
+        if(*it)
           delete (*it);
     }
     base_t::clear();
@@ -427,7 +427,7 @@ class RefObject{
   void *ref_data;
   int  ref_count;
 public:
-  
+
 protected:
   virtual void delete_data(void *data);
   virtual void *new_data();
@@ -437,7 +437,7 @@ protected:
 
 
 class RefA: public RefObject{
-  
+
 public:
   refA(){
     ref_data = new A;

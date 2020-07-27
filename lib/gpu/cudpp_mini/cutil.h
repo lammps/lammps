@@ -1,32 +1,32 @@
 /*
 * Copyright 1993-2006 NVIDIA Corporation.  All rights reserved.
 *
-* NOTICE TO USER:   
+* NOTICE TO USER:
 *
-* This source code is subject to NVIDIA ownership rights under U.S. and 
-* international Copyright laws.  
+* This source code is subject to NVIDIA ownership rights under U.S. and
+* international Copyright laws.
 *
-* NVIDIA MAKES NO REPRESENTATION ABOUT THE SUITABILITY OF THIS SOURCE 
-* CODE FOR ANY PURPOSE.  IT IS PROVIDED "AS IS" WITHOUT EXPRESS OR 
-* IMPLIED WARRANTY OF ANY KIND.  NVIDIA DISCLAIMS ALL WARRANTIES WITH 
-* REGARD TO THIS SOURCE CODE, INCLUDING ALL IMPLIED WARRANTIES OF 
-* MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE.   
-* IN NO EVENT SHALL NVIDIA BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL, 
-* OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS 
-* OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE 
-* OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE 
-* OR PERFORMANCE OF THIS SOURCE CODE.  
+* NVIDIA MAKES NO REPRESENTATION ABOUT THE SUITABILITY OF THIS SOURCE
+* CODE FOR ANY PURPOSE.  IT IS PROVIDED "AS IS" WITHOUT EXPRESS OR
+* IMPLIED WARRANTY OF ANY KIND.  NVIDIA DISCLAIMS ALL WARRANTIES WITH
+* REGARD TO THIS SOURCE CODE, INCLUDING ALL IMPLIED WARRANTIES OF
+* MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE.
+* IN NO EVENT SHALL NVIDIA BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL,
+* OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+* OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+* OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE
+* OR PERFORMANCE OF THIS SOURCE CODE.
 *
-* U.S. Government End Users.  This source code is a "commercial item" as 
-* that term is defined at 48 C.F.R. 2.101 (OCT 1995), consisting  of 
-* "commercial computer software" and "commercial computer software 
-* documentation" as such terms are used in 48 C.F.R. 12.212 (SEPT 1995) 
-* and is provided to the U.S. Government only as a commercial end item.  
-* Consistent with 48 C.F.R.12.212 and 48 C.F.R. 227.7202-1 through 
-* 227.7202-4 (JUNE 1995), all U.S. Government End Users acquire the 
+* U.S. Government End Users.  This source code is a "commercial item" as
+* that term is defined at 48 C.F.R. 2.101 (OCT 1995), consisting  of
+* "commercial computer software" and "commercial computer software
+* documentation" as such terms are used in 48 C.F.R. 12.212 (SEPT 1995)
+* and is provided to the U.S. Government only as a commercial end item.
+* Consistent with 48 C.F.R.12.212 and 48 C.F.R. 227.7202-1 through
+* 227.7202-4 (JUNE 1995), all U.S. Government End Users acquire the
 * source code with only those rights set forth herein.
 */
- 
+
 
 /* CUda UTility Library */
 
@@ -36,7 +36,7 @@
 #include <cuda_runtime.h>
 
 #ifdef _WIN32
-#   pragma warning( disable : 4996 ) // disable deprecated warning 
+#   pragma warning( disable : 4996 ) // disable deprecated warning
 #endif
 
 #ifdef __cplusplus
@@ -50,8 +50,8 @@ extern "C" {
 #  else
 #    define DLL_MAPPING  __declspec(dllimport)
 #  endif
-#else 
-#  define DLL_MAPPING 
+#else
+#  define DLL_MAPPING
 #endif
 
 #ifdef _WIN32
@@ -64,7 +64,7 @@ extern "C" {
     ////////////////////////////////////////////////////////////////////////////
     //! CUT bool type
     ////////////////////////////////////////////////////////////////////////////
-    enum CUTBoolean 
+    enum CUTBoolean
     {
         CUTFalse = 0,
         CUTTrue = 1
@@ -72,11 +72,11 @@ extern "C" {
 
     ////////////////////////////////////////////////////////////////////////////
     //! Deallocate memory allocated within Cutil
-    //! @param  pointer to memory 
+    //! @param  pointer to memory
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
     void CUTIL_API
-  	cutFree( void* ptr);
+        cutFree( void* ptr);
 
     ////////////////////////////////////////////////////////////////////////////
     //! Helper for bank conflict checking (should only be used with the
@@ -95,7 +95,7 @@ extern "C" {
     DLL_MAPPING
     void CUTIL_API
     cutCheckBankAccess( unsigned int tidx, unsigned int tidy, unsigned int tidz,
-                        unsigned int bdimx, unsigned int bdimy, 
+                        unsigned int bdimx, unsigned int bdimy,
                         unsigned int bdimz, const char* file, const int line,
                         const char* aname, const int index);
 
@@ -141,8 +141,8 @@ extern "C" {
     //!       deallocate the memory
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
-    cutReadFilef( const char* filename, float** data, unsigned int* len, 
+    CUTBoolean CUTIL_API
+    cutReadFilef( const char* filename, float** data, unsigned int* len,
                   bool verbose = false);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -157,8 +157,8 @@ extern "C" {
     //!       deallocate the memory
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
-    cutReadFiled( const char* filename, double** data, unsigned int* len, 
+    CUTBoolean CUTIL_API
+    cutReadFiled( const char* filename, double** data, unsigned int* len,
                   bool verbose = false);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -173,7 +173,7 @@ extern "C" {
     //!       deallocate the memory
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
+    CUTBoolean CUTIL_API
     cutReadFilei( const char* filename, int** data, unsigned int* len, bool verbose = false);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -183,13 +183,13 @@ extern "C" {
     //! @param data  uninitialized pointer, returned initialized and pointing to
     //!        the data read
     //! @param len  number of data elements in data, -1 on error
-    //! @note If a NULL pointer is passed to this function and it is 
+    //! @note If a NULL pointer is passed to this function and it is
     //!       initialized within Cutil then cutFree() has to be used to
     //!       deallocate the memory
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
-    cutReadFileui( const char* filename, unsigned int** data, 
+    CUTBoolean CUTIL_API
+    cutReadFileui( const char* filename, unsigned int** data,
                    unsigned int* len, bool verbose = false);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -199,13 +199,13 @@ extern "C" {
     //! @param data  uninitialized pointer, returned initialized and pointing to
     //!        the data read
     //! @param len  number of data elements in data, -1 on error
-    //! @note If a NULL pointer is passed to this function and it is 
+    //! @note If a NULL pointer is passed to this function and it is
     //!       initialized within Cutil then cutFree() has to be used to
     //!       deallocate the memory
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
-    cutReadFileb( const char* filename, char** data, unsigned int* len, 
+    CUTBoolean CUTIL_API
+    cutReadFileb( const char* filename, char** data, unsigned int* len,
                   bool verbose = false);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -220,12 +220,12 @@ extern "C" {
     //!       deallocate the memory
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
-    cutReadFileub( const char* filename, unsigned char** data, 
+    CUTBoolean CUTIL_API
+    cutReadFileub( const char* filename, unsigned char** data,
                    unsigned int* len, bool verbose = false);
 
     ////////////////////////////////////////////////////////////////////////////
-    //! Write a data file \filename containing single precision floating point 
+    //! Write a data file \filename containing single precision floating point
     //! data
     //! @return CUTTrue if writing the file succeeded, otherwise false
     //! @param filename name of the file to write
@@ -234,12 +234,12 @@ extern "C" {
     //! @param epsilon  epsilon for comparison
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
+    CUTBoolean CUTIL_API
     cutWriteFilef( const char* filename, const float* data, unsigned int len,
                    const float epsilon, bool verbose = false);
 
     ////////////////////////////////////////////////////////////////////////////
-    //! Write a data file \filename containing double precision floating point 
+    //! Write a data file \filename containing double precision floating point
     //! data
     //! @return CUTTrue if writing the file succeeded, otherwise false
     //! @param filename name of the file to write
@@ -248,7 +248,7 @@ extern "C" {
     //! @param epsilon  epsilon for comparison
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
+    CUTBoolean CUTIL_API
     cutWriteFiled( const char* filename, const float* data, unsigned int len,
                    const double epsilon, bool verbose = false);
 
@@ -260,7 +260,7 @@ extern "C" {
     //! @param len  number of data elements in data, -1 on error
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
+    CUTBoolean CUTIL_API
     cutWriteFilei( const char* filename, const int* data, unsigned int len,
                    bool verbose = false);
 
@@ -272,8 +272,8 @@ extern "C" {
     //! @param len  number of data elements in data, -1 on error
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
-    cutWriteFileui( const char* filename,const unsigned int* data, 
+    CUTBoolean CUTIL_API
+    cutWriteFileui( const char* filename,const unsigned int* data,
                     unsigned int len, bool verbose = false);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -284,8 +284,8 @@ extern "C" {
     //! @param len  number of data elements in data, -1 on error
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
-    cutWriteFileb( const char* filename, const char* data, unsigned int len, 
+    CUTBoolean CUTIL_API
+    cutWriteFileb( const char* filename, const char* data, unsigned int len,
                    bool verbose = false);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -296,7 +296,7 @@ extern "C" {
     //! @param len  number of data elements in data, -1 on error
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
+    CUTBoolean CUTIL_API
     cutWriteFileub( const char* filename,const unsigned char* data,
                     unsigned int len, bool verbose = false);
 
@@ -307,7 +307,7 @@ extern "C" {
     //! @param data  handle to the data read
     //! @param w     width of the image
     //! @param h     height of the image
-    //! @note If a NULL pointer is passed to this function and it is 
+    //! @note If a NULL pointer is passed to this function and it is
     //!       initialized within Cutil then cutFree() has to be used to
     //!       deallocate the memory
     ////////////////////////////////////////////////////////////////////////////
@@ -326,11 +326,11 @@ extern "C" {
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
     CUTBoolean CUTIL_API
-    cutLoadPPMub( const char* file, unsigned char** data, 
+    cutLoadPPMub( const char* file, unsigned char** data,
                   unsigned int *w,unsigned int *h);
 
     ////////////////////////////////////////////////////////////////////////////
-    //! Load PPM image file (with unsigned char as data element type), padding 
+    //! Load PPM image file (with unsigned char as data element type), padding
     //! 4th component
     //! @return CUTTrue if reading the file succeeded, otherwise false
     //! @param file  name of the image file
@@ -340,7 +340,7 @@ extern "C" {
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
     CUTBoolean CUTIL_API
-    cutLoadPPM4ub( const char* file, unsigned char** data, 
+    cutLoadPPM4ub( const char* file, unsigned char** data,
                    unsigned int *w,unsigned int *h);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -350,13 +350,13 @@ extern "C" {
     //! @param data  handle to the data read
     //! @param w     width of the image
     //! @param h     height of the image
-    //! @note If a NULL pointer is passed to this function and it is 
+    //! @note If a NULL pointer is passed to this function and it is
     //!       initialized within Cutil then cutFree() has to be used to
     //!       deallocate the memory
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
     CUTBoolean CUTIL_API
-        cutLoadPGMi( const char* file, unsigned int** data, 
+        cutLoadPGMi( const char* file, unsigned int** data,
                      unsigned int* w, unsigned int* h);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -366,13 +366,13 @@ extern "C" {
     //! @param data  handle to the data read
     //! @param w     width of the image
     //! @param h     height of the image
-    //! @note If a NULL pointer is passed to this function and it is 
+    //! @note If a NULL pointer is passed to this function and it is
     //!       initialized within Cutil then cutFree() has to be used to
     //!       deallocate the memory
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
     CUTBoolean CUTIL_API
-        cutLoadPGMs( const char* file, unsigned short** data, 
+        cutLoadPGMs( const char* file, unsigned short** data,
                      unsigned int* w, unsigned int* h);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -381,7 +381,7 @@ extern "C" {
     //! @param data  handle to the data read
     //! @param w     width of the image
     //! @param h     height of the image
-    //! @note If a NULL pointer is passed to this function and it is 
+    //! @note If a NULL pointer is passed to this function and it is
     //!       initialized within Cutil then cutFree() has to be used to
     //!       deallocate the memory
     ////////////////////////////////////////////////////////////////////////////
@@ -399,7 +399,7 @@ extern "C" {
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
     CUTBoolean CUTIL_API
-        cutSavePGMub( const char* file, unsigned char* data, 
+        cutSavePGMub( const char* file, unsigned char* data,
                       unsigned int w, unsigned int h);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -411,11 +411,11 @@ extern "C" {
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
     CUTBoolean CUTIL_API
-    cutSavePPMub( const char* file, unsigned char *data, 
+    cutSavePPMub( const char* file, unsigned char *data,
                 unsigned int w, unsigned int h);
 
     ////////////////////////////////////////////////////////////////////////////
-    //! Save PPM image file (with unsigned char as data element type, padded to 
+    //! Save PPM image file (with unsigned char as data element type, padded to
     //! 4 bytes)
     //! @param file  name of the image file
     //! @param data  handle to the data read
@@ -424,7 +424,7 @@ extern "C" {
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
     CUTBoolean CUTIL_API
-    cutSavePPM4ub( const char* file, unsigned char *data, 
+    cutSavePPM4ub( const char* file, unsigned char *data,
                    unsigned int w, unsigned int h);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -465,15 +465,15 @@ extern "C" {
 
     ////////////////////////////////////////////////////////////////////////////
     // Command line arguments: General notes
-    // * All command line arguments begin with '--' followed by the token; 
+    // * All command line arguments begin with '--' followed by the token;
     //   token and value are separated by '='; example --samples=50
-    // * Arrays have the form --model=[one.obj,two.obj,three.obj] 
+    // * Arrays have the form --model=[one.obj,two.obj,three.obj]
     //   (without whitespaces)
     ////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////
     //! Check if command line argument \a flag-name is given
-    //! @return CUTTrue if command line argument \a flag_name has been given, 
+    //! @return CUTTrue if command line argument \a flag_name has been given,
     //!         otherwise 0
     //! @param argc  argc as passed to main()
     //! @param argv  argv as passed to main()
@@ -481,7 +481,7 @@ extern "C" {
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
     CUTBoolean CUTIL_API
-    cutCheckCmdLineFlag( const int argc, const char** argv, 
+    cutCheckCmdLineFlag( const int argc, const char** argv,
                          const char* flag_name);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -495,7 +495,7 @@ extern "C" {
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
     CUTBoolean CUTIL_API
-    cutGetCmdLineArgumenti( const int argc, const char** argv, 
+    cutGetCmdLineArgumenti( const int argc, const char** argv,
                             const char* arg_name, int* val);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -509,7 +509,7 @@ extern "C" {
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
     CUTBoolean CUTIL_API
-    cutGetCmdLineArgumentf( const int argc, const char** argv, 
+    cutGetCmdLineArgumentf( const int argc, const char** argv,
                             const char* arg_name, float* val);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -523,7 +523,7 @@ extern "C" {
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
     CUTBoolean CUTIL_API
-    cutGetCmdLineArgumentstr( const int argc, const char** argv, 
+    cutGetCmdLineArgumentstr( const int argc, const char** argv,
                               const char* arg_name, char** val);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -538,8 +538,8 @@ extern "C" {
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
     CUTBoolean CUTIL_API
-    cutGetCmdLineArgumentListstr( const int argc, const char** argv, 
-                                  const char* arg_name, char** val, 
+    cutGetCmdLineArgumentListstr( const int argc, const char** argv,
+                                  const char* arg_name, char** val,
                                   unsigned int* len);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -556,46 +556,46 @@ extern "C" {
 
     ////////////////////////////////////////////////////////////////////////////
     //! Compare two float arrays
-    //! @return  CUTTrue if \a reference and \a data are identical, 
+    //! @return  CUTTrue if \a reference and \a data are identical,
     //!          otherwise CUTFalse
     //! @param reference  handle to the reference data / gold image
     //! @param data       handle to the computed data
     //! @param len        number of elements in reference and data
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
+    CUTBoolean CUTIL_API
     cutComparef( const float* reference, const float* data,
                  const unsigned int len);
 
     ////////////////////////////////////////////////////////////////////////////
     //! Compare two integer arrays
-    //! @return  CUTTrue if \a reference and \a data are identical, 
+    //! @return  CUTTrue if \a reference and \a data are identical,
     //!          otherwise CUTFalse
     //! @param reference  handle to the reference data / gold image
     //! @param data       handle to the computed data
     //! @param len        number of elements in reference and data
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
-    cutComparei( const int* reference, const int* data, 
-                 const unsigned int len ); 
+    CUTBoolean CUTIL_API
+    cutComparei( const int* reference, const int* data,
+                 const unsigned int len );
 
     ////////////////////////////////////////////////////////////////////////////
     //! Compare two unsigned char arrays
-    //! @return  CUTTrue if \a reference and \a data are identical, 
+    //! @return  CUTTrue if \a reference and \a data are identical,
     //!          otherwise CUTFalse
     //! @param reference  handle to the reference data / gold image
     //! @param data       handle to the computed data
     //! @param len        number of elements in reference and data
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
+    CUTBoolean CUTIL_API
     cutCompareub( const unsigned char* reference, const unsigned char* data,
-                  const unsigned int len ); 
+                  const unsigned int len );
 
     ////////////////////////////////////////////////////////////////////////////////
     //! Compare two integer arrays witha n epsilon tolerance for equality
-    //! @return  CUTTrue if \a reference and \a data are identical, 
+    //! @return  CUTTrue if \a reference and \a data are identical,
     //!          otherwise CUTFalse
     //! @param reference  handle to the reference data / gold image
     //! @param data       handle to the computed data
@@ -609,7 +609,7 @@ extern "C" {
 
     ////////////////////////////////////////////////////////////////////////////
     //! Compare two float arrays with an epsilon tolerance for equality
-    //! @return  CUTTrue if \a reference and \a data are identical, 
+    //! @return  CUTTrue if \a reference and \a data are identical,
     //!          otherwise CUTFalse
     //! @param reference  handle to the reference data / gold image
     //! @param data       handle to the computed data
@@ -617,14 +617,14 @@ extern "C" {
     //! @param epsilon    epsilon to use for the comparison
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
+    CUTBoolean CUTIL_API
     cutComparefe( const float* reference, const float* data,
                   const unsigned int len, const float epsilon );
 
     ////////////////////////////////////////////////////////////////////////////
-    //! Compare two float arrays using L2-norm with an epsilon tolerance for 
+    //! Compare two float arrays using L2-norm with an epsilon tolerance for
     //! equality
-    //! @return  CUTTrue if \a reference and \a data are identical, 
+    //! @return  CUTTrue if \a reference and \a data are identical,
     //!          otherwise CUTFalse
     //! @param reference  handle to the reference data / gold image
     //! @param data       handle to the computed data
@@ -632,7 +632,7 @@ extern "C" {
     //! @param epsilon    epsilon to use for the comparison
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
+    CUTBoolean CUTIL_API
     cutCompareL2fe( const float* reference, const float* data,
                     const unsigned int len, const float epsilon );
 
@@ -645,7 +645,7 @@ extern "C" {
     //! @param  name of the new timer, 0 if the creation failed
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
+    CUTBoolean CUTIL_API
     cutCreateTimer( unsigned int* name);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -654,7 +654,7 @@ extern "C" {
     //! @param  name of the timer to delete
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
+    CUTBoolean CUTIL_API
     cutDeleteTimer( unsigned int name);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -662,7 +662,7 @@ extern "C" {
     //! @param name  name of the timer to start
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
+    CUTBoolean CUTIL_API
     cutStartTimer( const unsigned int name);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -670,7 +670,7 @@ extern "C" {
     //! @param name  name of the timer to stop
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
+    CUTBoolean CUTIL_API
     cutStopTimer( const unsigned int name);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -678,27 +678,27 @@ extern "C" {
     //! @param name  name of the timer to reset.
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    CUTBoolean CUTIL_API 
+    CUTBoolean CUTIL_API
     cutResetTimer( const unsigned int name);
 
     ////////////////////////////////////////////////////////////////////////////
-    //! Returns total execution time in milliseconds for the timer over all 
+    //! Returns total execution time in milliseconds for the timer over all
     //! runs since the last reset or timer creation.
     //! @param name  name of the timer to return the time of
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    float CUTIL_API 
+    float CUTIL_API
     cutGetTimerValue( const unsigned int name);
 
     ////////////////////////////////////////////////////////////////////////////
-    //! Return the average time in milliseconds for timer execution as the 
+    //! Return the average time in milliseconds for timer execution as the
     //! total  time for the timer dividied by the number of completed (stopped)
     //! runs the timer has made.
     //! Excludes the current running time if the timer is currently running.
     //! @param name  name of the timer to return the time of
     ////////////////////////////////////////////////////////////////////////////
     DLL_MAPPING
-    float CUTIL_API 
+    float CUTIL_API
     cutGetAverageTimerValue( const unsigned int name);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -764,7 +764,7 @@ extern "C" {
         fprintf(stderr, "Cut error in file '%s' in line %i.\n",              \
                 __FILE__, __LINE__);                                         \
         exit(EXIT_FAILURE);                                                  \
-    } 
+    }
 
     //! Check for CUDA error
 #  define CUT_CHECK_ERROR(errorMessage) do {                                 \
@@ -802,7 +802,7 @@ extern "C" {
     // void macros for performance reasons
 #  define CUT_CHECK_ERROR(errorMessage)
 #  define CUT_CHECK_ERROR_GL()
-#  define CUT_CONDITION( val) 
+#  define CUT_CONDITION( val)
 #  define CU_SAFE_CALL_NO_SYNC( call) call
 #  define CU_SAFE_CALL( call) call
 #  define CUDA_SAFE_CALL_NO_SYNC( call) call

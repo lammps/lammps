@@ -123,7 +123,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   quadrature_point_data = NULL;
   min_x = min_f = min_v = NULL;
   npair_cac = NULL;
-  max_search_range = 0;
+  max_search_range = cut_add = 0;
   initial_size = 0;
   max_neigh_inner_init = 0;
   max_neigh_outer_init = 0;
@@ -142,7 +142,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   dense_count = 0;
   outer_neigh_flag = 0;
   CAC_virial = 0;
-  ghost_quad_flag = 0;
+  ghost_quad_flag = full_quad_flag = 0;
+  interface_quadrature = 1;
 
   // USER-DPD
 

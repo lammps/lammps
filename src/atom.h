@@ -104,19 +104,19 @@ class Atom : protected Pointers {
 
   double **node_charges, ****nodal_positions, ****nodal_velocities, ****nodal_forces,
 	  ****nodal_gradients, ****initial_nodal_positions, **eboxes, **foreign_eboxes,
-    ****nodal_virial, ***inner_quad_lists_ucell, ***outer_quad_lists_ucell, **quadrature_point_data,
-    **interior_scales;
+    ****nodal_virial, ***inner_quad_lists_ucell, ***outer_quad_lists_ucell, ***add_quad_lists_ucell, **quadrature_point_data,
+    **interior_scales, cut_add;
 
   int *poly_count, **node_types,  *element_type, max_quad_per_element,
 	  **element_scale, *nodes_per_element_list, bin_foreign, CAC_comm_flag, 
     initial_size, neboxes, local_neboxes, nforeign_eboxes, *ebox_ref, **list_container,
     neigh_weight_flag, **neighbor_weights, quadrature_node_count, *e2quad_index,
-    ***inner_quad_lists_index, *inner_quad_lists_counts, ***outer_quad_lists_index,
-    *outer_quad_lists_counts, quadrature_point_max, quadrature_poly_max, *quadrature_counts, **surface_counts,
-    max_neigh_outer_init, max_neigh_inner_init, *inner_quad_neigh_maxes, *outer_quad_neigh_maxes;
+    ***inner_quad_lists_index, *inner_quad_lists_counts, ***outer_quad_lists_index, ***add_quad_lists_index,
+    *outer_quad_lists_counts, *add_quad_lists_counts, quadrature_point_max, quadrature_poly_max, *quadrature_counts, **surface_counts,
+    max_neigh_outer_init, max_neigh_inner_init, *inner_quad_neigh_maxes, *outer_quad_neigh_maxes, *add_quad_neigh_maxes, interface_quadrature;
 
   int one_layer_flag, weight_count,CAC_pair_flag, element_type_count,
-    outer_neigh_flag, ghost_quad_flag, sector_flag;
+    outer_neigh_flag, ghost_quad_flag, sector_flag, full_quad_flag;
   double max_search_range;              //currently used by comm style to determine communication overlap range
   char **element_names;                 //stores names for element types
   double *min_x, *min_v, *min_f;        //used by CAC min styles

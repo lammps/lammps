@@ -1020,13 +1020,13 @@ FILE *Force::open_potential(const char *name, int *auto_convert)
     std::string date       = utils::get_potential_date(filepath, "potential");
     std::string units      = utils::get_potential_units(filepath, "potential");
 
-    if(!date.empty()) {
+    if(!date.empty() && (comm->me == 0)) {
       utils::logmesg(lmp, fmt::format("Reading potential file {} "
                                       "with DATE: {}\n", name, date));
     }
 
     if (auto_convert == nullptr) {
-      if (!units.empty() && (units != unit_style)) {
+      if (!units.empty() && (units != unit_style) && (comm->me == 0)) {
         error->one(FLERR, fmt::format("Potential file {} requires {} units "
                                       "but {} units are in use", name, units,
                                       unit_style));
@@ -1049,7 +1049,7 @@ FILE *Force::open_potential(const char *name, int *auto_convert)
           return nullptr;
         }
       }
-      if (*auto_convert != utils::NOCONVERT)
+      if ((*auto_convert != utils::NOCONVERT) && (comm->me == 0))
         lmp->error->warning(FLERR, fmt::format("Converting potential file in "
                                                "{} units to {} units",
                                                units, unit_style));

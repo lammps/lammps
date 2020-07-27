@@ -170,17 +170,17 @@ void ResetIDs::command(int narg, char **arg)
         for (j = 0; j < num_angle[i]; j++) {
           oldID = angle_atom1[i][j];
           m = atom->map(oldID);
-          if (m >= 0) angle_atom1[i][j] = static_cast<tagint> (newIDs[m][0]);
+          if (m >= 0) angle_atom1[i][j] = (tagint) ubuf(newIDs[m][0]).i;
           else badcount++;
 
           oldID = angle_atom2[i][j];
           m = atom->map(oldID);
-          if (m >= 0) angle_atom2[i][j] = static_cast<tagint> (newIDs[m][0]);
+          if (m >= 0) angle_atom2[i][j] = (tagint) ubuf(newIDs[m][0]).i;
           else badcount++;
 
           oldID = angle_atom3[i][j];
           m = atom->map(oldID);
-          if (m >= 0) angle_atom3[i][j] = static_cast<tagint> (newIDs[m][0]);
+          if (m >= 0) angle_atom3[i][j] = (tagint) ubuf(newIDs[m][0]).i;
           else badcount++;
         }
       }
@@ -196,22 +196,22 @@ void ResetIDs::command(int narg, char **arg)
         for (j = 0; j < num_dihedral[i]; j++) {
           oldID = dihedral_atom1[i][j];
           m = atom->map(oldID);
-          if (m >= 0) dihedral_atom1[i][j] = static_cast<tagint> (newIDs[m][0]);
+          if (m >= 0) dihedral_atom1[i][j] = (tagint) ubuf(newIDs[m][0]).i;
           else badcount++;
 
           oldID = dihedral_atom2[i][j];
           m = atom->map(oldID);
-          if (m >= 0) dihedral_atom2[i][j] = static_cast<tagint> (newIDs[m][0]);
+          if (m >= 0) dihedral_atom2[i][j] = (tagint) ubuf(newIDs[m][0]).i;
           else badcount++;
 
           oldID = dihedral_atom3[i][j];
           m = atom->map(oldID);
-          if (m >= 0) dihedral_atom3[i][j] = static_cast<tagint> (newIDs[m][0]);
+          if (m >= 0) dihedral_atom3[i][j] = (tagint) ubuf(newIDs[m][0]).i;
           else badcount++;
 
           oldID = dihedral_atom4[i][j];
           m = atom->map(oldID);
-          if (m >= 0) dihedral_atom4[i][j] = static_cast<tagint> (newIDs[m][0]);
+          if (m >= 0) dihedral_atom4[i][j] = (tagint) ubuf(newIDs[m][0]).i;
           else badcount++;
         }
       }
@@ -227,22 +227,22 @@ void ResetIDs::command(int narg, char **arg)
         for (j = 0; j < num_improper[i]; j++) {
           oldID = improper_atom1[i][j];
           m = atom->map(oldID);
-          if (m >= 0) improper_atom1[i][j] = static_cast<tagint> (newIDs[m][0]);
+          if (m >= 0) improper_atom1[i][j] = (tagint) ubuf(newIDs[m][0]).i;
           else badcount++;
 
           oldID = improper_atom2[i][j];
           m = atom->map(oldID);
-          if (m >= 0) improper_atom2[i][j] = static_cast<tagint> (newIDs[m][0]);
+          if (m >= 0) improper_atom2[i][j] = (tagint) ubuf(newIDs[m][0]).i;
           else badcount++;
 
           oldID = improper_atom3[i][j];
           m = atom->map(oldID);
-          if (m >= 0) improper_atom3[i][j] = static_cast<tagint> (newIDs[m][0]);
+          if (m >= 0) improper_atom3[i][j] = (tagint) ubuf(newIDs[m][0]).i;
           else badcount++;
 
           oldID = improper_atom4[i][j];
           m = atom->map(oldID);
-          if (m >= 0) improper_atom4[i][j] = static_cast<tagint> (newIDs[m][0]);
+          if (m >= 0) improper_atom4[i][j] = (tagint) ubuf(newIDs[m][0]).i;
           else badcount++;
         }
       }

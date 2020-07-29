@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "region_block.h"
+#include <cstring>
 #include "force.h"
 #include "domain.h"
 #include "math_extra.h"

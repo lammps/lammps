@@ -16,25 +16,25 @@
                          Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_vashishta.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_vashishta.h"
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
 #include "comm.h"
+#include "error.h"
+#include "force.h"
 #include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
+#include "neigh_request.h"
+#include "utils.h"
+#include "tokenizer.h"
+#include "potential_file_reader.h"
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024
 #define DELTA 4
 
 /* ---------------------------------------------------------------------- */
@@ -45,6 +45,7 @@ PairVashishta::PairVashishta(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
   nelements = 0;
   elements = NULL;
@@ -354,132 +355,107 @@ double PairVashishta::init_one(int i, int j)
 
 void PairVashishta::read_file(char *file)
 {
-  int params_per_line = 17;
-  char **words = new char*[params_per_line+1];
-
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   nparams = maxparam = 0;
 
   // open file on proc 0
 
-  FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open Vashishta potential file %s",file);
-      error->one(FLERR,str);
-    }
-  }
+    PotentialFileReader reader(lmp, file, "vashishta", unit_convert_flag);
+    char * line;
 
-  // read each set of params from potential file
-  // one set of params can span multiple lines
-  // store params if all 3 element tags are in element list
+    // transparently convert units for supported conversions
 
-  int n,nwords,ielement,jelement,kelement;
-  char line[MAXLINE],*ptr;
-  int eof = 0;
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                            unit_convert);
 
-  while (1) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
-        eof = 1;
-        fclose(fp);
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+    while((line = reader.next_line(NPARAMS_PER_LINE))) {
+      try {
+        ValueTokenizer values(line);
 
-    // strip comment, skip line if blank
+        std::string iname = values.next_string();
+        std::string jname = values.next_string();
+        std::string kname = values.next_string();
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
-    if (nwords == 0) continue;
+        // ielement,jelement,kelement = 1st args
+        // if all 3 args are in element list, then parse this line
+        // else skip to next entry in file
+        int ielement, jelement, kelement;
 
-    // concatenate additional lines until have params_per_line words
+        for (ielement = 0; ielement < nelements; ielement++)
+          if (iname == elements[ielement]) break;
+        if (ielement == nelements) continue;
+        for (jelement = 0; jelement < nelements; jelement++)
+          if (jname == elements[jelement]) break;
+        if (jelement == nelements) continue;
+        for (kelement = 0; kelement < nelements; kelement++)
+          if (kname == elements[kelement]) break;
+        if (kelement == nelements) continue;
 
-    while (nwords < params_per_line) {
-      n = strlen(line);
-      if (comm->me == 0) {
-        ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
-          eof = 1;
-          fclose(fp);
-        } else n = strlen(line) + 1;
+        // load up parameter settings and error check their values
+
+        if (nparams == maxparam) {
+          maxparam += DELTA;
+          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
+                                              "pair:params");
+
+          // make certain all addional allocated storage is initialized
+          // to avoid false positives when checking with valgrind
+
+          memset(params + nparams, 0, DELTA*sizeof(Param));
+        }
+
+        params[nparams].ielement = ielement;
+        params[nparams].jelement = jelement;
+        params[nparams].kelement = kelement;
+        params[nparams].bigh     = values.next_double();
+        params[nparams].eta      = values.next_double();
+        params[nparams].zi       = values.next_double();
+        params[nparams].zj       = values.next_double();
+        params[nparams].lambda1  = values.next_double();
+        params[nparams].bigd     = values.next_double();
+        params[nparams].lambda4  = values.next_double();
+        params[nparams].bigw     = values.next_double();
+        params[nparams].cut      = values.next_double();
+        params[nparams].bigb     = values.next_double();
+        params[nparams].gamma    = values.next_double();
+        params[nparams].r0       = values.next_double();
+        params[nparams].bigc     = values.next_double();
+        params[nparams].costheta = values.next_double();
+
+        if (unit_convert) {
+          params[nparams].bigh *= conversion_factor;
+          params[nparams].bigd *= conversion_factor;
+          params[nparams].bigw *= conversion_factor;
+          params[nparams].bigb *= conversion_factor;
+        }
+
+      } catch (TokenizerException & e) {
+        error->one(FLERR, e.what());
       }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+
+      if (params[nparams].bigb < 0.0 || params[nparams].gamma < 0.0 ||
+          params[nparams].r0 < 0.0 || params[nparams].bigc < 0.0 ||
+          params[nparams].bigh < 0.0 || params[nparams].eta < 0.0 ||
+          params[nparams].lambda1 < 0.0 || params[nparams].bigd < 0.0 ||
+          params[nparams].lambda4 < 0.0 || params[nparams].bigw < 0.0 ||
+          params[nparams].cut < 0.0)
+        error->one(FLERR,"Illegal Vashishta parameter");
+
+      nparams++;
     }
-
-    if (nwords != params_per_line)
-      error->all(FLERR,"Incorrect format in Vashishta potential file");
-
-    // words = ptrs to all words in line
-
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
-
-    // ielement,jelement,kelement = 1st args
-    // if all 3 args are in element list, then parse this line
-    // else skip to next entry in file
-
-    for (ielement = 0; ielement < nelements; ielement++)
-      if (strcmp(words[0],elements[ielement]) == 0) break;
-    if (ielement == nelements) continue;
-    for (jelement = 0; jelement < nelements; jelement++)
-      if (strcmp(words[1],elements[jelement]) == 0) break;
-    if (jelement == nelements) continue;
-    for (kelement = 0; kelement < nelements; kelement++)
-      if (strcmp(words[2],elements[kelement]) == 0) break;
-    if (kelement == nelements) continue;
-
-    // load up parameter settings and error check their values
-
-    if (nparams == maxparam) {
-      maxparam += DELTA;
-      params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-                                          "pair:params");
-    }
-
-    params[nparams].ielement = ielement;
-    params[nparams].jelement = jelement;
-    params[nparams].kelement = kelement;
-    params[nparams].bigh = atof(words[3]);
-    params[nparams].eta = atof(words[4]);
-    params[nparams].zi = atof(words[5]);
-    params[nparams].zj = atof(words[6]);
-    params[nparams].lambda1 = atof(words[7]);
-    params[nparams].bigd = atof(words[8]);
-    params[nparams].lambda4 = atof(words[9]);
-    params[nparams].bigw = atof(words[10]);
-    params[nparams].cut = atof(words[11]);
-    params[nparams].bigb = atof(words[12]);
-    params[nparams].gamma = atof(words[13]);
-    params[nparams].r0 = atof(words[14]);
-    params[nparams].bigc = atof(words[15]);
-    params[nparams].costheta = atof(words[16]);
-
-    if (params[nparams].bigb < 0.0 || params[nparams].gamma < 0.0 ||
-        params[nparams].r0 < 0.0 || params[nparams].bigc < 0.0 ||
-        params[nparams].bigh < 0.0 || params[nparams].eta < 0.0 ||
-        params[nparams].lambda1 < 0.0 || params[nparams].bigd < 0.0 ||
-        params[nparams].lambda4 < 0.0 || params[nparams].bigw < 0.0 ||
-        params[nparams].cut < 0.0)
-      error->all(FLERR,"Illegal Vashishta parameter");
-
-    nparams++;
   }
 
-  delete [] words;
+  MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
+  MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
+
+  if(comm->me != 0) {
+    params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
+  }
+
+  MPI_Bcast(params, maxparam*sizeof(Param), MPI_BYTE, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */

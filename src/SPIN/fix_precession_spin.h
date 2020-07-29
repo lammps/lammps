@@ -39,20 +39,38 @@ class FixPrecessionSpin : public Fix {
   void min_post_force(int);
   double compute_scalar();
 
-  int zeeman_flag, aniso_flag;
+  int zeeman_flag, aniso_flag, cubic_flag;
   void compute_single_precession(int, double *, double *);
+
+  // zeeman calculations
+
   void compute_zeeman(int, double *);
+  double compute_zeeman_energy(double *);
+
+  // uniaxial aniso calculations
+
   void compute_anisotropy(double *, double *);
+  double compute_anisotropy_energy(double *);
+
+  // cubic aniso calculations
+
+  void compute_cubic(double *, double *);
+  double compute_cubic_energy(double *);
+
+  // storing magnetic energies
+
+  int nlocal_max;               // max nlocal (for list size)
+  double *emag;                 // energy list
 
  protected:
-  int style; 			// style of the magnetic precession
+  int style;                    // style of the magnetic precession
 
   double degree2rad;
   double hbar;
   int ilevel_respa;
   int time_origin;
   int eflag;
-  double emag, emag_all;
+  double eprec, eprec_all;
 
   int varflag;
   int magfieldstyle;
@@ -63,13 +81,22 @@ class FixPrecessionSpin : public Fix {
 
   double H_field;
   double nhx, nhy, nhz;
-  double hx, hy, hz; 		// temp. force variables
+  double hx, hy, hz;            // temp. force variables
 
   // magnetic anisotropy intensity and direction
 
-  double Ka;
+  double Ka;                    // aniso const. in eV
+  double Kah;                   // aniso const. in rad.THz
   double nax, nay, naz;
-  double Kax, Kay, Kaz; 	// temp. force variables
+  double Kax, Kay, Kaz;         // temp. force variables
+
+  // cubic anisotropy intensity
+
+  double k1c,k2c;               // cubic const. in eV
+  double k1ch,k2ch;             // cubic const. in rad.THz
+  double nc1x,nc1y,nc1z;
+  double nc2x,nc2y,nc2z;
+  double nc3x,nc3y,nc3z;
 
   void set_magneticprecession();
 

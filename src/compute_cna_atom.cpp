@@ -15,10 +15,10 @@
    Contributing author: Wan Liang (Chinese Academy of Sciences)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "compute_cna_atom.h"
+#include <mpi.h>
+#include <cstring>
+#include <cmath>
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -30,6 +30,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -142,7 +143,7 @@ void ComputeCNAAtom::compute_peratom()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // find the neigbours of each atom within cutoff using full neighbor list
+  // find the neighbors of each atom within cutoff using full neighbor list
   // nearest[] = atom indices of nearest neighbors, up to MAXNEAR
   // do this for all atoms, not just compute group
   // since CNA calculation requires neighbors of neighbors
@@ -184,11 +185,9 @@ void ComputeCNAAtom::compute_peratom()
 
   int nerrorall;
   MPI_Allreduce(&nerror,&nerrorall,1,MPI_INT,MPI_SUM,world);
-  if (nerrorall && comm->me == 0) {
-    char str[128];
-    sprintf(str,"Too many neighbors in CNA for %d atoms",nerrorall);
-    error->warning(FLERR,str,0);
-  }
+  if (nerrorall && comm->me == 0)
+    error->warning(FLERR,fmt::format("Too many neighbors in CNA for {} "
+                                     "atoms",nerrorall),0);
 
   // compute CNA for each atom in group
   // only performed if # of nearest neighbors = 12 or 14 (fcc,hcp)
@@ -345,11 +344,9 @@ void ComputeCNAAtom::compute_peratom()
   // warning message
 
   MPI_Allreduce(&nerror,&nerrorall,1,MPI_INT,MPI_SUM,world);
-  if (nerrorall && comm->me == 0) {
-    char str[128];
-    sprintf(str,"Too many common neighbors in CNA %d times",nerrorall);
-    error->warning(FLERR,str);
-  }
+  if (nerrorall && comm->me == 0)
+    error->warning(FLERR,fmt::format("Too many common neighbors in CNA {} "
+                                     "times", nerrorall));
 }
 
 /* ----------------------------------------------------------------------

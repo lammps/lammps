@@ -11,11 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_nvt.h"
+#include <cstring>
+#include <string>
 #include "group.h"
 #include "modify.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -33,17 +35,11 @@ FixNVT::FixNVT(LAMMPS *lmp, int narg, char **arg) :
   // create a new compute temp style
   // id = fix-ID + temp
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
+  std::string tcmd = id + std::string("_temp");
+  id_temp = new char[tcmd.size()+1];
+  strcpy(id_temp,tcmd.c_str());
 
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "temp";
-
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  tcmd += fmt::format(" {} temp",group->names[igroup]);
+  modify->add_compute(tcmd);
   tcomputeflag = 1;
 }

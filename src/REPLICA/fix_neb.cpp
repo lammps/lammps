@@ -16,11 +16,11 @@
      new options for inter-replica forces, first/last replica treatment
 ------------------------------------------------------------------------- */
 
+#include "fix_neb.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "fix_neb.h"
+#include <string>
 #include "universe.h"
 #include "update.h"
 #include "atom.h"
@@ -149,17 +149,10 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   // create a new compute pe style
   // id = fix-ID + pe, compute group = all
 
-  int n = strlen(id) + 4;
-  id_pe = new char[n];
-  strcpy(id_pe,id);
-  strcat(id_pe,"_pe");
-
-  char **newarg = new char*[3];
-  newarg[0] = id_pe;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pe";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  std::string cmd = id + std::string("_pe");
+  id_pe = new char[cmd.size()+1];
+  strcpy(id_pe,cmd.c_str());
+  modify->add_compute(cmd + " all pe");
 
   // initialize local storage
 

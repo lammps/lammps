@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "imbalance_neigh.h"
+#include <mpi.h>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -20,6 +20,7 @@
 #include "neigh_request.h"
 #include "neigh_list.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -106,7 +107,7 @@ void ImbalanceNeigh::compute(double *weight)
 
 /* -------------------------------------------------------------------- */
 
-void ImbalanceNeigh::info(FILE *fp)
+std::string ImbalanceNeigh::info()
 {
-  fprintf(fp,"  neigh weight factor: %g\n",factor);
+  return fmt::format("  neighbor weight factor: {}\n",factor);
 }

@@ -20,7 +20,6 @@ BondStyle(hybrid,BondHybrid)
 #ifndef LMP_BOND_HYBRID_H
 #define LMP_BOND_HYBRID_H
 
-#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {

@@ -15,10 +15,10 @@
    Contributing author: Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
+#include "fix_deform_kokkos.h"
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
-#include "fix_deform_kokkos.h"
 #include "atom_kokkos.h"
 #include "update.h"
 #include "comm.h"

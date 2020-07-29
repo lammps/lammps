@@ -14,7 +14,6 @@
 #ifndef LMP_INPUT_H
 #define LMP_INPUT_H
 
-#include <cstdio>
 #include "pointers.h"
 #include <map>
 #include <string>
@@ -25,6 +24,7 @@ class Input : protected Pointers {
   friend class Info;
   friend class Error;
   friend class Deprecated;
+  friend class SimpleCommandsTest_Echo_Test;
 
  public:
   int narg;                    // # of command args
@@ -35,26 +35,26 @@ class Input : protected Pointers {
   ~Input();
   void file();                   // process all input
   void file(const char *);       // process an input script
-  char *one(const char *);       // process a single command
+  char *one(const std::string&); // process a single command
   void substitute(char *&, char *&, int &, int &, int);
                                  // substitute for variables in a string
   int expand_args(int, char **, int, char **&);  // expand args due to wildcard
+  void write_echo(const std::string &); // send text to active echo file pointers
 
  protected:
   char *command;               // ptr to current command
+  int echo_screen;             // 0 = no, 1 = yes
+  int echo_log;                // 0 = no, 1 = yes
 
  private:
   int me;                      // proc ID
   int maxarg;                  // max # of args in arg
   char *line,*copy,*work;      // input line & copy and work string
   int maxline,maxcopy,maxwork; // max lengths of char strings
-  int echo_screen;             // 0 = no, 1 = yes
-  int echo_log;                // 0 = no, 1 = yes
   int nfile,maxfile;           // current # and max # of open input files
   int label_active;            // 0 = no label, 1 = looking for label
   char *labelstr;              // label string being looked for
   int jump_skip;               // 1 if skipping next jump, 0 otherwise
-  int ifthenelse_flag;         // 1 if executing commands inside an if-then-else
 
   FILE **infiles;              // list of open input files
 
@@ -172,6 +172,11 @@ E: Unbalanced quotes in input line
 
 No matching end double quote was found following a leading double
 quote.
+
+E: Incorrect conversion in format string
+
+An immediate variable with format suffix was not using
+either a %f, a %g, or a %e conversion in the format suffix.
 
 E: Input line quote not followed by white-space
 

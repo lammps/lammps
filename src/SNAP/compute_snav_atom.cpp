@@ -10,10 +10,11 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-#include "sna.h"
+
+#include "compute_snav_atom.h"
 #include <cstring>
 #include <cstdlib>
-#include "compute_snav_atom.h"
+#include "sna.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -21,11 +22,9 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "force.h"
-#include "pair.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-#include "openmp_snap.h"
 
 using namespace LAMMPS_NS;
 
@@ -34,7 +33,7 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
   radelem(NULL), wjelem(NULL)
 {
   double rfac0, rmin0;
-  int twojmax, switchflag, bzeroflag;
+  int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
   radelem = NULL;
   wjelem = NULL;
 
@@ -45,11 +44,15 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // default values
 
-  diagonalstyle = 0;
   rmin0 = 0.0;
   switchflag = 1;
   bzeroflag = 1;
+  bnormflag = 0;
   quadraticflag = 0;
+  chemflag = 0;
+  bnormflag = 0;
+  wselfallflag = 0;
+  nelements = 1;
 
   // process required arguments
 
@@ -79,14 +82,7 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
   int iarg = nargmin;
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"diagonal") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snav/atom command");
-      diagonalstyle = atof(arg[iarg+1]);
-      if (diagonalstyle < 0 || diagonalstyle > 3)
-        error->all(FLERR,"Illegal compute snav/atom command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"rmin0") == 0) {
+    if (strcmp(arg[iarg],"rmin0") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute snav/atom command");
       rmin0 = atof(arg[iarg+1]);
@@ -106,23 +102,37 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute snav/atom command");
       quadraticflag = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"chem") == 0) {
+      if (iarg+2+ntypes > narg)
+        error->all(FLERR,"Illegal compute sna/atom command");
+      chemflag = 1;
+      memory->create(map,ntypes+1,"compute_sna_atom:map");
+      nelements = force->inumeric(FLERR,arg[iarg+1]);
+      for(int i = 0; i < ntypes; i++) {
+        int jelem = force->inumeric(FLERR,arg[iarg+2+i]);
+        if (jelem < 0 || jelem >= nelements)
+          error->all(FLERR,"Illegal compute snav/atom command");
+        map[i+1] = jelem;
+      }
+      iarg += 2+ntypes;
+    } else if (strcmp(arg[iarg],"bnormflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute snav/atom command");
+      bnormflag = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"wselfallflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute snav/atom command");
+      wselfallflag = atoi(arg[iarg+1]);
+      iarg += 2;
     } else error->all(FLERR,"Illegal compute snav/atom command");
   }
 
-  nthreads = comm->nthreads;
-  snaptr = new SNA*[nthreads];
-#if defined(_OPENMP)
-#pragma omp parallel default(none) shared(lmp,rfac0,twojmax,rmin0,switchflag,bzeroflag)
-#endif
-  {
-    int tid = omp_get_thread_num();
+  snaptr = new SNA(lmp, rfac0, twojmax,
+                   rmin0, switchflag, bzeroflag,
+                   chemflag, bnormflag, wselfallflag, nelements);
 
-    // always unset use_shared_arrays since it does not work with computes
-    snaptr[tid] = new SNA(lmp,rfac0,twojmax,diagonalstyle,
-                          0 /*use_shared_arrays*/, rmin0,switchflag,bzeroflag);
-  }
-
-  ncoeff = snaptr[0]->ncoeff;
+  ncoeff = snaptr->ncoeff;
   nperdim = ncoeff;
   if (quadraticflag) nperdim += (ncoeff*(ncoeff+1))/2;
   size_peratom_cols = 6*nperdim*atom->ntypes;
@@ -130,7 +140,6 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
   peratom_flag = 1;
 
   nmax = 0;
-  njmax = 0;
   snav = NULL;
 
 }
@@ -144,9 +153,7 @@ ComputeSNAVAtom::~ComputeSNAVAtom()
   memory->destroy(wjelem);
   memory->destroy(cutsq);
 
-  for (int tid = 0; tid<nthreads; tid++)
-    delete snaptr[tid];
-  delete [] snaptr;
+  delete snaptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -174,13 +181,7 @@ void ComputeSNAVAtom::init()
     if (strcmp(modify->compute[i]->style,"snav/atom") == 0) count++;
   if (count > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute snav/atom");
-#if defined(_OPENMP)
-#pragma omp parallel default(none)
-#endif
-  {
-    int tid = omp_get_thread_num();
-    snaptr[tid]->init();
-  }
+  snaptr->init();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -230,11 +231,7 @@ void ComputeSNAVAtom::compute_peratom()
   double** const x = atom->x;
   const int* const mask = atom->mask;
 
-#if defined(_OPENMP)
-#pragma omp parallel for default(none)
-#endif
   for (int ii = 0; ii < inum; ii++) {
-    const int tid = omp_get_thread_num();
     const int i = ilist[ii];
     if (mask[i] & groupbit) {
 
@@ -242,6 +239,9 @@ void ComputeSNAVAtom::compute_peratom()
       const double ytmp = x[i][1];
       const double ztmp = x[i][2];
       const int itype = type[i];
+      int ielem = 0;
+      if (chemflag)
+        ielem = map[itype];
       const double radi = radelem[itype];
 
       const int* const jlist = firstneigh[i];
@@ -251,7 +251,7 @@ void ComputeSNAVAtom::compute_peratom()
 
       // insure rij, inside, and typej  are of size jnum
 
-          snaptr[tid]->grow_rij(jnum);
+      snaptr->grow_rij(jnum);
 
       // rij[][3] = displacements between atom I and those neighbors
       // inside = indices of neighbors of I within cutoff
@@ -268,32 +268,33 @@ void ComputeSNAVAtom::compute_peratom()
         const double delz = x[j][2] - ztmp;
         const double rsq = delx*delx + dely*dely + delz*delz;
         int jtype = type[j];
+        int jelem = 0;
+        if (chemflag)
+          jelem = map[jtype];
         if (rsq < cutsq[itype][jtype]&&rsq>1e-20) {
-          snaptr[tid]->rij[ninside][0] = delx;
-          snaptr[tid]->rij[ninside][1] = dely;
-          snaptr[tid]->rij[ninside][2] = delz;
-          snaptr[tid]->inside[ninside] = j;
-          snaptr[tid]->wj[ninside] = wjelem[jtype];
-          snaptr[tid]->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
+          snaptr->rij[ninside][0] = delx;
+          snaptr->rij[ninside][1] = dely;
+          snaptr->rij[ninside][2] = delz;
+          snaptr->inside[ninside] = j;
+          snaptr->wj[ninside] = wjelem[jtype];
+          snaptr->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
+          snaptr->element[ninside] = jelem; // element index for multi-element snap
           ninside++;
         }
       }
 
-      snaptr[tid]->compute_ui(ninside);
-      snaptr[tid]->compute_zi();
+      snaptr->compute_ui(ninside, ielem);
+      snaptr->compute_zi();
       if (quadraticflag) {
-        snaptr[tid]->compute_bi();
-        snaptr[tid]->copy_bi2bvec();
+        snaptr->compute_bi(ielem);
       }
 
       for (int jj = 0; jj < ninside; jj++) {
-        const int j = snaptr[tid]->inside[jj];
+        const int j = snaptr->inside[jj];
 
-        snaptr[tid]->compute_duidrj(snaptr[tid]->rij[jj],
-                                    snaptr[tid]->wj[jj],
-                                    snaptr[tid]->rcutij[jj]);
-        snaptr[tid]->compute_dbidrj();
-        snaptr[tid]->copy_dbi2dbvec();
+        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
+                                    snaptr->rcutij[jj], jj, snaptr->element[jj]);
+        snaptr->compute_dbidrj();
 
         // Accumulate -dBi/dRi*Ri, -dBi/dRj*Rj
 
@@ -301,18 +302,18 @@ void ComputeSNAVAtom::compute_peratom()
         double *snavj = snav[j]+typeoffset;
 
         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-          snavi[icoeff]           += snaptr[tid]->dbvec[icoeff][0]*xtmp;
-          snavi[icoeff+nperdim]   += snaptr[tid]->dbvec[icoeff][1]*ytmp;
-          snavi[icoeff+2*nperdim] += snaptr[tid]->dbvec[icoeff][2]*ztmp;
-          snavi[icoeff+3*nperdim] += snaptr[tid]->dbvec[icoeff][1]*ztmp;
-          snavi[icoeff+4*nperdim] += snaptr[tid]->dbvec[icoeff][0]*ztmp;
-          snavi[icoeff+5*nperdim] += snaptr[tid]->dbvec[icoeff][0]*ytmp;
-          snavj[icoeff]           -= snaptr[tid]->dbvec[icoeff][0]*x[j][0];
-          snavj[icoeff+nperdim]   -= snaptr[tid]->dbvec[icoeff][1]*x[j][1];
-          snavj[icoeff+2*nperdim] -= snaptr[tid]->dbvec[icoeff][2]*x[j][2];
-          snavj[icoeff+3*nperdim] -= snaptr[tid]->dbvec[icoeff][1]*x[j][2];
-          snavj[icoeff+4*nperdim] -= snaptr[tid]->dbvec[icoeff][0]*x[j][2];
-          snavj[icoeff+5*nperdim] -= snaptr[tid]->dbvec[icoeff][0]*x[j][1];
+          snavi[icoeff]           += snaptr->dblist[icoeff][0]*xtmp;
+          snavi[icoeff+nperdim]   += snaptr->dblist[icoeff][1]*ytmp;
+          snavi[icoeff+2*nperdim] += snaptr->dblist[icoeff][2]*ztmp;
+          snavi[icoeff+3*nperdim] += snaptr->dblist[icoeff][1]*ztmp;
+          snavi[icoeff+4*nperdim] += snaptr->dblist[icoeff][0]*ztmp;
+          snavi[icoeff+5*nperdim] += snaptr->dblist[icoeff][0]*ytmp;
+          snavj[icoeff]           -= snaptr->dblist[icoeff][0]*x[j][0];
+          snavj[icoeff+nperdim]   -= snaptr->dblist[icoeff][1]*x[j][1];
+          snavj[icoeff+2*nperdim] -= snaptr->dblist[icoeff][2]*x[j][2];
+          snavj[icoeff+3*nperdim] -= snaptr->dblist[icoeff][1]*x[j][2];
+          snavj[icoeff+4*nperdim] -= snaptr->dblist[icoeff][0]*x[j][2];
+          snavj[icoeff+5*nperdim] -= snaptr->dblist[icoeff][0]*x[j][1];
         }
 
         if (quadraticflag) {
@@ -321,10 +322,10 @@ void ComputeSNAVAtom::compute_peratom()
           snavj += quadraticoffset;
           int ncount = 0;
           for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-            double bi = snaptr[tid]->bvec[icoeff];
-            double bix = snaptr[tid]->dbvec[icoeff][0];
-            double biy = snaptr[tid]->dbvec[icoeff][1];
-            double biz = snaptr[tid]->dbvec[icoeff][2];
+            double bi = snaptr->blist[icoeff];
+            double bix = snaptr->dblist[icoeff][0];
+            double biy = snaptr->dblist[icoeff][1];
+            double biz = snaptr->dblist[icoeff][2];
 
             // diagonal element of quadratic matrix
 
@@ -348,12 +349,12 @@ void ComputeSNAVAtom::compute_peratom()
             // upper-triangular elements of quadratic matrix
 
             for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
-              double dbxtmp = bi*snaptr[tid]->dbvec[jcoeff][0]
-                + bix*snaptr[tid]->bvec[jcoeff];
-              double dbytmp = bi*snaptr[tid]->dbvec[jcoeff][1]
-                + biy*snaptr[tid]->bvec[jcoeff];
-              double dbztmp = bi*snaptr[tid]->dbvec[jcoeff][2]
-                + biz*snaptr[tid]->bvec[jcoeff];
+              double dbxtmp = bi*snaptr->dblist[jcoeff][0]
+                + bix*snaptr->blist[jcoeff];
+              double dbytmp = bi*snaptr->dblist[jcoeff][1]
+                + biy*snaptr->blist[jcoeff];
+              double dbztmp = bi*snaptr->dblist[jcoeff][2]
+                + biz*snaptr->blist[jcoeff];
               snavi[ncount] +=           dbxtmp*xtmp;
               snavi[ncount+nperdim] +=   dbytmp*ytmp;
               snavi[ncount+2*nperdim] += dbztmp*ztmp;
@@ -414,11 +415,8 @@ void ComputeSNAVAtom::unpack_reverse_comm(int n, int *list, double *buf)
 
 double ComputeSNAVAtom::memory_usage()
 {
-  double bytes = nmax*size_peratom_cols * sizeof(double);
-  bytes += 3*njmax*sizeof(double);
-  bytes += njmax*sizeof(int);
-  bytes += 6*nperdim*atom->ntypes;
-  if (quadraticflag) bytes += 6*nperdim*atom->ntypes;
-  bytes += snaptr[0]->memory_usage()*comm->nthreads;
+  double bytes = nmax*size_peratom_cols * sizeof(double); // snav
+  bytes += snaptr->memory_usage();                        // SNA object
+
   return bytes;
 }

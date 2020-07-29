@@ -20,7 +20,6 @@ FixStyle(ave/histo,FixAveHisto)
 #ifndef LMP_FIX_AVE_HISTO_H
 #define LMP_FIX_AVE_HISTO_H
 
-#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {

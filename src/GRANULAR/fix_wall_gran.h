@@ -110,6 +110,8 @@ class FixWallGran : public Fix {
   // store particle interactions
 
   int store;
+
+  void clear_stored_contacts();
 };
 
 }

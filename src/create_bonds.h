@@ -39,6 +39,7 @@ class CreateBonds : protected Pointers {
   void single_bond();
   void single_angle();
   void single_dihedral();
+  void single_improper();
 };
 
 }
@@ -87,6 +88,10 @@ E: Invalid dihedral type in create_bonds command
 
 UNDOCUMENTED
 
+E: Invalid improper type in create_bonds command
+
+UNDOCUMENTED
+
 E: Create_bonds requires a pair style be defined
 
 Self-explanatory.
@@ -132,6 +137,14 @@ E: Create_bonds single/dihedral atoms do not exist
 UNDOCUMENTED
 
 E: New dihedral exceeded dihedrals per atom in create_bonds
+
+UNDOCUMENTED
+
+E: Create_bonds single/improper atoms do not exist
+
+UNDOCUMENTED
+
+E: New improper exceeded impropers per atom in create_bonds
 
 UNDOCUMENTED
 

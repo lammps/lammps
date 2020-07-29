@@ -20,37 +20,35 @@
      Thomas C. O'Connor (JHU) 2014
 ------------------------------------------------------------------------- */
 
+#include "pair_airebo.h"
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include <mpi.h>
-#include "pair_airebo.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "force.h"
 #include "comm.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "my_page.h"
-#include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "tokenizer.h"
+#include "potential_file_reader.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 using namespace MathSpecial;
 
-#define MAXLINE 1024
 #define TOL 1.0e-9
 #define PGDELTA 1
 
 /* ---------------------------------------------------------------------- */
 
-PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
+PairAIREBO::PairAIREBO(LAMMPS *lmp)
+  : Pair(lmp), variant(AIREBO)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -168,10 +166,6 @@ void PairAIREBO::settings(int narg, char **arg)
     sigwid = sigcut - sigmin;
   }
 
-  // this one parameter for C-C interactions is different in AIREBO vs REBO
-  // see Favata, Micheletti, Ryu, Pugno, Comp Phys Comm (2016)
-
-  PCCf_2_0 = -0.0276030;
 }
 
 /* ----------------------------------------------------------------------
@@ -2089,9 +2083,9 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
 
 This function calculates S(t_b(b_ij*)) as specified in the AIREBO paper.
 To do so, it needs to compute b_ij*, i.e. the bondorder given that the
-atoms i and j are placed a ficticious distance rijmag_mod apart.
+atoms i and j are placed a fictitious distance rijmag_mod apart.
 Now there are two approaches to calculate the resulting forces:
-1. Carry through the ficticious distance and corresponding vector
+1. Carry through the fictitious distance and corresponding vector
    rij_mod, correcting afterwards using the derivative of r/|r|.
 2. Perform all the calculations using the real distance, and do not
    use a correction, only using rijmag_mod where necessary.
@@ -3201,6 +3195,7 @@ double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
   dN3[0]=0.0;
   dN3[1]=0.0;
   dN3[2]=0.0;
+  piRC=0.0;
 
   if (typei==0 && typej==0) {
 
@@ -3338,9 +3333,6 @@ double PairAIREBO::TijSpline(double Nij, double Nji,
 
 void PairAIREBO::read_file(char *filename)
 {
-  int i,j,k,l,limit;
-  char s[MAXLINE];
-
   // REBO Parameters (AIREBO)
 
   double rcmin_CC,rcmin_CH,rcmin_HH,rcmax_CC,rcmax_CH,
@@ -3364,538 +3356,298 @@ void PairAIREBO::read_file(char *filename)
   double epsilonM_CC,epsilonM_CH,epsilonM_HH,alphaM_CC,alphaM_CH,alphaM_HH;
   double reqM_CC,reqM_CH,reqM_HH;
 
-  MPI_Comm_rank(world,&me);
-
   // read file on proc 0
 
-  int cerror = 0;
-  int numpar = 0;
-  FILE *fp = NULL;
+  if (comm->me == 0) {
+    std::string potential_name;
+    std::string header;
+    switch (variant) {
+    case AIREBO:
+      potential_name = "airebo";
+      header = "# AIREBO ";
+      break;
 
-  if (me == 0) {
-    fp = force->open_potential(filename);
-    if (fp == NULL) {
-      char str[128];
-      if (morseflag)
-        snprintf(str,128,"Cannot open AIREBO-M potential file %s",filename);
-      else
-        snprintf(str,128,"Cannot open AIREBO potential file %s",filename);
-      error->one(FLERR,str);
+    case REBO_2:
+      potential_name = "rebo";
+      header = "# REBO2 ";
+      break;
+
+    case AIREBO_M:
+      potential_name = "airebo/morse";
+      header = "# AIREBO-M ";
+      break;
+
+    default:
+      error->one(FLERR, fmt::format("Unknown REBO style variant {}",variant));
     }
 
-    // skip initial comment lines
+    PotentialFileReader reader(lmp, filename, potential_name);
+    reader.ignore_comments(false);
 
-    while (1) {
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      if (s[0] != '#') break;
+    // skip initial comment line and check for potential file style identifier comment
+
+    reader.skip_line();
+    char * line = reader.next_line();
+
+    if (std::string(line).find(header) == std::string::npos) {
+      error->one(FLERR, fmt::format("Potential file does not match AIREBO/REBO style variant: {}: {}", header, line));
     }
+
+    // skip remaining comments
+    reader.ignore_comments(true);
 
     // read parameters
 
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&rcmin_CC)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&rcmin_CH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&rcmin_HH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&rcmax_CC)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&rcmax_CH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&rcmax_HH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&rcmaxp_CC)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&rcmaxp_CH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&rcmaxp_HH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&smin)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&Nmin)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&Nmax)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&NCmin)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&NCmax)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&Q_CC)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&Q_CH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&Q_HH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&alpha_CC)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&alpha_CH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&alpha_HH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&A_CC)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&A_CH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&A_HH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&BIJc_CC1)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&BIJc_CC2)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&BIJc_CC3)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&BIJc_CH1)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&BIJc_CH2)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&BIJc_CH3)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&BIJc_HH1)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&BIJc_HH2)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&BIJc_HH3)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&Beta_CC1)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&Beta_CC2)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&Beta_CC3)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&Beta_CH1)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&Beta_CH2)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&Beta_CH3)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&Beta_HH1)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&Beta_HH2)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&Beta_HH3)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&rho_CC)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&rho_CH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&rho_HH)) ++cerror;
+    std::vector<double*> params {
+      &rcmin_CC,
+      &rcmin_CH,
+      &rcmin_HH,
+      &rcmax_CC,
+      &rcmax_CH,
+      &rcmax_HH,
+      &rcmaxp_CC,
+      &rcmaxp_CH,
+      &rcmaxp_HH,
+      &smin,
+      &Nmin,
+      &Nmax,
+      &NCmin,
+      &NCmax,
+      &Q_CC,
+      &Q_CH,
+      &Q_HH,
+      &alpha_CC,
+      &alpha_CH,
+      &alpha_HH,
+      &A_CC,
+      &A_CH,
+      &A_HH,
+      &BIJc_CC1,
+      &BIJc_CC2,
+      &BIJc_CC3,
+      &BIJc_CH1,
+      &BIJc_CH2,
+      &BIJc_CH3,
+      &BIJc_HH1,
+      &BIJc_HH2,
+      &BIJc_HH3,
+      &Beta_CC1,
+      &Beta_CC2,
+      &Beta_CC3,
+      &Beta_CH1,
+      &Beta_CH2,
+      &Beta_CH3,
+      &Beta_HH1,
+      &Beta_HH2,
+      &Beta_HH3,
+      &rho_CC,
+      &rho_CH,
+      &rho_HH,
 
-    // LJ parameters
-
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&rcLJmin_CC)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&rcLJmin_CH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&rcLJmin_HH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&rcLJmax_CC)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&rcLJmax_CH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&rcLJmax_HH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&bLJmin_CC)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&bLJmin_CH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&bLJmin_HH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&bLJmax_CC)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&bLJmax_CH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&bLJmax_HH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&epsilon_CC)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&epsilon_CH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&epsilon_HH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&sigma_CC)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&sigma_CH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&sigma_HH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&epsilonT_CCCC)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&epsilonT_CCCH)) ++cerror;
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%lg",&epsilonT_HCCH)) ++cerror;
+      // LJ parameters
+      &rcLJmin_CC,
+      &rcLJmin_CH,
+      &rcLJmin_HH,
+      &rcLJmax_CC,
+      &rcLJmax_CH,
+      &rcLJmax_HH,
+      &bLJmin_CC,
+      &bLJmin_CH,
+      &bLJmin_HH,
+      &bLJmax_CC,
+      &bLJmax_CH,
+      &bLJmax_HH,
+      &epsilon_CC,
+      &epsilon_CH,
+      &epsilon_HH,
+      &sigma_CC,
+      &sigma_CH,
+      &sigma_HH,
+      &epsilonT_CCCC,
+      &epsilonT_CCCH,
+      &epsilonT_HCCH
+    };
 
     if (morseflag) {
       // lines for reading in MORSE parameters from CH.airebo_m file
-      ++numpar;
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      if (1 != sscanf(s,"%lg",&epsilonM_CC)) ++cerror;
-      ++numpar;
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      if (1 != sscanf(s,"%lg",&epsilonM_CH)) ++cerror;
-      ++numpar;
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      if (1 != sscanf(s,"%lg",&epsilonM_HH)) ++cerror;
-      ++numpar;
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      if (1 != sscanf(s,"%lg",&alphaM_CC)) ++cerror;
-      ++numpar;
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      if (1 != sscanf(s,"%lg",&alphaM_CH)) ++cerror;
-      ++numpar;
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      if (1 != sscanf(s,"%lg",&alphaM_HH)) ++cerror;
-      ++numpar;
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      if (1 != sscanf(s,"%lg",&reqM_CC)) ++cerror;
-      ++numpar;
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      if (1 != sscanf(s,"%lg",&reqM_CH)) ++cerror;
-      ++numpar;
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      if (1 != sscanf(s,"%lg",&reqM_HH)) ++cerror;
+      params.push_back(&epsilonM_CC);
+      params.push_back(&epsilonM_CH);
+      params.push_back(&epsilonM_HH);
+      params.push_back(&alphaM_CC);
+      params.push_back(&alphaM_CH);
+      params.push_back(&alphaM_HH);
+      params.push_back(&reqM_CC);
+      params.push_back(&reqM_CH);
+      params.push_back(&reqM_HH);
     }
-    
-  }
-  
-  // check for errors parsing global parameters
 
-  MPI_Bcast(&cerror,1,MPI_INT,0,world);
-  if (cerror > 0) {
-    char msg[128];
-    snprintf(msg,128,"Could not parse %d of %d parameters from file %s",
-             cerror,numpar,filename);
-    error->all(FLERR,msg);
-  }
+    std::string current_section;
 
-  cerror = numpar = 0;
+    try {
+      /////////////////////////////////////////////////////////////////////////
+      // global parameters
+      current_section = "global parameters";
 
-  if (me == 0) {
-    
-    // gC spline
-
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-
-    // number-1 = # of domains for the spline
-
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%d",&limit)) ++cerror;
-
-    for (i = 0; i < limit; i++) {
-      ++numpar;
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      if (1 != sscanf(s,"%lg",&gCdom[i])) ++cerror;
-    }
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    for (i = 0; i < limit-1; i++) {
-      for (j = 0; j < 6; j++) {
-        ++numpar;
-        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-        if (1 != sscanf(s,"%lg",&gC1[i][j])) ++cerror;
+      for(int i = 0; i < (int)params.size(); i++) {
+        *params[i] = reader.next_double();
       }
-    }
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    for (i = 0; i < limit-1; i++) {
-      for (j = 0; j < 6; j++) {
-        ++numpar;
-        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-        if (1 != sscanf(s,"%lg",&gC2[i][j])) ++cerror;
+
+
+      /////////////////////////////////////////////////////////////////////////
+      // gC spline
+      current_section = "gC spline";
+
+      // number-1 = # of domains for the spline
+
+      int limit = reader.next_int();
+      reader.next_dvector(gCdom, limit);
+
+      for (int i = 0; i < limit-1; i++) {
+        reader.next_dvector(&gC1[i][0], 6);
       }
-    }
 
-    // gH spline
-
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%d",&limit)) ++cerror;
-
-    for (i = 0; i < limit; i++) {
-      ++numpar;
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      if (1 != sscanf(s,"%lg",&gHdom[i])) ++cerror;
-    }
-
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-
-    for (i = 0; i < limit-1; i++) {
-      for (j = 0; j < 6; j++) {
-        ++numpar;
-        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-        if (1 != sscanf(s,"%lg",&gH[i][j])) ++cerror;
+      for (int i = 0; i < limit-1; i++) {
+        reader.next_dvector(&gC2[i][0], 6);
       }
-    }
 
-    // pCC spline
+      /////////////////////////////////////////////////////////////////////////
+      // gH spline
+      current_section = "gH spline";
 
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+      limit = reader.next_int();
+      reader.next_dvector(gHdom, limit);
 
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%d",&limit)) ++cerror;
-
-    for (i = 0; i < limit/2; i++) {
-      for (j = 0; j < limit/2; j++) {
-        ++numpar;
-        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-        if (1 != sscanf(s,"%lg",&pCCdom[i][j])) ++cerror;
+      for (int i = 0; i < limit-1; i++) {
+        reader.next_dvector(&gH[i][0], 6);
       }
-    }
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
-    for (i = 0; i < (int) pCCdom[0][1]; i++) {
-      for (j = 0; j < (int) pCCdom[1][1]; j++) {
-        for (k = 0; k < 16; k++) {
-          ++numpar;
-          utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-          if (1 != sscanf(s,"%lg",&pCC[i][j][k])) ++cerror;
+      /////////////////////////////////////////////////////////////////////////
+      // pCC spline
+      current_section = "pCC spline";
+
+      limit = reader.next_int();
+
+      for (int i = 0; i < limit/2; i++) {
+        reader.next_dvector(&pCCdom[i][0], limit/2);
+      }
+
+      for (int i = 0; i < (int) pCCdom[0][1]; i++) {
+        for (int j = 0; j < (int) pCCdom[1][1]; j++) {
+          reader.next_dvector(&pCC[i][j][0], 16);
         }
       }
-    }
 
-    // pCH spline
+      /////////////////////////////////////////////////////////////////////////
+      // pCH spline
+      current_section = "pCH spline";
 
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+      limit = reader.next_int();
 
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%d",&limit)) ++cerror;
-
-    for (i = 0; i < limit/2; i++) {
-      for (j = 0; j < limit/2; j++) {
-        ++numpar;
-        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-        if (1 != sscanf(s,"%lg",&pCHdom[i][j])) ++cerror;
-      }
-    }
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-
-    for (i = 0; i < (int) pCHdom[0][1]; i++) {
-      for (j = 0; j < (int) pCHdom[1][1]; j++) {
-        for (k = 0; k < 16; k++) {
-          ++numpar;
-          utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-          if (1 != sscanf(s,"%lg",&pCH[i][j][k])) ++cerror;
+      for (int i = 0; i < limit/2; i++) {
+        for (int j = 0; j < limit/2; j++) {
+          pCHdom[i][j] = reader.next_double();
         }
       }
-    }
 
-    // piCC cpline
-
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%d",&limit)) ++cerror;
-
-    for (i = 0; i < limit/2; i++) {
-      for (j = 0; j < limit/3; j++) {
-        ++numpar;
-        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-        if (1 != sscanf(s,"%lg",&piCCdom[i][j])) ++cerror;
+      for (int i = 0; i < (int) pCHdom[0][1]; i++) {
+        for (int j = 0; j < (int) pCHdom[1][1]; j++) {
+          reader.next_dvector(&pCH[i][j][0], 16);
+        }
       }
-    }
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
-    for (i = 0; i < (int) piCCdom[0][1]; i++) {
-      for (j = 0; j < (int) piCCdom[1][1]; j++) {
-        for (k = 0; k < (int) piCCdom[2][1]; k++) {
-          for (l = 0; l < 64; l = l+1) {
-            ++numpar;
-            utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-            if (1 != sscanf(s,"%lg",&piCC[i][j][k][l])) ++cerror;
+      /////////////////////////////////////////////////////////////////////////
+      // piCC spline
+      current_section = "piCC spline";
+
+      limit = reader.next_int();
+
+      for (int i = 0; i < limit/2; i++) {
+        for (int j = 0; j < limit/3; j++) {
+          piCCdom[i][j] = reader.next_double();
+        }
+      }
+
+      for (int i = 0; i < (int) piCCdom[0][1]; i++) {
+        for (int j = 0; j < (int) piCCdom[1][1]; j++) {
+          for (int k = 0; k < (int) piCCdom[2][1]; k++) {
+            reader.next_dvector(&piCC[i][j][k][0], 64);
           }
         }
       }
-    }
 
-    // piCH spline
+      /////////////////////////////////////////////////////////////////////////
+      // piCH spline
+      current_section = "piCH spline";
 
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+      limit = reader.next_int();
 
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%d",&limit)) ++cerror;
-
-    for (i = 0; i < limit/2; i++) {
-      for (j = 0; j < limit/3; j++) {
-        ++numpar;
-        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-        if (1 != sscanf(s,"%lg",&piCHdom[i][j])) ++cerror;
+      for (int i = 0; i < limit/2; i++) {
+        for (int j = 0; j < limit/3; j++) {
+          piCHdom[i][j] = reader.next_double();
+        }
       }
-    }
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
-    for (i = 0; i < (int) piCHdom[0][1]; i++) {
-      for (j = 0; j < (int) piCHdom[1][1]; j++) {
-        for (k = 0; k < (int) piCHdom[2][1]; k++) {
-          for (l = 0; l < 64; l = l+1) {
-            ++numpar;
-            utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-            if (1 != sscanf(s,"%lg",&piCH[i][j][k][l])) ++cerror;
+      for (int i = 0; i < (int) piCHdom[0][1]; i++) {
+        for (int j = 0; j < (int) piCHdom[1][1]; j++) {
+          for (int k = 0; k < (int) piCHdom[2][1]; k++) {
+            reader.next_dvector(&piCH[i][j][k][0], 64);
           }
         }
       }
-    }
 
-    // piHH spline
+      /////////////////////////////////////////////////////////////////////////
+      // piHH spline
+      current_section = "piHH spline";
 
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+      limit = reader.next_int();
 
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%d",&limit)) ++cerror;
-
-    for (i = 0; i < limit/2; i++) {
-      for (j = 0; j < limit/3; j++) {
-        ++numpar;
-        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-        if (1 != sscanf(s,"%lg",&piHHdom[i][j])) ++cerror;
+      for (int i = 0; i < limit/2; i++) {
+        for (int j = 0; j < limit/3; j++) {
+          piHHdom[i][j] = reader.next_double();
+        }
       }
-    }
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
-    for (i = 0; i < (int) piHHdom[0][1]; i++) {
-      for (j = 0; j < (int) piHHdom[1][1]; j++) {
-        for (k = 0; k < (int) piHHdom[2][1]; k++) {
-          for (l = 0; l < 64; l = l+1) {
-            ++numpar;
-            utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-            if (1 != sscanf(s,"%lg",&piHH[i][j][k][l])) ++cerror;
+      for (int i = 0; i < (int) piHHdom[0][1]; i++) {
+        for (int j = 0; j < (int) piHHdom[1][1]; j++) {
+          for (int k = 0; k < (int) piHHdom[2][1]; k++) {
+            reader.next_dvector(&piHH[i][j][k][0], 64);
           }
         }
       }
-    }
 
-    // Tij spline
+      /////////////////////////////////////////////////////////////////////////
+      // Tij spline
+      current_section = "Tij spline";
 
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+      limit = reader.next_int();
 
-    ++numpar;
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    if (1 != sscanf(s,"%d",&limit)) ++cerror;
-
-    for (i = 0; i < limit/2; i++) {
-      for (j = 0; j < limit/3; j++) {
-        ++numpar;
-        utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-        if (1 != sscanf(s,"%lg",&Tijdom[i][j])) ++cerror;
+      for (int i = 0; i < limit/2; i++) {
+        for (int j = 0; j < limit/3; j++) {
+          Tijdom[i][j] = reader.next_double();
+        }
       }
-    }
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
-    for (i = 0; i < (int) Tijdom[0][1]; i++) {
-      for (j = 0; j < (int) Tijdom[1][1]; j++) {
-        for (k = 0; k < (int) Tijdom[2][1]; k++) {
-          for (l = 0; l < 64; l = l+1) {
-            ++numpar;
-            utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-            if (1 != sscanf(s,"%lg",&Tijc[i][j][k][l])) ++cerror;
+      for (int i = 0; i < (int) Tijdom[0][1]; i++) {
+        for (int j = 0; j < (int) Tijdom[1][1]; j++) {
+          for (int k = 0; k < (int) Tijdom[2][1]; k++) {
+            reader.next_dvector(&Tijc[i][j][k][0], 64);
           }
         }
       }
+    } catch (TokenizerException & e) {
+      std::string msg = fmt::format("ERROR reading {} section in {} file\n"
+                                    "REASON: {}\n",
+                                    current_section, potential_name, e.what());
+      error->one(FLERR, msg);
+    } catch (FileReaderException & fre) {
+      error->one(FLERR, fre.what());
+      std::string msg = fmt::format("ERROR reading {} section in {} file\n"
+                                    "REASON: {}\n",
+                                    current_section, potential_name, fre.what());
+      error->one(FLERR, msg);
     }
 
-    fclose(fp);
-  }
-  
-  // check for errors parsing spline data
-
-  MPI_Bcast(&cerror,1,MPI_INT,0,world);
-  if (cerror > 0) {
-    char msg[128];
-    snprintf(msg,128,"Could not parse %d of %d spline data from file %s",
-             cerror,numpar,filename);
-    error->all(FLERR,msg);
-  }
-
-  // store read-in values in arrays
-
-  if (me == 0) {
+    // store read-in values in arrays
 
     // REBO
 
@@ -4327,70 +4079,70 @@ void PairAIREBO::Sptricubic_patch_coeffs(
 ) {
   const double C_inv[64][32] = {
     // output_matrix(2, 8*4, get_matrix(3))
-      1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,
-     -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -2, -1,  0,  0,  0,  0,  0,  0,
-      2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     -3,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -2,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  3,  0,  0,  0,  0,  0,
-      9, -9, -9,  9,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  6, -6,  3, -3,  0,  0,  0,  0,  6,  3, -6, -3,  0,  0,  0,  0,
-     -6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -4,  4, -2,  2,  0,  0,  0,  0, -3, -3,  3,  3,  0,  0,  0,  0,
-      2,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  0, -2,  0,  0,  0,  0,  0,
-     -6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  3, -3,  3,  0,  0,  0,  0, -4, -2,  4,  2,  0,  0,  0,  0,
-      4, -4, -4,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2, -2,  2, -2,  0,  0,  0,  0,  2,  2, -2, -2,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0, -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  9, -9, -9,  9,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  2,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  4, -4, -4,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     -3,  0,  0,  0,  3,  0,  0,  0, -2,  0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  0,  0,  3,  0,  0,  0,
-      9, -9,  0,  0, -9,  9,  0,  0,  6, -6,  0,  0,  3, -3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  6,  3,  0,  0, -6, -3,  0,  0,
-     -6,  6,  0,  0,  6, -6,  0,  0, -4,  4,  0,  0, -2,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3, -3,  0,  0,  3,  3,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  0,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  9, -9,  0,  0, -9,  9,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  0,  0,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      9,  0, -9,  0, -9,  0,  9,  0,  6,  0, -6,  0,  3,  0, -3,  0,  6,  0,  3,  0, -6,  0, -3,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  9,  0, -9,  0, -9,  0,  9,  0,
-    -27, 27, 27,-27, 27,-27,-27, 27,-18, 18, 18,-18, -9,  9,  9, -9,-18, 18, -9,  9, 18,-18,  9, -9,-18, -9, 18,  9, 18,  9,-18, -9,
-     18,-18,-18, 18,-18, 18, 18,-18, 12,-12,-12, 12,  6, -6, -6,  6, 12,-12,  6, -6,-12, 12, -6,  6,  9,  9, -9, -9, -9, -9,  9,  9,
-     -6,  0,  6,  0,  6,  0, -6,  0, -4,  0,  4,  0, -2,  0,  2,  0, -3,  0, -3,  0,  3,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  0,  6,  0,  6,  0, -6,  0,
-     18,-18,-18, 18,-18, 18, 18,-18, 12,-12,-12, 12,  6, -6, -6,  6,  9, -9,  9, -9, -9,  9, -9,  9, 12,  6,-12, -6,-12, -6, 12,  6,
-    -12, 12, 12,-12, 12,-12,-12, 12, -8,  8,  8, -8, -4,  4,  4, -4, -6,  6, -6,  6,  6, -6,  6, -6, -6, -6,  6,  6,  6,  6, -6, -6,
-      2,  0,  0,  0, -2,  0,  0,  0,  1,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  0,  0,  0, -2,  0,  0,  0,
-     -6,  6,  0,  0,  6, -6,  0,  0, -3,  3,  0,  0, -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -4, -2,  0,  0,  4,  2,  0,  0,
-      4, -4,  0,  0, -4,  4,  0,  0,  2, -2,  0,  0,  2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  2,  0,  0, -2, -2,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  0,  0,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  0,  0,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4, -4,  0,  0, -4,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     -6,  0,  6,  0,  6,  0, -6,  0, -3,  0,  3,  0, -3,  0,  3,  0, -4,  0, -2,  0,  4,  0,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  0,  6,  0,  6,  0, -6,  0,
-     18,-18,-18, 18,-18, 18, 18,-18,  9, -9, -9,  9,  9, -9, -9,  9, 12,-12,  6, -6,-12, 12, -6,  6, 12,  6,-12, -6,-12, -6, 12,  6,
-    -12, 12, 12,-12, 12,-12,-12, 12, -6,  6,  6, -6, -6,  6,  6, -6, -8,  8, -4,  4,  8, -8,  4, -4, -6, -6,  6,  6,  6,  6, -6, -6,
-      4,  0, -4,  0, -4,  0,  4,  0,  2,  0, -2,  0,  2,  0, -2,  0,  2,  0,  2,  0, -2,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4,  0, -4,  0, -4,  0,  4,  0,
-    -12, 12, 12,-12, 12,-12,-12, 12, -6,  6,  6, -6, -6,  6,  6, -6, -6,  6, -6,  6,  6, -6,  6, -6, -8, -4,  8,  4,  8,  4, -8, -4,
-      8, -8, -8,  8, -8,  8,  8, -8,  4, -4, -4,  4,  4, -4, -4,  4,  4, -4,  4, -4, -4,  4, -4,  4,  4,  4, -4, -4, -4, -4,  4,  4,
+    { 1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0},
+    {-3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -2, -1,  0,  0,  0,  0,  0,  0},
+    { 2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    {-3,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -2,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  3,  0,  0,  0,  0,  0},
+    { 9, -9, -9,  9,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  6, -6,  3, -3,  0,  0,  0,  0,  6,  3, -6, -3,  0,  0,  0,  0},
+    {-6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -4,  4, -2,  2,  0,  0,  0,  0, -3, -3,  3,  3,  0,  0,  0,  0},
+    { 2,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  0, -2,  0,  0,  0,  0,  0},
+    {-6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  3, -3,  3,  0,  0,  0,  0, -4, -2,  4,  2,  0,  0,  0,  0},
+    { 4, -4, -4,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2, -2,  2, -2,  0,  0,  0,  0,  2,  2, -2, -2,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0, -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  9, -9, -9,  9,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  2,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  4, -4, -4,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    {-3,  0,  0,  0,  3,  0,  0,  0, -2,  0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  0,  0,  3,  0,  0,  0},
+    { 9, -9,  0,  0, -9,  9,  0,  0,  6, -6,  0,  0,  3, -3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  6,  3,  0,  0, -6, -3,  0,  0},
+    {-6,  6,  0,  0,  6, -6,  0,  0, -4,  4,  0,  0, -2,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3, -3,  0,  0,  3,  3,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  0,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  9, -9,  0,  0, -9,  9,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  0,  0,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 9,  0, -9,  0, -9,  0,  9,  0,  6,  0, -6,  0,  3,  0, -3,  0,  6,  0,  3,  0, -6,  0, -3,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  9,  0, -9,  0, -9,  0,  9,  0},
+    {-27,27, 27,-27, 27,-27,-27, 27,-18, 18, 18,-18, -9,  9,  9, -9,-18, 18, -9,  9, 18,-18,  9, -9,-18, -9, 18,  9, 18,  9,-18, -9},
+    {18,-18,-18, 18,-18, 18, 18,-18, 12,-12,-12, 12,  6, -6, -6,  6, 12,-12,  6, -6,-12, 12, -6,  6,  9,  9, -9, -9, -9, -9,  9,  9},
+    {-6,  0,  6,  0,  6,  0, -6,  0, -4,  0,  4,  0, -2,  0,  2,  0, -3,  0, -3,  0,  3,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  0,  6,  0,  6,  0, -6,  0},
+    {18,-18,-18, 18,-18, 18, 18,-18, 12,-12,-12, 12,  6, -6, -6,  6,  9, -9,  9, -9, -9,  9, -9,  9, 12,  6,-12, -6,-12, -6, 12,  6},
+    {-12,12, 12,-12, 12,-12,-12, 12, -8,  8,  8, -8, -4,  4,  4, -4, -6,  6, -6,  6,  6, -6,  6, -6, -6, -6,  6,  6,  6,  6, -6, -6},
+    { 2,  0,  0,  0, -2,  0,  0,  0,  1,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  0,  0,  0, -2,  0,  0,  0},
+    {-6,  6,  0,  0,  6, -6,  0,  0, -3,  3,  0,  0, -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -4, -2,  0,  0,  4,  2,  0,  0},
+    { 4, -4,  0,  0, -4,  4,  0,  0,  2, -2,  0,  0,  2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  2,  0,  0, -2, -2,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  0,  0,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  0,  0,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4, -4,  0,  0, -4,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    {-6,  0,  6,  0,  6,  0, -6,  0, -3,  0,  3,  0, -3,  0,  3,  0, -4,  0, -2,  0,  4,  0,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  0,  6,  0,  6,  0, -6,  0},
+    {18,-18,-18, 18,-18, 18, 18,-18,  9, -9, -9,  9,  9, -9, -9,  9, 12,-12,  6, -6,-12, 12, -6,  6, 12,  6,-12, -6,-12, -6, 12,  6},
+    {-12,12, 12,-12, 12,-12,-12, 12, -6,  6,  6, -6, -6,  6,  6, -6, -8,  8, -4,  4,  8, -8,  4, -4, -6, -6,  6,  6,  6,  6, -6, -6},
+    { 4,  0, -4,  0, -4,  0,  4,  0,  2,  0, -2,  0,  2,  0, -2,  0,  2,  0,  2,  0, -2,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4,  0, -4,  0, -4,  0,  4,  0},
+    {-12,12, 12,-12, 12,-12,-12, 12, -6,  6,  6, -6, -6,  6,  6, -6, -6,  6, -6,  6,  6, -6,  6, -6, -8, -4,  8,  4,  8,  4, -8, -4},
+    { 8, -8, -8,  8, -8,  8,  8, -8,  4, -4, -4,  4,  4, -4, -4,  4,  4, -4,  4, -4, -4,  4, -4,  4,  4,  4, -4, -4, -4, -4,  4,  4}
   };
   double dx = xmax - xmin;
   double dy = ymax - ymin;
@@ -4440,22 +4192,22 @@ void PairAIREBO::Spbicubic_patch_coeffs(
 ) {
   const double C_inv[16][12] = {
      // output_matrix(1, 4*3, get_matrix(2))
-      1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
-     -3, 3, 0, 0, 0, 0, 0, 0,-2,-1, 0, 0,
-      2,-2, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0,
-      0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0,-3, 3, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 2,-2, 0, 0, 0, 0, 0, 0,
-     -3, 0, 3, 0,-2, 0,-1, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0,-3, 0, 3, 0,
-      9,-9,-9, 9, 6,-6, 3,-3, 6, 3,-6,-3,
-     -6, 6, 6,-6,-4, 4,-2, 2,-3,-3, 3, 3,
-      2, 0,-2, 0, 1, 0, 1, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 2, 0,-2, 0,
-     -6, 6, 6,-6,-3, 3,-3, 3,-4,-2, 4, 2,
-      4,-4,-4, 4, 2,-2, 2,-2, 2, 2,-2,-2,
+    { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    { 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0},
+    {-3, 3, 0, 0, 0, 0, 0, 0,-2,-1, 0, 0},
+    { 2,-2, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0},
+    { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0},
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    { 0, 0, 0, 0,-3, 3, 0, 0, 0, 0, 0, 0},
+    { 0, 0, 0, 0, 2,-2, 0, 0, 0, 0, 0, 0},
+    {-3, 0, 3, 0,-2, 0,-1, 0, 0, 0, 0, 0},
+    { 0, 0, 0, 0, 0, 0, 0, 0,-3, 0, 3, 0},
+    { 9,-9,-9, 9, 6,-6, 3,-3, 6, 3,-6,-3},
+    {-6, 6, 6,-6,-4, 4,-2, 2,-3,-3, 3, 3},
+    { 2, 0,-2, 0, 1, 0, 1, 0, 0, 0, 0, 0},
+    { 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,-2, 0},
+    {-6, 6, 6,-6,-3, 3,-3, 3,-4,-2, 4, 2},
+    { 4,-4,-4, 4, 2,-2, 2,-2, 2, 2,-2,-2}
   };
   double dx = xmax - xmin;
   double dy = ymax - ymin;
@@ -4502,19 +4254,18 @@ void PairAIREBO::spline_init()
   // this one parameter for C-C interactions is different in REBO vs AIREBO
   // see Favata, Micheletti, Ryu, Pugno, Comp Phys Comm (2016)
 
-  PCCf[2][0] = PCCf_2_0;
-
+  PCCf[2][0] = -0.0276030;
   PCCf[2][1] = 0.00317953083;
 
-  PCHf[0][1] = 0.209336733;
-  PCHf[0][2] = -0.0644496154;
-  PCHf[0][3] = -0.303927546;
+  PCHf[0][1] = 0.2093367328250380;
+  PCHf[0][2] = -0.064449615432525;
+  PCHf[0][3] = -0.303927546346162;
   PCHf[1][0] = 0.010;
-  PCHf[1][1] = -0.125123401;
-  PCHf[1][2] = -0.298905246;
-  PCHf[2][0] = -0.122042146;
-  PCHf[2][1] = -0.300529172;
-  PCHf[3][0] = -0.307584705;
+  PCHf[1][1] = -0.1251234006287090;
+  PCHf[1][2] = -0.298905245783;
+  PCHf[2][0] = -0.1220421462782555;
+  PCHf[2][1] = -0.3005291724067579;
+  PCHf[3][0] = -0.307584705066;
 
   for (int nH = 0; nH < 4; nH++) {
     for (int nC = 0; nC < 4; nC++) {

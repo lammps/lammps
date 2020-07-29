@@ -22,7 +22,7 @@ group adsorbant type 2
 ######################## Potential defition ########################
 pair_style  hybrid/overlay  rebo  kolmogorov/crespi/z 14.0
 ####################################################################
-pair_coeff * * rebo                 CH.airebo  C C  # chemical
+pair_coeff * * rebo                 CH.rebo  C C  # chemical
 pair_coeff 1 2 kolmogorov/crespi/z  CC.KC      C C  # long-range
 ####################################################################
 

@@ -16,15 +16,13 @@
                          Dan Bolintineanu (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_wall_gran.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
 #include "force.h"
-#include "pair.h"
 #include "modify.h"
 #include "respa.h"
 #include "math_const.h"
@@ -53,7 +51,7 @@ enum{NONE,CONSTANT,EQUAL};
 #define EPSILON 1e-10
 
 enum {NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR};
-enum {VELOCITY, VISCOELASTIC, TSUJI};
+enum {VELOCITY, MASS_VELOCITY, VISCOELASTIC, TSUJI};
 enum {TANGENTIAL_NOHISTORY, TANGENTIAL_HISTORY,
       TANGENTIAL_MINDLIN, TANGENTIAL_MINDLIN_RESCALE};
 enum {TWIST_NONE, TWIST_SDS, TWIST_MARSHALL};
@@ -122,6 +120,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     iarg = 4;
     damping_model = VISCOELASTIC;
     roll_model = twist_model = NONE;
+    tangential_history = roll_history = twist_history = 0;
     while (iarg < narg) {
       if (strcmp(arg[iarg], "hooke") == 0) {
         if (iarg + 2 >= narg)
@@ -183,6 +182,9 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
         if (strcmp(arg[iarg+1], "velocity") == 0) {
           damping_model = VELOCITY;
           iarg += 1;
+        } else if (strcmp(arg[iarg+1], "mass_velocity") == 0) {
+          damping_model = MASS_VELOCITY;
+          iarg += 1;
         } else if (strcmp(arg[iarg+1], "viscoelastic") == 0) {
           damping_model = VISCOELASTIC;
           iarg += 1;
@@ -226,7 +228,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
                          "stiffness requires a normal contact model "
                          "that specifies material properties");
             }
-            tangential_coeffs[0] = 4*(2-poiss)*(1+poiss)/Emod;
+            tangential_coeffs[0] = Emod/4*(2-poiss)*(1+poiss);
           } else {
             tangential_coeffs[0] = force->numeric(FLERR,arg[iarg+2]); //kt
           }
@@ -368,7 +370,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
       vshear = force->numeric(FLERR,arg[iarg+2]);
       wshear = 1;
       iarg += 3;
-    } else if (strcmp(arg[iarg],"store_contacts") == 0) {
+    } else if (strcmp(arg[iarg],"contacts") == 0) {
       peratom_flag = 1;
       size_peratom_cols = 8;
       peratom_freq = 1;
@@ -424,10 +426,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (peratom_flag) {
-    int nlocal = atom->nlocal;
-    for (int i = 0; i < nlocal; i++)
-      for (int m = 0; m < size_peratom_cols; m++)
-        array_atom[i][m] = 0.0;
+    clear_stored_contacts();
   }
 
   time_origin = update->ntimestep;
@@ -594,6 +593,10 @@ void FixWallGran::post_force(int /*vflag*/)
 
   rwall = 0.0;
 
+  if (peratom_flag) {
+    clear_stored_contacts();
+  }
+
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
 
@@ -666,7 +669,7 @@ void FixWallGran::post_force(int /*vflag*/)
 
         // store contact info
         if (peratom_flag) {
-          array_atom[i][0] = (double)atom->tag[i];
+          array_atom[i][0] = 1.0;
           array_atom[i][4] = x[i][0] - dx;
           array_atom[i][5] = x[i][1] - dy;
           array_atom[i][6] = x[i][2] - dz;
@@ -696,6 +699,15 @@ void FixWallGran::post_force(int /*vflag*/)
               omega[i],torque[i],radius[i],meff,history_one[i],
               contact);
       }
+    }
+  }
+}
+
+void FixWallGran::clear_stored_contacts() {
+  const int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) {
+    for (int m = 0; m < size_peratom_cols; m++) {
+      array_atom[i][m] = 0.0;
     }
   }
 }
@@ -1061,7 +1073,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
                            double *contact)
 {
   double fx,fy,fz,nx,ny,nz;
-  double radsum,r,rinv;
+  double r,rinv;
   double Reff, delta, dR, dR2;
 
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
@@ -1095,11 +1107,8 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   double shrmag,rsht;
 
   r = sqrt(rsq);
-  radsum = rwall + radius;
-
   E = normal_coeffs[0];
 
-  radsum = radius + rwall;
   if (rwall == 0) Reff = radius;
   else Reff = radius*rwall/(radius+rwall);
 
@@ -1122,7 +1131,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   vn2 = ny*vnnr;
   vn3 = nz*vnnr;
 
-  delta = radsum - r;
+  delta = radius - r;
   dR = delta*Reff;
   if (normal_model == JKR) {
     history[0] = 1.0;
@@ -1135,37 +1144,36 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
     t2 = 8*dR*dR2*E*E*E;
     t3 = 4*dR2*E;
     sqrt1 = MAX(0, t0*(t1+2*t2)); // in case sqrt(0) < 0 due to precision issues
-    t4 = cbrt(t1+t2+THREEROOT3*M_PI*sqrt(sqrt1));
+    t4 = cbrt(t1+t2+THREEROOT3*MY_PI*sqrt(sqrt1));
     t5 = t3/t4 + t4/E;
     sqrt2 = MAX(0, 2*dR + t5);
     t6 = sqrt(sqrt2);
-    sqrt3 = MAX(0, 4*dR - t5 + SIXROOT6*coh*M_PI*R2/(E*t6));
+    sqrt3 = MAX(0, 4*dR - t5 + SIXROOT6*coh*MY_PI*R2/(E*t6));
     a = INVROOT6*(t6 + sqrt(sqrt3));
     a2 = a*a;
     knfac = normal_coeffs[0]*a;
-    Fne = knfac*a2/Reff - TWOPI*a2*sqrt(4*coh*E/(M_PI*a));
-  }
-  else{
+    Fne = knfac*a2/Reff - TWOPI*a2*sqrt(4*coh*E/(MY_PI*a));
+  } else {
     knfac = E; //Hooke
     a = sqrt(dR);
+    Fne = knfac*delta;
     if (normal_model != HOOKE) {
       Fne *= a;
       knfac *= a;
     }
-    Fne = knfac*delta;
     if (normal_model == DMT)
       Fne -= 4*MY_PI*normal_coeffs[3]*Reff;
   }
 
   if (damping_model == VELOCITY) {
     damp_normal = 1;
-  }
-  else if (damping_model == VISCOELASTIC) {
+  } else if (damping_model == MASS_VELOCITY) {
+    damp_normal = meff;
+  } else if (damping_model == VISCOELASTIC) {
     damp_normal = a*meff;
-  }
-  else if (damping_model == TSUJI) {
+  } else if (damping_model == TSUJI) {
     damp_normal = sqrt(meff*knfac);
-  }
+  } else damp_normal = 0.0;
 
   damp_normal_prefactor = normal_coeffs[1]*damp_normal;
   Fdamp = -damp_normal_prefactor*vnnr;
@@ -1182,9 +1190,9 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   vt3 = vr3 - vn3;
 
   // relative rotational velocity
-  wr1 = radius*omega[0] * rinv;
-  wr2 = radius*omega[1] * rinv;
-  wr3 = radius*omega[2] * rinv;
+  wr1 = radius*omega[0];
+  wr2 = radius*omega[1];
+  wr3 = radius*omega[2];
 
   // relative tangential velocities
   vtr1 = vt1 - (nz*wr2-ny*wr3);
@@ -1194,11 +1202,11 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   vrel = sqrt(vrel);
 
   if (normal_model == JKR) {
-    F_pulloff = 3*M_PI*coh*Reff;
+    F_pulloff = 3*MY_PI*coh*Reff;
     Fncrit = fabs(Fne + 2*F_pulloff);
   }
   else if (normal_model == DMT) {
-    F_pulloff = 4*M_PI*coh*Reff;
+    F_pulloff = 4*MY_PI*coh*Reff;
     Fncrit = fabs(Fne + 2*F_pulloff);
   }
   else{
@@ -1290,10 +1298,12 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   // rolling resistance
   //****************************************
 
-  if (roll_model != ROLL_NONE) {
+  if (roll_model != ROLL_NONE || twist_model != NONE) {
     relrot1 = omega[0];
     relrot2 = omega[1];
     relrot3 = omega[2];
+  }
+  if (roll_model != ROLL_NONE){
 
     // rolling velocity, see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
     // This is different from the Marshall papers,
@@ -1589,8 +1599,8 @@ double FixWallGran::pulloff_distance(double radius)
   double coh, E, a, dist;
   coh = normal_coeffs[3];
   E = normal_coeffs[0]*THREEQUARTERS;
-  a = cbrt(9*M_PI*coh*radius/(4*E));
-  dist = a*a/radius - 2*sqrt(M_PI*coh*a/E);
+  a = cbrt(9*MY_PI*coh*radius/(4*E));
+  dist = a*a/radius - 2*sqrt(MY_PI*coh*a/E);
   return dist;
 }
 

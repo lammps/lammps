@@ -14,7 +14,7 @@
 #ifndef LMP_COMM_H
 #define LMP_COMM_H
 
-#include "pointers.h"
+#include "pointers.h"  // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -38,9 +38,8 @@ class Comm : protected Pointers {
                                     // -1 if no recv or send
   int other_partition_style;        // 0 = recv layout dims must be multiple of
                                     //     my layout dims
-  int maxexchange_atom;             // max contribution to exchange from AtomVec
-  int maxexchange_fix;              // max contribution to exchange from Fixes
-  int nthreads;                     // OpenMP threads per MPI process
+
+  int nthreads;                // OpenMP threads per MPI process
 
   // public settings specific to layout = UNIFORM, NONUNIFORM
 
@@ -69,6 +68,8 @@ class Comm : protected Pointers {
 
   void set_processors(int, char **);      // set 3d processor grid attributes
   virtual void set_proc_grid(int outflag = 1); // setup 3d grid of procs
+
+  double get_comm_cutoff();     // determine communication cutoff
 
   virtual void setup() = 0;                      // setup 3d comm pattern
   virtual void forward_comm(int dummy = 0) = 0;  // forward comm of atom coords
@@ -130,8 +131,13 @@ class Comm : protected Pointers {
   int size_reverse;                 // # of datums in reverse comm
   int size_border;                  // # of datums in forward border comm
 
-  int maxforward,maxreverse;        // max # of datums in forward/reverse comm
-  int maxexchange;                  // max # of datums/atom in exchange comm
+  int maxforward,maxreverse;    // max # of datums in forward/reverse comm
+  int maxexchange;              // max size of one exchanged atom
+  int maxexchange_atom;         // contribution to maxexchange from AtomVec
+  int maxexchange_fix;          // static contribution to maxexchange from Fixes
+  int maxexchange_fix_dynamic;  // 1 if a fix has a dynamic contribution
+  int bufextra;                 // augment send buf size for an exchange atom
+
 
   int gridflag;                     // option for creating 3d grid
   int mapflag;                      // option for mapping procs to 3d grid
@@ -147,6 +153,7 @@ class Comm : protected Pointers {
   int coregrid[3];                  // 3d grid of cores within a node
   int user_coregrid[3];             // user request for cores in each dim
 
+  void init_exchange();
   int rendezvous_irregular(int, char *, int, int, int *,
                            int (*)(int, char *, int &, int *&, char *&, void *),
                            int, char *&, int, void *, int);
@@ -236,6 +243,15 @@ E: Processor count in z must be 1 for 2d simulation
 Self-explanatory.
 
 E: Cannot put data on ring from NULL pointer
+
+W: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost.
+
+The communication cutoff defaults to the maximum of what is inferred from pair and
+bond styles (will be zero, if none are defined) and what is specified via
+"comm_modify cutoff" (defaults to 0.0).  If this results to 0.0, no ghost atoms will
+be generated and LAMMPS may lose atoms or use incorrect periodic images of atoms in
+interaction lists.  To avoid, either define pair style zero with a suitable cutoff
+or use comm_modify cutoff.
 
 UNDOCUMENTED
 

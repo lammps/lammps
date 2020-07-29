@@ -11,11 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_morse_soft.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -23,6 +22,7 @@
 #include "memory.h"
 #include "math_special.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
@@ -313,15 +313,15 @@ void PairMorseSoft::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&d0[i][j],sizeof(double),1,fp);
-          fread(&alpha[i][j],sizeof(double),1,fp);
-          fread(&r0[i][j],sizeof(double),1,fp);
-          fread(&lambda[i][j],sizeof(double),1,fp);
-          fread(&cut[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&d0[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&alpha[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&r0[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&lambda[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&d0[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&alpha[i][j],1,MPI_DOUBLE,0,world);

@@ -15,16 +15,14 @@
    Contributing author: Daniel Schwen
 ------------------------------------------------------------------------- */
 
+#include "compute_voronoi_atom.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "voro++.hh"
-#include "compute_voronoi_atom.h"
+#include <voro++.hh>
 #include "atom.h"
 #include "group.h"
 #include "update.h"
-#include "modify.h"
 #include "domain.h"
 #include "memory.h"
 #include "error.h"
@@ -513,7 +511,7 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
       c.face_areas(narea);
       have_narea = true;
       voro[i][1] = 0.0;
-      for (j=0; j<narea.size(); ++j)
+      for (j=0; j < (int)narea.size(); ++j)
         if (narea[j] > fthresh) voro[i][1] += 1.0;
     } else {
       // unthresholded face count
@@ -528,7 +526,7 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
       voro[i][2] = 0.0;
 
       // each entry in neigh should correspond to an entry in narea
-      if (neighs != narea.size())
+      if (neighs != (int)narea.size())
         error->one(FLERR,"Voro++ error: narea and neigh have a different size");
 
       // loop over all faces (neighbors) and check if they are in the surface group
@@ -589,7 +587,7 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
 
       if (!have_narea) c.face_areas(narea);
 
-      if (neighs != narea.size())
+      if (neighs != (int)narea.size())
         error->one(FLERR,"Voro++ error: narea and neigh have a different size");
       tagint itag, jtag;
       tagint *tag = atom->tag;

@@ -1,13 +1,14 @@
 #include "meam.h"
-#include "math_special.h"
+#include <cmath>
 #include <algorithm>
+#include "math_special.h"
 
 using namespace LAMMPS_NS;
 
 
 void
 MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int vflag_atom, double* eng_vdwl,
-                 double* eatom, int /*ntype*/, int* type, int* fmap, double** x, int numneigh, int* firstneigh,
+                 double* eatom, int /*ntype*/, int* type, int* fmap, double** scale, double** x, int numneigh, int* firstneigh,
                  int numneigh_full, int* firstneigh_full, int fnoffset, double** f, double** vatom)
 {
   int j, jn, k, kn, kk, m, n, p, q;
@@ -16,7 +17,7 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
   double v[6], fi[3], fj[3];
   double third, sixth;
   double pp, dUdrij, dUdsij, dUdrijm[3], force, forcem;
-  double r, recip, phi, phip;
+  double recip, phi, phip;
   double sij;
   double a1, a1i, a1j, a2, a2i, a2j;
   double a3i, a3j;
@@ -41,6 +42,7 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
   double arg1i1, arg1j1, arg1i2, arg1j2, arg1i3, arg1j3, arg3i3, arg3j3;
   double dsij1, dsij2, force1, force2;
   double t1i, t2i, t3i, t1j, t2j, t3j;
+  double scaleij;
 
   third = 1.0 / 3.0;
   sixth = 1.0 / 6.0;
@@ -58,6 +60,7 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
   for (jn = 0; jn < numneigh; jn++) {
     j = firstneigh[jn];
     eltj = fmap[type[j]];
+    scaleij = scale[type[i]][type[j]];
 
     if (!iszero(scrfcn[fnoffset + jn]) && eltj >= 0) {
 
@@ -68,7 +71,7 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
       rij2 = delij[0] * delij[0] + delij[1] * delij[1] + delij[2] * delij[2];
       if (rij2 < this->cutforcesq) {
         rij = sqrt(rij2);
-        r = rij;
+        recip = 1.0 / rij;
 
         //     Compute phi and phip
         ind = this->eltind[elti][eltj];
@@ -77,17 +80,16 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
         kk = std::min(kk, this->nrar - 2);
         pp = pp - kk;
         pp = std::min(pp, 1.0);
-        phi = ((this->phirar3[ind][kk] * pp + this->phirar2[ind][kk]) * pp + this->phirar1[ind][kk]) * pp +
-          this->phirar[ind][kk];
+        phi = ((this->phirar3[ind][kk] * pp + this->phirar2[ind][kk]) * pp + this->phirar1[ind][kk]) * pp + this->phirar[ind][kk];
         phip = (this->phirar6[ind][kk] * pp + this->phirar5[ind][kk]) * pp + this->phirar4[ind][kk];
-        recip = 1.0 / r;
 
         if (eflag_either != 0) {
+          double phi_sc = phi * scaleij;
           if (eflag_global != 0)
-            *eng_vdwl = *eng_vdwl + phi * sij;
+            *eng_vdwl = *eng_vdwl + phi_sc * sij;
           if (eflag_atom != 0) {
-            eatom[i] = eatom[i] + 0.5 * phi * sij;
-            eatom[j] = eatom[j] + 0.5 * phi * sij;
+            eatom[i] = eatom[i] + 0.5 * phi_sc * sij;
+            eatom[j] = eatom[j] + 0.5 * phi_sc * sij;
           }
         }
 
@@ -286,8 +288,9 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
         }
 
         //     Compute derivatives of total density wrt rij, sij and rij(3)
-        get_shpfcn(this->lattce_meam[elti][elti], shpi);
-        get_shpfcn(this->lattce_meam[eltj][eltj], shpj);
+        get_shpfcn(this->lattce_meam[elti][elti], this->stheta_meam[elti][elti], this->ctheta_meam[elti][elti], shpi);
+        get_shpfcn(this->lattce_meam[eltj][eltj], this->stheta_meam[elti][elti], this->ctheta_meam[elti][elti], shpj);
+
         drhodr1 = dgamma1[i] * drho0dr1 +
           dgamma2[i] * (dt1dr1 * rho1[i] + t1i * drho1dr1 + dt2dr1 * rho2[i] + t2i * drho2dr1 +
                         dt3dr1 * rho3[i] + t3i * drho3dr1) -
@@ -378,6 +381,13 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
         for (m = 0; m < 3; m++) {
           dUdrijm[m] = frhop[i] * drhodrm1[m] + frhop[j] * drhodrm2[m];
         }
+        if (!isone(scaleij)) {
+          dUdrij *= scaleij;
+          dUdsij *= scaleij;
+          dUdrijm[0] *= scaleij;
+          dUdrijm[1] *= scaleij;
+          dUdrijm[2] *= scaleij;
+        }
 
         //     Add the part of the force due to dUdrij and dUdsij
 
@@ -409,7 +419,7 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
 
         //     Now compute forces on other atoms k due to change in sij
 
-        if (iszero(sij) || iszero(sij - 1.0)) continue; //: cont jn loop
+        if (iszero(sij) || isone(sij)) continue; //: cont jn loop
 
         double dxik(0), dyik(0), dzik(0);
         double dxjk(0), dyjk(0), dzjk(0);
@@ -428,7 +438,7 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
 
             dsij1 = 0.0;
             dsij2 = 0.0;
-            if (!iszero(sij) && !iszero(sij - 1.0)) {
+            if (!iszero(sij) && !isone(sij)) {
               const double rbound = rij2 * this->ebound_meam[elti][eltj];
               delc = Cmax - Cmin;
               dxjk = x[k][0] - x[j][0];

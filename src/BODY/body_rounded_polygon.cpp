@@ -15,8 +15,10 @@
    Contributing author: Trung Dac Nguyen (ndactrung@gmail.com)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "body_rounded_polygon.h"
+#include <cmath>
+#include <cstring>
+#include "my_pool_chunk.h"
 #include "atom_vec_body.h"
 #include "atom.h"
 #include "force.h"
@@ -24,6 +26,7 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -61,6 +64,7 @@ BodyRoundedPolygon::BodyRoundedPolygon(LAMMPS *lmp, int narg, char **arg) :
 
   icp = new MyPoolChunk<int>(1,1);
   dcp = new MyPoolChunk<double>(3*nmin+2*nmin+1+1,3*nmax+2*nmax+1+1);
+  maxexchange = 1 + 3*nmax+2*nmax+1+1;      // icp max + dcp max
 
   memory->create(imflag,nmax,"body/rounded/polygon:imflag");
   memory->create(imdata,nmax,7,"body/nparticle:imdata");
@@ -113,7 +117,7 @@ double BodyRoundedPolygon::enclosing_radius(struct AtomVecBody::Bonus *bonus)
 {
   int nvertices = bonus->ivalue[0];
   if (nvertices == 1 || nvertices == 2)
-	return *(bonus->dvalue+3*nsub(bonus)+2);
+        return *(bonus->dvalue+3*nsub(bonus)+2);
   return *(bonus->dvalue + 3*nsub(bonus) + 2*nsub(bonus));
 }
 
@@ -123,7 +127,7 @@ double BodyRoundedPolygon::rounded_radius(struct AtomVecBody::Bonus *bonus)
 {
   int nvertices = bonus->ivalue[0];
   if (nvertices == 1 || nvertices == 2)
-	return *(bonus->dvalue+3*nsub(bonus)+2+1);
+        return *(bonus->dvalue+3*nsub(bonus)+2+1);
   return *(bonus->dvalue + 3*nsub(bonus) + 2*nsub(bonus)+1);
 }
 
@@ -153,7 +157,7 @@ int BodyRoundedPolygon::unpack_border_body(AtomVecBody::Bonus *bonus,
 ------------------------------------------------------------------------- */
 
 void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
-				   int *ifile, double *dfile)
+                                   int *ifile, double *dfile)
 {
   AtomVecBody::Bonus *bonus = &avec->bonus[ibonus];
 
@@ -178,7 +182,8 @@ void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
   bonus->ninteger = 1;
   bonus->ivalue = icp->get(bonus->iindex);
   bonus->ivalue[0] = nsub;
-  bonus->ndouble = 3*nsub + 2*nsub + 1 + 1;
+  if (nsub < 3) bonus->ndouble = 3*nsub + 2 + 1 + 1;
+  else bonus->ndouble = 3*nsub + 2*nsub + 1 + 1;
   bonus->dvalue = dcp->get(bonus->ndouble,bonus->dindex);
 
   // diagonalize inertia tensor
@@ -236,10 +241,13 @@ void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
   // find the enclosing radius of the body from the maximum displacement
 
   int i,m;
-  double delta[3], rsq, erad, rrad;
-  double erad2 = 0;
+  double rsq,erad,rrad;
+  double delta[3];
+
+  double erad2 = 0.0;
   int j = 6;
   int k = 0;
+
   for (i = 0; i < nsub; i++) {
     delta[0] = dfile[j];
     delta[1] = dfile[j+1];
@@ -253,16 +261,16 @@ void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
     k += 3;
   }
 
-  // .. the next 2*nsub elements are edge ends
+  // the next 2 or 2*nsub elements are edge ends
+  // the final two values are the enclosing radius and rounded radius
+  // set atom->radius = enclosing + rounded radii (except for spheres)
 
-  int nedges;
-  if (nsub == 1) { // spheres
-    nedges = 0;
+  // spheres have just 1 edge
+
+  if (nsub == 1) {
     bonus->dvalue[k] = 0;
-    *(&bonus->dvalue[k]+1) = 0;
+    bonus->dvalue[k+1] = 0;
     k += 2;
-
-    // the last element of bonus->dvalue is the rounded & enclosing radius
 
     rrad = 0.5 * dfile[j];
     bonus->dvalue[k] = rrad;
@@ -273,18 +281,15 @@ void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
 
     atom->radius[bonus->ilocal] = erad;
 
-  } else if (nsub == 2) { // rods
-    nedges = 1;
-    for (i = 0; i < nedges; i++) {
-      bonus->dvalue[k] = 0;
-      *(&bonus->dvalue[k]+1) = 1;
-      k += 2;
-    }
+  // rods have just 1 edge
+
+  } else if (nsub == 2) {
+    bonus->dvalue[k] = 0;
+    bonus->dvalue[k+1] = 1;
+    k += 2;
 
     erad = sqrt(erad2);
     bonus->dvalue[k] = erad;
-
-    // the last element of bonus->dvalue is the rounded radius
 
     rrad = 0.5 * dfile[j];
     k++;
@@ -292,22 +297,19 @@ void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
 
     atom->radius[bonus->ilocal] = erad + rrad;
 
-  } else { // polygons
-    nedges = nsub;
-    for (i = 0; i < nedges; i++) {
+  // polygons have Nsub edges
+
+  } else {
+    for (i = 0; i < nsub; i++) {
       bonus->dvalue[k] = i;
       m = i+1;
-      if (m == nedges) m = 0;
-      *(&bonus->dvalue[k]+1) = m;
+      if (m == nsub) m = 0;
+      bonus->dvalue[k+1] = m;
       k += 2;
     }
 
-    // the next to last element is the enclosing radius
-
     erad = sqrt(erad2);
     bonus->dvalue[k] = erad;
-
-    // the last element of bonus->dvalue is the rounded radius
 
     rrad = 0.5 * dfile[j];
     k++;
@@ -318,13 +320,115 @@ void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
 }
 
 /* ----------------------------------------------------------------------
+   pack data struct for one body into buf for writing to data file
+   if buf is NULL, just return buffer size
+------------------------------------------------------------------------- */
+
+int BodyRoundedPolygon::pack_data_body(tagint atomID, int ibonus, double *buf)
+{
+  int m,ilast;
+  double values[3],p[3][3],pdiag[3][3],ispace[3][3];
+
+  AtomVecBody::Bonus *bonus = &avec->bonus[ibonus];
+
+  double *quat = bonus->quat;
+  double *inertia = bonus->inertia;
+  int *ivalue = bonus->ivalue;
+  double *dvalue = bonus->dvalue;
+
+  int nsub = ivalue[0];
+
+  if (buf) {
+
+    // ID ninteger ndouble
+
+    m = 0;
+    buf[m++] = ubuf(atomID).d;
+    buf[m++] = ubuf(1).d;
+    buf[m++] = ubuf(6 + 3*nsub + 1).d;
+
+    // single integer nsub
+
+    buf[m++] = ubuf(nsub).d;
+
+    // 6 moments of inertia
+
+    MathExtra::quat_to_mat(quat,p);
+    MathExtra::times3_diag(p,inertia,pdiag);
+    MathExtra::times3_transpose(pdiag,p,ispace);
+
+    buf[m++] = ispace[0][0];
+    buf[m++] = ispace[1][1];
+    buf[m++] = ispace[2][2];
+    buf[m++] = ispace[0][1];
+    buf[m++] = ispace[0][2];
+    buf[m++] = ispace[1][2];
+
+    // 3*nsub particle coords = displacement from COM in box frame
+
+    for (int i = 0; i < nsub; i++) {
+      MathExtra::matvec(p,&dvalue[3*i],values);
+      buf[m++] = values[0];
+      buf[m++] = values[1];
+      buf[m++] = values[2];
+    }
+
+    // rounded diameter = 2 * last dvalue = rounded radius
+    // for nsub = 1,2: skip one edge and enclosing radius
+    // for nsub > 2: skip Nsub edges and enclosing radius
+
+    if (nsub < 3) ilast = 3*nsub + 2 + 1;
+    else ilast = 3*nsub + 2*nsub + 1;
+    buf[m++] = 2.0 * dvalue[ilast];
+
+  } else m = 3 + 1 + 6 + 3*nsub + 1;
+
+  return m;
+}
+
+/* ----------------------------------------------------------------------
+   write info for one body to data file
+------------------------------------------------------------------------- */
+
+int BodyRoundedPolygon::write_data_body(FILE *fp, double *buf)
+{
+  int m = 0;
+
+  // atomID ninteger ndouble
+
+  fmt::print(fp,"{} {} {}\n",ubuf(buf[m]).i,ubuf(buf[m+1]).i,ubuf(buf[m+2]).i);
+  m += 3;
+
+  const int nsub = (int) ubuf(buf[m++]).i;
+  fmt::print(fp,"{}\n",nsub);
+
+  // inertia
+
+  fmt::print(fp,"{} {} {} {} {} {}\n",
+             buf[m+0],buf[m+1],buf[m+2],buf[m+3],buf[m+4],buf[m+5]);
+  m += 6;
+
+  // nsub vertices
+
+  for (int i = 0; i < nsub; i++, m+=3)
+    fmt::print(fp,"{} {} {}\n",buf[m],buf[m+1],buf[m+2]);
+
+  // rounded diameter
+
+  double diameter = buf[m++];
+  fmt::print(fp,"{}\n",diameter);
+
+  return m;
+}
+
+/* ----------------------------------------------------------------------
    return radius of body particle defined by ifile/dfile params
    params are ordered as in data file
    called by Molecule class which needs single body size
 ------------------------------------------------------------------------- */
 
 double BodyRoundedPolygon::radius_body(int /*ninteger*/, int ndouble,
-				       int *ifile, double *dfile)
+                                       int *ifile, double *dfile)
 {
   int nsub = ifile[0];
   if (nsub < 1)

@@ -15,11 +15,9 @@
    Contributing authors: Mark Stevens (SNL), Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "fix_nh.h"
-#include "math_extra.h"
+#include <cstring>
+#include <cmath>
 #include "atom.h"
 #include "force.h"
 #include "group.h"
@@ -41,6 +39,7 @@ using namespace FixConst;
 
 #define DELTAFLIP 0.1
 #define TILTMAX 1.5
+#define EPSILON 1.0e-6
 
 enum{NOBIAS,BIAS};
 enum{NONE,XYZ,XY,YZ,XZ};
@@ -85,6 +84,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   flipflag = 1;
   dipole_flag = 0;
   dlm_flag = 0;
+  p_temp_flag = 0;
 
   tcomputeflag = 0;
   pcomputeflag = 0;
@@ -260,6 +260,12 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       drag = force->numeric(FLERR,arg[iarg+1]);
       if (drag < 0.0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"ptemp") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      p_temp = force->numeric(FLERR,arg[iarg+1]);
+      p_temp_flag = 1;
+      if (p_temp <= 0.0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"dilate") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
@@ -468,6 +474,10 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
       (p_flag[5] && p_period[5] <= 0.0))
     error->all(FLERR,"Fix nvt/npt/nph damping parameters must be > 0.0");
 
+  // check that ptemp is not defined with a thermostat
+  if (tstat_flag && p_temp_flag)
+    error->all(FLERR,"Thermostat in fix nvt/npt/nph is incompatible with ptemp command");
+
   // set pstat_flag and box change and restart_pbc variables
 
   pre_exchange_flag = 0;
@@ -478,8 +488,12 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
     if (p_flag[i]) pstat_flag = 1;
 
   if (pstat_flag) {
-    if (p_flag[0] || p_flag[1] || p_flag[2]) box_change_size = 1;
-    if (p_flag[3] || p_flag[4] || p_flag[5]) box_change_shape = 1;
+    if (p_flag[0]) box_change |= BOX_CHANGE_X;
+    if (p_flag[1]) box_change |= BOX_CHANGE_Y;
+    if (p_flag[2]) box_change |= BOX_CHANGE_Z;
+    if (p_flag[3]) box_change |= BOX_CHANGE_YZ;
+    if (p_flag[4]) box_change |= BOX_CHANGE_XZ;
+    if (p_flag[5]) box_change |= BOX_CHANGE_XY;
     no_change_box = 1;
     if (allremap == 0) restart_pbc = 1;
 
@@ -494,10 +508,10 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
     // pre_exchange only required if flips can occur due to shape changes
 
     if (flipflag && (p_flag[3] || p_flag[4] || p_flag[5]))
-      pre_exchange_flag = 1;
+      pre_exchange_flag = pre_exchange_migrate = 1;
     if (flipflag && (domain->yz != 0.0 || domain->xz != 0.0 ||
                      domain->xy != 0.0))
-      pre_exchange_flag = 1;
+      pre_exchange_flag = pre_exchange_migrate = 1;
   }
 
   // convert input periods to frequencies
@@ -758,16 +772,19 @@ void FixNH::setup(int /*vflag*/)
   } else if (pstat_flag) {
 
     // t0 = reference temperature for masses
+    // set equal to either ptemp or the current temperature
     // cannot be done in init() b/c temperature cannot be called there
     // is b/c Modify::init() inits computes after fixes due to dof dependence
-    // guesstimate a unit-dependent t0 if actual T = 0.0
+    // error if T less than 1e-6
     // if it was read in from a restart file, leave it be
 
     if (t0 == 0.0) {
-      t0 = temperature->compute_scalar();
-      if (t0 == 0.0) {
-        if (strcmp(update->unit_style,"lj") == 0) t0 = 1.0;
-        else t0 = 300.0;
+      if(p_temp_flag) {
+        t0 = p_temp;
+      } else {
+        t0 = temperature->compute_scalar();
+        if(t0 < EPSILON)
+          error->all(FLERR, "Current temperature too close to zero, consider using ptemp setting");
       }
     }
     t_target = t0;

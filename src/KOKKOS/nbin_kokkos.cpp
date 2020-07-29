@@ -40,6 +40,7 @@ NBinKokkos<DeviceType>::NBinKokkos(LAMMPS *lmp) : NBinStandard(lmp) {
 #endif
   h_resize() = 1;
 
+  kokkos = 1;
 }
 
 /* ----------------------------------------------------------------------

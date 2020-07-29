@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -12,7 +12,6 @@
 
 #include <iostream>
 #include <iomanip>
-#include <cmath>
 
 #include "colvar.h"
 #include "colvarmodule.h"
@@ -53,7 +52,7 @@ protected:
   std::vector<colvar *> cv;
 
   /// Do we request actual value (for extended-system colvars)?
-  std::vector<bool> actual_value;
+  std::vector<bool> use_actual_value;
 
   /// Get the low-level index corresponding to an index
   inline size_t address(std::vector<int> const &ix) const
@@ -136,8 +135,8 @@ public:
   inline void request_actual_value(bool b = true)
   {
     size_t i;
-    for (i = 0; i < actual_value.size(); i++) {
-      actual_value[i] = b;
+    for (i = 0; i < use_actual_value.size(); i++) {
+      use_actual_value[i] = b;
     }
   }
 
@@ -210,12 +209,13 @@ public:
   /// \brief "Almost copy-constructor": only copies configuration
   /// parameters from another grid, but doesn't reallocate stuff;
   /// setup() must be called after that;
-  colvar_grid(colvar_grid<T> const &g) : nd(g.nd),
+  colvar_grid(colvar_grid<T> const &g) : colvarparse(),
+                                         nd(g.nd),
                                          nx(g.nx),
                                          mult(g.mult),
                                          data(),
                                          cv(g.cv),
-                                         actual_value(g.actual_value),
+                                         use_actual_value(g.use_actual_value),
                                          lower_boundaries(g.lower_boundaries),
                                          upper_boundaries(g.upper_boundaries),
                                          periodic(g.periodic),
@@ -285,18 +285,18 @@ public:
       }
 
       widths.push_back(cv[i]->width);
-      hard_lower_boundaries.push_back(cv[i]->hard_lower_boundary);
-      hard_upper_boundaries.push_back(cv[i]->hard_upper_boundary);
+      hard_lower_boundaries.push_back(cv[i]->is_enabled(colvardeps::f_cv_hard_lower_boundary));
+      hard_upper_boundaries.push_back(cv[i]->is_enabled(colvardeps::f_cv_hard_upper_boundary));
       periodic.push_back(cv[i]->periodic_boundaries());
 
       // By default, get reported colvar value (for extended Lagrangian colvars)
-      actual_value.push_back(false);
+      use_actual_value.push_back(false);
 
       // except if a colvar is specified twice in a row
       // then the first instance is the actual value
       // For histograms of extended-system coordinates
       if (i > 0 && cv[i-1] == cv[i]) {
-        actual_value[i-1] = true;
+        use_actual_value[i-1] = true;
       }
 
       if (margin) {
@@ -319,8 +319,7 @@ public:
     return this->setup();
   }
 
-  int init_from_boundaries(T const &t = T(),
-                           size_t const &mult_i = 1)
+  int init_from_boundaries()
   {
     if (cvm::debug()) {
       cvm::log("Configuring grid dimensions from colvars boundaries.\n");
@@ -337,7 +336,7 @@ public:
                           lower_boundaries[i].real_value ) / widths[i];
       int nbins_round = (int)(nbins+0.5);
 
-      if (std::fabs(nbins - cvm::real(nbins_round)) > 1.0E-10) {
+      if (cvm::fabs(nbins - cvm::real(nbins_round)) > 1.0E-10) {
         cvm::log("Warning: grid interval("+
                  cvm::to_str(lower_boundaries[i], cvm::cv_width, cvm::cv_prec)+" - "+
                  cvm::to_str(upper_boundaries[i], cvm::cv_width, cvm::cv_prec)+
@@ -392,20 +391,20 @@ public:
   /// \brief Report the bin corresponding to the current value of variable i
   inline int current_bin_scalar(int const i) const
   {
-    return value_to_bin_scalar(actual_value[i] ? cv[i]->actual_value() : cv[i]->value(), i);
+    return value_to_bin_scalar(use_actual_value[i] ? cv[i]->actual_value() : cv[i]->value(), i);
   }
 
   /// \brief Report the bin corresponding to the current value of variable i
   /// and assign first or last bin if out of boundaries
   inline int current_bin_scalar_bound(int const i) const
   {
-    return value_to_bin_scalar_bound(actual_value[i] ? cv[i]->actual_value() : cv[i]->value(), i);
+    return value_to_bin_scalar_bound(use_actual_value[i] ? cv[i]->actual_value() : cv[i]->value(), i);
   }
 
   /// \brief Report the bin corresponding to the current value of item iv in variable i
   inline int current_bin_scalar(int const i, int const iv) const
   {
-    return value_to_bin_scalar(actual_value[i] ?
+    return value_to_bin_scalar(use_actual_value[i] ?
                                cv[i]->actual_value().vector1d_value[iv] :
                                cv[i]->value().vector1d_value[iv], i);
   }
@@ -414,14 +413,28 @@ public:
   /// the provided value is in
   inline int value_to_bin_scalar(colvarvalue const &value, const int i) const
   {
-    return (int) std::floor( (value.real_value - lower_boundaries[i].real_value) / widths[i] );
+    return (int) cvm::floor( (value.real_value - lower_boundaries[i].real_value) / widths[i] );
+  }
+
+  /// \brief Report the fraction of bin beyond current_bin_scalar()
+  inline cvm::real current_bin_scalar_fraction(int const i) const
+  {
+    return value_to_bin_scalar_fraction(use_actual_value[i] ? cv[i]->actual_value() : cv[i]->value(), i);
+  }
+
+  /// \brief Use the lower boundary and the width to report the fraction of bin
+  /// beyond value_to_bin_scalar() that the provided value is in
+  inline cvm::real value_to_bin_scalar_fraction(colvarvalue const &value, const int i) const
+  {
+    cvm::real x = (value.real_value - lower_boundaries[i].real_value) / widths[i];
+    return x - cvm::floor(x);
   }
 
   /// \brief Use the lower boundary and the width to report which bin
   /// the provided value is in and assign first or last bin if out of boundaries
   inline int value_to_bin_scalar_bound(colvarvalue const &value, const int i) const
   {
-    int bin_index = std::floor( (value.real_value - lower_boundaries[i].real_value) / widths[i] );
+    int bin_index = cvm::floor( (value.real_value - lower_boundaries[i].real_value) / widths[i] );
     if (bin_index < 0) bin_index=0;
     if (bin_index >=int(nx[i])) bin_index=int(nx[i])-1;
     return (int) bin_index;
@@ -432,7 +445,7 @@ public:
                                  colvarvalue const &new_offset,
                                  cvm::real   const &new_width) const
   {
-    return (int) std::floor( (value.real_value - new_offset.real_value) / new_width );
+    return (int) cvm::floor( (value.real_value - new_offset.real_value) / new_width );
   }
 
   /// \brief Use the two boundaries and the width to report the
@@ -559,11 +572,11 @@ public:
       data[i] *= a;
   }
 
-  /// \brief Assign all zero elements a scalar constant (fast loop)
-  inline void remove_zeros(cvm::real const &a)
+  /// \brief Assign values that are smaller than scalar constant the latter value (fast loop)
+  inline void remove_small_values(cvm::real const &a)
   {
     for (size_t i = 0; i < nt; i++)
-      if(data[i]==0) data[i] = a;
+      if(data[i]<a) data[i] = a;
   }
 
 
@@ -611,8 +624,8 @@ public:
 
       if (periodic[i]) continue;
 
-      cvm::real dl = std::sqrt(cv[i]->dist2(values[i], lower_boundaries[i])) / widths[i];
-      cvm::real du = std::sqrt(cv[i]->dist2(values[i], upper_boundaries[i])) / widths[i];
+      cvm::real dl = cvm::sqrt(cv[i]->dist2(values[i], lower_boundaries[i])) / widths[i];
+      cvm::real du = cvm::sqrt(cv[i]->dist2(values[i], upper_boundaries[i])) / widths[i];
 
       if (values[i].real_value < lower_boundaries[i])
         dl *= -1.0;
@@ -841,7 +854,7 @@ public:
 
     if (nd < lower_boundaries.size()) nd = lower_boundaries.size();
 
-    if (! actual_value.size()) actual_value.assign(nd, false);
+    if (! use_actual_value.size()) use_actual_value.assign(nd, false);
     if (! periodic.size()) periodic.assign(nd, false);
     if (! widths.size()) widths.assign(nd, 1.0);
 
@@ -849,7 +862,7 @@ public:
     if (old_nx.size()) {
       for (size_t i = 0; i < nd; i++) {
         if ( (old_nx[i] != nx[i]) ||
-             (std::sqrt(cv[i]->dist2(old_lb[i],
+             (cvm::sqrt(cv[i]->dist2(old_lb[i],
                                      lower_boundaries[i])) > 1.0E-10) ) {
           new_params = true;
         }
@@ -874,11 +887,11 @@ public:
   void check_consistency()
   {
     for (size_t i = 0; i < nd; i++) {
-      if ( (std::sqrt(cv[i]->dist2(cv[i]->lower_boundary,
+      if ( (cvm::sqrt(cv[i]->dist2(cv[i]->lower_boundary,
                                    lower_boundaries[i])) > 1.0E-10) ||
-           (std::sqrt(cv[i]->dist2(cv[i]->upper_boundary,
+           (cvm::sqrt(cv[i]->dist2(cv[i]->upper_boundary,
                                    upper_boundaries[i])) > 1.0E-10) ||
-           (std::sqrt(cv[i]->dist2(cv[i]->width,
+           (cvm::sqrt(cv[i]->dist2(cv[i]->width,
                                    widths[i])) > 1.0E-10) ) {
         cvm::error("Error: restart information for a grid is "
                    "inconsistent with that of its colvars.\n");
@@ -896,11 +909,11 @@ public:
       // we skip dist2(), because periodicities and the like should
       // matter: boundaries should be EXACTLY the same (otherwise,
       // map_grid() should be used)
-      if ( (std::fabs(other_grid.lower_boundaries[i] -
+      if ( (cvm::fabs(other_grid.lower_boundaries[i] -
                       lower_boundaries[i]) > 1.0E-10) ||
-           (std::fabs(other_grid.upper_boundaries[i] -
+           (cvm::fabs(other_grid.upper_boundaries[i] -
                       upper_boundaries[i]) > 1.0E-10) ||
-           (std::fabs(other_grid.widths[i] -
+           (cvm::fabs(other_grid.widths[i] -
                       widths[i]) > 1.0E-10) ||
            (data.size() != other_grid.data.size()) ) {
         cvm::error("Error: inconsistency between "
@@ -919,7 +932,7 @@ public:
     std::string key, conf;
     if ((is >> key) && (key == std::string("grid_parameters"))) {
       is.seekg(start_pos, std::ios::beg);
-      is >> colvarparse::read_block("grid_parameters", conf);
+      is >> colvarparse::read_block("grid_parameters", &conf);
       parse_params(conf, colvarparse::parse_silent);
     } else {
       cvm::log("Grid parameters are missing in the restart file, using those from the configuration.\n");
@@ -1036,11 +1049,11 @@ public:
   std::istream & read_multicol(std::istream &is, bool add = false)
   {
     // Data in the header: nColvars, then for each
-    // xiMin, dXi, nPoints, periodic
+    // xiMin, dXi, nPoints, periodic flag
 
     std::string   hash;
     cvm::real     lower, width, x;
-    size_t        n, periodic;
+    size_t        n, periodic_flag;
     bool          remap;
     std::vector<T>        new_value;
     std::vector<int>      nx_read;
@@ -1053,7 +1066,8 @@ public:
 
     if ( !(is >> hash) || (hash != "#") ) {
       cvm::error("Error reading grid at position "+
-                 cvm::to_str(is.tellg())+" in stream(read \"" + hash + "\")\n");
+                 cvm::to_str(static_cast<size_t>(is.tellg()))+
+                 " in stream(read \"" + hash + "\")\n");
       return is;
     }
 
@@ -1075,15 +1089,16 @@ public:
     for (size_t i = 0; i < nd; i++ ) {
       if ( !(is >> hash) || (hash != "#") ) {
         cvm::error("Error reading grid at position "+
-                   cvm::to_str(is.tellg())+" in stream(read \"" + hash + "\")\n");
+                   cvm::to_str(static_cast<size_t>(is.tellg()))+
+                   " in stream(read \"" + hash + "\")\n");
         return is;
       }
 
-      is >> lower >> width >> nx_read[i] >> periodic;
+      is >> lower >> width >> nx_read[i] >> periodic_flag;
 
 
-      if ( (std::fabs(lower - lower_boundaries[i].real_value) > 1.0e-10) ||
-           (std::fabs(width - widths[i] ) > 1.0e-10) ||
+      if ( (cvm::fabs(lower - lower_boundaries[i].real_value) > 1.0e-10) ||
+           (cvm::fabs(width - widths[i] ) > 1.0e-10) ||
            (nx_read[i] != nx[i]) ) {
         cvm::log("Warning: reading from different grid definition (colvar "
                  + cvm::to_str(i+1) + "); remapping data on new grid.\n");
@@ -1246,7 +1261,7 @@ public:
       if (A0 * A1 == 0) {
         return 0.; // can't handle empty bins
       } else {
-        return (std::log((cvm::real)A1) - std::log((cvm::real)A0))
+        return (cvm::logn((cvm::real)A1) - cvm::logn((cvm::real)A0))
           / (widths[n] * 2.);
       }
     } else if (ix[n] > 0 && ix[n] < nx[n]-1) { // not an edge
@@ -1258,7 +1273,7 @@ public:
       if (A0 * A1 == 0) {
         return 0.; // can't handle empty bins
       } else {
-        return (std::log((cvm::real)A1) - std::log((cvm::real)A0))
+        return (cvm::logn((cvm::real)A1) - cvm::logn((cvm::real)A0))
           / (widths[n] * 2.);
       }
     } else {
@@ -1271,8 +1286,8 @@ public:
       if (A0 * A1 * A2 == 0) {
         return 0.; // can't handle empty bins
       } else {
-        return (-1.5 * std::log((cvm::real)A0) + 2. * std::log((cvm::real)A1)
-          - 0.5 * std::log((cvm::real)A2)) * increment / widths[n];
+        return (-1.5 * cvm::logn((cvm::real)A0) + 2. * cvm::logn((cvm::real)A1)
+          - 0.5 * cvm::logn((cvm::real)A2)) * increment / widths[n];
       }
     }
   }

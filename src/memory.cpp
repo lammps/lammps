@@ -11,18 +11,22 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "memory.h"
+#include <cstdlib>
 #include "error.h"
+#include "fmt/format.h"
 
 #if defined(LMP_USER_INTEL) && defined(__INTEL_COMPILER)
 #ifndef LMP_INTEL_NO_TBB
 #define LMP_USE_TBB_ALLOCATOR
 #include "tbb/scalable_allocator.h"
 #else
+#include <cstring>
+#if defined(__APPLE__)
+#include <malloc/malloc.h>
+#else
 #include <malloc.h>
+#endif
 #endif
 #endif
 
@@ -57,12 +61,9 @@ void *Memory::smalloc(bigint nbytes, const char *name)
 #else
   void *ptr = malloc(nbytes);
 #endif
-  if (ptr == NULL) {
-    char str[128];
-    sprintf(str,"Failed to allocate " BIGINT_FORMAT " bytes for array %s",
-            nbytes,name);
-    error->one(FLERR,str);
-  }
+  if (ptr == NULL)
+    error->one(FLERR,fmt::format("Failed to allocate {} bytes for array {}",
+                                 nbytes,name));
   return ptr;
 }
 
@@ -87,18 +88,21 @@ void *Memory::srealloc(void *ptr, bigint nbytes, const char *name)
   if (offset) {
     void *optr = ptr;
     ptr = smalloc(nbytes, name);
+#if defined(__APPLE__)
+    memcpy(ptr, optr, MIN(nbytes,malloc_size(optr)));
+#elif defined(_WIN32) || defined(__MINGW32__)
+    memcpy(ptr, optr, MIN(nbytes,_msize(optr)));
+#else
     memcpy(ptr, optr, MIN(nbytes,malloc_usable_size(optr)));
+#endif
     free(optr);
   }
 #else
   ptr = realloc(ptr,nbytes);
 #endif
-  if (ptr == NULL) {
-    char str[128];
-    sprintf(str,"Failed to reallocate " BIGINT_FORMAT " bytes for array %s",
-            nbytes,name);
-    error->one(FLERR,str);
-  }
+  if (ptr == NULL)
+    error->one(FLERR,fmt::format("Failed to reallocate {} bytes for array {}",
+                                 nbytes,name));
   return ptr;
 }
 
@@ -122,8 +126,6 @@ void Memory::sfree(void *ptr)
 
 void Memory::fail(const char *name)
 {
-  char str[128];
-  snprintf(str,128,
-           "Cannot create/grow a vector/array of pointers for %s",name);
-  error->one(FLERR,str);
+  error->one(FLERR,fmt::format("Cannot create/grow a vector/array of "
+                               "pointers for {}",name));
 }

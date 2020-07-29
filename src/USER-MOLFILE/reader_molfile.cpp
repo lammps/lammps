@@ -15,11 +15,9 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
+#include "reader_molfile.h"
 #include <cstdlib>
 #include <cmath>
-#include "reader_molfile.h"
-#include "atom.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
@@ -195,7 +193,7 @@ void ReaderMolfile::skip()
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-bigint ReaderMolfile::read_header(double box[3][3], int &triclinic,
+bigint ReaderMolfile::read_header(double box[3][3], int &boxinfo, int &triclinic,
                                   int fieldinfo, int nfield,
                                   int *fieldtype, char ** /* fieldlabel */,
                                   int scaleflag, int wrapflag, int &fieldflag,
@@ -204,17 +202,24 @@ bigint ReaderMolfile::read_header(double box[3][3], int &triclinic,
   nid = 0;
 
   // signal that we have no box info at all so far.
-  triclinic = -1;
+
+  boxinfo = 0;
+  triclinic = 0;
 
   // heuristics to determine if we have boxinfo (first if)
   // and whether we have an orthogonal box (second if)
+
   if (!is_smalldiff(cell[0]*cell[1]*cell[2], 0.0f)) {
+    boxinfo = 1;
     if (is_smalldiff(cell[3],90.0f) && is_smalldiff(cell[4],90.0f) &&
         is_smalldiff(cell[5],90.0f)) {
+
       triclinic = 0;
+
       // we have no information about the absolute location
       // of the box, so we assume that the origin is in the middle.
       // also we cannot tell periodicity. we assume, yes.
+
       box[0][0] = -0.5*static_cast<double>(cell[0]);
       box[0][1] =  0.5*static_cast<double>(cell[0]);
       box[0][2] =  0.0;
@@ -224,6 +229,7 @@ bigint ReaderMolfile::read_header(double box[3][3], int &triclinic,
       box[2][0] = -0.5*static_cast<double>(cell[2]);
       box[2][1] =  0.5*static_cast<double>(cell[2]);
       box[2][2] =  0.0;
+
     } else {
 
       triclinic = 1;
@@ -243,7 +249,8 @@ bigint ReaderMolfile::read_header(double box[3][3], int &triclinic,
         (lb*lc*cos(alpha/90.0*MY_PI2) - xy*xz) / ly : 0.0;
       const double lz = sqrt(lc*lc - xz*xz - yz*yz);
 
-      /* go from box length to boundary */
+      // go from box length to boundary
+
       double xbnd;
 
       xbnd = 0.0;
@@ -275,7 +282,8 @@ bigint ReaderMolfile::read_header(double box[3][3], int &triclinic,
   }
 
   // if no field info requested, just return
-  if (!fieldinfo) return natoms;
+
+ if (!fieldinfo) return natoms;
 
   memory->create(fieldindex,nfield,"read_dump:fieldindex");
 

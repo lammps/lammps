@@ -15,14 +15,15 @@
    Contributing authors: Koenraad Janssens and David Olmsted (SNL)
    Modification for bcc provided by: Tegar Wicaksono (UBC)
    For a tutorial, please see "Order parameters of crystals in LAMMPS"
-            (https://dx.doi.org/10.6084/m9.figshare.1488628.v1
+            (https://doi.org/10.6084/m9.figshare.1488628.v1
 ------------------------------------------------------------------------- */
 
+#include "fix_orient_bcc.h"
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
 #include <mpi.h>
-#include "fix_orient_bcc.h"
+#include <string>
 #include "atom.h"
 #include "update.h"
 #include "respa.h"
@@ -30,12 +31,13 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "comm.h"
-#include "output.h"
 #include "force.h"
 #include "math_const.h"
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -115,25 +117,25 @@ FixOrientBCC::FixOrientBCC(LAMMPS *lmp, int narg, char **arg) :
     char *result;
     int count;
 
-    FILE *infile = fopen(xifilename,"r");
-    if (infile == NULL) error->one(FLERR,"Fix orient/bcc file open failed");
+    FILE *inpfile = fopen(xifilename,"r");
+    if (inpfile == NULL) error->one(FLERR,"Fix orient/bcc file open failed");
     for (int i = 0; i < 4; i++) {
-      result = fgets(line,IMGMAX,infile);
+      result = fgets(line,IMGMAX,inpfile);
       if (!result) error->one(FLERR,"Fix orient/bcc file read failed");
       count = sscanf(line,"%lg %lg %lg",&Rxi[i][0],&Rxi[i][1],&Rxi[i][2]);
       if (count != 3) error->one(FLERR,"Fix orient/bcc file read failed");
     }
-    fclose(infile);
+    fclose(inpfile);
 
-    infile = fopen(chifilename,"r");
-    if (infile == NULL) error->one(FLERR,"Fix orient/bcc file open failed");
+    inpfile = fopen(chifilename,"r");
+    if (inpfile == NULL) error->one(FLERR,"Fix orient/bcc file open failed");
     for (int i = 0; i < 4; i++) {
-      result = fgets(line,IMGMAX,infile);
+      result = fgets(line,IMGMAX,inpfile);
       if (!result) error->one(FLERR,"Fix orient/bcc file read failed");
       count = sscanf(line,"%lg %lg %lg",&Rchi[i][0],&Rchi[i][1],&Rchi[i][2]);
       if (count != 3) error->one(FLERR,"Fix orient/bcc file read failed");
     }
-    fclose(infile);
+    fclose(inpfile);
   }
 
   MPI_Bcast(&Rxi[0][0],18,MPI_DOUBLE,0,world);
@@ -451,20 +453,12 @@ void FixOrientBCC::post_force(int /*vflag*/)
     MPI_Allreduce(&maxcount,&max,1,MPI_INT,MPI_MAX,world);
 
     if (me == 0) {
-      if (screen) fprintf(screen,
-                          "orient step " BIGINT_FORMAT ": " BIGINT_FORMAT
-                          " atoms have %d neighbors\n",
-                          update->ntimestep,atom->natoms,total);
-      if (logfile) fprintf(logfile,
-                           "orient step " BIGINT_FORMAT ": " BIGINT_FORMAT
-                           " atoms have %d neighbors\n",
-                           update->ntimestep,atom->natoms,total);
-      if (screen)
-        fprintf(screen,"  neighs: min = %d, max = %d, ave = %g\n",
-                min,max,ave);
-      if (logfile)
-        fprintf(logfile,"  neighs: min = %d, max = %d, ave = %g\n",
-                min,max,ave);
+      std::string mesg = fmt::format("orient step {}: {} atoms have {} "
+                                     "neighbors\n", update->ntimestep,
+                                     atom->natoms,total);
+      mesg += fmt::format("  neighs: min = {}, max ={}, ave = {}\n",
+                          min,max,ave);
+      utils::logmesg(lmp,mesg);
     }
   }
 }

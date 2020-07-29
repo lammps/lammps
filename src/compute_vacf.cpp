@@ -11,14 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_vacf.h"
+#include <mpi.h>
+#include <cstring>
+#include <string>
 #include "atom.h"
 #include "update.h"
 #include "group.h"
 #include "modify.h"
 #include "fix_store.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -38,21 +41,12 @@ ComputeVACF::ComputeVACF(LAMMPS *lmp, int narg, char **arg) :
   // create a new fix STORE style
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
 
-  int n = strlen(id) + strlen("_COMPUTE_STORE") + 1;
-  id_fix = new char[n];
-  strcpy(id_fix,id);
-  strcat(id_fix,"_COMPUTE_STORE");
-
-  char **newarg = new char*[6];
-  newarg[0] = id_fix;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "STORE";
-  newarg[3] = (char *) "peratom";
-  newarg[4] = (char *) "1";
-  newarg[5] = (char *) "3";
-  modify->add_fix(6,newarg);
+  std::string fixcmd = id + std::string("_COMPUTE_STORE");
+  id_fix = new char[fixcmd.size()+1];
+  strcpy(id_fix,fixcmd.c_str());
+  fixcmd += fmt::format(" {} STORE peratom 1 3", group->names[igroup]);
+  modify->add_fix(fixcmd);
   fix = (FixStore *) modify->fix[modify->nfix-1];
-  delete [] newarg;
 
   // store current velocities in fix store array
   // skip if reset from restart file
@@ -75,7 +69,7 @@ ComputeVACF::ComputeVACF(LAMMPS *lmp, int narg, char **arg) :
 
   // displacement vector
 
-  vector = new double[4];
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */

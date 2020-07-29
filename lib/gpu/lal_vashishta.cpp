@@ -23,7 +23,7 @@ const char *vashishta=0;
 
 #include "lal_vashishta.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define VashishtaT Vashishta<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -180,8 +180,8 @@ int VashishtaT::init(const int ntypes, const int nlocal, const int nall, const i
   ucl_copy(map,dview_map,false);
 
   _allocated=true;
-  this->_max_bytes=param1.row_bytes()+param2.row_bytes()+param3.row_bytes()+param4.row_bytes()+param5.row_bytes()+
-    map.row_bytes()+elem2param.row_bytes();
+  this->_max_bytes=param1.row_bytes()+param2.row_bytes()+param3.row_bytes()+
+    param4.row_bytes()+param5.row_bytes()+map.row_bytes()+elem2param.row_bytes();
   return 0;
 }
 
@@ -233,11 +233,10 @@ void VashishtaT::loop(const bool _eflag, const bool _vflag, const int evatom) {
                                (BX/this->_threads_per_atom)));
 
   this->k_short_nbor.set_size(GX,BX);
-  this->k_short_nbor.run(&this->atom->x, &param4, &map,
-                 &elem2param, &_nelements, &_nparams,
-                 &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                 &this->dev_short_nbor, &ainum,
-                 &nbor_pitch, &this->_threads_per_atom);
+  this->k_short_nbor.run(&this->atom->x, &this->nbor->dev_nbor,
+                         &this->_nbor_data->begin(),
+                         &this->dev_short_nbor, &_cutshortsq, &ainum,
+                         &nbor_pitch, &this->_threads_per_atom);
 
   // this->_nbor_data == nbor->dev_packed for gpu_nbor == 0 and tpa > 1
   // this->_nbor_data == nbor->dev_nbor for gpu_nbor == 1 or tpa == 1
@@ -295,4 +294,4 @@ void VashishtaT::loop(const bool _eflag, const bool _vflag, const int evatom) {
 }
 
 template class Vashishta<PRECISION,ACC_PRECISION>;
-
+}

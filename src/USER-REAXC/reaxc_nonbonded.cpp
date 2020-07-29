@@ -24,10 +24,11 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc.h"
-#include "reaxc_types.h"
 #include "reaxc_nonbonded.h"
-#include "reaxc_bond_orders.h"
+#include <cmath>
+#include "pair.h"
+#include "reaxc_defs.h"
+#include "reaxc_types.h"
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
 
@@ -220,6 +221,7 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
   far_neighbor_data *nbr_pj;
   reax_list *far_nbrs;
   LR_lookup_table *t;
+  LR_lookup_table ** & LR = system->LR;
 
   natoms = system->n;
   far_nbrs = (*lists) + FAR_NBRS;

@@ -24,6 +24,7 @@ DihedralStyle(table,DihedralTable)
 #ifndef LMP_DIHEDRAL_TABLE_H
 #define LMP_DIHEDRAL_TABLE_H
 #include "dihedral.h"
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -36,13 +37,15 @@ class DihedralTable : public Dihedral {
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
+  void write_restart_settings(FILE *);
+  void read_restart_settings(FILE *);
   double single(int type, int i1, int i2, int i3, int i4);
 
  protected:
   int tabstyle,tablength;
   // double *phi0;       <- equilibrium angles not supported
-  char *checkU_fname;
-  char *checkF_fname;
+  std::string checkU_fname;
+  std::string checkF_fname;
 
   struct Table {
     int ninput;

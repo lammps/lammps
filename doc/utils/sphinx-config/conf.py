@@ -16,10 +16,18 @@
 import sys
 import os
 
+has_enchant = False
+try:
+    import enchant
+    has_enchant = True
+except:
+    pass
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../src/_ext'))
 
 # -- General configuration ------------------------------------------------
 
@@ -31,6 +39,9 @@ import os
 # ones.
 extensions = [
     'sphinx.ext.mathjax',
+    'sphinx.ext.imgmath',
+    'sphinx.ext.autodoc',
+    'table_from_list',
 ]
 # 2017-12-07: commented out, since this package is broken with Sphinx 16.x
 #             yet we can no longer use Sphinx 15.x, since that breaks with
@@ -56,7 +67,7 @@ master_doc = 'Manual'
 
 # General information about the project.
 project = 'LAMMPS'
-copyright = '2013 Sandia Corporation'
+copyright = '2003-2020 Sandia Corporation'
 
 def get_lammps_version():
     import os
@@ -106,7 +117,7 @@ exclude_patterns = ['_build']
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = 'default'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
@@ -124,7 +135,9 @@ html_theme = 'lammps_theme'
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+html_theme_options = {
+   'logo_only' : True
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = ['_themes']
@@ -138,7 +151,7 @@ html_title = "LAMMPS documentation"
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = 'lammps-logo.png'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -148,7 +161,13 @@ html_title = "LAMMPS documentation"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = []
+html_static_path = ['_static']
+
+# These paths are either relative to html_static_path
+# or fully qualified paths (eg. https://...)
+html_css_files = [
+    'css/lammps.css',
+]
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
@@ -201,6 +220,14 @@ htmlhelp_basename = 'LAMMPSdoc'
 
 html_add_permalinks = ''
 
+if 'epub' in sys.argv:
+  html_math_renderer = 'imgmath'
+else:
+  html_math_renderer = 'mathjax'
+
+# use relative path for mathjax, so it is looked for in the
+# html tree and the manual becomes readable when offline 
+mathjax_path = 'mathjax/es5/tex-mml-chtml.js'
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
@@ -307,8 +334,19 @@ epub_author = 'The LAMMPS Developers'
 # configure spelling extension if present
 import importlib.util
 spelling_spec = importlib.util.find_spec("sphinxcontrib.spelling")
-if spelling_spec:
+if spelling_spec and has_enchant:
     extensions.append('sphinxcontrib.spelling')
 
     spelling_lang='en_US'
     spelling_word_list_filename='false_positives.txt'
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
+import LAMMPSLexer
+from sphinx.highlighting import lexers
+
+lexers['LAMMPS'] = LAMMPSLexer.LAMMPSLexer(startinline=True)
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../../python'))
+
+# avoid syntax highlighting in blocks that don't specify language
+highlight_language = 'none'

@@ -16,18 +16,15 @@
                          Andrew Baczewski (Michigan State/SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "fix_gld.h"
-#include "math_extra.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "respa.h"
 #include "comm.h"
-#include "input.h"
-#include "variable.h"
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"

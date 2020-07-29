@@ -15,11 +15,11 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
+#include "pair_coul_streitz.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_coul_streitz.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -27,11 +27,11 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "group.h"
-#include "update.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -219,12 +219,6 @@ void PairCoulStreitz::init_style()
       error->all(FLERR,"Pair style requires a KSpace style");
     g_ewald = force->kspace->g_ewald;
   }
-
-  // ptr to QEQ fix
-  //for (i = 0; i < modify->nfix; i++)
-  //  if (strcmp(modify->fix[i]->style,"qeq") == 0) break;
-  //if (i < modify->nfix) fixqeq = (FixQEQ *) modify->fix[i];
-  //else fixqeq = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -256,11 +250,9 @@ void PairCoulStreitz::read_file(char *file)
   FILE *fp;
   if (comm->me == 0) {
     fp = fopen(file,"r");
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open coul/streitz potential file %s",file);
-      error->one(FLERR,str);
-    }
+    if (fp == NULL)
+      error->one(FLERR,fmt::format("Cannot open coul/streitz potential "
+                                   "file {}",file));
   }
 
   // read each line out of file, skipping blank lines or leading '#'
@@ -286,7 +278,7 @@ void PairCoulStreitz::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // concatenate additional lines until have params_per_line words
@@ -305,7 +297,7 @@ void PairCoulStreitz::read_file(char *file)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+      nwords = utils::count_words(line);
     }
 
     if (nwords != params_per_line)

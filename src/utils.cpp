@@ -11,9 +11,19 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "utils.h"
+#include <cstring>
+#include <cstdlib>
+#include <cerrno>
+#include "lammps.h"
 #include "error.h"
+#include "tokenizer.h"
+#include "text_file_reader.h"
+#include "fmt/format.h"
+
+#if defined(__linux__)
+#include <unistd.h>  // for readlink
+#endif
 
 /*! \file utils.cpp */
 
@@ -37,6 +47,10 @@
  *   '\W'       Non-alphanumeric
  *   '\d'       Digits, [0-9]
  *   '\D'       Non-digits
+ *   '\i'       Integer chars, [0-9], '+' and '-'
+ *   '\I'       Non-integers
+ *   '\f'       Floating point number chars, [0-9], '.', 'e', 'E', '+' and '-'
+ *   '\F'       Non-floats
  *
  * *NOT* supported:
  *   '[^abc]'   Inverted class
@@ -74,36 +88,59 @@ bool utils::strmatch(std::string text, std::string pattern)
   return (pos >= 0);
 }
 
-/* utility function to avoid code repetition when parsing args */
-int utils::cfvarg(std::string mode, const char *arg, char *&cfv_id)
+/* This simplifies the repetitive task of outputting some
+ * message to both the screen and/or the log file. In combination
+ * with using fmt::format(), which returns the formatted text
+ * in a std::string() instance, this can be used to reduce
+ * operations previously requiring several lines of code to
+ * a single statement. */
+
+void utils::logmesg(LAMMPS *lmp, const std::string &mesg)
 {
-  int rv = utils::NONE;
-  cfv_id = NULL;
-
-  if (!arg) return rv;
-
-  if (utils::strmatch(arg,std::string("^[") + mode + "]_")) {
-    if (*arg == 'c') rv = utils::COMPUTE;
-    else if (*arg == 'f') rv = utils::FIX;
-    else if (*arg == 'v') rv = utils::VARIABLE;
-    else return rv;             // should not happen
-
-    arg += 2;
-    int n = strlen(arg)+1;
-    cfv_id = new char[n];
-    strcpy(cfv_id,arg);
-  }
-
-  return rv;
+  if (lmp->screen)  fputs(mesg.c_str(), lmp->screen);
+  if (lmp->logfile) fputs(mesg.c_str(), lmp->logfile);
 }
 
+/* define this here, so we won't have to include the headers
+   everywhere and utils.h will more likely be included anyway. */
+
+std::string utils::getsyserror()
+{
+  return std::string(strerror(errno));
+}
+
+/*
+ * On Linux the folder /proc/self/fd holds symbolic links to the actual
+ * pathnames associated with each open file descriptor of the current process.
+ */
+const char *utils::guesspath(char *buf, int len, FILE *fp)
+{
+  memset(buf,0,len);
+
+#if defined(__linux__)
+  int fd = fileno(fp);
+  // get pathname from /proc or copy (unknown)
+  if (readlink(fmt::format("/proc/self/fd/{}",fd).c_str(),buf,len-1) <= 0)
+    strncpy(buf,"(unknown)",len-1);
+#else
+  strncpy(buf,"(unknown)",len-1);
+#endif
+  return buf;
+}
+
+#define MAXPATHLENBUF 1024
 /* like fgets() but aborts with an error or EOF is encountered */
 void utils::sfgets(const char *srcname, int srcline, char *s, int size,
                    FILE *fp, const char *filename, Error *error)
 {
   char *rv = fgets(s,size,fp);
   if (rv == NULL) { // something went wrong
+    char buf[MAXPATHLENBUF];
     std::string errmsg;
+
+    // try to figure out the file name from the file pointer
+    if (!filename)
+      filename = guesspath(buf,MAXPATHLENBUF,fp);
 
     if (feof(fp)) {
       errmsg = "Unexpected end of file while reading file '";
@@ -115,10 +152,544 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size,
     errmsg += filename;
     errmsg += "'";
 
-    if (error) error->one(srcname,srcline,errmsg.c_str());
+    if (error) error->one(srcname,srcline,errmsg);
     if (s) *s = '\0'; // truncate string to empty in case error is NULL
   }
   return;
+}
+
+/* like fread() but aborts with an error or EOF is encountered */
+void utils::sfread(const char *srcname, int srcline, void *s, size_t size,
+                   size_t num, FILE *fp, const char *filename, Error *error)
+{
+  size_t rv = fread(s,size,num,fp);
+  if (rv != num) { // something went wrong
+    char buf[MAXPATHLENBUF];
+    std::string errmsg;
+
+    // try to figure out the file name from the file pointer
+    if (!filename)
+      filename = guesspath(buf,MAXPATHLENBUF,fp);
+
+    if (feof(fp)) {
+      errmsg = "Unexpected end of file while reading file '";
+    } else if (ferror(fp)) {
+      errmsg = "Unexpected error while reading file '";
+    } else {
+      errmsg = "Unexpected short read while reading file '";
+    }
+    errmsg += filename;
+    errmsg += "'";
+
+    if (error) error->one(srcname,srcline,errmsg);
+  }
+  return;
+}
+
+/* ------------------------------------------------------------------ */
+
+std::string utils::check_packages_for_style(const std::string &style,
+                                            const std::string &name,
+                                            LAMMPS *lmp)
+{
+  std::string errmsg = "Unrecognized " + style + " style '" + name + "'";
+  const char *pkg = lmp->match_style(style.c_str(),name.c_str());
+
+  if (pkg) {
+    errmsg += fmt::format(" is part of the {} package",pkg);
+    if (lmp->is_installed_pkg(pkg))
+      errmsg += ", but seems to be missing because of a dependency";
+    else
+      errmsg += " which is not enabled in this LAMMPS binary.";
+  }
+  return errmsg;
+}
+
+
+/* ----------------------------------------------------------------------
+   read a floating point value from a string
+   generate an error if not a legitimate floating point value
+   called by various commands to check validity of their arguments
+------------------------------------------------------------------------- */
+
+double utils::numeric(const char *file, int line, const char *str,
+                      bool do_abort, LAMMPS *lmp)
+{
+  int n = 0;
+
+  if (str) n = strlen(str);
+  if (n == 0) {
+    if (do_abort)
+      lmp->error->one(file,line,"Expected floating point parameter instead of"
+                      " NULL or empty string in input script or data file");
+    else
+      lmp->error->all(file,line,"Expected floating point parameter instead of"
+                      " NULL or empty string in input script or data file");
+  }
+
+  for (int i = 0; i < n; i++) {
+    if (isdigit(str[i])) continue;
+    if (str[i] == '-' || str[i] == '+' || str[i] == '.') continue;
+    if (str[i] == 'e' || str[i] == 'E') continue;
+    std::string msg("Expected floating point parameter instead of '");
+    msg += str;
+    msg += "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file,line,msg);
+    else
+      lmp->error->all(file,line,msg);
+  }
+
+  return atof(str);
+}
+
+/* ----------------------------------------------------------------------
+   read an integer value from a string
+   generate an error if not a legitimate integer value
+   called by various commands to check validity of their arguments
+------------------------------------------------------------------------- */
+
+int utils::inumeric(const char *file, int line, const char *str,
+                    bool do_abort, LAMMPS *lmp)
+{
+  int n = 0;
+
+  if (str) n = strlen(str);
+  if (n == 0) {
+    if (do_abort)
+      lmp->error->one(file,line,"Expected integer parameter instead of "
+                      "NULL or empty string in input script or data file");
+    else
+      lmp->error->all(file,line,"Expected integer parameter instead of "
+                      "NULL or empty string in input script or data file");
+  }
+
+  for (int i = 0; i < n; i++) {
+    if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
+    std::string msg("Expected integer parameter instead of '");
+    msg += str;
+    msg += "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file,line,msg);
+    else
+      lmp->error->all(file,line,msg);
+  }
+
+  return atoi(str);
+}
+
+/* ----------------------------------------------------------------------
+   read a big integer value from a string
+   generate an error if not a legitimate integer value
+   called by various commands to check validity of their arguments
+------------------------------------------------------------------------- */
+
+bigint utils::bnumeric(const char *file, int line, const char *str,
+                       bool do_abort, LAMMPS *lmp)
+{
+  int n = 0;
+
+  if (str) n = strlen(str);
+  if (n == 0) {
+    if (do_abort)
+      lmp->error->one(file,line,"Expected integer parameter instead of "
+                      "NULL or empty string in input script or data file");
+    else
+      lmp->error->all(file,line,"Expected integer parameter instead of "
+                      "NULL or empty string in input script or data file");
+  }
+
+  for (int i = 0; i < n; i++) {
+    if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
+    std::string msg("Expected integer parameter instead of '");
+    msg += str;
+    msg += "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file,line,msg);
+    else
+      lmp->error->all(file,line,msg);
+  }
+
+  return ATOBIGINT(str);
+}
+
+/* ----------------------------------------------------------------------
+   read a tag integer value from a string
+   generate an error if not a legitimate integer value
+   called by various commands to check validity of their arguments
+------------------------------------------------------------------------- */
+
+tagint utils::tnumeric(const char *file, int line, const char *str,
+                       bool do_abort, LAMMPS *lmp)
+{
+  int n = 0;
+
+  if (str) n = strlen(str);
+  if (n == 0) {
+    if (do_abort)
+      lmp->error->one(file,line,"Expected integer parameter instead of "
+                      "NULL or empty string in input script or data file");
+    else
+      lmp->error->all(file,line,"Expected integer parameter instead of "
+                      "NULL or empty string in input script or data file");
+  }
+
+  for (int i = 0; i < n; i++) {
+    if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
+    std::string msg("Expected integer parameter instead of '");
+    msg += str;
+    msg += "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file,line,msg);
+    else
+      lmp->error->all(file,line,msg);
+  }
+
+  return ATOTAGINT(str);
+}
+
+/* ----------------------------------------------------------------------
+   Return string without trailing # comment
+------------------------------------------------------------------------- */
+
+std::string utils::trim_comment(const std::string & line) {
+  auto end = line.find_first_of("#");
+  if (end != std::string::npos) {
+    return line.substr(0, end);
+  }
+  return std::string(line);
+}
+
+/* ----------------------------------------------------------------------
+   return number of words
+------------------------------------------------------------------------- */
+
+size_t utils::count_words(const char * text) {
+  size_t count = 0;
+  const char * buf = text;
+  char c = *buf;
+
+  while (c) {
+    if (c == ' ' || c == '\t' || c == '\r' ||  c == '\n' || c == '\f') {
+      c = *++buf;
+      continue;
+    };
+
+    ++count;
+    c = *++buf;
+
+    while (c) {
+      if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f') {
+        break;
+      }
+      c = *++buf;
+    }
+  }
+
+  return count;
+}
+
+/* ----------------------------------------------------------------------
+   return number of words
+------------------------------------------------------------------------- */
+
+size_t utils::count_words(const std::string & text) {
+  return utils::count_words(text.c_str());
+}
+
+/* ----------------------------------------------------------------------
+   Return number of words
+------------------------------------------------------------------------- */
+
+size_t utils::count_words(const std::string & text, const std::string & separators) {
+  size_t count = 0;
+  size_t start = text.find_first_not_of(separators);
+
+  while (start != std::string::npos) {
+    size_t end = text.find_first_of(separators, start);
+    ++count;
+
+    if(end == std::string::npos) {
+      return count;
+    } else {
+      start = text.find_first_not_of(separators, end + 1);
+    }
+  }
+  return count;
+}
+
+/* ----------------------------------------------------------------------
+   Trim comment from string and return number of words
+------------------------------------------------------------------------- */
+
+size_t utils::trim_and_count_words(const std::string & text, const std::string & separators) {
+  return utils::count_words(utils::trim_comment(text), separators);
+}
+
+/* ----------------------------------------------------------------------
+   Convert string into words on whitespace while handling single and
+   double quotes.
+------------------------------------------------------------------------- */
+std::vector<std::string> utils::split_words(const std::string &text)
+{
+  std::vector<std::string> list;
+  const char *buf = text.c_str();
+  std::size_t beg = 0;
+  std::size_t len = 0;
+  std::size_t add = 0;
+  char c = *buf;
+
+  while (c) {
+    // leading whitespace
+    if (c == ' ' || c == '\t' || c == '\r' ||  c == '\n' || c == '\f') {
+      c = *++buf;
+      ++beg;
+      continue;
+    };
+    len = 0;
+
+    // handle escaped/quoted text.
+    quoted:
+
+    // handle single quote
+    if (c == '\'') {
+      ++beg;
+      add = 1;
+      c = *++buf;
+      while (((c != '\'') && (c != '\0'))
+             || ((c == '\\') && (buf[1] == '\''))) {
+        if ((c == '\\') && (buf[1] == '\'')) {
+          ++buf;
+          ++len;
+        }
+        c = *++buf;
+        ++len;
+      }
+      if (c != '\'') ++len;
+      c = *++buf;
+
+      // handle double quote
+    } else if (c == '"') {
+      ++beg;
+      add = 1;
+      c = *++buf;
+      while (((c != '"') && (c != '\0'))
+             || ((c == '\\') && (buf[1] == '"'))) {
+        if ((c == '\\') && (buf[1] == '"')) {
+          ++buf;
+          ++len;
+        }
+        c = *++buf;
+        ++len;
+      }
+      if (c != '"') ++len;
+      c = *++buf;
+    }
+
+    // unquoted
+    while (1) {
+      if ((c == '\'') || (c == '"')) goto quoted;
+      // skip escaped quote
+      if ((c == '\\') && ((buf[1] == '\'') || (buf[1] == '"'))) {
+        ++buf;
+        ++len;
+        c = *++buf;
+        ++len;
+      }
+      if ((c == ' ') || (c == '\t') || (c == '\r') || (c == '\n')
+          || (c == '\f') || (c == '\0')) {
+          list.push_back(text.substr(beg,len));
+          beg += len + add;
+          break;
+      }
+      c = *++buf;
+      ++len;
+    }
+  }
+  return list;
+}
+
+/* ----------------------------------------------------------------------
+   Return whether string is a valid integer number
+------------------------------------------------------------------------- */
+
+bool utils::is_integer(const std::string & str) {
+  if (str.size() == 0) {
+    return false;
+  }
+
+  for (auto c : str) {
+    if (isdigit(c) || c == '-' || c == '+') continue;
+    return false;
+  }
+  return true;
+}
+
+/* ----------------------------------------------------------------------
+   Return whether string is a valid floating-point number
+------------------------------------------------------------------------- */
+
+bool utils::is_double(const std::string & str) {
+  if (str.size() == 0) {
+    return false;
+  }
+
+  for (auto c : str) {
+    if (isdigit(c)) continue;
+    if (c == '-' || c == '+' || c == '.') continue;
+    if (c == 'e' || c == 'E') continue;
+    return false;
+  }
+  return true;
+}
+
+/* ----------------------------------------------------------------------
+   strip off leading part of path, return just the filename
+------------------------------------------------------------------------- */
+
+std::string utils::path_basename(const std::string & path) {
+#if defined(_WIN32)
+  size_t start = path.find_last_of("/\\");
+#else
+  size_t start = path.find_last_of("/");
+#endif
+
+  if (start == std::string::npos) {
+    start = 0;
+  } else {
+    start += 1;
+  }
+
+  return path.substr(start);
+}
+
+/* ----------------------------------------------------------------------
+   join two paths
+------------------------------------------------------------------------- */
+
+std::string utils::path_join(const std::string & a, const std::string & b) {
+  #if defined(_WIN32)
+    return fmt::format("{}\\{}", a, b);
+  #else
+    return fmt::format("{}/{}", a, b);
+  #endif
+}
+
+/* ----------------------------------------------------------------------
+   try to open file for reading
+------------------------------------------------------------------------- */
+
+bool utils::file_is_readable(const std::string & path) {
+  FILE * fp = fopen(path.c_str(), "r");
+  if(fp) {
+    fclose(fp);
+    return true;
+  }
+  return false;
+}
+
+/* ----------------------------------------------------------------------
+   try to find potential file as specified by name
+   search current directory and the LAMMPS_POTENTIALS directory if
+   specified
+------------------------------------------------------------------------- */
+
+std::string utils::get_potential_file_path(const std::string& path) {
+  std::string filepath = path;
+  std::string filename = utils::path_basename(path);
+
+  if(utils::file_is_readable(filepath)) {
+    return filepath;
+  } else {
+    // try the environment variable directory
+    const char *path = getenv("LAMMPS_POTENTIALS");
+
+    if (path != nullptr){
+      std::string pot = utils::path_basename(filepath);
+      filepath = utils::path_join(path, pot);
+
+      if (utils::file_is_readable(filepath)) {
+        return filepath;
+      }
+    }
+  }
+  return "";
+}
+
+/* ----------------------------------------------------------------------
+   read first line of potential file
+   if it has a DATE field, return the following word
+------------------------------------------------------------------------- */
+
+std::string utils::get_potential_date(const std::string & path, const std::string & potential_name) {
+  TextFileReader reader(path, potential_name);
+  reader.ignore_comments = false;
+
+  char *line = reader.next_line();
+  ValueTokenizer values(line);
+  while (values.has_next()) {
+    std::string word = values.next_string();
+    if (word == "DATE:") {
+      if (values.has_next()) {
+        std::string date = values.next_string();
+        return date;
+      }
+    }
+  }
+  return "";
+}
+
+/* ----------------------------------------------------------------------
+   read first line of potential file
+   if it has UNITS field, return following word
+------------------------------------------------------------------------- */
+
+std::string utils::get_potential_units(const std::string & path, const std::string & potential_name) {
+  TextFileReader reader(path, potential_name);
+  reader.ignore_comments = false;
+
+  char *line = reader.next_line();
+  ValueTokenizer values(line);
+  while (values.has_next()) {
+    std::string word = values.next_string();
+    if (word == "UNITS:") {
+      if (values.has_next()) {
+        std::string units = values.next_string();
+        return units;
+      }
+    }
+  }
+  return "";
+}
+
+/* ----------------------------------------------------------------------
+   return bitmask of supported conversions for a given property
+------------------------------------------------------------------------- */
+int utils::get_supported_conversions(const int property)
+{
+  if (property == ENERGY) {
+    return METAL2REAL | REAL2METAL;
+  }
+  return NOCONVERT;
+}
+
+/* ----------------------------------------------------------------------
+   return conversion factor for a given property and conversion setting
+   return 0.0 if unknown.
+------------------------------------------------------------------------- */
+
+double utils::get_conversion_factor(const int property, const int conversion)
+{
+  if (property == ENERGY) {
+    if (conversion == NOCONVERT) {
+      return 1.0;
+    } else if (conversion == METAL2REAL) {
+      return 23.060549;
+    } else if (conversion == REAL2METAL) {
+      return 1.0/23.060549;
+    }
+  }
+  return 0.0;
 }
 
 /* ------------------------------------------------------------------ */
@@ -143,6 +714,7 @@ extern "C" {
 
   enum { UNUSED, DOT, BEGIN, END, QUESTIONMARK, STAR, PLUS,
          CHAR, CHAR_CLASS, INV_CHAR_CLASS, DIGIT, NOT_DIGIT,
+         INTEGER, NOT_INTEGER, FLOAT, NOT_FLOAT,
          ALPHA, NOT_ALPHA, WHITESPACE, NOT_WHITESPACE /*, BRANCH */ };
 
   typedef struct regex_t {
@@ -160,6 +732,8 @@ extern "C" {
   static int matchplus(regex_t p, regex_t *pattern, const char *text);
   static int matchone(regex_t p, char c);
   static int matchdigit(char c);
+  static int matchint(char c);
+  static int matchfloat(char c);
   static int matchalpha(char c);
   static int matchwhitespace(char c);
   static int matchmetachar(char c, const char *str);
@@ -231,6 +805,10 @@ extern "C" {
             /* Meta-character: */
           case 'd': {    re_compiled[j].type = DIGIT;            } break;
           case 'D': {    re_compiled[j].type = NOT_DIGIT;        } break;
+          case 'i': {    re_compiled[j].type = INTEGER;          } break;
+          case 'I': {    re_compiled[j].type = NOT_INTEGER;      } break;
+          case 'f': {    re_compiled[j].type = FLOAT;            } break;
+          case 'F': {    re_compiled[j].type = NOT_FLOAT;        } break;
           case 'w': {    re_compiled[j].type = ALPHA;            } break;
           case 'W': {    re_compiled[j].type = NOT_ALPHA;        } break;
           case 's': {    re_compiled[j].type = WHITESPACE;       } break;
@@ -303,6 +881,16 @@ extern "C" {
     return ((c >= '0') && (c <= '9'));
   }
 
+  static int matchint(char c)
+  {
+    return (matchdigit(c) || (c == '-') || (c == '+'));
+  }
+
+  static int matchfloat(char c)
+  {
+    return (matchint(c) || (c == '.') || (c == 'e') || (c == 'E'));
+  }
+
   static int matchalpha(char c)
   {
     return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z'));
@@ -338,6 +926,10 @@ extern "C" {
     switch (str[0]) {
     case 'd': return  matchdigit(c);
     case 'D': return !matchdigit(c);
+    case 'i': return  matchint(c);
+    case 'I': return !matchint(c);
+    case 'f': return  matchfloat(c);
+    case 'F': return !matchfloat(c);
     case 'w': return  matchalphanum(c);
     case 'W': return !matchalphanum(c);
     case 's': return  matchwhitespace(c);
@@ -380,6 +972,10 @@ extern "C" {
     case INV_CHAR_CLASS: return !matchcharclass(c, (const char *)p.ccl);
     case DIGIT:          return  matchdigit(c);
     case NOT_DIGIT:      return !matchdigit(c);
+    case INTEGER:        return  matchint(c);
+    case NOT_INTEGER:    return !matchint(c);
+    case FLOAT:          return  matchfloat(c);
+    case NOT_FLOAT:      return !matchfloat(c);
     case ALPHA:          return  matchalphanum(c);
     case NOT_ALPHA:      return !matchalphanum(c);
     case WHITESPACE:     return  matchwhitespace(c);
@@ -437,4 +1033,5 @@ extern "C" {
 
     return 0;
   }
+
 }

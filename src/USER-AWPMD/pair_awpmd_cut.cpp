@@ -15,11 +15,12 @@
    Contributing author: Ilya Valuev (JIHT, Moscow, Russia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_awpmd_cut.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
+#include <map>
+#include <utility>
 #include "atom.h"
 #include "update.h"
 #include "min.h"
@@ -31,7 +32,11 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
+#include "logexc.h"
+#include "vector_3.h"
+#include "TCP/wpmd.h"
 #include "TCP/wpmd_split.h"
 
 using namespace LAMMPS_NS;
@@ -254,7 +259,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
       Vector_3 xx=Vector_3(x[i][0],x[i][1],x[i][2]);
       Vector_3 rv=m*Vector_3(v[i][0],v[i][1],v[i][2]);
       double pv=ermscale*m*atom->ervel[i];
-      Vector_2 cc=Vector_2(atom->cs[2*i],atom->cs[2*i+1]);
+      Vector_2 cc=Vector_2(atom->cs[i][0],atom->cs[i][1]);
       gmap[i]=wpmd->add_split(xx,rv,atom->eradius[i],pv,cc,1.,atom->q[i],i<nlocal ? atom->tag[i] : -atom->tag[i]);
       // resetting for the case constraints were applied
       v[i][0]=rv[0]/m;
@@ -279,7 +284,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
     } else { // electron
       int iel=gmap[i];
       int s=spin[i] >0 ? 0 : 1;
-      wpmd->get_wp_force(s,iel,(Vector_3 *)f[i],(Vector_3 *)(atom->vforce+3*i),atom->erforce+i,atom->ervelforce+i,(Vector_2 *)(atom->csforce+2*i));
+      wpmd->get_wp_force(s,iel,(Vector_3 *)f[i],(Vector_3 *)(atom->vforce[i]),atom->erforce+i,atom->ervelforce+i,(Vector_2 *)(atom->csforce[i]));
     }
   }
 
@@ -596,10 +601,10 @@ void PairAWPMDCut::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-        if (me == 0) fread(&cut[i][j],sizeof(double),1,fp);
+        if (me == 0) utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
@@ -623,9 +628,9 @@ void PairAWPMDCut::write_restart_settings(FILE *fp)
 void PairAWPMDCut::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
@@ -638,7 +643,7 @@ void PairAWPMDCut::read_restart_settings(FILE *fp)
    these arrays are stored locally by pair style
 ------------------------------------------------------------------------- */
 
-void PairAWPMDCut::min_xf_pointers(int ignore, double **xextra, double **fextra)
+void PairAWPMDCut::min_xf_pointers(int /* ignore */, double **xextra, double **fextra)
 {
   // grow arrays if necessary
   // need to be atom->nmax in length
@@ -661,16 +666,16 @@ void PairAWPMDCut::min_xf_pointers(int ignore, double **xextra, double **fextra)
    calculate and store in min_eradius and min_erforce
 ------------------------------------------------------------------------- */
 
-void PairAWPMDCut::min_xf_get(int ignore)
+void PairAWPMDCut::min_xf_get(int /* ignore */)
 {
   double *eradius = atom->eradius;
   double *erforce = atom->erforce;
   double **v=atom->v;
-  double *vforce=atom->vforce;
+  double **vforce=atom->vforce;
   double *ervel=atom->ervel;
   double *ervelforce=atom->ervelforce;
-  double *cs=atom->cs;
-  double *csforce=atom->csforce;
+  double **cs=atom->cs;
+  double **csforce=atom->csforce;
 
   int *spin = atom->spin;
   int nlocal = atom->nlocal;
@@ -681,14 +686,14 @@ void PairAWPMDCut::min_xf_get(int ignore)
       min_varforce[7*i] = eradius[i]*erforce[i];
       for(int j=0;j<3;j++){
         min_var[7*i+1+3*j] = v[i][j];
-        min_varforce[7*i+1+3*j] = vforce[3*i+j];
+        min_varforce[7*i+1+3*j] = vforce[i][j];
       }
       min_var[7*i+4] = ervel[i];
       min_varforce[7*i+4] = ervelforce[i];
-      min_var[7*i+5] = cs[2*i];
-      min_varforce[7*i+5] = csforce[2*i];
-      min_var[7*i+6] = cs[2*i+1];
-      min_varforce[7*i+6] = csforce[2*i+1];
+      min_var[7*i+5] = cs[i][0];
+      min_varforce[7*i+5] = csforce[i][0];
+      min_var[7*i+6] = cs[i][1];
+      min_varforce[7*i+6] = csforce[i][1];
 
     } else {
       for(int j=0;j<7;j++)
@@ -700,12 +705,12 @@ void PairAWPMDCut::min_xf_get(int ignore)
    propagate the minimizer values to the atom values
 ------------------------------------------------------------------------- */
 
-void PairAWPMDCut::min_x_set(int ignore)
+void PairAWPMDCut::min_x_set(int /* ignore */)
 {
   double *eradius = atom->eradius;
   double **v=atom->v;
   double *ervel=atom->ervel;
-  double *cs=atom->cs;
+  double **cs=atom->cs;
 
   int *spin = atom->spin;
   int nlocal = atom->nlocal;
@@ -716,8 +721,8 @@ void PairAWPMDCut::min_x_set(int ignore)
       for(int j=0;j<3;j++)
         v[i][j]=min_var[7*i+1+3*j];
       ervel[i]=min_var[7*i+4];
-      cs[2*i]=min_var[7*i+5];
-      cs[2*i+1]=min_var[7*i+6];
+      cs[i][0]=min_var[7*i+5];
+      cs[i][1]=min_var[7*i+6];
     }
   }
 }

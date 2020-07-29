@@ -15,43 +15,36 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "angle_deprecated.h"
+#include <string>
 #include "angle_hybrid.h"
 #include "comm.h"
 #include "force.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
-
-static void writemsg(LAMMPS *lmp, const char *msg, int abend=1)
-{
-  if (lmp->comm->me == 0) {
-    if (lmp->screen) fputs(msg,lmp->screen);
-    if (lmp->logfile) fputs(msg,lmp->logfile);
-  }
-  if (abend)
-    lmp->error->all(FLERR,"This angle style is no longer available");
-}
 
 /* ---------------------------------------------------------------------- */
 
 void AngleDeprecated::settings(int, char **)
 {
-  const char *my_style = force->angle_style;
+  std::string my_style = force->angle_style;
 
   // hybrid substyles are created in AngleHybrid::settings(), so when this is
   // called, our style was just added at the end of the list of substyles
 
-  if (strncmp(my_style,"hybrid",6) == 0) {
+  if (utils::strmatch(my_style,"^hybrid")) {
     AngleHybrid *hybrid = (AngleHybrid *)force->angle;
     my_style = hybrid->keywords[hybrid->nstyles];
   }
 
-  if (strcmp(my_style,"DEPRECATED") == 0) {
-    writemsg(lmp,"\nAngle style 'DEPRECATED' is a dummy style\n\n",0);
-
+  if (my_style == "DEPRECATED") {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp,"\nAngle style 'DEPRECATED' is a dummy style\n\n");
+    return;
   }
+  error->all(FLERR,"This angle style is no longer available");
 }
 
 

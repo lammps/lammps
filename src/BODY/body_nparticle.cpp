@@ -11,14 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "body_nparticle.h"
+#include <cstring>
+#include <cstdlib>
+#include "my_pool_chunk.h"
 #include "math_extra.h"
 #include "atom_vec_body.h"
 #include "atom.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -44,6 +47,7 @@ BodyNparticle::BodyNparticle(LAMMPS *lmp, int narg, char **arg) :
 
   icp = new MyPoolChunk<int>(1,1);
   dcp = new MyPoolChunk<double>(3*nmin,3*nmax);
+  maxexchange = 1 + 3*nmax;        // icp max + dcp max
 
   memory->create(imflag,nmax,"body/nparticle:imflag");
   memory->create(imdata,nmax,4,"body/nparticle:imdata");
@@ -100,7 +104,7 @@ int BodyNparticle::unpack_border_body(AtomVecBody::Bonus *bonus, double *buf)
 void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
                               int *ifile, double *dfile)
 {
-  AtomVecBody::Bonus *bonus = &avec->bonus[ibonus];
+  auto bonus = &avec->bonus[ibonus];
 
   // set ninteger, ndouble in bonus and allocate 2 vectors of ints, doubles
 
@@ -187,6 +191,95 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
     j += 3;
     k += 3;
   }
+}
+
+/* ----------------------------------------------------------------------
+   pack data struct for one body into buf for writing to data file
+   if buf is NULL, just return buffer size
+------------------------------------------------------------------------- */
+
+int BodyNparticle::pack_data_body(tagint atomID, int ibonus, double *buf)
+{
+  int m = 0;
+  double values[3],p[3][3],pdiag[3][3],ispace[3][3];
+
+  AtomVecBody::Bonus *bonus = &avec->bonus[ibonus];
+
+  double *quat = bonus->quat;
+  double *inertia = bonus->inertia;
+  int *ivalue = bonus->ivalue;
+  double *dvalue = bonus->dvalue;
+  int nsub = ivalue[0];
+
+  if (buf) {
+
+    // line 1: ID ninteger ndouble
+
+    buf[m++] = ubuf(atomID).d;
+    buf[m++] = ubuf(1).d;
+    buf[m++] = ubuf(6 + 3*nsub).d;
+
+    // line 2: single integer nsub
+
+    buf[m++] = ubuf(nsub).d;
+
+    // line 3: 6 moments of inertia
+
+    MathExtra::quat_to_mat(quat,p);
+    MathExtra::times3_diag(p,inertia,pdiag);
+    MathExtra::times3_transpose(pdiag,p,ispace);
+
+    buf[m++] = ispace[0][0];
+    buf[m++] = ispace[1][1];
+    buf[m++] = ispace[2][2];
+    buf[m++] = ispace[0][1];
+    buf[m++] = ispace[0][2];
+    buf[m++] = ispace[1][2];
+
+    // 3*nsub particle coords = displacement from COM in box frame
+
+    for (int i = 0; i < nsub; i++) {
+      MathExtra::matvec(p,&dvalue[3*i],values);
+      buf[m++] = values[0];
+      buf[m++] = values[1];
+      buf[m++] = values[2];
+    }
+
+  } else m = 3 + 1 + 6 + 3*nsub;
+
+  return m;
+}
+
+/* ----------------------------------------------------------------------
+   write info for one body to data file
+------------------------------------------------------------------------- */
+
+int BodyNparticle::write_data_body(FILE *fp, double *buf)
+{
+  int m = 0;
+
+  // atomID ninteger ndouble
+
+  fmt::print(fp,"{} {} {}\n",ubuf(buf[m]).i,ubuf(buf[m+1]).i,ubuf(buf[m+2]).i);
+  m += 3;
+
+  const int nsub = (int) ubuf(buf[m++]).i;
+  fmt::print(fp,"{}\n",nsub);
+
+  // inertia
+
+  fmt::print(fp,"{} {} {} {} {} {}\n",
+             buf[m+0],buf[m+1],buf[m+2],buf[m+3],buf[m+4],buf[m+5]);
+  m += 6;
+
+  // nsub vertices
+
+  for (int i = 0; i < nsub; i++) {
+    fmt::print(fp,"{} {} {}\n",buf[m],buf[m+1],buf[m+2]);
+    m += 3;
+  }
+
+  return m;
 }
 
 /* ----------------------------------------------------------------------

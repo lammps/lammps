@@ -16,9 +16,9 @@
                         and Rochus Schmid (Ruhr-Universitaet Bochum)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "angle_cosine_buck6d.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -26,13 +26,12 @@
 #include "force.h"
 #include "pair.h"
 #include "math_const.h"
-#include "math_special.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace MathSpecial;
 
 #define SMALL 0.001
 
@@ -333,9 +332,9 @@ void AngleCosineBuck6d::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nangletypes,fp);
-    fread(&multiplicity[1],sizeof(int),atom->nangletypes,fp);
-    fread(&th0[1],sizeof(double),atom->nangletypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&multiplicity[1],sizeof(int),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&th0[1],sizeof(double),atom->nangletypes,fp,NULL,error);
   }
 
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);

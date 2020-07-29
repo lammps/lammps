@@ -11,23 +11,18 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "update.h"
+#include <cstring>
 #include "integrate.h"
 #include "min.h"
 #include "style_integrate.h"
 #include "style_minimize.h"
 #include "neighbor.h"
-#include "neigh_list.h"
 #include "force.h"
 #include "modify.h"
 #include "fix.h"
-#include "domain.h"
-#include "region.h"
 #include "compute.h"
 #include "output.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -83,7 +78,7 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   create_integrate(1,&str,1);
 
   str = (char *) "cg";
-  create_minimize(1,&str);
+  create_minimize(1,&str,1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -314,18 +309,14 @@ void Update::create_integrate(int narg, char **arg, int trysuffix)
   int sflag;
   new_integrate(arg[0],narg-1,&arg[1],trysuffix,sflag);
 
+  std::string estyle = arg[0];
   if (sflag) {
-    char estyle[256];
-    if (sflag == 1) sprintf(estyle,"%s/%s",arg[0],lmp->suffix);
-    else sprintf(estyle,"%s/%s",arg[0],lmp->suffix2);
-    int n = strlen(estyle) + 1;
-    integrate_style = new char[n];
-    strcpy(integrate_style,estyle);
-  } else {
-    int n = strlen(arg[0]) + 1;
-    integrate_style = new char[n];
-    strcpy(integrate_style,arg[0]);
+    estyle += "/";
+    if (sflag == 1) estyle += lmp->suffix;
+    else  estyle += lmp->suffix2;
   }
+  integrate_style = new char[estyle.size()+1];
+  strcpy(integrate_style,estyle.c_str());
 }
 
 /* ----------------------------------------------------------------------
@@ -338,10 +329,9 @@ void Update::new_integrate(char *style, int narg, char **arg,
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
       sflag = 1;
-      char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix);
+      std::string estyle = style + std::string("/") + lmp->suffix;
       if (integrate_map->find(estyle) != integrate_map->end()) {
-        IntegrateCreator integrate_creator = (*integrate_map)[estyle];
+        IntegrateCreator &integrate_creator = (*integrate_map)[estyle];
         integrate = integrate_creator(lmp, narg, arg);
         return;
       }
@@ -349,10 +339,9 @@ void Update::new_integrate(char *style, int narg, char **arg,
 
     if (lmp->suffix2) {
       sflag = 2;
-      char estyle[256];
-      sprintf(estyle,"%s/%s",style,lmp->suffix2);
+      std::string estyle = style + std::string("/") + lmp->suffix2;
       if (integrate_map->find(estyle) != integrate_map->end()) {
-        IntegrateCreator integrate_creator = (*integrate_map)[estyle];
+        IntegrateCreator &integrate_creator = (*integrate_map)[estyle];
         integrate = integrate_creator(lmp, narg, arg);
         return;
       }
@@ -361,7 +350,7 @@ void Update::new_integrate(char *style, int narg, char **arg,
 
   sflag = 0;
   if (integrate_map->find(style) != integrate_map->end()) {
-    IntegrateCreator integrate_creator = (*integrate_map)[style];
+    IntegrateCreator &integrate_creator = (*integrate_map)[style];
     integrate = integrate_creator(lmp, narg, arg);
     return;
   }
@@ -381,22 +370,63 @@ Integrate *Update::integrate_creator(LAMMPS *lmp, int narg, char ** arg)
 
 /* ---------------------------------------------------------------------- */
 
-void Update::create_minimize(int narg, char **arg)
+void Update::create_minimize(int narg, char **arg, int trysuffix)
 {
-  if (narg != 1) error->all(FLERR,"Illegal min_style command");
+  if (narg < 1) error->all(FLERR,"Illegal run_style command");
 
   delete [] minimize_style;
   delete minimize;
 
-  if (minimize_map->find(arg[0]) != minimize_map->end()) {
-    MinimizeCreator minimize_creator = (*minimize_map)[arg[0]];
-    minimize = minimize_creator(lmp);
-  }
-  else error->all(FLERR,"Illegal min_style command");
+  int sflag;
+  new_minimize(arg[0],narg-1,&arg[1],trysuffix,sflag);
 
-  int n = strlen(arg[0]) + 1;
-  minimize_style = new char[n];
-  strcpy(minimize_style,arg[0]);
+  std::string estyle = arg[0];
+  if (sflag) {
+    estyle += "/";
+    if (sflag == 1) estyle += lmp->suffix;
+    else estyle += lmp->suffix2;
+  }
+  minimize_style = new char[estyle.size()+1];
+  strcpy(minimize_style,estyle.c_str());
+}
+
+/* ----------------------------------------------------------------------
+   create the Minimize style, first with suffix appended
+------------------------------------------------------------------------- */
+
+void Update::new_minimize(char *style, int /* narg */, char ** /* arg */,
+                           int trysuffix, int &sflag)
+{
+  if (trysuffix && lmp->suffix_enable) {
+    if (lmp->suffix) {
+      sflag = 1;
+      std::string estyle = style + std::string("/") + lmp->suffix;
+      if (minimize_map->find(estyle) != minimize_map->end()) {
+        MinimizeCreator &minimize_creator = (*minimize_map)[estyle];
+        minimize = minimize_creator(lmp);
+        return;
+      }
+    }
+
+    if (lmp->suffix2) {
+      sflag = 2;
+      std::string estyle = style + std::string("/") + lmp->suffix2;
+      if (minimize_map->find(estyle) != minimize_map->end()) {
+        MinimizeCreator &minimize_creator = (*minimize_map)[estyle];
+        minimize = minimize_creator(lmp);
+        return;
+      }
+    }
+  }
+
+  sflag = 0;
+  if (minimize_map->find(style) != minimize_map->end()) {
+    MinimizeCreator &minimize_creator = (*minimize_map)[style];
+    minimize = minimize_creator(lmp);
+    return;
+  }
+
+  error->all(FLERR,"Illegal minimize style");
 }
 
 /* ----------------------------------------------------------------------

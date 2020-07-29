@@ -16,6 +16,7 @@
 
 #include "pointers.h"
 #include <map>
+#include <set>
 #include <string>
 
 namespace LAMMPS_NS {
@@ -24,6 +25,7 @@ class Atom : protected Pointers {
  public:
   char *atom_style;
   class AtomVec *avec;
+  enum{DOUBLE,INT,BIGINT};
 
   // atom counts
 
@@ -39,6 +41,8 @@ class Atom : protected Pointers {
   bigint ntris;                 // number of triangles
   bigint nbodies;               // number of bodies
 
+  // system properties
+
   bigint nbonds,nangles,ndihedrals,nimpropers;
   int ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
   int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;
@@ -49,68 +53,30 @@ class Atom : protected Pointers {
   int nfirst;                   // # of atoms in first group on this proc
   char *firstgroupname;         // group-ID to store first, NULL if unset
 
-  // per-atom arrays
-  // customize by adding new array
+  // --------------------------------------------------------------------
+  // 1st customization section: customize by adding new per-atom variable
+  // per-atom vectors and arrays
 
   tagint *tag;
   int *type,*mask;
   imageint *image;
   double **x,**v,**f;
 
-  tagint *molecule;
-  int *molindex,*molatom;
+  // charged and dipolar particles
 
+  double *rmass;
   double *q,**mu;
+
+  // finite-size particles
+
+  double *radius;
   double **omega,**angmom,**torque;
-  double *radius,*rmass;
   int *ellipsoid,*line,*tri,*body;
 
-  // SPIN package
+  // molecular systems
 
-  double **sp;
-  double **fm;
-
-  // PERI package
-
-  double *vfrac,*s0;
-  double **x0;
-
-  // USER-EFF and USER-AWPMD packages
-
-  int *spin;
-  double *eradius,*ervel,*erforce,*ervelforce;
-  double *cs,*csforce,*vforce;
-  int *etag;
-
-  // USER-SPH package
-
-  double *rho,*drho,*e,*de,*cv;
-  double **vest;
-
-  // USER-SMD package
-
-  double *contact_radius;
-  double **smd_data_9;
-  double **smd_stress;
-  double *eff_plastic_strain;
-  double *eff_plastic_strain_rate;
-  double *damage;
-
-  // USER-DPD package
-
-  double *uCond,*uMech,*uChem,*uCGnew,*uCG;
-  double *duChem;
-  double *dpdTheta;
-  int nspecies_dpd;
-
-  // USER-MESO package
-
-  double **cc, **cc_flux;        // cc = chemical concentration
-  double *edpd_temp,*edpd_flux;  // temperature and heat flux
-  double *edpd_cv;               // heat capacity
-  int cc_species;
-
-  // molecular info
+  tagint *molecule;
+  int *molindex,*molatom;
 
   int **nspecial;               // 0,1,2 = cumulative # of 1-2,1-3,1-4 neighs
   tagint **special;             // IDs of 1-2,1-3,1-4 neighs of each atom
@@ -132,19 +98,69 @@ class Atom : protected Pointers {
   int **improper_type;
   tagint **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
 
-  // custom arrays used by fix property/atom
+  // PERI package
 
-  int **ivector;
-  double **dvector;
-  char **iname,**dname;
-  int nivector,ndvector;
+  double *vfrac,*s0;
+  double **x0;
 
-  // atom style and per-atom array existence flags
-  // customize by adding new flag
+  // SPIN package
+
+  double **sp,**fm,**fm_long;
+
+  // USER_EFF and USER-AWPMD packages
+
+  int *spin;
+  double *eradius,*ervel,*erforce;
+  double *ervelforce;
+  double **cs,**csforce,**vforce;
+  int *etag;
+
+  // USER-DPD package
+
+  double *uCond,*uMech,*uChem,*uCGnew,*uCG;
+  double *duChem;
+  double *dpdTheta;
+  int nspecies_dpd;
+
+  // USER-MESO package
+
+  double **cc,**cc_flux;         // cc = chemical concentration
+  double *edpd_temp,*edpd_flux;  // temperature and heat flux
+  double *vest_temp;
+  double *edpd_cv;               // heat capacity
+  int cc_species;
+
+  // USER-MESONT package
+
+  double *length;
+  int *buckling;
+  tagint **bond_nt;
+
+  // USER-SMD package
+
+  double *contact_radius;
+  double **smd_data_9;
+  double **smd_stress;
+  double *eff_plastic_strain;
+  double *eff_plastic_strain_rate;
+  double *damage;
+
+  // USER-SPH package
+
+  double *rho,*drho,*esph,*desph,*cv;
+  double **vest;
+
+  // end of customization section
+  // --------------------------------------------------------------------
+
+  // --------------------------------------------------------------------
+  // 2nd customization section: customize by adding new flags
+  // identical list as Atom::set_atomflag_defaults()
+  // most are existence flags for per-atom vectors and arrays
+  // 1 if variable is used, 0 if not
 
   int sphere_flag,ellipsoid_flag,line_flag,tri_flag,body_flag;
   int peri_flag,electron_flag;
-  int ecp_flag;
   int wavepacket_flag,sph_flag;
 
   int molecule_flag,molindex_flag,molatom_flag;
@@ -152,27 +168,50 @@ class Atom : protected Pointers {
   int rmass_flag,radius_flag,omega_flag,torque_flag,angmom_flag;
   int vfrac_flag,spin_flag,eradius_flag,ervel_flag,erforce_flag;
   int cs_flag,csforce_flag,vforce_flag,ervelforce_flag,etag_flag;
-  int rho_flag,e_flag,cv_flag,vest_flag;
+  int rho_flag,esph_flag,cv_flag,vest_flag;
   int dpd_flag,edpd_flag,tdpd_flag;
+  int mesont_flag;
 
-  //USER-SPIN package
+  // SPIN package
 
   int sp_flag;
 
   // USER-SMD package
 
-  int smd_flag;
-  int contact_radius_flag;
-  int smd_data_9_flag;
-  int smd_stress_flag;
   int x0_flag;
-  int eff_plastic_strain_flag;
-  int eff_plastic_strain_rate_flag;
-  int damage_flag;
+  int smd_flag,damage_flag;
+  int contact_radius_flag,smd_data_9_flag,smd_stress_flag;
+  int eff_plastic_strain_flag,eff_plastic_strain_rate_flag;
 
   // Peridynamics scale factor, used by dump cfg
 
   double pdscale;
+
+  // end of customization section
+  // --------------------------------------------------------------------
+
+  // per-atom data struct describing all per-atom vectors/arrays
+
+  struct PerAtom {
+    char *name;
+    void *address;
+    void *address_length;
+    int *address_maxcols;
+    int datatype;
+    int cols;
+    int collength;
+    int threadflag;
+  };
+
+  PerAtom *peratom;
+  int nperatom,maxperatom;
+
+  // custom arrays used by fix property/atom
+
+  int **ivector;
+  double **dvector;
+  char **iname,**dname;
+  int nivector,ndvector;
 
   // molecule templates
   // each template can be a set of consecutive molecules
@@ -203,6 +242,7 @@ class Atom : protected Pointers {
   int map_user;                   // user requested map style:
                                   // 0 = no request, 1=array, 2=hash, 3=yes
   tagint map_tag_max;             // max atom ID that map() is setup for
+  std::set<tagint> *unique_tags;  // set to ensure that bodies have unique tags
 
   // spatial sorting of atoms
 
@@ -220,14 +260,21 @@ class Atom : protected Pointers {
   typedef std::map<std::string,AtomVecCreator> AtomVecCreatorMap;
   AtomVecCreatorMap *avec_map;
 
+  // --------------------------------------------------------------------
   // functions
 
   Atom(class LAMMPS *);
   ~Atom();
 
   void settings(class Atom *);
-  void create_avec(const char *, int, char **, int);
-  virtual class AtomVec *new_avec(const char *, int, int &);
+  void peratom_create();
+  void add_peratom(const char *, void *, int, int, int threadflag=0);
+  void add_peratom_change_columns(const char *, int);
+  void add_peratom_vary(const char *, void *, int, int *,
+                        void *, int collength=0);
+  void create_avec(const std::string &, int, char **, int);
+  virtual class AtomVec *new_avec(const std::string &, int, int &);
+
   void init();
   void setup();
 
@@ -240,8 +287,6 @@ class Atom : protected Pointers {
   void bonus_check();
 
   int parse_data(const char *);
-  int count_words(const char *);
-  int count_words(const char *, char *);
 
   void deallocate_topology();
 
@@ -252,7 +297,7 @@ class Atom : protected Pointers {
   void data_dihedrals(int, char *, int *, tagint, int);
   void data_impropers(int, char *, int *, tagint, int);
   void data_bonus(int, char *, class AtomVec *, tagint);
-  void data_bodies(int, char *, class AtomVecBody *, tagint);
+  void data_bodies(int, char *, class AtomVec *, tagint);
   void data_fix_compute_variable(int, int);
 
   virtual void allocate_type_arrays();
@@ -286,9 +331,13 @@ class Atom : protected Pointers {
 
   inline int* get_map_array() {return map_array;};
   inline int get_map_size() {return map_tag_max+1;};
+  inline int get_max_same() {return max_same;};
+  inline int get_map_maxarray() {return map_maxarray+1;};
+
+  // NOTE: placeholder method until KOKKOS/AtomVec is refactored
+  int memcheck(const char *) {return 1;}
 
   bigint memory_usage();
-  int memcheck(const char *);
 
   // functions for global to local ID mapping
   // map lookup function inlined for efficiency
@@ -341,9 +390,7 @@ class Atom : protected Pointers {
   double bininvx,bininvy,bininvz; // inverse actual bin sizes
   double bboxlo[3],bboxhi[3];     // bounding box of my sub-domain
 
-  int memlength;                  // allocated size of memstr
-  char *memstr;                   // string of array names already counted
-
+  void set_atomflag_defaults();
   void setup_sort_bins();
   int next_prime(int);
 
@@ -361,7 +408,7 @@ E: Atom IDs must be used for molecular systems
 
 Atom IDs are used to identify and find partner atoms in bonds.
 
-E: Unknown atom style
+E: Unrecognized atom style
 
 The choice of atom style is unknown.
 
@@ -423,6 +470,11 @@ E: Incorrect atom format in data file
 
 Number of values per atom line in the data file is not consistent with
 the atom style.
+
+E: Incorrect format of ... section in data file
+
+Number or type of values per line in the given section of the data file
+is not consistent with the requirements for this section.
 
 E: Invalid atom type in Atoms section of data file
 

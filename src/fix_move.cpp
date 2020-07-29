@@ -11,12 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "fix_move.h"
+#include <cstring>
+#include <cmath>
 #include "atom.h"
-#include "group.h"
 #include "update.h"
 #include "modify.h"
 #include "force.h"

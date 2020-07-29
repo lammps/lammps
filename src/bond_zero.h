@@ -20,7 +20,6 @@ BondStyle(zero,BondZero)
 #ifndef LMP_BOND_ZERO_H
 #define LMP_BOND_ZERO_H
 
-#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {
@@ -39,6 +38,7 @@ class BondZero : public Bond {
   void write_data(FILE *);
 
   double single(int, double, int, int, double &);
+  virtual void *extract(const char *, int &);
 
  protected:
   double *r0;

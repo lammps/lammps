@@ -41,6 +41,7 @@ class FixWallRegion : public Fix {
  private:
   int style,iregion;
   double epsilon,sigma,cutoff;
+  double alpha;
   int eflag;
   double ewall[4],ewall_all[4];
   int ilevel_respa;
@@ -53,6 +54,7 @@ class FixWallRegion : public Fix {
   void lj93(double);
   void lj126(double);
   void lj1043(double);
+  void morse(double);
   void colloid(double, double);
   void harmonic(double);
 };

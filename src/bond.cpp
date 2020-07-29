@@ -11,8 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "bond.h"
+#include <mpi.h>
+#include <ctime>
+#include <string>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -21,6 +23,9 @@
 #include "atom_masks.h"
 #include "memory.h"
 #include "error.h"
+#include "update.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -34,6 +39,7 @@ enum{NONE,LINEAR,SPLINE};
 Bond::Bond(LAMMPS *lmp) : Pointers(lmp)
 {
   energy = 0.0;
+  virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
   writedata = 1;
 
   allocated = 0;
@@ -91,6 +97,7 @@ void Bond::ev_setup(int eflag, int vflag, int alloc)
 
   vflag_either = vflag;
   vflag_global = vflag % 4;
+  // per-atom virial and per-atom centroid virial are the same for bonds
   vflag_atom = vflag / 4;
 
   // reallocate per-atom arrays if necessary
@@ -245,15 +252,43 @@ void Bond::write_file(int narg, char **arg)
 
   double r0 = equilibrium_distance(btype);
 
-  // open file in append mode
+  // open file in append mode if exists
+  // add line with DATE: and UNITS: tag when creating new file
   // print header in format used by bond_style table
 
-  int me;
-  MPI_Comm_rank(world,&me);
-  FILE *fp;
-  if (me == 0) {
-    fp = fopen(arg[4],"a");
-    if (fp == NULL) error->one(FLERR,"Cannot open bond_write file");
+  FILE *fp = nullptr;
+  if (comm->me == 0) {
+    std::string table_file = arg[4];
+
+    // units sanity check:
+    // - if this is the first time we write to this potential file,
+    //   write out a line with "DATE:" and "UNITS:" tags
+    // - if the file already exists, print a message about appending
+    //   while printing the date and check that units are consistent.
+    if (utils::file_is_readable(table_file)) {
+      std::string units = utils::get_potential_units(table_file,"table");
+      if (!units.empty() && (units != update->unit_style)) {
+        error->one(FLERR,fmt::format("Trying to append to a table file "
+                                     "with UNITS: {} while units are {}",
+                                     units, update->unit_style));
+      }
+      std::string date = utils::get_potential_date(table_file,"table");
+      utils::logmesg(lmp,fmt::format("Appending to table file {} with "
+                                     "DATE: {}\n", table_file, date));
+      fp = fopen(table_file.c_str(),"a");
+    } else {
+      char datebuf[16];
+      time_t tv = time(NULL);
+      strftime(datebuf,15,"%Y-%m-%d",localtime(&tv));
+      utils::logmesg(lmp,fmt::format("Creating table file {} with "
+                                     "DATE: {}\n", table_file, datebuf));
+      fp = fopen(table_file.c_str(),"w");
+      if (fp) fmt::print(fp,"# DATE: {} UNITS: {} Created by bond_write\n",
+                         datebuf, update->unit_style);
+    }
+    if (fp == NULL)
+      error->one(FLERR,fmt::format("Cannot open bond_write file {}: {}",
+                                   arg[4], utils::getsyserror()));
   }
 
   // initialize potentials before evaluating bond potential
@@ -264,7 +299,7 @@ void Bond::write_file(int narg, char **arg)
   force->init();
   neighbor->init();
 
-  if (me == 0) {
+  if (comm->me == 0) {
     double r,e,f;
 
     // evaluate energy and force at each of N distances

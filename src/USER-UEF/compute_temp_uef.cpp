@@ -13,11 +13,9 @@
    Contributing author: David Nicholson (MIT)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "compute_temp_uef.h"
+#include <cstring>
 #include "fix_nh_uef.h"
-#include "update.h"
 #include "modify.h"
 #include "fix.h"
 #include "error.h"

@@ -15,21 +15,15 @@
    Contributing authors: Mike Parks (SNL), Ezwanur Rahman, J.T. Foster (UTSA)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
-#include <cstdio>
-#include <Eigen/Eigen>
 #include "fix_smd_wall_surface.h"
+#include <mpi.h>
+#include <cstring>
+#include <cstdlib>
+#include <Eigen/Eigen>
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
 #include "comm.h"
-#include "update.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "pair.h"
-#include "lattice.h"
 #include "memory.h"
 #include "error.h"
 #include "atom_vec.h"

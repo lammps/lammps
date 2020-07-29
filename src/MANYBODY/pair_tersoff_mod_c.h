@@ -29,6 +29,8 @@ class PairTersoffMODC : public PairTersoffMOD {
   PairTersoffMODC(class LAMMPS *lmp) : PairTersoffMOD(lmp) {};
   ~PairTersoffMODC() {}
 
+  static const int NPARAMS_PER_LINE = 21;
+
  protected:
   void read_file(char *);
   void repulsive(Param *, double, double &, int, double &);

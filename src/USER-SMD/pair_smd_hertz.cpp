@@ -26,17 +26,14 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_smd_hertz.h"
+#include <mpi.h>
 #include <cmath>
-#include <cfloat>
 #include <cstdlib>
 #include <cstring>
-#include "pair_smd_hertz.h"
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"

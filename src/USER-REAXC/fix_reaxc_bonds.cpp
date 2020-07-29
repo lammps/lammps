@@ -15,22 +15,14 @@
    Contributing author: Ray Shan (Sandia, tnshan@sandia.gov)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
-#include "fix_ave_atom.h"
 #include "fix_reaxc_bonds.h"
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "pair_reaxc.h"
-#include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
-#include "comm.h"
 #include "force.h"
-#include "compute.h"
-#include "input.h"
-#include "variable.h"
 #include "memory.h"
 #include "error.h"
 #include "reaxc_list.h"

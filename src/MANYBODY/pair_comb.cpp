@@ -18,11 +18,11 @@
    and Aidan Thompson's Tersoff code in LAMMPS
 ------------------------------------------------------------------------- */
 
+#include "pair_comb.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_comb.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -30,16 +30,17 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "group.h"
-#include "update.h"
 #include "my_page.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "tokenizer.h"
+#include "potential_file_reader.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define MAXLINE 1024
 #define DELTA 4
 #define PGDELTA 1
 #define MAXNEIGH 24
@@ -492,15 +493,17 @@ void PairComb::coeff(int narg, char **arg)
 
   // generate streitz-mintmire direct 1/r energy look-up table
 
-  if (comm->me == 0 && screen) fprintf(screen,"Pair COMB:\n");
   if (comm->me == 0 && screen)
-    fprintf(screen,"  generating Coulomb integral lookup table ...\n");
+    fputs("Pair COMB:\n"
+          "  generating Coulomb integral lookup table ...\n",screen);
   sm_table();
 
-  if (cor_flag && comm->me == 0 && screen)
-    fprintf(screen,"  will apply over-coordination correction ...\n");
-  if (!cor_flag&& comm->me == 0 && screen)
-    fprintf(screen,"  will not apply over-coordination correction ...\n");
+  if (comm->me == 0 && screen) {
+    if (cor_flag)
+      fputs("  will apply over-coordination correction ...\n",screen);
+    else
+      fputs("  will not apply over-coordination correction ...\n",screen);
+  }
 
   // clear setflag since coeff() called once with I,J = * *
 
@@ -581,192 +584,153 @@ double PairComb::init_one(int i, int j)
 
 void PairComb::read_file(char *file)
 {
-  int params_per_line = 49;
-  char **words = new char*[params_per_line+1];
-
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   nparams = 0;
   maxparam = 0;
 
   // open file on proc 0
-
-  FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open COMB potential file %s",file);
-      error->one(FLERR,str);
-    }
-  }
+    PotentialFileReader reader(lmp, file, "comb");
+    char * line;
 
-  // read each line out of file, skipping blank lines or leading '#'
-  // store line of params if all 3 element tags are in element list
+    while((line = reader.next_line(NPARAMS_PER_LINE))) {
+      try {
+        ValueTokenizer values(line);
 
-  int n,nwords,ielement,jelement,kelement;
-  char line[MAXLINE],*ptr;
-  int eof = 0;
+        std::string iname = values.next_string();
+        std::string jname = values.next_string();
+        std::string kname = values.next_string();
 
-  while (1) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
-        eof = 1;
-        fclose(fp);
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+        // ielement,jelement,kelement = 1st args
+        // if all 3 args are in element list, then parse this line
+        // else skip to next line
+        int ielement, jelement, kelement;
 
-    // strip comment, skip line if blank
+        for (ielement = 0; ielement < nelements; ielement++)
+          if (iname == elements[ielement]) break;
+        if (ielement == nelements) continue;
+        for (jelement = 0; jelement < nelements; jelement++)
+          if (jname == elements[jelement]) break;
+        if (jelement == nelements) continue;
+        for (kelement = 0; kelement < nelements; kelement++)
+          if (kname == elements[kelement]) break;
+        if (kelement == nelements) continue;
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
-    if (nwords == 0) continue;
+        // load up parameter settings and error check their values
 
-    // concatenate additional lines until have params_per_line words
+        if (nparams == maxparam) {
+          maxparam += DELTA;
+          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
+                                              "pair:params");
 
-    while (nwords < params_per_line) {
-      n = strlen(line);
-      if (comm->me == 0) {
-        ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
-          eof = 1;
-          fclose(fp);
-        } else n = strlen(line) + 1;
+          // make certain all addional allocated storage is initialized
+          // to avoid false positives when checking with valgrind
+
+          memset(params + nparams, 0, DELTA*sizeof(Param));
+        }
+
+        params[nparams].ielement = ielement;
+        params[nparams].jelement = jelement;
+        params[nparams].kelement = kelement;
+        params[nparams].powerm   = values.next_double();
+        params[nparams].c        = values.next_double();
+        params[nparams].d        = values.next_double();
+        params[nparams].h        = values.next_double();
+        params[nparams].powern   = values.next_double();
+        params[nparams].beta     = values.next_double();
+        params[nparams].lam21    = values.next_double();
+        params[nparams].lam22    = values.next_double();
+        params[nparams].bigb1    = values.next_double();
+        params[nparams].bigb2    = values.next_double();
+        params[nparams].bigr     = values.next_double();
+        params[nparams].bigd     = values.next_double();
+        params[nparams].lam11    = values.next_double();
+        params[nparams].lam12    = values.next_double();
+        params[nparams].biga1    = values.next_double();
+        params[nparams].biga2    = values.next_double();
+        params[nparams].plp1     = values.next_double();
+        params[nparams].plp3     = values.next_double();
+        params[nparams].plp6     = values.next_double();
+        params[nparams].a123     = values.next_double();
+        params[nparams].aconf    = values.next_double();
+        params[nparams].addrep   = values.next_double();
+        params[nparams].romigb   = values.next_double();
+        params[nparams].romigc   = values.next_double();
+        params[nparams].romigd   = values.next_double();
+        params[nparams].romiga   = values.next_double();
+        params[nparams].QL1      = values.next_double();
+        params[nparams].QU1      = values.next_double();
+        params[nparams].DL1      = values.next_double();
+        params[nparams].DU1      = values.next_double();
+        params[nparams].QL2      = values.next_double();
+        params[nparams].QU2      = values.next_double();
+        params[nparams].DL2      = values.next_double();
+        params[nparams].DU2      = values.next_double();
+        params[nparams].chi      = values.next_double();
+        params[nparams].dj       = values.next_double();
+        params[nparams].dk       = values.next_double();
+        params[nparams].dl       = values.next_double();
+        params[nparams].dm       = values.next_double();
+        params[nparams].esm1     = values.next_double();
+        params[nparams].cmn1     = values.next_double();
+        params[nparams].cml1     = values.next_double();
+        params[nparams].cmn2     = values.next_double();
+        params[nparams].cml2     = values.next_double();
+        params[nparams].coulcut  = values.next_double();
+        params[nparams].hfocor   = values.next_double();
+      } catch (TokenizerException & e) {
+        error->one(FLERR, e.what());
       }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+
+      params[nparams].powermint = int(params[nparams].powerm);
+
+      // parameter sanity checks
+
+      if (params[nparams].lam11 < 0.0 || params[nparams].lam12 < 0.0 ||
+          params[nparams].c < 0.0 || params[nparams].d < 0.0 ||
+          params[nparams].powern < 0.0 || params[nparams].beta < 0.0 ||
+          params[nparams].lam21 < 0.0 || params[nparams].lam22 < 0.0 ||
+          params[nparams].bigb1< 0.0 || params[nparams].bigb2< 0.0 ||
+          params[nparams].biga1< 0.0 || params[nparams].biga2< 0.0 ||
+          params[nparams].bigr < 0.0 || params[nparams].bigd < 0.0 ||
+          params[nparams].bigd > params[nparams].bigr ||
+          params[nparams].powerm - params[nparams].powermint != 0.0 ||
+          (params[nparams].powermint != 3 && params[nparams].powermint != 1) ||
+          params[nparams].plp1 < 0.0 || params[nparams].plp3 < 0.0 ||
+          params[nparams].plp6 < 0.0  ||
+          params[nparams].a123 > 360.0 || params[nparams].aconf < 0.0 ||
+          params[nparams].addrep < 0.0 || params[nparams].romigb < 0.0 ||
+          params[nparams].romigc < 0.0 || params[nparams].romigd < 0.0 ||
+          params[nparams].romiga < 0.0 ||
+          params[nparams].QL1 > 0.0 || params[nparams].QU1 < 0.0 ||
+          params[nparams].DL1 < 0.0 || params[nparams].DU1 > 0.0 ||
+          params[nparams].QL2 > 0.0 || params[nparams].QU2 < 0.0 ||
+          params[nparams].DL2 < 0.0 || params[nparams].DU2 > 0.0 ||
+          params[nparams].chi < 0.0 ||
+  //        params[nparams].dj < 0.0 || params[nparams].dk < 0.0 ||
+  //        params[nparams].dl < 0.0 || params[nparams].dm < 0.0 ||
+          params[nparams].esm1 < 0.0)
+        error->one(FLERR,"Illegal COMB parameter");
+
+      if (params[nparams].lam11 < params[nparams].lam21 ||
+          params[nparams].lam12 < params[nparams].lam22 ||
+          params[nparams].biga1< params[nparams].bigb1 ||
+          params[nparams].biga2< params[nparams].bigb2)
+        error->one(FLERR,"Illegal COMB parameter");
+
+      nparams++;
     }
-
-    if (nwords != params_per_line)
-      error->all(FLERR,"Incorrect format in COMB potential file");
-
-    // words = ptrs to all words in line
-
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
-
-    // ielement,jelement,kelement = 1st args
-    // if all 3 args are in element list, then parse this line
-    // else skip to next line
-
-    for (ielement = 0; ielement < nelements; ielement++)
-      if (strcmp(words[0],elements[ielement]) == 0) break;
-    if (ielement == nelements) continue;
-    for (jelement = 0; jelement < nelements; jelement++)
-      if (strcmp(words[1],elements[jelement]) == 0) break;
-    if (jelement == nelements) continue;
-    for (kelement = 0; kelement < nelements; kelement++)
-      if (strcmp(words[2],elements[kelement]) == 0) break;
-    if (kelement == nelements) continue;
-
-    // load up parameter settings and error check their values
-
-    if (nparams == maxparam) {
-      maxparam += DELTA;
-      params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-                                          "pair:params");
-    }
-
-    params[nparams].ielement = ielement;
-    params[nparams].jelement = jelement;
-    params[nparams].kelement = kelement;
-    params[nparams].powerm = atof(words[3]);
-    params[nparams].c = atof(words[4]);
-    params[nparams].d = atof(words[5]);
-    params[nparams].h = atof(words[6]);
-    params[nparams].powern = atof(words[7]);
-    params[nparams].beta = atof(words[8]);
-    params[nparams].lam21 = atof(words[9]);
-    params[nparams].lam22 = atof(words[10]);
-    params[nparams].bigb1 = atof(words[11]);
-    params[nparams].bigb2 = atof(words[12]);
-    params[nparams].bigr = atof(words[13]);
-    params[nparams].bigd = atof(words[14]);
-    params[nparams].lam11 = atof(words[15]);
-    params[nparams].lam12 = atof(words[16]);
-    params[nparams].biga1 = atof(words[17]);
-    params[nparams].biga2 = atof(words[18]);
-    params[nparams].plp1 = atof(words[19]);
-    params[nparams].plp3 = atof(words[20]);
-    params[nparams].plp6 = atof(words[21]);
-    params[nparams].a123 = atof(words[22]);
-    params[nparams].aconf= atof(words[23]);
-    params[nparams].addrep = atof(words[24]);
-    params[nparams].romigb = atof(words[25]);
-    params[nparams].romigc = atof(words[26]);
-    params[nparams].romigd = atof(words[27]);
-    params[nparams].romiga = atof(words[28]);
-    params[nparams].QL1 = atof(words[29]);
-    params[nparams].QU1 = atof(words[30]);
-    params[nparams].DL1 = atof(words[31]);
-    params[nparams].DU1 = atof(words[32]);
-    params[nparams].QL2 = atof(words[33]);
-    params[nparams].QU2 = atof(words[34]);
-    params[nparams].DL2 = atof(words[35]);
-    params[nparams].DU2 = atof(words[36]);
-    params[nparams].chi = atof(words[37]);
-    params[nparams].dj  = atof(words[38]);
-    params[nparams].dk  = atof(words[39]);
-    params[nparams].dl  = atof(words[40]);
-    params[nparams].dm  = atof(words[41]);
-    params[nparams].esm1 = atof(words[42]);
-    params[nparams].cmn1 = atof(words[43]);
-    params[nparams].cml1 = atof(words[44]);
-    params[nparams].cmn2 = atof(words[45]);
-    params[nparams].cml2 = atof(words[46]);
-    params[nparams].coulcut = atof(words[47]);
-    params[nparams].hfocor = atof(words[48]);
-
-    params[nparams].powermint = int(params[nparams].powerm);
-
-    // parameter sanity checks
-
-    if (params[nparams].lam11 < 0.0 || params[nparams].lam12 < 0.0 ||
-        params[nparams].c < 0.0 || params[nparams].d < 0.0 ||
-        params[nparams].powern < 0.0 || params[nparams].beta < 0.0 ||
-        params[nparams].lam21 < 0.0 || params[nparams].lam22 < 0.0 ||
-        params[nparams].bigb1< 0.0 || params[nparams].bigb2< 0.0 ||
-        params[nparams].biga1< 0.0 || params[nparams].biga2< 0.0 ||
-        params[nparams].bigr < 0.0 || params[nparams].bigd < 0.0 ||
-        params[nparams].bigd > params[nparams].bigr ||
-        params[nparams].powerm - params[nparams].powermint != 0.0 ||
-        (params[nparams].powermint != 3 && params[nparams].powermint != 1) ||
-        params[nparams].plp1 < 0.0 || params[nparams].plp3 < 0.0 ||
-        params[nparams].plp6 < 0.0  ||
-        params[nparams].a123 > 360.0 || params[nparams].aconf < 0.0 ||
-        params[nparams].addrep < 0.0 || params[nparams].romigb < 0.0 ||
-        params[nparams].romigc < 0.0 || params[nparams].romigd < 0.0 ||
-        params[nparams].romiga < 0.0 ||
-        params[nparams].QL1 > 0.0 || params[nparams].QU1 < 0.0 ||
-        params[nparams].DL1 < 0.0 || params[nparams].DU1 > 0.0 ||
-        params[nparams].QL2 > 0.0 || params[nparams].QU2 < 0.0 ||
-        params[nparams].DL2 < 0.0 || params[nparams].DU2 > 0.0 ||
-        params[nparams].chi < 0.0 ||
-//        params[nparams].dj < 0.0 || params[nparams].dk < 0.0 ||
-//        params[nparams].dl < 0.0 || params[nparams].dm < 0.0 ||
-        params[nparams].esm1 < 0.0)
-      error->all(FLERR,"Illegal COMB parameter");
-
-    if (params[nparams].lam11 < params[nparams].lam21 ||
-        params[nparams].lam12 < params[nparams].lam22 ||
-        params[nparams].biga1< params[nparams].bigb1 ||
-        params[nparams].biga2< params[nparams].bigb2)
-      error->all(FLERR,"Illegal COMB parameter");
-
-    nparams++;
   }
 
-  delete [] words;
+  MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
+  MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
+
+  if(comm->me != 0) {
+    params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
+  }
+
+  MPI_Bcast(params, maxparam*sizeof(Param), MPI_BYTE, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1377,6 +1341,18 @@ void PairComb::sm_table()
   ncoul = int((rc-drin)/dra)+1;
 
   // allocate arrays
+
+  memory->sfree(sht_first);
+  memory->destroy(intype);
+  memory->destroy(fafb);
+  memory->destroy(dfafb);
+  memory->destroy(ddfafb);
+  memory->destroy(phin);
+  memory->destroy(dphin);
+  memory->destroy(erpaw);
+  memory->destroy(NCo);
+  memory->destroy(bbij);
+  memory->destroy(sht_num);
 
   memory->create(intype,n,n,"pair:intype");
   memory->create(fafb,ncoul,nntypes,"pair:fafb");

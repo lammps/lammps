@@ -15,8 +15,10 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "fix_rigid_nh_omp.h"
-
+#include <mpi.h>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
@@ -24,12 +26,12 @@
 #include "comm.h"
 #include "compute.h"
 #include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
 #include "modify.h"
 #include "update.h"
-
-#include <cstring>
+#include "timer.h"
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -37,15 +39,12 @@
 
 #include "math_extra.h"
 #include "math_const.h"
+#include "rigid_const.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
-
-enum{SINGLE,MOLECULE,GROUP};    // same as in FixRigid
-enum{ISO,ANISO,TRICLINIC};      // same as in FixRigid
-
-#define EINERTIA 0.4            // moment of inertia prefactor for ellipsoid
+using namespace RigidConst;
 
 typedef struct { double x,y,z; } dbl3_t;
 
@@ -89,12 +88,11 @@ void FixRigidNHOMP::initial_integrate(int vflag)
 
   // update xcm, vcm, quat, conjqm and angmom
   double akt=0.0, akr=0.0;
-  int ibody;
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(ibody) shared(scale_r,scale_t,scale_v) schedule(static) reduction(+:akt,akr)
+#pragma omp parallel for LMP_DEFAULT_NONE LMP_SHARED(scale_r,scale_t,scale_v) schedule(static) reduction(+:akt,akr)
 #endif
-  for (ibody = 0; ibody < nbody; ibody++) {
+  for (int ibody = 0; ibody < nbody; ibody++) {
     double mbody[3],tbody[3],fquat[4];
     const double dtf2 = dtf * 2.0;
 
@@ -253,7 +251,7 @@ void FixRigidNHOMP::compute_forces_and_torques()
      int i;
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(i) reduction(+:s0,s1,s2,s3,s4,s5)
+#pragma omp parallel for LMP_DEFAULT_NONE private(i) reduction(+:s0,s1,s2,s3,s4,s5)
 #endif
      for (i = 0; i < nlocal; i++) {
        const int ibody = body[i];
@@ -292,7 +290,7 @@ void FixRigidNHOMP::compute_forces_and_torques()
        int i;
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(i) shared(ib) reduction(+:s0,s1,s2,s3,s4,s5)
+#pragma omp parallel for LMP_DEFAULT_NONE private(i) LMP_SHARED(ib) reduction(+:s0,s1,s2,s3,s4,s5)
 #endif
        for (i = 0; i < nlocal; i++) {
          const int ibody = body[i];
@@ -333,7 +331,7 @@ void FixRigidNHOMP::compute_forces_and_torques()
      memset(&sum[0][0],0,6*nbody*sizeof(double));
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
      {
 #if defined(_OPENMP)
@@ -376,7 +374,7 @@ void FixRigidNHOMP::compute_forces_and_torques()
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(ibody) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE private(ibody) schedule(static)
 #endif
   for (ibody = 0; ibody < nbody; ibody++) {
     fcm[ibody][0] = all[ibody][0] + langextra[ibody][0];
@@ -386,13 +384,25 @@ void FixRigidNHOMP::compute_forces_and_torques()
     torque[ibody][1] = all[ibody][4] + langextra[ibody][4];
     torque[ibody][2] = all[ibody][5] + langextra[ibody][5];
   }
+
+  // add gravity force to COM of each body
+
+  if (id_gravity) {
+#if defined(_OPENMP)
+#pragma omp parallel for LMP_DEFAULT_NONE private(ibody) schedule(static)
+#endif
+    for (ibody = 0; ibody < nbody; ibody++) {
+      fcm[ibody][0] += gvec[0]*masstotal[ibody];
+      fcm[ibody][1] += gvec[1]*masstotal[ibody];
+      fcm[ibody][2] += gvec[2]*masstotal[ibody];
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixRigidNHOMP::final_integrate()
 {
-  int ibody;
   double scale_t[3],scale_r;
 
   // compute scale variables
@@ -424,9 +434,9 @@ void FixRigidNHOMP::final_integrate()
   const double dtf2 = dtf * 2.0;
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(ibody) shared(scale_t,scale_r) schedule(static) reduction(+:akt,akr)
+#pragma omp parallel for LMP_DEFAULT_NONE LMP_SHARED(scale_t,scale_r) schedule(static) reduction(+:akt,akr)
 #endif
-  for (ibody = 0; ibody < nbody; ibody++) {
+  for (int ibody = 0; ibody < nbody; ibody++) {
     double mbody[3],tbody[3],fquat[4];
 
     // update vcm by 1/2 step
@@ -544,11 +554,10 @@ void FixRigidNHOMP::remap()
 
   if (allremap) domain->x2lamda(nlocal);
   else {
-    int i;
 #if defined (_OPENMP)
-#pragma omp parallel for private(i) default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
-    for (i = 0; i < nlocal; i++)
+    for (int i = 0; i < nlocal; i++)
       if (mask[i] & dilate_group_bit)
         domain->x2lamda(x[i],x[i]);
   }
@@ -577,11 +586,10 @@ void FixRigidNHOMP::remap()
 
   if (allremap) domain->lamda2x(nlocal);
   else {
-    int i;
 #if defined (_OPENMP)
-#pragma omp parallel for private(i) default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
-    for (i = 0; i < nlocal; i++)
+    for (int i = 0; i < nlocal; i++)
       if (mask[i] & dilate_group_bit)
         domain->lamda2x(x[i],x[i]);
   }
@@ -624,7 +632,7 @@ void FixRigidNHOMP::set_xv_thr()
   int i;
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(i) reduction(+:v0,v1,v2,v3,v4,v5)
+#pragma omp parallel for LMP_DEFAULT_NONE private(i) reduction(+:v0,v1,v2,v3,v4,v5)
 #endif
   for (i = 0; i < nlocal; i++) {
     const int ibody = body[i];
@@ -769,8 +777,8 @@ void FixRigidNHOMP::set_xv_thr()
         if (quat[ibody][3] >= 0.0) theta_body = 2.0*acos(quat[ibody][0]);
         else theta_body = -2.0*acos(quat[ibody][0]);
         theta = orient[i][0] + theta_body;
-        while (theta <= MINUSPI) theta += TWOPI;
-        while (theta > MY_PI) theta -= TWOPI;
+        while (theta <= -MY_PI) theta += MY_2PI;
+        while (theta > MY_PI) theta -= MY_2PI;
         lbonus[line[i]].theta = theta;
         omega_one[i][0] = omega[ibody][0];
         omega_one[i][1] = omega[ibody][1];
@@ -825,7 +833,7 @@ void FixRigidNHOMP::set_v_thr()
   int i;
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) private(i) reduction(+:v0,v1,v2,v3,v4,v5)
+#pragma omp parallel for LMP_DEFAULT_NONE private(i) reduction(+:v0,v1,v2,v3,v4,v5)
 #endif
   for (i = 0; i < nlocal; i++) {
     const int ibody = body[i];

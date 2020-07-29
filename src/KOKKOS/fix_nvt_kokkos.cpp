@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_nvt_kokkos.h"
+#include <cstring>
 #include "group.h"
 #include "modify.h"
 #include "error.h"

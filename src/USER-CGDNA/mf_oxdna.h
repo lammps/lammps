@@ -14,7 +14,6 @@
 #ifndef MF_OXDNA_H
 #define MF_OXDNA_H
 
-#include <cstdio>
 #include "math_extra.h"
 
 namespace MFOxdna {

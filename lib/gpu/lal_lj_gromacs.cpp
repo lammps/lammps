@@ -23,7 +23,7 @@ const char *lj_gromacs=0;
 
 #include "lal_lj_gromacs.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define LJGROMACST LJGROMACS<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -162,3 +162,4 @@ void LJGROMACST::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class LJGROMACS<PRECISION,ACC_PRECISION>;
+}

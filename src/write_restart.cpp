@@ -11,12 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "write_restart.h"
 #include <mpi.h>
 #include <cstring>
-#include "write_restart.h"
+#include <string>
 #include "atom.h"
 #include "atom_vec.h"
-#include "atom_vec_hybrid.h"
 #include "group.h"
 #include "force.h"
 #include "pair.h"
@@ -36,34 +36,12 @@
 #include "mpiio.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
+
+#include "lmprestart.h"
 
 using namespace LAMMPS_NS;
-
-// same as read_restart.cpp
-
-#define MAGIC_STRING "LammpS RestartT"
-#define ENDIAN 0x0001
-#define ENDIANSWAP 0x1000
-#define VERSION_NUMERIC 0
-
-enum{VERSION,SMALLINT,TAGINT,BIGINT,
-     UNITS,NTIMESTEP,DIMENSION,NPROCS,PROCGRID,
-     NEWTON_PAIR,NEWTON_BOND,
-     XPERIODIC,YPERIODIC,ZPERIODIC,BOUNDARY,
-     ATOM_STYLE,NATOMS,NTYPES,
-     NBONDS,NBONDTYPES,BOND_PER_ATOM,
-     NANGLES,NANGLETYPES,ANGLE_PER_ATOM,
-     NDIHEDRALS,NDIHEDRALTYPES,DIHEDRAL_PER_ATOM,
-     NIMPROPERS,NIMPROPERTYPES,IMPROPER_PER_ATOM,
-     TRICLINIC,BOXLO,BOXHI,XY,XZ,YZ,
-     SPECIAL_LJ,SPECIAL_COUL,
-     MASS,PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER,
-     MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
-     IMAGEINT,BOUNDMIN,TIMESTEP,
-     ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
-     COMM_MODE,COMM_CUTOFF,COMM_VEL,NO_PAIR,
-     EXTRA_BOND_PER_ATOM,EXTRA_ANGLE_PER_ATOM,EXTRA_DIHEDRAL_PER_ATOM,
-     EXTRA_IMPROPER_PER_ATOM,EXTRA_SPECIAL_PER_ATOM,ATOM_MAXSPECIAL};
 
 /* ---------------------------------------------------------------------- */
 
@@ -88,15 +66,10 @@ void WriteRestart::command(int narg, char **arg)
 
   // if filename contains a "*", replace with current timestep
 
-  char *ptr;
-  int n = strlen(arg[0]) + 16;
-  char *file = new char[n];
-
-  if ((ptr = strchr(arg[0],'*'))) {
-    *ptr = '\0';
-    sprintf(file,"%s" BIGINT_FORMAT "%s",arg[0],update->ntimestep,ptr+1);
-    *ptr = '*'; // must restore arg[0] so it can be correctly parsed below
-  } else strcpy(file,arg[0]);
+  std::string file = arg[0];
+  std::size_t found = file.find("*");
+  if (found != std::string::npos)
+    file.replace(found,1,fmt::format("{}",update->ntimestep));
 
   // check for multiproc output and an MPI-IO filename
 
@@ -141,7 +114,6 @@ void WriteRestart::command(int narg, char **arg)
   // write single restart file
 
   write(file);
-  delete [] file;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -236,7 +208,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
    file = final file name to write, except may contain a "%"
 ------------------------------------------------------------------------- */
 
-void WriteRestart::write(char *file)
+void WriteRestart::write(std::string file)
 {
   // special case where reneighboring is not done in integrator
   //   on timestep restart file is written (due to build_once being set)
@@ -258,21 +230,13 @@ void WriteRestart::write(char *file)
   // open single restart file or base file for multiproc case
 
   if (me == 0) {
-    char *hfile;
-    if (multiproc) {
-      hfile = new char[strlen(file) + 16];
-      char *ptr = strchr(file,'%');
-      *ptr = '\0';
-      sprintf(hfile,"%s%s%s",file,"base",ptr+1);
-      *ptr = '%';
-    } else hfile = file;
-    fp = fopen(hfile,"wb");
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open restart file %s",hfile);
-      error->one(FLERR,str);
-    }
-    if (multiproc) delete [] hfile;
+    std::string base = file;
+    if (multiproc) base.replace(base.find("%"),1,"base");
+
+    fp = fopen(base.c_str(),"wb");
+    if (fp == NULL)
+      error->one(FLERR, fmt::format("Cannot open restart file {}: {}",
+                                    base, utils::getsyserror()));
   }
 
   // proc 0 writes magic string, endian flag, numeric version
@@ -300,7 +264,7 @@ void WriteRestart::write(char *file)
   // max_size = largest buffer needed by any proc
   // NOTE: are assuming size_restart() returns 32-bit int
   //   for a huge one-proc problem, nlocal could be 32-bit
-  //   but nlocal * doubles-peratom could oveflow
+  //   but nlocal * doubles-peratom could overflow
 
   int max_size;
   int send_size = atom->avec->size_restart();
@@ -308,6 +272,7 @@ void WriteRestart::write(char *file)
 
   double *buf;
   memory->create(buf,max_size,"write_restart:buf");
+  memset(buf,0,max_size*sizeof(buf));
 
   // all procs write file layout info which may include per-proc sizes
 
@@ -318,29 +283,25 @@ void WriteRestart::write(char *file)
   //   close header file, open multiname file on each writing proc,
   //   write PROCSPERFILE into new file
 
+  int io_error = 0;
   if (multiproc) {
     if (me == 0 && fp) {
+      magic_string();
+      if (ferror(fp)) io_error = 1;
       fclose(fp);
       fp = NULL;
     }
 
-    char *multiname = new char[strlen(file) + 16];
-    char *ptr = strchr(file,'%');
-    *ptr = '\0';
-    sprintf(multiname,"%s%d%s",file,icluster,ptr+1);
-    *ptr = '%';
+    std::string multiname = file;
+    multiname.replace(multiname.find("%"),1,fmt::format("{}",icluster));
 
     if (filewriter) {
-      fp = fopen(multiname,"wb");
-      if (fp == NULL) {
-        char str[128];
-        snprintf(str,128,"Cannot open restart file %s",multiname);
-        error->one(FLERR,str);
-      }
+      fp = fopen(multiname.c_str(),"wb");
+      if (fp == NULL)
+        error->one(FLERR, fmt::format("Cannot open restart file {}: {}",
+                                      multiname, utils::getsyserror()));
       write_int(PROCSPERFILE,nclusterprocs);
     }
-
-    delete [] multiname;
   }
 
   // pack my atom data into buf
@@ -402,20 +363,21 @@ void WriteRestart::write(char *file)
 
   if (mpiioflag) {
     if (me == 0 && fp) {
+      magic_string();
+      if (ferror(fp)) io_error = 1;
       fclose(fp);
       fp = NULL;
     }
-    mpiio->openForWrite(file);
+    mpiio->openForWrite(file.c_str());
     mpiio->write(headerOffset,send_size,buf);
     mpiio->close();
-  }
+  } else {
 
-  // output of one or more native files
-  // filewriter = 1 = this proc writes to file
-  // ping each proc in my cluster, receive its data, write data to file
-  // else wait for ping from fileproc, send my data to fileproc
+    // output of one or more native files
+    // filewriter = 1 = this proc writes to file
+    // ping each proc in my cluster, receive its data, write data to file
+    // else wait for ping from fileproc, send my data to fileproc
 
-  else {
     int tmp,recv_size;
 
     if (filewriter) {
@@ -431,6 +393,8 @@ void WriteRestart::write(char *file)
 
         write_double_vec(PERPROC,recv_size,buf);
       }
+      magic_string();
+      if (ferror(fp)) io_error = 1;
       fclose(fp);
       fp = NULL;
 
@@ -440,6 +404,12 @@ void WriteRestart::write(char *file)
     }
   }
 
+  // Check for I/O error status
+
+  int io_all = 0;
+  MPI_Allreduce(&io_error,&io_all,1,MPI_INT,MPI_MAX,world);
+  if (io_all) error->all(FLERR,"I/O error while writing restart");
+
   // clean up
 
   memory->destroy(buf);
@@ -448,7 +418,7 @@ void WriteRestart::write(char *file)
 
   for (int ifix = 0; ifix < modify->nfix; ifix++)
     if (modify->fix[ifix]->restart_file)
-      modify->fix[ifix]->write_restart_file(file);
+      modify->fix[ifix]->write_restart_file(file.c_str());
 }
 
 /* ----------------------------------------------------------------------
@@ -534,6 +504,11 @@ void WriteRestart::header()
   write_int(EXTRA_DIHEDRAL_PER_ATOM,atom->extra_dihedral_per_atom);
   write_int(EXTRA_IMPROPER_PER_ATOM,atom->extra_improper_per_atom);
   write_int(ATOM_MAXSPECIAL,atom->maxspecial);
+
+  write_bigint(NELLIPSOIDS,atom->nellipsoids);
+  write_bigint(NLINES,atom->nlines);
+  write_bigint(NTRIS,atom->ntris);
+  write_bigint(NBODIES,atom->nbodies);
 
   // -1 flag signals end of header
 
@@ -638,11 +613,8 @@ void WriteRestart::file_layout(int send_size)
 
 void WriteRestart::magic_string()
 {
-  int n = strlen(MAGIC_STRING) + 1;
-  char *str = new char[n];
-  strcpy(str,MAGIC_STRING);
-  fwrite(str,sizeof(char),n,fp);
-  delete [] str;
+  std::string magic = MAGIC_STRING;
+  fwrite(magic.c_str(),sizeof(char),magic.size()+1,fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -657,7 +629,7 @@ void WriteRestart::endian()
 
 void WriteRestart::version_numeric()
 {
-  int vn = VERSION_NUMERIC;
+  int vn = FORMAT_REVISION;
   fwrite(&vn,sizeof(int),1,fp);
 }
 

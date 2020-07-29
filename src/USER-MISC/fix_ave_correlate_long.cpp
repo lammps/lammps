@@ -21,11 +21,12 @@
    see J. Chem. Phys. 133, 154103 (2010)
 ------------------------------------------------------------------------- */
 
+#include "fix_ave_correlate_long.h"
+#include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <unistd.h>
-#include "fix_ave_correlate_long.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
@@ -494,7 +495,7 @@ void FixAveCorrelateLong::end_of_step()
     if(overwrite) fseek(fp,filepos,SEEK_SET);
     fprintf(fp,"# Timestep: " BIGINT_FORMAT "\n", ntimestep);
     for (unsigned int i=0;i<npcorr;++i) {
-      fprintf(fp, "%lg ", t[i]*update->dt);
+      fprintf(fp, "%lg ", t[i]*update->dt*nevery);
       for (int j=0;j<npair;++j) {
         fprintf(fp, "%lg ", f[j][i]);
       }
@@ -503,7 +504,8 @@ void FixAveCorrelateLong::end_of_step()
     fflush(fp);
     if (overwrite) {
       long fileend = ftell(fp);
-      if (fileend > 0) ftruncate(fileno(fp),fileend);
+      if ((fileend > 0) && (ftruncate(fileno(fp),fileend)))
+        perror("Error while tuncating output");
     }
   }
 

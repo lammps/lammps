@@ -18,12 +18,14 @@
 
 enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_aux_fun1.h"
 #ifndef _DOUBLE_DOUBLE
-texture<float4> pos_tex, quat_tex;
+_texture( pos_tex, float4);
+_texture( quat_tex,float4);
 #else
-texture<int4,1> pos_tex, quat_tex;
+_texture_2d( pos_tex,int4);
+_texture_2d( quat_tex,int4);
 #endif
 #else
 #define pos_tex x_

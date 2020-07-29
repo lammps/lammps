@@ -11,15 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_property_atom.h"
 #include <cstdlib>
 #include <cstring>
-#include "fix_property_atom.h"
 #include "atom.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-
-#include "update.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -219,14 +219,11 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
 
   next = strchr(buf,'\n');
   *next = '\0';
-  int nwords = atom->count_words(buf);
+  int nwords = utils::trim_and_count_words(buf);
   *next = '\n';
 
-  if (nwords != nvalue+1) {
-    char str[128];
-    snprintf(str,128,"Incorrect %s format in data file",keyword);
-    error->all(FLERR,str);
-  }
+  if (nwords != nvalue+1)
+    error->all(FLERR,fmt::format("Incorrect {} format in data file",keyword));
 
   char **values = new char*[nwords];
 
@@ -240,28 +237,21 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
     next = strchr(buf,'\n');
 
     values[0] = strtok(buf," \t\n\r\f");
-    if (values[0] == NULL) {
-      char str[128];
-      snprintf(str,128,"Too few lines in %s section of data file",keyword);
-      error->one(FLERR,str);
-    }
+    if (values[0] == NULL)
+      error->all(FLERR,fmt::format("Too few lines in {} section of data file",keyword));
+
     int format_ok = 1;
     for (j = 1; j < nwords; j++) {
       values[j] = strtok(NULL," \t\n\r\f");
       if (values[j] == NULL) format_ok = 0;
     }
-    if (!format_ok) {
-      char str[128];
-      snprintf(str,128,"Incorrect %s format in data file",keyword);
-      error->all(FLERR,str);
-    }
+    if (!format_ok)
+      error->all(FLERR,fmt::format("Incorrect {} format in data file",keyword));
 
     itag = ATOTAGINT(values[0]) + id_offset;
-    if (itag <= 0 || itag > map_tag_max) {
-      char str[128];
-      snprintf(str,128,"Invalid atom ID in %s section of data file",keyword);
-      error->one(FLERR,str);
-    }
+    if (itag <= 0 || itag > map_tag_max)
+      error->all(FLERR,fmt::format("Invalid atom ID {} in {} section of "
+                                   "data file",itag, keyword));
 
     // assign words in line to per-atom vectors
 

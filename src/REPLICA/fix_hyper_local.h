@@ -21,7 +21,6 @@ FixStyle(hyper/local,FixHyperLocal)
 #define LMP_FIX_HYPER_LOCAL_H
 
 #include "fix_hyper.h"
-#include "my_page.h"
 
 namespace LAMMPS_NS {
 
@@ -64,9 +63,18 @@ class FixHyperLocal : public FixHyper {
   double alpha;              // unitless dt/alpha_user
   double boost_target;       // target value of boost
   int checkghost,checkbias;  // flags for optional stats
+  int checkbias_every;
+  int checkbias_flag;
+  int boundflag,resetfreq;   // bias coeff bounding and reset settings
+  double boundfrac;
 
+  bigint groupatoms;         // # of atoms in fix group
   double cutbondsq,dcutsq;
-  double beta,invqfactorsq;
+  double beta,invvmax,invqfactorsq;
+
+  // two DEBUG quantities
+  // double myboost;
+  // int overcount;
 
   // flags
 
@@ -76,34 +84,44 @@ class FixHyperLocal : public FixHyper {
   bigint starttime;          // timestep when this fix was invoked
   int commflag;              // flag for communication mode
 
+  // bias coeff bounds and reset
+
+  double bound_lower,bound_upper;
+  bigint lastreset;
+
   // stats
 
   int nbondbuild;            // # of rebuilds of bond list
   double time_bondbuild;     // CPU time for bond builds
 
   bigint allbonds;           // current total # of bonds
-  int nnewbond;              // running tally of # of new bonds created
   int maxbondperatom;        // max # of bonds any atom ever has
   int nevent;                // # of events that trigger bond rebuild
   int nevent_atom;           // # of atoms that experienced an event
 
-  int nbias_running;         // running count of biased bonds
-  int nobias_running;        // ditto for bonds with bias = 0, b/c too long
-  int negstrain_running;     // ditto for bonds with negative strain
+  bigint nnewbond;           // running tally of # of new bonds created
+  bigint nbias_running;      // running count of biased bonds
+  bigint nobias_running;     // ditto for bonds with bias = 0, b/c too long
+  bigint negstrain_running;  // ditto for bonds with negative strain
 
   double mybias;             // sum of bias potentials for biased bonds
   double maxbondlen;         // cummulative max length of any bond
   double maxdriftsq;         // max distance any bond atom drifts from quenched x
 
-  double sumbiascoeff;       // sum of all bond bias coeffs at each timestep
-  double avebiascoeff;       // cummulative sumbiascoeff/allbonds across steps
-  double minbiascoeff;       // cummulative min bias coeff for any bond
-  double maxbiascoeff;       // cummulative max bias coeff for any bond
+  double sumboost;              // sum of all bond boosts at each timestep
+  double aveboost_running;      // cummulative sumboost/allbonds across steps
+  double aveboost_running_output;      // most recent output of ab_running
+  double sumbiascoeff;          // sum of all bond bias coeffs at each timestep
+  double avebiascoeff_running;  // cummulative sumbiascoeff/allbonds across steps
+  double avebiascoeff_running_output;  // most recent output of abc_running
+  double minbiascoeff;          // min bias coeff on this step for my bonds
+  double maxbiascoeff;          // max bias coeff on this step for my bonds
+  double minbiascoeff_running;  // cummulative min bias coeff for any bond
+  double maxbiascoeff_running;  // cummulative max bias coeff for any bond
 
   double rmaxever,rmaxeverbig;
   int ghost_toofar;          // # of ghost atoms not found in Dcut neigh list
-
-  int checkbias_every,checkbias_flag,checkbias_count;
+  int checkbias_count;       // count of too-close biased bonds
 
   // 2 neighbor lists
 
@@ -121,7 +139,7 @@ class FixHyperLocal : public FixHyper {
   };
 
   OneBond *blist;              // list of owned bonds
-  double *biascoeff;           // biasing coefficient Cij for each bond
+  double *biascoeff;           // bias coefficient Cij for each bond
   int nblocal;                 // # of owned bonds
   int maxbond;                 // allocated size of blist
 

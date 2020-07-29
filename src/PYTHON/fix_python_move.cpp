@@ -15,16 +15,9 @@
    Contributing author: Richard Berger (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <Python.h>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_python_move.h"
-#include "atom.h"
-#include "comm.h"
-#include "force.h"
-#include "memory.h"
-#include "neigh_list.h"
+#include <Python.h>   // IWYU pragma: keep
+#include <cstring>
 #include "lmppython.h"
 #include "error.h"
 #include "python_compat.h"

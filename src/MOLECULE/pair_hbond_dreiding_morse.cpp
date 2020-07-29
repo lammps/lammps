@@ -15,15 +15,12 @@
    Contributing author: Tod A Pascal (Caltech)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_hbond_dreiding_morse.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
-#include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_request.h"
@@ -276,6 +273,11 @@ void PairHbondDreidingMorse::coeff(int narg, char **arg)
     maxparam += CHUNK;
     params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
                                         "pair:params");
+
+    // make certain all addional allocated storage is initialized
+    // to avoid false positives when checking with valgrind
+
+    memset(params + nparams, 0, CHUNK*sizeof(Param));
   }
 
   params[nparams].d0 = d0_one;

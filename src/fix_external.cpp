@@ -11,10 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstring>
-#include <cstdlib>
 #include "fix_external.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "memory.h"

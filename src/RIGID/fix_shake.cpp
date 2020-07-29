@@ -11,13 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_shake.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
+#include <cctype>
 #include <cstring>
-#include <cstdio>
-#include "fix_shake.h"
-#include "fix_rattle.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
@@ -34,6 +32,8 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -65,6 +65,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   thermo_virial = 1;
   create_attribute = 1;
   dof_flag = 1;
+  stores_ids = 1;
 
   // error check
 
@@ -225,14 +226,9 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   find_clusters();
 
-  double time2 = MPI_Wtime();
-
-  if (comm->me == 0) {
-    if (screen)
-      fprintf(screen,"  find clusters CPU = %g secs\n",time2-time1);
-    if (logfile)
-      fprintf(logfile,"  find clusters CPU = %g secs\n",time2-time1);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,fmt::format("  find clusters CPU = {:.3f} seconds\n",
+                                   MPI_Wtime()-time1));
 
   // initialize list of SHAKE clusters to constrain
 
@@ -362,9 +358,8 @@ void FixShake::init()
   // could have changed locations in fix list since created
   // set ptrs to rRESPA variables
 
-  if (strstr(update->integrate_style,"respa")) {
-    for (i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->style,"RESPA") == 0) ifix_respa = i;
+  if (utils::strmatch(update->integrate_style,"^respa")) {
+    ifix_respa = modify->find_fix_by_style("^RESPA");
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
     loop_respa = ((Respa *) update->integrate)->loop;
     step_respa = ((Respa *) update->integrate)->step;
@@ -526,44 +521,31 @@ void FixShake::pre_neighbor()
       if (shake_flag[i] == 2) {
         atom1 = atom->map(shake_atom[i][0]);
         atom2 = atom->map(shake_atom[i][1]);
-        if (atom1 == -1 || atom2 == -1) {
-          char str[128];
-          sprintf(str,"Shake atoms " TAGINT_FORMAT " " TAGINT_FORMAT
-                  " missing on proc %d at step " BIGINT_FORMAT,
-                  shake_atom[i][0],shake_atom[i][1],me,update->ntimestep);
-          error->one(FLERR,str);
-        }
+        if (atom1 == -1 || atom2 == -1)
+          error->one(FLERR,fmt::format("Shake atoms {} {} missing on proc "
+                                       "{} at step {}",shake_atom[i][0],
+                                       shake_atom[i][1],me,update->ntimestep));
         if (i <= atom1 && i <= atom2) list[nlist++] = i;
       } else if (shake_flag[i] % 2 == 1) {
         atom1 = atom->map(shake_atom[i][0]);
         atom2 = atom->map(shake_atom[i][1]);
         atom3 = atom->map(shake_atom[i][2]);
-        if (atom1 == -1 || atom2 == -1 || atom3 == -1) {
-          char str[128];
-          sprintf(str,"Shake atoms "
-                  TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT
-                  " missing on proc %d at step " BIGINT_FORMAT,
-                  shake_atom[i][0],shake_atom[i][1],shake_atom[i][2],
-                  me,update->ntimestep);
-          error->one(FLERR,str);
-        }
+        if (atom1 == -1 || atom2 == -1 || atom3 == -1)
+          error->one(FLERR,fmt::format("Shake atoms {} {} {} missing on proc "
+                                       "{} at step {}",shake_atom[i][0],
+                                       shake_atom[i][1],shake_atom[i][2],
+                                       me,update->ntimestep));
         if (i <= atom1 && i <= atom2 && i <= atom3) list[nlist++] = i;
       } else {
         atom1 = atom->map(shake_atom[i][0]);
         atom2 = atom->map(shake_atom[i][1]);
         atom3 = atom->map(shake_atom[i][2]);
         atom4 = atom->map(shake_atom[i][3]);
-        if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
-          char str[128];
-          sprintf(str,"Shake atoms "
-                  TAGINT_FORMAT " " TAGINT_FORMAT " "
-                  TAGINT_FORMAT " " TAGINT_FORMAT
-                  " missing on proc %d at step " BIGINT_FORMAT,
-                  shake_atom[i][0],shake_atom[i][1],
-                  shake_atom[i][2],shake_atom[i][3],
-                  me,update->ntimestep);
-          error->one(FLERR,str);
-        }
+        if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1)
+          error->one(FLERR,fmt::format("Shake atoms {} {} {} {} missing on "
+                                       "proc {} at step {}",shake_atom[i][0],
+                                       shake_atom[i][1],shake_atom[i][2],
+                                       shake_atom[i][3],me,update->ntimestep));
         if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)
           list[nlist++] = i;
       }
@@ -698,11 +680,10 @@ void FixShake::find_clusters()
   tagint tagprev;
   double massone;
 
-  if (me == 0 && screen) {
-    if (!rattle) fprintf(screen,"Finding SHAKE clusters ...\n");
-    else fprintf(screen,"Finding RATTLE clusters ...\n");
+  if ((me == 0) && screen) {
+    if (!rattle) fputs("Finding SHAKE clusters ...\n",screen);
+    else fputs("Finding RATTLE clusters ...\n",screen);
   }
-
   atommols = atom->avec->onemols;
 
   tagint *tag = atom->tag;
@@ -1025,18 +1006,11 @@ void FixShake::find_clusters()
   MPI_Allreduce(&tmp,&count4,1,MPI_INT,MPI_SUM,world);
 
   if (me == 0) {
-    if (screen) {
-      fprintf(screen,"  %d = # of size 2 clusters\n",count2/2);
-      fprintf(screen,"  %d = # of size 3 clusters\n",count3/3);
-      fprintf(screen,"  %d = # of size 4 clusters\n",count4/4);
-      fprintf(screen,"  %d = # of frozen angles\n",count1/3);
-    }
-    if (logfile) {
-      fprintf(logfile,"  %d = # of size 2 clusters\n",count2/2);
-      fprintf(logfile,"  %d = # of size 3 clusters\n",count3/3);
-      fprintf(logfile,"  %d = # of size 4 clusters\n",count4/4);
-      fprintf(logfile,"  %d = # of frozen angles\n",count1/3);
-    }
+    auto mesg = fmt::format("{:>8} = # of size 2 clusters\n",count2/2);
+    mesg += fmt::format("{:>8} = # of size 3 clusters\n",count3/3);
+    mesg += fmt::format("{:>8} = # of size 4 clusters\n",count4/4);
+    mesg += fmt::format("{:>8} = # of frozen angles\n",count1/3);
+    utils::logmesg(lmp,mesg);
   }
 }
 
@@ -2559,34 +2533,21 @@ void FixShake::stats()
   // print stats only for non-zero counts
 
   if (me == 0) {
-
-    if (screen) {
-      fprintf(screen,
-              "SHAKE stats (type/ave/delta) on step " BIGINT_FORMAT "\n",
-              update->ntimestep);
-      for (i = 1; i < nb; i++)
-        if (b_count_all[i])
-          fprintf(screen,"  %d %g %g %d\n",i,
-                  b_ave_all[i]/b_count_all[i],b_max_all[i]-b_min_all[i],
-                  b_count_all[i]);
-      for (i = 1; i < na; i++)
-        if (a_count_all[i])
-          fprintf(screen,"  %d %g %g\n",i,
-                  a_ave_all[i]/a_count_all[i],a_max_all[i]-a_min_all[i]);
+    auto mesg = fmt::format("SHAKE stats (type/ave/delta/count) on step {}\n",
+                            update->ntimestep);
+    for (i = 1; i < nb; i++) {
+      const auto bcnt = b_count_all[i];
+      if (bcnt)
+        mesg += fmt::format("{:>6d}   {:<9.6} {:<11.6} {:>8d}\n",i,
+                            b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt);
     }
-    if (logfile) {
-      fprintf(logfile,
-              "SHAKE stats (type/ave/delta) on step " BIGINT_FORMAT "\n",
-              update->ntimestep);
-      for (i = 0; i < nb; i++)
-        if (b_count_all[i])
-          fprintf(logfile,"  %d %g %g\n",i,
-                  b_ave_all[i]/b_count_all[i],b_max_all[i]-b_min_all[i]);
-      for (i = 0; i < na; i++)
-        if (a_count_all[i])
-          fprintf(logfile,"  %d %g %g\n",i,
-                  a_ave_all[i]/a_count_all[i],a_max_all[i]-a_min_all[i]);
+    for (i = 1; i < na; i++) {
+      const auto acnt = a_count_all[i];
+      if (acnt)
+        mesg += fmt::format("{:>6d}   {:<9.6} {:<11.6} {:>8d}\n",i,
+                            a_ave_all[i]/acnt,a_max_all[i]-a_min_all[i],acnt);
     }
+    utils::logmesg(lmp,mesg);
   }
 
   // next timestep for stats
@@ -3061,7 +3022,7 @@ void FixShake::correct_velocities() {}
 void FixShake::correct_coordinates(int vflag) {
 
   // save current forces and velocities so that you
-  // initialise them to zero such that FixShake::unconstrained_coordinate_update has no effect
+  // initialize them to zero such that FixShake::unconstrained_coordinate_update has no effect
 
   for (int j=0; j<nlocal; j++) {
     for (int k=0; k<3; k++) {
@@ -3084,7 +3045,7 @@ void FixShake::correct_coordinates(int vflag) {
   dtfsq   = 0.5 * update->dt * update->dt * force->ftm2v;
   FixShake::post_force(vflag);
 
-  // integrate coordiantes: x' = xnp1 + dt^2/2m_i * f, where f is the constraining force
+  // integrate coordinates: x' = xnp1 + dt^2/2m_i * f, where f is the constraining force
   // NOTE: After this command, the coordinates geometry of the molecules will be correct!
 
   double dtfmsq;

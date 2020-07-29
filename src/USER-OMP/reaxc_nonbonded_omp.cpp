@@ -29,6 +29,7 @@
 #include "pair_reaxc_omp.h"
 #include "thr_data.h"
 
+#include "reaxc_defs.h"
 #include "reaxc_types.h"
 
 #include "reaxc_nonbonded.h"
@@ -281,6 +282,7 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
   int tid = 0;
 #endif
   long froffset = (system->N * tid);
+  LR_lookup_table ** & LR = system->LR;
 
   class PairReaxCOMP *pair_reax_ptr;
   pair_reax_ptr = static_cast<class PairReaxCOMP*>(system->pair_ptr);

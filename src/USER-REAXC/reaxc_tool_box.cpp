@@ -24,8 +24,15 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc.h"
 #include "reaxc_tool_box.h"
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include "reaxc_defs.h"
+
+#if !defined(_MSC_VER)
+#include <sys/time.h>
+#endif
 
 #include "error.h"
 
@@ -34,8 +41,16 @@ double t_end;
 
 double Get_Time( )
 {
+#if defined(_MSC_VER)
+  double t;
+
+  t = GetTickCount();
+  t /= 1000.0;
+  return t;
+#else
   gettimeofday(&tim, NULL );
   return( tim.tv_sec + (tim.tv_usec / 1000000.0) );
+#endif
 }
 
 int Tokenize( char* s, char*** tok )
@@ -66,14 +81,17 @@ void *smalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, const char *name )
   if (n <= 0) {
     snprintf(errmsg, 256, "Trying to allocate %ld bytes for array %s. "
               "returning NULL.", n, name);
-    error_ptr->one(FLERR,errmsg);
+    if (error_ptr) error_ptr->one(FLERR,errmsg);
+    else fputs(errmsg,stderr);
+
     return NULL;
   }
 
   ptr = malloc( n );
   if (ptr == NULL) {
     snprintf(errmsg, 256, "Failed to allocate %ld bytes for array %s", n, name);
-    error_ptr->one(FLERR,errmsg);
+    if (error_ptr) error_ptr->one(FLERR,errmsg);
+    else fputs(errmsg,stderr);
   }
 
   return ptr;
@@ -89,14 +107,16 @@ void *scalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, rc_bigint size, const c
   if (n <= 0) {
     snprintf(errmsg, 256, "Trying to allocate %ld elements for array %s. "
             "returning NULL.\n", n, name );
-    error_ptr->one(FLERR,errmsg);
+    if (error_ptr) error_ptr->one(FLERR,errmsg);
+    else fputs(errmsg,stderr);
     return NULL;
   }
 
   if (size <= 0) {
     snprintf(errmsg, 256, "Elements size for array %s is %ld. "
              "returning NULL", name, size );
-             error_ptr->one(FLERR,errmsg);
+    if (error_ptr) error_ptr->one(FLERR,errmsg);
+    else fputs(errmsg,stderr);
     return NULL;
   }
 
@@ -104,7 +124,8 @@ void *scalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, rc_bigint size, const c
   if (ptr == NULL) {
     char errmsg[256];
     snprintf(errmsg, 256, "Failed to allocate %ld bytes for array %s", n*size, name);
-    error_ptr->one(FLERR,errmsg);
+    if (error_ptr) error_ptr->one(FLERR,errmsg);
+    else fputs(errmsg,stderr);
   }
 
   return ptr;
@@ -117,7 +138,8 @@ void sfree( LAMMPS_NS::Error* error_ptr, void *ptr, const char *name )
   if (ptr == NULL) {
     char errmsg[256];
     snprintf(errmsg, 256, "Trying to free the already NULL pointer %s", name );
-    error_ptr->one(FLERR,errmsg);
+    if (error_ptr) error_ptr->one(FLERR,errmsg);
+    else fputs(errmsg,stderr);
     return;
   }
 

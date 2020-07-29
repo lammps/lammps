@@ -13,14 +13,13 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Paul Crozier (SNL)
-                         Christian Burisch (Bochum Univeristy, Germany)
+                         Christian Burisch (Bochum University, Germany)
 ------------------------------------------------------------------------- */
 
+#include "fix_tmd.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-#include "fix_tmd.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -30,6 +29,8 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -73,11 +74,9 @@ nfileevery(0), fp(NULL), xf(NULL), xold(NULL)
     if (narg != 7) error->all(FLERR,"Illegal fix tmd command");
     if (me == 0) {
       fp = fopen(arg[6],"w");
-      if (fp == NULL) {
-        char str[128];
-        snprintf(str,128,"Cannot open fix tmd file %s",arg[6]);
-        error->one(FLERR,str);
-      }
+      if (fp == NULL)
+        error->one(FLERR,fmt::format("Cannot open fix tmd file {}: {}",
+                                     arg[6], utils::getsyserror()));
       fprintf(fp,"%s %s\n","# Step rho_target rho_old gamma_back",
               "gamma_forward lambda work_lambda work_analytical");
     }
@@ -164,7 +163,7 @@ void FixTMD::init()
 
   dtv = update->dt;
   dtf = update->dt * force->ftm2v;
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     step_respa = ((Respa *) update->integrate)->step;
 }
 
@@ -423,30 +422,36 @@ void FixTMD::readfile(char *file)
       *next = '\0';
 
       if (firstline) {
-        if (strstr(bufptr,"xlo xhi")) {
+        if (utils::strmatch(bufptr,"^\\s*\\f+\\s+\\f+\\s+xlo\\s+xhi")) {
           double lo,hi;
-          sscanf(bufptr,"%lg %lg",&lo,&hi);
+          n = sscanf(bufptr,"%lg %lg",&lo,&hi);
+          if (n != 2)
+            error->all(FLERR,"Incorrect format in TMD target file");
           xprd = hi - lo;
           bufptr = next + 1;
           continue;
-        } else if (strstr(bufptr,"ylo yhi")) {
+        } else if (utils::strmatch(bufptr,"^\\s*\\f+\\s+\\f+\\s+ylo\\s+yhi")) {
           double lo,hi;
-          sscanf(bufptr,"%lg %lg",&lo,&hi);
+          n = sscanf(bufptr,"%lg %lg",&lo,&hi);
+          if (n != 2)
+            error->all(FLERR,"Incorrect format in TMD target file");
           yprd = hi - lo;
           bufptr = next + 1;
           continue;
-        } else if (strstr(bufptr,"zlo zhi")) {
+        } else if (utils::strmatch(bufptr,"^\\s*\\f+\\s+\\f+\\s+zlo\\s+zhi")) {
           double lo,hi;
-          sscanf(bufptr,"%lg %lg",&lo,&hi);
+          n = sscanf(bufptr,"%lg %lg",&lo,&hi);
+          if (n != 2)
+            error->all(FLERR,"Incorrect format in TMD target file");
           zprd = hi - lo;
           bufptr = next + 1;
           continue;
-        } else if (atom->count_words(bufptr) == 4) {
+        } else if (utils::trim_and_count_words(bufptr) == 4) {
           if (xprd >= 0.0 || yprd >= 0.0 || zprd >= 0.0)
             error->all(FLERR,"Incorrect format in TMD target file");
           imageflag = 0;
           firstline = 0;
-        } else if (atom->count_words(bufptr) == 7) {
+        } else if (utils::trim_and_count_words(bufptr) == 7) {
           if (xprd < 0.0 || yprd < 0.0 || zprd < 0.0)
             error->all(FLERR,"Incorrect format in TMD target file");
           imageflag = 1;
@@ -455,14 +460,13 @@ void FixTMD::readfile(char *file)
       }
 
       if (imageflag)
-        n = sscanf(bufptr,TAGINT_FORMAT " %lg %lg %lg %d %d %d",
-                   &itag,&x,&y,&z,&ix,&iy,&iz);
+        n = 7 - sscanf(bufptr,TAGINT_FORMAT " %lg %lg %lg %d %d %d",
+                       &itag,&x,&y,&z,&ix,&iy,&iz);
       else
-        n = sscanf(bufptr,TAGINT_FORMAT " %lg %lg %lg",&itag,&x,&y,&z);
+        n = 4 - sscanf(bufptr,TAGINT_FORMAT " %lg %lg %lg",&itag,&x,&y,&z);
 
-      if (n < 0) {
-        if (me == 0) error->warning(FLERR,"Ignoring empty or incorrectly"
-                                    " formatted line in target file");
+      if (n != 0) {
+        error->all(FLERR,"Incorrectly formatted line in TMD target file");
         bufptr = next + 1;
         continue;
       }

@@ -16,12 +16,11 @@
                          Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pppm_disp.h"
 #include <mpi.h>
 #include <cstring>
-#include <cstdio>
-#include <cstdlib>
 #include <cmath>
-#include "pppm_disp.h"
+#include <string>
 #include "math_const.h"
 #include "atom.h"
 #include "comm.h"
@@ -36,6 +35,8 @@
 #include "remap_wrap.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -256,12 +257,12 @@ PPPMDisp::~PPPMDisp()
 
 void PPPMDisp::init()
 {
-  if (me == 0) {
-    if (screen) fprintf(screen,"PPPMDisp initialization ...\n");
-    if (logfile) fprintf(logfile,"PPPMDisp initialization ...\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"PPPMDisp initialization ...\n");
+
+  // error check
 
   triclinic_check();
+
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use PPPMDisp with 2d simulation");
   if (comm->style != 0)
@@ -276,11 +277,13 @@ void PPPMDisp::init()
       error->all(FLERR,"Incorrect boundaries with slab PPPMDisp");
   }
 
-  if (order > MAXORDER || order_6 > MAXORDER) {
-    char str[128];
-    sprintf(str,"PPPMDisp coulomb order cannot be greater than %d",MAXORDER);
-    error->all(FLERR,str);
-  }
+  if (order > MAXORDER || order_6 > MAXORDER)
+    error->all(FLERR,fmt::format("PPPMDisp coulomb or dispersion order cannot"
+                                 " be greater than {}",MAXORDER));
+
+  // compute two charge force
+
+  two_charge();
 
   // free all arrays previously allocated
 
@@ -313,7 +316,6 @@ void PPPMDisp::init()
   for (int i=0; i<=EWALD_MAXORDER; ++i)                 // transcribe order
     if (ewald_order&(1<<i)) {                           // from pair_style
       int  k=0;
-      char str[128];
       switch (i) {
         case 1:
           k = 0; break;
@@ -322,10 +324,12 @@ void PPPMDisp::init()
                mixflag == 1) && mixflag!= 2) { k = 1; break; }
           else if (ewald_mix==Pair::ARITHMETIC && mixflag!=2) { k = 2; break; }
           else if (mixflag == 2) { k = 3; break; }
+          else error->all(FLERR,"Unsupported mixing rule in kspace_style pppm/disp");
+          break;
         default:
-          sprintf(str, "Unsupported order in kspace_style "
-                  "pppm/disp, pair_style %s", force->pair_style);
-          error->all(FLERR,str);
+          error->all(FLERR,std::string("Unsupported order in kspace_style "
+                                       "pppm/disp, pair_style ")
+                     + force->pair_style);
       }
       function[k] = 1;
     }
@@ -333,11 +337,8 @@ void PPPMDisp::init()
 
   // warn, if function[0] is not set but charge attribute is set!
 
-  if (!function[0] && atom->q_flag && me == 0) {
-    char str[128];
-    sprintf(str, "Charges are set, but coulombic solver is not used");
-    error->warning(FLERR, str);
-  }
+  if (!function[0] && atom->q_flag && me == 0)
+    error->warning(FLERR, "Charges are set, but coulombic solver is not used");
 
   // show error message if pppm/disp is not used correctly
 
@@ -474,37 +475,19 @@ void PPPMDisp::init()
     MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
 
     if (me == 0) {
-    #ifdef FFT_SINGLE
-      const char fft_prec[] = "single";
-    #else
-      const char fft_prec[] = "double";
-    #endif
-
-      if (screen) {
-        fprintf(screen,"  Coulomb G vector (1/distance)= %g\n",g_ewald);
-        fprintf(screen,"  Coulomb grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
-        fprintf(screen,"  Coulomb stencil order = %d\n",order);
-        fprintf(screen,"  Coulomb estimated absolute RMS force accuracy = %g\n",
-                acc);
-        fprintf(screen,"  Coulomb estimated relative force accuracy = %g\n",
-                acc/two_charge_force);
-        fprintf(screen,"  using %s precision FFTs\n",fft_prec);
-        fprintf(screen,"  3d grid and FFT values/proc = %d %d\n",
-                ngrid_max, nfft_both_max);
-      }
-      if (logfile) {
-        fprintf(logfile,"  Coulomb G vector (1/distance) = %g\n",g_ewald);
-        fprintf(logfile,"  Coulomb grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
-        fprintf(logfile,"  Coulomb stencil order = %d\n",order);
-        fprintf(logfile,
-                "  Coulomb estimated absolute RMS force accuracy = %g\n",
-                acc);
-        fprintf(logfile,"  Coulomb estimated relative force accuracy = %g\n",
-                acc/two_charge_force);
-        fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
-        fprintf(logfile,"  3d grid and FFT values/proc = %d %d\n",
-                ngrid_max, nfft_both_max);
-      }
+      std::string mesg = fmt::format("  Coulomb G vector (1/distance)= {:.8g}\n",
+                                     g_ewald);
+      mesg += fmt::format("  Coulomb grid = {} {} {}\n",
+                          nx_pppm,ny_pppm,nz_pppm);
+      mesg += fmt::format("  Coulomb stencil order = {}\n",order);
+      mesg += fmt::format("  Coulomb estimated absolute RMS force accuracy "
+                          "= {:.8g}\n",acc);
+      mesg += fmt::format("  Coulomb estimated relative force accuracy = {:.8g}\n",
+                          acc/two_charge_force);
+      mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
+      mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
+                          ngrid_max, nfft_both_max);
+      utils::logmesg(lmp,mesg);
     }
   }
 
@@ -572,46 +555,19 @@ void PPPMDisp::init()
     MPI_Allreduce(&nfft_both_6,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
 
     if (me == 0) {
-    #ifdef FFT_SINGLE
-      const char fft_prec[] = "single";
-    #else
-      const char fft_prec[] = "double";
-    #endif
-
-      if (screen) {
-        fprintf(screen,"  Dispersion G vector (1/distance)= %g\n",g_ewald_6);
-        fprintf(screen,"  Dispersion grid = %d %d %d\n",
-                nx_pppm_6,ny_pppm_6,nz_pppm_6);
-        fprintf(screen,"  Dispersion stencil order = %d\n",order_6);
-        fprintf(screen,"  Dispersion estimated absolute "
-                "RMS force accuracy = %g\n",acc);
-        fprintf(screen,"  Dispersion estimated absolute "
-                "real space RMS force accuracy = %g\n",acc_real);
-        fprintf(screen,"  Dispersion estimated absolute "
-                "kspace RMS force accuracy = %g\n",acc_kspace);
-        fprintf(screen,"  Dispersion estimated relative force accuracy = %g\n",
-                acc/two_charge_force);
-        fprintf(screen,"  using %s precision FFTs\n",fft_prec);
-        fprintf(screen,"  3d grid and FFT values/proc dispersion = %d %d\n",
-                          ngrid_max,nfft_both_max);
-      }
-      if (logfile) {
-        fprintf(logfile,"  Dispersion G vector (1/distance) = %g\n",g_ewald_6);
-        fprintf(logfile,"  Dispersion grid = %d %d %d\n",
-                nx_pppm_6,ny_pppm_6,nz_pppm_6);
-        fprintf(logfile,"  Dispersion stencil order = %d\n",order_6);
-        fprintf(logfile,"  Dispersion estimated absolute "
-                "RMS force accuracy = %g\n",acc);
-        fprintf(logfile,"  Dispersion estimated absolute "
-                "real space RMS force accuracy = %g\n",acc_real);
-        fprintf(logfile,"  Dispersion estimated absolute "
-                "kspace RMS force accuracy = %g\n",acc_kspace);
-        fprintf(logfile,"  Disperion estimated relative force accuracy = %g\n",
-                acc/two_charge_force);
-        fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
-        fprintf(logfile,"  3d grid and FFT values/proc dispersion = %d %d\n",
-                           ngrid_max,nfft_both_max);
-      }
+      std::string mesg = fmt::format("  Dispersion G vector (1/distance)= "
+                                     "{}\n", g_ewald_6);
+      mesg += fmt::format("  Dispersion grid = {} {} {}\n",
+                          nx_pppm_6,ny_pppm_6,nz_pppm_6);
+      mesg += fmt::format("  Dispersion stencil order = {}\n",order_6);
+      mesg += fmt::format("  Dispersion estimated absolute RMS force accuracy "
+                          "= {}\n",acc);
+      mesg += fmt::format("  Dispersion estimated relative force accuracy "
+                          "= {}\n",acc/two_charge_force);
+      mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
+      mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
+                          ngrid_max, nfft_both_max);
+      utils::logmesg(lmp,mesg);
     }
   }
 
@@ -975,7 +931,7 @@ void PPPMDisp::compute(int eflag, int vflag)
 
   if (function[0]) {
 
-    //perfrom calculations for coulomb interactions only
+    //perform calculations for coulomb interactions only
 
     particle_map_c(delxinv, delyinv, delzinv, shift, part2grid, nupper, nlower,
                  nxlo_out, nylo_out, nzlo_out, nxhi_out, nyhi_out, nzhi_out);
@@ -1023,7 +979,7 @@ void PPPMDisp::compute(int eflag, int vflag)
   }
 
   if (function[1]) {
-    //perfrom calculations for geometric mixing
+    //perform calculations for geometric mixing
     particle_map(delxinv_6, delyinv_6, delzinv_6, shift_6, part2grid_6, nupper_6, nlower_6,
                  nxlo_out_6, nylo_out_6, nzlo_out_6, nxhi_out_6, nyhi_out_6, nzhi_out_6);
     make_rho_g();
@@ -1141,7 +1097,7 @@ void PPPMDisp::compute(int eflag, int vflag)
   }
 
   if (function[3]) {
-    //perfrom calculations if no mixing rule applies
+    //perform calculations if no mixing rule applies
     particle_map(delxinv_6, delyinv_6, delzinv_6, shift_6, part2grid_6, nupper_6, nlower_6,
                  nxlo_out_6, nylo_out_6, nzlo_out_6, nxhi_out_6, nyhi_out_6, nzhi_out_6);
 
@@ -1284,10 +1240,8 @@ void PPPMDisp::init_coeffs()                            // local pair coeffs
   delete [] B;
   B = NULL;
   if (function[3] + function[2]) {                     // no mixing rule or arithmetic
-    if (function[2] && me == 0) {
-      if (screen) fprintf(screen,"  Optimizing splitting of Dispersion coefficients\n");
-      if (logfile) fprintf(logfile,"  Optimizing splitting of Dispersion coefficients\n");
-    }
+    if (function[2] && me == 0)
+      utils::logmesg(lmp,"  Optimizing splitting of Dispersion coefficients\n");
 
     // allocate data for eigenvalue decomposition
     double **A=NULL;
@@ -1307,7 +1261,7 @@ void PPPMDisp::init_coeffs()                            // local pair coeffs
           Q[i][j] = 0.0;
       for (int i = 0; i < n; i++)
         Q[i][i] = 1.0;
-      // perfrom eigenvalue decomposition with QR algorithm
+      // perform eigenvalue decomposition with QR algorithm
       converged = qr_alg(A,Q,n);
       if (function[3] && !converged) {
         error->all(FLERR,"Matrix factorization to split dispersion coefficients failed");
@@ -1348,11 +1302,9 @@ void PPPMDisp::init_coeffs()                            // local pair coeffs
       }
 
       err =  bmax/amax;
-      if (err > 1.0e-4) {
-        char str[128];
-        sprintf(str,"Estimated error in splitting of dispersion coeffs is %g",err);
-        error->warning(FLERR, str);
-      }
+      if (err > 1.0e-4 && comm->me == 0)
+        error->warning(FLERR,fmt::format("Estimated error in splitting of "
+                                         "dispersion coeffs is {}",err));
       // set B
       B = new double[nsplit*n+nsplit];
       for (int i = 0; i< nsplit; i++) {
@@ -1373,31 +1325,24 @@ void PPPMDisp::init_coeffs()                            // local pair coeffs
       function[3] = 0;
       function[2] = 0;
       function[1] = 1;
-      if (me == 0) {
-        if (screen) fprintf(screen,"  Using geometric mixing for reciprocal space\n");
-        if (logfile) fprintf(logfile,"  Using geometric mixing for reciprocal space\n");
-      }
+      if (me == 0)
+        utils::logmesg(lmp,"  Using geometric mixing for reciprocal space\n");
     }
     if (function[2] && nsplit <= 6) {
-      if (me == 0) {
-        if (screen) fprintf(screen,"  Using %d instead of 7 structure factors\n",nsplit);
-        if (logfile) fprintf(logfile,"  Using %d instead of 7 structure factors\n",nsplit);
-      }
+      if (me == 0)
+        utils::logmesg(lmp,fmt::format("  Using {} instead of 7 structure "
+                                       "factors\n",nsplit));
       function[3] = 1;
       function[2] = 0;
     }
     if (function[2] && (nsplit > 6)) {
-      if (me == 0) {
-        if (screen) fprintf(screen,"  Using 7 structure factors\n");
-        if (logfile) fprintf(logfile,"  Using 7 structure factors\n");
-      }
+      if (me == 0) utils::logmesg(lmp,"  Using 7 structure factors\n");
       if ( B ) delete [] B;
     }
     if (function[3]) {
-      if (me == 0) {
-        if (screen) fprintf(screen,"  Using %d structure factors\n",nsplit);
-        if (logfile) fprintf(logfile,"  Using %d structure factors\n",nsplit);
-      }
+      if (me == 0)
+        utils::logmesg(lmp,fmt::format("  Using {} structure factors\n",
+                                       nsplit));
       if (nsplit > 9) error->warning(FLERR, "Simulations might be very slow because of large number of structure factors");
     }
 
@@ -1453,7 +1398,7 @@ int PPPMDisp::qr_alg(double **A, double **Q, int n)
   // allocate an auxiliary matrix Qi
   memory->create(Qi,n,n,"pppm/disp:Qi");
 
-  // alllocate an auxillary matrices for the matrix multiplication
+  // alllocate an auxiliary matrices for the matrix multiplication
   memory->create(C,n,n,"pppm/disp:C");
   memory->create(D,n,n,"pppm/disp:D");
   memory->create(E,n,n,"pppm/disp:E");
@@ -1658,7 +1603,7 @@ int PPPMDisp::check_convergence(double** A,double** Q,double** A0,
    allocate memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
 
-void PPPMDisp::allocate()
+void _noopt PPPMDisp::allocate()
 {
 
   int (*procneigh)[2] = comm->procneigh;
@@ -2883,9 +2828,7 @@ void PPPMDisp::adjust_gewald()
 
   // Failed to converge
 
-  char str[128];
-  sprintf(str, "Could not compute g_ewald");
-  error->all(FLERR, str);
+  error->all(FLERR, "Could not compute g_ewald");
 
 }
 
@@ -3516,9 +3459,7 @@ void PPPMDisp::adjust_gewald_6()
 
   // Failed to converge
 
-  char str[128];
-  sprintf(str, "Could not adjust g_ewald_6");
-  error->all(FLERR, str);
+  error->all(FLERR, "Could not adjust g_ewald_6");
 
 }
 
@@ -3656,7 +3597,7 @@ void PPPMDisp::set_n_pppm_6()
 
   // initial value for the grid spacing
   h = h_x = h_y = h_z = 4.0/g_ewald_6;
-  // decrease grid spacing untill required precision is obtained
+  // decrease grid spacing until required precision is obtained
   int count = 0;
   while(1) {
 
@@ -5759,7 +5700,7 @@ void PPPMDisp::fieldforce_c_ad()
     ekx *= hx_inv;
     eky *= hy_inv;
     ekz *= hz_inv;
-    // convert E-field to force and substract self forces
+    // convert E-field to force and subtract self forces
     const double qfactor = force->qqrd2e * scale;
 
     s1 = x[i][0]*hx_inv;

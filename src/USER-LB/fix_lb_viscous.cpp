@@ -15,10 +15,8 @@
    Contributing authors: Frances Mackay, Santtu Ollila, Colin Denniston (UWO)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_lb_viscous.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "respa.h"

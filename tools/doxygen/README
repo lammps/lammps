@@ -73,7 +73,7 @@ Results
 
 The doxygen documentation for LAMMPS is created in the following directories:
 
-  "tools/doxygen/doc" = LAMMPS documetation in "doxygen" html format.
+  "tools/doxygen/doc" = LAMMPS documentation in "doxygen" html format.
   In order to read the html documentation, start with loading the "index.html"
   file into an internet browser of choice from this directory. The generation
   of other formats (pdf, docbook, rtf or man) is disabled by default but can be

@@ -15,10 +15,9 @@
    Contributing authors: Paul Crozier, Stan Moore, Stephen Bond, (all SNL)
 ------------------------------------------------------------------------- */
 
+#include "msm_cg.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include "atom.h"
 #include "gridcomm.h"
@@ -27,12 +26,10 @@
 #include "force.h"
 #include "neighbor.h"
 #include "memory.h"
-#include "msm_cg.h"
-
-#include "math_const.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define OFFSET 16384
 #define SMALLQ 0.00001
@@ -145,20 +142,12 @@ void MSMCG::compute(int eflag, int vflag)
     charged_frac = static_cast<double>(charged_all) * 100.0
                    / static_cast<double>(atom->natoms);
 
-    if (me == 0) {
-      if (screen)
-        fprintf(screen,
-                "  MSM/cg optimization cutoff: %g\n"
-                "  Total charged atoms: %.1f%%\n"
-                "  Min/max charged atoms/proc: %.1f%% %.1f%%\n",
-                smallq,charged_frac,charged_fmin,charged_fmax);
-      if (logfile)
-        fprintf(logfile,
-                "  MSM/cg optimization cutoff: %g\n"
-                "  Total charged atoms: %.1f%%\n"
-                "  Min/max charged atoms/proc: %.1f%% %.1f%%\n",
-                smallq,charged_frac,charged_fmin,charged_fmax);
-    }
+    if (me == 0)
+      utils::logmesg(lmp,fmt::format("  MSM/cg optimization cutoff: {:.8g}\n"
+                                     "  Total charged atoms: {:.1f}%\n"
+                                     "  Min/max charged atoms/proc: {:.1f}%"
+                                     " {:.1f}%\n",smallq,
+                                     charged_frac,charged_fmin,charged_fmax));
   }
 
   // only need to rebuild this list after a neighbor list update
@@ -197,7 +186,7 @@ void MSMCG::compute(int eflag, int vflag)
   }
 
 
-  // compute direct interation for top grid level for non-periodic
+  // compute direct interaction for top grid level for non-periodic
   //   and for second from top grid level for periodic
 
   if (active_flag[levels-1]) {

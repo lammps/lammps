@@ -28,6 +28,12 @@
 #ifndef LMP_LMPTYPE_H
 #define LMP_LMPTYPE_H
 
+// C++11 check
+
+#if __cplusplus < 201103L
+#error LAMMPS requires a C++11 (or later) compliant compiler. Enable C++11 compatibility or upgrade the compiler.
+#endif
+
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
 #endif
@@ -37,8 +43,9 @@
 #endif
 
 #include <climits>
-#include <stdint.h>   // <cstdint> requires C++-11
-#include <inttypes.h> // <cinttypes> requires C++-11
+#include <cstdlib>
+#include <cstdint>
+#include <cinttypes>
 
 // grrr - IBM Power6 does not provide this def in their system header files
 
@@ -47,10 +54,6 @@
 #endif
 
 namespace LAMMPS_NS {
-
-// enum used for KOKKOS host/device flags
-
-enum ExecutionSpace{Host,Device};
 
 // reserve 2 hi bits in molecular system neigh list for special bonds flag
 // max local + ghost atoms per processor = 2^30 - 1
@@ -168,6 +171,46 @@ typedef int bigint;
 
 #endif
 
+  /// Data structe for packing 32-bit and 64-bit integers
+  /// into double (communication) buffers
+  ///
+  /// Using this union avoids aliasing issues by having member types
+  /// (double, int) referencing the same buffer memory location.
+  ///
+  /// The explicit constructor for 32-bit integers prevents compilers
+  /// from (incorrectly) calling the double constructor when storing
+  ///  an int into a double buffer.
+  /*
+\verbatim embed:rst
+**Usage:**
+
+To copy an integer into a double buffer:
+
+.. code-block: c++
+
+   double buf[2];
+   int    foo =   1;
+   tagint bar = 2<<40;
+   buf[1] = ubuf(foo).d;
+   buf[2] = ubuf(bar).d;
+
+To copy from a double buffer back to an int:
+
+.. code-block: c++
+
+   foo = (int)    ubuf(buf[1]).i;
+   bar = (tagint) ubuf(buf[2]).i;
+
+The typecast prevents compiler warnings about possible truncations.
+\endverbatim
+  */
+  union ubuf {
+    double  d;
+    int64_t i;
+    ubuf(const double  &arg) : d(arg) {}
+    ubuf(const int64_t &arg) : i(arg) {}
+    ubuf(const int     &arg) : i(arg) {}
+  };
 }
 
 // preprocessor macros for compiler specific settings
@@ -178,6 +221,9 @@ typedef int bigint;
 #endif
 #ifdef _noalias
 #undef _noalias
+#endif
+#ifdef _noopt
+#undef _noopt
 #endif
 
 // define stack variable alignment
@@ -198,6 +244,26 @@ typedef int bigint;
 #define _noalias __restrict
 #else
 #define _noalias
+#endif
+
+// Declaration to turn off optimization for specific noncritical
+// functions and avoid compiler warnings about variable tracking.
+// Disable for broken -D_FORTIFY_SOURCE feature.
+
+#if defined(_FORTIFY_SOURCE) && (_FORTIFY_SOURCE > 0)
+#define _noopt
+#elif defined(__clang__)
+#  define _noopt __attribute__((optnone))
+#elif defined(__INTEL_COMPILER)
+#  define _noopt
+#elif defined(__GNUC__)
+#  if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 9))
+#    define _noopt __attribute__((optimize("O0","no-var-tracking-assignments")))
+#  else
+#    define _noopt __attribute__((optimize("O0")))
+#  endif
+#else
+#  define _noopt
 #endif
 
 // settings to enable LAMMPS to build under Windows

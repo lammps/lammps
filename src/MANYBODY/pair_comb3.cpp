@@ -17,27 +17,30 @@
                       Dundar Yilmaz (dundar.yilmaz@zirve.edu.tr)
 ------------------------------------------------------------------------- */
 
+#include "pair_comb3.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_comb3.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "my_page.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "group.h"
-#include "update.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "tokenizer.h"
+#include "potential_file_reader.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define MAXLINE 1024
 #define DELTA 4
 #define PGDELTA 1
 #define MAXNEIGH 24
@@ -163,17 +166,13 @@ void PairComb3::settings(int narg, char **arg)
 
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
-  if (strcmp(arg[0],"polar_on") == 0) {
-    pol_flag = 1;
-    if (comm->me == 0 && screen) fprintf(screen,
-                    "   PairComb3: polarization is on \n");
-  } else if (strcmp(arg[0],"polar_off") == 0) {
-    pol_flag = 0;
-    if (comm->me == 0 && screen) fprintf(screen,
-                    "   PairComb3: polarization is off \n");
-  } else {
-    error->all(FLERR,"Illegal pair_style command");
-  }
+  if (strcmp(arg[0],"polar_on") == 0) pol_flag = 1;
+  else if (strcmp(arg[0],"polar_off") == 0) pol_flag = 0;
+  else error->all(FLERR,"Illegal pair_style command");
+
+  if (comm->me == 0 && screen)
+    fmt::print(screen,"   PairComb3: polarization is {} \n",
+               pol_flag ? "on" : "off");
 }
 
 /* ----------------------------------------------------------------------
@@ -208,8 +207,8 @@ void PairComb3::coeff(int narg, char **arg)
   nelements = 0;
   for (i = 3; i < narg; i++) {
     if ((strcmp(arg[i],"C") == 0) && (cflag == 0)) {
-      if (comm->me == 0 && screen) fprintf(screen,
-      " PairComb3: Found C: reading additional library file\n");
+      if (comm->me == 0 && screen)
+        fputs(" PairComb3: Found C: reading additional library file\n",screen);
     read_lib();
     cflag = 1;
     }
@@ -310,220 +309,153 @@ double PairComb3::init_one(int i, int j)
 
 void PairComb3::read_lib()
 {
-  const unsigned int MAXLIB = 1024;
-  int i,j,k,l,nwords,m;
+  int i,j,k,l;
   int ii,jj,kk,ll,mm,iii;
-  char s[MAXLIB];
-  char **words = new char*[80];
 
-  // open libraray file on proc 0
+  // open library file on proc 0
 
   if (comm->me == 0) {
-    FILE *fp = force->open_potential("lib.comb3");
-    if (fp == NULL) error->one(FLERR,"Cannot open COMB3 lib.comb3 file");
+    try {
+      PotentialFileReader reader(lmp, "lib.comb3", "comb3");
+      reader.next_dvector(ccutoff, 6);
+      reader.next_dvector(ch_a, 7);
 
-    // read and store at the same time
-    fgets(s,MAXLIB,fp);
-    fgets(s,MAXLIB,fp);
-    nwords = 0;
-    words[nwords++] = strtok(s," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
-    ccutoff[0] = atof(words[0]);
-    ccutoff[1] = atof(words[1]);
-    ccutoff[2] = atof(words[2]);
-    ccutoff[3] = atof(words[3]);
-    ccutoff[4] = atof(words[4]);
-    ccutoff[5] = atof(words[5]);
+      ValueTokenizer values = reader.next_values(3);
+      nsplpcn = values.next_int();
+      nsplrad = values.next_int();
+      nspltor = values.next_int();
 
-    fgets(s,MAXLIB,fp);
-    nwords = 0;
-    words[nwords++] = strtok(s," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
-    ch_a[0] = atof(words[0]);
-    ch_a[1] = atof(words[1]);
-    ch_a[2] = atof(words[2]);
-    ch_a[3] = atof(words[3]);
-    ch_a[4] = atof(words[4]);
-    ch_a[5] = atof(words[5]);
-    ch_a[6] = atof(words[6]);
+      values = reader.next_values(3);
+      maxx = values.next_int();
+      maxy = values.next_int();
+      maxz = values.next_int();
 
-    fgets(s,MAXLIB,fp);
-    nwords = 0;
-    words[nwords++] = strtok(s," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
-    nsplpcn = atoi(words[0]);
-    nsplrad = atoi(words[1]);
-    nspltor = atoi(words[2]);
+      values = reader.next_values(3);
+      maxxc   = values.next_int();
+      maxyc   = values.next_int();
+      maxconj = values.next_int();
 
-    fgets(s,MAXLIB,fp);
-    nwords = 0;
-    words[nwords++] = strtok(s," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
-    maxx = atoi(words[0]);
-    maxy = atoi(words[1]);
-    maxz = atoi(words[2]);
+      for (l = 0; l < nsplpcn; l++) {
+        values = reader.next_values(3);
+        values.skip(1);
+        maxxcn[l]   = values.next_int();
+        vmaxxcn[l]  = values.next_double();
+        dvmaxxcn[l] = values.next_double();
+      }
 
-    fgets(s,MAXLIB,fp);
-    nwords = 0;
-    words[nwords++] = strtok(s," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
-    maxxc = atoi(words[0]);
-    maxyc = atoi(words[1]);
-    maxconj = atoi(words[2]);
+      ntab = reader.next_int();
 
-    for (l=0; l<nsplpcn; l++) {
-      fgets(s,MAXLIB,fp);
-      nwords = 0;
-      words[nwords++] = strtok(s," \t\n\r\f");
-      while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
-      maxxcn[l] = atoi(words[1]);
-      vmaxxcn[l] = atof(words[2]);
-      dvmaxxcn[l] = atof(words[3]);
-    }
+      for (i = 0; i < (ntab + 1); i++){
+        values = reader.next_values(4);
+        values.skip(1);
+        pang[i]   = values.next_double();
+        dpang[i]  = values.next_double();
+        ddpang[i] = values.next_double();
+      }
 
-    fgets(s,MAXLIB,fp);
-    nwords = 0;
-    words[nwords++] = strtok(s," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
-    ntab = atoi(words[0]);
+      for (l = 0; l < nsplpcn; l++)
+        for (i = 0; i < (maxx + 1); i++)
+          for (j = 0; j < (maxy + 1); j++)
+            for (k = 0; k < (maxz + 1); k++) {
+              values = reader.next_values(8);
 
-    for (i=0; i<ntab+1; i++){
-      fgets(s,MAXLIB,fp);
-      nwords = 0;
-      words[nwords++] = strtok(s," \t\n\r\f");
-      while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
-      pang[i]    = atof(words[1]);
-      dpang[i]   = atof(words[2]);
-      ddpang[i]  = atof(words[3]);
-    }
+              ll = values.next_int() - 1;
+              ii = values.next_int();
+              jj = values.next_int();
+              kk = values.next_int();
+              pcn_grid[ll][ii][jj][kk]  = values.next_double();
+              pcn_gridx[ll][ii][jj][kk] = values.next_double();
+              pcn_gridy[ll][ii][jj][kk] = values.next_double();
+              pcn_gridz[ll][ii][jj][kk] = values.next_double();
+            }
 
-    for (l=0; l<nsplpcn; l++)
-      for (i=0; i<maxx+1; i++)
-        for (j=0; j<maxy+1; j++)
-          for (k=0; k<maxz+1; k++) {
-            fgets(s,MAXLIB,fp);
-            nwords = 0;
-            words[nwords++] = strtok(s," \t\n\r\f");
-            while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
-            ll = atoi(words[0])-1;
-            ii = atoi(words[1]);
-            jj = atoi(words[2]);
-            kk = atoi(words[3]);
-            pcn_grid[ll][ii][jj][kk]     = atof(words[4]);
-            pcn_gridx[ll][ii][jj][kk]    = atof(words[5]);
-            pcn_gridy[ll][ii][jj][kk]    = atof(words[6]);
-            pcn_gridz[ll][ii][jj][kk]    = atof(words[7]);
-          }
+      for (l = 0; l < nsplpcn; l++)
+        for (i = 0; i < maxx; i++)
+          for (j = 0; j < maxy; j++)
+            for (k = 0; k < maxz; k++) {
+              values = reader.next_values(4);
 
-    for (l=0; l<nsplpcn; l++)
-      for (i=0; i<maxx; i++)
-        for (j=0; j<maxy; j++)
-          for (k=0; k<maxz; k++) {
-            fgets(s,MAXLIB,fp);
-            nwords = 0;
-            words[nwords++] = strtok(s," \t\n\r\f");
-            while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
-           ll = atoi(words[0])-1;
-           ii = atoi(words[1]);
-           jj = atoi(words[2]);
-           kk = atoi(words[3]);
-           for(iii=0; iii<2; iii++) {
-             fgets(s,MAXLIB,fp);
-             nwords = 0;
-             words[nwords++] = strtok(s," \t\n\r\f");
-             while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
-             for(m=0; m<32 ; m++) {
-               mm=iii*32+m;
-               pcn_cubs[ll][ii][jj][kk][mm] = atof(words[m]);
-             }
-           }
-          }
+              ll = values.next_int()-1;
+              ii = values.next_int();
+              jj = values.next_int();
+              kk = values.next_int();
 
-    for (l=0; l<nsplrad; l++)
-      for (i=0; i<maxxc+1; i++)
-        for (j=0; j<maxyc+1; j++)
-          for (k=0; k<maxconj; k++) {
-            fgets(s,MAXLIB,fp);
-            nwords = 0;
-            words[nwords++] = strtok(s," \t\n\r\f");
-            while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
-            ll = atoi(words[0])-1;
-            ii = atoi(words[1]);
-            jj = atoi(words[2]);
-            kk = atoi(words[3])-1;
-            rad_grid[ll][ii][jj][kk]     = atof(words[4]);
-            rad_gridx[ll][ii][jj][kk]    = atof(words[5]);
-            rad_gridy[ll][ii][jj][kk]    = atof(words[6]);
-            rad_gridz[ll][ii][jj][kk]    = atof(words[7]);
-          }
-
-    for (l=0; l<nsplrad; l++)
-      for (i=0; i<maxxc; i++)
-        for (j=0; j<maxyc; j++)
-          for (k=0; k<maxconj-1; k++) {
-            fgets(s,MAXLIB,fp);
-            nwords = 0;
-            words[nwords++] = strtok(s," \t\n\r\f");
-            while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
-            ll = atoi(words[0])-1;
-            ii = atoi(words[1]);
-            jj = atoi(words[2]);
-            kk = atoi(words[3])-1;
-            for (iii=0; iii<2; iii++) {
-              fgets(s,MAXLIB,fp);
-              nwords = 0;
-              words[nwords++] = strtok(s," \t\n\r\f");
-              while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
-              for(m=0; m<32 ; m++){
-                mm=iii*32+m;
-                rad_spl[ll][ii][jj][kk][mm] = atof(words[m]);
+              for(iii = 0; iii < 2; iii++) {
+                mm = iii*32;
+                reader.next_dvector(&pcn_cubs[ll][ii][jj][kk][mm], 32);
               }
             }
-          }
 
-    for (l=0; l<nspltor; l++)
-      for (i=0; i<maxxc+1; i++)
-        for (j=0; j<maxyc+1; j++)
-          for (k=0; k<maxconj; k++) {
-            fgets(s,MAXLIB,fp);
-            nwords = 0;
-            words[nwords++] = strtok(s," \t\n\r\f");
-            while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
-            ll = atoi(words[0])-1;
-            ii = atoi(words[1]);
-            jj = atoi(words[2]);
-            kk = atoi(words[3])-1;
-            tor_grid[ll][ii][jj][kk]     = atof(words[4]);
-            tor_gridx[ll][ii][jj][kk]    = atof(words[5]);
-            tor_gridy[ll][ii][jj][kk]    = atof(words[6]);
-            tor_gridz[ll][ii][jj][kk]    = atof(words[7]);
-          }
+      for (l = 0; l < nsplrad; l++)
+        for (i = 0; i < (maxxc + 1); i++)
+          for (j = 0; j < (maxyc + 1); j++)
+            for (k = 0; k < maxconj; k++) {
+              values = reader.next_values(8);
 
-    for (l=0; l<nspltor; l++)
-      for (i=0; i<maxxc; i++)
-        for (j=0; j<maxyc; j++)
-          for (k=0; k<maxconj-1; k++) {
-            fgets(s,MAXLIB,fp);
-            nwords = 0;
-            words[nwords++] = strtok(s," \t\n\r\f");
-            while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
-            ll = atoi(words[0])-1;
-            ii = atoi(words[1]);
-            jj = atoi(words[2]);
-            kk = atoi(words[3])-1;
-            for(iii=0; iii<2; iii++) {
-              fgets(s,MAXLIB,fp);
-              nwords = 0;
-              words[nwords++] = strtok(s," \t\n\r\f");
-              while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;
-              for (m=0; m<32 ; m++){
-                mm=iii*32+m;
-                tor_spl[ll][ii][jj][kk][mm] = atof(words[m]);
+              ll = values.next_int() - 1;
+              ii = values.next_int();
+              jj = values.next_int();
+              kk = values.next_int() - 1;
+              rad_grid[ll][ii][jj][kk]  = values.next_double();
+              rad_gridx[ll][ii][jj][kk] = values.next_double();
+              rad_gridy[ll][ii][jj][kk] = values.next_double();
+              rad_gridz[ll][ii][jj][kk] = values.next_double();
+            }
+
+      for (l = 0; l < nsplrad; l++)
+        for (i = 0; i < maxxc; i++)
+          for (j = 0; j < maxyc; j++)
+            for (k = 0; k < (maxconj - 1); k++) {
+              values = reader.next_values(4);
+
+              ll = values.next_int() - 1;
+              ii = values.next_int();
+              jj = values.next_int();
+              kk = values.next_int() - 1;
+
+              for (iii = 0; iii < 2; iii++) {
+                mm = iii * 32;
+                reader.next_dvector(&rad_spl[ll][ii][jj][kk][mm], 32);
               }
             }
-          }
 
-    fclose(fp);
+      for (l=0; l<nspltor; l++)
+        for (i=0; i<maxxc+1; i++)
+          for (j=0; j<maxyc+1; j++)
+            for (k=0; k<maxconj; k++) {
+              values = reader.next_values(8);
+
+              ll = values.next_int() - 1;
+              ii = values.next_int();
+              jj = values.next_int();
+              kk = values.next_int() - 1;
+              tor_grid[ll][ii][jj][kk]  = values.next_double();
+              tor_gridx[ll][ii][jj][kk] = values.next_double();
+              tor_gridy[ll][ii][jj][kk] = values.next_double();
+              tor_gridz[ll][ii][jj][kk] = values.next_double();
+            }
+
+      for (l=0; l<nspltor; l++)
+        for (i=0; i<maxxc; i++)
+          for (j=0; j<maxyc; j++)
+            for (k=0; k<maxconj-1; k++) {
+              values = reader.next_values(4);
+
+              ll = values.next_int() - 1;
+              ii = values.next_int();
+              jj = values.next_int();
+              kk = values.next_int() - 1;
+              for(iii=0; iii<2; iii++) {
+                mm=iii*32;
+                reader.next_dvector(&tor_spl[ll][ii][jj][kk][mm], 32);
+              }
+            }
+
+    } catch (FileReaderException & fre) {
+      error->one(FLERR, fre.what());
+    } catch (TokenizerException & e) {
+      error->one(FLERR, e.what());
+    }
   }
 
   k = 0;
@@ -582,211 +514,168 @@ void PairComb3::read_lib()
 
   MPI_Bcast(&iin2[0][0],32,MPI_INT,0,world);
   MPI_Bcast(&iin3[0][0],192,MPI_INT,0,world);
-  delete [] words;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairComb3::read_file(char *file)
 {
-  int params_per_line = 74;
-  char **words = new char*[params_per_line+1];
-
-  if (params) delete [] params;
-  params = NULL;
+  memory->sfree(params);
+  params = nullptr;
   nparams = 0;
+  maxparam = 0;
 
   // open file on proc 0
-
-  FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open COMB3 potential file %s",file);
-      error->one(FLERR,str);
-    }
-  }
+    PotentialFileReader reader(lmp, file, "COMB3");
+    char * line;
 
-  // read each line out of file, skipping blank lines or leading '#'
-  // store line of params if all 3 element tags are in element list
+    while((line = reader.next_line(NPARAMS_PER_LINE))) {
+      try {
+        ValueTokenizer values(line);
 
-  int n,nwords,ielement,jelement,kelement;
-  char line[MAXLINE],*ptr;
-  int eof = 0;
-  nwords=0;
-  while (1) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
-        eof = 1;
-        fclose(fp);
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+        std::string iname = values.next_string();
+        std::string jname = values.next_string();
+        std::string kname = values.next_string();
 
-    // strip comment, skip line if blank
+        // ielement,jelement,kelement = 1st args
+        // if all 3 args are in element list, then parse this line
+        // else skip to next line
+        int ielement, jelement, kelement;
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
+        for (ielement = 0; ielement < nelements; ielement++)
+          if (iname == elements[ielement]) break;
+        if (ielement == nelements) continue;
+        for (jelement = 0; jelement < nelements; jelement++)
+          if (jname == elements[jelement]) break;
+        if (jelement == nelements) continue;
+        for (kelement = 0; kelement < nelements; kelement++)
+          if (kname == elements[kelement]) break;
+        if (kelement == nelements) continue;
 
-    nwords = atom->count_words(line);
-    if (nwords == 0) continue;
+        // load up parameter settings and error check their values
 
-    // concatenate additional lines until have params_per_line words
+        if (nparams == maxparam) {
+          maxparam += DELTA;
+          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
+                                              "pair:params");
 
-    while (nwords < params_per_line) {
-      n = strlen(line);
+          // make certain all addional allocated storage is initialized
+          // to avoid false positives when checking with valgrind
 
-      if (comm->me == 0) {
-        ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
-          eof = 1;
-          fclose(fp);
-        } else n = strlen(line) + 1;
+          memset(params + nparams, 0, DELTA*sizeof(Param));
+        }
+
+        params[nparams].ielement = ielement;
+        params[nparams].jelement = jelement;
+        params[nparams].kelement = kelement;
+        params[nparams].ielementgp = values.next_int();
+        params[nparams].jelementgp = values.next_int();
+        params[nparams].kelementgp = values.next_int();
+        params[nparams].ang_flag   = values.next_int();
+        params[nparams].pcn_flag   = values.next_int();
+        params[nparams].rad_flag   = values.next_int();
+        params[nparams].tor_flag   = values.next_int();
+        params[nparams].vdwflag    = values.next_double();
+        params[nparams].powerm     = values.next_double();
+        params[nparams].veps       = values.next_double();
+        params[nparams].vsig       = values.next_double();
+        params[nparams].paaa       = values.next_double();
+        params[nparams].pbbb       = values.next_double();
+        params[nparams].lami       = values.next_double();
+        params[nparams].alfi       = values.next_double();
+        params[nparams].powern     = values.next_double();
+        params[nparams].QL         = values.next_double();
+        params[nparams].QU         = values.next_double();
+        params[nparams].DL         = values.next_double();
+        params[nparams].DU         = values.next_double();
+        params[nparams].qmin       = values.next_double();
+        params[nparams].qmax       = values.next_double();
+        params[nparams].chi        = values.next_double();
+        params[nparams].dj         = values.next_double();
+        params[nparams].dk         = values.next_double();
+        params[nparams].dl         = values.next_double();
+        params[nparams].esm        = values.next_double();
+        params[nparams].cmn1       = values.next_double();
+        params[nparams].cmn2       = values.next_double();
+        params[nparams].pcmn1      = values.next_double();
+        params[nparams].pcmn2      = values.next_double();
+        params[nparams].coulcut    = values.next_double();
+        params[nparams].polz       = values.next_double();
+        params[nparams].curl       = values.next_double();
+        params[nparams].curlcut1   = values.next_double();
+        params[nparams].curlcut2   = values.next_double();
+        params[nparams].curl0      = values.next_double();
+        params[nparams].alpha1     = values.next_double();
+        params[nparams].bigB1      = values.next_double();
+        params[nparams].alpha2     = values.next_double();
+        params[nparams].bigB2      = values.next_double();
+        params[nparams].alpha3     = values.next_double();
+        params[nparams].bigB3      = values.next_double();
+        params[nparams].lambda     = values.next_double();
+        params[nparams].bigA       = values.next_double();
+        params[nparams].beta       = values.next_double();
+        params[nparams].bigr       = values.next_double();
+        params[nparams].bigd       = values.next_double();
+        params[nparams].pcos6      = values.next_double();
+        params[nparams].pcos5      = values.next_double();
+        params[nparams].pcos4      = values.next_double();
+        params[nparams].pcos3      = values.next_double();
+        params[nparams].pcos2      = values.next_double();
+        params[nparams].pcos1      = values.next_double();
+        params[nparams].pcos0      = values.next_double();
+        params[nparams].pcna       = values.next_double();
+        params[nparams].pcnb       = values.next_double();
+        params[nparams].pcnc       = values.next_double();
+        params[nparams].pcnd       = values.next_double();
+        params[nparams].p6p0       = values.next_double();
+        params[nparams].p6p1       = values.next_double();
+        params[nparams].p6p2       = values.next_double();
+        params[nparams].p6p3       = values.next_double();
+        params[nparams].p6p4       = values.next_double();
+        params[nparams].p6p5       = values.next_double();
+        params[nparams].p6p6       = values.next_double();
+        params[nparams].ptork1     = values.next_double();
+        params[nparams].ptork2     = values.next_double();
+        params[nparams].addrepr    = values.next_double();
+        params[nparams].addrep     = values.next_double();
+        params[nparams].pcross     = values.next_double();
+        params[nparams].powermint = int(params[nparams].powerm);
+      } catch (TokenizerException & e) {
+        error->one(FLERR, e.what());
       }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+
+      // parameter sanity checks
+
+      if (params[nparams].lambda < 0.0 || params[nparams].powern < 0.0 ||
+          params[nparams].beta < 0.0 || params[nparams].alpha1 < 0.0 ||
+          params[nparams].bigB1< 0.0 || params[nparams].bigA< 0.0 ||
+          params[nparams].bigB2< 0.0 || params[nparams].alpha2 <0.0 ||
+          params[nparams].bigB3< 0.0 || params[nparams].alpha3 <0.0 ||
+          params[nparams].bigr < 0.0 || params[nparams].bigd < 0.0 ||
+          params[nparams].bigd > params[nparams].bigr ||
+          params[nparams].powerm - params[nparams].powermint != 0.0 ||
+          params[nparams].addrepr < 0.0 || params[nparams].powermint < 1.0 ||
+          params[nparams].QL > 0.0 || params[nparams].QU < 0.0 ||
+          params[nparams].DL < 0.0 || params[nparams].DU > 0.0 ||
+          params[nparams].pcross < 0.0 ||
+          params[nparams].esm < 0.0 || params[nparams].veps < 0.0 ||
+          params[nparams].vsig < 0.0 || params[nparams].vdwflag < 0.0
+          )
+        error->one(FLERR,"Illegal COMB3 parameter");
+
+      nparams++;
     }
-    if (nwords != params_per_line){
-      error->all(FLERR,"Incorrect format in COMB3 potential file");
-}
-    // words = ptrs to all words in line
-
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((nwords <= params_per_line)
-           && (words[nwords++] = strtok(NULL," \t\n\r\f"))) {
-      continue;
-    }
-
-    // ielement,jelement,kelement = 1st args
-    // if all 3 args are in element list, then parse this line
-    // else skip to next line
-
-    for (ielement = 0; ielement < nelements; ielement++)
-      if (strcmp(words[0],elements[ielement]) == 0) break;
-    if (ielement == nelements) continue;
-    for (jelement = 0; jelement < nelements; jelement++)
-      if (strcmp(words[1],elements[jelement]) == 0) break;
-    if (jelement == nelements) continue;
-    for (kelement = 0; kelement < nelements; kelement++)
-      if (strcmp(words[2],elements[kelement]) == 0) break;
-    if (kelement == nelements) continue;
-
-    // load up parameter settings and error check their values
-
-    if (nparams == maxparam) {
-      maxparam += DELTA;
-      params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-                                          "pair:params");
-    }
-
-    params[nparams].ielement = ielement;
-    params[nparams].jelement = jelement;
-    params[nparams].kelement = kelement;
-    params[nparams].ielementgp = atoi(words[3]);
-    params[nparams].jelementgp = atoi(words[4]);
-    params[nparams].kelementgp = atoi(words[5]);
-    params[nparams].ang_flag = atoi(words[6]);
-    params[nparams].pcn_flag = atoi(words[7]);
-    params[nparams].rad_flag = atoi(words[8]);
-    params[nparams].tor_flag = atoi(words[9]);
-    params[nparams].vdwflag = atof(words[10]);
-    params[nparams].powerm = atof(words[11]);
-    params[nparams].veps = atof(words[12]);
-    params[nparams].vsig = atof(words[13]);
-    params[nparams].paaa = atof(words[14]);
-    params[nparams].pbbb = atof(words[15]);
-    params[nparams].lami = atof(words[16]);
-    params[nparams].alfi = atof(words[17]);
-    params[nparams].powern = atof(words[18]);
-    params[nparams].QL = atof(words[19]);
-    params[nparams].QU = atof(words[20]);
-    params[nparams].DL = atof(words[21]);
-    params[nparams].DU = atof(words[22]);
-    params[nparams].qmin = atof(words[23]);
-    params[nparams].qmax = atof(words[24]);
-    params[nparams].chi = atof(words[25]);
-    params[nparams].dj  = atof(words[26]);
-    params[nparams].dk  = atof(words[27]);
-    params[nparams].dl  = atof(words[28]);
-    params[nparams].esm = atof(words[29]);
-    params[nparams].cmn1 = atof(words[30]);
-    params[nparams].cmn2 = atof(words[31]);
-    params[nparams].pcmn1 = atof(words[32]);
-    params[nparams].pcmn2 = atof(words[33]);
-    params[nparams].coulcut = atof(words[34]);
-    params[nparams].polz = atof(words[35]);
-    params[nparams].curl = atof(words[36]);
-    params[nparams].curlcut1 = atof(words[37]);
-    params[nparams].curlcut2 = atof(words[38]);
-    params[nparams].curl0 = atof(words[39]);
-    params[nparams].alpha1 = atof(words[40]);
-    params[nparams].bigB1 = atof(words[41]);
-    params[nparams].alpha2 = atof(words[42]);
-    params[nparams].bigB2 = atof(words[43]);
-    params[nparams].alpha3 = atof(words[44]);
-    params[nparams].bigB3 = atof(words[45]);
-    params[nparams].lambda = atof(words[46]);
-    params[nparams].bigA = atof(words[47]);
-    params[nparams].beta = atof(words[48]);
-    params[nparams].bigr = atof(words[49]);
-    params[nparams].bigd = atof(words[50]);
-    params[nparams].pcos6 = atof(words[51]);
-    params[nparams].pcos5 = atof(words[52]);
-    params[nparams].pcos4 = atof(words[53]);
-    params[nparams].pcos3 = atof(words[54]);
-    params[nparams].pcos2 = atof(words[55]);
-    params[nparams].pcos1 = atof(words[56]);
-    params[nparams].pcos0 = atof(words[57]);
-    params[nparams].pcna = atof(words[58]);
-    params[nparams].pcnb = atof(words[59]);
-    params[nparams].pcnc = atof(words[60]);
-    params[nparams].pcnd = atof(words[61]);
-    params[nparams].p6p0 = atof(words[62]);
-    params[nparams].p6p1 = atof(words[63]);
-    params[nparams].p6p2 = atof(words[64]);
-    params[nparams].p6p3 = atof(words[65]);
-    params[nparams].p6p4 = atof(words[66]);
-    params[nparams].p6p5 = atof(words[67]);
-    params[nparams].p6p6 = atof(words[68]);
-    params[nparams].ptork1=atof(words[69]);
-    params[nparams].ptork2=atof(words[70]);
-    params[nparams].addrepr=atof(words[71]);
-    params[nparams].addrep=atof(words[72]);
-    params[nparams].pcross = atof(words[73]);
-    params[nparams].powermint = int(params[nparams].powerm);
-
-    // parameter sanity checks
-
-    if (params[nparams].lambda < 0.0 || params[nparams].powern < 0.0 ||
-        params[nparams].beta < 0.0 || params[nparams].alpha1 < 0.0 ||
-        params[nparams].bigB1< 0.0 || params[nparams].bigA< 0.0 ||
-        params[nparams].bigB2< 0.0 || params[nparams].alpha2 <0.0 ||
-        params[nparams].bigB3< 0.0 || params[nparams].alpha3 <0.0 ||
-        params[nparams].bigr < 0.0 || params[nparams].bigd < 0.0 ||
-        params[nparams].bigd > params[nparams].bigr ||
-        params[nparams].powerm - params[nparams].powermint != 0.0 ||
-        params[nparams].addrepr < 0.0 || params[nparams].powermint < 1.0 ||
-        params[nparams].QL > 0.0 || params[nparams].QU < 0.0 ||
-        params[nparams].DL < 0.0 || params[nparams].DU > 0.0 ||
-        params[nparams].pcross < 0.0 ||
-        params[nparams].esm < 0.0 || params[nparams].veps < 0.0 ||
-        params[nparams].vsig < 0.0 || params[nparams].vdwflag < 0.0
-        )
-      error->all(FLERR,"Illegal COMB3 parameter");
-
-    nparams++;
   }
 
-  delete [] words;
+  MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
+  MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
+
+  if(comm->me != 0) {
+    params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
+  }
+
+  MPI_Bcast(params, maxparam*sizeof(Param), MPI_BYTE, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2370,6 +2259,26 @@ void PairComb3::tables()
   double afbshift, dafbshift, exp2ershift;
 
   int n = nelements;
+
+  memory->destroy(intype);
+  memory->destroy(erpaw);
+  memory->destroy(fafb);
+  memory->destroy(dfafb);
+  memory->destroy(ddfafb);
+  memory->destroy(phin);
+  memory->destroy(dphin);
+  memory->destroy(afb);
+  memory->destroy(dafb);
+  memory->destroy(vvdw);
+  memory->destroy(vdvdw);
+  memory->destroy(dpl);
+  memory->destroy(bbij);
+  memory->destroy(xcctmp);
+  memory->destroy(xchtmp);
+  memory->destroy(xcotmp);
+  memory->destroy(NCo);
+  memory->destroy(sht_num);
+  memory->sfree(sht_first);
 
   dra  = 0.001;
   drin = 0.100;

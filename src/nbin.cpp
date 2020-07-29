@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include "nbin.h"
+#include <cmath>
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "domain.h"
-#include "update.h"
 #include "memory.h"
 #include "error.h"
 
@@ -26,15 +26,19 @@ using namespace LAMMPS_NS;
 NBin::NBin(LAMMPS *lmp) : Pointers(lmp)
 {
   last_bin = -1;
-  maxbin = maxatom = 0;
+  mbins = maxbin = maxatom = 0;
   binhead = NULL;
   bins = NULL;
   atom2bin = NULL;
+
+  neighbor->last_setup_bins = -1;
 
   // geometry settings
 
   dimension = domain->dimension;
   triclinic = domain->triclinic;
+
+  kokkos = 0;
 }
 
 /* ---------------------------------------------------------------------- */

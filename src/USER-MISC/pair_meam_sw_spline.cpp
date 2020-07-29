@@ -23,20 +23,19 @@
  * 01-Aug-12 - RER: First code version.
 ------------------------------------------------------------------------- */
 
+#include "pair_meam_sw_spline.h"
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_meam_sw_spline.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
-#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -470,7 +469,7 @@ void PairMEAMSWSpline::read_file(const char* filename)
 
     // Skip first line of file.
     char line[MAXLINE];
-    fgets(line, MAXLINE, fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
 
     // Parse spline functions.
     phi.parse(fp, error);
@@ -602,23 +601,23 @@ void PairMEAMSWSpline::SplineFunction::parse(FILE* fp, Error* error)
         char line[MAXLINE];
 
         // Parse number of spline knots.
-        fgets(line, MAXLINE, fp);
+        utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
         int n = atoi(line);
         if(n < 2)
                 error->one(FLERR,"Invalid number of spline knots in MEAM potential file");
 
         // Parse first derivatives at beginning and end of spline.
-        fgets(line, MAXLINE, fp);
+        utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
         double d0 = atof(strtok(line, " \t\n\r\f"));
         double dN = atof(strtok(NULL, " \t\n\r\f"));
         init(n, d0, dN);
 
         // Skip line.
-        fgets(line, MAXLINE, fp);
+        utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
 
         // Parse knot coordinates.
         for(int i=0; i<n; i++) {
-                fgets(line, MAXLINE, fp);
+          utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
                 double x, y, y2;
                 if(sscanf(line, "%lg %lg %lg", &x, &y, &y2) != 3) {
                         error->one(FLERR,"Invalid knot line in MEAM potential file");
@@ -675,6 +674,7 @@ void PairMEAMSWSpline::SplineFunction::prepareSpline(Error* error)
                 Y2[i] /= h*6.0;
 #endif
         }
+        inv_h = 1/h;
         xmax_shifted = xmax - xmin;
 }
 
@@ -690,6 +690,7 @@ void PairMEAMSWSpline::SplineFunction::communicate(MPI_Comm& world, int me)
         MPI_Bcast(&isGridSpline, 1, MPI_INT, 0, world);
         MPI_Bcast(&h, 1, MPI_DOUBLE, 0, world);
         MPI_Bcast(&hsq, 1, MPI_DOUBLE, 0, world);
+        MPI_Bcast(&inv_h, 1, MPI_DOUBLE, 0, world);
         if(me != 0) {
                 X = new double[N];
                 Xs = new double[N];

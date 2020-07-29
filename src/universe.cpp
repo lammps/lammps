@@ -11,16 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "universe.h"
 #include <mpi.h>
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
-#include <cstdio>
-#include "universe.h"
 #include "version.h"
 #include "error.h"
 #include "force.h"
 #include "memory.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -97,7 +98,10 @@ void Universe::reorder(char *style, char *arg)
 
     if (me == 0) {
       FILE *fp = fopen(arg,"r");
-      if (fp == NULL) error->universe_one(FLERR,"Cannot open -reorder file");
+      if (fp == NULL)
+        error->universe_one(FLERR,fmt::format("Cannot open -reorder "
+                                              "file {}: {}",arg,
+                                              utils::getsyserror()));
 
       // skip header = blank and comment lines
 
@@ -114,20 +118,22 @@ void Universe::reorder(char *style, char *arg)
       // read nprocs lines
       // uni2orig = inverse mapping
 
-      int me_orig,me_new;
-      sscanf(line,"%d %d",&me_orig,&me_new);
+      int me_orig,me_new,rv;
+      rv = sscanf(line,"%d %d",&me_orig,&me_new);
       if (me_orig < 0 || me_orig >= nprocs ||
-          me_new < 0 || me_new >= nprocs)
-        error->one(FLERR,"Invalid entry in -reorder file");
+          me_new < 0 || me_new >= nprocs || rv != 2)
+        error->one(FLERR,fmt::format("Invalid entry '{} {}' in -reorder "
+                                     "file", me_orig, me_new));
       uni2orig[me_new] = me_orig;
 
       for (int i = 1; i < nprocs; i++) {
         if (!fgets(line,MAXLINE,fp))
           error->one(FLERR,"Unexpected end of -reorder file");
-        sscanf(line,"%d %d",&me_orig,&me_new);
+        rv = sscanf(line,"%d %d",&me_orig,&me_new);
         if (me_orig < 0 || me_orig >= nprocs ||
-            me_new < 0 || me_new >= nprocs)
-          error->one(FLERR,"Invalid entry in -reorder file");
+            me_new < 0 || me_new >= nprocs || rv != 2)
+          error->one(FLERR,fmt::format("Invalid entry '{} {}' in -reorder "
+                                       "file", me_orig, me_new));
         uni2orig[me_new] = me_orig;
       }
       fclose(fp);
@@ -202,11 +208,9 @@ void Universe::add_world(char *str)
 
     if (n < 1 || nper < 1) valid = false;
 
-    if (!valid) {
-      char msg[128];
-      snprintf(msg,128,"Invalid partition string '%s'",str);
-      error->universe_all(FLERR,msg);
-    }
+    if (!valid)
+      error->universe_all(FLERR,fmt::format("Invalid partition string '{}'",
+                                            str));
   } else nper = nprocs;
 
   memory->grow(procs_per_world,nworlds+n,"universe:procs_per_world");
@@ -269,8 +273,7 @@ char *date2num(const char *version)
     year = atoi(version);
   }
 
-  char *ver = new char[64];
-  sprintf(ver,"%04d%02d%02d", year % 10000, month, day % 100);
-
+  char *ver = new char[12];
+  snprintf(ver,12,"%04d%02d%02d", year % 10000, month, day % 100);
   return ver;
 }

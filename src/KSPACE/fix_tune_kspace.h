@@ -20,8 +20,8 @@ FixStyle(tune/kspace,FixTuneKspace)
 #ifndef LMP_FIX_TUNE_KSPACE_H
 #define LMP_FIX_TUNE_KSPACE_H
 
-#include <cstdio>
 #include "fix.h"
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -34,8 +34,8 @@ class FixTuneKspace : public Fix {
   void pre_exchange();
   double get_timing_info();
   void store_old_kspace_settings();
-  void update_pair_style(char *, double);
-  void update_kspace_style(char *, char *);
+  void update_pair_style(const std::string &, double);
+  void update_kspace_style(const std::string &, const std::string &);
   void adjust_rcut(double);
   void mnbrak();
   void brent0();
@@ -52,10 +52,10 @@ class FixTuneKspace : public Fix {
 
   double ewald_time,pppm_time,msm_time;
   double pair_cut_coul;
-  char new_acc_str[12];
-  char new_kspace_style[20];
-  char new_pair_style[20];
-  char base_pair_style[20];
+  std::string acc_str;
+  std::string kspace_style;
+  std::string pair_style;
+  std::string base_pair_style;
 
   int old_differentiation_flag;
   int old_slabflag;

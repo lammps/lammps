@@ -557,7 +557,7 @@ void PairLJCharmmCoulLongIntel::pack_force_const(ForceConst<flt_t> &fc,
   // Repeat cutsq calculation because done after call to init_style
   if (cut_lj > cut_coul)
     error->all(FLERR,
-         "Intel varient of lj/charmm/coul/long expects lj cutoff<=coulombic");
+         "Intel variant of lj/charmm/coul/long expects lj cutoff<=coulombic");
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = i; j <= atom->ntypes; j++) {
       double cut;

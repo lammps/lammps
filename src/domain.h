@@ -15,9 +15,9 @@
 #define LMP_DOMAIN_H
 
 #include <cmath>
-#include "pointers.h"
 #include <map>
 #include <string>
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 
@@ -131,7 +131,7 @@ class Domain : protected Pointers {
   int find_region(char *);
   void set_boundary(int, char **, int);
   void set_box(int, char **);
-  void print_box(const char *);
+  void print_box(const std::string &);
   void boundary_string(char *);
 
   virtual void lamda2x(int);
@@ -269,7 +269,7 @@ E: Reuse of region ID
 
 A region ID cannot be used twice.
 
-E: Unknown region style
+E: Unrecognized region style
 
 The choice of region style is unknown.
 
@@ -281,6 +281,10 @@ E: Both sides of boundary must be periodic
 
 Cannot specify a boundary as periodic only on the lo or hi side.  Must
 be periodic on both sides.
+
+E: Must not have multiple fixes change box parameter ...
+
+Self-explanatory.
 
 U: Box bounds are invalid
 

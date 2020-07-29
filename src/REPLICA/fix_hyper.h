@@ -20,6 +20,8 @@ namespace LAMMPS_NS {
 
 class FixHyper : public Fix {
  public:
+  bigint ntimestep_initial;
+
   FixHyper(class LAMMPS *, int, char **);
   virtual ~FixHyper() {}
   void *extract(const char *, int &);

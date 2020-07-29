@@ -16,31 +16,28 @@
    Implementation of the colored thermostat for quantum nuclear effects
 ------------------------------------------------------------------------- */
 
+#include "fix_qtb.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
-#include "fix_qtb.h"
-#include "math_extra.h"
 #include "atom.h"
-#include "atom_vec_ellipsoid.h"
 #include "force.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
-#include "domain.h"
-#include "region.h"
 #include "respa.h"
 #include "comm.h"
-#include "input.h"
-#include "variable.h"
 #include "random_mars.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "group.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace MathConst;
 
 /* ----------------------------------------------------------------------
    read parameters
@@ -67,26 +64,34 @@ FixQTB::FixQTB(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qtb command");
-      t_target = atof(arg[iarg+1]); if (t_target < 0.0) error->all(FLERR,"Fix qtb temp must be >= 0.0");
+      t_target = force->numeric(FLERR,arg[iarg+1]);
+      if (t_target < 0.0) error->all(FLERR,"Fix qtb temp must be >= 0.0");
       iarg += 2;
     } else if (strcmp(arg[iarg],"damp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qtb command");
-      t_period = atof(arg[iarg+1]); if (t_period <= 0.0) error->all(FLERR,"Fix qtb damp must be > 0.0"); fric_coef = 1/t_period;
+      t_period = force->numeric(FLERR,arg[iarg+1]);
+      if (t_period <= 0.0) error->all(FLERR,"Fix qtb damp must be > 0.0");
+      fric_coef = 1/t_period;
       iarg += 2;
     } else if (strcmp(arg[iarg],"seed") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qtb command");
-      seed = atof(arg[iarg+1]); if (seed <= 0) error->all(FLERR,"Illegal fix qtb command");
+      seed = force->inumeric(FLERR,arg[iarg+1]);
+      if (seed <= 0) error->all(FLERR,"Illegal fix qtb command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"f_max") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qtb command");
-      f_max = atof(arg[iarg+1]); if (f_max <= 0) error->all(FLERR,"Illegal fix qtb command");
+      f_max = force->numeric(FLERR,arg[iarg+1]);
+      if (f_max <= 0) error->all(FLERR,"Illegal fix qtb command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"N_f") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qtb command");
-      N_f = atof(arg[iarg+1]); if (N_f <= 0) error->all(FLERR,"Illegal fix qtb command");
+      N_f = force->inumeric(FLERR,arg[iarg+1]);
+      if (N_f <= 0) error->all(FLERR,"Illegal fix qtb command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix qtb command");
   }
+
+  maxexchange = 6*N_f+3;
 
   // allocate qtb
   gfactor1 = NULL;
@@ -110,10 +115,6 @@ FixQTB::FixQTB(LAMMPS *lmp, int narg, char **arg) :
   // allocate random-arrays and fran
   grow_arrays(atom->nmax);
   atom->add_callback(0);
-  // memory->create(random_array_0,atom->nmax+300,2*N_f,"qtb:random_array_0");
-  // memory->create(random_array_1,atom->nmax+300,2*N_f,"qtb:random_array_1");
-  // memory->create(random_array_2,atom->nmax+300,2*N_f,"qtb:random_array_2");
-  // memory->create(fran,atom->nmax+300,3,"qtb:fran");
 
   // allocate omega_H and time_H
   memory->create(omega_H,2*N_f,"qtb:omega_H");
@@ -165,14 +166,17 @@ void FixQTB::init()
 
   //set up the h time step for updating the random force \delta{}h=\frac{\pi}{\Omega_{max}}
   if (int(1.0/(2*f_max*dtv)) == 0) {
-    if (comm->me == 0) printf ("Warning: Either f_max is too high or the time step is too big, setting f_max to be 1/timestep!\n");
+    if (comm->me == 0) error->warning(FLERR,"Either f_max is too high or the time step "
+                                      "is too big, setting f_max to be 1/timestep!\n");
     h_timestep=dtv;
     alpha=1;
   } else {
     alpha=int(1.0/(2*f_max*dtv));
     h_timestep=alpha*dtv;
   }
-  if (comm->me == 0) printf ("The effective maximum frequncy is now %f inverse time unit with alpha value as %d!\n", 0.5/h_timestep, alpha);
+  if (comm->me == 0 && screen)
+    fmt::print(screen,"The effective maximum frequency is now {} inverse time unit "
+               "with alpha value as {}!\n", 0.5/h_timestep, alpha);
 
   // set force prefactors
   if (!atom->rmass) {
@@ -202,7 +206,7 @@ void FixQTB::init()
     } else {
       double energy_k= force->hplanck * fabs(f_k);
       omega_H[k]=sqrt( energy_k * (0.5+1.0/( exp(energy_k/(force->boltz * t_target)) - 1.0 )) );
-      omega_H[k]*=alpha*sin((k-N_f)*M_PI/(2*alpha*N_f))/sin((k-N_f)*M_PI/(2*N_f));
+      omega_H[k]*=alpha*sin((k-N_f)*MY_PI/(2*alpha*N_f))/sin((k-N_f)*MY_PI/(2*N_f));
     }
   }
 
@@ -211,7 +215,7 @@ void FixQTB::init()
     time_H[n] = 0;
     double t_n=(n-N_f);
     for (int k = 0; k < 2*N_f; k++) {
-      double omega_k=(k-N_f)*M_PI/N_f;
+      double omega_k=(k-N_f)*MY_PI/N_f;
       time_H[n] += omega_H[k]*(cos(omega_k*t_n));
     }
     time_H[n]/=(2.0*N_f);
@@ -409,11 +413,12 @@ void FixQTB::copy_arrays(int i, int j, int /*delflag*/)
 ------------------------------------------------------------------------- */
 int FixQTB::pack_exchange(int i, double *buf)
 {
-  for (int m = 0; m < 2*N_f; m++) buf[m] = random_array_0[i][m];
-  for (int m = 0; m < 2*N_f; m++) buf[m+2*N_f] = random_array_1[i][m];
-  for (int m = 0; m < 2*N_f; m++) buf[m+4*N_f] = random_array_2[i][m];
-  for (int m = 0; m < 3; m++) buf[m+6*N_f] = fran[i][m];
-  return 6*N_f+3;
+  int n = 0;
+  for (int m = 0; m < 2*N_f; m++) buf[n++] = random_array_0[i][m];
+  for (int m = 0; m < 2*N_f; m++) buf[n++] = random_array_1[i][m];
+  for (int m = 0; m < 2*N_f; m++) buf[n++] = random_array_2[i][m];
+  for (int m = 0; m < 3; m++) buf[n++] = fran[i][m];
+  return n;
 }
 
 /* ----------------------------------------------------------------------
@@ -421,9 +426,10 @@ int FixQTB::pack_exchange(int i, double *buf)
 ------------------------------------------------------------------------- */
 int FixQTB::unpack_exchange(int nlocal, double *buf)
 {
-  for (int m = 0; m < 2*N_f; m++) random_array_0[nlocal][m] = buf[m];
-  for (int m = 0; m < 2*N_f; m++) random_array_1[nlocal][m] = buf[m+2*N_f];
-  for (int m = 0; m < 2*N_f; m++) random_array_2[nlocal][m] = buf[m+4*N_f];
-  for (int m = 0; m < 3; m++) fran[nlocal][m] = buf[m+6*N_f];
-  return 6*N_f+3;
+  int n = 0;
+  for (int m = 0; m < 2*N_f; m++) random_array_0[nlocal][m] = buf[n++];
+  for (int m = 0; m < 2*N_f; m++) random_array_1[nlocal][m] = buf[n++];
+  for (int m = 0; m < 2*N_f; m++) random_array_2[nlocal][m] = buf[n++];
+  for (int m = 0; m < 3; m++) fran[nlocal][m] = buf[n++];
+  return n;
 }

@@ -16,7 +16,6 @@
 
 #include "pointers.h"
 #include "atom_vec_body.h"
-#include "my_pool_chunk.h"
 
 namespace LAMMPS_NS {
 
@@ -28,6 +27,8 @@ class Body : protected Pointers {
   char *style;
   int size_forward;           // max extra values packed for comm
   int size_border;            // max extra values packed for border comm
+  int maxexchange;            // max size of exchanged atom
+
   AtomVecBody *avec;          // ptr to class that stores body bonus info
 
   Body(class LAMMPS *, int, char **);
@@ -42,6 +43,9 @@ class Body : protected Pointers {
                                  double *) {return 0;}
 
   virtual void data_body(int, int, int, int*, double *) = 0;
+  virtual int pack_data_body(tagint, int, double *) = 0;
+  virtual int write_data_body(FILE *, double *) = 0;
+
   virtual int noutrow(int) = 0;
   virtual int noutcol() = 0;
   virtual void output(int, int, double *) = 0;

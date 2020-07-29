@@ -23,7 +23,7 @@ const char *lj_dsf=0;
 
 #include "lal_lj_dsf.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define LJDSFT LJDSF<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -166,3 +166,4 @@ void LJDSFT::loop(const bool _eflag, const bool _vflag) {
 }
 
 template class LJDSF<PRECISION,ACC_PRECISION>;
+}

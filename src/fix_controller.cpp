@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fix_controller.h"
 #include <cstdlib>
 #include <cstring>
-#include "fix_controller.h"
 #include "force.h"
 #include "update.h"
 #include "modify.h"
@@ -120,7 +120,7 @@ FixController::FixController(LAMMPS *lmp, int narg, char **arg) :
                           "calculate a global scalar or vector");
     if (pvindex && pvindex > f->size_vector)
       error->all(FLERR,"Fix controller fix vector is accessed out-of-range");
-  } else if (pvwhich == FIX) {
+  } else if (pvwhich == VARIABLE) {
     int ivariable = input->variable->find(pvID);
     if (ivariable < 0)
       error->all(FLERR,"Variable name for fix controller does not exist");

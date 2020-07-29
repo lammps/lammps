@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_pe_atom.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "comm.h"
@@ -24,7 +24,6 @@
 #include "improper.h"
 #include "kspace.h"
 #include "modify.h"
-#include "fix.h"
 #include "memory.h"
 #include "error.h"
 
@@ -120,7 +119,7 @@ void ComputePEAtom::compute_peratom()
 
   // add in per-atom contributions from each force
 
-  if (pairflag && force->pair) {
+  if (pairflag && force->pair && force->pair->compute_flag) {
     double *eatom = force->pair->eatom;
     for (i = 0; i < npair; i++) energy[i] += eatom[i];
   }
@@ -145,7 +144,7 @@ void ComputePEAtom::compute_peratom()
     for (i = 0; i < nbond; i++) energy[i] += eatom[i];
   }
 
-  if (kspaceflag && force->kspace) {
+  if (kspaceflag && force->kspace && force->kspace->compute_flag) {
     double *eatom = force->kspace->eatom;
     for (i = 0; i < nkspace; i++) energy[i] += eatom[i];
   }

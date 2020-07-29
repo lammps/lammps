@@ -12,7 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "lmppython.h"
+#if LMP_PYTHON
+#include "python_impl.h"
+#else
 #include "error.h"
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -76,7 +80,7 @@ void Python::invoke_function(int ifunc, char *result)
 
 /* ------------------------------------------------------------------ */
 
-int Python::find(char *name)
+int Python::find(const char *name)
 {
   init();
   return impl->find(name);
@@ -84,7 +88,7 @@ int Python::find(char *name)
 
 /* ------------------------------------------------------------------ */
 
-int Python::variable_match(char *name, char *varname, int numeric)
+int Python::variable_match(const char *name, const char *varname, int numeric)
 {
   init();
   return impl->variable_match(name, varname, numeric);
@@ -112,4 +116,12 @@ int Python::execute_file(char *fname)
 {
   init();
   return impl->execute_file(fname);
+}
+
+/* ------------------------------------------------------------------ */
+
+bool Python::has_minimum_version(int major, int minor)
+{
+  init();
+  return impl->has_minimum_version(major, minor);
 }

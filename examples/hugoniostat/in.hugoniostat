@@ -67,7 +67,7 @@ fix myhug all nphug temp 1.0 1.0 10.0 z 40.0 40.0 70.0 drag 0.0 tchain 1 pchain 
 
 fix_modify myhug e0 -6334.0 p0 0.0 v0 680.73519
 
-# Add fix energy to ouput etotal
+# Add fix energy to output etotal
  
 fix_modify myhug energy yes 
 
@@ -115,7 +115,7 @@ fix myhug all nphug temp 1.0 1.0 1.0 z 40.0 40.0 70.0 drag 200.0 tchain 1 pchain
 
 fix_modify myhug e0 -6334.0 p0 0.0 v0 680.73519
 
-# Add fix energy to ouput etotal
+# Add fix energy to output etotal
  
 fix_modify myhug energy yes 
 
@@ -153,7 +153,7 @@ fix myhug all nphug temp 1.0 1.0 1.0 z 40.0 40.0 70.0
 
 fix_modify myhug e0 -6334.0 p0 0.0 v0 680.73519
 
-# Add fix energy to ouput etotal
+# Add fix energy to output etotal
  
 fix_modify myhug energy yes 
 

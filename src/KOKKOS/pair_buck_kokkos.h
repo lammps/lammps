@@ -31,7 +31,7 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 class PairBuckKokkos : public PairBuck {
  public:
-  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2};
+  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -98,15 +98,12 @@ class PairBuckKokkos : public PairBuck {
   friend class PairComputeFunctor<PairBuckKokkos,FULL,true>;
   friend class PairComputeFunctor<PairBuckKokkos,HALF,true>;
   friend class PairComputeFunctor<PairBuckKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairBuckKokkos,N2,true>;
   friend class PairComputeFunctor<PairBuckKokkos,FULL,false>;
   friend class PairComputeFunctor<PairBuckKokkos,HALF,false>;
   friend class PairComputeFunctor<PairBuckKokkos,HALFTHREAD,false>;
-  friend class PairComputeFunctor<PairBuckKokkos,N2,false>;
   friend EV_FLOAT pair_compute_neighlist<PairBuckKokkos,FULL,void>(PairBuckKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairBuckKokkos,HALF,void>(PairBuckKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairBuckKokkos,HALFTHREAD,void>(PairBuckKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairBuckKokkos,N2,void>(PairBuckKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairBuckKokkos,void>(PairBuckKokkos*,NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairBuckKokkos>(PairBuckKokkos*);
 };

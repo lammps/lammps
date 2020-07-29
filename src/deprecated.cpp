@@ -15,31 +15,28 @@
    Contributing authors:  Axel Kohlmeyer (Temple U),
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "deprecated.h"
+#include <string>
 #include "comm.h"
-#include "force.h"
 #include "error.h"
 #include "input.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
-
-static void writemsg(LAMMPS *lmp, const char *msg, int abend=1)
-{
-  if (lmp->comm->me == 0) {
-    if (lmp->screen) fputs(msg,lmp->screen);
-    if (lmp->logfile) fputs(msg,lmp->logfile);
-  }
-  if (abend)
-    lmp->error->all(FLERR,"This command is no longer available");
-}
 
 /* ---------------------------------------------------------------------- */
 
 void Deprecated::command(int /* narg */, char ** /* arg */)
 {
-  if (strcmp(input->command,"DEPRECATED") == 0) {
-    writemsg(lmp,"\nCommand 'DEPRECATED' is a dummy command\n\n",0);
+  const std::string cmd = input->command;
 
+  if (cmd == "DEPRECATED") {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp,"\nCommand 'DEPRECATED' is a dummy command\n\n");
+    return;
+  } else if (cmd == "reset_ids") {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp,"\n'reset_ids' has been renamed to 'reset_atom_ids'\n\n");
   }
+  error->all(FLERR,"This command is no longer available");
 }

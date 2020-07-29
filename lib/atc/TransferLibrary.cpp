@@ -705,7 +705,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
-  ReducedSparseMatrix::ReducedSparseMatrix(ATC_Method * atc,
+  ReducedSparseMatrix::ReducedSparseMatrix(ATC_Method * /* atc */,
                                            SPAR_MAN * source,
                                            LargeToSmallAtomMap * map) :
     SparseMatrixTransfer<double>(),
@@ -782,7 +782,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
-  RowMappedSparseMatrixVector::RowMappedSparseMatrixVector(ATC_Method * atc,
+  RowMappedSparseMatrixVector::RowMappedSparseMatrixVector(ATC_Method * /* atc */,
                                                            VectorDependencyManager<SPAR_MAT * > * source,
                                                            LargeToSmallAtomMap * map) :
     VectorTransfer<SPAR_MAT * >(),
@@ -846,7 +846,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
-  MappedDiagonalMatrix::MappedDiagonalMatrix(ATC_Method * atc,
+  MappedDiagonalMatrix::MappedDiagonalMatrix(ATC_Method * /* atc */,
                                              DIAG_MAN * source,
                                              LargeToSmallAtomMap * map) :
     DiagonalMatrixTransfer<double>(),
@@ -892,7 +892,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
-  MappedQuantity::MappedQuantity(ATC_Method * atc,
+  MappedQuantity::MappedQuantity(ATC_Method * /* atc */,
                                  DENS_MAN * source,
                                  LargeToSmallMap * map) :
     DenseMatrixTransfer<double>(),

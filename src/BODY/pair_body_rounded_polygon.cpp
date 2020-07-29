@@ -18,11 +18,10 @@
          the contact history for friction forces.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_body_rounded_polygon.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_body.h"
@@ -106,7 +105,7 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
   int ni,nj,npi,npj,ifirst,jfirst;
   int nei,nej,iefirst,jefirst;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl;
-  double rsq,rsqinv,r,radi,radj,eradi,eradj,rradi,rradj,k_nij,k_naij;
+  double rsq,r,radi,radj,k_nij,k_naij;
   double facc[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -171,8 +170,6 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
       ifirst = dfirst[i];
       nei = ednum[i];
       iefirst = edfirst[i];
-      eradi = enclosing_radius[i];
-      rradi = rounded_radius[i];
     }
 
     for (jj = 0; jj < jnum; jj++) {
@@ -198,8 +195,6 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
       jfirst = dfirst[j];
       nej = ednum[j];
       jefirst = edfirst[j];
-      eradj = enclosing_radius[j];
-      rradj = rounded_radius[j];
 
       k_nij = k_n[itype][jtype];
       k_naij = k_na[itype][jtype];
@@ -208,7 +203,6 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
 
       r = sqrt(rsq);
       if (r > radi + radj + cut_inner) continue;
-      rsqinv = 1.0 / rsq;
 
       if (npi == 1 && npj == 1) {
         sphere_against_sphere(i, j, delx, dely, delz, rsq,
@@ -242,7 +236,7 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
         edge[jefirst+nj][4] = 0;
       }
 
-      int interact, num_contacts, done;
+      int num_contacts, done;
       double delta_a, j_a;
       Contact contact_list[MAX_CONTACTS];
 
@@ -250,15 +244,13 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
 
       // check interaction between i's vertices and j' edges
 
-      interact = vertex_against_edge(i, j, k_nij, k_naij,
-                                     x, f, torque, tag, contact_list,
-                                     num_contacts, evdwl, facc);
+      vertex_against_edge(i, j, k_nij, k_naij, x, f, torque, tag,
+                          contact_list, num_contacts, evdwl, facc);
 
       // check interaction between j's vertices and i' edges
 
-      interact = vertex_against_edge(j, i, k_nij, k_naij,
-                                     x, f, torque, tag, contact_list,
-                                     num_contacts, evdwl, facc);
+      vertex_against_edge(j, i, k_nij, k_naij, x, f, torque, tag,
+                          contact_list, num_contacts, evdwl, facc);
 
       if (num_contacts >= 2) {
 
@@ -599,16 +591,13 @@ void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
                        double k_n, double k_na, double** /*x*/, double** v,
                        double** f, int evflag)
 {
-  double eradi,eradj,rradi,rradj;
+  double rradi,rradj;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double rij,rsqinv,R,fx,fy,fz,fn[3],ft[3],fpair,shift,energy;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
-  eradi = enclosing_radius[i];
   rradi = rounded_radius[i];
-
-  eradj = enclosing_radius[j];
   rradj = rounded_radius[j];
 
   rsqinv = 1.0/rsq;
@@ -657,12 +646,16 @@ void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
     fn[1] = -c_n * vn2;
     fn[2] = -c_n * vn3;
 
-    // tangential friction term at contact
-    // excluding the tangential deformation term
+    // tangential friction term at contact,
+    // excluding the tangential deformation term for now
 
     ft[0] = -c_t * vt1;
     ft[1] = -c_t * vt2;
     ft[2] = -c_t * vt3;
+
+    fx += fn[0] + ft[0];
+    fy += fn[1] + ft[1];
+    fz += fn[2] + ft[2];
   }
 
   f[i][0] += fx;
@@ -704,20 +697,16 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
                                                 int &num_contacts,
                                                 double &evdwl, double* facc)
 {
-  int ni, npi, ifirst, nei, iefirst;
-  int nj, npj, jfirst, nej, jefirst;
-  double xpi[3], xpj[3], dist, eradi, eradj, rradi, rradj;
+  int ni, npi, ifirst;
+  int nj, jfirst, nej, jefirst;
+  double xpi[3], xpj[3], dist, eradj, rradi, rradj;
   double fx, fy, fz, energy;
   int interact;
 
   npi = dnum[i];
   ifirst = dfirst[i];
-  nei = ednum[i];
-  iefirst = edfirst[i];
-  eradi = enclosing_radius[i];
   rradi = rounded_radius[i];
 
-  npj = dnum[j];
   jfirst = dfirst[j];
   nej = ednum[j];
   jefirst = edfirst[j];
@@ -1375,4 +1364,3 @@ void PairBodyRoundedPolygon::distance(const double* x2, const double* x1,
     + (x2[1] - x1[1]) * (x2[1] - x1[1])
     + (x2[2] - x1[2]) * (x2[2] - x1[2]));
 }
-

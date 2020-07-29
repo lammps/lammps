@@ -11,17 +11,19 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "bond_fene.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "update.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -83,11 +85,8 @@ void BondFENE::compute(int eflag, int vflag)
     // if r > 2*r0 something serious is wrong, abort
 
     if (rlogarg < 0.1) {
-      char str[128];
-      sprintf(str,"FENE bond too long: " BIGINT_FORMAT " "
-              TAGINT_FORMAT " " TAGINT_FORMAT " %g",
-              update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
-      error->warning(FLERR,str,0);
+      error->warning(FLERR,fmt::format("FENE bond too long: {} {} {} {}",
+                     update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq)));
       if (rlogarg <= -3.0) error->one(FLERR,"Bad FENE bond");
       rlogarg = 0.1;
     }
@@ -216,10 +215,10 @@ void BondFENE::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&r0[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&epsilon[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&sigma[1],sizeof(double),atom->nbondtypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&epsilon[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&sigma[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
   }
   MPI_Bcast(&k[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&r0[1],atom->nbondtypes,MPI_DOUBLE,0,world);
@@ -271,4 +270,14 @@ double BondFENE::single(int type, double rsq, int /*i*/, int /*j*/,
   }
 
   return eng;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *BondFENE::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str,"kappa")==0) return (void*) k;
+  if (strcmp(str,"r0")==0) return (void*) r0;
+  return NULL;
 }

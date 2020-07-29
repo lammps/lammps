@@ -11,13 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "imbalance_time.h"
+#include <mpi.h>
 #include "atom.h"
-#include "comm.h"
 #include "force.h"
 #include "timer.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -105,7 +105,7 @@ void ImbalanceTime::compute(double *weight)
 
 /* -------------------------------------------------------------------- */
 
-void ImbalanceTime::info(FILE *fp)
+std::string ImbalanceTime::info()
 {
-  fprintf(fp,"  time weight factor: %g\n",factor);
+  return fmt::format("  time weight factor: {}\n",factor);
 }

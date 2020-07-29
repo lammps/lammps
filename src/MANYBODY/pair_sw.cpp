@@ -15,25 +15,25 @@
    Contributing author: Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_sw.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_sw.h"
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
 #include "comm.h"
+#include "error.h"
+#include "force.h"
 #include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
+#include "neigh_request.h"
+#include "utils.h"
+#include "tokenizer.h"
+#include "potential_file_reader.h"
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024
 #define DELTA 4
 
 /* ---------------------------------------------------------------------- */
@@ -44,6 +44,7 @@ PairSW::PairSW(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
   nelements = 0;
   elements = NULL;
@@ -348,128 +349,99 @@ double PairSW::init_one(int i, int j)
 
 void PairSW::read_file(char *file)
 {
-  int params_per_line = 14;
-  char **words = new char*[params_per_line+1];
-
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   nparams = maxparam = 0;
 
   // open file on proc 0
 
-  FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open Stillinger-Weber potential file %s",file);
-      error->one(FLERR,str);
-    }
-  }
+    PotentialFileReader reader(lmp, file, "sw", unit_convert_flag);
+    char * line;
 
-  // read each set of params from potential file
-  // one set of params can span multiple lines
-  // store params if all 3 element tags are in element list
+    // transparently convert units for supported conversions
 
-  int n,nwords,ielement,jelement,kelement;
-  char line[MAXLINE],*ptr;
-  int eof = 0;
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                            unit_convert);
 
-  while (1) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
-        eof = 1;
-        fclose(fp);
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+    while((line = reader.next_line(NPARAMS_PER_LINE))) {
+      try {
+        ValueTokenizer values(line);
 
-    // strip comment, skip line if blank
+        std::string iname = values.next_string();
+        std::string jname = values.next_string();
+        std::string kname = values.next_string();
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
-    if (nwords == 0) continue;
+        // ielement,jelement,kelement = 1st args
+        // if all 3 args are in element list, then parse this line
+        // else skip to next entry in file
+        int ielement, jelement, kelement;
 
-    // concatenate additional lines until have params_per_line words
+        for (ielement = 0; ielement < nelements; ielement++)
+          if (iname == elements[ielement]) break;
+        if (ielement == nelements) continue;
+        for (jelement = 0; jelement < nelements; jelement++)
+          if (jname == elements[jelement]) break;
+        if (jelement == nelements) continue;
+        for (kelement = 0; kelement < nelements; kelement++)
+          if (kname == elements[kelement]) break;
+        if (kelement == nelements) continue;
 
-    while (nwords < params_per_line) {
-      n = strlen(line);
-      if (comm->me == 0) {
-        ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
-          eof = 1;
-          fclose(fp);
-        } else n = strlen(line) + 1;
+        // load up parameter settings and error check their values
+
+        if (nparams == maxparam) {
+          maxparam += DELTA;
+          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
+                                              "pair:params");
+
+          // make certain all addional allocated storage is initialized
+          // to avoid false positives when checking with valgrind
+
+          memset(params + nparams, 0, DELTA*sizeof(Param));
+        }
+
+        params[nparams].ielement = ielement;
+        params[nparams].jelement = jelement;
+        params[nparams].kelement = kelement;
+        params[nparams].epsilon  = values.next_double();
+        params[nparams].sigma    = values.next_double();
+        params[nparams].littlea  = values.next_double();
+        params[nparams].lambda   = values.next_double();
+        params[nparams].gamma    = values.next_double();
+        params[nparams].costheta = values.next_double();
+        params[nparams].biga     = values.next_double();
+        params[nparams].bigb     = values.next_double();
+        params[nparams].powerp   = values.next_double();
+        params[nparams].powerq   = values.next_double();
+        params[nparams].tol      = values.next_double();
+      } catch (TokenizerException & e) {
+        error->one(FLERR, e.what());
       }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+
+      if (unit_convert) {
+        params[nparams].epsilon *= conversion_factor;
+      }
+
+      if (params[nparams].epsilon < 0.0 || params[nparams].sigma < 0.0 ||
+          params[nparams].littlea < 0.0 || params[nparams].lambda < 0.0 ||
+          params[nparams].gamma < 0.0 || params[nparams].biga < 0.0 ||
+          params[nparams].bigb < 0.0 || params[nparams].powerp < 0.0 ||
+          params[nparams].powerq < 0.0 || params[nparams].tol < 0.0)
+        error->one(FLERR,"Illegal Stillinger-Weber parameter");
+
+      nparams++;
     }
-
-    if (nwords != params_per_line)
-      error->all(FLERR,"Incorrect format in Stillinger-Weber potential file");
-
-    // words = ptrs to all words in line
-
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
-
-    // ielement,jelement,kelement = 1st args
-    // if all 3 args are in element list, then parse this line
-    // else skip to next entry in file
-
-    for (ielement = 0; ielement < nelements; ielement++)
-      if (strcmp(words[0],elements[ielement]) == 0) break;
-    if (ielement == nelements) continue;
-    for (jelement = 0; jelement < nelements; jelement++)
-      if (strcmp(words[1],elements[jelement]) == 0) break;
-    if (jelement == nelements) continue;
-    for (kelement = 0; kelement < nelements; kelement++)
-      if (strcmp(words[2],elements[kelement]) == 0) break;
-    if (kelement == nelements) continue;
-
-    // load up parameter settings and error check their values
-
-    if (nparams == maxparam) {
-      maxparam += DELTA;
-      params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-                                          "pair:params");
-    }
-
-    params[nparams].ielement = ielement;
-    params[nparams].jelement = jelement;
-    params[nparams].kelement = kelement;
-    params[nparams].epsilon = atof(words[3]);
-    params[nparams].sigma = atof(words[4]);
-    params[nparams].littlea = atof(words[5]);
-    params[nparams].lambda = atof(words[6]);
-    params[nparams].gamma = atof(words[7]);
-    params[nparams].costheta = atof(words[8]);
-    params[nparams].biga = atof(words[9]);
-    params[nparams].bigb = atof(words[10]);
-    params[nparams].powerp = atof(words[11]);
-    params[nparams].powerq = atof(words[12]);
-    params[nparams].tol = atof(words[13]);
-
-    if (params[nparams].epsilon < 0.0 || params[nparams].sigma < 0.0 ||
-        params[nparams].littlea < 0.0 || params[nparams].lambda < 0.0 ||
-        params[nparams].gamma < 0.0 || params[nparams].biga < 0.0 ||
-        params[nparams].bigb < 0.0 || params[nparams].powerp < 0.0 ||
-        params[nparams].powerq < 0.0 || params[nparams].tol < 0.0)
-      error->all(FLERR,"Illegal Stillinger-Weber parameter");
-
-    nparams++;
   }
 
-  delete [] words;
+  MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
+  MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
+
+  if(comm->me != 0) {
+    params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
+  }
+
+  MPI_Bcast(params, maxparam*sizeof(Param), MPI_BYTE, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */

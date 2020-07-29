@@ -22,19 +22,16 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cfloat>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
-#include <iostream>
 #include "pair_smd_ulsph.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
+#include <string>
+#include <utility>
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
 #include "update.h"
-#include "modify.h"
-#include "fix.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -360,7 +357,7 @@ void PairULSPH::compute(int eflag, int vflag) {
         double **vint = atom->v; // Velocity-Verlet algorithm velocities
         double **f = atom->f;
         double *vfrac = atom->vfrac;
-        double *de = atom->de;
+        double *desph = atom->desph;
         double *rmass = atom->rmass;
         double *radius = atom->radius;
         double *contact_radius = atom->contact_radius;
@@ -589,7 +586,7 @@ void PairULSPH::compute(int eflag, int vflag) {
                                 f[i][0] += sumForces(0);
                                 f[i][1] += sumForces(1);
                                 f[i][2] += sumForces(2);
-                                de[i] += deltaE;
+                                desph[i] += deltaE;
 
                                 // accumulate smooth velocities
                                 shepardWeight[i] += jvol * wf;
@@ -600,7 +597,7 @@ void PairULSPH::compute(int eflag, int vflag) {
                                         f[j][0] -= sumForces(0);
                                         f[j][1] -= sumForces(1);
                                         f[j][2] -= sumForces(2);
-                                        de[j] += deltaE;
+                                        desph[j] += deltaE;
 
                                         shepardWeight[j] += ivol * wf;
                                         smoothVel[j] -= ivol * wf * dvint;
@@ -642,7 +639,7 @@ void PairULSPH::AssembleStressTensor() {
         double *rmass = atom->rmass;
         double *eff_plastic_strain = atom->eff_plastic_strain;
         double **tlsph_stress = atom->smd_stress;
-        double *e = atom->e;
+        double *esph = atom->esph;
         int *type = atom->type;
         int i, itype;
         int nlocal = atom->nlocal;
@@ -689,7 +686,7 @@ void PairULSPH::AssembleStressTensor() {
 
                                 break;
                         case EOS_PERFECT_GAS:
-                                PerfectGasEOS(Lookup[EOS_PERFECT_GAS_GAMMA][itype], vol, rmass[i], e[i], newPressure, c0[i]);
+                                PerfectGasEOS(Lookup[EOS_PERFECT_GAS_GAMMA][itype], vol, rmass[i], esph[i], newPressure, c0[i]);
                                 break;
                         case EOS_LINEAR:
                                 newPressure = Lookup[BULK_MODULUS][itype] * (rho / Lookup[REFERENCE_DENSITY][itype] - 1.0);

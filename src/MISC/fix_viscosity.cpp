@@ -16,11 +16,10 @@
                         for swapping atoms of different masses
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <mpi.h>
-#include <cstring>
-#include <cstdlib>
 #include "fix_viscosity.h"
+#include <mpi.h>
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "domain.h"
 #include "modify.h"

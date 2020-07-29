@@ -14,9 +14,8 @@
 #ifndef LMP_VARIABLE_H
 #define LMP_VARIABLE_H
 
-#include <cstdlib>
 #include "pointers.h"
-#include "input.h"
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -26,11 +25,12 @@ class Variable : protected Pointers {
   Variable(class LAMMPS *);
   ~Variable();
   void set(int, char **);
+  void set(const std::string &);
   void set(char *, int, char **);
-  int set_string(char *, char *);
+  int set_string(const char *, const char *);
   int next(int, char **);
 
-  int find(char *);
+  int find(const char *);
   void set_arrays(int);
   void python_command(int, char **);
 
@@ -40,7 +40,7 @@ class Variable : protected Pointers {
   char *pythonstyle(char *, char *);
   int internalstyle(int);
 
-  char *retrieve(char *);
+  char *retrieve(const char *);
   double compute_equal(int);
   double compute_equal(char *);
   void compute_atom(int, int, double *, int, int);
@@ -125,7 +125,8 @@ class Variable : protected Pointers {
   double constant(char *);
   int parse_args(char *, char **);
   char *find_next_comma(char *);
-  void print_var_error(const char *, int, const char *, int, int global=1);
+  void print_var_error(const std::string &, int, const std::string &,
+                       int, int global=1);
   void print_tree(Tree *, int);
 };
 
@@ -209,6 +210,10 @@ E: Invalid variable style with next command
 
 Variable styles {equal} and {world} cannot be used in a next
 command.
+
+E: Incorrect conversion in format string
+
+A format style variable was not using either a %f, a %g, or a %e conversion.
 
 E: Next command must list all universe and uloop variables
 

@@ -29,7 +29,7 @@ class DumpLocal : public Dump {
   DumpLocal(LAMMPS *, int, char **);
   virtual ~DumpLocal();
 
- private:
+ protected:
   int nevery;                // dump frequency to check Fix against
   char *label;               // string for dump file header
 
@@ -55,11 +55,11 @@ class DumpLocal : public Dump {
 
   void init_style();
   int modify_param(int, char **);
-  void write_header(bigint);
+  virtual void write_header(bigint);
   int count();
   void pack(tagint *);
   int convert_string(int, double *);
-  void write_data(int, double *);
+  virtual void write_data(int, double *);
 
   void parse_fields(int, char **);
   int add_compute(char *);

@@ -11,8 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_nph_sphere.h"
+#include <cstring>
+#include <string>
 #include "modify.h"
 #include "error.h"
 
@@ -34,35 +35,21 @@ FixNPHSphere::FixNPHSphere(LAMMPS *lmp, int narg, char **arg) :
   // compute group = all since pressure is always global (group all)
   // and thus its KE/temperature contribution should use group all
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
+  std::string tcmd = id + std::string("_temp");
+  id_temp = new char[tcmd.size()+1];
+  strcpy(id_temp,tcmd.c_str());
 
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp/sphere";
-
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  modify->add_compute(tcmd + " all temp/sphere");
   tcomputeflag = 1;
 
   // create a new compute pressure style
   // id = fix-ID + press, compute group = all
   // pass id_temp as 4th arg to pressure constructor
 
-  n = strlen(id) + 7;
-  id_press = new char[n];
-  strcpy(id_press,id);
-  strcat(id_press,"_press");
+  std::string pcmd = id + std::string("_press");
+  id_press = new char[pcmd.size()+1];
+  strcpy(id_press,pcmd.c_str());
 
-  newarg = new char*[4];
-  newarg[0] = id_press;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pressure";
-  newarg[3] = id_temp;
-  modify->add_compute(4,newarg);
-  delete [] newarg;
+  modify->add_compute(pcmd + " all pressure " + std::string(id_temp));
   pcomputeflag = 1;
 }

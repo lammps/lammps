@@ -15,10 +15,10 @@
    Contributing author: Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
+#include "fix_box_relax.h"
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "fix_box_relax.h"
+#include <string>
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
@@ -29,6 +29,7 @@
 #include "compute.h"
 #include "error.h"
 #include "math_extra.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -219,8 +220,13 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal fix box/relax command");
   }
 
-  if (p_flag[0] || p_flag[1] || p_flag[2]) box_change_size = 1;
-  if (p_flag[3] || p_flag[4] || p_flag[5]) box_change_shape = 1;
+  if (p_flag[0]) box_change |= BOX_CHANGE_X;
+  if (p_flag[1]) box_change |= BOX_CHANGE_Y;
+  if (p_flag[2]) box_change |= BOX_CHANGE_Z;
+  if (p_flag[3]) box_change |= BOX_CHANGE_YZ;
+  if (p_flag[4]) box_change |= BOX_CHANGE_XZ;
+  if (p_flag[5]) box_change |= BOX_CHANGE_XY;
+
   if (allremap == 0) restart_pbc = 1;
 
   // error checks
@@ -313,36 +319,24 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   // compute group = all since pressure is always global (group all)
   //   and thus its KE/temperature contribution should use group all
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
+  std::string tcmd = id + std::string("_temp");
+  id_temp = new char[tcmd.size()+1];
+  strcpy(id_temp,tcmd.c_str());
 
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  tcmd += " all temp";
+  modify->add_compute(tcmd);
   tflag = 1;
 
   // create a new compute pressure style (virial only)
   // id = fix-ID + press, compute group = all
   // pass id_temp as 4th arg to pressure constructor
 
-  n = strlen(id) + 7;
-  id_press = new char[n];
-  strcpy(id_press,id);
-  strcat(id_press,"_press");
+  std::string pcmd = id + std::string("_press");
+  id_press = new char[pcmd.size()+1];
+  strcpy(id_press,pcmd.c_str());
 
-  newarg = new char*[5];
-  newarg[0] = id_press;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pressure";
-  newarg[3] = id_temp;
-  newarg[4] = (char *) "virial";
-  modify->add_compute(5,newarg);
-  delete [] newarg;
+  pcmd += " all pressure " + std::string(id_temp) + " virial";
+  modify->add_compute(pcmd);
   pflag = 1;
 
   dimension = domain->dimension;

@@ -15,9 +15,9 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
+#include "math_extra.h"
 #include <cstdio>
 #include <cstring>
-#include "math_extra.h"
 
 #define MAXJACOBI 50
 
@@ -56,7 +56,7 @@ int mldivide3(const double m[3][3], const double *v, double *ans)
       if (fabs(aug[j][i]) > fabs(aug[i][i])) {
         double tempv[4];
         memcpy(tempv,aug[i],4*sizeof(double));
-        memcpy(aug[i],aug[j],4*sizeof(double));
+        memmove(aug[i],aug[j],4*sizeof(double));
         memcpy(aug[j],tempv,4*sizeof(double));
       }
     }
@@ -68,7 +68,7 @@ int mldivide3(const double m[3][3], const double *v, double *ans)
       if (p != i) {
         double tempv[4];
         memcpy(tempv,aug[i],4*sizeof(double));
-        memcpy(aug[i],aug[p],4*sizeof(double));
+        memmove(aug[i],aug[p],4*sizeof(double));
         memcpy(aug[p],tempv,4*sizeof(double));
       }
 
@@ -258,7 +258,7 @@ void no_squish_rotate(int k, double *p, double *q, double *inertia,
   // obtain phi, cosines and sines
 
   phi = p[0]*kq[0] + p[1]*kq[1] + p[2]*kq[2] + p[3]*kq[3];
-  if (fabs(inertia[k-1]) < 1e-6) phi *= 0.0;
+  if (inertia[k-1] == 0.0) phi = 0.0;
   else phi /= 4.0 * inertia[k-1];
   c_phi = cos(dt * phi);
   s_phi = sin(dt * phi);
@@ -638,7 +638,7 @@ void BuildRyMatrix(double R[3][3], const double angle)
 }
 
 /* ----------------------------------------------------------------------
- Build rotation matrix for a small angle rotation around the Y axis
+ Build rotation matrix for a small angle rotation around the Z axis
  ------------------------------------------------------------------------- */
 
 void BuildRzMatrix(double R[3][3], const double angle)

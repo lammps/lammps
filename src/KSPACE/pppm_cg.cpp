@@ -15,11 +15,10 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "pppm_cg.h"
 #include <mpi.h>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
-
 #include "atom.h"
 #include "gridcomm.h"
 #include "domain.h"
@@ -27,9 +26,10 @@
 #include "force.h"
 #include "neighbor.h"
 #include "memory.h"
-#include "pppm_cg.h"
-
 #include "math_const.h"
+#include "remap.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -153,20 +153,12 @@ void PPPMCG::compute(int eflag, int vflag)
     charged_frac = static_cast<double>(charged_all) * 100.0
                    / static_cast<double>(atom->natoms);
 
-    if (me == 0) {
-      if (screen)
-        fprintf(screen,
-                "  PPPM/cg optimization cutoff: %g\n"
-                "  Total charged atoms: %.1f%%\n"
-                "  Min/max charged atoms/proc: %.1f%% %.1f%%\n",
-                smallq,charged_frac,charged_fmin,charged_fmax);
-      if (logfile)
-        fprintf(logfile,
-                "  PPPM/cg optimization cutoff: %g\n"
-                "  Total charged atoms: %.1f%%\n"
-                "  Min/max charged atoms/proc: %.1f%% %.1f%%\n",
-                smallq,charged_frac,charged_fmin,charged_fmax);
-    }
+    if (me == 0)
+      utils::logmesg(lmp,fmt::format("  PPPM/cg optimization cutoff: {:.8g}\n"
+                                     "  Total charged atoms: {:.1f}%\n"
+                                     "  Min/max charged atoms/proc: {:.1f}%"
+                                     " {:.1f}%\n",smallq,
+                                     charged_frac,charged_fmin,charged_fmax));
   }
 
   // only need to rebuild this list after a neighbor list update
@@ -495,7 +487,7 @@ void PPPMCG::fieldforce_ad()
     eky *= hy_inv;
     ekz *= hz_inv;
 
-    // convert E-field to force and substract self forces
+    // convert E-field to force and subtract self forces
 
     const double qfactor = qqrd2e * scale;
 

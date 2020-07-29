@@ -11,29 +11,25 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_deprecated.h"
+#include <string>
 #include "comm.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
-
-static void writemsg(LAMMPS *lmp, const char *msg, int abend=1)
-{
-  if (lmp->comm->me == 0) {
-    if (lmp->screen) fputs(msg,lmp->screen);
-    if (lmp->logfile) fputs(msg,lmp->logfile);
-  }
-  if (abend)
-    lmp->error->all(FLERR,"This compute style is no longer available");
-}
 
 /* ---------------------------------------------------------------------- */
 
 ComputeDeprecated::ComputeDeprecated(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (strcmp(style,"DEPRECATED") == 0) {
-    writemsg(lmp,"\nCompute style 'DEPRECATED' is a dummy style\n\n",0);
+  std::string my_style = style;
+
+  if (my_style == "DEPRECATED") {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp,"\nCompute style 'DEPRECATED' is a dummy style\n\n");
+    return;
   }
+  error->all(FLERR,"This compute style is no longer available");
 }

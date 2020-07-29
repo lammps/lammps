@@ -816,7 +816,7 @@ void Material::inv_effective_mass(
 };
 //---------------------------------------------------------------------
 void Material::heat_flux(
-  const FIELD_MATS & fields,
+  const FIELD_MATS & /* fields */,
   const GRAD_FIELD_MATS & gradFields,
   DENS_MAT_VEC & flux) const
 {
@@ -865,7 +865,7 @@ bool  Material::electron_drag_power(
 //---------------------------------------------------------------------
 bool Material::electron_recombination(
   const FIELD_MATS &fields,
-  const GRAD_FIELD_MATS &gradFields,
+  const GRAD_FIELD_MATS & /* gradFields */,
   DENS_MAT & recombination) const
 {
   // 1/tau (n - n0)
@@ -937,7 +937,7 @@ void Material::electron_flux(
 }
 //---------------------------------------------------------------------
 void Material::electric_field(
-  const FIELD_MATS &fields,
+  const FIELD_MATS & /* fields */,
   const GRAD_FIELD_MATS &gradFields,
   DENS_MAT_VEC &flux) const
 {
@@ -950,7 +950,7 @@ void Material::electric_field(
 }
 //---------------------------------------------------------------------
 void Material::electric_displacement(
-  const FIELD_MATS &fields,
+  const FIELD_MATS & /* fields */,
   const GRAD_FIELD_MATS &gradFields,
   DENS_MAT_VEC &flux) const
 {

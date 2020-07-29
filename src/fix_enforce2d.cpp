@@ -11,14 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_enforce2d.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
 #include "modify.h"
 #include "respa.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -76,11 +77,9 @@ void FixEnforce2D::init()
       if (modify->fix[i]->enforce2d_flag) {
         if (myindex < 0)
           flist[nfixlist++] = modify->fix[i];
-        else {
-          char msg[256];
-          snprintf(msg,256,"Fix enforce2d must be defined after fix %s",modify->fix[i]->style);
-          error->all(FLERR,msg);
-        }
+        else
+          error->all(FLERR,fmt::format("Fix enforce2d must be defined after fix {}",
+                                       modify->fix[i]->style));
       }
       if (modify->fix[i] == this) myindex = i;
     }

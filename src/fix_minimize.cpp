@@ -11,12 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "fix_minimize.h"
 #include "atom.h"
 #include "domain.h"
 #include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -44,8 +42,10 @@ FixMinimize::~FixMinimize()
   // delete locally stored data
 
   memory->destroy(peratom);
-  for (int m = 0; m < nvector; m++) memory->destroy(vectors[m]);
-  memory->sfree(vectors);
+  if (vectors) {
+    for (int m = 0; m < nvector; m++) memory->destroy(vectors[m]);
+    memory->sfree(vectors);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

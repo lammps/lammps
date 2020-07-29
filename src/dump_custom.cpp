@@ -11,24 +11,25 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
+#include "dump_custom.h"
 #include <cstdlib>
 #include <cstring>
-#include "dump_custom.h"
+#include <string>
 #include "atom.h"
 #include "force.h"
 #include "domain.h"
 #include "region.h"
 #include "group.h"
 #include "input.h"
-#include "variable.h"
-#include "update.h"
 #include "modify.h"
 #include "compute.h"
 #include "fix.h"
 #include "fix_store.h"
 #include "memory.h"
 #include "error.h"
+#include "update.h"
+#include "variable.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -249,8 +250,10 @@ DumpCustom::~DumpCustom()
     delete [] vformat;
   }
 
-  for (int i = 0; i < size_one; i++) delete [] format_column_user[i];
-  delete [] format_column_user;
+  if (format_column_user) {
+    for (int i = 0; i < size_one; i++) delete [] format_column_user[i];
+    delete [] format_column_user;
+  }
 
   delete [] columns;
 }
@@ -421,6 +424,12 @@ void DumpCustom::header_binary_triclinic(bigint ndump)
 
 void DumpCustom::header_item(bigint ndump)
 {
+  if (unit_flag && !unit_count) {
+    ++unit_count;
+    fprintf(fp,"ITEM: UNITS\n%s\n",update->unit_style);
+  }
+  if (time_flag) fprintf(fp,"ITEM: TIME\n%.16g\n",compute_time());
+
   fprintf(fp,"ITEM: TIMESTEP\n");
   fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
@@ -436,6 +445,12 @@ void DumpCustom::header_item(bigint ndump)
 
 void DumpCustom::header_item_triclinic(bigint ndump)
 {
+  if (unit_flag && !unit_count) {
+    ++unit_count;
+    fprintf(fp,"ITEM: UNITS\n%s\n",update->unit_style);
+  }
+  if (time_flag) fprintf(fp,"ITEM: TIME\n%.16g\n",compute_time());
+
   fprintf(fp,"ITEM: TIMESTEP\n");
   fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
@@ -1968,22 +1983,12 @@ int DumpCustom::modify_param(int narg, char **arg)
                          "dump:thresh_fixID");
       memory->grow(thresh_first,(nthreshlast+1),"dump:thresh_first");
 
-      int n = strlen(id) + strlen("_DUMP_STORE") + 8;
-      thresh_fixID[nthreshlast] = new char[n];
-      strcpy(thresh_fixID[nthreshlast],id);
-      sprintf(&thresh_fixID[nthreshlast][strlen(id)],"%d",nthreshlast);
-      strcat(thresh_fixID[nthreshlast],"_DUMP_STORE");
-
-      char **newarg = new char*[6];
-      newarg[0] = thresh_fixID[nthreshlast];
-      newarg[1] = group->names[igroup];
-      newarg[2] = (char *) "STORE";
-      newarg[3] = (char *) "peratom";
-      newarg[4] = (char *) "1";
-      newarg[5] = (char *) "1";
-      modify->add_fix(6,newarg);
+      std::string threshid = fmt::format("{}{}_DUMP_STORE",id,nthreshlast);
+      thresh_fixID[nthreshlast] = new char[threshid.size()+1];
+      strcpy(thresh_fixID[nthreshlast],threshid.c_str());
+      modify->add_fix(fmt::format("{} {} STORE peratom 1 1",threshid,
+                                  group->names[igroup]));
       thresh_fix[nthreshlast] = (FixStore *) modify->fix[modify->nfix-1];
-      delete [] newarg;
 
       thresh_last[nthreshlast] = nthreshlast;
       thresh_first[nthreshlast] = 1;

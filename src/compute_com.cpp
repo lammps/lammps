@@ -29,7 +29,7 @@ ComputeCOM::ComputeCOM(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 3;
   extvector = 0;
 
-  vector = new double[3];
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */

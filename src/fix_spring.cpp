@@ -15,14 +15,12 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_spring.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "respa.h"
-#include "domain.h"
 #include "force.h"
 #include "group.h"
 #include "error.h"

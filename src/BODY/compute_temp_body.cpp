@@ -16,9 +16,9 @@
    based on ComputeTempAsphere
 ------------------------------------------------------------------------- */
 
+#include "compute_temp_body.h"
 #include <mpi.h>
 #include <cstring>
-#include "compute_temp_body.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_body.h"
@@ -27,7 +27,6 @@
 #include "domain.h"
 #include "modify.h"
 #include "group.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -71,7 +70,7 @@ ComputeTempBody::ComputeTempBody(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal compute temp/body command");
   }
 
-  vector = new double[6];
+  vector = new double[size_vector];
 
 }
 

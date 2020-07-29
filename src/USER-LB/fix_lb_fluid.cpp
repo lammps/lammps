@@ -20,15 +20,14 @@
 #include <cmath>
 #include <mpi.h>
 #include <cstdlib>
-#include <cstdio>
 #include <cstring>
+#include <algorithm>
+#include <utility>
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
 #include "domain.h"
 #include "atom.h"
-#include <iostream>
-#include <iomanip>
 #include "group.h"
 #include "random_mars.h"
 #include "update.h"
@@ -547,6 +546,18 @@ FixLbFluid::~FixLbFluid()
   } else {
     delete [] NodeArea;
   }
+  MPI_Type_free(&passxf);
+  MPI_Type_free(&passyf);
+  MPI_Type_free(&passzf);
+  MPI_Type_free(&passxu);
+  MPI_Type_free(&passyu);
+  MPI_Type_free(&passzu);
+  MPI_Type_free(&passxrho);
+  MPI_Type_free(&passyrho);
+  MPI_Type_free(&passzrho);
+  MPI_Type_free(&passxtemp);
+  MPI_Type_free(&passytemp);
+  MPI_Type_free(&passztemp);
 }
 
 int FixLbFluid::setmask()

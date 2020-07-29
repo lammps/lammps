@@ -21,17 +21,18 @@
    The simplification is that all normals are taken along the z-direction
 ------------------------------------------------------------------------- */
 
+#include "pair_kolmogorov_crespi_z.h"
+#include <mpi.h>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_kolmogorov_crespi_z.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -259,17 +260,18 @@ void PairKolmogorovCrespiZ::coeff(int narg, char **arg)
     }
   }
 
-
   read_file(arg[2]);
 
-  double cut_one = cut_global;
+  // set setflag only for i,j pairs where both are mapped to elements
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
-      cut[i][j] = cut_one;
-      setflag[i][j] = 1;
-      count++;
+      if ((map[i] >=0) && (map[j] >= 0)) {
+        cut[i][j] = cut_global;
+        setflag[i][j] = 1;
+        count++;
+      }
     }
   }
 
@@ -284,6 +286,8 @@ void PairKolmogorovCrespiZ::coeff(int narg, char **arg)
 double PairKolmogorovCrespiZ::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (!offset_flag)
+    error->all(FLERR,"Must use 'pair_modify shift yes' with this pair style");
 
   if (offset_flag && (cut[i][j] > 0.0)) {
     int iparam_ij = elem2param[map[i]][map[j]];
@@ -342,7 +346,7 @@ void PairKolmogorovCrespiZ::read_file(char *filename)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // concatenate additional lines until have params_per_line words
@@ -361,7 +365,7 @@ void PairKolmogorovCrespiZ::read_file(char *filename)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+      nwords = utils::count_words(line);
     }
 
     if (nwords != params_per_line)
@@ -390,6 +394,11 @@ void PairKolmogorovCrespiZ::read_file(char *filename)
       maxparam += DELTA;
       params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
                                           "pair:params");
+
+      // make certain all addional allocated storage is initialized
+      // to avoid false positives when checking with valgrind
+
+      memset(params + nparams, 0, DELTA*sizeof(Param));
     }
 
     params[nparams].ielement = ielement;

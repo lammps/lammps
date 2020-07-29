@@ -15,16 +15,12 @@
    Contributing author: Axel Kohlmeyer (Temple U), akohlmey at gmail.com
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "angle_cosine_delta.h"
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
-#include "comm.h"
 #include "force.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

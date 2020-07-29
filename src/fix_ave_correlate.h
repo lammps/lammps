@@ -20,7 +20,6 @@ FixStyle(ave/correlate,FixAveCorrelate)
 #ifndef LMP_FIX_AVE_CORRELATE_H
 #define LMP_FIX_AVE_CORRELATE_H
 
-#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {

@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "output.h"
+#include <mpi.h>
+#include <cstring>
+#include <string>
 #include "style_dump.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -26,12 +26,13 @@
 #include "domain.h"
 #include "thermo.h"
 #include "modify.h"
-#include "compute.h"
 #include "force.h"
 #include "dump.h"
 #include "write_restart.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -45,28 +46,13 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
 {
   // create default computes for temp,pressure,pe
 
-  char **newarg = new char*[4];
-  newarg[0] = (char *) "thermo_temp";
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp";
-  modify->add_compute(3,newarg);
-
-  newarg[0] = (char *) "thermo_press";
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pressure";
-  newarg[3] = (char *) "thermo_temp";
-  modify->add_compute(4,newarg);
-
-  newarg[0] = (char *) "thermo_pe";
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pe";
-  modify->add_compute(3,newarg);
-
-  delete [] newarg;
+  modify->add_compute("thermo_temp all temp");
+  modify->add_compute("thermo_press all pressure thermo_temp");
+  modify->add_compute("thermo_pe all pe");
 
   // create default Thermo class
 
-  newarg = new char*[1];
+  char **newarg = new char*[1];
   newarg[0] = (char *) "one";
   thermo = new Thermo(lmp,1,newarg);
   delete [] newarg;
@@ -332,13 +318,14 @@ void Output::write(bigint ntimestep)
 
   if (next_restart == ntimestep) {
     if (next_restart_single == ntimestep) {
-      char *file = new char[strlen(restart1) + 16];
-      char *ptr = strchr(restart1,'*');
-      *ptr = '\0';
-      sprintf(file,"%s" BIGINT_FORMAT "%s",restart1,ntimestep,ptr+1);
-      *ptr = '*';
+
+      std::string file = restart1;
+      std::size_t found = file.find("*");
+      if (found != std::string::npos)
+        file.replace(found,1,fmt::format("{}",update->ntimestep));
+
       if (last_restart != ntimestep) restart->write(file);
-      delete [] file;
+
       if (restart_every_single) next_restart_single += restart_every_single;
       else {
         modify->clearstep_compute();
@@ -420,13 +407,11 @@ void Output::write_dump(bigint ntimestep)
 void Output::write_restart(bigint ntimestep)
 {
   if (restart_flag_single) {
-    char *file = new char[strlen(restart1) + 16];
-    char *ptr = strchr(restart1,'*');
-    *ptr = '\0';
-    sprintf(file,"%s" BIGINT_FORMAT "%s",restart1,ntimestep,ptr+1);
-    *ptr = '*';
+    std::string file = restart1;
+    std::size_t found = file.find("*");
+    if (found != std::string::npos)
+      file.replace(found,1,fmt::format("{}",update->ntimestep));
     restart->write(file);
-    delete [] file;
   }
 
   if (restart_flag_double) {
@@ -583,10 +568,9 @@ void Output::add_dump(int narg, char **arg)
   // create the Dump
 
   if (dump_map->find(arg[2]) != dump_map->end()) {
-    DumpCreator dump_creator = (*dump_map)[arg[2]];
+    DumpCreator &dump_creator = (*dump_map)[arg[2]];
     dump[ndump] = dump_creator(lmp, narg, arg);
-  }
-  else error->all(FLERR,"Unknown dump style");
+  } else error->all(FLERR,utils::check_packages_for_style("dump",arg[2],lmp));
 
   every_dump[ndump] = force->inumeric(FLERR,arg[3]);
   if (every_dump[ndump] <= 0) error->all(FLERR,"Illegal dump command");
@@ -675,8 +659,13 @@ void Output::set_thermo(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal thermo command");
 
+  // always reset var_thermo, so it is possible to switch back from
+  // variable spaced thermo outputs to constant spaced ones.
+
+  delete [] var_thermo;
+  var_thermo = NULL;
+
   if (strstr(arg[0],"v_") == arg[0]) {
-    delete [] var_thermo;
     int n = strlen(&arg[0][2]) + 1;
     var_thermo = new char[n];
     strcpy(var_thermo,&arg[0][2]);

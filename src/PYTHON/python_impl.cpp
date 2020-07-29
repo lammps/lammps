@@ -15,8 +15,10 @@
    Contributing author: Richard Berger and Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <Python.h>
-#include "lmppython.h"
+#include "python_impl.h"
+#include <cstdlib>
+#include <cstring>
+#include <Python.h>  // IWYU pragma: keep
 #include "force.h"
 #include "input.h"
 #include "variable.h"
@@ -357,7 +359,7 @@ void PythonImpl::invoke_function(int ifunc, char *result)
 
 /* ------------------------------------------------------------------ */
 
-int PythonImpl::find(char *name)
+int PythonImpl::find(const char *name)
 {
   for (int i = 0; i < nfunc; i++)
     if (strcmp(name,pfuncs[i].name) == 0) return i;
@@ -366,7 +368,8 @@ int PythonImpl::find(char *name)
 
 /* ------------------------------------------------------------------ */
 
-int PythonImpl::variable_match(char *name, char *varname, int numeric)
+int PythonImpl::variable_match(const char *name, const char *varname,
+                               int numeric)
 {
   int ifunc = find(name);
   if (ifunc < 0) return -1;
@@ -407,7 +410,7 @@ int PythonImpl::create_entry(char *name)
 
   if (!format && ninput+noutput)
     error->all(FLERR,"Invalid python command");
-  else if (format && strlen(format) != ninput+noutput)
+  else if (format && ((int) strlen(format) != ninput+noutput))
     error->all(FLERR,"Invalid python command");
 
   // process inputs as values or variables
@@ -532,4 +535,11 @@ void PythonImpl::deallocate(int i)
   delete [] pfuncs[i].svalue;
   delete [] pfuncs[i].ovarname;
   delete [] pfuncs[i].longstr;
+}
+
+/* ------------------------------------------------------------------ */
+
+bool PythonImpl::has_minimum_version(int major, int minor)
+{
+    return (PY_MAJOR_VERSION == major && PY_MINOR_VERSION >= minor) || (PY_MAJOR_VERSION > major);
 }

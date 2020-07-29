@@ -16,6 +16,18 @@ if(ENABLE_TESTING)
   set(MEMORYCHECK_COMMAND "${VALGRIND_BINARY}" CACHE FILEPATH "Memory Check Command")
   set(MEMORYCHECK_COMMAND_OPTIONS "${VALGRIND_DEFAULT_OPTIONS}" CACHE STRING "Memory Check Command Options")
 
+  # check if a faster linker is available
+  include(CheckCXXCompilerFlag)
+  check_cxx_compiler_flag(-fuse-ld=lld HAVE_LLD_LINKER)
+  check_cxx_compiler_flag(-fuse-ld=gold HAVE_GOLD_LINKER)
+  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
+    if(HAVE_LLD_LINKER)
+      target_link_options(lammps PUBLIC -fuse-ld=lld)
+    elseif(HAVE_OLD_LINKER)
+      target_link_options(lammps PUBLIC -fuse-ld=gold)
+    endif()
+  endif()
+
   include(CTest)
 
   enable_testing()

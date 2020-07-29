@@ -883,6 +883,7 @@ void CommTiled::borders()
     // swap atoms with other procs using pack_border(), unpack_border()
     // use Waitall() instead of Waitany() because calls to unpack_border()
     //   must increment per-atom arrays in ascending order
+    // For the same reason, sendself unpacks must occur after recvother unpacks
 
     if (ghost_velocity) {
       if (recvother[iswap]) {

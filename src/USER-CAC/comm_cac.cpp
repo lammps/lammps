@@ -296,6 +296,9 @@ void CommCAC::setup()
   // check that cutoff < any periodic box length
 
   double cut = neighbor->cutneighmax;
+  double cut_add = atom->cut_add;
+  if(cut_add<0) error->all(FLERR,"additional cutoff range imposed by fix/compute cannot be negative");
+
   if(cut>max_search_range)
   atom->max_search_range=max_search_range=cut;
   if(!triclinic){
@@ -304,31 +307,28 @@ void CommCAC::setup()
       for (i = 1; i <= ntypes; i++) {
         cut = 0.0;
         if (cutusermulti) cut = cutusermulti[i];
-        cutghostmulti[i][0] = MAX(cut,cuttype[i]);
-        cutghostmulti[i][1] = MAX(cut,cuttype[i]);
-        cutghostmulti[i][2] = MAX(cut,cuttype[i]);
+        cutghostmulti[i][0] = MAX(cut,cuttype[i]) + cut_add;
+        cutghostmulti[i][1] = MAX(cut,cuttype[i]) + cut_add;
+        cutghostmulti[i][2] = MAX(cut,cuttype[i]) + cut_add;
       }
     }
   //cut = MAX(neighbor->cutneighmax,cutghostuser);
   /*cutoff for ghost information is the sum of the force cutoff
   and the difference between the limiting element bounding boxes
   and the local simulation box limits*/
-  cutghost[0] = cutghost[1] = cutghost[2] = cut+BOXEPSILON;
+  cutghost[0] = cutghost[1] = cutghost[2] = cut + BOXEPSILON + cut_add;
   element_overlap_range[0]=element_overlap_range[1]=element_overlap_range[2]=
   element_overlap_range[3]=element_overlap_range[4]=element_overlap_range[5]=max_search_range+BOXEPSILON;
   }
   else {
-    prd = domain->prd_lamda;
-    sublo = domain->sublo_lamda;
-    subhi = domain->subhi_lamda;
     double *h_inv = domain->h_inv;
     double length0,length1,length2;
     length0 = sqrt(h_inv[0]*h_inv[0] + h_inv[5]*h_inv[5] + h_inv[4]*h_inv[4]);
-    cutghost[0] = (cut + BOXEPSILON) * length0;
+    cutghost[0] = (cut + BOXEPSILON + cut_add) * length0;
     length1 = sqrt(h_inv[1]*h_inv[1] + h_inv[3]*h_inv[3]);
-    cutghost[1] = (cut + BOXEPSILON) * length1;
+    cutghost[1] = (cut + BOXEPSILON + cut_add) * length1;
     length2 = h_inv[2];
-    cutghost[2] = (cut + BOXEPSILON) * length2;
+    cutghost[2] = (cut + BOXEPSILON + cut_add) * length2;
     element_overlap_range[0]=element_overlap_range[1] = (max_search_range+BOXEPSILON) * length0;
     element_overlap_range[2]=element_overlap_range[3] = (max_search_range+BOXEPSILON) * length1;
     element_overlap_range[4]=element_overlap_range[5] = (max_search_range+BOXEPSILON) * length2;
@@ -341,9 +341,9 @@ void CommCAC::setup()
       for (i = 1; i <= ntypes; i++) {
         cut = 0.0;
         if (cutusermulti) cut = cutusermulti[i];
-        cutghostmulti[i][0] = length0 * MAX(cut,cuttype[i]);
-        cutghostmulti[i][1] = length1 * MAX(cut,cuttype[i]);
-        cutghostmulti[i][2] = length2 * MAX(cut,cuttype[i]);
+        cutghostmulti[i][0] = length0 * (MAX(cut,cuttype[i]) + cut_add);
+        cutghostmulti[i][1] = length1 * (MAX(cut,cuttype[i]) + cut_add);
+        cutghostmulti[i][2] = length2 * (MAX(cut,cuttype[i]) + cut_add);
       }
     }
   }
@@ -1024,12 +1024,12 @@ void CommCAC::setup()
 
          for(int idim=0; idim<dimension; idim++){
           if(eoboxlo[idim]<=sublo[idim]){
-            sbox[3+idim]=MIN(eoboxhi[idim],subhi[idim]);
-            sbox[idim]=sublo[idim];
+            sbox[3+idim]=MIN(eoboxhi[idim],subhi[idim]+box_epsilon[idim]);
+            sbox[idim]=sublo[idim]-box_epsilon[idim];
             if(sbox[3+idim]<=sbox[idim])sbox[3+idim]=sbox[idim];
           }
           else{
-            sbox[3+idim]=MIN(eoboxhi[idim],subhi[idim]);
+            sbox[3+idim]=MIN(eoboxhi[idim],subhi[idim]+box_epsilon[idim]);
             sbox[idim]=eoboxlo[idim];
             if(sbox[idim]>=sbox[3+idim])sbox[idim]=sbox[3+idim];
           }
@@ -1349,7 +1349,7 @@ void CommCAC::compute_eboxes(int mode){
   int *poly_count = atom->poly_count;
   int *nodes_per_element_list = atom->nodes_per_element_list;
   int neboxes=0;
-  double cut=neighbor->cutneighmax;
+  double cut=neighbor->cutneighmax + atom->cut_add;
   local_neboxes=0;
   // domain properties used in setup method and methods it calls
 
@@ -2511,17 +2511,17 @@ int CommCAC::sendbox_include(int iswap, int m, int current_element)
   int lo[3],hi[3];
   int ebox_id;
   int iebox;
-  double cut=neighbor->cutneighmax;
+  double cut= neighbor->cutneighmax +atom->cut_add;
   overlap_counter=m;
 
   if(element_type[current_element]!=0){
     ebox_id=ebox_ref[current_element];
-    reduced_ebox[0]=eboxes[ebox_id][0]+cutghost[0];
-    reduced_ebox[1]=eboxes[ebox_id][1]+cutghost[1];
-    reduced_ebox[2]=eboxes[ebox_id][2]+cutghost[2];
-    reduced_ebox[3]=eboxes[ebox_id][3]-cutghost[0];
-    reduced_ebox[4]=eboxes[ebox_id][4]-cutghost[1];
-    reduced_ebox[5]=eboxes[ebox_id][5]-cutghost[2];
+    reduced_ebox[0]=eboxes[ebox_id][0]+cut;
+    reduced_ebox[1]=eboxes[ebox_id][1]+cut;
+    reduced_ebox[2]=eboxes[ebox_id][2]+cut;
+    reduced_ebox[3]=eboxes[ebox_id][3]-cut;
+    reduced_ebox[4]=eboxes[ebox_id][4]-cut;
+    reduced_ebox[5]=eboxes[ebox_id][5]-cut;
   }
   bbox = sendbox[iswap][m];
   xlo = bbox[0]-box_epsilon[0]; ylo = bbox[1]-box_epsilon[1]; zlo = bbox[2]-box_epsilon[2];
@@ -3126,28 +3126,29 @@ int CommCAC::point_drop_tiled(int idim, double *x)
   if (proc == me) return me;
 
     /*since point tiled recurse includes the closure of the split interval (i.e an == case)
-    //perturb the particle in that dimension lower to bring it out of the closure that normally returns an adjacent proc
+    perturb the particle in that dimension lower to bring it out of the closure that normally returns an adjacent proc
     to that which is intended */
     int done = 1;
     if (rcbinfo[proc].mysplit[dim1_other][0] == rcbinfo[me].mysplit[dim1_other][1]) {
-      xnew[dim1_other] -= EPSILON * (subhi[dim1_other]-sublo[dim1_other]);
+      xnew[dim1_other] -= box_epsilon[dim1_other] * (subhi[dim1_other]-sublo[dim1_other]);
       done = 0;
     }
     if (rcbinfo[proc].mysplit[dim2_other][0] == rcbinfo[me].mysplit[dim2_other][1]) {
-      xnew[dim2_other] -= EPSILON * (subhi[dim2_other]-sublo[dim2_other]);
+      xnew[dim2_other] -= box_epsilon[dim2_other] * (subhi[dim2_other]-sublo[dim2_other]);
       done = 0;
     }
 
     if (!done) {
       proc = point_drop_tiled_recurse(xnew,0,nprocs-1);
       done = 1;
-      //sanity catch in case epsilon wasn't enough and floating point precision still catches an adjacent proc
+      /*sanity catch in case epsilon wasn't enough and floating point precision still catches an adjacent proc
+      displaced along the other dims*/
       if (rcbinfo[proc].mysplit[dim1_other][0] == rcbinfo[me].mysplit[dim1_other][1]) {
-        xnew[dim1_other] -= EPSILON * (subhi[dim1_other]-sublo[dim1_other]);
+        xnew[dim1_other] -= box_epsilon[dim1_other] * (subhi[dim1_other]-sublo[dim1_other]);
         done = 0;
       }
       if (rcbinfo[proc].mysplit[dim2_other][0] == rcbinfo[me].mysplit[dim2_other][1]) {
-        xnew[dim2_other] -= EPSILON * (subhi[dim2_other]-sublo[dim2_other]);
+        xnew[dim2_other] -= box_epsilon[dim2_other] * (subhi[dim2_other]-sublo[dim2_other]);
         done = 0;
       }
       if (!done) proc = point_drop_tiled_recurse(xnew,0,nprocs-1);

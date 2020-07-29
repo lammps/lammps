@@ -54,7 +54,8 @@ class CommTiled : public Comm {
 
  private:
   int nswap;                    // # of swaps to perform = 2*dim
-
+  int maxswap;                  // largest nswap can be = 6
+  
   // forward/reverse comm info, proc lists include self
 
   int *nsendproc,*nrecvproc;    // # of procs to send/recv to/from per swap

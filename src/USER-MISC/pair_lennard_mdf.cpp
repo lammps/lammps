@@ -259,6 +259,7 @@ double PairLJ_AB_MDF::init_one(int i, int j)
   lj3[i][j] = aparm[i][j];
   lj4[i][j] = bparm[i][j];
 
+  cut[j][i] = cut[i][j];
   cut_inner[j][i] = cut_inner[i][j];
   cut_inner_sq[j][i] = cut_inner_sq[i][j];
   lj1[j][i] = lj1[i][j];
@@ -368,7 +369,7 @@ double PairLJ_AB_MDF::single(int /*i*/, int /*j*/, int itype, int jtype,
     dt = 30.* d*d * dd*dd * rr / dp;
 
     forcelj = forcelj*tt + philj*dt;
-    philj *= dt;
+    philj *= tt;
   }
 
   fforce = factor_lj*forcelj*r2inv;

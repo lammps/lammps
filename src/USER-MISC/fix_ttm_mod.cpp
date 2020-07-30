@@ -66,7 +66,12 @@ static const char cite_fix_ttm_mod[] =
 /* ---------------------------------------------------------------------- */
 
 FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), fp(NULL)
+  Fix(lmp, narg, arg),
+  random(NULL), fp(NULL), T_initial_set(NULL), nsum(NULL), nsum_all(NULL),
+  gfactor1(NULL), gfactor2(NULL), ratio(NULL), flangevin(NULL),
+  T_electron(NULL), T_electron_old(NULL), sum_vsq(NULL), sum_mass_vsq(NULL),
+  sum_vsq_all(NULL), sum_mass_vsq_all(NULL), net_energy_transfer(NULL),
+  net_energy_transfer_all(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_ttm_mod);
 
@@ -521,7 +526,7 @@ void FixTTMMod::read_parameters(const char *filename)
 
 void FixTTMMod::read_initial_electron_temperatures(const char *filename)
 {
-  memset(&T_initial_set[0][0][0],0,total_nnodes*sizeof(double));
+  memset(&T_initial_set[0][0][0],0,total_nnodes*sizeof(int));
 
   std::string name = utils::get_potential_file_path(filename);
   if (name.empty())
@@ -557,6 +562,14 @@ void FixTTMMod::read_initial_electron_temperatures(const char *filename)
     T_initial_set[ixnode][iynode][iznode] = 1;
   }
   fclose(fpr);
+
+  // check completeness of input data
+
+  for (int ixnode = 0; ixnode < nxnodes; ixnode++)
+    for (int iynode = 0; iynode < nynodes; iynode++)
+      for (int iznode = 0; iznode < nznodes; iznode++)
+        if (T_initial_set[ixnode][iynode][iznode] == 0)
+          error->one(FLERR,"Initial temperatures not all set in fix ttm");
 }
 
 /* ---------------------------------------------------------------------- */

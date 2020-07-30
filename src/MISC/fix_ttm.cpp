@@ -42,11 +42,11 @@ using namespace FixConst;
 
 FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  random(NULL), fp(NULL), nsum(NULL), nsum_all(NULL),
-  T_initial_set(NULL), gfactor1(NULL), gfactor2(NULL), ratio(NULL),
-  flangevin(NULL), T_electron(NULL), T_electron_old(NULL), sum_vsq(NULL),
-  sum_mass_vsq(NULL), sum_vsq_all(NULL), sum_mass_vsq_all(NULL),
-  net_energy_transfer(NULL), net_energy_transfer_all(NULL)
+  random(NULL), fp(NULL), T_initial_set(NULL), nsum(NULL), nsum_all(NULL),
+  gfactor1(NULL), gfactor2(NULL), ratio(NULL), flangevin(NULL),
+  T_electron(NULL), T_electron_old(NULL), sum_vsq(NULL), sum_mass_vsq(NULL),
+  sum_vsq_all(NULL), sum_mass_vsq_all(NULL), net_energy_transfer(NULL),
+  net_energy_transfer_all(NULL)
 {
   if (narg < 15) error->all(FLERR,"Illegal fix ttm command");
 
@@ -327,7 +327,7 @@ void FixTTM::reset_dt()
 
 void FixTTM::read_initial_electron_temperatures(const char *filename)
 {
-  memset(&T_initial_set[0][0][0],0,total_nnodes*sizeof(double));
+  memset(&T_initial_set[0][0][0],0,total_nnodes*sizeof(int));
 
   std::string name = utils::get_potential_file_path(filename);
   if (name.empty())
@@ -360,8 +360,9 @@ void FixTTM::read_initial_electron_temperatures(const char *filename)
       error->one(FLERR,"Fix ttm electron temperatures must be > 0.0");
 
     T_electron[ixnode][iynode][iznode] = T_tmp;
-    T_initial_set[ixnode][iynode][iznode] = 1.0;
+    T_initial_set[ixnode][iynode][iznode] = 1;
   }
+  fclose(fpr);
 
   // check completeness of input data
 
@@ -370,8 +371,6 @@ void FixTTM::read_initial_electron_temperatures(const char *filename)
       for (int iznode = 0; iznode < nznodes; iznode++)
         if (T_initial_set[ixnode][iynode][iznode] == 0)
           error->one(FLERR,"Initial temperatures not all set in fix ttm");
-
-  fclose(fpr);
 }
 
 /* ---------------------------------------------------------------------- */

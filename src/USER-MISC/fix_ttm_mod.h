@@ -58,11 +58,11 @@ class FixTTMMod : public Fix {
   int seed;
   class RanMars *random;
   FILE *fp;
-  int nxnodes,nynodes,nznodes,total_nnodes;
-  int ***nsum;
-  int ***nsum_all,***T_initial_set;
-  double *gfactor1,*gfactor2,*ratio;
-  double **flangevin;
+  int nxnodes,nynodes,nznodes;
+  bigint total_nnodes;
+  int ***T_initial_set;
+  int ***nsum, ***nsum_all;
+  double *gfactor1,*gfactor2,*ratio,**flangevin;
   double ***T_electron,***T_electron_old,***T_electron_first;
   double ***sum_vsq,***sum_mass_vsq;
   double ***sum_vsq_all,***sum_mass_vsq_all;

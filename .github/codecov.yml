@@ -20,3 +20,10 @@ coverage:
             paths:
               - "src"
             informational: true
+    patch:
+        default:
+            branches:
+              - "master"
+            paths:
+              - "src"
+            informational: true

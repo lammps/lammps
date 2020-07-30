@@ -48,7 +48,6 @@ class FixTTM : public Fix {
   double compute_vector(int);
 
  private:
-  int me;
   int nfileevery;
   int nlevels_respa;
   int seed;

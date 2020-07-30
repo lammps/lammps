@@ -66,7 +66,7 @@ static const char cite_fix_ttm_mod[] =
 /* ---------------------------------------------------------------------- */
 
 FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), fp(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_ttm_mod);
 
@@ -96,8 +96,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   nfileevery = force->inumeric(FLERR,arg[9]);
   if (nfileevery > 0) {
     if (narg != 11) error->all(FLERR,"Illegal fix ttm/mod command");
-    MPI_Comm_rank(world,&me);
-    if (me == 0) {
+    if (comm->me == 0) {
       fp = fopen(arg[10],"w");
       if (fp == NULL) {
         char str[128];
@@ -159,7 +158,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(0);
   atom->add_callback(1);
   // set initial electron temperatures from user input file
-  if (me == 0) read_initial_electron_temperatures(arg[13]);
+  if (comm->me == 0) read_initial_electron_temperatures(arg[13]);
   MPI_Bcast(&T_electron[0][0][0],total_nnodes,MPI_DOUBLE,0,world);
 }
 
@@ -167,7 +166,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
 
 FixTTMMod::~FixTTMMod()
 {
-  if (nfileevery && me == 0) fclose(fp);
+  if (fp) fclose(fp);
   delete random;
   delete [] gfactor1;
   delete [] gfactor2;
@@ -806,7 +805,7 @@ void FixTTMMod::end_of_step()
                   total_nnodes,MPI_DOUBLE,MPI_SUM,world);
     MPI_Allreduce(&t_surface_l,&surface_l,
                   1,MPI_INT,MPI_MIN,world);
-    if (me == 0) {
+    if (comm->me == 0) {
       fmt::print(fp,"{}",update->ntimestep);
       double T_a;
       for (int ixnode = 0; ixnode < nxnodes; ixnode++)

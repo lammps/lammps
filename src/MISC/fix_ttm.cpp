@@ -145,7 +145,7 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
 
   // set initial electron temperatures from user input file
 
-  if (me == 0) read_initial_electron_temperatures(arg[13]);
+  if (comm->me == 0) read_initial_electron_temperatures(arg[13]);
   MPI_Bcast(&T_electron[0][0][0],total_nnodes,MPI_DOUBLE,0,world);
 }
 
@@ -153,7 +153,7 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
 
 FixTTM::~FixTTM()
 {
-  if (nfileevery && me == 0) fclose(fp);
+  if (fp) fclose(fp);
 
   delete random;
 
@@ -360,7 +360,7 @@ void FixTTM::read_initial_electron_temperatures(const char *filename)
       error->one(FLERR,"Fix ttm electron temperatures must be > 0.0");
 
     T_electron[ixnode][iynode][iznode] = T_tmp;
-    T_initial_set[ixnode][iynode][iznode] = 1;
+    T_initial_set[ixnode][iynode][iznode] = 1.0;
   }
 
   // check completeness of input data
@@ -475,7 +475,7 @@ void FixTTM::end_of_step()
               (T_electron_old[ixnode][iynode][right_znode] +
                T_electron_old[ixnode][iynode][left_znode] -
                2*T_electron_old[ixnode][iynode][iznode])/dz/dz) -
-              (net_energy_transfer_all[ixnode][iynode][iznode])/del_vol);
+             (net_energy_transfer_all[ixnode][iynode][iznode])/del_vol);
         }
   }
 
@@ -526,7 +526,7 @@ void FixTTM::end_of_step()
     MPI_Allreduce(&sum_mass_vsq[0][0][0],&sum_mass_vsq_all[0][0][0],
                   total_nnodes,MPI_DOUBLE,MPI_SUM,world);
 
-    if (me == 0) {
+    if (comm->me == 0) {
       fmt::print(fp,"{}",update->ntimestep);
 
       double T_a;

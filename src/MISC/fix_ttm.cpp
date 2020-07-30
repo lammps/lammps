@@ -42,7 +42,7 @@ using namespace FixConst;
 
 FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  random(NULL), fp(NULL), T_initial_set(NULL), nsum(NULL), nsum_all(NULL),
+  random(NULL), fp(NULL), nsum(NULL), nsum_all(NULL),
   gfactor1(NULL), gfactor2(NULL), ratio(NULL), flangevin(NULL),
   T_electron(NULL), T_electron_old(NULL), sum_vsq(NULL), sum_mass_vsq(NULL),
   sum_vsq_all(NULL), sum_mass_vsq_all(NULL), net_energy_transfer(NULL),
@@ -116,7 +116,6 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
 
   memory->create(nsum,nxnodes,nynodes,nznodes,"ttm:nsum");
   memory->create(nsum_all,nxnodes,nynodes,nznodes,"ttm:nsum_all");
-  memory->create(T_initial_set,nxnodes,nynodes,nznodes,"ttm:T_initial_set");
   memory->create(sum_vsq,nxnodes,nynodes,nznodes,"ttm:sum_vsq");
   memory->create(sum_mass_vsq,nxnodes,nynodes,nznodes,"ttm:sum_mass_vsq");
   memory->create(sum_vsq_all,nxnodes,nynodes,nznodes,"ttm:sum_vsq_all");
@@ -162,7 +161,6 @@ FixTTM::~FixTTM()
 
   memory->destroy(nsum);
   memory->destroy(nsum_all);
-  memory->destroy(T_initial_set);
   memory->destroy(sum_vsq);
   memory->destroy(sum_mass_vsq);
   memory->destroy(sum_vsq_all);
@@ -217,9 +215,9 @@ void FixTTM::init()
 
 void FixTTM::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet")) {
     post_force_setup(vflag);
-  else {
+  } else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
     post_force_respa_setup(vflag,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
@@ -327,6 +325,8 @@ void FixTTM::reset_dt()
 
 void FixTTM::read_initial_electron_temperatures(const char *filename)
 {
+  int ***T_initial_set;
+  memory->create(T_initial_set,nxnodes,nynodes,nznodes,"ttm:T_initial_set");
   memset(&T_initial_set[0][0][0],0,total_nnodes*sizeof(int));
 
   std::string name = utils::get_potential_file_path(filename);
@@ -371,6 +371,8 @@ void FixTTM::read_initial_electron_temperatures(const char *filename)
       for (int iznode = 0; iznode < nznodes; iznode++)
         if (T_initial_set[ixnode][iynode][iznode] == 0)
           error->one(FLERR,"Initial temperatures not all set in fix ttm");
+
+  memory->destroy(T_initial_set);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -571,7 +573,7 @@ void FixTTM::grow_arrays(int ngrow)
 }
 
 /* ----------------------------------------------------------------------
-  return the energy of the electronic subsystem or the net_energy transfer
+   return the energy of the electronic subsystem or the net_energy transfer
    between the subsystems
 ------------------------------------------------------------------------- */
 
@@ -593,7 +595,7 @@ double FixTTM::compute_vector(int n)
           electronic_density*del_vol;
         transfer_energy +=
           net_energy_transfer_all[ixnode][iynode][iznode]*update->dt;
-  }
+      }
 
   if (n == 0) return e_energy;
   if (n == 1) return transfer_energy;

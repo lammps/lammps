@@ -98,7 +98,7 @@ void CommTiled::init()
   Comm::init();
 
   nswap = 2 * domain->dimension;
-  
+
   int bufextra_old = bufextra;
   init_exchange();
   if (bufextra > bufextra_old) grow_send(maxsend+bufextra,2);
@@ -192,7 +192,7 @@ void CommTiled::setup()
     cut = MIN(prd[0],prd[1]);
     if (dimension == 3) cut = MIN(cut,prd[2]);
     cut *= EPSILON*EPSILON;
-    cutghost[0] = cutghost[1] = cutghost[2] = cut; 
+    cutghost[0] = cutghost[1] = cutghost[2] = cut;
   }
 
   // setup forward/reverse communication
@@ -325,16 +325,16 @@ void CommTiled::setup()
           sbox[3] = MIN(oboxhi[0],hi1[0]);
           sbox[4] = MIN(oboxhi[1],hi1[1]);
           sbox[5] = MIN(oboxhi[2],hi1[2]);
-	  
+
         } else {
           pbc_flag[iswap][i] = 1;
           if (idir == 0) pbc[iswap][i][idim] = 1;
           else pbc[iswap][i][idim] = -1;
-	  if (triclinic) {
+          if (triclinic) {
             if (idim == 1) pbc[iswap][i][5] = pbc[iswap][i][idim];
             if (idim == 2) pbc[iswap][i][4] = pbc[iswap][i][3] = pbc[iswap][i][idim];
           }
-	  
+
           sbox[0] = MAX(oboxlo[0],lo2[0]);
           sbox[1] = MAX(oboxlo[1],lo2[1]);
           sbox[2] = MAX(oboxlo[2],lo2[2]);
@@ -346,7 +346,7 @@ void CommTiled::setup()
         if (idir == 0) {
           sbox[idim] = sublo[idim];
           if (i < noverlap1)
-	    sbox[3+idim] = MIN(sbox[3+idim]+cutghost[idim],subhi[idim]);
+            sbox[3+idim] = MIN(sbox[3+idim]+cutghost[idim],subhi[idim]);
           else sbox[3+idim] = MIN(sbox[3+idim]-prd[idim]+cutghost[idim],subhi[idim]);
         } else {
           if (i < noverlap1) sbox[idim] = MAX(sbox[idim]-cutghost[idim],sublo[idim]);
@@ -370,7 +370,7 @@ void CommTiled::setup()
     }
   }
 
-  
+
   // setup exchange communication = subset of forward/reverse comm procs
   // loop over dimensions
   // determine which procs I will exchange with in each dimension
@@ -717,10 +717,10 @@ void CommTiled::exchange()
           buf_send[nsend++] = proc;
           nsend += avec->pack_exchange(i,&buf_send[nsend]);
         } else {
-	  // DEBUG statment
-	  // error->warning(FLERR,"Losing atom in CommTiled::exchange() send, "
-	  // 		    "likely bad dynamics");
-	}
+          // DEBUG statment
+          // error->warning(FLERR,"Losing atom in CommTiled::exchange() send, "
+          //                "likely bad dynamics");
+        }
         avec->copy(nlocal-1,i,1);
         nlocal--;
       } else i++;
@@ -769,10 +769,10 @@ void CommTiled::exchange()
         if (value >= lo && value < hi) {
           m += avec->unpack_exchange(&buf_recv[m]);
           continue;
-	} else {
-	  // DEBUG statment
-	  // error->warning(FLERR,"Losing atom in CommTiled::exchange() recv");
-	}
+        } else {
+          // DEBUG statment
+          // error->warning(FLERR,"Losing atom in CommTiled::exchange() recv");
+        }
       }
       m += static_cast<int> (buf_recv[m]);
     }

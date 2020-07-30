@@ -31,6 +31,7 @@
 #include "error.h"
 #include "utils.h"
 #include "fmt/format.h"
+#include "tokenizer.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -41,11 +42,11 @@ using namespace FixConst;
 
 FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  random(NULL), fp(NULL), fpr(NULL), nsum(NULL), nsum_all(NULL),
-  T_initial_set(NULL), gfactor1(NULL), gfactor2(NULL), ratio(NULL),
-  flangevin(NULL), T_electron(NULL), T_electron_old(NULL), sum_vsq(NULL),
-  sum_mass_vsq(NULL), sum_vsq_all(NULL), sum_mass_vsq_all(NULL),
-  net_energy_transfer(NULL), net_energy_transfer_all(NULL)
+  random(NULL), fp(NULL), nsum(NULL), nsum_all(NULL),
+  gfactor1(NULL), gfactor2(NULL), ratio(NULL), flangevin(NULL),
+  T_electron(NULL), T_electron_old(NULL), sum_vsq(NULL), sum_mass_vsq(NULL),
+  sum_vsq_all(NULL), sum_mass_vsq_all(NULL), net_energy_transfer(NULL),
+  net_energy_transfer_all(NULL)
 {
   if (narg < 15) error->all(FLERR,"Illegal fix ttm command");
 
@@ -67,14 +68,6 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   nxnodes = force->inumeric(FLERR,arg[10]);
   nynodes = force->inumeric(FLERR,arg[11]);
   nznodes = force->inumeric(FLERR,arg[12]);
-
-  if (comm->me == 0) {
-    fpr = fopen(arg[13],"r");
-    if (fpr == NULL)
-      error->all(FLERR,fmt::format("Cannot open input file {}: {}",
-                                   arg[13], utils::getsyserror()));
-  }
-
   nfileevery = force->inumeric(FLERR,arg[14]);
 
   if (nfileevery) {
@@ -115,12 +108,14 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   gfactor2 = new double[atom->ntypes+1];
 
   // allocate 3d grid variables
+  // check for allowed maxium number of total grid nodes
 
-  total_nnodes = nxnodes*nynodes*nznodes;
+  total_nnodes = (bigint)nxnodes * (bigint)nynodes * (bigint)nznodes;
+  if (total_nnodes > MAXSMALLINT)
+    error->all(FLERR,"Too many nodes in fix ttm");
 
   memory->create(nsum,nxnodes,nynodes,nznodes,"ttm:nsum");
   memory->create(nsum_all,nxnodes,nynodes,nznodes,"ttm:nsum_all");
-  memory->create(T_initial_set,nxnodes,nynodes,nznodes,"ttm:T_initial_set");
   memory->create(sum_vsq,nxnodes,nynodes,nznodes,"ttm:sum_vsq");
   memory->create(sum_mass_vsq,nxnodes,nynodes,nznodes,"ttm:sum_mass_vsq");
   memory->create(sum_vsq_all,nxnodes,nynodes,nznodes,"ttm:sum_vsq_all");
@@ -149,7 +144,7 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
 
   // set initial electron temperatures from user input file
 
-  if (me == 0) read_initial_electron_temperatures();
+  if (comm->me == 0) read_initial_electron_temperatures(arg[13]);
   MPI_Bcast(&T_electron[0][0][0],total_nnodes,MPI_DOUBLE,0,world);
 }
 
@@ -157,7 +152,7 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
 
 FixTTM::~FixTTM()
 {
-  if (nfileevery && me == 0) fclose(fp);
+  if (fp) fclose(fp);
 
   delete random;
 
@@ -166,7 +161,6 @@ FixTTM::~FixTTM()
 
   memory->destroy(nsum);
   memory->destroy(nsum_all);
-  memory->destroy(T_initial_set);
   memory->destroy(sum_vsq);
   memory->destroy(sum_mass_vsq);
   memory->destroy(sum_vsq_all);
@@ -221,9 +215,9 @@ void FixTTM::init()
 
 void FixTTM::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet")) {
     post_force_setup(vflag);
-  else {
+  } else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
     post_force_respa_setup(vflag,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
@@ -329,27 +323,48 @@ void FixTTM::reset_dt()
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void FixTTM::read_initial_electron_temperatures()
+void FixTTM::read_initial_electron_temperatures(const char *filename)
 {
-  char line[MAXLINE];
+  int ***T_initial_set;
+  memory->create(T_initial_set,nxnodes,nynodes,nznodes,"ttm:T_initial_set");
+  memset(&T_initial_set[0][0][0],0,total_nnodes*sizeof(int));
 
-  for (int ixnode = 0; ixnode < nxnodes; ixnode++)
-    for (int iynode = 0; iynode < nynodes; iynode++)
-      for (int iznode = 0; iznode < nznodes; iznode++)
-        T_initial_set[ixnode][iynode][iznode] = 0;
+  std::string name = utils::get_potential_file_path(filename);
+  if (name.empty())
+    error->one(FLERR,fmt::format("Cannot open input file: {}",
+                                 filename));
+  FILE *fpr = fopen(name.c_str(),"r");
 
   // read initial electron temperature values from file
 
+  char line[MAXLINE];
   int ixnode,iynode,iznode;
   double T_tmp;
   while (1) {
     if (fgets(line,MAXLINE,fpr) == NULL) break;
-    sscanf(line,"%d %d %d %lg",&ixnode,&iynode,&iznode,&T_tmp);
+    ValueTokenizer values(line);
+    if (values.has_next()) ixnode = values.next_int();
+    if (values.has_next()) iynode = values.next_int();
+    if (values.has_next()) iznode = values.next_int();
+    if (values.has_next()) T_tmp  = values.next_double();
+    else error->one(FLERR,"Incorrect format in fix ttm input file");
+
+    // check correctness of input data
+
+    if ((ixnode < 0) || (ixnode >= nxnodes)
+        || (iynode < 0) || (iynode >= nynodes)
+        || (iznode < 0) || (iznode >= nznodes))
+      error->one(FLERR,"Fix ttm invalide node index in fix ttm input");
+
     if (T_tmp < 0.0)
       error->one(FLERR,"Fix ttm electron temperatures must be > 0.0");
+
     T_electron[ixnode][iynode][iznode] = T_tmp;
     T_initial_set[ixnode][iynode][iznode] = 1;
   }
+  fclose(fpr);
+
+  // check completeness of input data
 
   for (int ixnode = 0; ixnode < nxnodes; ixnode++)
     for (int iynode = 0; iynode < nynodes; iynode++)
@@ -357,9 +372,7 @@ void FixTTM::read_initial_electron_temperatures()
         if (T_initial_set[ixnode][iynode][iznode] == 0)
           error->one(FLERR,"Initial temperatures not all set in fix ttm");
 
-  // close file
-
-  fclose(fpr);
+  memory->destroy(T_initial_set);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -463,7 +476,7 @@ void FixTTM::end_of_step()
               (T_electron_old[ixnode][iynode][right_znode] +
                T_electron_old[ixnode][iynode][left_znode] -
                2*T_electron_old[ixnode][iynode][iznode])/dz/dz) -
-              (net_energy_transfer_all[ixnode][iynode][iznode])/del_vol);
+             (net_energy_transfer_all[ixnode][iynode][iznode])/del_vol);
         }
   }
 
@@ -514,7 +527,7 @@ void FixTTM::end_of_step()
     MPI_Allreduce(&sum_mass_vsq[0][0][0],&sum_mass_vsq_all[0][0][0],
                   total_nnodes,MPI_DOUBLE,MPI_SUM,world);
 
-    if (me == 0) {
+    if (comm->me == 0) {
       fmt::print(fp,"{}",update->ntimestep);
 
       double T_a;
@@ -525,15 +538,15 @@ void FixTTM::end_of_step()
             if (nsum_all[ixnode][iynode][iznode] > 0)
               T_a = sum_mass_vsq_all[ixnode][iynode][iznode]/
                 (3.0*force->boltz*nsum_all[ixnode][iynode][iznode]/force->mvv2e);
-            fprintf(fp," %f",T_a);
+            fmt::print(fp," {}",T_a);
           }
 
-      fprintf(fp,"\t");
+      fputs("\t",fp);
       for (int ixnode = 0; ixnode < nxnodes; ixnode++)
         for (int iynode = 0; iynode < nynodes; iynode++)
           for (int iznode = 0; iznode < nznodes; iznode++)
-            fprintf(fp,"%f ",T_electron[ixnode][iynode][iznode]);
-      fprintf(fp,"\n");
+            fmt::print(fp," {}",T_electron[ixnode][iynode][iznode]);
+      fputs("\n",fp);
     }
   }
 }
@@ -560,7 +573,7 @@ void FixTTM::grow_arrays(int ngrow)
 }
 
 /* ----------------------------------------------------------------------
-  return the energy of the electronic subsystem or the net_energy transfer
+   return the energy of the electronic subsystem or the net_energy transfer
    between the subsystems
 ------------------------------------------------------------------------- */
 
@@ -582,7 +595,7 @@ double FixTTM::compute_vector(int n)
           electronic_density*del_vol;
         transfer_energy +=
           net_energy_transfer_all[ixnode][iynode][iznode]*update->dt;
-  }
+      }
 
   if (n == 0) return e_energy;
   if (n == 1) return transfer_energy;

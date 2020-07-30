@@ -20,4 +20,3 @@ coverage:
             paths:
               - "src"
             informational: true
-    patch: off

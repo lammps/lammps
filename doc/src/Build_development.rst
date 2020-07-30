@@ -259,6 +259,23 @@ and working.
      of mis-compiled code (or an undesired large loss of precision due
      to significant reordering of operations and thus less error cancellation).
 
+Use custom linker for faster link times when ENABLE_TESTING is active
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When compiling LAMMPS with enabled tests, most test executables will
+need to be linked against the LAMMPS library.  Since this can be a
+large with many C++ objects when many packages are enabled, link times
+can become very long on machines that use the GNU BFD linker (e.g.
+Linux systems).  Alternatives like the ``lld`` linker of the LLVM project
+or the ``gold`` linker available with GNU binutils can speed up this step
+substantially. CMake will by default test if any of the two can be
+enabled and use it when ``ENABLE_TESTING`` is active.  It can also be
+selected manually through the ``CMAKE_CUSTOM_LINKER`` CMake variable.
+Allowed values are ``lld``, ``gold``, ``bfd``, or ``default``.  The
+``default`` option will use the system default linker otherwise, the
+linker is chosen explicitly.  This option is only available for the
+GNU or Clang C++ compiler.
+
 Tests for other components and utility functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

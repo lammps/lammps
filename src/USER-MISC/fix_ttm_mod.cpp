@@ -407,133 +407,133 @@ void FixTTMMod::read_parameters(const char *filename)
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  esheat_0 = utils::numeric(FLERR,line,true,lmp);
+  esheat_0 = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
 
   // C1 (metal*10^3)
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  esheat_1 = utils::numeric(FLERR,line,true,lmp);
+  esheat_1 = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
 
   // C2 (metal*10^6)
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  esheat_2 = utils::numeric(FLERR,line,true,lmp);
+  esheat_2 = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
 
   // C3 (metal*10^9)
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  esheat_3 = utils::numeric(FLERR,line,true,lmp);
+  esheat_3 = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
 
   // C4 (metal*10^12)
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  esheat_4 = utils::numeric(FLERR,line,true,lmp);
+  esheat_4 = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
 
   // C_limit
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  C_limit = utils::numeric(FLERR,line,true,lmp);
+  C_limit = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
 
   // Temperature damping factor
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  T_damp = utils::numeric(FLERR,line,true,lmp);
+  T_damp = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
 
   // rho_e
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  electronic_density = utils::numeric(FLERR,line,true,lmp);
+  electronic_density = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
 
   // thermal_diffusion
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  el_th_diff = utils::numeric(FLERR,line,true,lmp);
+  el_th_diff = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
 
   // gamma_p
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  gamma_p = utils::numeric(FLERR,line,true,lmp);
+  gamma_p = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
 
   // gamma_s
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  gamma_s = utils::numeric(FLERR,line,true,lmp);
+  gamma_s = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
 
   // v0
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  v_0 = utils::numeric(FLERR,line,true,lmp);
+  v_0 = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
 
   // average intensity of pulse (source of energy) (metal units)
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  intensity = utils::numeric(FLERR,line,true,lmp);
+  intensity = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
 
   // coordinate of 1st surface in x-direction (in box units) - constant
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  surface_l = utils::inumeric(FLERR,line,true,lmp);
+  surface_l = utils::inumeric(FLERR,utils::trim(line).c_str(),true,lmp);
 
   // coordinate of 2nd surface in x-direction (in box units) - constant
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  surface_r = utils::inumeric(FLERR,line,true,lmp);
+  surface_r = utils::inumeric(FLERR,utils::trim(line).c_str(),true,lmp);
 
   // skin_layer = intensity is reduced (I=I0*exp[-x/skin_layer])
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  skin_layer = utils::inumeric(FLERR,line,true,lmp);
+  skin_layer = utils::inumeric(FLERR,utils::trim(line).c_str(),true,lmp);
 
   // width of pulse (picoseconds)
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  width = utils::numeric(FLERR,line,true,lmp);
+  width = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
 
   // factor of electronic pressure (PF) Pe = PF*Ce*Te
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  pres_factor = utils::numeric(FLERR,line,true,lmp);
+  pres_factor = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
 
   // effective free path of electrons (angstrom)
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  free_path = utils::numeric(FLERR,line,true,lmp);
+  free_path = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
 
   // ionic density (ions*angstrom^{-3})
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  ionic_density = utils::numeric(FLERR,line,true,lmp);
+  ionic_density = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
 
   // if movsur = 0: surface is frozen
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  movsur = utils::inumeric(FLERR,line,true,lmp);
+  movsur = utils::inumeric(FLERR,utils::trim(line).c_str(),true,lmp);
 
   // electron_temperature_min
 
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
   utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
-  electron_temperature_min = utils::numeric(FLERR,line,true,lmp);
+  electron_temperature_min = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
   fclose(fpr);
 }
 

@@ -167,7 +167,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
 
   // set initial electron temperatures from user input file
 
-  if (comm->me == 0) read_initial_electron_temperatures(arg[13]);
+  if (comm->me == 0) read_initial_electron_temperatures(arg[8]);
   MPI_Bcast(&T_electron[0][0][0],total_nnodes,MPI_DOUBLE,0,world);
 }
 

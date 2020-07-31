@@ -118,6 +118,24 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    incorrect periodic images of atoms in interaction lists.  To avoid, either use
    :doc:`pair style zero <pair_zero>` with a suitable cutoff or use :doc:`comm_modify cutoff <comm_modify>`.
 
+*Communication cutoff is shorter than a bond length based estimate. This may lead to errors.*
+
+   Since LAMMPS stores topology data with individual atoms, all atoms
+   comprising a bond, angle, dihedral or improper must be present on any
+   sub-domain that "owns" the atom with the information, either as a
+   local or a ghost atom. The communication cutoff is what determines up
+   to what distance from a sub-domain boundary ghost atoms are created.
+   The communication cutoff is by default the largest non-bonded cutoff
+   plus the neighbor skin distance, but for short or non-bonded cutoffs
+   and/or long bonds, this may not be sufficient. This warning indicates
+   that there is an increased risk of a simulation stopping unexpectedly
+   because of Bond/Angle/Dihedral/Improper atoms missing.  It can be
+   silenced by manually setting the communication cutoff via
+   :doc:`comm_modify cutoff <comm_modify>`.  However, since the
+   heuristic used to determine the estimate is not always accurate, it
+   is not changed automatically and the warning may be ignored depending
+   on the specific system being simulated.
+
 *Communication cutoff is too small for SNAP micro load balancing, increased to %lf*
    Self-explanatory.
 

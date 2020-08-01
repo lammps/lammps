@@ -222,10 +222,11 @@ void PairLJCubic::coeff(int narg, char **arg)
 double PairLJCubic::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
-    epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
-                               sigma[i][i],sigma[j][j]);
-    sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
-    cut_inner[i][j] = mix_distance(cut_inner[i][i],cut_inner[j][j]);
+    epsilon[i][j] = epsilon[j][i] = mix_energy(epsilon[i][i],epsilon[j][j],
+                                               sigma[i][i],sigma[j][j]);
+    sigma[i][j] = sigma[j][i] = mix_distance(sigma[i][i],sigma[j][j]);
+    cut_inner[i][j] = cut_inner[j][i] = mix_distance(cut_inner[i][i],
+                                                     cut_inner[j][j]);
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
   }
 

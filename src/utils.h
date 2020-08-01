@@ -144,6 +144,13 @@ namespace LAMMPS_NS {
                     bool do_abort, LAMMPS *lmp);
 
     /**
+     * \brief Trim leading and trailing whitespace. Like TRIM() in Fortran.
+     * \param line string that should be trimmed
+     * \return new string without whitespace (string)
+     */
+    std::string trim(const std::string &line);
+
+    /**
      * \brief Trim anything from '#' onward
      * \param line string that should be trimmed
      * \return new string without comment (string)

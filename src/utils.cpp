@@ -349,6 +349,19 @@ tagint utils::tnumeric(const char *file, int line, const char *str,
 }
 
 /* ----------------------------------------------------------------------
+   Return string without leading or trailing whitespace
+------------------------------------------------------------------------- */
+
+std::string utils::trim(const std::string & line) {
+  int beg = re_match(line.c_str(),"\\S+");
+  int end = re_match(line.c_str(),"\\s+$");
+  if (beg < 0) beg = 0;
+  if (end < 0) end = line.size();
+
+  return line.substr(beg,end-beg);
+}
+
+/* ----------------------------------------------------------------------
    Return string without trailing # comment
 ------------------------------------------------------------------------- */
 

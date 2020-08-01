@@ -1,13 +1,12 @@
 ---
 lammps_version: 21 Jul 2020
-date_generated: Sat Aug  1 06:53:21 202
+date_generated: Sat Aug  1 08:31:23 202
 epsilon: 5e-14
 prerequisites: ! |
   atom full
   pair buck/coul/cut
 pre_commands: ! ""
-post_commands: ! |
-  pair_modify mix arithmetic
+post_commands: ! ""
 input_file: in.fourmol
 pair_style: buck/coul/cut 8.0
 pair_coeff: ! |

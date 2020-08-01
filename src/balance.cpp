@@ -113,7 +113,7 @@ void Balance::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR,"Balance command before simulation box is defined");
 
-  if (me == 0 && screen) fprintf(screen,"Balancing ...\n");
+  if (me == 0) utils::logmesg(lmp,"Balancing ...\n");
 
   // parse required arguments
 

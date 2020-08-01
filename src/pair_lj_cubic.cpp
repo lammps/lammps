@@ -129,8 +129,7 @@ void PairLJCubic::compute(int eflag, int vflag)
           if (rsq <= cut_inner_sq[itype][jtype])
             evdwl = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
           else
-            evdwl = epsilon[itype][jtype]*
-              (PHIS + DPHIDS*t - A3*t*t*t/6.0);
+            evdwl = epsilon[itype][jtype]*(PHIS + DPHIDS*t - A3*t*t*t/6.0);
           evdwl *= factor_lj;
 
           if (evflag) ev_tally(i,j,nlocal,newton_pair,
@@ -322,13 +321,20 @@ void PairLJCubic::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairLJCubic::single(int /*i*/, int /*j*/, int itype, int jtype,
-                             double rsq,
-                             double /*factor_coul*/, double factor_lj,
-                             double &fforce)
+                           double rsq,
+                           double /*factor_coul*/, double factor_lj,
+                           double &fforce)
 {
   double r2inv,r6inv,forcelj,philj;
   double r,t;
   double rmin;
+
+  // this is a truncated potential with an implicit cutoff
+
+  if (rsq >= cutsq[itype][jtype]) {
+    fforce=0.0;
+    return 0.0;
+  }
 
   r2inv = 1.0/rsq;
   if (rsq <= cut_inner_sq[itype][jtype]) {
@@ -345,8 +351,7 @@ double PairLJCubic::single(int /*i*/, int /*j*/, int itype, int jtype,
   if (rsq <= cut_inner_sq[itype][jtype])
     philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
   else
-    philj = epsilon[itype][jtype]*
-      (PHIS + DPHIDS*t - A3*t*t*t/6.0);
+    philj = epsilon[itype][jtype]*(PHIS + DPHIDS*t - A3*t*t*t/6.0);
 
   return factor_lj*philj;
 }

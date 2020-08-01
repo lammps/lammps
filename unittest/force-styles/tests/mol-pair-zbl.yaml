@@ -10,7 +10,11 @@ post_commands: ! ""
 input_file: in.fourmol
 pair_style: zbl 6.0 8.0
 pair_coeff: ! |
-  * *  6  6
+  1 1  6  6
+  2 2  7  7
+  3 3  2  2
+  4 4  8  8
+  5 5  8  8
 extract: ! ""
 natoms: 29
 init_vdwl: 6904.09747414633

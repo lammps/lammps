@@ -339,7 +339,7 @@ void PairZBL::read_restart_settings(FILE *fp)
 void PairZBL::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g\n",i,z[i]);
+    fprintf(fp,"%d %g %g\n",i,z[i],z[i]);
 }
 
 /* ----------------------------------------------------------------------

@@ -130,7 +130,7 @@ double PairGaussOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0/rsq;
-        forcelj = - 2.0*a[itype][jtype]*b[itype][jtype] * rsq *
+        forcelj = - 2.0*a[itype][jtype]*b[itype][jtype] * sqrt(rsq) *
           exp(-b[itype][jtype]*rsq);
         fpair = factor_lj*forcelj*r2inv;
 

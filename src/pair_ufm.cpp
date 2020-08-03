@@ -223,6 +223,7 @@ double PairUFM::init_one(int i, int j)
                                sigma[i][i],sigma[j][j]);
     sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
+    scale[i][j] = 1.0;
   }
 
   uf1[i][j] = 2.0 * epsilon[i][j] / pow(sigma[i][j],2.0);

@@ -43,13 +43,13 @@ using namespace LAMMPS_NS;
 // External functions from cuda library for atom decomposition
 
 int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1,
-                 double **host_uf2, double **host_uf3, double **host_uf4,
+                 double **host_uf2, double **host_uf3,
                  double **offset, double *special_lj, const int nlocal,
                  const int nall, const int max_nbors, const int maxspecial,
                  const double cell_size, int &gpu_mode, FILE *screen);
 
 int ufml_gpu_reinit(const int ntypes, double **cutsq, double **host_uf1,
-                   double **host_uf2, double **host_uf3, double **host_uf4,
+                   double **host_uf2, double **host_uf3,
                    double **offset);
 
 void ufml_gpu_clear();
@@ -166,7 +166,7 @@ void PairUFMGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
-  int success = ufml_gpu_init(atom->ntypes+1, cutsq, uf1, uf2, uf3, uf4,
+  int success = ufml_gpu_init(atom->ntypes+1, cutsq, uf1, uf2, uf3,
                              offset, force->special_lj, atom->nlocal,
                              atom->nlocal+atom->nghost, 300, maxspecial,
                              cell_size, gpu_mode, screen);
@@ -185,7 +185,7 @@ void PairUFMGPU::reinit()
 {
   Pair::reinit();
 
-  ufml_gpu_reinit(atom->ntypes+1, cutsq, uf1, uf2, uf3, uf4, offset);
+  ufml_gpu_reinit(atom->ntypes+1, cutsq, uf1, uf2, uf3, offset);
 }
 
 /* ---------------------------------------------------------------------- */

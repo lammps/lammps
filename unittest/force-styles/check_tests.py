@@ -185,6 +185,7 @@ def check_tests(name,list,yaml,search,skip=()):
     total = len(list)
     print("\nTests available for %s styles: %d of %d"
           % (name,total - num, total))
+    missing.sort()
     print("No tests for: ", missing)
     return num
 

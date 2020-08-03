@@ -259,6 +259,7 @@ void PairUFM::write_restart(FILE *fp)
         fwrite(&epsilon[i][j],sizeof(double),1,fp);
         fwrite(&sigma[i][j],sizeof(double),1,fp);
         fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&scale[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -283,10 +284,12 @@ void PairUFM::read_restart(FILE *fp)
           utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,NULL,error);
           utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,NULL,error);
           utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&scale[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&scale[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }

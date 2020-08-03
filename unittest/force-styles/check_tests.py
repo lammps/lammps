@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
-
-from __future__ import print_function
+import os, re, sys
 from glob import glob
 from argparse import ArgumentParser
-import os, re, sys
 
 parser = ArgumentParser(prog='check_tests.py',
                         description="Check force tests for completeness")
 
 parser.add_argument("-v", "--verbose",
-                    action='store_const',
-                    const=True, default=False,
+                    action='store_true',
                     help="Enable verbose output")
 
 parser.add_argument("-t", "--tests",
@@ -20,30 +17,32 @@ parser.add_argument("-s", "--src",
 
 args = parser.parse_args()
 verbose = args.verbose
-src = args.src
-tests = args.tests
+src_dir = args.src
+tests_dir = args.tests
 
-if not src:
-  src = os.path.join('.','..','..','src')
+LAMMPS_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-if not tests:
-  tests = os.path.join(src,'..','unittest','force-styles','tests')
+if not src_dir:
+    src_dir = os.path.join(LAMMPS_DIR , 'src')
+
+if not tests_dir:
+    tests_dir = os.path.join(LAMMPS_DIR, 'unittest', 'force-styles', 'tests')
 
 try:
-  src = os.path.abspath(os.path.expanduser(src))
-  tests = os.path.abspath(os.path.expanduser(tests))
+    src_dir = os.path.abspath(os.path.expanduser(src_dir))
+    tests_dir = os.path.abspath(os.path.expanduser(tests_dir))
 except:
-  parser.print_help()
-  sys.exit(1)
+    parser.print_help()
+    sys.exit(1)
 
-if not os.path.isdir(src):
-    sys.exit("LAMMPS source path %s does not exist" % src)
+if not os.path.isdir(src_dir):
+    sys.exit(f"LAMMPS source path {src_dir} does not exist")
 
-if not os.path.isdir(tests):
-    sys.exit("LAMMPS test inputs path %s does not exist" % tests)
+if not os.path.isdir(tests_dir):
+    sys.exit(f"LAMMPS test inputs path {tests_dir} does not exist")
 
-headers = glob(os.path.join(src, '*', '*.h'))
-headers += glob(os.path.join(src, '*.h'))
+headers = glob(os.path.join(src_dir, '*', '*.h'))
+headers += glob(os.path.join(src_dir, '*.h'))
 
 angle = {}
 bond = {}
@@ -54,9 +53,8 @@ fix = {}
 improper = {}
 kspace = {}
 pair = {}
-total = 0
 
-upper = re.compile("[A-Z]+")
+style_pattern = re.compile("(.+)Style\((.+),(.+)\)")
 gpu = re.compile("(.+)/gpu$")
 intel = re.compile("(.+)/intel$")
 kokkos = re.compile("(.+)/kk$")
@@ -65,130 +63,110 @@ omp = re.compile("(.+)/omp$")
 opt = re.compile("(.+)/opt$")
 removed = re.compile("(.*)Deprecated$")
 
-def register_style(list,style,info):
-    if style in list.keys():
-        list[style]['gpu'] += info['gpu']
-        list[style]['intel'] += info['intel']
-        list[style]['kokkos'] += info['kokkos']
-        list[style]['omp'] += info['omp']
-        list[style]['opt'] += info['opt']
-        list[style]['removed'] += info['removed']
+def register_style(styles, name, info):
+    if name in styles:
+        styles[name]['gpu'] += info['gpu']
+        styles[name]['intel'] += info['intel']
+        styles[name]['kokkos'] += info['kokkos']
+        styles[name]['omp'] += info['omp']
+        styles[name]['opt'] += info['opt']
+        styles[name]['removed'] += info['removed']
     else:
-        list[style] = info
+        styles[name] = info
 
-def add_suffix(list,style):
-    suffix = ""
-    if list[style]['gpu']:
-        suffix += 'g'
-    if list[style]['intel']:
-        suffix += 'i'
-    if list[style]['kokkos']:
-        suffix += 'k'
-    if list[style]['omp']:
-        suffix += 'o'
-    if list[style]['opt']:
-        suffix += 't'
-    if suffix:
-        return style + ' (' + suffix + ')'
-    else:
-        return style
+print("Parsing style names from C++ tree in: ", src_dir)
 
-print("Parsing style names from C++ tree in: ",src)
+for header in headers:
+    if verbose: print("Checking ", header)
+    with open(header) as f:
+        for line in f:
+            matches = style_pattern.findall(line)
 
-for h in headers:
-    if verbose: print("Checking ", h)
-    fp = open(h)
-    text = fp.read()
-    fp.close()
-    matches = re.findall("(.+)Style\((.+),(.+)\)",text,re.MULTILINE)
-    for m in matches:
+            for m in matches:
+                # skip over internal styles w/o explicit documentation
+                style = m[1]
+                if style.isupper():
+                    continue
 
-        # skip over internal styles w/o explicit documentation
-        style = m[1]
-        total += 1
-        if upper.match(style):
-            continue
+                # detect, process, and flag suffix styles:
+                info = { 'kokkos':  0, 'gpu':     0, 'intel':   0, \
+                         'omp':     0, 'opt':     0, 'removed': 0 }
+                suffix = kokkos_skip.match(style)
+                if suffix:
+                    continue
+                suffix = gpu.match(style)
+                if suffix:
+                    style = suffix.groups()[0]
+                    info['gpu'] = 1
+                suffix = intel.match(style)
+                if suffix:
+                    style = suffix.groups()[0]
+                    info['intel'] = 1
+                suffix = kokkos.match(style)
+                if suffix:
+                    style = suffix.groups()[0]
+                    info['kokkos'] = 1
+                suffix = omp.match(style)
+                if suffix:
+                    style = suffix.groups()[0]
+                    info['omp'] = 1
+                suffix = opt.match(style)
+                if suffix:
+                    style = suffix.groups()[0]
+                    info['opt'] = 1
+                deprecated = removed.match(m[2])
+                if deprecated:
+                    info['removed'] = 1
 
-        # detect, process, and flag suffix styles:
-        info = { 'kokkos':  0, 'gpu':     0, 'intel':   0, \
-                 'omp':     0, 'opt':     0, 'removed': 0 }
-        suffix = kokkos_skip.match(style)
-        if suffix:
-            continue
-        suffix = gpu.match(style)
-        if suffix:
-            style = suffix.groups()[0]
-            info['gpu'] = 1
-        suffix = intel.match(style)
-        if suffix:
-            style = suffix.groups()[0]
-            info['intel'] = 1
-        suffix = kokkos.match(style)
-        if suffix:
-            style = suffix.groups()[0]
-            info['kokkos'] = 1
-        suffix = omp.match(style)
-        if suffix:
-            style = suffix.groups()[0]
-            info['omp'] = 1
-        suffix = opt.match(style)
-        if suffix:
-            style = suffix.groups()[0]
-            info['opt'] = 1
-        deprecated = removed.match(m[2])
-        if deprecated:
-            info['removed'] = 1
-
-        # register style and suffix flags
-        if m[0] == 'Angle':
-            register_style(angle,style,info)
-        elif m[0] == 'Bond':
-            register_style(bond,style,info)
-        elif m[0] == 'Dihedral':
-            register_style(dihedral,style,info)
-        elif m[0] == 'Improper':
-            register_style(improper,style,info)
-        elif m[0] == 'KSpace':
-            register_style(kspace,style,info)
-        elif m[0] == 'Pair':
-            register_style(pair,style,info)
+                # register style and suffix flags
+                if m[0] == 'Angle':
+                    register_style(angle,style,info)
+                elif m[0] == 'Bond':
+                    register_style(bond,style,info)
+                elif m[0] == 'Dihedral':
+                    register_style(dihedral,style,info)
+                elif m[0] == 'Improper':
+                    register_style(improper,style,info)
+                elif m[0] == 'KSpace':
+                    register_style(kspace,style,info)
+                elif m[0] == 'Pair':
+                    register_style(pair,style,info)
 
 
-counter = 0
 
-def check_tests(name,list,yaml,search,skip=()):
-    num = 0
-    yaml_files = glob(os.path.join(tests, yaml))
-    styles = []
-    missing = []
+def check_tests(name,styles,yaml,search,skip=()):
+    yaml_files = glob(os.path.join(tests_dir, yaml))
+    tests = set()
+    missing = set()
+    search_pattern = re.compile(search)
     for y in yaml_files:
         if verbose: print("Checking: ",y)
-        fp = open(y)
-        text = fp.read()
-        fp.close()
-        matches = re.findall(search,text,re.MULTILINE)
-        for m in matches:
-            if m[1] == 'hybrid' or m[1] == 'hybrid/overlay':
-                for s in m[0].split():
-                    if s in list.keys():
-                        styles.append(s)
-            else:
-                styles.append(m[1])
-    for s in list.keys():
+        with open(y) as f:
+            for line in f:
+                matches = search_pattern.findall(line)
+                for m in matches:
+                    if m[1] == 'hybrid' or m[1] == 'hybrid/overlay':
+                        for s in m[0].split():
+                            if s in styles:
+                                tests.add(s)
+                    else:
+                        tests.add(m[1])
+    for s in styles:
         # known undocumented aliases we need to skip
         if s in skip: continue
-        if not s in styles:
-            if not list[s]['removed']:
+        if not s in tests:
+            if not styles[s]['removed']:
                 if verbose: print("No test for %s style %s" % (name,s))
-                num += 1
-                missing.append(s)
-    total = len(list)
-    print("\nTests available for %s styles: %d of %d"
-          % (name,total - num, total))
-    missing.sort()
-    print("No tests for: ", missing)
-    return num
+                missing.add(s)
 
+    num_missing = len(missing)
+    total = len(styles)
+    num_tests = total - num_missing
+    print(f"\nTests available for {name} styles: {num_tests} of {total}")
+    print("No tests for: ", list(missing))
+    return num_missing
+
+counter = 0
 counter += check_tests('pair',pair,'*-pair-*.yaml',
                        '.*pair_style:\s*((\S+).*)?',skip=('meam','lj/sf'))
 counter += check_tests('bond',bond,'bond-*.yaml',
@@ -203,4 +181,4 @@ counter += check_tests('kspace',kspace,'kspace-*.yaml',
                        '.*kspace_style\s*((\S+).*)?')
 
 total = len(pair)+len(bond)+len(angle)+len(dihedral)+len(improper)+len(kspace)
-print("\nTotal tests missing: %d of %d" % (counter, total))
+print(f"\nTotal tests missing: {counter} of {total}")

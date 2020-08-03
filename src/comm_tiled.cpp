@@ -90,14 +90,13 @@ void CommTiled::init_buffers()
 
   maxoverlap = 0;
   overlap = NULL;
-
-  maxswap = 6;
-  allocate_swap(maxswap);
-
   rcbinfo = NULL;
-
   cutghostmulti = NULL;
   sendbox_multi = NULL;
+
+  maxswap = 6;
+  nswap = 2*domain->dimension;
+  allocate_swap(maxswap);
 }
 
 /* ---------------------------------------------------------------------- */

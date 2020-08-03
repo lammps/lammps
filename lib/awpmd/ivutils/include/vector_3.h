@@ -2,9 +2,9 @@
  *
  *   Copyright (c), Ilya Valuev 2005        All Rights Reserved.
  *
- *   Author	: Ilya Valuev, MIPT, Moscow, Russia
+ *   Author     : Ilya Valuev, MIPT, Moscow, Russia
  *
- *   Project	: GridMD, ivutils
+ *   Project    : GridMD, ivutils
  *
  *****************************************************************************/
 
@@ -69,11 +69,11 @@
  * Revision 1.11  2008/04/15 13:11:41  valuev
  * Added antisymmetrized wave packets
  *
- 
+
  *
 *******************************************************************************/
-/*r @file vector_3.h @brief работа с трехмерными векторами 
-*/ 
+/*r @file vector_3.h
+*/
 
 # ifndef VECTOR_3_H
 
@@ -92,7 +92,6 @@
 # endif
 
 # ifndef fmod
-//r деление по модулю чисел с плавающей точкой
 # define fmod(a,b)  ((a)-((long)((a)/(b))*(b)))
 # endif
 
@@ -104,8 +103,6 @@ typedef double vec_type;
 typedef float vec_type;
 #endif
 
-//e "infinitely" large number in Vector_3 sense
-//r "бесконечно большое" число в смысле Vector_3
 //# ifndef SINGLE_PRECISION
 //# define VEC_INFTY 1.e20
 //# else
@@ -113,8 +110,6 @@ typedef float vec_type;
 //# endif
 #define VEC_INFTY numeric_limits<vec_type>::max()
 
-//e "infinitely" small number in Vector_3 sense (used for vector comparisons)
-//r "бесконечно малое" число в смысле Vector_3 (используется для сравнений)
 //# ifndef SINGLE_PRECISION
 //# define VEC_ZERO 1.e-20
 //# else
@@ -122,11 +117,10 @@ typedef float vec_type;
 //# endif
 #define VEC_ZERO 512*numeric_limits<vec_type>::epsilon()
 
-//r N-мерный вектор типа T, с некоторыми полезными операциями
-template <class T, const int N=3> 
+template <class T, const int N=3>
 struct Vector_Nt {
   typedef T value_type;
-  
+
   T v[N];
 
   Vector_Nt(const T &a=0){
@@ -134,7 +128,7 @@ struct Vector_Nt {
       v[i]=a;
   }
 
-  
+
   explicit Vector_Nt(const T &a1, const T &a2) {
     if(N>0)v[0]=a1;
     if(N>1)v[1]=a2;
@@ -160,14 +154,12 @@ struct Vector_Nt {
     for (int i=0; i<N; i++) v[i]=v1[i];
   }
 
-  //r Копирует содержимое вектора в it
   template <class A>
-  void copy_to(A *beg) const {  
+  void copy_to(A *beg) const {
     for (int i=0; i<N; i++, ++beg)
       *beg=v[i];
   }
 
-  //r получение элемента 
   inline T& operator[](int i) const { return (T&)v[i]; };
 
 
@@ -177,14 +169,12 @@ struct Vector_Nt {
     return *this;
   }
 
-  //r присваивает всем компонентам значение a.
   inline Vector_Nt& operator=(const T &a){
     for (int i=0; i<N; i++)
       v[i]=a;
     return *this;
   };
 
-  //r сравнение. При отличии меньше чем на VEC_ZERO компоненты считаются одинаковыми
   inline bool operator==(const Vector_Nt &vect) const{
     for (int i=0; i<N ;i++)
       if(fabs(v[i]-vect.v[i])>VEC_ZERO)return false;
@@ -208,8 +198,7 @@ struct Vector_Nt {
       result.v[i]=v[i]-vect.v[i];
     return result;
   }
- 
-  //r Скалярное произведение векторов
+
   inline T operator*(const Vector_Nt& vect) const {
     T result=0;
     for (int i=0; i<N; i++)
@@ -217,7 +206,6 @@ struct Vector_Nt {
     return result;
   }
 
-  //r Покомпонентное умножение на коэффициент
   inline Vector_Nt operator*(const T &coeff) const {
     Vector_Nt result;
     for (int i=0; i<N; i++)
@@ -226,7 +214,6 @@ struct Vector_Nt {
   }
 
   //e vector multiplication (N=3 only)
-  //r Векторное произведение
   inline Vector_Nt operator%(const Vector_Nt &r) const{ //reserved for N specializations
     if(N==3){
       return Vector_Nt(v[1]*r.v[2]-v[2]*r.v[1],v[2]*r.v[0]-v[0]*r.v[2],v[0]*r.v[1]-v[1]*r.v[0]);
@@ -234,10 +221,8 @@ struct Vector_Nt {
     return *this;
   }
 
-  //r Умножение числа на вектор (переставлены местами множители).
  //  friend Vector_Nt operator*(T coeff,const Vector_Nt& vec);
 
-  //r Покомпонентное деление на коэффициент
   inline Vector_Nt operator/(const T &coeff) const {
     Vector_Nt result;
     for (int i=0; i<N; i++)
@@ -245,7 +230,6 @@ struct Vector_Nt {
     return result;
   }
 
-  //r Умножение вектора на -1
   inline Vector_Nt operator-() const {
     Vector_Nt r;
     for (int i=0; i<N; i++)
@@ -253,48 +237,41 @@ struct Vector_Nt {
     return r;
   }
 
-  //r Сложение с присваиванием
   inline Vector_Nt& operator+=(const Vector_Nt &vect){
     for (int i=0; i<N; i++)
       v[i]+=vect.v[i];
     return *this;
   }
 
-  //r Вычитание с присваиванием
   inline Vector_Nt& operator-=(const Vector_Nt &vect){
     for (int i=0; i<N; i++)
       v[i]-=vect.v[i];
     return *this;
   }
 
-  //r Умножение на коэффициент с присваиванием
   inline Vector_Nt& operator*=(const T &coeff){
     for (int i=0; i<N; i++)
       v[i]*=coeff;
     return *this;
   }
 
-  //r Деление на скаляр с присваиванием
   inline Vector_Nt& operator/=(const T &coeff){
     for (int i=0; i<N; i++)
       v[i]/=coeff;
     return *this;
   }
 
-  //r Квадрат нормы вектора
   T norm2() const {
     T result=0;
     for (int i=0; i<N; i++)
       result+=v[i]*v[i];
-    return result; 
+    return result;
   }
 
-  //r Норма вектора
   T norm() const {
     return sqrt(norm2());
   }
 
-  //r Возвращает норму и нормализует вектор (после этого его norm() вернет newnorm). 
   T normalize(T newnorm=1.){
     T norm=this->norm();
     if(norm>=VEC_ZERO){
@@ -325,22 +302,14 @@ struct Vector_Nt {
     newnorm/=sqrt(fabs(result));
     for (int i=0; i<N; i++)
       v[i]*=newnorm;
-    return result<0 ? VEC_INFTY : result; 
+    return result<0 ? VEC_INFTY : result;
   }
 
 
   //e nearest image distance within rectangular cell (FOR DISTANCE MEASUREMENTS)
-  //e assumes that each coordinate absolute value is in the range [0,cell[i]) 
+  //e assumes that each coordinate absolute value is in the range [0,cell[i])
   //e returned vector is in the range [-cell[i]/2,cell[i]/2)
   //e flags indicate the periodicity in specific directions: 0x1 for X, 0x2 for Y, 0x4 for Z
-  //r Ближайший образ в прямоугольной ячейке
-  /*r Считаем, что все пространство разделено на ячейки - параллелепипеды с ребрами, параллельными
-  осям координат и диагональю, заданной вектором rcell, причем начало координат является 
-  центром одной из ячеек. Если *this находится центральной ячейке, возвращается копия *this.\n
-  Иначе, если *this находится в кубе 3*3 ячейки с центром в начале координат, то создает образ 
-  *this в центральной ячейке.\n
-  Иначе, возвращает неопределенное значение. 
-  */ 
   Vector_Nt rcell1(const Vector_Nt &cell,int flags=0xffff) const{
     Vector_Nt ret(*this);
     int i;
@@ -378,9 +347,6 @@ struct Vector_Nt {
 
   //e reduction to elementary cell [0, cell[i]) (FOR REDUCTION TO ELEMENTARY CELL)
   //e flags indicate the periodicity in specific directions: 0x1 for X, 0x2 for Y, 0x4 for Z
-  //r Почти то же, что и rcell1, но без ограничения на положение *this и с другой системой ячеек.
-  /*r В начале координат находится не центр ячейки, а ее угол. Может работать медленнее из-за наличия 
-  операции деления по модулю с плавающей точкой */ 
   Vector_Nt rcell(const Vector_Nt &cell, int flags=0xffff) const {
     Vector_Nt ret(*this);
     for (int i=0, flag=1; i<N; i++, flag<<=1) {
@@ -406,9 +372,8 @@ struct Vector_Nt {
     }
     return ret;
   }
-  
 
-  //r Возвращает максимальную компоненту вектора  и ее индекс в ind 
+
   T maxcoord(int *ind=NULL) const {
     int im=0;
     T vv=v[0];
@@ -452,7 +417,6 @@ struct Vector_Nt {
   }
 
 
-  //r Возвращает минимальную компоненту вектора  и ее индекс в ind 
   T mincoord(int *ind=NULL) const {
     int im=0;
     T vv=v[0];
@@ -466,7 +430,6 @@ struct Vector_Nt {
     return vv;
   }
 
-  //r Выводит вектор в поток вывода по умолчанию, в формате (x,y,z)\\n
   void print() const{
     cout<< "(";
     for(int i=0;i<N;i++){
@@ -505,7 +468,7 @@ typedef Vector_3 *Vector_3P;
 typedef Vector_Nt<vec_type, 2> Vector_2;
 typedef Vector_2 *Vector_2P;
 
-template <int N> 
+template <int N>
 class  Vector_N: public Vector_Nt<vec_type, N>{
 };
 
@@ -515,25 +478,18 @@ class  Vector_N: public Vector_Nt<vec_type, N>{
 
 
 //e finds the maximum distance between vector pairs
-//r Находит максимальное расстояние между векторами va1[i], va2[i], i=1..n
-/*r @param va1 - массив Vector_3[n]
-    @param n - длина массивов va1 и va2
-*/
 vec_type dist_max(Vector_3 *va1,Vector_3 *va2,int n);
 
 //e finds average distance between vector pairs
-//r Находит среднее расстояние между векторами va1[i], va2[i], i=1..n
 vec_type dist_av(Vector_3 *va1,Vector_3 *va2,int n);
 
 //e finds the average difference norm between two vector sets of the same length
 /*e optionally gives the indexes for maximal and minimal difference
  va2 can be NULL, then the norm of va1 is used */
 
-//r Находит среднее расстояние между va1[i] и va2[i], а также, по желанию, индексы, на которых достигается min и max расстояние
 vec_type diff_av(Vector_3 *va1,Vector_3 *va2,int n, int *minind=0, int *maxind=0);
 
 //e finds suitable perpendicular to a vector
-//r Находит перпендикуляр к вектору vAB
 Vector_3 FindPerp(const Vector_3 &vAB);
 
 
@@ -551,19 +507,12 @@ Vector_3 GetIScopei(const Vector_3 *varr,int *indarr,int n,Vector_3* box_min,Vec
 // neue Funktionen
 
 //e clears vector array with optional integer index
-//r Очистка массива векторов, с поддержкой индексирования 
-/*r 
-В данном Vector_3 vec[] обнуляет n координат. Если ind==NULL, то 
-очищает первые n элементов. Если ind!=NULL, то для i=0..n-1
-очищает vec[ind[i]]
-См. @ref indexed_calculations.
-*/ 
 void clear_vecarri(int n,Vector_3 *vec, int *ind=0);
 
 //e reflects the vector ini+dir*t+0.5*force*t^2 to be inside a box limited by 0 and box sizes
 //e changes dir according to the final state
 //e fills crossed dir with bit flags corresponding directions along which the walls were crossed
-Vector_3 Reflect(Vector_3& ini, double t,Vector_3 &dir, double *box, int flag=0x7, const Vector_3 &force=Vector_3()); 
+Vector_3 Reflect(Vector_3& ini, double t,Vector_3 &dir, double *box, int flag=0x7, const Vector_3 &force=Vector_3());
 
 
 inline vec_type vec_area(const Vector_2 &vect1, const Vector_2 &vect2) {

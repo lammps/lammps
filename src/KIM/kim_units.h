@@ -52,8 +52,13 @@
 /* ----------------------------------------------------------------------
    Designed for use with the kim-api-2.0.2 (and newer) package
 ------------------------------------------------------------------------- */
+#ifndef LMP_KIM_UNITS_H
+#define LMP_KIM_UNITS_H
+
+#include <string>
 
 int lammps_unit_conversion(const std::string &unit_type_str,
                            const std::string &from_system_str,
                            const std::string &to_system_str,
                            double &conversion_factor);
+#endif

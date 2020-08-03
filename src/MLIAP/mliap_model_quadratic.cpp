@@ -127,7 +127,6 @@ void MLIAPModelQuadratic::compute_gradgrads(class MLIAPData* data)
     data->egradient[l] = 0.0;
 
   for (int ii = 0; ii < data->natoms; ii++) {
-    const int i = data->iatoms[ii];
     const int ielem = data->ielems[ii];
     const int elemoffset = data->nparams*ielem;
 
@@ -216,9 +215,6 @@ void MLIAPModelQuadratic::compute_force_gradients(class MLIAPData* data) {
 
     for (int jj = 0; jj < data->numneighs[ii]; jj++) {
       const int j = data->jatoms[ij];
-      const int jelem = data->ielems[ij];
-      const int ij0 = ij;
-
       int l = elemoffset+1;
       for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++) {
         data->gradforce[i][l]               += data->graddesc[ij][icoeff][0];

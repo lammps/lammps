@@ -28,6 +28,12 @@
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
+#if defined(OMPI_MAJOR_VERSION)
+const bool have_openmpi = true;
+#else
+const bool have_openmpi = false;
+#endif
+
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
@@ -35,11 +41,19 @@ using ::testing::MatchesRegex;
 
 #define GETIDX(i) lmp->atom->map(i)
 
-#define TEST_FAILURE(...)                \
-    if (Info::has_exceptions()) {        \
-        ASSERT_ANY_THROW({__VA_ARGS__}); \
-    } else {                             \
-        ASSERT_DEATH({__VA_ARGS__}, ""); \
+#define TEST_FAILURE(errmsg, ...)                                 \
+    if (Info::has_exceptions()) {                                 \
+        ::testing::internal::CaptureStdout();                     \
+        ASSERT_ANY_THROW({__VA_ARGS__});                          \
+        auto mesg = ::testing::internal::GetCapturedStdout();     \
+        ASSERT_THAT(mesg, MatchesRegex(errmsg));                  \
+    } else {                                                      \
+        if (!have_openmpi) {                                      \
+            ::testing::internal::CaptureStdout();                 \
+            ASSERT_DEATH({__VA_ARGS__}, "");                      \
+            auto mesg = ::testing::internal::GetCapturedStdout(); \
+            ASSERT_THAT(mesg, MatchesRegex(errmsg));              \
+        }                                                         \
     }
 
 #define STRINGIFY(val) XSTR(val)
@@ -452,53 +466,220 @@ TEST_F(ResetIDsTest, DeleteAdd)
     ASSERT_EQ(molid[GETIDX(27)], 27);
 }
 
+TEST_F(ResetIDsTest, TopologyData)
+{
+    if (lmp->atom->natoms == 0) GTEST_SKIP();
+
+    // delete two water molecules
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("group allwater molecule 3:6");
+    lmp->input->one("group twowater molecule 4:6:2");
+    lmp->input->one("group nowater subtract all allwater");
+    lmp->input->one("delete_atoms group twowater compress no bond yes mol yes");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->atom->natoms, 23);
+    ASSERT_EQ(lmp->atom->map_tag_max, 26);
+
+    auto num_bond       = lmp->atom->num_bond;
+    auto num_angle      = lmp->atom->num_angle;
+    auto num_dihedral   = lmp->atom->num_dihedral;
+    auto num_improper   = lmp->atom->num_improper;
+    auto bond_atom      = lmp->atom->bond_atom;
+    auto angle_atom1    = lmp->atom->angle_atom1;
+    auto angle_atom2    = lmp->atom->angle_atom2;
+    auto angle_atom3    = lmp->atom->angle_atom3;
+    ASSERT_EQ(num_bond[GETIDX(1)],2);
+    ASSERT_EQ(bond_atom[GETIDX(1)][0],2);
+    ASSERT_EQ(bond_atom[GETIDX(1)][1],3);
+    ASSERT_EQ(num_bond[GETIDX(2)],0);
+    ASSERT_EQ(num_bond[GETIDX(3)],3);
+    ASSERT_EQ(bond_atom[GETIDX(3)][0],4);
+    ASSERT_EQ(bond_atom[GETIDX(3)][1],5);
+    ASSERT_EQ(bond_atom[GETIDX(3)][2],6);
+    ASSERT_EQ(num_bond[GETIDX(4)],0);
+    ASSERT_EQ(num_bond[GETIDX(5)],0);
+    ASSERT_EQ(num_bond[GETIDX(6)],2);
+    ASSERT_EQ(bond_atom[GETIDX(6)][0],8);
+    ASSERT_EQ(bond_atom[GETIDX(6)][1],7);
+    ASSERT_EQ(num_bond[GETIDX(7)],0);
+    ASSERT_EQ(num_bond[GETIDX(8)],2);
+    ASSERT_EQ(bond_atom[GETIDX(8)][0],9);
+    ASSERT_EQ(bond_atom[GETIDX(8)][1],10);
+    ASSERT_EQ(num_bond[GETIDX(9)],0);
+    ASSERT_EQ(num_bond[GETIDX(10)],3);
+    ASSERT_EQ(bond_atom[GETIDX(10)][0],11);
+    ASSERT_EQ(bond_atom[GETIDX(10)][1],12);
+    ASSERT_EQ(bond_atom[GETIDX(10)][2],16);
+    ASSERT_EQ(num_bond[GETIDX(11)],0);
+    ASSERT_EQ(num_bond[GETIDX(12)],3);
+    ASSERT_EQ(bond_atom[GETIDX(12)][0],13);
+    ASSERT_EQ(bond_atom[GETIDX(12)][1],14);
+    ASSERT_EQ(bond_atom[GETIDX(12)][2],15);
+    ASSERT_EQ(num_bond[GETIDX(13)],0);
+    ASSERT_EQ(num_bond[GETIDX(14)],0);
+    ASSERT_EQ(num_bond[GETIDX(15)],0);
+    ASSERT_EQ(num_bond[GETIDX(16)],1);
+    ASSERT_EQ(bond_atom[GETIDX(16)][0],17);
+    ASSERT_EQ(num_bond[GETIDX(17)],0);
+    ASSERT_EQ(num_bond[GETIDX(18)],2);
+    ASSERT_EQ(bond_atom[GETIDX(18)][0],19);
+    ASSERT_EQ(bond_atom[GETIDX(18)][1],20);
+    ASSERT_EQ(num_bond[GETIDX(19)],0);
+    ASSERT_EQ(num_bond[GETIDX(20)],0);
+    ASSERT_EQ(num_bond[GETIDX(24)],2);
+    ASSERT_EQ(bond_atom[GETIDX(24)][0],25);
+    ASSERT_EQ(bond_atom[GETIDX(24)][1],26);
+    ASSERT_EQ(num_bond[GETIDX(25)],0);
+    ASSERT_EQ(num_bond[GETIDX(26)],0);
+
+    ASSERT_EQ(num_angle[GETIDX(1)],1);
+    ASSERT_EQ(angle_atom1[GETIDX(1)][0],2);
+    ASSERT_EQ(angle_atom2[GETIDX(1)][0],1);
+    ASSERT_EQ(angle_atom3[GETIDX(1)][0],3);
+    ASSERT_EQ(num_angle[GETIDX(2)],0);
+    ASSERT_EQ(num_angle[GETIDX(3)],6);
+    ASSERT_EQ(angle_atom1[GETIDX(3)][0],1);
+    ASSERT_EQ(angle_atom2[GETIDX(3)][0],3);
+    ASSERT_EQ(angle_atom3[GETIDX(3)][0],5);
+    ASSERT_EQ(angle_atom1[GETIDX(3)][1],1);
+    ASSERT_EQ(angle_atom2[GETIDX(3)][1],3);
+    ASSERT_EQ(angle_atom3[GETIDX(3)][1],4);
+    ASSERT_EQ(angle_atom1[GETIDX(3)][2],1);
+    ASSERT_EQ(angle_atom2[GETIDX(3)][2],3);
+    ASSERT_EQ(angle_atom3[GETIDX(3)][2],6);
+    ASSERT_EQ(angle_atom1[GETIDX(3)][3],4);
+    ASSERT_EQ(angle_atom2[GETIDX(3)][3],3);
+    ASSERT_EQ(angle_atom3[GETIDX(3)][3],5);
+    ASSERT_EQ(angle_atom1[GETIDX(3)][4],5);
+    ASSERT_EQ(angle_atom2[GETIDX(3)][4],3);
+    ASSERT_EQ(angle_atom3[GETIDX(3)][4],6);
+    ASSERT_EQ(num_angle[GETIDX(18)],1);
+    ASSERT_EQ(angle_atom1[GETIDX(18)][0],19);
+    ASSERT_EQ(angle_atom2[GETIDX(18)][0],18);
+    ASSERT_EQ(angle_atom3[GETIDX(18)][0],20);
+    ASSERT_EQ(num_angle[GETIDX(24)],1);
+    ASSERT_EQ(angle_atom1[GETIDX(24)][0],25);
+    ASSERT_EQ(angle_atom2[GETIDX(24)][0],24);
+    ASSERT_EQ(angle_atom3[GETIDX(24)][0],26);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("reset_atom_ids sort yes");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    num_bond       = lmp->atom->num_bond;
+    num_angle      = lmp->atom->num_angle;
+    num_dihedral   = lmp->atom->num_dihedral;
+    num_improper   = lmp->atom->num_improper;
+    bond_atom      = lmp->atom->bond_atom;
+    angle_atom1    = lmp->atom->angle_atom1;
+    angle_atom2    = lmp->atom->angle_atom2;
+    angle_atom3    = lmp->atom->angle_atom3;
+    ASSERT_EQ(num_bond[GETIDX(1)],2);
+    ASSERT_EQ(bond_atom[GETIDX(1)][0],3);
+    ASSERT_EQ(bond_atom[GETIDX(1)][1],2);
+    ASSERT_EQ(num_bond[GETIDX(2)],0);
+    ASSERT_EQ(num_bond[GETIDX(3)],2);
+    ASSERT_EQ(bond_atom[GETIDX(3)][0],16);
+    ASSERT_EQ(bond_atom[GETIDX(3)][1],5);
+    ASSERT_EQ(num_bond[GETIDX(4)],0);
+    ASSERT_EQ(num_bond[GETIDX(5)],3);
+    ASSERT_EQ(bond_atom[GETIDX(5)][0],4);
+    ASSERT_EQ(bond_atom[GETIDX(5)][1],8);
+    ASSERT_EQ(bond_atom[GETIDX(5)][2],18);
+    ASSERT_EQ(num_bond[GETIDX(6)],0);
+    ASSERT_EQ(num_bond[GETIDX(7)],0);
+    ASSERT_EQ(num_bond[GETIDX(8)],3);
+    ASSERT_EQ(bond_atom[GETIDX(8)][0],9);
+    ASSERT_EQ(bond_atom[GETIDX(8)][1],6);
+    ASSERT_EQ(bond_atom[GETIDX(8)][2],7);
+    ASSERT_EQ(num_bond[GETIDX(9)],0);
+    ASSERT_EQ(num_bond[GETIDX(10)],0);
+    ASSERT_EQ(num_bond[GETIDX(11)],3);
+    ASSERT_EQ(bond_atom[GETIDX(11)][0],10);
+    ASSERT_EQ(bond_atom[GETIDX(11)][1],19);
+    ASSERT_EQ(bond_atom[GETIDX(11)][2],1);
+    ASSERT_EQ(num_bond[GETIDX(12)],0);
+    ASSERT_EQ(num_bond[GETIDX(13)],0);
+    ASSERT_EQ(num_bond[GETIDX(14)],2);
+    ASSERT_EQ(bond_atom[GETIDX(14)][0],13);
+    ASSERT_EQ(bond_atom[GETIDX(14)][1],15);
+    ASSERT_EQ(num_bond[GETIDX(15)],0);
+    ASSERT_EQ(num_bond[GETIDX(16)],0);
+    ASSERT_EQ(num_bond[GETIDX(17)],0);
+    ASSERT_EQ(num_bond[GETIDX(18)],1);
+    ASSERT_EQ(bond_atom[GETIDX(18)][0],17);
+    ASSERT_EQ(num_bond[GETIDX(19)],0);
+    ASSERT_EQ(num_bond[GETIDX(20)],2);
+    ASSERT_EQ(bond_atom[GETIDX(20)][0],12);
+    ASSERT_EQ(bond_atom[GETIDX(20)][1],11);
+    ASSERT_EQ(num_bond[GETIDX(21)],0);
+    ASSERT_EQ(num_bond[GETIDX(22)],2);
+    ASSERT_EQ(bond_atom[GETIDX(22)][0],21);
+    ASSERT_EQ(bond_atom[GETIDX(22)][1],23);
+    ASSERT_EQ(num_bond[GETIDX(23)],0);
+
+    ASSERT_EQ(num_angle[GETIDX(1)],3);
+    ASSERT_EQ(angle_atom1[GETIDX(1)][0],11);
+    ASSERT_EQ(angle_atom2[GETIDX(1)][0],1);
+    ASSERT_EQ(angle_atom3[GETIDX(1)][0],2);
+    ASSERT_EQ(angle_atom1[GETIDX(1)][1],11);
+    ASSERT_EQ(angle_atom2[GETIDX(1)][1],1);
+    ASSERT_EQ(angle_atom3[GETIDX(1)][1],3);
+    ASSERT_EQ(angle_atom1[GETIDX(1)][2],2);
+    ASSERT_EQ(angle_atom2[GETIDX(1)][2],1);
+    ASSERT_EQ(angle_atom3[GETIDX(1)][2],3);
+    ASSERT_EQ(num_angle[GETIDX(2)],0);
+    ASSERT_EQ(num_angle[GETIDX(5)],6);
+    ASSERT_EQ(angle_atom1[GETIDX(5)][0],3);
+    ASSERT_EQ(angle_atom2[GETIDX(5)][0],5);
+    ASSERT_EQ(angle_atom3[GETIDX(5)][0],4);
+    ASSERT_EQ(angle_atom1[GETIDX(5)][1],3);
+    ASSERT_EQ(angle_atom2[GETIDX(5)][1],5);
+    ASSERT_EQ(angle_atom3[GETIDX(5)][1],18);
+    ASSERT_EQ(angle_atom1[GETIDX(5)][2],4);
+    ASSERT_EQ(angle_atom2[GETIDX(5)][2],5);
+    ASSERT_EQ(angle_atom3[GETIDX(5)][2],8);
+    ASSERT_EQ(angle_atom1[GETIDX(5)][3],8);
+    ASSERT_EQ(angle_atom2[GETIDX(5)][3],5);
+    ASSERT_EQ(angle_atom3[GETIDX(5)][3],18);
+    ASSERT_EQ(angle_atom1[GETIDX(5)][4],3);
+    ASSERT_EQ(angle_atom2[GETIDX(5)][4],5);
+    ASSERT_EQ(angle_atom3[GETIDX(5)][4],8);
+    ASSERT_EQ(angle_atom1[GETIDX(5)][5],4);
+    ASSERT_EQ(angle_atom2[GETIDX(5)][5],5);
+    ASSERT_EQ(angle_atom3[GETIDX(5)][5],18);
+    ASSERT_EQ(num_angle[GETIDX(20)],1);
+    ASSERT_EQ(angle_atom1[GETIDX(20)][0],12);
+    ASSERT_EQ(angle_atom2[GETIDX(20)][0],20);
+    ASSERT_EQ(angle_atom3[GETIDX(20)][0],11);
+    ASSERT_EQ(num_angle[GETIDX(22)],1);
+    ASSERT_EQ(angle_atom1[GETIDX(22)][0],21);
+    ASSERT_EQ(angle_atom2[GETIDX(22)][0],22);
+    ASSERT_EQ(angle_atom3[GETIDX(22)][0],23);
+}
+
 TEST_F(ResetIDsTest, DeathTests)
 {
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids"););
-    auto mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
+    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*", lmp->input->one("reset_mol_ids"););
+    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
+                 lmp->input->one("reset_mol_ids all offset 1 1"););
+    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
+                 lmp->input->one("reset_mol_ids all offset -2"););
+    TEST_FAILURE(".*ERROR on proc 0: Expected integer.*",
+                 lmp->input->one("reset_mol_ids all offset xxx"););
+    TEST_FAILURE(".*ERROR on proc 0: Expected integer.*",
+                 lmp->input->one("reset_mol_ids all compress yes single no offset xxx"););
+    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
+                 lmp->input->one("reset_mol_ids all offset"););
+    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
+                 lmp->input->one("reset_mol_ids all compress"););
 
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all offset 1 1"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
-
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all offset -2"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
-
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all offset xxx"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR on proc 0: Expected integer.*"));
-
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all compress yes single no offset xxx"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR on proc 0: Expected integer.*"));
-
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all offset"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all compress"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all compress xxx"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all single"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all single xxx"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Illegal reset_mol_ids command.*"));
+    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
+                 lmp->input->one("reset_mol_ids all compress xxx"););
+    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
+                 lmp->input->one("reset_mol_ids all single"););
+    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
+                 lmp->input->one("reset_mol_ids all single xxx"););
 }
 
 TEST(ResetMolIds, CMDFail)
@@ -511,26 +692,23 @@ TEST(ResetMolIds, CMDFail)
     lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all"););
-    auto mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Reset_mol_ids command before.*"));
+    TEST_FAILURE(".*ERROR: Reset_mol_ids command before simulation box is.*",
+                 lmp->input->one("reset_mol_ids all"););
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("atom_modify id no");
     lmp->input->one("region box block 0 1 0 1 0 1");
     lmp->input->one("create_box 1 box");
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Cannot use reset_mol_ids unl.*"));
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    TEST_FAILURE(".*ERROR: Cannot use reset_mol_ids unless.*",
+                 lmp->input->one("reset_mol_ids all"););
 
-    ::testing::internal::CaptureStdout();
+    if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("clear");
     lmp->input->one("region box block 0 1 0 1 0 1");
     lmp->input->one("create_box 1 box");
-    TEST_FAILURE(lmp->input->one("reset_mol_ids all"););
-    mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, MatchesRegex(".*ERROR: Can only use reset_mol_ids.*"));
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    TEST_FAILURE(".*ERROR: Can only use reset_mol_ids.*", lmp->input->one("reset_mol_ids all"););
 
     if (!verbose) ::testing::internal::CaptureStdout();
     delete lmp;
@@ -543,6 +721,10 @@ int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
+
+    if (have_openmpi && !LAMMPS_NS::Info::has_exceptions())
+        std::cout << "Warning: using OpenMPI without exceptions. "
+                     "Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

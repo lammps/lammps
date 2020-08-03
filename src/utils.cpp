@@ -349,6 +349,19 @@ tagint utils::tnumeric(const char *file, int line, const char *str,
 }
 
 /* ----------------------------------------------------------------------
+   Return string without leading or trailing whitespace
+------------------------------------------------------------------------- */
+
+std::string utils::trim(const std::string & line) {
+  int beg = re_match(line.c_str(),"\\S+");
+  int end = re_match(line.c_str(),"\\s+$");
+  if (beg < 0) beg = 0;
+  if (end < 0) end = line.size();
+
+  return line.substr(beg,end-beg);
+}
+
+/* ----------------------------------------------------------------------
    Return string without trailing # comment
 ------------------------------------------------------------------------- */
 
@@ -436,6 +449,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
   const char *buf = text.c_str();
   std::size_t beg = 0;
   std::size_t len = 0;
+  std::size_t add = 0;
   char c = *buf;
 
   while (c) {
@@ -452,8 +466,9 @@ std::vector<std::string> utils::split_words(const std::string &text)
 
     // handle single quote
     if (c == '\'') {
+      ++beg;
+      add = 1;
       c = *++buf;
-      ++len;
       while (((c != '\'') && (c != '\0'))
              || ((c == '\\') && (buf[1] == '\''))) {
         if ((c == '\\') && (buf[1] == '\'')) {
@@ -463,13 +478,14 @@ std::vector<std::string> utils::split_words(const std::string &text)
         c = *++buf;
         ++len;
       }
+      if (c != '\'') ++len;
       c = *++buf;
-      ++len;
 
       // handle double quote
     } else if (c == '"') {
+      ++beg;
+      add = 1;
       c = *++buf;
-      ++len;
       while (((c != '"') && (c != '\0'))
              || ((c == '\\') && (buf[1] == '"'))) {
         if ((c == '\\') && (buf[1] == '"')) {
@@ -479,8 +495,8 @@ std::vector<std::string> utils::split_words(const std::string &text)
         c = *++buf;
         ++len;
       }
+      if (c != '"') ++len;
       c = *++buf;
-      ++len;
     }
 
     // unquoted
@@ -496,7 +512,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
       if ((c == ' ') || (c == '\t') || (c == '\r') || (c == '\n')
           || (c == '\f') || (c == '\0')) {
           list.push_back(text.substr(beg,len));
-          beg += len;
+          beg += len + add;
           break;
       }
       c = *++buf;

@@ -23,17 +23,33 @@
 #include <string>
 
 using namespace LAMMPS_NS;
-using testing::StartsWith;
+
+using testing::MatchesRegex;
 using testing::StrEq;
+
 using utils::sfgets;
 using utils::sfread;
 using utils::split_words;
 
-#define TEST_FAILURE(...)                \
-    if (Info::has_exceptions()) {        \
-        ASSERT_ANY_THROW({__VA_ARGS__}); \
-    } else {                             \
-        ASSERT_DEATH({__VA_ARGS__}, ""); \
+#if defined(OMPI_MAJOR_VERSION)
+const bool have_openmpi = true;
+#else
+const bool have_openmpi = false;
+#endif
+
+#define TEST_FAILURE(errmsg, ...)                                 \
+    if (Info::has_exceptions()) {                                 \
+        ::testing::internal::CaptureStdout();                     \
+        ASSERT_ANY_THROW({__VA_ARGS__});                          \
+        auto mesg = ::testing::internal::GetCapturedStdout();     \
+        ASSERT_THAT(mesg, MatchesRegex(errmsg));                  \
+    } else {                                                      \
+        if (!have_openmpi) {                                      \
+            ::testing::internal::CaptureStdout();                 \
+            ASSERT_DEATH({__VA_ARGS__}, "");                      \
+            auto mesg = ::testing::internal::GetCapturedStdout(); \
+            ASSERT_THAT(mesg, MatchesRegex(errmsg));              \
+        }                                                         \
     }
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
@@ -99,13 +115,10 @@ TEST_F(FileOperationsTest, safe_fgets)
     ASSERT_THAT(buf, StrEq("newline"));
 
     memset(buf, 0, MAX_BUF_SIZE);
-    ::testing::internal::CaptureStdout();
     TEST_FAILURE(
+        ".*ERROR on proc 0: Unexpected end of file while "
+        "reading file 'safe_file_read_test.txt'.*",
         utils::sfgets(FLERR, buf, MAX_BUF_SIZE, fp, "safe_file_read_test.txt", lmp->error););
-    auto mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, StartsWith("ERROR on proc 0: Unexpected end of file while "
-                                 "reading file 'safe_file_read_test.txt'"));
-
     fclose(fp);
 }
 
@@ -125,11 +138,9 @@ TEST_F(FileOperationsTest, safe_fread)
     utils::sfread(FLERR, buf, 1, 10, fp, "safe_file_read_test.txt", nullptr);
     ASSERT_THAT(buf, StrEq("two_lines\n"));
 
-    ::testing::internal::CaptureStdout();
-    TEST_FAILURE(utils::sfread(FLERR, buf, 1, 100, fp, "safe_file_read_test.txt", lmp->error););
-    auto mesg = ::testing::internal::GetCapturedStdout();
-    ASSERT_THAT(mesg, StartsWith("ERROR on proc 0: Unexpected end of file while "
-                                 "reading file 'safe_file_read_test.txt'"));
+    TEST_FAILURE(".*ERROR on proc 0: Unexpected end of file while "
+                 "reading file 'safe_file_read_test.txt'.*",
+                 utils::sfread(FLERR, buf, 1, 100, fp, "safe_file_read_test.txt", lmp->error););
 
     // short read but no error triggered due to passing a NULL pointer
     memset(buf, 0, MAX_BUF_SIZE);
@@ -165,6 +176,10 @@ int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
+
+    if (have_openmpi && !LAMMPS_NS::Info::has_exceptions())
+        std::cout << "Warning: using OpenMPI without exceptions. "
+                     "Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

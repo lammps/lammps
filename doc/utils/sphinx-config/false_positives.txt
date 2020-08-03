@@ -236,6 +236,7 @@ bilayer
 bilayers
 binsize
 binstyle
+binutils
 biomolecular
 biomolecule
 Biomolecules
@@ -3250,6 +3251,8 @@ whitesmoke
 whitespace
 Wi
 Wicaksono
+Widom
+widom
 Wijk
 Wikipedia
 wildcard
@@ -3378,3 +3381,5 @@ zy
 Zybin
 zz
 Zm
+PowerShell
+filesystems

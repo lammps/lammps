@@ -34,13 +34,8 @@ FixBondCreateAngle::FixBondCreateAngle(LAMMPS *lmp, int narg, char **arg) :
 int FixBondCreateAngle::constrain(int i, int j, double amin, double amax)
 {
   double **x = atom->x;
-  tagint *tag = atom->tag;
-  tagint **bond_atom = atom->bond_atom;
-  int *num_bond = atom->num_bond;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
-  int *mask = atom->mask;
-  int *type = atom->type;
 
   double v1x = 0.0;
   double v1y = 0.0;

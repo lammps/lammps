@@ -67,7 +67,7 @@ CommTiled::~CommTiled()
   memory->destroy(buf_send);
   memory->destroy(buf_recv);
   memory->destroy(overlap);
-  deallocate_swap(nswap);
+  deallocate_swap(maxswap);
   memory->sfree(rcbinfo);
 }
 
@@ -85,8 +85,8 @@ void CommTiled::init_buffers()
   maxoverlap = 0;
   overlap = NULL;
 
-  nswap = 2 * domain->dimension;
-  allocate_swap(nswap);
+  maxswap = 6;
+  allocate_swap(maxswap);
 
   rcbinfo = NULL;
 }
@@ -97,14 +97,14 @@ void CommTiled::init()
 {
   Comm::init();
 
+  nswap = 2 * domain->dimension;
+  
   int bufextra_old = bufextra;
   init_exchange();
   if (bufextra > bufextra_old) grow_send(maxsend+bufextra,2);
 
   // temporary restrictions
 
-  if (triclinic)
-    error->all(FLERR,"Cannot yet use comm_style tiled with triclinic box");
   if (mode == Comm::MULTI)
     error->all(FLERR,"Cannot yet use comm_style tiled with multi-mode comm");
 }
@@ -121,13 +121,21 @@ void CommTiled::setup()
   // domain properties used in setup method and methods it calls
 
   dimension = domain->dimension;
-  prd = domain->prd;
-  boxlo = domain->boxlo;
-  boxhi = domain->boxhi;
-  sublo = domain->sublo;
-  subhi = domain->subhi;
-
   int *periodicity = domain->periodicity;
+
+  if (triclinic == 0) {
+    prd = domain->prd;
+    boxlo = domain->boxlo;
+    boxhi = domain->boxhi;
+    sublo = domain->sublo;
+    subhi = domain->subhi;
+  } else {
+    prd = domain->prd_lamda;
+    boxlo = domain->boxlo_lamda;
+    boxhi = domain->boxhi_lamda;
+    sublo = domain->sublo_lamda;
+    subhi = domain->subhi_lamda;
+  }
 
   // set function pointers
 
@@ -155,11 +163,21 @@ void CommTiled::setup()
     error->warning(FLERR,"Communication cutoff is 0.0. No ghost atoms "
                    "will be generated. Atoms may get lost.");
 
-  cutghost[0] = cutghost[1] = cutghost[2] = cut;
+  if (triclinic == 0) cutghost[0] = cutghost[1] = cutghost[2] = cut;
+  else {
+    double *h_inv = domain->h_inv;
+    double length0,length1,length2;
+    length0 = sqrt(h_inv[0]*h_inv[0] + h_inv[5]*h_inv[5] + h_inv[4]*h_inv[4]);
+    cutghost[0] = cut * length0;
+    length1 = sqrt(h_inv[1]*h_inv[1] + h_inv[3]*h_inv[3]);
+    cutghost[1] = cut * length1;
+    length2 = h_inv[2];
+    cutghost[2] = cut * length2;
+  }
 
-  if ((periodicity[0] && cut > prd[0]) ||
-      (periodicity[1] && cut > prd[1]) ||
-      (dimension == 3 && periodicity[2] && cut > prd[2]))
+  if ((periodicity[0] && cutghost[0] > prd[0]) ||
+      (periodicity[1] && cutghost[1] > prd[1]) ||
+      (dimension == 3 && periodicity[2] && cutghost[2] > prd[2]))
     error->all(FLERR,"Communication cutoff for comm_style tiled "
                "cannot exceed periodic box length");
 
@@ -174,6 +192,7 @@ void CommTiled::setup()
     cut = MIN(prd[0],prd[1]);
     if (dimension == 3) cut = MIN(cut,prd[2]);
     cut *= EPSILON*EPSILON;
+    cutghost[0] = cutghost[1] = cutghost[2] = cut; 
   }
 
   // setup forward/reverse communication
@@ -200,11 +219,11 @@ void CommTiled::setup()
       lo1[0] = sublo[0]; lo1[1] = sublo[1]; lo1[2] = sublo[2];
       hi1[0] = subhi[0]; hi1[1] = subhi[1]; hi1[2] = subhi[2];
       if (idir == 0) {
-        lo1[idim] = sublo[idim] - cut;
+        lo1[idim] = sublo[idim] - cutghost[idim];
         hi1[idim] = sublo[idim];
       } else {
         lo1[idim] = subhi[idim];
-        hi1[idim] = subhi[idim] + cut;
+        hi1[idim] = subhi[idim] + cutghost[idim];
       }
 
       two = 0;
@@ -306,10 +325,16 @@ void CommTiled::setup()
           sbox[3] = MIN(oboxhi[0],hi1[0]);
           sbox[4] = MIN(oboxhi[1],hi1[1]);
           sbox[5] = MIN(oboxhi[2],hi1[2]);
+	  
         } else {
           pbc_flag[iswap][i] = 1;
           if (idir == 0) pbc[iswap][i][idim] = 1;
           else pbc[iswap][i][idim] = -1;
+	  if (triclinic) {
+            if (idim == 1) pbc[iswap][i][5] = pbc[iswap][i][idim];
+            if (idim == 2) pbc[iswap][i][4] = pbc[iswap][i][3] = pbc[iswap][i][idim];
+          }
+	  
           sbox[0] = MAX(oboxlo[0],lo2[0]);
           sbox[1] = MAX(oboxlo[1],lo2[1]);
           sbox[2] = MAX(oboxlo[2],lo2[2]);
@@ -320,21 +345,22 @@ void CommTiled::setup()
 
         if (idir == 0) {
           sbox[idim] = sublo[idim];
-          if (i < noverlap1) sbox[3+idim] = MIN(sbox[3+idim]+cut,subhi[idim]);
-          else sbox[3+idim] = MIN(sbox[3+idim]-prd[idim]+cut,subhi[idim]);
+          if (i < noverlap1)
+	    sbox[3+idim] = MIN(sbox[3+idim]+cutghost[idim],subhi[idim]);
+          else sbox[3+idim] = MIN(sbox[3+idim]-prd[idim]+cutghost[idim],subhi[idim]);
         } else {
-          if (i < noverlap1) sbox[idim] = MAX(sbox[idim]-cut,sublo[idim]);
-          else sbox[idim] = MAX(sbox[idim]+prd[idim]-cut,sublo[idim]);
+          if (i < noverlap1) sbox[idim] = MAX(sbox[idim]-cutghost[idim],sublo[idim]);
+          else sbox[idim] = MAX(sbox[idim]+prd[idim]-cutghost[idim],sublo[idim]);
           sbox[3+idim] = subhi[idim];
         }
 
         if (idim >= 1) {
-          if (sbox[0] == oboxlo[0]) sbox[0] -= cut;
-          if (sbox[3] == oboxhi[0]) sbox[3] += cut;
+          if (sbox[0] == oboxlo[0]) sbox[0] -= cutghost[0];
+          if (sbox[3] == oboxhi[0]) sbox[3] += cutghost[0];
         }
         if (idim == 2) {
-          if (sbox[1] == oboxlo[1]) sbox[1] -= cut;
-          if (sbox[4] == oboxhi[1]) sbox[4] += cut;
+          if (sbox[1] == oboxlo[1]) sbox[1] -= cutghost[1];
+          if (sbox[4] == oboxhi[1]) sbox[4] += cutghost[1];
         }
 
         memcpy(sendbox[iswap][i],sbox,6*sizeof(double));
@@ -344,6 +370,7 @@ void CommTiled::setup()
     }
   }
 
+  
   // setup exchange communication = subset of forward/reverse comm procs
   // loop over dimensions
   // determine which procs I will exchange with in each dimension
@@ -653,14 +680,16 @@ void CommTiled::exchange()
   // domain properties used in exchange method and methods it calls
   // subbox bounds for orthogonal or triclinic
 
-  prd = domain->prd;
-  boxlo = domain->boxlo;
-  boxhi = domain->boxhi;
-
   if (triclinic == 0) {
+    prd = domain->prd;
+    boxlo = domain->boxlo;
+    boxhi = domain->boxhi;
     sublo = domain->sublo;
     subhi = domain->subhi;
   } else {
+    prd = domain->prd_lamda;
+    boxlo = domain->boxlo_lamda;
+    boxhi = domain->boxhi_lamda;
     sublo = domain->sublo_lamda;
     subhi = domain->subhi_lamda;
   }
@@ -687,7 +716,11 @@ void CommTiled::exchange()
         if (proc != me) {
           buf_send[nsend++] = proc;
           nsend += avec->pack_exchange(i,&buf_send[nsend]);
-        }
+        } else {
+	  // DEBUG statment
+	  // error->warning(FLERR,"Losing atom in CommTiled::exchange() send, "
+	  // 		    "likely bad dynamics");
+	}
         avec->copy(nlocal-1,i,1);
         nlocal--;
       } else i++;
@@ -736,7 +769,10 @@ void CommTiled::exchange()
         if (value >= lo && value < hi) {
           m += avec->unpack_exchange(&buf_recv[m]);
           continue;
-        }
+	} else {
+	  // DEBUG statment
+	  // error->warning(FLERR,"Losing atom in CommTiled::exchange() recv");
+	}
       }
       m += static_cast<int> (buf_recv[m]);
     }
@@ -785,6 +821,7 @@ void CommTiled::borders()
     if (iswap % 2 == 0) nlast = atom->nlocal + atom->nghost;
 
     ncountall = 0;
+
     for (m = 0; m < nsendproc[iswap]; m++) {
       bbox = sendbox[iswap][m];
       xlo = bbox[0]; ylo = bbox[1]; zlo = bbox[2];
@@ -879,6 +916,7 @@ void CommTiled::borders()
     // swap atoms with other procs using pack_border(), unpack_border()
     // use Waitall() instead of Waitany() because calls to unpack_border()
     //   must increment per-atom arrays in ascending order
+    // For the same reason, sendself unpacks must occur after recvother unpacks
 
     if (ghost_velocity) {
       if (recvother[iswap]) {
@@ -894,19 +932,19 @@ void CommTiled::borders()
           MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][m],0,world);
         }
       }
-      if (sendself[iswap]) {
-        avec->pack_border_vel(sendnum[iswap][nsend],sendlist[iswap][nsend],
-                              buf_send,pbc_flag[iswap][nsend],
-                              pbc[iswap][nsend]);
-        avec->unpack_border_vel(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],
-                                buf_send);
-      }
       if (recvother[iswap]) {
         MPI_Waitall(nrecv,requests,MPI_STATUS_IGNORE);
         for (m = 0; m < nrecv; m++)
           avec->unpack_border_vel(recvnum[iswap][m],firstrecv[iswap][m],
                                   &buf_recv[size_border*
                                             forward_recv_offset[iswap][m]]);
+      }
+      if (sendself[iswap]) {
+        avec->pack_border_vel(sendnum[iswap][nsend],sendlist[iswap][nsend],
+                              buf_send,pbc_flag[iswap][nsend],
+                              pbc[iswap][nsend]);
+        avec->unpack_border_vel(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],
+                                buf_send);
       }
 
     } else {
@@ -923,18 +961,18 @@ void CommTiled::borders()
           MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][m],0,world);
         }
       }
-      if (sendself[iswap]) {
-        avec->pack_border(sendnum[iswap][nsend],sendlist[iswap][nsend],
-                          buf_send,pbc_flag[iswap][nsend],pbc[iswap][nsend]);
-        avec->unpack_border(recvnum[iswap][nsend],firstrecv[iswap][nsend],
-                            buf_send);
-      }
       if (recvother[iswap]) {
         MPI_Waitall(nrecv,requests,MPI_STATUS_IGNORE);
         for (m = 0; m < nrecv; m++)
           avec->unpack_border(recvnum[iswap][m],firstrecv[iswap][m],
                               &buf_recv[size_border*
                                         forward_recv_offset[iswap][m]]);
+      }
+      if (sendself[iswap]) {
+        avec->pack_border(sendnum[iswap][nsend],sendlist[iswap][nsend],
+                          buf_send,pbc_flag[iswap][nsend],pbc[iswap][nsend]);
+        avec->unpack_border(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],
+                            buf_send);
       }
     }
 

@@ -292,8 +292,6 @@ namespace LAMMPS_NS {
      */
     double get_conversion_factor(const int property, const int conversion);
 
-// convert a timespec ([[HH:]MM:]SS) to seconds
-
     /**
      * \brief Convert a time string to seconds
      *        The strings "off" and "unlimited" result in -1

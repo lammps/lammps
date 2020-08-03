@@ -5,6 +5,23 @@ if(NOT YAML_FOUND)
   return()
 endif()
 
+if(CMAKE_VERSION VERSION_LESS 3.12)
+  # adjust so we find Python 3 versions before Python 2 on old systems with old CMake
+  set(Python_ADDITIONAL_VERSIONS 3.8 3.7 3.6 3.5)
+  find_package(PythonInterp) # Deprecated since version 3.12
+  if(PYTHONINTERP_FOUND)
+    set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
+  endif()
+else()
+  find_package(Python COMPONENTS Interpreter)
+endif()
+if (Python_EXECUTABLE)
+  add_custom_target(check-tests
+    ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/check_tests.py
+    -s ${LAMMPS_SOURCE_DIR} -t ${CMAKE_CURRENT_SOURCE_DIR}/tests
+    COMMENT "Check completeness of force style tests")
+endif()
+
 set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 add_library(style_tests STATIC yaml_writer.cpp error_stats.cpp test_config_reader.cpp test_main.cpp)
 target_compile_definitions(style_tests PRIVATE -DTEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})

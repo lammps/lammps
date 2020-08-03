@@ -93,25 +93,6 @@ def add_suffix(list,style):
     else:
         return style
 
-def check_style(file,dir,pattern,list,name,suffix=False,skip=()):
-    f = os.path.join(dir, file)
-    fp = open(f)
-    text = fp.read()
-    fp.close()
-    matches = re.findall(pattern,text,re.MULTILINE)
-    counter = 0
-    for c in list.keys():
-        # known undocumented aliases we need to skip
-        if c in skip: continue
-        s = c
-        if suffix: s = add_suffix(list,c)
-        if not s in matches:
-            if not list[c]['removed']:
-                print("%s style entry %s" % (name,s),
-                      "is missing or incomplete in %s" % file)
-                counter += 1
-    return counter
-
 print("Parsing style names from C++ tree in: ",src)
 
 for h in headers:

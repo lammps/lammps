@@ -66,7 +66,7 @@ counter = 0
 with open(os.path.join(doc_dir, 'Packages_standard.rst')) as fp:
     text = fp.read()
 
-matches = re.findall(':ref:`([A-Z0-9-]+) <[A-Z0-9-]+>`', text, re.MULTILINE)
+matches = set(re.findall(':ref:`([A-Z0-9-]+) <[A-Z0-9-]+>`', text, re.MULTILINE))
 for p in stdpkg:
   if not p in matches:
     counter += 1
@@ -75,7 +75,7 @@ for p in stdpkg:
 with open(os.path.join(doc_dir, 'Packages_user.rst')) as fp:
     text = fp.read()
 
-matches = re.findall(':ref:`([A-Z0-9-]+) <[A-Z0-9-]+>`', text, re.MULTILINE)
+matches = set(re.findall(':ref:`([A-Z0-9-]+) <[A-Z0-9-]+>`', text, re.MULTILINE))
 for p in usrpkg:
   if not p in matches:
     counter += 1
@@ -84,13 +84,13 @@ for p in usrpkg:
 with open(os.path.join(doc_dir, 'Packages_details.rst')) as fp:
     text = fp.read()
 
-matches = re.findall(':ref:`([A-Z0-9]+) <PKG-\\1>`', text, re.MULTILINE)
+matches = set(re.findall(':ref:`([A-Z0-9]+) <PKG-\\1>`', text, re.MULTILINE))
 for p in stdpkg:
     if not p in matches:
         counter += 1
         print(f"Standard package {p} missing in Packages_details.rst")
 
-matches = re.findall(':ref:`(USER-[A-Z0-9]+) <PKG-\\1>`', text, re.MULTILINE)
+matches = set(re.findall(':ref:`(USER-[A-Z0-9]+) <PKG-\\1>`', text, re.MULTILINE))
 for p in usrpkg:
     if not p in matches:
         counter +=1 

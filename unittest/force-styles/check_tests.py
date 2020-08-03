@@ -187,7 +187,12 @@ def check_tests(name,list,yaml,search,skip=()):
         fp.close()
         matches = re.findall(search,text,re.MULTILINE)
         for m in matches:
-            styles.append(m)
+            if m[1] == 'hybrid' or m[1] == 'hybrid/overlay':
+                for s in m[0].split():
+                    if s in list.keys():
+                        styles.append(s)
+            else:
+                styles.append(m[1])
     for s in list.keys():
         # known undocumented aliases we need to skip
         if s in skip: continue
@@ -197,22 +202,23 @@ def check_tests(name,list,yaml,search,skip=()):
                 num += 1
                 missing.append(s)
     total = len(list)
-    print("\nTests for %s styles: %d of %d" % (name,total - num, total))
+    print("\nTests available for %s styles: %d of %d"
+          % (name,total - num, total))
     print("No tests for: ", missing)
     return num
 
 counter += check_tests('pair',pair,'*-pair-*.yaml',
-                       '.*pair_style:\s*(\S+).*',skip=('meam','lj/sf'))
+                       '.*pair_style:\s*((\S+).*)?',skip=('meam','lj/sf'))
 counter += check_tests('bond',bond,'bond-*.yaml',
-                       '.*bond_style:\s*(\S+).*')
+                       '.*bond_style:\s*((\S+).*)?')
 counter += check_tests('angle',angle,'angle-*.yaml',
-                       '.*angle_style:\s*(\S+).*')
+                       '.*angle_style:\s*((\S+).*)?')
 counter += check_tests('dihedral',dihedral,'dihedral-*.yaml',
-                       '.*dihedral_style:\s*(\S+).*')
+                       '.*dihedral_style:\s*((\S+).*)?')
 counter += check_tests('improper',improper,'improper-*.yaml',
-                       '.*improper_style:\s*(\S+).*')
+                       '.*improper_style:\s*((\S+).*)?')
 counter += check_tests('kspace',kspace,'kspace-*.yaml',
-                       '.*kspace_style\s*(\S+).*')
+                       '.*kspace_style\s*((\S+).*)?')
 
 total = len(pair)+len(bond)+len(angle)+len(dihedral)+len(improper)+len(kspace)
-print("\nTotal tests missing: %d of %d" % (total - counter, total))
+print("\nTotal tests missing: %d of %d" % (counter, total))

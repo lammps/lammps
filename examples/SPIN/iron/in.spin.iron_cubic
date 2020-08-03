@@ -52,9 +52,9 @@ thermo_style    custom step time v_magx v_magy v_magz v_magnorm v_tmag v_emag pe
 thermo          50
 
 compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
-dump 		100 all custom 1 dump_iron.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
+dump 		1 all custom 100 dump_iron.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
 
-run 		2000
+run 		1000
 # min_style 	spin
 # min_modify	alpha_damp 1.0 discrete_factor 10
 # minimize 	1.0e-16 1.0e-16 10000 10000

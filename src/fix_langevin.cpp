@@ -339,7 +339,7 @@ void FixLangevin::setup(int vflag)
     if (rmass) {
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
-          dtfm = 0.5 * dt / rmass[i];
+          dtfm = force->ftm2v * 0.5 * dt / rmass[i];
           v[i][0] -= dtfm * f[i][0];
           v[i][1] -= dtfm * f[i][1];
           v[i][2] -= dtfm * f[i][2];
@@ -355,7 +355,7 @@ void FixLangevin::setup(int vflag)
     } else {
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
-          dtfm = 0.5 * dt / mass[type[i]];
+          dtfm = force->ftm2v * 0.5 * dt / mass[type[i]];
           v[i][0] -= dtfm * f[i][0];
           v[i][1] -= dtfm * f[i][1];
           v[i][2] -= dtfm * f[i][2];
@@ -389,7 +389,7 @@ void FixLangevin::setup(int vflag)
     if (rmass) {
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
-          dtfm = 0.5 * dt / rmass[i];
+          dtfm = force->ftm2v * 0.5 * dt / rmass[i];
           v[i][0] += dtfm * f[i][0];
           v[i][1] += dtfm * f[i][1];
           v[i][2] += dtfm * f[i][2];
@@ -401,7 +401,7 @@ void FixLangevin::setup(int vflag)
     } else {
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
-          dtfm = 0.5 * dt / mass[type[i]];
+          dtfm = force->ftm2v * 0.5 * dt / mass[type[i]];
           v[i][0] += dtfm * f[i][0];
           v[i][1] += dtfm * f[i][1];
           v[i][2] += dtfm * f[i][2];

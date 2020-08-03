@@ -15,6 +15,7 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
@@ -138,7 +139,7 @@ void ImproperCvffIntel::eval(const int vflag,
   }
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(f_start,f_stride,fc) \
     reduction(+:oeimproper,ov0,ov1,ov2,ov3,ov4,ov5)
   #endif

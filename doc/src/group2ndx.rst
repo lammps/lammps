@@ -9,7 +9,6 @@ ndx2group command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    group2ndx file group-ID ...
@@ -18,12 +17,10 @@ Syntax
 * file = name of index file to write out or read in
 * zero or more group IDs may be appended
 
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    group2ndx allindex.ndx
    group2ndx someindex.ndx upper lower mobile
@@ -52,13 +49,10 @@ recreated. If a group of the same name already exists, it will be completely
 reset. When specifying group IDs, those groups, if present, will be read
 from the index file and restored.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This command requires that atoms have atom IDs, since this is the
 information that is written to the index file.
@@ -72,8 +66,3 @@ Related commands
 :doc:`group <group>`, :doc:`dump <dump>`, :doc:`fix colvars <fix_colvars>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

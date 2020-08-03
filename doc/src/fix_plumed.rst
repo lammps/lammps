@@ -6,7 +6,6 @@ fix plumed command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID plumed keyword value ...
@@ -14,18 +13,18 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * plumed = style name of this fix command
 * keyword = *plumedfile* or *outfile*
-  
+
   .. parsed-literal::
-  
+
        *plumedfile* arg = name of PLUMED input file to use (default: NULL)
        *outfile* arg = name of file on which to write the PLUMED log (default: NULL)
-
-
 
 Examples
 """"""""
 
-fix pl all plumed all plumed plumedfile plumed.dat outfile p.log
+.. code-block:: LAMMPS
+
+   fix pl all plumed all plumed plumedfile plumed.dat outfile p.log
 
 Description
 """""""""""
@@ -47,9 +46,7 @@ A detailed discussion of the code can be found in :ref:`(PLUMED) <PLUMED>`.
 There is an example input for using this package with LAMMPS in the
 examples/USER/plumed directory.
 
-
 ----------
-
 
 The command to make LAMMPS call PLUMED during a run requires two keyword
 value pairs pointing to the PLUMED input file and an output file for the
@@ -78,7 +75,7 @@ correctly read and parsed.  The names of the files in which the results
 are stored from the various analysis options performed by PLUMED will
 be specified by the user in the PLUMED input file.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 When performing a restart of a calculation that involves PLUMED you must
 include a RESTART command in the PLUMED input file as detailed in the
@@ -90,7 +87,7 @@ dependent bias potentials that were accumulated in previous calculations
 will be read in when the RESTART command is included in the PLUMED
 input.
 
-The :doc:`fix\_modify <fix_modify>` *energy* option is not supported by
+The :doc:`fix_modify <fix_modify>` *energy* option is not supported by
 this fix.
 
 Nothing is computed by this fix that can be accessed by any of the
@@ -100,7 +97,6 @@ however.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-PLUMED package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -118,25 +114,12 @@ Default
 
 The default options are plumedfile = NULL and outfile = NULL
 
-
 ----------
-
 
 .. _PLUMED:
 
-
-
 **(PLUMED)** G.A. Tribello, M. Bonomi, D. Branduardi, C. Camilloni and G. Bussi, Comp. Phys. Comm 185, 604 (2014)
 
-.. _plumeddocs: http://www.plumed.org/doc.html
+.. _plumeddocs: https://www.plumed.org/doc.html
 
-
-
-.. _plumedhome: http://www.plumed.org/
-
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html
+.. _plumedhome: https://www.plumed.org/

@@ -233,10 +233,6 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
   else size_peratom_cols = nvalues;
 
   nmax = maxvector = 0;
-  indices = NULL;
-  varatom = NULL;
-  vecglobal = NULL;
-
   vector_atom = NULL;
   array_atom = NULL;
 }
@@ -320,6 +316,10 @@ void ComputeGlobalAtom::compute_peratom()
     nmax = atom->nmax;
     memory->destroy(indices);
     memory->create(indices,nmax,"global/atom:indices");
+    if (whichref == VARIABLE) {
+      memory->destroy(varatom);
+      memory->create(varatom,nmax,"global/atom:varatom");
+    }
     if (nvalues == 1) {
       memory->destroy(vector_atom);
       memory->create(vector_atom,nmax,"global/atom:vector_atom");
@@ -377,12 +377,6 @@ void ComputeGlobalAtom::compute_peratom()
     }
 
   } else if (whichref == VARIABLE) {
-    if (atom->nmax > nmax) {
-      nmax = atom->nmax;
-      memory->destroy(varatom);
-      memory->create(varatom,nmax,"global/atom:varatom");
-    }
-
     input->variable->compute_atom(ref2index,igroup,varatom,1,0);
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)

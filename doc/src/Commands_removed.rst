@@ -48,7 +48,7 @@ The USER-CUDA package had been removed, since it had been unmaintained
 for a long time and had known bugs and problems.  Significant parts of
 the design were transferred to the
 :ref:`KOKKOS package <PKG-KOKKOS>`, which has similar
-performance characteristics on Nvidia GPUs. Both, the KOKKOS
+performance characteristics on NVIDIA GPUs. Both, the KOKKOS
 and the :ref:`GPU package <PKG-GPU>` are maintained
 and allow running LAMMPS with GPU acceleration.
 
@@ -57,11 +57,6 @@ restart2data tool
 
 The functionality of the restart2data tool has been folded into the
 LAMMPS executable directly instead of having a separate tool.  A
-combination of the commands :doc:`read\_restart <read_restart>` and
-:doc:`write\_data <write_data>` can be used to the same effect.  For added
+combination of the commands :doc:`read_restart <read_restart>` and
+:doc:`write_data <write_data>` can be used to the same effect.  For added
 convenience this conversion can also be triggered by :doc:`command line flags <Run_options>`
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

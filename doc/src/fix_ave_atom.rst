@@ -6,7 +6,6 @@ fix ave/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID ave/atom Nevery Nrepeat Nfreq value1 value2 ...
@@ -17,10 +16,10 @@ Syntax
 * Nrepeat = # of times to use input values for calculating averages
 * Nfreq = calculate averages every this many timesteps
   one or more input values can be listed
-* value = x, y, z, vx, vy, vz, fx, fy, fz, c\_ID, c\_ID[i], f\_ID, f\_ID[i], v\_name
-  
+* value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID[i], f_ID, f_ID[i], v_name
+
   .. parsed-literal::
-  
+
        x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
        c_ID = per-atom vector calculated by a compute with ID
        c_ID[I] = Ith column of per-atom array calculated by a compute with ID, I can include wildcard (see below)
@@ -28,17 +27,14 @@ Syntax
        f_ID[I] = Ith column of per-atom array calculated by a fix with ID, I can include wildcard (see below)
        v_name = per-atom vector calculated by an atom-style variable with name
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all ave/atom 1 100 100 vx vy vz
    fix 1 all ave/atom 10 20 1000 c_my_stress[1]
-   fix 1 all ave/atom 10 20 1000 c_my_stress[\*]
+   fix 1 all ave/atom 10 20 1000 c_my_stress[*]
 
 Description
 """""""""""
@@ -83,18 +79,15 @@ had been listed one by one.  E.g. these 2 fix ave/atom commands are
 equivalent, since the :doc:`compute stress/atom <compute_stress_atom>`
 command creates a per-atom array with 6 columns:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute my_stress all stress/atom NULL
-   fix 1 all ave/atom 10 20 1000 c_my_stress[\*]
-   fix 1 all ave/atom 10 20 1000 c_my_stress[1] c_my_stress[1] &
+   fix 1 all ave/atom 10 20 1000 c_my_stress[*]
+   fix 1 all ave/atom 10 20 1000 c_my_stress[1] c_my_stress[2] &
                                  c_my_stress[3] c_my_stress[4] &
                                  c_my_stress[5] c_my_stress[6]
 
-
 ----------
-
 
 The *Nevery*\ , *Nrepeat*\ , and *Nfreq* arguments specify on what
 timesteps the input values will be used in order to contribute to the
@@ -111,9 +104,7 @@ timesteps 90,92,94,96,98,100 will be used to compute the final average
 on timestep 100.  Similarly for timesteps 190,192,194,196,198,200 on
 timestep 200, etc.
 
-
 ----------
-
 
 The atom attribute values (x,y,z,vx,vy,vz,fx,fy,fz) are
 self-explanatory.  Note that other atom attributes can be used as
@@ -156,13 +147,11 @@ thermodynamic keywords, or invoke other computes, fixes, or variables
 when they are evaluated, so this is a very general means of generating
 per-atom quantities to time average.
 
-
 ----------
 
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
-
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global scalar or vector quantities are
 stored by this fix for access by various :doc:`output commands <Howto_output>`.
 
@@ -187,8 +176,3 @@ Related commands
 :doc:`variable <variable>`,
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

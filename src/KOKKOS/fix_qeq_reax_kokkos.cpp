@@ -39,8 +39,6 @@ using namespace FixConst;
 #define SMALL 0.0001
 #define EV_TO_KCAL_PER_MOL 14.4
 
-#define TEAMSIZE 128
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -91,10 +89,10 @@ void FixQEqReaxKokkos<DeviceType>::init()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
+    !std::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
 
   if (neighflag == FULL) {
     neighbor->requests[irequest]->fix = 1;
@@ -125,6 +123,8 @@ void FixQEqReaxKokkos<DeviceType>::init()
 
   init_shielding_k();
   init_hist();
+
+  last_allocate = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -197,7 +197,6 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
   type = atomKK->k_type.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
   nlocal = atomKK->nlocal;
-  nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
 
   k_params.template sync<DeviceType>();
@@ -209,6 +208,7 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
   inum = list->inum;
+  ignum = inum + list->gnum;
 
   copymode = 1;
 
@@ -218,12 +218,14 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
 
   // get max number of neighbor
 
-  if (!allocated_flag || update->ntimestep == neighbor->lastcall)
+  if (!allocated_flag || last_allocate < neighbor->lastcall) {
     allocate_matrix();
+    last_allocate = update->ntimestep;
+  }
 
   // compute_H
 
-  if (lmp->kokkos->ngpus == 0) { // CPU
+  if (execution_space == Host) { // CPU
     if (neighflag == FULL) {
       FixQEqReaxKokkosComputeHFunctor<DeviceType, FULL> computeH_functor(this);
       Kokkos::parallel_scan(inum,computeH_functor);
@@ -291,6 +293,8 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
 
   // calculate_Q();
 
+  k_s_hist.template sync<DeviceType>();
+  k_t_hist.template sync<DeviceType>();
   calculate_q();
   k_s_hist.template modify<DeviceType>();
   k_t_hist.template modify<DeviceType>();
@@ -375,7 +379,6 @@ void FixQEqReaxKokkos<DeviceType>::allocate_array()
   }
 
   // init_storage
-  const int ignum = atom->nlocal + atom->nghost;
   FixQEqReaxKokkosZeroFunctor<DeviceType> zero_functor(this);
   Kokkos::parallel_for(ignum,zero_functor);
 
@@ -726,13 +729,15 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
   const int inum = list->inum;
   F_FLOAT tmp, sig_old, b_norm;
 
-  const int teamsize = TEAMSIZE;
+  int teamsize;
+  if (execution_space == Host) teamsize = 1;
+  else teamsize = 128;
 
   // sparse_matvec( &H, x, q );
   FixQEqReaxKokkosSparse12Functor<DeviceType> sparse12_functor(this);
   Kokkos::parallel_for(inum,sparse12_functor);
   if (neighflag != FULL) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(nlocal,nlocal+atom->nghost),*this);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(inum,ignum),*this);
     if (neighflag == HALF) {
       FixQEqReaxKokkosSparse13Functor<DeviceType,HALF> sparse13_functor(this);
       Kokkos::parallel_for(inum,sparse13_functor);
@@ -788,7 +793,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
     FixQEqReaxKokkosSparse22Functor<DeviceType> sparse22_functor(this);
     Kokkos::parallel_for(inum,sparse22_functor);
     if (neighflag != FULL) {
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(nlocal,nlocal+atom->nghost),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(inum,ignum),*this);
       if (need_dup)
         dup_o.reset_except(d_o);
       if (neighflag == HALF) {
@@ -861,13 +866,15 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
   const int inum = list->inum;
   F_FLOAT tmp, sig_old, b_norm;
 
-  const int teamsize = TEAMSIZE;
+  int teamsize;
+  if (execution_space == Host) teamsize = 1;
+  else teamsize = 128;
 
   // sparse_matvec( &H, x, q );
   FixQEqReaxKokkosSparse32Functor<DeviceType> sparse32_functor(this);
   Kokkos::parallel_for(inum,sparse32_functor);
   if (neighflag != FULL) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(nlocal,nlocal+atom->nghost),*this);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(inum,ignum),*this);
     if (need_dup)
       dup_o.reset_except(d_o);
     if (neighflag == HALF) {
@@ -925,7 +932,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
     FixQEqReaxKokkosSparse22Functor<DeviceType> sparse22_functor(this);
     Kokkos::parallel_for(inum,sparse22_functor);
     if (neighflag != FULL) {
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(nlocal,nlocal+atom->nghost),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(inum,ignum),*this);
       if (need_dup)
         dup_o.reset_except(d_o);
       if (neighflag == HALF) {
@@ -1501,6 +1508,9 @@ int FixQEqReaxKokkos<DeviceType>::pack_exchange(int i, double *buf)
 template<class DeviceType>
 int FixQEqReaxKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 {
+  k_s_hist.template sync<LMPHostType>();
+  k_t_hist.template sync<LMPHostType>();
+
   for (int m = 0; m < nprev; m++) s_hist[nlocal][m] = buf[m];
   for (int m = 0; m < nprev; m++) t_hist[nlocal][m] = buf[nprev+m];
 

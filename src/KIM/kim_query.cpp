@@ -56,6 +56,7 @@
 ------------------------------------------------------------------------- */
 
 #include "kim_query.h"
+#include "fix_store_kim.h"
 #include <mpi.h>
 #include <cstring>
 #include <string>
@@ -67,11 +68,12 @@
 #include "variable.h"
 #include "version.h"
 #include "info.h"
-#include "fix_store_kim.h"
+#include "fmt/format.h"
 
 #if defined(LMP_KIM_CURL)
 #include <sys/types.h>
 #include <curl/curl.h>
+#include <cstdlib>
 #endif
 
 using namespace LAMMPS_NS;
@@ -126,8 +128,7 @@ void KimQuery::command(int narg, char **arg)
     narg--;
   }
   function = arg[1];
-  for (int i = 2; i < narg; ++i)
-  {
+  for (int i = 2; i < narg; ++i) {
     if (0 == strncmp("model=",arg[i], 6)) {
       error->all(FLERR,"Illegal 'model' key in kim_query command");
     }
@@ -152,7 +153,7 @@ void KimQuery::command(int narg, char **arg)
     error->all(FLERR,errmsg);
   }
 
-  kim_query_log_delimiter("begin");
+  input->write_echo("#=== BEGIN kim-query =========================================\n");
   char **varcmd = new char*[3];
   varcmd[1] = (char *) "string";
 
@@ -185,7 +186,7 @@ void KimQuery::command(int narg, char **arg)
     input->variable->set(3,varcmd);
     echo_var_assign(varname, value_string);
   }
-  kim_query_log_delimiter("end");
+  input->write_echo("#=== END kim-query ===========================================\n\n");
 
   delete[] varcmd;
   delete[] value;
@@ -257,11 +258,24 @@ char *do_query(char *qfunction, char * model_name, int narg, char **arg,
       curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
 #endif
 
-#if defined(LMP_NO_SSL_CHECK)
-      // disable verifying SSL certificate and host name
+#if LMP_NO_SSL_CHECK
+      // Certificate Verification
+      // by telling libcurl to not verify the peer.
+      // Disable verifying SSL certificate and host name. Insecure.
       curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(handle, CURLOPT_SSL_VERIFYHOST, 0L);
 #endif
+
+      {
+        char *env_c = std::getenv("CURL_CA_BUNDLE");
+        if (env_c) {
+          // Certificate Verification
+          // by specifying your own CA cert path. Set the environment variable
+          // CURL_CA_BUNDLE to the path of your choice.
+          curl_easy_setopt(handle, CURLOPT_CAINFO, env_c);
+        }
+      }
+
       std::string user_agent = std::string("kim_query--LAMMPS/")
                                + LAMMPS_VERSION
                                + " (" + Info::get_os_info() + ")";
@@ -300,8 +314,7 @@ char *do_query(char *qfunction, char * model_name, int narg, char **arg,
       value[len] = '\0';
       if (0 == strcmp(value+1, "")) {
         strcpy(retval,"EMPTY");
-      }
-      else
+      } else
         strcpy(retval,value+1);
     } else {
       retval = new char[len+2];
@@ -327,29 +340,8 @@ char *do_query(char *qfunction, char * model_name, int narg, char **arg,
 
 /* ---------------------------------------------------------------------- */
 
-void KimQuery::kim_query_log_delimiter(std::string const begin_end) const
+void KimQuery::echo_var_assign(const std::string & name,
+                               const std::string & value) const
 {
-  if (comm->me == 0) {
-    std::string mesg;
-    if (begin_end == "begin")
-      mesg =
-          "#=== BEGIN kim-query =========================================\n";
-    else if (begin_end == "end")
-      mesg =
-          "#=== END kim-query ===========================================\n\n";
-
-    input->write_echo(mesg.c_str());
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void KimQuery::echo_var_assign(std::string const & name,
-                               std::string const & value) const
-{
-  if (comm->me == 0) {
-    std::string mesg;
-    mesg += "variable " + name + " string " + value + "\n";
-    input->write_echo(mesg.c_str());
-  }
+  input->write_echo(fmt::format("variable {} string {}\n",name,value));
 }

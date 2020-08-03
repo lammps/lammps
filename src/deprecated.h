@@ -14,6 +14,7 @@
 #ifdef COMMAND_CLASS
 
 CommandStyle(DEPRECATED,Deprecated)
+CommandStyle(reset_ids,Deprecated)
 
 #else
 

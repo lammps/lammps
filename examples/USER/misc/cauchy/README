@@ -1,0 +1,10 @@
+Run this example by executing:
+
+% lmp -in in.cauchystat
+
+Note that this example use an EAM potential, and therefore must be
+run with a LAMMPS executable built with the MANYBODY package.
+
+The first cauchystat fix equilibrates the temperature at zero stress,
+the second fix applies a shear stress. Output in avg.txt shows
+convergence to correct values.

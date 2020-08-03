@@ -6,20 +6,21 @@ atom_style command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    atom_style style args
 
-* style = *angle* or *atomic* or *body* or *bond* or *charge* or *dipole* or         *dpd* or *edpd* or *mdpd* or *tdpd* or *electron* or *ellipsoid* or         *full* or *line* or *meso* or *molecular* or *peri* or *smd* or         *sphere* or *spin* or *tri* or *template* or *hybrid*
-  
+* style = *angle* or *atomic* or *body* or *bond* or *charge* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *molecular* or *peri* or *smd* or *sph* or *sphere* or *spin* or *tdpd* or *tri* or *template* or *hybrid*
+
   .. parsed-literal::
-  
+
        args = none for any style except the following
          *body* args = bstyle bstyle-args
            bstyle = style of body particles
            bstyle-args = additional arguments specific to the bstyle
-                         see the :doc:`Howto body <Howto_body>` doc page for details
+                         see the :doc:`Howto body <Howto_body>` doc
+                         page for details
+         *sphere* arg = 0/1 (optional) for static/dynamic particle radii
          *tdpd* arg = Nspecies
            Nspecies = # of chemical species
          *template* arg = template-ID
@@ -28,10 +29,8 @@ Syntax
 
 * accelerated styles (with same args) = *angle/kk* or *atomic/kk* or *bond/kk* or *charge/kk* or *full/kk* or *molecular/kk*
 
-
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -50,8 +49,8 @@ Description
 
 Define what style of atoms to use in a simulation.  This determines
 what attributes are associated with the atoms.  This command must be
-used before a simulation is setup via a :doc:`read\_data <read_data>`,
-:doc:`read\_restart <read_restart>`, or :doc:`create\_box <create_box>`
+used before a simulation is setup via a :doc:`read_data <read_data>`,
+:doc:`read_restart <read_restart>`, or :doc:`create_box <create_box>`
 command.
 
 .. note::
@@ -68,12 +67,12 @@ style more general than needed, though it may be slightly inefficient.
 The choice of style affects what quantities are stored by each atom,
 what quantities are communicated between processors to enable forces
 to be computed, and what quantities are listed in the data file read
-by the :doc:`read\_data <read_data>` command.
+by the :doc:`read_data <read_data>` command.
 
 These are the additional attributes of each style and the typical
 kinds of physical systems they are used to model.  All styles store
 coordinates, velocities, atom IDs and types.  See the
-:doc:`read\_data <read_data>`, :doc:`create\_atoms <create_atoms>`, and
+:doc:`read_data <read_data>`, :doc:`create_atoms <create_atoms>`, and
 :doc:`set <set>` commands for info on how to set these various
 quantities.
 
@@ -94,10 +93,6 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *edpd*       | temperature and heat capacity                       | eDPD particles                       |
 +--------------+-----------------------------------------------------+--------------------------------------+
-| *mdpd*       | density                                             | mDPD particles                       |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *tdpd*       | chemical concentration                              | tDPD particles                       |
-+--------------+-----------------------------------------------------+--------------------------------------+
 | *electron*   | charge and spin and eradius                         | electronic force field               |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *ellipsoid*  | shape, quaternion, angular momentum                 | aspherical particles                 |
@@ -106,7 +101,9 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *line*       | end points, angular velocity                        | rigid bodies                         |
 +--------------+-----------------------------------------------------+--------------------------------------+
-| *meso*       | rho, e, cv                                          | SPH particles                        |
+| *mdpd*       | density                                             | mDPD particles                       |
++--------------+-----------------------------------------------------+--------------------------------------+
+| *mesont*     | mass, radius, length, buckling, connections, tube id| mesoscopic nanotubes                 |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *molecular*  | bonds, angles, dihedrals, impropers                 | uncharged molecules                  |
 +--------------+-----------------------------------------------------+--------------------------------------+
@@ -114,15 +111,19 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *smd*        | volume, kernel diameter, contact radius, mass       | solid and fluid SPH particles        |
 +--------------+-----------------------------------------------------+--------------------------------------+
+| *sph*        | rho, esph, cv                                       | SPH particles                        |
++--------------+-----------------------------------------------------+--------------------------------------+
 | *sphere*     | diameter, mass, angular velocity                    | granular models                      |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *spin*       | magnetic moment                                     | system with magnetic particles       |
++--------------+-----------------------------------------------------+--------------------------------------+
+| *tdpd*       | chemical concentration                              | tDPD particles                       |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *template*   | template index, template atom                       | small molecules with fixed topology  |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *tri*        | corner points, angular momentum                     | rigid bodies                         |
 +--------------+-----------------------------------------------------+--------------------------------------+
-| *wavepacket* | charge, spin, eradius, etag, cs\_re, cs\_im         | AWPMD                                |
+| *wavepacket* | charge, spin, eradius, etag, cs_re, cs_im           | AWPMD                                |
 +--------------+-----------------------------------------------------+--------------------------------------+
 
 .. note::
@@ -147,9 +148,16 @@ basis.
 For the *sphere* style, the particles are spheres and each stores a
 per-particle diameter and mass.  If the diameter > 0.0, the particle
 is a finite-size sphere.  If the diameter = 0.0, it is a point
-particle.  Note that by use of the *disc* keyword with the :doc:`fix nve/sphere <fix_nve_sphere>`, :doc:`fix nvt/sphere <fix_nvt_sphere>`,
-:doc:`fix nph/sphere <fix_nph_sphere>`, :doc:`fix npt/sphere <fix_npt_sphere>` commands, spheres can be effectively
-treated as 2d discs for a 2d simulation if desired.  See also the :doc:`set density/disc <set>` command.
+particle.  Note that by use of the *disc* keyword with the :doc:`fix
+nve/sphere <fix_nve_sphere>`, :doc:`fix nvt/sphere <fix_nvt_sphere>`,
+:doc:`fix nph/sphere <fix_nph_sphere>`, :doc:`fix npt/sphere
+<fix_npt_sphere>` commands, spheres can be effectively treated as 2d
+discs for a 2d simulation if desired.  See also the :doc:`set
+density/disc <set>` command.  The *sphere* style takes an optional 0
+or 1 argument.  A value of 0 means the radius of each sphere is
+constant for the duration of the simulation.  A value of 1 means the
+radii may vary dynamically during the simulation, e.g. due to use of
+the :doc:`fix adapt <fix_adapt>` command.
 
 For the *ellipsoid* style, the particles are ellipsoids and each
 stores a flag which indicates whether it is a finite-size ellipsoid or
@@ -161,7 +169,7 @@ For the *dipole* style, a point dipole is defined for each point
 particle.  Note that if you wish the particles to be finite-size
 spheres as in a Stockmayer potential for a dipolar fluid, so that the
 particles can rotate due to dipole-dipole interactions, then you need
-to use atom\_style hybrid sphere dipole, which will assign both a
+to use atom_style hybrid sphere dipole, which will assign both a
 diameter and dipole moment to each particle.
 
 For the *electron* style, the particles representing electrons are 3d
@@ -173,15 +181,15 @@ per-particle mass and volume.
 
 The *dpd* style is for dissipative particle dynamics (DPD) particles.
 Note that it is part of the USER-DPD package, and is not for use with
-the :doc:`pair\_style dpd or dpd/stat <pair_dpd>` commands, which can
-simply use atom\_style atomic.  Atom\_style dpd extends DPD particle
+the :doc:`pair_style dpd or dpd/stat <pair_dpd>` commands, which can
+simply use atom_style atomic.  Atom_style dpd extends DPD particle
 properties with internal temperature (dpdTheta), internal conductive
 energy (uCond), internal mechanical energy (uMech), and internal
 chemical energy (uChem).
 
 The *edpd* style is for energy-conserving dissipative particle
-dynamics (eDPD) particles which store a temperature (edpd\_temp), and
-heat capacity(edpd\_cv).
+dynamics (eDPD) particles which store a temperature (edpd_temp), and
+heat capacity(edpd_cv).
 
 The *mdpd* style is for many-body dissipative particle dynamics (mDPD)
 particles which store a density (rho) for considering
@@ -189,11 +197,11 @@ density-dependent many-body interactions.
 
 The *tdpd* style is for transport dissipative particle dynamics (tDPD)
 particles which store a set of chemical concentration. An integer
-"cc\_species" is required to specify the number of chemical species
+"cc_species" is required to specify the number of chemical species
 involved in a tDPD system.
 
-The *meso* style is for smoothed particle hydrodynamics (SPH)
-particles which store a density (rho), energy (e), and heat capacity
+The *sph* style is for smoothed particle hydrodynamics (SPH)
+particles which store a density (rho), energy (esph), and heat capacity
 (cv).
 
 The *smd* style is for a general formulation of Smooth Particle
@@ -208,7 +216,7 @@ Those spins have a norm (their magnetic moment) and a direction.
 
 The *wavepacket* style is similar to *electron*\ , but the electrons may
 consist of several Gaussian wave packets, summed up with coefficients
-cs= (cs\_re,cs\_im).  Each of the wave packets is treated as a separate
+cs= (cs_re,cs_im).  Each of the wave packets is treated as a separate
 particle in LAMMPS, wave packets belonging to the same electron must
 have identical *etag* values.
 
@@ -235,12 +243,12 @@ can be advantageous for large-scale coarse-grained systems.
 .. note::
 
    When using the *template* style with a :doc:`molecule template <molecule>` that contains multiple molecules, you should
-   insure the atom types, bond types, angle\_types, etc in all the
+   insure the atom types, bond types, angle_types, etc in all the
    molecules are consistent.  E.g. if one molecule represents H2O and
    another CO2, then you probably do not want each molecule file to
    define 2 atom types and a single bond type, because they will conflict
    with each other when a mixture system of H2O and CO2 molecules is
-   defined, e.g. by the :doc:`read\_data <read_data>` command.  Rather the
+   defined, e.g. by the :doc:`read_data <read_data>` command.  Rather the
    H2O molecule should define atom types 1 and 2, and bond type 1.  And
    the CO2 molecule should define atom types 3 and 4 (or atom types 3 and
    2 if a single oxygen type is desired), and bond type 2.
@@ -259,12 +267,10 @@ orientation and position can be time integrated due to forces and
 torques.
 
 Note that there may be additional arguments required along with the
-*bstyle* specification, in the atom\_style body command.  These
+*bstyle* specification, in the atom_style body command.  These
 arguments are described on the :doc:`Howto body <Howto_body>` doc page.
 
-
 ----------
-
 
 Typically, simulations require only a single (non-hybrid) atom style.
 If some atoms in the simulation do not have all the properties defined
@@ -276,7 +282,7 @@ If some atoms have bonds, but others do not, use the *bond* style.
 The only scenario where the *hybrid* style is needed is if there is no
 single style which defines all needed properties of all atoms.  For
 example, as mentioned above, if you want dipolar particles which will
-rotate due to torque, you need to use "atom\_style hybrid sphere
+rotate due to torque, you need to use "atom_style hybrid sphere
 dipole".  When a hybrid style is used, atoms store and communicate the
 union of all quantities implied by the individual styles.
 
@@ -287,9 +293,7 @@ per-atom basis.
 LAMMPS can be extended with new atom styles as well as new body
 styles; see the :doc:`Modify <Modify>` doc page.
 
-
 ----------
-
 
 Styles with a *kk* suffix are functionally the same as the
 corresponding style without the suffix.  They have been optimized to
@@ -315,9 +319,8 @@ instructions on how to use the accelerated styles effectively.
 Restrictions
 """"""""""""
 
-
 This command cannot be used after the simulation box is defined by a
-:doc:`read\_data <read_data>` or :doc:`create\_box <create_box>` command.
+:doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.
 
 Many of the styles listed above are only enabled if LAMMPS was built
 with a specific package, as listed below.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -338,13 +341,15 @@ The *electron* style is part of the USER-EFF package for :doc:`electronic force 
 The *dpd* style is part of the USER-DPD package for dissipative
 particle dynamics (DPD).
 
-The *edpd*\ , *mdpd*\ , and *tdpd* styles are part of the USER-MESO package
+The *edpd*\ , *mdpd*\ , and *tdpd* styles are part of the USER-MESODPD package
 for energy-conserving dissipative particle dynamics (eDPD), many-body
 dissipative particle dynamics (mDPD), and transport dissipative particle
 dynamics (tDPD), respectively.
 
-The *meso* style is part of the USER-SPH package for smoothed particle
+The *sph* style is part of the USER-SPH package for smoothed particle
 hydrodynamics (SPH).  See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
+
+The *mesont* style is part of the USER-MESONT package.
 
 The *spin* style is part of the SPIN package.
 
@@ -354,20 +359,17 @@ The *wavepacket* style is part of the USER-AWPMD package for the
 Related commands
 """"""""""""""""
 
-:doc:`read\_data <read_data>`, :doc:`pair\_style <pair_style>`
+:doc:`read_data <read_data>`, :doc:`pair_style <pair_style>`
 
 Default
 """""""
 
-atom\_style atomic
-
+The default atom style is atomic.  If atom_style sphere is used its
+default argument is 0.
 
 ----------
 
-
 .. _Grime:
-
-
 
 **(Grime)** Grime and Voth, to appear in J Chem Theory & Computation
 (2014).

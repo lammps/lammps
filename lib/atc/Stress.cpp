@@ -328,7 +328,7 @@ StressCauchyBorn::StressCauchyBorn(fstream &fileId, CbData &cb)
           if (line.size() && line[0]=="pair_coeff") break;
         }
         if (line[0] != "pair_coeff" || line.size() != 3) {
-          throw(ATC_Error("lj/cut needs 2 coefficents"));
+          throw(ATC_Error("lj/cut needs 2 coefficients"));
         }
         delete potential_;
         potential_ = new CbLjCut(str2dbl(line[1]), str2dbl(line[2]), rc);
@@ -341,7 +341,7 @@ StressCauchyBorn::StressCauchyBorn(fstream &fileId, CbData &cb)
           if (line.size() && line[0]=="pair_coeff") break;
         }
         if (line[0] != "pair_coeff" || line.size() != 3) {
-          throw(ATC_Error("lj/smooth/linear needs 2 coefficents"));
+          throw(ATC_Error("lj/smooth/linear needs 2 coefficients"));
         }
         delete potential_;
         potential_ = new CbLjSmoothLinear(str2dbl(line[1]), str2dbl(line[2]), rc);

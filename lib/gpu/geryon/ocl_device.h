@@ -28,6 +28,14 @@
 #include <vector>
 #include <iostream>
 
+/* We default to OpenCL 1.2 as target version for now as
+ * there are known issues with OpenCL 2.0 and later.
+ * This is also to silence warnings from generic OpenCL headers */
+
+#if !defined(CL_TARGET_OPENCL_VERSION)
+#define CL_TARGET_OPENCL_VERSION 120
+#endif
+
 #ifdef __APPLE__
 #include <OpenCL/cl.h>
 #include <OpenCL/cl_platform.h>
@@ -617,9 +625,9 @@ int UCL_Device::set_platform_accelerator(int pid) {
     for (int n=0; n<_num_platforms; n++) {
       set_platform(n);
       for (int i=0; i<num_devices(); i++) {
-        if (_properties[i].device_type==CL_DEVICE_TYPE_CPU ||
-            _properties[i].device_type==CL_DEVICE_TYPE_GPU ||
-            _properties[i].device_type==CL_DEVICE_TYPE_ACCELERATOR) {
+        if ((_properties[i].device_type & CL_DEVICE_TYPE_CPU) ||
+            (_properties[i].device_type & CL_DEVICE_TYPE_GPU) ||
+            (_properties[i].device_type & CL_DEVICE_TYPE_ACCELERATOR)) {
           found = 1;
           break;
         }

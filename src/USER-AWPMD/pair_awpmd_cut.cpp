@@ -259,7 +259,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
       Vector_3 xx=Vector_3(x[i][0],x[i][1],x[i][2]);
       Vector_3 rv=m*Vector_3(v[i][0],v[i][1],v[i][2]);
       double pv=ermscale*m*atom->ervel[i];
-      Vector_2 cc=Vector_2(atom->cs[2*i],atom->cs[2*i+1]);
+      Vector_2 cc=Vector_2(atom->cs[i][0],atom->cs[i][1]);
       gmap[i]=wpmd->add_split(xx,rv,atom->eradius[i],pv,cc,1.,atom->q[i],i<nlocal ? atom->tag[i] : -atom->tag[i]);
       // resetting for the case constraints were applied
       v[i][0]=rv[0]/m;
@@ -284,7 +284,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
     } else { // electron
       int iel=gmap[i];
       int s=spin[i] >0 ? 0 : 1;
-      wpmd->get_wp_force(s,iel,(Vector_3 *)f[i],(Vector_3 *)(atom->vforce+3*i),atom->erforce+i,atom->ervelforce+i,(Vector_2 *)(atom->csforce+2*i));
+      wpmd->get_wp_force(s,iel,(Vector_3 *)f[i],(Vector_3 *)(atom->vforce[i]),atom->erforce+i,atom->ervelforce+i,(Vector_2 *)(atom->csforce[i]));
     }
   }
 
@@ -671,11 +671,11 @@ void PairAWPMDCut::min_xf_get(int /* ignore */)
   double *eradius = atom->eradius;
   double *erforce = atom->erforce;
   double **v=atom->v;
-  double *vforce=atom->vforce;
+  double **vforce=atom->vforce;
   double *ervel=atom->ervel;
   double *ervelforce=atom->ervelforce;
-  double *cs=atom->cs;
-  double *csforce=atom->csforce;
+  double **cs=atom->cs;
+  double **csforce=atom->csforce;
 
   int *spin = atom->spin;
   int nlocal = atom->nlocal;
@@ -686,14 +686,14 @@ void PairAWPMDCut::min_xf_get(int /* ignore */)
       min_varforce[7*i] = eradius[i]*erforce[i];
       for(int j=0;j<3;j++){
         min_var[7*i+1+3*j] = v[i][j];
-        min_varforce[7*i+1+3*j] = vforce[3*i+j];
+        min_varforce[7*i+1+3*j] = vforce[i][j];
       }
       min_var[7*i+4] = ervel[i];
       min_varforce[7*i+4] = ervelforce[i];
-      min_var[7*i+5] = cs[2*i];
-      min_varforce[7*i+5] = csforce[2*i];
-      min_var[7*i+6] = cs[2*i+1];
-      min_varforce[7*i+6] = csforce[2*i+1];
+      min_var[7*i+5] = cs[i][0];
+      min_varforce[7*i+5] = csforce[i][0];
+      min_var[7*i+6] = cs[i][1];
+      min_varforce[7*i+6] = csforce[i][1];
 
     } else {
       for(int j=0;j<7;j++)
@@ -710,7 +710,7 @@ void PairAWPMDCut::min_x_set(int /* ignore */)
   double *eradius = atom->eradius;
   double **v=atom->v;
   double *ervel=atom->ervel;
-  double *cs=atom->cs;
+  double **cs=atom->cs;
 
   int *spin = atom->spin;
   int nlocal = atom->nlocal;
@@ -721,8 +721,8 @@ void PairAWPMDCut::min_x_set(int /* ignore */)
       for(int j=0;j<3;j++)
         v[i][j]=min_var[7*i+1+3*j];
       ervel[i]=min_var[7*i+4];
-      cs[2*i]=min_var[7*i+5];
-      cs[2*i+1]=min_var[7*i+6];
+      cs[i][0]=min_var[7*i+5];
+      cs[i][1]=min_var[7*i+6];
     }
   }
 }

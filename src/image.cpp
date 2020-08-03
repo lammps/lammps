@@ -1466,10 +1466,12 @@ double *Image::color2rgb(const char *color, int index)
     return userrgb[-index-1];
   }
 
-  for (int i = 0; i < ncolors; i++)
-    if (strcmp(color,username[i]) == 0) return userrgb[i];
-  for (int i = 0; i < NCOLORS; i++)
-    if (strcmp(color,name[i]) == 0) return rgb[i];
+  if (color) {
+    for (int i = 0; i < ncolors; i++)
+      if (strcmp(color,username[i]) == 0) return userrgb[i];
+    for (int i = 0; i < NCOLORS; i++)
+      if (strcmp(color,name[i]) == 0) return rgb[i];
+  }
   return NULL;
 }
 

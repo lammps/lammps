@@ -14,7 +14,7 @@ NVCC = nvcc -m64
 CUDA_ARCH = -arch=sm_11
 CUDA_PRECISION = -D_SINGLE_SINGLE
 CUDA_INCLUDE = -I$(CUDA_HOME)/include
-CUDA_LIB = -L$(CUDA_HOME)/lib
+CUDA_LIB = -L$(CUDA_HOME)/lib -L$(CUDA_HOME)/lib/stubs
 CUDA_OPTS = -DUNIX -DUCL_NO_EXIT -O3 --use_fast_math
 
 CUDR_CPP = mpic++ -m64

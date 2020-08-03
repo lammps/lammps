@@ -41,6 +41,7 @@ PairLJ96Cut::PairLJ96Cut(LAMMPS *lmp) : Pair(lmp)
 {
   respa_enable = 1;
   writedata = 1;
+  cut_respa = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

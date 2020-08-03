@@ -6,7 +6,6 @@ compute hma command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID hma temp-ID keyword ...
@@ -23,13 +22,10 @@ Syntax
      *p* = compute will return pressure.  the following keyword must be the difference between the harmonic pressure and lattice pressure as described below
      *cv* = compute will return the heat capacity
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 2 all hma 1 u
    compute 2 all hma 1 anharmonic u p 0.9
@@ -54,30 +50,31 @@ effects, smaller timestep inaccuracy, faster equilibration and shorter
 decorrelation time.
 
 HMA should not be used if atoms are expected to diffuse.  It is also
-restricted to simulations in the NVT ensemble.  While this compute may be
-used with any potential in LAMMPS, it will provide inaccurate results
+restricted to simulations in the NVT ensemble.  While this compute may
+be used with any potential in LAMMPS, it will provide inaccurate results
 for potentials that do not go to 0 at the truncation distance;
-:doc:`pair\_lj\_smooth\_linear <pair_lj_smooth_linear>` and Ewald summation should
-work fine, while :doc:`pair\_lj <pair_lj>` will perform poorly unless
-the potential is shifted (via :doc:`pair\_modify <pair_modify>` shift) or the cutoff is large.  Furthermore, computation of the heat capacity with
-this compute is restricted to those that implement the single\_hessian method
-in Pair.  Implementing single\_hessian in additional pair styles is simple.
-Please contact Andrew Schultz (ajs42 at buffalo.edu) and David Kofke (kofke at
-buffalo.edu) if your desired pair style does not have this method.  This is
-the list of pair styles that currently implement pair\_hessian:
+:doc:`pair_style lj/smooth/linear <pair_lj_smooth_linear>` and Ewald
+summation should work fine, while :doc:`pair_style lj/cut <pair_lj>`
+will perform poorly unless the potential is shifted (via
+:doc:`pair_modify <pair_modify>` shift) or the cutoff is large.
+Furthermore, computation of the heat capacity with this compute is
+restricted to those that implement the *single_hessian* method in Pair.
+Implementing *single_hessian* in additional pair styles is simple.
+Please contact Andrew Schultz (ajs42 at buffalo.edu) and David Kofke
+(kofke at buffalo.edu) if your desired pair style does not have this
+method.  This is the list of pair styles that currently implement
+*single_hessian*:
 
-* :doc:`lj\_smooth\_linear <pair_lj_smooth_linear>`
-
+* :doc:`pair_style lj/smooth/linear <pair_lj_smooth_linear>`
 
 In this method, the analytically known harmonic behavior of a crystal is removed from the traditional ensemble
 averages, which leads to an accurate and precise measurement of the anharmonic contributions without contamination
 by noise produced by the already-known harmonic behavior.
 A detailed description of this method can be found in (:ref:`Moustafa <hma-Moustafa>`). The potential energy is computed by the formula:
 
-
 .. math::
 
-   \begin{equation}\left< U\right>_{HMA} = \frac{d}{2} (N-1) k_B T  + \left< U + \frac{1}{2} F\bullet\Delta r \right>\end{equation}
+   \left< U\right>_{HMA} = \frac{d}{2} (N-1) k_B T  + \left< U + \frac{1}{2} F\bullet\Delta r \right>
 
 where :math:`N` is the number of atoms in the system, :math:`k_B` is Boltzmann's
 constant, :math:`T` is the temperature, :math:`d` is the
@@ -87,10 +84,9 @@ pair, bond, angle, dihedral, improper, kspace (long-range), and fix energies.
 
 The pressure is computed by the formula:
 
-
 .. math::
 
-   \begin{equation}\left< P\right>_{HMA} = \Delta \hat P + \left< P_{vir} + \frac{\beta \Delta \hat P - \rho}{d(N-1)} F\bullet\Delta r \right>\end{equation}
+   \left< P\right>_{HMA} = \Delta \hat P + \left< P_{vir} + \frac{\beta \Delta \hat P - \rho}{d(N-1)} F\bullet\Delta r \right>
 
 where :math:`\rho` is the number density of the system, :math:`\Delta \hat P` is the
 difference between the harmonic and lattice pressure, :math:`P_{vir}` is
@@ -102,12 +98,11 @@ pressure is sensitive to :math:`\Delta \hat P`; the precision tends to be
 best when :math:`\Delta \hat P` is the actual the difference between the lattice
 pressure and harmonic pressure.
 
-
 .. math::
 
-   \begin{equation}\left<C_V \right>_{HMA} = \frac{d}{2} (N-1) k_B + \frac{1}{k_B T^2} \left( \left<
+   \left<C_V \right>_{HMA} = \frac{d}{2} (N-1) k_B + \frac{1}{k_B T^2} \left( \left<
    U_{HMA}^2 \right> - \left<U_{HMA}\right>^2 \right) + \frac{1}{4 T}
-   \left< F\bullet\Delta r + \Delta r \bullet \Phi \bullet \Delta r \right>\end{equation}
+   \left< F\bullet\Delta r + \Delta r \bullet \Phi \bullet \Delta r \right>
 
 where :math:`\Phi` is the Hessian matrix. The compute hma command
 computes the full expression for :math:`C_V` except for the
@@ -118,8 +113,7 @@ round-off error when computing :math:`C_V`.  To address this, the *anharmonic*
 keyword can be passed and/or the output format can be specified with more
 digits.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    thermo_modify format float '%22.15e'
 
@@ -127,7 +121,7 @@ The *anharmonic* keyword will instruct the compute to return anharmonic
 properties rather than the full properties, which include lattice, harmonic
 and anharmonic contributions.
 When using this keyword, the compute must be first active (it must be included
-via a :doc:`thermo\_style custom <thermo_style>` command) while the atoms are
+via a :doc:`thermo_style custom <thermo_style>` command) while the atoms are
 still at their lattice sites (before equilibration).
 
 The temp-ID specified with compute hma command should be same as the fix-ID of Nose-Hoover (:doc:`fix nvt <fix_nh>`) or
@@ -142,8 +136,7 @@ should be avoided as its extra forces interfere with the HMA implementation.
 
 The following example illustrates the placement of this command in the input script:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    min_style cg
    minimize 1e-35 1e-15 50000 500000
@@ -156,7 +149,7 @@ The following example illustrates the placement of this command in the input scr
 
 .. note::
 
-   The :doc:`fix\_modify energy yes <fix_modify>` command must also be specified if a fix is to contribute potential energy to this command.
+   The :doc:`fix_modify energy yes <fix_modify>` command must also be specified if a fix is to contribute potential energy to this command.
 
 An example input script that uses this compute is included in
 examples/USER/hma/ along with corresponding LAMMPS output showing that the HMA
@@ -175,7 +168,6 @@ scalar value will be in energy :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-MISC package.  It is enabled only
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -187,23 +179,14 @@ Related commands
 :doc:`compute pe <compute_pe>`, :doc:`compute pressure <compute_pressure>`
 
 :doc:`dynamical matrix <dynamical_matrix>` provides a finite difference
-formulation of the hessian provided by Pair's single\_hessian, which is used by
+formulation of the hessian provided by Pair's single_hessian, which is used by
 this compute.
 
 **Default:** none
 
-
 ----------
-
 
 .. _hma-Moustafa:
 
-
-
 **(Moustafa)** Sabry G. Moustafa, Andrew J. Schultz, and David A. Kofke, *Very fast averaging of thermal properties of crystals by molecular simulation*\ ,
 `Phys. Rev. E [92], 043303 (2015) <https://link.aps.org/doi/10.1103/PhysRevE.92.043303>`_
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

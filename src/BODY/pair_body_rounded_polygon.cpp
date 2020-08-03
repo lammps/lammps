@@ -236,7 +236,7 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
         edge[jefirst+nj][4] = 0;
       }
 
-      int interact, num_contacts, done;
+      int num_contacts, done;
       double delta_a, j_a;
       Contact contact_list[MAX_CONTACTS];
 
@@ -244,15 +244,13 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
 
       // check interaction between i's vertices and j' edges
 
-      interact = vertex_against_edge(i, j, k_nij, k_naij,
-                                     x, f, torque, tag, contact_list,
-                                     num_contacts, evdwl, facc);
+      vertex_against_edge(i, j, k_nij, k_naij, x, f, torque, tag,
+                          contact_list, num_contacts, evdwl, facc);
 
       // check interaction between j's vertices and i' edges
 
-      interact = vertex_against_edge(j, i, k_nij, k_naij,
-                                     x, f, torque, tag, contact_list,
-                                     num_contacts, evdwl, facc);
+      vertex_against_edge(j, i, k_nij, k_naij, x, f, torque, tag,
+                          contact_list, num_contacts, evdwl, facc);
 
       if (num_contacts >= 2) {
 
@@ -595,7 +593,7 @@ void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
 {
   double rradi,rradj;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
-  double rij,rsqinv,R,fx,fy,fz,fpair,shift,energy;
+  double rij,rsqinv,R,fx,fy,fz,fn[3],ft[3],fpair,shift,energy;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
@@ -641,6 +639,23 @@ void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
     vt1 = vr1 - vn1;
     vt2 = vr2 - vn2;
     vt3 = vr3 - vn3;
+
+    // normal friction term at contact
+
+    fn[0] = -c_n * vn1;
+    fn[1] = -c_n * vn2;
+    fn[2] = -c_n * vn3;
+
+    // tangential friction term at contact,
+    // excluding the tangential deformation term for now
+
+    ft[0] = -c_t * vt1;
+    ft[1] = -c_t * vt2;
+    ft[2] = -c_t * vt3;
+
+    fx += fn[0] + ft[0];
+    fy += fn[1] + ft[1];
+    fz += fn[2] + ft[2];
   }
 
   f[i][0] += fx;
@@ -1349,4 +1364,3 @@ void PairBodyRoundedPolygon::distance(const double* x2, const double* x1,
     + (x2[1] - x1[1]) * (x2[1] - x1[1])
     + (x2[2] - x1[2]) * (x2[2] - x1[2]));
 }
-

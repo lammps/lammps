@@ -28,6 +28,9 @@ class Message : protected Pointers {
  public:
   Message(class LAMMPS *lmp) : Pointers(lmp) {};
   void command(int, char **);
+
+ private:
+  void quit();
 };
 
 }

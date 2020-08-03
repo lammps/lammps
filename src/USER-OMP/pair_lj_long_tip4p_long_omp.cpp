@@ -12,6 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include <cmath>
 #include "pair_lj_long_tip4p_long_omp.h"
 #include "atom.h"
@@ -66,7 +67,7 @@ void PairLJLongTIP4PLongOMP::compute(int eflag, int vflag)
   ev_init(eflag,vflag);
 
   // reallocate hneigh_thr & newsite_thr if necessary
-  // initialize hneigh_thr[0] to -1 on steps when reneighboring occured
+  // initialize hneigh_thr[0] to -1 on steps when reneighboring occurred
   // initialize hneigh_thr[2] to 0 every step
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
@@ -96,7 +97,7 @@ void PairLJLongTIP4PLongOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -354,7 +355,7 @@ void PairLJLongTIP4PLongOMP::compute(int eflag, int vflag)
 void PairLJLongTIP4PLongOMP::compute_inner()
 {
    // reallocate hneigh_thr & newsite_thr if necessary
-  // initialize hneigh_thr[0] to -1 on steps when reneighboring occured
+  // initialize hneigh_thr[0] to -1 on steps when reneighboring occurred
   // initialize hneigh_thr[2] to 0 every step
   const int nall = atom->nlocal + atom->nghost;
 
@@ -379,7 +380,7 @@ void PairLJLongTIP4PLongOMP::compute_inner()
   const int nthreads = comm->nthreads;
   const int inum = list->inum_inner;
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     int ifrom, ito, tid;
@@ -404,7 +405,7 @@ void PairLJLongTIP4PLongOMP::compute_middle()
   const int inum = list->inum_middle;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     int ifrom, ito, tid;
@@ -432,7 +433,7 @@ void PairLJLongTIP4PLongOMP::compute_outer(int eflag, int vflag)
   const int nall = atom->nlocal + atom->nghost;
 
   // reallocate hneigh_thr & newsite_thr if necessary
-  // initialize hneigh_thr[0] to -1 on steps when reneighboring occured
+  // initialize hneigh_thr[0] to -1 on steps when reneighboring occurred
   // initialize hneigh_thr[2] to 0 every step
 
   if (atom->nmax > nmax) {
@@ -458,7 +459,7 @@ void PairLJLongTIP4PLongOMP::compute_outer(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;

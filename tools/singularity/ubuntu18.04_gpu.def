@@ -1,0 +1,141 @@
+BootStrap: docker
+From: ubuntu:18.04
+
+%environment
+    export PATH=/usr/lib/ccache:/usr/local/cuda-10.2/bin:${PATH}:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
+    export CUDADIR=/usr/local/cuda-10.2
+    export CUDA_PATH=/usr/local/cuda-10.2
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-10.2/lib64
+    export LIBRARY_PATH=/usr/local/cuda-10.2/lib64/stubs
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get upgrade --no-install-recommends -y
+
+    apt-get install -y --no-install-recommends curl libnuma-dev gnupg
+
+    curl -sL http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | apt-key add -
+    printf "deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ xenial main" > /etc/apt/sources.list.d/rocm.list
+
+    apt-get update
+    apt-get install --no-install-recommends -y \
+        kmod \
+        file \
+        sudo \
+        libelf1 \
+        rocm-dev \
+        rocm-libs \
+        build-essential
+
+    apt-get install --no-install-recommends -y software-properties-common
+    apt-get install --no-install-recommends -y \
+        bc \
+        build-essential \
+        ccache \
+        clang \
+        cmake \
+        cmake-curses-gui \
+        curl \
+        doxygen \
+        enchant \
+        g++ \
+        gcc \
+        gfortran \
+        git \
+        hdf5-tools \
+        kmod \
+        less \
+        libblas-dev \
+        libeigen3-dev \
+        libenchant-dev \
+        libfftw3-dev \
+        libgsl-dev \
+        libhdf5-serial-dev \
+        libhwloc-dev \
+        libjpeg-dev \
+        liblapack-dev \
+        libomp-dev \
+        libopenblas-dev \
+        libnuma-dev \
+        libpng-dev \
+        libproj-dev \
+        libvtk6-dev \
+        make \
+        mpi-default-bin \
+        mpi-default-dev \
+        ninja-build \
+        python-dev \
+        python-pip \
+        python-pygments \
+        python-virtualenv \
+        python3-dev \
+        python3-pip \
+        python3-pkg-resources \
+        python3-setuptools \
+        python3-virtualenv \
+        rsync \
+        ssh \
+        vim-nox \
+        virtualenv \
+        voro++-dev \
+        wget \
+        xxd \
+        valgrind \
+        gdb
+
+    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
+    mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
+    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
+    add-apt-repository "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/ /"
+    apt-get update
+
+    export CUDA_PKG_VERSION=10.2
+
+    apt-get install -y --no-install-recommends \
+        cuda-libraries-$CUDA_PKG_VERSION \
+        cuda-command-line-tools-$CUDA_PKG_VERSION \
+        cuda-libraries-dev-$CUDA_PKG_VERSION \
+        cuda-minimal-build-$CUDA_PKG_VERSION \
+        cuda-compat-$CUDA_PKG_VERSION \
+        libcublas10 \
+        libcublas-dev
+
+    export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
+    git clone -b master-rocm-3.5 https://github.com/ROCmSoftwarePlatform/hipCUB.git
+    mkdir hipCUB/build
+    cd hipCUB/build
+    CXX=hipcc cmake -D BUILD_TEST=off ..
+    make -j4
+    make package
+    make install
+
+    echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf
+    echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf
+
+    # clean cache
+    rm -rf /var/lib/apt/lists/*
+
+    # add missing symlink
+    ln -s /usr/local/cuda-10.2 /usr/local/cuda
+    ln -s /usr/local/cuda-10.2/lib64/stubs/libcuda.so /usr/local/cuda-10.2/lib64/stubs/libcuda.so.1
+
+    # set custom prompt indicating the container name
+    CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
+    cat >$CUSTOM_PROMPT_ENV <<EOF
+#!/bin/bash
+PS1="[ubuntu18/gpu:\u@\h] \W> "
+EOF
+    chmod 755 $CUSTOM_PROMPT_ENV
+
+
+%environment
+    LC_ALL=C
+    export LC_ALL
+    # tell OpenMPI to not try using Infiniband
+    OMPI_MCA_btl="^openib"
+    # do not warn about unused components as this messes up testing
+    OMPI_MCA_btl_base_warn_component_unused="0"
+    export OMPI_MCA_btl OMPI_MCA_btl_base_warn_component_unused
+
+%labels
+    Author rbberger, akohlmey

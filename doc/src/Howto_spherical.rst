@@ -38,14 +38,13 @@ The dipole style does not actually define finite-size particles, but
 is often used in conjunction with spherical particles, via a command
 like
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    atom_style hybrid sphere dipole
 
 This is because when dipoles interact with each other, they induce
 torques, and a particle must be finite-size (i.e. have a moment of
-inertia) in order to respond and rotate.  See the :doc:`atom\_style dipole <atom_style>` command for details.  The "set" command can be
+inertia) in order to respond and rotate.  See the :doc:`atom_style dipole <atom_style>` command for details.  The "set" command can be
 used to modify the orientation and length of the dipole moment of
 individual particles, after then are created.
 
@@ -71,7 +70,7 @@ particles with a triangulated surface.
 
 The peri style is used with :doc:`Peridynamic models <pair_peri>` and
 defines particles as having a volume, that is used internally in the
-:doc:`pair\_style peri <pair_peri>` potentials.
+:doc:`pair_style peri <pair_peri>` potentials.
 
 The body style allows for definition of particles which can represent
 complex entities, such as surface meshes of discrete points,
@@ -80,7 +79,7 @@ is discussed in more detail on the :doc:`Howto body <Howto_body>` doc
 page.
 
 Note that if one of these atom styles is used (or multiple styles via
-the :doc:`atom\_style hybrid <atom_style>` command), not all particles in
+the :doc:`atom_style hybrid <atom_style>` command), not all particles in
 the system are required to be finite-size or aspherical.
 
 For example, in the ellipsoid style, if the 3 shape parameters are set
@@ -94,7 +93,7 @@ Some of the pair styles used to compute pairwise interactions between
 finite-size particles also compute the correct interaction with point
 particles as well, e.g. the interaction between a point particle and a
 finite-size particle or between two point particles.  If necessary,
-:doc:`pair\_style hybrid <pair_hybrid>` can be used to insure the correct
+:doc:`pair_style hybrid <pair_hybrid>` can be used to insure the correct
 interactions are computed for the appropriate style of interactions.
 Likewise, using groups to partition particles (ellipsoids versus
 spheres versus point particles) will allow you to use the appropriate
@@ -114,17 +113,17 @@ When a system with finite-size particles is defined, the particles
 will only rotate and experience torque if the force field computes
 such interactions.  These are the various :doc:`pair styles <pair_style>` that generate torque:
 
-* :doc:`pair\_style gran/history <pair_gran>`
-* :doc:`pair\_style gran/hertzian <pair_gran>`
-* :doc:`pair\_style gran/no\_history <pair_gran>`
-* :doc:`pair\_style dipole/cut <pair_dipole>`
-* :doc:`pair\_style gayberne <pair_gayberne>`
-* :doc:`pair\_style resquared <pair_resquared>`
-* :doc:`pair\_style brownian <pair_brownian>`
-* :doc:`pair\_style lubricate <pair_lubricate>`
-* :doc:`pair\_style line/lj <pair_line_lj>`
-* :doc:`pair\_style tri/lj <pair_tri_lj>`
-* :doc:`pair\_style body/nparticle <pair_body_nparticle>`
+* :doc:`pair_style gran/history <pair_gran>`
+* :doc:`pair_style gran/hertzian <pair_gran>`
+* :doc:`pair_style gran/no_history <pair_gran>`
+* :doc:`pair_style dipole/cut <pair_dipole>`
+* :doc:`pair_style gayberne <pair_gayberne>`
+* :doc:`pair_style resquared <pair_resquared>`
+* :doc:`pair_style brownian <pair_brownian>`
+* :doc:`pair_style lubricate <pair_lubricate>`
+* :doc:`pair_style line/lj <pair_line_lj>`
+* :doc:`pair_style tri/lj <pair_tri_lj>`
+* :doc:`pair_style body/nparticle <pair_body_nparticle>`
 
 The granular pair styles are used with spherical particles.  The
 dipole pair style is used with the dipole atom style, which could be
@@ -187,10 +186,10 @@ These include rotational degrees of freedom in their computation.  If
 you wish the thermodynamic output of temperature or pressure to use
 one of these computes (e.g. for a system entirely composed of
 finite-size particles), then the compute can be defined and the
-:doc:`thermo\_modify <thermo_modify>` command used.  Note that by default
+:doc:`thermo_modify <thermo_modify>` command used.  Note that by default
 thermodynamic quantities will be calculated with a temperature that
 only includes translational degrees of freedom.  See the
-:doc:`thermo\_style <thermo_style>` command for details.
+:doc:`thermo_style <thermo_style>` command for details.
 
 These commands can be used to output various attributes of finite-size
 particles:
@@ -235,9 +234,4 @@ Also note that body particles cannot be modeled with the :doc:`fix rigid <fix_ri
 as single particles, though they can store internal state, such as a
 list of sub-particles.  Individual body particles are typically treated
 as rigid bodies, and their motion integrated with a command like :doc:`fix nve/body <fix_nve_body>`.  Interactions between pairs of body
-particles are computed via a command like :doc:`pair\_style body/nparticle <pair_body_nparticle>`.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html
+particles are computed via a command like :doc:`pair_style body/nparticle <pair_body_nparticle>`.

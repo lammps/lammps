@@ -6,7 +6,6 @@ fix ave/time command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID ave/time Nevery Nrepeat Nfreq value1 value2 ... keyword args ...
@@ -17,10 +16,10 @@ Syntax
 * Nrepeat = # of times to use input values for calculating averages
 * Nfreq = calculate averages every this many timesteps
 * one or more input values can be listed
-* value = c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
-  
+* value = c_ID, c_ID[N], f_ID, f_ID[N], v_name
+
   .. parsed-literal::
-  
+
        c_ID = global scalar or vector calculated by a compute with ID
        c_ID[I] = Ith component of global vector or Ith column of global array calculated by a compute with ID, I can include wildcard (see below)
        f_ID = global scalar or vector calculated by a fix with ID
@@ -30,9 +29,9 @@ Syntax
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *mode* or *file* or *ave* or *start* or *off* or *overwrite* or *title1* or *title2* or *title3*
-  
+
   .. parsed-literal::
-  
+
        *mode* arg = *scalar* or *vector*
          scalar = all input values are global scalars
          vector = all input values are global vectors or global arrays
@@ -56,18 +55,15 @@ Syntax
        *title3* arg = string
          string = text to print as 3rd line of output file, only for vector mode
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all ave/time 100 5 1000 c_myTemp c_thermo_temp file temp.profile
    fix 1 all ave/time 100 5 1000 c_thermo_press[2] ave window 20 &
                                  title1 "My output values"
-   fix 1 all ave/time 100 5 1000 c_thermo_press[\*]
+   fix 1 all ave/time 100 5 1000 c_thermo_press[*]
    fix 1 all ave/time 1 100 1000 f_indent f_indent[1] file temp.indent off 1
 
 Description
@@ -76,7 +72,7 @@ Description
 Use one or more global values as inputs every few timesteps, and
 average them over longer timescales.  The resulting averages can be
 used by other :doc:`output commands <Howto_output>` such as
-:doc:`thermo\_style custom <thermo_style>`, and can also be written to a
+:doc:`thermo_style custom <thermo_style>`, and can also be written to a
 file.  Note that if no time averaging is done, this command can be
 used as a convenient way to simply output one or more global values to
 a file.
@@ -132,16 +128,13 @@ vector or columns of the array had been listed one by one.  E.g. these
 2 fix ave/time commands are equivalent, since the :doc:`compute rdf <compute_rdf>` command creates, in this case, a global array
 with 3 columns, each of length 50:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myRDF all rdf 50 1 2
-   fix 1 all ave/time 100 1 100 c_myRDF[\*] file tmp1.rdf mode vector
+   fix 1 all ave/time 100 1 100 c_myRDF[*] file tmp1.rdf mode vector
    fix 2 all ave/time 100 1 100 c_myRDF[1] c_myRDF[2] c_myRDF[3] file tmp2.rdf mode vector
 
-
 ----------
-
 
 The *Nevery*\ , *Nrepeat*\ , and *Nfreq* arguments specify on what
 timesteps the input values will be used in order to contribute to the
@@ -160,9 +153,7 @@ timestep 200, etc.  If Nrepeat=1 and Nfreq = 100, then no time
 averaging is done; values are simply generated on timesteps
 100,200,etc.
 
-
 ----------
-
 
 If a value begins with "c\_", a compute ID must follow which has been
 previously defined in the input script.  If *mode* = scalar, then if
@@ -212,9 +203,7 @@ keywords, or they can invoke other computes, fixes, or variables when
 they are evaluated, so this is a very general means of specifying
 quantities to time average.
 
-
 ----------
-
 
 Additional optional keywords also affect the operation of this fix.
 
@@ -290,7 +279,6 @@ default values for each of these, so they do not need to be specified.
 
 By default, these header lines are as follows for *mode* = scalar:
 
-
 .. parsed-literal::
 
    # Time-averaged data for fix ID
@@ -303,7 +291,6 @@ so the *title3* setting is ignored when *mode* = scalar.
 
 By default, these header lines are as follows for *mode* = vector:
 
-
 .. parsed-literal::
 
    # Time-averaged data for fix ID
@@ -315,13 +302,11 @@ describes the two values that are printed at the first of each section
 of output.  In the third line the values are replaced with the
 appropriate fields from the fix ave/time command.
 
-
 ----------
 
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
-
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix\_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
 This fix produces a global scalar or global vector or global array
@@ -368,8 +353,3 @@ Default
 The option defaults are mode = scalar, ave = one, start = 0, no file
 output, format = %g, title 1,2,3 = strings as described above, and no
 off settings for any input values.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

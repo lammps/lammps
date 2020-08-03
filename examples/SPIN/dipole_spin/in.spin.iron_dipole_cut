@@ -11,7 +11,7 @@ boundary 	p p p
 atom_modify 	map array 
 
 lattice 	bcc 2.8665
-region 		box block 0.0 5.0 0.0 5.0 0.0 5.0
+region 		box block 0.0 12.0 0.0 12.0 0.0 12.0
 create_box 	1 box
 create_atoms 	1 box
 
@@ -56,4 +56,4 @@ thermo          50
 compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
 dump 		1 all custom 100 dump_iron.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
 
-run 		2000
+run 		100

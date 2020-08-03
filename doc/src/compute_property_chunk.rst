@@ -6,7 +6,6 @@ compute property/chunk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID property/chunk chunkID input1 input2 ...
@@ -14,21 +13,18 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * property/chunk = style name of this compute command
 * input = one or more attributes
-  
+
   .. parsed-literal::
-  
+
        attributes = count, id, coord1, coord2, coord3
          count = # of atoms in chunk
          id = original chunk IDs before compression by :doc:`compute chunk/atom <compute_chunk_atom>`
          coord123 = coordinates for spatial bins calculated by :doc:`compute chunk/atom <compute_chunk_atom>`
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all property/chunk count
    compute 1 all property/chunk ID coord1
@@ -67,7 +63,7 @@ chunkID.  This means that the original chunk IDs (e.g. molecule IDs)
 will have been compressed to remove chunk IDs with no atoms assigned
 to them.  Thus a compressed chunk ID of 3 may correspond to an original
 chunk ID (molecule ID in this case) of 415.  The *id* attribute will
-then be 415 for the 3rd chunk.
+then be 415 for the third chunk.
 
 The *coordN* attributes can only be used if a *binning* style was used
 in the :doc:`compute chunk/atom <compute_chunk_atom>` command referenced
@@ -85,13 +81,12 @@ The simplest way to output the results of the compute property/chunk
 calculation to a file is to use the :doc:`fix ave/time <fix_ave_time>`
 command, for example:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cc1 all chunk/atom molecule
    compute myChunk1 all property/chunk cc1 count
    compute myChunk2 all com/chunk cc1
-   fix 1 all ave/time 100 1 100 c_myChunk1 c_myChunk2[\*] file tmp.out mode vector
+   fix 1 all ave/time 100 1 100 c_myChunk1 c_myChunk2[*] file tmp.out mode vector
 
 **Output info:**
 
@@ -122,8 +117,3 @@ Related commands
 :doc:`fix ave/chunk <fix_ave_chunk>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

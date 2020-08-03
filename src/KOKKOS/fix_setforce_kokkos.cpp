@@ -73,7 +73,7 @@ void FixSetForceKokkos<DeviceType>::init()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixSetForceKokkos<DeviceType>::post_force(int vflag)
+void FixSetForceKokkos<DeviceType>::post_force(int /*vflag*/)
 {
   atomKK->sync(execution_space, X_MASK | F_MASK | MASK_MASK);
 

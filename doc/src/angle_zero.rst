@@ -6,14 +6,12 @@ angle_style zero command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    angle_style zero *nocoeff*
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 

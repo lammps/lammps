@@ -6,7 +6,6 @@ suffix command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    suffix style args
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    suffix off
    suffix on
@@ -44,7 +42,7 @@ package.
 
 These are the variants these packages provide:
 
-* GPU = a handful of pair styles and the PPPM kspace\_style, optimized to
+* GPU = a handful of pair styles and the PPPM kspace_style, optimized to
   run on one or more GPUs or multicore CPU/GPU nodes
 * USER-INTEL = a collection of pair styles and neighbor routines
   optimized to run in single, mixed, or double precision on CPUs and
@@ -59,10 +57,9 @@ These are the variants these packages provide:
   performance
 * HYBRID = a combination of two packages can be specified (see below)
 
-
-As an example, all of the packages provide a :doc:`pair\_style lj/cut <pair_lj>` variant, with style names lj/cut/opt, lj/cut/omp,
+As an example, all of the packages provide a :doc:`pair_style lj/cut <pair_lj>` variant, with style names lj/cut/opt, lj/cut/omp,
 lj/cut/gpu, lj/cut/intel, or lj/cut/kk.  A variant styles
-can be specified explicitly in your input script, e.g. pair\_style
+can be specified explicitly in your input script, e.g. pair_style
 lj/cut/gpu. If the suffix command is used with the appropriate style,
 you do not need to modify your input script.  The specified suffix
 (opt,omp,gpu,intel,kk) is automatically appended whenever your
@@ -93,11 +90,11 @@ commands in your input script.
 
 .. note::
 
-   The default :doc:`run\_style <run_style>` verlet is invoked prior to
+   The default :doc:`run_style <run_style>` verlet is invoked prior to
    reading the input script and is therefore not affected by a suffix command
-   in the input script. The KOKKOS package requires "run\_style verlet/kk",
+   in the input script. The KOKKOS package requires "run_style verlet/kk",
    so when using the KOKKOS package it is necessary to either use the command
-   line "-sf kk" command or add an explicit "run\_style verlet" command to the
+   line "-sf kk" command or add an explicit "run_style verlet" command to the
    input script.
 
 Restrictions
@@ -110,8 +107,3 @@ Related commands
 :doc:`-suffix command-line switch <Run_options>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

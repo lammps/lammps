@@ -364,7 +364,7 @@ namespace ATC {
         (_tiIt_->second)->post_process();
       }
 
-      // auxilliary data
+      // auxiliary data
       for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
         (_tiIt_->second)->output(outputData);
       }

@@ -6,8 +6,7 @@ compute spin command
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID spin
 
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute out_mag all spin
 
@@ -28,24 +26,20 @@ Description
 Define a computation that calculates magnetic quantities for a system
 of atoms having spins.
 
-This compute calculates 6 magnetic quantities.
+This compute calculates the following 6 magnetic quantities:
 
-The three first quantities are the x,y and z coordinates of the total
-magnetization.
-
-The fourth quantity is the norm of the total magnetization.
-
-The fifth quantity is the magnetic energy.
-
-The sixth one is referred to as the spin temperature, according
-to the work of :ref:`(Nurdin) <Nurdin1>`.
+* the three first quantities are the x,y and z coordinates of the total
+  magnetization,
+* the fourth quantity is the norm of the total magnetization,
+* The fifth quantity is the magnetic energy (in eV),
+* The sixth one is referred to as the spin temperature, according
+  to the work of :ref:`(Nurdin) <Nurdin1>`.
 
 The simplest way to output the results of the compute spin calculation
 is to define some of the quantities as variables, and to use the thermo and
-thermo\_style commands, for example:
+thermo_style commands, for example:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute out_mag         all spin
 
@@ -58,7 +52,7 @@ thermo\_style commands, for example:
 
 This series of commands evaluates the total magnetization along z, the norm of
 the total magnetization, and the magnetic temperature. Three variables are
-assigned to those quantities. The thermo and thermo\_style commands print them
+assigned to those quantities. The thermo and thermo_style commands print them
 every 10 timesteps.
 
 **Output info:**
@@ -69,26 +63,20 @@ metal units (:doc:`units <units>`).
 Restrictions
 """"""""""""
 
-
 The *spin* compute is part of the SPIN package.  This compute is only
-enabled if LAMMPS was built with this package.  See the :doc:`Build package <Build_package>` doc page for more info.  The atom\_style
+enabled if LAMMPS was built with this package.  See the :doc:`Build package <Build_package>` doc page for more info.  The atom_style
 has to be "spin" for this compute to be valid.
 
-**Related commands:** none
+**Related commands:**
 
-**Default:** none
+none
 
+**Default:**
+
+none
 
 ----------
 
-
 .. _Nurdin1:
 
-
-
 **(Nurdin)** Nurdin and Schotte Phys Rev E, 61(4), 3579 (2000)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -113,7 +113,7 @@ int MinCG::iterate(int maxiter)
     if (update->ftol > 0.0) {
       if (normstyle == MAX) fdotf = fnorm_max();        // max force norm
       else if (normstyle == INF) fdotf = fnorm_inf();   // infinite force norm
-      else if (normstyle == TWO) fdotf = fnorm_sqr();   // Euclidean force 2-norm
+      else if (normstyle == TWO) fdotf = dotall[0];     // same as fnorm_sqr(), Euclidean force 2-norm
       else error->all(FLERR,"Illegal min_modify command");
       if (fdotf < update->ftol*update->ftol) return FTOL;
     }

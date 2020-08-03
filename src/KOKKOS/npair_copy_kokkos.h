@@ -36,6 +36,9 @@ class NPairCopyKokkos : public NPair {
   NPairCopyKokkos(class LAMMPS *);
   ~NPairCopyKokkos() {}
   void build(class NeighList *);
+ private:
+  void copy_to_kokkos(class NeighList *);
+  void copy_to_cpu(class NeighList *);
 };
 
 }

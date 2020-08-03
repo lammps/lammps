@@ -14,8 +14,8 @@ Specifically, LAMMPS was not conceived and designed for:
 * visualize your MD simulation interactively
 * plot your output data
 
-Although over the years these limitations have been somewhat
-reduced through features added to LAMMPS or external tools
+Over the years some of these limitations have been reduced or
+removed, through features added to LAMMPS or external tools
 that either closely interface with LAMMPS or extend LAMMPS.
 
 Here are suggestions on how to perform these tasks:
@@ -34,7 +34,7 @@ Here are suggestions on how to perform these tasks:
   molecular builder that will generate complex molecular models.  See
   the :doc:`Tools <Tools>` doc page for details on tools packaged with
   LAMMPS.  The `Pre/post processing page <http:/lammps.sandia.gov/prepost.html>`_ of the LAMMPS website
-  describes a variety of 3rd party tools for this task.  Furthermore,
+  describes a variety of third party tools for this task.  Furthermore,
   some LAMMPS internal commands allow to reconstruct, or selectively add
   topology information, as well as provide the option to insert molecule
   templates instead of atoms for building bulk molecular systems.
@@ -66,7 +66,7 @@ Here are suggestions on how to perform these tasks:
   on-the-fly via its :doc:`dump image <dump_image>` command and pass
   them to an external program, `FFmpeg <https://www.ffmpeg.org>`_ to generate
   movies from them.  For high-quality, interactive visualization there are
-  many excellent and free tools available.  See the `Other Codes page <http://lammps.sandia.gov/viz.html>`_ page of the LAMMPS website for
+  many excellent and free tools available.  See the `Other Codes page <https://lammps.sandia.gov/viz.html>`_ page of the LAMMPS website for
   visualization packages that can use LAMMPS output data.
 * **Plotting:** See the next bullet about Pizza.py as well as the
   :doc:`Python <Python_head>` doc page for examples of plotting LAMMPS
@@ -75,13 +75,8 @@ Here are suggestions on how to perform these tasks:
   it easier to analyze and plot.  See the :doc:`Tools <Tools>` doc page
   for more discussion of the various tools.
 * **Pizza.py:** Our group has also written a separate toolkit called
-  `Pizza.py <http://pizza.sandia.gov>`_ which can do certain kinds of
+  `Pizza.py <https://pizza.sandia.gov>`_ which can do certain kinds of
   setup, analysis, plotting, and visualization (via OpenGL) for LAMMPS
   simulations.  It thus provides some functionality for several of the
   above bullets.  Pizza.py is written in `Python <http://www.python.org>`_
   and is available for download from `this page <http://www.cs.sandia.gov/~sjplimp/download.html>`_.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

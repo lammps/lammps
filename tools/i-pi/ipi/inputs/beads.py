@@ -82,7 +82,7 @@ class InputBeads(Input):
       """Takes a Beads instance and stores a minimal representation of it.
 
       Args:
-         beads: A Beads object from which to initialise from.
+         beads: A Beads object from which to initialize from.
       """
 
       super(InputBeads,self).store()

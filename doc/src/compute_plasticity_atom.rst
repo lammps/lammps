@@ -6,7 +6,6 @@ compute plasticity/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID plasticity/atom
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all plasticity/atom
 
@@ -33,7 +31,7 @@ The plasticity for a Peridynamic particle is the so-called consistency
 parameter (lambda).  For elastic deformation lambda = 0, otherwise
 lambda > 0 for plastic deformation.  For details, see
 :ref:`(Mitchell) <Mitchell>` and the PDF doc included in the LAMMPS
-distribution in `doc/PDF/PDLammps\_EPS.pdf <PDF/PDLammps_EPS.pdf>`_.
+distribution in `doc/PDF/PDLammps_EPS.pdf <PDF/PDLammps_EPS.pdf>`_.
 
 This command can be invoked for one of the Peridynamic :doc:`pair styles <pair_peri>`: peri/eps.
 
@@ -52,7 +50,6 @@ The per-atom vector values are unitless numbers (lambda) >= 0.0.
 Restrictions
 """"""""""""
 
-
 This compute is part of the PERI package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -64,19 +61,10 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Mitchell:
-
-
 
 **(Mitchell)** Mitchell, "A non-local, ordinary-state-based
 viscoelasticity model for peridynamics", Sandia National Lab Report,
 8064:1-28 (2011).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

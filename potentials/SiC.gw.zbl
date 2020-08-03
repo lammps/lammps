@@ -1,4 +1,4 @@
-# DATE: 2016-05-06 CONTRIBUTOR: German Samolyuk, samolyuk@gmail.com CITATION: ???
+# DATE: 2016-05-06 UNITS: metal CONTRIBUTOR: German Samolyuk, samolyuk@gmail.com CITATION: ???
 # Gao-Weber parameters for various elements and mixtures
 # multiple entries can be added to this file, LAMMPS reads the ones it needs
 # these entries are in LAMMPS "metal" units:

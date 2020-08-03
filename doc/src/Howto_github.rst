@@ -3,16 +3,14 @@ LAMMPS GitHub tutorial
 
 **written by Stefan Paquay**
 
-
 ----------
-
 
 This document describes the process of how to use GitHub to integrate
 changes or additions you have made to LAMMPS into the official LAMMPS
 distribution.  It uses the process of updating this very tutorial as
 an example to describe the individual steps and options.  You need to
 be familiar with git and you may want to have a look at the
-`Git book <http://git-scm.com/book/>`_ to reacquaint yourself with some
+`git book <http://git-scm.com/book/>`_ to reacquaint yourself with some
 of the more advanced git features used below.
 
 As of fall 2016, submitting contributions to LAMMPS via pull requests
@@ -24,9 +22,7 @@ and will reduce the time until the integration is complete. For more
 information on the requirements to have your code included into LAMMPS
 please see the :doc:`Modify contribute <Modify_contribute>` doc page.
 
-
 ----------
-
 
 **Making an account**
 
@@ -36,9 +32,7 @@ the "Sign up for GitHub" button. Once your account is created, you
 can sign in by clicking the button in the top left and filling in your
 username or e-mail address and password.
 
-
 ----------
-
 
 **Forking the repository**
 
@@ -65,9 +59,7 @@ At the same time, you can set things up, so you can include changes from
 upstream into your repository and thus keep it in sync with the ongoing
 LAMMPS development.
 
-
 ----------
-
 
 **Adding changes to your own fork**
 
@@ -83,15 +75,13 @@ explained in more detail here: `feature branch workflow <https://www.atlassian.c
 First of all, create a clone of your version on github on your local
 machine via HTTPS:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
      $ git clone https://github.com/<your user name>/lammps.git <some name>
 
 or, if you have set up your GitHub account for using SSH keys, via SSH:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
      $ git clone git@github.com:<your user name>/lammps.git
 
@@ -110,8 +100,7 @@ test them without interfering with the repository on GitHub.
 To pull changes from upstream into this copy, you can go to the directory
 and use git pull:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
      $ cd mylammps
      $ git checkout master
@@ -119,8 +108,7 @@ and use git pull:
 
 You can also add this URL as a remote:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
      $ git remote add lammps_upstream https://www.github.com/lammps/lammps
 
@@ -129,8 +117,7 @@ branch for the feature you want to work on. This tutorial contains the
 workflow that updated this tutorial, and hence we will call the branch
 "github-tutorial-update":
 
-
-.. parsed-literal::
+.. code-block:: bash
 
     $ git checkout -b github-tutorial-update master
 
@@ -142,39 +129,37 @@ unrelated feature, you should switch branches!
 
 After everything is done, add the files to the branch and commit them:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
     $ git add doc/src/Howto_github.txt
-    $ git add doc/src/JPG/tutorial\*.png
+    $ git add doc/src/JPG/tutorial*.png
 
 .. warning::
 
-   Do not use *git commit -a* (or *git add -A*\ ).  The -a
-   flag (or -A flag) will automatically include \_all\\_ modified or new files
+   Do not use *git commit -a* (or *git add -A*\ ).  The -a flag (or -A
+   flag) will automatically include **all** modified **and** new files
    and that is rarely the behavior you want.  It can easily lead to
-   accidentally adding unrelated and unwanted changes into the repository.
-   Instead it is preferable to explicitly use *git add*\ , *git rm*\ , *git mv*
-   for adding, removing, renaming individual files, respectively, and then
-   *git commit* to finalize the commit.  Carefully check all pending
-   changes with *git status* before committing them.  If you find doing
-   this on the command line too tedious, consider using a GUI, for example
-   the one included in git distributions written in Tk, i.e. use *git gui*
-   (on some Linux distributions it may be required to install an additional
-   package to use it).
+   accidentally adding unrelated and unwanted changes into the
+   repository.  Instead it is preferable to explicitly use *git add*\ ,
+   *git rm*\ , *git mv* for adding, removing, renaming individual files,
+   respectively, and then *git commit* to finalize the commit.
+   Carefully check all pending changes with *git status* before
+   committing them.  If you find doing this on the command line too
+   tedious, consider using a GUI, for example the one included in git
+   distributions written in Tk, i.e. use *git gui* (on some Linux
+   distributions it may be required to install an additional package to
+   use it).
 
 After adding all files, the change set can be committed with some
 useful message that explains the change.
 
-
-.. parsed-literal::
+.. code-block:: bash
 
      $ git commit -m 'Finally updated the github tutorial'
 
 After the commit, the changes can be pushed to the same branch on GitHub:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    $ git push
 
@@ -182,8 +167,7 @@ Git will ask you for your user name and password on GitHub if you have
 not configured anything. If your local branch is not present on GitHub yet,
 it will ask you to add it by running
 
-
-.. parsed-literal::
+.. code-block:: bash
 
      $ git push --set-upstream origin github-tutorial-update
 
@@ -193,21 +177,17 @@ password, the feature branch should be added to your fork on GitHub.
 If you want to make really sure you push to the right repository
 (which is good practice), you can provide it explicitly:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    $ git push origin
 
 or using an explicit URL:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    $ git push git@github.com:Pakketeretet2/lammps.git
 
-
 ----------
-
 
 **Filing a pull request**
 
@@ -256,9 +236,7 @@ Now just write some nice comments and click on "Create pull request".
 .. image:: JPG/tutorial_create_new_pull_request2.png
    :align: center
 
-
 ----------
-
 
 **After filing a pull request**
 
@@ -309,10 +287,10 @@ After each push, the automated checks are run again.
 
 LAMMPS developers may add labels to your pull request to assign it to
 categories (mostly for bookkeeping purposes), but a few of them are
-important: needs\_work, work\_in\_progress, test-for-regression, and
+important: needs_work, work_in_progress, test-for-regression, and
 full-regression-test. The first two indicate, that your pull request
-is not considered to be complete. With "needs\_work" the burden is on
-exclusively on you; while "work\_in\_progress" can also mean, that a
+is not considered to be complete. With "needs_work" the burden is on
+exclusively on you; while "work_in_progress" can also mean, that a
 LAMMPS developer may want to add changes. Please watch the comments
 to the pull requests. The two "test" labels are used to trigger
 extended tests before the code is merged. This is sometimes done by
@@ -382,7 +360,7 @@ It looks something like this:
 .. image:: JPG/tutorial_reverse_pull_request.png
    :align: center
 
-For some reason, the highlighted button didn't work in my case, but I
+For some reason, the highlighted button did not work in my case, but I
 can go to my own repository and merge the pull request from there:
 
 .. image:: JPG/tutorial_reverse_pull_request2.png
@@ -409,11 +387,10 @@ Because the changes are OK with us, we are going to merge by clicking on
 Now, since in the meantime our local text for the tutorial also changed,
 we need to pull Axel's change back into our branch, and merge them:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
     $ git add Howto_github.txt
-    $ git add JPG/tutorial_reverse_pull_request\*.png
+    $ git add JPG/tutorial_reverse_pull_request*.png
     $ git commit -m "Updated text and images on reverse pull requests"
     $ git pull
 
@@ -426,8 +403,7 @@ With Axel's changes merged in and some final text updates, our feature
 branch is now perfect as far as we are concerned, so we are going to
 commit and push again:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
     $ git add Howto_github.txt
     $ git add JPG/tutorial_reverse_pull_request6.png
@@ -439,9 +415,7 @@ This merge also shows up on the lammps GitHub page:
 .. image:: JPG/tutorial_reverse_pull_request7.png
    :align: center
 
-
 ----------
-
 
 **After a merge**
 
@@ -457,8 +431,7 @@ It is in principle safe to delete them from your own fork. This helps
 keep it a bit more tidy. Note that you first have to switch to another
 branch!
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    $ git checkout master
    $ git pull master
@@ -473,8 +446,7 @@ first delete and then pull, everything should still be fine.
 Finally, if you delete the branch locally, you might want to push this
 to your remote(s) as well:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    $ git push origin :github-tutorial-update
 
@@ -486,14 +458,9 @@ should be submitted, there is now also an "unstable" and a "stable"
 branch; these have the same content as "master", but are only updated
 after a patch release or stable release was made.
 Furthermore, the naming of the patches now follow the pattern
-"patch\_<Day><Month><Year>" to simplify comparisons between releases.
+"patch_<Day><Month><Year>" to simplify comparisons between releases.
 Finally, all patches and submissions are subject to automatic testing
 and code checks to make sure they at the very least compile.
 
 A discussion of the LAMMPS developer GitHub workflow can be found in the file
 `doc/github-development-workflow.md <https://github.com/lammps/lammps/blob/master/doc/github-development-workflow.md>`_
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

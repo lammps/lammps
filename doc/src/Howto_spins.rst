@@ -56,18 +56,9 @@ the magnetic energy. The second command is :doc:`compute property/atom <compute_
 per atom magnetic quantities. Typically, the orientation of a given
 magnetic spin, or the magnetic force acting on this spin.
 
-
 ----------
-
 
 .. _Tranchida:
 
-
-
 **(Tranchida)** Tranchida, Plimpton, Thibaudeau and Thompson,
 Journal of Computational Physics, 372, 406-425, (2018).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

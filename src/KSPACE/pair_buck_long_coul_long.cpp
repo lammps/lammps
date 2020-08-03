@@ -52,6 +52,7 @@ PairBuckLongCoulLong::PairBuckLongCoulLong(LAMMPS *lmp) : Pair(lmp)
   writedata = 1;
   ftable = NULL;
   fdisptable = NULL;
+  cut_respa = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -429,10 +430,17 @@ void PairBuckLongCoulLong::write_data(FILE *fp)
 
 void PairBuckLongCoulLong::write_data_all(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g\n",i,j,
-              buck_a_read[i][j],buck_rho_read[i][j],buck_c_read[i][j]);
+  for (int i = 1; i <= atom->ntypes; i++) {
+    for (int j = i; j <= atom->ntypes; j++) {
+      if (ewald_order & (1<<6)) {
+      fprintf(fp,"%d %d %g %g\n",i,j,
+              buck_a_read[i][j],buck_rho_read[i][j]);
+      } else {
+        fprintf(fp,"%d %d %g %g %g\n",i,j,
+                buck_a_read[i][j],buck_rho_read[i][j],buck_c_read[i][j]);
+      }
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

@@ -26,6 +26,9 @@ namespace LAMMPS_NS {
 
 class FixWallReflect : public Fix {
  public:
+  enum{XLO=0,XHI=1,YLO=2,YHI=3,ZLO=4,ZHI=5};
+  enum{NONE=0,EDGE,CONSTANT,VARIABLE};
+
   FixWallReflect(class LAMMPS *, int, char **);
   virtual ~FixWallReflect();
   int setmask();
@@ -40,6 +43,8 @@ class FixWallReflect : public Fix {
   int varindex[6];
   int varflag;
   double xscale,yscale,zscale;
+
+  virtual void wall_particle(int m, int which, double coord);
 };
 
 }

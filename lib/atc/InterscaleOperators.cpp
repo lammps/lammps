@@ -157,7 +157,7 @@ namespace ATC{
     bool isTemporary = (quantity->memory_type()==TEMPORARY);
     
     for (it = (quantity->dependentQuantities_).begin(); it != (quantity->dependentQuantities_).end(); it++) {
-      // make sure that if quantity isn't persistent, none of it's depedencies are
+      // make sure that if quantity isn't persistent, none of it's dependencies are
       if ((*it)->memory_type()==PERSISTENT && isTemporary) {
         throw ATC_Error("InterscaleManager::dfs_visit - a persistent quantity has a temporary dependency");
       }

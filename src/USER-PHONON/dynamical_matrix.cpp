@@ -19,6 +19,7 @@
 #include "improper.h"
 #include "kspace.h"
 #include "update.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "timer.h"
@@ -385,6 +386,7 @@ void DynamicalMatrix::displace_atom(int local_idx, int direction, int magnitude)
 void DynamicalMatrix::update_force()
 {
     force_clear();
+    int n_post_force = modify->n_post_force;
 
     if (pair_compute_flag) {
         force->pair->compute(eflag,vflag);
@@ -405,6 +407,12 @@ void DynamicalMatrix::update_force()
         comm->reverse_comm();
         timer->stamp(Timer::COMM);
     }
+
+    // force modifications
+
+    if (n_post_force) modify->post_force(vflag);
+    timer->stamp(Timer::MODIFY);
+
     ++ update->nsteps;
 }
 

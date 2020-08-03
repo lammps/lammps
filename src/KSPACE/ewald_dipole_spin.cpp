@@ -18,6 +18,7 @@
 #include "ewald_dipole_spin.h"
 #include <mpi.h>
 #include <cstring>
+#include <string>
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
@@ -28,6 +29,8 @@
 #include "memory.h"
 #include "error.h"
 #include "update.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -61,18 +64,15 @@ EwaldDipoleSpin::~EwaldDipoleSpin() {}
 
 void EwaldDipoleSpin::init()
 {
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,"EwaldDipoleSpin initialization ...\n");
-    if (logfile) fprintf(logfile,"EwaldDipoleSpin initialization ...\n");
-  }
+  if (comm->me == 0) utils::logmesg(lmp,"EwaldDipoleSpin initialization ...\n");
 
   // error check
 
   spinflag = atom->sp?1:0;
 
-  triclinic_check();
-
   // no triclinic ewald spin (yet)
+
+  triclinic_check();
 
   triclinic = domain->triclinic;
   if (triclinic)
@@ -93,6 +93,10 @@ void EwaldDipoleSpin::init()
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
       error->all(FLERR,"Incorrect boundaries with slab EwaldDipoleSpin");
   }
+
+  // compute two charge force
+
+  two_charge();
 
   // extract short-range Coulombic cutoff from pair style
 
@@ -178,28 +182,16 @@ void EwaldDipoleSpin::init()
   // stats
 
   if (comm->me == 0) {
-    if (screen) {
-      fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(screen,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(screen,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(screen,"  KSpace vectors: actual max1d max3d = %d %d %d\n",
-              kcount,kmax,kmax3d);
-      fprintf(screen,"                  kxmax kymax kzmax  = %d %d %d\n",
-              kxmax,kymax,kzmax);
-    }
-    if (logfile) {
-      fprintf(logfile,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(logfile,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(logfile,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(logfile,"  KSpace vectors: actual max1d max3d = %d %d %d\n",
-              kcount,kmax,kmax3d);
-      fprintf(logfile,"                  kxmax kymax kzmax  = %d %d %d\n",
-              kxmax,kymax,kzmax);
-    }
+    std::string mesg = fmt::format("  G vector (1/distance) = {:.8g}\n",g_ewald);
+    mesg += fmt::format("  estimated absolute RMS force accuracy = {:.8g}\n",
+                       estimated_accuracy);
+    mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
+                       estimated_accuracy/two_charge_force);
+    mesg += fmt::format("  KSpace vectors: actual max1d max3d = {} {} {}\n",
+                        kcount,kmax,kmax3d);
+    mesg += fmt::format("                  kxmax kymax kzmax  = {} {} {}\n",
+                        kxmax,kymax,kzmax);
+    utils::logmesg(lmp,mesg);
   }
 }
 
@@ -468,7 +460,7 @@ void EwaldDipoleSpin::compute(int eflag, int vflag)
 
   // sum global energy across Kspace vevs and add in volume-dependent term
   // taking the re-part of struct_fact_i x struct_fact_j
-  // substracting self energy and scaling
+  // subtracting self energy and scaling
 
   if (eflag_global) {
     for (k = 0; k < kcount; k++) {

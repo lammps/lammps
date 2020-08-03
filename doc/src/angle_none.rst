@@ -6,14 +6,12 @@ angle_style none command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    angle_style none
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 

@@ -462,3 +462,18 @@ TEST(Utils, unit_conversion)
     factor = utils::get_conversion_factor(utils::ENERGY, utils::REAL2METAL);
     ASSERT_DOUBLE_EQ(factor, 1.0 / 23.060549);
 }
+
+TEST(Utils, timespec2seconds_ss)
+{
+    ASSERT_DOUBLE_EQ(utils::timespec2seconds("45"), 45.0);
+}
+
+TEST(Utils, timespec2seconds_mmss)
+{
+    ASSERT_DOUBLE_EQ(utils::timespec2seconds("10:45"), 645.0);
+}
+
+TEST(Utils, timespec2seconds_hhmmss)
+{
+    ASSERT_DOUBLE_EQ(utils::timespec2seconds("2:10:45"), 7845.0);
+}

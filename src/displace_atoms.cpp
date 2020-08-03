@@ -34,6 +34,7 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 #include "fmt/format.h"
 
 using namespace LAMMPS_NS;
@@ -68,7 +69,7 @@ void DisplaceAtoms::command(int narg, char **arg)
     error->all(FLERR,"Cannot displace_atoms after "
                "reading restart file with per-atom info");
 
-  if (comm->me == 0 && screen) fprintf(screen,"Displacing atoms ...\n");
+  if (comm->me == 0) utils::logmesg(lmp,"Displacing atoms ...\n");
 
   // group and style
 

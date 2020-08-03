@@ -48,7 +48,7 @@ void Replicate::command(int narg, char **arg)
   int me = comm->me;
   int nprocs = comm->nprocs;
 
-  if (me == 0 && screen) fprintf(screen,"Replicating atoms ...\n");
+  if (me == 0) utils::logmesg(lmp,"Replicating atoms ...\n");
 
   // nrep = total # of replications
 
@@ -349,12 +349,14 @@ void Replicate::command(int narg, char **arg)
     int size_buf_all = 0;
     MPI_Allreduce(&n, &size_buf_all, 1, MPI_INT, MPI_SUM, world);
 
-    if (me == 0 && screen) {
-      fmt::print(screen,"  bounding box image = ({} {} {}) to ({} {} {})\n",
-              _imagelo[0],_imagelo[1],_imagelo[2],
-              _imagehi[0],_imagehi[1],_imagehi[2]);
-      fmt::print(screen,"  bounding box extra memory = {:.2f} MB\n",
-              (double)size_buf_all*sizeof(double)/1024/1024);
+    if (me == 0) {
+      auto mesg = fmt::format("  bounding box image = ({:.8} {:.8} {:.8}) "
+                              "to ({:.8} {:.8} {:.8})\n",
+                              _imagelo[0],_imagelo[1],_imagelo[2],
+                              _imagehi[0],_imagehi[1],_imagehi[2]);
+      mesg += fmt::format("  bounding box extra memory = {:.2f} MB\n",
+                          (double)size_buf_all*sizeof(double)/1024/1024);
+      utils::logmesg(lmp,mesg);
     }
 
     // rnk offsets
@@ -632,11 +634,10 @@ void Replicate::command(int narg, char **arg)
     int sum = 0;
     MPI_Reduce(&num_replicas_added, &sum, 1, MPI_INT, MPI_SUM, 0, world);
     double avg = (double) sum / nprocs;
-    if (me == 0 && screen)
-      fprintf(screen,"  average # of replicas added to proc = %.2f "
-              "out of %i (%.2f %%)\n",
-              avg,nx*ny*nz,avg/(nx*ny*nz)*100.0);
-
+    if (me == 0)
+      utils::logmesg(lmp,fmt::format("  average # of replicas added to proc ="
+                                     " {:.2f} out of {} ({:.2f}%)\n",
+                                     avg,nx*ny*nz,avg/(nx*ny*nz)*100.0));
   } else {
 
     for (int iproc = 0; iproc < nprocs; iproc++) {

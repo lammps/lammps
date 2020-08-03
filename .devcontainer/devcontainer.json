@@ -1,0 +1,16 @@
+{
+    "name": "Ubuntu 18.04 LAMMPS Dev Container",
+    "dockerFile": "Dockerfile",
+
+    "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash",
+        "cmake.sourceDirectory": "${workspaceFolder}/cmake",
+        "cmake.configureSettings": {
+            "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
+        }
+    },
+
+    "extensions": [
+        "ms-vscode.cmake-tools"
+    ]
+}

@@ -46,6 +46,11 @@ CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
   style = 1;
   layout = Comm::LAYOUT_UNIFORM;
   pbc_flag = NULL;
+  buf_send = NULL;
+  buf_recv = NULL;
+  overlap = NULL;
+  rcbinfo = NULL;
+  cutghostmulti = NULL;
   init_buffers();
 }
 
@@ -73,8 +78,7 @@ CommTiled::~CommTiled()
   memory->destroy(overlap);
   deallocate_swap(maxswap);
   memory->sfree(rcbinfo);
-
-  if (mode == Comm::MULTI) memory->destroy(cutghostmulti);
+  memory->destroy(cutghostmulti);
 }
 
 /* ----------------------------------------------------------------------
@@ -105,9 +109,8 @@ void CommTiled::init()
 {
   Comm::init();
 
-  if (mode == Comm::SINGLE && cutghostmulti) memory->destroy(cutghostmulti);
-
-  if (mode == Comm::MULTI && !cutghostmulti)
+  memory->destroy(cutghostmulti);
+  if (mode == Comm::MULTI)
     memory->create(cutghostmulti,atom->ntypes+1,3,"comm:cutghostmulti");
 
   int bufextra_old = bufextra;

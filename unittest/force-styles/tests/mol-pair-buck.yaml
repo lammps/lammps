@@ -6,8 +6,7 @@ prerequisites: ! |
   atom full
   pair buck
 pre_commands: ! ""
-post_commands: ! |
-  pair_modify mix arithmetic
+post_commands: ! ""
 input_file: in.fourmol
 pair_style: buck 8.0
 pair_coeff: ! |

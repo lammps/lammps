@@ -55,7 +55,7 @@ class CommTiled : public Comm {
  private:
   int nswap;                    // # of swaps to perform = 2*dim
   int maxswap;                  // largest nswap can be = 6
-  
+
   // forward/reverse comm info, proc lists include self
 
   int *nsendproc,*nrecvproc;    // # of procs to send/recv to/from per swap
@@ -76,9 +76,9 @@ class CommTiled : public Comm {
   int ***pbc;                   // dimension flags for PBC adjustments
 
   double ***sendbox;            // bounding box of atoms to send per swap/proc
-  
+
   double **cutghostmulti;       // cutghost on a per-type basis
-  double ****sendbox_multi;     // bounding box of atoms to send 
+  double ****sendbox_multi;     // bounding box of atoms to send
                                 //   per swap/proc for multi comm
 
   // exchange comm info, proc lists do not include self

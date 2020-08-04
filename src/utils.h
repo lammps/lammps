@@ -35,7 +35,7 @@ namespace LAMMPS_NS {
      *  \param pattern the search pattern, which may contain regexp markers
      *  \return true if the pattern matches, false if not
      */
-    bool strmatch(std::string text, std::string pattern);
+    bool strmatch(const std::string &text, const std::string &pattern);
 
     /** \brief Send message to screen and logfile, if available
      *
@@ -155,7 +155,7 @@ namespace LAMMPS_NS {
      * \param line string that should be trimmed
      * \return new string without comment (string)
      */
-    std::string trim_comment(const std::string & line);
+    std::string trim_comment(const std::string &line);
 
     /**
      * \brief Count words in string

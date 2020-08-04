@@ -87,8 +87,7 @@ void WriteRestart::command(int narg, char **arg)
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
 
   if (noinit == 0) {
-    if (comm->me == 0 && screen)
-      fprintf(screen,"System init for write_restart ...\n");
+    if (comm->me == 0) utils::logmesg(lmp,"System init for write_restart ...\n");
     lmp->init();
 
     // move atoms to new processors before writing file

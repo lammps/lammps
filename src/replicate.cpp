@@ -350,8 +350,8 @@ void Replicate::command(int narg, char **arg)
     MPI_Allreduce(&n, &size_buf_all, 1, MPI_INT, MPI_SUM, world);
 
     if (me == 0) {
-      auto mesg = fmt::format("  bounding box image = ({:.8} {:.8} {:.8}) "
-                              "to ({:.8} {:.8} {:.8})\n",
+      auto mesg = fmt::format("  bounding box image = ({} {} {}) "
+                              "to ({} {} {})\n",
                               _imagelo[0],_imagelo[1],_imagelo[2],
                               _imagehi[0],_imagehi[1],_imagehi[2]);
       mesg += fmt::format("  bounding box extra memory = {:.2f} MB\n",

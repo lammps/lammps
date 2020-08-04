@@ -1,0 +1,80 @@
+LAMMPS (2 Jun 2020)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:94)
+  using 1 OpenMP thread(s) per MPI task
+Reading data file ...
+  orthogonal box = (0 0 0) to (66.6884 66.6884 66.6884)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  3600 atoms
+  scanning bonds ...
+  1 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  2400 bonds
+  reading angles ...
+  1200 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:   0          0          0         
+  special bond factors coul: 0          0          0         
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  1 = max # of 1-4 neighbors
+  2 = max # of special neighbors
+  special bonds CPU = 0.0012 secs
+  read_data CPU = 0.0351356 secs
+WARNING: 1 of 300 force values in table are inconsistent with -dE/dr.
+  Should only be flagged at inflection points (src/pair_table.cpp:483)
+WARNING: 1 of 300 force values in table are inconsistent with -dE/dr.
+  Should only be flagged at inflection points (src/pair_table.cpp:483)
+INFO: About to read data file: delta_Fv_badbad.dat (src/USER-BOCS/fix_bocs.cpp:659)
+INFO: Read 13 lines from file (src/USER-BOCS/fix_bocs.cpp:674)
+ERROR: Bad volume interval. Spline analysis requires uniform volume distribution, found inconsistent volume differential, line 4 of file delta_Fv_badbad.dat
+	line: 250400.000000, -1406.284339
+ (src/USER-BOCS/fix_bocs.cpp:726)
+ERROR: Bad input format: did not find 2 comma separated numeric values in line 6 of file delta_Fv_badbad.dat
+	line: 250600.000000,
+ (src/USER-BOCS/fix_bocs.cpp:738)
+ERROR: Bad input format: did not find 2 comma separated numeric values in line 7 of file delta_Fv_badbad.dat
+	line: , -1403.793767
+ (src/USER-BOCS/fix_bocs.cpp:738)
+ERROR: Bad input format: did not find 2 comma separated numeric values in line 8 of file delta_Fv_badbad.dat
+	line: 
+ (src/USER-BOCS/fix_bocs.cpp:738)
+ERROR: Bad volume interval. Spline analysis requires uniform volume distribution, found inconsistent volume differential, line 9 of file delta_Fv_badbad.dat
+	line: 250800.000000 ,-1405.454148
+ (src/USER-BOCS/fix_bocs.cpp:726)
+ERROR: Bad input format: did not find 2 comma separated numeric values in line 10 of file delta_Fv_badbad.dat
+	line: 250900.000000 -1405.454148
+ (src/USER-BOCS/fix_bocs.cpp:738)
+ERROR: Bad input format: did not find 2 comma separated numeric values in line 11 of file delta_Fv_badbad.dat
+	line: 25oooo.ooooo,
+ (src/USER-BOCS/fix_bocs.cpp:738)
+ERROR: Bad input format: did not find 2 comma separated numeric values in line 12 of file delta_Fv_badbad.dat
+	line: 251000.000000, -llll.12345
+ (src/USER-BOCS/fix_bocs.cpp:738)
+ERROR: Bad volume interval. Spline analysis requires uniform volume distribution, found inconsistent volume differential, line 13 of file delta_Fv_badbad.dat
+	line: 251100.000000, -1111.123456
+ (src/USER-BOCS/fix_bocs.cpp:726)
+INFO: total number bad volume intervals = 13 (src/USER-BOCS/fix_bocs.cpp:749)
+Bad volume / pressure-correction data: delta_Fv_badbad.dat
+See details above (src/USER-BOCS/fix_bocs.cpp:759)
+INFO: leaving build_cubic_splines, numSplines = 12 (src/USER-BOCS/fix_bocs.cpp:893)
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 10000, page size: 100000
+  master list distance cutoff = 24
+  ghost atom cutoff = 24
+  binsize = 12, bins = 6 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair table, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Setting up Verlet run ...
+  Unit style    : real
+  Current step  : 0
+  Time step     : 1.0
+ERROR: find_index could not find value in grid for value: 296586.168552 (src/USER-BOCS/compute_pressure_bocs.cpp:244)
+Last command: run 1000

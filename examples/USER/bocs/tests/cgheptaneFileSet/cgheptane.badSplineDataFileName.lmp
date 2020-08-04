@@ -1,0 +1,45 @@
+## Parameters initialization
+
+units 		real
+atom_style 	full
+
+pair_style	table linear 1000
+bond_style      table linear 1000
+angle_style     table linear 1000
+dihedral_style  none
+improper_style  none
+kspace_style    none
+
+boundary 	p p p
+dimension 	3
+newton 		on
+
+read_data	data.cgheptane
+
+pair_coeff 1 1 lammps_CT_CT.table LJLJ 12.0
+pair_coeff 1 2 lammps_CT_CM.table LJLJ 12.0
+pair_coeff 2 2 lammps_CM_CM.table LJLJ 12.0
+
+## Parameters initialization
+velocity 	all create 303.0 123456 dist gaussian
+
+## Neighbor list settings
+neigh_modify 	delay 0 every 1 check yes one 10000
+neighbor 	12.0 bin
+
+## Integrator
+timestep 	1.0
+run_style 	verlet
+
+## Thermodynamics output
+thermo 		100
+thermo_style    custom step temp pe etotal press vol
+
+## Set various fixes
+#fix 		1 all bocs temp 303.0 303.0 100.0 cgiso 0.986 0.986 1000.0 analytic 296811.5 3600 2 84177.42 -101579.68 0.0
+fix             1 all bocs temp 303.0 303.0 100.0 cgiso 0.986 0.986 1000.0 cubic_spline bad_file_name.dat
+# This makes lammps print the CG-P pressure rather than the raw pressure
+thermo_modify press 1_press
+
+## Run
+run 1000

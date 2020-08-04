@@ -2275,7 +2275,7 @@ void FixRxKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
 
 namespace LAMMPS_NS {
 template class FixRxKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixRxKokkos<LMPHostType>;
 #endif
 }

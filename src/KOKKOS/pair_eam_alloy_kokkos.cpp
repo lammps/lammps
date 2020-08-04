@@ -1223,7 +1223,7 @@ void PairEAMAlloyKokkos<DeviceType>::file2array_alloy()
 
 namespace LAMMPS_NS {
 template class PairEAMAlloyKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairEAMAlloyKokkos<LMPHostType>;
 #endif
 }

@@ -118,7 +118,7 @@ void FixFreezeKokkos<DeviceType>::operator()(const int i, OriginalForce &origina
 
 namespace LAMMPS_NS {
 template class FixFreezeKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixFreezeKokkos<LMPHostType>;
 #endif
 }

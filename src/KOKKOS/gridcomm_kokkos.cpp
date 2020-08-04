@@ -652,7 +652,7 @@ double GridCommKokkos<DeviceType>::memory_usage()
 
 namespace LAMMPS_NS {
 template class GridCommKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class GridCommKokkos<LMPHostType>;
 #endif
 }

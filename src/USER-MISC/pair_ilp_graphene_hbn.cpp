@@ -686,7 +686,7 @@ void PairILPGrapheneHBN::calc_FRep(int eflag, int /* vflag */)
 
 void PairILPGrapheneHBN::ILP_neigh()
 {
-  int i,j,ii,jj,n,allnum,inum,jnum,itype,jtype;
+  int i,j,ii,jj,n,allnum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *neighptr;
@@ -702,7 +702,6 @@ void PairILPGrapheneHBN::ILP_neigh()
     ILP_firstneigh = (int **) memory->smalloc(maxlocal*sizeof(int *),"ILPGrapheneHBN:firstneigh");
   }
 
-  inum = list->inum;
   allnum = list->inum + list->gnum;
   ilist = list->ilist;
   numneigh = list->numneigh;

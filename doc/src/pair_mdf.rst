@@ -40,7 +40,7 @@ Examples
    pair_coeff * * 1.0 1.0
    pair_coeff 1 1 1.1 2.8 3.0 3.2
 
-   pair_style buck 2.5 3.0
+   pair_style buck/mdf 2.5 3.0
    pair_coeff * * 100.0 1.5 200.0
    pair_coeff * * 100.0 1.5 200.0 3.0 3.5
 

@@ -100,7 +100,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
     } else if (strcmp(arg[iarg],"g") == 0 ||
                strcmp(arg[iarg],"gpus") == 0) {
-#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP)
+#ifndef LMP_KOKKOS_GPU
       error->all(FLERR,"GPUs are requested but Kokkos has not been compiled for CUDA or HIP");
 #endif
       if (iarg+2 > narg) error->all(FLERR,"Invalid Kokkos command-line args");

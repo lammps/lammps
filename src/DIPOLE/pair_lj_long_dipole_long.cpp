@@ -232,9 +232,7 @@ void PairLJLongDipoleLong::init_style()
   if (!atom->q_flag && (ewald_order&(1<<1)))
     error->all(FLERR,
         "Invoking coulombic in pair style lj/long/dipole/long requires atom attribute q");
-  if (!atom->mu && (ewald_order&(1<<3)))
-    error->all(FLERR,"Pair lj/long/dipole/long requires atom attributes mu, torque");
-  if (!atom->torque && (ewald_order&(1<<3)))
+  if (!atom->mu_flag || !atom->torque_flag)
     error->all(FLERR,"Pair lj/long/dipole/long requires atom attributes mu, torque");
 
   neighbor->request(this,instance_me);

@@ -323,11 +323,8 @@ void PairCosineSquared::read_restart_settings(FILE *fp)
 void PairCosineSquared::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-  {
-    fprintf(fp, "%d %g %g %g", i, epsilon[i][i], sigma[i][i], cut[i][i]);
-    if (wcaflag[i][i]) fprintf(fp, " wca");
-    fprintf(fp, "\n");
-  }
+    fprintf(fp, "%d %g %g %g %s\n", i, epsilon[i][i], sigma[i][i], cut[i][i],
+            (wcaflag[i][i] ? "wca" : ""));
 }
 
 /* ----------------------------------------------------------------------
@@ -338,11 +335,8 @@ void PairCosineSquared::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-    {
-      fprintf(fp, "%d %d %g %g %g", i, j, epsilon[i][j], sigma[i][j], cut[i][j]);
-      if (wcaflag[i][j]) fprintf(fp, " wca");
-      fprintf(fp, "\n");
-    }
+      fprintf(fp, "%d %d %g %g %g %s\n", i, j, epsilon[i][j], sigma[i][j],
+              cut[i][j], (wcaflag[i][j] ? "wca" : ""));
 }
 
 /* ---------------------------------------------------------------------- */

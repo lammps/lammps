@@ -113,11 +113,6 @@ void CommTiled::init()
   int bufextra_old = bufextra;
   init_exchange();
   if (bufextra > bufextra_old) grow_send(maxsend+bufextra,2);
-
-  // temporary restrictions
-
-  if (triclinic)
-    error->all(FLERR,"Cannot yet use comm_style tiled with triclinic box");
 }
 
 /* ----------------------------------------------------------------------
@@ -132,14 +127,22 @@ void CommTiled::setup()
   // domain properties used in setup method and methods it calls
 
   dimension = domain->dimension;
-  prd = domain->prd;
-  boxlo = domain->boxlo;
-  boxhi = domain->boxhi;
-  sublo = domain->sublo;
-  subhi = domain->subhi;
-
   int *periodicity = domain->periodicity;
   int ntypes = atom->ntypes;
+
+  if (triclinic == 0) {
+    prd = domain->prd;
+    boxlo = domain->boxlo;
+    boxhi = domain->boxhi;
+    sublo = domain->sublo;
+    subhi = domain->subhi;
+  } else {
+    prd = domain->prd_lamda;
+    boxlo = domain->boxlo_lamda;
+    boxhi = domain->boxhi_lamda;
+    sublo = domain->sublo_lamda;
+    subhi = domain->subhi_lamda;
+  }
 
   // set function pointers
 
@@ -189,6 +192,13 @@ void CommTiled::setup()
     cutghost[1] = cut * length1;
     length2 = h_inv[2];
     cutghost[2] = cut * length2;
+    if (mode == Comm::MULTI){
+      for (i = 1; i <= ntypes; i++) {
+        cutghostmulti[i][0] *= length0;
+        cutghostmulti[i][1] *= length1;
+        cutghostmulti[i][2] *= length2;
+      }
+    }
   }
 
   if ((periodicity[0] && cutghost[0] > prd[0]) ||
@@ -347,6 +357,10 @@ void CommTiled::setup()
             pbc_flag[iswap][i] = 1;
             if (idir == 0) pbc[iswap][i][idim] = 1;
             else pbc[iswap][i][idim] = -1;
+            if (triclinic) {
+              if (idim == 1) pbc[iswap][i][5] = pbc[iswap][i][idim];
+              if (idim == 2) pbc[iswap][i][4] = pbc[iswap][i][3] = pbc[iswap][i][idim];
+            }
             sbox[0] = MAX(oboxlo[0],lo2[0]);
             sbox[1] = MAX(oboxlo[1],lo2[1]);
             sbox[2] = MAX(oboxlo[2],lo2[2]);
@@ -397,6 +411,10 @@ void CommTiled::setup()
             pbc_flag[iswap][i] = 1;
             if (idir == 0) pbc[iswap][i][idim] = 1;
             else pbc[iswap][i][idim] = -1;
+            if (triclinic) {
+              if (idim == 1) pbc[iswap][i][5] = pbc[iswap][i][idim];
+              if (idim == 2) pbc[iswap][i][4] = pbc[iswap][i][3] = pbc[iswap][i][idim];
+            }
             sbox[0] = MAX(oboxlo[0],lo2[0]);
             sbox[1] = MAX(oboxlo[1],lo2[1]);
             sbox[2] = MAX(oboxlo[2],lo2[2]);

@@ -1,0 +1,2465 @@
+==860== Memcheck, a memory error detector
+==860== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==860== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==860== Command: /mnt/c/openSource/eagunn/lammps/build/lmp -in cgheptane.cubic200.lmp
+==860== Parent PID: 858
+==860== 
+==860== error calling PR_SET_PTRACER, vgdb might block
+==860== Conditional jump or move depends on uninitialised value(s)
+==860==    at 0x7004375: opal_value_unload (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E7F97A: ompi_proc_complete_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E838A4: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860==  Uninitialised value was created by a stack allocation
+==860==    at 0x4E7F90D: ompi_proc_complete_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 
+==860== HEAP SUMMARY:
+==860==     in use at exit: 87,374 bytes in 685 blocks
+==860==   total heap usage: 24,995 allocs, 24,310 frees, 36,995,227 bytes allocated
+==860== 
+==860== 4 bytes in 1 blocks are still reachable in loss record 1 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x70255AA: opal_argv_append_nosize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70256D4: opal_argv_append (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x702579E: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703769D: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7024D0A: mca_base_framework_components_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025019: mca_base_framework_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025080: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70194F8: mca_base_component_repository_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701A9F8: mca_base_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEABB: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860== 
+==860== 5 bytes in 1 blocks are indirectly lost in loss record 2 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xB2890BC: ???
+==860==    by 0xB1E56AB: ???
+==860==    by 0xB20C7A4: ???
+==860==    by 0xB1EAD0A: ???
+==860==    by 0xAFB0B0D: ???
+==860==    by 0x74AB4C2: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x74A2910: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x749B020: hwloc_topology_set_xmlbuffer (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x912291D: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 6 bytes in 1 blocks are indirectly lost in loss record 3 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xB2890BC: ???
+==860==    by 0xB1E56AB: ???
+==860==    by 0xB1E54AF: ???
+==860==    by 0xB20C7A4: ???
+==860==    by 0xB1EAD0A: ???
+==860==    by 0xAFB0B0D: ???
+==860==    by 0x74AB4C2: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x74A2910: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x749B020: hwloc_topology_set_xmlbuffer (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x912291D: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860== 
+==860== 6 bytes in 1 blocks are indirectly lost in loss record 4 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xB2890BC: ???
+==860==    by 0xB1E56AB: ???
+==860==    by 0xB1E553F: ???
+==860==    by 0xB20C7A4: ???
+==860==    by 0xB1EAD0A: ???
+==860==    by 0xAFB0B0D: ???
+==860==    by 0x74AB4C2: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x74A2910: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x749B020: hwloc_topology_set_xmlbuffer (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x912291D: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860== 
+==860== 6 bytes in 1 blocks are indirectly lost in loss record 5 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x705884A: opal_sec_base_validate (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0xEDEACD6: ???
+==860==    by 0xEDECC4C: ???
+==860==    by 0x703CC30: opal_libevent2022_event_base_loop (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x700217D: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x53646DA: start_thread (pthread_create.c:463)
+==860==    by 0x6A7F88E: clone (clone.S:95)
+==860== 
+==860== 6 bytes in 1 blocks are indirectly lost in loss record 6 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x973C651: ???
+==860==    by 0x975E890: ???
+==860==    by 0x703D208: opal_libevent2022_event_base_loop (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x9759FCC: ???
+==860==    by 0x53646DA: start_thread (pthread_create.c:463)
+==860==    by 0x6A7F88E: clone (clone.S:95)
+==860== 
+==860== 7 bytes in 1 blocks are indirectly lost in loss record 7 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x8D16B4C: ??? (in /tmp/openmpi-sessions-1000@Skoki_0/25026/pmix_dstor_861/smseg-1640103937-0)
+==860==    by 0x701A129: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63171: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 7 bytes in 1 blocks are indirectly lost in loss record 8 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xB2890BC: ???
+==860==    by 0xB1E56AB: ???
+==860==    by 0xB1E550B: ???
+==860==    by 0xB20C7A4: ???
+==860==    by 0xB1EAD0A: ???
+==860==    by 0xAFB0B0D: ???
+==860==    by 0x74AB4C2: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x74A2910: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x749B020: hwloc_topology_set_xmlbuffer (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x912291D: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860== 
+==860== 8 bytes in 1 blocks are still reachable in loss record 9 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x5137AB8: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==860==    by 0x5146A86: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==860==    by 0x513608A: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==860==    by 0x4010732: call_init (dl-init.c:72)
+==860==    by 0x4010732: _dl_init (dl-init.c:119)
+==860==    by 0x40010C9: ??? (in /lib/x86_64-linux-gnu/ld-2.27.so)
+==860==    by 0x2: ???
+==860==    by 0x1FFF00032A: ???
+==860==    by 0x1FFF000354: ???
+==860==    by 0x1FFF000358: ???
+==860== 
+==860== 8 bytes in 1 blocks are still reachable in loss record 10 of 216
+==860==    at 0x4C31B25: calloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x7037B12: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7019946: mca_base_component_repository_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7018A09: mca_base_component_find (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7024BC9: mca_base_framework_components_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025019: mca_base_framework_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025080: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEB7A: opal_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63078: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 8 bytes in 1 blocks are still reachable in loss record 11 of 216
+==860==    at 0x4C31B25: calloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x7037B12: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7019946: mca_base_component_repository_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7018A09: mca_base_component_find (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7024BC9: mca_base_framework_components_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025019: mca_base_framework_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025080: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701A129: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4EE5246: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E834E8: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 8 bytes in 1 blocks are indirectly lost in loss record 12 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x8D16785: ??? (in /tmp/openmpi-sessions-1000@Skoki_0/25026/pmix_dstor_861/smseg-1640103937-0)
+==860==    by 0x701A129: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63171: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 8 bytes in 1 blocks are indirectly lost in loss record 13 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x8D16825: ??? (in /tmp/openmpi-sessions-1000@Skoki_0/25026/pmix_dstor_861/smseg-1640103937-0)
+==860==    by 0x701A129: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63171: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 8 bytes in 1 blocks are indirectly lost in loss record 14 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x8D168C5: ??? (in /tmp/openmpi-sessions-1000@Skoki_0/25026/pmix_dstor_861/smseg-1640103937-0)
+==860==    by 0x701A129: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63171: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 8 bytes in 1 blocks are indirectly lost in loss record 15 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x8D16965: ??? (in /tmp/openmpi-sessions-1000@Skoki_0/25026/pmix_dstor_861/smseg-1640103937-0)
+==860==    by 0x701A129: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63171: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 8 bytes in 1 blocks are indirectly lost in loss record 16 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x8D16A05: ??? (in /tmp/openmpi-sessions-1000@Skoki_0/25026/pmix_dstor_861/smseg-1640103937-0)
+==860==    by 0x701A129: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63171: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 8 bytes in 1 blocks are indirectly lost in loss record 17 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x8D16AA5: ??? (in /tmp/openmpi-sessions-1000@Skoki_0/25026/pmix_dstor_861/smseg-1640103937-0)
+==860==    by 0x701A129: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63171: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 8 bytes in 1 blocks are definitely lost in loss record 18 of 216
+==860==    at 0x4C31B25: calloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x973A346: ???
+==860==    by 0x975ECA9: ???
+==860==    by 0x9732CB4: ???
+==860==    by 0x9122473: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 9 bytes in 1 blocks are indirectly lost in loss record 19 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xB2890BC: ???
+==860==    by 0xB1E56AB: ???
+==860==    by 0xB1E54C9: ???
+==860==    by 0xB20C7A4: ???
+==860==    by 0xB1EAD0A: ???
+==860==    by 0xAFB0B0D: ???
+==860==    by 0x74AB4C2: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x74A2910: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x749B020: hwloc_topology_set_xmlbuffer (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x912291D: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860== 
+==860== 9 bytes in 1 blocks are indirectly lost in loss record 20 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xB2890BC: ???
+==860==    by 0xB1E56AB: ???
+==860==    by 0xB1E54EA: ???
+==860==    by 0xB20C7A4: ???
+==860==    by 0xB1EAD0A: ???
+==860==    by 0xAFB0B0D: ???
+==860==    by 0x74AB4C2: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x74A2910: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x749B020: hwloc_topology_set_xmlbuffer (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x912291D: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860== 
+==860== 9 bytes in 1 blocks are indirectly lost in loss record 21 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xB2890BC: ???
+==860==    by 0xB1E56AB: ???
+==860==    by 0xB1E5559: ???
+==860==    by 0xB20C7A4: ???
+==860==    by 0xB1EAD0A: ???
+==860==    by 0xAFB0B0D: ???
+==860==    by 0x74AB4C2: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x74A2910: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x749B020: hwloc_topology_set_xmlbuffer (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x912291D: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860== 
+==860== 10 bytes in 1 blocks are indirectly lost in loss record 22 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x976F748: ???
+==860==    by 0x973314D: ???
+==860==    by 0x6D90E61: orte_ess_base_app_setup (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x9122E88: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 10 bytes in 1 blocks are definitely lost in loss record 23 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x7022AA8: mca_base_var_enum_create_flag (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70366AF: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025004: mca_base_framework_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025080: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E834A2: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 10 bytes in 1 blocks are definitely lost in loss record 24 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x111ACED0: ???
+==860==    by 0x4010732: call_init (dl-init.c:72)
+==860==    by 0x4010732: _dl_init (dl-init.c:119)
+==860==    by 0x40151FE: dl_open_worker (dl-open.c:522)
+==860==    by 0x6AC52DE: _dl_catch_exception (dl-error-skeleton.c:196)
+==860==    by 0x40147C9: _dl_open (dl-open.c:605)
+==860==    by 0x76CEF95: dlopen_doit (dlopen.c:66)
+==860==    by 0x6AC52DE: _dl_catch_exception (dl-error-skeleton.c:196)
+==860==    by 0x6AC536E: _dl_catch_error (dl-error-skeleton.c:215)
+==860==    by 0x76CF734: _dlerror_run (dlerror.c:162)
+==860==    by 0x76CF050: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
+==860== 
+==860== 11 bytes in 1 blocks are indirectly lost in loss record 25 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xB2890BC: ???
+==860==    by 0xB1E56AB: ???
+==860==    by 0xB1E5525: ???
+==860==    by 0xB20C7A4: ???
+==860==    by 0xB1EAD0A: ???
+==860==    by 0xAFB0B0D: ???
+==860==    by 0x74AB4C2: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x74A2910: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x749B020: hwloc_topology_set_xmlbuffer (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x912291D: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860== 
+==860== 11 bytes in 1 blocks are indirectly lost in loss record 26 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x976F748: ???
+==860==    by 0x973314D: ???
+==860==    by 0x6D90CC2: orte_ess_base_app_setup (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x9122E88: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 11 bytes in 1 blocks are definitely lost in loss record 27 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x9748DAD: ???
+==860==    by 0x97474FD: ???
+==860==    by 0x975D2EB: ???
+==860==    by 0x975C004: ???
+==860==    by 0x703D208: opal_libevent2022_event_base_loop (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x9759FCC: ???
+==860==    by 0x53646DA: start_thread (pthread_create.c:463)
+==860==    by 0x6A7F88E: clone (clone.S:95)
+==860== 
+==860== 13 bytes in 2 blocks are still reachable in loss record 28 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x703E7A3: opal_libevent2022_event_config_avoid_method (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037F02: opal_event_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037BD5: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEC1A: opal_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63078: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 16 bytes in 1 blocks are still reachable in loss record 29 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0xEDE73DF: ???
+==860==    by 0x6D9DC7C: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x6D9EE27: orte_oob_base_set_addr (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x703D208: opal_libevent2022_event_base_loop (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x700217D: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x53646DA: start_thread (pthread_create.c:463)
+==860==    by 0x6A7F88E: clone (clone.S:95)
+==860== 
+==860== 16 bytes in 1 blocks are still reachable in loss record 30 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0xEDEB357: ???
+==860==    by 0xEDECC4C: ???
+==860==    by 0x703CC30: opal_libevent2022_event_base_loop (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x700217D: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x53646DA: start_thread (pthread_create.c:463)
+==860==    by 0x6A7F88E: clone (clone.S:95)
+==860== 
+==860== 16 bytes in 3 blocks are still reachable in loss record 31 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x70255AA: opal_argv_append_nosize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70256D4: opal_argv_append (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x702584C: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703769D: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7024D0A: mca_base_framework_components_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025019: mca_base_framework_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025080: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70194F8: mca_base_component_repository_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701A9F8: mca_base_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEABB: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860== 
+==860== 17 bytes in 1 blocks are definitely lost in loss record 32 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x7022AA8: mca_base_var_enum_create_flag (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70366C9: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025004: mca_base_framework_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025080: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E834A2: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 17 bytes in 1 blocks are definitely lost in loss record 33 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x7022AA8: mca_base_var_enum_create_flag (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83876: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 22 bytes in 1 blocks are still reachable in loss record 34 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x702E539: opal_output_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4EE696E: pml_v_output_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EE6425: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x701A129: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4EE5246: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E834E8: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 24 bytes in 1 blocks are still reachable in loss record 35 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7002B8F: opal_thread_get_self (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E82F64: ompi_mpi_thread_level (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E83064: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 24 bytes in 1 blocks are still reachable in loss record 36 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x702EB57: opal_output_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFE8D7: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 24 bytes in 1 blocks are still reachable in loss record 37 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4EE2CB6: ompi_op_base_op_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E7DE13: ompi_op_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E8341B: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 24 bytes in 1 blocks are still reachable in loss record 38 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E60007: ompi_attr_set_fortran_mpi1 (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E61BAB: ompi_attr_create_predefined (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E8388D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 24 bytes in 3 blocks are still reachable in loss record 39 of 216
+==860==    at 0x4C31B25: calloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x7037B12: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7019946: mca_base_component_repository_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7018A09: mca_base_component_find (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7024BC9: mca_base_framework_components_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025019: mca_base_framework_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025080: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83528: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 24 bytes in 1 blocks are indirectly lost in loss record 40 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x976F756: ???
+==860==    by 0x973314D: ???
+==860==    by 0x6D90CC2: orte_ess_base_app_setup (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x9122E88: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 24 bytes in 1 blocks are indirectly lost in loss record 41 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x976F756: ???
+==860==    by 0x973314D: ???
+==860==    by 0x6D90E61: orte_ess_base_app_setup (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x9122E88: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 28 bytes in 1 blocks are still reachable in loss record 42 of 216
+==860==    at 0x4C31B25: calloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x70404D6: opal_libevent2022_evmap_io_add (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703B8DD: opal_libevent2022_event_add (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703F65D: opal_libevent2022_event_base_new_with_config (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037DDC: opal_event_base_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037BE9: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEC1A: opal_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63078: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 28 bytes in 1 blocks are still reachable in loss record 43 of 216
+==860==    at 0x4C31B25: calloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x70404D6: opal_libevent2022_evmap_io_add (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703B8DD: opal_libevent2022_event_add (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x1024D7EA: ???
+==860==    by 0x7036D1C: mca_btl_base_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0xF806421: ???
+==860==    by 0x4EC7EA3: mca_bml_base_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E834C8: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 44 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x702EB28: opal_output_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFE8D7: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 45 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025037: mca_base_framework_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025080: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFE8E5: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 46 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701D3DF: mca_base_var_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFE9B9: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 47 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701D5D7: mca_base_var_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFE9B9: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 48 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7023E37: mca_base_var_group_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701DF71: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701EBB6: mca_base_var_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701D490: mca_base_var_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFE9B9: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 49 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7022EC7: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7023C38: mca_base_var_group_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701DF71: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701EBB6: mca_base_var_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701D490: mca_base_var_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFE9B9: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 50 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701E45F: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701EBB6: mca_base_var_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701D490: mca_base_var_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFE9B9: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 51 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7022A17: mca_base_var_enum_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x700D086: opal_dss_register_vars (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFF327: opal_register_params (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFE9D5: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 52 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70127EF: opal_datatype_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEA83: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 53 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7008DBF: opal_dss_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x700D344: opal_dss_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEA9F: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 54 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6A9248F: __vasprintf_chk (vasprintf_chk.c:80)
+==860==    by 0x6A9232E: __asprintf_chk (asprintf_chk.c:32)
+==860==    by 0x701A65E: mca_base_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEABB: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 55 of 216
+==860==    at 0x4C31B25: calloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x76CF7E4: _dlerror_run (dlerror.c:140)
+==860==    by 0x76CF050: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
+==860==    by 0x7037AB0: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7019946: mca_base_component_repository_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7018A09: mca_base_component_find (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7024BC9: mca_base_framework_components_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025019: mca_base_framework_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025080: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEB7A: opal_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63078: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 56 of 216
+==860==    at 0x4C31B25: calloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x703A412: opal_libevent2022_event_config_new (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037E5A: opal_event_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037BD5: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEC1A: opal_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63078: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 57 of 216
+==860==    at 0x4C31B25: calloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x7045797: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703F6A8: opal_libevent2022_event_base_new_with_config (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037DDC: opal_event_base_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037BE9: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEC1A: opal_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63078: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 58 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D71E9F: orte_proc_info (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x6D63129: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 59 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x9732E0F: ???
+==860==    by 0x9122473: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 60 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6DB5347: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D90DFE: orte_ess_base_app_setup (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x9122E88: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 61 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0xEFF2D57: ???
+==860==    by 0xDB02078: ???
+==860==    by 0x6D9437C: orte_grpcomm_base_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x6D90F32: orte_ess_base_app_setup (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x9122E88: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 62 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D94577: orte_grpcomm_base_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x6D90F32: orte_ess_base_app_setup (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x9122E88: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 63 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0xEFF292F: ???
+==860==    by 0xF1F7A82: ???
+==860==    by 0x6D90F9E: orte_ess_base_app_setup (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x9122E88: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 64 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D9DD77: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x6D9EE27: orte_oob_base_set_addr (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x703D208: opal_libevent2022_event_base_loop (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x700217D: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x53646DA: start_thread (pthread_create.c:463)
+==860==    by 0x6A7F88E: clone (clone.S:95)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 65 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D9F22F: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x6D9DD18: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x6D9EE27: orte_oob_base_set_addr (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x703D208: opal_libevent2022_event_base_loop (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x700217D: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x53646DA: start_thread (pthread_create.c:463)
+==860==    by 0x6A7F88E: clone (clone.S:95)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 66 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0xE115377: ???
+==860==    by 0xE111D7A: ???
+==860==    by 0x6D9DC7C: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x6D9EE27: orte_oob_base_set_addr (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x703D208: opal_libevent2022_event_base_loop (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x700217D: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x53646DA: start_thread (pthread_create.c:463)
+==860==    by 0x6A7F88E: clone (clone.S:95)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 67 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D8FFE7: orte_errmgr_base_register_error_callback (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E832B9: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 68 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x700E027: opal_convertor_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E8DA03: ompi_datatype_default_convertors_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E8FA44: ompi_datatype_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E833AA: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 69 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E7E7FF: ompi_op_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E8341B: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 70 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x702079F: mca_base_pvar_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7020846: mca_base_component_pvar_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0xF600EE5: ???
+==860==    by 0x7024D0A: mca_base_framework_components_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025019: mca_base_framework_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025080: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83482: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 71 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70518A7: mca_mpool_base_tree_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7051245: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83482: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 72 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FF9FDF: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFAF58: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7051778: mca_mpool_base_tree_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7051245: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83482: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 73 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FF53C7: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFAF58: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7051778: mca_mpool_base_tree_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7051245: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83482: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 74 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FF596C: opal_free_list_grow_st (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFB9CE: opal_rb_tree_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7051245: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83482: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 75 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FF5884: opal_free_list_grow_st (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFB9CE: opal_rb_tree_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7051245: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83482: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 76 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7022BE7: mca_base_var_enum_create_flag (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70366AF: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025004: mca_base_framework_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025080: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E834A2: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 77 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7036E97: mca_btl_base_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0xF806421: ???
+==860==    by 0x4EC7EA3: mca_bml_base_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E834C8: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 78 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x97337DF: ???
+==860==    by 0x4E83591: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 79 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FF5884: opal_free_list_grow_st (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x1284F463: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/openmpi/mca_osc_rdma.so)
+==860==    by 0x4EE36D8: ompi_osc_base_find_available (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E83797: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 80 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FF5884: opal_free_list_grow_st (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x1284F59F: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/openmpi/mca_osc_rdma.so)
+==860==    by 0x4EE36D8: ompi_osc_base_find_available (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E83797: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 81 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E70107: ompi_errhandler_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E837EC: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 82 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E76447: ompi_mpi_errcode_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E83803: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 83 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E786F7: ompi_errcode_intern_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E8381A: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 84 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E7ADB7: ompi_group_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E83831: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 85 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E62B07: ompi_comm_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E83848: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 86 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E7902F: ompi_file_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E8385F: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 87 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E863C7: ompi_win_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E83876: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 88 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E5F81B: ompi_attr_create_keyval (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E61984: ompi_attr_create_predefined (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E8388D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 89 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FF5884: opal_free_list_grow_st (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x1045A71A: ???
+==860==    by 0x4E838BF: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 90 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FF5884: opal_free_list_grow_st (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x1045A7AA: ???
+==860==    by 0x4E838BF: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 91 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FF5884: opal_free_list_grow_st (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x1045A890: ???
+==860==    by 0x4E838BF: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 92 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0xF8060E7: ???
+==860==    by 0x1045AC19: ???
+==860==    by 0x4E838F4: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 93 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4EC7DC7: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0xF806068: ???
+==860==    by 0x1045AC19: ???
+==860==    by 0x4E838F4: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 94 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x1045B647: ???
+==860==    by 0x4E83B1F: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 95 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x115C4677: ???
+==860==    by 0x4EC8172: mca_coll_base_comm_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E83C48: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 96 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4EC8383: mca_coll_base_comm_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E83C48: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 97 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x11BF2247: ???
+==860==    by 0x4EC8172: mca_coll_base_comm_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E83C48: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 98 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x115C4357: ???
+==860==    by 0x4EC990A: mca_coll_base_comm_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E83C48: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 99 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0xFA08817: ???
+==860==    by 0x4EE8AB3: mca_topo_base_comm_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E95F48: PMPI_Cart_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4862F9: LAMMPS_NS::ProcMap::cart_map(int, int*, int*, int (*) [2], int***) (procmap.cpp:363)
+==860==    by 0x2CF98D: LAMMPS_NS::Comm::set_proc_grid(int) (comm.cpp:544)
+==860==    by 0x219A43: LAMMPS_NS::ReadData::command(int, char**) (read_data.cpp:461)
+==860==    by 0x1A368D: void LAMMPS_NS::Input::command_creator<LAMMPS_NS::ReadData>(LAMMPS_NS::LAMMPS*, int, char**) (input.cpp:879)
+==860==    by 0x18F0AA: LAMMPS_NS::Input::execute_command() (input.cpp:862)
+==860==    by 0x18F7DC: LAMMPS_NS::Input::file() (input.cpp:230)
+==860==    by 0x189367: main (main.cpp:61)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 100 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4EE8D0B: mca_topo_base_comm_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E95F48: PMPI_Cart_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4862F9: LAMMPS_NS::ProcMap::cart_map(int, int*, int*, int (*) [2], int***) (procmap.cpp:363)
+==860==    by 0x2CF98D: LAMMPS_NS::Comm::set_proc_grid(int) (comm.cpp:544)
+==860==    by 0x219A43: LAMMPS_NS::ReadData::command(int, char**) (read_data.cpp:461)
+==860==    by 0x1A368D: void LAMMPS_NS::Input::command_creator<LAMMPS_NS::ReadData>(LAMMPS_NS::LAMMPS*, int, char**) (input.cpp:879)
+==860==    by 0x18F0AA: LAMMPS_NS::Input::execute_command() (input.cpp:862)
+==860==    by 0x18F7DC: LAMMPS_NS::Input::file() (input.cpp:230)
+==860==    by 0x189367: main (main.cpp:61)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 101 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4EE7C2F: mca_topo_base_cart_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E95F7E: PMPI_Cart_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4862F9: LAMMPS_NS::ProcMap::cart_map(int, int*, int*, int (*) [2], int***) (procmap.cpp:363)
+==860==    by 0x2CF98D: LAMMPS_NS::Comm::set_proc_grid(int) (comm.cpp:544)
+==860==    by 0x219A43: LAMMPS_NS::ReadData::command(int, char**) (read_data.cpp:461)
+==860==    by 0x1A368D: void LAMMPS_NS::Input::command_creator<LAMMPS_NS::ReadData>(LAMMPS_NS::LAMMPS*, int, char**) (input.cpp:879)
+==860==    by 0x18F0AA: LAMMPS_NS::Input::execute_command() (input.cpp:862)
+==860==    by 0x18F7DC: LAMMPS_NS::Input::file() (input.cpp:230)
+==860==    by 0x189367: main (main.cpp:61)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 102 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E69137: ompi_comm_nextcid_nb (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E69274: ompi_comm_nextcid (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E66998: ompi_comm_enable (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EE7AAB: mca_topo_base_cart_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E95F7E: PMPI_Cart_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4862F9: LAMMPS_NS::ProcMap::cart_map(int, int*, int*, int (*) [2], int***) (procmap.cpp:363)
+==860==    by 0x2CF98D: LAMMPS_NS::Comm::set_proc_grid(int) (comm.cpp:544)
+==860==    by 0x219A43: LAMMPS_NS::ReadData::command(int, char**) (read_data.cpp:461)
+==860==    by 0x1A368D: void LAMMPS_NS::Input::command_creator<LAMMPS_NS::ReadData>(LAMMPS_NS::LAMMPS*, int, char**) (input.cpp:879)
+==860==    by 0x18F0AA: LAMMPS_NS::Input::execute_command() (input.cpp:862)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 103 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E6A437: ompi_comm_request_schedule_append (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E6910B: ompi_comm_nextcid_nb (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E69274: ompi_comm_nextcid (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E66998: ompi_comm_enable (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EE7AAB: mca_topo_base_cart_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E95F7E: PMPI_Cart_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4862F9: LAMMPS_NS::ProcMap::cart_map(int, int*, int*, int (*) [2], int***) (procmap.cpp:363)
+==860==    by 0x2CF98D: LAMMPS_NS::Comm::set_proc_grid(int) (comm.cpp:544)
+==860==    by 0x219A43: LAMMPS_NS::ReadData::command(int, char**) (read_data.cpp:461)
+==860==    by 0x1A368D: void LAMMPS_NS::Input::command_creator<LAMMPS_NS::ReadData>(LAMMPS_NS::LAMMPS*, int, char**) (input.cpp:879)
+==860== 
+==860== 32 bytes in 1 blocks are still reachable in loss record 104 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x119DDFB7: ???
+==860==    by 0x4E66C52: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E66E87: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E69F24: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x6FFD9EB: opal_progress (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E69394: ompi_comm_nextcid (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E66998: ompi_comm_enable (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EE7AAB: mca_topo_base_cart_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E95F7E: PMPI_Cart_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4862F9: LAMMPS_NS::ProcMap::cart_map(int, int*, int*, int (*) [2], int***) (procmap.cpp:363)
+==860== 
+==860== 37 bytes in 1 blocks are definitely lost in loss record 105 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6A9248F: __vasprintf_chk (vasprintf_chk.c:80)
+==860==    by 0x6A9232E: __asprintf_chk (asprintf_chk.c:32)
+==860==    by 0x4E83628: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 40 bytes in 1 blocks are still reachable in loss record 106 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70188C7: mca_base_component_find (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7019FEC: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x704FB64: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFE8E5: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 40 bytes in 1 blocks are still reachable in loss record 107 of 216
+==860==    at 0x4C31D2F: realloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x7025592: opal_argv_append_nosize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70256D4: opal_argv_append (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x702579E: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703769D: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7024D0A: mca_base_framework_components_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025019: mca_base_framework_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025080: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70194F8: mca_base_component_repository_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701A9F8: mca_base_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEABB: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 40 bytes in 1 blocks are still reachable in loss record 108 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x70418E1: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703FE32: event_global_setup_locks_ (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7041AA9: opal_libevent2022_evthread_use_pthreads (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037BE4: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEC1A: opal_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63078: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 40 bytes in 1 blocks are still reachable in loss record 109 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x70418E1: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7046603: evsig_global_setup_locks_ (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703FE45: event_global_setup_locks_ (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7041AA9: opal_libevent2022_evthread_use_pthreads (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037BE4: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEC1A: opal_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63078: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 40 bytes in 1 blocks are still reachable in loss record 110 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x70418E1: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7044933: opal_libevent2022_evutil_secure_rng_global_setup_locks_ (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703FE50: event_global_setup_locks_ (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7041AA9: opal_libevent2022_evthread_use_pthreads (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037BE4: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEC1A: opal_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63078: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 40 bytes in 1 blocks are still reachable in loss record 111 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x70418E1: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703F628: opal_libevent2022_event_base_new_with_config (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037DDC: opal_event_base_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037BE9: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEC1A: opal_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63078: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 40 bytes in 1 blocks are still reachable in loss record 112 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70580F7: opal_sec_base_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEC9F: opal_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63078: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 40 bytes in 1 blocks are still reachable in loss record 113 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6DB73DF: orte_state_base_add_job_state (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0xD6FBE78: ???
+==860==    by 0x6DB7022: orte_state_base_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x6D90B0C: orte_ess_base_app_setup (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x9122E88: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 40 bytes in 1 blocks are still reachable in loss record 114 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x704F72F: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701A129: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x702B341: opal_ifbegin (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0xE112614: ???
+==860==    by 0x6D9F51E: orte_oob_base_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x6D90C04: orte_ess_base_app_setup (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x9122E88: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 40 bytes in 1 blocks are still reachable in loss record 115 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6DB3927: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0xEFF2C98: ???
+==860==    by 0xDB02078: ???
+==860==    by 0x6D9437C: orte_grpcomm_base_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x6D90F32: orte_ess_base_app_setup (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x9122E88: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 40 bytes in 1 blocks are still reachable in loss record 116 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0xE115C6F: ???
+==860==    by 0x703D208: opal_libevent2022_event_base_loop (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x700217D: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x53646DA: start_thread (pthread_create.c:463)
+==860==    by 0x6A7F88E: clone (clone.S:95)
+==860== 
+==860== 40 bytes in 1 blocks are still reachable in loss record 117 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFAFA7: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7051778: mca_mpool_base_tree_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7051245: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83482: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 40 bytes in 1 blocks are still reachable in loss record 118 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FF5884: opal_free_list_grow_st (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x12622E5E: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/openmpi/mca_osc_pt2pt.so)
+==860==    by 0x4EE36D8: ompi_osc_base_find_available (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E83797: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 40 bytes in 1 blocks are still reachable in loss record 119 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FF5884: opal_free_list_grow_st (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E7D6E2: ompi_message_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E837BE: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 40 bytes in 1 blocks are still reachable in loss record 120 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FF5884: opal_free_list_grow_st (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x1045A681: ???
+==860==    by 0x4E838BF: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 40 bytes in 1 blocks are definitely lost in loss record 121 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xB28581A: ???
+==860==    by 0xB284AA8: ???
+==860==    by 0xB20C779: ???
+==860==    by 0xB1EAD0A: ???
+==860==    by 0xAFB0B0D: ???
+==860==    by 0x74AB4C2: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x74A2910: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x749B020: hwloc_topology_set_xmlbuffer (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x912291D: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 40 bytes in 1 blocks are definitely lost in loss record 122 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xB28581A: ???
+==860==    by 0xB229169: ???
+==860==    by 0xB20C79A: ???
+==860==    by 0xB1EAD0A: ???
+==860==    by 0xAFB0B0D: ???
+==860==    by 0x74AB4C2: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x74A2910: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x749B020: hwloc_topology_set_xmlbuffer (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x912291D: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 43 bytes in 1 blocks are indirectly lost in loss record 123 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x973C651: ???
+==860==    by 0x976F765: ???
+==860==    by 0x973314D: ???
+==860==    by 0x6D90CC2: orte_ess_base_app_setup (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x9122E88: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 45 bytes in 1 blocks are indirectly lost in loss record 124 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x973C651: ???
+==860==    by 0x976F765: ???
+==860==    by 0x973314D: ???
+==860==    by 0x6D90E61: orte_ess_base_app_setup (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x9122E88: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 46 bytes in 1 blocks are still reachable in loss record 125 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x701A62F: mca_base_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEABB: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 48 bytes in 1 blocks are still reachable in loss record 126 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x7018744: mca_base_component_find (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7024BC9: mca_base_framework_components_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025019: mca_base_framework_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025080: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70194F8: mca_base_component_repository_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701A9F8: mca_base_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEABB: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 48 bytes in 1 blocks are still reachable in loss record 127 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70192AF: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703789D: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7019441: mca_base_component_repository_add (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7019576: mca_base_component_repository_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701A9F8: mca_base_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEABB: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 48 bytes in 1 blocks are still reachable in loss record 128 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x704184A: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703F64E: opal_libevent2022_event_base_new_with_config (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037DDC: opal_event_base_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037BE9: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEC1A: opal_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63078: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 48 bytes in 1 blocks are still reachable in loss record 129 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D71DD7: orte_proc_info (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x6D63129: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 48 bytes in 1 blocks are still reachable in loss record 130 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x8D170AF: ??? (in /tmp/openmpi-sessions-1000@Skoki_0/25026/pmix_dstor_861/smseg-1640103937-0)
+==860==    by 0x701A129: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63171: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 48 bytes in 1 blocks are still reachable in loss record 131 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x700244F: opal_progress_thread_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x9122441: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 48 bytes in 1 blocks are still reachable in loss record 132 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x9733E67: ???
+==860==    by 0x9122542: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 48 bytes in 1 blocks are still reachable in loss record 133 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0xEDE73B7: ???
+==860==    by 0x6D9DC7C: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x6D9EE27: orte_oob_base_set_addr (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x703D208: opal_libevent2022_event_base_loop (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x700217D: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x53646DA: start_thread (pthread_create.c:463)
+==860==    by 0x6A7F88E: clone (clone.S:95)
+==860== 
+==860== 48 bytes in 1 blocks are still reachable in loss record 134 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0xE115C97: ???
+==860==    by 0x703D208: opal_libevent2022_event_base_loop (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x700217D: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x53646DA: start_thread (pthread_create.c:463)
+==860==    by 0x6A7F88E: clone (clone.S:95)
+==860== 
+==860== 48 bytes in 1 blocks are still reachable in loss record 135 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E8BE27: ompi_datatype_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E8BF83: ompi_datatype_create_contiguous (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E8DCF5: ompi_datatype_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E833AA: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 48 bytes in 1 blocks are still reachable in loss record 136 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x1024C577: ???
+==860==    by 0x701A129: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70366FA: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E834A2: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 48 bytes in 1 blocks are still reachable in loss record 137 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x70199CC: mca_base_component_repository_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7018A09: mca_base_component_find (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7024BC9: mca_base_framework_components_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025019: mca_base_framework_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025080: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701A129: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4EE5246: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E834E8: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 48 bytes in 1 blocks are still reachable in loss record 138 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E814F7: ompi_request_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E837A7: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 48 bytes in 1 blocks are still reachable in loss record 139 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E7C8DF: ompi_info_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E837D5: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 48 bytes in 1 blocks are still reachable in loss record 140 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E7C58E: ompi_info_set (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E7C6CB: ompi_info_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E837D5: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 48 bytes in 1 blocks are still reachable in loss record 141 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x119D697F: ???
+==860==    by 0x4EC8172: mca_coll_base_comm_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E83C48: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 48 bytes in 1 blocks are still reachable in loss record 142 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x121FF7EF: ???
+==860==    by 0x4EC8172: mca_coll_base_comm_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E83C48: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 48 bytes in 2 blocks are still reachable in loss record 143 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x703E793: opal_libevent2022_event_config_avoid_method (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037F02: opal_event_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037BD5: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEC1A: opal_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63078: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 48 bytes in 1 blocks are definitely lost in loss record 144 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x70199CC: mca_base_component_repository_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7018A09: mca_base_component_find (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7024BC9: mca_base_framework_components_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025019: mca_base_framework_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025080: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEB7A: opal_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63078: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 53 bytes in 3 blocks are indirectly lost in loss record 145 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x973C729: ???
+==860==    by 0x975E890: ???
+==860==    by 0x703D208: opal_libevent2022_event_base_loop (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x9759FCC: ???
+==860==    by 0x53646DA: start_thread (pthread_create.c:463)
+==860==    by 0x6A7F88E: clone (clone.S:95)
+==860== 
+==860== 55 bytes in 1 blocks are definitely lost in loss record 146 of 216
+==860==    at 0x4C31D2F: realloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6A9244E: __vasprintf_chk (vasprintf_chk.c:88)
+==860==    by 0x6A9232E: __asprintf_chk (asprintf_chk.c:32)
+==860==    by 0x4E83671: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 56 bytes in 1 blocks are still reachable in loss record 147 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FF5884: opal_free_list_grow_st (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x1024CD7A: ???
+==860==    by 0x7036D1C: mca_btl_base_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0xF806421: ???
+==860==    by 0x4EC7EA3: mca_bml_base_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E834C8: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 56 bytes in 1 blocks are still reachable in loss record 148 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FF5884: opal_free_list_grow_st (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x1024CDC6: ???
+==860==    by 0x7036D1C: mca_btl_base_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0xF806421: ???
+==860==    by 0x4EC7EA3: mca_bml_base_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E834C8: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 56 bytes in 1 blocks are still reachable in loss record 149 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FF5884: opal_free_list_grow_st (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x1024CE0B: ???
+==860==    by 0x7036D1C: mca_btl_base_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0xF806421: ???
+==860==    by 0x4EC7EA3: mca_bml_base_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E834C8: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 56 bytes in 1 blocks are still reachable in loss record 150 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FF5884: opal_free_list_grow_st (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x119D8760: ???
+==860==    by 0x119DDB56: ???
+==860==    by 0x4E66C52: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E66E87: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E69F24: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x6FFD9EB: opal_progress (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E69394: ompi_comm_nextcid (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E66998: ompi_comm_enable (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EE7AAB: mca_topo_base_cart_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 56 bytes in 1 blocks are indirectly lost in loss record 151 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x8D167CC: ??? (in /tmp/openmpi-sessions-1000@Skoki_0/25026/pmix_dstor_861/smseg-1640103937-0)
+==860==    by 0x701A129: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63171: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 56 bytes in 1 blocks are indirectly lost in loss record 152 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x8D1686C: ??? (in /tmp/openmpi-sessions-1000@Skoki_0/25026/pmix_dstor_861/smseg-1640103937-0)
+==860==    by 0x701A129: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63171: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 56 bytes in 1 blocks are indirectly lost in loss record 153 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x8D1690C: ??? (in /tmp/openmpi-sessions-1000@Skoki_0/25026/pmix_dstor_861/smseg-1640103937-0)
+==860==    by 0x701A129: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63171: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 56 bytes in 1 blocks are indirectly lost in loss record 154 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x8D169AC: ??? (in /tmp/openmpi-sessions-1000@Skoki_0/25026/pmix_dstor_861/smseg-1640103937-0)
+==860==    by 0x701A129: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63171: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 56 bytes in 1 blocks are indirectly lost in loss record 155 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x8D16A4C: ??? (in /tmp/openmpi-sessions-1000@Skoki_0/25026/pmix_dstor_861/smseg-1640103937-0)
+==860==    by 0x701A129: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63171: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 56 bytes in 1 blocks are indirectly lost in loss record 156 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x8D16AEC: ??? (in /tmp/openmpi-sessions-1000@Skoki_0/25026/pmix_dstor_861/smseg-1640103937-0)
+==860==    by 0x701A129: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63171: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 56 bytes in 1 blocks are indirectly lost in loss record 157 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xB1E56C5: ???
+==860==    by 0xB1E54AF: ???
+==860==    by 0xB20C7A4: ???
+==860==    by 0xB1EAD0A: ???
+==860==    by 0xAFB0B0D: ???
+==860==    by 0x74AB4C2: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x74A2910: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x749B020: hwloc_topology_set_xmlbuffer (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x912291D: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 56 bytes in 1 blocks are indirectly lost in loss record 158 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xB1E56C5: ???
+==860==    by 0xB1E54C9: ???
+==860==    by 0xB20C7A4: ???
+==860==    by 0xB1EAD0A: ???
+==860==    by 0xAFB0B0D: ???
+==860==    by 0x74AB4C2: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x74A2910: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x749B020: hwloc_topology_set_xmlbuffer (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x912291D: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 56 bytes in 1 blocks are indirectly lost in loss record 159 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xB1E56C5: ???
+==860==    by 0xB1E54EA: ???
+==860==    by 0xB20C7A4: ???
+==860==    by 0xB1EAD0A: ???
+==860==    by 0xAFB0B0D: ???
+==860==    by 0x74AB4C2: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x74A2910: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x749B020: hwloc_topology_set_xmlbuffer (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x912291D: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 56 bytes in 1 blocks are indirectly lost in loss record 160 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xB1E56C5: ???
+==860==    by 0xB1E550B: ???
+==860==    by 0xB20C7A4: ???
+==860==    by 0xB1EAD0A: ???
+==860==    by 0xAFB0B0D: ???
+==860==    by 0x74AB4C2: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x74A2910: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x749B020: hwloc_topology_set_xmlbuffer (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x912291D: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 56 bytes in 1 blocks are indirectly lost in loss record 161 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xB1E56C5: ???
+==860==    by 0xB1E5525: ???
+==860==    by 0xB20C7A4: ???
+==860==    by 0xB1EAD0A: ???
+==860==    by 0xAFB0B0D: ???
+==860==    by 0x74AB4C2: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x74A2910: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x749B020: hwloc_topology_set_xmlbuffer (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x912291D: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 56 bytes in 1 blocks are indirectly lost in loss record 162 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xB1E56C5: ???
+==860==    by 0xB1E553F: ???
+==860==    by 0xB20C7A4: ???
+==860==    by 0xB1EAD0A: ???
+==860==    by 0xAFB0B0D: ???
+==860==    by 0x74AB4C2: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x74A2910: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x749B020: hwloc_topology_set_xmlbuffer (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x912291D: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 56 bytes in 1 blocks are indirectly lost in loss record 163 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xB1E56C5: ???
+==860==    by 0xB1E5559: ???
+==860==    by 0xB20C7A4: ???
+==860==    by 0xB1EAD0A: ???
+==860==    by 0xAFB0B0D: ???
+==860==    by 0x74AB4C2: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x74A2910: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x749B020: hwloc_topology_set_xmlbuffer (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x912291D: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 56 bytes in 1 blocks are indirectly lost in loss record 164 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xB1E56C5: ???
+==860==    by 0xB20C7A4: ???
+==860==    by 0xB1EAD0A: ???
+==860==    by 0xAFB0B0D: ???
+==860==    by 0x74AB4C2: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x74A2910: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x749B020: hwloc_topology_set_xmlbuffer (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x912291D: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 56 bytes in 1 blocks are indirectly lost in loss record 165 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x976F6F5: ???
+==860==    by 0x973314D: ???
+==860==    by 0x6D90E61: orte_ess_base_app_setup (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x9122E88: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 56 bytes in 1 blocks are definitely lost in loss record 166 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xE542037: ???
+==860==    by 0xE74B884: ???
+==860==    by 0xE327128: ???
+==860==    by 0x6D9F52C: orte_oob_base_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x6D90C04: orte_ess_base_app_setup (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x9122E88: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 63 bytes in 5 blocks are indirectly lost in loss record 167 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x975E86E: ???
+==860==    by 0x703D208: opal_libevent2022_event_base_loop (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x9759FCC: ???
+==860==    by 0x53646DA: start_thread (pthread_create.c:463)
+==860==    by 0x6A7F88E: clone (clone.S:95)
+==860== 
+==860== 64 bytes in 1 blocks are still reachable in loss record 168 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E7F8D7: ompi_proc_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E833C1: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 64 bytes in 1 blocks are still reachable in loss record 169 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FF5884: opal_free_list_grow_st (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E6A61F: ompi_comm_request_get (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E690E5: ompi_comm_nextcid_nb (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E69274: ompi_comm_nextcid (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E66998: ompi_comm_enable (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EE7AAB: mca_topo_base_cart_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E95F7E: PMPI_Cart_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4862F9: LAMMPS_NS::ProcMap::cart_map(int, int*, int*, int (*) [2], int***) (procmap.cpp:363)
+==860==    by 0x2CF98D: LAMMPS_NS::Comm::set_proc_grid(int) (comm.cpp:544)
+==860==    by 0x219A43: LAMMPS_NS::ReadData::command(int, char**) (read_data.cpp:461)
+==860== 
+==860== 68 bytes in 12 blocks are definitely lost in loss record 170 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x10A9B087: ???
+==860==    by 0x10A9B822: ???
+==860==    by 0x10A9C0E4: ???
+==860==    by 0x1088A4E7: ???
+==860==    by 0x4EDD4AF: ompi_mtl_base_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0xFA0D9C9: ???
+==860==    by 0x4EE59A4: mca_pml_base_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E83544: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 72 bytes in 1 blocks are indirectly lost in loss record 171 of 216
+==860==    at 0x4C2FA3F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x4C31D84: realloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x4EC7C01: mca_bml_base_btl_array_reserve (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0xF806085: ???
+==860==    by 0x1045AC19: ???
+==860==    by 0x4E838F4: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 72 bytes in 1 blocks are indirectly lost in loss record 172 of 216
+==860==    at 0x4C2FA3F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x4C31D84: realloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x4EC7C01: mca_bml_base_btl_array_reserve (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0xF806099: ???
+==860==    by 0x1045AC19: ???
+==860==    by 0x4E838F4: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 72 bytes in 1 blocks are indirectly lost in loss record 173 of 216
+==860==    at 0x4C2FA3F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x4C31D84: realloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x4EC7C01: mca_bml_base_btl_array_reserve (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0xF8060B0: ???
+==860==    by 0x1045AC19: ???
+==860==    by 0x4E838F4: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 72 bytes in 1 blocks are definitely lost in loss record 174 of 216
+==860==    at 0x4C31D2F: realloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6A9244E: __vasprintf_chk (vasprintf_chk.c:88)
+==860==    by 0x6A9232E: __asprintf_chk (asprintf_chk.c:32)
+==860==    by 0x9123368: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 88 bytes in 1 blocks are definitely lost in loss record 175 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x7EFF4A8: lt__malloc (in /usr/lib/x86_64-linux-gnu/libltdl.so.7.3.1)
+==860==    by 0x7EFF4DD: lt__zalloc (in /usr/lib/x86_64-linux-gnu/libltdl.so.7.3.1)
+==860==    by 0x7F01779: ??? (in /usr/lib/x86_64-linux-gnu/libltdl.so.7.3.1)
+==860==    by 0x7F02120: lt_dlopenadvise (in /usr/lib/x86_64-linux-gnu/libltdl.so.7.3.1)
+==860==    by 0x8F10E85: ???
+==860==    by 0x74A1AE0: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x749AE86: hwloc_topology_init (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x91228FA: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 96 bytes in 1 blocks are still reachable in loss record 176 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FF5884: opal_free_list_grow_st (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x1045AA50: ???
+==860==    by 0x4E838BF: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 96 bytes in 1 blocks are still reachable in loss record 177 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8B10: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FF5884: opal_free_list_grow_st (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x1045AAA3: ???
+==860==    by 0x4E838BF: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 96 bytes in 2 blocks are still reachable in loss record 178 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x7018744: mca_base_component_find (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7024BC9: mca_base_framework_components_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025019: mca_base_framework_register (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7025080: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x702B341: opal_ifbegin (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0xE112614: ???
+==860==    by 0x6D9F51E: orte_oob_base_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x6D90C04: orte_ess_base_app_setup (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x9122E88: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 104 bytes in 1 blocks are indirectly lost in loss record 179 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x975AA62: ???
+==860==    by 0x976F83B: ???
+==860==    by 0x973314D: ???
+==860==    by 0x6D90CC2: orte_ess_base_app_setup (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x9122E88: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 104 bytes in 1 blocks are indirectly lost in loss record 180 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x975AA62: ???
+==860==    by 0x975E927: ???
+==860==    by 0x703D208: opal_libevent2022_event_base_loop (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x9759FCC: ???
+==860==    by 0x53646DA: start_thread (pthread_create.c:463)
+==860==    by 0x6A7F88E: clone (clone.S:95)
+==860== 
+==860== 104 bytes in 1 blocks are definitely lost in loss record 181 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xB2858CA: ???
+==860==    by 0xB2EFBBC: ???
+==860==    by 0x536C826: __pthread_once_slow (pthread_once.c:116)
+==860==    by 0xB285C70: ???
+==860==    by 0xB2851B8: ???
+==860==    by 0xB20C77E: ???
+==860==    by 0xB1EAD0A: ???
+==860==    by 0xAFB0B0D: ???
+==860==    by 0x74AB4C2: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x74A2910: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x749B020: hwloc_topology_set_xmlbuffer (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860== 
+==860== 120 bytes in 5 blocks are indirectly lost in loss record 182 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x975E87C: ???
+==860==    by 0x703D208: opal_libevent2022_event_base_loop (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x9759FCC: ???
+==860==    by 0x53646DA: start_thread (pthread_create.c:463)
+==860==    by 0x6A7F88E: clone (clone.S:95)
+==860== 
+==860== 128 bytes in 1 blocks are still reachable in loss record 183 of 216
+==860==    at 0x4C31B25: calloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x703E836: opal_libevent2022_event_base_priority_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037C05: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEC1A: opal_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63078: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 136 bytes in 1 blocks are still reachable in loss record 184 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6D706F9: orte_util_print_jobids (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x6D70CEA: orte_util_print_name_args (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x6D62FA2: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x97339CC: ???
+==860==    by 0x9122542: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 201 bytes in 43 blocks are still reachable in loss record 185 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF64DA: opal_hash_table_set_value_ptr (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7019210: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703789D: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7019441: mca_base_component_repository_add (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7019576: mca_base_component_repository_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701A9F8: mca_base_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEABB: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 208 bytes in 1 blocks are still reachable in loss record 186 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x5137AB8: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==860==    by 0x514602A: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==860==    by 0x5137F44: omp_set_num_threads (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==860==    by 0x2CFE7A: LAMMPS_NS::Comm::Comm(LAMMPS_NS::LAMMPS*) (comm.cpp:103)
+==860==    by 0x2D7CFD: LAMMPS_NS::CommBrick::CommBrick(LAMMPS_NS::LAMMPS*) (comm_brick.cpp:49)
+==860==    by 0x1A65FA: LAMMPS_NS::LAMMPS::create() (lammps.cpp:719)
+==860==    by 0x1CB23B: LAMMPS_NS::LAMMPS::LAMMPS(int, char**, ompi_communicator_t*) (lammps.cpp:605)
+==860==    by 0x18935E: main (main.cpp:60)
+==860== 
+==860== 224 bytes in 4 blocks are indirectly lost in loss record 187 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x975E820: ???
+==860==    by 0x703D208: opal_libevent2022_event_base_loop (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x9759FCC: ???
+==860==    by 0x53646DA: start_thread (pthread_create.c:463)
+==860==    by 0x6A7F88E: clone (clone.S:95)
+==860== 
+==860== 256 bytes in 1 blocks are still reachable in loss record 188 of 216
+==860==    at 0x4C2FA3F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x4C31D84: realloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x7040222: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x704048B: opal_libevent2022_evmap_io_add (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703B8DD: opal_libevent2022_event_add (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703F65D: opal_libevent2022_event_base_new_with_config (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037DDC: opal_event_base_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037BE9: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEC1A: opal_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63078: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 256 bytes in 1 blocks are still reachable in loss record 189 of 216
+==860==    at 0x4C2FA3F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x4C31D84: realloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x704558C: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x704041C: opal_libevent2022_evmap_io_add (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703B8DD: opal_libevent2022_event_add (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703F65D: opal_libevent2022_event_base_new_with_config (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037DDC: opal_event_base_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037BE9: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEC1A: opal_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63078: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 256 bytes in 1 blocks are still reachable in loss record 190 of 216
+==860==    at 0x4C2FA3F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x4C31D84: realloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x704539F: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703C60A: opal_libevent2022_event_base_loop (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFDA70: opal_progress (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E835E0: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 329 bytes in 5 blocks are still reachable in loss record 191 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x401D329: strdup (strdup.c:42)
+==860==    by 0x4008F68: _dl_map_object (dl-load.c:2322)
+==860==    by 0x4014EE3: dl_open_worker (dl-open.c:235)
+==860==    by 0x6AC52DE: _dl_catch_exception (dl-error-skeleton.c:196)
+==860==    by 0x40147C9: _dl_open (dl-open.c:605)
+==860==    by 0x76CEF95: dlopen_doit (dlopen.c:66)
+==860==    by 0x6AC52DE: _dl_catch_exception (dl-error-skeleton.c:196)
+==860==    by 0x6AC536E: _dl_catch_error (dl-error-skeleton.c:215)
+==860==    by 0x76CF734: _dlerror_run (dlerror.c:162)
+==860==    by 0x76CF050: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
+==860==    by 0x7037AB0: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860== 
+==860== 329 bytes in 5 blocks are still reachable in loss record 192 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x400C3E7: _dl_new_object (dl-object.c:163)
+==860==    by 0x40069A4: _dl_map_object_from_fd (dl-load.c:943)
+==860==    by 0x4008FFB: _dl_map_object (dl-load.c:2389)
+==860==    by 0x4014EE3: dl_open_worker (dl-open.c:235)
+==860==    by 0x6AC52DE: _dl_catch_exception (dl-error-skeleton.c:196)
+==860==    by 0x40147C9: _dl_open (dl-open.c:605)
+==860==    by 0x76CEF95: dlopen_doit (dlopen.c:66)
+==860==    by 0x6AC52DE: _dl_catch_exception (dl-error-skeleton.c:196)
+==860==    by 0x6AC536E: _dl_catch_error (dl-error-skeleton.c:215)
+==860==    by 0x76CF734: _dlerror_run (dlerror.c:162)
+==860==    by 0x76CF050: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
+==860== 
+==860== 373 (56 direct, 317 indirect) bytes in 1 blocks are definitely lost in loss record 193 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x976F6F5: ???
+==860==    by 0x973314D: ???
+==860==    by 0x6D90CC2: orte_ess_base_app_setup (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x9122E88: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 447 (56 direct, 391 indirect) bytes in 1 blocks are definitely lost in loss record 194 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x8D16731: ??? (in /tmp/openmpi-sessions-1000@Skoki_0/25026/pmix_dstor_861/smseg-1640103937-0)
+==860==    by 0x701A129: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63171: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 448 (232 direct, 216 indirect) bytes in 1 blocks are definitely lost in loss record 195 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xF80602F: ???
+==860==    by 0x1045AC19: ???
+==860==    by 0x4E838F4: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 544 bytes in 1 blocks are still reachable in loss record 196 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x4014545: add_to_global (dl-open.c:131)
+==860==    by 0x4015473: dl_open_worker (dl-open.c:527)
+==860==    by 0x6AC52DE: _dl_catch_exception (dl-error-skeleton.c:196)
+==860==    by 0x40147C9: _dl_open (dl-open.c:605)
+==860==    by 0x76CEF95: dlopen_doit (dlopen.c:66)
+==860==    by 0x6AC52DE: _dl_catch_exception (dl-error-skeleton.c:196)
+==860==    by 0x6AC536E: _dl_catch_error (dl-error-skeleton.c:215)
+==860==    by 0x76CF734: _dlerror_run (dlerror.c:162)
+==860==    by 0x76CF050: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
+==860==    by 0x7037AB0: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7019946: mca_base_component_repository_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860== 
+==860== 626 (56 direct, 570 indirect) bytes in 1 blocks are definitely lost in loss record 197 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x975E820: ???
+==860==    by 0x703D208: opal_libevent2022_event_base_loop (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x9759FCC: ???
+==860==    by 0x53646DA: start_thread (pthread_create.c:463)
+==860==    by 0x6A7F88E: clone (clone.S:95)
+==860== 
+==860== 640 bytes in 1 blocks are still reachable in loss record 198 of 216
+==860==    at 0x4C31B25: calloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x703F459: opal_libevent2022_event_base_new_with_config (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037DDC: opal_event_base_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7037BE9: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEC1A: opal_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6D63078: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 672 bytes in 3 blocks are still reachable in loss record 199 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x704F58F: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701A129: mca_base_framework_components_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x702B341: opal_ifbegin (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0xE112614: ???
+==860==    by 0x6D9F51E: orte_oob_base_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x6D90C04: orte_ess_base_app_setup (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x9122E88: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 726 (720 direct, 6 indirect) bytes in 1 blocks are definitely lost in loss record 200 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xEDE72B4: ???
+==860==    by 0x6D9DC7C: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x6D9EE27: orte_oob_base_set_addr (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x703D208: opal_libevent2022_event_base_loop (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x700217D: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x53646DA: start_thread (pthread_create.c:463)
+==860==    by 0x6A7F88E: clone (clone.S:95)
+==860== 
+==860== 792 bytes in 5 blocks are still reachable in loss record 201 of 216
+==860==    at 0x4C31B25: calloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x4011E85: _dl_check_map_versions (dl-version.c:274)
+==860==    by 0x401524B: dl_open_worker (dl-open.c:284)
+==860==    by 0x6AC52DE: _dl_catch_exception (dl-error-skeleton.c:196)
+==860==    by 0x40147C9: _dl_open (dl-open.c:605)
+==860==    by 0x76CEF95: dlopen_doit (dlopen.c:66)
+==860==    by 0x6AC52DE: _dl_catch_exception (dl-error-skeleton.c:196)
+==860==    by 0x6AC536E: _dl_catch_error (dl-error-skeleton.c:215)
+==860==    by 0x76CF734: _dlerror_run (dlerror.c:162)
+==860==    by 0x76CF050: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
+==860==    by 0x7037AB0: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7019946: mca_base_component_repository_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860== 
+==860== 800 bytes in 1 blocks are still reachable in loss record 202 of 216
+==860==    at 0x4C31D2F: realloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF8BE9: opal_class_initialize (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E69137: ompi_comm_nextcid_nb (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E69274: ompi_comm_nextcid (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E66998: ompi_comm_enable (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EE7AAB: mca_topo_base_cart_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E95F7E: PMPI_Cart_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4862F9: LAMMPS_NS::ProcMap::cart_map(int, int*, int*, int (*) [2], int***) (procmap.cpp:363)
+==860==    by 0x2CF98D: LAMMPS_NS::Comm::set_proc_grid(int) (comm.cpp:544)
+==860==    by 0x219A43: LAMMPS_NS::ReadData::command(int, char**) (read_data.cpp:461)
+==860==    by 0x1A368D: void LAMMPS_NS::Input::command_creator<LAMMPS_NS::ReadData>(LAMMPS_NS::LAMMPS*, int, char**) (input.cpp:879)
+==860==    by 0x18F0AA: LAMMPS_NS::Input::execute_command() (input.cpp:862)
+==860== 
+==860== 816 bytes in 16 blocks are still reachable in loss record 203 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6D7071D: orte_util_print_jobids (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x6D70CEA: orte_util_print_name_args (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x6D62FA2: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x97339CC: ???
+==860==    by 0x9122542: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 910 (400 direct, 510 indirect) bytes in 1 blocks are definitely lost in loss record 204 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0xB1E547F: ???
+==860==    by 0xB20C7A4: ???
+==860==    by 0xB1EAD0A: ???
+==860==    by 0xAFB0B0D: ???
+==860==    by 0x74AB4C2: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x74A2910: ??? (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x749B020: hwloc_topology_set_xmlbuffer (in /usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.6)
+==860==    by 0x912291D: ???
+==860==    by 0x6D631DD: orte_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-rte.so.20.10.1)
+==860==    by 0x4E8327D: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860== 
+==860== 1,120 bytes in 1 blocks are definitely lost in loss record 205 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x121FF6B6: ???
+==860==    by 0x4EC8172: mca_coll_base_comm_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E83C48: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 1,120 bytes in 1 blocks are definitely lost in loss record 206 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x121FF6B6: ???
+==860==    by 0x4EC8172: mca_coll_base_comm_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E83C67: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 1,120 bytes in 1 blocks are definitely lost in loss record 207 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x121FF6B6: ???
+==860==    by 0x4EC8172: mca_coll_base_comm_select (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E675AD: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E69F24: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x6FFD9EB: opal_progress (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E699B4: ompi_comm_activate (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E66AF1: ompi_comm_enable (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EE7AAB: mca_topo_base_cart_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4E95F7E: PMPI_Cart_create (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4862F9: LAMMPS_NS::ProcMap::cart_map(int, int*, int*, int (*) [2], int***) (procmap.cpp:363)
+==860==    by 0x2CF98D: LAMMPS_NS::Comm::set_proc_grid(int) (comm.cpp:544)
+==860== 
+==860== 1,737 bytes in 108 blocks are still reachable in loss record 208 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x7026216: opal_basename (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7018F3B: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703789D: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7019441: mca_base_component_repository_add (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7019576: mca_base_component_repository_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701A9F8: mca_base_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEABB: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 2,752 bytes in 43 blocks are still reachable in loss record 209 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x701916F: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703789D: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7019441: mca_base_component_repository_add (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7019576: mca_base_component_repository_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701A9F8: mca_base_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEABB: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 4,152 bytes in 1 blocks are definitely lost in loss record 210 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x977C303: ???
+==860==    by 0x977DD3C: ???
+==860==    by 0x9762BBA: ???
+==860==    by 0x703D208: opal_libevent2022_event_base_loop (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x9759FCC: ???
+==860==    by 0x53646DA: start_thread (pthread_create.c:463)
+==860==    by 0x6A7F88E: clone (clone.S:95)
+==860== 
+==860== 4,152 bytes in 1 blocks are definitely lost in loss record 211 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x977C4B6: ???
+==860==    by 0x977DD3C: ???
+==860==    by 0x9762BBA: ???
+==860==    by 0x703D208: opal_libevent2022_event_base_loop (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x9759FCC: ???
+==860==    by 0x53646DA: start_thread (pthread_create.c:463)
+==860==    by 0x6A7F88E: clone (clone.S:95)
+==860== 
+==860== 6,169 bytes in 5 blocks are still reachable in loss record 212 of 216
+==860==    at 0x4C31B25: calloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x400C100: _dl_new_object (dl-object.c:73)
+==860==    by 0x40069A4: _dl_map_object_from_fd (dl-load.c:943)
+==860==    by 0x4008FFB: _dl_map_object (dl-load.c:2389)
+==860==    by 0x4014EE3: dl_open_worker (dl-open.c:235)
+==860==    by 0x6AC52DE: _dl_catch_exception (dl-error-skeleton.c:196)
+==860==    by 0x40147C9: _dl_open (dl-open.c:605)
+==860==    by 0x76CEF95: dlopen_doit (dlopen.c:66)
+==860==    by 0x6AC52DE: _dl_catch_exception (dl-error-skeleton.c:196)
+==860==    by 0x6AC536E: _dl_catch_error (dl-error-skeleton.c:215)
+==860==    by 0x76CF734: _dlerror_run (dlerror.c:162)
+==860==    by 0x76CF050: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
+==860== 
+==860== 6,705 bytes in 108 blocks are still reachable in loss record 213 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x69FB9B9: strdup (strdup.c:42)
+==860==    by 0x70190E8: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703789D: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7019441: mca_base_component_repository_add (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7019576: mca_base_component_repository_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701A9F8: mca_base_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEABB: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 8,672 bytes in 1 blocks are still reachable in loss record 214 of 216
+==860==    at 0x4C31B25: calloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF5F7D: opal_hash_table_init2 (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7019561: mca_base_component_repository_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701A9F8: mca_base_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEABB: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 16,568 bytes in 1 blocks are still reachable in loss record 215 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x6FF56AA: opal_free_list_grow_st (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFB9CE: opal_rb_tree_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7051245: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x70250F0: mca_base_framework_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83482: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== 18,144 bytes in 108 blocks are still reachable in loss record 216 of 216
+==860==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==860==    by 0x7019083: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x703789D: ??? (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7019441: mca_base_component_repository_add (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x7019576: mca_base_component_repository_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x701A9F8: mca_base_open (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x6FFEABB: opal_init_util (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libopen-pal.so.20.10.1)
+==860==    by 0x4E83073: ompi_mpi_init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x4EA42AA: PMPI_Init (in /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so.20.10.1)
+==860==    by 0x18933A: main (main.cpp:34)
+==860== 
+==860== LEAK SUMMARY:
+==860==    definitely lost: 13,865 bytes in 38 blocks
+==860==    indirectly lost: 2,010 bytes in 60 blocks
+==860==      possibly lost: 0 bytes in 0 blocks
+==860==    still reachable: 71,499 bytes in 587 blocks
+==860==         suppressed: 0 bytes in 0 blocks
+==860== 
+==860== For counts of detected and suppressed errors, rerun with: -v
+==860== ERROR SUMMARY: 28 errors from 28 contexts (suppressed: 0 from 0)

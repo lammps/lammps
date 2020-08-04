@@ -15,23 +15,25 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_pressure_bocs.h"
+
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
+
+#include "angle.h"
 #include "atom.h"
-#include "update.h"
+#include "bond.h"
+#include "dihedral.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "force.h"
-#include "pair.h"
-#include "bond.h"
-#include "angle.h"
-#include "dihedral.h"
 #include "improper.h"
 #include "kspace.h"
-#include "error.h"
+#include "modify.h"
+#include "pair.h"
+#include "update.h"
 
 
 using namespace LAMMPS_NS;
@@ -112,6 +114,8 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
   vector = new double[size_vector];
   nvirial = 0;
   vptr = NULL;
+  splines = NULL;
+  spline_length = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -122,6 +126,29 @@ ComputePressureBocs::~ComputePressureBocs()
   delete [] vector;
   delete [] vptr;
   if (phi_coeff) free(phi_coeff);
+
+  // Any splines data that was sent in from fix_bocs must be
+  // freed here, not in fix_bocs where it was calloc'd
+  if (splines) {
+    if (p_basis_type == BASIS_LINEAR_SPLINE) {
+      // splines is a 2 by numSplines matrix of doubles
+      for (int i = 0; i < NUM_LINEAR_SPLINE_COLUMNS; ++i) {
+        free(splines[i]);
+        splines[i] = NULL;
+      }
+    }
+    else if (p_basis_type == BASIS_CUBIC_SPLINE) {
+      // splines is a 5 by numSplines matrix of doubles
+      for (int i = 0; i < NUM_CUBIC_SPLINE_COLUMNS; ++i) {
+        free(splines[i]);
+        splines[i] = NULL;
+      }
+    }
+    // no else clause intentional; splines not an issue for analytic basis
+    free(splines);
+    splines = NULL;
+  }
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -212,13 +239,13 @@ double ComputePressureBocs::find_index(double * grid, double value)
 
   if (value >= grid[i] && value <= (grid[i] + spacing)) { return i; }
 
+  char errmsg[256];
+  snprintf(errmsg,256,"find_index could not find value in grid for value: %f",value);
+  error->all(FLERR,errmsg);
   for (int i = 0; i < gridsize; ++i)
   {
     fprintf(stderr, "grid %d: %f\n",i,grid[i]);
   }
-  char * errmsg = (char *) calloc(100,sizeof(char));
-  sprintf(errmsg,"Value %f does not fall within spline grid.\n",value);
-  error->all(FLERR,errmsg);
 
   exit(1);
 }
@@ -233,12 +260,12 @@ double ComputePressureBocs::get_cg_p_corr(double ** grid, int basis_type,
   int i = find_index(grid[0],vCG);
   double correction, deltax = vCG - grid[0][i];
 
-  if (basis_type == 1)
+  if (basis_type == BASIS_LINEAR_SPLINE)
   {
     correction = grid[1][i] + (deltax) *
           ( grid[1][i+1] - grid[1][i] ) / ( grid[0][i+1] - grid[0][i] );
   }
-  else if (basis_type == 2)
+  else if (basis_type == BASIS_CUBIC_SPLINE)
   {
     correction = grid[1][i] + (grid[2][i] * deltax) +
             (grid[3][i] * pow(deltax,2)) + (grid[4][i] * pow(deltax,3));
@@ -257,7 +284,7 @@ double ComputePressureBocs::get_cg_p_corr(double ** grid, int basis_type,
 void ComputePressureBocs::send_cg_info(int basis_type, int sent_N_basis,
                 double *sent_phi_coeff, int sent_N_mol, double sent_vavg)
 {
-  if (basis_type == 0) { p_basis_type = 0; }
+  if (basis_type == BASIS_ANALYTIC) { p_basis_type = BASIS_ANALYTIC; }
   else
   {
     error->all(FLERR,"Incorrect basis type passed to ComputePressureBocs\n");
@@ -281,8 +308,8 @@ void ComputePressureBocs::send_cg_info(int basis_type, int sent_N_basis,
 void ComputePressureBocs::send_cg_info(int basis_type,
                                          double ** in_splines, int gridsize)
 {
-  if (basis_type == 1) { p_basis_type = 1; }
-  else if (basis_type == 2) { p_basis_type = 2; }
+  if (basis_type == BASIS_LINEAR_SPLINE) { p_basis_type = BASIS_LINEAR_SPLINE; }
+  else if (basis_type == BASIS_CUBIC_SPLINE) { p_basis_type = BASIS_CUBIC_SPLINE; }
   else
   {
     error->all(FLERR,"Incorrect basis type passed to ComputePressureBocs\n");
@@ -318,11 +345,11 @@ double ComputePressureBocs::compute_scalar()
     volume = (domain->xprd * domain->yprd * domain->zprd);
 
     /* MRD NJD if block */
-    if ( p_basis_type == 0 )
+    if ( p_basis_type == BASIS_ANALYTIC )
     {
       correction = get_cg_p_corr(N_basis,phi_coeff,N_mol,vavg,volume);
     }
-    else if ( p_basis_type == 1 || p_basis_type == 2 )
+    else if ( p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE )
     {
       correction = get_cg_p_corr(splines, p_basis_type, volume);
     }

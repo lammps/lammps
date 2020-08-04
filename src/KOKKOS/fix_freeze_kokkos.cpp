@@ -102,6 +102,7 @@ double FixFreezeKokkos<DeviceType>::compute_vector(int n)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
 void FixFreezeKokkos<DeviceType>::operator()(const int i, OriginalForce &original) const {
   if (mask[i] & groupbit) {
     original.values[0] += f(i,0);

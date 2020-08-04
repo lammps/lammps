@@ -155,7 +155,7 @@ void EwaldOMP::compute(int eflag, int vflag)
       const double fac = qscale*q[i];
       f[i][0] += fac*ek[i][0];
       f[i][1] += fac*ek[i][1];
-      f[i][2] += fac*ek[i][2];
+      if (slabflag != 2) f[i][2] += fac*ek[i][2];
     }
 
     // global energy
@@ -222,7 +222,7 @@ void EwaldOMP::compute(int eflag, int vflag)
     virial[5] = v5 * qscale;
   }
 
-  if (slabflag) slabcorr();
+  if (slabflag == 1) slabcorr();
 }
 
 /* ---------------------------------------------------------------------- */

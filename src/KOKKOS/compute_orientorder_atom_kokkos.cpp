@@ -737,7 +737,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::check_team_size_for(int inum, int
 
 namespace LAMMPS_NS {
 template class ComputeOrientOrderAtomKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class ComputeOrientOrderAtomKokkos<LMPHostType>;
 #endif
 }

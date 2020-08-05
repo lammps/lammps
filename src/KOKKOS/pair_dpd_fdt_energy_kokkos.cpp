@@ -788,7 +788,7 @@ int PairDPDfdtEnergyKokkos<DeviceType>::sbmask(const int& j) const {
 
 namespace LAMMPS_NS {
 template class PairDPDfdtEnergyKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairDPDfdtEnergyKokkos<LMPHostType>;
 #endif
 }

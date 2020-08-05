@@ -123,7 +123,7 @@ void NPairHalffullKokkos<DeviceType,NEWTON>::operator()(TagNPairHalffullCompute,
 namespace LAMMPS_NS {
 template class NPairHalffullKokkos<LMPDeviceType,0>;
 template class NPairHalffullKokkos<LMPDeviceType,1>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class NPairHalffullKokkos<LMPHostType,0>;
 template class NPairHalffullKokkos<LMPHostType,1>;
 #endif

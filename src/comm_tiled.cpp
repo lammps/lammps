@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author (multi and triclinic support): 
+   Contributing author (multi and triclinic support):
      Adrian Diaz (University of Florida)
 ------------------------------------------------------------------------- */
 
@@ -111,7 +111,7 @@ void CommTiled::init()
 
   // cannot set nswap in init_buffers() b/c
   // dimension command can be after comm_style command
-  
+
   nswap = 2*domain->dimension;
 
   memory->destroy(cutghostmulti);
@@ -380,9 +380,9 @@ void CommTiled::setup()
           if (idir == 0) {
             sbox[idim] = sublo[idim];
             if (i < noverlap1)
-	      sbox[3+idim] = MIN(sbox[3+idim]+cutghost[idim],subhi[idim]);
+              sbox[3+idim] = MIN(sbox[3+idim]+cutghost[idim],subhi[idim]);
             else
-	      sbox[3+idim] = MIN(sbox[3+idim]-prd[idim]+cutghost[idim],subhi[idim]);
+              sbox[3+idim] = MIN(sbox[3+idim]-prd[idim]+cutghost[idim],subhi[idim]);
           } else {
             if (i < noverlap1) sbox[idim] = MAX(sbox[idim]-cutghost[idim],sublo[idim]);
             else sbox[idim] = MAX(sbox[idim]+prd[idim]-cutghost[idim],sublo[idim]);
@@ -949,7 +949,7 @@ void CommTiled::borders()
                 x[i][1] >= ylo && x[i][1] < yhi &&
                 x[i][2] >= zlo && x[i][2] < zhi) {
               if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
-            sendlist[iswap][m][ncount++] = i;
+              sendlist[iswap][m][ncount++] = i;
             }
           }
         } else {
@@ -992,7 +992,7 @@ void CommTiled::borders()
                 x[i][1] >= ylo && x[i][1] < yhi &&
                 x[i][2] >= zlo && x[i][2] < zhi) {
               if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
-            sendlist[iswap][m][ncount++] = i;
+              sendlist[iswap][m][ncount++] = i;
             }
           }
         } else {
@@ -1107,11 +1107,11 @@ void CommTiled::borders()
       }
       if (recvother[iswap]) {
         for (i = 0; i < nrecv; i++) {
-	  MPI_Waitany(nrecv,requests,&m,MPI_STATUS_IGNORE);
-	  avec->unpack_border_vel(recvnum[iswap][m],firstrecv[iswap][m],
-				  &buf_recv[size_border*
-					    forward_recv_offset[iswap][m]]);
-	}
+          MPI_Waitany(nrecv,requests,&m,MPI_STATUS_IGNORE);
+          avec->unpack_border_vel(recvnum[iswap][m],firstrecv[iswap][m],
+                                  &buf_recv[size_border*
+                                            forward_recv_offset[iswap][m]]);
+        }
       }
 
     } else {
@@ -1136,11 +1136,11 @@ void CommTiled::borders()
       }
       if (recvother[iswap]) {
         for (i = 0; i < nrecv; i++) {
-	  MPI_Waitany(nrecv,requests,&m,MPI_STATUS_IGNORE);
+          MPI_Waitany(nrecv,requests,&m,MPI_STATUS_IGNORE);
           avec->unpack_border(recvnum[iswap][m],firstrecv[iswap][m],
                               &buf_recv[size_border*
                                         forward_recv_offset[iswap][m]]);
-	}
+        }
       }
     }
 

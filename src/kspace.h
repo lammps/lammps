@@ -126,6 +126,11 @@ class KSpace : protected Pointers {
   virtual void pack_reverse(int, FFT_SCALAR *, int, int *) {};
   virtual void unpack_reverse(int, FFT_SCALAR *, int, int *) {};
 
+  virtual void pack_forward2(int, void *, int, int *) {};
+  virtual void unpack_forward2(int, void *, int, int *) {};
+  virtual void pack_reverse2(int, void *, int, int *) {};
+  virtual void unpack_reverse2(int, void *, int, int *) {};
+
   virtual int timing(int, double &, double &) {return 0;}
   virtual int timing_1d(int, double &) {return 0;}
   virtual int timing_3d(int, double &) {return 0;}

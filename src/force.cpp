@@ -665,9 +665,9 @@ void Force::create_kspace(const std::string &style, int trysuffix)
   kspace = new_kspace(style,trysuffix,sflag);
   store_style(kspace_style,style,sflag);
 
-  if (comm->style == 1 && !kspace_match("ewald",0))
-    error->all(FLERR,
-               "Cannot yet use KSpace solver with grid with comm style tiled");
+  //if (comm->style == 1 && !kspace_match("ewald",0))
+  // error->all(FLERR,
+  //             "Cannot yet use KSpace solver with grid with comm style tiled");
 }
 
 /* ----------------------------------------------------------------------

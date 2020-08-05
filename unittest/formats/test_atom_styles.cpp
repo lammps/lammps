@@ -814,7 +814,7 @@ TEST_F(AtomStyleTest, charge)
 
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("reset_atom_ids");
-    lmp->input->one("replicate 2 2 2");
+    lmp->input->one("replicate 2 2 2 bbox");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->atom->map_tag_max, 16);
     q = lmp->atom->q;
@@ -1540,7 +1540,7 @@ TEST_F(AtomStyleTest, ellipsoid)
     lmp->input->one("write_restart test_atom_styles.restart");
     lmp->input->one("clear");
     lmp->input->one("read_restart test_atom_styles.restart");
-    lmp->input->one("replicate 1 1 2");
+    lmp->input->one("replicate 1 1 2 bbox");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("ellipsoid"));
     ASSERT_NE(lmp->atom->avec, nullptr);
@@ -2525,7 +2525,7 @@ TEST_F(AtomStyleTest, tri)
     lmp->input->one("write_restart test_atom_styles.restart");
     lmp->input->one("clear");
     lmp->input->one("read_restart test_atom_styles.restart");
-    lmp->input->one("replicate 1 1 2");
+    lmp->input->one("replicate 1 1 2 bbox");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("tri"));
     ASSERT_NE(lmp->atom->avec, nullptr);
@@ -3836,7 +3836,7 @@ TEST_F(AtomStyleTest, bond)
     lmp->input->one("write_restart test_atom_styles.restart");
     lmp->input->one("clear");
     lmp->input->one("read_restart test_atom_styles.restart");
-    lmp->input->one("replicate 1 1 2");
+    lmp->input->one("replicate 1 1 2 bbox");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("bond"));
     ASSERT_NE(lmp->atom->avec, nullptr);
@@ -4876,7 +4876,7 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     lmp->input->one("write_restart test_atom_styles.restart");
     lmp->input->one("clear");
     lmp->input->one("read_restart test_atom_styles.restart");
-    lmp->input->one("replicate 1 1 2");
+    lmp->input->one("replicate 1 1 2 bbox");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     hybrid = (AtomVecHybrid *)lmp->atom->avec;

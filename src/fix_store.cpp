@@ -301,7 +301,7 @@ void FixStore::unpack_restart(int nlocal, int nth)
   // skip to Nth set of extra values
 
   int m = 0;
-  for (int i = 0; i < nth; i++) m += (int) ubuf(extra[nlocal][m]).i;
+  for (int i = 0; i < nth; i++) m += static_cast<int> extra[nlocal][m];
   m++;
 
   if (vecflag) vstore[nlocal] = extra[nlocal][m];

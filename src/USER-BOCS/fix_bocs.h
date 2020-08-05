@@ -151,8 +151,8 @@ class FixBocs : public Fix {
   void nhc_press_integrate();
 
   int read_F_table(char *, int);
-  int build_linear_splines(std::vector<std::vector<double>>);
-  int build_cubic_splines(std::vector<std::vector<double>>);
+  int build_linear_splines(std::vector<std::vector<double>> const &);
+  int build_cubic_splines(std::vector<std::vector<double>> const &);
 
   virtual void nve_x();            // may be overwritten by child classes
   virtual void nve_v();

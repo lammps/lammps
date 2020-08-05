@@ -29,6 +29,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix_deform.h"
+#include "fmt/format.h"
 #include "force.h"
 #include "group.h"
 #include "irregular.h"
@@ -38,8 +39,6 @@
 #include "neighbor.h"
 #include "respa.h"
 #include "update.h"
-#include "fmt/format.h"
-
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -778,7 +777,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
   return numEntries;
 }
 
-int FixBocs::build_linear_splines( std::vector<std::vector<double>> data ) {
+int FixBocs::build_linear_splines(std::vector<std::vector<double>> const &data) {
   std::string message;
   //message = fmt::format("INFO: entering build_linear_splines, spline_length = {}", spline_length);
   //error->message(FLERR, message.c_str());
@@ -799,7 +798,7 @@ int FixBocs::build_linear_splines( std::vector<std::vector<double>> data ) {
   return spline_length;
 }
 
-int FixBocs::build_cubic_splines(std::vector<std::vector<double>> data )
+int FixBocs::build_cubic_splines(std::vector<std::vector<double>> const &data )
 {
   std::string message;
   //message = fmt::format("INFO: entering build_cubic_splines, spline_length = {}", spline_length);

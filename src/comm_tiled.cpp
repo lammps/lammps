@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author (multi) : Adrian Diaz (University of Florida)
+   Contributing author (multi and triclinic support): 
+     Adrian Diaz (University of Florida)
 ------------------------------------------------------------------------- */
 
 #include "comm_tiled.h"
@@ -99,7 +100,6 @@ void CommTiled::init_buffers()
   sendbox_multi = NULL;
 
   maxswap = 6;
-  nswap = 2*domain->dimension;
   allocate_swap(maxswap);
 }
 
@@ -108,6 +108,11 @@ void CommTiled::init_buffers()
 void CommTiled::init()
 {
   Comm::init();
+
+  // cannot set nswap in init_buffers() b/c
+  // dimension command can be after comm_style command
+  
+  nswap = 2*domain->dimension;
 
   memory->destroy(cutghostmulti);
   if (mode == Comm::MULTI)
@@ -374,21 +379,23 @@ void CommTiled::setup()
 
           if (idir == 0) {
             sbox[idim] = sublo[idim];
-            if (i < noverlap1) sbox[3+idim] = MIN(sbox[3+idim]+cut,subhi[idim]);
-            else sbox[3+idim] = MIN(sbox[3+idim]-prd[idim]+cut,subhi[idim]);
+            if (i < noverlap1)
+	      sbox[3+idim] = MIN(sbox[3+idim]+cutghost[idim],subhi[idim]);
+            else
+	      sbox[3+idim] = MIN(sbox[3+idim]-prd[idim]+cutghost[idim],subhi[idim]);
           } else {
-            if (i < noverlap1) sbox[idim] = MAX(sbox[idim]-cut,sublo[idim]);
-            else sbox[idim] = MAX(sbox[idim]+prd[idim]-cut,sublo[idim]);
+            if (i < noverlap1) sbox[idim] = MAX(sbox[idim]-cutghost[idim],sublo[idim]);
+            else sbox[idim] = MAX(sbox[idim]+prd[idim]-cutghost[idim],sublo[idim]);
             sbox[3+idim] = subhi[idim];
           }
 
           if (idim >= 1) {
-            if (sbox[0] == oboxlo[0]) sbox[0] -= cut;
-            if (sbox[3] == oboxhi[0]) sbox[3] += cut;
+            if (sbox[0] == oboxlo[0]) sbox[0] -= cutghost[0];
+            if (sbox[3] == oboxhi[0]) sbox[3] += cutghost[0];
           }
           if (idim == 2) {
-            if (sbox[1] == oboxlo[1]) sbox[1] -= cut;
-            if (sbox[4] == oboxhi[1]) sbox[4] += cut;
+            if (sbox[1] == oboxlo[1]) sbox[1] -= cutghost[1];
+            if (sbox[4] == oboxhi[1]) sbox[4] += cutghost[1];
           }
 
           memcpy(sendbox[iswap][i],sbox,6*sizeof(double));
@@ -1074,9 +1081,8 @@ void CommTiled::borders()
     if (rmaxall*size_border > maxrecv) grow_recv(rmaxall*size_border);
 
     // swap atoms with other procs using pack_border(), unpack_border()
-    // use Waitall() instead of Waitany() because calls to unpack_border()
-    //   must increment per-atom arrays in ascending order
-    // For the same reason, sendself unpacks must occur after recvother unpacks
+    // can use Waitany() because calls to unpack_border()
+    //   increment per-atom arrays as much as needed
 
     if (ghost_velocity) {
       if (recvother[iswap]) {
@@ -1092,19 +1098,20 @@ void CommTiled::borders()
           MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][m],0,world);
         }
       }
-      if (recvother[iswap]) {
-        MPI_Waitall(nrecv,requests,MPI_STATUS_IGNORE);
-        for (m = 0; m < nrecv; m++)
-          avec->unpack_border_vel(recvnum[iswap][m],firstrecv[iswap][m],
-                                  &buf_recv[size_border*
-                                            forward_recv_offset[iswap][m]]);
-      }
       if (sendself[iswap]) {
         avec->pack_border_vel(sendnum[iswap][nsend],sendlist[iswap][nsend],
                               buf_send,pbc_flag[iswap][nsend],
                               pbc[iswap][nsend]);
         avec->unpack_border_vel(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],
                                 buf_send);
+      }
+      if (recvother[iswap]) {
+        for (i = 0; i < nrecv; i++) {
+	  MPI_Waitany(nrecv,requests,&m,MPI_STATUS_IGNORE);
+	  avec->unpack_border_vel(recvnum[iswap][m],firstrecv[iswap][m],
+				  &buf_recv[size_border*
+					    forward_recv_offset[iswap][m]]);
+	}
       }
 
     } else {
@@ -1121,18 +1128,19 @@ void CommTiled::borders()
           MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][m],0,world);
         }
       }
-      if (recvother[iswap]) {
-        MPI_Waitall(nrecv,requests,MPI_STATUS_IGNORE);
-        for (m = 0; m < nrecv; m++)
-          avec->unpack_border(recvnum[iswap][m],firstrecv[iswap][m],
-                              &buf_recv[size_border*
-                                        forward_recv_offset[iswap][m]]);
-      }
       if (sendself[iswap]) {
         avec->pack_border(sendnum[iswap][nsend],sendlist[iswap][nsend],
                           buf_send,pbc_flag[iswap][nsend],pbc[iswap][nsend]);
         avec->unpack_border(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],
                             buf_send);
+      }
+      if (recvother[iswap]) {
+        for (i = 0; i < nrecv; i++) {
+	  MPI_Waitany(nrecv,requests,&m,MPI_STATUS_IGNORE);
+          avec->unpack_border(recvnum[iswap][m],firstrecv[iswap][m],
+                              &buf_recv[size_border*
+                                        forward_recv_offset[iswap][m]]);
+	}
       }
     }
 
@@ -1636,11 +1644,9 @@ int CommTiled::exchange_variable(int n, double * /*inbuf*/, double *& /*outbuf*/
 
 void CommTiled::box_drop_brick(int idim, double *lo, double *hi, int &indexme)
 {
-  // NOTE: this is not triclinic compatible
-  // NOTE: these error messages are internal sanity checks
-  //       should not occur, can be removed at some point
+  int dir;
+  int index = -1;
 
-  int index=-1,dir;
   if (hi[idim] == sublo[idim]) {
     index = myloc[idim] - 1;
     dir = -1;

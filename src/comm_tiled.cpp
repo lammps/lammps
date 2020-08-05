@@ -557,15 +557,15 @@ void CommTiled::setup()
     }
   }
 
-  // reallocate MPI Requests and Statuses as needed
+  // reallocate MPI Requests as needed
 
   int nmax = 0;
   for (i = 0; i < nswap; i++) nmax = MAX(nmax,nprocmax[i]);
   for (i = 0; i < dimension; i++) nmax = MAX(nmax,nexchprocmax[i]);
-  if (nmax > maxreqstat) {
-    maxreqstat = nmax;
+  if (nmax > maxrequest) {
+    maxrequest = nmax;
     delete [] requests;
-    requests = new MPI_Request[maxreqstat];
+    requests = new MPI_Request[maxrequest];
   }
 }
 
@@ -2098,7 +2098,7 @@ void CommTiled::allocate_swap(int n)
     sendlist[i] = NULL;
   }
 
-  maxreqstat = 0;
+  maxrequest = 0;
   requests = NULL;
 
   for (int i = 0; i < n; i++) {

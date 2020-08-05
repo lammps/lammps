@@ -95,7 +95,7 @@ class CommTiled : public Comm {
   int smaxall,rmaxall;          // max size in atoms of any borders send/recv
                                 //   for comm to all procs in one swap
 
-  int maxreqstat;               // max size of Request and Status vectors
+  int maxrequest;               // max size of Request vector
   MPI_Request *requests;
 
   struct RCBinfo {

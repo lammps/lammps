@@ -163,7 +163,7 @@ def check_tests(name,styles,yaml,search,skip=()):
     total = len(styles)
     num_tests = total - num_missing
     print(f"\nTests available for {name} styles: {num_tests} of {total}")
-    print("No tests for: ", list(missing))
+    print("No tests for: ", sorted(missing))
     return num_missing
 
 counter = 0

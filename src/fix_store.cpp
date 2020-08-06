@@ -280,7 +280,7 @@ int FixStore::pack_restart(int i, double *buf)
     return 1;
   }
 
-  buf[0] = ubuf(nvalues+1).d;
+  buf[0] = nvalues+1;
   if (vecflag) buf[1] = vstore[i];
   else
     for (int m = 0; m < nvalues; m++)

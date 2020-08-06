@@ -151,7 +151,7 @@ commands:
 * cutoff2 (distance units)
 
 The second coefficient, :math:`\rho`, must be greater than zero.
-The coefficients A,:math:`\rho`, and C can be written as analytical expressions
+The coefficients A, :math:`\rho`, and C can be written as analytical expressions
 of :math:`\epsilon` and :math:`\sigma`, in analogy to the Lennard-Jones potential
 :ref:`(Khrapak) <Khrapak>`.
 

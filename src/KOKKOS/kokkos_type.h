@@ -29,6 +29,10 @@ enum{FULL=1u,HALFTHREAD=2u,HALF=4u};
 #define ISFINITE(x) std::isfinite(x)
 #endif
 
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+#define LMP_KOKKOS_GPU
+#endif
+
 #define MAX_TYPES_STACKPARAMS 12
 #define NeighClusterSize 8
 
@@ -186,9 +190,17 @@ template<>
 struct ExecutionSpaceFromDevice<LMPHostType> {
   static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Host;
 };
+
 #ifdef KOKKOS_ENABLE_CUDA
 template<>
 struct ExecutionSpaceFromDevice<Kokkos::Cuda> {
+  static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Device;
+};
+#endif
+
+#if defined(KOKKOS_ENABLE_HIP)
+template<>
+struct ExecutionSpaceFromDevice<Kokkos::Experimental::HIP> {
   static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Device;
 };
 #endif
@@ -217,6 +229,13 @@ struct AtomicDup {
 #ifdef KOKKOS_ENABLE_CUDA
 template<>
 struct AtomicDup<HALFTHREAD,Kokkos::Cuda> {
+  enum {value = Kokkos::Experimental::ScatterAtomic};
+};
+#endif
+
+#if defined(KOKKOS_ENABLE_HIP)
+template<>
+struct AtomicDup<HALFTHREAD,Kokkos::Experimental::HIP> {
   enum {value = Kokkos::Experimental::ScatterAtomic};
 };
 #endif
@@ -753,7 +772,7 @@ typedef tdual_neighbors_2d::t_dev_const_randomread t_neighbors_2d_randomread;
 
 };
 
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template <>
 struct ArrayTypes<LMPHostType> {
 
@@ -1087,7 +1106,7 @@ typedef SNAComplex<SNAreal> SNAcomplex;
 #define ISFINITE(x) std::isfinite(x)
 #endif
 
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 #define LAMMPS_LAMBDA [=] __device__
 #else
 #define LAMMPS_LAMBDA [=]

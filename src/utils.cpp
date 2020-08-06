@@ -82,7 +82,7 @@ using namespace LAMMPS_NS;
  *  even with char * type variables.
  *  Example: utils::strmatch(text, std::string("^") + charptr)
  */
-bool utils::strmatch(std::string text, std::string pattern)
+bool utils::strmatch(const std::string &text, const std::string &pattern)
 {
   const int pos = re_match(text.c_str(),pattern.c_str());
   return (pos >= 0);
@@ -346,6 +346,19 @@ tagint utils::tnumeric(const char *file, int line, const char *str,
   }
 
   return ATOTAGINT(str);
+}
+
+/* ----------------------------------------------------------------------
+   Return string without leading or trailing whitespace
+------------------------------------------------------------------------- */
+
+std::string utils::trim(const std::string & line) {
+  int beg = re_match(line.c_str(),"\\S+");
+  int end = re_match(line.c_str(),"\\s+$");
+  if (beg < 0) beg = 0;
+  if (end < 0) end = line.size();
+
+  return line.substr(beg,end-beg);
 }
 
 /* ----------------------------------------------------------------------

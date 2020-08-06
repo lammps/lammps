@@ -720,7 +720,7 @@ int GetTeamSize(FunctorStyle& functor, int inum, int reduce_flag, int team_size,
     else
       team_size_max = Kokkos::TeamPolicy<>(inum,Kokkos::AUTO).team_size_max(functor,Kokkos::ParallelForTag());
 
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
     if(team_size*vector_length > team_size_max)
       team_size = team_size_max/vector_length;
 #else

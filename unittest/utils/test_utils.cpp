@@ -25,6 +25,24 @@ using ::testing::EndsWith;
 using ::testing::Eq;
 using ::testing::StrEq;
 
+TEST(Utils, trim)
+{
+    auto trimmed = utils::trim("\t some text");
+    ASSERT_THAT(trimmed, StrEq("some text"));
+
+    trimmed = utils::trim("some text \r\n");
+    ASSERT_THAT(trimmed, StrEq("some text"));
+
+    trimmed = utils::trim("\v some text \f");
+    ASSERT_THAT(trimmed, StrEq("some text"));
+
+    trimmed = utils::trim("   some\t text    ");
+    ASSERT_THAT(trimmed, StrEq("some\t text"));
+
+    trimmed = utils::trim("  \t\n   ");
+    ASSERT_THAT(trimmed, StrEq(""));
+}
+
 TEST(Utils, trim_comment)
 {
     auto trimmed = utils::trim_comment("some text # comment");

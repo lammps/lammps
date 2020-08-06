@@ -298,7 +298,7 @@ void NBinSSAKokkos<DeviceType>::sortBin(
 
 namespace LAMMPS_NS {
 template class NBinSSAKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class NBinSSAKokkos<LMPHostType>;
 #endif
 }

@@ -32,8 +32,6 @@ class FixNVECAC : public Fix {
   virtual void init();
   virtual void initial_integrate(int);
   virtual void final_integrate();
-  virtual void initial_integrate_respa(int, int, int);
-  virtual void final_integrate_respa(int, int);
   virtual void reset_dt();
 
  protected:

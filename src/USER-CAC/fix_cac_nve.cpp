@@ -42,8 +42,6 @@ int FixNVECAC::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  mask |= INITIAL_INTEGRATE_RESPA;
-  mask |= FINAL_INTEGRATE_RESPA;
   return mask;
 }
 
@@ -54,9 +52,6 @@ void FixNVECAC::init()
   if (!atom->CAC_flag) error->all(FLERR,"CAC fix styles require a CAC atom style");
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
-
-  if (strstr(update->integrate_style,"respa"))
-    step_respa = ((Respa *) update->integrate)->step;
 }
 
 /* ----------------------------------------------------------------------
@@ -288,28 +283,6 @@ void FixNVECAC::final_integrate()
       }
     }
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixNVECAC::initial_integrate_respa(int vflag, int ilevel, int iloop)
-{
-  dtv = step_respa[ilevel];
-  dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
-
-  // innermost level - NVE update of v and x
-  // all other levels - NVE update of v
-
-  if (ilevel == 0) initial_integrate(vflag);
-  else final_integrate();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixNVECAC::final_integrate_respa(int ilevel, int iloop)
-{
-  dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
-  final_integrate();
 }
 
 /* ---------------------------------------------------------------------- */

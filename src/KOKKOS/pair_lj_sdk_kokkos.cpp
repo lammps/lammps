@@ -317,7 +317,7 @@ double PairLJSDKKokkos<DeviceType>::init_one(int i, int j)
 
 namespace LAMMPS_NS {
 template class PairLJSDKKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairLJSDKKokkos<LMPHostType>;
 #endif
 }

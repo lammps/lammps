@@ -1282,7 +1282,7 @@ int PairTersoffKokkos<DeviceType>::sbmask(const int& j) const {
 
 namespace LAMMPS_NS {
 template class PairTersoffKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairTersoffKokkos<LMPHostType>;
 #endif
 }

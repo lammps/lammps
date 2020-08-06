@@ -478,6 +478,7 @@ void FixQEqReaxKokkos<DeviceType>::compute_h_item(int ii, int &m_fill, const boo
 
 template <class DeviceType>
 template <int NEIGHFLAG>
+KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::compute_h_team(
     const typename Kokkos::TeamPolicy<DeviceType>::member_type &team,
     int atoms_per_team, int vector_length) const {
@@ -1524,7 +1525,7 @@ int FixQEqReaxKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 
 namespace LAMMPS_NS {
 template class FixQEqReaxKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixQEqReaxKokkos<LMPHostType>;
 #endif
 }

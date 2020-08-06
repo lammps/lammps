@@ -30,8 +30,10 @@ class GridComm2 : protected Pointers {
   ~GridComm2();
   void setup(int &, int &);
   int ghost_adjacent();
-  void forward_comm(class KSpace *, int, int, int, void *, void *, MPI_Datatype);
-  void reverse_comm(class KSpace *, int, int, int, void *, void *, MPI_Datatype);
+  void forward_comm_kspace(class KSpace *, int, int, int,
+			   void *, void *, MPI_Datatype);
+  void reverse_comm_kspace(class KSpace *, int, int, int,
+			   void *, void *, MPI_Datatype);
 
  private:
   int me,nprocs;
@@ -181,14 +183,14 @@ class GridComm2 : protected Pointers {
   int ghost_adjacent_regular();
   int ghost_adjacent_tiled();
   
-  void forward_comm_regular(class KSpace *, int, int, int,
-			    void *, void *, MPI_Datatype);
-  void forward_comm_tiled(class KSpace *, int, int, int,
-			  void *, void *, MPI_Datatype);
-  void reverse_comm_regular(class KSpace *, int, int, int,
-			    void *, void *, MPI_Datatype);
-  void reverse_comm_tiled(class KSpace *, int, int, int,
-			  void *, void *, MPI_Datatype);
+  void forward_comm_kspace_regular(class KSpace *, int, int, int,
+				   void *, void *, MPI_Datatype);
+  void forward_comm_kspace_tiled(class KSpace *, int, int, int,
+				 void *, void *, MPI_Datatype);
+  void reverse_comm_kspace_regular(class KSpace *, int, int, int,
+				   void *, void *, MPI_Datatype);
+  void reverse_comm_kspace_tiled(class KSpace *, int, int, int,
+				 void *, void *, MPI_Datatype);
 
   void grow_swap();
   void grow_overlap();

@@ -163,10 +163,10 @@ class PPPM2 : public KSpace {
 
   // grid communication
 
-  virtual void pack_forward2(int, void *, int, int *);
-  virtual void unpack_forward2(int, void *, int, int *);
-  virtual void pack_reverse2(int, void *, int, int *);
-  virtual void unpack_reverse2(int, void *, int, int *);
+  virtual void pack_forward_grid(int, void *, int, int *);
+  virtual void unpack_forward_grid(int, void *, int, int *);
+  virtual void pack_reverse_grid(int, void *, int, int *);
+  virtual void unpack_reverse_grid(int, void *, int, int *);
 
   // triclinic
 

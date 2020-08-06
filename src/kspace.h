@@ -121,15 +121,16 @@ class KSpace : protected Pointers {
   virtual void compute(int, int) = 0;
   virtual void compute_group_group(int, int, int) {};
 
+  // can remove these 4 when done with new GridComm
   virtual void pack_forward(int, FFT_SCALAR *, int, int *) {};
   virtual void unpack_forward(int, FFT_SCALAR *, int, int *) {};
   virtual void pack_reverse(int, FFT_SCALAR *, int, int *) {};
   virtual void unpack_reverse(int, FFT_SCALAR *, int, int *) {};
 
-  virtual void pack_forward2(int, void *, int, int *) {};
-  virtual void unpack_forward2(int, void *, int, int *) {};
-  virtual void pack_reverse2(int, void *, int, int *) {};
-  virtual void unpack_reverse2(int, void *, int, int *) {};
+  virtual void pack_forward_grid(int, void *, int, int *) {};
+  virtual void unpack_forward_grid(int, void *, int, int *) {};
+  virtual void pack_reverse_grid(int, void *, int, int *) {};
+  virtual void unpack_reverse_grid(int, void *, int, int *) {};
 
   virtual int timing(int, double &, double &) {return 0;}
   virtual int timing_1d(int, double &) {return 0;}

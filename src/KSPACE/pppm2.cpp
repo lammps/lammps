@@ -642,8 +642,8 @@ void PPPM2::compute(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  gc->reverse_comm(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-		   gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
+			  gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // compute potential gradient on my FFT grid and
@@ -657,21 +657,21 @@ void PPPM2::compute(int eflag, int vflag)
   // to fill ghost cells surrounding their 3d bricks
 
   if (differentiation_flag == 1)
-    gc->forward_comm(this,1,sizeof(FFT_SCALAR),FORWARD_AD,
-		     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD,
+			    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   else
-    gc->forward_comm(this,3,sizeof(FFT_SCALAR),FORWARD_IK,
-		     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK,
+			    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
     if (differentiation_flag == 1 && vflag_atom)
-      gc->forward_comm(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM,
-		       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM,
+			      gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     else if (differentiation_flag == 0)
-      gc->forward_comm(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM,
-		       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM,
+			      gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   }
 
   // calculate the force on my particles
@@ -2633,7 +2633,7 @@ void PPPM2::fieldforce_peratom()
    pack own values to buf to send to another proc
 ------------------------------------------------------------------------- */
 
-void PPPM2::pack_forward2(int flag, void *pbuf, int nlist, int *list)
+void PPPM2::pack_forward_grid(int flag, void *pbuf, int nlist, int *list)
 {
   FFT_SCALAR *buf = (FFT_SCALAR *) pbuf;
   
@@ -2693,7 +2693,7 @@ void PPPM2::pack_forward2(int flag, void *pbuf, int nlist, int *list)
    unpack another proc's own values from buf and set own ghost values
 ------------------------------------------------------------------------- */
 
-void PPPM2::unpack_forward2(int flag, void *pbuf, int nlist, int *list)
+void PPPM2::unpack_forward_grid(int flag, void *pbuf, int nlist, int *list)
 {
   FFT_SCALAR *buf = (FFT_SCALAR *) pbuf;
 
@@ -2753,7 +2753,7 @@ void PPPM2::unpack_forward2(int flag, void *pbuf, int nlist, int *list)
    pack ghost values into buf to send to another proc
 ------------------------------------------------------------------------- */
 
-void PPPM2::pack_reverse2(int flag, void *pbuf, int nlist, int *list)
+void PPPM2::pack_reverse_grid(int flag, void *pbuf, int nlist, int *list)
 {
   FFT_SCALAR *buf = (FFT_SCALAR *) pbuf;
     
@@ -2768,7 +2768,7 @@ void PPPM2::pack_reverse2(int flag, void *pbuf, int nlist, int *list)
    unpack another proc's ghost values from buf and add to own values
 ------------------------------------------------------------------------- */
 
-void PPPM2::unpack_reverse2(int flag, void *pbuf, int nlist, int *list)
+void PPPM2::unpack_reverse_grid(int flag, void *pbuf, int nlist, int *list)
 {
   FFT_SCALAR *buf = (FFT_SCALAR *) pbuf;
 
@@ -3142,8 +3142,8 @@ void PPPM2::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
   density_brick = density_A_brick;
   density_fft = density_A_fft;
 
-  gc->reverse_comm(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-		   gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
+			  gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // group B
@@ -3151,8 +3151,8 @@ void PPPM2::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
   density_brick = density_B_brick;
   density_fft = density_B_fft;
 
-  gc->reverse_comm(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-		   gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
+			  gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // switch back pointers

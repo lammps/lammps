@@ -351,7 +351,7 @@ void PPPMTIP4POMP::particle_map()
   const double boxloz = boxlo[2];
   const int nlocal = atom->nlocal;
 
-  if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
+  if (!std::isfinite(boxlox) || !std::isfinite(boxloy) || !std::isfinite(boxloz))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
   int flag = 0;

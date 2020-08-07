@@ -1163,11 +1163,14 @@ TEST(PairStyle, single)
     }
 
     // create (only) two atoms
+
     command("mass * 1.0");
     command("create_atoms 1 single 0.0 -0.75  0.4 units box");
     command("create_atoms 2 single 1.5  0.25 -0.1 units box");
     command("set atom 1 charge -0.5");
     command("set atom 2 charge  0.5");
+    command("set atom 1 mol 1");
+    command("set atom 2 mol 2");
     command("special_bonds lj/coul 1.0 1.0 1.0");
 
     if (molecular) {

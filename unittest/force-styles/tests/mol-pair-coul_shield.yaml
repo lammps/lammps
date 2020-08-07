@@ -1,7 +1,7 @@
 ---
 lammps_version: 21 Jul 2020
-date_generated: Fri Aug  7 16:53:41 202
-epsilon: 1e-13
+date_generated: Fri Aug  7 18:26:33 202
+epsilon: 2.5e-13
 prerequisites: ! |
   atom full
   pair coul/shield

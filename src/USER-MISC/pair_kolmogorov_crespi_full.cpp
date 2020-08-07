@@ -690,7 +690,7 @@ void PairKolmogorovCrespiFull::calc_FRep(int eflag, int /* vflag */)
 
 void PairKolmogorovCrespiFull::KC_neigh()
 {
-  int i,j,ii,jj,n,allnum,inum,jnum,itype,jtype;
+  int i,j,ii,jj,n,allnum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *neighptr;
@@ -707,7 +707,6 @@ void PairKolmogorovCrespiFull::KC_neigh()
                                              "KolmogorovCrespiFull:firstneigh");
   }
 
-  inum = list->inum;
   allnum = list->inum + list->gnum;
   ilist = list->ilist;
   numneigh = list->numneigh;

@@ -351,7 +351,7 @@ void PPPMTIP4POMP::particle_map()
   const double boxloz = boxlo[2];
   const int nlocal = atom->nlocal;
 
-  if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
+  if (!std::isfinite(boxlox) || !std::isfinite(boxloy) || !std::isfinite(boxloz))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
   int flag = 0;
@@ -687,19 +687,19 @@ void PPPMTIP4POMP::fieldforce_ad()
       const double qi = q[i];
       const double qfactor = qqrd2e * scale * qi;
 
-      s1 = x[i].x*hx_inv;
+      s1 = xM.x*hx_inv;
       sf = sf_coeff[0]*sin(MY_2PI*s1);
       sf += sf_coeff[1]*sin(MY_4PI*s1);
       sf *= 2.0*qi;
       const double fx = qfactor*(ekx - sf);
 
-      s2 = x[i].y*hy_inv;
+      s2 = xM.y*hy_inv;
       sf = sf_coeff[2]*sin(MY_2PI*s2);
       sf += sf_coeff[3]*sin(MY_4PI*s2);
       sf *= 2.0*qi;
       const double fy = qfactor*(eky - sf);
 
-      s3 = x[i].z*hz_inv;
+      s3 = xM.z*hz_inv;
       sf = sf_coeff[4]*sin(MY_2PI*s3);
       sf += sf_coeff[5]*sin(MY_4PI*s3);
       sf *= 2.0*qi;

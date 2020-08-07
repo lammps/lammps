@@ -36,7 +36,7 @@ using namespace MathConst;
 
 EwaldOMP::EwaldOMP(LAMMPS *lmp) : Ewald(lmp), ThrOMP(lmp, THR_KSPACE)
 {
-  triclinic_support = 0;
+  triclinic_support = 1;
   suffix_flag |= Suffix::OMP;
 }
 
@@ -79,7 +79,11 @@ void EwaldOMP::compute(int eflag, int vflag)
   // partial structure factors on each processor
   // total structure factor by summing over procs
 
-  eik_dot_r();
+  if (triclinic == 0)
+    eik_dot_r();
+  else
+    eik_dot_r_triclinic();
+
   MPI_Allreduce(sfacrl,sfacrl_all,kcount,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(sfacim,sfacim_all,kcount,MPI_DOUBLE,MPI_SUM,world);
 
@@ -421,3 +425,95 @@ void EwaldOMP::eik_dot_r()
 
   } // end of parallel region
 }
+/* ---------------------------------------------------------------------- */
+
+void EwaldOMP::eik_dot_r_triclinic()
+{
+  const double * const * const x = atom->x;
+  const double * const q = atom->q;
+  const int nlocal = atom->nlocal;
+  const int nthreads = comm->nthreads;
+
+#if defined(_OPENMP)
+#pragma omp parallel LMP_DEFAULT_NONE
+#endif
+  {
+    
+    int i,ifrom,ito,k,l,m,n,ic,tid;
+    double cstr1,sstr1;
+    double sqk,clpm,slpm;
+    double unitk_lamda[3];
+
+    loop_setup_thr(ifrom,ito,tid,nlocal,nthreads);
+    
+    double max_kvecs[3];
+    max_kvecs[0] = kxmax;
+    max_kvecs[1] = kymax;
+    max_kvecs[2] = kzmax;
+
+    // (k,0,0), (0,l,0), (0,0,m)
+
+    for (ic = 0; ic < 3; ic++) {
+      unitk_lamda[0] = 0.0;
+      unitk_lamda[1] = 0.0;
+      unitk_lamda[2] = 0.0;
+      unitk_lamda[ic] = 2.0*MY_PI;
+      x2lamdaT(&unitk_lamda[0],&unitk_lamda[0]);
+      sqk = unitk_lamda[ic]*unitk_lamda[ic];
+      if (sqk <= gsqmx) {
+        for (i = ifrom; i < ito; i++) {
+          cs[0][ic][i] = 1.0;
+          sn[0][ic][i] = 0.0;
+          cs[1][ic][i] = cos(unitk_lamda[0]*x[i][0] + unitk_lamda[1]*x[i][1] + unitk_lamda[2]*x[i][2]);
+          sn[1][ic][i] = sin(unitk_lamda[0]*x[i][0] + unitk_lamda[1]*x[i][1] + unitk_lamda[2]*x[i][2]);
+          cs[-1][ic][i] = cs[1][ic][i];
+          sn[-1][ic][i] = -sn[1][ic][i];
+        }
+      }
+    }
+
+    for (ic = 0; ic < 3; ic++) {
+      for (m = 2; m <= max_kvecs[ic]; m++) {
+        unitk_lamda[0] = 0.0;
+        unitk_lamda[1] = 0.0;
+        unitk_lamda[2] = 0.0;
+        unitk_lamda[ic] = 2.0*MY_PI*m;
+        x2lamdaT(&unitk_lamda[0],&unitk_lamda[0]);
+        sqk = unitk_lamda[ic]*unitk_lamda[ic];
+        for (i = ifrom; i < ito; i++) {
+          cs[m][ic][i] = cs[m-1][ic][i]*cs[1][ic][i] -
+            sn[m-1][ic][i]*sn[1][ic][i];
+          sn[m][ic][i] = sn[m-1][ic][i]*cs[1][ic][i] +
+            cs[m-1][ic][i]*sn[1][ic][i];
+          cs[-m][ic][i] = cs[m][ic][i];
+          sn[-m][ic][i] = -sn[m][ic][i];
+        }
+      }
+    }
+
+    double * const sfacrl_thr = sfacrl + tid*kmax3d;
+    double * const sfacim_thr = sfacim + tid*kmax3d;
+
+    for (n = 0; n < kcount; n++) {
+      k = kxvecs[n];
+      l = kyvecs[n];
+      m = kzvecs[n];
+      cstr1 = 0.0;
+      sstr1 = 0.0;
+      for (i = ifrom; i < ito; i++) {
+        clpm = cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i];
+        slpm = sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i];
+        cstr1 += q[i]*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
+        sstr1 += q[i]*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
+      }
+      sfacrl_thr[n] = cstr1;
+      sfacim_thr[n] = sstr1;
+    }
+    sync_threads();
+    data_reduce_thr(sfacrl,kmax3d,nthreads,1,tid);
+    data_reduce_thr(sfacim,kmax3d,nthreads,1,tid);
+
+  } // end of parallel region
+}
+
+

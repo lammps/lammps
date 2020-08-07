@@ -1102,8 +1102,9 @@ TEST(PairStyle, single)
 
     // The single function in EAM is different from what we assume
     // here, therefore we have to skip testing those pair styles.
-    // Pair style colloid is also not compatible with this single tester
+    // Pair styles colloid  and yukawa/colloid are also not compatible with this single tester
     if ((test_config.pair_style.substr(0, 7) == "colloid") ||
+        (test_config.pair_style.substr(0, 14) == "yukawa/colloid") ||
         (test_config.pair_style.substr(0, 3) == "eam") ||
         ((test_config.pair_style.substr(0, 6) == "hybrid") &&
          (test_config.pair_style.find("eam") != std::string::npos))

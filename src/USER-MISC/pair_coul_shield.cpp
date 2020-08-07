@@ -297,6 +297,8 @@ void PairCoulShield::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
           utils::sfread(FLERR,&sigmae[i][j],sizeof(double),1,fp,NULL,error);

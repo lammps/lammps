@@ -130,8 +130,9 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
     }
 
     command("run 0 post no");
+    command("variable write_data_pair index ii");
     command("write_restart " + cfg.basename + ".restart");
-    command("write_data " + cfg.basename + ".data");
+    command("write_data " + cfg.basename + ".data pair ${write_data_pair}");
     command("write_coeff " + cfg.basename + "-coeffs.in");
 
     return lmp;

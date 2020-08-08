@@ -316,6 +316,7 @@ int FixTISpring::unpack_exchange(int nlocal, double *buf)
 int FixTISpring::pack_restart(int i, double *buf)
 {
   // pack buf[0] this way b/c other fixes unpack it
+  buf[0] = 4;
   buf[1] = xoriginal[i][0];
   buf[2] = xoriginal[i][1];
   buf[3] = xoriginal[i][2];

@@ -96,7 +96,7 @@ endforeach()
 add_executable(test_angle_style test_angle_style.cpp)
 target_link_libraries(test_angle_style PRIVATE lammps style_tests)
 
-file(GLOB IMPROPER_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/angle-*.yaml)
+file(GLOB ANGLE_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/angle-*.yaml)
 foreach(TEST ${ANGLE_TESTS})
   string(REGEX REPLACE "^.*angle-(.*)\.yaml" "AngleStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND test_angle_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

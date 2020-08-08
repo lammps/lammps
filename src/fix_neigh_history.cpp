@@ -853,6 +853,7 @@ int FixNeighHistory::pack_restart(int i, double *buf)
     memcpy(&buf[m],&valuepartner[i][dnum*n],dnumbytes);
     m += dnum;
   }
+  // pack buf[0] this way b/c other fixes unpack it  
   buf[0] = m;
   return m;
 }
@@ -868,6 +869,7 @@ void FixNeighHistory::unpack_restart(int nlocal, int nth)
   if (ipage_atom == NULL) allocate_pages();
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way b/c other fixes pack them
 
   double **extra = atom->extra;
 

@@ -555,6 +555,7 @@ void FixSRP::post_run()
 int FixSRP::pack_restart(int i, double *buf)
 {
   int m = 0;
+  // pack buf[0] this way b/c other fixes unpack it
   buf[m++] = 3;
   buf[m++] = array[i][0];
   buf[m++] = array[i][1];
@@ -569,10 +570,12 @@ void FixSRP::unpack_restart(int nlocal, int nth)
 {
   double **extra = atom->extra;
 
-// skip to Nth set of extra values
+  // skip to Nth set of extra values
+  // unpack the Nth first values this way b/c other fixes pack them
+  
   int m = 0;
   for (int i = 0; i < nth; i++){
-    m += extra[nlocal][m];
+    m += static_cast<int> (extra[nlocal][m]);
   }
 
   m++;

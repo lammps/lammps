@@ -280,6 +280,7 @@ int FixStore::pack_restart(int i, double *buf)
     return 1;
   }
 
+  // pack buf[0] this way b/c other fixes unpack it
   buf[0] = nvalues+1;
   if (vecflag) buf[1] = vstore[i];
   else
@@ -299,6 +300,7 @@ void FixStore::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way b/c other fixes pack them
 
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);

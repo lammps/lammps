@@ -315,7 +315,7 @@ int FixTISpring::unpack_exchange(int nlocal, double *buf)
 
 int FixTISpring::pack_restart(int i, double *buf)
 {
-  buf[0] = 4;
+  // pack buf[0] this way b/c other fixes unpack it
   buf[1] = xoriginal[i][0];
   buf[2] = xoriginal[i][1];
   buf[3] = xoriginal[i][2];
@@ -331,6 +331,7 @@ void FixTISpring::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way b/c other fixes pack them
 
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);

@@ -287,3 +287,31 @@ void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
     //                          niter,nmark,nactiveall,thresh,nflipall);
   }
 }
+
+/* ----------------------------------------------------------------------
+   store state in buffer
+------------------------------------------------------------------------- */
+
+void RanMars::get_state(double *state)
+{
+  for (int i=0; i < 98; ++i) state[i] = u[i];
+  state[98] = i97;
+  state[99] = j97;
+  state[100]= c;
+  state[101]= cd;
+  state[102]= cm;
+}
+
+/* ----------------------------------------------------------------------
+   restore state from buffer
+------------------------------------------------------------------------- */
+
+void RanMars::set_state(double *state)
+{
+  for (int i=0; i < 98; ++i) u[i] = state[i];
+  i97 = state[98];
+  j97 = state[99];
+  c   = state[100];
+  cd  = state[101];
+  cm  = state[102];
+}

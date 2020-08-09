@@ -1,6 +1,6 @@
 ---
 lammps_version: 21 Jul 2020
-date_generated: Sat Aug  8 23:12:30 202
+date_generated: Sun Aug  9 01:35:09 202
 epsilon: 2.5e-13
 prerequisites: ! |
   atom full
@@ -10,9 +10,11 @@ prerequisites: ! |
   fix rigid
 pre_commands: ! ""
 post_commands: ! |
-  fix move solvent rigid molecule
+  variable t_target delete
+  fix test solvent rigid molecule
 input_file: in.fourmol
 natoms: 29
+global_scalar: 18.3405601674144
 run_pos: ! |2
     1 -2.7993683669226832e-01  2.4726588069312840e+00 -1.7200860244148433e-01
     2  3.0197083955402204e-01  2.9515239068888608e+00 -8.5689735572907566e-01

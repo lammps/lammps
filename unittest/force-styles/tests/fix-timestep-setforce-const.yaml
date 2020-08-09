@@ -1,6 +1,6 @@
 ---
 lammps_version: 21 Jul 2020
-date_generated: Sat Aug  8 22:51:03 202
+date_generated: Sun Aug  9 01:35:09 202
 epsilon: 1e-14
 prerequisites: ! |
   atom full
@@ -11,9 +11,11 @@ prerequisites: ! |
 pre_commands: ! ""
 post_commands: ! |
   fix move all nve
-  fix foce solute setforce 0.0 NULL 0.1
+  fix test solute setforce 0.0 NULL 0.1
 input_file: in.fourmol
 natoms: 29
+global_vector: ! |-
+  3 0.031196595768662405 0.027176378299685666 -0.018248127488959653
 run_pos: ! |2
     1 -2.7837948059450057e-01  2.4915057595127261e+00 -1.7244621851040967e-01
     2  3.0739674554684748e-01  2.9612812082059410e+00 -8.4971536723424157e-01

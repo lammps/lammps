@@ -181,7 +181,7 @@ double RanMars::besselexp(double theta, double alpha, double cp)
 void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
 {
   int mode,index,oldindex,newvalue,nflip,which,niter;
-  int active[2],first[2],last[2];
+  int active[2],first[2];
   int newactive[2],newfirst[2],newlast[2];
   bigint nmark,nflipall;
   bigint activeall[2],bsum[3],bsumall[3];
@@ -191,8 +191,6 @@ void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
   active[1] = 0;
   first[0] = 0;
   first[1] = -1;
-  last[0] = nmine-1;
-  last[1] = -1;
 
   bigint bnmine = nmine;
   bigint bnall;
@@ -266,8 +264,6 @@ void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
       active[1] = newactive[1];
       first[0] = newfirst[0];
       first[1] = newfirst[1];
-      last[0] = newlast[0];
-      last[1] = newlast[1];
     }
 
     // update nmark and activeall

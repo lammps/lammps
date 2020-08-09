@@ -231,6 +231,28 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     // natoms
     writer.emit("natoms", natoms);
 
+    int ifix = lmp->modify->find_fix("test");
+    if (ifix < 0) {
+        std::cerr << "WARNING: no fix defined with fix ID 'test'\n";
+    } else {
+        Fix *fix = lmp->modify->fix[ifix];
+
+        // global scalar
+        if (fix->scalar_flag) {
+            double value = fix->compute_scalar();
+            writer.emit("global_scalar", value);
+        }
+
+        // global vector
+        if (fix->vector_flag) {
+            int num = fix->size_vector;
+            block   = std::to_string(num);
+            for (int i = 0; i < num; ++i)
+                block += fmt::format(" {}", fix->compute_vector(i));
+            writer.emit_block("global_vector", block);
+        }
+    }
+
     // run_pos
     block.clear();
     auto x   = lmp->atom->x;
@@ -377,7 +399,7 @@ TEST(FixTimestep, plain)
     }
     if (print_stats) std::cerr << "run_pos, normal_run, respa: " << stats << std::endl;
 
-    v                            = lmp->atom->v;
+    v = lmp->atom->v;
     ASSERT_EQ(nlocal + 1, v_ref.size());
     for (int i = 0; i < nlocal; ++i) {
         EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
@@ -565,7 +587,7 @@ TEST(FixTimestep, omp)
     }
     if (print_stats) std::cerr << "run_pos, normal_run, respa: " << stats << std::endl;
 
-    v                            = lmp->atom->v;
+    v = lmp->atom->v;
     ASSERT_EQ(nlocal + 1, v_ref.size());
     for (int i = 0; i < nlocal; ++i) {
         EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);

@@ -16,6 +16,7 @@
 
 #include "random_mars.h"
 #include <cmath>
+#include <cstring>
 #include "error.h"
 #include "math_const.h"
 
@@ -36,6 +37,7 @@ RanMars::RanMars(LAMMPS *lmp, int seed) : Pointers(lmp),
 
   save = 0;
   u = new double[97+1];
+  memset(u,0,98*sizeof(double));
 
   ij = (seed-1)/30082;
   kl = (seed-1) - 30082*ij;

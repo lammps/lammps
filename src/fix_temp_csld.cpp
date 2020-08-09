@@ -328,17 +328,15 @@ void FixTempCSLD::write_restart(FILE *fp)
 
 void FixTempCSLD::restart(char *buf)
 {
-  int n = 0;
   double *list = (double *) buf;
 
-  energy = list[n++];
-  int nprocs = (int) list[n++];
+  energy = list[0];
+  int nprocs = (int) list[1];
   if (nprocs != comm->nprocs) {
     if (comm->me == 0)
       error->warning(FLERR,"Different number of procs. Cannot restore RNG state.");
-  } else random->set_state(list+n+comm->me*103);
+  } else random->set_state(list+2+comm->me*103);
 }
-
 
 /* ----------------------------------------------------------------------
    extract thermostat properties

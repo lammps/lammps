@@ -126,6 +126,7 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
 
   // CSVR thermostat should be applied every step
 
+  restart_global = 1;
   nevery = 1;
   scalar_flag = 1;
   global_freq = nevery;
@@ -360,7 +361,6 @@ void FixTempCSVR::write_restart(FILE *fp)
 
 void FixTempCSVR::restart(char *buf)
 {
-  int n = 0;
   double *list = (double *) buf;
 
   energy = list[0];
@@ -368,7 +368,7 @@ void FixTempCSVR::restart(char *buf)
   if (nprocs != comm->nprocs) {
     if (comm->me == 0)
       error->warning(FLERR,"Different number of procs. Cannot restore RNG state.");
-  } else random->set_state(list+n+comm->me*103);
+  } else random->set_state(list+2+comm->me*103);
 }
 
 /* ----------------------------------------------------------------------

@@ -4,9 +4,6 @@ date_generated: Sun Aug  9 07:12:15 202
 epsilon: 2.5e-13
 prerequisites: ! |
   atom full
-  pair lj/cut
-  bond harmonic
-  angle harmonic
   fix rigid
 pre_commands: ! ""
 post_commands: ! |

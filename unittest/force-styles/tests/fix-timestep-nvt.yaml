@@ -4,9 +4,6 @@ date_generated: Sun Aug  9 07:12:15 202
 epsilon: 5e-14
 prerequisites: ! |
   atom full
-  pair lj/cut
-  bond harmonic
-  angle harmonic
   fix nvt
 pre_commands: ! ""
 post_commands: ! |

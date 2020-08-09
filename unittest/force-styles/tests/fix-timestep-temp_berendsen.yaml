@@ -4,9 +4,6 @@ date_generated: Sun Aug  9 07:12:16 202
 epsilon: 1e-14
 prerequisites: ! |
   atom full
-  pair lj/cut
-  bond harmonic
-  angle harmonic
   fix temp/berendsen
 pre_commands: ! ""
 post_commands: ! |

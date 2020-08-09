@@ -4,10 +4,7 @@ date_generated: Sun Aug  9 07:12:15 202
 epsilon: 2e-13
 prerequisites: ! |
   atom full
-  pair lj/cut
-  bond harmonic
-  angle harmonic
-  fix npt
+  fix nph
 pre_commands: ! ""
 post_commands: ! |
   fix test solute nph aniso 1.0 1.0 100.0 ptemp ${t_target} fixedpoint 0.0 0.0 0.0 couple xy

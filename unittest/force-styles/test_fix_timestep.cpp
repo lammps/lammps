@@ -239,6 +239,15 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     } else {
         Fix *fix = lmp->modify->fix[ifix];
 
+        // run_stress, if enabled
+        if (fix->thermo_virial) {
+            auto stress = fix->virial;
+            block       = fmt::format("{:23.16e} {:23.16e} {:23.16e} "
+                                "{:23.16e} {:23.16e} {:23.16e}",
+                                stress[0], stress[1], stress[2], stress[3], stress[4], stress[5]);
+            writer.emit_block("run_stress", block);
+        }
+
         // global scalar
         if (fix->scalar_flag) {
             double value = fix->compute_scalar();
@@ -338,8 +347,19 @@ TEST(FixTimestep, plain)
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
         Fix *fix = lmp->modify->fix[ifix];
-        stats.reset();
+        if (fix->thermo_virial) {
+            stats.reset();
+            auto stress = fix->virial;
+            EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
+            if (print_stats) std::cerr << "run_stress normal run, verlet: " << stats << std::endl;
+        }
 
+        stats.reset();
         // global scalar
         if (fix->scalar_flag) {
             double value = fix->compute_scalar();
@@ -402,6 +422,18 @@ TEST(FixTimestep, plain)
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
         Fix *fix = lmp->modify->fix[ifix];
+        if (fix->thermo_virial) {
+            stats.reset();
+            auto stress = fix->virial;
+            EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
+            if (print_stats) std::cerr << "run_stress restart, verlet: " << stats << std::endl;
+        }
+
         stats.reset();
 
         // global scalar
@@ -453,6 +485,18 @@ TEST(FixTimestep, plain)
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
         Fix *fix = lmp->modify->fix[ifix];
+        if (fix->thermo_virial) {
+            stats.reset();
+            auto stress = fix->virial;
+            EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
+            if (print_stats) std::cerr << "run_stress rmass, verlet: " << stats << std::endl;
+        }
+
         stats.reset();
 
         // global scalar
@@ -510,6 +554,18 @@ TEST(FixTimestep, plain)
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
         Fix *fix = lmp->modify->fix[ifix];
+        if (fix->thermo_virial) {
+            stats.reset();
+            auto stress = fix->virial;
+            EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
+            if (print_stats) std::cerr << "run_stress normal run, respa: " << stats << std::endl;
+        }
+
         stats.reset();
 
         // global scalar
@@ -561,6 +617,18 @@ TEST(FixTimestep, plain)
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
         Fix *fix = lmp->modify->fix[ifix];
+        if (fix->thermo_virial) {
+            stats.reset();
+            auto stress = fix->virial;
+            EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
+            if (print_stats) std::cerr << "run_stress restart, respa: " << stats << std::endl;
+        }
+
         stats.reset();
 
         // global scalar
@@ -612,6 +680,18 @@ TEST(FixTimestep, plain)
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
         Fix *fix = lmp->modify->fix[ifix];
+        if (fix->thermo_virial) {
+            stats.reset();
+            auto stress = fix->virial;
+            EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
+            if (print_stats) std::cerr << "run_stress rmass, respa: " << stats << std::endl;
+        }
+
         stats.reset();
 
         // global scalar
@@ -701,6 +781,18 @@ TEST(FixTimestep, omp)
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
         Fix *fix = lmp->modify->fix[ifix];
+        if (fix->thermo_virial) {
+            stats.reset();
+            auto stress = fix->virial;
+            EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
+            if (print_stats) std::cerr << "run_stress normal run, verlet: " << stats << std::endl;
+        }
+
         stats.reset();
 
         // global scalar
@@ -765,6 +857,18 @@ TEST(FixTimestep, omp)
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
         Fix *fix = lmp->modify->fix[ifix];
+        if (fix->thermo_virial) {
+            stats.reset();
+            auto stress = fix->virial;
+            EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
+            if (print_stats) std::cerr << "run_stress restart, verlet: " << stats << std::endl;
+        }
+
         stats.reset();
 
         // global scalar
@@ -816,6 +920,18 @@ TEST(FixTimestep, omp)
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
         Fix *fix = lmp->modify->fix[ifix];
+        if (fix->thermo_virial) {
+            stats.reset();
+            auto stress = fix->virial;
+            EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
+            if (print_stats) std::cerr << "run_stress rmass, verlet: " << stats << std::endl;
+        }
+
         stats.reset();
 
         // global scalar
@@ -873,6 +989,18 @@ TEST(FixTimestep, omp)
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
         Fix *fix = lmp->modify->fix[ifix];
+        if (fix->thermo_virial) {
+            stats.reset();
+            auto stress = fix->virial;
+            EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
+            if (print_stats) std::cerr << "run_stress normal run, respa: " << stats << std::endl;
+        }
+
         stats.reset();
 
         // global scalar
@@ -924,6 +1052,18 @@ TEST(FixTimestep, omp)
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
         Fix *fix = lmp->modify->fix[ifix];
+        if (fix->thermo_virial) {
+            stats.reset();
+            auto stress = fix->virial;
+            EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
+            if (print_stats) std::cerr << "run_stress restart, respa: " << stats << std::endl;
+        }
+
         stats.reset();
 
         // global scalar
@@ -975,6 +1115,18 @@ TEST(FixTimestep, omp)
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
         Fix *fix = lmp->modify->fix[ifix];
+        if (fix->thermo_virial) {
+            stats.reset();
+            auto stress = fix->virial;
+            EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
+            EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
+            if (print_stats) std::cerr << "run_stress rmass, respa: " << stats << std::endl;
+        }
+
         stats.reset();
 
         // global scalar

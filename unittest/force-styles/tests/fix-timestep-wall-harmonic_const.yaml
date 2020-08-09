@@ -1,6 +1,6 @@
 ---
 lammps_version: 21 Jul 2020
-date_generated: Sun Aug  9 07:21:00 202
+date_generated: Sun Aug  9 16:30:22 202
 epsilon: 1e-14
 prerequisites: ! |
   atom full
@@ -10,8 +10,11 @@ pre_commands: ! |
 post_commands: ! |
   fix move all nve
   fix test solute wall/harmonic ylo EDGE 100.0 0.0 5.0 yhi EDGE 100.0 0.0 5.0
+  fix_modify test virial yes
 input_file: in.fourmol
 natoms: 29
+run_stress: ! |2-
+   0.0000000000000000e+00  7.2422093200265749e+02  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
 global_scalar: 42.6997744353244
 global_vector: ! |-
   2 0.0 161.92409617466126

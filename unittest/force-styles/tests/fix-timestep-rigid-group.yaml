@@ -1,6 +1,6 @@
 ---
 lammps_version: 21 Jul 2020
-date_generated: Sun Aug  9 07:12:15 202
+date_generated: Sun Aug  9 16:30:21 202
 epsilon: 2.5e-13
 prerequisites: ! |
   atom full
@@ -9,8 +9,11 @@ pre_commands: ! ""
 post_commands: ! |
   variable t_target delete
   fix test all rigid group 2 solute solvent
+  fix_modify test virial yes
 input_file: in.fourmol
 natoms: 29
+run_stress: ! |-
+  -1.4245356937318927e+03 -1.4496493315649675e+03 -3.6144360984224963e+03  8.4840626828643849e+02  2.0318336761611764e+02 -6.0622397707969685e+02
 global_scalar: 15.7115214231781
 run_pos: ! |2
     1 -2.7899546863891622e-01  2.4731857340328216e+00 -1.7290667740241872e-01

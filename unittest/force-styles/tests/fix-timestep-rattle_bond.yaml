@@ -1,6 +1,6 @@
 ---
 lammps_version: 21 Jul 2020
-date_generated: Sun Aug  9 13:57:18 202
+date_generated: Sun Aug  9 16:30:21 202
 epsilon: 1e-14
 prerequisites: ! |
   atom full
@@ -9,8 +9,11 @@ pre_commands: ! ""
 post_commands: ! |
   fix move all nve
   fix test solute rattle 1.0e-5 20 4 m 4.00794
+  fix_modify test virial yes
 input_file: in.fourmol
 natoms: 29
+run_stress: ! |2-
+   3.9891557115890999e+00  3.7983351717152480e+00  7.6152694943743228e+01  5.7163462651523300e-01  3.0839737670745507e+01  3.0066936263232019e+01
 run_pos: ! |2
     1 -2.6863205200662160e-01  2.4924200251053037e+00 -1.6940797171640173e-01
     2  3.0314855494325726e-01  2.9555142432096928e+00 -8.4661597718762538e-01

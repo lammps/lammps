@@ -294,14 +294,18 @@ YAML format test inputs.
 - The fix to be tested must be specified in the ``post_commands:``
   section with the fix-ID ``test``.  This section may contain other
   commands and other fixes (e.g. an instance of fix nve for testing
-  thermostat or force manipulation fixes)
+  a thermostat or force manipulation fix)
+- For fixes that can tally contributions to the global virial, the
+  line ``fix_modify test virial yes`` should be included in the
+  ``post_commands:`` section of the test input.
 - For thermostat fixes the target temperature should be ramped from
   an arbitrary value (e.g. 50K) to a pre-defined target temperature
   entered as ``${t_target}``.
-- For fixes that may or may not do thermostatting depending on
-  the flags in use (e.g. fix rigid), the ``post_commands:`` section
-  should contain ``variable t_target delete`` to disable the target
-  temperature ramp check in case the thermostat is not enabled
+- For fixes that have thermostatting support included, but do not
+  have it enabled in the input (e.g. fix rigid with default settings),
+  the ``post_commands:`` section should contain the line
+  ``variable t_target delete`` to disable the target temperature ramp
+  check to avoid false positives.
 
 Use custom linker for faster link times when ENABLE_TESTING is active
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

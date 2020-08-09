@@ -55,6 +55,7 @@ kspace = {}
 pair = {}
 
 style_pattern = re.compile("(.+)Style\((.+),(.+)\)")
+upper = re.compile("[A-Z]+")
 gpu = re.compile("(.+)/gpu$")
 intel = re.compile("(.+)/intel$")
 kokkos = re.compile("(.+)/kk$")
@@ -85,7 +86,7 @@ for header in headers:
             for m in matches:
                 # skip over internal styles w/o explicit documentation
                 style = m[1]
-                if style.isupper():
+                if upper.match(style):
                     continue
 
                 # detect, process, and flag suffix styles:
@@ -131,6 +132,8 @@ for header in headers:
                     register_style(kspace,style,info)
                 elif m[0] == 'Pair':
                     register_style(pair,style,info)
+                elif m[0] == 'Fix':
+                    register_style(fix,style,info)
 
 
 
@@ -179,6 +182,8 @@ counter += check_tests('improper',improper,'improper-*.yaml',
                        '.*improper_style:\s*((\S+).*)?')
 counter += check_tests('kspace',kspace,'kspace-*.yaml',
                        '.*kspace_style\s*((\S+).*)?')
+counter += check_tests('fix',fix,'fix-*.yaml',
+                       '  fix\s+((\S+)\s*)?')
 
-total = len(pair)+len(bond)+len(angle)+len(dihedral)+len(improper)+len(kspace)
+total = len(pair)+len(bond)+len(angle)+len(dihedral)+len(improper)+len(kspace)+len(fix)
 print(f"\nTotal tests missing: {counter} of {total}")

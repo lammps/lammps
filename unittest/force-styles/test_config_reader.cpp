@@ -317,8 +317,6 @@ void TestConfigReader::global_vector(const yaml_event_t &event)
     data >> num;
     for (std::size_t i = 0; i < num; ++i) {
         data >> value;
-        if (data.eof()) break;
         config.global_vector.push_back(value);
     }
 }
-

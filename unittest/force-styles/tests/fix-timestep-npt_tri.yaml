@@ -1,6 +1,6 @@
 ---
 lammps_version: 21 Jul 2020
-date_generated: Sun Aug  9 01:35:09 202
+date_generated: Sun Aug  9 07:12:15 202
 epsilon: 5e-12
 prerequisites: ! |
   atom full
@@ -11,7 +11,7 @@ prerequisites: ! |
 pre_commands: ! ""
 post_commands: ! |
   change_box all triclinic
-  fix test solute npt temp 50.0 ${t_target} 1.0 tri 1.0 1.0 100.0
+  fix test solute npt temp 50.0 ${t_target} 1.0 tri 1.0 1.0 100.0 nreset 2
 input_file: in.fourmol
 natoms: 29
 global_scalar: 354.174797856098

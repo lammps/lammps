@@ -40,6 +40,8 @@ TestConfigReader::TestConfigReader(TestConfig &config) : YamlReader(), config(co
     consumers["run_stress"]     = &TestConfigReader::run_stress;
     consumers["init_forces"]    = &TestConfigReader::init_forces;
     consumers["run_forces"]     = &TestConfigReader::run_forces;
+    consumers["run_pos"]        = &TestConfigReader::run_pos;
+    consumers["run_vel"]        = &TestConfigReader::run_vel;
 
     consumers["pair_style"] = &TestConfigReader::pair_style;
     consumers["pair_coeff"] = &TestConfigReader::pair_coeff;
@@ -173,6 +175,36 @@ void TestConfigReader::run_forces(const yaml_event_t &event)
         coord_t xyz;
         sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
         config.run_forces[tag] = xyz;
+    }
+}
+
+void TestConfigReader::run_pos(const yaml_event_t &event)
+{
+    config.run_pos.clear();
+    config.run_pos.resize(config.natoms + 1);
+    std::stringstream data((char *)event.data.scalar.value);
+    std::string line;
+
+    while (std::getline(data, line, '\n')) {
+        int tag;
+        coord_t xyz;
+        sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
+        config.run_pos[tag] = xyz;
+    }
+}
+
+void TestConfigReader::run_vel(const yaml_event_t &event)
+{
+    config.run_vel.clear();
+    config.run_vel.resize(config.natoms + 1);
+    std::stringstream data((char *)event.data.scalar.value);
+    std::string line;
+
+    while (std::getline(data, line, '\n')) {
+        int tag;
+        coord_t xyz;
+        sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
+        config.run_vel[tag] = xyz;
     }
 }
 

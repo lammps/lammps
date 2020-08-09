@@ -60,6 +60,10 @@ public:
     stress_t run_stress;
     std::vector<coord_t> init_forces;
     std::vector<coord_t> run_forces;
+    std::vector<coord_t> run_pos;
+    std::vector<coord_t> restart_pos;
+    std::vector<coord_t> run_vel;
+    std::vector<coord_t> restart_vel;
 
     TestConfig() :
         lammps_version(""), date_generated(""), basename(""), epsilon(1.0e-14), input_file(""),
@@ -79,6 +83,10 @@ public:
         extract.clear();
         init_forces.clear();
         run_forces.clear();
+        run_pos.clear();
+        restart_pos.clear();
+        run_vel.clear();
+        restart_vel.clear();
     }
     virtual ~TestConfig(){};
 

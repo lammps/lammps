@@ -295,7 +295,7 @@ TEST(FixTimestep, plain)
     int argc    = sizeof(args) / sizeof(char *);
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(argc, argv, test_config, false);
+    LAMMPS *lmp = init_lammps(argc, argv, test_config);
 
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
@@ -523,10 +523,12 @@ TEST(FixTimestep, plain)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     ::testing::internal::CaptureStdout();
-    lmp = init_lammps(argc, argv, test_config, false);
-
+    lmp    = init_lammps(argc, argv, test_config, true);
     output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
+
+    // lower required precision by one order of magnitude to accommodate respa
+    epsilon *= 10.0;
 
     x   = lmp->atom->x;
     tag = lmp->atom->tag;
@@ -588,7 +590,7 @@ TEST(FixTimestep, plain)
     }
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    restart_lammps(lmp, test_config, false, false);
+    restart_lammps(lmp, test_config, false, true);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     x   = lmp->atom->x;
@@ -651,7 +653,7 @@ TEST(FixTimestep, plain)
     }
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    restart_lammps(lmp, test_config, true, false);
+    restart_lammps(lmp, test_config, true, true);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     x   = lmp->atom->x;
@@ -729,8 +731,7 @@ TEST(FixTimestep, omp)
     int argc    = sizeof(args) / sizeof(char *);
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(argc, argv, test_config, false);
-
+    LAMMPS *lmp        = init_lammps(argc, argv, test_config);
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -958,10 +959,12 @@ TEST(FixTimestep, omp)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     ::testing::internal::CaptureStdout();
-    lmp = init_lammps(argc, argv, test_config, false);
-
+    lmp    = init_lammps(argc, argv, test_config, true);
     output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
+
+    // lower required precision by one order of magnitude to accommodate respa
+    epsilon *= 10.0;
 
     x   = lmp->atom->x;
     tag = lmp->atom->tag;
@@ -1023,7 +1026,7 @@ TEST(FixTimestep, omp)
     }
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    restart_lammps(lmp, test_config, false, false);
+    restart_lammps(lmp, test_config, false, true);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     x   = lmp->atom->x;
@@ -1086,7 +1089,7 @@ TEST(FixTimestep, omp)
     }
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    restart_lammps(lmp, test_config, true, false);
+    restart_lammps(lmp, test_config, true, true);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     x   = lmp->atom->x;

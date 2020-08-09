@@ -265,11 +265,11 @@ void FixTempBerendsen::write_restart(FILE *fp)
 
 void FixTempBerendsen::restart(char *buf)
 {
-  int n = 0;
   double *list = (double *) buf;
 
-  energy = list[n++];
+  energy = list[0];
 }
+
 /* ----------------------------------------------------------------------
    extract thermostat properties
 ------------------------------------------------------------------------- */

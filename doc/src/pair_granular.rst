@@ -361,7 +361,7 @@ work:
 
 .. math::
 
-   \mathbf{\xi} = \left(\mathbf{\xi'} - (\mathbf{n} \cdot \mathbf{\xi'})\mathbf{n}\right) \frac{\|\mathbf{\xi'}\|}{\|\mathbf{\xi'}\| - \mathbf{n}\cdot\mathbf{\xi'}}
+   \mathbf{\xi} = \left(\mathbf{\xi'} - (\mathbf{n} \cdot \mathbf{\xi'})\mathbf{n}\right) \frac{\|\mathbf{\xi'}\|}{\|\mathbf{\xi'} - (\mathbf{n}\cdot\mathbf{\xi'})\mathbf{n}\|}
 
 Here, :math:`\mathbf{\xi'}` is the accumulated displacement prior to the
 current time step and :math:`\mathbf{\xi}` is the corrected

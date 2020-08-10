@@ -446,20 +446,20 @@ void PairGranular::compute(int eflag, int vflag)
           // see e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
           if (historyupdate) {
             rsht = history[0]*nx + history[1]*ny + history[2]*nz;
-            if (fabs(rsht) < EPSILON) rsht = 0; // EPSILON = 1e-10 can fail for small granular media: 
-            if (rsht > 0) {
-              shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
-                                               history[2]*history[2]);
-              // if rsht == shrmag, contacting pair has rotated 90 deg
-              // in one step, in which case you deserve a crash!
-              scalefac = shrmag/(shrmag - rsht);
-              history[0] -= rsht*nx;
-              history[1] -= rsht*ny;
-              history[2] -= rsht*nz;
-              // also rescale to preserve magnitude
-              history[0] *= scalefac;
-              history[1] *= scalefac;
-              history[2] *= scalefac;
+            shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
+                                             history[2]*history[2]);
+            // projection
+            history[0] -= rsht*nx;
+            history[1] -= rsht*ny;
+            history[2] -= rsht*nz;
+            
+            // also rescale to preserve magnitude
+            prjmag = sqrt(history[0]*history[0] + history[1]*history[1] +
+                                             history[2]*history[2]);
+            scalefac = shrmag/prjmag;
+            history[0] *= scalefac;
+            history[1] *= scalefac;
+            history[2] *= scalefac;
             }
             // update history
             if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY ||
@@ -559,19 +559,22 @@ void PairGranular::compute(int eflag, int vflag)
 
           rolldotn = history[rhist0]*nx + history[rhist1]*ny + history[rhist2]*nz;
           if (historyupdate) {
-            if (fabs(rolldotn) < EPSILON) rolldotn = 0;
-            if (rolldotn > 0) { // rotate into tangential plane
-              rollmag = sqrt(history[rhist0]*history[rhist0] +
-                            history[rhist1]*history[rhist1] +
-                            history[rhist2]*history[rhist2]);
-              scalefac = rollmag/(rollmag - rolldotn);
-              history[rhist0] -= rolldotn*nx;
-              history[rhist1] -= rolldotn*ny;
-              history[rhist2] -= rolldotn*nz;
-              // also rescale to preserve magnitude
-              history[rhist0] *= scalefac;
-              history[rhist1] *= scalefac;
-              history[rhist2] *= scalefac;
+            // rotate into tangential plane
+            rollmag = sqrt(history[rhist0]*history[rhist0] +
+                          history[rhist1]*history[rhist1] +
+                          history[rhist2]*history[rhist2]);
+            // projection
+            history[rhist0] -= rolldotn*nx;
+            history[rhist1] -= rolldotn*ny;
+            history[rhist2] -= rolldotn*nz;
+            // also rescale to preserve magnitude
+            prjmag = sqrt(history[rhist0]*history[rhist0] +
+                          history[rhist1]*history[rhist1] +
+                          history[rhist2]*history[rhist2]);
+            scalefac = rollmag/prjmag;
+            history[rhist0] *= scalefac;
+            history[rhist1] *= scalefac;
+            history[rhist2] *= scalefac;
             }
             history[rhist0] += vrl1*dt;
             history[rhist1] += vrl2*dt;

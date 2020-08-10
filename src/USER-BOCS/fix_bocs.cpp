@@ -224,7 +224,7 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
       }  else {
         std::string errmsg = fmt::format("CG basis type {} is not recognized\nSupported "
                                          "basis types: analytic linear_spline cubic_spline",arg[iarg]);
-        error->all(FLERR,errmsg.c_str());
+        error->all(FLERR,errmsg);
       } // END NJD MRD
     } else if (strcmp(arg[iarg],"tchain") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command");
@@ -257,7 +257,7 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
     } else {
       std::string errmsg = fmt::format("Illegal fix bocs command: unrecognized keyword {}",
               arg[iarg]);
-      error->all(FLERR,errmsg.c_str());
+      error->all(FLERR,errmsg);
     }
   }
   // error checks
@@ -655,7 +655,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     // NB: LAMMPS coding guidelines prefer cstdio so we are intentionally
     // foregoing  reading with getline
     std::string message = fmt::format("INFO: About to read data file: {}", filename);
-    error->message(FLERR, message.c_str());
+    error->message(FLERR, message);
 
     // Data file lines hold two floating point numbers.
     // Line length we allocate should be long enough without being too long.
@@ -670,7 +670,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
 
     numEntries = inputLines.size();
     message = fmt::format("INFO: Read {} lines from file", numEntries);
-    error->message(FLERR, message.c_str());
+    error->message(FLERR, message);
 
 
     // Initializing the size of vectors is not required.
@@ -701,7 +701,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
       if (test_sscanf == 2)
       {
         //message = fmt::format("INFO: f1 = {}, f2 = {}", f1, f2);
-        //error->message(FLERR,message.c_str());
+        //error->message(FLERR,message);
         data[VOLUME][i] = (double)f1;
         data[PRESSURE_CORRECTION][i] = (double)f2;
         if (i == 1)
@@ -709,20 +709,20 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
           // second entry is used to compute the validation interval used below
           stdVolumeInterval = data[VOLUME][i] - data[VOLUME][i-1];
           //message = fmt::format("INFO: standard volume interval computed: {}", stdVolumeInterval);
-          //error->message(FLERR,message.c_str());
+          //error->message(FLERR,message);
         }
         else if (i > 1)
         {
           // after second entry, all intervals are validated
           currVolumeInterval = data[VOLUME][i] - data[VOLUME][i-1];
           //message = fmt::format("INFO: current volume interval: {}", currVolumeInterval);
-          //error->message(FLERR,message.c_str());
+          //error->message(FLERR,message);
           if (fabs(currVolumeInterval - stdVolumeInterval) > volumeIntervalTolerance) {
             message = fmt::format("ERROR: Bad volume interval. Spline analysis requires uniform"
                     " volume distribution, found inconsistent volume"
                     " differential, line {} of file {}\n\tline: {}",
-                    lineNum,filename,inputLines.at(i).c_str());
-            error->message(FLERR,message.c_str());
+                    lineNum,filename,inputLines.at(i));
+            error->message(FLERR,message);
             badInput = true;
             numBadVolumeIntervals++;
           }
@@ -733,8 +733,8 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
       {
         message = fmt::format("ERROR: Bad input format: did not find 2 comma separated numeric"
                  " values in line {} of file {}\n\tline: {}",
-                 lineNum, filename, inputLines.at(i).c_str());
-        error->message(FLERR,message.c_str());
+                 lineNum, filename, inputLines.at(i));
+        error->message(FLERR,message);
         badInput = true;
       }
       if (badInput)
@@ -745,17 +745,17 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
 
     if (numBadVolumeIntervals) {
       message = fmt::format("INFO: total number bad volume intervals = {}", numBadVolumeIntervals);
-      error->message(FLERR,message.c_str());
+      error->message(FLERR,message);
     }
   }
   else {
     std::string errmsg = fmt::format("ERROR: Unable to open file: {}", filename);
-    error->all(FLERR,errmsg.c_str());
+    error->all(FLERR,errmsg);
   }
 
   if (badInput) {
     std::string errmsg = fmt::format("Bad volume / pressure-correction data: {}\nSee details above", filename);
-    error->message(FLERR,errmsg.c_str());
+    error->message(FLERR,errmsg);
   }
 
   if (p_basis_type == BASIS_LINEAR_SPLINE)
@@ -771,7 +771,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
   else
   {
     std::string errmsg = fmt::format("ERROR: invalid p_basis_type value of {} in read_F_table", p_basis_type);
-    error->all(FLERR,errmsg.c_str());
+    error->all(FLERR,errmsg);
   }
 
   return numEntries;
@@ -780,7 +780,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
 int FixBocs::build_linear_splines(std::vector<std::vector<double>> const &data) {
   std::string message;
   //message = fmt::format("INFO: entering build_linear_splines, spline_length = {}", spline_length);
-  //error->message(FLERR, message.c_str());
+  //error->message(FLERR, message);
 
   splines = (double **) calloc(NUM_LINEAR_SPLINE_COLUMNS,sizeof(double *));
   splines[VOLUME] = (double *) calloc(spline_length,sizeof(double));
@@ -793,7 +793,7 @@ int FixBocs::build_linear_splines(std::vector<std::vector<double>> const &data) 
   }
 
   message = fmt::format("INFO: leaving build_linear_splines, spline_length = {}", spline_length);
-  error->message(FLERR, message.c_str());
+  error->message(FLERR, message);
 
   return spline_length;
 }
@@ -802,7 +802,7 @@ int FixBocs::build_cubic_splines(std::vector<std::vector<double>> const &data )
 {
   std::string message;
   //message = fmt::format("INFO: entering build_cubic_splines, spline_length = {}", spline_length);
-  //error->message(FLERR, message.c_str());
+  //error->message(FLERR, message);
 
   int n = spline_length;
   // 2020-07-17 ag:
@@ -889,7 +889,7 @@ int FixBocs::build_cubic_splines(std::vector<std::vector<double>> const &data )
   }
 
   message = fmt::format("INFO: leaving build_cubic_splines, numSplines = {}", numSplines);
-  error->message(FLERR, message.c_str());
+  error->message(FLERR, message);
 
   // Tell the caller how many splines we created
   return numSplines;

@@ -58,11 +58,6 @@ static const char cite_user_bocs_package[] =
 #define DELTAFLIP 0.1
 #define TILTMAX 1.5
 
-// The only thing ugly about std::vector is the declaration statement
-// Make it more friendly in the body of the code with a typedef here
-typedef std::vector<double> DblVector;
-
-
 enum{NOBIAS,BIAS};
 enum{NONE,XYZ,XY,YZ,XZ};
 enum{ISO,ANISO,TRICLINIC};
@@ -640,10 +635,7 @@ void FixBocs::init()
 // NJD MRD 2 functions
 int FixBocs::read_F_table( char *filename, int p_basis_type )
 {
-  DblVector volumeVec;
-  DblVector pressureVec;
-  std::vector<DblVector> data;
-
+  double **data;
   bool badInput = false;
   int numEntries = 0;
   FILE *fpi = fopen(filename,"r");
@@ -672,16 +664,9 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     message = fmt::format("INFO: Read {} lines from file", numEntries);
     error->message(FLERR, message);
 
-
-    // Initializing the size of vectors is not required.
-    // The structures will resize as you push values into them.
-    // But for largish data sets where you do know the value,
-    // it is more efficient to do one upfront allocation.
-    volumeVec.resize(numEntries);
-    pressureVec.resize(numEntries);
-    data.resize(NUM_INPUT_DATA_COLUMNS);
-    data[VOLUME] = volumeVec;
-    data[PRESSURE_CORRECTION] = pressureVec;
+    // Allocate memory for the two dimensional matrix
+    // that holds data from the input file.
+    memory->create(data, NUM_INPUT_DATA_COLUMNS, numEntries, "data");
 
     double stdVolumeInterval = 0.0;
     double currVolumeInterval = 0.0;
@@ -774,10 +759,11 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     error->all(FLERR,errmsg);
   }
 
+  memory->destroy(data);
   return numEntries;
 }
 
-int FixBocs::build_linear_splines(std::vector<std::vector<double>> const &data) {
+int FixBocs::build_linear_splines(double **data) {
   std::string message;
   //message = fmt::format("INFO: entering build_linear_splines, spline_length = {}", spline_length);
   //error->message(FLERR, message);
@@ -786,10 +772,10 @@ int FixBocs::build_linear_splines(std::vector<std::vector<double>> const &data) 
   splines[VOLUME] = (double *) calloc(spline_length,sizeof(double));
   splines[PRESSURE_CORRECTION] = (double *) calloc(spline_length,sizeof(double));
 
-  for (int idxb = 0; idxb < spline_length; ++idxb)
+  for (int i = 0; i < spline_length; ++i)
   {
-    splines[VOLUME][idxb] = data[VOLUME][idxb];
-    splines[PRESSURE_CORRECTION][idxb] = data[PRESSURE_CORRECTION][idxb];
+    splines[VOLUME][i] = data[VOLUME][i];
+    splines[PRESSURE_CORRECTION][i] = data[PRESSURE_CORRECTION][i];
   }
 
   message = fmt::format("INFO: leaving build_linear_splines, spline_length = {}", spline_length);
@@ -798,29 +784,30 @@ int FixBocs::build_linear_splines(std::vector<std::vector<double>> const &data) 
   return spline_length;
 }
 
-int FixBocs::build_cubic_splines(std::vector<std::vector<double>> const &data )
+int FixBocs::build_cubic_splines(double **data)
 {
   std::string message;
   //message = fmt::format("INFO: entering build_cubic_splines, spline_length = {}", spline_length);
   //error->message(FLERR, message);
 
   int n = spline_length;
+  double *a, *b, *d, *h, *alpha, *c, *l, *mu, *z;
   // 2020-07-17 ag:
   // valgrind says that we read/write a[n] down in the
   // for(int j=n-1; j>=0; j--) loop below
   // and I agree.
   // So the size of a must be n+1, not n as was found
   // in the original code.
-  DblVector a(n+1);
-  DblVector b(n+1);
-  DblVector c(n+1);
-  DblVector d(n+1);
+  memory->create(a, n+1, "a");
+  memory->create(b, n+1, "b");
+  memory->create(c, n+1, "c");
+  memory->create(d, n+1, "d");
 
-  DblVector h(n);
-  DblVector alpha(n);
-  DblVector l(n);
-  DblVector mu(n);
-  DblVector z(n);
+  memory->create(h, n, "h");
+  memory->create(alpha, n, "alpha");
+  memory->create(l, n, "l");
+  memory->create(mu, n, "mu");
+  memory->create(z, n, "z");
 
   for (int i=0; i<n; i++)
   {
@@ -869,16 +856,10 @@ int FixBocs::build_cubic_splines(std::vector<std::vector<double>> const &data )
 
     d[j] = (c[j+1]-c[j])/(3.0 * h[j]);
   }
-  splines = (double **) calloc(NUM_CUBIC_SPLINE_COLUMNS,sizeof(double *));
 
-  int idx;
-  for ( idx = 0; idx < NUM_CUBIC_SPLINE_COLUMNS; ++idx)
-  {
-    splines[idx] = (double *) calloc(n-1,sizeof(double));
-  }
-  idx = 0;
+  memory->create(splines, NUM_CUBIC_SPLINE_COLUMNS, n-1, "splines");
   int numSplines = 0;
-  for ( idx = 0; idx < n - 1; ++idx)
+  for (int idx = 0; idx < n - 1; ++idx)
   {
     splines[0][idx] = data[0][idx];
     splines[1][idx] = a[idx];
@@ -887,6 +868,17 @@ int FixBocs::build_cubic_splines(std::vector<std::vector<double>> const &data )
     splines[4][idx] = d[idx];
     numSplines++;
   }
+
+  memory->destroy(a);
+  memory->destroy(b);
+  memory->destroy(c);
+  memory->destroy(d);
+
+  memory->destroy(h);
+  memory->destroy(alpha);
+  memory->destroy(l);
+  memory->destroy(mu);
+  memory->destroy(z);
 
   message = fmt::format("INFO: leaving build_cubic_splines, numSplines = {}", numSplines);
   error->message(FLERR, message);

@@ -237,7 +237,7 @@ void SNAKokkos<DeviceType>::grow_rij(int newnatom, int newnmax)
   element = t_sna_2i("sna:rcutij",natom,nmax);
   dedr = t_sna_3d("sna:dedr",natom,nmax,3);
 
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
   if (std::is_same<DeviceType,Kokkos::Cuda>::value) {
     // dummy allocation
     ulisttot = t_sna_3c_ll("sna:ulisttot",1,1,1);
@@ -269,7 +269,7 @@ void SNAKokkos<DeviceType>::grow_rij(int newnatom, int newnmax)
     ylist_pack_im = t_sna_4d_ll("sna:ylist_pack_im",1,1,1,1);
     dulist = t_sna_4c3_ll("sna:dulist",idxu_max,natom,nmax);
 
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
   }
 #endif
 }
@@ -2029,7 +2029,7 @@ double SNAKokkos<DeviceType>::memory_usage()
   bytes += jdimpq*jdimpq * sizeof(double);               // pqarray
   bytes += idxcg_max * sizeof(double);                   // cglist
 
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
   if (std::is_same<DeviceType,Kokkos::Cuda>::value) {
     int natom_pad = ((natom + 32 - 1) / 32) * 32; // for AoSoA layouts
 
@@ -2055,7 +2055,7 @@ double SNAKokkos<DeviceType>::memory_usage()
     bytes += natom * idxu_max * nelements * sizeof(double) * 2;      // ylist
 
     bytes += natom * nmax * idxu_max * 3 * sizeof(double) * 2;       // dulist
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
   }
 #endif
 

@@ -5,6 +5,23 @@ if(NOT YAML_FOUND)
   return()
 endif()
 
+if(CMAKE_VERSION VERSION_LESS 3.12)
+  # adjust so we find Python 3 versions before Python 2 on old systems with old CMake
+  set(Python_ADDITIONAL_VERSIONS 3.8 3.7 3.6 3.5)
+  find_package(PythonInterp) # Deprecated since version 3.12
+  if(PYTHONINTERP_FOUND)
+    set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
+  endif()
+else()
+  find_package(Python COMPONENTS Interpreter)
+endif()
+if (Python_EXECUTABLE)
+  add_custom_target(check-tests
+    ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/check_tests.py
+    -s ${LAMMPS_SOURCE_DIR} -t ${CMAKE_CURRENT_SOURCE_DIR}/tests
+    COMMENT "Check completeness of force style tests")
+endif()
+
 set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 add_library(style_tests STATIC yaml_writer.cpp error_stats.cpp test_config_reader.cpp test_main.cpp)
 target_compile_definitions(style_tests PRIVATE -DTEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
@@ -45,7 +62,7 @@ endif()
 foreach(TEST ${MOL_PAIR_TESTS})
   string(REGEX REPLACE "^.*mol-pair-(.*)\.yaml" "MolPairStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND test_pair_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
 endforeach()
 
 # tests for metal-like atomic systems and related pair styles
@@ -53,7 +70,7 @@ file(GLOB ATOMIC_PAIR_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/atomic-p
 foreach(TEST ${ATOMIC_PAIR_TESTS})
   string(REGEX REPLACE "^.*atomic-pair-(.*)\.yaml" "AtomicPairStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND test_pair_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
 endforeach()
 
 # tests for Si-like manybody systems and related pair styles
@@ -61,7 +78,7 @@ file(GLOB MANYBODY_PAIR_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/manybo
 foreach(TEST ${MANYBODY_PAIR_TESTS})
   string(REGEX REPLACE "^.*manybody-pair-(.*)\.yaml" "ManybodyPairStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND test_pair_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
 endforeach()
 
 # bond style tester
@@ -72,7 +89,7 @@ file(GLOB BOND_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/bond-*.yaml)
 foreach(TEST ${BOND_TESTS})
   string(REGEX REPLACE "^.*bond-(.*)\.yaml" "BondStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND test_bond_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
 endforeach()
 
 # angle style tester
@@ -83,7 +100,7 @@ file(GLOB ANGLE_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/angle-*.yaml)
 foreach(TEST ${ANGLE_TESTS})
   string(REGEX REPLACE "^.*angle-(.*)\.yaml" "AngleStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND test_angle_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
 endforeach()
 
 # kspace style tester, currently uses the pair style tool
@@ -95,5 +112,5 @@ endif()
 foreach(TEST ${KSPACE_TESTS})
   string(REGEX REPLACE "^.*kspace-(.*)\.yaml" "KSpaceStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND test_pair_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
 endforeach()

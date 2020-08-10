@@ -348,6 +348,7 @@ void PairMEAMSpline::allocate()
   zero_atom_energies = new double[n];
 
   map = new int[n+1];
+  for (int i=0; i <= n; ++i) map[i] = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -400,7 +401,7 @@ void PairMEAMSpline::coeff(int narg, char **arg)
         if (strcmp(arg[i],elements[j]) == 0)
           break;
       if (j < nelements) map[i-2] = j;
-      else error->all(FLERR,"No matching element in EAM potential file");
+      else error->all(FLERR,"No matching element in meam/spline potential file");
     }
   }
   // clear setflag since coeff() called once with I,J = * *
@@ -419,8 +420,17 @@ void PairMEAMSpline::coeff(int narg, char **arg)
         setflag[i][j] = 1;
         count++;
       }
-
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+
+  // check that each element is mapped to exactly one atom type
+
+  for (int i = 0; i < nelements; i++) {
+    count = 0;
+    for (int j = 1; j <= n; j++)
+      if (map[j] == i) count++;
+    if (count != 1)
+      error->all(FLERR,"Pair style meam/spline requires one atom type per element");
+  } 
 }
 
 #define MAXLINE 1024
@@ -480,7 +490,10 @@ void PairMEAMSpline::read_file(const char* filename)
     }
 
     nmultichoose2 = ((nelements+1)*nelements)/2;
-    // allocate!!
+
+    if (nelements != atom->ntypes)
+      error->all(FLERR,"Pair style meam/spline requires one atom type per element");
+
     allocate();
 
     // Parse spline functions.

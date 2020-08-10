@@ -352,7 +352,7 @@ double PairBuckCoulCutKokkos<DeviceType>::init_one(int i, int j)
 
 namespace LAMMPS_NS {
 template class PairBuckCoulCutKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairBuckCoulCutKokkos<LMPHostType>;
 #endif
 }

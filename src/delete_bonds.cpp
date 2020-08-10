@@ -51,11 +51,10 @@ void DeleteBonds::command(int narg, char **arg)
   // init entire system since comm->borders is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
 
-  if (comm->me == 0 && screen)
-    fprintf(screen,"System init for delete_bonds ...\n");
+  if (comm->me == 0) utils::logmesg(lmp,"System init for delete_bonds ...\n");
   lmp->init();
 
-  if (comm->me == 0 && screen) fprintf(screen,"Deleting bonds ...\n");
+  if (comm->me == 0) utils::logmesg(lmp,"Deleting bonds ...\n");
 
   // identify group
 

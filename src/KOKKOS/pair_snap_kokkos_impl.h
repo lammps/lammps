@@ -296,7 +296,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       }
     } else { // GPU
 
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
       //PreUi
       {
         int vector_length = vector_length_default;

@@ -55,7 +55,7 @@ class CommTiled : public Comm {
  private:
   int nswap;                    // # of swaps to perform = 2*dim
   int maxswap;                  // largest nswap can be = 6
-  
+
   // forward/reverse comm info, proc lists include self
 
   int *nsendproc,*nrecvproc;    // # of procs to send/recv to/from per swap
@@ -70,13 +70,16 @@ class CommTiled : public Comm {
   int **size_reverse_recv;      // # of values to recv in each reverse swap/proc
   int **forward_recv_offset;  // forward comm offsets in buf_recv per swap/proc
   int **reverse_recv_offset;  // reverse comm offsets in buf_recv per swap/proc
-
   int ***sendlist;              // list of atoms to send per swap/proc
   int **maxsendlist;            // max size of send list per swap/proc
   int **pbc_flag;               // general flag for sending atoms thru PBC
   int ***pbc;                   // dimension flags for PBC adjustments
 
   double ***sendbox;            // bounding box of atoms to send per swap/proc
+
+  double **cutghostmulti;       // cutghost on a per-type basis
+  double ****sendbox_multi;     // bounding box of atoms to send
+                                //   per swap/proc for multi comm
 
   // exchange comm info, proc lists do not include self
 
@@ -92,7 +95,7 @@ class CommTiled : public Comm {
   int smaxall,rmaxall;          // max size in atoms of any borders send/recv
                                 //   for comm to all procs in one swap
 
-  int maxreqstat;               // max size of Request and Status vectors
+  int maxrequest;               // max size of Request vector
   MPI_Request *requests;
 
   struct RCBinfo {
@@ -147,6 +150,7 @@ class CommTiled : public Comm {
   void grow_swap_send(int, int, int);  // grow swap arrays for send and recv
   void grow_swap_recv(int, int);
   void deallocate_swap(int);           // deallocate swap arrays
+
 };
 
 }

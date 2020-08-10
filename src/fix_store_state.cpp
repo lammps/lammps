@@ -611,6 +611,7 @@ int FixStoreState::unpack_exchange(int nlocal, double *buf)
 
 int FixStoreState::pack_restart(int i, double *buf)
 {
+  // pack buf[0] this way because other fixes unpack it
   buf[0] = nvalues+1;
   for (int m = 0; m < nvalues; m++) buf[m+1] = values[i][m];
   return nvalues+1;
@@ -625,6 +626,7 @@ void FixStoreState::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
 
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);

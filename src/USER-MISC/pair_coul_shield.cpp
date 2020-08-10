@@ -115,8 +115,8 @@ void PairCoulShield::compute(int eflag, int vflag)
 
         // turn on/off taper function
         if (tap_flag) {
-          Tap = calc_Tap(r,sqrt(cutsq[itype][jtype]));
-          dTap = calc_dTap(r,sqrt(cutsq[itype][jtype]));
+          Tap = calc_Tap(r,cut[itype][jtype]);
+          dTap = calc_dTap(r,cut[itype][jtype]);
         } else {Tap = 1.0; dTap = 0.0;}
 
         forcecoul = qqrd2e*qtmp*q[j]*r*depsdr;
@@ -297,6 +297,8 @@ void PairCoulShield::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
           utils::sfread(FLERR,&sigmae[i][j],sizeof(double),1,fp,NULL,error);
@@ -338,34 +340,41 @@ void PairCoulShield::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairCoulShield::single(int i, int j, int itype, int jtype,
-                           double rsq, double factor_coul, double /*factor_lj*/,
-                           double &fforce)
+                              double rsq, double factor_coul, double /*factor_lj*/,
+                              double &fforce)
 {
   double r, rarg,Vc,fvc,forcecoul,phishieldec;
   double r3,th,epsr,depsdr,Tap,dTap;
   double *q = atom->q;
   double qqrd2e = force->qqrd2e;
 
-   r = sqrt(rsq);
-   r3 = rsq*r;
-   rarg = 1.0/sigmae[itype][jtype];
-   th = r3 + MathSpecial::cube(rarg);
-   epsr = 1.0/pow(th,0.333333333333333333);
-   depsdr = epsr*epsr;
-   depsdr *= depsdr;
-   Vc = qqrd2e*q[i]*q[j]*epsr;
+  // only computed between different layers as indicated by different molecule ids.
 
-   // turn on/off taper function
-   if (tap_flag) {
-     Tap = calc_Tap(r,sqrt(cutsq[itype][jtype]));
-     dTap = calc_dTap(r,sqrt(cutsq[itype][jtype]));
-   } else {Tap = 1.0; dTap = 0.0;}
+  if (atom->molecule[i] == atom->molecule[j]) {
+    fforce = 0.0;
+    return 0.0;
+  }
 
-   forcecoul = qqrd2e*q[i]*q[j]*r*depsdr;
-   fvc = forcecoul*Tap - Vc*dTap/r;
-   fforce = factor_coul*fvc;
+  r = sqrt(rsq);
+  r3 = rsq*r;
+  rarg = 1.0/sigmae[itype][jtype];
+  th = r3 + MathSpecial::cube(rarg);
+  epsr = 1.0/pow(th,0.333333333333333333);
+  depsdr = epsr*epsr;
+  depsdr *= depsdr;
+  Vc = qqrd2e*q[i]*q[j]*epsr;
 
-  if (tap_flag) phishieldec = factor_coul*Vc*Tap;
+  // turn on/off taper function
+  if (tap_flag) {
+    Tap = calc_Tap(r,cut[itype][jtype]);
+    dTap = calc_dTap(r,cut[itype][jtype]);
+  } else {Tap = 1.0; dTap = 0.0;}
+
+  forcecoul = qqrd2e*q[i]*q[j]*r*depsdr;
+  fvc = forcecoul*Tap - Vc*dTap/r;
+  fforce = factor_coul*fvc;
+
+  if (tap_flag) phishieldec = Vc*Tap;
   else phishieldec = Vc - offset[itype][jtype];
   return factor_coul*phishieldec;
 }

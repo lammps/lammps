@@ -32,11 +32,11 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJ_AB_MDF::PairLJ_AB_MDF(LAMMPS *lmp) : Pair(lmp) {}
+PairLennardMDF::PairLennardMDF(LAMMPS *lmp) : Pair(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-PairLJ_AB_MDF::~PairLJ_AB_MDF()
+PairLennardMDF::~PairLennardMDF()
 {
   if (allocated) {
     memory->destroy(setflag);
@@ -56,7 +56,7 @@ PairLJ_AB_MDF::~PairLJ_AB_MDF()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJ_AB_MDF::compute(int eflag, int vflag)
+void PairLennardMDF::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
@@ -153,7 +153,7 @@ void PairLJ_AB_MDF::compute(int eflag, int vflag)
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairLJ_AB_MDF::allocate()
+void PairLennardMDF::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -180,7 +180,7 @@ void PairLJ_AB_MDF::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairLJ_AB_MDF::settings(int narg, char **arg)
+void PairLennardMDF::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
@@ -207,7 +207,7 @@ void PairLJ_AB_MDF::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairLJ_AB_MDF::coeff(int narg, char **arg)
+void PairLennardMDF::coeff(int narg, char **arg)
 {
   if (narg != 4 && narg != 6)
     error->all(FLERR,"Incorrect args for pair coefficients");
@@ -248,7 +248,7 @@ void PairLJ_AB_MDF::coeff(int narg, char **arg)
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairLJ_AB_MDF::init_one(int i, int j)
+double PairLennardMDF::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
@@ -259,6 +259,7 @@ double PairLJ_AB_MDF::init_one(int i, int j)
   lj3[i][j] = aparm[i][j];
   lj4[i][j] = bparm[i][j];
 
+  cut[j][i] = cut[i][j];
   cut_inner[j][i] = cut_inner[i][j];
   cut_inner_sq[j][i] = cut_inner_sq[i][j];
   lj1[j][i] = lj1[i][j];
@@ -273,7 +274,7 @@ double PairLJ_AB_MDF::init_one(int i, int j)
   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairLJ_AB_MDF::write_restart(FILE *fp)
+void PairLennardMDF::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -294,7 +295,7 @@ void PairLJ_AB_MDF::write_restart(FILE *fp)
   proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairLJ_AB_MDF::read_restart(FILE *fp)
+void PairLennardMDF::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
   allocate();
@@ -324,7 +325,7 @@ void PairLJ_AB_MDF::read_restart(FILE *fp)
   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairLJ_AB_MDF::write_restart_settings(FILE *fp)
+void PairLennardMDF::write_restart_settings(FILE *fp)
 {
   fwrite(&mix_flag,sizeof(int),1,fp);
 }
@@ -333,7 +334,7 @@ void PairLJ_AB_MDF::write_restart_settings(FILE *fp)
   proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairLJ_AB_MDF::read_restart_settings(FILE *fp)
+void PairLennardMDF::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
@@ -342,9 +343,32 @@ void PairLJ_AB_MDF::read_restart_settings(FILE *fp)
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
 }
 
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairLennardMDF::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    fprintf(fp,"%d %g %g\n",i,aparm[i][i],bparm[i][i]);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairLennardMDF::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %g %g %g %g\n",
+              i,j,aparm[i][j],bparm[i][j],
+              cut_inner[i][j],cut[i][j]);
+}
+
 /* ---------------------------------------------------------------------- */
 
-double PairLJ_AB_MDF::single(int /*i*/, int /*j*/, int itype, int jtype,
+double PairLennardMDF::single(int /*i*/, int /*j*/, int itype, int jtype,
                              double rsq,
                              double /*factor_coul*/, double factor_lj,
                              double &fforce)
@@ -368,7 +392,7 @@ double PairLJ_AB_MDF::single(int /*i*/, int /*j*/, int itype, int jtype,
     dt = 30.* d*d * dd*dd * rr / dp;
 
     forcelj = forcelj*tt + philj*dt;
-    philj *= dt;
+    philj *= tt;
   }
 
   fforce = factor_lj*forcelj*r2inv;
@@ -378,7 +402,7 @@ double PairLJ_AB_MDF::single(int /*i*/, int /*j*/, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairLJ_AB_MDF::extract(const char *str, int &dim)
+void *PairLennardMDF::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str,"a") == 0) return (void *) aparm;

@@ -82,7 +82,7 @@ void Set::command(int narg, char **arg)
   // loop over keyword/value pairs
   // call appropriate routine to reset attributes
 
-  if (comm->me == 0 && screen) fprintf(screen,"Setting atom values ...\n");
+  if (comm->me == 0) utils::logmesg(lmp,"Setting atom values ...\n");
 
   int allcount,origarg;
 
@@ -1264,7 +1264,7 @@ void Set::topology(int keyword)
   // init entire system since comm->exchange is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
 
-  if (comm->me == 0 && screen) fprintf(screen,"  system init for set ...\n");
+  if (comm->me == 0) utils::logmesg(lmp,"  system init for set ...\n");
   lmp->init();
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);

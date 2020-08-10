@@ -105,8 +105,7 @@ void WriteData::command(int narg, char **arg)
   //     e.g. pair hybrid coeffs, dpd ghost-atom velocity setting
 
   if (noinit == 0) {
-    if (comm->me == 0 && screen)
-      fputs("System init for write_data ...\n",screen);
+    if (comm->me == 0) utils::logmesg(lmp,"System init for write_data ...\n");
     lmp->init();
 
     // move atoms to new processors before writing file

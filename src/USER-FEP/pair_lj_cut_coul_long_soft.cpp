@@ -631,12 +631,12 @@ void PairLJCutCoulLongSoft::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/cut/coul/long/soft requires atom attribute q");
 
-  // request regular or rRESPA neighbor list
+  // request regular or rRESPA neighbor lists
 
   int irequest;
   int respa = 0;
 
-  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
+  if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
   }
@@ -653,7 +653,7 @@ void PairLJCutCoulLongSoft::init_style()
 
   // set rRESPA cutoffs
 
-  if (strstr(update->integrate_style,"respa") &&
+  if (utils::strmatch(update->integrate_style,"^respa") &&
       ((Respa *) update->integrate)->level_inner >= 0)
     cut_respa = ((Respa *) update->integrate)->cutoff;
   else cut_respa = NULL;

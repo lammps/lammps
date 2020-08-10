@@ -54,7 +54,8 @@ using namespace MathSpecial;
 enum {HOOKE, HERTZ, HERTZ_MATERIAL, DMT, JKR};
 enum {VELOCITY, MASS_VELOCITY, VISCOELASTIC, TSUJI};
 enum {TANGENTIAL_NOHISTORY, TANGENTIAL_HISTORY,
-      TANGENTIAL_MINDLIN, TANGENTIAL_MINDLIN_RESCALE};
+      TANGENTIAL_MINDLIN, TANGENTIAL_MINDLIN_RESCALE,
+      TANGENTIAL_MINDLIN_FORCE, TANGENTIAL_MINDLIN_RESCALE_FORCE};
 enum {TWIST_NONE, TWIST_SDS, TWIST_MARSHALL};
 enum {ROLL_NONE, ROLL_SDS};
 
@@ -377,8 +378,11 @@ void PairGranular::compute(int eflag, int vflag)
         // tangential force, including history effects
         //****************************************
 
-        // For linear forces, history = cumulative tangential displacement
-        // For nonlinear forces, history = cumulative elastic tangential force
+        // For linear, mindlin, mindlin_rescale:
+        // history = cumulative tangential displacement
+        //
+        // For mindlin/force, mindlin_rescale/force:
+        // history = cumulative tangential elastic force
 
         // tangential component
         vt1 = vr1 - vn1;
@@ -422,12 +426,15 @@ void PairGranular::compute(int eflag, int vflag)
           damp_normal_prefactor;
 
         if (tangential_history) {
-          if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN) {
+          if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN ||
+              tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_FORCE) {
             k_tangential *= a;
           } else if (tangential_model[itype][jtype] ==
-                     TANGENTIAL_MINDLIN_RESCALE) {
+                     TANGENTIAL_MINDLIN_RESCALE ||
+                     tangential_model[itype][jtype] ==
+                     TANGENTIAL_MINDLIN_RESCALE_FORCE) {
             k_tangential *= a;
-            // on unloading, rescale the shear force
+            // on unloading, rescale the shear displacements/force
             if (a < history[3]) {
               double factor = a/history[3];
               history[0] *= factor;
@@ -435,11 +442,11 @@ void PairGranular::compute(int eflag, int vflag)
               history[2] *= factor;
             }
           }
-          // rotate and update displacements / force
+          // rotate and update displacements / force.
           // see e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
           if (historyupdate) {
             rsht = history[0]*nx + history[1]*ny + history[2]*nz;
-            if (fabs(rsht) < EPSILON) rsht = 0; // EPSILON still valid when history is a force???
+            if (fabs(rsht) < EPSILON) rsht = 0; // EPSILON = 1e-10 can fail for small granular media: 
             if (rsht > 0) {
               shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
                                                history[2]*history[2]);
@@ -454,22 +461,31 @@ void PairGranular::compute(int eflag, int vflag)
               history[1] *= scalefac;
               history[2] *= scalefac;
             }
-            // update tangential displacement / force history
-            if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY) {
+            // update history
+            if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY ||
+                tangential_model[itype][jtype] == TANGENTIAL_MINDLIN ||
+                tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE) {
+              // tangential displacement
               history[0] += vtr1*dt;
               history[1] += vtr2*dt;
               history[2] += vtr3*dt;
-            } else { // Eq. (18) Thornton et al., 2013 (http://dx.doi.org/10.1016/j.powtec.2012.08.012)
+            } else {
+              // tangential force
+              // see e.g. eq. 18 of Thornton et al, Pow. Tech. 2013, v223,p30-46
               history[0] -= k_tangential*vtr1*dt;
               history[1] -= k_tangential*vtr2*dt;
               history[2] -= k_tangential*vtr3*dt;
-              if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE)
-                history[3] = a;
             }
+            if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE ||
+                tangential_model[itype][jtype] ==
+                TANGENTIAL_MINDLIN_RESCALE_FORCE)
+              history[3] = a;
           }
 
           // tangential forces = history + tangential velocity damping
-          if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY) {
+          if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY ||
+              tangential_model[itype][jtype] == TANGENTIAL_MINDLIN ||
+              tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE) {
             fs1 = -k_tangential*history[0] - damp_tangential*vtr1;
             fs2 = -k_tangential*history[1] - damp_tangential*vtr2;
             fs3 = -k_tangential*history[2] - damp_tangential*vtr3;
@@ -485,7 +501,10 @@ void PairGranular::compute(int eflag, int vflag)
             shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
                                     history[2]*history[2]);
             if (shrmag != 0.0) {
-              if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY) {
+              if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY ||
+                  tangential_model[itype][jtype] == TANGENTIAL_MINDLIN ||
+                  tangential_model[itype][jtype] ==
+                  TANGENTIAL_MINDLIN_RESCALE) {
                 history[0] = -1.0/k_tangential*(Fscrit*fs1/fs +
                                                 damp_tangential*vtr1);
                 history[1] = -1.0/k_tangential*(Fscrit*fs2/fs +
@@ -760,7 +779,8 @@ void PairGranular::coeff(int narg, char **arg)
 
   //Defaults
   normal_model_one = tangential_model_one = -1;
-  roll_model_one = twist_model_one = 0;
+  roll_model_one = ROLL_NONE;
+  twist_model_one = TWIST_NONE;
   damping_model_one = VISCOELASTIC;
 
   int iarg = 2;
@@ -846,7 +866,9 @@ void PairGranular::coeff(int narg, char **arg)
         iarg += 4;
       } else if ((strcmp(arg[iarg+1], "linear_history") == 0) ||
                (strcmp(arg[iarg+1], "mindlin") == 0) ||
-               (strcmp(arg[iarg+1], "mindlin_rescale") == 0)) {
+               (strcmp(arg[iarg+1], "mindlin_rescale") == 0) ||
+               (strcmp(arg[iarg+1], "mindlin/force") == 0) ||
+               (strcmp(arg[iarg+1], "mindlin_rescale/force") == 0)) {
         if (iarg + 4 >= narg)
           error->all(FLERR,"Illegal pair_coeff command, "
                      "not enough parameters provided for tangential model");
@@ -856,9 +878,15 @@ void PairGranular::coeff(int narg, char **arg)
           tangential_model_one = TANGENTIAL_MINDLIN;
         else if (strcmp(arg[iarg+1], "mindlin_rescale") == 0)
           tangential_model_one = TANGENTIAL_MINDLIN_RESCALE;
+        else if (strcmp(arg[iarg+1], "mindlin/force") == 0)
+          tangential_model_one = TANGENTIAL_MINDLIN_FORCE;
+        else if (strcmp(arg[iarg+1], "mindlin_rescale/force") == 0)
+          tangential_model_one = TANGENTIAL_MINDLIN_RESCALE_FORCE;
         tangential_history = 1;
         if ((tangential_model_one == TANGENTIAL_MINDLIN ||
-             tangential_model_one == TANGENTIAL_MINDLIN_RESCALE) &&
+             tangential_model_one == TANGENTIAL_MINDLIN_RESCALE ||
+             tangential_model_one == TANGENTIAL_MINDLIN_FORCE ||
+             tangential_model_one == TANGENTIAL_MINDLIN_RESCALE_FORCE) &&
             (strcmp(arg[iarg+2], "NULL") == 0)) {
           if (normal_model_one == HERTZ || normal_model_one == HOOKE) {
             error->all(FLERR, "NULL setting for Mindlin tangential "
@@ -1040,7 +1068,8 @@ void PairGranular::init_style()
   }
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      if (tangential_model[i][j] == TANGENTIAL_MINDLIN_RESCALE) {
+      if (tangential_model[i][j] == TANGENTIAL_MINDLIN_RESCALE ||
+          tangential_model[i][j] == TANGENTIAL_MINDLIN_RESCALE_FORCE) {
         size_history += 1;
         roll_history_index += 1;
         twist_history_index += 1;
@@ -1510,6 +1539,12 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   // tangential force, including history effects
   //****************************************
 
+  // For linear, mindlin, mindlin_rescale:
+  // history = cumulative tangential displacement
+  //
+  // For mindlin/force, mindlin_rescale/force:
+  // history = cumulative tangential elastic force
+
   // tangential component
   vt1 = vr1 - vn1;
   vt2 = vr2 - vn2;
@@ -1545,9 +1580,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   damp_tangential = tangential_coeffs[itype][jtype][1]*damp_normal_prefactor;
 
   if (tangential_history) {
-    if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN) {
-      k_tangential *= a;
-    } else if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE) {
+    if (tangential_model[itype][jtype] != TANGENTIAL_HISTORY) {
       k_tangential *= a;
     }
 
@@ -1555,7 +1588,9 @@ double PairGranular::single(int i, int j, int itype, int jtype,
         history[2]*history[2]);
 
     // tangential forces = history + tangential velocity damping
-    if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY) {
+    if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY ||
+        tangential_model[itype][jtype] == TANGENTIAL_MINDLIN ||
+        tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE) {
       fs1 = -k_tangential*history[0] - damp_tangential*vtr1;
       fs2 = -k_tangential*history[1] - damp_tangential*vtr2;
       fs3 = -k_tangential*history[2] - damp_tangential*vtr3;
@@ -1572,7 +1607,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
         fs1 *= Fscrit/fs;
         fs2 *= Fscrit/fs;
         fs3 *= Fscrit/fs;
-                fs *= Fscrit/fs;
+        fs *= Fscrit/fs;
       } else fs1 = fs2 = fs3 = fs = 0.0;
     }
 

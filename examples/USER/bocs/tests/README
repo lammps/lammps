@@ -1,8 +1,0 @@
-This folder contains a variety of input/output files for the
-USER-BOCS code that exercises both error handling and all three
-analysis modes (analytic, linear spline, and cubic spline).
-
-In the absence of automated testing, the bash script, runTests.sh
-may be used to generate a folder of log files which can be
-compared to the baseline file set in logsCompareFileSet to
-look for material changes.

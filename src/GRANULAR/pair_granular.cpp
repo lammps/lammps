@@ -181,7 +181,7 @@ void PairGranular::compute(int eflag, int vflag)
   double signtwist, magtwist, magtortwist, Mtcrit;
   double tortwist1, tortwist2, tortwist3;
 
-  double shrmag,rsht;
+  double shrmag,rsht,prjmag;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *touch,**firsttouch;
   double *history,*allhistory,**firsthistory;
@@ -456,11 +456,12 @@ void PairGranular::compute(int eflag, int vflag)
             // also rescale to preserve magnitude
             prjmag = sqrt(history[0]*history[0] + history[1]*history[1] +
                                              history[2]*history[2]);
-            scalefac = shrmag/prjmag;
+            if (prjmag > 0) scalefac = shrmag/prjmag;
+            else scalefac = 0;
             history[0] *= scalefac;
             history[1] *= scalefac;
             history[2] *= scalefac;
-            }
+
             // update history
             if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY ||
                 tangential_model[itype][jtype] == TANGENTIAL_MINDLIN ||
@@ -571,11 +572,12 @@ void PairGranular::compute(int eflag, int vflag)
             prjmag = sqrt(history[rhist0]*history[rhist0] +
                           history[rhist1]*history[rhist1] +
                           history[rhist2]*history[rhist2]);
-            scalefac = rollmag/prjmag;
+            if (prjmag > 0) scalefac = rollmag/prjmag;
+            else scalefac = 0;
             history[rhist0] *= scalefac;
             history[rhist1] *= scalefac;
             history[rhist2] *= scalefac;
-            }
+            
             history[rhist0] += vrl1*dt;
             history[rhist1] += vrl2*dt;
             history[rhist2] += vrl3*dt;

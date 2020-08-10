@@ -1243,6 +1243,26 @@ string Info::get_openmp_info()
 #endif
 }
 
+string Info::get_mpi_vendor() {
+  #if defined(MPI_STUBS)
+  return "MPI STUBS";
+  #elif defined(OPEN_MPI)
+  return "Open MPI";
+  #elif define(MPICH_NAME)
+  return "MPICH";
+  #elif define(I_MPI_VERSION)
+  return "Intel MPI";
+  #elif define(PLATFORM_MPI)
+  return "Platform MPI";
+  #elif define(HP_MPI)
+  return "HP MPI";
+  #elif define(MSMPI_VER)
+  return "Microsoft MPI";
+  #else
+  return "Unknown";
+  #endif
+}
+
 string Info::get_mpi_info(int &major, int &minor)
 {
   int len;

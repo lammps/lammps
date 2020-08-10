@@ -31,6 +31,7 @@
 #include "force.h"
 #include "improper.h"
 #include "kspace.h"
+#include "memory.h"
 #include "modify.h"
 #include "pair.h"
 #include "update.h"
@@ -128,27 +129,8 @@ ComputePressureBocs::~ComputePressureBocs()
   if (phi_coeff) free(phi_coeff);
 
   // Any splines data that was sent in from fix_bocs must be
-  // freed here, not in fix_bocs where it was calloc'd
-  if (splines) {
-    if (p_basis_type == BASIS_LINEAR_SPLINE) {
-      // splines is a 2 by numSplines matrix of doubles
-      for (int i = 0; i < NUM_LINEAR_SPLINE_COLUMNS; ++i) {
-        free(splines[i]);
-        splines[i] = NULL;
-      }
-    }
-    else if (p_basis_type == BASIS_CUBIC_SPLINE) {
-      // splines is a 5 by numSplines matrix of doubles
-      for (int i = 0; i < NUM_CUBIC_SPLINE_COLUMNS; ++i) {
-        free(splines[i]);
-        splines[i] = NULL;
-      }
-    }
-    // no else clause intentional; splines not an issue for analytic basis
-    free(splines);
-    splines = NULL;
-  }
-
+  // freed here, after it has been used.
+  memory->destroy(splines);
 }
 
 /* ---------------------------------------------------------------------- */

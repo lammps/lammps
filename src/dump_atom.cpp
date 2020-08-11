@@ -197,6 +197,11 @@ void DumpAtom::header_binary(bigint ndump)
 
 void DumpAtom::header_binary_triclinic(bigint ndump)
 {
+  // use negative ntimestep as marker for new format
+  bigint fmtlen = strlen("DUMPATOM");
+  bigint marker = -fmtlen;
+  fwrite(&marker,sizeof(bigint),1,fp);
+  fwrite("DUMPATOM",sizeof(char),fmtlen,fp);
   fwrite(&update->ntimestep,sizeof(bigint),1,fp);
   fwrite(&ndump,sizeof(bigint),1,fp);
   fwrite(&domain->triclinic,sizeof(int),1,fp);
@@ -211,6 +216,11 @@ void DumpAtom::header_binary_triclinic(bigint ndump)
   fwrite(&boxxz,sizeof(double),1,fp);
   fwrite(&boxyz,sizeof(double),1,fp);
   fwrite(&size_one,sizeof(int),1,fp);
+
+  int len = strlen(columns);
+  fwrite(&len, sizeof(int), 1, fp);
+  fwrite(columns, sizeof(char), len, fp);
+
   if (multiproc) fwrite(&nclusterprocs,sizeof(int),1,fp);
   else fwrite(&nprocs,sizeof(int),1,fp);
 }

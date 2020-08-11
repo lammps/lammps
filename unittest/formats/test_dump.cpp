@@ -141,6 +141,20 @@ TEST_F(DumpAtomTest, run0)
     delete_file("dump_run0.melt");
 }
 
+TEST_F(DumpAtomTest, tricilinic_run0)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+
+    command("change_box all triclinic");
+    command("dump id all atom 1 dump_triclinic_run0.melt");
+    command("run 0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS("dump_triclinic_run0.melt");
+    ASSERT_EQ(count_lines("dump_triclinic_run0.melt"), 41);
+    delete_file("dump_triclinic_run0.melt");
+}
+
 TEST_F(DumpAtomTest, binary_run0)
 {
     if(!BINARY2TXT_BINARY) GTEST_SKIP();
@@ -160,6 +174,28 @@ TEST_F(DumpAtomTest, binary_run0)
     delete_file("dump_text_run0.melt");
     delete_file("dump_binary_run0.melt.bin");
     delete_file("dump_binary_run0.melt.bin.txt");
+}
+
+TEST_F(DumpAtomTest, binary_triclinic_run0)
+{
+    if(!BINARY2TXT_BINARY) GTEST_SKIP();
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("change_box all triclinic");
+    command("dump id0 all atom 1 dump_text_tri_run0.melt");
+    command("dump id1 all atom 1 dump_binary_tri_run0.melt.bin");
+    command("run 0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS("dump_text_tri_run0.melt");
+    ASSERT_FILE_EXISTS("dump_binary_tri_run0.melt.bin");
+    std::string cmdline = fmt::format("{} dump_binary_tri_run0.melt.bin", BINARY2TXT_BINARY);
+    system(cmdline.c_str());
+    ASSERT_FILE_EXISTS("dump_binary_tri_run0.melt.bin.txt");
+    ASSERT_FILE_EQUAL("dump_text_tri_run0.melt", "dump_binary_tri_run0.melt.bin.txt");
+    delete_file("dump_text_tri_run0.melt");
+    delete_file("dump_binary_tri_run0.melt.bin");
+    delete_file("dump_binary_tri_run0.melt.bin.txt");
 }
 
 TEST_F(DumpAtomTest, run1)

@@ -90,6 +90,18 @@ void ResetMolIDs::command(int narg, char **arg)
 
   lmp->init();
 
+  // setup domain, communication
+  // exchange will clear map, borders will reset
+  // this is the map needed to lookup current global IDs for bond topology
+
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
+  domain->pbc();
+  domain->reset_box();
+  comm->setup();
+  comm->exchange();
+  comm->borders();
+  if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+
   // reset molecule IDs
 
   reset(groupid);
@@ -131,18 +143,6 @@ void ResetMolIDs::reset(char *groupid)
   if (compressflag)
     modify->add_compute(fmt::format("{} {} chunk/atom molecule compress yes",
                                     idchunk,groupid));
-
-  // setup domain, communication
-  // exchange will clear map, borders will reset
-  // this is the map needed to lookup current global IDs for bond topology
-
-  if (domain->triclinic) domain->x2lamda(atom->nlocal);
-  domain->pbc();
-  domain->reset_box();
-  comm->setup();
-  comm->exchange();
-  comm->borders();
-  if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
 
   // invoke peratom method of compute fragment/atom
   // walks bond connectivity and assigns each atom a fragment ID

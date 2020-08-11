@@ -4914,7 +4914,7 @@ void _noopt PairBOP::read_table(char *filename)
 {
   if (comm->me == 0) {
     try {
-      PotentialFileReader reader(lmp, filename, "BOP");
+      PotentialFileReader reader(lmp, filename, "bop");
 
       bop_types = reader.next_int();
       elements = new char*[bop_types];

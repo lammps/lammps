@@ -90,15 +90,15 @@ void kimProperty::command(int narg, char **arg)
 #if LMP_PYTHON
 #if PY_MAJOR_VERSION >= 3
   if (narg < 2)
-    error->all(FLERR, "Invalid `kim_property` command.");
+    error->all(FLERR, "Invalid kim_property command.");
 
   if (!(strcmp(arg[0], "create") == 0) &&
       !(strcmp(arg[0], "destroy") == 0) &&
       !(strcmp(arg[0], "modify") == 0) &&
       !(strcmp(arg[0], "remove") == 0) &&
       !(strcmp(arg[0], "dump") == 0)) {
-    std::string msg("Error incorrect arguments in kim_property command.\n");
-    msg += "`kim_property create/destroy/modify/remove/dump` ";
+    std::string msg("Incorrect arguments in kim_property command.\n");
+    msg += "'kim_property create/destroy/modify/remove/dump' ";
     msg += "is mandatory.";
     error->all(FLERR, msg);
   }
@@ -111,12 +111,7 @@ void kimProperty::command(int narg, char **arg)
 
   // Get the kim_str ptr to the data associated with a kim_property_str
   // variable
-  char *kim_str =
-    input->variable->retrieve(const_cast<char *>("kim_property_str"));
-
-  char **kim_str_cmd = new char *[3];
-  kim_str_cmd[0] = const_cast<char *>("kim_property_str");
-
+  char *kim_str = input->variable->retrieve("kim_property_str");
   PyGILState_STATE gstate = PyGILState_Ensure();
 
   // kim_property module
@@ -127,15 +122,15 @@ void kimProperty::command(int narg, char **arg)
     PyObject *obj = PyUnicode_FromString("kim_property");
     if (!obj) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Error creating a `PyObject`!");
+      error->all(FLERR, "Creating a 'PyObject'!");
     }
 
     kim_property = PyImport_Import(obj);
     if (!kim_property) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Error unable to import Python `kim_property` module!"
+      error->all(FLERR, "Unable to import Python kim_property module!"
                         "\nkim-property Python package can be installed "
-                        "with pip:\n`pip install kim-property`\n"
+                        "with pip:\n'pip install kim-property'\n"
                         "See the installation instructions at\n"
                         "https://github.com/openkim/kim-property#installing-kim-property\n"
                         "for detailed information.");
@@ -149,7 +144,7 @@ void kimProperty::command(int narg, char **arg)
   if (strcmp(arg[0], "create") == 0) {
     if (narg != 3) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Error invalid `kim_property create` command.");
+      error->all(FLERR, "Invalid 'kim_property create' command.");
     }
 
     int const ID = utils::inumeric(FLERR, arg[1], true, lmp);
@@ -163,8 +158,8 @@ void kimProperty::command(int narg, char **arg)
       PyObject_GetAttrString(kim_property, "kim_property_create");
     if (!pFunc) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Error unable to get an attribute named "
-                        "`kim_property_create` from a kim_property object!");
+      error->all(FLERR, "Unable to get an attribute named "
+                        "'kim_property_create' from a kim_property object!");
     }
 
     // Decrementing of the reference count
@@ -174,7 +169,7 @@ void kimProperty::command(int narg, char **arg)
     PyObject *pArgs = PyTuple_New(nSize);
     if (!pArgs) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Error could not create Python function arguments.");
+      error->all(FLERR, "Could not create Python function arguments.");
     }
 
     // Python object to set the tuple
@@ -197,30 +192,23 @@ void kimProperty::command(int narg, char **arg)
     if (!pValue) {
       PyErr_Print();
       PyGILState_Release(gstate);
-      error->one(FLERR, "Error Python `kim_property_create` function "
+      error->one(FLERR, "Python 'kim_property_create' function "
                         "evaluation failed!");
     }
 
     // Python function returned a string value
     const char *pystr = PyUnicode_AsUTF8(pValue);
-
-    kim_str_cmd[2] = const_cast<char *>(pystr);
-
-    if (kim_str) {
-      input->variable->set_string(kim_str_cmd[0], kim_str_cmd[2]);
-    } else {
-      kim_str_cmd[1] = const_cast<char *>("string");
-      input->variable->set(3, kim_str_cmd);
-    }
+    if (kim_str) input->variable->set_string("kim_property_str", pystr);
+    else input->variable->set(std::string("kim_property_str string '")
+                                          + pystr + std::string("'"));
 
     Py_XDECREF(pArgs);
     Py_XDECREF(pFunc);
     Py_XDECREF(pValue);
-  }
-  else if (strcmp(arg[0], "destroy") == 0) {
+  } else if (strcmp(arg[0], "destroy") == 0) {
     if (narg != 2) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Error invalid `kim_property destroy` command.");
+      error->all(FLERR, "Invalid 'kim_property destroy' command.");
     }
 
     if (!kim_str) {
@@ -236,8 +224,8 @@ void kimProperty::command(int narg, char **arg)
       PyObject_GetAttrString(kim_property, "kim_property_destroy");
     if (!pFunc) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Error unable to get an attribute named "
-                        "`kim_property_destroy` from a kim_property object!");
+      error->all(FLERR, "Unable to get an attribute named "
+                        "'kim_property_destroy' from a kim_property object!");
     }
 
     // Decrementing of the reference count
@@ -247,7 +235,7 @@ void kimProperty::command(int narg, char **arg)
     PyObject *pArgs = PyTuple_New(2);
     if (!pArgs) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Error could not create Python function arguments.");
+      error->all(FLERR, "Could not create Python function arguments.");
     }
 
     // Python object to set the tuple
@@ -263,30 +251,26 @@ void kimProperty::command(int narg, char **arg)
     if (!pValue) {
       PyErr_Print();
       PyGILState_Release(gstate);
-      error->one(FLERR, "Error Python `kim_property_destroy` function "
+      error->one(FLERR, "Python 'kim_property_destroy' function "
                         "evaluation failed!");
     }
 
     // Python function returned a string value
     const char *pystr = PyUnicode_AsUTF8(pValue);
-
-    kim_str_cmd[2] = const_cast<char *>(pystr);
-
-    input->variable->set_string(kim_str_cmd[0], kim_str_cmd[2]);
+    input->variable->set_string("kim_property_str", pystr);
 
     Py_XDECREF(pArgs);
     Py_XDECREF(pFunc);
     Py_XDECREF(pValue);
-  }
-  else if (strcmp(arg[0], "modify") == 0) {
+  } else if (strcmp(arg[0], "modify") == 0) {
     if (narg < 6) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Error invalid `kim_property modify` command.");
+      error->all(FLERR, "Invalid 'kim_property modify' command.");
     }
 
     if (!kim_str) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Error There is no property instance to modify "
+      error->all(FLERR, "There is no property instance to modify "
                         "the content.");
     }
 
@@ -299,8 +283,8 @@ void kimProperty::command(int narg, char **arg)
       PyObject_GetAttrString(kim_property, "kim_property_modify");
     if (!pFunc) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Error unable to get an attribute named "
-                        "`kim_property_modify` from a kim_property object!");
+      error->all(FLERR, "Unable to get an attribute named "
+                        "'kim_property_modify' from a kim_property object!");
     }
 
     // Decrementing of the reference count
@@ -310,7 +294,7 @@ void kimProperty::command(int narg, char **arg)
     PyObject *pArgs = PyTuple_New(static_cast<Py_ssize_t>(narg));
     if (!pArgs) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Error could not create Python function arguments.");
+      error->all(FLERR, "Could not create Python function arguments.");
     }
 
     // Python object to set the tuple
@@ -331,30 +315,26 @@ void kimProperty::command(int narg, char **arg)
     if (!pValue) {
       PyErr_Print();
       PyGILState_Release(gstate);
-      error->one(FLERR, "Error Python `kim_property_modify` function "
+      error->one(FLERR, "Python 'kim_property_modify' function "
                         "evaluation failed!");
     }
 
     // Python function returned a string value
     const char *pystr = PyUnicode_AsUTF8(pValue);
-
-    kim_str_cmd[2] = const_cast<char *>(pystr);
-
-    input->variable->set_string(kim_str_cmd[0], kim_str_cmd[2]);
+    input->variable->set_string("kim_property_str", pystr);
 
     Py_XDECREF(pArgs);
     Py_XDECREF(pFunc);
     Py_XDECREF(pValue);
-  }
-  else if (strcmp(arg[0], "remove") == 0) {
+  } else if (strcmp(arg[0], "remove") == 0) {
     if (narg < 4) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Error invalid `kim_property remove` command.");
+      error->all(FLERR, "Invalid 'kim_property remove' command.");
     }
 
     if (!kim_str) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Error There is no property instance to remove "
+      error->all(FLERR, "There is no property instance to remove "
                         "the content.");
     }
 
@@ -367,8 +347,8 @@ void kimProperty::command(int narg, char **arg)
       PyObject_GetAttrString(kim_property, "kim_property_remove");
     if (!pFunc) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Error unable to get an attribute named "
-                        "`kim_property_remove` from a kim_property object!");
+      error->all(FLERR, "Unable to get an attribute named "
+                        "'kim_property_remove' from a kim_property object!");
     }
 
     // Decrementing of the reference count
@@ -378,7 +358,7 @@ void kimProperty::command(int narg, char **arg)
     PyObject *pArgs = PyTuple_New(static_cast<Py_ssize_t>(narg));
     if (!pArgs) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Error could not create Python function arguments.");
+      error->all(FLERR, "Could not create Python function arguments.");
     }
 
     // Python object to set the tuple
@@ -399,30 +379,26 @@ void kimProperty::command(int narg, char **arg)
     if (!pValue) {
       PyErr_Print();
       PyGILState_Release(gstate);
-      error->one(FLERR, "Error Python `kim_property_remove` function "
+      error->one(FLERR, "Python 'kim_property_remove' function "
                         "evaluation failed!");
     }
 
     // Python function returned a string value
     const char *pystr = PyUnicode_AsUTF8(pValue);
-
-    kim_str_cmd[2] = const_cast<char *>(pystr);
-
-    input->variable->set_string(kim_str_cmd[0], kim_str_cmd[2]);
+    input->variable->set_string("kim_property_str", pystr);
 
     Py_XDECREF(pArgs);
     Py_XDECREF(pFunc);
     Py_XDECREF(pValue);
-  }
-  else if (strcmp(arg[0], "dump") == 0) {
+  } else if (strcmp(arg[0], "dump") == 0) {
     if (narg != 2) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Error invalid `kim_property dump` command.");
+      error->all(FLERR, "Invalid 'kim_property dump' command.");
     }
 
     if (!kim_str) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Error There is no property instance to dump "
+      error->all(FLERR, "There is no property instance to dump "
                         "the content.");
     }
 
@@ -433,8 +409,8 @@ void kimProperty::command(int narg, char **arg)
       PyObject_GetAttrString(kim_property, "kim_property_dump");
     if (!pFunc) {
       PyGILState_Release(gstate);
-      error->all(FLERR, "Error unable to get an attribute named "
-                        "`kim_property_dump` from a kim_property object!");
+      error->all(FLERR, "Unable to get an attribute named "
+                        "'kim_property_dump' from a kim_property object!");
     }
 
     // Decrementing of the reference count
@@ -461,15 +437,14 @@ void kimProperty::command(int narg, char **arg)
       if (!pValue) {
         PyErr_Print();
         PyGILState_Release(gstate);
-        error->one(FLERR, "Error Python `kim_property_dump` function "
+        error->one(FLERR, "Python 'kim_property_dump' function "
                           "evaluation failed!");
       }
     } else
       pValue = NULL;
 
     // Destroy the variable
-    kim_str_cmd[1] = const_cast<char *>("delete");
-    input->variable->set(2, kim_str_cmd);
+    input->variable->set("kim_property_str delete");
 
     Py_XDECREF(pArgs);
     Py_XDECREF(pFunc);
@@ -478,7 +453,6 @@ void kimProperty::command(int narg, char **arg)
 
   PyGILState_Release(gstate);
 
-  delete[] kim_str_cmd;
 #endif // PY_MAJOR_VERSION
 #endif // LMP_PYTHON
 }

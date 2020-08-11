@@ -224,12 +224,12 @@ void PPPMDipoleSpin::init()
   MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
 
   if (me == 0) {
-    std::string mesg = fmt::format("  G vector (1/distance) = {}\n",g_ewald);
+    std::string mesg = fmt::format("  G vector (1/distance) = {:.8g}\n",g_ewald);
     mesg += fmt::format("  grid = {} {} {}\n",nx_pppm,ny_pppm,nz_pppm);
     mesg += fmt::format("  stencil order = {}\n",order);
-    mesg += fmt::format("  estimated absolute RMS force accuracy = {}\n",
+    mesg += fmt::format("  estimated absolute RMS force accuracy = {:.8g}\n",
                        estimated_accuracy);
-    mesg += fmt::format("  estimated relative force accuracy = {}\n",
+    mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
                        estimated_accuracy/two_charge_force);
     mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
     mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",

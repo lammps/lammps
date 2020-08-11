@@ -22,7 +22,11 @@
 #include "tbb/scalable_allocator.h"
 #else
 #include <cstring>
+#if defined(__APPLE__)
+#include <malloc/malloc.h>
+#else
 #include <malloc.h>
+#endif
 #endif
 #endif
 
@@ -84,7 +88,13 @@ void *Memory::srealloc(void *ptr, bigint nbytes, const char *name)
   if (offset) {
     void *optr = ptr;
     ptr = smalloc(nbytes, name);
+#if defined(__APPLE__)
+    memcpy(ptr, optr, MIN(nbytes,malloc_size(optr)));
+#elif defined(_WIN32) || defined(__MINGW32__)
+    memcpy(ptr, optr, MIN(nbytes,_msize(optr)));
+#else
     memcpy(ptr, optr, MIN(nbytes,malloc_usable_size(optr)));
+#endif
     free(optr);
   }
 #else

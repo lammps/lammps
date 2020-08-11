@@ -121,7 +121,6 @@ class PairReaxCKokkos : public PairReaxC {
 
   void ev_setup(int, int, int alloc = 1);
   void compute(int, int);
-  void *extract(const char *, int &);
   void init_style();
   double memory_usage();
   void FindBond(int &);

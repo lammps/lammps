@@ -296,7 +296,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       }
     } else { // GPU
 
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
       //PreUi
       {
         int vector_length = vector_length_default;
@@ -405,7 +405,7 @@ void PairSNAPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     {
       int team_size = team_size_default;
       int vector_length = vector_length_default;
-      if (eflag) {
+      if (evflag) {
         if (neighflag == HALF) {
           check_team_size_reduce<TagPairSNAPComputeForce<HALF,1> >(chunk_size,team_size,vector_length);
           typename Kokkos::TeamPolicy<DeviceType,TagPairSNAPComputeForce<HALF,1> > policy_force(chunk_size,team_size,vector_length);
@@ -632,8 +632,8 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPComputeNeigh,const typen
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPBeta,const int& ii) const {
-  
-  if (ii >= chunk_size) return; 
+
+  if (ii >= chunk_size) return;
 
   const int iatom_mod = ii % 32;
   const int iatom_div = ii / 32;

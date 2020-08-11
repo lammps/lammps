@@ -68,8 +68,8 @@ reciprocal lattice nodes. The mesh spacing is defined either (a)  by
 the entire simulation domain or (b) manually using selected values as
 shown in the 2D diagram below.
 
-.. image:: JPG/saed_mesh_small.jpg
-   :target: JPG/saed_mesh.jpg
+.. image:: img/saed_mesh.jpg
+   :scale: 75%
    :align: center
 
 For a mesh defined by the simulation domain, a rectilinear grid is
@@ -103,8 +103,8 @@ mesh and a *dR_Ewald* thick surface of the Ewald sphere.  See the
 example 3D intensity data and the intersection of a [010] zone axis
 in the below image.
 
-.. image:: JPG/saed_ewald_intersect_small.jpg
-   :target: JPG/saed_ewald_intersect.jpg
+.. image:: img/saed_ewald_intersect.jpg
+   :scale: 75%
    :align: center
 
 The atomic scattering factors, fj, accounts for the reduction in

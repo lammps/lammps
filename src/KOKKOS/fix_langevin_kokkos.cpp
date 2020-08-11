@@ -137,7 +137,7 @@ void FixLangevinKokkos<DeviceType>::grow_arrays(int nmax)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixLangevinKokkos<DeviceType>::initial_integrate(int vflag)
+void FixLangevinKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 {
   atomKK->sync(execution_space,datamask_read);
   atomKK->modified(execution_space,datamask_modify);
@@ -909,7 +909,7 @@ void FixLangevinKokkos<DeviceType>::cleanup_copy()
 
 namespace LAMMPS_NS {
 template class FixLangevinKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixLangevinKokkos<LMPHostType>;
 #endif
 }

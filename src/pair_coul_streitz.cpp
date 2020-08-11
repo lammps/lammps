@@ -249,7 +249,7 @@ void PairCoulStreitz::read_file(char *file)
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = fopen(file,"r");
+    fp = force->open_potential(file);
     if (fp == NULL)
       error->one(FLERR,fmt::format("Cannot open coul/streitz potential "
                                    "file {}",file));

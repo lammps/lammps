@@ -136,22 +136,22 @@ OPT.
    * :doc:`lj/class2/soft <pair_fep_soft>`
    * :doc:`lj/cubic (go) <pair_lj_cubic>`
    * :doc:`lj/cut (gikot) <pair_lj>`
-   * :doc:`lj/cut/coul/cut (gko) <pair_lj>`
+   * :doc:`lj/cut/coul/cut (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/cut/soft (o) <pair_fep_soft>`
-   * :doc:`lj/cut/coul/debye (gko) <pair_lj>`
-   * :doc:`lj/cut/coul/dsf (gko) <pair_lj>`
-   * :doc:`lj/cut/coul/long (gikot) <pair_lj>`
+   * :doc:`lj/cut/coul/debye (gko) <pair_lj_cut_coul>`
+   * :doc:`lj/cut/coul/dsf (gko) <pair_lj_cut_coul>`
+   * :doc:`lj/cut/coul/long (gikot) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/long/cs <pair_cs>`
    * :doc:`lj/cut/coul/long/soft (o) <pair_fep_soft>`
-   * :doc:`lj/cut/coul/msm (go) <pair_lj>`
-   * :doc:`lj/cut/coul/wolf (o) <pair_lj>`
+   * :doc:`lj/cut/coul/msm (go) <pair_lj_cut_coul>`
+   * :doc:`lj/cut/coul/wolf (o) <pair_lj_cut_coul>`
    * :doc:`lj/cut/dipole/cut (go) <pair_dipole>`
    * :doc:`lj/cut/dipole/long (g) <pair_dipole>`
    * :doc:`lj/cut/dipole/sf (go) <pair_dipole>`
    * :doc:`lj/cut/soft (o) <pair_fep_soft>`
    * :doc:`lj/cut/thole/long (o) <pair_thole>`
-   * :doc:`lj/cut/tip4p/cut (o) <pair_lj>`
-   * :doc:`lj/cut/tip4p/long (got) <pair_lj>`
+   * :doc:`lj/cut/tip4p/cut (o) <pair_lj_cut_tip4p>`
+   * :doc:`lj/cut/tip4p/long (got) <pair_lj_cut_tip4p>`
    * :doc:`lj/cut/tip4p/long/soft (o) <pair_fep_soft>`
    * :doc:`lj/expand (gko) <pair_lj_expand>`
    * :doc:`lj/expand/coul/long (g) <pair_lj_expand>`

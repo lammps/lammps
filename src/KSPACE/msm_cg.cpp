@@ -143,7 +143,7 @@ void MSMCG::compute(int eflag, int vflag)
                    / static_cast<double>(atom->natoms);
 
     if (me == 0)
-      utils::logmesg(lmp,fmt::format("  MSM/cg optimization cutoff: {}\n"
+      utils::logmesg(lmp,fmt::format("  MSM/cg optimization cutoff: {:.8g}\n"
                                      "  Total charged atoms: {:.1f}%\n"
                                      "  Min/max charged atoms/proc: {:.1f}%"
                                      " {:.1f}%\n",smallq,

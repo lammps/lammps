@@ -985,7 +985,7 @@ void PairEAMFSKokkos<DeviceType>::read_file(char *filename)
 
   // read potential file
   if(comm->me == 0) {
-    PotentialFileReader reader(lmp, filename, "EAMFS", unit_convert_flag);
+    PotentialFileReader reader(lmp, filename, "eam/fs", unit_convert_flag);
 
     // transparently convert units for supported conversions
 
@@ -1233,7 +1233,7 @@ void PairEAMFSKokkos<DeviceType>::file2array_fs()
 
 namespace LAMMPS_NS {
 template class PairEAMFSKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairEAMFSKokkos<LMPHostType>;
 #endif
 }

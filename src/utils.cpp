@@ -82,7 +82,7 @@ using namespace LAMMPS_NS;
  *  even with char * type variables.
  *  Example: utils::strmatch(text, std::string("^") + charptr)
  */
-bool utils::strmatch(std::string text, std::string pattern)
+bool utils::strmatch(const std::string &text, const std::string &pattern)
 {
   const int pos = re_match(text.c_str(),pattern.c_str());
   return (pos >= 0);
@@ -109,14 +109,11 @@ std::string utils::getsyserror()
   return std::string(strerror(errno));
 }
 
-/** \brief try to detect pathname from FILE pointer. Currently only supported on Linux, otherwise will report "(unknown)".
- *
- *  \param buf  storage buffer for pathname. output will be truncated if not large enough
- *  \param len  size of storage buffer. output will be truncated to this length - 1
- *  \param fp   FILE pointer structe from STDIO library for which we want to detect the name
- *  \return pointer to the storage buffer, i.e. buf
+/*
+ * On Linux the folder /proc/self/fd holds symbolic links to the actual
+ * pathnames associated with each open file descriptor of the current process.
  */
-static const char *guesspath(char *buf, int len, FILE *fp)
+const char *utils::guesspath(char *buf, int len, FILE *fp)
 {
   memset(buf,0,len);
 
@@ -124,9 +121,9 @@ static const char *guesspath(char *buf, int len, FILE *fp)
   int fd = fileno(fp);
   // get pathname from /proc or copy (unknown)
   if (readlink(fmt::format("/proc/self/fd/{}",fd).c_str(),buf,len-1) <= 0)
-    strcpy(buf,"(unknown)");
+    strncpy(buf,"(unknown)",len-1);
 #else
-  strcpy(buf,"(unknown)");
+  strncpy(buf,"(unknown)",len-1);
 #endif
   return buf;
 }
@@ -352,6 +349,19 @@ tagint utils::tnumeric(const char *file, int line, const char *str,
 }
 
 /* ----------------------------------------------------------------------
+   Return string without leading or trailing whitespace
+------------------------------------------------------------------------- */
+
+std::string utils::trim(const std::string & line) {
+  int beg = re_match(line.c_str(),"\\S+");
+  int end = re_match(line.c_str(),"\\s+$");
+  if (beg < 0) beg = 0;
+  if (end < 0) end = line.size();
+
+  return line.substr(beg,end-beg);
+}
+
+/* ----------------------------------------------------------------------
    Return string without trailing # comment
 ------------------------------------------------------------------------- */
 
@@ -439,6 +449,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
   const char *buf = text.c_str();
   std::size_t beg = 0;
   std::size_t len = 0;
+  std::size_t add = 0;
   char c = *buf;
 
   while (c) {
@@ -455,8 +466,9 @@ std::vector<std::string> utils::split_words(const std::string &text)
 
     // handle single quote
     if (c == '\'') {
+      ++beg;
+      add = 1;
       c = *++buf;
-      ++len;
       while (((c != '\'') && (c != '\0'))
              || ((c == '\\') && (buf[1] == '\''))) {
         if ((c == '\\') && (buf[1] == '\'')) {
@@ -466,13 +478,14 @@ std::vector<std::string> utils::split_words(const std::string &text)
         c = *++buf;
         ++len;
       }
+      if (c != '\'') ++len;
       c = *++buf;
-      ++len;
 
       // handle double quote
     } else if (c == '"') {
+      ++beg;
+      add = 1;
       c = *++buf;
-      ++len;
       while (((c != '"') && (c != '\0'))
              || ((c == '\\') && (buf[1] == '"'))) {
         if ((c == '\\') && (buf[1] == '"')) {
@@ -482,8 +495,8 @@ std::vector<std::string> utils::split_words(const std::string &text)
         c = *++buf;
         ++len;
       }
+      if (c != '"') ++len;
       c = *++buf;
-      ++len;
     }
 
     // unquoted
@@ -499,7 +512,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
       if ((c == ' ') || (c == '\t') || (c == '\r') || (c == '\n')
           || (c == '\f') || (c == '\0')) {
           list.push_back(text.substr(beg,len));
-          beg += len;
+          beg += len + add;
           break;
       }
       c = *++buf;
@@ -549,9 +562,9 @@ bool utils::is_double(const std::string & str) {
 
 std::string utils::path_basename(const std::string & path) {
 #if defined(_WIN32)
-  size_t start = path.find_last_of('/\\');
+  size_t start = path.find_last_of("/\\");
 #else
-  size_t start = path.find_last_of('/');
+  size_t start = path.find_last_of("/");
 #endif
 
   if (start == std::string::npos) {

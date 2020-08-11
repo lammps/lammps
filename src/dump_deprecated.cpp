@@ -31,6 +31,5 @@ DumpDeprecated::DumpDeprecated(LAMMPS *lmp, int narg, char **arg) :
       utils::logmesg(lmp,"\nDump style 'DEPRECATED' is a dummy style\n\n");
     return;
   }
-
-  lmp->error->all(FLERR,"This dump style is no longer available");
+  error->all(FLERR,"This dump style is no longer available");
 }

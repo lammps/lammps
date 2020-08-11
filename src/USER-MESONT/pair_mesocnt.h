@@ -34,7 +34,7 @@ class PairMesoCNT : public Pair {
   double r_ang,rsq_ang,d_ang,rc_ang,rcsq_ang,cutoff_ang,cutoffsq_ang;
   double sig,sig_ang,comega,ctheta;
   double hstart_uinf,hstart_gamma,
-	 hstart_phi,psistart_phi,hstart_usemi,xistart_usemi;
+         hstart_phi,psistart_phi,hstart_usemi,xistart_usemi;
   double delh_uinf,delh_gamma,delh_phi,delpsi_phi,delh_usemi,delxi_usemi;
 
   double p1[3],p2[3],p[3],m[3];
@@ -55,7 +55,7 @@ class PairMesoCNT : public Pair {
   void read_file();
   void read_data(FILE *, double *, double &, double &, int);
   void read_data(FILE *, double **, double &, double &,
-		             double &, double &, int);
+                             double &, double &, int);
 
   void spline_coeff(double *, double **, double, int);
   void spline_coeff(double **, double ****, double, double, int);
@@ -63,17 +63,17 @@ class PairMesoCNT : public Pair {
   double spline(double, double, double, double **, int);
   double dspline(double, double, double, double **, int);
   double spline(double, double, double, double, double, double,
-		            double ****, int);
+                            double ****, int);
   double dxspline(double, double, double, double, double, double,
-		              double ****, int);
+                              double ****, int);
   double dyspline(double, double, double, double, double, double,
-		              double ****, int);
+                              double ****, int);
 
   void geometry(const double *, const double *, const double *,
-		            const double *, const double *,
+                            const double *, const double *,
                 double *, double *, double *, double **);
   void weight(const double *, const double *, const double *,
-		          const double *, double &, double *, double *,
+                          const double *, double &, double *, double *,
               double *, double *);
 
   void finf(const double *, double &, double **);
@@ -97,7 +97,7 @@ class PairMesoCNT : public Pair {
   inline double s5(double x) {
     double x2 = x * x;
     return heaviside(-x)
-	    + heaviside(x)*heaviside(1-x)*(1 - x2*x*(6*x2 - 15*x + 10));
+            + heaviside(x)*heaviside(1-x)*(1 - x2*x*(6*x2 - 15*x + 10));
   }
 
   inline double ds5(double x) {

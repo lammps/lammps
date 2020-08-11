@@ -68,7 +68,7 @@ Description
 This fix performs grand canonical Monte Carlo (GCMC) exchanges of
 atoms or molecules with an imaginary ideal gas
 reservoir at the specified T and chemical potential (mu) as discussed
-in :ref:`(Frenkel) <Frenkel>`. It also
+in :ref:`(Frenkel) <Frenkel2>`. It also
 attempts  Monte Carlo (MC) moves (translations and molecule
 rotations) within the simulation cell or
 region. If used with the :doc:`fix nvt <fix_nh>`
@@ -481,7 +481,7 @@ listed above.
 
 ----------
 
-.. _Frenkel:
+.. _Frenkel2:
 
 **(Frenkel)** Frenkel and Smit, Understanding Molecular Simulation,
 Academic Press, London, 2002.

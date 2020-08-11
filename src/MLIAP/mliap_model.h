@@ -22,7 +22,13 @@ class MLIAPModel : protected Pointers {
 public:
   MLIAPModel(LAMMPS*, char*);
   ~MLIAPModel();
-  virtual void gradient(class PairMLIAP*, class NeighList*, double**, double**, int)=0;
+  void set_ndescriptors(int);
+  void set_nelements(int);
+  virtual int get_nparams()=0;
+  virtual int get_gamma_nnz(class MLIAPData*)=0;
+  virtual void compute_gradients(class MLIAPData*)=0;
+  virtual void compute_gradgrads(class MLIAPData*)=0;
+  virtual void compute_force_gradients(class MLIAPData*)=0;
   virtual void init();
   virtual double memory_usage();
   int nelements;                 // # of unique elements

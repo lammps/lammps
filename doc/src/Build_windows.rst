@@ -38,7 +38,7 @@ optional Windows feature allows you to run the bash shell from Ubuntu
 from within Windows and from there on, you can pretty much use that
 shell like you are running on an Ubuntu Linux machine (e.g. installing
 software via apt-get and more). For more details on that, please
-see :doc:`this tutorial <Howto_bash>`
+see :doc:`this tutorial <Howto_wsl>`
 
 .. _gnu:
 

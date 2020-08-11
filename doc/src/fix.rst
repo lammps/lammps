@@ -185,6 +185,7 @@ accelerated styles exist.
 * :doc:`bocs <fix_bocs>` - NPT style time integration with pressure correction
 * :doc:`bond/break <fix_bond_break>` - break bonds on the fly
 * :doc:`bond/create <fix_bond_create>` - create bonds on the fly
+* :doc:`bond/create/angle <fix_bond_create>` - create bonds on the fly with angle constraints
 * :doc:`bond/react <fix_bond_react>` - apply topology changes to model reactions
 * :doc:`bond/swap <fix_bond_swap>` - Monte Carlo bond swapping
 * :doc:`box/relax <fix_box_relax>` - relax box size during energy minimization
@@ -386,6 +387,7 @@ accelerated styles exist.
 * :doc:`wall/region <fix_wall_region>` - use region surface as wall
 * :doc:`wall/region/ees <fix_wall_ees>` - use region surface as wall for ellipsoidal particles
 * :doc:`wall/srd <fix_wall_srd>` - slip/no-slip wall for SRD particles
+* :doc:`widom <fix_widom>` - Widom insertions of atoms or molecules
 
 Restrictions
 """"""""""""

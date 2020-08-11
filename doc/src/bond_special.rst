@@ -89,8 +89,11 @@ This bond style can only be used if LAMMPS was built with the
 USER-MISC package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
-This bond style requires use of a :doc:`pair_style <pair_style>` which
-computes a pairwise interaction.  Many-body potentials do not.
+This bond style requires the use of a :doc:`pair_style <pair_style>` which
+computes a pairwise additive interaction and provides the ability to
+compute interactions for individual pairs of atoms.  Manybody potentials
+are not compatible in general, but also some other pair styles are missing
+the required functionality and thus will cause an error.
 
 This command is not compatible with long-range Coulombic interactions. If a 
 `kspace_style <kspace_style>` is declared, an error will be issued.

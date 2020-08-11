@@ -47,7 +47,8 @@ BondSpecial::~BondSpecial()
 
 void BondSpecial::init_style()
 {
-  if (force->pair == NULL || force->pair->single_enable == 0)
+  if (force->pair == NULL) error->all(FLERR,"No pair style defined");
+  else if ((force->pair->single_enable == 0) || force->pair->manybody_flag)
     error->all(FLERR,"Pair style does not support bond style special");
 
   if (force->special_lj[1] != 0.0 || force->special_coul[1] != 0)

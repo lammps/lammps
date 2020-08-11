@@ -166,13 +166,44 @@ void DumpAtom::write_data(int n, double *mybuf)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpAtom::header_binary(bigint ndump)
+void DumpAtom::format_magic_string_binary()
 {
   // use negative ntimestep as marker for new format
-  bigint fmtlen = strlen("DUMPATOM");
+  bigint fmtlen = strlen(MAGIC_STRING);
   bigint marker = -fmtlen;
-  fwrite(&marker,sizeof(bigint),1,fp);
-  fwrite("DUMPATOM",sizeof(char),fmtlen,fp);
+  fwrite(&marker, sizeof(bigint), 1, fp);
+  fwrite(MAGIC_STRING, sizeof(char), fmtlen, fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpAtom::format_endian_binary()
+{
+  int endian = ENDIAN;
+  fwrite(&endian, sizeof(int), 1, fp);
+}
+/* ---------------------------------------------------------------------- */
+
+void DumpAtom::format_revision_binary()
+{
+  int revision = FORMAT_REVISION;
+  fwrite(&revision, sizeof(int), 1, fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpAtom::header_format_binary()
+{
+  format_magic_string_binary();
+  format_endian_binary();
+  format_revision_binary();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpAtom::header_binary(bigint ndump)
+{
+  header_format_binary();
   fwrite(&update->ntimestep,sizeof(bigint),1,fp);
   fwrite(&ndump,sizeof(bigint),1,fp);
   fwrite(&domain->triclinic,sizeof(int),1,fp);
@@ -197,11 +228,7 @@ void DumpAtom::header_binary(bigint ndump)
 
 void DumpAtom::header_binary_triclinic(bigint ndump)
 {
-  // use negative ntimestep as marker for new format
-  bigint fmtlen = strlen("DUMPATOM");
-  bigint marker = -fmtlen;
-  fwrite(&marker,sizeof(bigint),1,fp);
-  fwrite("DUMPATOM",sizeof(char),fmtlen,fp);
+  header_format_binary();
   fwrite(&update->ntimestep,sizeof(bigint),1,fp);
   fwrite(&ndump,sizeof(bigint),1,fp);
   fwrite(&domain->triclinic,sizeof(int),1,fp);

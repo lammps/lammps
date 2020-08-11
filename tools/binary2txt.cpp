@@ -91,13 +91,15 @@ int main(int narg, char **arg)
     delete [] filetxt;
 
     // detect newer format
-    char * formatname = nullptr;
+    char * magic_string = nullptr;
     char * columns = nullptr;
 
 
     // loop over snapshots in file
 
     while (1) {
+      int endian = 0x0001;
+      int revision = 0x0001;
 
       fread(&ntimestep,sizeof(bigint),1,fp);
 
@@ -112,12 +114,18 @@ int main(int narg, char **arg)
       // detect newer format
       if (ntimestep < 0) {
         // first bigint encodes negative format name length
-        bigint formatlen = -ntimestep;
+        bigint magic_string_len = -ntimestep;
 
-        delete [] formatname;
-        formatname = new char[formatlen + 1];
-        fread(formatname, sizeof(char), formatlen, fp);
-        formatname[formatlen] = '\0';
+        delete [] magic_string;
+        magic_string = new char[magic_string_len + 1];
+        fread(magic_string, sizeof(char), magic_string_len, fp);
+        magic_string[magic_string_len] = '\0';
+
+        // read endian flag
+        fread(&endian, sizeof(int), 1, fp);
+
+        // read revision number
+        fread(&revision, sizeof(int), 1, fp);
 
         // read the real ntimestep
         fread(&ntimestep,sizeof(bigint),1,fp);
@@ -139,7 +147,7 @@ int main(int narg, char **arg)
       }
       fread(&size_one,sizeof(int),1,fp);
 
-      if (formatname) {
+      if (magic_string && revision > 0x0001) {
         // newer format includes columns string
         int len = 0;
         fread(&len, sizeof(int), 1, fp);
@@ -220,7 +228,7 @@ int main(int narg, char **arg)
     }
     printf("\n");
     delete [] columns;
-    delete [] formatname;
+    delete [] magic_string;
   }
 
   if (buf) delete [] buf;

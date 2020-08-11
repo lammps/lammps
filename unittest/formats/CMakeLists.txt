@@ -31,5 +31,4 @@ set_tests_properties(Dump PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POT
 
 if (BUILD_TOOLS)
     set_tests_properties(Dump PROPERTIES ENVIRONMENT "BINARY2TXT_BINARY=$<TARGET_FILE:binary2txt>")
-    MESSAGE($<TARGET_FILE:binary2txt>)
 endif()

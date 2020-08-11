@@ -1248,15 +1248,15 @@ string Info::get_mpi_vendor() {
   return "MPI STUBS";
   #elif defined(OPEN_MPI)
   return "Open MPI";
-  #elif define(MPICH_NAME)
+  #elif defined(MPICH_NAME)
   return "MPICH";
-  #elif define(I_MPI_VERSION)
+  #elif defined(I_MPI_VERSION)
   return "Intel MPI";
-  #elif define(PLATFORM_MPI)
+  #elif defined(PLATFORM_MPI)
   return "Platform MPI";
-  #elif define(HP_MPI)
+  #elif defined(HP_MPI)
   return "HP MPI";
-  #elif define(MSMPI_VER)
+  #elif defined(MSMPI_VER)
   return "Microsoft MPI";
   #else
   return "Unknown";

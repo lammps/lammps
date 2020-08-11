@@ -1041,7 +1041,7 @@ void FixCMAP::read_data_header(char *line)
     sscanf(line,BIGINT_FORMAT,&ncmap);
   } else error->all(FLERR,"Invalid read data header line for fix cmap");
 
-  // didn't set in constructor b/c this fix could be defined
+  // didn't set in constructor because this fix could be defined
   // before newton command
 
   newton_bond = force->newton_bond;
@@ -1291,6 +1291,7 @@ int FixCMAP::pack_restart(int i, double *buf)
     buf[n++] = ubuf(crossterm_atom4[i][m]).d;
     buf[n++] = ubuf(crossterm_atom5[i][m]).d;
   }
+  // pack buf[0] this way because other fixes unpack it
   buf[0] = n;
 
   return n;
@@ -1305,7 +1306,8 @@ void FixCMAP::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
-
+  // unpack the Nth first values this way because other fixes pack them
+  
    int n = 0;
    for (int i = 0; i < nth; i++) n += static_cast<int> (extra[nlocal][n]);
 

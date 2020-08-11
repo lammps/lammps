@@ -547,6 +547,7 @@ int FixGLD::unpack_exchange(int nlocal, double *buf)
 int FixGLD::pack_restart(int i, double *buf)
 {
   int m = 0;
+  // pack buf[0] this way because other fixes unpack it
   buf[m++] = 3*prony_terms + 1;
   for (int k = 0; k < 3*prony_terms; k=k+3)
   {
@@ -566,7 +567,8 @@ void FixGLD::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to the nth set of extended variables
-
+  // unpack the Nth first values this way because other fixes pack them
+  
   int m = 0;
   for (int i = 0; i< nth; i++) m += static_cast<int> (extra[nlocal][m]);
   m++;

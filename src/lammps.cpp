@@ -67,6 +67,7 @@ struct LAMMPS_NS::package_styles_lists {
   std::map<std::string,std::string> atom_styles;
   std::map<std::string,std::string> body_styles;
   std::map<std::string,std::string> bond_styles;
+  std::map<std::string,std::string> comm_styles;
   std::map<std::string,std::string> command_styles;
   std::map<std::string,std::string> compute_styles;
   std::map<std::string,std::string> dihedral_styles;
@@ -917,6 +918,12 @@ void _noopt LAMMPS::init_pkg_lists()
 #include "packages_bond.h"
 #undef BondStyle
 #undef BOND_CLASS
+#define COMM_CLASS
+#define CommStyle(key,Class)                 \
+  pkg_lists->comm_styles[#key] = PACKAGE;
+#include "packages_comm.h"
+#undef CommStyle
+#undef COMM_CLASS
 #define COMMAND_CLASS
 #define CommandStyle(key,Class)                 \
   pkg_lists->command_styles[#key] = PACKAGE;
@@ -1013,6 +1020,7 @@ const char *LAMMPS::match_style(const char *style, const char *name)
   check_for_match(atom,style,name);
   check_for_match(body,style,name);
   check_for_match(bond,style,name);
+  check_for_match(comm,style,name);
   check_for_match(command,style,name);
   check_for_match(compute,style,name);
   check_for_match(dump,style,name);
@@ -1100,6 +1108,14 @@ void _noopt LAMMPS::help()
 #define AtomStyle(key,Class) print_style(fp,#key,pos);
 #include "style_atom.h"
 #undef ATOM_CLASS
+  fprintf(fp,"\n\n");
+
+  pos = 80;
+  fprintf(fp,"* Comm styles\n");
+#define COMM_CLASS
+#define CommStyle(key,Class) print_style(fp,#key,pos);
+#include "style_comm.h"
+#undef COMM_CLASS
   fprintf(fp,"\n\n");
 
   pos = 80;

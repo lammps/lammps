@@ -19,13 +19,12 @@
 #include <cctype>
 #include <unistd.h>
 #include <sys/stat.h>
+#include "style_comm.h"
 #include "style_command.h"
 #include "universe.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
-#include "comm_brick.h"
-#include "comm_tiled.h"
 #include "group.h"
 #include "domain.h"
 #include "output.h"
@@ -99,6 +98,17 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
 #undef CommandStyle
 #undef COMMAND_CLASS
 
+  // fill comm map with comm styles
+
+  comm_map = new CommCreatorMap();
+
+#define COMM_CLASS
+#define CommStyle(key,Class) \
+  (*comm_map)[#key] = &comm_creator<Class>;
+#include "style_comm.h"
+#undef CommStyle
+#undef COMM_CLASS
+
   // process command-line args
   // check for args "-var" and "-echo"
   // caller has already checked that sufficient arguments exist
@@ -137,6 +147,7 @@ Input::~Input()
   delete [] infiles;
   delete variable;
 
+  delete comm_map;
   delete command_map;
 }
 
@@ -874,6 +885,16 @@ void Input::command_creator(LAMMPS *lmp, int narg, char **arg)
   cmd.command(narg,arg);
 }
 
+/* ----------------------------------------------------------------------
+  instance comm styles in style_comm.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Comm *Input::comm_creator(LAMMPS *lmp, Comm *oldcomm)
+{
+  return new T(lmp, oldcomm);
+}
+
 /* ---------------------------------------------------------------------- */
 /* ---------------------------------------------------------------------- */
 /* ---------------------------------------------------------------------- */
@@ -1473,24 +1494,70 @@ void Input::comm_modify()
 
 void Input::comm_style()
 {
+  int sflag;
+  char estyle[256];
   if (narg < 1) error->all(FLERR,"Illegal comm_style command");
-  if (strcmp(arg[0],"brick") == 0) {
-    if (comm->style == 0) return;
-    Comm *oldcomm = comm;
-    comm = new CommBrick(lmp,oldcomm);
-    delete oldcomm;
-  } else if (strcmp(arg[0],"tiled") == 0) {
-    if (comm->style == 1) return;
-    Comm *oldcomm = comm;
 
-    if (lmp->kokkos) comm = new CommTiledKokkos(lmp,oldcomm);
-    else comm = new CommTiled(lmp,oldcomm);
+  // append /kk for kokkos styles
 
-    delete oldcomm;
-  } else error->all(FLERR,"Illegal comm_style command");
+  if(lmp->kokkos)
+    sprintf(estyle,"%s/%s",arg[0],"kk");
+  else
+    sprintf(estyle,"%s",arg[0]);
+
+  // check if new style is already the current style
+
+  if (strcmp(estyle,comm->comm_style) == 0) return;
+  Comm *oldcomm = comm;
+
+  // create Comm Class by searching through styles using comm_map
+
+  comm = new_comm(estyle,1,sflag,oldcomm);
+  delete oldcomm;
 }
 
 /* ---------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   generate a comm class
+   if trysuffix = 1, try first with suffix1/2 appended
+   return sflag = 0 for no suffix added, 1 or 2 for suffix1/2 added
+------------------------------------------------------------------------- */
+
+Comm *Input::new_comm(const char *style, int trysuffix, int &sflag, Comm *oldcomm)
+{
+  if (trysuffix && lmp->suffix_enable) {
+    if (lmp->suffix) {
+      sflag = 1;
+      char estyle[256];
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
+      if (comm_map->find(estyle) != comm_map->end()) {
+        CommCreator comm_creator = (*comm_map)[estyle];
+        return comm_creator(lmp, oldcomm);
+      }
+    }
+    if (lmp->suffix2) {
+      sflag = 2;
+      char estyle[256];
+      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
+      if (comm_map->find(estyle) != comm_map->end()) {
+        CommCreator comm_creator = (*comm_map)[estyle];
+        return comm_creator(lmp, oldcomm);
+      }
+    }
+  }
+
+  sflag = 0;
+  if (strcmp(style,"none") == 0) return NULL;
+  if (comm_map->find(style) != comm_map->end()) {
+    CommCreator comm_creator = (*comm_map)[style];
+    return comm_creator(lmp, oldcomm);
+  }
+
+  error->all(FLERR,utils::check_packages_for_style("comm",style,lmp).c_str());
+
+  return NULL;
+}
 
 void Input::compute()
 {

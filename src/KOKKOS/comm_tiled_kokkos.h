@@ -11,6 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifdef COMM_CLASS
+
+CommStyle(tiled/kk,CommTiledKokkos)
+
+#else
+
 #ifndef LMP_COMM_TILED_KOKKOS_H
 #define LMP_COMM_TILED_KOKKOS_H
 
@@ -52,6 +58,7 @@ class CommTiledKokkos : public CommTiled {
 
 }
 
+#endif
 #endif
 
 /* ERROR/WARNING messages:

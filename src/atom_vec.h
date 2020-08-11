@@ -46,6 +46,8 @@ class AtomVec : protected Pointers {
   int size_restart_bonus_one;          // # in restart bonus comm
   int size_data_bonus;                 // number of values in Bonus line
 
+  int check_distance_flag;             //determines whether the atom style has its own neighbor rebuild check
+
   class Molecule **onemols;            // list of molecules for style template
   int nset;                            // # of molecules in list
 
@@ -74,6 +76,7 @@ class AtomVec : protected Pointers {
 
   virtual void force_clear(int, size_t) {}
   virtual bigint roundup(bigint);
+  virtual void shrink_array(int) {}
 
   virtual void grow(int);
   virtual void grow_pointers() {}
@@ -168,6 +171,9 @@ class AtomVec : protected Pointers {
   virtual int write_data_hybrid(FILE *, double *) {return 0;}
   virtual int pack_vel_hybrid(int, double *) {return 0;}
   virtual int write_vel_hybrid(FILE *, double *) {return 0;}
+  
+  virtual int check_distance_function(double /* deltasq */) {return 0;} //specific neighbor rebuild check function an atom style might need
+  virtual void set_hold_properties() {}                                 //stores atomvec properties at time of reneighboring for reneighboring check
 
  protected:
   int nmax;                    // local copy of atom->nmax

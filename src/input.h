@@ -62,9 +62,14 @@ class Input : protected Pointers {
   typedef void (*CommandCreator)(LAMMPS *, int, char **);
   typedef std::map<std::string,CommandCreator> CommandCreatorMap;
   CommandCreatorMap *command_map;
+  
+  typedef Comm *(*CommCreator)(LAMMPS *, Comm *);
+  typedef std::map<std::string,CommCreator> CommCreatorMap;
+  CommCreatorMap *comm_map;
 
  protected:
   template <typename T> static void command_creator(LAMMPS *, int, char **);
+  template <typename T> static Comm *comm_creator(LAMMPS *, Comm *);
 
  private:
   void parse();                          // parse an input text line
@@ -99,6 +104,7 @@ class Input : protected Pointers {
   void box();
   void comm_modify();
   void comm_style();
+  class Comm *new_comm(const char *, int, int &, Comm *);
   void compute();
   void compute_modify();
   void dielectric();

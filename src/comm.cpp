@@ -62,6 +62,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   cutusermulti = NULL;
   ghost_velocity = 0;
 
+  comm_style = NULL;
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
   coregrid[0] = coregrid[1] = coregrid[2] = 1;
   gridflag = ONELEVEL;
@@ -161,6 +162,8 @@ void Comm::copy_arrays(Comm *oldcomm)
     outfile = new char[n];
     strcpy(outfile,oldcomm->outfile);
   }
+  maxexchange_atom = oldcomm->maxexchange_atom;
+  maxexchange_fix = oldcomm->maxexchange_fix;
 }
 
 /* ----------------------------------------------------------------------
@@ -1317,4 +1320,24 @@ int Comm::read_lines_from_file_universe(FILE *fp, int nlines, int maxline,
   if (m == 0) return 1;
   MPI_Bcast(buf,m,MPI_CHAR,0,uworld);
   return 0;
+}
+
+/* ----------------------------------------------------------------------
+   called by other classes to increase maxexchange atom
+------------------------------------------------------------------------- */
+
+void Comm::increase_max_atom(int size){
+  if(size>maxexchange_atom) maxexchange_atom = size;
+  maxexchange = maxexchange_atom + maxexchange_fix;
+  bufextra = maxexchange + BUFEXTRA;
+}
+
+/* ----------------------------------------------------------------------
+   called by other classes to increase maxexchange fix
+------------------------------------------------------------------------- */
+
+void Comm::increase_max_fix(int size){
+  if(size>maxexchange_fix) maxexchange_fix = size;
+  maxexchange = maxexchange_atom + maxexchange_fix;
+  bufextra = maxexchange + BUFEXTRA;
 }

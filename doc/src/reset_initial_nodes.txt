@@ -1,0 +1,28 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Commands_all.html)
+
+:line
+
+reset_initial_nodes command :h3
+
+[Syntax:]
+
+reset_initial_nodes :pre
+
+[Examples:]
+
+reset_initial_nodes :pre
+
+[Description:]
+
+Reset the initial nodal positions to the current nodal nodal positions. This is useful
+in the context of computing nodal displacements with "dump cac/nodal_displacements"_dump_cac_nodal_displacements.html
+so that the displacement is computed with respect to an updated set of reference coordinates. This
+command requires a cac atom style and should be used after reading a data or restart file.
+
+[Restrictions:] none
+
+[Default:] none

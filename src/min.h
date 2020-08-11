@@ -27,6 +27,8 @@ class Min : protected Pointers {
   int stop_condition;
   char *stopstr;
   int searchflag;     // 0 if damped dynamics, 1 if sub-cycles on local search
+  int copy_flag;
+  int force_copy_flag;
 
   Min(class LAMMPS *);
   virtual ~Min();
@@ -132,6 +134,8 @@ class Min : protected Pointers {
   void ev_set(bigint);
 
   char *stopstrings(int);
+  virtual void copy_vectors(){}
+  virtual void copy_force(){}
 };
 
 }

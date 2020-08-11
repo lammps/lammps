@@ -96,13 +96,14 @@ enum {COMPUTES=1<<0,
       REGION_STYLES=1<<23,
       DUMP_STYLES=1<<24,
       COMMAND_STYLES=1<<25,
+      COMM_STYLES=1<<26,
       ALL=~0};
 
 static const int STYLES = ATOM_STYLES | INTEGRATE_STYLES | MINIMIZE_STYLES
                         | PAIR_STYLES | BOND_STYLES | ANGLE_STYLES
                         | DIHEDRAL_STYLES | IMPROPER_STYLES | KSPACE_STYLES
                         | FIX_STYLES | COMPUTE_STYLES | REGION_STYLES
-                        | DUMP_STYLES | COMMAND_STYLES;
+                        | DUMP_STYLES | COMMAND_STYLES | COMM_STYLES;
 }
 
 static const char *varstyles[] = {
@@ -365,7 +366,7 @@ void Info::command(int narg, char **arg)
 
     fmt::print(out,"Comm style = {},  Comm layout = {}\n"
                "Communicate velocities for ghost atoms = {}\n",
-               commstyles[comm->style], commlayout[comm->layout],
+               comm->comm_style, commlayout[comm->layout],
                comm->ghost_velocity ? "yes" : "no");
 
     if (comm->mode == 0)
@@ -672,20 +673,21 @@ void Info::available_styles(FILE * out, int flags)
 
   fputs("\nStyles information:\n",out);
 
-  if(flags & ATOM_STYLES)      atom_styles(out);
-  if(flags & INTEGRATE_STYLES) integrate_styles(out);
-  if(flags & MINIMIZE_STYLES)  minimize_styles(out);
-  if(flags & PAIR_STYLES)      pair_styles(out);
-  if(flags & BOND_STYLES)      bond_styles(out);
-  if(flags & ANGLE_STYLES)     angle_styles(out);
-  if(flags & DIHEDRAL_STYLES)  dihedral_styles(out);
-  if(flags & IMPROPER_STYLES)  improper_styles(out);
-  if(flags & KSPACE_STYLES)    kspace_styles(out);
-  if(flags & FIX_STYLES)       fix_styles(out);
-  if(flags & COMPUTE_STYLES)   compute_styles(out);
-  if(flags & REGION_STYLES)    region_styles(out);
-  if(flags & DUMP_STYLES)      dump_styles(out);
-  if(flags & COMMAND_STYLES)   command_styles(out);
+  if (flags & ATOM_STYLES)      atom_styles(out);
+  if (flags & COMM_STYLES)      comm_styles(out);
+  if (flags & INTEGRATE_STYLES) integrate_styles(out);
+  if (flags & MINIMIZE_STYLES)  minimize_styles(out);
+  if (flags & PAIR_STYLES)      pair_styles(out);
+  if (flags & BOND_STYLES)      bond_styles(out);
+  if (flags & ANGLE_STYLES)     angle_styles(out);
+  if (flags & DIHEDRAL_STYLES)  dihedral_styles(out);
+  if (flags & IMPROPER_STYLES)  improper_styles(out);
+  if (flags & KSPACE_STYLES)    kspace_styles(out);
+  if (flags & FIX_STYLES)       fix_styles(out);
+  if (flags & COMPUTE_STYLES)   compute_styles(out);
+  if (flags & REGION_STYLES)    region_styles(out);
+  if (flags & DUMP_STYLES)      dump_styles(out);
+  if (flags & COMMAND_STYLES)   command_styles(out);
 }
 
 void Info::atom_styles(FILE *out)
@@ -786,6 +788,12 @@ void Info::command_styles(FILE *out)
   fputs("\n\n\n",out);
 }
 
+void Info::comm_styles(FILE * out)
+{
+  fprintf(out, "\nComm styles :\n");
+  print_columns(out, input->comm_map);
+  fprintf(out, "\n\n\n");
+}
 
 /* ---------------------------------------------------------------------- */
 

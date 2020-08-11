@@ -11,6 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifdef COMM_CLASS
+
+CommStyle(brick,CommBrick)
+
+#else
+
 #ifndef LMP_COMM_BRICK_H
 #define LMP_COMM_BRICK_H
 
@@ -93,6 +99,7 @@ class CommBrick : public Comm {
 
 }
 
+#endif
 #endif
 
 /* ERROR/WARNING messages:

@@ -59,6 +59,7 @@ NStencil::NStencil(LAMMPS *lmp) : Pointers(lmp)
 
   xyzflag = 0;
   maxstencil = maxstencil_multi = 0;
+  post_create_flag=0;
   stencil = NULL;
   stencilxyz = NULL;
   nstencil_multi = NULL;

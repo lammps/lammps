@@ -100,6 +100,7 @@ if (test $cmd = "style") || (test $cmd = "packages") then
   $cmd BODY_CLASS      body_       body       atom_vec_body
   $cmd BOND_CLASS      bond_       bond       force
   $cmd COMMAND_CLASS   ""          command    input
+  $cmd COMM_CLASS      comm_       comm       input
   $cmd COMPUTE_CLASS   compute_    compute    modify
   $cmd DIHEDRAL_CLASS  dihedral_   dihedral   force
   $cmd DUMP_CLASS      dump_       dump       output    write_dump

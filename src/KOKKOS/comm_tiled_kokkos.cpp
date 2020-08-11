@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
 
 CommTiledKokkos::CommTiledKokkos(LAMMPS *lmp) : CommTiled(lmp)
 {
-
+  comm_style = (const char *) "tiled/kk";
 }
 
 /* ---------------------------------------------------------------------- */
@@ -64,9 +64,6 @@ CommTiledKokkos::~CommTiledKokkos()
 {
 
 }
-
-/* ---------------------------------------------------------------------- */
-
 
 /* ----------------------------------------------------------------------
    forward communication of atom coords every timestep

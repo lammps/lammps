@@ -47,6 +47,7 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   maxexchange = 0;
   bonus_flag = 0;
   size_forward_bonus = size_border_bonus = 0;
+  check_distance_flag=0;
 
   kokkosable = 0;
 

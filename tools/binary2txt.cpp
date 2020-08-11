@@ -90,6 +90,11 @@ int main(int narg, char **arg)
     FILE *fptxt = fopen(filetxt,"w");
     delete [] filetxt;
 
+    // detect newer format
+    char * formatname = nullptr;
+    char * columns = nullptr;
+
+
     // loop over snapshots in file
 
     while (1) {
@@ -102,6 +107,20 @@ int main(int narg, char **arg)
         fclose(fp);
         fclose(fptxt);
         break;
+      }
+
+      // detect newer format
+      if (ntimestep < 0) {
+        // first bigint encodes negative format name length
+        bigint formatlen = -ntimestep;
+
+        delete [] formatname;
+        formatname = new char[formatlen + 1];
+        fread(formatname, sizeof(char), formatlen, fp);
+        formatname[formatlen] = '\0';
+
+        // read the real ntimestep
+        fread(&ntimestep,sizeof(bigint),1,fp);
       }
 
       fread(&natoms,sizeof(bigint),1,fp);
@@ -119,6 +138,17 @@ int main(int narg, char **arg)
         fread(&yz,sizeof(double),1,fp);
       }
       fread(&size_one,sizeof(int),1,fp);
+
+      if (formatname) {
+        // newer format includes columns string
+        int len = 0;
+        fread(&len, sizeof(int), 1, fp);
+        delete [] columns;
+        columns = new char[len+1];
+        fread(columns, sizeof(char), len, fp);
+        columns[len+1] = '\0';
+      }
+
       fread(&nchunk,sizeof(int),1,fp);
 
       fprintf(fptxt,"ITEM: TIMESTEP\n");
@@ -140,18 +170,20 @@ int main(int narg, char **arg)
 
       if (!triclinic) {
         fprintf(fptxt,"ITEM: BOX BOUNDS %s\n",boundstr);
-        fprintf(fptxt,"%g %g\n",xlo,xhi);
-        fprintf(fptxt,"%g %g\n",ylo,yhi);
-        fprintf(fptxt,"%g %g\n",zlo,zhi);
+        fprintf(fptxt,"%-1.16e %-1.16e\n",xlo,xhi);
+        fprintf(fptxt,"%-1.16e %-1.16e\n",ylo,yhi);
+        fprintf(fptxt,"%-1.16e %-1.16e\n",zlo,zhi);
       } else {
         fprintf(fptxt,"ITEM: BOX BOUNDS %s xy xz yz\n",boundstr);
-        fprintf(fptxt,"%g %g %g\n",xlo,xhi,xy);
-        fprintf(fptxt,"%g %g %g\n",ylo,yhi,xz);
-        fprintf(fptxt,"%g %g %g\n",zlo,zhi,yz);
+        fprintf(fptxt,"%-1.16e %-1.16e %-1.16e\n",xlo,xhi,xy);
+        fprintf(fptxt,"%-1.16e %-1.16e %-1.16e\n",ylo,yhi,xz);
+        fprintf(fptxt,"%-1.16e %-1.16e %-1.16e\n",zlo,zhi,yz);
       }
-      fprintf(fptxt,"ITEM: ATOMS\n");
 
-
+      if (columns)
+        fprintf(fptxt,"ITEM: ATOMS %s\n", columns);
+      else
+        fprintf(fptxt,"ITEM: ATOMS\n");
 
       // loop over processor chunks in file
 
@@ -172,7 +204,13 @@ int main(int narg, char **arg)
         n /= size_one;
         m = 0;
         for (j = 0; j < n; j++) {
-          for (k = 0; k < size_one; k++) fprintf(fptxt,"%g ",buf[m++]);
+          for (k = 0; k < size_one; k++) {
+            if(k+1 < size_one) {
+              fprintf(fptxt,"%g ",buf[m++]);
+            } else {
+              fprintf(fptxt,"%g",buf[m++]);
+            }
+          }
           fprintf(fptxt,"\n");
         }
       }
@@ -181,6 +219,8 @@ int main(int narg, char **arg)
       fflush(stdout);
     }
     printf("\n");
+    delete [] columns;
+    delete [] formatname;
   }
 
   if (buf) delete [] buf;

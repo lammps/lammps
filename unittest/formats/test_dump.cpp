@@ -144,6 +144,7 @@ TEST_F(DumpAtomTest, run0)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
     command("dump id all atom 1 dump_run0.melt");
+    command("dump_modify id scale yes image no");
     command("run 0");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
@@ -157,11 +158,65 @@ TEST_F(DumpAtomTest, run0)
     delete_file("dump_run0.melt");
 }
 
+TEST_F(DumpAtomTest, no_scale_run0)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("dump id all atom 1 dump_no_scale_run0.melt");
+    command("dump_modify id scale no");
+    command("run 0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS("dump_no_scale_run0.melt");
+    auto lines = read_lines("dump_no_scale_run0.melt");
+    ASSERT_EQ(lines.size(), 41);
+    ASSERT_STREQ(lines[4].c_str(), "ITEM: BOX BOUNDS pp pp pp");
+    ASSERT_EQ(utils::split_words(lines[5]).size(), 2);
+    ASSERT_STREQ(lines[8].c_str(), "ITEM: ATOMS id type x y z");
+    ASSERT_EQ(utils::split_words(lines[9]).size(), 5);
+    delete_file("dump_no_scale_run0.melt");
+}
+
+TEST_F(DumpAtomTest, no_buffer_no_scale_run0)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("dump id all atom 1 dump_no_buffer_no_scale_run0.melt");
+    command("dump_modify id buffer no scale no");
+    command("run 0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS("dump_no_buffer_no_scale_run0.melt");
+    auto lines = read_lines("dump_no_buffer_no_scale_run0.melt");
+    ASSERT_EQ(lines.size(), 41);
+    ASSERT_STREQ(lines[4].c_str(), "ITEM: BOX BOUNDS pp pp pp");
+    ASSERT_EQ(utils::split_words(lines[5]).size(), 2);
+    ASSERT_STREQ(lines[8].c_str(), "ITEM: ATOMS id type x y z");
+    ASSERT_EQ(utils::split_words(lines[9]).size(), 5);
+    delete_file("dump_no_buffer_no_scale_run0.melt");
+}
+
+TEST_F(DumpAtomTest, no_buffer_with_scale_run0)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("dump id all atom 1 dump_no_buffer_with_scale_run0.melt");
+    command("dump_modify id buffer no scale yes");
+    command("run 0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS("dump_no_buffer_with_scale_run0.melt");
+    auto lines = read_lines("dump_no_buffer_with_scale_run0.melt");
+    ASSERT_EQ(lines.size(), 41);
+    ASSERT_STREQ(lines[4].c_str(), "ITEM: BOX BOUNDS pp pp pp");
+    ASSERT_EQ(utils::split_words(lines[5]).size(), 2);
+    ASSERT_STREQ(lines[8].c_str(), "ITEM: ATOMS id type xs ys zs");
+    ASSERT_EQ(utils::split_words(lines[9]).size(), 5);
+    delete_file("dump_no_buffer_with_scale_run0.melt");
+}
+
 TEST_F(DumpAtomTest, with_image_run0)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
     command("dump id all atom 1 dump_with_image_run0.melt");
-    command("dump_modify id image yes");
+    command("dump_modify id scale no image yes");
     command("run 0");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
@@ -169,7 +224,7 @@ TEST_F(DumpAtomTest, with_image_run0)
 
     auto lines = read_lines("dump_with_image_run0.melt");
     ASSERT_EQ(lines.size(), 41);
-    ASSERT_STREQ(lines[8].c_str(), "ITEM: ATOMS id type xs ys zs ix iy iz");
+    ASSERT_STREQ(lines[8].c_str(), "ITEM: ATOMS id type x y z ix iy iz");
     ASSERT_EQ(utils::split_words(lines[9]).size(), 8);
 
     delete_file("dump_with_image_run0.melt");

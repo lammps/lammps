@@ -6,7 +6,6 @@ fix drag command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID drag x y z fmag delta
@@ -20,8 +19,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix center small-molecule drag 0.0 10.0 0.0 5.0 2.0
 
@@ -40,7 +38,7 @@ application.
 This command can be used to steer one or more atoms to a new location
 in the simulation.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -67,8 +65,3 @@ Related commands
 :doc:`fix spring/rg <fix_spring_rg>`, :doc:`fix smd <fix_smd>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

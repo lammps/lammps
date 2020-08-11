@@ -20,6 +20,7 @@
 #include <cmath>
 #include <cfloat>
 #include <cstring>
+#include <string>
 #include "atom.h"
 #include "domain.h"
 #include "lattice.h"
@@ -369,14 +370,7 @@ void PairPeriPMB::init_style()
 
   // if first init, create Fix needed for storing fixed neighbors
 
-  if (ifix_peri == -1) {
-    char **fixarg = new char*[3];
-    fixarg[0] = (char *) "PERI_NEIGH";
-    fixarg[1] = (char *) "all";
-    fixarg[2] = (char *) "PERI_NEIGH";
-    modify->add_fix(3,fixarg);
-    delete [] fixarg;
-  }
+  if (ifix_peri == -1) modify->add_fix("PERI_NEIGH all PERI_NEIGH");
 
   // find associated PERI_NEIGH fix that must exist
   // could have changed locations in fix list since created

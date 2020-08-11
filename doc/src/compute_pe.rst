@@ -6,7 +6,6 @@ compute pe command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID pe keyword ...
@@ -19,8 +18,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all pe
    compute molPE all pe bond angle dihedral improper
@@ -56,19 +54,16 @@ potential energy.
    The :doc:`fix_modify energy yes <fix_modify>` command must also be
    specified if a fix is to contribute potential energy to this command.
 
-A compute of this style with the ID of "thermo\_pe" is created when
+A compute of this style with the ID of "thermo_pe" is created when
 LAMMPS starts up, as if this command were in the input script:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute thermo_pe all pe
 
-See the "thermo\_style" command for more details.
-
+See the "thermo_style" command for more details.
 
 ----------
-
 
 **Output info:**
 
@@ -90,8 +85,3 @@ Related commands
 :doc:`compute pe/atom <compute_pe_atom>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

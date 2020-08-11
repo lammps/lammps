@@ -6,7 +6,6 @@ fix qmmm command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID qmmm
@@ -17,7 +16,9 @@ Syntax
 Examples
 """"""""
 
-fix 1 qmol qmmm
+.. code-block:: LAMMPS
+
+   fix 1 qmol qmmm
 
 Description
 """""""""""
@@ -32,8 +33,6 @@ should be possible without changes to LAMMPS itself.
 
 .. _espresso: http://www.quantum-espresso.org
 
-
-
 The interface code for this is in the lib/qmmm directory of the LAMMPS
 distribution and is being made available at this early stage of
 development in order to encourage contributions for interfaces to
@@ -43,7 +42,7 @@ to be adapted if necessary before being finalized.
 Details about how to use this fix are currently documented in the
 description of the QM/MM interface code itself in lib/qmmm/README.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global scalar or vector or per-atom
@@ -53,7 +52,6 @@ fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
-
 
 This fix is part of the USER-QMMM package.  It is only enabled if
 LAMMPS was built with that package. It also requires building a
@@ -66,8 +64,3 @@ executable.  See the lib/qmmm/README file for details.
 **Related commands:** none
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

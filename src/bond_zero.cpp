@@ -144,12 +144,19 @@ void BondZero::write_data(FILE *fp)
     fprintf(fp,"%d %g\n",i,r0[i]);
 }
 
-
-
 /* ---------------------------------------------------------------------- */
 
 double BondZero::single(int /*type*/, double /*rsq*/, int /*i*/, int /*j*/,
                         double & /*fforce*/)
 {
   return 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *BondZero::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str,"r0")==0) return (void*) r0;
+  return NULL;
 }

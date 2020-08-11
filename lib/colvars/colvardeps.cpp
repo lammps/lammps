@@ -428,11 +428,11 @@ void colvardeps::require_feature_alt(int f, int g, int h, int i, int j) {
 
 void colvardeps::print_state() {
   size_t i;
-  cvm::log("Enabled features of \"" + description + "\" (with reference count)");
+  cvm::log("Features of \"" + description + "\" ON/OFF (refcount)");
   for (i = 0; i < feature_states.size(); i++) {
-    if (is_enabled(i))
-      cvm::log("- " + features()[i]->description + " ("
-        + cvm::to_str(feature_states[i].ref_count) + ")");
+    std::string onoff = is_enabled(i) ? "ON" : "OFF";
+    cvm::log("- " + features()[i]->description + "   " + onoff + " ("
+      + cvm::to_str(feature_states[i].ref_count) + ")");
   }
   cvm::increase_depth();
   for (i=0; i<children.size(); i++) {

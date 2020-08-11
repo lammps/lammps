@@ -28,6 +28,7 @@
 #include "respa.h"
 #include "utils.h"
 #include "suffix.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -265,6 +266,9 @@ void PairHybrid::allocate()
 void PairHybrid::settings(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
+  if (lmp->kokkos && !utils::strmatch(force->pair_style,"^hybrid.*/kk$"))
+    error->all(FLERR,fmt::format("Must use pair_style {}/kk with Kokkos",
+                                 force->pair_style));
 
   // delete old lists, since cannot just change settings
 
@@ -313,7 +317,7 @@ void PairHybrid::settings(int narg, char **arg)
   iarg = 0;
   nstyles = 0;
   while (iarg < narg) {
-    if (strncmp(arg[iarg],"hybrid",6) == 0)
+    if (utils::strmatch(arg[iarg],"^hybrid"))
       error->all(FLERR,"Pair style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[iarg],"none") == 0)
       error->all(FLERR,"Pair style hybrid cannot have none as an argument");
@@ -323,8 +327,14 @@ void PairHybrid::settings(int narg, char **arg)
     special_lj[nstyles] = special_coul[nstyles] = NULL;
     compute_tally[nstyles] = 1;
 
+    // determine list of arguments for pair style settings
+    // by looking for the next known pair style name.
+
     jarg = iarg + 1;
-    while (jarg < narg && !force->pair_map->count(arg[jarg])) jarg++;
+    while ((jarg < narg)
+           && !force->pair_map->count(arg[jarg])
+           && !lmp->match_style("pair",arg[jarg])) jarg++;
+
     styles[nstyles]->settings(jarg-iarg-1,&arg[iarg+1]);
     iarg = jarg;
     nstyles++;
@@ -363,8 +373,8 @@ void PairHybrid::flags()
                                           styles[m]->comm_reverse_off);
   }
 
-  // single_enable = 1 if any sub-style is set
-  // respa_enable = 1 if any sub-style is set
+  // single_enable = 1 if all sub-styles are set
+  // respa_enable = 1 if all sub-styles are set
   // manybody_flag = 1 if any sub-style is set
   // no_virial_fdotr_compute = 1 if any sub-style is set
   // ghostneigh = 1 if any sub-style is set
@@ -374,9 +384,12 @@ void PairHybrid::flags()
 
   single_enable = 0;
   compute_flag = 0;
+  respa_enable = 0;
+  restartinfo = 0;
   for (m = 0; m < nstyles; m++) {
-    if (styles[m]->single_enable) single_enable = 1;
-    if (styles[m]->respa_enable) respa_enable = 1;
+    if (styles[m]->single_enable) ++single_enable;
+    if (styles[m]->respa_enable) ++respa_enable;
+    if (styles[m]->restartinfo) ++restartinfo;
     if (styles[m]->manybody_flag) manybody_flag = 1;
     if (styles[m]->no_virial_fdotr_compute) no_virial_fdotr_compute = 1;
     if (styles[m]->ghostneigh) ghostneigh = 1;
@@ -390,6 +403,9 @@ void PairHybrid::flags()
     if (styles[m]->compute_flag) compute_flag = 1;
     if (styles[m]->centroidstressflag & 4) centroidstressflag |= 4;
   }
+  single_enable = (single_enable == nstyles) ? 1 : 0;
+  respa_enable = (respa_enable == nstyles) ? 1 : 0;
+  restartinfo = (restartinfo == nstyles) ? 1 : 0;
   init_svector();
 }
 
@@ -420,9 +436,6 @@ void PairHybrid::coeff(int narg, char **arg)
 {
   if (narg < 3) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
-
-  if (lmp->kokkos)
-    error->all(FLERR,"Cannot yet use pair hybrid with Kokkos");
 
   int ilo,ihi,jlo,jhi;
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
@@ -742,7 +755,7 @@ void PairHybrid::read_restart(FILE *fp)
     keywords[m] = new char[n];
     if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,NULL,error);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
-    styles[m] = force->new_pair(keywords[m],0,dummy);
+    styles[m] = force->new_pair(keywords[m],1,dummy);
     styles[m]->read_restart_settings(fp);
     // read back per style special settings, if present
     special_lj[m] = special_coul[m] = NULL;
@@ -859,14 +872,17 @@ void PairHybrid::modify_params(int narg, char **arg)
       iarg = 3;
     }
 
-    // if 2nd keyword (after pair) is special:
-    // invoke modify_special() for the sub-style
+    // keywords "special" and "compute/tally" have to be listed directly
+    // after "pair" but can be given multiple times
+
+again:
 
     if (iarg < narg && strcmp(arg[iarg],"special") == 0) {
       if (narg < iarg+5)
         error->all(FLERR,"Illegal pair_modify special command");
       modify_special(m,narg-iarg,&arg[iarg+1]);
       iarg += 5;
+      goto again;
     }
 
     // if 2nd keyword (after pair) is compute/tally:
@@ -881,11 +897,13 @@ void PairHybrid::modify_params(int narg, char **arg)
         compute_tally[m] = 0;
       } else error->all(FLERR,"Illegal pair_modify compute/tally command");
       iarg += 2;
+      goto again;
     }
 
-    // apply the remaining keywords to the base pair style itself and the
-    // sub-style except for "pair" and "special".
-    // the former is important for some keywords like "tail" or "compute"
+    // apply the remaining keywords to the base pair style itself and
+    // the sub-style except for "pair" and "special" or "compute/tally"
+    // and their arguments. the former is important for some keywords
+    // like "tail" or "compute"
 
     if (narg-iarg > 0) {
       Pair::modify_params(narg-iarg,&arg[iarg]);
@@ -1002,7 +1020,7 @@ void *PairHybrid::extract(const char *str, int &dim)
   for (int m = 0; m < nstyles; m++) {
     ptr = styles[m]->extract(str,dim);
     if (ptr && strcmp(str,"cut_coul") == 0) {
-      if (cutptr && dim != couldim)
+      if (couldim != -1 && dim != couldim)
         error->all(FLERR,
                    "Coulomb styles of pair hybrid sub-styles do not match");
       double *p_newvalue = (double *) ptr;

@@ -17,7 +17,7 @@ General commands
 An alphabetic list of all general LAMMPS commands.
 
 .. table_from_list::
-   :columns: 6
+   :columns: 5
 
    * :doc:`angle_coeff <angle_coeff>`
    * :doc:`angle_style <angle_style>`
@@ -46,13 +46,6 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`dimension <dimension>`
    * :doc:`displace_atoms <displace_atoms>`
    * :doc:`dump <dump>`
-   * :doc:`dump atom/adios <dump_adios>`
-   * :doc:`dump custom/adios <dump_adios>`
-   * :doc:`dump image <dump_image>`
-   * :doc:`dump movie <dump_image>`
-   * :doc:`dump netcdf <dump_netcdf>`
-   * :doc:`dump netcdf/mpiio <dump_netcdf>`
-   * :doc:`dump vtk <dump_vtk>`
    * :doc:`dump_modify <dump_modify>`
    * :doc:`dynamical_matrix <dynamical_matrix>`
    * :doc:`echo <echo>`
@@ -70,6 +63,7 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`kim_init <kim_commands>`
    * :doc:`kim_interactions <kim_commands>`
    * :doc:`kim_param <kim_commands>`
+   * :doc:`kim_property <kim_commands>`
    * :doc:`kim_query <kim_commands>`
    * :doc:`kspace_modify <kspace_modify>`
    * :doc:`kspace_style <kspace_style>`
@@ -93,6 +87,7 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`package <package>`
    * :doc:`pair_coeff <pair_coeff>`
    * :doc:`pair_modify <pair_modify>`
+   * :doc:`pair_style <pair_style>`
    * :doc:`pair_write <pair_write>`
    * :doc:`partition <partition>`
    * :doc:`prd <prd>`
@@ -106,7 +101,8 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`region <region>`
    * :doc:`replicate <replicate>`
    * :doc:`rerun <rerun>`
-   * :doc:`reset_ids <reset_ids>`
+   * :doc:`reset_atom_ids <reset_atom_ids>`
+   * :doc:`reset_mol_ids <reset_mol_ids>`
    * :doc:`reset_timestep <reset_timestep>`
    * :doc:`restart <restart>`
    * :doc:`run <run>`
@@ -136,4 +132,3 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`write_data <write_data>`
    * :doc:`write_dump <write_dump>`
    * :doc:`write_restart <write_restart>`
-

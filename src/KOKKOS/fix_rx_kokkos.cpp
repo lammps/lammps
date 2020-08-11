@@ -27,6 +27,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "kokkos.h"
+#include "utils.h"
 
 #include <cfloat> // DBL_EPSILON
 
@@ -128,7 +129,7 @@ void FixRxKokkos<DeviceType>::init()
 
   bool eos_flag = false;
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"eos/table/rx",3) == 0) eos_flag = true;
+    if (utils::strmatch(modify->fix[i]->style,"^eos/table/rx")) eos_flag = true;
   if(!eos_flag) error->all(FLERR,"fix rx requires fix eos/table/rx to be specified");
 
   if (update_kinetics_data)
@@ -146,10 +147,10 @@ void FixRxKokkos<DeviceType>::init()
   int neighflag = lmp->kokkos->neighflag;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
+    !std::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
 
   if (neighflag == FULL) {
     neighbor->requests[irequest]->full = 1;
@@ -219,6 +220,7 @@ void FixRxKokkos<DeviceType>::rk4(const double t_stop, double *y, double *rwork,
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::k_rk4(const double t_stop, VectorType& y, VectorType& rwork, UserDataType& userData) const
 {
   VectorType k1( rwork );
@@ -278,6 +280,7 @@ void FixRxKokkos<DeviceType>::k_rk4(const double t_stop, VectorType& y, VectorTy
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::k_rkf45_step (const int neq, const double h, VectorType& y, VectorType& y_out, VectorType& rwk, UserDataType& userData) const
 {
    const double c21=0.25;
@@ -383,6 +386,7 @@ void FixRxKokkos<DeviceType>::k_rkf45_step (const int neq, const double h, Vecto
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+KOKKOS_INLINE_FUNCTION
 int FixRxKokkos<DeviceType>::k_rkf45_h0
                     (const int neq, const double t, const double t_stop,
                      const double hmin, const double hmax,
@@ -478,6 +482,7 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::k_rkf45(const int neq, const double t_stop, VectorType& y, VectorType& rwork, UserDataType& userData, CounterType& counter) const
 {
   // Rounding coefficient.
@@ -1048,6 +1053,7 @@ int FixRxKokkos<DeviceType>::rhs_sparse(double t, const double *y, double *dydt,
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+KOKKOS_INLINE_FUNCTION
 int FixRxKokkos<DeviceType>::k_rhs(double t, const VectorType& y, VectorType& dydt, UserDataType& userData) const
 {
   // Use the sparse format instead.
@@ -1061,6 +1067,7 @@ int FixRxKokkos<DeviceType>::k_rhs(double t, const VectorType& y, VectorType& dy
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+KOKKOS_INLINE_FUNCTION
 int FixRxKokkos<DeviceType>::k_rhs_dense(double t, const VectorType& y, VectorType& dydt, UserDataType& userData) const
 {
   #define rxnRateLaw (userData.rxnRateLaw)
@@ -1102,6 +1109,7 @@ int FixRxKokkos<DeviceType>::k_rhs_dense(double t, const VectorType& y, VectorTy
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+KOKKOS_INLINE_FUNCTION
 int FixRxKokkos<DeviceType>::k_rhs_sparse(double t, const VectorType& y, VectorType& dydt, UserDataType& userData) const
 {
    #define kFor         (userData.kFor)
@@ -1908,7 +1916,7 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_firstPairOperator<WT_FL
 {
   // Create an atomic view of sumWeights and dpdThetaLocal. Only needed
   // for Half/thread scenarios.
-  typedef Kokkos::View< E_FLOAT*, typename DAT::t_efloat_1d::array_layout, DeviceType, Kokkos::MemoryTraits< AtomicF< NEIGHFLAG >::value> > AtomicViewType;
+  typedef Kokkos::View< E_FLOAT*, typename DAT::t_efloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::MemoryTraits< AtomicF< NEIGHFLAG >::value> > AtomicViewType;
 
   AtomicViewType a_dpdThetaLocal = d_dpdThetaLocal;
   AtomicViewType a_sumWeights    = d_sumWeights;
@@ -2083,8 +2091,8 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
         {
           // Create an atomic view of sumWeights and dpdThetaLocal. Only needed
           // for Half/thread scenarios.
-          //typedef Kokkos::View< E_FLOAT*, typename DAT::t_efloat_1d::array_layout, DeviceType, Kokkos::MemoryTraits< AtomicF< NEIGHFLAG >::value> > AtomicViewType;
-          typedef Kokkos::View< E_FLOAT*, typename DAT::t_efloat_1d::array_layout, DeviceType, Kokkos::MemoryTraits< AtomicF< NEIGHFLAG >::value> > AtomicViewType;
+          //typedef Kokkos::View< E_FLOAT*, typename DAT::t_efloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::MemoryTraits< AtomicF< NEIGHFLAG >::value> > AtomicViewType;
+          typedef Kokkos::View< E_FLOAT*, typename DAT::t_efloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::MemoryTraits< AtomicF< NEIGHFLAG >::value> > AtomicViewType;
 
           AtomicViewType a_dpdThetaLocal = d_dpdThetaLocal;
           AtomicViewType a_sumWeights    = d_sumWeights;
@@ -2274,7 +2282,7 @@ void FixRxKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
 
 namespace LAMMPS_NS {
 template class FixRxKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixRxKokkos<LMPHostType>;
 #endif
 }

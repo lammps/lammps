@@ -6,7 +6,6 @@ compute erotate/asphere command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID erotate/asphere
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all erotate/asphere
 
@@ -55,7 +53,6 @@ scalar value will be in energy :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-
 This compute requires that ellipsoidal particles atoms store a shape
 and quaternion orientation and angular momentum as defined by the
 :doc:`atom_style ellipsoid <atom_style>` command.
@@ -75,8 +72,3 @@ particles.
 :doc:`compute erotate/sphere <compute_erotate_sphere>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

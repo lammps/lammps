@@ -335,7 +335,7 @@ void PPPMDispTIP4P::fieldforce_c_ad()
     eky *= hy_inv;
     ekz *= hz_inv;
 
-    // convert E-field to force and substract self forces
+    // convert E-field to force and subtract self forces
     const double qfactor = force->qqrd2e * scale;
 
     s1 = x[i][0]*hx_inv;

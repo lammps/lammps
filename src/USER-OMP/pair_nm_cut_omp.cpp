@@ -12,6 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include <cmath>
 #include "pair_nm_cut_omp.h"
 #include "atom.h"
@@ -43,7 +44,7 @@ void PairNMCutOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -146,6 +147,7 @@ void PairNMCutOMP::eval(int iifrom, int iito, ThrData * const thr)
           evdwl = e0nmi[jtype] *
             (mmi[jtype]*r0ni[jtype]*rninv -
              nni[jtype]*r0mi[jtype]*rminv) - offseti[jtype];
+          evdwl *= factor_lj;
         }
 
         if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,

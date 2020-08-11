@@ -6,7 +6,6 @@ compute temp/deform command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/deform
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myTemp all temp/deform
 
@@ -135,8 +133,3 @@ Related commands
 :doc:`fix nvt/sllod <fix_nvt_sllod>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

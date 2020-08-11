@@ -3,15 +3,16 @@ Output from LAMMPS (thermo, dumps, computes, fixes, variables)
 
 There are four basic kinds of LAMMPS output:
 
-* :doc:`Thermodynamic output <thermo_style>`, which is a list
-  of quantities printed every few timesteps to the screen and logfile.
+* :doc:`Thermodynamic output <thermo_style>`, which is a list of
+  quantities printed every few timesteps to the screen and logfile.
 * :doc:`Dump files <dump>`, which contain snapshots of atoms and various
   per-atom values and are written at a specified frequency.
-* Certain fixes can output user-specified quantities to files: :doc:`fix ave/time <fix_ave_time>` for time averaging, :doc:`fix ave/chunk <fix_ave_chunk>` for spatial or other averaging, and :doc:`fix print <fix_print>` for single-line output of
-  :doc:`variables <variable>`.  Fix print can also output to the
-  screen.
+* Certain fixes can output user-specified quantities to files:
+  :doc:`fix ave/time <fix_ave_time>` for time averaging,
+  :doc:`fix ave/chunk <fix_ave_chunk>` for spatial or other averaging, and
+  :doc:`fix print <fix_print>` for single-line output of
+  :doc:`variables <variable>`.  Fix print can also output to the screen.
 * :doc:`Restart files <restart>`.
-
 
 A simulation prints one set of thermodynamic output and (optionally)
 restart files.  It can generate any number of dump files and fix
@@ -42,7 +43,7 @@ to output and the kind of data they operate on and produce:
 .. _global:
 
 Global/per-atom/local data
----------------------------------------
+--------------------------
 
 Various output-related commands work with three different styles of
 data: global, per-atom, or local.  A global datum is one or more
@@ -55,7 +56,7 @@ bond distances.
 .. _scalar:
 
 Scalar/vector/array data
--------------------------------------
+------------------------
 
 Global, per-atom, and local datums can each come in three kinds: a
 single scalar value, a vector of values, or a 2d array of values.  The
@@ -69,11 +70,11 @@ notation, where ID in this case is the ID of a compute.  The leading
 "c\_" would be replaced by "f\_" for a fix, or "v\_" for a variable:
 
 +-------------+--------------------------------------------+
-| c\_ID       | entire scalar, vector, or array            |
+| c_ID        | entire scalar, vector, or array            |
 +-------------+--------------------------------------------+
-| c\_ID[I]    | one element of vector, one column of array |
+| c_ID[I]     | one element of vector, one column of array |
 +-------------+--------------------------------------------+
-| c\_ID[I][J] | one element of array                       |
+| c_ID[I][J]  | one element of array                       |
 +-------------+--------------------------------------------+
 
 In other words, using one bracket reduces the dimension of the data
@@ -82,10 +83,27 @@ the dimension twice (array -> scalar).  Thus a command that uses
 scalar values as input can typically also process elements of a vector
 or array.
 
+.. _disambiguation:
+
+Disambiguation
+--------------
+
+Some computes and fixes produce data in multiple styles, e.g. a global
+scalar and a per-atom vector. Usually the context in which the input
+script references the data determines which style is meant. Example: if
+a compute provides both a global scalar and a per-atom vector, the
+former will be accessed by using ``c_ID`` in an equal-style variable,
+while the latter will be accessed by using ``c_ID`` in an atom-style
+variable.  Note that atom-style variable formulas can also access global
+scalars, but in this case it is not possible to do directly because of
+the ambiguity.  Instead, an equal-style variable can be defined which
+accesses the global scalar, and that variable used in the atom-style
+variable formula in place of ``c_ID``.
+
 .. _thermo:
 
 Thermodynamic output
----------------------------------
+--------------------
 
 The frequency and format of thermodynamic output is set by the
 :doc:`thermo <thermo>`, :doc:`thermo_style <thermo_style>`, and
@@ -93,7 +111,7 @@ The frequency and format of thermodynamic output is set by the
 :doc:`thermo_style <thermo_style>` command also specifies what values
 are calculated and written out.  Pre-defined keywords can be specified
 (e.g. press, etotal, etc).  Three additional kinds of keywords can
-also be specified (c\_ID, f\_ID, v\_name), where a :doc:`compute <compute>`
+also be specified (c_ID, f_ID, v_name), where a :doc:`compute <compute>`
 or :doc:`fix <fix>` or :doc:`variable <variable>` provides the value to be
 output.  In each case, the compute, fix, or variable must generate
 global values for input to the :doc:`thermo_style custom <dump>`
@@ -113,7 +131,7 @@ intensive result.
 .. _dump:
 
 Dump file output
----------------------------
+----------------
 
 Dump file output is specified by the :doc:`dump <dump>` and
 :doc:`dump_modify <dump_modify>` commands.  There are several
@@ -122,7 +140,7 @@ pre-defined formats (dump atom, dump xtc, etc).
 There is also a :doc:`dump custom <dump>` format where the user
 specifies what values are output with each atom.  Pre-defined atom
 attributes can be specified (id, x, fx, etc).  Three additional kinds
-of keywords can also be specified (c\_ID, f\_ID, v\_name), where a
+of keywords can also be specified (c_ID, f_ID, v_name), where a
 :doc:`compute <compute>` or :doc:`fix <fix>` or :doc:`variable <variable>`
 provides the values to be output.  In each case, the compute, fix, or
 variable must generate per-atom values for input to the :doc:`dump custom <dump>` command.
@@ -130,7 +148,7 @@ variable must generate per-atom values for input to the :doc:`dump custom <dump>
 There is also a :doc:`dump local <dump>` format where the user specifies
 what local values to output.  A pre-defined index keyword can be
 specified to enumerate the local values.  Two additional kinds of
-keywords can also be specified (c\_ID, f\_ID), where a
+keywords can also be specified (c_ID, f_ID), where a
 :doc:`compute <compute>` or :doc:`fix <fix>` or :doc:`variable <variable>`
 provides the values to be output.  In each case, the compute or fix
 must generate local values for input to the :doc:`dump local <dump>`
@@ -139,7 +157,7 @@ command.
 .. _fixoutput:
 
 Fixes that write output files
----------------------------------------------
+-----------------------------
 
 Several fixes take various quantities as input and can write output
 files: :doc:`fix ave/time <fix_ave_time>`, :doc:`fix ave/chunk <fix_ave_chunk>`, :doc:`fix ave/histo <fix_ave_histo>`,
@@ -193,7 +211,7 @@ from normal thermodynamic or dump file output.
 .. _computeoutput:
 
 Computes that process output quantities
------------------------------------------------------------
+---------------------------------------
 
 The :doc:`compute reduce <compute_reduce>` and :doc:`compute reduce/region <compute_reduce>` commands take one or more per-atom
 or local vector quantities as inputs and "reduce" them (sum, min, max,
@@ -220,7 +238,7 @@ output commands.
 .. _fixprocoutput:
 
 Fixes that process output quantities
---------------------------------------------------------
+------------------------------------
 
 The :doc:`fix vector <fix_vector>` command can create global vectors as
 output from global scalars as input, accumulating them one element at
@@ -245,7 +263,7 @@ The output of this fix can be used as input to other output commands.
 .. _compute:
 
 Computes that generate values to output
------------------------------------------------------
+---------------------------------------
 
 Every :doc:`compute <compute>` in LAMMPS produces either global or
 per-atom or local values.  The values can be scalars or vectors or
@@ -258,7 +276,7 @@ without the word "atom" or "local" produce global values.
 .. _fix:
 
 Fixes that generate values to output
-----------------------------------------------
+------------------------------------
 
 Some :doc:`fixes <fix>` in LAMMPS produces either global or per-atom or
 local values which can be accessed by other commands.  The values can
@@ -270,7 +288,7 @@ describes them.
 .. _variable:
 
 Variables that generate values to output
--------------------------------------------------------
+----------------------------------------
 
 :doc:`Variables <variable>` defined in an input script can store one or
 more strings.  But equal-style, vector-style, and atom-style or
@@ -285,7 +303,7 @@ commands described in this section.
 .. _table:
 
 Summary table of output options and data flow between commands
---------------------------------------------------------------------------
+--------------------------------------------------------------
 
 This table summarizes the various commands that can be used for
 generating output from LAMMPS.  Each command produces output data of
@@ -342,8 +360,3 @@ vector input could be a column of an array.
 +--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
 | :doc:`fix store/state <fix_store_state>`               | per-atom vectors                             | per-atom vector/array                     |
 +--------------------------------------------------------+----------------------------------------------+-------------------------------------------+
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

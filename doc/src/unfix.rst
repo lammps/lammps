@@ -6,7 +6,6 @@ unfix command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    unfix fix-ID
@@ -16,8 +15,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    unfix 2
    unfix lower-boundary
@@ -39,8 +37,3 @@ Related commands
 :doc:`fix <fix>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

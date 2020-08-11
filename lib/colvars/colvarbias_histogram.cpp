@@ -17,6 +17,7 @@ colvarbias_histogram::colvarbias_histogram(char const *key)
   : colvarbias(key),
     grid(NULL), out_name("")
 {
+  provide(f_cvb_bypass_ext_lagrangian); // Allow histograms of actual cv for extended-Lagrangian
 }
 
 
@@ -83,6 +84,10 @@ int colvarbias_histogram::init(std::string const &conf)
 
   grid = new colvar_grid_scalar();
   grid->init_from_colvars(colvars);
+
+  if (is_enabled(f_cvb_bypass_ext_lagrangian)) {
+    grid->request_actual_value();
+  }
 
   {
     std::string grid_conf;

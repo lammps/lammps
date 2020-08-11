@@ -48,7 +48,7 @@ ServerMD::ServerMD(LAMMPS *lmp) : Pointers(lmp)
 
   if (!atom->map_style) error->all(FLERR,"Server md requires atom map");
   if (atom->tag_enable == 0) error->all(FLERR,"Server md requires atom IDs");
-  if (sizeof(tagint) != 4) error->all(FLERR,"Server md requires 4-byte atom IDs");
+  if (sizeof(tagint) != 4) error->all(FLERR,"Server md requires 32-bit atom IDs");
 
   if (strcmp(update->unit_style,"real") == 0) units = REAL;
   else if (strcmp(update->unit_style,"metal") == 0) units = METAL;

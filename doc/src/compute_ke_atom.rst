@@ -6,7 +6,6 @@ compute ke/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID ke/atom
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all ke/atom
 
@@ -53,8 +51,3 @@ Related commands
 :doc:`dump custom <dump>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

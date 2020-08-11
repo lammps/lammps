@@ -6,7 +6,6 @@ compute pair/local command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID pair/local value1 value2 ... keyword args ...
@@ -15,9 +14,9 @@ Syntax
 * pair/local = style name of this compute command
 * one or more values may be appended
 * value = *dist* or *eng* or *force* or *fx* or *fy* or *fz* or *pN*
-  
+
   .. parsed-literal::
-  
+
        *dist* = pairwise distance
        *eng* = pairwise energy
        *force* = pairwise force
@@ -26,18 +25,15 @@ Syntax
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *cutoff*
-  
+
   .. parsed-literal::
-  
+
        *cutoff* arg = *type* or *radius*
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all pair/local eng
    compute 1 all pair/local dist eng force
@@ -119,8 +115,7 @@ command in a consistent way.
 
 Here is an example of how to do this:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all property/local patom1 patom2
    compute 2 all pair/local dist eng force
@@ -172,8 +167,3 @@ Default
 """""""
 
 The keyword default is cutoff = type.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

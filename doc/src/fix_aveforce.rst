@@ -6,7 +6,6 @@ fix aveforce command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID aveforce fx fy fz keyword value ...
@@ -14,26 +13,23 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * aveforce = style name of this fix command
 * fx,fy,fz = force component values (force units)
-  
+
   .. parsed-literal::
-  
+
        any of fx,fy,fz can be a variable (see below)
 
 * zero or more keyword/value pairs may be appended to args
 * keyword = *region*
-  
+
   .. parsed-literal::
-  
+
        *region* value = region-ID
          region-ID = ID of region atoms must be in to have added force
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix pressdown topwall aveforce 0.0 -1.0 0.0
    fix 2 bottomwall aveforce NULL -1.0 0.0 region top
@@ -59,7 +55,7 @@ average value without adding in any additional force.
 
 Any of the 3 quantities defining the force components can be specified
 as an equal-style :doc:`variable <variable>`, namely *fx*\ , *fy*\ , *fz*\ .
-If the value is a variable, it should be specified as v\_name, where
+If the value is a variable, it should be specified as v_name, where
 name is the variable name.  In this case, the variable will be
 evaluated each timestep, and its value used to determine the average
 force.
@@ -73,33 +69,13 @@ If the *region* keyword is used, the atom must also be in the
 specified geometric :doc:`region <region>` in order to have force added
 to it.
 
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 
-
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
-
-
-----------
-
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -132,8 +108,3 @@ Related commands
 :doc:`fix setforce <fix_setforce>`, :doc:`fix addforce <fix_addforce>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

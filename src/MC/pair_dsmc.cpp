@@ -28,6 +28,7 @@
 #include "update.h"
 #include "random_mars.h"
 #include "utils.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -283,12 +284,9 @@ void PairDSMC::init_style()
   celly = (domain->boxhi[1] - domain->boxlo[1])/ncellsy;
   cellz = (domain->boxhi[2] - domain->boxlo[2])/ncellsz;
 
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,"DSMC cell size = %g x %g x %g\n",
-                        cellx,celly,cellz);
-    if (logfile) fprintf(logfile,"DSMC cell size = %g x %g x %g\n",
-                         cellx,celly,cellz);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,fmt::format("DSMC cell size = {} x {} x {}\n",
+                                   cellx,celly,cellz));
 
   total_ncells = ncellsx*ncellsy*ncellsz;
   vol = cellx*celly*cellz;

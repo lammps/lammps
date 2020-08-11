@@ -6,21 +6,17 @@ molecular dynamics computations.  Additional pre- and post-processing
 steps are often necessary to setup and analyze a simulation.  A list
 of such tools can be found on the `LAMMPS webpage <lws_>`_ at these links:
 
-* `Pre/Post processing <http://lammps.sandia.gov/prepost.html>`_
-* `Offsite LAMMPS packages & tools <http://lammps.sandia.gov/offsite.html>`_
+* `Pre/Post processing <https://lammps.sandia.gov/prepost.html>`_
+* `Offsite LAMMPS packages & tools <https://lammps.sandia.gov/offsite.html>`_
 * `Pizza.py toolkit <pizza_>`_
 
 The last link for `Pizza.py <pizza_>`_ is a Python-based tool developed at
 Sandia which provides tools for doing setup, analysis, plotting, and
 visualization for LAMMPS simulations.
 
-.. _pizza: http://pizza.sandia.gov
-
-
-
-.. _python: http://www.python.org
-
-
+.. _lws: https://lammps.sandia.gov
+.. _pizza: https://pizza.sandia.gov
+.. _python: https://www.python.org
 
 Additional tools included in the LAMMPS distribution are described on
 this page.
@@ -39,44 +35,68 @@ to edit for your platform) which will build several of the tools which
 reside in that directory.  Most of them are larger packages in their
 own sub-directories with their own Makefiles and/or README files.
 
-
 ----------
-
 
 Pre-processing tools
 ====================
 
-+-----------------------------+------------------------+----------------------+----------------------------------+----------------------------------+-----------------------------+
-| :ref:`amber2lmp <amber>`    | :ref:`ch2lmp <charmm>` | :ref:`chain <chain>` | :ref:`createatoms <createatoms>` | :ref:`drude <drude>`             | :ref:`eam database <eamdb>` |
-+-----------------------------+------------------------+----------------------+----------------------------------+----------------------------------+-----------------------------+
-| :ref:`eam generate <eamgn>` | :ref:`eff <eff>`       | :ref:`ipp <ipp>`     | :ref:`micelle2d <micelle>`       | :ref:`moltemplate <moltemplate>` | :ref:`msi2lmp <msi>`        |
-+-----------------------------+------------------------+----------------------+----------------------------------+----------------------------------+-----------------------------+
-| :ref:`polybond <polybond>`  |                        |                      |                                  |                                  |                             |
-+-----------------------------+------------------------+----------------------+----------------------------------+----------------------------------+-----------------------------+
+.. table_from_list::
+   :columns: 6
+
+   * :ref:`amber2lmp <amber>`
+   * :ref:`ch2lmp <charmm>`
+   * :ref:`chain <chain>`
+   * :ref:`createatoms <createatoms>`
+   * :ref:`drude <drude>`
+   * :ref:`eam database <eamdb>`
+   * :ref:`eam generate <eamgn>`
+   * :ref:`eff <eff>`
+   * :ref:`ipp <ipp>`
+   * :ref:`micelle2d <micelle>`
+   * :ref:`moltemplate <moltemplate>`
+   * :ref:`msi2lmp <msi>`
+   * :ref:`polybond <polybond>`
+
 
 Post-processing tools
 =====================
 
-+--------------------------+----------------------------+------------------------+--------------------------+-------------------------------+-----------------------------+
-| :ref:`amber2lmp <amber>` | :ref:`binary2txt <binary>` | :ref:`ch2lmp <charmm>` | :ref:`colvars <colvars>` | :ref:`eff <eff>`              | :ref:`fep <fep>`            |
-+--------------------------+----------------------------+------------------------+--------------------------+-------------------------------+-----------------------------+
-| :ref:`lmp2arc <arc>`     | :ref:`lmp2cfg <cfg>`       | :ref:`matlab <matlab>` | :ref:`phonon <phonon>`   | :ref:`pymol_asphere <pymol>`  | :ref:`python <pythontools>` |
-+--------------------------+----------------------------+------------------------+--------------------------+-------------------------------+-----------------------------+
-| :ref:`reax <reax_tool>`  | :ref:`replica <replica>`   | :ref:`smd <smd>`       | :ref:`spin <spin>`       | :ref:`xmgrace <xmgrace>`      |                             |
-+--------------------------+----------------------------+------------------------+--------------------------+-------------------------------+-----------------------------+
+.. table_from_list::
+   :columns: 6
+
+   * :ref:`amber2lmp <amber>`
+   * :ref:`binary2txt <binary>`
+   * :ref:`ch2lmp <charmm>`
+   * :ref:`colvars <colvars>`
+   * :ref:`eff <eff>`
+   * :ref:`fep <fep>`
+   * :ref:`lmp2arc <arc>`
+   * :ref:`lmp2cfg <cfg>`
+   * :ref:`matlab <matlab>`
+   * :ref:`phonon <phonon>`
+   * :ref:`pymol_asphere <pymol>`
+   * :ref:`python <pythontools>`
+   * :ref:`reax <reax_tool>`
+   * :ref:`replica <replica>`
+   * :ref:`smd <smd>`
+   * :ref:`spin <spin>`
+   * :ref:`xmgrace <xmgrace>`
 
 Miscellaneous tools
 ===================
 
-+--------------------------+----------------------+-------------------+--------------------+---------------------------------------+
-| :ref:`doxygen <doxygen>` | :ref:`emacs <emacs>` | :ref:`i-pi <ipi>` | :ref:`kate <kate>` | :ref:`singularity <singularity_tool>` |
-+--------------------------+----------------------+-------------------+--------------------+---------------------------------------+
-| :ref:`vim <vim>`         |                      |                   |                    |                                       |
-+--------------------------+----------------------+-------------------+--------------------+---------------------------------------+
+.. table_from_list::
+   :columns: 6
 
+   * :ref:`CMake <cmake>`
+   * :ref:`doxygen <doxygen>`
+   * :ref:`emacs <emacs>`
+   * :ref:`i-pi <ipi>`
+   * :ref:`kate <kate>`
+   * :ref:`singularity <singularity_tool>`
+   * :ref:`vim <vim>`
 
 ----------
-
 
 Tool descriptions
 =================
@@ -94,12 +114,10 @@ These tools were written by Keir Novik while he was at Queen Mary
 University of London.  Keir is no longer there and cannot support
 these tools which are out-of-date with respect to the current LAMMPS
 version (and maybe with respect to AMBER as well).  Since we don't use
-these tools at Sandia, you'll need to experiment with them and make
+these tools at Sandia, you will need to experiment with them and make
 necessary modifications yourself.
 
-
 ----------
-
 
 .. _binary:
 
@@ -109,8 +127,7 @@ binary2txt tool
 The file binary2txt.cpp converts one or more binary LAMMPS dump file
 into ASCII text files.  The syntax for running the tool is
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    binary2txt file1 file2 ...
 
@@ -118,9 +135,7 @@ which creates file1.txt, file2.txt, etc.  This tool must be compiled
 on a platform that can read the binary file created by a LAMMPS run,
 since binary files are not compatible across all platforms.
 
-
 ----------
-
 
 .. _charmm:
 
@@ -148,9 +163,7 @@ Robert A. Latour (latourr at clemson.edu), David Hyde-Volpe, and
 Tigran Abramyan, (Clemson University) and
 Chris Lorenz (chris.lorenz at kcl.ac.uk), King's College London.
 
-
 ----------
-
 
 .. _chain:
 
@@ -164,8 +177,7 @@ chains and solvent atoms can strongly overlap, so LAMMPS needs to run
 the system initially with a "soft" pair potential to un-overlap it.
 The syntax for running the tool is
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    chain < def.chain > data.file
 
@@ -173,9 +185,31 @@ See the def.chain or def.chain.ab files in the tools directory for
 examples of definition files.  This tool was used to create the system
 for the :doc:`chain benchmark <Speed_bench>`.
 
-
 ----------
 
+.. _cmake:
+
+CMake tools
+-----------
+
+The ``cmbuild`` script is a wrapper around using ``cmake --build <dir>
+--target`` and allows compiling LAMMPS in a :ref:`CMake build folder
+<cmake_build>` with a make-like syntax regardless of the actual build
+tool and the specific name of the program used (e.g. ``ninja-v1.10`` or
+``gmake``) when using ``-D CMAKE_MAKE_PROGRAM=<name>``.
+
+.. parsed-literal::
+
+  Usage: cmbuild [-v] [-h] [-C <dir>] [-j <num>] [<target>]
+
+  Options:
+    -h                print this message
+    -j <NUM>          allow processing of NUM concurrent tasks
+    -C DIRECTORY      execute build in folder DIRECTORY
+    -v                produce verbose output
+
+
+----------
 
 .. _colvars:
 
@@ -189,23 +223,20 @@ To compile the tools, edit the makefile for your system and run "make".
 Please report problems and issues the colvars library and its tools
 at: https://github.com/colvars/colvars/issues
 
-abf\_integrate:
+abf_integrate:
 
 MC-based integration of multidimensional free energy gradient
 Version 20110511
 
-
 .. parsed-literal::
 
-   Syntax: ./abf_integrate < filename > [-n < nsteps >] [-t < temp >] [-m [0\|1] (metadynamics)] [-h < hill_height >] [-f < variable_hill_factor >]
+   ./abf_integrate < filename > [-n < nsteps >] [-t < temp >] [-m [0\|1] (metadynamics)] [-h < hill_height >] [-f < variable_hill_factor >]
 
 The LAMMPS interface to the colvars collective variable library, as
 well as these tools, were created by Axel Kohlmeyer (akohlmey at
-gmail.com) at ICTP, Italy.
-
+gmail.com) while at ICTP, Italy.
 
 ----------
-
 
 .. _createatoms:
 
@@ -221,9 +252,7 @@ See the included Manual.pdf for details.
 
 The tool is authored by Xiaowang Zhou (Sandia), xzhou at sandia.gov.
 
-
 ----------
-
 
 .. _doxygen:
 
@@ -238,9 +267,7 @@ See the included README file for details.
 
 The tool is authored by Nandor Tamaskovics, numericalfreedom at googlemail.com.
 
-
 ----------
-
 
 .. _drude:
 
@@ -256,16 +283,14 @@ See the header of the polarizer.py file for details.
 The tool is authored by Agilio Padua and Alain Dequidt: agilio.padua
 at univ-bpclermont.fr, alain.dequidt at univ-bpclermont.fr
 
-
 ----------
-
 
 .. _eamdb:
 
 eam database tool
 -----------------------------
 
-The tools/eam\_database directory contains a Fortran program that will
+The tools/eam_database directory contains a Fortran program that will
 generate EAM alloy setfl potential files for any combination of 16
 elements: Cu, Ag, Au, Ni, Pd, Pt, Al, Pb, Fe, Mo, Ta, W, Mg, Co, Ti,
 Zr.  The files can then be used with the :doc:`pair_style eam/alloy <pair_eam>` command.
@@ -276,16 +301,14 @@ and is based on his paper:
 X. W. Zhou, R. A. Johnson, and H. N. G. Wadley, Phys. Rev. B, 69,
 144113 (2004).
 
-
 ----------
-
 
 .. _eamgn:
 
 eam generate tool
 -----------------------------
 
-The tools/eam\_generate directory contains several one-file C programs
+The tools/eam_generate directory contains several one-file C programs
 that convert an analytic formula into a tabulated :doc:`embedded atom method (EAM) <pair_eam>` setfl potential file.  The potentials they
 produce are in the potentials directory, and can be used with the
 :doc:`pair_style eam/alloy <pair_eam>` command.
@@ -293,9 +316,7 @@ produce are in the potentials directory, and can be used with the
 The source files and potentials were provided by Gerolf Ziegenhain
 (gerolf at ziegenhain.com).
 
-
 ----------
-
 
 .. _eff:
 
@@ -309,9 +330,7 @@ electron force field (eFF).
 These tools were provided by Andres Jaramillo-Botero at CalTech
 (ajaramil at wag.caltech.edu).
 
-
 ----------
-
 
 .. _emacs:
 
@@ -325,9 +344,7 @@ with various highlighting options set up.
 These tools were provided by Aidan Thompson at Sandia
 (athomps at sandia.gov).
 
-
 ----------
-
 
 .. _fep:
 
@@ -343,9 +360,7 @@ Pascal Clermont-Ferrand), agilio.padua at univ-bpclermont.fr.
 
 See README file in the tools/fep directory.
 
-
 ----------
-
 
 .. _ipi:
 
@@ -365,9 +380,7 @@ See the tools/i-pi/manual.pdf file for an overview of i-PI, and the
 :doc:`fix ipi <fix_ipi>` doc page for further details on running PIMD
 calculations with LAMMPS.
 
-
 ----------
-
 
 .. _ipp:
 
@@ -384,9 +397,7 @@ sandia.gov.
 See two examples in the tools/ipp directory.  One of them is for the
 tools/createatoms tool's input file.
 
-
 ----------
-
 
 .. _kate:
 
@@ -400,9 +411,7 @@ scripts.  See the README.txt file for details.
 The file was provided by Alessandro Luigi Sellerio
 (alessandro.sellerio at ieni.cnr.it).
 
-
 ----------
-
 
 .. _arc:
 
@@ -421,9 +430,7 @@ This tool was written by John Carpenter (Cray), Michael Peachey
 This tool was updated for the current LAMMPS C++ version by Jeff
 Greathouse at Sandia (jagreat at sandia.gov).
 
-
 ----------
-
 
 .. _cfg:
 
@@ -432,14 +439,12 @@ lmp2cfg tool
 
 The lmp2cfg sub-directory contains a tool for converting LAMMPS output
 files into a series of \*.cfg files which can be read into the
-`AtomEye <http://mt.seas.upenn.edu/Archive/Graphics/A>`_ visualizer.  See
+`AtomEye <http://li.mit.edu/Archive/Graphics/A/>`_ visualizer.  See
 the README file for more information.
 
 This tool was written by Ara Kooser at Sandia (askoose at sandia.gov).
 
-
 ----------
-
 
 .. _matlab:
 
@@ -450,7 +455,7 @@ The matlab sub-directory contains several `MATLAB <matlabhome_>`_ scripts for
 post-processing LAMMPS output.  The scripts include readers for log
 and dump files, a reader for EAM potential files, and a converter that
 reads LAMMPS dump files and produces CFG files that can be visualized
-with the `AtomEye <http://mt.seas.upenn.edu/Archive/Graphics/A>`_
+with the `AtomEye <http://li.mit.edu/Archive/Graphics/A/>`_
 visualizer.
 
 See the README.pdf file for more information.
@@ -460,11 +465,7 @@ These scripts were written by Arun Subramaniyan at Purdue Univ
 
 .. _matlabhome: http://www.mathworks.com
 
-
-
-
 ----------
-
 
 .. _micelle:
 
@@ -478,8 +479,7 @@ atoms can strongly overlap, so LAMMPS needs to run the system
 initially with a "soft" pair potential to un-overlap it.  The syntax
 for running the tool is
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    micelle2d < def.micelle2d > data.file
 
@@ -487,9 +487,7 @@ See the def.micelle2d file in the tools directory for an example of a
 definition file.  This tool was used to create the system for the
 :doc:`micelle example <Examples>`.
 
-
 ----------
-
 
 .. _moltemplate:
 
@@ -504,12 +502,10 @@ See the README.txt file for more information.
 
 This tool was written by Andrew Jewett (jewett.aij at gmail.com), who
 supports it.  It has its own WWW page at
-`http://moltemplate.org <http://moltemplate.org>`_.
+`https://moltemplate.org <https://moltemplate.org>`_.
 The latest sources can be found `on its GitHub page <https://github.com/jewettaij/moltemplate/releases>`_
 
-
 ----------
-
 
 .. _msi:
 
@@ -529,9 +525,7 @@ development, so there are no changes except for the occasional bug fix.
 
 See the README file in the tools/msi2lmp folder for more information.
 
-
 ----------
-
 
 .. _phonon:
 
@@ -549,9 +543,7 @@ for example problems that can be post-processed with this tool.
 This tool was written by Ling-Ti Kong at Shanghai Jiao Tong
 University.
 
-
 ----------
-
 
 .. _polybond:
 
@@ -568,36 +560,28 @@ See the Manual.pdf for details and example scripts.
 
 This tool was written by Zachary Kraus at Georgia Tech.
 
-
 ----------
-
 
 .. _pymol:
 
-pymol\_asphere tool
+pymol_asphere tool
 -------------------------------
 
-The pymol\_asphere sub-directory contains a tool for converting a
+The pymol_asphere sub-directory contains a tool for converting a
 LAMMPS dump file that contains orientation info for ellipsoidal
 particles into an input file for the `PyMol visualization package <pymolhome_>`_ or its `open source variant <pymolopen_>`_.
 
-.. _pymolhome: http://www.pymol.org
+.. _pymolhome: https://www.pymol.org
 
-
-
-.. _pymolopen: http://sourceforge.net/scm/?type=svn&group\_id=4546
-
-
+.. _pymolopen: https://github.com/schrodinger/pymol-open-source
 
 Specifically, the tool triangulates the ellipsoids so they can be
 viewed as true ellipsoidal particles within PyMol.  See the README and
-examples directory within pymol\_asphere for more information.
+examples directory within pymol_asphere for more information.
 
 This tool was written by Mike Brown at Sandia.
 
-
 ----------
-
 
 .. _pythontools:
 
@@ -616,31 +600,27 @@ that perform common LAMMPS post-processing tasks, such as:
 These are simple scripts built on `Pizza.py <pizza_>`_ modules.  See the
 README for more info on Pizza.py and how to use these scripts.
 
-
 ----------
-
 
 .. _replica:
 
 replica tool
 --------------------------
 
-The tools/replica directory contains the reorder\_remd\_traj python script which
-can be used to reorder the replica trajectories (resulting from the use of the 
+The tools/replica directory contains the reorder_remd_traj python script which
+can be used to reorder the replica trajectories (resulting from the use of the
 temper command) according to temperature. This will produce discontinuous
 trajectories with all frames at the same temperature in each trajectory.
 Additional options can be used to calculate the canonical configurational
 log-weight for each frame at each temperature using the pymbar package. See
 the README.md file for further details. Try out the peptide example provided.
 
-This tool was written by (and is maintained by) Tanmoy Sanyal, 
+This tool was written by (and is maintained by) Tanmoy Sanyal,
 while at the Shell lab at UC Santa Barbara. (tanmoy dot 7989 at gmail.com)
-
 
 ----------
 
-
-.. _reax\_tool:
+.. _reax_tool:
 
 reax tool
 --------------------------
@@ -652,16 +632,14 @@ the README.txt file for more info.
 
 These tools were written by Aidan Thompson at Sandia.
 
-
 ----------
-
 
 .. _smd:
 
 smd tool
 ------------------
 
-The smd sub-directory contains a C++ file dump2vtk\_tris.cpp and
+The smd sub-directory contains a C++ file dump2vtk_tris.cpp and
 Makefile which can be compiled and used to convert triangle output
 files created by the Smooth-Mach Dynamics (USER-SMD) package into a
 VTK-compatible unstructured grid file.  It could then be read in and
@@ -673,9 +651,7 @@ This tool was written by the USER-SMD package author, Georg
 Ganzenmuller at the Fraunhofer-Institute for High-Speed Dynamics,
 Ernst Mach Institute in Germany (georg.ganzenmueller at emi.fhg.de).
 
-
 ----------
-
 
 .. _spin:
 
@@ -686,17 +662,15 @@ The spin sub-directory contains a C file interpolate.c which can
 be compiled and used to perform a cubic polynomial interpolation of
 the MEP following a GNEB calculation.
 
-See the README file in tools/spin/interpolate\_gneb for more details.
+See the README file in tools/spin/interpolate_gneb for more details.
 
 This tool was written by the SPIN package author, Julien
 Tranchida at Sandia National Labs (jtranch at sandia.gov, and by Aleksei
 Ivanov, at University of Iceland (ali5 at hi.is).
 
-
 ----------
 
-
-.. _singularity\_tool:
+.. _singularity_tool:
 
 singularity tool
 ----------------------------------------
@@ -706,9 +680,7 @@ that can be used to build container images for building and testing
 LAMMPS on specific OS variants using the `Singularity <https://sylabs.io>`_
 container software. Contributions for additional variants are welcome.
 
-
 ----------
-
 
 .. _vim:
 
@@ -722,9 +694,7 @@ file for details.
 These files were provided by Gerolf Ziegenhain (gerolf at
 ziegenhain.com)
 
-
 ----------
-
 
 .. _xmgrace:
 
@@ -741,8 +711,3 @@ simulation.
 See the README file for details.
 
 These files were provided by Vikas Varshney (vv0210 at gmail.com)
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

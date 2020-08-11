@@ -21,12 +21,3 @@ diffusion coefficient.  The instantaneous VACF values can be
 accumulated in a vector via the :doc:`fix vector <fix_vector>` command,
 and time integrated via the :doc:`variable trap <variable>` function,
 and thus extract D.
-
-
-----------
-
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

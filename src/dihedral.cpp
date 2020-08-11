@@ -18,6 +18,7 @@
 #include "atom_masks.h"
 #include "memory.h"
 #include "error.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -32,6 +33,7 @@ Dihedral::Dihedral(LAMMPS *lmp) : Pointers(lmp)
   writedata = 0;
 
   allocated = 0;
+  suffix_flag = Suffix::NONE;
 
   maxeatom = maxvatom = maxcvatom = 0;
   eatom = NULL;

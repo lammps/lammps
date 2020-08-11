@@ -23,7 +23,7 @@ const char *lj_tip4p=0;
 
 #include "lal_lj_tip4p_long.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define LJTIP4PLongT LJ_TIP4PLong<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -74,11 +74,11 @@ int LJTIP4PLongT::init(const int ntypes,
   // If atom type constants fit in shared memory use fast kernel
   int lj_types=ntypes;
   shared_types=false;
-//  int max_shared_types=this->device->max_shared_types();
-//  if (lj_types<=max_shared_types && this->_block_size>=max_shared_types) {
-//    lj_types=max_shared_types;
-//    shared_types=true;
-//  }
+  int max_shared_types=this->device->max_shared_types();
+  if (lj_types<=max_shared_types && this->_block_size>=max_shared_types) {
+    lj_types=max_shared_types;
+    shared_types=true;
+  }
   _lj_types=lj_types;
 
   // Allocate a host write buffer for data initialization
@@ -202,7 +202,6 @@ void LJTIP4PLongT::loop(const bool _eflag, const bool _vflag) {
 
   GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
-  this->k_pair.set_size(GX,BX);
   if (vflag) {
           this->ansO.resize_ib(ainum*3);
   } else {
@@ -210,13 +209,25 @@ void LJTIP4PLongT::loop(const bool _eflag, const bool _vflag) {
   }
   this->ansO.zero();
   this->device->gpu->sync();
-  this->k_pair.run(&this->atom->x, &lj1, &lj3, &_lj_types, &sp_lj,
+  if(shared_types) {
+    this->k_pair_fast.set_size(GX,BX);
+    this->k_pair_fast.run(&this->atom->x, &lj1, &lj3, &_lj_types, &sp_lj,
           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
           &this->ans->force, &this->ans->engv, &eflag, &vflag,
           &ainum, &nbor_pitch, &this->_threads_per_atom,
           &hneight, &m, &TypeO, &TypeH, &alpha,
           &this->atom->q, &cutsq, &_qqrd2e, &_g_ewald,
           &cut_coulsq, &cut_coulsqplus, &this->ansO);
+  } else {
+    this->k_pair.set_size(GX,BX);
+    this->k_pair.run(&this->atom->x, &lj1, &lj3, &_lj_types, &sp_lj,
+          &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+          &this->ans->force, &this->ans->engv, &eflag, &vflag,
+          &ainum, &nbor_pitch, &this->_threads_per_atom,
+          &hneight, &m, &TypeO, &TypeH, &alpha,
+          &this->atom->q, &cutsq, &_qqrd2e, &_g_ewald,
+          &cut_coulsq, &cut_coulsqplus, &this->ansO);
+  }
   GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
   this->k_pair_distrib.set_size(GX,BX);
   this->k_pair_distrib.run(&this->atom->x, &this->ans->force, &this->ans->engv,
@@ -239,22 +250,22 @@ void LJTIP4PLongT::copy_relations_data(int n, tagint *tag, int *map_array,
   if (ago == 0) {
     hneight.zero();
 
+
     {
-      UCL_H_Vec<tagint> host_tag_write(nall,*(this->ucl_device),UCL_WRITE_ONLY);
+      UCL_H_Vec<tagint> host_tag_write;
+      host_tag_write.view(tag, nall, *(this->ucl_device));
       this->tag.resize_ib(nall);
-      for(int i=0; i<nall; ++i) host_tag_write[i] = tag[i];
-      ucl_copy(this->tag, host_tag_write, nall, false);
+      ucl_copy(this->tag, host_tag_write, false);
     }
 
-    UCL_H_Vec<int> host_write(max_same,*(this->ucl_device),UCL_WRITE_ONLY);
+    UCL_H_Vec<int> host_write;
+    host_write.view(sametag, max_same, *(this->ucl_device));
     this->atom_sametag.resize_ib(max_same);
-    for(int i=0; i<max_same; ++i) host_write[i] = sametag[i];
-    ucl_copy(this->atom_sametag, host_write, max_same, false);
+    ucl_copy(this->atom_sametag, host_write, false);
 
-    host_write.resize_ib(map_size);
     this->map_array.resize_ib(map_size);
-    for(int i=0; i<map_size; ++i) host_write[i] = map_array[i];
-    ucl_copy(this->map_array, host_write, map_size, false);
+    host_write.view(map_array, map_size, *(this->ucl_device));
+    ucl_copy(this->map_array, host_write, false);
   }
 }
 
@@ -370,6 +381,5 @@ int** LJTIP4PLongT::compute(const int ago, const int inum_full,
 }
 
 
-
-
 template class LJ_TIP4PLong<PRECISION,ACC_PRECISION>;
+}

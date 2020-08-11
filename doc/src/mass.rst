@@ -6,7 +6,6 @@ mass command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    mass I value
@@ -17,12 +16,11 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    mass 1 1.0
-   mass \* 62.5
-   mass 2\* 62.5
+   mass * 62.5
+   mass 2* 62.5
 
 Description
 """""""""""
@@ -33,7 +31,7 @@ using the "Masses" keyword.  See the :doc:`units <units>` command for
 what mass units to use.
 
 The I index can be specified in one of two ways.  An explicit numeric
-value can be used, as in the 1st example above.  Or a wild-card
+value can be used, as in the first example above.  Or a wild-card
 asterisk can be used to set the mass for multiple atom types.  This
 takes the form "\*" or "\*n" or "n\*" or "m\*n".  If N = the number of
 atom types, then an asterisk with no numeric values means all types
@@ -46,8 +44,7 @@ A line in a :doc:`data file <read_data>` that follows the "Masses"
 keyword specifies mass using the same format as the arguments of the
 mass command in an input script, except that no wild-card asterisk can
 be used.  For example, under the "Masses" section of a data file, the
-line that corresponds to the 1st example above would be listed as
-
+line that corresponds to the first example above would be listed as
 
 .. parsed-literal::
 
@@ -75,7 +72,6 @@ per-atom mass will be used by LAMMPS.
 Restrictions
 """"""""""""
 
-
 This command must come after the simulation box is defined by a
 :doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or
 :doc:`create_box <create_box>` command.
@@ -88,8 +84,3 @@ The mass assigned to any type or atom must be > 0.0.
 **Related commands:** none
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

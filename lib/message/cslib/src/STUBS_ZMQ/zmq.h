@@ -17,6 +17,8 @@
 #ifndef ZMQ_DUMMY_H
 #define ZMQ_DUMMY_H
 
+#include <cstddef>
+
 namespace CSLIB_NS {
 
 #define ZMQ_REQ 0

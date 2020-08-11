@@ -11,15 +11,9 @@ distribution.  The :doc:`Build package <Build_package>` doc page gives
 general info on how to install and un-install packages as part of the
 LAMMPS build process.
 
-
 .. toctree::
    :maxdepth: 1
 
    Packages_standard
    Packages_user
    Packages_details
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

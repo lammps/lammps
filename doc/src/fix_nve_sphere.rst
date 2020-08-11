@@ -12,7 +12,6 @@ fix nve/sphere/kk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nve/sphere
@@ -21,21 +20,18 @@ Syntax
 * nve/sphere = style name of this fix command
 * zero or more keyword/value pairs may be appended
 * keyword = *update* or *disc*
-  
+
   .. parsed-literal::
-  
+
        *update* value = *dipole* or *dipole/dlm*
          dipole = update orientation of dipole moment during integration
          dipole/dlm = use DLM integrator to update dipole orientation
        *disc* value = none = treat particles as 2d discs, not spheres
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nve/sphere
    fix 1 all nve/sphere update dipole
@@ -72,33 +68,13 @@ simulations, as defined by the :doc:`dimension <dimension>` keyword.
 The only difference between discs and spheres in this context is their
 moment of inertia, as used in the time integration.
 
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 
-
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
-
-
-----------
-
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -108,7 +84,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
-
 
 This fix requires that atoms store torque and angular velocity (omega)
 and a radius as defined by the :doc:`atom_style sphere <atom_style>`
@@ -129,18 +104,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
-
 
 .. _nve-Dullweber:
 
-
-
 **(Dullweber)** Dullweber, Leimkuhler and McLachlan, J Chem Phys, 107,
 5840 (1997).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -5,7 +5,7 @@ rm res_*.dat
 
 # compute Lammps 
 ./../../../../src/lmp_serial \
-  -in bench-spin-precession.in 
+  -in test-spin-precession.in 
 in="$(grep -n Step log.lammps | awk -F ':' '{print $1}')"
 en="$(grep -n Loop log.lammps | awk -F ':' '{print $1}')"
 in="$(echo "$in+1" | bc -l)"

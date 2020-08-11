@@ -1,13 +1,12 @@
-.. index:: third\_order
+.. index:: third_order
 
-third\_order command
-====================
+third_order command
+===================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    third_order group-ID style delta args keyword value ...
 
@@ -15,20 +14,17 @@ Syntax
 * style = *regular* or *eskm*
 * delta = finite different displacement length (distance units)
 * one or more keyword/arg pairs may be appended
-  
+
   .. parsed-literal::
-  
+
        keyword = *file* or *binary*
          *file* name = name of output file for the third order tensor
          *binary* arg = *yes* or *no* or *gzip*
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    third_order 1 regular 0.000001
    third_order 1 eskm 0.000001
@@ -50,12 +46,11 @@ three elements correspond to the three gamma elements for a specific i/alpha/j/b
 The initial five numbers are i, alpha, j, beta, and k respectively.
 
 If the style eskm is selected, the tensor will be using energy units of 10 J/mol.
-These units conform to eskm style from the dynamical\_matrix command, which
+These units conform to eskm style from the dynamical_matrix command, which
 will simplify operations using dynamical matrices with third order tensors.
 
 Restrictions
 """"""""""""
-
 
 The command collects a 9 times the number of atoms in the group on every single MPI rank,
 so the memory requirements can be very significant for large systems.
@@ -71,9 +66,4 @@ Related commands
 Default
 """""""
 
-The default settings are file = "third\_order.dat", binary = no
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html
+The default settings are file = "third_order.dat", binary = no

@@ -98,7 +98,7 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(compute_saed->style,"saed") != 0)
         error->all(FLERR,"Fix saed/vtk has invalid compute assigned");
 
-      // Gather varialbes from specified compute_saed
+      // Gather variables from specified compute_saed
       double *saed_var = compute_saed->saed_var;
       lambda   = saed_var[0];
       Kmax     = saed_var[1];

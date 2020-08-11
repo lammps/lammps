@@ -192,7 +192,7 @@ int TersoffMT::init(const int ntypes, const int nlocal, const int nall, const in
 
   _allocated=true;
   this->_max_bytes=ts1.row_bytes()+ts2.row_bytes()+ts3.row_bytes()+
-    ts4.row_bytes()+cutsq.row_bytes()+
+    ts4.row_bytes()+ts5.row_bytes()+cutsq.row_bytes()+
     map.row_bytes()+elem2param.row_bytes()+_zetaij.row_bytes();
   return 0;
 }
@@ -250,11 +250,10 @@ void TersoffMT::loop(const bool _eflag, const bool _vflag, const int evatom) {
                                (BX/this->_threads_per_atom)));
 
   this->k_short_nbor.set_size(GX,BX);
-  this->k_short_nbor.run(&this->atom->x, &cutsq, &map,
-                 &elem2param, &_nelements, &_nparams,
-                 &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                 &this->dev_short_nbor, &ainum,
-                 &nbor_pitch, &this->_threads_per_atom);
+  this->k_short_nbor.run(&this->atom->x, &this->nbor->dev_nbor,
+                         &this->_nbor_data->begin(),
+                         &this->dev_short_nbor, &_cutshortsq, &ainum,
+                         &nbor_pitch, &this->_threads_per_atom);
 
   // re-allocate zetaij if necessary
   int nall = this->_nall;

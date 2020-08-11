@@ -22,26 +22,15 @@
 #include <Kokkos_Vectorization.hpp>
 #include <Kokkos_ScatterView.hpp>
 
-enum{FULL=1u,HALFTHREAD=2u,HALF=4u,N2=8u};
+enum{FULL=1u,HALFTHREAD=2u,HALF=4u};
 
 #if defined(KOKKOS_ENABLE_CXX11)
 #undef ISFINITE
 #define ISFINITE(x) std::isfinite(x)
 #endif
 
-// User-settable FFT precision
-
-// FFT_PRECISION = 1 is single-precision complex (4-byte real, 4-byte imag)
-// FFT_PRECISION = 2 is double-precision complex (8-byte real, 8-byte imag)
-
-#ifdef FFT_SINGLE
-#define FFT_PRECISION 1
-#define MPI_FFT_SCALAR MPI_FLOAT
-typedef float FFT_SCALAR;
-#else
-#define FFT_PRECISION 2
-#define MPI_FFT_SCALAR MPI_DOUBLE
-typedef double FFT_SCALAR;
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+#define LMP_KOKKOS_GPU
 #endif
 
 #define MAX_TYPES_STACKPARAMS 12
@@ -178,6 +167,20 @@ t_scalar3<Scalar> operator *
 typedef Kokkos::DefaultExecutionSpace LMPDeviceType;
 typedef Kokkos::HostSpace::execution_space LMPHostType;
 
+
+// Need to use Cuda UVM memory space for Host execution space
+
+template<class DeviceType>
+class KKDevice {
+public:
+#if defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_CUDA_UVM)
+  typedef Kokkos::Device<DeviceType,LMPDeviceType::memory_space> value;
+#else
+  typedef Kokkos::Device<DeviceType,typename DeviceType::memory_space> value;
+#endif
+};
+
+
 // set ExecutionSpace stuct with variable "space"
 
 template<class Device>
@@ -187,9 +190,17 @@ template<>
 struct ExecutionSpaceFromDevice<LMPHostType> {
   static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Host;
 };
+
 #ifdef KOKKOS_ENABLE_CUDA
 template<>
 struct ExecutionSpaceFromDevice<Kokkos::Cuda> {
+  static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Device;
+};
+#endif
+
+#if defined(KOKKOS_ENABLE_HIP)
+template<>
+struct ExecutionSpaceFromDevice<Kokkos::Experimental::HIP> {
   static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Device;
 };
 #endif
@@ -218,6 +229,13 @@ struct AtomicDup {
 #ifdef KOKKOS_ENABLE_CUDA
 template<>
 struct AtomicDup<HALFTHREAD,Kokkos::Cuda> {
+  enum {value = Kokkos::Experimental::ScatterAtomic};
+};
+#endif
+
+#if defined(KOKKOS_ENABLE_HIP)
+template<>
+struct AtomicDup<HALFTHREAD,Kokkos::Experimental::HIP> {
   enum {value = Kokkos::Experimental::ScatterAtomic};
 };
 #endif
@@ -273,7 +291,7 @@ template<typename T1, typename T2>
 class ScatterViewHelper<Kokkos::Experimental::ScatterDuplicated,T1,T2> {
 public:
   KOKKOS_INLINE_FUNCTION
-  static T1 get(const T1 &dup, const T2 &nondup) {
+  static T1 get(const T1 &dup, const T2 & /*nondup*/) {
     return dup;
   }
 };
@@ -282,7 +300,7 @@ template<typename T1, typename T2>
 class ScatterViewHelper<Kokkos::Experimental::ScatterNonDuplicated,T1,T2> {
 public:
   KOKKOS_INLINE_FUNCTION
-  static T2 get(const T1 &dup, const T2 &nondup) {
+  static T2 get(const T1 & /*dup*/, const T2 &nondup) {
     return nondup;
   }
 };
@@ -752,35 +770,9 @@ typedef tdual_neighbors_2d::t_dev_um t_neighbors_2d_um;
 typedef tdual_neighbors_2d::t_dev_const_um t_neighbors_2d_const_um;
 typedef tdual_neighbors_2d::t_dev_const_randomread t_neighbors_2d_randomread;
 
-//Kspace
-
-typedef Kokkos::
-  DualView<FFT_SCALAR*, Kokkos::LayoutRight, LMPDeviceType> tdual_FFT_SCALAR_1d;
-typedef tdual_FFT_SCALAR_1d::t_dev t_FFT_SCALAR_1d;
-typedef tdual_FFT_SCALAR_1d::t_dev_um t_FFT_SCALAR_1d_um;
-
-typedef Kokkos::DualView<FFT_SCALAR**,Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_SCALAR_2d;
-typedef tdual_FFT_SCALAR_2d::t_dev t_FFT_SCALAR_2d;
-
-typedef Kokkos::DualView<FFT_SCALAR**[3],Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_SCALAR_2d_3;
-typedef tdual_FFT_SCALAR_2d_3::t_dev t_FFT_SCALAR_2d_3;
-
-typedef Kokkos::DualView<FFT_SCALAR***,Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_SCALAR_3d;
-typedef tdual_FFT_SCALAR_3d::t_dev t_FFT_SCALAR_3d;
-
-typedef Kokkos::
-  DualView<FFT_SCALAR*[2], Kokkos::LayoutRight, LMPDeviceType> tdual_FFT_DATA_1d;
-typedef tdual_FFT_DATA_1d::t_dev t_FFT_DATA_1d;
-typedef tdual_FFT_DATA_1d::t_dev_um t_FFT_DATA_1d_um;
-
-typedef Kokkos::
-  DualView<int*, LMPDeviceType::array_layout, LMPDeviceType> tdual_int_64;
-typedef tdual_int_64::t_dev t_int_64;
-typedef tdual_int_64::t_dev_um t_int_64_um;
-
 };
 
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template <>
 struct ArrayTypes<LMPHostType> {
 
@@ -1012,33 +1004,6 @@ typedef tdual_neighbors_2d::t_host_um t_neighbors_2d_um;
 typedef tdual_neighbors_2d::t_host_const_um t_neighbors_2d_const_um;
 typedef tdual_neighbors_2d::t_host_const_randomread t_neighbors_2d_randomread;
 
-
-//Kspace
-
-typedef Kokkos::
-  DualView<FFT_SCALAR*, Kokkos::LayoutRight, LMPDeviceType> tdual_FFT_SCALAR_1d;
-typedef tdual_FFT_SCALAR_1d::t_host t_FFT_SCALAR_1d;
-typedef tdual_FFT_SCALAR_1d::t_host_um t_FFT_SCALAR_1d_um;
-
-typedef Kokkos::DualView<FFT_SCALAR**,Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_SCALAR_2d;
-typedef tdual_FFT_SCALAR_2d::t_host t_FFT_SCALAR_2d;
-
-typedef Kokkos::DualView<FFT_SCALAR**[3],Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_SCALAR_2d_3;
-typedef tdual_FFT_SCALAR_2d_3::t_host t_FFT_SCALAR_2d_3;
-
-typedef Kokkos::DualView<FFT_SCALAR***,Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_SCALAR_3d;
-typedef tdual_FFT_SCALAR_3d::t_host t_FFT_SCALAR_3d;
-
-typedef Kokkos::
-  DualView<FFT_SCALAR*[2], Kokkos::LayoutRight, LMPDeviceType> tdual_FFT_DATA_1d;
-typedef tdual_FFT_DATA_1d::t_host t_FFT_DATA_1d;
-typedef tdual_FFT_DATA_1d::t_host_um t_FFT_DATA_1d_um;
-
-typedef Kokkos::
-  DualView<int*, LMPDeviceType::array_layout, LMPDeviceType> tdual_int_64;
-typedef tdual_int_64::t_host t_int_64;
-typedef tdual_int_64::t_host_um t_int_64_um;
-
 };
 #endif
 //default LAMMPS Types
@@ -1048,17 +1013,9 @@ typedef struct ArrayTypes<LMPHostType> HAT;
 template<class DeviceType, class BufferView, class DualView>
 void buffer_view(BufferView &buf, DualView &view,
                  const size_t n0,
-                 const size_t n1 = 0,
-                 const size_t n2 = 0,
-                 const size_t n3 = 0,
-                 const size_t n4 = 0,
-                 const size_t n5 = 0,
-                 const size_t n6 = 0,
-                 const size_t n7 = 0) {
+                 const size_t n1) {
 
-  buf = BufferView(
-          view.template view<DeviceType>().data(),
-          n0,n1,n2,n3,n4,n5,n6,n7);
+  buf = BufferView(view.template view<DeviceType>().data(),n0,n1);
 
 }
 
@@ -1080,23 +1037,76 @@ void memset_kokkos (ViewType &view) {
   #else
   Kokkos::parallel_for(view.span()*sizeof(typename ViewType::value_type)/4, f);
   #endif
-  ViewType::execution_space::fence();
+  ViewType::execution_space().fence();
 }
 
 struct params_lj_coul {
   KOKKOS_INLINE_FUNCTION
   params_lj_coul(){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
   KOKKOS_INLINE_FUNCTION
-  params_lj_coul(int i){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
+  params_lj_coul(int /*i*/){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
   F_FLOAT cut_ljsq,cut_coulsq,lj1,lj2,lj3,lj4,offset;
 };
+
+// Pair SNAP
+
+typedef double SNAreal;
+
+//typedef struct { SNAreal re, im; } SNAcomplex;
+template <typename real>
+struct alignas(2*sizeof(real)) SNAComplex
+{
+  real re,im;
+
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex() = default;
+
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real re)
+   : re(re), im(static_cast<real>(0.)) { ; }
+
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real re, real im)
+   : re(re), im(im) { ; }
+
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(const SNAComplex& other)
+   : re(other.re), im(other.im) { ; }
+
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex& operator=(const SNAComplex& other) {
+    re = other.re; im = other.im;
+    return *this;
+  }
+
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(SNAComplex&& other)
+   : re(other.re), im(other.im) { ; }
+
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex& operator=(SNAComplex&& other) {
+    re = other.re; im = other.im;
+    return *this;
+  }
+
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex operator+(SNAComplex const& other) {
+    return SNAComplex(re + other.re, im + other.im);
+  }
+
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex& operator+=(SNAComplex const& other) {
+    re += other.re; im += other.im;
+    return *this;
+  }
+
+};
+
+template <typename real>
+KOKKOS_FORCEINLINE_FUNCTION SNAComplex<real> operator*(const real& r, const SNAComplex<real>& self) {
+  return SNAComplex<real>(r*self.re, r*self.im);
+}
+
+typedef SNAComplex<SNAreal> SNAcomplex;
+
 
 #if defined(KOKKOS_ENABLE_CXX11)
 #undef ISFINITE
 #define ISFINITE(x) std::isfinite(x)
 #endif
 
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 #define LAMMPS_LAMBDA [=] __device__
 #else
 #define LAMMPS_LAMBDA [=]

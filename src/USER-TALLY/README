@@ -7,7 +7,7 @@ users have asked for such a facility over time.
 The currently provided compute styles are mostly meant as a
 demonstration for how to use this facility and provide an
 alternative approach to using features like compute group/group
-or compute heat/flux. Its application is limited to pairwise 
+or compute heat/flux. Its application is limited to pairwise
 additive potentials that use the standard Pair::ev_tally()
 method to accumulate energy (and virial).
 

@@ -31,6 +31,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -286,12 +287,9 @@ void FixDeposit::init()
     } else maxradinsert = 0.5;
 
     double separation = MAX(2.0*maxradinsert,maxradall+maxradinsert);
-    if (sqrt(nearsq) < separation && comm->me == 0) {
-      char str[128];
-      sprintf(str,"Fix deposit near setting < possible overlap separation %g",
-              separation);
-      error->warning(FLERR,str);
-    }
+    if (sqrt(nearsq) < separation && comm->me == 0)
+      error->warning(FLERR,fmt::format("Fix deposit near setting < possible "
+                                       "overlap separation {}",separation));
   }
 }
 
@@ -539,7 +537,13 @@ void FixDeposit::pre_exchange()
         n = atom->nlocal - 1;
         atom->tag[n] = maxtag_all + m+1;
         if (mode == MOLECULE) {
-          if (atom->molecule_flag) atom->molecule[n] = maxmol_all+1;
+          if (atom->molecule_flag) {
+            if (onemols[imol]->moleculeflag) {
+              atom->molecule[n] = maxmol_all + onemols[imol]->molecule[m];
+            } else {
+              atom->molecule[n] = maxmol_all+1;
+            }
+          }
           if (atom->molecular == 2) {
             atom->molindex[n] = 0;
             atom->molatom[n] = m;
@@ -569,7 +573,7 @@ void FixDeposit::pre_exchange()
 
     // old code: unsuccessful if no proc performed insertion of an atom
     // don't think that check is necessary
-    // if get this far, should always be succesful
+    // if get this far, should always be successful
     // would be hard to undo partial insertion for a molecule
     // better to check how many atoms could be inserted (w/out inserting)
     //   then sum to insure all are inserted, before doing actual insertion
@@ -603,7 +607,13 @@ void FixDeposit::pre_exchange()
     maxtag_all += natom;
     if (maxtag_all >= MAXTAGINT)
       error->all(FLERR,"New atom IDs exceed maximum allowed ID");
-    if (mode == MOLECULE && atom->molecule_flag) maxmol_all++;
+    if (mode == MOLECULE && atom->molecule_flag) {
+      if (onemols[imol]->moleculeflag) {
+        maxmol_all += onemols[imol]->nmolecules;
+      } else {
+        maxmol_all++;
+      }
+    }
     if (atom->map_style) {
       atom->map_init();
       atom->map_set();

@@ -16,6 +16,8 @@
 #include "force.h"
 #include "group.h"
 #include "error.h"
+#include <string>
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -75,14 +77,17 @@ void ImbalanceGroup::compute(double *weight)
 
 /* -------------------------------------------------------------------- */
 
-void ImbalanceGroup::info(FILE *fp)
+std::string ImbalanceGroup::info()
 {
+  std::string mesg = "";
+
   if (num > 0) {
     const char * const * const names = group->names;
 
-    fprintf(fp,"  group weights:");
+    mesg += "  group weights:";
     for (int i = 0; i < num; ++i)
-      fprintf(fp," %s=%g",names[id[i]],factor[i]);
-    fputs("\n",fp);
+      mesg += fmt::format(" {}={}",names[id[i]],factor[i]);
+    mesg += "\n";
   }
+  return mesg;
 }

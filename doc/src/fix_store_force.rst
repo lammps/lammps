@@ -6,7 +6,6 @@ fix store/force command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID store/force
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all store/force
 
@@ -51,7 +49,7 @@ potentially modify the force on each atom.  Examples of such fixes are
    to include certain constraints (e.g. fix shake) in the stored force,
    then it could be specified after some fixes and before others.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -71,11 +69,6 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`fix store\_state <fix_store_state>`
+:doc:`fix store_state <fix_store_state>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

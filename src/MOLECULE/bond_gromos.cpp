@@ -189,7 +189,7 @@ void BondGromos::write_data(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double BondGromos::single(int type, double rsq, int /*i*/, int /*j*/,
-                        double &fforce)
+                          double &fforce)
 {
   double dr = rsq - r0[type]*r0[type];
   fforce = -4.0*k[type] * dr;
@@ -199,7 +199,7 @@ double BondGromos::single(int type, double rsq, int /*i*/, int /*j*/,
 /* ----------------------------------------------------------------------
     Return ptr to internal members upon request.
 ------------------------------------------------------------------------ */
-void *BondGromos::extract( char *str, int &dim )
+void *BondGromos::extract(const char *str, int &dim)
 {
   dim = 1;
   if (strcmp(str,"kappa")==0) return (void*) k;

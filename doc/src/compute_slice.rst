@@ -6,7 +6,6 @@ compute slice command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID slice Nstart Nstop Nskip input1 input2 ...
@@ -16,23 +15,20 @@ Syntax
 * Nstart = starting index within input vector(s)
 * Nstop = stopping index within input vector(s)
 * Nskip = extract every Nskip elements from input vector(s)
-* input = c\_ID, c\_ID[N], f\_ID, f\_ID[N]
-  
+* input = c_ID, c_ID[N], f_ID, f_ID[N]
+
   .. parsed-literal::
-  
+
        c_ID = global vector calculated by a compute with ID
        c_ID[I] = Ith column of global array calculated by a compute with ID
        f_ID = global vector calculated by a fix with ID
        f_ID[I] = Ith column of global array calculated by a fix with ID
        v_name = vector calculated by an vector-style variable with name
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all slice 1 100 10 c_msdmol[4]
    compute 1 all slice 301 400 1 c_msdmol[4] v_myVec
@@ -91,9 +87,7 @@ even if the length of the vector is 1.  If multiple inputs are
 specified, then a global array of values is produced, with the number
 of columns equal to the number of inputs specified.
 
-
 ----------
-
 
 **Output info:**
 
@@ -130,8 +124,3 @@ Related commands
 :doc:`compute <compute>`, :doc:`fix <fix>`, :doc:`compute reduce <compute_reduce>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

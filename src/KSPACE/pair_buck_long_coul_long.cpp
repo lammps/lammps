@@ -52,6 +52,7 @@ PairBuckLongCoulLong::PairBuckLongCoulLong(LAMMPS *lmp) : Pair(lmp)
   writedata = 1;
   ftable = NULL;
   fdisptable = NULL;
+  cut_respa = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -429,10 +430,17 @@ void PairBuckLongCoulLong::write_data(FILE *fp)
 
 void PairBuckLongCoulLong::write_data_all(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g\n",i,j,
-              buck_a_read[i][j],buck_rho_read[i][j],buck_c_read[i][j]);
+  for (int i = 1; i <= atom->ntypes; i++) {
+    for (int j = i; j <= atom->ntypes; j++) {
+      if (ewald_order & (1<<6)) {
+      fprintf(fp,"%d %d %g %g\n",i,j,
+              buck_a_read[i][j],buck_rho_read[i][j]);
+      } else {
+        fprintf(fp,"%d %d %g %g %g\n",i,j,
+                buck_a_read[i][j],buck_rho_read[i][j],buck_c_read[i][j]);
+      }
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -987,8 +995,7 @@ double PairBuckLongCoulLong::single(int i, int j, int itype, int jtype,
       f = s*(1.0-factor_coul)/r; s *= g_ewald*exp(-x*x);
       force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-f;
       eng += t-f;
-    }
-    else {                                                // table real space
+    } else {                                                // table real space
       union_int_float_t t;
       t.f = rsq;
       const int k = (t.i & ncoulmask) >> ncoulshiftbits;
@@ -1006,11 +1013,10 @@ double PairBuckLongCoulLong::single(int i, int j, int itype, int jtype,
       double x2 = g2*rsq, a2 = 1.0/x2, t = r6inv*(1.0-factor_buck);
       x2 = a2*exp(-x2)*buck_c[itype][jtype];
       force_buck = buck1[itype][jtype]*r*expr-
-               g8*(((6.0*a2+6.0)*a2+3.0)*a2+a2)*x2*rsq+t*buck2[itype][jtype];
+               g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*buck2[itype][jtype];
       eng += buck_a[itype][jtype]*expr-
         g6*((a2+1.0)*a2+0.5)*x2+t*buck_c[itype][jtype];
-    }
-    else {                                                // cut
+    } else {                                                // cut
       force_buck =
         buck1[itype][jtype]*r*expr-factor_buck*buck_c[itype][jtype]*r6inv;
       eng += buck_a[itype][jtype]*expr-

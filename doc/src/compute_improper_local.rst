@@ -6,7 +6,6 @@ compute improper/local command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID improper/local value1 value2 ...
@@ -15,18 +14,15 @@ Syntax
 * improper/local = style name of this compute command
 * one or more values may be appended
 * value = *chi*
-  
+
   .. parsed-literal::
-  
+
        *chi* = tabulate improper angles
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all improper/local chi
 
@@ -58,8 +54,7 @@ command in a consistent way.
 
 Here is an example of how to do this:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all property/local itype iatom1 iatom2 iatom3 iatom4
    compute 2 all improper/local chi
@@ -88,8 +83,3 @@ Related commands
 :doc:`dump local <dump>`, :doc:`compute property/local <compute_property_local>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

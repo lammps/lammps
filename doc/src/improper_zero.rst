@@ -1,25 +1,23 @@
-.. index:: improper\_style zero
+.. index:: improper_style zero
 
-improper\_style zero command
-============================
+improper_style zero command
+===========================
 
 Syntax
 """"""
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   improper_style zero *nocoeff*
+   improper_style zero [nocoeff]
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style zero
    improper_style zero nocoeff
-   improper_coeff \*
+   improper_coeff *
 
 Description
 """""""""""
@@ -35,7 +33,7 @@ command.  If no improper style is defined, this command cannot be
 used.
 
 The optional *nocoeff* flag allows to read data files with a ImproperCoeff
-section for any improper style. Similarly, any improper\_coeff commands
+section for any improper style. Similarly, any improper_coeff commands
 will only be checked for the improper type number and the rest ignored.
 
 Note that the :doc:`improper_coeff <improper_coeff>` command must be
@@ -51,8 +49,3 @@ Restrictions
 :doc:`improper_style none <improper_none>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

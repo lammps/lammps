@@ -38,8 +38,7 @@ The dipole style does not actually define finite-size particles, but
 is often used in conjunction with spherical particles, via a command
 like
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    atom_style hybrid sphere dipole
 
@@ -116,7 +115,7 @@ such interactions.  These are the various :doc:`pair styles <pair_style>` that g
 
 * :doc:`pair_style gran/history <pair_gran>`
 * :doc:`pair_style gran/hertzian <pair_gran>`
-* :doc:`pair_style gran/no\_history <pair_gran>`
+* :doc:`pair_style gran/no_history <pair_gran>`
 * :doc:`pair_style dipole/cut <pair_dipole>`
 * :doc:`pair_style gayberne <pair_gayberne>`
 * :doc:`pair_style resquared <pair_resquared>`
@@ -236,8 +235,3 @@ as single particles, though they can store internal state, such as a
 list of sub-particles.  Individual body particles are typically treated
 as rigid bodies, and their motion integrated with a command like :doc:`fix nve/body <fix_nve_body>`.  Interactions between pairs of body
 particles are computed via a command like :doc:`pair_style body/nparticle <pair_body_nparticle>`.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

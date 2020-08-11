@@ -481,7 +481,7 @@ double PairTriSurf::memory_usage() {
  % Release: 1.2 Fixed Bug because of typo in region 5 20101013
  % Release: 1.3 Fixed Bug because of typo in region 2 20101014
 
- % Possible extention could be a version tailored not to return the distance
+ % Possible extension could be a version tailored not to return the distance
  % and additionally the closest point, but instead return only the closest
  % point. Could lead to a small speed gain.
 

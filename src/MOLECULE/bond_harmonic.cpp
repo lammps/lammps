@@ -190,7 +190,7 @@ void BondHarmonic::write_data(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double BondHarmonic::single(int type, double rsq, int /*i*/, int /*j*/,
-                        double &fforce)
+                            double &fforce)
 {
   double r = sqrt(rsq);
   double dr = r - r0[type];
@@ -203,7 +203,7 @@ double BondHarmonic::single(int type, double rsq, int /*i*/, int /*j*/,
 /* ----------------------------------------------------------------------
     Return ptr to internal members upon request.
 ------------------------------------------------------------------------ */
-void *BondHarmonic::extract( char *str, int &dim )
+void *BondHarmonic::extract(const char *str, int &dim)
 {
   dim = 1;
   if (strcmp(str,"kappa")==0) return (void*) k;

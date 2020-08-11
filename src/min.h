@@ -57,7 +57,7 @@ class Min : protected Pointers {
 
   // possible return values of iterate() method
   enum{MAXITER,MAXEVAL,ETOL,FTOL,DOWNHILL,ZEROALPHA,ZEROFORCE,
-       ZEROQUAD,TRSMALL,INTERROR,TIMEOUT};
+       ZEROQUAD,TRSMALL,INTERROR,TIMEOUT,MAXVDOTF};
 
  protected:
   int eflag,vflag;            // flags for energy/virial computation
@@ -69,6 +69,18 @@ class Min : protected Pointers {
                                 // 3 = spin_cubic, 4 = spin_none
 
   int normstyle;                // TWO, MAX or INF flag for force norm evaluation
+
+  double dtinit;              // store the default timestep
+
+  // only for minimize style fire2
+  int delaystep;              // minium steps of dynamics
+  double dtgrow,dtshrink;     // timestep increase, decrease
+  double alpha0,alphashrink;  // mixing velocities+forces coefficient
+  double tmax,tmin;           // timestep multiplicators max, min
+  int integrator;             // Newton integration: euler, leapfrog, verlet...
+  int halfstepback_flag;      // half step backward when v.f <= 0.0
+  int delaystep_start_flag;   // delay the initial dt_shrink
+  int max_vdotf_negatif;      // maximum iteration with v.f > 0.0
 
   int nelist_global,nelist_atom;    // # of PE,virial computes to check
   int nvlist_global,nvlist_atom,ncvlist_atom;

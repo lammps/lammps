@@ -6,7 +6,6 @@ compute msd/chunk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID msd/chunk chunkID
@@ -18,8 +17,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all msd/chunk molchunk
 
@@ -38,7 +36,7 @@ they can be used to measure properties of a system.
 
 Four quantities are calculated by this compute for each chunk.  The
 first 3 quantities are the squared dx,dy,dz displacements of the
-center-of-mass.  The 4th component is the total squared displacement,
+center-of-mass.  The fourth component is the total squared displacement,
 i.e. (dx\*dx + dy\*dy + dz\*dz) of the center-of-mass.  These
 calculations include all effects due to atoms passing through periodic
 boundaries.
@@ -101,12 +99,11 @@ The simplest way to output the results of the compute msd/chunk
 calculation to a file is to use the :doc:`fix ave/time <fix_ave_time>`
 command, for example:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cc1 all chunk/atom molecule
    compute myChunk all msd/chunk cc1
-   fix 1 all ave/time 100 1 100 c_myChunk[\*] file tmp.out mode vector
+   fix 1 all ave/time 100 1 100 c_myChunk[*] file tmp.out mode vector
 
 **Output info:**
 
@@ -130,8 +127,3 @@ Related commands
 :doc:`compute msd <compute_msd>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -45,8 +45,6 @@ compute 	out_pe     all pe
 compute 	out_ke     all ke
 compute 	out_temp   all temp
 
-thermo_style	custom f_1
-
 variable 	magx      equal c_out_mag[1]
 variable 	magy      equal c_out_mag[2]
 variable 	magz      equal c_out_mag[3]
@@ -54,7 +52,7 @@ variable 	magnorm   equal c_out_mag[4]
 variable 	emag      equal c_out_mag[5]
 variable 	tmag      equal c_out_mag[6]
 
-thermo_style    custom step time f_1 v_magx v_magy v_magnorm v_emag temp etotal
+thermo_style    custom step time v_magx v_magy v_magnorm pe v_emag temp etotal
 thermo          50
 
 # compute 	outsp all property/atom spx spy spz sp fmx fmy fmz

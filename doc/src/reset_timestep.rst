@@ -1,13 +1,12 @@
-.. index:: reset\_timestep
+.. index:: reset_timestep
 
-reset\_timestep command
-=======================
+reset_timestep command
+======================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    reset_timestep N
 
@@ -16,8 +15,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    reset_timestep 0
    reset_timestep 4000000
@@ -37,7 +35,7 @@ was written.
 
 Restrictions
 """"""""""""
- none
+none
 
 This command cannot be used when any fixes are defined that keep track
 of elapsed time to perform certain kinds of time-dependent operations.
@@ -65,8 +63,3 @@ Related commands
 :doc:`rerun <rerun>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

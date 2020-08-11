@@ -1,20 +1,19 @@
-.. index:: delete\_atoms
+.. index:: delete_atoms
 
-delete\_atoms command
-=====================
+delete_atoms command
+====================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    delete_atoms style args keyword value ...
 
 * style = *group* or *region* or *overlap* or *porosity*
-  
+
   .. parsed-literal::
-  
+
        *group* args = group-ID
        *region* args = region-ID
        *overlap* args = cutoff group1-ID group2-ID
@@ -28,20 +27,17 @@ Syntax
 
 * zero or more keyword/value pairs may be appended
 * keyword = *compress* or *bond* or *mol*
-  
+
   .. parsed-literal::
-  
+
        *compress* value = *no* or *yes*
        *bond* value = *no* or *yes*
        *mol* value = *no* or *yes*
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    delete_atoms group edge
    delete_atoms region sphere compress no
@@ -93,7 +89,7 @@ number of atoms in the system.  Note that this is not done for
 molecular systems (see the :doc:`atom_style <atom_style>` command),
 regardless of the *compress* setting, since it would foul up the bond
 connectivity that has already been assigned.  However, the
-:doc:`reset_ids <reset_ids>` command can be used after this command to
+:doc:`reset_atom_ids <reset_atom_ids>` command can be used after this command to
 accomplish the same thing.
 
 Note that the re-assignment of IDs is not really a compression, where
@@ -139,7 +135,6 @@ part of molecules.
 Restrictions
 """"""""""""
 
-
 The *overlap* styles requires inter-processor communication to acquire
 ghost atoms and build a neighbor list.  This means that your system
 must be ready to perform a simulation before using this command (force
@@ -162,14 +157,9 @@ using molecule template files via the :doc:`molecule <molecule>` and
 Related commands
 """"""""""""""""
 
-:doc:`create_atoms <create_atoms>`, :doc:`reset_ids <reset_ids>`
+:doc:`create_atoms <create_atoms>`, :doc:`reset_atom_ids <reset_atom_ids>`
 
 Default
 """""""
 
 The option defaults are compress = yes, bond = no, mol = no.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

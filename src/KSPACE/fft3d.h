@@ -43,14 +43,6 @@ typedef double FFT_SCALAR;
 typedef float _Complex FFT_DATA;
 #define FFT_MKL_PREC DFTI_SINGLE
 
-//#elif defined(FFT_FFTW2)
-//#if defined(FFTW_SIZE)
-//#include "sfftw.h"
-//#else
-//#include "fftw.h"
-//#endif
-//typedef FFTW_COMPLEX FFT_DATA;
-
 #elif defined(FFT_FFTW3)
 #include "fftw3.h"
 typedef fftwf_complex FFT_DATA;
@@ -83,14 +75,6 @@ typedef struct kiss_fft_state* kiss_fft_cfg;
 #include "mkl_dfti.h"
 typedef double _Complex FFT_DATA;
 #define FFT_MKL_PREC DFTI_DOUBLE
-
-//#elif defined(FFT_FFTW2)
-//#if defined(FFTW_SIZE)
-//#include "dfftw.h"
-//#else
-//#include "fftw.h"
-//#endif
-//typedef FFTW_COMPLEX FFT_DATA;
 
 #elif defined(FFT_FFTW3)
 #include "fftw3.h"
@@ -141,13 +125,6 @@ struct fft_plan_3d {
   DFTI_DESCRIPTOR *handle_fast;
   DFTI_DESCRIPTOR *handle_mid;
   DFTI_DESCRIPTOR *handle_slow;
-//#elif defined(FFT_FFTW2)
-//  fftw_plan plan_fast_forward;
-//  fftw_plan plan_fast_backward;
-//  fftw_plan plan_mid_forward;
-//  fftw_plan plan_mid_backward;
-//fftw_plan plan_slow_forward;
-//fftw_plan plan_slow_backward;
 #elif defined(FFT_FFTW3)
   FFTW_API(plan) plan_fast_forward;
   FFTW_API(plan) plan_fast_backward;

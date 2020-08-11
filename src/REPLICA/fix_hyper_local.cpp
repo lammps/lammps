@@ -15,6 +15,7 @@
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
+#include <string>
 #include "atom.h"
 #include "update.h"
 #include "group.h"
@@ -29,6 +30,7 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -62,7 +64,8 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
   hyperflag = 2;
   scalar_flag = 1;
   vector_flag = 1;
-  size_vector = 28;
+  size_vector = 26;
+  //size_vector = 28;   // can add 2 for debugging
   local_flag = 1;
   size_local_rows = 0;
   size_local_cols = 0;
@@ -194,7 +197,9 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
   bound_upper = 1.0 + boundfrac;
   lastreset = update->ntimestep;
 
-  overcount = 0;
+  // two DEBUG quantities
+  // myboost = 0.0;
+  // overcount = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -379,7 +384,7 @@ void FixHyperLocal::pre_neighbor()
   //   closest current I or J atoms to old I may now be ghost atoms
   //   closest_image() returns the ghost atom index in that case
   // also compute max drift of any atom in a bond
-  //   drift = displacement from quenched coord while event has not yet occured
+  //   drift = displacement from quenched coord while event has not yet occurred
   // NOTE: drift calc is now done in bond_build(), between 2 quenched states
 
   for (i = 0; i < nall_old; i++) old2now[i] = -1;
@@ -473,7 +478,6 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
 
   // compute estrain = current abs value strain of each owned bond
   // blist = bondlist from last event
-  // mark atom I ineligible if it has no bonds
   // also store:
   //   maxhalf = which owned bond is maxstrain for each old atom I
   //   maxhalfstrain = abs value strain of that bond for each old atom I
@@ -482,16 +486,15 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
 
   double **x = atom->x;
 
-  overcount = 0;
+  // DEBUG quantity
+  // overcount = 0;
 
   m = 0;
   for (iold = 0; iold < nlocal_old; iold++) {
-    nbond = numbond[iold];
-    if (!nbond) {
-      eligible[iold] = 0;
-      continue;
-    }
     halfstrain = 0.0;
+    ijhalf = -1;
+    nbond = numbond[iold];
+
     for (ibond = 0; ibond < nbond; ibond++) {
       i = blist[m].i;
       j = blist[m].j;
@@ -502,8 +505,8 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
       maxbondlen = MAX(r,maxbondlen);
       r0 = blist[m].r0;
       estrain = fabs(r-r0) / r0;
-      // DEBUG quantity - could remove this line and output option
-      if (estrain >= qfactor) overcount++;
+      // DEBUG quantity
+      // if (estrain >= qfactor) overcount++;
       maxstrain[i] = MAX(maxstrain[i],estrain);
       maxstrain[j] = MAX(maxstrain[j],estrain);
       if (estrain > halfstrain) {
@@ -512,6 +515,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
       }
       m++;
     }
+
     maxhalf[iold] = ijhalf;
     maxhalfstrain[iold] = halfstrain;
   }
@@ -542,6 +546,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
   //   if J is unknown (drifted ghost),
   //     assume it was part of an event and its strain = qfactor
   // mark atom I ineligible for biasing if:
+  //   its maxstrain = 0.0, b/c it is in no bonds (typically not in LHD group)
   //   its maxhalfstrain < maxstrain (J atom owns the IJ bond)
   //   its maxstrain < maxstrain_domain
   //   ncount > 1 (break tie by making all atoms with tie value ineligible)
@@ -564,7 +569,13 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
 
   for (ii = 0; ii < inum; ii++) {
     iold = ilist[ii];
-    if (eligible[iold] == 0) continue;
+    i = old2now[iold];
+
+    if (maxstrain[i] == 0.0) {
+      eligible[iold] = 0;
+      continue;
+    }
+
     jlist = firstneigh[iold];
     jnum = numneigh[iold];
 
@@ -574,7 +585,6 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     // in that case, assume it performed an event, its strain = qfactor
     // this assumes cutghost is sufficiently longer than Dcut
 
-    i = old2now[iold];
     emax = selfstrain = maxstrain[i];
     ncount = 0;
 
@@ -675,8 +685,8 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
   int negstrain = 0;
   mybias = 0.0;
 
-  // DEBUG - one line
-  myboost = 0;
+  // DEBUG quantity
+  // myboost = 0;
 
   for (int ibias = 0; ibias < nbias; ibias++) {
     m = bias[ibias];
@@ -684,8 +694,8 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     j = blist[m].j;
 
     if (maxstrain[i] >= qfactor) {
-      // DEBUG - one line
-      myboost += 1.0;
+      // DEBUG quantity
+      // myboost += 1.0;
       nobias++;
       continue;
     }
@@ -710,8 +720,8 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     if (ebias < 0.0) negstrain++;
     mybias += vbias;
 
-    // DEBUG - one line
-    myboost += exp(beta * biascoeff[m]*vbias);
+    // DEBUG quantity
+    // myboost += exp(beta * biascoeff[m]*vbias);
   }
 
   //time7 = MPI_Wtime();
@@ -796,7 +806,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     rmaxeverbig = rmax2all[1];
   }
 
-  // if requsted, check for any biased bonds that are too close to each other
+  // if requested, check for any biased bonds that are too close to each other
   // keep a running count for output
   // requires 2 additional local comm operations
 
@@ -850,12 +860,11 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
       int allcount;
       MPI_Allreduce(&checkbias_count,&allcount,1,MPI_INT,MPI_SUM,world);
       if (allcount) {
-        char str[128];
-        sprintf(str,"Fix hyper/local biased bonds too close: "
-                "cumulative atom count %d",allcount);
+        std::string mesg = fmt::format("Fix hyper/local biased bonds too close: "
+                                       "cumulative atom count {}",allcount);
         if (checkbias_flag == WARN) {
-          if (me == 0) error->warning(FLERR,str);
-        } else error->all(FLERR,str);
+          if (me == 0) error->warning(FLERR,mesg);
+        } else error->all(FLERR,mesg);
       }
     }
   }
@@ -887,7 +896,7 @@ void FixHyperLocal::build_bond_list(int natom)
 
   // reset Vmax to current bias coeff average
   // only if requested and elapsed time >= resetfreq
-  // ave = curent ave of all bias coeffs
+  // ave = current ave of all bias coeffs
   // if reset, adjust all Cij to keep Cij*Vmax unchanged
 
   if (resetfreq >= 0) {
@@ -1463,7 +1472,8 @@ double FixHyperLocal::compute_scalar()
 
 double FixHyperLocal::compute_vector(int i)
 {
-  // 28 vector outputs returned for i = 0-27
+  // 26 vector outputs returned for i = 0-25
+  // can add 2 more for debugging
 
   // i = 0 = average boost for all bonds on this step
   // i = 1 = # of biased bonds on this step
@@ -1498,7 +1508,7 @@ double FixHyperLocal::compute_vector(int i)
   // i = 24 = cumulative # of atoms in events since fix created
   // i = 25 = cumulative # of new bonds formed since fix created
 
-  // these 2 were added for debugging - could be removed at some point
+  // these 2 can be added for debugging
   // i = 26 = average boost for biased bonds on this step
   // i = 27 = current count of bonds with strain >= q
 
@@ -1576,17 +1586,17 @@ double FixHyperLocal::compute_vector(int i)
   }
 
   if (i == 11) {
-    int allbias_running,allnobias_running;
-    MPI_Allreduce(&nbias_running,&allbias_running,1,MPI_INT,MPI_SUM,world);
-    MPI_Allreduce(&nobias_running,&allnobias_running,1,MPI_INT,MPI_SUM,world);
+    bigint allbias_running,allnobias_running;
+    MPI_Allreduce(&nbias_running,&allbias_running,1,MPI_LMP_BIGINT,MPI_SUM,world);
+    MPI_Allreduce(&nobias_running,&allnobias_running,1,MPI_LMP_BIGINT,MPI_SUM,world);
     if (allbias_running) return 1.0*allnobias_running / allbias_running;
     return 0.0;
   }
 
   if (i == 12) {
-    int allbias_running,allnegstrain_running;
-    MPI_Allreduce(&nbias_running,&allbias_running,1,MPI_INT,MPI_SUM,world);
-    MPI_Allreduce(&negstrain_running,&allnegstrain_running,1,MPI_INT,
+    bigint allbias_running,allnegstrain_running;
+    MPI_Allreduce(&nbias_running,&allbias_running,1,MPI_LMP_BIGINT,MPI_SUM,world);
+    MPI_Allreduce(&negstrain_running,&allnegstrain_running,1,MPI_LMP_BIGINT,
                   MPI_SUM,world);
     if (allbias_running) return 1.0*allnegstrain_running / allbias_running;
     return 0.0;
@@ -1650,13 +1660,14 @@ double FixHyperLocal::compute_vector(int i)
   if (i == 24) return (double) nevent_atom;
 
   if (i == 25) {
-    int allnewbond;
-    MPI_Allreduce(&nnewbond,&allnewbond,1,MPI_INT,MPI_SUM,world);
+    bigint allnewbond;
+    MPI_Allreduce(&nnewbond,&allnewbond,1,MPI_LMP_BIGINT,MPI_SUM,world);
     return (double) allnewbond;
   }
 
-  // these two options were added for debugging
+  // these two options can be added for debugging
 
+  /*
   if (i == 26) {
     double allboost;
     MPI_Allreduce(&myboost,&allboost,1,MPI_DOUBLE,MPI_SUM,world);
@@ -1671,6 +1682,7 @@ double FixHyperLocal::compute_vector(int i)
     MPI_Allreduce(&overcount,&allovercount,1,MPI_INT,MPI_SUM,world);
     return (double) allovercount;
   }
+  */
 
   return 0.0;
 }

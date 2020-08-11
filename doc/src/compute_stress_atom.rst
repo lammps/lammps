@@ -2,12 +2,12 @@
 
 compute stress/atom command
 ===========================
+
 compute centroid/stress/atom command
 ====================================
 
 Syntax
 """"""
-
 
 .. parsed-literal::
 
@@ -22,8 +22,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 mobile stress/atom NULL
    compute 1 mobile stress/atom myRamp
@@ -177,9 +176,7 @@ subtracting a background streaming velocity.  See the doc pages for
 individual :doc:`compute commands <compute>` to determine which ones
 include a bias.
 
-
 ----------
-
 
 Note that as defined in the formula, per-atom stress is the negative
 of the per-atom pressure tensor.  It is also really a stress\*volume
@@ -199,12 +196,11 @@ is the total pressure of the system.
 These lines in an input script for a 3d system should yield that
 result. I.e. the last 2 columns of thermo output will be the same:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute        peratom all stress/atom NULL
    compute        p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
-   variable       press equal -(c_p[1]+c_p[2]+c_p[3])/(3\*vol)
+   variable       press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
    thermo_style   custom step temp etotal press v_press
 
 .. note::
@@ -228,15 +224,14 @@ The per-atom array values will be in pressure\*volume
 
 Restrictions
 """"""""""""
-Currently, compute *centroid/stress/atom* does not support
-pair styles with many-body interactions,
-such as :doc:`Tersoff <pair_tersoff>`,
-and LAMMPS will generate an error in such cases.
-In principal, equivalent formulation
-to that of angle, dihedral and improper contributions
-in the virial :math:`W_{ab}` formula
-can also be applied to the many-body pair styles,
-and is planned in the future.
+
+Currently (Spring 2020), compute *centroid/stress/atom* does not support
+pair styles with many-body interactions, such as :doc:`Tersoff
+<pair_tersoff>`, or pair styles with long-range Coulomb interactions.
+LAMMPS will generate an error in such cases.  In principal, equivalent
+formulation to that of angle, dihedral and improper contributions in the
+virial :math:`W_{ab}` formula can also be applied to the many-body pair
+styles, and is planned in the future.
 
 Related commands
 """"""""""""""""
@@ -245,35 +240,20 @@ Related commands
 
 **Default:** none
 
-
 ----------
 
-
 .. _Heyes2:
-
-
 
 **(Heyes)** Heyes, Phys Rev B, 49, 755 (1994).
 
 .. _Sirk1:
 
-
-
 **(Sirk)** Sirk, Moore, Brown, J Chem Phys, 138, 064505 (2013).
 
 .. _Thompson2:
-
-
 
 **(Thompson)** Thompson, Plimpton, Mattson, J Chem Phys, 131, 154107 (2009).
 
 .. _Surblys1:
 
-
-
 **(Surblys)** Surblys, Matsubara, Kikugawa, Ohara, Phys Rev E, 99, 051301(R) (2019).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

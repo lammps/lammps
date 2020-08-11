@@ -28,12 +28,14 @@
 #include "memory.h"
 #include "error.h"
 #include "utils.h"
+#include "tokenizer.h"
+#include "table_file_reader.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
 enum{NONE,RLINEAR,RSQ,BMP};
 
-#define MAXLINE 1024
 #define EPSILONR 1.0e-6
 
 /* ---------------------------------------------------------------------- */
@@ -42,6 +44,7 @@ PairTable::PairTable(LAMMPS *lmp) : Pair(lmp)
 {
   ntables = 0;
   tables = NULL;
+  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -67,7 +70,6 @@ void PairTable::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype,itable;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,factor_lj,fraction,value,a,b;
-  char estr[128];
   int *ilist,*jlist,*numneigh,**firstneigh;
   Table *tb;
 
@@ -113,37 +115,28 @@ void PairTable::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
         tb = &tables[tabindex[itype][jtype]];
-        if (rsq < tb->innersq) {
-          sprintf(estr,"Pair distance < table inner cutoff: "
-                  "ijtype %d %d dist %g",itype,jtype,sqrt(rsq));
-          error->one(FLERR,estr);
-        }
-
+        if (rsq < tb->innersq)
+          error->one(FLERR,fmt::format("Pair distance < table inner cutoff: "
+                                       "ijtype {} {} dist {}",itype,jtype,sqrt(rsq)));
         if (tabstyle == LOOKUP) {
           itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-          if (itable >= tlm1) {
-            sprintf(estr,"Pair distance > table outer cutoff: "
-                    "ijtype %d %d dist %g",itype,jtype,sqrt(rsq));
-            error->one(FLERR,estr);
-          }
+          if (itable >= tlm1)
+            error->one(FLERR,fmt::format("Pair distance > table outer cutoff: "
+                                         "ijtype {} {} dist {}",itype,jtype,sqrt(rsq)));
           fpair = factor_lj * tb->f[itable];
         } else if (tabstyle == LINEAR) {
           itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-          if (itable >= tlm1) {
-            sprintf(estr,"Pair distance > table outer cutoff: "
-                    "ijtype %d %d dist %g",itype,jtype,sqrt(rsq));
-            error->one(FLERR,estr);
-          }
+          if (itable >= tlm1)
+            error->one(FLERR,fmt::format("Pair distance > table outer cutoff: "
+                                         "ijtype {} {} dist {}",itype,jtype,sqrt(rsq)));
           fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
           value = tb->f[itable] + fraction*tb->df[itable];
           fpair = factor_lj * value;
         } else if (tabstyle == SPLINE) {
           itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-          if (itable >= tlm1) {
-            sprintf(estr,"Pair distance > table outer cutoff: "
-                    "ijtype %d %d dist %g",itype,jtype,sqrt(rsq));
-            error->one(FLERR,estr);
-          }
+          if (itable >= tlm1)
+            error->one(FLERR,fmt::format("Pair distance > table outer cutoff: "
+                                         "ijtype {} {} dist {}",itype,jtype,sqrt(rsq)));
           b = (rsq - tb->rsq[itable]) * tb->invdelta;
           a = 1.0 - b;
           value = a * tb->f[itable] + b * tb->f[itable+1] +
@@ -356,38 +349,24 @@ double PairTable::init_one(int i, int j)
 
 void PairTable::read_table(Table *tb, char *file, char *keyword)
 {
-  char line[MAXLINE];
+  TableFileReader reader(lmp, file, "pair", unit_convert_flag);
 
-  // open file
+  // transparently convert units for supported conversions
 
-  FILE *fp = force->open_potential(file);
-  if (fp == NULL) {
-    std::string str("Cannot open file ");
-    str += file;
-    error->one(FLERR,str.c_str());
-  }
+  int unit_convert = reader.get_unit_convert();
+  double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                          unit_convert);
+  char *line = reader.find_section_start(keyword);
 
-  // loop until section found with matching keyword
-
-  while (1) {
-    if (fgets(line,MAXLINE,fp) == NULL)
-      error->one(FLERR,"Did not find keyword in table file");
-    if (strspn(line," \t\n\r") == strlen(line)) continue;  // blank line
-    if (line[0] == '#') continue;                          // comment
-    char *word = strtok(line," \t\n\r");
-    if (strcmp(word,keyword) == 0) break;            // matching keyword
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error); // no match, skip section
-    param_extract(tb,line);
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-    for (int i = 0; i < tb->ninput; i++)
-      utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
+  if (!line) {
+    error->one(FLERR,"Did not find keyword in table file");
   }
 
   // read args on 2nd line of section
   // allocate table arrays for file values
 
-  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-  param_extract(tb,line);
+  line = reader.next_line();
+  param_extract(tb, line);
   memory->create(tb->rfile,tb->ninput,"pair:rfile");
   memory->create(tb->efile,tb->ninput,"pair:efile");
   memory->create(tb->ffile,tb->ninput,"pair:ffile");
@@ -407,19 +386,25 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
   // if rflag set, compute r
   // if rflag not set, use r from file
 
-  int itmp;
   double rfile,rnew;
   union_int_float_t rsq_lookup;
 
   int rerror = 0;
   int cerror = 0;
 
-  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
+  reader.skip_line();
   for (int i = 0; i < tb->ninput; i++) {
-    if (NULL == fgets(line,MAXLINE,fp))
-      error->one(FLERR,"Premature end of file in pair table");
-    if (4 != sscanf(line,"%d %lg %lg %lg",
-                    &itmp,&rfile,&tb->efile[i],&tb->ffile[i]))  ++cerror;
+    line = reader.next_line(4);
+
+    try {
+      ValueTokenizer values(line);
+      values.next_int();
+      rfile = values.next_double();
+      tb->efile[i] = conversion_factor * values.next_double();
+      tb->ffile[i] = conversion_factor * values.next_double();
+    } catch (TokenizerException & e) {
+      ++cerror;
+    }
 
     rnew = rfile;
     if (tb->rflag == RLINEAR)
@@ -442,10 +427,6 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
 
     tb->rfile[i] = rnew;
   }
-
-  // close file
-
-  fclose(fp);
 
   // warn if force != dE/dr at any point that is not an inflection point
   // check via secant approximation to dE/dr
@@ -476,30 +457,26 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
     }
   }
 
-  if (ferror) {
-    char str[128];
-    sprintf(str,"%d of %d force values in table are inconsistent with -dE/dr.\n"
-            "  Should only be flagged at inflection points",ferror,tb->ninput);
-    error->warning(FLERR,str);
-  }
+  if (ferror)
+    error->warning(FLERR,fmt::format("{} of {} force values in table are "
+                                     "inconsistent with -dE/dr.\n  Should "
+                                     "only be flagged at inflection points",
+                                     ferror,tb->ninput));
 
   // warn if re-computed distance values differ from file values
 
-  if (rerror) {
-    char str[128];
-    sprintf(str,"%d of %d distance values in table with relative error\n"
-            "  over %g to re-computed values",rerror,tb->ninput,EPSILONR);
-    error->warning(FLERR,str);
-  }
+  if (rerror)
+    error->warning(FLERR,fmt::format("{} of {} distance values in table with "
+                                     "relative error\n  over {} to "
+                                     "re-computed values",
+                                     rerror,tb->ninput,EPSILONR));
 
   // warn if data was read incompletely, e.g. columns were missing
 
-  if (cerror) {
-    char str[128];
-    sprintf(str,"%d of %d lines in table were incomplete\n"
-            "  or could not be parsed completely",cerror,tb->ninput);
-    error->warning(FLERR,str);
-  }
+  if (cerror)
+    error->warning(FLERR,fmt::format("{} of {} lines in table were "
+                                     "incomplete\n  or could not be parsed "
+                                     "completely",cerror,tb->ninput));
 }
 
 /* ----------------------------------------------------------------------
@@ -573,31 +550,29 @@ void PairTable::param_extract(Table *tb, char *line)
   tb->rflag = NONE;
   tb->fpflag = 0;
 
-  char *word = strtok(line," \t\n\r\f");
-  while (word) {
-    if (strcmp(word,"N") == 0) {
-      word = strtok(NULL," \t\n\r\f");
-      tb->ninput = atoi(word);
-    } else if (strcmp(word,"R") == 0 || strcmp(word,"RSQ") == 0 ||
-               strcmp(word,"BITMAP") == 0) {
-      if (strcmp(word,"R") == 0) tb->rflag = RLINEAR;
-      else if (strcmp(word,"RSQ") == 0) tb->rflag = RSQ;
-      else if (strcmp(word,"BITMAP") == 0) tb->rflag = BMP;
-      word = strtok(NULL," \t\n\r\f");
-      tb->rlo = atof(word);
-      word = strtok(NULL," \t\n\r\f");
-      tb->rhi = atof(word);
-    } else if (strcmp(word,"FPRIME") == 0) {
-      tb->fpflag = 1;
-      word = strtok(NULL," \t\n\r\f");
-      tb->fplo = atof(word);
-      word = strtok(NULL," \t\n\r\f");
-      tb->fphi = atof(word);
-    } else {
-      printf("WORD: %s\n",word);
-      error->one(FLERR,"Invalid keyword in pair table parameters");
+  try {
+    ValueTokenizer values(line);
+
+    while (values.has_next()) {
+      std::string word = values.next_string();
+      if (word == "N") {
+        tb->ninput = values.next_int();
+      } else if ((word == "R") || (word == "RSQ") || (word == "BITMAP")) {
+        if (word == "R") tb->rflag = RLINEAR;
+        else if (word == "RSQ") tb->rflag = RSQ;
+        else if (word == "BITMAP") tb->rflag = BMP;
+        tb->rlo = values.next_double();
+        tb->rhi = values.next_double();
+      } else if (word == "FPRIME") {
+        tb->fpflag = 1;
+        tb->fplo = values.next_double();
+        tb->fphi = values.next_double();
+      } else {
+        error->one(FLERR,fmt::format("Invalid keyword {} in pair table parameters", word).c_str());
+      }
     }
-    word = strtok(NULL," \t\n\r\f");
+  } catch (TokenizerException & e) {
+    error->one(FLERR, e.what());
   }
 
   if (tb->ninput == 0) error->one(FLERR,"Pair table parameters did not set N");
@@ -1057,11 +1032,15 @@ void *PairTable::extract(const char *str, int &dim)
   if (strcmp(str,"cut_coul") != 0) return NULL;
   if (ntables == 0) error->all(FLERR,"All pair coeffs are not set");
 
-  double cut_coul = tables[0].cut;
-  for (int m = 1; m < ntables; m++)
-    if (tables[m].cut != cut_coul)
-      error->all(FLERR,
-                 "Pair table cutoffs must all be equal to use with KSpace");
-  dim = 0;
-  return &tables[0].cut;
+  // only check for cutoff consistency if claiming to be KSpace compatible
+
+  if (ewaldflag || pppmflag || msmflag || dispersionflag || tip4pflag) {
+    double cut_coul = tables[0].cut;
+    for (int m = 1; m < ntables; m++)
+      if (tables[m].cut != cut_coul)
+        error->all(FLERR,
+                   "Pair table cutoffs must all be equal to use with KSpace");
+    dim = 0;
+    return &tables[0].cut;
+  } else return NULL;
 }

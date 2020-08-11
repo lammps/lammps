@@ -123,7 +123,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
      # be used as a localization function \n
      fix         AtC kernel quartic_sphere 10.0 \n \n
      # create a uniform 1 x 1 x 1 mesh that covers region contain the group \n
-     # with periodicity this effectively creats a system average \n
+     # with periodicity this effectively creates a system average \n
      fix_modify  AtC mesh create 1 1 1 box p p p \n\n
      # change from default lagrangian map to eulerian \n
      #   refreshed every 100 steps \n

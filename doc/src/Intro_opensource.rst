@@ -15,15 +15,9 @@ distribution.
 
 .. _gnu: http://www.gnu.org/copyleft/gpl.html
 
-
-
 .. _gnuorg: http://www.gnu.org
 
-
-
 .. _opensource: http://www.opensource.org
-
-
 
 Here is a summary of what the GPL means for LAMMPS users:
 
@@ -42,8 +36,3 @@ of the GPL.
 (4) If you give LAMMPS files to someone else, the GPL LICENSE file and
 source file headers (including the copyright and GPL notices) should
 remain part of the code.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

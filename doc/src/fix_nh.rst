@@ -36,18 +36,17 @@ fix nph/omp command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID style_name keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* style\_name = *nvt* or *npt* or *nph*
+* style_name = *nvt* or *npt* or *nph*
 * one or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
-     keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *dilate* or *scalexy* or *scaleyz* or *scalexz* or *flip* or *fixedpoint* or *update*
+
+     keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *ptemp* or *dilate* or *scalexy* or *scaleyz* or *scalexz* or *flip* or *fixedpoint* or *update*
        *temp* values = Tstart Tstop Tdamp
          Tstart,Tstop = external temperature at start/end of run
          Tdamp = temperature damping parameter (time units)
@@ -70,6 +69,8 @@ Syntax
        *nreset* value = reset reference cell every this many timesteps
        *drag* value = Df
          Df = drag factor added to barostat/thermostat (0.0 = no drag)
+       *ptemp* value = Ttarget
+         Ttarget = target temperature for barostat
        *dilate* value = dilate-group-ID
          dilate-group-ID = only dilate atoms in this group due to barostat volume changes
        *scalexy* value = *yes* or *no* = scale xy with ly
@@ -82,13 +83,10 @@ Syntax
          dipole = update dipole orientation (only for sphere variants)
          dipole/dlm = use DLM integrator to update dipole orientation (only for sphere variants)
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nvt temp 300.0 300.0 100.0
    fix 1 water npt temp 300.0 300.0 100.0 iso 0.0 0.0 1000.0
@@ -128,9 +126,7 @@ energy proposed by Parrinello and Rahman in
 follow the time-reversible measure-preserving Verlet and rRESPA
 integrators derived by Tuckerman et al in :ref:`(Tuckerman) <nh-Tuckerman>`.
 
-
 ----------
-
 
 The thermostat parameters for fix styles *nvt* and *npt* are specified
 using the *temp* keyword.  Other thermostat-related keywords are
@@ -143,8 +139,8 @@ description below.  The desired temperature at each timestep is a
 ramped value during the run from *Tstart* to *Tstop*\ .  The *Tdamp*
 parameter is specified in time units and determines how rapidly the
 temperature is relaxed.  For example, a value of 10.0 means to relax
-the temperature in a timespan of (roughly) 10 time units (e.g. tau or
-fmsec or psec - see the :doc:`units <units>` command).  The atoms in the
+the temperature in a timespan of (roughly) 10 time units (e.g. :math:`\tau`
+or fs or ps - see the :doc:`units <units>` command).  The atoms in the
 fix group are the only ones whose velocities and positions are updated
 by the velocity/position update portion of the integration.
 
@@ -159,14 +155,11 @@ by the velocity/position update portion of the integration.
    via using an :doc:`immediate variable <variable>` expression accessing
    the thermo property 'dt', which is the length of the time step. Example:
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   fix 1 all nvt temp 300.0 300.0 $(100.0\*dt)
-
+   fix 1 all nvt temp 300.0 300.0 $(100.0*dt)
 
 ----------
-
 
 The barostat parameters for fix styles *npt* and *nph* is specified
 using one or more of the *iso*\ , *aniso*\ , *tri*\ , *x*\ , *y*\ , *z*\ , *xy*\ ,
@@ -204,8 +197,8 @@ simulation box must be triclinic, even if its initial tilt factors are
 For all barostat keywords, the *Pdamp* parameter operates like the
 *Tdamp* parameter, determining the time scale on which pressure is
 relaxed.  For example, a value of 10.0 means to relax the pressure in
-a timespan of (roughly) 10 time units (e.g. tau or fmsec or psec - see
-the :doc:`units <units>` command).
+a timespan of (roughly) 10 time units (e.g. :math:`\tau` or fs or ps
+- see the :doc:`units <units>` command).
 
 .. note::
 
@@ -216,6 +209,28 @@ the :doc:`units <units>` command).
    of around 1000 timesteps.  However, note that *Pdamp* is specified in
    time units, and that timesteps are NOT the same as time units for most
    :doc:`units <units>` settings.
+
+The relaxation rate of the barostat is set by its inertia :math:`W`:
+
+.. math::
+
+   W = (N + 1) k T_{\rm target} P_{\rm damp}^2
+
+where :math:`N` is the number of atoms, :math:`k` is the Boltzmann constant,
+and :math:`T_{\rm target}` is the target temperature of the barostat :ref:`(Martyna) <nh-Martyna>`.
+If a thermostat is defined, :math:`T_{\rm target}` is the target temperature
+of the thermostat. If a thermostat is not defined, :math:`T_{\rm target}`
+is set to the current temperature of the system when the barostat is initialized.
+If this temperature is too low the simulation will quit with an error.
+Note: in previous versions of LAMMPS, :math:`T_{\rm target}` would default to
+a value of 1.0 for *lj* units and 300.0 otherwise if the system had a temperature
+of exactly zero.
+
+If a thermostat is not specified by this fix, :math:`T_{\rm target}` can be
+manually specified using the *Ptemp* parameter. This may be useful if the
+barostat is initialized when the current temperature does not reflect the
+steady state temperature of the system. This keyword may also be useful in
+athermal simulations where the temperature is not well defined.
 
 Regardless of what atoms are in the fix group (the only atoms which
 are time integrated), a global pressure or stress tensor is computed
@@ -233,9 +248,7 @@ group, a separate time integration fix like :doc:`fix nve <fix_nve>` or
 :doc:`fix nvt <fix_nh>` can be used on them, independent of whether they
 are dilated or not.
 
-
 ----------
-
 
 The *couple* keyword allows two or three of the diagonal components of
 the pressure tensor to be "coupled" together.  The value specified
@@ -250,9 +263,7 @@ dilated or contracted by the same percentage every timestep.  The
 be identical.  *Couple xyz* can be used for a 2d simulation; the *z*
 dimension is simply ignored.
 
-
 ----------
-
 
 The *iso*\ , *aniso*\ , and *tri* keywords are simply shortcuts that are
 equivalent to specifying several other keywords together.
@@ -261,7 +272,6 @@ The keyword *iso* means couple all 3 diagonal components together when
 pressure is computed (hydrostatic pressure), and dilate/contract the
 dimensions together.  Using "iso Pstart Pstop Pdamp" is the same as
 specifying these 4 keywords:
-
 
 .. parsed-literal::
 
@@ -276,7 +286,6 @@ stress tensor as the driving forces, and the specified scalar external
 pressure.  Using "aniso Pstart Pstop Pdamp" is the same as specifying
 these 4 keywords:
 
-
 .. parsed-literal::
 
    x Pstart Pstop Pdamp
@@ -290,7 +299,6 @@ as the driving forces, and the specified scalar pressure as the
 external normal stress.  Using "tri Pstart Pstop Pdamp" is the same as
 specifying these 7 keywords:
 
-
 .. parsed-literal::
 
    x Pstart Pstop Pdamp
@@ -301,9 +309,7 @@ specifying these 7 keywords:
    xz 0.0 0.0 Pdamp
    couple none
 
-
 ----------
-
 
 In some cases (e.g. for solids) the pressure (volume) and/or
 temperature of the system can oscillate undesirably when a Nose/Hoover
@@ -398,9 +404,7 @@ Dullweber-Leimkuhler-McLachlan integration scheme
 giving better energy conservation and allows slightly longer timesteps
 at only a small additional computational cost.
 
-
 ----------
-
 
 .. note::
 
@@ -428,7 +432,7 @@ equilibrium liquids can not support a shear stress and that
 equilibrium solids can not support shear stresses that exceed the
 yield stress.
 
-One exception to this rule is if the 1st dimension in the tilt factor
+One exception to this rule is if the first dimension in the tilt factor
 (x for xy) is non-periodic.  In that case, the limits on the tilt
 factor are not enforced, since flipping the box in that dimension does
 not change the atom positions due to non-periodicity.  In this mode,
@@ -449,9 +453,7 @@ See the :doc:`Howto thermostat <Howto_thermostat>` and :doc:`Howto barostat <How
 ways to compute temperature and perform thermostatting and
 barostatting.
 
-
 ----------
-
 
 These fixes compute a temperature and pressure each timestep.  To do
 this, the thermostat and barostat fixes create their own computes of
@@ -459,12 +461,15 @@ style "temp" and "pressure", as if one of these sets of commands had
 been issued:
 
 For fix nvt:
-compute fix-ID\_temp group-ID temp
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
+   compute fix-ID_temp group-ID temp
 
-   For fix npt and fix nph:
+For fix npt and fix nph:
+
+.. code-block:: LAMMPS
+
    compute fix-ID_temp all temp
    compute fix-ID_press all pressure fix-ID_temp
 
@@ -475,17 +480,17 @@ for the entire system.  In the case of fix nph, the temperature
 compute is not used for thermostatting, but just for a kinetic-energy
 contribution to the pressure.  See the :doc:`compute temp <compute_temp>` and :doc:`compute pressure <compute_pressure>`
 commands for details.  Note that the IDs of the new computes are the
-fix-ID + underscore + "temp" or fix\_ID + underscore + "press".
+fix-ID + underscore + "temp" or fix_ID + underscore + "press".
 
 Note that these are NOT the computes used by thermodynamic output (see
-the :doc:`thermo_style <thermo_style>` command) with ID = *thermo\_temp*
-and *thermo\_press*.  This means you can change the attributes of these
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo_temp*
+and *thermo_press*.  This means you can change the attributes of these
 fix's temperature or pressure via the
 :doc:`compute_modify <compute_modify>` command.  Or you can print this
 temperature or pressure during thermodynamic output via the
 :doc:`thermo_style custom <thermo_style>` command using the appropriate
-compute-ID.  It also means that changing attributes of *thermo\_temp*
-or *thermo\_press* will have no effect on this fix.
+compute-ID.  It also means that changing attributes of *thermo_temp*
+or *thermo_press* will have no effect on this fix.
 
 Like other fixes that perform thermostatting, fix nvt and fix npt can
 be used with :doc:`compute commands <compute>` that calculate a
@@ -501,9 +506,7 @@ temperature is calculated taking the bias into account, bias is
 removed from each atom, thermostatting is performed on the remaining
 thermal degrees of freedom, and the bias is added back in.
 
-
 ----------
-
 
 These fixes can be used with either the *verlet* or *respa*
 :doc:`integrators <run_style>`. When using one of the barostat fixes
@@ -511,8 +514,26 @@ with *respa*\ , LAMMPS uses an integrator constructed
 according to the following factorization of the Liouville propagator
 (for two rRESPA levels):
 
-.. image:: Eqs/fix_nh1.jpg
-   :align: center
+.. math::
+
+   \exp \left(\mathrm{i} L \Delta t \right) = & \hat{E}
+   \exp \left(\mathrm{i} L_{\rm T\textrm{-}baro} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_{\rm T\textrm{-}part} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_{\epsilon , 2} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_{2}^{(2)} \frac{\Delta t}{2} \right) \\
+   &\times \left[
+   \exp \left(\mathrm{i} L_{2}^{(1)} \frac{\Delta t}{2n} \right)
+   \exp \left(\mathrm{i} L_{\epsilon , 1} \frac{\Delta t}{2n} \right)
+   \exp \left(\mathrm{i} L_1 \frac{\Delta t}{n} \right)
+   \exp \left(\mathrm{i} L_{\epsilon , 1} \frac{\Delta t}{2n} \right)
+   \exp \left(\mathrm{i} L_{2}^{(1)} \frac{\Delta t}{2n} \right)
+   \right]^n \\
+   &\times
+   \exp \left(\mathrm{i} L_{2}^{(2)} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_{\epsilon , 2} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_{\rm T\textrm{-}part} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_{\rm T\textrm{-}baro} \frac{\Delta t}{2} \right) \\
+   &+ \mathcal{O} \left(\Delta t^3 \right)
 
 This factorization differs somewhat from that of Tuckerman et al, in
 that the barostat is only updated at the outermost rRESPA level,
@@ -537,9 +558,7 @@ of the underlying non-Hamiltonian equations of motion.
    the momentum at infrequent intervals using the
    :doc:`fix momentum <fix_momentum>` command.
 
-
 ----------
-
 
 The fix npt and fix nph commands can be used with rigid bodies or
 mixtures of rigid bodies and non-rigid particles (e.g. solvent).  But
@@ -547,33 +566,13 @@ there are also :doc:`fix rigid/npt <fix_rigid>` and :doc:`fix rigid/nph <fix_rig
 choice.  See the doc page for those commands for more discussion of
 the various ways to do this.
 
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 
-
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
-
-
-----------
-
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 These fixes writes the state of all the thermostat and barostat
 variables to :doc:`binary restart files <restart>`.  See the
@@ -593,7 +592,7 @@ compute temperature on a subset of atoms.
 .. note::
 
    If both the *temp* and *press* keywords are used in a single
-   thermo\_modify command (or in two separate commands), then the order in
+   thermo_modify command (or in two separate commands), then the order in
    which the keywords are specified is important.  Note that a :doc:`pressure compute <compute_pressure>` defines its own temperature compute as
    an argument when it is specified.  The *temp* keyword will override
    this (for the pressure compute being used by fix npt), but only if the
@@ -628,21 +627,21 @@ simulation, otherwise its value is 3.
 
 The order of values in the global vector and their meaning is as
 follows.  The notation means there are tchain values for eta, followed
-by tchain for eta\_dot, followed by ndof for omega, etc:
+by tchain for eta_dot, followed by ndof for omega, etc:
 
 * eta[tchain] = particle thermostat displacements (unitless)
-* eta\_dot[tchain] = particle thermostat velocities (1/time units)
+* eta_dot[tchain] = particle thermostat velocities (1/time units)
 * omega[ndof] = barostat displacements (unitless)
-* omega\_dot[ndof] = barostat velocities (1/time units)
+* omega_dot[ndof] = barostat velocities (1/time units)
 * etap[pchain] = barostat thermostat displacements (unitless)
-* etap\_dot[pchain] = barostat thermostat velocities (1/time units)
-* PE\_eta[tchain] = potential energy of each particle thermostat displacement (energy units)
-* KE\_eta\_dot[tchain] = kinetic energy of each particle thermostat velocity (energy units)
-* PE\_omega[ndof] = potential energy of each barostat displacement (energy units)
-* KE\_omega\_dot[ndof] = kinetic energy of each barostat velocity (energy units)
-* PE\_etap[pchain] = potential energy of each barostat thermostat displacement (energy units)
-* KE\_etap\_dot[pchain] = kinetic energy of each barostat thermostat velocity (energy units)
-* PE\_strain[1] = scalar strain energy (energy units)
+* etap_dot[pchain] = barostat thermostat velocities (1/time units)
+* PE_eta[tchain] = potential energy of each particle thermostat displacement (energy units)
+* KE_eta_dot[tchain] = kinetic energy of each particle thermostat velocity (energy units)
+* PE_omega[ndof] = potential energy of each barostat displacement (energy units)
+* KE_omega_dot[ndof] = kinetic energy of each barostat velocity (energy units)
+* PE_etap[pchain] = potential energy of each barostat thermostat displacement (energy units)
+* KE_etap_dot[pchain] = kinetic energy of each barostat thermostat velocity (energy units)
+* PE_strain[1] = scalar strain energy (energy units)
 
 These fixes can ramp their external temperature and pressure over
 multiple runs, using the *start* and *stop* keywords of the
@@ -651,17 +650,14 @@ how to do this.
 
 These fixes are not invoked during :doc:`energy minimization <minimize>`.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
 
-
 *X*\ , *y*\ , *z* cannot be barostatted if the associated dimension is not
 periodic.  *Xy*\ , *xz*\ , and *yz* can only be barostatted if the
-simulation domain is triclinic and the 2nd dimension in the keyword
+simulation domain is triclinic and the second dimension in the keyword
 (\ *y* dimension in *xy*\ ) is periodic.  *Z*\ , *xz*\ , and *yz*\ , cannot be
 barostatted for 2D simulations.  The :doc:`create_box <create_box>`,
 :doc:`read data <read_data>`, and :doc:`read_restart <read_restart>`
@@ -675,7 +671,7 @@ is not allowed in the Nose/Hoover formulation.
 
 The *scaleyz yes* and *scalexz yes* keyword/value pairs can not be used
 for 2D simulations. *scaleyz yes*\ , *scalexz yes*\ , and *scalexy yes* options
-can only be used if the 2nd dimension in the keyword is periodic,
+can only be used if the second dimension in the keyword is periodic,
 and if the tilt factor is not coupled to the barostat via keywords
 *tri*\ , *yz*\ , *xz*\ , and *xy*\ .
 
@@ -698,46 +694,29 @@ Default
 
 The keyword defaults are tchain = 3, pchain = 3, mtk = yes, tloop = 1,
 ploop = 1, nreset = 0, drag = 0.0, dilate = all, couple = none,
-flip = yes, scaleyz = scalexz = scalexy = yes if periodic in 2nd
+flip = yes, scaleyz = scalexz = scalexy = yes if periodic in second
 dimension and not coupled to barostat, otherwise no.
-
 
 ----------
 
-
 .. _nh-Martyna:
-
-
 
 **(Martyna)** Martyna, Tobias and Klein, J Chem Phys, 101, 4177 (1994).
 
 .. _nh-Parrinello:
 
-
-
 **(Parrinello)** Parrinello and Rahman, J Appl Phys, 52, 7182 (1981).
 
 .. _nh-Tuckerman:
-
-
 
 **(Tuckerman)** Tuckerman, Alejandre, Lopez-Rendon, Jochim, and
 Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 
 .. _nh-Shinoda:
 
-
-
 **(Shinoda)** Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
 
 .. _nh-Dullweber:
 
-
-
 **(Dullweber)** Dullweber, Leimkuhler and McLachlan, J Chem Phys, 107,
 5840 (1997).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

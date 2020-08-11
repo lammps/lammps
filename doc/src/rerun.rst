@@ -6,16 +6,15 @@ rerun command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    rerun file1 file2 ... keyword args ...
 
 * file1,file2,... = dump file(s) to read
 * one or more keywords may be appended, keyword *dump* must appear and be last
-  
+
   .. parsed-literal::
-  
+
      keyword = *first* or *last* or *every* or *skip* or *start* or *stop* or *dump*
       *first* args = Nfirst
         Nfirst = dump timestep to start on
@@ -31,20 +30,17 @@ Syntax
         Nstop = timestep to which pseudo run will end
       *dump* args = same as :doc:`read_dump <read_dump>` command starting with its field arguments
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    rerun dump.file dump x y z vx vy vz
    rerun dump1.txt dump2.txt first 10000 every 1000 dump x y z
    rerun dump.vels dump x y z vx vy vz box yes format molfile lammpstrj
    rerun dump.dcd dump x y z box no format molfile dcd
    rerun ../run7/dump.file.gz skip 2 dump x y z box yes
-   rerun dump.bp dump x y z box no format adios 
+   rerun dump.bp dump x y z box no format adios
    rerun dump.bp dump x y z vx vy vz format adios timeout 10.0
 
 Description
@@ -57,9 +53,9 @@ computed on the shapshot to produce thermodynamic or other output.
 This can be useful in the following kinds of scenarios, after an
 initial simulation produced the dump file:
 
-* Compute the energy and forces of snaphots using a different potential.
+* Compute the energy and forces of snapshots using a different potential.
 * Calculate one or more diagnostic quantities on the snapshots that
-  weren't computed in the initial run.  These can also be computed with
+  were not computed in the initial run.  These can also be computed with
   settings not used in the initial run, e.g. computing an RDF via the
   :doc:`compute rdf <compute_rdf>` command with a longer cutoff than was
   used initially.
@@ -68,7 +64,6 @@ initial simulation produced the dump file:
   by only defining only a Coulombic pair style in the rerun script.
   Doing this in the original script would result in different (bad)
   dynamics.
-
 
 Conceptually, using the rerun command is like running an input script
 that has a loop in it (see the :doc:`next <next>` and :doc:`jump <jump>`
@@ -101,9 +96,7 @@ same as for output from any LAMMPS simulation.  See further info below
 as to what that means if the timesteps for snapshots read from dump
 files do not match the specified output frequency.
 
-
 ----------
-
 
 If more than one dump file is specified, the dump files are read one
 after the other.  It is assumed that snapshot timesteps will be in
@@ -115,13 +108,13 @@ However if you specify a series of dump files in an incorrect order
 (with respect to the timesteps they contain), you may skip large
 numbers of snapshots
 
-Note that the dump files specified as part of the *dump* keyword can
-be parallel files, i.e. written as multiple files either per processor
+Note that the dump files specified as part of the *dump* keyword can be
+parallel files, i.e. written as multiple files either per processor
 and/or per snapshot.  If that is the case they will also be read in
 parallel which can make the rerun command operate dramatically faster
-for large systems.  See the doc page for the `read\_dump <read_dump>`_ and
-:doc:`dump <dump>` commands which describe how to read and write
-parallel dump files.
+for large systems.  See the doc page for the :doc:`read_dump
+<read_dump>` and :doc:`dump <dump>` commands which describe how to read
+and write parallel dump files.
 
 The *first*\ , *last*\ , *every*\ , *skip* keywords determine which
 snapshots are read from the dump file(s).  Snapshots are skipped until
@@ -162,9 +155,7 @@ options it allows for extracting information from the dump file
 snapshots, and for using that information to alter the LAMMPS
 simulation.
 
-
 ----------
-
 
 In general, a LAMMPS input script that uses a rerun command can
 include and perform all the usual operations of an input script that
@@ -209,16 +200,13 @@ but no output will be produced.  If you want output for every dump
 snapshot, you can simply use N=1 for an output frequency, e.g. for
 thermodynamic output or new dump file output.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
 
-
 To read gzipped dump files, you must compile LAMMPS with the
--DLAMMPS\_GZIP option.  See the :doc:`Build settings <Build_settings>`
+-DLAMMPS_GZIP option.  See the :doc:`Build settings <Build_settings>`
 doc page for details.
 
 Related commands
@@ -232,8 +220,3 @@ Default
 The option defaults are first = 0, last = a huge value (effectively
 infinity), start = same as first, stop = same as last, every = 0, skip
 = 1;
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

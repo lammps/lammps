@@ -1,5 +1,5 @@
 # Interlayer Potential (ILP) for graphite, bulk-hBN and their heterojunctions
-# The parameters below are fitted against the HSE + TS DFT referece data from 2 A to 10 A.
+# The parameters below are fitted against the HSE + TS DFT reference data from 2 A to 10 A.
 # Cite as W. Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020).
 #
 # ------------------------------ Repulsion Potential ------------------++++++++++++++ Vdw Potential ++++++++++++++++************

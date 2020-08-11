@@ -6,16 +6,15 @@ group command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    group ID style args
 
 * ID = user-defined name of the group
 * style = *delete* or *clear* or *empty* or *region* or         *type* or *id* or *molecule* or *variable* or         *include* or *subtract* or *union* or *intersect* or         *dynamic* or *static*
-  
+
   .. parsed-literal::
-  
+
        *delete* = no args
        *clear* = no args
        *empty* = no args
@@ -46,13 +45,10 @@ Syntax
            *every* value = N = update group every this many timesteps
        *static* = no args
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    group edge region regstrip
    group water type 3 4
@@ -122,7 +118,7 @@ specified atom types, atom IDs, or molecule IDs into the group.  These
 3 styles can use arguments specified in one of two formats.
 
 The first format is a list of values (types or IDs).  For example, the
-2nd command in the examples above puts all atoms of type 3 or 4 into
+second command in the examples above puts all atoms of type 3 or 4 into
 the group named *water*\ .  Each entry in the list can be a
 colon-separated sequence A:B or A:B:C, as in two of the examples
 above.  A "sequence" generates a sequence of values (types or IDs),
@@ -135,9 +131,9 @@ uses an increment of 10 and would thus would add atoms IDs
 
 The second format is a *logical* followed by one or two values (type
 or ID).  The 7 valid logicals are listed above.  All the logicals
-except <> take a single argument.  The 3rd example above adds all
+except <> take a single argument.  The third example above adds all
 atoms with IDs from 1 to 150 to the group named *sub*\ .  The logical <>
-means "between" and takes 2 arguments.  The 4th example above adds all
+means "between" and takes 2 arguments.  The fourth example above adds all
 atoms belonging to molecules with IDs from 50 to 250 (inclusive) to
 the group named polyA.
 
@@ -159,8 +155,7 @@ For example, these lines define a variable "eatom" that calculates the
 potential energy of each atom and includes it in the group if its
 potential energy is above the threshold value -3.0.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute         1 all pe/atom
    compute         2 all reduce sum c_1
@@ -172,8 +167,7 @@ potential energy is above the threshold value -3.0.
 
 Note that these lines
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute         2 all reduce sum c_1
    thermo_style    custom step temp pe c_2
@@ -198,7 +192,7 @@ this operation is useful is if the *region* style has been used
 previously to add atoms to a group that are within a geometric region.
 If molecules straddle the region boundary, then atoms outside the
 region that are part of molecules with atoms inside the region will
-not be in the group.  Using the group command a 2nd time with *include
+not be in the group.  Using the group command a second time with *include
 molecule* will add those atoms that are outside the region to the
 group.
 
@@ -213,7 +207,7 @@ group.
    atoms, and P is the number of processors.
 
 The *subtract* style takes a list of two or more existing group names
-as arguments.  All atoms that belong to the 1st group, but not to any
+as arguments.  All atoms that belong to the first group, but not to any
 of the other groups are added to the specified group.
 
 The *union* style takes a list of one or more existing group names as
@@ -224,9 +218,7 @@ The *intersect* style takes a list of two or more existing group names
 as arguments.  Atoms that belong to every one of the listed groups are
 added to the specified group.
 
-
 ----------
-
 
 The *dynamic* style flags an existing or new group as dynamic.  This
 means atoms will be (re)assigned to the group periodically as a
@@ -274,8 +266,7 @@ used to model a quench of the system, freezing atoms outside the
 shrinking sphere, then converting the remaining atoms to a static
 group and running further.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable        nsteps equal 5000
    variable        rad equal 18-(step/v_nsteps)\*(18-5)
@@ -298,13 +289,10 @@ The *static* style removes the setting for a dynamic group, converting
 it to a static group (the default).  The atoms in the static group are
 those currently in the dynamic group.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 There can be no more than 32 groups defined at one time, including
 "all".
@@ -321,8 +309,3 @@ Default
 """""""
 
 All atoms belong to the "all" group.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

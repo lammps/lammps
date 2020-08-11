@@ -6,7 +6,6 @@ fix nve/noforce command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nve
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 wall nve/noforce
 
@@ -39,7 +37,7 @@ unchanged, and can thus be printed by the :doc:`dump <dump>` command or
 queried with an equal-style :doc:`variable <variable>` that uses the
 fcm() group function to compute the total force on the group of atoms.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -57,8 +55,3 @@ Related commands
 :doc:`fix nve <fix_nve>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

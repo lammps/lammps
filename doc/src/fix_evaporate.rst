@@ -6,7 +6,6 @@ fix evaporate command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID evaporate N M region-ID seed
@@ -18,19 +17,16 @@ Syntax
 * region-ID = ID of region within which to perform deletions
 * seed = random number seed to use for choosing atoms to delete
 * zero or more keyword/value pairs may be appended
-  
+
   .. parsed-literal::
-  
+
      keyword = *molecule*
        *molecule* value = *no* or *yes*
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 solvent evaporate 1000 10 surface 49892
    fix 1 solvent evaporate 1000 10 surface 38277 molecule yes
@@ -76,7 +72,7 @@ incur overhead due to the cost of building neighbor lists.
    :doc:`compute_modify dynamic yes <compute_modify>` command for the
    temperature compute you are using.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -92,7 +88,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-
 This fix is part of the MISC package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -105,8 +100,3 @@ Default
 """""""
 
 The option defaults are molecule = no.
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

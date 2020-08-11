@@ -29,10 +29,9 @@
 #define LMP_LMPTYPE_H
 
 // C++11 check
-#ifndef LAMMPS_CXX98
-#if __cplusplus <= 199711L
-  #error LAMMPS is planning to transition to C++11. To disable this error please use a C++11 compliant compiler, enable C++11 (or later) compliance, or define LAMMPS_CXX98 in your makefile
-#endif
+
+#if __cplusplus < 201103L
+#error LAMMPS requires a C++11 (or later) compliant compiler. Enable C++11 compatibility or upgrade the compiler.
 #endif
 
 #ifndef __STDC_LIMIT_MACROS
@@ -45,8 +44,8 @@
 
 #include <climits>
 #include <cstdlib>
-#include <stdint.h>   // <cstdint> requires C++-11
-#include <inttypes.h> // <cinttypes> requires C++-11
+#include <cstdint>
+#include <cinttypes>
 
 // grrr - IBM Power6 does not provide this def in their system header files
 
@@ -172,6 +171,46 @@ typedef int bigint;
 
 #endif
 
+  /// Data structe for packing 32-bit and 64-bit integers
+  /// into double (communication) buffers
+  ///
+  /// Using this union avoids aliasing issues by having member types
+  /// (double, int) referencing the same buffer memory location.
+  ///
+  /// The explicit constructor for 32-bit integers prevents compilers
+  /// from (incorrectly) calling the double constructor when storing
+  ///  an int into a double buffer.
+  /*
+\verbatim embed:rst
+**Usage:**
+
+To copy an integer into a double buffer:
+
+.. code-block: c++
+
+   double buf[2];
+   int    foo =   1;
+   tagint bar = 2<<40;
+   buf[1] = ubuf(foo).d;
+   buf[2] = ubuf(bar).d;
+
+To copy from a double buffer back to an int:
+
+.. code-block: c++
+
+   foo = (int)    ubuf(buf[1]).i;
+   bar = (tagint) ubuf(buf[2]).i;
+
+The typecast prevents compiler warnings about possible truncations.
+\endverbatim
+  */
+  union ubuf {
+    double  d;
+    int64_t i;
+    ubuf(const double  &arg) : d(arg) {}
+    ubuf(const int64_t &arg) : i(arg) {}
+    ubuf(const int     &arg) : i(arg) {}
+  };
 }
 
 // preprocessor macros for compiler specific settings
@@ -207,10 +246,13 @@ typedef int bigint;
 #define _noalias
 #endif
 
-// declaration to turn off optimization for specific functions
-// and avoid compiler warnings about variable tracking
+// Declaration to turn off optimization for specific noncritical
+// functions and avoid compiler warnings about variable tracking.
+// Disable for broken -D_FORTIFY_SOURCE feature.
 
-#if defined(__clang__)
+#if defined(_FORTIFY_SOURCE) && (_FORTIFY_SOURCE > 0)
+#define _noopt
+#elif defined(__clang__)
 #  define _noopt __attribute__((optnone))
 #elif defined(__INTEL_COMPILER)
 #  define _noopt

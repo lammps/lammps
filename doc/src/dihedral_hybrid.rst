@@ -1,13 +1,12 @@
-.. index:: dihedral\_style hybrid
+.. index:: dihedral_style hybrid
 
-dihedral\_style hybrid command
-==============================
+dihedral_style hybrid command
+=============================
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style hybrid style1 style2 ...
 
@@ -16,12 +15,11 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dihedral_style hybrid harmonic helix
    dihedral_coeff 1 harmonic 6.0 1 3
-   dihedral_coeff 2\* helix 10 10 10
+   dihedral_coeff 2* helix 10 10 10
 
 Description
 """""""""""
@@ -34,10 +32,10 @@ boundary (of dihedral type 2) could be computed with a *helix*
 potential.  The assignment of dihedral type to style is made via the
 :doc:`dihedral_coeff <dihedral_coeff>` command or in the data file.
 
-In the dihedral\_coeff commands, the name of a dihedral style must be
+In the dihedral_coeff commands, the name of a dihedral style must be
 added after the dihedral type, with the remaining coefficients being
 those appropriate to that style.  In the example above, the 2
-dihedral\_coeff commands set dihedrals of dihedral type 1 to be
+dihedral_coeff commands set dihedrals of dihedral type 1 to be
 computed with a *harmonic* potential with coefficients 6.0, 1, 3 for
 K, d, n.  All other dihedral types (2-N) are computed with a *helix*
 potential with coefficients 10, 10, 10 for A, B, C.
@@ -46,7 +44,6 @@ If dihedral coefficients are specified in the data file read via the
 :doc:`read_data <read_data>` command, then the same rule applies.
 E.g. "harmonic" or "helix", must be added after the dihedral type, for
 each line in the "Dihedral Coeffs" section, e.g.
-
 
 .. parsed-literal::
 
@@ -64,7 +61,6 @@ lines in the AngleTorsion (or EndBondTorsion, etc) section of the data
 file for dihedral types that are not *class2*\ , you must use an
 dihedral style of *skip* as a placeholder, e.g.
 
-
 .. parsed-literal::
 
    AngleTorsion Coeffs
@@ -78,17 +74,14 @@ input script, since AngleTorsion (or EndBondTorsion, etc) coefficients
 need not be specified at all for dihedral types that are not *class2*\ .
 
 A dihedral style of *none* with no additional coefficients can be used
-in place of a dihedral style, either in a input script dihedral\_coeff
+in place of a dihedral style, either in a input script dihedral_coeff
 command or in the data file, if you desire to turn off interactions
 for specific dihedral types.
 
-
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This dihedral style can only be used if LAMMPS was built with the
 MOLECULE package.  See the :doc:`Build package <Build_package>` doc page
@@ -96,7 +89,7 @@ for more info.
 
 Unlike other dihedral styles, the hybrid dihedral style does not store
 dihedral coefficient info for individual sub-styles in a :doc:`binary restart files <restart>`.  Thus when restarting a simulation from a
-restart file, you need to re-specify dihedral\_coeff commands.
+restart file, you need to re-specify dihedral_coeff commands.
 
 Related commands
 """"""""""""""""
@@ -104,8 +97,3 @@ Related commands
 :doc:`dihedral_coeff <dihedral_coeff>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

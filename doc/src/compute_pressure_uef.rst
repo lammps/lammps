@@ -6,7 +6,6 @@ compute pressure/uef command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID pressure/uef temp-ID keyword ...
@@ -20,8 +19,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all pressure/uef my_temp_uef
    compute 2 all pressure/uef my_temp_uef virial
@@ -43,7 +41,6 @@ The keywords and output information are documented in
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-UEF package. It is only enabled if LAMMPS
 was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -63,8 +60,3 @@ Related commands
 :doc:`compute temp/uef <compute_temp_uef>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

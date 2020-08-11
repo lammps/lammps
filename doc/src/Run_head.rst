@@ -6,7 +6,6 @@ and :doc:`built an executable <Build>`.  The :doc:`Commands <Commands>`
 doc page describes how input scripts are structured and the commands
 they can contain.
 
-
 .. toctree::
    :maxdepth: 1
 
@@ -14,8 +13,3 @@ they can contain.
    Run_options
    Run_output
    Run_windows
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -210,7 +210,7 @@ public:
   /// parameters from another grid, but doesn't reallocate stuff;
   /// setup() must be called after that;
   colvar_grid(colvar_grid<T> const &g) : colvarparse(),
-					 nd(g.nd),
+                                         nd(g.nd),
                                          nx(g.nx),
                                          mult(g.mult),
                                          data(),
@@ -932,7 +932,7 @@ public:
     std::string key, conf;
     if ((is >> key) && (key == std::string("grid_parameters"))) {
       is.seekg(start_pos, std::ios::beg);
-      is >> colvarparse::read_block("grid_parameters", conf);
+      is >> colvarparse::read_block("grid_parameters", &conf);
       parse_params(conf, colvarparse::parse_silent);
     } else {
       cvm::log("Grid parameters are missing in the restart file, using those from the configuration.\n");

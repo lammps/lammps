@@ -6,7 +6,6 @@ compute temp/region/eff command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/region/eff region-ID
@@ -18,8 +17,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute mine flow temp/region/eff boundary
 
@@ -54,7 +52,6 @@ vector values will be in energy :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -64,8 +61,3 @@ Related commands
 :doc:`compute temp/region <compute_temp_region>`, :doc:`compute temp/eff <compute_temp_eff>`, :doc:`compute pressure <compute_pressure>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

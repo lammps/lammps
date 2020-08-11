@@ -6,7 +6,6 @@ fix temp/rescale/eff command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID temp/rescale/eff N Tstart Tstop window fraction
@@ -21,8 +20,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 3 flow temp/rescale/eff 10 1.0 100.0 0.02 1.0
 
@@ -37,7 +35,7 @@ The operation of this fix is exactly like that described by the :doc:`fix temp/r
 is also applied to the radial electron velocity for electron
 particles.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -65,7 +63,6 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-
 This fix is part of the USER-EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -76,8 +73,3 @@ Related commands
 :doc:`fix temp rescale <fix_temp_rescale>`,
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

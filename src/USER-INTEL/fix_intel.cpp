@@ -16,6 +16,7 @@
                         Anupama Kurpad (Intel) - Host Affinitization
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "fix_intel.h"
 #include "comm.h"
 #include "error.h"
@@ -65,6 +66,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   _pair_intel_count = 0;
   _hybrid_nonpair = 0;
   _print_pkg_info = 1;
+  _nthreads = comm->nthreads;
 
   _precision_mode = PREC_MODE_MIXED;
   _offload_balance = -1.0;
@@ -217,12 +219,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   #endif
   if (nomp != 0) {
     omp_set_num_threads(nomp);
-    comm->nthreads = nomp;
-  } else {
-    int nthreads;
-    #pragma omp parallel default(none) shared(nthreads)
-    nthreads = omp_get_num_threads();
-    comm->nthreads = nthreads;
+    _nthreads = comm->nthreads = nomp;
   }
   #endif
 

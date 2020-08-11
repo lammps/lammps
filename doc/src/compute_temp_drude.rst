@@ -6,7 +6,6 @@ compute temp/drude command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/drude
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute TDRUDE all temp/drude
 
@@ -69,10 +67,9 @@ are "extensive".
 Restrictions
 """"""""""""
 
-
 The number of degrees of freedom contributing to the temperature is
 assumed to be constant for the duration of the run unless the
-*fix\_modify* command sets the option *dynamic yes*\ .
+*fix_modify* command sets the option *dynamic yes*\ .
 
 Related commands
 """"""""""""""""
@@ -80,8 +77,3 @@ Related commands
 :doc:`fix drude <fix_drude>`, :doc:`fix langevin/drude <fix_langevin_drude>`, :doc:`fix drude/transform <fix_drude_transform>`, :doc:`pair_style thole <pair_thole>`, :doc:`compute temp <compute_temp>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -20,8 +20,9 @@ parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
 OPT.
 
 .. table_from_list::
-   :columns: 6
+   :columns: 5
 
+   * :doc:`accelerate/cos <fix_accelerate_cos>`
    * :doc:`adapt <fix_adapt>`
    * :doc:`adapt/fep <fix_adapt_fep>`
    * :doc:`addforce <fix_addforce>`
@@ -41,6 +42,7 @@ OPT.
    * :doc:`bocs <fix_bocs>`
    * :doc:`bond/break <fix_bond_break>`
    * :doc:`bond/create <fix_bond_create>`
+   * :doc:`bond/create/angle <fix_bond_create>`
    * :doc:`bond/react <fix_bond_react>`
    * :doc:`bond/swap <fix_bond_swap>`
    * :doc:`box/relax <fix_box_relax>`
@@ -94,9 +96,7 @@ OPT.
    * :doc:`lb/viscous <fix_lb_viscous>`
    * :doc:`lineforce <fix_lineforce>`
    * :doc:`manifoldforce <fix_manifoldforce>`
-   * :doc:`meso <fix_meso>`
    * :doc:`meso/move <fix_meso_move>`
-   * :doc:`meso/stationary <fix_meso_stationary>`
    * :doc:`momentum (k) <fix_momentum>`
    * :doc:`move <fix_move>`
    * :doc:`mscg <fix_mscg>`
@@ -119,6 +119,7 @@ OPT.
    * :doc:`npt/eff <fix_nh_eff>`
    * :doc:`npt/sphere (o) <fix_npt_sphere>`
    * :doc:`npt/uef <fix_nh_uef>`
+   * :doc:`numdiff <fix_numdiff>`
    * :doc:`nve (iko) <fix_nve>`
    * :doc:`nve/asphere (i) <fix_nve_asphere>`
    * :doc:`nve/asphere/noforce <fix_nve_asphere_noforce>`
@@ -147,6 +148,7 @@ OPT.
    * :doc:`oneway <fix_oneway>`
    * :doc:`orient/bcc <fix_orient>`
    * :doc:`orient/fcc <fix_orient>`
+   * :doc:`orient/eco <fix_orient_eco>`
    * :doc:`phonon <fix_phonon>`
    * :doc:`pimd <fix_pimd>`
    * :doc:`planeforce <fix_planeforce>`
@@ -200,6 +202,8 @@ OPT.
    * :doc:`smd/move_tri_surf <fix_smd_move_triangulated_surface>`
    * :doc:`smd/setvel <fix_smd_setvel>`
    * :doc:`smd/wall_surface <fix_smd_wall_surface>`
+   * :doc:`sph <fix_sph>`
+   * :doc:`sph/stationary <fix_sph_stationary>`
    * :doc:`spring <fix_spring>`
    * :doc:`spring/chunk <fix_spring_chunk>`
    * :doc:`spring/rg <fix_spring_rg>`
@@ -240,3 +244,4 @@ OPT.
    * :doc:`wall/region <fix_wall_region>`
    * :doc:`wall/region/ees <fix_wall_ees>`
    * :doc:`wall/srd <fix_wall_srd>`
+   * :doc:`widom <fix_widom>`

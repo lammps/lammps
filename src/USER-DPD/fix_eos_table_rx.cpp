@@ -51,7 +51,7 @@ FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
   rx_flag = false;
   nspecies = 1;
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"rx",2) == 0){
+    if (utils::strmatch(modify->fix[i]->style,"^rx")) {
       rx_flag = true;
       nspecies = atom->nspecies_dpd;
       if(nspecies==0) error->all(FLERR,"There are no rx species specified.");
@@ -337,7 +337,7 @@ void FixEOStableRX::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(line);
     if (nwords == 0) continue;
 
     // concatenate additional lines until have params_per_line words
@@ -356,7 +356,7 @@ void FixEOStableRX::read_file(char *file)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+      nwords = utils::count_words(line);
     }
 
     if (nwords != min_params_per_line && nwords != max_params_per_line)
@@ -475,7 +475,7 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
   for (int i = 0; i < ninputs; i++) {
     utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
 
-    nwords = atom->count_words(line);
+    nwords = utils::count_words(utils::trim_comment(line));
     if(nwords != nspecies+2){
       printf("nwords=%d  nspecies=%d\n",nwords,nspecies);
       error->all(FLERR,"Illegal fix eos/table/rx command");

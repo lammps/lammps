@@ -100,8 +100,8 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
     } else if (strcmp(arg[iarg],"g") == 0 ||
                strcmp(arg[iarg],"gpus") == 0) {
-#ifndef KOKKOS_ENABLE_CUDA
-      error->all(FLERR,"GPUs are requested but Kokkos has not been compiled for CUDA");
+#ifndef LMP_KOKKOS_GPU
+      error->all(FLERR,"GPUs are requested but Kokkos has not been compiled for CUDA or HIP");
 #endif
       if (iarg+2 > narg) error->all(FLERR,"Invalid Kokkos command-line args");
       ngpus = atoi(arg[iarg+1]);
@@ -164,9 +164,9 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     if (logfile) fprintf(logfile,"  will use up to %d GPU(s) per node\n",ngpus);
   }
 
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
   if (ngpus <= 0)
-    error->all(FLERR,"Kokkos has been compiled for CUDA but no GPUs are requested");
+    error->all(FLERR,"Kokkos has been compiled for CUDA or HIP but no GPUs are requested");
 #endif
 
 #ifndef KOKKOS_ENABLE_SERIAL
@@ -306,7 +306,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
           neighflag = HALFTHREAD;
         else
           neighflag = HALF;
-      } else if (strcmp(arg[iarg+1],"n2") == 0) neighflag = N2;
+      }
       else error->all(FLERR,"Illegal package kokkos command");
       if (!neighflag_qeq_set) neighflag_qeq = neighflag;
       iarg += 2;
@@ -318,7 +318,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
           neighflag_qeq = HALFTHREAD;
         else
           neighflag_qeq = HALF;
-      } else if (strcmp(arg[iarg+1],"n2") == 0) neighflag_qeq = N2;
+      }
       else error->all(FLERR,"Illegal package kokkos command");
       neighflag_qeq_set = 1;
       iarg += 2;

@@ -69,7 +69,7 @@ CommandStyle(kim_init,KimInit)
 #include <string>
 
 // Forward declaration.
-class KIM_Model;
+typedef struct KIM_Model KIM_Model;
 
 namespace LAMMPS_NS {
 
@@ -85,8 +85,7 @@ class KimInit : protected Pointers {
   void determine_model_type_and_units(char *, char *, char **, KIM_Model *&);
   void write_log_cite(char *);
   void do_init(char *, char *, char *, KIM_Model *&);
-  void do_variables(char*, char*);
-  void kim_init_log_delimiter(std::string const &begin_end) const;
+  void do_variables(const std::string &, const std::string &);
 };
 
 }

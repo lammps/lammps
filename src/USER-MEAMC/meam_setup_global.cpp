@@ -67,8 +67,15 @@ MEAM::meam_setup_global(int nelt, lattice_t* lat, int* ielement, double* /*atwt*
       case DIA3:
         this->re_meam[i][i] = tmplat[i] * sqrt(3.0) / 4.0;
         break;
-      //default:
-      //           error
+      case B1:
+      case B2:
+      case C11:
+      case L12:
+        // do nothing
+        break;
+      default:
+        ;
+      //  error
     }
   }
 

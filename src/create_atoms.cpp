@@ -38,6 +38,10 @@
 #include "error.h"
 #include "memory.h"
 
+#include <string>
+#include "utils.h"
+#include "fmt/format.h"
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -189,7 +193,7 @@ void CreateAtoms::command(int narg, char **arg)
       if (iarg+5 > narg) error->all(FLERR,"Illegal create_atoms command");
       double thetaone;
       double axisone[3];
-      thetaone = force->numeric(FLERR,arg[iarg+1]);
+      thetaone = force->numeric(FLERR,arg[iarg+1]) / 180.0 * MY_PI;;
       axisone[0] = force->numeric(FLERR,arg[iarg+2]);
       axisone[1] = force->numeric(FLERR,arg[iarg+3]);
       axisone[2] = force->numeric(FLERR,arg[iarg+4]);
@@ -490,7 +494,13 @@ void CreateAtoms::command(int narg, char **arg)
     for (int i = 0; i < molcreate; i++) {
       if (tag) offset = tag[ilocal]-1;
       for (int m = 0; m < natoms; m++) {
-        if (molecule_flag) molecule[ilocal] = moloffset + i+1;
+        if (molecule_flag) {
+          if (onemol->moleculeflag) {
+            molecule[ilocal] = moloffset + onemol->molecule[m];
+          } else {
+            molecule[ilocal] = moloffset + 1;
+          }
+        }
         if (molecular == 2) {
           atom->molindex[ilocal] = 0;
           atom->molatom[ilocal] = m;
@@ -523,6 +533,13 @@ void CreateAtoms::command(int narg, char **arg)
               special[ilocal][j] += offset;
         }
         ilocal++;
+      }
+      if (molecule_flag) {
+        if (onemol->moleculeflag) {
+          moloffset += onemol->nmolecules;
+        } else {
+          moloffset++;
+        }
       }
     }
 
@@ -568,20 +585,11 @@ void CreateAtoms::command(int narg, char **arg)
   // print status
 
   MPI_Barrier(world);
-  double time2 = MPI_Wtime();
-
-  if (me == 0) {
-    if (screen) {
-      fprintf(screen,"Created " BIGINT_FORMAT " atoms\n",
-              atom->natoms-natoms_previous);
-      fprintf(screen,"  create_atoms CPU = %g secs\n",time2-time1);
-    }
-    if (logfile) {
-      fprintf(logfile,"Created " BIGINT_FORMAT " atoms\n",
-              atom->natoms-natoms_previous);
-      fprintf(logfile,"  create_atoms CPU = %g secs\n",time2-time1);
-    }
-  }
+  if (me == 0)
+    utils::logmesg(lmp, fmt::format("Created {} atoms\n"
+                        "  create_atoms CPU = {:.3f} seconds\n",
+                        atom->natoms - natoms_previous,
+                        MPI_Wtime() - time1));
 }
 
 /* ----------------------------------------------------------------------

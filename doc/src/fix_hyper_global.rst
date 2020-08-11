@@ -6,7 +6,6 @@ fix hyper/global command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID hyper/global cutbond qfactor Vmax Tequil
@@ -21,8 +20,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all hyper/global 1.0 0.3 0.8 300.0
 
@@ -58,65 +56,63 @@ Fichthorn as described in :ref:`(Miron) <Mironghd>`.  In LAMMPS we use a
 simplified version of bond-boost GHD where a single bond in the system
 is biased at any one timestep.
 
-Bonds are defined between each pair of I,J atoms whose R0ij distance
-is less than *cutbond*\ , when the system is in a quenched state
+Bonds are defined between each pair of atoms *ij*\ , whose :math:`R^0_{ij}`
+distance is less than *cutbond*\ , when the system is in a quenched state
 (minimum) energy.  Note that these are not "bonds" in a covalent
 sense.  A bond is simply any pair of atoms that meet the distance
 criterion.  *Cutbond* is an argument to this fix; it is discussed
-below.  A bond is only formed if one or both of the I.J atoms are in
+below.  A bond is only formed if one or both of the *ij* atoms are in
 the specified group.
 
-The current strain of bond IJ (when running dynamics) is defined as
+The current strain of bond *ij* (when running dynamics) is defined as
 
+.. math::
 
-.. parsed-literal::
+   E_{ij} = \frac{R_{ij} - R^0_{ij}}{R^0_{ij}}
 
-   Eij = (Rij - R0ij) / R0ij
+where :math:`R_{ij}` is the current distance between atoms *i* and *j*\ ,
+and :math:`R^0_{ij}` is the equilibrium distance in the quenched state.
 
-where Rij is the current distance between atoms I,J, and R0ij is the
-equilibrium distance in the quenched state.
+The bias energy :math:`V_{ij}` of any bond between atoms *i* and *j*
+is defined as
 
-The bias energy Vij of any bond IJ is defined as
+.. math::
 
+   V_{ij} = V^{max} \cdot \left( 1 - \left(\frac{E_{ij}}{q}\right)^2 \right) \textrm{ for } \left|E_{ij}\right| < qfactor \textrm{ or } 0 \textrm{ otherwise}
 
-.. parsed-literal::
-
-   Vij = Vmax \* (1 - (Eij/q)\^2) for abs(Eij) < qfactor
-       = 0 otherwise
-
-where the prefactor *Vmax* and the cutoff *qfactor* are arguments to
+where the prefactor :math:`V^{max}` and the cutoff *qfactor* are arguments to
 this fix; they are discussed below.  This functional form is an
-inverse parabola centered at 0.0 with height Vmax and which goes to
-0.0 at +/- qfactor.
+inverse parabola centered at 0.0 with height :math:`V^{max}` and
+which goes to 0.0 at +/- qfactor.
 
-Let Emax = the maximum of abs(Eij) for all IJ bonds in the system on a
-given timestep.  On that step, Vij is added as a bias potential to
-only the single bond with strain Emax, call it Vij(max).  Note that
-Vij(max) will be 0.0 if Emax >= qfactor on that timestep.  Also note
-that Vij(max) is added to the normal interatomic potential that is
-computed between all atoms in the system at every step.
+Let :math:`E^{max}` be the maximum of :math:`\left| E_{ij} \right|`
+for all *ij* bonds in the system on a
+given timestep.  On that step, :math:`V_{ij}` is added as a bias potential
+to only the single bond with strain :math:`E^{max}`, call it
+:math:`V^{max}_{ij}`.  Note that :math:`V^{max}_{ij}` will be 0.0
+if :math:`E^{max} >= \textrm{qfactor}` on that timestep.  Also note
+that :math:`V^{max}_{ij}` is added to the normal interatomic potential
+that is computed between all atoms in the system at every step.
 
-The derivative of Vij(max) with respect to the position of each atom
-in the Emax bond gives a bias force Fij(max) acting on the bond as
+The derivative of :math:`V^{max}_{ij}` with respect to the position of
+each atom in the :math:`E^{max}` bond gives a bias force
+:math:`F^{max}_{ij}` acting on the bond as
 
+.. math::
 
-.. parsed-literal::
-
-   Fij(max) = - dVij(max)/dEij = 2 Vmax Eij / qfactor\^2   for abs(Eij) < qfactor
-            = 0 otherwise
+   F^{max}_{ij} = - \frac{dV^{max}_{ij}}{dE_{ij}} = \frac{2 V^{max} E-{ij}}{\textrm{qfactor}^2}   \textrm{ for } \left|E_{ij}\right| < \textrm{qfactor} \textrm{ or } 0 \textrm{ otherwise}
 
 which can be decomposed into an equal and opposite force acting on
-only the two I,J atoms in the Emax bond.
+only the two *ij* atoms in the :math:`E^{max}` bond.
 
 The time boost factor for the system is given each timestep I by
 
+.. math::
 
-.. parsed-literal::
+   B_i = e^{\beta V^{max}_{ij}}
 
-   Bi = exp(beta \* Vij(max))
-
-where beta = 1/kTequil, and *Tequil* is the temperature of the system
-and an argument to this fix.  Note that Bi >= 1 at every step.
+where :math:`\beta = \frac{1}{kT_{equil}}`, and :math:`T_{equil}` is the temperature of the system
+and an argument to this fix.  Note that :math:`B_i >= 1` at every step.
 
 .. note::
 
@@ -125,34 +121,31 @@ and an argument to this fix.  Note that Bi >= 1 at every step.
    constant-temperature (NVT) dynamics.  LAMMPS does not check that this
    is done.
 
-The elapsed time t\_hyper for a GHD simulation running for *N*
+The elapsed time :math:`t_{hyper}` for a GHD simulation running for *N*
 timesteps is simply
 
+.. math::
 
-.. parsed-literal::
+   t_{hyper} = \sum_{i=1,N} B-i \cdot dt
 
-   t_hyper = Sum (i = 1 to N) Bi \* dt
-
-where dt is the timestep size defined by the :doc:`timestep <timestep>`
-command.  The effective time acceleration due to GHD is thus t\_hyper /
+where *dt* is the timestep size defined by the :doc:`timestep <timestep>`
+command.  The effective time acceleration due to GHD is thus t_hyper /
 N\*dt, where N\*dt is elapsed time for a normal MD run of N timesteps.
 
 Note that in GHD, the boost factor varies from timestep to timestep.
-Likewise, which bond has Emax strain and thus which pair of atoms the
-bias potential is added to, will also vary from timestep to timestep.
+Likewise, which bond has :math:`E^{max}` strain and thus which pair of
+atoms the bias potential is added to, will also vary from timestep to timestep.
 This is in contrast to local hyperdynamics (LHD) where the boost
 factor is an input parameter; see the :doc:`fix hyper/local <fix_hyper_local>` doc page for details.
 
-
 ----------
-
 
 Here is additional information on the input parameters for GHD.
 
 The *cutbond* argument is the cutoff distance for defining bonds
-between pairs of nearby atoms.  A pair of I,J atoms in their
+between pairs of nearby atoms.  A pair of *ij* atoms in their
 equilibrium, minimum-energy configuration, which are separated by a
-distance Rij < *cutbond*\ , are flagged as a bonded pair.  Setting
+distance :math:`R_{ij} < cutbond`, are flagged as a bonded pair.  Setting
 *cubond* to be ~25% larger than the nearest-neighbor distance in a
 crystalline lattice is a typical choice for solids, so that bonds
 exist only between nearest neighbor pairs.
@@ -166,7 +159,7 @@ could still experience a non-zero bias force.
 If *qfactor* is set too large, then transitions from one energy basin
 to another are affected because the bias potential is non-zero at the
 transition state (e.g. saddle point).  If *qfactor* is set too small
-than little boost is achieved because the Eij strain of some bond in
+than little boost is achieved because the :math:`E_{ij}` strain of some bond in
 the system will (nearly) always exceed *qfactor*\ .  A value of 0.3 for
 *qfactor* is typically reasonable.
 
@@ -183,7 +176,7 @@ time-accurate trajectory of the system.
 
 Note that if *Vmax* is set too small, the GHD simulation will run
 correctly.  There will just be fewer events because the hyper time
-(t\_hyper equation above) will be shorter.
+(t_hyper equation above) will be shorter.
 
 .. note::
 
@@ -202,11 +195,9 @@ In general, the lower the value of *Tequil* and the higher the value
 of *Vmax*\ , the more time boost will be achievable by the GHD
 algorithm.
 
-
 ----------
 
-
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+**Restart, fix_modify, output, run start/stop, minimize info:**
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -220,7 +211,7 @@ scalar is the magnitude of the bias potential (energy units) applied on
 the current timestep.  The vector stores the following quantities:
 
 * 1 = boost factor on this step (unitless)
-* 2 = max strain Eij of any bond on this step (absolute value, unitless)
+* 2 = max strain :math:`E_{ij}` of any bond on this step (absolute value, unitless)
 * 3 = ID of first atom in the max-strain bond
 * 4 = ID of second atom in the max-strain bond
 * 5 = average # of bonds/atom on this step
@@ -266,7 +257,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-
 This command can only be used if LAMMPS was built with the REPLICA
 package.  See the :doc:`Build package <Build_package>` doc page for more
 info.
@@ -278,24 +268,13 @@ Related commands
 
 **Default:** None
 
-
 ----------
 
-
 .. _Voter2013ghd:
-
-
 
 **(Voter2013)** S. Y. Kim, D. Perez, A. F. Voter, J Chem Phys, 139,
 144110 (2013).
 
 .. _Mironghd:
 
-
-
 **(Miron)** R. A. Miron and K. A. Fichthorn, J Chem Phys, 119, 6210 (2003).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

@@ -6,27 +6,23 @@ boundary command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    boundary x y z
 
 * x,y,z = *p* or *s* or *f* or *m*\ , one or two letters
-  
+
   .. parsed-literal::
-  
+
        *p* is periodic
        *f* is non-periodic and fixed
        *s* is non-periodic and shrink-wrapped
        *m* is non-periodic and shrink-wrapped with a minimum value
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    boundary p p f
    boundary p fs p
@@ -80,9 +76,9 @@ atoms becomes less than 50.0.  This can be useful if you start a
 simulation with an empty box or if you wish to leave room on one side
 of the box, e.g. for atoms to evaporate from a surface.
 
-For triclinic (non-orthogonal) simulation boxes, if the 2nd dimension
+For triclinic (non-orthogonal) simulation boxes, if the second dimension
 of a tilt factor (e.g. y for xy) is periodic, then the periodicity is
-enforced with the tilt factor offset.  If the 1st dimension is
+enforced with the tilt factor offset.  If the first dimension is
 shrink-wrapped, then the shrink wrapping is applied to the tilted box
 face, to encompass the atoms.  E.g. for a positive xy tilt, the xlo
 and xhi faces of the box are planes tilting in the +y direction as y
@@ -96,7 +92,6 @@ triclinic representations.
 
 Restrictions
 """"""""""""
-
 
 This command cannot be used after the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command or
@@ -115,12 +110,6 @@ of lost atoms.
 Default
 """""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    boundary p p p
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

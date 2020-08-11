@@ -6,7 +6,6 @@ compute temp/region command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/region region-ID
@@ -18,8 +17,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute mine flow temp/region boundary
 
@@ -107,8 +105,3 @@ Related commands
 :doc:`compute temp <compute_temp>`, :doc:`compute pressure <compute_pressure>`
 
 **Default:** none
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

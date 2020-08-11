@@ -6,7 +6,6 @@ compute temp/cs command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/cs group1 group2
@@ -19,8 +18,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute oxygen_c-s all temp/cs O_core O_shell
    compute core_shells all temp/cs cores shells
@@ -51,7 +49,7 @@ respective group IDs, which can be defined using the
 must be the same and there should be one bond defined between a pair
 of atoms in the two groups.  Non-polarized ions which might also be
 included in the treated system should not be included into either of
-these groups, they are taken into account by the *group-ID* (2nd
+these groups, they are taken into account by the *group-ID* (second
 argument) of the compute.
 
 The temperature is calculated by the formula KE = dim/2 N k T, where
@@ -102,7 +100,6 @@ vector values will be in energy :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-
 The number of core/shell pairs contributing to the temperature is
 assumed to be constant for the duration of the run.  No fixes should
 be used which generate new molecules or atoms during a simulation.
@@ -114,18 +111,9 @@ Related commands
 
 **Default:** none
 
-
 ----------
-
 
 .. _MitchellFinchham1:
 
-
-
 **(Mitchell and Finchham)** Mitchell, Finchham, J Phys Condensed Matter,
 5, 1031-1038 (1993).
-
-
-.. _lws: http://lammps.sandia.gov
-.. _ld: Manual.html
-.. _lc: Commands_all.html

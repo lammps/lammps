@@ -63,6 +63,17 @@ static bool equal_lines(const std::string &fileA, const std::string &fileB)
     return true;
 }
 
+static std::vector<std::string> read_lines(const std::string &filename) {
+    std::vector<std::string> lines;
+    std::ifstream infile(filename);
+    std::string line;
+
+    while (std::getline(infile, line))
+        lines.push_back(line);
+
+    return lines;
+}
+
 static bool file_exists(const std::string &filename) {
     struct stat result;
     return stat(filename.c_str(), &result) == 0;
@@ -137,8 +148,31 @@ TEST_F(DumpAtomTest, run0)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     ASSERT_FILE_EXISTS("dump_run0.melt");
-    ASSERT_EQ(count_lines("dump_run0.melt"), 41);
+    auto lines = read_lines("dump_run0.melt");
+    ASSERT_EQ(lines.size(), 41);
+    ASSERT_STREQ(lines[4].c_str(), "ITEM: BOX BOUNDS pp pp pp");
+    ASSERT_EQ(utils::split_words(lines[5]).size(), 2);
+    ASSERT_STREQ(lines[8].c_str(), "ITEM: ATOMS id type xs ys zs");
+    ASSERT_EQ(utils::split_words(lines[9]).size(), 5);
     delete_file("dump_run0.melt");
+}
+
+TEST_F(DumpAtomTest, with_image_run0)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("dump id all atom 1 dump_with_image_run0.melt");
+    command("dump_modify id image yes");
+    command("run 0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS("dump_with_image_run0.melt");
+
+    auto lines = read_lines("dump_with_image_run0.melt");
+    ASSERT_EQ(lines.size(), 41);
+    ASSERT_STREQ(lines[8].c_str(), "ITEM: ATOMS id type xs ys zs ix iy iz");
+    ASSERT_EQ(utils::split_words(lines[9]).size(), 8);
+
+    delete_file("dump_with_image_run0.melt");
 }
 
 TEST_F(DumpAtomTest, tricilinic_run0)
@@ -151,8 +185,36 @@ TEST_F(DumpAtomTest, tricilinic_run0)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     ASSERT_FILE_EXISTS("dump_triclinic_run0.melt");
-    ASSERT_EQ(count_lines("dump_triclinic_run0.melt"), 41);
+
+    auto lines = read_lines("dump_triclinic_run0.melt");
+    ASSERT_STREQ(lines[4].c_str(), "ITEM: BOX BOUNDS xy xz yz pp pp pp");
+    ASSERT_EQ(utils::split_words(lines[5]).size(), 3);
+
+    ASSERT_EQ(lines.size(), 41);
     delete_file("dump_triclinic_run0.melt");
+}
+
+TEST_F(DumpAtomTest, triclinic_with_image_run0)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("change_box all triclinic");
+    command("dump id all atom 1 dump_triclinic_with_image_run0.melt");
+    command("dump_modify id image yes");
+    command("run 0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS("dump_triclinic_with_image_run0.melt");
+
+    auto lines = read_lines("dump_triclinic_with_image_run0.melt");
+    ASSERT_EQ(lines.size(), 41);
+
+    ASSERT_STREQ(lines[4].c_str(), "ITEM: BOX BOUNDS xy xz yz pp pp pp");
+    ASSERT_EQ(utils::split_words(lines[5]).size(), 3);
+
+    ASSERT_STREQ(lines[8].c_str(), "ITEM: ATOMS id type xs ys zs ix iy iz");
+    ASSERT_EQ(utils::split_words(lines[9]).size(), 8);
+
+    delete_file("dump_tricilinic_with_image_run0.melt");
 }
 
 TEST_F(DumpAtomTest, binary_run0)
@@ -167,8 +229,12 @@ TEST_F(DumpAtomTest, binary_run0)
 
     ASSERT_FILE_EXISTS("dump_text_run0.melt");
     ASSERT_FILE_EXISTS("dump_binary_run0.melt.bin");
+
+    if (!verbose) ::testing::internal::CaptureStdout();
     std::string cmdline = fmt::format("{} dump_binary_run0.melt.bin", BINARY2TXT_BINARY);
     system(cmdline.c_str());
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
     ASSERT_FILE_EXISTS("dump_binary_run0.melt.bin.txt");
     ASSERT_FILE_EQUAL("dump_text_run0.melt", "dump_binary_run0.melt.bin.txt");
     delete_file("dump_text_run0.melt");
@@ -189,13 +255,54 @@ TEST_F(DumpAtomTest, binary_triclinic_run0)
 
     ASSERT_FILE_EXISTS("dump_text_tri_run0.melt");
     ASSERT_FILE_EXISTS("dump_binary_tri_run0.melt.bin");
+
+    if (!verbose) ::testing::internal::CaptureStdout();
     std::string cmdline = fmt::format("{} dump_binary_tri_run0.melt.bin", BINARY2TXT_BINARY);
     system(cmdline.c_str());
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
     ASSERT_FILE_EXISTS("dump_binary_tri_run0.melt.bin.txt");
     ASSERT_FILE_EQUAL("dump_text_tri_run0.melt", "dump_binary_tri_run0.melt.bin.txt");
     delete_file("dump_text_tri_run0.melt");
     delete_file("dump_binary_tri_run0.melt.bin");
     delete_file("dump_binary_tri_run0.melt.bin.txt");
+}
+
+TEST_F(DumpAtomTest, binary_triclinic_with_image_run0)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("change_box all triclinic");
+    command("dump id0 all atom 1 dump_text_tri_with_image_run0.melt");
+    command("dump id1 all atom 1 dump_binary_tri_with_image_run0.melt.bin");
+    command("dump_modify id0 image yes");
+    command("dump_modify id1 image yes");
+    command("run 0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS("dump_text_tri_with_image_run0.melt");
+    ASSERT_FILE_EXISTS("dump_binary_tri_with_image_run0.melt.bin");
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    std::string cmdline = fmt::format("{} dump_binary_tri_with_image_run0.melt.bin", BINARY2TXT_BINARY);
+    system(cmdline.c_str());
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS("dump_binary_tri_with_image_run0.melt.bin.txt");
+    ASSERT_FILE_EQUAL("dump_text_tri_with_image_run0.melt",
+                      "dump_binary_tri_with_image_run0.melt.bin.txt");
+
+    auto lines = read_lines("dump_binary_tri_with_image_run0.melt.bin.txt");
+    ASSERT_EQ(lines.size(), 41);
+
+    ASSERT_STREQ(lines[4].c_str(), "ITEM: BOX BOUNDS xy xz yz pp pp pp");
+    ASSERT_EQ(utils::split_words(lines[5]).size(), 3);
+
+    ASSERT_STREQ(lines[8].c_str(), "ITEM: ATOMS id type xs ys zs ix iy iz");
+    ASSERT_EQ(utils::split_words(lines[9]).size(), 8);
+
+    delete_file("dump_text_tri_with_image_run0.melt");
+    delete_file("dump_binary_tri_with_image_run0.melt.bin");
+    delete_file("dump_binary_tri_with_image_run0.melt.bin.txt");
 }
 
 TEST_F(DumpAtomTest, run1)

@@ -21,20 +21,28 @@ CommandStyle(reset_mol_ids,ResetMolIDs)
 #define LMP_RESET_MOL_IDS_H
 
 #include "pointers.h"
+#include <string>
 
 namespace LAMMPS_NS {
 
 class ResetMolIDs : protected Pointers {
  public:
   ResetMolIDs(class LAMMPS *);
+  ~ResetMolIDs();
   void command(int, char **);
-  void reset(char *);
+  void create_computes(char *);
+  void reset();
 
 private:
+  std::string idfrag, idchunk;
   int nchunk;
+  int groupbit;
   int compressflag; // 1 = contiguous values for new IDs
   int singleflag; // 0 = mol IDs of single atoms set to 0
   tagint offset; // offset for contiguous mol ID values
+
+  class ComputeFragmentAtom *cfa;
+  class ComputeChunkAtom *cca;
 };
 
 }

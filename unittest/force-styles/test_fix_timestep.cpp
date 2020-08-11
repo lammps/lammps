@@ -267,7 +267,6 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     // run_pos
     block.clear();
     auto x   = lmp->atom->x;
-    auto tag = lmp->atom->tag;
     for (int i = 1; i <= natoms; ++i) {
         const int j = lmp->atom->map(i);
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, x[j][0], x[j][1], x[j][2]);

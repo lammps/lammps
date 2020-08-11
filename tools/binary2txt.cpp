@@ -174,7 +174,7 @@ int main(int narg, char **arg)
         fprintf(fptxt,"%-1.16e %-1.16e\n",ylo,yhi);
         fprintf(fptxt,"%-1.16e %-1.16e\n",zlo,zhi);
       } else {
-        fprintf(fptxt,"ITEM: BOX BOUNDS %s xy xz yz\n",boundstr);
+        fprintf(fptxt,"ITEM: BOX BOUNDS xy xz yz %s\n",boundstr);
         fprintf(fptxt,"%-1.16e %-1.16e %-1.16e\n",xlo,xhi,xy);
         fprintf(fptxt,"%-1.16e %-1.16e %-1.16e\n",ylo,yhi,xz);
         fprintf(fptxt,"%-1.16e %-1.16e %-1.16e\n",zlo,zhi,yz);

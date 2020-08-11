@@ -171,6 +171,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"yes") == 0) { // default
         delete reset_mol_ids;
         reset_mol_ids = new ResetMolIDs(lmp);
+        reset_mol_ids->create_computes(group->names[igroup]);
         iarg += 2;
       }
       if (strcmp(arg[iarg+1],"no") == 0) {
@@ -246,9 +247,9 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     if (n > MAXLINE) error->all(FLERR,"Reaction name (react-ID) is too long (limit: 256 characters)");
     strncpy(rxn_name[rxn],arg[iarg++],n);
 
-    int igroup = group->find(arg[iarg++]);
-    if (igroup == -1) error->all(FLERR,"Could not find fix group ID");
-    groupbits[rxn] = group->bitmask[igroup];
+    int groupid = group->find(arg[iarg++]);
+    if (groupid == -1) error->all(FLERR,"Could not find fix group ID");
+    groupbits[rxn] = group->bitmask[groupid];
 
     if (strncmp(arg[iarg],"v_",2) == 0) {
       n = strlen(&arg[iarg][2]) + 1;
@@ -640,9 +641,9 @@ void FixBondReact::post_constructor()
   group->assign(cmd);
 
   if (stabilization_flag == 1) {
-    int igroup = group->find(exclude_group);
+    int groupid = group->find(exclude_group);
     // create exclude_group if not already existing, or use as parent group if static
-    if (igroup == -1 || group->dynamic[igroup] == 0) {
+    if (groupid == -1 || group->dynamic[groupid] == 0) {
       // create stabilization per-atom property
       cmd = std::string("bond_react_stabilization_internal");
       id_fix3 = new char[cmd.size()+1];
@@ -672,7 +673,7 @@ void FixBondReact::post_constructor()
       strcat(exclude_group,"_REACT");
 
       group->find_or_create(exclude_group);
-      if (igroup == -1)
+      if (groupid == -1)
         cmd = fmt::format("{} dynamic all property statted_tags",exclude_group);
       else
         cmd = fmt::format("{} dynamic {} property statted_tags",exclude_group,exclude_PARENT_group);
@@ -3060,7 +3061,7 @@ void FixBondReact::update_everything()
   // done deleting atoms
 
   // reset mol ids
-  if (reset_mol_ids_flag) reset_mol_ids->reset(group->names[igroup]);
+  if (reset_mol_ids_flag) reset_mol_ids->reset();
 
   // something to think about: this could done much more concisely if
   // all atom-level info (bond,angles, etc...) were kinda inherited from a common data struct --JG

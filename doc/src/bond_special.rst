@@ -73,8 +73,8 @@ ensure that the new bonds created by this style do not create spurious
 Specifically 1-2 interactions must have weights of zero, 1-3
 interactions must either have weights of unity or :doc:`special_bonds
 angle yes <special_bonds>` must be used, and 1-4 interactions must
-have weights of unity or the *dihedral* setting must be turned on or
-:doc:`special_bonds dihedral yes <special_bonds>` must be used.
+have weights of unity or :doc:`special_bonds dihedral yes <special_bonds>` 
+must be used.
 
 If this command is used to create bonded interactions between
 particles that are further apart than usual (e.g. 1-5 or 1-6
@@ -92,13 +92,8 @@ page for more info.
 This bond style requires use of a :doc:`pair_style <pair_style>` which
 computes a pairwise interaction.  Many-body potentials do not.
 
-Q: Does this command work with long-range Coulombics?  E.g. if used to
-weight 1-5 interactions between charged particles and also used with
-PPPM, does it give the right answer?  The special bond weight settings
-are treated explicity in pair styles like pair lj/cut/coul/long.
-Either way, the answer to this Q should be explained on this page.
-And if the answer is no, then I think an error check should be made in
-the code.
+This command is not compatible with long-range Coulombic interactions. If a 
+`kspace_style <kspace_style>` is declared, an error will be issued.
 
 Related commands
 """"""""""""""""

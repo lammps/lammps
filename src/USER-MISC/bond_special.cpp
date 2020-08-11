@@ -61,6 +61,9 @@ void BondSpecial::init_style()
                                        force->special_coul[3] != 1.0))
     error->all(FLERR,"Invalid 1-4 setting for bond style special.");
 
+  if (force->kspace != NULL)
+    error->all(FLERR,"Bond style special is not compatible with long range "
+        "Coulombic interactions");
 }
 
 /* ---------------------------------------------------------------------- */

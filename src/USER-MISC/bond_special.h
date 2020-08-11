@@ -71,4 +71,8 @@ E: Invalid 1-4 setting for bond style special.
 Bond style special must be used with 1.0 factors for 1-4 special bonds or the
 dihedral keyword set to yes.
 
+E: Bond style special is not compatible with long range Coulombic interactions.
+
+Self-explanatory.
+
 */

@@ -11,27 +11,23 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
+#include "pair_cac_eam_interp.h"
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_cac_eam_interp.h"
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_request.h"
-#include "update.h"
-#include "timer.h"
 #include "neigh_list.h"
-#include "integrate.h"
-#include "respa.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "domain.h"
-#include "asa_user.h"
 #include "npair_cac.h"
+#include "utils.h"
+#include "tokenizer.h"
+#include "potential_file_reader.h"
 
 
 //#include "math_extra.h"
@@ -279,59 +275,74 @@ void PairCACEAMInterp::init_style()
   neighbor->requests[irequest]->cac = 1;
 }
 
-////////////////////////
+/* ---------------------------------------------------------------------- */
+
 void PairCACEAMInterp::read_file(char *filename)
 {
-    Funcfl *file = &funcfl[nfuncfl - 1];
+    Funcfl *file = &funcfl[nfuncfl-1];
 
-    int me = comm->me;
-    FILE *fptr;
-    char line[MAXLINE];
+  // read potential file
+  if(comm->me == 0) {
+    PotentialFileReader reader(lmp, filename, "eam", unit_convert_flag);
 
-    if (me == 0) {
-        fptr = force->open_potential(filename);
-        if (fptr == NULL) {
-            char str[128];
-            sprintf(str, "Cannot open EAM potential file %s", filename);
-            error->one(FLERR, str);
-        }
+    // transparently convert units for supported conversions
+
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                            unit_convert);
+    try {
+      reader.skip_line();
+
+      ValueTokenizer values = reader.next_values(2);
+      values.next_int(); // ignore
+      file->mass = values.next_double();
+
+      values = reader.next_values(5);
+      file->nrho = values.next_int();
+      file->drho = values.next_double();
+      file->nr   = values.next_int();
+      file->dr   = values.next_double();
+      file->cut  = values.next_double();
+
+      if ((file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
+        error->one(FLERR,"Invalid EAM potential file");
+
+      memory->create(file->frho, (file->nrho+1), "pair:frho");
+      memory->create(file->rhor, (file->nr+1), "pair:rhor");
+      memory->create(file->zr, (file->nr+1), "pair:zr");
+
+      reader.next_dvector(&file->frho[1], file->nrho);
+      reader.next_dvector(&file->zr[1], file->nr);
+      reader.next_dvector(&file->rhor[1], file->nr);
+
+      if (unit_convert) {
+        const double sqrt_conv = sqrt(conversion_factor);
+        for (int i = 1; i <= file->nrho; ++i)
+          file->frho[i] *= conversion_factor;
+        for (int j = 1; j <= file->nr; ++j)
+          file->zr[j] *= sqrt_conv;
+      }
+    } catch (TokenizerException & e) {
+      error->one(FLERR, e.what());
     }
+  }
 
-    int tmp, nwords;
-    if (me == 0) {
-        fgets(line, MAXLINE, fptr);
-        fgets(line, MAXLINE, fptr);
-        sscanf(line, "%d %lg", &tmp, &file->mass);
-        fgets(line, MAXLINE, fptr);
-        nwords = sscanf(line, "%d %lg %d %lg %lg",
-            &file->nrho, &file->drho, &file->nr, &file->dr, &file->cut);
-    }
+  MPI_Bcast(&file->mass, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->nrho, 1, MPI_INT, 0, world);
+  MPI_Bcast(&file->drho, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->nr, 1, MPI_INT, 0, world);
+  MPI_Bcast(&file->dr, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->cut, 1, MPI_DOUBLE, 0, world);
 
-    MPI_Bcast(&nwords, 1, MPI_INT, 0, world);
-    MPI_Bcast(&file->mass, 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&file->nrho, 1, MPI_INT, 0, world);
-    MPI_Bcast(&file->drho, 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&file->nr, 1, MPI_INT, 0, world);
-    MPI_Bcast(&file->dr, 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&file->cut, 1, MPI_DOUBLE, 0, world);
+  if(comm->me != 0) {
+    memory->create(file->frho, (file->nrho+1), "pair:frho");
+    memory->create(file->rhor, (file->nr+1), "pair:rhor");
+    memory->create(file->zr, (file->nr+1), "pair:zr");
+  }
 
-    if ((nwords != 5) || (file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
-        error->all(FLERR, "Invalid EAM potential file");
-
-    memory->create(file->frho, (file->nrho + 1), "pair:frho");
-    memory->create(file->rhor, (file->nr + 1), "pair:rhor");
-    memory->create(file->zr, (file->nr + 1), "pair:zr");
-
-    if (me == 0) grab(fptr, file->nrho, &file->frho[1]);
-    MPI_Bcast(&file->frho[1], file->nrho, MPI_DOUBLE, 0, world);
-
-    if (me == 0) grab(fptr, file->nr, &file->zr[1]);
-    MPI_Bcast(&file->zr[1], file->nr, MPI_DOUBLE, 0, world);
-
-    if (me == 0) grab(fptr, file->nr, &file->rhor[1]);
-    MPI_Bcast(&file->rhor[1], file->nr, MPI_DOUBLE, 0, world);
-
-    if (me == 0) fclose(fptr);
+  MPI_Bcast(&file->frho[1], file->nrho, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->zr[1], file->nr, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->rhor[1], file->nr, MPI_DOUBLE, 0, world);
 }
 
 /* ----------------------------------------------------------------------

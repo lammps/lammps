@@ -1759,7 +1759,7 @@ void Atom::data_CAC(int n, char *buf, tagint id_offset, int type_offset,
     if (i == 0) {
       next = strchr(buf,'\n');
       *next = '\0';
-      nwords = count_words(buf);
+      nwords = utils::trim_and_count_words(buf);
       *next = '\n';
 
       if (nwords != 6)
@@ -1769,7 +1769,7 @@ void Atom::data_CAC(int n, char *buf, tagint id_offset, int type_offset,
 
       node_next = strchr(next+1,'\n');
       *node_next = '\0';
-      nwords = count_words(next+1);
+      nwords = utils::trim_and_count_words(next+1);
       *node_next = '\n';
       if (nwords != words_per_node)
       error->one(FLERR, "Incorrect node line format for this CAC atom style");

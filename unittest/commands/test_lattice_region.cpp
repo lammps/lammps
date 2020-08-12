@@ -99,6 +99,14 @@ TEST_F(LatticeRegionTest, lattice_none)
     TEST_FAILURE(".*ERROR: Illegal lattice command.*", lmp->input->one("lattice xxx"););
     TEST_FAILURE(".*ERROR: Illegal lattice command.*", lmp->input->one("lattice none 1.0 origin"););
     TEST_FAILURE(".*ERROR: Expected floating point.*", lmp->input->one("lattice none xxx"););
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("units lj");
+    lmp->input->one("lattice none 1.0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lattice->xlattice, 1.0);
+    ASSERT_EQ(lattice->ylattice, 1.0);
+    ASSERT_EQ(lattice->zlattice, 1.0);
 }
 
 TEST_F(LatticeRegionTest, lattice_sc)
@@ -135,6 +143,20 @@ TEST_F(LatticeRegionTest, lattice_sc)
                  lmp->input->one("lattice sc 1.0 origin 1.0"););
     TEST_FAILURE(".*ERROR: Expected floating point.*",
                  lmp->input->one("lattice sc 1.0 origin xxx 1.0 1.0"););
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("units lj");
+    lmp->input->one("lattice sc 2.0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_DOUBLE_EQ(lattice->xlattice, pow(0.5, 1.0 / 3.0));
+    ASSERT_DOUBLE_EQ(lattice->ylattice, pow(0.5, 1.0 / 3.0));
+    ASSERT_DOUBLE_EQ(lattice->zlattice, pow(0.5, 1.0 / 3.0));
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("dimension 2");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    TEST_FAILURE(".*ERROR: Lattice style incompatible with simulation dimension.*",
+                 lmp->input->one("lattice sc 1.0"););
 }
 
 TEST_F(LatticeRegionTest, lattice_bcc)
@@ -144,8 +166,8 @@ TEST_F(LatticeRegionTest, lattice_bcc)
     if (!verbose) ::testing::internal::GetCapturedStdout();
     auto lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->style, Lattice::BCC);
-    ASSERT_DOUBLE_EQ(lattice->xlattice, sqrt(2.0)*4.2);
-    ASSERT_DOUBLE_EQ(lattice->ylattice, sqrt(2.0)*4.2);
+    ASSERT_DOUBLE_EQ(lattice->xlattice, sqrt(2.0) * 4.2);
+    ASSERT_DOUBLE_EQ(lattice->ylattice, sqrt(2.0) * 4.2);
     ASSERT_DOUBLE_EQ(lattice->zlattice, 4.2);
     ASSERT_EQ(lattice->nbasis, 2);
     ASSERT_EQ(lattice->basis[0][0], 0.0);
@@ -154,6 +176,92 @@ TEST_F(LatticeRegionTest, lattice_bcc)
     ASSERT_EQ(lattice->basis[1][0], 0.5);
     ASSERT_EQ(lattice->basis[1][1], 0.5);
     ASSERT_EQ(lattice->basis[1][2], 0.5);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("dimension 2");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    TEST_FAILURE(".*ERROR: Lattice style incompatible with simulation dimension.*",
+                 lmp->input->one("lattice bcc 1.0"););
+}
+
+TEST_F(LatticeRegionTest, lattice_fcc)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("lattice fcc 3.5 origin 0.5 0.5 0.5");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    auto lattice = lmp->domain->lattice;
+    ASSERT_EQ(lattice->style, Lattice::FCC);
+    ASSERT_DOUBLE_EQ(lattice->xlattice, 3.5);
+    ASSERT_DOUBLE_EQ(lattice->ylattice, 3.5);
+    ASSERT_DOUBLE_EQ(lattice->zlattice, 3.5);
+    ASSERT_EQ(lattice->nbasis, 4);
+    ASSERT_EQ(lattice->basis[0][0], 0.0);
+    ASSERT_EQ(lattice->basis[0][1], 0.0);
+    ASSERT_EQ(lattice->basis[0][2], 0.0);
+    ASSERT_EQ(lattice->basis[1][0], 0.5);
+    ASSERT_EQ(lattice->basis[1][1], 0.5);
+    ASSERT_EQ(lattice->basis[1][2], 0.0);
+    ASSERT_EQ(lattice->basis[2][0], 0.5);
+    ASSERT_EQ(lattice->basis[2][1], 0.0);
+    ASSERT_EQ(lattice->basis[2][2], 0.5);
+    ASSERT_EQ(lattice->basis[3][0], 0.0);
+    ASSERT_EQ(lattice->basis[3][1], 0.5);
+    ASSERT_EQ(lattice->basis[3][2], 0.5);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("dimension 2");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    TEST_FAILURE(".*ERROR: Lattice style incompatible with simulation dimension.*",
+                 lmp->input->one("lattice fcc 1.0"););
+}
+
+TEST_F(LatticeRegionTest, lattice_sq)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("dimension 2");
+    lmp->input->one("lattice sq 3.0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    auto lattice = lmp->domain->lattice;
+    ASSERT_EQ(lattice->style, Lattice::SQ);
+    ASSERT_DOUBLE_EQ(lattice->xlattice, 3.0);
+    ASSERT_DOUBLE_EQ(lattice->ylattice, 3.0);
+    ASSERT_DOUBLE_EQ(lattice->zlattice, 3.0);
+    ASSERT_EQ(lattice->nbasis, 1);
+    ASSERT_EQ(lattice->basis[0][0], 0.0);
+    ASSERT_EQ(lattice->basis[0][1], 0.0);
+    ASSERT_EQ(lattice->basis[0][2], 0.0);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("dimension 3");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    TEST_FAILURE(".*ERROR: Lattice style incompatible with simulation dimension.*",
+                 lmp->input->one("lattice sq 1.0"););
+}
+
+TEST_F(LatticeRegionTest, lattice_sq2)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("dimension 2");
+    lmp->input->one("lattice sq2 2.0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    auto lattice = lmp->domain->lattice;
+    ASSERT_EQ(lattice->style, Lattice::SQ2);
+    ASSERT_DOUBLE_EQ(lattice->xlattice, 2.0);
+    ASSERT_DOUBLE_EQ(lattice->ylattice, 2.0);
+    ASSERT_DOUBLE_EQ(lattice->zlattice, 2.0);
+    ASSERT_EQ(lattice->nbasis, 2);
+    ASSERT_EQ(lattice->basis[0][0], 0.0);
+    ASSERT_EQ(lattice->basis[0][1], 0.0);
+    ASSERT_EQ(lattice->basis[0][2], 0.0);
+    ASSERT_EQ(lattice->basis[1][0], 0.5);
+    ASSERT_EQ(lattice->basis[1][1], 0.5);
+    ASSERT_EQ(lattice->basis[1][2], 0.0);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("dimension 3");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    TEST_FAILURE(".*ERROR: Lattice style incompatible with simulation dimension.*",
+                 lmp->input->one("lattice sq2 1.0"););
 }
 
 } // namespace LAMMPS_NS

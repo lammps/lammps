@@ -311,9 +311,9 @@ Use custom linker for faster link times when ENABLE_TESTING is active
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When compiling LAMMPS with enabled tests, most test executables will
-need to be linked against the LAMMPS library.  Since this can be a
-large with many C++ objects when many packages are enabled, link times
-can become very long on machines that use the GNU BFD linker (e.g.
+need to be linked against the LAMMPS library.  Since this can be a very
+large library with many C++ objects when many packages are enabled, link
+times can become very long on machines that use the GNU BFD linker (e.g.
 Linux systems).  Alternatives like the ``lld`` linker of the LLVM project
 or the ``gold`` linker available with GNU binutils can speed up this step
 substantially. CMake will by default test if any of the two can be

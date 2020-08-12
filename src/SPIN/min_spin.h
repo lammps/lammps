@@ -35,7 +35,6 @@ class MinSpin : public Min {
   int iterate(int);
   double evaluate_dt();
   void advance_spins(double);
-  double fmnorm_sqr();
 
  private:
 

@@ -22,6 +22,7 @@
 #include <cmath>
 #include <cstring>
 #include "atom.h"
+#include "error.h"
 #include "fix_minimize.h"
 #include "modify.h"
 #include "output.h"
@@ -111,6 +112,9 @@ MinHFTN::~MinHFTN (void)
 void MinHFTN::init()
 {
   Min::init();
+
+  if (normstyle == MAX)
+    error->all(FLERR,"Incorrect min_modify option");
 
   for (int  i = 1; i < NUM_HFTN_ATOM_BASED_VECTORS; i++) {
     if (_daExtraGlobal[i] != NULL)

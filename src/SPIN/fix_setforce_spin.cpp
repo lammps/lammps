@@ -140,7 +140,7 @@ void FixSetForceSpin::single_setforce_spin(int i, double fmi[3])
 
   foriginal[0] = foriginal[1] = foriginal[2] = 0.0;
   force_flag = 0;
- 
+
   // constant force
 
   if (varflag == CONSTANT) {

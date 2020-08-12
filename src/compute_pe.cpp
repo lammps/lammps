@@ -26,6 +26,7 @@
 #include "modify.h"
 #include "domain.h"
 #include "error.h"
+#include "atom_masks.h"
 
 using namespace LAMMPS_NS;
 
@@ -65,6 +66,9 @@ ComputePE::ComputePE(LAMMPS *lmp, int narg, char **arg) :
       iarg++;
     }
   }
+
+  datamask_read = EMPTY_MASK;
+  datamask_modify = EMPTY_MASK;
 }
 
 /* ---------------------------------------------------------------------- */

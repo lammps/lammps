@@ -40,7 +40,7 @@ namespace ATC {
   //  modify
   //    parses input commands
   //--------------------------------------------------------
-  bool TimeFilterManager::modify(int narg, char ** arg)
+  bool TimeFilterManager::modify(int /* narg */, char ** arg)
   {
     bool foundMatch = false;
   
@@ -210,7 +210,7 @@ namespace ATC {
       }
       else if (filterType_ == STEP_FILTER) {
         newTimeFilter = new TimeFilterStep(*this); 
-      }
+      } else newTimeFilter = NULL;
     }
     else { // default to return base class
       newTimeFilter = new TimeFilter(*this); 

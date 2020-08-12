@@ -107,19 +107,19 @@ void AtomVecSphereKokkos::grow(int n)
   memoryKK->grow_kokkos(atomKK->k_mask,atomKK->mask,nmax,"atom:mask");
   memoryKK->grow_kokkos(atomKK->k_image,atomKK->image,nmax,"atom:image");
 
-  memoryKK->grow_kokkos(atomKK->k_x,atomKK->x,nmax,3,"atom:x");
-  memoryKK->grow_kokkos(atomKK->k_v,atomKK->v,nmax,3,"atom:v");
-  memoryKK->grow_kokkos(atomKK->k_f,atomKK->f,nmax,3,"atom:f");
+  memoryKK->grow_kokkos(atomKK->k_x,atomKK->x,nmax,"atom:x");
+  memoryKK->grow_kokkos(atomKK->k_v,atomKK->v,nmax,"atom:v");
+  memoryKK->grow_kokkos(atomKK->k_f,atomKK->f,nmax,"atom:f");
   memoryKK->grow_kokkos(atomKK->k_radius,atomKK->radius,nmax,"atom:radius");
   memoryKK->grow_kokkos(atomKK->k_rmass,atomKK->rmass,nmax,"atom:rmass");
-  memoryKK->grow_kokkos(atomKK->k_omega,atomKK->omega,nmax,3,"atom:omega");
-  memoryKK->grow_kokkos(atomKK->k_torque,atomKK->torque,nmax,3,"atom:torque");
+  memoryKK->grow_kokkos(atomKK->k_omega,atomKK->omega,nmax,"atom:omega");
+  memoryKK->grow_kokkos(atomKK->k_torque,atomKK->torque,nmax,"atom:torque");
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
 
-  grow_reset();
+  grow_pointers();
   atomKK->sync(Host,ALL_MASK);
 }
 
@@ -127,7 +127,7 @@ void AtomVecSphereKokkos::grow(int n)
    reset local array ptrs
 ------------------------------------------------------------------------- */
 
-void AtomVecSphereKokkos::grow_reset()
+void AtomVecSphereKokkos::grow_pointers()
 {
   tag = atomKK->tag;
   d_tag = atomKK->k_tag.d_view;
@@ -247,13 +247,13 @@ struct AtomVecSphereKokkos_PackComm {
       _buf(i,2) = _x(j,2);
     } else {
       if (TRICLINIC == 0) {
-	_buf(i,0) = _x(j,0) + _pbc[0]*_xprd;
-	_buf(i,1) = _x(j,1) + _pbc[1]*_yprd;
-	_buf(i,2) = _x(j,2) + _pbc[2]*_zprd;
+        _buf(i,0) = _x(j,0) + _pbc[0]*_xprd;
+        _buf(i,1) = _x(j,1) + _pbc[1]*_yprd;
+        _buf(i,2) = _x(j,2) + _pbc[2]*_zprd;
       } else {
-	_buf(i,0) = _x(j,0) + _pbc[0]*_xprd + _pbc[5]*_xy + _pbc[4]*_xz;
-	_buf(i,1) = _x(j,1) + _pbc[1]*_yprd + _pbc[3]*_yz;
-	_buf(i,2) = _x(j,2) + _pbc[2]*_zprd;
+        _buf(i,0) = _x(j,0) + _pbc[0]*_xprd + _pbc[5]*_xy + _pbc[4]*_xz;
+        _buf(i,1) = _x(j,1) + _pbc[1]*_yprd + _pbc[3]*_yz;
+        _buf(i,2) = _x(j,2) + _pbc[2]*_zprd;
       }
     }
     _buf(i,3) = _radius(j);
@@ -419,13 +419,13 @@ struct AtomVecSphereKokkos_PackCommVel {
       _buf(i,2) = _x(j,2);
     } else {
       if (TRICLINIC == 0) {
-	_buf(i,0) = _x(j,0) + _pbc[0]*_xprd;
-	_buf(i,1) = _x(j,1) + _pbc[1]*_yprd;
-	_buf(i,2) = _x(j,2) + _pbc[2]*_zprd;
+        _buf(i,0) = _x(j,0) + _pbc[0]*_xprd;
+        _buf(i,1) = _x(j,1) + _pbc[1]*_yprd;
+        _buf(i,2) = _x(j,2) + _pbc[2]*_zprd;
       } else {
-	_buf(i,0) = _x(j,0) + _pbc[0]*_xprd + _pbc[5]*_xy + _pbc[4]*_xz;
-	_buf(i,1) = _x(j,1) + _pbc[1]*_yprd + _pbc[3]*_yz;
-	_buf(i,2) = _x(j,2) + _pbc[2]*_zprd;
+        _buf(i,0) = _x(j,0) + _pbc[0]*_xprd + _pbc[5]*_xy + _pbc[4]*_xz;
+        _buf(i,1) = _x(j,1) + _pbc[1]*_yprd + _pbc[3]*_yz;
+        _buf(i,2) = _x(j,2) + _pbc[2]*_zprd;
       }
     }
     if (DEFORM_VREMAP == 0) {
@@ -772,13 +772,13 @@ struct AtomVecSphereKokkos_PackCommSelf {
       _xw(i+_nfirst,2) = _x(j,2);
     } else {
       if (TRICLINIC == 0) {
-	_xw(i+_nfirst,0) = _x(j,0) + _pbc[0]*_xprd;
-	_xw(i+_nfirst,1) = _x(j,1) + _pbc[1]*_yprd;
-	_xw(i+_nfirst,2) = _x(j,2) + _pbc[2]*_zprd;
+        _xw(i+_nfirst,0) = _x(j,0) + _pbc[0]*_xprd;
+        _xw(i+_nfirst,1) = _x(j,1) + _pbc[1]*_yprd;
+        _xw(i+_nfirst,2) = _x(j,2) + _pbc[2]*_zprd;
       } else {
-	_xw(i+_nfirst,0) = _x(j,0) + _pbc[0]*_xprd + _pbc[5]*_xy + _pbc[4]*_xz;
-	_xw(i+_nfirst,1) = _x(j,1) + _pbc[1]*_yprd + _pbc[3]*_yz;
-	_xw(i+_nfirst,2) = _x(j,2) + _pbc[2]*_zprd;
+        _xw(i+_nfirst,0) = _x(j,0) + _pbc[0]*_xprd + _pbc[5]*_xy + _pbc[4]*_xz;
+        _xw(i+_nfirst,1) = _x(j,1) + _pbc[1]*_yprd + _pbc[3]*_yz;
+        _xw(i+_nfirst,2) = _x(j,2) + _pbc[2]*_zprd;
       }
     }
     _radius(i+_nfirst) = _radius(j);
@@ -799,39 +799,39 @@ int AtomVecSphereKokkos::pack_comm_self(
     atomKK->modified(Host,X_MASK|RADIUS_MASK|RMASS_MASK);
     if(pbc_flag) {
       if(domain->triclinic) {
-	struct AtomVecSphereKokkos_PackCommSelf<LMPHostType,1,1> f(
+        struct AtomVecSphereKokkos_PackCommSelf<LMPHostType,1,1> f(
           atomKK->k_x,
-	  atomKK->k_radius,atomKK->k_rmass,
-	  nfirst,list,iswap,
-	  domain->xprd,domain->yprd,domain->zprd,
-	  domain->xy,domain->xz,domain->yz,pbc);
-	Kokkos::parallel_for(n,f);
+          atomKK->k_radius,atomKK->k_rmass,
+          nfirst,list,iswap,
+          domain->xprd,domain->yprd,domain->zprd,
+          domain->xy,domain->xz,domain->yz,pbc);
+        Kokkos::parallel_for(n,f);
       } else {
-	struct AtomVecSphereKokkos_PackCommSelf<LMPHostType,1,0> f(
+        struct AtomVecSphereKokkos_PackCommSelf<LMPHostType,1,0> f(
           atomKK->k_x,
-	  atomKK->k_radius,atomKK->k_rmass,
-	  nfirst,list,iswap,
-	  domain->xprd,domain->yprd,domain->zprd,
-	  domain->xy,domain->xz,domain->yz,pbc);
-	Kokkos::parallel_for(n,f);
+          atomKK->k_radius,atomKK->k_rmass,
+          nfirst,list,iswap,
+          domain->xprd,domain->yprd,domain->zprd,
+          domain->xy,domain->xz,domain->yz,pbc);
+        Kokkos::parallel_for(n,f);
       }
     } else {
       if(domain->triclinic) {
-	struct AtomVecSphereKokkos_PackCommSelf<LMPHostType,0,1> f(
+        struct AtomVecSphereKokkos_PackCommSelf<LMPHostType,0,1> f(
           atomKK->k_x,
-	  atomKK->k_radius,atomKK->k_rmass,
-	  nfirst,list,iswap,
-	  domain->xprd,domain->yprd,domain->zprd,
-	  domain->xy,domain->xz,domain->yz,pbc);
-	Kokkos::parallel_for(n,f);
+          atomKK->k_radius,atomKK->k_rmass,
+          nfirst,list,iswap,
+          domain->xprd,domain->yprd,domain->zprd,
+          domain->xy,domain->xz,domain->yz,pbc);
+        Kokkos::parallel_for(n,f);
       } else {
-	struct AtomVecSphereKokkos_PackCommSelf<LMPHostType,0,0> f(
+        struct AtomVecSphereKokkos_PackCommSelf<LMPHostType,0,0> f(
           atomKK->k_x,
-	  atomKK->k_radius,atomKK->k_rmass,
-	  nfirst,list,iswap,
-	  domain->xprd,domain->yprd,domain->zprd,
-	  domain->xy,domain->xz,domain->yz,pbc);
-	Kokkos::parallel_for(n,f);
+          atomKK->k_radius,atomKK->k_rmass,
+          nfirst,list,iswap,
+          domain->xprd,domain->yprd,domain->zprd,
+          domain->xy,domain->xz,domain->yz,pbc);
+        Kokkos::parallel_for(n,f);
       }
     }
   } else {
@@ -839,39 +839,39 @@ int AtomVecSphereKokkos::pack_comm_self(
     atomKK->modified(Device,X_MASK|RADIUS_MASK|RMASS_MASK);
     if(pbc_flag) {
       if(domain->triclinic) {
-	struct AtomVecSphereKokkos_PackCommSelf<LMPDeviceType,1,1> f(
+        struct AtomVecSphereKokkos_PackCommSelf<LMPDeviceType,1,1> f(
           atomKK->k_x,
-	  atomKK->k_radius,atomKK->k_rmass,
-	  nfirst,list,iswap,
-	  domain->xprd,domain->yprd,domain->zprd,
-	  domain->xy,domain->xz,domain->yz,pbc);
-	Kokkos::parallel_for(n,f);
+          atomKK->k_radius,atomKK->k_rmass,
+          nfirst,list,iswap,
+          domain->xprd,domain->yprd,domain->zprd,
+          domain->xy,domain->xz,domain->yz,pbc);
+        Kokkos::parallel_for(n,f);
       } else {
-	struct AtomVecSphereKokkos_PackCommSelf<LMPDeviceType,1,0> f(
+        struct AtomVecSphereKokkos_PackCommSelf<LMPDeviceType,1,0> f(
           atomKK->k_x,
-	  atomKK->k_radius,atomKK->k_rmass,
-	  nfirst,list,iswap,
-	  domain->xprd,domain->yprd,domain->zprd,
-	  domain->xy,domain->xz,domain->yz,pbc);
-	Kokkos::parallel_for(n,f);
+          atomKK->k_radius,atomKK->k_rmass,
+          nfirst,list,iswap,
+          domain->xprd,domain->yprd,domain->zprd,
+          domain->xy,domain->xz,domain->yz,pbc);
+        Kokkos::parallel_for(n,f);
       }
     } else {
       if(domain->triclinic) {
-	struct AtomVecSphereKokkos_PackCommSelf<LMPDeviceType,0,1> f(
+        struct AtomVecSphereKokkos_PackCommSelf<LMPDeviceType,0,1> f(
           atomKK->k_x,
-	  atomKK->k_radius,atomKK->k_rmass,
-	  nfirst,list,iswap,
-	  domain->xprd,domain->yprd,domain->zprd,
-	  domain->xy,domain->xz,domain->yz,pbc);
-	Kokkos::parallel_for(n,f);
+          atomKK->k_radius,atomKK->k_rmass,
+          nfirst,list,iswap,
+          domain->xprd,domain->yprd,domain->zprd,
+          domain->xy,domain->xz,domain->yz,pbc);
+        Kokkos::parallel_for(n,f);
       } else {
-	struct AtomVecSphereKokkos_PackCommSelf<LMPDeviceType,0,0> f(
+        struct AtomVecSphereKokkos_PackCommSelf<LMPDeviceType,0,0> f(
           atomKK->k_x,
-	  atomKK->k_radius,atomKK->k_rmass,
-	  nfirst,list,iswap,
-	  domain->xprd,domain->yprd,domain->zprd,
-	  domain->xy,domain->xz,domain->yz,pbc);
-	Kokkos::parallel_for(n,f);
+          atomKK->k_radius,atomKK->k_rmass,
+          nfirst,list,iswap,
+          domain->xprd,domain->yprd,domain->zprd,
+          domain->xy,domain->xz,domain->yz,pbc);
+        Kokkos::parallel_for(n,f);
       }
     }
   }
@@ -1037,7 +1037,7 @@ void AtomVecSphereKokkos::unpack_comm_vel_kokkos(
 /* ---------------------------------------------------------------------- */
 
 int AtomVecSphereKokkos::pack_comm(int n, int *list, double *buf,
-			           int pbc_flag, int *pbc)
+                                   int pbc_flag, int *pbc)
 {
   int i,j,m;
   double dx,dy,dz;
@@ -1109,7 +1109,7 @@ int AtomVecSphereKokkos::pack_comm(int n, int *list, double *buf,
 /* ---------------------------------------------------------------------- */
 
 int AtomVecSphereKokkos::pack_comm_vel(int n, int *list, double *buf,
-				       int pbc_flag, int *pbc)
+                                       int pbc_flag, int *pbc)
 {
   int i,j,m;
   double dx,dy,dz,dvx,dvy,dvz;
@@ -1926,7 +1926,7 @@ struct AtomVecSphereKokkos_UnpackBorder {
 /* ---------------------------------------------------------------------- */
 
 void AtomVecSphereKokkos::unpack_border_kokkos(const int &n, const int &first,
-					       const DAT::tdual_xfloat_2d &buf,ExecutionSpace space) {
+                                               const DAT::tdual_xfloat_2d &buf,ExecutionSpace space) {
   while (first+n >= nmax) grow(0);
   if(space==Host) {
     struct AtomVecSphereKokkos_UnpackBorder<LMPHostType> f(buf.view<LMPHostType>(),
@@ -1943,7 +1943,7 @@ void AtomVecSphereKokkos::unpack_border_kokkos(const int &n, const int &first,
   }
 
   atomKK->modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|
-	         RADIUS_MASK|RMASS_MASK);
+                 RADIUS_MASK|RMASS_MASK);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2053,7 +2053,7 @@ void AtomVecSphereKokkos::unpack_border_vel_kokkos(
   }
 
   atomKK->modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|
-	         RADIUS_MASK|RMASS_MASK|V_MASK|OMEGA_MASK);
+                 RADIUS_MASK|RMASS_MASK|V_MASK|OMEGA_MASK);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2496,7 +2496,7 @@ int AtomVecSphereKokkos::unpack_restart(double *buf)
 
   atomKK->modified(Host,X_MASK | TAG_MASK | TYPE_MASK |
                 MASK_MASK | IMAGE_MASK | V_MASK |
-	        RADIUS_MASK | RMASS_MASK | OMEGA_MASK);
+                RADIUS_MASK | RMASS_MASK | OMEGA_MASK);
 
   atom->nlocal++;
   return m;

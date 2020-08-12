@@ -18,6 +18,7 @@
 #include "pppm_dipole_spin.h"
 #include <mpi.h>
 #include <cstring>
+#include <string>
 #include "atom.h"
 #include "comm.h"
 #include "gridcomm.h"
@@ -27,6 +28,8 @@
 #include "memory.h"
 #include "error.h"
 #include "update.h"
+#include "utils.h"
+#include "fmt/format.h"
 
 #include "math_const.h"
 
@@ -52,17 +55,17 @@ enum{FORWARD_MU,FORWARD_MU_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-PPPMDipoleSpin::PPPMDipoleSpin(LAMMPS *lmp) : 
+PPPMDipoleSpin::PPPMDipoleSpin(LAMMPS *lmp) :
   PPPMDipole(lmp)
 {
   dipoleflag = 0;
   spinflag = 1;
-  
-  hbar = force->hplanck/MY_2PI;         	// eV/(rad.THz)
-  mub = 9.274e-4;                     		// in A.Ang^2
-  mu_0 = 785.15;               			// in eV/Ang/A^2
-  mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);	// in eV.Ang^3
-  mub2mu0hbinv = mub2mu0 / hbar;        	// in rad.THz
+
+  hbar = force->hplanck/MY_2PI;                 // eV/(rad.THz)
+  mub = 9.274e-4;                               // in A.Ang^2
+  mu_0 = 785.15;                                // in eV/Ang/A^2
+  mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);     // in eV.Ang^3
+  mub2mu0hbinv = mub2mu0 / hbar;                // in rad.THz
 }
 
 /* ----------------------------------------------------------------------
@@ -87,15 +90,12 @@ PPPMDipoleSpin::~PPPMDipoleSpin()
 
 void PPPMDipoleSpin::init()
 {
-  if (me == 0) {
-    if (screen) fprintf(screen,"PPPMDipoleSpin initialization ...\n");
-    if (logfile) fprintf(logfile,"PPPMDipoleSpin initialization ...\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"PPPMDipoleSpin initialization ...\n");
 
   // error check
 
   spinflag = atom->sp?1:0;
-  
+
   triclinic_check();
 
   if (triclinic != domain->triclinic)
@@ -123,11 +123,13 @@ void PPPMDipoleSpin::init()
       error->all(FLERR,"Incorrect boundaries with slab PPPMDipoleSpin");
   }
 
-  if (order < 2 || order > MAXORDER) {
-    char str[128];
-    sprintf(str,"PPPMDipoleSpin order cannot be < 2 or > than %d",MAXORDER);
-    error->all(FLERR,str);
-  }
+  if (order < 2 || order > MAXORDER)
+    error->all(FLERR,fmt::format("PPPMDipoleSpin order cannot be < 2 or > {}",
+                                 MAXORDER));
+
+  // compute two charge force
+
+  two_charge();
 
   // extract short-range Coulombic cutoff from pair style
 
@@ -146,8 +148,8 @@ void PPPMDipoleSpin::init()
 
   // kspace TIP4P not yet supported
   // qdist = offset only for TIP4P fictitious charge
-  
-  qdist = 0.0; 
+
+  qdist = 0.0;
   if (tip4pflag)
     error->all(FLERR,"Cannot yet use TIP4P with PPPMDipoleSpin");
 
@@ -177,7 +179,7 @@ void PPPMDipoleSpin::init()
 
   GridComm *cgtmp = NULL;
   int iteration = 0;
-    
+
   while (order >= minorder) {
     if (iteration && me == 0)
       error->warning(FLERR,"Reducing PPPMDipoleSpin order b/c stencil extends "
@@ -222,37 +224,17 @@ void PPPMDipoleSpin::init()
   MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
 
   if (me == 0) {
-
-#ifdef FFT_SINGLE
-    const char fft_prec[] = "single";
-#else
-    const char fft_prec[] = "double";
-#endif
-
-    if (screen) {
-      fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(screen,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
-      fprintf(screen,"  stencil order = %d\n",order);
-      fprintf(screen,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(screen,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(screen,"  using %s precision FFTs\n",fft_prec);
-      fprintf(screen,"  3d grid and FFT values/proc = %d %d\n",
-              ngrid_max,nfft_both_max);
-    }
-    if (logfile) {
-      fprintf(logfile,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(logfile,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
-      fprintf(logfile,"  stencil order = %d\n",order);
-      fprintf(logfile,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(logfile,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
-      fprintf(logfile,"  3d grid and FFT values/proc = %d %d\n",
-              ngrid_max,nfft_both_max);
-    }
+    std::string mesg = fmt::format("  G vector (1/distance) = {:.8g}\n",g_ewald);
+    mesg += fmt::format("  grid = {} {} {}\n",nx_pppm,ny_pppm,nz_pppm);
+    mesg += fmt::format("  stencil order = {}\n",order);
+    mesg += fmt::format("  estimated absolute RMS force accuracy = {:.8g}\n",
+                       estimated_accuracy);
+    mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
+                       estimated_accuracy/two_charge_force);
+    mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
+    mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
+                       ngrid_max,nfft_both_max);
+    utils::logmesg(lmp,mesg);
   }
 
   // allocate K-space dependent memory
@@ -390,9 +372,9 @@ void PPPMDipoleSpin::compute(int eflag, int vflag)
 
     if (eflag_atom) {
       for (i = 0; i < nlocal; i++) {
-	spx = sp[i][0]*sp[i][3];
-	spy = sp[i][1]*sp[i][3];
-	spz = sp[i][2]*sp[i][3];
+        spx = sp[i][0]*sp[i][3];
+        spy = sp[i][1]*sp[i][3];
+        spz = sp[i][2]*sp[i][3];
         eatom[i] *= 0.5;
         eatom[i] -= (spx*spx + spy*spy + spz*spz)*2.0*g3/3.0/MY_PIS;
         eatom[i] *= spscale;
@@ -552,7 +534,7 @@ void PPPMDipoleSpin::fieldforce_ik_spin()
     f[i][2] += spfactor*(vxz*spx + vyz*spy + vzz*spz);
 
     // store long-range mag. precessions
-    
+
     const double spfactorh = mub2mu0hbinv * scale;
     fm_long[i][0] += spfactorh*ex;
     fm_long[i][1] += spfactorh*ey;
@@ -663,14 +645,12 @@ void PPPMDipoleSpin::slabcorr()
 {
   // compute local contribution to global spin moment
 
-  double **x = atom->x;
-  double zprd = domain->zprd;
-  int nlocal = atom->nlocal;
-
   double spin = 0.0;
   double **sp = atom->sp;
-  double spx,spy,spz;
-  for (int i = 0; i < nlocal; i++) { 
+  double spz;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
     spz = sp[i][2]*sp[i][3];
     spin += spz;
   }
@@ -731,7 +711,7 @@ void PPPMDipoleSpin::spsum_spsq()
       spsqsum_local += spx*spx + spy*spy + spz*spz;
     }
 
-    // store results into pppm_dipole quantities 
+    // store results into pppm_dipole quantities
 
     MPI_Allreduce(&spsum_local,&musum,1,MPI_DOUBLE,MPI_SUM,world);
     MPI_Allreduce(&spsqsum_local,&musqsum,1,MPI_DOUBLE,MPI_SUM,world);

@@ -234,7 +234,7 @@ int NPairSSAKokkosExecute<DeviceType>::exclusion(const int &i,const int &j,
 
 /* ----------------------------------------------------------------------
    binned neighbor list construction with full Newton's 3rd law
-   for use by Shardlow Spliting Algorithm
+   for use by Shardlow Splitting Algorithm
    each owned atom i checks its own bin and other bins in Newton stencil
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
@@ -519,10 +519,13 @@ fprintf(stdout, "Fina%03d %6d inum %6d gnum, total used %6d, allocated %6d\n"
 #endif
 
   list->k_ilist.template modify<DeviceType>();
+  list->k_numneigh.template modify<DeviceType>();
+  list->k_neighbors.template modify<DeviceType>();
 }
 
 
 template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
 void NPairSSAKokkosExecute<DeviceType>::build_locals_onePhase(const bool firstTry, int me, int workPhase) const
 {
   const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil = d_stencil;
@@ -659,6 +662,7 @@ fprintf(stdout, "Phas%03d phase %3d used %6d inums, workItems = %3d, skipped = %
 
 
 template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
 void NPairSSAKokkosExecute<DeviceType>::build_ghosts_onePhase(int workPhase) const
 {
   const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil = d_stencil;
@@ -751,7 +755,7 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts_onePhase(int workPhase) con
 
 namespace LAMMPS_NS {
 template class NPairSSAKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class NPairSSAKokkos<LMPHostType>;
 #endif
 }

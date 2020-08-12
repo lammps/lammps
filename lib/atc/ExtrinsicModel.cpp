@@ -114,7 +114,7 @@ namespace ATC {
       ATC::LammpsInterface::instance()->print_msg_once(ss.str());
       myModel = new ExtrinsicModelElectrostatic
         (this,modelType,matFileName);
-    }
+    } else myModel = NULL;
     extrinsicModels_.push_back(myModel);
 
      // add new fields to fields data
@@ -339,7 +339,7 @@ namespace ATC {
   //--------------------------------------------------------
   ExtrinsicModel::ExtrinsicModel(ExtrinsicModelManager * modelManager,
                                  ExtrinsicModelType modelType,
-                                 string matFileName) :
+                                 string /* matFileName */) :
     atc_(modelManager->atc()),
     modelManager_(modelManager),
     modelType_(modelType),

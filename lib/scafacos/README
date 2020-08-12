@@ -3,7 +3,7 @@ is required to use the KSPACE scafacos and its kspace_style
 scafacos command in a LAMMPS input script.
 
 The ScaFaCoS library is available at http://scafacos.de or
-on github at https://github.com/scafacos, the libary was
+on github at https://github.com/scafacos, the library was
 developed by a consortium of different universities in
 Germany (Bonn, Chemnitz, Stuttgart, Wuppertal) and
 the Research Centre Juelich (Juelich Supercomputing Centre).
@@ -47,17 +47,17 @@ Instructions:
                                     are: direct, ewald, fmm, p2nfft
                                     The other solvers might work, but support
                                     is purely experimental at the moment. To
-                                    give a list of solvers, use a comma seperated
+                                    give a list of solvers, use a comma separated
                                     list.
       --fcs-disable-doc:            disables the compilation of the documentation,
                                     e.g. if no Latex is available on the system.
 
 4.) To build the library after configuration, run 'make' from the base folder.
 
-5.) To install the libray in the designated installation folder, run 'make install'.
+5.) To install the library in the designated installation folder, run 'make install'.
     Installation is required, as ScaFaCoS does not support an in-source build!
 
-6.) Create two soft links to this directory (lib/scafacos) to where the libary
+6.) Create two soft links to this directory (lib/scafacos) to where the library
     is installed. E.g. if you built ScaFaCoS in the default install directory:
       % ln -s /usr/local/include includelink
       % ln -s /usr/local/lib liblink

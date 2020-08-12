@@ -43,6 +43,9 @@ class Body : protected Pointers {
                                  double *) {return 0;}
 
   virtual void data_body(int, int, int, int*, double *) = 0;
+  virtual int pack_data_body(tagint, int, double *) = 0;
+  virtual int write_data_body(FILE *, double *) = 0;
+
   virtual int noutrow(int) = 0;
   virtual int noutcol() = 0;
   virtual void output(int, int, double *) = 0;

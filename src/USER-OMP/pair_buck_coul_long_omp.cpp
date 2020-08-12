@@ -12,6 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include <cmath>
 #include "pair_buck_coul_long_omp.h"
 #include "atom.h"
@@ -51,7 +52,7 @@ void PairBuckCoulLongOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -59,7 +60,7 @@ void PairBuckCoulLongOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
 
     if (evflag) {
       if (eflag) {
@@ -85,8 +86,9 @@ void PairBuckCoulLongOMP::compute(int eflag, int vflag)
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
 void PairBuckCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
-  int i,j,ii,jj,jnum,itype,jtype;
+  int i,j,ii,jj,jnum,itype,jtype,itable;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+  double fraction,table;
   double rsq,r2inv,r6inv,r,rexp,forcecoul,forcebuck,factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -138,13 +140,28 @@ void PairBuckCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
         r = sqrt(rsq);
 
         if (rsq < cut_coulsq) {
-          grij = g_ewald * r;
-          expm2 = exp(-grij*grij);
-          t = 1.0 / (1.0 + EWALD_P*grij);
-          erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-          prefactor = qqrd2e * qtmp*q[j]/r;
-          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-          if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+          if (!ncoultablebits || rsq <= tabinnersq) {
+            grij = g_ewald * r;
+            expm2 = exp(-grij*grij);
+            t = 1.0 / (1.0 + EWALD_P*grij);
+            erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+            prefactor = qqrd2e * qtmp*q[j]/r;
+            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+            if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+          } else {
+            union_int_float_t rsq_lookup;
+            rsq_lookup.f = rsq;
+            itable = rsq_lookup.i & ncoulmask;
+            itable >>= ncoulshiftbits;
+            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            table = ftable[itable] + fraction*dftable[itable];
+            forcecoul = qtmp*q[j] * table;
+            if (factor_coul < 1.0) {
+              table = ctable[itable] + fraction*dctable[itable];
+              prefactor = qtmp*q[j] * table;
+              forcecoul -= (1.0-factor_coul)*prefactor;
+            }
+          }
         } else forcecoul = 0.0;
 
         if (rsq < cut_ljsq[itype][jtype]) {
@@ -153,7 +170,7 @@ void PairBuckCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
           forcebuck = buck1[itype][jtype]*r*rexp - buck2[itype][jtype]*r6inv;
         } else forcebuck = 0.0;
 
-        fpair = (forcecoul + factor_lj*forcebuck)*r2inv;
+        fpair = (forcecoul + factor_lj*forcebuck) * r2inv;
 
         fxtmp += delx*fpair;
         fytmp += dely*fpair;
@@ -166,7 +183,12 @@ void PairBuckCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         if (EFLAG) {
           if (rsq < cut_coulsq) {
-            ecoul = prefactor*erfc;
+            if (!ncoultablebits || rsq <= tabinnersq)
+              ecoul = prefactor*erfc;
+            else {
+              table = etable[itable] + fraction*detable[itable];
+              ecoul = qtmp*q[j] * table;
+            }
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           } else ecoul = 0.0;
           if (rsq < cut_ljsq[itype][jtype]) {

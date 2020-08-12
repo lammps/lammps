@@ -12,6 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include <cmath>
 #include "pair_edip_omp.h"
 #include "atom.h"
@@ -50,7 +51,7 @@ void PairEDIPOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -58,7 +59,7 @@ void PairEDIPOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
 
     if (evflag) {
       if (eflag) {
@@ -330,13 +331,13 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
       f_ij[1] = forceMod2B * directorCos_ij_y;
       f_ij[2] = forceMod2B * directorCos_ij_z;
 
-      f[j].x -= f_ij[0];
-      f[j].y -= f_ij[1];
-      f[j].z -= f_ij[2];
-
       f[i].x += f_ij[0];
       f[i].y += f_ij[1];
       f[i].z += f_ij[2];
+
+      f[j].x -= f_ij[0];
+      f[j].y -= f_ij[1];
+      f[j].z -= f_ij[2];
 
       // potential energy
 
@@ -459,13 +460,13 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
         f_ij[1] = forceModCoord_ij * dr_ij[1];
         f_ij[2] = forceModCoord_ij * dr_ij[2];
 
-        f[j].x -= f_ij[0];
-        f[j].y -= f_ij[1];
-        f[j].z -= f_ij[2];
+        f[i].x -= f_ij[0];
+        f[i].y -= f_ij[1];
+        f[i].z -= f_ij[2];
 
-        f[i].x += f_ij[0];
-        f[i].y += f_ij[1];
-        f[i].z += f_ij[2];
+        f[j].x += f_ij[0];
+        f[j].y += f_ij[1];
+        f[j].z += f_ij[2];
 
         // potential energy
 

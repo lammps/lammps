@@ -1,6 +1,6 @@
 #include "math_special.h"
 #include <cmath>
-#include <stdint.h> // IWYU pragma: keep
+#include <cstdint> // IWYU pragma: keep
 
 using namespace LAMMPS_NS;
 
@@ -538,6 +538,8 @@ double MathSpecial::exp2_x86(double x)
 double MathSpecial::fm_exp(double x)
 {
 #if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+    if (x < -1022.0/FM_DOUBLE_LOG2OFE) return 0;
+    if (x > 1023.0/FM_DOUBLE_LOG2OFE) return INFINITY;
     return exp2_x86(FM_DOUBLE_LOG2OFE * x);
 #else
     return ::exp(x);

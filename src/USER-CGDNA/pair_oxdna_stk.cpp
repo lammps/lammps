@@ -26,19 +26,12 @@
 #include "neighbor.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 #include "atom_vec_ellipsoid.h"
 #include "math_extra.h"
 
 using namespace LAMMPS_NS;
 using namespace MFOxdna;
-
-// sequence-specific stacking strength
-// A:0 C:1 G:2 T:3, 5'- (i,j) -3'
-static const double eta_st[4][4] =
-{{1.11960,1.00852,0.96950,0.99632},
- {1.01889,0.97804,1.02681,0.96950},
- {0.98169,1.05913,0.97804,1.00852},
- {0.94694,0.98169,1.01889,0.96383}};
 
 /* ---------------------------------------------------------------------- */
 
@@ -46,6 +39,30 @@ PairOxdnaStk::PairOxdnaStk(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   writedata = 1;
+
+  // sequence-specific stacking strength
+  // A:0 C:1 G:2 T:3, 5'- [i][j] -3'
+
+  eta_st[0][0] = 1.11960;
+  eta_st[0][1] = 1.00852;
+  eta_st[0][2] = 0.96950;
+  eta_st[0][3] = 0.99632;
+
+  eta_st[1][0] = 1.01889;
+  eta_st[1][1] = 0.97804;
+  eta_st[1][2] = 1.02681;
+  eta_st[1][3] = 0.96950;
+
+  eta_st[2][0] = 0.98169;
+  eta_st[2][1] = 1.05913;
+  eta_st[2][2] = 0.97804;
+  eta_st[2][3] = 1.00852;
+
+  eta_st[3][0] = 0.94694;
+  eta_st[3][1] = 0.98169;
+  eta_st[3][2] = 1.01889;
+  eta_st[3][3] = 0.96383;
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -104,7 +121,7 @@ PairOxdnaStk::~PairOxdnaStk()
    tally energy and virial into global and per-atom accumulators
 
    NOTE: Although this is a pair style interaction, the algorithm below
-   follows the virial incrementation of the bond style. This is because 
+   follows the virial incrementation of the bond style. This is because
    the bond topology is used in the main compute loop.
 ------------------------------------------------------------------------- */
 
@@ -761,7 +778,7 @@ void PairOxdnaStk::coeff(int narg, char **arg)
   if (narg != 24) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/stk");
   if (!allocated) allocate();
 
-  int ilo,ihi,jlo,jhi;
+  int ilo,ihi,jlo,jhi,imod4,jmod4;
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
   force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
@@ -852,16 +869,21 @@ void PairOxdnaStk::coeff(int narg, char **arg)
   dtheta_st6_c_one = 1/(a_st6_one*dtheta_st6_ast_one);
 
   b_st1_one = a_st1_one*a_st1_one*cosphi_st1_ast_one*cosphi_st1_ast_one/(1-a_st1_one*cosphi_st1_ast_one*cosphi_st1_ast_one);
-  cosphi_st1_c_one=1/(a_st1_one*cosphi_st1_ast_one);
+  cosphi_st1_c_one = 1/(a_st1_one*cosphi_st1_ast_one);
 
   b_st2_one = a_st2_one*a_st2_one*cosphi_st2_ast_one*cosphi_st2_ast_one/(1-a_st2_one*cosphi_st2_ast_one*cosphi_st2_ast_one);
-  cosphi_st2_c_one=1/(a_st2_one*cosphi_st2_ast_one);
+  cosphi_st2_c_one = 1/(a_st2_one*cosphi_st2_ast_one);
 
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
 
+      imod4 = i%4;
+      if (imod4 == 0) imod4 = 4;
+      jmod4 = j%4;
+      if (jmod4 == 0) jmod4 = 4;
+
       epsilon_st[i][j] = epsilon_st_one;
-      if (seqdepflag) epsilon_st[i][j] *= eta_st[i-1][j-1];
+      if (seqdepflag) epsilon_st[i][j] *= eta_st[imod4-1][jmod4-1];
       a_st[i][j] = a_st_one;
       cut_st_0[i][j] = cut_st_0_one;
       cut_st_c[i][j] = cut_st_c_one;
@@ -872,7 +894,7 @@ void PairOxdnaStk::coeff(int narg, char **arg)
       b_st_lo[i][j] = b_st_lo_one;
       b_st_hi[i][j] = b_st_hi_one;
       shift_st[i][j] = shift_st_one;
-      if (seqdepflag) shift_st[i][j] *= eta_st[i-1][j-1];
+      if (seqdepflag) shift_st[i][j] *= eta_st[imod4-1][jmod4-1];
 
       a_st4[i][j] = a_st4_one;
       theta_st4_0[i][j] = theta_st4_0_one;
@@ -912,20 +934,6 @@ void PairOxdnaStk::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairOxdnaStk::init_style()
-{
-  int irequest;
-
-  // request regular neighbor lists
-
-  irequest = neighbor->request(this,instance_me);
-
-}
-
-/* ----------------------------------------------------------------------
    neighbor callback to inform pair style of neighbor list to use regular
 ------------------------------------------------------------------------- */
 
@@ -944,6 +952,8 @@ void PairOxdnaStk::init_list(int id, NeighList *ptr)
 double PairOxdnaStk::init_one(int i, int j)
 {
 
+  int imod4,jmod4;
+
   if (setflag[i][j] == 0) {
     error->all(FLERR,"Coefficient mixing not defined in oxDNA");
   }
@@ -951,8 +961,13 @@ double PairOxdnaStk::init_one(int i, int j)
     error->all(FLERR,"Offset not supported in oxDNA");
   }
 
+  imod4 = i%4;
+  if (imod4 == 0) imod4 = 4;
+  jmod4 = j%4;
+  if (jmod4 == 0) jmod4 = 4;
+
   if (seqdepflag) {
-    epsilon_st[j][i] = epsilon_st[i][j]  / eta_st[i-1][j-1] * eta_st[j-1][i-1];
+    epsilon_st[j][i] = epsilon_st[i][j]  / eta_st[imod4-1][jmod4-1] * eta_st[jmod4-1][imod4-1];
   }
   else {
     epsilon_st[j][i] = epsilon_st[i][j];
@@ -967,7 +982,7 @@ double PairOxdnaStk::init_one(int i, int j)
   cut_st_lc[j][i] = cut_st_lc[i][j];
   cut_st_hc[j][i] = cut_st_hc[i][j];
   if (seqdepflag) {
-    shift_st[j][i] = shift_st[i][j] / eta_st[i-1][j-1] * eta_st[j-1][i-1];
+    shift_st[j][i] = shift_st[i][j] / eta_st[imod4-1][jmod4-1] * eta_st[jmod4-1][imod4-1];
   }
   else {
     shift_st[j][i] = shift_st[i][j];
@@ -1079,49 +1094,49 @@ void PairOxdnaStk::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
 
-          fread(&epsilon_st[i][j],sizeof(double),1,fp);
-          fread(&a_st[i][j],sizeof(double),1,fp);
-          fread(&cut_st_0[i][j],sizeof(double),1,fp);
-          fread(&cut_st_c[i][j],sizeof(double),1,fp);
-          fread(&cut_st_lo[i][j],sizeof(double),1,fp);
-          fread(&cut_st_hi[i][j],sizeof(double),1,fp);
-          fread(&cut_st_lc[i][j],sizeof(double),1,fp);
-          fread(&cut_st_hc[i][j],sizeof(double),1,fp);
-          fread(&b_st_lo[i][j],sizeof(double),1,fp);
-          fread(&b_st_hi[i][j],sizeof(double),1,fp);
-          fread(&shift_st[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&epsilon_st[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&a_st[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_st_0[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_st_c[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_st_lo[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_st_hi[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_st_lc[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_st_hc[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&b_st_lo[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&b_st_hi[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&shift_st[i][j],sizeof(double),1,fp,NULL,error);
 
-          fread(&a_st4[i][j],sizeof(double),1,fp);
-          fread(&theta_st4_0[i][j],sizeof(double),1,fp);
-          fread(&dtheta_st4_ast[i][j],sizeof(double),1,fp);
-          fread(&b_st4[i][j],sizeof(double),1,fp);
-          fread(&dtheta_st4_c[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&a_st4[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&theta_st4_0[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&dtheta_st4_ast[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&b_st4[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&dtheta_st4_c[i][j],sizeof(double),1,fp,NULL,error);
 
-          fread(&a_st5[i][j],sizeof(double),1,fp);
-          fread(&theta_st5_0[i][j],sizeof(double),1,fp);
-          fread(&dtheta_st5_ast[i][j],sizeof(double),1,fp);
-          fread(&b_st5[i][j],sizeof(double),1,fp);
-          fread(&dtheta_st5_c[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&a_st5[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&theta_st5_0[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&dtheta_st5_ast[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&b_st5[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&dtheta_st5_c[i][j],sizeof(double),1,fp,NULL,error);
 
-          fread(&a_st6[i][j],sizeof(double),1,fp);
-          fread(&theta_st6_0[i][j],sizeof(double),1,fp);
-          fread(&dtheta_st6_ast[i][j],sizeof(double),1,fp);
-          fread(&b_st6[i][j],sizeof(double),1,fp);
-          fread(&dtheta_st6_c[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&a_st6[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&theta_st6_0[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&dtheta_st6_ast[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&b_st6[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&dtheta_st6_c[i][j],sizeof(double),1,fp,NULL,error);
 
-          fread(&a_st1[i][j],sizeof(double),1,fp);
-          fread(&cosphi_st1_ast[i][j],sizeof(double),1,fp);
-          fread(&b_st1[i][j],sizeof(double),1,fp);
-          fread(&cosphi_st1_c[i][j],sizeof(double),1,fp);
-          fread(&a_st2[i][j],sizeof(double),1,fp);
-          fread(&cosphi_st2_ast[i][j],sizeof(double),1,fp);
-          fread(&b_st2[i][j],sizeof(double),1,fp);
-          fread(&cosphi_st2_c[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&a_st1[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cosphi_st1_ast[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&b_st1[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cosphi_st1_c[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&a_st2[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cosphi_st2_ast[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&b_st2[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cosphi_st2_c[i][j],sizeof(double),1,fp,NULL,error);
 
         }
 
@@ -1187,9 +1202,9 @@ void PairOxdnaStk::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
-    fread(&tail_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
   }
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);

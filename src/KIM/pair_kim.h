@@ -65,6 +65,7 @@ PairStyle(kim,PairKIM)
 // includes from KIM & LAMMPS
 class KIM_API_model;
 #include "pair.h"
+#include <string>
 
 extern "C" {
 #include "KIM_SimulatorHeaders.h"
@@ -88,6 +89,11 @@ class PairKIM : public Pair {
   virtual void unpack_reverse_comm(int, int*, double*);
   virtual double memory_usage();
 
+  // Get the KIM_Model object
+  KIM_Model *get_KIM_Model();
+
+  // Get the atom type list
+  std::string get_atom_type_list();
  protected:
   // (nearly) all bool flags are not initialized in constructor, but set
   // explicitly in the indicated function.  All other data members are
@@ -97,6 +103,9 @@ class PairKIM : public Pair {
 
   // values set in settings()
   char* kim_modelname;
+
+  // list of args that map atom species to KIM elements
+  std::string atom_type_list;
 
   // values set in coeff()
 

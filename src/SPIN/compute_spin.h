@@ -32,7 +32,21 @@ class ComputeSpin : public Compute {
   void compute_vector();
 
  private:
+  int pair_spin_flag;                   // magnetic pair flags
+  int long_spin_flag;                   // magnetic long-range flag
+  int precession_spin_flag;             // magnetic precession flags
+
   double kb,hbar;
+
+  // pointers to magnetic fixes
+
+  class FixPrecessionSpin *lockprecessionspin;
+
+  // pointers to magnetic pair styles
+
+  int npairs, npairspin;                // # of pairs, and # of spin pairs
+  class Pair *pair;
+  class PairSpin **spin_pairs;          // vector of spin pairs
 
   void allocate();
 };

@@ -1,10 +1,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -22,10 +23,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -52,85 +53,193 @@ namespace Test {
 
 namespace Impl {
 
-  template <typename Scalar, class Device>
-  struct test_vector_combinations
-  {
-    typedef test_vector_combinations<Scalar,Device> self_type;
+template <typename Scalar, class Device>
+struct test_vector_insert {
+  typedef Scalar scalar_type;
+  typedef Device execution_space;
 
-    typedef Scalar scalar_type;
-    typedef Device execution_space;
+  template <typename Vector>
+  void run_test(Vector& a) {
+    int n = a.size();
 
-    Scalar reference;
-    Scalar result;
+    auto it = a.begin();
+    it += 15;
+    ASSERT_EQ(*it, scalar_type(1));
 
-    template <typename Vector>
-    Scalar run_me(unsigned int n){
-      Vector a(n,1);
+    auto it_return = a.insert(it, scalar_type(3));
+    ASSERT_EQ(a.size(), n + 1);
+    ASSERT_EQ(std::distance(it_return, a.begin() + 15), 0);
 
+    it = a.begin();
+    it += 17;
+// Looks like some std::vector implementations do not have the restriction
+// right on the overload taking three iterators, and thus the following call
+// will hit that overload and then fail to compile.
+#if defined(KOKKOS_COMPILER_INTEL) && (1700 > KOKKOS_COMPILER_INTEL)
+// And at least GCC 4.8.4 doesn't implement vector insert correct for C++11
+// Return type is void ...
+#if (__GNUC__ < 5)
+    a.insert(it, typename Vector::size_type(n + 5), scalar_type(5));
+    it_return = a.begin() + 17;
+#else
+    it_return = a.insert(it, typename Vector::size_type(n + 5), scalar_type(5));
+#endif
+#else
+#if (__GNUC__ < 5)
+    a.insert(it, n + 5, scalar_type(5));
+    it_return = a.begin() + 17;
+#else
+    it_return = a.insert(it, n + 5, scalar_type(5));
+#endif
+#endif
 
-      a.push_back(2);
-      a.resize(n+4);
-      a[n+1] = 3;
-      a[n+2] = 4;
-      a[n+3] = 5;
+    ASSERT_EQ(a.size(), n + 1 + n + 5);
+    ASSERT_EQ(std::distance(it_return, a.begin() + 17), 0);
 
+    Vector b;
 
-      Scalar temp1 = a[2];
-      Scalar temp2 = a[n];
-      Scalar temp3 = a[n+1];
+// Looks like some std::vector implementations do not have the restriction
+// right on the overload taking three iterators, and thus the following call
+// will hit that overload and then fail to compile.
+#if defined(KOKKOS_COMPILER_INTEL) && (1700 > KOKKOS_COMPILER_INTEL)
+    b.insert(b.begin(), typename Vector::size_type(7), 9);
+#else
+    b.insert(b.begin(), 7, 9);
+#endif
+    ASSERT_EQ(b.size(), 7);
+    ASSERT_EQ(b[0], scalar_type(9));
 
-      a.assign(n+2,-1);
+    it = a.begin();
+    it += 27 + n;
+#if (__GNUC__ < 5)
+    a.insert(it, b.begin(), b.end());
+    it_return = a.begin() + (27 + n);
+#else
+    it_return = a.insert(it, b.begin(), b.end());
+#endif
+    ASSERT_EQ(a.size(), n + 1 + n + 5 + 7);
+    ASSERT_EQ(std::distance(it_return, a.begin() + 27 + n), 0);
 
-      a[2] = temp1;
-      a[n] = temp2;
-      a[n+1] = temp3;
+    // Testing insert at end via all three function interfaces
+    a.insert(a.end(), 11);
+#if defined(KOKKOS_COMPILER_INTEL) && (1700 > KOKKOS_COMPILER_INTEL)
+    a.insert(a.end(), typename Vector::size_type(2), 12);
+#else
+    a.insert(a.end(), 2, 12);
+#endif
+    a.insert(a.end(), b.begin(), b.end());
+  }
 
-      Scalar test1 = 0;
-      for(unsigned int i=0; i<a.size(); i++)
-        test1+=a[i];
-
-      a.assign(n+1,-2);
-      Scalar test2 = 0;
-      for(unsigned int i=0; i<a.size(); i++)
-        test2+=a[i];
-
-      a.reserve(n+10);
-
-      Scalar test3 = 0;
-      for(unsigned int i=0; i<a.size(); i++)
-        test3+=a[i];
-
-
-      return (test1*test2+test3)*test2+test1*test3;
+  template <typename Vector>
+  void check_test(Vector& a, int n) {
+    for (int i = 0; i < (int)a.size(); i++) {
+      if (i == 15)
+        ASSERT_EQ(a[i], scalar_type(3));
+      else if (i > 16 && i < 16 + 6 + n)
+        ASSERT_EQ(a[i], scalar_type(5));
+      else if (i > 26 + n && i < 34 + n)
+        ASSERT_EQ(a[i], scalar_type(9));
+      else if (i == (int)a.size() - 10)
+        ASSERT_EQ(a[i], scalar_type(11));
+      else if ((i == (int)a.size() - 9) || (i == (int)a.size() - 8))
+        ASSERT_EQ(a[i], scalar_type(12));
+      else if (i > (int)a.size() - 8)
+        ASSERT_EQ(a[i], scalar_type(9));
+      else
+        ASSERT_EQ(a[i], scalar_type(1));
     }
+  }
 
-
-    test_vector_combinations(unsigned int size)
+  test_vector_insert(unsigned int size) {
     {
-      reference = run_me<std::vector<Scalar> >(size);
-      result = run_me<Kokkos::vector<Scalar,Device> >(size);
+      std::vector<Scalar> a(size, scalar_type(1));
+      run_test(a);
+      check_test(a, size);
     }
+    {
+      Kokkos::vector<Scalar, Device> a(size, scalar_type(1));
+      a.sync_device();
+      run_test(a);
+      a.sync_host();
+      check_test(a, size);
+    }
+    {
+      Kokkos::vector<Scalar, Device> a(size, scalar_type(1));
+      a.sync_host();
+      run_test(a);
+      check_test(a, size);
+    }
+  }
+};
 
-   };
+template <typename Scalar, class Device>
+struct test_vector_combinations {
+  typedef test_vector_combinations<Scalar, Device> self_type;
 
-} // namespace Impl
+  typedef Scalar scalar_type;
+  typedef Device execution_space;
 
+  Scalar reference;
+  Scalar result;
 
+  template <typename Vector>
+  Scalar run_me(unsigned int n) {
+    Vector a(n, 1);
 
+    a.push_back(2);
+    a.resize(n + 4);
+    a[n + 1] = 3;
+    a[n + 2] = 4;
+    a[n + 3] = 5;
+
+    Scalar temp1 = a[2];
+    Scalar temp2 = a[n];
+    Scalar temp3 = a[n + 1];
+
+    a.assign(n + 2, -1);
+
+    a[2]     = temp1;
+    a[n]     = temp2;
+    a[n + 1] = temp3;
+
+    Scalar test1 = 0;
+    for (unsigned int i = 0; i < a.size(); i++) test1 += a[i];
+
+    a.assign(n + 1, -2);
+    Scalar test2 = 0;
+    for (unsigned int i = 0; i < a.size(); i++) test2 += a[i];
+
+    a.reserve(n + 10);
+
+    Scalar test3 = 0;
+    for (unsigned int i = 0; i < a.size(); i++) test3 += a[i];
+
+    return (test1 * test2 + test3) * test2 + test1 * test3;
+  }
+
+  test_vector_combinations(unsigned int size) {
+    reference = run_me<std::vector<Scalar> >(size);
+    result    = run_me<Kokkos::vector<Scalar, Device> >(size);
+  }
+};
+
+}  // namespace Impl
 
 template <typename Scalar, typename Device>
-void test_vector_combinations(unsigned int size)
-{
-  Impl::test_vector_combinations<Scalar,Device> test(size);
-  ASSERT_EQ( test.reference, test.result);
+void test_vector_combinations(unsigned int size) {
+  Impl::test_vector_combinations<Scalar, Device> test(size);
+  ASSERT_EQ(test.reference, test.result);
 }
 
-TEST_F( TEST_CATEGORY, vector_combination) {
-  test_vector_combinations<int,TEST_EXECSPACE>(10);
-  test_vector_combinations<int,TEST_EXECSPACE>(3057);
+TEST(TEST_CATEGORY, vector_combination) {
+  test_vector_combinations<int, TEST_EXECSPACE>(10);
+  test_vector_combinations<int, TEST_EXECSPACE>(3057);
 }
 
-} // namespace Test
+TEST(TEST_CATEGORY, vector_insert) {
+  Impl::test_vector_insert<int, TEST_EXECSPACE>(3057);
+}
 
-#endif //KOKKOS_TEST_UNORDERED_MAP_HPP
+}  // namespace Test
 
+#endif  // KOKKOS_TEST_UNORDERED_MAP_HPP

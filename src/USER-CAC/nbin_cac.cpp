@@ -770,9 +770,9 @@ if (x[2] > bsubboxhi[2])
   bin_overlap_limits[5]=izh;
 
   //check if bin limits exceed error limits
-  if(bin_overlap_limits[3]-bin_overlap_limits[0]>BINLIMIT) error->one(FLERR,"bin limits are very large; simulation may be unstable");
-  if(bin_overlap_limits[4]-bin_overlap_limits[1]>BINLIMIT) error->one(FLERR,"bin limits are very large; simulation may be unstable");
-  if(bin_overlap_limits[5]-bin_overlap_limits[2]>BINLIMIT) error->one(FLERR,"bin limits are very large; simulation may be unstable");
+  if(bin_overlap_limits[3]-bin_overlap_limits[0]>BINLIMIT) error->one(FLERR,"Bin limits are very large; simulation may be unstable");
+  if(bin_overlap_limits[4]-bin_overlap_limits[1]>BINLIMIT) error->one(FLERR,"Bin limits are very large; simulation may be unstable");
+  if(bin_overlap_limits[5]-bin_overlap_limits[2]>BINLIMIT) error->one(FLERR,"Bin limits are very large; simulation may be unstable");
   }
   
   return (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);

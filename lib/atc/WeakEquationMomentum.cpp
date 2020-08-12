@@ -45,7 +45,7 @@ void WeakEquationMomentum::B_integrand(
 //--------------------------------------------------------------
 bool WeakEquationMomentum::N_integrand(
   const FIELD_MATS &fields,
-  const GRAD_FIELD_MATS &grad_fields,
+  const GRAD_FIELD_MATS & /* grad_fields */,
   const Material * material,
   DENS_MAT &flux) const
 {
@@ -137,7 +137,7 @@ void WeakEquationMomentumDiffusion::B_integrand(
 
 //---------------------------------------------------------------------
 void WeakEquationMomentumDiffusion::BB_tangent_coefficients(
-  const FieldName field,
+  const FieldName /* field */,
   const FIELD_MATS &fields,
   const Material* material,
   DENS_MAT &coefs) const
@@ -148,7 +148,7 @@ void WeakEquationMomentumDiffusion::BB_tangent_coefficients(
 //--------------------------------------------------------------
 bool WeakEquationMomentumDiffusion::N_integrand(
   const FIELD_MATS &fields,
-  const GRAD_FIELD_MATS &grad_fields,
+  const GRAD_FIELD_MATS & /* grad_fields */,
   const Material * material,
   DENS_MAT &flux) const
 {

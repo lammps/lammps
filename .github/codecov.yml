@@ -1,0 +1,29 @@
+comment: false
+coverage:
+  notify:
+    slack:
+      default:
+        url: "secret:HWZbvgtc6OD7F3v3PfrK3/rzCJvScbh69Fi1CkLwuHK0+wIBIHVR+Q5i7q6F9Ln4OChbiRGtYAEUUsT8/jmBu4qDpIi8mx746codc0z/Z3aafLd24pBrCEPLvdCfIZxqPnw3TuUgGhwmMDZf0+thg8YNUr/MbOZ7Li2L6+ZbYuA="
+        threshold: 10%
+        only_pulls: false
+        branches:
+          - "master"
+        flags:
+          - "unit"
+        paths:
+          - "src"
+  status:
+    project:
+        default:
+            branches:
+              - "master"
+            paths:
+              - "src"
+            informational: true
+    patch:
+        default:
+            branches:
+              - "master"
+            paths:
+              - "src"
+            informational: true

@@ -66,7 +66,7 @@ double fermi_dirac(const double E, const double T)
     M_ = sparseM.dense_copy();
   }
   //-----------------------------------------------------
-  bool SchrodingerSolver::solve(FIELDS & fields)
+  bool SchrodingerSolver::solve(FIELDS & /* fields */)
   {
 
 // typedef  struct{float real, imag;} COMPLEX;
@@ -132,7 +132,7 @@ double fermi_dirac(const double E, const double T)
   //--------------------------------------------------------
   // compute charge density per slice
   //--------------------------------------------------------
-  bool SliceSchrodingerSolver::solve(FIELDS & fields)
+  bool SliceSchrodingerSolver::solve(FIELDS & /* fields */)
   {
     // fields
     DENS_MAT & psi   = (atc_->field(ELECTRON_WAVEFUNCTION)).set_quantity();
@@ -250,7 +250,7 @@ double fermi_dirac(const double E, const double T)
   {
   }
   //----------------------------------------------------------
-  bool SchrodingerPoissonManager::modify(int narg, char **arg)
+  bool SchrodingerPoissonManager::modify(int /* narg */, char **arg)
   {
     bool match = false;
     int argIndx = 0;
@@ -350,7 +350,7 @@ double fermi_dirac(const double E, const double T)
   }
   //----------------------------------------------------------------------
 
-  void SchrodingerPoissonSolver::solve(FIELDS & rhs, GRAD_FIELD_MATS & fluxes)
+  void SchrodingerPoissonSolver::solve(FIELDS & rhs, GRAD_FIELD_MATS & /* fluxes */)
   {
     if ((atc_->prescribed_data_manager()->all_fixed(ELECTRON_WAVEFUNCTION))
      && (atc_->prescribed_data_manager()->all_fixed(ELECTRIC_POTENTIAL)))  {
@@ -739,7 +739,7 @@ double fermi_dirac(const double E, const double T)
     if (solver_) delete solver_;
   }
   //--------------------------------------------------------------------------
-  void GlobalSliceSchrodingerPoissonSolver::solve(FIELDS & rhs, GRAD_FIELD_MATS & fluxes)
+  void GlobalSliceSchrodingerPoissonSolver::solve(FIELDS & rhs, GRAD_FIELD_MATS & /* fluxes */)
   {
     const DENS_MAT & phi = (atc_->fields_[ELECTRIC_POTENTIAL]).quantity();
     const DENS_MAT & n   = (atc_->fields_[ELECTRON_DENSITY]  ).quantity();

@@ -74,7 +74,7 @@ void BondClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (vflag_atom) {
     //if(k_vatom.extent(0)<maxvatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_vatom,vatom);
-      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
+      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"improper:vatom");
       d_vatom = k_vatom.template view<DeviceType>();
     //}
   }
@@ -365,7 +365,7 @@ void BondClass2Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const in
 
 namespace LAMMPS_NS {
 template class BondClass2Kokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class BondClass2Kokkos<LMPHostType>;
 #endif
 }

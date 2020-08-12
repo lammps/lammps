@@ -25,6 +25,7 @@
 #include "pair.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -275,11 +276,11 @@ void BondQuartic::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&b1[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&b2[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&rc[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&u0[1],sizeof(double),atom->nbondtypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&b1[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&b2[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&rc[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&u0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
   }
   MPI_Bcast(&k[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&b1[1],atom->nbondtypes,MPI_DOUBLE,0,world);

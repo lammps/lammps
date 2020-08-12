@@ -73,14 +73,14 @@ void ImproperHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     //if(k_eatom.extent(0)<maxeatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_eatom,eatom);
       memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
-      d_eatom = k_eatom.template view<DeviceType>();
+      d_eatom = k_eatom.template view<KKDeviceType>();
     //}
   }
   if (vflag_atom) {
     //if(k_vatom.extent(0)<maxvatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_vatom,vatom);
-      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
-      d_vatom = k_vatom.template view<DeviceType>();
+      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"improper:vatom");
+      d_vatom = k_vatom.template view<KKDeviceType>();
     //}
   }
 
@@ -477,7 +477,7 @@ void ImproperHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, co
 
 namespace LAMMPS_NS {
 template class ImproperHarmonicKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class ImproperHarmonicKokkos<LMPHostType>;
 #endif
 }

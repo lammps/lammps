@@ -28,6 +28,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 #define LMP_NEED_SDK_FIND_LJ_TYPE 1
 #include "lj_sdk_common.h"
@@ -465,14 +466,14 @@ void PairLJSDKCoulLong::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&lj_type[i][j],sizeof(int),1,fp);
-          fread(&epsilon[i][j],sizeof(double),1,fp);
-          fread(&sigma[i][j],sizeof(double),1,fp);
-          fread(&cut_lj[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&lj_type[i][j],sizeof(int),1,fp,NULL,error);
+          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_lj[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&lj_type[i][j],1,MPI_INT,0,world);
         MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
@@ -504,13 +505,13 @@ void PairLJSDKCoulLong::write_restart_settings(FILE *fp)
 void PairLJSDKCoulLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_lj_global,sizeof(double),1,fp);
-    fread(&cut_coul,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
-    fread(&tail_flag,sizeof(int),1,fp);
-    fread(&ncoultablebits,sizeof(int),1,fp);
-    fread(&tabinner,sizeof(double),1,fp);
+    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&ncoultablebits,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tabinner,sizeof(double),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
@@ -592,17 +593,32 @@ double PairLJSDKCoulLong::single(int i, int j, int itype, int jtype,
 
   if (rsq < cut_ljsq[itype][jtype]) {
     const int ljt = lj_type[itype][jtype];
-    const double ljpow1 = lj_pow1[ljt];
-    const double ljpow2 = lj_pow2[ljt];
-    const double ljpref = lj_prefact[ljt];
 
-    const double ratio = sigma[itype][jtype]/sqrt(rsq);
-    const double eps = epsilon[itype][jtype];
+    if (ljt == LJ12_4) {
+      const double r4inv=r2inv*r2inv;
+      forcelj = r4inv*(lj1[itype][jtype]*r4inv*r4inv
+                       - lj2[itype][jtype]);
 
-    forcelj = factor_lj * ljpref*eps * (ljpow1*pow(ratio,ljpow1)
-                          - ljpow2*pow(ratio,ljpow2))/rsq;
-    philj = factor_lj * (ljpref*eps * (pow(ratio,ljpow1) - pow(ratio,ljpow2))
-                         - offset[itype][jtype]);
+      philj = r4inv*(lj3[itype][jtype]*r4inv*r4inv
+                     - lj4[itype][jtype]) - offset[itype][jtype];
+
+    } else if (ljt == LJ9_6) {
+      const double r3inv = r2inv*sqrt(r2inv);
+      const double r6inv = r3inv*r3inv;
+      forcelj = r6inv*(lj1[itype][jtype]*r3inv
+                       - lj2[itype][jtype]);
+      philj = r6inv*(lj3[itype][jtype]*r3inv
+                     - lj4[itype][jtype]) - offset[itype][jtype];
+
+    } else if (ljt == LJ12_6) {
+      const double r6inv = r2inv*r2inv*r2inv;
+      forcelj = r6inv*(lj1[itype][jtype]*r6inv
+                       - lj2[itype][jtype]);
+      philj = r6inv*(lj3[itype][jtype]*r6inv
+                     - lj4[itype][jtype]) - offset[itype][jtype];
+    }
+    forcelj *= factor_lj;
+    philj *= factor_lj;
   }
 
   fforce = (forcecoul + forcelj) * r2inv;

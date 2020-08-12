@@ -29,7 +29,7 @@ neigh_modify 	every 10 check yes delay 20
 fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
 fix 		2 all langevin/spin 100.0 0.01 21
 
-fix 		3 all nve/spin lattice no
+fix 		3 all nve/spin lattice frozen
 timestep	0.0001
 
 # compute and output options
@@ -44,7 +44,7 @@ variable 	magnorm   equal c_out_mag[4]
 variable 	emag      equal c_out_mag[5]
 variable 	tmag      equal c_out_mag[6]
 
-thermo_style    custom step time v_magnorm v_emag temp etotal
+thermo_style    custom step time v_magnorm pe v_emag temp etotal
 thermo          100
 
 compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
@@ -52,4 +52,3 @@ dump 		100 all custom 1 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[
 
 run 		1000
 write_restart 	restart_hcp_cobalt.equil
-

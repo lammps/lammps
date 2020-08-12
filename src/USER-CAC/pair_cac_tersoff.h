@@ -33,6 +33,8 @@ class PairCACTersoff : public PairCAC {
   virtual void init_style();
   virtual double init_one(int, int);
 
+  static const int NPARAMS_PER_LINE = 17;
+
 	struct Param {
     double lam1,lam2,lam3;
     double c,d,h;

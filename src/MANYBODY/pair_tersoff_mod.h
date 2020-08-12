@@ -30,6 +30,8 @@ class PairTersoffMOD : public PairTersoff {
   PairTersoffMOD(class LAMMPS *);
   ~PairTersoffMOD() {}
 
+  static const int NPARAMS_PER_LINE = 20;
+
  protected:
   virtual void read_file(char *);
   virtual void setup_params();

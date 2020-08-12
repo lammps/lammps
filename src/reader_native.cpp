@@ -17,6 +17,7 @@
 #include "atom.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -56,12 +57,22 @@ int ReaderNative::read_time(bigint &ntimestep)
   char *eof = fgets(line,MAXLINE,fp);
   if (eof == NULL) return 1;
 
-  if (strstr(line,"ITEM: TIMESTEP") != line)
+  // skip over unit and time information, if present.
+
+  if (utils::strmatch(line,"^\\s*ITEM: UNITS\\s*$"))
+    read_lines(2);
+
+  if (utils::strmatch(line,"^\\s*ITEM: TIME\\s*$"))
+    read_lines(2);
+
+  if (!utils::strmatch(line,"^\\s*ITEM: TIMESTEP\\s*$"))
     error->one(FLERR,"Dump file is incorrectly formatted");
+
   read_lines(1);
   int rv = sscanf(line,BIGINT_FORMAT,&ntimestep);
   if (rv != 1)
     error->one(FLERR,"Dump file is incorrectly formatted");
+
   return 0;
 }
 
@@ -106,7 +117,7 @@ void ReaderNative::skip()
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic, 
+bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
                                  int fieldinfo, int nfield,
                                  int *fieldtype, char **fieldlabel,
                                  int scaleflag, int wrapflag, int &fieldflag,
@@ -151,7 +162,7 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
 
   char *labelline = &line[strlen("ITEM: ATOMS ")];
 
-  nwords = atom->count_words(labelline);
+  nwords = utils::trim_and_count_words(labelline);
   char **labels = new char*[nwords];
   labels[0] = strtok(labelline," \t\n\r\f");
   if (labels[0] == NULL) {

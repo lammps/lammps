@@ -28,6 +28,7 @@ class Improper : protected Pointers {
   double energy;                  // accumulated energies
   double virial[6];               // accumulated virial
   double *eatom,**vatom;          // accumulated per-atom energy/virial
+  double **cvatom;                // accumulated per-atom centroid virial
 
   // KOKKOS host/device flag and data masks
 
@@ -54,12 +55,12 @@ class Improper : protected Pointers {
 
   int evflag;
   int eflag_either,eflag_global,eflag_atom;
-  int vflag_either,vflag_global,vflag_atom;
-  int maxeatom,maxvatom;
+  int vflag_either,vflag_global,vflag_atom,cvflag_atom;
+  int maxeatom,maxvatom,maxcvatom;
 
   void ev_init(int eflag, int vflag, int alloc = 1) {
     if (eflag||vflag) ev_setup(eflag, vflag, alloc);
-    else evflag = eflag_either = eflag_global = eflag_atom = vflag_either = vflag_global = vflag_atom = 0;
+    else evflag = eflag_either = eflag_global = eflag_atom = vflag_either = vflag_global = vflag_atom = cvflag_atom = 0;
   }
   void ev_setup(int, int, int alloc = 1);
   void ev_tally(int, int, int, int, int, int, double,

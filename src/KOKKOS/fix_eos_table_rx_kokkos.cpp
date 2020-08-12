@@ -560,7 +560,7 @@ void FixEOStableRXKokkos<DeviceType>::create_kokkos_tables()
 
 namespace LAMMPS_NS {
 template class FixEOStableRXKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixEOStableRXKokkos<LMPHostType>;
 #endif
 }

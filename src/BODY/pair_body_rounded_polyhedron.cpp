@@ -271,7 +271,7 @@ void PairBodyRoundedPolyhedron::compute(int eflag, int vflag)
         continue;
       }
 
-      int interact, num_contacts;
+      int num_contacts;
       Contact contact_list[MAX_CONTACTS];
 
       num_contacts = 0;
@@ -280,22 +280,22 @@ void PairBodyRoundedPolyhedron::compute(int eflag, int vflag)
       #ifdef _POLYHEDRON_DEBUG
       printf("INTERACTION between edges of %d vs. faces of %d:\n", i, j);
       #endif
-      interact = edge_against_face(i, j, itype, jtype, x, contact_list,
-                                   num_contacts, evdwl, facc);
+      edge_against_face(i, j, itype, jtype, x, contact_list,
+                        num_contacts, evdwl, facc);
 
       // check interaction between j's edges and i' faces
       #ifdef _POLYHEDRON_DEBUG
       printf("\nINTERACTION between edges of %d vs. faces of %d:\n", j, i);
       #endif
-      interact = edge_against_face(j, i, jtype, itype, x, contact_list,
-                                   num_contacts, evdwl, facc);
+      edge_against_face(j, i, jtype, itype, x, contact_list,
+                        num_contacts, evdwl, facc);
 
       // check interaction between i's edges and j' edges
       #ifdef _POLYHEDRON_DEBUG
       printf("INTERACTION between edges of %d vs. edges of %d:\n", i, j);
       #endif
-      interact = edge_against_edge(i, j, itype, jtype, x, contact_list,
-                                   num_contacts, evdwl, facc);
+      edge_against_edge(i, j, itype, jtype, x, contact_list,
+                        num_contacts, evdwl, facc);
 
       // estimate the contact area
       // also consider point contacts and line contacts
@@ -2341,13 +2341,11 @@ void PairBodyRoundedPolyhedron::find_unique_contacts(Contact* contact_list,
 void PairBodyRoundedPolyhedron::sanity_check()
 {
 
-  double x1[3],x2[3],x3[3],x4[3],h_a[3],h_b[3],d_a,d_b;
+  double x1[3],x2[3],h_a[3],h_b[3],d_a,d_b;
   double a[3],b[3],t_a,t_b;
 
   x1[0] = 0; x1[1] = 3; x1[2] = 0;
   x2[0] = 3; x2[1] = 0; x2[2] = 0;
-  x3[0] = 4; x3[1] = 3; x3[2] = 0;
-  x4[0] = 5; x4[1] = 3; x4[2] = 0;
 
   a[0] = 0; a[1] = 0; a[2] = 0;
   b[0] = 4; b[1] = 0; b[2] = 0;

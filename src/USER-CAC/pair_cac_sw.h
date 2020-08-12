@@ -32,6 +32,8 @@ class PairCACSW : public PairCAC {
   void coeff(int, char **);
   virtual void init_style();
   virtual double init_one(int, int);
+  
+  static const int NPARAMS_PER_LINE = 14;
 
 	struct Param {
 		double epsilon, sigma;

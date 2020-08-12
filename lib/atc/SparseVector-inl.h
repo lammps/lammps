@@ -55,7 +55,7 @@ T dot(const SparseVector<T> &a, const SparseVector<T> &b)
   } 
   return v;
 }
-// Computes the product of a SparseMatrix tranpose with a SparseVector (M'*v).
+// Computes the product of a SparseMatrix transpose with a SparseVector (M'*v).
 template<class T>
 SparseVector<T> operator*(const SparseMatrix<T> &M, const SparseVector<T> &v)
 {
@@ -73,7 +73,7 @@ SparseVector<T> operator*(const SparseMatrix<T> &M, const SparseVector<T> &v)
   return y; 
 }
 
-// computes the product of a SparseMatrix tranpose with a SparseVector (M'*v).
+// computes the product of a SparseMatrix transpose with a SparseVector (M'*v).
 template<class T>
 SparseVector<T> operator*(const SparseVector<T> &v, const SparseMatrix<T> &M)
 {
@@ -106,7 +106,7 @@ std::string SparseVector<T>::to_string() const
 
 // Indexes the ith component of the vector or returns zero if not found. 
 template<class T>
-T SparseVector<T>::operator()(INDEX i, INDEX j) const
+T SparseVector<T>::operator()(INDEX i, INDEX /* j */) const
 {
   STORE::const_iterator it = data_.find(i);
   if (it == data_.end()) return 0.0;
@@ -115,7 +115,7 @@ T SparseVector<T>::operator()(INDEX i, INDEX j) const
 
 // Indexes the ith component of the vector or returns zero if not found. 
 template<class T>
-T& SparseVector<T>::operator()(INDEX i, INDEX j)
+T& SparseVector<T>::operator()(INDEX i, INDEX /* j */)
 {
   return data_[i]; 
 }
@@ -129,7 +129,7 @@ template<class T> T SparseVector<T>::operator[](INDEX i) const
 // Indexes the ith component of the vector or returns zero if not found. 
 template<class T> T& SparseVector<T>::operator[](INDEX i)
 {
-  return (*this)[i];
+  return (*this)(i);
 }
 
 // Returns a pair (index, value) for a nonzero in the vector.
@@ -177,7 +177,7 @@ SparseVector<T>& SparseVector<T>::operator=(const SparseVector<T> &c)
 
 // Changes the size of the SparseVector
 template<class T>
-void SparseVector<T>::resize(INDEX nRows, INDEX nCols, bool copy)
+void SparseVector<T>::resize(INDEX nRows, INDEX /* nCols */, bool copy)
 {
   length_ = nRows;
   STORE::iterator it;
@@ -202,16 +202,14 @@ void SparseVector<T>::zero()
 
 
 template<class T>
-void SparseVector<T>::copy(const T* ptr, INDEX nRows, INDEX nCols)
+void SparseVector<T>::copy(const T* /* ptr */, INDEX /* nRows */, INDEX /* nCols */)
 {
-
 }
 
 
 template<class T>
-void SparseVector<T>::write_restart(FILE *F) const
+void SparseVector<T>::write_restart(FILE */* F */) const
 {
-
 }
 
 // writes a stream to a matlab script to recreate this variable 

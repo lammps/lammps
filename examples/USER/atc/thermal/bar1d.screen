@@ -239,7 +239,7 @@ fix_modify      AtC  output bar1dFE 100 text binary
  ATC: Warning : text output can create _LARGE_ files
  ATC: output custom names:
 
-# ouput command
+# output command
 #dump            D1 all atom 1000 dump.bar1d
 # run with FE
 reset_timestep 0

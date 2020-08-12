@@ -16,6 +16,7 @@
    Updated: 06/17/2015-2
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "compute_xrd.h"
 #include <mpi.h>
 #include <cmath>
@@ -353,7 +354,7 @@ void ComputeXRD::compute_array()
   double frac = 0.1;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(typelocal,xlocal,Fvec,m,frac,ASFXRD)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(typelocal,xlocal,Fvec,m,frac,ASFXRD)
 #endif
   {
     double *f = new double[ntypes];    // atomic structure factor by type
@@ -513,7 +514,7 @@ void ComputeXRD::compute_array()
 
   if (me == 0 && echo) {
     if (screen)
-      fprintf(screen," 100%% \nTime ellapsed during compute_xrd = %0.2f sec using %0.2f Mbytes/processor\n-----\n", t2-t0, bytes/1024.0/1024.0);
+      fprintf(screen," 100%% \nTime elapsed during compute_xrd = %0.2f sec using %0.2f Mbytes/processor\n-----\n", t2-t0, bytes/1024.0/1024.0);
   }
 
   delete [] scratch;

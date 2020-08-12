@@ -12,6 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include <cmath>
 #include "pair_gauss_omp.h"
 #include "atom.h"
@@ -45,7 +46,7 @@ void PairGaussOMP::compute(int eflag, int vflag)
   double occ = 0.0;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag) reduction(+:occ)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag) reduction(+:occ)
 #endif
   {
     int ifrom, ito, tid;
@@ -53,7 +54,7 @@ void PairGaussOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
 
     if (evflag) {
       if (eflag) {
@@ -79,8 +80,7 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
 double PairGaussOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r2inv,forcelj,factor_lj;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int occ = 0;
 
@@ -90,7 +90,6 @@ double PairGaussOMP::eval(int iifrom, int iito, ThrData * const thr)
   dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
-  const double * _noalias const special_lj = force->special_lj;
   double fxtmp,fytmp,fztmp;
 
   ilist = list->ilist;
@@ -112,7 +111,6 @@ double PairGaussOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j].x;
@@ -128,10 +126,7 @@ double PairGaussOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (eflag_global && rsq < 0.5/b[itype][jtype]) occ++;
 
       if (rsq < cutsq[itype][jtype]) {
-        r2inv = 1.0/rsq;
-        forcelj = - 2.0*a[itype][jtype]*b[itype][jtype] * rsq *
-          exp(-b[itype][jtype]*rsq);
-        fpair = factor_lj*forcelj*r2inv;
+        fpair = -2.0*a[itype][jtype]*b[itype][jtype]*exp(-b[itype][jtype]*rsq);
 
         fxtmp += delx*fpair;
         fytmp += dely*fpair;
@@ -142,11 +137,9 @@ double PairGaussOMP::eval(int iifrom, int iito, ThrData * const thr)
           f[j].z -= delz*fpair;
         }
 
-        if (EFLAG) {
+        if (EFLAG)
           evdwl = -(a[itype][jtype]*exp(-b[itype][jtype]*rsq) -
                     offset[itype][jtype]);
-          evdwl *= factor_lj;
-        }
 
         if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
                                  evdwl,0.0,fpair,delx,dely,delz,thr);

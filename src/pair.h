@@ -26,6 +26,7 @@ class Pair : protected Pointers {
   friend class DihedralCharmm;
   friend class DihedralCharmmOMP;
   friend class FixGPU;
+  friend class FixIntel;
   friend class FixOMP;
   friend class ThrOMP;
   friend class Info;
@@ -36,6 +37,7 @@ class Pair : protected Pointers {
   double eng_vdwl,eng_coul;      // accumulated energies
   double virial[6];              // accumulated virial
   double *eatom,**vatom;         // accumulated per-atom energy/virial
+  double **cvatom;               // accumulated per-atom centroid virial
 
   double cutforce;               // max cutoff for all atom pairs
   double **cutsq;                // cutoff sq for each atom pair
@@ -46,10 +48,12 @@ class Pair : protected Pointers {
   int comm_reverse_off;          // size of reverse comm even if newton off
 
   int single_enable;             // 1 if single() routine exists
+  int single_hessian_enable;     // 1 if single_hessian() routine exists
   int restartinfo;               // 1 if pair style writes restart info
   int respa_enable;              // 1 if inner/middle/outer rRESPA routines
   int one_coeff;                 // 1 if allows only one coeff * * call
   int manybody_flag;             // 1 if a manybody potential
+  int unit_convert_flag;         // value != 0 indicates support for unit conversion.
   int no_virial_fdotr_compute;   // 1 if does not invoke virial_fdotr_compute()
   int writedata;                 // 1 if writes coeffs to data file
   int ghostneigh;                // 1 if pair style needs neighbors of ghosts
@@ -64,13 +68,18 @@ class Pair : protected Pointers {
   int spinflag;                  // 1 if compatible with spin solver
   int reinitflag;                // 1 if compatible with fix adapt and alike
 
+  int centroidstressflag;        // compatibility with centroid atomic stress
+                                 // 1 if same as two-body atomic stress
+                                 // 2 if implemented and different from two-body
+                                 // 4 if not compatible/implemented
+
   int tail_flag;                 // pair_modify flag for LJ tail correction
   double etail,ptail;            // energy/pressure tail corrections
   double etail_ij,ptail_ij;
 
   int evflag;                    // energy,virial settings
   int eflag_either,eflag_global,eflag_atom;
-  int vflag_either,vflag_global,vflag_atom;
+  int vflag_either,vflag_global,vflag_atom,cvflag_atom;
 
   int ncoultablebits;            // size of Coulomb table, accessed by KSpace
   int ndisptablebits;            // size of dispersion table
@@ -148,6 +157,16 @@ class Pair : protected Pointers {
     return 0.0;
   }
 
+  void hessian_twobody(double fforce, double dfac, double delr[3], double phiTensor[6]);
+
+  virtual double single_hessian(int, int, int, int,
+                        double, double[3], double, double,
+                        double& fforce, double d2u[6]) {
+    fforce = 0.0;
+    for (int i=0; i<6; i++) d2u[i] = 0;
+    return 0.0;
+  }
+
   virtual void settings(int, char **) = 0;
   virtual void coeff(int, char **) = 0;
 
@@ -218,7 +237,7 @@ class Pair : protected Pointers {
 
  protected:
   int vflag_fdotr;
-  int maxeatom,maxvatom;
+  int maxeatom,maxvatom,maxcvatom;
 
   int copymode;   // if set, do not deallocate during destruction
                   // required when classes are used as functors by Kokkos
@@ -239,17 +258,6 @@ class Pair : protected Pointers {
   void v_tally_tensor(int, int, int, int,
                       double, double, double, double, double, double);
   void virial_fdotr_compute();
-
-  // union data struct for packing 32-bit and 64-bit ints into double bufs
-  // see atom_vec.h for documentation
-
-  union ubuf {
-    double d;
-    int64_t i;
-    ubuf(double arg) : d(arg) {}
-    ubuf(int64_t arg) : i(arg) {}
-    ubuf(int arg) : i(arg) {}
-  };
 
   inline int sbmask(int j) const {
     return j >> SBBITS & 3;

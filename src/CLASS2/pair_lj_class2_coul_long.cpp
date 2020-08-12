@@ -27,6 +27,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -47,6 +48,7 @@ PairLJClass2CoulLong::PairLJClass2CoulLong(LAMMPS *lmp) : Pair(lmp)
   respa_enable = 1;
   writedata = 1;
   ftable = NULL;
+  cut_respa = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -261,8 +263,8 @@ void PairLJClass2CoulLong::compute_inner()
 
         jtype = type[j];
         if (rsq < cut_ljsq[itype][jtype]) {
-		  rinv = sqrt(r2inv);
-		  r3inv = r2inv*rinv;
+                  rinv = sqrt(r2inv);
+                  r3inv = r2inv*rinv;
           r6inv = r3inv*r3inv;
           forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
         } else forcelj = 0.0;
@@ -353,8 +355,8 @@ void PairLJClass2CoulLong::compute_middle()
 
         jtype = type[j];
         if (rsq < cut_ljsq[itype][jtype]) {
-		  rinv = sqrt(r2inv);
-		  r3inv = r2inv*rinv;
+                  rinv = sqrt(r2inv);
+                  r3inv = r2inv*rinv;
           r6inv = r3inv*r3inv;
           forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
         } else forcelj = 0.0;
@@ -486,9 +488,9 @@ void PairLJClass2CoulLong::compute_outer(int eflag, int vflag)
         } else forcecoul = 0.0;
 
         if (rsq < cut_ljsq[itype][jtype] && rsq > cut_in_off_sq) {
-		  rinv = sqrt(r2inv);
-		  r3inv = r2inv*rinv;
-		  r6inv = r3inv*r3inv;
+                  rinv = sqrt(r2inv);
+                  r3inv = r2inv*rinv;
+                  r6inv = r3inv*r3inv;
           forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
           if (rsq < cut_in_on_sq) {
             rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff;
@@ -524,9 +526,9 @@ void PairLJClass2CoulLong::compute_outer(int eflag, int vflag)
           } else ecoul = 0.0;
 
           if (rsq < cut_ljsq[itype][jtype]) {
-			rinv = sqrt(r2inv);
-			r3inv = r2inv*rinv;
-			r6inv = r3inv*r3inv;
+                        rinv = sqrt(r2inv);
+                        r3inv = r2inv*rinv;
+                        r6inv = r3inv*r3inv;
             evdwl = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
               offset[itype][jtype];
             evdwl *= factor_lj;
@@ -551,13 +553,13 @@ void PairLJClass2CoulLong::compute_outer(int eflag, int vflag)
 
           if (rsq <= cut_in_off_sq) {
             rinv = sqrt(r2inv);
-			r3inv = r2inv*rinv;
-			r6inv = r3inv*r3inv;
+                        r3inv = r2inv*rinv;
+                        r6inv = r3inv*r3inv;
             forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
           } else if (rsq <= cut_in_on_sq) {
-			rinv = sqrt(r2inv);
-			r3inv = r2inv*rinv;
-			r6inv = r3inv*r3inv;
+                        rinv = sqrt(r2inv);
+                        r3inv = r2inv*rinv;
+                        r6inv = r3inv*r3inv;
             forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
           }
           fpair = (forcecoul + factor_lj*forcelj) * r2inv;
@@ -663,33 +665,33 @@ void PairLJClass2CoulLong::init_style()
   if (!atom->q_flag)
     error->all(FLERR,
                "Pair style lj/class2/coul/long requires atom attribute q");
-  
+
   // request regular or rRESPA neighbor list
-  
+
   int irequest;
   int respa = 0;
-  
+
   if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
-	if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+        if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
   }
-  
+
   irequest = neighbor->request(this,instance_me);
-  
+
   if (respa >= 1) {
     neighbor->requests[irequest]->respaouter = 1;
-	neighbor->requests[irequest]->respainner = 1;
+        neighbor->requests[irequest]->respainner = 1;
   }
   if (respa == 2) neighbor->requests[irequest]->respamiddle = 1;
 
   cut_coulsq = cut_coul * cut_coul;
-  
+
   // set rRESPA cutoffs
-  
+
   if (strstr(update->integrate_style,"respa") &&
       ((Respa *) update->integrate)->level_inner >= 0)
     cut_respa = ((Respa *) update->integrate)->cutoff;
-  else cut_respa = NULL;	
+  else cut_respa = NULL;
 
   // insure use of KSpace long-range solver, set g_ewald
 
@@ -738,9 +740,9 @@ double PairLJClass2CoulLong::init_one(int i, int j)
   lj3[j][i] = lj3[i][j];
   lj4[j][i] = lj4[i][j];
   offset[j][i] = offset[i][j];
-  
+
   // check interior rRESPA cutoff
-  
+
   if (cut_respa && MIN(cut_lj[i][j],cut_coul) < cut_respa[3])
     error->all(FLERR,"Pair cutoff < Respa interior cutoff");
 
@@ -805,13 +807,13 @@ void PairLJClass2CoulLong::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&epsilon[i][j],sizeof(double),1,fp);
-          fread(&sigma[i][j],sizeof(double),1,fp);
-          fread(&cut_lj[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_lj[i][j],sizeof(double),1,fp,NULL,error);
         }
         MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
@@ -842,13 +844,13 @@ void PairLJClass2CoulLong::write_restart_settings(FILE *fp)
 void PairLJClass2CoulLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_lj_global,sizeof(double),1,fp);
-    fread(&cut_coul,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
-    fread(&tail_flag,sizeof(int),1,fp);
-    fread(&ncoultablebits,sizeof(int),1,fp);
-    fread(&tabinner,sizeof(double),1,fp);
+    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&ncoultablebits,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tabinner,sizeof(double),1,fp,NULL,error);
   }
   MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);

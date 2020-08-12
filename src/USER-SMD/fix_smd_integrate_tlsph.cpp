@@ -203,8 +203,8 @@ void FixSMDIntegrateTlsph::final_integrate() {
 
         double **v = atom->v;
         double **f = atom->f;
-        double *e = atom->e;
-        double *de = atom->de;
+        double *esph = atom->esph;
+        double *desph = atom->desph;
         double *rmass = atom->rmass;
         int *mask = atom->mask;
         int nlocal = atom->nlocal;
@@ -231,7 +231,7 @@ void FixSMDIntegrateTlsph::final_integrate() {
                                 }
                         }
 
-                        e[i] += dtv * de[i];
+                        esph[i] += dtv * desph[i];
                 }
         }
 }

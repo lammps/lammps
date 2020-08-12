@@ -53,7 +53,7 @@ namespace ATC {
   //    parses and adjusts charge regulator state based on
   //    user input, in the style of LAMMPS user input
   //--------------------------------------------------------
-  bool ChargeRegulator::modify(int narg, char **arg)
+  bool ChargeRegulator::modify(int /* narg */, char ** /* arg */)
   {
     bool foundMatch = false;
     return foundMatch;
@@ -214,7 +214,7 @@ namespace ATC {
     qV2e_ = lammpsInterface_->qv2e();
     qqrd2e_ = lammpsInterface_->qqrd2e();
 
-    // note derived method set intialized to true
+    // note derived method set initialized to true
   }
 
   
@@ -241,7 +241,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  output
   //--------------------------------------------------------
-  void ChargeRegulatorMethod::output(OUTPUT_LIST & outputData)
+  void ChargeRegulatorMethod::output(OUTPUT_LIST & /* outputData */)
   {
     //vector<double> localSum(sum_.size());
     //lammpsInteface_->allsum(localSum.pointer,sum_.pointer,sum_.size());
@@ -327,7 +327,7 @@ namespace ATC {
 
 
 //
-    if (nInfluenceNodes_ < nControlNodes_) throw ATC_Error(" least square not implmented ");
+    if (nInfluenceNodes_ < nControlNodes_) throw ATC_Error(" least square not implemented ");
     if (nInfluenceNodes_ > nControlNodes_) throw ATC_Error(" solve not possible ");
     DENS_MAT G(nInfluenceNodes_,nControlNodes_); 
     DENS_VEC G_I;
@@ -383,7 +383,7 @@ namespace ATC {
   //--------------------------------------------------------
   // change potential/charge pre-force calculation
   //--------------------------------------------------------
-  void ChargeRegulatorMethodFeedback::apply_pre_force(double dt)
+  void ChargeRegulatorMethodFeedback::apply_pre_force(double /* dt */)
   {
 
     sum_ = 0; 
@@ -455,7 +455,7 @@ namespace ATC {
   //--------------------------------------------------------
   // change potential/charge post-force calculation
   //--------------------------------------------------------
-  void ChargeRegulatorMethodImageCharge::apply_post_force(double dt)
+  void ChargeRegulatorMethodImageCharge::apply_post_force(double /* dt */)
   {
     sum_ = 0;
     apply_local_forces();
@@ -644,7 +644,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  add effective forces post LAMMPS force call
   //--------------------------------------------------------
-  void ChargeRegulatorMethodEffectiveCharge::apply_post_force(double dt) 
+  void ChargeRegulatorMethodEffectiveCharge::apply_post_force(double /* dt */) 
   {
     apply_local_forces();
   }

@@ -1,0 +1,60 @@
+# Bulk polyelectrolyte as described in section IV of J. Chem. Phys. 125, 224107 (2006)
+
+boundary        p p p
+
+units           lj
+atom_style      charge
+
+region 			    my_sim_box block 0.0 10.0 0.0 10.0 0.0 10.0
+create_box 		  3 my_sim_box
+
+create_atoms 	  1 random 2804 100 my_sim_box
+create_atoms    2 random 98 200 my_sim_box
+create_atoms    3 random 98 300 my_sim_box
+
+set				      type 2 charge -1.0
+set 			      type 3 charge  1.0
+
+comm_modify     mode single vel yes
+
+mass            1 1.0
+mass			      2 1.0
+mass			      3 1.0
+
+pair_style      hybrid/overlay dpd 1.0 1.0 245455 coul/slater/long 0.929 3.0
+pair_coeff      * * dpd 25.0 4.5
+pair_coeff		  * * coul/slater/long
+
+kspace_style    ewald 0.00001
+dielectric      1.0
+
+neighbor        2.0 bin
+neigh_modify    every 1 delay 0 check no once no
+
+timestep        0.02
+
+fix             2 all nve
+
+thermo          10
+thermo_style    custom step spcpu temp press etotal pe ke ecoul elong evdwl
+thermo_modify   line one
+
+run             100000
+write_data		  data.after_equilibration
+
+compute         RDF_1_1 all rdf 50 1 1 cutoff 3.0
+compute         RDF_1_2 all rdf 50 1 2 cutoff 3.0
+compute         RDF_1_3 all rdf 50 1 3 cutoff 3.0
+compute         RDF_2_2 all rdf 50 2 2 cutoff 3.0
+compute         RDF_2_3 all rdf 50 2 3 cutoff 3.0
+compute         RDF_3_3 all rdf 50 3 3 cutoff 3.0
+
+fix             11 all ave/time 50 1 50 c_RDF_1_1[*] file tmp_1_1.rdf mode vector
+fix             12 all ave/time 50 1 50 c_RDF_1_2[*] file tmp_1_2.rdf mode vector
+fix             13 all ave/time 50 1 50 c_RDF_1_3[*] file tmp_1_3.rdf mode vector
+fix             14 all ave/time 50 1 50 c_RDF_2_2[*] file tmp_2_2.rdf mode vector
+fix             15 all ave/time 50 1 50 c_RDF_2_3[*] file tmp_2_3.rdf mode vector
+fix             16 all ave/time 50 1 50 c_RDF_3_3[*] file tmp_3_3.rdf mode vector
+
+run				      10000
+write_data		  data.after_production_run

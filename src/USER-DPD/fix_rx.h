@@ -124,7 +124,7 @@ class FixRX : public Fix {
 
   // ODE Diagnostics
   //int nSteps; //!< # of accepted steps taken over all atoms.
-  //int nIters; //!< # of attemped steps for all atoms.
+  //int nIters; //!< # of attempted steps for all atoms.
   //int nFuncs; //!< # of RHS evaluations for all atoms.
   //int nFails; //!< # of ODE systems that failed (for some reason).
 

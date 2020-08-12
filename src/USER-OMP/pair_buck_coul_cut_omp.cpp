@@ -12,6 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include <cmath>
 #include "pair_buck_coul_cut_omp.h"
 #include "atom.h"
@@ -43,7 +44,7 @@ void PairBuckCoulCutOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -51,7 +52,7 @@ void PairBuckCoulCutOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
 
     if (evflag) {
       if (eflag) {
@@ -136,7 +137,7 @@ void PairBuckCoulCutOMP::eval(int iifrom, int iito, ThrData * const thr)
           forcebuck = buck1[itype][jtype]*r*rexp - buck2[itype][jtype]*r6inv;
         } else forcebuck = 0.0;
 
-        fpair = (forcecoul + factor_lj*forcebuck)*r2inv;
+        fpair = (factor_coul*forcecoul + factor_lj*forcebuck)*r2inv;
 
         fxtmp += delx*fpair;
         fytmp += dely*fpair;

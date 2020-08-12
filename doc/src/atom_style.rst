@@ -10,7 +10,7 @@ Syntax
 
    atom_style style args
 
-* style = *angle* or *atomic* or *body* or *bond* or *charge* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *molecular* or *peri* or *smd* or *sph* or *sphere* or *spin* or *tdpd* or *tri* or *template* or *hybrid*
+* style = *angle* or *atomic* or *body* or *bond* or *charge* or *cac* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *molecular* or *peri* or *smd* or *sph* or *sphere* or *spin* or *tdpd* or *tri* or *template* or *hybrid*
 
   .. parsed-literal::
 
@@ -21,6 +21,10 @@ Syntax
                          see the :doc:`Howto body <Howto_body>` doc
                          page for details
          *sphere* arg = 0/1 (optional) for static/dynamic particle radii
+         *cac* args = max_nodes_per_element max_iDOF_per_element
+           max_nodes_per_element = maximum # of nodes an element in the model can have
+           max_iDOF_per_element = maximum # of internal DOF an element in the model can have
+                         see the :doc:`Howto CAC <Howto_cac>` doc page for details and other CAC substyles
          *tdpd* arg = Nspecies
            Nspecies = # of chemical species
          *template* arg = template-ID
@@ -28,6 +32,7 @@ Syntax
          *hybrid* args = list of one or more sub-styles, each with their args
 
 * accelerated styles (with same args) = *angle/kk* or *atomic/kk* or *bond/kk* or *charge/kk* or *full/kk* or *molecular/kk*
+
 
 Examples
 """"""""
@@ -43,6 +48,7 @@ Examples
    atom_style spin
    atom_style template myMols
    atom_style tdpd 2
+   atom_style cac 8 4
 
 Description
 """""""""""
@@ -84,6 +90,8 @@ quantities.
 | *body*       | mass, inertia moments, quaternion, angular momentum | arbitrary bodies                     |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *bond*       | bonds                                               | bead-spring polymers                 |
++--------------+-----------------------------------------------------+--------------------------------------+
+| *cac*        | coarse-grained matter                               | finite elements and atoms            |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *charge*     | charge                                              | atomic system with charges           |
 +--------------+-----------------------------------------------------+--------------------------------------+
@@ -355,6 +363,9 @@ The *spin* style is part of the SPIN package.
 
 The *wavepacket* style is part of the USER-AWPMD package for the
 :doc:`antisymmetrized wave packet MD method <pair_awpmd>`.
+
+The *cac* style is part of the USER-CAC package for 
+Concurrent Atomistic Continuum Simulations (CAC).
 
 Related commands
 """"""""""""""""

@@ -114,6 +114,10 @@ protected:
 
 /* ERROR/WARNING messages:
 
+E: Too many bin overlaps for one element; simulation may be unstable
+
+Checks if the bin overlap count for one element is too large, due to instability or error, to prevent deadlock.
+
 E: excessive/negative bin index
 
 Internal debug error message that may be removed in the near future.

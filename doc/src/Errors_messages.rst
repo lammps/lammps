@@ -365,6 +365,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Format of bigint stored in restart file is not consistent with LAMMPS
    version you are running.  See the settings in src/lmptype.h
 
+*Bin limits are very large; simulation may be unstable*
+   A CAC element is occupying a large volume for some reason, check simulation
+   input settings for correctness and make sure the simulation process is stable.
+
 *Bitmapped lookup tables require int/float be same size*
    Cannot use pair tables on this machine, because of word sizes.  Use
    the pair_modify command with table 0 instead.
@@ -565,6 +569,30 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    When using Gay-Berne or RE-squared pair styles with both ellipsoidal and
    spherical particles, the neighbor list must be built on the CPU
 
+*CAC atom style does not yet support writing data files*
+   Self-explanatory.
+
+*CAC atom styles require a CAC comm style*
+   Self-explanatory.
+
+*CAC dump styles require a CAC atom style*
+   Self-explanatory.
+
+*CAC fix styles require a CAC atom style*
+   Self-explanatory.
+
+*CAC min styles require a CAC atom style*
+   Self-explanatory.
+
+*CAC min styles require a CAC pair style*
+   Self-explanatory.
+
+*CAC pair style requires a CAC atom style*
+   Self-explanatory.
+
+*CAC pair style requires a CAC comm style*
+   Self-explanatory.
+
 *Can not specify Pxy/Pxz/Pyz in fix box/relax with non-triclinic box*
    Only triclinic boxes can be used with off-diagonal pressure components.
    See the region prism command for details.
@@ -586,6 +614,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    This is current restriction for NEB as implemented in LAMMPS.
 
 *Can only use TAD with 1-processor replicas for NEB*
+   This is current restriction for NEB as implemented in LAMMPS.
+
+*Can only use comm style CAC with brick and rcb decompositions*
    This is current restriction for NEB as implemented in LAMMPS.
 
 *Cannot (yet) do analytic differentiation with pppm/gpu*
@@ -658,6 +689,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    This is because some dumps store the shape of the box.  You need to
    use undump to discard the dump, change the box, then redefine a new
    dump.
+
+*Cannot use comm\_style cac with non CAC atom style*
+   Self-explanatory.
+
+*Cannot use the CAC comm style without a CAC pair style*
+   Self-explanatory.
 
 *Cannot change box tilt factors for orthogonal box*
    Cannot use tilt factors unless the simulation box is non-orthogonal.
@@ -1809,12 +1846,6 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot yet use KSpace solver with grid with comm style tiled*
    This is current restriction in LAMMPS.
 
-*Cannot yet use comm_style tiled with multi-mode comm*
-   Self-explanatory.
-
-*Cannot yet use comm_style tiled with triclinic box*
-   Self-explanatory.
-
 *Cannot yet use compute tally with Kokkos*
    This feature is not yet supported.
 
@@ -1902,6 +1933,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Compute %s does not allow use of dynamic group*
    Dynamic groups have not yet been enabled for this compute.
+
+*Compute cac/nodal/temp requires a CAC atom style*
+   Self-explanatory.
+
+*Compute cac/quad/count requires a CAC atom style*
+   Self-explanatory.
 
 *Compute ID for compute chunk /atom does not exist*
    Self-explanatory.
@@ -3119,6 +3156,13 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Element not defined in potential file*
    The specified element is not in the potential file.
+
+*Element type not yet defined, add definition in process_args function of atom_vec_cac.cpp style.*
+   Self-explanatory. Contact author for detailed advice if encountering issues defining a new element type.
+
+*Element type requires a greater number of nodes than the specified maximum nodes per element passed to atom style cac.*
+   One of the input element types in your data file requires more nodes than the maximum you specified as an
+   arg to the atom style cac command.
 
 *Empty brackets in variable*
    There is no variable syntax that uses empty brackets.  Check
@@ -4541,6 +4585,18 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Incorrect # of integer values in Bodies section of data file*
    See doc page for body style.
 
+*Incorrect element header line format in data file*
+   USER-CAC package error. One of your element inputs has the
+   wrong format for its header line. See the documentation for 
+   format and syntax and check your data file.
+
+*Incorrect node line format for this CAC atom style*
+   USER-CAC package error. One of your element inputs has the
+   wrong format for its node lines. Specifically the number of
+   entries is incorrect for some reason; perhaps the atom substyle
+   is not the correct one for your data file or you missed lines
+   for the previously read element.
+
 *Incorrect %s format in data file*
    A section of the data file being read by fix property/atom does
    not have the correct number of values per line.
@@ -4851,6 +4907,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid atom mass in molecule file*
    Masses must be > 0.0.
 
+*Invalid atom_style cac command*
+   Check the documentation for the correct arguments
+   to the cac atom styles.
+
 *Invalid atom type in Atoms section of data file*
    Atom types must range from 1 to specified # of types.
 
@@ -4869,6 +4929,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Invalid atom type in fix bond/create command*
    Self-explanatory.
+
+*Invalid atom type in CAC Elements section of data file*
+
+Atom types must range from 1 to specified # of types.
 
 *Invalid atom type in fix deposit command*
    Self-explanatory.
@@ -5293,6 +5357,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid math/group/special function in variable formula*
    Self-explanatory.
 
+*Invalid node index in CAC Elements section of data file.*
+   A node index supplied as part of a CAC element's definition is not within the range of possible 
+   node indices (1-element_node_count) for this element type.
+
 *Invalid option in lattice command for non-custom style*
    Certain lattice keywords are not supported unless the
    lattice style is "custom".
@@ -5318,6 +5386,11 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid partitions in processors part command*
    Valid partitions are numbered 1 to N and the sender and receiver
    cannot be the same partition.
+
+*Invalid poly index in CAC Elements section of data file*
+   A poly index supplied as part of a CAC element's definition
+   is not within the range of possible poly indices (1-poly_count)
+   for the poly_count declared in the element's header line.
 
 *Invalid python command*
    Self-explanatory.  Check the input script syntax and compare to the
@@ -5621,6 +5694,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    box, or moved further than one processor's sub-domain away before
    reneighboring.
 
+*LU matrix is degenerate*
+For some reason the mass matrix for one of the finite elements defined
+in your CAC model is ill conditioned. Check shape function definitions.
+
 *MEAM library error %d*
    A call to the MEAM Fortran library returned an error.
 
@@ -5787,6 +5864,13 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *More than one fix shake*
    Only one fix shake can be defined.
+
+*More than one type assigned to the same poly index in an element.*
+   The poly index represents an internal variable of the underlying
+   crystal structure approximated by the given finite element. Since
+   each such internal variable essentially represents a particle
+   spanning a deforming lattice it is not correct to associate
+   two different mass types to one poly index.
 
 *Mu not allowed when not using semi-grand in fix atom/swap command*
    Self-explanatory.
@@ -6282,6 +6366,13 @@ keyword to allow for additional bonds to be formed
 *POEMS fix must come before NPT/NPH fix*
    NPT/NPH fix must be defined in input script after all poems fixes,
    else the fix contribution to the pressure virial is incorrect.
+
+*poly count declared in data file was greater than maxpoly in input file.*
+   One of the input poly counts for an element in the data file 
+   was greater than the maximum declared poly count that was 
+   passed as an arg to the atom style cac invocation. Increase 
+   the argument value to be greater than any poly count in your 
+   data file.
 
 *PPPM can only currently be used with comm_style brick*
    This is a current restriction in LAMMPS.
@@ -7623,6 +7714,12 @@ keyword to allow for additional bonds to be formed
 *The package gpu command is required for gpu styles*
    Self-explanatory.
 
+*There are more nodes for one internal DOF than the element type admits*
+   One of the poly indices has too many nodes associated with it in the
+   declaration of element data. Make sure that the total number of line entries
+   after your element header is element\_node\_count\*poly\_count and that each
+   poly index appears element\_node\_count times.
+
 *Thermo and fix not computed at compatible times*
    Fixes generate values on specific timesteps.  The thermo output
    does not match these timesteps.
@@ -7773,6 +7870,11 @@ keyword to allow for additional bonds to be formed
 *Too many atoms to dump sort*
    Cannot sort when running with more than 2\^31 atoms.
 
+*Too many bin overlaps for one element; simulation may be unstable*
+   For some reason, one of the CAC elements is occupying a very large volume; this
+   is typically a sign of an unstable simulation setup. Verify simulation model
+   and settings.
+
 *Too many elements extracted from MEAM library.*
    Increase 'maxelt' in meam.h and recompile.
 
@@ -7873,6 +7975,18 @@ keyword to allow for additional bonds to be formed
 *Unbalanced quotes in input line*
    No matching end double quote was found following a leading double
    quote.
+
+*Unexpected argument in CAC pair style invocation*
+   Self-explanatory. Check the input script or data file. See the documentation
+   for appropriate syntax.
+
+*Unexpected argument in cac/coul/wolf invocation*
+   Self-explanatory. Check the input script. See the documentation
+   for appropriate syntax.
+
+*Unexpected argument in cac/lj invocation; only accepts cutoff and the 'one' keyword*
+   Self-explanatory. Check the input script. See the documentation
+   for appropriate syntax.
 
 *Unexpected end of -reorder file*
    Self-explanatory.
@@ -8123,6 +8237,30 @@ keyword to allow for additional bonds to be formed
    Self-explanatory.
 
 *Variable for fix aveforce is invalid style*
+   Only equal-style variables can be used.
+
+*Variable for fix cac/addforce does not exist*
+   Self-explanatory.
+
+*Variable for fix cac/addforce is invalid style*
+   Only equal-style variables can be used.
+
+*Variable for fix cac/setforce does not exist*
+   Self-explanatory.
+
+*Variable for fix cac/setforce is invalid style*
+   Only equal-style variables can be used.
+
+*Variable for fix cac/setvelocity does not exist*
+   Self-explanatory.
+
+*Variable for fix cac/setvelocity is invalid style*
+   Only equal-style variables can be used.
+
+*Variable for fix cac/temp/rescale does not exist*
+   Self-explanatory.
+
+*Variable for fix cac/temp/rescale is invalid style*
    Only equal-style variables can be used.
 
 *Variable for fix deform is invalid style*

@@ -256,7 +256,7 @@ void NPairCAC::build(NeighList *list)
   neigh_count = 0;
   nbins_searched = 0;
   //debug check for instability
-  if(nbin_element_overlap[i] > MAXBIN) error->one(FLERR," too many bin overlaps for one element; simulation may be unstable");
+  if(nbin_element_overlap[i] > MAXBIN) error->one(FLERR," Too many bin overlaps for one element; simulation may be unstable");
   for(int ocount=0; ocount < nbin_element_overlap[i]; ocount++){
     ibin = bin_element_overlap[i][ocount];
   for (k = 0; k < nstencil; k++) {

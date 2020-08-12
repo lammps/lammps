@@ -441,18 +441,18 @@ void NBinCAC::bin_atoms()
       if(element_type[i]!=0) rboundingbox2bins(i);
       atom2bin[i] = ibin;
       if(element_type[i]==0){
-            if(!atom->bin_foreign){
-            current_bin_ncount=bin_ncontent[ibin];
-            if(bin_ncontent[ibin]==MAXBINCONTENT+bin_expansion_counts[ibin]*EXPAND){
+        if(!atom->bin_foreign){
+          current_bin_ncount=bin_ncontent[ibin];
+          if(bin_ncontent[ibin]==MAXBINCONTENT+bin_expansion_counts[ibin]*EXPAND){
             bin_expansion_counts[ibin]++;
             memory->grow(bin_content[ibin],MAXBINCONTENT+bin_expansion_counts[ibin]*EXPAND,"neigh:bin_content grow");
-            }
-            bin_content[ibin][current_bin_ncount] = i;
-            bin_ncontent[ibin]++;
-            }
+          }
+          bin_content[ibin][current_bin_ncount] = i;
+          bin_ncontent[ibin]++;
+        }
 
-            bin_element_overlap[i][nbin_element_overlap[i]]=ibin;
-            nbin_element_overlap[i]++;
+        bin_element_overlap[i][nbin_element_overlap[i]]=ibin;
+        nbin_element_overlap[i]++;
       }
       else{
       for(int overlapx=bin_overlap_limits[0]; overlapx<=bin_overlap_limits[3]; overlapx++){
@@ -491,18 +491,18 @@ void NBinCAC::bin_atoms()
       if(element_type[i]!=0) rboundingbox2bins(i);
       atom2bin[i] = ibin;
       if(element_type[i]==0){
-            if(!atom->bin_foreign){
-            current_bin_ncount=bin_ncontent[ibin];
-            if(bin_ncontent[ibin]==MAXBINCONTENT+bin_expansion_counts[ibin]*EXPAND){
+        if(!atom->bin_foreign){
+          current_bin_ncount=bin_ncontent[ibin];
+          if(bin_ncontent[ibin]==MAXBINCONTENT+bin_expansion_counts[ibin]*EXPAND){
             bin_expansion_counts[ibin]++;
             memory->grow(bin_content[ibin],MAXBINCONTENT+bin_expansion_counts[ibin]*EXPAND,"neigh:bin_content grow");
-            }
+          }
             bin_content[ibin][current_bin_ncount] = i;
             bin_ncontent[ibin]++;
-            }
+        }
 
-            bin_element_overlap[i][nbin_element_overlap[i]]=ibin;
-            nbin_element_overlap[i]++;
+        bin_element_overlap[i][nbin_element_overlap[i]]=ibin;
+        nbin_element_overlap[i]++;
       }
       else{
       for(int overlapx=bin_overlap_limits[0]; overlapx<=bin_overlap_limits[3]; overlapx++){
@@ -546,18 +546,18 @@ void NBinCAC::bin_atoms()
       if(ibin<0) error->one(FLERR," negative bin index");
       if(ibin>=mbins) error->one(FLERR," excessive bin index");
       if(element_type[i]==0){
-            if(!atom->bin_foreign){
-            current_bin_ncount=bin_ncontent[ibin];
-            if(bin_ncontent[ibin]==MAXBINCONTENT+bin_expansion_counts[ibin]*EXPAND){
+        if(!atom->bin_foreign){
+          current_bin_ncount=bin_ncontent[ibin];
+          if(bin_ncontent[ibin]==MAXBINCONTENT+bin_expansion_counts[ibin]*EXPAND){
             bin_expansion_counts[ibin]++;
             memory->grow(bin_content[ibin],MAXBINCONTENT+bin_expansion_counts[ibin]*EXPAND,"neigh:bin_content grow");
-            }
-            bin_content[ibin][current_bin_ncount] = i;
-            bin_ncontent[ibin]++;
-            }
+          }
+          bin_content[ibin][current_bin_ncount] = i;
+          bin_ncontent[ibin]++;
+        }
 
-            bin_element_overlap[i][nbin_element_overlap[i]]=ibin;
-            nbin_element_overlap[i]++;
+        bin_element_overlap[i][nbin_element_overlap[i]]=ibin;
+        nbin_element_overlap[i]++;
       }
       if(element_type[i]!=0){
       for(int overlapx=bin_overlap_limits[0]; overlapx<=bin_overlap_limits[3]; overlapx++){
@@ -768,11 +768,13 @@ if (x[2] > bsubboxhi[2])
   bin_overlap_limits[3]=ixh;
   bin_overlap_limits[4]=iyh;
   bin_overlap_limits[5]=izh;
-  }
+
   //check if bin limits exceed error limits
-  if(bin_overlap_limits[3]-bin_overlap_limits[0]>BINLIMIT) error->one(FLERR,"bin limits are very large; simulation may be unstable");
-  if(bin_overlap_limits[4]-bin_overlap_limits[1]>BINLIMIT) error->one(FLERR,"bin limits are very large; simulation may be unstable");
-  if(bin_overlap_limits[5]-bin_overlap_limits[2]>BINLIMIT) error->one(FLERR,"bin limits are very large; simulation may be unstable");
+  if(bin_overlap_limits[3]-bin_overlap_limits[0]>BINLIMIT) error->one(FLERR,"Bin limits are very large; simulation may be unstable");
+  if(bin_overlap_limits[4]-bin_overlap_limits[1]>BINLIMIT) error->one(FLERR,"Bin limits are very large; simulation may be unstable");
+  if(bin_overlap_limits[5]-bin_overlap_limits[2]>BINLIMIT) error->one(FLERR,"Bin limits are very large; simulation may be unstable");
+  }
+  
   return (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
 }
 

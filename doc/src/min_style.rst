@@ -10,7 +10,7 @@ Syntax
 
    min_style style
 
-* style = *cg* or *hftn* or *sd* or *quickmin* or *fire* or *fire/old* or *spin* or *spin/cg* or *spin/lbfgs*
+* style = *cg* or *hftn* or *sd* or *quickmin* or *fire* or *fire/old* or *spin* or *spin/cg* or *spin/lbfgs* or *cac/cg* or *cac/fire*
 
 Examples
 """"""""
@@ -98,6 +98,10 @@ context of nudged elastic band (NEB) calculations via the :doc:`neb
 Either the *spin*\ , *spin/cg* and *spin/lbfgs* styles are useful in
 the context of magnetic geodesic nudged elastic band (GNEB)
 calculations via the :doc:`neb/spin <neb_spin>` command.
+
+Styles *cac/cg* and cac/fire* performs the same functionality as styles *cg*
+and *fire* , respectively, for the CAC package with atoms and finite elements. These styles
+requires a CAC :doc:`atom_style <atom_style>`
 
 .. note::
 

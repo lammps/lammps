@@ -10,7 +10,7 @@ Syntax
 
    comm_style style
 
-* style = *brick* or *tiled*
+* style = *brick* or *tiled* or *cac*
 
 Examples
 """"""""
@@ -19,6 +19,7 @@ Examples
 
    comm_style brick
    comm_style tiled
+   comm_style cac
 
 Description
 """""""""""
@@ -52,10 +53,16 @@ decomposition will be the same, as described by
 commands.  The decomposition can be changed via the
 :doc:`balance <balance>` or :doc:`fix balance <fix_balance>` commands.
 
+The cac style inherits the features of comm style tiled, with the additional
+restriction of not using the *multi* comm modify option. This
+style is utilized with the USER-CAC package. For more information
+about the USER-CAC package see :doc:`Howto CAC <Howto_cac>` for details.
+
 Restrictions
 """"""""""""
 
-None
+The *cac* comm style requires a CAC atom style and pair style to be invoked.
+The *cac* comm style cannot be used with the *multi* comm modify option.
 
 Related commands
 """"""""""""""""

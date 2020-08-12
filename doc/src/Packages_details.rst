@@ -1221,6 +1221,60 @@ Example inputs are in the examples/USER/bocs folder.
 
 ----------
 
+.. _PKG-USER-CAC:
+
+USER-CAC package
+----------------
+
+**Contents:**
+
+This package provides the CAC multiscale methodology as presented
+in:
+
+Chen, Y. Reformulation of microscopic balance equations for multiscale materials modeling. 
+The Journal of Chemical Physics 130, 134706, (2009).
+
+**Author:** Adrian Diaz (University of Florida)
+
+**Supporting info:**
+
+* src/USER-CAC: filenames -> commands
+* :doc:`Howto_CAC <Howto_cac>`
+* :doc:`atom_style cac <atom_style>`
+* :doc:`comm_style cac <comm_style>`
+* :doc:`pair_style cac/lj <pair_cac_lj>`
+* :doc:`pair_style cac/coul/wolf <pair_cac_coul_wolf>`
+* :doc:`pair_style cac/buck <pair_cac_buck>`
+* :doc:`pair_style cac/sw <pair_cac_sw>`
+* :doc:`pair_style cac/tersoff <pair_cac_tersoff>`
+* :doc:`pair_style cac/eam <pair_cac_eam>`
+* :doc:`min_style cac/cg <min_style>`
+* :doc:`min_style cac/fire <min_style>`
+* :doc:`fix cac/nve <fix_cac_nve>`
+* :doc:`fix cac/momentum <fix_cac_momentum>`
+* :doc:`fix cac/viscous <fix_cac_viscous>`
+* :doc:`fix cac/setvelocity <fix_cac_setvelocity>`
+* :doc:`fix cac/setforce <fix_cac_setforce>`
+* :doc:`fix cac/addforce <fix_cac_addforce>`
+* :doc:`fix cac/temp/rescale <fix_cac_temp_rescale>`
+* :doc:`fix cac/oneway <fix_cac_oneway>`
+* :doc:`fix cac/wall/reflect <fix_cac_wall_reflect>`
+* :doc:`compute cac/quad/count <compute_cac_quad_count>`
+* :doc:`compute cac/nodal/temp <compute_cac_nodal_temp>`
+* :doc:`compute cac/ke <compute_cac_ke>`
+* :doc:`compute cac/ke/atom <compute_cac_ke_atom>`
+* :doc:`dump cac/nodal/positions <dump_cac_nodal_positions>`
+* :doc:`dump cac/initial/nodes <dump_cac_initial_nodes>`
+* :doc:`dump cac/nodal/velocities <dump_cac_nodal_velocities>`
+* :doc:`dump cac/nodal/forces <dump_cac_nodal_forces>`
+* :doc:`dump cac/nodal/virial <dump_cac_nodal_virial>`
+* :doc:`dump cac/kinetic/energy <dump_cac_kinetic>`
+* :doc:`dump cac/xyz <dump_cac_xyz>`
+
+Example inputs are in the examples/USER/CAC folder.
+
+----------
+
 .. _PKG-USER-CGDNA:
 
 USER-CGDNA package

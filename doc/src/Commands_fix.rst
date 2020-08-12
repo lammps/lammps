@@ -46,6 +46,15 @@ OPT.
    * :doc:`bond/react <fix_bond_react>`
    * :doc:`bond/swap <fix_bond_swap>`
    * :doc:`box/relax <fix_box_relax>`
+   * :doc:`cac/addforce <fix_cac_addforce>`
+   * :doc:`cac/momentum <fix_cac_momentum>`
+   * :doc:`cac/nve <fix_cac_nve>`
+   * :doc:`cac/oneway <fix_cac_oneway>`
+   * :doc:`cac/setvelocity <fix_cac_setvelocity>`
+   * :doc:`cac/setforce <fix_cac_setforce>`
+   * :doc:`cac/temp/rescale <fix_cac_temp_rescale>`
+   * :doc:`cac/viscous <fix_cac_viscous>`
+   * :doc:`cac/wall/reflect <fix_cac_wall_reflect>`
    * :doc:`client/md <fix_client_md>`
    * :doc:`cmap <fix_cmap>`
    * :doc:`colvars <fix_colvars>`

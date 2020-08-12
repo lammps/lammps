@@ -87,4 +87,8 @@ E: Too many neighbor bins
 
 UNDOCUMENTED
 
+E: Bin limits are very large; simulation may be unstable
+
+Elements may have grown very large due to a previous simulation error or instability.
+
 */

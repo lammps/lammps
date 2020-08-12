@@ -64,6 +64,12 @@ OPT.
    * :doc:`buck/mdf <pair_mdf>`
    * :doc:`buck6d/coul/gauss/dsf <pair_buck6d_coul_gauss>`
    * :doc:`buck6d/coul/gauss/long <pair_buck6d_coul_gauss>`
+   * :doc:`cac/buck <pair_cac_buck>`
+   * :doc:`cac/coul/wolf <pair_cac_coul_wolf>`
+   * :doc:`cac/eam <pair_cac_eam>`
+   * :doc:`cac/lj <pair_cac_lj>`
+   * :doc:`cac/sw <pair_cac_sw>`
+   * :doc:`cac/tersoff <pair_cac_tersoff>`
    * :doc:`colloid (go) <pair_colloid>`
    * :doc:`comb (o) <pair_comb>`
    * :doc:`comb3 <pair_comb>`

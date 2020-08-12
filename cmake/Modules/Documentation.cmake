@@ -29,8 +29,8 @@ if(BUILD_DOC)
     OUTPUT requirements.txt
     DEPENDS docenv
     COMMAND ${CMAKE_COMMAND} -E copy ${LAMMPS_DOC_DIR}/utils/requirements.txt requirements.txt
-    COMMAND ${DOCENV_BINARY_DIR}/pip install -r requirements.txt --upgrade
     COMMAND ${DOCENV_BINARY_DIR}/pip install --upgrade ${LAMMPS_DOC_DIR}/utils/converters
+    COMMAND ${DOCENV_BINARY_DIR}/pip install --use-feature=2020-resolver -r requirements.txt --upgrade
   )
 
   # download mathjax distribution and unpack to folder "mathjax"

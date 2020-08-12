@@ -3444,7 +3444,7 @@ void PPPM::poisson_groups_triclinic()
 }
 
 /* ----------------------------------------------------------------------
-   Slab-geometry correction term to dampen inter-slab interactions between
+   slab-geometry correction term to dampen inter-slab interactions between
    periodically repeating slabs.  Yields good approximation to 2D Ewald if
    adequate empty space is left between repeating slabs (J. Chem. Phys.
    111, 3155).  Slabs defined here to be parallel to the xy plane. Also

@@ -23,7 +23,7 @@ class GridComm : protected Pointers {
   GridComm(class LAMMPS *, MPI_Comm, int, int, int,
 	   int, int, int, int, int, int,
 	   int, int, int, int, int, int);
-  GridComm(class LAMMPS *, MPI_Comm, int, int, int,
+  GridComm(class LAMMPS *, MPI_Comm, int, int, int, int,
 	   int, int, int, int, int, int,
 	   int, int, int, int, int, int,
 	   int, int, int, int, int, int);
@@ -38,7 +38,8 @@ class GridComm : protected Pointers {
  private:
   int me,nprocs;
   int layout;                 // REGULAR or TILED
-  MPI_Comm gridcomm;
+  MPI_Comm gridcomm;          // communicator for this class
+                              // usually world, but MSM calls with subset
 
   // inputs from caller via constructor
 
@@ -48,21 +49,21 @@ class GridComm : protected Pointers {
   int inzlo,inzhi;   
   int outxlo,outxhi;          // inclusive extent of my grid chunk plus
   int outylo,outyhi;          //   ghost cells in all 6 directions
-  int outzlo,outzhi;          // lo indices can be < 0, hi indices can be >= N
-  int outxlo_max,outxhi_max;  // ??
-  int outylo_max,outyhi_max;
-  int outzlo_max,outzhi_max;
+  int outzlo,outzhi;          //   lo indices can be < 0, hi indices can be >= N
+  int fullxlo,fullxhi;        // extent of grid chunk that caller stores
+  int fullylo,fullyhi;        //   can be same as out indices or larger
+  int fullzlo,fullzhi;
 
   // -------------------------------------------
   // internal variables for REGULAR layout
   // -------------------------------------------
 
   int procxlo,procxhi;     // 6 neighbor procs that adjoin me
-  int procylo,procyhi;     //   not used for comm_style = tiled
+  int procylo,procyhi;     // not used for comm_style = tiled
   int proczlo,proczhi;
   
   int ghostxlo,ghostxhi;   // # of my owned grid planes needed
-  int ghostylo,ghostyhi;   //   by neighobr procs in each dir as their ghost planes
+  int ghostylo,ghostyhi;   // by neighobr procs in each dir as their ghost planes
   int ghostzlo,ghostzhi;
 
   // swap = exchange of owned and ghost grid cells between 2 procs, including self
@@ -83,8 +84,8 @@ class GridComm : protected Pointers {
   // internal variables for TILED layout
   // -------------------------------------------
 
-  int *overlap_procs;
-  MPI_Request *requests;
+  int *overlap_procs;          // length of Nprocs in communicator
+  MPI_Request *requests;       // length of max messages this proc receives
 
   // RCB tree of cut info
   // each proc contributes one value, except proc 0
@@ -174,7 +175,12 @@ class GridComm : protected Pointers {
   // -------------------------------------------
   // internal methods
   // -------------------------------------------
-  
+
+  void initialize(MPI_Comm, int, int, int,
+		  int, int, int, int, int, int,
+		  int, int, int, int, int, int,
+		  int, int, int, int, int, int,
+		  int, int, int, int, int, int);
   void setup_regular(int &, int &);
   void setup_tiled(int &, int &);
   void ghost_box_drop(int *, int *);

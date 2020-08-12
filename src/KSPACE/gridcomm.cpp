@@ -17,6 +17,7 @@
 #include "kspace.h"
 #include "irregular.h"
 #include "memory.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -24,12 +25,17 @@ enum{REGULAR,TILED};
 
 #define SWAPDELTA 8
 
-// NOTE: gridcomm needs to be world for TILED, will it work with MSM?
-// NOTE: Tiled implementation here only works for RCB, not general tiled
+/* ----------------------------------------------------------------------
+   NOTES
+   tiled implementation only currently works for RCB, not general tiled
+   if o indices for ghosts are < 0 or hi indices are >= N,
+     then grid is treated as periodic in that dimension,
+     communication is done across the periodic boundaries
+------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   gcomm = MPI communicator that shares this grid
-           does not have to be world, see MSM
+   constructor called by all classes except MSM
+   gcomm = world communicator
    gn xyz = size of global grid
    i xyz lohi = portion of global grid this proc owns, 0 <= index < N
    o xyz lohi = owned grid portion + ghost grid cells needed in all directions
@@ -44,130 +50,79 @@ GridComm::GridComm(LAMMPS *lmp, MPI_Comm gcomm,
 		   int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi)
   : Pointers(lmp)
 {
-  gridcomm = gcomm;
-  MPI_Comm_rank(gridcomm,&me);
-  MPI_Comm_size(gridcomm,&nprocs);
-
-  nx = gnx;
-  ny = gny;
-  nz = gnz;
-  
-  inxlo = ixlo;
-  inxhi = ixhi;
-  inylo = iylo;
-  inyhi = iyhi;
-  inzlo = izlo;
-  inzhi = izhi;
-
-  outxlo = oxlo;
-  outxhi = oxhi;
-  outylo = oylo;
-  outyhi = oyhi;
-  outzlo = ozlo;
-  outzhi = ozhi;
-
-  // layout == REGULAR or TILED
-  // for REGULAR, proc xyz lohi = my 6 neighbor procs
-  
-  layout = REGULAR;
   if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
-  
-  outxlo_max = oxlo;
-  outxhi_max = oxhi;
-  outylo_max = oylo;
-  outyhi_max = oyhi;
-  outzlo_max = ozlo;
-  outzhi_max = ozhi;
+  else layout = REGULAR;
 
   if (layout == REGULAR) {
     int (*procneigh)[2] = comm->procneigh;
-
-    procxlo = procneigh[0][0];
-    procxhi = procneigh[0][1];
-    procylo = procneigh[1][0];
-    procyhi = procneigh[1][1];
-    proczlo = procneigh[2][0];
-    proczhi = procneigh[2][1];
+    initialize(gcomm,gnx,gny,gnz,
+	       ixlo,ixhi,iylo,iyhi,izlo,izhi,
+	       oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+	       oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+	       procneigh[0][0],procneigh[0][1],
+	       procneigh[1][0],procneigh[1][1],
+	       procneigh[2][0],procneigh[2][1]);
+  } else {
+    initialize(gcomm,gnx,gny,gnz,
+	       ixlo,ixhi,iylo,iyhi,izlo,izhi,
+	       oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+	       oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+	       0,0,0,0,0,0);
   }
-  
-  nswap = maxswap = 0;
-  swap = NULL;
-
-  nsend = nrecv = ncopy = 0;
-  send = NULL;
-  recv = NULL;
-  copy = NULL;
-  requests = NULL;
 }
 
 /* ----------------------------------------------------------------------
-   same as first constructor except o xyz lohi max are added arguments
-   this is for case when caller stores grid in a larger array than o xyz lohi
-   only affects indices() method which generates indices into the caller's array
+   constructor called by MSM
+   gcomm = world communicator or sub-communicator for a hierarchical grid
+   flag = 1 if e xyz lohi values = larger grid stored by caller in gcomm = world
+   flag = 2 if e xyz lohi values = 6 neighbor procs in gcomm
+   gn xyz = size of global grid
+   i xyz lohi = portion of global grid this proc owns, 0 <= index < N
+   o xyz lohi = owned grid portion + ghost grid cells needed in all directions
+   e xyz lohi for flag = 1: extent of larger grid stored by caller
+   e xyz lohi for flag = 2: 6 neighbor procs
 ------------------------------------------------------------------------- */
 
-GridComm::GridComm(LAMMPS *lmp, MPI_Comm gcomm,
+GridComm::GridComm(LAMMPS *lmp, MPI_Comm gcomm, int flag,
 		   int gnx, int gny, int gnz,
 		   int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
 		   int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi,
-		   int oxlo_max, int oxhi_max, int oylo_max, int oyhi_max,
-		   int ozlo_max, int ozhi_max)
+		   int exlo, int exhi, int eylo, int eyhi, int ezlo, int ezhi)
   : Pointers(lmp)
 {
-  gridcomm = gcomm;
-  MPI_Comm_rank(gridcomm,&me);
-  MPI_Comm_size(gridcomm,&nprocs);
-
-  nx = gnx;
-  ny = gny;
-  nz = gnz;
-
-  inxlo = ixlo;
-  inxhi = ixhi;
-  inylo = iylo;
-  inyhi = iyhi;
-  inzlo = izlo;
-  inzhi = izhi;
-
-  outxlo = oxlo;
-  outxhi = oxhi;
-  outylo = oylo;
-  outyhi = oyhi;
-  outzlo = ozlo;
-  outzhi = ozhi;
-
-  outxlo_max = oxlo_max;
-  outxhi_max = oxhi_max;
-  outylo_max = oylo_max;
-  outyhi_max = oyhi_max;
-  outzlo_max = ozlo_max;
-  outzhi_max = ozhi_max;
-
-  // layout == REGULAR or TILED
-  // for REGULAR, proc xyz lohi = my 6 neighbor procs
-
-  layout = REGULAR;
   if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
+  else layout = REGULAR;
 
-  if (layout == REGULAR) {
-    int (*procneigh)[2] = comm->procneigh;
-
-    procxlo = procneigh[0][0];
-    procxhi = procneigh[0][1];
-    procylo = procneigh[1][0];
-    procyhi = procneigh[1][1];
-    proczlo = procneigh[2][0];
-    proczhi = procneigh[2][1];
+  if (flag == 1) {
+    if (layout == REGULAR) {
+      // this assumes gcomm = world
+      int (*procneigh)[2] = comm->procneigh;
+      initialize(gcomm,gnx,gny,gnz,
+		 ixlo,ixhi,iylo,iyhi,izlo,izhi,
+		 oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+		 exlo,exhi,eylo,eyhi,ezlo,ezhi,
+		 procneigh[0][0],procneigh[0][1],
+		 procneigh[1][0],procneigh[1][1],
+		 procneigh[2][0],procneigh[2][1]);
+    } else {
+      initialize(gcomm,gnx,gny,gnz,
+		 ixlo,ixhi,iylo,iyhi,izlo,izhi,
+		 oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+		 exlo,exhi,eylo,eyhi,ezlo,ezhi,
+		 0,0,0,0,0,0);
+    }
+    
+  } else if (flag == 2) {
+    if (layout == REGULAR) {
+      initialize(gcomm,gnx,gny,gnz,
+		 ixlo,ixhi,iylo,iyhi,izlo,izhi,
+		 oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+		 oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+		 exlo,exhi,eylo,eyhi,ezlo,ezhi);
+    } else {
+      error->all(FLERR,"GridComm does not support tiled layout with neighbor procs");
+    }
   }
-
-  nswap = maxswap = 0;
-  swap = NULL;
-
-  nsend = nrecv = ncopy = 0;
-  send = NULL;
-  recv = NULL;
-  copy = NULL;
-  requests = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -199,6 +154,69 @@ GridComm::~GridComm()
   memory->sfree(copy);
 
   delete [] requests;
+}
+
+/* ----------------------------------------------------------------------
+   store constructor args in local variables
+------------------------------------------------------------------------- */
+
+void GridComm::initialize(MPI_Comm gcomm,
+			  int gnx, int gny, int gnz,
+			  int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
+			  int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi,
+			  int fxlo, int fxhi, int fylo, int fyhi, int fzlo, int fzhi,
+			  int pxlo, int pxhi, int pylo, int pyhi, int pzlo, int pzhi)
+{
+  gridcomm = gcomm;
+  MPI_Comm_rank(gridcomm,&me);
+  MPI_Comm_size(gridcomm,&nprocs);
+
+  nx = gnx;
+  ny = gny;
+  nz = gnz;
+  
+  inxlo = ixlo;
+  inxhi = ixhi;
+  inylo = iylo;
+  inyhi = iyhi;
+  inzlo = izlo;
+  inzhi = izhi;
+
+  outxlo = oxlo;
+  outxhi = oxhi;
+  outylo = oylo;
+  outyhi = oyhi;
+  outzlo = ozlo;
+  outzhi = ozhi;
+
+  fullxlo = fxlo;
+  fullxhi = fxhi;
+  fullylo = fylo;
+  fullyhi = fyhi;
+  fullzlo = fzlo;
+  fullzhi = fzhi;
+
+  // for REGULAR layout, proc xyz lohi = my 6 neighbor procs in this MPI_Comm
+
+  if (layout == REGULAR) {
+    procxlo = pxlo;
+    procxhi = pxhi;
+    procylo = pylo;
+    procyhi = pyhi;
+    proczlo = pzlo;
+    proczhi = pzhi;
+  }
+
+  // internal data initializations
+  
+  nswap = maxswap = 0;
+  swap = NULL;
+
+  nsend = nrecv = ncopy = 0;
+  send = NULL;
+  recv = NULL;
+  copy = NULL;
+  requests = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -504,6 +522,7 @@ void GridComm::setup_regular(int &nbuf1, int &nbuf2)
 }
 
 /* ----------------------------------------------------------------------
+   NOTE: need to doc this header
 ------------------------------------------------------------------------- */
 
 void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
@@ -725,6 +744,8 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
 }
 
 /* ----------------------------------------------------------------------
+   NOTE: need to doc this header
+   recursive ...
 ------------------------------------------------------------------------- */
 
 void GridComm::ghost_box_drop(int *box, int *pbc)
@@ -803,10 +824,12 @@ void GridComm::ghost_box_drop(int *box, int *pbc)
 }
 
 /* ----------------------------------------------------------------------
+   NOTE: need to doc this header
+   recursive ...
 ------------------------------------------------------------------------- */
 
 void GridComm::box_drop_grid(int *box, int proclower, int procupper,
-			      int &np, int *plist)
+			     int &np, int *plist)
 {
   // end recursion when partition is a single proc
   // add proclower to plist
@@ -880,7 +903,7 @@ int GridComm::ghost_adjacent_tiled()
 ------------------------------------------------------------------------- */
 
 void GridComm::forward_comm_kspace(KSpace *kspace, int nper, int nbyte, int which,
-				    void *buf1, void *buf2, MPI_Datatype datatype)
+				   void *buf1, void *buf2, MPI_Datatype datatype)
 {
   if (layout == REGULAR)
     forward_comm_kspace_regular(kspace,nper,nbyte,which,buf1,buf2,datatype);
@@ -1083,15 +1106,15 @@ int GridComm::indices(int *&list,
   memory->create(list,nmax,"CommGrid:indices");
   if (nmax == 0) return 0;
 
-  int nx = (outxhi_max-outxlo_max+1);
-  int ny = (outyhi_max-outylo_max+1);
+  int nx = (fullxhi-fullxlo+1);
+  int ny = (fullyhi-fullylo+1);
 
   int n = 0;
   int ix,iy,iz;
   for (iz = zlo; iz <= zhi; iz++)
     for (iy = ylo; iy <= yhi; iy++)
       for (ix = xlo; ix <= xhi; ix++)
-        list[n++] = (iz-outzlo_max)*ny*nx + (iy-outylo_max)*nx + (ix-outxlo_max);
+        list[n++] = (iz-fullzlo)*ny*nx + (iy-fullylo)*nx + (ix-fullxlo);
 
   return nmax;
 }

@@ -103,7 +103,7 @@ void ReadRestart::command(int narg, char **arg)
   // open single restart file or base file for multiproc case
 
   if (me == 0) {
-    if (screen) fprintf(screen,"Reading restart file ...\n");
+    utils::logmesg(lmp,"Reading restart file ...\n");
     std::string hfile = file;
     if (multiproc) {
       hfile.replace(hfile.find("%"),1,"base");
@@ -620,10 +620,9 @@ void ReadRestart::header()
 
     if (flag == VERSION) {
       char *version = read_string();
-      if (me == 0) {
-        if (screen) fprintf(screen,"  restart file = %s, LAMMPS = %s\n",
-                            version,universe->version);
-      }
+      if (me == 0)
+        utils::logmesg(lmp,fmt::format("  restart file = {}, LAMMPS = {}\n",
+                                       version,universe->version));
       delete [] version;
 
       // we have no forward compatibility, thus exit with error

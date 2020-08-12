@@ -172,7 +172,7 @@ void FixNVEKokkos<DeviceType>::cleanup_copy()
 
 namespace LAMMPS_NS {
 template class FixNVEKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixNVEKokkos<LMPHostType>;
 #endif
 }

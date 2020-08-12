@@ -1297,7 +1297,7 @@ void PairTableRXKokkos<DeviceType>::cleanup_copy() {
 
 namespace LAMMPS_NS {
 template class PairTableRXKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairTableRXKokkos<LMPHostType>;
 #endif
 

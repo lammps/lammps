@@ -5,6 +5,7 @@ epsilon: 5e-13
 prerequisites: ! |
   atom full
   pair lj/cut/tip4p/long
+  kspace pppm/tip4p
 pre_commands: ! |
   variable newton_pair delete
   variable newton_pair index on

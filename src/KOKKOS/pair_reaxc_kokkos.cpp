@@ -3958,7 +3958,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxFindBondSpecies, const int 
 }
 
 template class PairReaxCKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairReaxCKokkos<LMPHostType>;
 #endif
 }

@@ -31,7 +31,7 @@ KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>)
 
 // fix up FFT defines for KOKKOS with CUDA
 
-#if defined(KOKKOS_ENABLE_CUDA)
+#ifdef KOKKOS_ENABLE_CUDA
 # if defined(FFT_FFTW)
 #  undef FFT_FFTW
 # endif

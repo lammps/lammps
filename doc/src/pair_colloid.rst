@@ -77,7 +77,7 @@ The colloid-solvent interaction energy is given by
    \left[ 1 - \frac{\left(5 ~ a^6+45~a^4~r^2+63~a^2~r^4+15~r^6\right) \sigma^6}
    {15 \left(a-r\right)^6 \left( a+r \right)^6} \right], \quad r < r_c
 
-where :math:A_{cs}` is the Hamaker constant, *a* is the radius of the colloidal
+where :math:`A_{cs}` is the Hamaker constant, *a* is the radius of the colloidal
 particle, and :math:`r_c` is the cutoff.  This formula is derived from the
 colloid-colloid interaction, letting one of the particle sizes go to
 zero.

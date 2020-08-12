@@ -122,7 +122,7 @@ void NPairCopyKokkos<DeviceType>::copy_to_cpu(NeighList *list)
 
 namespace LAMMPS_NS {
 template class NPairCopyKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class NPairCopyKokkos<LMPHostType>;
 #endif
 }

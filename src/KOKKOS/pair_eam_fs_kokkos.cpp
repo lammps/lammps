@@ -1233,7 +1233,7 @@ void PairEAMFSKokkos<DeviceType>::file2array_fs()
 
 namespace LAMMPS_NS {
 template class PairEAMFSKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairEAMFSKokkos<LMPHostType>;
 #endif
 }

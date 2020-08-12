@@ -1305,7 +1305,7 @@ void NeighBondKokkos<DeviceType>::update_domain_variables()
 
 namespace LAMMPS_NS {
 template class NeighBondKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class NeighBondKokkos<LMPHostType>;
 #endif
 }

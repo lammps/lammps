@@ -113,7 +113,7 @@ void Balance::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR,"Balance command before simulation box is defined");
 
-  if (me == 0 && screen) fprintf(screen,"Balancing ...\n");
+  if (me == 0) utils::logmesg(lmp,"Balancing ...\n");
 
   // parse required arguments
 
@@ -573,8 +573,8 @@ int *Balance::bisection(int sortflag)
   int triclinic = domain->triclinic;
 
   double *boxlo,*boxhi,*prd;
-  
-  if (triclinic == 0) { 
+
+  if (triclinic == 0) {
     boxlo = domain->boxlo;
     boxhi = domain->boxhi;
     prd = domain->prd;
@@ -587,7 +587,7 @@ int *Balance::bisection(int sortflag)
   // shrink-wrap simulation box around atoms for input to RCB
   // leads to better-shaped sub-boxes when atoms are far from box boundaries
   // if triclinic, do this in lamda coords
-  
+
   double shrink[6],shrinkall[6];
 
   shrink[0] = boxhi[0]; shrink[1] = boxhi[1]; shrink[2] = boxhi[2];
@@ -597,7 +597,7 @@ int *Balance::bisection(int sortflag)
   int nlocal = atom->nlocal;
 
   if (triclinic) domain->x2lamda(nlocal);
-  
+
   for (int i = 0; i < nlocal; i++) {
     shrink[0] = MIN(shrink[0],x[i][0]);
     shrink[1] = MIN(shrink[1],x[i][1]);

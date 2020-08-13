@@ -140,12 +140,12 @@ TEST_F(DumpCustomTest, custom_run0)
 
 TEST_F(DumpCustomTest, binary_run1)
 {
+    if(!BINARY2TXT_BINARY) GTEST_SKIP();
+
     auto text_file = "dump_custom_text_run1.melt";
     auto binary_file = "dump_custom_binary_run1.melt.bin";
     auto converted_file = fmt::format("{}.txt", binary_file);
     auto fields = "id type proc x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
-
-    if(!BINARY2TXT_BINARY) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
     command(fmt::format("dump id0 all custom 1 {} {}", text_file, fields));
@@ -195,12 +195,12 @@ TEST_F(DumpCustomTest, triclinic_run1)
 
 TEST_F(DumpCustomTest, binary_triclinic_run1)
 {
+    if(!BINARY2TXT_BINARY) GTEST_SKIP();
+
     auto text_file = "dump_custom_tri_text_run1.melt";
     auto binary_file = "dump_custom_tri_binary_run1.melt.bin";
     auto converted_file = fmt::format("{}.txt", binary_file);
     auto fields = "id type proc x y z xs ys zs xsu ysu zsu vx vy vz fx fy fz";
-
-    if(!BINARY2TXT_BINARY) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
     command("change_box all triclinic");

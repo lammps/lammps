@@ -177,55 +177,63 @@ TEST_F(DumpAtomTest, binary_with_units_run0)
 {
     if(!BINARY2TXT_BINARY) GTEST_SKIP();
 
+    auto text_file = "dump_text_with_units_run0.melt";
+    auto binary_file = "dump_binary_with_units_run0.melt.bin";
+    auto converted_file = fmt::format("{}.txt", binary_file);
+
     if (!verbose) ::testing::internal::CaptureStdout();
-    command("dump id0 all atom 1 dump_text_with_units_run0.melt");
-    command("dump id1 all atom 1 dump_binary_with_units_run0.melt.bin");
+    command(fmd::format("dump id0 all atom 1 {}", text_file));
+    command(fmt::format("dump id1 all atom 1 {}", binary_file));
     command("dump_modify id0 scale no units yes");
     command("dump_modify id1 scale no units yes");
     command("run 0");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    ASSERT_FILE_EXISTS("dump_text_with_units_run0.melt");
-    ASSERT_FILE_EXISTS("dump_binary_with_units_run0.melt.bin");
+    ASSERT_FILE_EXISTS(text_file);
+    ASSERT_FILE_EXISTS(binary_file);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    std::string cmdline = fmt::format("{} dump_binary_with_units_run0.melt.bin", BINARY2TXT_BINARY);
+    std::string cmdline = fmt::format("{} {}", BINARY2TXT_BINARY, binary_file);
     system(cmdline.c_str());
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    ASSERT_FILE_EXISTS("dump_binary_with_units_run0.melt.bin.txt");
-    ASSERT_FILE_EQUAL("dump_text_with_units_run0.melt", "dump_binary_with_units_run0.melt.bin.txt");
-    delete_file("dump_text_with_units_run0.melt");
-    delete_file("dump_binary_with_units_run0.melt.bin");
-    delete_file("dump_binary_with_units_run0.melt.bin.txt");
+    ASSERT_FILE_EXISTS(converted_file);
+    ASSERT_FILE_EQUAL(text_file, converted_file);
+    delete_file(text_file);
+    delete_file(binary_file);
+    delete_file(converted_file);
 }
 
 TEST_F(DumpAtomTest, binary_triclinic_with_units_run0)
 {
     if(!BINARY2TXT_BINARY) GTEST_SKIP();
 
+    auto text_file = "dump_text_tri_with_units_run0.melt";
+    auto binary_file = "dump_binary_tri_with_units_run0.melt.bin";
+    auto converted_file = fmt::format("{}.txt", binary_file);
+
     if (!verbose) ::testing::internal::CaptureStdout();
     command("change_box all triclinic");
-    command("dump id0 all atom 1 dump_text_tri_with_units_run0.melt");
-    command("dump id1 all atom 1 dump_binary_tri_with_units_run0.melt.bin");
+    command(fmt::format("dump id0 all atom 1 {}", text_file));
+    command(fmt::format("dump id1 all atom 1 {}", binary_file));
     command("dump_modify id0 scale no units yes");
     command("dump_modify id1 scale no units yes");
     command("run 0");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    ASSERT_FILE_EXISTS("dump_text_tri_with_units_run0.melt");
-    ASSERT_FILE_EXISTS("dump_binary_tri_with_units_run0.melt.bin");
+    ASSERT_FILE_EXISTS(text_file);
+    ASSERT_FILE_EXISTS(binary_file);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    std::string cmdline = fmt::format("{} dump_binary_tri_with_units_run0.melt.bin", BINARY2TXT_BINARY);
+    std::string cmdline = fmt::format("{} {}", BINARY2TXT_BINARY, binary_file);
     system(cmdline.c_str());
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    ASSERT_FILE_EXISTS("dump_binary_tri_with_units_run0.melt.bin.txt");
-    ASSERT_FILE_EQUAL("dump_text_tri_with_units_run0.melt", "dump_binary_tri_with_units_run0.melt.bin.txt");
-    delete_file("dump_text_tri_with_units_run0.melt");
-    delete_file("dump_binary_tri_with_units_run0.melt.bin");
-    delete_file("dump_binary_tri_with_units_run0.melt.bin.txt");
+    ASSERT_FILE_EXISTS(converted_file);
+    ASSERT_FILE_EQUAL(text_file, converted_file);
+    delete_file(text_file);
+    delete_file(binary_file);
+    delete_file(converted_file);
 }
 
 TEST_F(DumpAtomTest, binary_with_time_run0)

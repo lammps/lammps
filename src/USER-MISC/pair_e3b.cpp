@@ -382,8 +382,6 @@ void PairE3B::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
   typeO=force->inumeric(FLERR,arg[0]);
-  if (typeO<1 || typeO>atom->ntypes)
-    error->all(FLERR,"Invalid Otype: out of bounds");
 }
 
 /* ----------------------------------------------------------------------
@@ -477,6 +475,8 @@ void PairE3B::init_style()
     error->all(FLERR,"Pair style E3B requires atom IDs");
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style E3B requires newton pair on");
+  if (typeO<1 || typeO>atom->ntypes)
+    error->all(FLERR,"Invalid Otype: out of bounds");
 
   // need a half neighbor list
   neighbor->request(this,instance_me);

@@ -60,7 +60,7 @@ For the *linear* style, the distance *R* is used to find the 2
 surrounding table values from which an energy or force is computed by
 linear interpolation.
 
-For the *spline* style, a cubic spline coefficients are computed and
+For the *spline* style, cubic spline coefficients are computed and
 stored for each of the *N* values in the table, one set of splines for
 energy, another for force.  Note that these splines are different than
 the ones used to pre-compute the *N* values.  Those splines were fit

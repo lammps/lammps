@@ -780,7 +780,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
 
   int loop;
   const int loopmax = 200;
-  for (loop = 1; loop < loopmax & sqrt(sig_new)/b_norm > tolerance; loop++) {
+  for (loop = 1; (loop < loopmax) && (sqrt(sig_new)/b_norm > tolerance); loop++) {
 
     // comm->forward_comm_fix(this); //Dist_vector( d );
     pack_flag = 1;
@@ -919,7 +919,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
 
   int loop;
   const int loopmax = 200;
-  for (loop = 1; loop < loopmax & sqrt(sig_new)/b_norm > tolerance; loop++) {
+  for (loop = 1; (loop < loopmax) && (sqrt(sig_new)/b_norm > tolerance); loop++) {
 
     // comm->forward_comm_fix(this); //Dist_vector( d );
     pack_flag = 1;

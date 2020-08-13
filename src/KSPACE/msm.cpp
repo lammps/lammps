@@ -45,20 +45,21 @@ enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-MSM::MSM(LAMMPS *lmp) : KSpace(lmp),
-  factors(NULL), delxinv(NULL), delyinv(NULL), delzinv(NULL), nx_msm(NULL),
-  ny_msm(NULL), nz_msm(NULL), nxlo_in(NULL), nylo_in(NULL), nzlo_in(NULL),
-  nxhi_in(NULL), nyhi_in(NULL), nzhi_in(NULL), nxlo_out(NULL), nylo_out(NULL),
-  nzlo_out(NULL), nxhi_out(NULL), nyhi_out(NULL), nzhi_out(NULL), ngrid(NULL),
-  active_flag(NULL), alpha(NULL), betax(NULL), betay(NULL), betaz(NULL),
-  peratom_allocate_flag(0),
-  levels(0), world_levels(NULL), qgrid(NULL), egrid(NULL), v0grid(NULL), v1grid(NULL),
-  v2grid(NULL), v3grid(NULL), v4grid(NULL), v5grid(NULL), g_direct(NULL),
-  v0_direct(NULL), v1_direct(NULL), v2_direct(NULL), v3_direct(NULL), v4_direct(NULL),
-  v5_direct(NULL), g_direct_top(NULL), v0_direct_top(NULL), v1_direct_top(NULL),
-  v2_direct_top(NULL), v3_direct_top(NULL), v4_direct_top(NULL), v5_direct_top(NULL),
-  phi1d(NULL), dphi1d(NULL), procneigh_levels(NULL), gc(NULL),
-  gcall(NULL), part2grid(NULL), boxlo(NULL)
+MSM::MSM(LAMMPS *lmp)
+  : KSpace(lmp),
+    factors(NULL), delxinv(NULL), delyinv(NULL), delzinv(NULL), nx_msm(NULL),
+    ny_msm(NULL), nz_msm(NULL), nxlo_in(NULL), nylo_in(NULL), nzlo_in(NULL),
+    nxhi_in(NULL), nyhi_in(NULL), nzhi_in(NULL), nxlo_out(NULL), nylo_out(NULL),
+    nzlo_out(NULL), nxhi_out(NULL), nyhi_out(NULL), nzhi_out(NULL), ngrid(NULL),
+    active_flag(NULL), alpha(NULL), betax(NULL), betay(NULL), betaz(NULL),
+    peratom_allocate_flag(0),levels(0),world_levels(NULL),qgrid(NULL),egrid(NULL),
+    v0grid(NULL), v1grid(NULL),v2grid(NULL),v3grid(NULL),v4grid(NULL),v5grid(NULL),
+    g_direct(NULL),v0_direct(NULL),v1_direct(NULL),v2_direct(NULL),v3_direct(NULL),
+    v4_direct(NULL),v5_direct(NULL),g_direct_top(NULL),v0_direct_top(NULL),
+    v1_direct_top(NULL),v2_direct_top(NULL),v3_direct_top(NULL),v4_direct_top(NULL),
+    v5_direct_top(NULL),phi1d(NULL),dphi1d(NULL),procneigh_levels(NULL),gcall(NULL),
+    gc(NULL),gcall_buf1(NULL),gcall_buf2(NULL),gc_buf1(NULL),gc_buf2(NULL),
+    ngc_buf1(NULL),ngc_buf2(NULL),part2grid(NULL),boxlo(NULL)
 {
   msmflag = 1;
 

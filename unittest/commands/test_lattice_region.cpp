@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "atom.h"
 #include "domain.h"
 #include "fmt/format.h"
 #include "info.h"
@@ -112,12 +113,23 @@ TEST_F(LatticeRegionTest, lattice_none)
 TEST_F(LatticeRegionTest, lattice_sc)
 {
     ::testing::internal::CaptureStdout();
-    lmp->input->one("lattice sc 2.0");
+    lmp->input->one("lattice sc 1.0 spacing 1.5 2.0 3.0");
     auto output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+    ASSERT_THAT(output, MatchesRegex(".*Lattice spacing in x,y,z = 1.50* 2.0* 3.0*.*"));
+
+    auto lattice = lmp->domain->lattice;
+    ASSERT_EQ(lattice->xlattice, 1.5);
+    ASSERT_EQ(lattice->ylattice, 2.0);
+    ASSERT_EQ(lattice->zlattice, 3.0);
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("lattice sc 2.0");
+    output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
     ASSERT_THAT(output, MatchesRegex(".*Lattice spacing in x,y,z = 2.0* 2.0* 2.0*.*"));
 
-    auto lattice = lmp->domain->lattice;
+    lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->style, Lattice::SC);
     ASSERT_EQ(lattice->xlattice, 2.0);
     ASSERT_EQ(lattice->ylattice, 2.0);
@@ -143,6 +155,10 @@ TEST_F(LatticeRegionTest, lattice_sc)
                  lmp->input->one("lattice sc 1.0 origin 1.0"););
     TEST_FAILURE(".*ERROR: Expected floating point.*",
                  lmp->input->one("lattice sc 1.0 origin xxx 1.0 1.0"););
+    TEST_FAILURE(".*ERROR: Lattice orient vectors are not orthogonal.*",
+                 lmp->input->one("lattice sc 1.0 orient x 2 2 0"););
+    TEST_FAILURE(".*ERROR: Lattice orient vectors are not right-handed.*",
+                 lmp->input->one("lattice sc 1.0 orient y 0 -1 0"););
 
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("units lj");
@@ -215,6 +231,98 @@ TEST_F(LatticeRegionTest, lattice_fcc)
                  lmp->input->one("lattice fcc 1.0"););
 }
 
+TEST_F(LatticeRegionTest, lattice_hcp)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("lattice hcp 3.0 orient z 0 0 1");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    auto lattice = lmp->domain->lattice;
+    ASSERT_EQ(lattice->style, Lattice::HCP);
+    ASSERT_DOUBLE_EQ(lattice->xlattice, 3.0);
+    ASSERT_DOUBLE_EQ(lattice->ylattice, 3.0 * sqrt(3.0));
+    ASSERT_DOUBLE_EQ(lattice->zlattice, 2.0 * sqrt(6.0));
+    ASSERT_EQ(lattice->nbasis, 4);
+    ASSERT_EQ(lattice->basis[0][0], 0.0);
+    ASSERT_EQ(lattice->basis[0][1], 0.0);
+    ASSERT_EQ(lattice->basis[0][2], 0.0);
+    ASSERT_EQ(lattice->basis[1][0], 0.5);
+    ASSERT_EQ(lattice->basis[1][1], 0.5);
+    ASSERT_EQ(lattice->basis[1][2], 0.0);
+    ASSERT_EQ(lattice->basis[2][0], 0.5);
+    ASSERT_DOUBLE_EQ(lattice->basis[2][1], 5.0 / 6.0);
+    ASSERT_EQ(lattice->basis[2][2], 0.5);
+    ASSERT_EQ(lattice->basis[3][0], 0.0);
+    ASSERT_DOUBLE_EQ(lattice->basis[3][1], 1.0 / 3.0);
+    ASSERT_EQ(lattice->basis[3][2], 0.5);
+    ASSERT_EQ(lattice->a1[0], 1.0);
+    ASSERT_EQ(lattice->a1[1], 0.0);
+    ASSERT_EQ(lattice->a1[2], 0.0);
+    ASSERT_EQ(lattice->a2[0], 0.0);
+    ASSERT_DOUBLE_EQ(lattice->a2[1], sqrt(3.0));
+    ASSERT_EQ(lattice->a2[2], 0.0);
+    ASSERT_EQ(lattice->a3[0], 0.0);
+    ASSERT_EQ(lattice->a3[1], 0.0);
+    ASSERT_DOUBLE_EQ(lattice->a3[2], sqrt(8.0 / 3.0));
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("dimension 2");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    TEST_FAILURE(".*ERROR: Lattice style incompatible with simulation dimension.*",
+                 lmp->input->one("lattice hcp 1.0"););
+}
+
+TEST_F(LatticeRegionTest, lattice_diamond)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("lattice diamond 4.1 orient x 1 1 2 orient y -1 1 0 orient z -1 -1 1");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    auto lattice = lmp->domain->lattice;
+    ASSERT_EQ(lattice->style, Lattice::DIAMOND);
+    ASSERT_DOUBLE_EQ(lattice->xlattice, 6.6952719636073539);
+    ASSERT_DOUBLE_EQ(lattice->ylattice, 5.7982756057296889);
+    ASSERT_DOUBLE_EQ(lattice->zlattice, 7.1014083110323973);
+    ASSERT_EQ(lattice->nbasis, 8);
+    ASSERT_EQ(lattice->basis[0][0], 0.0);
+    ASSERT_EQ(lattice->basis[0][1], 0.0);
+    ASSERT_EQ(lattice->basis[0][2], 0.0);
+    ASSERT_EQ(lattice->basis[1][0], 0.0);
+    ASSERT_EQ(lattice->basis[1][1], 0.5);
+    ASSERT_EQ(lattice->basis[1][2], 0.5);
+    ASSERT_EQ(lattice->basis[2][0], 0.5);
+    ASSERT_EQ(lattice->basis[2][1], 0.0);
+    ASSERT_EQ(lattice->basis[2][2], 0.5);
+    ASSERT_EQ(lattice->basis[3][0], 0.5);
+    ASSERT_EQ(lattice->basis[3][1], 0.5);
+    ASSERT_EQ(lattice->basis[3][2], 0.0);
+    ASSERT_EQ(lattice->basis[4][0], 0.25);
+    ASSERT_EQ(lattice->basis[4][1], 0.25);
+    ASSERT_EQ(lattice->basis[4][2], 0.25);
+    ASSERT_EQ(lattice->basis[5][0], 0.25);
+    ASSERT_EQ(lattice->basis[5][1], 0.75);
+    ASSERT_EQ(lattice->basis[5][2], 0.75);
+    ASSERT_EQ(lattice->basis[6][0], 0.75);
+    ASSERT_EQ(lattice->basis[6][1], 0.25);
+    ASSERT_EQ(lattice->basis[6][2], 0.75);
+    ASSERT_EQ(lattice->basis[7][0], 0.75);
+    ASSERT_EQ(lattice->basis[7][1], 0.75);
+    ASSERT_EQ(lattice->basis[7][2], 0.25);
+    ASSERT_EQ(lattice->a1[0], 1.0);
+    ASSERT_EQ(lattice->a1[1], 0.0);
+    ASSERT_EQ(lattice->a1[2], 0.0);
+    ASSERT_EQ(lattice->a2[0], 0.0);
+    ASSERT_EQ(lattice->a2[1], 1.0);
+    ASSERT_EQ(lattice->a2[2], 0.0);
+    ASSERT_EQ(lattice->a3[0], 0.0);
+    ASSERT_EQ(lattice->a3[1], 0.0);
+    ASSERT_EQ(lattice->a3[2], 1.0);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("dimension 2");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    TEST_FAILURE(".*ERROR: Lattice style incompatible with simulation dimension.*",
+                 lmp->input->one("lattice diamond 1.0"););
+}
+
 TEST_F(LatticeRegionTest, lattice_sq)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -262,6 +370,160 @@ TEST_F(LatticeRegionTest, lattice_sq2)
     if (!verbose) ::testing::internal::GetCapturedStdout();
     TEST_FAILURE(".*ERROR: Lattice style incompatible with simulation dimension.*",
                  lmp->input->one("lattice sq2 1.0"););
+}
+
+TEST_F(LatticeRegionTest, lattice_hex)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("dimension 2");
+    lmp->input->one("lattice hex 2.0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    auto lattice = lmp->domain->lattice;
+    ASSERT_EQ(lattice->style, Lattice::HEX);
+    ASSERT_DOUBLE_EQ(lattice->xlattice, 2.0);
+    ASSERT_DOUBLE_EQ(lattice->ylattice, 3.4641016151377544);
+    ASSERT_DOUBLE_EQ(lattice->zlattice, 2.0);
+    ASSERT_EQ(lattice->nbasis, 2);
+    ASSERT_EQ(lattice->basis[0][0], 0.0);
+    ASSERT_EQ(lattice->basis[0][1], 0.0);
+    ASSERT_EQ(lattice->basis[0][2], 0.0);
+    ASSERT_EQ(lattice->basis[1][0], 0.5);
+    ASSERT_EQ(lattice->basis[1][1], 0.5);
+    ASSERT_EQ(lattice->basis[1][2], 0.0);
+    ASSERT_EQ(lattice->a1[0], 1.0);
+    ASSERT_EQ(lattice->a1[1], 0.0);
+    ASSERT_EQ(lattice->a1[2], 0.0);
+    ASSERT_EQ(lattice->a2[0], 0.0);
+    ASSERT_DOUBLE_EQ(lattice->a2[1], sqrt(3.0));
+    ASSERT_EQ(lattice->a2[2], 0.0);
+    ASSERT_EQ(lattice->a3[0], 0.0);
+    ASSERT_EQ(lattice->a3[1], 0.0);
+    ASSERT_EQ(lattice->a3[2], 1.0);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("dimension 3");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    TEST_FAILURE(".*ERROR: Lattice style incompatible with simulation dimension.*",
+                 lmp->input->one("lattice hex 1.0"););
+}
+
+TEST_F(LatticeRegionTest, lattice_custom)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("variable a equal 4.34");
+    lmp->input->one("variable b equal $a*sqrt(3.0)");
+    lmp->input->one("variable c equal $a*sqrt(8.0/3.0)");
+    lmp->input->one("variable t equal 1.0/3.0");
+    lmp->input->one("variable f equal 5.0/6.0");
+    lmp->input->one("lattice custom  1.0     "
+                    "a1      $a   0.0  0.0   "
+                    "a2      0.0  $b   0.0   "
+                    "a3      0.0  0.0  $c    "
+                    "basis   0.0  0.0  0.0   "
+                    "basis   0.5  0.5  0.0   "
+                    "basis   $t   0.0  0.5   "
+                    "basis   $f   0.5  0.5   "
+                    "basis   0.0  0.0  0.625 "
+                    "basis   0.5  0.5  0.625 "
+                    "basis   $t   0.0  0.125 "
+                    "basis   $f   0.5  0.125 ");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    auto lattice = lmp->domain->lattice;
+    ASSERT_EQ(lattice->style, Lattice::CUSTOM);
+    EXPECT_DOUBLE_EQ(lattice->xlattice, 4.34);
+    EXPECT_DOUBLE_EQ(lattice->ylattice, 4.34 * sqrt(3.0));
+    EXPECT_DOUBLE_EQ(lattice->zlattice, 4.34 * sqrt(8.0 / 3.0));
+    ASSERT_EQ(lattice->nbasis, 8);
+    EXPECT_DOUBLE_EQ(lattice->basis[0][0], 0.0);
+    EXPECT_DOUBLE_EQ(lattice->basis[0][1], 0.0);
+    EXPECT_DOUBLE_EQ(lattice->basis[0][2], 0.0);
+    EXPECT_DOUBLE_EQ(lattice->basis[1][0], 0.5);
+    EXPECT_DOUBLE_EQ(lattice->basis[1][1], 0.5);
+    EXPECT_DOUBLE_EQ(lattice->basis[1][2], 0.0);
+    EXPECT_NEAR(lattice->basis[2][0], 1.0 / 3.0, 1.0e-14);
+    EXPECT_DOUBLE_EQ(lattice->basis[2][1], 0.0);
+    EXPECT_DOUBLE_EQ(lattice->basis[2][2], 0.5);
+    EXPECT_DOUBLE_EQ(lattice->basis[3][0], 5.0 / 6.0);
+    EXPECT_DOUBLE_EQ(lattice->basis[3][1], 0.5);
+    EXPECT_DOUBLE_EQ(lattice->basis[3][2], 0.5);
+    EXPECT_DOUBLE_EQ(lattice->basis[4][0], 0.0);
+    EXPECT_DOUBLE_EQ(lattice->basis[4][1], 0.0);
+    EXPECT_DOUBLE_EQ(lattice->basis[4][2], 0.625);
+    EXPECT_DOUBLE_EQ(lattice->basis[5][0], 0.5);
+    EXPECT_DOUBLE_EQ(lattice->basis[5][1], 0.5);
+    EXPECT_DOUBLE_EQ(lattice->basis[5][2], 0.625);
+    EXPECT_NEAR(lattice->basis[6][0], 1.0 / 3.0, 1.0e-14);
+    EXPECT_DOUBLE_EQ(lattice->basis[6][1], 0.0);
+    EXPECT_DOUBLE_EQ(lattice->basis[6][2], 0.125);
+    EXPECT_DOUBLE_EQ(lattice->basis[7][0], 5.0 / 6.0);
+    EXPECT_DOUBLE_EQ(lattice->basis[7][1], 0.5);
+    EXPECT_DOUBLE_EQ(lattice->basis[7][2], 0.125);
+    EXPECT_DOUBLE_EQ(lattice->a1[0], 4.34);
+    EXPECT_DOUBLE_EQ(lattice->a1[1], 0.0);
+    EXPECT_DOUBLE_EQ(lattice->a1[2], 0.0);
+    EXPECT_DOUBLE_EQ(lattice->a2[0], 0.0);
+    EXPECT_DOUBLE_EQ(lattice->a2[1], 4.34 * sqrt(3.0));
+    EXPECT_DOUBLE_EQ(lattice->a2[2], 0.0);
+    EXPECT_DOUBLE_EQ(lattice->a3[0], 0.0);
+    EXPECT_DOUBLE_EQ(lattice->a3[1], 0.0);
+    EXPECT_DOUBLE_EQ(lattice->a3[2], 4.34 * sqrt(8.0 / 3.0));
+}
+
+TEST_F(LatticeRegionTest, region_fail)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("lattice none 2.0");
+    lmp->input->one("region box block 0 1 0 1 0 1");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    TEST_FAILURE(".*ERROR: Create_atoms command before simulation box is defined.*",
+                 lmp->input->one("create_atoms 1 box"););
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("create_box 1 box");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    TEST_FAILURE(".*ERROR: Cannot create atoms with undefined lattice.*",
+                 lmp->input->one("create_atoms 1 box"););
+}
+
+TEST_F(LatticeRegionTest, region_block_lattice)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("lattice sc 1.5");
+    lmp->input->one("region box block 0 2 0 2 0 2 units lattice");
+    lmp->input->one("create_box 1 box");
+    lmp->input->one("create_atoms 1 box");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    auto x = lmp->atom->x;
+    ASSERT_EQ(lmp->atom->natoms, 8);
+    ASSERT_DOUBLE_EQ(x[0][0], 0.0);
+    ASSERT_DOUBLE_EQ(x[0][1], 0.0);
+    ASSERT_DOUBLE_EQ(x[0][2], 0.0);
+    ASSERT_DOUBLE_EQ(x[1][0], 1.5);
+    ASSERT_DOUBLE_EQ(x[1][1], 0.0);
+    ASSERT_DOUBLE_EQ(x[1][2], 0.0);
+    ASSERT_DOUBLE_EQ(x[2][0], 0.0);
+    ASSERT_DOUBLE_EQ(x[2][1], 1.5);
+    ASSERT_DOUBLE_EQ(x[2][2], 0.0);
+    ASSERT_DOUBLE_EQ(x[3][0], 1.5);
+    ASSERT_DOUBLE_EQ(x[3][1], 1.5);
+    ASSERT_DOUBLE_EQ(x[3][2], 0.0);
+}
+
+TEST_F(LatticeRegionTest, region_block_box)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("lattice sc 1.5 origin 0.75 0.75 0.75");
+    lmp->input->one("region box block 0 2 0 2 0 2 units box");
+    lmp->input->one("create_box 1 box");
+    lmp->input->one("create_atoms 1 box");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    auto x = lmp->atom->x;
+    ASSERT_EQ(lmp->atom->natoms, 1);
+    ASSERT_DOUBLE_EQ(x[0][0], 1.125);
+    ASSERT_DOUBLE_EQ(x[0][1], 1.125);
+    ASSERT_DOUBLE_EQ(x[0][2], 1.125);
 }
 
 } // namespace LAMMPS_NS

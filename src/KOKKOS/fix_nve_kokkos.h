@@ -67,7 +67,8 @@ class FixNVEKokkos : public FixNVE {
 };
 
 template <class DeviceType, int RMass>
-struct FixNVEKokkosInitialIntegrateFunctor  {
+class FixNVEKokkosInitialIntegrateFunctor  {
+ public:
   typedef DeviceType  device_type ;
   FixNVEKokkos<DeviceType> c;
 
@@ -81,7 +82,8 @@ struct FixNVEKokkosInitialIntegrateFunctor  {
 };
 
 template <class DeviceType, int RMass>
-struct FixNVEKokkosFinalIntegrateFunctor  {
+class FixNVEKokkosFinalIntegrateFunctor  {
+ public:
   typedef DeviceType  device_type ;
   FixNVEKokkos<DeviceType> c;
 

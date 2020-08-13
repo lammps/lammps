@@ -56,7 +56,8 @@ class FixEnforce2DKokkos : public FixEnforce2D {
 
 
 template <class DeviceType, int omega_flag, int angmom_flag, int torque_flag>
-struct FixEnforce2DKokkosPostForceFunctor {
+class FixEnforce2DKokkosPostForceFunctor {
+ public:
   typedef DeviceType device_type;
   FixEnforce2DKokkos<DeviceType> c;
 

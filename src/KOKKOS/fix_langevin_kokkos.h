@@ -152,7 +152,8 @@ namespace LAMMPS_NS {
   };
 
   template <class DeviceType>
-  struct FixLangevinKokkosInitialIntegrateFunctor  {
+  class FixLangevinKokkosInitialIntegrateFunctor  {
+   public:
     typedef DeviceType  device_type ;
     FixLangevinKokkos<DeviceType> c;
 
@@ -168,8 +169,8 @@ namespace LAMMPS_NS {
 
   template <class DeviceType,int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
     int Tp_BIAS, int Tp_RMASS, int Tp_ZERO>
-    struct FixLangevinKokkosPostForceFunctor {
-
+    class FixLangevinKokkosPostForceFunctor {
+     public:
       typedef DeviceType  device_type;
       typedef FSUM value_type;
       FixLangevinKokkos<DeviceType> c;
@@ -208,7 +209,8 @@ namespace LAMMPS_NS {
     };
 
   template <class DeviceType>
-    struct FixLangevinKokkosZeroForceFunctor {
+    class FixLangevinKokkosZeroForceFunctor {
+     public:
       typedef DeviceType  device_type ;
       FixLangevinKokkos<DeviceType> c;
 
@@ -222,7 +224,8 @@ namespace LAMMPS_NS {
     };
 
   template<class DeviceType>
-    struct FixLangevinKokkosTallyEnergyFunctor {
+    class FixLangevinKokkosTallyEnergyFunctor {
+     public:
       typedef DeviceType  device_type ;
       FixLangevinKokkos<DeviceType> c;
       typedef double value_type;
@@ -245,7 +248,8 @@ namespace LAMMPS_NS {
     };
 
   template <class DeviceType, int RMass>
-  struct FixLangevinKokkosEndOfStepFunctor {
+  class FixLangevinKokkosEndOfStepFunctor {
+   public:
     typedef DeviceType  device_type ;
     FixLangevinKokkos<DeviceType> c;
 

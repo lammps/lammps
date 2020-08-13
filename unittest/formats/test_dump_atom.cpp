@@ -620,6 +620,8 @@ TEST_F(DumpAtomTest, binary_write_dump)
     ASSERT_FILE_EQUAL(reference_txt, dump_file_txt);
     delete_file(reference_txt);
     delete_file(dump_file_txt);
+    delete_file(reference);
+    delete_file(dump_file);
 }
 
 int main(int argc, char **argv)

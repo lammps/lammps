@@ -153,6 +153,8 @@ TEST_F(LatticeRegionTest, lattice_sc)
                  lmp->input->one("lattice sc 1.0 origin 1.0 1.0 1.0"););
     TEST_FAILURE(".*ERROR: Illegal lattice command.*",
                  lmp->input->one("lattice sc 1.0 origin 1.0"););
+    TEST_FAILURE(".*ERROR: Illegal lattice command.*",
+                 lmp->input->one("lattice sc 1.0 origin 0.0 0.0 0.0 xxx"););
     TEST_FAILURE(".*ERROR: Expected floating point.*",
                  lmp->input->one("lattice sc 1.0 origin xxx 1.0 1.0"););
     TEST_FAILURE(".*ERROR: Lattice orient vectors are not orthogonal.*",
@@ -354,6 +356,10 @@ TEST_F(LatticeRegionTest, lattice_sq)
     ASSERT_EQ(lattice->basis[0][1], 0.0);
     ASSERT_EQ(lattice->basis[0][2], 0.0);
 
+    TEST_FAILURE(
+        ".*ERROR: Lattice settings are not compatible with 2d simulation.*",
+        lmp->input->one("lattice sq 1.0 orient x 1 1 2 orient y -1 1 0 orient z -1 -1 1"););
+
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("dimension 3");
     if (!verbose) ::testing::internal::GetCapturedStdout();
@@ -491,8 +497,7 @@ TEST_F(LatticeRegionTest, lattice_custom)
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("dimension 2");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    TEST_FAILURE(".*ERROR: No basis atoms in lattice.*",
-                 lmp->input->one("lattice custom 1.0"););
+    TEST_FAILURE(".*ERROR: No basis atoms in lattice.*", lmp->input->one("lattice custom 1.0"););
     TEST_FAILURE(".*ERROR: Lattice settings are not compatible with 2d simulation.*",
                  lmp->input->one("lattice custom 1.0 origin 0.5 0.5 0.5 basis 0.0 0.0 0.0"););
     TEST_FAILURE(".*ERROR: Lattice settings are not compatible with 2d simulation.*",
@@ -528,6 +533,7 @@ TEST_F(LatticeRegionTest, region_block_lattice)
     lmp->input->one("create_atoms 1 box");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
+    ASSERT_EQ(lmp->domain->triclinic, 0);
     auto x = lmp->atom->x;
     ASSERT_EQ(lmp->atom->natoms, 8);
     ASSERT_DOUBLE_EQ(x[0][0], 0.0);
@@ -552,12 +558,120 @@ TEST_F(LatticeRegionTest, region_block_box)
     lmp->input->one("create_box 1 box");
     lmp->input->one("create_atoms 1 box");
     if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->domain->triclinic, 0);
 
     auto x = lmp->atom->x;
     ASSERT_EQ(lmp->atom->natoms, 1);
     ASSERT_DOUBLE_EQ(x[0][0], 1.125);
     ASSERT_DOUBLE_EQ(x[0][1], 1.125);
     ASSERT_DOUBLE_EQ(x[0][2], 1.125);
+}
+
+TEST_F(LatticeRegionTest, region_cone)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("lattice fcc 2.5 origin 0.5 0.5 0.5");
+    lmp->input->one("region box cone x 1.0 1.0 0.5 2.1 0.0 2.0");
+    lmp->input->one("create_box 1 box");
+    lmp->input->one("create_atoms 1 region box");
+    lmp->input->one("write_dump all atom init.lammpstrj");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->domain->triclinic, 0);
+
+    auto x = lmp->atom->x;
+    ASSERT_EQ(lmp->atom->natoms, 42);
+}
+
+TEST_F(LatticeRegionTest, region_cylinder)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("lattice fcc 2.5 origin 0.5 0.5 0.5");
+    lmp->input->one("region box cylinder z 1.0 1.0 2.1 0.0 2.0 ");
+    lmp->input->one("create_box 1 box");
+    lmp->input->one("create_atoms 1 region box");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->domain->triclinic, 0);
+
+    auto x = lmp->atom->x;
+    ASSERT_EQ(lmp->atom->natoms, 114);
+}
+
+TEST_F(LatticeRegionTest, region_prism)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("lattice bcc 2.5 origin 0.75 0.75 0.75");
+    lmp->input->one("region box prism 0 2 0 2 0 2 0.5 0.0 0.0");
+    lmp->input->one("create_box 1 box");
+    lmp->input->one("create_atoms 1 box");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->domain->triclinic, 1);
+
+    auto x = lmp->atom->x;
+    ASSERT_EQ(lmp->atom->natoms, 16);
+}
+
+TEST_F(LatticeRegionTest, region_sphere)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("lattice fcc 2.5 origin 0.5 0.5 0.5");
+    lmp->input->one("region box sphere 1.0 1.0 1.0 1.1");
+    lmp->input->one("create_box 1 box");
+    lmp->input->one("create_atoms 1 region box");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->domain->triclinic, 0);
+
+    auto x = lmp->atom->x;
+    ASSERT_EQ(lmp->atom->natoms, 14);
+}
+
+TEST_F(LatticeRegionTest, region_union)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("lattice fcc 2.5 origin 0.5 0.5 0.5");
+    lmp->input->one("region part1 sphere 2.0 1.0 1.0 1.1");
+    lmp->input->one("region part2 block 0.0 2.0 0.0 2.0 0.0 2.0");
+    lmp->input->one("region box union 2 part1 part2");
+    lmp->input->one("create_box 1 box");
+    lmp->input->one("create_atoms 1 region box");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->domain->triclinic, 0);
+
+    auto x = lmp->atom->x;
+    ASSERT_EQ(lmp->atom->natoms, 67);
+}
+
+TEST_F(LatticeRegionTest, region_intersect)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("lattice fcc 2.5 origin 0.5 0.5 0.5");
+    lmp->input->one("region part1 sphere 2.0 1.0 1.0 1.8");
+    lmp->input->one("region part2 block 0.0 2.0 0.0 2.0 0.0 2.0");
+    lmp->input->one("region box intersect 2 part1 part2");
+    lmp->input->one("create_box 1 box");
+    lmp->input->one("create_atoms 1 region box");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->domain->triclinic, 0);
+
+    auto x = lmp->atom->x;
+    ASSERT_EQ(lmp->atom->natoms, 21);
+}
+
+TEST_F(LatticeRegionTest, region_plane)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("lattice fcc 2.5 origin 0.5 0.5 0.5");
+    lmp->input->one("region box block 0.0 2.0 0.0 2.0 0.0 2.0");
+    lmp->input->one("region part1 plane 0.5 1.0 0.0  0.75 0.0 0.0");
+    lmp->input->one("region part2 plane 1.5 1.0 0.0  0.75 0.0 0.0 side out");
+    lmp->input->one("region atoms intersect 2 part1 part2");
+    lmp->input->one("create_box 1 box");
+    lmp->input->one("create_atoms 1 region atoms");
+    lmp->input->one("write_dump all atom init.lammpstrj");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->domain->triclinic, 0);
+
+    auto x = lmp->atom->x;
+    ASSERT_EQ(lmp->atom->natoms, 16);
 }
 
 } // namespace LAMMPS_NS

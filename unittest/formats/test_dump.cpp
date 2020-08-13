@@ -230,6 +230,64 @@ TEST_F(DumpAtomTest, with_image_run0)
     delete_file("dump_with_image_run0.melt");
 }
 
+TEST_F(DumpAtomTest, with_units_run0)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("dump id all atom 1 dump_with_units_run0.melt");
+    command("dump_modify id scale no units yes");
+    command("run 0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS("dump_with_units_run0.melt");
+
+    auto lines = read_lines("dump_with_units_run0.melt");
+    ASSERT_EQ(lines.size(), 43);
+    ASSERT_STREQ(lines[0].c_str(), "ITEM: UNITS");
+    ASSERT_STREQ(lines[1].c_str(), "lj");
+    ASSERT_STREQ(lines[10].c_str(), "ITEM: ATOMS id type x y z");
+    ASSERT_EQ(utils::split_words(lines[11]).size(), 5);
+
+    delete_file("dump_with_units_run0.melt");
+}
+
+TEST_F(DumpAtomTest, with_units_run1)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("dump id all atom 1 dump_with_units_run1.melt");
+    command("dump_modify id scale no units yes");
+    command("run 1");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS("dump_with_units_run1.melt");
+
+    auto lines = read_lines("dump_with_units_run1.melt");
+    ASSERT_EQ(lines.size(), 84);
+    ASSERT_STREQ(lines[0].c_str(), "ITEM: UNITS");
+    ASSERT_STREQ(lines[1].c_str(), "lj");
+    ASSERT_STREQ(lines[10].c_str(), "ITEM: ATOMS id type x y z");
+    ASSERT_EQ(utils::split_words(lines[11]).size(), 5);
+
+    delete_file("dump_with_units_run1.melt");
+}
+
+TEST_F(DumpAtomTest, no_buffer_with_scale_and_image_run0)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("dump id all atom 1 dump_no_buffer_with_scale_and_image_run0.melt");
+    command("dump_modify id buffer no scale yes image yes");
+    command("run 0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS("dump_no_buffer_with_scale_and_image_run0.melt");
+    auto lines = read_lines("dump_no_buffer_with_scale_and_image_run0.melt");
+    ASSERT_EQ(lines.size(), 41);
+    ASSERT_STREQ(lines[4].c_str(), "ITEM: BOX BOUNDS pp pp pp");
+    ASSERT_EQ(utils::split_words(lines[5]).size(), 2);
+    ASSERT_STREQ(lines[8].c_str(), "ITEM: ATOMS id type xs ys zs ix iy iz");
+    ASSERT_EQ(utils::split_words(lines[9]).size(), 8);
+    delete_file("dump_no_buffer_with_scale_and_image_run0.melt");
+}
+
 TEST_F(DumpAtomTest, tricilinic_run0)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -269,7 +327,7 @@ TEST_F(DumpAtomTest, triclinic_with_image_run0)
     ASSERT_STREQ(lines[8].c_str(), "ITEM: ATOMS id type xs ys zs ix iy iz");
     ASSERT_EQ(utils::split_words(lines[9]).size(), 8);
 
-    delete_file("dump_tricilinic_with_image_run0.melt");
+    delete_file("dump_triclinic_with_image_run0.melt");
 }
 
 TEST_F(DumpAtomTest, binary_run0)

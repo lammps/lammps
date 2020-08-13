@@ -20,6 +20,7 @@ protected:
     virtual void InitSystem() override {
         command("units           lj");
         command("atom_style      atomic");
+        command("atom_modify     map yes");
 
         command("lattice         fcc 0.8442");
         command("region          box block 0 2 0 2 0 2");

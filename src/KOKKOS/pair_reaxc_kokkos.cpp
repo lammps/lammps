@@ -1823,7 +1823,6 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxBondOrder2, const int &ii) const {
 
-  F_FLOAT delij[3];
   F_FLOAT exp_p1i, exp_p2i, exp_p1j, exp_p2j, f1, f2, f3, u1_ij, u1_ji, Cf1A_ij, Cf1B_ij, Cf1_ij, Cf1_ji;
   F_FLOAT f4, f5, exp_f4, exp_f5, f4f5, Cf45_ij, Cf45_ji;
   F_FLOAT A0_ij, A1_ij, A2_ij, A3_ij, A2_ji, A3_ji;
@@ -1833,10 +1832,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBondOrder2, const int &ii) 
   const int j_start = d_bo_first[i];
   const int j_end = j_start + d_bo_num[i];
 
-  const X_FLOAT xtmp = x(i,0);
-  const X_FLOAT ytmp = x(i,1);
-  const X_FLOAT ztmp = x(i,2);
-
   const F_FLOAT val_i = paramssing(itype).valency;
 
   d_total_bo[i] = 0.0;
@@ -1845,10 +1840,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBondOrder2, const int &ii) 
   for (int jj = j_start; jj < j_end; jj++) {
     int j = d_bo_list[jj];
     j &= NEIGHMASK;
-    delij[0] = x(j,0) - xtmp;
-    delij[1] = x(j,1) - ytmp;
-    delij[2] = x(j,2) - ztmp;
-    const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
     const int jtype = type(j);
     const int j_index = jj - j_start;
     const int i_index = maxbo+j_index;
@@ -3080,7 +3071,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond1<NEIGHFLAG,EVFL
   auto v_CdDelta = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
   auto a_CdDelta = v_CdDelta.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
-  F_FLOAT delij[3];
   F_FLOAT p_be1, p_be2, De_s, De_p, De_pp, pow_BOs_be2, exp_be12, CEbo, ebond;
 
   const int i = d_ilist[ii];
@@ -3113,12 +3103,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond1<NEIGHFLAG,EVFL
     const int jtype = type(j);
     const int j_index = jj - j_start;
     const F_FLOAT jmass = paramssing(jtype).mass;
-
-    delij[0] = x(j,0) - xtmp;
-    delij[1] = x(j,1) - ytmp;
-    delij[2] = x(j,2) - ztmp;
-
-    const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
 
     // bond energy (nlocal only)
     p_be1 = paramstwbp(itype,jtype).p_be1;
@@ -3210,7 +3194,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond2<NEIGHFLAG,EVFL
   const X_FLOAT xtmp = x(i,0);
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
-  const int itype = type(i);
   const tagint itag = tag(i);
   const int j_start = d_bo_first[i];
   const int j_end = j_start + d_bo_num[i];
@@ -3234,7 +3217,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond2<NEIGHFLAG,EVFL
       if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) continue;
     }
 
-    const int jtype = type(j);
     const int j_index = jj - j_start;
     F_FLOAT CdDelta_j = d_CdDelta[j];
 
@@ -3242,7 +3224,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond2<NEIGHFLAG,EVFL
     delij[1] = x(j,1) - ytmp;
     delij[2] = x(j,2) - ztmp;
 
-    const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
     const int k_start = d_bo_first[j];
     const int k_end = k_start + d_bo_num[j];
 

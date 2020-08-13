@@ -183,7 +183,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   columns[0] = '\0';
   for (int iarg = 0; iarg < nfield; iarg++) {
     strcat(columns,earg[iarg]);
-    strcat(columns," ");
+    if (iarg+1 < nfield) strcat(columns," ");
   }
 }
 

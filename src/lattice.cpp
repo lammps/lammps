@@ -28,8 +28,6 @@ using namespace LAMMPS_NS;
 
 #define BIG 1.0e30
 
-enum{NONE,SC,BCC,FCC,HCP,DIAMOND,SQ,SQ2,HEX,CUSTOM};
-
 /* ---------------------------------------------------------------------- */
 
 Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)

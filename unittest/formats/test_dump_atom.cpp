@@ -703,6 +703,58 @@ TEST_F(DumpAtomTest, dump_modify_invalid)
                  command("dump_modify id true"););
 }
 
+TEST_F(DumpAtomTest, write_dump)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("dump id all atom 1 dump_run0.melt");
+    command("dump_modify id scale no units yes");
+    command("run 0");
+    command("write_dump all atom write_dump_atom_run*.melt modify scale no units yes");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    auto reference = "dump_run0.melt";
+    auto dump_file = "write_dump_atom_run0.melt";
+
+    ASSERT_FILE_EXISTS(reference);
+    ASSERT_FILE_EXISTS(dump_file);
+
+    ASSERT_FILE_EQUAL(reference, dump_file);
+    delete_file(reference);
+    delete_file(dump_file);
+}
+
+TEST_F(DumpAtomTest, binary_write_dump)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("dump id all atom 1 dump_run0.melt.bin");
+    command("dump_modify id scale no units yes");
+    command("run 0");
+    command("write_dump all atom write_dump_atom_run*_p%.melt.bin modify scale no units yes");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    auto reference = "dump_run0.melt.bin";
+    auto dump_file = "write_dump_atom_run0_p0.melt.bin";
+    auto reference_txt = "dump_run0.melt.bin.txt";
+    auto dump_file_txt = "write_dump_atom_run0_p0.melt.bin.txt";
+
+    ASSERT_FILE_EXISTS(reference);
+    ASSERT_FILE_EXISTS(dump_file);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    std::string cmdline = fmt::format("{} {}", BINARY2TXT_BINARY, reference);
+    system(cmdline.c_str());
+    cmdline = fmt::format("{} {}", BINARY2TXT_BINARY, dump_file);
+    system(cmdline.c_str());
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS(reference_txt);
+    ASSERT_FILE_EXISTS(dump_file_txt);
+
+    ASSERT_FILE_EQUAL(reference_txt, dump_file_txt);
+    delete_file(reference_txt);
+    delete_file(dump_file_txt);
+}
+
 int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);

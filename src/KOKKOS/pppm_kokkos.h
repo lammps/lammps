@@ -311,6 +311,7 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   int nx,ny,nz;
   typename AT::t_int_1d_um d_list_index;
   typename FFT_AT::t_FFT_SCALAR_1d_um d_buf;
+  int unpack_offset;
 
   DAT::tdual_int_scalar k_flag;
 
@@ -404,9 +405,9 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   // grid communication
 
   void pack_forward_kspace_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int);
-  void unpack_forward_kspace_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int);
+  void unpack_forward_kspace_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, int, DAT::tdual_int_2d &, int);
   void pack_reverse_kspace_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int);
-  void unpack_reverse_kspace_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int);
+  void unpack_reverse_kspace_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, int, DAT::tdual_int_2d &, int);
 
   // triclinic
 

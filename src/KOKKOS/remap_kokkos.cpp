@@ -220,7 +220,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
   int in_klo, int in_khi,
   int out_ilo, int out_ihi, int out_jlo, int out_jhi,
   int out_klo, int out_khi,
-  int nqty, int permute, int memory, int precision,
+  int nqty, int permute, int memory, int /*precision*/,
   int usecollective, int usecuda_aware)
 {
 

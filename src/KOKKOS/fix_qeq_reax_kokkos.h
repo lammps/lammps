@@ -267,8 +267,7 @@ struct FixQEqReaxKokkosComputeHFunctor {
 
   FixQEqReaxKokkosComputeHFunctor(FixQEqReaxKokkos<DeviceType> *c_ptr,
                                   int _atoms_per_team, int _vector_length)
-      : c(*c_ptr), atoms_per_team(_atoms_per_team),
-        vector_length(_vector_length) {
+    : atoms_per_team(_atoms_per_team), vector_length(_vector_length), c(*c_ptr)  {
     c.cleanup_copy();
   };
 

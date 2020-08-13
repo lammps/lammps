@@ -821,7 +821,7 @@ void CommKokkos::borders_device() {
   double lo,hi;
   int *type;
   double **x;
-  double *buf,*mlo,*mhi;
+  double *mlo,*mhi;
   MPI_Request request;
   AtomVecKokkos *avec = (AtomVecKokkos *) atom->avec;
 
@@ -990,10 +990,8 @@ void CommKokkos::borders_device() {
         if (n) MPI_Send(k_buf_send.view<DeviceType>().data(),n,
                         MPI_DOUBLE,sendproc[iswap],0,world);
         if (nrecv) MPI_Wait(&request,MPI_STATUS_IGNORE);
-        buf = buf_recv;
       } else {
         nrecv = nsend;
-        buf = buf_send;
       }
 
       // unpack buffer
@@ -1172,7 +1170,7 @@ void CommKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
    free/malloc the size of the recv buffer as needed with BUFFACTOR
 ------------------------------------------------------------------------- */
 
-void CommKokkos::grow_recv_kokkos(int n, ExecutionSpace space)
+void CommKokkos::grow_recv_kokkos(int n, ExecutionSpace /*space*/)
 {
   maxrecv = static_cast<int> (BUFFACTOR * n);
   int maxrecv_border = (maxrecv+BUFEXTRA+5)/atom->avec->size_border + 2;
@@ -1185,7 +1183,7 @@ void CommKokkos::grow_recv_kokkos(int n, ExecutionSpace space)
    realloc the size of the iswap sendlist as needed with BUFFACTOR
 ------------------------------------------------------------------------- */
 
-void CommKokkos::grow_list(int iswap, int n)
+void CommKokkos::grow_list(int /*iswap*/, int n)
 {
   int size = static_cast<int> (BUFFACTOR * n);
 

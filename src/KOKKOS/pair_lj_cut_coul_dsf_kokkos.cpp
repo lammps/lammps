@@ -190,7 +190,7 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJCutCoulDSFKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
+compute_fpair(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT r6inv = r2inv*r2inv*r2inv;
@@ -210,7 +210,7 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJCutCoulDSFKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
+compute_evdwl(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT r6inv = r2inv*r2inv*r2inv;
@@ -229,8 +229,9 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJCutCoulDSFKokkos<DeviceType>::
-compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j,
-              const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
+compute_fcoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
+              const int& /*itype*/, const int& /*jtype*/,
+              const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
 
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT r = sqrt(rsq);
@@ -250,8 +251,9 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJCutCoulDSFKokkos<DeviceType>::
-compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
-              const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
+compute_ecoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
+              const int& /*itype*/, const int& /*jtype*/,
+              const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
 
   const F_FLOAT r = sqrt(rsq);
   const F_FLOAT prefactor = factor_coul * qqrd2e * qtmp * q(j);

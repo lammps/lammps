@@ -321,7 +321,6 @@ void NeighborKokkos::build_kokkos(int topoflag)
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void NeighborKokkos::operator()(TagNeighborXhold<DeviceType>, const int &i) const {
-  typedef DeviceType device_type;
   xhold.view<DeviceType>()(i,0) = x.view<DeviceType>()(i,0);
   xhold.view<DeviceType>()(i,1) = x.view<DeviceType>()(i,1);
   xhold.view<DeviceType>()(i,2) = x.view<DeviceType>()(i,2);

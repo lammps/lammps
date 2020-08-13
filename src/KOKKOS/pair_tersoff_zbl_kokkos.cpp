@@ -1344,8 +1344,9 @@ void PairTersoffZBLKokkos<DeviceType>::v_tally3(EV_FLOAT &ev, const int &i, cons
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairTersoffZBLKokkos<DeviceType>::v_tally3_atom(EV_FLOAT &ev, const int &i, const int &j, const int &k,
-        F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drjk) const
+void PairTersoffZBLKokkos<DeviceType>::v_tally3_atom(EV_FLOAT &ev, const int &i, const int & /*j*/,
+                                                     const int & /*k*/, F_FLOAT *fj, F_FLOAT *fk,
+                                                     F_FLOAT *drji, F_FLOAT *drjk) const
 {
   F_FLOAT v[6];
 

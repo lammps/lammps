@@ -24,9 +24,9 @@ include long wavelength phonon dynamics and transport that includes all
 phonon branches, the ability to model mobile defects such as
 dislocations even in the coarse grained region, and exhibit both
 phonon-phonon scattering and phonon-defect/interface scattering. These
-features arise seamlessly once the mesh and interatomic potential are
+features arise seamlessly once the FEM model and interatomic potential are
 defined to drive the system. The features involving defects do however
-require the definition of an unconnected mesh; this process will be
+require the definition of unconnected finite elements; this process will be
 discussed in detail in later sections of this Howto.
 
 Once the typical LAMMPS settings such as units, dimension, and boundary
@@ -53,9 +53,9 @@ in the /examples/USER/CAC folder.
 
 **When to use the CAC method:**
 
-The advantage of the CAC method is in its ability to exploit a reduction
-in the level of detail for large systems that potentially only require
-atomistic resolution in very small regions at any given time. The rest
+The advantage of the CAC method is its ability to reduce the level
+of detail for large systems that may only require atomistic
+resolution in very small regions at any given time. The rest
 of the model is coarse-grained due to the more predictably smooth
 deformation that occurs there. This then allows one to interpolate what
 would normally be an abundance of atoms exhibiting polynomial order
@@ -64,7 +64,7 @@ the set of atoms is moving with time using a lagrangian description. In
 such a scenario the use of the CAC method will remove the unnecessary
 detail while providing a seamless non-local force description for both
 the coarse-grained and the atomically resolved regions. Other
-exploitations include the ability to simulate the nucleation and
+advantages include the ability to simulate the nucleation and
 propagation of dislocations and cracks between finite elements; in both
 cases the displacement fields associated with the dislocation core or
 crack tip are approximated. Nonetheless, such defects can be nucleated
@@ -112,7 +112,7 @@ the number of internal degrees of freedom (atoms in the unit cell of
 such a material). The next three numbers denote the size of the finite
 element in terms of how many unit cells it is supposed to represent
 (note that this is very representative for an Eight_Node element but one
-or more of these may be a dummy input in the future for other element
+or more of these may not be used in the future for other element
 shapes like a sphere etc.). By convention, when specifying an atom with
 "Atom" as the element type the internal dof count and scale numbers are
 set to one.
@@ -189,32 +189,31 @@ current list of CAC atom styles is:
 **The CAC input geometry:**
 
 A CAC model can involve a collection of atoms and finite elements in a
-discontinuous mesh. This comes with the need to clarify what constitutes
-a reasonable mesh with respect to how forces are computed from its
-definition; the word mesh here is being used loosely in that it includes
-the set of atoms as well.
+discontinuous arrangement. This comes with the need to clarify what constitutes
+a reasonable arrangement with respect to how forces are computed from its
+definition; this arrangement typically involves atoms and elements with 
+nodal degrees of freedom that need not be interconnected in a mesh.
 
 One of the most recurring initial inputs for a CAC simulation is that of
 a finite crystal for the material in question; with perhaps several
 defects or surfaces defined initially as well. More complex cases will
-typically involved superpositions of several crystalline subsets with
+typically involve superpositions of several crystalline subsets with
 defect surfaces between them; we will thus describe some of the more
 obscure details needed to define a crystalline input when it consists of
 both finite elements and atoms.
 
-Recall that the mesh input MUST be discontinuous. In other words, Finite
-elements own a unique set of nodes that no other finite element owns. In
-the case of a crystalline input the nodes of adjacent finite elements
-can however overlap where their positions are concerned.  The image
-denotes the mesh geometry for a 1D lattice chain depicted in mixed
-resolution.
+In the context of the LAMMPS USER-CAC package, the input MUST enable discontinuity.
+In other words, Finite elements own a unique set of nodes that no other finite element owns.
+In the case of a crystalline input, the nodal positions of adjacent finite elements
+will overlap initially.  The image below portrays the model geometry for a
+1D lattice chain depicted in mixed resolution, using both elements and atoms.
 
 .. image:: JPG/1D-CAC-chain.jpg
 
 Thus, if we wished to resolve a crystalline input with a mix of finite
-elements and atoms we must be careful to place the nodes and atoms in
-the correct place. Nodes overlap with nodes of adjacent finite elements
-in a mesh representing a crystal, and atoms are usually spaced apart by
+elements and atoms we must be careful to place the nodes and atoms
+correctly. Nodes overlap with nodes of adjacent finite elements
+in a model representing a crystal, and atoms are usually spaced apart by
 a (the unit cell length) with respect to other atoms. Thus, whenever one
 transitions between resolving a crystal with finite elements and atoms
 they must leave a space of a/2 between the adjacent node and atom. This
@@ -275,7 +274,7 @@ currently implemented include :doc:`cac/buck <pair_cac_buck>`,
 In order to obtain good performance running CAC models with multiple
 resolutions one must invoke the :doc:`fix balance <fix_balance>`
 command. This ensures that your simulation has the capability to
-dynamically reassign each computing task's burden according to a set of
+dynamically reassign each MPI task's burden according to a set of
 weights. The weights in question are provided by the compute :doc:`compute cac/quad/count <compute_cac_quad_count>` through a variable
 command. For specific details of syntax, please see the example input
 scripts in /examples/USER/CAC of your LAMMPS directory or refer to the
@@ -292,7 +291,7 @@ in your model) with :doc:`compute cac/nodal/temp <compute_cac_nodal_temp>`
 or outputting a list of nodal information at specified times with dumps
 such as `dump cac/nodal/positions <dump_cac_nodal_positions>`_.  This nodal
 information can then be converted to the user's preferred visualization
-format for software such as Paraview (which is open source) or
+format for software such as ParaView (which is open source) or
 Tecplot. It is worth noting that Paraview interprets many formats. The
 Tecplot and VTK formats are among these. The following is an example
 Tecplot output of four fold phonon focusing in Silicon.

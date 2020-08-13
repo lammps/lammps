@@ -54,7 +54,7 @@ void FixNVEKokkos<DeviceType>::init()
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixNVEKokkos<DeviceType>::initial_integrate(int vflag)
+void FixNVEKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 {
   atomKK->sync(execution_space,datamask_read);
   atomKK->modified(execution_space,datamask_modify);

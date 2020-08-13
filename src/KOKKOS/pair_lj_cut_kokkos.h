@@ -48,7 +48,7 @@ class PairLJCutKokkos : public PairLJCut {
     KOKKOS_INLINE_FUNCTION
     params_lj(){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
     KOKKOS_INLINE_FUNCTION
-    params_lj(int i){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
+    params_lj(int /*i*/){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
     F_FLOAT cutsq,lj1,lj2,lj3,lj4,offset;
   };
 
@@ -65,10 +65,8 @@ class PairLJCutKokkos : public PairLJCut {
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-    return 0;
-  }
-
+  F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
+                        const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
   Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;

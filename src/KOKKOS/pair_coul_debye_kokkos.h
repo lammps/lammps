@@ -48,7 +48,7 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
     KOKKOS_INLINE_FUNCTION
     params_coul(){cutsq=0,scale=0;};
     KOKKOS_INLINE_FUNCTION
-    params_coul(int i){cutsq=0,scale=0;};
+    params_coul(int /*i*/){cutsq=0,scale=0;};
     F_FLOAT cutsq, scale;
   };
 
@@ -57,10 +57,8 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
-                        const int& itype, const int& jtype) const {
-    return 0.0;
-  }
+  F_FLOAT compute_fpair(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
+                        const int& /*itype*/, const int& /*jtype*/) const { return 0.0; }
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
@@ -69,10 +67,8 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
-                        const int& itype, const int& jtype) const {
-    return 0.0;
-  }
+  F_FLOAT compute_evdwl(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
+                        const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION

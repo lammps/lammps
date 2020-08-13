@@ -172,7 +172,7 @@ void CommKokkos::forward_comm(int dummy)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void CommKokkos::forward_comm_device(int dummy)
+void CommKokkos::forward_comm_device(int)
 {
   int n;
   MPI_Request request;
@@ -529,13 +529,12 @@ struct BuildExchangeListFunctor {
       typename AT::tdual_int_scalar nsend,
       typename AT::tdual_int_1d sendflag,int nlocal, int dim,
                 X_FLOAT lo, X_FLOAT hi):
+                _lo(lo),_hi(hi),
                 _x(x.template view<DeviceType>()),
-                _sendlist(sendlist.template view<DeviceType>()),
-                _nsend(nsend.template view<DeviceType>()),
-                _sendflag(sendflag.template view<DeviceType>()),
                 _nlocal(nlocal),_dim(dim),
-                _lo(lo),_hi(hi){
-  }
+                _nsend(nsend.template view<DeviceType>()),
+                _sendlist(sendlist.template view<DeviceType>()),
+                _sendflag(sendflag.template view<DeviceType>()) { }
 
   KOKKOS_INLINE_FUNCTION
   void operator() (int i) const {
@@ -782,11 +781,10 @@ struct BuildBorderListFunctor {
                          int _nlast, int _dim,
                          X_FLOAT _lo, X_FLOAT _hi, int _iswap,
                          int _maxsendlist):
-    x(_x.template view<DeviceType>()),
+    lo(_lo),hi(_hi),x(_x.template view<DeviceType>()),iswap(_iswap),
+    maxsendlist(_maxsendlist),nfirst(_nfirst),nlast(_nlast),dim(_dim),
     sendlist(_sendlist.template view<DeviceType>()),
-    nsend(_nsend.template view<DeviceType>()),
-    nfirst(_nfirst),nlast(_nlast),dim(_dim),
-    lo(_lo),hi(_hi),iswap(_iswap),maxsendlist(_maxsendlist){}
+    nsend(_nsend.template view<DeviceType>()) {}
 
 
   KOKKOS_INLINE_FUNCTION

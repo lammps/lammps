@@ -47,7 +47,7 @@ class PairYukawaKokkos : public PairYukawa {
     KOKKOS_INLINE_FUNCTION
     params_yukawa(){ cutsq=0, a = 0; offset = 0; }
     KOKKOS_INLINE_FUNCTION
-    params_yukawa(int i){ cutsq=0, a = 0; offset = 0; }
+    params_yukawa(int /*i*/){ cutsq=0, a = 0; offset = 0; }
     F_FLOAT cutsq, a, offset;
   };
 
@@ -67,11 +67,8 @@ class PairYukawaKokkos : public PairYukawa {
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
-                        const int& itype, const int& jtype) const
-  {
-    return 0;
-  }
+  F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
+                        const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
 
   Kokkos::DualView<params_yukawa**,Kokkos::LayoutRight,DeviceType> k_params;

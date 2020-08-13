@@ -415,7 +415,7 @@ struct NPairKokkosBuildFunctor<LMPHostType,HALF_NEIGH,GHOST_NEWTON,TRI> {
     c.template build_Item<HALF_NEIGH,GHOST_NEWTON,TRI>(i);
   }
 
-  void operator() (typename Kokkos::TeamPolicy<LMPHostType>::member_type dev) const {} // Should error out
+  void operator() (typename Kokkos::TeamPolicy<LMPHostType>::member_type /*dev*/) const {} // Should error out
 };
 
 template<class DeviceType,int HALF_NEIGH>
@@ -471,7 +471,7 @@ struct NPairKokkosBuildFunctorSize<LMPHostType,HALF_NEIGH,GHOST_NEWTON,TRI> {
     c.template build_ItemSize<HALF_NEIGH,GHOST_NEWTON,TRI>(i);
   }
 
-  void operator() (typename Kokkos::TeamPolicy<LMPHostType>::member_type dev) const {} // Should error out
+  void operator() (typename Kokkos::TeamPolicy<LMPHostType>::member_type /*dev*/) const {} // Should error out
 };
 
 }

@@ -47,7 +47,7 @@ class PairMorseKokkos : public PairMorse {
     KOKKOS_INLINE_FUNCTION
     params_morse(){cutsq=0,d0=0;alpha=0;r0=0;offset=0;}
     KOKKOS_INLINE_FUNCTION
-    params_morse(int i){cutsq=0,d0=0;alpha=0;r0=0;offset=0;}
+    params_morse(int /*i*/){cutsq=0,d0=0;alpha=0;r0=0;offset=0;}
     F_FLOAT cutsq,d0,alpha,r0,offset;
   };
 
@@ -64,9 +64,8 @@ class PairMorseKokkos : public PairMorse {
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-    return 0;
-  }
+  F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
+                        const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
 
   Kokkos::DualView<params_morse**,Kokkos::LayoutRight,DeviceType> k_params;

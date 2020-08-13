@@ -47,7 +47,7 @@ class PairBuckKokkos : public PairBuck {
     KOKKOS_INLINE_FUNCTION
     params_buck(){cutsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
     KOKKOS_INLINE_FUNCTION
-    params_buck(int i){cutsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
+    params_buck(int /*i*/){cutsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
     F_FLOAT cutsq,a,c,rhoinv,buck1,buck2,offset;
   };
 
@@ -64,10 +64,8 @@ class PairBuckKokkos : public PairBuck {
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-    return 0;
-  }
-
+  F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
+                        const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
   Kokkos::DualView<params_buck**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_buck**,Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;

@@ -712,7 +712,7 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename std::enable_if<!((NE
 }
 
 template<class FunctorStyle>
-int GetTeamSize(FunctorStyle& functor, int inum, int reduce_flag, int team_size, int vector_length) {
+int GetTeamSize(FunctorStyle& functor, int inum, int reduce_flag, int team_size, int KOKKOS_GPU_ARG(vector_length)) {
     int team_size_max;
 
     if (reduce_flag)

@@ -33,6 +33,12 @@ enum{FULL=1u,HALFTHREAD=2u,HALF=4u};
 #define LMP_KOKKOS_GPU
 #endif
 
+#if defined(LMP_KOKKOS_GPU)
+#define KOKKOS_GPU_ARG(x) x
+#else
+#define KOKKOS_GPU_ARG(x)
+#endif
+
 #define MAX_TYPES_STACKPARAMS 12
 #define NeighClusterSize 8
 

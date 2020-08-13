@@ -267,6 +267,25 @@ TEST_F(DumpAtomTest, with_units_run0)
     delete_file("dump_with_units_run0.melt");
 }
 
+TEST_F(DumpAtomTest, with_time_run0)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("dump id all atom 1 dump_with_time_run0.melt");
+    command("dump_modify id scale no time yes");
+    command("run 0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS("dump_with_time_run0.melt");
+
+    auto lines = read_lines("dump_with_time_run0.melt");
+    ASSERT_EQ(lines.size(), 43);
+    ASSERT_STREQ(lines[0].c_str(), "ITEM: TIME");
+    ASSERT_STREQ(lines[10].c_str(), "ITEM: ATOMS id type x y z");
+    ASSERT_EQ(utils::split_words(lines[11]).size(), 5);
+
+    delete_file("dump_with_time_run0.melt");
+}
+
 TEST_F(DumpAtomTest, with_units_run1)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -342,6 +361,61 @@ TEST_F(DumpAtomTest, binary_triclinic_with_units_run0)
     delete_file("dump_binary_tri_with_units_run0.melt.bin.txt");
 }
 
+TEST_F(DumpAtomTest, binary_with_time_run0)
+{
+    if(!BINARY2TXT_BINARY) GTEST_SKIP();
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("dump id0 all atom 1 dump_text_with_time_run0.melt");
+    command("dump id1 all atom 1 dump_binary_with_time_run0.melt.bin");
+    command("dump_modify id0 scale no time yes");
+    command("dump_modify id1 scale no time yes");
+    command("run 0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS("dump_text_with_time_run0.melt");
+    ASSERT_FILE_EXISTS("dump_binary_with_time_run0.melt.bin");
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    std::string cmdline = fmt::format("{} dump_binary_with_time_run0.melt.bin", BINARY2TXT_BINARY);
+    system(cmdline.c_str());
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS("dump_binary_with_time_run0.melt.bin.txt");
+    ASSERT_FILE_EQUAL("dump_text_with_time_run0.melt", "dump_binary_with_time_run0.melt.bin.txt");
+    delete_file("dump_text_with_time_run0.melt");
+    delete_file("dump_binary_with_time_run0.melt.bin");
+    delete_file("dump_binary_with_time_run0.melt.bin.txt");
+}
+
+TEST_F(DumpAtomTest, binary_triclinic_with_time_run0)
+{
+    if(!BINARY2TXT_BINARY) GTEST_SKIP();
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("change_box all triclinic");
+    command("dump id0 all atom 1 dump_text_tri_with_time_run0.melt");
+    command("dump id1 all atom 1 dump_binary_tri_with_time_run0.melt.bin");
+    command("dump_modify id0 scale no time yes");
+    command("dump_modify id1 scale no time yes");
+    command("run 0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS("dump_text_tri_with_time_run0.melt");
+    ASSERT_FILE_EXISTS("dump_binary_tri_with_time_run0.melt.bin");
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    std::string cmdline = fmt::format("{} dump_binary_tri_with_time_run0.melt.bin", BINARY2TXT_BINARY);
+    system(cmdline.c_str());
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS("dump_binary_tri_with_time_run0.melt.bin.txt");
+    ASSERT_FILE_EQUAL("dump_text_tri_with_time_run0.melt", "dump_binary_tri_with_time_run0.melt.bin.txt");
+    delete_file("dump_text_tri_with_time_run0.melt");
+    delete_file("dump_binary_tri_with_time_run0.melt.bin");
+    delete_file("dump_binary_tri_with_time_run0.melt.bin.txt");
+}
+
 TEST_F(DumpAtomTest, no_buffer_with_scale_and_image_run0)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -399,6 +473,27 @@ TEST_F(DumpAtomTest, tricilinic_with_units_run0)
 
     ASSERT_EQ(lines.size(), 43);
     delete_file("dump_triclinic_with_units_run0.melt");
+}
+
+TEST_F(DumpAtomTest, tricilinic_with_time_run0)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+
+    command("change_box all triclinic");
+    command("dump id all atom 1 dump_triclinic_with_time_run0.melt");
+    command("dump_modify id time yes");
+    command("run 0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS("dump_triclinic_with_time_run0.melt");
+
+    auto lines = read_lines("dump_triclinic_with_time_run0.melt");
+    ASSERT_STREQ(lines[0].c_str(), "ITEM: TIME");
+    ASSERT_STREQ(lines[6].c_str(), "ITEM: BOX BOUNDS xy xz yz pp pp pp");
+    ASSERT_EQ(utils::split_words(lines[7]).size(), 3);
+
+    ASSERT_EQ(lines.size(), 43);
+    delete_file("dump_triclinic_with_time_run0.melt");
 }
 
 TEST_F(DumpAtomTest, triclinic_with_image_run0)

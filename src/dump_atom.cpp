@@ -217,6 +217,19 @@ void DumpAtom::header_columns_binary()
 
 /* ---------------------------------------------------------------------- */
 
+void DumpAtom::header_time_binary()
+{
+  char flag = time_flag ? 1 : 0;
+  fwrite(&flag, sizeof(char), 1, fp);
+
+  if (time_flag) {
+    double t = compute_time();
+    fwrite(&t, sizeof(double), 1, fp);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void DumpAtom::header_format_binary()
 {
   format_magic_string_binary();
@@ -243,6 +256,7 @@ void DumpAtom::header_binary(bigint ndump)
   fwrite(&size_one,sizeof(int),1,fp);
 
   header_unit_style_binary();
+  header_time_binary();
   header_columns_binary();
 
   if (multiproc) fwrite(&nclusterprocs,sizeof(int),1,fp);
@@ -271,6 +285,7 @@ void DumpAtom::header_binary_triclinic(bigint ndump)
   fwrite(&size_one,sizeof(int),1,fp);
 
   header_unit_style_binary();
+  header_time_binary();
   header_columns_binary();
 
   if (multiproc) fwrite(&nclusterprocs,sizeof(int),1,fp);

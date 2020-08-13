@@ -148,7 +148,8 @@ int main(int narg, char **arg)
       fread(&size_one,sizeof(int),1,fp);
 
       if (magic_string && revision > 0x0001) {
-        // newer format includes units and columns string
+        // newer format includes units string, columns string
+        // and time
         int len = 0;
         fread(&len, sizeof(int), 1, fp);
 
@@ -160,6 +161,15 @@ int main(int narg, char **arg)
           unit_style[len+1] = '\0';
           fprintf(fptxt, "ITEM: UNITS\n");
           fprintf(fptxt, "%s\n", unit_style);
+        }
+
+        char flag = 0;
+        fread(&flag, sizeof(char), 1, fp);
+
+        if (flag) {
+          double time;
+          fread(&time, sizeof(double), 1, fp);
+          fprintf(fptxt, "ITEM: TIME\n%.16g\n", time);
         }
 
         fread(&len, sizeof(int), 1, fp);

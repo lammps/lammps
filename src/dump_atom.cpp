@@ -204,6 +204,7 @@ void DumpAtom::header_format_binary()
 void DumpAtom::header_binary(bigint ndump)
 {
   header_format_binary();
+
   fwrite(&update->ntimestep,sizeof(bigint),1,fp);
   fwrite(&ndump,sizeof(bigint),1,fp);
   fwrite(&domain->triclinic,sizeof(int),1,fp);
@@ -216,9 +217,21 @@ void DumpAtom::header_binary(bigint ndump)
   fwrite(&boxzhi,sizeof(double),1,fp);
   fwrite(&size_one,sizeof(int),1,fp);
 
-  int len = strlen(columns);
+  int len = 0;
+
+  if (unit_flag && !unit_count) {
+    ++unit_count;
+    len = strlen(update->unit_style);
+    fwrite(&len, sizeof(int), 1, fp);
+    fwrite(update->unit_style, sizeof(char), len, fp);
+  } else {
+    fwrite(&len, sizeof(int), 1, fp);
+  }
+
+  len = strlen(columns);
   fwrite(&len, sizeof(int), 1, fp);
   fwrite(columns, sizeof(char), len, fp);
+
 
   if (multiproc) fwrite(&nclusterprocs,sizeof(int),1,fp);
   else fwrite(&nprocs,sizeof(int),1,fp);
@@ -244,7 +257,18 @@ void DumpAtom::header_binary_triclinic(bigint ndump)
   fwrite(&boxyz,sizeof(double),1,fp);
   fwrite(&size_one,sizeof(int),1,fp);
 
-  int len = strlen(columns);
+  int len = 0;
+
+  if (unit_flag && !unit_count) {
+    ++unit_count;
+    len = strlen(update->unit_style);
+    fwrite(&len, sizeof(int), 1, fp);
+    fwrite(update->unit_style, sizeof(char), len, fp);
+  } else {
+    fwrite(&len, sizeof(int), 1, fp);
+  }
+
+  len = strlen(columns);
   fwrite(&len, sizeof(int), 1, fp);
   fwrite(columns, sizeof(char), len, fp);
 

@@ -93,7 +93,7 @@ int main(int narg, char **arg)
     // detect newer format
     char * magic_string = nullptr;
     char * columns = nullptr;
-
+    char * unit_style = nullptr;
 
     // loop over snapshots in file
 
@@ -148,8 +148,20 @@ int main(int narg, char **arg)
       fread(&size_one,sizeof(int),1,fp);
 
       if (magic_string && revision > 0x0001) {
-        // newer format includes columns string
+        // newer format includes units and columns string
         int len = 0;
+        fread(&len, sizeof(int), 1, fp);
+
+        if (len > 0) {
+          // has units
+          delete [] unit_style;
+          unit_style = new char[len+1];
+          fread(unit_style, sizeof(char), len, fp);
+          unit_style[len+1] = '\0';
+          fprintf(fptxt, "ITEM: UNITS\n");
+          fprintf(fptxt, "%s\n", unit_style);
+        }
+
         fread(&len, sizeof(int), 1, fp);
         delete [] columns;
         columns = new char[len+1];
@@ -229,6 +241,10 @@ int main(int narg, char **arg)
     printf("\n");
     delete [] columns;
     delete [] magic_string;
+    delete [] unit_style;
+    columns = nullptr;
+    magic_string = nullptr;
+    unit_style = nullptr;
   }
 
   if (buf) delete [] buf;

@@ -24,44 +24,108 @@ char * BINARY2TXT_BINARY = nullptr;
 class DumpCustomTest : public MeltTest {
 };
 
-TEST_F(DumpCustomTest, run0)
+TEST_F(DumpCustomTest, run1)
 {
-    auto dump_file = "dump_custom_run0.melt";
+    auto dump_file = "dump_custom_run1.melt";
 
     if (!verbose) ::testing::internal::CaptureStdout();
     command(fmt::format("dump id all custom 1 {} id type x y vx fx", dump_file));
-    command("run 0");
+    command("dump_modify id units yes");
+    command("run 1");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
-    ASSERT_EQ(lines.size(), 41);
-    ASSERT_STREQ(lines[4].c_str(), "ITEM: BOX BOUNDS pp pp pp");
-    ASSERT_EQ(utils::split_words(lines[5]).size(), 2);
-    ASSERT_STREQ(lines[8].c_str(), "ITEM: ATOMS id type x y vx fx");
-    ASSERT_EQ(utils::split_words(lines[9]).size(), 6);
+    ASSERT_EQ(lines.size(), 84);
+    ASSERT_STREQ(lines[6].c_str(), "ITEM: BOX BOUNDS pp pp pp");
+    ASSERT_EQ(utils::split_words(lines[7]).size(), 2);
+    ASSERT_STREQ(lines[10].c_str(), "ITEM: ATOMS id type x y vx fx");
+    ASSERT_EQ(utils::split_words(lines[11]).size(), 6);
     delete_file(dump_file);
 }
 
-TEST_F(DumpCustomTest, triclinic_run0)
+TEST_F(DumpCustomTest, binary_run1)
 {
-    auto dump_file = "dump_custom_tri_run0.melt";
+    auto text_file = "dump_custom_text_run1.melt";
+    auto binary_file = "dump_custom_binary_run1.melt.bin";
+    auto converted_file = fmt::format("{}.txt", binary_file);
+
+    if(!BINARY2TXT_BINARY) GTEST_SKIP();
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command(fmt::format("dump id0 all custom 1 {} id type x y vx fx", text_file));
+    command(fmt::format("dump id1 all custom 1 {} id type x y vx fx", binary_file));
+    command("dump_modify id0 units yes");
+    command("dump_modify id1 units yes");
+    command("run 1");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS(text_file);
+    ASSERT_FILE_EXISTS(binary_file);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    std::string cmdline = fmt::format("{} {}", BINARY2TXT_BINARY, binary_file);
+    system(cmdline.c_str());
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS(converted_file);
+    ASSERT_FILE_EQUAL(text_file, converted_file);
+    delete_file(text_file);
+    delete_file(binary_file);
+    delete_file(converted_file);
+}
+
+TEST_F(DumpCustomTest, triclinic_run1)
+{
+    auto dump_file = "dump_custom_tri_run1.melt";
     if (!verbose) ::testing::internal::CaptureStdout();
 
     command("change_box all triclinic");
     command(fmt::format("dump id all custom 1 {} id type x y vx fx", dump_file));
-    command("run 0");
+    command("dump_modify id units yes");
+    command("run 1");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     ASSERT_FILE_EXISTS(dump_file);
 
     auto lines = read_lines(dump_file);
-    ASSERT_STREQ(lines[4].c_str(), "ITEM: BOX BOUNDS xy xz yz pp pp pp");
-    ASSERT_EQ(utils::split_words(lines[5]).size(), 3);
+    ASSERT_STREQ(lines[6].c_str(), "ITEM: BOX BOUNDS xy xz yz pp pp pp");
+    ASSERT_EQ(utils::split_words(lines[7]).size(), 3);
 
-    ASSERT_EQ(lines.size(), 41);
+    ASSERT_EQ(lines.size(), 84);
     delete_file(dump_file);
+}
+
+TEST_F(DumpCustomTest, binary_triclinic_run1)
+{
+    auto text_file = "dump_custom_tri_text_run1.melt";
+    auto binary_file = "dump_custom_tri_binary_run1.melt.bin";
+    auto converted_file = fmt::format("{}.txt", binary_file);
+
+    if(!BINARY2TXT_BINARY) GTEST_SKIP();
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command(fmt::format("dump id0 all custom 1 {} id type x y vx fx", text_file));
+    command(fmt::format("dump id1 all custom 1 {} id type x y vx fx", binary_file));
+    command("dump_modify id0 units yes");
+    command("dump_modify id1 units yes");
+    command("run 1");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS(text_file);
+    ASSERT_FILE_EXISTS(binary_file);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    std::string cmdline = fmt::format("{} {}", BINARY2TXT_BINARY, binary_file);
+    system(cmdline.c_str());
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_FILE_EXISTS(converted_file);
+    ASSERT_FILE_EQUAL(text_file, converted_file);
+    delete_file(text_file);
+    delete_file(binary_file);
+    delete_file(converted_file);
 }
 
 

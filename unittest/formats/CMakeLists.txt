@@ -36,4 +36,5 @@ set_tests_properties(DumpCustom PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMM
 
 if (BUILD_TOOLS)
     set_tests_properties(DumpAtom PROPERTIES ENVIRONMENT "BINARY2TXT_BINARY=$<TARGET_FILE:binary2txt>")
+    set_tests_properties(DumpCustom PROPERTIES ENVIRONMENT "BINARY2TXT_BINARY=$<TARGET_FILE:binary2txt>")
 endif()

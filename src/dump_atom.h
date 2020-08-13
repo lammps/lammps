@@ -46,6 +46,8 @@ class DumpAtom : public Dump {
   void write_data(int, double *);
 
   void header_format_binary();
+  void header_unit_style_binary();
+  void header_columns_binary();
   void format_magic_string_binary();
   void format_endian_binary();
   void format_revision_binary();

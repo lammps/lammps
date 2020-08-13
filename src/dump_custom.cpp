@@ -482,6 +482,8 @@ void DumpCustom::header_binary(bigint ndump)
 
 void DumpCustom::header_binary_triclinic(bigint ndump)
 {
+  header_format_binary();
+
   fwrite(&update->ntimestep,sizeof(bigint),1,fp);
   fwrite(&ndump,sizeof(bigint),1,fp);
   fwrite(&domain->triclinic,sizeof(int),1,fp);
@@ -496,6 +498,11 @@ void DumpCustom::header_binary_triclinic(bigint ndump)
   fwrite(&boxxz,sizeof(double),1,fp);
   fwrite(&boxyz,sizeof(double),1,fp);
   fwrite(&size_one,sizeof(int),1,fp);
+
+  header_unit_style_binary();
+  header_time_binary();
+  header_columns_binary();
+
   if (multiproc) fwrite(&nclusterprocs,sizeof(int),1,fp);
   else fwrite(&nprocs,sizeof(int),1,fp);
 }

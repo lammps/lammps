@@ -27,6 +27,23 @@
 
 using namespace LAMMPS_NS;
 
+using ::testing::MatchesRegex;
+
+#define TEST_FAILURE(errmsg, ...)                                 \
+    if (Info::has_exceptions()) {                                 \
+        ::testing::internal::CaptureStdout();                     \
+        ASSERT_ANY_THROW({__VA_ARGS__});                          \
+        auto mesg = ::testing::internal::GetCapturedStdout();     \
+        ASSERT_THAT(mesg, MatchesRegex(errmsg));                  \
+    } else {                                                      \
+        if (Info::get_mpi_vendor() != "Open MPI") {               \
+            ::testing::internal::CaptureStdout();                 \
+            ASSERT_DEATH({__VA_ARGS__}, "");                      \
+            auto mesg = ::testing::internal::GetCapturedStdout(); \
+            ASSERT_THAT(mesg, MatchesRegex(errmsg));              \
+        }                                                         \
+    }
+
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
@@ -559,6 +576,36 @@ TEST_F(DumpAtomTest, per_processor_multi_file_run1)
     ASSERT_EQ(count_lines("dump_run1_p0_1.melt"), 41);
     delete_file("dump_run1_p0_0.melt");
     delete_file("dump_run1_p0_1.melt");
+}
+
+TEST_F(DumpAtomTest, dump_modify_scale_invalid)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("dump id all atom 1 dump.txt");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    TEST_FAILURE(".*Illegal dump_modify command.*",
+                 command("dump_modify id scale true"););
+}
+
+TEST_F(DumpAtomTest, dump_modify_image_invalid)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("dump id all atom 1 dump.txt");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    TEST_FAILURE(".*Illegal dump_modify command.*",
+                 command("dump_modify id image true"););
+}
+
+TEST_F(DumpAtomTest, dump_modify_invalid)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("dump id all atom 1 dump.txt");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    TEST_FAILURE(".*Illegal dump_modify command.*",
+                 command("dump_modify id true"););
 }
 
 int main(int argc, char **argv)

@@ -434,7 +434,7 @@ TEST_F(DumpAtomTest, no_buffer_with_scale_and_image_run0)
     delete_file("dump_no_buffer_with_scale_and_image_run0.melt");
 }
 
-TEST_F(DumpAtomTest, tricilinic_run0)
+TEST_F(DumpAtomTest, triclinic_run0)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
 
@@ -453,7 +453,7 @@ TEST_F(DumpAtomTest, tricilinic_run0)
     delete_file("dump_triclinic_run0.melt");
 }
 
-TEST_F(DumpAtomTest, tricilinic_with_units_run0)
+TEST_F(DumpAtomTest, triclinic_with_units_run0)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
 
@@ -475,7 +475,7 @@ TEST_F(DumpAtomTest, tricilinic_with_units_run0)
     delete_file("dump_triclinic_with_units_run0.melt");
 }
 
-TEST_F(DumpAtomTest, tricilinic_with_time_run0)
+TEST_F(DumpAtomTest, triclinic_with_time_run0)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
 

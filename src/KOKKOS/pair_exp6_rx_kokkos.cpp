@@ -140,7 +140,7 @@ void PairExp6rxKokkos<DeviceType>::init_style()
 template<class DeviceType>
 void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
-  TimerType t_start = getTimeStamp();
+  //TimerType t_start = getTimeStamp();
 
   copymode = 1;
 
@@ -185,7 +185,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // and ghost atoms. Make the parameter data persistent
   // and exchange like any other atom property later.
 
-  TimerType t_mix_start = getTimeStamp();
+  //TimerType t_mix_start = getTimeStamp();
   {
      const int np_total = nlocal + atom->nghost;
 
@@ -258,7 +258,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
        error->all(FLERR,"Computed fraction less than -10*DBL_EPSILON");
 #endif
   }
-  TimerType t_mix_stop = getTimeStamp();
+  //TimerType t_mix_stop = getTimeStamp();
 
   k_error_flag.template modify<DeviceType>();
   k_error_flag.template sync<LMPHostType>();
@@ -1568,27 +1568,26 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
     {
       const int j = neigh_j[jlane] & NEIGHMASK;
 
-      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
-        if (UseAtomics)
-          a_uCG(j) += 0.5*evdwlOld_j[jlane];
-        else
-          t_uCG(tid,j) += 0.5*evdwlOld_j[jlane];
-
-      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
-        if (UseAtomics)
-          a_uCGnew(j) += uCGnew_j[jlane];
-        else
-          t_uCGnew(tid,j) += uCGnew_j[jlane];
-
       if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
-        if (UseAtomics)
-        {
+        if (UseAtomics) {
+          a_uCG(j) += 0.5*evdwlOld_j[jlane];
+        } else {
+          t_uCG(tid,j) += 0.5*evdwlOld_j[jlane];
+        }
+      }
+      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
+        if (UseAtomics) {
+          a_uCGnew(j) += uCGnew_j[jlane];
+        } else {
+          t_uCGnew(tid,j) += uCGnew_j[jlane];
+        }
+      }
+      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
+        if (UseAtomics) {
           a_f(j,0) -= delx_j[jlane]*fpair_j[jlane];
           a_f(j,1) -= dely_j[jlane]*fpair_j[jlane];
           a_f(j,2) -= delz_j[jlane]*fpair_j[jlane];
-        }
-        else
-        {
+        } else {
           t_f(tid,j,0) -= delx_j[jlane]*fpair_j[jlane];
           t_f(tid,j,1) -= dely_j[jlane]*fpair_j[jlane];
           t_f(tid,j,2) -= delz_j[jlane]*fpair_j[jlane];

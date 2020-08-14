@@ -1095,8 +1095,8 @@ void GridComm::grow_overlap()
 
 /* ----------------------------------------------------------------------
    create 1d list of offsets into 3d array section (xlo:xhi,ylo:yhi,zlo:zhi)
-   assume 3d array is allocated as (outxlo_max:outxhi_max,outylo_max:outyhi_max,
-     outzlo_max:outzhi_max)
+   assume 3d array is allocated as (fullxlo:fullxhi,fullylo:fullyhi,
+     fullzlo:fullzhi)
 ------------------------------------------------------------------------- */
 
 int GridComm::indices(int *&list,

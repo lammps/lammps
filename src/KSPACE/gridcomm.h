@@ -27,15 +27,15 @@ class GridComm : protected Pointers {
 	   int, int, int, int, int, int,
 	   int, int, int, int, int, int,
 	   int, int, int, int, int, int);
-  ~GridComm();
-  void setup(int &, int &);
-  int ghost_adjacent();
-  void forward_comm_kspace(class KSpace *, int, int, int,
-			   void *, void *, MPI_Datatype);
-  void reverse_comm_kspace(class KSpace *, int, int, int,
-			   void *, void *, MPI_Datatype);
+  virtual ~GridComm();
+  virtual void setup(int &, int &);
+  virtual int ghost_adjacent();
+  virtual void forward_comm_kspace(class KSpace *, int, int, int,
+                                   void *, void *, MPI_Datatype);
+  virtual void reverse_comm_kspace(class KSpace *, int, int, int,
+                                   void *, void *, MPI_Datatype);
 
- private:
+ protected:
   int me,nprocs;
   int layout;                 // REGULAR or TILED
   MPI_Comm gridcomm;          // communicator for this class
@@ -181,24 +181,24 @@ class GridComm : protected Pointers {
 		  int, int, int, int, int, int,
 		  int, int, int, int, int, int,
 		  int, int, int, int, int, int);
-  void setup_regular(int &, int &);
-  void setup_tiled(int &, int &);
+  virtual void setup_regular(int &, int &);
+  virtual void setup_tiled(int &, int &);
   void ghost_box_drop(int *, int *);
   void box_drop_grid(int *, int, int, int &, int *);
   
   int ghost_adjacent_regular();
   int ghost_adjacent_tiled();
   
-  void forward_comm_kspace_regular(class KSpace *, int, int, int,
-				   void *, void *, MPI_Datatype);
-  void forward_comm_kspace_tiled(class KSpace *, int, int, int,
-				 void *, void *, MPI_Datatype);
-  void reverse_comm_kspace_regular(class KSpace *, int, int, int,
-				   void *, void *, MPI_Datatype);
-  void reverse_comm_kspace_tiled(class KSpace *, int, int, int,
-				 void *, void *, MPI_Datatype);
+  virtual void forward_comm_kspace_regular(class KSpace *, int, int, int,
+                                         void *, void *, MPI_Datatype);
+  virtual void forward_comm_kspace_tiled(class KSpace *, int, int, int,
+                                         void *, void *, MPI_Datatype);
+  virtual void reverse_comm_kspace_regular(class KSpace *, int, int, int,
+                                           void *, void *, MPI_Datatype);
+  virtual void reverse_comm_kspace_tiled(class KSpace *, int, int, int,
+                                         void *, void *, MPI_Datatype);
 
-  void grow_swap();
+  virtual void grow_swap();
   void grow_overlap();
   
   int indices(int *&, int, int, int, int, int, int);

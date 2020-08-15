@@ -46,6 +46,7 @@ OPT.
    * :doc:`oxdna2/fene <bond_oxdna>`
    * :doc:`oxrna2/fene <bond_oxdna>`
    * :doc:`quartic (o) <bond_quartic>`
+   * :doc:`special <bond_special>`
    * :doc:`table (o) <bond_table>`
 
 .. _angle:

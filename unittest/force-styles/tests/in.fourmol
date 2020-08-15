@@ -11,6 +11,7 @@ variable  bond_style      index zero
 variable  angle_style     index zero
 variable  dihedral_style  index zero
 variable  improper_style  index zero
+variable  t_target        index 100.0
 
 atom_style       full
 atom_modify      map array

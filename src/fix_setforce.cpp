@@ -297,8 +297,14 @@ void FixSetForce::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   // set force to desired value on requested level, 0.0 on other levels
 
-  if (ilevel == ilevel_respa) post_force(vflag);
-  else {
+  if (ilevel == 0) foriginal_saved[0] = foriginal_saved[1] = foriginal_saved[2] = 0.0;
+
+  if (ilevel == ilevel_respa) {
+    post_force(vflag);
+    foriginal[0] += foriginal_saved[0];
+    foriginal[1] += foriginal_saved[1];
+    foriginal[2] += foriginal_saved[2];
+  } else {
     Region *region = NULL;
     if (iregion >= 0) {
       region = domain->regions[iregion];
@@ -313,6 +319,9 @@ void FixSetForce::post_force_respa(int vflag, int ilevel, int /*iloop*/)
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
         if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
+        foriginal_saved[0] += f[i][0];
+        foriginal_saved[1] += f[i][1];
+        foriginal_saved[2] += f[i][2];
         if (xstyle) f[i][0] = 0.0;
         if (ystyle) f[i][1] = 0.0;
         if (zstyle) f[i][2] = 0.0;

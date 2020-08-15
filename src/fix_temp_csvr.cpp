@@ -126,6 +126,7 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
 
   // CSVR thermostat should be applied every step
 
+  restart_global = 1;
   nevery = 1;
   scalar_flag = 1;
   global_freq = nevery;
@@ -329,6 +330,45 @@ void FixTempCSVR::reset_target(double t_new)
 double FixTempCSVR::compute_scalar()
 {
   return energy;
+}
+
+/* ----------------------------------------------------------------------
+   pack entire state of Fix into one write
+------------------------------------------------------------------------- */
+
+void FixTempCSVR::write_restart(FILE *fp)
+{
+  int nsize = (98+2+3)*comm->nprocs+2; // pRNG state per proc + nprocs + energy
+  double *list;
+  if (comm->me == 0) list = new double[nsize];
+  list[0] = energy;
+  list[1] = comm->nprocs;
+  double state[103];
+  random->get_state(state);
+  MPI_Gather(state,103,MPI_DOUBLE,list+2,103*comm->nprocs,MPI_DOUBLE,0,world);
+
+  if (comm->me == 0) {
+    int size = nsize * sizeof(double);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(list,sizeof(double),nsize,fp);
+  }
+  if (comm->me == 0) delete[] list;
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restart the Fix
+------------------------------------------------------------------------- */
+
+void FixTempCSVR::restart(char *buf)
+{
+  double *list = (double *) buf;
+
+  energy = list[0];
+  int nprocs = (int) list[1];
+  if (nprocs != comm->nprocs) {
+    if (comm->me == 0)
+      error->warning(FLERR,"Different number of procs. Cannot restore RNG state.");
+  } else random->set_state(list+2+comm->me*103);
 }
 
 /* ----------------------------------------------------------------------

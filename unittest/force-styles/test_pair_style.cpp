@@ -1107,8 +1107,7 @@ TEST(PairStyle, single)
         (test_config.pair_style.substr(0, 14) == "yukawa/colloid") ||
         (test_config.pair_style.substr(0, 3) == "eam") ||
         ((test_config.pair_style.substr(0, 6) == "hybrid") &&
-         (test_config.pair_style.find("eam") != std::string::npos))
-        ) {
+         (test_config.pair_style.find("eam") != std::string::npos))) {
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
         if (!verbose) ::testing::internal::GetCapturedStdout();

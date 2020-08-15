@@ -540,7 +540,7 @@ struct BuildExchangeListFunctor {
   void operator() (int i) const {
     if (_x(i,_dim) < _lo || _x(i,_dim) >= _hi) {
       const int mysend=Kokkos::atomic_fetch_add(&_nsend(),1);
-      if(mysend<_sendlist.extent(0)) {
+      if(mysend < (int)_sendlist.extent(0)) {
         _sendlist(mysend) = i;
         _sendflag(i) = 1;
       }
@@ -598,10 +598,10 @@ void CommKokkos::exchange_device()
       i = nsend = 0;
 
       if (true) {
-        if (k_sendflag.h_view.extent(0)<nlocal) k_sendflag.resize(nlocal);
+        if ((int)k_sendflag.h_view.extent(0) < nlocal) k_sendflag.resize(nlocal);
         k_sendflag.sync<DeviceType>();
         k_count.h_view() = k_exchange_sendlist.h_view.extent(0);
-        while (k_count.h_view()>=k_exchange_sendlist.h_view.extent(0)) {
+        while (k_count.h_view() >= (int)k_exchange_sendlist.h_view.extent(0)) {
           k_count.h_view() = 0;
           k_count.modify<LMPHostType>();
           k_count.sync<DeviceType>();
@@ -615,7 +615,7 @@ void CommKokkos::exchange_device()
           k_count.modify<DeviceType>();
 
           k_count.sync<LMPHostType>();
-          if (k_count.h_view()>=k_exchange_sendlist.h_view.extent(0)) {
+          if (k_count.h_view() >= (int)k_exchange_sendlist.h_view.extent(0)) {
             k_exchange_lists.resize(2,k_count.h_view()*1.1);
             k_exchange_sendlist = Kokkos::subview(k_exchange_lists,0,Kokkos::ALL);
             k_exchange_copylist = Kokkos::subview(k_exchange_lists,1,Kokkos::ALL);
@@ -1054,7 +1054,7 @@ void CommKokkos::borders_device() {
 
 void CommKokkos::copy_swap_info()
 {
-  if (nswap > k_swap.extent(1)) {
+  if (nswap > (int)k_swap.extent(1)) {
     k_swap = DAT::tdual_int_2d("comm:swap",2,nswap);
     k_firstrecv    = Kokkos::subview(k_swap,0,Kokkos::ALL);
     k_sendnum_scan = Kokkos::subview(k_swap,1,Kokkos::ALL);
@@ -1072,7 +1072,7 @@ void CommKokkos::copy_swap_info()
 
   k_sendlist.sync<LMPHostType>();
 
-  if (totalsend > k_pbc.extent(0)) {
+  if (totalsend > (int)k_pbc.extent(0)) {
     k_pbc = DAT::tdual_int_2d("comm:pbc",totalsend,6);
     k_swap2 = DAT::tdual_int_2d("comm:swap2",2,totalsend);
     k_pbc_flag = Kokkos::subview(k_swap2,0,Kokkos::ALL);

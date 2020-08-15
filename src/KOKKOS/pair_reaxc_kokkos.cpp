@@ -87,8 +87,8 @@ PairReaxCKokkos<DeviceType>::~PairReaxCKokkos()
 
   // deallocate views of views in serial to prevent race condition in profiling tools
 
-  for (int i = 0; i < k_LR.extent(0); i++) {
-    for (int j = 0; j < k_LR.extent(1); j++) {
+  for (int i = 0; i < (int)k_LR.extent(0); i++) {
+    for (int j = 0; j < (int)k_LR.extent(1); j++) {
       k_LR.h_view(i,j).d_vdW    = decltype(k_LR.h_view(i,j).d_vdW   )();
       k_LR.h_view(i,j).d_CEvd   = decltype(k_LR.h_view(i,j).d_CEvd  )();
       k_LR.h_view(i,j).d_ele    = decltype(k_LR.h_view(i,j).d_ele   )();
@@ -3853,7 +3853,7 @@ template<class DeviceType>
 void PairReaxCKokkos<DeviceType>::FindBondSpecies()
 {
 
-  if (nmax > k_tmpid.extent(0)) {
+  if (nmax > (int)k_tmpid.extent(0)) {
     memoryKK->destroy_kokkos(k_tmpid,tmpid);
     memoryKK->destroy_kokkos(k_tmpbo,tmpbo);
     memoryKK->create_kokkos(k_tmpid,tmpid,nmax,MAXSPECBOND,"pair:tmpid");

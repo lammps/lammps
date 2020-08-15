@@ -189,7 +189,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   {
      const int np_total = nlocal + atom->nghost;
 
-     if (np_total > PairExp6ParamData.epsilon1.extent(0)) {
+     if (np_total > (int)PairExp6ParamData.epsilon1.extent(0)) {
        PairExp6ParamData.epsilon1      = typename AT::t_float_1d("PairExp6ParamData.epsilon1"     ,np_total);
        PairExp6ParamData.alpha1        = typename AT::t_float_1d("PairExp6ParamData.alpha1"       ,np_total);
        PairExp6ParamData.rm1           = typename AT::t_float_1d("PairExp6ParamData.rm1"          ,np_total);
@@ -309,7 +309,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   nthreads = lmp->kokkos->nthreads;
   int nmax = f.extent(0);
-  if (nmax > t_f.extent(1)) {
+  if (nmax > (int)t_f.extent(1)) {
     t_f = t_f_array_thread("pair_exp6_rx:t_f",nthreads,nmax);
     t_uCG = t_efloat_1d_thread("pair_exp6_rx:t_uCG",nthreads,nmax);
     t_uCGnew = t_efloat_1d_thread("pair_exp6_rx:t_UCGnew",nthreads,nmax);

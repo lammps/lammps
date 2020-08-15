@@ -349,9 +349,9 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     return;
 }
 
-TEST(ImproperStyle, plain)
+TEST(DihedralStyle, plain)
 {
-    const char *args[] = {"ImproperStyle", "-log", "none", "-echo", "screen", "-nocite"};
+    const char *args[] = {"DihedralStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     char **argv = (char **)args;
     int argc    = sizeof(args) / sizeof(char *);
@@ -574,10 +574,10 @@ TEST(ImproperStyle, plain)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 };
 
-TEST(ImproperStyle, omp)
+TEST(DihedralStyle, omp)
 {
     if (!LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
-    const char *args[] = {"ImproperStyle", "-log", "none", "-echo", "screen", "-nocite",
+    const char *args[] = {"DihedralStyle", "-log", "none", "-echo", "screen", "-nocite",
                           "-pk",        "omp",  "4",    "-sf",   "omp"};
 
     char **argv = (char **)args;

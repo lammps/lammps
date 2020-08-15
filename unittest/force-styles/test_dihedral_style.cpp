@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// unit tests for improper styles intended for molecular systems
+// unit tests for dihedral styles intended for molecular systems
 
 #include "error_stats.h"
 #include "test_config.h"
@@ -24,7 +24,7 @@
 #include "gtest/gtest.h"
 
 #include "atom.h"
-#include "improper.h"
+#include "dihedral.h"
 #include "compute.h"
 #include "fmt/format.h"
 #include "force.h"
@@ -80,8 +80,8 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
     for (auto &prerequisite : cfg.prerequisites) {
         std::string style = prerequisite.second;
 
-        // if the suffixed version of improper style is not available, don't test it
-        if (prerequisite.first == "improper") {
+        // if the suffixed version of dihedral style is not available, don't test it
+        if (prerequisite.first == "dihedral") {
             if (lmp->suffix_enable) {
                 style += "/";
                 style += lmp->suffix;
@@ -122,10 +122,10 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
     std::string input_file = INPUT_FOLDER + PATH_SEP + cfg.input_file;
     parse_input_script(input_file);
 
-    command("improper_style " + cfg.improper_style);
+    command("dihedral_style " + cfg.dihedral_style);
 
-    for (auto &improper_coeff : cfg.improper_coeff) {
-        command("improper_coeff " + improper_coeff);
+    for (auto &dihedral_coeff : cfg.dihedral_coeff) {
+        command("dihedral_coeff " + dihedral_coeff);
     }
 
     for (auto &post_command : cfg.post_commands) {
@@ -151,7 +151,7 @@ void run_lammps(LAMMPS *lmp)
 
     command("fix 1 all nve");
     // just measure the relevant part of potential energy
-    command("compute pe all pe/atom improper");
+    command("compute pe all pe/atom dihedral");
     command("compute sum all reduce sum c_pe");
     command("thermo_style custom step temp pe press c_sum");
     command("thermo 2");
@@ -159,7 +159,7 @@ void run_lammps(LAMMPS *lmp)
 }
 
 // Restart LAMMPS simulation
-// to test "write_restart" and "read_restart" functions of improper styles
+// to test "write_restart" and "read_restart" functions of dihedral styles
 void restart_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
     // utility lambda to improve readability
@@ -170,16 +170,16 @@ void restart_lammps(LAMMPS *lmp, const TestConfig &cfg)
     command("clear");
     command("read_restart " + cfg.basename + ".restart");
 
-    // add the improper style if it's not defined already in the restart file
-    if (!lmp->force->improper) {
-        command("improper_style " + cfg.improper_style);
+    // add the dihedral style if it's not defined already in the restart file
+    if (!lmp->force->dihedral) {
+        command("dihedral_style " + cfg.dihedral_style);
     }
 
-    // add the improper coefficients if hybrid style is used
+    // add the dihedral coefficients if hybrid style is used
     // or somehow they aren't defined already in the restart file
-    if ((cfg.improper_style.substr(0, 6) == "hybrid") || !lmp->force->improper->writedata) {
-        for (auto &improper_coeff : cfg.improper_coeff) {
-            command("improper_coeff " + improper_coeff);
+    if ((cfg.dihedral_style.substr(0, 6) == "hybrid") || !lmp->force->dihedral->writedata) {
+        for (auto &dihedral_coeff : cfg.dihedral_coeff) {
+            command("dihedral_coeff " + dihedral_coeff);
         }
     }
 
@@ -204,7 +204,7 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
     };
 
     command("clear"); // clears everything except variables, log, echo
-    command("variable improper_style delete");
+    command("variable dihedral_style delete");
     command("variable data_file  delete");
     command("variable newton_bond delete");
     command("variable newton_bond index on");
@@ -213,14 +213,14 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
         command(pre_command);
     }
 
-    command("variable improper_style index '" + cfg.improper_style + "'");
+    command("variable dihedral_style index '" + cfg.dihedral_style + "'");
     command("variable data_file index " + cfg.basename + ".data");
 
     std::string input_file = INPUT_FOLDER + PATH_SEP + cfg.input_file;
     parse_input_script(input_file);
 
-    for (auto &improper_coeff : cfg.improper_coeff) {
-        command("improper_coeff " + improper_coeff);
+    for (auto &dihedral_coeff : cfg.dihedral_coeff) {
+        command("dihedral_coeff " + dihedral_coeff);
     }
     for (auto &post_command : cfg.post_commands) {
         command(post_command);
@@ -231,7 +231,7 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
 void generate_yaml_file(const char *outfile, const TestConfig &config)
 {
     // initialize system geometry
-    const char *args[] = {"ImproperStyle", "-log", "none", "-echo", "screen", "-nocite"};
+    const char *args[] = {"DihedralStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     char **argv = (char **)args;
     int argc    = sizeof(args) / sizeof(char *);
@@ -286,15 +286,15 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     // input_file
     writer.emit("input_file", config.input_file);
 
-    // improper_style
-    writer.emit("improper_style", config.improper_style);
+    // dihedral_style
+    writer.emit("dihedral_style", config.dihedral_style);
 
-    // improper_coeff
+    // dihedral_coeff
     block.clear();
-    for (auto &improper_coeff : config.improper_coeff) {
-        block += improper_coeff + "\n";
+    for (auto &dihedral_coeff : config.dihedral_coeff) {
+        block += dihedral_coeff + "\n";
     }
-    writer.emit_block("improper_coeff", block);
+    writer.emit_block("dihedral_coeff", block);
 
     // extract
     block.clear();
@@ -306,10 +306,10 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     writer.emit("natoms", natoms);
 
     // init_energy
-    writer.emit("init_energy", lmp->force->improper->energy);
+    writer.emit("init_energy", lmp->force->dihedral->energy);
 
     // init_stress
-    auto stress = lmp->force->improper->virial;
+    auto stress = lmp->force->dihedral->virial;
     block = fmt::format("{:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e}", stress[0],
                         stress[1], stress[2], stress[3], stress[4], stress[5]);
     writer.emit_block("init_stress", block);
@@ -328,10 +328,10 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     run_lammps(lmp);
 
     // run_energy
-    writer.emit("run_energy", lmp->force->improper->energy);
+    writer.emit("run_energy", lmp->force->dihedral->energy);
 
     // run_stress
-    stress = lmp->force->improper->virial;
+    stress = lmp->force->dihedral->virial;
     block  = fmt::format("{:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e}", stress[0],
                         stress[1], stress[2], stress[3], stress[4], stress[5]);
     writer.emit_block("run_stress", block);
@@ -393,8 +393,8 @@ TEST(ImproperStyle, plain)
     }
     if (print_stats) std::cerr << "init_forces stats, newton on: " << stats << std::endl;
 
-    auto improper  = lmp->force->improper;
-    auto stress = improper->virial;
+    auto dihedral  = lmp->force->dihedral;
+    auto stress = dihedral->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, epsilon);
@@ -405,7 +405,7 @@ TEST(ImproperStyle, plain)
     if (print_stats) std::cerr << "init_stress stats, newton on: " << stats << std::endl;
 
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.init_energy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(dihedral->energy, test_config.init_energy, epsilon);
     if (print_stats) std::cerr << "init_energy stats, newton on: " << stats << std::endl;
 
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -414,7 +414,7 @@ TEST(ImproperStyle, plain)
 
     f      = lmp->atom->f;
     tag    = lmp->atom->tag;
-    stress = improper->virial;
+    stress = dihedral->virial;
 
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal + 1, f_run.size());
@@ -426,7 +426,7 @@ TEST(ImproperStyle, plain)
     }
     if (print_stats) std::cerr << "run_forces  stats, newton on: " << stats << std::endl;
 
-    stress = improper->virial;
+    stress = dihedral->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
@@ -439,8 +439,8 @@ TEST(ImproperStyle, plain)
     stats.reset();
     int id        = lmp->modify->find_compute("sum");
     double energy = lmp->modify->compute[id]->compute_scalar();
-    EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.run_energy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(improper->energy, energy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(dihedral->energy, test_config.run_energy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(dihedral->energy, energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -461,8 +461,8 @@ TEST(ImproperStyle, plain)
         }
         if (print_stats) std::cerr << "init_forces stats, newton off:" << stats << std::endl;
 
-        improper  = lmp->force->improper;
-        stress = improper->virial;
+        dihedral  = lmp->force->dihedral;
+        stress = dihedral->virial;
         stats.reset();
         EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 2 * epsilon);
         EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 2 * epsilon);
@@ -473,7 +473,7 @@ TEST(ImproperStyle, plain)
         if (print_stats) std::cerr << "init_stress stats, newton off:" << stats << std::endl;
 
         stats.reset();
-        EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.init_energy, epsilon);
+        EXPECT_FP_LE_WITH_EPS(dihedral->energy, test_config.init_energy, epsilon);
         if (print_stats) std::cerr << "init_energy stats, newton off:" << stats << std::endl;
 
         if (!verbose) ::testing::internal::CaptureStdout();
@@ -482,7 +482,7 @@ TEST(ImproperStyle, plain)
 
         f      = lmp->atom->f;
         tag    = lmp->atom->tag;
-        stress = improper->virial;
+        stress = dihedral->virial;
         stats.reset();
         for (int i = 0; i < nlocal; ++i) {
             EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10 * epsilon);
@@ -491,7 +491,7 @@ TEST(ImproperStyle, plain)
         }
         if (print_stats) std::cerr << "run_forces  stats, newton off:" << stats << std::endl;
 
-        stress = improper->virial;
+        stress = dihedral->virial;
         stats.reset();
         EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
         EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
@@ -504,8 +504,8 @@ TEST(ImproperStyle, plain)
         stats.reset();
         id     = lmp->modify->find_compute("sum");
         energy = lmp->modify->compute[id]->compute_scalar();
-        EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.run_energy, epsilon);
-        EXPECT_FP_LE_WITH_EPS(improper->energy, energy, epsilon);
+        EXPECT_FP_LE_WITH_EPS(dihedral->energy, test_config.run_energy, epsilon);
+        EXPECT_FP_LE_WITH_EPS(dihedral->energy, energy, epsilon);
         if (print_stats) std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
     }
 
@@ -524,8 +524,8 @@ TEST(ImproperStyle, plain)
     }
     if (print_stats) std::cerr << "restart_forces stats:" << stats << std::endl;
 
-    improper  = lmp->force->improper;
-    stress = improper->virial;
+    dihedral  = lmp->force->dihedral;
+    stress = dihedral->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, epsilon);
@@ -536,7 +536,7 @@ TEST(ImproperStyle, plain)
     if (print_stats) std::cerr << "restart_stress stats:" << stats << std::endl;
 
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.init_energy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(dihedral->energy, test_config.init_energy, epsilon);
     if (print_stats) std::cerr << "restart_energy stats:" << stats << std::endl;
 
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -554,8 +554,8 @@ TEST(ImproperStyle, plain)
     }
     if (print_stats) std::cerr << "data_forces stats:" << stats << std::endl;
 
-    improper  = lmp->force->improper;
-    stress = improper->virial;
+    dihedral  = lmp->force->dihedral;
+    stress = dihedral->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, epsilon);
@@ -566,7 +566,7 @@ TEST(ImproperStyle, plain)
     if (print_stats) std::cerr << "data_stress stats:" << stats << std::endl;
 
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.init_energy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(dihedral->energy, test_config.init_energy, epsilon);
     if (print_stats) std::cerr << "data_energy stats:" << stats << std::endl;
 
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -621,8 +621,8 @@ TEST(ImproperStyle, omp)
     }
     if (print_stats) std::cerr << "init_forces stats, newton on: " << stats << std::endl;
 
-    auto improper  = lmp->force->improper;
-    auto stress = improper->virial;
+    auto dihedral  = lmp->force->dihedral;
+    auto stress = dihedral->virial;
 
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
@@ -634,7 +634,7 @@ TEST(ImproperStyle, omp)
     if (print_stats) std::cerr << "init_stress stats, newton on: " << stats << std::endl;
 
     stats.reset();
-    EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.init_energy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(dihedral->energy, test_config.init_energy, epsilon);
     if (print_stats) std::cerr << "init_energy stats, newton on: " << stats << std::endl;
 
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -643,7 +643,7 @@ TEST(ImproperStyle, omp)
 
     f      = lmp->atom->f;
     tag    = lmp->atom->tag;
-    stress = improper->virial;
+    stress = dihedral->virial;
 
     const std::vector<coord_t> &f_run = test_config.run_forces;
     ASSERT_EQ(nlocal + 1, f_run.size());
@@ -655,7 +655,7 @@ TEST(ImproperStyle, omp)
     }
     if (print_stats) std::cerr << "run_forces  stats, newton on: " << stats << std::endl;
 
-    stress = improper->virial;
+    stress = dihedral->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 10 * epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 10 * epsilon);
@@ -668,11 +668,11 @@ TEST(ImproperStyle, omp)
     stats.reset();
     int id        = lmp->modify->find_compute("sum");
     double energy = lmp->modify->compute[id]->compute_scalar();
-    EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.run_energy, epsilon);
-    // TODO: this is currently broken for USER-OMP with improper style hybrid
+    EXPECT_FP_LE_WITH_EPS(dihedral->energy, test_config.run_energy, epsilon);
+    // TODO: this is currently broken for USER-OMP with dihedral style hybrid
     // needs to be fixed in the main code somewhere. Not sure where, though.
-    if (test_config.improper_style.substr(0, 6) != "hybrid")
-        EXPECT_FP_LE_WITH_EPS(improper->energy, energy, epsilon);
+    if (test_config.dihedral_style.substr(0, 6) != "hybrid")
+        EXPECT_FP_LE_WITH_EPS(dihedral->energy, energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -693,8 +693,8 @@ TEST(ImproperStyle, omp)
         }
         if (print_stats) std::cerr << "init_forces stats, newton off:" << stats << std::endl;
 
-        improper  = lmp->force->improper;
-        stress = improper->virial;
+        dihedral  = lmp->force->dihedral;
+        stress = dihedral->virial;
         stats.reset();
         EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
         EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10 * epsilon);
@@ -705,7 +705,7 @@ TEST(ImproperStyle, omp)
         if (print_stats) std::cerr << "init_stress stats, newton off:" << stats << std::endl;
 
         stats.reset();
-        EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.init_energy, epsilon);
+        EXPECT_FP_LE_WITH_EPS(dihedral->energy, test_config.init_energy, epsilon);
         if (print_stats) std::cerr << "init_energy stats, newton off:" << stats << std::endl;
 
         if (!verbose) ::testing::internal::CaptureStdout();
@@ -722,7 +722,7 @@ TEST(ImproperStyle, omp)
         }
         if (print_stats) std::cerr << "run_forces  stats, newton off:" << stats << std::endl;
 
-        stress = improper->virial;
+        stress = dihedral->virial;
         stats.reset();
         EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 10 * epsilon);
         EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 10 * epsilon);
@@ -735,11 +735,11 @@ TEST(ImproperStyle, omp)
         stats.reset();
         id     = lmp->modify->find_compute("sum");
         energy = lmp->modify->compute[id]->compute_scalar();
-        EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.run_energy, epsilon);
-        // TODO: this is currently broken for USER-OMP with improper style hybrid
+        EXPECT_FP_LE_WITH_EPS(dihedral->energy, test_config.run_energy, epsilon);
+        // TODO: this is currently broken for USER-OMP with dihedral style hybrid
         // needs to be fixed in the main code somewhere. Not sure where, though.
-        if (test_config.improper_style.substr(0, 6) != "hybrid")
-            EXPECT_FP_LE_WITH_EPS(improper->energy, energy, epsilon);
+        if (test_config.dihedral_style.substr(0, 6) != "hybrid")
+            EXPECT_FP_LE_WITH_EPS(dihedral->energy, energy, epsilon);
         if (print_stats) std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
     }
 

@@ -11,17 +11,61 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "gmock/gmock.h"
 #include "fmt/format.h"
 #include "utils.h"
 #include "../testing/core.h"
 #include "../testing/systems/melt.h"
 #include "../testing/utils.h"
 
+using ::testing::Eq;
+
 char * BINARY2TXT_BINARY = nullptr;
 
 class DumpCustomTest : public MeltTest {
+    std::string dump_style = "custom";
+public:
+    void enable_triclinic() {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        command("change_box all triclinic");
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+    }
+
+    void generate_dump(std::string dump_file, std::string fields, std::string dump_modify_options, int ntimesteps) {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        command(fmt::format("dump id all {} 1 {} {}", dump_style, dump_file, fields));
+
+        if (!dump_modify_options.empty()) {
+            command(fmt::format("dump_modify id {}", dump_modify_options));
+        }
+
+        command(fmt::format("run {}", ntimesteps));
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+    }
+
+    void generate_text_and_binary_dump(std::string text_file, std::string binary_file, std::string fields,
+                                       std::string dump_modify_options, int ntimesteps) {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        command(fmt::format("dump id0 all {} 1 {} {}", dump_style, text_file, fields));
+        command(fmt::format("dump id1 all {} 1 {} {}", dump_style, binary_file, fields));
+
+        if (!dump_modify_options.empty()) {
+            command(fmt::format("dump_modify id0 {}", dump_modify_options));
+            command(fmt::format("dump_modify id1 {}", dump_modify_options));
+        }
+
+        command(fmt::format("run {}", ntimesteps));
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+    }
+
+    std::string convert_binary_to_text(std::string binary_file) {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        std::string cmdline = fmt::format("{} {}", BINARY2TXT_BINARY, binary_file);
+        system(cmdline.c_str());
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        return fmt::format("{}.txt", binary_file);
+    }
 };
 
 TEST_F(DumpCustomTest, run1)
@@ -29,19 +73,14 @@ TEST_F(DumpCustomTest, run1)
     auto dump_file = "dump_custom_run1.melt";
     auto fields = "id type proc procp1 mass x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    command(fmt::format("dump id all custom 1 {} {}", dump_file, fields));
-    command("dump_modify id units yes");
-    command("run 1");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
-
+    generate_dump(dump_file, fields, "units yes", 1);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
     ASSERT_EQ(lines.size(), 84);
-    ASSERT_STREQ(lines[6].c_str(), "ITEM: BOX BOUNDS pp pp pp");
+    ASSERT_THAT(lines[6], Eq("ITEM: BOX BOUNDS pp pp pp"));
     ASSERT_EQ(utils::split_words(lines[7]).size(), 2);
-    ASSERT_STREQ(lines[10].c_str(), fmt::format("ITEM: ATOMS {}", fields).c_str());
+    ASSERT_THAT(lines[10], Eq(fmt::format("ITEM: ATOMS {}", fields)));
     ASSERT_EQ(utils::split_words(lines[11]).size(), 26);
     delete_file(dump_file);
 }
@@ -51,42 +90,35 @@ TEST_F(DumpCustomTest, thresh_run0)
     auto dump_file = "dump_custom_thresh_run0.melt";
     auto fields = "id type x y z";
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    command(fmt::format("dump id all custom 1 {} {}", dump_file, fields));
-    command("dump_modify id units yes thresh x < 1 thresh y < 1 thresh z < 1");
-    command("run 0");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
-
+    generate_dump(dump_file, fields, "units yes thresh x < 1 thresh y < 1 thresh z < 1", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
     ASSERT_EQ(lines.size(), 15);
-    ASSERT_STREQ(lines[6].c_str(), "ITEM: BOX BOUNDS pp pp pp");
+    ASSERT_THAT(lines[6], Eq("ITEM: BOX BOUNDS pp pp pp"));
     ASSERT_EQ(utils::split_words(lines[7]).size(), 2);
-    ASSERT_STREQ(lines[10].c_str(), fmt::format("ITEM: ATOMS {}", fields).c_str());
+    ASSERT_THAT(lines[10], Eq(fmt::format("ITEM: ATOMS {}", fields)));
     ASSERT_EQ(utils::split_words(lines[11]).size(), 5);
     delete_file(dump_file);
 }
 
 TEST_F(DumpCustomTest, compute_run0)
 {
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("compute comp all property/atom x y z");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
     auto dump_file = "dump_custom_compute_run0.melt";
     auto fields = "id type x y z c_comp[1] c_comp[2] c_comp[3]";
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    command("compute comp all property/atom x y z");
-    command(fmt::format("dump id all custom 1 {} {}", dump_file, fields));
-    command("dump_modify id units yes");
-    command("run 0");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
-
+    generate_dump(dump_file, fields, "units yes", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
     ASSERT_EQ(lines.size(), 43);
-    ASSERT_STREQ(lines[6].c_str(), "ITEM: BOX BOUNDS pp pp pp");
+    ASSERT_THAT(lines[6], Eq("ITEM: BOX BOUNDS pp pp pp"));
     ASSERT_EQ(utils::split_words(lines[7]).size(), 2);
-    ASSERT_STREQ(lines[10].c_str(), fmt::format("ITEM: ATOMS {}", fields).c_str());
+    ASSERT_THAT(lines[10], Eq(fmt::format("ITEM: ATOMS {}", fields)));
     ASSERT_EQ(utils::split_words(lines[11]).size(), 8);
     delete_file(dump_file);
 }

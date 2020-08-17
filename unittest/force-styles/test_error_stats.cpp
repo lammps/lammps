@@ -29,12 +29,14 @@ TEST(ErrorStats, test)
     ASSERT_EQ(out.str(), "Average:  5.800e-01 StdDev:  7.305e-01 MaxErr:  2.000e+00 @ item: 3.0");
 
     stats.reset();
+    ASSERT_EQ(stats.has_data(), false);
     ASSERT_DOUBLE_EQ(stats.avg(), 0.0);
     ASSERT_DOUBLE_EQ(stats.dev(), 0.0);
     ASSERT_DOUBLE_EQ(stats.max(), 0.0);
     ASSERT_EQ(stats.idx(), -1);
 
     stats.add(1.0);
+    ASSERT_EQ(stats.has_data(), true);
     ASSERT_DOUBLE_EQ(stats.avg(), 1.0);
     ASSERT_DOUBLE_EQ(stats.dev(), 0.0);
     ASSERT_DOUBLE_EQ(stats.max(), 1.0);

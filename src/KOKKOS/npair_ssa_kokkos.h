@@ -254,6 +254,15 @@ class NPairSSAKokkosExecute
     lbinzlo(_lbinzlo),lbinzhi(_lbinzhi),
     nstencil(_nstencil),sx1(_sx1),sy1(_sy1),sz1(_sz1),
     d_stencil(_d_stencil),d_stencilxyz(_d_stencilxyz),d_nstencil_ssa(_d_nstencil_ssa),
+    x(_x),type(_type),mask(_mask),molecule(_molecule),
+    tag(_tag),special(_special),nspecial(_nspecial),molecular(_molecular),
+    nbinx(_nbinx),nbiny(_nbiny),nbinz(_nbinz),
+    mbinx(_mbinx),mbiny(_mbiny),mbinz(_mbinz),
+    mbinxlo(_mbinxlo),mbinylo(_mbinylo),mbinzlo(_mbinzlo),
+    bininvx(_bininvx),bininvy(_bininvy),bininvz(_bininvz),
+    nlocal(_nlocal),
+    xperiodic(_xperiodic),yperiodic(_yperiodic),zperiodic(_zperiodic),
+    xprd_half(_xprd_half),yprd_half(_yprd_half),zprd_half(_zprd_half),
     ssa_phaseCt(_ssa_phaseCt),
     d_ssa_phaseLen(_d_ssa_phaseLen),
     d_ssa_phaseOff(_d_ssa_phaseOff),
@@ -262,16 +271,8 @@ class NPairSSAKokkosExecute
     ssa_gphaseCt(_ssa_gphaseCt),
     d_ssa_gphaseLen(_d_ssa_gphaseLen),
     d_ssa_gitemLoc(_d_ssa_gitemLoc),
-    d_ssa_gitemLen(_d_ssa_gitemLen),
-    nlocal(_nlocal),
-    x(_x),type(_type),mask(_mask),molecule(_molecule),
-    tag(_tag),special(_special),nspecial(_nspecial),molecular(_molecular),
-    nbinx(_nbinx),nbiny(_nbiny),nbinz(_nbinz),
-    mbinx(_mbinx),mbiny(_mbiny),mbinz(_mbinz),
-    mbinxlo(_mbinxlo),mbinylo(_mbinylo),mbinzlo(_mbinzlo),
-    bininvx(_bininvx),bininvy(_bininvy),bininvz(_bininvz),
-    xperiodic(_xperiodic),yperiodic(_yperiodic),zperiodic(_zperiodic),
-    xprd_half(_xprd_half),yprd_half(_yprd_half),zprd_half(_zprd_half) {
+    d_ssa_gitemLen(_d_ssa_gitemLen)
+    {
 
     if (molecular == 2) moltemplate = 1;
     else moltemplate = 0;

@@ -2079,7 +2079,7 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
   for (int i = 0; i < twomol->natoms; i++) {
     if (twomol->type[i] != onemol->type[equivalences[i][1][myrxn]-1] && landlocked_atoms[i][myrxn] == 0) {
       char str[128];
-      snprintf(str,128,"Bond/react: Atom affected by reaction %s too close to template edge",rxn_name[myrxn]);
+      snprintf(str,128,"Bond/react: Atom type affected by reaction %s too close to template edge",rxn_name[myrxn]);
       error->all(FLERR,str);
     }
   }
@@ -2098,7 +2098,7 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
             if (onemol_batom == equivalences[twomol_atomj-1][1][myrxn]) {
               if (twomol->bond_type[i][j] != onemol->bond_type[onemol_atomi-1][m]) {
                 char str[128];
-                snprintf(str,128,"Bond/react: Atom affected by reaction %s too close to template edge",rxn_name[myrxn]);
+                snprintf(str,128,"Bond/react: Bond type affected by reaction %s too close to template edge",rxn_name[myrxn]);
                 error->all(FLERR,str);
               }
             }
@@ -2110,7 +2110,7 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
               if (onemol_batom == equivalences[i][1][myrxn]) {
                 if (twomol->bond_type[i][j] != onemol->bond_type[onemol_atomj-1][m]) {
                   char str[128];
-                  snprintf(str,128,"Bond/react: Atom affected by reaction %s too close to template edge",rxn_name[myrxn]);
+                  snprintf(str,128,"Bond/react: Bond type affected by reaction %s too close to template edge",rxn_name[myrxn]);
                   error->all(FLERR,str);
                 }
               }

@@ -242,8 +242,10 @@ E: Bond/react: Invalid template atom ID in map file
 Atom IDs in molecule templates range from 1 to the number of atoms in the template.
 
 E or W: Bond/react: Atom affected by reaction %s too close to template edge
+        Bond/react: Atom type affected by reaction %s too close to template edge
+        Bond/react: Bond type affected by reaction %s too close to template edge
 
-This means an atom which changes type or connectivity during the
+This means an atom (or bond) that changes type or connectivity during the
 reaction is too close to an 'edge' atom defined in the map file. This
 could cause incorrect assignment of bonds, angle, etc. Generally, this
 means you must include more atoms in your templates, such that there

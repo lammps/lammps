@@ -125,47 +125,43 @@ TEST_F(DumpCustomTest, compute_run0)
 
 TEST_F(DumpCustomTest, fix_run0)
 {
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("fix numdiff all numdiff 1 0.0001");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
     auto dump_file = "dump_custom_compute_run0.melt";
     auto fields = "id x y z f_numdiff[1] f_numdiff[2] f_numdiff[3]";
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    command("fix numdiff all numdiff 1 0.0001");
-    command(fmt::format("dump id all custom 1 {} {}", dump_file, fields));
-    command("dump_modify id units yes");
-    command("run 0");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
-
+    generate_dump(dump_file, fields, "units yes", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
     ASSERT_EQ(lines.size(), 43);
-    ASSERT_STREQ(lines[6].c_str(), "ITEM: BOX BOUNDS pp pp pp");
+    ASSERT_THAT(lines[6], Eq("ITEM: BOX BOUNDS pp pp pp"));
     ASSERT_EQ(utils::split_words(lines[7]).size(), 2);
-    ASSERT_STREQ(lines[10].c_str(), fmt::format("ITEM: ATOMS {}", fields).c_str());
+    ASSERT_THAT(lines[10], Eq(fmt::format("ITEM: ATOMS {}", fields)));
     ASSERT_EQ(utils::split_words(lines[11]).size(), 7);
     delete_file(dump_file);
 }
 
 TEST_F(DumpCustomTest, custom_run0)
 {
-    auto dump_file = "dump_custom_custom_run0.melt";
-    auto fields = "id x y z i_flag1 d_flag2";
-
     if (!verbose) ::testing::internal::CaptureStdout();
     command("fix prop all property/atom i_flag1 d_flag2");
     command("compute 1 all property/atom i_flag1 d_flag2");
-    command(fmt::format("dump id all custom 1 {} {}", dump_file, fields));
-    command("dump_modify id units yes");
-    command("run 0");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
+    auto dump_file = "dump_custom_custom_run0.melt";
+    auto fields = "id x y z i_flag1 d_flag2";
+
+    generate_dump(dump_file, fields, "units yes", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
     ASSERT_EQ(lines.size(), 43);
-    ASSERT_STREQ(lines[6].c_str(), "ITEM: BOX BOUNDS pp pp pp");
+    ASSERT_THAT(lines[6], Eq("ITEM: BOX BOUNDS pp pp pp"));
     ASSERT_EQ(utils::split_words(lines[7]).size(), 2);
-    ASSERT_STREQ(lines[10].c_str(), fmt::format("ITEM: ATOMS {}", fields).c_str());
+    ASSERT_THAT(lines[10], Eq(fmt::format("ITEM: ATOMS {}", fields)));
     ASSERT_EQ(utils::split_words(lines[11]).size(), 6);
     delete_file(dump_file);
 }
@@ -176,24 +172,14 @@ TEST_F(DumpCustomTest, binary_run1)
 
     auto text_file = "dump_custom_text_run1.melt";
     auto binary_file = "dump_custom_binary_run1.melt.bin";
-    auto converted_file = fmt::format("{}.txt", binary_file);
     auto fields = "id type proc x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    command(fmt::format("dump id0 all custom 1 {} {}", text_file, fields));
-    command(fmt::format("dump id1 all custom 1 {} {}", binary_file, fields));
-    command("dump_modify id0 units yes");
-    command("dump_modify id1 units yes");
-    command("run 1");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    generate_text_and_binary_dump(text_file, binary_file, fields, "units yes", 1);
 
     ASSERT_FILE_EXISTS(text_file);
     ASSERT_FILE_EXISTS(binary_file);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    std::string cmdline = fmt::format("{} {}", BINARY2TXT_BINARY, binary_file);
-    system(cmdline.c_str());
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    auto converted_file = convert_binary_to_text(binary_file);
 
     ASSERT_FILE_EXISTS(converted_file);
     ASSERT_FILE_EQUAL(text_file, converted_file);
@@ -207,18 +193,14 @@ TEST_F(DumpCustomTest, triclinic_run1)
     auto dump_file = "dump_custom_tri_run1.melt";
     auto fields = "id type proc x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    enable_triclinic();
 
-    command("change_box all triclinic");
-    command(fmt::format("dump id all custom 1 {} {}", dump_file, fields));
-    command("dump_modify id units yes");
-    command("run 1");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    generate_dump(dump_file, fields, "units yes", 1);
 
     ASSERT_FILE_EXISTS(dump_file);
 
     auto lines = read_lines(dump_file);
-    ASSERT_STREQ(lines[6].c_str(), "ITEM: BOX BOUNDS xy xz yz pp pp pp");
+    ASSERT_THAT(lines[6], Eq("ITEM: BOX BOUNDS xy xz yz pp pp pp"));
     ASSERT_EQ(utils::split_words(lines[7]).size(), 3);
 
     ASSERT_EQ(lines.size(), 84);
@@ -231,25 +213,16 @@ TEST_F(DumpCustomTest, binary_triclinic_run1)
 
     auto text_file = "dump_custom_tri_text_run1.melt";
     auto binary_file = "dump_custom_tri_binary_run1.melt.bin";
-    auto converted_file = fmt::format("{}.txt", binary_file);
     auto fields = "id type proc x y z xs ys zs xsu ysu zsu vx vy vz fx fy fz";
+    
+    enable_triclinic();
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    command("change_box all triclinic");
-    command(fmt::format("dump id0 all custom 1 {} {}", text_file, fields));
-    command(fmt::format("dump id1 all custom 1 {} {}", binary_file, fields));
-    command("dump_modify id0 units yes");
-    command("dump_modify id1 units yes");
-    command("run 1");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    generate_text_and_binary_dump(text_file, binary_file, fields, "units yes", 1);
 
     ASSERT_FILE_EXISTS(text_file);
     ASSERT_FILE_EXISTS(binary_file);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    std::string cmdline = fmt::format("{} {}", BINARY2TXT_BINARY, binary_file);
-    system(cmdline.c_str());
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    auto converted_file = convert_binary_to_text(binary_file);
 
     ASSERT_FILE_EXISTS(converted_file);
     ASSERT_FILE_EQUAL(text_file, converted_file);
@@ -260,23 +233,22 @@ TEST_F(DumpCustomTest, binary_triclinic_run1)
 
 TEST_F(DumpCustomTest, with_variable_run1)
 {
-    auto dump_file = "dump_custom_with_variable_run1.melt";
-
     if (!verbose) ::testing::internal::CaptureStdout();
     command("compute         1 all property/atom proc");
     command("variable        p atom (c_1%10)+1");
-    command(fmt::format("dump id all custom 1 {} id type x y z v_p", dump_file));
-    command("dump_modify id units yes");
-    command("run 1");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
+    auto dump_file = "dump_custom_with_variable_run1.melt";
+    auto fields = "id type x y z v_p";
+    
+    generate_dump(dump_file, fields, "units yes", 1);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
     ASSERT_EQ(lines.size(), 84);
-    ASSERT_STREQ(lines[6].c_str(), "ITEM: BOX BOUNDS pp pp pp");
+    ASSERT_THAT(lines[6], Eq("ITEM: BOX BOUNDS pp pp pp"));
     ASSERT_EQ(utils::split_words(lines[7]).size(), 2);
-    ASSERT_STREQ(lines[10].c_str(), "ITEM: ATOMS id type x y z v_p");
+    ASSERT_THAT(lines[10], Eq("ITEM: ATOMS id type x y z v_p"));
     ASSERT_EQ(utils::split_words(lines[11]).size(), 6);
     delete_file(dump_file);
 }

@@ -34,12 +34,10 @@ class GridCommKokkos : public GridComm {
 	   int, int, int, int, int, int,
 	   int, int, int, int, int, int);
   ~GridCommKokkos();
-  void setup(int &, int &);
-  int ghost_adjacent();
   void forward_comm_kspace(class KSpace *, int, int, int,
-			   void *, void *, MPI_Datatype);
+			   FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
   void reverse_comm_kspace(class KSpace *, int, int, int,
-			   void *, void *, MPI_Datatype);
+			   FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
 
  private:
   DAT::tdual_int_2d k_swap_packlist;
@@ -60,13 +58,13 @@ class GridCommKokkos : public GridComm {
   void setup_tiled(int &, int &);
 
   void forward_comm_kspace_regular(class KSpace *, int, int, int,
-                                   void *, void *, MPI_Datatype);
+                                   FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
   void forward_comm_kspace_tiled(class KSpace *, int, int, int,
-                                 void *, void *, MPI_Datatype);
+                                 FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
   void reverse_comm_kspace_regular(class KSpace *, int, int, int,
-                                   void *, void *, MPI_Datatype);
+                                   FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
   void reverse_comm_kspace_tiled(class KSpace *, int, int, int,
-                                 void *, void *, MPI_Datatype);
+                                 FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
 
   void grow_swap();
   

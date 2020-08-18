@@ -1129,4 +1129,10 @@ struct alignas(32) CayleyKleinPack {
 #define LAMMPS_LAMBDA [=]
 #endif
 
+#ifdef LMP_KOKKOS_GPU
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+#define LMP_KK_DEVICE_COMPILE
+#endif
+#endif
+
 #endif

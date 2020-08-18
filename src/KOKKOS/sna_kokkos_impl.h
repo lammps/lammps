@@ -599,14 +599,18 @@ void SNAKokkos<DeviceType>::compute_zi(const int& iatom_mod, const int& jjz, con
       int jju2 = idxu_block[j2] + (j2+1)*mb2max;
       int icgb = mb1min*(j2+1) + mb2max;
 
+#ifdef LMP_KK_DEVICE_COMPILE
       #pragma unroll
+#endif
       for(int ib = 0; ib < nb; ib++) {
 
         int ma1 = ma1min;
         int ma2 = ma2max;
         int icga = ma1min*(j2+1) + ma2max;
 
+#ifdef LMP_KK_DEVICE_COMPILE
         #pragma unroll
+#endif
         for(int ia = 0; ia < na; ia++) {
           const SNAcomplex utot1 = ulisttot_pack(iatom_mod, jju1+ma1, elem1, iatom_div);
           const SNAcomplex utot2 = ulisttot_pack(iatom_mod, jju2+ma2, elem2, iatom_div);
@@ -767,14 +771,18 @@ void SNAKokkos<DeviceType>::compute_yi(int iatom_mod, int jjz, int iatom_div,
       int jju2 = idxu_block[j2] + (j2 + 1) * mb2max;
       int icgb = mb1min * (j2 + 1) + mb2max;
 
+#ifdef LMP_KK_DEVICE_COMPILE
       #pragma unroll
+#endif
       for (int ib = 0; ib < nb; ib++) {
 
         int ma1 = ma1min;
         int ma2 = ma2max;
         int icga = ma1min*(j2+1) + ma2max;
 
+#ifdef LMP_KK_DEVICE_COMPILE
         #pragma unroll
+#endif
         for (int ia = 0; ia < na; ia++) {
           const SNAcomplex utot1 = ulisttot_pack(iatom_mod,jju1+ma1,elem1,iatom_div);
           const SNAcomplex utot2 = ulisttot_pack(iatom_mod,jju2+ma2,elem2,iatom_div);

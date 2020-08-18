@@ -1297,7 +1297,9 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
     }
 
     // reduction here.
+    #ifdef KOKKOS_ENABLE_PRAGMA_SIMD
     #pragma simd reduction(+: fx_i, fy_i, fz_i, uCG_i, uCGnew_i) reduction(|: hasError)
+    #endif
     for (int jlane = 0; jlane < niters; jlane++)
     {
       int j = neigh_j[jlane];
@@ -2171,7 +2173,9 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
 #endif
 
   // Zero out all of the terms first.
+  #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
   #pragma ivdep
+  #endif
   for (int id = idx_begin; id < idx_end; ++id)
   {
      rm3[id] = 0.0;
@@ -2191,7 +2195,9 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
   // Compute the total number of molecules in the old and new CG particle as well as the total number of molecules in the fluid portion of the old and new CG particle
   for (int ispecies = 0; ispecies < nspecies; ispecies++)
   {
+    #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
     #pragma ivdep
+    #endif
     for (int id = idx_begin; id < idx_end; ++id)
     {
       nTotal[id] += dvector(ispecies,id);
@@ -2204,7 +2210,9 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
     if (isOneFluidApprox(isite1) || isOneFluidApprox(isite2)) {
       if (isite1 == d_params[iparam].ispecies || isite2 == d_params[iparam].ispecies) continue;
 
+      #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
       #pragma ivdep
+      #endif
       for (int id = idx_begin; id < idx_end; ++id)
       {
         nMoleculesOFAold[id] += dvector(ispecies+nspecies,id);
@@ -2214,7 +2222,9 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
   }
 
   // Make a reduction.
+  #ifdef KOKKOS_ENABLE_PRAGMA_simd
   #pragma omp simd reduction(+:errorFlag1)
+  #endif
   for (int id = idx_begin; id < idx_end; ++id)
   {
     if ( nTotal[id] < MY_EPSILON || nTotalold[id] < MY_EPSILON )
@@ -2232,7 +2242,9 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
     // If Site1 matches a pure species, then grab the parameters
     if (isite1 == d_params[iparam].ispecies)
     {
+      #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
       #pragma ivdep
+      #endif
       for (int id = idx_begin; id < idx_end; ++id)
       {
         rm1_old[id] = d_params[iparam].rm;
@@ -2253,7 +2265,9 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
     // If Site2 matches a pure species, then grab the parameters
     if (isite2 == d_params[iparam].ispecies)
     {
+      #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
       #pragma ivdep
+      #endif
       for (int id = idx_begin; id < idx_end; ++id)
       {
         rm2_old[id] = d_params[iparam].rm;
@@ -2279,7 +2293,9 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
       const double epsiloni = d_params[iparam].epsilon;
       const double alphai = d_params[iparam].alpha;
 
+      #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
       #pragma ivdep
+      #endif
       for (int id = idx_begin; id < idx_end; ++id)
       {
         if(nMoleculesOFA[id]<MY_EPSILON) xMolei[id] = 0.0;
@@ -2302,7 +2318,9 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
         const double epsilonij = sqrt(epsiloni*epsilonj);
         const double alphaij = sqrt(alphai*alphaj);
 
+        #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
         #pragma ivdep
+        #endif
         for (int id = idx_begin; id < idx_end; ++id)
         {
           double xMolej, xMolej_old;
@@ -2328,7 +2346,9 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
 
   if (isOneFluidApprox(isite1))
   {
+    #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
     #pragma ivdep
+    #endif
     for (int id = idx_begin; id < idx_end; ++id)
     {
       rm1[id] = cbrt(rm3[id]);
@@ -2357,7 +2377,9 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
     }
 
     if(scalingFlag == EXPONENT) {
+      #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
       #pragma ivdep
+      #endif
       for (int id = idx_begin; id < idx_end; ++id)
       {
         exponentScaling(nMoleculesOFA[id],epsilon1[id],rm1[id]);
@@ -2365,7 +2387,9 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
       }
     }
     else if(scalingFlag == POLYNOMIAL){
+      #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
       #pragma ivdep
+      #endif
       for (int id = idx_begin; id < idx_end; ++id)
       {
         polynomialScaling(nMoleculesOFA[id],alpha1[id],epsilon1[id],rm1[id]);
@@ -2376,7 +2400,9 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
 
   if (isOneFluidApprox(isite2))
   {
+    #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
     #pragma ivdep
+    #endif
     for (int id = idx_begin; id < idx_end; ++id)
     {
       rm2[id] = cbrt(rm3[id]);
@@ -2405,7 +2431,9 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
     }
 
     if(scalingFlag == EXPONENT){
+      #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
       #pragma ivdep
+      #endif
       for (int id = idx_begin; id < idx_end; ++id)
       {
         exponentScaling(nMoleculesOFA[id],epsilon2[id],rm2[id]);
@@ -2413,7 +2441,9 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
       }
     }
     else if(scalingFlag == POLYNOMIAL){
+      #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
       #pragma ivdep
+      #endif
       for (int id = idx_begin; id < idx_end; ++id)
       {
         polynomialScaling(nMoleculesOFA[id],alpha2[id],epsilon2[id],rm2[id]);
@@ -2423,7 +2453,9 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
   }
 
   // Check that no fractions are less than zero
+  #ifdef KOKKOS_ENABLE_PRAGMA_SIMD
   #pragma omp simd reduction(+:errorFlag2)
+  #endif
   for (int id = idx_begin; id < idx_end; ++id)
   {
     if(fraction1[id] < 0.0 || nMolecules1[id] < 0.0){

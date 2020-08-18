@@ -213,9 +213,10 @@ surrounding topology. As described below, the bonding atom pairs of
 the pre-reacted template are specified by atom ID in the map file. The
 pre-reacted molecule template should contain as few atoms as possible
 while still completely describing the topology of all atoms affected
-by the reaction (which includes all atoms that change atom type). For
-example, if the force field contains dihedrals, the pre-reacted
-template should contain any atom within three bonds of reacting atoms.
+by the reaction (which includes all atoms that change atom type or
+connectivity, and all bonds that change bond type). For example, if
+the force field contains dihedrals, the pre-reacted template should
+contain any atom within three bonds of reacting atoms.
 
 Some atoms in the pre-reacted template that are not reacting may have
 missing topology with respect to the simulation. For example, the

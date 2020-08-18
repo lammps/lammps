@@ -240,6 +240,13 @@ class NPairSSAKokkosExecute
         const int & _xperiodic, const int & _yperiodic, const int & _zperiodic,
         const int & _xprd_half, const int & _yprd_half, const int & _zprd_half):
     neigh_list(_neigh_list), cutneighsq(_cutneighsq),
+    exclude(_exclude),nex_type(_nex_type),
+    ex1_type(_ex1_type),ex2_type(_ex2_type),ex_type(_ex_type),
+    nex_group(_nex_group),
+    ex1_group(_ex1_group),ex2_group(_ex2_group),
+    ex1_bit(_ex1_bit),ex2_bit(_ex2_bit),nex_mol(_nex_mol),
+    ex_mol_group(_ex_mol_group),ex_mol_bit(_ex_mol_bit),
+    ex_mol_intra(_ex_mol_intra),
     bincount(_bincount),c_bincount(_bincount),bins(_bins),c_bins(_bins),
     gbincount(_gbincount),c_gbincount(_gbincount),gbins(_gbins),c_gbins(_gbins),
     lbinxlo(_lbinxlo),lbinxhi(_lbinxhi),
@@ -263,13 +270,6 @@ class NPairSSAKokkosExecute
     mbinx(_mbinx),mbiny(_mbiny),mbinz(_mbinz),
     mbinxlo(_mbinxlo),mbinylo(_mbinylo),mbinzlo(_mbinzlo),
     bininvx(_bininvx),bininvy(_bininvy),bininvz(_bininvz),
-    exclude(_exclude),nex_type(_nex_type),
-    ex1_type(_ex1_type),ex2_type(_ex2_type),ex_type(_ex_type),
-    nex_group(_nex_group),
-    ex1_group(_ex1_group),ex2_group(_ex2_group),
-    ex1_bit(_ex1_bit),ex2_bit(_ex2_bit),nex_mol(_nex_mol),
-    ex_mol_group(_ex_mol_group),ex_mol_bit(_ex_mol_bit),
-    ex_mol_intra(_ex_mol_intra),
     xperiodic(_xperiodic),yperiodic(_yperiodic),zperiodic(_zperiodic),
     xprd_half(_xprd_half),yprd_half(_yprd_half),zprd_half(_zprd_half) {
 

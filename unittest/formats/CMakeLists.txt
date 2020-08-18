@@ -34,6 +34,11 @@ target_link_libraries(test_dump_custom PRIVATE lammps GTest::GMock GTest::GTest)
 add_test(NAME DumpCustom COMMAND test_dump_custom WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(DumpCustom PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 
+add_executable(test_dump_cfg test_dump_cfg.cpp)
+target_link_libraries(test_dump_cfg PRIVATE lammps GTest::GMock GTest::GTest)
+add_test(NAME DumpCfg COMMAND test_dump_cfg WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(DumpCfg PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+
 if (BUILD_TOOLS)
     set_tests_properties(DumpAtom PROPERTIES ENVIRONMENT "BINARY2TXT_BINARY=$<TARGET_FILE:binary2txt>")
     set_tests_properties(DumpCustom PROPERTIES ENVIRONMENT "BINARY2TXT_BINARY=$<TARGET_FILE:binary2txt>")

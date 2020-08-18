@@ -105,6 +105,7 @@ class Pair : protected Pointers {
   int allocated;                 // 0/1 = whether arrays are allocated
                                  //       public so external driver can check
   int compute_flag;              // 0 if skip compute()
+  int mixed_flag;                // 1 if all itype != jtype coeffs are from mixing
 
   enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // mixing options
 

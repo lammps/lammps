@@ -303,6 +303,9 @@ void WriteData::force_fields()
 {
   if (force->pair && force->pair->writedata) {
     if (pairflag == II) {
+      if ((comm->me == 0) && (force->pair->mixed_flag == 0))
+        error->warning(FLERR,"Not all mixed pair coeffs generated from mixing. "
+                       "Use write_data with 'pair ij' option to store all pair coeffs.");
       fmt::print(fp,"\nPair Coeffs # {}\n\n", force->pair_style);
       force->pair->write_data(fp);
     } else if (pairflag == IJ) {

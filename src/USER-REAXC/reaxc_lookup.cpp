@@ -37,7 +37,7 @@ void Tridiagonal_Solve( const double *a, const double *b,
 
   c[0] /= b[0];        /* Division by zero risk. */
   d[0] /= b[0];        /* Division by zero would imply a singular matrix. */
-  for(i = 1; i < n; i++){
+  for(i = 1; i < (int)n; i++){
     id = (b[i] - c[i-1] * a[i]);  /* Division by zero risk. */
     c[i] /= id;                /* Last value calculated is redundant. */
     d[i] = (d[i] - d[i-1] * a[i])/id;
@@ -64,7 +64,7 @@ void Natural_Cubic_Spline( LAMMPS_NS::Error* error_ptr, const double *h, const d
 
   /* build the linear system */
   a[0] = a[1] = a[n-1] = 0;
-  for( i = 2; i < n-1; ++i )
+  for( i = 2; i < (int)n-1; ++i )
     a[i] = h[i-1];
 
   b[0] = b[n-1] = 0;

@@ -114,3 +114,16 @@ foreach(TEST ${KSPACE_TESTS})
   add_test(NAME ${TNAME} COMMAND test_pair_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
 endforeach()
+
+# tester for timestepping fixes
+add_executable(test_fix_timestep test_fix_timestep.cpp)
+target_link_libraries(test_fix_timestep PRIVATE lammps style_tests)
+
+# tests for timestep related fixes (time integration, thermostat, force manipulation, constraints/restraints)
+file(GLOB FIX_TIMESTEP_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/fix-timestep-*.yaml)
+foreach(TEST ${FIX_TIMESTEP_TESTS})
+  string(REGEX REPLACE "^.*fix-timestep-(.*)\.yaml" "FixTimestep:\\1" TNAME ${TEST})
+  add_test(NAME ${TNAME} COMMAND test_fix_timestep ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
+endforeach()
+

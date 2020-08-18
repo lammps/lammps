@@ -119,7 +119,11 @@ thermal degrees of freedom, and the bias is added back in.
 
 **Restart, fix_modify, output, run start/stop, minimize info:**
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
+This fix writes the cumulative global energy change to
+:doc:`binary restart files <restart>`.  See the
+:doc:`read_restart <read_restart>` command for info on how to
+re-specify a fix in an input script that reads a restart file,
+so that the fix continues in an uninterrupted fashion.
 
 The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
 fix.  You can use it to assign a temperature :doc:`compute <compute>`

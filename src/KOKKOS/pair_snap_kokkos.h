@@ -50,6 +50,7 @@ struct TagPairSNAPComputeFusedDeidrj{};
 // CPU backend only
 struct TagPairSNAPPreUiCPU{};
 struct TagPairSNAPComputeUiCPU{};
+struct TagPairSNAPTransformUiCPU{};
 struct TagPairSNAPComputeZiCPU{};
 struct TagPairSNAPBetaCPU{};
 struct TagPairSNAPComputeBiCPU{};
@@ -104,7 +105,7 @@ public:
   void operator() (TagPairSNAPComputeUi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUi>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAPTransformUi,const int iatom_mod, const int idxu, const int iatom_div) const;
+  void operator() (TagPairSNAPTransformUi,const int iatom_mod, const int j, const int iatom_div) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeZi,const int iatom_mod, const int idxz, const int iatom_div) const;
@@ -135,13 +136,13 @@ public:
   void operator() (TagPairSNAPComputeUiCPU,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUiCPU>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPTransformUiCPU, const int j, const int iatom) const;
+
+  KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeZiCPU,const int& ii) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeBiCPU,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeBiCPU>::member_type& team) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAPZeroYiCPU,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPZeroYiCPU>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeYiCPU,const int& ii) const;

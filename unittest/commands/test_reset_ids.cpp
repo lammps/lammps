@@ -660,6 +660,8 @@ TEST_F(ResetIDsTest, TopologyData)
 
 TEST_F(ResetIDsTest, DeathTests)
 {
+    if (lmp->atom->natoms == 0) GTEST_SKIP();
+
     TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*", lmp->input->one("reset_mol_ids"););
     TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
                  lmp->input->one("reset_mol_ids all offset 1 1"););

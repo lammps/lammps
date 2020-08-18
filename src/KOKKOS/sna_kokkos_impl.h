@@ -236,10 +236,6 @@ void SNAKokkos<DeviceType>::build_indexlist()
             const int jju_half = h_idxu_half_block[j] + (j+1)*mb + ma;
             h_idxz(idxz_count,9) = jju_half;
 
-            // no longer needed
-            //const int jju = h_idxu_block[j] + (j+1)*mb + ma;
-            //h_idxz(idxz_count,9) = jju;
-
             idxz_count++;
           }
       }

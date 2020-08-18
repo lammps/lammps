@@ -757,8 +757,6 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPTransformUi,const int ia
         my_sna.ulisttot_pack(iatom_mod, idxu_flip, ielem, iatom_div) = { utot_re, utot_im };
 
         // No need to zero symmetrized ylist
-        //my_sna.ylist_pack_re(iatom_mod, idxu_flip, ielem, iatom_div) = 0.;
-        //my_sna.ylist_pack_im(iatom_mod, idxu_flip, ielem, iatom_div) = 0.;
       }
     }
   }

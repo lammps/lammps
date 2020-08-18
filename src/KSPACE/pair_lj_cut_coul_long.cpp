@@ -545,10 +545,7 @@ void PairLJCutCoulLong::compute_outer(int eflag, int vflag)
             }
           } else forcecoul = 0.0;
 
-          if (rsq <= cut_in_off_sq) {
-            r6inv = r2inv*r2inv*r2inv;
-            forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-          } else if (rsq <= cut_in_on_sq) {
+          if (rsq < cut_ljsq[itype][jtype]) {
             r6inv = r2inv*r2inv*r2inv;
             forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
           }

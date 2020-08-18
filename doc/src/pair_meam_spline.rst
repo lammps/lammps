@@ -16,7 +16,7 @@ Syntax
 Examples
 """"""""
 
-.. code:: LAMMPS
+.. code-block:: LAMMPS
 
    pair_style meam/spline
    pair_coeff * * Ti.meam.spline Ti

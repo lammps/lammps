@@ -1064,7 +1064,7 @@ struct alignas(2*sizeof(real)) SNAComplex
 {
   real re,im;
 
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex() = default;
+  SNAComplex() = default;
 
   KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real re)
    : re(re), im(static_cast<real>(0.)) { ; }
@@ -1105,6 +1105,17 @@ KOKKOS_FORCEINLINE_FUNCTION SNAComplex<real> operator*(const real& r, const SNAC
 }
 
 typedef SNAComplex<SNAreal> SNAcomplex;
+
+// Cayley-Klein pack
+// Can guarantee it's aligned to 2 complex
+struct alignas(32) CayleyKleinPack {
+
+  SNAcomplex a, b;
+  SNAcomplex da[3], db[3];
+  SNAreal sfac;
+  SNAreal dsfacu[3];
+
+};
 
 
 #if defined(KOKKOS_ENABLE_CXX11)

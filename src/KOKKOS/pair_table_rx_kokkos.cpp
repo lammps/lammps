@@ -1173,7 +1173,7 @@ double PairTableRXKokkos<DeviceType>::init_one(int i, int j)
 
 template<class DeviceType>
 double PairTableRXKokkos<DeviceType>::single(int i, int j, int itype, int jtype, double rsq,
-                         double factor_coul, double factor_lj,
+                                             double /*factor_coul*/, double factor_lj,
                          double &fforce)
 {
   int itable;

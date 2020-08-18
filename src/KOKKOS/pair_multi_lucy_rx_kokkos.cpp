@@ -659,8 +659,7 @@ void PairMultiLucyRXKokkos<DeviceType>::getMixingWeights(int id, double &mixWtSi
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairMultiLucyRXKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist, int iswap_in, DAT::tdual_xfloat_1d &buf,
-                               int pbc_flag, int *pbc)
+int PairMultiLucyRXKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist, int iswap_in, DAT::tdual_xfloat_1d &buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   atomKK->sync(execution_space,DPDRHO_MASK);
 
@@ -699,7 +698,8 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXUnpackForwa
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairMultiLucyRXKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairMultiLucyRXKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
+                                                         int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 

@@ -114,7 +114,7 @@ void FixSRP::init()
     error->all(FLERR,"Illegal bond particle type");
 
   // this fix must come before any fix which migrates atoms in its pre_exchange()
-  // b/c this fix's pre_exchange() creates per-atom data structure
+  // because this fix's pre_exchange() creates per-atom data structure
   // that data must be current for atom migration to carry it along
 
   for (int i = 0; i < modify->nfix; i++) {
@@ -555,6 +555,7 @@ void FixSRP::post_run()
 int FixSRP::pack_restart(int i, double *buf)
 {
   int m = 0;
+  // pack buf[0] this way because other fixes unpack it
   buf[m++] = 3;
   buf[m++] = array[i][0];
   buf[m++] = array[i][1];
@@ -569,10 +570,12 @@ void FixSRP::unpack_restart(int nlocal, int nth)
 {
   double **extra = atom->extra;
 
-// skip to Nth set of extra values
+  // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
+  
   int m = 0;
   for (int i = 0; i < nth; i++){
-    m += extra[nlocal][m];
+    m += static_cast<int> (extra[nlocal][m]);
   }
 
   m++;

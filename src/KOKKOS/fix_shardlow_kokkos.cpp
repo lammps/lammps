@@ -800,7 +800,7 @@ double FixShardlowKokkos<DeviceType>::memory_usage()
 
 namespace LAMMPS_NS {
 template class FixShardlowKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixShardlowKokkos<LMPHostType>;
 #endif
 }

@@ -226,8 +226,8 @@ void PairLennardMDF::coeff(int narg, char **arg)
     cut_inner_one = force->numeric(FLERR,arg[4]);
     cut_one = force->numeric(FLERR,arg[5]);
   }
-  if (cut_inner_global <= 0.0 || cut_inner_global > cut_global)
-    error->all(FLERR,"Illegal pair_style command");
+  if (cut_inner_one <= 0.0 || cut_inner_one > cut_one)
+    error->all(FLERR,"Illegal pair_coeff command");
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -328,6 +328,8 @@ void PairLennardMDF::read_restart(FILE *fp)
 void PairLennardMDF::write_restart_settings(FILE *fp)
 {
   fwrite(&mix_flag,sizeof(int),1,fp);
+  fwrite(&cut_global,sizeof(double),1,fp);
+  fwrite(&cut_inner_global,sizeof(double),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -339,8 +341,12 @@ void PairLennardMDF::read_restart_settings(FILE *fp)
   int me = comm->me;
   if (me == 0) {
     utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_inner_global,sizeof(double),1,fp,NULL,error);
   }
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut_inner_global,1,MPI_DOUBLE,0,world);
 }
 
 /* ----------------------------------------------------------------------

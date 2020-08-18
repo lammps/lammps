@@ -1154,7 +1154,7 @@ template class NPairKokkos<LMPDeviceType,1,1,0,0>;
 template class NPairKokkos<LMPDeviceType,1,0,1,0>;
 template class NPairKokkos<LMPDeviceType,1,0,0,1>;
 template class NPairKokkos<LMPDeviceType,1,0,1,1>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class NPairKokkos<LMPHostType,0,0,0,0>;
 template class NPairKokkos<LMPHostType,0,1,0,0>;
 template class NPairKokkos<LMPHostType,1,0,0,0>;

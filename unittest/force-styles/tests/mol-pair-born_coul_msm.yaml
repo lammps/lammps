@@ -5,6 +5,7 @@ epsilon: 5e-14
 prerequisites: ! |
   atom full
   pair born/coul/msm
+  kspace msm
 pre_commands: ! ""
 post_commands: ! |
   pair_modify table 0

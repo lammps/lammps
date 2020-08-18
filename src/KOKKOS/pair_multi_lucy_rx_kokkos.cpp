@@ -987,7 +987,7 @@ void PairMultiLucyRXKokkos<DeviceType>::settings(int narg, char **arg)
 
 namespace LAMMPS_NS {
 template class PairMultiLucyRXKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairMultiLucyRXKokkos<LMPHostType>;
 #endif
 }

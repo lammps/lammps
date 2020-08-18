@@ -57,6 +57,7 @@ PairMEAMSpline::PairMEAMSpline(LAMMPS *lmp) : Pair(lmp)
 
   nelements = 0;
   elements = NULL;
+  map = NULL;
 
   Uprime_values = NULL;
   nmax = 0;
@@ -65,6 +66,14 @@ PairMEAMSpline::PairMEAMSpline(LAMMPS *lmp) : Pair(lmp)
 
   comm_forward = 1;
   comm_reverse = 0;
+
+  phis = NULL;
+  Us = NULL;
+  rhos = NULL;
+  fs = NULL;
+  gs = NULL;
+
+  zero_atom_energies = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -332,6 +341,8 @@ void PairMEAMSpline::allocate()
   allocated = 1;
   int n = nelements;
 
+  memory->destroy(setflag);
+  memory->destroy(cutsq);
   memory->create(setflag,n+1,n+1,"pair:setflag");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
@@ -339,15 +350,23 @@ void PairMEAMSpline::allocate()
   //Change the functional form
   //f_ij->f_i
   //g_i(cos\theta_ijk)->g_jk(cos\theta_ijk)
+  delete[] phis;
+  delete[] Us;
+  delete[] rhos;
+  delete[] fs;
+  delete[] gs;
   phis = new SplineFunction[nmultichoose2];
   Us = new SplineFunction[n];
   rhos = new SplineFunction[n];
   fs = new SplineFunction[n];
   gs = new SplineFunction[nmultichoose2];
 
+  delete[] zero_atom_energies;
   zero_atom_energies = new double[n];
 
+  delete[] map;
   map = new int[n+1];
+  for (int i=0; i <= n; ++i) map[i] = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -400,7 +419,7 @@ void PairMEAMSpline::coeff(int narg, char **arg)
         if (strcmp(arg[i],elements[j]) == 0)
           break;
       if (j < nelements) map[i-2] = j;
-      else error->all(FLERR,"No matching element in EAM potential file");
+      else error->all(FLERR,"No matching element in meam/spline potential file");
     }
   }
   // clear setflag since coeff() called once with I,J = * *
@@ -419,8 +438,17 @@ void PairMEAMSpline::coeff(int narg, char **arg)
         setflag[i][j] = 1;
         count++;
       }
-
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+
+  // check that each element is mapped to exactly one atom type
+
+  for (int i = 0; i < nelements; i++) {
+    count = 0;
+    for (int j = 1; j <= n; j++)
+      if (map[j] == i) count++;
+    if (count != 1)
+      error->all(FLERR,"Pair style meam/spline requires one atom type per element");
+  } 
 }
 
 #define MAXLINE 1024
@@ -460,6 +488,9 @@ void PairMEAMSpline::read_file(const char* filename)
       if (nelements < 1)
         error->one(FLERR, "Invalid number of atomic species on"
                    " meam/spline line in potential file");
+      if (elements)
+        for (int i = 0; i < nelements; i++) delete [] elements[i];
+      delete [] elements;
       elements = new char*[nelements];
       for (int i=0; i<nelements; ++i) {
         ptr = strtok(NULL," \t\n\r\f");
@@ -480,7 +511,10 @@ void PairMEAMSpline::read_file(const char* filename)
     }
 
     nmultichoose2 = ((nelements+1)*nelements)/2;
-    // allocate!!
+
+    if (nelements != atom->ntypes)
+      error->all(FLERR,"Pair style meam/spline requires one atom type per element");
+
     allocate();
 
     // Parse spline functions.

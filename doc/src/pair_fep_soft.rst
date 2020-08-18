@@ -161,11 +161,11 @@ Examples
 
    pair_style coul/long/soft 1.0 10.0 9.5
    pair_coeff * * 1.0
-   pair_coeff 1 1 1.0 9.5
+   pair_coeff 1 1 1.0
 
    pair_style tip4p/long/soft 1 2 7 8 0.15 2.0 0.5 10.0 9.8
    pair_coeff * * 1.0
-   pair_coeff 1 1 1.0 9.5
+   pair_coeff 1 1 1.0
 
    pair_style morse/soft 4 0.9 10.0
    pair_coeff * * 100.0 2.0 1.5 1.0
@@ -284,7 +284,9 @@ core.  Hence, if used by themselves, there will be no repulsion to keep two
 oppositely charged particles from overlapping each other. In this case, if
 :math:`\lambda = 1`, a singularity may occur.  These sub-styles are suitable to
 represent charges embedded in the Lennard-Jones radius of another site (for
-example hydrogen atoms in several water models).
+example hydrogen atoms in several water models). The :math:`\lambda` must
+be defined for each pair, and *coul/cut/soft* can accept an optional cutoff as
+the second coefficient.
 
 .. note::
 

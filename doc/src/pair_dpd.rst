@@ -75,9 +75,9 @@ of 3 terms
 
 where :math:`F^C` is a conservative force, :math:`F^D` is a dissipative
 force, and :math:`F^R` is a random force.  :math:`r_{ij}` is a unit
-vector in the direction :math:`r_i - r_j`, :math:`V_{ij} is the vector
+vector in the direction :math:`r_i - r_j`, :math:`v_{ij}` is the vector
 difference in velocities of the two atoms :math:`= \vec{v}_i -
-\vec{v}_j, :math:`\alpha` is a Gaussian random number with zero mean and
+\vec{v}_j`, :math:`\alpha` is a Gaussian random number with zero mean and
 unit variance, dt is the timestep size, and w(r) is a weighting factor
 that varies between 0 and 1.  :math:`r_c` is the cutoff.  :math:`\sigma`
 is set equal to :math:`\sqrt{2 k_B T \gamma}`, where :math:`k_B` is the

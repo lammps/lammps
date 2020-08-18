@@ -1460,7 +1460,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     damp_normal = a*meff;
   } else if (damping_model[itype][jtype] == TSUJI) {
     damp_normal = sqrt(meff*knfac);
-  }
+  } else damp_normal = 0.0;
 
   damp_normal_prefactor = normal_coeffs[itype][jtype][1]*damp_normal;
   Fdamp = -damp_normal_prefactor*vnnr;

@@ -561,7 +561,7 @@ void FixRX::initSparse()
         if (SparseKinetics_enableIntegralReactions){
           sparseKinetics_inu[i][idx] = (int) sparseKinetics_nu[i][idx];
           if (isIntegral_i){
-            if (sparseKinetics_inu[i][idx] >= nu_bin.size())
+            if (sparseKinetics_inu[i][idx] >= (int)nu_bin.size())
                nu_bin.resize( sparseKinetics_inu[i][idx] );
 
             nu_bin[ sparseKinetics_inu[i][idx] ] ++;

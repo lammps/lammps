@@ -81,6 +81,23 @@ TEST_F(DumpAtomTest, run0)
     ASSERT_EQ(utils::split_words(lines[5]).size(), 2);
     ASSERT_THAT(lines[8], Eq("ITEM: ATOMS id type xs ys zs"));
     ASSERT_EQ(utils::split_words(lines[9]).size(), 5);
+    ASSERT_THAT(lines[9], Eq("1 1 0 0 0"));
+    delete_file(dump_file);
+}
+
+TEST_F(DumpAtomTest, format_line_run0)
+{
+    auto dump_file = "dump_format_line_run0.melt";
+    generate_dump(dump_file, "format line \"%d %d %20.15g %g %g\" scale yes image no", 0);
+
+    ASSERT_FILE_EXISTS(dump_file);
+    auto lines = read_lines(dump_file);
+    ASSERT_EQ(lines.size(), 41);
+    ASSERT_THAT(lines[4], Eq("ITEM: BOX BOUNDS pp pp pp"));
+    ASSERT_EQ(utils::split_words(lines[5]).size(), 2);
+    ASSERT_THAT(lines[8], Eq("ITEM: ATOMS id type xs ys zs"));
+    ASSERT_EQ(utils::split_words(lines[9]).size(), 5);
+    ASSERT_THAT(lines[9], Eq("1 1                    0 0 0"));
     delete_file(dump_file);
 }
 
@@ -510,7 +527,7 @@ TEST_F(DumpAtomTest, dump_modify_invalid)
 
 TEST_F(DumpAtomTest, write_dump)
 {
-    auto reference = "dump_run0.melt";
+    auto reference = "dump_ref_run0.melt";
     auto dump_file = "write_dump_atom_run0.melt";
 
     if (!verbose) ::testing::internal::CaptureStdout();

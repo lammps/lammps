@@ -441,6 +441,9 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
         dF_drho(p) *= fcut;
     evdwl_cut = evdwl * fcut + rho_core;
 
+    // E0 shift 
+    evdwl_cut += basis_set->E0vals(mu_i);
+
 #ifdef DEBUG_FORCES_CALCULATIONS
     printf("dFrhos = ");
     for(DENSITY_TYPE p =0; p<ndensity; ++p) printf(" %f ",dF_drho(p));

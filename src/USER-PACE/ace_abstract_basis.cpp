@@ -118,6 +118,7 @@ void ACEAbstractBasisSet::_copy_scalar_memory(const ACEAbstractBasisSet &src) {
     drho_core_cutoffs = src.drho_core_cutoffs;
 
 
+    E0vals = src.E0vals;
 }
 
 void ACEAbstractBasisSet::_copy_dynamic_memory(const ACEAbstractBasisSet &src) {//allocate new memory

@@ -720,7 +720,6 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
       copymode = 1;
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_self1>(0,nlocal),*this);
       copymode = 0;
-      copymode = 0;
       //for (i = nlocal; i < ntotal; i++) d_eatom[i] *= 0.5*qscale;
     }
 

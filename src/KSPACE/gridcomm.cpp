@@ -643,7 +643,7 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
   // box used to setup my Recv data struct after unwrapping via PBC
   // adjacent = 0 if any box of ghost cells does not adjoin my owned cells
   
-  recv = (Recv *) memory->smalloc(nrecv_response*sizeof(Recv),"CommGrid:recv");
+  recv = (Recv *) memory->smalloc(nrecv_response*sizeof(Recv),"GridComm:recv");
   adjacent = 1;
   
   for (i = 0; i < nrecv_response; i++) {
@@ -666,7 +666,7 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
 
   // create Copy data struct from overlaps with self
   
-  copy = (Copy *) memory->smalloc(ncopy*sizeof(Copy),"CommGrid:copy");
+  copy = (Copy *) memory->smalloc(ncopy*sizeof(Copy),"GridComm:copy");
  
   ncopy = 0;
   for (m = 0; m < noverlap; m++) {
@@ -1075,7 +1075,7 @@ void GridComm::grow_swap()
 {
   maxswap += SWAPDELTA;
   swap = (Swap *)
-    memory->srealloc(swap,maxswap*sizeof(Swap),"CommGrid:swap");
+    memory->srealloc(swap,maxswap*sizeof(Swap),"GridComm:swap");
 }
 
 /* ----------------------------------------------------------------------
@@ -1090,7 +1090,7 @@ void GridComm::grow_overlap()
 {
   maxoverlap += SWAPDELTA;
   overlap = (Overlap *)
-    memory->srealloc(overlap,maxoverlap*sizeof(Overlap),"CommGrid:overlap");
+    memory->srealloc(overlap,maxoverlap*sizeof(Overlap),"GridComm:overlap");
 }
 
 /* ----------------------------------------------------------------------
@@ -1103,7 +1103,7 @@ int GridComm::indices(int *&list,
                        int xlo, int xhi, int ylo, int yhi, int zlo, int zhi)
 {
   int nmax = (xhi-xlo+1) * (yhi-ylo+1) * (zhi-zlo+1);
-  memory->create(list,nmax,"CommGrid:indices");
+  memory->create(list,nmax,"GridComm:indices");
   if (nmax == 0) return 0;
 
   int nx = (fullxhi-fullxlo+1);

@@ -422,7 +422,7 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
   // dim is -1 for proc 0, but never accessed
   
   rcbinfo = (RCBinfo *)
-    memory->smalloc(nprocs*sizeof(RCBinfo),"GridCommKokkos:rcbinfo");
+    memory->smalloc(nprocs*sizeof(RCBinfo),"GridComm:rcbinfo");
   RCBinfo rcbone;
   rcbone.dim = comm->rcbcutdim;
   if (rcbone.dim <= 0) rcbone.cut = inxlo;
@@ -445,7 +445,7 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
   
   pbc[0] = pbc[1] = pbc[2] = 0;
 
-  memory->create(overlap_procs,nprocs,"GridCommKokkos:overlap_procs");
+  memory->create(overlap_procs,nprocs,"GridComm:overlap_procs");
   noverlap = maxoverlap = 0;
   overlap = NULL;
 
@@ -456,9 +456,9 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
   // ncopy = # of overlaps with myself, across a periodic boundary
 
   int *proclist;
-  memory->create(proclist,noverlap,"GridCommKokkos:proclist");
+  memory->create(proclist,noverlap,"GridComm:proclist");
   srequest = (Request *)
-    memory->smalloc(noverlap*sizeof(Request),"GridCommKokkos:srequest");
+    memory->smalloc(noverlap*sizeof(Request),"GridComm:srequest");
   
   int nsend_request = 0;
   ncopy = 0;
@@ -478,21 +478,21 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
   Irregular *irregular = new Irregular(lmp);
   int nrecv_request = irregular->create_data(nsend_request,proclist,1);
   Request *rrequest =
-    (Request *) memory->smalloc(nrecv_request*sizeof(Request),"GridCommKokkos:rrequest");
+    (Request *) memory->smalloc(nrecv_request*sizeof(Request),"GridComm:rrequest");
   irregular->exchange_data((char *) srequest,sizeof(Request),(char *) rrequest);
   irregular->destroy_data();
   
   // compute overlaps between received ghost boxes and my owned box
   // overlap box used to setup my Send data struct and respond to requests
 
-  send = (Send *) memory->smalloc(nrecv_request*sizeof(Send),"GridCommKokkos:send");
+  send = (Send *) memory->smalloc(nrecv_request*sizeof(Send),"GridComm:send");
 
-  k_send_packlist = DAT::tdual_int_2d("GridCommKokkos:send_packlist",nrecv_request,k_send_packlist.extent(1));
+  k_send_packlist = DAT::tdual_int_2d("GridComm:send_packlist",nrecv_request,k_send_packlist.extent(1));
 
   sresponse = (Response *)
-    memory->smalloc(nrecv_request*sizeof(Response),"GridCommKokkos:sresponse");
+    memory->smalloc(nrecv_request*sizeof(Response),"GridComm:sresponse");
   memory->destroy(proclist);
-  memory->create(proclist,nrecv_request,"GridCommKokkos:proclist");
+  memory->create(proclist,nrecv_request,"GridComm:proclist");
 
   for (m = 0; m < nrecv_request; m++) {
     send[m].proc = rrequest[m].sender;
@@ -522,7 +522,7 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
   int nsend_response = nrecv_request;
   int nrecv_response = irregular->create_data(nsend_response,proclist,1);
   Response *rresponse =
-    (Response *) memory->smalloc(nrecv_response*sizeof(Response),"GridCommKokkos:rresponse");
+    (Response *) memory->smalloc(nrecv_response*sizeof(Response),"GridComm:rresponse");
   irregular->exchange_data((char *) sresponse,sizeof(Response),(char *) rresponse);
   irregular->destroy_data();
   delete irregular;
@@ -531,9 +531,9 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
   // box used to setup my Recv data struct after unwrapping via PBC
   // adjacent = 0 if any box of ghost cells does not adjoin my owned cells
   
-  recv = (Recv *) memory->smalloc(nrecv_response*sizeof(Recv),"GridCommKokkos:recv");
+  recv = (Recv *) memory->smalloc(nrecv_response*sizeof(Recv),"GridComm:recv");
 
-  k_recv_unpacklist = DAT::tdual_int_2d("GridCommKokkos:recv_unpacklist",nrecv_response,k_recv_unpacklist.extent(1));
+  k_recv_unpacklist = DAT::tdual_int_2d("GridComm:recv_unpacklist",nrecv_response,k_recv_unpacklist.extent(1));
 
   adjacent = 1;
   
@@ -557,10 +557,10 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
 
   // create Copy data struct from overlaps with self
   
-  copy = (Copy *) memory->smalloc(ncopy*sizeof(Copy),"GridCommKokkos:copy");
+  copy = (Copy *) memory->smalloc(ncopy*sizeof(Copy),"GridComm:copy");
 
-  k_copy_packlist = DAT::tdual_int_2d("GridCommKokkos:copy_packlist",ncopy,k_copy_packlist.extent(1));
-  k_copy_unpacklist = DAT::tdual_int_2d("GridCommKokkos:copy_unpacklist",ncopy,k_copy_unpacklist.extent(1));
+  k_copy_packlist = DAT::tdual_int_2d("GridComm:copy_packlist",ncopy,k_copy_packlist.extent(1));
+  k_copy_unpacklist = DAT::tdual_int_2d("GridComm:copy_unpacklist",ncopy,k_copy_unpacklist.extent(1));
  
   ncopy = 0;
   for (m = 0; m < noverlap; m++) {
@@ -919,11 +919,11 @@ void GridCommKokkos<DeviceType>::grow_swap()
 {
   maxswap += SWAPDELTA;
   swap = (Swap *)
-    memory->srealloc(swap,maxswap*sizeof(Swap),"GridCommKokkos:swap");
+    memory->srealloc(swap,maxswap*sizeof(Swap),"GridComm:swap");
 
   if (!k_swap_packlist.d_view.data()) {
-    k_swap_packlist = DAT::tdual_int_2d("GridCommKokkos:swap_packlist",maxswap,k_swap_packlist.extent(1));
-    k_swap_unpacklist = DAT::tdual_int_2d("GridCommKokkos:swap_unpacklist",maxswap,k_swap_unpacklist.extent(1));
+    k_swap_packlist = DAT::tdual_int_2d("GridComm:swap_packlist",maxswap,k_swap_packlist.extent(1));
+    k_swap_unpacklist = DAT::tdual_int_2d("GridComm:swap_unpacklist",maxswap,k_swap_unpacklist.extent(1));
   } else {
     k_swap_packlist.resize(maxswap,k_swap_packlist.extent(1));
     k_swap_unpacklist.resize(maxswap,k_swap_unpacklist.extent(1));
@@ -943,6 +943,8 @@ int GridCommKokkos<DeviceType>::indices_kokkos(DAT::tdual_int_2d &k_list, int in
   int nmax = (xhi-xlo+1) * (yhi-ylo+1) * (zhi-zlo+1);
   if (k_list.extent(1) < nmax)
     k_list.resize(k_list.extent(0),nmax);
+
+  if (nmax == 0) return 0; 
 
   int nx = (fullxhi-fullxlo+1);
   int ny = (fullyhi-fullylo+1);

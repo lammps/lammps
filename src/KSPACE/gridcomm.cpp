@@ -23,11 +23,12 @@ using namespace LAMMPS_NS;
 
 enum{REGULAR,TILED};
 
-#define SWAPDELTA 8
+#define DELTA 16
 
 /* ----------------------------------------------------------------------
    NOTES
    tiled implementation only currently works for RCB, not general tiled
+   b/c RCB tree is used to find neighboring tiles
    if o indices for ghosts are < 0 or hi indices are >= N,
      then grid is treated as periodic in that dimension,
      communication is done across the periodic boundaries
@@ -227,7 +228,14 @@ void GridComm::setup(int &nbuf1, int &nbuf2)
   else setup_tiled(nbuf1,nbuf2);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   setup comm for a regular grid of procs
+   each proc has 6 neighbors
+   comm pattern = series of swaps with one of those 6 procs
+   can be multiple swaps with same proc if ghost extent is large
+   swap may not be symmetric if both procs do not need same layers of ghosts
+   all procs perform same # of swaps in a direction, even if some don't need it
+------------------------------------------------------------------------- */
 
 void GridComm::setup_regular(int &nbuf1, int &nbuf2)
 {
@@ -522,7 +530,12 @@ void GridComm::setup_regular(int &nbuf1, int &nbuf2)
 }
 
 /* ----------------------------------------------------------------------
-   NOTE: need to doc this header
+   setup comm for RCB tiled proc domains
+   each proc has arbitrary # of neighbors that overlap its ghost extent
+   identify which procs will send me ghost cells, and vice versa
+   may not be symmetric if both procs do not need same layers of ghosts
+   comm pattern = post recvs for all my ghosts, send my owned, wait on recvs
+     no exchanges by dimension, unlike CommTiled forward/reverse comm of particles
 ------------------------------------------------------------------------- */
 
 void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
@@ -744,8 +757,13 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
 }
 
 /* ----------------------------------------------------------------------
-   NOTE: need to doc this header
-   recursive ...
+   recursively split a box until it doesn't overlap any periodic boundaries
+   box = 6 integers = (xlo,xhi,ylo,yhi,zlo,zhi)
+     each lo/hi value may extend beyonw 0 to N-1 into another periodic image
+   pbc = flags in each dim of which periodic image the caller box was in
+   when a box straddles a periodic bounadry, split it in two
+   when a box does not straddle, drop it down RCB tree
+     add all the procs it overlaps with to Overlap list
 ------------------------------------------------------------------------- */
 
 void GridComm::ghost_box_drop(int *box, int *pbc)
@@ -760,6 +778,7 @@ void GridComm::ghost_box_drop(int *box, int *pbc)
   for (i = 0; i < 3; i++) newpbc[i] = pbc[i];
 
   // 6 if tests to see if box needs to be split across a periodic boundary
+  // newbox1 and 2 = new split boxes, newpbc increments current pbc
   // final else is no split
   
   int splitflag = 1;
@@ -799,6 +818,7 @@ void GridComm::ghost_box_drop(int *box, int *pbc)
   // returns nprocs = # of procs it overlaps, including self
   // returns proc_overlap = list of proc IDs it overlaps
   // skip self overlap if no crossing of periodic boundaries
+  // do not skip self if overlap is in another periodic image
     
   } else {
     splitflag = 0;
@@ -824,8 +844,11 @@ void GridComm::ghost_box_drop(int *box, int *pbc)
 }
 
 /* ----------------------------------------------------------------------
-   NOTE: need to doc this header
-   recursive ...
+   recursively drop a box down the RCB tree to find all procs it overlaps with
+   box = 6 integers = (xlo,xhi,ylo,yhi,zlo,zhi)
+     each lo/hi value ranges from 0 to N-1 in a dim, N = grid size in that dim
+     box is guaranteed to be wholly within the global domain
+   return Np = # of procs, plist = proc IDs
 ------------------------------------------------------------------------- */
 
 void GridComm::box_drop_grid(int *box, int proclower, int procupper,
@@ -899,7 +922,7 @@ int GridComm::ghost_adjacent_tiled()
 }
 
 /* ----------------------------------------------------------------------
-   use swap list in forward order to acquire copy of all needed ghost grid pts
+   forward comm of my owned cells to other's ghost cells
 ------------------------------------------------------------------------- */
 
 void GridComm::forward_comm_kspace(KSpace *kspace, int nper, int nbyte, int which,
@@ -911,7 +934,9 @@ void GridComm::forward_comm_kspace(KSpace *kspace, int nper, int nbyte, int whic
     forward_comm_kspace_tiled(kspace,nper,nbyte,which,buf1,buf2,datatype);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   forward comm on regular grid of procs via list of swaps with 6 neighbor procs
+------------------------------------------------------------------------- */
 
 void GridComm::
 forward_comm_kspace_regular(KSpace *kspace, int nper, int nbyte, int which,
@@ -938,7 +963,9 @@ forward_comm_kspace_regular(KSpace *kspace, int nper, int nbyte, int which,
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   forward comm on tiled grid decomp via Send/Recv lists of each neighbor proc
+------------------------------------------------------------------------- */
 
 void GridComm::
 forward_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
@@ -981,8 +1008,7 @@ forward_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
 }
 
 /* ----------------------------------------------------------------------
-   use swap list in reverse order to compute fully summed value
-   for each owned grid pt that some other proc has copy of as a ghost grid pt
+   reverse comm of my ghost cells to sum to owner cells
 ------------------------------------------------------------------------- */
 
 void GridComm::reverse_comm_kspace(KSpace *kspace, int nper, int nbyte, int which,
@@ -994,6 +1020,8 @@ void GridComm::reverse_comm_kspace(KSpace *kspace, int nper, int nbyte, int whic
     reverse_comm_kspace_tiled(kspace,nper,nbyte,which,buf1,buf2,datatype);
 }
 
+/* ----------------------------------------------------------------------
+   reverse comm on regular grid of procs via list of swaps with 6 neighbor procs
 /* ---------------------------------------------------------------------- */
 
 void GridComm::
@@ -1021,7 +1049,9 @@ reverse_comm_kspace_regular(KSpace *kspace, int nper, int nbyte, int which,
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   reverse comm on tiled grid decomp via Send/Recv lists of each neighbor proc
+------------------------------------------------------------------------- */
 
 void GridComm::
 reverse_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
@@ -1073,7 +1103,7 @@ reverse_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
 
 void GridComm::grow_swap()
 {
-  maxswap += SWAPDELTA;
+  maxswap += DELTA;
   swap = (Swap *)
     memory->srealloc(swap,maxswap*sizeof(Swap),"GridComm:swap");
 }
@@ -1088,15 +1118,15 @@ void GridComm::grow_swap()
 
 void GridComm::grow_overlap()
 {
-  maxoverlap += SWAPDELTA;
+  maxoverlap += DELTA;
   overlap = (Overlap *)
     memory->srealloc(overlap,maxoverlap*sizeof(Overlap),"GridComm:overlap");
 }
 
 /* ----------------------------------------------------------------------
    create 1d list of offsets into 3d array section (xlo:xhi,ylo:yhi,zlo:zhi)
-   assume 3d array is allocated as (fullxlo:fullxhi,fullylo:fullyhi,
-     fullzlo:fullzhi)
+   assume 3d array is allocated as 
+     (fullxlo:fullxhi,fullylo:fullyhi,fullzlo:fullzhi)
 ------------------------------------------------------------------------- */
 
 int GridComm::indices(int *&list,

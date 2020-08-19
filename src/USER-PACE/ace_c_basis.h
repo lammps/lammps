@@ -20,6 +20,7 @@ public:
     //TODO: remove?
     SHORT_INT_TYPE num_ctilde_max = 0;
 
+
     /**
      * Default constructor
      */

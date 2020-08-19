@@ -6,9 +6,10 @@
 #include "ace_types.h"
 #include "ace_radial.h"
 
+class SHIPsRadPolyBasis {
 
-class SHIPsRadialFunctions : public AbstractRadialBasis {
 public:
+
     // transform parameters
     int p = 0;
     DOUBLE_TYPE r0 = 0.0;
@@ -31,22 +32,20 @@ public:
     // temporary storage for evaluating the basis
     Array1D<DOUBLE_TYPE> P = Array1D<DOUBLE_TYPE>("SHIPs radial basis: P");
     Array1D<DOUBLE_TYPE> dP_dr = Array1D<DOUBLE_TYPE>("SHIPs radial basis: dP");
+
 //////////////////////////////////
 
-    SHIPsRadialFunctions() = default;
+    SHIPsRadPolyBasis() = default;
 
-    ~SHIPsRadialFunctions() override = default;
+    ~SHIPsRadPolyBasis() = default;
 
-// distance transform
+    // distance transform
     void transform(const DOUBLE_TYPE r, DOUBLE_TYPE &x_out, DOUBLE_TYPE &dx_out) const;
 
     // cutoff function
     void fcut(const DOUBLE_TYPE x, DOUBLE_TYPE &f_out, DOUBLE_TYPE &df_out) const;
 
-
     void fread(FILE *fptr);
-
-    void load(string fname);
 
     void _init(DOUBLE_TYPE r0, int p, DOUBLE_TYPE rcut,
                DOUBLE_TYPE xl, DOUBLE_TYPE xr,
@@ -54,22 +53,61 @@ public:
 
     void calcP(DOUBLE_TYPE r, size_t maxn, SPECIES_TYPE z1, SPECIES_TYPE z2);
 
-
     size_t get_maxn();
 
-    //TODO
+};
+
+
+
+
+class SHIPsRadialFunctions : public AbstractRadialBasis {
+public:
+
+    // radial basis 
+    SHIPsRadPolyBasis radbasis; 
+
+    // pair potential basis 
+    bool haspair = false; 
+    SHIPsRadPolyBasis pairbasis; 
+
+    // pair potential coefficients 
+    Array1D<DOUBLE_TYPE> paircoeffs = Array1D<DOUBLE_TYPE>("SHIPs pairpot coeffs: paircoeffs");
+
+    // spline parameters for repulsive core
+    DOUBLE_TYPE ri = 0.0;
+    DOUBLE_TYPE e0 = 0.0;
+    DOUBLE_TYPE A = 0.0;
+    DOUBLE_TYPE B = 0.0;
+
+//////////////////////////////////
+
+    SHIPsRadialFunctions() = default;
+
+    ~SHIPsRadialFunctions() override = default;
+
+
+    void fread(FILE *fptr);
+
+    void load(string fname);
+
+    size_t get_maxn();
+    DOUBLE_TYPE get_rcut(); 
+
+    bool has_pair(); 
+
     void init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, DOUBLE_TYPE deltaSplineBins, SPECIES_TYPE nelements,
               DOUBLE_TYPE cutoff,
               string radbasename) override;
 
-    //TODO
     void
     evaluate(DOUBLE_TYPE r, NS_TYPE nradbase_c, NS_TYPE nradial_c, SPECIES_TYPE mu_i, SPECIES_TYPE mu_j,
              bool calc_second_derivatives = false) override;
 
-    //TODO
-    void setuplookupRadspline() override;
+    void
+    evaluate_pair(DOUBLE_TYPE r, SPECIES_TYPE mu_i, SPECIES_TYPE mu_j,
+                  bool calc_second_derivatives = false);
 
+    void setuplookupRadspline() override;
 
     SHIPsRadialFunctions *clone() const override {
         return new SHIPsRadialFunctions(*this);

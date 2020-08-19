@@ -7,9 +7,9 @@
 
 using namespace std;
 
-void SHIPsRadialFunctions::_init(DOUBLE_TYPE r0, int p, DOUBLE_TYPE rcut,
-                                 DOUBLE_TYPE xl, DOUBLE_TYPE xr,
-                                 int pl, int pr, size_t maxn) {
+void SHIPsRadPolyBasis::_init(DOUBLE_TYPE r0, int p, DOUBLE_TYPE rcut,
+                              DOUBLE_TYPE xl, DOUBLE_TYPE xr,
+                              int pl, int pr, size_t maxn) {
     this->p = p;
     this->r0 = r0;
     this->rcut = rcut;
@@ -25,19 +25,11 @@ void SHIPsRadialFunctions::_init(DOUBLE_TYPE r0, int p, DOUBLE_TYPE rcut,
     this->dP_dr.resize(maxn);
 }
 
-void SHIPsRadialFunctions::load(string fname) {
-    FILE * fptr = fopen(fname.data(), "r");
-    int res = fscanf(fptr, "radbasename=SHIPsBasic\n"); 
-    if (res != 0) 
-        throw("SHIPsRadialFunctions::load : couldnt read radbasename=SHIPsBasic");
-    this->fread(fptr);
-    fclose(fptr);
-}
 
-void SHIPsRadialFunctions::fread(FILE *fptr)
+void SHIPsRadPolyBasis::fread(FILE *fptr)
 {
     int res; //for fscanf result
-    int maxn, p, pl, pr;
+    int maxn, p, pl, pr, ntests;
     double r0, xl, xr, a, b, c, rcut;
 
     // transform parameters
@@ -58,7 +50,6 @@ void SHIPsRadialFunctions::fread(FILE *fptr)
 
     // read basis coefficients
     for (int i = 0; i < maxn; i++) {
-
         res = fscanf(fptr, " %lf %lf %lf\n", &a, &b, &c);
         if (res != 3)
             throw invalid_argument("Couldn't read line: A_n B_n C_n");
@@ -67,9 +58,15 @@ void SHIPsRadialFunctions::fread(FILE *fptr)
         this->C(i) = DOUBLE_TYPE(c);
     }
 
+    // // check there are no consistency tests (I don't have time to fix this now)
+    // res = fscanf(fptr, "tests: ntests = %d\n", &ntests);
+    // if (res != 1)
+    //     throw invalid_argument("Couldn't read line: tests: ntests = %d");
+    // if (ntests != 0)
+    //     throw invalid_argument("must have ntests = 0!");
+
     // ---------------------------------------------------------------------
     // run the consistency test this could be moved into a separate function
-    int ntests;
     double r, Pn, dPn;
     double err = 0.0;
 
@@ -99,27 +96,35 @@ void SHIPsRadialFunctions::fread(FILE *fptr)
     if (ntests > 0)
         printf("Maximum Test error = %e\n", err);
     // ---------------------------------------------------------------------
+
 }
 
 
-size_t SHIPsRadialFunctions::get_maxn()
+
+
+size_t SHIPsRadPolyBasis::get_maxn()
 {
     return this->maxn;
 }
 
+
 // Julia code: ((1+r0)/(1+r))^p
-void SHIPsRadialFunctions::transform(const DOUBLE_TYPE r, DOUBLE_TYPE &x_out, DOUBLE_TYPE &dx_out) const {
+void SHIPsRadPolyBasis::transform(const DOUBLE_TYPE r, DOUBLE_TYPE &x_out, DOUBLE_TYPE &dx_out) const {
     x_out = pow((1 + r0) / (1 + r), p); // ==pow( (1 + r) / (1 + r0), -p );
     dx_out = -p * pow((1 + r) / (1 + r0), -p - 1) / (1 + r0);
 }
 
-void SHIPsRadialFunctions::fcut(const DOUBLE_TYPE x, DOUBLE_TYPE &f_out, DOUBLE_TYPE &df_out) const {
-    f_out = pow(x - xl, pl) * pow(x - xr, pr);
-    df_out = pl * pow(x - xl, pl - 1) * pow(x - xr, pr) + pow(x - xl, pl) * pr * pow(x - xr, pr - 1);
+void SHIPsRadPolyBasis::fcut(const DOUBLE_TYPE x, DOUBLE_TYPE &f_out, DOUBLE_TYPE &df_out) const {
+    if ( ((x < xl) && (pl > 0)) || ((x > xr) && (pr > 0)) )  {
+        f_out = 0.0; 
+        df_out = 0.0; 
+    } else { 
+        f_out = pow(x - xl, pl) * pow(x - xr, pr);
+        df_out = pl * pow(x - xl, pl - 1) * pow(x - xr, pr) + pow(x - xl, pl) * pr * pow(x - xr, pr - 1);
+    }
 }
 
-
-/* ------------------------------------------------------------------------
+ /* ------------------------------------------------------------------------
 Julia Code
 P[1] = J.A[1] * _fcut_(J.pl, J.tl, J.pr, J.tr, t)
 if length(J) == 1; return P; end
@@ -130,7 +135,7 @@ end
 return P
 ------------------------------------------------------------------------ */
 
-void SHIPsRadialFunctions::calcP(DOUBLE_TYPE r, size_t maxn,
+void SHIPsRadPolyBasis::calcP(DOUBLE_TYPE r, size_t maxn,
                                  SPECIES_TYPE z1, SPECIES_TYPE z2) {
     if (maxn > this->maxn)
         throw invalid_argument("Given maxn couldn't be larger than global maxn");
@@ -160,26 +165,99 @@ void SHIPsRadialFunctions::calcP(DOUBLE_TYPE r, size_t maxn,
     }
 }
 
-void SHIPsRadialFunctions::fill_gk(DOUBLE_TYPE r, NS_TYPE maxn, SPECIES_TYPE z1, SPECIES_TYPE z2) {
-    calcP(r, maxn, z1, z2);
-    for (NS_TYPE n = 0; n < maxn; n++) {
-        gr(n) = P(n);
-        dgr(n) = dP_dr(n);
+
+// ====================================================================
+
+
+bool SHIPsRadialFunctions::has_pair() {
+    return this->haspair; 
+}
+
+void SHIPsRadialFunctions::load(string fname) {
+    FILE * fptr = fopen(fname.data(), "r");
+    size_t res = fscanf(fptr, "radbasename=ACE.jl.Basic\n"); 
+    if (res != 0) 
+        throw("SHIPsRadialFunctions::load : couldnt read radbasename=ACE.jl.Basic");
+    this->fread(fptr);
+    fclose(fptr);
+}
+
+void SHIPsRadialFunctions::fread(FILE *fptr){
+    int res;
+    size_t maxn; 
+    char hasE0, haspair; 
+    DOUBLE_TYPE c; 
+
+    // check whether we have a pair potential 
+    res = fscanf(fptr, "haspair: %c\n", &haspair);
+    if (res != 1) 
+        throw("SHIPsRadialFunctions::load : couldn't read haspair");
+
+    // read the radial basis 
+    this->radbasis.fread(fptr);
+
+    // read the pair potential 
+    if (haspair == 't') { 
+        this->haspair=true;
+        fscanf(fptr, "begin repulsive potential\n");
+        fscanf(fptr, "begin polypairpot\n");
+        // read the basis parameters
+        pairbasis.fread(fptr);
+        maxn = pairbasis.get_maxn();
+        // read the coefficients 
+        fscanf(fptr, "coefficients\n");
+        paircoeffs.resize(maxn);
+        for (size_t n = 0; n < maxn; n++) {
+            fscanf(fptr, "%lf\n", &c);
+            paircoeffs(n) = c;
+        }
+        fscanf(fptr, "end polypairpot\n");
+        // read the spline parameters 
+        fscanf(fptr, "spline parameters\n"); 
+        fscanf(fptr, "   e_0 + B  exp(-A*(r/ri-1)) * (ri/r)\n");
+        fscanf(fptr, "ri=%lf\n", &(this->ri));
+        fscanf(fptr, "e0=%lf\n", &(this->e0));
+        fscanf(fptr, "A=%lf\n", &(this->A));
+        fscanf(fptr, "B=%lf\n", &(this->B));
+        fscanf(fptr, "end repulsive potential\n");
     }
 }
 
+
+size_t SHIPsRadialFunctions::get_maxn()
+{
+    return this->radbasis.get_maxn();
+}
+
+DOUBLE_TYPE SHIPsRadialFunctions::get_rcut()
+{
+    return max(radbasis.rcut, pairbasis.rcut);
+}
+
+
+void SHIPsRadialFunctions::fill_gk(DOUBLE_TYPE r, NS_TYPE maxn, SPECIES_TYPE z1, SPECIES_TYPE z2) {
+    radbasis.calcP(r, maxn, z1, z2);
+    for (NS_TYPE n = 0; n < maxn; n++) {
+        gr(n) = radbasis.P(n);
+        dgr(n) = radbasis.dP_dr(n);
+    }
+}
+
+
 void SHIPsRadialFunctions::fill_Rnl(DOUBLE_TYPE r, NS_TYPE maxn, SPECIES_TYPE z1, SPECIES_TYPE z2) {
-    calcP(r, maxn, z1, z2);
+    radbasis.calcP(r, maxn, z1, z2);
     for (NS_TYPE n = 0; n < maxn; n++) {
         for (LS_TYPE l = 0; l <= lmax; l++) {
-            fr(n, l) = P(n);
-            dfr(n, l) = dP_dr(n);
+            fr(n, l) = radbasis.P(n);
+            dfr(n, l) = radbasis.dP_dr(n);
         }
     }
 }
 
+
 void SHIPsRadialFunctions::setuplookupRadspline() {
 }
+
 
 void SHIPsRadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, DOUBLE_TYPE deltaSplineBins,
                                 SPECIES_TYPE nelements,
@@ -224,29 +302,58 @@ void SHIPsRadialFunctions::init(NS_TYPE nradb, LS_TYPE lmax, NS_TYPE nradial, DO
     lambdahc.fill(1.);
 }
 
+
 void SHIPsRadialFunctions::evaluate(DOUBLE_TYPE r, NS_TYPE nradbase_c, NS_TYPE nradial_c, SPECIES_TYPE mu_i,
                                     SPECIES_TYPE mu_j, bool calc_second_derivatives) {
     if (calc_second_derivatives)
         throw invalid_argument("SHIPsRadialFunctions has not `calc_second_derivatives` option");
 
-    this->calcP(r, nradbase_c, mu_i, mu_j);
+    radbasis.calcP(r, nradbase_c, mu_i, mu_j);
     for (NS_TYPE nr = 0; nr < nradbase_c; nr++) {
-        gr(nr) = this->P(nr);
-        dgr(nr) = this->dP_dr(nr);
+        gr(nr) = radbasis.P(nr);
+        dgr(nr) = radbasis.dP_dr(nr);
     }
-
     for (NS_TYPE nr = 0; nr < nradial_c; nr++) {
         for (LS_TYPE l = 0; l <= this->lmax; l++) {
-            fr(nr, l) = this->P(nr);
-            dfr(nr, l) = this->dP_dr(nr);
+            fr(nr, l) = radbasis.P(nr);
+            dfr(nr, l) = radbasis.dP_dr(nr);
         }
     }
 
-//    spline_hc.calcSplines(r);
-//    cr = spline_hc.values(0);
-//    dcr = spline_hc.derivatives(0);
-
-    cr = 0;
-    dcr = 0;
+    if (this->has_pair())
+        this->evaluate_pair(r, mu_i, mu_j); 
+    else {
+        cr  = 0;
+        dcr = 0;
+    }
 }
+
+void SHIPsRadialFunctions::evaluate_pair(DOUBLE_TYPE r, 
+                                         SPECIES_TYPE mu_i,
+                                         SPECIES_TYPE mu_j, 
+                                         bool calc_second_derivatives) {
+    //    spline_hc.calcSplines(r);
+    //    cr = spline_hc.values(0);
+    //    dcr = spline_hc.derivatives(0);
+
+    // the outer polynomial potential 
+    if (r > ri) {
+        pairbasis.calcP(r, pairbasis.get_maxn(), mu_i, mu_j);
+        cr  = 0;
+        dcr = 0;
+        for (size_t n = 0; n < pairbasis.get_maxn(); n++) {
+            cr  += paircoeffs(n) * pairbasis.P(n); 
+            dcr += paircoeffs(n) * pairbasis.dP_dr(n); 
+        }
+    }
+    else { // the repulsive core part 
+        cr = e0 + B * exp(-A * (r/ri - 1)) * (ri/r);
+        dcr = B * exp( - A * (r/ri-1) ) * ri * ( - A / ri / r  - 1/(r*r) );
+    }
+    // fix double-counting
+    cr *= 0.5;
+    dcr *= 0.5;
+}
+
+
 

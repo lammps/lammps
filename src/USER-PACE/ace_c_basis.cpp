@@ -269,6 +269,13 @@ void ACECTildeBasisSet::save(const string &filename) {
     for (SPECIES_TYPE mu_i = 0; mu_i < nelements; ++mu_i)
         fprintf(fptr, "%.18f %.18f\n", rho_core_cutoffs(mu_i), drho_core_cutoffs(mu_i));
 
+    // save E0 values 
+    fprintf(fptr, "E0:"); 
+    for (SPECIES_TYPE mu_i = 0; mu_i < nelements; ++mu_i)
+        fprintf(fptr, " %.18f", E0vals(mu_i)); 
+    fprintf(fptr, "\n");
+
+
     fprintf(fptr, "\n");
 
 
@@ -537,10 +544,33 @@ void ACECTildeBasisSet::load(const string filename) {
                                            "core energy-cutoff parameters: [rho_core_cut] [drho_core_cutoff] ...");
     }
 
+    // atom energy shift E0 (energy of isolated atom)
+    E0vals.init(nelements);
+
+    // reading "E0:"
+    res = fscanf(fptr, " E0: %s", buffer);
+    if (res == 0) {
+        //throw_error(filename, "E0", " E0: E0-species1 E0-species2 ...");
+        E0vals.fill(0.0);
+    } else {
+        double E0 = atof(buffer);
+        E0vals(0) = E0;
+
+        for (SPECIES_TYPE mu_i = 1; mu_i < nelements; ++mu_i) {
+            res = fscanf(fptr, " %lf", &E0);
+            if (res != 1)
+                throw_error(filename, "E0", " couldn't read one of the E0 values");
+            E0vals(mu_i) = E0;
+        }
+        res = fscanf(fptr, "\n");
+        if (res != 0)
+            printf("file %s : format seems broken near E0; trying to continue...\n", filename.c_str());
+    }
+
     // check which radial basis we need to load 
     res = fscanf(fptr, " radbasename=%s\n", buffer);
     if (res != 1) {
-        throw_error(filename, "radbasename", "rabbasename=ChebExpCos|ChebPow|SHIPsBasic");
+        throw_error(filename, "radbasename", "rabbasename=ChebExpCos|ChebPow|ACE.jl.Basic");
     } else {
         radbasename = buffer;
     }
@@ -548,7 +578,7 @@ void ACECTildeBasisSet::load(const string filename) {
 //    printf("radbasename = `%s`\n", radbasename.c_str());
     if (radbasename == "ChebExpCos" | radbasename == "ChebPow") {
         _load_radial_ACERadial(fptr, filename, radbasename);
-    } else if (radbasename == "SHIPsBasic") {
+    } else if (radbasename == "ACE.jl.Basic") {
         _load_radial_SHIPsBasic(fptr, filename, radbasename);
     } else {
         throw invalid_argument(
@@ -866,12 +896,12 @@ void ACECTildeBasisSet::_load_radial_SHIPsBasic(FILE *fptr,
     ships_radial_functions->fread(fptr);
 
     //mimic ships_radial_functions to ACERadialFunctions
-    ships_radial_functions->nradial = ships_radial_functions->maxn;
-    ships_radial_functions->nradbase = ships_radial_functions->maxn;
+    ships_radial_functions->nradial = ships_radial_functions->get_maxn();
+    ships_radial_functions->nradbase = ships_radial_functions->get_maxn();
 
-    nradbase = ships_radial_functions->maxn;
-    nradmax = ships_radial_functions->maxn;
-    cutoffmax = ships_radial_functions->rcut;
+    nradbase = ships_radial_functions->get_maxn();
+    nradmax = ships_radial_functions->get_maxn();
+    cutoffmax = ships_radial_functions->get_rcut();
     deltaSplineBins = 0.001;
 
     ships_radial_functions->init(nradbase, lmax, nradmax,
@@ -887,7 +917,7 @@ void ACECTildeBasisSet::_load_radial_SHIPsBasic(FILE *fptr,
     radial_functions->lambda.fill(0);
 
 
-    radial_functions->cut.fill(ships_radial_functions->rcut);
+    radial_functions->cut.fill(ships_radial_functions->get_rcut());
     radial_functions->dcut.fill(0);
 
     radial_functions->crad.fill(0);

@@ -41,6 +41,9 @@ public:
 
     vector<DOUBLE_TYPE> FS_parameters;  ///< parameters for cluster functional, see Eq.(3) in implementation notes or Eq.(53) in <A HREF="https://journals.aps.org/prb/abstract/10.1103/PhysRevB.99.014104">  PRB 99, 014104 (2019) </A>
 
+    // E0 values
+    Array1D<DOUBLE_TYPE> E0vals;
+
     /**
      * Default empty constructor
      */

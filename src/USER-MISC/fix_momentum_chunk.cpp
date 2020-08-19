@@ -117,18 +117,24 @@ void FixMomentumChunk::init()
   // create computes dependent on chunks
 
   id_com = id + id_chunk + "_com";
+  icompute = modify->find_compute(id_com);
+  if (icompute >= 0) modify->delete_compute(id_com);
   auto cmd = fmt::format("{} {} com/chunk {}",id_com,group->names[igroup],id_chunk);
   modify->add_compute(cmd);
   icompute = modify->find_compute(id_com);
   ccom = (ComputeCOMChunk *) modify->compute[icompute];
-  
+
   id_vcm = id + id_chunk + "_vcm";
+  icompute = modify->find_compute(id_vcm);
+  if (icompute >= 0) modify->delete_compute(id_vcm);
   cmd = fmt::format("{} {} vcm/chunk {}",id_vcm,group->names[igroup],id_chunk);
   modify->add_compute(cmd);
   icompute = modify->find_compute(id_vcm);
   cvcm = modify->compute[icompute];
 
   id_omega = id + id_chunk + "_omega";
+  icompute = modify->find_compute(id_omega);
+  if (icompute >= 0) modify->delete_compute(id_omega);
   cmd = fmt::format("{} {} omega/chunk {}",id_omega,group->names[igroup],id_chunk);
   modify->add_compute(cmd);
   icompute = modify->find_compute(id_omega);
@@ -154,7 +160,7 @@ void FixMomentumChunk::end_of_step()
 
 
   // apply removing translational and rotational velocity from atoms in each chunk
-  
+
   double **v = atom->v;
   int *mask = atom->mask;
   const int nlocal = atom->nlocal;
@@ -174,7 +180,7 @@ void FixMomentumChunk::end_of_step()
       if (mask[i] & groupbit) {
         int m = ichunk[i]-1;
         if (m < 0) continue;
-      
+
         if (rmass)
           ke_chunk_local[m] += rmass[i] *
             (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
@@ -242,7 +248,7 @@ void FixMomentumChunk::end_of_step()
       if (mask[i] & groupbit) {
         int m = ichunk[i]-1;
         if (m < 0) continue;
-      
+
         if (rmass)
           ke_chunk_local[m] += rmass[i] *
             (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);

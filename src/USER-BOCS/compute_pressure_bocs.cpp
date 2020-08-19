@@ -115,6 +115,7 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
   vector = new double[size_vector];
   nvirial = 0;
   vptr = NULL;
+
   splines = NULL;
   spline_length = 0;
 }
@@ -127,10 +128,6 @@ ComputePressureBocs::~ComputePressureBocs()
   delete [] vector;
   delete [] vptr;
   if (phi_coeff) free(phi_coeff);
-
-  // Any splines data that was sent in from fix_bocs must be
-  // freed here, after it has been used.
-  memory->destroy(splines);
 }
 
 /* ---------------------------------------------------------------------- */

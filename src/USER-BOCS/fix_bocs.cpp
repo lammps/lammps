@@ -118,6 +118,9 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
 
   p_match_coeffs = NULL;
 
+  splines = NULL;
+  spline_length = 0;
+
   // turn on tilt factor scaling, whenever applicable
 
   dimension = domain->dimension;
@@ -476,6 +479,12 @@ FixBocs::~FixBocs()
     }
   }
   if (p_match_coeffs) free(p_match_coeffs);
+
+    // Free splines memory structure
+    if (splines != NULL) {
+        memory->destroy(splines);
+        spline_length = 0;
+    }
 }
 
 /* ---------------------------------------------------------------------- */

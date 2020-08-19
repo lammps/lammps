@@ -653,7 +653,7 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
+  gc->reverse_comm_kspace(this,1,REVERSE_RHO,
                           k_gc_buf1,k_gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
@@ -667,13 +667,13 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
 
-  gc->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK,
+  gc->forward_comm_kspace(this,3,FORWARD_IK,
 			  k_gc_buf1,k_gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom)
-      gc->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM,
+      gc->forward_comm_kspace(this,7,FORWARD_IK_PERATOM,
                               k_gc_buf1,k_gc_buf2,MPI_FFT_SCALAR);
 
   // calculate the force on my particles
@@ -842,8 +842,7 @@ void PPPMKokkos<DeviceType>::allocate()
 
   gc->setup(ngc_buf1,ngc_buf2);
 
-  if (differentiation_flag) npergrid = 1;
-   else npergrid = 3;
+  npergrid = 3;
 
   k_gc_buf1 = FFT_DAT::tdual_FFT_SCALAR_1d("pppm:gc_buf1",npergrid*ngc_buf1);
   k_gc_buf2 = FFT_DAT::tdual_FFT_SCALAR_1d("pppm:gc_buf2",npergrid*ngc_buf2);
@@ -897,8 +896,7 @@ void PPPMKokkos<DeviceType>::allocate_peratom()
   // use same GC ghost grid object for peratom grid communication
    // but need to reallocate a larger gc_buf1 and gc_buf2
 
-  if (differentiation_flag) npergrid = 6;
-   else npergrid = 7;
+  npergrid = 7;
 
   k_gc_buf1 = FFT_DAT::tdual_FFT_SCALAR_1d("pppm:gc_buf1",npergrid*ngc_buf1);
   k_gc_buf2 = FFT_DAT::tdual_FFT_SCALAR_1d("pppm:gc_buf2",npergrid*ngc_buf2);

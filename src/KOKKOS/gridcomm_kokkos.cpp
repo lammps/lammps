@@ -642,20 +642,20 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void GridCommKokkos<DeviceType>::forward_comm_kspace(KSpace *kspace, int nper, int nbyte, int which,
+void GridCommKokkos<DeviceType>::forward_comm_kspace(KSpace *kspace, int nper, int which,
 				   FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   if (layout == REGULAR)
-    forward_comm_kspace_regular(kspace,nper,nbyte,which,k_buf1,k_buf2,datatype);
+    forward_comm_kspace_regular(kspace,nper,which,k_buf1,k_buf2,datatype);
   else
-    forward_comm_kspace_tiled(kspace,nper,nbyte,which,k_buf1,k_buf2,datatype);
+    forward_comm_kspace_tiled(kspace,nper,which,k_buf1,k_buf2,datatype);
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void GridCommKokkos<DeviceType>::
-forward_comm_kspace_regular(KSpace *kspace, int nper, int nbyte, int which,
+forward_comm_kspace_regular(KSpace *kspace, int nper, int which,
 			    FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   int m;
@@ -707,7 +707,7 @@ forward_comm_kspace_regular(KSpace *kspace, int nper, int nbyte, int which,
 
 template<class DeviceType>
 void GridCommKokkos<DeviceType>::
-forward_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
+forward_comm_kspace_tiled(KSpace *kspace, int nper, int which,
 			  FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   int i,m,offset;
@@ -726,7 +726,7 @@ forward_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
   // post all receives
   
   for (m = 0; m < nrecv; m++) {
-    offset = nper * recv[m].offset * nbyte;
+    offset = nper * recv[m].offset;
     MPI_Irecv(&buf2[offset],nper*recv[m].nunpack,datatype,
 	      recv[m].proc,0,gridcomm,&requests[m]);
   }
@@ -762,7 +762,7 @@ forward_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
       k_buf2.sync<DeviceType>();
     }
 
-    offset = nper * recv[m].offset * nbyte;
+    offset = nper * recv[m].offset;
     kspaceKKBase->unpack_forward_grid_kokkos(which,k_buf2,offset,
 				recv[m].nunpack,k_recv_unpacklist,m);
     DeviceType().fence();
@@ -775,20 +775,20 @@ forward_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void GridCommKokkos<DeviceType>::reverse_comm_kspace(KSpace *kspace, int nper, int nbyte, int which,
+void GridCommKokkos<DeviceType>::reverse_comm_kspace(KSpace *kspace, int nper, int which,
 				    FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   if (layout == REGULAR)
-    reverse_comm_kspace_regular(kspace,nper,nbyte,which,k_buf1,k_buf2,datatype);
+    reverse_comm_kspace_regular(kspace,nper,which,k_buf1,k_buf2,datatype);
   else
-    reverse_comm_kspace_tiled(kspace,nper,nbyte,which,k_buf1,k_buf2,datatype);
+    reverse_comm_kspace_tiled(kspace,nper,which,k_buf1,k_buf2,datatype);
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void GridCommKokkos<DeviceType>::
-reverse_comm_kspace_regular(KSpace *kspace, int nper, int nbyte, int which,
+reverse_comm_kspace_regular(KSpace *kspace, int nper, int which,
 			    FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   int m;
@@ -841,7 +841,7 @@ reverse_comm_kspace_regular(KSpace *kspace, int nper, int nbyte, int which,
 
 template<class DeviceType>
 void GridCommKokkos<DeviceType>::
-reverse_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
+reverse_comm_kspace_tiled(KSpace *kspace, int nper, int which,
 			  FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   int i,m,offset;
@@ -854,8 +854,6 @@ reverse_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
     buf1 = k_buf1.view<DeviceType>().data();
     buf2 = k_buf2.view<DeviceType>().data();
   } else {
-    k_buf1.modify<DeviceType>();
-    k_buf1.sync<LMPHostType>();
     buf1 = k_buf1.h_view.data();
     buf2 = k_buf2.h_view.data();
   }
@@ -863,7 +861,7 @@ reverse_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
   // post all receives
   
   for (m = 0; m < nsend; m++) {
-    offset = nper * send[m].offset * nbyte;
+    offset = nper * send[m].offset;
     MPI_Irecv(&buf2[offset],nper*send[m].npack,datatype,
 	      send[m].proc,0,gridcomm,&requests[m]);
   }
@@ -899,7 +897,7 @@ reverse_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
       k_buf2.sync<DeviceType>();
     }
 
-    offset = nper * send[m].offset * nbyte;
+    offset = nper * send[m].offset;
     kspaceKKBase->unpack_reverse_grid_kokkos(which,k_buf2,offset,
 				send[m].npack,k_send_packlist,m);
     DeviceType().fence();

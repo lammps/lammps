@@ -2549,7 +2549,7 @@ void MSM::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
     
   int n = current_level;
   int k = 0;
-  
+
   if (flag == FORWARD_RHO) {
     double ***qgridn = qgrid[n];
     double *qsrc = &qgridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];

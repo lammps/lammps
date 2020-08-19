@@ -181,7 +181,7 @@ void GridCommKokkos<DeviceType>::setup_regular(int &nbuf1, int &nbuf2)
     swap[nswap].recvproc = procxhi;
     sendplanes = MIN(sendlast-sendfirst+1,ghostxlo-nsent);
     swap[nswap].npack =
-      indices_kokkos(k_swap_packlist,nswap,
+      indices(k_swap_packlist,nswap,
               sendfirst,sendfirst+sendplanes-1,inylo,inyhi,inzlo,inzhi);
 
     if (procxlo != me)
@@ -190,7 +190,7 @@ void GridCommKokkos<DeviceType>::setup_regular(int &nbuf1, int &nbuf2)
     else recvplanes = sendplanes;
 
     swap[nswap].nunpack =
-      indices_kokkos(k_swap_unpacklist,nswap,
+      indices(k_swap_unpacklist,nswap,
               recvfirst,recvfirst+recvplanes-1,inylo,inyhi,inzlo,inzhi);
 
     nsent += sendplanes;
@@ -219,7 +219,7 @@ void GridCommKokkos<DeviceType>::setup_regular(int &nbuf1, int &nbuf2)
     swap[nswap].recvproc = procxlo;
     sendplanes = MIN(sendlast-sendfirst+1,ghostxhi-nsent);
     swap[nswap].npack =
-      indices_kokkos(k_swap_packlist,nswap,
+      indices(k_swap_packlist,nswap,
               sendlast-sendplanes+1,sendlast,inylo,inyhi,inzlo,inzhi);
 
     if (procxhi != me)
@@ -228,7 +228,7 @@ void GridCommKokkos<DeviceType>::setup_regular(int &nbuf1, int &nbuf2)
     else recvplanes = sendplanes;
 
     swap[nswap].nunpack =
-      indices_kokkos(k_swap_unpacklist,nswap,
+      indices(k_swap_unpacklist,nswap,
               recvlast-recvplanes+1,recvlast,inylo,inyhi,inzlo,inzhi);
 
     nsent += sendplanes;
@@ -257,7 +257,7 @@ void GridCommKokkos<DeviceType>::setup_regular(int &nbuf1, int &nbuf2)
     swap[nswap].recvproc = procyhi;
     sendplanes = MIN(sendlast-sendfirst+1,ghostylo-nsent);
     swap[nswap].npack =
-      indices_kokkos(k_swap_packlist,nswap,
+      indices(k_swap_packlist,nswap,
               outxlo,outxhi,sendfirst,sendfirst+sendplanes-1,inzlo,inzhi);
 
     if (procylo != me)
@@ -266,7 +266,7 @@ void GridCommKokkos<DeviceType>::setup_regular(int &nbuf1, int &nbuf2)
     else recvplanes = sendplanes;
 
     swap[nswap].nunpack =
-      indices_kokkos(k_swap_unpacklist,nswap,
+      indices(k_swap_unpacklist,nswap,
               outxlo,outxhi,recvfirst,recvfirst+recvplanes-1,inzlo,inzhi);
 
     nsent += sendplanes;
@@ -295,7 +295,7 @@ void GridCommKokkos<DeviceType>::setup_regular(int &nbuf1, int &nbuf2)
     swap[nswap].recvproc = procylo;
     sendplanes = MIN(sendlast-sendfirst+1,ghostyhi-nsent);
     swap[nswap].npack =
-      indices_kokkos(k_swap_packlist,nswap,
+      indices(k_swap_packlist,nswap,
               outxlo,outxhi,sendlast-sendplanes+1,sendlast,inzlo,inzhi);
 
     if (procyhi != me)
@@ -304,7 +304,7 @@ void GridCommKokkos<DeviceType>::setup_regular(int &nbuf1, int &nbuf2)
     else recvplanes = sendplanes;
 
     swap[nswap].nunpack =
-      indices_kokkos(k_swap_unpacklist,nswap,
+      indices(k_swap_unpacklist,nswap,
               outxlo,outxhi,recvlast-recvplanes+1,recvlast,inzlo,inzhi);
 
     nsent += sendplanes;
@@ -333,7 +333,7 @@ void GridCommKokkos<DeviceType>::setup_regular(int &nbuf1, int &nbuf2)
     swap[nswap].recvproc = proczhi;
     sendplanes = MIN(sendlast-sendfirst+1,ghostzlo-nsent);
     swap[nswap].npack =
-      indices_kokkos(k_swap_packlist,nswap,
+      indices(k_swap_packlist,nswap,
               outxlo,outxhi,outylo,outyhi,sendfirst,sendfirst+sendplanes-1);
 
     if (proczlo != me)
@@ -342,7 +342,7 @@ void GridCommKokkos<DeviceType>::setup_regular(int &nbuf1, int &nbuf2)
     else recvplanes = sendplanes;
 
     swap[nswap].nunpack =
-      indices_kokkos(k_swap_unpacklist,nswap,
+      indices(k_swap_unpacklist,nswap,
               outxlo,outxhi,outylo,outyhi,recvfirst,recvfirst+recvplanes-1);
 
     nsent += sendplanes;
@@ -371,7 +371,7 @@ void GridCommKokkos<DeviceType>::setup_regular(int &nbuf1, int &nbuf2)
     swap[nswap].recvproc = proczlo;
     sendplanes = MIN(sendlast-sendfirst+1,ghostzhi-nsent);
     swap[nswap].npack =
-      indices_kokkos(k_swap_packlist,nswap,
+      indices(k_swap_packlist,nswap,
               outxlo,outxhi,outylo,outyhi,sendlast-sendplanes+1,sendlast);
 
     if (proczhi != me)
@@ -380,7 +380,7 @@ void GridCommKokkos<DeviceType>::setup_regular(int &nbuf1, int &nbuf2)
     else recvplanes = sendplanes;
 
     swap[nswap].nunpack =
-      indices_kokkos(k_swap_unpacklist,nswap,
+      indices(k_swap_unpacklist,nswap,
               outxlo,outxhi,outylo,outyhi,recvlast-recvplanes+1,recvlast);
 
     nsent += sendplanes;
@@ -502,7 +502,7 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
     yhi = MIN(rrequest[m].box[3],inyhi);
     zlo = MAX(rrequest[m].box[4],inzlo);
     zhi = MIN(rrequest[m].box[5],inzhi);
-    send[m].npack = indices_kokkos(k_send_packlist,m,xlo,xhi,ylo,yhi,zlo,zhi);
+    send[m].npack = indices(k_send_packlist,m,xlo,xhi,ylo,yhi,zlo,zhi);
 
     proclist[m] = rrequest[m].sender;
     sresponse[m].index = rrequest[m].index;
@@ -546,7 +546,7 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
     yhi = rresponse[i].box[3] + overlap[m].pbc[1] * ny;
     zlo = rresponse[i].box[4] + overlap[m].pbc[2] * nz;
     zhi = rresponse[i].box[5] + overlap[m].pbc[2] * nz;
-    recv[i].nunpack = indices_kokkos(k_recv_unpacklist,i,xlo,xhi,ylo,yhi,zlo,zhi);
+    recv[i].nunpack = indices(k_recv_unpacklist,i,xlo,xhi,ylo,yhi,zlo,zhi);
     
     if (xlo != inxhi+1 && xhi != inxlo-1 &&
 	ylo != inyhi+1 && yhi != inylo-1 &&
@@ -571,14 +571,14 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
     yhi = overlap[m].box[3];
     zlo = overlap[m].box[4];
     zhi = overlap[m].box[5];
-    copy[ncopy].npack = indices_kokkos(k_copy_packlist,ncopy,xlo,xhi,ylo,yhi,zlo,zhi);
+    copy[ncopy].npack = indices(k_copy_packlist,ncopy,xlo,xhi,ylo,yhi,zlo,zhi);
     xlo = overlap[m].box[0] + overlap[m].pbc[0] * nx;
     xhi = overlap[m].box[1] + overlap[m].pbc[0] * nx;
     ylo = overlap[m].box[2] + overlap[m].pbc[1] * ny;
     yhi = overlap[m].box[3] + overlap[m].pbc[1] * ny;
     zlo = overlap[m].box[4] + overlap[m].pbc[2] * nz;
     zhi = overlap[m].box[5] + overlap[m].pbc[2] * nz;
-    copy[ncopy].nunpack = indices_kokkos(k_copy_unpacklist,ncopy,xlo,xhi,ylo,yhi,zlo,zhi);
+    copy[ncopy].nunpack = indices(k_copy_unpacklist,ncopy,xlo,xhi,ylo,yhi,zlo,zhi);
     ncopy++;
   }
 
@@ -935,7 +935,7 @@ void GridCommKokkos<DeviceType>::grow_swap()
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-int GridCommKokkos<DeviceType>::indices_kokkos(DAT::tdual_int_2d &k_list, int index,
+int GridCommKokkos<DeviceType>::indices(DAT::tdual_int_2d &k_list, int index,
                        int xlo, int xhi, int ylo, int yhi, int zlo, int zhi)
 {
   int nmax = (xhi-xlo+1) * (yhi-ylo+1) * (zhi-zlo+1);

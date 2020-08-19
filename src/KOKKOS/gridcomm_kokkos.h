@@ -33,7 +33,7 @@ class GridCommKokkos : public GridComm {
 	   int, int, int, int, int, int,
 	   int, int, int, int, int, int,
 	   int, int, int, int, int, int);
-  ~GridCommKokkos();
+  virtual ~GridCommKokkos();
   void forward_comm_kspace(class KSpace *, int, int,
 			   FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
   void reverse_comm_kspace(class KSpace *, int, int,
@@ -68,7 +68,7 @@ class GridCommKokkos : public GridComm {
 
   void grow_swap();
   
-  int indices_kokkos(DAT::tdual_int_2d &, int, int, int, int, int, int, int);
+  int indices(DAT::tdual_int_2d &, int, int, int, int, int, int, int);
 };
 
 }

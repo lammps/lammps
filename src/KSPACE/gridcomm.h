@@ -28,12 +28,12 @@ class GridComm : protected Pointers {
 	   int, int, int, int, int, int,
 	   int, int, int, int, int, int);
   virtual ~GridComm();
-  virtual void setup(int &, int &);
-  virtual int ghost_adjacent();
-  virtual void forward_comm_kspace(class KSpace *, int, int, int,
-                                   void *, void *, MPI_Datatype);
-  virtual void reverse_comm_kspace(class KSpace *, int, int, int,
-                                   void *, void *, MPI_Datatype);
+  void setup(int &, int &);
+  int ghost_adjacent();
+  void forward_comm_kspace(class KSpace *, int, int, int,
+                           void *, void *, MPI_Datatype);
+  void reverse_comm_kspace(class KSpace *, int, int, int,
+                           void *, void *, MPI_Datatype);
 
  protected:
   int me,nprocs;
@@ -189,14 +189,14 @@ class GridComm : protected Pointers {
   int ghost_adjacent_regular();
   int ghost_adjacent_tiled();
   
-  virtual void forward_comm_kspace_regular(class KSpace *, int, int, int,
-                                         void *, void *, MPI_Datatype);
-  virtual void forward_comm_kspace_tiled(class KSpace *, int, int, int,
-                                         void *, void *, MPI_Datatype);
-  virtual void reverse_comm_kspace_regular(class KSpace *, int, int, int,
-                                           void *, void *, MPI_Datatype);
-  virtual void reverse_comm_kspace_tiled(class KSpace *, int, int, int,
-                                         void *, void *, MPI_Datatype);
+  void forward_comm_kspace_regular(class KSpace *, int, int, int,
+                                   void *, void *, MPI_Datatype);
+  void forward_comm_kspace_tiled(class KSpace *, int, int, int,
+                                 void *, void *, MPI_Datatype);
+  void reverse_comm_kspace_regular(class KSpace *, int, int, int,
+                                   void *, void *, MPI_Datatype);
+  void reverse_comm_kspace_tiled(class KSpace *, int, int, int,
+                                 void *, void *, MPI_Datatype);
 
   virtual void grow_swap();
   void grow_overlap();

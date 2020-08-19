@@ -543,10 +543,10 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
         c.vertices(vcell);
         c.face_vertices(vlist); // for each face: vertex count followed list of vertex indices (n_1,v1_1,v2_1,v3_1,..,vn_1,n_2,v2_1,...)
         double dx, dy, dz, r2, t2 = ethresh*ethresh;
-        for( j=0; j<vlist.size(); j+=vlist[j]+1 ) {
+        for( j=0; j < (int)vlist.size(); j+=vlist[j]+1 ) {
           int a, b, nedge = 0;
           // vlist[j] contains number of vertex indices for the current face
-          for( k=0; k<vlist[j]; ++k ) {
+          for( k=0; k < vlist[j]; ++k ) {
             a = vlist[j+1+k];              // first vertex in edge
             b = vlist[j+1+(k+1)%vlist[j]]; // second vertex in edge (possible wrap around to first vertex in list)
             dx = vcell[a*3]   - vcell[b*3];

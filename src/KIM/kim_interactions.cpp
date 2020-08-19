@@ -256,7 +256,7 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
   std::string key = words[1];
   std::string filename = words[2];
   std::vector<std::string> species(words.begin()+3,words.end());
-  if (species.size() != atom->ntypes)
+  if ((int)species.size() != atom->ntypes)
     error->one(FLERR,"Incorrect args for KIM_SET_TYPE_PARAMETERS command");
 
   FILE *fp;

@@ -577,8 +577,6 @@ TEST_F(LatticeRegionTest, region_cone)
     lmp->input->one("write_dump all atom init.lammpstrj");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->domain->triclinic, 0);
-
-    auto x = lmp->atom->x;
     ASSERT_EQ(lmp->atom->natoms, 42);
 }
 
@@ -591,8 +589,6 @@ TEST_F(LatticeRegionTest, region_cylinder)
     lmp->input->one("create_atoms 1 region box");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->domain->triclinic, 0);
-
-    auto x = lmp->atom->x;
     ASSERT_EQ(lmp->atom->natoms, 114);
 }
 
@@ -605,8 +601,6 @@ TEST_F(LatticeRegionTest, region_prism)
     lmp->input->one("create_atoms 1 box");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->domain->triclinic, 1);
-
-    auto x = lmp->atom->x;
     ASSERT_EQ(lmp->atom->natoms, 16);
 }
 
@@ -619,8 +613,6 @@ TEST_F(LatticeRegionTest, region_sphere)
     lmp->input->one("create_atoms 1 region box");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->domain->triclinic, 0);
-
-    auto x = lmp->atom->x;
     ASSERT_EQ(lmp->atom->natoms, 14);
 }
 
@@ -635,8 +627,6 @@ TEST_F(LatticeRegionTest, region_union)
     lmp->input->one("create_atoms 1 region box");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->domain->triclinic, 0);
-
-    auto x = lmp->atom->x;
     ASSERT_EQ(lmp->atom->natoms, 67);
 }
 
@@ -651,8 +641,6 @@ TEST_F(LatticeRegionTest, region_intersect)
     lmp->input->one("create_atoms 1 region box");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->domain->triclinic, 0);
-
-    auto x = lmp->atom->x;
     ASSERT_EQ(lmp->atom->natoms, 21);
 }
 
@@ -669,8 +657,6 @@ TEST_F(LatticeRegionTest, region_plane)
     lmp->input->one("write_dump all atom init.lammpstrj");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->domain->triclinic, 0);
-
-    auto x = lmp->atom->x;
     ASSERT_EQ(lmp->atom->natoms, 16);
 }
 

@@ -73,7 +73,7 @@ ensure that the new bonds created by this style do not create spurious
 Specifically 1-2 interactions must have weights of zero, 1-3
 interactions must either have weights of unity or :doc:`special_bonds
 angle yes <special_bonds>` must be used, and 1-4 interactions must
-have weights of unity or :doc:`special_bonds dihedral yes <special_bonds>` 
+have weights of unity or :doc:`special_bonds dihedral yes <special_bonds>`
 must be used.
 
 If this command is used to create bonded interactions between
@@ -95,7 +95,7 @@ compute interactions for individual pairs of atoms.  Manybody potentials
 are not compatible in general, but also some other pair styles are missing
 the required functionality and thus will cause an error.
 
-This command is not compatible with long-range Coulombic interactions. If a 
+This command is not compatible with long-range Coulombic interactions. If a
 `kspace_style <kspace_style>` is declared, an error will be issued.
 
 Related commands

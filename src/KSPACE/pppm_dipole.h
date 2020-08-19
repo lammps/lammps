@@ -74,7 +74,7 @@ class PPPMDipole : public PPPM {
 
   int only_dipole_flag;
   double musum,musqsum,mu2;
-  
+
   double find_gewald_dipole(double, double, bigint, double, double);
   double newton_raphson_f_dipole(double, double, bigint, double, double);
   double derivf_dipole(double, double, bigint, double, double);

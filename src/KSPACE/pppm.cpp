@@ -309,8 +309,8 @@ void PPPM::init()
     if (overlap_allowed) break;
 
     gctmp = new GridComm(lmp,world,nx_pppm,ny_pppm,nz_pppm,
-			 nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-			 nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+                         nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                         nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
     int tmp1,tmp2;
     gctmp->setup(tmp1,tmp2);
@@ -641,7 +641,7 @@ void PPPM::compute(int eflag, int vflag)
   // remap from 3d decomposition to FFT decomposition
 
   gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-			  gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                          gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // compute potential gradient on my FFT grid and
@@ -656,20 +656,20 @@ void PPPM::compute(int eflag, int vflag)
 
   if (differentiation_flag == 1)
     gc->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD,
-			    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   else
     gc->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK,
-			    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
     if (differentiation_flag == 1 && vflag_atom)
       gc->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM,
-			      gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     else if (differentiation_flag == 0)
       gc->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM,
-			      gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   }
 
   // calculate the force on my particles
@@ -817,10 +817,10 @@ void PPPM::allocate()
 
   // create ghost grid object for rho and electric field communication
   // also create 2 bufs for ghost grid cell comm, passed to GridComm methods
-  
+
   gc = new GridComm(lmp,world,nx_pppm,ny_pppm,nz_pppm,
-		    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-		    nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                    nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
   gc->setup(ngc_buf1,ngc_buf2);
 
@@ -988,7 +988,7 @@ void PPPM::set_grid_global()
       while (1) {
 
         // set grid dimensions
-	
+
         nx_pppm = static_cast<int> (xprd/h_x);
         ny_pppm = static_cast<int> (yprd/h_y);
         nz_pppm = static_cast<int> (zprd_slab/h_z);
@@ -997,14 +997,14 @@ void PPPM::set_grid_global()
         if (ny_pppm <= 1) ny_pppm = 2;
         if (nz_pppm <= 1) nz_pppm = 2;
 
-	// estimate Kspace force error
-	
+        // estimate Kspace force error
+
         double df_kspace = compute_df_kspace();
 
         // break loop if the accuracy has been reached or
         // too many loops have been performed
 
-	count++;
+        count++;
         if (df_kspace <= accuracy) break;
 
         if (count > 500) error->all(FLERR, "Could not compute grid size");
@@ -1155,10 +1155,10 @@ double PPPM::compute_qopt()
 
   // loop over entire FFT grid
   // each proc calculates contributions from every Pth grid point
-  
+
   bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
   int nxy_pppm = nx_pppm * ny_pppm;
-  
+
   double qopt = 0.0;
 
   for (bigint i = me; i < ngridtotal; i += nprocs) {
@@ -1174,46 +1174,46 @@ double PPPM::compute_qopt()
     if (sqk == 0.0) continue;
 
     sum1 = sum2 = sum3 = sum4 = 0.0;
-    
+
     for (nx = -2; nx <= 2; nx++) {
       qx = unitkx*(kper+nx_pppm*nx);
       sx = exp(-0.25*square(qx/g_ewald));
       argx = 0.5*qx*xprd/nx_pppm;
       wx = powsinxx(argx,twoorder);
       qx *= qx;
-      
+
       for (ny = -2; ny <= 2; ny++) {
-	qy = unitky*(lper+ny_pppm*ny);
-	sy = exp(-0.25*square(qy/g_ewald));
-	argy = 0.5*qy*yprd/ny_pppm;
-	wy = powsinxx(argy,twoorder);
-	qy *= qy;
-	
-	for (nz = -2; nz <= 2; nz++) {
-	  qz = unitkz*(mper+nz_pppm*nz);
-	  sz = exp(-0.25*square(qz/g_ewald));
-	  argz = 0.5*qz*zprd_slab/nz_pppm;
-	  wz = powsinxx(argz,twoorder);
-	  qz *= qz;
-	  
-	  dot2 = qx+qy+qz;
-	  u1   = sx*sy*sz;
-	  u2   = wx*wy*wz;
-	  
-	  sum1 += u1*u1/dot2*MY_4PI*MY_4PI;
-	  sum2 += u1 * u2 * MY_4PI;
-	  sum3 += u2;
-	  sum4 += dot2*u2;
-	}
+        qy = unitky*(lper+ny_pppm*ny);
+        sy = exp(-0.25*square(qy/g_ewald));
+        argy = 0.5*qy*yprd/ny_pppm;
+        wy = powsinxx(argy,twoorder);
+        qy *= qy;
+
+        for (nz = -2; nz <= 2; nz++) {
+          qz = unitkz*(mper+nz_pppm*nz);
+          sz = exp(-0.25*square(qz/g_ewald));
+          argz = 0.5*qz*zprd_slab/nz_pppm;
+          wz = powsinxx(argz,twoorder);
+          qz *= qz;
+
+          dot2 = qx+qy+qz;
+          u1   = sx*sy*sz;
+          u2   = wx*wy*wz;
+
+          sum1 += u1*u1/dot2*MY_4PI*MY_4PI;
+          sum2 += u1 * u2 * MY_4PI;
+          sum3 += u2;
+          sum4 += dot2*u2;
+        }
       }
     }
-    
+
     sum2 *= sum2;
     qopt += sum1 - sum2/(sum3*sum4);
   }
 
   // sum qopt over all procs
-  
+
   double qopt_all;
   MPI_Allreduce(&qopt,&qopt_all,1,MPI_DOUBLE,MPI_SUM,world);
   return qopt_all;
@@ -1327,7 +1327,7 @@ void PPPM::set_grid_local()
   //   global PPPM grid that I own without ghost cells
   // for slab PPPM, assign z grid as if it were not extended
   // both non-tiled and tiled proc layouts use 0-1 fractional sumdomain info
-  
+
   if (comm->layout != Comm::LAYOUT_TILED) {
     nxlo_in = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx_pppm);
     nxhi_in = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx_pppm) - 1;
@@ -1339,7 +1339,7 @@ void PPPM::set_grid_local()
       (comm->zsplit[comm->myloc[2]] * nz_pppm/slab_volfactor);
     nzhi_in = static_cast<int>
       (comm->zsplit[comm->myloc[2]+1] * nz_pppm/slab_volfactor) - 1;
-    
+
   } else {
     nxlo_in = static_cast<int> (comm->mysplit[0][0] * nx_pppm);
     nxhi_in = static_cast<int> (comm->mysplit[0][1] * nx_pppm) - 1;
@@ -1437,7 +1437,7 @@ void PPPM::set_grid_local()
   // this is accomplished by nzhi_in = nzhi_out on +z end (no ghost cells)
   // also insure no other procs use ghost cells beyond +z limit
   // differnet logic for non-tiled vs tiled decomposition
-  
+
   if (slabflag == 1) {
     if (comm->layout != Comm::LAYOUT_TILED) {
       if (comm->myloc[2] == comm->procgrid[2]-1) nzhi_in = nzhi_out = nz_pppm - 1;
@@ -2634,7 +2634,7 @@ void PPPM::fieldforce_peratom()
 void PPPM::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
   FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
-  
+
   int n = 0;
 
   if (flag == FORWARD_IK) {
@@ -2754,7 +2754,7 @@ void PPPM::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 void PPPM::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
   FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
-    
+
   if (flag == REVERSE_RHO) {
     FFT_SCALAR *src = &density_brick[nzlo_out][nylo_out][nxlo_out];
     for (int i = 0; i < nlist; i++)
@@ -3083,7 +3083,7 @@ double PPPM::memory_usage()
   // two GridComm bufs
 
   bytes += (ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
-  
+
   return bytes;
 }
 
@@ -3141,7 +3141,7 @@ void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
   density_fft = density_A_fft;
 
   gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-			  gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                          gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // group B
@@ -3150,7 +3150,7 @@ void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
   density_fft = density_B_fft;
 
   gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-			  gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                          gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // switch back pointers

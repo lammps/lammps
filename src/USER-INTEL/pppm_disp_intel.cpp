@@ -173,9 +173,9 @@ void PPPMDispIntel::compute(int eflag, int vflag)
     return;
   }
   #endif
-  
+
   int i;
-  
+
   // convert atoms from box to lamda coords
 
   ev_init(eflag,vflag);
@@ -292,7 +292,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
     }
 
     gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-			    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
     brick2fft(nxlo_in, nylo_in, nzlo_in, nxhi_in, nyhi_in, nzhi_in,
               density_brick, density_fft, work1,remap);
@@ -306,7 +306,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
                  v1_brick, v2_brick, v3_brick, v4_brick, v5_brick);
 
       gc->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD,
-			      gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
         fieldforce_c_ad<float,double>(fix->get_mixed_buffers());
@@ -317,8 +317,8 @@ void PPPMDispIntel::compute(int eflag, int vflag)
       }
 
       if (vflag_atom)
-	gc->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM,
-				gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+        gc->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM,
+                                gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
     } else {
       poisson_ik(work1, work2, density_fft, fft1, fft2,
@@ -331,7 +331,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
                  v5_brick);
 
       gc->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK,
-			      gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
         fieldforce_c_ik<float,double>(fix->get_mixed_buffers());
@@ -342,14 +342,14 @@ void PPPMDispIntel::compute(int eflag, int vflag)
       }
 
       if (evflag_atom)
-	gc->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM,
-				gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+        gc->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM,
+                                gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     }
     if (evflag_atom) fieldforce_c_peratom();
   }
 
   if (function[1]) {
-    
+
     //perform calculations for geometric mixing
 
     if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
@@ -376,7 +376,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
     }
 
     gc6->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO_G,
-			     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                             gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
     brick2fft(nxlo_in_6, nylo_in_6, nzlo_in_6, nxhi_in_6, nyhi_in_6, nzhi_in_6,
               density_brick_g, density_fft_g, work1_6,remap_6);
@@ -391,19 +391,19 @@ void PPPMDispIntel::compute(int eflag, int vflag)
                  v2_brick_g, v3_brick_g, v4_brick_g, v5_brick_g);
 
       gc6->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD_G,
-			       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-	fieldforce_g_ad<float,double>(fix->get_mixed_buffers());
+        fieldforce_g_ad<float,double>(fix->get_mixed_buffers());
       } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-	fieldforce_g_ad<double,double>(fix->get_double_buffers());
+        fieldforce_g_ad<double,double>(fix->get_double_buffers());
       } else {
-	fieldforce_g_ad<float,float>(fix->get_single_buffers());
+        fieldforce_g_ad<float,float>(fix->get_single_buffers());
       }
 
       if (vflag_atom)
-	gc6->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM_G,
-				 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM_G,
+                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
     } else {
       poisson_ik(work1_6, work2_6, density_fft_g, fft1_6, fft2_6,
@@ -416,19 +416,19 @@ void PPPMDispIntel::compute(int eflag, int vflag)
                  v1_brick_g, v2_brick_g, v3_brick_g, v4_brick_g, v5_brick_g);
 
       gc6->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK_G,
-			       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-	fieldforce_g_ik<float,double>(fix->get_mixed_buffers());
+        fieldforce_g_ik<float,double>(fix->get_mixed_buffers());
       } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-	fieldforce_g_ik<double,double>(fix->get_double_buffers());
+        fieldforce_g_ik<double,double>(fix->get_double_buffers());
       } else {
-	fieldforce_g_ik<float,float>(fix->get_single_buffers());
+        fieldforce_g_ik<float,float>(fix->get_single_buffers());
       }
 
       if (evflag_atom)
-	gc6->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM_G,
-				 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM_G,
+                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     }
 
     if (evflag_atom) fieldforce_g_peratom();
@@ -461,7 +461,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
     }
 
     gc->reverse_comm_kspace(this,7,sizeof(FFT_SCALAR),REVERSE_RHO_A,
-			    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
     brick2fft_a();
 
@@ -487,19 +487,19 @@ void PPPMDispIntel::compute(int eflag, int vflag)
                     v2_brick_a4, v3_brick_a4, v4_brick_a4, v5_brick_a4);
 
       gc6->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_AD_A,
-			       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-	fieldforce_a_ad<float,double>(fix->get_mixed_buffers());
+        fieldforce_a_ad<float,double>(fix->get_mixed_buffers());
       } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-	fieldforce_a_ad<double,double>(fix->get_double_buffers());
+        fieldforce_a_ad<double,double>(fix->get_double_buffers());
       } else {
-	fieldforce_a_ad<float,float>(fix->get_single_buffers());
+        fieldforce_a_ad<float,float>(fix->get_single_buffers());
       }
 
       if (evflag_atom)
-	gc6->forward_comm_kspace(this,42,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM_A,
-				 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm_kspace(this,42,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM_A,
+                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
     }  else {
       poisson_ik(work1_6, work2_6, density_fft_a3, fft1_6, fft2_6,
@@ -530,7 +530,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
                     v3_brick_a4, v4_brick_a4, v5_brick_a4);
 
       gc6->forward_comm_kspace(this,18,sizeof(FFT_SCALAR),FORWARD_IK_A,
-			       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
         fieldforce_a_ik<float,double>(fix->get_mixed_buffers());
@@ -541,15 +541,15 @@ void PPPMDispIntel::compute(int eflag, int vflag)
       }
 
       if (evflag_atom)
-	gc6->forward_comm_kspace(this,49,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM_A,
-				 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm_kspace(this,49,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM_A,
+                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     }
 
     if (evflag_atom) fieldforce_a_peratom();
   }
 
   if (function[3]) {
-    
+
     // perform calculations if no mixing rule applies
 
     if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
@@ -576,7 +576,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
     }
 
     gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO_NONE,
-			    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
     brick2fft_none();
 
@@ -592,19 +592,19 @@ void PPPMDispIntel::compute(int eflag, int vflag)
       }
 
       gc6->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD_NONE,
-			       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-	fieldforce_none_ad<float,double>(fix->get_mixed_buffers());
+        fieldforce_none_ad<float,double>(fix->get_mixed_buffers());
       } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-	fieldforce_none_ad<double,double>(fix->get_double_buffers());
+        fieldforce_none_ad<double,double>(fix->get_double_buffers());
       } else {
-	fieldforce_none_ad<float,float>(fix->get_single_buffers());
+        fieldforce_none_ad<float,float>(fix->get_single_buffers());
       }
 
       if (vflag_atom)
-	gc6->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM_NONE,
-				 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM_NONE,
+                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
     } else {
       int n = 0;
@@ -621,19 +621,19 @@ void PPPMDispIntel::compute(int eflag, int vflag)
       }
 
       gc6->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK_NONE,
-			       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-	fieldforce_none_ik<float,double>(fix->get_mixed_buffers());
+        fieldforce_none_ik<float,double>(fix->get_mixed_buffers());
       } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-	fieldforce_none_ik<double,double>(fix->get_double_buffers());
+        fieldforce_none_ik<double,double>(fix->get_double_buffers());
       } else {
-	fieldforce_none_ik<float,float>(fix->get_single_buffers());
+        fieldforce_none_ik<float,float>(fix->get_single_buffers());
       }
 
       if (evflag_atom)
-	gc6->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM_NONE,
-				 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM_NONE,
+                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     }
 
     if (evflag_atom) fieldforce_none_peratom();

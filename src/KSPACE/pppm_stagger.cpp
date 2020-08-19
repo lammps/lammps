@@ -157,7 +157,7 @@ void PPPMStagger::compute(int eflag, int vflag)
     // remap from 3d decomposition to FFT decomposition
 
     gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-			    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     brick2fft();
 
     // compute potential gradient on my FFT grid and
@@ -172,20 +172,20 @@ void PPPMStagger::compute(int eflag, int vflag)
 
     if (differentiation_flag == 1)
       gc->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD,
-			      gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     else
       gc->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK,
-			      gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
     // extra per-atom energy/virial communication
 
     if (evflag_atom) {
       if (differentiation_flag == 1 && vflag_atom)
-	gc->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM,
-				gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+        gc->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM,
+                                gc_buf1,gc_buf2,MPI_FFT_SCALAR);
       else if (differentiation_flag == 0)
-	gc->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM,
-				gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+        gc->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM,
+                                gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     }
 
     // calculate the force on my particles
@@ -299,10 +299,10 @@ double PPPMStagger::compute_qopt()
 
   // loop over entire FFT grid
   // each proc calculates contributions from every Pth grid point
-  
+
   bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
   int nxy_pppm = nx_pppm * ny_pppm;
-  
+
   double qopt = 0.0;
 
   for (bigint i = me; i < ngridtotal; i += nprocs) {
@@ -336,31 +336,31 @@ double PPPMStagger::compute_qopt()
       wx = powsinxx(argx,twoorder);
 
       for (ny = -nby; ny <= nby; ny++) {
-	qy = unitky*(lper+ny_pppm*ny);
-	sy = exp(-0.25*square(qy/g_ewald));
-	argy = 0.5*qy*yprd/ny_pppm;
-	wy = powsinxx(argy,twoorder);
+        qy = unitky*(lper+ny_pppm*ny);
+        sy = exp(-0.25*square(qy/g_ewald));
+        argy = 0.5*qy*yprd/ny_pppm;
+        wy = powsinxx(argy,twoorder);
 
-	for (nz = -nbz; nz <= nbz; nz++) {
-	  qz = unitkz*(mper+nz_pppm*nz);
-	  sz = exp(-0.25*square(qz/g_ewald));
-	  argz = 0.5*qz*zprd_slab/nz_pppm;
-	  wz = powsinxx(argz,twoorder);
+        for (nz = -nbz; nz <= nbz; nz++) {
+          qz = unitkz*(mper+nz_pppm*nz);
+          sz = exp(-0.25*square(qz/g_ewald));
+          argz = 0.5*qz*zprd_slab/nz_pppm;
+          wz = powsinxx(argz,twoorder);
 
-	  dot1 = unitkx*kper*qx + unitky*lper*qy + unitkz*mper*qz;
-	  dot2 = qx*qx + qy*qy + qz*qz;
-	  u1   = sx*sy*sz;
-	  u2   = wx*wy*wz;
-	  u3   = numerator*u1*u2*dot1;
-	  sum1 += u1*u1*MY_4PI*MY_4PI/dot2;
-	  sum2 += u3*u3/dot2;
-	}
+          dot1 = unitkx*kper*qx + unitky*lper*qy + unitkz*mper*qz;
+          dot2 = qx*qx + qy*qy + qz*qz;
+          u1   = sx*sy*sz;
+          u2   = wx*wy*wz;
+          u3   = numerator*u1*u2*dot1;
+          sum1 += u1*u1*MY_4PI*MY_4PI/dot2;
+          sum2 += u3*u3/dot2;
+        }
       }
     }
-      
+
     qopt += sum1 - sum2/denominator;
   }
-  
+
   double qopt_all;
   MPI_Allreduce(&qopt,&qopt_all,1,MPI_DOUBLE,MPI_SUM,world);
   return qopt_all;
@@ -395,10 +395,10 @@ double PPPMStagger::compute_qopt_ad()
 
   // loop over entire FFT grid
   // each proc calculates contributions from every Pth grid point
-  
+
   bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
   int nxy_pppm = nx_pppm * ny_pppm;
-  
+
   double qopt = 0.0;
 
   for (bigint i = me; i < ngridtotal; i += nprocs) {
@@ -414,7 +414,7 @@ double PPPMStagger::compute_qopt_ad()
     if (sqk == 0.0) continue;
 
     sum1 = sum2 = sum3 = sum4 = sum5 = sum6 = 0.0;
-    
+
     for (nx = -nbx; nx <= nbx; nx++) {
       qx = unitkx*(kper+nx_pppm*nx);
       sx = exp(-0.25*square(qx/g_ewald));
@@ -422,30 +422,30 @@ double PPPMStagger::compute_qopt_ad()
       wx = powsinxx(argx,twoorder);
 
       for (ny = -nby; ny <= nby; ny++) {
-	qy = unitky*(lper+ny_pppm*ny);
-	sy = exp(-0.25*square(qy/g_ewald));
-	argy = 0.5*qy*yprd/ny_pppm;
-	wy = powsinxx(argy,twoorder);
-	
-	for (nz = -nbz; nz <= nbz; nz++) {
-	  qz = unitkz*(mper+nz_pppm*nz);
-	  sz = exp(-0.25*square(qz/g_ewald));
-	  argz = 0.5*qz*zprd_slab/nz_pppm;
-	  wz = powsinxx(argz,twoorder);
-	  
-	  dot2 = qx*qx + qy*qy + qz*qz;
-	  u1   = sx*sy*sz;
-	  u2   = wx*wy*wz;
-	  sum1 += u1*u1/dot2*MY_4PI*MY_4PI;
-	  sum2 += u1*u1*u2*u2*MY_4PI*MY_4PI;
-	  sum3 += u2;
-	  sum4 += dot2*u2;
-	  sum5 += u2*powint(-1.0,nx+ny+nz);
-	  sum6 += dot2*u2*powint(-1.0,nx+ny+nz);
-	}
+        qy = unitky*(lper+ny_pppm*ny);
+        sy = exp(-0.25*square(qy/g_ewald));
+        argy = 0.5*qy*yprd/ny_pppm;
+        wy = powsinxx(argy,twoorder);
+
+        for (nz = -nbz; nz <= nbz; nz++) {
+          qz = unitkz*(mper+nz_pppm*nz);
+          sz = exp(-0.25*square(qz/g_ewald));
+          argz = 0.5*qz*zprd_slab/nz_pppm;
+          wz = powsinxx(argz,twoorder);
+
+          dot2 = qx*qx + qy*qy + qz*qz;
+          u1   = sx*sy*sz;
+          u2   = wx*wy*wz;
+          sum1 += u1*u1/dot2*MY_4PI*MY_4PI;
+          sum2 += u1*u1*u2*u2*MY_4PI*MY_4PI;
+          sum3 += u2;
+          sum4 += dot2*u2;
+          sum5 += u2*powint(-1.0,nx+ny+nz);
+          sum6 += dot2*u2*powint(-1.0,nx+ny+nz);
+        }
       }
     }
-    
+
     qopt += sum1 - sum2/(0.5*(sum3*sum4 + sum5*sum6));
   }
 

@@ -91,7 +91,7 @@ void PPPMCG::compute(int eflag, int vflag)
   ev_init(eflag,vflag);
 
   if (evflag_atom && !peratom_allocate_flag) allocate_peratom();
-  
+
   // if atom count has changed, update qsum and qsqsum
 
   if (atom->natoms != natoms_original) {
@@ -158,7 +158,7 @@ void PPPMCG::compute(int eflag, int vflag)
   }
 
   // only need to rebuild this list after a neighbor list update
-  
+
   if (neighbor->ago == 0) {
     num_charged = 0;
     for (int i = 0; i < atom->nlocal; ++i) {
@@ -180,7 +180,7 @@ void PPPMCG::compute(int eflag, int vflag)
   // remap from 3d decomposition to FFT decomposition
 
   gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-			  gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                          gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // compute potential gradient on my FFT grid and
@@ -195,20 +195,20 @@ void PPPMCG::compute(int eflag, int vflag)
 
   if (differentiation_flag == 1)
     gc->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD,
-			    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   else
     gc->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK,
-			    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
     if (differentiation_flag == 1 && vflag_atom)
       gc->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM,
-			      gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     else if (differentiation_flag == 0)
       gc->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM,
-			      gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   }
 
   // calculate the force on my particles

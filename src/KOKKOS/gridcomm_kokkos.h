@@ -27,17 +27,17 @@ class GridCommKokkos : public GridComm {
   typedef ArrayTypes<DeviceType> AT;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
   GridCommKokkos(class LAMMPS *, MPI_Comm, int, int, int,
-	   int, int, int, int, int, int,
-	   int, int, int, int, int, int);
+           int, int, int, int, int, int,
+           int, int, int, int, int, int);
   GridCommKokkos(class LAMMPS *, MPI_Comm, int, int, int, int,
-	   int, int, int, int, int, int,
-	   int, int, int, int, int, int,
-	   int, int, int, int, int, int);
+           int, int, int, int, int, int,
+           int, int, int, int, int, int,
+           int, int, int, int, int, int);
   virtual ~GridCommKokkos();
   void forward_comm_kspace(class KSpace *, int, int,
-			   FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
+                           FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
   void reverse_comm_kspace(class KSpace *, int, int,
-			   FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
+                           FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
 
  private:
   DAT::tdual_int_2d k_swap_packlist;
@@ -67,7 +67,7 @@ class GridCommKokkos : public GridComm {
                                  FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
 
   void grow_swap();
-  
+
   int indices(DAT::tdual_int_2d &, int, int, int, int, int, int, int);
 };
 

@@ -46,9 +46,9 @@ enum{REGULAR,TILED};
 ------------------------------------------------------------------------- */
 
 GridComm::GridComm(LAMMPS *lmp, MPI_Comm gcomm,
-		   int gnx, int gny, int gnz,
-		   int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
-		   int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi)
+                   int gnx, int gny, int gnz,
+                   int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
+                   int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi)
   : Pointers(lmp)
 {
   if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
@@ -57,18 +57,18 @@ GridComm::GridComm(LAMMPS *lmp, MPI_Comm gcomm,
   if (layout == REGULAR) {
     int (*procneigh)[2] = comm->procneigh;
     initialize(gcomm,gnx,gny,gnz,
-	       ixlo,ixhi,iylo,iyhi,izlo,izhi,
-	       oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
-	       oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
-	       procneigh[0][0],procneigh[0][1],
-	       procneigh[1][0],procneigh[1][1],
-	       procneigh[2][0],procneigh[2][1]);
+               ixlo,ixhi,iylo,iyhi,izlo,izhi,
+               oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+               oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+               procneigh[0][0],procneigh[0][1],
+               procneigh[1][0],procneigh[1][1],
+               procneigh[2][0],procneigh[2][1]);
   } else {
     initialize(gcomm,gnx,gny,gnz,
-	       ixlo,ixhi,iylo,iyhi,izlo,izhi,
-	       oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
-	       oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
-	       0,0,0,0,0,0);
+               ixlo,ixhi,iylo,iyhi,izlo,izhi,
+               oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+               oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+               0,0,0,0,0,0);
   }
 }
 
@@ -85,10 +85,10 @@ GridComm::GridComm(LAMMPS *lmp, MPI_Comm gcomm,
 ------------------------------------------------------------------------- */
 
 GridComm::GridComm(LAMMPS *lmp, MPI_Comm gcomm, int flag,
-		   int gnx, int gny, int gnz,
-		   int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
-		   int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi,
-		   int exlo, int exhi, int eylo, int eyhi, int ezlo, int ezhi)
+                   int gnx, int gny, int gnz,
+                   int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
+                   int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi,
+                   int exlo, int exhi, int eylo, int eyhi, int ezlo, int ezhi)
   : Pointers(lmp)
 {
   if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
@@ -99,27 +99,27 @@ GridComm::GridComm(LAMMPS *lmp, MPI_Comm gcomm, int flag,
       // this assumes gcomm = world
       int (*procneigh)[2] = comm->procneigh;
       initialize(gcomm,gnx,gny,gnz,
-		 ixlo,ixhi,iylo,iyhi,izlo,izhi,
-		 oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
-		 exlo,exhi,eylo,eyhi,ezlo,ezhi,
-		 procneigh[0][0],procneigh[0][1],
-		 procneigh[1][0],procneigh[1][1],
-		 procneigh[2][0],procneigh[2][1]);
+                 ixlo,ixhi,iylo,iyhi,izlo,izhi,
+                 oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+                 exlo,exhi,eylo,eyhi,ezlo,ezhi,
+                 procneigh[0][0],procneigh[0][1],
+                 procneigh[1][0],procneigh[1][1],
+                 procneigh[2][0],procneigh[2][1]);
     } else {
       initialize(gcomm,gnx,gny,gnz,
-		 ixlo,ixhi,iylo,iyhi,izlo,izhi,
-		 oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
-		 exlo,exhi,eylo,eyhi,ezlo,ezhi,
-		 0,0,0,0,0,0);
+                 ixlo,ixhi,iylo,iyhi,izlo,izhi,
+                 oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+                 exlo,exhi,eylo,eyhi,ezlo,ezhi,
+                 0,0,0,0,0,0);
     }
-    
+
   } else if (flag == 2) {
     if (layout == REGULAR) {
       initialize(gcomm,gnx,gny,gnz,
-		 ixlo,ixhi,iylo,iyhi,izlo,izhi,
-		 oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
-		 oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
-		 exlo,exhi,eylo,eyhi,ezlo,ezhi);
+                 ixlo,ixhi,iylo,iyhi,izlo,izhi,
+                 oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+                 oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+                 exlo,exhi,eylo,eyhi,ezlo,ezhi);
     } else {
       error->all(FLERR,"GridComm does not support tiled layout with neighbor procs");
     }
@@ -131,7 +131,7 @@ GridComm::GridComm(LAMMPS *lmp, MPI_Comm gcomm, int flag,
 GridComm::~GridComm()
 {
   // regular comm data struct
-  
+
   for (int i = 0; i < nswap; i++) {
     memory->destroy(swap[i].packlist);
     memory->destroy(swap[i].unpacklist);
@@ -139,7 +139,7 @@ GridComm::~GridComm()
   memory->sfree(swap);
 
   // tiled comm data structs
-  
+
   for (int i = 0; i < nsend; i++)
     memory->destroy(send[i].packlist);
   memory->sfree(send);
@@ -162,11 +162,11 @@ GridComm::~GridComm()
 ------------------------------------------------------------------------- */
 
 void GridComm::initialize(MPI_Comm gcomm,
-			  int gnx, int gny, int gnz,
-			  int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
-			  int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi,
-			  int fxlo, int fxhi, int fylo, int fyhi, int fzlo, int fzhi,
-			  int pxlo, int pxhi, int pylo, int pyhi, int pzlo, int pzhi)
+                          int gnx, int gny, int gnz,
+                          int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
+                          int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi,
+                          int fxlo, int fxhi, int fylo, int fyhi, int fzlo, int fzhi,
+                          int pxlo, int pxhi, int pylo, int pyhi, int pzlo, int pzhi)
 {
   gridcomm = gcomm;
   MPI_Comm_rank(gridcomm,&me);
@@ -175,7 +175,7 @@ void GridComm::initialize(MPI_Comm gcomm,
   nx = gnx;
   ny = gny;
   nz = gnz;
-  
+
   inxlo = ixlo;
   inxhi = ixhi;
   inylo = iylo;
@@ -209,7 +209,7 @@ void GridComm::initialize(MPI_Comm gcomm,
   }
 
   // internal data initializations
-  
+
   nswap = maxswap = 0;
   swap = NULL;
 
@@ -287,7 +287,7 @@ void GridComm::setup_regular(int &nbuf1, int &nbuf2)
   // setup swaps = exchange of grid data with one of 6 neighobr procs
   // can be more than one in a direction if ghost region extends beyond neigh proc
   // all procs have same swap count, but swapsize npack/nunpack can be empty
-  
+
   nswap = 0;
 
   // send own grid pts to -x processor, recv ghost grid pts from +x processor
@@ -548,7 +548,7 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
   // access CommTiled to get cut dimension
   // cut = this proc's inlo in that dim
   // dim is -1 for proc 0, but never accessed
-  
+
   rcbinfo = (RCBinfo *)
     memory->smalloc(nprocs*sizeof(RCBinfo),"GridComm:rcbinfo");
   RCBinfo rcbone;
@@ -563,14 +563,14 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
   // accounts for crossings of periodic boundaries
   // noverlap = # of overlaps, including self
   // overlap = vector of overlap info using Overlap data struct
-  
+
   ghostbox[0] = outxlo;
   ghostbox[1] = outxhi;
   ghostbox[2] = outylo;
   ghostbox[3] = outyhi;
   ghostbox[4] = outzlo;
   ghostbox[5] = outzhi;
-  
+
   pbc[0] = pbc[1] = pbc[2] = 0;
 
   memory->create(overlap_procs,nprocs,"GridComm:overlap_procs");
@@ -587,10 +587,10 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
   memory->create(proclist,noverlap,"GridComm:proclist");
   srequest = (Request *)
     memory->smalloc(noverlap*sizeof(Request),"GridComm:srequest");
-  
+
   int nsend_request = 0;
   ncopy = 0;
-  
+
   for (m = 0; m < noverlap; m++) {
     if (overlap[m].proc == me) ncopy++;
     else {
@@ -598,7 +598,7 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
       srequest[nsend_request].sender = me;
       srequest[nsend_request].index = m;
       for (i = 0; i < 6; i++)
-	srequest[nsend_request].box[i] = overlap[m].box[i];
+        srequest[nsend_request].box[i] = overlap[m].box[i];
       nsend_request++;
     }
   }
@@ -609,7 +609,7 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
     (Request *) memory->smalloc(nrecv_request*sizeof(Request),"GridComm:rrequest");
   irregular->exchange_data((char *) srequest,sizeof(Request),(char *) rrequest);
   irregular->destroy_data();
-  
+
   // compute overlaps between received ghost boxes and my owned box
   // overlap box used to setup my Send data struct and respond to requests
 
@@ -640,7 +640,7 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
   }
 
   nsend = nrecv_request;
-  
+
   // reply to each Request message with a Response message
   // content: index for the overlap on requestor, overlap box on my owned grid
 
@@ -655,10 +655,10 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
   // process received responses
   // box used to setup my Recv data struct after unwrapping via PBC
   // adjacent = 0 if any box of ghost cells does not adjoin my owned cells
-  
+
   recv = (Recv *) memory->smalloc(nrecv_response*sizeof(Recv),"GridComm:recv");
   adjacent = 1;
-  
+
   for (i = 0; i < nrecv_response; i++) {
     m = rresponse[i].index;
     recv[i].proc = overlap[m].proc;
@@ -669,18 +669,18 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
     zlo = rresponse[i].box[4] + overlap[m].pbc[2] * nz;
     zhi = rresponse[i].box[5] + overlap[m].pbc[2] * nz;
     recv[i].nunpack = indices(recv[i].unpacklist,xlo,xhi,ylo,yhi,zlo,zhi);
-    
+
     if (xlo != inxhi+1 && xhi != inxlo-1 &&
-	ylo != inyhi+1 && yhi != inylo-1 &&
-	zlo != inzhi+1 && zhi != inzlo-1) adjacent = 0;
+        ylo != inyhi+1 && yhi != inylo-1 &&
+        zlo != inzhi+1 && zhi != inzlo-1) adjacent = 0;
   }
 
   nrecv = nrecv_response;
 
   // create Copy data struct from overlaps with self
-  
+
   copy = (Copy *) memory->smalloc(ncopy*sizeof(Copy),"GridComm:copy");
- 
+
   ncopy = 0;
   for (m = 0; m < noverlap; m++) {
     if (overlap[m].proc != me) continue;
@@ -719,7 +719,7 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
 
   int nrequest = MAX(nsend,nrecv);
   requests = new MPI_Request[nrequest];
-    
+
   // clean-up
 
   memory->sfree(rcbinfo);
@@ -733,7 +733,7 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
 
   // nbuf1 = largest pack or unpack in any Send or Recv or Copy
   // nbuf2 = larget of sum of all packs or unpacks in Send or Recv
-  
+
   nbuf1 = 0;
 
   for (m = 0; m < ncopy; m++) {
@@ -769,9 +769,9 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
 void GridComm::ghost_box_drop(int *box, int *pbc)
 {
   int i,m;
-  
+
   // newbox12 and newpbc are initially copies of caller box and pbc
-  
+
   int newbox1[6],newbox2[6],newpbc[3];
 
   for (i = 0; i < 6; i++) newbox1[i] = newbox2[i] = box[i];
@@ -780,9 +780,9 @@ void GridComm::ghost_box_drop(int *box, int *pbc)
   // 6 if tests to see if box needs to be split across a periodic boundary
   // newbox1 and 2 = new split boxes, newpbc increments current pbc
   // final else is no split
-  
+
   int splitflag = 1;
-  
+
   if (box[0] < 0) {
     newbox1[0] = 0;
     newbox2[0] = box[0] + nx;
@@ -801,7 +801,7 @@ void GridComm::ghost_box_drop(int *box, int *pbc)
   } else if (box[3] >= ny) {
     newbox1[3] = ny - 1;
     newbox2[2] = 0;
-    newbox2[3] = box[3] - ny; 
+    newbox2[3] = box[3] - ny;
     newpbc[1]++;
   } else if (box[4] < 0) {
     newbox1[4] = 0;
@@ -819,7 +819,7 @@ void GridComm::ghost_box_drop(int *box, int *pbc)
   // returns proc_overlap = list of proc IDs it overlaps
   // skip self overlap if no crossing of periodic boundaries
   // do not skip self if overlap is in another periodic image
-    
+
   } else {
     splitflag = 0;
     int np = 0;
@@ -827,7 +827,7 @@ void GridComm::ghost_box_drop(int *box, int *pbc)
     for (m = 0; m < np; m++) {
       if (noverlap == maxoverlap) grow_overlap();
       if (overlap_procs[m] == me &&
-	  pbc[0] == 0 && pbc[1] == 0 && pbc[2] == 0) continue;
+          pbc[0] == 0 && pbc[1] == 0 && pbc[2] == 0) continue;
       overlap[noverlap].proc = overlap_procs[m];
       for (i = 0; i < 6; i++) overlap[noverlap].box[i] = box[i];
       for (i = 0; i < 3; i++) overlap[noverlap].pbc[i] = pbc[i];
@@ -836,7 +836,7 @@ void GridComm::ghost_box_drop(int *box, int *pbc)
   }
 
   // recurse with 2 split boxes
-  
+
   if (splitflag) {
     ghost_box_drop(newbox1,pbc);
     ghost_box_drop(newbox2,newpbc);
@@ -852,7 +852,7 @@ void GridComm::ghost_box_drop(int *box, int *pbc)
 ------------------------------------------------------------------------- */
 
 void GridComm::box_drop_grid(int *box, int proclower, int procupper,
-			     int &np, int *plist)
+                             int &np, int *plist)
 {
   // end recursion when partition is a single proc
   // add proclower to plist
@@ -926,7 +926,7 @@ int GridComm::ghost_adjacent_tiled()
 ------------------------------------------------------------------------- */
 
 void GridComm::forward_comm_kspace(KSpace *kspace, int nper, int nbyte, int which,
-				   void *buf1, void *buf2, MPI_Datatype datatype)
+                                   void *buf1, void *buf2, MPI_Datatype datatype)
 {
   if (layout == REGULAR)
     forward_comm_kspace_regular(kspace,nper,nbyte,which,buf1,buf2,datatype);
@@ -940,7 +940,7 @@ void GridComm::forward_comm_kspace(KSpace *kspace, int nper, int nbyte, int whic
 
 void GridComm::
 forward_comm_kspace_regular(KSpace *kspace, int nper, int /*nbyte*/, int which,
-			    void *buf1, void *buf2, MPI_Datatype datatype)
+                            void *buf1, void *buf2, MPI_Datatype datatype)
 {
   int m;
   MPI_Request request;
@@ -953,9 +953,9 @@ forward_comm_kspace_regular(KSpace *kspace, int nper, int /*nbyte*/, int which,
 
     if (swap[m].sendproc != me) {
       if (swap[m].nunpack) MPI_Irecv(buf2,nper*swap[m].nunpack,datatype,
-				     swap[m].recvproc,0,gridcomm,&request);
+                                     swap[m].recvproc,0,gridcomm,&request);
       if (swap[m].npack) MPI_Send(buf1,nper*swap[m].npack,datatype,
-				  swap[m].sendproc,0,gridcomm);
+                                  swap[m].sendproc,0,gridcomm);
       if (swap[m].nunpack) MPI_Wait(&request,MPI_STATUS_IGNORE);
     }
 
@@ -969,18 +969,18 @@ forward_comm_kspace_regular(KSpace *kspace, int nper, int /*nbyte*/, int which,
 
 void GridComm::
 forward_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
-			  void *buf1, void *vbuf2, MPI_Datatype datatype)
+                          void *buf1, void *vbuf2, MPI_Datatype datatype)
 {
   int i,m,offset;
 
   char *buf2 = (char *) vbuf2;
-  
+
   // post all receives
-  
+
   for (m = 0; m < nrecv; m++) {
     offset = nper * recv[m].offset * nbyte;
     MPI_Irecv((void *) &buf2[offset],nper*recv[m].nunpack,datatype,
-	      recv[m].proc,0,gridcomm,&requests[m]);
+              recv[m].proc,0,gridcomm,&requests[m]);
   }
 
   // perform all sends to other procs
@@ -998,12 +998,12 @@ forward_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
   }
 
   // unpack all received data
-  
+
   for (i = 0; i < nrecv; i++) {
     MPI_Waitany(nrecv,requests,&m,MPI_STATUS_IGNORE);
     offset = nper * recv[m].offset * nbyte;
     kspace->unpack_forward_grid(which,(void *) &buf2[offset],
-				recv[m].nunpack,recv[m].unpacklist);
+                                recv[m].nunpack,recv[m].unpacklist);
   }
 }
 
@@ -1012,7 +1012,7 @@ forward_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
 ------------------------------------------------------------------------- */
 
 void GridComm::reverse_comm_kspace(KSpace *kspace, int nper, int nbyte, int which,
-				    void *buf1, void *buf2, MPI_Datatype datatype)
+                                    void *buf1, void *buf2, MPI_Datatype datatype)
 {
   if (layout == REGULAR)
     reverse_comm_kspace_regular(kspace,nper,nbyte,which,buf1,buf2,datatype);
@@ -1026,7 +1026,7 @@ void GridComm::reverse_comm_kspace(KSpace *kspace, int nper, int nbyte, int whic
 
 void GridComm::
 reverse_comm_kspace_regular(KSpace *kspace, int nper, int /*nbyte*/, int which,
-			    void *buf1, void *buf2, MPI_Datatype datatype)
+                            void *buf1, void *buf2, MPI_Datatype datatype)
 {
   int m;
   MPI_Request request;
@@ -1039,9 +1039,9 @@ reverse_comm_kspace_regular(KSpace *kspace, int nper, int /*nbyte*/, int which,
 
     if (swap[m].recvproc != me) {
       if (swap[m].npack) MPI_Irecv(buf2,nper*swap[m].npack,datatype,
-				   swap[m].sendproc,0,gridcomm,&request);
+                                   swap[m].sendproc,0,gridcomm,&request);
       if (swap[m].nunpack) MPI_Send(buf1,nper*swap[m].nunpack,datatype,
-				     swap[m].recvproc,0,gridcomm);
+                                     swap[m].recvproc,0,gridcomm);
       if (swap[m].npack) MPI_Wait(&request,MPI_STATUS_IGNORE);
     }
 
@@ -1055,18 +1055,18 @@ reverse_comm_kspace_regular(KSpace *kspace, int nper, int /*nbyte*/, int which,
 
 void GridComm::
 reverse_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
-			  void *buf1, void *vbuf2, MPI_Datatype datatype)
+                          void *buf1, void *vbuf2, MPI_Datatype datatype)
 {
   int i,m,offset;
 
   char *buf2 = (char *) vbuf2;
 
   // post all receives
-  
+
   for (m = 0; m < nsend; m++) {
     offset = nper * send[m].offset * nbyte;
     MPI_Irecv((void *) &buf2[offset],nper*send[m].npack,datatype,
-	      send[m].proc,0,gridcomm,&requests[m]);
+              send[m].proc,0,gridcomm,&requests[m]);
   }
 
   // perform all sends to other procs
@@ -1084,12 +1084,12 @@ reverse_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
   }
 
   // unpack all received data
-  
+
   for (i = 0; i < nsend; i++) {
     MPI_Waitany(nsend,requests,&m,MPI_STATUS_IGNORE);
     offset = nper * send[m].offset * nbyte;
     kspace->unpack_reverse_grid(which,(void *) &buf2[offset],
-				send[m].npack,send[m].packlist);
+                                send[m].npack,send[m].packlist);
   }
 }
 
@@ -1125,7 +1125,7 @@ void GridComm::grow_overlap()
 
 /* ----------------------------------------------------------------------
    create 1d list of offsets into 3d array section (xlo:xhi,ylo:yhi,zlo:zhi)
-   assume 3d array is allocated as 
+   assume 3d array is allocated as
      (fullxlo:fullxhi,fullylo:fullyhi,fullzlo:fullzhi)
 ------------------------------------------------------------------------- */
 

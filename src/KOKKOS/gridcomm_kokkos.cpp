@@ -48,9 +48,9 @@ enum{REGULAR,TILED};
 
 template<class DeviceType>
 GridCommKokkos<DeviceType>::GridCommKokkos(LAMMPS *lmp, MPI_Comm gcomm,
-		   int gnx, int gny, int gnz,
-		   int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
-		   int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi)
+                   int gnx, int gny, int gnz,
+                   int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
+                   int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi)
   : GridComm(lmp, gcomm,
              gnx, gny, gnz,
              ixlo,ixhi, iylo, iyhi, izlo, izhi,
@@ -72,9 +72,9 @@ GridCommKokkos<DeviceType>::GridCommKokkos(LAMMPS *lmp, MPI_Comm gcomm,
 
 template<class DeviceType>
 GridCommKokkos<DeviceType>::GridCommKokkos(LAMMPS *lmp, MPI_Comm gcomm, int /*flag*/,
-		   int gnx, int gny, int gnz,
-		   int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
-		   int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi,
+                   int gnx, int gny, int gnz,
+                   int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
+                   int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi,
            int /*exlo*/, int /*exhi*/, int /*eylo*/, int /*eyhi*/, int /*ezlo*/, int /*ezhi*/)
   : GridComm(lmp, gcomm,
              gnx, gny, gnz,
@@ -89,14 +89,14 @@ template<class DeviceType>
 GridCommKokkos<DeviceType>::~GridCommKokkos()
 {
   // regular comm data struct
-  
+
   for (int i = 0; i < nswap; i++) {
     swap[i].packlist = NULL;
     swap[i].unpacklist = NULL;
   }
 
   // tiled comm data structs
-  
+
   for (int i = 0; i < nsend; i++)
     send[i].packlist = NULL;
 
@@ -163,7 +163,7 @@ void GridCommKokkos<DeviceType>::setup_regular(int &nbuf1, int &nbuf2)
   // setup swaps = exchange of grid data with one of 6 neighobr procs
   // can be more than one in a direction if ghost region extends beyond neigh proc
   // all procs have same swap count, but swapsize npack/nunpack can be empty
-  
+
   nswap = 0;
 
   // send own grid pts to -x processor, recv ghost grid pts from +x processor
@@ -420,7 +420,7 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
   // access CommTiled to get cut dimension
   // cut = this proc's inlo in that dim
   // dim is -1 for proc 0, but never accessed
-  
+
   rcbinfo = (RCBinfo *)
     memory->smalloc(nprocs*sizeof(RCBinfo),"GridComm:rcbinfo");
   RCBinfo rcbone;
@@ -435,14 +435,14 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
   // accounts for crossings of periodic boundaries
   // noverlap = # of overlaps, including self
   // overlap = vector of overlap info using Overlap data struct
-  
+
   ghostbox[0] = outxlo;
   ghostbox[1] = outxhi;
   ghostbox[2] = outylo;
   ghostbox[3] = outyhi;
   ghostbox[4] = outzlo;
   ghostbox[5] = outzhi;
-  
+
   pbc[0] = pbc[1] = pbc[2] = 0;
 
   memory->create(overlap_procs,nprocs,"GridComm:overlap_procs");
@@ -459,10 +459,10 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
   memory->create(proclist,noverlap,"GridComm:proclist");
   srequest = (Request *)
     memory->smalloc(noverlap*sizeof(Request),"GridComm:srequest");
-  
+
   int nsend_request = 0;
   ncopy = 0;
-  
+
   for (m = 0; m < noverlap; m++) {
     if (overlap[m].proc == me) ncopy++;
     else {
@@ -470,7 +470,7 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
       srequest[nsend_request].sender = me;
       srequest[nsend_request].index = m;
       for (i = 0; i < 6; i++)
-	srequest[nsend_request].box[i] = overlap[m].box[i];
+        srequest[nsend_request].box[i] = overlap[m].box[i];
       nsend_request++;
     }
   }
@@ -481,7 +481,7 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
     (Request *) memory->smalloc(nrecv_request*sizeof(Request),"GridComm:rrequest");
   irregular->exchange_data((char *) srequest,sizeof(Request),(char *) rrequest);
   irregular->destroy_data();
-  
+
   // compute overlaps between received ghost boxes and my owned box
   // overlap box used to setup my Send data struct and respond to requests
 
@@ -515,7 +515,7 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
   }
 
   nsend = nrecv_request;
-  
+
   // reply to each Request message with a Response message
   // content: index for the overlap on requestor, overlap box on my owned grid
 
@@ -530,13 +530,13 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
   // process received responses
   // box used to setup my Recv data struct after unwrapping via PBC
   // adjacent = 0 if any box of ghost cells does not adjoin my owned cells
-  
+
   recv = (Recv *) memory->smalloc(nrecv_response*sizeof(Recv),"GridComm:recv");
 
   k_recv_unpacklist = DAT::tdual_int_2d("GridComm:recv_unpacklist",nrecv_response,k_recv_unpacklist.extent(1));
 
   adjacent = 1;
-  
+
   for (i = 0; i < nrecv_response; i++) {
     m = rresponse[i].index;
     recv[i].proc = overlap[m].proc;
@@ -547,21 +547,21 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
     zlo = rresponse[i].box[4] + overlap[m].pbc[2] * nz;
     zhi = rresponse[i].box[5] + overlap[m].pbc[2] * nz;
     recv[i].nunpack = indices(k_recv_unpacklist,i,xlo,xhi,ylo,yhi,zlo,zhi);
-    
+
     if (xlo != inxhi+1 && xhi != inxlo-1 &&
-	ylo != inyhi+1 && yhi != inylo-1 &&
-	zlo != inzhi+1 && zhi != inzlo-1) adjacent = 0;
+        ylo != inyhi+1 && yhi != inylo-1 &&
+        zlo != inzhi+1 && zhi != inzlo-1) adjacent = 0;
   }
 
   nrecv = nrecv_response;
 
   // create Copy data struct from overlaps with self
-  
+
   copy = (Copy *) memory->smalloc(ncopy*sizeof(Copy),"GridComm:copy");
 
   k_copy_packlist = DAT::tdual_int_2d("GridComm:copy_packlist",ncopy,k_copy_packlist.extent(1));
   k_copy_unpacklist = DAT::tdual_int_2d("GridComm:copy_unpacklist",ncopy,k_copy_unpacklist.extent(1));
- 
+
   ncopy = 0;
   for (m = 0; m < noverlap; m++) {
     if (overlap[m].proc != me) continue;
@@ -600,7 +600,7 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
 
   int nrequest = MAX(nsend,nrecv);
   requests = new MPI_Request[nrequest];
-    
+
   // clean-up
 
   memory->sfree(rcbinfo);
@@ -614,7 +614,7 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
 
   // nbuf1 = largest pack or unpack in any Send or Recv or Copy
   // nbuf2 = larget of sum of all packs or unpacks in Send or Recv
-  
+
   nbuf1 = 0;
 
   for (m = 0; m < ncopy; m++) {
@@ -643,7 +643,7 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
 
 template<class DeviceType>
 void GridCommKokkos<DeviceType>::forward_comm_kspace(KSpace *kspace, int nper, int which,
-				   FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
+                                   FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   if (layout == REGULAR)
     forward_comm_kspace_regular(kspace,nper,which,k_buf1,k_buf2,datatype);
@@ -656,7 +656,7 @@ void GridCommKokkos<DeviceType>::forward_comm_kspace(KSpace *kspace, int nper, i
 template<class DeviceType>
 void GridCommKokkos<DeviceType>::
 forward_comm_kspace_regular(KSpace *kspace, int nper, int which,
-			    FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
+                            FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   int m;
   MPI_Request request;
@@ -687,9 +687,9 @@ forward_comm_kspace_regular(KSpace *kspace, int nper, int which,
       }
 
       if (swap[m].nunpack) MPI_Irecv(buf2,nper*swap[m].nunpack,datatype,
-				     swap[m].recvproc,0,gridcomm,&request);
+                                     swap[m].recvproc,0,gridcomm,&request);
       if (swap[m].npack) MPI_Send(buf1,nper*swap[m].npack,datatype,
-				  swap[m].sendproc,0,gridcomm);
+                                  swap[m].sendproc,0,gridcomm);
       if (swap[m].nunpack) MPI_Wait(&request,MPI_STATUS_IGNORE);
 
       if (!lmp->kokkos->cuda_aware_flag) {
@@ -708,7 +708,7 @@ forward_comm_kspace_regular(KSpace *kspace, int nper, int which,
 template<class DeviceType>
 void GridCommKokkos<DeviceType>::
 forward_comm_kspace_tiled(KSpace *kspace, int nper, int which,
-			  FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
+                          FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   int i,m,offset;
 
@@ -724,11 +724,11 @@ forward_comm_kspace_tiled(KSpace *kspace, int nper, int which,
   }
 
   // post all receives
-  
+
   for (m = 0; m < nrecv; m++) {
     offset = nper * recv[m].offset;
     MPI_Irecv(&buf2[offset],nper*recv[m].nunpack,datatype,
-	      recv[m].proc,0,gridcomm,&requests[m]);
+              recv[m].proc,0,gridcomm,&requests[m]);
   }
 
   // perform all sends to other procs
@@ -753,7 +753,7 @@ forward_comm_kspace_tiled(KSpace *kspace, int nper, int which,
   }
 
   // unpack all received data
-  
+
   for (i = 0; i < nrecv; i++) {
     MPI_Waitany(nrecv,requests,&m,MPI_STATUS_IGNORE);
 
@@ -764,7 +764,7 @@ forward_comm_kspace_tiled(KSpace *kspace, int nper, int which,
 
     offset = nper * recv[m].offset;
     kspaceKKBase->unpack_forward_grid_kokkos(which,k_buf2,offset,
-				recv[m].nunpack,k_recv_unpacklist,m);
+                                recv[m].nunpack,k_recv_unpacklist,m);
     DeviceType().fence();
   }
 }
@@ -776,7 +776,7 @@ forward_comm_kspace_tiled(KSpace *kspace, int nper, int which,
 
 template<class DeviceType>
 void GridCommKokkos<DeviceType>::reverse_comm_kspace(KSpace *kspace, int nper, int which,
-				    FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
+                                    FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   if (layout == REGULAR)
     reverse_comm_kspace_regular(kspace,nper,which,k_buf1,k_buf2,datatype);
@@ -789,7 +789,7 @@ void GridCommKokkos<DeviceType>::reverse_comm_kspace(KSpace *kspace, int nper, i
 template<class DeviceType>
 void GridCommKokkos<DeviceType>::
 reverse_comm_kspace_regular(KSpace *kspace, int nper, int which,
-			    FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
+                            FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   int m;
   MPI_Request request;
@@ -820,9 +820,9 @@ reverse_comm_kspace_regular(KSpace *kspace, int nper, int which,
       }
 
       if (swap[m].npack) MPI_Irecv(buf2,nper*swap[m].npack,datatype,
-				   swap[m].sendproc,0,gridcomm,&request);
+                                   swap[m].sendproc,0,gridcomm,&request);
       if (swap[m].nunpack) MPI_Send(buf1,nper*swap[m].nunpack,datatype,
-				     swap[m].recvproc,0,gridcomm);
+                                     swap[m].recvproc,0,gridcomm);
       if (swap[m].npack) MPI_Wait(&request,MPI_STATUS_IGNORE);
 
 
@@ -842,7 +842,7 @@ reverse_comm_kspace_regular(KSpace *kspace, int nper, int which,
 template<class DeviceType>
 void GridCommKokkos<DeviceType>::
 reverse_comm_kspace_tiled(KSpace *kspace, int nper, int which,
-			  FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
+                          FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   int i,m,offset;
 
@@ -859,11 +859,11 @@ reverse_comm_kspace_tiled(KSpace *kspace, int nper, int which,
   }
 
   // post all receives
-  
+
   for (m = 0; m < nsend; m++) {
     offset = nper * send[m].offset;
     MPI_Irecv(&buf2[offset],nper*send[m].npack,datatype,
-	      send[m].proc,0,gridcomm,&requests[m]);
+              send[m].proc,0,gridcomm,&requests[m]);
   }
 
   // perform all sends to other procs
@@ -888,7 +888,7 @@ reverse_comm_kspace_tiled(KSpace *kspace, int nper, int which,
   }
 
   // unpack all received data
-  
+
   for (i = 0; i < nsend; i++) {
     MPI_Waitany(nsend,requests,&m,MPI_STATUS_IGNORE);
 
@@ -899,7 +899,7 @@ reverse_comm_kspace_tiled(KSpace *kspace, int nper, int which,
 
     offset = nper * send[m].offset;
     kspaceKKBase->unpack_reverse_grid_kokkos(which,k_buf2,offset,
-				send[m].npack,k_send_packlist,m);
+                                send[m].npack,k_send_packlist,m);
     DeviceType().fence();
   }
 }
@@ -942,7 +942,7 @@ int GridCommKokkos<DeviceType>::indices(DAT::tdual_int_2d &k_list, int index,
   if (k_list.extent(1) < nmax)
     k_list.resize(k_list.extent(0),nmax);
 
-  if (nmax == 0) return 0; 
+  if (nmax == 0) return 0;
 
   int nx = (fullxhi-fullxlo+1);
   int ny = (fullyhi-fullylo+1);

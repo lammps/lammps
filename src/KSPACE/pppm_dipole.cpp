@@ -444,9 +444,9 @@ void PPPMDipole::compute(int eflag, int vflag)
   // all procs communicate density values from their ghost cells
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
-  
+
   gc_dipole->reverse_comm_kspace(this,3,sizeof(FFT_SCALAR),REVERSE_MU,
-				 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft_dipole();
 
   // compute potential gradient on my FFT grid and
@@ -460,13 +460,13 @@ void PPPMDipole::compute(int eflag, int vflag)
   // to fill ghost cells surrounding their 3d bricks
 
   gc_dipole->forward_comm_kspace(this,9,sizeof(FFT_SCALAR),FORWARD_MU,
-				 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom)
     gc->forward_comm_kspace(this,18,sizeof(FFT_SCALAR),FORWARD_MU_PERATOM,
-			    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // calculate the force on my particles
 
@@ -510,7 +510,7 @@ void PPPMDipole::compute(int eflag, int vflag)
       for (i = 0; i < nlocal; i++) {
         eatom[i] *= 0.5;
         eatom[i] -= (mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] +
-		     mu[i][2]*mu[i][2])*2.0*g3/3.0/MY_PIS;
+                     mu[i][2]*mu[i][2])*2.0*g3/3.0/MY_PIS;
         eatom[i] *= qscale;
       }
     }
@@ -2483,7 +2483,7 @@ int PPPMDipole::timing_3d(int n, double &time3d)
 double PPPMDipole::memory_usage()
 {
   double bytes = nmax*3 * sizeof(double);
-  
+
   int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
     (nzhi_out-nzlo_out+1);
   bytes += 6 * nfft_both * sizeof(double);   // vg

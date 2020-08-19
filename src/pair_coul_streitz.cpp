@@ -32,6 +32,7 @@
 #include "error.h"
 #include "utils.h"
 #include "fmt/format.h"
+#include "potential_file_reader.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -237,109 +238,71 @@ double PairCoulStreitz::init_one(int i, int j)
 
 void PairCoulStreitz::read_file(char *file)
 {
-  int params_per_line = 6;
-  char **words = new char*[params_per_line+1];
-
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   nparams = 0;
   maxparam = 0;
 
   // open file on proc 0
-
-  FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
-    if (fp == NULL)
-      error->one(FLERR,fmt::format("Cannot open coul/streitz potential "
-                                   "file {}",file));
-  }
+    PotentialFileReader reader(lmp, file, "coul/streitz");
+    char * line;
 
-  // read each line out of file, skipping blank lines or leading '#'
-  // store line of params if all 3 element tags are in element list
+    while((line = reader.next_line(NPARAMS_PER_LINE))) {
+      try {
+        ValueTokenizer values(line);
 
-  int n,nwords,ielement;
-  char line[MAXLINE],*ptr;
-  int eof = 0;
+        std::string iname = values.next_string();
 
-  while (1) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
-        eof = 1;
-        fclose(fp);
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+        // ielement = 1st args
+        int ielement;
 
-    // strip comment, skip line if blank
+        for (ielement = 0; ielement < nelements; ielement++)
+          if (iname == elements[ielement]) break;
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
+        // load up parameter settings and error check their values
 
-    // concatenate additional lines until have params_per_line words
+        if (nparams == maxparam) {
+          maxparam += DELTA;
+          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
+                                              "pair:params");
 
-    while (nwords < params_per_line) {
-      n = strlen(line);
-      if (comm->me == 0) {
-        ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
-          eof = 1;
-          fclose(fp);
-        } else n = strlen(line) + 1;
+          // make certain all addional allocated storage is initialized
+          // to avoid false positives when checking with valgrind
+
+          memset(params + nparams, 0, DELTA*sizeof(Param));
+        }
+
+
+        params[nparams].ielement = ielement;
+        params[nparams].chi = values.next_double();
+        params[nparams].eta = values.next_double();
+        params[nparams].gamma = values.next_double();
+        params[nparams].zeta = values.next_double();
+        params[nparams].zcore = values.next_double();
+
+      } catch (TokenizerException & e) {
+        error->one(FLERR, e.what());
       }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = utils::count_words(line);
+
+      // parameter sanity check
+
+      if (params[nparams].eta < 0.0 || params[nparams].zeta < 0.0 ||
+          params[nparams].zcore < 0.0 || params[nparams].gamma != 0.0 )
+        error->one(FLERR,"Illegal coul/streitz parameter");
+
+      nparams++;
     }
-
-    if (nwords != params_per_line)
-      error->all(FLERR,"Incorrect format in coul/streitz potential file");
-
-    // words = ptrs to all words in line
-
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
-
-    // ielement = 1st args
-
-    for (ielement = 0; ielement < nelements; ielement++)
-      if (strcmp(words[0],elements[ielement]) == 0) break;
-    if (ielement == nelements) continue;
-
-    // load up parameter settings and error check their values
-
-    if (nparams == maxparam) {
-      maxparam += DELTA;
-      params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-                                          "pair:params");
-    }
-
-    params[nparams].ielement = ielement;
-    params[nparams].chi = atof(words[1]);
-    params[nparams].eta = atof(words[2]);
-    params[nparams].gamma = atof(words[3]);
-    params[nparams].zeta = atof(words[4]);
-    params[nparams].zcore = atof(words[5]);
-
-    // parameter sanity check
-
-    if (params[nparams].eta < 0.0 || params[nparams].zeta < 0.0 ||
-        params[nparams].zcore < 0.0 || params[nparams].gamma != 0.0 )
-      error->all(FLERR,"Illegal coul/streitz parameter");
-
-    nparams++;
   }
 
-  delete [] words;
+  MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
+  MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
+
+  if(comm->me != 0) {
+    params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
+  }
+
+  MPI_Bcast(params, maxparam*sizeof(Param), MPI_BYTE, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */

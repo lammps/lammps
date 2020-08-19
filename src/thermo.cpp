@@ -46,6 +46,7 @@
 #include "math_const.h"
 #include "utils.h"
 #include "fmt/format.h"
+#include "tokenizer.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -226,37 +227,36 @@ void Thermo::init()
   // add '/n' every 3 values if lineflag = MULTILINE
   // add trailing '/n' to last value
 
-  char *format_line = NULL;
+  ValueTokenizer * format_line = nullptr;
   if (format_line_user) {
-    int n = strlen(format_line_user) + 1;
-    format_line = new char[n];
-    strcpy(format_line,format_line_user);
+    format_line = new ValueTokenizer(format_line_user);
   }
 
-  char *ptr,*format_line_ptr;
+  const char *ptr = nullptr;
+  std::string format_line_user_def;
   for (i = 0; i < nfield; i++) {
+
     format[i][0] = '\0';
     if (lineflag == MULTILINE && i % 3 == 0) strcat(format[i],"\n");
 
-    if (format_line) {
-      if (i == 0) format_line_ptr = strtok(format_line," \0");
-      else format_line_ptr = strtok(NULL," \0");
+    if (format_line_user) {
+      format_line_user_def = format_line->next_string();
     }
 
     if (format_column_user[i]) ptr = format_column_user[i];
     else if (vtype[i] == FLOAT) {
       if (format_float_user) ptr = format_float_user;
-      else if (format_line_user) ptr = format_line_ptr;
+      else if (format_line_user) ptr = format_line_user_def.c_str();
       else if (lineflag == ONELINE) ptr = format_float_one_def;
       else if (lineflag == MULTILINE) ptr = format_float_multi_def;
     } else if (vtype[i] == INT) {
       if (format_int_user) ptr = format_int_user;
-      else if (format_line_user) ptr = format_line_ptr;
+      else if (format_line_user) ptr = format_line_user_def.c_str();
       else if (lineflag == ONELINE) ptr = format_int_one_def;
       else if (lineflag == MULTILINE) ptr = format_int_multi_def;
     } else if (vtype[i] == BIGINT) {
       if (format_bigint_user) ptr = format_bigint_user;
-      else if (format_line_user) ptr = format_line_ptr;
+      else if (format_line_user) ptr = format_line_user_def.c_str();
       else if (lineflag == ONELINE) ptr = format_bigint_one_def;
       else if (lineflag == MULTILINE) ptr = format_bigint_multi_def;
     }
@@ -267,7 +267,7 @@ void Thermo::init()
   }
   strcat(format[nfield-1],"\n");
 
-  delete [] format_line;
+  delete format_line;
 
   // find current ptr for each Compute ID
 
@@ -709,185 +709,186 @@ void Thermo::parse_fields(char *str)
 
   // customize a new keyword by adding to if statement
 
-  char *word = strtok(str," \0");
-  while (word) {
+  ValueTokenizer keywords(str);
+  while (keywords.has_next()) {
+    std::string word = keywords.next_string();
 
-    if (strcmp(word,"step") == 0) {
+    if (word == "step") {
       addfield("Step",&Thermo::compute_step,BIGINT);
-    } else if (strcmp(word,"elapsed") == 0) {
+    } else if (word == "elapsed") {
       addfield("Elapsed",&Thermo::compute_elapsed,BIGINT);
-    } else if (strcmp(word,"elaplong") == 0) {
+    } else if (word == "elaplong") {
       addfield("Elaplong",&Thermo::compute_elapsed_long,BIGINT);
-    } else if (strcmp(word,"dt") == 0) {
+    } else if (word == "dt") {
       addfield("Dt",&Thermo::compute_dt,FLOAT);
-    } else if (strcmp(word,"time") == 0) {
+    } else if (word == "time") {
       addfield("Time",&Thermo::compute_time,FLOAT);
-    } else if (strcmp(word,"cpu") == 0) {
+    } else if (word == "cpu") {
       addfield("CPU",&Thermo::compute_cpu,FLOAT);
-    } else if (strcmp(word,"tpcpu") == 0) {
+    } else if (word == "tpcpu") {
       addfield("T/CPU",&Thermo::compute_tpcpu,FLOAT);
-    } else if (strcmp(word,"spcpu") == 0) {
+    } else if (word == "spcpu") {
       addfield("S/CPU",&Thermo::compute_spcpu,FLOAT);
-    } else if (strcmp(word,"cpuremain") == 0) {
+    } else if (word == "cpuremain") {
       addfield("CPULeft",&Thermo::compute_cpuremain,FLOAT);
-    } else if (strcmp(word,"part") == 0) {
+    } else if (word == "part") {
       addfield("Part",&Thermo::compute_part,INT);
-    } else if (strcmp(word,"timeremain") == 0) {
+    } else if (word == "timeremain") {
       addfield("TimeoutLeft",&Thermo::compute_timeremain,FLOAT);
 
-    } else if (strcmp(word,"atoms") == 0) {
+    } else if (word == "atoms") {
       addfield("Atoms",&Thermo::compute_atoms,BIGINT);
-    } else if (strcmp(word,"temp") == 0) {
+    } else if (word == "temp") {
       addfield("Temp",&Thermo::compute_temp,FLOAT);
       index_temp = add_compute(id_temp,SCALAR);
-    } else if (strcmp(word,"press") == 0) {
+    } else if (word == "press") {
       addfield("Press",&Thermo::compute_press,FLOAT);
       index_press_scalar = add_compute(id_press,SCALAR);
-    } else if (strcmp(word,"pe") == 0) {
+    } else if (word == "pe") {
       addfield("PotEng",&Thermo::compute_pe,FLOAT);
       index_pe = add_compute(id_pe,SCALAR);
-    } else if (strcmp(word,"ke") == 0) {
+    } else if (word == "ke") {
       addfield("KinEng",&Thermo::compute_ke,FLOAT);
       index_temp = add_compute(id_temp,SCALAR);
-    } else if (strcmp(word,"etotal") == 0) {
+    } else if (word == "etotal") {
       addfield("TotEng",&Thermo::compute_etotal,FLOAT);
       index_temp = add_compute(id_temp,SCALAR);
       index_pe = add_compute(id_pe,SCALAR);
-    } else if (strcmp(word,"enthalpy") == 0) {
+    } else if (word == "enthalpy") {
       addfield("Enthalpy",&Thermo::compute_enthalpy,FLOAT);
       index_temp = add_compute(id_temp,SCALAR);
       index_press_scalar = add_compute(id_press,SCALAR);
       index_pe = add_compute(id_pe,SCALAR);
 
-    } else if (strcmp(word,"evdwl") == 0) {
+    } else if (word == "evdwl") {
       addfield("E_vdwl",&Thermo::compute_evdwl,FLOAT);
       index_pe = add_compute(id_pe,SCALAR);
-    } else if (strcmp(word,"ecoul") == 0) {
+    } else if (word == "ecoul") {
       addfield("E_coul",&Thermo::compute_ecoul,FLOAT);
       index_pe = add_compute(id_pe,SCALAR);
-    } else if (strcmp(word,"epair") == 0) {
+    } else if (word == "epair") {
       addfield("E_pair",&Thermo::compute_epair,FLOAT);
       index_pe = add_compute(id_pe,SCALAR);
-    } else if (strcmp(word,"ebond") == 0) {
+    } else if (word == "ebond") {
       addfield("E_bond",&Thermo::compute_ebond,FLOAT);
       index_pe = add_compute(id_pe,SCALAR);
-    } else if (strcmp(word,"eangle") == 0) {
+    } else if (word == "eangle") {
       addfield("E_angle",&Thermo::compute_eangle,FLOAT);
       index_pe = add_compute(id_pe,SCALAR);
-    } else if (strcmp(word,"edihed") == 0) {
+    } else if (word == "edihed") {
       addfield("E_dihed",&Thermo::compute_edihed,FLOAT);
       index_pe = add_compute(id_pe,SCALAR);
-    } else if (strcmp(word,"eimp") == 0) {
+    } else if (word == "eimp") {
       addfield("E_impro",&Thermo::compute_eimp,FLOAT);
       index_pe = add_compute(id_pe,SCALAR);
-    } else if (strcmp(word,"emol") == 0) {
+    } else if (word == "emol") {
       addfield("E_mol",&Thermo::compute_emol,FLOAT);
       index_pe = add_compute(id_pe,SCALAR);
-    } else if (strcmp(word,"elong") == 0) {
+    } else if (word == "elong") {
       addfield("E_long",&Thermo::compute_elong,FLOAT);
       index_pe = add_compute(id_pe,SCALAR);
-    } else if (strcmp(word,"etail") == 0) {
+    } else if (word == "etail") {
       addfield("E_tail",&Thermo::compute_etail,FLOAT);
       index_pe = add_compute(id_pe,SCALAR);
 
-    } else if (strcmp(word,"vol") == 0) {
+    } else if (word == "vol") {
       addfield("Volume",&Thermo::compute_vol,FLOAT);
-    } else if (strcmp(word,"density") == 0) {
+    } else if (word == "density") {
       addfield("Density",&Thermo::compute_density,FLOAT);
-    } else if (strcmp(word,"lx") == 0) {
+    } else if (word == "lx") {
       addfield("Lx",&Thermo::compute_lx,FLOAT);
-    } else if (strcmp(word,"ly") == 0) {
+    } else if (word == "ly") {
       addfield("Ly",&Thermo::compute_ly,FLOAT);
-    } else if (strcmp(word,"lz") == 0) {
+    } else if (word == "lz") {
       addfield("Lz",&Thermo::compute_lz,FLOAT);
 
-    } else if (strcmp(word,"xlo") == 0) {
+    } else if (word == "xlo") {
       addfield("Xlo",&Thermo::compute_xlo,FLOAT);
-    } else if (strcmp(word,"xhi") == 0) {
+    } else if (word == "xhi") {
       addfield("Xhi",&Thermo::compute_xhi,FLOAT);
-    } else if (strcmp(word,"ylo") == 0) {
+    } else if (word == "ylo") {
       addfield("Ylo",&Thermo::compute_ylo,FLOAT);
-    } else if (strcmp(word,"yhi") == 0) {
+    } else if (word == "yhi") {
       addfield("Yhi",&Thermo::compute_yhi,FLOAT);
-    } else if (strcmp(word,"zlo") == 0) {
+    } else if (word == "zlo") {
       addfield("Zlo",&Thermo::compute_zlo,FLOAT);
-    } else if (strcmp(word,"zhi") == 0) {
+    } else if (word == "zhi") {
       addfield("Zhi",&Thermo::compute_zhi,FLOAT);
 
-    } else if (strcmp(word,"xy") == 0) {
+    } else if (word == "xy") {
       addfield("Xy",&Thermo::compute_xy,FLOAT);
-    } else if (strcmp(word,"xz") == 0) {
+    } else if (word == "xz") {
       addfield("Xz",&Thermo::compute_xz,FLOAT);
-    } else if (strcmp(word,"yz") == 0) {
+    } else if (word == "yz") {
       addfield("Yz",&Thermo::compute_yz,FLOAT);
 
-    } else if (strcmp(word,"xlat") == 0) {
+    } else if (word == "xlat") {
       addfield("Xlat",&Thermo::compute_xlat,FLOAT);
-    } else if (strcmp(word,"ylat") == 0) {
+    } else if (word == "ylat") {
       addfield("Ylat",&Thermo::compute_ylat,FLOAT);
-    } else if (strcmp(word,"zlat") == 0) {
+    } else if (word == "zlat") {
       addfield("Zlat",&Thermo::compute_zlat,FLOAT);
 
-    } else if (strcmp(word,"bonds") == 0) {
+    } else if (word == "bonds") {
       addfield("Bonds",&Thermo::compute_bonds,BIGINT);
-    } else if (strcmp(word,"angles") == 0) {
+    } else if (word == "angles") {
       addfield("Angles",&Thermo::compute_angles,BIGINT);
-    } else if (strcmp(word,"dihedrals") == 0) {
+    } else if (word == "dihedrals") {
       addfield("Diheds",&Thermo::compute_dihedrals,BIGINT);
-    } else if (strcmp(word,"impropers") == 0) {
+    } else if (word == "impropers") {
       addfield("Impros",&Thermo::compute_impropers,BIGINT);
 
-    } else if (strcmp(word,"pxx") == 0) {
+    } else if (word == "pxx") {
       addfield("Pxx",&Thermo::compute_pxx,FLOAT);
       index_press_vector = add_compute(id_press,VECTOR);
-    } else if (strcmp(word,"pyy") == 0) {
+    } else if (word == "pyy") {
       addfield("Pyy",&Thermo::compute_pyy,FLOAT);
       index_press_vector = add_compute(id_press,VECTOR);
-    } else if (strcmp(word,"pzz") == 0) {
+    } else if (word == "pzz") {
       addfield("Pzz",&Thermo::compute_pzz,FLOAT);
       index_press_vector = add_compute(id_press,VECTOR);
-    } else if (strcmp(word,"pxy") == 0) {
+    } else if (word == "pxy") {
       addfield("Pxy",&Thermo::compute_pxy,FLOAT);
       index_press_vector = add_compute(id_press,VECTOR);
-    } else if (strcmp(word,"pxz") == 0) {
+    } else if (word == "pxz") {
       addfield("Pxz",&Thermo::compute_pxz,FLOAT);
       index_press_vector = add_compute(id_press,VECTOR);
-    } else if (strcmp(word,"pyz") == 0) {
+    } else if (word == "pyz") {
       addfield("Pyz",&Thermo::compute_pyz,FLOAT);
       index_press_vector = add_compute(id_press,VECTOR);
 
-    } else if (strcmp(word,"fmax") == 0) {
+    } else if (word == "fmax") {
       addfield("Fmax",&Thermo::compute_fmax,FLOAT);
-    } else if (strcmp(word,"fnorm") == 0) {
+    } else if (word == "fnorm") {
       addfield("Fnorm",&Thermo::compute_fnorm,FLOAT);
 
-    } else if (strcmp(word,"nbuild") == 0) {
+    } else if (word == "nbuild") {
       addfield("Nbuild",&Thermo::compute_nbuild,BIGINT);
-    } else if (strcmp(word,"ndanger") == 0) {
+    } else if (word == "ndanger") {
       addfield("Ndanger",&Thermo::compute_ndanger,BIGINT);
 
-    } else if (strcmp(word,"cella") == 0) {
+    } else if (word == "cella") {
       addfield("Cella",&Thermo::compute_cella,FLOAT);
-    } else if (strcmp(word,"cellb") == 0) {
+    } else if (word == "cellb") {
       addfield("Cellb",&Thermo::compute_cellb,FLOAT);
-    } else if (strcmp(word,"cellc") == 0) {
+    } else if (word == "cellc") {
       addfield("Cellc",&Thermo::compute_cellc,FLOAT);
-    } else if (strcmp(word,"cellalpha") == 0) {
+    } else if (word == "cellalpha") {
       addfield("CellAlpha",&Thermo::compute_cellalpha,FLOAT);
-    } else if (strcmp(word,"cellbeta") == 0) {
+    } else if (word == "cellbeta") {
       addfield("CellBeta",&Thermo::compute_cellbeta,FLOAT);
-    } else if (strcmp(word,"cellgamma") == 0) {
+    } else if (word == "cellgamma") {
       addfield("CellGamma",&Thermo::compute_cellgamma,FLOAT);
 
     // compute value = c_ID, fix value = f_ID, variable value = v_ID
     // count trailing [] and store int arguments
 
-    } else if ((strncmp(word,"c_",2) == 0) || (strncmp(word,"f_",2) == 0) ||
-               (strncmp(word,"v_",2) == 0)) {
+    } else if ((word.substr(0, 2) == "c_") || (word.substr(0, 2) == "f_") ||
+               (word.substr(0, 2) == "v_")) {
 
-      int n = strlen(word);
+      int n =  word.length() - 1;
       char *id = new char[n];
-      strcpy(id,&word[2]);
+      strcpy(id, &word.c_str()[2]);
 
       // parse zero or one or two trailing brackets from ID
       // argindex1,argindex2 = int inside each bracket pair, 0 if no bracket
@@ -929,12 +930,12 @@ void Thermo::parse_fields(char *str)
         }
 
         if (argindex1[nfield] == 0)
-          field2index[nfield] = add_compute(id,SCALAR);
+          field2index[nfield] = add_compute(id, SCALAR);
         else if (argindex2[nfield] == 0)
-          field2index[nfield] = add_compute(id,VECTOR);
+          field2index[nfield] = add_compute(id, VECTOR);
         else
-          field2index[nfield] = add_compute(id,ARRAY);
-        addfield(word,&Thermo::compute_compute,FLOAT);
+          field2index[nfield] = add_compute(id, ARRAY);
+        addfield(word.c_str(), &Thermo::compute_compute, FLOAT);
 
       } else if (word[0] == 'f') {
         n = modify->find_fix(id);
@@ -959,7 +960,7 @@ void Thermo::parse_fields(char *str)
         }
 
         field2index[nfield] = add_fix(id);
-        addfield(word,&Thermo::compute_fix,FLOAT);
+        addfield(word.c_str(), &Thermo::compute_fix, FLOAT);
 
       } else if (word[0] == 'v') {
         n = input->variable->find(id);
@@ -975,14 +976,13 @@ void Thermo::parse_fields(char *str)
           error->all(FLERR,"Thermo custom variable cannot have two indices");
 
         field2index[nfield] = add_variable(id);
-        addfield(word,&Thermo::compute_variable,FLOAT);
+        addfield(word.c_str(), &Thermo::compute_variable, FLOAT);
       }
 
       delete [] id;
 
     } else error->all(FLERR,"Unknown keyword in thermo_style custom command");
 
-    word = strtok(NULL," \0");
   }
 }
 

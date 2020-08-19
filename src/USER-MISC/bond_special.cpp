@@ -163,7 +163,7 @@ void BondSpecial::coeff(int narg, char **arg)
    return an equilbrium bond length
 ------------------------------------------------------------------------- */
 
-double BondSpecial::equilibrium_distance(int i)
+double BondSpecial::equilibrium_distance(int /*i*/)
 {
   return 0.;
 }

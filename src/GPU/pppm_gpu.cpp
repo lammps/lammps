@@ -653,7 +653,7 @@ void PPPMGPU::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
    unpack another proc's ghost values from buf and add to own values
 ------------------------------------------------------------------------- */
 
-void PPPMGPU::unpack_reverse_grid(int flag, void *buf, int nlist, int *list)
+void PPPMGPU::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
   FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
 

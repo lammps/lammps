@@ -2977,7 +2977,7 @@ double PPPMDisp::compute_qopt_ik()
   double unitky = (2.0*MY_PI/yprd);
   double unitkz = (2.0*MY_PI/zprd_slab);
 
-  int nx,ny,nz,kper,lper,mper;
+  int nx,ny,nz;
   double sqk, u2;
   double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
   double sum1,sum2, sum3,dot1,dot2;
@@ -3068,7 +3068,7 @@ double PPPMDisp::compute_qopt_ad()
   double unitky = (2.0*MY_PI/yprd);
   double unitkz = (2.0*MY_PI/zprd_slab);
 
-  int nx,ny,nz,kper,lper,mper;
+  int nx,ny,nz;
   double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
   double u2, sqk;
   double sum1,sum2,sum3,sum4,dot2;
@@ -3158,7 +3158,7 @@ double PPPMDisp::compute_qopt_6_ik()
   double unitky = (2.0*MY_PI/yprd);
   double unitkz = (2.0*MY_PI/zprd_slab);
 
-  int nx,ny,nz,kper,lper,mper;
+  int nx,ny,nz;
   double sqk, u2;
   double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
   double sum1,sum2, sum3;
@@ -3256,7 +3256,7 @@ double PPPMDisp::compute_qopt_6_ad()
   double unitky = (2.0*MY_PI/yprd);
   double unitkz = (2.0*MY_PI/zprd_slab);
 
-  int nx,ny,nz,kper,lper,mper;
+  int nx,ny,nz;
   double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
   double u2, sqk;
   double sum1,sum2,sum3,sum4;

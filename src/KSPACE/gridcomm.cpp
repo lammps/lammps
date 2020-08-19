@@ -968,7 +968,7 @@ forward_comm_kspace_regular(KSpace *kspace, int nper, int /*nbyte*/, int which,
 ------------------------------------------------------------------------- */
 
 void GridComm::
-forward_comm_kspace_tiled(KSpace *kspace, int nper, int /*nbyte*/, int which,
+forward_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
 			  void *buf1, void *vbuf2, MPI_Datatype datatype)
 {
   int i,m,offset;
@@ -1022,10 +1022,10 @@ void GridComm::reverse_comm_kspace(KSpace *kspace, int nper, int nbyte, int whic
 
 /* ----------------------------------------------------------------------
    reverse comm on regular grid of procs via list of swaps with 6 neighbor procs
-/* ---------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 void GridComm::
-reverse_comm_kspace_regular(KSpace *kspace, int nper, int nbyte, int which,
+reverse_comm_kspace_regular(KSpace *kspace, int nper, int /*nbyte*/, int which,
 			    void *buf1, void *buf2, MPI_Datatype datatype)
 {
   int m;

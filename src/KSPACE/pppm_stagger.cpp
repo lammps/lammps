@@ -273,7 +273,7 @@ double PPPMStagger::compute_qopt()
 {
   if (differentiation_flag == 1) return compute_qopt_ad();
 
-  int k,l,m,nx,ny,nz,kper,lper,mper;
+  int k,l,m,nx,ny,nz;
   double snx,sny,snz;
   double cnx,cny,cnz;
   double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
@@ -372,7 +372,7 @@ double PPPMStagger::compute_qopt()
 
 double PPPMStagger::compute_qopt_ad()
 {
-  int k,l,m,nx,ny,nz,kper,lper,mper;
+  int k,l,m,nx,ny,nz;
   double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
   double sum1,sum2,sum3,sum4,sum5,sum6,dot2;
   double u1,u2,sqk;

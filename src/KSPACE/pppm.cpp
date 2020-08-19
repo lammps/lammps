@@ -73,9 +73,9 @@ PPPM::PPPM(LAMMPS *lmp) : KSpace(lmp),
   rho_coeff(NULL), drho1d(NULL), drho_coeff(NULL),
   sf_precoeff1(NULL), sf_precoeff2(NULL), sf_precoeff3(NULL),
   sf_precoeff4(NULL), sf_precoeff5(NULL), sf_precoeff6(NULL),
-  acons(NULL), density_A_brick(NULL), density_B_brick(NULL), density_A_fft(NULL),
-  density_B_fft(NULL), fft1(NULL), fft2(NULL), remap(NULL), gc(NULL),
-  gc_buf1(NULL), gc_buf2(NULL), part2grid(NULL), boxlo(NULL)
+  acons(NULL), fft1(NULL), fft2(NULL), remap(NULL), gc(NULL),
+  gc_buf1(NULL), gc_buf2(NULL), density_A_brick(NULL), density_B_brick(NULL), density_A_fft(NULL),
+  density_B_fft(NULL), part2grid(NULL), boxlo(NULL)
 {
   peratom_allocate_flag = 0;
   group_allocate_flag = 0;

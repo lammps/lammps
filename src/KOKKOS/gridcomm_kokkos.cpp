@@ -71,11 +71,11 @@ GridCommKokkos<DeviceType>::GridCommKokkos(LAMMPS *lmp, MPI_Comm gcomm,
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-GridCommKokkos<DeviceType>::GridCommKokkos(LAMMPS *lmp, MPI_Comm gcomm, int flag,
+GridCommKokkos<DeviceType>::GridCommKokkos(LAMMPS *lmp, MPI_Comm gcomm, int /*flag*/,
 		   int gnx, int gny, int gnz,
 		   int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
 		   int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi,
-		   int exlo, int exhi, int eylo, int eyhi, int ezlo, int ezhi)
+           int /*exlo*/, int /*exhi*/, int /*eylo*/, int /*eyhi*/, int /*ezlo*/, int /*ezhi*/)
   : GridComm(lmp, gcomm,
              gnx, gny, gnz,
              ixlo,ixhi, iylo, iyhi, izlo, izhi,

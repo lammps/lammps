@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 
 enum{REGULAR,TILED};
 
-#define SWAPDELTA 8
+#define DELTA 16
 
 /* ----------------------------------------------------------------------
    NOTES
@@ -110,7 +110,14 @@ GridCommKokkos<DeviceType>::~GridCommKokkos()
 
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   setup comm for a regular grid of procs
+   each proc has 6 neighbors
+   comm pattern = series of swaps with one of those 6 procs
+   can be multiple swaps with same proc if ghost extent is large
+   swap may not be symmetric if both procs do not need same layers of ghosts
+   all procs perform same # of swaps in a direction, even if some don't need it
+------------------------------------------------------------------------- */
 
 template<class DeviceType>
 void GridCommKokkos<DeviceType>::setup_regular(int &nbuf1, int &nbuf2)
@@ -406,7 +413,12 @@ void GridCommKokkos<DeviceType>::setup_regular(int &nbuf1, int &nbuf2)
 }
 
 /* ----------------------------------------------------------------------
-   NOTE: need to doc this header
+   setup comm for RCB tiled proc domains
+   each proc has arbitrary # of neighbors that overlap its ghost extent
+   identify which procs will send me ghost cells, and vice versa
+   may not be symmetric if both procs do not need same layers of ghosts
+   comm pattern = post recvs for all my ghosts, send my owned, wait on recvs
+     no exchanges by dimension, unlike CommTiled forward/reverse comm of particles
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -638,7 +650,7 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
 }
 
 /* ----------------------------------------------------------------------
-   use swap list in forward order to acquire copy of all needed ghost grid pts
+   forward comm of my owned cells to other's ghost cells
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -651,7 +663,9 @@ void GridCommKokkos<DeviceType>::forward_comm_kspace(KSpace *kspace, int nper, i
     forward_comm_kspace_tiled(kspace,nper,which,k_buf1,k_buf2,datatype);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   forward comm on regular grid of procs via list of swaps with 6 neighbor procs
+------------------------------------------------------------------------- */
 
 template<class DeviceType>
 void GridCommKokkos<DeviceType>::
@@ -703,7 +717,9 @@ forward_comm_kspace_regular(KSpace *kspace, int nper, int which,
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   forward comm on tiled grid decomp via Send/Recv lists of each neighbor proc
+------------------------------------------------------------------------- */
 
 template<class DeviceType>
 void GridCommKokkos<DeviceType>::
@@ -770,8 +786,7 @@ forward_comm_kspace_tiled(KSpace *kspace, int nper, int which,
 }
 
 /* ----------------------------------------------------------------------
-   use swap list in reverse order to compute fully summed value
-   for each owned grid pt that some other proc has copy of as a ghost grid pt
+   reverse comm of my ghost cells to sum to owner cells
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -784,7 +799,9 @@ void GridCommKokkos<DeviceType>::reverse_comm_kspace(KSpace *kspace, int nper, i
     reverse_comm_kspace_tiled(kspace,nper,which,k_buf1,k_buf2,datatype);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   reverse comm on regular grid of procs via list of swaps with 6 neighbor procs
+------------------------------------------------------------------------- */
 
 template<class DeviceType>
 void GridCommKokkos<DeviceType>::
@@ -837,7 +854,9 @@ reverse_comm_kspace_regular(KSpace *kspace, int nper, int which,
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   reverse comm on tiled grid decomp via Send/Recv lists of each neighbor proc
+------------------------------------------------------------------------- */
 
 template<class DeviceType>
 void GridCommKokkos<DeviceType>::
@@ -915,7 +934,7 @@ reverse_comm_kspace_tiled(KSpace *kspace, int nper, int which,
 template<class DeviceType>
 void GridCommKokkos<DeviceType>::grow_swap()
 {
-  maxswap += SWAPDELTA;
+  maxswap += DELTA;
   swap = (Swap *)
     memory->srealloc(swap,maxswap*sizeof(Swap),"GridComm:swap");
 
@@ -930,8 +949,8 @@ void GridCommKokkos<DeviceType>::grow_swap()
 
 /* ----------------------------------------------------------------------
    create 1d list of offsets into 3d array section (xlo:xhi,ylo:yhi,zlo:zhi)
-   assume 3d array is allocated as (0:fullxhi-fullxlo+1,0:fullyhi-fullylo+1,
-     0:fullzhi-fullzlo+1)
+   assume 3d array is allocated as
+     (fullxlo:fullxhi,fullylo:fullyhi,fullzlo:fullzhi)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>

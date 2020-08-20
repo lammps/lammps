@@ -705,6 +705,38 @@ double utils::get_conversion_factor(const int property, const int conversion)
   return 0.0;
 }
 
+/* ----------------------------------------------------------------------
+   convert a timespec ([[HH:]MM:]SS) to seconds
+   the strings "off" and "unlimited" result in -1.0;
+------------------------------------------------------------------------- */
+
+double utils::timespec2seconds(const std::string & timespec)
+{
+  double vals[3];
+  int i = 0;
+
+  // first handle allowed textual inputs
+  if (timespec == "off") return -1.0;
+  if (timespec == "unlimited") return -1.0;
+
+  vals[0] = vals[1] = vals[2] = 0;
+
+  ValueTokenizer values(timespec, ":");
+
+  try {
+    for (i = 0; i < 3; i++) {
+      if (!values.has_next()) break;
+      vals[i] = values.next_int();
+    }
+  } catch (TokenizerException & e) {
+    return -1.0;
+  }
+
+  if (i == 3) return (vals[0]*60 + vals[1])*60 + vals[2];
+  else if (i == 2) return vals[0]*60 + vals[1];
+  return vals[0];
+}
+
 /* ------------------------------------------------------------------ */
 
 extern "C" {

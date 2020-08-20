@@ -23,6 +23,9 @@ ReaderStyle(native,ReaderNative)
 #define LMP_READER_NATIVE_H
 
 #include "reader.h"
+#include <string>
+#include <map>
+#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -41,10 +44,9 @@ private:
   char *line;              // line read from dump file
 
   int nwords;              // # of per-atom columns in dump file
-  char **words;            // ptrs to values in parsed per-atom line
   int *fieldindex;         //
 
-  int find_label(const char *, int, char **);
+  int find_label(const std::string & label, const std::map<std::string, int> & labels);
   void read_lines(int);
 };
 

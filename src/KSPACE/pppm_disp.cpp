@@ -563,9 +563,9 @@ void PPPMDisp::init()
                           nx_pppm_6,ny_pppm_6,nz_pppm_6);
       mesg += fmt::format("  Dispersion stencil order = {}\n",order_6);
       mesg += fmt::format("  Dispersion estimated absolute RMS force accuracy "
-                          "= {}\n",acc);
+                          "= {:.8g}\n",acc);
       mesg += fmt::format("  Dispersion estimated relative force accuracy "
-                          "= {}\n",acc/two_charge_force);
+                          "= {:.8g}\n",acc/two_charge_force);
       mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
       mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
                           ngrid_max, nfft_both_max);

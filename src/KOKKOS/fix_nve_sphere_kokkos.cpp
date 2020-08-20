@@ -58,7 +58,7 @@ void FixNVESphereKokkos<DeviceType>::init()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixNVESphereKokkos<DeviceType>::initial_integrate(int vflag)
+void FixNVESphereKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 {
   atomKK->sync(execution_space,datamask_read);
   atomKK->modified(execution_space,datamask_modify);

@@ -103,14 +103,14 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_stencil_info()
 
     int maxstencil = ns->get_maxstencil();
 
-    if (maxstencil > k_stencil.extent(0))
+    if (maxstencil > (int)k_stencil.extent(0))
       k_stencil = DAT::tdual_int_1d("neighlist:stencil",maxstencil);
     for (int k = 0; k < maxstencil; k++)
       k_stencil.h_view(k) = ns->stencil[k];
-      k_stencil.modify<LMPHostType>();
-      k_stencil.sync<DeviceType>();
+    k_stencil.modify<LMPHostType>();
+    k_stencil.sync<DeviceType>();
     if (GHOST) {
-      if (maxstencil > k_stencilxyz.extent(0))
+      if (maxstencil > (int)k_stencilxyz.extent(0))
         k_stencilxyz = DAT::tdual_int_1d_3("neighlist:stencilxyz",maxstencil);
       for (int k = 0; k < maxstencil; k++) {
         k_stencilxyz.h_view(k,0) = ns->stencilxyz[k][0];

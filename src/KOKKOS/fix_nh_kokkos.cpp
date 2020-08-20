@@ -88,7 +88,7 @@ void FixNHKokkos<DeviceType>::init()
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixNHKokkos<DeviceType>::setup(int vflag)
+void FixNHKokkos<DeviceType>::setup(int /*vflag*/)
 {
   // t_target is needed by NPH and NPT in compute_scalar()
   // If no thermostat or using fix nphug,
@@ -179,7 +179,7 @@ void FixNHKokkos<DeviceType>::setup(int vflag)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixNHKokkos<DeviceType>::initial_integrate(int vflag)
+void FixNHKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 {
   // update eta_press_dot
 

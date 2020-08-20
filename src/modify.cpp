@@ -1193,7 +1193,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
 
   for (int icompute = 0; icompute < ncompute; icompute++)
     if (strcmp(arg[0],compute[icompute]->id) == 0)
-      error->all(FLERR,"Reuse of compute ID");
+      error->all(FLERR,fmt::format("Reuse of compute ID '{}'",arg[0]));
 
   // extend Compute list if necessary
 

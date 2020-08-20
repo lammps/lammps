@@ -1324,7 +1324,7 @@ void PPPMKokkos<DeviceType>::compute_gf_ik_triclinic()
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::operator()(TagPPPM_compute_gf_ik_triclinic, const int &m) const
+void PPPMKokkos<DeviceType>::operator()(TagPPPM_compute_gf_ik_triclinic, const int &/*m*/) const
 {
   //int n = (m - nzlo_fft)*(nyhi_fft+1 - nylo_fft)*(nxhi_fft+1 - nxlo_fft);
   //
@@ -1930,14 +1930,14 @@ void PPPMKokkos<DeviceType>::poisson_ik_triclinic()
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic1, const int &k) const
+void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic1, const int &/*k*/) const
 {
 
 }
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic2, const int &k) const
+void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic2, const int &/*k*/) const
 {
 //    for (j = nylo_in-nylo_out; j <= nyhi_in-nylo_out; j++)
 //      for (i = nxlo_in-nxlo_out; i <= nxhi_in-nxlo_out; i++) {
@@ -1948,7 +1948,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic2, const int
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic3, const int &k) const
+void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic3, const int &/*k*/) const
 {
 //  int n = (k - (nzlo_in-nzlo_out))*((nyhi_in-nylo_out) - (nylo_in-nylo_out) + 1)*((nxhi_in-nxlo_out) - (nxlo_in-nxlo_out) + 1)*2;
 
@@ -1956,15 +1956,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic3, const int
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic4, const int &k) const
-{
-//  int n = (k - (nzlo_in-nzlo_out))*((nyhi_in-nylo_out) - (nylo_in-nylo_out) + 1)*((nxhi_in-nxlo_out) - (nxlo_in-nxlo_out) + 1)*2;
-//
-}
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic5, const int &k) const
+void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic4, const int &/*k*/) const
 {
 //  int n = (k - (nzlo_in-nzlo_out))*((nyhi_in-nylo_out) - (nylo_in-nylo_out) + 1)*((nxhi_in-nxlo_out) - (nxlo_in-nxlo_out) + 1)*2;
 //
@@ -1972,7 +1964,15 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic5, const int
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic6, const int &k) const
+void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic5, const int &/*k*/) const
+{
+//  int n = (k - (nzlo_in-nzlo_out))*((nyhi_in-nylo_out) - (nylo_in-nylo_out) + 1)*((nxhi_in-nxlo_out) - (nxlo_in-nxlo_out) + 1)*2;
+//
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic6, const int &/*k*/) const
 {
 //  int n = (k - (nzlo_in-nzlo_out))*((nyhi_in-nylo_out) - (nylo_in-nylo_out) + 1)*((nxhi_in-nxlo_out) - (nxlo_in-nxlo_out) + 1)*2;
 //
@@ -2527,7 +2527,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_unpack_forward2, const int &i) c
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PPPMKokkos<DeviceType>::pack_reverse_grid_kokkos(int flag, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf, int nlist, DAT::tdual_int_2d &k_list, int index)
+void PPPMKokkos<DeviceType>::pack_reverse_grid_kokkos(int /*flag*/, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf, int nlist, DAT::tdual_int_2d &k_list, int index)
 {
   typename AT::t_int_2d_um d_list = k_list.view<DeviceType>();
   d_list_index = Kokkos::subview(d_list,index,Kokkos::ALL());
@@ -2557,7 +2557,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_pack_reverse, const int &i) cons
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PPPMKokkos<DeviceType>::unpack_reverse_grid_kokkos(int flag, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf, int offset, int nlist, DAT::tdual_int_2d &k_list, int index)
+void PPPMKokkos<DeviceType>::unpack_reverse_grid_kokkos(int /*flag*/, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf, int offset, int nlist, DAT::tdual_int_2d &k_list, int index)
 {
   typename AT::t_int_2d_um d_list = k_list.view<DeviceType>();
   d_list_index = Kokkos::subview(d_list,index,Kokkos::ALL());

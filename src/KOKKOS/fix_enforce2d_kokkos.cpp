@@ -49,7 +49,7 @@ void FixEnforce2DKokkos<DeviceType>::setup(int vflag)
 
 
 template <class DeviceType>
-void FixEnforce2DKokkos<DeviceType>::post_force(int vflag)
+void FixEnforce2DKokkos<DeviceType>::post_force(int /*vflag*/)
 {
   atomKK->sync(execution_space,datamask_read);
 

@@ -58,7 +58,7 @@ void FixFreezeKokkos<DeviceType>::setup(int vflag)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixFreezeKokkos<DeviceType>::post_force(int vflag)
+void FixFreezeKokkos<DeviceType>::post_force(int /*vflag*/)
 {
   atomKK->sync(execution_space,datamask_read);
   atomKK->modified(execution_space,datamask_modify);
@@ -84,7 +84,7 @@ void FixFreezeKokkos<DeviceType>::post_force(int vflag)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixFreezeKokkos<DeviceType>::post_force_respa(int vflag, int ilevel, int iloop)
+void FixFreezeKokkos<DeviceType>::post_force_respa(int vflag, int /*ilevel*/, int /*iloop*/)
 {
   post_force(vflag);
 }

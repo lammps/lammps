@@ -668,7 +668,7 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   // to fill ghost cells surrounding their 3d bricks
 
   gc->forward_comm_kspace(this,3,FORWARD_IK,
-			  k_gc_buf1,k_gc_buf2,MPI_FFT_SCALAR);
+                          k_gc_buf1,k_gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 

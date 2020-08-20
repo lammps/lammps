@@ -98,6 +98,7 @@ OPT.
    * :doc:`manifoldforce <fix_manifoldforce>`
    * :doc:`meso/move <fix_meso_move>`
    * :doc:`momentum (k) <fix_momentum>`
+   * :doc:`momentum/chunk <fix_momentum>`
    * :doc:`move <fix_move>`
    * :doc:`mscg <fix_mscg>`
    * :doc:`msst <fix_msst>`

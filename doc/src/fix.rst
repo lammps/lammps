@@ -241,6 +241,7 @@ accelerated styles exist.
 * :doc:`manifoldforce <fix_manifoldforce>` - restrain atoms to a manifold during minimization
 * :doc:`meso/move <fix_meso_move>` - move mesoscopic SPH/SDPD particles in a prescribed fashion
 * :doc:`momentum <fix_momentum>` - zero the linear and/or angular momentum of a group of atoms
+* :doc:`momentum/chunk <fix_momentum>` - zero the linear and/or angular momentum of a chunk of atoms
 * :doc:`move <fix_move>` - move atoms in a prescribed fashion
 * :doc:`mscg <fix_mscg>` - apply MSCG method for force-matching to generate coarse grain models
 * :doc:`msst <fix_msst>` - multi-scale shock technique (MSST) integration

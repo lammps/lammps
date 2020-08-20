@@ -29,6 +29,10 @@ class DumpCustom : public Dump {
   DumpCustom(class LAMMPS *, int, char **);
   virtual ~DumpCustom();
 
+  const char * MAGIC_STRING = "DUMPCUSTOM";
+  const int    FORMAT_REVISION = 0x0002;
+  const int    ENDIAN = 0x0001;
+
  protected:
   int nevery;                // dump frequency for output
   int iregion;               // -1 if no region, else which region
@@ -106,6 +110,14 @@ class DumpCustom : public Dump {
   int add_variable(char *);
   int add_custom(char *, int);
   virtual int modify_param(int, char **);
+
+  void header_format_binary();
+  void header_unit_style_binary();
+  void header_time_binary();
+  void header_columns_binary();
+  void format_magic_string_binary();
+  void format_endian_binary();
+  void format_revision_binary();
 
   typedef void (DumpCustom::*FnPtrHeader)(bigint);
   FnPtrHeader header_choice;           // ptr to write header functions

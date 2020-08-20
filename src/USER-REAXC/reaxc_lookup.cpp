@@ -37,7 +37,7 @@ void Tridiagonal_Solve( const double *a, const double *b,
 
   c[0] /= b[0];        /* Division by zero risk. */
   d[0] /= b[0];        /* Division by zero would imply a singular matrix. */
-  for(i = 1; i < n; i++){
+  for(i = 1; i < (int)n; i++){
     id = (b[i] - c[i-1] * a[i]);  /* Division by zero risk. */
     c[i] /= id;                /* Last value calculated is redundant. */
     d[i] = (d[i] - d[i-1] * a[i])/id;
@@ -64,26 +64,26 @@ void Natural_Cubic_Spline( LAMMPS_NS::Error* error_ptr, const double *h, const d
 
   /* build the linear system */
   a[0] = a[1] = a[n-1] = 0;
-  for( i = 2; i < n-1; ++i )
+  for( i = 2; i < (int)n-1; ++i )
     a[i] = h[i-1];
 
   b[0] = b[n-1] = 0;
-  for( i = 1; i < n-1; ++i )
+  for( i = 1; i < (int)n-1; ++i )
     b[i] = 2 * (h[i-1] + h[i]);
 
   c[0] = c[n-2] = c[n-1] = 0;
-  for( i = 1; i < n-2; ++i )
+  for( i = 1; i < (int)n-2; ++i )
     c[i] = h[i];
 
   d[0] = d[n-1] = 0;
-  for( i = 1; i < n-1; ++i )
+  for( i = 1; i < (int)n-1; ++i )
     d[i] = 6 * ((f[i+1]-f[i])/h[i] - (f[i]-f[i-1])/h[i-1]);
 
   v[0] = 0;
   v[n-1] = 0;
   Tridiagonal_Solve( &(a[1]), &(b[1]), &(c[1]), &(d[1]), &(v[1]), n-2 );
 
-  for( i = 1; i < n; ++i ){
+  for( i = 1; i < (int)n; ++i ){
     coef[i-1].d = (v[i] - v[i-1]) / (6*h[i-1]);
     coef[i-1].c = v[i]/2;
     coef[i-1].b = (f[i]-f[i-1])/h[i-1] + h[i-1]*(2*v[i] + v[i-1])/6;
@@ -114,25 +114,25 @@ void Complete_Cubic_Spline( LAMMPS_NS::Error* error_ptr, const double *h, const 
 
   /* build the linear system */
   a[0] = 0;
-  for( i = 1; i < n; ++i )
+  for( i = 1; i < (int)n; ++i )
     a[i] = h[i-1];
 
   b[0] = 2*h[0];
-  for( i = 1; i < n; ++i )
+  for( i = 1; i < (int)n; ++i )
     b[i] = 2 * (h[i-1] + h[i]);
 
   c[n-1] = 0;
-  for( i = 0; i < n-1; ++i )
+  for( i = 0; i < (int)n-1; ++i )
     c[i] = h[i];
 
   d[0] = 6 * (f[1]-f[0])/h[0] - 6 * v0;
   d[n-1] = 6 * vlast - 6 * (f[n-1]-f[n-2]/h[n-2]);
-  for( i = 1; i < n-1; ++i )
+  for( i = 1; i < (int)n-1; ++i )
     d[i] = 6 * ((f[i+1]-f[i])/h[i] - (f[i]-f[i-1])/h[i-1]);
 
   Tridiagonal_Solve( &(a[0]), &(b[0]), &(c[0]), &(d[0]), &(v[0]), n );
 
-  for( i = 1; i < n; ++i ){
+  for( i = 1; i < (int)n; ++i ){
     coef[i-1].d = (v[i] - v[i-1]) / (6*h[i-1]);
     coef[i-1].c = v[i]/2;
     coef[i-1].b = (f[i]-f[i-1])/h[i-1] + h[i-1]*(2*v[i] + v[i-1])/6;

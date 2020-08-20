@@ -981,7 +981,7 @@ void PPPMDisp::compute(int eflag, int vflag)
     make_rho_g();
 
     gc6->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO_G,
-                             gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                             gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     brick2fft(nxlo_in_6, nylo_in_6, nzlo_in_6, nxhi_in_6, nyhi_in_6, nzhi_in_6,
               density_brick_g, density_fft_g, work1_6,remap_6);
@@ -997,13 +997,13 @@ void PPPMDisp::compute(int eflag, int vflag)
                  v3_brick_g, v4_brick_g, v5_brick_g);
 
       gc6->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD_G,
-                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                               gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_g_ad();
 
       if (vflag_atom)
         gc6->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM_G,
-                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                                 gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     } else {
       poisson_ik(work1_6, work2_6, density_fft_g, fft1_6, fft2_6,
@@ -1017,13 +1017,13 @@ void PPPMDisp::compute(int eflag, int vflag)
                  v3_brick_g, v4_brick_g, v5_brick_g);
 
       gc6->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK_G,
-                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                               gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_g_ik();
 
       if (evflag_atom)
         gc6->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM_G,
-                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                                 gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
     }
 
     if (evflag_atom) fieldforce_g_peratom();
@@ -1071,13 +1071,13 @@ void PPPMDisp::compute(int eflag, int vflag)
                     v3_brick_a4, v4_brick_a4, v5_brick_a4);
 
       gc6->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_AD_A,
-                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                               gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_a_ad();
 
       if (evflag_atom)
         gc6->forward_comm_kspace(this,42,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM_A,
-                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                                 gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     }  else {
       poisson_ik(work1_6, work2_6, density_fft_a3, fft1_6, fft2_6,
@@ -1112,13 +1112,13 @@ void PPPMDisp::compute(int eflag, int vflag)
                     v3_brick_a4, v4_brick_a4, v5_brick_a4);
 
       gc6->forward_comm_kspace(this,18,sizeof(FFT_SCALAR),FORWARD_IK_A,
-                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                               gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_a_ik();
 
       if (evflag_atom)
         gc6->forward_comm_kspace(this,49,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM_A,
-                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                                 gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
     }
 
     if (evflag_atom) fieldforce_a_peratom();
@@ -1151,13 +1151,13 @@ void PPPMDisp::compute(int eflag, int vflag)
       }
 
       gc6->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD_NONE,
-                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                               gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_none_ad();
 
       if (vflag_atom)
         gc6->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM_NONE,
-                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                                 gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     } else {
       int n = 0;
@@ -1172,13 +1172,13 @@ void PPPMDisp::compute(int eflag, int vflag)
       }
 
       gc6->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK_NONE,
-                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                               gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_none_ik();
 
       if (evflag_atom)
         gc6->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM_NONE,
-                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                                 gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
     }
 
     if (evflag_atom) fieldforce_none_peratom();

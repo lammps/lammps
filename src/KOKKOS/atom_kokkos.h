@@ -78,7 +78,7 @@ class AtomKokkos : public Atom {
 };
 
 template<class ViewType, class IndexView>
-class SortFunctor {
+struct SortFunctor {
   typedef typename ViewType::device_type device_type;
   ViewType source;
   Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type> dest;

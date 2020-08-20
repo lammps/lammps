@@ -89,12 +89,12 @@ class PairZBLKokkos : public PairZBL {
   void cleanup_copy();
   void allocate();
 
-  friend class PairComputeFunctor<PairZBLKokkos,FULL,true>;
-  friend class PairComputeFunctor<PairZBLKokkos,HALF,true>;
-  friend class PairComputeFunctor<PairZBLKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairZBLKokkos,FULL,false>;
-  friend class PairComputeFunctor<PairZBLKokkos,HALF,false>;
-  friend class PairComputeFunctor<PairZBLKokkos,HALFTHREAD,false>;
+  friend struct PairComputeFunctor<PairZBLKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairZBLKokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairZBLKokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairZBLKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairZBLKokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairZBLKokkos,HALFTHREAD,false>;
   friend EV_FLOAT pair_compute_neighlist<PairZBLKokkos,FULL,void>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairZBLKokkos,HALF,void>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairZBLKokkos,HALFTHREAD,void>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);

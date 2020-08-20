@@ -31,9 +31,10 @@ template<class DeviceType>
 class FixNVEKokkos;
 
 template <class DeviceType, int RMass>
-class FixNVEKokkosInitialIntegrateFunctor;
+struct FixNVEKokkosInitialIntegrateFunctor;
+
 template <class DeviceType, int RMass>
-class FixNVEKokkosFinalIntegrateFunctor;
+struct FixNVEKokkosFinalIntegrateFunctor;
 
 template<class DeviceType>
 class FixNVEKokkos : public FixNVE {
@@ -67,8 +68,7 @@ class FixNVEKokkos : public FixNVE {
 };
 
 template <class DeviceType, int RMass>
-class FixNVEKokkosInitialIntegrateFunctor  {
- public:
+struct FixNVEKokkosInitialIntegrateFunctor  {
   typedef DeviceType  device_type ;
   FixNVEKokkos<DeviceType> c;
 
@@ -82,8 +82,7 @@ class FixNVEKokkosInitialIntegrateFunctor  {
 };
 
 template <class DeviceType, int RMass>
-class FixNVEKokkosFinalIntegrateFunctor  {
- public:
+struct FixNVEKokkosFinalIntegrateFunctor  {
   typedef DeviceType  device_type ;
   FixNVEKokkos<DeviceType> c;
 

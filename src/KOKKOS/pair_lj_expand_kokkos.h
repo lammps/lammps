@@ -99,12 +99,12 @@ class PairLJExpandKokkos : public PairLJExpand {
   int nlocal,nall,eflag,vflag;
 
   void allocate();
-  friend class PairComputeFunctor<PairLJExpandKokkos,FULL,true>;
-  friend class PairComputeFunctor<PairLJExpandKokkos,HALF,true>;
-  friend class PairComputeFunctor<PairLJExpandKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairLJExpandKokkos,FULL,false>;
-  friend class PairComputeFunctor<PairLJExpandKokkos,HALF,false>;
-  friend class PairComputeFunctor<PairLJExpandKokkos,HALFTHREAD,false>;
+  friend struct PairComputeFunctor<PairLJExpandKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairLJExpandKokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairLJExpandKokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairLJExpandKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairLJExpandKokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairLJExpandKokkos,HALFTHREAD,false>;
   friend EV_FLOAT pair_compute_neighlist<PairLJExpandKokkos,FULL,void>(PairLJExpandKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJExpandKokkos,HALF,void>(PairLJExpandKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJExpandKokkos,HALFTHREAD,void>(PairLJExpandKokkos*,NeighListKokkos<DeviceType>*);

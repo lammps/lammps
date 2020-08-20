@@ -94,12 +94,12 @@ class PairMorseKokkos : public PairMorse {
   int nlocal,nall,eflag,vflag;
 
   void allocate();
-  friend class PairComputeFunctor<PairMorseKokkos,FULL,true>;
-  friend class PairComputeFunctor<PairMorseKokkos,HALF,true>;
-  friend class PairComputeFunctor<PairMorseKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairMorseKokkos,FULL,false>;
-  friend class PairComputeFunctor<PairMorseKokkos,HALF,false>;
-  friend class PairComputeFunctor<PairMorseKokkos,HALFTHREAD,false>;
+  friend struct PairComputeFunctor<PairMorseKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairMorseKokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairMorseKokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairMorseKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairMorseKokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairMorseKokkos,HALFTHREAD,false>;
   friend EV_FLOAT pair_compute_neighlist<PairMorseKokkos,FULL,void>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairMorseKokkos,HALF,void>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairMorseKokkos,HALFTHREAD,void>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);

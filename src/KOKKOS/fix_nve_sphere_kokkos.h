@@ -54,8 +54,7 @@ class FixNVESphereKokkos : public FixNVESphere {
 };
 
 template <class DeviceType>
-class FixNVESphereKokkosInitialIntegrateFunctor {
- public:
+struct FixNVESphereKokkosInitialIntegrateFunctor {
   FixNVESphereKokkos<DeviceType> c;
   FixNVESphereKokkosInitialIntegrateFunctor(FixNVESphereKokkos<DeviceType> *c_ptr): c(*c_ptr) { c.cleanup_copy(); }
   KOKKOS_INLINE_FUNCTION
@@ -65,8 +64,7 @@ class FixNVESphereKokkosInitialIntegrateFunctor {
 };
 
 template <class DeviceType>
-class FixNVESphereKokkosFinalIntegrateFunctor {
- public:
+struct FixNVESphereKokkosFinalIntegrateFunctor {
   FixNVESphereKokkos<DeviceType> c;
   FixNVESphereKokkosFinalIntegrateFunctor(FixNVESphereKokkos<DeviceType> *c_ptr): c(*c_ptr) { c.cleanup_copy(); }
   KOKKOS_INLINE_FUNCTION

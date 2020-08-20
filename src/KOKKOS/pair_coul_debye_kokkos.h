@@ -113,12 +113,12 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
   double qqrd2e;
 
   void allocate();
-  friend class PairComputeFunctor<PairCoulDebyeKokkos,FULL,true>;
-  friend class PairComputeFunctor<PairCoulDebyeKokkos,HALF,true>;
-  friend class PairComputeFunctor<PairCoulDebyeKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairCoulDebyeKokkos,FULL,false>;
-  friend class PairComputeFunctor<PairCoulDebyeKokkos,HALF,false>;
-  friend class PairComputeFunctor<PairCoulDebyeKokkos,HALFTHREAD,false>;
+  friend struct PairComputeFunctor<PairCoulDebyeKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairCoulDebyeKokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairCoulDebyeKokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairCoulDebyeKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairCoulDebyeKokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairCoulDebyeKokkos,HALFTHREAD,false>;
   friend EV_FLOAT pair_compute_neighlist<PairCoulDebyeKokkos,FULL,void>(PairCoulDebyeKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairCoulDebyeKokkos,HALF,void>(PairCoulDebyeKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairCoulDebyeKokkos,HALFTHREAD,void>(PairCoulDebyeKokkos*,NeighListKokkos<DeviceType>*);

@@ -53,8 +53,7 @@ class FixWallLJ93Kokkos : public FixWallLJ93 {
 };
 
 template <class DeviceType>
-class FixWallLJ93KokkosFunctor  {
- public: 
+struct FixWallLJ93KokkosFunctor  {
   typedef DeviceType device_type ;
   typedef double value_type[];
   const int value_count;

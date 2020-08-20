@@ -96,12 +96,12 @@ class PairLJSDKKokkos : public PairLJSDK {
   int nlocal,nall,eflag,vflag;
 
   void allocate();
-  friend class PairComputeFunctor<PairLJSDKKokkos,FULL,true>;
-  friend class PairComputeFunctor<PairLJSDKKokkos,HALF,true>;
-  friend class PairComputeFunctor<PairLJSDKKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairLJSDKKokkos,FULL,false>;
-  friend class PairComputeFunctor<PairLJSDKKokkos,HALF,false>;
-  friend class PairComputeFunctor<PairLJSDKKokkos,HALFTHREAD,false>;
+  friend struct PairComputeFunctor<PairLJSDKKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairLJSDKKokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairLJSDKKokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairLJSDKKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairLJSDKKokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairLJSDKKokkos,HALFTHREAD,false>;
   friend EV_FLOAT pair_compute_neighlist<PairLJSDKKokkos,FULL,void>(PairLJSDKKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJSDKKokkos,HALF,void>(PairLJSDKKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJSDKKokkos,HALFTHREAD,void>(PairLJSDKKokkos*,NeighListKokkos<DeviceType>*);

@@ -97,12 +97,12 @@ class PairYukawaKokkos : public PairYukawa {
   int nlocal,nall,eflag,vflag;
 
   void allocate();
-  friend class PairComputeFunctor<PairYukawaKokkos,FULL,true>;
-  friend class PairComputeFunctor<PairYukawaKokkos,HALF,true>;
-  friend class PairComputeFunctor<PairYukawaKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairYukawaKokkos,FULL,false>;
-  friend class PairComputeFunctor<PairYukawaKokkos,HALF,false>;
-  friend class PairComputeFunctor<PairYukawaKokkos,HALFTHREAD,false>;
+  friend struct PairComputeFunctor<PairYukawaKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairYukawaKokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairYukawaKokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairYukawaKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairYukawaKokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairYukawaKokkos,HALFTHREAD,false>;
   friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,FULL,void>(
     PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,HALF,void>(

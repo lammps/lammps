@@ -117,23 +117,23 @@ class PairCoulLongKokkos : public PairCoulLong {
 
   void allocate();
 
-  friend class PairComputeFunctor<PairCoulLongKokkos,FULL,true,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairCoulLongKokkos,HALF,true,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairCoulLongKokkos,HALFTHREAD,true,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairCoulLongKokkos,FULL,false,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairCoulLongKokkos,HALF,false,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairCoulLongKokkos,HALFTHREAD,false,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairCoulLongKokkos,FULL,true,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairCoulLongKokkos,HALF,true,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairCoulLongKokkos,HALFTHREAD,true,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairCoulLongKokkos,FULL,false,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairCoulLongKokkos,HALF,false,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairCoulLongKokkos,HALFTHREAD,false,CoulLongTable<1> >;
   friend EV_FLOAT pair_compute_neighlist<PairCoulLongKokkos,FULL,CoulLongTable<1> >(PairCoulLongKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairCoulLongKokkos,HALF,CoulLongTable<1> >(PairCoulLongKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairCoulLongKokkos,HALFTHREAD,CoulLongTable<1> >(PairCoulLongKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairCoulLongKokkos,CoulLongTable<1> >(PairCoulLongKokkos*,
                                                             NeighListKokkos<DeviceType>*);
-  friend class PairComputeFunctor<PairCoulLongKokkos,FULL,true,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairCoulLongKokkos,HALF,true,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairCoulLongKokkos,HALFTHREAD,true,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairCoulLongKokkos,FULL,false,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairCoulLongKokkos,HALF,false,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairCoulLongKokkos,HALFTHREAD,false,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairCoulLongKokkos,FULL,true,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairCoulLongKokkos,HALF,true,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairCoulLongKokkos,HALFTHREAD,true,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairCoulLongKokkos,FULL,false,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairCoulLongKokkos,HALF,false,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairCoulLongKokkos,HALFTHREAD,false,CoulLongTable<0> >;
   friend EV_FLOAT pair_compute_neighlist<PairCoulLongKokkos,FULL,CoulLongTable<0> >(PairCoulLongKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairCoulLongKokkos,HALF,CoulLongTable<0> >(PairCoulLongKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairCoulLongKokkos,HALFTHREAD,CoulLongTable<0> >(PairCoulLongKokkos*,NeighListKokkos<DeviceType>*);

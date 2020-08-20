@@ -30,6 +30,7 @@ enum{REGULAR,TILED};
 /* ----------------------------------------------------------------------
    NOTES
    tiled implementation only currently works for RCB, not general tiled
+   b/c RCB tree is used to find neighboring tiles 
    if o indices for ghosts are < 0 or hi indices are >= N,
      then grid is treated as periodic in that dimension,
      communication is done across the periodic boundaries

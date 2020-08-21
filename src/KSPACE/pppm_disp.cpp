@@ -3184,9 +3184,9 @@ double PPPMDisp::compute_qopt_6_ik()
     l = (i/nx_pppm_6) % ny_pppm_6;
     m = i / nxy_pppm_6;
 
-    const int kper = k - nx_pppm_6*(2*k/nx_pppm);
-    const int lper = l - ny_pppm_6*(2*l/ny_pppm);
-    const int mper = m - nz_pppm_6*(2*m/nz_pppm);
+    const int kper = k - nx_pppm_6*(2*k/nx_pppm_6);
+    const int lper = l - ny_pppm_6*(2*l/ny_pppm_6);
+    const int mper = m - nz_pppm_6*(2*m/nz_pppm_6);
 
     sqk = pow(unitkx*kper,2.0) + pow(unitky*lper,2.0) + pow(unitkz*mper,2.0);
     if (sqk == 0.0) continue;
@@ -3282,9 +3282,9 @@ double PPPMDisp::compute_qopt_6_ad()
     l = (i/nx_pppm_6) % ny_pppm_6;
     m = i / nxy_pppm_6;
 
-    const int kper = k - nx_pppm_6*(2*k/nx_pppm);
-    const int lper = l - ny_pppm_6*(2*l/ny_pppm);
-    const int mper = m - nz_pppm_6*(2*m/nz_pppm);
+    const int kper = k - nx_pppm_6*(2*k/nx_pppm_6);
+    const int lper = l - ny_pppm_6*(2*l/ny_pppm_6);
+    const int mper = m - nz_pppm_6*(2*m/nz_pppm_6);
 
     sqk = pow(unitkx*kper,2.0) + pow(unitky*lper,2.0) + pow(unitkz*mper,2.0);
     if (sqk == 0.0) continue;

@@ -410,7 +410,7 @@ discussion above. To match the Mindlin solution, one should set
 .. math::
 
    G_{eff} = \left(\frac{2-\nu_i}{G_i} + \frac{2-\nu_j}{G_j}\right)^{-1}
-   
+
 where :math:`G` is the shear modulus, related to Young's modulus :math:`E`
 and Poisson's ratio :math:`\nu` by :math:`G = E/(2(1+\nu))`. This can also be
 achieved by specifying *NULL* for :math:`k_t`, in which case a
@@ -476,8 +476,8 @@ created without the rescaling above (:ref:`Walton <WaltonPC>` ).
    force described above. By re-scaling :math:`\xi`, *mindlin_rescale*
    effectively re-scales the tangential force twice, i.e., proportionally to
    :math:`a^2`. This peculiar behavior results from use of the accumulated
-   tangential displacement to characterize the contact history. Although 
-   *mindlin_rescale* remains available for historic reasons and backward 
+   tangential displacement to characterize the contact history. Although
+   *mindlin_rescale* remains available for historic reasons and backward
    compatibility purposes, it should be avoided in favor of *mindlin_rescale/force*.
 
 The *mindlin_rescale/force* option uses the same form as *mindlin/force*,

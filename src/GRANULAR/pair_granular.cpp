@@ -447,7 +447,7 @@ void PairGranular::compute(int eflag, int vflag)
             history[0] -= rsht*nx;
             history[1] -= rsht*ny;
             history[2] -= rsht*nz;
-            
+
             // also rescale to preserve magnitude
             prjmag = sqrt(history[0]*history[0] + history[1]*history[1] +
                                              history[2]*history[2]);
@@ -572,7 +572,7 @@ void PairGranular::compute(int eflag, int vflag)
             history[rhist0] *= scalefac;
             history[rhist1] *= scalefac;
             history[rhist2] *= scalefac;
-            
+
             history[rhist0] += vrl1*dt;
             history[rhist1] += vrl2*dt;
             history[rhist2] += vrl3*dt;

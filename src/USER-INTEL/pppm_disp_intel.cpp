@@ -131,9 +131,10 @@ void PPPMDispIntel::init()
   // For vectorization, we need some padding in the end
   // The first thread computes on the global density
   if ((comm->nthreads > 1) && !_use_lrt) {
+    int mygrid = MAX(ngrid,ngrid_6);
     memory->destroy(perthread_density);
     memory->create(perthread_density, comm->nthreads-1,
-                   ngrid + INTEL_P3M_ALIGNED_MAXORDER,
+                   mygrid + INTEL_P3M_ALIGNED_MAXORDER,
                    "pppmdispintel:perthread_density");
   }
 

@@ -214,7 +214,7 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp) : KSpace(lmp),
   gc_buf1 = gc_buf2 = NULL;
   gc6_buf1 = gc6_buf2 = NULL;
   ngc_buf1 = ngc_buf2 = ngc6_buf1 = ngc6_buf2 = 0;
-  npergrid = npergrid6 = 0;
+  ngrid = ngrid_6 = npergrid = npergrid6 = 0;
 
   nmax = 0;
   part2grid = NULL;

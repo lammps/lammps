@@ -177,6 +177,7 @@ void PairGranular::compute(int eflag, int vflag)
   double tortwist1, tortwist2, tortwist3;
 
   double shrmag,rsht,prjmag;
+  bool frameupdate;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *touch,**firsttouch;
   double *history,*allhistory,**firsthistory;
@@ -441,22 +442,29 @@ void PairGranular::compute(int eflag, int vflag)
           // see e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
           if (historyupdate) {
             rsht = history[0]*nx + history[1]*ny + history[2]*nz;
-            shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
-                                             history[2]*history[2]);
-            // projection
-            history[0] -= rsht*nx;
-            history[1] -= rsht*ny;
-            history[2] -= rsht*nz;
+            if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_FORCE ||
+                tangential_model[itype][jtype] ==
+                TANGENTIAL_MINDLIN_RESCALE_FORCE)
+              frameupdate = fabs(rsht) < EPSILON*Fscrit;
+            else
+              frameupdate = fabs(rsht)*k_tangential < EPSILON*Fscrit;
+            if (frameupdate) {
+              shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
+                                               history[2]*history[2]);
+              // projection
+              history[0] -= rsht*nx;
+              history[1] -= rsht*ny;
+              history[2] -= rsht*nz;
 
-            // also rescale to preserve magnitude
-            prjmag = sqrt(history[0]*history[0] + history[1]*history[1] +
-                                             history[2]*history[2]);
-            if (prjmag > 0) scalefac = shrmag/prjmag;
-            else scalefac = 0;
-            history[0] *= scalefac;
-            history[1] *= scalefac;
-            history[2] *= scalefac;
-
+              // also rescale to preserve magnitude
+              prjmag = sqrt(history[0]*history[0] + history[1]*history[1] +
+                                               history[2]*history[2]);
+              if (prjmag > 0) scalefac = shrmag/prjmag;
+              else scalefac = 0;
+              history[0] *= scalefac;
+              history[1] *= scalefac;
+              history[2] *= scalefac;
+            }
             // update history
             if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY ||
                 tangential_model[itype][jtype] == TANGENTIAL_MINDLIN ||
@@ -553,39 +561,41 @@ void PairGranular::compute(int eflag, int vflag)
           int rhist1 = rhist0 + 1;
           int rhist2 = rhist1 + 1;
 
-          rolldotn = history[rhist0]*nx + history[rhist1]*ny + history[rhist2]*nz;
-          if (historyupdate) {
-            // rotate into tangential plane
-            rollmag = sqrt(history[rhist0]*history[rhist0] +
-                          history[rhist1]*history[rhist1] +
-                          history[rhist2]*history[rhist2]);
-            // projection
-            history[rhist0] -= rolldotn*nx;
-            history[rhist1] -= rolldotn*ny;
-            history[rhist2] -= rolldotn*nz;
-            // also rescale to preserve magnitude
-            prjmag = sqrt(history[rhist0]*history[rhist0] +
-                          history[rhist1]*history[rhist1] +
-                          history[rhist2]*history[rhist2]);
-            if (prjmag > 0) scalefac = rollmag/prjmag;
-            else scalefac = 0;
-            history[rhist0] *= scalefac;
-            history[rhist1] *= scalefac;
-            history[rhist2] *= scalefac;
+          k_roll = roll_coeffs[itype][jtype][0];
+          damp_roll = roll_coeffs[itype][jtype][1];
+          Frcrit = roll_coeffs[itype][jtype][2] * Fncrit;
 
+          if (historyupdate) {
+            rolldotn = history[rhist0]*nx + history[rhist1]*ny + history[rhist2]*nz;
+            frameupdate = fabs(rolldotn)*k_roll < EPSILON*Frcrit;
+            if (frameupdate) { // rotate into tangential plane
+              rollmag = sqrt(history[rhist0]*history[rhist0] +
+                            history[rhist1]*history[rhist1] +
+                            history[rhist2]*history[rhist2]);
+              // projection
+              history[rhist0] -= rolldotn*nx;
+              history[rhist1] -= rolldotn*ny;
+              history[rhist2] -= rolldotn*nz;
+              // also rescale to preserve magnitude
+              prjmag = sqrt(history[rhist0]*history[rhist0] +
+                            history[rhist1]*history[rhist1] +
+                            history[rhist2]*history[rhist2]);
+              if (prjmag > 0) scalefac = rollmag/prjmag;
+              else scalefac = 0;
+              history[rhist0] *= scalefac;
+              history[rhist1] *= scalefac;
+              history[rhist2] *= scalefac;
+            }
             history[rhist0] += vrl1*dt;
             history[rhist1] += vrl2*dt;
             history[rhist2] += vrl3*dt;
           }
 
-          k_roll = roll_coeffs[itype][jtype][0];
-          damp_roll = roll_coeffs[itype][jtype][1];
           fr1 = -k_roll*history[rhist0] - damp_roll*vrl1;
           fr2 = -k_roll*history[rhist1] - damp_roll*vrl2;
           fr3 = -k_roll*history[rhist2] - damp_roll*vrl3;
 
           // rescale frictional displacements and forces if needed
-          Frcrit = roll_coeffs[itype][jtype][2] * Fncrit;
 
           fr = sqrt(fr1*fr1 + fr2*fr2 + fr3*fr3);
           if (fr > Frcrit) {

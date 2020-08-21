@@ -2125,10 +2125,10 @@ void PPPMDisp::allocate_peratom()
     if (differentiation_flag) npergrid = 6;
     else npergrid = 7;
 
-    memory->destroy(gc_buf1);
-    memory->destroy(gc_buf2);
-    memory->create(gc_buf1,npergrid*ngc_buf1,"pppm:gc_buf1");
-    memory->create(gc_buf2,npergrid*ngc_buf2,"pppm:gc_buf2");
+    memory->destroy(gc6_buf1);
+    memory->destroy(gc6_buf2);
+    memory->create(gc6_buf1,npergrid*ngc6_buf1,"pppm:gc6_buf1");
+    memory->create(gc6_buf2,npergrid*ngc6_buf2,"pppm:gc6_buf2");
   }
 
   if (function[2]) {
@@ -2246,10 +2246,10 @@ void PPPMDisp::allocate_peratom()
     if (differentiation_flag) npergrid = 42;
     else npergrid = 49;
 
-    memory->destroy(gc_buf1);
-    memory->destroy(gc_buf2);
-    memory->create(gc_buf1,npergrid*ngc_buf1,"pppm:gc_buf1");
-    memory->create(gc_buf2,npergrid*ngc_buf2,"pppm:gc_buf2");
+    memory->destroy(gc6_buf1);
+    memory->destroy(gc6_buf2);
+    memory->create(gc6_buf1,npergrid*ngc6_buf1,"pppm:gc6_buf1");
+    memory->create(gc6_buf2,npergrid*ngc6_buf2,"pppm:gc6_buf2");
   }
 
   if (function[3]) {
@@ -2283,10 +2283,10 @@ void PPPMDisp::allocate_peratom()
     if (differentiation_flag) npergrid = 6;
     else npergrid = 7;
 
-    memory->destroy(gc_buf1);
-    memory->destroy(gc_buf2);
-    memory->create(gc_buf1,npergrid*ngc_buf1,"pppm:gc_buf1");
-    memory->create(gc_buf2,npergrid*ngc_buf2,"pppm:gc_buf2");
+    memory->destroy(gc6_buf1);
+    memory->destroy(gc6_buf2);
+    memory->create(gc6_buf1,npergrid*ngc6_buf1,"pppm:gc6_buf1");
+    memory->create(gc6_buf2,npergrid*ngc6_buf2,"pppm:gc6_buf2");
   }
 }
 
@@ -2444,11 +2444,15 @@ void PPPMDisp::deallocate()
   gf_b_6 = NULL;
   rho1d_6 = rho_coeff_6 = drho1d_6 = drho_coeff_6 = NULL;
 
+  memory->destroy(gc_buf1);
+  memory->destroy(gc_buf2);
   delete fft1;
   delete fft2;
   delete remap;
   delete gc;
 
+  memory->destroy(gc6_buf1);
+  memory->destroy(gc6_buf2);
   delete fft1_6;
   delete fft2_6;
   delete remap_6;

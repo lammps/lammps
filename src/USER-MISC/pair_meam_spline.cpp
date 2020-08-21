@@ -448,7 +448,7 @@ void PairMEAMSpline::coeff(int narg, char **arg)
       if (map[j] == i) count++;
     if (count != 1)
       error->all(FLERR,"Pair style meam/spline requires one atom type per element");
-  } 
+  }
 }
 
 #define MAXLINE 1024

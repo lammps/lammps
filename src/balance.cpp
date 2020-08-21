@@ -387,20 +387,20 @@ void Balance::command(int narg, char **arg)
                                    MPI_Wtime()-start_time);
     mesg += fmt::format("  iteration count = {}\n",niter);
     for (int i = 0; i < nimbalance; ++i) mesg += imbalances[i]->info();
-    mesg += fmt::format("  initial/final maximal load/proc = {} {}\n"
-                        "  initial/final imbalance factor  = {:.6g} {:.6g}\n",
+    mesg += fmt::format("  initial/final maximal load/proc = {:.8} {:.8}\n"
+                        "  initial/final imbalance factor  = {:.8} {:.8}\n",
                         maxinit,maxfinal,imbinit,imbfinal);
 
     if (style != BISECTION) {
       mesg += "  x cuts:";
       for (int i = 0; i <= comm->procgrid[0]; i++)
-        mesg += fmt::format(" {}",comm->xsplit[i]);
+        mesg += fmt::format(" {:.8}",comm->xsplit[i]);
       mesg += "\n  y cuts:";
       for (int i = 0; i <= comm->procgrid[1]; i++)
-        mesg += fmt::format(" {}",comm->ysplit[i]);
+        mesg += fmt::format(" {:.8}",comm->ysplit[i]);
       mesg += "\n  z cuts:";
       for (int i = 0; i <= comm->procgrid[2]; i++)
-        mesg += fmt::format(" {}",comm->zsplit[i]);
+        mesg += fmt::format(" {:.8}",comm->zsplit[i]);
       mesg += "\n";
     }
 

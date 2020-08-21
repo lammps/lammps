@@ -46,10 +46,10 @@ class PPPMGPU : public PPPM {
   void brick2fft_gpu();
   virtual void poisson_ik();
 
-  void pack_forward(int, FFT_SCALAR *, int, int *);
-  void unpack_forward(int, FFT_SCALAR *, int, int *);
-  void pack_reverse(int, FFT_SCALAR *, int, int *);
-  void unpack_reverse(int, FFT_SCALAR *, int, int *);
+  void pack_forward_grid(int, void *, int, int *);
+  void unpack_forward_grid(int, void *, int, int *);
+  void pack_reverse_grid(int, void *, int, int *);
+  void unpack_reverse_grid(int, void *, int, int *);
 
   FFT_SCALAR ***create_3d_offset(int, int, int, int, int, int, const char *,
                                  FFT_SCALAR *, int);

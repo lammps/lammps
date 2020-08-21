@@ -718,7 +718,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPTransformUi,const int ia
   const int iatom = iatom_mod + iatom_div * 32;
   if (iatom >= chunk_size) return;
 
-  if (j > twojmax) return; 
+  if (j > twojmax) return;
 
   int elem_count = chemflag ? nelements : 1;
 
@@ -739,7 +739,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPTransformUi,const int ia
 
         // Store
         my_sna.ulisttot_pack(iatom_mod, idxu, ielem, iatom_div) = { utot_re, utot_im };
-          
+
         // Also zero yi
         my_sna.ylist_pack_re(iatom_mod, idxu_half, ielem, iatom_div) = 0.;
         my_sna.ylist_pack_im(iatom_mod, idxu_half, ielem, iatom_div) = 0.;
@@ -944,7 +944,7 @@ void PairSNAPKokkos<DeviceType>::operator() (TagPairSNAPTransformUiCPU, const in
 
   if (iatom >= chunk_size) return;
 
-  if (j > twojmax) return; 
+  if (j > twojmax) return;
 
   int elem_count = chemflag ? nelements : 1;
 

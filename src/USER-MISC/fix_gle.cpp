@@ -843,7 +843,7 @@ void FixGLE::unpack_restart(int nlocal, int nth)
 
   // skip to the nth set of extended variables
   // unpack the Nth first values this way because other fixes pack them
-  
+
   int m = 0;
   for (int i = 0; i< nth; i++) m += static_cast<int> (extra[nlocal][m]);
   m++;

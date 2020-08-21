@@ -560,14 +560,14 @@ void PPPMDisp::init()
 
     if (me == 0) {
       std::string mesg = fmt::format("  Dispersion G vector (1/distance)= "
-                                     "{}\n", g_ewald_6);
+                                     "{:.8}\n", g_ewald_6);
       mesg += fmt::format("  Dispersion grid = {} {} {}\n",
                           nx_pppm_6,ny_pppm_6,nz_pppm_6);
       mesg += fmt::format("  Dispersion stencil order = {}\n",order_6);
       mesg += fmt::format("  Dispersion estimated absolute RMS force accuracy "
-                          "= {:.8g}\n",acc);
+                          "= {:.8}\n",acc);
       mesg += fmt::format("  Dispersion estimated relative force accuracy "
-                          "= {:.8g}\n",acc/two_charge_force);
+                          "= {:.8}\n",acc/two_charge_force);
       mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
       mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
                           ngrid_max, nfft_both_max);

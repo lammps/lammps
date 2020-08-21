@@ -213,6 +213,8 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp) : KSpace(lmp),
   gc = gc6 = NULL;
   gc_buf1 = gc_buf2 = NULL;
   gc6_buf1 = gc6_buf2 = NULL;
+  ngc_buf1 = ngc_buf2 = ngc6_buf1 = ngc6_buf2 = 0;
+  npergrid = npergrid6 = 0;
 
   nmax = 0;
   part2grid = NULL;
@@ -8283,7 +8285,7 @@ double PPPMDisp::memory_usage()
   // four GridComm bufs
 
   bytes += (ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
-  bytes += (ngc6_buf1 + ngc6_buf2) * npergrid * sizeof(FFT_SCALAR);
+  bytes += (ngc6_buf1 + ngc6_buf2) * npergrid6 * sizeof(FFT_SCALAR);
 
   return bytes;
 }

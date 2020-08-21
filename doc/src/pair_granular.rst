@@ -261,7 +261,7 @@ tangential model choices and their expected parameters are as follows:
 3. *mindlin* : :math:`k_t` or NULL, :math:`x_{\gamma,t}`, :math:`\mu_s`
 4. *mindlin/force* : :math:`k_t` or NULL, :math:`x_{\gamma,t}`, :math:`\mu_s`
 5. *mindlin_rescale* : :math:`k_t` or NULL, :math:`x_{\gamma,t}`, :math:`\mu_s`
-5. *mindlin_rescale/force* : :math:`k_t` or NULL, :math:`x_{\gamma,t}`, :math:`\mu_s`
+6. *mindlin_rescale/force* : :math:`k_t` or NULL, :math:`x_{\gamma,t}`, :math:`\mu_s`
 
 Here, :math:`x_{\gamma,t}` is a dimensionless multiplier for the normal
 damping :math:`\eta_n` that determines the magnitude of the tangential
@@ -831,13 +831,13 @@ Technology, 233, 30-46.
 
 **(Otis R. Walton)** Walton, O.R., Personal Communication
 
-** _Mindlin1953:
+.. _Mindlin1953:
 
 **(Mindlin and Deresiewicz, 1953)** Mindlin, R.D., & Deresiewicz, H (1953).
 Elastic Spheres in Contact under Varying Oblique Force.
 J. Appl. Mech., ASME 20, 327-344.
 
-** _AgnolinRoux2007:
+.. _AgnolinRoux2007:
 
 **(Agnolin and Roux 2007)** Agnolin, I. & Roux, J-N. (2007).
 Internal states of model isotropic granular packings.

@@ -116,7 +116,7 @@ void ResetMolIDs::command(int narg, char **arg)
 
   // create computes
 
-  create_computes(groupid);
+  create_computes(NULL,groupid);
 
   // reset molecule IDs
 
@@ -140,22 +140,23 @@ void ResetMolIDs::command(int narg, char **arg)
    create computes used by reset_mol_ids
 ------------------------------------------------------------------------- */
 
-void ResetMolIDs::create_computes(char *groupid)
+void ResetMolIDs::create_computes(char *fixid, char *groupid)
 {
   int igroup = group->find(groupid);
   if (igroup == -1) error->all(FLERR,"Could not find reset_mol_ids group ID");
   groupbit = group->bitmask[igroup];
 
   // create instances of compute fragment/atom, compute reduce (if needed),
-  // and compute chunk/atom.  all use the group-ID for this command
+  // and compute chunk/atom.  all use the group-ID for this command.
+  // 'fixid' allows for creating independent instances of the computes
 
-  idfrag = "reset_mol_ids_FRAGMENT_ATOM";
+  idfrag = fmt::format("{}_reset_mol_ids_FRAGMENT_ATOM",fixid);
   if (singleflag)
     modify->add_compute(fmt::format("{} {} fragment/atom single yes",idfrag,groupid));
   else
     modify->add_compute(fmt::format("{} {} fragment/atom single no",idfrag,groupid));
 
-  idchunk = "reset_mol_ids_CHUNK_ATOM";
+  idchunk = fmt::format("{}_reset_mol_ids_CHUNK_ATOM",fixid);
   if (compressflag)
     modify->add_compute(fmt::format("{} {} chunk/atom molecule compress yes",
                                     idchunk,groupid));

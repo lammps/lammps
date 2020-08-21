@@ -30,7 +30,7 @@ class ResetMolIDs : protected Pointers {
   ResetMolIDs(class LAMMPS *);
   ~ResetMolIDs();
   void command(int, char **);
-  void create_computes(char *);
+  void create_computes(char *, char *);
   void reset();
 
 private:

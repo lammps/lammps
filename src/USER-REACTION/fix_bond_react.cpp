@@ -171,7 +171,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"yes") == 0) { // default
         delete reset_mol_ids;
         reset_mol_ids = new ResetMolIDs(lmp);
-        reset_mol_ids->create_computes(group->names[igroup]);
+        reset_mol_ids->create_computes(id,group->names[igroup]);
         iarg += 2;
       }
       if (strcmp(arg[iarg+1],"no") == 0) {

@@ -210,7 +210,7 @@ public:
   /// parameters from another grid, but doesn't reallocate stuff;
   /// setup() must be called after that;
   colvar_grid(colvar_grid<T> const &g) : colvarparse(),
-					 nd(g.nd),
+                                         nd(g.nd),
                                          nx(g.nx),
                                          mult(g.mult),
                                          data(),

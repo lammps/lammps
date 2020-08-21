@@ -227,11 +227,8 @@ void Input::file()
 
     // execute the command
 
-    if (execute_command()) {
-      char *str = new char[maxline+32];
-      sprintf(str,"Unknown command: %s",line);
-      error->all(FLERR,str);
-    }
+    if (execute_command() && line)
+      error->all(FLERR,fmt::format("Unknown command: {}",line));
   }
 }
 
@@ -856,7 +853,7 @@ int Input::execute_command()
   // invoke commands added via style_command.h
 
   if (command_map->find(command) != command_map->end()) {
-    CommandCreator command_creator = (*command_map)[command];
+    CommandCreator &command_creator = (*command_map)[command];
     command_creator(lmp,narg,arg);
     return 0;
   }
@@ -1099,7 +1096,7 @@ void Input::label()
 
 void Input::log()
 {
-  if (narg > 2) error->all(FLERR,"Illegal log command");
+  if ((narg < 1) || (narg > 2)) error->all(FLERR,"Illegal log command");
 
   int appendflag = 0;
   if (narg == 2) {
@@ -1246,10 +1243,10 @@ void Input::quit()
 
 char *shell_failed_message(const char* cmd, int errnum)
 {
-  const char *errmsg = strerror(errnum);
-  int len = strlen(cmd)+strlen(errmsg)+64;
-  char *msg = new char[len];
-  sprintf(msg,"Shell command '%s' failed with error '%s'", cmd, errmsg);
+  std::string errmsg = fmt::format("Shell command '{}' failed with error '{}'",
+                                   cmd, strerror(errnum));
+  char *msg = new char[errmsg.size()+1];
+  strcpy(msg, errmsg.c_str());
   return msg;
 }
 
@@ -1731,13 +1728,9 @@ void Input::package()
     if (!modify->check_package("GPU"))
       error->all(FLERR,"Package gpu command without GPU package installed");
 
-    char **fixarg = new char*[2+narg];
-    fixarg[0] = (char *) "package_gpu";
-    fixarg[1] = (char *) "all";
-    fixarg[2] = (char *) "GPU";
-    for (int i = 1; i < narg; i++) fixarg[i+2] = arg[i];
-    modify->add_fix(2+narg,fixarg);
-    delete [] fixarg;
+    std::string fixcmd = "package_gpu all GPU";
+    for (int i = 1; i < narg; i++) fixcmd += std::string(" ") + arg[i];
+    modify->add_fix(fixcmd);
 
   } else if (strcmp(arg[0],"kokkos") == 0) {
     if (lmp->kokkos == NULL || lmp->kokkos->kokkos_exists == 0)
@@ -1750,26 +1743,18 @@ void Input::package()
       error->all(FLERR,
                  "Package omp command without USER-OMP package installed");
 
-    char **fixarg = new char*[2+narg];
-    fixarg[0] = (char *) "package_omp";
-    fixarg[1] = (char *) "all";
-    fixarg[2] = (char *) "OMP";
-    for (int i = 1; i < narg; i++) fixarg[i+2] = arg[i];
-    modify->add_fix(2+narg,fixarg);
-    delete [] fixarg;
+    std::string fixcmd = "package_omp all OMP";
+    for (int i = 1; i < narg; i++) fixcmd += std::string(" ") + arg[i];
+    modify->add_fix(fixcmd);
 
  } else if (strcmp(arg[0],"intel") == 0) {
     if (!modify->check_package("INTEL"))
       error->all(FLERR,
                  "Package intel command without USER-INTEL package installed");
 
-    char **fixarg = new char*[2+narg];
-    fixarg[0] = (char *) "package_intel";
-    fixarg[1] = (char *) "all";
-    fixarg[2] = (char *) "INTEL";
-    for (int i = 1; i < narg; i++) fixarg[i+2] = arg[i];
-    modify->add_fix(2+narg,fixarg);
-    delete [] fixarg;
+    std::string fixcmd = "package_intel all INTEL";
+    for (int i = 1; i < narg; i++) fixcmd += std::string(" ") + arg[i];
+    modify->add_fix(fixcmd);
 
   } else error->all(FLERR,"Illegal package command");
 }
@@ -1907,12 +1892,16 @@ void Input::suffix()
   if (narg < 1) error->all(FLERR,"Illegal suffix command");
 
   if (strcmp(arg[0],"off") == 0) lmp->suffix_enable = 0;
-  else if (strcmp(arg[0],"on") == 0) lmp->suffix_enable = 1;
-  else {
+  else if (strcmp(arg[0],"on") == 0) {
+    if (!lmp->suffix)
+      error->all(FLERR,"May only enable suffixes after defining one");
+    lmp->suffix_enable = 1;
+  } else {
     lmp->suffix_enable = 1;
 
     delete [] lmp->suffix;
     delete [] lmp->suffix2;
+    lmp->suffix = lmp->suffix2 = nullptr;
 
     if (strcmp(arg[0],"hybrid") == 0) {
       if (narg != 3) error->all(FLERR,"Illegal suffix command");

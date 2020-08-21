@@ -427,8 +427,9 @@ void PairEAMFSKokkos<DeviceType>::interpolate(int n, double delta, double *f, t_
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairEAMFSKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist, int iswap_in, DAT::tdual_xfloat_1d &buf,
-                               int pbc_flag, int *pbc)
+int PairEAMFSKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist,
+                                                          int iswap_in, DAT::tdual_xfloat_1d &buf,
+                                                          int /*pbc_flag*/, int * /*pbc*/)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
   iswap = iswap_in;
@@ -464,7 +465,7 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSUnpackForwardComm, cons
 
 template<class DeviceType>
 int PairEAMFSKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
-                               int pbc_flag, int *pbc)
+                                                   int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j;
 
@@ -985,8 +986,13 @@ void PairEAMFSKokkos<DeviceType>::read_file(char *filename)
 
   // read potential file
   if(comm->me == 0) {
-    PotentialFileReader reader(lmp, filename, "EAM");
+    PotentialFileReader reader(lmp, filename, "eam/fs", unit_convert_flag);
 
+    // transparently convert units for supported conversions
+
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                            unit_convert);
     try {
       reader.skip_line();
       reader.skip_line();
@@ -996,7 +1002,7 @@ void PairEAMFSKokkos<DeviceType>::read_file(char *filename)
       ValueTokenizer values = reader.next_values(1);
       file->nelements = values.next_int();
 
-      if (values.count() != file->nelements + 1)
+      if ((int)values.count() != file->nelements + 1)
         error->one(FLERR,"Incorrect element names in EAM potential file");
 
       file->elements = new char*[file->nelements];
@@ -1030,6 +1036,10 @@ void PairEAMFSKokkos<DeviceType>::read_file(char *filename)
         file->mass[i] = values.next_double();
 
         reader.next_dvector(&file->frho[i][1], file->nrho);
+        if (unit_convert) {
+          for (int j = 1; j <= file->nrho; ++j)
+            file->frho[i][j] *= conversion_factor;
+        }
 
         for (int j = 0; j < file->nelements; j++) {
           reader.next_dvector(&file->rhor[i][j][1], file->nr);
@@ -1039,6 +1049,10 @@ void PairEAMFSKokkos<DeviceType>::read_file(char *filename)
       for (int i = 0; i < file->nelements; i++) {
         for (int j = 0; j <= i; j++) {
           reader.next_dvector(&file->z2r[i][j][1], file->nr);
+          if (unit_convert) {
+            for (int k = 1; k < file->nr; ++k)
+              file->z2r[i][j][k] *= conversion_factor;
+          }
         }
       }
     } catch (TokenizerException & e) {
@@ -1220,7 +1234,7 @@ void PairEAMFSKokkos<DeviceType>::file2array_fs()
 
 namespace LAMMPS_NS {
 template class PairEAMFSKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairEAMFSKokkos<LMPHostType>;
 #endif
 }

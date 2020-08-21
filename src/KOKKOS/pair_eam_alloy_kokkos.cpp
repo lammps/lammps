@@ -427,8 +427,9 @@ void PairEAMAlloyKokkos<DeviceType>::interpolate(int n, double delta, double *f,
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairEAMAlloyKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist, int iswap_in, DAT::tdual_xfloat_1d &buf,
-                               int pbc_flag, int *pbc)
+int PairEAMAlloyKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist,
+                                                             int iswap_in, DAT::tdual_xfloat_1d &buf,
+                                                             int /*pbc_flag*/, int * /*pbc*/)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
   iswap = iswap_in;
@@ -464,7 +465,7 @@ void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyUnpackForwardComm
 
 template<class DeviceType>
 int PairEAMAlloyKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
-                               int pbc_flag, int *pbc)
+                                                      int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j;
 
@@ -985,8 +986,13 @@ void PairEAMAlloyKokkos<DeviceType>::read_file(char *filename)
 
   // read potential file
   if(comm->me == 0) {
-    PotentialFileReader reader(lmp, filename, "EAM");
+    PotentialFileReader reader(lmp, filename, "eam/alloy", unit_convert_flag);
 
+    // transparently convert units for supported conversions
+
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                            unit_convert);
     try {
       reader.skip_line();
       reader.skip_line();
@@ -1031,11 +1037,19 @@ void PairEAMAlloyKokkos<DeviceType>::read_file(char *filename)
 
         reader.next_dvector(&file->frho[i][1], file->nrho);
         reader.next_dvector(&file->rhor[i][1], file->nr);
+        if (unit_convert) {
+          for (int j = 1; j < file->nrho; ++j)
+            file->frho[i][j] *= conversion_factor;
+        }
       }
 
       for (int i = 0; i < file->nelements; i++) {
         for (int j = 0; j <= i; j++) {
           reader.next_dvector(&file->z2r[i][j][1], file->nr);
+          if (unit_convert) {
+            for (int k = 1; k < file->nr; ++k)
+              file->z2r[i][j][k] *= conversion_factor;
+          }
         }
       }
     } catch (TokenizerException & e) {
@@ -1210,7 +1224,7 @@ void PairEAMAlloyKokkos<DeviceType>::file2array_alloy()
 
 namespace LAMMPS_NS {
 template class PairEAMAlloyKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairEAMAlloyKokkos<LMPHostType>;
 #endif
 }

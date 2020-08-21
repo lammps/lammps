@@ -28,6 +28,7 @@
 #include "respa.h"
 #include "utils.h"
 #include "suffix.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -265,6 +266,9 @@ void PairHybrid::allocate()
 void PairHybrid::settings(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
+  if (lmp->kokkos && !utils::strmatch(force->pair_style,"^hybrid.*/kk$"))
+    error->all(FLERR,fmt::format("Must use pair_style {}/kk with Kokkos",
+                                 force->pair_style));
 
   // delete old lists, since cannot just change settings
 
@@ -432,9 +436,6 @@ void PairHybrid::coeff(int narg, char **arg)
 {
   if (narg < 3) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
-
-  if (lmp->kokkos)
-    error->all(FLERR,"Cannot yet use pair hybrid with Kokkos");
 
   int ilo,ihi,jlo,jhi;
   force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);

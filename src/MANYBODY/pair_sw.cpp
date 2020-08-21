@@ -44,6 +44,7 @@ PairSW::PairSW(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
   nelements = 0;
   elements = NULL;
@@ -355,8 +356,14 @@ void PairSW::read_file(char *file)
   // open file on proc 0
 
   if (comm->me == 0) {
-    PotentialFileReader reader(lmp, file, "Stillinger-Weber");
+    PotentialFileReader reader(lmp, file, "sw", unit_convert_flag);
     char * line;
+
+    // transparently convert units for supported conversions
+
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                            unit_convert);
 
     while((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
@@ -387,6 +394,11 @@ void PairSW::read_file(char *file)
           maxparam += DELTA;
           params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
                                               "pair:params");
+
+          // make certain all addional allocated storage is initialized
+          // to avoid false positives when checking with valgrind
+
+          memset(params + nparams, 0, DELTA*sizeof(Param));
         }
 
         params[nparams].ielement = ielement;
@@ -405,6 +417,10 @@ void PairSW::read_file(char *file)
         params[nparams].tol      = values.next_double();
       } catch (TokenizerException & e) {
         error->one(FLERR, e.what());
+      }
+
+      if (unit_convert) {
+        params[nparams].epsilon *= conversion_factor;
       }
 
       if (params[nparams].epsilon < 0.0 || params[nparams].sigma < 0.0 ||

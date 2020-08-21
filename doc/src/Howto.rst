@@ -19,7 +19,7 @@ Tutorials howto
    Howto_cmake
    Howto_github
    Howto_pylammps
-   Howto_bash
+   Howto_wsl
 
 General howto
 =============

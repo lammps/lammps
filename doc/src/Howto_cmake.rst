@@ -47,7 +47,7 @@ using a shell like Bash.
 
 - Linux: any Terminal window will work
 - MacOS X: launch the Terminal application.
-- Windows 10: install and run the :doc:`Windows subsystem for Linux <Howto_bash>`
+- Windows 10: install and run the :doc:`Windows Subsystem for Linux <Howto_wsl>`
 
 We also assume that you have downloaded and unpacked a recent LAMMPS source code package
 or used Git to create a clone of the LAMMPS sources on your compilation machine.
@@ -331,7 +331,7 @@ Some common LAMMPS specific variables
    * - ``BUILD_DOC``
      - include building the HTML format documentation for packaging/installing (default: ``off``)
    * - ``CMAKE_TUNE_FLAGS``
-     - common compiler flags, for optimization or instrumentation (default: compiler specific)
+     - common compiler flags, for optimization or instrumentation (default:)
    * - ``LAMMPS_MACHINE``
      - when set to ``name`` the LAMMPS executable and library will be called ``lmp_name`` and ``liblammps_name.a``
    * - ``LAMMPS_EXCEPTIONS``

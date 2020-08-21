@@ -225,6 +225,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` doc
 * :doc:`ke/atom/eff <compute_ke_atom_eff>` - per-atom translational and radial kinetic energy in the electron force field model
 * :doc:`ke/eff <compute_ke_eff>` - kinetic energy of a group of nuclei and electrons in the electron force field model
 * :doc:`ke/rigid <compute_ke_rigid>` - translational kinetic energy of rigid bodies
+* :doc:`mliap <compute_mliap>` - gradients of energy and forces w.r.t. model parameters and related quantities for training machine learning interatomic potentials
 * :doc:`momentum <compute_momentum>` - translational momentum
 * :doc:`msd <compute_msd>` - mean-squared displacement of group of atoms
 * :doc:`msd/chunk <compute_msd_chunk>` - mean-squared displacement for each chunk
@@ -268,12 +269,13 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` doc
 * :doc:`smd/tlsph/strain/rate <compute_smd_tlsph_strain_rate>` -
 * :doc:`smd/tlsph/stress <compute_smd_tlsph_stress>` - per-particle Cauchy stress tensor for SPH particles
 * :doc:`smd/triangle/vertices <compute_smd_triangle_vertices>` -
+* :doc:`smd/ulsph/effm <compute_smd_ulsph_effm>` - per-particle effective shear modulus
 * :doc:`smd/ulsph/num/neighs <compute_smd_ulsph_num_neighs>` -
 * :doc:`smd/ulsph/strain <compute_smd_ulsph_strain>` -
 * :doc:`smd/ulsph/strain/rate <compute_smd_ulsph_strain_rate>` -
 * :doc:`smd/ulsph/stress <compute_smd_ulsph_stress>` - per-particle Cauchy stress tensor and von Mises equivalent stress in Smooth Mach Dynamics
 * :doc:`smd/vol <compute_smd_vol>` - per-particle volumes and their sum in Smooth Mach Dynamics
-* :doc:`snap <compute_sna_atom>` - bispectrum components and related quantities for a group of atoms
+* :doc:`snap <compute_sna_atom>` - gradients of SNAP energy and forces w.r.t. linear coefficients and related quantities for fitting SNAP potentials
 * :doc:`sna/atom <compute_sna_atom>` - bispectrum components for each atom
 * :doc:`snad/atom <compute_sna_atom>` - derivative of bispectrum components for each atom
 * :doc:`snav/atom <compute_sna_atom>` - virial contribution from bispectrum components for each atom

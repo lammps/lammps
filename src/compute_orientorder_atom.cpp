@@ -32,6 +32,7 @@
 #include "memory.h"
 #include "error.h"
 #include "math_const.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -255,6 +256,7 @@ void ComputeOrientOrderAtom::compute_peratom()
 
   double **x = atom->x;
   int *mask = atom->mask;
+  memset(&qnarray[0][0],0,nmax*ncol*sizeof(double));
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -317,7 +319,6 @@ void ComputeOrientOrderAtom::compute_peratom()
       }
 
       calc_boop(rlist, ncount, qn, qlist, nqlist);
-
     }
   }
 }
@@ -715,11 +716,8 @@ void ComputeOrientOrderAtom::init_clebsch_gordan()
 
 double ComputeOrientOrderAtom::factorial(int n)
 {
-  if (n < 0 || n > nmaxfactorial) {
-    char str[128];
-    sprintf(str, "Invalid argument to factorial %d", n);
-    error->all(FLERR, str);
-  }
+  if (n < 0 || n > nmaxfactorial)
+    error->all(FLERR,fmt::format("Invalid argument to factorial {}", n));
 
   return nfac_table[n];
 }

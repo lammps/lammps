@@ -66,6 +66,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   no_virial_fdotr_compute = 0;
   writedata = 0;
   ghostneigh = 0;
+  unit_convert_flag = utils::NOCONVERT;
 
   nextra = 0;
   pvector = NULL;
@@ -85,6 +86,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   manybody_flag = 0;
   offset_flag = 0;
   mix_flag = GEOMETRIC;
+  mixed_flag = 1;
   tail_flag = 0;
   etail = ptail = etail_ij = ptail_ij = 0.0;
   ncoultablebits = 12;
@@ -250,10 +252,12 @@ void Pair::init()
 
   cutforce = 0.0;
   etail = ptail = 0.0;
+  mixed_flag = 1;
   double cut;
 
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
+      if ((i != j) && setflag[i][j]) mixed_flag = 0;
       cut = init_one(i,j);
       cutsq[i][j] = cutsq[j][i] = cut*cut;
       cutforce = MAX(cutforce,cut);

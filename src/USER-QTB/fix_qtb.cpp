@@ -70,7 +70,8 @@ FixQTB::FixQTB(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"damp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qtb command");
       t_period = force->numeric(FLERR,arg[iarg+1]);
-      if (t_period <= 0.0) error->all(FLERR,"Fix qtb damp must be > 0.0"); fric_coef = 1/t_period;
+      if (t_period <= 0.0) error->all(FLERR,"Fix qtb damp must be > 0.0");
+      fric_coef = 1/t_period;
       iarg += 2;
     } else if (strcmp(arg[iarg],"seed") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qtb command");

@@ -92,8 +92,15 @@ void PairTersoffZBLOMP::read_file(char *file)
   // open file on proc 0
 
   if (comm->me == 0) {
-    PotentialFileReader reader(PairTersoff::lmp, file, "Tersoff");
+    PotentialFileReader reader(PairTersoff::lmp, file, "tersoff/zbl",
+                               unit_convert_flag);
     char * line;
+
+    // transparently convert units for supported conversions
+
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                            unit_convert);
 
     while((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
@@ -118,13 +125,16 @@ void PairTersoffZBLOMP::read_file(char *file)
           if (kname == elements[kelement]) break;
         if (kelement == nelements) continue;
 
-
         // load up parameter settings and error check their values
 
         if (nparams == maxparam) {
           maxparam += DELTA;
           params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
                                               "pair:params");
+          // make certain all addional allocated storage is initialized
+          // to avoid false positives when checking with valgrind
+
+          memset(params + nparams, 0, DELTA*sizeof(Param));
         }
 
         params[nparams].ielement = ielement;
@@ -149,6 +159,11 @@ void PairTersoffZBLOMP::read_file(char *file)
         params[nparams].ZBLcut      = values.next_double();
         params[nparams].ZBLexpscale = values.next_double();
         params[nparams].powermint = int(params[nparams].powerm);
+
+        if (unit_convert) {
+          params[nparams].biga *= conversion_factor;
+          params[nparams].bigb *= conversion_factor;
+        }
       } catch (TokenizerException & e) {
         error->one(FLERR, e.what());
       }

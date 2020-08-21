@@ -110,9 +110,9 @@ void BondHarmonicShift::allocate()
   allocated = 1;
   int n = atom->nbondtypes;
 
-  memory->create(k ,    n+1,"bond:k");
-  memory->create(r0,    n+1,"bond:r0");
-  memory->create(r1,    n+1,"bond:r1");
+  memory->create(k,n+1,"bond:k");
+  memory->create(r0,n+1,"bond:r0");
+  memory->create(r1,n+1,"bond:r1");
   memory->create(setflag,n+1,"bond:setflag");
 
   for (int i = 1; i <= n; i++) setflag[i] = 0;

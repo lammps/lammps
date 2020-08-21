@@ -81,14 +81,17 @@ void *smalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, const char *name )
   if (n <= 0) {
     snprintf(errmsg, 256, "Trying to allocate %ld bytes for array %s. "
               "returning NULL.", n, name);
-    error_ptr->one(FLERR,errmsg);
+    if (error_ptr) error_ptr->one(FLERR,errmsg);
+    else fputs(errmsg,stderr);
+
     return NULL;
   }
 
   ptr = malloc( n );
   if (ptr == NULL) {
     snprintf(errmsg, 256, "Failed to allocate %ld bytes for array %s", n, name);
-    error_ptr->one(FLERR,errmsg);
+    if (error_ptr) error_ptr->one(FLERR,errmsg);
+    else fputs(errmsg,stderr);
   }
 
   return ptr;
@@ -104,14 +107,16 @@ void *scalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, rc_bigint size, const c
   if (n <= 0) {
     snprintf(errmsg, 256, "Trying to allocate %ld elements for array %s. "
             "returning NULL.\n", n, name );
-    error_ptr->one(FLERR,errmsg);
+    if (error_ptr) error_ptr->one(FLERR,errmsg);
+    else fputs(errmsg,stderr);
     return NULL;
   }
 
   if (size <= 0) {
     snprintf(errmsg, 256, "Elements size for array %s is %ld. "
              "returning NULL", name, size );
-             error_ptr->one(FLERR,errmsg);
+    if (error_ptr) error_ptr->one(FLERR,errmsg);
+    else fputs(errmsg,stderr);
     return NULL;
   }
 
@@ -119,7 +124,8 @@ void *scalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, rc_bigint size, const c
   if (ptr == NULL) {
     char errmsg[256];
     snprintf(errmsg, 256, "Failed to allocate %ld bytes for array %s", n*size, name);
-    error_ptr->one(FLERR,errmsg);
+    if (error_ptr) error_ptr->one(FLERR,errmsg);
+    else fputs(errmsg,stderr);
   }
 
   return ptr;
@@ -132,7 +138,8 @@ void sfree( LAMMPS_NS::Error* error_ptr, void *ptr, const char *name )
   if (ptr == NULL) {
     char errmsg[256];
     snprintf(errmsg, 256, "Trying to free the already NULL pointer %s", name );
-    error_ptr->one(FLERR,errmsg);
+    if (error_ptr) error_ptr->one(FLERR,errmsg);
+    else fputs(errmsg,stderr);
     return;
   }
 

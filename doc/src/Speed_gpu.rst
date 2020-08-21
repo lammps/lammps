@@ -50,6 +50,10 @@ but this can be overridden using the device option of the :doc:`package <package
 command. run lammps/lib/gpu/ocl_get_devices to get a list of available
 platforms and devices with a suitable ICD available.
 
+To compute and use this package in HIP mode, you have to have the AMD ROCm
+software installed. Versions of ROCm older than 3.5 are currently deprecated
+by AMD.
+
 **Building LAMMPS with the GPU package:**
 
 See the :ref:`Build extras <gpu>` doc page for
@@ -88,7 +92,7 @@ GPUs/node to 1.
 
 Using the "-pk" switch explicitly allows for setting of the number of
 GPUs/node to use and additional options.  Its syntax is the same as
-same as the "package gpu" command.  See the :doc:`package <package>`
+the "package gpu" command.  See the :doc:`package <package>`
 command doc page for details, including the default values used for
 all its options if it is not specified.
 

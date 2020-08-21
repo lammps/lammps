@@ -49,6 +49,15 @@ new units.  And you must correctly convert all output from the new
 units to the old units when comparing to the original results.  That
 is often not simple to do.
 
+Potential or table files may have a ``UNITS:`` tag included in the
+first line indicating the unit style those files were created for.
+If the tag exists, its value will be compared to the chosen unit style
+and LAMMPS will stop with an error message if there is a mismatch.
+In some select cases and for specific combinations of unit styles,
+LAMMPS is capable of automatically converting potential parameters
+from a file. In those cases, a warning message signaling that an
+automatic conversion has happened is printed to the screen.
+
 ----------
 
 For style *lj*\ , all quantities are unitless.  Without loss of

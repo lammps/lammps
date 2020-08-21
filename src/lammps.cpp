@@ -335,7 +335,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         error->universe_all(FLERR,"Invalid command-line argument");
       delete [] suffix;
       delete [] suffix2;
-      suffix2 = NULL;
+      suffix = suffix2 = NULL;
       suffix_enable = 1;
       // hybrid option to set fall-back for suffix2
       if (strcmp(arg[iarg+1],"hybrid") == 0) {
@@ -667,15 +667,12 @@ LAMMPS::~LAMMPS()
 
   double totalclock = MPI_Wtime() - initclock;
   if ((me == 0) && (screen || logfile)) {
-    char outtime[128];
     int seconds = fmod(totalclock,60.0);
     totalclock  = (totalclock - seconds) / 60.0;
     int minutes = fmod(totalclock,60.0);
     int hours = (totalclock - minutes) / 60.0;
-    sprintf(outtime,"Total wall time: "
-            "%d:%02d:%02d\n", hours, minutes, seconds);
-    if (screen) fputs(outtime,screen);
-    if (logfile) fputs(outtime,logfile);
+    utils::logmesg(this,fmt::format("Total wall time: {}:{:02d}:{:02d}\n",
+                                    hours, minutes, seconds));
   }
 
   if (universe->nworlds == 1) {
@@ -857,9 +854,6 @@ void LAMMPS::destroy()
   delete neighbor;
   neighbor = NULL;
 
-  delete comm;
-  comm = NULL;
-
   delete force;
   force = NULL;
 
@@ -872,6 +866,10 @@ void LAMMPS::destroy()
   delete modify;          // modify must come after output, force, update
                           //   since they delete fixes
   modify = NULL;
+
+  delete comm;            // comm must come after modify
+                          //   since fix destructors may access comm
+  comm = NULL;
 
   delete domain;          // domain must come after modify
                           //   since fix destructors access domain

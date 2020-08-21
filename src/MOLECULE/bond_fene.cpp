@@ -83,7 +83,6 @@ void BondFENE::compute(int eflag, int vflag)
     // if r -> r0, then rlogarg < 0.0 which is an error
     // issue a warning and reset rlogarg = epsilon
     // if r > 2*r0 something serious is wrong, abort
-    printf("r = %g  r0 = %g  rlogarg = %g\n",sqrt(rsq),sqrt(r0sq),rlogarg);
 
     if (rlogarg < 0.1) {
       error->warning(FLERR,fmt::format("FENE bond too long: {} {} {} {}",

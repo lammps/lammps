@@ -96,6 +96,7 @@ FixStoreKIM::~FixStoreKIM()
     delete[] mu;
     model_units = NULL;
   }
+
   if (user_units) {
     char *uu = (char *)user_units;
     delete[] uu;
@@ -110,7 +111,6 @@ int FixStoreKIM::setmask()
   int mask = 0;
   return mask;
 }
-
 
 /* ---------------------------------------------------------------------- */
 

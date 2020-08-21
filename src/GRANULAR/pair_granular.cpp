@@ -21,6 +21,7 @@
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
+#include <string>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -97,13 +98,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   // this is so final order of Modify:fix will conform to input script
 
   fix_history = NULL;
-
-  char **fixarg = new char*[3];
-  fixarg[0] = (char *) "NEIGH_HISTORY_GRANULAR_DUMMY";
-  fixarg[1] = (char *) "all";
-  fixarg[2] = (char *) "DUMMY";
-  modify->add_fix(3,fixarg,1);
-  delete [] fixarg;
+  modify->add_fix("NEIGH_HISTORY_GRANULAR_DUMMY all DUMMY");
   fix_dummy = (FixDummy *) modify->fix[modify->nfix-1];
 }
 
@@ -1520,7 +1515,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     damp_normal = a*meff;
   } else if (damping_model[itype][jtype] == TSUJI) {
     damp_normal = sqrt(meff*knfac);
-  }
+  } else damp_normal = 0.0;
 
   damp_normal_prefactor = normal_coeffs[itype][jtype][1]*damp_normal;
   Fdamp = -damp_normal_prefactor*vnnr;

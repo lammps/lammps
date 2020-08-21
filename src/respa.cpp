@@ -299,22 +299,11 @@ void Respa::init()
 
   // create fix needed for storing atom-based respa level forces
   // will delete it at end of run
-
-  char **fixarg = new char*[5];
-  fixarg[0] = (char *) "RESPA";
-  fixarg[1] = (char *) "all";
-  fixarg[2] = (char *) "RESPA";
-  fixarg[3] = new char[8];
-  sprintf(fixarg[3],"%d",nlevels);
   // if supported, we also store torques on a per-level basis
-  if (atom->torque_flag) {
-    fixarg[4] = (char *) "torque";
-    modify->add_fix(5,fixarg);
-  } else {
-    modify->add_fix(4,fixarg);
-  }
-  delete [] fixarg[3];
-  delete [] fixarg;
+
+  std::string cmd = fmt::format("RESPA all RESPA {}",nlevels);
+  if (atom->torque_flag) modify->add_fix(cmd + " torque");
+  else modify->add_fix(cmd);
   fix_respa = (FixRespa *) modify->fix[modify->nfix-1];
 
   // insure respa inner/middle/outer is using Pair class that supports it

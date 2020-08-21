@@ -318,7 +318,7 @@ void FixRX::post_constructor()
           error->all(FLERR,"Exceeded the maximum number of species permitted in fix rx.");
         tmpspecies[nUniqueSpecies] = new char[strlen(word)+1];
         strcpy(tmpspecies[nUniqueSpecies],word);
-        tmpmaxstrlen = MAX(tmpmaxstrlen,strlen(word));
+        tmpmaxstrlen = MAX(tmpmaxstrlen,(int)strlen(word));
         nUniqueSpecies++;
       }
       word = strtok(NULL, " \t\n\r\f");
@@ -543,7 +543,7 @@ void FixRX::initSparse()
         if (SparseKinetics_enableIntegralReactions){
           sparseKinetics_inu[i][idx] = (int)sparseKinetics_nu[i][idx];
           if (isIntegral_i){
-            if (sparseKinetics_inu[i][idx] >= nu_bin.size())
+            if (sparseKinetics_inu[i][idx] >= (int)nu_bin.size())
                nu_bin.resize( sparseKinetics_inu[i][idx] );
 
             nu_bin[ sparseKinetics_inu[i][idx] ] ++;
@@ -561,7 +561,7 @@ void FixRX::initSparse()
         if (SparseKinetics_enableIntegralReactions){
           sparseKinetics_inu[i][idx] = (int) sparseKinetics_nu[i][idx];
           if (isIntegral_i){
-            if (sparseKinetics_inu[i][idx] >= nu_bin.size())
+            if (sparseKinetics_inu[i][idx] >= (int)nu_bin.size())
                nu_bin.resize( sparseKinetics_inu[i][idx] );
 
             nu_bin[ sparseKinetics_inu[i][idx] ] ++;

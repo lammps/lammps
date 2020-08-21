@@ -16,6 +16,13 @@
 import sys
 import os
 
+has_enchant = False
+try:
+    import enchant
+    has_enchant = True
+except:
+    pass
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -110,7 +117,7 @@ exclude_patterns = ['_build']
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = 'default'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
@@ -154,7 +161,13 @@ html_logo = 'lammps-logo.png'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = []
+html_static_path = ['_static']
+
+# These paths are either relative to html_static_path
+# or fully qualified paths (eg. https://...)
+html_css_files = [
+    'css/lammps.css',
+]
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
@@ -321,7 +334,7 @@ epub_author = 'The LAMMPS Developers'
 # configure spelling extension if present
 import importlib.util
 spelling_spec = importlib.util.find_spec("sphinxcontrib.spelling")
-if spelling_spec:
+if spelling_spec and has_enchant:
     extensions.append('sphinxcontrib.spelling')
 
     spelling_lang='en_US'

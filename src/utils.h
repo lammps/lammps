@@ -35,7 +35,7 @@ namespace LAMMPS_NS {
      *  \param pattern the search pattern, which may contain regexp markers
      *  \return true if the pattern matches, false if not
      */
-    bool strmatch(std::string text, std::string pattern);
+    bool strmatch(const std::string &text, const std::string &pattern);
 
     /** \brief Send message to screen and logfile, if available
      *
@@ -144,11 +144,18 @@ namespace LAMMPS_NS {
                     bool do_abort, LAMMPS *lmp);
 
     /**
+     * \brief Trim leading and trailing whitespace. Like TRIM() in Fortran.
+     * \param line string that should be trimmed
+     * \return new string without whitespace (string)
+     */
+    std::string trim(const std::string &line);
+
+    /**
      * \brief Trim anything from '#' onward
      * \param line string that should be trimmed
      * \return new string without comment (string)
      */
-    std::string trim_comment(const std::string & line);
+    std::string trim_comment(const std::string &line);
 
     /**
      * \brief Count words in string
@@ -210,6 +217,17 @@ namespace LAMMPS_NS {
      */
     bool is_double(const std::string & str);
 
+    /** \brief try to detect pathname from FILE pointer.
+     *
+     * Currently only supported on Linux, otherwise will report "(unknown)".
+     *
+     *  \param buf  storage buffer for pathname. output will be truncated if not large enough
+     *  \param len  size of storage buffer. output will be truncated to this length - 1
+     *  \param fp   FILE pointer structe from STDIO library for which we want to detect the name
+     *  \return pointer to the storage buffer, i.e. buf
+     */
+    const char *guesspath(char *buf, int len, FILE *fp);
+
     /**
      * \brief Strip off leading part of path, return just the filename
      * \param path file path
@@ -255,6 +273,32 @@ namespace LAMMPS_NS {
      * \return UNITS field if present
      */
     std::string get_potential_units(const std::string & path, const std::string & potential_name);
+
+    enum { NOCONVERT = 0, METAL2REAL = 1, REAL2METAL = 1<<1 };
+    enum { UNKNOWN = 0, ENERGY };
+
+    /**
+     * \brief Return bitmask of available conversion factors for a given propert
+     * \param property property to be converted
+     * \return bitmask indicating available conversions
+     */
+    int get_supported_conversions(const int property);
+
+    /**
+     * \brief Return unit conversion factor for given property and selected from/to units
+     * \param property property to be converted
+     * \param conversion constant indicating the conversion
+     * \return conversion factor
+     */
+    double get_conversion_factor(const int property, const int conversion);
+
+    /**
+     * \brief Convert a time string to seconds
+     *        The strings "off" and "unlimited" result in -1
+     * \param timespec a string in the following format: ([[HH:]MM:]SS)
+     * \return total in seconds
+     */
+    double timespec2seconds(const std::string & timespec);
   }
 }
 

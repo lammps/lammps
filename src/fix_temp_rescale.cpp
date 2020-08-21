@@ -13,6 +13,7 @@
 
 #include "fix_temp_rescale.h"
 #include <cstring>
+#include <string>
 #include <cmath>
 #include "atom.h"
 #include "force.h"
@@ -24,6 +25,7 @@
 #include "modify.h"
 #include "compute.h"
 #include "error.h"
+#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -42,6 +44,7 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   nevery = force->inumeric(FLERR,arg[3]);
   if (nevery <= 0) error->all(FLERR,"Illegal fix temp/rescale command");
 
+  restart_global = 1;
   scalar_flag = 1;
   global_freq = nevery;
   extscalar = 1;
@@ -66,17 +69,12 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   // create a new compute temp
   // id = fix-ID + temp, compute group = fix group
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
+  std::string cmd = id + std::string("_temp");
+  id_temp = new char[cmd.size()+1];
+  strcpy(id_temp,cmd.c_str());
 
-  char **newarg = new char*[6];
-  newarg[0] = id_temp;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "temp";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  cmd += fmt::format(" {} temp",group->names[igroup]);
+  modify->add_compute(cmd);
   tflag = 1;
 
   energy = 0.0;
@@ -239,6 +237,35 @@ void FixTempRescale::reset_target(double t_new)
 double FixTempRescale::compute_scalar()
 {
   return energy;
+}
+
+/* ----------------------------------------------------------------------
+   pack entire state of Fix into one write
+------------------------------------------------------------------------- */
+
+void FixTempRescale::write_restart(FILE *fp)
+{
+  int n = 0;
+  double list[1];
+  list[n++] = energy;
+
+  if (comm->me == 0) {
+    int size = n * sizeof(double);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(list,sizeof(double),n,fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restart the Fix
+------------------------------------------------------------------------- */
+
+void FixTempRescale::restart(char *buf)
+{
+  int n = 0;
+  double *list = (double *) buf;
+
+  energy = list[n++];
 }
 
 /* ----------------------------------------------------------------------

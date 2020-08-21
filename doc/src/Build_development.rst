@@ -159,8 +159,8 @@ A test run is then a a collection multiple individual test runs each
 with many comparisons to reference results based on template input
 files, individual command settings, relative error margins, and
 reference data stored in a YAML format file with ``.yaml``
-suffix. Currently the programs ``pair_style``, ``bond_style``, and
-``angle_style`` are implemented.  They will compare forces, energies and
+suffix. Currently the programs ``test_pair_style``, ``test_bond_style``, and
+``test_angle_style`` are implemented.  They will compare forces, energies and
 (global) stress for all atoms after a ``run 0`` calculation and after a
 few steps of MD with :doc:`fix nve <fix_nve>`, each in multiple variants
 with different settings and also for multiple accelerated styles. If a
@@ -172,7 +172,7 @@ Below is an example command and output:
 
 .. parsed-literal::
 
-   [tests]$ pair_style mol-pair-lj_cut.yaml
+   [tests]$ test_pair_style mol-pair-lj_cut.yaml
    [==========] Running 6 tests from 1 test suite.
    [----------] Global test environment set-up.
    [----------] 6 tests from PairStyle
@@ -258,6 +258,71 @@ and working.
      property is acceptable (it often is), or this may be an indication
      of mis-compiled code (or an undesired large loss of precision due
      to significant reordering of operations and thus less error cancellation).
+
+Unit tests for timestepping related fixes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A substantial subset of :doc:`fix styles <fix>` are invoked regularly
+during MD timestepping and manipulate per-atom properties like
+positions, velocities, and forces.  For those fix styles, testing can be
+done in a very similar fashion as for force fields and thus there is a
+test program `test_fix_timestep` that shares a lot of code, properties,
+and command line flags with the force field style testers described in
+the previous section.
+
+This tester will set up a small molecular system run with verlet run
+style for 4 MD steps, then write a binary restart and continue for
+another 4 MD steps. At this point coordinates and velocities are
+recorded and compared to reference data. Then the system is cleared,
+restarted and running the second 4 MD steps again and the data is
+compared to the same reference. That is followed by another restart
+after which per atom type masses are replaced with per-atom masses and
+the second 4 MD steps are repeated again and compared to the same
+reference.  Also global scalar and vector data of the fix is recorded
+and compared.  If the fix is a thermostat and thus the internal property
+``t_target`` can be extracted, then this is compared to the reference
+data.  The tests are repeated with the respa run style.
+
+If the fix has a multi-threaded version in the USER-OMP package, then
+the entire set of tests is repeated for that version as well.
+
+For this to work, some additional conditions have to be met by the
+YAML format test inputs.
+
+- The fix to be tested (and only this fix), should be listed in the
+  ``prerequisites:`` section
+- The fix to be tested must be specified in the ``post_commands:``
+  section with the fix-ID ``test``.  This section may contain other
+  commands and other fixes (e.g. an instance of fix nve for testing
+  a thermostat or force manipulation fix)
+- For fixes that can tally contributions to the global virial, the
+  line ``fix_modify test virial yes`` should be included in the
+  ``post_commands:`` section of the test input.
+- For thermostat fixes the target temperature should be ramped from
+  an arbitrary value (e.g. 50K) to a pre-defined target temperature
+  entered as ``${t_target}``.
+- For fixes that have thermostatting support included, but do not
+  have it enabled in the input (e.g. fix rigid with default settings),
+  the ``post_commands:`` section should contain the line
+  ``variable t_target delete`` to disable the target temperature ramp
+  check to avoid false positives.
+
+Use custom linker for faster link times when ENABLE_TESTING is active
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When compiling LAMMPS with enabled tests, most test executables will
+need to be linked against the LAMMPS library.  Since this can be a very
+large library with many C++ objects when many packages are enabled, link
+times can become very long on machines that use the GNU BFD linker (e.g.
+Linux systems).  Alternatives like the ``lld`` linker of the LLVM project
+or the ``gold`` linker available with GNU binutils can speed up this step
+substantially. CMake will by default test if any of the two can be
+enabled and use it when ``ENABLE_TESTING`` is active.  It can also be
+selected manually through the ``CMAKE_CUSTOM_LINKER`` CMake variable.
+Allowed values are ``lld``, ``gold``, ``bfd``, or ``default``.  The
+``default`` option will use the system default linker otherwise, the
+linker is chosen explicitly.  This option is only available for the
+GNU or Clang C++ compiler.
 
 Tests for other components and utility functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

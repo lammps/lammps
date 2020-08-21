@@ -45,6 +45,7 @@ PairVashishta::PairVashishta(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
   nelements = 0;
   elements = NULL;
@@ -361,8 +362,14 @@ void PairVashishta::read_file(char *file)
   // open file on proc 0
 
   if (comm->me == 0) {
-    PotentialFileReader reader(lmp, file, "Vashishta");
+    PotentialFileReader reader(lmp, file, "vashishta", unit_convert_flag);
     char * line;
+
+    // transparently convert units for supported conversions
+
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                            unit_convert);
 
     while((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
@@ -393,6 +400,11 @@ void PairVashishta::read_file(char *file)
           maxparam += DELTA;
           params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
                                               "pair:params");
+
+          // make certain all addional allocated storage is initialized
+          // to avoid false positives when checking with valgrind
+
+          memset(params + nparams, 0, DELTA*sizeof(Param));
         }
 
         params[nparams].ielement = ielement;
@@ -412,6 +424,14 @@ void PairVashishta::read_file(char *file)
         params[nparams].r0       = values.next_double();
         params[nparams].bigc     = values.next_double();
         params[nparams].costheta = values.next_double();
+
+        if (unit_convert) {
+          params[nparams].bigh *= conversion_factor;
+          params[nparams].bigd *= conversion_factor;
+          params[nparams].bigw *= conversion_factor;
+          params[nparams].bigb *= conversion_factor;
+        }
+
       } catch (TokenizerException & e) {
         error->one(FLERR, e.what());
       }

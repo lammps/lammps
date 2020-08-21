@@ -39,8 +39,9 @@
 #include "reaxc_tool_box.h"
 
 #include "error.h"
+#include "fmt/format.h"
 
-int Init_System( reax_system *system, control_params *control, char * /*msg*/ )
+int Init_System(reax_system *system, control_params *control, char * /*msg*/)
 {
   int i;
   reax_atom *atom;
@@ -51,32 +52,32 @@ int Init_System( reax_system *system, control_params *control, char * /*msg*/ )
 
   // determine the local and total capacity
 
-  system->local_cap = MAX( (int)(system->n * safezone), mincap);
-  system->total_cap = MAX( (int)(system->N * safezone), mincap);
+  system->local_cap = MAX((int)(system->n * safezone), mincap);
+  system->total_cap = MAX((int)(system->N * safezone), mincap);
 
   /* estimate numH and Hcap */
   system->numH = 0;
   if (control->hbond_cut > 0)
-    for( i = 0; i < system->n; ++i ) {
+    for(i = 0; i < system->n; ++i) {
       atom = &(system->my_atoms[i]);
       if (system->reax_param.sbp[ atom->type ].p_hbond == 1 && atom->type >= 0)
         atom->Hindex = system->numH++;
       else atom->Hindex = -1;
     }
-  system->Hcap = (int)(MAX( system->numH * saferzone, mincap ));
+  system->Hcap = (int)(MAX(system->numH * saferzone, mincap));
 
   return SUCCESS;
 }
 
 
-int Init_Simulation_Data( reax_system *system, control_params *control,
-                          simulation_data *data, char * /*msg*/ )
+int Init_Simulation_Data(reax_system *system, control_params *control,
+                          simulation_data *data, char * /*msg*/)
 {
-  Reset_Simulation_Data( data, control->virial );
+  Reset_Simulation_Data(data, control->virial);
 
   /* initialize the timer(s) */
   if (system->my_rank == MASTER_NODE) {
-    data->timing.start = Get_Time( );
+    data->timing.start = Get_Time();
   }
 
   data->step = data->prev_steps = 0;
@@ -84,81 +85,82 @@ int Init_Simulation_Data( reax_system *system, control_params *control,
   return SUCCESS;
 }
 
-void Init_Taper( control_params *control,  storage *workspace )
+void Init_Taper(control_params *control,  storage *workspace)
 {
   double d1, d7;
   double swa, swa2, swa3;
   double swb, swb2, swb3;
+  LAMMPS_NS::Error *error = control->error_ptr;
 
   swa = control->nonb_low;
   swb = control->nonb_cut;
 
-  if (fabs( swa ) > 0.01 && control->me == 0)
-    control->error_ptr->warning( FLERR, "Non-zero lower Taper-radius cutoff" );
+  if (fabs(swa) > 0.01 && control->me == 0)
+    error->warning(FLERR, "Non-zero lower Taper-radius cutoff");
 
   if (swb < 0) {
-    control->error_ptr->all(FLERR,"Negative upper Taper-radius cutoff");
+    error->all(FLERR,"Negative upper Taper-radius cutoff");
   }
-  else if( swb < 5 && control->me == 0) {
+  else if(swb < 5 && control->me == 0) {
     char errmsg[256];
-    snprintf(errmsg, 256, "Very low Taper-radius cutoff: %f", swb );
-    control->error_ptr->warning( FLERR, errmsg );
+    snprintf(errmsg, 256, "Very low Taper-radius cutoff: %f", swb);
+    error->warning(FLERR, errmsg);
   }
 
   d1 = swb - swa;
-  d7 = pow( d1, 7.0 );
-  swa2 = SQR( swa );
-  swa3 = CUBE( swa );
-  swb2 = SQR( swb );
-  swb3 = CUBE( swb );
+  d7 = pow(d1, 7.0);
+  swa2 = SQR(swa);
+  swa3 = CUBE(swa);
+  swb2 = SQR(swb);
+  swb3 = CUBE(swb);
 
   workspace->Tap[7] =  20.0 / d7;
   workspace->Tap[6] = -70.0 * (swa + swb) / d7;
   workspace->Tap[5] =  84.0 * (swa2 + 3.0*swa*swb + swb2) / d7;
-  workspace->Tap[4] = -35.0 * (swa3 + 9.0*swa2*swb + 9.0*swa*swb2 + swb3 ) / d7;
-  workspace->Tap[3] = 140.0 * (swa3*swb + 3.0*swa2*swb2 + swa*swb3 ) / d7;
+  workspace->Tap[4] = -35.0 * (swa3 + 9.0*swa2*swb + 9.0*swa*swb2 + swb3) / d7;
+  workspace->Tap[3] = 140.0 * (swa3*swb + 3.0*swa2*swb2 + swa*swb3) / d7;
   workspace->Tap[2] =-210.0 * (swa3*swb2 + swa2*swb3) / d7;
   workspace->Tap[1] = 140.0 * swa3 * swb3 / d7;
   workspace->Tap[0] = (-35.0*swa3*swb2*swb2 + 21.0*swa2*swb3*swb2 -
-                     7.0*swa*swb3*swb3 + swb3*swb3*swb ) / d7;
+                     7.0*swa*swb3*swb3 + swb3*swb3*swb) / d7;
 }
 
 
-int Init_Workspace( reax_system *system, control_params *control,
-                    storage *workspace, char *msg )
+int Init_Workspace(reax_system *system, control_params *control,
+                    storage *workspace, char *msg)
 {
   int ret;
 
-  ret = Allocate_Workspace( system, control, workspace,
-                            system->local_cap, system->total_cap, msg );
+  ret = Allocate_Workspace(system, control, workspace,
+                            system->local_cap, system->total_cap, msg);
   if (ret != SUCCESS)
     return ret;
 
-  memset( &(workspace->realloc), 0, sizeof(reallocate_data) );
-  Reset_Workspace( system, workspace );
+  memset(&(workspace->realloc), 0, sizeof(reallocate_data));
+  Reset_Workspace(system, workspace);
 
   /* Initialize the Taper function */
-  Init_Taper( control, workspace);
+  Init_Taper(control, workspace);
 
   return SUCCESS;
 }
 
 
 /************** setup communication data structures  **************/
-int Init_MPI_Datatypes( reax_system *system, storage * /*workspace*/,
-                        mpi_datatypes *mpi_data, MPI_Comm comm, char * /*msg*/ )
+int Init_MPI_Datatypes(reax_system *system, storage * /*workspace*/,
+                        mpi_datatypes *mpi_data, MPI_Comm comm, char * /*msg*/)
 {
 
   /* setup the world */
   mpi_data->world = comm;
-  MPI_Comm_size( comm, &(system->wsize) );
+  MPI_Comm_size(comm, &(system->wsize));
 
   return SUCCESS;
 }
 
-int  Init_Lists( reax_system *system, control_params *control,
+int  Init_Lists(reax_system *system, control_params *control,
                  simulation_data * /*data*/, storage * /*workspace*/, reax_list **lists,
-                 mpi_datatypes * /*mpi_data*/, char * /*msg*/ )
+                 mpi_datatypes * /*mpi_data*/, char * /*msg*/)
 {
   int i, total_hbonds, total_bonds, bond_cap, num_3body, cap_3body, Htop;
   int *hb_top, *bond_top;
@@ -166,94 +168,93 @@ int  Init_Lists( reax_system *system, control_params *control,
   int mincap = system->mincap;
   double safezone = system->safezone;
   double saferzone = system->saferzone;
+  LAMMPS_NS::Error *error = system->error_ptr;
 
-  bond_top = (int*) calloc( system->total_cap, sizeof(int) );
-  hb_top = (int*) calloc( system->local_cap, sizeof(int) );
-  Estimate_Storages( system, control, lists,
+  bond_top = (int*) calloc(system->total_cap, sizeof(int));
+  hb_top = (int*) calloc(system->local_cap, sizeof(int));
+  Estimate_Storages(system, control, lists,
                      &Htop, hb_top, bond_top, &num_3body);
 
   if (control->hbond_cut > 0) {
     /* init H indexes */
     total_hbonds = 0;
-    for( i = 0; i < system->n; ++i ) {
+    for(i = 0; i < system->n; ++i) {
       system->my_atoms[i].num_hbonds = hb_top[i];
       total_hbonds += hb_top[i];
     }
     total_hbonds = (int)(MAX(total_hbonds*saferzone,mincap*system->minhbonds));
 
-    if( !Make_List( system->Hcap, total_hbonds, TYP_HBOND,
-                    *lists+HBONDS ) ) {
-      control->error_ptr->one(FLERR, "Not enough space for hbonds list.");
-    }
+    if(!Make_List(system->Hcap, total_hbonds, TYP_HBOND,
+                    *lists+HBONDS))
+      error->one(FLERR, "Not enough space for hbonds list.");
+
     (*lists+HBONDS)->error_ptr = system->error_ptr;
   }
 
   total_bonds = 0;
-  for( i = 0; i < system->N; ++i ) {
+  for(i = 0; i < system->N; ++i) {
     system->my_atoms[i].num_bonds = bond_top[i];
     total_bonds += bond_top[i];
   }
-  bond_cap = (int)(MAX( total_bonds*safezone, mincap*MIN_BONDS ));
+  bond_cap = (int)(MAX(total_bonds*safezone, mincap*MIN_BONDS));
 
-  if( !Make_List( system->total_cap, bond_cap, TYP_BOND,
-                  *lists+BONDS ) ) {
-    control->error_ptr->one(FLERR, "Not enough space for bonds list.");
-  }
+  if(!Make_List(system->total_cap, bond_cap, TYP_BOND,
+                  *lists+BONDS))
+    error->one(FLERR, "Not enough space for bonds list.");
+
   (*lists+BONDS)->error_ptr = system->error_ptr;
 
   /* 3bodies list */
-  cap_3body = (int)(MAX( num_3body*safezone, MIN_3BODIES ));
-  if( !Make_List( bond_cap, cap_3body, TYP_THREE_BODY,
-                  *lists+THREE_BODIES ) ){
-    control->error_ptr->one(FLERR,"Problem in initializing angles list.");
-  }
+  cap_3body = (int)(MAX(num_3body*safezone, MIN_3BODIES));
+  if(!Make_List(bond_cap, cap_3body, TYP_THREE_BODY,
+                  *lists+THREE_BODIES))
+    error->one(FLERR,"Problem in initializing angles list.");
+
   (*lists+THREE_BODIES)->error_ptr = system->error_ptr;
 
-  free( hb_top );
-  free( bond_top );
+  free(hb_top);
+  free(bond_top);
 
   return SUCCESS;
 }
 
-void Initialize( reax_system *system, control_params *control,
+void Initialize(reax_system *system, control_params *control,
                  simulation_data *data, storage *workspace,
                  reax_list **lists, output_controls *out_control,
-                 mpi_datatypes *mpi_data, MPI_Comm comm )
+                 mpi_datatypes *mpi_data, MPI_Comm comm)
 {
   char msg[MAX_STR];
+  LAMMPS_NS::Error *error = system->error_ptr;
 
-  if (Init_MPI_Datatypes(system, workspace, mpi_data, comm, msg) == FAILURE) {
-    control->error_ptr->one(FLERR,"Could not create datatypes");
-  }
+  if (Init_MPI_Datatypes(system,workspace,mpi_data,comm,msg) == FAILURE)
+    error->one(FLERR,"init_mpi_datatypes: could not create datatypes. "
+               "Mpi_data could not be initialized! Terminating.");
 
-  if (Init_System(system, control, msg) == FAILURE) {
-    control->error_ptr->one(FLERR,"System could not be initialized");
-  }
+  if (Init_System(system,control,msg) == FAILURE)
+    error->one(FLERR,fmt::format("Error on: {}. System could not be "
+                                  "initialized! Terminating.",msg));
 
-  if (Init_Simulation_Data( system, control, data, msg ) == FAILURE) {
-    control->error_ptr->one(FLERR,"Sim_data could not be initialized");
-  }
+  if (Init_Simulation_Data( system,control,data,msg) == FAILURE)
+    error->one(FLERR,fmt::format("Error on: {}. Sim_data could not be "
+                                  "initialized! Terminating.",msg));
 
-  if (Init_Workspace( system, control, workspace, msg ) ==
-      FAILURE) {
-    control->error_ptr->one(FLERR,"Workspace could not be initialized");
-  }
+  if (Init_Workspace( system,control,workspace,msg) == FAILURE)
+    error->one(FLERR,"init_workspace: not enough memory. "
+               "Workspace could not be initialized. Terminating.");
 
-  if (Init_Lists( system, control, data, workspace, lists, mpi_data, msg ) ==
-      FAILURE) {
-    control->error_ptr->one(FLERR,"Lists could not be initialized");
-    }
+  if (Init_Lists(system, control, data, workspace, lists, mpi_data, msg) ==FAILURE)
+    error->one(FLERR,fmt::format("Error on: {}. System could not be "
+                                  "initialized. Terminating.",msg));
 
-  if (Init_Output_Files(system,control,out_control,mpi_data,msg)== FAILURE) {
-    control->error_ptr->one(FLERR,"Could not open output files");
-  }
+  if (Init_Output_Files(system,control,out_control,mpi_data,msg)== FAILURE)
+    error->one(FLERR,fmt::format("Error on: {}. Could not open output files! "
+                                  "Terminating.",msg));
 
-  if (control->tabulate) {
-    if (Init_Lookup_Tables( system, control, workspace, mpi_data, msg ) == FAILURE) {
-    control->error_ptr->one(FLERR,"Lookup table could not be created");
-    }
-  }
+  if (control->tabulate)
+    if (Init_Lookup_Tables(system,control,workspace,mpi_data,msg) == FAILURE)
+      error->one(FLERR,fmt::format("Error on: {}. Could not create lookup "
+                                    "table. Terminating.",msg));
 
 
-  Init_Force_Functions( control );
+  Init_Force_Functions(control);
 }

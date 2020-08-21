@@ -1,5 +1,5 @@
 BootStrap: docker
-From: rocm/dev-ubuntu-18.04
+From: ubuntu:18.04
 
 %environment
     export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
@@ -8,7 +8,24 @@ From: rocm/dev-ubuntu-18.04
     export DEBIAN_FRONTEND=noninteractive
     apt-get update
     apt-get upgrade --no-install-recommends -y
+
+    apt-get install -y --no-install-recommends curl libnuma-dev gnupg
+
+    curl -sL http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | apt-key add -
+    printf "deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ xenial main" > /etc/apt/sources.list.d/rocm.list
+
+    apt-get update
+    apt-get install --no-install-recommends -y \
+        kmod \
+        file \
+        sudo \
+        libelf1 \
+        rocm-dev \
+        rocm-libs \
+        build-essential
+
     apt-get install --no-install-recommends -y software-properties-common
+
     apt-get install --no-install-recommends -y \
         bc \
         build-essential \
@@ -54,7 +71,6 @@ From: rocm/dev-ubuntu-18.04
         python3-pkg-resources \
         python3-setuptools \
         python3-virtualenv \
-        rocm-libs \
         rsync \
         ssh \
         vim-nox \
@@ -65,11 +81,12 @@ From: rocm/dev-ubuntu-18.04
         valgrind \
         gdb
 
+
     export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
-    git clone -b master-rocm-3.3 https://github.com/ROCmSoftwarePlatform/hipCUB.git
+    git clone -b master-rocm-3.5 https://github.com/ROCmSoftwarePlatform/hipCUB.git
     mkdir hipCUB/build
     cd hipCUB/build
-    CXX=hcc cmake -D BUILD_TEST=off ..
+    CXX=hipcc cmake -D BUILD_TEST=off ..
     make -j4
     make package
     make install

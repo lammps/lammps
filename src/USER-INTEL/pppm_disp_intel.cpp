@@ -376,7 +376,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
     }
 
     gc6->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO_G,
-                             gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                             gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     brick2fft(nxlo_in_6, nylo_in_6, nzlo_in_6, nxhi_in_6, nyhi_in_6, nzhi_in_6,
               density_brick_g, density_fft_g, work1_6,remap_6);
@@ -391,7 +391,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
                  v2_brick_g, v3_brick_g, v4_brick_g, v5_brick_g);
 
       gc6->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD_G,
-                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                               gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
         fieldforce_g_ad<float,double>(fix->get_mixed_buffers());
@@ -403,7 +403,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
 
       if (vflag_atom)
         gc6->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM_G,
-                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                                 gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     } else {
       poisson_ik(work1_6, work2_6, density_fft_g, fft1_6, fft2_6,
@@ -416,7 +416,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
                  v1_brick_g, v2_brick_g, v3_brick_g, v4_brick_g, v5_brick_g);
 
       gc6->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK_G,
-                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                               gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
         fieldforce_g_ik<float,double>(fix->get_mixed_buffers());
@@ -428,7 +428,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
 
       if (evflag_atom)
         gc6->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM_G,
-                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                                 gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
     }
 
     if (evflag_atom) fieldforce_g_peratom();
@@ -487,7 +487,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
                     v2_brick_a4, v3_brick_a4, v4_brick_a4, v5_brick_a4);
 
       gc6->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_AD_A,
-                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                               gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
         fieldforce_a_ad<float,double>(fix->get_mixed_buffers());
@@ -499,7 +499,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
 
       if (evflag_atom)
         gc6->forward_comm_kspace(this,42,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM_A,
-                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                                 gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     }  else {
       poisson_ik(work1_6, work2_6, density_fft_a3, fft1_6, fft2_6,
@@ -530,7 +530,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
                     v3_brick_a4, v4_brick_a4, v5_brick_a4);
 
       gc6->forward_comm_kspace(this,18,sizeof(FFT_SCALAR),FORWARD_IK_A,
-                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                               gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
         fieldforce_a_ik<float,double>(fix->get_mixed_buffers());
@@ -542,7 +542,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
 
       if (evflag_atom)
         gc6->forward_comm_kspace(this,49,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM_A,
-                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                                 gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
     }
 
     if (evflag_atom) fieldforce_a_peratom();
@@ -592,7 +592,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
       }
 
       gc6->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD_NONE,
-                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                               gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
         fieldforce_none_ad<float,double>(fix->get_mixed_buffers());
@@ -604,7 +604,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
 
       if (vflag_atom)
         gc6->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM_NONE,
-                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                                 gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     } else {
       int n = 0;
@@ -621,7 +621,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
       }
 
       gc6->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK_NONE,
-                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                               gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
         fieldforce_none_ik<float,double>(fix->get_mixed_buffers());
@@ -633,7 +633,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
 
       if (evflag_atom)
         gc6->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM_NONE,
-                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                                 gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
     }
 
     if (evflag_atom) fieldforce_none_peratom();
@@ -674,7 +674,7 @@ void PPPMDispIntel::compute(int eflag, int vflag)
     for (i = 0; i < 6; i++) virial[i] = 0.5*qscale*volume*virial_all[i];
     MPI_Allreduce(virial_6,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
     for (i = 0; i < 6; i++) virial[i] += 0.5*volume*virial_all[i];
-    if (function[1]+function[2]+function[3]){
+    if (function[1]+function[2]+function[3]) {
       double a =  MY_PI*MY_PIS/(6*volume)*pow(g_ewald_6,3)*csumij;
       virial[0] -= a;
       virial[1] -= a;
@@ -2983,69 +2983,73 @@ void PPPMDispIntel::fieldforce_none_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 
 void PPPMDispIntel::precompute_rho()
 {
-
   half_rho_scale = (rho_points - 1.)/2.;
   half_rho_scale_plus = half_rho_scale + 0.5;
 
-  for (int i = 0; i < rho_points; i++) {
-    FFT_SCALAR dx = -1. + 1./half_rho_scale * (FFT_SCALAR)i;
-    #if defined(LMP_SIMD_COMPILER)
-    #pragma simd
-    #endif
-    for (int k=nlower; k<=nupper;k++){
-      FFT_SCALAR r1 = ZEROF;
-      for(int l=order-1; l>=0; l--){
-        r1 = rho_coeff[l][k] + r1*dx;
-      }
-      rho_lookup[i][k-nlower] = r1;
-    }
-    for (int k = nupper-nlower+1; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
-      rho_lookup[i][k] = 0;
-    }
-    if (differentiation_flag == 1) {
+  if (function[0]) {
+    for (int i = 0; i < rho_points; i++) {
+      FFT_SCALAR dx = -1. + 1./half_rho_scale * (FFT_SCALAR)i;
       #if defined(LMP_SIMD_COMPILER)
       #pragma simd
       #endif
-      for(int k=nlower; k<=nupper;k++){
+      for (int k=nlower; k<=nupper;k++){
         FFT_SCALAR r1 = ZEROF;
-        for(int l=order-2; l>=0; l--){
-          r1 = drho_coeff[l][k] + r1*dx;
+        for(int l=order-1; l>=0; l--){
+          r1 = rho_coeff[l][k] + r1*dx;
         }
-        drho_lookup[i][k-nlower] = r1;
+        rho_lookup[i][k-nlower] = r1;
       }
       for (int k = nupper-nlower+1; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
-        drho_lookup[i][k] = 0;
+        rho_lookup[i][k] = 0;
+      }
+      if (differentiation_flag == 1) {
+        #if defined(LMP_SIMD_COMPILER)
+        #pragma simd
+        #endif
+        for(int k=nlower; k<=nupper;k++){
+          FFT_SCALAR r1 = ZEROF;
+          for(int l=order-2; l>=0; l--){
+            r1 = drho_coeff[l][k] + r1*dx;
+          }
+          drho_lookup[i][k-nlower] = r1;
+        }
+        for (int k = nupper-nlower+1; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
+          drho_lookup[i][k] = 0;
+        }
       }
     }
   }
-  for (int i = 0; i < rho_points; i++) {
-    FFT_SCALAR dx = -1. + 1./half_rho_scale * (FFT_SCALAR)i;
-    #if defined(LMP_SIMD_COMPILER)
-    #pragma simd
-    #endif
-    for (int k=nlower_6; k<=nupper_6;k++){
-      FFT_SCALAR r1 = ZEROF;
-      for(int l=order_6-1; l>=0; l--){
-        r1 = rho_coeff_6[l][k] + r1*dx;
-      }
-      rho6_lookup[i][k-nlower_6] = r1;
-    }
-    for (int k = nupper_6-nlower_6+1; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
-      rho6_lookup[i][k] = 0;
-    }
-    if (differentiation_flag == 1) {
+
+  if (function[1]+function[2]+function[3]) {
+    for (int i = 0; i < rho_points; i++) {
+      FFT_SCALAR dx = -1. + 1./half_rho_scale * (FFT_SCALAR)i;
       #if defined(LMP_SIMD_COMPILER)
       #pragma simd
       #endif
-      for(int k=nlower_6; k<=nupper_6;k++){
+      for (int k=nlower_6; k<=nupper_6;k++){
         FFT_SCALAR r1 = ZEROF;
-        for(int l=order_6-2; l>=0; l--){
-          r1 = drho_coeff_6[l][k] + r1*dx;
+        for(int l=order_6-1; l>=0; l--){
+          r1 = rho_coeff_6[l][k] + r1*dx;
         }
-        drho6_lookup[i][k-nlower_6] = r1;
+        rho6_lookup[i][k-nlower_6] = r1;
       }
       for (int k = nupper_6-nlower_6+1; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
-        drho6_lookup[i][k] = 0;
+        rho6_lookup[i][k] = 0;
+      }
+      if (differentiation_flag == 1) {
+        #if defined(LMP_SIMD_COMPILER)
+        #pragma simd
+        #endif
+        for(int k=nlower_6; k<=nupper_6;k++){
+          FFT_SCALAR r1 = ZEROF;
+          for(int l=order_6-2; l>=0; l--){
+            r1 = drho_coeff_6[l][k] + r1*dx;
+          }
+          drho6_lookup[i][k-nlower_6] = r1;
+        }
+        for (int k = nupper_6-nlower_6+1; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
+          drho6_lookup[i][k] = 0;
+        }
       }
     }
   }

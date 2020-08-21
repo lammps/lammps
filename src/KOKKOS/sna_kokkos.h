@@ -77,6 +77,7 @@ inline
   double memory_usage();
 
   int ncoeff;
+  int host_flag;
 
   // functions for bispectrum coefficients, GPU only
   KOKKOS_INLINE_FUNCTION

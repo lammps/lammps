@@ -31,6 +31,9 @@ SNAKokkos<DeviceType>::SNAKokkos(double rfac0_in,
          int twojmax_in, double rmin0_in, int switch_flag_in, int bzero_flag_in,
          int chem_flag_in, int bnorm_flag_in, int wselfall_flag_in, int nelements_in)
 {
+  LAMMPS_NS::ExecutionSpace execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  host_flag = (execution_space == LAMMPS_NS::Host);
+
   wself = 1.0;
 
   rfac0 = rfac0_in;
@@ -267,7 +270,7 @@ void SNAKokkos<DeviceType>::grow_rij(int newnatom, int newnmax)
   dedr = t_sna_3d(Kokkos::ViewAllocateWithoutInitializing("sna:dedr"),natom,nmax,3);
 
 #ifdef LMP_KOKKOS_GPU
-  if (std::is_same<DeviceType,Kokkos::Cuda>::value) {
+  if (!host_flag) {
 
     cayleyklein = t_sna_2ckp(Kokkos::ViewAllocateWithoutInitializing("sna:cayleyklein"), natom, nmax);
     ulisttot = t_sna_3c_ll(Kokkos::ViewAllocateWithoutInitializing("sna:ulisttot"),1,1,1); // dummy allocation
@@ -2161,7 +2164,7 @@ double SNAKokkos<DeviceType>::memory_usage()
   bytes += idxcg_max * sizeof(double);                   // cglist
 
 #ifdef LMP_KOKKOS_GPU
-  if (std::is_same<DeviceType,Kokkos::Cuda>::value) {
+  if (!host_flag) {
     
     auto natom_pad = (natom+32-1)/32;
 
